@@ -151,6 +151,23 @@
     </shadow>
   </value>
 </block>
+<block type="rotate_model_xyz">
+<value name="X">
+  <shadow type="math_number">
+    <field name="NUM">0</field>
+  </shadow>
+  </value>
+  <value name="Y">
+  <shadow type="math_number">
+    <field name="NUM">45</field>
+  </shadow>
+  </value>
+  <value name="Z">
+  <shadow type="math_number">
+    <field name="NUM">0</field>
+  </shadow>
+  </value>
+</block>
 </category>
 </xml>
             `
@@ -402,7 +419,47 @@
       }
     };
 
- 
+    Blockly.Blocks['rotate_model_xyz'] = {
+      init: function () {
+        this.jsonInit({
+          "type": "rotate_model_xyz",
+          "message0": "rotate %1 by x: %2 y: %3 z: %4",
+          "args0": [
+            {
+              "type": "field_variable",
+              "name": "MODEL",
+              "variable": "mesh"  // Default variable name
+            },
+            {
+              "type": "input_value",
+              "name": "X",
+              "check": "Number",
+              "align": "RIGHT"
+            },
+            {
+              "type": "input_value",
+              "name": "Y",
+              "check": "Number",
+              "align": "RIGHT"
+            },
+            {
+              "type": "input_value",
+              "name": "Z",
+              "check": "Number",
+              "align": "RIGHT"
+            }
+          ],
+          "previousStatement": null,
+          "nextStatement": null,
+          "colour": categoryColours["Motion"],
+          "inputsInline": true,
+          "tooltip": "Rotates the model based on its current rotation plus additional x, y, z values.",
+          "helpUrl": ""
+        });
+      }
+    };
+
+
     function generateUUID() {
       return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
         var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
@@ -495,15 +552,18 @@
 
         const boxShape = new BABYLON.PhysicsShapeBox(
           new BABYLON.Vector3(0, 0, 0),
-          BABYLON.Quaternion.Identity(),
+          new BABYLON.Quaternion(0, 0, 0, 1), 
           new BABYLON.Vector3(${width}, ${height}, ${depth}),
           scene
         );
+
+        boxBody.setMassProperties({inertia: BABYLON.Vector3.ZeroReadOnly});
         
         boxBody.shape = boxShape;
         boxBody.setMassProperties({mass: 1, restitution: 0.5});
-        boxBody.setAngularDamping(100);
-        boxBody.setLinearDamping(10);
+        
+        //boxBody.setAngularDamping(1000);
+        //boxBody.setLinearDamping(10);
         newBox.physics = boxBody;
 
         const material = new BABYLON.StandardMaterial("boxMaterial", scene);
@@ -564,23 +624,55 @@
 
     Blockly.JavaScript.forBlock['move_by_vector'] = function (block) {
 
-      var modelName = Blockly.JavaScript.nameDB_.getName(block.getFieldValue('BLOCK_NAME'), Blockly.Names.NameType.VARIABLE);
+      const modelName = Blockly.JavaScript.nameDB_.getName(block.getFieldValue('BLOCK_NAME'), Blockly.Names.NameType.VARIABLE);
 
       const x = getFieldValue(block, 'X', '0');
       const y = getFieldValue(block, 'Y', '0');
       const z = getFieldValue(block, 'Z', '0');
 
-      var code = `whenModelReady(${modelName}, function(mesh) {
+      return `whenModelReady(${modelName}, function(mesh) {
       if (mesh) {\n` +
         `  
       mesh.position.addInPlace(new BABYLON.Vector3(${x}, ${y}, ${z}));
+      mesh.physics.disablePreStep = false;
+      mesh.physics.setTargetTransform(mesh.position, mesh.rotationQuaternion);
+
+      // Optionally, force an immediate update if needed
+      //mesh.physicsImpostor.forceUpdate();
       }
       else{
         console.log("Model not loaded:", ${modelName});
       }
 
       });\n`;
-      return code;
+    };
+
+
+    Blockly.JavaScript.forBlock['rotate_model_xyz'] = function (block) {
+      const meshName = Blockly.JavaScript.nameDB_.getName(block.getFieldValue('MODEL'), Blockly.Names.NameType.VARIABLE);
+
+      const x = getFieldValue(block, 'X', '0');
+      const y = getFieldValue(block, 'Y', '0');
+      const z = getFieldValue(block, 'Z', '0');
+
+      return `
+      whenModelReady(${meshName}, function(mesh) {
+      if (mesh) {
+
+if(mesh.physics.getMotionType() != BABYLON.PhysicsMotionType.DYNAMIC){
+mesh.physics.setMotionType(BABYLON.PhysicsMotionType.ANIMATED);
+}
+
+      const incrementalRotation = BABYLON.Quaternion.RotationYawPitchRoll(BABYLON.Tools.ToRadians(${y}), BABYLON.Tools.ToRadians(${x}), BABYLON.Tools.ToRadians(${z}));
+      mesh.rotationQuaternion.multiplyInPlace(incrementalRotation).normalize();
+      mesh.physics.disablePreStep = false;
+      mesh.physics.setTargetTransform(mesh.absolutePosition, mesh.rotationQuaternion);
+      //mesh.physics.setAngularVelocity(BABYLON.Vector3.Zero());
+
+      } else {
+        console.warn('Mesh named ' + ${meshName} + ' not found.');
+      }
+      });`;
     };
 
     const createScene = function () {
