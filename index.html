@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Blockly and Babylon.js Integration</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Asap:ital,wght@0,100..900;1,100..900&display=swap"
+    rel="stylesheet">
+  <script src="https://cdn.babylonjs.com/havok/HavokPhysics_umd.js"></script>
+  <script src="https://cdn.babylonjs.com/babylon.js"></script>
+  <script src="https://cdn.babylonjs.com/gui/babylon.gui.min.js"></script>
+  <script src="https://cdn.babylonjs.com/loaders/babylonjs.loaders.min.js"></script>
+  <script src="https://cdn.babylonjs.com/materialsLibrary/babylonjs.materials.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/blockly/10.4.3/blockly.min.js"
+    integrity="sha512-P0rA8GfrpGsMhoMxllI8i1+Gz69FG7+Dg+OFAskQPqBdxpL9UCO7TMGCdNKYI+b3oSFxEYFrW+ydHYegar9m8Q=="
+    crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <style>
+    body {
+      display: flex;
+      height: 100vh;
+      margin: 0;
+    }
+
+    #blocklyDiv {
+      height: 100%;
+      width: 50%;
+    }
+
+    #rightArea {
+      width: 50%;
+      height: 100%;
+    }
+
+    #renderCanvas {
+      width: 100%;
+      height: 90%;
+    }
+
+    .blocklySvg text {
+      font-family: 'Asap', sans-serif !important;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="blocklyDiv"></div>
+
+  <div id="rightArea">
+    <div id="menu">
+      <button onclick="executeCode()">▶️ Run</button>
+      <button id="toggleDebug">🪲Debug</button>
+
+      <button><input type="file" id="fileInput" style="display: none;" /><label for="fileInput"
+          class="btn">📂Open</label></button>
+      <input type="text" id="projectName" placeholder="Enter project name here">
+      <button onclick="exportCode()">💾Save</button>
+      <button id="fullscreenToggle">🖼️Fullscreen</button>
+    </div>
+    <canvas id="renderCanvas"></canvas>
+  </div>
+
+  <script>
+
+    // Flock - Creative coding in 3D
+    // Dr Tracy Gardner - https://github.com/tracygardner
+    // Flip Computing Limited - flipcomputing.com
+
+    const categoryColours = {
+      "Scene": 160
+    };
+
+    const workspace = Blockly.inject('blocklyDiv', {
+      theme: Blockly.Themes.Modern,
+      renderer: 'zelos',
+      zoom: {
+        controls: true,  // Enables zoom controls (+, -, and home buttons)
+        wheel: true,     // Enables zooming in/out using the mouse wheel
+        startScale: 0.8, // Initial scale
+        maxScale: 3,     // Max scale
+        minScale: 0.3,   // Min scale
+        scaleSpeed: 1.2  // How fast it zooms
+      },
+      toolbox: `
+                <xml id="toolbox" style="display: none">
+          <category name="Flock 🐑🐑🐑"></category>
+					<category name="Scene" colour="${categoryColours["Scene"]}">		
+          <block type="create_scene"></block>
+          <block type="set_sky_color"></block>
+					<block type="create_ground"></block>
+</category>
+</xml>
+            `
+    });
+
+    console.log("Welcome to Flock 🐑🐑🐑");
+
+    Blockly.Blocks['create_scene'] = {
+      init: function () {
+        this.jsonInit({
+          "type": "create_scene",
+          "message0": "create_scene",
+          "nextStatement": null,
+          "colour": categoryColours["Scene"],
+          "tooltip": "Creates a scene and runs the attached blocks.",
+          "style": {
+            "hat": "cap"
+          }
+        });
+      }
+    };
+
+
+    Blockly.Blocks['create_ground'] = {
+      init: function () {
+        this.jsonInit({
+          "type": "create_ground",
+          "message0": "add ground with color %1",
+          "args0": [
+            {
+              "type": "field_colour",
+              "name": "COLOR",
+              "colour": "#71BC78"
+            }
+          ],
+          "previousStatement": null,
+          "nextStatement": null,
+          "colour": categoryColours["Scene"],
+          "tooltip": "Adds a ground plane with collisions enabled to the scene, with specified color.",
+          "helpUrl": ""
+        });
+      }
+    };
+
+    Blockly.Blocks['set_sky_color'] = {
+      init: function () {
+        this.jsonInit({
+          "type": "set_sky_color",
+          "message0": "set sky color %1",
+          "args0": [
+            {
+              "type": "field_colour",
+              "name": "COLOR",
+              "colour": "#6495ED" // Default sky color
+            }
+          ],
+          "previousStatement": null,
+          "nextStatement": null,
+          "colour": categoryColours["Scene"],
+          "tooltip": "Sets the sky color of the scene.",
+          "helpUrl": ""
+        });
+      }
+    };
+
+    Blockly.JavaScript.forBlock['create_scene'] = function (block) {
+      return code = `
+        if (scene) scene.dispose();
+        scene = createScene();
+      `;
+    };
+
+    Blockly.JavaScript.forBlock['create_ground'] = function (block) {
+      const color = block.getFieldValue('COLOR');
+      const babylonColor = new BABYLON.Color3.FromHexString(color);
+
+      return `
+      (function() {
+        const ground = BABYLON.MeshBuilder.CreateGround("ground", {width: 100, height: 100, subdivisions: 2}, scene);
+        const groundAggregate = new BABYLON.PhysicsAggregate(ground, BABYLON.PhysicsShapeType.BOX, { mass: 0 }, scene);
+        ground.receiveShadows = true;
+        const groundMaterial = new BABYLON.StandardMaterial("groundMaterial", scene);
+        groundMaterial.diffuseColor = new BABYLON.Color3(${babylonColor.r}, ${babylonColor.g}, ${babylonColor.b});
+        ground.material = groundMaterial;
+      })();
+      `;
+
+    };
+
+    Blockly.JavaScript.forBlock['set_sky_color'] = function (block) {
+      const color = block.getFieldValue('COLOR');
+      const babylonColor = new BABYLON.Color3.FromHexString(color);
+
+      return `scene.clearColor = new BABYLON.Color3(${babylonColor.r}, ${babylonColor.g}, ${babylonColor.b});\n`;
+    };
+
+
+    const createScene = function () {
+      const scene = new BABYLON.Scene(engine);
+      hk = new BABYLON.HavokPlugin(true, havokInstance);
+      scene.enablePhysics(new BABYLON.Vector3(0, -9.81, 0), hk);
+
+      const camera = new BABYLON.FreeCamera("camera", new BABYLON.Vector3(0, 4, -20), scene);
+      camera.setTarget(BABYLON.Vector3.Zero());
+      camera.attachControl(canvas, true);
+      scene.createDefaultLight();
+      scene.collisionsEnabled = true;
+      return scene;
+    };
+
+    const canvas = document.getElementById("renderCanvas");
+
+    const engine = new BABYLON.Engine(canvas, true, {stencil: true});
+    let hk = null;
+    let scene = null;
+    let havokInstance = null;
+    let engineReady = false;
+
+    async function initialize() {
+      BABYLON.Database.IDBStorageEnabled = true
+      BABYLON.Engine.CollisionsEpsilon = 0.00005;
+      havokInstance = await HavokPhysics();
+      engineReady = true;
+
+      scene = createScene();
+
+      engine.runRenderLoop(function () {
+        scene.render();
+      });
+    }
+
+    initialize();
+
+
+    window.addEventListener("resize", function () {
+      engine.resize();
+    });
+
+    // Define your starter blocks XML string
+    const initialBlocks =
+      `<xml xmlns="http://www.w3.org/1999/xhtml">
+            <block type="create_scene">
+            <next>
+            <block type="set_sky_color">
+              <next>
+    <block type="create_ground"></block>
+              </next>
+              </block>
+              </next>
+              </block>
+            </xml>`;
+
+    // Convert the XML string to a DOM element
+    const xml = Blockly.utils.xml.textToDom(initialBlocks);
+
+    // Load the XML into the workspace
+    Blockly.Xml.domToWorkspace(xml, workspace);
+    executeCode();
+
+    function stripFilename(inputString) {
+
+      const removeEnd = inputString.replace(/\(\d+\)/g, '');
+      // Find the last occurrence of '/' or '\'
+      let lastIndex = Math.max(removeEnd.lastIndexOf('/'), removeEnd.lastIndexOf('\\'));
+
+      if (lastIndex === -1) {
+        return removeEnd.trim();
+      }
+
+      return removeEnd.substring(lastIndex + 1).trim();
+    }
+
+
+    function exportCode() {
+
+      const projectName = document.getElementById("projectName").value || "default_project";
+
+      const json = Blockly.serialization.workspaces.save(workspace);
+      const jsonString = JSON.stringify(json, null, 2); // Pretty-print the JSON
+
+      const element = document.createElement('a');
+      element.setAttribute('href', 'data:text/json;charset=utf-8,' + encodeURIComponent(jsonString));
+      element.setAttribute('download', projectName + '.json');
+
+      document.body.appendChild(element); // Required for Firefox
+      element.click();
+      document.body.removeChild(element);
+    }
+
+
+    window.onload = function () {
+      document.getElementById('fileInput').addEventListener('change', function (event) {
+        const reader = new FileReader();
+        reader.onload = function () {
+          const text = reader.result;
+          const json = JSON.parse(text);
+
+          // Set the project name as the value of the projectName input field
+          document.getElementById('projectName').value = stripFilename(document.getElementById('fileInput').value.replace('.json', ''));
+
+          Blockly.serialization.workspaces.load(json, workspace);
+          executeCode();
+
+        };
+        reader.readAsText(event.target.files[0]);
+
+      });
+    }
+
+    function executeCode() {
+      if (engineReady) {
+        const code = Blockly.JavaScript.workspaceToCode(workspace);
+        try {
+          eval(code);
+        } catch (error) {
+          console.error("Error executing Blockly code:", error);
+        }
+      } else {
+        // Check again in 100 milliseconds
+        setTimeout(executeCode, 100);
+      }
+    }
+
+    document.getElementById('fullscreenToggle').addEventListener('click', function () {
+      if (!document.fullscreenElement) {
+        // Go fullscreen
+        if (document.documentElement.requestFullscreen) {
+          document.documentElement.requestFullscreen();
+        } else if (document.documentElement.mozRequestFullScreen) { /* Firefox */
+          document.documentElement.mozRequestFullScreen();
+        } else if (document.documentElement.webkitRequestFullscreen) { /* Chrome, Safari & Opera */
+          document.documentElement.webkitRequestFullscreen();
+        } else if (document.documentElement.msRequestFullscreen) { /* IE/Edge */
+          document.documentElement.msRequestFullscreen();
+        }
+      } else {
+        // Exit fullscreen
+        if (document.exitFullscreen) {
+          document.exitFullscreen();
+        } else if (document.mozCancelFullScreen) { /* Firefox */
+          document.mozCancelFullScreen();
+        } else if (document.webkitExitFullscreen) { /* Chrome, Safari & Opera */
+          document.webkitExitFullscreen();
+        } else if (document.msExitFullscreen) { /* IE/Edge */
+          document.msExitFullscreen();
+        }
+      }
+    });
+
+    document.getElementById('toggleDebug').addEventListener('click', function () {
+      if (scene.debugLayer.isVisible()) {
+        document.getElementById('rightArea').style.width = '50%';
+        document.getElementById('blocklyDiv').style.width = '50%';
+
+        scene.debugLayer.hide();
+      } else {
+        document.getElementById('rightArea').style.width = '100%';
+        document.getElementById('blocklyDiv').style.width = '0%';
+
+        scene.debugLayer.show();
+
+      }
+    });
+
+  </script>
+</body>
+
+</html>
