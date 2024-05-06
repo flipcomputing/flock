@@ -245,6 +245,11 @@
 <block type="controls_forEach"></block>
 <block type="controls_for"></block>
 </category>
+<category name="Events" colour="#FFBF00">
+  <block type="when_clicked"></block>
+  <block type="when_key_pressed"></block>		
+  <block type="when_key_released"></block>		
+ </category>
 <category name="Condition" colour="${categoryColours["Logic"]}">
 
 <!-- Conditional Blocks -->
@@ -757,6 +762,93 @@
       }
     };
 
+    Blockly.Blocks['when_clicked'] = {
+      init: function () {
+        this.jsonInit({
+          "type": "model_clicked",
+          "message0": "when %1 is clicked",
+          "args0": [
+            {
+              "type": "field_variable",
+              "name": "MODEL_VAR",
+              "variable": "mesh"  // Default variable name
+            }
+          ],
+          "message1": "do %1",
+          "args1": [
+            {
+              "type": "input_statement",
+              "name": "DO"
+            }
+          ],
+          "colour": 120,
+          "tooltip": "Executes the blocks inside when the specified model is clicked.",
+          "helpUrl": ""
+        });
+
+      }
+    };
+
+    Blockly.Blocks['when_key_pressed'] = {
+      init: function () {
+        this.jsonInit({
+          "type": "when_key_pressed",
+          "message0": "when key pressed %1",
+          "args0": [
+            {
+              "type": "field_dropdown",
+              "name": "KEY",
+              "options": [
+                ["space", "SPACE"]
+              ]
+            }
+          ],
+          "message1": "do %1",
+          "args1": [
+            {
+              "type": "input_statement",
+              "name": "DO"
+            }
+          ],
+          "nextStatement": null,
+          "colour": 120,
+          "tooltip": "Executes the blocks inside when the specified key is pressed.",
+          "helpUrl": ""
+        });
+      }
+    };
+
+    Blockly.Blocks['when_key_released'] = {
+      init: function () {
+        this.jsonInit({
+          "type": "when_key_released",
+          "message0": "when key released %1",
+          "args0": [
+            {
+              "type": "field_dropdown",
+              "name": "KEY",
+              "options": [
+                ["space", "SPACE"]
+              ]
+            }
+          ],
+          "message1": "do %1",
+          "args1": [
+            {
+              "type": "input_statement",
+              "name": "DO"
+            }
+          ],
+          "nextStatement": null,
+          "colour": 120,
+          "tooltip": "Executes the blocks inside when the specified key is released.",
+          "helpUrl": "",
+        });
+      }
+    };
+
+
+
     Blockly.Blocks['show'] = {
       init: function () {
         this.jsonInit({
@@ -892,7 +984,7 @@
             {
               "type": "field_variable",
               "name": "MODEL_VAR",
-              "variable": "mesh"  // Default variable name, ensure it's defined in your environment
+              "variable": "mesh"
             }
           ],
           "inputsInline": true,
@@ -968,7 +1060,7 @@
 
       // Early exit if meshId is not provided
       if (!meshId) {
-        console.log("Undefined model requested.");
+        console.log("Undefined model requested.", meshId);
         return;
       }
 
@@ -1256,6 +1348,79 @@ mesh.physics.setMotionType(BABYLON.PhysicsMotionType.ANIMATED);
       return wrapCode(modelName, code);
 
     };
+
+    Blockly.JavaScript.forBlock['when_clicked'] = function (block) {
+
+      const modelName = Blockly.JavaScript.nameDB_.getName(block.getFieldValue('MODEL_VAR'), Blockly.Names.NameType.VARIABLE);
+
+      const doCode = Blockly.JavaScript.statementToCode(block, 'DO');
+
+      return `
+      whenModelReady(${modelName}, function(_mesh) {
+
+        if (_mesh) {
+        console.log("Registering click action for", _mesh.name);
+
+         _mesh.actionManager = new BABYLON.ActionManager(scene);
+         //_mesh.actionManager.isRecursive = true;
+        _mesh.actionManager.registerAction(new BABYLON.ExecuteCodeAction(BABYLON.ActionManager.OnPickTrigger, function() {
+        console.log("Model clicked:", _mesh.name);
+        ${doCode}
+        }));
+
+
+        } else {
+          console.log("No pickable parent or child found.");
+        }
+        });
+      `;
+
+    };
+
+    // Mapping key names to key codes, including space
+    const keyCodeMap = {
+      'SPACE': '32' 
+    };
+
+    Blockly.JavaScript.forBlock['when_key_pressed'] = function (block) {
+      const key = block.getFieldValue('KEY');
+      const statements_do = Blockly.JavaScript.statementToCode(block, 'DO');
+
+      const keyCode = keyCodeMap[key];
+
+      return `
+      scene.onKeyboardObservable.add((kbInfo) => {
+        switch (kbInfo.type) {
+          case BABYLON.KeyboardEventTypes.KEYDOWN:
+            if (kbInfo.event.keyCode === ${keyCode}) {
+              ${statements_do}
+            }
+            break;
+        }
+      });
+      `
+
+    };
+
+    Blockly.JavaScript.forBlock['when_key_released'] = function (block) {
+      const key = block.getFieldValue('KEY');
+      const statements_do = Blockly.JavaScript.statementToCode(block, 'DO');
+      const keyCode = keyCodeMap[key];
+
+      return `
+      scene.onKeyboardObservable.add((kbInfo) => {
+        switch (kbInfo.type) {
+          case BABYLON.KeyboardEventTypes.KEYUP:
+            if (kbInfo.event.keyCode === ${keyCode}) {
+              ${statements_do}
+            }
+            break;
+        }
+      });
+      `
+
+    };
+
 
     Blockly.JavaScript.forBlock['tint'] = function (block) {
       const modelName = Blockly.JavaScript.nameDB_.getName(block.getFieldValue('MODEL_VAR'), Blockly.Names.NameType.VARIABLE);
