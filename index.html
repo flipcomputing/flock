@@ -174,6 +174,21 @@
 <category name="Looks" colour="${categoryColours["Looks"]}">
 <block type="show"></block>
 <block type="hide"></block>
+<block type="tint">
+<field name="COLOR">#AA336A</field> <!-- Default color -->
+</block>
+<block type="highlight">
+<field name="COLOR">#FFD700</field> <!-- Default color -->
+</block>
+<block type="set_alpha">
+  <!-- Shadow block for the ALPHA input to provide a default value -->
+  <value name="ALPHA">
+    <shadow type="math_number">
+      <field name="NUM">0.5</field>
+    </shadow>
+  </value>
+</block>
+<block type="clear_effects"></block>
 </category>
 <category name="Control" colour="${categoryColours["Control"]}">
 <block type="create_scene"></block>
@@ -308,7 +323,7 @@
         this.setOnChange(function (changeEvent) {
           if (!this.isInFlyout && changeEvent.type === Blockly.Events.BLOCK_CREATE && changeEvent.ids.includes(this.id)) {
 
-            var variable = this.workspace.getVariable(nextVariableName);
+            let variable = this.workspace.getVariable(nextVariableName);
             if (!variable) {
               variable = this.workspace.createVariable(nextVariableName, null);
               this.getField('ID_VAR').setValue(variable.getId());
@@ -379,7 +394,7 @@
 
         this.setOnChange(function (changeEvent) {
           if (!this.isInFlyout && changeEvent.type === Blockly.Events.BLOCK_CREATE && changeEvent.ids.includes(this.id)) {
-            var variable = this.workspace.getVariable(nextVariableName);
+            let variable = this.workspace.getVariable(nextVariableName);
             if (!variable) {
               variable = this.workspace.createVariable(nextVariableName, null);
               this.getField('ID_VAR').setValue(variable.getId());
@@ -531,6 +546,113 @@
       }
     };
 
+
+    Blockly.Blocks['highlight'] = {
+      init: function () {
+        this.jsonInit({
+          "type": "highlight",
+          "message0": "highlight %1 color %2",
+          "args0": [
+            {
+              "type": "field_variable",
+              "name": "MODEL_VAR",
+              "variable": "mesh"  // Default variable name, ensure it's defined in your environment
+            },
+            {
+              "type": "field_colour",
+              "name": "COLOR",
+              "colour": "#9932CC"
+            }
+          ],
+          "inputsInline": true,
+          "previousStatement": null,
+          "nextStatement": null,
+          "colour": categoryColours["Looks"],
+          "tooltip": "Highlights the selected model.",
+          "helpUrl": ""
+        });
+      }
+    };
+
+
+    Blockly.Blocks['tint'] = {
+      init: function () {
+        this.jsonInit({
+          "type": "tint",
+          "message0": "tint %1 color %2",
+          "args0": [
+            {
+              "type": "field_variable",
+              "name": "MODEL_VAR",
+              "variable": "mesh"
+            },
+            {
+              "type": "field_colour",
+              "name": "COLOR",
+              "colour": "#9932CC"
+            }
+          ],
+          "inputsInline": true,
+          "previousStatement": null,
+          "nextStatement": null,
+          "colour": categoryColours["Looks"],
+          "tooltip": "Add colour tint effect.",
+          "helpUrl": ""
+        });
+      }
+    };
+
+    Blockly.Blocks['set_alpha'] = {
+      init: function () {
+        this.jsonInit({
+          "type": "set_mesh_material_alpha",
+          "message0": "set alpha of %1 to %2",
+          "args0": [
+            {
+              "type": "field_variable",
+              "name": "MESH",
+              "variable": "mesh"
+            },
+            {
+              "type": "input_value",
+              "name": "ALPHA",
+              "check": "Number"
+            }
+          ],
+          "inputsInline": true,
+          "previousStatement": null,
+          "nextStatement": null,
+          "colour": categoryColours["Looks"],
+          "tooltip": "Sets the alpha (transparency) of the material(s) on a specified mesh. Values should be 0 to 1.",
+          "helpUrl": ""
+        });
+      }
+    };
+
+
+    Blockly.Blocks['clear_effects'] = {
+      init: function () {
+        this.jsonInit({
+          "type": "clear_effects",
+          "message0": "clear effects %1",
+          "args0": [
+            {
+              "type": "field_variable",
+              "name": "MODEL_VAR",
+              "variable": "mesh"  // Default variable name, ensure it's defined in your environment
+            }
+          ],
+          "inputsInline": true,
+          "previousStatement": null,
+          "nextStatement": null,
+          "colour": categoryColours["Looks"],
+          "tooltip": "Clear visual effects from selected model.",
+          "helpUrl": ""
+        });
+      }
+    };
+
+
     Blockly.JavaScript.forBlock['show'] = function (block) {
       const modelName = Blockly.JavaScript.nameDB_.getName(block.getFieldValue('MODEL_VAR'), Blockly.Names.NameType.VARIABLE);
 
@@ -561,10 +683,24 @@
 
     };
 
+    function wrapCode(modelName, innerCodeBlock) {
+      return `
+    (function() {
+      whenModelReady(${modelName}, function(mesh) {
+        if (mesh) {
+          ${innerCodeBlock}
+        }
+        else {
+          console.log("Model not loaded:", modelName);
+        }
+      });
+    })();
+    `;
+    }
 
     function generateUUID() {
       return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
-        var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+        const r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
         return v.toString(16);
       });
     }
@@ -782,11 +918,111 @@ mesh.physics.setMotionType(BABYLON.PhysicsMotionType.ANIMATED);
       return 'scene.onBeforeRenderObservable.add(() => {\n' + branch + '});\n';
     };
 
+    Blockly.JavaScript.forBlock['set_alpha'] = function (block) {
+      const modelName = Blockly.JavaScript.nameDB_.getName(block.getFieldValue('MESH'), Blockly.Names.NameType.VARIABLE);
+
+      const alphaValue = Blockly.JavaScript.valueToCode(block, 'ALPHA', Blockly.JavaScript.ORDER_ATOMIC);
+
+      const code = `let allMeshes = [_mesh].concat(_mesh.getChildMeshes(false));
+
+        allMeshes.forEach(mesh => {
+              if (mesh.material) {
+                mesh.material.alpha = ${alphaValue};
+              }
+            });`
+
+      return wrapCode(modelName, code);
+
+    };
+
+    Blockly.JavaScript.forBlock['tint'] = function (block) {
+      const modelName = Blockly.JavaScript.nameDB_.getName(block.getFieldValue('MODEL_VAR'), Blockly.Names.NameType.VARIABLE);
+      const color = block.getFieldValue('COLOR');
+
+      return `whenModelReady(${modelName}, function(mesh) {
+      if (mesh) {
+    if (mesh.material) {
+    mesh.renderOverlay = true;
+    mesh.overlayAlpha = 0.5;
+    mesh.overlayColor = new BABYLON.Color3.FromHexString("${color}");
+    }
+    mesh.getChildMeshes().forEach(function(childMesh) {
+      if (childMesh.material) {
+        childMesh.renderOverlay = true;
+        childMesh.overlayAlpha = 0.5;
+        childMesh.overlayColor = new BABYLON.Color3.FromHexString("${color}");
+        //console.log("Setting overlay color:", childMesh.name)
+      }
+    });
+
+      }
+      else{
+
+      console.log("Model not loaded:", ${modelName});
+      }
+
+      });\n`;
+
+    };
+
+    Blockly.JavaScript.forBlock['highlight'] = function (block) {
+      const modelName = Blockly.JavaScript.nameDB_.getName(block.getFieldValue('MODEL_VAR'), Blockly.Names.NameType.VARIABLE);
+      const color = block.getFieldValue('COLOR');
+
+      return `whenModelReady(${modelName}, function(mesh) {
+      if (mesh) {
+    if (mesh.material){
+    highlighter.addMesh(mesh, BABYLON.Color3.FromHexString("${color}"));
+    }
+
+    mesh.getChildMeshes().forEach(function(childMesh) {
+      if (childMesh.material) {
+        highlighter.addMesh(childMesh, BABYLON.Color3.FromHexString("${color}"));
+      }
+    });
+      }
+      else{
+
+      console.log("Model not loaded:", ${modelName});
+      }
+
+      });\n`;
+    };
+
+    Blockly.JavaScript.forBlock['clear_effects'] = function (block) {
+      const modelName = Blockly.JavaScript.nameDB_.getName(block.getFieldValue('MODEL_VAR'), Blockly.Names.NameType.VARIABLE);
+
+      return `whenModelReady(${modelName}, function(mesh) {
+        if (mesh) {
+
+        console.log("Removing effects");
+
+        highlighter.removeMesh(mesh);
+        mesh.renderOverlay = false;
+        
+        mesh.getChildMeshes().forEach(function(childMesh) {
+        if (childMesh.material) {
+          highlighter.removeMesh(childMesh);
+        }
+
+        childMesh.renderOverlay = false;
+
+        });
+        }
+        else{
+        console.log("Model not loaded:", ${modelName});
+        }
+
+        });\n`;
+    };
+
+
 
     const createScene = function () {
       const scene = new BABYLON.Scene(engine);
       hk = new BABYLON.HavokPlugin(true, havokInstance);
       scene.enablePhysics(new BABYLON.Vector3(0, -9.81, 0), hk);
+      highlighter = new BABYLON.HighlightLayer("highlighter", scene);
 
       const camera = new BABYLON.FreeCamera("camera", new BABYLON.Vector3(0, 4, -20), scene);
       camera.setTarget(BABYLON.Vector3.Zero());
@@ -803,6 +1039,7 @@ mesh.physics.setMotionType(BABYLON.PhysicsMotionType.ANIMATED);
     let scene = null;
     let havokInstance = null;
     let engineReady = false;
+    let highlighter = null;
 
     async function initialize() {
       BABYLON.Database.IDBStorageEnabled = true
