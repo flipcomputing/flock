@@ -237,7 +237,6 @@
 
     Blockly.JavaScript.forBlock['create_ground'] = function (block) {
       const color = block.getFieldValue('COLOR');
-      const babylonColor = new BABYLON.Color3.FromHexString(color);
 
       return `
       (function() {
@@ -245,7 +244,7 @@
         const groundAggregate = new BABYLON.PhysicsAggregate(ground, BABYLON.PhysicsShapeType.BOX, { mass: 0 }, scene);
         ground.receiveShadows = true;
         const groundMaterial = new BABYLON.StandardMaterial("groundMaterial", scene);
-        groundMaterial.diffuseColor = new BABYLON.Color3(${babylonColor.r}, ${babylonColor.g}, ${babylonColor.b});
+        groundMaterial.diffuseColor = new BABYLON.Color3.FromHexString("${color}");
         ground.material = groundMaterial;
       })();
       `;
@@ -254,9 +253,7 @@
 
     Blockly.JavaScript.forBlock['set_sky_color'] = function (block) {
       const color = block.getFieldValue('COLOR');
-      const babylonColor = new BABYLON.Color3.FromHexString(color);
-
-      return `scene.clearColor = new BABYLON.Color3(${babylonColor.r}, ${babylonColor.g}, ${babylonColor.b});\n`;
+      return `scene.clearColor = new BABYLON.Color3.FromHexString("${color}");\n`;
     };
 
     Blockly.JavaScript.forBlock['create_box'] = function (block) {
