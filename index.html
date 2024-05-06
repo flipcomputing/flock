@@ -68,7 +68,8 @@
     // Flip Computing Limited - flipcomputing.com
 
     const categoryColours = {
-      "Scene": 160
+      "Scene": 160,
+      "Motion": 240,
     };
 
     const workspace = Blockly.inject('blocklyDiv', {
@@ -131,6 +132,25 @@
               </shadow>
             </value>
           </block>
+</category>
+<category name="Motion" colour="${categoryColours["Motion"]}">
+<block type="move_by_vector">
+  <value name="X">
+    <shadow type="math_number">
+      <field name="NUM">0</field>
+    </shadow>
+  </value>
+  <value name="Y">
+    <shadow type="math_number">
+      <field name="NUM">0</field>
+    </shadow>
+  </value>
+  <value name="Z">
+    <shadow type="math_number">
+      <field name="NUM">0</field>
+    </shadow>
+  </value>
+</block>
 </category>
 </xml>
             `
@@ -344,6 +364,44 @@
       }
     };
 
+    Blockly.Blocks['move_by_vector'] = {
+      init: function () {
+        this.jsonInit({
+          "type": "move_by_vector",
+          "message0": "move %1 by x: %2 y: %3 z: %4",
+          "args0": [
+            {
+              "type": "field_variable",
+              "name": "BLOCK_NAME",
+              "variable": "mesh"
+            },
+            {
+              "type": "input_value",
+              "name": "X",
+              "check": "Number",
+              "align": "RIGHT"
+            },
+            {
+              "type": "input_value",
+              "name": "Y",
+              "check": "Number",
+              "align": "RIGHT"
+            },
+            {
+              "type": "input_value",
+              "name": "Z",
+              "check": "Number",
+              "align": "RIGHT"
+            }
+          ],
+          "previousStatement": null,
+          "nextStatement": null,
+          "colour": 230,
+          "inputsInline": true
+        });
+      }
+    };
+
 
     function generateUUID() {
       return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
@@ -354,6 +412,35 @@
 
     function getFieldValue(block, fieldName, defaultValue) {
       return Blockly.JavaScript.valueToCode(block, fieldName, Blockly.JavaScript.ORDER_ATOMIC) || defaultValue;
+    }
+
+    function whenModelReady(meshId, callback, attempt = 1) {
+      const maxAttempts = 10; // Maximum number of attempts before giving up
+      const attemptInterval = 1000; // Time in milliseconds between attempts
+
+      // Early exit if meshId is not provided
+      if (!meshId) {
+        console.log("Undefined model requested.");
+        return;
+      }
+
+      const mesh = scene.getMeshByName(meshId);
+
+      // If mesh is found, execute the callback
+      if (mesh) {
+        callback(mesh);
+        //console.log(`Action performed on ${meshId}`);
+        return;
+      }
+
+      // Retry logic if mesh not found and max attempts not reached
+      if (attempt <= maxAttempts) {
+        console.log(`Retrying model with ID '${meshId}'. Attempt ${attempt}`);
+        setTimeout(() => whenModelReady(meshId, callback, attempt + 1), attemptInterval);
+      } else {
+        // Log error if maximum attempts are reached
+        console.error(`Model with ID '${meshId}' not found after ${maxAttempts} attempts.`);
+      }
     }
 
 
@@ -474,6 +561,27 @@
         `;
     };
 
+
+    Blockly.JavaScript.forBlock['move_by_vector'] = function (block) {
+
+      var modelName = Blockly.JavaScript.nameDB_.getName(block.getFieldValue('BLOCK_NAME'), Blockly.Names.NameType.VARIABLE);
+
+      const x = getFieldValue(block, 'X', '0');
+      const y = getFieldValue(block, 'Y', '0');
+      const z = getFieldValue(block, 'Z', '0');
+
+      var code = `whenModelReady(${modelName}, function(mesh) {
+      if (mesh) {\n` +
+        `  
+      mesh.position.addInPlace(new BABYLON.Vector3(${x}, ${y}, ${z}));
+      }
+      else{
+        console.log("Model not loaded:", ${modelName});
+      }
+
+      });\n`;
+      return code;
+    };
 
     const createScene = function () {
       const scene = new BABYLON.Scene(engine);
