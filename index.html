@@ -352,6 +352,11 @@
       });
     }
 
+    function getFieldValue(block, fieldName, defaultValue) {
+      return Blockly.JavaScript.valueToCode(block, fieldName, Blockly.JavaScript.ORDER_ATOMIC) || defaultValue;
+    }
+
+
     Blockly.JavaScript.forBlock['create_scene'] = function (block) {
       return code = `
         if (scene) scene.dispose();
@@ -382,12 +387,13 @@
 
     Blockly.JavaScript.forBlock['create_box'] = function (block) {
       const color = block.getFieldValue('COLOR');
-      const width = Blockly.JavaScript.valueToCode(block, 'WIDTH', Blockly.JavaScript.ORDER_ATOMIC) || '1';
-      const height = Blockly.JavaScript.valueToCode(block, 'HEIGHT', Blockly.JavaScript.ORDER_ATOMIC) || '1';
-      const depth = Blockly.JavaScript.valueToCode(block, 'DEPTH', Blockly.JavaScript.ORDER_ATOMIC) || '1';
-      const posX = Blockly.JavaScript.valueToCode(block, 'X', Blockly.JavaScript.ORDER_ATOMIC) || '0';
-      const posY = Blockly.JavaScript.valueToCode(block, 'Y', Blockly.JavaScript.ORDER_ATOMIC) || '0';
-      const posZ = Blockly.JavaScript.valueToCode(block, 'Z', Blockly.JavaScript.ORDER_ATOMIC) || '0';
+      const width = getFieldValue(block, 'WIDTH', '1');
+      const height = getFieldValue(block, 'HEIGHT', '1');
+      const depth = getFieldValue(block, 'DEPTH', '1');
+      const posX = getFieldValue(block, 'X', '0');
+      const posY = getFieldValue(block, 'Y', '0');
+      const posZ = getFieldValue(block, 'Z', '0');
+
       let variable_name =
         Blockly.JavaScript.nameDB_.getName(block.getFieldValue('ID_VAR'), Blockly.Names.NameType.VARIABLE);
 
@@ -425,14 +431,13 @@
 
     Blockly.JavaScript.forBlock['create_sphere'] = function (block) {
       const color = block.getFieldValue('COLOR');
-      const diameterX = Blockly.JavaScript.valueToCode(block, 'DIAMETER_X', Blockly.JavaScript.ORDER_ATOMIC) || '1';
-      const diameterY = Blockly.JavaScript.valueToCode(block, 'DIAMETER_Y', Blockly.JavaScript.ORDER_ATOMIC) || '1';
-      const diameterZ = Blockly.JavaScript.valueToCode(block, 'DIAMETER_Z', Blockly.JavaScript.ORDER_ATOMIC) || '1';
-      const posX = Blockly.JavaScript.valueToCode(block, 'X', Blockly.JavaScript.ORDER_ATOMIC) || '0';
-      const posY = Blockly.JavaScript.valueToCode(block, 'Y', Blockly.JavaScript.ORDER_ATOMIC) || '0.5';
-      const posZ = Blockly.JavaScript.valueToCode(block, 'Z', Blockly.JavaScript.ORDER_ATOMIC) || '0';
-      let variableName =
-        Blockly.JavaScript.nameDB_.getName(block.getFieldValue('ID_VAR'), Blockly.Names.NameType.VARIABLE);
+      const diameterX = getFieldValue(block, 'DIAMETER_X', '1');
+      const diameterY = getFieldValue(block, 'DIAMETER_Y', '1');
+      const diameterZ = getFieldValue(block, 'DIAMETER_Z', '1');
+      const posX = getFieldValue(block, 'X', '0');
+      const posY = getFieldValue(block, 'Y', '0.5');
+      const posZ = getFieldValue(block, 'Z', '0');
+      const variableName = Blockly.JavaScript.nameDB_.getName(block.getFieldValue('ID_VAR'), Blockly.Names.NameType.VARIABLE);
 
       const sphereId = `sphere_${generateUUID()}`;
       meshMap[sphereId] = block;
@@ -468,7 +473,6 @@
         })();
         `;
     };
-
 
 
     const createScene = function () {
