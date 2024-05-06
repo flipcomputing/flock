@@ -95,6 +95,13 @@
 					<category name="Scene" colour="${categoryColours["Scene"]}">		
           <block type="set_sky_color"></block>
 					<block type="create_ground"></block>
+          <block type="set_fog">
+          <value name="DENSITY">
+            <shadow type="math_number">
+              <field name="NUM">0.1</field>
+            </shadow>
+            </value>
+          </block>
           <block type="create_box">
             <field name="COLOR">#9932CC</field> <!-- Default color -->
             <value name="WIDTH"><shadow type="math_number"><field name="NUM">1</field></shadow></value>
@@ -365,6 +372,44 @@
         });
       }
     };
+
+    Blockly.Blocks['set_fog'] = {
+        init: function() {
+            this.jsonInit({
+                "type": "set_fog",
+                "message0": "set fog color %1 mode %2 density %3",
+                "args0": [
+                    {
+                        "type": "field_colour",
+                        "name": "FOG_COLOR",
+                        "colour": "#ffffff"  // Default fog color
+                    },
+                    {
+                        "type": "field_dropdown",
+                        "name": "FOG_MODE",
+                        "options": [
+                            ["Linear", "LINEAR"],
+                            ["None", "NONE"],
+                            ["Exp", "EXP"],
+                            ["Exp2", "EXP2"]
+                        ]
+                    },
+                    {
+                        "type": "input_value",
+                        "name": "DENSITY",
+                        "check": "Number"
+                    }
+                ],
+                "inputsInline": true,
+                "previousStatement": null,
+                "nextStatement": null,
+                "colour": categoryColours["Scene"],
+                "tooltip": "Configures the scene's fog.",
+                "helpUrl": ""
+            });
+        }
+    };
+
 
     Blockly.Blocks['create_box'] = {
       init: function () {
@@ -868,6 +913,41 @@
       const color = block.getFieldValue('COLOR');
       return `scene.clearColor = new BABYLON.Color3.FromHexString("${color}");\n`;
     };
+
+    Blockly.JavaScript.forBlock['set_fog'] = function (block) {
+      const fogColorHex = block.getFieldValue('FOG_COLOR');
+      const fogMode = block.getFieldValue('FOG_MODE');
+      const fogDensity = Blockly.JavaScript.valueToCode(block, 'FOG_DENSITY', Blockly.JavaScript.ORDER_ATOMIC) || '0.1'; // Default density
+
+      // Convert hex color to RGB values for Babylon.js
+      const fogColorRgb = `new BABYLON.Color3.FromHexString('${fogColorHex}')`;
+
+      // Generate the code for setting fog mode
+      var fogModeCode = '';
+      switch (fogMode) {
+        case 'NONE':
+          fogModeCode = 'scene.fogMode = BABYLON.Scene.FOGMODE_NONE;\n';
+          break;
+        case 'EXP':
+          fogModeCode = 'scene.fogMode = BABYLON.Scene.FOGMODE_EXP;\n';
+          break;
+        case 'EXP2':
+          fogModeCode = 'scene.fogMode = BABYLON.Scene.FOGMODE_EXP2;\n';
+          break;
+        case 'LINEAR':
+          fogModeCode = 'scene.fogMode = BABYLON.Scene.FOGMODE_LINEAR;\n';
+          break;
+      }
+
+      return `
+    ${fogModeCode}
+    scene.fogColor = ${fogColorRgb};
+    scene.fogDensity = ${fogDensity};
+    scene.fogStart = 50;
+    scene.fogEnd = 100;
+    `;
+    };
+
 
     Blockly.JavaScript.forBlock['create_box'] = function (block) {
       const color = block.getFieldValue('COLOR');
