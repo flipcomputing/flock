@@ -537,7 +537,7 @@
       return `whenModelReady(${modelName}, function(mesh) {
       if (mesh) {
          mesh.setEnabled(true);
-         hk._hknp.HP_World_AddBody(hk.world, mesh.physics._pluginData.hpBodyId);
+         hk._hknp.HP_World_AddBody(hk.world, mesh.physics._pluginData.hpBodyId, mesh.physics.startAsleep);
       }
       else{
          console.log("Model not loaded:", ${modelName});
