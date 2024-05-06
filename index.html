@@ -75,7 +75,8 @@
       "Logic": "%{BKY_LOGIC_HUE}",
       "Variables": "%{BKY_VARIABLES_HUE}",
       "Lists": "%{BKY_LISTS_HUE}",
-      "Math": "%{BKY_MATH_HUE}"
+      "Math": "%{BKY_MATH_HUE}",
+      "Procedures": "%{BKY_PROCEDURES_HUE}"
     };
 
     const workspace = Blockly.inject('blocklyDiv', {
@@ -332,6 +333,7 @@
    <block type="math_random_float"></block>
    <!-- Add any additional math blocks you find necessary -->
    </category>
+   <category name="Functions" custom="PROCEDURE" colour="%{BKY_PROCEDURES_HUE}"></category>
 </xml>
             `
     });
