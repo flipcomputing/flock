@@ -144,6 +144,35 @@
               </shadow>
             </value>
           </block>
+          <block type="create_plane">
+              <field name="COLOR">#9932CC</field> <!-- Default color for the plane -->
+              <value name="WIDTH">
+                  <shadow type="math_number">
+                      <field name="NUM">2</field> <!-- Default width -->
+                  </shadow>
+              </value>
+              <value name="HEIGHT">
+                  <shadow type="math_number">
+                      <field name="NUM">2</field> <!-- Default height -->
+                  </shadow>
+              </value>
+              <value name="X">
+                  <shadow type="math_number">
+                      <field name="NUM">0</field> <!-- Default x position -->
+                  </shadow>
+              </value>
+              <value name="Y">
+                  <shadow type="math_number">
+                      <field name="NUM">1</field> <!-- Default y position -->
+                  </shadow>
+              </value>
+              <value name="Z">
+                  <shadow type="math_number">
+                      <field name="NUM">0</field> <!-- Default z position -->
+                  </shadow>
+              </value>
+          </block>
+
 </category>
 <category name="Motion" colour="${categoryColours["Motion"]}">
 <block type="move_by_vector">
@@ -374,40 +403,40 @@
     };
 
     Blockly.Blocks['set_fog'] = {
-        init: function() {
-            this.jsonInit({
-                "type": "set_fog",
-                "message0": "set fog color %1 mode %2 density %3",
-                "args0": [
-                    {
-                        "type": "field_colour",
-                        "name": "FOG_COLOR",
-                        "colour": "#ffffff"  // Default fog color
-                    },
-                    {
-                        "type": "field_dropdown",
-                        "name": "FOG_MODE",
-                        "options": [
-                            ["Linear", "LINEAR"],
-                            ["None", "NONE"],
-                            ["Exp", "EXP"],
-                            ["Exp2", "EXP2"]
-                        ]
-                    },
-                    {
-                        "type": "input_value",
-                        "name": "DENSITY",
-                        "check": "Number"
-                    }
-                ],
-                "inputsInline": true,
-                "previousStatement": null,
-                "nextStatement": null,
-                "colour": categoryColours["Scene"],
-                "tooltip": "Configures the scene's fog.",
-                "helpUrl": ""
-            });
-        }
+      init: function () {
+        this.jsonInit({
+          "type": "set_fog",
+          "message0": "set fog color %1 mode %2 density %3",
+          "args0": [
+            {
+              "type": "field_colour",
+              "name": "FOG_COLOR",
+              "colour": "#ffffff"  // Default fog color
+            },
+            {
+              "type": "field_dropdown",
+              "name": "FOG_MODE",
+              "options": [
+                ["Linear", "LINEAR"],
+                ["None", "NONE"],
+                ["Exp", "EXP"],
+                ["Exp2", "EXP2"]
+              ]
+            },
+            {
+              "type": "input_value",
+              "name": "DENSITY",
+              "check": "Number"
+            }
+          ],
+          "inputsInline": true,
+          "previousStatement": null,
+          "nextStatement": null,
+          "colour": categoryColours["Scene"],
+          "tooltip": "Configures the scene's fog.",
+          "helpUrl": ""
+        });
+      }
     };
 
 
@@ -549,6 +578,59 @@
 
             nextVariableIndexes['sphere'] += 1;
           }
+        });
+      }
+    };
+
+    Blockly.Blocks['create_plane'] = {
+      init: function () {
+        let nextVariableName = "plane" + nextVariableIndexes['plane']; // Ensure 'plane' is managed in your nextVariableIndexes
+        this.jsonInit({
+          "type": "create_plane",
+          "message0": "create plane as %1 %2 width %3 height %4 x %5 y %6 z %7",
+          "args0": [
+            {
+              "type": "field_variable",
+              "name": "ID_VAR",
+              "variable": nextVariableName
+            },
+            {
+              "type": "field_colour",
+              "name": "COLOR",
+              "colour": "#9932CC"  // Default color for the plane
+            },
+            {
+              "type": "input_value",
+              "name": "WIDTH",
+              "check": "Number"
+            },
+            {
+              "type": "input_value",
+              "name": "HEIGHT",
+              "check": "Number"
+            },
+            {
+              "type": "input_value",
+              "name": "X",
+              "check": "Number"
+            },
+            {
+              "type": "input_value",
+              "name": "Y",
+              "check": "Number"
+            },
+            {
+              "type": "input_value",
+              "name": "Z",
+              "check": "Number"
+            }
+          ],
+          "inputsInline": true,
+          "previousStatement": null,
+          "nextStatement": null,
+          "colour": categoryColours["Scene"], // Ensure this is defined in your environment
+          "tooltip": "Creates a colored 2D plane with specified width, height, and position.",
+          "helpUrl": ""
         });
       }
     };
@@ -1041,6 +1123,35 @@
         `;
     };
 
+    Blockly.JavaScript.forBlock['create_plane'] = function (block) {
+      const color = block.getFieldValue('COLOR');
+      const width = Blockly.JavaScript.valueToCode(block, 'WIDTH', Blockly.JavaScript.ORDER_ATOMIC) || '1';
+      const height = Blockly.JavaScript.valueToCode(block, 'HEIGHT', Blockly.JavaScript.ORDER_ATOMIC) || '1';
+      const posX = Blockly.JavaScript.valueToCode(block, 'X', Blockly.JavaScript.ORDER_ATOMIC) || '0';
+      const posY = Blockly.JavaScript.valueToCode(block, 'Y', Blockly.JavaScript.ORDER_ATOMIC) || '0';
+      const posZ = Blockly.JavaScript.valueToCode(block, 'Z', Blockly.JavaScript.ORDER_ATOMIC) || '0';
+
+      let variable_name = Blockly.JavaScript.nameDB_.getName(block.getFieldValue('ID_VAR'), Blockly.Names.NameType.VARIABLE);
+
+      const planeId = `plane_${generateUUID()}`; // Ensure you have a function to generate UUIDs
+      meshMap[planeId] = block; // Assuming meshMap is a global object to track created meshes
+
+      return `(function() {
+            const newPlane = BABYLON.MeshBuilder.CreatePlane("${planeId}", {width: ${width}, height: ${height}, sideOrientation: BABYLON.Mesh.DOUBLESIDE, scene: scene});
+            newPlane.position = new BABYLON.Vector3(${posX}, ${posY}, ${posZ});
+
+            const material = new BABYLON.StandardMaterial("planeMaterial", scene);
+            material.diffuseColor = new BABYLON.Color3.FromHexString("${color}");
+            newPlane.material = material;
+
+            // Assuming there's no need to set up physics for the plane, but if needed:
+            // Setup physics properties here if the plane also needs to interact physically
+
+            ${variable_name} = "${planeId}";
+        })();`;
+    };
+
+
 
     Blockly.JavaScript.forBlock['move_by_vector'] = function (block) {
 
@@ -1244,6 +1355,7 @@ mesh.physics.setMotionType(BABYLON.PhysicsMotionType.ANIMATED);
       mesh: 1,
       box: 1,
       sphere: 1,
+      plane: 1,
       text: 1
     };
 
@@ -1253,6 +1365,7 @@ mesh.physics.setMotionType(BABYLON.PhysicsMotionType.ANIMATED);
         mesh: 1,
         box: 1,
         sphere: 1,
+        plane: 1,
         text: 1
       };
 
