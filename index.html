@@ -71,7 +71,11 @@
       "Scene": 160,
       "Motion": 240,
       "Looks": 300,
-      "Control": 360
+      "Control": 120,
+      "Logic": "%{BKY_LOGIC_HUE}",
+      "Variables": "%{BKY_VARIABLES_HUE}",
+      "Lists": "%{BKY_LISTS_HUE}",
+      "Math": "%{BKY_MATH_HUE}"
     };
 
     const workspace = Blockly.inject('blocklyDiv', {
@@ -89,7 +93,6 @@
                 <xml id="toolbox" style="display: none">
           <category name="Flock 🐑🐑🐑"></category>
 					<category name="Scene" colour="${categoryColours["Scene"]}">		
-          <block type="create_scene"></block>
           <block type="set_sky_color"></block>
 					<block type="create_ground"></block>
           <block type="create_box">
@@ -193,7 +196,106 @@
 <category name="Control" colour="${categoryColours["Control"]}">
 <block type="create_scene"></block>
 <block type="on_each_update"></block>
+<!-- Loop Blocks -->
+<block type="controls_repeat_ext">
+  <value name="TIMES">
+    <shadow type="math_number">
+      <field name="NUM">10</field>
+    </shadow>
+  </value>
+</block>
+<block type="controls_whileUntil"></block>
+<block type="controls_forEach"></block>
+<block type="controls_for"></block>
 </category>
+<category name="Condition" colour="${categoryColours["Logic"]}">
+
+<!-- Conditional Blocks -->
+<block type="controls_if"></block>
+<block type="controls_ifelse"></block>
+
+<!-- Logical Operators -->
+<block type="logic_compare"></block>
+<block type="logic_operation"></block>
+<block type="logic_negate"></block>
+<block type="logic_boolean"></block>
+<block type="logic_null"></block>
+<block type="logic_ternary"></block>
+</category>
+ <category name="Variables" colour="${categoryColours["Variables"]}" custom="VARIABLE">
+<block type="log_variable"></block> <!-- Your custom block -->
+
+ </category>
+ <category name="Lists" colour="${categoryColours["Lists"]}">
+   <block type="lists_create_empty"></block>
+   <block type="lists_create_with"></block>
+   <block type="lists_repeat"></block>
+   <block type="lists_length"></block>
+   <block type="lists_isEmpty"></block>
+   <block type="lists_indexOf"></block>
+   <block type="lists_getIndex"></block>
+   <block type="lists_setIndex"></block>
+   <block type="lists_getSublist"></block>
+   <block type="lists_split"></block>
+   <block type="lists_sort"></block>
+   <!-- Additional list blocks can be added here -->
+ </category>
+ <category name="Math" colour="${categoryColours["Math"]}">
+   <!-- Basic arithmetic -->
+   <block type="math_arithmetic">
+     <field name="OP">ADD</field>
+     <value name="A">
+     <shadow type="math_number">
+       <field name="NUM">1</field>
+     </shadow>
+     </value>
+     <value name="B">
+     <shadow type="math_number">
+       <field name="NUM">1</field>
+     </shadow>
+     </value>
+   </block>
+
+   <!-- Random integer between two numbers -->
+   <block type="math_random_int">
+     <value name="FROM">
+     <shadow type="math_number">
+       <field name="NUM">1</field>
+     </shadow>
+     </value>
+     <value name="TO">
+     <shadow type="math_number">
+       <field name="NUM">100</field>
+     </shadow>
+     </value>
+   </block>
+
+   <!-- A single number -->
+   <block type="math_number">
+     <field name="NUM">0</field>
+   </block>
+
+   <!-- More complex blocks -->
+   <block type="math_constant"></block>
+   <block type="math_number_property"></block>
+   <block type="math_round"></block>
+   <block type="math_on_list"></block>
+   <block type="math_modulo"></block>
+   <block type="math_constrain">
+     <value name="LOW">
+     <shadow type="math_number">
+       <field name="NUM">1</field>
+     </shadow>
+     </value>
+     <value name="HIGH">
+     <shadow type="math_number">
+       <field name="NUM">100</field>
+     </shadow>
+     </value>
+   </block>
+   <block type="math_random_float"></block>
+   <!-- Add any additional math blocks you find necessary -->
+   </category>
 </xml>
             `
     });
