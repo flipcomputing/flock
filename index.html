@@ -70,6 +70,7 @@
     const categoryColours = {
       "Scene": 160,
       "Motion": 240,
+      "Control": 320
     };
 
     const workspace = Blockly.inject('blocklyDiv', {
@@ -168,6 +169,9 @@
   </shadow>
   </value>
 </block>
+</category>
+<category name="Control" colour="${categoryColours["Control"]}">
+<block type="on_each_update"></block>
 </category>
 </xml>
             `
@@ -460,6 +464,27 @@
     };
 
 
+    Blockly.Blocks['on_each_update'] = {
+      init: function () {
+        this.jsonInit({
+          "type": "on_each_update",
+          "message0": "on each update %1",
+          "args0": [
+            {
+              "type": "input_statement",
+              "name": "DO",
+              "check": null
+            }
+          ],
+          "colour": categoryColours["Control"], // Ensure categoryColours["Control"] is defined
+          "tooltip": "Executes the enclosed blocks each frame in the render loop.",
+          "helpUrl": ""
+        });
+      }
+    };
+
+
+
     function generateUUID() {
       return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
         var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
@@ -674,6 +699,12 @@ mesh.physics.setMotionType(BABYLON.PhysicsMotionType.ANIMATED);
       }
       });`;
     };
+
+    Blockly.JavaScript.forBlock['on_each_update'] = function (block) {
+      const branch = Blockly.JavaScript.statementToCode(block, 'DO');
+      return 'scene.onBeforeRenderObservable.add(() => {\n' + branch + '});\n';
+    };
+
 
     const createScene = function () {
       const scene = new BABYLON.Scene(engine);
