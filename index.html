@@ -70,7 +70,8 @@
     const categoryColours = {
       "Scene": 160,
       "Motion": 240,
-      "Control": 320
+      "Looks": 300,
+      "Control": 360
     };
 
     const workspace = Blockly.inject('blocklyDiv', {
@@ -169,6 +170,10 @@
   </shadow>
   </value>
 </block>
+</category>
+<category name="Looks" colour="${categoryColours["Looks"]}">
+<block type="show"></block>
+<block type="hide"></block>
 </category>
 <category name="Control" colour="${categoryColours["Control"]}">
 <block type="create_scene"></block>
@@ -477,13 +482,84 @@
               "check": null
             }
           ],
-          "colour": categoryColours["Control"], // Ensure categoryColours["Control"] is defined
+          "colour": categoryColours["Control"],
           "tooltip": "Executes the enclosed blocks each frame in the render loop.",
           "helpUrl": ""
         });
       }
     };
 
+    Blockly.Blocks['show'] = {
+      init: function () {
+        this.jsonInit({
+          "type": "show",
+          "message0": "show %1",
+          "args0": [
+            {
+              "type": "field_variable",
+              "name": "MODEL_VAR",
+              "variable": "mesh"
+            }
+          ],
+          "previousStatement": null,
+          "nextStatement": null,
+          "colour": categoryColours["Looks"],
+          "tooltip": "Shows the selected model.",
+          "helpUrl": ""
+        });
+      }
+    };
+
+    Blockly.Blocks['hide'] = {
+      init: function () {
+        this.jsonInit({
+          "type": "hide",
+          "message0": "hide %1",
+          "args0": [
+            {
+              "type": "field_variable",
+              "name": "MODEL_VAR",
+              "variable": "mesh"
+            }
+          ],
+          "previousStatement": null,
+          "nextStatement": null,
+          "colour": categoryColours["Looks"],
+          "tooltip": "Hides the selected model.",
+          "helpUrl": ""
+        });
+      }
+    };
+
+    Blockly.JavaScript.forBlock['show'] = function (block) {
+      const modelName = Blockly.JavaScript.nameDB_.getName(block.getFieldValue('MODEL_VAR'), Blockly.Names.NameType.VARIABLE);
+
+      return `whenModelReady(${modelName}, function(mesh) {
+      if (mesh) {
+         mesh.setEnabled(true);
+         hk._hknp.HP_World_AddBody(hk.world, mesh.physics._pluginData.hpBodyId);
+      }
+      else{
+         console.log("Model not loaded:", ${modelName});
+      }
+      });\n`;
+    };
+
+    Blockly.JavaScript.forBlock['hide'] = function (block) {
+      const modelName = Blockly.JavaScript.nameDB_.getName(block.getFieldValue('MODEL_VAR'), Blockly.Names.NameType.VARIABLE);
+
+      return `whenModelReady(${modelName}, function(mesh) {
+      if (mesh) {
+         mesh.setEnabled(false);
+         hk._hknp.HP_World_RemoveBody(hk.world, mesh.physics._pluginData.hpBodyId);
+      }
+      else{
+         console.log("Mesh not loaded:", ${modelName});
+      }
+
+      });\n`;
+
+    };
 
 
     function generateUUID() {
