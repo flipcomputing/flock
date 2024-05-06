@@ -172,7 +172,7 @@
                   </shadow>
               </value>
           </block>
-
+          <block type="set_background_color"></block>
 </category>
 <category name="Motion" colour="${categoryColours["Motion"]}">
 <block type="move_by_vector">
@@ -628,12 +628,34 @@
           "inputsInline": true,
           "previousStatement": null,
           "nextStatement": null,
-          "colour": categoryColours["Scene"], // Ensure this is defined in your environment
+          "colour": categoryColours["Scene"],
           "tooltip": "Creates a colored 2D plane with specified width, height, and position.",
           "helpUrl": ""
         });
       }
     };
+
+    Blockly.Blocks['set_background_color'] = {
+      init: function () {
+        this.jsonInit({
+          "type": "set_background_color",
+          "message0": "set background color %1",
+          "args0": [
+            {
+              "type": "field_colour",
+              "name": "COLOR",
+              "colour": "#6495ED"  // Default background color
+            }
+          ],
+          "previousStatement": null,
+          "nextStatement": null,
+          "colour": categoryColours["Scene"],
+          "tooltip": "Set the scene's background color",
+          "helpUrl": ""
+        });
+      }
+    };
+
 
     Blockly.Blocks['move_by_vector'] = {
       init: function () {
@@ -1152,6 +1174,11 @@
     };
 
 
+    Blockly.JavaScript.forBlock['set_background_color'] = function (block) {
+      const color = block.getFieldValue('COLOR');
+      return `scene.clearColor = new BABYLON.Color4.FromHexString("${color}FF");\n`;
+
+    };
 
     Blockly.JavaScript.forBlock['move_by_vector'] = function (block) {
 
