@@ -98,6 +98,39 @@
             <value name="Y"><shadow type="math_number"><field name="NUM">0.5</field></shadow></value>
             <value name="Z"><shadow type="math_number"><field name="NUM">0</field></shadow></value>
           </block>
+          <block type="create_sphere">
+            <field name="COLOR">#9932CC</field> <!-- Default color -->
+            <value name="DIAMETER_X">
+              <shadow type="math_number">
+                <field name="NUM">1</field>
+              </shadow>
+            </value>
+            <value name="DIAMETER_Y">
+              <shadow type="math_number">
+                <field name="NUM">1</field>
+              </shadow>
+            </value>
+            <value name="DIAMETER_Z">
+              <shadow type="math_number">
+                <field name="NUM">1</field>
+              </shadow>
+            </value>
+            <value name="X">
+              <shadow type="math_number">
+                <field name="NUM">0</field>
+              </shadow>
+            </value>
+            <value name="Y">
+              <shadow type="math_number">
+                <field name="NUM">0.5</field>
+              </shadow>
+            </value>
+            <value name="Z">
+              <shadow type="math_number">
+                <field name="NUM">0</field>
+              </shadow>
+            </value>
+          </block>
 </category>
 </xml>
             `
@@ -241,6 +274,76 @@
       }
     };
 
+    Blockly.Blocks['create_sphere'] = {
+      init: function () {
+        let nextVariableName = "sphere" + nextVariableIndexes['sphere'];
+        this.jsonInit({
+          "type": "create_sphere",
+          "message0": "create sphere as %1 %2 diameter x %3 diameter y %4 diameter z %5 x %6 y %7 z %8",
+          "args0": [
+            {
+              "type": "field_variable",
+              "name": "ID_VAR",
+              "variable": nextVariableName
+            },
+            {
+              "type": "field_colour",
+              "name": "COLOR",
+              "colour": "#9932CC"
+            },
+            {
+              "type": "input_value",
+              "name": "DIAMETER_X",
+              "check": "Number"
+            },
+            {
+              "type": "input_value",
+              "name": "DIAMETER_Y",
+              "check": "Number"
+            },
+            {
+              "type": "input_value",
+              "name": "DIAMETER_Z",
+              "check": "Number"
+            },
+            {
+              "type": "input_value",
+              "name": "X",
+              "check": "Number"
+            },
+            {
+              "type": "input_value",
+              "name": "Y",
+              "check": "Number"
+            },
+            {
+              "type": "input_value",
+              "name": "Z",
+              "check": "Number"
+            }
+          ],
+          "previousStatement": null,
+          "nextStatement": null,
+          "inputsInline": true,
+          "colour": categoryColours["Scene"],
+          "tooltip": "Creates a colored sphere with specified dimensions and position.",
+          "helpUrl": ""
+        });
+
+        this.setOnChange(function (changeEvent) {
+          if (!this.isInFlyout && changeEvent.type === Blockly.Events.BLOCK_CREATE && changeEvent.ids.includes(this.id)) {
+            var variable = this.workspace.getVariable(nextVariableName);
+            if (!variable) {
+              variable = this.workspace.createVariable(nextVariableName, null);
+              this.getField('ID_VAR').setValue(variable.getId());
+            }
+
+            nextVariableIndexes['sphere'] += 1;
+          }
+        });
+      }
+    };
+
 
     function generateUUID() {
       return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
@@ -319,6 +422,53 @@
       `;
 
     };
+
+    Blockly.JavaScript.forBlock['create_sphere'] = function (block) {
+      const color = block.getFieldValue('COLOR');
+      const diameterX = Blockly.JavaScript.valueToCode(block, 'DIAMETER_X', Blockly.JavaScript.ORDER_ATOMIC) || '1';
+      const diameterY = Blockly.JavaScript.valueToCode(block, 'DIAMETER_Y', Blockly.JavaScript.ORDER_ATOMIC) || '1';
+      const diameterZ = Blockly.JavaScript.valueToCode(block, 'DIAMETER_Z', Blockly.JavaScript.ORDER_ATOMIC) || '1';
+      const posX = Blockly.JavaScript.valueToCode(block, 'X', Blockly.JavaScript.ORDER_ATOMIC) || '0';
+      const posY = Blockly.JavaScript.valueToCode(block, 'Y', Blockly.JavaScript.ORDER_ATOMIC) || '0.5';
+      const posZ = Blockly.JavaScript.valueToCode(block, 'Z', Blockly.JavaScript.ORDER_ATOMIC) || '0';
+      let variableName =
+        Blockly.JavaScript.nameDB_.getName(block.getFieldValue('ID_VAR'), Blockly.Names.NameType.VARIABLE);
+
+      const sphereId = `sphere_${generateUUID()}`;
+      meshMap[sphereId] = block;
+
+      return `(function() {
+          const newSphere = BABYLON.MeshBuilder.CreateSphere("${sphereId}", {
+            diameterX: ${diameterX},
+            diameterY: ${diameterY},
+            diameterZ: ${diameterZ},
+            scene
+          });
+          newSphere.position = new BABYLON.Vector3(${posX}, ${posY}, ${posZ});
+
+          const sphereBody = new BABYLON.PhysicsBody(newSphere, BABYLON.PhysicsMotionType.STATIC, false, scene);
+
+          const sphereShape = new BABYLON.PhysicsShapeSphere(
+            new BABYLON.Vector3(0, 0, 0),
+            Math.max(${diameterX}, ${diameterY}, ${diameterZ}) / 2, // Approximation for irregular diameters
+            scene
+          );
+
+          sphereBody.shape = sphereShape;
+          sphereBody.setMassProperties({mass: 1, restitution: 0.5});
+          sphereBody.setAngularDamping(100);
+          sphereBody.setLinearDamping(10);
+          newSphere.physics = sphereBody;
+
+          const material = new BABYLON.StandardMaterial("sphereMaterial", scene);
+          material.diffuseColor = new BABYLON.Color3.FromHexString("${color}");
+          newSphere.material = material;
+          ${variableName} = "${sphereId}";
+          \n
+        })();
+        `;
+    };
+
 
 
     const createScene = function () {
