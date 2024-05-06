@@ -89,6 +89,15 @@
           <block type="create_scene"></block>
           <block type="set_sky_color"></block>
 					<block type="create_ground"></block>
+          <block type="create_box">
+            <field name="COLOR">#9932CC</field> <!-- Default color -->
+            <value name="WIDTH"><shadow type="math_number"><field name="NUM">1</field></shadow></value>
+            <value name="HEIGHT"><shadow type="math_number"><field name="NUM">1</field></shadow></value>
+            <value name="DEPTH"><shadow type="math_number"><field name="NUM">1</field></shadow></value>
+            <value name="X"><shadow type="math_number"><field name="NUM">0</field></shadow></value>
+            <value name="Y"><shadow type="math_number"><field name="NUM">0.5</field></shadow></value>
+            <value name="Z"><shadow type="math_number"><field name="NUM">0</field></shadow></value>
+          </block>
 </category>
 </xml>
             `
@@ -154,6 +163,71 @@
       }
     };
 
+    Blockly.Blocks['create_box'] = {
+      init: function () {
+        this.jsonInit({
+          "type": "create_box",
+          "message0": "create box as %1 %2 width %3 height %4 depth %5 x %6 y %7 z %8",
+          "args0": [
+            {
+              "type": "field_variable",
+              "name": "ID_VAR",
+              "variable": "box"  // The default variable name
+            },
+            {
+              "type": "field_colour",
+              "name": "COLOR",
+              "colour": "#9932CC"
+            },
+            {
+              "type": "input_value",
+              "name": "WIDTH",
+              "check": "Number"
+            },
+            {
+              "type": "input_value",
+              "name": "HEIGHT",
+              "check": "Number"
+            },
+            {
+              "type": "input_value",
+              "name": "DEPTH",
+              "check": "Number"
+            },
+            {
+              "type": "input_value",
+              "name": "X",
+              "check": "Number"
+            },
+            {
+              "type": "input_value",
+              "name": "Y",
+              "check": "Number"
+            },
+            {
+              "type": "input_value",
+              "name": "Z",
+              "check": "Number"
+            }
+          ],
+          "previousStatement": null,
+          "nextStatement": null,
+          "inputsInline": true,
+          "colour": categoryColours["Scene"],
+          "tooltip": "Creates a colored box with specified dimensions and position.",
+          "helpUrl": ""
+        });
+      }
+    };
+
+
+    function generateUUID() {
+      return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+        var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+        return v.toString(16);
+      });
+    }
+
     Blockly.JavaScript.forBlock['create_scene'] = function (block) {
       return code = `
         if (scene) scene.dispose();
@@ -183,6 +257,49 @@
       const babylonColor = new BABYLON.Color3.FromHexString(color);
 
       return `scene.clearColor = new BABYLON.Color3(${babylonColor.r}, ${babylonColor.g}, ${babylonColor.b});\n`;
+    };
+
+    Blockly.JavaScript.forBlock['create_box'] = function (block) {
+      const color = block.getFieldValue('COLOR');
+      const width = Blockly.JavaScript.valueToCode(block, 'WIDTH', Blockly.JavaScript.ORDER_ATOMIC) || '1';
+      const height = Blockly.JavaScript.valueToCode(block, 'HEIGHT', Blockly.JavaScript.ORDER_ATOMIC) || '1';
+      const depth = Blockly.JavaScript.valueToCode(block, 'DEPTH', Blockly.JavaScript.ORDER_ATOMIC) || '1';
+      const posX = Blockly.JavaScript.valueToCode(block, 'X', Blockly.JavaScript.ORDER_ATOMIC) || '0';
+      const posY = Blockly.JavaScript.valueToCode(block, 'Y', Blockly.JavaScript.ORDER_ATOMIC) || '0';
+      const posZ = Blockly.JavaScript.valueToCode(block, 'Z', Blockly.JavaScript.ORDER_ATOMIC) || '0';
+      let variable_name =
+        Blockly.JavaScript.nameDB_.getName(block.getFieldValue('ID_VAR'), Blockly.Names.NameType.VARIABLE);
+
+      const boxId = `box_${generateUUID()}`;
+      meshMap[boxId] = block;
+
+      return `(function() {
+        const newBox = BABYLON.MeshBuilder.CreateBox("${boxId}", {width: ${width}, height: ${height}, depth: ${depth}, scene});
+        newBox.position = new BABYLON.Vector3(${posX}, ${posY}, ${posZ});
+
+        const boxBody = new BABYLON.PhysicsBody(newBox, BABYLON.PhysicsMotionType.STATIC, false, scene);
+
+        const boxShape = new BABYLON.PhysicsShapeBox(
+          new BABYLON.Vector3(0, 0, 0),
+          BABYLON.Quaternion.Identity(),
+          new BABYLON.Vector3(${width}, ${height}, ${depth}),
+          scene
+        );
+        
+        boxBody.shape = boxShape;
+        boxBody.setMassProperties({mass: 1, restitution: 0.5});
+        boxBody.setAngularDamping(100);
+        boxBody.setLinearDamping(10);
+        newBox.physics = boxBody;
+
+        const material = new BABYLON.StandardMaterial("boxMaterial", scene);
+        material.diffuseColor = new BABYLON.Color3.FromHexString("${color}");
+        newBox.material = material;
+        ${variable_name} = "${boxId}";
+        \n
+      })();
+      `;
+
     };
 
 
@@ -221,7 +338,7 @@
     }
 
     initialize();
-
+    const meshMap = {};
 
     window.addEventListener("resize", function () {
       engine.resize();
