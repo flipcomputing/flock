@@ -1147,11 +1147,11 @@
 
     Blockly.JavaScript.forBlock['create_plane'] = function (block) {
       const color = block.getFieldValue('COLOR');
-      const width = Blockly.JavaScript.valueToCode(block, 'WIDTH', Blockly.JavaScript.ORDER_ATOMIC) || '1';
-      const height = Blockly.JavaScript.valueToCode(block, 'HEIGHT', Blockly.JavaScript.ORDER_ATOMIC) || '1';
-      const posX = Blockly.JavaScript.valueToCode(block, 'X', Blockly.JavaScript.ORDER_ATOMIC) || '0';
-      const posY = Blockly.JavaScript.valueToCode(block, 'Y', Blockly.JavaScript.ORDER_ATOMIC) || '0';
-      const posZ = Blockly.JavaScript.valueToCode(block, 'Z', Blockly.JavaScript.ORDER_ATOMIC) || '0';
+      const width = getFieldValue(block, 'WIDTH', '1');
+      const height = getFieldValue(block, 'HEIGHT', '1');
+      const posX = getFieldValue(block, 'X', '0');
+      const posY = getFieldValue(block, 'Y', '0');
+      const posZ = getFieldValue(block, 'Z', '0');
 
       let variable_name = Blockly.JavaScript.nameDB_.getName(block.getFieldValue('ID_VAR'), Blockly.Names.NameType.VARIABLE);
 
