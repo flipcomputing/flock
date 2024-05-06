@@ -171,6 +171,7 @@
 </block>
 </category>
 <category name="Control" colour="${categoryColours["Control"]}">
+<block type="create_scene"></block>
 <block type="on_each_update"></block>
 </category>
 </xml>
@@ -189,9 +190,9 @@
       init: function () {
         this.jsonInit({
           "type": "create_scene",
-          "message0": "create_scene",
+          "message0": "create scene",
           "nextStatement": null,
-          "colour": categoryColours["Scene"],
+          "colour": categoryColours["Control"],
           "tooltip": "Creates a scene and runs the attached blocks.",
           "style": {
             "hat": "cap"
