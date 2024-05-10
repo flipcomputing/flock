@@ -231,7 +231,7 @@
 <block type="clear_effects"></block>
 </category>
 <category name="Control" colour="${categoryColours["Control"]}">
-<block type="create_scene"></block>
+<block type="start"></block>
 <block type="on_each_update"></block>
 <!-- Loop Blocks -->
 <block type="controls_repeat_ext">
@@ -351,14 +351,14 @@
       }
     });
 
-    Blockly.Blocks['create_scene'] = {
+    Blockly.Blocks['start'] = {
       init: function () {
         this.jsonInit({
-          "type": "create_scene",
-          "message0": "create scene",
+          "type": "start",
+          "message0": "start",
           "nextStatement": null,
           "colour": categoryColours["Control"],
-          "tooltip": "Creates a scene and runs the attached blocks.",
+          "tooltip": "Run the attached block when the project starts.",
           "style": {
             "hat": "cap"
           }
@@ -1084,10 +1084,8 @@
     }
 
 
-    Blockly.JavaScript.forBlock['create_scene'] = function (block) {
+    Blockly.JavaScript.forBlock['start'] = function (block) {
       return code = `
-        if (scene) scene.dispose();
-        scene = createScene();
       `;
     };
 
@@ -1596,7 +1594,7 @@ mesh.physics.setMotionType(BABYLON.PhysicsMotionType.ANIMATED);
     // Define your starter blocks XML string
     const initialBlocks =
       `<xml xmlns="http://www.w3.org/1999/xhtml">
-            <block type="create_scene">
+            <block type="start">
             <next>
             <block type="set_sky_color">
               <next>
@@ -1663,9 +1661,11 @@ mesh.physics.setMotionType(BABYLON.PhysicsMotionType.ANIMATED);
 
       });
     }
-
+    
     function executeCode() {
       if (engineReady) {
+        if (scene) scene.dispose();
+        scene = createScene();
         const code = Blockly.JavaScript.workspaceToCode(workspace);
         try {
           eval(code);
