@@ -60,6 +60,9 @@
       <button id="fullscreenToggle">🖼️Fullscreen</button>
     </div>
     <canvas id="renderCanvas"></canvas>
+     <input type="file" id="importFile" style="display: none;" onchange="handleSnippetUpload(event)" />
+
+
   </div>
 
   <script>
@@ -2172,6 +2175,120 @@ mesh.physics.setMotionType(BABYLON.PhysicsMotionType.ANIMATED);
     document.addEventListener('keyup', function (event) {
       currentKeyPressed = null;
     });
+
+    async function exportBlockSnippet(block) {
+      try {
+        // Save the block and its children to a JSON object
+        const blockJson = Blockly.serialization.blocks.save(block);
+
+        // Convert the JSON object to a pretty-printed JSON string
+        const jsonString = JSON.stringify(blockJson, null, 2);
+
+        // Check if the File System Access API is available
+        if ('showSaveFilePicker' in window) {
+          // Define the options for the file picker
+          const options = {
+            suggestedName: 'blockly_snippet.json',
+            types: [{
+              description: 'JSON Files',
+              accept: {
+                'application/json': ['.json']
+              }
+            }]
+          };
+
+          // Show the save file picker
+          const fileHandle = await window.showSaveFilePicker(options);
+
+          // Create a writable stream
+          const writable = await fileHandle.createWritable();
+
+          // Write the JSON string to the file
+          await writable.write(jsonString);
+
+          // Close the writable stream
+          await writable.close();
+        } else {
+          // Fallback for browsers that don't support the File System Access API
+          const filename = prompt("Enter a filename for the snippet:", "blockly_snippet") || "blockly_snippet";
+          const blob = new Blob([jsonString], { type: 'application/json' });
+          const link = document.createElement('a');
+          link.href = URL.createObjectURL(blob);
+          link.download = `${filename}.json`;
+          link.click();
+        }
+      } catch (e) {
+        console.error('Error exporting block:', e);
+      }
+    }
+
+
+    // Function to handle file upload and import JSON snippet into workspace
+    function handleSnippetUpload(event) {
+      const file = event.target.files[0];
+      const reader = new FileReader();
+      reader.onload = function(event) {
+        const jsonText = event.target.result;
+       
+        try {
+          const json = JSON.parse(jsonText);
+          Blockly.serialization.blocks.append(json, workspace);
+        } catch (e) {
+          console.error("Error importing JSON:", e);
+        }
+      };
+      reader.readAsText(file);
+    }
+    
+    // Function to trigger file input for importing snippet
+    function importSnippet() {
+      document.getElementById('importFile').click();
+    }
+
+    function addExportContextMenuOption() {
+      Blockly.ContextMenuRegistry.registry.register({
+        id: 'exportBlock',
+        weight: 200,
+        displayText: function() {
+          return 'Export block as JSON snippet';
+        },
+        preconditionFn: function(scope) {
+          return scope.block ? 'enabled' : 'hidden';
+        },
+        callback: function(scope) {
+          exportBlockSnippet(scope.block);
+        },
+        scopeType: Blockly.ContextMenuRegistry.ScopeType.BLOCK,
+        checkbox: false
+      });
+    }
+
+    // Initialize Blockly and add custom context menu options
+    addExportContextMenuOption();
+
+
+    // Extend Blockly with custom context menu for importing snippets in the workspace
+    function addImportContextMenuOption() {
+      Blockly.ContextMenuRegistry.registry.register({
+        id: 'importSnippet',
+        weight: 100,
+        displayText: function() {
+          return 'Import snippet';
+        },
+        preconditionFn: function(scope) {
+          return 'enabled';
+        },
+        callback: function(scope) {
+          importSnippet();
+        },
+        scopeType: Blockly.ContextMenuRegistry.ScopeType.WORKSPACE,
+        checkbox: false
+      });
+    }
+
+   
+    addImportContextMenuOption();
+
 
 
   </script>
