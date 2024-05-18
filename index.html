@@ -212,6 +212,15 @@
   </shadow>
   </value>
 </block>
+<block type="move_forward">
+         <value name="SPEED">
+  <shadow type="math_number">
+    <field name="NUM">3</field>
+  </shadow>
+</value>
+</block>
+<block type="camera_follow"></block>
+<block type="add_physics"></block>
 </category>
 <category name="Looks" colour="${categoryColours["Looks"]}">
 <block type="show"></block>
@@ -231,7 +240,6 @@
   </value>
 </block>
 <block type="clear_effects"></block>
-<block type="camera_follow"></block>
 </category>
 <category name="Control" colour="${categoryColours["Control"]}">
 <block type="start"></block>
@@ -373,7 +381,9 @@
 </category>
  <category name="Variables" colour="${categoryColours["Variables"]}" custom="VARIABLE">
 <block type="log_variable"></block> <!-- Your custom block -->
-
+ </category>
+ <category name="Sensing" colour="#ADD8E6">
+   <block type="key_pressed"></block>
  </category>
  <category name="Lists" colour="${categoryColours["Lists"]}">
    <block type="lists_create_empty"></block>
@@ -1140,25 +1150,101 @@
 
     Blockly.Blocks['camera_follow'] = {
       init: function () {
-      this.jsonInit({
-        "type": "camera_follow",
-        "message0": "camera follow %1",
-        "args0": [
-        {
-          "type": "field_variable",
-          "name": "MESH_VAR",
-          "variable": "mesh1"
-        }
-        ],
-        "previousStatement": null,
-        "nextStatement": null,
-        "colour": 160,
-        "tooltip": "Makes the camera follow a model specified by the variable.",
-        "helpUrl": ""
-      });
+        this.jsonInit({
+          "type": "camera_follow",
+          "message0": "camera follow %1",
+          "args0": [
+            {
+              "type": "field_variable",
+              "name": "MESH_VAR",
+              "variable": "mesh1"
+            }
+          ],
+          "previousStatement": null,
+          "nextStatement": null,
+          "colour": 160,
+          "tooltip": "Makes the camera follow a model specified by the variable.",
+          "helpUrl": ""
+        });
       }
     };
 
+    Blockly.Blocks['add_physics'] = {
+      init: function () {
+        this.jsonInit({
+          "type": "add_physics",
+          "message0": "add physics %1",
+          "args0": [
+            {
+              "type": "field_variable",
+              "name": "MODEL_VAR",
+              "variable": "mesh"
+            }
+          ],
+          "previousStatement": null,
+          "nextStatement": null,
+          "colour": 160,
+          "tooltip": "Adds dynamic physics so the mesh reacts to forces including gravity.",
+          "helpUrl": ""
+        });
+      }
+    };
+
+
+    Blockly.Blocks['key_pressed'] = {
+      init: function () {
+        this.jsonInit({
+          "type": "key_pressed",
+          "message0": "key pressed is %1",
+          "args0": [
+            {
+              "type": "field_dropdown",
+              "name": "KEY",
+              "options": [
+                ["any", "ANY"],
+                ["none", "NONE"],
+                ["space", "SPACE"],
+                ["W", "KeyW"],
+                ["A", "KeyA"],
+                ["S", "KeyS"],
+                ["D", "KeyD"]
+              ]
+            }
+          ],
+          "output": "Boolean",
+          "colour": 160,
+          "tooltip": "Returns true if the specified key is pressed.",
+          "helpUrl": ""
+        });
+      }
+    };
+
+    Blockly.Blocks['move_forward'] = {
+      init: function () {
+        this.jsonInit({
+          "type": "move_forward",
+          "message0": "move %1 speed %2",
+          "args0": [
+            {
+              "type": "field_variable",
+              "name": "MODEL",
+              "variable": "mesh"
+            },
+            {
+              "type": "input_value",
+              "name": "SPEED",
+              "check": "Number"
+            }
+          ],
+          "inputsInline": true,
+          "previousStatement": null,
+          "nextStatement": null,
+          "colour": 160,
+          "tooltip": "Moves the model forward in the direction it's pointing.",
+          "helpUrl": ""
+        });
+      }
+    };
 
     Blockly.JavaScript.forBlock['show'] = function (block) {
       const modelName = Blockly.JavaScript.nameDB_.getName(block.getFieldValue('MODEL_VAR'), Blockly.Names.NameType.VARIABLE);
@@ -1670,13 +1756,71 @@ mesh.physics.setMotionType(BABYLON.PhysicsMotionType.ANIMATED);
         });\n`;
     };
 
+        Blockly.JavaScript.forBlock['move_forward'] = function (block) {
+
+          const modelName = Blockly.JavaScript.nameDB_.getName(block.getFieldValue('MODEL'), Blockly.Names.NameType.VARIABLE);
+          const speed = Blockly.JavaScript.valueToCode(block, 'SPEED', Blockly.JavaScript.ORDER_ATOMIC) || '0';
+          return `
+        (function() {
+          const model = scene.getMeshByName(${modelName});
+          if (model) {
+
+    const forwardSpeed = -${speed};  
+    const cameraForward = scene.activeCamera.getForwardRay().direction.normalize();
+
+    // Forward direction adjusted to move away from the camera
+    const moveDirection = cameraForward.scale(-forwardSpeed); // Reverse the direction if necessary
+
+    const currentVelocity = model.physics.getLinearVelocity();
+
+    // Set the new velocity, maintaining the existing vertical component (gravity)
+    model.physics.setLinearVelocity(
+      new BABYLON.Vector3(
+        moveDirection.x,
+        currentVelocity.y, // Keep the vertical component unaffected by horizontal movement
+        moveDirection.z
+      )
+    );
+
+    if (${speed} === 0){ return; }
+
+    // Decide the facing direction based on whether steps is positive or negative
+        let facingDirection;
+        if (${speed} >= 0) {
+            // Face away from the camera when moving forward
+            facingDirection = new BABYLON.Vector3(-cameraForward.x, 0, -cameraForward.z).normalize();
+        } else {
+            // Face towards the camera when moving backward
+            facingDirection = new BABYLON.Vector3(cameraForward.x, 0, cameraForward.z).normalize();
+        }
+
+        // Calculate the target rotation from the facing direction
+        const targetRotation = BABYLON.Quaternion.FromLookDirectionLH(facingDirection, BABYLON.Vector3.Up());
+        const currentRotation = model.rotationQuaternion;
+        const deltaRotation = targetRotation.multiply(currentRotation.conjugate());
+        const deltaEuler = deltaRotation.toEulerAngles();
+        const scaledAngularVelocityY = new BABYLON.Vector3(0, deltaEuler.y * 5, 0); // Adjust the scalar as needed
+
+        // Update angular velocity for rotation
+        model.physics.setAngularVelocity(scaledAngularVelocityY);
+
+      model.rotationQuaternion.x = 0;
+      model.rotationQuaternion.z = 0;
+      model.rotationQuaternion.normalize(); // Re-normalize the quaternion to maintain a valid rotation
+
+    }
+
+        })();
+        `;
+          
+        };
 
     Blockly.JavaScript.forBlock['camera_follow'] = function (block) {
-          var modelName = Blockly.JavaScript.nameDB_.getName(block.getFieldValue('MESH_VAR'), Blockly.Names.NameType.VARIABLE);
+      const modelName = Blockly.JavaScript.nameDB_.getName(block.getFieldValue('MESH_VAR'), Blockly.Names.NameType.VARIABLE);
 
-          var code = `whenModelReady(${modelName}, function(mesh) {
+      return `whenModelReady(${modelName}, function(mesh) {
           if (mesh) {\n` +
-            `  
+        `  
     console.log("Attaching camera");
 
            const camera = new BABYLON.ArcRotateCamera("camera", Math.PI / 2, Math.PI / 4, -20, mesh.position, scene);
@@ -1701,9 +1845,39 @@ mesh.physics.setMotionType(BABYLON.PhysicsMotionType.ANIMATED);
 
           });\n`;
 
-          return code;
-        };
-    
+    };
+
+    Blockly.JavaScript.forBlock['add_physics'] = function (block) {
+      const modelName = Blockly.JavaScript.nameDB_.getName(block.getFieldValue('MODEL_VAR'), Blockly.Names.NameType.VARIABLE);
+
+       return `whenModelReady(${modelName}, function(mesh) {
+          if (mesh) {
+
+                     mesh.physics.setMotionType(BABYLON.PhysicsMotionType.DYNAMIC);
+          }
+          else{
+
+             console.log("Model not loaded:", ${modelName});
+          }
+
+          });\n`;
+    };
+
+
+    Blockly.JavaScript.forBlock['key_pressed'] = function (block) {
+      const key = block.getFieldValue('KEY');
+      // Code to check if the key is pressed
+      let code;
+      if (key === "ANY") {
+        code = 'currentKeyPressed !== null';
+      } else if (key === "NONE") {
+        code = 'currentKeyPressed === null';
+      } else {
+        code = `currentKeyPressed === "${key}"`;
+      }
+      return [code, Blockly.JavaScript.ORDER_NONE];
+    };
+
     const createScene = function () {
       const scene = new BABYLON.Scene(engine);
       hk = new BABYLON.HavokPlugin(true, havokInstance);
@@ -1988,6 +2162,17 @@ mesh.physics.setMotionType(BABYLON.PhysicsMotionType.ANIMATED);
 
       }
     });
+
+    let currentKeyPressed = null;
+
+    document.addEventListener('keydown', function (event) {
+      currentKeyPressed = event.code;
+    });
+
+    document.addEventListener('keyup', function (event) {
+      currentKeyPressed = null;
+    });
+
 
   </script>
 </body>
