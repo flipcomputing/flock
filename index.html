@@ -1265,7 +1265,7 @@
       const fogColorRgb = `new BABYLON.Color3.FromHexString('${fogColorHex}')`;
 
       // Generate the code for setting fog mode
-      var fogModeCode = '';
+      let fogModeCode = '';
       switch (fogMode) {
         case 'NONE':
           fogModeCode = 'scene.fogMode = BABYLON.Scene.FOGMODE_NONE;\n';
@@ -1679,7 +1679,7 @@ mesh.physics.setMotionType(BABYLON.PhysicsMotionType.ANIMATED);
           const advancedTexture = BABYLON.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
 
           // Create a rectangle background
-          var bg = new BABYLON.GUI.Rectangle("textBackground");
+          const bg = new BABYLON.GUI.Rectangle("textBackground");
           bg.background = "rgba(255, 255, 255, 0.5)";
           bg.adaptWidthToChildren = true; // Adjust width based on child elements
           bg.adaptHeightToChildren = true; // Adjust height based on child elements
@@ -1692,7 +1692,7 @@ mesh.physics.setMotionType(BABYLON.PhysicsMotionType.ANIMATED);
 
 
           // Create a text block
-          var textBlock = new BABYLON.GUI.TextBlock("textBlock", text);
+          const textBlock = new BABYLON.GUI.TextBlock("textBlock", text);
           textBlock.color = color;
           textBlock.fontSize = "12";
           textBlock.height = "20px";
