@@ -231,6 +231,7 @@
   </value>
 </block>
 <block type="clear_effects"></block>
+<block type="camera_follow"></block>
 </category>
 <category name="Control" colour="${categoryColours["Control"]}">
 <block type="start"></block>
@@ -1137,6 +1138,28 @@
     };
 
 
+    Blockly.Blocks['camera_follow'] = {
+      init: function () {
+      this.jsonInit({
+        "type": "camera_follow",
+        "message0": "camera follow %1",
+        "args0": [
+        {
+          "type": "field_variable",
+          "name": "MESH_VAR",
+          "variable": "mesh1"
+        }
+        ],
+        "previousStatement": null,
+        "nextStatement": null,
+        "colour": 160,
+        "tooltip": "Makes the camera follow a model specified by the variable.",
+        "helpUrl": ""
+      });
+      }
+    };
+
+
     Blockly.JavaScript.forBlock['show'] = function (block) {
       const modelName = Blockly.JavaScript.nameDB_.getName(block.getFieldValue('MODEL_VAR'), Blockly.Names.NameType.VARIABLE);
 
@@ -1648,6 +1671,39 @@ mesh.physics.setMotionType(BABYLON.PhysicsMotionType.ANIMATED);
     };
 
 
+    Blockly.JavaScript.forBlock['camera_follow'] = function (block) {
+          var modelName = Blockly.JavaScript.nameDB_.getName(block.getFieldValue('MESH_VAR'), Blockly.Names.NameType.VARIABLE);
+
+          var code = `whenModelReady(${modelName}, function(mesh) {
+          if (mesh) {\n` +
+            `  
+    console.log("Attaching camera");
+
+           const camera = new BABYLON.ArcRotateCamera("camera", Math.PI / 2, Math.PI / 4, -20, mesh.position, scene);
+           camera.checkCollisions = true;
+
+     // Adjust Beta limits to control the vertical angle
+        camera.lowerBetaLimit = Math.PI / 2.5; // Lower angle
+        camera.upperBetaLimit = Math.PI / 2; // Upper angle, prevent it from being too high
+          camera.lowerRadiusLimit = 2;
+          camera.upperRadiusLimit = 7;
+          // This targets the camera to scene origin
+          camera.setTarget(BABYLON.Vector3.Zero());
+          // This attaches the camera to the canvas
+          camera.attachControl(canvas, true);
+          camera.setTarget(mesh);
+          scene.activeCamera = camera;
+
+          }
+          else{
+             console.log("Model not loaded:", ${modelName});
+          }
+
+          });\n`;
+
+          return code;
+        };
+    
     const createScene = function () {
       const scene = new BABYLON.Scene(engine);
       hk = new BABYLON.HavokPlugin(true, havokInstance);
