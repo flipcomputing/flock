@@ -58,10 +58,14 @@
       <input type="text" id="projectName" placeholder="Enter project name here">
       <button onclick="exportCode()">💾Save</button>
       <button id="fullscreenToggle">🖼️Fullscreen</button>
+      <div><button class="gizmo-button" onclick="toggleGizmo('position')">Position</button>
+        <button class="gizmo-button" onclick="toggleGizmo('rotation')">Rotation</button>
+        <button class="gizmo-button" onclick="toggleGizmo('scale')">Scale</button>
+        <button class="gizmo-button" onclick="turnOffAllGizmos()">Hide</button>
+      </div>
     </div>
     <canvas id="renderCanvas"></canvas>
      <input type="file" id="importFile" style="display: none;" onchange="handleSnippetUpload(event)" />
-
 
   </div>
 
@@ -1505,8 +1509,8 @@
 
       let variable_name = Blockly.JavaScript.nameDB_.getName(block.getFieldValue('ID_VAR'), Blockly.Names.NameType.VARIABLE);
 
-      const planeId = `plane_${generateUUID()}`; // Ensure you have a function to generate UUIDs
-      meshMap[planeId] = block; // Assuming meshMap is a global object to track created meshes
+      const planeId = `plane_${generateUUID()}`; 
+      meshMap[planeId] = block; 
 
       return `(function() {
             const newPlane = BABYLON.MeshBuilder.CreatePlane("${planeId}", {width: ${width}, height: ${height}, sideOrientation: BABYLON.Mesh.DOUBLESIDE, scene: scene});
@@ -1886,6 +1890,7 @@ mesh.physics.setMotionType(BABYLON.PhysicsMotionType.ANIMATED);
       hk = new BABYLON.HavokPlugin(true, havokInstance);
       scene.enablePhysics(new BABYLON.Vector3(0, -9.81, 0), hk);
       highlighter = new BABYLON.HighlightLayer("highlighter", scene);
+      gizmoManager = new BABYLON.GizmoManager(scene);
 
       const camera = new BABYLON.FreeCamera("camera", new BABYLON.Vector3(0, 4, -20), scene);
       camera.setTarget(BABYLON.Vector3.Zero());
@@ -1909,7 +1914,7 @@ mesh.physics.setMotionType(BABYLON.PhysicsMotionType.ANIMATED);
       window.printText = function (text, duration, color) {
         if (text !== '') {
           // Create a container rectangle to hold the text block
-          const advancedTexture = BABYLON.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
+          //const advancedTexture = BABYLON.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
 
           // Create a rectangle background
           const bg = new BABYLON.GUI.Rectangle("textBackground");
@@ -1965,11 +1970,13 @@ mesh.physics.setMotionType(BABYLON.PhysicsMotionType.ANIMATED);
 
     const canvas = document.getElementById("renderCanvas");
     const engine = new BABYLON.Engine(canvas, true, {stencil: true});
+    engine.enableOfflineSupport = true;
     let hk = null;
     let scene = null;
     let havokInstance = null;
     let engineReady = false;
     let highlighter = null;
+    let gizmoManager = null;
 
     async function initialize() {
       BABYLON.Database.IDBStorageEnabled = true
@@ -2122,6 +2129,85 @@ mesh.physics.setMotionType(BABYLON.PhysicsMotionType.ANIMATED);
       } else {
         // Check again in 100 milliseconds
         setTimeout(executeCode, 100);
+      }
+    }
+
+    function toggleGizmo(gizmoType) {
+
+      // Disable all gizmos
+      gizmoManager.positionGizmoEnabled = false;
+      gizmoManager.rotationGizmoEnabled = false;
+      gizmoManager.scaleGizmoEnabled = false;
+      gizmoManager.boundingBoxGizmoEnabled = false;
+
+      // Enable the selected gizmo
+      switch (gizmoType) {
+        case 'position':
+          gizmoManager.positionGizmoEnabled = true;
+          gizmoManager.gizmos.positionGizmo.snapDistance = 0.1; 
+           gizmoManager.gizmos.positionGizmo.updateGizmoPositionToMatchAttachedMesh = true;
+
+           gizmoManager.gizmos.positionGizmo.onDragStartObservable.add(function () {
+
+            const mesh = gizmoManager.attachedMesh;
+            const motionType = mesh.physics.getMotionType();
+              mesh.savedMotionType = motionType;
+             console.log(motionType);
+             if(mesh.physics && mesh.physics.getMotionType() != BABYLON.PhysicsMotionType.STATIC){
+               mesh.physics.setMotionType(BABYLON.PhysicsMotionType.STATIC);
+               mesh.physics.disablePreStep = false;
+             }
+
+             const block = meshMap[mesh.name];
+             highlightBlockById(workspace, block)
+
+           });
+          
+          gizmoManager.gizmos.positionGizmo.onDragEndObservable.add(function () {
+      
+            // Retrieve the mesh associated with the position gizmo
+            const mesh = gizmoManager.attachedMesh;
+            if(mesh.savedMotionType){
+               mesh.physics.setMotionType(mesh.savedMotionType);
+               mesh.physics.disablePreStep = true;
+               console.log("Restoring motion type", mesh.savedMotionType);
+            }
+           
+            const block = meshMap[mesh.name];
+
+            if (block) {
+              block.getInput("X").connection.targetBlock().setFieldValue(String(Math.round(mesh.position.x * 10) / 10), "NUM");   
+              block.getInput("Y").connection.targetBlock().setFieldValue(String(Math.round(mesh.position.y * 10) / 10), "NUM");   
+              block.getInput("Z").connection.targetBlock().setFieldValue(String(Math.round(mesh.position.z * 10) / 10), "NUM");   
+            }
+          });
+
+          break;
+        case 'rotation':
+          gizmoManager.rotationGizmoEnabled = true;
+          break;
+        case 'scale':
+          gizmoManager.scaleGizmoEnabled = true;
+          break;
+        case 'boundingBox':
+          gizmoManager.boundingBoxGizmoEnabled = true;
+          break;
+        default:
+          break;
+      }
+    }
+
+    function turnOffAllGizmos() {
+      gizmoManager.positionGizmoEnabled = false;
+      gizmoManager.rotationGizmoEnabled = false;
+      gizmoManager.scaleGizmoEnabled = false;
+      gizmoManager.boundingBoxGizmoEnabled = false;
+    }
+
+    function highlightBlockById(workspace, block) {
+      if (block) {
+        block.select();
+        workspace.scrollCenter(block.getRelativeToSurfaceXY().x, block.getRelativeToSurfaceXY().y);
       }
     }
 
