@@ -1454,7 +1454,6 @@ if (mesh) {
 
 const startPosition = mesh.position.clone();
 const endPosition = new BABYLON.Vector3(${x}, ${y}, ${z});
-console.log(${x}, ${y}, ${z});
 const fps = 30;
 const frames = 30 * (${duration}/1000);
 
@@ -1463,7 +1462,6 @@ const anim = BABYLON.Animation.CreateAndStartAnimation("anim", mesh, "position",
 ${mode === 'AWAIT' ? `
 await new Promise(resolve => {
   anim.onAnimationEndObservable.add(() => {
-  console.log("Animation ended");
     resolve();
   });
 });
