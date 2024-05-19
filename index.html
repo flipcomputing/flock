@@ -502,7 +502,13 @@
       init: function () {
         this.jsonInit({
           "type": "start",
-          "message0": "start",
+          "message0": "script %1",
+          "args0": [
+            {
+              "type": "input_statement",
+              "name": "DO"
+            }
+          ],
           "nextStatement": null,
           "colour": categoryColours["Control"],
           "tooltip": "Run the attached block when the project starts.",
@@ -1474,9 +1480,9 @@ await new Promise(resolve => {
     };
 
 
-    Blockly.JavaScript.forBlock['start'] = function (block) {
-      const statements = Blockly.JavaScript.statementToCode(block);
-      return `(async function() {\n${statements}\n})();\n`;
+    Blockly.JavaScript.forBlock['start'] = function (block) {     
+      const branch = Blockly.JavaScript.statementToCode(block, 'DO');
+      return `(async () => {\n${branch}})();\n`;
     };
 
     Blockly.JavaScript.forBlock['create_ground'] = function (block) {
@@ -2177,22 +2183,34 @@ mesh.physics.setMotionType(BABYLON.PhysicsMotionType.ANIMATED);
     });
 
     // Define your starter blocks XML string
-    const initialBlocks =
-      `<xml xmlns="http://www.w3.org/1999/xhtml">
-            <block type="start">
+    const initialBlocks = `
+    <xml xmlns="http://www.w3.org/1999/xhtml">
+      <block type="start">
+        <statement name="DO">
+          <block type="set_sky_color">
             <next>
-            <block type="set_sky_color">
-              <next>
-    <block type="create_ground">
-    <next>
-<block type="print_text"><value name="TEXT"><shadow type="text"><field name="TEXT">🌈 Hello</field></shadow></value><value name="DURATION"><shadow type="math_number"><field name="NUM">30</field></shadow></value></block>
-    </next>
-    </block>
-              </next>
+              <block type="create_ground">
+                <next>
+                  <block type="print_text">
+                    <value name="TEXT">
+                      <shadow type="text">
+                        <field name="TEXT">🌈 Hello</field>
+                      </shadow>
+                    </value>
+                    <value name="DURATION">
+                      <shadow type="math_number">
+                        <field name="NUM">30</field>
+                      </shadow>
+                    </value>
+                  </block>
+                </next>
               </block>
-              </next>
-              </block>
-            </xml>`;
+            </next>
+          </block>
+        </statement>
+      </block>
+    </xml>`;
+
 
     // Convert the XML string to a DOM element
     const xml = Blockly.utils.xml.textToDom(initialBlocks);
@@ -2257,6 +2275,7 @@ mesh.physics.setMotionType(BABYLON.PhysicsMotionType.ANIMATED);
         if (scene) scene.dispose();
         scene = createScene();
         const code = Blockly.JavaScript.workspaceToCode(workspace);
+    console.log(code);
         try {
           //eval(code);
           new Function(`(async () => { ${code} })()`)();
