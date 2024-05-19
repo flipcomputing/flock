@@ -65,7 +65,7 @@
       </div>
     </div>
     <canvas id="renderCanvas"></canvas>
-     <input type="file" id="importFile" style="display: none;" onchange="handleSnippetUpload(event)" />
+    <input type="file" id="importFile" style="display: none;" onchange="handleSnippetUpload(event)" />
 
   </div>
 
@@ -216,6 +216,28 @@
   <value name="Z">
   <shadow type="math_number">
     <field name="NUM">0</field>
+  </shadow>
+  </value>
+</block>
+<block type="glide_to">
+<value name="X">
+  <shadow type="math_number">
+    <field name="NUM">0</field>
+  </shadow>
+  </value>
+  <value name="Y">
+  <shadow type="math_number">
+    <field name="NUM">0</field>
+  </shadow>
+  </value>
+  <value name="Z">
+  <shadow type="math_number">
+    <field name="NUM">0</field>
+  </shadow>
+  </value>
+<value name="DURATION">
+  <shadow type="math_number">
+    <field name="NUM">1000</field>
   </shadow>
   </value>
 </block>
@@ -514,7 +536,7 @@
     };
 
     Blockly.Blocks['wait'] = {
-      init: function() {
+      init: function () {
         this.jsonInit({
           "type": "wait",
           "message0": "wait %1 ms",
@@ -528,13 +550,62 @@
           ],
           "previousStatement": null,
           "nextStatement": null,
-          "colour": 230,
+           "colour": categoryColours["Control"],
           "tooltip": "Wait for a specified time in milliseconds",
           "helpUrl": ""
         });
       }
     };
 
+    Blockly.Blocks['glide_to'] = {
+      init: function () {
+        this.jsonInit({
+          "type": "glide_to",
+          "message0": "glide %1 to x %2 y %3 z %4 in %5 ms %6",
+          "args0": [
+            {
+                "type": "field_variable",
+                "name": "MESH_VAR",
+                "variable": "mesh1"
+              }
+            ,
+            {
+              "type": "input_value",
+              "name": "X",
+              "check": "Number"
+            },
+            {
+              "type": "input_value",
+              "name": "Y",
+              "check": "Number"
+            },
+            {
+              "type": "input_value",
+              "name": "Z",
+              "check": "Number"
+            },
+            {
+              "type": "input_value",
+              "name": "DURATION",
+              "check": "Number"
+            },
+            {
+              "type": "field_dropdown",
+              "name": "MODE",
+              "options": [
+                ["await", "AWAIT"],
+                ["start", "START"]
+              ]
+            }
+          ],
+          "previousStatement": null,
+          "nextStatement": null,
+           "colour": categoryColours["Motion"],
+          "tooltip": "Glide to a specified position over a duration",
+          "helpUrl": ""
+        });
+      }
+    };
 
     Blockly.Blocks['set_sky_color'] = {
       init: function () {
@@ -1193,7 +1264,7 @@
           ],
           "previousStatement": null,
           "nextStatement": null,
-          "colour": 160,
+           "colour": categoryColours["Motion"],
           "tooltip": "Makes the camera follow a model specified by the variable.",
           "helpUrl": ""
         });
@@ -1214,7 +1285,7 @@
           ],
           "previousStatement": null,
           "nextStatement": null,
-          "colour": 160,
+           "colour": categoryColours["Motion"],
           "tooltip": "Adds dynamic physics so the mesh reacts to forces including gravity.",
           "helpUrl": ""
         });
@@ -1254,7 +1325,7 @@
       init: function () {
         this.jsonInit({
           "type": "move_forward",
-          "message0": "move %1 speed %2",
+          "message0": "forward %1 speed %2",
           "args0": [
             {
               "type": "field_variable",
@@ -1270,7 +1341,7 @@
           "inputsInline": true,
           "previousStatement": null,
           "nextStatement": null,
-          "colour": 160,
+           "colour": categoryColours["Motion"],
           "tooltip": "Moves the model forward in the direction it's pointing.",
           "helpUrl": ""
         });
@@ -1362,16 +1433,54 @@
       }
     }
 
-    Blockly.JavaScript.forBlock['wait'] = function(block) {
+    Blockly.JavaScript.forBlock['wait'] = function (block) {
       const duration = block.getFieldValue('DURATION');
       return `await new Promise(resolve => setTimeout(resolve, ${duration}));\n`;
     };
-    
-    Blockly.JavaScript.forBlock['start'] = function(block) {
+
+    Blockly.JavaScript.forBlock['glide_to'] = function (block) {
+      const x = getFieldValue(block, 'X', '0');
+      const y = getFieldValue(block, 'Y', '0');
+      const z = getFieldValue(block, 'Z', '0');
+      const meshName = Blockly.JavaScript.nameDB_.getName(block.getFieldValue('MESH_VAR'), Blockly.Names.NameType.VARIABLE);
+      const duration = block.getFieldValue('DURATION');
+      const mode = block.getFieldValue('MODE');
+
+      return `
+      await (async () => {
+          const mesh = scene.getMeshByName(${meshName});
+
+if (mesh) {
+
+const startPosition = mesh.position.clone();
+const endPosition = new BABYLON.Vector3(${x}, ${y}, ${z});
+console.log(${x}, ${y}, ${z});
+const fps = 30;
+const frames = 30 * (${duration}/1000);
+
+const anim = BABYLON.Animation.CreateAndStartAnimation("anim", mesh, "position", fps, 100, startPosition, endPosition, BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT);
+
+${mode === 'AWAIT' ? `
+await new Promise(resolve => {
+  anim.onAnimationEndObservable.add(() => {
+  console.log("Animation ended");
+    resolve();
+  });
+});
+` : ''}
+
+
+}
+  })();
+      `;
+    };
+
+
+    Blockly.JavaScript.forBlock['start'] = function (block) {
       const statements = Blockly.JavaScript.statementToCode(block);
       return `(async function() {\n${statements}\n})();\n`;
     };
-    
+
     Blockly.JavaScript.forBlock['create_ground'] = function (block) {
       const color = block.getFieldValue('COLOR');
 
@@ -1537,8 +1646,8 @@
 
       let variable_name = Blockly.JavaScript.nameDB_.getName(block.getFieldValue('ID_VAR'), Blockly.Names.NameType.VARIABLE);
 
-      const planeId = `plane_${generateUUID()}`; 
-      meshMap[planeId] = block; 
+      const planeId = `plane_${generateUUID()}`;
+      meshMap[planeId] = block;
 
       return `(function() {
             const newPlane = BABYLON.MeshBuilder.CreatePlane("${planeId}", {width: ${width}, height: ${height}, sideOrientation: BABYLON.Mesh.DOUBLESIDE, scene: scene});
@@ -1791,11 +1900,11 @@ mesh.physics.setMotionType(BABYLON.PhysicsMotionType.ANIMATED);
         });\n`;
     };
 
-        Blockly.JavaScript.forBlock['move_forward'] = function (block) {
+    Blockly.JavaScript.forBlock['move_forward'] = function (block) {
 
-          const modelName = Blockly.JavaScript.nameDB_.getName(block.getFieldValue('MODEL'), Blockly.Names.NameType.VARIABLE);
-          const speed = Blockly.JavaScript.valueToCode(block, 'SPEED', Blockly.JavaScript.ORDER_ATOMIC) || '0';
-          return `
+      const modelName = Blockly.JavaScript.nameDB_.getName(block.getFieldValue('MODEL'), Blockly.Names.NameType.VARIABLE);
+      const speed = Blockly.JavaScript.valueToCode(block, 'SPEED', Blockly.JavaScript.ORDER_ATOMIC) || '0';
+      return `
         (function() {
           const model = scene.getMeshByName(${modelName});
           if (model) {
@@ -1847,8 +1956,8 @@ mesh.physics.setMotionType(BABYLON.PhysicsMotionType.ANIMATED);
 
         })();
         `;
-          
-        };
+
+    };
 
     Blockly.JavaScript.forBlock['camera_follow'] = function (block) {
       const modelName = Blockly.JavaScript.nameDB_.getName(block.getFieldValue('MESH_VAR'), Blockly.Names.NameType.VARIABLE);
@@ -1885,7 +1994,7 @@ mesh.physics.setMotionType(BABYLON.PhysicsMotionType.ANIMATED);
     Blockly.JavaScript.forBlock['add_physics'] = function (block) {
       const modelName = Blockly.JavaScript.nameDB_.getName(block.getFieldValue('MODEL_VAR'), Blockly.Names.NameType.VARIABLE);
 
-       return `whenModelReady(${modelName}, function(mesh) {
+      return `whenModelReady(${modelName}, function(mesh) {
           if (mesh) {
 
                      mesh.physics.setMotionType(BABYLON.PhysicsMotionType.DYNAMIC);
@@ -2174,41 +2283,41 @@ mesh.physics.setMotionType(BABYLON.PhysicsMotionType.ANIMATED);
       switch (gizmoType) {
         case 'position':
           gizmoManager.positionGizmoEnabled = true;
-          gizmoManager.gizmos.positionGizmo.snapDistance = 0.1; 
-           gizmoManager.gizmos.positionGizmo.updateGizmoPositionToMatchAttachedMesh = true;
+          gizmoManager.gizmos.positionGizmo.snapDistance = 0.1;
+          gizmoManager.gizmos.positionGizmo.updateGizmoPositionToMatchAttachedMesh = true;
 
-           gizmoManager.gizmos.positionGizmo.onDragStartObservable.add(function () {
+          gizmoManager.gizmos.positionGizmo.onDragStartObservable.add(function () {
 
             const mesh = gizmoManager.attachedMesh;
             const motionType = mesh.physics.getMotionType();
-              mesh.savedMotionType = motionType;
-             console.log(motionType);
-             if(mesh.physics && mesh.physics.getMotionType() != BABYLON.PhysicsMotionType.STATIC){
-               mesh.physics.setMotionType(BABYLON.PhysicsMotionType.STATIC);
-               mesh.physics.disablePreStep = false;
-             }
+            mesh.savedMotionType = motionType;
+            console.log(motionType);
+            if (mesh.physics && mesh.physics.getMotionType() != BABYLON.PhysicsMotionType.STATIC) {
+              mesh.physics.setMotionType(BABYLON.PhysicsMotionType.STATIC);
+              mesh.physics.disablePreStep = false;
+            }
 
-             const block = meshMap[mesh.name];
-             highlightBlockById(workspace, block)
+            const block = meshMap[mesh.name];
+            highlightBlockById(workspace, block)
 
-           });
-          
+          });
+
           gizmoManager.gizmos.positionGizmo.onDragEndObservable.add(function () {
-      
+
             // Retrieve the mesh associated with the position gizmo
             const mesh = gizmoManager.attachedMesh;
-            if(mesh.savedMotionType){
-               mesh.physics.setMotionType(mesh.savedMotionType);
-               mesh.physics.disablePreStep = true;
-               console.log("Restoring motion type", mesh.savedMotionType);
+            if (mesh.savedMotionType) {
+              mesh.physics.setMotionType(mesh.savedMotionType);
+              mesh.physics.disablePreStep = true;
+              console.log("Restoring motion type", mesh.savedMotionType);
             }
-           
+
             const block = meshMap[mesh.name];
 
             if (block) {
-              block.getInput("X").connection.targetBlock().setFieldValue(String(Math.round(mesh.position.x * 10) / 10), "NUM");   
-              block.getInput("Y").connection.targetBlock().setFieldValue(String(Math.round(mesh.position.y * 10) / 10), "NUM");   
-              block.getInput("Z").connection.targetBlock().setFieldValue(String(Math.round(mesh.position.z * 10) / 10), "NUM");   
+              block.getInput("X").connection.targetBlock().setFieldValue(String(Math.round(mesh.position.x * 10) / 10), "NUM");
+              block.getInput("Y").connection.targetBlock().setFieldValue(String(Math.round(mesh.position.y * 10) / 10), "NUM");
+              block.getInput("Z").connection.targetBlock().setFieldValue(String(Math.round(mesh.position.z * 10) / 10), "NUM");
             }
           });
 
@@ -2327,7 +2436,7 @@ mesh.physics.setMotionType(BABYLON.PhysicsMotionType.ANIMATED);
         } else {
           // Fallback for browsers that don't support the File System Access API
           const filename = prompt("Enter a filename for the snippet:", "blockly_snippet") || "blockly_snippet";
-          const blob = new Blob([jsonString], { type: 'application/json' });
+          const blob = new Blob([jsonString], {type: 'application/json'});
           const link = document.createElement('a');
           link.href = URL.createObjectURL(blob);
           link.download = `${filename}.json`;
@@ -2343,9 +2452,9 @@ mesh.physics.setMotionType(BABYLON.PhysicsMotionType.ANIMATED);
     function handleSnippetUpload(event) {
       const file = event.target.files[0];
       const reader = new FileReader();
-      reader.onload = function(event) {
+      reader.onload = function (event) {
         const jsonText = event.target.result;
-       
+
         try {
           const json = JSON.parse(jsonText);
           Blockly.serialization.blocks.append(json, workspace);
@@ -2355,7 +2464,7 @@ mesh.physics.setMotionType(BABYLON.PhysicsMotionType.ANIMATED);
       };
       reader.readAsText(file);
     }
-    
+
     // Function to trigger file input for importing snippet
     function importSnippet() {
       document.getElementById('importFile').click();
@@ -2365,13 +2474,13 @@ mesh.physics.setMotionType(BABYLON.PhysicsMotionType.ANIMATED);
       Blockly.ContextMenuRegistry.registry.register({
         id: 'exportBlock',
         weight: 200,
-        displayText: function() {
+        displayText: function () {
           return 'Export block as JSON snippet';
         },
-        preconditionFn: function(scope) {
+        preconditionFn: function (scope) {
           return scope.block ? 'enabled' : 'hidden';
         },
-        callback: function(scope) {
+        callback: function (scope) {
           exportBlockSnippet(scope.block);
         },
         scopeType: Blockly.ContextMenuRegistry.ScopeType.BLOCK,
@@ -2388,13 +2497,13 @@ mesh.physics.setMotionType(BABYLON.PhysicsMotionType.ANIMATED);
       Blockly.ContextMenuRegistry.registry.register({
         id: 'importSnippet',
         weight: 100,
-        displayText: function() {
+        displayText: function () {
           return 'Import snippet';
         },
-        preconditionFn: function(scope) {
+        preconditionFn: function (scope) {
           return 'enabled';
         },
-        callback: function(scope) {
+        callback: function (scope) {
           importSnippet();
         },
         scopeType: Blockly.ContextMenuRegistry.ScopeType.WORKSPACE,
@@ -2402,7 +2511,7 @@ mesh.physics.setMotionType(BABYLON.PhysicsMotionType.ANIMATED);
       });
     }
 
-   
+
     addImportContextMenuOption();
 
 
