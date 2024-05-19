@@ -1364,14 +1364,12 @@
 
     Blockly.JavaScript.forBlock['wait'] = function(block) {
       const duration = block.getFieldValue('DURATION');
-      const code = `await new Promise(resolve => setTimeout(resolve, ${duration}));\n`;
-      return code;
+      return `await new Promise(resolve => setTimeout(resolve, ${duration}));\n`;
     };
     
     Blockly.JavaScript.forBlock['start'] = function(block) {
-      var statements = Blockly.JavaScript.statementToCode(block);
-      var code = `(async function() {\n${statements}\n})();\n`;
-      return code;
+      const statements = Blockly.JavaScript.statementToCode(block);
+      return `(async function() {\n${statements}\n})();\n`;
     };
     
     Blockly.JavaScript.forBlock['create_ground'] = function (block) {
