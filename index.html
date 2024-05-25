@@ -2159,24 +2159,21 @@ mesh.physics.setMotionType(BABYLON.PhysicsMotionType.ANIMATED);
           const model = scene.getMeshByName(${modelName});
           if (model) {
 
-    const forwardSpeed = -${speed};  
-    const cameraForward = scene.activeCamera.getForwardRay().direction.normalize();
+            if (${speed} === 0){ return; }
 
-    // Forward direction adjusted to move away from the camera
-    const moveDirection = cameraForward.scale(-forwardSpeed); // Reverse the direction if necessary
+            const forwardSpeed = -${speed};  
+            const cameraForward = scene.activeCamera.getForwardRay().direction.normalize();
 
-    const currentVelocity = model.physics.getLinearVelocity();
-
-    // Set the new velocity, maintaining the existing vertical component (gravity)
-    model.physics.setLinearVelocity(
-      new BABYLON.Vector3(
-        moveDirection.x,
-        currentVelocity.y, // Keep the vertical component unaffected by horizontal movement
-        moveDirection.z
-      )
+            // Forward direction adjusted to move away from the camera
+            const moveDirection = cameraForward.scale(-forwardSpeed); 
+            const currentVelocity = model.physics.getLinearVelocity();
+            model.physics.setLinearVelocity(
+                  new BABYLON.Vector3(
+                  moveDirection.x,
+                  currentVelocity.y,
+                  moveDirection.z
+              )
     );
-
-    if (${speed} === 0){ return; }
 
     // Decide the facing direction based on whether steps is positive or negative
         let facingDirection;
@@ -2216,6 +2213,12 @@ mesh.physics.setMotionType(BABYLON.PhysicsMotionType.ANIMATED);
           if (mesh) {\n` +
         `  
     console.log("Attaching camera");
+
+// Reset linear and angular velocity after physics render
+scene.onAfterPhysicsObservable.add(() => {
+  mesh.physics.setLinearVelocity(BABYLON.Vector3.Zero());
+  mesh.physics.setAngularVelocity(BABYLON.Vector3.Zero());
+});
 
            const camera = new BABYLON.ArcRotateCamera("camera", Math.PI / 2, Math.PI / 4, -20, mesh.position, scene);
            camera.checkCollisions = true;
