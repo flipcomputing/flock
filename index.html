@@ -307,6 +307,33 @@
 </category>
 <category name="Text" categorystyle="text_category">
  <block type="print_text"><value name="TEXT"><shadow type="text"><field name="TEXT">🌈 Hello</field></shadow></value><value name="DURATION"><shadow type="math_number"><field name="NUM">30</field></shadow></value></block>
+ <block type="say">
+   <value name="TEXT">
+     <shadow type="text">
+       <field name="TEXT">Hello</field>
+     </shadow>
+   </value>
+   <value name="DURATION">
+     <shadow type="math_number">
+       <field name="NUM">3</field>
+     </shadow>
+   </value>
+   <value name="ALPHA">
+     <shadow type="math_number">
+       <field name="NUM">1</field>
+     </shadow>
+   </value>
+   <value name="SIZE">
+     <shadow type="math_number">
+       <field name="NUM">12</field>
+     </shadow>
+   </value>
+   <field name="MESH">item</field>
+   <field name="TEXT_COLOR">#000000</field>
+   <field name="BACKGROUND_COLOR">#ffffff</field>
+   <field name="MODE">ADD</field>
+ </block>
+
   <block type="text"></block>
   <block type="text_print">
     <value name="TEXT">
@@ -556,7 +583,7 @@
           ],
           "previousStatement": null,
           "nextStatement": null,
-           "colour": categoryColours["Control"],
+          "colour": categoryColours["Control"],
           "tooltip": "Wait for a specified time in milliseconds",
           "helpUrl": ""
         });
@@ -570,10 +597,10 @@
           "message0": "glide %1 to x %2 y %3 z %4 in %5 ms %6",
           "args0": [
             {
-                "type": "field_variable",
-                "name": "MESH_VAR",
-                "variable": "mesh1"
-              }
+              "type": "field_variable",
+              "name": "MESH_VAR",
+              "variable": "mesh1"
+            }
             ,
             {
               "type": "input_value",
@@ -606,7 +633,7 @@
           ],
           "previousStatement": null,
           "nextStatement": null,
-           "colour": categoryColours["Motion"],
+          "colour": categoryColours["Motion"],
           "tooltip": "Glide to a specified position over a duration",
           "helpUrl": ""
         });
@@ -920,6 +947,75 @@
       }
     };
 
+
+    Blockly.Blocks['say'] = {
+      init: function () {
+        this.jsonInit(
+          {
+            "type": "say",
+            "message0": "say %1 for %2 s %3 text %4 and background %5 alpha %6 size %7 %8 %9",
+            "args0": [
+              {
+                "type": "input_value",
+                "name": "TEXT",
+                "check": "String"
+              },
+              {
+                "type": "input_value",
+                "name": "DURATION",
+                "check": "Number"
+              },
+              {
+                "type": "field_variable",
+                "name": "MESH_VAR",
+                "variable": "item"
+              },
+              {
+                "type": "field_colour",
+                "name": "TEXT_COLOR",
+                "colour": "#000000"
+              },
+              {
+                "type": "field_colour",
+                "name": "BACKGROUND_COLOR",
+                "colour": "#ffffff"
+              },
+              {
+                "type": "input_value",
+                "name": "ALPHA",
+                "check": "Number"
+              },
+              {
+                "type": "input_value",
+                "name": "SIZE",
+                "check": "Number"
+              },
+              {
+                "type": "field_dropdown",
+                "name": "MODE",
+                "options": [
+                  ["add", "ADD"],
+                  ["replace", "REPLACE"]
+                ]
+              },
+              {
+                "type": "field_dropdown",
+                "name": "ASYNC",
+                "options": [
+                  ["start", "START"],
+                  ["await", "AWAIT"]
+                ]
+              }
+            ],
+            "inputsInline": true,
+            "previousStatement": null,
+            "nextStatement": null,
+            "colour": 160,
+            "tooltip": "Displays a piece of text as a billboard on a mesh.",
+            "helpUrl": ""
+          });
+      }
+    };
 
 
     Blockly.Blocks['move_by_vector'] = {
@@ -1270,7 +1366,7 @@
           ],
           "previousStatement": null,
           "nextStatement": null,
-           "colour": categoryColours["Motion"],
+          "colour": categoryColours["Motion"],
           "tooltip": "Makes the camera follow a model specified by the variable.",
           "helpUrl": ""
         });
@@ -1291,7 +1387,7 @@
           ],
           "previousStatement": null,
           "nextStatement": null,
-           "colour": categoryColours["Motion"],
+          "colour": categoryColours["Motion"],
           "tooltip": "Adds dynamic physics so the mesh reacts to forces including gravity.",
           "helpUrl": ""
         });
@@ -1347,7 +1443,7 @@
           "inputsInline": true,
           "previousStatement": null,
           "nextStatement": null,
-           "colour": categoryColours["Motion"],
+          "colour": categoryColours["Motion"],
           "tooltip": "Moves the model forward in the direction it's pointing.",
           "helpUrl": ""
         });
@@ -1480,7 +1576,7 @@ await new Promise(resolve => {
     };
 
 
-    Blockly.JavaScript.forBlock['start'] = function (block) {     
+    Blockly.JavaScript.forBlock['start'] = function (block) {
       const branch = Blockly.JavaScript.statementToCode(block, 'DO');
       return `(async () => {\n${branch}})();\n`;
     };
@@ -1512,6 +1608,155 @@ await new Promise(resolve => {
       const color = block.getFieldValue('COLOR');
       return `printText(${text}, ${duration}, '${color}');\n`;
     };
+
+
+    function hexToRgba(hex, alpha) {
+      hex = hex.replace(/^#/, '');
+      let r = parseInt(hex.substring(0, 2), 16);
+      let g = parseInt(hex.substring(2, 4), 16);
+      let b = parseInt(hex.substring(4, 6), 16);
+      return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+    }
+
+    // Register the block in Blockly
+    Blockly.JavaScript.forBlock['say'] = // Function to handle the 'say' block
+      function (block) {
+        const text = Blockly.JavaScript.valueToCode(block, 'TEXT', Blockly.JavaScript.ORDER_ATOMIC) || '""';
+        const duration = Blockly.JavaScript.valueToCode(block, 'DURATION', Blockly.JavaScript.ORDER_ATOMIC) || '0';
+        const meshVariable = Blockly.JavaScript.nameDB_.getName(block.getFieldValue('MESH_VAR'), Blockly.Names.NameType.VARIABLE);
+        const textColor = block.getFieldValue('TEXT_COLOR');
+        const backgroundColor = block.getFieldValue('BACKGROUND_COLOR');
+        const alpha = Blockly.JavaScript.valueToCode(block, 'ALPHA', Blockly.JavaScript.ORDER_ATOMIC) || '1';
+        const size = Blockly.JavaScript.valueToCode(block, 'SIZE', Blockly.JavaScript.ORDER_ATOMIC) || '24';
+        const mode = block.getFieldValue('MODE');
+        const asyncMode = block.getFieldValue('ASYNC');
+
+
+        return `
+            await (async function() {
+               
+
+                function displayText(mesh) {
+                    return new Promise((resolve, reject) => {
+                        if (mesh) {
+                            // Create or get the stack panel plane
+                           let plane = mesh.getChildren().find(child => child.name === "textPlane");
+                            let advancedTexture;
+                            if (!plane) {
+                                plane = BABYLON.MeshBuilder.CreatePlane("textPlane", { width: 1.5, height: 1.5 }, scene);
+                                plane.name = "textPlane";
+                                plane.parent = mesh;
+                                plane.alpha = 1;
+                                plane.checkCollisions = false;
+                                plane.isPickable = false;
+                                advancedTexture = BABYLON.GUI.AdvancedDynamicTexture.CreateForMesh(plane);
+                                plane.advancedTexture = advancedTexture;
+
+                                const stackPanel = new BABYLON.GUI.StackPanel();
+                                stackPanel.name = "stackPanel";
+                                stackPanel.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
+                                stackPanel.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM;
+                                stackPanel.isVertical = true;
+                                stackPanel.width = "100%";
+                                stackPanel.adaptHeightToChildren = true;
+                                stackPanel.resizeToFit = true;
+                                stackPanel.forceResizeWidth = true;
+                                stackPanel.forceResizeHeight = true;
+                                advancedTexture.addControl(stackPanel);
+
+                            } else {
+                                advancedTexture = plane.advancedTexture;
+                            }
+
+                            const stackPanel = advancedTexture.getControlByName("stackPanel");
+
+                            // Handle REPLACE mode
+                            if ("${mode}" === "REPLACE") {
+                                stackPanel.clearControls();
+                            }
+
+                            // Only add new text if the text value is not empty
+                            if (${text}) {
+                                // Create a new background rectangle for the text
+                                const bg = new BABYLON.GUI.Rectangle("textBackground");
+                                bg.background = hexToRgba("${backgroundColor}", ${alpha});
+                                bg.adaptWidthToChildren = true;
+                                bg.adaptHeightToChildren = true;
+                                bg.cornerRadius = 30;
+                                bg.thickness = 0; // Remove border
+                                bg.resizeToFit = true;
+                                bg.forceResizeWidth = true;
+                                stackPanel.addControl(bg);
+
+                                const textBlock = new BABYLON.GUI.TextBlock();
+                                textBlock.text =  ${text};
+                                textBlock.color =  "${textColor}";
+                                textBlock.fontSize = ${size} * 10;
+                                textBlock.alpha = 1;
+                                textBlock.textWrapping =                                                                 BABYLON.GUI.TextWrapping.WordWrap;
+                                textBlock.resizeToFit = true;
+                                textBlock.forceResizeWidth = true;
+                                textBlock.paddingLeft = 50;
+                                textBlock.paddingRight = 50;
+                                 textBlock.paddingTop = 25;
+                                 textBlock.paddingBottom = 25;
+                                 textBlock.textVerticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_TOP; // Align text to top
+                                 textBlock.textHorizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER; // Align text to left
+                                bg.addControl(textBlock);   
+
+                                // Calculate the bounding box height of the mesh
+                                const boundingInfo = mesh.getBoundingInfo();
+                                const meshHeight = boundingInfo.boundingBox.maximumWorld.y - boundingInfo.boundingBox.minimumWorld.y;
+                                plane.position.y = meshHeight / 2 + 0.85;
+ 
+                                console.log(boundingInfo.boundingBox.maximumWorld.y, boundingInfo.boundingBox);
+                                plane.billboardMode = BABYLON.Mesh.BILLBOARDMODE_ALL;
+
+                                // Remove the text after the specified duration if duration is greater than 0
+                                if (${duration} * 1000 > 0) {
+                                    setTimeout(function() {
+                                        stackPanel.removeControl(bg);
+                                        bg.dispose();
+                                        textBlock.dispose();
+                                        resolve();
+                                    }, ${duration} * 1000);
+                                } else {
+                                    resolve();
+                                }
+                            } else {
+                                resolve();
+                            }
+                        } else {
+                            console.error("Mesh is not defined.");
+                            reject("Mesh is not defined.");
+                        }
+                    });
+                }
+
+                if ("${asyncMode}" === "AWAIT") {
+                    await new Promise((resolve, reject) => {
+                        whenModelReady(${meshVariable}, async function(mesh) {
+                            try {
+                                await displayText(mesh);
+                                resolve();
+                            } catch (error) {
+                                reject(error);
+                            }
+                        });
+                    });
+                } else {
+                    whenModelReady(${meshVariable}, function(mesh) {
+                        displayText(mesh);
+                    });
+                }
+            })();
+        `;
+
+
+
+
+      }
+
 
     Blockly.JavaScript.forBlock['set_fog'] = function (block) {
       const fogColorHex = block.getFieldValue('FOG_COLOR');
@@ -1546,6 +1791,7 @@ await new Promise(resolve => {
     scene.fogEnd = 100;
     `;
     };
+
 
 
     Blockly.JavaScript.forBlock['create_box'] = function (block) {
@@ -1738,11 +1984,11 @@ mesh.physics.setMotionType(BABYLON.PhysicsMotionType.ANIMATED);
 
       const alphaValue = Blockly.JavaScript.valueToCode(block, 'ALPHA', Blockly.JavaScript.ORDER_ATOMIC);
 
-      const code = `let allMeshes = [_mesh].concat(_mesh.getChildMeshes(false));
+      const code = `let allMeshes = [mesh].concat(mesh.getChildMeshes(false));
 
-        allMeshes.forEach(mesh => {
-              if (mesh.material) {
-                mesh.material.alpha = ${alphaValue};
+        allMeshes.forEach(nextMesh => {
+              if (nextMesh.material) {
+                nextMesh.material.alpha = ${alphaValue};
               }
             });`
 
@@ -2054,8 +2300,7 @@ mesh.physics.setMotionType(BABYLON.PhysicsMotionType.ANIMATED);
       const textLines = []; // Array to keep track of text lines
       window.printText = function (text, duration, color) {
         if (text !== '') {
-          // Create a container rectangle to hold the text block
-          //const advancedTexture = BABYLON.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
+          BABYLON.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
 
           // Create a rectangle background
           const bg = new BABYLON.GUI.Rectangle("textBackground");
@@ -2092,12 +2337,6 @@ mesh.physics.setMotionType(BABYLON.PhysicsMotionType.ANIMATED);
           stackPanel.addControl(bg);
           textLines.push(bg);
 
-          // Remove the oldest text line if there are more than 6 lines
-          //if (textLines.length > 6) {
-          //  const oldestContainer = textLines.shift();
-          //  stackPanel.removeControl(oldestContainer);
-          //}
-
           // Remove the text after the specified duration
           setTimeout(() => {
             stackPanel.removeControl(bg);
@@ -2108,6 +2347,7 @@ mesh.physics.setMotionType(BABYLON.PhysicsMotionType.ANIMATED);
 
       return scene;
     };
+
 
     const canvas = document.getElementById("renderCanvas");
     const engine = new BABYLON.Engine(canvas, true, {stencil: true});
@@ -2275,7 +2515,6 @@ mesh.physics.setMotionType(BABYLON.PhysicsMotionType.ANIMATED);
         if (scene) scene.dispose();
         scene = createScene();
         const code = Blockly.JavaScript.workspaceToCode(workspace);
-    console.log(code);
         try {
           //eval(code);
           new Function(`(async () => { ${code} })()`)();
