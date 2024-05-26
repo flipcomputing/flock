@@ -1,12 +1,14 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en-GB">
   <head>
-    <meta charset="UTF-8">
+    <meta charset="UTF-8" />
     <title>Flock</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Asap:ital,wght@0,100..900;1,100..900&display=swap"
-      rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Asap:ital,wght@0,100..900;1,100..900&display=swap"
+      rel="stylesheet"
+    />
     <style>
       body {
         display: flex;
@@ -30,32 +32,45 @@
       }
 
       .blocklySvg text {
-        font-family: 'Asap', sans-serif !important;
+        font-family: "Asap", sans-serif !important;
       }
     </style>
   </head>
 
-<body>
-  <div id="blocklyDiv"></div>
-  <div id="rightArea">
-    <div id="menu">
-      <button onclick="executeCode()">▶️ Run</button>
-      <button id="toggleDebug">🪲Debug</button>
-      <button>
-        <input type="file" id="fileInput" style="display: none;" />
-        <label for="fileInput" class="btn">📂Open</label>
-      </button>
-      <input type="text" id="projectName" placeholder="Enter project name here">
-      <button onclick="exportCode()">💾Save</button>
-      <button id="fullscreenToggle">🖼️Fullscreen</button>
-      <div>
-        <button class="gizmo-button" onclick="toggleGizmo('position')">Position</button>
-        <button class="gizmo-button" onclick="toggleGizmo('rotation')">Rotation</button>
-        <button class="gizmo-button" onclick="toggleGizmo('scale')">Scale</button>
-        <button class="gizmo-button" onclick="turnOffAllGizmos()">Hide</button>
+  <body>
+    <div id="blocklyDiv"></div>
+    <div id="rightArea">
+      <div id="menu">
+        <button onclick="executeCode()">▶️ Run</button>
+        <button id="toggleDebug">🪲Debug</button>
+        <button>
+          <input type="file" id="fileInput" style="display: none" />
+          <label for="fileInput" class="btn">📂Open</label>
+        </button>
+        <input
+          type="text"
+          id="projectName"
+          placeholder="Enter project name here"
+        />
+        <button onclick="exportCode()">💾Save</button>
+        <button id="fullscreenToggle">🖼️Fullscreen</button>
+        <div>
+          <button class="gizmo-button" onclick="toggleGizmo('position')">
+            Position
+          </button>
+          <button class="gizmo-button" onclick="toggleGizmo('rotation')">
+            Rotation
+          </button>
+          <button class="gizmo-button" onclick="toggleGizmo('scale')">
+            Scale
+          </button>
+          <button class="gizmo-button" onclick="turnOffAllGizmos()">
+            Hide
+          </button>
+        </div>
       </div>
+      <canvas id="renderCanvas"></canvas>
     </div>
-    <canvas id="renderCanvas"></canvas>
-  </div>
- <script type="module" src="/main.js"></script></body>
+    <script type="module" src="/main.js"></script>
+  </body>
 </html>

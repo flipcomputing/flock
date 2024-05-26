@@ -17,16 +17,16 @@ requiredFiles = [".replit", "replit.nix", ".config"]
 
 [packager]
 language = "nodejs"
-  [packager.features]
-  packageSearch = true
-  guessImports = true
-  enabledForHosting = false
+[packager.features]
+packageSearch = true
+guessImports = true
+enabledForHosting = false
 
 [languages]
-  [languages.javascript]
-  pattern = "**/{*.js,*.jsx,*.ts,*.tsx}"
-    [languages.javascript.languageServer]
-    start = "typescript-language-server --stdio"
+[languages.javascript]
+pattern = "**/{*.js,*.jsx,*.ts,*.tsx}"
+[languages.javascript.languageServer]
+start = "typescript-language-server --stdio"
 
 [deployment]
 deploymentTarget = "static"
