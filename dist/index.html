@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+  <head>
+    <meta charset="UTF-8">
+    <title>Flock</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Asap:ital,wght@0,100..900;1,100..900&display=swap"
+      rel="stylesheet">
+    <style>
+      body {
+        display: flex;
+        height: 100vh;
+        margin: 0;
+      }
+
+      #blocklyDiv {
+        height: 100%;
+        width: 50%;
+      }
+
+      #rightArea {
+        width: 50%;
+        height: 100%;
+      }
+
+      #renderCanvas {
+        width: 100%;
+        height: 90%;
+      }
+
+      .blocklySvg text {
+        font-family: 'Asap', sans-serif !important;
+      }
+    </style>
+    <script type="module" crossorigin src="/assets/index-5e4ff3e3.js"></script>
+  </head>
+
+<body>
+  <div id="blocklyDiv"></div>
+  <div id="rightArea">
+    <div id="menu">
+      <button onclick="executeCode()">▶️ Run</button>
+      <button id="toggleDebug">🪲Debug</button>
+      <button>
+        <input type="file" id="fileInput" style="display: none;" />
+        <label for="fileInput" class="btn">📂Open</label>
+      </button>
+      <input type="text" id="projectName" placeholder="Enter project name here">
+      <button onclick="exportCode()">💾Save</button>
+      <button id="fullscreenToggle">🖼️Fullscreen</button>
+      <div>
+        <button class="gizmo-button" onclick="toggleGizmo('position')">Position</button>
+        <button class="gizmo-button" onclick="toggleGizmo('rotation')">Rotation</button>
+        <button class="gizmo-button" onclick="toggleGizmo('scale')">Scale</button>
+        <button class="gizmo-button" onclick="turnOffAllGizmos()">Hide</button>
+      </div>
+    </div>
+    <canvas id="renderCanvas"></canvas>
+  </div>
+ </body>
+</html>
