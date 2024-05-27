@@ -17,6 +17,7 @@
   },
   "devDependencies": {
     "@babylonjs/core": "^7.8.0",
-    "@babylonjs/inspector": "^7.8.0"
+    "@babylonjs/inspector": "^7.8.0",
+    "vite-plugin-pwa": "^0.20.0"
   }
 }
