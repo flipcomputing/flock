@@ -1,12 +1,21 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en-GB">
   <head>
-    <meta charset="UTF-8">
+    <meta charset="UTF-8" />
     <title>Flock</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Asap:ital,wght@0,100..900;1,100..900&display=swap"
-      rel="stylesheet">
+     <meta charset="UTF-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="manifest" href="/manifest.webmanifest" />
+      <link rel="apple-touch-icon" href="data:image/png;base64,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" />
+    <link rel="shortcut icon" href="data:image/x-icon;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAABmJLR0QA/wD/AP+gvaeTAAADmElEQVR4nO2bX2hWdRjHP89z3r2+rDnDRTLTm1arRcTQEcu8MDFa2YWQDML0QhYrArWR5YW87G1XXShMArGioLywICSiAr1IsuWs3jSji3KNLvJv5FrNie92fk8XTnuVst7a3mfsPZ/L8zs/fp/neziHcx5+RyhiJbmHDHlK4D7gZkCYGQTgpCH7I2zb+2S/vTwgAMvoztxA9BrYGjfF8jFm8NyHZHcAKEAFFQ9QJdC7kp6nAeQRetoE+8jbyoGLEO5SsE5vEydmGbpZFZZ4m3gh8LAa3OQt4sgCZeJBWKFoJRcPVPbVB5IAkgCSALwFvEkCAH7xlnBkSA0Oels48rUKtsPbwpHd0XEO/NjI8oXAIm+bcmLwxShhgwIE5jwj8K63VBn5JkVYdYDu8aKen8mjvNhhyPPAbW5qU4jAWcN2jVH90j42nwdIFQ1bC93vBagJ2AqQeYZJQPQY0lzKQtXYSCP2/eTq/3cEMbATaXRvDbPf7qLrwp9jE+TIPWnYNmB28eQA5Et8XajFuAP7n9pTxqCiT2TJHoKJAHLknjVs+9/NOI1wjiunXxcBbsGonb4BAIwq2pYle1B66GmKiY9x1e1QEZwC7tSYuIvKKx6gXpCNCjzobeKFYe0KzPcWceR2Baq8LRxJJ5/D3gLeJAF4C3iTBOAt4E0SADDiLeHIeQWOels4MqCCvO5t4chebaLpTaDf28SBMxkyvdpOe5witRqYNi2sMvC7oo9tYcuwAmxl6wngfmA3l7pgM5lPgNYs2T74ix5Xb8MHbRbiNSJaL6opC3E0NJhfWsoKqVnVw7UL7542D1cLYTzEYycLF0beeuHs2v3FY1cCeKX58+agulOg9erJMaePlraNMF0zl7rGabn5zETYkwq6cf2RRT/DxIvQrsVfPmCqfdcWDyAakZkzr4Q1hMyN9ZPkO+mIGY+PSeh79Z7+BQDy8r2H66rGo++AuuvNtHgc/k2nVxTRaDJkpxSD/rkNg0tT6TjaZP9QPIBEM6tvKtD66w8Na9WMVd4yXgRsvQK3eot4IdCsQLW3iCM1yeewt4A3SQDeAt4kAXgLeJMEABS8JRwpKMJxbwtHflKBd7wt3DD2qUEvl/bLVBqFSGS7duZbhhHagVFvo7IibOr4avGAAnTmWz5FWA4MOGuVgyExW9eZb9kJ1zRF31j2cebib7WrxWyFwHwTmSm/z2PYGRU+03RhT8ehJecuH/8DPan52pYdUmQAAAAASUVORK5CYII=" type="image/x-icon" />
+    <link rel="icon" href="/assets/favicon-f7800b10.svg" type="image/svg+xml" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Asap:ital,wght@0,100..900;1,100..900&display=swap"
+      rel="stylesheet"
+    />
+    <meta name="theme-color" content="#800080" />
     <style>
       body {
         display: flex;
@@ -30,33 +39,46 @@
       }
 
       .blocklySvg text {
-        font-family: 'Asap', sans-serif !important;
+        font-family: "Asap", sans-serif !important;
       }
     </style>
     <script type="module" crossorigin src="/assets/index-5e4ff3e3.js"></script>
-  </head>
+  <link rel="manifest" href="/manifest.webmanifest"><script id="vite-plugin-pwa:register-sw" src="/registerSW.js"></script></head>
 
-<body>
-  <div id="blocklyDiv"></div>
-  <div id="rightArea">
-    <div id="menu">
-      <button onclick="executeCode()">▶️ Run</button>
-      <button id="toggleDebug">🪲Debug</button>
-      <button>
-        <input type="file" id="fileInput" style="display: none;" />
-        <label for="fileInput" class="btn">📂Open</label>
-      </button>
-      <input type="text" id="projectName" placeholder="Enter project name here">
-      <button onclick="exportCode()">💾Save</button>
-      <button id="fullscreenToggle">🖼️Fullscreen</button>
-      <div>
-        <button class="gizmo-button" onclick="toggleGizmo('position')">Position</button>
-        <button class="gizmo-button" onclick="toggleGizmo('rotation')">Rotation</button>
-        <button class="gizmo-button" onclick="toggleGizmo('scale')">Scale</button>
-        <button class="gizmo-button" onclick="turnOffAllGizmos()">Hide</button>
+  <body>
+    <div id="blocklyDiv"></div>
+    <div id="rightArea">
+      <div id="menu">
+        <button onclick="executeCode()">▶️ Run</button>
+        <button id="toggleDebug">🪲Debug</button>
+        <button>
+          <input type="file" id="fileInput" style="display: none" />
+          <label for="fileInput" class="btn">📂Open</label>
+        </button>
+        <input
+          type="text"
+          id="projectName"
+          placeholder="Enter project name here"
+        />
+        <button onclick="exportCode()">💾Save</button>
+        <button id="fullscreenToggle">🖼️Fullscreen</button>
+        <div>
+          <button class="gizmo-button" onclick="toggleGizmo('position')">
+            Position
+          </button>
+          <button class="gizmo-button" onclick="toggleGizmo('rotation')">
+            Rotation
+          </button>
+          <button class="gizmo-button" onclick="toggleGizmo('scale')">
+            Scale
+          </button>
+          <button class="gizmo-button" onclick="turnOffAllGizmos()">
+            Hide
+          </button>
+        </div>
       </div>
+      <canvas id="renderCanvas"></canvas>
     </div>
-    <canvas id="renderCanvas"></canvas>
-  </div>
- </body>
+    
+  </body>
 </html>
