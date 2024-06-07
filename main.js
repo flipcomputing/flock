@@ -2,11 +2,11 @@
 // Dr Tracy Gardner - https://github.com/tracygardner
 // Flip Computing Limited - flipcomputing.com
 
-import * as Blockly from 'blockly';
-import {javascriptGenerator} from 'blockly/javascript';
-import {registerFieldColour} from '@blockly/field-colour';
-import * as BABYLON from '@babylonjs/core';
-import * as BABYLON_GUI from '@babylonjs/gui';
+import * as Blockly from "blockly";
+import { javascriptGenerator } from "blockly/javascript";
+import { registerFieldColour } from "@blockly/field-colour";
+import * as BABYLON from "@babylonjs/core";
+import * as BABYLON_GUI from "@babylonjs/gui";
 import HavokPhysics from "@babylonjs/havok";
 import "@babylonjs/core/Debug/debugLayer";
 import "@babylonjs/inspector";
@@ -17,16 +17,16 @@ window.GUI = BABYLON_GUI;
 registerFieldColour();
 
 const categoryColours = {
-  "Scene": 100,
-  "Motion": 240,
-  "Looks": 300,
-  "Control": "%{BKY_LOOPS_HUE}",
-  "Logic": "%{BKY_LOGIC_HUE}",
-  "Variables": "%{BKY_VARIABLES_HUE}",
-  "Text": "%{BKY_TEXTS_HUE}",
-  "Lists": "%{BKY_LISTS_HUE}",
-  "Math": "%{BKY_MATH_HUE}",
-  "Procedures": "%{BKY_PROCEDURES_HUE}"
+	Scene: 100,
+	Motion: 240,
+	Looks: 300,
+	Control: "%{BKY_LOOPS_HUE}",
+	Logic: "%{BKY_LOGIC_HUE}",
+	Variables: "%{BKY_VARIABLES_HUE}",
+	Text: "%{BKY_TEXTS_HUE}",
+	Lists: "%{BKY_LISTS_HUE}",
+	Math: "%{BKY_MATH_HUE}",
+	Procedures: "%{BKY_PROCEDURES_HUE}",
 };
 
 const canvas = document.getElementById("renderCanvas");
@@ -40,18 +40,18 @@ let engineReady = false;
 let highlighter = null;
 let gizmoManager = null;
 
-const workspace = Blockly.inject('blocklyDiv', {
-  theme: Blockly.Themes.Modern,
-  renderer: 'zelos',
-  zoom: {
-	controls: true,  // Enables zoom controls (+, -, and home buttons)
-	wheel: true,     // Enables zooming in/out using the mouse wheel
-	startScale: 0.8, // Initial scale
-	maxScale: 3,     // Max scale
-	minScale: 0.3,   // Min scale
-	scaleSpeed: 1.2  // How fast it zooms
-  },
-  toolbox: `
+const workspace = Blockly.inject("blocklyDiv", {
+	theme: Blockly.Themes.Modern,
+	renderer: "zelos",
+	zoom: {
+		controls: true, // Enables zoom controls (+, -, and home buttons)
+		wheel: true, // Enables zooming in/out using the mouse wheel
+		startScale: 0.8, // Initial scale
+		maxScale: 3, // Max scale
+		minScale: 0.3, // Min scale
+		scaleSpeed: 1.2, // How fast it zooms
+	},
+	toolbox: `
 		<xml id="toolbox" style="display: none">
 	  <category name="Flock 🐑🐑🐑"></category>
 		  <category name="Scene" colour="${categoryColours["Scene"]}">		
@@ -222,6 +222,12 @@ const workspace = Blockly.inject('blocklyDiv', {
 </block>
 <block type="clear_effects"></block>
 </category>
+
+<category name="Sound" colour="#D65C00">
+	<block type="play_sound"></block>
+  </category>
+  
+
 <category name="Control" colour="${categoryColours["Control"]}">
 <block type="start"></block>
 <block type="on_each_update"></block>
@@ -465,946 +471,1076 @@ const workspace = Blockly.inject('blocklyDiv', {
    </category>
    <category name="Functions" custom="PROCEDURE" colour="%{BKY_PROCEDURES_HUE}"></category>
 </xml>
-	  `
+	  `,
 });
+
+const audioNames = [
+	"highDown.ogg",
+	"highUp.ogg",
+	"laser1.ogg",
+	"laser2.ogg",
+	"laser3.ogg",
+	"laser4.ogg",
+	"laser5.ogg",
+	"laser6.ogg",
+	"laser7.ogg",
+	"laser8.ogg",
+	"laser9.ogg",
+	"lowDown.ogg",
+	"lowRandom.ogg",
+	"lowThreeTone.ogg",
+	"pepSound1.ogg",
+	"pepSound2.ogg",
+	"pepSound3.ogg",
+	"pepSound4.ogg",
+	"pepSound5.ogg",
+	"phaseJump1.ogg",
+	"phaseJump2.ogg",
+	"phaseJump3.ogg",
+	"phaseJump4.ogg",
+	"phaseJump5.ogg",
+	"phaserDown1.ogg",
+	"phaserDown2.ogg",
+	"phaserDown3.ogg",
+	"phaserUp1.ogg",
+	"phaserUp2.ogg",
+	"phaserUp3.ogg",
+	"phaserUp4.ogg",
+	"phaserUp5.ogg",
+	"phaserUp6.ogg",
+	"phaserUp7.ogg",
+	"powerUp10.ogg",
+	"powerUp11.ogg",
+	"powerUp12.ogg",
+	"powerUp1.ogg",
+	"powerUp2.ogg",
+	"powerUp3.ogg",
+	"powerUp4.ogg",
+	"powerUp5.ogg",
+	"powerUp6.ogg",
+	"powerUp7.ogg",
+	"powerUp8.ogg",
+	"powerUp9.ogg",
+	"spaceTrash1.ogg",
+	"spaceTrash2.ogg",
+	"spaceTrash3.ogg",
+	"spaceTrash4.ogg",
+	"spaceTrash5.ogg",
+	"threeTone1.ogg",
+	"threeTone2.ogg",
+	"tone1.ogg",
+	"twoTone1.ogg",
+	"twoTone2.ogg",
+	"zap1.ogg",
+	"zap2.ogg",
+	"zapThreeToneDown.ogg",
+	"zapThreeToneUp.ogg",
+	"zapTwoTone2.ogg",
+	"zapTwoTone.ogg",
+];
 
 console.log("Welcome to Flock 🐑🐑🐑");
 
-workspace.addChangeListener(function(event) {
-  if (event.type === Blockly.Events.FINISHED_LOADING) {
-	initializeVariableIndexes();
-  }
+workspace.addChangeListener(function (event) {
+	if (event.type === Blockly.Events.FINISHED_LOADING) {
+		initializeVariableIndexes();
+	}
 });
 
-Blockly.Blocks['start'] = {
-  init: function() {
-	this.jsonInit({
-	  "type": "start",
-	  "message0": "script %1",
-	  "args0": [
-		{
-		  "type": "input_statement",
-		  "name": "DO"
-		}
-	  ],
-	  "nextStatement": null,
-	  "colour": categoryColours["Control"],
-	  "tooltip": "Run the attached block when the project starts.",
-	  "style": {
-		"hat": "cap"
-	  }
-	});
-  }
+Blockly.Blocks["start"] = {
+	init: function () {
+		this.jsonInit({
+			type: "start",
+			message0: "script %1",
+			args0: [
+				{
+					type: "input_statement",
+					name: "DO",
+				},
+			],
+			nextStatement: null,
+			colour: categoryColours["Control"],
+			tooltip: "Run the attached block when the project starts.",
+			style: {
+				hat: "cap",
+			},
+		});
+	},
 };
 
-
-Blockly.Blocks['create_ground'] = {
-  init: function() {
-	this.jsonInit({
-	  "type": "create_ground",
-	  "message0": "add ground with color %1",
-	  "args0": [
-		{
-		  "type": "field_colour",
-		  "name": "COLOR",
-		  "colour": "#71BC78"
-		}
-	  ],
-	  "previousStatement": null,
-	  "nextStatement": null,
-	  "colour": categoryColours["Scene"],
-	  "tooltip": "Adds a ground plane with collisions enabled to the scene, with specified color.",
-	  "helpUrl": ""
-	});
-  }
+Blockly.Blocks["create_ground"] = {
+	init: function () {
+		this.jsonInit({
+			type: "create_ground",
+			message0: "add ground with color %1",
+			args0: [
+				{
+					type: "field_colour",
+					name: "COLOR",
+					colour: "#71BC78",
+				},
+			],
+			previousStatement: null,
+			nextStatement: null,
+			colour: categoryColours["Scene"],
+			tooltip:
+				"Adds a ground plane with collisions enabled to the scene, with specified color.",
+			helpUrl: "",
+		});
+	},
 };
 
-Blockly.Blocks['wait'] = {
-  init: function() {
-	this.jsonInit({
-	  "type": "wait",
-	  "message0": "wait %1 ms",
-	  "args0": [
-		{
-		  "type": "field_number",
-		  "name": "DURATION",
-		  "value": 1000,
-		  "min": 0
-		}
-	  ],
-	  "previousStatement": null,
-	  "nextStatement": null,
-	  "colour": categoryColours["Control"],
-	  "tooltip": "Wait for a specified time in milliseconds",
-	  "helpUrl": ""
-	});
-  }
+Blockly.Blocks["wait"] = {
+	init: function () {
+		this.jsonInit({
+			type: "wait",
+			message0: "wait %1 ms",
+			args0: [
+				{
+					type: "field_number",
+					name: "DURATION",
+					value: 1000,
+					min: 0,
+				},
+			],
+			previousStatement: null,
+			nextStatement: null,
+			colour: categoryColours["Control"],
+			tooltip: "Wait for a specified time in milliseconds",
+			helpUrl: "",
+		});
+	},
 };
 
-Blockly.Blocks['glide_to'] = {
-  init: function() {
-	this.jsonInit({
-	  "type": "glide_to",
-	  "message0": "glide %1 to x %2 y %3 z %4 in %5 ms %6",
-	  "args0": [
-		{
-		  "type": "field_variable",
-		  "name": "MESH_VAR",
-		  "variable": "mesh1"
-		}
-		,
-		{
-		  "type": "input_value",
-		  "name": "X",
-		  "check": "Number"
-		},
-		{
-		  "type": "input_value",
-		  "name": "Y",
-		  "check": "Number"
-		},
-		{
-		  "type": "input_value",
-		  "name": "Z",
-		  "check": "Number"
-		},
-		{
-		  "type": "input_value",
-		  "name": "DURATION",
-		  "check": "Number"
-		},
-		{
-		  "type": "field_dropdown",
-		  "name": "MODE",
-		  "options": [
-			["await", "AWAIT"],
-			["start", "START"]
-		  ]
-		}
-	  ],
-	  "previousStatement": null,
-	  "nextStatement": null,
-	  "colour": categoryColours["Motion"],
-	  "tooltip": "Glide to a specified position over a duration",
-	  "helpUrl": ""
-	});
-  }
+Blockly.Blocks["glide_to"] = {
+	init: function () {
+		this.jsonInit({
+			type: "glide_to",
+			message0: "glide %1 to x %2 y %3 z %4 in %5 ms %6",
+			args0: [
+				{
+					type: "field_variable",
+					name: "MESH_VAR",
+					variable: "mesh1",
+				},
+				{
+					type: "input_value",
+					name: "X",
+					check: "Number",
+				},
+				{
+					type: "input_value",
+					name: "Y",
+					check: "Number",
+				},
+				{
+					type: "input_value",
+					name: "Z",
+					check: "Number",
+				},
+				{
+					type: "input_value",
+					name: "DURATION",
+					check: "Number",
+				},
+				{
+					type: "field_dropdown",
+					name: "MODE",
+					options: [
+						["await", "AWAIT"],
+						["start", "START"],
+					],
+				},
+			],
+			previousStatement: null,
+			nextStatement: null,
+			colour: categoryColours["Motion"],
+			tooltip: "Glide to a specified position over a duration",
+			helpUrl: "",
+		});
+	},
 };
 
-Blockly.Blocks['set_sky_color'] = {
-  init: function() {
-	this.jsonInit({
-	  "type": "set_sky_color",
-	  "message0": "set sky color %1",
-	  "args0": [
-		{
-		  "type": "field_colour",
-		  "name": "COLOR",
-		  "colour": "#6495ED" // Default sky color
-		}
-	  ],
-	  "previousStatement": null,
-	  "nextStatement": null,
-	  "colour": categoryColours["Scene"],
-	  "tooltip": "Sets the sky color of the scene.",
-	  "helpUrl": ""
-	});
-  }
+Blockly.Blocks["set_sky_color"] = {
+	init: function () {
+		this.jsonInit({
+			type: "set_sky_color",
+			message0: "set sky color %1",
+			args0: [
+				{
+					type: "field_colour",
+					name: "COLOR",
+					colour: "#6495ED", // Default sky color
+				},
+			],
+			previousStatement: null,
+			nextStatement: null,
+			colour: categoryColours["Scene"],
+			tooltip: "Sets the sky color of the scene.",
+			helpUrl: "",
+		});
+	},
 };
 
-Blockly.Blocks['set_fog'] = {
-  init: function() {
-	this.jsonInit({
-	  "type": "set_fog",
-	  "message0": "set fog color %1 mode %2 density %3",
-	  "args0": [
-		{
-		  "type": "field_colour",
-		  "name": "FOG_COLOR",
-		  "colour": "#ffffff"  // Default fog color
-		},
-		{
-		  "type": "field_dropdown",
-		  "name": "FOG_MODE",
-		  "options": [
-			["Linear", "LINEAR"],
-			["None", "NONE"],
-			["Exp", "EXP"],
-			["Exp2", "EXP2"]
-		  ]
-		},
-		{
-		  "type": "input_value",
-		  "name": "DENSITY",
-		  "check": "Number"
-		}
-	  ],
-	  "inputsInline": true,
-	  "previousStatement": null,
-	  "nextStatement": null,
-	  "colour": categoryColours["Scene"],
-	  "tooltip": "Configures the scene's fog.",
-	  "helpUrl": ""
-	});
-  }
+Blockly.Blocks["set_fog"] = {
+	init: function () {
+		this.jsonInit({
+			type: "set_fog",
+			message0: "set fog color %1 mode %2 density %3",
+			args0: [
+				{
+					type: "field_colour",
+					name: "FOG_COLOR",
+					colour: "#ffffff", // Default fog color
+				},
+				{
+					type: "field_dropdown",
+					name: "FOG_MODE",
+					options: [
+						["Linear", "LINEAR"],
+						["None", "NONE"],
+						["Exp", "EXP"],
+						["Exp2", "EXP2"],
+					],
+				},
+				{
+					type: "input_value",
+					name: "DENSITY",
+					check: "Number",
+				},
+			],
+			inputsInline: true,
+			previousStatement: null,
+			nextStatement: null,
+			colour: categoryColours["Scene"],
+			tooltip: "Configures the scene's fog.",
+			helpUrl: "",
+		});
+	},
 };
 
+Blockly.Blocks["create_box"] = {
+	init: function () {
+		let nextVariableName = "box" + nextVariableIndexes["box"];
+		this.jsonInit({
+			type: "create_box",
+			message0:
+				"create box as %1 %2 width %3 height %4 depth %5 x %6 y %7 z %8",
+			args0: [
+				{
+					type: "field_variable",
+					name: "ID_VAR",
+					variable: nextVariableName,
+				},
+				{
+					type: "field_colour",
+					name: "COLOR",
+					colour: "#9932CC",
+				},
+				{
+					type: "input_value",
+					name: "WIDTH",
+					check: "Number",
+				},
+				{
+					type: "input_value",
+					name: "HEIGHT",
+					check: "Number",
+				},
+				{
+					type: "input_value",
+					name: "DEPTH",
+					check: "Number",
+				},
+				{
+					type: "input_value",
+					name: "X",
+					check: "Number",
+				},
+				{
+					type: "input_value",
+					name: "Y",
+					check: "Number",
+				},
+				{
+					type: "input_value",
+					name: "Z",
+					check: "Number",
+				},
+			],
+			previousStatement: null,
+			nextStatement: null,
+			inputsInline: true,
+			colour: categoryColours["Scene"],
+			tooltip:
+				"Creates a colored box with specified dimensions and position.",
+			helpUrl: "",
+		});
 
-Blockly.Blocks['create_box'] = {
-  init: function() {
-	let nextVariableName = "box" + nextVariableIndexes['box'];
-	this.jsonInit({
-	  "type": "create_box",
-	  "message0": "create box as %1 %2 width %3 height %4 depth %5 x %6 y %7 z %8",
-	  "args0": [
-		{
-		  "type": "field_variable",
-		  "name": "ID_VAR",
-		  "variable": nextVariableName
-		},
-		{
-		  "type": "field_colour",
-		  "name": "COLOR",
-		  "colour": "#9932CC"
-		},
-		{
-		  "type": "input_value",
-		  "name": "WIDTH",
-		  "check": "Number"
-		},
-		{
-		  "type": "input_value",
-		  "name": "HEIGHT",
-		  "check": "Number"
-		},
-		{
-		  "type": "input_value",
-		  "name": "DEPTH",
-		  "check": "Number"
-		},
-		{
-		  "type": "input_value",
-		  "name": "X",
-		  "check": "Number"
-		},
-		{
-		  "type": "input_value",
-		  "name": "Y",
-		  "check": "Number"
-		},
-		{
-		  "type": "input_value",
-		  "name": "Z",
-		  "check": "Number"
-		}
-	  ],
-	  "previousStatement": null,
-	  "nextStatement": null,
-	  "inputsInline": true,
-	  "colour": categoryColours["Scene"],
-	  "tooltip": "Creates a colored box with specified dimensions and position.",
-	  "helpUrl": ""
-	});
+		this.setOnChange(function (changeEvent) {
+			if (
+				!this.isInFlyout &&
+				changeEvent.type === Blockly.Events.BLOCK_CREATE &&
+				changeEvent.ids.includes(this.id)
+			) {
+				let variable = this.workspace.getVariable(nextVariableName);
+				if (!variable) {
+					variable = this.workspace.createVariable(
+						nextVariableName,
+						null,
+					);
+					this.getField("ID_VAR").setValue(variable.getId());
+				}
 
-	this.setOnChange(function(changeEvent) {
-	  if (!this.isInFlyout && changeEvent.type === Blockly.Events.BLOCK_CREATE && changeEvent.ids.includes(this.id)) {
-
-		let variable = this.workspace.getVariable(nextVariableName);
-		if (!variable) {
-		  variable = this.workspace.createVariable(nextVariableName, null);
-		  this.getField('ID_VAR').setValue(variable.getId());
-		}
-
-		nextVariableIndexes['box'] += 1;
-	  }
-
-	});
-  }
+				nextVariableIndexes["box"] += 1;
+			}
+		});
+	},
 };
 
-Blockly.Blocks['create_sphere'] = {
-  init: function() {
-	let nextVariableName = "sphere" + nextVariableIndexes['sphere'];
-	this.jsonInit({
-	  "type": "create_sphere",
-	  "message0": "create sphere as %1 %2 diameter x %3 diameter y %4 diameter z %5 x %6 y %7 z %8",
-	  "args0": [
-		{
-		  "type": "field_variable",
-		  "name": "ID_VAR",
-		  "variable": nextVariableName
-		},
-		{
-		  "type": "field_colour",
-		  "name": "COLOR",
-		  "colour": "#9932CC"
-		},
-		{
-		  "type": "input_value",
-		  "name": "DIAMETER_X",
-		  "check": "Number"
-		},
-		{
-		  "type": "input_value",
-		  "name": "DIAMETER_Y",
-		  "check": "Number"
-		},
-		{
-		  "type": "input_value",
-		  "name": "DIAMETER_Z",
-		  "check": "Number"
-		},
-		{
-		  "type": "input_value",
-		  "name": "X",
-		  "check": "Number"
-		},
-		{
-		  "type": "input_value",
-		  "name": "Y",
-		  "check": "Number"
-		},
-		{
-		  "type": "input_value",
-		  "name": "Z",
-		  "check": "Number"
-		}
-	  ],
-	  "previousStatement": null,
-	  "nextStatement": null,
-	  "inputsInline": true,
-	  "colour": categoryColours["Scene"],
-	  "tooltip": "Creates a colored sphere with specified dimensions and position.",
-	  "helpUrl": ""
-	});
+Blockly.Blocks["create_sphere"] = {
+	init: function () {
+		let nextVariableName = "sphere" + nextVariableIndexes["sphere"];
+		this.jsonInit({
+			type: "create_sphere",
+			message0:
+				"create sphere as %1 %2 diameter x %3 diameter y %4 diameter z %5 x %6 y %7 z %8",
+			args0: [
+				{
+					type: "field_variable",
+					name: "ID_VAR",
+					variable: nextVariableName,
+				},
+				{
+					type: "field_colour",
+					name: "COLOR",
+					colour: "#9932CC",
+				},
+				{
+					type: "input_value",
+					name: "DIAMETER_X",
+					check: "Number",
+				},
+				{
+					type: "input_value",
+					name: "DIAMETER_Y",
+					check: "Number",
+				},
+				{
+					type: "input_value",
+					name: "DIAMETER_Z",
+					check: "Number",
+				},
+				{
+					type: "input_value",
+					name: "X",
+					check: "Number",
+				},
+				{
+					type: "input_value",
+					name: "Y",
+					check: "Number",
+				},
+				{
+					type: "input_value",
+					name: "Z",
+					check: "Number",
+				},
+			],
+			previousStatement: null,
+			nextStatement: null,
+			inputsInline: true,
+			colour: categoryColours["Scene"],
+			tooltip:
+				"Creates a colored sphere with specified dimensions and position.",
+			helpUrl: "",
+		});
 
-	this.setOnChange(function(changeEvent) {
-	  if (!this.isInFlyout && changeEvent.type === Blockly.Events.BLOCK_CREATE && changeEvent.ids.includes(this.id)) {
-		let variable = this.workspace.getVariable(nextVariableName);
-		if (!variable) {
-		  variable = this.workspace.createVariable(nextVariableName, null);
-		  this.getField('ID_VAR').setValue(variable.getId());
-		}
+		this.setOnChange(function (changeEvent) {
+			if (
+				!this.isInFlyout &&
+				changeEvent.type === Blockly.Events.BLOCK_CREATE &&
+				changeEvent.ids.includes(this.id)
+			) {
+				let variable = this.workspace.getVariable(nextVariableName);
+				if (!variable) {
+					variable = this.workspace.createVariable(
+						nextVariableName,
+						null,
+					);
+					this.getField("ID_VAR").setValue(variable.getId());
+				}
 
-		nextVariableIndexes['sphere'] += 1;
-	  }
-	});
-  }
+				nextVariableIndexes["sphere"] += 1;
+			}
+		});
+	},
 };
 
-Blockly.Blocks['create_plane'] = {
-  init: function() {
-	let nextVariableName = "plane" + nextVariableIndexes['plane']; // Ensure 'plane' is managed in your nextVariableIndexes
-	this.jsonInit({
-	  "type": "create_plane",
-	  "message0": "create plane as %1 %2 width %3 height %4 x %5 y %6 z %7",
-	  "args0": [
-		{
-		  "type": "field_variable",
-		  "name": "ID_VAR",
-		  "variable": nextVariableName
-		},
-		{
-		  "type": "field_colour",
-		  "name": "COLOR",
-		  "colour": "#9932CC"  // Default color for the plane
-		},
-		{
-		  "type": "input_value",
-		  "name": "WIDTH",
-		  "check": "Number"
-		},
-		{
-		  "type": "input_value",
-		  "name": "HEIGHT",
-		  "check": "Number"
-		},
-		{
-		  "type": "input_value",
-		  "name": "X",
-		  "check": "Number"
-		},
-		{
-		  "type": "input_value",
-		  "name": "Y",
-		  "check": "Number"
-		},
-		{
-		  "type": "input_value",
-		  "name": "Z",
-		  "check": "Number"
-		}
-	  ],
-	  "inputsInline": true,
-	  "previousStatement": null,
-	  "nextStatement": null,
-	  "colour": categoryColours["Scene"],
-	  "tooltip": "Creates a colored 2D plane with specified width, height, and position.",
-	  "helpUrl": ""
+Blockly.Blocks["create_plane"] = {
+	init: function () {
+		let nextVariableName = "plane" + nextVariableIndexes["plane"]; // Ensure 'plane' is managed in your nextVariableIndexes
+		this.jsonInit({
+			type: "create_plane",
+			message0: "create plane as %1 %2 width %3 height %4 x %5 y %6 z %7",
+			args0: [
+				{
+					type: "field_variable",
+					name: "ID_VAR",
+					variable: nextVariableName,
+				},
+				{
+					type: "field_colour",
+					name: "COLOR",
+					colour: "#9932CC", // Default color for the plane
+				},
+				{
+					type: "input_value",
+					name: "WIDTH",
+					check: "Number",
+				},
+				{
+					type: "input_value",
+					name: "HEIGHT",
+					check: "Number",
+				},
+				{
+					type: "input_value",
+					name: "X",
+					check: "Number",
+				},
+				{
+					type: "input_value",
+					name: "Y",
+					check: "Number",
+				},
+				{
+					type: "input_value",
+					name: "Z",
+					check: "Number",
+				},
+			],
+			inputsInline: true,
+			previousStatement: null,
+			nextStatement: null,
+			colour: categoryColours["Scene"],
+			tooltip:
+				"Creates a colored 2D plane with specified width, height, and position.",
+			helpUrl: "",
+		});
+	},
+};
+
+Blockly.Blocks["set_background_color"] = {
+	init: function () {
+		this.jsonInit({
+			type: "set_background_color",
+			message0: "set background color %1",
+			args0: [
+				{
+					type: "field_colour",
+					name: "COLOR",
+					colour: "#6495ED", // Default background color
+				},
+			],
+			previousStatement: null,
+			nextStatement: null,
+			colour: categoryColours["Scene"],
+			tooltip: "Set the scene's background color",
+			helpUrl: "",
+		});
+	},
+};
+
+Blockly.Blocks["print_text"] = {
+	init: function () {
+		this.jsonInit({
+			type: "print_text",
+			message0: "print %1 for %2 seconds in color %3",
+			args0: [
+				{
+					type: "input_value",
+					name: "TEXT",
+					check: "String",
+				},
+				{
+					type: "input_value",
+					name: "DURATION",
+					check: "Number",
+				},
+				{
+					type: "field_colour",
+					name: "COLOR",
+					colour: "#000080",
+				},
+			],
+			previousStatement: null,
+			nextStatement: null,
+			colour: 160,
+			tooltip: "",
+			helpUrl: "",
+		});
+	},
+};
+
+Blockly.Blocks["say"] = {
+	init: function () {
+		this.jsonInit({
+			type: "say",
+			message0:
+				"say %1 for %2 s %3 text %4 and background %5 alpha %6 size %7 %8 %9",
+			args0: [
+				{
+					type: "input_value",
+					name: "TEXT",
+					check: "String",
+				},
+				{
+					type: "input_value",
+					name: "DURATION",
+					check: "Number",
+				},
+				{
+					type: "field_variable",
+					name: "MESH_VAR",
+					variable: "item",
+				},
+				{
+					type: "field_colour",
+					name: "TEXT_COLOR",
+					colour: "#000000",
+				},
+				{
+					type: "field_colour",
+					name: "BACKGROUND_COLOR",
+					colour: "#ffffff",
+				},
+				{
+					type: "input_value",
+					name: "ALPHA",
+					check: "Number",
+				},
+				{
+					type: "input_value",
+					name: "SIZE",
+					check: "Number",
+				},
+				{
+					type: "field_dropdown",
+					name: "MODE",
+					options: [
+						["add", "ADD"],
+						["replace", "REPLACE"],
+					],
+				},
+				{
+					type: "field_dropdown",
+					name: "ASYNC",
+					options: [
+						["start", "START"],
+						["await", "AWAIT"],
+					],
+				},
+			],
+			inputsInline: true,
+			previousStatement: null,
+			nextStatement: null,
+			colour: 160,
+			tooltip: "Displays a piece of text as a billboard on a mesh.",
+			helpUrl: "",
+		});
+	},
+};
+
+Blockly.Blocks["move_by_vector"] = {
+	init: function () {
+		this.jsonInit({
+			type: "move_by_vector",
+			message0: "move %1 by x: %2 y: %3 z: %4",
+			args0: [
+				{
+					type: "field_variable",
+					name: "BLOCK_NAME",
+					variable: "mesh",
+				},
+				{
+					type: "input_value",
+					name: "X",
+					check: "Number",
+					align: "RIGHT",
+				},
+				{
+					type: "input_value",
+					name: "Y",
+					check: "Number",
+					align: "RIGHT",
+				},
+				{
+					type: "input_value",
+					name: "Z",
+					check: "Number",
+					align: "RIGHT",
+				},
+			],
+			previousStatement: null,
+			nextStatement: null,
+			colour: categoryColours["Motion"],
+			inputsInline: true,
+		});
+	},
+};
+
+Blockly.Blocks["rotate_model_xyz"] = {
+	init: function () {
+		this.jsonInit({
+			type: "rotate_model_xyz",
+			message0: "rotate %1 by x: %2 y: %3 z: %4",
+			args0: [
+				{
+					type: "field_variable",
+					name: "MODEL",
+					variable: "mesh", // Default variable name
+				},
+				{
+					type: "input_value",
+					name: "X",
+					check: "Number",
+					align: "RIGHT",
+				},
+				{
+					type: "input_value",
+					name: "Y",
+					check: "Number",
+					align: "RIGHT",
+				},
+				{
+					type: "input_value",
+					name: "Z",
+					check: "Number",
+					align: "RIGHT",
+				},
+			],
+			previousStatement: null,
+			nextStatement: null,
+			colour: categoryColours["Motion"],
+			inputsInline: true,
+			tooltip:
+				"Rotates the model based on its current rotation plus additional x, y, z values.",
+			helpUrl: "",
+		});
+	},
+};
+
+Blockly.Blocks["play_sound"] = {
+	init: function () {
+		this.jsonInit({
+			type: "play sound",
+			message0: "play sound %1 %2",
+			args0: [
+				{
+					type: "field_dropdown",
+					name: "SOUND_NAME",
+					options: function () {
+						return audioNames.map((name) => [name, name]);
+					},
+				},
+				{
+					type: "field_dropdown",
+					name: "ASYNC",
+					options: [
+						["start", "START"],
+						["await", "AWAIT"],
+					],
+				},
+			],
+			inputsInline: true,
+			previousStatement: null,
+			nextStatement: null,
+			colour: 160,
+			tooltip: "Plays the selected sound and waits until it finishes.",
+			helpUrl: "",
+		});
+	},
+};
+
+Blockly.Blocks["on_each_update"] = {
+	init: function () {
+		this.jsonInit({
+			type: "on_each_update",
+			message0: "on each update %1",
+			args0: [
+				{
+					type: "input_statement",
+					name: "DO",
+					check: null,
+				},
+			],
+			colour: categoryColours["Control"],
+			tooltip:
+				"Executes the enclosed blocks each frame in the render loop.",
+			helpUrl: "",
+		});
+	},
+};
+
+Blockly.Blocks["when_clicked"] = {
+	init: function () {
+		this.jsonInit({
+			type: "model_clicked",
+			message0: "when %1 is clicked",
+			args0: [
+				{
+					type: "field_variable",
+					name: "MODEL_VAR",
+					variable: "mesh", // Default variable name
+				},
+			],
+			message1: "do %1",
+			args1: [
+				{
+					type: "input_statement",
+					name: "DO",
+				},
+			],
+			colour: 120,
+			tooltip:
+				"Executes the blocks inside when the specified model is clicked.",
+			helpUrl: "",
+		});
+	},
+};
+
+Blockly.Blocks["when_key_pressed"] = {
+	init: function () {
+		this.jsonInit({
+			type: "when_key_pressed",
+			message0: "when key pressed %1",
+			args0: [
+				{
+					type: "field_dropdown",
+					name: "KEY",
+					options: [["space", "SPACE"]],
+				},
+			],
+			message1: "do %1",
+			args1: [
+				{
+					type: "input_statement",
+					name: "DO",
+				},
+			],
+			nextStatement: null,
+			colour: 120,
+			tooltip:
+				"Executes the blocks inside when the specified key is pressed.",
+			helpUrl: "",
+		});
+	},
+};
+
+Blockly.Blocks["when_key_released"] = {
+	init: function () {
+		this.jsonInit({
+			type: "when_key_released",
+			message0: "when key released %1",
+			args0: [
+				{
+					type: "field_dropdown",
+					name: "KEY",
+					options: [["space", "SPACE"]],
+				},
+			],
+			message1: "do %1",
+			args1: [
+				{
+					type: "input_statement",
+					name: "DO",
+				},
+			],
+			nextStatement: null,
+			colour: 120,
+			tooltip:
+				"Executes the blocks inside when the specified key is released.",
+			helpUrl: "",
+		});
+	},
+};
+
+Blockly.Blocks["show"] = {
+	init: function () {
+		this.jsonInit({
+			type: "show",
+			message0: "show %1",
+			args0: [
+				{
+					type: "field_variable",
+					name: "MODEL_VAR",
+					variable: "mesh",
+				},
+			],
+			previousStatement: null,
+			nextStatement: null,
+			colour: categoryColours["Looks"],
+			tooltip: "Shows the selected model.",
+			helpUrl: "",
+		});
+	},
+};
+
+Blockly.Blocks["hide"] = {
+	init: function () {
+		this.jsonInit({
+			type: "hide",
+			message0: "hide %1",
+			args0: [
+				{
+					type: "field_variable",
+					name: "MODEL_VAR",
+					variable: "mesh",
+				},
+			],
+			previousStatement: null,
+			nextStatement: null,
+			colour: categoryColours["Looks"],
+			tooltip: "Hides the selected model.",
+			helpUrl: "",
+		});
+	},
+};
+
+Blockly.Blocks["highlight"] = {
+	init: function () {
+		this.jsonInit({
+			type: "highlight",
+			message0: "highlight %1 color %2",
+			args0: [
+				{
+					type: "field_variable",
+					name: "MODEL_VAR",
+					variable: "mesh", // Default variable name, ensure it's defined in your environment
+				},
+				{
+					type: "field_colour",
+					name: "COLOR",
+					colour: "#9932CC",
+				},
+			],
+			inputsInline: true,
+			previousStatement: null,
+			nextStatement: null,
+			colour: categoryColours["Looks"],
+			tooltip: "Highlights the selected model.",
+			helpUrl: "",
+		});
+	},
+};
+
+Blockly.Blocks["tint"] = {
+	init: function () {
+		this.jsonInit({
+			type: "tint",
+			message0: "tint %1 color %2",
+			args0: [
+				{
+					type: "field_variable",
+					name: "MODEL_VAR",
+					variable: "mesh",
+				},
+				{
+					type: "field_colour",
+					name: "COLOR",
+					colour: "#9932CC",
+				},
+			],
+			inputsInline: true,
+			previousStatement: null,
+			nextStatement: null,
+			colour: categoryColours["Looks"],
+			tooltip: "Add colour tint effect.",
+			helpUrl: "",
+		});
+	},
+};
+
+Blockly.Blocks["set_alpha"] = {
+	init: function () {
+		this.jsonInit({
+			type: "set_mesh_material_alpha",
+			message0: "set alpha of %1 to %2",
+			args0: [
+				{
+					type: "field_variable",
+					name: "MESH",
+					variable: "mesh",
+				},
+				{
+					type: "input_value",
+					name: "ALPHA",
+					check: "Number",
+				},
+			],
+			inputsInline: true,
+			previousStatement: null,
+			nextStatement: null,
+			colour: categoryColours["Looks"],
+			tooltip:
+				"Sets the alpha (transparency) of the material(s) on a specified mesh. Values should be 0 to 1.",
+			helpUrl: "",
+		});
+	},
+};
+
+Blockly.Blocks["clear_effects"] = {
+	init: function () {
+		this.jsonInit({
+			type: "clear_effects",
+			message0: "clear effects %1",
+			args0: [
+				{
+					type: "field_variable",
+					name: "MODEL_VAR",
+					variable: "mesh",
+				},
+			],
+			inputsInline: true,
+			previousStatement: null,
+			nextStatement: null,
+			colour: categoryColours["Looks"],
+			tooltip: "Clear visual effects from selected model.",
+			helpUrl: "",
+		});
+	},
+};
+
+Blockly.Blocks["camera_follow"] = {
+	init: function () {
+		this.jsonInit({
+			type: "camera_follow",
+			message0: "camera follow %1",
+			args0: [
+				{
+					type: "field_variable",
+					name: "MESH_VAR",
+					variable: "mesh1",
+				},
+			],
+			previousStatement: null,
+			nextStatement: null,
+			colour: categoryColours["Motion"],
+			tooltip:
+				"Makes the camera follow a model specified by the variable.",
+			helpUrl: "",
+		});
+	},
+};
+
+Blockly.Blocks["add_physics"] = {
+	init: function () {
+		this.jsonInit({
+			type: "add_physics",
+			message0: "add physics %1",
+			args0: [
+				{
+					type: "field_variable",
+					name: "MODEL_VAR",
+					variable: "mesh",
+				},
+			],
+			previousStatement: null,
+			nextStatement: null,
+			colour: categoryColours["Motion"],
+			tooltip:
+				"Adds dynamic physics so the mesh reacts to forces including gravity.",
+			helpUrl: "",
+		});
+	},
+};
+
+Blockly.Blocks["key_pressed"] = {
+	init: function () {
+		this.jsonInit({
+			type: "key_pressed",
+			message0: "key pressed is %1",
+			args0: [
+				{
+					type: "field_dropdown",
+					name: "KEY",
+					options: [
+						["any", "ANY"],
+						["none", "NONE"],
+						["space", "SPACE"],
+						["W", "KeyW"],
+						["A", "KeyA"],
+						["S", "KeyS"],
+						["D", "KeyD"],
+					],
+				},
+			],
+			output: "Boolean",
+			colour: 160,
+			tooltip: "Returns true if the specified key is pressed.",
+			helpUrl: "",
+		});
+	},
+};
+
+Blockly.Blocks["move_forward"] = {
+	init: function () {
+		this.jsonInit({
+			type: "move_forward",
+			message0: "forward %1 speed %2",
+			args0: [
+				{
+					type: "field_variable",
+					name: "MODEL",
+					variable: "mesh",
+				},
+				{
+					type: "input_value",
+					name: "SPEED",
+					check: "Number",
+				},
+			],
+			inputsInline: true,
+			previousStatement: null,
+			nextStatement: null,
+			colour: categoryColours["Motion"],
+			tooltip: "Moves the model forward in the direction it's pointing.",
+			helpUrl: "",
+		});
+	},
+};
+
+function playSoundAsync(scene, soundName) {
+	return new Promise((resolve, reject) => {
+		// Load and play the sound
+		const sound = new BABYLON.Sound(
+			soundName,
+			`sounds/${soundName}`,
+			scene,
+			null,
+			{
+				autoplay: true,
+			},
+		);
+
+		// Register an observer to the onEndedObservable
+		sound.onEndedObservable.add(() => {
+			console.log(`${soundName} finished playing`);
+			resolve();
+		});
 	});
-  }
-};
+}
 
-Blockly.Blocks['set_background_color'] = {
-  init: function() {
-	this.jsonInit({
-	  "type": "set_background_color",
-	  "message0": "set background color %1",
-	  "args0": [
-		{
-		  "type": "field_colour",
-		  "name": "COLOR",
-		  "colour": "#6495ED"  // Default background color
-		}
-	  ],
-	  "previousStatement": null,
-	  "nextStatement": null,
-	  "colour": categoryColours["Scene"],
-	  "tooltip": "Set the scene's background color",
-	  "helpUrl": ""
-	});
-  }
-};
+window.playSoundAsync = playSoundAsync;
 
+javascriptGenerator.forBlock["show"] = function (block) {
+	const modelName = javascriptGenerator.nameDB_.getName(
+		block.getFieldValue("MODEL_VAR"),
+		Blockly.Names.NameType.VARIABLE,
+	);
 
-Blockly.Blocks['print_text'] = {
-  init: function() {
-	this.jsonInit({
-	  "type": "print_text",
-	  "message0": "print %1 for %2 seconds in color %3",
-	  "args0": [
-		{
-		  "type": "input_value",
-		  "name": "TEXT",
-		  "check": "String"
-		},
-		{
-		  "type": "input_value",
-		  "name": "DURATION",
-		  "check": "Number"
-		},
-		{
-		  "type": "field_colour",
-		  "name": "COLOR",
-		  "colour": "#000080"
-		}
-	  ],
-	  "previousStatement": null,
-	  "nextStatement": null,
-	  "colour": 160,
-	  "tooltip": "",
-	  "helpUrl": ""
-	});
-  }
-};
-
-
-Blockly.Blocks['say'] = {
-  init: function() {
-	this.jsonInit(
-	  {
-		"type": "say",
-		"message0": "say %1 for %2 s %3 text %4 and background %5 alpha %6 size %7 %8 %9",
-		"args0": [
-		  {
-			"type": "input_value",
-			"name": "TEXT",
-			"check": "String"
-		  },
-		  {
-			"type": "input_value",
-			"name": "DURATION",
-			"check": "Number"
-		  },
-		  {
-			"type": "field_variable",
-			"name": "MESH_VAR",
-			"variable": "item"
-		  },
-		  {
-			"type": "field_colour",
-			"name": "TEXT_COLOR",
-			"colour": "#000000"
-		  },
-		  {
-			"type": "field_colour",
-			"name": "BACKGROUND_COLOR",
-			"colour": "#ffffff"
-		  },
-		  {
-			"type": "input_value",
-			"name": "ALPHA",
-			"check": "Number"
-		  },
-		  {
-			"type": "input_value",
-			"name": "SIZE",
-			"check": "Number"
-		  },
-		  {
-			"type": "field_dropdown",
-			"name": "MODE",
-			"options": [
-			  ["add", "ADD"],
-			  ["replace", "REPLACE"]
-			]
-		  },
-		  {
-			"type": "field_dropdown",
-			"name": "ASYNC",
-			"options": [
-			  ["start", "START"],
-			  ["await", "AWAIT"]
-			]
-		  }
-		],
-		"inputsInline": true,
-		"previousStatement": null,
-		"nextStatement": null,
-		"colour": 160,
-		"tooltip": "Displays a piece of text as a billboard on a mesh.",
-		"helpUrl": ""
-	  });
-  }
-};
-
-
-Blockly.Blocks['move_by_vector'] = {
-  init: function() {
-	this.jsonInit({
-	  "type": "move_by_vector",
-	  "message0": "move %1 by x: %2 y: %3 z: %4",
-	  "args0": [
-		{
-		  "type": "field_variable",
-		  "name": "BLOCK_NAME",
-		  "variable": "mesh"
-		},
-		{
-		  "type": "input_value",
-		  "name": "X",
-		  "check": "Number",
-		  "align": "RIGHT"
-		},
-		{
-		  "type": "input_value",
-		  "name": "Y",
-		  "check": "Number",
-		  "align": "RIGHT"
-		},
-		{
-		  "type": "input_value",
-		  "name": "Z",
-		  "check": "Number",
-		  "align": "RIGHT"
-		}
-	  ],
-	  "previousStatement": null,
-	  "nextStatement": null,
-	  "colour": categoryColours["Motion"],
-	  "inputsInline": true
-	});
-  }
-};
-
-Blockly.Blocks['rotate_model_xyz'] = {
-  init: function() {
-	this.jsonInit({
-	  "type": "rotate_model_xyz",
-	  "message0": "rotate %1 by x: %2 y: %3 z: %4",
-	  "args0": [
-		{
-		  "type": "field_variable",
-		  "name": "MODEL",
-		  "variable": "mesh"  // Default variable name
-		},
-		{
-		  "type": "input_value",
-		  "name": "X",
-		  "check": "Number",
-		  "align": "RIGHT"
-		},
-		{
-		  "type": "input_value",
-		  "name": "Y",
-		  "check": "Number",
-		  "align": "RIGHT"
-		},
-		{
-		  "type": "input_value",
-		  "name": "Z",
-		  "check": "Number",
-		  "align": "RIGHT"
-		}
-	  ],
-	  "previousStatement": null,
-	  "nextStatement": null,
-	  "colour": categoryColours["Motion"],
-	  "inputsInline": true,
-	  "tooltip": "Rotates the model based on its current rotation plus additional x, y, z values.",
-	  "helpUrl": ""
-	});
-  }
-};
-
-
-Blockly.Blocks['on_each_update'] = {
-  init: function() {
-	this.jsonInit({
-	  "type": "on_each_update",
-	  "message0": "on each update %1",
-	  "args0": [
-		{
-		  "type": "input_statement",
-		  "name": "DO",
-		  "check": null
-		}
-	  ],
-	  "colour": categoryColours["Control"],
-	  "tooltip": "Executes the enclosed blocks each frame in the render loop.",
-	  "helpUrl": ""
-	});
-  }
-};
-
-Blockly.Blocks['when_clicked'] = {
-  init: function() {
-	this.jsonInit({
-	  "type": "model_clicked",
-	  "message0": "when %1 is clicked",
-	  "args0": [
-		{
-		  "type": "field_variable",
-		  "name": "MODEL_VAR",
-		  "variable": "mesh"  // Default variable name
-		}
-	  ],
-	  "message1": "do %1",
-	  "args1": [
-		{
-		  "type": "input_statement",
-		  "name": "DO"
-		}
-	  ],
-	  "colour": 120,
-	  "tooltip": "Executes the blocks inside when the specified model is clicked.",
-	  "helpUrl": ""
-	});
-
-  }
-};
-
-Blockly.Blocks['when_key_pressed'] = {
-  init: function() {
-	this.jsonInit({
-	  "type": "when_key_pressed",
-	  "message0": "when key pressed %1",
-	  "args0": [
-		{
-		  "type": "field_dropdown",
-		  "name": "KEY",
-		  "options": [
-			["space", "SPACE"]
-		  ]
-		}
-	  ],
-	  "message1": "do %1",
-	  "args1": [
-		{
-		  "type": "input_statement",
-		  "name": "DO"
-		}
-	  ],
-	  "nextStatement": null,
-	  "colour": 120,
-	  "tooltip": "Executes the blocks inside when the specified key is pressed.",
-	  "helpUrl": ""
-	});
-  }
-};
-
-Blockly.Blocks['when_key_released'] = {
-  init: function() {
-	this.jsonInit({
-	  "type": "when_key_released",
-	  "message0": "when key released %1",
-	  "args0": [
-		{
-		  "type": "field_dropdown",
-		  "name": "KEY",
-		  "options": [
-			["space", "SPACE"]
-		  ]
-		}
-	  ],
-	  "message1": "do %1",
-	  "args1": [
-		{
-		  "type": "input_statement",
-		  "name": "DO"
-		}
-	  ],
-	  "nextStatement": null,
-	  "colour": 120,
-	  "tooltip": "Executes the blocks inside when the specified key is released.",
-	  "helpUrl": "",
-	});
-  }
-};
-
-
-
-Blockly.Blocks['show'] = {
-  init: function() {
-	this.jsonInit({
-	  "type": "show",
-	  "message0": "show %1",
-	  "args0": [
-		{
-		  "type": "field_variable",
-		  "name": "MODEL_VAR",
-		  "variable": "mesh"
-		}
-	  ],
-	  "previousStatement": null,
-	  "nextStatement": null,
-	  "colour": categoryColours["Looks"],
-	  "tooltip": "Shows the selected model.",
-	  "helpUrl": ""
-	});
-  }
-};
-
-Blockly.Blocks['hide'] = {
-  init: function() {
-	this.jsonInit({
-	  "type": "hide",
-	  "message0": "hide %1",
-	  "args0": [
-		{
-		  "type": "field_variable",
-		  "name": "MODEL_VAR",
-		  "variable": "mesh"
-		}
-	  ],
-	  "previousStatement": null,
-	  "nextStatement": null,
-	  "colour": categoryColours["Looks"],
-	  "tooltip": "Hides the selected model.",
-	  "helpUrl": ""
-	});
-  }
-};
-
-
-Blockly.Blocks['highlight'] = {
-  init: function() {
-	this.jsonInit({
-	  "type": "highlight",
-	  "message0": "highlight %1 color %2",
-	  "args0": [
-		{
-		  "type": "field_variable",
-		  "name": "MODEL_VAR",
-		  "variable": "mesh"  // Default variable name, ensure it's defined in your environment
-		},
-		{
-		  "type": "field_colour",
-		  "name": "COLOR",
-		  "colour": "#9932CC"
-		}
-	  ],
-	  "inputsInline": true,
-	  "previousStatement": null,
-	  "nextStatement": null,
-	  "colour": categoryColours["Looks"],
-	  "tooltip": "Highlights the selected model.",
-	  "helpUrl": ""
-	});
-  }
-};
-
-
-Blockly.Blocks['tint'] = {
-  init: function() {
-	this.jsonInit({
-	  "type": "tint",
-	  "message0": "tint %1 color %2",
-	  "args0": [
-		{
-		  "type": "field_variable",
-		  "name": "MODEL_VAR",
-		  "variable": "mesh"
-		},
-		{
-		  "type": "field_colour",
-		  "name": "COLOR",
-		  "colour": "#9932CC"
-		}
-	  ],
-	  "inputsInline": true,
-	  "previousStatement": null,
-	  "nextStatement": null,
-	  "colour": categoryColours["Looks"],
-	  "tooltip": "Add colour tint effect.",
-	  "helpUrl": ""
-	});
-  }
-};
-
-Blockly.Blocks['set_alpha'] = {
-  init: function() {
-	this.jsonInit({
-	  "type": "set_mesh_material_alpha",
-	  "message0": "set alpha of %1 to %2",
-	  "args0": [
-		{
-		  "type": "field_variable",
-		  "name": "MESH",
-		  "variable": "mesh"
-		},
-		{
-		  "type": "input_value",
-		  "name": "ALPHA",
-		  "check": "Number"
-		}
-	  ],
-	  "inputsInline": true,
-	  "previousStatement": null,
-	  "nextStatement": null,
-	  "colour": categoryColours["Looks"],
-	  "tooltip": "Sets the alpha (transparency) of the material(s) on a specified mesh. Values should be 0 to 1.",
-	  "helpUrl": ""
-	});
-  }
-};
-
-
-Blockly.Blocks['clear_effects'] = {
-  init: function() {
-	this.jsonInit({
-	  "type": "clear_effects",
-	  "message0": "clear effects %1",
-	  "args0": [
-		{
-		  "type": "field_variable",
-		  "name": "MODEL_VAR",
-		  "variable": "mesh"
-		}
-	  ],
-	  "inputsInline": true,
-	  "previousStatement": null,
-	  "nextStatement": null,
-	  "colour": categoryColours["Looks"],
-	  "tooltip": "Clear visual effects from selected model.",
-	  "helpUrl": ""
-	});
-  }
-};
-
-
-Blockly.Blocks['camera_follow'] = {
-  init: function() {
-	this.jsonInit({
-	  "type": "camera_follow",
-	  "message0": "camera follow %1",
-	  "args0": [
-		{
-		  "type": "field_variable",
-		  "name": "MESH_VAR",
-		  "variable": "mesh1"
-		}
-	  ],
-	  "previousStatement": null,
-	  "nextStatement": null,
-	  "colour": categoryColours["Motion"],
-	  "tooltip": "Makes the camera follow a model specified by the variable.",
-	  "helpUrl": ""
-	});
-  }
-};
-
-Blockly.Blocks['add_physics'] = {
-  init: function() {
-	this.jsonInit({
-	  "type": "add_physics",
-	  "message0": "add physics %1",
-	  "args0": [
-		{
-		  "type": "field_variable",
-		  "name": "MODEL_VAR",
-		  "variable": "mesh"
-		}
-	  ],
-	  "previousStatement": null,
-	  "nextStatement": null,
-	  "colour": categoryColours["Motion"],
-	  "tooltip": "Adds dynamic physics so the mesh reacts to forces including gravity.",
-	  "helpUrl": ""
-	});
-  }
-};
-
-
-Blockly.Blocks['key_pressed'] = {
-  init: function() {
-	this.jsonInit({
-	  "type": "key_pressed",
-	  "message0": "key pressed is %1",
-	  "args0": [
-		{
-		  "type": "field_dropdown",
-		  "name": "KEY",
-		  "options": [
-			["any", "ANY"],
-			["none", "NONE"],
-			["space", "SPACE"],
-			["W", "KeyW"],
-			["A", "KeyA"],
-			["S", "KeyS"],
-			["D", "KeyD"]
-		  ]
-		}
-	  ],
-	  "output": "Boolean",
-	  "colour": 160,
-	  "tooltip": "Returns true if the specified key is pressed.",
-	  "helpUrl": ""
-	});
-  }
-};
-
-Blockly.Blocks['move_forward'] = {
-  init: function() {
-	this.jsonInit({
-	  "type": "move_forward",
-	  "message0": "forward %1 speed %2",
-	  "args0": [
-		{
-		  "type": "field_variable",
-		  "name": "MODEL",
-		  "variable": "mesh"
-		},
-		{
-		  "type": "input_value",
-		  "name": "SPEED",
-		  "check": "Number"
-		}
-	  ],
-	  "inputsInline": true,
-	  "previousStatement": null,
-	  "nextStatement": null,
-	  "colour": categoryColours["Motion"],
-	  "tooltip": "Moves the model forward in the direction it's pointing.",
-	  "helpUrl": ""
-	});
-  }
-};
-
-javascriptGenerator.forBlock['show'] = function(block) {
-  const modelName = javascriptGenerator.nameDB_.getName(block.getFieldValue('MODEL_VAR'), Blockly.Names.NameType.VARIABLE);
-
-  return `window.whenModelReady(${modelName}, function(mesh) {
+	return `window.whenModelReady(${modelName}, function(mesh) {
 	if (mesh) {
 	 mesh.setEnabled(true);
 	 hk._hknp.HP_World_AddBody(hk.world, mesh.physics._pluginData.hpBodyId, mesh.physics.startAsleep);
@@ -1415,10 +1551,13 @@ javascriptGenerator.forBlock['show'] = function(block) {
 	});\n`;
 };
 
-javascriptGenerator.forBlock['hide'] = function(block) {
-  const modelName = javascriptGenerator.nameDB_.getName(block.getFieldValue('MODEL_VAR'), Blockly.Names.NameType.VARIABLE);
+javascriptGenerator.forBlock["hide"] = function (block) {
+	const modelName = javascriptGenerator.nameDB_.getName(
+		block.getFieldValue("MODEL_VAR"),
+		Blockly.Names.NameType.VARIABLE,
+	);
 
-  return `window.whenModelReady(${modelName}, function(mesh) {
+	return `window.whenModelReady(${modelName}, function(mesh) {
 	if (mesh) {
 	 mesh.setEnabled(false);
 	 hk._hknp.HP_World_RemoveBody(hk.world, mesh.physics._pluginData.hpBodyId);
@@ -1428,11 +1567,10 @@ javascriptGenerator.forBlock['hide'] = function(block) {
 	}
 
 	});\n`;
-
 };
 
 function wrapCode(modelName, innerCodeBlock) {
-  return `
+	return `
   (function() {
 	window.whenModelReady(${modelName}, function(mesh) {
 	if (mesh) {
@@ -1447,61 +1585,79 @@ function wrapCode(modelName, innerCodeBlock) {
 }
 
 function generateUUID() {
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-	const r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
-	return v.toString(16);
-  });
+	return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(
+		/[xy]/g,
+		function (c) {
+			const r = (Math.random() * 16) | 0,
+				v = c == "x" ? r : (r & 0x3) | 0x8;
+			return v.toString(16);
+		},
+	);
 }
 
 function getFieldValue(block, fieldName, defaultValue) {
-  return javascriptGenerator.valueToCode(block, fieldName, javascriptGenerator.ORDER_ATOMIC) || defaultValue;
+	return (
+		javascriptGenerator.valueToCode(
+			block,
+			fieldName,
+			javascriptGenerator.ORDER_ATOMIC,
+		) || defaultValue
+	);
 }
 
 function whenModelReady(meshId, callback, attempt = 1) {
-  const maxAttempts = 10; // Maximum number of attempts before giving up
-  const attemptInterval = 1000; // Time in milliseconds between attempts
+	const maxAttempts = 10; // Maximum number of attempts before giving up
+	const attemptInterval = 1000; // Time in milliseconds between attempts
 
-  // Early exit if meshId is not provided
-  if (!meshId) {
-	console.log("Undefined model requested.", meshId);
-	return;
-  }
+	// Early exit if meshId is not provided
+	if (!meshId) {
+		console.log("Undefined model requested.", meshId);
+		return;
+	}
 
-  const mesh = window.scene.getMeshByName(meshId);
+	const mesh = window.scene.getMeshByName(meshId);
 
-  // If mesh is found, execute the callback
-  if (mesh) {
-	callback(mesh);
-	//console.log(`Action performed on ${meshId}`);
-	return;
-  }
+	// If mesh is found, execute the callback
+	if (mesh) {
+		callback(mesh);
+		//console.log(`Action performed on ${meshId}`);
+		return;
+	}
 
-  // Retry logic if mesh not found and max attempts not reached
-  if (attempt <= maxAttempts) {
-	console.log(`Retrying model with ID '${meshId}'. Attempt ${attempt}`);
-	setTimeout(() => window.whenModelReady(meshId, callback, attempt + 1), attemptInterval);
-  } else {
-	// Log error if maximum attempts are reached
-	console.error(`Model with ID '${meshId}' not found after ${maxAttempts} attempts.`);
-  }
+	// Retry logic if mesh not found and max attempts not reached
+	if (attempt <= maxAttempts) {
+		console.log(`Retrying model with ID '${meshId}'. Attempt ${attempt}`);
+		setTimeout(
+			() => window.whenModelReady(meshId, callback, attempt + 1),
+			attemptInterval,
+		);
+	} else {
+		// Log error if maximum attempts are reached
+		console.error(
+			`Model with ID '${meshId}' not found after ${maxAttempts} attempts.`,
+		);
+	}
 }
 
 window.whenModelReady = whenModelReady;
 
-javascriptGenerator.forBlock['wait'] = function(block) {
-  const duration = block.getFieldValue('DURATION');
-  return `await new Promise(resolve => setTimeout(resolve, ${duration}));\n`;
+javascriptGenerator.forBlock["wait"] = function (block) {
+	const duration = block.getFieldValue("DURATION");
+	return `await new Promise(resolve => setTimeout(resolve, ${duration}));\n`;
 };
 
-javascriptGenerator.forBlock['glide_to'] = function(block) {
-  const x = getFieldValue(block, 'X', '0');
-  const y = getFieldValue(block, 'Y', '0');
-  const z = getFieldValue(block, 'Z', '0');
-  const meshName = javascriptGenerator.nameDB_.getName(block.getFieldValue('MESH_VAR'), Blockly.Names.NameType.VARIABLE);
-  const duration = block.getFieldValue('DURATION');
-  const mode = block.getFieldValue('MODE');
+javascriptGenerator.forBlock["glide_to"] = function (block) {
+	const x = getFieldValue(block, "X", "0");
+	const y = getFieldValue(block, "Y", "0");
+	const z = getFieldValue(block, "Z", "0");
+	const meshName = javascriptGenerator.nameDB_.getName(
+		block.getFieldValue("MESH_VAR"),
+		Blockly.Names.NameType.VARIABLE,
+	);
+	const duration = block.getFieldValue("DURATION");
+	const mode = block.getFieldValue("MODE");
 
-  return `
+	return `
 	await (async () => {
 	  const mesh = window.scene.getMeshByName(${meshName});
 
@@ -1514,13 +1670,17 @@ const frames = 30 * (${duration}/1000);
 
 const anim = BABYLON.Animation.CreateAndStartAnimation("anim", mesh, "position", fps, 100, startPosition, endPosition, BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT);
 
-${mode === 'AWAIT' ? `
+${
+	mode === "AWAIT"
+		? `
 await new Promise(resolve => {
   anim.onAnimationEndObservable.add(() => {
   resolve();
   });
 });
-` : ''}
+`
+		: ""
+}
 
 
 }
@@ -1528,16 +1688,15 @@ await new Promise(resolve => {
 	`;
 };
 
-
-javascriptGenerator.forBlock['start'] = function(block) {
-  const branch = javascriptGenerator.statementToCode(block, 'DO');
-  return `(async () => {\n${branch}})();\n`;
+javascriptGenerator.forBlock["start"] = function (block) {
+	const branch = javascriptGenerator.statementToCode(block, "DO");
+	return `(async () => {\n${branch}})();\n`;
 };
 
-javascriptGenerator.forBlock['create_ground'] = function(block) {
-  const color = block.getFieldValue('COLOR');
+javascriptGenerator.forBlock["create_ground"] = function (block) {
+	const color = block.getFieldValue("COLOR");
 
-  return `
+	return `
 	(function() {
 	const ground = BABYLON.MeshBuilder.CreateGround("ground", {width: 100, height: 100, subdivisions: 2}, window.scene);
 	const groundAggregate = new BABYLON.PhysicsAggregate(ground, BABYLON.PhysicsShapeType.BOX, { mass: 0 }, window.scene);
@@ -1547,46 +1706,76 @@ javascriptGenerator.forBlock['create_ground'] = function(block) {
 	ground.material = groundMaterial;
 	})();
 	`;
-
 };
 
-javascriptGenerator.forBlock['set_sky_color'] = function(block) {
-  const color = block.getFieldValue('COLOR');
-  return `window.scene.clearColor = window.BABYLON.Color3.FromHexString("${color}");\n`;
+javascriptGenerator.forBlock["set_sky_color"] = function (block) {
+	const color = block.getFieldValue("COLOR");
+	return `window.scene.clearColor = window.BABYLON.Color3.FromHexString("${color}");\n`;
 };
 
-javascriptGenerator.forBlock['print_text'] = function(block) {
-  const text = javascriptGenerator.valueToCode(block, 'TEXT', javascriptGenerator.ORDER_ATOMIC) || '\'\'';
-  const duration = javascriptGenerator.valueToCode(block, 'DURATION', javascriptGenerator.ORDER_ATOMIC) || '0';
-  const color = block.getFieldValue('COLOR');
-  return `printText(${text}, ${duration}, '${color}');\n`;
+javascriptGenerator.forBlock["print_text"] = function (block) {
+	const text =
+		javascriptGenerator.valueToCode(
+			block,
+			"TEXT",
+			javascriptGenerator.ORDER_ATOMIC,
+		) || "''";
+	const duration =
+		javascriptGenerator.valueToCode(
+			block,
+			"DURATION",
+			javascriptGenerator.ORDER_ATOMIC,
+		) || "0";
+	const color = block.getFieldValue("COLOR");
+	return `printText(${text}, ${duration}, '${color}');\n`;
 };
-
 
 function hexToRgba(hex, alpha) {
-  hex = hex.replace(/^#/, '');
-  let r = parseInt(hex.substring(0, 2), 16);
-  let g = parseInt(hex.substring(2, 4), 16);
-  let b = parseInt(hex.substring(4, 6), 16);
-  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+	hex = hex.replace(/^#/, "");
+	let r = parseInt(hex.substring(0, 2), 16);
+	let g = parseInt(hex.substring(2, 4), 16);
+	let b = parseInt(hex.substring(4, 6), 16);
+	return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 }
 window.hexToRgba = hexToRgba;
 
 // Register the block in Blockly
-javascriptGenerator.forBlock['say'] = // Function to handle the 'say' block
-  function(block) {
-	const text = javascriptGenerator.valueToCode(block, 'TEXT', javascriptGenerator.ORDER_ATOMIC) || '""';
-	const duration = javascriptGenerator.valueToCode(block, 'DURATION', javascriptGenerator.ORDER_ATOMIC) || '0';
-	const meshVariable = javascriptGenerator.nameDB_.getName(block.getFieldValue('MESH_VAR'), Blockly.Names.NameType.VARIABLE);
-	const textColor = block.getFieldValue('TEXT_COLOR');
-	const backgroundColor = block.getFieldValue('BACKGROUND_COLOR');
-	const alpha = javascriptGenerator.valueToCode(block, 'ALPHA', javascriptGenerator.ORDER_ATOMIC) || '1';
-	const size = javascriptGenerator.valueToCode(block, 'SIZE', javascriptGenerator.ORDER_ATOMIC) || '24';
-	const mode = block.getFieldValue('MODE');
-	const asyncMode = block.getFieldValue('ASYNC');
+javascriptGenerator.forBlock["say"] = // Function to handle the 'say' block
+	function (block) {
+		const text =
+			javascriptGenerator.valueToCode(
+				block,
+				"TEXT",
+				javascriptGenerator.ORDER_ATOMIC,
+			) || '""';
+		const duration =
+			javascriptGenerator.valueToCode(
+				block,
+				"DURATION",
+				javascriptGenerator.ORDER_ATOMIC,
+			) || "0";
+		const meshVariable = javascriptGenerator.nameDB_.getName(
+			block.getFieldValue("MESH_VAR"),
+			Blockly.Names.NameType.VARIABLE,
+		);
+		const textColor = block.getFieldValue("TEXT_COLOR");
+		const backgroundColor = block.getFieldValue("BACKGROUND_COLOR");
+		const alpha =
+			javascriptGenerator.valueToCode(
+				block,
+				"ALPHA",
+				javascriptGenerator.ORDER_ATOMIC,
+			) || "1";
+		const size =
+			javascriptGenerator.valueToCode(
+				block,
+				"SIZE",
+				javascriptGenerator.ORDER_ATOMIC,
+			) || "24";
+		const mode = block.getFieldValue("MODE");
+		const asyncMode = block.getFieldValue("ASYNC");
 
-
-	return `
+		return `
 	  await (async function() {
 
 
@@ -1703,39 +1892,42 @@ javascriptGenerator.forBlock['say'] = // Function to handle the 'say' block
 		}
 	  })();
 	`;
+	};
 
+javascriptGenerator.forBlock["set_fog"] = function (block) {
+	const fogColorHex = block.getFieldValue("FOG_COLOR");
+	const fogMode = block.getFieldValue("FOG_MODE");
+	const fogDensity =
+		javascriptGenerator.valueToCode(
+			block,
+			"FOG_DENSITY",
+			javascriptGenerator.ORDER_ATOMIC,
+		) || "0.1"; // Default density
 
+	// Convert hex color to RGB values for Babylon.js
+	const fogColorRgb = `BABYLON.Color3.FromHexString('${fogColorHex}')`;
 
+	// Generate the code for setting fog mode
+	let fogModeCode = "";
+	switch (fogMode) {
+		case "NONE":
+			fogModeCode =
+				"window.scene.fogMode = BABYLON.Scene.FOGMODE_NONE;\n";
+			break;
+		case "EXP":
+			fogModeCode = "window.scene.fogMode = BABYLON.Scene.FOGMODE_EXP;\n";
+			break;
+		case "EXP2":
+			fogModeCode =
+				"window.scene.fogMode = BABYLON.Scene.FOGMODE_EXP2;\n";
+			break;
+		case "LINEAR":
+			fogModeCode =
+				"window.scene.fogMode = BABYLON.Scene.FOGMODE_LINEAR;\n";
+			break;
+	}
 
-  }
-
-
-javascriptGenerator.forBlock['set_fog'] = function(block) {
-  const fogColorHex = block.getFieldValue('FOG_COLOR');
-  const fogMode = block.getFieldValue('FOG_MODE');
-  const fogDensity = javascriptGenerator.valueToCode(block, 'FOG_DENSITY', javascriptGenerator.ORDER_ATOMIC) || '0.1'; // Default density
-
-  // Convert hex color to RGB values for Babylon.js
-  const fogColorRgb = `BABYLON.Color3.FromHexString('${fogColorHex}')`;
-
-  // Generate the code for setting fog mode
-  let fogModeCode = '';
-  switch (fogMode) {
-	case 'NONE':
-	  fogModeCode = 'window.scene.fogMode = BABYLON.Scene.FOGMODE_NONE;\n';
-	  break;
-	case 'EXP':
-	  fogModeCode = 'window.scene.fogMode = BABYLON.Scene.FOGMODE_EXP;\n';
-	  break;
-	case 'EXP2':
-	  fogModeCode = 'window.scene.fogMode = BABYLON.Scene.FOGMODE_EXP2;\n';
-	  break;
-	case 'LINEAR':
-	  fogModeCode = 'window.scene.fogMode = BABYLON.Scene.FOGMODE_LINEAR;\n';
-	  break;
-  }
-
-  return `
+	return `
   ${fogModeCode}
   window.scene.fogColor = ${fogColorRgb};
   window.scene.fogDensity = ${fogDensity};
@@ -1744,24 +1936,24 @@ javascriptGenerator.forBlock['set_fog'] = function(block) {
   `;
 };
 
+javascriptGenerator.forBlock["create_box"] = function (block) {
+	const color = block.getFieldValue("COLOR");
+	const width = getFieldValue(block, "WIDTH", "1");
+	const height = getFieldValue(block, "HEIGHT", "1");
+	const depth = getFieldValue(block, "DEPTH", "1");
+	const posX = getFieldValue(block, "X", "0");
+	const posY = getFieldValue(block, "Y", "0");
+	const posZ = getFieldValue(block, "Z", "0");
 
+	let variable_name = javascriptGenerator.nameDB_.getName(
+		block.getFieldValue("ID_VAR"),
+		Blockly.Names.NameType.VARIABLE,
+	);
 
-javascriptGenerator.forBlock['create_box'] = function(block) {
-  const color = block.getFieldValue('COLOR');
-  const width = getFieldValue(block, 'WIDTH', '1');
-  const height = getFieldValue(block, 'HEIGHT', '1');
-  const depth = getFieldValue(block, 'DEPTH', '1');
-  const posX = getFieldValue(block, 'X', '0');
-  const posY = getFieldValue(block, 'Y', '0');
-  const posZ = getFieldValue(block, 'Z', '0');
+	const boxId = `box_${generateUUID()}`;
+	meshMap[boxId] = block;
 
-  let variable_name =
-	javascriptGenerator.nameDB_.getName(block.getFieldValue('ID_VAR'), Blockly.Names.NameType.VARIABLE);
-
-  const boxId = `box_${generateUUID()}`;
-  meshMap[boxId] = block;
-
-  return `(function() {
+	return `(function() {
 	const newBox = BABYLON.MeshBuilder.CreateBox("${boxId}", {width: ${width}, height: ${height}, depth: ${depth}, scene: window.scene});
 	newBox.position = new BABYLON.Vector3(${posX}, ${posY}, ${posZ});
 
@@ -1790,24 +1982,26 @@ javascriptGenerator.forBlock['create_box'] = function(block) {
 	\n
 	})();
 	`;
-
 };
 
-javascriptGenerator.forBlock['create_sphere'] = function(block) {
-  const color = block.getFieldValue('COLOR');
-  const diameterX = getFieldValue(block, 'DIAMETER_X', '1');
-  const diameterY = getFieldValue(block, 'DIAMETER_Y', '1');
-  const diameterZ = getFieldValue(block, 'DIAMETER_Z', '1');
-  const posX = getFieldValue(block, 'X', '0');
-  const posY = getFieldValue(block, 'Y', '0.5');
-  const posZ = getFieldValue(block, 'Z', '0');
-  const variableName = javascriptGenerator.nameDB_.getName(block.getFieldValue('ID_VAR'), Blockly.Names.NameType.VARIABLE);
+javascriptGenerator.forBlock["create_sphere"] = function (block) {
+	const color = block.getFieldValue("COLOR");
+	const diameterX = getFieldValue(block, "DIAMETER_X", "1");
+	const diameterY = getFieldValue(block, "DIAMETER_Y", "1");
+	const diameterZ = getFieldValue(block, "DIAMETER_Z", "1");
+	const posX = getFieldValue(block, "X", "0");
+	const posY = getFieldValue(block, "Y", "0.5");
+	const posZ = getFieldValue(block, "Z", "0");
+	const variableName = javascriptGenerator.nameDB_.getName(
+		block.getFieldValue("ID_VAR"),
+		Blockly.Names.NameType.VARIABLE,
+	);
 
-  const sphereId = `sphere_${generateUUID()}`;
-  meshMap[sphereId] = block;
+	const sphereId = `sphere_${generateUUID()}`;
+	meshMap[sphereId] = block;
 
-  return `(function() {
-	  const newSphere = BABYLON.MeshBuilder.CreateSphere("${sphereId}", {
+	return `(function() {
+	  const newSphere = window.BABYLON.MeshBuilder.CreateSphere("${sphereId}", {
 	  diameterX: ${diameterX},
 	  diameterY: ${diameterY},
 	  diameterZ: ${diameterZ},
@@ -1838,20 +2032,23 @@ javascriptGenerator.forBlock['create_sphere'] = function(block) {
 	`;
 };
 
-javascriptGenerator.forBlock['create_plane'] = function(block) {
-  const color = block.getFieldValue('COLOR');
-  const width = getFieldValue(block, 'WIDTH', '1');
-  const height = getFieldValue(block, 'HEIGHT', '1');
-  const posX = getFieldValue(block, 'X', '0');
-  const posY = getFieldValue(block, 'Y', '0');
-  const posZ = getFieldValue(block, 'Z', '0');
+javascriptGenerator.forBlock["create_plane"] = function (block) {
+	const color = block.getFieldValue("COLOR");
+	const width = getFieldValue(block, "WIDTH", "1");
+	const height = getFieldValue(block, "HEIGHT", "1");
+	const posX = getFieldValue(block, "X", "0");
+	const posY = getFieldValue(block, "Y", "0");
+	const posZ = getFieldValue(block, "Z", "0");
 
-  let variable_name = javascriptGenerator.nameDB_.getName(block.getFieldValue('ID_VAR'), Blockly.Names.NameType.VARIABLE);
+	let variable_name = javascriptGenerator.nameDB_.getName(
+		block.getFieldValue("ID_VAR"),
+		Blockly.Names.NameType.VARIABLE,
+	);
 
-  const planeId = `plane_${generateUUID()}`;
-  meshMap[planeId] = block;
+	const planeId = `plane_${generateUUID()}`;
+	meshMap[planeId] = block;
 
-  return `(function() {
+	return `(function() {
 	  const newPlane = BABYLON.MeshBuilder.CreatePlane("${planeId}", {width: ${width}, height: ${height}, sideOrientation: BABYLON.Mesh.DOUBLESIDE, scene: window.scene});
 	  newPlane.position = new BABYLON.Vector3(${posX}, ${posY}, ${posZ});
 
@@ -1866,24 +2063,25 @@ javascriptGenerator.forBlock['create_plane'] = function(block) {
 	})();`;
 };
 
-
-javascriptGenerator.forBlock['set_background_color'] = function(block) {
-  const color = block.getFieldValue('COLOR');
-  return `window.scene.clearColor = BABYLON.Color4.FromHexString("${color}FF");\n`;
-
+javascriptGenerator.forBlock["set_background_color"] = function (block) {
+	const color = block.getFieldValue("COLOR");
+	return `window.scene.clearColor = BABYLON.Color4.FromHexString("${color}FF");\n`;
 };
 
-javascriptGenerator.forBlock['move_by_vector'] = function(block) {
+javascriptGenerator.forBlock["move_by_vector"] = function (block) {
+	const modelName = javascriptGenerator.nameDB_.getName(
+		block.getFieldValue("BLOCK_NAME"),
+		Blockly.Names.NameType.VARIABLE,
+	);
 
-  const modelName = javascriptGenerator.nameDB_.getName(block.getFieldValue('BLOCK_NAME'), Blockly.Names.NameType.VARIABLE);
+	const x = getFieldValue(block, "X", "0");
+	const y = getFieldValue(block, "Y", "0");
+	const z = getFieldValue(block, "Z", "0");
 
-  const x = getFieldValue(block, 'X', '0');
-  const y = getFieldValue(block, 'Y', '0');
-  const z = getFieldValue(block, 'Z', '0');
-
-  return `window.whenModelReady(${modelName}, function(mesh) {
+	return (
+		`window.whenModelReady(${modelName}, function(mesh) {
 	if (mesh) {\n` +
-	`  
+		`  
 	mesh.position.addInPlace(new BABYLON.Vector3(${x}, ${y}, ${z}));
 	mesh.physics.disablePreStep = false;
 	mesh.physics.setTargetTransform(mesh.position, mesh.rotationQuaternion);
@@ -1895,18 +2093,21 @@ javascriptGenerator.forBlock['move_by_vector'] = function(block) {
 	console.log("Model not loaded:", ${modelName});
 	}
 
-	});\n`;
+	});\n`
+	);
 };
 
+javascriptGenerator.forBlock["rotate_model_xyz"] = function (block) {
+	const meshName = javascriptGenerator.nameDB_.getName(
+		block.getFieldValue("MODEL"),
+		Blockly.Names.NameType.VARIABLE,
+	);
 
-javascriptGenerator.forBlock['rotate_model_xyz'] = function(block) {
-  const meshName = javascriptGenerator.nameDB_.getName(block.getFieldValue('MODEL'), Blockly.Names.NameType.VARIABLE);
+	const x = getFieldValue(block, "X", "0");
+	const y = getFieldValue(block, "Y", "0");
+	const z = getFieldValue(block, "Z", "0");
 
-  const x = getFieldValue(block, 'X', '0');
-  const y = getFieldValue(block, 'Y', '0');
-  const z = getFieldValue(block, 'Z', '0');
-
-  return `
+	return `
 	window.whenModelReady(${meshName}, function(mesh) {
 	if (mesh) {
 
@@ -1926,35 +2127,53 @@ mesh.physics.setMotionType(BABYLON.PhysicsMotionType.ANIMATED);
 	});`;
 };
 
-javascriptGenerator.forBlock['on_each_update'] = function(block) {
-  const branch = javascriptGenerator.statementToCode(block, 'DO');
-  return 'window.scene.onBeforeRenderObservable.add(() => {\n' + branch + '});\n';
+javascriptGenerator.forBlock["on_each_update"] = function (block) {
+	const branch = javascriptGenerator.statementToCode(block, "DO");
+	return (
+		"window.scene.onBeforeRenderObservable.add(() => {\n" + branch + "});\n"
+	);
 };
 
-javascriptGenerator.forBlock['set_alpha'] = function(block) {
-  const modelName = javascriptGenerator.nameDB_.getName(block.getFieldValue('MESH'), Blockly.Names.NameType.VARIABLE);
+javascriptGenerator.forBlock["set_alpha"] = function (block) {
+	const modelName = javascriptGenerator.nameDB_.getName(
+		block.getFieldValue("MESH"),
+		Blockly.Names.NameType.VARIABLE,
+	);
 
-  const alphaValue = javascriptGenerator.valueToCode(block, 'ALPHA', javascriptGenerator.ORDER_ATOMIC);
+	const alphaValue = javascriptGenerator.valueToCode(
+		block,
+		"ALPHA",
+		javascriptGenerator.ORDER_ATOMIC,
+	);
 
-  const code = `let allMeshes = [mesh].concat(mesh.getChildMeshes(false));
+	const code = `let allMeshes = [mesh].concat(mesh.getChildMeshes(false));
 
 	allMeshes.forEach(nextMesh => {
 		if (nextMesh.material) {
 		nextMesh.material.alpha = ${alphaValue};
 		}
-	  });`
+	  });`;
 
-  return wrapCode(modelName, code);
-
+	return wrapCode(modelName, code);
 };
 
-javascriptGenerator.forBlock['when_clicked'] = function(block) {
+javascriptGenerator.forBlock["play_sound"] = function (block) {
+	const soundName = block.getFieldValue("SOUND_NAME");
+	const mode = block.getFieldValue("ASYNC");
+	return mode == "AWAIT"
+		? `await window.playSoundAsync(scene, "${soundName}");\n`
+		: `new BABYLON.Sound("${soundName}", "sounds/${soundName}", scene, null, { autoplay: true });\n`;
+};
 
-  const modelName = javascriptGenerator.nameDB_.getName(block.getFieldValue('MODEL_VAR'), Blockly.Names.NameType.VARIABLE);
+javascriptGenerator.forBlock["when_clicked"] = function (block) {
+	const modelName = javascriptGenerator.nameDB_.getName(
+		block.getFieldValue("MODEL_VAR"),
+		Blockly.Names.NameType.VARIABLE,
+	);
 
-  const doCode = javascriptGenerator.statementToCode(block, 'DO');
+	const doCode = javascriptGenerator.statementToCode(block, "DO");
 
-  return `
+	return `
 	window.whenModelReady(${modelName}, function(_mesh) {
 
 	if (_mesh) {
@@ -1973,21 +2192,20 @@ javascriptGenerator.forBlock['when_clicked'] = function(block) {
 	}
 	});
 	`;
-
 };
 
 // Mapping key names to key codes, including space
 const keyCodeMap = {
-  'SPACE': '32'
+	SPACE: "32",
 };
 
-javascriptGenerator.forBlock['when_key_pressed'] = function(block) {
-  const key = block.getFieldValue('KEY');
-  const statements_do = javascriptGenerator.statementToCode(block, 'DO');
+javascriptGenerator.forBlock["when_key_pressed"] = function (block) {
+	const key = block.getFieldValue("KEY");
+	const statements_do = javascriptGenerator.statementToCode(block, "DO");
 
-  const keyCode = keyCodeMap[key];
+	const keyCode = keyCodeMap[key];
 
-  return `
+	return `
 	window.scene.onKeyboardObservable.add((kbInfo) => {
 	switch (kbInfo.type) {
 	  case BABYLON.KeyboardEventTypes.KEYDOWN:
@@ -1997,16 +2215,15 @@ javascriptGenerator.forBlock['when_key_pressed'] = function(block) {
 	  break;
 	}
 	});
-	`
-
+	`;
 };
 
-javascriptGenerator.forBlock['when_key_released'] = function(block) {
-  const key = block.getFieldValue('KEY');
-  const statements_do = javascriptGenerator.statementToCode(block, 'DO');
-  const keyCode = keyCodeMap[key];
+javascriptGenerator.forBlock["when_key_released"] = function (block) {
+	const key = block.getFieldValue("KEY");
+	const statements_do = javascriptGenerator.statementToCode(block, "DO");
+	const keyCode = keyCodeMap[key];
 
-  return `
+	return `
 	window.scene.onKeyboardObservable.add((kbInfo) => {
 	switch (kbInfo.type) {
 	  case BABYLON.KeyboardEventTypes.KEYUP:
@@ -2016,16 +2233,17 @@ javascriptGenerator.forBlock['when_key_released'] = function(block) {
 	  break;
 	}
 	});
-	`
-
+	`;
 };
 
+javascriptGenerator.forBlock["tint"] = function (block) {
+	const modelName = javascriptGenerator.nameDB_.getName(
+		block.getFieldValue("MODEL_VAR"),
+		Blockly.Names.NameType.VARIABLE,
+	);
+	const color = block.getFieldValue("COLOR");
 
-javascriptGenerator.forBlock['tint'] = function(block) {
-  const modelName = javascriptGenerator.nameDB_.getName(block.getFieldValue('MODEL_VAR'), Blockly.Names.NameType.VARIABLE);
-  const color = block.getFieldValue('COLOR');
-
-  return `window.whenModelReady(${modelName}, function(mesh) {
+	return `window.whenModelReady(${modelName}, function(mesh) {
 	if (mesh) {
   if (mesh.material) {
   mesh.renderOverlay = true;
@@ -2048,14 +2266,16 @@ javascriptGenerator.forBlock['tint'] = function(block) {
 	}
 
 	});\n`;
-
 };
 
-javascriptGenerator.forBlock['highlight'] = function(block) {
-  const modelName = javascriptGenerator.nameDB_.getName(block.getFieldValue('MODEL_VAR'), Blockly.Names.NameType.VARIABLE);
-  const color = block.getFieldValue('COLOR');
+javascriptGenerator.forBlock["highlight"] = function (block) {
+	const modelName = javascriptGenerator.nameDB_.getName(
+		block.getFieldValue("MODEL_VAR"),
+		Blockly.Names.NameType.VARIABLE,
+	);
+	const color = block.getFieldValue("COLOR");
 
-  return `window.whenModelReady(${modelName}, function(mesh) {
+	return `window.whenModelReady(${modelName}, function(mesh) {
 	if (mesh) {
   if (mesh.material){
   highlighter.addMesh(mesh, BABYLON.Color3.FromHexString("${color}"));
@@ -2075,10 +2295,13 @@ javascriptGenerator.forBlock['highlight'] = function(block) {
 	});\n`;
 };
 
-javascriptGenerator.forBlock['clear_effects'] = function(block) {
-  const modelName = javascriptGenerator.nameDB_.getName(block.getFieldValue('MODEL_VAR'), Blockly.Names.NameType.VARIABLE);
+javascriptGenerator.forBlock["clear_effects"] = function (block) {
+	const modelName = javascriptGenerator.nameDB_.getName(
+		block.getFieldValue("MODEL_VAR"),
+		Blockly.Names.NameType.VARIABLE,
+	);
 
-  return `window.whenModelReady(${modelName}, function(mesh) {
+	return `window.whenModelReady(${modelName}, function(mesh) {
 	if (mesh) {
 
 	console.log("Removing effects");
@@ -2102,11 +2325,18 @@ javascriptGenerator.forBlock['clear_effects'] = function(block) {
 	});\n`;
 };
 
-javascriptGenerator.forBlock['move_forward'] = function(block) {
-
-  const modelName = javascriptGenerator.nameDB_.getName(block.getFieldValue('MODEL'), Blockly.Names.NameType.VARIABLE);
-  const speed = javascriptGenerator.valueToCode(block, 'SPEED', javascriptGenerator.ORDER_ATOMIC) || '0';
-  return `
+javascriptGenerator.forBlock["move_forward"] = function (block) {
+	const modelName = javascriptGenerator.nameDB_.getName(
+		block.getFieldValue("MODEL"),
+		Blockly.Names.NameType.VARIABLE,
+	);
+	const speed =
+		javascriptGenerator.valueToCode(
+			block,
+			"SPEED",
+			javascriptGenerator.ORDER_ATOMIC,
+		) || "0";
+	return `
 	(function() {
 	  const model = window.scene.getMeshByName(${modelName});
 	  if (model) {
@@ -2155,15 +2385,18 @@ javascriptGenerator.forBlock['move_forward'] = function(block) {
 
 	})();
 	`;
-
 };
 
-javascriptGenerator.forBlock['camera_follow'] = function(block) {
-  const modelName = javascriptGenerator.nameDB_.getName(block.getFieldValue('MESH_VAR'), Blockly.Names.NameType.VARIABLE);
+javascriptGenerator.forBlock["camera_follow"] = function (block) {
+	const modelName = javascriptGenerator.nameDB_.getName(
+		block.getFieldValue("MESH_VAR"),
+		Blockly.Names.NameType.VARIABLE,
+	);
 
-  return `window.whenModelReady(${modelName}, function(mesh) {
+	return (
+		`window.whenModelReady(${modelName}, function(mesh) {
 	  if (mesh) {\n` +
-	`  
+		`  
   console.log("Attaching camera");
 
 // Reset linear and angular velocity after physics render
@@ -2192,14 +2425,17 @@ window.scene.onAfterPhysicsObservable.add(() => {
 	   console.log("Model not loaded:", ${modelName});
 	  }
 
-	  });\n`;
-
+	  });\n`
+	);
 };
 
-javascriptGenerator.forBlock['add_physics'] = function(block) {
-  const modelName = javascriptGenerator.nameDB_.getName(block.getFieldValue('MODEL_VAR'), Blockly.Names.NameType.VARIABLE);
+javascriptGenerator.forBlock["add_physics"] = function (block) {
+	const modelName = javascriptGenerator.nameDB_.getName(
+		block.getFieldValue("MODEL_VAR"),
+		Blockly.Names.NameType.VARIABLE,
+	);
 
-  return `window.whenModelReady(${modelName}, function(mesh) {
+	return `window.whenModelReady(${modelName}, function(mesh) {
 	  if (mesh) {
 
 		   mesh.physics.setMotionType(BABYLON.PhysicsMotionType.DYNAMIC);
@@ -2212,159 +2448,163 @@ javascriptGenerator.forBlock['add_physics'] = function(block) {
 	  });\n`;
 };
 
-
-javascriptGenerator.forBlock['key_pressed'] = function(block) {
-  const key = block.getFieldValue('KEY');
-  // Code to check if the key is pressed
-  let code;
-  if (key === "ANY") {
-	code = 'window.currentKeyPressed !== null';
-  } else if (key === "NONE") {
-	code = 'window.currentKeyPressed === null';
-  } else {
-	code = `window.currentKeyPressed === "${key}"`;
-  }
-  return [code, javascriptGenerator.ORDER_NONE];
-};
-
-const createScene = function() {
-  window.scene = new BABYLON.Scene(engine);
-  hk = new BABYLON.HavokPlugin(true, havokInstance);
-  window.scene.enablePhysics(new BABYLON.Vector3(0, -9.81, 0), hk);
-  highlighter = new BABYLON.HighlightLayer("highlighter", window.scene);
-  gizmoManager = new BABYLON.GizmoManager(window.scene);
-
-  const camera = new BABYLON.FreeCamera("camera", new BABYLON.Vector3(0, 4, -20), window.scene);
-  camera.setTarget(BABYLON.Vector3.Zero());
-  camera.attachControl(canvas, true);
-  window.scene.createDefaultLight();
-  window.scene.collisionsEnabled = true;
-
-  const advancedTexture = window.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
-
-  // Create a stack panel to hold the text lines
-  const stackPanel = new window.GUI.StackPanel();
-  stackPanel.isVertical = true;
-  stackPanel.width = "100%";
-  stackPanel.height = "100%";
-  stackPanel.left = "0px";
-  stackPanel.top = "0px";
-  advancedTexture.addControl(stackPanel);
-
-  // Function to print text with scrolling
-  const textLines = []; // Array to keep track of text lines
-  window.printText = function(text, duration, color) {
-	if (text !== '') {
-	  window.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
-
-	  // Create a rectangle background
-	  const bg = new window.GUI.Rectangle("textBackground");
-	  bg.background = "rgba(255, 255, 255, 0.5)";
-	  bg.adaptWidthToChildren = true; // Adjust width based on child elements
-	  bg.adaptHeightToChildren = true; // Adjust height based on child elements
-	  bg.cornerRadius = 2;
-	  bg.thickness = 0; // Remove border
-	  bg.horizontalAlignment = window.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
-	  bg.verticalAlignment = window.GUI.Control.VERTICAL_ALIGNMENT_TOP;
-	  bg.left = "5px"; // Position with some margin from left
-	  bg.top = "5px"; // Position with some margin from top
-
-
-	  // Create a text block
-	  const textBlock = new window.GUI.TextBlock("textBlock", text);
-	  textBlock.color = color;
-	  textBlock.fontSize = "12";
-	  textBlock.height = "20px";
-	  textBlock.paddingLeft = "10px";
-	  textBlock.paddingRight = "10px";
-	  textBlock.paddingTop = "2px";
-	  textBlock.paddingBottom = "2px";
-	  textBlock.textVerticalAlignment = window.GUI.Control.VERTICAL_ALIGNMENT_TOP; // Align text to top
-	  textBlock.textHorizontalAlignment = window.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT; // Align text to left
-	  textBlock.textWrapping = window.GUI.TextWrapping.WordWrap;
-	  textBlock.resizeToFit = true;
-	  textBlock.forceResizeWidth = true;
-
-	  // Add the text block to the rectangle
-	  bg.addControl(textBlock);
-
-	  // Add the container to the stack panel
-	  stackPanel.addControl(bg);
-	  textLines.push(bg);
-
-	  // Remove the text after the specified duration
-	  setTimeout(() => {
-		stackPanel.removeControl(bg);
-		textLines.splice(textLines.indexOf(bg), 1);
-	  }, duration * 1000);
+javascriptGenerator.forBlock["key_pressed"] = function (block) {
+	const key = block.getFieldValue("KEY");
+	// Code to check if the key is pressed
+	let code;
+	if (key === "ANY") {
+		code = "window.currentKeyPressed !== null";
+	} else if (key === "NONE") {
+		code = "window.currentKeyPressed === null";
+	} else {
+		code = `window.currentKeyPressed === "${key}"`;
 	}
-  };
-
-  return window.scene;
+	return [code, javascriptGenerator.ORDER_NONE];
 };
 
+const createScene = function () {
+	window.scene = new BABYLON.Scene(engine);
+	hk = new BABYLON.HavokPlugin(true, havokInstance);
+	window.scene.enablePhysics(new BABYLON.Vector3(0, -9.81, 0), hk);
+	highlighter = new BABYLON.HighlightLayer("highlighter", window.scene);
+	gizmoManager = new BABYLON.GizmoManager(window.scene);
+
+	const camera = new BABYLON.FreeCamera(
+		"camera",
+		new BABYLON.Vector3(0, 4, -20),
+		window.scene,
+	);
+	camera.setTarget(BABYLON.Vector3.Zero());
+	camera.attachControl(canvas, true);
+	window.scene.createDefaultLight();
+	window.scene.collisionsEnabled = true;
+
+	const advancedTexture =
+		window.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
+
+	// Create a stack panel to hold the text lines
+	const stackPanel = new window.GUI.StackPanel();
+	stackPanel.isVertical = true;
+	stackPanel.width = "100%";
+	stackPanel.height = "100%";
+	stackPanel.left = "0px";
+	stackPanel.top = "0px";
+	advancedTexture.addControl(stackPanel);
+
+	// Function to print text with scrolling
+	const textLines = []; // Array to keep track of text lines
+	window.printText = function (text, duration, color) {
+		if (text !== "") {
+			window.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
+
+			// Create a rectangle background
+			const bg = new window.GUI.Rectangle("textBackground");
+			bg.background = "rgba(255, 255, 255, 0.5)";
+			bg.adaptWidthToChildren = true; // Adjust width based on child elements
+			bg.adaptHeightToChildren = true; // Adjust height based on child elements
+			bg.cornerRadius = 2;
+			bg.thickness = 0; // Remove border
+			bg.horizontalAlignment =
+				window.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
+			bg.verticalAlignment = window.GUI.Control.VERTICAL_ALIGNMENT_TOP;
+			bg.left = "5px"; // Position with some margin from left
+			bg.top = "5px"; // Position with some margin from top
+
+			// Create a text block
+			const textBlock = new window.GUI.TextBlock("textBlock", text);
+			textBlock.color = color;
+			textBlock.fontSize = "12";
+			textBlock.height = "20px";
+			textBlock.paddingLeft = "10px";
+			textBlock.paddingRight = "10px";
+			textBlock.paddingTop = "2px";
+			textBlock.paddingBottom = "2px";
+			textBlock.textVerticalAlignment =
+				window.GUI.Control.VERTICAL_ALIGNMENT_TOP; // Align text to top
+			textBlock.textHorizontalAlignment =
+				window.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT; // Align text to left
+			textBlock.textWrapping = window.GUI.TextWrapping.WordWrap;
+			textBlock.resizeToFit = true;
+			textBlock.forceResizeWidth = true;
+
+			// Add the text block to the rectangle
+			bg.addControl(textBlock);
+
+			// Add the container to the stack panel
+			stackPanel.addControl(bg);
+			textLines.push(bg);
+
+			// Remove the text after the specified duration
+			setTimeout(() => {
+				stackPanel.removeControl(bg);
+				textLines.splice(textLines.indexOf(bg), 1);
+			}, duration * 1000);
+		}
+	};
+
+	return window.scene;
+};
 
 async function initialize() {
-  BABYLON.Database.IDBStorageEnabled = true
-  BABYLON.Engine.CollisionsEpsilon = 0.00005;
-  havokInstance = await HavokPhysics();
-  engineReady = true;
-  window.scene = createScene();
+	BABYLON.Database.IDBStorageEnabled = true;
+	BABYLON.Engine.CollisionsEpsilon = 0.00005;
+	havokInstance = await HavokPhysics();
+	engineReady = true;
+	window.scene = createScene();
 
-  engine.runRenderLoop(function() {
-	window.scene.render();
-  });
+	engine.runRenderLoop(function () {
+		window.scene.render();
+	});
 }
 
 initialize();
 const meshMap = {};
 
 let nextVariableIndexes = {
-  mesh: 1,
-  box: 1,
-  sphere: 1,
-  plane: 1,
-  text: 1
-};
-
-function initializeVariableIndexes() {
-
-  nextVariableIndexes = {
 	mesh: 1,
 	box: 1,
 	sphere: 1,
 	plane: 1,
-	text: 1
-  };
+	text: 1,
+};
 
-  const workspace = Blockly.getMainWorkspace(); // Get the current Blockly workspace
-  const allVariables = workspace.getAllVariables(); // Retrieve all variables in the workspace
+function initializeVariableIndexes() {
+	nextVariableIndexes = {
+		mesh: 1,
+		box: 1,
+		sphere: 1,
+		plane: 1,
+		text: 1,
+	};
 
-  // Process each type of variable
-  Object.keys(nextVariableIndexes).forEach(function(type) {
-	let maxIndex = 0; // To keep track of the highest index used so far
-	// Regular expression to match variable names like 'type1', 'type2', etc.
-	const varPattern = new RegExp(`^${type}(\\d+)$`);
+	const workspace = Blockly.getMainWorkspace(); // Get the current Blockly workspace
+	const allVariables = workspace.getAllVariables(); // Retrieve all variables in the workspace
 
-	allVariables.forEach(function(variable) {
-	  const match = variable.name.match(varPattern);
-	  if (match) {
-		const currentIndex = parseInt(match[1], 10);
-		if (currentIndex > maxIndex) {
-		  maxIndex = currentIndex;
-		}
-	  }
+	// Process each type of variable
+	Object.keys(nextVariableIndexes).forEach(function (type) {
+		let maxIndex = 0; // To keep track of the highest index used so far
+		// Regular expression to match variable names like 'type1', 'type2', etc.
+		const varPattern = new RegExp(`^${type}(\\d+)$`);
+
+		allVariables.forEach(function (variable) {
+			const match = variable.name.match(varPattern);
+			if (match) {
+				const currentIndex = parseInt(match[1], 10);
+				if (currentIndex > maxIndex) {
+					maxIndex = currentIndex;
+				}
+			}
+		});
+
+		nextVariableIndexes[type] = maxIndex + 1;
 	});
 
-	nextVariableIndexes[type] = maxIndex + 1;
-  });
-
-  // Optionally return the indexes if needed elsewhere
-  return nextVariableIndexes;
+	// Optionally return the indexes if needed elsewhere
+	return nextVariableIndexes;
 }
 
-window.addEventListener("resize", function() {
-  engine.resize();
+window.addEventListener("resize", function () {
+	engine.resize();
 });
 
 // Define your starter blocks XML string
@@ -2396,7 +2636,6 @@ const initialBlocks = `
 	</block>
   </xml>`;
 
-
 // Convert the XML string to a DOM element
 const xml = Blockly.utils.xml.textToDom(initialBlocks);
 
@@ -2405,315 +2644,360 @@ Blockly.Xml.domToWorkspace(xml, workspace);
 executeCode();
 
 function stripFilename(inputString) {
+	const removeEnd = inputString.replace(/\(\d+\)/g, "");
+	// Find the last occurrence of '/' or '\'
+	let lastIndex = Math.max(
+		removeEnd.lastIndexOf("/"),
+		removeEnd.lastIndexOf("\\"),
+	);
 
-  const removeEnd = inputString.replace(/\(\d+\)/g, '');
-  // Find the last occurrence of '/' or '\'
-  let lastIndex = Math.max(removeEnd.lastIndexOf('/'), removeEnd.lastIndexOf('\\'));
+	if (lastIndex === -1) {
+		return removeEnd.trim();
+	}
 
-  if (lastIndex === -1) {
-	return removeEnd.trim();
-  }
-
-  return removeEnd.substring(lastIndex + 1).trim();
+	return removeEnd.substring(lastIndex + 1).trim();
 }
-
 
 function exportCode() {
+	const projectName =
+		document.getElementById("projectName").value || "default_project";
 
-  const projectName = document.getElementById("projectName").value || "default_project";
+	const json = Blockly.serialization.workspaces.save(workspace);
+	const jsonString = JSON.stringify(json, null, 2); // Pretty-print the JSON
 
-  const json = Blockly.serialization.workspaces.save(workspace);
-  const jsonString = JSON.stringify(json, null, 2); // Pretty-print the JSON
+	const element = document.createElement("a");
+	element.setAttribute(
+		"href",
+		"data:text/json;charset=utf-8," + encodeURIComponent(jsonString),
+	);
+	element.setAttribute("download", projectName + ".json");
 
-  const element = document.createElement('a');
-  element.setAttribute('href', 'data:text/json;charset=utf-8,' + encodeURIComponent(jsonString));
-  element.setAttribute('download', projectName + '.json');
-
-  document.body.appendChild(element); // Required for Firefox
-  element.click();
-  document.body.removeChild(element);
+	document.body.appendChild(element); // Required for Firefox
+	element.click();
+	document.body.removeChild(element);
 }
 
+window.onload = function () {
+	document
+		.getElementById("fileInput")
+		.addEventListener("change", function (event) {
+			const reader = new FileReader();
+			reader.onload = function () {
+				const text = reader.result;
+				const json = JSON.parse(text);
 
-window.onload = function() {
-  document.getElementById('fileInput').addEventListener('change', function(event) {
-	const reader = new FileReader();
-	reader.onload = function() {
-	  const text = reader.result;
-	  const json = JSON.parse(text);
+				// Set the project name as the value of the projectName input field
+				document.getElementById("projectName").value = stripFilename(
+					document
+						.getElementById("fileInput")
+						.value.replace(".json", ""),
+				);
 
-	  // Set the project name as the value of the projectName input field
-	  document.getElementById('projectName').value = stripFilename(document.getElementById('fileInput').value.replace('.json', ''));
-
-	  Blockly.serialization.workspaces.load(json, workspace);
-	  executeCode();
-
-	};
-	reader.readAsText(event.target.files[0]);
-
-  });
-}
-
+				Blockly.serialization.workspaces.load(json, workspace);
+				executeCode();
+			};
+			reader.readAsText(event.target.files[0]);
+		});
+};
 
 function executeCode() {
-  if (engineReady) {
-	if (window.scene) window.scene.dispose();
-	window.scene = createScene();
-	const code = javascriptGenerator.workspaceToCode(workspace);
-	try {
-	  //eval(code);
-	  new Function(`(async () => { ${code} })()`)();
-	} catch (error) {
-	  console.error("Error executing Blockly code:", error);
+	if (engineReady) {
+		if (window.scene) window.scene.dispose();
+		window.scene = createScene();
+		const code = javascriptGenerator.workspaceToCode(workspace);
+		try {
+			//eval(code);
+			new Function(`(async () => { ${code} })()`)();
+		} catch (error) {
+			console.error("Error executing Blockly code:", error);
+		}
+	} else {
+		// Check again in 100 milliseconds
+		setTimeout(executeCode, 100);
 	}
-  } else {
-	// Check again in 100 milliseconds
-	setTimeout(executeCode, 100);
-  }
 }
 
 function toggleGizmo(gizmoType) {
+	// Disable all gizmos
+	gizmoManager.positionGizmoEnabled = false;
+	gizmoManager.rotationGizmoEnabled = false;
+	gizmoManager.scaleGizmoEnabled = false;
+	gizmoManager.boundingBoxGizmoEnabled = false;
 
-  // Disable all gizmos
-  gizmoManager.positionGizmoEnabled = false;
-  gizmoManager.rotationGizmoEnabled = false;
-  gizmoManager.scaleGizmoEnabled = false;
-  gizmoManager.boundingBoxGizmoEnabled = false;
+	// Enable the selected gizmo
+	switch (gizmoType) {
+		case "position":
+			gizmoManager.positionGizmoEnabled = true;
+			gizmoManager.gizmos.positionGizmo.snapDistance = 0.1;
+			gizmoManager.gizmos.positionGizmo.updateGizmoPositionToMatchAttachedMesh = true;
 
-  // Enable the selected gizmo
-  switch (gizmoType) {
-	case 'position':
-	  gizmoManager.positionGizmoEnabled = true;
-	  gizmoManager.gizmos.positionGizmo.snapDistance = 0.1;
-	  gizmoManager.gizmos.positionGizmo.updateGizmoPositionToMatchAttachedMesh = true;
+			gizmoManager.gizmos.positionGizmo.onDragStartObservable.add(
+				function () {
+					const mesh = gizmoManager.attachedMesh;
+					const motionType = mesh.physics.getMotionType();
+					mesh.savedMotionType = motionType;
+					console.log(motionType);
+					if (
+						mesh.physics &&
+						mesh.physics.getMotionType() !=
+							BABYLON.PhysicsMotionType.STATIC
+					) {
+						mesh.physics.setMotionType(
+							BABYLON.PhysicsMotionType.STATIC,
+						);
+						mesh.physics.disablePreStep = false;
+					}
 
-	  gizmoManager.gizmos.positionGizmo.onDragStartObservable.add(function() {
+					const block = meshMap[mesh.name];
+					highlightBlockById(workspace, block);
+				},
+			);
 
-		const mesh = gizmoManager.attachedMesh;
-		const motionType = mesh.physics.getMotionType();
-		mesh.savedMotionType = motionType;
-		console.log(motionType);
-		if (mesh.physics && mesh.physics.getMotionType() != BABYLON.PhysicsMotionType.STATIC) {
-		  mesh.physics.setMotionType(BABYLON.PhysicsMotionType.STATIC);
-		  mesh.physics.disablePreStep = false;
-		}
+			gizmoManager.gizmos.positionGizmo.onDragEndObservable.add(
+				function () {
+					// Retrieve the mesh associated with the position gizmo
+					const mesh = gizmoManager.attachedMesh;
+					if (mesh.savedMotionType) {
+						mesh.physics.setMotionType(mesh.savedMotionType);
+						mesh.physics.disablePreStep = true;
+						console.log(
+							"Restoring motion type",
+							mesh.savedMotionType,
+						);
+					}
 
-		const block = meshMap[mesh.name];
-		highlightBlockById(workspace, block)
+					const block = meshMap[mesh.name];
 
-	  });
+					if (block) {
+						block
+							.getInput("X")
+							.connection.targetBlock()
+							.setFieldValue(
+								String(Math.round(mesh.position.x * 10) / 10),
+								"NUM",
+							);
+						block
+							.getInput("Y")
+							.connection.targetBlock()
+							.setFieldValue(
+								String(Math.round(mesh.position.y * 10) / 10),
+								"NUM",
+							);
+						block
+							.getInput("Z")
+							.connection.targetBlock()
+							.setFieldValue(
+								String(Math.round(mesh.position.z * 10) / 10),
+								"NUM",
+							);
+					}
+				},
+			);
 
-	  gizmoManager.gizmos.positionGizmo.onDragEndObservable.add(function() {
-
-		// Retrieve the mesh associated with the position gizmo
-		const mesh = gizmoManager.attachedMesh;
-		if (mesh.savedMotionType) {
-		  mesh.physics.setMotionType(mesh.savedMotionType);
-		  mesh.physics.disablePreStep = true;
-		  console.log("Restoring motion type", mesh.savedMotionType);
-		}
-
-		const block = meshMap[mesh.name];
-
-		if (block) {
-		  block.getInput("X").connection.targetBlock().setFieldValue(String(Math.round(mesh.position.x * 10) / 10), "NUM");
-		  block.getInput("Y").connection.targetBlock().setFieldValue(String(Math.round(mesh.position.y * 10) / 10), "NUM");
-		  block.getInput("Z").connection.targetBlock().setFieldValue(String(Math.round(mesh.position.z * 10) / 10), "NUM");
-		}
-	  });
-
-	  break;
-	case 'rotation':
-	  gizmoManager.rotationGizmoEnabled = true;
-	  break;
-	case 'scale':
-	  gizmoManager.scaleGizmoEnabled = true;
-	  break;
-	case 'boundingBox':
-	  gizmoManager.boundingBoxGizmoEnabled = true;
-	  break;
-	default:
-	  break;
-  }
+			break;
+		case "rotation":
+			gizmoManager.rotationGizmoEnabled = true;
+			break;
+		case "scale":
+			gizmoManager.scaleGizmoEnabled = true;
+			break;
+		case "boundingBox":
+			gizmoManager.boundingBoxGizmoEnabled = true;
+			break;
+		default:
+			break;
+	}
 }
 
 function turnOffAllGizmos() {
-  gizmoManager.positionGizmoEnabled = false;
-  gizmoManager.rotationGizmoEnabled = false;
-  gizmoManager.scaleGizmoEnabled = false;
-  gizmoManager.boundingBoxGizmoEnabled = false;
+	gizmoManager.positionGizmoEnabled = false;
+	gizmoManager.rotationGizmoEnabled = false;
+	gizmoManager.scaleGizmoEnabled = false;
+	gizmoManager.boundingBoxGizmoEnabled = false;
 }
 
 function highlightBlockById(workspace, block) {
-  if (block) {
-	block.select();
-	workspace.scrollCenter(block.getRelativeToSurfaceXY().x, block.getRelativeToSurfaceXY().y);
-  }
+	if (block) {
+		block.select();
+		workspace.scrollCenter(
+			block.getRelativeToSurfaceXY().x,
+			block.getRelativeToSurfaceXY().y,
+		);
+	}
 }
 
-document.getElementById('fullscreenToggle').addEventListener('click', function() {
-  if (!document.fullscreenElement) {
-	// Go fullscreen
-	if (document.documentElement.requestFullscreen) {
-	  document.documentElement.requestFullscreen();
-	} else if (document.documentElement.mozRequestFullScreen) { /* Firefox */
-	  document.documentElement.mozRequestFullScreen();
-	} else if (document.documentElement.webkitRequestFullscreen) { /* Chrome, Safari & Opera */
-	  document.documentElement.webkitRequestFullscreen();
-	} else if (document.documentElement.msRequestFullscreen) { /* IE/Edge */
-	  document.documentElement.msRequestFullscreen();
+document
+	.getElementById("fullscreenToggle")
+	.addEventListener("click", function () {
+		if (!document.fullscreenElement) {
+			// Go fullscreen
+			if (document.documentElement.requestFullscreen) {
+				document.documentElement.requestFullscreen();
+			} else if (document.documentElement.mozRequestFullScreen) {
+				/* Firefox */
+				document.documentElement.mozRequestFullScreen();
+			} else if (document.documentElement.webkitRequestFullscreen) {
+				/* Chrome, Safari & Opera */
+				document.documentElement.webkitRequestFullscreen();
+			} else if (document.documentElement.msRequestFullscreen) {
+				/* IE/Edge */
+				document.documentElement.msRequestFullscreen();
+			}
+		} else {
+			// Exit fullscreen
+			if (document.exitFullscreen) {
+				document.exitFullscreen();
+			} else if (document.mozCancelFullScreen) {
+				/* Firefox */
+				document.mozCancelFullScreen();
+			} else if (document.webkitExitFullscreen) {
+				/* Chrome, Safari & Opera */
+				document.webkitExitFullscreen();
+			} else if (document.msExitFullscreen) {
+				/* IE/Edge */
+				document.msExitFullscreen();
+			}
+		}
+	});
+
+document.getElementById("toggleDebug").addEventListener("click", function () {
+	if (window.scene.debugLayer.isVisible()) {
+		document.getElementById("rightArea").style.width = "50%";
+		document.getElementById("blocklyDiv").style.width = "50%";
+
+		window.scene.debugLayer.hide();
+	} else {
+		document.getElementById("rightArea").style.width = "100%";
+		document.getElementById("blocklyDiv").style.width = "0%";
+
+		window.scene.debugLayer.show();
 	}
-  } else {
-	// Exit fullscreen
-	if (document.exitFullscreen) {
-	  document.exitFullscreen();
-	} else if (document.mozCancelFullScreen) { /* Firefox */
-	  document.mozCancelFullScreen();
-	} else if (document.webkitExitFullscreen) { /* Chrome, Safari & Opera */
-	  document.webkitExitFullscreen();
-	} else if (document.msExitFullscreen) { /* IE/Edge */
-	  document.msExitFullscreen();
-	}
-  }
-});
-
-document.getElementById('toggleDebug').addEventListener('click', function() {
-  if (window.scene.debugLayer.isVisible()) {
-	document.getElementById('rightArea').style.width = '50%';
-	document.getElementById('blocklyDiv').style.width = '50%';
-
-	window.scene.debugLayer.hide();
-  } else {
-	document.getElementById('rightArea').style.width = '100%';
-	document.getElementById('blocklyDiv').style.width = '0%';
-
-	window.scene.debugLayer.show();
-
-  }
 });
 
 window.currentKeyPressed = null;
 
-document.addEventListener('keydown', function(event) {
-  window.currentKeyPressed = event.code;
+document.addEventListener("keydown", function (event) {
+	window.currentKeyPressed = event.code;
 });
 
-document.addEventListener('keyup', function(event) {
-  window.currentKeyPressed = null;
+document.addEventListener("keyup", function (event) {
+	window.currentKeyPressed = null;
 });
 
 async function exportBlockSnippet(block) {
-  try {
-	// Save the block and its children to a JSON object
-	const blockJson = Blockly.serialization.blocks.save(block);
+	try {
+		// Save the block and its children to a JSON object
+		const blockJson = Blockly.serialization.blocks.save(block);
 
-	// Convert the JSON object to a pretty-printed JSON string
-	const jsonString = JSON.stringify(blockJson, null, 2);
+		// Convert the JSON object to a pretty-printed JSON string
+		const jsonString = JSON.stringify(blockJson, null, 2);
 
-	// Check if the File System Access API is available
-	if ('showSaveFilePicker' in window) {
-	  // Define the options for the file picker
-	  const options = {
-		suggestedName: 'blockly_snippet.json',
-		types: [{
-		  description: 'JSON Files',
-		  accept: {
-			'application/json': ['.json']
-		  }
-		}]
-	  };
+		// Check if the File System Access API is available
+		if ("showSaveFilePicker" in window) {
+			// Define the options for the file picker
+			const options = {
+				suggestedName: "blockly_snippet.json",
+				types: [
+					{
+						description: "JSON Files",
+						accept: {
+							"application/json": [".json"],
+						},
+					},
+				],
+			};
 
-	  // Show the save file picker
-	  const fileHandle = await window.showSaveFilePicker(options);
+			// Show the save file picker
+			const fileHandle = await window.showSaveFilePicker(options);
 
-	  // Create a writable stream
-	  const writable = await fileHandle.createWritable();
+			// Create a writable stream
+			const writable = await fileHandle.createWritable();
 
-	  // Write the JSON string to the file
-	  await writable.write(jsonString);
+			// Write the JSON string to the file
+			await writable.write(jsonString);
 
-	  // Close the writable stream
-	  await writable.close();
-	} else {
-	  // Fallback for browsers that don't support the File System Access API
-	  const filename = prompt("Enter a filename for the snippet:", "blockly_snippet") || "blockly_snippet";
-	  const blob = new Blob([jsonString], { type: 'application/json' });
-	  const link = document.createElement('a');
-	  link.href = URL.createObjectURL(blob);
-	  link.download = `${filename}.json`;
-	  link.click();
+			// Close the writable stream
+			await writable.close();
+		} else {
+			// Fallback for browsers that don't support the File System Access API
+			const filename =
+				prompt(
+					"Enter a filename for the snippet:",
+					"blockly_snippet",
+				) || "blockly_snippet";
+			const blob = new Blob([jsonString], { type: "application/json" });
+			const link = document.createElement("a");
+			link.href = URL.createObjectURL(blob);
+			link.download = `${filename}.json`;
+			link.click();
+		}
+	} catch (e) {
+		console.error("Error exporting block:", e);
 	}
-  } catch (e) {
-	console.error('Error exporting block:', e);
-  }
 }
-
 
 // Function to handle file upload and import JSON snippet into workspace
 function handleSnippetUpload(event) {
-  const file = event.target.files[0];
-  const reader = new FileReader();
-  reader.onload = function(event) {
-	const jsonText = event.target.result;
+	const file = event.target.files[0];
+	const reader = new FileReader();
+	reader.onload = function (event) {
+		const jsonText = event.target.result;
 
-	try {
-	  const json = JSON.parse(jsonText);
-	  Blockly.serialization.blocks.append(json, workspace);
-	} catch (e) {
-	  console.error("Error importing JSON:", e);
-	}
-  };
-  reader.readAsText(file);
+		try {
+			const json = JSON.parse(jsonText);
+			Blockly.serialization.blocks.append(json, workspace);
+		} catch (e) {
+			console.error("Error importing JSON:", e);
+		}
+	};
+	reader.readAsText(file);
 }
 
 // Function to trigger file input for importing snippet
 function importSnippet() {
-  document.getElementById('importFile').click();
+	document.getElementById("importFile").click();
 }
 
 function addExportContextMenuOption() {
-  Blockly.ContextMenuRegistry.registry.register({
-	id: 'exportBlock',
-	weight: 200,
-	displayText: function() {
-	  return 'Export block as JSON snippet';
-	},
-	preconditionFn: function(scope) {
-	  return scope.block ? 'enabled' : 'hidden';
-	},
-	callback: function(scope) {
-	  exportBlockSnippet(scope.block);
-	},
-	scopeType: Blockly.ContextMenuRegistry.ScopeType.BLOCK,
-	checkbox: false
-  });
+	Blockly.ContextMenuRegistry.registry.register({
+		id: "exportBlock",
+		weight: 200,
+		displayText: function () {
+			return "Export block as JSON snippet";
+		},
+		preconditionFn: function (scope) {
+			return scope.block ? "enabled" : "hidden";
+		},
+		callback: function (scope) {
+			exportBlockSnippet(scope.block);
+		},
+		scopeType: Blockly.ContextMenuRegistry.ScopeType.BLOCK,
+		checkbox: false,
+	});
 }
 
 // Initialize Blockly and add custom context menu options
 addExportContextMenuOption();
 
-
 // Extend Blockly with custom context menu for importing snippets in the workspace
 function addImportContextMenuOption() {
-  Blockly.ContextMenuRegistry.registry.register({
-	id: 'importSnippet',
-	weight: 100,
-	displayText: function() {
-	  return 'Import snippet';
-	},
-	preconditionFn: function(scope) {
-	  return 'enabled';
-	},
-	callback: function(scope) {
-	  importSnippet();
-	},
-	scopeType: Blockly.ContextMenuRegistry.ScopeType.WORKSPACE,
-	checkbox: false
-  });
+	Blockly.ContextMenuRegistry.registry.register({
+		id: "importSnippet",
+		weight: 100,
+		displayText: function () {
+			return "Import snippet";
+		},
+		preconditionFn: function (scope) {
+			return "enabled";
+		},
+		callback: function (scope) {
+			importSnippet();
+		},
+		scopeType: Blockly.ContextMenuRegistry.ScopeType.WORKSPACE,
+		checkbox: false,
+	});
 }
-
 
 addImportContextMenuOption();
 
 window.executeCode = executeCode;
-
