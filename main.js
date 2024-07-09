@@ -1776,6 +1776,7 @@ javascriptGenerator.forBlock["glide_to"] = function (block) {
 	const mode = block.getFieldValue("MODE");
 
 	return `
+	await (async function() {
 	  const animationPromise = new Promise(async (resolve) => {
 		await window.whenModelReady(box1, async function(mesh) {
 		  if (mesh) {
@@ -1800,7 +1801,7 @@ await animationPromise;
 `
 		: ""
 }
-	`;
+	})();`;
 };
 
 javascriptGenerator.forBlock["start"] = function (block) {
