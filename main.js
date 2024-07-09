@@ -224,10 +224,23 @@ const workspace = Blockly.inject("blocklyDiv", {
 </category>
 
 <category name="Sound" colour="#D65C00">
-	<block type="play_sound"></block>
+	<block type="play_sound">
+  <!-- Shadow block for the SPEED input -->
+  <value name="SPEED">
+    <shadow type="math_number">
+      <field name="NUM">1</field>
+    </shadow>
+  </value>
+  <!-- Shadow block for the VOLUME input -->
+  <value name="VOLUME">
+    <shadow type="math_number">
+      <field name="NUM">1</field>
+    </shadow>
+  </value>
+</block>
+<block type="stop_all_sounds">
   </category>
   
-
 <category name="Control" colour="${categoryColours["Control"]}">
 <block type="start"></block>
 <block type="on_each_update"></block>
@@ -1133,16 +1146,46 @@ Blockly.Blocks["rotate_model_xyz"] = {
 
 Blockly.Blocks["play_sound"] = {
 	init: function () {
+		let nextVariableName = "sound" + nextVariableIndexes["sound"];
 		this.jsonInit({
-			type: "play sound",
-			message0: "play sound %1 %2",
+			type: "play_sound",
+			message0: "set %1 to play sound %2 speed %3 volume %4 mode %5 %6",
 			args0: [
+				{
+					type: "field_variable",
+					name: "ID_VAR",
+					variable: nextVariableName,
+				},
 				{
 					type: "field_dropdown",
 					name: "SOUND_NAME",
 					options: function () {
 						return audioNames.map((name) => [name, name]);
 					},
+				},
+				{
+					type: "input_value",
+					name: "SPEED",
+					value: 1,
+					min: 0.1,
+					max: 3,
+					precision: 0.1,
+				},
+				{
+					type: "input_value",
+					name: "VOLUME",
+					value: 1,
+					min: 0,
+					max: 1,
+					precision: 0.1,
+				},
+				{
+					type: "field_dropdown",
+					name: "MODE",
+					options: [
+						["once", "ONCE"],
+						["loop", "LOOP"],
+					],
 				},
 				{
 					type: "field_dropdown",
@@ -1157,7 +1200,40 @@ Blockly.Blocks["play_sound"] = {
 			previousStatement: null,
 			nextStatement: null,
 			colour: 160,
-			tooltip: "Plays the selected sound and waits until it finishes.",
+			tooltip:
+				"Plays the selected sound with adjustable speed and volume, and chooses to play once or loop.",
+			helpUrl: "",
+		});
+
+		this.setOnChange(function (changeEvent) {
+			if (
+				!this.isInFlyout &&
+				changeEvent.type === Blockly.Events.BLOCK_CREATE &&
+				changeEvent.ids.includes(this.id)
+			) {
+				let variable = this.workspace.getVariable(nextVariableName);
+				if (!variable) {
+					variable = this.workspace.createVariable(
+						nextVariableName,
+						null,
+					);
+					this.getField("ID_VAR").setValue(variable.getId());
+				}
+
+				nextVariableIndexes["sound"] += 1;
+			}
+		});
+	},
+};
+
+Blockly.Blocks["stop_all_sounds"] = {
+	init: function () {
+		this.jsonInit({
+			message0: "stop all sounds",
+			previousStatement: null,
+			nextStatement: null,
+			colour: 210,
+			tooltip: "Stops all sounds currently playing in the scene.",
 			helpUrl: "",
 		});
 	},
@@ -1605,7 +1681,7 @@ function getFieldValue(block, fieldName, defaultValue) {
 	);
 }
 
-function whenModelReady(meshId, callback, attempt = 1) {
+async function whenModelReady(meshId, callback, attempt = 1) {
 	const maxAttempts = 10; // Maximum number of attempts before giving up
 	const attemptInterval = 1000; // Time in milliseconds between attempts
 
@@ -1619,8 +1695,8 @@ function whenModelReady(meshId, callback, attempt = 1) {
 
 	// If mesh is found, execute the callback
 	if (mesh) {
-		callback(mesh);
-		//console.log(`Action performed on ${meshId}`);
+		await callback(mesh);
+		console.log(`Action performed on ${meshId}`);
 		return;
 	}
 
@@ -1646,7 +1722,7 @@ javascriptGenerator.forBlock["wait"] = function (block) {
 	return `await new Promise(resolve => setTimeout(resolve, ${duration}));\n`;
 };
 
-javascriptGenerator.forBlock["glide_to"] = function (block) {
+javascriptGenerator.forBlock["glide_to1"] = function (block) {
 	const x = getFieldValue(block, "X", "0");
 	const y = getFieldValue(block, "Y", "0");
 	const z = getFieldValue(block, "Z", "0");
@@ -1658,8 +1734,9 @@ javascriptGenerator.forBlock["glide_to"] = function (block) {
 	const mode = block.getFieldValue("MODE");
 
 	return `
-	await (async () => {
-	  const mesh = window.scene.getMeshByName(${meshName});
+	(async () => {
+
+	 await window.whenModelReady(${meshName}, async function(mesh) {
 
 if (mesh) {
 
@@ -1682,9 +1759,47 @@ await new Promise(resolve => {
 		: ""
 }
 
-
-}
+}})
   })();
+	`;
+};
+
+javascriptGenerator.forBlock["glide_to"] = function (block) {
+	const x = getFieldValue(block, "X", "0");
+	const y = getFieldValue(block, "Y", "0");
+	const z = getFieldValue(block, "Z", "0");
+	const meshName = javascriptGenerator.nameDB_.getName(
+		block.getFieldValue("MESH_VAR"),
+		Blockly.Names.NameType.VARIABLE,
+	);
+	const duration = block.getFieldValue("DURATION");
+	const mode = block.getFieldValue("MODE");
+
+	return `
+	  const animationPromise = new Promise(async (resolve) => {
+		await window.whenModelReady(box1, async function(mesh) {
+		  if (mesh) {
+			const startPosition = mesh.position.clone();
+			const endPosition = new BABYLON.Vector3(${x}, ${y}, ${z});
+			const fps = 30;
+			const frames = 30 * (${duration}/1000);
+			
+			const anim = BABYLON.Animation.CreateAndStartAnimation("anim", mesh, "position", fps, 100, startPosition, endPosition, BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT);
+
+			anim.onAnimationEndObservable.add(() => {
+			  resolve();
+			});
+		  }
+		});
+	  });
+
+${
+	mode === "AWAIT"
+		? `
+await animationPromise;
+`
+		: ""
+}
 	`;
 };
 
@@ -1776,7 +1891,7 @@ javascriptGenerator.forBlock["say"] = // Function to handle the 'say' block
 		const asyncMode = block.getFieldValue("ASYNC");
 
 		return `
-	  await (async function() {
+	  (async function() {
 
 
 		function displayText(mesh) {
@@ -2159,10 +2274,27 @@ javascriptGenerator.forBlock["set_alpha"] = function (block) {
 
 javascriptGenerator.forBlock["play_sound"] = function (block) {
 	const soundName = block.getFieldValue("SOUND_NAME");
-	const mode = block.getFieldValue("ASYNC");
-	return mode == "AWAIT"
-		? `await window.playSoundAsync(scene, "${soundName}");\n`
-		: `new BABYLON.Sound("${soundName}", "sounds/${soundName}", scene, null, { autoplay: true });\n`;
+	const speed = parseFloat(getFieldValue(block, "SPEED", 1));
+	const volume = parseFloat(getFieldValue(block, "VOLUME", 1));
+	const mode = block.getFieldValue("MODE");
+	const async = block.getFieldValue("ASYNC");
+
+	let options = {
+		playbackRate: speed,
+		volume: volume,
+		loop: mode === "LOOP",
+	};
+
+	const optionsString = JSON.stringify(options);
+
+	return async === "AWAIT"
+		? `await window.playSoundAsync(scene, "${soundName}", ${optionsString});\n`
+		: `new BABYLON.Sound("${soundName}", "sounds/${soundName}", scene, null, { autoplay: true, ...${optionsString} });\n`;
+};
+
+javascriptGenerator.forBlock["stop_all_sounds"] = function (block) {
+	// JavaScript code to stop all sounds in a Babylon.js scene
+	return "scene.sounds.forEach(function(sound) { sound.stop(); });\n";
 };
 
 javascriptGenerator.forBlock["when_clicked"] = function (block) {
@@ -2173,24 +2305,23 @@ javascriptGenerator.forBlock["when_clicked"] = function (block) {
 
 	const doCode = javascriptGenerator.statementToCode(block, "DO");
 
-	return `
-	window.whenModelReady(${modelName}, function(_mesh) {
+	return `(async () => {
+	window.whenModelReady(${modelName}, async function(_mesh) {
 
 	if (_mesh) {
 	console.log("Registering click action for", _mesh.name);
 
 	 _mesh.actionManager = new BABYLON.ActionManager(window.scene);
 	 //_mesh.actionManager.isRecursive = true;
-	_mesh.actionManager.registerAction(new BABYLON.ExecuteCodeAction(BABYLON.ActionManager.OnPickTrigger, function() {
+	_mesh.actionManager.registerAction(new BABYLON.ExecuteCodeAction(BABYLON.ActionManager.OnPickTrigger, async function() {
 	console.log("Model clicked:", _mesh.name);
 	${doCode}
 	}));
 
-
 	} else {
 	  console.log("No pickable parent or child found.");
 	}
-	});
+	})})();
 	`;
 };
 
@@ -2206,7 +2337,7 @@ javascriptGenerator.forBlock["when_key_pressed"] = function (block) {
 	const keyCode = keyCodeMap[key];
 
 	return `
-	window.scene.onKeyboardObservable.add((kbInfo) => {
+	window.scene.onKeyboardObservable.add(async (kbInfo) => {
 	switch (kbInfo.type) {
 	  case BABYLON.KeyboardEventTypes.KEYDOWN:
 	  if (kbInfo.event.keyCode === ${keyCode}) {
@@ -2224,7 +2355,7 @@ javascriptGenerator.forBlock["when_key_released"] = function (block) {
 	const keyCode = keyCodeMap[key];
 
 	return `
-	window.scene.onKeyboardObservable.add((kbInfo) => {
+	window.scene.onKeyboardObservable.add( async (kbInfo) => {
 	switch (kbInfo.type) {
 	  case BABYLON.KeyboardEventTypes.KEYUP:
 	  if (kbInfo.event.keyCode === ${keyCode}) {
@@ -2566,6 +2697,7 @@ let nextVariableIndexes = {
 	sphere: 1,
 	plane: 1,
 	text: 1,
+	sound: 1,
 };
 
 function initializeVariableIndexes() {
@@ -2575,6 +2707,7 @@ function initializeVariableIndexes() {
 		sphere: 1,
 		plane: 1,
 		text: 1,
+		sound: 1,
 	};
 
 	const workspace = Blockly.getMainWorkspace(); // Get the current Blockly workspace
@@ -2707,6 +2840,7 @@ function executeCode() {
 		const code = javascriptGenerator.workspaceToCode(workspace);
 		try {
 			//eval(code);
+			console.log(code);
 			new Function(`(async () => { ${code} })()`)();
 		} catch (error) {
 			console.error("Error executing Blockly code:", error);
@@ -2716,6 +2850,12 @@ function executeCode() {
 		setTimeout(executeCode, 100);
 	}
 }
+
+function stopCode() {
+	window.scene.dispose();
+}
+
+window.stopCode = stopCode;
 
 function toggleGizmo(gizmoType) {
 	// Disable all gizmos
