@@ -2832,6 +2832,9 @@ window.onload = function () {
 			};
 			reader.readAsText(event.target.files[0]);
 		});
+
+	// Add event listener to file input
+	document.getElementById("importFile").addEventListener('change', handleSnippetUpload);
 };
 
 function executeCode() {
@@ -2841,7 +2844,7 @@ function executeCode() {
 		const code = javascriptGenerator.workspaceToCode(workspace);
 		try {
 			//eval(code);
-			console.log(code);
+			//console.log(code);
 			new Function(`(async () => { ${code} })()`)();
 		} catch (error) {
 			console.error("Error executing Blockly code:", error);
@@ -3099,6 +3102,8 @@ function importSnippet() {
 	document.getElementById("importFile").click();
 }
 
+
+
 function addExportContextMenuOption() {
 	Blockly.ContextMenuRegistry.registry.register({
 		id: "exportBlock",
@@ -3142,3 +3147,4 @@ function addImportContextMenuOption() {
 addImportContextMenuOption();
 
 window.executeCode = executeCode;
+window.exportCode = exportCode;
