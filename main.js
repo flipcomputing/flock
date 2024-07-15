@@ -454,6 +454,10 @@ const toolbox = {
 					kind: "block",
 					type: "clear_effects",
 				},
+				{
+					kind: "block",
+					type: "switch_animation",
+				},
 			],
 		},
 		{
@@ -1457,7 +1461,7 @@ Blockly.Blocks["load_model"] = {
 				changeEvent.type === Blockly.Events.BLOCK_CREATE &&
 				changeEvent.ids.includes(this.id)
 			) {
-				var variable = this.workspace.getVariable(nextVariableName);
+				let variable = this.workspace.getVariable(nextVariableName);
 				if (!variable) {
 					variable = this.workspace.createVariable(
 						nextVariableName,
@@ -1803,6 +1807,49 @@ Blockly.Blocks["say"] = {
 			tooltip: "Displays a piece of text as a billboard on a mesh.",
 			helpUrl: "",
 		});
+	},
+};
+
+Blockly.Blocks["switch_animation"] = {
+	init: function () {
+		this.appendDummyInput()
+			.appendField("switch animation of")
+			.appendField(new Blockly.FieldVariable("mesh"), "MODEL")
+			.appendField("to")
+			.appendField(
+				new Blockly.FieldDropdown(this.getAnimationNames()),
+				"ANIMATION_NAME",
+			);
+		this.setPreviousStatement(true, null);
+		this.setNextStatement(true, null);
+		this.setColour(160);
+		this.setTooltip(
+			"Changes the animation of the specified model to the given animation.",
+		);
+		this.setHelpUrl("");
+	},
+
+	getAnimationNames: function () {
+		return [
+			["Idle", "Idle"],
+			["Walk", "Walk"],
+			["Run", "Run"],
+			["Wave", "Wave"],
+			["Yes", "Yes"],
+			["No", "No"],
+			["Duck", "Duck"],
+			["Fall", "Fall"],
+			["HitReact", "HitReact"],
+			["Idle_Attack", "Idle_Attack"],
+			["Idle_Hold", "Idle_Hold"],
+			["Jump", "Jump"],
+			["Jump_Idle", "Jump_Idle"],
+			["Jump_Land", "Jump_Land"],
+			["Punch", "Punch"],
+			["Run_Attack", "Run_Attack"],
+			["Run_Hold", "Run_Hold"],
+			["Walk_Hold", "Walk_Hold"],
+		];
 	},
 };
 
@@ -2859,7 +2906,7 @@ function loadModelIntoScene(modelName, modelId, scale, x, y, z) {
 			boxBody.setLinearDamping(0);
 			bb.physics = boxBody;
 
-			console.log("Configured", modelId);
+			//console.log("Configured", modelId);
 		},
 		null,
 		function (error) {
@@ -3358,6 +3405,93 @@ javascriptGenerator.forBlock["clear_effects"] = function (block) {
 
 	});\n`;
 };
+
+javascriptGenerator.forBlock["switch_animation"] = function (block) {
+	const modelName = javascriptGenerator.nameDB_.getName(
+		block.getFieldValue("MODEL"),
+		Blockly.Names.NameType.VARIABLE,
+	);
+	const animationName = block.getFieldValue("ANIMATION_NAME");
+
+	// Wrap the logic in an asynchronous IIFE
+	return `
+(async function() {
+	const maxAttempts = 100;
+	let attempts = 0;
+
+	const findModelAndSwitchAnimation = async () => {
+		const model = scene.getMeshByName(${modelName});
+		if (model) {
+			window.switchToAnimation(scene, model, '${animationName}');
+		} else if (attempts < maxAttempts) {
+			attempts++;
+			await new Promise(resolve => setTimeout(resolve, 500)); // Wait 500ms before retrying
+			findModelAndSwitchAnimation();
+		} else {
+			console.error('Model ' + ${modelName} + ' not found after ' + maxAttempts + ' attempts.');
+		}
+	};
+
+	await findModelAndSwitchAnimation();
+})();
+	`;
+};
+
+function switchToAnimation(scene, mesh, animationName, loop = true) {
+	const newAnimationName = animationName;
+
+	//console.log(`Switching ${mesh.name} to animation ${newAnimationName}`);
+
+	//const mesh = scene.getMeshByName(meshName);
+	if (!mesh) {
+		console.error(`Mesh ${mesh.name} not found.`);
+		return null;
+	}
+
+	let targetAnimationGroup = scene.animationGroups.find(
+		(group) =>
+			group.name === newAnimationName &&
+			animationGroupTargetsDescendant(group, mesh),
+	);
+
+	if (!targetAnimationGroup) {
+		console.error(`Animation "${newAnimationName}" not found.`);
+		return null;
+	}
+
+	if (!mesh.animationGroups) {
+		mesh.animationGroups = [];
+		stopAnimationsTargetingMesh(scene, mesh);
+		//console.log(`Stopping all animations on mesh`);
+	}
+
+	if (
+		mesh.animationGroups[0] &&
+		mesh.animationGroups[0].name !== newAnimationName
+	) {
+		stopAnimationsTargetingMesh(scene, mesh);
+
+		//console.log(`Stopping animation ${mesh.animationGroups[0].name}`);
+		mesh.animationGroups[0].stop();
+		mesh.animationGroups = [];
+	}
+
+	if (!mesh.animationGroups[0]) {
+		//console.log(`Starting animation ${newAnimationName}`);
+		mesh.animationGroups[0] = targetAnimationGroup;
+		mesh.animationGroups[0].start(
+			loop,
+			1.0,
+			targetAnimationGroup.from,
+			targetAnimationGroup.to,
+			false,
+		);
+	}
+
+	return targetAnimationGroup;
+}
+
+window.switchToAnimation = switchToAnimation;
 
 javascriptGenerator.forBlock["move_forward"] = function (block) {
 	const modelName = javascriptGenerator.nameDB_.getName(
