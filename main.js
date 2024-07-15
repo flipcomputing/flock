@@ -77,6 +77,44 @@ const toolbox = {
 				},
 				{
 					kind: "block",
+					type: "load_model",
+					inputs: {
+						SCALE: {
+							shadow: {
+								type: "math_number",
+								fields: {
+									NUM: 1,
+								},
+							},
+						},
+						X: {
+							shadow: {
+								type: "math_number",
+								fields: {
+									NUM: 0,
+								},
+							},
+						},
+						Y: {
+							shadow: {
+								type: "math_number",
+								fields: {
+									NUM: 0,
+								},
+							},
+						},
+						Z: {
+							shadow: {
+								type: "math_number",
+								fields: {
+									NUM: 0,
+								},
+							},
+						},
+					},
+				},
+				{
+					kind: "block",
 					type: "create_box",
 					fields: {
 						COLOR: "#9932CC",
@@ -1115,457 +1153,6 @@ const workspace = Blockly.inject("blocklyDiv", {
 	toolbox: toolbox,
 });
 
-/*
-const workspace = Blockly.inject("blocklyDiv", {
-	theme: Blockly.Themes.Modern,
-	renderer: "zelos",
-	zoom: {
-		controls: true, // Enables zoom controls (+, -, and home buttons)
-		wheel: true, // Enables zooming in/out using the mouse wheel
-		startScale: 0.8, // Initial scale
-		maxScale: 3, // Max scale
-		minScale: 0.3, // Min scale
-		scaleSpeed: 1.2, // How fast it zooms
-	},
-	toolbox: `
-		<xml id="toolbox" style="display: none">
-	  <category name="Flock 🐑🐑🐑"></category>
-		  <category name="Scene" colour="${categoryColours["Scene"]}">		
-	  <block type="set_sky_color"></block>
-		  <block type="create_ground"></block>
-	  <block type="set_fog">
-	  <value name="DENSITY">
-	  <shadow type="math_number">
-		<field name="NUM">0.1</field>
-	  </shadow>
-	  </value>
-	  </block>
-	  <block type="create_box">
-	  <field name="COLOR">#9932CC</field> <!-- Default color -->
-	  <value name="WIDTH"><shadow type="math_number"><field name="NUM">1</field></shadow></value>
-	  <value name="HEIGHT"><shadow type="math_number"><field name="NUM">1</field></shadow></value>
-	  <value name="DEPTH"><shadow type="math_number"><field name="NUM">1</field></shadow></value>
-	  <value name="X"><shadow type="math_number"><field name="NUM">0</field></shadow></value>
-	  <value name="Y"><shadow type="math_number"><field name="NUM">0.5</field></shadow></value>
-	  <value name="Z"><shadow type="math_number"><field name="NUM">0</field></shadow></value>
-	  </block>
-	  <block type="create_sphere">
-	  <field name="COLOR">#9932CC</field> <!-- Default color -->
-	  <value name="DIAMETER_X">
-		<shadow type="math_number">
-		<field name="NUM">1</field>
-		</shadow>
-	  </value>
-	  <value name="DIAMETER_Y">
-		<shadow type="math_number">
-		<field name="NUM">1</field>
-		</shadow>
-	  </value>
-	  <value name="DIAMETER_Z">
-		<shadow type="math_number">
-		<field name="NUM">1</field>
-		</shadow>
-	  </value>
-	  <value name="X">
-		<shadow type="math_number">
-		<field name="NUM">0</field>
-		</shadow>
-	  </value>
-	  <value name="Y">
-		<shadow type="math_number">
-		<field name="NUM">0.5</field>
-		</shadow>
-	  </value>
-	  <value name="Z">
-		<shadow type="math_number">
-		<field name="NUM">0</field>
-		</shadow>
-	  </value>
-	  </block>
-	  <block type="create_plane">
-		<field name="COLOR">#9932CC</field> <!-- Default color for the plane -->
-		<value name="WIDTH">
-		  <shadow type="math_number">
-			<field name="NUM">2</field> <!-- Default width -->
-		  </shadow>
-		</value>
-		<value name="HEIGHT">
-		  <shadow type="math_number">
-			<field name="NUM">2</field> <!-- Default height -->
-		  </shadow>
-		</value>
-		<value name="X">
-		  <shadow type="math_number">
-			<field name="NUM">0</field> <!-- Default x position -->
-		  </shadow>
-		</value>
-		<value name="Y">
-		  <shadow type="math_number">
-			<field name="NUM">1</field> <!-- Default y position -->
-		  </shadow>
-		</value>
-		<value name="Z">
-		  <shadow type="math_number">
-			<field name="NUM">0</field> <!-- Default z position -->
-		  </shadow>
-		</value>
-	  </block>
-	  <block type="set_background_color"></block>
-</category>
-<category name="Motion" colour="${categoryColours["Motion"]}">
-<block type="move_by_vector">
-  <value name="X">
-  <shadow type="math_number">
-	<field name="NUM">1</field>
-  </shadow>
-  </value>
-  <value name="Y">
-  <shadow type="math_number">
-	<field name="NUM">0</field>
-  </shadow>
-  </value>
-  <value name="Z">
-  <shadow type="math_number">
-	<field name="NUM">0</field>
-  </shadow>
-  </value>
-</block>
-<block type="rotate_model_xyz">
-<value name="X">
-  <shadow type="math_number">
-  <field name="NUM">0</field>
-  </shadow>
-  </value>
-  <value name="Y">
-  <shadow type="math_number">
-  <field name="NUM">45</field>
-  </shadow>
-  </value>
-  <value name="Z">
-  <shadow type="math_number">
-  <field name="NUM">0</field>
-  </shadow>
-  </value>
-</block>
-<block type="glide_to">
-<value name="X">
-  <shadow type="math_number">
-  <field name="NUM">0</field>
-  </shadow>
-  </value>
-  <value name="Y">
-  <shadow type="math_number">
-  <field name="NUM">0</field>
-  </shadow>
-  </value>
-  <value name="Z">
-  <shadow type="math_number">
-  <field name="NUM">0</field>
-  </shadow>
-  </value>
-<value name="DURATION">
-  <shadow type="math_number">
-  <field name="NUM">1000</field>
-  </shadow>
-  </value>
-</block>
-<block type="move_forward">
-	 <value name="SPEED">
-  <shadow type="math_number">
-  <field name="NUM">3</field>
-  </shadow>
-</value>
-</block>
-<block type="camera_follow"></block>
-<block type="add_physics"></block>
-</category>
-<category name="Looks" colour="${categoryColours["Looks"]}">
-<block type="show"></block>
-<block type="hide"></block>
-<block type="tint">
-<field name="COLOR">#AA336A</field> <!-- Default color -->
-</block>
-<block type="highlight">
-<field name="COLOR">#FFD700</field> <!-- Default color -->
-</block>
-<block type="set_alpha">
-  <!-- Shadow block for the ALPHA input to provide a default value -->
-  <value name="ALPHA">
-  <shadow type="math_number">
-	<field name="NUM">0.5</field>
-  </shadow>
-  </value>
-</block>
-<block type="clear_effects"></block>
-</category>
-
-<category name="Sound" colour="#D65C00">
-	<block type="play_sound">
-  <!-- Shadow block for the SPEED input -->
-  <value name="SPEED">
-    <shadow type="math_number">
-      <field name="NUM">1</field>
-    </shadow>
-  </value>
-  <!-- Shadow block for the VOLUME input -->
-  <value name="VOLUME">
-    <shadow type="math_number">
-      <field name="NUM">1</field>
-    </shadow>
-  </value>
-</block>
-<block type="stop_all_sounds">
-  </category>
-  
-<category name="Control" colour="${categoryColours["Control"]}">
-<block type="start"></block>
-<block type="on_each_update"></block>
-<block type="wait"></block>
-<!-- Loop Blocks -->
-<block type="controls_repeat_ext">
-  <value name="TIMES">
-  <shadow type="math_number">
-	<field name="NUM">10</field>
-  </shadow>
-  </value>
-</block>
-<block type="controls_whileUntil"></block>
-<block type="controls_forEach"></block>
-<block type="controls_for"></block>
-</category>
-<category name="Events" colour="#FFBF00">
-  <block type="when_clicked"></block>
-  <block type="when_key_pressed"></block>		
-  <block type="when_key_released"></block>		
- </category>
-<category name="Condition" colour="${categoryColours["Logic"]}">
-
-<!-- Conditional Blocks -->
-<block type="controls_if"></block>
-<block type="controls_ifelse"></block>
-
-<!-- Logical Operators -->
-<block type="logic_compare"></block>
-<block type="logic_operation"></block>
-<block type="logic_negate"></block>
-<block type="logic_boolean"></block>
-<block type="logic_null"></block>
-<block type="logic_ternary"></block>
-</category>
-<category name="Text" categorystyle="text_category">
- <block type="print_text"><value name="TEXT"><shadow type="text"><field name="TEXT">🌈 Hello</field></shadow></value><value name="DURATION"><shadow type="math_number"><field name="NUM">30</field></shadow></value></block>
- <block type="say">
-   <value name="TEXT">
-   <shadow type="text">
-	 <field name="TEXT">Hello</field>
-   </shadow>
-   </value>
-   <value name="DURATION">
-   <shadow type="math_number">
-	 <field name="NUM">3</field>
-   </shadow>
-   </value>
-   <value name="ALPHA">
-   <shadow type="math_number">
-	 <field name="NUM">1</field>
-   </shadow>
-   </value>
-   <value name="SIZE">
-   <shadow type="math_number">
-	 <field name="NUM">12</field>
-   </shadow>
-   </value>
-   <field name="MESH">item</field>
-   <field name="TEXT_COLOR">#000000</field>
-   <field name="BACKGROUND_COLOR">#ffffff</field>
-   <field name="MODE">ADD</field>
- </block>
-
-  <block type="text"></block>
-  <block type="text_print">
-  <value name="TEXT">
-	<shadow type="text">
-	<field name="TEXT">abc</field>
-	</shadow>
-  </value>
-  </block>
-  <block type="text_join"></block>
-  <block type="text_append">
-  <value name="TEXT">
-	<shadow type="text"></shadow>
-  </value>
-  </block>
-  <block type="text_length">
-  <value name="VALUE">
-	<shadow type="text">
-	<field name="TEXT">abc</field>
-	</shadow>
-  </value>
-  </block>
-  <block type="text_isEmpty">
-  <value name="VALUE">
-	<shadow type="text">
-	<field name="TEXT"></field>
-	</shadow>
-  </value>
-  </block>
-  <block type="text_indexOf">
-  <value name="VALUE">
-	<block type="variables_get">
-	<field name="VAR">text</field>
-	</block>
-  </value>
-  <value name="FIND">
-	<shadow type="text">
-	<field name="TEXT">abc</field>
-	</shadow>
-  </value>
-  </block>
-  <block type="text_charAt">
-  <value name="VALUE">
-	<block type="variables_get">
-	<field name="VAR">text</field>
-	</block>
-  </value>
-  </block>
-  <block type="text_getSubstring">
-  <value name="STRING">
-	<block type="variables_get">
-	<field name="VAR">text</field>
-	</block>
-  </value>
-  </block>
-  <block type="text_changeCase">
-  <value name="TEXT">
-	<shadow type="text">
-	<field name="TEXT">abc</field>
-	</shadow>
-  </value>
-  </block>
-  <block type="text_trim">
-  <value name="TEXT">
-	<shadow type="text">
-	<field name="TEXT">abc</field>
-	</shadow>
-  </value>
-  </block>
-  <block type="text_count">
-  <value name="SUB">
-	<shadow type="text"></shadow>
-  </value>
-  <value name="TEXT">
-	<shadow type="text"></shadow>
-  </value>
-  </block>
-  <block type="text_replace">
-  <value name="FROM">
-	<shadow type="text"></shadow>
-  </value>
-  <value name="TO">
-	<shadow type="text"></shadow>
-  </value>
-  <value name="TEXT">
-	<shadow type="text"></shadow>
-  </value>
-  </block>
-  <block type="text_reverse">
-  <value name="TEXT">
-	<shadow type="text"></shadow>
-  </value>
-  </block>
-  <label text="Input/Output:" web-class="ioLabel"></label>
-  <block type="text_prompt_ext">
-  <value name="TEXT">
-	<shadow type="text">
-	<field name="TEXT">abc</field>
-	</shadow>
-  </value>
-  </block>
-</category>
- <category name="Variables" colour="${categoryColours["Variables"]}" custom="VARIABLE">
-<block type="log_variable"></block> <!-- Your custom block -->
- </category>
- <category name="Sensing" colour="#ADD8E6">
-   <block type="key_pressed"></block>
- </category>
- <category name="Lists" colour="${categoryColours["Lists"]}">
-   <block type="lists_create_empty"></block>
-   <block type="lists_create_with"></block>
-   <block type="lists_repeat"></block>
-   <block type="lists_length"></block>
-   <block type="lists_isEmpty"></block>
-   <block type="lists_indexOf"></block>
-   <block type="lists_getIndex"></block>
-   <block type="lists_setIndex"></block>
-   <block type="lists_getSublist"></block>
-   <block type="lists_split"></block>
-   <block type="lists_sort"></block>
-   <!-- Additional list blocks can be added here -->
- </category>
- <category name="Math" colour="${categoryColours["Math"]}">
-   <!-- Basic arithmetic -->
-   <block type="math_arithmetic">
-   <field name="OP">ADD</field>
-   <value name="A">
-   <shadow type="math_number">
-	 <field name="NUM">1</field>
-   </shadow>
-   </value>
-   <value name="B">
-   <shadow type="math_number">
-	 <field name="NUM">1</field>
-   </shadow>
-   </value>
-   </block>
-
-   <!-- Random integer between two numbers -->
-   <block type="math_random_int">
-   <value name="FROM">
-   <shadow type="math_number">
-	 <field name="NUM">1</field>
-   </shadow>
-   </value>
-   <value name="TO">
-   <shadow type="math_number">
-	 <field name="NUM">100</field>
-   </shadow>
-   </value>
-   </block>
-
-   <!-- A single number -->
-   <block type="math_number">
-   <field name="NUM">0</field>
-   </block>
-
-   <!-- More complex blocks -->
-   <block type="math_constant"></block>
-   <block type="math_number_property"></block>
-   <block type="math_round"></block>
-   <block type="math_on_list"></block>
-   <block type="math_modulo"></block>
-   <block type="math_constrain">
-   <value name="LOW">
-   <shadow type="math_number">
-	 <field name="NUM">1</field>
-   </shadow>
-   </value>
-   <value name="HIGH">
-   <shadow type="math_number">
-	 <field name="NUM">100</field>
-   </shadow>
-   </value>
-   </block>
-   <block type="math_random_float"></block>
-   <!-- Add any additional math blocks you find necessary -->
-   </category>
-   <category name="Functions" custom="PROCEDURE" colour="%{BKY_PROCEDURES_HUE}"></category>
-   <category name="Snippets">
-   </category>
-</xml>
-	  `,
-});
-*/
-
 const audioNames = [
 	"highDown.ogg",
 	"highUp.ogg",
@@ -1629,6 +1216,13 @@ const audioNames = [
 	"zapThreeToneUp.ogg",
 	"zapTwoTone2.ogg",
 	"zapTwoTone.ogg",
+];
+
+const modelNames = [
+	"Character_Female_1.gltf",
+	"Character_Female_2.gltf",
+	"Character_Male_1.gltf",
+	"Character_Male_2.gltf",
 ];
 
 console.log("Welcome to Flock 🐑🐑🐑");
@@ -1807,6 +1401,74 @@ Blockly.Blocks["set_fog"] = {
 			colour: categoryColours["Scene"],
 			tooltip: "Configures the scene's fog.",
 			helpUrl: "",
+		});
+	},
+};
+
+Blockly.Blocks["load_model"] = {
+	init: function () {
+		let nextVariableName = "model" + nextVariableIndexes["model"]; // Start with "model1"
+		this.jsonInit({
+			message0: "load %1 as %2 scale: %3 x: %4 y: %5 z: %6",
+			args0: [
+				{
+					type: "field_dropdown",
+					name: "MODELS",
+					options: modelNames.map((name) => [name, name]),
+				},
+				{
+					type: "field_variable",
+					name: "ID_VAR",
+					variable: nextVariableName,
+				},
+				{
+					type: "input_value",
+					name: "SCALE",
+					check: "Number",
+				},
+				{
+					type: "input_value",
+					name: "X",
+					check: "Number",
+				},
+				{
+					type: "input_value",
+					name: "Y",
+					check: "Number",
+				},
+				{
+					type: "input_value",
+					name: "Z",
+					check: "Number",
+				},
+			],
+			inputsInline: true,
+			colour: 230,
+			tooltip: "",
+			helpUrl: "",
+			previousStatement: null,
+			nextStatement: null,
+		});
+
+		// Ensure the variable is created and linked properly when the block is used
+		this.setOnChange(function (changeEvent) {
+			if (
+				!this.isInFlyout &&
+				changeEvent.type === Blockly.Events.BLOCK_CREATE &&
+				changeEvent.ids.includes(this.id)
+			) {
+				var variable = this.workspace.getVariable(nextVariableName);
+				if (!variable) {
+					variable = this.workspace.createVariable(
+						nextVariableName,
+						null,
+					);
+					this.getField("ID_VAR").setValue(variable.getId());
+				}
+
+				// Increment for next use
+				nextVariableIndexes["model"] += 1;
+			}
 		});
 	},
 };
@@ -2775,7 +2437,7 @@ async function whenModelReady(meshId, callback, attempt = 1) {
 	// If mesh is found, execute the callback
 	if (mesh) {
 		await callback(mesh);
-		console.log(`Action performed on ${meshId}`);
+		//console.log(`Action performed on ${meshId}`);
 		return;
 	}
 
@@ -3131,6 +2793,168 @@ javascriptGenerator.forBlock["set_fog"] = function (block) {
   `;
 };
 
+javascriptGenerator.forBlock["load_model"] = function (block) {
+	const modelName = block.getFieldValue("MODELS");
+	const scale = getFieldValue(block, "SCALE", "1");
+	const x = getFieldValue(block, "X", "0");
+	const y = getFieldValue(block, "Y", "0");
+	const z = getFieldValue(block, "Z", "0");
+	const variableName = javascriptGenerator.nameDB_.getName(
+		block.getFieldValue("ID_VAR"),
+		Blockly.Names.NameType.VARIABLE,
+	);
+
+	const meshId = `${modelName}_${generateUUID()}`;
+	meshMap[meshId] = block;
+
+	return `
+	console.log("Creating", "${variableName}", "${meshId}")
+		${variableName} = "${meshId}";
+		loadModelIntoScene('${modelName}', '${meshId}', ${scale}, ${x}, ${y}, ${z}); 
+	`;
+};
+
+function loadModelIntoScene(modelName, modelId, scale, x, y, z) {
+	console.log("Loading", modelId);
+
+	BABYLON.SceneLoader.ImportMesh(
+		"",
+		"./models/",
+		modelName,
+		scene,
+		function (meshes) {
+			console.log("Loaded", modelId);
+			const mesh = meshes[0];
+
+			//meshes[0].rotate(BABYLON.Vector3.Up(), Math.PI);
+			mesh.scaling = new BABYLON.Vector3(scale, scale, scale);
+
+			const bb =
+				BABYLON.BoundingBoxGizmo.MakeNotPickableAndWrapInBoundingBox(
+					mesh,
+				);
+			// Offsetting so that the model appears above the ground but at y=0 to make glide easier
+			bb.name = modelId;
+			bb.isPickable = true;
+			bb.position.addInPlace(new BABYLON.Vector3(x, y, z));
+
+			mesh.computeWorldMatrix(true);
+			mesh.refreshBoundingInfo();
+
+			stopAnimationsTargetingMesh(scene, mesh);
+
+			const boxBody = new BABYLON.PhysicsBody(
+				bb,
+				BABYLON.PhysicsMotionType.STATIC,
+				false,
+				scene,
+			);
+
+			const boxShape = createCapsuleFromBoundingBox(bb, scene);
+
+			boxBody.shape = boxShape;
+			boxBody.setMassProperties({ mass: 1, restitution: 0.5 });
+			boxBody.disablePreStep = false;
+			boxBody.setAngularDamping(10000000);
+			boxBody.setLinearDamping(0);
+			bb.physics = boxBody;
+
+			console.log("Configured", modelId);
+		},
+		null,
+		function (error) {
+			console.log("Error loading", error);
+		},
+	);
+
+	return modelId;
+}
+
+window.loadModelIntoScene = loadModelIntoScene;
+
+function createCapsuleFromBoundingBox(mesh, scene) {
+	// Ensure the bounding info is up to date
+	mesh.computeWorldMatrix(true);
+	const boundingInfo = mesh.getBoundingInfo();
+
+	// Get bounding box dimensions
+	const height =
+		boundingInfo.boundingBox.maximumWorld.y -
+		boundingInfo.boundingBox.minimumWorld.y;
+	const width =
+		boundingInfo.boundingBox.maximumWorld.x -
+		boundingInfo.boundingBox.minimumWorld.x;
+	const depth =
+		boundingInfo.boundingBox.maximumWorld.z -
+		boundingInfo.boundingBox.minimumWorld.z;
+
+	// Calculate the radius as the average of the width and depth
+	const radius = Math.max(width, depth) / 2;
+
+	// Calculate the effective height of the capsule's cylindrical part
+	const cylinderHeight = Math.max(0, height - 2 * radius);
+
+	// Calculate the center of the bounding box
+	const center = new BABYLON.Vector3(0, 0, 0);
+
+	// Calculate the start and end points of the capsule's main segment
+	const segmentStart = new BABYLON.Vector3(
+		center.x,
+		center.y - cylinderHeight / 2,
+		center.z,
+	);
+	const segmentEnd = new BABYLON.Vector3(
+		center.x,
+		center.y + cylinderHeight / 2,
+		center.z,
+	);
+
+	// Create the capsule shape
+	const shape = new BABYLON.PhysicsShapeCapsule(
+		segmentStart, // starting point of the capsule segment
+		segmentEnd, // ending point of the capsule segment
+		radius, // radius of the capsule
+		scene, // scene of the shape
+	);
+
+	return shape;
+}
+
+function stopAnimationsTargetingMesh(scene, mesh) {
+	// Loop through all animation groups in the scene
+	scene.animationGroups.forEach(function (animationGroup) {
+		// Check if the current animation group targets the specified mesh
+		let targets = animationGroup.targetedAnimations.map(
+			function (targetedAnimation) {
+				return targetedAnimation.target;
+			},
+		);
+
+		if (
+			targets.includes(mesh) ||
+			animationGroupTargetsDescendant(animationGroup, mesh)
+		) {
+			// Stop the animation group if it targets the specified mesh
+			animationGroup.stop();
+			//console.log("Stopping", animationGroup.name);
+		}
+	});
+}
+
+function animationGroupTargetsDescendant(animationGroup, parentMesh) {
+	// Get all descendants of the parent mesh, including children, grandchildren, etc.
+	let descendants = parentMesh.getDescendants();
+
+	// Check each targeted animation to see if its target is among the descendants
+	for (let targetedAnimation of animationGroup.targetedAnimations) {
+		let target = targetedAnimation.target;
+		if (descendants.includes(target)) {
+			return true; // Found a descendant that is targeted by the animation group
+		}
+	}
+	return false; // No descendants are targeted by the animation group
+}
+
 javascriptGenerator.forBlock["create_box"] = function (block) {
 	const color = block.getFieldValue("COLOR");
 	const width = getFieldValue(block, "WIDTH", "1");
@@ -3140,7 +2964,7 @@ javascriptGenerator.forBlock["create_box"] = function (block) {
 	const posY = getFieldValue(block, "Y", "0");
 	const posZ = getFieldValue(block, "Z", "0");
 
-	let variable_name = javascriptGenerator.nameDB_.getName(
+	let variableName = javascriptGenerator.nameDB_.getName(
 		block.getFieldValue("ID_VAR"),
 		Blockly.Names.NameType.VARIABLE,
 	);
@@ -3173,8 +2997,7 @@ javascriptGenerator.forBlock["create_box"] = function (block) {
 	const material = new BABYLON.StandardMaterial("boxMaterial", window.scene);
 	material.diffuseColor = BABYLON.Color3.FromHexString("${color}");
 	newBox.material = material;
-	${variable_name} = "${boxId}";
-	\n
+	${variableName} = "${boxId}";
 	})();
 	`;
 };
@@ -3548,8 +3371,9 @@ javascriptGenerator.forBlock["move_forward"] = function (block) {
 			javascriptGenerator.ORDER_ATOMIC,
 		) || "0";
 	return `
-	(function() {
+
 	  const model = window.scene.getMeshByName(${modelName});
+	  
 	  if (model) {
 
 	  if (${speed} === 0){ return; }
@@ -3593,8 +3417,6 @@ javascriptGenerator.forBlock["move_forward"] = function (block) {
 	model.rotationQuaternion.normalize(); // Re-normalize the quaternion to maintain a valid rotation
 
   }
-
-	})();
 	`;
 };
 
@@ -3612,11 +3434,32 @@ javascriptGenerator.forBlock["camera_follow"] = function (block) {
 
 // Reset linear and angular velocity after physics render
 window.scene.onAfterPhysicsObservable.add(() => {
-  mesh.physics.setLinearVelocity(BABYLON.Vector3.Zero());
+  // Get current velocities
+  const currentVelocity = mesh.physics.getLinearVelocity();
+  const newVelocity = new BABYLON.Vector3(0, currentVelocity.y, 0); // Keep y velocity, reset x and z to 0
+  
+  // Set the new linear velocity
+  mesh.physics.setLinearVelocity(newVelocity);
+  
+  // Reset angular velocity to zero
   mesh.physics.setAngularVelocity(BABYLON.Vector3.Zero());
+
+  // Get current rotation quaternion
+  const currentRotationQuaternion = mesh.rotationQuaternion;
+  
+  // Convert the quaternion to Euler angles to access individual rotations
+  const currentEulerRotation = currentRotationQuaternion.toEulerAngles();
+
+  // Reset x and z rotation to 0 while keeping y rotation the same
+  const newRotationQuaternion = BABYLON.Quaternion.RotationYawPitchRoll(currentEulerRotation.y, 0, 0);
+  
+  // Apply the new rotation quaternion
+  mesh.rotationQuaternion.copyFrom(newRotationQuaternion);
 });
 
-	   const camera = new BABYLON.ArcRotateCamera("camera", Math.PI / 2, Math.PI / 4, -20, mesh.position, window.scene);
+
+
+	   const camera = new BABYLON.ArcRotateCamera("camera", Math.PI / 2, Math.PI / 4, -10, mesh.position, window.scene);
 	   camera.checkCollisions = true;
 
    // Adjust Beta limits to control the vertical angle
@@ -3682,7 +3525,7 @@ const createScene = function () {
 
 	const camera = new BABYLON.FreeCamera(
 		"camera",
-		new BABYLON.Vector3(0, 4, -20),
+		new BABYLON.Vector3(0, 4, -10),
 		window.scene,
 	);
 	camera.setTarget(BABYLON.Vector3.Zero());
@@ -3772,7 +3615,7 @@ initialize();
 const meshMap = {};
 
 let nextVariableIndexes = {
-	mesh: 1,
+	model: 1,
 	box: 1,
 	sphere: 1,
 	plane: 1,
@@ -3782,7 +3625,7 @@ let nextVariableIndexes = {
 
 function initializeVariableIndexes() {
 	nextVariableIndexes = {
-		mesh: 1,
+		model: 1,
 		box: 1,
 		sphere: 1,
 		plane: 1,
