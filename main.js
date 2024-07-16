@@ -37,7 +37,6 @@ let hk = null;
 window.scene = null;
 let havokInstance = null;
 let engineReady = false;
-let highlighter = null;
 let gizmoManager = null;
 
 const toolbox = {
@@ -2807,8 +2806,6 @@ javascriptGenerator.forBlock["say"] = // Function to handle the 'say' block
 
 		return `
 	  (async function() {
-
-
 		function displayText(mesh) {
 		  return new Promise((resolve, reject) => {
 			if (mesh) {
@@ -2880,6 +2877,7 @@ javascriptGenerator.forBlock["say"] = // Function to handle the 'say' block
 				// Calculate the bounding box height of the mesh
 				const boundingInfo = mesh.getBoundingInfo();
 				const meshHeight = boundingInfo.boundingBox.maximumWorld.y - boundingInfo.boundingBox.minimumWorld.y;
+				console.log(meshHeight);
 				plane.position.y = meshHeight / 2 + 0.85;
 				plane.billboardMode = BABYLON.Mesh.BILLBOARDMODE_ALL;
 
@@ -3546,12 +3544,12 @@ javascriptGenerator.forBlock["highlight"] = function (block) {
 	return `window.whenModelReady(${modelName}, function(mesh) {
 	if (mesh) {
   if (mesh.material){
-  highlighter.addMesh(mesh, BABYLON.Color3.FromHexString("${color}"));
+  window.highlighter.addMesh(mesh, BABYLON.Color3.FromHexString("${color}"));
   }
 
   mesh.getChildMeshes().forEach(function(childMesh) {
 	if (childMesh.material) {
-	highlighter.addMesh(childMesh, BABYLON.Color3.FromHexString("${color}"));
+	window.highlighter.addMesh(childMesh, BABYLON.Color3.FromHexString("${color}"));
 	}
   });
 	}
@@ -3573,13 +3571,12 @@ javascriptGenerator.forBlock["clear_effects"] = function (block) {
 	if (mesh) {
 
 	console.log("Removing effects");
-
-	highlighter.removeMesh(mesh);
+	window.highlighter.removeMesh(mesh);
 	mesh.renderOverlay = false;
 
 	mesh.getChildMeshes().forEach(function(childMesh) {
 	if (childMesh.material) {
-	  highlighter.removeMesh(childMesh);
+	  window.highlighter.removeMesh(childMesh);
 	}
 
 	childMesh.renderOverlay = false;
@@ -3853,7 +3850,10 @@ const createScene = function () {
 	window.scene = new BABYLON.Scene(engine);
 	hk = new BABYLON.HavokPlugin(true, havokInstance);
 	window.scene.enablePhysics(new BABYLON.Vector3(0, -9.81, 0), hk);
-	highlighter = new BABYLON.HighlightLayer("highlighter", window.scene);
+	window.highlighter = new BABYLON.HighlightLayer(
+		"highlighter",
+		window.scene,
+	);
 	gizmoManager = new BABYLON.GizmoManager(window.scene);
 
 	const camera = new BABYLON.FreeCamera(
