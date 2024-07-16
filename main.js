@@ -458,6 +458,10 @@ const toolbox = {
 					kind: "block",
 					type: "switch_animation",
 				},
+				{
+					kind: "block",
+					type: "play_animation",
+				},
 			],
 		},
 		{
@@ -1810,6 +1814,27 @@ Blockly.Blocks["say"] = {
 	},
 };
 
+const animationNames = [
+	["Idle", "Idle"],
+	["Walk", "Walk"],
+	["Run", "Run"],
+	["Wave", "Wave"],
+	["Yes", "Yes"],
+	["No", "No"],
+	["Duck", "Duck"],
+	["Fall", "Fall"],
+	["HitReact", "HitReact"],
+	["Idle_Attack", "Idle_Attack"],
+	["Idle_Hold", "Idle_Hold"],
+	["Jump", "Jump"],
+	["Jump_Idle", "Jump_Idle"],
+	["Jump_Land", "Jump_Land"],
+	["Punch", "Punch"],
+	["Run_Attack", "Run_Attack"],
+	["Run_Hold", "Run_Hold"],
+	["Walk_Hold", "Walk_Hold"],
+];
+
 Blockly.Blocks["switch_animation"] = {
 	init: function () {
 		this.appendDummyInput()
@@ -1817,7 +1842,7 @@ Blockly.Blocks["switch_animation"] = {
 			.appendField(new Blockly.FieldVariable("mesh"), "MODEL")
 			.appendField("to")
 			.appendField(
-				new Blockly.FieldDropdown(this.getAnimationNames()),
+				new Blockly.FieldDropdown(animationNames),
 				"ANIMATION_NAME",
 			);
 		this.setPreviousStatement(true, null);
@@ -1828,28 +1853,31 @@ Blockly.Blocks["switch_animation"] = {
 		);
 		this.setHelpUrl("");
 	},
+};
 
-	getAnimationNames: function () {
-		return [
-			["Idle", "Idle"],
-			["Walk", "Walk"],
-			["Run", "Run"],
-			["Wave", "Wave"],
-			["Yes", "Yes"],
-			["No", "No"],
-			["Duck", "Duck"],
-			["Fall", "Fall"],
-			["HitReact", "HitReact"],
-			["Idle_Attack", "Idle_Attack"],
-			["Idle_Hold", "Idle_Hold"],
-			["Jump", "Jump"],
-			["Jump_Idle", "Jump_Idle"],
-			["Jump_Land", "Jump_Land"],
-			["Punch", "Punch"],
-			["Run_Attack", "Run_Attack"],
-			["Run_Hold", "Run_Hold"],
-			["Walk_Hold", "Walk_Hold"],
-		];
+Blockly.Blocks["play_animation"] = {
+	init: function () {
+		this.jsonInit({
+			type: "play_model_animation_once",
+			message0: "play animation %1 on %2",
+			args0: [
+				{
+					type: "field_dropdown",
+					name: "ANIMATION_NAME",
+					options: animationNames,
+				},
+				{
+					type: "field_variable",
+					name: "MODEL",
+					variable: "mesh",
+				},
+			],
+			previousStatement: null,
+			nextStatement: null,
+			colour: 230,
+			tooltip: "Plays a selected animation once on the specified model.",
+			helpUrl: "",
+		});
 	},
 };
 
@@ -3222,6 +3250,55 @@ javascriptGenerator.forBlock["set_alpha"] = function (block) {
 	return wrapCode(modelName, code);
 };
 
+javascriptGenerator.forBlock["play_animation"] = function (block) {
+	const animationName = block.getFieldValue("ANIMATION_NAME");
+	const modelVar = javascriptGenerator.nameDB_.getName(
+		block.getFieldValue("MODEL"),
+		Blockly.Names.NameType.VARIABLE,
+	);
+
+	const code = `
+async function playAnimationWithRetry(meshName, animationName) {
+    console.log("Playing animation:", animationName);
+	const maxAttempts = 10;
+	let attempts = 0;
+	const attemptInterval = 1000; // Time in milliseconds between attempts
+
+	const findMeshAndPlayAnimation = async () => {
+		const _mesh = scene.getMeshByName(meshName);
+		if (_mesh) {
+			console.log("Mesh found: " + meshName);
+			await window.playAnimation(scene, _mesh, animationName, false, true);
+		} else if (attempts < maxAttempts) {
+			attempts++;
+			console.log(\`Attempt \${attempts}: Mesh "\${meshName}" not found. Retrying in \${attemptInterval}ms...\`);
+			setTimeout(findMeshAndPlayAnimation, attemptInterval);
+		} else {
+			console.error(\`Failed to find mesh "\${meshName}" after \${maxAttempts} attempts.\`);
+		}
+	};
+
+	await findMeshAndPlayAnimation();
+}
+
+await playAnimationWithRetry(${modelVar}, "${animationName}");
+`;
+
+	return code;
+};
+
+async function playAnimation(scene, model, animationName, loop, restart=false) {
+	var animGroup = switchToAnimation(scene, model, animationName, loop, restart);
+	
+	return new Promise((resolve) => {
+		animGroup.onAnimationEndObservable.addOnce(() => {
+			//console.log("Animation ended");
+			resolve();
+		});
+	});
+}
+
+window.playAnimation = playAnimation;
 javascriptGenerator.forBlock["play_sound"] = function (block) {
 	const soundName = block.getFieldValue("SOUND_NAME");
 	const speed = parseFloat(getFieldValue(block, "SPEED", 1));
@@ -3437,7 +3514,7 @@ javascriptGenerator.forBlock["switch_animation"] = function (block) {
 	`;
 };
 
-function switchToAnimation(scene, mesh, animationName, loop = true) {
+function switchToAnimation(scene, mesh, animationName, loop = true, restart = false) {
 	const newAnimationName = animationName;
 
 	//console.log(`Switching ${mesh.name} to animation ${newAnimationName}`);
@@ -3476,9 +3553,15 @@ function switchToAnimation(scene, mesh, animationName, loop = true) {
 		mesh.animationGroups = [];
 	}
 
-	if (!mesh.animationGroups[0]) {
-		//console.log(`Starting animation ${newAnimationName}`);
+	if ( !mesh.animationGroups[0]  || (
+		mesh.animationGroups[0].name == newAnimationName && restart
+	) )
+	{	
+		stopAnimationsTargetingMesh(scene, mesh);
+		console.log(`Starting animation ${newAnimationName}`);
 		mesh.animationGroups[0] = targetAnimationGroup;
+		mesh.animationGroups[0].reset();
+		mesh.animationGroups[0].stop();
 		mesh.animationGroups[0].start(
 			loop,
 			1.0,
