@@ -2809,13 +2809,28 @@ javascriptGenerator.forBlock["say"] = // Function to handle the 'say' block
 		function displayText(mesh) {
 		  return new Promise((resolve, reject) => {
 			if (mesh) {
+			// Find the first child node with a material
+			let targetMesh = mesh;
+			if (!mesh.material) {
+			  const stack = [mesh];
+			  while (stack.length > 0) {
+				const current = stack.pop();
+				if (current.material) {
+				  targetMesh = current;
+				  break;
+				}
+				stack.push(...current.getChildMeshes());
+			  }
+			}
+
 			  // Create or get the stack panel plane
 			   let plane = mesh.getChildren().find(child => child.name === "textPlane");
 			  let advancedTexture;
 			  if (!plane) {
+				
 				plane = BABYLON.MeshBuilder.CreatePlane("textPlane", { width: 1.5, height: 1.5 }, window.scene);
 				plane.name = "textPlane";
-				plane.parent = mesh;
+				plane.parent = targetMesh;
 				plane.alpha = 1;
 				plane.checkCollisions = false;
 				plane.isPickable = false;
@@ -2875,10 +2890,8 @@ javascriptGenerator.forBlock["say"] = // Function to handle the 'say' block
 				bg.addControl(textBlock);   
 
 				// Calculate the bounding box height of the mesh
-				const boundingInfo = mesh.getBoundingInfo();
-				const meshHeight = boundingInfo.boundingBox.maximumWorld.y - boundingInfo.boundingBox.minimumWorld.y;
-				console.log(meshHeight);
-				plane.position.y = meshHeight / 2 + 0.85;
+				const boundingInfo = targetMesh.getBoundingInfo();
+				plane.position.y = boundingInfo.boundingBox.maximum.y + 0.85;
 				plane.billboardMode = BABYLON.Mesh.BILLBOARDMODE_ALL;
 
 				// Remove the text after the specified duration if duration is greater than 0
