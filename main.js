@@ -1071,6 +1071,70 @@ const toolbox = {
 			name: "Snippets",
 			contents: [
 				{
+					type: "load_model",
+					kind: "block",
+					fields: {
+						MODELS: "Character_Female_1.gltf",
+						ID_VAR: {
+							name: "player",
+						},
+					},
+					inputs: {
+						SCALE: {
+							shadow: {
+								type: "math_number",
+								fields: {
+									NUM: 1,
+								},
+							},
+						},
+						X: {
+							shadow: {
+								type: "math_number",
+								fields: {
+									NUM: 0,
+								},
+							},
+						},
+						Y: {
+							shadow: {
+								type: "math_number",
+								fields: {
+									NUM: 0,
+								},
+							},
+						},
+						Z: {
+							shadow: {
+								type: "math_number",
+								fields: {
+									NUM: 0,
+								},
+							},
+						},
+					},
+					next: {
+						block: {
+							type: "add_physics",
+							fields: {
+								MODEL_VAR: {
+									name: "player",
+								},
+							},
+							next: {
+								block: {
+									type: "camera_follow",
+									fields: {
+										MESH_VAR: {
+											name: "player",
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+				{
 					kind: "block",
 					type: "on_each_update",
 					inputs: {
@@ -1079,6 +1143,7 @@ const toolbox = {
 								type: "controls_if",
 								extraState: {
 									elseIfCount: 1,
+									hasElse: true,
 								},
 								inputs: {
 									IF0: {
@@ -1104,6 +1169,17 @@ const toolbox = {
 														fields: {
 															NUM: 3,
 														},
+													},
+												},
+											},
+											next: {
+												block: {
+													type: "switch_animation",
+													fields: {
+														MODEL: {
+															name: "player",
+														},
+														ANIMATION_NAME: "Walk",
 													},
 												},
 											},
@@ -1134,6 +1210,28 @@ const toolbox = {
 														},
 													},
 												},
+											},
+											next: {
+												block: {
+													type: "switch_animation",
+													fields: {
+														MODEL: {
+															name: "player",
+														},
+														ANIMATION_NAME: "Walk",
+													},
+												},
+											},
+										},
+									},
+									ELSE: {
+										block: {
+											type: "switch_animation",
+											fields: {
+												MODEL: {
+													name: "player",
+												},
+												ANIMATION_NAME: "Idle",
 											},
 										},
 									},
@@ -3287,9 +3385,21 @@ await playAnimationWithRetry(${modelVar}, "${animationName}");
 	return code;
 };
 
-async function playAnimation(scene, model, animationName, loop, restart=false) {
-	var animGroup = switchToAnimation(scene, model, animationName, loop, restart);
-	
+async function playAnimation(
+	scene,
+	model,
+	animationName,
+	loop,
+	restart = false,
+) {
+	var animGroup = switchToAnimation(
+		scene,
+		model,
+		animationName,
+		loop,
+		restart,
+	);
+
 	return new Promise((resolve) => {
 		animGroup.onAnimationEndObservable.addOnce(() => {
 			//console.log("Animation ended");
@@ -3514,7 +3624,13 @@ javascriptGenerator.forBlock["switch_animation"] = function (block) {
 	`;
 };
 
-function switchToAnimation(scene, mesh, animationName, loop = true, restart = false) {
+function switchToAnimation(
+	scene,
+	mesh,
+	animationName,
+	loop = true,
+	restart = false,
+) {
 	const newAnimationName = animationName;
 
 	//console.log(`Switching ${mesh.name} to animation ${newAnimationName}`);
@@ -3553,10 +3669,10 @@ function switchToAnimation(scene, mesh, animationName, loop = true, restart = fa
 		mesh.animationGroups = [];
 	}
 
-	if ( !mesh.animationGroups[0]  || (
-		mesh.animationGroups[0].name == newAnimationName && restart
-	) )
-	{	
+	if (
+		!mesh.animationGroups[0] ||
+		(mesh.animationGroups[0].name == newAnimationName && restart)
+	) {
 		stopAnimationsTargetingMesh(scene, mesh);
 		console.log(`Starting animation ${newAnimationName}`);
 		mesh.animationGroups[0] = targetAnimationGroup;
