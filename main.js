@@ -1556,25 +1556,34 @@ Blockly.Blocks["load_model"] = {
 		});
 
 		// Ensure the variable is created and linked properly when the block is used
+	
 		this.setOnChange(function (changeEvent) {
-			if (
-				!this.isInFlyout &&
-				changeEvent.type === Blockly.Events.BLOCK_CREATE &&
-				changeEvent.ids.includes(this.id)
-			) {
-				let variable = this.workspace.getVariable(nextVariableName);
-				if (!variable) {
-					variable = this.workspace.createVariable(
-						nextVariableName,
-						null,
-					);
-					this.getField("ID_VAR").setValue(variable.getId());
-				}
+		  if (
+			!this.isInFlyout &&
+			changeEvent.type === Blockly.Events.BLOCK_CREATE &&
+			changeEvent.ids.includes(this.id)
+		  ) {
+			const idVarField = this.getField("ID_VAR");
 
-				// Increment for next use
-				nextVariableIndexes["model"] += 1;
+			if (idVarField && idVarField.getValue()) {
+			  // The block is from a snippet with a predefined variable name
+			  const predefinedVarName = this.workspace.getVariableById(idVarField.getValue()).name;
+			  let variable = this.workspace.getVariable(predefinedVarName);
+			  if (!variable) {
+				variable = this.workspace.createVariable(predefinedVarName, null);
+			  }
+			  idVarField.setValue(variable.getId());
+			} else {
+			  // The block is from the toolbox and needs a new variable name
+			  let variable = this.workspace.getVariable(nextVariableName);
+			  if (!variable) {
+				variable = this.workspace.createVariable(nextVariableName, null);
+			  }
+			  this.getField("ID_VAR").setValue(variable.getId());
 			}
+		  }
 		});
+
 	},
 };
 
