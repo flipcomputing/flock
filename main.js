@@ -672,7 +672,6 @@ const toolbox = {
 						},
 					},
 					fields: {
-						MESH: "item",
 						TEXT_COLOR: "#000000",
 						BACKGROUND_COLOR: "#ffffff",
 						MODE: "ADD",
@@ -690,7 +689,7 @@ const toolbox = {
 							shadow: {
 								type: "text",
 								fields: {
-									TEXT: "abc",
+									TEXT: "Something happened!",
 								},
 							},
 						},
@@ -1876,7 +1875,7 @@ Blockly.Blocks["say"] = {
 				{
 					type: "field_variable",
 					name: "MESH_VAR",
-					variable: "item",
+					variable: "mesh1",
 				},
 				{
 					type: "field_colour",
@@ -1933,17 +1932,17 @@ const animationNames = [
 	["Yes", "Yes"],
 	["No", "No"],
 	["Duck", "Duck"],
-	["Fall", "Fall"],
-	["HitReact", "HitReact"],
-	["Idle_Attack", "Idle_Attack"],
+	["Fall", "Death"],
+	["Hit React", "HitReact"],
+	["Idle Attack", "Idle_Attack"],
 	["Idle_Hold", "Idle_Hold"],
 	["Jump", "Jump"],
-	["Jump_Idle", "Jump_Idle"],
-	["Jump_Land", "Jump_Land"],
+	["Jump Idle", "Jump_Idle"],
+	["Jump Land", "Jump_Land"],
 	["Punch", "Punch"],
-	["Run_Attack", "Run_Attack"],
-	["Run_Hold", "Run_Hold"],
-	["Walk_Hold", "Walk_Hold"],
+	["Run Attack", "Run_Attack"],
+	["Run Hold", "Run_Hold"],
+	["Walk Hold", "Walk_Hold"],
 ];
 
 Blockly.Blocks["switch_animation"] = {
