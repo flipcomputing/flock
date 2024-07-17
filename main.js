@@ -1070,62 +1070,70 @@ const toolbox = {
 			name: "Snippets",
 			contents: [
 				{
-					type: "load_model",
+					type: "start",
 					kind: "block",
-					fields: {
-						MODELS: "Character_Female_1.gltf",
-						ID_VAR: {
-							name: "player",
-						},
-					},
 					inputs: {
-						SCALE: {
-							shadow: {
-								type: "math_number",
+						DO: {
+							block: {
+								type: "load_model",
+								kind: "block",
 								fields: {
-									NUM: 1,
+									MODELS: "Character_Female_1.gltf",
+									ID_VAR: {
+										name: "player",
+									},
 								},
-							},
-						},
-						X: {
-							shadow: {
-								type: "math_number",
-								fields: {
-									NUM: 0,
+								inputs: {
+									SCALE: {
+										shadow: {
+											type: "math_number",
+											fields: {
+												NUM: 1,
+											},
+										},
+									},
+									X: {
+										shadow: {
+											type: "math_number",
+											fields: {
+												NUM: 0,
+											},
+										},
+									},
+									Y: {
+										shadow: {
+											type: "math_number",
+											fields: {
+												NUM: 0,
+											},
+										},
+									},
+									Z: {
+										shadow: {
+											type: "math_number",
+											fields: {
+												NUM: 0,
+											},
+										},
+									},
 								},
-							},
-						},
-						Y: {
-							shadow: {
-								type: "math_number",
-								fields: {
-									NUM: 0,
-								},
-							},
-						},
-						Z: {
-							shadow: {
-								type: "math_number",
-								fields: {
-									NUM: 0,
-								},
-							},
-						},
-					},
-					next: {
-						block: {
-							type: "add_physics",
-							fields: {
-								MODEL_VAR: {
-									name: "player",
-								},
-							},
-							next: {
-								block: {
-									type: "camera_follow",
-									fields: {
-										MESH_VAR: {
-											name: "player",
+								next: {
+									block: {
+										type: "add_physics",
+										fields: {
+											MODEL_VAR: {
+												name: "player",
+											},
+										},
+										next: {
+											block: {
+												type: "camera_follow",
+												fields: {
+													MESH_VAR: {
+														name: "player",
+													},
+												},
+											},
 										},
 									},
 								},
@@ -1510,6 +1518,7 @@ Blockly.Blocks["set_fog"] = {
 	},
 };
 
+
 Blockly.Blocks["load_model"] = {
 	init: function () {
 		let nextVariableName = "model" + nextVariableIndexes["model"]; // Start with "model1"
@@ -1555,35 +1564,24 @@ Blockly.Blocks["load_model"] = {
 			nextStatement: null,
 		});
 
-		// Ensure the variable is created and linked properly when the block is used
-	
 		this.setOnChange(function (changeEvent) {
-		  if (
-			!this.isInFlyout &&
-			changeEvent.type === Blockly.Events.BLOCK_CREATE &&
-			changeEvent.ids.includes(this.id)
-		  ) {
-			const idVarField = this.getField("ID_VAR");
+			if (
+				!this.isInFlyout &&
+				changeEvent.type === Blockly.Events.BLOCK_CREATE &&
+				changeEvent.ids.includes(this.id)
+			) {
+				let variable = this.workspace.getVariable(nextVariableName);
+				if (!variable) {
+					variable = this.workspace.createVariable(
+						nextVariableName,
+						null,
+					);
+					this.getField("ID_VAR").setValue(variable.getId());
+				}
 
-			if (idVarField && idVarField.getValue()) {
-			  // The block is from a snippet with a predefined variable name
-			  const predefinedVarName = this.workspace.getVariableById(idVarField.getValue()).name;
-			  let variable = this.workspace.getVariable(predefinedVarName);
-			  if (!variable) {
-				variable = this.workspace.createVariable(predefinedVarName, null);
-			  }
-			  idVarField.setValue(variable.getId());
-			} else {
-			  // The block is from the toolbox and needs a new variable name
-			  let variable = this.workspace.getVariable(nextVariableName);
-			  if (!variable) {
-				variable = this.workspace.createVariable(nextVariableName, null);
-			  }
-			  this.getField("ID_VAR").setValue(variable.getId());
+				nextVariableIndexes["model"] += 1;
 			}
-		  }
 		});
-
 	},
 };
 
@@ -3811,7 +3809,7 @@ window.scene.onAfterPhysicsObservable.add(() => {
 
 
 
-	   const camera = new BABYLON.ArcRotateCamera("camera", Math.PI / 2, Math.PI / 4, -10, mesh.position, window.scene);
+	   const camera = new BABYLON.ArcRotateCamera("camera", Math.PI / 2, Math.PI / 4, -20, mesh.position, window.scene);
 	   camera.checkCollisions = true;
 
    // Adjust Beta limits to control the vertical angle
@@ -3880,7 +3878,7 @@ const createScene = function () {
 
 	const camera = new BABYLON.FreeCamera(
 		"camera",
-		new BABYLON.Vector3(0, 4, -10),
+		new BABYLON.Vector3(0, 4, -20),
 		window.scene,
 	);
 	camera.setTarget(BABYLON.Vector3.Zero());
