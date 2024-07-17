@@ -558,6 +558,14 @@ const toolbox = {
 					kind: "block",
 					type: "when_key_released",
 				},
+				{
+					kind: "block",
+					type: "broadcast_event",
+				},
+				{
+					kind: "block",
+					type: "on_event",
+				},
 			],
 		},
 		{
@@ -1518,7 +1526,6 @@ Blockly.Blocks["set_fog"] = {
 	},
 };
 
-
 Blockly.Blocks["load_model"] = {
 	init: function () {
 		let nextVariableName = "model" + nextVariableIndexes["model"]; // Start with "model1"
@@ -2257,6 +2264,53 @@ Blockly.Blocks["when_key_released"] = {
 			colour: 120,
 			tooltip:
 				"Executes the blocks inside when the specified key is released.",
+			helpUrl: "",
+		});
+	},
+};
+
+Blockly.Blocks["broadcast_event"] = {
+	init: function () {
+		this.jsonInit({
+			type: "broadcast_event",
+			message0: "broadcast event %1",
+			args0: [
+				{
+					type: "field_input",
+					name: "EVENT_NAME",
+					text: "go",
+				},
+			],
+			previousStatement: null,
+			nextStatement: null,
+			colour: 160,
+			tooltip: "",
+			helpUrl: "",
+		});
+	},
+};
+
+Blockly.Blocks["on_event"] = {
+	init: function () {
+		this.jsonInit({
+			type: "on_event",
+			message0: "on event %1",
+			args0: [
+				{
+					type: "field_input",
+					name: "EVENT_NAME",
+					text: "go",
+				},
+			],
+			message1: "do %1",
+			args1: [
+				{
+					type: "input_statement",
+					name: "DO",
+				},
+			],
+			colour: 120,
+			tooltip: "",
 			helpUrl: "",
 		});
 	},
@@ -3522,6 +3576,35 @@ javascriptGenerator.forBlock["when_key_released"] = function (block) {
 	`;
 };
 
+javascriptGenerator.forBlock["broadcast_event"] = function (block) {
+	var eventName = block.getFieldValue("EVENT_NAME");
+	var code = `document.dispatchEvent(new CustomEvent("${eventName}"));\n`;
+	return code;
+};
+
+javascriptGenerator.forBlock["on_event"] = function (block) {
+	var eventName = block.getFieldValue("EVENT_NAME");
+	var statements_do = javascriptGenerator.statementToCode(block, "DO");
+	var code = `
+  (function() {
+	const handler = async function() {
+	  ${statements_do}
+	};
+	document.addEventListener("${eventName}", handler);
+	window.scene.eventListeners.push({ event: "${eventName}", handler });
+  })();
+  `;
+	return code;
+};
+
+function removeEventListeners() {
+	console.log("Removing event listeners", window.scene.eventListeners.length);
+	window.scene.eventListeners.forEach(({ event, handler }) => {
+		document.removeEventListener(event, handler);
+	});
+	window.scene.eventListeners.length = 0; // Clear the array
+}
+
 javascriptGenerator.forBlock["tint"] = function (block) {
 	const modelName = javascriptGenerator.nameDB_.getName(
 		block.getFieldValue("MODEL_VAR"),
@@ -3868,6 +3951,7 @@ javascriptGenerator.forBlock["key_pressed"] = function (block) {
 
 const createScene = function () {
 	window.scene = new BABYLON.Scene(engine);
+	window.scene.eventListeners = [];
 	hk = new BABYLON.HavokPlugin(true, havokInstance);
 	window.scene.enablePhysics(new BABYLON.Vector3(0, -9.81, 0), hk);
 	window.highlighter = new BABYLON.HighlightLayer(
@@ -3958,6 +4042,7 @@ async function initialize() {
 	havokInstance = await HavokPhysics();
 	engineReady = true;
 	window.scene = createScene();
+	window.scene.eventListeners = [];
 
 	engine.runRenderLoop(function () {
 		window.scene.render();
@@ -4116,8 +4201,12 @@ window.onload = function () {
 
 function executeCode() {
 	if (engineReady) {
-		if (window.scene) window.scene.dispose();
+		if (window.scene) {
+			window.scene.dispose();
+			removeEventListeners();
+		}
 		window.scene = createScene();
+
 		const code = javascriptGenerator.workspaceToCode(workspace);
 		try {
 			//eval(code);
