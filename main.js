@@ -906,6 +906,10 @@ const toolbox = {
 					kind: "block",
 					type: "key_pressed",
 				},
+				{
+					kind: "block",
+					type: "meshes_touching",
+				},
 			],
 		},
 		{
@@ -2533,6 +2537,31 @@ Blockly.Blocks["key_pressed"] = {
 	},
 };
 
+Blockly.Blocks["meshes_touching"] = {
+	init: function () {
+		this.jsonInit({
+			type: "meshes_are_touching",
+			message0: "%1 touching %2",
+			args0: [
+				{
+					type: "field_variable",
+					name: "MESH1",
+					variable: "mesh",
+				},
+				{
+					type: "field_variable",
+					name: "MESH2",
+					variable: "mesh2",
+				},
+			],
+			output: "Boolean",
+			colour: 210,
+			tooltip:
+				"Returns true if the two selected meshes are touching, with retries for loading.",
+			helpUrl: "",
+		});
+	},
+};
 Blockly.Blocks["move_forward"] = {
 	init: function () {
 		this.jsonInit({
@@ -3670,8 +3699,6 @@ javascriptGenerator.forBlock["clear_effects"] = function (block) {
 
 	return `window.whenModelReady(${modelName}, function(mesh) {
 	if (mesh) {
-
-	console.log("Removing effects");
 	window.highlighter.removeMesh(mesh);
 	mesh.renderOverlay = false;
 
@@ -3945,6 +3972,30 @@ javascriptGenerator.forBlock["key_pressed"] = function (block) {
 		code = `window.currentKeyPressed === "${key}"`;
 	}
 	return [code, javascriptGenerator.ORDER_NONE];
+};
+
+javascriptGenerator.forBlock["meshes_touching"] = function (block) {
+	const mesh1VarName = javascriptGenerator.nameDB_.getName(
+		block.getFieldValue("MESH1"),
+		Blockly.Names.NameType.VARIABLE,
+	);
+	const mesh2VarName = javascriptGenerator.nameDB_.getName(
+		block.getFieldValue("MESH2"),
+		Blockly.Names.NameType.VARIABLE,
+	);
+
+	const code = `
+	(function () {
+	  const mesh1 = scene.getMeshByName(${mesh1VarName});
+	  const mesh2 = scene.getMeshByName(${mesh2VarName});
+	  if (mesh1 && mesh2 && mesh2.isEnabled()) {
+		return mesh1.intersectsMesh(mesh2, false);
+	  } else {
+		return false;
+	  }
+	})()
+		`;
+	return [code, javascriptGenerator.ORDER_ATOMIC];
 };
 
 const createScene = function () {
