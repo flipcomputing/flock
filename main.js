@@ -3598,7 +3598,6 @@ javascriptGenerator.forBlock["on_event"] = function (block) {
 };
 
 function removeEventListeners() {
-	window.scene.eventListeners.length);
 	window.scene.eventListeners.forEach(({ event, handler }) => {
 		document.removeEventListener(event, handler);
 	});
