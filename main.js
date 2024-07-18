@@ -2491,19 +2491,28 @@ Blockly.Blocks["add_physics"] = {
 	init: function () {
 		this.jsonInit({
 			type: "add_physics",
-			message0: "add physics %1",
+			message0: "add physics %1 type %2",
 			args0: [
 				{
 					type: "field_variable",
 					name: "MODEL_VAR",
 					variable: "mesh",
 				},
+				{
+					type: "field_dropdown",
+					name: "PHYSICS_TYPE",
+					options: [
+						["static", "STATIC"],
+						["dynamic", "DYNAMIC"],
+						["animated", "ANIMATED"],
+					],
+				},
 			],
 			previousStatement: null,
 			nextStatement: null,
 			colour: categoryColours["Motion"],
 			tooltip:
-				"Adds dynamic physics so the mesh reacts to forces including gravity.",
+				"Adds physics to the mesh. Choose between static, dynamic, and animated.",
 			helpUrl: "",
 		});
 	},
@@ -2724,48 +2733,6 @@ javascriptGenerator.forBlock["wait"] = function (block) {
 	return `await new Promise(resolve => setTimeout(resolve, ${duration}));\n`;
 };
 
-javascriptGenerator.forBlock["glide_to1"] = function (block) {
-	const x = getFieldValue(block, "X", "0");
-	const y = getFieldValue(block, "Y", "0");
-	const z = getFieldValue(block, "Z", "0");
-	const meshName = javascriptGenerator.nameDB_.getName(
-		block.getFieldValue("MESH_VAR"),
-		Blockly.Names.NameType.VARIABLE,
-	);
-	const duration = block.getFieldValue("DURATION");
-	const mode = block.getFieldValue("MODE");
-
-	return `
-	(async () => {
-
-	 await window.whenModelReady(${meshName}, async function(mesh) {
-
-if (mesh) {
-
-const startPosition = mesh.position.clone();
-const endPosition = new BABYLON.Vector3(${x}, ${y}, ${z});
-const fps = 30;
-const frames = 30 * (${duration}/1000);
-
-const anim = BABYLON.Animation.CreateAndStartAnimation("anim", mesh, "position", fps, 100, startPosition, endPosition, BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT);
-
-${
-	mode === "AWAIT"
-		? `
-await new Promise(resolve => {
-  anim.onAnimationEndObservable.add(() => {
-  resolve();
-  });
-});
-`
-		: ""
-}
-
-}})
-  })();
-	`;
-};
-
 javascriptGenerator.forBlock["glide_to"] = function (block) {
 	const x = getFieldValue(block, "X", "0");
 	const y = getFieldValue(block, "Y", "0");
@@ -2782,6 +2749,11 @@ javascriptGenerator.forBlock["glide_to"] = function (block) {
 	  const animationPromise = new Promise(async (resolve) => {
 		await window.whenModelReady(box1, async function(mesh) {
 		  if (mesh) {
+		  
+		  mesh.physics.disablePreStep = false;
+		  mesh.physics.disableSync = false;
+		  console.log(BABYLON.PhysicsMotionType.ANIMATED);
+		  console.log(mesh.physics, mesh.physics.getMotionType());
 			const startPosition = mesh.position.clone();
 			const endPosition = new BABYLON.Vector3(${x}, ${y}, ${z});
 			const fps = 30;
@@ -2789,7 +2761,9 @@ javascriptGenerator.forBlock["glide_to"] = function (block) {
 			
 			const anim = BABYLON.Animation.CreateAndStartAnimation("anim", mesh, "position", fps, 100, startPosition, endPosition, BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT);
 
-			anim.onAnimationEndObservable.add(() => {
+		anim.onAnimationEndObservable.add(() => {
+		  mesh.physics.disablePreStep = true;
+		  mesh.physics.disableSync = true;
 			  resolve();
 			});
 		  }
@@ -3947,10 +3921,21 @@ javascriptGenerator.forBlock["add_physics"] = function (block) {
 		Blockly.Names.NameType.VARIABLE,
 	);
 
+	const physicsType = block.getFieldValue("PHYSICS_TYPE");
+
 	return `window.whenModelReady(${modelName}, function(mesh) {
 	  if (mesh) {
-
-		   mesh.physics.setMotionType(BABYLON.PhysicsMotionType.DYNAMIC);
+		switch ("${physicsType}") {
+			case "STATIC":
+mesh.physics.setMotionType(BABYLON.PhysicsMotionType.STATIC);
+ break;
+			case "DYNAMIC":
+mesh.physics.setMotionType(BABYLON.PhysicsMotionType.DYNAMIC);
+ break;
+			case "ANIMATED":
+mesh.physics.setMotionType(BABYLON.PhysicsMotionType.ANIMATED);
+ break;
+}
 	  }
 	  else{
 
