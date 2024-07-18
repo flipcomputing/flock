@@ -2754,9 +2754,7 @@ javascriptGenerator.forBlock["glide_to"] = function (block) {
 		  
 		  mesh.physics.disablePreStep = false;
 		  mesh.physics.disableSync = false;
-		  console.log(BABYLON.PhysicsMotionType.ANIMATED);
-		  console.log(mesh.physics, mesh.physics.getMotionType());
-			const startPosition = mesh.position.clone();
+		 	const startPosition = mesh.position.clone();
 			const endPosition = new BABYLON.Vector3(${x}, ${y}, ${z});
 			const fps = 30;
 			const frames = 30 * (${duration}/1000);
