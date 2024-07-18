@@ -1534,7 +1534,7 @@ Blockly.Blocks["load_model"] = {
 	init: function () {
 		let nextVariableName = "model" + nextVariableIndexes["model"]; // Start with "model1"
 		this.jsonInit({
-			message0: "load %1 as %2 scale: %3 x: %4 y: %5 z: %6",
+			message0: "new %1 %2 scale: %3 x: %4 y: %5 z: %6",
 			args0: [
 				{
 					type: "field_dropdown",
@@ -1602,7 +1602,7 @@ Blockly.Blocks["create_box"] = {
 		this.jsonInit({
 			type: "create_box",
 			message0:
-				"create box as %1 %2 width %3 height %4 depth %5 x %6 y %7 z %8",
+				"new box %1 %2 width %3 height %4 depth %5 x %6 y %7 z %8",
 			args0: [
 				{
 					type: "field_variable",
@@ -1681,7 +1681,7 @@ Blockly.Blocks["create_sphere"] = {
 		this.jsonInit({
 			type: "create_sphere",
 			message0:
-				"create sphere as %1 %2 diameter x %3 diameter y %4 diameter z %5 x %6 y %7 z %8",
+				"new sphere %1 %2 diameter x %3 diameter y %4 diameter z %5 x %6 y %7 z %8",
 			args0: [
 				{
 					type: "field_variable",
@@ -1759,7 +1759,7 @@ Blockly.Blocks["create_plane"] = {
 		let nextVariableName = "plane" + nextVariableIndexes["plane"]; // Ensure 'plane' is managed in your nextVariableIndexes
 		this.jsonInit({
 			type: "create_plane",
-			message0: "create plane as %1 %2 width %3 height %4 x %5 y %6 z %7",
+			message0: "new plane %1 %2 width %3 height %4 x %5 y %6 z %7",
 			args0: [
 				{
 					type: "field_variable",
