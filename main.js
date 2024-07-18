@@ -1135,6 +1135,7 @@ const toolbox = {
 											MODEL_VAR: {
 												name: "player",
 											},
+											PHYSICS_TYPE: "ANIMATED",
 										},
 										next: {
 											block: {
@@ -2506,6 +2507,7 @@ Blockly.Blocks["add_physics"] = {
 						["dynamic", "DYNAMIC"],
 						["animated", "ANIMATED"],
 					],
+					default: "DYNAMIC",
 				},
 			],
 			previousStatement: null,
