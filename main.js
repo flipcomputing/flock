@@ -4355,12 +4355,16 @@ function toggleGizmo(gizmoType) {
 	}
 }
 
+window.toggleGizmo = toggleGizmo;
+
 function turnOffAllGizmos() {
 	gizmoManager.positionGizmoEnabled = false;
 	gizmoManager.rotationGizmoEnabled = false;
 	gizmoManager.scaleGizmoEnabled = false;
 	gizmoManager.boundingBoxGizmoEnabled = false;
 }
+
+window.turnOffAllGizmos = turnOffAllGizmos;
 
 function highlightBlockById(workspace, block) {
 	if (block) {
