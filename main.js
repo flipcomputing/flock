@@ -3773,7 +3773,7 @@ function switchToAnimation(
 		(mesh.animationGroups[0].name == newAnimationName && restart)
 	) {
 		stopAnimationsTargetingMesh(scene, mesh);
-		console.log(`Starting animation ${newAnimationName}`);
+		//console.log(`Starting animation ${newAnimationName}`);
 		mesh.animationGroups[0] = targetAnimationGroup;
 		mesh.animationGroups[0].reset();
 		mesh.animationGroups[0].stop();
