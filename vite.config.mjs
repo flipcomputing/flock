@@ -44,6 +44,9 @@ export default {
       },
       workbox: {
         maximumFileSizeToCacheInBytes: 15000000, 
+        globPatterns: [
+          '**/*.{js,css,html,ico,png,svg,glb,gltf,ogg}'
+        ],
         runtimeCaching: [
           {
             urlPattern: ({ request }) => request.destination === 'images',
