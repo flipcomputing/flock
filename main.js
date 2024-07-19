@@ -1135,7 +1135,7 @@ const toolbox = {
 											MODEL_VAR: {
 												name: "player",
 											},
-											PHYSICS_TYPE: "ANIMATED",
+											PHYSICS_TYPE: "DYNAMIC",
 										},
 										next: {
 											block: {
