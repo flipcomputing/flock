@@ -35,7 +35,7 @@ export default {
         short_name: 'Flock',
         description: 'Create 3D apps with blocks',
         theme_color: '#800080',
-       
+
         start_url: isProduction ? '/flock/' : '/', // Ensure this reflects the base URL
         scope: isProduction ? '/flock/' : '/', // Ensure this reflects the base URL
 
@@ -53,7 +53,7 @@ export default {
         ]
       },
       workbox: {
-        maximumFileSizeToCacheInBytes: 15000000, 
+        maximumFileSizeToCacheInBytes: 15000000,
         globPatterns: [
           '**/*.{js,css,html,ico,png,svg,glb,gltf,ogg}'
         ],
@@ -62,13 +62,13 @@ export default {
         } : {},
         runtimeCaching: [
           {
-            urlPattern: ({ request }) => request.destination === 'images',
+            urlPattern: new RegExp('^https://flipcomputing\\.github\\.io/flock/'),
             handler: 'CacheFirst',
             options: {
-              cacheName: 'images-cache',
+              cacheName: 'github-pages-cache',
               expiration: {
-                maxEntries: 10,
-                maxAgeSeconds: 30 * 24 * 60 * 60, // 30 days
+                maxEntries: 50,
+                maxAgeSeconds: 30 * 24 * 60 * 60, // 30 Days
               },
             },
           },
