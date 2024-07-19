@@ -1,13 +1,27 @@
 import { VitePWA } from 'vite-plugin-pwa'
+import { viteStaticCopy } from 'vite-plugin-static-copy';
 
 export default {
      plugins: [
+       viteStaticCopy({
+         targets: [
+           {
+             src: 'models/*.{glb,gltf}',
+             dest: 'models'
+           },
+           {
+             src: 'sounds/*.ogg',
+             dest: 'sounds'
+           }
+         ]
+       }),
        VitePWA({
          registerType: 'autoUpdate',
             devOptions: {
               enabled: true
             },
-         includeAssets: ['/images/favicon.ico', '/images/favicon.svg', '/images/apple-touch-icon.png', '/images/mask-icon.svg'],
+         assetsInclude: ['**/*.glb', '**/*.gltf', '**/*.ogg'],
+         includeAssets: ['**/*.glb', '**/*.gltf', '**/*.ogg'],
          manifest: {
            name: 'Flock 3D Blocks',
            short_name: 'Flock',
@@ -28,6 +42,7 @@ export default {
            ]
          },
          workbox: {
+           globPatterns: ['**/*.{glb,gltf,ogg}'],
            runtimeCaching: [
              {
                urlPattern: ({ request }) => request.destination === 'images',

@@ -12,12 +12,13 @@
     "@blockly/field-colour": "^5.0.0",
     "babylonjs": "^7.8.0",
     "babylonjs-gui": "^7.8.0",
-    "blockly": "^11.0.0",
-    "vite": "^4.5.3"
+    "blockly": "^11.0.0"
   },
   "devDependencies": {
     "@babylonjs/core": "^7.8.0",
     "@babylonjs/inspector": "^7.8.0",
-    "vite-plugin-pwa": "^0.20.0"
+    "vite": "^5.3.4",
+    "vite-plugin-pwa": "^0.20.0",
+    "vite-plugin-static-copy": "^1.0.6"
   }
 }
