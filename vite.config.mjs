@@ -27,7 +27,7 @@ export default {
            short_name: 'Flock',
            description: 'Create 3D apps with blocks',
            theme_color: '#800080',
-           start_url: '.',
+           start_url: './flock/',
            icons: [
              {
                src: '/images/icon_192x192.png',
