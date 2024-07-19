@@ -43,6 +43,7 @@ export default {
         ]
       },
       workbox: {
+        maximumFileSizeToCacheInBytes: 15000000, 
         runtimeCaching: [
           {
             urlPattern: ({ request }) => request.destination === 'images',
