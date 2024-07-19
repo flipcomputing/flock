@@ -1,6 +1,9 @@
 import { VitePWA } from 'vite-plugin-pwa'
 import { viteStaticCopy } from 'vite-plugin-static-copy';
 
+// Determine if we are in production mode
+const isProduction = process.env.NODE_ENV === 'production';
+
 export default {
   plugins: [
     viteStaticCopy({
@@ -12,11 +15,15 @@ export default {
         {
           src: 'sounds/*.ogg',
           dest: 'sounds'
-        }
+        },
+        {
+          src: 'images/*.*',
+          dest: 'images'
+        },
       ]
     }),
     VitePWA({
-      base: '/flock/',
+      base: isProduction ? '/flock/' : '/',
       registerType: 'autoUpdate',
       devOptions: {
         enabled: true
@@ -28,7 +35,10 @@ export default {
         short_name: 'Flock',
         description: 'Create 3D apps with blocks',
         theme_color: '#800080',
-        start_url: './flock/',
+       
+        start_url: isProduction ? '/flock/' : '/', // Ensure this reflects the base URL
+        scope: isProduction ? '/flock/' : '/', // Ensure this reflects the base URL
+
         icons: [
           {
             src: '/flock/images/icon_192x192.png',
@@ -47,6 +57,9 @@ export default {
         globPatterns: [
           '**/*.{js,css,html,ico,png,svg,glb,gltf,ogg}'
         ],
+        modifyURLPrefix: isProduction ? {
+          '': '/flock/' // Prepend the base URL to all cached assets in production
+        } : {},
         runtimeCaching: [
           {
             urlPattern: ({ request }) => request.destination === 'images',
