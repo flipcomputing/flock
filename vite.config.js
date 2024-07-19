@@ -46,5 +46,12 @@ export default {
        ],
   server: {
 	   host: '0.0.0.0',
-  }
+          fs: {
+            // Allow serving files outside of the root
+            allow: [
+              "../.."
+            ]
+          }
+        },
+  optimizeDeps: { exclude: ["@babylonjs/havok"] },
 }

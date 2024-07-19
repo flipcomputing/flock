@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:ev="http://www.w3.org/2001/xml-events" xmlns:xlink="http://www.w3.org/1999/xlink" baseProfile="tiny" height="500px" version="1.2" width="500px">
+  <defs/>
+  <rect fill="#4B0082" height="166" rx="50" ry="50" width="500" x="0" y="0"/>
+  <rect fill="#800080" height="166" rx="50" ry="50" width="500" x="0" y="166"/>
+  <rect fill="#9932CC" height="166" rx="50" ry="50" width="500" x="0" y="332"/>
+  <rect fill="#4B0082" height="40" rx="10.0" ry="10.0" width="100" x="70" y="146.0"/>
+  <rect fill="#800080" height="40" rx="10.0" ry="10.0" width="100" x="70" y="312.0"/>
+</svg>

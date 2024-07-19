@@ -4119,6 +4119,7 @@ async function initialize() {
 	BABYLON.Database.IDBStorageEnabled = true;
 	BABYLON.Engine.CollisionsEpsilon = 0.00005;
 	havokInstance = await HavokPhysics();
+
 	engineReady = true;
 	window.scene = createScene();
 	window.scene.eventListeners = [];
