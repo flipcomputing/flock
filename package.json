@@ -1,5 +1,6 @@
 {
-  "name": "vite",
+  "name": "Flock",
+  "homepage": "https://flipcomputing.github.io/flock/",
   "version": "0.0.0",
   "scripts": {
     "dev": "vite",
