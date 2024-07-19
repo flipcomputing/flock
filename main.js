@@ -1536,7 +1536,9 @@ Blockly.Blocks["set_fog"] = {
 
 Blockly.Blocks["load_model"] = {
 	init: function () {
-		let nextVariableName = "model" + nextVariableIndexes["model"]; // Start with "model1"
+		const variableNamePrefix = "model";
+		let nextVariableName =
+			variableNamePrefix + nextVariableIndexes[variableNamePrefix]; // Start with "model1"
 		this.jsonInit({
 			message0: "new %1 %2 scale: %3 x: %4 y: %5 z: %6",
 			args0: [
@@ -1579,36 +1581,76 @@ Blockly.Blocks["load_model"] = {
 			nextStatement: null,
 		});
 
-		this.setOnChange(function (changeEvent) {
-			if (
-				!this.isInFlyout &&
-				changeEvent.type === Blockly.Events.BLOCK_CREATE &&
-				changeEvent.ids.includes(this.id)
-			) {
-				// Check if the ID_VAR field already has a value
-				const idVarField = this.getField("ID_VAR");
-				if (!idVarField.getValue()) {
-					// If not, create and set a new variable
-					let variable = this.workspace.getVariable(nextVariableName);
-					if (!variable) {
-						variable = this.workspace.createVariable(
-							nextVariableName,
-							null,
-						);
-					}
-					idVarField.setValue(variable.getId());
-
-					// Increment the variable index for the next variable name
-					nextVariableIndexes["model"] += 1;
-				}
-			}
+		this.setOnChange((changeEvent) => {
+			handleBlockCreateEvent(
+				this,
+				changeEvent,
+				variableNamePrefix,
+				nextVariableIndexes,
+			);
 		});
 	},
 };
 
+function handleBlockCreateEvent(
+	blockInstance,
+	changeEvent,
+	variableNamePrefix,
+	nextVariableIndexes,
+) {
+	if (
+		!blockInstance.isInFlyout &&
+		changeEvent.type === Blockly.Events.BLOCK_CREATE &&
+		changeEvent.ids.includes(blockInstance.id)
+	) {
+		// Check if the ID_VAR field already has a value
+		const idVarField = blockInstance.getField("ID_VAR");
+		if (idVarField) {
+			const variableId = idVarField.getValue();
+			const variable =
+				blockInstance.workspace.getVariableById(variableId);
+
+			// Check if the variable name matches the pattern "prefixn"
+			const variableNamePattern = new RegExp(
+				`^${variableNamePrefix}\\d+$`,
+			);
+			const variableName = variable ? variable.name : "";
+
+			if (!variableNamePattern.test(variableName)) {
+				// If the variable name does not match the pattern, do not change it
+				console.log(
+					"Predefined variable detected, not changing:",
+					variableName,
+				);
+			} else {
+				// If the variable name matches the pattern, create and set a new variable
+				if (!nextVariableIndexes[variableNamePrefix]) {
+					nextVariableIndexes[variableNamePrefix] = 1; // Initialize if not already present
+				}
+				let newVariableName =
+					variableNamePrefix +
+					nextVariableIndexes[variableNamePrefix];
+				let newVariable =
+					blockInstance.workspace.getVariable(newVariableName);
+				if (!newVariable) {
+					newVariable = blockInstance.workspace.createVariable(
+						newVariableName,
+						null,
+					);
+				}
+				idVarField.setValue(newVariable.getId());
+
+				// Increment the variable index for the next variable name
+				nextVariableIndexes[variableNamePrefix] += 1;
+			}
+		}
+	}
+}
+
 Blockly.Blocks["create_box"] = {
 	init: function () {
-		let nextVariableName = "box" + nextVariableIndexes["box"];
+		const variableNamePrefix = "box";
+		let nextVariableName = variableNamePrefix + nextVariableIndexes[variableNamePrefix]; // Start with "box1";
 		this.jsonInit({
 			type: "create_box",
 			message0:
@@ -1664,35 +1706,21 @@ Blockly.Blocks["create_box"] = {
 			helpUrl: "",
 		});
 
-		this.setOnChange(function (changeEvent) {
-			if (
-				!this.isInFlyout &&
-				changeEvent.type === Blockly.Events.BLOCK_CREATE &&
-				changeEvent.ids.includes(this.id)
-			) {
-				// Check if the ID_VAR field already has a value
-				const idVarField = this.getField("ID_VAR");
-				if (!idVarField.getValue()) {
-					// If not, create and set a new variable
-					let variable = this.workspace.getVariable(nextVariableName);
-					if (!variable) {
-						variable = this.workspace.createVariable(
-							nextVariableName,
-							null,
-						);
-					}
-					idVarField.setValue(variable.getId());
-
-					nextVariableIndexes["box"] += 1;
-				}
-			}
+		this.setOnChange((changeEvent) => {
+			handleBlockCreateEvent(
+				this,
+				changeEvent,
+				variableNamePrefix,
+				nextVariableIndexes,
+			);
 		});
 	},
 };
 
 Blockly.Blocks["create_sphere"] = {
 	init: function () {
-		let nextVariableName = "sphere" + nextVariableIndexes["sphere"];
+		const variableNamePrefix = "sphere";
+		let nextVariableName = variableNamePrefix + nextVariableIndexes[variableNamePrefix];
 		this.jsonInit({
 			type: "create_sphere",
 			message0:
@@ -1748,34 +1776,21 @@ Blockly.Blocks["create_sphere"] = {
 			helpUrl: "",
 		});
 
-		this.setOnChange(function (changeEvent) {
-			if (
-				!this.isInFlyout &&
-				changeEvent.type === Blockly.Events.BLOCK_CREATE &&
-				changeEvent.ids.includes(this.id)
-			) {
-				// Check if the ID_VAR field already has a value
-				const idVarField = this.getField("ID_VAR");
-				if (!idVarField.getValue()) {
-					// If not, create and set a new variable
-					let variable = this.workspace.getVariable(nextVariableName);
-					if (!variable) {
-						variable = this.workspace.createVariable(
-							nextVariableName,
-							null,
-						);
-					}
-					idVarField.setValue(variable.getId());
-					nextVariableIndexes["sphere"] += 1;
-				}
-			}
+		this.setOnChange((changeEvent) => {
+			handleBlockCreateEvent(
+				this,
+				changeEvent,
+				variableNamePrefix,
+				nextVariableIndexes,
+			);
 		});
 	},
 };
 
 Blockly.Blocks["create_plane"] = {
 	init: function () {
-		let nextVariableName = "plane" + nextVariableIndexes["plane"]; // Ensure 'plane' is managed in your nextVariableIndexes
+		const variableNamePrefix = "plane";
+		let nextVariableName = variableNamePrefix + nextVariableIndexes[variableNamePrefix]; // Ensure 'plane' is managed in your nextVariableIndexes
 		this.jsonInit({
 			type: "create_plane",
 			message0: "new plane %1 %2 width %3 height %4 x %5 y %6 z %7",
@@ -1825,27 +1840,13 @@ Blockly.Blocks["create_plane"] = {
 			helpUrl: "",
 		});
 
-		this.setOnChange(function (changeEvent) {
-			if (
-				!this.isInFlyout &&
-				changeEvent.type === Blockly.Events.BLOCK_CREATE &&
-				changeEvent.ids.includes(this.id)
-			) {
-				// Check if the ID_VAR field already has a value
-				const idVarField = this.getField("ID_VAR");
-				if (!idVarField.getValue()) {
-					// If not, create and set a new variable
-					let variable = this.workspace.getVariable(nextVariableName);
-					if (!variable) {
-						variable = this.workspace.createVariable(
-							nextVariableName,
-							null,
-						);
-					}
-					idVarField.setValue(variable.getId());
-					nextVariableIndexes["plane"] += 1;
-				}
-			}
+		this.setOnChange((changeEvent) => {
+			handleBlockCreateEvent(
+				this,
+				changeEvent,
+				variableNamePrefix,
+				nextVariableIndexes,
+			);
 		});
 	},
 };
