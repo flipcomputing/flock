@@ -1348,6 +1348,10 @@ const modelNames = [
 	"Character_Female_2.gltf",
 	"Character_Male_1.gltf",
 	"Character_Male_2.gltf",
+	"Gem Pink.glb",
+	"tree_fat.glb",
+	"tree_fat_fall.glb",
+	"tree_fat_darkh.glb",
 ];
 
 console.log("Welcome to Flock 🐑🐑🐑");
@@ -1581,16 +1585,22 @@ Blockly.Blocks["load_model"] = {
 				changeEvent.type === Blockly.Events.BLOCK_CREATE &&
 				changeEvent.ids.includes(this.id)
 			) {
-				let variable = this.workspace.getVariable(nextVariableName);
-				if (!variable) {
-					variable = this.workspace.createVariable(
-						nextVariableName,
-						null,
-					);
-					this.getField("ID_VAR").setValue(variable.getId());
-				}
+				// Check if the ID_VAR field already has a value
+				const idVarField = this.getField("ID_VAR");
+				if (!idVarField.getValue()) {
+					// If not, create and set a new variable
+					let variable = this.workspace.getVariable(nextVariableName);
+					if (!variable) {
+						variable = this.workspace.createVariable(
+							nextVariableName,
+							null,
+						);
+					}
+					idVarField.setValue(variable.getId());
 
-				nextVariableIndexes["model"] += 1;
+					// Increment the variable index for the next variable name
+					nextVariableIndexes["model"] += 1;
+				}
 			}
 		});
 	},
@@ -1660,16 +1670,21 @@ Blockly.Blocks["create_box"] = {
 				changeEvent.type === Blockly.Events.BLOCK_CREATE &&
 				changeEvent.ids.includes(this.id)
 			) {
-				let variable = this.workspace.getVariable(nextVariableName);
-				if (!variable) {
-					variable = this.workspace.createVariable(
-						nextVariableName,
-						null,
-					);
-					this.getField("ID_VAR").setValue(variable.getId());
-				}
+				// Check if the ID_VAR field already has a value
+				const idVarField = this.getField("ID_VAR");
+				if (!idVarField.getValue()) {
+					// If not, create and set a new variable
+					let variable = this.workspace.getVariable(nextVariableName);
+					if (!variable) {
+						variable = this.workspace.createVariable(
+							nextVariableName,
+							null,
+						);
+					}
+					idVarField.setValue(variable.getId());
 
-				nextVariableIndexes["box"] += 1;
+					nextVariableIndexes["box"] += 1;
+				}
 			}
 		});
 	},
@@ -1739,16 +1754,20 @@ Blockly.Blocks["create_sphere"] = {
 				changeEvent.type === Blockly.Events.BLOCK_CREATE &&
 				changeEvent.ids.includes(this.id)
 			) {
-				let variable = this.workspace.getVariable(nextVariableName);
-				if (!variable) {
-					variable = this.workspace.createVariable(
-						nextVariableName,
-						null,
-					);
-					this.getField("ID_VAR").setValue(variable.getId());
+				// Check if the ID_VAR field already has a value
+				const idVarField = this.getField("ID_VAR");
+				if (!idVarField.getValue()) {
+					// If not, create and set a new variable
+					let variable = this.workspace.getVariable(nextVariableName);
+					if (!variable) {
+						variable = this.workspace.createVariable(
+							nextVariableName,
+							null,
+						);
+					}
+					idVarField.setValue(variable.getId());
+					nextVariableIndexes["sphere"] += 1;
 				}
-
-				nextVariableIndexes["sphere"] += 1;
 			}
 		});
 	},
@@ -1804,6 +1823,29 @@ Blockly.Blocks["create_plane"] = {
 			tooltip:
 				"Creates a colored 2D plane with specified width, height, and position.",
 			helpUrl: "",
+		});
+
+		this.setOnChange(function (changeEvent) {
+			if (
+				!this.isInFlyout &&
+				changeEvent.type === Blockly.Events.BLOCK_CREATE &&
+				changeEvent.ids.includes(this.id)
+			) {
+				// Check if the ID_VAR field already has a value
+				const idVarField = this.getField("ID_VAR");
+				if (!idVarField.getValue()) {
+					// If not, create and set a new variable
+					let variable = this.workspace.getVariable(nextVariableName);
+					if (!variable) {
+						variable = this.workspace.createVariable(
+							nextVariableName,
+							null,
+						);
+					}
+					idVarField.setValue(variable.getId());
+					nextVariableIndexes["plane"] += 1;
+				}
+			}
 		});
 	},
 };
@@ -2615,7 +2657,7 @@ function playSoundAsync(scene, soundName) {
 
 		// Register an observer to the onEndedObservable
 		sound.onEndedObservable.add(() => {
-			console.log(`${soundName} finished playing`);
+			//console.log(`${soundName} finished playing`);
 			resolve();
 		});
 	});
@@ -2715,7 +2757,7 @@ async function whenModelReady(meshId, callback, attempt = 1) {
 
 	// Retry logic if mesh not found and max attempts not reached
 	if (attempt <= maxAttempts) {
-		console.log(`Retrying model with ID '${meshId}'. Attempt ${attempt}`);
+		//console.log(`Retrying model with ID '${meshId}'. Attempt ${attempt}`);
 		setTimeout(
 			() => window.whenModelReady(meshId, callback, attempt + 1),
 			attemptInterval,
@@ -2752,18 +2794,22 @@ javascriptGenerator.forBlock["glide_to"] = function (block) {
 		await window.whenModelReady(box1, async function(mesh) {
 		  if (mesh) {
 		  
-		  mesh.physics.disablePreStep = false;
-		  mesh.physics.disableSync = false;
 		 	const startPosition = mesh.position.clone();
 			const endPosition = new BABYLON.Vector3(${x}, ${y}, ${z});
 			const fps = 30;
 			const frames = 30 * (${duration}/1000);
-			
-			const anim = BABYLON.Animation.CreateAndStartAnimation("anim", mesh, "position", fps, 100, startPosition, endPosition, BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT);
 
-		anim.onAnimationEndObservable.add(() => {
-		  mesh.physics.disablePreStep = true;
-		  mesh.physics.disableSync = true;
+			if(mesh.glide){ // Only allow one glide at a time
+				mesh.glide.stop();
+			}
+
+			mesh.physics.disablePreStep = false;
+			  
+			mesh.glide = BABYLON.Animation.CreateAndStartAnimation("anim", mesh, "position", fps, 100, startPosition, endPosition, BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT);
+
+		mesh.glide.onAnimationEndObservable.add(() => {		
+		      mesh.physics.disablePreStep = true;
+		  	  mesh.glide = null;
 			  resolve();
 			});
 		  }
@@ -3055,14 +3101,14 @@ javascriptGenerator.forBlock["load_model"] = function (block) {
 	meshMap[meshId] = block;
 
 	return `
-	console.log("Creating", "${variableName}", "${meshId}")
+	//console.log("Creating", "${variableName}", "${meshId}")
 		${variableName} = "${meshId}";
 		loadModelIntoScene('${modelName}', '${meshId}', ${scale}, ${x}, ${y}, ${z}); 
 	`;
 };
 
 function loadModelIntoScene(modelName, modelId, scale, x, y, z) {
-	console.log("Loading", modelId);
+	//console.log("Loading", modelId);
 
 	BABYLON.SceneLoader.ImportMesh(
 		"",
@@ -3070,7 +3116,7 @@ function loadModelIntoScene(modelName, modelId, scale, x, y, z) {
 		modelName,
 		scene,
 		function (meshes) {
-			console.log("Loaded", modelId);
+			//console.log("Loaded", modelId);
 			const mesh = meshes[0];
 
 			//meshes[0].rotate(BABYLON.Vector3.Up(), Math.PI);
@@ -3431,7 +3477,7 @@ javascriptGenerator.forBlock["play_animation"] = function (block) {
 
 	const code = `
 async function playAnimationWithRetry(meshName, animationName) {
-    console.log("Playing animation:", animationName);
+    //console.log("Playing animation:", animationName);
 	const maxAttempts = 10;
 	let attempts = 0;
 	const attemptInterval = 1000; // Time in milliseconds between attempts
@@ -3439,11 +3485,9 @@ async function playAnimationWithRetry(meshName, animationName) {
 	const findMeshAndPlayAnimation = async () => {
 		const _mesh = scene.getMeshByName(meshName);
 		if (_mesh) {
-			console.log("Mesh found: " + meshName);
 			await window.playAnimation(scene, _mesh, animationName, false, true);
 		} else if (attempts < maxAttempts) {
 			attempts++;
-			console.log(\`Attempt \${attempts}: Mesh "\${meshName}" not found. Retrying in \${attemptInterval}ms...\`);
 			setTimeout(findMeshAndPlayAnimation, attemptInterval);
 		} else {
 			console.error(\`Failed to find mesh "\${meshName}" after \${maxAttempts} attempts.\`);
@@ -3520,12 +3564,12 @@ javascriptGenerator.forBlock["when_clicked"] = function (block) {
 	window.whenModelReady(${modelName}, async function(_mesh) {
 
 	if (_mesh) {
-	console.log("Registering click action for", _mesh.name);
+	//console.log("Registering click action for", _mesh.name);
 
 	 _mesh.actionManager = new BABYLON.ActionManager(window.scene);
 	 //_mesh.actionManager.isRecursive = true;
 	_mesh.actionManager.registerAction(new BABYLON.ExecuteCodeAction(BABYLON.ActionManager.OnPickTrigger, async function() {
-	console.log("Model clicked:", _mesh.name);
+	//console.log("Model clicked:", _mesh.name);
 	${doCode}
 	}));
 
