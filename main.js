@@ -10,9 +10,30 @@ import * as BABYLON_GUI from "@babylonjs/gui";
 import HavokPhysics from "@babylonjs/havok";
 import "@babylonjs/core/Debug/debugLayer";
 import "@babylonjs/inspector";
+import {
+	switchToAnimation,
+	playAnimation,
+	findModelAndSwitchAnimationGenerator,
+	highlight,
+	newModel,
+	createGround,
+	setSky,
+	wait,
+	clearEffects,
+	tint,
+	setAlpha,
+} from "./flock.js";
 
 window.BABYLON = BABYLON;
 window.GUI = BABYLON_GUI;
+window.highlight = highlight;
+window.createGround = createGround;
+window.setSky = setSky;
+window.wait = wait;
+window.clearEffects = clearEffects;
+window.tint = tint;
+window.setAlpha = setAlpha;
+window.playAnimation = playAnimation;
 
 registerFieldColour();
 
@@ -1650,7 +1671,8 @@ function handleBlockCreateEvent(
 Blockly.Blocks["create_box"] = {
 	init: function () {
 		const variableNamePrefix = "box";
-		let nextVariableName = variableNamePrefix + nextVariableIndexes[variableNamePrefix]; // Start with "box1";
+		let nextVariableName =
+			variableNamePrefix + nextVariableIndexes[variableNamePrefix]; // Start with "box1";
 		this.jsonInit({
 			type: "create_box",
 			message0:
@@ -1720,7 +1742,8 @@ Blockly.Blocks["create_box"] = {
 Blockly.Blocks["create_sphere"] = {
 	init: function () {
 		const variableNamePrefix = "sphere";
-		let nextVariableName = variableNamePrefix + nextVariableIndexes[variableNamePrefix];
+		let nextVariableName =
+			variableNamePrefix + nextVariableIndexes[variableNamePrefix];
 		this.jsonInit({
 			type: "create_sphere",
 			message0:
@@ -1790,7 +1813,8 @@ Blockly.Blocks["create_sphere"] = {
 Blockly.Blocks["create_plane"] = {
 	init: function () {
 		const variableNamePrefix = "plane";
-		let nextVariableName = variableNamePrefix + nextVariableIndexes[variableNamePrefix]; // Ensure 'plane' is managed in your nextVariableIndexes
+		let nextVariableName =
+			variableNamePrefix + nextVariableIndexes[variableNamePrefix]; // Ensure 'plane' is managed in your nextVariableIndexes
 		this.jsonInit({
 			type: "create_plane",
 			message0: "new plane %1 %2 width %3 height %4 x %5 y %6 z %7",
@@ -2737,18 +2761,24 @@ function getFieldValue(block, fieldName, defaultValue) {
 	);
 }
 
-async function* modelReadyGenerator(meshId, maxAttempts = 10, attemptInterval = 1000) {
-		for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-			if (window.scene) {
-				const mesh = window.scene.getMeshByName(meshId);
-				if (mesh) {
-					yield mesh;
-					return;
-				}
+async function* modelReadyGenerator(
+	meshId,
+	maxAttempts = 10,
+	attemptInterval = 1000,
+) {
+	for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+		if (window.scene) {
+			const mesh = window.scene.getMeshByName(meshId);
+			if (mesh) {
+				yield mesh;
+				return;
 			}
-			await new Promise(resolve => setTimeout(resolve, attemptInterval));
 		}
-	throw new Error(`Model with ID '${meshId}' not found after ${maxAttempts} attempts.`);
+		await new Promise((resolve) => setTimeout(resolve, attemptInterval));
+	}
+	throw new Error(
+		`Model with ID '${meshId}' not found after ${maxAttempts} attempts.`,
+	);
 }
 
 async function whenModelReady(meshId, callback) {
@@ -2767,7 +2797,8 @@ window.whenModelReady = whenModelReady;
 
 javascriptGenerator.forBlock["wait"] = function (block) {
 	const duration = block.getFieldValue("DURATION");
-	return `await new Promise(resolve => setTimeout(resolve, ${duration}));\n`;
+
+	return `   await wait(${duration});\n`;
 };
 
 javascriptGenerator.forBlock["glide_to"] = function (block) {
@@ -2826,22 +2857,12 @@ javascriptGenerator.forBlock["start"] = function (block) {
 
 javascriptGenerator.forBlock["create_ground"] = function (block) {
 	const color = block.getFieldValue("COLOR");
-
-	return `
-	(function() {
-	const ground = BABYLON.MeshBuilder.CreateGround("ground", {width: 100, height: 100, subdivisions: 2}, window.scene);
-	const groundAggregate = new BABYLON.PhysicsAggregate(ground, BABYLON.PhysicsShapeType.BOX, { mass: 0 }, window.scene);
-	ground.receiveShadows = true;
-	const groundMaterial = new BABYLON.StandardMaterial("groundMaterial", window.scene);
-	groundMaterial.diffuseColor = BABYLON.Color3.FromHexString("${color}");
-	ground.material = groundMaterial;
-	})();
-	`;
+	return `createGround("${color}");\n`;
 };
 
 javascriptGenerator.forBlock["set_sky_color"] = function (block) {
 	const color = block.getFieldValue("COLOR");
-	return `window.scene.clearColor = window.BABYLON.Color3.FromHexString("${color}");\n`;
+	return `setSky("${color}");\n`;
 };
 
 javascriptGenerator.forBlock["print_text"] = function (block) {
@@ -3093,153 +3114,11 @@ javascriptGenerator.forBlock["load_model"] = function (block) {
 	const meshId = `${modelName}_${generateUUID()}`;
 	meshMap[meshId] = block;
 
-	return `
-	//console.log("Creating", "${variableName}", "${meshId}")
-		${variableName} = "${meshId}";
-		loadModelIntoScene('${modelName}', '${meshId}', ${scale}, ${x}, ${y}, ${z}); 
-	`;
+	return `${variableName} = "${meshId}";
+newModel('${modelName}', '${meshId}', ${scale}, ${x}, ${y}, ${z});\n`;
 };
 
-function loadModelIntoScene(modelName, modelId, scale, x, y, z) {
-	//console.log("Loading", modelId);
-
-	BABYLON.SceneLoader.ImportMesh(
-		"",
-		"./models/",
-		modelName,
-		scene,
-		function (meshes) {
-			//console.log("Loaded", modelId);
-			const mesh = meshes[0];
-
-			//meshes[0].rotate(BABYLON.Vector3.Up(), Math.PI);
-			mesh.scaling = new BABYLON.Vector3(scale, scale, scale);
-
-			const bb =
-				BABYLON.BoundingBoxGizmo.MakeNotPickableAndWrapInBoundingBox(
-					mesh,
-				);
-			// Offsetting so that the model appears above the ground but at y=0 to make glide easier
-			bb.name = modelId;
-			bb.isPickable = true;
-			bb.position.addInPlace(new BABYLON.Vector3(x, y, z));
-
-			mesh.computeWorldMatrix(true);
-			mesh.refreshBoundingInfo();
-
-			stopAnimationsTargetingMesh(scene, mesh);
-
-			const boxBody = new BABYLON.PhysicsBody(
-				bb,
-				BABYLON.PhysicsMotionType.STATIC,
-				false,
-				scene,
-			);
-
-			const boxShape = createCapsuleFromBoundingBox(bb, scene);
-
-			boxBody.shape = boxShape;
-			boxBody.setMassProperties({ mass: 1, restitution: 0.5 });
-			boxBody.disablePreStep = false;
-			boxBody.setAngularDamping(10000000);
-			boxBody.setLinearDamping(0);
-			bb.physics = boxBody;
-
-			//console.log("Configured", modelId);
-		},
-		null,
-		function (error) {
-			console.log("Error loading", error);
-		},
-	);
-
-	return modelId;
-}
-
-window.loadModelIntoScene = loadModelIntoScene;
-
-function createCapsuleFromBoundingBox(mesh, scene) {
-	// Ensure the bounding info is up to date
-	mesh.computeWorldMatrix(true);
-	const boundingInfo = mesh.getBoundingInfo();
-
-	// Get bounding box dimensions
-	const height =
-		boundingInfo.boundingBox.maximumWorld.y -
-		boundingInfo.boundingBox.minimumWorld.y;
-	const width =
-		boundingInfo.boundingBox.maximumWorld.x -
-		boundingInfo.boundingBox.minimumWorld.x;
-	const depth =
-		boundingInfo.boundingBox.maximumWorld.z -
-		boundingInfo.boundingBox.minimumWorld.z;
-
-	// Calculate the radius as the average of the width and depth
-	const radius = Math.max(width, depth) / 2;
-
-	// Calculate the effective height of the capsule's cylindrical part
-	const cylinderHeight = Math.max(0, height - 2 * radius);
-
-	// Calculate the center of the bounding box
-	const center = new BABYLON.Vector3(0, 0, 0);
-
-	// Calculate the start and end points of the capsule's main segment
-	const segmentStart = new BABYLON.Vector3(
-		center.x,
-		center.y - cylinderHeight / 2,
-		center.z,
-	);
-	const segmentEnd = new BABYLON.Vector3(
-		center.x,
-		center.y + cylinderHeight / 2,
-		center.z,
-	);
-
-	// Create the capsule shape
-	const shape = new BABYLON.PhysicsShapeCapsule(
-		segmentStart, // starting point of the capsule segment
-		segmentEnd, // ending point of the capsule segment
-		radius, // radius of the capsule
-		scene, // scene of the shape
-	);
-
-	return shape;
-}
-
-function stopAnimationsTargetingMesh(scene, mesh) {
-	// Loop through all animation groups in the scene
-	scene.animationGroups.forEach(function (animationGroup) {
-		// Check if the current animation group targets the specified mesh
-		let targets = animationGroup.targetedAnimations.map(
-			function (targetedAnimation) {
-				return targetedAnimation.target;
-			},
-		);
-
-		if (
-			targets.includes(mesh) ||
-			animationGroupTargetsDescendant(animationGroup, mesh)
-		) {
-			// Stop the animation group if it targets the specified mesh
-			animationGroup.stop();
-			//console.log("Stopping", animationGroup.name);
-		}
-	});
-}
-
-function animationGroupTargetsDescendant(animationGroup, parentMesh) {
-	// Get all descendants of the parent mesh, including children, grandchildren, etc.
-	let descendants = parentMesh.getDescendants();
-
-	// Check each targeted animation to see if its target is among the descendants
-	for (let targetedAnimation of animationGroup.targetedAnimations) {
-		let target = targetedAnimation.target;
-		if (descendants.includes(target)) {
-			return true; // Found a descendant that is targeted by the animation group
-		}
-	}
-	return false; // No descendants are targeted by the animation group
-}
+window.newModel = newModel;
 
 javascriptGenerator.forBlock["create_box"] = function (block) {
 	const color = block.getFieldValue("COLOR");
@@ -3438,29 +3317,6 @@ javascriptGenerator.forBlock["on_each_update"] = function (block) {
 	);
 };
 
-javascriptGenerator.forBlock["set_alpha"] = function (block) {
-	const modelName = javascriptGenerator.nameDB_.getName(
-		block.getFieldValue("MESH"),
-		Blockly.Names.NameType.VARIABLE,
-	);
-
-	const alphaValue = javascriptGenerator.valueToCode(
-		block,
-		"ALPHA",
-		javascriptGenerator.ORDER_ATOMIC,
-	);
-
-	const code = `let allMeshes = [mesh].concat(mesh.getChildMeshes(false));
-
-	allMeshes.forEach(nextMesh => {
-		if (nextMesh.material) {
-		nextMesh.material.alpha = ${alphaValue};
-		}
-	  });`;
-
-	return wrapCode(modelName, code);
-};
-
 javascriptGenerator.forBlock["play_animation"] = function (block) {
 	const animationName = block.getFieldValue("ANIMATION_NAME");
 	const modelVar = javascriptGenerator.nameDB_.getName(
@@ -3468,58 +3324,10 @@ javascriptGenerator.forBlock["play_animation"] = function (block) {
 		Blockly.Names.NameType.VARIABLE,
 	);
 
-	const code = `
-async function playAnimationWithRetry(meshName, animationName) {
-    //console.log("Playing animation:", animationName);
-	const maxAttempts = 10;
-	let attempts = 0;
-	const attemptInterval = 1000; // Time in milliseconds between attempts
-
-	const findMeshAndPlayAnimation = async () => {
-		const _mesh = scene.getMeshByName(meshName);
-		if (_mesh) {
-			await window.playAnimation(scene, _mesh, animationName, false, true);
-		} else if (attempts < maxAttempts) {
-			attempts++;
-			setTimeout(findMeshAndPlayAnimation, attemptInterval);
-		} else {
-			console.error(\`Failed to find mesh "\${meshName}" after \${maxAttempts} attempts.\`);
-		}
-	};
-
-	await findMeshAndPlayAnimation();
-}
-
-await playAnimationWithRetry(${modelVar}, "${animationName}");
-`;
-
-	return code;
+	return `await playAnimation(${modelVar}, "${animationName}");\n`;
 };
 
-async function playAnimation(
-	scene,
-	model,
-	animationName,
-	loop,
-	restart = false,
-) {
-	var animGroup = switchToAnimation(
-		scene,
-		model,
-		animationName,
-		loop,
-		restart,
-	);
 
-	return new Promise((resolve) => {
-		animGroup.onAnimationEndObservable.addOnce(() => {
-			//console.log("Animation ended");
-			resolve();
-		});
-	});
-}
-
-window.playAnimation = playAnimation;
 javascriptGenerator.forBlock["play_sound"] = function (block) {
 	const soundName = block.getFieldValue("SOUND_NAME");
 	const speed = parseFloat(getFieldValue(block, "SPEED", 1));
@@ -3643,38 +3451,6 @@ function removeEventListeners() {
 	window.scene.eventListeners.length = 0; // Clear the array
 }
 
-javascriptGenerator.forBlock["tint"] = function (block) {
-	const modelName = javascriptGenerator.nameDB_.getName(
-		block.getFieldValue("MODEL_VAR"),
-		Blockly.Names.NameType.VARIABLE,
-	);
-	const color = block.getFieldValue("COLOR");
-
-	return `window.whenModelReady(${modelName}, function(mesh) {
-	if (mesh) {
-  if (mesh.material) {
-  mesh.renderOverlay = true;
-  mesh.overlayAlpha = 0.5;
-  mesh.overlayColor = BABYLON.Color3.FromHexString("${color}");
-  }
-  mesh.getChildMeshes().forEach(function(childMesh) {
-	if (childMesh.material) {
-	childMesh.renderOverlay = true;
-	childMesh.overlayAlpha = 0.5;
-	childMesh.overlayColor = BABYLON.Color3.FromHexString("${color}");
-	//console.log("Setting overlay color:", childMesh.name)
-	}
-  });
-
-	}
-	else{
-
-	console.log("Model not loaded:", ${modelName});
-	}
-
-	});\n`;
-};
-
 javascriptGenerator.forBlock["highlight"] = function (block) {
 	const modelName = javascriptGenerator.nameDB_.getName(
 		block.getFieldValue("MODEL_VAR"),
@@ -3682,24 +3458,32 @@ javascriptGenerator.forBlock["highlight"] = function (block) {
 	);
 	const color = block.getFieldValue("COLOR");
 
-	return `window.whenModelReady(${modelName}, function(mesh) {
-	if (mesh) {
-  if (mesh.material){
-  window.highlighter.addMesh(mesh, BABYLON.Color3.FromHexString("${color}"));
-  }
+	return `await highlight(${modelName}, "${color}");\n`;
+};
 
-  mesh.getChildMeshes().forEach(function(childMesh) {
-	if (childMesh.material) {
-	window.highlighter.addMesh(childMesh, BABYLON.Color3.FromHexString("${color}"));
-	}
-  });
-	}
-	else{
+javascriptGenerator.forBlock["tint"] = function (block) {
+	const modelName = javascriptGenerator.nameDB_.getName(
+		block.getFieldValue("MODEL_VAR"),
+		Blockly.Names.NameType.VARIABLE,
+	);
+	const color = block.getFieldValue("COLOR");
 
-	console.log("Model not loaded:", ${modelName});
-	}
+	return `await tint(${modelName}, "${color}");\n`;
+};
 
-	});\n`;
+javascriptGenerator.forBlock["set_alpha"] = function (block) {
+	const modelName = javascriptGenerator.nameDB_.getName(
+		block.getFieldValue("MESH"),
+		Blockly.Names.NameType.VARIABLE,
+	);
+
+	const alphaValue = javascriptGenerator.valueToCode(
+		block,
+		"ALPHA",
+		javascriptGenerator.ORDER_ATOMIC,
+	);
+
+	return `await setAlpha(${modelName}, ${alphaValue});\n`;
 };
 
 javascriptGenerator.forBlock["clear_effects"] = function (block) {
@@ -3708,40 +3492,8 @@ javascriptGenerator.forBlock["clear_effects"] = function (block) {
 		Blockly.Names.NameType.VARIABLE,
 	);
 
-	return `window.whenModelReady(${modelName}, function(mesh) {
-	if (mesh) {
-	window.highlighter.removeMesh(mesh);
-	mesh.renderOverlay = false;
-
-	mesh.getChildMeshes().forEach(function(childMesh) {
-	if (childMesh.material) {
-	  window.highlighter.removeMesh(childMesh);
-	}
-
-	childMesh.renderOverlay = false;
-
-	});
-	}
-	else{
-	console.log("Model not loaded:", ${modelName});
-	}
-
-	});\n`;
+	return `await clearEffects(${modelName});\n`;
 };
-
-// Define the generator function to yield while waiting for the model
-async function* findModelAndSwitchAnimationGenerator(modelName, animationName, maxAttempts = 100, attemptInterval = 500) {
-	for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-		const model = scene.getMeshByName(modelName);
-		if (model) {
-			window.switchToAnimation(scene, model, animationName);
-			return;
-		}
-		await new Promise(resolve => setTimeout(resolve, attemptInterval));
-		yield; // Yield control to allow other threads to run
-	}
-	throw new Error(`Model ${modelName} not found after ${maxAttempts} attempts.`);
-}
 
 // Update the Blockly block generator
 javascriptGenerator.forBlock["switch_animation"] = function (block) {
@@ -3760,75 +3512,8 @@ javascriptGenerator.forBlock["switch_animation"] = function (block) {
 })();`;
 };
 
-// Define the function to switch animation
-function switchToAnimation(
-	scene,
-	mesh,
-	animationName,
-	loop = true,
-	restart = false,
-) {
-	const newAnimationName = animationName;
-
-	//console.log(`Switching ${mesh.name} to animation ${newAnimationName}`);
-
-	//const mesh = scene.getMeshByName(meshName);
-	if (!mesh) {
-		console.error(`Mesh ${mesh.name} not found.`);
-		return null;
-	}
-
-	let targetAnimationGroup = scene.animationGroups.find(
-		(group) =>
-			group.name === newAnimationName &&
-			animationGroupTargetsDescendant(group, mesh),
-	);
-
-	if (!targetAnimationGroup) {
-		console.error(`Animation "${newAnimationName}" not found.`);
-		return null;
-	}
-
-	if (!mesh.animationGroups) {
-		mesh.animationGroups = [];
-		stopAnimationsTargetingMesh(scene, mesh);
-		//console.log(`Stopping all animations on mesh`);
-	}
-
-	if (
-		mesh.animationGroups[0] &&
-		mesh.animationGroups[0].name !== newAnimationName
-	) {
-		stopAnimationsTargetingMesh(scene, mesh);
-
-		//console.log(`Stopping animation ${mesh.animationGroups[0].name}`);
-		mesh.animationGroups[0].stop();
-		mesh.animationGroups = [];
-	}
-
-	if (
-		!mesh.animationGroups[0] ||
-		(mesh.animationGroups[0].name == newAnimationName && restart)
-	) {
-		stopAnimationsTargetingMesh(scene, mesh);
-		//console.log(`Starting animation ${newAnimationName}`);
-		mesh.animationGroups[0] = targetAnimationGroup;
-		mesh.animationGroups[0].reset();
-		mesh.animationGroups[0].stop();
-		mesh.animationGroups[0].start(
-			loop,
-			1.0,
-			targetAnimationGroup.from,
-			targetAnimationGroup.to,
-			false,
-		);
-	}
-
-	return targetAnimationGroup;
-}
-
-window.switchToAnimation = switchToAnimation;
-window.findModelAndSwitchAnimationGenerator = findModelAndSwitchAnimationGenerator;
+window.findModelAndSwitchAnimationGenerator =
+	findModelAndSwitchAnimationGenerator;
 
 javascriptGenerator.forBlock["move_forward"] = function (block) {
 	const modelName = javascriptGenerator.nameDB_.getName(
@@ -4284,7 +3969,7 @@ function executeCode() {
 		const code = javascriptGenerator.workspaceToCode(workspace);
 		try {
 			//eval(code);
-			//console.log(code);
+			console.log(code);
 			new Function(`(async () => { ${code} })()`)();
 		} catch (error) {
 			console.error("Error executing Blockly code:", error);
