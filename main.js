@@ -11,17 +11,22 @@ import HavokPhysics from "@babylonjs/havok";
 import "@babylonjs/core/Debug/debugLayer";
 import "@babylonjs/inspector";
 import {
-	switchToAnimation,
 	playAnimation,
-	findModelAndSwitchAnimationGenerator,
+	switchAnimation,
 	highlight,
 	newModel,
+	newBox,
+	newSphere,
+	newPlane,
 	createGround,
 	setSky,
+	moveByVector,
+	rotate,
 	wait,
 	clearEffects,
 	tint,
 	setAlpha,
+	setFog,
 } from "./flock.js";
 
 window.BABYLON = BABYLON;
@@ -29,11 +34,18 @@ window.GUI = BABYLON_GUI;
 window.highlight = highlight;
 window.createGround = createGround;
 window.setSky = setSky;
+window.setFog = setFog;
 window.wait = wait;
 window.clearEffects = clearEffects;
 window.tint = tint;
 window.setAlpha = setAlpha;
+window.switchAnimation = switchAnimation;
 window.playAnimation = playAnimation;
+window.newBox = newBox;
+window.newSphere = newSphere;
+window.newPlane = newPlane;
+window.moveByVector = moveByVector;
+window.rotate = rotate;
 
 registerFieldColour();
 
@@ -2798,7 +2810,7 @@ window.whenModelReady = whenModelReady;
 javascriptGenerator.forBlock["wait"] = function (block) {
 	const duration = block.getFieldValue("DURATION");
 
-	return `   await wait(${duration});\n`;
+	return `await wait(${duration});\n`;
 };
 
 javascriptGenerator.forBlock["glide_to"] = function (block) {
@@ -2880,6 +2892,19 @@ javascriptGenerator.forBlock["print_text"] = function (block) {
 		) || "0";
 	const color = block.getFieldValue("COLOR");
 	return `printText(${text}, ${duration}, '${color}');\n`;
+};
+
+javascriptGenerator.forBlock["set_fog"] = function (block) {
+	const fogColorHex = block.getFieldValue("FOG_COLOR");
+	const fogMode = block.getFieldValue("FOG_MODE");
+	const fogDensity =
+		javascriptGenerator.valueToCode(
+			block,
+			"DENSITY",
+			javascriptGenerator.ORDER_ATOMIC,
+		) || "0.1"; // Default density
+
+	return `setFog("${fogColorHex}", "${fogMode}", ${fogDensity});\n`;
 };
 
 function hexToRgba(hex, alpha) {
@@ -3058,48 +3083,6 @@ javascriptGenerator.forBlock["say"] = // Function to handle the 'say' block
 	`;
 	};
 
-javascriptGenerator.forBlock["set_fog"] = function (block) {
-	const fogColorHex = block.getFieldValue("FOG_COLOR");
-	const fogMode = block.getFieldValue("FOG_MODE");
-	const fogDensity =
-		javascriptGenerator.valueToCode(
-			block,
-			"FOG_DENSITY",
-			javascriptGenerator.ORDER_ATOMIC,
-		) || "0.1"; // Default density
-
-	// Convert hex color to RGB values for Babylon.js
-	const fogColorRgb = `BABYLON.Color3.FromHexString('${fogColorHex}')`;
-
-	// Generate the code for setting fog mode
-	let fogModeCode = "";
-	switch (fogMode) {
-		case "NONE":
-			fogModeCode =
-				"window.scene.fogMode = BABYLON.Scene.FOGMODE_NONE;\n";
-			break;
-		case "EXP":
-			fogModeCode = "window.scene.fogMode = BABYLON.Scene.FOGMODE_EXP;\n";
-			break;
-		case "EXP2":
-			fogModeCode =
-				"window.scene.fogMode = BABYLON.Scene.FOGMODE_EXP2;\n";
-			break;
-		case "LINEAR":
-			fogModeCode =
-				"window.scene.fogMode = BABYLON.Scene.FOGMODE_LINEAR;\n";
-			break;
-	}
-
-	return `
-  ${fogModeCode}
-  window.scene.fogColor = ${fogColorRgb};
-  window.scene.fogDensity = ${fogDensity};
-  window.scene.fogStart = 50;
-  window.scene.fogEnd = 100;
-  `;
-};
-
 javascriptGenerator.forBlock["load_model"] = function (block) {
 	const modelName = block.getFieldValue("MODELS");
 	const scale = getFieldValue(block, "SCALE", "1");
@@ -3137,34 +3120,7 @@ javascriptGenerator.forBlock["create_box"] = function (block) {
 	const boxId = `box_${generateUUID()}`;
 	meshMap[boxId] = block;
 
-	return `(function() {
-	const newBox = BABYLON.MeshBuilder.CreateBox("${boxId}", {width: ${width}, height: ${height}, depth: ${depth}, scene: window.scene});
-	newBox.position = new BABYLON.Vector3(${posX}, ${posY}, ${posZ});
-
-	const boxBody = new BABYLON.PhysicsBody(newBox, BABYLON.PhysicsMotionType.STATIC, false, window.scene);
-
-	const boxShape = new BABYLON.PhysicsShapeBox(
-	  new BABYLON.Vector3(0, 0, 0),
-	  new BABYLON.Quaternion(0, 0, 0, 1), 
-	  new BABYLON.Vector3(${width}, ${height}, ${depth}),
-	  window.scene
-	);
-
-	boxBody.setMassProperties({inertia: BABYLON.Vector3.ZeroReadOnly});
-
-	boxBody.shape = boxShape;
-	boxBody.setMassProperties({mass: 1, restitution: 0.5});
-
-	//boxBody.setAngularDamping(1000);
-	//boxBody.setLinearDamping(10);
-	newBox.physics = boxBody;
-
-	const material = new BABYLON.StandardMaterial("boxMaterial", window.scene);
-	material.diffuseColor = BABYLON.Color3.FromHexString("${color}");
-	newBox.material = material;
-	${variableName} = "${boxId}";
-	})();
-	`;
+	return `${variableName} = newBox("${color}", ${width}, ${height}, ${depth}, ${posX}, ${posY}, ${posZ}, "${boxId}");\n`;
 };
 
 javascriptGenerator.forBlock["create_sphere"] = function (block) {
@@ -3175,7 +3131,8 @@ javascriptGenerator.forBlock["create_sphere"] = function (block) {
 	const posX = getFieldValue(block, "X", "0");
 	const posY = getFieldValue(block, "Y", "0.5");
 	const posZ = getFieldValue(block, "Z", "0");
-	const variableName = javascriptGenerator.nameDB_.getName(
+
+	let variableName = javascriptGenerator.nameDB_.getName(
 		block.getFieldValue("ID_VAR"),
 		Blockly.Names.NameType.VARIABLE,
 	);
@@ -3183,36 +3140,7 @@ javascriptGenerator.forBlock["create_sphere"] = function (block) {
 	const sphereId = `sphere_${generateUUID()}`;
 	meshMap[sphereId] = block;
 
-	return `(function() {
-	  const newSphere = window.BABYLON.MeshBuilder.CreateSphere("${sphereId}", {
-	  diameterX: ${diameterX},
-	  diameterY: ${diameterY},
-	  diameterZ: ${diameterZ},
-	  scene: window.scene
-	  });
-	  newSphere.position = new BABYLON.Vector3(${posX}, ${posY}, ${posZ});
-
-	  const sphereBody = new BABYLON.PhysicsBody(newSphere, BABYLON.PhysicsMotionType.STATIC, false, window.scene);
-
-	  const sphereShape = new BABYLON.PhysicsShapeSphere(
-	  new BABYLON.Vector3(0, 0, 0),
-	  Math.max(${diameterX}, ${diameterY}, ${diameterZ}) / 2, // Approximation for irregular diameters
-	  window.scene
-	  );
-
-	  sphereBody.shape = sphereShape;
-	  sphereBody.setMassProperties({mass: 1, restitution: 0.5});
-	  sphereBody.setAngularDamping(100);
-	  sphereBody.setLinearDamping(10);
-	  newSphere.physics = sphereBody;
-
-	  const material = new BABYLON.StandardMaterial("sphereMaterial", window.scene);
-	  material.diffuseColor = BABYLON.Color3.FromHexString("${color}");
-	  newSphere.material = material;
-	  ${variableName} = "${sphereId}";
-	  \n
-	})();
-	`;
+	return `${variableName} = newSphere("${color}", ${diameterX}, ${diameterY}, ${diameterZ}, ${posX}, ${posY}, ${posZ}, "${sphereId}");\n`;
 };
 
 javascriptGenerator.forBlock["create_plane"] = function (block) {
@@ -3223,7 +3151,7 @@ javascriptGenerator.forBlock["create_plane"] = function (block) {
 	const posY = getFieldValue(block, "Y", "0");
 	const posZ = getFieldValue(block, "Z", "0");
 
-	let variable_name = javascriptGenerator.nameDB_.getName(
+	let variableName = javascriptGenerator.nameDB_.getName(
 		block.getFieldValue("ID_VAR"),
 		Blockly.Names.NameType.VARIABLE,
 	);
@@ -3231,19 +3159,7 @@ javascriptGenerator.forBlock["create_plane"] = function (block) {
 	const planeId = `plane_${generateUUID()}`;
 	meshMap[planeId] = block;
 
-	return `(function() {
-	  const newPlane = BABYLON.MeshBuilder.CreatePlane("${planeId}", {width: ${width}, height: ${height}, sideOrientation: BABYLON.Mesh.DOUBLESIDE, scene: window.scene});
-	  newPlane.position = new BABYLON.Vector3(${posX}, ${posY}, ${posZ});
-
-	  const material = new BABYLON.StandardMaterial("planeMaterial", scene);
-	  material.diffuseColor = BABYLON.Color3.FromHexString("${color}");
-	  newPlane.material = material;
-
-	  // Assuming there's no need to set up physics for the plane, but if needed:
-	  // Setup physics properties here if the plane also needs to interact physically
-
-	  ${variable_name} = "${planeId}";
-	})();`;
+	return `${variableName} = newPlane("${color}", ${width}, ${height}, ${posX}, ${posY}, ${posZ}, "${planeId}");`;
 };
 
 javascriptGenerator.forBlock["set_background_color"] = function (block) {
@@ -3261,23 +3177,7 @@ javascriptGenerator.forBlock["move_by_vector"] = function (block) {
 	const y = getFieldValue(block, "Y", "0");
 	const z = getFieldValue(block, "Z", "0");
 
-	return (
-		`window.whenModelReady(${modelName}, function(mesh) {
-	if (mesh) {\n` +
-		`  
-	mesh.position.addInPlace(new BABYLON.Vector3(${x}, ${y}, ${z}));
-	mesh.physics.disablePreStep = false;
-	mesh.physics.setTargetTransform(mesh.position, mesh.rotationQuaternion);
-
-	// Optionally, force an immediate update if needed
-	//mesh.physicsImpostor.forceUpdate();
-	}
-	else{
-	console.log("Model not loaded:", ${modelName});
-	}
-
-	});\n`
-	);
+	return `await moveByVector(${modelName}, ${x}, ${y}, ${z});\n`;
 };
 
 javascriptGenerator.forBlock["rotate_model_xyz"] = function (block) {
@@ -3290,24 +3190,7 @@ javascriptGenerator.forBlock["rotate_model_xyz"] = function (block) {
 	const y = getFieldValue(block, "Y", "0");
 	const z = getFieldValue(block, "Z", "0");
 
-	return `
-	window.whenModelReady(${meshName}, function(mesh) {
-	if (mesh) {
-
-if(mesh.physics.getMotionType() != BABYLON.PhysicsMotionType.DYNAMIC){
-mesh.physics.setMotionType(BABYLON.PhysicsMotionType.ANIMATED);
-}
-
-	const incrementalRotation = BABYLON.Quaternion.RotationYawPitchRoll(BABYLON.Tools.ToRadians(${y}), BABYLON.Tools.ToRadians(${x}), BABYLON.Tools.ToRadians(${z}));
-	mesh.rotationQuaternion.multiplyInPlace(incrementalRotation).normalize();
-	mesh.physics.disablePreStep = false;
-	mesh.physics.setTargetTransform(mesh.absolutePosition, mesh.rotationQuaternion);
-	//mesh.physics.setAngularVelocity(BABYLON.Vector3.Zero());
-
-	} else {
-	console.warn('Mesh named ' + ${meshName} + ' not found.');
-	}
-	});`;
+	return `await rotate(${meshName}, ${x}, ${y}, ${z});\n`;
 };
 
 javascriptGenerator.forBlock["on_each_update"] = function (block) {
@@ -3326,7 +3209,6 @@ javascriptGenerator.forBlock["play_animation"] = function (block) {
 
 	return `await playAnimation(${modelVar}, "${animationName}");\n`;
 };
-
 
 javascriptGenerator.forBlock["play_sound"] = function (block) {
 	const soundName = block.getFieldValue("SOUND_NAME");
@@ -3495,7 +3377,6 @@ javascriptGenerator.forBlock["clear_effects"] = function (block) {
 	return `await clearEffects(${modelName});\n`;
 };
 
-// Update the Blockly block generator
 javascriptGenerator.forBlock["switch_animation"] = function (block) {
 	const modelName = javascriptGenerator.nameDB_.getName(
 		block.getFieldValue("MODEL"),
@@ -3503,17 +3384,8 @@ javascriptGenerator.forBlock["switch_animation"] = function (block) {
 	);
 	const animationName = block.getFieldValue("ANIMATION_NAME");
 
-	return `
-(async function() {
-	const generator = findModelAndSwitchAnimationGenerator(${modelName}, "${animationName}");
-	for await (const _ of generator) {
-		// Control is yielded inside the generator
-	}
-})();`;
+	return `switchAnimation(${modelName}, "${animationName}");\n`;
 };
-
-window.findModelAndSwitchAnimationGenerator =
-	findModelAndSwitchAnimationGenerator;
 
 javascriptGenerator.forBlock["move_forward"] = function (block) {
 	const modelName = javascriptGenerator.nameDB_.getName(

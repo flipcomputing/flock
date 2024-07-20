@@ -48,7 +48,6 @@ export function switchToAnimation(
 
 	//console.log(`Switching ${mesh.name} to animation ${newAnimationName}`);
 
-	//const mesh = scene.getMeshByName(meshName);
 	if (!mesh) {
 		console.error(`Mesh ${mesh.name} not found.`);
 		return null;
@@ -103,57 +102,31 @@ export function switchToAnimation(
 	return targetAnimationGroup;
 }
 
-// Define the generator function to yield while waiting for the model
-export async function* findModelAndSwitchAnimationGenerator(
-	modelName,
-	animationName,
-	maxAttempts = 100,
-	attemptInterval = 500,
-) {
-	for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-		const model = scene.getMeshByName(modelName);
-		if (model) {
-			switchToAnimation(scene, model, animationName);
-			return;
+export function switchAnimation(modelName, animationName) {
+	const mesh = window.scene.getMeshByName(modelName);
+		if (mesh) {
+			switchToAnimation(window.scene, mesh, animationName, true, false);
 		}
-		await new Promise((resolve) => setTimeout(resolve, attemptInterval));
-		yield; // Yield control to allow other threads to run
-	}
-	throw new Error(
-		`Model ${modelName} not found after ${maxAttempts} attempts.`,
-	);
 }
 
-// helperFunctions.js
 export async function highlight(modelName, color) {
-	const maxAttempts = 100;
-	const attemptInterval = 500;
+	await retryUntilFound(modelName, (mesh) => {
+		if (mesh.material) {
+			window.highlighter.addMesh(
+				mesh,
+				BABYLON.Color3.FromHexString(color),
+			);
+		}
 
-	for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-		const mesh = window.scene.getMeshByName(modelName);
-		if (mesh) {
-			if (mesh.material) {
+		mesh.getChildMeshes().forEach(function (childMesh) {
+			if (childMesh.material) {
 				window.highlighter.addMesh(
-					mesh,
+					childMesh,
 					BABYLON.Color3.FromHexString(color),
 				);
 			}
-
-			mesh.getChildMeshes().forEach(function (childMesh) {
-				if (childMesh.material) {
-					window.highlighter.addMesh(
-						childMesh,
-						BABYLON.Color3.FromHexString(color),
-					);
-				}
-			});
-			return;
-		}
-		await new Promise((resolve) => setTimeout(resolve, attemptInterval));
-	}
-	console.error(
-		`Model with ID '${modelName}' not found after ${maxAttempts} attempts.`,
-	);
+		});
+	});
 }
 
 export function newModel(modelName, modelId, scale, x, y, z) {
@@ -193,7 +166,7 @@ export function newModel(modelName, modelId, scale, x, y, z) {
 			);
 
 			const boxShape = createCapsuleFromBoundingBox(bb, scene);
-			
+
 			boxBody.shape = boxShape;
 			boxBody.setMassProperties({ mass: 1, restitution: 0.5 });
 			boxBody.disablePreStep = false;
@@ -210,12 +183,23 @@ export function newModel(modelName, modelId, scale, x, y, z) {
 	return modelId;
 }
 
-// helperFunctions.js
 export function createGround(color) {
-	const ground = BABYLON.MeshBuilder.CreateGround("ground", { width: 100, height: 100, subdivisions: 2 }, window.scene);
-	const groundAggregate = new BABYLON.PhysicsAggregate(ground, BABYLON.PhysicsShapeType.BOX, { mass: 0 }, window.scene);
+	const ground = BABYLON.MeshBuilder.CreateGround(
+		"ground",
+		{ width: 100, height: 100, subdivisions: 2 },
+		window.scene,
+	);
+	const groundAggregate = new BABYLON.PhysicsAggregate(
+		ground,
+		BABYLON.PhysicsShapeType.BOX,
+		{ mass: 0 },
+		window.scene,
+	);
 	ground.receiveShadows = true;
-	const groundMaterial = new BABYLON.StandardMaterial("groundMaterial", window.scene);
+	const groundMaterial = new BABYLON.StandardMaterial(
+		"groundMaterial",
+		window.scene,
+	);
 	groundMaterial.diffuseColor = BABYLON.Color3.FromHexString(color);
 	ground.material = groundMaterial;
 }
@@ -225,31 +209,24 @@ export function setSky(color) {
 }
 
 export function wait(duration) {
-	return new Promise(resolve => setTimeout(resolve, duration));
+	return new Promise((resolve) => setTimeout(resolve, duration));
 }
 
+// helperFunctions.js
 export async function clearEffects(modelName) {
-	const maxAttempts = 100;
-	const attemptInterval = 500;
+	await retryUntilFound(modelName, (mesh) => {
+		window.highlighter.removeMesh(mesh);
+		mesh.renderOverlay = false;
 
-	for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-		const mesh = window.scene.getMeshByName(modelName);
-		if (mesh) {
-			window.highlighter.removeMesh(mesh);
-			mesh.renderOverlay = false;
-
-			mesh.getChildMeshes().forEach(function(childMesh) {
-				if (childMesh.material) {
-					window.highlighter.removeMesh(childMesh);
-				}
-				childMesh.renderOverlay = false;
-			});
-			return;
-		}
-		await new Promise(resolve => setTimeout(resolve, attemptInterval));
-	}
-	console.error(`Model with ID '${modelName}' not found after ${maxAttempts} attempts.`);
+		mesh.getChildMeshes().forEach(function (childMesh) {
+			if (childMesh.material) {
+				window.highlighter.removeMesh(childMesh);
+			}
+			childMesh.renderOverlay = false;
+		});
+	});
 }
+
 
 function createCapsuleFromBoundingBox(mesh, scene) {
 	// Ensure the bounding info is up to date
@@ -301,62 +278,55 @@ function createCapsuleFromBoundingBox(mesh, scene) {
 
 // helperFunctions.js
 export async function tint(modelName, color) {
-	const maxAttempts = 100;
-	const attemptInterval = 500;
-
-	for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-		const mesh = window.scene.getMeshByName(modelName);
-		if (mesh) {
-			if (mesh.material) {
-				mesh.renderOverlay = true;
-				mesh.overlayAlpha = 0.5;
-				mesh.overlayColor = BABYLON.Color3.FromHexString(color);
-			}
-
-			mesh.getChildMeshes().forEach(function(childMesh) {
-				if (childMesh.material) {
-					childMesh.renderOverlay = true;
-					childMesh.overlayAlpha = 0.5;
-					childMesh.overlayColor = BABYLON.Color3.FromHexString(color);
-				}
-			});
-			return;
+	await retryUntilFound(modelName, (mesh) => {
+		if (mesh.material) {
+			mesh.renderOverlay = true;
+			mesh.overlayAlpha = 0.5;
+			mesh.overlayColor = BABYLON.Color3.FromHexString(color);
 		}
-		await new Promise(resolve => setTimeout(resolve, attemptInterval));
-	}
-	console.error(`Model with ID '${modelName}' not found after ${maxAttempts} attempts.`);
+
+		mesh.getChildMeshes().forEach(function (childMesh) {
+			if (childMesh.material) {
+				childMesh.renderOverlay = true;
+				childMesh.overlayAlpha = 0.5;
+				childMesh.overlayColor = BABYLON.Color3.FromHexString(color);
+			}
+		});
+	});
 }
 
 // helperFunctions.js
 export async function setAlpha(modelName, alphaValue) {
-	const maxAttempts = 100;
-	const attemptInterval = 500;
+	await retryUntilFound(modelName, (mesh) => {
+		let allMeshes = [mesh].concat(mesh.getChildMeshes(false));
 
-	for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-		const mesh = window.scene.getMeshByName(modelName);
-		if (mesh) {
-			let allMeshes = [mesh].concat(mesh.getChildMeshes(false));
-
-			allMeshes.forEach(nextMesh => {
-				if (nextMesh.material) {
-					nextMesh.material.alpha = alphaValue;
-				}
-			});
-			return;
-		}
-		await new Promise(resolve => setTimeout(resolve, attemptInterval));
-	}
-	console.error(`Model with ID '${modelName}' not found after ${maxAttempts} attempts.`);
+		allMeshes.forEach((nextMesh) => {
+			if (nextMesh.material) {
+				nextMesh.material.alpha = alphaValue;
+			}
+		});
+	});
 }
 
-export async function playAnimation(modelName, animationName, loop = false, restart = true) {
+export async function playAnimation(
+	modelName,
+	animationName,
+	loop = false,
+	restart = true,
+) {
 	const maxAttempts = 10;
 	const attemptInterval = 1000; // Time in milliseconds between attempts
 
 	for (let attempt = 1; attempt <= maxAttempts; attempt++) {
 		const mesh = window.scene.getMeshByName(modelName);
 		if (mesh) {
-			const animGroup = switchToAnimation(window.scene, mesh, animationName, loop, restart);
+			const animGroup = switchToAnimation(
+				window.scene,
+				mesh,
+				animationName,
+				loop,
+				restart,
+			);
 
 			return new Promise((resolve) => {
 				animGroup.onAnimationEndObservable.addOnce(() => {
@@ -365,7 +335,188 @@ export async function playAnimation(modelName, animationName, loop = false, rest
 				});
 			});
 		}
-		await new Promise(resolve => setTimeout(resolve, attemptInterval));
+		await new Promise((resolve) => setTimeout(resolve, attemptInterval));
 	}
-	console.error(`Failed to find mesh "${modelName}" after ${maxAttempts} attempts.`);
+	console.error(
+		`Failed to find mesh "${modelName}" after ${maxAttempts} attempts.`,
+	);
+}
+
+// helperFunctions.js
+export function setFog(fogColorHex, fogMode, fogDensity = 0.1) {
+	const fogColorRgb = BABYLON.Color3.FromHexString(fogColorHex);
+
+	switch (fogMode) {
+		case "NONE":
+			window.scene.fogMode = BABYLON.Scene.FOGMODE_NONE;
+			break;
+		case "EXP":
+			window.scene.fogMode = BABYLON.Scene.FOGMODE_EXP;
+			break;
+		case "EXP2":
+			window.scene.fogMode = BABYLON.Scene.FOGMODE_EXP2;
+			break;
+		case "LINEAR":
+			window.scene.fogMode = BABYLON.Scene.FOGMODE_LINEAR;
+			break;
+	}
+
+	window.scene.fogColor = fogColorRgb;
+	window.scene.fogDensity = fogDensity;
+	window.scene.fogStart = 50;
+	window.scene.fogEnd = 100;
+}
+
+// helperFunctions.js
+export function newBox(color, width, height, depth, posX, posY, posZ, boxId) {
+	const newBox = BABYLON.MeshBuilder.CreateBox(
+		boxId,
+		{ width, height, depth },
+		window.scene,
+	);
+	newBox.position = new BABYLON.Vector3(posX, posY, posZ);
+
+	const boxBody = new BABYLON.PhysicsBody(
+		newBox,
+		BABYLON.PhysicsMotionType.STATIC,
+		false,
+		window.scene,
+	);
+
+	const boxShape = new BABYLON.PhysicsShapeBox(
+		new BABYLON.Vector3(0, 0, 0),
+		new BABYLON.Quaternion(0, 0, 0, 1),
+		new BABYLON.Vector3(width, height, depth),
+		window.scene,
+	);
+
+	boxBody.setMassProperties({ inertia: BABYLON.Vector3.ZeroReadOnly });
+	boxBody.shape = boxShape;
+	boxBody.setMassProperties({ mass: 1, restitution: 0.5 });
+
+	newBox.physics = boxBody;
+
+	const material = new BABYLON.StandardMaterial("boxMaterial", window.scene);
+	material.diffuseColor = BABYLON.Color3.FromHexString(color);
+	newBox.material = material;
+
+	return boxId;
+}
+
+// helperFunctions.js
+export function newSphere(
+	color,
+	diameterX,
+	diameterY,
+	diameterZ,
+	posX,
+	posY,
+	posZ,
+	sphereId,
+) {
+	const newSphere = BABYLON.MeshBuilder.CreateSphere(
+		sphereId,
+		{
+			diameterX,
+			diameterY,
+			diameterZ,
+		},
+		window.scene,
+	);
+	newSphere.position = new BABYLON.Vector3(posX, posY, posZ);
+
+	const sphereBody = new BABYLON.PhysicsBody(
+		newSphere,
+		BABYLON.PhysicsMotionType.STATIC,
+		false,
+		window.scene,
+	);
+
+	const sphereShape = new BABYLON.PhysicsShapeSphere(
+		new BABYLON.Vector3(0, 0, 0),
+		Math.max(diameterX, diameterY, diameterZ) / 2, // Approximation for irregular diameters
+		window.scene,
+	);
+
+	sphereBody.shape = sphereShape;
+	sphereBody.setMassProperties({ mass: 1, restitution: 0.5 });
+	sphereBody.setAngularDamping(100);
+	sphereBody.setLinearDamping(10);
+	newSphere.physics = sphereBody;
+
+	const material = new BABYLON.StandardMaterial(
+		"sphereMaterial",
+		window.scene,
+	);
+	material.diffuseColor = BABYLON.Color3.FromHexString(color);
+	newSphere.material = material;
+
+	return sphereId;
+}
+
+export function newPlane(color, width, height, posX, posY, posZ, planeId) {
+	const newPlane = BABYLON.MeshBuilder.CreatePlane(
+		planeId,
+		{ width, height, sideOrientation: BABYLON.Mesh.DOUBLESIDE },
+		window.scene,
+	);
+	newPlane.position = new BABYLON.Vector3(posX, posY, posZ);
+
+	const material = new BABYLON.StandardMaterial(
+		"planeMaterial",
+		window.scene,
+	);
+	material.diffuseColor = BABYLON.Color3.FromHexString(color);
+	newPlane.material = material;
+
+	return planeId;
+}
+
+export async function moveByVector(modelName, x, y, z) {
+	await retryUntilFound(modelName, (mesh) => {
+		mesh.position.addInPlace(new BABYLON.Vector3(x, y, z));
+		mesh.physics.disablePreStep = false;
+		mesh.physics.setTargetTransform(mesh.position, mesh.rotationQuaternion);
+
+		// Ensure state consistency
+		mesh.computeWorldMatrix(true);
+	});
+}
+
+export async function rotate(meshName, x, y, z) {
+	await retryUntilFound(meshName, (mesh) => {
+		if (mesh.physics.getMotionType() !== BABYLON.PhysicsMotionType.DYNAMIC) {
+			mesh.physics.setMotionType(BABYLON.PhysicsMotionType.ANIMATED);
+		}
+
+		const incrementalRotation = BABYLON.Quaternion.RotationYawPitchRoll(
+			BABYLON.Tools.ToRadians(y),
+			BABYLON.Tools.ToRadians(x),
+			BABYLON.Tools.ToRadians(z)
+		);
+		mesh.rotationQuaternion.multiplyInPlace(incrementalRotation).normalize();
+		mesh.physics.disablePreStep = false;
+		mesh.physics.setTargetTransform(mesh.absolutePosition, mesh.rotationQuaternion);
+
+		// Ensure state consistency
+		mesh.computeWorldMatrix(true);
+	});
+}
+
+
+async function retryUntilFound(modelName, callback) {
+	const maxAttempts = 10;
+	const attemptInterval = 1000; // Time in milliseconds between attempts
+
+	for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+		const mesh = window.scene.getMeshByName(modelName);
+		if (mesh) {
+			await callback(mesh);
+			return;
+		}
+		await new Promise((resolve) => setTimeout(resolve, attemptInterval));
+	}
+	console.error(
+		`Model with ID '${modelName}' not found after ${maxAttempts} attempts.`,
+	);
 }
