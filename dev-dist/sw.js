@@ -78,22 +78,29 @@ define(['./workbox-07658ed7'], (function (workbox) { 'use strict';
    * See https://goo.gl/S9QRab
    */
   workbox.precacheAndRoute([{
+    "url": "assets/favicon-f7800b10.svg",
+    "revision": null
+  }, {
+    "url": "assets/HavokPhysics-2bc63fab.wasm",
+    "revision": null
+  }, {
+    "url": "assets/index-5e4ff3e3.js",
+    "revision": null
+  }, {
     "url": "registerSW.js",
-    "revision": "3ca0b8505b4bec776b69afdba2768812"
+    "revision": "f73354971172fa2b2f72cacc220a01a7"
   }, {
     "url": "index.html",
-    "revision": "0.2tu3vdkm9vg"
+    "revision": "0.cun0l9hqsb8"
   }], {});
   workbox.cleanupOutdatedCaches();
   workbox.registerRoute(new workbox.NavigationRoute(workbox.createHandlerBoundToURL("index.html"), {
     allowlist: [/^\/$/]
   }));
-  workbox.registerRoute(({
-    request
-  }) => request.destination === "images", new workbox.CacheFirst({
-    "cacheName": "images-cache",
+  workbox.registerRoute(/^https:\/\/flipcomputing\.github\.io\/flock\//, new workbox.CacheFirst({
+    "cacheName": "github-pages-cache",
     plugins: [new workbox.ExpirationPlugin({
-      maxEntries: 10,
+      maxEntries: 50,
       maxAgeSeconds: 2592000
     })]
   }), 'GET');

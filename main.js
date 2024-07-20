@@ -2737,37 +2737,29 @@ function getFieldValue(block, fieldName, defaultValue) {
 	);
 }
 
-async function whenModelReady(meshId, callback, attempt = 1) {
-	const maxAttempts = 10; // Maximum number of attempts before giving up
-	const attemptInterval = 1000; // Time in milliseconds between attempts
+async function* modelReadyGenerator(meshId, maxAttempts = 10, attemptInterval = 1000) {
+		for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+			if (window.scene) {
+				const mesh = window.scene.getMeshByName(meshId);
+				if (mesh) {
+					yield mesh;
+					return;
+				}
+			}
+			await new Promise(resolve => setTimeout(resolve, attemptInterval));
+		}
+	throw new Error(`Model with ID '${meshId}' not found after ${maxAttempts} attempts.`);
+}
 
-	// Early exit if meshId is not provided
+async function whenModelReady(meshId, callback) {
 	if (!meshId) {
 		console.log("Undefined model requested.", meshId);
 		return;
 	}
 
-	const mesh = window.scene.getMeshByName(meshId);
-
-	// If mesh is found, execute the callback
-	if (mesh) {
+	const generator = modelReadyGenerator(meshId);
+	for await (const mesh of generator) {
 		await callback(mesh);
-		//console.log(`Action performed on ${meshId}`);
-		return;
-	}
-
-	// Retry logic if mesh not found and max attempts not reached
-	if (attempt <= maxAttempts) {
-		//console.log(`Retrying model with ID '${meshId}'. Attempt ${attempt}`);
-		setTimeout(
-			() => window.whenModelReady(meshId, callback, attempt + 1),
-			attemptInterval,
-		);
-	} else {
-		// Log error if maximum attempts are reached
-		console.error(
-			`Model with ID '${meshId}' not found after ${maxAttempts} attempts.`,
-		);
 	}
 }
 
@@ -3737,6 +3729,21 @@ javascriptGenerator.forBlock["clear_effects"] = function (block) {
 	});\n`;
 };
 
+// Define the generator function to yield while waiting for the model
+async function* findModelAndSwitchAnimationGenerator(modelName, animationName, maxAttempts = 100, attemptInterval = 500) {
+	for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+		const model = scene.getMeshByName(modelName);
+		if (model) {
+			window.switchToAnimation(scene, model, animationName);
+			return;
+		}
+		await new Promise(resolve => setTimeout(resolve, attemptInterval));
+		yield; // Yield control to allow other threads to run
+	}
+	throw new Error(`Model ${modelName} not found after ${maxAttempts} attempts.`);
+}
+
+// Update the Blockly block generator
 javascriptGenerator.forBlock["switch_animation"] = function (block) {
 	const modelName = javascriptGenerator.nameDB_.getName(
 		block.getFieldValue("MODEL"),
@@ -3744,30 +3751,16 @@ javascriptGenerator.forBlock["switch_animation"] = function (block) {
 	);
 	const animationName = block.getFieldValue("ANIMATION_NAME");
 
-	// Wrap the logic in an asynchronous IIFE
 	return `
 (async function() {
-	const maxAttempts = 100;
-	let attempts = 0;
-
-	const findModelAndSwitchAnimation = async () => {
-		const model = scene.getMeshByName(${modelName});
-		if (model) {
-			window.switchToAnimation(scene, model, '${animationName}');
-		} else if (attempts < maxAttempts) {
-			attempts++;
-			await new Promise(resolve => setTimeout(resolve, 500)); // Wait 500ms before retrying
-			findModelAndSwitchAnimation();
-		} else {
-			console.error('Model ' + ${modelName} + ' not found after ' + maxAttempts + ' attempts.');
-		}
-	};
-
-	await findModelAndSwitchAnimation();
-})();
-	`;
+	const generator = findModelAndSwitchAnimationGenerator(${modelName}, "${animationName}");
+	for await (const _ of generator) {
+		// Control is yielded inside the generator
+	}
+})();`;
 };
 
+// Define the function to switch animation
 function switchToAnimation(
 	scene,
 	mesh,
@@ -3835,6 +3828,7 @@ function switchToAnimation(
 }
 
 window.switchToAnimation = switchToAnimation;
+window.findModelAndSwitchAnimationGenerator = findModelAndSwitchAnimationGenerator;
 
 javascriptGenerator.forBlock["move_forward"] = function (block) {
 	const modelName = javascriptGenerator.nameDB_.getName(
