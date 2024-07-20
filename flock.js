@@ -564,3 +564,34 @@ export async function glideTo(meshName, x, y, z, duration) {
 		});
 	});
 }
+
+
+export async function show(modelName) {
+	return new Promise(async (resolve) => {
+		await window.whenModelReady(modelName, async function(mesh) {
+			if (mesh) {
+				mesh.setEnabled(true);
+				window.hk._hknp.HP_World_AddBody(hk.world, mesh.physics._pluginData.hpBodyId, mesh.physics.startAsleep);
+				resolve();
+			} else {
+				console.log("Model not loaded:", modelName);
+				resolve(); // Resolve even if the mesh is not found to prevent hanging
+			}
+		});
+	});
+}
+
+export async function hide(modelName) {
+	return new Promise(async (resolve) => {
+		await window.whenModelReady(modelName, async function(mesh) {
+			if (mesh) {
+				mesh.setEnabled(false);
+				window.hk._hknp.HP_World_RemoveBody(hk.world, mesh.physics._pluginData.hpBodyId);
+				resolve();
+			} else {
+				console.log("Mesh not loaded:", modelName);
+				resolve(); // Resolve even if the mesh is not found to prevent hanging
+			}
+		});
+	});
+}

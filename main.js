@@ -24,6 +24,8 @@ import {
 	glideTo,
 	rotate,
 	wait,
+	show,
+	hide,
 	clearEffects,
 	tint,
 	setAlpha,
@@ -37,6 +39,8 @@ window.createGround = createGround;
 window.setSky = setSky;
 window.setFog = setFog;
 window.wait = wait;
+window.show = show;
+window.hide = hide;
 window.clearEffects = clearEffects;
 window.tint = tint;
 window.setAlpha = setAlpha;
@@ -2710,15 +2714,7 @@ javascriptGenerator.forBlock["show"] = function (block) {
 		Blockly.Names.NameType.VARIABLE,
 	);
 
-	return `window.whenModelReady(${modelName}, function(mesh) {
-	if (mesh) {
-	 mesh.setEnabled(true);
-	 hk._hknp.HP_World_AddBody(hk.world, mesh.physics._pluginData.hpBodyId, mesh.physics.startAsleep);
-	}
-	else{
-	 console.log("Model not loaded:", ${modelName});
-	}
-	});\n`;
+	return `await show(${modelName});\n`;
 };
 
 javascriptGenerator.forBlock["hide"] = function (block) {
@@ -2727,32 +2723,8 @@ javascriptGenerator.forBlock["hide"] = function (block) {
 		Blockly.Names.NameType.VARIABLE,
 	);
 
-	return `window.whenModelReady(${modelName}, function(mesh) {
-	if (mesh) {
-	 mesh.setEnabled(false);
-	 hk._hknp.HP_World_RemoveBody(hk.world, mesh.physics._pluginData.hpBodyId);
-	}
-	else{
-	 console.log("Mesh not loaded:", ${modelName});
-	}
-
-	});\n`;
+	return `await hide(${modelName});\n`;
 };
-
-function wrapCode(modelName, innerCodeBlock) {
-	return `
-  (function() {
-	window.whenModelReady(${modelName}, function(mesh) {
-	if (mesh) {
-	  ${innerCodeBlock}
-	}
-	else {
-	  console.log("Model not loaded:", modelName);
-	}
-	});
-  })();
-  `;
-}
 
 function generateUUID() {
 	return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(
@@ -3551,6 +3523,7 @@ const createScene = function () {
 	window.scene.eventListeners = [];
 	hk = new BABYLON.HavokPlugin(true, havokInstance);
 	window.scene.enablePhysics(new BABYLON.Vector3(0, -9.81, 0), hk);
+	window.hk = hk;
 	window.highlighter = new BABYLON.HighlightLayer(
 		"highlighter",
 		window.scene,
