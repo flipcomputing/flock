@@ -104,9 +104,9 @@ export function switchToAnimation(
 
 export function switchAnimation(modelName, animationName) {
 	const mesh = window.scene.getMeshByName(modelName);
-		if (mesh) {
-			switchToAnimation(window.scene, mesh, animationName, true, false);
-		}
+	if (mesh) {
+		switchToAnimation(window.scene, mesh, animationName, true, false);
+	}
 }
 
 export async function highlight(modelName, color) {
@@ -226,7 +226,6 @@ export async function clearEffects(modelName) {
 		});
 	});
 }
-
 
 function createCapsuleFromBoundingBox(mesh, scene) {
 	// Ensure the bounding info is up to date
@@ -485,24 +484,30 @@ export async function moveByVector(modelName, x, y, z) {
 
 export async function rotate(meshName, x, y, z) {
 	await retryUntilFound(meshName, (mesh) => {
-		if (mesh.physics.getMotionType() !== BABYLON.PhysicsMotionType.DYNAMIC) {
+		if (
+			mesh.physics.getMotionType() !== BABYLON.PhysicsMotionType.DYNAMIC
+		) {
 			mesh.physics.setMotionType(BABYLON.PhysicsMotionType.ANIMATED);
 		}
 
 		const incrementalRotation = BABYLON.Quaternion.RotationYawPitchRoll(
 			BABYLON.Tools.ToRadians(y),
 			BABYLON.Tools.ToRadians(x),
-			BABYLON.Tools.ToRadians(z)
+			BABYLON.Tools.ToRadians(z),
 		);
-		mesh.rotationQuaternion.multiplyInPlace(incrementalRotation).normalize();
+		mesh.rotationQuaternion
+			.multiplyInPlace(incrementalRotation)
+			.normalize();
 		mesh.physics.disablePreStep = false;
-		mesh.physics.setTargetTransform(mesh.absolutePosition, mesh.rotationQuaternion);
+		mesh.physics.setTargetTransform(
+			mesh.absolutePosition,
+			mesh.rotationQuaternion,
+		);
 
 		// Ensure state consistency
 		mesh.computeWorldMatrix(true);
 	});
 }
-
 
 async function retryUntilFound(modelName, callback) {
 	const maxAttempts = 10;
@@ -519,4 +524,43 @@ async function retryUntilFound(modelName, callback) {
 	console.error(
 		`Model with ID '${modelName}' not found after ${maxAttempts} attempts.`,
 	);
+}
+
+export async function glideTo(meshName, x, y, z, duration) {
+	return new Promise(async (resolve) => {
+		await window.whenModelReady(meshName, async function (mesh) {
+			if (mesh) {
+				const startPosition = mesh.position.clone();
+				const endPosition = new BABYLON.Vector3(x, y, z);
+				const fps = 30;
+				const frames = 30 * (duration / 1000);
+
+				if (mesh.glide) {
+					// Only allow one glide at a time
+					mesh.glide.stop();
+				}
+
+				mesh.physics.disablePreStep = false;
+
+				mesh.glide = BABYLON.Animation.CreateAndStartAnimation(
+					"anim",
+					mesh,
+					"position",
+					fps,
+					100,
+					startPosition,
+					endPosition,
+					BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT,
+				);
+
+				mesh.glide.onAnimationEndObservable.add(() => {
+					mesh.physics.disablePreStep = true;
+					mesh.glide = null;
+					resolve();
+				});
+			} else {
+				resolve(); // Resolve if the mesh is not found to prevent hanging
+			}
+		});
+	});
 }

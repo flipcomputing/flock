@@ -21,6 +21,7 @@ import {
 	createGround,
 	setSky,
 	moveByVector,
+	glideTo,
 	rotate,
 	wait,
 	clearEffects,
@@ -46,6 +47,7 @@ window.newSphere = newSphere;
 window.newPlane = newPlane;
 window.moveByVector = moveByVector;
 window.rotate = rotate;
+window.glideTo = glideTo;
 
 registerFieldColour();
 
@@ -2821,45 +2823,10 @@ javascriptGenerator.forBlock["glide_to"] = function (block) {
 		block.getFieldValue("MESH_VAR"),
 		Blockly.Names.NameType.VARIABLE,
 	);
-	const duration = block.getFieldValue("DURATION");
+	const duration = getFieldValue(block, "DURATION", "0");
 	const mode = block.getFieldValue("MODE");
 
-	return `
-	await (async function() {
-	  const animationPromise = new Promise(async (resolve) => {
-		await window.whenModelReady(box1, async function(mesh) {
-		  if (mesh) {
-		  
-		 	const startPosition = mesh.position.clone();
-			const endPosition = new BABYLON.Vector3(${x}, ${y}, ${z});
-			const fps = 30;
-			const frames = 30 * (${duration}/1000);
-
-			if(mesh.glide){ // Only allow one glide at a time
-				mesh.glide.stop();
-			}
-
-			mesh.physics.disablePreStep = false;
-			  
-			mesh.glide = BABYLON.Animation.CreateAndStartAnimation("anim", mesh, "position", fps, 100, startPosition, endPosition, BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT);
-
-		mesh.glide.onAnimationEndObservable.add(() => {		
-		      mesh.physics.disablePreStep = true;
-		  	  mesh.glide = null;
-			  resolve();
-			});
-		  }
-		});
-	  });
-
-${
-	mode === "AWAIT"
-		? `
-await animationPromise;
-`
-		: ""
-}
-	})();`;
+	return `await glideTo(${meshName}, ${x}, ${y}, ${z}, ${duration}, "${mode}");\n`;
 };
 
 javascriptGenerator.forBlock["start"] = function (block) {
@@ -3531,7 +3498,7 @@ mesh.physics.setMotionType(BABYLON.PhysicsMotionType.DYNAMIC);
 			case "ANIMATED":
 mesh.physics.setMotionType(BABYLON.PhysicsMotionType.ANIMATED);
  break;
-}
+} 
 	  }
 	  else{
 
