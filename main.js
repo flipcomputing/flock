@@ -365,9 +365,21 @@ Blockly.Blocks["load_model"] = {
 			message0: "new %1 %2 scale: %3 x: %4 y: %5 z: %6",
 			args0: [
 				{
-					type: "field_dropdown",
+					type: "field_grid_dropdown",
 					name: "MODELS",
-					options: modelNames.map((name) => [name, name]),
+					columns: 6,
+					options: modelNames.map((name) => {
+						const baseName = name.replace(/\.[^/.]+$/, '');
+						return [
+							{
+								src: `/images/${baseName}.png`, 
+								width: 50,
+								height: 50,
+								alt: baseName
+							},
+							name
+						];
+					})
 				},
 				{
 					type: "field_variable",
