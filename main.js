@@ -77,7 +77,6 @@ const categoryColours = {
 };
 
 const canvas = document.getElementById("renderCanvas");
-window.canvas = canvas;
 const engine = new BABYLON.Engine(canvas, true, { stencil: true });
 engine.enableOfflineSupport = false;
 let hk = null;
@@ -2281,8 +2280,6 @@ javascriptGenerator.forBlock["camera_follow"] = function (block) {
 		`window.whenModelReady(${modelName}, function(mesh) {
 	  if (mesh) {\n` +
 		`  
-  console.log("Attaching camera");
-
 // Reset linear and angular velocity after physics render
 window.scene.onAfterPhysicsObservable.add(() => {
   // Get current velocities
@@ -2653,6 +2650,29 @@ window.onload = function () {
 	document
 		.getElementById("importFile")
 		.addEventListener("change", handleSnippetUpload);
+
+	window.canvas = canvas;
+
+	canvas.currentKeyPressed = null;
+
+	// Create a set to keep track of pressed keys
+	canvas.pressedKeys = new Set();
+
+	//canvas.setAttribute("tabindex", "0"); // Make canvas focusable
+
+	//canvas.addEventListener("click", () => {
+	//	canvas.focus(); // Focus the canvas when clicked
+	//});
+
+	canvas.addEventListener("keydown", function (event) {
+		canvas.currentKeyPressed = event.code;
+		canvas.pressedKeys.add(event.code);
+	});
+
+	canvas.addEventListener("keyup", function (event) {
+		canvas.currentKeyPressed = null;
+		canvas.pressedKeys.delete(event.code);
+	});
 };
 
 function executeCode() {
@@ -2666,7 +2686,7 @@ function executeCode() {
 		const code = javascriptGenerator.workspaceToCode(workspace);
 		try {
 			//eval(code);
-			console.log(code);
+			//console.log(code);
 			new Function(`(async () => { ${code} })()`)();
 		} catch (error) {
 			console.error("Error executing Blockly code:", error);
@@ -2842,21 +2862,6 @@ document.getElementById("toggleDebug").addEventListener("click", function () {
 
 		window.scene.debugLayer.show();
 	}
-});
-
-window.currentKeyPressed = null;
-
-// Create a set to keep track of pressed keys
-window.pressedKeys = new Set();
-
-document.addEventListener("keydown", function (event) {
-	window.currentKeyPressed = event.code;
-	window.pressedKeys.add(event.code);
-});
-
-document.addEventListener("keyup", function (event) {
-	window.currentKeyPressed = null;
-	window.pressedKeys.delete(event.code);
 });
 
 async function exportBlockSnippet(block) {

@@ -649,11 +649,11 @@ function checkIfOnSurface(mesh) {
 
 export function keyPressed(key) {
 	if (key === "ANY") {
-		return pressedKeys.size > 0;
+		return canvas.pressedKeys.size > 0;
 	} else if (key === "NONE") {
-		return pressedKeys.size === 0;
+		return canvas.pressedKeys.size === 0;
 	} else {
-		return pressedKeys.has(key);
+		return canvas.pressedKeys.has(key);
 	}
 }
 
