@@ -2975,5 +2975,21 @@ function addImportContextMenuOption() {
 
 addImportContextMenuOption();
 
+function loadExample() {
+	const exampleFile = document.getElementById("exampleSelect").value;
+	if (exampleFile) {
+		fetch(exampleFile)
+			.then((response) => response.json())
+			.then((json) => {
+				Blockly.serialization.workspaces.load(json, workspace);
+				executeCode();
+			})
+			.catch((error) => {
+				console.error("Error loading example:", error);
+			});
+	}
+}
+
 window.executeCode = executeCode;
 window.exportCode = exportCode;
+window.loadExample = loadExample;

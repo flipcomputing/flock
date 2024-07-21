@@ -63,6 +63,11 @@
           placeholder="Enter project name here"
         />
         <button onclick="exportCode()">💾Save</button>
+        <select id="exampleSelect" onchange="loadExample()">
+          <option value="">🌴Examples</option>
+          <option value="examples/forest_base.json">Forest Base</option>
+          <!-- Add more options here as needed -->
+        </select>
         <button id="fullscreenToggle">🖼️Fullscreen</button>
         <div>
           <button class="gizmo-button" onclick="toggleGizmo('position')">

@@ -130,7 +130,7 @@ export async function highlight(modelName, color) {
 }
 
 export function newModel(modelName, modelId, scale, x, y, z) {
-	console.log("Loading", modelId);
+	//console.log("Loading", modelId);
 
 	BABYLON.SceneLoader.ImportMesh(
 		"",
