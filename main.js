@@ -5,6 +5,7 @@
 import * as Blockly from "blockly";
 import { javascriptGenerator } from "blockly/javascript";
 import { registerFieldColour } from "@blockly/field-colour";
+import { FieldGridDropdown } from "@blockly/field-grid-dropdown";
 import * as BABYLON from "@babylonjs/core";
 import * as BABYLON_GUI from "@babylonjs/gui";
 import HavokPhysics from "@babylonjs/havok";
@@ -438,11 +439,7 @@ function handleBlockCreateEvent(
 			const variableName = variable ? variable.name : "";
 
 			if (!variableNamePattern.test(variableName)) {
-				// If the variable name does not match the pattern, do not change it
-				console.log(
-					"Predefined variable detected, not changing:",
-					variableName,
-				);
+				// Don't change
 			} else {
 				// If the variable name matches the pattern, create and set a new variable
 				if (!nextVariableIndexes[variableNamePrefix]) {
@@ -1091,9 +1088,55 @@ Blockly.Blocks["when_key_pressed"] = {
 			message0: "when key pressed %1",
 			args0: [
 				{
-					type: "field_dropdown",
+					type: "field_grid_dropdown",
 					name: "KEY",
-					options: [["space", "SPACE"]],
+					columns: 10,
+					options: [
+						["0", "0"],
+						["1", "1"],
+						["2", "2"],
+						["3", "3"],
+						["4", "4"],
+						["5", "5"],
+						["6", "6"],
+						["7", "7"],
+						["8", "8"],
+						["9", "9"],
+						["a", "a"],
+						["b", "b"],
+						["c", "c"],
+						["d", "d"],
+						["e", "e"],
+						["f", "f"],
+						["g", "g"],
+						["h", "h"],
+						["i", "i"],
+						["j", "j"],
+						["k", "k"],
+						["l", "l"],
+						["m", "m"],
+						["n", "n"],
+						["o", "o"],
+						["p", "p"],
+						["q", "q"],
+						["r", "r"],
+						["s", "s"],
+						["t", "t"],
+						["u", "u"],
+						["v", "v"],
+						["w", "w"],
+						["x", "x"],
+						["y", "y"],
+						["z", "z"],
+						[" ", "Space"],
+						[",", ","],
+						[".", "."],
+						["/", "/"],
+						["⯇", "ArrowLeft"],
+						["⯅", "ArrowUp"],
+						["⯈", "ArrowRight"],
+						["⯆", "ArrowDown"],
+					],
 				},
 			],
 			message1: "do %1",
@@ -1119,9 +1162,55 @@ Blockly.Blocks["when_key_released"] = {
 			message0: "when key released %1",
 			args0: [
 				{
-					type: "field_dropdown",
+					type: "field_grid_dropdown",
 					name: "KEY",
-					options: [["space", "SPACE"]],
+					columns: 10,
+					options: [
+						["0", "0"],
+						["1", "1"],
+						["2", "2"],
+						["3", "3"],
+						["4", "4"],
+						["5", "5"],
+						["6", "6"],
+						["7", "7"],
+						["8", "8"],
+						["9", "9"],
+						["a", "a"],
+						["b", "b"],
+						["c", "c"],
+						["d", "d"],
+						["e", "e"],
+						["f", "f"],
+						["g", "g"],
+						["h", "h"],
+						["i", "i"],
+						["j", "j"],
+						["k", "k"],
+						["l", "l"],
+						["m", "m"],
+						["n", "n"],
+						["o", "o"],
+						["p", "p"],
+						["q", "q"],
+						["r", "r"],
+						["s", "s"],
+						["t", "t"],
+						["u", "u"],
+						["v", "v"],
+						["w", "w"],
+						["x", "x"],
+						["y", "y"],
+						["z", "z"],
+						[" ", "Space"],
+						[",", ","],
+						[".", "."],
+						["/", "/"],
+						["⯇", "ArrowLeft"],
+						["⯅", "ArrowUp"],
+						["⯈", "ArrowRight"],
+						["⯆", "ArrowDown"],
+					],
 				},
 			],
 			message1: "do %1",
@@ -2066,22 +2155,15 @@ javascriptGenerator.forBlock["when_clicked"] = function (block) {
 	`;
 };
 
-// Mapping key names to key codes, including space
-const keyCodeMap = {
-	SPACE: "32",
-};
-
 javascriptGenerator.forBlock["when_key_pressed"] = function (block) {
 	const key = block.getFieldValue("KEY");
 	const statements_do = javascriptGenerator.statementToCode(block, "DO");
-
-	const keyCode = keyCodeMap[key];
 
 	return `
 	window.scene.onKeyboardObservable.add(async (kbInfo) => {
 	switch (kbInfo.type) {
 	  case BABYLON.KeyboardEventTypes.KEYDOWN:
-	  if (kbInfo.event.keyCode === ${keyCode}) {
+	  if (kbInfo.event.key === "${key}") {
 		${statements_do}
 	  }
 	  break;
@@ -2093,13 +2175,12 @@ javascriptGenerator.forBlock["when_key_pressed"] = function (block) {
 javascriptGenerator.forBlock["when_key_released"] = function (block) {
 	const key = block.getFieldValue("KEY");
 	const statements_do = javascriptGenerator.statementToCode(block, "DO");
-	const keyCode = keyCodeMap[key];
 
 	return `
 	window.scene.onKeyboardObservable.add( async (kbInfo) => {
 	switch (kbInfo.type) {
 	  case BABYLON.KeyboardEventTypes.KEYUP:
-	  if (kbInfo.event.keyCode === ${keyCode}) {
+	  if (kbInfo.event.key === "${key}") {
 		${statements_do}
 	  }
 	  break;
