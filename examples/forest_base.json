@@ -52,18 +52,26 @@
                       "next": {
                         "block": {
                           "type": "create_box",
-                          "id": "TjS^qyS#KVP44-1@W,kn",
+                          "id": "zcv.bcKq$@!B/+`(JINe",
                           "fields": {
                             "ID_VAR": {
                               "id": "6{$Hf~t.cjeSt*;zA:JG"
-                            },
-                            "COLOR": "#996633"
+                            }
                           },
                           "inputs": {
+                            "COLOR": {
+                              "shadow": {
+                                "type": "colour",
+                                "id": "pS%zHy1$9r=8yRe0P:*m",
+                                "fields": {
+                                  "COLOR": "#996633"
+                                }
+                              }
+                            },
                             "WIDTH": {
                               "shadow": {
                                 "type": "math_number",
-                                "id": "@:=H3V*W*A%A9=n~Km?2",
+                                "id": "|i5T]emHT|u^YGZ-Zo*s",
                                 "fields": {
                                   "NUM": 4
                                 }
@@ -72,7 +80,7 @@
                             "HEIGHT": {
                               "shadow": {
                                 "type": "math_number",
-                                "id": "1X0Z#T,DVJ.;6p-^kq]T",
+                                "id": "vSuJmO,PGXYNP.f%SVbI",
                                 "fields": {
                                   "NUM": 1
                                 }
@@ -81,7 +89,7 @@
                             "DEPTH": {
                               "shadow": {
                                 "type": "math_number",
-                                "id": "8W;T9/daM8}1tmbz@6/F",
+                                "id": "4GQLr^Th`T|^0HtRb~Xw",
                                 "fields": {
                                   "NUM": 4
                                 }
@@ -90,7 +98,7 @@
                             "X": {
                               "shadow": {
                                 "type": "math_number",
-                                "id": "/q?6[ZlPlm]VDUB;UJql",
+                                "id": "o:m,j-+?aWmu3H;3zS6F",
                                 "fields": {
                                   "NUM": -4
                                 }
@@ -99,7 +107,7 @@
                             "Y": {
                               "shadow": {
                                 "type": "math_number",
-                                "id": "`/e[-B$*#%YVMDW^GHI3",
+                                "id": "sQ`[,`/vOtOjO(At=WIo",
                                 "fields": {
                                   "NUM": 0.5
                                 }
@@ -108,7 +116,7 @@
                             "Z": {
                               "shadow": {
                                 "type": "math_number",
-                                "id": "}xkBrS-$Eh]!GZQk4?p-",
+                                "id": "Ab?mkt.P;JWh(ml:h#jM",
                                 "fields": {
                                   "NUM": 0
                                 }
@@ -118,18 +126,26 @@
                           "next": {
                             "block": {
                               "type": "create_box",
-                              "id": "jMKZM@8d{{mxwJy8Ngk*",
+                              "id": "yXt(J4e5(fL2|K?h@0$T",
                               "fields": {
                                 "ID_VAR": {
                                   "id": "5A#{r?jh/#w~gB|.B;!}"
-                                },
-                                "COLOR": "#ffcc00"
+                                }
                               },
                               "inputs": {
+                                "COLOR": {
+                                  "shadow": {
+                                    "type": "colour",
+                                    "id": "Z-V67||{:[Oy_fvZzzNz",
+                                    "fields": {
+                                      "COLOR": "#ffff66"
+                                    }
+                                  }
+                                },
                                 "WIDTH": {
                                   "shadow": {
                                     "type": "math_number",
-                                    "id": "U9o-8FbKuF)AeasUi.w4",
+                                    "id": "]Wk^F5!43Na^Q(FW%_d=",
                                     "fields": {
                                       "NUM": 0.5
                                     }
@@ -138,7 +154,7 @@
                                 "HEIGHT": {
                                   "shadow": {
                                     "type": "math_number",
-                                    "id": "W~[_SUb*Nf|^+=L#7Pa4",
+                                    "id": "Y]14YOSA!O(=Uv(6.-vl",
                                     "fields": {
                                       "NUM": 0.5
                                     }
@@ -147,7 +163,7 @@
                                 "DEPTH": {
                                   "shadow": {
                                     "type": "math_number",
-                                    "id": "txt%vq=PswR{_qU}i3-n",
+                                    "id": "ZJHe2J6oR,`/G!(sZ1=0",
                                     "fields": {
                                       "NUM": 0.5
                                     }
@@ -156,7 +172,7 @@
                                 "X": {
                                   "shadow": {
                                     "type": "math_number",
-                                    "id": "5nVD-Xk+QKS=a%Icz[V7",
+                                    "id": ",UNngO)h5wgGLcFinU,(",
                                     "fields": {
                                       "NUM": -3
                                     }
@@ -165,7 +181,7 @@
                                 "Y": {
                                   "shadow": {
                                     "type": "math_number",
-                                    "id": "Meda~^J*rZI)b.Iae-fK",
+                                    "id": "CmL;a`y;)wG[l~d=M7#,",
                                     "fields": {
                                       "NUM": 2.5
                                     }
@@ -174,7 +190,7 @@
                                 "Z": {
                                   "shadow": {
                                     "type": "math_number",
-                                    "id": "KjHOnM%t!v)WJyBA9(Q%",
+                                    "id": "`i`)Li%84_kkf1a]6*bc",
                                     "fields": {
                                       "NUM": 0
                                     }
@@ -1766,6 +1782,14 @@
     {
       "name": "box7",
       "id": "}`aQ[/p5e8{X!|*UmwY$"
+    },
+    {
+      "name": "box8",
+      "id": "75L*O)qf2gSbkfUF)z+L"
+    },
+    {
+      "name": "box9",
+      "id": "DY,G#$KiA;.fQUl?1T2u"
     }
   ]
 }
