@@ -59,7 +59,7 @@ export default {
       workbox: {
         maximumFileSizeToCacheInBytes: 15000000,
         globPatterns: [
-          '**/*.{js,css,html,ico,png,svg,glb,gltf,ogg,wasm}'
+          '**/*.{js,css,html,ico,png,svg,glb,gltf,ogg,wasm,json}'
         ],
         modifyURLPrefix: isProduction ? {
           '': '/flock/' // Prepend the base URL to all cached assets in production
