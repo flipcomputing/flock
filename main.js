@@ -20,6 +20,7 @@ import {
 	newPlane,
 	createGround,
 	setSky,
+	up,
 	moveByVector,
 	glideTo,
 	rotate,
@@ -30,6 +31,8 @@ import {
 	tint,
 	setAlpha,
 	setFog,
+	keyPressed,
+	isTouchingSurface,
 } from "./flock.js";
 
 window.BABYLON = BABYLON;
@@ -52,6 +55,9 @@ window.newPlane = newPlane;
 window.moveByVector = moveByVector;
 window.rotate = rotate;
 window.glideTo = glideTo;
+window.up = up;
+window.keyPressed = keyPressed;
+window.isTouchingSurface = isTouchingSurface;
 
 registerFieldColour();
 
@@ -432,6 +438,20 @@ const toolbox = {
 								type: "math_number",
 								fields: {
 									NUM: 3,
+								},
+							},
+						},
+					},
+				},
+				{
+					kind: "block",
+					type: "up",
+					inputs: {
+						UP_FORCE: {
+							shadow: {
+								type: "math_number",
+								fields: {
+									NUM: 2,
 								},
 							},
 						},
@@ -944,6 +964,10 @@ const toolbox = {
 				{
 					kind: "block",
 					type: "key_pressed",
+				},
+				{
+					kind: "block",
+					type: "touching_surface",
 				},
 				{
 					kind: "block",
@@ -2617,7 +2641,7 @@ Blockly.Blocks["key_pressed"] = {
 					options: [
 						["any", "ANY"],
 						["none", "NONE"],
-						["space", "SPACE"],
+						["space", "Space"],
 						["W", "KeyW"],
 						["A", "KeyA"],
 						["S", "KeyS"],
@@ -2658,6 +2682,7 @@ Blockly.Blocks["meshes_touching"] = {
 		});
 	},
 };
+
 Blockly.Blocks["move_forward"] = {
 	init: function () {
 		this.jsonInit({
@@ -2680,6 +2705,53 @@ Blockly.Blocks["move_forward"] = {
 			nextStatement: null,
 			colour: categoryColours["Motion"],
 			tooltip: "Moves the model forward in the direction it's pointing.",
+			helpUrl: "",
+		});
+	},
+};
+
+Blockly.Blocks["up"] = {
+	init: function () {
+		this.jsonInit({
+			type: "up",
+			message0: "up %1 force %2",
+			args0: [
+				{
+					type: "field_variable",
+					name: "MODEL_VAR",
+					variable: "model",
+				},
+				{
+					type: "input_value",
+					name: "UP_FORCE",
+					check: "Number",
+				},
+			],
+			previousStatement: null,
+			nextStatement: null,
+			colour: 230,
+			tooltip: "Apply the specified upwards force.",
+			helpUrl: "",
+		});
+	},
+};
+
+// Define the touching_surface block
+Blockly.Blocks["touching_surface"] = {
+	init: function () {
+		this.jsonInit({
+			type: "touching_surface",
+			message0: "is %1 touching surface",
+			args0: [
+				{
+					type: "field_variable",
+					name: "MODEL_VAR",
+					variable: "model",
+				},
+			],
+			output: "Boolean",
+			colour: 230,
+			tooltip: "Check if the model is touching a surface",
 			helpUrl: "",
 		});
 	},
@@ -3387,6 +3459,25 @@ javascriptGenerator.forBlock["move_forward"] = function (block) {
 	`;
 };
 
+javascriptGenerator.forBlock["up"] = function (block) {
+	const modelName = javascriptGenerator.nameDB_.getName(
+		block.getFieldValue("MODEL_VAR"),
+		Blockly.Names.NameType.VARIABLE,
+	);
+	const upForce = getFieldValue(block, "UP_FORCE", "1"); // Default up force
+
+	return `up(${modelName}, ${upForce});\n`;
+};
+
+javascriptGenerator.forBlock["touching_surface"] = function (block) {
+	const modelName = javascriptGenerator.nameDB_.getName(
+		block.getFieldValue("MODEL_VAR"),
+		Blockly.Names.NameType.VARIABLE,
+	);
+
+	return [`isTouchingSurface(${modelName})`, javascriptGenerator.ORDER_NONE];
+};
+
 javascriptGenerator.forBlock["camera_follow"] = function (block) {
 	const modelName = javascriptGenerator.nameDB_.getName(
 		block.getFieldValue("MESH_VAR"),
@@ -3482,16 +3573,7 @@ mesh.physics.setMotionType(BABYLON.PhysicsMotionType.ANIMATED);
 
 javascriptGenerator.forBlock["key_pressed"] = function (block) {
 	const key = block.getFieldValue("KEY");
-	// Code to check if the key is pressed
-	let code;
-	if (key === "ANY") {
-		code = "window.currentKeyPressed !== null";
-	} else if (key === "NONE") {
-		code = "window.currentKeyPressed === null";
-	} else {
-		code = `window.currentKeyPressed === "${key}"`;
-	}
-	return [code, javascriptGenerator.ORDER_NONE];
+	return [`keyPressed("${key}")`, javascriptGenerator.ORDER_NONE];
 };
 
 javascriptGenerator.forBlock["meshes_touching"] = function (block) {
@@ -3961,12 +4043,17 @@ document.getElementById("toggleDebug").addEventListener("click", function () {
 
 window.currentKeyPressed = null;
 
+// Create a set to keep track of pressed keys
+window.pressedKeys = new Set();
+
 document.addEventListener("keydown", function (event) {
 	window.currentKeyPressed = event.code;
+	window.pressedKeys.add(event.code);
 });
 
 document.addEventListener("keyup", function (event) {
 	window.currentKeyPressed = null;
+	window.pressedKeys.delete(event.code);
 });
 
 async function exportBlockSnippet(block) {

@@ -243,7 +243,7 @@ function createCapsuleFromBoundingBox(mesh, scene) {
 		boundingInfo.boundingBox.maximumWorld.z -
 		boundingInfo.boundingBox.minimumWorld.z;
 
-	// Calculate the radius as the average of the width and depth
+	// Calculate the radius as the min of the width and depth
 	const radius = Math.max(width, depth) / 2;
 
 	// Calculate the effective height of the capsule's cylindrical part
@@ -275,7 +275,6 @@ function createCapsuleFromBoundingBox(mesh, scene) {
 	return shape;
 }
 
-// helperFunctions.js
 export async function tint(modelName, color) {
 	await retryUntilFound(modelName, (mesh) => {
 		if (mesh.material) {
@@ -402,7 +401,6 @@ export function newBox(color, width, height, depth, posX, posY, posZ, boxId) {
 	return boxId;
 }
 
-// helperFunctions.js
 export function newSphere(
 	color,
 	diameterX,
@@ -565,13 +563,16 @@ export async function glideTo(meshName, x, y, z, duration) {
 	});
 }
 
-
 export async function show(modelName) {
 	return new Promise(async (resolve) => {
-		await window.whenModelReady(modelName, async function(mesh) {
+		await window.whenModelReady(modelName, async function (mesh) {
 			if (mesh) {
 				mesh.setEnabled(true);
-				window.hk._hknp.HP_World_AddBody(hk.world, mesh.physics._pluginData.hpBodyId, mesh.physics.startAsleep);
+				window.hk._hknp.HP_World_AddBody(
+					hk.world,
+					mesh.physics._pluginData.hpBodyId,
+					mesh.physics.startAsleep,
+				);
 				resolve();
 			} else {
 				console.log("Model not loaded:", modelName);
@@ -583,10 +584,13 @@ export async function show(modelName) {
 
 export async function hide(modelName) {
 	return new Promise(async (resolve) => {
-		await window.whenModelReady(modelName, async function(mesh) {
+		await window.whenModelReady(modelName, async function (mesh) {
 			if (mesh) {
 				mesh.setEnabled(false);
-				window.hk._hknp.HP_World_RemoveBody(hk.world, mesh.physics._pluginData.hpBodyId);
+				window.hk._hknp.HP_World_RemoveBody(
+					hk.world,
+					mesh.physics._pluginData.hpBodyId,
+				);
 				resolve();
 			} else {
 				console.log("Mesh not loaded:", modelName);
@@ -594,4 +598,61 @@ export async function hide(modelName) {
 			}
 		});
 	});
+}
+
+export function up(modelName, upForce = 10) {
+	const mesh = window.scene.getMeshByName(modelName);
+	if (mesh) {
+		mesh.physics.applyImpulse(
+			new BABYLON.Vector3(0, upForce, 0),
+			mesh.getAbsolutePosition(),
+		);
+	} else {
+		console.log("Model not loaded (up):", modelName);
+	}
+}
+
+export function isTouchingSurface(modelName) {
+	const mesh = window.scene.getMeshByName(modelName);
+	if (mesh) {
+		return checkIfOnSurface(mesh);
+	} else {
+		return false;
+	}
+}
+
+function checkIfOnSurface(mesh) {
+	// Get the bounding box of the mesh
+	mesh.computeWorldMatrix(true);
+	const boundingInfo = mesh.getBoundingInfo();
+
+	const minY = boundingInfo.boundingBox.minimumWorld.y;
+
+	// Cast the ray from a point slightly below the bottom of the mesh
+	const rayOrigin = new BABYLON.Vector3(
+		boundingInfo.boundingBox.centerWorld.x,
+		minY,
+		boundingInfo.boundingBox.centerWorld.z,
+	);
+	rayOrigin.y -= 0.01;
+	// Adjust the ray origin slightly below the mesh's bottom
+
+	// Raycast downwards
+	const ray = new BABYLON.Ray(rayOrigin, new BABYLON.Vector3(0, -1, 0), 0.02);
+	const hit = window.scene.pickWithRay(ray);
+
+	//	console.log(`Raycasting from: ${rayOrigin.toString()}`);
+	//console.log(`Ray hit: ${hit.hit}, Distance: ${hit.distance}, Picked Mesh: ${hit.pickedMesh ? hit.pickedMesh.name : "None"}`,);
+
+	return hit.hit && hit.pickedMesh !== null && hit.distance <= 0.2;
+}
+
+export function keyPressed(key) {
+	if (key === "ANY") {
+		return pressedKeys.size > 0;
+	} else if (key === "NONE") {
+		return pressedKeys.size === 0;
+	} else {
+		return pressedKeys.has(key);
+	}
 }
