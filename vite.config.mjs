@@ -32,8 +32,8 @@ export default {
       devOptions: {
         enabled: true
       },
-      assetsInclude: ['**/*.glb', '**/*.gltf', '**/*.ogg', '**/*.json',],
-      includeAssets: ['**/*.glb', '**/*.gltf', '**/*.ogg', '**/*.json',],
+      assetsInclude: ['**/*.glb', '**/*.gltf', '**/*.ogg', '**/*.json', '**/*.png',] ,
+      includeAssets: ['**/*.glb', '**/*.gltf', '**/*.ogg', '**/*.json', '**/*.png',],
       manifest: {
         name: 'Flock 3D Blocks',
         short_name: 'Flock',
