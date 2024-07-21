@@ -35,6 +35,7 @@ import {
 	keyPressed,
 	isTouchingSurface,
 	seededRandom,
+	randomColour,
 } from "./flock.js";
 import { toolbox } from "./toolbox.js";
 import { FlowGraphLog10Block } from "babylonjs";
@@ -62,6 +63,8 @@ window.up = up;
 window.keyPressed = keyPressed;
 window.isTouchingSurface = isTouchingSurface;
 window.seededRandom = seededRandom;
+window.randomColour = randomColour;
+
 registerFieldColour();
 
 const categoryColours = {
@@ -1663,16 +1666,15 @@ Blockly.Blocks["colour"] = {
 Blockly.Blocks["random_colour"] = {
 	init: function () {
 		this.jsonInit({
-			"type": "random_colour_block",
-			"message0": "random colour",
-			"output": "Colour",
-			"colour": 160,
-			"tooltip": "Generate a random colour",
-			"helpUrl": ""
+			type: "random_colour_block",
+			message0: "random colour",
+			output: "Colour",
+			colour: 160,
+			tooltip: "Generate a random colour",
+			helpUrl: "",
 		});
-	}
+	},
 };
-
 
 Blockly.Blocks["random_seeded_int"] = {
 	init: function () {
@@ -2607,19 +2609,10 @@ const createScene = function () {
 	return window.scene;
 };
 
-javascriptGenerator.forBlock['random_colour'] = function(block) {
-	const randomColour = () => {
-		const letters = '0123456789ABCDEF';
-		let colour = '#';
-		for (let i = 0; i < 6; i++) {
-			colour += letters[Math.floor(Math.random() * 16)];
-		}
-		return colour;
-	};
-	const code = `"${randomColour()}"`;
+javascriptGenerator.forBlock["random_colour"] = function (block) {
+	const code = `randomColour()`;
 	return [code, javascriptGenerator.ORDER_ATOMIC];
 };
-
 
 javascriptGenerator.forBlock["random_seeded_int"] = function (block) {
 	const value_from = getFieldValue(block, "FROM", 0);

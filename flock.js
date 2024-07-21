@@ -672,3 +672,12 @@ export function seededRandom(from, to, seed) {
 	const result = Math.floor(random * (to - from + 1)) + from; // Scales it to the desired range
 	return result;
 }
+
+export 	const randomColour = () => {
+		const letters = '0123456789ABCDEF';
+		let colour = '#';
+		for (let i = 0; i < 6; i++) {
+			colour += letters[Math.floor(Math.random() * 16)];
+		}
+		return colour;
+	};
