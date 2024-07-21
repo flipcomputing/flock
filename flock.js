@@ -150,7 +150,7 @@ export function newModel(modelName, modelId, scale, x, y, z) {
 			// Offsetting so that the model appears above the ground but at y=0 to make glide easier
 			bb.name = modelId;
 			bb.blockKey = bb.name;
-			bb.name = bb.name + bb.uniqueId;
+			//bb.name = bb.name + bb.uniqueId;
 			bb.isPickable = true;
 			bb.position.addInPlace(new BABYLON.Vector3(x, y, z));
 
