@@ -656,3 +656,10 @@ export function keyPressed(key) {
 		return pressedKeys.has(key);
 	}
 }
+
+export function seededRandom(from, to, seed) {
+	const x = Math.sin(seed) * 10000;
+	const random = x - Math.floor(x); // Generates a number between 0 and 1
+	const result = Math.floor(random * (to - from + 1)) + from; // Scales it to the desired range
+	return result;
+}

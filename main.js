@@ -33,8 +33,10 @@ import {
 	setFog,
 	keyPressed,
 	isTouchingSurface,
+	seededRandom,
 } from "./flock.js";
 import { toolbox } from "./toolbox.js";
+import { FlowGraphLog10Block } from "babylonjs";
 window.BABYLON = BABYLON;
 window.GUI = BABYLON_GUI;
 window.highlight = highlight;
@@ -58,7 +60,7 @@ window.glideTo = glideTo;
 window.up = up;
 window.keyPressed = keyPressed;
 window.isTouchingSurface = isTouchingSurface;
-
+window.seededRandom = seededRandom;
 registerFieldColour();
 
 const categoryColours = {
@@ -1537,6 +1539,40 @@ function playSoundAsync(scene, soundName) {
 
 window.playSoundAsync = playSoundAsync;
 
+Blockly.Blocks["random_seeded_int"] = {
+	init: function () {
+		this.jsonInit({
+			type: "random_seeded_int",
+			message0: "random integer from %1 to %2 with seed %3",
+			args0: [
+				{
+					type: "input_value",
+					name: "FROM",
+					check: "Number",
+					align: "RIGHT",
+				},
+				{
+					type: "input_value",
+					name: "TO",
+					check: "Number",
+					align: "RIGHT",
+				},
+				{
+					type: "input_value",
+					name: "SEED",
+					check: "Number",
+					align: "RIGHT",
+				},
+			],
+			inputsInline: true,
+			output: "Number",
+			colour: 230,
+			tooltip: "Generate a random integer with a seed",
+			helpUrl: "",
+		});
+	},
+};
+
 javascriptGenerator.forBlock["show"] = function (block) {
 	const modelName = javascriptGenerator.nameDB_.getName(
 		block.getFieldValue("MODEL_VAR"),
@@ -2443,6 +2479,16 @@ const createScene = function () {
 	};
 
 	return window.scene;
+};
+
+javascriptGenerator.forBlock["random_seeded_int"] = function (block) {
+	const value_from = getFieldValue(block, "FROM", 0);
+	const value_to = getFieldValue(block, "TO", FlowGraphLog10Block);
+	const value_seed = getFieldValue(block, "SEED", 123456);
+
+	const code = `seededRandom(${value_from}, ${value_to}, ${value_seed})`;
+
+	return [code, javascriptGenerator.ORDER_NONE];
 };
 
 async function initialize() {

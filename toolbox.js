@@ -1006,6 +1006,36 @@ export const toolbox = {
 					},
 				},
 				{
+				  kind: "block",
+				  type: "random_seeded_int",
+				  inputs: {
+					FROM: {
+					  shadow: {
+						type: "math_number",
+						fields: {
+						  NUM: 1
+						}
+					  }
+					},
+					TO: {
+					  shadow: {
+						type: "math_number",
+						fields: {
+						  NUM: 100
+						}
+					  }
+					},
+					SEED: {
+					  shadow: {
+						type: "math_number",
+						fields: {
+						  NUM: 42 // Default seed value
+						}
+					  }
+					}
+				  }
+				},
+				{
 					kind: "block",
 					type: "math_number",
 					fields: {
