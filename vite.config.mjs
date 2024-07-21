@@ -22,7 +22,7 @@ export default {
         },
         {
           src: 'examples/*.json',
-          dest: 'example'
+          dest: 'examples'
         },
       ]
     }),
@@ -32,8 +32,8 @@ export default {
       devOptions: {
         enabled: true
       },
-      assetsInclude: ['**/*.glb', '**/*.gltf', '**/*.ogg','**/*.json',],
-      includeAssets: ['**/*.glb', '**/*.gltf', '**/*.ogg','**/*.json',],
+      assetsInclude: ['**/*.glb', '**/*.gltf', '**/*.ogg', '**/*.json',],
+      includeAssets: ['**/*.glb', '**/*.gltf', '**/*.ogg', '**/*.json',],
       manifest: {
         name: 'Flock 3D Blocks',
         short_name: 'Flock',
