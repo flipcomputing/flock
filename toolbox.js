@@ -87,10 +87,15 @@ export const toolbox = {
 				{
 					kind: "block",
 					type: "create_box",
-					fields: {
-						COLOR: "#9932CC",
-					},
 					inputs: {
+						COLOR: {
+							shadow: {
+								type: "colour",
+								fields: {
+									COLOR: "#9932CC",
+								},
+							},
+						},
 						WIDTH: {
 							shadow: {
 								type: "math_number",
@@ -446,6 +451,14 @@ export const toolbox = {
 				{
 					kind: "block",
 					type: "play_animation",
+				},
+				{
+					kind: "block",
+					type: "colour",
+				},
+				{
+				  kind: "block",
+				  type: "random_colour",
 				},
 			],
 		},
@@ -1006,34 +1019,34 @@ export const toolbox = {
 					},
 				},
 				{
-				  kind: "block",
-				  type: "random_seeded_int",
-				  inputs: {
-					FROM: {
-					  shadow: {
-						type: "math_number",
-						fields: {
-						  NUM: 1
-						}
-					  }
+					kind: "block",
+					type: "random_seeded_int",
+					inputs: {
+						FROM: {
+							shadow: {
+								type: "math_number",
+								fields: {
+									NUM: 1,
+								},
+							},
+						},
+						TO: {
+							shadow: {
+								type: "math_number",
+								fields: {
+									NUM: 100,
+								},
+							},
+						},
+						SEED: {
+							shadow: {
+								type: "math_number",
+								fields: {
+									NUM: 42, // Default seed value
+								},
+							},
+						},
 					},
-					TO: {
-					  shadow: {
-						type: "math_number",
-						fields: {
-						  NUM: 100
-						}
-					  }
-					},
-					SEED: {
-					  shadow: {
-						type: "math_number",
-						fields: {
-						  NUM: 42 // Default seed value
-						}
-					  }
-					}
-				  }
 				},
 				{
 					kind: "block",

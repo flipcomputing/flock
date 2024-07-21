@@ -369,17 +369,17 @@ Blockly.Blocks["load_model"] = {
 					name: "MODELS",
 					columns: 6,
 					options: modelNames.map((name) => {
-						const baseName = name.replace(/\.[^/.]+$/, '');
+						const baseName = name.replace(/\.[^/.]+$/, "");
 						return [
 							{
-								src: `./images/${baseName}.png`, 
+								src: `./images/${baseName}.png`,
 								width: 50,
 								height: 50,
-								alt: baseName
+								alt: baseName,
 							},
-							name
+							name,
 						];
-					})
+					}),
 				},
 				{
 					type: "field_variable",
@@ -493,9 +493,10 @@ Blockly.Blocks["create_box"] = {
 					variable: nextVariableName,
 				},
 				{
-					type: "field_colour",
+					type: "input_value",
 					name: "COLOR",
 					colour: "#9932CC",
+					check: "Colour",
 				},
 				{
 					type: "input_value",
@@ -1639,6 +1640,40 @@ function playSoundAsync(scene, soundName) {
 
 window.playSoundAsync = playSoundAsync;
 
+Blockly.Blocks["colour"] = {
+	init: function () {
+		this.jsonInit({
+			type: "colour",
+			message0: "colour %1",
+			args0: [
+				{
+					type: "field_colour",
+					name: "COLOR",
+					colour: "#9932CC",
+				},
+			],
+			output: "Colour",
+			colour: 160,
+			tooltip: "Pick a colour",
+			helpUrl: "",
+		});
+	},
+};
+
+Blockly.Blocks["random_colour"] = {
+	init: function () {
+		this.jsonInit({
+			"type": "random_colour_block",
+			"message0": "random colour",
+			"output": "Colour",
+			"colour": 160,
+			"tooltip": "Generate a random colour",
+			"helpUrl": ""
+		});
+	}
+};
+
+
 Blockly.Blocks["random_seeded_int"] = {
 	init: function () {
 		this.jsonInit({
@@ -2008,7 +2043,8 @@ newModel('${modelName}', '${meshId}', ${scale}, ${x}, ${y}, ${z});\n`;
 window.newModel = newModel;
 
 javascriptGenerator.forBlock["create_box"] = function (block) {
-	const color = block.getFieldValue("COLOR");
+	const color = getFieldValue(block, "COLOR", "#9932CC");
+	console.log("Color: ", color);
 	const width = getFieldValue(block, "WIDTH", "1");
 	const height = getFieldValue(block, "HEIGHT", "1");
 	const depth = getFieldValue(block, "DEPTH", "1");
@@ -2024,7 +2060,7 @@ javascriptGenerator.forBlock["create_box"] = function (block) {
 	const boxId = `box_${generateUUID()}`;
 	meshMap[boxId] = block;
 
-	return `${variableName} = newBox("${color}", ${width}, ${height}, ${depth}, ${posX}, ${posY}, ${posZ}, "${boxId}");\n`;
+	return `${variableName} = newBox(${color}, ${width}, ${height}, ${depth}, ${posX}, ${posY}, ${posZ}, "${boxId}");\n`;
 };
 
 javascriptGenerator.forBlock["create_sphere"] = function (block) {
@@ -2571,6 +2607,20 @@ const createScene = function () {
 	return window.scene;
 };
 
+javascriptGenerator.forBlock['random_colour'] = function(block) {
+	const randomColour = () => {
+		const letters = '0123456789ABCDEF';
+		let colour = '#';
+		for (let i = 0; i < 6; i++) {
+			colour += letters[Math.floor(Math.random() * 16)];
+		}
+		return colour;
+	};
+	const code = `"${randomColour()}"`;
+	return [code, javascriptGenerator.ORDER_ATOMIC];
+};
+
+
 javascriptGenerator.forBlock["random_seeded_int"] = function (block) {
 	const value_from = getFieldValue(block, "FROM", 0);
 	const value_to = getFieldValue(block, "TO", FlowGraphLog10Block);
@@ -2579,6 +2629,12 @@ javascriptGenerator.forBlock["random_seeded_int"] = function (block) {
 	const code = `seededRandom(${value_from}, ${value_to}, ${value_seed})`;
 
 	return [code, javascriptGenerator.ORDER_NONE];
+};
+
+javascriptGenerator.forBlock["colour"] = function (block) {
+	const colour = block.getFieldValue("COLOR");
+	const code = `"${colour}"`;
+	return [code, javascriptGenerator.ORDER_ATOMIC];
 };
 
 async function initialize() {
@@ -2779,7 +2835,7 @@ function executeCode() {
 		const code = javascriptGenerator.workspaceToCode(workspace);
 		try {
 			//eval(code);
-			//console.log(code);
+			console.log(code);
 			new Function(`(async () => { ${code} })()`)();
 		} catch (error) {
 			console.error("Error executing Blockly code:", error);
