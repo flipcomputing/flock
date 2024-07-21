@@ -372,7 +372,7 @@ Blockly.Blocks["load_model"] = {
 						const baseName = name.replace(/\.[^/.]+$/, '');
 						return [
 							{
-								src: `/images/${baseName}.png`, 
+								src: `./images/${baseName}.png`, 
 								width: 50,
 								height: 50,
 								alt: baseName
