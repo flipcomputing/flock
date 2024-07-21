@@ -2827,7 +2827,7 @@ function toggleGizmo(gizmoType) {
 						mesh.physics.disablePreStep = false;
 					}
 
-					const block = meshMap[mesh.name];
+					const block = meshMap[mesh.blockKey];
 					highlightBlockById(workspace, block);
 				},
 			);
@@ -2845,7 +2845,7 @@ function toggleGizmo(gizmoType) {
 						);
 					}
 
-					const block = meshMap[mesh.name];
+					const block = meshMap[mesh.blockKey];
 
 					if (block) {
 						block

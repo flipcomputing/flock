@@ -140,7 +140,6 @@ export function newModel(modelName, modelId, scale, x, y, z) {
 		function (meshes) {
 			//console.log("Loaded", modelId);
 			const mesh = meshes[0];
-
 			//meshes[0].rotate(BABYLON.Vector3.Up(), Math.PI);
 			mesh.scaling = new BABYLON.Vector3(scale, scale, scale);
 
@@ -150,6 +149,8 @@ export function newModel(modelName, modelId, scale, x, y, z) {
 				);
 			// Offsetting so that the model appears above the ground but at y=0 to make glide easier
 			bb.name = modelId;
+			bb.blockKey = bb.name;
+			bb.name = bb.name + bb.uniqueId;
 			bb.isPickable = true;
 			bb.position.addInPlace(new BABYLON.Vector3(x, y, z));
 
@@ -374,6 +375,8 @@ export function newBox(color, width, height, depth, posX, posY, posZ, boxId) {
 	);
 	newBox.position = new BABYLON.Vector3(posX, posY, posZ);
 
+	newBox.blockKey = newBox.name;
+	newBox.name = newBox.name + newBox.uniqueId;
 	const boxBody = new BABYLON.PhysicsBody(
 		newBox,
 		BABYLON.PhysicsMotionType.STATIC,
@@ -398,7 +401,7 @@ export function newBox(color, width, height, depth, posX, posY, posZ, boxId) {
 	material.diffuseColor = BABYLON.Color3.FromHexString(color);
 	newBox.material = material;
 
-	return boxId;
+	return newBox.name;
 }
 
 export function newSphere(
@@ -422,6 +425,9 @@ export function newSphere(
 	);
 	newSphere.position = new BABYLON.Vector3(posX, posY, posZ);
 
+	newSphere.blockKey = newSphere.name;
+	newSphere.name = newSphere.name + newSphere.uniqueId;
+
 	const sphereBody = new BABYLON.PhysicsBody(
 		newSphere,
 		BABYLON.PhysicsMotionType.STATIC,
@@ -436,9 +442,9 @@ export function newSphere(
 	);
 
 	sphereBody.shape = sphereShape;
-	sphereBody.setMassProperties({ mass: 1, restitution: 0.5 });
-	sphereBody.setAngularDamping(100);
-	sphereBody.setLinearDamping(10);
+	sphereBody.setMassProperties({ mass: 1, restitution: 0.5,});
+	//sphereBody.setAngularDamping(100);
+	//sphereBody.setLinearDamping(10);
 	newSphere.physics = sphereBody;
 
 	const material = new BABYLON.StandardMaterial(
@@ -448,7 +454,7 @@ export function newSphere(
 	material.diffuseColor = BABYLON.Color3.FromHexString(color);
 	newSphere.material = material;
 
-	return sphereId;
+	return newSphere.name;
 }
 
 export function newPlane(color, width, height, posX, posY, posZ, planeId) {
@@ -457,6 +463,9 @@ export function newPlane(color, width, height, posX, posY, posZ, planeId) {
 		{ width, height, sideOrientation: BABYLON.Mesh.DOUBLESIDE },
 		window.scene,
 	);
+
+	newPlane.blockKey = newPlane.name;
+	newPlane.name = newPlane.name + newPlane.uniqueId;
 	newPlane.position = new BABYLON.Vector3(posX, posY, posZ);
 
 	const material = new BABYLON.StandardMaterial(
@@ -466,7 +475,7 @@ export function newPlane(color, width, height, posX, posY, posZ, planeId) {
 	material.diffuseColor = BABYLON.Color3.FromHexString(color);
 	newPlane.material = material;
 
-	return planeId;
+	return newPlane.name;
 }
 
 export async function moveByVector(modelName, x, y, z) {
