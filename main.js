@@ -2980,7 +2980,7 @@ function toggleGizmo(gizmoType) {
 					const mesh = gizmoManager.attachedMesh;
 					const motionType = mesh.physics.getMotionType();
 					mesh.savedMotionType = motionType;
-					console.log(motionType);
+					//console.log(motionType);
 					if (
 						mesh.physics &&
 						mesh.physics.getMotionType() !=
@@ -3004,10 +3004,6 @@ function toggleGizmo(gizmoType) {
 					if (mesh.savedMotionType) {
 						mesh.physics.setMotionType(mesh.savedMotionType);
 						mesh.physics.disablePreStep = true;
-						console.log(
-							"Restoring motion type",
-							mesh.savedMotionType,
-						);
 					}
 
 					const block = meshMap[mesh.blockKey];
@@ -3067,9 +3063,8 @@ window.turnOffAllGizmos = turnOffAllGizmos;
 function highlightBlockById(workspace, block) {
 	if (block) {
 		block.select();
-		workspace.scrollCenter(
-			block.getRelativeToSurfaceXY().x,
-			block.getRelativeToSurfaceXY().y,
+		workspace.centerOnBlock(
+			block.id, true
 		);
 	}
 }
