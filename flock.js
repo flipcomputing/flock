@@ -691,7 +691,6 @@ function rgbToHex(rgb) {
 }
 
 function getColorFromString(colourString) {
-  console.log(colourString);
   // Check if the string is a valid hex code or number
   if (/^#([0-9A-F]{3}){1,2}$/i.test(colourString)) {
 	return colourString;
@@ -703,7 +702,6 @@ function getColorFromString(colourString) {
 	document.body.appendChild(colorDiv);
 	const computedColor = getComputedStyle(colorDiv).color;
 	document.body.removeChild(colorDiv);
-	   console.log(computedColor);
 	return rgbToHex(computedColor);
   } catch (e) {
 	return '#000000'; // default to black if invalid colour
