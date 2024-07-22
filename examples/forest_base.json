@@ -5,35 +5,48 @@
       {
         "type": "start",
         "id": "hP1(8=@A.+kG[L4(yPaZ",
-        "x": 25,
-        "y": -218,
+        "x": 0,
+        "y": 0,
         "inputs": {
           "DO": {
             "block": {
               "type": "set_sky_color",
-              "id": "3TpkLO7j6%Vu#lq}y@Lg",
-              "fields": {
-                "COLOR": "#6495ed"
+              "id": "LvX7C$m$;68`G_Qvq=pL",
+              "inputs": {
+                "COLOR": {
+                  "shadow": {
+                    "type": "colour",
+                    "id": "Mlh8zzfY)p3!M2.q:a(8",
+                    "fields": {
+                      "COLOR": "#6495ed"
+                    }
+                  }
+                }
               },
               "next": {
                 "block": {
                   "type": "create_ground",
-                  "id": "/K?)FX)Ds;.Vm]bhfwDJ",
-                  "fields": {
-                    "COLOR": "#71bc78"
+                  "id": "S%:d.e-l98E_Phu`CHx?",
+                  "inputs": {
+                    "COLOR": {
+                      "shadow": {
+                        "type": "colour",
+                        "id": "Pe/-b7d5B1Qr*:EvoPsA",
+                        "fields": {
+                          "COLOR": "#71bc78"
+                        }
+                      }
+                    }
                   },
                   "next": {
                     "block": {
                       "type": "print_text",
-                      "id": "vQ!J.eGQNsJuV{|}e(+4",
-                      "fields": {
-                        "COLOR": "#000080"
-                      },
+                      "id": ":s)nLqT7z]646prN_I|p",
                       "inputs": {
                         "TEXT": {
                           "shadow": {
                             "type": "text",
-                            "id": "l_*K#bAU!:OFtjSEAg/w",
+                            "id": "7.K|z)gsi7|Wk-AT]f#Z",
                             "fields": {
                               "TEXT": "🌈 Hello"
                             }
@@ -42,9 +55,18 @@
                         "DURATION": {
                           "shadow": {
                             "type": "math_number",
-                            "id": "r}:@4(f:G0+oq%;P:D%D",
+                            "id": "`tuU!Fnn[^b{|l$4-3Ym",
                             "fields": {
                               "NUM": 30
+                            }
+                          }
+                        },
+                        "COLOR": {
+                          "shadow": {
+                            "type": "colour",
+                            "id": "e{^$*:~w4=k,$EoOP6:~",
+                            "fields": {
+                              "COLOR": "#000080"
                             }
                           }
                         }
@@ -213,9 +235,7 @@
                                       "id": "L^b@@DTiGglJ++Dsmw}P",
                                       "extraState": {
                                         "name": "forest",
-                                        "params": [
-                                          "seed"
-                                        ]
+                                        "params": ["seed"]
                                       },
                                       "inputs": {
                                         "ARG0": {
@@ -248,7 +268,7 @@
         "type": "on_each_update",
         "id": "rzARP?f-rL_OMXQ]LzxO",
         "x": 0,
-        "y": 796,
+        "y": 1045,
         "inputs": {
           "DO": {
             "block": {
@@ -592,7 +612,7 @@
         "type": "start",
         "id": "rYSM[9*$cgU?cfx}y-dk",
         "x": 0,
-        "y": 340,
+        "y": 564,
         "inputs": {
           "DO": {
             "block": {
@@ -617,15 +637,12 @@
               "next": {
                 "block": {
                   "type": "print_text",
-                  "id": "@1Nft:=]Z#JTy.c{Vzln",
-                  "fields": {
-                    "COLOR": "#000080"
-                  },
+                  "id": "dVTxJPUi_sO!AuNY#oor",
                   "inputs": {
                     "TEXT": {
                       "shadow": {
                         "type": "text",
-                        "id": "7F?u}^{N$M(m%a,nbYU6",
+                        "id": "=L-/-1HT`]edbp63Mo8Q",
                         "fields": {
                           "TEXT": "Hold left mouse button down to look around"
                         }
@@ -634,9 +651,18 @@
                     "DURATION": {
                       "shadow": {
                         "type": "math_number",
-                        "id": "N2v5?0%DnHGl?K6wA!O9",
+                        "id": "PAPV5~p4xMSO]ZA,_=pN",
                         "fields": {
                           "NUM": 30
+                        }
+                      }
+                    },
+                    "COLOR": {
+                      "shadow": {
+                        "type": "colour",
+                        "id": "w+iegX|E(VYe9KaiAi;Q",
+                        "fields": {
+                          "COLOR": "#000080"
                         }
                       }
                     }
@@ -644,15 +670,12 @@
                   "next": {
                     "block": {
                       "type": "print_text",
-                      "id": "ZLwqY^#:@RqU-@B(,RKb",
-                      "fields": {
-                        "COLOR": "#000080"
-                      },
+                      "id": "C2d:3-H=Y=ZcI:RlzSA+",
                       "inputs": {
                         "TEXT": {
                           "shadow": {
                             "type": "text",
-                            "id": "f%1q,NUxFY{scrpEA!pF",
+                            "id": "rDKLD?S[.4^HZ(g*vX^y",
                             "fields": {
                               "TEXT": "W - forward; S backward; Space - Jump"
                             }
@@ -661,9 +684,18 @@
                         "DURATION": {
                           "shadow": {
                             "type": "math_number",
-                            "id": "aJP%ilb%HWGMT*@s3Jsz",
+                            "id": "V.~W]u#$|n]}Z.DA(vN3",
                             "fields": {
                               "NUM": 30
+                            }
+                          }
+                        },
+                        "COLOR": {
+                          "shadow": {
+                            "type": "colour",
+                            "id": "T=:hhU7UFGsFu|G!a8J!",
+                            "fields": {
+                              "COLOR": "#000080"
                             }
                           }
                         }
@@ -753,7 +785,7 @@
         "type": "on_event",
         "id": "gdeL9Um:-2~=((Hg5Ofl",
         "x": 0,
-        "y": 1891,
+        "y": 2140,
         "fields": {
           "EVENT_NAME": "jumped"
         },
@@ -788,7 +820,7 @@
         "type": "on_event",
         "id": "JyO)XxgG$Q6={SNIy1c^",
         "x": 0,
-        "y": 2124,
+        "y": 2373,
         "fields": {
           "EVENT_NAME": "landed"
         },
@@ -810,8 +842,8 @@
       {
         "type": "procedures_defnoreturn",
         "id": ",;|QW%96ML$|:cj!bPU0",
-        "x": 27,
-        "y": 2317,
+        "x": 0,
+        "y": 2555,
         "extraState": {
           "params": [
             {

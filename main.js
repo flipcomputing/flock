@@ -212,12 +212,13 @@ Blockly.Blocks["create_ground"] = {
 	init: function () {
 		this.jsonInit({
 			type: "create_ground",
-			message0: "add ground with color %1",
+			message0: "ground %1",
 			args0: [
 				{
-					type: "field_colour",
+					type: "input_value",
 					name: "COLOR",
 					colour: "#71BC78",
+					check: "Colour",
 				},
 			],
 			previousStatement: null,
@@ -305,12 +306,13 @@ Blockly.Blocks["set_sky_color"] = {
 	init: function () {
 		this.jsonInit({
 			type: "set_sky_color",
-			message0: "set sky color %1",
+			message0: "sky %1",
 			args0: [
 				{
-					type: "field_colour",
+					type: "input_value",
 					name: "COLOR",
-					colour: "#6495ED", // Default sky color
+					colour: "#6495ED",
+					check: "Colour",
 				},
 			],
 			previousStatement: null,
@@ -717,7 +719,7 @@ Blockly.Blocks["print_text"] = {
 	init: function () {
 		this.jsonInit({
 			type: "print_text",
-			message0: "print %1 for %2 seconds in color %3",
+			message0: "print %1 for %2 seconds %3",
 			args0: [
 				{
 					type: "input_value",
@@ -730,11 +732,13 @@ Blockly.Blocks["print_text"] = {
 					check: "Number",
 				},
 				{
-					type: "field_colour",
+					type: "input_value",
 					name: "COLOR",
 					colour: "#000080",
+					check: "Colour",
 				},
 			],
+			inputsInline: true,
 			previousStatement: null,
 			nextStatement: null,
 			colour: 160,
@@ -749,7 +753,7 @@ Blockly.Blocks["say"] = {
 		this.jsonInit({
 			type: "say",
 			message0:
-				"say %1 for %2 s %3 text %4 and background %5 alpha %6 size %7 %8 %9",
+				"say %1 for %2 s %3 text %4 background %5 alpha %6 size %7 %8 %9",
 			args0: [
 				{
 					type: "input_value",
@@ -1815,13 +1819,13 @@ javascriptGenerator.forBlock["start"] = function (block) {
 };
 
 javascriptGenerator.forBlock["create_ground"] = function (block) {
-	const color = block.getFieldValue("COLOR");
-	return `createGround("${color}");\n`;
+	const color = getFieldValue(block, "COLOR", "#6495ED");
+	return `createGround(${color});\n`;
 };
 
 javascriptGenerator.forBlock["set_sky_color"] = function (block) {
-	const color = block.getFieldValue("COLOR");
-	return `setSky("${color}");\n`;
+	const color = getFieldValue(block, "COLOR", "#6495ED");
+	return `setSky(${color});\n`;
 };
 
 javascriptGenerator.forBlock["print_text"] = function (block) {
@@ -1837,8 +1841,8 @@ javascriptGenerator.forBlock["print_text"] = function (block) {
 			"DURATION",
 			javascriptGenerator.ORDER_ATOMIC,
 		) || "0";
-	const color = block.getFieldValue("COLOR");
-	return `printText(${text}, ${duration}, '${color}');\n`;
+	const color = getFieldValue(block, "COLOR", "#9932CC");
+	return `printText(${text}, ${duration}, ${color});\n`;
 };
 
 javascriptGenerator.forBlock["set_fog"] = function (block) {
@@ -2705,40 +2709,87 @@ window.addEventListener("resize", function () {
 	engine.resize();
 });
 
-// Define your starter blocks XML string
-const initialBlocks = `
-  <xml xmlns="http://www.w3.org/1999/xhtml">
-	<block type="start">
-	<statement name="DO">
-	  <block type="set_sky_color">
-	  <next>
-		<block type="create_ground">
-		<next>
-		  <block type="print_text">
-		  <value name="TEXT">
-			<shadow type="text">
-			<field name="TEXT">🌈 Hello</field>
-			</shadow>
-		  </value>
-		  <value name="DURATION">
-			<shadow type="math_number">
-			<field name="NUM">30</field>
-			</shadow>
-		  </value>
-		  </block>
-		</next>
-		</block>
-	  </next>
-	  </block>
-	</statement>
-	</block>
-  </xml>`;
 
-// Convert the XML string to a DOM element
-const xml = Blockly.utils.xml.textToDom(initialBlocks);
 
-// Load the XML into the workspace
-Blockly.Xml.domToWorkspace(xml, workspace);
+const initialBlocksJson = {
+  "blocks": {
+	"languageVersion": 0,
+	"blocks": [
+	  {
+		"type": "start",
+		"x": -90,
+		"y": 30,
+		"inputs": {
+		  "DO": {
+			"block": {
+			  "type": "set_sky_color",
+			  "inputs": {
+				"COLOR": {
+				  "shadow": {
+					"type": "colour",
+					"fields": {
+					  "COLOR": "#6495ed"
+					}
+				  }
+				}
+			  },
+			  "next": {
+				"block": {
+				  "type": "create_ground",
+				  "inputs": {
+					"COLOR": {
+					  "shadow": {
+						"type": "colour",
+						"fields": {
+						  "COLOR": "#71bc78"
+						}
+					  }
+					}
+				  },
+				  "next": {
+					"block": {
+					  "type": "print_text",
+					  "inputs": {
+						"TEXT": {
+						  "shadow": {
+							"type": "text",
+							"fields": {
+							  "TEXT": "🌈 Hello"
+							}
+						  }
+						},
+						"DURATION": {
+						  "shadow": {
+							"type": "math_number",
+							"fields": {
+							  "NUM": 30
+							}
+						  }
+						},
+						"COLOR": {
+						  "shadow": {
+							"type": "colour",
+							"fields": {
+							  "COLOR": "#000080"
+							}
+						  }
+						}
+					  }
+					}
+				  }
+				}
+			  }
+			}
+		  }
+		}
+	  }
+	]
+  }
+};
+
+// Load the JSON into the workspace
+Blockly.serialization.workspaces.load(initialBlocksJson, workspace);
+
 executeCode();
 
 function stripFilename(inputString) {

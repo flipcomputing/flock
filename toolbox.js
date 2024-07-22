@@ -27,10 +27,30 @@ export const toolbox = {
 				{
 					kind: "block",
 					type: "set_sky_color",
+					inputs: {
+						COLOR: {
+							shadow: {
+								type: "colour",
+								fields: {
+									COLOR: "#6495ED",
+								},
+							},
+						},
+					},
 				},
 				{
 					kind: "block",
 					type: "create_ground",
+					inputs: {
+						COLOR: {
+							shadow: {
+								type: "colour",
+								fields: {
+									COLOR: "#71BC78",
+								},
+							},
+						},
+					},
 				},
 				{
 					kind: "block",
@@ -656,6 +676,14 @@ export const toolbox = {
 								type: "math_number",
 								fields: {
 									NUM: 30,
+								},
+							},
+						},
+						COLOR: {
+							shadow: {
+								type: "colour",
+								fields: {
+									COLOR: "#000080",
 								},
 							},
 						},
