@@ -2070,12 +2070,11 @@ javascriptGenerator.forBlock["load_model"] = function (block) {
 		block.getFieldValue("ID_VAR"),
 		Blockly.Names.NameType.VARIABLE,
 	);
-
-	const meshId = `${modelName}_${generateUUID()}`;
+	
+	const meshId = modelName + "_" + scene.getUniqueId();
 	meshMap[meshId] = block;
 
-	return `${variableName} = "${meshId}";
-newModel('${modelName}', '${meshId}', ${scale}, ${x}, ${y}, ${z});\n`;
+	return `${variableName} = newModel('${modelName}', '${meshId}', ${scale}, ${x}, ${y}, ${z});\n`;
 };
 
 window.newModel = newModel;

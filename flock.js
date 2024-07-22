@@ -130,8 +130,10 @@ export async function highlight(modelName, color) {
 }
 
 export function newModel(modelName, modelId, scale, x, y, z) {
-	//console.log("Loading", modelId);
-
+	
+	const blockId = modelId;
+    modelId +=  "_" + scene.getUniqueId();
+	
 	BABYLON.SceneLoader.ImportMesh(
 		"",
 		"./models/",
@@ -147,10 +149,9 @@ export function newModel(modelName, modelId, scale, x, y, z) {
 				BABYLON.BoundingBoxGizmo.MakeNotPickableAndWrapInBoundingBox(
 					mesh,
 				);
-			// Offsetting so that the model appears above the ground but at y=0 to make glide easier
+		
 			bb.name = modelId;
-			bb.blockKey = bb.name;
-			//bb.name = bb.name + bb.uniqueId;
+	        bb.blockKey = blockId;
 			bb.isPickable = true;
 			bb.position.addInPlace(new BABYLON.Vector3(x, y, z));
 
