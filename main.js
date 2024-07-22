@@ -1490,6 +1490,7 @@ Blockly.Blocks["add_physics"] = {
 						["static", "STATIC"],
 						["dynamic", "DYNAMIC"],
 						["animated", "ANIMATED"],
+						["none", "NONE"],
 					],
 					default: "DYNAMIC",
 				},
@@ -2509,13 +2510,37 @@ javascriptGenerator.forBlock["add_physics"] = function (block) {
 		switch ("${physicsType}") {
 			case "STATIC":
 mesh.physics.setMotionType(BABYLON.PhysicsMotionType.STATIC);
+window.hk._hknp.HP_World_AddBody(
+	hk.world,
+	mesh.physics._pluginData.hpBodyId,
+	mesh.physics.startAsleep,
+);
  break;
 			case "DYNAMIC":
 mesh.physics.setMotionType(BABYLON.PhysicsMotionType.DYNAMIC);
+window.hk._hknp.HP_World_AddBody(
+	hk.world,
+	mesh.physics._pluginData.hpBodyId,
+	mesh.physics.startAsleep,
+);
  break;
 			case "ANIMATED":
 mesh.physics.setMotionType(BABYLON.PhysicsMotionType.ANIMATED);
+window.hk._hknp.HP_World_AddBody(
+					hk.world,
+					mesh.physics._pluginData.hpBodyId,
+					mesh.physics.startAsleep,
+				);
  break;
+ case "NONE":
+console.log("Walk through");
+ mesh.physics.setMotionType(BABYLON.PhysicsMotionType.STATIC);
+ //mesh.physics.dispose();
+ window.hk._hknp.HP_World_RemoveBody(
+	 hk.world,
+	 mesh.physics._pluginData.hpBodyId,
+ );
+  break;
 } 
 	  }
 	  else{
