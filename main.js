@@ -1348,7 +1348,7 @@ Blockly.Blocks["highlight"] = {
 	init: function () {
 		this.jsonInit({
 			type: "highlight",
-			message0: "highlight %1 color %2",
+			message0: "highlight %1 %2",
 			args0: [
 				{
 					type: "field_variable",
@@ -1356,9 +1356,10 @@ Blockly.Blocks["highlight"] = {
 					variable: "mesh", // Default variable name, ensure it's defined in your environment
 				},
 				{
-					type: "field_colour",
+					type: "input_value",
 					name: "COLOR",
-					colour: "#9932CC",
+					colour: "#FFD700",
+					check: "Colour",
 				},
 			],
 			inputsInline: true,
@@ -1375,7 +1376,7 @@ Blockly.Blocks["tint"] = {
 	init: function () {
 		this.jsonInit({
 			type: "tint",
-			message0: "tint %1 color %2",
+			message0: "tint %1 %2",
 			args0: [
 				{
 					type: "field_variable",
@@ -1383,9 +1384,10 @@ Blockly.Blocks["tint"] = {
 					variable: "mesh",
 				},
 				{
-					type: "field_colour",
+					type: "input_value",
 					name: "COLOR",
-					colour: "#9932CC",
+					colour: "#AA336A",
+					check: "Colour",
 				},
 			],
 			inputsInline: true,
@@ -1673,26 +1675,25 @@ Blockly.Blocks["colour"] = {
 	},
 };
 
-Blockly.Blocks['colour_from_string'] = {
-  init: function() {
-	this.jsonInit({
-	  type: "colour_from_string",
-	  message0 : "colour %1",
-	  args0: [
-		{
-		  type: "input_value",
-		  name: "COLOR",
-		  check: "String"
-		}
-	  ],
-	  output: "Colour",
-	  colour: 160,
-	  tooltip: "Returns a colour from a hex code or CSS colour name",
-	  helpUrl: ""
-	});
-  }
+Blockly.Blocks["colour_from_string"] = {
+	init: function () {
+		this.jsonInit({
+			type: "colour_from_string",
+			message0: "colour %1",
+			args0: [
+				{
+					type: "input_value",
+					name: "COLOR",
+					check: "String",
+				},
+			],
+			output: "Colour",
+			colour: 160,
+			tooltip: "Returns a colour from a hex code or CSS colour name",
+			helpUrl: "",
+		});
+	},
 };
-
 
 Blockly.Blocks["random_colour"] = {
 	init: function () {
@@ -2306,9 +2307,9 @@ javascriptGenerator.forBlock["highlight"] = function (block) {
 		block.getFieldValue("MODEL_VAR"),
 		Blockly.Names.NameType.VARIABLE,
 	);
-	const color = block.getFieldValue("COLOR");
+	const color = getFieldValue(block, "COLOR", "#FFD700");
 
-	return `await highlight(${modelName}, "${color}");\n`;
+	return `await highlight(${modelName}, ${color});\n`;
 };
 
 javascriptGenerator.forBlock["tint"] = function (block) {
@@ -2316,9 +2317,9 @@ javascriptGenerator.forBlock["tint"] = function (block) {
 		block.getFieldValue("MODEL_VAR"),
 		Blockly.Names.NameType.VARIABLE,
 	);
-	const color = block.getFieldValue("COLOR");
+	const color = getFieldValue(block, "COLOR", "#AA336A");
 
-	return `await tint(${modelName}, "${color}");\n`;
+	return `await tint(${modelName}, ${color});\n`;
 };
 
 javascriptGenerator.forBlock["set_alpha"] = function (block) {
@@ -2742,82 +2743,80 @@ window.addEventListener("resize", function () {
 	engine.resize();
 });
 
-
-
 const initialBlocksJson = {
-  "blocks": {
-	"languageVersion": 0,
-	"blocks": [
-	  {
-		"type": "start",
-		"x": 10,
-		"y": 10,
-		"inputs": {
-		  "DO": {
-			"block": {
-			  "type": "set_sky_color",
-			  "inputs": {
-				"COLOR": {
-				  "shadow": {
-					"type": "colour",
-					"fields": {
-					  "COLOR": "#6495ed"
-					}
-				  }
-				}
-			  },
-			  "next": {
-				"block": {
-				  "type": "create_ground",
-				  "inputs": {
-					"COLOR": {
-					  "shadow": {
-						"type": "colour",
-						"fields": {
-						  "COLOR": "#71bc78"
-						}
-					  }
-					}
-				  },
-				  "next": {
-					"block": {
-					  "type": "print_text",
-					  "inputs": {
-						"TEXT": {
-						  "shadow": {
-							"type": "text",
-							"fields": {
-							  "TEXT": "🌈 Hello"
-							}
-						  }
+	blocks: {
+		languageVersion: 0,
+		blocks: [
+			{
+				type: "start",
+				x: 10,
+				y: 10,
+				inputs: {
+					DO: {
+						block: {
+							type: "set_sky_color",
+							inputs: {
+								COLOR: {
+									shadow: {
+										type: "colour",
+										fields: {
+											COLOR: "#6495ed",
+										},
+									},
+								},
+							},
+							next: {
+								block: {
+									type: "create_ground",
+									inputs: {
+										COLOR: {
+											shadow: {
+												type: "colour",
+												fields: {
+													COLOR: "#71bc78",
+												},
+											},
+										},
+									},
+									next: {
+										block: {
+											type: "print_text",
+											inputs: {
+												TEXT: {
+													shadow: {
+														type: "text",
+														fields: {
+															TEXT: "🌈 Hello",
+														},
+													},
+												},
+												DURATION: {
+													shadow: {
+														type: "math_number",
+														fields: {
+															NUM: 30,
+														},
+													},
+												},
+												COLOR: {
+													shadow: {
+														type: "colour",
+														fields: {
+															COLOR: "#000080",
+														},
+													},
+												},
+											},
+										},
+									},
+								},
+							},
 						},
-						"DURATION": {
-						  "shadow": {
-							"type": "math_number",
-							"fields": {
-							  "NUM": 30
-							}
-						  }
-						},
-						"COLOR": {
-						  "shadow": {
-							"type": "colour",
-							"fields": {
-							  "COLOR": "#000080"
-							}
-						  }
-						}
-					  }
-					}
-				  }
-				}
-			  }
-			}
-		  }
-		}
-	  }
-	]
-  }
+					},
+				},
+			},
+		],
+	},
 };
 
 // Load the JSON into the workspace

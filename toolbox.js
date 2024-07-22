@@ -463,15 +463,29 @@ export const toolbox = {
 				{
 					kind: "block",
 					type: "tint",
-					fields: {
-						COLOR: "#AA336A",
+					inputs: {
+						COLOR: {
+							shadow: {
+								type: "colour",
+								fields: {
+									COLOR: "#AA336A",
+								},
+							},
+						},
 					},
 				},
 				{
 					kind: "block",
 					type: "highlight",
-					fields: {
-						COLOR: "#FFD700",
+					inputs: {
+						COLOR: {
+							shadow: {
+								type: "colour",
+								fields: {
+									COLOR: "#FFD700",
+								},
+							},
+						},
 					},
 				},
 				{
