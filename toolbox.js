@@ -505,8 +505,22 @@ export const toolbox = {
 					type: "colour",
 				},
 				{
-				  kind: "block",
-				  type: "random_colour",
+					kind: "block",
+					type: "random_colour",
+				},
+				{
+					kind: "block",
+					type: "colour_from_string",
+					inputs: {
+						COLOR: {
+							shadow: {
+								type: "text",
+								fields: {
+									TEXT: "#800080",
+								},
+							},
+						},
+					},
 				},
 			],
 		},

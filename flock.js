@@ -114,7 +114,7 @@ export async function highlight(modelName, color) {
 		if (mesh.material) {
 			window.highlighter.addMesh(
 				mesh,
-				BABYLON.Color3.FromHexString(color),
+				BABYLON.Color3.FromHexString(getColorFromString(color)),
 			);
 		}
 
@@ -122,7 +122,7 @@ export async function highlight(modelName, color) {
 			if (childMesh.material) {
 				window.highlighter.addMesh(
 					childMesh,
-					BABYLON.Color3.FromHexString(color),
+					BABYLON.Color3.FromHexString(getColorFromString(color)),
 				);
 			}
 		});
@@ -201,12 +201,12 @@ export function createGround(color) {
 		"groundMaterial",
 		window.scene,
 	);
-	groundMaterial.diffuseColor = BABYLON.Color3.FromHexString(color);
+	groundMaterial.diffuseColor = BABYLON.Color3.FromHexString(getColorFromString(color));
 	ground.material = groundMaterial;
 }
 
 export function setSky(color) {
-	window.scene.clearColor = BABYLON.Color3.FromHexString(color);
+	window.scene.clearColor = BABYLON.Color3.FromHexString(getColorFromString(color));
 }
 
 export function wait(duration) {
@@ -281,14 +281,14 @@ export async function tint(modelName, color) {
 		if (mesh.material) {
 			mesh.renderOverlay = true;
 			mesh.overlayAlpha = 0.5;
-			mesh.overlayColor = BABYLON.Color3.FromHexString(color);
+			mesh.overlayColor = BABYLON.Color3.FromHexString(getColorFromString(color));
 		}
 
 		mesh.getChildMeshes().forEach(function (childMesh) {
 			if (childMesh.material) {
 				childMesh.renderOverlay = true;
 				childMesh.overlayAlpha = 0.5;
-				childMesh.overlayColor = BABYLON.Color3.FromHexString(color);
+				childMesh.overlayColor = BABYLON.Color3.FromHexString(getColorFromString(getColorFromString(color)));
 			}
 		});
 	});
@@ -343,7 +343,7 @@ export async function playAnimation(
 
 // helperFunctions.js
 export function setFog(fogColorHex, fogMode, fogDensity = 0.1) {
-	const fogColorRgb = BABYLON.Color3.FromHexString(fogColorHex);
+	const fogColorRgb = BABYLON.Color3.FromHexString(getColorFromString(fogColorHex));
 
 	switch (fogMode) {
 		case "NONE":
@@ -398,7 +398,7 @@ export function newBox(color, width, height, depth, posX, posY, posZ, boxId) {
 	newBox.physics = boxBody;
 
 	const material = new BABYLON.StandardMaterial("boxMaterial", window.scene);
-	material.diffuseColor = BABYLON.Color3.FromHexString(color);
+	material.diffuseColor = BABYLON.Color3.FromHexString(getColorFromString(color));
 	newBox.material = material;
 
 	return newBox.name;
@@ -451,7 +451,7 @@ export function newSphere(
 		"sphereMaterial",
 		window.scene,
 	);
-	material.diffuseColor = BABYLON.Color3.FromHexString(color);
+	material.diffuseColor = BABYLON.Color3.FromHexString(getColorFromString(color));
 	newSphere.material = material;
 
 	return newSphere.name;
@@ -472,7 +472,7 @@ export function newPlane(color, width, height, posX, posY, posZ, planeId) {
 		"planeMaterial",
 		window.scene,
 	);
-	material.diffuseColor = BABYLON.Color3.FromHexString(color);
+	material.diffuseColor = BABYLON.Color3.FromHexString(getColorFromString(color));
 	newPlane.material = material;
 
 	return newPlane.name;
@@ -681,3 +681,31 @@ export 	const randomColour = () => {
 		}
 		return colour;
 	};
+
+function rgbToHex(rgb) {
+  const result = rgb.match(/\d+/g).map(function(x) {
+	const hex = parseInt(x).toString(16);
+	return hex.length === 1 ? "0" + hex : hex;
+  });
+  return "#" + result.join("");
+}
+
+function getColorFromString(colourString) {
+  console.log(colourString);
+  // Check if the string is a valid hex code or number
+  if (/^#([0-9A-F]{3}){1,2}$/i.test(colourString)) {
+	return colourString;
+  } 
+	
+  try {
+	const colorDiv = document.createElement('div');
+	colorDiv.style.color = colourString;
+	document.body.appendChild(colorDiv);
+	const computedColor = getComputedStyle(colorDiv).color;
+	document.body.removeChild(colorDiv);
+	   console.log(computedColor);
+	return rgbToHex(computedColor);
+  } catch (e) {
+	return '#000000'; // default to black if invalid colour
+  }
+}

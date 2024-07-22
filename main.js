@@ -1657,7 +1657,7 @@ Blockly.Blocks["colour"] = {
 	init: function () {
 		this.jsonInit({
 			type: "colour",
-			message0: "colour %1",
+			message0: "%1",
 			args0: [
 				{
 					type: "field_colour",
@@ -1672,6 +1672,27 @@ Blockly.Blocks["colour"] = {
 		});
 	},
 };
+
+Blockly.Blocks['colour_from_string'] = {
+  init: function() {
+	this.jsonInit({
+	  type: "colour_from_string",
+	  message0 : "colour %1",
+	  args0: [
+		{
+		  type: "input_value",
+		  name: "COLOR",
+		  check: "String"
+		}
+	  ],
+	  output: "Colour",
+	  colour: 160,
+	  tooltip: "Returns a colour from a hex code or CSS colour name",
+	  helpUrl: ""
+	});
+  }
+};
+
 
 Blockly.Blocks["random_colour"] = {
 	init: function () {
@@ -2643,6 +2664,18 @@ javascriptGenerator.forBlock["colour"] = function (block) {
 	return [code, javascriptGenerator.ORDER_ATOMIC];
 };
 
+javascriptGenerator.forBlock["colour_from_string"] = function (block) {
+	const color =
+		javascriptGenerator.valueToCode(
+			block,
+			"COLOR",
+			javascriptGenerator.ORDER_ATOMIC,
+		) || "''";
+	console.log(color);
+	const code = `${color}`;
+	return [code, javascriptGenerator.ORDER_ATOMIC];
+};
+
 async function initialize() {
 	BABYLON.Database.IDBStorageEnabled = true;
 	BABYLON.Engine.CollisionsEpsilon = 0.00005;
@@ -2717,8 +2750,8 @@ const initialBlocksJson = {
 	"blocks": [
 	  {
 		"type": "start",
-		"x": -90,
-		"y": 30,
+		"x": 10,
+		"y": 10,
 		"inputs": {
 		  "DO": {
 			"block": {
