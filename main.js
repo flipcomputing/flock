@@ -329,9 +329,10 @@ Blockly.Blocks["set_fog"] = {
 			message0: "set fog color %1 mode %2 density %3",
 			args0: [
 				{
-					type: "field_colour",
+					type: "input_value",
 					name: "FOG_COLOR",
-					colour: "#ffffff", // Default fog color
+					colour: "#ffffff",
+					check: "Colour",
 				},
 				{
 					type: "field_dropdown",
@@ -568,9 +569,10 @@ Blockly.Blocks["create_sphere"] = {
 					variable: nextVariableName,
 				},
 				{
-					type: "field_colour",
+					type: "input_value",
 					name: "COLOR",
 					colour: "#9932CC",
+					check: "Colour",
 				},
 				{
 					type: "input_value",
@@ -638,9 +640,10 @@ Blockly.Blocks["create_plane"] = {
 					variable: nextVariableName,
 				},
 				{
-					type: "field_colour",
+					type: "input_value",
 					name: "COLOR",
-					colour: "#9932CC", // Default color for the plane
+					colour: "#9932CC",
+					check: "Colour",
 				},
 				{
 					type: "input_value",
@@ -695,9 +698,10 @@ Blockly.Blocks["set_background_color"] = {
 			message0: "set background color %1",
 			args0: [
 				{
-					type: "field_colour",
+					type: "input_value",
 					name: "COLOR",
-					colour: "#6495ED", // Default background color
+					colour: "#6495ED",
+					check: "Colour",
 				},
 			],
 			previousStatement: null,
@@ -763,14 +767,16 @@ Blockly.Blocks["say"] = {
 					variable: "mesh1",
 				},
 				{
-					type: "field_colour",
+					type: "input_value",
 					name: "TEXT_COLOR",
 					colour: "#000000",
+					check: "Colour",
 				},
 				{
-					type: "field_colour",
+					type: "input_value",
 					name: "BACKGROUND_COLOR",
 					colour: "#ffffff",
+					check: "Colour",
 				},
 				{
 					type: "input_value",
@@ -1836,7 +1842,7 @@ javascriptGenerator.forBlock["print_text"] = function (block) {
 };
 
 javascriptGenerator.forBlock["set_fog"] = function (block) {
-	const fogColorHex = block.getFieldValue("FOG_COLOR");
+	const fogColorHex = getFieldValue(block, "FOG_COLOR", "#9932CC");
 	const fogMode = block.getFieldValue("FOG_MODE");
 	const fogDensity =
 		javascriptGenerator.valueToCode(
@@ -1845,7 +1851,7 @@ javascriptGenerator.forBlock["set_fog"] = function (block) {
 			javascriptGenerator.ORDER_ATOMIC,
 		) || "0.1"; // Default density
 
-	return `setFog("${fogColorHex}", "${fogMode}", ${fogDensity});\n`;
+	return `setFog(${fogColorHex}, "${fogMode}", ${fogDensity});\n`;
 };
 
 function hexToRgba(hex, alpha) {
@@ -1876,8 +1882,12 @@ javascriptGenerator.forBlock["say"] = // Function to handle the 'say' block
 			block.getFieldValue("MESH_VAR"),
 			Blockly.Names.NameType.VARIABLE,
 		);
-		const textColor = block.getFieldValue("TEXT_COLOR");
-		const backgroundColor = block.getFieldValue("BACKGROUND_COLOR");
+		const textColor = getFieldValue(block, "TEXT_COLOR", "#000000");
+		const backgroundColor = getFieldValue(
+			block,
+			"BACKGROUND_COLOR",
+			"#ffffff",
+		);
 		const alpha =
 			javascriptGenerator.valueToCode(
 				block,
@@ -1953,7 +1963,7 @@ javascriptGenerator.forBlock["say"] = // Function to handle the 'say' block
 			  if (${text}) {
 				// Create a new background rectangle for the text
 				const bg = new window.GUI.Rectangle("textBackground");
-				bg.background = window.hexToRgba("${backgroundColor}", ${alpha});
+				bg.background = window.hexToRgba(${backgroundColor}, ${alpha});
 				bg.adaptWidthToChildren = true;
 				bg.adaptHeightToChildren = true;
 				bg.cornerRadius = 30;
@@ -1964,7 +1974,7 @@ javascriptGenerator.forBlock["say"] = // Function to handle the 'say' block
 
 				const textBlock = new window.GUI.TextBlock();
 				textBlock.text =  ${text};
-				textBlock.color =  "${textColor}";
+				textBlock.color =  ${textColor};
 				textBlock.fontSize = ${size} * 10;
 				textBlock.alpha = 1;
 				textBlock.textWrapping =                                                                 window.GUI.TextWrapping.WordWrap;
@@ -2046,7 +2056,6 @@ window.newModel = newModel;
 
 javascriptGenerator.forBlock["create_box"] = function (block) {
 	const color = getFieldValue(block, "COLOR", "#9932CC");
-	console.log("Color: ", color);
 	const width = getFieldValue(block, "WIDTH", "1");
 	const height = getFieldValue(block, "HEIGHT", "1");
 	const depth = getFieldValue(block, "DEPTH", "1");
@@ -2066,7 +2075,7 @@ javascriptGenerator.forBlock["create_box"] = function (block) {
 };
 
 javascriptGenerator.forBlock["create_sphere"] = function (block) {
-	const color = block.getFieldValue("COLOR");
+	const color = getFieldValue(block, "COLOR", "#9932CC");
 	const diameterX = getFieldValue(block, "DIAMETER_X", "1");
 	const diameterY = getFieldValue(block, "DIAMETER_Y", "1");
 	const diameterZ = getFieldValue(block, "DIAMETER_Z", "1");
@@ -2082,11 +2091,11 @@ javascriptGenerator.forBlock["create_sphere"] = function (block) {
 	const sphereId = `sphere_${generateUUID()}`;
 	meshMap[sphereId] = block;
 
-	return `${variableName} = newSphere("${color}", ${diameterX}, ${diameterY}, ${diameterZ}, ${posX}, ${posY}, ${posZ}, "${sphereId}");\n`;
+	return `${variableName} = newSphere(${color}, ${diameterX}, ${diameterY}, ${diameterZ}, ${posX}, ${posY}, ${posZ}, "${sphereId}");\n`;
 };
 
 javascriptGenerator.forBlock["create_plane"] = function (block) {
-	const color = block.getFieldValue("COLOR");
+	const color = getFieldValue(block, "COLOR", "#9932CC");
 	const width = getFieldValue(block, "WIDTH", "1");
 	const height = getFieldValue(block, "HEIGHT", "1");
 	const posX = getFieldValue(block, "X", "0");
@@ -2101,12 +2110,12 @@ javascriptGenerator.forBlock["create_plane"] = function (block) {
 	const planeId = `plane_${generateUUID()}`;
 	meshMap[planeId] = block;
 
-	return `${variableName} = newPlane("${color}", ${width}, ${height}, ${posX}, ${posY}, ${posZ}, "${planeId}");`;
+	return `${variableName} = newPlane(${color}, ${width}, ${height}, ${posX}, ${posY}, ${posZ}, "${planeId}");`;
 };
 
 javascriptGenerator.forBlock["set_background_color"] = function (block) {
-	const color = block.getFieldValue("COLOR");
-	return `window.scene.clearColor = BABYLON.Color4.FromHexString("${color}FF");\n`;
+	const color = getFieldValue(block, "COLOR", "#6495ED");
+	return `window.scene.clearColor = BABYLON.Color4.FromHexString(${color} + "FF");\n`;
 };
 
 javascriptGenerator.forBlock["move_by_vector"] = function (block) {

@@ -36,6 +36,14 @@ export const toolbox = {
 					kind: "block",
 					type: "set_fog",
 					inputs: {
+						FOG_COLOR: {
+							shadow: {
+								type: "colour",
+								fields: {
+									COLOR: "#ffffff",
+								},
+							},
+						},
 						DENSITY: {
 							shadow: {
 								type: "math_number",
@@ -149,10 +157,15 @@ export const toolbox = {
 				{
 					kind: "block",
 					type: "create_sphere",
-					fields: {
-						COLOR: "#9932CC",
-					},
 					inputs: {
+						COLOR: {
+							shadow: {
+								type: "colour",
+								fields: {
+									COLOR: "#9932CC",
+								},
+							},
+						},
 						DIAMETER_X: {
 							shadow: {
 								type: "math_number",
@@ -206,10 +219,15 @@ export const toolbox = {
 				{
 					kind: "block",
 					type: "create_plane",
-					fields: {
-						COLOR: "#9932CC",
-					},
 					inputs: {
+						COLOR: {
+							shadow: {
+								type: "colour",
+								fields: {
+									COLOR: "#9932CC",
+								},
+							},
+						},
 						WIDTH: {
 							shadow: {
 								type: "math_number",
@@ -255,6 +273,16 @@ export const toolbox = {
 				{
 					kind: "block",
 					type: "set_background_color",
+					inputs: {
+						COLOR: {
+							shadow: {
+								type: "colour",
+								fields: {
+									COLOR: "#6495ED",
+								},
+							},
+						},
+					},
 				},
 			],
 		},
@@ -669,10 +697,24 @@ export const toolbox = {
 								},
 							},
 						},
+						TEXT_COLOR: {
+							shadow: {
+								type: "colour",
+								fields: {
+									COLOR: "#000000",
+								},
+							},
+						},
+						BACKGROUND_COLOR: {
+							shadow: {
+								type: "colour",
+								fields: {
+									COLOR: "#ffffff",
+								},
+							},
+						},
 					},
 					fields: {
-						TEXT_COLOR: "#000000",
-						BACKGROUND_COLOR: "#ffffff",
 						MODE: "ADD",
 					},
 				},
