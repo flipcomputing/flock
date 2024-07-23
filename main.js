@@ -175,6 +175,7 @@ const audioNames = [
 const modelNames = [
 	"Character_Female_1.gltf",
 	"Character_Female_2.gltf",
+	"Character_Female_3.glb",
 	"Character_Male_1.gltf",
 	"Character_Male_2.gltf",
 	"Gem Pink.glb",
