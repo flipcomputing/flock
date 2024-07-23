@@ -3346,6 +3346,12 @@ function addImportContextMenuOption() {
 	});
 }
 
+function openAboutPage() {
+	window.open("https://github.com/flipcomputing/flock/", "_blank");
+}
+
+window.openAboutPage = openAboutPage;
+
 addImportContextMenuOption();
 
 function loadExample() {
