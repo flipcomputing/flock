@@ -536,6 +536,36 @@ export const toolbox = {
 						},
 					},
 				},
+				{
+					kind: "block",
+					type: "scale",
+					inputs: {
+						X: {
+							shadow: {
+								type: "math_number",
+								fields: {
+									NUM: 1,
+								},
+							},
+						},
+						Y: {
+							shadow: {
+								type: "math_number",
+								fields: {
+									NUM: 1,
+								},
+							},
+						},
+						Z: {
+							shadow: {
+								type: "math_number",
+								fields: {
+									NUM: 1,
+								},
+							},
+						},
+					},
+				},
 			],
 		},
 		{

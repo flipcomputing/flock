@@ -36,6 +36,7 @@ import {
 	isTouchingSurface,
 	seededRandom,
 	randomColour,
+	scaleMesh,
 } from "./flock.js";
 import { toolbox } from "./toolbox.js";
 import { FlowGraphLog10Block } from "babylonjs";
@@ -64,6 +65,7 @@ window.keyPressed = keyPressed;
 window.isTouchingSurface = isTouchingSurface;
 window.seededRandom = seededRandom;
 window.randomColour = randomColour;
+window.scaleMesh = scaleMesh;
 
 registerFieldColour();
 
@@ -919,6 +921,49 @@ Blockly.Blocks["move_by_vector"] = {
 			previousStatement: null,
 			nextStatement: null,
 			colour: categoryColours["Motion"],
+			inputsInline: true,
+		});
+	},
+};
+
+Blockly.Blocks["scale"] = {
+	init: function () {
+		this.jsonInit({
+			type: "scale",
+			message0: "scale %1 by x: %2 y: %3 z: %4 🔒 %5",
+			args0: [
+				{
+					type: "field_variable",
+					name: "BLOCK_NAME",
+					variable: "mesh",
+				},
+				{
+					type: "input_value",
+					name: "X",
+					check: "Number",
+					align: "RIGHT",
+				},
+				{
+					type: "input_value",
+					name: "Y",
+					check: "Number",
+					align: "RIGHT",
+				},
+				{
+					type: "input_value",
+					name: "Z",
+					check: "Number",
+					align: "RIGHT",
+				},
+				{
+					type: "field_checkbox",
+					name: "LOCK_DIMENSIONS",
+					checked: false,
+				},
+			],
+			previousStatement: null,
+			nextStatement: null,
+			colour: categoryColours["Looks"],
 			inputsInline: true,
 		});
 	},
@@ -2071,7 +2116,7 @@ javascriptGenerator.forBlock["load_model"] = function (block) {
 		block.getFieldValue("ID_VAR"),
 		Blockly.Names.NameType.VARIABLE,
 	);
-	
+
 	const meshId = modelName + "_" + scene.getUniqueId();
 	meshMap[meshId] = block;
 
@@ -2155,6 +2200,26 @@ javascriptGenerator.forBlock["move_by_vector"] = function (block) {
 	const z = getFieldValue(block, "Z", "0");
 
 	return `await moveByVector(${modelName}, ${x}, ${y}, ${z});\n`;
+};
+
+javascriptGenerator.forBlock["scale"] = function (block) {
+	const modelName = javascriptGenerator.nameDB_.getName(
+		block.getFieldValue("BLOCK_NAME"),
+		Blockly.Names.NameType.VARIABLE,
+	);
+
+	const lockDimensions = block.getFieldValue("LOCK_DIMENSIONS") === "TRUE";
+
+	let x = getFieldValue(block, "X", "1");
+	let y = getFieldValue(block, "Y", "1");
+	let z = getFieldValue(block, "Z", "1");
+
+	if (lockDimensions) {
+		y = x;
+		z = x;
+	}
+
+	return `await scaleMesh(${modelName}, ${x}, ${y}, ${z});\n`;
 };
 
 javascriptGenerator.forBlock["rotate_model_xyz"] = function (block) {
@@ -3063,9 +3128,7 @@ window.turnOffAllGizmos = turnOffAllGizmos;
 function highlightBlockById(workspace, block) {
 	if (block) {
 		block.select();
-		workspace.centerOnBlock(
-			block.id, true
-		);
+		workspace.centerOnBlock(block.id, true);
 	}
 }
 

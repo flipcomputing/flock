@@ -1,3 +1,7 @@
+// Flock - Creative coding in 3D
+// Dr Tracy Gardner - https://github.com/tracygardner
+// Flip Computing Limited - flipcomputing.com
+
 // Helper functions to make Babylon js easier to use in Flock
 console.log("Flock helpers loading");
 
@@ -197,11 +201,13 @@ export function createGround(color) {
 		{ mass: 0 },
 		window.scene,
 	);
+	
 	ground.receiveShadows = true;
 	const groundMaterial = new BABYLON.StandardMaterial(
 		"groundMaterial",
 		window.scene,
 	);
+	
 	groundMaterial.diffuseColor = BABYLON.Color3.FromHexString(getColorFromString(color));
 	ground.material = groundMaterial;
 }
@@ -214,7 +220,6 @@ export function wait(duration) {
 	return new Promise((resolve) => setTimeout(resolve, duration));
 }
 
-// helperFunctions.js
 export async function clearEffects(modelName) {
 	await retryUntilFound(modelName, (mesh) => {
 		window.highlighter.removeMesh(mesh);
@@ -484,6 +489,15 @@ export async function moveByVector(modelName, x, y, z) {
 		mesh.position.addInPlace(new BABYLON.Vector3(x, y, z));
 		mesh.physics.disablePreStep = false;
 		mesh.physics.setTargetTransform(mesh.position, mesh.rotationQuaternion);
+
+		// Ensure state consistency
+		mesh.computeWorldMatrix(true);
+	});
+}
+
+export async function scaleMesh(modelName, x, y, z) {
+	await retryUntilFound(modelName, (mesh) => {
+		mesh.scaling = new BABYLON.Vector3(x, y, z);
 
 		// Ensure state consistency
 		mesh.computeWorldMatrix(true);
