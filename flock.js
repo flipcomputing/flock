@@ -372,7 +372,6 @@ export function setFog(fogColorHex, fogMode, fogDensity = 0.1) {
 	window.scene.fogEnd = 100;
 }
 
-// helperFunctions.js
 export function newBox(color, width, height, depth, posX, posY, posZ, boxId) {
 	const newBox = BABYLON.MeshBuilder.CreateBox(
 		boxId,
@@ -721,4 +720,16 @@ function getColorFromString(colourString) {
   } catch (e) {
 	return '#000000'; // default to black if invalid colour
   }
+}
+
+export async function changeColour(modelName, color) {
+	await retryUntilFound(modelName, (mesh) => {
+		if (mesh.material) {
+			mesh.material.diffuseColor = BABYLON.Color3.FromHexString(color);
+		} else {
+			const material = new BABYLON.StandardMaterial("meshMaterial", window.scene);
+			material.diffuseColor = BABYLON.Color3.FromHexString(color);
+			mesh.material = material;
+		}
+	});
 }

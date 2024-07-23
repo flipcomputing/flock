@@ -490,6 +490,20 @@ export const toolbox = {
 				},
 				{
 					kind: "block",
+					type: "change_colour",
+					inputs: {
+						COLOR: {
+							shadow: {
+								type: "colour",
+								fields: {
+									COLOR: "#008080",
+								},
+							},
+						},
+					},
+				},
+				{
+					kind: "block",
 					type: "set_alpha",
 					inputs: {
 						ALPHA: {

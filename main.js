@@ -37,6 +37,7 @@ import {
 	seededRandom,
 	randomColour,
 	scaleMesh,
+	changeColour,
 } from "./flock.js";
 import { toolbox } from "./toolbox.js";
 import { FlowGraphLog10Block } from "babylonjs";
@@ -66,6 +67,7 @@ window.isTouchingSurface = isTouchingSurface;
 window.seededRandom = seededRandom;
 window.randomColour = randomColour;
 window.scaleMesh = scaleMesh;
+window.changeColour = changeColour;
 
 registerFieldColour();
 
@@ -932,7 +934,7 @@ Blockly.Blocks["scale"] = {
 	init: function () {
 		this.jsonInit({
 			type: "scale",
-			message0: "scale %1 by x: %2 y: %3 z: %4 🔒 %5",
+			message0: "scale %1 x: %2 y: %3 z: %4",
 			args0: [
 				{
 					type: "field_variable",
@@ -956,11 +958,6 @@ Blockly.Blocks["scale"] = {
 					name: "Z",
 					check: "Number",
 					align: "RIGHT",
-				},
-				{
-					type: "field_checkbox",
-					name: "LOCK_DIMENSIONS",
-					checked: false,
 				},
 			],
 			previousStatement: null,
@@ -1391,6 +1388,33 @@ Blockly.Blocks["hide"] = {
 	},
 };
 
+Blockly.Blocks["change_color"] = {
+	init: function () {
+		this.jsonInit({
+			type: "change_color",
+			message0: "change color of %1 to %2",
+			args0: [
+				{
+					type: "field_variable",
+					name: "MODEL_VAR",
+					variable: "mesh",
+				},
+				{
+					type: "input_value",
+					name: "COLOR",
+					check: "Colour",
+				},
+			],
+			inputsInline: true,
+			previousStatement: null,
+			nextStatement: null,
+			colour: categoryColours["Looks"],
+			tooltip: "Changes the color of the selected model.",
+			helpUrl: "",
+		});
+	},
+};
+
 Blockly.Blocks["highlight"] = {
 	init: function () {
 		this.jsonInit({
@@ -1442,6 +1466,33 @@ Blockly.Blocks["tint"] = {
 			nextStatement: null,
 			colour: categoryColours["Looks"],
 			tooltip: "Add colour tint effect.",
+			helpUrl: "",
+		});
+	},
+};
+
+Blockly.Blocks["change_colour"] = {
+	init: function () {
+		this.jsonInit({
+			type: "change_colour",
+			message0: "colour %1 %2",
+			args0: [
+				{
+					type: "field_variable",
+					name: "MODEL_VAR",
+					variable: "mesh",
+				},
+				{
+					type: "input_value",
+					name: "COLOR",
+					check: "Colour",
+				},
+			],
+			inputsInline: true,
+			previousStatement: null,
+			nextStatement: null,
+			colour: categoryColours["Looks"],
+			tooltip: "Changes the color of the selected model.",
 			helpUrl: "",
 		});
 	},
@@ -2210,17 +2261,6 @@ javascriptGenerator.forBlock["scale"] = function (block) {
 		Blockly.Names.NameType.VARIABLE,
 	);
 
-	const lockDimensions = block.getFieldValue("LOCK_DIMENSIONS") === "TRUE";
-
-	let x = getFieldValue(block, "X", "1");
-	let y = getFieldValue(block, "Y", "1");
-	let z = getFieldValue(block, "Z", "1");
-
-	if (lockDimensions) {
-		y = x;
-		z = x;
-	}
-
 	return `await scaleMesh(${modelName}, ${x}, ${y}, ${z});\n`;
 };
 
@@ -2387,6 +2427,16 @@ javascriptGenerator.forBlock["tint"] = function (block) {
 	const color = getFieldValue(block, "COLOR", "#AA336A");
 
 	return `await tint(${modelName}, ${color});\n`;
+};
+
+javascriptGenerator.forBlock["change_colour"] = function (block) {
+	const modelName = javascriptGenerator.nameDB_.getName(
+		block.getFieldValue("MODEL_VAR"),
+		Blockly.Names.NameType.VARIABLE,
+	);
+	const color = getFieldValue(block, "COLOR", "#ffffff");
+
+	return `await changeColour(${modelName}, ${color});\n`;
 };
 
 javascriptGenerator.forBlock["set_alpha"] = function (block) {
