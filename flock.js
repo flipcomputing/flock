@@ -342,10 +342,10 @@ function createCapsuleFromBoundingBox(mesh, scene) {
 		boundingInfo.boundingBox.minimumWorld.z;
 
 	// Calculate the radius as the min of the width and depth
-	const radius = Math.min(width, depth) / 2;
+	const radius = Math.max(width, depth) / 2;
 
 	// Calculate the effective height of the capsule's cylindrical part
-	const cylinderHeight = Math.max(0, height - (2 * radius));
+	const cylinderHeight = Math.max(0, height - 2 * radius);
 
 	// Calculate the center of the bounding box
 	const center = new BABYLON.Vector3(0, 0, 0);
@@ -372,7 +372,6 @@ function createCapsuleFromBoundingBox(mesh, scene) {
 
 	return shape;
 }
-
 
 export async function tint(modelName, color) {
 	await retryUntilFound(modelName, (mesh) => {
@@ -771,12 +770,12 @@ function checkIfOnSurface(mesh) {
 	//rayHelper.show(window.scene);
 	const hit = window.scene.pickWithRay(ray);
 
-	console.log(`Raycasting from: ${rayOrigin.toString()}`);
-	console.log(
+	//console.log(`Raycasting from: ${rayOrigin.toString()}`);
+	//console.log(
 		`Ray hit: ${hit.hit}, Distance: ${hit.distance}, Picked Mesh: ${hit.pickedMesh ? hit.pickedMesh.name : "None"}`,
 	);
 
-	return hit.hit && hit.pickedMesh !== null && hit.distance <= 0.3;
+	return hit.hit && hit.pickedMesh !== null && hit.distance <= 0.1;
 }
 
 export function keyPressed(key) {
