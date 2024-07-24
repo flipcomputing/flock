@@ -15,6 +15,7 @@ import {
 	playAnimation,
 	switchAnimation,
 	highlight,
+	newCharacter,
 	newModel,
 	newBox,
 	newSphere,
@@ -68,6 +69,7 @@ window.seededRandom = seededRandom;
 window.randomColour = randomColour;
 window.scaleMesh = scaleMesh;
 window.changeColour = changeColour;
+window.newCharacter = newCharacter;
 
 registerFieldColour();
 
@@ -172,19 +174,49 @@ const audioNames = [
 	"zapTwoTone.ogg",
 ];
 
+const characterNames = [
+	"Character1.glb",
+	"Character2.glb",
+	"Character3.glb",
+	"Character4.glb",
+];
+
 const modelNames = [
 	"Character_Female_1.gltf",
 	"Character_Female_2.gltf",
-	"Character_Female_3.glb",
 	"Character_Male_1.gltf",
 	"Character_Male_2.gltf",
-	"Gem Pink.glb",
+	"Octohedron.glb",
+	"Diamond.glb",
+	"Heart.glb",
 	"tree_fat.glb",
 	"tree_fat_fall.glb",
 	"tree_fat_darkh.glb",
 	//"boat1.glb",
 	//"bear_anim.glb",
 ];
+
+/*
+#e49085
+#ab8b64
+#cc9863
+#d1a17f
+#eac083
+#e6bd91
+#db9d9e
+#d7977a
+#ffb5a2
+#e6b7ae
+#d97c57
+#eeb4a8
+#fdc8b8
+#efa19a
+#ffdbd9
+#c8734c
+#f8d4ce
+#eda898
+#ee959b
+*/
 
 console.log("Welcome to Flock 🐑🐑🐑");
 
@@ -365,6 +397,107 @@ Blockly.Blocks["set_fog"] = {
 			colour: categoryColours["Scene"],
 			tooltip: "Configures the scene's fog.",
 			helpUrl: "",
+		});
+	},
+};
+
+Blockly.Blocks["load_character"] = {
+	init: function () {
+		const variableNamePrefix = "character";
+		let nextVariableName =
+			variableNamePrefix + nextVariableIndexes[variableNamePrefix];
+		this.jsonInit({
+			message0: `new %1 %2 scale: %3 x: %4 y: %5 z: %6
+			Hair: %7 Skin: %8 Eyes: %9 Sleeves: %10 Shorts: %11 T-Shirt: %12`,
+			args0: [
+				{
+					type: "field_grid_dropdown",
+					name: "MODELS",
+					columns: 6,
+					options: characterNames.map((name) => {
+						const baseName = name.replace(/\.[^/.]+$/, "");
+						return [
+							{
+								src: `./images/${baseName}.png`,
+								width: 50,
+								height: 50,
+								alt: baseName,
+							},
+							name,
+						];
+					}),
+				},
+				{
+					type: "field_variable",
+					name: "ID_VAR",
+					variable: nextVariableName,
+				},
+				{
+					type: "input_value",
+					name: "SCALE",
+					check: "Number",
+				},
+				{
+					type: "input_value",
+					name: "X",
+					check: "Number",
+				},
+				{
+					type: "input_value",
+					name: "Y",
+					check: "Number",
+				},
+				{
+					type: "input_value",
+					name: "Z",
+					check: "Number",
+				},
+				{
+					type: "input_value",
+					name: "HAIR_COLOR",
+					check: "Colour",
+				},
+				{
+					type: "input_value",
+					name: "SKIN_COLOR",
+					check: "Colour",
+				},
+				{
+					type: "input_value",
+					name: "EYES_COLOR",
+					check: "Colour",
+				},
+				{
+					type: "input_value",
+					name: "SLEEVES_COLOR",
+					check: "Colour",
+				},
+				{
+					type: "input_value",
+					name: "SHORTS_COLOR",
+					check: "Colour",
+				},
+				{
+					type: "input_value",
+					name: "TSHIRT_COLOR",
+					check: "Colour",
+				},
+			],
+			inputsInline: true,
+			colour: 230,
+			tooltip: "",
+			helpUrl: "",
+			previousStatement: null,
+			nextStatement: null,
+		});
+
+		this.setOnChange((changeEvent) => {
+			handleBlockCreateEvent(
+				this,
+				changeEvent,
+				variableNamePrefix,
+				nextVariableIndexes,
+			);
 		});
 	},
 };
@@ -1775,6 +1908,39 @@ Blockly.Blocks["colour"] = {
 	},
 };
 
+Blockly.Blocks["skin_colour"] = {
+	init: function () {
+		this.jsonInit({
+			type: "skin_colour",
+			message0: "%1",
+			args0: [
+				{
+					type: "field_colour",
+					name: "COLOR",
+					colour: "#FFE0BD",  // A neutral starting color
+					colourOptions: [
+						"#3F2A1D", "#5C4033", "#6F4E37", "#7A421D",						
+						"#8D5524", "#A86B38", "#C68642", "#D1A36A",
+						"#E1B899", "#F0D5B1", "#FFDFC4", "#FFF5E1"
+					
+					],
+					colourTitles: [
+						"color 1", "color 2", "color 3", "color 4",
+						"color 5", "color 6", "color 7", "color 8",
+						"color 9", "color 10", "color 11", "color 12"
+					],
+					columns: 4,
+				},
+			],
+			output: "Colour",
+			colour: 160,
+			tooltip: "Pick a skin colour",
+			helpUrl: "",
+		});
+	},
+};
+
+
 Blockly.Blocks["colour_from_string"] = {
 	init: function () {
 		this.jsonInit({
@@ -2175,6 +2341,29 @@ javascriptGenerator.forBlock["load_model"] = function (block) {
 	meshMap[meshId] = block;
 
 	return `${variableName} = newModel('${modelName}', '${meshId}', ${scale}, ${x}, ${y}, ${z});\n`;
+};
+
+javascriptGenerator.forBlock["load_character"] = function (block) {
+	const modelName = block.getFieldValue("MODELS");
+	const scale = getFieldValue(block, "SCALE", "1");
+	const x = getFieldValue(block, "X", "0");
+	const y = getFieldValue(block, "Y", "0");
+	const z = getFieldValue(block, "Z", "0");
+	const hairColor = getFieldValue(block, "HAIR_COLOR", "#000000");
+	const skinColor = getFieldValue(block, "SKIN_COLOR", "#FFE0BD");
+	const eyesColor = getFieldValue(block, "EYES_COLOR", "#0000FF");
+	const sleevesColor = getFieldValue(block, "SLEEVES_COLOR", "#FFFFFF");
+	const shortsColor = getFieldValue(block, "SHORTS_COLOR", "#000000");
+	const tshirtColor = getFieldValue(block, "TSHIRT_COLOR", "#FF0000");
+	const variableName = javascriptGenerator.nameDB_.getName(
+		block.getFieldValue("ID_VAR"),
+		Blockly.Names.NameType.VARIABLE,
+	);
+
+	const meshId = modelName + "_" + scene.getUniqueId();
+	meshMap[meshId] = block;
+
+	return `${variableName} = newCharacter('${modelName}', '${meshId}', ${scale}, ${x}, ${y}, ${z}, ${hairColor}, ${skinColor}, ${eyesColor}, ${sleevesColor}, ${shortsColor}, ${tshirtColor});\n`;
 };
 
 window.newModel = newModel;
@@ -2807,6 +2996,12 @@ javascriptGenerator.forBlock["colour"] = function (block) {
 	return [code, javascriptGenerator.ORDER_ATOMIC];
 };
 
+javascriptGenerator.forBlock["skin_colour"] = function (block) {
+	const colour = block.getFieldValue("COLOR");
+	const code = `"${colour}"`;
+	return [code, javascriptGenerator.ORDER_ATOMIC];
+};
+
 javascriptGenerator.forBlock["colour_from_string"] = function (block) {
 	const color =
 		javascriptGenerator.valueToCode(
@@ -2853,6 +3048,7 @@ function initializeVariableIndexes() {
 		plane: 1,
 		text: 1,
 		sound: 1,
+		character: 1,
 	};
 
 	const workspace = Blockly.getMainWorkspace(); // Get the current Blockly workspace

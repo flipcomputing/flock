@@ -76,6 +76,92 @@ export const toolbox = {
 				},
 				{
 					kind: "block",
+					type: "load_character",
+					inputs: {
+						SCALE: {
+							shadow: {
+								type: "math_number",
+								fields: {
+									NUM: 1,
+								},
+							},
+						},
+						X: {
+							shadow: {
+								type: "math_number",
+								fields: {
+									NUM: 0,
+								},
+							},
+						},
+						Y: {
+							shadow: {
+								type: "math_number",
+								fields: {
+									NUM: 0,
+								},
+							},
+						},
+						Z: {
+							shadow: {
+								type: "math_number",
+								fields: {
+									NUM: 0,
+								},
+							},
+						},
+						HAIR_COLOR: {
+							shadow: {
+								type: "colour",
+								fields: {
+									COLOR: "#000000",
+								},
+							},
+						},
+						SKIN_COLOR: {
+							shadow: {
+								type: "skin_colour",
+								fields: {
+									COLOR: "A15C33",
+								},
+							},
+						},
+						EYES_COLOR: {
+							shadow: {
+								type: "colour",
+								fields: {
+									COLOR: "#000000",
+								},
+							},
+						},
+						SLEEVES_COLOR: {
+							shadow: {
+								type: "colour",
+								fields: {
+									COLOR: "#008B8B",
+								},
+							},
+						},
+						SHORTS_COLOR: {
+							shadow: {
+								type: "colour",
+								fields: {
+									COLOR: "00008B",
+								},
+							},
+						},
+						TSHIRT_COLOR: {
+							shadow: {
+								type: "colour",
+								fields: {
+									COLOR: "#FF8F60",
+								},
+							},
+						},
+					},
+				},
+				{
+					kind: "block",
 					type: "load_model",
 					inputs: {
 						SCALE: {
@@ -1266,6 +1352,79 @@ export const toolbox = {
 			kind: "category",
 			name: "Snippets",
 			contents: [
+				{
+					type: "start",
+					kind: "block",
+					inputs: {
+						DO: {
+							block: {
+								type: "load_model",
+								kind: "block",
+								fields: {
+									MODELS: "Character_Female_1.gltf",
+									ID_VAR: {
+										name: "player",
+									},
+								},
+								inputs: {
+									SCALE: {
+										shadow: {
+											type: "math_number",
+											fields: {
+												NUM: 1,
+											},
+										},
+									},
+									X: {
+										shadow: {
+											type: "math_number",
+											fields: {
+												NUM: 0,
+											},
+										},
+									},
+									Y: {
+										shadow: {
+											type: "math_number",
+											fields: {
+												NUM: 0,
+											},
+										},
+									},
+									Z: {
+										shadow: {
+											type: "math_number",
+											fields: {
+												NUM: 0,
+											},
+										},
+									},
+								},
+								next: {
+									block: {
+										type: "add_physics",
+										fields: {
+											MODEL_VAR: {
+												name: "player",
+											},
+											PHYSICS_TYPE: "DYNAMIC",
+										},
+										next: {
+											block: {
+												type: "camera_follow",
+												fields: {
+													MESH_VAR: {
+														name: "player",
+													},
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
 				{
 					type: "start",
 					kind: "block",

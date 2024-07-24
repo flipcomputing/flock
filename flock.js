@@ -134,10 +134,9 @@ export async function highlight(modelName, color) {
 }
 
 export function newModel(modelName, modelId, scale, x, y, z) {
-	
 	const blockId = modelId;
-    modelId +=  "_" + scene.getUniqueId();
-	
+	modelId += "_" + scene.getUniqueId();
+
 	BABYLON.SceneLoader.ImportMesh(
 		"",
 		"./models/",
@@ -153,9 +152,9 @@ export function newModel(modelName, modelId, scale, x, y, z) {
 				BABYLON.BoundingBoxGizmo.MakeNotPickableAndWrapInBoundingBox(
 					mesh,
 				);
-		
+
 			bb.name = modelId;
-	        bb.blockKey = blockId;
+			bb.blockKey = blockId;
 			bb.isPickable = true;
 			bb.position.addInPlace(new BABYLON.Vector3(x, y, z));
 
@@ -163,6 +162,94 @@ export function newModel(modelName, modelId, scale, x, y, z) {
 			mesh.refreshBoundingInfo();
 
 			stopAnimationsTargetingMesh(scene, mesh);
+
+			const boxBody = new BABYLON.PhysicsBody(
+				bb,
+				BABYLON.PhysicsMotionType.STATIC,
+				false,
+				scene,
+			);
+
+			const boxShape = createCapsuleFromBoundingBox(bb, scene);
+
+			boxBody.shape = boxShape;
+			boxBody.setMassProperties({ mass: 1, restitution: 0.5 });
+			boxBody.disablePreStep = false;
+			boxBody.setAngularDamping(10000000);
+			boxBody.setLinearDamping(0);
+			bb.physics = boxBody;
+		},
+		null,
+		function (error) {
+			console.log("Error loading", error);
+		},
+	);
+
+	return modelId;
+}
+
+export function newCharacter(
+	modelName,
+	modelId,
+	scale,
+	x,
+	y,
+	z,
+	hairColor,
+	skinColor,
+	eyesColor,
+	sleevesColor,
+	shortsColor,
+	tshirtColor,
+) {
+	const blockId = modelId;
+	modelId += "_" + scene.getUniqueId();
+
+	BABYLON.SceneLoader.ImportMesh(
+		"",
+		"./models/",
+		modelName,
+		scene,
+		function (meshes) {
+			//console.log("Loaded", modelId);
+			const mesh = meshes[0];
+			//meshes[0].rotate(BABYLON.Vector3.Up(), Math.PI);
+			mesh.scaling = new BABYLON.Vector3(scale, scale, scale);
+
+			const bb =
+				BABYLON.BoundingBoxGizmo.MakeNotPickableAndWrapInBoundingBox(
+					mesh,
+				);
+
+			bb.name = modelId;
+			bb.blockKey = blockId;
+			bb.isPickable = true;
+			bb.position.addInPlace(new BABYLON.Vector3(x, y, z));
+
+			mesh.computeWorldMatrix(true);
+			mesh.refreshBoundingInfo();
+
+			stopAnimationsTargetingMesh(scene, mesh);
+
+			// Helper function to recursively find materials in nested meshes
+			function applyColorToMaterial(part, materialName, color) {
+				if (part.material && part.material.name === materialName) {
+					part.material.albedoColor = BABYLON.Color3.FromHexString(
+						getColorFromString(color),
+					); //.toLinearSpace();
+				}
+				part.getChildMeshes().forEach((child) => {
+					applyColorToMaterial(child, materialName, color);
+				});
+			}
+
+			// Apply colors to the respective materials
+			applyColorToMaterial(mesh, "Hair", hairColor);
+			applyColorToMaterial(mesh, "Skin", skinColor);
+			applyColorToMaterial(mesh, "Eyes", eyesColor);
+			applyColorToMaterial(mesh, "Sleeves", sleevesColor);
+			applyColorToMaterial(mesh, "Shorts", shortsColor);
+			applyColorToMaterial(mesh, "TShirt", tshirtColor);
 
 			const boxBody = new BABYLON.PhysicsBody(
 				bb,
@@ -201,19 +288,23 @@ export function createGround(color) {
 		{ mass: 0 },
 		window.scene,
 	);
-	
+
 	ground.receiveShadows = true;
 	const groundMaterial = new BABYLON.StandardMaterial(
 		"groundMaterial",
 		window.scene,
 	);
-	
-	groundMaterial.diffuseColor = BABYLON.Color3.FromHexString(getColorFromString(color));
+
+	groundMaterial.diffuseColor = BABYLON.Color3.FromHexString(
+		getColorFromString(color),
+	);
 	ground.material = groundMaterial;
 }
 
 export function setSky(color) {
-	window.scene.clearColor = BABYLON.Color3.FromHexString(getColorFromString(color));
+	window.scene.clearColor = BABYLON.Color3.FromHexString(
+		getColorFromString(color),
+	);
 }
 
 export function wait(duration) {
@@ -251,10 +342,10 @@ function createCapsuleFromBoundingBox(mesh, scene) {
 		boundingInfo.boundingBox.minimumWorld.z;
 
 	// Calculate the radius as the min of the width and depth
-	const radius = Math.max(width, depth) / 2;
+	const radius = Math.min(width, depth) / 2;
 
 	// Calculate the effective height of the capsule's cylindrical part
-	const cylinderHeight = Math.max(0, height - 2 * radius);
+	const cylinderHeight = Math.max(0, height - (2 * radius));
 
 	// Calculate the center of the bounding box
 	const center = new BABYLON.Vector3(0, 0, 0);
@@ -282,19 +373,24 @@ function createCapsuleFromBoundingBox(mesh, scene) {
 	return shape;
 }
 
+
 export async function tint(modelName, color) {
 	await retryUntilFound(modelName, (mesh) => {
 		if (mesh.material) {
 			mesh.renderOverlay = true;
 			mesh.overlayAlpha = 0.5;
-			mesh.overlayColor = BABYLON.Color3.FromHexString(getColorFromString(color));
+			mesh.overlayColor = BABYLON.Color3.FromHexString(
+				getColorFromString(color),
+			);
 		}
 
 		mesh.getChildMeshes().forEach(function (childMesh) {
 			if (childMesh.material) {
 				childMesh.renderOverlay = true;
 				childMesh.overlayAlpha = 0.5;
-				childMesh.overlayColor = BABYLON.Color3.FromHexString(getColorFromString(getColorFromString(color)));
+				childMesh.overlayColor = BABYLON.Color3.FromHexString(
+					getColorFromString(getColorFromString(color)),
+				);
 			}
 		});
 	});
@@ -349,7 +445,9 @@ export async function playAnimation(
 
 // helperFunctions.js
 export function setFog(fogColorHex, fogMode, fogDensity = 0.1) {
-	const fogColorRgb = BABYLON.Color3.FromHexString(getColorFromString(fogColorHex));
+	const fogColorRgb = BABYLON.Color3.FromHexString(
+		getColorFromString(fogColorHex),
+	);
 
 	switch (fogMode) {
 		case "NONE":
@@ -403,7 +501,9 @@ export function newBox(color, width, height, depth, posX, posY, posZ, boxId) {
 	newBox.physics = boxBody;
 
 	const material = new BABYLON.StandardMaterial("boxMaterial", window.scene);
-	material.diffuseColor = BABYLON.Color3.FromHexString(getColorFromString(color));
+	material.diffuseColor = BABYLON.Color3.FromHexString(
+		getColorFromString(color),
+	);
 	newBox.material = material;
 
 	return newBox.name;
@@ -447,7 +547,7 @@ export function newSphere(
 	);
 
 	sphereBody.shape = sphereShape;
-	sphereBody.setMassProperties({ mass: 1, restitution: 0.5,});
+	sphereBody.setMassProperties({ mass: 1, restitution: 0.5 });
 	//sphereBody.setAngularDamping(100);
 	//sphereBody.setLinearDamping(10);
 	newSphere.physics = sphereBody;
@@ -456,7 +556,9 @@ export function newSphere(
 		"sphereMaterial",
 		window.scene,
 	);
-	material.diffuseColor = BABYLON.Color3.FromHexString(getColorFromString(color));
+	material.diffuseColor = BABYLON.Color3.FromHexString(
+		getColorFromString(color),
+	);
 	newSphere.material = material;
 
 	return newSphere.name;
@@ -477,7 +579,9 @@ export function newPlane(color, width, height, posX, posY, posZ, planeId) {
 		"planeMaterial",
 		window.scene,
 	);
-	material.diffuseColor = BABYLON.Color3.FromHexString(getColorFromString(color));
+	material.diffuseColor = BABYLON.Color3.FromHexString(
+		getColorFromString(color),
+	);
 	newPlane.material = material;
 
 	return newPlane.name;
@@ -640,6 +744,7 @@ export function isTouchingSurface(modelName) {
 	if (mesh) {
 		return checkIfOnSurface(mesh);
 	} else {
+		console.log("Model not loaded (isTouchingSurface):", modelName);
 		return false;
 	}
 }
@@ -650,7 +755,7 @@ function checkIfOnSurface(mesh) {
 	const boundingInfo = mesh.getBoundingInfo();
 
 	const minY = boundingInfo.boundingBox.minimumWorld.y;
-
+	console.log("Min Y", minY);
 	// Cast the ray from a point slightly below the bottom of the mesh
 	const rayOrigin = new BABYLON.Vector3(
 		boundingInfo.boundingBox.centerWorld.x,
@@ -661,13 +766,17 @@ function checkIfOnSurface(mesh) {
 	// Adjust the ray origin slightly below the mesh's bottom
 
 	// Raycast downwards
-	const ray = new BABYLON.Ray(rayOrigin, new BABYLON.Vector3(0, -1, 0), 0.02);
+	const ray = new BABYLON.Ray(rayOrigin, new BABYLON.Vector3(0, -1, 0), 0.5);
+	const rayHelper = new BABYLON.RayHelper(ray);
+	rayHelper.show(window.scene);
 	const hit = window.scene.pickWithRay(ray);
 
-	//	console.log(`Raycasting from: ${rayOrigin.toString()}`);
-	//console.log(`Ray hit: ${hit.hit}, Distance: ${hit.distance}, Picked Mesh: ${hit.pickedMesh ? hit.pickedMesh.name : "None"}`,);
+	console.log(`Raycasting from: ${rayOrigin.toString()}`);
+	console.log(
+		`Ray hit: ${hit.hit}, Distance: ${hit.distance}, Picked Mesh: ${hit.pickedMesh ? hit.pickedMesh.name : "None"}`,
+	);
 
-	return hit.hit && hit.pickedMesh !== null && hit.distance <= 0.2;
+	return hit.hit && hit.pickedMesh !== null && hit.distance <= 0.3;
 }
 
 export function keyPressed(key) {
@@ -687,39 +796,39 @@ export function seededRandom(from, to, seed) {
 	return result;
 }
 
-export 	const randomColour = () => {
-		const letters = '0123456789ABCDEF';
-		let colour = '#';
-		for (let i = 0; i < 6; i++) {
-			colour += letters[Math.floor(Math.random() * 16)];
-		}
-		return colour;
-	};
+export const randomColour = () => {
+	const letters = "0123456789ABCDEF";
+	let colour = "#";
+	for (let i = 0; i < 6; i++) {
+		colour += letters[Math.floor(Math.random() * 16)];
+	}
+	return colour;
+};
 
 function rgbToHex(rgb) {
-  const result = rgb.match(/\d+/g).map(function(x) {
-	const hex = parseInt(x).toString(16);
-	return hex.length === 1 ? "0" + hex : hex;
-  });
-  return "#" + result.join("");
+	const result = rgb.match(/\d+/g).map(function (x) {
+		const hex = parseInt(x).toString(16);
+		return hex.length === 1 ? "0" + hex : hex;
+	});
+	return "#" + result.join("");
 }
 
 function getColorFromString(colourString) {
-  // Check if the string is a valid hex code or number
-  if (/^#([0-9A-F]{3}){1,2}$/i.test(colourString)) {
-	return colourString;
-  } 
-	
-  try {
-	const colorDiv = document.createElement('div');
-	colorDiv.style.color = colourString;
-	document.body.appendChild(colorDiv);
-	const computedColor = getComputedStyle(colorDiv).color;
-	document.body.removeChild(colorDiv);
-	return rgbToHex(computedColor);
-  } catch (e) {
-	return '#000000'; // default to black if invalid colour
-  }
+	// Check if the string is a valid hex code or number
+	if (/^#([0-9A-F]{3}){1,2}$/i.test(colourString)) {
+		return colourString;
+	}
+
+	try {
+		const colorDiv = document.createElement("div");
+		colorDiv.style.color = colourString;
+		document.body.appendChild(colorDiv);
+		const computedColor = getComputedStyle(colorDiv).color;
+		document.body.removeChild(colorDiv);
+		return rgbToHex(computedColor);
+	} catch (e) {
+		return "#000000"; // default to black if invalid colour
+	}
 }
 
 export async function changeColour(modelName, color) {
@@ -727,7 +836,10 @@ export async function changeColour(modelName, color) {
 		if (mesh.material) {
 			mesh.material.diffuseColor = BABYLON.Color3.FromHexString(color);
 		} else {
-			const material = new BABYLON.StandardMaterial("meshMaterial", window.scene);
+			const material = new BABYLON.StandardMaterial(
+				"meshMaterial",
+				window.scene,
+			);
 			material.diffuseColor = BABYLON.Color3.FromHexString(color);
 			mesh.material = material;
 		}
