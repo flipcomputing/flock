@@ -771,9 +771,7 @@ function checkIfOnSurface(mesh) {
 	const hit = window.scene.pickWithRay(ray);
 
 	//console.log(`Raycasting from: ${rayOrigin.toString()}`);
-	//console.log(
-		`Ray hit: ${hit.hit}, Distance: ${hit.distance}, Picked Mesh: ${hit.pickedMesh ? hit.pickedMesh.name : "None"}`,
-	);
+	//console.log(`Ray hit: ${hit.hit}, Distance: ${hit.distance}, Picked Mesh: ${hit.pickedMesh ? hit.pickedMesh.name : "None"}`,);
 
 	return hit.hit && hit.pickedMesh !== null && hit.distance <= 0.1;
 }
