@@ -754,7 +754,7 @@ function checkIfOnSurface(mesh) {
 	const boundingInfo = mesh.getBoundingInfo();
 
 	const minY = boundingInfo.boundingBox.minimumWorld.y;
-	console.log("Min Y", minY);
+	//console.log("Min Y", minY);
 	// Cast the ray from a point slightly below the bottom of the mesh
 	const rayOrigin = new BABYLON.Vector3(
 		boundingInfo.boundingBox.centerWorld.x,
@@ -765,7 +765,7 @@ function checkIfOnSurface(mesh) {
 	// Adjust the ray origin slightly below the mesh's bottom
 
 	// Raycast downwards
-	const ray = new BABYLON.Ray(rayOrigin, new BABYLON.Vector3(0, -1, 0), 0.5);
+	const ray = new BABYLON.Ray(rayOrigin, new BABYLON.Vector3(0, -1, 0), 0.02);
 	//const rayHelper = new BABYLON.RayHelper(ray);
 	//rayHelper.show(window.scene);
 	const hit = window.scene.pickWithRay(ray);
