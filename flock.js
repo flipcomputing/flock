@@ -767,8 +767,8 @@ function checkIfOnSurface(mesh) {
 
 	// Raycast downwards
 	const ray = new BABYLON.Ray(rayOrigin, new BABYLON.Vector3(0, -1, 0), 0.5);
-	const rayHelper = new BABYLON.RayHelper(ray);
-	rayHelper.show(window.scene);
+	//const rayHelper = new BABYLON.RayHelper(ray);
+	//rayHelper.show(window.scene);
 	const hit = window.scene.pickWithRay(ray);
 
 	console.log(`Raycasting from: ${rayOrigin.toString()}`);
