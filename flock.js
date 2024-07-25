@@ -342,7 +342,7 @@ function createCapsuleFromBoundingBox(mesh, scene) {
 		boundingInfo.boundingBox.minimumWorld.z;
 
 	// Calculate the radius as the min of the width and depth
-	const radius = Math.max(width, depth) / 2;
+	const radius = Math.min(width, depth) / 2;
 
 	// Calculate the effective height of the capsule's cylindrical part
 	const cylinderHeight = Math.max(0, height - 2 * radius);
@@ -749,31 +749,32 @@ export function isTouchingSurface(modelName) {
 }
 
 function checkIfOnSurface(mesh) {
-	// Get the bounding box of the mesh
+	// Compute the world matrix to ensure updated positions
 	mesh.computeWorldMatrix(true);
 	const boundingInfo = mesh.getBoundingInfo();
 
+	// Setting the ray origin slightly above the mesh's lowest point
 	const minY = boundingInfo.boundingBox.minimumWorld.y;
-	//console.log("Min Y", minY);
-	// Cast the ray from a point slightly below the bottom of the mesh
 	const rayOrigin = new BABYLON.Vector3(
 		boundingInfo.boundingBox.centerWorld.x,
-		minY,
+		minY + 0.01, // Slightly above to avoid hitting the mesh itself
 		boundingInfo.boundingBox.centerWorld.z,
 	);
-	rayOrigin.y -= 0.01;
-	// Adjust the ray origin slightly below the mesh's bottom
 
-	// Raycast downwards
-	const ray = new BABYLON.Ray(rayOrigin, new BABYLON.Vector3(0, -1, 0), 0.02);
+	// Cast the ray downwards with sufficient length to cover expected distances
+	const ray = new BABYLON.Ray(rayOrigin, new BABYLON.Vector3(0, -1, 0), 2);
 	//const rayHelper = new BABYLON.RayHelper(ray);
 	//rayHelper.show(window.scene);
-	const hit = window.scene.pickWithRay(ray);
 
-	//console.log(`Raycasting from: ${rayOrigin.toString()}`);
+	// Perform the raycast
+	mesh.isPickable = false;
+	const hit = window.scene.pickWithRay(ray);
+	mesh.isPickable = true;
+
 	//console.log(`Ray hit: ${hit.hit}, Distance: ${hit.distance}, Picked Mesh: ${hit.pickedMesh ? hit.pickedMesh.name : "None"}`,);
 
-	return hit.hit && hit.pickedMesh !== null && hit.distance <= 0.1;
+	// Check if the mesh is directly on top of the surface
+	return hit.hit && hit.pickedMesh !== null && hit.distance <= 0.02; // Adjust the threshold as needed
 }
 
 export function keyPressed(key) {
@@ -839,6 +840,104 @@ export async function changeColour(modelName, color) {
 			);
 			material.diffuseColor = BABYLON.Color3.FromHexString(color);
 			mesh.material = material;
+		}
+	});
+}
+
+// Helper function to move the model forward
+export function moveForward(modelName, speed) {
+	const model = window.scene.getMeshByName(modelName);
+	if (!model || speed === 0) return;
+
+	const forwardSpeed = speed;
+	const cameraForward = window.scene.activeCamera
+		.getForwardRay()
+		.direction.normalize();
+	const moveDirection = cameraForward.scale(forwardSpeed);
+	const currentVelocity = model.physics.getLinearVelocity();
+
+	// Set linear velocity
+	model.physics.setLinearVelocity(
+		new BABYLON.Vector3(
+			moveDirection.x,
+			currentVelocity.y,
+			moveDirection.z,
+		),
+	);
+
+	// Set rotation
+	const facingDirection =
+		speed >= 0
+			? new BABYLON.Vector3(
+					-cameraForward.x,
+					0,
+					-cameraForward.z,
+				).normalize()
+			: new BABYLON.Vector3(
+					cameraForward.x,
+					0,
+					cameraForward.z,
+				).normalize();
+	const targetRotation = BABYLON.Quaternion.FromLookDirectionLH(
+		facingDirection,
+		BABYLON.Vector3.Up(),
+	);
+	const currentRotation = model.rotationQuaternion;
+	const deltaRotation = targetRotation.multiply(currentRotation.conjugate());
+	const deltaEuler = deltaRotation.toEulerAngles();
+	model.physics.setAngularVelocity(
+		new BABYLON.Vector3(0, deltaEuler.y * 5, 0),
+	); // Adjust scalar as needed
+	model.rotationQuaternion.x = 0;
+	model.rotationQuaternion.z = 0;
+	model.rotationQuaternion.normalize(); // Re-normalize the quaternion
+}
+
+export function attachCamera(modelName) {
+	window.whenModelReady(modelName, function (mesh) {
+		if (mesh) {
+			// After physics calculations, adjust velocities and rotations
+			window.scene.onAfterPhysicsObservable.add(() => {
+				const currentVelocity = mesh.physics.getLinearVelocity();
+				const newVelocity = new BABYLON.Vector3(
+					0,
+					currentVelocity.y,
+					0,
+				); // Maintain vertical velocity, reset horizontal
+				mesh.physics.setLinearVelocity(newVelocity);
+				mesh.physics.setAngularVelocity(BABYLON.Vector3.Zero());
+
+				const currentRotationQuaternion = mesh.rotationQuaternion;
+				const currentEulerRotation =
+					currentRotationQuaternion.toEulerAngles();
+				const newRotationQuaternion =
+					BABYLON.Quaternion.RotationYawPitchRoll(
+						currentEulerRotation.y,
+						0,
+						0,
+					);
+				mesh.rotationQuaternion.copyFrom(newRotationQuaternion);
+			});
+
+			// Set up camera
+			const camera = new BABYLON.ArcRotateCamera(
+				"camera",
+				Math.PI / 2,
+				Math.PI / 4,
+				10,
+				mesh.position,
+				window.scene,
+			);
+			camera.checkCollisions = true;
+			camera.lowerBetaLimit = Math.PI / 2.5; // Lower angle limit
+			camera.upperBetaLimit = Math.PI / 2; // Upper angle limit
+			camera.lowerRadiusLimit = 2;
+			camera.upperRadiusLimit = 7;
+			camera.setTarget(mesh.position);
+			camera.attachControl(canvas, true);
+			window.scene.activeCamera = camera;
+		} else {
+			console.log("Model not loaded:", modelName);
 		}
 	});
 }

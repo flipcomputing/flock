@@ -39,6 +39,8 @@ import {
 	randomColour,
 	scaleMesh,
 	changeColour,
+	moveForward,
+	attachCamera,
 } from "./flock.js";
 import { toolbox } from "./toolbox.js";
 import { FlowGraphLog10Block } from "babylonjs";
@@ -70,6 +72,8 @@ window.randomColour = randomColour;
 window.scaleMesh = scaleMesh;
 window.changeColour = changeColour;
 window.newCharacter = newCharacter;
+window.moveForward = moveForward;
+window.attachCamera = attachCamera;
 
 registerFieldColour();
 
@@ -195,28 +199,6 @@ const modelNames = [
 	//"boat1.glb",
 	//"bear_anim.glb",
 ];
-
-/*
-#e49085
-#ab8b64
-#cc9863
-#d1a17f
-#eac083
-#e6bd91
-#db9d9e
-#d7977a
-#ffb5a2
-#e6b7ae
-#d97c57
-#eeb4a8
-#fdc8b8
-#efa19a
-#ffdbd9
-#c8734c
-#f8d4ce
-#eda898
-#ee959b
-*/
 
 console.log("Welcome to Flock 🐑🐑🐑");
 
@@ -2666,62 +2648,15 @@ javascriptGenerator.forBlock["switch_animation"] = function (block) {
 javascriptGenerator.forBlock["move_forward"] = function (block) {
 	const modelName = javascriptGenerator.nameDB_.getName(
 		block.getFieldValue("MODEL"),
-		Blockly.Names.NameType.VARIABLE,
+		Blockly.Names.NameType.VARIABLE
 	);
-	const speed =
-		javascriptGenerator.valueToCode(
-			block,
-			"SPEED",
-			javascriptGenerator.ORDER_ATOMIC,
-		) || "0";
-	return `
+	const speed = javascriptGenerator.valueToCode(
+		block,
+		"SPEED",
+		javascriptGenerator.ORDER_ATOMIC
+	) || "0";
 
-	  const model = window.scene.getMeshByName(${modelName});
-	  
-	  if (model) {
-
-	  if (${speed} === 0){ return; }
-
-	  const forwardSpeed = -${speed};  
-	  const cameraForward = window.scene.activeCamera.getForwardRay().direction.normalize();
-
-	  // Forward direction adjusted to move away from the camera
-	  const moveDirection = cameraForward.scale(-forwardSpeed); 
-	  const currentVelocity = model.physics.getLinearVelocity();
-	  model.physics.setLinearVelocity(
-		  new BABYLON.Vector3(
-		  moveDirection.x,
-		  currentVelocity.y,
-		  moveDirection.z
-		)
-  );
-
-  // Decide the facing direction based on whether steps is positive or negative
-	let facingDirection;
-	if (${speed} >= 0) {
-	  // Face away from the camera when moving forward
-	  facingDirection = new BABYLON.Vector3(-cameraForward.x, 0, -cameraForward.z).normalize();
-	} else {
-	  // Face towards the camera when moving backward
-	  facingDirection = new BABYLON.Vector3(cameraForward.x, 0, cameraForward.z).normalize();
-	}
-
-	// Calculate the target rotation from the facing direction
-	const targetRotation = BABYLON.Quaternion.FromLookDirectionLH(facingDirection, BABYLON.Vector3.Up());
-	const currentRotation = model.rotationQuaternion;
-	const deltaRotation = targetRotation.multiply(currentRotation.conjugate());
-	const deltaEuler = deltaRotation.toEulerAngles();
-	const scaledAngularVelocityY = new BABYLON.Vector3(0, deltaEuler.y * 5, 0); // Adjust the scalar as needed
-
-	// Update angular velocity for rotation
-	model.physics.setAngularVelocity(scaledAngularVelocityY);
-
-	model.rotationQuaternion.x = 0;
-	model.rotationQuaternion.z = 0;
-	model.rotationQuaternion.normalize(); // Re-normalize the quaternion to maintain a valid rotation
-
-  }
-	`;
+	return `moveForward(${modelName}, ${speed});\n`;
 };
 
 javascriptGenerator.forBlock["up"] = function (block) {
@@ -2741,6 +2676,14 @@ javascriptGenerator.forBlock["touching_surface"] = function (block) {
 	);
 
 	return [`isTouchingSurface(${modelName})`, javascriptGenerator.ORDER_NONE];
+};
+
+javascriptGenerator.forBlock["camera_follow2"] = function (block) {
+	const modelName = javascriptGenerator.nameDB_.getName(
+		block.getFieldValue("MESH_VAR"),
+		Blockly.Names.NameType.VARIABLE
+	);
+	return `attachCamera(${modelName});\n`;
 };
 
 javascriptGenerator.forBlock["camera_follow"] = function (block) {
@@ -2777,8 +2720,6 @@ window.scene.onAfterPhysicsObservable.add(() => {
   // Apply the new rotation quaternion
   mesh.rotationQuaternion.copyFrom(newRotationQuaternion);
 });
-
-
 
 	   const camera = new BABYLON.ArcRotateCamera("camera", Math.PI / 2, Math.PI / 4, -20, mesh.position, window.scene);
 	   camera.checkCollisions = true;
