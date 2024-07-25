@@ -941,3 +941,185 @@ export function attachCamera(modelName) {
 		}
 	});
 }
+
+export async function setPhysics(modelName, physicsType) {
+	await retryUntilFound(modelName, (mesh) => {
+		switch (physicsType) {
+			case "STATIC":
+				mesh.physics.setMotionType(BABYLON.PhysicsMotionType.STATIC);
+				window.hk._hknp.HP_World_AddBody(
+					hk.world,
+					mesh.physics._pluginData.hpBodyId,
+					mesh.physics.startAsleep,
+				);
+				break;
+			case "DYNAMIC":
+				mesh.physics.setMotionType(BABYLON.PhysicsMotionType.DYNAMIC);
+				window.hk._hknp.HP_World_AddBody(
+					hk.world,
+					mesh.physics._pluginData.hpBodyId,
+					mesh.physics.startAsleep,
+				);
+				break;
+			case "ANIMATED":
+				mesh.physics.setMotionType(BABYLON.PhysicsMotionType.ANIMATED);
+				window.hk._hknp.HP_World_AddBody(
+					hk.world,
+					mesh.physics._pluginData.hpBodyId,
+					mesh.physics.startAsleep,
+				);
+				break;
+			case "NONE":
+				mesh.physics.setMotionType(BABYLON.PhysicsMotionType.STATIC);
+				window.hk._hknp.HP_World_RemoveBody(
+					hk.world,
+					mesh.physics._pluginData.hpBodyId,
+				);
+				break;
+			default:
+				console.error("Invalid physics type provided:", physicsType);
+				break;
+		}
+	});
+}
+
+// Helper function to determine if two meshes are touching
+export function checkMeshesTouching(mesh1VarName, mesh2VarName) {
+	const mesh1 = scene.getMeshByName(mesh1VarName);
+	const mesh2 = scene.getMeshByName(mesh2VarName);
+	if (mesh1 && mesh2 && mesh2.isEnabled()) {
+		return mesh1.intersectsMesh(mesh2, false); // 'false' for precise mode
+	}
+	return false;
+}
+
+export async function say(
+	meshName,
+	text,
+	duration,
+	textColor,
+	backgroundColor,
+	alpha,
+	size,
+	mode,
+) {
+	await window.whenModelReady(meshName, async function (mesh) {
+		return new Promise((resolve, reject) => {
+			if (mesh) {
+				// Find the first child node with a material
+				let targetMesh = mesh;
+				if (!mesh.material) {
+					const stack = [mesh];
+					while (stack.length > 0) {
+						const current = stack.pop();
+						if (current.material) {
+							targetMesh = current;
+							break;
+						}
+						stack.push(...current.getChildMeshes());
+					}
+				}
+
+				// Create or get the stack panel plane
+				let plane = mesh
+					.getDescendants()
+					.find((child) => child.name === "textPlane");
+				let advancedTexture;
+				if (!plane) {
+					plane = BABYLON.MeshBuilder.CreatePlane(
+						"textPlane",
+						{ width: 1.5, height: 1.5 },
+						window.scene,
+					);
+					plane.name = "textPlane";
+					plane.parent = targetMesh;
+					plane.alpha = 1;
+					plane.checkCollisions = false;
+					plane.isPickable = false;
+					advancedTexture =
+						window.GUI.AdvancedDynamicTexture.CreateForMesh(plane);
+					plane.advancedTexture = advancedTexture;
+
+					// Calculate the bounding box height of the mesh
+					const boundingInfo = targetMesh.getBoundingInfo();
+					plane.position.y =
+						boundingInfo.boundingBox.maximum.y + 0.85;
+					plane.billboardMode = BABYLON.Mesh.BILLBOARDMODE_ALL;
+					
+					const stackPanel = new window.GUI.StackPanel();
+					stackPanel.name = "stackPanel";
+					stackPanel.horizontalAlignment =
+						window.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
+					stackPanel.verticalAlignment =
+						window.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM;
+					stackPanel.isVertical = true;
+					stackPanel.width = "100%";
+					stackPanel.adaptHeightToChildren = true;
+					stackPanel.resizeToFit = true;
+					stackPanel.forceResizeWidth = true;
+					stackPanel.forceResizeHeight = true;
+					stackPanel.spacing = 4;
+					advancedTexture.addControl(stackPanel);
+				} else {
+					advancedTexture = plane.advancedTexture;					
+				}
+
+				const stackPanel =
+					advancedTexture.getControlByName("stackPanel");
+
+				// Handle REPLACE mode
+				if (mode === "REPLACE") {
+					stackPanel.clearControls();
+				}
+
+				// Only add new text if the text value is not empty
+				if (text) {
+					const bg = new window.GUI.Rectangle("textBackground");
+					bg.background = window.hexToRgba(backgroundColor, alpha);
+					bg.adaptWidthToChildren = true;
+					bg.adaptHeightToChildren = true;
+					bg.cornerRadius = 30;
+					bg.thickness = 0; // Remove border
+					bg.resizeToFit = true;
+					bg.forceResizeWidth = true;
+					stackPanel.addControl(bg);
+
+					const textBlock = new window.GUI.TextBlock();
+					textBlock.text = text;
+					textBlock.color = textColor;
+					textBlock.fontSize = size * 10;
+					textBlock.alpha = 1;
+					textBlock.textWrapping = window.GUI.TextWrapping.WordWrap;
+					textBlock.resizeToFit = true;
+					textBlock.forceResizeWidth = true;
+					textBlock.paddingLeft = 50;
+					textBlock.paddingRight = 50;
+					textBlock.paddingTop = 20;
+					textBlock.paddingBottom = 20;
+					textBlock.textVerticalAlignment =
+						window.GUI.Control.VERTICAL_ALIGNMENT_TOP;
+					textBlock.textHorizontalAlignment =
+						window.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
+					bg.addControl(textBlock);
+
+					// Remove the text after the specified duration if duration is greater than 0
+					if (duration > 0) {
+						setTimeout(function () {
+							stackPanel.removeControl(bg);
+							bg.dispose();
+							textBlock.dispose();
+							resolve();
+						}, duration * 1000);
+					} else {
+						resolve();
+					}
+				} else {
+					resolve();
+				}
+			} else {
+				console.error("Mesh is not defined.");
+				reject("Mesh is not defined.");
+			}
+		});
+	});
+}

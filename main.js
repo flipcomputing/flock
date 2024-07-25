@@ -41,6 +41,9 @@ import {
 	changeColour,
 	moveForward,
 	attachCamera,
+	setPhysics,
+	checkMeshesTouching,
+	say,
 } from "./flock.js";
 import { toolbox } from "./toolbox.js";
 import { FlowGraphLog10Block } from "babylonjs";
@@ -74,6 +77,9 @@ window.changeColour = changeColour;
 window.newCharacter = newCharacter;
 window.moveForward = moveForward;
 window.attachCamera = attachCamera;
+window.setPhysics = setPhysics;
+window.checkMeshesTouching = checkMeshesTouching;
+window.say = say;
 
 registerFieldColour();
 
@@ -1747,6 +1753,7 @@ Blockly.Blocks["key_pressed"] = {
 	},
 };
 
+
 Blockly.Blocks["meshes_touching"] = {
 	init: function () {
 		this.jsonInit({
@@ -2137,176 +2144,22 @@ function hexToRgba(hex, alpha) {
 }
 window.hexToRgba = hexToRgba;
 
-// Register the block in Blockly
-javascriptGenerator.forBlock["say"] = // Function to handle the 'say' block
-	function (block) {
-		const text =
-			javascriptGenerator.valueToCode(
-				block,
-				"TEXT",
-				javascriptGenerator.ORDER_ATOMIC,
-			) || '""';
-		const duration =
-			javascriptGenerator.valueToCode(
-				block,
-				"DURATION",
-				javascriptGenerator.ORDER_ATOMIC,
-			) || "0";
-		const meshVariable = javascriptGenerator.nameDB_.getName(
-			block.getFieldValue("MESH_VAR"),
-			Blockly.Names.NameType.VARIABLE,
-		);
-		const textColor = getFieldValue(block, "TEXT_COLOR", "#000000");
-		const backgroundColor = getFieldValue(
-			block,
-			"BACKGROUND_COLOR",
-			"#ffffff",
-		);
-		const alpha =
-			javascriptGenerator.valueToCode(
-				block,
-				"ALPHA",
-				javascriptGenerator.ORDER_ATOMIC,
-			) || "1";
-		const size =
-			javascriptGenerator.valueToCode(
-				block,
-				"SIZE",
-				javascriptGenerator.ORDER_ATOMIC,
-			) || "24";
-		const mode = block.getFieldValue("MODE");
-		const asyncMode = block.getFieldValue("ASYNC");
+javascriptGenerator.forBlock["say"] = function (block) {
+	const text = javascriptGenerator.valueToCode(block, "TEXT", javascriptGenerator.ORDER_ATOMIC) || '""';
+	const duration = javascriptGenerator.valueToCode(block, "DURATION", javascriptGenerator.ORDER_ATOMIC) || "0";
+	const meshVariable = javascriptGenerator.nameDB_.getName(block.getFieldValue("MESH_VAR"), Blockly.Names.NameType.VARIABLE);
+	const textColor = getFieldValue(block, "TEXT_COLOR", "#000000");
+	const backgroundColor = getFieldValue(block, "BACKGROUND_COLOR", "#ffffff");
+	const alpha = javascriptGenerator.valueToCode(block, "ALPHA", javascriptGenerator.ORDER_ATOMIC) || "1";
+	const size = javascriptGenerator.valueToCode(block, "SIZE", javascriptGenerator.ORDER_ATOMIC) || "24";
+	const mode = block.getFieldValue("MODE");
+	const asyncMode = block.getFieldValue("ASYNC");
 
-		return `
-	  (async function() {
-		function displayText(mesh) {
-		  return new Promise((resolve, reject) => {
-			if (mesh) {
-			// Find the first child node with a material
-			let targetMesh = mesh;
-			if (!mesh.material) {
-			  const stack = [mesh];
-			  while (stack.length > 0) {
-				const current = stack.pop();
-				if (current.material) {
-				  targetMesh = current;
-				  break;
-				}
-				stack.push(...current.getChildMeshes());
-			  }
-			}
+	// Wrap in an asynchronous IIFE if async mode is enabled
+	const asyncWrapper = asyncMode === "AWAIT" ? "await " : "";
 
-			  // Create or get the stack panel plane
-			   let plane = mesh.getChildren().find(child => child.name === "textPlane");
-			  let advancedTexture;
-			  if (!plane) {
-				
-				plane = BABYLON.MeshBuilder.CreatePlane("textPlane", { width: 1.5, height: 1.5 }, window.scene);
-				plane.name = "textPlane";
-				plane.parent = targetMesh;
-				plane.alpha = 1;
-				plane.checkCollisions = false;
-				plane.isPickable = false;
-				advancedTexture = window.GUI.AdvancedDynamicTexture.CreateForMesh(plane);
-				plane.advancedTexture = advancedTexture;
-
-				const stackPanel = new window.GUI.StackPanel();
-				stackPanel.name = "stackPanel";
-				stackPanel.horizontalAlignment = window.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
-				stackPanel.verticalAlignment = window.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM;
-				stackPanel.isVertical = true;
-				stackPanel.width = "100%";
-				stackPanel.adaptHeightToChildren = true;
-				stackPanel.resizeToFit = true;
-				stackPanel.forceResizeWidth = true;
-				stackPanel.forceResizeHeight = true;
-				advancedTexture.addControl(stackPanel);
-
-			  } else {
-				advancedTexture = plane.advancedTexture;
-			  }
-
-			  const stackPanel = advancedTexture.getControlByName("stackPanel");
-
-			  // Handle REPLACE mode
-			  if ("${mode}" === "REPLACE") {
-				stackPanel.clearControls();
-			  }
-
-			  // Only add new text if the text value is not empty
-			  if (${text}) {
-				// Create a new background rectangle for the text
-				const bg = new window.GUI.Rectangle("textBackground");
-				bg.background = window.hexToRgba(${backgroundColor}, ${alpha});
-				bg.adaptWidthToChildren = true;
-				bg.adaptHeightToChildren = true;
-				bg.cornerRadius = 30;
-				bg.thickness = 0; // Remove border
-				bg.resizeToFit = true;
-				bg.forceResizeWidth = true;
-				stackPanel.addControl(bg);
-
-				const textBlock = new window.GUI.TextBlock();
-				textBlock.text =  ${text};
-				textBlock.color =  ${textColor};
-				textBlock.fontSize = ${size} * 10;
-				textBlock.alpha = 1;
-				textBlock.textWrapping =                                                                 window.GUI.TextWrapping.WordWrap;
-				textBlock.resizeToFit = true;
-				textBlock.forceResizeWidth = true;
-				textBlock.paddingLeft = 50;
-				textBlock.paddingRight = 50;
-				 textBlock.paddingTop = 25;
-				 textBlock.paddingBottom = 25;
-				 textBlock.textVerticalAlignment = window.GUI.Control.VERTICAL_ALIGNMENT_TOP; // Align text to top
-				 textBlock.textHorizontalAlignment = window.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER; // Align text to left
-				bg.addControl(textBlock);   
-
-				// Calculate the bounding box height of the mesh
-				const boundingInfo = targetMesh.getBoundingInfo();
-				plane.position.y = boundingInfo.boundingBox.maximum.y + 0.85;
-				plane.billboardMode = BABYLON.Mesh.BILLBOARDMODE_ALL;
-
-				// Remove the text after the specified duration if duration is greater than 0
-				if (${duration} * 1000 > 0) {
-				  setTimeout(function() {
-					stackPanel.removeControl(bg);
-					bg.dispose();
-					textBlock.dispose();
-					resolve();
-				  }, ${duration} * 1000);
-				} else {
-				  resolve();
-				}
-			  } else {
-				resolve();
-			  }
-			} else {
-			  console.error("Mesh is not defined.");
-			  reject("Mesh is not defined.");
-			}
-		  });
-		}
-
-		if ("${asyncMode}" === "AWAIT") {
-		  await new Promise((resolve, reject) => {
-			window.whenModelReady(${meshVariable}, async function(mesh) {
-			  try {
-				await displayText(mesh);
-				resolve();
-			  } catch (error) {
-				reject(error);
-			  }
-			});
-		  });
-		} else {
-		  window.whenModelReady(${meshVariable}, function(mesh) {
-			displayText(mesh);
-		  });
-		}
-	  })();
-	`;
-	};
+	return `${asyncWrapper}say(${meshVariable}, ${text}, ${duration}, ${textColor}, ${backgroundColor}, ${alpha}, ${size}, "${mode}");\n`;
+};
 
 javascriptGenerator.forBlock["load_model"] = function (block) {
 	const modelName = block.getFieldValue("MODELS");
@@ -2678,153 +2531,43 @@ javascriptGenerator.forBlock["touching_surface"] = function (block) {
 	return [`isTouchingSurface(${modelName})`, javascriptGenerator.ORDER_NONE];
 };
 
-javascriptGenerator.forBlock["camera_follow2"] = function (block) {
+javascriptGenerator.forBlock["camera_follow"] = function (block) {
 	const modelName = javascriptGenerator.nameDB_.getName(
 		block.getFieldValue("MESH_VAR"),
 		Blockly.Names.NameType.VARIABLE
 	);
 	return `attachCamera(${modelName});\n`;
 };
-
-javascriptGenerator.forBlock["camera_follow"] = function (block) {
-	const modelName = javascriptGenerator.nameDB_.getName(
-		block.getFieldValue("MESH_VAR"),
-		Blockly.Names.NameType.VARIABLE,
-	);
-
-	return (
-		`window.whenModelReady(${modelName}, function(mesh) {
-	  if (mesh) {\n` +
-		`  
-// Reset linear and angular velocity after physics render
-window.scene.onAfterPhysicsObservable.add(() => {
-  // Get current velocities
-  const currentVelocity = mesh.physics.getLinearVelocity();
-  const newVelocity = new BABYLON.Vector3(0, currentVelocity.y, 0); // Keep y velocity, reset x and z to 0
-  
-  // Set the new linear velocity
-  mesh.physics.setLinearVelocity(newVelocity);
-  
-  // Reset angular velocity to zero
-  mesh.physics.setAngularVelocity(BABYLON.Vector3.Zero());
-
-  // Get current rotation quaternion
-  const currentRotationQuaternion = mesh.rotationQuaternion;
-  
-  // Convert the quaternion to Euler angles to access individual rotations
-  const currentEulerRotation = currentRotationQuaternion.toEulerAngles();
-
-  // Reset x and z rotation to 0 while keeping y rotation the same
-  const newRotationQuaternion = BABYLON.Quaternion.RotationYawPitchRoll(currentEulerRotation.y, 0, 0);
-  
-  // Apply the new rotation quaternion
-  mesh.rotationQuaternion.copyFrom(newRotationQuaternion);
-});
-
-	   const camera = new BABYLON.ArcRotateCamera("camera", Math.PI / 2, Math.PI / 4, -20, mesh.position, window.scene);
-	   camera.checkCollisions = true;
-
-   // Adjust Beta limits to control the vertical angle
-	camera.lowerBetaLimit = Math.PI / 2.5; // Lower angle
-	camera.upperBetaLimit = Math.PI / 2; // Upper angle, prevent it from being too high
-	  camera.lowerRadiusLimit = 2;
-	  camera.upperRadiusLimit = 7;
-	  // This targets the camera to scene origin
-	  camera.setTarget(BABYLON.Vector3.Zero());
-	  // This attaches the camera to the canvas
-	  camera.attachControl(canvas, true);
-	  camera.setTarget(mesh);
-	  window.scene.activeCamera = camera;
-
-	  }
-	  else{
-	   console.log("Model not loaded:", ${modelName});
-	  }
-
-	  });\n`
-	);
-};
-
 javascriptGenerator.forBlock["add_physics"] = function (block) {
 	const modelName = javascriptGenerator.nameDB_.getName(
 		block.getFieldValue("MODEL_VAR"),
-		Blockly.Names.NameType.VARIABLE,
+		Blockly.Names.NameType.VARIABLE
 	);
 
 	const physicsType = block.getFieldValue("PHYSICS_TYPE");
 
-	return `window.whenModelReady(${modelName}, function(mesh) {
-	  if (mesh) {
-		switch ("${physicsType}") {
-			case "STATIC":
-mesh.physics.setMotionType(BABYLON.PhysicsMotionType.STATIC);
-window.hk._hknp.HP_World_AddBody(
-	hk.world,
-	mesh.physics._pluginData.hpBodyId,
-	mesh.physics.startAsleep,
-);
- break;
-			case "DYNAMIC":
-mesh.physics.setMotionType(BABYLON.PhysicsMotionType.DYNAMIC);
-window.hk._hknp.HP_World_AddBody(
-	hk.world,
-	mesh.physics._pluginData.hpBodyId,
-	mesh.physics.startAsleep,
-);
- break;
-			case "ANIMATED":
-mesh.physics.setMotionType(BABYLON.PhysicsMotionType.ANIMATED);
-window.hk._hknp.HP_World_AddBody(
-					hk.world,
-					mesh.physics._pluginData.hpBodyId,
-					mesh.physics.startAsleep,
-				);
- break;
- case "NONE":
-console.log("Walk through");
- mesh.physics.setMotionType(BABYLON.PhysicsMotionType.STATIC);
- //mesh.physics.dispose();
- window.hk._hknp.HP_World_RemoveBody(
-	 hk.world,
-	 mesh.physics._pluginData.hpBodyId,
- );
-  break;
-} 
-	  }
-	  else{
-
-	   console.log("Model not loaded:", ${modelName});
-	  }
-
-	  });\n`;
+	// Note: Ensure that the execution environment supports async/await at this level
+	return `await setPhysics(${modelName}, "${physicsType}");\n`;
 };
+
 
 javascriptGenerator.forBlock["key_pressed"] = function (block) {
 	const key = block.getFieldValue("KEY");
 	return [`keyPressed("${key}")`, javascriptGenerator.ORDER_NONE];
 };
 
+// Blockly code generator for checking if two meshes are touching
 javascriptGenerator.forBlock["meshes_touching"] = function (block) {
 	const mesh1VarName = javascriptGenerator.nameDB_.getName(
 		block.getFieldValue("MESH1"),
-		Blockly.Names.NameType.VARIABLE,
+		Blockly.Names.NameType.VARIABLE
 	);
 	const mesh2VarName = javascriptGenerator.nameDB_.getName(
 		block.getFieldValue("MESH2"),
-		Blockly.Names.NameType.VARIABLE,
+		Blockly.Names.NameType.VARIABLE
 	);
 
-	const code = `
-	(function () {
-	  const mesh1 = scene.getMeshByName(${mesh1VarName});
-	  const mesh2 = scene.getMeshByName(${mesh2VarName});
-	  if (mesh1 && mesh2 && mesh2.isEnabled()) {
-		return mesh1.intersectsMesh(mesh2, false);
-	  } else {
-		return false;
-	  }
-	})()
-		`;
+	const code = `checkMeshesTouching(${mesh1VarName}, ${mesh2VarName})`;
 	return [code, javascriptGenerator.ORDER_ATOMIC];
 };
 
