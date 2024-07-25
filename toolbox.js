@@ -1270,7 +1270,7 @@ export const toolbox = {
 							shadow: {
 								type: "math_number",
 								fields: {
-									NUM: 42, // Default seed value
+									NUM: 123456, // Default seed value
 								},
 							},
 						},
