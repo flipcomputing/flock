@@ -50,7 +50,7 @@ import {
 	forever,
 	whenKeyPressed
 } from "./flock.js";
-import { toolbox } from "./toolbox.js";
+import { toolbox, categoryColours } from "./toolbox.js";
 import { FlowGraphLog10Block } from "babylonjs";
 window.BABYLON = BABYLON;
 window.GUI = BABYLON_GUI;
@@ -92,19 +92,6 @@ window.forever = forever;
 window.whenKepressed = whenKeyPressed;
 
 registerFieldColour();
-
-const categoryColours = {
-	Scene: 100,
-	Motion: 240,
-	Looks: 300,
-	Control: "%{BKY_LOOPS_HUE}",
-	Logic: "%{BKY_LOGIC_HUE}",
-	Variables: "%{BKY_VARIABLES_HUE}",
-	Text: "%{BKY_TEXTS_HUE}",
-	Lists: "%{BKY_LISTS_HUE}",
-	Math: "%{BKY_MATH_HUE}",
-	Procedures: "%{BKY_PROCEDURES_HUE}",
-};
 
 const canvas = document.getElementById("renderCanvas");
 const engine = new BABYLON.Engine(canvas, true, { stencil: true });
@@ -478,7 +465,7 @@ Blockly.Blocks["load_character"] = {
 				},
 			],
 			inputsInline: true,
-			colour: 230,
+			colour: categoryColours["Scene"],
 			tooltip: "",
 			helpUrl: "",
 			previousStatement: null,
@@ -548,7 +535,7 @@ Blockly.Blocks["load_model"] = {
 				},
 			],
 			inputsInline: true,
-			colour: 230,
+			colour: categoryColours["Scene"],
 			tooltip: "",
 			helpUrl: "",
 			previousStatement: null,
@@ -976,23 +963,30 @@ const animationNames = [
 
 Blockly.Blocks["switch_animation"] = {
 	init: function () {
-		this.appendDummyInput()
-			.appendField("switch animation of")
-			.appendField(new Blockly.FieldVariable("mesh"), "MODEL")
-			.appendField("to")
-			.appendField(
-				new Blockly.FieldDropdown(animationNames),
-				"ANIMATION_NAME",
-			);
-		this.setPreviousStatement(true, null);
-		this.setNextStatement(true, null);
-		this.setColour(160);
-		this.setTooltip(
-			"Changes the animation of the specified model to the given animation.",
-		);
-		this.setHelpUrl("");
+		this.jsonInit({
+			type: "switch_model_animation",
+			message0: "switch animation of %1 to %2",
+			args0: [
+				{
+					type: "field_variable",
+					name: "MODEL",
+					variable: "mesh",
+				},
+				{
+					type: "field_dropdown",
+					name: "ANIMATION_NAME",
+					options: animationNames,
+				},
+			],
+			previousStatement: null,
+			nextStatement: null,
+			colour: categoryColours["Looks"],
+			tooltip: "Changes the animation of the specified model to the given animation.",
+			helpUrl: "",
+		});
 	},
 };
+
 
 Blockly.Blocks["play_animation"] = {
 	init: function () {
@@ -1013,7 +1007,7 @@ Blockly.Blocks["play_animation"] = {
 			],
 			previousStatement: null,
 			nextStatement: null,
-			colour: 230,
+			colour: categoryColours["Looks"],
 			tooltip: "Plays a selected animation once on the specified model.",
 			helpUrl: "",
 		});
@@ -1192,7 +1186,7 @@ Blockly.Blocks["play_sound"] = {
 			inputsInline: true,
 			previousStatement: null,
 			nextStatement: null,
-			colour: 160,
+			colour: categoryColours["Sound"],
 			tooltip:
 				"Plays the selected sound with adjustable speed and volume, and chooses to play once or loop.",
 			helpUrl: "",
@@ -1225,7 +1219,7 @@ Blockly.Blocks["stop_all_sounds"] = {
 			message0: "stop all sounds",
 			previousStatement: null,
 			nextStatement: null,
-			colour: 210,
+			colour: categoryColours["Sound"],
 			tooltip: "Stops all sounds currently playing in the scene.",
 			helpUrl: "",
 		});
@@ -1289,7 +1283,7 @@ Blockly.Blocks["when_clicked"] = {
 					name: "DO",
 				},
 			],
-			colour: 120,
+			colour: categoryColours["Events"],
 			tooltip:
 				"Executes the blocks inside when the specified model trigger occurs.",
 			helpUrl: "",
@@ -1363,7 +1357,7 @@ Blockly.Blocks["when_key_pressed"] = {
 				},
 			],
 			nextStatement: null,
-			colour: 120,
+			colour: categoryColours["Events"],
 			tooltip:
 				"Executes the blocks inside when the specified key is pressed.",
 			helpUrl: "",
@@ -1437,7 +1431,7 @@ Blockly.Blocks["when_key_released"] = {
 				},
 			],
 			nextStatement: null,
-			colour: 120,
+			colour: categoryColours["Events"],
 			tooltip:
 				"Executes the blocks inside when the specified key is released.",
 			helpUrl: "",
@@ -1459,7 +1453,7 @@ Blockly.Blocks["broadcast_event"] = {
 			],
 			previousStatement: null,
 			nextStatement: null,
-			colour: 160,
+			colour: categoryColours["Events"],
 			tooltip: "",
 			helpUrl: "",
 		});
@@ -1485,7 +1479,7 @@ Blockly.Blocks["on_event"] = {
 					name: "DO",
 				},
 			],
-			colour: 120,
+			colour: categoryColours["Events"],
 			tooltip: "",
 			helpUrl: "",
 		});
@@ -1770,7 +1764,7 @@ Blockly.Blocks["key_pressed"] = {
 				},
 			],
 			output: "Boolean",
-			colour: 160,
+			colour: categoryColours["Sensing"],
 			tooltip: "Returns true if the specified key is pressed.",
 			helpUrl: "",
 		});
@@ -1795,7 +1789,7 @@ Blockly.Blocks["meshes_touching"] = {
 				},
 			],
 			output: "Boolean",
-			colour: 210,
+			colour: categoryColours["Sensing"],
 			tooltip:
 				"Returns true if the two selected meshes are touching, with retries for loading.",
 			helpUrl: "",
@@ -1856,7 +1850,6 @@ Blockly.Blocks["up"] = {
 	},
 };
 
-// Define the touching_surface block
 Blockly.Blocks["touching_surface"] = {
 	init: function () {
 		this.jsonInit({
@@ -1870,7 +1863,7 @@ Blockly.Blocks["touching_surface"] = {
 				},
 			],
 			output: "Boolean",
-			colour: 230,
+			colour: categoryColours["Sensing"],
 			tooltip: "Check if the model is touching a surface",
 			helpUrl: "",
 		});
@@ -1913,7 +1906,7 @@ Blockly.Blocks["colour"] = {
 				},
 			],
 			output: "Colour",
-			colour: 160,
+			colour: categoryColours["Looks"],
 			tooltip: "Pick a colour",
 			helpUrl: "",
 		});
@@ -1962,7 +1955,7 @@ Blockly.Blocks["skin_colour"] = {
 				},
 			],
 			output: "Colour",
-			colour: 160,
+			colour: categoryColours["Looks"],
 			tooltip: "Pick a skin colour",
 			helpUrl: "",
 		});
@@ -1982,7 +1975,7 @@ Blockly.Blocks["colour_from_string"] = {
 				},
 			],
 			output: "Colour",
-			colour: 160,
+			colour: categoryColours["Looks"],
 			tooltip: "Returns a colour from a hex code or CSS colour name",
 			helpUrl: "",
 		});
@@ -1995,7 +1988,7 @@ Blockly.Blocks["random_colour"] = {
 			type: "random_colour_block",
 			message0: "random colour",
 			output: "Colour",
-			colour: 160,
+			colour: categoryColours["Looks"],
 			tooltip: "Generate a random colour",
 			helpUrl: "",
 		});
@@ -2494,7 +2487,7 @@ javascriptGenerator.forBlock["switch_animation"] = function (block) {
 	);
 	const animationName = block.getFieldValue("ANIMATION_NAME");
 
-	return `switchAnimation(${modelName}, "${animationName}");\n`;
+	return `await switchAnimation(${modelName}, "${animationName}");\n`;
 };
 
 javascriptGenerator.forBlock["move_forward"] = function (block) {

@@ -138,11 +138,10 @@ export function switchToAnimation(
 	return targetAnimationGroup;
 }
 
-export function switchAnimation(modelName, animationName) {
-	const mesh = window.scene.getMeshByName(modelName);
-	if (mesh) {
+export async function switchAnimation(modelName, animationName) {
+	await whenModelReady(modelName, (mesh) => {
 		switchToAnimation(window.scene, mesh, animationName, true, false);
-	}
+	});
 }
 
 export async function highlight(modelName, color) {

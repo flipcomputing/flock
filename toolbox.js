@@ -1,7 +1,12 @@
-const categoryColours = {
+
+
+export const categoryColours = {
 	Scene: 100,
 	Motion: 240,
 	Looks: 300,
+	Sound: 15,
+	Events: 40,
+	Sensing: 200,
 	Control: "%{BKY_LOOPS_HUE}",
 	Logic: "%{BKY_LOGIC_HUE}",
 	Variables: "%{BKY_VARIABLES_HUE}",
@@ -47,28 +52,6 @@ export const toolbox = {
 								type: "colour",
 								fields: {
 									COLOR: "#71BC78",
-								},
-							},
-						},
-					},
-				},
-				{
-					kind: "block",
-					type: "set_fog",
-					inputs: {
-						FOG_COLOR: {
-							shadow: {
-								type: "colour",
-								fields: {
-									COLOR: "#ffffff",
-								},
-							},
-						},
-						DENSITY: {
-							shadow: {
-								type: "math_number",
-								fields: {
-									NUM: 0.1,
 								},
 							},
 						},
@@ -390,6 +373,28 @@ export const toolbox = {
 						},
 					},
 				},
+				{
+					kind: "block",
+					type: "set_fog",
+					inputs: {
+						FOG_COLOR: {
+							shadow: {
+								type: "colour",
+								fields: {
+									COLOR: "#ffffff",
+								},
+							},
+						},
+						DENSITY: {
+							shadow: {
+								type: "math_number",
+								fields: {
+									NUM: 0.1,
+								},
+							},
+						},
+					},
+				},
 			],
 		},
 		{
@@ -671,7 +676,7 @@ export const toolbox = {
 		{
 			kind: "category",
 			name: "Sound",
-			colour: "#D65C00",
+			colour: categoryColours["Sound"],
 			contents: [
 				{
 					kind: "block",
@@ -749,7 +754,7 @@ export const toolbox = {
 		{
 			kind: "category",
 			name: "Events",
-			colour: "#FFBF00",
+			colour: categoryColours["Events"],
 			contents: [
 				{
 					kind: "block",
@@ -1127,7 +1132,7 @@ export const toolbox = {
 		{
 			kind: "category",
 			name: "Sensing",
-			colour: "#ADD8E6",
+			colour: categoryColours["Sensing"],
 			contents: [
 				{
 					kind: "block",
