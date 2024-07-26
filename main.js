@@ -44,6 +44,7 @@ import {
 	setPhysics,
 	checkMeshesTouching,
 	say,
+	onTrigger,
 } from "./flock.js";
 import { toolbox } from "./toolbox.js";
 import { FlowGraphLog10Block } from "babylonjs";
@@ -80,6 +81,7 @@ window.attachCamera = attachCamera;
 window.setPhysics = setPhysics;
 window.checkMeshesTouching = checkMeshesTouching;
 window.say = say;
+window.onTrigger = onTrigger;
 
 registerFieldColour();
 
@@ -1250,12 +1252,30 @@ Blockly.Blocks["when_clicked"] = {
 	init: function () {
 		this.jsonInit({
 			type: "model_clicked",
-			message0: "when %1 is clicked",
+			message0: "when %1 is %2",
 			args0: [
 				{
 					type: "field_variable",
 					name: "MODEL_VAR",
 					variable: "mesh", // Default variable name
+				},
+				{
+					type: "field_dropdown",
+					name: "TRIGGER",
+					options: [
+						["clicked", "OnPickTrigger"],
+						["double-clicked", "OnDoublePickTrigger"],
+						["mouse down", "OnPickDownTrigger"],
+						["mouse up", "OnPickUpTrigger"],
+						["mouse out", "OnPickOutTrigger"],
+						["left-clicked", "OnLeftPickTrigger"],
+						[
+							"right-clicked / long pressed",
+							"OnRightOrLongPressTrigger",
+						],
+						["pointer over", "OnPointerOverTrigger"],
+						["pointer out", "OnPointerOutTrigger"],
+					],
 				},
 			],
 			message1: "do %1",
@@ -1267,7 +1287,7 @@ Blockly.Blocks["when_clicked"] = {
 			],
 			colour: 120,
 			tooltip:
-				"Executes the blocks inside when the specified model is clicked.",
+				"Executes the blocks inside when the specified model trigger occurs.",
 			helpUrl: "",
 		});
 	},
@@ -1753,7 +1773,6 @@ Blockly.Blocks["key_pressed"] = {
 	},
 };
 
-
 Blockly.Blocks["meshes_touching"] = {
 	init: function () {
 		this.jsonInit({
@@ -1906,17 +1925,34 @@ Blockly.Blocks["skin_colour"] = {
 				{
 					type: "field_colour",
 					name: "COLOR",
-					colour: "#FFE0BD",  // A neutral starting color
+					colour: "#FFE0BD", // A neutral starting color
 					colourOptions: [
-						"#3F2A1D", "#5C4033", "#6F4E37", "#7A421D",						
-						"#8D5524", "#A86B38", "#C68642", "#D1A36A",
-						"#E1B899", "#F0D5B1", "#FFDFC4", "#FFF5E1"
-					
+						"#3F2A1D",
+						"#5C4033",
+						"#6F4E37",
+						"#7A421D",
+						"#8D5524",
+						"#A86B38",
+						"#C68642",
+						"#D1A36A",
+						"#E1B899",
+						"#F0D5B1",
+						"#FFDFC4",
+						"#FFF5E1",
 					],
 					colourTitles: [
-						"color 1", "color 2", "color 3", "color 4",
-						"color 5", "color 6", "color 7", "color 8",
-						"color 9", "color 10", "color 11", "color 12"
+						"color 1",
+						"color 2",
+						"color 3",
+						"color 4",
+						"color 5",
+						"color 6",
+						"color 7",
+						"color 8",
+						"color 9",
+						"color 10",
+						"color 11",
+						"color 12",
 					],
 					columns: 4,
 				},
@@ -1928,7 +1964,6 @@ Blockly.Blocks["skin_colour"] = {
 		});
 	},
 };
-
 
 Blockly.Blocks["colour_from_string"] = {
 	init: function () {
@@ -2145,13 +2180,36 @@ function hexToRgba(hex, alpha) {
 window.hexToRgba = hexToRgba;
 
 javascriptGenerator.forBlock["say"] = function (block) {
-	const text = javascriptGenerator.valueToCode(block, "TEXT", javascriptGenerator.ORDER_ATOMIC) || '""';
-	const duration = javascriptGenerator.valueToCode(block, "DURATION", javascriptGenerator.ORDER_ATOMIC) || "0";
-	const meshVariable = javascriptGenerator.nameDB_.getName(block.getFieldValue("MESH_VAR"), Blockly.Names.NameType.VARIABLE);
+	const text =
+		javascriptGenerator.valueToCode(
+			block,
+			"TEXT",
+			javascriptGenerator.ORDER_ATOMIC,
+		) || '""';
+	const duration =
+		javascriptGenerator.valueToCode(
+			block,
+			"DURATION",
+			javascriptGenerator.ORDER_ATOMIC,
+		) || "0";
+	const meshVariable = javascriptGenerator.nameDB_.getName(
+		block.getFieldValue("MESH_VAR"),
+		Blockly.Names.NameType.VARIABLE,
+	);
 	const textColor = getFieldValue(block, "TEXT_COLOR", "#000000");
 	const backgroundColor = getFieldValue(block, "BACKGROUND_COLOR", "#ffffff");
-	const alpha = javascriptGenerator.valueToCode(block, "ALPHA", javascriptGenerator.ORDER_ATOMIC) || "1";
-	const size = javascriptGenerator.valueToCode(block, "SIZE", javascriptGenerator.ORDER_ATOMIC) || "24";
+	const alpha =
+		javascriptGenerator.valueToCode(
+			block,
+			"ALPHA",
+			javascriptGenerator.ORDER_ATOMIC,
+		) || "1";
+	const size =
+		javascriptGenerator.valueToCode(
+			block,
+			"SIZE",
+			javascriptGenerator.ORDER_ATOMIC,
+		) || "24";
 	const mode = block.getFieldValue("MODE");
 	const asyncMode = block.getFieldValue("ASYNC");
 
@@ -2347,28 +2405,62 @@ javascriptGenerator.forBlock["stop_all_sounds"] = function (block) {
 javascriptGenerator.forBlock["when_clicked"] = function (block) {
 	const modelName = javascriptGenerator.nameDB_.getName(
 		block.getFieldValue("MODEL_VAR"),
-		Blockly.Names.NameType.VARIABLE,
+		Blockly.Names.NameType.VARIABLE
 	);
 
+	const trigger = block.getFieldValue("TRIGGER");
 	const doCode = javascriptGenerator.statementToCode(block, "DO");
 
-	return `(async () => {
-	window.whenModelReady(${modelName}, async function(_mesh) {
+	return `onTrigger(${modelName}, "${trigger}", async function() {
+			${doCode}
+		});\n`;
+};
 
-	if (_mesh) {
-	//console.log("Registering click action for", _mesh.name);
 
-	 _mesh.actionManager = new BABYLON.ActionManager(window.scene);
-	 //_mesh.actionManager.isRecursive = true;
-	_mesh.actionManager.registerAction(new BABYLON.ExecuteCodeAction(BABYLON.ActionManager.OnPickTrigger, async function() {
-	//console.log("Model clicked:", _mesh.name);
-	${doCode}
-	}));
+javascriptGenerator.forBlock["when_clicked2"] = function (block) {
+	const modelName = javascriptGenerator.nameDB_.getName(
+		block.getFieldValue("MODEL_VAR"),
+		Blockly.Names.NameType.VARIABLE
+	);
 
+	const trigger = block.getFieldValue("TRIGGER");
+	const doCode = javascriptGenerator.statementToCode(block, "DO");
+
+	let actionCode;
+	if (trigger === "OnRightOrLongPressTrigger") {
+		actionCode = `
+			_mesh.actionManager.registerAction(new BABYLON.ExecuteCodeAction(BABYLON.ActionManager.OnRightPickTrigger, async function() {
+				console.log("Right-click trigger activated for", _mesh.name);
+				${doCode}
+			}));
+			_mesh.actionManager.registerAction(new BABYLON.ExecuteCodeAction(BABYLON.ActionManager.OnLongPressTrigger, async function() {
+				console.log("Long press trigger activated for", _mesh.name);
+				${doCode}
+			}));
+		`;
 	} else {
-	  console.log("No pickable parent or child found.");
+		actionCode = `_mesh.actionManager.registerAction(new BABYLON.ExecuteCodeAction(BABYLON.ActionManager.${trigger}, async function() {
+			console.log("${trigger} trigger activated for", _mesh.name);
+			${doCode}
+		}));`;
 	}
-	})})();
+
+	return `
+		window.whenModelReady(${modelName}, async function(_mesh) {
+			if (_mesh) {
+				if (!_mesh.actionManager) {
+					_mesh.actionManager = new BABYLON.ActionManager(window.scene);
+				}
+				console.log("Setting up trigger: ${trigger} for", _mesh.name);
+
+				// Ensure the mesh is enabled for pointer events
+				_mesh.isPickable = true;
+
+				${actionCode}
+			} else {
+				console.log("No pickable parent or child found for", ${modelName});
+			}
+		});
 	`;
 };
 
@@ -2501,13 +2593,14 @@ javascriptGenerator.forBlock["switch_animation"] = function (block) {
 javascriptGenerator.forBlock["move_forward"] = function (block) {
 	const modelName = javascriptGenerator.nameDB_.getName(
 		block.getFieldValue("MODEL"),
-		Blockly.Names.NameType.VARIABLE
+		Blockly.Names.NameType.VARIABLE,
 	);
-	const speed = javascriptGenerator.valueToCode(
-		block,
-		"SPEED",
-		javascriptGenerator.ORDER_ATOMIC
-	) || "0";
+	const speed =
+		javascriptGenerator.valueToCode(
+			block,
+			"SPEED",
+			javascriptGenerator.ORDER_ATOMIC,
+		) || "0";
 
 	return `moveForward(${modelName}, ${speed});\n`;
 };
@@ -2534,14 +2627,14 @@ javascriptGenerator.forBlock["touching_surface"] = function (block) {
 javascriptGenerator.forBlock["camera_follow"] = function (block) {
 	const modelName = javascriptGenerator.nameDB_.getName(
 		block.getFieldValue("MESH_VAR"),
-		Blockly.Names.NameType.VARIABLE
+		Blockly.Names.NameType.VARIABLE,
 	);
 	return `attachCamera(${modelName});\n`;
 };
 javascriptGenerator.forBlock["add_physics"] = function (block) {
 	const modelName = javascriptGenerator.nameDB_.getName(
 		block.getFieldValue("MODEL_VAR"),
-		Blockly.Names.NameType.VARIABLE
+		Blockly.Names.NameType.VARIABLE,
 	);
 
 	const physicsType = block.getFieldValue("PHYSICS_TYPE");
@@ -2549,7 +2642,6 @@ javascriptGenerator.forBlock["add_physics"] = function (block) {
 	// Note: Ensure that the execution environment supports async/await at this level
 	return `await setPhysics(${modelName}, "${physicsType}");\n`;
 };
-
 
 javascriptGenerator.forBlock["key_pressed"] = function (block) {
 	const key = block.getFieldValue("KEY");
@@ -2560,11 +2652,11 @@ javascriptGenerator.forBlock["key_pressed"] = function (block) {
 javascriptGenerator.forBlock["meshes_touching"] = function (block) {
 	const mesh1VarName = javascriptGenerator.nameDB_.getName(
 		block.getFieldValue("MESH1"),
-		Blockly.Names.NameType.VARIABLE
+		Blockly.Names.NameType.VARIABLE,
 	);
 	const mesh2VarName = javascriptGenerator.nameDB_.getName(
 		block.getFieldValue("MESH2"),
-		Blockly.Names.NameType.VARIABLE
+		Blockly.Names.NameType.VARIABLE,
 	);
 
 	const code = `checkMeshesTouching(${mesh1VarName}, ${mesh2VarName})`;

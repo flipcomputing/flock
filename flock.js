@@ -1125,3 +1125,34 @@ export async function say(
 		});
 	});
 }
+
+export async function onTrigger(modelName, trigger, doCode) {
+	return new Promise(async (resolve) => {
+		await whenModelReady(modelName, async function (mesh) {
+			if (mesh) {
+				//console.log(`Setting up trigger: ${trigger} for`, mesh.name);
+				if (!mesh.actionManager) {
+					mesh.actionManager = new BABYLON.ActionManager(window.scene);
+				}
+				mesh.isPickable = true;
+
+				if (trigger === "OnRightOrLongPressTrigger") {
+					mesh.actionManager.registerAction(new BABYLON.ExecuteCodeAction(BABYLON.ActionManager.OnRightPickTrigger, async function() {
+						await doCode();
+					}));
+					mesh.actionManager.registerAction(new BABYLON.ExecuteCodeAction(BABYLON.ActionManager.OnLongPressTrigger, async function() {
+						await doCode();
+					}));
+				} else {
+					mesh.actionManager.registerAction(new BABYLON.ExecuteCodeAction(BABYLON.ActionManager[trigger], async function() {
+						await doCode();
+					}));
+				}
+				resolve();
+			} else {
+				console.log("Model not loaded:", modelName);
+				resolve(); // Resolve even if the mesh is not found to prevent hanging
+			}
+		});
+	});
+}
