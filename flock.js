@@ -933,6 +933,8 @@ export function attachCamera(modelName) {
 			camera.upperBetaLimit = Math.PI / 2; // Upper angle limit
 			camera.lowerRadiusLimit = 2;
 			camera.upperRadiusLimit = 7;
+			camera.angularSensibilityX = 2000;
+			camera.angularSensibilityY = 2000;
 			camera.setTarget(mesh.position);
 			camera.attachControl(canvas, true);
 			window.scene.activeCamera = camera;

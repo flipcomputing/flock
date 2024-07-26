@@ -2590,6 +2590,8 @@ const createScene = function () {
 	);
 	camera.setTarget(BABYLON.Vector3.Zero());
 	camera.attachControl(canvas, true);
+	camera.angularSensibilityX = 2000;
+	camera.angularSensibilityY = 2000;
 	window.scene.createDefaultLight();
 	window.scene.collisionsEnabled = true;
 
