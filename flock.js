@@ -968,6 +968,7 @@ export async function setPhysics(modelName, physicsType) {
 					mesh.physics._pluginData.hpBodyId,
 					mesh.physics.startAsleep,
 				);
+				mesh.physics.disablePreStep = true;
 				break;
 			case "DYNAMIC":
 				mesh.physics.setMotionType(BABYLON.PhysicsMotionType.DYNAMIC);
@@ -976,6 +977,7 @@ export async function setPhysics(modelName, physicsType) {
 					mesh.physics._pluginData.hpBodyId,
 					mesh.physics.startAsleep,
 				);
+				mesh.physics.disablePreStep = false;
 				break;
 			case "ANIMATED":
 				mesh.physics.setMotionType(BABYLON.PhysicsMotionType.ANIMATED);
@@ -984,6 +986,7 @@ export async function setPhysics(modelName, physicsType) {
 					mesh.physics._pluginData.hpBodyId,
 					mesh.physics.startAsleep,
 				);
+				mesh.physics.disablePreStep = false;
 				break;
 			case "NONE":
 				mesh.physics.setMotionType(BABYLON.PhysicsMotionType.STATIC);
@@ -991,6 +994,7 @@ export async function setPhysics(modelName, physicsType) {
 					hk.world,
 					mesh.physics._pluginData.hpBodyId,
 				);
+				mesh.physics.disablePreStep = true;
 				break;
 			default:
 				console.error("Invalid physics type provided:", physicsType);
