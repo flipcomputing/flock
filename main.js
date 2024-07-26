@@ -211,6 +211,9 @@ workspace.addChangeListener(function (event) {
 	}
 });
 
+workspace.addChangeListener(Blockly.Events.disableOrphans);
+
+
 Blockly.Blocks["start"] = {
 	init: function () {
 		this.jsonInit({
@@ -2926,6 +2929,15 @@ window.onload = function () {
 };
 
 function executeCode() {
+	/*const topBlocks = workspace.getTopBlocks();
+	const startBlocks = ["start", "forever", "when_clicked", "when_key_pressed", "when_key_released", "on_event"];
+	for (let i = 0; i < topBlocks.length; i++) {
+	  const topBlock = topBlocks[i];
+	  if (!startBlocks.includes(topBlock.type)) {
+		topBlock.setDisabledReason(true, "Not inside a top block.");
+	  }
+	}*/
+	
 	if (engineReady) {
 		if (window.scene) {
 			window.scene.dispose();
