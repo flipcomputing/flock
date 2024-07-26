@@ -37,7 +37,6 @@ async function whenModelReady(meshId, callback) {
 	}
 }
 
-
 export function stopAnimationsTargetingMesh(scene, mesh) {
 	// Loop through all animation groups in the scene
 	scene.animationGroups.forEach(function (animationGroup) {
@@ -1063,7 +1062,7 @@ export async function say(
 					plane.position.y =
 						boundingInfo.boundingBox.maximum.y + 0.85;
 					plane.billboardMode = BABYLON.Mesh.BILLBOARDMODE_ALL;
-					
+
 					const stackPanel = new window.GUI.StackPanel();
 					stackPanel.name = "stackPanel";
 					stackPanel.horizontalAlignment =
@@ -1079,7 +1078,7 @@ export async function say(
 					stackPanel.spacing = 4;
 					advancedTexture.addControl(stackPanel);
 				} else {
-					advancedTexture = plane.advancedTexture;					
+					advancedTexture = plane.advancedTexture;
 				}
 
 				const stackPanel =
@@ -1148,21 +1147,38 @@ export async function onTrigger(modelName, trigger, doCode) {
 			if (mesh) {
 				//console.log(`Setting up trigger: ${trigger} for`, mesh.name);
 				if (!mesh.actionManager) {
-					mesh.actionManager = new BABYLON.ActionManager(window.scene);
+					mesh.actionManager = new BABYLON.ActionManager(
+						window.scene,
+					);
 				}
 				mesh.isPickable = true;
 
 				if (trigger === "OnRightOrLongPressTrigger") {
-					mesh.actionManager.registerAction(new BABYLON.ExecuteCodeAction(BABYLON.ActionManager.OnRightPickTrigger, async function() {
-						await doCode();
-					}));
-					mesh.actionManager.registerAction(new BABYLON.ExecuteCodeAction(BABYLON.ActionManager.OnLongPressTrigger, async function() {
-						await doCode();
-					}));
+					mesh.actionManager.registerAction(
+						new BABYLON.ExecuteCodeAction(
+							BABYLON.ActionManager.OnRightPickTrigger,
+							async function () {
+								await doCode();
+							},
+						),
+					);
+					mesh.actionManager.registerAction(
+						new BABYLON.ExecuteCodeAction(
+							BABYLON.ActionManager.OnLongPressTrigger,
+							async function () {
+								await doCode();
+							},
+						),
+					);
 				} else {
-					mesh.actionManager.registerAction(new BABYLON.ExecuteCodeAction(BABYLON.ActionManager[trigger], async function() {
-						await doCode();
-					}));
+					mesh.actionManager.registerAction(
+						new BABYLON.ExecuteCodeAction(
+							BABYLON.ActionManager[trigger],
+							async function () {
+								await doCode();
+							},
+						),
+					);
 				}
 				resolve();
 			} else {
@@ -1171,4 +1187,41 @@ export async function onTrigger(modelName, trigger, doCode) {
 			}
 		});
 	});
+}
+
+export function onEvent(eventName, handler) {
+	document.addEventListener(eventName, handler);
+	if (!window.scene.eventListeners) {
+		window.scene.eventListeners = [];
+	}
+	window.scene.eventListeners.push({ event: eventName, handler });
+}
+
+export function broadcastEvent(eventName) {
+	document.dispatchEvent(new CustomEvent(eventName));
+}
+
+export function whenKeyPressed(key, callback) {
+	window.scene.onKeyboardObservable.add((kbInfo) => {
+		if (
+			kbInfo.type === BABYLON.KeyboardEventTypes.KEYDOWN &&
+			kbInfo.event.key === key
+		) {
+			callback();
+		}
+	});
+}
+
+export async function forever(action) {
+	const runAction = async () => {
+		try {
+			await action(); // Execute the asynchronous action
+		} finally {
+			// Re-add the callback to allow the action to run again
+			window.scene.onBeforeRenderObservable.addOnce(runAction);
+		}
+	};
+
+	// Add the callback to be executed before each render frame, once
+	window.scene.onBeforeRenderObservable.addOnce(runAction);
 }

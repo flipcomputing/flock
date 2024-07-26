@@ -45,6 +45,10 @@ import {
 	checkMeshesTouching,
 	say,
 	onTrigger,
+	onEvent,
+    broadcastEvent,
+	forever,
+	whenKeyPressed
 } from "./flock.js";
 import { toolbox } from "./toolbox.js";
 import { FlowGraphLog10Block } from "babylonjs";
@@ -82,6 +86,10 @@ window.setPhysics = setPhysics;
 window.checkMeshesTouching = checkMeshesTouching;
 window.say = say;
 window.onTrigger = onTrigger;
+window.onEvent = onEvent;
+window.broadcastEvent = broadcastEvent;
+window.forever = forever;
+window.whenKepressed = whenKeyPressed;
 
 registerFieldColour();
 
@@ -220,19 +228,15 @@ Blockly.Blocks["start"] = {
 	init: function () {
 		this.jsonInit({
 			type: "start",
-			message0: "script %1",
+			message0: "start %1",
 			args0: [
 				{
 					type: "input_statement",
 					name: "DO",
 				},
 			],
-			nextStatement: null,
 			colour: categoryColours["Control"],
 			tooltip: "Run the attached block when the project starts.",
-			style: {
-				hat: "cap",
-			},
 		});
 	},
 };
@@ -1232,7 +1236,7 @@ Blockly.Blocks["on_each_update"] = {
 	init: function () {
 		this.jsonInit({
 			type: "on_each_update",
-			message0: "on each update %1",
+			message0: "forever %1",
 			args0: [
 				{
 					type: "input_statement",
@@ -2328,9 +2332,9 @@ javascriptGenerator.forBlock["rotate_model_xyz"] = function (block) {
 
 javascriptGenerator.forBlock["on_each_update"] = function (block) {
 	const branch = javascriptGenerator.statementToCode(block, "DO");
-	return (
-		"window.scene.onBeforeRenderObservable.add(() => {\n" + branch + "});\n"
-	);
+
+	const code = `forever(async () => {\n${branch}});\n`;
+	return code;
 };
 
 javascriptGenerator.forBlock["play_animation"] = function (block) {
@@ -2382,22 +2386,11 @@ javascriptGenerator.forBlock["when_clicked"] = function (block) {
 		});\n`;
 };
 
-
 javascriptGenerator.forBlock["when_key_pressed"] = function (block) {
 	const key = block.getFieldValue("KEY");
 	const statements_do = javascriptGenerator.statementToCode(block, "DO");
 
-	return `
-	window.scene.onKeyboardObservable.add(async (kbInfo) => {
-	switch (kbInfo.type) {
-	  case BABYLON.KeyboardEventTypes.KEYDOWN:
-	  if (kbInfo.event.key === "${key}") {
-		${statements_do}
-	  }
-	  break;
-	}
-	});
-	`;
+	return `whenKeyPressed("${key}", async () => {${statements_do}});\n`;
 };
 
 javascriptGenerator.forBlock["when_key_released"] = function (block) {
@@ -2418,23 +2411,18 @@ javascriptGenerator.forBlock["when_key_released"] = function (block) {
 };
 
 javascriptGenerator.forBlock["broadcast_event"] = function (block) {
-	var eventName = block.getFieldValue("EVENT_NAME");
-	var code = `document.dispatchEvent(new CustomEvent("${eventName}"));\n`;
+	const eventName = block.getFieldValue("EVENT_NAME");
+
+	const code = `broadcastEvent("${eventName}");\n`;
 	return code;
 };
 
+
 javascriptGenerator.forBlock["on_event"] = function (block) {
-	var eventName = block.getFieldValue("EVENT_NAME");
-	var statements_do = javascriptGenerator.statementToCode(block, "DO");
-	var code = `
-  (function() {
-	const handler = async function() {
-	  ${statements_do}
-	};
-	document.addEventListener("${eventName}", handler);
-	window.scene.eventListeners.push({ event: "${eventName}", handler });
-  })();
-  `;
+	const eventName = block.getFieldValue("EVENT_NAME");
+	const statements_do = javascriptGenerator.statementToCode(block, "DO");
+
+	const code = `onEvent("${eventName}", async function() {${statements_do}});\n`;
 	return code;
 };
 
