@@ -5,6 +5,39 @@
 // Helper functions to make Babylon js easier to use in Flock
 console.log("Flock helpers loading");
 
+async function* modelReadyGenerator(
+	meshId,
+	maxAttempts = 10,
+	attemptInterval = 1000,
+) {
+	for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+		if (window.scene) {
+			const mesh = window.scene.getMeshByName(meshId);
+			if (mesh) {
+				yield mesh;
+				return;
+			}
+		}
+		await new Promise((resolve) => setTimeout(resolve, attemptInterval));
+	}
+	throw new Error(
+		`Model with ID '${meshId}' not found after ${maxAttempts} attempts.`,
+	);
+}
+
+async function whenModelReady(meshId, callback) {
+	if (!meshId) {
+		console.log("Undefined model requested.", meshId);
+		return;
+	}
+
+	const generator = modelReadyGenerator(meshId);
+	for await (const mesh of generator) {
+		await callback(mesh);
+	}
+}
+
+
 export function stopAnimationsTargetingMesh(scene, mesh) {
 	// Loop through all animation groups in the scene
 	scene.animationGroups.forEach(function (animationGroup) {
@@ -114,7 +147,7 @@ export function switchAnimation(modelName, animationName) {
 }
 
 export async function highlight(modelName, color) {
-	await retryUntilFound(modelName, (mesh) => {
+	await whenModelReady(modelName, (mesh) => {
 		if (mesh.material) {
 			window.highlighter.addMesh(
 				mesh,
@@ -312,7 +345,7 @@ export function wait(duration) {
 }
 
 export async function clearEffects(modelName) {
-	await retryUntilFound(modelName, (mesh) => {
+	await whenModelReady(modelName, (mesh) => {
 		window.highlighter.removeMesh(mesh);
 		mesh.renderOverlay = false;
 
@@ -374,7 +407,7 @@ function createCapsuleFromBoundingBox(mesh, scene) {
 }
 
 export async function tint(modelName, color) {
-	await retryUntilFound(modelName, (mesh) => {
+	await whenModelReady(modelName, (mesh) => {
 		if (mesh.material) {
 			mesh.renderOverlay = true;
 			mesh.overlayAlpha = 0.5;
@@ -397,7 +430,7 @@ export async function tint(modelName, color) {
 
 // helperFunctions.js
 export async function setAlpha(modelName, alphaValue) {
-	await retryUntilFound(modelName, (mesh) => {
+	await whenModelRReady(modelName, (mesh) => {
 		let allMeshes = [mesh].concat(mesh.getChildMeshes(false));
 
 		allMeshes.forEach((nextMesh) => {
@@ -587,7 +620,7 @@ export function newPlane(color, width, height, posX, posY, posZ, planeId) {
 }
 
 export async function moveByVector(modelName, x, y, z) {
-	await retryUntilFound(modelName, (mesh) => {
+	await whenModelReady(modelName, (mesh) => {
 		mesh.position.addInPlace(new BABYLON.Vector3(x, y, z));
 		mesh.physics.disablePreStep = false;
 		mesh.physics.setTargetTransform(mesh.position, mesh.rotationQuaternion);
@@ -598,7 +631,7 @@ export async function moveByVector(modelName, x, y, z) {
 }
 
 export async function scaleMesh(modelName, x, y, z) {
-	await retryUntilFound(modelName, (mesh) => {
+	await whenModelReady(modelName, (mesh) => {
 		mesh.scaling = new BABYLON.Vector3(x, y, z);
 
 		// Ensure state consistency
@@ -607,7 +640,7 @@ export async function scaleMesh(modelName, x, y, z) {
 }
 
 export async function rotate(meshName, x, y, z) {
-	await retryUntilFound(meshName, (mesh) => {
+	await whenModelReady(meshName, (mesh) => {
 		if (
 			mesh.physics.getMotionType() !== BABYLON.PhysicsMotionType.DYNAMIC
 		) {
@@ -633,26 +666,9 @@ export async function rotate(meshName, x, y, z) {
 	});
 }
 
-async function retryUntilFound(modelName, callback) {
-	const maxAttempts = 10;
-	const attemptInterval = 1000; // Time in milliseconds between attempts
-
-	for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-		const mesh = window.scene.getMeshByName(modelName);
-		if (mesh) {
-			await callback(mesh);
-			return;
-		}
-		await new Promise((resolve) => setTimeout(resolve, attemptInterval));
-	}
-	console.error(
-		`Model with ID '${modelName}' not found after ${maxAttempts} attempts.`,
-	);
-}
-
 export async function glideTo(meshName, x, y, z, duration) {
 	return new Promise(async (resolve) => {
-		await window.whenModelReady(meshName, async function (mesh) {
+		await whenModelReady(meshName, async function (mesh) {
 			if (mesh) {
 				const startPosition = mesh.position.clone();
 				const endPosition = new BABYLON.Vector3(x, y, z);
@@ -691,7 +707,7 @@ export async function glideTo(meshName, x, y, z, duration) {
 
 export async function show(modelName) {
 	return new Promise(async (resolve) => {
-		await window.whenModelReady(modelName, async function (mesh) {
+		await whenModelReady(modelName, async function (mesh) {
 			if (mesh) {
 				mesh.setEnabled(true);
 				window.hk._hknp.HP_World_AddBody(
@@ -710,7 +726,7 @@ export async function show(modelName) {
 
 export async function hide(modelName) {
 	return new Promise(async (resolve) => {
-		await window.whenModelReady(modelName, async function (mesh) {
+		await whenModelReady(modelName, async function (mesh) {
 			if (mesh) {
 				mesh.setEnabled(false);
 				window.hk._hknp.HP_World_RemoveBody(
@@ -830,7 +846,7 @@ function getColorFromString(colourString) {
 }
 
 export async function changeColour(modelName, color) {
-	await retryUntilFound(modelName, (mesh) => {
+	await whenModelReady(modelName, (mesh) => {
 		if (mesh.material) {
 			mesh.material.diffuseColor = BABYLON.Color3.FromHexString(color);
 		} else {
@@ -894,7 +910,7 @@ export function moveForward(modelName, speed) {
 }
 
 export function attachCamera(modelName) {
-	window.whenModelReady(modelName, function (mesh) {
+	whenModelReady(modelName, function (mesh) {
 		if (mesh) {
 			// After physics calculations, adjust velocities and rotations
 			window.scene.onAfterPhysicsObservable.add(() => {
@@ -945,7 +961,7 @@ export function attachCamera(modelName) {
 }
 
 export async function setPhysics(modelName, physicsType) {
-	await retryUntilFound(modelName, (mesh) => {
+	await whenModelReady(modelName, (mesh) => {
 		switch (physicsType) {
 			case "STATIC":
 				mesh.physics.setMotionType(BABYLON.PhysicsMotionType.STATIC);
@@ -1005,7 +1021,7 @@ export async function say(
 	size,
 	mode,
 ) {
-	await window.whenModelReady(meshName, async function (mesh) {
+	await whenModelReady(meshName, async function (mesh) {
 		return new Promise((resolve, reject) => {
 			if (mesh) {
 				// Find the first child node with a material

@@ -2071,40 +2071,6 @@ function getFieldValue(block, fieldName, defaultValue) {
 	);
 }
 
-async function* modelReadyGenerator(
-	meshId,
-	maxAttempts = 10,
-	attemptInterval = 1000,
-) {
-	for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-		if (window.scene) {
-			const mesh = window.scene.getMeshByName(meshId);
-			if (mesh) {
-				yield mesh;
-				return;
-			}
-		}
-		await new Promise((resolve) => setTimeout(resolve, attemptInterval));
-	}
-	throw new Error(
-		`Model with ID '${meshId}' not found after ${maxAttempts} attempts.`,
-	);
-}
-
-async function whenModelReady(meshId, callback) {
-	if (!meshId) {
-		console.log("Undefined model requested.", meshId);
-		return;
-	}
-
-	const generator = modelReadyGenerator(meshId);
-	for await (const mesh of generator) {
-		await callback(mesh);
-	}
-}
-
-window.whenModelReady = whenModelReady;
-
 javascriptGenerator.forBlock["wait"] = function (block) {
 	const duration = block.getFieldValue("DURATION");
 
@@ -2416,53 +2382,6 @@ javascriptGenerator.forBlock["when_clicked"] = function (block) {
 		});\n`;
 };
 
-
-javascriptGenerator.forBlock["when_clicked2"] = function (block) {
-	const modelName = javascriptGenerator.nameDB_.getName(
-		block.getFieldValue("MODEL_VAR"),
-		Blockly.Names.NameType.VARIABLE
-	);
-
-	const trigger = block.getFieldValue("TRIGGER");
-	const doCode = javascriptGenerator.statementToCode(block, "DO");
-
-	let actionCode;
-	if (trigger === "OnRightOrLongPressTrigger") {
-		actionCode = `
-			_mesh.actionManager.registerAction(new BABYLON.ExecuteCodeAction(BABYLON.ActionManager.OnRightPickTrigger, async function() {
-				console.log("Right-click trigger activated for", _mesh.name);
-				${doCode}
-			}));
-			_mesh.actionManager.registerAction(new BABYLON.ExecuteCodeAction(BABYLON.ActionManager.OnLongPressTrigger, async function() {
-				console.log("Long press trigger activated for", _mesh.name);
-				${doCode}
-			}));
-		`;
-	} else {
-		actionCode = `_mesh.actionManager.registerAction(new BABYLON.ExecuteCodeAction(BABYLON.ActionManager.${trigger}, async function() {
-			console.log("${trigger} trigger activated for", _mesh.name);
-			${doCode}
-		}));`;
-	}
-
-	return `
-		window.whenModelReady(${modelName}, async function(_mesh) {
-			if (_mesh) {
-				if (!_mesh.actionManager) {
-					_mesh.actionManager = new BABYLON.ActionManager(window.scene);
-				}
-				console.log("Setting up trigger: ${trigger} for", _mesh.name);
-
-				// Ensure the mesh is enabled for pointer events
-				_mesh.isPickable = true;
-
-				${actionCode}
-			} else {
-				console.log("No pickable parent or child found for", ${modelName});
-			}
-		});
-	`;
-};
 
 javascriptGenerator.forBlock["when_key_pressed"] = function (block) {
 	const key = block.getFieldValue("KEY");
