@@ -1232,10 +1232,10 @@ Blockly.Blocks["stop_all_sounds"] = {
 	},
 };
 
-Blockly.Blocks["on_each_update"] = {
+Blockly.Blocks["forever"] = {
 	init: function () {
 		this.jsonInit({
-			type: "on_each_update",
+			type: "forever",
 			message0: "forever %1",
 			args0: [
 				{
@@ -2330,7 +2330,7 @@ javascriptGenerator.forBlock["rotate_model_xyz"] = function (block) {
 	return `await rotate(${meshName}, ${x}, ${y}, ${z});\n`;
 };
 
-javascriptGenerator.forBlock["on_each_update"] = function (block) {
+javascriptGenerator.forBlock["forever"] = function (block) {
 	const branch = javascriptGenerator.statementToCode(block, "DO");
 
 	const code = `forever(async () => {\n${branch}});\n`;

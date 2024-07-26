@@ -265,7 +265,7 @@
         }
       },
       {
-        "type": "on_each_update",
+        "type": "forever",
         "id": "rzARP?f-rL_OMXQ]LzxO",
         "x": 0,
         "y": 1045,

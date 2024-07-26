@@ -712,7 +712,7 @@ export const toolbox = {
 				},
 				{
 					kind: "block",
-					type: "on_each_update",
+					type: "forever",
 				},
 				{
 					kind: "block",
@@ -1427,7 +1427,7 @@ export const toolbox = {
 				},
 				{
 					kind: "block",
-					type: "on_each_update",
+					type: "forever",
 					inputs: {
 						DO: {
 							block: {
