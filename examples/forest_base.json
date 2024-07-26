@@ -854,7 +854,7 @@
         },
         "icons": {
           "comment": {
-            "text": "Describe this function...",
+            "text": "Generate random trees from a seed",
             "pinned": false,
             "height": 80,
             "width": 160
