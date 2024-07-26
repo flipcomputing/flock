@@ -209,6 +209,7 @@ workspace.addChangeListener(function (event) {
 	if (event.type === Blockly.Events.FINISHED_LOADING) {
 		initializeVariableIndexes();
 	}
+	workspace.cleanUp();
 });
 
 workspace.addChangeListener(Blockly.Events.disableOrphans);
