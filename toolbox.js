@@ -1,12 +1,10 @@
-
-
 export const categoryColours = {
-	Scene: 100,
+	Events: 210,
+	Scene: 150,
 	Motion: 240,
 	Looks: 300,
 	Sound: 15,
-	Events: 40,
-	Sensing: 200,
+	Sensing: 180,
 	Control: "%{BKY_LOOPS_HUE}",
 	Logic: "%{BKY_LOGIC_HUE}",
 	Variables: "%{BKY_VARIABLES_HUE}",
@@ -23,6 +21,41 @@ export const toolbox = {
 			kind: "category",
 			name: "Flock 🐑🐑🐑",
 			contents: [],
+		},
+		{
+			kind: "category",
+			name: "Events",
+			colour: categoryColours["Events"],
+			contents: [
+				{
+					kind: "block",
+					type: "start",
+				},
+				{
+					kind: "block",
+					type: "forever",
+				},
+				{
+					kind: "block",
+					type: "when_clicked",
+				},
+				{
+					kind: "block",
+					type: "when_key_pressed",
+				},
+				{
+					kind: "block",
+					type: "when_key_released",
+				},
+				{
+					kind: "block",
+					type: "broadcast_event",
+				},
+				{
+					kind: "block",
+					type: "on_event",
+				},
+			],
 		},
 		{
 			kind: "category",
@@ -399,6 +432,141 @@ export const toolbox = {
 		},
 		{
 			kind: "category",
+			name: "Looks",
+			colour: categoryColours["Looks"],
+			contents: [
+				{
+					kind: "block",
+					type: "show",
+				},
+				{
+					kind: "block",
+					type: "hide",
+				},
+				{
+					kind: "block",
+					type: "tint",
+					inputs: {
+						COLOR: {
+							shadow: {
+								type: "colour",
+								fields: {
+									COLOR: "#AA336A",
+								},
+							},
+						},
+					},
+				},
+				{
+					kind: "block",
+					type: "highlight",
+					inputs: {
+						COLOR: {
+							shadow: {
+								type: "colour",
+								fields: {
+									COLOR: "#FFD700",
+								},
+							},
+						},
+					},
+				},
+				{
+					kind: "block",
+					type: "change_colour",
+					inputs: {
+						COLOR: {
+							shadow: {
+								type: "colour",
+								fields: {
+									COLOR: "#008080",
+								},
+							},
+						},
+					},
+				},
+				{
+					kind: "block",
+					type: "set_alpha",
+					inputs: {
+						ALPHA: {
+							shadow: {
+								type: "math_number",
+								fields: {
+									NUM: 0.5,
+								},
+							},
+						},
+					},
+				},
+				{
+					kind: "block",
+					type: "clear_effects",
+				},
+				{
+					kind: "block",
+					type: "switch_animation",
+				},
+				{
+					kind: "block",
+					type: "play_animation",
+				},
+				{
+					kind: "block",
+					type: "colour",
+				},
+				{
+					kind: "block",
+					type: "random_colour",
+				},
+				{
+					kind: "block",
+					type: "colour_from_string",
+					inputs: {
+						COLOR: {
+							shadow: {
+								type: "text",
+								fields: {
+									TEXT: "#800080",
+								},
+							},
+						},
+					},
+				},
+				{
+					kind: "block",
+					type: "scale",
+					inputs: {
+						X: {
+							shadow: {
+								type: "math_number",
+								fields: {
+									NUM: 1,
+								},
+							},
+						},
+						Y: {
+							shadow: {
+								type: "math_number",
+								fields: {
+									NUM: 1,
+								},
+							},
+						},
+						Z: {
+							shadow: {
+								type: "math_number",
+								fields: {
+									NUM: 1,
+								},
+							},
+						},
+					},
+				},
+			],
+		},
+		{
+			kind: "category",
 			name: "Motion",
 			colour: categoryColours["Motion"],
 			contents: [
@@ -540,141 +708,6 @@ export const toolbox = {
 		},
 		{
 			kind: "category",
-			name: "Looks",
-			colour: categoryColours["Looks"],
-			contents: [
-				{
-					kind: "block",
-					type: "show",
-				},
-				{
-					kind: "block",
-					type: "hide",
-				},
-				{
-					kind: "block",
-					type: "tint",
-					inputs: {
-						COLOR: {
-							shadow: {
-								type: "colour",
-								fields: {
-									COLOR: "#AA336A",
-								},
-							},
-						},
-					},
-				},
-				{
-					kind: "block",
-					type: "highlight",
-					inputs: {
-						COLOR: {
-							shadow: {
-								type: "colour",
-								fields: {
-									COLOR: "#FFD700",
-								},
-							},
-						},
-					},
-				},
-				{
-					kind: "block",
-					type: "change_colour",
-					inputs: {
-						COLOR: {
-							shadow: {
-								type: "colour",
-								fields: {
-									COLOR: "#008080",
-								},
-							},
-						},
-					},
-				},
-				{
-					kind: "block",
-					type: "set_alpha",
-					inputs: {
-						ALPHA: {
-							shadow: {
-								type: "math_number",
-								fields: {
-									NUM: 0.5,
-								},
-							},
-						},
-					},
-				},
-				{
-					kind: "block",
-					type: "clear_effects",
-				},
-				{
-					kind: "block",
-					type: "switch_animation",
-				},
-				{
-					kind: "block",
-					type: "play_animation",
-				},
-				{
-					kind: "block",
-					type: "colour",
-				},
-				{
-					kind: "block",
-					type: "random_colour",
-				},
-				{
-					kind: "block",
-					type: "colour_from_string",
-					inputs: {
-						COLOR: {
-							shadow: {
-								type: "text",
-								fields: {
-									TEXT: "#800080",
-								},
-							},
-						},
-					},
-				},
-				{
-					kind: "block",
-					type: "scale",
-					inputs: {
-						X: {
-							shadow: {
-								type: "math_number",
-								fields: {
-									NUM: 1,
-								},
-							},
-						},
-						Y: {
-							shadow: {
-								type: "math_number",
-								fields: {
-									NUM: 1,
-								},
-							},
-						},
-						Z: {
-							shadow: {
-								type: "math_number",
-								fields: {
-									NUM: 1,
-								},
-							},
-						},
-					},
-				},
-			],
-		},
-		{
-			kind: "category",
 			name: "Sound",
 			colour: categoryColours["Sound"],
 			contents: [
@@ -713,14 +746,6 @@ export const toolbox = {
 			contents: [
 				{
 					kind: "block",
-					type: "start",
-				},
-				{
-					kind: "block",
-					type: "forever",
-				},
-				{
-					kind: "block",
 					type: "wait",
 				},
 				{
@@ -748,33 +773,6 @@ export const toolbox = {
 				{
 					kind: "block",
 					type: "controls_for",
-				},
-			],
-		},
-		{
-			kind: "category",
-			name: "Events",
-			colour: categoryColours["Events"],
-			contents: [
-				{
-					kind: "block",
-					type: "when_clicked",
-				},
-				{
-					kind: "block",
-					type: "when_key_pressed",
-				},
-				{
-					kind: "block",
-					type: "when_key_released",
-				},
-				{
-					kind: "block",
-					type: "broadcast_event",
-				},
-				{
-					kind: "block",
-					type: "on_event",
 				},
 			],
 		},
@@ -814,6 +812,25 @@ export const toolbox = {
 				{
 					kind: "block",
 					type: "logic_ternary",
+				},
+			],
+		},
+		{
+			kind: "category",
+			name: "Sensing",
+			colour: categoryColours["Sensing"],
+			contents: [
+				{
+					kind: "block",
+					type: "key_pressed",
+				},
+				{
+					kind: "block",
+					type: "touching_surface",
+				},
+				{
+					kind: "block",
+					type: "meshes_touching",
 				},
 			],
 		},
@@ -1126,25 +1143,6 @@ export const toolbox = {
 				{
 					kind: "block",
 					type: "log_variable",
-				},
-			],
-		},
-		{
-			kind: "category",
-			name: "Sensing",
-			colour: categoryColours["Sensing"],
-			contents: [
-				{
-					kind: "block",
-					type: "key_pressed",
-				},
-				{
-					kind: "block",
-					type: "touching_surface",
-				},
-				{
-					kind: "block",
-					type: "meshes_touching",
 				},
 			],
 		},

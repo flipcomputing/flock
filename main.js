@@ -222,7 +222,7 @@ Blockly.Blocks["start"] = {
 					name: "DO",
 				},
 			],
-			colour: categoryColours["Control"],
+			colour: categoryColours["Events"],
 			tooltip: "Run the attached block when the project starts.",
 		});
 	},
@@ -1238,7 +1238,7 @@ Blockly.Blocks["forever"] = {
 					check: null,
 				},
 			],
-			colour: categoryColours["Control"],
+			colour: categoryColours["Events"],
 			tooltip:
 				"Executes the enclosed blocks each frame in the render loop.",
 			helpUrl: "",
