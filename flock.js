@@ -904,16 +904,36 @@ export const flock = {
 	},
 	async changeColour(modelName, color) {
 		await flock.whenModelReady(modelName, (mesh) => {
-			if (mesh.material) {
-				mesh.material.diffuseColor =
-					flock.BABYLON.Color3.FromHexString(color);
-			} else {
-				const material = new flock.BABYLON.StandardMaterial(
-					"meshMaterial",
-					flock.scene,
-				);
-				material.diffuseColor =
-					flock.BABYLON.Color3.FromHexString(color);
+			let materialFound = false;
+
+			function applyColorToMaterial(part, color) {
+
+				if (part.material) {
+
+					// Check if part.material.diffuseColor exists and set it
+					if (part.material.diffuseColor !== undefined) {				
+						part.material.diffuseColor = flock.BABYLON.Color3.FromHexString(color);
+					} 
+					else {
+						// Handle materials without diffuseColor
+						part.material.albedoColor = flock.BABYLON.Color3.FromHexString(flock.getColorFromString(color)).toLinearSpace();
+						part.material.emissiveColor = flock.BABYLON.Color3.FromHexString(flock.getColorFromString(color)).toLinearSpace();
+						part.material.emissiveIntensity = 0.1;
+					}
+				} 
+
+				part.getChildMeshes().forEach((child) => {
+					applyColorToMaterial(child, color);
+				});
+			}
+
+			// Start applying colour to the main mesh and its children
+			applyColorToMaterial(mesh, color);
+
+			// If no material was found on the main mesh or any child, create a new one
+			if (!materialFound) {
+				const material = new flock.BABYLON.StandardMaterial("meshMaterial", flock.scene);
+				material.diffuseColor = flock.BABYLON.Color3.FromHexString(color);
 				mesh.material = material;
 			}
 		});
