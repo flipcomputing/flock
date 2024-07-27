@@ -40,6 +40,10 @@ export const toolbox = {
 					type: "when_clicked",
 				},
 				{
+				  kind: "block",
+				  type: "when_touches"
+				},
+				{
 					kind: "block",
 					type: "when_key_pressed",
 				},

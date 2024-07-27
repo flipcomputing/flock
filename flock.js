@@ -23,7 +23,9 @@ export const flock = {
 		maxAttempts = 10,
 		attemptInterval = 1000,
 	) {
-		for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+		let attempt = 1;
+
+		while (attempt <= maxAttempts) {
 			if (flock.scene) {
 				const mesh = flock.scene.getMeshByName(meshId);
 				if (mesh) {
@@ -34,20 +36,31 @@ export const flock = {
 			await new Promise((resolve) =>
 				setTimeout(resolve, attemptInterval),
 			);
+			attempt++;
 		}
-		throw new Error(
-			`Model with ID '${meshId}' not found after ${maxAttempts} attempts.`,
+
+		// Log a warning if meshId is not defined
+		console.warn(
+			`Mesh with ID '${meshId}' not found after ${maxAttempts} attempts.`,
 		);
 	},
 	async whenModelReady(meshId, callback) {
-		if (!meshId) {
-			console.log("Undefined model requested.", meshId);
-			return;
+		// Check if flock.modelReadyGenerator exists
+		if (!flock.modelReadyGenerator) {
+			throw new Error(
+				"modelReadyGenerator is not defined on the flock object.",
+			);
 		}
 
+		// Create the generator using the flock's modelReadyGenerator
 		const generator = flock.modelReadyGenerator(meshId);
-		for await (const mesh of generator) {
-			await callback(mesh);
+
+		try {
+			for await (const mesh of generator) {
+				await callback(mesh);
+			}
+		} catch (error) {
+			console.error("Error in modelReadyGenerator:", error);
 		}
 	},
 	stopAnimationsTargetingMesh(scene, mesh) {
@@ -1172,6 +1185,54 @@ export const flock = {
 			});
 		});
 	},
+	async onIntersect(modelName, otherModelName, trigger, doCode) {
+		return new Promise(async (resolve) => {
+			// Load the first model
+			await flock.whenModelReady(modelName, async function (mesh) {
+				if (!mesh) {
+					console.error("Model not loaded:", modelName);
+					resolve();
+					return;
+				}
+
+				// Load the second model
+				await flock.whenModelReady(
+					otherModelName,
+					async function (otherMesh) {
+						if (!otherMesh) {
+							console.error("Model not loaded:", otherModelName);
+							resolve();
+							return;
+						}
+
+						// Initialize actionManager if not present
+						if (!mesh.actionManager) {
+							mesh.actionManager =
+								new flock.BABYLON.ActionManager(flock.scene);
+						}
+						mesh.isPickable = true;
+
+						// Register the ExecuteCodeAction for intersection
+						const action = new flock.BABYLON.ExecuteCodeAction(
+							{
+								trigger: flock.BABYLON.ActionManager[trigger],
+								parameter: {
+									mesh: otherMesh,
+									usePreciseIntersection: true,
+								},
+							},
+							async function () {
+								await doCode(); // Execute the provided callback function
+							},
+						);
+						mesh.actionManager.registerAction(action); // Register the ExecuteCodeAction
+
+						resolve();
+					},
+				);
+			});
+		});
+	},
 	onEvent(eventName, handler) {
 		document.addEventListener(eventName, handler);
 		if (!flock.scene.eventListeners) {
@@ -1193,15 +1254,53 @@ export const flock = {
 		});
 	},
 	async forever(action) {
+		let isDisposed = false;
+		let isActionRunning = false;
+
+		// Function to run the action
 		const runAction = async () => {
+			if (isDisposed) {
+				//console.log("Scene is disposed. Exiting action.");
+				return; // Exit if the scene is disposed
+			}
+
+			if (isActionRunning) {
+				return; // Exit if the action is already running
+			}
+
+			isActionRunning = true;
+			
 			try {
+				if (isDisposed)
+				{
+					return;
+				}
 				await action();
+			} catch (error) {
+				console.log("Error while running action:", error);
 			} finally {
-				flock.scene.onBeforeRenderObservable.addOnce(runAction);
+				isActionRunning = false;
+				if (!isDisposed) {
+					flock.scene.onBeforeRenderObservable.addOnce(runAction);
+				} 
 			}
 		};
 
 		flock.scene.onBeforeRenderObservable.addOnce(runAction);
+
+		// Handle scene disposal
+		const disposeHandler = () => {
+			if (isDisposed) {
+				console.log("Dispose handler already triggered.");
+				return;
+			}
+
+			isDisposed = true;
+			flock.scene.onBeforeRenderObservable.clear(); // Clear the observable
+		};
+
+flock.scene.onDisposeObservable.add(disposeHandler);
+
 	},
 	playSoundAsync(scene, soundName) {
 		return new Promise((resolve, reject) => {

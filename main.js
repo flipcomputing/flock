@@ -1220,6 +1220,46 @@ Blockly.Blocks["when_clicked"] = {
 	},
 };
 
+Blockly.Blocks["when_touches"] = {
+	init: function () {
+		this.jsonInit({
+			type: "when_touches",
+			message0: "when %1 intersect %2 %3",
+			args0: [
+				{
+					type: "field_variable",
+					name: "MODEL_VAR",
+					variable: "mesh1",
+				},
+				{
+					type: "field_dropdown",
+					name: "TRIGGER",
+					options: [
+						["enter", "OnIntersectionEnterTrigger"],
+						["exit", "OnIntersectionExitTrigger"],
+					],
+				},
+				{
+					type: "field_variable",
+					name: "OTHER_MODEL_VAR",
+					variable: "mesh2",
+				},
+			],
+			message1: "do %1",
+			args1: [
+				{
+					type: "input_statement",
+					name: "DO",
+				},
+			],
+			colour: categoryColours["Events"],
+			tooltip:
+				"Executes the blocks inside when the mesh intersects or no longer intersects with another mesh.",
+			helpUrl: "",
+		});
+	},
+};
+
 Blockly.Blocks["when_key_pressed"] = {
 	init: function () {
 		this.jsonInit({
@@ -2274,6 +2314,34 @@ javascriptGenerator.forBlock["when_clicked"] = function (block) {
 		});\n`;
 };
 
+javascriptGenerator.forBlock["when_touches"] = function (block) {
+  const modelName = javascriptGenerator.nameDB_.getName(
+	block.getFieldValue("MODEL_VAR"),
+	Blockly.Names.NameType.VARIABLE,
+	true
+  );
+
+  const otherModelName = javascriptGenerator.nameDB_.getName(
+	block.getFieldValue("OTHER_MODEL_VAR"),
+	Blockly.Names.NameType.VARIABLE,
+	true
+  );
+
+	
+  const trigger = block.getFieldValue("TRIGGER");
+  const doCode = javascriptGenerator.statementToCode(block, "DO");
+	
+  // Ensure the trigger is an intersection trigger
+  if (trigger === "OnIntersectionEnterTrigger" || trigger === "OnIntersectionExitTrigger") {
+	return `onIntersect(${modelName}, ${otherModelName}, "${trigger}", async function() {
+	  ${doCode}
+	});\n`;
+  } else {
+	console.error("Invalid trigger type for 'when_touches' block:", trigger);
+	return "";
+  }
+};
+
 javascriptGenerator.forBlock["when_key_pressed"] = function (block) {
 	const key = block.getFieldValue("KEY");
 	const statements_do = javascriptGenerator.statementToCode(block, "DO");
@@ -2413,10 +2481,7 @@ javascriptGenerator.forBlock["touching_surface"] = function (block) {
 		Blockly.Names.NameType.VARIABLE,
 	);
 
-	return [
-		`isTouchingSurface(${modelName})`,
-		javascriptGenerator.ORDER_NONE,
-	];
+	return [`isTouchingSurface(${modelName})`, javascriptGenerator.ORDER_NONE];
 };
 
 javascriptGenerator.forBlock["camera_follow"] = function (block) {
@@ -2458,6 +2523,7 @@ javascriptGenerator.forBlock["meshes_touching"] = function (block) {
 	return [code, javascriptGenerator.ORDER_ATOMIC];
 };
 
+/*
 const createScene = function () {
 	flock.scene = new BABYLON.Scene(engine);
 	flock.scene.eventListeners = [];
@@ -2543,6 +2609,102 @@ const createScene = function () {
 	};
 
 	return flock.scene;
+};
+*/
+
+const createScene = function () {
+  flock.scene = new BABYLON.Scene(engine);
+  flock.scene.eventListeners = [];
+  hk = new BABYLON.HavokPlugin(true, havokInstance);
+  flock.scene.enablePhysics(new BABYLON.Vector3(0, -9.81, 0), hk);
+  flock.hk = hk;
+  flock.highlighter = new BABYLON.HighlightLayer("highlighter", flock.scene);
+  gizmoManager = new BABYLON.GizmoManager(flock.scene);
+
+  const camera = new BABYLON.FreeCamera(
+	"camera",
+	new BABYLON.Vector3(0, 4, -20),
+	flock.scene
+  );
+  camera.setTarget(BABYLON.Vector3.Zero());
+  camera.attachControl(flock.canvas, true);
+  camera.angularSensibilityX = 2000;
+  camera.angularSensibilityY = 2000;
+  flock.scene.createDefaultLight();
+  flock.scene.collisionsEnabled = true;
+
+  const advancedTexture =
+	flock.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
+
+  // Create a stack panel to hold the text lines
+  const stackPanel = new flock.GUI.StackPanel();
+  stackPanel.isVertical = true;
+  stackPanel.width = "100%";
+  stackPanel.height = "100%";
+  stackPanel.left = "0px";
+  stackPanel.top = "0px";
+  advancedTexture.addControl(stackPanel);
+
+  // Function to print text with scrolling
+  const textLines = []; // Array to keep track of text lines
+  flock.printText = function (text, duration, color) {
+	if (text === "" || !flock.scene) {  // Ensure scene is valid
+	  return;  // Return early if scene is invalid or text is empty
+	}
+
+	try {
+	  flock.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
+
+	  // Create a rectangle background
+	  const bg = new flock.GUI.Rectangle("textBackground");
+	  bg.background = "rgba(255, 255, 255, 0.5)";
+	  bg.adaptWidthToChildren = true; // Adjust width based on child elements
+	  bg.adaptHeightToChildren = true; // Adjust height based on child elements
+	  bg.cornerRadius = 2;
+	  bg.thickness = 0; // Remove border
+	  bg.horizontalAlignment =
+		flock.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
+	  bg.verticalAlignment = flock.GUI.Control.VERTICAL_ALIGNMENT_TOP;
+	  bg.left = "5px"; // Position with some margin from left
+	  bg.top = "5px"; // Position with some margin from top
+
+	  // Create a text block
+	  const textBlock = new flock.GUI.TextBlock("textBlock", text);
+	  textBlock.color = color;
+	  textBlock.fontSize = "12";
+	  textBlock.height = "20px";
+	  textBlock.paddingLeft = "10px";
+	  textBlock.paddingRight = "10px";
+	  textBlock.paddingTop = "2px";
+	  textBlock.paddingBottom = "2px";
+	  textBlock.textVerticalAlignment =
+		flock.GUI.Control.VERTICAL_ALIGNMENT_TOP; // Align text to top
+	  textBlock.textHorizontalAlignment =
+		flock.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT; // Align text to left
+	  textBlock.textWrapping = flock.GUI.TextWrapping.WordWrap;
+	  textBlock.resizeToFit = true;
+	  textBlock.forceResizeWidth = true;
+
+	  // Add the text block to the rectangle
+	  bg.addControl(textBlock);
+
+	  // Add the container to the stack panel
+	  stackPanel.addControl(bg);
+	  textLines.push(bg);
+
+	  // Remove the text after the specified duration
+	  setTimeout(() => {
+		if (flock.scene) {  // Ensure scene is still valid before removing
+		  stackPanel.removeControl(bg);
+		  textLines.splice(textLines.indexOf(bg), 1);
+		}
+	  }, duration * 1000);
+	} catch (error) {
+	  //console.warn("Unable to print text:", error);
+	}
+  };
+
+  return flock.scene;
 };
 
 javascriptGenerator.forBlock["random_colour"] = function (block) {
@@ -2833,6 +2995,7 @@ function executeCode() {
 
 function stopCode() {
 	flock.scene.dispose();
+	removeEventListeners();
 }
 
 window.stopCode = stopCode;
@@ -3179,8 +3342,10 @@ const runCode = (code) => {
 				broadcastEvent,
 				forever,
 				whenKeyPressed,
-				printText
+				printText,
+				onIntersect
 			} = flock;
+			
 
 			// The code should be executed within the function context
 			return function() {
