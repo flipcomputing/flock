@@ -2,3 +2,4 @@ node_modules/
 dist/
 .replit
 replit.nix
+.breakpoints

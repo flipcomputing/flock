@@ -24,6 +24,12 @@
         margin: 0;
       }
 
+      .highlighted {
+        border: 4px solid magenta;
+        padding: 5px;
+        background-color: #f9f9f9; /* Optional: adds a subtle background */
+      }
+
       #blocklyDiv {
         height: 100%;
         width: 50%;
@@ -63,7 +69,7 @@
           placeholder="Enter project name here"
         />
         <button onclick="exportCode()">💾Save</button>
-        <select id="exampleSelect" onchange="loadExample()">
+        <select class="highlighted" id="exampleSelect" onchange="loadExample()">
           <option value="">🌴Examples</option>
           <option value="examples/forest_base.json">Forest Base</option>
           <!-- Add more options here as needed -->
