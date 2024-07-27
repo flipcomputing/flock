@@ -323,6 +323,80 @@ export const flock = {
 
 		return modelId;
 	},
+	newObject(modelName, modelId, scale, x, y, z, color) {
+		const blockId = modelId;
+		modelId += "_" + flock.scene.getUniqueId();
+
+		flock.BABYLON.SceneLoader.ImportMesh(
+			"",
+			"./models/",
+			modelName,
+			flock.scene,
+			function (meshes) {
+				const mesh = meshes[0];
+				mesh.scaling = new flock.BABYLON.Vector3(scale, scale, scale);
+
+				const bb =
+					flock.BABYLON.BoundingBoxGizmo.MakeNotPickableAndWrapInBoundingBox(
+						mesh,
+					);
+
+				bb.name = modelId;
+				bb.blockKey = blockId;
+				bb.isPickable = true;
+				bb.position.addInPlace(new flock.BABYLON.Vector3(x, y, z));
+
+				mesh.computeWorldMatrix(true);
+				mesh.refreshBoundingInfo();
+
+				flock.stopAnimationsTargetingMesh(flock.scene, mesh);
+
+				function applyColorToMaterial(part, color) {
+					if (part.material) {
+						part.material.albedoColor =
+							flock.BABYLON.Color3.FromHexString(
+								flock.getColorFromString(color),
+							).toLinearSpace();
+						part.material.emissiveColor =
+							flock.BABYLON.Color3.FromHexString(
+								flock.getColorFromString(color),
+							).toLinearSpace();
+						part.material.emissiveIntensity = 0.1;
+					}
+					part.getChildMeshes().forEach((child) => {
+						applyColorToMaterial(child, color);
+					});
+				}
+
+				applyColorToMaterial(mesh, color);
+
+				const boxBody = new flock.BABYLON.PhysicsBody(
+					bb,
+					flock.BABYLON.PhysicsMotionType.STATIC,
+					false,
+					flock.scene,
+				);
+
+				const boxShape = flock.createCapsuleFromBoundingBox(
+					bb,
+					flock.scene,
+				);
+
+				boxBody.shape = boxShape;
+				boxBody.setMassProperties({ mass: 1, restitution: 0.5 });
+				boxBody.disablePreStep = false;
+				boxBody.setAngularDamping(10000000);
+				boxBody.setLinearDamping(0);
+				bb.physics = boxBody;
+			},
+			null,
+			function (error) {
+				console.log("Error loading", error);
+			},
+		);
+
+		return modelId;
+	},
 	createGround(color) {
 		const ground = flock.BABYLON.MeshBuilder.CreateGround(
 			"ground",
@@ -1269,10 +1343,9 @@ export const flock = {
 			}
 
 			isActionRunning = true;
-			
+
 			try {
-				if (isDisposed)
-				{
+				if (isDisposed) {
 					return;
 				}
 				await action();
@@ -1282,7 +1355,7 @@ export const flock = {
 				isActionRunning = false;
 				if (!isDisposed) {
 					flock.scene.onBeforeRenderObservable.addOnce(runAction);
-				} 
+				}
 			}
 		};
 
@@ -1299,8 +1372,7 @@ export const flock = {
 			flock.scene.onBeforeRenderObservable.clear(); // Clear the observable
 		};
 
-flock.scene.onDisposeObservable.add(disposeHandler);
-
+		flock.scene.onDisposeObservable.add(disposeHandler);
 	},
 	playSoundAsync(scene, soundName) {
 		return new Promise((resolve, reject) => {

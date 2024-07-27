@@ -96,6 +96,44 @@ export const toolbox = {
 				},
 				{
 					kind: "block",
+					type: "load_model",
+					inputs: {
+						SCALE: {
+							shadow: {
+								type: "math_number",
+								fields: {
+									NUM: 1,
+								},
+							},
+						},
+						X: {
+							shadow: {
+								type: "math_number",
+								fields: {
+									NUM: 0,
+								},
+							},
+						},
+						Y: {
+							shadow: {
+								type: "math_number",
+								fields: {
+									NUM: 0,
+								},
+							},
+						},
+						Z: {
+							shadow: {
+								type: "math_number",
+								fields: {
+									NUM: 0,
+								}, 
+							},
+						},
+					},
+				},
+				{
+					kind: "block",
 					type: "load_character",
 					inputs: {
 						SCALE: {
@@ -182,8 +220,16 @@ export const toolbox = {
 				},
 				{
 					kind: "block",
-					type: "load_model",
+					type: "load_object",
 					inputs: {
+						COLOR: {
+							shadow: {
+								type: "colour",  // Correct type for color field
+								fields: {
+									COLOR: "#FFD700", // Gold
+								},
+							},
+						},
 						SCALE: {
 							shadow: {
 								type: "math_number",
@@ -204,7 +250,7 @@ export const toolbox = {
 							shadow: {
 								type: "math_number",
 								fields: {
-									NUM: 0,
+									NUM: 2,
 								},
 							},
 						},
@@ -215,9 +261,9 @@ export const toolbox = {
 									NUM: 0,
 								},
 							},
-						},
+						},					
 					},
-				},
+				},				
 				{
 					kind: "block",
 					type: "create_box",

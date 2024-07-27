@@ -114,14 +114,28 @@ const characterNames = [
 	"Character4.glb",
 ];
 
+const objectNames = [
+	"Star.glb",
+	"Heart.glb",
+	"Coin.glb",
+	"Gem1.glb",
+	"Gem2.glb",
+	"Gem3.glb",
+];
+
+const objectColours = {
+	"Star.glb": "#FFD700", // Gold
+	"Heart.glb": "#FF69B4", // Hot Pink
+	"Coin.glb": "#F4C542", // Light Gold
+	"Gem1.glb": "#00BFFF", // Deep Sky Blue
+	"Gem2.glb": "#8A2BE2", // Blue Violet
+	"Gem3.glb": "#FF4500", // Orange Red
+};
 const modelNames = [
 	"Character_Female_1.gltf",
 	"Character_Female_2.gltf",
 	"Character_Male_1.gltf",
 	"Character_Male_2.gltf",
-	"Octohedron.glb",
-	"Diamond.glb",
-	"Heart.glb",
 	"tree_fat.glb",
 	"tree_fat_fall.glb",
 	"tree_fat_darkh.glb",
@@ -412,11 +426,105 @@ Blockly.Blocks["load_character"] = {
 	},
 };
 
+Blockly.Blocks["load_object"] = {
+	init: function () {
+		const defaultObject = "Star.glb";
+		const defaultColour = objectColours[defaultObject] || "#000000";
+		const variableNamePrefix = "object";
+		let nextVariableName =
+			variableNamePrefix + nextVariableIndexes[variableNamePrefix]++;
+		
+		this.jsonInit({
+			message0: `new %1 %2 %3 scale: %4 x: %5 y: %6 z: %7`,
+			args0: [
+				{
+					type: "field_grid_dropdown",
+					name: "MODELS",
+					columns: 6,
+					options: objectNames.map((name) => {
+						const baseName = name.replace(/\.[^/.]+$/, "");
+						return [
+							{
+								src: `./images/${baseName}.png`,
+								width: 50,
+								height: 50,
+								alt: baseName,
+							},
+							name,
+						];
+					}),
+				},
+				{
+					type: "field_variable",
+					name: "ID_VAR",
+					variable: nextVariableName,
+				},
+				{
+					type: "input_value",
+					name: "COLOR",
+					check: "Colour",
+				},
+				{
+					type: "input_value",
+					name: "SCALE",
+					check: "Number",
+				},
+				{
+					type: "input_value",
+					name: "X",
+					check: "Number",
+				},
+				{
+					type: "input_value",
+					name: "Y",
+					check: "Number",
+				},
+				{
+					type: "input_value",
+					name: "Z",
+					check: "Number",
+				},
+			],
+			inputsInline: true,
+			colour: categoryColours["Scene"],
+			tooltip: "",
+			helpUrl: "",
+			previousStatement: null,
+			nextStatement: null,
+		});
+
+		// Function to update the COLOR field based on the selected model
+		const updateColorField = () => {
+			const selectedObject = this.getFieldValue('MODELS');
+			const colour = objectColours[selectedObject] || defaultColour;
+			const colorInput = this.getInput('COLOR');
+			const colorField = colorInput.connection.targetBlock();
+			if (colorField) {
+				colorField.setFieldValue(colour, 'COLOR'); // Update COLOR field
+			}
+			//this.setColour(colour);
+		};
+
+		// Listen for changes in the MODELS field and update the COLOR field
+		this.setOnChange((changeEvent) => {
+			if (changeEvent.type === Blockly.Events.CHANGE &&
+				changeEvent.element === 'field' &&
+				changeEvent.name === 'MODELS') {
+				updateColorField();
+			}
+			
+		});
+	},
+};
+
+
+
 Blockly.Blocks["load_model"] = {
 	init: function () {
 		const variableNamePrefix = "model";
 		let nextVariableName =
 			variableNamePrefix + nextVariableIndexes[variableNamePrefix]; // Start with "model1"
+
 		this.jsonInit({
 			message0: "new %1 %2 scale: %3 x: %4 y: %5 z: %6",
 			args0: [
@@ -2159,6 +2267,24 @@ javascriptGenerator.forBlock["load_character"] = function (block) {
 	return `${variableName} = newCharacter('${modelName}', '${meshId}', ${scale}, ${x}, ${y}, ${z}, ${hairColor}, ${skinColor}, ${eyesColor}, ${sleevesColor}, ${shortsColor}, ${tshirtColor});\n`;
 };
 
+javascriptGenerator.forBlock["load_object"] = function (block) {
+	const modelName = block.getFieldValue("MODELS");
+	const scale = getFieldValue(block, "SCALE", "1");
+	const x = getFieldValue(block, "X", "0");
+	const y = getFieldValue(block, "Y", "0");
+	const z = getFieldValue(block, "Z", "0");
+	const color = getFieldValue(block, "COLOR", "#000000");
+	const variableName = javascriptGenerator.nameDB_.getName(
+		block.getFieldValue("ID_VAR"),
+		Blockly.Names.NameType.VARIABLE,
+	);
+
+	const meshId = modelName + "_" + flock.scene.getUniqueId();
+	meshMap[meshId] = block;
+
+	return `${variableName} = newObject('${modelName}', '${meshId}', ${scale}, ${x}, ${y}, ${z}, ${color});\n`;
+};
+
 javascriptGenerator.forBlock["create_box"] = function (block) {
 	const color = getFieldValue(block, "COLOR", "#9932CC");
 	const width = getFieldValue(block, "WIDTH", "1");
@@ -2315,31 +2441,36 @@ javascriptGenerator.forBlock["when_clicked"] = function (block) {
 };
 
 javascriptGenerator.forBlock["when_touches"] = function (block) {
-  const modelName = javascriptGenerator.nameDB_.getName(
-	block.getFieldValue("MODEL_VAR"),
-	Blockly.Names.NameType.VARIABLE,
-	true
-  );
+	const modelName = javascriptGenerator.nameDB_.getName(
+		block.getFieldValue("MODEL_VAR"),
+		Blockly.Names.NameType.VARIABLE,
+		true,
+	);
 
-  const otherModelName = javascriptGenerator.nameDB_.getName(
-	block.getFieldValue("OTHER_MODEL_VAR"),
-	Blockly.Names.NameType.VARIABLE,
-	true
-  );
+	const otherModelName = javascriptGenerator.nameDB_.getName(
+		block.getFieldValue("OTHER_MODEL_VAR"),
+		Blockly.Names.NameType.VARIABLE,
+		true,
+	);
 
-	
-  const trigger = block.getFieldValue("TRIGGER");
-  const doCode = javascriptGenerator.statementToCode(block, "DO");
-	
-  // Ensure the trigger is an intersection trigger
-  if (trigger === "OnIntersectionEnterTrigger" || trigger === "OnIntersectionExitTrigger") {
-	return `onIntersect(${modelName}, ${otherModelName}, "${trigger}", async function() {
+	const trigger = block.getFieldValue("TRIGGER");
+	const doCode = javascriptGenerator.statementToCode(block, "DO");
+
+	// Ensure the trigger is an intersection trigger
+	if (
+		trigger === "OnIntersectionEnterTrigger" ||
+		trigger === "OnIntersectionExitTrigger"
+	) {
+		return `onIntersect(${modelName}, ${otherModelName}, "${trigger}", async function() {
 	  ${doCode}
 	});\n`;
-  } else {
-	console.error("Invalid trigger type for 'when_touches' block:", trigger);
-	return "";
-  }
+	} else {
+		console.error(
+			"Invalid trigger type for 'when_touches' block:",
+			trigger,
+		);
+		return "";
+	}
 };
 
 javascriptGenerator.forBlock["when_key_pressed"] = function (block) {
@@ -2613,98 +2744,100 @@ const createScene = function () {
 */
 
 const createScene = function () {
-  flock.scene = new BABYLON.Scene(engine);
-  flock.scene.eventListeners = [];
-  hk = new BABYLON.HavokPlugin(true, havokInstance);
-  flock.scene.enablePhysics(new BABYLON.Vector3(0, -9.81, 0), hk);
-  flock.hk = hk;
-  flock.highlighter = new BABYLON.HighlightLayer("highlighter", flock.scene);
-  gizmoManager = new BABYLON.GizmoManager(flock.scene);
+	flock.scene = new BABYLON.Scene(engine);
+	flock.scene.eventListeners = [];
+	hk = new BABYLON.HavokPlugin(true, havokInstance);
+	flock.scene.enablePhysics(new BABYLON.Vector3(0, -9.81, 0), hk);
+	flock.hk = hk;
+	flock.highlighter = new BABYLON.HighlightLayer("highlighter", flock.scene);
+	gizmoManager = new BABYLON.GizmoManager(flock.scene);
 
-  const camera = new BABYLON.FreeCamera(
-	"camera",
-	new BABYLON.Vector3(0, 4, -20),
-	flock.scene
-  );
-  camera.setTarget(BABYLON.Vector3.Zero());
-  camera.attachControl(flock.canvas, true);
-  camera.angularSensibilityX = 2000;
-  camera.angularSensibilityY = 2000;
-  flock.scene.createDefaultLight();
-  flock.scene.collisionsEnabled = true;
+	const camera = new BABYLON.FreeCamera(
+		"camera",
+		new BABYLON.Vector3(0, 4, -20),
+		flock.scene,
+	);
+	camera.setTarget(BABYLON.Vector3.Zero());
+	camera.attachControl(flock.canvas, true);
+	camera.angularSensibilityX = 2000;
+	camera.angularSensibilityY = 2000;
+	flock.scene.createDefaultLight();
+	flock.scene.collisionsEnabled = true;
 
-  const advancedTexture =
-	flock.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
+	const advancedTexture =
+		flock.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
 
-  // Create a stack panel to hold the text lines
-  const stackPanel = new flock.GUI.StackPanel();
-  stackPanel.isVertical = true;
-  stackPanel.width = "100%";
-  stackPanel.height = "100%";
-  stackPanel.left = "0px";
-  stackPanel.top = "0px";
-  advancedTexture.addControl(stackPanel);
+	// Create a stack panel to hold the text lines
+	const stackPanel = new flock.GUI.StackPanel();
+	stackPanel.isVertical = true;
+	stackPanel.width = "100%";
+	stackPanel.height = "100%";
+	stackPanel.left = "0px";
+	stackPanel.top = "0px";
+	advancedTexture.addControl(stackPanel);
 
-  // Function to print text with scrolling
-  const textLines = []; // Array to keep track of text lines
-  flock.printText = function (text, duration, color) {
-	if (text === "" || !flock.scene) {  // Ensure scene is valid
-	  return;  // Return early if scene is invalid or text is empty
-	}
-
-	try {
-	  flock.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
-
-	  // Create a rectangle background
-	  const bg = new flock.GUI.Rectangle("textBackground");
-	  bg.background = "rgba(255, 255, 255, 0.5)";
-	  bg.adaptWidthToChildren = true; // Adjust width based on child elements
-	  bg.adaptHeightToChildren = true; // Adjust height based on child elements
-	  bg.cornerRadius = 2;
-	  bg.thickness = 0; // Remove border
-	  bg.horizontalAlignment =
-		flock.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
-	  bg.verticalAlignment = flock.GUI.Control.VERTICAL_ALIGNMENT_TOP;
-	  bg.left = "5px"; // Position with some margin from left
-	  bg.top = "5px"; // Position with some margin from top
-
-	  // Create a text block
-	  const textBlock = new flock.GUI.TextBlock("textBlock", text);
-	  textBlock.color = color;
-	  textBlock.fontSize = "12";
-	  textBlock.height = "20px";
-	  textBlock.paddingLeft = "10px";
-	  textBlock.paddingRight = "10px";
-	  textBlock.paddingTop = "2px";
-	  textBlock.paddingBottom = "2px";
-	  textBlock.textVerticalAlignment =
-		flock.GUI.Control.VERTICAL_ALIGNMENT_TOP; // Align text to top
-	  textBlock.textHorizontalAlignment =
-		flock.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT; // Align text to left
-	  textBlock.textWrapping = flock.GUI.TextWrapping.WordWrap;
-	  textBlock.resizeToFit = true;
-	  textBlock.forceResizeWidth = true;
-
-	  // Add the text block to the rectangle
-	  bg.addControl(textBlock);
-
-	  // Add the container to the stack panel
-	  stackPanel.addControl(bg);
-	  textLines.push(bg);
-
-	  // Remove the text after the specified duration
-	  setTimeout(() => {
-		if (flock.scene) {  // Ensure scene is still valid before removing
-		  stackPanel.removeControl(bg);
-		  textLines.splice(textLines.indexOf(bg), 1);
+	// Function to print text with scrolling
+	const textLines = []; // Array to keep track of text lines
+	flock.printText = function (text, duration, color) {
+		if (text === "" || !flock.scene) {
+			// Ensure scene is valid
+			return; // Return early if scene is invalid or text is empty
 		}
-	  }, duration * 1000);
-	} catch (error) {
-	  //console.warn("Unable to print text:", error);
-	}
-  };
 
-  return flock.scene;
+		try {
+			flock.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
+
+			// Create a rectangle background
+			const bg = new flock.GUI.Rectangle("textBackground");
+			bg.background = "rgba(255, 255, 255, 0.5)";
+			bg.adaptWidthToChildren = true; // Adjust width based on child elements
+			bg.adaptHeightToChildren = true; // Adjust height based on child elements
+			bg.cornerRadius = 2;
+			bg.thickness = 0; // Remove border
+			bg.horizontalAlignment =
+				flock.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
+			bg.verticalAlignment = flock.GUI.Control.VERTICAL_ALIGNMENT_TOP;
+			bg.left = "5px"; // Position with some margin from left
+			bg.top = "5px"; // Position with some margin from top
+
+			// Create a text block
+			const textBlock = new flock.GUI.TextBlock("textBlock", text);
+			textBlock.color = color;
+			textBlock.fontSize = "12";
+			textBlock.height = "20px";
+			textBlock.paddingLeft = "10px";
+			textBlock.paddingRight = "10px";
+			textBlock.paddingTop = "2px";
+			textBlock.paddingBottom = "2px";
+			textBlock.textVerticalAlignment =
+				flock.GUI.Control.VERTICAL_ALIGNMENT_TOP; // Align text to top
+			textBlock.textHorizontalAlignment =
+				flock.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT; // Align text to left
+			textBlock.textWrapping = flock.GUI.TextWrapping.WordWrap;
+			textBlock.resizeToFit = true;
+			textBlock.forceResizeWidth = true;
+
+			// Add the text block to the rectangle
+			bg.addControl(textBlock);
+
+			// Add the container to the stack panel
+			stackPanel.addControl(bg);
+			textLines.push(bg);
+
+			// Remove the text after the specified duration
+			setTimeout(() => {
+				if (flock.scene) {
+					// Ensure scene is still valid before removing
+					stackPanel.removeControl(bg);
+					textLines.splice(textLines.indexOf(bg), 1);
+				}
+			}, duration * 1000);
+		} catch (error) {
+			//console.warn("Unable to print text:", error);
+		}
+	};
+
+	return flock.scene;
 };
 
 javascriptGenerator.forBlock["random_colour"] = function (block) {
@@ -2763,14 +2896,7 @@ async function initialize() {
 initialize();
 const meshMap = {};
 
-let nextVariableIndexes = {
-	model: 1,
-	box: 1,
-	sphere: 1,
-	plane: 1,
-	text: 1,
-	sound: 1,
-};
+let nextVariableIndexes = {};
 
 function initializeVariableIndexes() {
 	nextVariableIndexes = {
@@ -2781,6 +2907,7 @@ function initializeVariableIndexes() {
 		text: 1,
 		sound: 1,
 		character: 1,
+		object: 1,
 	};
 
 	const workspace = Blockly.getMainWorkspace(); // Get the current Blockly workspace
@@ -3309,6 +3436,7 @@ const runCode = (code) => {
 				switchAnimation,
 				highlight,
 				newCharacter,
+				newObject,
 				newModel,
 				newBox,
 				newSphere,
