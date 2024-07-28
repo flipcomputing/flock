@@ -136,6 +136,7 @@ const modelNames = [
 	"Character_Female_2.gltf",
 	"Character_Male_1.gltf",
 	"Character_Male_2.gltf",
+	//"Seagull.glb",
 	"tree_fat.glb",
 	"tree_fat_fall.glb",
 	"tree_fat_darkh.glb",
