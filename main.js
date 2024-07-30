@@ -24,6 +24,7 @@ const engine = new BABYLON.Engine(flock.canvas, true, { stencil: true });
 engine.enableOfflineSupport = false;
 let hk = null;
 flock.scene = null;
+flock.document = document;
 let havokInstance = null;
 let engineReady = false;
 let gizmoManager = null;
@@ -1434,7 +1435,6 @@ Blockly.Blocks["when_key_pressed"] = {
 					name: "DO",
 				},
 			],
-			nextStatement: null,
 			colour: categoryColours["Events"],
 			tooltip:
 				"Executes the blocks inside when the specified key is pressed.",
@@ -1508,7 +1508,6 @@ Blockly.Blocks["when_key_released"] = {
 					name: "DO",
 				},
 			],
-			nextStatement: null,
 			colour: categoryColours["Events"],
 			tooltip:
 				"Executes the blocks inside when the specified key is released.",
@@ -2418,7 +2417,7 @@ javascriptGenerator.forBlock["play_sound"] = function (block) {
 	const optionsString = JSON.stringify(options);
 
 	return async === "AWAIT"
-		? `await playSoundAsync(scene, "${soundName}", ${optionsString});\n`
+		? `await flock.playSoundAsync(flock.scene, "${soundName}", ${optionsString});\n`
 		: `new flock.BABYLON.Sound("${soundName}", "sounds/${soundName}", flock.scene, null, { autoplay: true, ...${optionsString} });\n`;
 };
 
@@ -2500,16 +2499,14 @@ javascriptGenerator.forBlock["when_key_released"] = function (block) {
 javascriptGenerator.forBlock["broadcast_event"] = function (block) {
 	const eventName = block.getFieldValue("EVENT_NAME");
 
-	const code = `broadcastEvent("${eventName}");\n`;
-	return code;
+	return `broadcastEvent("${eventName}");\n`;
 };
 
 javascriptGenerator.forBlock["on_event"] = function (block) {
 	const eventName = block.getFieldValue("EVENT_NAME");
 	const statements_do = javascriptGenerator.statementToCode(block, "DO");
 
-	const code = `onEvent("${eventName}", async function() {\n${statements_do}});\n`;
-	return code;
+	return `onEvent("${eventName}", async function() {\n${statements_do}});\n`;
 };
 
 function removeEventListeners() {
@@ -2654,95 +2651,6 @@ javascriptGenerator.forBlock["meshes_touching"] = function (block) {
 	const code = `checkMeshesTouching(${mesh1VarName}, ${mesh2VarName})`;
 	return [code, javascriptGenerator.ORDER_ATOMIC];
 };
-
-/*
-const createScene = function () {
-	flock.scene = new BABYLON.Scene(engine);
-	flock.scene.eventListeners = [];
-	hk = new BABYLON.HavokPlugin(true, havokInstance);
-	flock.scene.enablePhysics(new BABYLON.Vector3(0, -9.81, 0), hk);
-	flock.hk = hk;
-	flock.highlighter = new BABYLON.HighlightLayer("highlighter", flock.scene);
-	gizmoManager = new BABYLON.GizmoManager(flock.scene);
-
-	const camera = new BABYLON.FreeCamera(
-		"camera",
-		new BABYLON.Vector3(0, 4, -20),
-		flock.scene,
-	);
-	camera.setTarget(BABYLON.Vector3.Zero());
-	camera.attachControl(flock.canvas, true);
-	camera.angularSensibilityX = 2000;
-	camera.angularSensibilityY = 2000;
-	flock.scene.createDefaultLight();
-	flock.scene.collisionsEnabled = true;
-
-	const advancedTexture =
-		flock.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
-
-	// Create a stack panel to hold the text lines
-	const stackPanel = new flock.GUI.StackPanel();
-	stackPanel.isVertical = true;
-	stackPanel.width = "100%";
-	stackPanel.height = "100%";
-	stackPanel.left = "0px";
-	stackPanel.top = "0px";
-	advancedTexture.addControl(stackPanel);
-
-	// Function to print text with scrolling
-	const textLines = []; // Array to keep track of text lines
-	flock.printText = function (text, duration, color) {
-		if (text !== "") {
-			flock.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
-
-			// Create a rectangle background
-			const bg = new flock.GUI.Rectangle("textBackground");
-			bg.background = "rgba(255, 255, 255, 0.5)";
-			bg.adaptWidthToChildren = true; // Adjust width based on child elements
-			bg.adaptHeightToChildren = true; // Adjust height based on child elements
-			bg.cornerRadius = 2;
-			bg.thickness = 0; // Remove border
-			bg.horizontalAlignment =
-				flock.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
-			bg.verticalAlignment = flock.GUI.Control.VERTICAL_ALIGNMENT_TOP;
-			bg.left = "5px"; // Position with some margin from left
-			bg.top = "5px"; // Position with some margin from top
-
-			// Create a text block
-			const textBlock = new flock.GUI.TextBlock("textBlock", text);
-			textBlock.color = color;
-			textBlock.fontSize = "12";
-			textBlock.height = "20px";
-			textBlock.paddingLeft = "10px";
-			textBlock.paddingRight = "10px";
-			textBlock.paddingTop = "2px";
-			textBlock.paddingBottom = "2px";
-			textBlock.textVerticalAlignment =
-				flock.GUI.Control.VERTICAL_ALIGNMENT_TOP; // Align text to top
-			textBlock.textHorizontalAlignment =
-				flock.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT; // Align text to left
-			textBlock.textWrapping = flock.GUI.TextWrapping.WordWrap;
-			textBlock.resizeToFit = true;
-			textBlock.forceResizeWidth = true;
-
-			// Add the text block to the rectangle
-			bg.addControl(textBlock);
-
-			// Add the container to the stack panel
-			stackPanel.addControl(bg);
-			textLines.push(bg);
-
-			// Remove the text after the specified duration
-			setTimeout(() => {
-				stackPanel.removeControl(bg);
-				textLines.splice(textLines.indexOf(bg), 1);
-			}, duration * 1000);
-		}
-	};
-
-	return flock.scene;
-};
-*/
 
 const createScene = function () {
 	flock.scene = new BABYLON.Scene(engine);

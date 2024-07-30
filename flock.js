@@ -1318,6 +1318,8 @@ export const flock = {
 							async function () {
 								await doCode(); // Execute the provided callback function
 							},
+							new BABYLON.PredicateCondition(flock.BABYLON.ActionManager,
+								() => {return otherMesh.isEnabled();}),
 						);
 						mesh.actionManager.registerAction(action); // Register the ExecuteCodeAction
 
@@ -1328,14 +1330,14 @@ export const flock = {
 		});
 	},
 	onEvent(eventName, handler) {
-		document.addEventListener(eventName, handler);
+		flock.document.addEventListener(eventName, handler);
 		if (!flock.scene.eventListeners) {
 			flock.scene.eventListeners = [];
 		}
 		flock.scene.eventListeners.push({ event: eventName, handler });
 	},
 	broadcastEvent(eventName) {
-		document.dispatchEvent(new CustomEvent(eventName));
+		flock.document.dispatchEvent(new CustomEvent(eventName));
 	},
 	whenKeyPressed(key, callback) {
 		flock.scene.onKeyboardObservable.add((kbInfo) => {
@@ -1380,7 +1382,6 @@ export const flock = {
 		};
 
 		flock.scene.onBeforeRenderObservable.addOnce(runAction);
-
 		// Handle scene disposal
 		const disposeHandler = () => {
 			if (isDisposed) {
@@ -1391,10 +1392,9 @@ export const flock = {
 			isDisposed = true;
 			flock.scene.onBeforeRenderObservable.clear(); // Clear the observable
 		};
-
 		flock.scene.onDisposeObservable.add(disposeHandler);
 	},
-	playSoundAsync(scene, soundName) {
+async playSoundAsync(scene, soundName) {
 		return new Promise((resolve, reject) => {
 			// Load and play the sound
 			const sound = new flock.BABYLON.Sound(
