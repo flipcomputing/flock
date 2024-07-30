@@ -761,7 +761,7 @@ export const flock = {
 							mesh,
 							"position",
 							fps,
-							100,
+							frames,
 							startPosition,
 							endPosition,
 							flock.BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT,
