@@ -260,6 +260,7 @@ export const flock = {
 			flock.scene,
 			function (meshes) {
 				const mesh = meshes[0];
+
 				mesh.scaling = new flock.BABYLON.Vector3(scale, scale, scale);
 
 				const bb =
@@ -778,6 +779,25 @@ export const flock = {
 			});
 		});
 	},
+	addBeforePhysicsObservable(scene, ...meshes) {
+		const beforePhysicsObserver = scene.onBeforePhysicsObservable.add(
+			() => {
+				meshes.forEach((mesh) => {
+					mesh.computeWorldMatrix(true);
+				});
+			},
+		);
+
+		// Log if the observable is successfully added
+		if (beforePhysicsObserver) {
+			console.log(
+				"Before physics observable added successfully for meshes:",
+				meshes,
+			);
+		} else {
+			console.log("Failed to add before physics observable");
+		}
+	},
 	async show(modelName) {
 		return new Promise(async (resolve) => {
 			await flock.whenModelReady(modelName, async function (mesh) {
@@ -854,7 +874,8 @@ export const flock = {
 		const hit = flock.scene.pickWithRay(ray);
 		mesh.isPickable = true;
 
-		return hit.hit && hit.pickedMesh !== null && hit.distance <= 0.02;
+		//if(hit.hit) {console.log(hit.pickedMesh.name, hit.distance);}
+		return hit.hit && hit.pickedMesh !== null && hit.distance <= 0.06;
 	},
 	keyPressed(key) {
 		if (key === "ANY") {
@@ -907,20 +928,24 @@ export const flock = {
 			let materialFound = false;
 
 			function applyColorToMaterial(part, color) {
-
 				if (part.material) {
-
 					// Check if part.material.diffuseColor exists and set it
-					if (part.material.diffuseColor !== undefined) {				
-						part.material.diffuseColor = flock.BABYLON.Color3.FromHexString(color);
-					} 
-					else {
+					if (part.material.diffuseColor !== undefined) {
+						part.material.diffuseColor =
+							flock.BABYLON.Color3.FromHexString(color);
+					} else {
 						// Handle materials without diffuseColor
-						part.material.albedoColor = flock.BABYLON.Color3.FromHexString(flock.getColorFromString(color)).toLinearSpace();
-						part.material.emissiveColor = flock.BABYLON.Color3.FromHexString(flock.getColorFromString(color)).toLinearSpace();
+						part.material.albedoColor =
+							flock.BABYLON.Color3.FromHexString(
+								flock.getColorFromString(color),
+							).toLinearSpace();
+						part.material.emissiveColor =
+							flock.BABYLON.Color3.FromHexString(
+								flock.getColorFromString(color),
+							).toLinearSpace();
 						part.material.emissiveIntensity = 0.1;
 					}
-				} 
+				}
 
 				part.getChildMeshes().forEach((child) => {
 					applyColorToMaterial(child, color);
@@ -932,8 +957,12 @@ export const flock = {
 
 			// If no material was found on the main mesh or any child, create a new one
 			if (!materialFound) {
-				const material = new flock.BABYLON.StandardMaterial("meshMaterial", flock.scene);
-				material.diffuseColor = flock.BABYLON.Color3.FromHexString(color);
+				const material = new flock.BABYLON.StandardMaterial(
+					"meshMaterial",
+					flock.scene,
+				);
+				material.diffuseColor =
+					flock.BABYLON.Color3.FromHexString(color);
 				mesh.material = material;
 			}
 		});
@@ -988,6 +1017,78 @@ export const flock = {
 	async attachCamera(modelName) {
 		flock.whenModelReady(modelName, function (mesh) {
 			if (mesh) {
+				const newBox = flock.BABYLON.MeshBuilder.CreateBox(
+					"staticMesh",
+					{ height: 1, width: 1, depth: 1 },
+				);
+				newBox.position = new flock.BABYLON.Vector3(0, -4, 0);
+
+				newBox.blockKey = newBox.name;
+				newBox.name = newBox.name + newBox.uniqueId;
+				const boxBody = new flock.BABYLON.PhysicsBody(
+					newBox,
+					flock.BABYLON.PhysicsMotionType.STATIC,
+					false,
+					flock.scene,
+				);
+
+				const boxShape = new flock.BABYLON.PhysicsShapeBox(
+					new flock.BABYLON.Vector3(0, 0, 0),
+					new flock.BABYLON.Quaternion(0, 0, 0, 1),
+					new flock.BABYLON.Vector3(1, 1, 1),
+					flock.scene,
+				);
+
+				/*boxBody.setMassProperties({
+					inertia: flock.BABYLON.Vector3.ZeroReadOnly,
+				});*/
+				boxBody.shape = boxShape;
+				boxBody.setMassProperties({ mass: 1, restitution: 0.5 });
+
+				newBox.physics = boxBody;
+
+				const material = new flock.BABYLON.StandardMaterial(
+					"staticMaterial",
+					flock.scene,
+				);
+
+				newBox.material = material;
+
+				function createVerticalConstraint(mesh, referenceBody, scene) {
+					let constraint = new BABYLON.Physics6DoFConstraint(
+						{
+							axisA: new BABYLON.Vector3(1, 0, 0), // trying to turn the car
+							axisB: new BABYLON.Vector3(1, 0, 0),
+							perpAxisA: new BABYLON.Vector3(0, 1, 0),
+							perpAxisB: new BABYLON.Vector3(0, 1, 0),
+						},
+						[
+							{
+								axis: BABYLON.PhysicsConstraintAxis.ANGULAR_X,
+								minLimit: 0,
+								maxLimit: 0,
+							},
+							{
+								axis: BABYLON.PhysicsConstraintAxis.ANGULAR_Z,
+								minLimit: 0,
+								maxLimit: 0,
+							},
+						],
+						scene,
+					);
+
+					// Ensure both bodies are defined before adding constraint
+					if (mesh && referenceBody) {
+						mesh.physics.addConstraint(referenceBody, constraint);
+					} else {
+						console.error(
+							"Mesh body or reference body is not defined",
+						);
+					}
+				}
+				// Create the constraint for the platform
+				createVerticalConstraint(mesh, boxBody, flock.scene);
+
 				flock.scene.onAfterPhysicsObservable.add(() => {
 					const currentVelocity = mesh.physics.getLinearVelocity();
 					const newVelocity = new flock.BABYLON.Vector3(
@@ -1000,16 +1101,19 @@ export const flock = {
 						flock.BABYLON.Vector3.Zero(),
 					);
 
-					const currentRotationQuaternion = mesh.rotationQuaternion;
+					/*const currentRotationQuaternion =
+						mesh.physics.transformNode.rotationQuaternion;
 					const currentEulerRotation =
 						currentRotationQuaternion.toEulerAngles();
 					const newRotationQuaternion =
-						flock.BABYLON.Quaternion.RotationYawPitchRoll(
+						BABYLON.Quaternion.RotationYawPitchRoll(
 							currentEulerRotation.y,
 							0,
 							0,
 						);
-					mesh.rotationQuaternion.copyFrom(newRotationQuaternion);
+					mesh.physics.transformNode.rotationQuaternion.copyFrom(
+						newRotationQuaternion,
+					);*/
 				});
 
 				const camera = new flock.BABYLON.ArcRotateCamera(
@@ -1035,40 +1139,79 @@ export const flock = {
 			}
 		});
 	},
+	updateDynamicMeshPositions(scene, dynamicMeshes) {
+		scene.onBeforeRenderObservable.add(() => {
+			dynamicMeshes.forEach((mesh) => {
+				
+				// Cast a ray upwards from inside the mesh to check for intersections
+				mesh.computeWorldMatrix(true);
+				const boundingInfo = mesh.getBoundingInfo();
+				const minY = boundingInfo.boundingBox.minimumWorld.y;
+				
+				const rayOrigin = new flock.BABYLON.Vector3(
+					boundingInfo.boundingBox.centerWorld.x,
+					minY,
+					boundingInfo.boundingBox.centerWorld.z,
+				);
+
+				const ray = new flock.BABYLON.Ray(
+					rayOrigin,
+					new flock.BABYLON.Vector3(0, 1, 0),
+					2,
+				);
+				
+				const rayHelper = new BABYLON.RayHelper(ray);
+
+				mesh.isPickable = false;
+				const hit = flock.scene.pickWithRay(ray);
+				mesh.isPickable = true;
+
+				if (hit.pickedMesh) {
+
+					// Move the mesh up to avoid intersection
+					mesh.position.y += hit.distance;
+					mesh.computeWorldMatrix(true);
+				}
+			});
+		});
+	},
 	async setPhysics(modelName, physicsType) {
 		await flock.whenModelReady(modelName, (mesh) => {
 			switch (physicsType) {
 				case "STATIC":
 					mesh.physics.setMotionType(
-						flock.BABYLON.PhysicsMotionType.STATIC,
+						BABYLON.PhysicsMotionType.STATIC,
 					);
-					flock.hk._hknp.HP_World_AddBody(
+					/*flock.hk._hknp.HP_World_AddBody(
 						flock.hk.world,
 						mesh.physics._pluginData.hpBodyId,
 						mesh.physics.startAsleep,
-					);
+					);*/
 					mesh.physics.disablePreStep = true;
 					break;
 				case "DYNAMIC":
 					mesh.physics.setMotionType(
-						flock.BABYLON.PhysicsMotionType.DYNAMIC,
+						BABYLON.PhysicsMotionType.DYNAMIC,
 					);
-					flock.hk._hknp.HP_World_AddBody(
+					flock.updateDynamicMeshPositions(flock.scene, [mesh]);
+					/*flock.hk._hknp.HP_World_AddBody(
 						flock.hk.world,
 						mesh.physics._pluginData.hpBodyId,
 						mesh.physics.startAsleep,
-					);
+					);*/
 					mesh.physics.disablePreStep = false;
+					//mesh.physics.disableSync = false;
+					//mesh.physics.setPrestepType(BABYLON.PhysicsPrestepType.TELEPORT);
 					break;
 				case "ANIMATED":
 					mesh.physics.setMotionType(
-						flock.BABYLON.PhysicsMotionType.ANIMATED,
+						BABYLON.PhysicsMotionType.ANIMATED,
 					);
-					flock.hk._hknp.HP_World_AddBody(
+					/*flock.hk._hknp.HP_World_AddBody(
 						flock.hk.world,
 						mesh.physics._pluginData.hpBodyId,
 						mesh.physics.startAsleep,
-					);
+					);*/
 					mesh.physics.disablePreStep = false;
 					break;
 				case "NONE":
@@ -1318,8 +1461,12 @@ export const flock = {
 							async function () {
 								await doCode(); // Execute the provided callback function
 							},
-							new BABYLON.PredicateCondition(flock.BABYLON.ActionManager,
-								() => {return otherMesh.isEnabled();}),
+							new BABYLON.PredicateCondition(
+								flock.BABYLON.ActionManager,
+								() => {
+									return otherMesh.isEnabled();
+								},
+							),
 						);
 						mesh.actionManager.registerAction(action); // Register the ExecuteCodeAction
 
@@ -1394,7 +1541,7 @@ export const flock = {
 		};
 		flock.scene.onDisposeObservable.add(disposeHandler);
 	},
-async playSoundAsync(scene, soundName) {
+	async playSoundAsync(scene, soundName) {
 		return new Promise((resolve, reject) => {
 			// Load and play the sound
 			const sound = new flock.BABYLON.Sound(
