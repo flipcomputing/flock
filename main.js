@@ -435,7 +435,7 @@ Blockly.Blocks["load_object"] = {
 		const variableNamePrefix = "object";
 		let nextVariableName =
 			variableNamePrefix + nextVariableIndexes[variableNamePrefix]++;
-		
+
 		this.jsonInit({
 			message0: `new %1 %2 %3 scale: %4 x: %5 y: %6 z: %7`,
 			args0: [
@@ -497,29 +497,28 @@ Blockly.Blocks["load_object"] = {
 
 		// Function to update the COLOR field based on the selected model
 		const updateColorField = () => {
-			const selectedObject = this.getFieldValue('MODELS');
+			const selectedObject = this.getFieldValue("MODELS");
 			const colour = objectColours[selectedObject] || defaultColour;
-			const colorInput = this.getInput('COLOR');
+			const colorInput = this.getInput("COLOR");
 			const colorField = colorInput.connection.targetBlock();
 			if (colorField) {
-				colorField.setFieldValue(colour, 'COLOR'); // Update COLOR field
+				colorField.setFieldValue(colour, "COLOR"); // Update COLOR field
 			}
 			//this.setColour(colour);
 		};
 
 		// Listen for changes in the MODELS field and update the COLOR field
 		this.setOnChange((changeEvent) => {
-			if (changeEvent.type === Blockly.Events.CHANGE &&
-				changeEvent.element === 'field' &&
-				changeEvent.name === 'MODELS') {
+			if (
+				changeEvent.type === Blockly.Events.CHANGE &&
+				changeEvent.element === "field" &&
+				changeEvent.name === "MODELS"
+			) {
 				updateColorField();
 			}
-			
 		});
 	},
 };
-
-
 
 Blockly.Blocks["load_model"] = {
 	init: function () {
@@ -598,6 +597,9 @@ function handleBlockCreateEvent(
 	variableNamePrefix,
 	nextVariableIndexes,
 ) {
+	
+	if (window.loadingCode) return; // Don't rename variables
+
 	if (
 		!blockInstance.isInFlyout &&
 		changeEvent.type === Blockly.Events.BLOCK_CREATE &&
@@ -2965,6 +2967,16 @@ function exportCode() {
 }
 
 window.onload = function () {
+	window.loadingCode = true;
+	Blockly.getMainWorkspace().addChangeListener((event) => {
+		if (
+			event.type === Blockly.Events.TOOLBOX_ITEM_SELECT ||
+			event.type === Blockly.Events.FLYOUT_SHOW
+		) {
+			window.loadingCode = false;
+		}
+	});
+
 	document
 		.getElementById("fileInput")
 		.addEventListener("change", function (event) {
@@ -2981,6 +2993,7 @@ window.onload = function () {
 				);
 
 				Blockly.serialization.workspaces.load(json, workspace);
+
 				executeCode();
 			};
 			reader.readAsText(event.target.files[0]);
@@ -3244,6 +3257,7 @@ async function exportBlockSnippet(block) {
 
 // Function to handle file upload and import JSON snippet into workspace
 function handleSnippetUpload(event) {
+	window.loadingCode = true;
 	const file = event.target.files[0];
 	const reader = new FileReader();
 	reader.onload = function (event) {
@@ -3313,6 +3327,8 @@ window.openAboutPage = openAboutPage;
 addImportContextMenuOption();
 
 function loadExample() {
+	window.loadingCode = true;
+
 	const exampleFile = document.getElementById("exampleSelect").value;
 	if (exampleFile) {
 		fetch(exampleFile)
