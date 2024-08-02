@@ -19,7 +19,7 @@ flock.GUI = BABYLON_GUI;
 
 registerFieldColour();
 Blockly.ContextMenuItems.registerCommentOptions();
- 
+
 flock.canvas = document.getElementById("renderCanvas");
 const engine = new BABYLON.Engine(flock.canvas, true, { stencil: true });
 engine.enableOfflineSupport = false;
@@ -598,7 +598,6 @@ function handleBlockCreateEvent(
 	variableNamePrefix,
 	nextVariableIndexes,
 ) {
-	
 	if (window.loadingCode) return; // Don't rename variables
 
 	if (
@@ -2969,12 +2968,19 @@ function exportCode() {
 
 window.onload = function () {
 	window.loadingCode = true;
-	Blockly.getMainWorkspace().addChangeListener((event) => {
+	workspace.addChangeListener(function (event) {
 		if (
 			event.type === Blockly.Events.TOOLBOX_ITEM_SELECT ||
 			event.type === Blockly.Events.FLYOUT_SHOW
 		) {
-			window.loadingCode = false;
+			const toolbox = workspace.getToolbox();
+			const selectedItem = toolbox.getSelectedItem();
+
+			if (selectedItem && selectedItem.getName() === "Snippets") {
+				window.loadingCode = true;
+			} else {
+				window.loadingCode = false;
+			}
 		}
 	});
 
