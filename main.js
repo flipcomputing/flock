@@ -18,7 +18,8 @@ flock.BABYLON = BABYLON;
 flock.GUI = BABYLON_GUI;
 
 registerFieldColour();
-
+Blockly.ContextMenuItems.registerCommentOptions();
+ 
 flock.canvas = document.getElementById("renderCanvas");
 const engine = new BABYLON.Engine(flock.canvas, true, { stencil: true });
 engine.enableOfflineSupport = false;
