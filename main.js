@@ -157,6 +157,7 @@ workspace.addChangeListener(function (event) {
 
 workspace.addChangeListener(Blockly.Events.disableOrphans);
 
+/*
 javascriptGenerator.forBlock["procedures_defnoreturn"] = function (block) {
 	const functionName = block.getFieldValue("NAME");
 	// Retrieve the parameters as a comma-separated list
@@ -232,6 +233,7 @@ javascriptGenerator.forBlock["procedures_callreturn"] = function (block) {
 	// Return the code and specify that this should be treated as an expression with a return value
 	return [code, javascriptGenerator.ORDER_ATOMIC];
 };
+*/
 
 Blockly.Blocks["start"] = {
 	init: function () {
@@ -2114,6 +2116,45 @@ Blockly.Blocks["move_forward"] = {
 	},
 };
 
+Blockly.Blocks["apply_force"] = {
+	init: function () {
+		this.jsonInit({
+			type: "apply_force",
+			message0: "apply force to %1 by x: %2 y: %3 z: %4",
+			args0: [
+				{
+					type: "field_variable",
+					name: "MESH_VAR",
+					variable: "mesh",
+				},
+				{
+					type: "input_value",
+					name: "X",
+					check: "Number",
+					align: "RIGHT",
+				},
+				{
+					type: "input_value",
+					name: "Y",
+					check: "Number",
+					align: "RIGHT",
+				},
+				{
+					type: "input_value",
+					name: "Z",
+					check: "Number",
+					align: "RIGHT",
+				},
+			],
+			previousStatement: null,
+			nextStatement: null,
+			colour: categoryColours["Motion"],
+			tooltip: "Apply a force to a mesh in XYZ directions",
+			helpUrl: "",
+		});
+	},
+};
+
 Blockly.Blocks["up"] = {
 	init: function () {
 		this.jsonInit({
@@ -2133,7 +2174,7 @@ Blockly.Blocks["up"] = {
 			],
 			previousStatement: null,
 			nextStatement: null,
-			colour: 230,
+			colour: categoryColours["Motion"],
 			tooltip: "Apply the specified upwards force.",
 			helpUrl: "",
 		});
@@ -2857,6 +2898,38 @@ javascriptGenerator.forBlock["up"] = function (block) {
 	const upForce = getFieldValue(block, "UP_FORCE", "1"); // Default up force
 
 	return `up(${modelName}, ${upForce});\n`;
+};
+
+javascriptGenerator.forBlock["apply_force"] = function (block) {
+	// Get the name of the mesh variable
+	const mesh = javascriptGenerator.nameDB_.getName(
+		block.getFieldValue("MESH_VAR"),
+		Blockly.Names.NameType.VARIABLE,
+	);
+
+	// Get the force values
+	const forceX =
+		javascriptGenerator.valueToCode(
+			block,
+			"X",
+			javascriptGenerator.ORDER_ATOMIC,
+		) || "0";
+	const forceY =
+		javascriptGenerator.valueToCode(
+			block,
+			"Y",
+			javascriptGenerator.ORDER_ATOMIC,
+		) || "0";
+	const forceZ =
+		javascriptGenerator.valueToCode(
+			block,
+			"Z",
+			javascriptGenerator.ORDER_ATOMIC,
+		) || "0";
+
+	// Generate the code
+	var code = `applyForce(${mesh}, ${forceX}, ${forceY}, ${forceZ});\n`;
+	return code;
 };
 
 javascriptGenerator.forBlock["touching_surface"] = function (block) {
@@ -3633,6 +3706,7 @@ const runCode = (code) => {
 				createGround,
 				setSky,
 				up,
+				applyForce,
 				moveByVector,
 				glideTo,
 				rotate,

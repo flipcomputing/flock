@@ -40,8 +40,8 @@ export const toolbox = {
 					type: "when_clicked",
 				},
 				{
-				  kind: "block",
-				  type: "when_touches"
+					kind: "block",
+					type: "when_touches",
 				},
 				{
 					kind: "block",
@@ -127,7 +127,7 @@ export const toolbox = {
 								type: "math_number",
 								fields: {
 									NUM: 0,
-								}, 
+								},
 							},
 						},
 					},
@@ -224,7 +224,7 @@ export const toolbox = {
 					inputs: {
 						COLOR: {
 							shadow: {
-								type: "colour",  // Correct type for color field
+								type: "colour", // Correct type for color field
 								fields: {
 									COLOR: "#FFD700", // Gold
 								},
@@ -261,9 +261,9 @@ export const toolbox = {
 									NUM: 0,
 								},
 							},
-						},					
+						},
 					},
-				},				
+				},
 				{
 					kind: "block",
 					type: "create_box",
@@ -389,120 +389,120 @@ export const toolbox = {
 					},
 				},
 				{
-					"kind": "block",
-					"type": "create_cylinder",
-					"inputs": {
-						"COLOR": {
-							"shadow": {
-								"type": "colour",
-								"fields": {
-									"COLOR": "#9932CC"
-								}
-							}
+					kind: "block",
+					type: "create_cylinder",
+					inputs: {
+						COLOR: {
+							shadow: {
+								type: "colour",
+								fields: {
+									COLOR: "#9932CC",
+								},
+							},
 						},
-						"HEIGHT": {
-							"shadow": {
-								"type": "math_number",
-								"fields": {
-									"NUM": 2
-								}
-							}
+						HEIGHT: {
+							shadow: {
+								type: "math_number",
+								fields: {
+									NUM: 2,
+								},
+							},
 						},
-						"DIAMETER_TOP": {
-							"shadow": {
-								"type": "math_number",
-								"fields": {
-									"NUM": 1
-								}
-							}
+						DIAMETER_TOP: {
+							shadow: {
+								type: "math_number",
+								fields: {
+									NUM: 1,
+								},
+							},
 						},
-						"DIAMETER_BOTTOM": {
-							"shadow": {
-								"type": "math_number",
-								"fields": {
-									"NUM": 1
-								}
-							}
+						DIAMETER_BOTTOM: {
+							shadow: {
+								type: "math_number",
+								fields: {
+									NUM: 1,
+								},
+							},
 						},
-						"X": {
-							"shadow": {
-								"type": "math_number",
-								"fields": {
-									"NUM": 0
-								}
-							}
+						X: {
+							shadow: {
+								type: "math_number",
+								fields: {
+									NUM: 0,
+								},
+							},
 						},
-						"Y": {
-							"shadow": {
-								"type": "math_number",
-								"fields": {
-									"NUM": 0.5
-								}
-							}
+						Y: {
+							shadow: {
+								type: "math_number",
+								fields: {
+									NUM: 0.5,
+								},
+							},
 						},
-						"Z": {
-							"shadow": {
-								"type": "math_number",
-								"fields": {
-									"NUM": 0
-								}
-							}
-						}
-					}
+						Z: {
+							shadow: {
+								type: "math_number",
+								fields: {
+									NUM: 0,
+								},
+							},
+						},
+					},
 				},
 				{
-					"kind": "block",
-					"type": "create_capsule",
-					"inputs": {
-						"COLOR": {
-							"shadow": {
-								"type": "colour",
-								"fields": {
-									"COLOR": "#9932CC"
-								}
-							}
+					kind: "block",
+					type: "create_capsule",
+					inputs: {
+						COLOR: {
+							shadow: {
+								type: "colour",
+								fields: {
+									COLOR: "#9932CC",
+								},
+							},
 						},
-						"RADIUS": {
-							"shadow": {
-								"type": "math_number",
-								"fields": {
-									"NUM": 1
-								}
-							}
+						RADIUS: {
+							shadow: {
+								type: "math_number",
+								fields: {
+									NUM: 1,
+								},
+							},
 						},
-						"HEIGHT": {
-							"shadow": {
-								"type": "math_number",
-								"fields": {
-									"NUM": 2
-								}
-							}
+						HEIGHT: {
+							shadow: {
+								type: "math_number",
+								fields: {
+									NUM: 2,
+								},
+							},
 						},
-						"X": {
-							"shadow": {
-								"type": "math_number",
-								"fields": {
-									"NUM": 0
-								}
-							}
+						X: {
+							shadow: {
+								type: "math_number",
+								fields: {
+									NUM: 0,
+								},
+							},
 						},
-						"Y": {
-							"shadow": {
-								"type": "math_number",
-								"fields": {
-									"NUM": 1
-								}
-							}
+						Y: {
+							shadow: {
+								type: "math_number",
+								fields: {
+									NUM: 1,
+								},
+							},
 						},
-						"Z": {
-							"shadow": {
-								"type": "math_number",
-								"fields": {
-									"NUM": 0
-								}
-							}
-						}
-					}
+						Z: {
+							shadow: {
+								type: "math_number",
+								fields: {
+									NUM: 0,
+								},
+							},
+						},
+					},
 				},
 				{
 					kind: "block",
@@ -857,6 +857,36 @@ export const toolbox = {
 								type: "math_number",
 								fields: {
 									NUM: 2,
+								},
+							},
+						},
+					},
+				},
+				{
+					kind: "block",
+					type: "apply_force",
+					inputs: {
+						X: {
+							shadow: {
+								type: "math_number",
+								fields: {
+									NUM: 0,
+								},
+							},
+						},
+						Y: {
+							shadow: {
+								type: "math_number",
+								fields: {
+									NUM: 2,
+								},
+							},
+						},
+						Z: {
+							shadow: {
+								type: "math_number",
+								fields: {
+									NUM: 0,
 								},
 							},
 						},

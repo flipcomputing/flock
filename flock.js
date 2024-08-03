@@ -942,6 +942,17 @@ export const flock = {
 			console.log("Model not loaded (up):", modelName);
 		}
 	},
+	applyForce(modelName, forceX = 0, forceY = 0, forceZ = 0) {
+		const mesh = flock.scene.getMeshByName(modelName);
+		if (mesh) {
+			mesh.physics.applyImpulse(
+				new flock.BABYLON.Vector3(forceX, forceY, forceZ),
+				mesh.getAbsolutePosition()
+			);
+		} else {
+			console.log("Model not loaded (applyForce):", modelName);
+		}
+	},
 	isTouchingSurface(modelName) {
 		const mesh = flock.scene.getMeshByName(modelName);
 		if (mesh) {
