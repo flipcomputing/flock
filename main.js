@@ -157,6 +157,64 @@ workspace.addChangeListener(function (event) {
 
 workspace.addChangeListener(Blockly.Events.disableOrphans);
 
+
+javascriptGenerator.forBlock['procedures_defnoreturn'] = function(block) {
+	const functionName = block.getFieldValue('NAME');
+	// Retrieve the parameters as a comma-separated list
+	const params = block.arguments_;
+	console.log(block);
+	const branch = javascriptGenerator.statementToCode(block, 'STACK', javascriptGenerator.ORDER_NONE) || '';
+
+	// Generate the function code with async and parameters
+	const code = `async function ${functionName}(${params.join(', ')}) {\n${branch}\n}`;
+	return code;
+};
+
+
+// Generator for asynchronous function call with arguments
+javascriptGenerator.forBlock['procedures_callnoreturn'] = function(block) {
+	const functionName = block.getFieldValue('NAME');
+	// Retrieve the arguments as a comma-separated list that should match the parameters
+	 const args = [];
+	const variables = block.arguments_;
+	for (let i = 0; i < variables.length; i++) {
+	  args[i] = 
+ javascriptGenerator.valueToCode(block, 'ARG' + i,
+		  javascriptGenerator.ORDER_NONE) || 'null';
+	}
+	const code = `await ${functionName}` + '(' + args.join(', ') + ')';
+	return code;
+};
+
+javascriptGenerator.forBlock['procedures_defreturn'] = function(block) {
+	const functionName = block.getFieldValue('NAME');
+	const params = block.arguments_ || []; // Ensuring this array is initialized correctly
+	const paramsCode = params.join(', '); // Creating a comma-separated string of parameters
+	const branch = javascriptGenerator.statementToCode(block, 'STACK', javascriptGenerator.ORDER_NONE) || '';
+	const returnValue = javascriptGenerator.valueToCode(block, 'RETURN' , javascriptGenerator.ORDER_NONE) || '';
+
+	// Generate the function code with async, parameters, and return statement
+	const code = `async function ${functionName}(${paramsCode}) {\n${branch}return ${returnValue};\n}`;
+	return code;
+};
+
+javascriptGenerator.forBlock['procedures_callreturn'] = function(block) {
+	const functionName = block.getFieldValue('NAME');
+	const args = [];
+	const variables = block.arguments_ || []; // Ensure 'arguments_' is populated with the argument names
+	for (let i = 0; i < variables.length; i++) {
+		args[i] = 
+		javascriptGenerator.valueToCode(block, 'ARG' + i,
+			  javascriptGenerator.ORDER_NONE) || 'null';
+	}
+
+	// Generate the asynchronous function call code using await, and capture the return value
+	const code = `await ${functionName}(${args.join(', ')})`;
+	// Return the code and specify that this should be treated as an expression with a return value
+	return [code, javascriptGenerator.ORDER_ATOMIC];
+};
+
+
 Blockly.Blocks["start"] = {
 	init: function () {
 		this.jsonInit({
