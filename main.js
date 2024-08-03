@@ -157,7 +157,7 @@ workspace.addChangeListener(function (event) {
 
 workspace.addChangeListener(Blockly.Events.disableOrphans);
 
-/*
+
 javascriptGenerator.forBlock["procedures_defnoreturn"] = function (block) {
 	const functionName = block.getFieldValue("NAME");
 	// Retrieve the parameters as a comma-separated list
@@ -189,7 +189,7 @@ javascriptGenerator.forBlock["procedures_callnoreturn"] = function (block) {
 				javascriptGenerator.ORDER_NONE,
 			) || "null";
 	}
-	const code = `await ${functionName}` + "(" + args.join(", ") + ")";
+	const code = `await ${functionName}` + "(" + args.join(", ") + ");\n";
 	return code;
 };
 
@@ -229,11 +229,10 @@ javascriptGenerator.forBlock["procedures_callreturn"] = function (block) {
 	}
 
 	// Generate the asynchronous function call code using await, and capture the return value
-	const code = `await ${functionName}(${args.join(", ")})`;
+	const code = `await ${functionName}\n(${args.join(", ")});\n`;
 	// Return the code and specify that this should be treated as an expression with a return value
 	return [code, javascriptGenerator.ORDER_ATOMIC];
 };
-*/
 
 Blockly.Blocks["start"] = {
 	init: function () {
