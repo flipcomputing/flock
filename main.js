@@ -157,63 +157,81 @@ workspace.addChangeListener(function (event) {
 
 workspace.addChangeListener(Blockly.Events.disableOrphans);
 
-
-javascriptGenerator.forBlock['procedures_defnoreturn'] = function(block) {
-	const functionName = block.getFieldValue('NAME');
+javascriptGenerator.forBlock["procedures_defnoreturn"] = function (block) {
+	const functionName = block.getFieldValue("NAME");
 	// Retrieve the parameters as a comma-separated list
 	const params = block.arguments_;
 	console.log(block);
-	const branch = javascriptGenerator.statementToCode(block, 'STACK', javascriptGenerator.ORDER_NONE) || '';
+	const branch =
+		javascriptGenerator.statementToCode(
+			block,
+			"STACK",
+			javascriptGenerator.ORDER_NONE,
+		) || "";
 
 	// Generate the function code with async and parameters
-	const code = `async function ${functionName}(${params.join(', ')}) {\n${branch}\n}`;
+	const code = `async function ${functionName}(${params.join(", ")}) {\n${branch}\n}`;
 	return code;
 };
-
 
 // Generator for asynchronous function call with arguments
-javascriptGenerator.forBlock['procedures_callnoreturn'] = function(block) {
-	const functionName = block.getFieldValue('NAME');
+javascriptGenerator.forBlock["procedures_callnoreturn"] = function (block) {
+	const functionName = block.getFieldValue("NAME");
 	// Retrieve the arguments as a comma-separated list that should match the parameters
-	 const args = [];
+	const args = [];
 	const variables = block.arguments_;
 	for (let i = 0; i < variables.length; i++) {
-	  args[i] = 
- javascriptGenerator.valueToCode(block, 'ARG' + i,
-		  javascriptGenerator.ORDER_NONE) || 'null';
+		args[i] =
+			javascriptGenerator.valueToCode(
+				block,
+				"ARG" + i,
+				javascriptGenerator.ORDER_NONE,
+			) || "null";
 	}
-	const code = `await ${functionName}` + '(' + args.join(', ') + ')';
+	const code = `await ${functionName}` + "(" + args.join(", ") + ")";
 	return code;
 };
 
-javascriptGenerator.forBlock['procedures_defreturn'] = function(block) {
-	const functionName = block.getFieldValue('NAME');
+javascriptGenerator.forBlock["procedures_defreturn"] = function (block) {
+	const functionName = block.getFieldValue("NAME");
 	const params = block.arguments_ || []; // Ensuring this array is initialized correctly
-	const paramsCode = params.join(', '); // Creating a comma-separated string of parameters
-	const branch = javascriptGenerator.statementToCode(block, 'STACK', javascriptGenerator.ORDER_NONE) || '';
-	const returnValue = javascriptGenerator.valueToCode(block, 'RETURN' , javascriptGenerator.ORDER_NONE) || '';
+	const paramsCode = params.join(", "); // Creating a comma-separated string of parameters
+	const branch =
+		javascriptGenerator.statementToCode(
+			block,
+			"STACK",
+			javascriptGenerator.ORDER_NONE,
+		) || "";
+	const returnValue =
+		javascriptGenerator.valueToCode(
+			block,
+			"RETURN",
+			javascriptGenerator.ORDER_NONE,
+		) || "";
 
 	// Generate the function code with async, parameters, and return statement
 	const code = `async function ${functionName}(${paramsCode}) {\n${branch}return ${returnValue};\n}`;
 	return code;
 };
 
-javascriptGenerator.forBlock['procedures_callreturn'] = function(block) {
-	const functionName = block.getFieldValue('NAME');
+javascriptGenerator.forBlock["procedures_callreturn"] = function (block) {
+	const functionName = block.getFieldValue("NAME");
 	const args = [];
 	const variables = block.arguments_ || []; // Ensure 'arguments_' is populated with the argument names
 	for (let i = 0; i < variables.length; i++) {
-		args[i] = 
-		javascriptGenerator.valueToCode(block, 'ARG' + i,
-			  javascriptGenerator.ORDER_NONE) || 'null';
+		args[i] =
+			javascriptGenerator.valueToCode(
+				block,
+				"ARG" + i,
+				javascriptGenerator.ORDER_NONE,
+			) || "null";
 	}
 
 	// Generate the asynchronous function call code using await, and capture the return value
-	const code = `await ${functionName}(${args.join(', ')})`;
+	const code = `await ${functionName}(${args.join(", ")})`;
 	// Return the code and specify that this should be treated as an expression with a return value
 	return [code, javascriptGenerator.ORDER_ATOMIC];
 };
-
 
 Blockly.Blocks["start"] = {
 	init: function () {
@@ -833,6 +851,141 @@ Blockly.Blocks["create_sphere"] = {
 			colour: categoryColours["Scene"],
 			tooltip:
 				"Creates a colored sphere with specified dimensions and position.",
+			helpUrl: "",
+		});
+
+		this.setOnChange((changeEvent) => {
+			handleBlockCreateEvent(
+				this,
+				changeEvent,
+				variableNamePrefix,
+				nextVariableIndexes,
+			);
+		});
+	},
+};
+
+Blockly.Blocks["create_cylinder"] = {
+	init: function () {
+		const variableNamePrefix = "cylinder";
+		let nextVariableName =
+			variableNamePrefix + nextVariableIndexes[variableNamePrefix];
+		this.jsonInit({
+			type: "create_cylinder",
+			message0:
+				"new cylinder %1 %2 height %3 diameterTop %4 diameterBottom %5 x %6 y %7 z %8",
+			args0: [
+				{
+					type: "field_variable",
+					name: "ID_VAR",
+					variable: nextVariableName,
+				},
+				{
+					type: "input_value",
+					name: "COLOR",
+					check: "Colour",
+				},
+				{
+					type: "input_value",
+					name: "HEIGHT",
+					check: "Number",
+				},
+				{
+					type: "input_value",
+					name: "DIAMETER_TOP",
+					check: "Number",
+				},
+				{
+					type: "input_value",
+					name: "DIAMETER_BOTTOM",
+					check: "Number",
+				},
+				{
+					type: "input_value",
+					name: "X",
+					check: "Number",
+				},
+				{
+					type: "input_value",
+					name: "Y",
+					check: "Number",
+				},
+				{
+					type: "input_value",
+					name: "Z",
+					check: "Number",
+				},
+			],
+			previousStatement: null,
+			nextStatement: null,
+			inputsInline: true,
+			colour: categoryColours["Scene"],
+			tooltip:
+				"Creates a colored cylinder with specified dimensions and position.",
+			helpUrl: "",
+		});
+
+		this.setOnChange((changeEvent) => {
+			handleBlockCreateEvent(
+				this,
+				changeEvent,
+				variableNamePrefix,
+				nextVariableIndexes,
+			);
+		});
+	},
+};
+Blockly.Blocks["create_capsule"] = {
+	init: function () {
+		const variableNamePrefix = "capsule";
+		let nextVariableName =
+			variableNamePrefix + nextVariableIndexes[variableNamePrefix];
+		this.jsonInit({
+			type: "create_capsule",
+			message0: "new capsule %1 %2 radius %3 height %4 x %5 y %6 z %7",
+			args0: [
+				{
+					type: "field_variable",
+					name: "ID_VAR",
+					variable: nextVariableName,
+				},
+				{
+					type: "input_value",
+					name: "COLOR",
+					check: "Colour",
+				},
+				{
+					type: "input_value",
+					name: "RADIUS",
+					check: "Number",
+				},
+				{
+					type: "input_value",
+					name: "HEIGHT",
+					check: "Number",
+				},
+				{
+					type: "input_value",
+					name: "X",
+					check: "Number",
+				},
+				{
+					type: "input_value",
+					name: "Y",
+					check: "Number",
+				},
+				{
+					type: "input_value",
+					name: "Z",
+					check: "Number",
+				},
+			],
+			previousStatement: null,
+			nextStatement: null,
+			inputsInline: true,
+			colour: categoryColours["Scene"],
+			tooltip:
+				"Creates a colored capsule with specified dimensions and position.",
 			helpUrl: "",
 		});
 
@@ -2385,6 +2538,45 @@ javascriptGenerator.forBlock["create_sphere"] = function (block) {
 	return `${variableName} = newSphere(${color}, ${diameterX}, ${diameterY}, ${diameterZ}, ${posX}, ${posY}, ${posZ}, "${sphereId}");\n`;
 };
 
+javascriptGenerator.forBlock["create_cylinder"] = function (block) {
+	const color = getFieldValue(block, "COLOR", "#9932CC");
+	const height = getFieldValue(block, "HEIGHT", "2");
+	const diameterTop = getFieldValue(block, "DIAMETER_TOP", "1");
+	const diameterBottom = getFieldValue(block, "DIAMETER_BOTTOM", "1");
+	const posX = getFieldValue(block, "X", "0");
+	const posY = getFieldValue(block, "Y", "0.5");
+	const posZ = getFieldValue(block, "Z", "0");
+
+	let variableName = javascriptGenerator.nameDB_.getName(
+		block.getFieldValue("ID_VAR"),
+		Blockly.Names.NameType.VARIABLE,
+	);
+
+	const cylinderId = `cylinder_${generateUUID()}`;
+	meshMap[cylinderId] = block;
+
+	return `${variableName} = newCylinder(${color}, ${height}, ${diameterTop}, ${diameterBottom}, ${posX}, ${posY}, ${posZ}, "${cylinderId}");\n`;
+};
+
+javascriptGenerator.forBlock["create_capsule"] = function (block) {
+	const color = getFieldValue(block, "COLOR", "#9932CC");
+	const radius = getFieldValue(block, "RADIUS", "1");
+	const height = getFieldValue(block, "HEIGHT", "2");
+	const posX = getFieldValue(block, "X", "0");
+	const posY = getFieldValue(block, "Y", "1");
+	const posZ = getFieldValue(block, "Z", "0");
+
+	let variableName = javascriptGenerator.nameDB_.getName(
+		block.getFieldValue("ID_VAR"),
+		Blockly.Names.NameType.VARIABLE,
+	);
+
+	const capsuleId = `capsule_${generateUUID()}`;
+	meshMap[capsuleId] = block;
+
+	return `${variableName} = newCapsule(${color}, ${radius}, ${height}, ${posX}, ${posY}, ${posZ}, "${capsuleId}");\n`;
+};
+
 javascriptGenerator.forBlock["create_plane"] = function (block) {
 	const color = getFieldValue(block, "COLOR", "#9932CC");
 	const width = getFieldValue(block, "WIDTH", "1");
@@ -2427,6 +2619,9 @@ javascriptGenerator.forBlock["scale"] = function (block) {
 		block.getFieldValue("BLOCK_NAME"),
 		Blockly.Names.NameType.VARIABLE,
 	);
+	const x = getFieldValue(block, "X", "0");
+	const y = getFieldValue(block, "Y", "0");
+	const z = getFieldValue(block, "Z", "0");
 
 	return `await scaleMesh(${modelName}, ${x}, ${y}, ${z});\n`;
 };
@@ -2872,6 +3067,8 @@ function initializeVariableIndexes() {
 		model: 1,
 		box: 1,
 		sphere: 1,
+		cylinder: 1,
+		capsule: 1,
 		plane: 1,
 		text: 1,
 		sound: 1,
@@ -3430,6 +3627,8 @@ const runCode = (code) => {
 				newModel,
 				newBox,
 				newSphere,
+				newCylinder,
+				newCapsule,
 				newPlane,
 				createGround,
 				setSky,

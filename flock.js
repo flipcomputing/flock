@@ -671,6 +671,104 @@ export const flock = {
 
 		return newSphere.name;
 	},
+	newCylinder(
+		color,
+		height,
+		diameterTop,
+		diameterBottom,
+		posX,
+		posY,
+		posZ,
+		cylinderId,
+		sides = 24 // Default number of sides
+	) {
+		const newCylinder = flock.BABYLON.MeshBuilder.CreateCylinder(
+			cylinderId,
+			{
+				height: height,
+				diameterTop: diameterTop,
+				diameterBottom: diameterBottom,
+				tessellation: sides,
+			},
+			flock.scene
+		);
+		newCylinder.position = new flock.BABYLON.Vector3(posX, posY, posZ);
+
+		newCylinder.blockKey = newCylinder.name;
+		newCylinder.name = newCylinder.name + newCylinder.uniqueId;
+
+		const cylinderBody = new flock.BABYLON.PhysicsBody(
+			newCylinder,
+			flock.BABYLON.PhysicsMotionType.STATIC,
+			false,
+			flock.scene
+		);
+
+		const cylinderShape = new flock.BABYLON.PhysicsShapeCylinder(
+			new flock.BABYLON.Vector3(0, 0, 0),
+			diameterTop / 2, // Using diameterTop as the radius for the shape
+			height / 2,      // Using height as the radius for the shape
+			flock.scene
+		);
+
+		cylinderBody.shape = cylinderShape;
+		cylinderBody.setMassProperties({ mass: 1, restitution: 0.5 });
+		newCylinder.physics = cylinderBody;
+
+		const material = new flock.BABYLON.StandardMaterial("cylinderMaterial", flock.scene);
+		material.diffuseColor = flock.BABYLON.Color3.FromHexString(flock.getColorFromString(color));
+		newCylinder.material = material;
+
+		return newCylinder.name;
+	},
+	newCapsule(
+		color,
+		radius, // This is the diameter of the spheres at both ends of the capsule
+		height,    // This is the height between the spheres
+		posX,
+		posY,
+		posZ,
+		capsuleId
+	) {
+		const newCapsule = flock.BABYLON.MeshBuilder.CreateCapsule(
+			capsuleId,
+			{
+				radius: radius,
+				height: height,
+				tessellation: 24,
+				updatable: false
+			},
+			flock.scene
+		);
+		newCapsule.position = new flock.BABYLON.Vector3(posX, posY, posZ);
+
+		newCapsule.blockKey = newCapsule.name;
+		newCapsule.name = newCapsule.name + newCapsule.uniqueId;
+
+		const capsuleBody = new flock.BABYLON.PhysicsBody(
+			newCapsule,
+			flock.BABYLON.PhysicsMotionType.STATIC,
+			false,
+			flock.scene
+		);
+
+		const capsuleShape = new flock.BABYLON.PhysicsShapeCapsule(
+			new flock.BABYLON.Vector3(0, 0, 0),
+			radius, // Radius of the spherical ends
+			height / 2,    // Half the height of the cylindrical part
+			flock.scene
+		);
+
+		capsuleBody.shape = capsuleShape;
+		capsuleBody.setMassProperties({ mass: 1, restitution: 0.5 });
+		newCapsule.physics = capsuleBody;
+
+		const material = new flock.BABYLON.StandardMaterial("capsuleMaterial", flock.scene);
+		material.diffuseColor = flock.BABYLON.Color3.FromHexString(flock.getColorFromString(color));
+		newCapsule.material = material;
+
+		return newCapsule.name;
+	},
 	newPlane(color, width, height, posX, posY, posZ, planeId) {
 		const newPlane = flock.BABYLON.MeshBuilder.CreatePlane(
 			planeId,

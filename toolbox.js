@@ -389,6 +389,122 @@ export const toolbox = {
 					},
 				},
 				{
+					"kind": "block",
+					"type": "create_cylinder",
+					"inputs": {
+						"COLOR": {
+							"shadow": {
+								"type": "colour",
+								"fields": {
+									"COLOR": "#9932CC"
+								}
+							}
+						},
+						"HEIGHT": {
+							"shadow": {
+								"type": "math_number",
+								"fields": {
+									"NUM": 2
+								}
+							}
+						},
+						"DIAMETER_TOP": {
+							"shadow": {
+								"type": "math_number",
+								"fields": {
+									"NUM": 1
+								}
+							}
+						},
+						"DIAMETER_BOTTOM": {
+							"shadow": {
+								"type": "math_number",
+								"fields": {
+									"NUM": 1
+								}
+							}
+						},
+						"X": {
+							"shadow": {
+								"type": "math_number",
+								"fields": {
+									"NUM": 0
+								}
+							}
+						},
+						"Y": {
+							"shadow": {
+								"type": "math_number",
+								"fields": {
+									"NUM": 0.5
+								}
+							}
+						},
+						"Z": {
+							"shadow": {
+								"type": "math_number",
+								"fields": {
+									"NUM": 0
+								}
+							}
+						}
+					}
+				},
+				{
+					"kind": "block",
+					"type": "create_capsule",
+					"inputs": {
+						"COLOR": {
+							"shadow": {
+								"type": "colour",
+								"fields": {
+									"COLOR": "#9932CC"
+								}
+							}
+						},
+						"RADIUS": {
+							"shadow": {
+								"type": "math_number",
+								"fields": {
+									"NUM": 1
+								}
+							}
+						},
+						"HEIGHT": {
+							"shadow": {
+								"type": "math_number",
+								"fields": {
+									"NUM": 2
+								}
+							}
+						},
+						"X": {
+							"shadow": {
+								"type": "math_number",
+								"fields": {
+									"NUM": 0
+								}
+							}
+						},
+						"Y": {
+							"shadow": {
+								"type": "math_number",
+								"fields": {
+									"NUM": 1
+								}
+							}
+						},
+						"Z": {
+							"shadow": {
+								"type": "math_number",
+								"fields": {
+									"NUM": 0
+								}
+							}
+						}
+					}
+				},
+				{
 					kind: "block",
 					type: "create_plane",
 					inputs: {
