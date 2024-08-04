@@ -730,7 +730,7 @@ Blockly.Blocks["create_box"] = {
 		this.jsonInit({
 			type: "create_box",
 			message0:
-				"new box %1 %2 width %3 height %4 depth %5 x %6 y %7 z %8",
+				"new box %1 %2 width %3 height %4 depth %5 \n at x %6 y %7 z %8",
 			args0: [
 				{
 					type: "field_variable",
@@ -802,7 +802,7 @@ Blockly.Blocks["create_sphere"] = {
 		this.jsonInit({
 			type: "create_sphere",
 			message0:
-				"new sphere %1 %2 diameter x %3 diameter y %4 diameter z %5 x %6 y %7 z %8",
+				"new sphere %1 %2 diameter x %3 diameter y %4 diameter z %5\nat x %6 y %7 z %8",
 			args0: [
 				{
 					type: "field_variable",
@@ -874,7 +874,7 @@ Blockly.Blocks["create_cylinder"] = {
 		this.jsonInit({
 			type: "create_cylinder",
 			message0:
-				"new cylinder %1 %2 height %3 diameterTop %4 diameterBottom %5 x %6 y %7 z %8",
+				"new cylinder %1 %2 height %3 top %4 bottom %5 \nat x %6 y %7 z %8",
 			args0: [
 				{
 					type: "field_variable",
@@ -943,7 +943,7 @@ Blockly.Blocks["create_capsule"] = {
 			variableNamePrefix + nextVariableIndexes[variableNamePrefix];
 		this.jsonInit({
 			type: "create_capsule",
-			message0: "new capsule %1 %2 radius %3 height %4 x %5 y %6 z %7",
+			message0: "new capsule %1 %2 radius %3 height %4 \n at x %5 y %6 z %7",
 			args0: [
 				{
 					type: "field_variable",
@@ -1008,7 +1008,7 @@ Blockly.Blocks["create_plane"] = {
 			variableNamePrefix + nextVariableIndexes[variableNamePrefix]; // Ensure 'plane' is managed in your nextVariableIndexes
 		this.jsonInit({
 			type: "create_plane",
-			message0: "new plane %1 %2 width %3 height %4 x %5 y %6 z %7",
+			message0: "new plane %1 %2 width %3 height %4 \n at x %5 y %6 z %7",
 			args0: [
 				{
 					type: "field_variable",
@@ -1127,7 +1127,7 @@ Blockly.Blocks["say"] = {
 		this.jsonInit({
 			type: "say",
 			message0:
-				"say %1 for %2 s %3 text %4 background %5 alpha %6 size %7 %8 %9",
+				"say %1 for %2 s %3 \ntext %4 on %5 alpha %6 size %7 %8 %9",
 			args0: [
 				{
 					type: "input_value",
@@ -1142,7 +1142,7 @@ Blockly.Blocks["say"] = {
 				{
 					type: "field_variable",
 					name: "MESH_VAR",
-					variable: "mesh1",
+					variable: "mesh",
 				},
 				{
 					type: "input_value",
@@ -1352,7 +1352,7 @@ Blockly.Blocks["rotate_model_xyz"] = {
 				{
 					type: "field_variable",
 					name: "MODEL",
-					variable: "mesh", // Default variable name
+					variable: "mesh", 
 				},
 				{
 					type: "input_value",
@@ -1389,7 +1389,7 @@ Blockly.Blocks["play_sound"] = {
 		let nextVariableName = "sound" + nextVariableIndexes["sound"];
 		this.jsonInit({
 			type: "play_sound",
-			message0: "set %1 to play sound %2 speed %3 volume %4 mode %5 %6",
+			message0: "set %1 to play sound %2 \nspeed %3 volume %4 mode %5 %6",
 			args0: [
 				{
 					type: "field_variable",
@@ -2071,7 +2071,7 @@ Blockly.Blocks["meshes_touching"] = {
 				{
 					type: "field_variable",
 					name: "MESH1",
-					variable: "mesh",
+					variable: "mesh1",
 				},
 				{
 					type: "field_variable",
@@ -2163,7 +2163,7 @@ Blockly.Blocks["up"] = {
 				{
 					type: "field_variable",
 					name: "MODEL_VAR",
-					variable: "model",
+					variable: "mesh",
 				},
 				{
 					type: "input_value",
@@ -2189,7 +2189,7 @@ Blockly.Blocks["touching_surface"] = {
 				{
 					type: "field_variable",
 					name: "MODEL_VAR",
-					variable: "model",
+					variable: "mesh",
 				},
 			],
 			output: "Boolean",
@@ -2306,7 +2306,7 @@ Blockly.Blocks["random_seeded_int"] = {
 	init: function () {
 		this.jsonInit({
 			type: "random_seeded_int",
-			message0: "random integer from %1 to %2 with seed %3",
+			message0: "random integer from %1 to %2 seed: %3",
 			args0: [
 				{
 					type: "input_value",
