@@ -25,8 +25,8 @@ export default {
           dest: 'examples'
         },
         {
-          src: 'templates/*.png',
-          dest: 'templates'
+          src: 'textures/*.png',
+          dest: 'textures'
         },
       ]
     }),
