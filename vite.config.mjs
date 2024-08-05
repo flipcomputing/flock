@@ -24,6 +24,10 @@ export default {
           src: 'examples/*.json',
           dest: 'examples'
         },
+        {
+          src: 'templates/*.png',
+          dest: 'templates'
+        },
       ]
     }),
     VitePWA({
