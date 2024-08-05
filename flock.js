@@ -2,7 +2,7 @@
 // Dr Tracy Gardner - https://github.com/tracygardner
 // Flip Computing Limited - flipcomputing.com
 
-// Helper functions to make Babylon js easier to use in Flock
+// Helper functions to make flock.BABYLON js easier to use in Flock
 console.log("Flock helpers loading");
 
 export const flock = {
@@ -422,6 +422,200 @@ export const flock = {
 		);
 		ground.material = groundMaterial;
 	},
+	createMap(image, color) {
+		console.log("Creating map from image", image);
+		const ground = flock.BABYLON.MeshBuilder.CreateGroundFromHeightMap(
+			"heightmap",
+			"./textures/" + image,
+			{
+				width: 100,
+				height: 100,
+				minHeight: 0,
+				maxHeight: 10,
+				subdivisions: 64,
+				onReady: (groundMesh) => {
+					const heightMapGroundShape =
+						new flock.BABYLON.PhysicsShapeMesh(
+							ground, // mesh from which to calculate the collisions
+							flock.scene, // scene of the shape
+						);
+					const heightMapGroundBody = new flock.BABYLON.PhysicsBody(
+						ground,
+						flock.BABYLON.PhysicsMotionType.STATIC,
+						false,
+						flock.scene,
+					);
+					heightMapGroundShape.material = {
+						friction: 0.3,
+						restitution: 0.3,
+					};
+					heightMapGroundBody.shape = heightMapGroundShape;
+					heightMapGroundBody.setMassProperties({ mass: 0 });
+				},
+			},
+			flock.scene,
+		);
+
+		const groundMaterial = new flock.BABYLON.StandardMaterial(
+			"groundMaterial",
+			flock.scene,
+		);
+
+		groundMaterial.diffuseColor = flock.BABYLON.Color3.FromHexString(
+			flock.getColorFromString(color),
+		);
+		ground.material = groundMaterial;
+	},
+	async createCustomMap(colors) {
+		console.log("Creating map", colors);
+
+		const steepMountainColors = [
+			"#000000",
+			"#000000",
+			"#000000",
+			"#000000",
+			"#000000",
+			"#000000",
+			"#333333",
+			"#333333",
+			"#333333",
+			"#000000",
+			"#000000",
+			"#333333",
+			"#FFFFFF",
+			"#333333",
+			"#000000",
+			"#000000",
+			"#333333",
+			"#333333",
+			"#333333",
+			"#000000",
+			"#000000",
+			"#000000",
+			"#000000",
+			"#000000",
+			"#000000",
+		];
+
+		colors = steepMountainColors;
+		// Convert color hex to grayscale values
+		const grayscaleValues = colors.map((color) => {
+			const hex = color.replace("#", "");
+			const bigint = parseInt(hex, 16);
+			const r = (bigint >> 16) & 255;
+			const g = (bigint >> 8) & 255;
+			const b = bigint & 255;
+			return Math.round((r + g + b) / 3);
+		});
+
+		// Create a 5x5 height map image
+		const canvas = flock.document.createElement("canvas");
+		canvas.width = 5;
+		canvas.height = 5;
+		const ctx = canvas.getContext("2d");
+		const imageData = ctx.createImageData(5, 5);
+
+		for (let i = 0; i < 25; i++) {
+			const value = grayscaleValues[i];
+			const index = i * 4;
+			imageData.data[index] = value; // Red
+			imageData.data[index + 1] = value; // Green
+			imageData.data[index + 2] = value; // Blue
+			imageData.data[index + 3] = 255; // Alpha
+		}
+
+		ctx.putImageData(imageData, 0, 0);
+
+		// Convert canvas to data URL
+		const dataURL = canvas.toDataURL();
+		console.log(imageData.data);
+
+		// Create a ground mesh from the generated height map
+		const ground = flock.BABYLON.MeshBuilder.CreateGroundFromHeightMap(
+			"ground",
+			dataURL,
+			{
+				width: 100,
+				height: 100,
+				minHeight: 0,
+				maxHeight: 25,
+				subdivisions: 4,
+				onReady: (groundMesh) => {
+					const heightMapGroundShape =
+						new flock.BABYLON.PhysicsShapeMesh(
+							ground, // mesh from which to calculate the collisions
+							flock.scene, // scene of the shape
+						);
+					const heightMapGroundBody = new flock.BABYLON.PhysicsBody(
+						ground,
+						flock.BABYLON.PhysicsMotionType.STATIC,
+						false,
+						flock.scene,
+					);
+					heightMapGroundShape.material = {
+						friction: 0.3,
+						restitution: 0.3,
+					};
+					heightMapGroundBody.shape = heightMapGroundShape;
+					heightMapGroundBody.setMassProperties({ mass: 0 });
+				},
+			},
+			flock.scene,
+		);
+
+		// Create a new canvas for the color texture
+		const colorCanvas = flock.document.createElement("canvas");
+		colorCanvas.width = 5;
+		colorCanvas.height = 5;
+		const colorCtx = colorCanvas.getContext("2d");
+		const colorImageData = ctx.createImageData(5, 5);
+
+		// Define height ranges and corresponding colours
+		const heightColours = [
+			{ height: 50, color: "#0000FF" }, // Blue for lowest (0-51)
+			{ height: 100, color: "#00FF00" }, // Green for mid-low (52-102)
+			{ height: 150, color: "#FFFF00" }, // Yellow for mid (103-153)
+			{ height: 200, color: "#FFA500" }, // Orange for mid-high (154-204)
+			{ height: 260, color: "#FF0000" }, // Red for highest (205-255)
+		];
+
+		for (let i = 0; i < 25; i++) {
+			const value = grayscaleValues[i];
+			let color = "#FFFFFF"; // Default to white if not matched
+			for (const hc of heightColours) {
+				if (value <= hc.height) {
+					color = hc.color;
+					break;
+				}
+			}
+			const r = parseInt(color.substring(1, 3), 16);
+			const g = parseInt(color.substring(3, 5), 16);
+			const b = parseInt(color.substring(5, 7), 16);
+			const index = i * 4;
+			colorImageData.data[index] = r; // Red
+			colorImageData.data[index + 1] = g; // Green
+			colorImageData.data[index + 2] = b; // Blue
+			colorImageData.data[index + 3] = 255; // Alpha
+		}
+
+		colorCtx.putImageData(colorImageData, 0, 0);
+
+		// Convert the color canvas to a data URL
+		const colorDataURL = colorCanvas.toDataURL();
+		console.log("Color Texture Data URL:", colorDataURL);
+
+		// Apply the color texture to the ground
+		const groundTexture = new flock.BABYLON.Texture(
+			colorDataURL,
+			flock.scene,
+		);
+		const groundMaterial = new flock.BABYLON.StandardMaterial(
+			"groundMaterial",
+			flock.scene,
+		);
+		groundMaterial.diffuseTexture = groundTexture;
+		ground.material = groundMaterial;
+	},
 	setSky(color) {
 		flock.scene.clearColor = flock.BABYLON.Color3.FromHexString(
 			flock.getColorFromString(color),
@@ -680,7 +874,7 @@ export const flock = {
 		posY,
 		posZ,
 		cylinderId,
-		sides = 24 // Default number of sides
+		sides = 24, // Default number of sides
 	) {
 		const newCylinder = flock.BABYLON.MeshBuilder.CreateCylinder(
 			cylinderId,
@@ -690,7 +884,7 @@ export const flock = {
 				diameterBottom: diameterBottom,
 				tessellation: sides,
 			},
-			flock.scene
+			flock.scene,
 		);
 		newCylinder.position = new flock.BABYLON.Vector3(posX, posY, posZ);
 
@@ -701,22 +895,27 @@ export const flock = {
 			newCylinder,
 			flock.BABYLON.PhysicsMotionType.STATIC,
 			false,
-			flock.scene
+			flock.scene,
 		);
 
 		const cylinderShape = new flock.BABYLON.PhysicsShapeCylinder(
 			new flock.BABYLON.Vector3(0, 0, 0),
 			diameterTop / 2, // Using diameterTop as the radius for the shape
-			height / 2,      // Using height as the radius for the shape
-			flock.scene
+			height / 2, // Using height as the radius for the shape
+			flock.scene,
 		);
 
 		cylinderBody.shape = cylinderShape;
 		cylinderBody.setMassProperties({ mass: 1, restitution: 0.5 });
 		newCylinder.physics = cylinderBody;
 
-		const material = new flock.BABYLON.StandardMaterial("cylinderMaterial", flock.scene);
-		material.diffuseColor = flock.BABYLON.Color3.FromHexString(flock.getColorFromString(color));
+		const material = new flock.BABYLON.StandardMaterial(
+			"cylinderMaterial",
+			flock.scene,
+		);
+		material.diffuseColor = flock.BABYLON.Color3.FromHexString(
+			flock.getColorFromString(color),
+		);
 		newCylinder.material = material;
 
 		return newCylinder.name;
@@ -724,11 +923,11 @@ export const flock = {
 	newCapsule(
 		color,
 		radius, // This is the diameter of the spheres at both ends of the capsule
-		height,    // This is the height between the spheres
+		height, // This is the height between the spheres
 		posX,
 		posY,
 		posZ,
-		capsuleId
+		capsuleId,
 	) {
 		const newCapsule = flock.BABYLON.MeshBuilder.CreateCapsule(
 			capsuleId,
@@ -736,9 +935,9 @@ export const flock = {
 				radius: radius,
 				height: height,
 				tessellation: 24,
-				updatable: false
+				updatable: false,
 			},
-			flock.scene
+			flock.scene,
 		);
 		newCapsule.position = new flock.BABYLON.Vector3(posX, posY, posZ);
 
@@ -749,22 +948,27 @@ export const flock = {
 			newCapsule,
 			flock.BABYLON.PhysicsMotionType.STATIC,
 			false,
-			flock.scene
+			flock.scene,
 		);
 
 		const capsuleShape = new flock.BABYLON.PhysicsShapeCapsule(
 			new flock.BABYLON.Vector3(0, 0, 0),
 			radius, // Radius of the spherical ends
-			height / 2,    // Half the height of the cylindrical part
-			flock.scene
+			height / 2, // Half the height of the cylindrical part
+			flock.scene,
 		);
 
 		capsuleBody.shape = capsuleShape;
 		capsuleBody.setMassProperties({ mass: 1, restitution: 0.5 });
 		newCapsule.physics = capsuleBody;
 
-		const material = new flock.BABYLON.StandardMaterial("capsuleMaterial", flock.scene);
-		material.diffuseColor = flock.BABYLON.Color3.FromHexString(flock.getColorFromString(color));
+		const material = new flock.BABYLON.StandardMaterial(
+			"capsuleMaterial",
+			flock.scene,
+		);
+		material.diffuseColor = flock.BABYLON.Color3.FromHexString(
+			flock.getColorFromString(color),
+		);
 		newCapsule.material = material;
 
 		return newCapsule.name;
@@ -947,7 +1151,7 @@ export const flock = {
 		if (mesh) {
 			mesh.physics.applyImpulse(
 				new flock.BABYLON.Vector3(forceX, forceY, forceZ),
-				mesh.getAbsolutePosition()
+				mesh.getAbsolutePosition(),
 			);
 		} else {
 			console.log("Model not loaded (applyForce):", modelName);
@@ -1153,6 +1357,7 @@ export const flock = {
 				});*/
 				boxBody.shape = boxShape;
 				boxBody.setMassProperties({ mass: 1, restitution: 0.5 });
+				boxBody.isVisible = false;
 
 				newBox.physics = boxBody;
 
@@ -1164,21 +1369,23 @@ export const flock = {
 				newBox.material = material;
 
 				function createVerticalConstraint(mesh, referenceBody, scene) {
-					let constraint = new BABYLON.Physics6DoFConstraint(
+					let constraint = new flock.BABYLON.Physics6DoFConstraint(
 						{
-							axisA: new BABYLON.Vector3(1, 0, 0), // trying to turn the car
-							axisB: new BABYLON.Vector3(1, 0, 0),
-							perpAxisA: new BABYLON.Vector3(0, 1, 0),
-							perpAxisB: new BABYLON.Vector3(0, 1, 0),
+							axisA: new flock.BABYLON.Vector3(1, 0, 0), // trying to turn the car
+							axisB: new flock.BABYLON.Vector3(1, 0, 0),
+							perpAxisA: new flock.BABYLON.Vector3(0, 1, 0),
+							perpAxisB: new flock.BABYLON.Vector3(0, 1, 0),
 						},
 						[
 							{
-								axis: BABYLON.PhysicsConstraintAxis.ANGULAR_X,
+								axis: flock.BABYLON.PhysicsConstraintAxis
+									.ANGULAR_X,
 								minLimit: 0,
 								maxLimit: 0,
 							},
 							{
-								axis: BABYLON.PhysicsConstraintAxis.ANGULAR_Z,
+								axis: flock.BABYLON.PhysicsConstraintAxis
+									.ANGULAR_Z,
 								minLimit: 0,
 								maxLimit: 0,
 							},
@@ -1215,7 +1422,7 @@ export const flock = {
 					const currentEulerRotation =
 						currentRotationQuaternion.toEulerAngles();
 					const newRotationQuaternion =
-						BABYLON.Quaternion.RotationYawPitchRoll(
+						flock.BABYLON.Quaternion.RotationYawPitchRoll(
 							currentEulerRotation.y,
 							0,
 							0,
@@ -1251,12 +1458,11 @@ export const flock = {
 	updateDynamicMeshPositions(scene, dynamicMeshes) {
 		scene.onBeforeRenderObservable.add(() => {
 			dynamicMeshes.forEach((mesh) => {
-				
 				// Cast a ray upwards from inside the mesh to check for intersections
 				mesh.computeWorldMatrix(true);
 				const boundingInfo = mesh.getBoundingInfo();
 				const minY = boundingInfo.boundingBox.minimumWorld.y;
-				
+
 				const rayOrigin = new flock.BABYLON.Vector3(
 					boundingInfo.boundingBox.centerWorld.x,
 					minY,
@@ -1268,15 +1474,14 @@ export const flock = {
 					new flock.BABYLON.Vector3(0, 1, 0),
 					2,
 				);
-				
-				const rayHelper = new BABYLON.RayHelper(ray);
+
+				const rayHelper = new flock.BABYLON.RayHelper(ray);
 
 				mesh.isPickable = false;
 				const hit = flock.scene.pickWithRay(ray);
 				mesh.isPickable = true;
 
 				if (hit.pickedMesh) {
-
 					// Move the mesh up to avoid intersection
 					mesh.position.y += hit.distance;
 					mesh.computeWorldMatrix(true);
@@ -1289,7 +1494,7 @@ export const flock = {
 			switch (physicsType) {
 				case "STATIC":
 					mesh.physics.setMotionType(
-						BABYLON.PhysicsMotionType.STATIC,
+						flock.BABYLON.PhysicsMotionType.STATIC,
 					);
 					/*flock.hk._hknp.HP_World_AddBody(
 						flock.hk.world,
@@ -1300,7 +1505,7 @@ export const flock = {
 					break;
 				case "DYNAMIC":
 					mesh.physics.setMotionType(
-						BABYLON.PhysicsMotionType.DYNAMIC,
+						flock.BABYLON.PhysicsMotionType.DYNAMIC,
 					);
 					flock.updateDynamicMeshPositions(flock.scene, [mesh]);
 					/*flock.hk._hknp.HP_World_AddBody(
@@ -1310,11 +1515,11 @@ export const flock = {
 					);*/
 					mesh.physics.disablePreStep = false;
 					//mesh.physics.disableSync = false;
-					//mesh.physics.setPrestepType(BABYLON.PhysicsPrestepType.TELEPORT);
+					//mesh.physics.setPrestepType(flock.BABYLON.PhysicsPrestepType.TELEPORT);
 					break;
 				case "ANIMATED":
 					mesh.physics.setMotionType(
-						BABYLON.PhysicsMotionType.ANIMATED,
+						flock.BABYLON.PhysicsMotionType.ANIMATED,
 					);
 					/*flock.hk._hknp.HP_World_AddBody(
 						flock.hk.world,
@@ -1327,6 +1532,7 @@ export const flock = {
 					mesh.physics.setMotionType(
 						flock.BABYLON.PhysicsMotionType.STATIC,
 					);
+					mesh.isPickable = false;
 					flock.hk._hknp.HP_World_RemoveBody(
 						flock.hk.world,
 						mesh.physics._pluginData.hpBodyId,
@@ -1570,7 +1776,7 @@ export const flock = {
 							async function () {
 								await doCode(); // Execute the provided callback function
 							},
-							new BABYLON.PredicateCondition(
+							new flock.BABYLON.PredicateCondition(
 								flock.BABYLON.ActionManager,
 								() => {
 									return otherMesh.isEnabled();

@@ -146,6 +146,17 @@ const modelNames = [
 	//"bear_anim.glb",
 ];
 
+const mapNames = [
+	["Circular Depression", "circular_depression.png"],
+	["Checkerboard", "checkerboard.png"],
+	["Sloped Plane", "sloped_plane.png"],
+	["Cove Plateau", "cove_plateau.png"],
+	["Random Hills", "random_hills.png"],
+	["Diagonal Ridge", "diagonal_ridge.png"],
+	["Mixed Heights", "mixed_heights.png"],
+	["Uneven Terrain", "uneven_terrain.png"],
+];
+
 console.log("Welcome to Flock 🐑🐑🐑");
 
 workspace.addChangeListener(function (event) {
@@ -273,6 +284,48 @@ Blockly.Blocks["create_ground"] = {
 		});
 	},
 };
+
+Blockly.Blocks["create_custom_map"] = {
+	init: function () {
+		this.jsonInit({
+			type: "create_custom_map",
+			message0: `custom map\n%1 %2 %3 %4 %5\n%6 %7 %8 %9 %10\n%11 %12 %13 %14 %15\n%16 %17 %18 %19 %20\n%21 %22 %23 %24 %25`,
+			args0: [
+				{ type: "input_value", name: "COLOR_1", check: "Colour" },
+				{ type: "input_value", name: "COLOR_2", check: "Colour" },
+				{ type: "input_value", name: "COLOR_3", check: "Colour" },
+				{ type: "input_value", name: "COLOR_4", check: "Colour" },
+				{ type: "input_value", name: "COLOR_5", check: "Colour" },
+				{ type: "input_value", name: "COLOR_6", check: "Colour" },
+				{ type: "input_value", name: "COLOR_7", check: "Colour" },
+				{ type: "input_value", name: "COLOR_8", check: "Colour" },
+				{ type: "input_value", name: "COLOR_9", check: "Colour" },
+				{ type: "input_value", name: "COLOR_10", check: "Colour" },
+				{ type: "input_value", name: "COLOR_11", check: "Colour" },
+				{ type: "input_value", name: "COLOR_12", check: "Colour" },
+				{ type: "input_value", name: "COLOR_13", check: "Colour" },
+				{ type: "input_value", name: "COLOR_14", check: "Colour" },
+				{ type: "input_value", name: "COLOR_15", check: "Colour" },
+				{ type: "input_value", name: "COLOR_16", check: "Colour" },
+				{ type: "input_value", name: "COLOR_17", check: "Colour" },
+				{ type: "input_value", name: "COLOR_18", check: "Colour" },
+				{ type: "input_value", name: "COLOR_19", check: "Colour" },
+				{ type: "input_value", name: "COLOR_20", check: "Colour" },
+				{ type: "input_value", name: "COLOR_21", check: "Colour" },
+				{ type: "input_value", name: "COLOR_22", check: "Colour" },
+				{ type: "input_value", name: "COLOR_23", check: "Colour" },
+				{ type: "input_value", name: "COLOR_24", check: "Colour" },
+				{ type: "input_value", name: "COLOR_25", check: "Colour" },
+			],
+			previousStatement: null,
+			nextStatement: null,
+			colour: categoryColours["Scene"],
+			tooltip: "Creates a 5x5 ground map with specified elevation colors.",
+			helpUrl: "",
+		});
+	},
+};
+
 
 Blockly.Blocks["wait"] = {
 	init: function () {
@@ -1236,6 +1289,34 @@ Blockly.Blocks["switch_animation"] = {
 			colour: categoryColours["Looks"],
 			tooltip:
 				"Changes the animation of the specified model to the given animation.",
+			helpUrl: "",
+		});
+	},
+};
+
+Blockly.Blocks["create_map"] = {
+	init: function () {
+		this.jsonInit({
+			type: "create_map",
+			message0: "map %1 %2",
+			args0: [
+				{
+					type: "field_dropdown",
+					name: "MAP_NAME",
+					options: mapNames,
+				},
+				{
+					type: "input_value",
+					name: "COLOR",
+					colour: "#71BC78",
+					check: "Colour",
+				},
+			],
+			previousStatement: null,
+			nextStatement: null,
+			colour: categoryColours["Scene"],
+			tooltip:
+				"Creates a map based on the choice.",
 			helpUrl: "",
 		});
 	},
@@ -2269,6 +2350,54 @@ Blockly.Blocks["skin_colour"] = {
 	},
 };
 
+Blockly.Blocks["greyscale_colour"] = {
+	init: function () {
+		this.jsonInit({
+			type: "greyscale_colour",
+			message0: "%1",
+			args0: [
+				{
+					type: "field_colour",
+					name: "COLOR",
+					colour: "#808080", // A neutral starting color (grey)
+					colourOptions: [
+						"#000000", // Black
+						"#1a1a1a",
+						"#333333",
+						"#4d4d4d",
+						"#666666",
+						"#808080", // Middle grey
+						"#999999",
+						"#b3b3b3",
+						"#cccccc",
+						"#e6e6e6",
+						"#ffffff", // White
+					],
+					colourTitles: [
+						"Black",
+						"Dark Grey 1",
+						"Dark Grey 2",
+						"Dark Grey 3",
+						"Grey 1",
+						"Middle Grey",
+						"Grey 2",
+						"Light Grey 1",
+						"Light Grey 2",
+						"Light Grey 3",
+						"White",
+					],
+					columns: 4,
+				},
+			],
+			output: "Colour",
+			colour: categoryColours["Looks"], // You can set this to any colour category you prefer
+			tooltip: "Pick a greyscale colour for elevation",
+			helpUrl: "",
+		});
+	},
+};
+
+
 Blockly.Blocks["colour_from_string"] = {
 	init: function () {
 		this.jsonInit({
@@ -2403,6 +2532,15 @@ javascriptGenerator.forBlock["start"] = function (block) {
 javascriptGenerator.forBlock["create_ground"] = function (block) {
 	const color = getFieldValue(block, "COLOR", "#6495ED");
 	return `createGround(${color});\n`;
+};
+
+javascriptGenerator.forBlock["create_custom_map"] = function (block) {
+	const colors = [];
+	for (let i = 1; i <= 25; i++) {
+		const color = javascriptGenerator.valueToCode(block, `COLOR_${i}`, javascriptGenerator.ORDER_ATOMIC) || "#808080";
+		colors.push(color);
+	}
+	return `await createCustomMap([${colors.join(", ")}]);\n`;
 };
 
 javascriptGenerator.forBlock["set_sky_color"] = function (block) {
@@ -2874,6 +3012,13 @@ javascriptGenerator.forBlock["switch_animation"] = function (block) {
 	return `await switchAnimation(${modelName}, "${animationName}");\n`;
 };
 
+javascriptGenerator.forBlock["create_map"] = function (block) {
+	const mapName = block.getFieldValue("MAP_NAME");
+	const color = getFieldValue(block, "COLOR", "#6495ED");
+
+	return `createMap("${mapName}", ${color});\n`;
+};
+
 javascriptGenerator.forBlock["move_forward"] = function (block) {
 	const modelName = javascriptGenerator.nameDB_.getName(
 		block.getFieldValue("MODEL"),
@@ -2988,6 +3133,18 @@ const createScene = function () {
 	flock.highlighter = new BABYLON.HighlightLayer("highlighter", flock.scene);
 	gizmoManager = new BABYLON.GizmoManager(flock.scene);
 
+	/*
+	  const ground = BABYLON.MeshBuilder.CreateGroundFromHeightMap("heightmap", './textures/simple_height_map.png', {
+		width: 100,
+		height: 100,
+		minHeight: -5,
+		maxHeight: 5,
+		subdivisions: 25,
+		onReady: (groundMesh) => {
+		   const groundAggregate = new BABYLON.PhysicsAggregate(groundMesh, BABYLON.PhysicsShapeType.MESH, { mass: 0 }, flock.scene);
+		}
+	  }, flock.scene);*/
+	
 	const camera = new BABYLON.FreeCamera(
 		"camera",
 		new BABYLON.Vector3(0, 4, -20),
@@ -3098,6 +3255,12 @@ javascriptGenerator.forBlock["colour"] = function (block) {
 };
 
 javascriptGenerator.forBlock["skin_colour"] = function (block) {
+	const colour = block.getFieldValue("COLOR");
+	const code = `"${colour}"`;
+	return [code, javascriptGenerator.ORDER_ATOMIC];
+};
+
+javascriptGenerator.forBlock["greyscale_colour"] = function (block) {
 	const colour = block.getFieldValue("COLOR");
 	const code = `"${colour}"`;
 	return [code, javascriptGenerator.ORDER_ATOMIC];
@@ -3360,7 +3523,7 @@ function executeCode() {
 			flock.scene.dispose();
 			removeEventListeners();
 		}
-		flock.scene = createScene();
+		flock.scene = createScene(); 
 
 		const code = javascriptGenerator.workspaceToCode(workspace);
 		try {
@@ -3703,6 +3866,8 @@ const runCode = (code) => {
 				newCapsule,
 				newPlane,
 				createGround,
+				createMap,
+				createCustomMap,
 				setSky,
 				up,
 				applyForce,

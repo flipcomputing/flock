@@ -94,6 +94,212 @@ export const toolbox = {
 						},
 					},
 				},
+				/*{
+					kind: "block",
+					type: "create_custom_map",
+					inputs: {
+						COLOR_1: {
+							shadow: {
+								type: "greyscale_colour",
+								fields: {
+									COLOR: "#000000",
+								},
+							},
+						},
+						COLOR_2: {
+							shadow: {
+								type: "greyscale_colour",
+								fields: {
+									COLOR: "#333333",
+								},
+							},
+						},
+						COLOR_3: {
+							shadow: {
+								type: "greyscale_colour",
+								fields: {
+									COLOR: "#666666",
+								},
+							},
+						},
+						COLOR_4: {
+							shadow: {
+								type: "greyscale_colour",
+								fields: {
+									COLOR: "#999999",
+								},
+							},
+						},
+						COLOR_5: {
+							shadow: {
+								type: "greyscale_colour",
+								fields: {
+									COLOR: "#CCCCCC",
+								},
+							},
+						},
+						COLOR_6: {
+							shadow: {
+								type: "greyscale_colour",
+								fields: {
+									COLOR: "#333333",
+								},
+							},
+						},
+						COLOR_7: {
+							shadow: {
+								type: "greyscale_colour",
+								fields: {
+									COLOR: "#666666",
+								},
+							},
+						},
+						COLOR_8: {
+							shadow: {
+								type: "greyscale_colour",
+								fields: {
+									COLOR: "#999999",
+								},
+							},
+						},
+						COLOR_9: {
+							shadow: {
+								type: "greyscale_colour",
+								fields: {
+									COLOR: "#CCCCCC",
+								},
+							},
+						},
+						COLOR_10: {
+							shadow: {
+								type: "greyscale_colour",
+								fields: {
+									COLOR: "#FFFFFF",
+								},
+							},
+						},
+						COLOR_11: {
+							shadow: {
+								type: "greyscale_colour",
+								fields: {
+									COLOR: "#666666",
+								},
+							},
+						},
+						COLOR_12: {
+							shadow: {
+								type: "greyscale_colour",
+								fields: {
+									COLOR: "#999999",
+								},
+							},
+						},
+						COLOR_13: {
+							shadow: {
+								type: "greyscale_colour",
+								fields: {
+									COLOR: "#CCCCCC",
+								},
+							},
+						},
+						COLOR_14: {
+							shadow: {
+								type: "greyscale_colour",
+								fields: {
+									COLOR: "#FFFFFF",
+								},
+							},
+						},
+						COLOR_15: {
+							shadow: {
+								type: "greyscale_colour",
+								fields: {
+									COLOR: "#000000",
+								},
+							},
+						},
+						COLOR_16: {
+							shadow: {
+								type: "greyscale_colour",
+								fields: {
+									COLOR: "#999999",
+								},
+							},
+						},
+						COLOR_17: {
+							shadow: {
+								type: "greyscale_colour",
+								fields: {
+									COLOR: "#CCCCCC",
+								},
+							},
+						},
+						COLOR_18: {
+							shadow: {
+								type: "greyscale_colour",
+								fields: {
+									COLOR: "#FFFFFF",
+								},
+							},
+						},
+						COLOR_19: {
+							shadow: {
+								type: "greyscale_colour",
+								fields: {
+									COLOR: "#000000",
+								},
+							},
+						},
+						COLOR_20: {
+							shadow: {
+								type: "greyscale_colour",
+								fields: {
+									COLOR: "#333333",
+								},
+							},
+						},
+						COLOR_21: {
+							shadow: {
+								type: "greyscale_colour",
+								fields: {
+									COLOR: "#CCCCCC",
+								},
+							},
+						},
+						COLOR_22: {
+							shadow: {
+								type: "greyscale_colour",
+								fields: {
+									COLOR: "#FFFFFF",
+								},
+							},
+						},
+						COLOR_23: {
+							shadow: {
+								type: "greyscale_colour",
+								fields: {
+									COLOR: "#000000",
+								},
+							},
+						},
+						COLOR_24: {
+							shadow: {
+								type: "greyscale_colour",
+								fields: {
+									COLOR: "#333333",
+								},
+							},
+						},
+						COLOR_25: {
+							shadow: {
+								type: "greyscale_colour",
+								fields: {
+									COLOR: "#666666",
+								},
+							},
+						},
+					},
+				},*/
 				{
 					kind: "block",
 					type: "load_model",
@@ -567,6 +773,20 @@ export const toolbox = {
 								type: "colour",
 								fields: {
 									COLOR: "#6495ED",
+								},
+							},
+						},
+					},
+				},
+				{
+					kind: "block",
+					type: "create_map",
+					inputs: {
+						COLOR: {
+							shadow: {
+								type: "colour",
+								fields: {
+									COLOR: "#71BC78",
 								},
 							},
 						},
