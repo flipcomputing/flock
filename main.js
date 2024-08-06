@@ -163,11 +163,10 @@ workspace.addChangeListener(function (event) {
 	if (event.type === Blockly.Events.FINISHED_LOADING) {
 		initializeVariableIndexes();
 	}
-	workspace.cleanUp();
+	//workspace.cleanUp();
 });
 
 workspace.addChangeListener(Blockly.Events.disableOrphans);
-
 
 javascriptGenerator.forBlock["procedures_defnoreturn"] = function (block) {
 	const functionName = block.getFieldValue("NAME");
@@ -320,12 +319,12 @@ Blockly.Blocks["create_custom_map"] = {
 			previousStatement: null,
 			nextStatement: null,
 			colour: categoryColours["Scene"],
-			tooltip: "Creates a 5x5 ground map with specified elevation colors.",
+			tooltip:
+				"Creates a 5x5 ground map with specified elevation colors.",
 			helpUrl: "",
 		});
 	},
 };
-
 
 Blockly.Blocks["wait"] = {
 	init: function () {
@@ -415,6 +414,27 @@ Blockly.Blocks["set_sky_color"] = {
 			nextStatement: null,
 			colour: categoryColours["Scene"],
 			tooltip: "Sets the sky color of the scene.",
+			helpUrl: "",
+		});
+	},
+};
+
+Blockly.Blocks["canvas_controls"] = {
+	init: function () {
+		this.jsonInit({
+			type: "canvas_controls",
+			message0: "canvas controls %1",
+			args0: [
+				{
+					type: "field_checkbox",
+					name: "CONTROLS",
+					checked: true,
+				},
+			],
+			previousStatement: null,
+			nextStatement: null,
+			colour: categoryColours["Motion"],
+			tooltip: "Add or removes canvas motion controls.",
 			helpUrl: "",
 		});
 	},
@@ -996,7 +1016,8 @@ Blockly.Blocks["create_capsule"] = {
 			variableNamePrefix + nextVariableIndexes[variableNamePrefix];
 		this.jsonInit({
 			type: "create_capsule",
-			message0: "new capsule %1 %2 radius %3 height %4 \n at x %5 y %6 z %7",
+			message0:
+				"new capsule %1 %2 radius %3 height %4 \n at x %5 y %6 z %7",
 			args0: [
 				{
 					type: "field_variable",
@@ -1315,8 +1336,7 @@ Blockly.Blocks["create_map"] = {
 			previousStatement: null,
 			nextStatement: null,
 			colour: categoryColours["Scene"],
-			tooltip:
-				"Creates a map based on the choice.",
+			tooltip: "Creates a map based on the choice.",
 			helpUrl: "",
 		});
 	},
@@ -1433,7 +1453,7 @@ Blockly.Blocks["rotate_model_xyz"] = {
 				{
 					type: "field_variable",
 					name: "MODEL",
-					variable: "mesh", 
+					variable: "mesh",
 				},
 				{
 					type: "input_value",
@@ -2397,7 +2417,6 @@ Blockly.Blocks["greyscale_colour"] = {
 	},
 };
 
-
 Blockly.Blocks["colour_from_string"] = {
 	init: function () {
 		this.jsonInit({
@@ -2537,7 +2556,12 @@ javascriptGenerator.forBlock["create_ground"] = function (block) {
 javascriptGenerator.forBlock["create_custom_map"] = function (block) {
 	const colors = [];
 	for (let i = 1; i <= 25; i++) {
-		const color = javascriptGenerator.valueToCode(block, `COLOR_${i}`, javascriptGenerator.ORDER_ATOMIC) || "#808080";
+		const color =
+			javascriptGenerator.valueToCode(
+				block,
+				`COLOR_${i}`,
+				javascriptGenerator.ORDER_ATOMIC,
+			) || "#808080";
 		colors.push(color);
 	}
 	return `await createCustomMap([${colors.join(", ")}]);\n`;
@@ -3104,6 +3128,11 @@ javascriptGenerator.forBlock["add_physics"] = function (block) {
 	return `await setPhysics(${modelName}, "${physicsType}");\n`;
 };
 
+javascriptGenerator.forBlock["canvas_controls"] = function (block) {
+	const controls = block.getFieldValue("CONTROLS") == "TRUE";
+	return `canvasControls(${controls});\n`;
+};
+
 javascriptGenerator.forBlock["key_pressed"] = function (block) {
 	const key = block.getFieldValue("KEY");
 	return [`keyPressed("${key}")`, javascriptGenerator.ORDER_NONE];
@@ -3144,14 +3173,13 @@ const createScene = function () {
 		   const groundAggregate = new BABYLON.PhysicsAggregate(groundMesh, BABYLON.PhysicsShapeType.MESH, { mass: 0 }, flock.scene);
 		}
 	  }, flock.scene);*/
-	
+
 	const camera = new BABYLON.FreeCamera(
 		"camera",
 		new BABYLON.Vector3(0, 4, -20),
 		flock.scene,
 	);
 	camera.setTarget(BABYLON.Vector3.Zero());
-	camera.attachControl(flock.canvas, true);
 	camera.angularSensibilityX = 2000;
 	camera.angularSensibilityY = 2000;
 	flock.scene.createDefaultLight();
@@ -3523,7 +3551,7 @@ function executeCode() {
 			flock.scene.dispose();
 			removeEventListeners();
 		}
-		flock.scene = createScene(); 
+		flock.scene = createScene();
 
 		const code = javascriptGenerator.workspaceToCode(workspace);
 		try {
@@ -3889,6 +3917,7 @@ const runCode = (code) => {
 				changeColour,
 				moveForward,
 				attachCamera,
+				canvasControls,
 				setPhysics,
 				checkMeshesTouching,
 				say,

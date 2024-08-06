@@ -407,7 +407,7 @@ export const flock = {
 		const groundAggregate = new flock.BABYLON.PhysicsAggregate(
 			ground,
 			flock.BABYLON.PhysicsShapeType.BOX,
-			{ mass: 0 },
+			{ mass: 0, friction: 0.5 },
 			flock.scene,
 		);
 
@@ -468,7 +468,6 @@ export const flock = {
 	},
 	async createCustomMap(colors) {
 		console.log("Creating map", colors);
-		
 	},
 	setSky(color) {
 		flock.scene.clearColor = flock.BABYLON.Color3.FromHexString(
@@ -747,21 +746,20 @@ export const flock = {
 
 		const cylinderBody = new flock.BABYLON.PhysicsBody(
 			newCylinder,
-	flock.BABYLON.PhysicsMotionType.STATIC,
+			flock.BABYLON.PhysicsMotionType.STATIC,
 			false,
 			flock.scene,
 		);
-
 
 		const startPoint = new BABYLON.Vector3(0, -height / 2, 0);
 		const endPoint = new BABYLON.Vector3(0, height / 2, 0);
 
 		// Create the physics shape for the cylinder
 		const cylinderShape = new BABYLON.PhysicsShapeCylinder(
-			startPoint,    // starting point of the cylinder segment
-			endPoint,      // ending point of the cylinder segment
-			diameterBottom / 2,  // radius of the cylinder (assuming diameterBottom is the larger diameter)
-			flock.scene          // scene of the shape
+			startPoint, // starting point of the cylinder segment
+			endPoint, // ending point of the cylinder segment
+			diameterBottom / 2, // radius of the cylinder (assuming diameterBottom is the larger diameter)
+			flock.scene, // scene of the shape
 		);
 
 		cylinderBody.shape = cylinderShape;
@@ -1189,6 +1187,7 @@ export const flock = {
 	async attachCamera(modelName) {
 		flock.whenModelReady(modelName, function (mesh) {
 			if (mesh) {
+				flock.updateDynamicMeshPositions(flock.scene, [mesh]);
 				const newBox = flock.BABYLON.MeshBuilder.CreateBox(
 					"staticMesh",
 					{ height: 1, width: 1, depth: 1 },
@@ -1317,7 +1316,6 @@ export const flock = {
 	updateDynamicMeshPositions(scene, dynamicMeshes) {
 		scene.onBeforeRenderObservable.add(() => {
 			dynamicMeshes.forEach((mesh) => {
-				
 				// Cast a ray upwards from inside the mesh to check for intersections
 				mesh.computeWorldMatrix(true);
 				const boundingInfo = mesh.getBoundingInfo();
@@ -1368,7 +1366,6 @@ export const flock = {
 						flock.BABYLON.PhysicsMotionType.DYNAMIC,
 					);
 					// Stops falling through platforms
-					flock.updateDynamicMeshPositions(flock.scene, [mesh]);
 					/*flock.hk._hknp.HP_World_AddBody(
 						flock.hk.world,
 						mesh.physics._pluginData.hpBodyId,
@@ -1408,6 +1405,14 @@ export const flock = {
 					break;
 			}
 		});
+	},
+	canvasControls(setting) {
+		
+		if(setting){
+				flock.scene.activeCamera.attachControl(flock.canvas, true);}
+		else {
+			flock.scene.activeCamera.detachControl();
+		}
 	},
 	checkMeshesTouching(mesh1VarName, mesh2VarName) {
 		const mesh1 = flock.scene.getMeshByName(mesh1VarName);

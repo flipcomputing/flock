@@ -1118,6 +1118,10 @@ export const toolbox = {
 				},
 				{
 					kind: "block",
+					type: "canvas_controls",
+				},
+				{
+					kind: "block",
 					type: "add_physics",
 				},
 			],
