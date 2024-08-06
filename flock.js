@@ -747,20 +747,25 @@ export const flock = {
 
 		const cylinderBody = new flock.BABYLON.PhysicsBody(
 			newCylinder,
-			flock.BABYLON.PhysicsMotionType.STATIC,
+	flock.BABYLON.PhysicsMotionType.STATIC,
 			false,
 			flock.scene,
 		);
 
-		const cylinderShape = new flock.BABYLON.PhysicsShapeCylinder(
-			new flock.BABYLON.Vector3(0, 0, 0),
-			diameterTop / 2, // Using diameterTop as the radius for the shape
-			height / 2, // Using height as the radius for the shape
-			flock.scene,
+
+		const startPoint = new BABYLON.Vector3(0, -height / 2, 0);
+		const endPoint = new BABYLON.Vector3(0, height / 2, 0);
+
+		// Create the physics shape for the cylinder
+		const cylinderShape = new BABYLON.PhysicsShapeCylinder(
+			startPoint,    // starting point of the cylinder segment
+			endPoint,      // ending point of the cylinder segment
+			diameterBottom / 2,  // radius of the cylinder (assuming diameterBottom is the larger diameter)
+			flock.scene          // scene of the shape
 		);
 
 		cylinderBody.shape = cylinderShape;
-		cylinderBody.setMassProperties({ mass: 1, restitution: 0.5 });
+		cylinderBody.setMassProperties({ mass: 1, restitution: 0.1 });
 		newCylinder.physics = cylinderBody;
 
 		const material = new flock.BABYLON.StandardMaterial(
@@ -1312,6 +1317,7 @@ export const flock = {
 	updateDynamicMeshPositions(scene, dynamicMeshes) {
 		scene.onBeforeRenderObservable.add(() => {
 			dynamicMeshes.forEach((mesh) => {
+				
 				// Cast a ray upwards from inside the mesh to check for intersections
 				mesh.computeWorldMatrix(true);
 				const boundingInfo = mesh.getBoundingInfo();
@@ -1361,6 +1367,7 @@ export const flock = {
 					mesh.physics.setMotionType(
 						flock.BABYLON.PhysicsMotionType.DYNAMIC,
 					);
+					// Stops falling through platforms
 					flock.updateDynamicMeshPositions(flock.scene, [mesh]);
 					/*flock.hk._hknp.HP_World_AddBody(
 						flock.hk.world,
