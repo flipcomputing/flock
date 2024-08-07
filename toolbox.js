@@ -1252,6 +1252,10 @@ export const toolbox = {
 					kind: "block",
 					type: "meshes_touching",
 				},
+				{
+					kind: "block",
+					type: "get_property",
+				},
 			],
 		},
 		{

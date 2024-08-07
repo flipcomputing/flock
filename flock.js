@@ -900,6 +900,89 @@ export const flock = {
 			mesh.computeWorldMatrix(true);
 		});
 	},
+	async getProperty(modelName, propertyName) {
+		let propertyValue = null;
+		await flock.whenModelReady(modelName, (mesh) => {
+			mesh.computeWorldMatrix(true);
+
+			const position = mesh.getAbsolutePosition();
+
+			let rotation = mesh.absoluteRotationQuaternion.toEulerAngles();
+			let allMeshes, materialNode, materialNodes;
+			switch (propertyName) {
+				case "POSITION_X":
+					propertyValue = position.x.toFixed(2);
+					break;
+				case "POSITION_Y":
+					propertyValue = position.y.toFixed(2);
+					break;
+				case "POSITION_Z":
+					propertyValue = position.z.toFixed(2);
+					break;
+				case "ROTATION_X":
+					propertyValue = flock.BABYLON.Tools.ToDegrees(
+						rotation.x,
+					).toFixed(2);
+					break;
+				case "ROTATION_Y":
+					propertyValue = flock.BABYLON.Tools.ToDegrees(
+						rotation.y,
+					).toFixed(2);
+					break;
+				case "ROTATION_Z":
+					propertyValue = flock.BABYLON.Tools.ToDegrees(
+						rotation.z,
+					).toFixed(2);
+					break;
+				case "SCALE_X":
+					propertyValue = mesh.scaling.x.toFixed(2);
+					break;
+				case "SCALE_Y":
+					propertyValue = mesh.scaling.y.toFixed(2);
+					break;
+				case "SCALE_Z":
+					propertyValue = mesh.scaling.z.toFixed(2);
+					break;
+				case "VISIBLE":
+					propertyValue = mesh.isVisible;
+					break;
+				case "ALPHA":
+					allMeshes = [mesh].concat(mesh.getDescendants());
+					materialNode = allMeshes.find((node) => node.material);
+
+					if (materialNode) {
+						propertyValue = materialNode.material.alpha;
+					}
+					break;
+				case "COLOUR":
+					allMeshes = [mesh].concat(mesh.getDescendants());
+					materialNodes = allMeshes.filter(
+						(node) => node.material,
+					);
+
+					// Map to get the diffuseColor or albedoColor of each material as a hex string
+					const colors = materialNodes.map(node => {
+						if (node.material.diffuseColor) {
+							return node.material.diffuseColor.toHexString();
+						} else if (node.material.albedoColor) {
+							return node.material.albedoColor.toHexString();
+						}
+						return null;
+					}).filter(color => color !== null);
+					if (colors.length === 1) {
+						propertyValue = colors[0];
+					} else if (colors.length > 1) {
+						propertyValue = colors.join(", ");
+					}
+
+					break;
+				default:
+					console.log("Property not recognized.");
+			}
+		});
+
+		return propertyValue;
+	},
 	async glideTo(meshName, x, y, z, duration) {
 		return new Promise(async (resolve) => {
 			await flock.whenModelReady(meshName, async function (mesh) {
@@ -1407,10 +1490,9 @@ export const flock = {
 		});
 	},
 	canvasControls(setting) {
-		
-		if(setting){
-				flock.scene.activeCamera.attachControl(flock.canvas, true);}
-		else {
+		if (setting) {
+			flock.scene.activeCamera.attachControl(flock.canvas, true);
+		} else {
 			flock.scene.activeCamera.detachControl();
 		}
 	},

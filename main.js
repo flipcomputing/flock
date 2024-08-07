@@ -326,6 +326,44 @@ Blockly.Blocks["create_custom_map"] = {
 	},
 };
 
+Blockly.Blocks["get_property"] = {
+	init: function () {
+		this.jsonInit({
+			type: "get_property",
+			message0: "get %1 of %2",
+			args0: [
+				{
+					type: "field_dropdown",
+					name: "PROPERTY",
+					options: [
+						["position x", "POSITION_X"],
+						["position y", "POSITION_Y"],
+						["position z", "POSITION_Z"],
+						["rotation x", "ROTATION_X"],
+						["rotation y", "ROTATION_Y"],
+						["rotation z", "ROTATION_Z"],
+						["scale x", "SCALE_X"],
+						["scale y", "SCALE_Y"],
+						["scale z", "SCALE_Z"],
+						["visible", "VISIBLE"],
+						["alpha", "ALPHA"],
+						["colour", "COLOUR"],
+					],
+				},
+				{
+					type: "field_variable",
+					name: "MESH",
+					variable: "mesh",
+				},
+			],
+			output: null,
+			colour: categoryColours["Sensing"],
+			tooltip: "Gets the value of the selected property of a mesh.",
+			helpUrl: "",
+		});
+	},
+};
+
 Blockly.Blocks["wait"] = {
 	init: function () {
 		this.jsonInit({
@@ -2841,6 +2879,30 @@ javascriptGenerator.forBlock["rotate_model_xyz"] = function (block) {
 	return `await rotate(${meshName}, ${x}, ${y}, ${z});\n`;
 };
 
+javascriptGenerator.forBlock["get_property"] = function (block) {
+	const modelName = javascriptGenerator.nameDB_.getName(
+		block.getFieldValue("MESH"),
+		Blockly.Names.NameType.VARIABLE,
+	);
+	const propertyName = block.getFieldValue("PROPERTY");
+
+	const code = `await getProperty(${modelName}, '${propertyName}')`;
+	return [code, javascriptGenerator.ORDER_NONE];
+};
+
+javascriptGenerator.forBlock["rotate_model_xyz"] = function (block) {
+	const meshName = javascriptGenerator.nameDB_.getName(
+		block.getFieldValue("MODEL"),
+		Blockly.Names.NameType.VARIABLE,
+	);
+
+	const x = getFieldValue(block, "X", "0");
+	const y = getFieldValue(block, "Y", "0");
+	const z = getFieldValue(block, "Z", "0");
+
+	return `await rotate(${meshName}, ${x}, ${y}, ${z});\n`;
+};
+
 javascriptGenerator.forBlock["forever"] = function (block) {
 	const branch = javascriptGenerator.statementToCode(block, "DO");
 
@@ -3927,7 +3989,8 @@ const runCode = (code) => {
 				forever,
 				whenKeyPressed,
 				printText,
-				onIntersect
+				onIntersect,
+				getProperty,
 			} = flock;
 			
 
