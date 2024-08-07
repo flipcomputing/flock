@@ -3224,6 +3224,55 @@ const createScene = function () {
 	flock.highlighter = new BABYLON.HighlightLayer("highlighter", flock.scene);
 	gizmoManager = new BABYLON.GizmoManager(flock.scene);
 
+	flock.BABYLON.Effect.ShadersStore["customVertexShader"] = `
+		precision highp float;
+
+		attribute vec3 position;
+		attribute vec3 normal;
+		attribute vec2 uv;
+
+		uniform mat4 worldViewProjection;
+		uniform mat4 world; // Add the world matrix
+
+		varying vec3 vWorldPosition; // Pass the world position
+		varying vec2 vUV;
+
+		void main() {
+			vec4 worldPosition = world * vec4(position, 1.0);
+			vWorldPosition = worldPosition.xyz; // Store the world position
+			vUV = uv;
+
+			gl_Position = worldViewProjection * vec4(position, 1.0);
+		}
+	`;
+	BABYLON.Effect.ShadersStore["customFragmentShader"] = `
+		precision highp float;
+
+		varying vec3 vWorldPosition; // Receive the world position
+		varying vec2 vUV;
+
+		void main() {
+			vec3 color;
+
+			// Determine color based on the y-coordinate of the world position
+			if (vWorldPosition.y > 10.0) {
+				color = vec3(1.0, 1.0, 1.0); // Snow
+			} else if (vWorldPosition.y > 8.0) {
+				color = vec3(0.5, 0.5, 0.5); // Grey rocks
+			} else if (vWorldPosition.y > 0.0) {
+				color = vec3(0.13, 0.55, 0.13); // Grass
+			} else if (vWorldPosition.y > -1.0) {
+				color = vec3(0.55, 0.27, 0.07); // Brown rocks
+			} else {
+				color = vec3(0.96, 0.87, 0.20); // Beach
+			}
+
+			gl_FragColor = vec4(color, 1.0);
+		}
+	`;
+
+
+
 	/*
 	  const ground = BABYLON.MeshBuilder.CreateGroundFromHeightMap("heightmap", './textures/simple_height_map.png', {
 		width: 100,

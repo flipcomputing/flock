@@ -4,7 +4,6 @@
 
 // Helper functions to make flock.BABYLON js easier to use in Flock
 console.log("Flock helpers loading");
-
 export const flock = {
 	console: console,
 	alert: alert,
@@ -465,6 +464,109 @@ export const flock = {
 			flock.getColorFromString(color),
 		);
 		ground.material = groundMaterial;
+		/*
+		let minHeight, maxHeight; // Define minHeight and maxHeight outside
+
+		function loadImage(url, callback) {
+			const img = new Image();
+			img.crossOrigin = "anonymous";
+			img.onload = function () {
+				callback(img);
+			};
+			img.src = url;
+		}
+
+		function extractHeightsFromImageData(imageData) {
+			const heights = [];
+			for (let i = 0; i < imageData.data.length; i += 4) {
+				const r = imageData.data[i];
+				const g = imageData.data[i + 1];
+				const b = imageData.data[i + 2];
+				const greyscale = (r + g + b) / 3;
+				heights.push(greyscale / 255); // Normalize to [0, 1]
+			}
+			return heights;
+		}
+
+		function calculateHeightRange(heights) {
+			let min = Infinity;
+			let max = -Infinity;
+			for (const height of heights) {
+				if (height < min) min = height;
+				if (height > max) max = height;
+			}
+			return { min, max };
+		}
+
+		// Assuming 'image' is already defined somewhere in your code with the image name
+		loadImage("./textures/" + image, function (img) {
+			const canvas = document.createElement("canvas");
+			const ctx = canvas.getContext("2d");
+			canvas.width = img.width;
+			canvas.height = img.height;
+			ctx.drawImage(img, 0, 0, img.width, img.height);
+			const imageData = ctx.getImageData(0, 0, img.width, img.height);
+			const heights = extractHeightsFromImageData(imageData);
+			const heightRange = calculateHeightRange(heights);
+			minHeight = heightRange.min;
+			maxHeight = heightRange.max;
+			console.log("Min Height:", minHeight);
+			console.log("Max Height:", maxHeight);
+
+			const desiredMinHeight = -2;
+			const desiredMaxHeight = 12;
+
+			// Normalize the calculated heights and map them to the desired range
+			const scale =
+				(desiredMaxHeight - desiredMinHeight) / (maxHeight - minHeight);
+			const offset = desiredMinHeight - minHeight * scale;
+
+			const ground = flock.BABYLON.MeshBuilder.CreateGroundFromHeightMap(
+				"heightmap",
+				"./textures/" + image,
+				{
+					width: 100,
+					height: 100,
+					minHeight: minHeight * scale + offset,
+					maxHeight: maxHeight * scale + offset,
+					subdivisions: 64,
+					onReady: (groundMesh) => {
+						const heightMapGroundShape =
+							new flock.BABYLON.PhysicsShapeMesh(
+								ground, // mesh from which to calculate the collisions
+								flock.scene, // scene of the shape
+							);
+						const heightMapGroundBody =
+							new flock.BABYLON.PhysicsBody(
+								ground,
+								flock.BABYLON.PhysicsMotionType.STATIC,
+								false,
+								flock.scene,
+							);
+						heightMapGroundShape.material = {
+							friction: 0.3,
+							restitution: 0.3,
+						};
+						heightMapGroundBody.shape = heightMapGroundShape;
+						heightMapGroundBody.setMassProperties({ mass: 0 });
+					},
+				},
+				flock.scene,
+			);
+
+			// Load shaders directly within the JavaScript file
+			const shaderMaterial = new flock.BABYLON.ShaderMaterial(
+				"customShader",
+				flock.scene,
+				"custom",
+				{
+					attributes: ["position", "normal", "uv"],
+					uniforms: ["worldViewProjection", "world"], // Include the world matrix
+				},
+			);
+
+			ground.material = shaderMaterial;
+		});*/
 	},
 	async createCustomMap(colors) {
 		console.log("Creating map", colors);
@@ -956,19 +1058,19 @@ export const flock = {
 					break;
 				case "COLOUR":
 					allMeshes = [mesh].concat(mesh.getDescendants());
-					materialNodes = allMeshes.filter(
-						(node) => node.material,
-					);
+					materialNodes = allMeshes.filter((node) => node.material);
 
 					// Map to get the diffuseColor or albedoColor of each material as a hex string
-					const colors = materialNodes.map(node => {
-						if (node.material.diffuseColor) {
-							return node.material.diffuseColor.toHexString();
-						} else if (node.material.albedoColor) {
-							return node.material.albedoColor.toHexString();
-						}
-						return null;
-					}).filter(color => color !== null);
+					const colors = materialNodes
+						.map((node) => {
+							if (node.material.diffuseColor) {
+								return node.material.diffuseColor.toHexString();
+							} else if (node.material.albedoColor) {
+								return node.material.albedoColor.toHexString();
+							}
+							return null;
+						})
+						.filter((color) => color !== null);
 					if (colors.length === 1) {
 						propertyValue = colors[0];
 					} else if (colors.length > 1) {
