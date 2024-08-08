@@ -3346,6 +3346,7 @@ const createScene = function () {
 		flock.scene,
 	);
 	camera.setTarget(BABYLON.Vector3.Zero());
+	//camera.rotation.x = BABYLON.Tools.ToRadians(0)
 	camera.angularSensibilityX = 2000;
 	camera.angularSensibilityY = 2000;
 	flock.scene.createDefaultLight();

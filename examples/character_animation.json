@@ -101,7 +101,7 @@
 					"type": "math_number",
 					"id": "c-D@+jBQ9_TyhLI:.$7C",
 					"fields": {
-					  "NUM": 2
+					  "NUM": 1
 					}
 				  }
 				},
@@ -659,8 +659,8 @@
 	  {
 		"type": "start",
 		"id": "!d0f~{piJ7K=FIh(%a?t",
-		"x": 0,
-		"y": 1300,
+		"x": 31,
+		"y": 1335,
 		"inputs": {
 		  "DO": {
 			"block": {
@@ -678,7 +678,7 @@
 					"type": "math_number",
 					"id": "{NEAXG`7dG7:V1YweDvf",
 					"fields": {
-					  "NUM": 2
+					  "NUM": 1
 					}
 				  }
 				},
