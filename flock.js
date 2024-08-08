@@ -455,6 +455,7 @@ export const flock = {
 			flock.scene,
 		);
 
+		/*
 		const groundMaterial = new flock.BABYLON.StandardMaterial(
 			"groundMaterial",
 			flock.scene,
@@ -463,7 +464,27 @@ export const flock = {
 		groundMaterial.diffuseColor = flock.BABYLON.Color3.FromHexString(
 			flock.getColorFromString(color),
 		);
-		ground.material = groundMaterial;
+		ground.material = groundMaterial;*/
+
+		const texture = new flock.BABYLON.Texture(
+			`./textures/rough.png`,
+			flock.scene,
+		);
+
+		const material = new flock.BABYLON.StandardMaterial(
+			"ground",
+			flock.scene,
+		);
+
+		texture.uScale = 10;
+		texture.vScale = 10;
+
+		material.diffuseTexture = texture;
+		material.diffuseColor = flock.BABYLON.Color3.FromHexString(color);
+
+		material.name = "ground";
+		ground.material = material;
+
 		/*
 		let minHeight, maxHeight; // Define minHeight and maxHeight outside
 
@@ -943,6 +964,31 @@ export const flock = {
 		newPlane.name = newPlane.name + newPlane.uniqueId;
 		newPlane.position = new flock.BABYLON.Vector3(posX, posY, posZ);
 
+		// Physics for the plane
+		const planeBody = new flock.BABYLON.PhysicsBody(
+			newPlane,
+			flock.BABYLON.PhysicsMotionType.STATIC, // Planes are typically static as they represent surfaces
+			false,
+			flock.scene,
+		);
+
+		// Physics shape for the plane
+		// Note: Planes are two-dimensional, thus depth is minimal or practically 0
+		const planeShape = new flock.BABYLON.PhysicsShapeBox(
+			new flock.BABYLON.Vector3(0, 0, 0),
+			new flock.BABYLON.Quaternion(0, 0, 0, 1),
+			new flock.BABYLON.Vector3(4, 4, 0.001), // Minimal depth
+			flock.scene,
+		);
+
+		planeBody.shape = planeShape;
+		planeBody.setMassProperties({
+			mass: 0, // No mass as it is static
+			restitution: 0.5,
+			inertia: flock.BABYLON.Vector3.ZeroReadOnly, // No inertia as it does not move
+		});
+
+		newPlane.physics = planeBody;
 		const material = new flock.BABYLON.StandardMaterial(
 			"planeMaterial",
 			flock.scene,
@@ -1322,6 +1368,39 @@ export const flock = {
 			}
 		});
 	},
+	async changeMaterial(modelName, materialName, color) {
+		await flock.whenModelReady(modelName, (mesh) => {
+			const allMeshes = [mesh].concat(mesh.getDescendants());
+			const materialNode = allMeshes.find((node) => node.material);
+
+			const texture = new flock.BABYLON.Texture(
+				`./textures/${materialName}`,
+				flock.scene,
+			);
+
+			const material = new flock.BABYLON.StandardMaterial(
+				materialName,
+				flock.scene,
+			);
+
+			const texturePhysicalSize = 2;
+			const boundingInfo = materialNode.getBoundingInfo();
+			const size = boundingInfo.boundingBox.extendSize.scale(2);
+
+			const meshWidth = boundingInfo.boundingBox.extendSize.x; // full width in meters
+			const meshHeight = boundingInfo.boundingBox.extendSize.y; // full height in meters
+			const meshwidth = Math.max(size.x, size.z);
+			texture.uScale = meshWidth / texturePhysicalSize;
+			texture.vScale = meshHeight / texturePhysicalSize;
+			console.log("Scale", texture.uScale, texture.vScale);
+
+			material.diffuseTexture = texture;
+			material.diffuseColor = flock.BABYLON.Color3.FromHexString(color);
+
+			material.name = materialName;
+			materialNode.material = material;
+		});
+	},
 	moveForward(modelName, speed) {
 		const model = flock.scene.getMeshByName(modelName);
 		if (!model || speed === 0) return;
@@ -1400,7 +1479,7 @@ export const flock = {
 				});*/
 				boxBody.shape = boxShape;
 				boxBody.setMassProperties({ mass: 1, restitution: 0.5 });
-				boxBody.isVisible = false;
+				newBox.isVisible = false;
 
 				newBox.physics = boxBody;
 

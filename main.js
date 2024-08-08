@@ -1326,6 +1326,7 @@ const animationNames = [
 	["Walk Hold", "Walk_Hold"],
 ];
 
+const materialNames = ["brick.png", "rough.png", "grass.png", "tiles.png", "wood.png"];
 Blockly.Blocks["switch_animation"] = {
 	init: function () {
 		this.jsonInit({
@@ -1981,6 +1982,50 @@ Blockly.Blocks["change_color"] = {
 			colour: categoryColours["Looks"],
 			tooltip: "Changes the color of the selected model.",
 			helpUrl: "",
+		});
+	},
+};
+
+Blockly.Blocks["change_material"] = {
+	init: function () {
+		this.jsonInit({
+			message0: "apply material %1 to %2 with colour %3",
+			args0: [
+				{
+					type: "field_grid_dropdown",
+					name: "MATERIALS",
+					columns: 4,
+					options: materialNames.map((name) => {
+						const baseName = name.replace(/\.[^/.]+$/, "");
+						return [
+							{
+								src: `./textures/${baseName}.png`,
+								width: 50,
+								height: 50,
+								alt: baseName,
+							},
+							name,
+						];
+					}),
+				},
+				{
+					type: "field_variable",
+					name: "ID_VAR",
+					variable: "mesh",
+				},
+				{
+					type: "input_value",
+					name: "COLOR",
+					check: "Colour",
+				},
+			],
+			inputsInline: true,
+			colour: categoryColours["Looks"],
+			tooltip:
+				"Apply a selected material with a colour tint to the specified object.",
+			helpUrl: "",
+			previousStatement: null,
+			nextStatement: null,
 		});
 	},
 };
@@ -3064,6 +3109,18 @@ javascriptGenerator.forBlock["change_colour"] = function (block) {
 	return `await changeColour(${modelName}, ${color});\n`;
 };
 
+javascriptGenerator.forBlock["change_material"] = function (block) {
+	const modelName = javascriptGenerator.nameDB_.getName(
+		block.getFieldValue("ID_VAR"),
+		Blockly.Names.NameType.VARIABLE,
+	);
+	const material = block.getFieldValue("MATERIALS");
+	const color = getFieldValue(block, "COLOR", "#ffffff");
+
+	console.log(modelName, material, color);
+	return `await changeMaterial(${modelName}, "${material}", ${color});\n`;
+};
+
 javascriptGenerator.forBlock["set_alpha"] = function (block) {
 	const modelName = javascriptGenerator.nameDB_.getName(
 		block.getFieldValue("MESH"),
@@ -3270,8 +3327,6 @@ const createScene = function () {
 			gl_FragColor = vec4(color, 1.0);
 		}
 	`;
-
-
 
 	/*
 	  const ground = BABYLON.MeshBuilder.CreateGroundFromHeightMap("heightmap", './textures/simple_height_map.png', {
@@ -3669,7 +3724,7 @@ function executeCode() {
 			console.log(code);
 			//new Function(`(async () => { ${code} })()`)();
 			runCode(code);
-			document.getElementById('renderCanvas').focus();
+			document.getElementById("renderCanvas").focus();
 		} catch (error) {
 			console.error("Error executing Blockly code:", error);
 		}
@@ -4027,6 +4082,7 @@ const runCode = (code) => {
 				randomColour,
 				scaleMesh,
 				changeColour,
+				changeMaterial,
 				moveForward,
 				attachCamera,
 				canvasControls,
