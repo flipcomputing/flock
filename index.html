@@ -23,26 +23,79 @@
         height: 100vh;
         margin: 0;
       }
+      
+      #menu {
+        display: flex; 
+        align-items: stretch;
+        gap: 5px; 
+      }
+
+      .stackedContainer {
+        display: flex;
+        flex-direction: column;
+        padding: 5px; 
+        gap: 5px;
+        width: 100%; 
+        max-width: 200px;
+      }
+
+      .stackedContainer input[type="text"],
+      .stackedContainer select {
+        padding: 5px;
+        border-radius: 5px; 
+        border: 1px solid #ccc; 
+        font-size: 16px;
+      }
+
+      .stackedContainer select.highlighted {
+        border: 4px solid magenta;
+        padding: 5px;
+        background-color: #f9f9f9; 
+      }
+
+      .stackedContainer input[type="text"]:focus,
+      .stackedContainer select:focus {
+        border-color: #4caf50; 
+        outline: none;
+      }
+
+      .bigbutton {
+        display: inline-block;
+        margin-top: 5px;
+        margin-bottom: 5px;
+        padding: 5px 5px; 
+        font-size: 24px;
+        background-color: #f0f0f0; 
+        color: black; 
+        border: none; 
+        border-radius: 15px;
+        cursor: pointer; 
+        touch-action: manipulation; 
+      }
+
+      .bigbutton:hover {
+        background-color: #e0e0e0; 
+      }
 
       .highlighted {
         border: 4px solid magenta;
         padding: 5px;
-        background-color: #f9f9f9; /* Optional: adds a subtle background */
+        background-color: #f9f9f9;
       }
-
+ 
       #blocklyDiv {
-        height: 100%;
+        height: 100vh;
         width: 50%;
       }
 
       #rightArea {
         width: 50%;
-        height: 100%;
+        height: 100vh;
       }
 
       #renderCanvas {
         width: 100%;
-        height: 90%;
+        /*height: 100%;*/
       }
 
       .blocklySvg text {
@@ -56,53 +109,81 @@
     <div id="blocklyDiv"></div>
     <div id="rightArea">
       <div id="menu">
-        <button onclick="executeCode()">▶️ Run</button>
-        <button id="toggleDebug">🪲Debug</button>
-        <button onclick="stopCode()">🛑 Stop</button>
-        <button>
-          <input type="file" id="fileInput" style="display: none" />
-          <label for="fileInput" class="btn">📂Open</label>
+        <button
+          class="bigbutton"
+          onclick="executeCode()"
+          title="Run your code"
+        >
+          ▶️
         </button>
-        <input
-          type="text"
-          id="projectName"
-          placeholder="Enter project name here"
-        />
-        <button onclick="exportCode()">💾Save</button>
-        <select class="highlighted" id="exampleSelect" onchange="loadExample()">
-          <option value="">🌴Examples</option>
-          <option value="examples/forest_base.json">🌲Forest Base</option>
-          <option value="examples/character_animation.json">
-            🎥Character Animation
-          </option>
-          <option value="examples/cube_art.json">🎨 Cube Art</option>
-          <option value="examples/collect_the_gems.json">
-            💎 Collect the Gems
-          </option>
-          <option value="examples/water_map.json">💧 Water Map</option>
-          <option value="examples/skittles.json">🎳 Skittles</option>
-          <option value="examples/beetle.json">🪲 Beetle</option>
-          <option value="examples/ball_pit.json">🟠 Ball Pit</option>
-          <!-- Add more options here as needed -->
-        </select>
-        <button id="fullscreenToggle">🖼️Fullscreen</button>
-        <div>
-          <button class="gizmo-button" onclick="toggleGizmo('position')">
-            Position
-          </button>
-          <button class="gizmo-button" onclick="toggleGizmo('rotation')">
-            Rotation
-          </button>
-          <button class="gizmo-button" onclick="toggleGizmo('scale')">
-            Scale
-          </button>
-          <button class="gizmo-button" onclick="turnOffAllGizmos()">
-            Hide
-          </button>
-          <button class="button" onclick="openAboutPage()">🐑 About</button>
+        <button class="bigbutton" id="toggleDebug" title="Debug your code">
+          🪲
+        </button>
+        <button class="bigbutton" onclick="stopCode()" title="Stop your code">
+          🛑
+        </button>
+        <button
+          class="bigbutton"
+          title="Open a project from a file on your computer"
+        >
+          <input type="file" id="fileInput" style="display: none" />
+          <label for="fileInput">📂</label>
+        </button>
+        <div class="stackedContainer">
+          <input type="text" id="projectName" placeholder="Project name" />
+          <select
+            class="highlighted"
+            id="exampleSelect"
+            title="Choose an example project to load."
+            onchange="loadExample()"
+          >
+            <option value="">🌴Examples</option>
+            <option value="examples/forest_base.json">🌲Forest Base</option>
+            <option value="examples/character_animation.json">
+              🎥Character Animation
+            </option>
+            <option value="examples/cube_art.json">🎨 Cube Art</option>
+            <option value="examples/collect_the_gems.json">
+              💎 Collect the Gems
+            </option>
+            <option value="examples/water_map.json">💧 Water Map</option>
+            <option value="examples/skittles.json">🎳 Skittles</option>
+            <option value="examples/beetle.json">🪲 Beetle</option>
+            <option value="examples/ball_pit.json">🟠 Ball Pit</option>
+            <!-- Add more options here as needed -->
+          </select>
         </div>
+        <button
+          class="bigbutton"
+          onclick="exportCode()"
+          title="Save this project to a file on your computer."
+        >
+          💾
+        </button>
+        <button
+          class="bigbutton"
+          title="Switch between fullscreen and normal views."
+          id="fullscreenToggle"
+        >
+          ↗️
+        </button>
       </div>
-      <canvas id="renderCanvas"></canvas>
+      <canvas id="renderCanvas" tabindex="0"></canvas>
+      <div>
+        <button class="gizmo-button" onclick="toggleGizmo('position')">
+          Position
+        </button>
+        <button class="gizmo-button" onclick="toggleGizmo('rotation')">
+          Rotation
+        </button>
+        <button class="gizmo-button" onclick="toggleGizmo('scale')">
+          Scale
+        </button>
+        <button class="gizmo-button" onclick="turnOffAllGizmos()">
+          Hide
+        </button>
+        <button class="button" onclick="openAboutPage()">🐑 About</button>
+      </div>
     </div>
 
     <script type="module" src="/main.js"></script>

@@ -3287,7 +3287,7 @@ const createScene = function () {
 
 	const camera = new BABYLON.FreeCamera(
 		"camera",
-		new BABYLON.Vector3(0, 4, -20),
+		new BABYLON.Vector3(0, 4, -15),
 		flock.scene,
 	);
 	camera.setTarget(BABYLON.Vector3.Zero());
@@ -3669,6 +3669,7 @@ function executeCode() {
 			console.log(code);
 			//new Function(`(async () => { ${code} })()`)();
 			runCode(code);
+			document.getElementById('renderCanvas').focus();
 		} catch (error) {
 			console.error("Error executing Blockly code:", error);
 		}

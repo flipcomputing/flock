@@ -19,7 +19,7 @@ export const toolbox = {
 	contents: [
 		{
 			kind: "category",
-			name: "Flock 🐑🐑🐑",
+			name: "Flock 🐑",
 			contents: [],
 		},
 		{
@@ -1325,7 +1325,7 @@ export const toolbox = {
 							shadow: {
 								type: "math_number",
 								fields: {
-									NUM: 12,
+									NUM: 20,
 								},
 							},
 						},
