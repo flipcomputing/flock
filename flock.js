@@ -1293,8 +1293,8 @@ export const flock = {
 		} else {
 			return (
 				flock.canvas.pressedKeys.has(key) ||
-				flock.canvas.pressedButtons.has(key))
-			;
+				flock.canvas.pressedButtons.has(key)
+			);
 		}
 	},
 	seededRandom(from, to, seed) {
@@ -1575,7 +1575,7 @@ export const flock = {
 				camera.checkCollisions = true;
 				camera.lowerBetaLimit = Math.PI / 2.5;
 				camera.upperBetaLimit = Math.PI / 2;
-				camera.lowerRadiusLimit = 2;
+				camera.lowerRadiusLimit = 7;
 				camera.upperRadiusLimit = 7;
 				camera.angularSensibilityX = 2000;
 				camera.angularSensibilityY = 2000;

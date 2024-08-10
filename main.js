@@ -3658,6 +3658,8 @@ function exportCode() {
 }
 
 window.onload = function () {
+	// Initial view setup
+	switchView("both");
 	window.loadingCode = true;
 	workspace.addChangeListener(function (event) {
 		if (
@@ -4129,7 +4131,7 @@ function resizeCanvas() {
 	const canvas = document.getElementById("renderCanvas");
 
 	const areaWidth = canvasArea.clientWidth;
-	const areaHeight = canvasArea.clientHeight - 100; // Deducting menu height
+	const areaHeight = canvasArea.clientHeight - 40; 
 
 	const aspectRatio = 16 / 9;
 
@@ -4166,7 +4168,6 @@ function switchView(view) {
 	const canvasArea = document.getElementById("rightArea");
 	const menu = document.getElementById("menu");
 	const gizmoButtons = document.getElementById("gizmoButtons");
-	const menuControl = document.getElementById("blocklyMenuButton");
 
 	if (view === "both") {
 		//flock.scene.debugLayer.hide();
@@ -4178,7 +4179,6 @@ function switchView(view) {
 		gizmoButtons.style.display = "flex";
 		menu.style.display = "flex";
 		//menu.style.right = "unset";
-		menuControl.style.display = "none";
 	} else if (view === "blockly") {
 		//flock.scene.debugLayer.hide();
 		viewMode = "blockly";
@@ -4188,31 +4188,19 @@ function switchView(view) {
 		canvasArea.style.width = "0%";
 		gizmoButtons.style.display = "none";
 		menu.style.display = "none";
-		//menu.style.right = "0";
-		menuControl.style.display = "block";
 	} else if (view === "canvas") {
 		//flock.scene.debugLayer.hide();
 		viewMode = "canvas";
 		blocklyArea.style.display = "none";
 		canvasArea.style.width = "100%";
-		gizmoButtons.style.display = "flex";
+		gizmoButtons.style.display = "none";
 		menu.style.display = "flex";
-		//menu.style.top = "unset";
-		menuControl.style.display = "none";
 	}
 
 	onResize(); // Ensure both Blockly and Babylon.js canvas resize correctly
 }
 
-// Function to toggle dropdown visibility
-function toggleDropdown() {
-	const dropdownContent = document.getElementById("dropdown-content");
-	dropdownContent.style.display =
-		dropdownContent.style.display === "block" ? "none" : "block";
-}
 
-// Initial view setup
-switchView("both");
 window.switchView = switchView;
 window.onResize = onResize;
 
@@ -4328,16 +4316,16 @@ flock.gridKeyReleaseObservable = gridKeyReleaseObservable;
 flock.canvas.pressedButtons = new Set();
 
 function createTouchGUI() {
-	//if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
-	// Create an AdvancedDynamicTexture to hold the UI elements
+	const scale = (window.devicePixelRatio || 1) * 0.75; // Get the device pixel ratio, default to 1 if not available
+	
 
-	const advancedTexture =
-		flock.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
+	// Create an AdvancedDynamicTexture to hold the UI elements
+	const advancedTexture = flock.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
 
 	// Create a grid
 	const grid = new flock.GUI.Grid();
-	grid.width = "240px";
-	grid.height = "160px"; 
+	grid.width = `${240 * scale}px`;
+	grid.height = `${160 * scale}px`; 
 	grid.horizontalAlignment = flock.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
 	grid.verticalAlignment = flock.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM;
 	grid.addRowDefinition(1);
@@ -4349,21 +4337,20 @@ function createTouchGUI() {
 
 	function createSmallButton(text, key) {
 		const button = flock.GUI.Button.CreateSimpleButton("but", text);
-		button.width = "70px"; // Small size
-		button.height = "70px";
+		button.width = `${70 * scale}px`; // Scale size
+		button.height = `${70 * scale}px`;
 		button.color = "white";
 		button.background = "transparent";
-		button.border = "4px solid white";
-		button.fontSize = "40px"
+		button.border = `${4 * scale}px solid white`; // Scale border size
+		button.fontSize = `${40 * scale}px`; // Scale font size
 
 		button.onPointerDownObservable.add(() => {
-			console.log("Button pressed for key:", key);
+			
 			flock.canvas.pressedButtons.add(key);
 			flock.gridKeyPressObservable.notifyObservers(key);
 		});
 
 		button.onPointerUpObservable.add(() => {
-			console.log("Button released for key:", key);
 			flock.canvas.pressedButtons.delete(key);
 			flock.gridKeyReleaseObservable.notifyObservers(key);
 		});
@@ -4383,10 +4370,9 @@ function createTouchGUI() {
 
 	// Create another grid for the buttons on the right
 	const rightGrid = new flock.GUI.Grid();
-	rightGrid.width = "160px"; // Adjust width to fit two buttons
-	rightGrid.height = "160px"; // Adjust height to fit two buttons
-	rightGrid.horizontalAlignment =
-		flock.GUI.Control.HORIZONTAL_ALIGNMENT_RIGHT;
+	rightGrid.width = `${160 * scale}px`; // Scale width
+	rightGrid.height = `${160 * scale}px`; // Scale height
+	rightGrid.horizontalAlignment = flock.GUI.Control.HORIZONTAL_ALIGNMENT_RIGHT;
 	rightGrid.verticalAlignment = flock.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM;
 	rightGrid.addRowDefinition(1);
 	rightGrid.addRowDefinition(1);
@@ -4395,10 +4381,10 @@ function createTouchGUI() {
 	advancedTexture.addControl(rightGrid);
 
 	// Create buttons for the right grid
-	const button1 = createSmallButton("💖", "q");
-	const button2 = createSmallButton("⭐", "e");
-	const button3 = createSmallButton("🌸", "f");
-	const button4 = createSmallButton("💎", " ");
+	const button1 = createSmallButton("⬤", "q");
+	const button2 = createSmallButton("■", "e");
+	const button3 = createSmallButton("✱", "f");
+	const button4 = createSmallButton("∞", " ");
 
 	// Add buttons to the right grid in a 2x2 layout
 	rightGrid.addControl(button1, 0, 0); // Row 0, Column 0
@@ -4406,37 +4392,4 @@ function createTouchGUI() {
 	rightGrid.addControl(button3, 1, 0); // Row 1, Column 0
 	rightGrid.addControl(button4, 1, 1); // Row 1, Column 1
 
-	// Extend handleInput function to handle these actions
-	function handleInput(input) {
-		switch (input) {
-			case "up":
-				console.log("Move Up");
-				break;
-			case "down":
-				console.log("Move Down");
-				break;
-			case "left":
-				console.log("Move Left");
-				break;
-			case "right":
-				console.log("Move Right");
-				break;
-			case "q":
-				console.log("Action Q");
-				break;
-			case "e":
-				console.log("Action E");
-				break;
-			case "f":
-				console.log("Action F");
-				break;
-			case "space":
-				console.log("Space Action");
-				break;
-		}
-	}
-
-	// Update keyboard input handling for the new buttons
-
-	//}
 }
