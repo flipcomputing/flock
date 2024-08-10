@@ -2237,11 +2237,14 @@ Blockly.Blocks["key_pressed"] = {
 					options: [
 						["any", "ANY"],
 						["none", "NONE"],
-						["space", "Space"],
-						["W", "KeyW"],
-						["A", "KeyA"],
-						["S", "KeyS"],
-						["D", "KeyD"],
+						["space", " "],
+						["W", "w"],
+						["A", "a"],
+						["S", "s"],
+						["D", "d"],
+						["Q", "q"],
+						["E", "e"],
+						["F", "f"],
 					],
 				},
 			],
@@ -3349,16 +3352,16 @@ const createScene = function () {
 
 	const camera = new BABYLON.FreeCamera(
 		"camera",
-		new BABYLON.Vector3(0, 4, -15),
+		new BABYLON.Vector3(0, 3, -10),
 		flock.scene,
 	);
 	camera.setTarget(BABYLON.Vector3.Zero());
-	//camera.rotation.x = BABYLON.Tools.ToRadians(0)
+	camera.rotation.x = BABYLON.Tools.ToRadians(0);
 	camera.angularSensibilityX = 2000;
 	camera.angularSensibilityY = 2000;
 	flock.scene.createDefaultLight();
 	flock.scene.collisionsEnabled = true;
-
+	createTouchGUI();
 	const advancedTexture =
 		flock.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
 
@@ -3699,19 +3702,16 @@ window.onload = function () {
 		.getElementById("importFile")
 		.addEventListener("change", handleSnippetUpload);
 
-	flock.canvas.currentKeyPressed = null;
-
 	// Create a set to keep track of pressed keys
 	flock.canvas.pressedKeys = new Set();
 
 	flock.canvas.addEventListener("keydown", function (event) {
-		flock.canvas.currentKeyPressed = event.code;
-		flock.canvas.pressedKeys.add(event.code);
+		flock.canvas.currentKeyPressed = event.key;
+		flock.canvas.pressedKeys.add(event.key);
 	});
 
 	flock.canvas.addEventListener("keyup", function (event) {
-		flock.canvas.currentKeyPressed = null;
-		flock.canvas.pressedKeys.delete(event.code);
+		flock.canvas.pressedKeys.delete(event.key);
 	});
 };
 
@@ -3741,7 +3741,7 @@ function executeCode() {
 function stopCode() {
 	flock.scene.dispose();
 	removeEventListeners();
-	window.switchView(codeMode);
+	switchView(codeMode);
 }
 
 window.stopCode = stopCode;
@@ -3893,7 +3893,7 @@ document.getElementById("toggleDebug").addEventListener("click", function () {
 	const gizmoButtons = document.getElementById("gizmoButtons");
 
 	if (flock.scene.debugLayer.isVisible()) {
-		window.switchView(viewMode);
+		switchView(viewMode);
 		flock.scene.debugLayer.hide();
 	} else {
 		blocklyArea.style.display = "none";
@@ -4169,6 +4169,7 @@ function switchView(view) {
 	const menuControl = document.getElementById("blocklyMenuButton");
 
 	if (view === "both") {
+		//flock.scene.debugLayer.hide();
 		viewMode = "both";
 		codeMode = "both";
 		blocklyArea.style.display = "block";
@@ -4179,6 +4180,7 @@ function switchView(view) {
 		//menu.style.right = "unset";
 		menuControl.style.display = "none";
 	} else if (view === "blockly") {
+		//flock.scene.debugLayer.hide();
 		viewMode = "blockly";
 		codeMode = "blockly";
 		blocklyArea.style.display = "block";
@@ -4189,6 +4191,7 @@ function switchView(view) {
 		//menu.style.right = "0";
 		menuControl.style.display = "block";
 	} else if (view === "canvas") {
+		//flock.scene.debugLayer.hide();
 		viewMode = "canvas";
 		blocklyArea.style.display = "none";
 		canvasArea.style.width = "100%";
@@ -4262,7 +4265,6 @@ function observeFlyoutVisibility(workspace) {
 					window.getComputedStyle(flyoutSvgGroup).display;
 				if (displayStyle != "none") {
 					// Flyout is hidden
-					console.log("Flyout open. Hiding toolbox.");
 					const toolboxControl =
 						document.getElementById("toolboxControl");
 					toolboxControl.style.zIndex = "2";
@@ -4318,3 +4320,123 @@ function toggleMenu() {
 }
 
 window.toggleMenu = toggleMenu;
+
+const gridKeyPressObservable = new flock.BABYLON.Observable();
+const gridKeyReleaseObservable = new flock.BABYLON.Observable();
+flock.gridKeyPressObservable = gridKeyPressObservable;
+flock.gridKeyReleaseObservable = gridKeyReleaseObservable;
+flock.canvas.pressedButtons = new Set();
+
+function createTouchGUI() {
+	//if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
+	// Create an AdvancedDynamicTexture to hold the UI elements
+
+	const advancedTexture =
+		flock.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
+
+	// Create a grid
+	const grid = new flock.GUI.Grid();
+	grid.width = "240px";
+	grid.height = "160px"; 
+	grid.horizontalAlignment = flock.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
+	grid.verticalAlignment = flock.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM;
+	grid.addRowDefinition(1);
+	grid.addRowDefinition(1);
+	grid.addColumnDefinition(1);
+	grid.addColumnDefinition(1);
+	grid.addColumnDefinition(1);
+	advancedTexture.addControl(grid);
+
+	function createSmallButton(text, key) {
+		const button = flock.GUI.Button.CreateSimpleButton("but", text);
+		button.width = "70px"; // Small size
+		button.height = "70px";
+		button.color = "white";
+		button.background = "transparent";
+		button.border = "4px solid white";
+		button.fontSize = "40px"
+
+		button.onPointerDownObservable.add(() => {
+			console.log("Button pressed for key:", key);
+			flock.canvas.pressedButtons.add(key);
+			flock.gridKeyPressObservable.notifyObservers(key);
+		});
+
+		button.onPointerUpObservable.add(() => {
+			console.log("Button released for key:", key);
+			flock.canvas.pressedButtons.delete(key);
+			flock.gridKeyReleaseObservable.notifyObservers(key);
+		});
+		return button;
+	}
+
+	const upButton = createSmallButton("▲", "w");
+	const downButton = createSmallButton("▼", "s");
+	const leftButton = createSmallButton("◀", "a");
+	const rightButton = createSmallButton("▶", "d");
+
+	// Add buttons to the grid
+	grid.addControl(upButton, 0, 1); // Add to row 0, column 1
+	grid.addControl(leftButton, 1, 0); // Add to row 1, column 0
+	grid.addControl(downButton, 1, 1); // Add to row 1, column 1
+	grid.addControl(rightButton, 1, 2); // Add to row 1, column 2
+
+	// Create another grid for the buttons on the right
+	const rightGrid = new flock.GUI.Grid();
+	rightGrid.width = "160px"; // Adjust width to fit two buttons
+	rightGrid.height = "160px"; // Adjust height to fit two buttons
+	rightGrid.horizontalAlignment =
+		flock.GUI.Control.HORIZONTAL_ALIGNMENT_RIGHT;
+	rightGrid.verticalAlignment = flock.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM;
+	rightGrid.addRowDefinition(1);
+	rightGrid.addRowDefinition(1);
+	rightGrid.addColumnDefinition(1);
+	rightGrid.addColumnDefinition(1);
+	advancedTexture.addControl(rightGrid);
+
+	// Create buttons for the right grid
+	const button1 = createSmallButton("💖", "q");
+	const button2 = createSmallButton("⭐", "e");
+	const button3 = createSmallButton("🌸", "f");
+	const button4 = createSmallButton("💎", " ");
+
+	// Add buttons to the right grid in a 2x2 layout
+	rightGrid.addControl(button1, 0, 0); // Row 0, Column 0
+	rightGrid.addControl(button2, 0, 1); // Row 0, Column 1
+	rightGrid.addControl(button3, 1, 0); // Row 1, Column 0
+	rightGrid.addControl(button4, 1, 1); // Row 1, Column 1
+
+	// Extend handleInput function to handle these actions
+	function handleInput(input) {
+		switch (input) {
+			case "up":
+				console.log("Move Up");
+				break;
+			case "down":
+				console.log("Move Down");
+				break;
+			case "left":
+				console.log("Move Left");
+				break;
+			case "right":
+				console.log("Move Right");
+				break;
+			case "q":
+				console.log("Action Q");
+				break;
+			case "e":
+				console.log("Action E");
+				break;
+			case "f":
+				console.log("Action F");
+				break;
+			case "space":
+				console.log("Space Action");
+				break;
+		}
+	}
+
+	// Update keyboard input handling for the new buttons
+
+	//}
+}

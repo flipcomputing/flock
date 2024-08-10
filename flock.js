@@ -1,7 +1,7 @@
 // Flock - Creative coding in 3D
 // Dr Tracy Gardner - https://github.com/tracygardner
 // Flip Computing Limited - flipcomputing.com
- 
+
 // Helper functions to make flock.BABYLON js easier to use in Flock
 console.log("Flock helpers loading");
 export const flock = {
@@ -15,7 +15,6 @@ export const flock = {
 	canvas: null,
 	canvas: {
 		pressedKeys: null,
-		currentKeyPressed: null,
 	},
 	async *modelReadyGenerator(
 		meshId,
@@ -1279,12 +1278,23 @@ export const flock = {
 		return hit.hit && hit.pickedMesh !== null && hit.distance <= 0.06;
 	},
 	keyPressed(key) {
+		console.log(flock.canvas.pressedButtons, key);
+
 		if (key === "ANY") {
-			return flock.canvas.pressedKeys.size > 0;
+			return (
+				flock.canvas.pressedKeys.size > 0 ||
+				flock.canvas.pressedButtons.size > 0
+			);
 		} else if (key === "NONE") {
-			return flock.canvas.pressedKeys.size === 0;
+			return (
+				flock.canvas.pressedKeys.size === 0 &&
+				flock.canvas.pressedButtons.size === 0
+			);
 		} else {
-			return flock.canvas.pressedKeys.has(key);
+			return (
+				flock.canvas.pressedKeys.has(key) ||
+				flock.canvas.pressedButtons.has(key))
+			;
 		}
 	},
 	seededRandom(from, to, seed) {
@@ -1931,11 +1941,37 @@ export const flock = {
 		flock.document.dispatchEvent(new CustomEvent(eventName));
 	},
 	whenKeyPressed(key, callback) {
+		// Register the callback for the keyboard observable
 		flock.scene.onKeyboardObservable.add((kbInfo) => {
 			if (
 				kbInfo.type === flock.BABYLON.KeyboardEventTypes.KEYDOWN &&
 				kbInfo.event.key === key
 			) {
+				callback();
+			}
+		});
+
+		// Register the callback for the grid input observable
+		flock.gridKeyPressObservable.add(function (pressedKey) {
+			if (pressedKey === key) {
+				callback();
+			}
+		});
+	},
+	whenKeyReleased(key, callback) {
+		// Register the callback for the keyboard observable
+		flock.scene.onKeyboardObservable.add((kbInfo) => {
+			if (
+				kbInfo.type === flock.BABYLON.KeyboardEventTypes.KEYUP &&
+				kbInfo.event.key === key
+			) {
+				callback();
+			}
+		});
+
+		// Register the callback for the grid input observable
+		flock.gridKeyReleaseObservable.add((inputKey) => {
+			if (inputKey === key) {
 				callback();
 			}
 		});
