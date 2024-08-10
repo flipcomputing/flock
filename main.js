@@ -37,7 +37,7 @@ const workspace = Blockly.inject("blocklyDiv", {
 	zoom: {
 		controls: true,
 		wheel: true,
-		startScale: 0.8,
+		startScale: 0.7,
 		maxScale: 3,
 		minScale: 0.3,
 		scaleSpeed: 1.2,
@@ -3539,10 +3539,6 @@ function initializeVariableIndexes() {
 	return nextVariableIndexes;
 }
 
-window.addEventListener("resize", function () {
-	engine.resize();
-});
-
 const initialBlocksJson = {
 	blocks: {
 		languageVersion: 0,
@@ -3745,6 +3741,7 @@ function executeCode() {
 function stopCode() {
 	flock.scene.dispose();
 	removeEventListeners();
+	window.switchView(codeMode);
 }
 
 window.stopCode = stopCode;
@@ -3890,7 +3887,7 @@ document
 	});
 
 document.getElementById("toggleDebug").addEventListener("click", function () {
-	const blocklyArea = document.getElementById("blocklyDiv");
+	const blocklyArea = document.getElementById("codePanel");
 	const canvasArea = document.getElementById("rightArea");
 	const menu = document.getElementById("menu");
 	const gizmoButtons = document.getElementById("gizmoButtons");
@@ -4132,7 +4129,7 @@ function resizeCanvas() {
 	const canvas = document.getElementById("renderCanvas");
 
 	const areaWidth = canvasArea.clientWidth;
-	const areaHeight = canvasArea.clientHeight - 120; // Deducting menu height
+	const areaHeight = canvasArea.clientHeight - 100; // Deducting menu height
 
 	const aspectRatio = 16 / 9;
 
@@ -4159,10 +4156,13 @@ function onResize() {
 }
 
 let viewMode = "both";
+let codeMode = "both";
 window.viewMode = viewMode;
+window.codeMode = codeMode;
+
 // Function to switch views
 function switchView(view) {
-	const blocklyArea = document.getElementById("blocklyDiv");
+	const blocklyArea = document.getElementById("codePanel");
 	const canvasArea = document.getElementById("rightArea");
 	const menu = document.getElementById("menu");
 	const gizmoButtons = document.getElementById("gizmoButtons");
@@ -4170,21 +4170,23 @@ function switchView(view) {
 
 	if (view === "both") {
 		viewMode = "both";
+		codeMode = "both";
 		blocklyArea.style.display = "block";
 		canvasArea.style.width = "50%";
 		blocklyArea.style.width = "50%";
 		gizmoButtons.style.display = "flex";
 		menu.style.display = "flex";
-		menu.style.right = "unset";
+		//menu.style.right = "unset";
 		menuControl.style.display = "none";
 	} else if (view === "blockly") {
 		viewMode = "blockly";
+		codeMode = "blockly";
 		blocklyArea.style.display = "block";
 		blocklyArea.style.width = "100%";
 		canvasArea.style.width = "0%";
 		gizmoButtons.style.display = "none";
 		menu.style.display = "none";
-		menu.style.right = "0";
+		//menu.style.right = "0";
 		menuControl.style.display = "block";
 	} else if (view === "canvas") {
 		viewMode = "canvas";
@@ -4192,7 +4194,7 @@ function switchView(view) {
 		canvasArea.style.width = "100%";
 		gizmoButtons.style.display = "flex";
 		menu.style.display = "flex";
-		menu.style.top = "unset";
+		//menu.style.top = "unset";
 		menuControl.style.display = "none";
 	}
 
@@ -4208,26 +4210,34 @@ function toggleDropdown() {
 
 // Initial view setup
 switchView("both");
-onResize(); // Ensure initial resize is correct
 window.switchView = switchView;
 window.onResize = onResize;
 
-let toolboxVisible = true;
+let toolboxVisible = false;
 window.toolboxVisible = toolboxVisible;
+workspace.getToolbox().setVisible(false);
+onResize();
 
 function toggleToolbox() {
 	const toolboxControl = document.getElementById("toolboxControl");
 	if (toolboxVisible) {
 		toolboxVisible = false;
 		workspace.getToolbox().setVisible(false);
-		toolboxControl.style.zIndex = "10000";
 		//onResize();
 	} else {
 		toolboxVisible = true;
-		toolboxControl.style.zIndex = "2";
 		workspace.getToolbox().setVisible(true);
-		
-		//onResize();
+		// Delay binding the click event listener
+		setTimeout(() => {
+			document.addEventListener("click", handleClickOutside);
+		}, 100); // Small delay to ensure the menu is shown before adding the listener
+	}
+
+	function handleClickOutside(event) {
+		if (!toolboxControl.contains(event.target)) {
+			workspace.getToolbox().setVisible(false);
+			document.removeEventListener("click", handleClickOutside);
+		}
 	}
 }
 
@@ -4253,7 +4263,8 @@ function observeFlyoutVisibility(workspace) {
 				if (displayStyle != "none") {
 					// Flyout is hidden
 					console.log("Flyout open. Hiding toolbox.");
-					const toolboxControl = document.getElementById("toolboxControl");
+					const toolboxControl =
+						document.getElementById("toolboxControl");
 					toolboxControl.style.zIndex = "2";
 					workspace.getToolbox().setVisible(false);
 					// Trigger any resize or UI adjustments if necessary

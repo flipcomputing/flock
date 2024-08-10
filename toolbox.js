@@ -19,11 +19,6 @@ export const toolbox = {
 	contents: [
 		{
 			kind: "category",
-			name: "Flock 🐑",
-			contents: [],
-		},
-		{
-			kind: "category",
 			name: "Events",
 			colour: categoryColours["Events"],
 			contents: [
