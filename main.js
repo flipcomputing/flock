@@ -23,6 +23,7 @@ Blockly.ContextMenuItems.registerCommentOptions();
 flock.canvas = document.getElementById("renderCanvas");
 const engine = new BABYLON.Engine(flock.canvas, true, { stencil: true });
 engine.enableOfflineSupport = false;
+engine.setHardwareScalingLevel(1 / window.devicePixelRatio);
 let hk = null;
 flock.scene = null;
 flock.document = document;
@@ -1326,7 +1327,13 @@ const animationNames = [
 	["Walk Hold", "Walk_Hold"],
 ];
 
-const materialNames = ["brick.png", "rough.png", "grass.png", "tiles.png", "wood.png"];
+const materialNames = [
+	"brick.png",
+	"rough.png",
+	"grass.png",
+	"tiles.png",
+	"wood.png",
+];
 Blockly.Blocks["switch_animation"] = {
 	init: function () {
 		this.jsonInit({
@@ -3391,8 +3398,8 @@ const createScene = function () {
 			// Create a text block
 			const textBlock = new flock.GUI.TextBlock("textBlock", text);
 			textBlock.color = color;
-			textBlock.fontSize = "12";
-			textBlock.height = "20px";
+			textBlock.fontSize = "20";
+			textBlock.height = "25px";
 			textBlock.paddingLeft = "10px";
 			textBlock.paddingRight = "10px";
 			textBlock.paddingTop = "2px";
@@ -3883,15 +3890,19 @@ document
 	});
 
 document.getElementById("toggleDebug").addEventListener("click", function () {
-	if (flock.scene.debugLayer.isVisible()) {
-		document.getElementById("rightArea").style.width = "50%";
-		document.getElementById("blocklyDiv").style.width = "50%";
+	const blocklyArea = document.getElementById("blocklyDiv");
+	const canvasArea = document.getElementById("rightArea");
+	const menu = document.getElementById("menu");
+	const gizmoButtons = document.getElementById("gizmoButtons");
 
+	if (flock.scene.debugLayer.isVisible()) {
+		window.switchView(viewMode);
 		flock.scene.debugLayer.hide();
 	} else {
-		document.getElementById("rightArea").style.width = "100%";
-		document.getElementById("blocklyDiv").style.width = "0%";
-
+		blocklyArea.style.display = "none";
+		blocklyArea.style.width = "0";
+		canvasArea.style.width = "100%";
+		menu.style.right = "unset";
 		flock.scene.debugLayer.show();
 	}
 });
@@ -4114,3 +4125,185 @@ const runCode = (code) => {
 		console.error("Error executing sandboxed code:", error);
 	}
 };
+
+// Function to maintain a 16:9 aspect ratio for the canvas
+function resizeCanvas() {
+	const canvasArea = document.getElementById("rightArea");
+	const canvas = document.getElementById("renderCanvas");
+
+	const areaWidth = canvasArea.clientWidth;
+	const areaHeight = canvasArea.clientHeight - 120; // Deducting menu height
+
+	const aspectRatio = 16 / 9;
+
+	let newWidth, newHeight;
+
+	if (areaWidth / areaHeight > aspectRatio) {
+		newHeight = areaHeight;
+		newWidth = newHeight * aspectRatio;
+	} else {
+		newWidth = areaWidth;
+		newHeight = newWidth / aspectRatio;
+	}
+
+	canvas.style.width = `${newWidth}px`;
+	canvas.style.height = `${newHeight}px`;
+}
+
+// Resize Blockly workspace and Babylon.js canvas when the window is resized
+window.addEventListener("resize", onResize);
+function onResize() {
+	Blockly.svgResize(workspace);
+	resizeCanvas();
+	engine.resize();
+}
+
+let viewMode = "both";
+window.viewMode = viewMode;
+// Function to switch views
+function switchView(view) {
+	const blocklyArea = document.getElementById("blocklyDiv");
+	const canvasArea = document.getElementById("rightArea");
+	const menu = document.getElementById("menu");
+	const gizmoButtons = document.getElementById("gizmoButtons");
+	const menuControl = document.getElementById("blocklyMenuButton");
+
+	if (view === "both") {
+		viewMode = "both";
+		blocklyArea.style.display = "block";
+		canvasArea.style.width = "50%";
+		blocklyArea.style.width = "50%";
+		gizmoButtons.style.display = "flex";
+		menu.style.display = "flex";
+		menu.style.right = "unset";
+		menuControl.style.display = "none";
+	} else if (view === "blockly") {
+		viewMode = "blockly";
+		blocklyArea.style.display = "block";
+		blocklyArea.style.width = "100%";
+		canvasArea.style.width = "0%";
+		gizmoButtons.style.display = "none";
+		menu.style.display = "none";
+		menu.style.right = "0";
+		menuControl.style.display = "block";
+	} else if (view === "canvas") {
+		viewMode = "canvas";
+		blocklyArea.style.display = "none";
+		canvasArea.style.width = "100%";
+		gizmoButtons.style.display = "flex";
+		menu.style.display = "flex";
+		menu.style.top = "unset";
+		menuControl.style.display = "none";
+	}
+
+	onResize(); // Ensure both Blockly and Babylon.js canvas resize correctly
+}
+
+// Function to toggle dropdown visibility
+function toggleDropdown() {
+	const dropdownContent = document.getElementById("dropdown-content");
+	dropdownContent.style.display =
+		dropdownContent.style.display === "block" ? "none" : "block";
+}
+
+// Initial view setup
+switchView("both");
+onResize(); // Ensure initial resize is correct
+window.switchView = switchView;
+window.onResize = onResize;
+
+let toolboxVisible = true;
+window.toolboxVisible = toolboxVisible;
+
+function toggleToolbox() {
+	const toolboxControl = document.getElementById("toolboxControl");
+	if (toolboxVisible) {
+		toolboxVisible = false;
+		workspace.getToolbox().setVisible(false);
+		toolboxControl.style.zIndex = "10000";
+		//onResize();
+	} else {
+		toolboxVisible = true;
+		toolboxControl.style.zIndex = "2";
+		workspace.getToolbox().setVisible(true);
+		
+		//onResize();
+	}
+}
+
+window.toggleToolbox = toggleToolbox;
+
+function observeFlyoutVisibility(workspace) {
+	// Access the flyout using Blockly's API
+	const flyout = workspace.getToolbox().getFlyout();
+	const flyoutSvgGroup = flyout.svgGroup_;
+
+	// Check if the flyout SVG group is available
+	if (!flyoutSvgGroup) {
+		console.error("Flyout SVG group not found.");
+		return;
+	}
+
+	// Create a MutationObserver to watch for style changes
+	const observer = new MutationObserver((mutations) => {
+		mutations.forEach((mutation) => {
+			if (mutation.attributeName === "style") {
+				const displayStyle =
+					window.getComputedStyle(flyoutSvgGroup).display;
+				if (displayStyle != "none") {
+					// Flyout is hidden
+					console.log("Flyout open. Hiding toolbox.");
+					const toolboxControl = document.getElementById("toolboxControl");
+					toolboxControl.style.zIndex = "2";
+					workspace.getToolbox().setVisible(false);
+					// Trigger any resize or UI adjustments if necessary
+					onResize();
+				}
+			}
+		});
+	});
+
+	// Start observing the flyout SVG group for attribute changes
+	observer.observe(flyoutSvgGroup, {
+		attributes: true,
+		attributeFilter: ["style"],
+	});
+}
+
+observeFlyoutVisibility(workspace);
+
+function runMenu() {
+	switchView("canvas");
+	executeCode();
+}
+
+window.runMenu = runMenu;
+
+function toggleMenu() {
+	const menu = document.getElementById("menu");
+	const currentDisplay = window.getComputedStyle(menu).display;
+
+	console.log("Current display:", currentDisplay);
+
+	if (currentDisplay != "none") {
+		menu.style.display = "none";
+		document.removeEventListener("click", handleClickOutside);
+	} else {
+		console.log("Showing menu");
+		menu.style.display = "flex";
+
+		// Delay binding the click event listener
+		setTimeout(() => {
+			document.addEventListener("click", handleClickOutside);
+		}, 100); // Small delay to ensure the menu is shown before adding the listener
+	}
+
+	function handleClickOutside(event) {
+		if (!menu.contains(event.target)) {
+			menu.style.display = "none";
+			document.removeEventListener("click", handleClickOutside);
+		}
+	}
+}
+
+window.toggleMenu = toggleMenu;

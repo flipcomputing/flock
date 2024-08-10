@@ -1,7 +1,7 @@
 // Flock - Creative coding in 3D
 // Dr Tracy Gardner - https://github.com/tracygardner
 // Flip Computing Limited - flipcomputing.com
-
+ 
 // Helper functions to make flock.BABYLON js easier to use in Flock
 console.log("Flock helpers loading");
 export const flock = {
