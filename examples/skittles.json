@@ -81,7 +81,7 @@
 								"type": "text",
 								"id": "`f*0l^SJuvgfqK^sO[Q{",
 								"fields": {
-								  "TEXT": "A - left; D - right; SPACE - launch"
+								  "TEXT": "A - left; D - right; SPACE  (∞) - launch"
 								}
 							  }
 							},
@@ -312,7 +312,7 @@
 										"type": "math_number",
 										"id": "KWj2gj3b0%e(eNrM~;E[",
 										"fields": {
-										  "NUM": -9
+										  "NUM": -2
 										}
 									  }
 									}
@@ -362,7 +362,7 @@
 					"type": "key_pressed",
 					"id": "#WRhcFl5E9+l]o8-YJk!",
 					"fields": {
-					  "KEY": "KeyA"
+					  "KEY": "a"
 					}
 				  }
 				},
@@ -438,7 +438,7 @@
 					"type": "key_pressed",
 					"id": "no/J`iAt(qZzVxeT+sKb",
 					"fields": {
-					  "KEY": "KeyD"
+					  "KEY": "d"
 					}
 				  }
 				},
@@ -514,7 +514,7 @@
 					"type": "key_pressed",
 					"id": "[Vt(dF5,c.l#Zl_~Ci2X",
 					"fields": {
-					  "KEY": "Space"
+					  "KEY": " "
 					}
 				  }
 				},
@@ -636,7 +636,7 @@
 								  "type": "math_number",
 								  "id": "U_1tTUFRG[=?:v]0JXLL",
 								  "fields": {
-									"NUM": -9
+									"NUM": -2
 								  }
 								}
 							  }

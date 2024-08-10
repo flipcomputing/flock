@@ -1278,8 +1278,7 @@ export const flock = {
 		return hit.hit && hit.pickedMesh !== null && hit.distance <= 0.06;
 	},
 	keyPressed(key) {
-		console.log(flock.canvas.pressedButtons, key);
-
+		
 		if (key === "ANY") {
 			return (
 				flock.canvas.pressedKeys.size > 0 ||

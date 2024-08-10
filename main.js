@@ -1778,7 +1778,7 @@ Blockly.Blocks["when_key_pressed"] = {
 						["x", "x"],
 						["y", "y"],
 						["z", "z"],
-						[" ", "Space"],
+						[" ", " "],
 						[",", ","],
 						[".", "."],
 						["/", "/"],
@@ -1851,7 +1851,7 @@ Blockly.Blocks["when_key_released"] = {
 						["x", "x"],
 						["y", "y"],
 						["z", "z"],
-						[" ", "Space"],
+						[" ", " "],
 						[",", ","],
 						[".", "."],
 						["/", "/"],
@@ -3058,16 +3058,7 @@ javascriptGenerator.forBlock["when_key_released"] = function (block) {
 	const key = block.getFieldValue("KEY");
 	const statements_do = javascriptGenerator.statementToCode(block, "DO");
 
-	return `flock.scene.onKeyboardObservable.add( async (kbInfo) => {
-	switch (kbInfo.type) {
-	  case BABYLON.KeyboardEventTypes.KEYUP:
-	  if (kbInfo.event.key === "${key}") {
-		${statements_do}
-	  }
-	  break;
-	}
-	});
-	`;
+	return `whenKeyReleased("${key}", async () => {${statements_do}});\n`;
 };
 
 javascriptGenerator.forBlock["broadcast_event"] = function (block) {
@@ -4105,6 +4096,7 @@ const runCode = (code) => {
 				broadcastEvent,
 				forever,
 				whenKeyPressed,
+				whenKeyReleased,
 				printText,
 				onIntersect,
 				getProperty,
@@ -4131,7 +4123,7 @@ function resizeCanvas() {
 	const canvas = document.getElementById("renderCanvas");
 
 	const areaWidth = canvasArea.clientWidth;
-	const areaHeight = canvasArea.clientHeight - 40; 
+	const areaHeight = canvasArea.clientHeight - 40;
 
 	const aspectRatio = 16 / 9;
 
@@ -4199,7 +4191,6 @@ function switchView(view) {
 
 	onResize(); // Ensure both Blockly and Babylon.js canvas resize correctly
 }
-
 
 window.switchView = switchView;
 window.onResize = onResize;
@@ -4317,15 +4308,15 @@ flock.canvas.pressedButtons = new Set();
 
 function createTouchGUI() {
 	const scale = (window.devicePixelRatio || 1) * 0.75; // Get the device pixel ratio, default to 1 if not available
-	
 
 	// Create an AdvancedDynamicTexture to hold the UI elements
-	const advancedTexture = flock.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
+	const advancedTexture =
+		flock.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
 
 	// Create a grid
 	const grid = new flock.GUI.Grid();
 	grid.width = `${240 * scale}px`;
-	grid.height = `${160 * scale}px`; 
+	grid.height = `${160 * scale}px`;
 	grid.horizontalAlignment = flock.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
 	grid.verticalAlignment = flock.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM;
 	grid.addRowDefinition(1);
@@ -4345,7 +4336,6 @@ function createTouchGUI() {
 		button.fontSize = `${40 * scale}px`; // Scale font size
 
 		button.onPointerDownObservable.add(() => {
-			
 			flock.canvas.pressedButtons.add(key);
 			flock.gridKeyPressObservable.notifyObservers(key);
 		});
@@ -4372,7 +4362,8 @@ function createTouchGUI() {
 	const rightGrid = new flock.GUI.Grid();
 	rightGrid.width = `${160 * scale}px`; // Scale width
 	rightGrid.height = `${160 * scale}px`; // Scale height
-	rightGrid.horizontalAlignment = flock.GUI.Control.HORIZONTAL_ALIGNMENT_RIGHT;
+	rightGrid.horizontalAlignment =
+		flock.GUI.Control.HORIZONTAL_ALIGNMENT_RIGHT;
 	rightGrid.verticalAlignment = flock.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM;
 	rightGrid.addRowDefinition(1);
 	rightGrid.addRowDefinition(1);
@@ -4391,5 +4382,4 @@ function createTouchGUI() {
 	rightGrid.addControl(button2, 0, 1); // Row 0, Column 1
 	rightGrid.addControl(button3, 1, 0); // Row 1, Column 0
 	rightGrid.addControl(button4, 1, 1); // Row 1, Column 1
-
 }

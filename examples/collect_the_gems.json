@@ -302,7 +302,7 @@
 							  "type": "key_pressed",
 							  "id": "N97lR+}U#x9EDfY/#fMF",
 							  "fields": {
-								"KEY": "Space"
+								"KEY": " "
 							  }
 							}
 						  },
@@ -395,7 +395,7 @@
 							"type": "key_pressed",
 							"id": ")+*t5,#I4AXnZYp*rPEc",
 							"fields": {
-							  "KEY": "KeyW"
+							  "KEY": "w"
 							}
 						  }
 						},
@@ -426,7 +426,7 @@
 							"type": "key_pressed",
 							"id": "/4w:#{3VumL]p^7bc^+j",
 							"fields": {
-							  "KEY": "KeyS"
+							  "KEY": "s"
 							}
 						  }
 						},
@@ -498,7 +498,7 @@
 											"type": "key_pressed",
 											"id": "}[RcT7vxRW1S@khNtCs=",
 											"fields": {
-											  "KEY": "KeyW"
+											  "KEY": "w"
 											}
 										  }
 										},
@@ -507,7 +507,7 @@
 											"type": "key_pressed",
 											"id": "![l$OhY6LTk`wROoCChT",
 											"fields": {
-											  "KEY": "KeyS"
+											  "KEY": "s"
 											}
 										  }
 										}
@@ -621,7 +621,7 @@
 							"type": "text",
 							"id": "rDKLD?S[.4^HZ(g*vX^y",
 							"fields": {
-							  "TEXT": "W - forward; S backward; Space - Jump"
+							  "TEXT": "W - forward; S backward; Space  (∞) - Jump"
 							}
 						  }
 						},

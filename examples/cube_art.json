@@ -362,7 +362,7 @@
 					"type": "key_pressed",
 					"id": ":J71~R]Rm}Iv%u1-qSPQ",
 					"fields": {
-					  "KEY": "KeyW"
+					  "KEY": "w"
 					}
 				  }
 				},
@@ -405,7 +405,7 @@
 					"type": "key_pressed",
 					"id": "1Q.0}O.+I2c[6`R+3`SO",
 					"fields": {
-					  "KEY": "KeyS"
+					  "KEY": "s"
 					}
 				  }
 				},
