@@ -43,7 +43,7 @@ export default {
         short_name: 'Flock',
         description: 'Create 3D apps with blocks',
         theme_color: '#800080',
-
+        display: 'standalone',
         start_url: isProduction ? '/flock/' : '/', // Ensure this reflects the base URL
         scope: isProduction ? '/flock/' : '/', // Ensure this reflects the base URL
 
