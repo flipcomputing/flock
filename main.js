@@ -3334,21 +3334,35 @@ function createEngine() {
 }
 
 const createScene = function () {
-	if (flock.scene) {
+	if (flock.scene) {	
 		removeEventListeners();
 		flock.gridKeyPressObservable.clear();
 		flock.gridKeyReleaseObservable.clear();
 		flock.scene.dispose();
 		flock.scene = null;
+		controlsTexture.dispose();
+		controlsTexture = null;
 		hk.dispose();
 		hk = null;
 	}
-	createEngine();
+
+	
+	if (!engine)
+	{	
+		createEngine();
+	}
+    else{
+		engine.stopRenderLoop();
+	}
+	
 	flock.scene = new BABYLON.Scene(engine);
-	flock.scene.eventListeners = [];
+	
 	engine.runRenderLoop(function () {
 		flock.scene.render();
 	});
+	
+	flock.scene.eventListeners = [];
+	
 	hk = new BABYLON.HavokPlugin(true, havokInstance);
 	flock.scene.enablePhysics(new BABYLON.Vector3(0, -9.81, 0), hk);
 	flock.hk = hk;
@@ -4185,6 +4199,14 @@ window.exportCode = exportCode;
 window.loadExample = loadExample;
 
 const runCode = (code) => {
+
+	if (performance.memory) {
+		console.log('JS Heap Size Limit: ' + performance.memory.jsHeapSizeLimit);
+		console.log('Total JS Heap Size: ' + performance.memory.totalJSHeapSize);
+		console.log('Used JS Heap Size: ' + performance.memory.usedJSHeapSize);
+	} else {
+		console.log('Memory info is not available in this browser.');
+	}
 	// Create a new sandboxed environment
 	try {
 		// Create a sandboxed function by embedding code into a new Function

@@ -239,13 +239,6 @@
             <button onclick="switchView('canvas')">Canvas</button>
           </div>
         </div>
-        <button
-          class="bigbutton"
-          title="Switch between fullscreen and normal views."
-          id="fullscreenToggle"
-        >
-          ↗️
-        </button>
       </div>
       <canvas id="renderCanvas" tabindex="0"></canvas>
       <div class="gizmo-buttons" id="gizmoButtons">
@@ -264,6 +257,7 @@
     </div>
     <div id="codePanel">
       <div id="codePanelButtons">
+        <div>
         <button
           value="Toolbox"
           id="toolboxControl"
@@ -278,6 +272,10 @@
         >
           Flock 🐑
         </button>
+        <button class="bigbutton" onclick="executeCode()" title="Run your code">
+          ▶️
+        </button>
+        </div>
         <div
           id="menuControl"
           style="
@@ -326,11 +324,10 @@
           </div>
           <button
             class="bigbutton"
-            value="Run"
-            style="margin-right: 10px; margin-left: 10px"
-            onclick="runMenu()"
+            title="Switch between fullscreen and normal views."
+            id="fullscreenToggle"
           >
-            ▶️
+            ↗️
           </button>
         </div>
       </div>
