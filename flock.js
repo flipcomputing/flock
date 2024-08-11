@@ -157,6 +157,8 @@ export const flock = {
 		});
 	},
 	async highlight(modelName, color) {
+
+		console.log(modelName, modelName.id);
 		await flock.whenModelReady(modelName, (mesh) => {
 			if (mesh.material) {
 				flock.highlighter.addMesh(
@@ -180,6 +182,7 @@ export const flock = {
 		});
 	},
 	newModel(modelName, modelId, scale, x, y, z) {
+
 		const blockId = modelId;
 		modelId += "_" + flock.scene.getUniqueId();
 
@@ -1130,6 +1133,93 @@ export const flock = {
 
 		return propertyValue;
 	},
+	createSmallButton(text, key, color) {
+		const button = flock.GUI.Button.CreateSimpleButton("but", text);
+		button.width = `${70 * flock.displayScale}px`; // Scale size
+		button.height = `${70 * flock.displayScale}px`;
+		button.color = color;
+		button.background = "transparent";
+		button.fontSize = `${40 * flock.displayScale}px`; // Scale font size
+
+		button.onPointerDownObservable.add(() => {
+			flock.canvas.pressedButtons.add(key);
+			flock.gridKeyPressObservable.notifyObservers(key);
+		});
+
+		button.onPointerUpObservable.add(() => {
+			flock.canvas.pressedButtons.delete(key);
+			flock.gridKeyReleaseObservable.notifyObservers(key);
+		});
+		return button;
+	},
+	createArrowControls(color) {
+		// Create a grid
+		const grid = new flock.GUI.Grid();
+		grid.width = `${240 * flock.displayScale}px`;
+		grid.height = `${160 * flock.displayScale}px`;
+		grid.horizontalAlignment = flock.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
+		grid.verticalAlignment = flock.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM;
+		grid.addRowDefinition(1);
+		grid.addRowDefinition(1);
+		grid.addColumnDefinition(1);
+		grid.addColumnDefinition(1);
+		grid.addColumnDefinition(1);
+		flock.controlsTexture.addControl(grid);
+
+		const upButton = flock.createSmallButton("▲", "w", color);
+		const downButton = flock.createSmallButton("▼", "s", color);
+		const leftButton = flock.createSmallButton("◀", "a", color);
+		const rightButton = flock.createSmallButton("▶", "d", color);
+
+		// Add buttons to the grid
+		grid.addControl(upButton, 0, 1); // Add to row 0, column 1
+		grid.addControl(leftButton, 1, 0); // Add to row 1, column 0
+		grid.addControl(downButton, 1, 1); // Add to row 1, column 1
+		grid.addControl(rightButton, 1, 2); // Add to row 1, column 2
+	},
+	createButtonControls(color) {
+		// Create another grid for the buttons on the right
+		const rightGrid = new flock.GUI.Grid();
+		rightGrid.width = `${160 * flock.displayScale}px`; // Scale width
+		rightGrid.height = `${160 * flock.displayScale}px`; // Scale height
+		rightGrid.horizontalAlignment =
+			flock.GUI.Control.HORIZONTAL_ALIGNMENT_RIGHT;
+		rightGrid.verticalAlignment = flock.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM;
+		rightGrid.addRowDefinition(1);
+		rightGrid.addRowDefinition(1);
+		rightGrid.addColumnDefinition(1);
+		rightGrid.addColumnDefinition(1);
+		flock.controlsTexture.addControl(rightGrid);
+
+		// Create buttons for the right grid
+		const button1 = flock.createSmallButton("⬤", "q", color);
+		const button2 = flock.createSmallButton("■", "e", color);
+		const button3 = flock.createSmallButton("✱", "f", color);
+		const button4 = flock.createSmallButton("∞", " ", color);
+
+		// Add buttons to the right grid in a 2x2 layout
+		rightGrid.addControl(button1, 0, 0); // Row 0, Column 0
+		rightGrid.addControl(button2, 0, 1); // Row 0, Column 1
+		rightGrid.addControl(button3, 1, 0); // Row 1, Column 0
+		rightGrid.addControl(button4, 1, 1); // Row 1, Column 1
+	},
+	buttonControls(control, enabled, color){
+		
+		if(flock.controlsTexture)
+		{
+			flock.controlsTexture.dispose();
+		}
+		
+		if(enabled)
+		{
+			flock.controlsTexture = flock.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
+
+			if (control == "ARROWS" || control == "BOTH")
+				flock.createArrowControls(color);
+			if (control == "ACTIONS" || control == "BOTH")
+				flock.createButtonControls(color);
+		}
+	},
 	async glideTo(meshName, x, y, z, duration) {
 		return new Promise(async (resolve) => {
 			await flock.whenModelReady(meshName, async function (mesh) {
@@ -1411,7 +1501,7 @@ export const flock = {
 		});
 	},
 	moveForward(modelName, speed) {
-		const model = flock.scene.getMeshByName(modelName);
+		const model = flock.scene.getMeshByName(modelName)
 		if (!model || speed === 0) return;
 
 		const forwardSpeed = speed;
@@ -1727,7 +1817,7 @@ export const flock = {
 					if (!plane) {
 						plane = flock.BABYLON.MeshBuilder.CreatePlane(
 							"textPlane",
-							{ width: 1.5, height: 1.5 },
+							{ width: 2.5, height: 2.5 },
 							flock.scene,
 						);
 						plane.name = "textPlane";
@@ -1743,7 +1833,7 @@ export const flock = {
 
 						const boundingInfo = targetMesh.getBoundingInfo();
 						plane.position.y =
-							boundingInfo.boundingBox.maximum.y + 0.85;
+							boundingInfo.boundingBox.maximum.y + 1.5;
 						plane.billboardMode =
 							flock.BABYLON.Mesh.BILLBOARDMODE_ALL;
 
@@ -1783,10 +1873,11 @@ export const flock = {
 						bg.forceResizeWidth = true;
 						stackPanel.addControl(bg);
 
+						const scale = (window.devicePixelRatio || 1) * 0.75;
 						const textBlock = new flock.GUI.TextBlock();
 						textBlock.text = text;
 						textBlock.color = textColor;
-						textBlock.fontSize = size * 10;
+						textBlock.fontSize = size * 10 * scale;
 						textBlock.alpha = 1;
 						textBlock.textWrapping =
 							flock.GUI.TextWrapping.WordWrap;

@@ -1127,10 +1127,6 @@ export const toolbox = {
 				},
 				{
 					kind: "block",
-					type: "canvas_controls",
-				},
-				{
-					kind: "block",
 					type: "add_physics",
 				},
 			],
@@ -1264,6 +1260,24 @@ export const toolbox = {
 				{
 					kind: "block",
 					type: "get_property",
+				},		
+				{
+					kind: "block",
+					type: "canvas_controls",
+				},
+				{
+					kind: "block",
+					type: "button_controls",
+					inputs: {
+						COLOR: {
+							shadow: {
+								type: "colour",
+								fields: {
+									COLOR: "#FFFFFF",
+								},
+							},
+						},
+					},
 				},
 			],
 		},

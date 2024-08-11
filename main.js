@@ -21,9 +21,7 @@ registerFieldColour();
 Blockly.ContextMenuItems.registerCommentOptions();
 
 flock.canvas = document.getElementById("renderCanvas");
-const engine = new BABYLON.Engine(flock.canvas, true, { stencil: true });
-engine.enableOfflineSupport = false;
-engine.setHardwareScalingLevel(1 / window.devicePixelRatio);
+let engine = null;
 let hk = null;
 flock.scene = null;
 flock.document = document;
@@ -365,6 +363,62 @@ Blockly.Blocks["get_property"] = {
 	},
 };
 
+Blockly.Blocks["canvas_controls"] = {
+	init: function () {
+		this.jsonInit({
+			type: "canvas_controls",
+			message0: "canvas controls %1",
+			args0: [
+				{
+					type: "field_checkbox",
+					name: "CONTROLS",
+					checked: true,
+				},
+			],
+			previousStatement: null,
+			nextStatement: null,
+			colour: categoryColours["Sensing"],
+			tooltip: "Add or removes canvas motion controls.",
+			helpUrl: "",
+		});
+	},
+};
+
+Blockly.Blocks["button_controls"] = {
+	init: function () {
+		this.jsonInit({
+			type: "button_controls",
+			message0: "button controls %1 enabled %2 color %3",
+			args0: [
+				{
+					type: "field_dropdown",
+					name: "CONTROL",
+					options: [
+						["both", "BOTH"],
+						["arrows", "ARROWS"],
+						["actions", "ACTIONS"],			
+					],
+				},
+				{
+					type: "field_checkbox",
+					name: "ENABLED",
+					checked: true,
+				},
+				{
+					type: "input_value",
+					name: "COLOR",
+					check: "Colour",
+				},
+			],
+			previousStatement: null,
+			nextStatement: null,
+			colour: categoryColours["Sensing"],
+			tooltip: "Configure button controls.",
+			helpUrl: "",
+		});
+	},
+};
+
 Blockly.Blocks["wait"] = {
 	init: function () {
 		this.jsonInit({
@@ -453,27 +507,6 @@ Blockly.Blocks["set_sky_color"] = {
 			nextStatement: null,
 			colour: categoryColours["Scene"],
 			tooltip: "Sets the sky color of the scene.",
-			helpUrl: "",
-		});
-	},
-};
-
-Blockly.Blocks["canvas_controls"] = {
-	init: function () {
-		this.jsonInit({
-			type: "canvas_controls",
-			message0: "canvas controls %1",
-			args0: [
-				{
-					type: "field_checkbox",
-					name: "CONTROLS",
-					checked: true,
-				},
-			],
-			previousStatement: null,
-			nextStatement: null,
-			colour: categoryColours["Motion"],
-			tooltip: "Add or removes canvas motion controls.",
 			helpUrl: "",
 		});
 	},
@@ -2665,6 +2698,13 @@ javascriptGenerator.forBlock["set_sky_color"] = function (block) {
 	return `setSky(${color});\n`;
 };
 
+javascriptGenerator.forBlock["button_controls"] = function (block) {
+	const color = getFieldValue(block, "COLOR", "#6495ED");
+	const control = block.getFieldValue("CONTROL") ;
+	const enabled = block.getFieldValue("ENABLED") == "TRUE";
+	return `buttonControls("${control}", ${enabled}, ${color});\n`;
+};
+
 javascriptGenerator.forBlock["print_text"] = function (block) {
 	const text =
 		javascriptGenerator.valueToCode(
@@ -3273,15 +3313,49 @@ javascriptGenerator.forBlock["meshes_touching"] = function (block) {
 	return [code, javascriptGenerator.ORDER_ATOMIC];
 };
 
+const gridKeyPressObservable = new flock.BABYLON.Observable();
+const gridKeyReleaseObservable = new flock.BABYLON.Observable();
+flock.gridKeyPressObservable = gridKeyPressObservable;
+flock.gridKeyReleaseObservable = gridKeyReleaseObservable;
+flock.canvas.pressedButtons = new Set();
+const displayScale = (window.devicePixelRatio || 1) * 0.75; // Get the device pixel ratio, default to 1 if not available
+flock.displayScale = displayScale;
+// Create an AdvancedDynamicTexture to hold the UI controls
+let controlsTexture = null;
+
+function createEngine() {
+	if (engine) {
+		engine.dispose();
+		engine = null;
+	}
+	engine = new BABYLON.Engine(flock.canvas, true, { stencil: true });
+	engine.enableOfflineSupport = false;
+	engine.setHardwareScalingLevel(1 / window.devicePixelRatio);
+}
+
 const createScene = function () {
+	if (flock.scene) {
+		removeEventListeners();
+		flock.gridKeyPressObservable.clear();
+		flock.gridKeyReleaseObservable.clear();
+		flock.scene.dispose();
+		flock.scene = null;
+		hk.dispose();
+		hk = null;
+	}
+	createEngine();
 	flock.scene = new BABYLON.Scene(engine);
 	flock.scene.eventListeners = [];
+	engine.runRenderLoop(function () {
+		flock.scene.render();
+	});
 	hk = new BABYLON.HavokPlugin(true, havokInstance);
 	flock.scene.enablePhysics(new BABYLON.Vector3(0, -9.81, 0), hk);
 	flock.hk = hk;
 	flock.highlighter = new BABYLON.HighlightLayer("highlighter", flock.scene);
 	gizmoManager = new BABYLON.GizmoManager(flock.scene);
 
+	/*
 	flock.BABYLON.Effect.ShadersStore["customVertexShader"] = `
 		precision highp float;
 
@@ -3328,7 +3402,7 @@ const createScene = function () {
 			gl_FragColor = vec4(color, 1.0);
 		}
 	`;
-
+*/
 	/*
 	  const ground = BABYLON.MeshBuilder.CreateGroundFromHeightMap("heightmap", './textures/simple_height_map.png', {
 		width: 100,
@@ -3352,7 +3426,12 @@ const createScene = function () {
 	camera.angularSensibilityY = 2000;
 	flock.scene.createDefaultLight();
 	flock.scene.collisionsEnabled = true;
-	createTouchGUI();
+
+	controlsTexture = flock.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
+	flock.controlsTexture = controlsTexture;
+	flock.createArrowControls("white");
+	flock.createButtonControls("white");
+
 	const advancedTexture =
 		flock.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
 
@@ -3482,10 +3561,6 @@ async function initialize() {
 	engineReady = true;
 	flock.scene = createScene();
 	flock.scene.eventListeners = [];
-
-	engine.runRenderLoop(function () {
-		flock.scene.render();
-	});
 }
 
 initialize();
@@ -3609,6 +3684,78 @@ const initialBlocksJson = {
 	},
 };
 
+function Mesh(id = "UNDEFINED") {
+	this.id = id;
+}
+flock.Mesh = Mesh;
+Mesh.prototype.toString = function MeshToString() {
+	console.log("Mesh.toString", `${this.id}`);
+	return `${this.id}`;
+};
+
+javascriptGenerator.init = function (workspace) {
+	console.log("Initializing JavaScript generator...");
+	if (!javascriptGenerator.nameDB_) {
+		javascriptGenerator.nameDB_ = new Blockly.Names(
+			javascriptGenerator.RESERVED_WORDS_,
+		);
+	} else {
+		javascriptGenerator.nameDB_.reset();
+	}
+	javascriptGenerator.nameDB_.setVariableMap(workspace.getVariableMap());
+	javascriptGenerator.nameDB_.populateVariables(workspace);
+	javascriptGenerator.nameDB_.populateProcedures(workspace);
+
+	const defvars = [];
+	// Add developer variables (not created or named by the user).
+	const devVarList = Blockly.Variables.allDeveloperVariables(workspace);
+	for (let i = 0; i < devVarList.length; i++) {
+		defvars.push(
+			javascriptGenerator.nameDB_.getName(
+				devVarList[i],
+				Blockly.NameType.DEVELOPER_VARIABLE,
+			),
+		);
+	}
+
+	// Add user variables, but only ones that are being used.
+	const variables = Blockly.Variables.allUsedVarModels(workspace);
+	for (let i = 0; i < variables.length; i++) {
+		defvars.push(
+			javascriptGenerator.nameDB_.getName(
+				variables[i].getId(),
+				Blockly.Names.NameType.VARIABLE,
+			),
+		);
+	}
+
+	// Declare all of the variables.
+	if (defvars.length) {
+		var variableDeclarations = "";
+		/*var variableDeclarations = `function Mesh(id = "UNDEFINED") {
+		  this.id = id;
+		}\n
+		flock.Mesh = Mesh
+		Mesh.prototype.toString = function MeshToString() {
+		console.log("Mesh.toString");
+  return\` ${this.id}\`;
+};`;*/
+
+		defvars.map(function (name) {
+			return `let ${name};`;
+		});
+		for (let v of defvars) {
+			variableDeclarations += `var ${v} = new Mesh();\n console.log(${v});\n`;
+		}
+		javascriptGenerator.definitions_["variables"] =
+			`// Made with Flock\n` + "var " + defvars.join(", ") + ";";
+	}
+
+	/*	javascriptGenerator.definitions_["variables"] = variableDeclarations;*/
+
+	javascriptGenerator.isInitialized = true;
+};
+
 // Load the JSON into the workspace
 Blockly.serialization.workspaces.load(initialBlocksJson, workspace);
 
@@ -3710,10 +3857,6 @@ window.onload = function () {
 
 function executeCode() {
 	if (engineReady) {
-		if (flock.scene) {
-			flock.scene.dispose();
-			removeEventListeners();
-		}
 		flock.scene = createScene();
 
 		const code = javascriptGenerator.workspaceToCode(workspace);
@@ -4066,6 +4209,7 @@ const runCode = (code) => {
 				createMap,
 				createCustomMap,
 				setSky,
+				buttonControls,
 				up,
 				applyForce,
 				moveByVector,
@@ -4094,6 +4238,7 @@ const runCode = (code) => {
 				onTrigger,
 				onEvent,
 				broadcastEvent,
+				Mesh,
 				forever,
 				whenKeyPressed,
 				whenKeyReleased,
@@ -4146,7 +4291,7 @@ window.addEventListener("resize", onResize);
 function onResize() {
 	Blockly.svgResize(workspace);
 	resizeCanvas();
-	engine.resize();
+	if(engine) engine.resize();
 }
 
 let viewMode = "both";
@@ -4300,86 +4445,7 @@ function toggleMenu() {
 
 window.toggleMenu = toggleMenu;
 
-const gridKeyPressObservable = new flock.BABYLON.Observable();
-const gridKeyReleaseObservable = new flock.BABYLON.Observable();
-flock.gridKeyPressObservable = gridKeyPressObservable;
-flock.gridKeyReleaseObservable = gridKeyReleaseObservable;
-flock.canvas.pressedButtons = new Set();
 
-function createTouchGUI() {
-	const scale = (window.devicePixelRatio || 1) * 0.75; // Get the device pixel ratio, default to 1 if not available
 
-	// Create an AdvancedDynamicTexture to hold the UI elements
-	const advancedTexture =
-		flock.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
 
-	// Create a grid
-	const grid = new flock.GUI.Grid();
-	grid.width = `${240 * scale}px`;
-	grid.height = `${160 * scale}px`;
-	grid.horizontalAlignment = flock.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
-	grid.verticalAlignment = flock.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM;
-	grid.addRowDefinition(1);
-	grid.addRowDefinition(1);
-	grid.addColumnDefinition(1);
-	grid.addColumnDefinition(1);
-	grid.addColumnDefinition(1);
-	advancedTexture.addControl(grid);
 
-	function createSmallButton(text, key) {
-		const button = flock.GUI.Button.CreateSimpleButton("but", text);
-		button.width = `${70 * scale}px`; // Scale size
-		button.height = `${70 * scale}px`;
-		button.color = "white";
-		button.background = "transparent";
-		button.border = `${4 * scale}px solid white`; // Scale border size
-		button.fontSize = `${40 * scale}px`; // Scale font size
-
-		button.onPointerDownObservable.add(() => {
-			flock.canvas.pressedButtons.add(key);
-			flock.gridKeyPressObservable.notifyObservers(key);
-		});
-
-		button.onPointerUpObservable.add(() => {
-			flock.canvas.pressedButtons.delete(key);
-			flock.gridKeyReleaseObservable.notifyObservers(key);
-		});
-		return button;
-	}
-
-	const upButton = createSmallButton("▲", "w");
-	const downButton = createSmallButton("▼", "s");
-	const leftButton = createSmallButton("◀", "a");
-	const rightButton = createSmallButton("▶", "d");
-
-	// Add buttons to the grid
-	grid.addControl(upButton, 0, 1); // Add to row 0, column 1
-	grid.addControl(leftButton, 1, 0); // Add to row 1, column 0
-	grid.addControl(downButton, 1, 1); // Add to row 1, column 1
-	grid.addControl(rightButton, 1, 2); // Add to row 1, column 2
-
-	// Create another grid for the buttons on the right
-	const rightGrid = new flock.GUI.Grid();
-	rightGrid.width = `${160 * scale}px`; // Scale width
-	rightGrid.height = `${160 * scale}px`; // Scale height
-	rightGrid.horizontalAlignment =
-		flock.GUI.Control.HORIZONTAL_ALIGNMENT_RIGHT;
-	rightGrid.verticalAlignment = flock.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM;
-	rightGrid.addRowDefinition(1);
-	rightGrid.addRowDefinition(1);
-	rightGrid.addColumnDefinition(1);
-	rightGrid.addColumnDefinition(1);
-	advancedTexture.addControl(rightGrid);
-
-	// Create buttons for the right grid
-	const button1 = createSmallButton("⬤", "q");
-	const button2 = createSmallButton("■", "e");
-	const button3 = createSmallButton("✱", "f");
-	const button4 = createSmallButton("∞", " ");
-
-	// Add buttons to the right grid in a 2x2 layout
-	rightGrid.addControl(button1, 0, 0); // Row 0, Column 0
-	rightGrid.addControl(button2, 0, 1); // Row 0, Column 1
-	rightGrid.addControl(button3, 1, 0); // Row 1, Column 0
-	rightGrid.addControl(button4, 1, 1); // Row 1, Column 1
-}
