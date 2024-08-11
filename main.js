@@ -396,7 +396,7 @@ Blockly.Blocks["button_controls"] = {
 					options: [
 						["both", "BOTH"],
 						["arrows", "ARROWS"],
-						["actions", "ACTIONS"],			
+						["actions", "ACTIONS"],
 					],
 				},
 				{
@@ -2700,7 +2700,7 @@ javascriptGenerator.forBlock["set_sky_color"] = function (block) {
 
 javascriptGenerator.forBlock["button_controls"] = function (block) {
 	const color = getFieldValue(block, "COLOR", "#6495ED");
-	const control = block.getFieldValue("CONTROL") ;
+	const control = block.getFieldValue("CONTROL");
 	const enabled = block.getFieldValue("ENABLED") == "TRUE";
 	return `buttonControls("${control}", ${enabled}, ${color});\n`;
 };
@@ -3334,7 +3334,7 @@ function createEngine() {
 }
 
 const createScene = function () {
-	if (flock.scene) {	
+	if (flock.scene) {
 		removeEventListeners();
 		flock.gridKeyPressObservable.clear();
 		flock.gridKeyReleaseObservable.clear();
@@ -3346,23 +3346,20 @@ const createScene = function () {
 		hk = null;
 	}
 
-	
-	if (!engine)
-	{	
+	if (!engine) {
 		createEngine();
-	}
-    else{
+	} else {
 		engine.stopRenderLoop();
 	}
-	
+
 	flock.scene = new BABYLON.Scene(engine);
-	
+
 	engine.runRenderLoop(function () {
 		flock.scene.render();
 	});
-	
+
 	flock.scene.eventListeners = [];
-	
+
 	hk = new BABYLON.HavokPlugin(true, havokInstance);
 	flock.scene.enablePhysics(new BABYLON.Vector3(0, -9.81, 0), hk);
 	flock.hk = hk;
@@ -4043,13 +4040,17 @@ document.getElementById("toggleDebug").addEventListener("click", function () {
 	const gizmoButtons = document.getElementById("gizmoButtons");
 
 	if (flock.scene.debugLayer.isVisible()) {
+		canvasArea.style.width = "100%";
+		canvasArea.style.flexGrow = "1";
 		switchView(viewMode);
 		flock.scene.debugLayer.hide();
 		onResize();
 	} else {
 		blocklyArea.style.display = "none";
-		blocklyArea.style.width = "0";
-		canvasArea.style.width = "100%";
+		canvasArea.style.display = "block";
+		canvasArea.style.width = "50vw";
+		canvasArea.style.flexGrow = "0";
+		gizmoButtons.style.display = "block";
 		menu.style.right = "unset";
 		flock.scene.debugLayer.show();
 		onResize();
@@ -4201,9 +4202,8 @@ window.exportCode = exportCode;
 window.loadExample = loadExample;
 
 const runCode = (code) => {
-
-	if(codeMode == "blockly")
-	{
+	console.log("Code mode", codeMode);
+	if (codeMode == "blockly") {
 		switchView("canvas");
 	}
 	// Create a new sandboxed environment
@@ -4289,7 +4289,12 @@ function resizeCanvas() {
 	const canvas = document.getElementById("renderCanvas");
 
 	const areaWidth = canvasArea.clientWidth;
-	const areaHeight = canvasArea.clientHeight - 40;
+	let areaHeight = canvasArea.clientHeight - 45;
+
+	const gizmoButtons = document.getElementById("gizmoButtons");
+	if(gizmoButtons.style.display != "none"){
+		areaHeight -= 60 //Gizmos visible
+	}
 
 	const aspectRatio = 16 / 9;
 
@@ -4312,7 +4317,7 @@ window.addEventListener("resize", onResize);
 function onResize() {
 	Blockly.svgResize(workspace);
 	resizeCanvas();
-	if(engine) engine.resize();
+	if (engine) engine.resize();
 }
 
 let viewMode = "both";
@@ -4320,8 +4325,41 @@ let codeMode = "both";
 window.viewMode = viewMode;
 window.codeMode = codeMode;
 
-// Function to switch views
 function switchView(view) {
+	flock.scene.debugLayer.hide();
+	const blocklyArea = document.getElementById("codePanel");
+	const blocklyDiv = document.getElementById("blocklyDiv");
+	const canvasArea = document.getElementById("rightArea");
+	const menu = document.getElementById("menu");
+	const gizmoButtons = document.getElementById("gizmoButtons");
+	console.log("Switching view", codeMode, viewMode, view);
+
+	if (view === "both") {
+		viewMode = "both";
+		codeMode = "both";
+		blocklyArea.style.display = "block";
+		canvasArea.style.display = "block";
+		gizmoButtons.style.display = "flex";
+		menu.style.display = "flex";
+	} else if (view === "blockly") {
+		viewMode = "blockly";
+		codeMode = "blockly";
+		blocklyArea.style.display = "block";
+		canvasArea.style.display = "none";
+		gizmoButtons.style.display = "none";
+		menu.style.display = "none";
+	} else if (view === "canvas") {
+		viewMode = "canvas";
+		blocklyArea.style.display = "none";
+		canvasArea.style.display = "block";
+		gizmoButtons.style.display = "none";
+		menu.style.display = "flex";
+	}
+
+	onResize(); // Ensure both Blockly and Babylon.js canvas resize correctly
+}
+// Function to switch views
+function switchView2(view) {
 	const blocklyArea = document.getElementById("codePanel");
 	const blocklyDiv = document.getElementById("blocklyDiv");
 	const canvasArea = document.getElementById("rightArea");
@@ -4333,24 +4371,22 @@ function switchView(view) {
 		viewMode = "both";
 		codeMode = "both";
 		blocklyArea.style.display = "block";
-		blocklyDiv.style.width = "50vw"
+		blocklyDiv.style.width = "50vw";
 		canvasArea.style.width = "50%";
 		blocklyArea.style.width = "50%";
 		gizmoButtons.style.display = "flex";
 		menu.style.display = "flex";
 		//menu.style.right = "unset";
 	} else if (view === "blockly") {
-		//flock.scene.debugLayer.hide();
 		viewMode = "blockly";
 		codeMode = "blockly";
 		blocklyArea.style.display = "block";
 		blocklyArea.style.width = "100%";
-		blocklyDiv.style.width = "100vw"
+		blocklyDiv.style.width = "100vw";
 		canvasArea.style.width = "0%";
 		gizmoButtons.style.display = "none";
 		menu.style.display = "none";
 	} else if (view === "canvas") {
-		//flock.scene.debugLayer.hide();
 		viewMode = "canvas";
 		blocklyArea.style.display = "none";
 		canvasArea.style.width = "100%";
@@ -4469,7 +4505,41 @@ function toggleMenu() {
 
 window.toggleMenu = toggleMenu;
 
+document.addEventListener("DOMContentLoaded", () => {
+	const requestFullscreen = () => {
+		const elem = document.documentElement;
 
+		if (elem.requestFullscreen) {
+			elem.requestFullscreen();
+		} else if (elem.mozRequestFullScreen) {
+			// Firefox
+			elem.mozRequestFullScreen();
+		} else if (elem.webkitRequestFullscreen) {
+			// Chrome, Safari and Opera
+			elem.webkitRequestFullscreen();
+		} else if (elem.msRequestFullscreen) {
+			// IE/Edge
+			elem.msRequestFullscreen();
+		}
+	};
 
+	function isMobile() {
+		return /Mobi|Android/i.test(navigator.userAgent);
+	}
 
-
+	// Only trigger fullscreen if on a mobile device
+	if (isMobile()) {
+		if (
+			document.fullscreenEnabled ||
+			document.webkitFullscreenEnabled ||
+			document.mozFullScreenEnabled ||
+			document.msFullscreenEnabled
+		) {
+			requestFullscreen();
+		}
+		const examples = document.getElementById("exampleSelect");
+		examples.style.width = "55px";
+		const projectName = document.getElementById("projectName");
+		projectName.style.width = "80px";
+	}
+});
