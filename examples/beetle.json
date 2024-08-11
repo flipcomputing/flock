@@ -645,7 +645,7 @@
 		"type": "start",
 		"id": "67UqA#dk$Plh`=6d.rBZ",
 		"x": 0,
-		"y": 4364,
+		"y": 4490,
 		"inputs": {
 		  "DO": {
 			"block": {
@@ -840,7 +840,7 @@
 		"type": "when_clicked",
 		"id": "T49R.KFB*x#fI0.]*AP*",
 		"x": 0,
-		"y": 4899,
+		"y": 5020,
 		"fields": {
 		  "MODEL_VAR": {
 			"id": "HVK#874+GGeNQ^l)tw:z"
@@ -1066,8 +1066,8 @@
 	  {
 		"type": "procedures_defnoreturn",
 		"id": "%QX|EvNXnzJUcj2Qfx?L",
-		"x": 18,
-		"y": 1503,
+		"x": 0,
+		"y": 1592,
 		"extraState": {
 		  "params": [
 			{
@@ -4394,7 +4394,7 @@
 		"type": "procedures_defnoreturn",
 		"id": "CC]^nJ_ma5LyfxzLX]cT",
 		"x": 0,
-		"y": 11310,
+		"y": 11382,
 		"extraState": {
 		  "params": [
 			{
@@ -5025,7 +5025,7 @@
 														"type": "math_number",
 														"id": "WkKJJ.D`zUI6p=L}aL0S",
 														"fields": {
-														  "NUM": 28
+														  "NUM": 20
 														}
 													  }
 													}
@@ -5056,7 +5056,7 @@
 		"type": "procedures_defnoreturn",
 		"id": "SB+O/O0w*8k|eBX:U-_t",
 		"x": 0,
-		"y": 8035,
+		"y": 8124,
 		"inline": true,
 		"extraState": {
 		  "params": [
@@ -5221,7 +5221,7 @@
 								"type": "math_number",
 								"id": "kP_]+]Q^D`j=H;,MW[gr",
 								"fields": {
-								  "NUM": 24
+								  "NUM": 18
 								}
 							  }
 							}
@@ -6070,7 +6070,7 @@
 																"type": "math_number",
 																"id": "T[?d^,pI2FsaT_=oXHT6",
 																"fields": {
-																  "NUM": 30
+																  "NUM": 20
 																}
 															  }
 															}
@@ -6184,7 +6184,7 @@
 		"type": "when_clicked",
 		"id": "Xya84(sWW*$+kidxC1;7",
 		"x": 0,
-		"y": 5772,
+		"y": 5882,
 		"disabledReasons": [
 		  "MANUALLY_DISABLED"
 		],
@@ -6218,7 +6218,7 @@
 		"type": "start",
 		"id": "(6AbBq~%m^#Gv@E6;$?v",
 		"x": 0,
-		"y": 4803,
+		"y": 4924,
 		"collapsed": true,
 		"inputs": {
 		  "DO": {
@@ -6739,7 +6739,7 @@
 		"type": "on_event",
 		"id": "myC{vhf*lio,pw5Bqz~v",
 		"x": 0,
-		"y": 5954,
+		"y": 6062,
 		"fields": {
 		  "EVENT_NAME": "Player 2"
 		},
@@ -6945,7 +6945,7 @@
 		"type": "on_event",
 		"id": "u`rumZk%_#zZ4{1!Ss{6",
 		"x": 0,
-		"y": 6725,
+		"y": 6824,
 		"fields": {
 		  "EVENT_NAME": "Player 1 Wins"
 		},
@@ -7136,7 +7136,7 @@
 		"type": "on_event",
 		"id": "O;3EB:IG)ms]Qa*YUM%C",
 		"x": 0,
-		"y": 7380,
+		"y": 7474,
 		"fields": {
 		  "EVENT_NAME": "Player 2 Wins"
 		},
