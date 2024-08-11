@@ -4224,8 +4224,15 @@ addImportContextMenuOption();
 function loadExample() {
 	window.loadingCode = true;
 
-	const exampleFile = document.getElementById("exampleSelect").value;
+	const exampleSelect = document.getElementById("exampleSelect");
+	const exampleFile = exampleSelect.value;
+	const projectNameElement = document.getElementById("projectName");
+
 	if (exampleFile) {
+		// Set the project name based on the selected option's text
+		const selectedOption = exampleSelect.options[exampleSelect.selectedIndex].text;
+		projectNameElement.value = selectedOption;
+
 		fetch(exampleFile)
 			.then((response) => response.json())
 			.then((json) => {
@@ -4237,7 +4244,6 @@ function loadExample() {
 			});
 	}
 }
-
 window.executeCode = executeCode;
 window.exportCode = exportCode;
 window.loadExample = loadExample;
