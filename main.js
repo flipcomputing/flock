@@ -4045,12 +4045,14 @@ document.getElementById("toggleDebug").addEventListener("click", function () {
 	if (flock.scene.debugLayer.isVisible()) {
 		switchView(viewMode);
 		flock.scene.debugLayer.hide();
+		onResize();
 	} else {
 		blocklyArea.style.display = "none";
 		blocklyArea.style.width = "0";
 		canvasArea.style.width = "100%";
 		menu.style.right = "unset";
 		flock.scene.debugLayer.show();
+		onResize();
 	}
 });
 
@@ -4200,12 +4202,9 @@ window.loadExample = loadExample;
 
 const runCode = (code) => {
 
-	if (performance.memory) {
-		console.log('JS Heap Size Limit: ' + performance.memory.jsHeapSizeLimit);
-		console.log('Total JS Heap Size: ' + performance.memory.totalJSHeapSize);
-		console.log('Used JS Heap Size: ' + performance.memory.usedJSHeapSize);
-	} else {
-		console.log('Memory info is not available in this browser.');
+	if(codeMode == "blockly")
+	{
+		switchView("canvas");
 	}
 	// Create a new sandboxed environment
 	try {
@@ -4324,6 +4323,7 @@ window.codeMode = codeMode;
 // Function to switch views
 function switchView(view) {
 	const blocklyArea = document.getElementById("codePanel");
+	const blocklyDiv = document.getElementById("blocklyDiv");
 	const canvasArea = document.getElementById("rightArea");
 	const menu = document.getElementById("menu");
 	const gizmoButtons = document.getElementById("gizmoButtons");
@@ -4333,6 +4333,7 @@ function switchView(view) {
 		viewMode = "both";
 		codeMode = "both";
 		blocklyArea.style.display = "block";
+		blocklyDiv.style.width = "50vw"
 		canvasArea.style.width = "50%";
 		blocklyArea.style.width = "50%";
 		gizmoButtons.style.display = "flex";
@@ -4344,6 +4345,7 @@ function switchView(view) {
 		codeMode = "blockly";
 		blocklyArea.style.display = "block";
 		blocklyArea.style.width = "100%";
+		blocklyDiv.style.width = "100vw"
 		canvasArea.style.width = "0%";
 		gizmoButtons.style.display = "none";
 		menu.style.display = "none";
