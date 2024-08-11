@@ -1985,3 +1985,79 @@ export const toolbox = {
 		},
 	],
 };
+
+export const initialBlocksJson = {
+	blocks: {
+		languageVersion: 0,
+		blocks: [
+			{
+				type: "start",
+				x: 10,
+				y: 10,
+				inputs: {
+					DO: {
+						block: {
+							type: "set_sky_color",
+							inputs: {
+								COLOR: {
+									shadow: {
+										type: "colour",
+										fields: {
+											COLOR: "#6495ed",
+										},
+									},
+								},
+							},
+							next: {
+								block: {
+									type: "create_ground",
+									inputs: {
+										COLOR: {
+											shadow: {
+												type: "colour",
+												fields: {
+													COLOR: "#71bc78",
+												},
+											},
+										},
+									},
+									next: {
+										block: {
+											type: "print_text",
+											inputs: {
+												TEXT: {
+													shadow: {
+														type: "text",
+														fields: {
+															TEXT: "🌈 Hello",
+														},
+													},
+												},
+												DURATION: {
+													shadow: {
+														type: "math_number",
+														fields: {
+															NUM: 30,
+														},
+													},
+												},
+												COLOR: {
+													shadow: {
+														type: "colour",
+														fields: {
+															COLOR: "#000080",
+														},
+													},
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		],
+	},
+};
