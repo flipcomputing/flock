@@ -3695,6 +3695,8 @@ const initialBlocksJson = {
 	},
 };
 
+window.initialBlocksJson = initialBlocksJson;
+
 function Mesh(id = "UNDEFINED") {
 	this.id = id;
 }
@@ -3767,10 +3769,47 @@ javascriptGenerator.init = function (workspace) {
 	javascriptGenerator.isInitialized = true;
 };
 
-// Load the JSON into the workspace
-Blockly.serialization.workspaces.load(initialBlocksJson, workspace);
+// Function to get today's date in 'YYYY-MM-DD' format
+function getTodayDate() {
+	const today = new Date();
+	return today.toISOString().split("T")[0];
+}
 
-executeCode();
+// Function to save the current workspace state
+function saveWorkspace() {
+	var state = Blockly.serialization.workspaces.save(workspace);
+
+	const key = "flock_autosave.json";
+
+	// Save today's workspace state
+	localStorage.setItem(key, JSON.stringify(state));
+}
+
+// Function to load today's workspace state
+function loadWorkspace() {
+	
+	const savedState = localStorage.getItem('flock_autosave.json');
+
+	if (savedState) {
+		console.log("Loading saved state...");
+		Blockly.serialization.workspaces.load(
+			JSON.parse(savedState),
+			workspace,
+		);
+	} else {
+		console.log("Loading default program");
+		// Load the JSON into the workspace
+		Blockly.serialization.workspaces.load(
+			window.initialBlocksJson,
+			workspace,
+		);
+	}
+
+	executeCode();
+}
+
+// Call this function to autosave periodically
+setInterval(saveWorkspace, 30000); // Autosave every 30 seconds
 
 function stripFilename(inputString) {
 	const removeEnd = inputString.replace(/\(\d+\)/g, "");
@@ -3864,6 +3903,8 @@ window.onload = function () {
 	flock.canvas.addEventListener("keyup", function (event) {
 		flock.canvas.pressedKeys.delete(event.key);
 	});
+
+	loadWorkspace();
 };
 
 function executeCode() {
@@ -4292,8 +4333,8 @@ function resizeCanvas() {
 	let areaHeight = canvasArea.clientHeight - 45;
 
 	const gizmoButtons = document.getElementById("gizmoButtons");
-	if(gizmoButtons.style.display != "none"){
-		areaHeight -= 60 //Gizmos visible
+	if (gizmoButtons.style.display != "none") {
+		areaHeight -= 60; //Gizmos visible
 	}
 
 	const aspectRatio = 16 / 9;
