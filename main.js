@@ -13,8 +13,8 @@ import "@babylonjs/core/Debug/debugLayer";
 import "@babylonjs/inspector";
 import { flock } from "./flock.js";
 import { toolbox, initialBlocksJson } from "./toolbox.js";
-import { defineBlocks, initializeVariableIndexes } from './blocks';
-import { defineGenerators, meshMap } from './generators';
+import { defineBlocks, initializeVariableIndexes } from "./blocks";
+import { defineGenerators, meshMap } from "./generators";
 import { FlowGraphLog10Block } from "babylonjs";
 flock.BABYLON = BABYLON;
 flock.GUI = BABYLON_GUI;
@@ -308,8 +308,7 @@ function saveWorkspace() {
 
 // Function to load today's workspace state
 function loadWorkspace() {
-	
-	const savedState = localStorage.getItem('flock_autosave.json');
+	const savedState = localStorage.getItem("flock_autosave.json");
 
 	if (savedState) {
 		console.log("Loading saved state...");
@@ -425,65 +424,126 @@ window.onload = function () {
 		flock.canvas.pressedKeys.delete(event.key);
 	});
 
-	document.getElementById("toggleDebug").addEventListener("click", function () {
-		const blocklyArea = document.getElementById("codePanel");
-		const canvasArea = document.getElementById("rightArea");
-		const menu = document.getElementById("menu");
-		const gizmoButtons = document.getElementById("gizmoButtons");
+	document
+		.getElementById("toggleDebug")
+		.addEventListener("click", function () {
+			const blocklyArea = document.getElementById("codePanel");
+			const canvasArea = document.getElementById("rightArea");
+			const menu = document.getElementById("menu");
+			const gizmoButtons = document.getElementById("gizmoButtons");
 
-		if (flock.scene.debugLayer.isVisible()) {
-			canvasArea.style.width = "100%";
-			canvasArea.style.flexGrow = "1";
-			switchView(viewMode);
-			flock.scene.debugLayer.hide();
-			onResize();
-		} else {
-			blocklyArea.style.display = "none";
-			canvasArea.style.display = "block";
-			canvasArea.style.width = "50vw";
-			canvasArea.style.flexGrow = "0";
-			gizmoButtons.style.display = "block";
-			menu.style.right = "unset";
-			flock.scene.debugLayer.show();
-			onResize();
-		}
-	});
+			if (flock.scene.debugLayer.isVisible()) {
+				canvasArea.style.width = "100%";
+				canvasArea.style.flexGrow = "1";
+				switchView(viewMode);
+				flock.scene.debugLayer.hide();
+				onResize();
+			} else {
+				blocklyArea.style.display = "none";
+				canvasArea.style.display = "block";
+				canvasArea.style.width = "50vw";
+				canvasArea.style.flexGrow = "0";
+				gizmoButtons.style.display = "block";
+				menu.style.right = "unset";
+				flock.scene.debugLayer.show();
+				onResize();
+			}
+		});
 
 	document
-	.getElementById("fullscreenToggle")
-	.addEventListener("click", function () {
-		if (!document.fullscreenElement) {
-			// Go fullscreen
-			if (document.documentElement.requestFullscreen) {
-				document.documentElement.requestFullscreen();
-			} else if (document.documentElement.mozRequestFullScreen) {
-				/* Firefox */
-				document.documentElement.mozRequestFullScreen();
-			} else if (document.documentElement.webkitRequestFullscreen) {
-				/* Chrome, Safari & Opera */
-				document.documentElement.webkitRequestFullscreen();
-			} else if (document.documentElement.msRequestFullscreen) {
-				/* IE/Edge */
-				document.documentElement.msRequestFullscreen();
+		.getElementById("fullscreenToggle")
+		.addEventListener("click", function () {
+			if (!document.fullscreenElement) {
+				// Go fullscreen
+				if (document.documentElement.requestFullscreen) {
+					document.documentElement.requestFullscreen();
+				} else if (document.documentElement.mozRequestFullScreen) {
+					/* Firefox */
+					document.documentElement.mozRequestFullScreen();
+				} else if (document.documentElement.webkitRequestFullscreen) {
+					/* Chrome, Safari & Opera */
+					document.documentElement.webkitRequestFullscreen();
+				} else if (document.documentElement.msRequestFullscreen) {
+					/* IE/Edge */
+					document.documentElement.msRequestFullscreen();
+				}
+			} else {
+				// Exit fullscreen
+				if (document.exitFullscreen) {
+					document.exitFullscreen();
+				} else if (document.mozCancelFullScreen) {
+					/* Firefox */
+					document.mozCancelFullScreen();
+				} else if (document.webkitExitFullscreen) {
+					/* Chrome, Safari & Opera */
+					document.webkitExitFullscreen();
+				} else if (document.msExitFullscreen) {
+					/* IE/Edge */
+					document.msExitFullscreen();
+				}
 			}
-		} else {
-			// Exit fullscreen
-			if (document.exitFullscreen) {
-				document.exitFullscreen();
-			} else if (document.mozCancelFullScreen) {
-				/* Firefox */
-				document.mozCancelFullScreen();
-			} else if (document.webkitExitFullscreen) {
-				/* Chrome, Safari & Opera */
-				document.webkitExitFullscreen();
-			} else if (document.msExitFullscreen) {
-				/* IE/Edge */
-				document.msExitFullscreen();
+		});
+
+	// Override the cleanUp method to ignore orphans
+	workspace.cleanUp = function () {
+		const blocks = workspace.getTopBlocks(true); // Get all top-level blocks
+		const spacing = 40; // Define spacing between blocks
+		let cursorY = 10; // Starting y position
+
+		blocks.forEach((block) => {
+			// Skip orphan blocks (blocks that have no connections)
+			if (
+				block.getChildren().length === 0 &&
+				block.getParent() === null
+			) {
+				return;
 			}
+
+			// Position the block in a neat stack
+			const blockXY = block.getRelativeToSurfaceXY();
+			block.moveBy(-blockXY.x, cursorY - blockXY.y);
+			cursorY += block.getHeightWidth().height + spacing;
+		});
+	};
+
+	// Add change listener to handle cleanup after block move or delete
+	workspace.addChangeListener(function (event) {
+		try {
+			if (event.type === Blockly.Events.BLOCK_MOVE) {
+				const block = workspace.getBlockById(event.blockId);
+				if (!block) return;
+
+				const oldParentId = event.oldParentId;
+				const newParent = block.getParent();
+
+				// Case 1: Block is connected to a top-level block
+				if (newParent) {
+					let rootBlock = block.getRootBlock();
+					if (rootBlock && rootBlock.getParent() === null) {
+						workspace.cleanUp(); // Clean up the workspace to organize blocks
+						return;
+					}
+				}
+
+				// Case 2: Block is removed from a top-level block stack
+				if (oldParentId && !newParent) {
+					const oldParentBlock = workspace.getBlockById(oldParentId);
+
+					if (oldParentBlock) {
+						let rootBlock = oldParentBlock.getRootBlock();
+						if (rootBlock && rootBlock.getParent() === null) {
+							workspace.cleanUp(); // Clean up the workspace to organize blocks
+						}
+					}
+				}
+			}
+		} catch (error) {
+			console.error(
+				"An error occurred during the Blockly workspace cleanup process:",
+				error,
+			);
 		}
 	});
-
-
 
 	loadWorkspace();
 };
@@ -621,8 +681,6 @@ function highlightBlockById(workspace, block) {
 	}
 }
 
-
-
 async function exportBlockSnippet(block) {
 	try {
 		// Save the block and its children to a JSON object
@@ -755,7 +813,8 @@ function loadExample() {
 
 	if (exampleFile) {
 		// Set the project name based on the selected option's text
-		const selectedOption = exampleSelect.options[exampleSelect.selectedIndex].text;
+		const selectedOption =
+			exampleSelect.options[exampleSelect.selectedIndex].text;
 		projectNameElement.value = selectedOption;
 
 		fetch(exampleFile)
@@ -774,7 +833,6 @@ window.exportCode = exportCode;
 window.loadExample = loadExample;
 
 const runCode = (code) => {
-	
 	if (codeMode == "blockly") {
 		switchView("canvas");
 	}
