@@ -157,7 +157,6 @@ export const flock = {
 		});
 	},
 	async highlight(modelName, color) {
-
 		console.log(modelName, modelName.id);
 		await flock.whenModelReady(modelName, (mesh) => {
 			if (mesh.material) {
@@ -182,7 +181,6 @@ export const flock = {
 		});
 	},
 	newModel(modelName, modelId, scale, x, y, z) {
-
 		const blockId = modelId;
 		modelId += "_" + flock.scene.getUniqueId();
 
@@ -1184,7 +1182,8 @@ export const flock = {
 		rightGrid.height = `${160 * flock.displayScale}px`; // Scale height
 		rightGrid.horizontalAlignment =
 			flock.GUI.Control.HORIZONTAL_ALIGNMENT_RIGHT;
-		rightGrid.verticalAlignment = flock.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM;
+		rightGrid.verticalAlignment =
+			flock.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM;
 		rightGrid.addRowDefinition(1);
 		rightGrid.addRowDefinition(1);
 		rightGrid.addColumnDefinition(1);
@@ -1203,16 +1202,14 @@ export const flock = {
 		rightGrid.addControl(button3, 1, 0); // Row 1, Column 0
 		rightGrid.addControl(button4, 1, 1); // Row 1, Column 1
 	},
-	buttonControls(control, enabled, color){
-		
-		if(flock.controlsTexture)
-		{
+	buttonControls(control, enabled, color) {
+		if (flock.controlsTexture) {
 			flock.controlsTexture.dispose();
 		}
-		
-		if(enabled)
-		{
-			flock.controlsTexture = flock.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
+
+		if (enabled) {
+			flock.controlsTexture =
+				flock.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
 
 			if (control == "ARROWS" || control == "BOTH")
 				flock.createArrowControls(color);
@@ -1368,7 +1365,6 @@ export const flock = {
 		return hit.hit && hit.pickedMesh !== null && hit.distance <= 0.06;
 	},
 	keyPressed(key) {
-		
 		if (key === "ANY") {
 			return (
 				flock.canvas.pressedKeys.size > 0 ||
@@ -1501,7 +1497,7 @@ export const flock = {
 		});
 	},
 	moveForward(modelName, speed) {
-		const model = flock.scene.getMeshByName(modelName)
+		const model = flock.scene.getMeshByName(modelName);
 		if (!model || speed === 0) return;
 
 		const forwardSpeed = speed;
@@ -1784,134 +1780,138 @@ export const flock = {
 		}
 		return false;
 	},
-	async say(
-		meshName,
-		text,
-		duration,
-		textColor,
-		backgroundColor,
-		alpha,
-		size,
-		mode,
-	) {
-		await flock.whenModelReady(meshName, async function (mesh) {
-			return new Promise((resolve, reject) => {
-				if (mesh) {
-					let targetMesh = mesh;
-					if (!mesh.material) {
-						const stack = [mesh];
-						while (stack.length > 0) {
-							const current = stack.pop();
-							if (current.material) {
-								targetMesh = current;
-								break;
-							}
-							stack.push(...current.getChildMeshes());
-						}
-					}
+	say(meshName, text, duration, textColor, backgroundColor, alpha, size, mode) {
+		if (flock.scene) {
+			const mesh = flock.scene.getMeshByName(meshName);
 
-					let plane = mesh
-						.getDescendants()
-						.find((child) => child.name === "textPlane");
-					let advancedTexture;
-					if (!plane) {
-						plane = flock.BABYLON.MeshBuilder.CreatePlane(
-							"textPlane",
-							{ width: 2.5, height: 2.5 },
-							flock.scene,
-						);
-						plane.name = "textPlane";
-						plane.parent = targetMesh;
-						plane.alpha = 1;
-						plane.checkCollisions = false;
-						plane.isPickable = false;
-						advancedTexture =
-							flock.GUI.AdvancedDynamicTexture.CreateForMesh(
-								plane,
-							);
-						plane.advancedTexture = advancedTexture;
-
-						const boundingInfo = targetMesh.getBoundingInfo();
-						plane.position.y =
-							boundingInfo.boundingBox.maximum.y + 1.5;
-						plane.billboardMode =
-							flock.BABYLON.Mesh.BILLBOARDMODE_ALL;
-
-						const stackPanel = new flock.GUI.StackPanel();
-						stackPanel.name = "stackPanel";
-						stackPanel.horizontalAlignment =
-							flock.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
-						stackPanel.verticalAlignment =
-							flock.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM;
-						stackPanel.isVertical = true;
-						stackPanel.width = "100%";
-						stackPanel.adaptHeightToChildren = true;
-						stackPanel.resizeToFit = true;
-						stackPanel.forceResizeWidth = true;
-						stackPanel.forceResizeHeight = true;
-						stackPanel.spacing = 4;
-						advancedTexture.addControl(stackPanel);
-					} else {
-						advancedTexture = plane.advancedTexture;
-					}
-
-					const stackPanel =
-						advancedTexture.getControlByName("stackPanel");
-
-					if (mode === "REPLACE") {
-						stackPanel.clearControls();
-					}
-
-					if (text) {
-						const bg = new flock.GUI.Rectangle("textBackground");
-						bg.background = flock.hexToRgba(backgroundColor, alpha);
-						bg.adaptWidthToChildren = true;
-						bg.adaptHeightToChildren = true;
-						bg.cornerRadius = 30;
-						bg.thickness = 0;
-						bg.resizeToFit = true;
-						bg.forceResizeWidth = true;
-						stackPanel.addControl(bg);
-
-						const scale = (window.devicePixelRatio || 1) * 0.75;
-						const textBlock = new flock.GUI.TextBlock();
-						textBlock.text = text;
-						textBlock.color = textColor;
-						textBlock.fontSize = size * 10 * scale;
-						textBlock.alpha = 1;
-						textBlock.textWrapping =
-							flock.GUI.TextWrapping.WordWrap;
-						textBlock.resizeToFit = true;
-						textBlock.forceResizeWidth = true;
-						textBlock.paddingLeft = 50;
-						textBlock.paddingRight = 50;
-						textBlock.paddingTop = 20;
-						textBlock.paddingBottom = 20;
-						textBlock.textVerticalAlignment =
-							flock.GUI.Control.VERTICAL_ALIGNMENT_TOP;
-						textBlock.textHorizontalAlignment =
-							flock.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
-						bg.addControl(textBlock);
-
-						if (duration > 0) {
-							setTimeout(function () {
-								stackPanel.removeControl(bg);
-								bg.dispose();
-								textBlock.dispose();
-								resolve();
-							}, duration * 1000);
+			if (mesh) {
+				// Mesh is available immediately
+				if (duration === 0) {
+					// Handle synchronously and return immediately if duration is 0
+					handleMesh(mesh);
+					return;
+				} else {
+					// Handle with a promise if duration is non-zero
+					return handleMesh(mesh);
+				}
+			} else {
+				// Mesh is not available, return a Promise and handle asynchronously
+				return flock.whenModelReady(meshName, function (mesh) {
+					return new Promise((resolve, reject) => {
+						if (mesh) {
+							handleMesh(mesh).then(resolve).catch(reject);
 						} else {
-							resolve();
+							console.error("Mesh is not defined.");
+							reject("Mesh is not defined.");
 						}
+					});
+				});
+			}
+		} else {
+			console.error("Scene is not available.");
+			return Promise.reject("Scene is not available.");
+		}
+
+		function handleMesh(mesh) {
+			return new Promise((resolve) => {
+				let targetMesh = mesh;
+				if (!mesh.material) {
+					const stack = [mesh];
+					while (stack.length > 0) {
+						const current = stack.pop();
+						if (current.material) {
+							targetMesh = current;
+							break;
+						}
+						stack.push(...current.getChildMeshes());
+					}
+				}
+
+				let plane = mesh.getDescendants().find((child) => child.name === "textPlane");
+				let advancedTexture;
+				if (!plane) {
+					plane = flock.BABYLON.MeshBuilder.CreatePlane(
+						"textPlane",
+						{ width: 2.5, height: 2.5 },
+						flock.scene,
+					);
+					plane.name = "textPlane";
+					plane.parent = targetMesh;
+					plane.alpha = 1;
+					plane.checkCollisions = false;
+					plane.isPickable = false;
+					advancedTexture = flock.GUI.AdvancedDynamicTexture.CreateForMesh(plane);
+					plane.advancedTexture = advancedTexture;
+
+					const boundingInfo = targetMesh.getBoundingInfo();
+					plane.position.y = boundingInfo.boundingBox.maximum.y + 1.5;
+					plane.billboardMode = flock.BABYLON.Mesh.BILLBOARDMODE_ALL;
+
+					const stackPanel = new flock.GUI.StackPanel();
+					stackPanel.name = "stackPanel";
+					stackPanel.horizontalAlignment = flock.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
+					stackPanel.verticalAlignment = flock.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM;
+					stackPanel.isVertical = true;
+					stackPanel.width = "100%";
+					stackPanel.adaptHeightToChildren = true;
+					stackPanel.resizeToFit = true;
+					stackPanel.forceResizeWidth = true;
+					stackPanel.forceResizeHeight = true;
+					stackPanel.spacing = 4;
+					advancedTexture.addControl(stackPanel);
+				} else {
+					advancedTexture = plane.advancedTexture;
+				}
+
+				const stackPanel = advancedTexture.getControlByName("stackPanel");
+
+				if (mode === "REPLACE") {
+					stackPanel.clearControls();
+				}
+
+				if (text) {
+					const bg = new flock.GUI.Rectangle("textBackground");
+					bg.background = flock.hexToRgba(backgroundColor, alpha);
+					bg.adaptWidthToChildren = true;
+					bg.adaptHeightToChildren = true;
+					bg.cornerRadius = 30;
+					bg.thickness = 0;
+					bg.resizeToFit = true;
+					bg.forceResizeWidth = true;
+					stackPanel.addControl(bg);
+
+					const scale = (window.devicePixelRatio || 1) * 0.75;
+					const textBlock = new flock.GUI.TextBlock();
+					textBlock.text = text;
+					textBlock.color = textColor;
+					textBlock.fontSize = size * 10 * scale;
+					textBlock.alpha = 1;
+					textBlock.textWrapping = flock.GUI.TextWrapping.WordWrap;
+					textBlock.resizeToFit = true;
+					textBlock.forceResizeWidth = true;
+					textBlock.paddingLeft = 50;
+					textBlock.paddingRight = 50;
+					textBlock.paddingTop = 20;
+					textBlock.paddingBottom = 20;
+					textBlock.textVerticalAlignment = flock.GUI.Control.VERTICAL_ALIGNMENT_TOP;
+					textBlock.textHorizontalAlignment = flock.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
+					bg.addControl(textBlock);
+
+					if (duration > 0) {
+						setTimeout(function () {
+							stackPanel.removeControl(bg);
+							bg.dispose();
+							textBlock.dispose();
+							resolve();
+						}, duration * 1000);
 					} else {
-						resolve();
+						resolve(); // Resolve immediately if duration is 0
 					}
 				} else {
-					console.error("Mesh is not defined.");
-					reject("Mesh is not defined.");
+					resolve();
 				}
 			});
-		});
+		}
 	},
 	hexToRgba(hex, alpha) {
 		hex = hex.replace(/^#/, "");

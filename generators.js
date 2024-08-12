@@ -61,7 +61,8 @@ export function defineGenerators() {
 		const duration = getFieldValue(block, "DURATION", "0");
 		const mode = block.getFieldValue("MODE");
 
-		return `await glideTo(${meshName}, ${x}, ${y}, ${z}, ${duration}, "${mode}");\n`;
+		const asyncWrapper = mode === "AWAIT" ? "await " : "";
+		return `${asyncWrapper}glideTo(${meshName}, ${x}, ${y}, ${z}, ${duration}, "${mode}");\n`;
 	};
 
 	javascriptGenerator.forBlock["start"] = function (block) {
@@ -164,7 +165,6 @@ export function defineGenerators() {
 		const mode = block.getFieldValue("MODE");
 		const asyncMode = block.getFieldValue("ASYNC");
 
-		// Wrap in an asynchronous IIFE if async mode is enabled
 		const asyncWrapper = asyncMode === "AWAIT" ? "await " : "";
 
 		return `${asyncWrapper}say(${meshVariable}, ${text}, ${duration}, ${textColor}, ${backgroundColor}, ${alpha}, ${size}, "${mode}");\n`;
