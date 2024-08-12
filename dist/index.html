@@ -3,8 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <title>Flock</title>
-
-    <meta charset="UTF-8" />
+   
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="manifest" href="/flock/manifest.webmanifest" />
     <link rel="apple-touch-icon" href="/assets/apple-touch-icon-DqMZAnTJ.png" />
@@ -18,70 +17,322 @@
     />
     <meta name="theme-color" content="#800080" />
     <style>
+
+      /*.blocklyText {
+          fill: black !important;
+          font-weight: normal !important;
+          font-family: 'Asap', Helvetica, Arial, Lucida, sans-serif;
+      }*/
+    
       body {
         display: flex;
+        flex-wrap: wrap;
         height: 100vh;
+        margin: 0px;
+        gap: 0;
+        box-sizing: border-box;
+      }
+
+      #menu {
+        display: flex;
+        align-items: stretch;
+        max-width: 100vw;
+        gap: 5px;
+        z-index: 10;
+        background-color: rgba(255, 255, 255, 0.9);
+        padding: 0px;
+        border-radius: 5px;
+        box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+      }
+
+      #codePanelButtons {
+        display: flex;
+        height: 37.6px;
+        justify-content: space-between;
+        flex-shrink: 0;
+        border: none;
+      }
+
+      .stackedContainer {
+        display: flex;
+        flex-direction: column;
+        padding: 5px;
+        gap: 5px;
+      }
+
+      .stackedContainer input[type="text"],
+      .stackedContainer select {
+        padding: 5px;
+        border-radius: 5px;
+        border: 1px solid #ccc;
+        font-size: 14px;
+      }
+
+      .stackedContainer select.highlighted {
+        border: 4px solid magenta;
+        padding: 5px;
+        background-color: #f9f9f9;
+      }
+
+      .stackedContainer input[type="text"]:focus,
+      .stackedContainer select:focus {
+        border-color: #4caf50;
+        outline: none;
+      }
+
+      .bigbutton {
+        display: inline-block;
         margin: 0;
+        padding: 5px 5px;
+        font-size: 18px;
+        background-color: #f0f0f0;
+        color: black;
+        border: none;
+        border-radius: 15px;
+        cursor: pointer;
+        touch-action: manipulation;
+      }
+
+      .bigbutton:hover {
+        background-color: #e0e0e0;
+      }
+
+      .highlighted {
+        border: 4px solid magenta;
+        padding: 5px;
+        background-color: #f9f9f9;
+      }
+
+      #codePanel,
+      #rightArea {
+        flex-basis: 50%;
+        flex-grow: 1;
+        flex-shrink: 0;
+        max-width: 100vw;
+        min-width: min(375px, 100vw);
+        min-height: min(333px, 100vh);
+      }
+
+      #codePanel {
+        position: relative;
+        height: 100%;
+        border: none;
       }
 
       #blocklyDiv {
-        height: 100%;
-        width: 50%;
+        position: absolute;
+        top: 37.5px;
+        height: calc(100% - 37.5px);
+        border: none;
+        width: 100%;
       }
 
       #rightArea {
-        width: 50%;
-        height: 100%;
+        height: 100vh;
       }
 
       #renderCanvas {
         width: 100%;
-        height: 90%;
+        height: auto;
       }
 
-      .blocklySvg text {
-        font-family: "Asap", sans-serif !important;
+      .gizmo-buttons {
+        display: flex;
+        margin-top: 0px;
+        gap: 5px;
+        padding: 5px;
+        box-sizing: border-box;
+      }
+
+      .gizmo-button {
+        padding: 5px 5px;
+        font-size: 12px;
+        cursor: pointer;
+        border-radius: 5px;
+        border: none;
+        background-color: #5ba680;
+        color: white;
+      }
+
+      .dropdown-content {
+        display: none;
+        position: absolute;
+        background-color: #f9f9f9;
+        min-width: 160px;
+        max-width: 200px; /* Optional: Set a maximum width */
+        box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
+        z-index: 1;
+        border-radius: 5px;
+        white-space: nowrap;
+      }
+
+      .dropdown-content button {
+        font-size: 1em;
+      }
+
+      .dropdown {
+        position: relative; /* Ensure the dropdown is positioned relative to its container */
+      }
+
+      .dropdown-content {
+        right: 0; /* Align the dropdown content to the right side of the button */
+        left: auto; /* Override left positioning */
+      }
+
+      .dropdown:hover .dropdown-content {
+        display: block;
+      }
+
+      .gizmo-buttons {
+        display: flex;
+        gap: 10px;
+        padding: 10px;
+        box-sizing: border-box;
+        margin-top: auto;
       }
     </style>
-    <script type="module" crossorigin src="/assets/index-BsL_iNhk.js"></script>
+    <script type="module" crossorigin src="/assets/index-DPlmIoHl.js"></script>
   <link rel="manifest" href="/flock/manifest.webmanifest"><script id="vite-plugin-pwa:register-sw" src="/flock/registerSW.js"></script></head>
 
   <body>
     <input type="file" id="importFile" style="display: none" accept=".json" />
-    <div id="blocklyDiv"></div>
+
     <div id="rightArea">
       <div id="menu">
-        <button onclick="executeCode()">▶️ Run</button>
-        <button id="toggleDebug">🪲Debug</button>
-        <button onclick="stopCode()">🛑 Stop</button>
-        <button>
-          <input type="file" id="fileInput" style="display: none" />
-          <label for="fileInput" class="btn">📂Open</label>
+        <button class="bigbutton" onclick="executeCode()" title="Run your code">
+          ▶️
         </button>
-        <input
-          type="text"
-          id="projectName"
-          placeholder="Enter project name here"
-        />
-        <button onclick="exportCode()">💾Save</button>
-        <button id="fullscreenToggle">🖼️Fullscreen</button>
+        <button class="bigbutton" id="toggleDebug" title="Debug your code">
+          🪲
+        </button>
+        <button class="bigbutton" onclick="stopCode()" title="Stop your code">
+          🛑
+        </button>
+        <button
+          class="bigbutton"
+          title="Open a project from a file on your computer"
+        >
+          <input type="file" id="fileInput" style="display: none" />
+          <label for="fileInput">📂</label>
+        </button>
+
+        <div class="stackedContainer">
+          <input type="text" id="projectName" placeholder="Project name" />
+        </div>
+
+        <button
+          class="bigbutton"
+          onclick="exportCode()"
+          title="Save this project to a file on your computer."
+        >
+          💾
+        </button>
+        <!-- Dropdown View Switcher -->
+        <div class="dropdown bigbutton">
+          <button
+            style="border: none; font-size: 18px; padding: 0; padding-top: 0px"
+          >
+            🖼️
+          </button>
+          <div class="dropdown-content">
+            <button onclick="switchView('both')">Both</button>
+            <button onclick="switchView('blockly')">Blockly</button>
+            <button onclick="switchView('canvas')">Canvas</button>
+          </div>
+        </div>
+      </div>
+      <canvas id="renderCanvas" tabindex="0"></canvas>
+      <div class="gizmo-buttons" id="gizmoButtons">
+        <button class="gizmo-button" onclick="toggleGizmo('position')">
+          Position
+        </button>
+        <button class="gizmo-button" onclick="toggleGizmo('rotation')">
+          Rotation
+        </button>
+        <button class="gizmo-button" onclick="toggleGizmo('scale')">
+          Scale
+        </button>
+        <button class="gizmo-button" onclick="turnOffAllGizmos()">Hide</button>
+        <button class="gizmo-button" onclick="openAboutPage()">🐑 About</button>
+      </div>
+    </div>
+    <div id="codePanel">
+      <div id="codePanelButtons">
         <div>
-          <button class="gizmo-button" onclick="toggleGizmo('position')">
-            Position
+          <button
+            value="Toolbox"
+            id="toolboxControl"
+            class="highlighted"
+            onclick="toggleToolbox()"
+            style="
+          z-index: 100000;
+          font-size: 16px;border-box width: 110px;
+          padding: 1px;
+          box-sizing: border-box;
+        "
+          >
+            Flock 🐑
           </button>
-          <button class="gizmo-button" onclick="toggleGizmo('rotation')">
-            Rotation
+          <button
+            class="bigbutton"
+            onclick="executeCode()"
+            title="Run your code"
+          >
+            ▶️
           </button>
-          <button class="gizmo-button" onclick="toggleGizmo('scale')">
-            Scale
-          </button>
-          <button class="gizmo-button" onclick="turnOffAllGizmos()">
-            Hide
+        </div>
+        <div
+          id="menuControl"
+          style="
+            z-index: 100000;
+            right: 10px;
+            top: 0px;
+            font-size: 16px;
+            padding: 0;
+            margin: 0;
+            display: flex;
+            align-items: stretch;
+          "
+        >
+          <select
+            class="highlighted"
+            id="exampleSelect"
+            title="Choose an example project to load."
+            onchange="loadExample()"
+          >
+            <option value="">🌴Examples</option>
+            <option value="examples/forest_base.json">🌲Forest Base</option>
+            <option value="examples/character_animation.json">
+              🎥Character Animation
+            </option>
+            <option value="examples/cube_art.json">🎨 Cube Art</option>
+            <option value="examples/collect_the_gems.json">
+              💎 Collect the Gems
+            </option>
+            <option value="examples/water_map.json">💧 Water Map</option>
+            <option value="examples/skittles.json">🎳 Skittles</option>
+            <option value="examples/beetle.json">🪲 Beetle</option>
+            <option value="examples/ball_pit.json">🟠 Ball Pit</option>
+          </select>
+          <!-- Dropdown View Switcher -->
+          <div class="dropdown bigbutton">
+            <button style="border: none; font-size: 18px">🖼️</button>
+            <div class="dropdown-content">
+              <button onclick="switchView('both')">Both</button>
+              <button onclick="switchView('blockly')">Blockly</button>
+              <button onclick="switchView('canvas')">Canvas</button>
+            </div>
+          </div>
+          <button
+            class="bigbutton"
+            title="Switch between fullscreen and normal views."
+            id="fullscreenToggle"
+          >
+            ↗️
           </button>
         </div>
       </div>
-      <canvas id="renderCanvas"></canvas>
+      <div id="blocklyDiv"></div>
     </div>
-
   </body>
 </html>

@@ -19,9 +19,11 @@ export const flock = {
 	async *modelReadyGenerator(
 		meshId,
 		maxAttempts = 10,
-		attemptInterval = 1000,
+		initialInterval = 100, // Start with a shorter interval
+		maxInterval = 1000 // Cap the interval at a maximum value
 	) {
 		let attempt = 1;
+		let interval = initialInterval;
 
 		while (attempt <= maxAttempts) {
 			if (flock.scene) {
@@ -31,9 +33,13 @@ export const flock = {
 					return;
 				}
 			}
+
 			await new Promise((resolve) =>
-				setTimeout(resolve, attemptInterval),
+				setTimeout(resolve, interval),
 			);
+
+			// Gradually increase the interval for the next attempt
+			interval = Math.min(interval * 2, maxInterval);
 			attempt++;
 		}
 
@@ -42,24 +48,24 @@ export const flock = {
 			`Mesh with ID '${meshId}' not found after ${maxAttempts} attempts.`,
 		);
 	},
-	async whenModelReady(meshId, callback) {
-		// Check if flock.modelReadyGenerator exists
-		if (!flock.modelReadyGenerator) {
-			throw new Error(
-				"modelReadyGenerator is not defined on the flock object.",
-			);
+	whenModelReady(meshId, callback) {
+		if (flock.scene) {
+			const mesh = flock.scene.getMeshByName(meshId);
+			if (mesh) {
+				// Mesh is available immediately, invoke the callback synchronously
+				callback(mesh);
+				return; // Return immediately, no Promise needed
+			}
 		}
 
-		// Create the generator using the flock's modelReadyGenerator
-		const generator = flock.modelReadyGenerator(meshId);
+		// If the mesh is not immediately available, fall back to the generator and return a Promise
+		return (async () => {
+			const generator = flock.modelReadyGenerator(meshId);
 
-		try {
 			for await (const mesh of generator) {
 				await callback(mesh);
 			}
-		} catch (error) {
-			console.error("Error in modelReadyGenerator:", error);
-		}
+		})();
 	},
 	stopAnimationsTargetingMesh(scene, mesh) {
 		scene.animationGroups.forEach(function (animationGroup) {
@@ -145,20 +151,19 @@ export const flock = {
 
 		return targetAnimationGroup;
 	},
-	async switchAnimation(modelName, animationName) {
-		await flock.whenModelReady(modelName, (mesh) => {
+	switchAnimation(modelName, animationName) {
+		return flock.whenModelReady(modelName, (mesh) => {
 			flock.switchToAnimation(
 				flock.scene,
 				mesh,
 				animationName,
 				true,
-				false,
+				false
 			);
 		});
 	},
-	async highlight(modelName, color) {
-		console.log(modelName, modelName.id);
-		await flock.whenModelReady(modelName, (mesh) => {
+	highlight(modelName, color) {
+		return flock.whenModelReady(modelName, (mesh) => {
 			if (mesh.material) {
 				flock.highlighter.addMesh(
 					mesh,
@@ -589,7 +594,7 @@ export const flock = {
 			ground.material = shaderMaterial;
 		});*/
 	},
-	async createCustomMap(colors) {
+	createCustomMap(colors) {
 		console.log("Creating map", colors);
 	},
 	setSky(color) {
@@ -600,8 +605,8 @@ export const flock = {
 	wait(duration) {
 		return new Promise((resolve) => setTimeout(resolve, duration));
 	},
-	async clearEffects(modelName) {
-		await flock.whenModelReady(modelName, (mesh) => {
+	clearEffects(modelName) {
+		return flock.whenModelReady(modelName, (mesh) => {
 			flock.highlighter.removeMesh(mesh);
 			mesh.renderOverlay = false;
 
@@ -676,8 +681,8 @@ export const flock = {
 			});
 		});
 	},
-	async setAlpha(modelName, alphaValue) {
-		await flock.whenModelReady(modelName, (mesh) => {
+	setAlpha(modelName, alphaValue) {
+		return flock.whenModelReady(modelName, (mesh) => {
 			let allMeshes = [mesh].concat(mesh.getChildMeshes(false));
 
 			allMeshes.forEach((nextMesh) => {
@@ -1000,8 +1005,8 @@ export const flock = {
 
 		return newPlane.name;
 	},
-	async moveByVector(modelName, x, y, z) {
-		await flock.whenModelReady(modelName, (mesh) => {
+	moveByVector(modelName, x, y, z) {
+		return flock.whenModelReady(modelName, (mesh) => {
 			mesh.position.addInPlace(new flock.BABYLON.Vector3(x, y, z));
 			mesh.physics.disablePreStep = false;
 			mesh.physics.setTargetTransform(
@@ -1019,8 +1024,8 @@ export const flock = {
 			mesh.computeWorldMatrix(true);
 		});
 	},
-	async rotate(meshName, x, y, z) {
-		await flock.whenModelReady(meshName, (mesh) => {
+	rotate(meshName, x, y, z) {
+		return flock.whenModelReady(meshName, (mesh) => {
 			if (
 				mesh.physics.getMotionType() !==
 				flock.BABYLON.PhysicsMotionType.DYNAMIC
@@ -1048,9 +1053,11 @@ export const flock = {
 			mesh.computeWorldMatrix(true);
 		});
 	},
-	async getProperty(modelName, propertyName) {
-		let propertyValue = null;
-		await flock.whenModelReady(modelName, (mesh) => {
+	getProperty(modelName, propertyName) {
+		
+		return flock.whenModelReady(modelName, (mesh) => {
+			let propertyValue = null;
+			
 			mesh.computeWorldMatrix(true);
 
 			const position = mesh.getAbsolutePosition();
@@ -1127,9 +1134,9 @@ export const flock = {
 				default:
 					console.log("Property not recognized.");
 			}
+			return propertyValue;
 		});
-
-		return propertyValue;
+		
 	},
 	createSmallButton(text, key, color) {
 		const button = flock.GUI.Button.CreateSimpleButton("but", text);
@@ -1274,9 +1281,8 @@ export const flock = {
 			console.log("Failed to add before physics observable");
 		}
 	},
-	async show(modelName) {
-		return new Promise(async (resolve) => {
-			await flock.whenModelReady(modelName, async function (mesh) {
+	show(modelName) {
+			return flock.whenModelReady(modelName, function (mesh) {
 				if (mesh) {
 					mesh.setEnabled(true);
 					flock.hk._hknp.HP_World_AddBody(
@@ -1290,11 +1296,9 @@ export const flock = {
 					resolve();
 				}
 			});
-		});
 	},
-	async hide(modelName) {
-		return new Promise(async (resolve) => {
-			await flock.whenModelReady(modelName, async function (mesh) {
+	hide(modelName) {
+			return flock.whenModelReady(modelName, async function (mesh) {
 				if (mesh) {
 					mesh.setEnabled(false);
 					flock.hk._hknp.HP_World_RemoveBody(
@@ -1307,7 +1311,6 @@ export const flock = {
 					resolve();
 				}
 			});
-		});
 	},
 	up(modelName, upForce = 10) {
 		const mesh = flock.scene.getMeshByName(modelName);
@@ -1419,8 +1422,8 @@ export const flock = {
 			return "#000000";
 		}
 	},
-	async changeColour(modelName, color) {
-		await flock.whenModelReady(modelName, (mesh) => {
+	changeColour(modelName, color) {
+		return flock.whenModelReady(modelName, (mesh) => {
 			let materialFound = false;
 
 			function applyColorToMaterial(part, color) {
@@ -1463,8 +1466,8 @@ export const flock = {
 			}
 		});
 	},
-	async changeMaterial(modelName, materialName, color) {
-		await flock.whenModelReady(modelName, (mesh) => {
+	changeMaterial(modelName, materialName, color) {
+		return flock.whenModelReady(modelName, (mesh) => {
 			const allMeshes = [mesh].concat(mesh.getDescendants());
 			const materialNode = allMeshes.find((node) => node.material);
 
@@ -1543,8 +1546,8 @@ export const flock = {
 		model.rotationQuaternion.z = 0;
 		model.rotationQuaternion.normalize();
 	},
-	async attachCamera(modelName) {
-		flock.whenModelReady(modelName, function (mesh) {
+	attachCamera(modelName) {
+		return flock.whenModelReady(modelName, function (mesh) {
 			if (mesh) {
 				flock.updateDynamicMeshPositions(flock.scene, [mesh]);
 				const newBox = flock.BABYLON.MeshBuilder.CreateBox(
@@ -1706,8 +1709,8 @@ export const flock = {
 			});
 		});
 	},
-	async setPhysics(modelName, physicsType) {
-		await flock.whenModelReady(modelName, (mesh) => {
+	setPhysics(modelName, physicsType) {
+		return flock.whenModelReady(modelName, (mesh) => {
 			switch (physicsType) {
 				case "STATIC":
 					mesh.physics.setMotionType(
@@ -2111,7 +2114,7 @@ export const flock = {
 		};
 		flock.scene.onDisposeObservable.add(disposeHandler);
 	},
-	async playSoundAsync(scene, soundName) {
+	playSound(scene, soundName) {
 		return new Promise((resolve, reject) => {
 			// Load and play the sound
 			const sound = new flock.BABYLON.Sound(
