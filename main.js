@@ -425,6 +425,66 @@ window.onload = function () {
 		flock.canvas.pressedKeys.delete(event.key);
 	});
 
+	document.getElementById("toggleDebug").addEventListener("click", function () {
+		const blocklyArea = document.getElementById("codePanel");
+		const canvasArea = document.getElementById("rightArea");
+		const menu = document.getElementById("menu");
+		const gizmoButtons = document.getElementById("gizmoButtons");
+
+		if (flock.scene.debugLayer.isVisible()) {
+			canvasArea.style.width = "100%";
+			canvasArea.style.flexGrow = "1";
+			switchView(viewMode);
+			flock.scene.debugLayer.hide();
+			onResize();
+		} else {
+			blocklyArea.style.display = "none";
+			canvasArea.style.display = "block";
+			canvasArea.style.width = "50vw";
+			canvasArea.style.flexGrow = "0";
+			gizmoButtons.style.display = "block";
+			menu.style.right = "unset";
+			flock.scene.debugLayer.show();
+			onResize();
+		}
+	});
+
+	document
+	.getElementById("fullscreenToggle")
+	.addEventListener("click", function () {
+		if (!document.fullscreenElement) {
+			// Go fullscreen
+			if (document.documentElement.requestFullscreen) {
+				document.documentElement.requestFullscreen();
+			} else if (document.documentElement.mozRequestFullScreen) {
+				/* Firefox */
+				document.documentElement.mozRequestFullScreen();
+			} else if (document.documentElement.webkitRequestFullscreen) {
+				/* Chrome, Safari & Opera */
+				document.documentElement.webkitRequestFullscreen();
+			} else if (document.documentElement.msRequestFullscreen) {
+				/* IE/Edge */
+				document.documentElement.msRequestFullscreen();
+			}
+		} else {
+			// Exit fullscreen
+			if (document.exitFullscreen) {
+				document.exitFullscreen();
+			} else if (document.mozCancelFullScreen) {
+				/* Firefox */
+				document.mozCancelFullScreen();
+			} else if (document.webkitExitFullscreen) {
+				/* Chrome, Safari & Opera */
+				document.webkitExitFullscreen();
+			} else if (document.msExitFullscreen) {
+				/* IE/Edge */
+				document.msExitFullscreen();
+			}
+		}
+	});
+
+
+
 	loadWorkspace();
 };
 
@@ -561,63 +621,7 @@ function highlightBlockById(workspace, block) {
 	}
 }
 
-document
-	.getElementById("fullscreenToggle")
-	.addEventListener("click", function () {
-		if (!document.fullscreenElement) {
-			// Go fullscreen
-			if (document.documentElement.requestFullscreen) {
-				document.documentElement.requestFullscreen();
-			} else if (document.documentElement.mozRequestFullScreen) {
-				/* Firefox */
-				document.documentElement.mozRequestFullScreen();
-			} else if (document.documentElement.webkitRequestFullscreen) {
-				/* Chrome, Safari & Opera */
-				document.documentElement.webkitRequestFullscreen();
-			} else if (document.documentElement.msRequestFullscreen) {
-				/* IE/Edge */
-				document.documentElement.msRequestFullscreen();
-			}
-		} else {
-			// Exit fullscreen
-			if (document.exitFullscreen) {
-				document.exitFullscreen();
-			} else if (document.mozCancelFullScreen) {
-				/* Firefox */
-				document.mozCancelFullScreen();
-			} else if (document.webkitExitFullscreen) {
-				/* Chrome, Safari & Opera */
-				document.webkitExitFullscreen();
-			} else if (document.msExitFullscreen) {
-				/* IE/Edge */
-				document.msExitFullscreen();
-			}
-		}
-	});
 
-document.getElementById("toggleDebug").addEventListener("click", function () {
-	const blocklyArea = document.getElementById("codePanel");
-	const canvasArea = document.getElementById("rightArea");
-	const menu = document.getElementById("menu");
-	const gizmoButtons = document.getElementById("gizmoButtons");
-
-	if (flock.scene.debugLayer.isVisible()) {
-		canvasArea.style.width = "100%";
-		canvasArea.style.flexGrow = "1";
-		switchView(viewMode);
-		flock.scene.debugLayer.hide();
-		onResize();
-	} else {
-		blocklyArea.style.display = "none";
-		canvasArea.style.display = "block";
-		canvasArea.style.width = "50vw";
-		canvasArea.style.flexGrow = "0";
-		gizmoButtons.style.display = "block";
-		menu.style.right = "unset";
-		flock.scene.debugLayer.show();
-		onResize();
-	}
-});
 
 async function exportBlockSnippet(block) {
 	try {
