@@ -13,7 +13,7 @@ import "@babylonjs/core/Debug/debugLayer";
 import "@babylonjs/inspector";
 import { flock } from "./flock.js";
 import { toolbox, initialBlocksJson } from "./toolbox.js";
-import { defineBlocks, initializeVariableIndexes } from "./blocks";
+import { workspace, defineBlocks, initializeVariableIndexes } from "./blocks";
 import { defineGenerators, meshMap } from "./generators";
 import { FlowGraphLog10Block } from "babylonjs";
 flock.BABYLON = BABYLON;
@@ -30,20 +30,16 @@ flock.document = document;
 let havokInstance = null;
 let engineReady = false;
 let gizmoManager = null;
-
-const workspace = Blockly.inject("blocklyDiv", {
-	theme: Blockly.Themes.Modern,
-	renderer: "zelos",
-	zoom: {
-		controls: true,
-		wheel: true,
-		startScale: 0.7,
-		maxScale: 3,
-		minScale: 0.3,
-		scaleSpeed: 1.2,
-	},
-	toolbox: toolbox,
-});
+const gridKeyPressObservable = new flock.BABYLON.Observable();
+const gridKeyReleaseObservable = new flock.BABYLON.Observable();
+flock.gridKeyPressObservable = gridKeyPressObservable;
+flock.gridKeyReleaseObservable = gridKeyReleaseObservable;
+flock.canvas.pressedButtons = new Set();
+flock.canvas.pressedKeys = new Set();
+const displayScale = (window.devicePixelRatio || 1) * 0.75; // Get the device pixel ratio, default to 1 if not available
+flock.displayScale = displayScale;
+// Create an AdvancedDynamicTexture to hold the UI controls
+let controlsTexture = null;
 
 console.log("Welcome to Flock 🐑🐑🐑");
 
@@ -61,22 +57,6 @@ workspace.addChangeListener(Blockly.Events.disableOrphans);
 //Blockly.utils.colour.setHsvSaturation(0.20) // 0 (inclusive) to 1 (exclusive), defaulting to 0.45
 //Blockly.utils.colour.setHsvValue(0.70) // 0 (inclusive) to 1 (exclusive), defaulting to 0.65
 
-const gridKeyPressObservable = new flock.BABYLON.Observable();
-const gridKeyReleaseObservable = new flock.BABYLON.Observable();
-flock.gridKeyPressObservable = gridKeyPressObservable;
-flock.gridKeyReleaseObservable = gridKeyReleaseObservable;
-flock.canvas.pressedButtons = new Set();
-const displayScale = (window.devicePixelRatio || 1) * 0.75; // Get the device pixel ratio, default to 1 if not available
-flock.displayScale = displayScale;
-// Create an AdvancedDynamicTexture to hold the UI controls
-let controlsTexture = null;
-
-function removeEventListeners() {
-	flock.scene.eventListeners.forEach(({ event, handler }) => {
-		document.removeEventListener(event, handler);
-	});
-	flock.scene.eventListeners.length = 0; // Clear the array
-}
 
 function createEngine() {
 	if (engine) {
@@ -365,10 +345,29 @@ function exportCode() {
 	document.body.removeChild(element);
 }
 
+function removeEventListeners() {
+	flock.scene.eventListeners.forEach(({ event, handler }) => {
+		document.removeEventListener(event, handler);
+	});
+	flock.scene.eventListeners.length = 0; // Clear the array
+}
+
 window.onload = function () {
 	// Initial view setup
-	switchView("both");
 	window.loadingCode = true;
+
+	flock.canvas.addEventListener("keydown", function (event) {
+		flock.canvas.currentKeyPressed = event.key;
+		flock.canvas.pressedKeys.add(event.key);
+	});
+
+	flock.canvas.addEventListener("keyup", function (event) {
+		flock.canvas.pressedKeys.delete(event.key);
+	});
+	
+	loadWorkspace();
+	switchView("both");
+
 	workspace.addChangeListener(function (event) {
 		if (
 			event.type === Blockly.Events.TOOLBOX_ITEM_SELECT ||
@@ -412,21 +411,11 @@ window.onload = function () {
 		.getElementById("importFile")
 		.addEventListener("change", handleSnippetUpload);
 
-	// Create a set to keep track of pressed keys
-	flock.canvas.pressedKeys = new Set();
-
-	flock.canvas.addEventListener("keydown", function (event) {
-		flock.canvas.currentKeyPressed = event.key;
-		flock.canvas.pressedKeys.add(event.key);
-	});
-
-	flock.canvas.addEventListener("keyup", function (event) {
-		flock.canvas.pressedKeys.delete(event.key);
-	});
-
 	document
 		.getElementById("toggleDebug")
 		.addEventListener("click", function () {
+			if (!flock.scene) return;
+
 			const blocklyArea = document.getElementById("codePanel");
 			const canvasArea = document.getElementById("rightArea");
 			const menu = document.getElementById("menu");
@@ -484,25 +473,27 @@ window.onload = function () {
 			}
 		});
 
-	// Override the cleanUp method to ignore orphans
+	const blockTypesToCleanUp = ["start", "forever", "when_clicked", "when_touches", "when_key_pressed", "when_key_released", "on_event", "procedures_defnoreturn", "procedures_defreturn"];
+
 	workspace.cleanUp = function () {
-		const blocks = workspace.getTopBlocks(true); // Get all top-level blocks
+		const topBlocks = workspace.getTopBlocks(false); // Get all top-level blocks without sorting
 		const spacing = 40; // Define spacing between blocks
 		let cursorY = 10; // Starting y position
+		let cursorX = 10; // Starting x position
 
-		blocks.forEach((block) => {
-			// Skip orphan blocks (blocks that have no connections)
-			if (
-				block.getChildren().length === 0 &&
-				block.getParent() === null
-			) {
-				return;
+		// Sort the blocks by their current y position (top to bottom)
+		topBlocks.sort(
+			(a, b) =>
+				a.getRelativeToSurfaceXY().y - b.getRelativeToSurfaceXY().y,
+		);
+
+		topBlocks.forEach((block) => {
+			// Check if the block is one of the specified types
+			if (blockTypesToCleanUp.includes(block.type)) {
+				const blockXY = block.getRelativeToSurfaceXY();
+				block.moveBy(cursorX - blockXY.x, cursorY - blockXY.y);
+				cursorY += block.getHeightWidth().height + spacing;
 			}
-
-			// Position the block in a neat stack
-			const blockXY = block.getRelativeToSurfaceXY();
-			block.moveBy(-blockXY.x, cursorY - blockXY.y);
-			cursorY += block.getHeightWidth().height + spacing;
 		});
 	};
 
@@ -512,30 +503,7 @@ window.onload = function () {
 			if (event.type === Blockly.Events.BLOCK_MOVE) {
 				const block = workspace.getBlockById(event.blockId);
 				if (!block) return;
-
-				const oldParentId = event.oldParentId;
-				const newParent = block.getParent();
-
-				// Case 1: Block is connected to a top-level block
-				if (newParent) {
-					let rootBlock = block.getRootBlock();
-					if (rootBlock && rootBlock.getParent() === null) {
-						workspace.cleanUp(); // Clean up the workspace to organize blocks
-						return;
-					}
-				}
-
-				// Case 2: Block is removed from a top-level block stack
-				if (oldParentId && !newParent) {
-					const oldParentBlock = workspace.getBlockById(oldParentId);
-
-					if (oldParentBlock) {
-						let rootBlock = oldParentBlock.getRootBlock();
-						if (rootBlock && rootBlock.getParent() === null) {
-							workspace.cleanUp(); // Clean up the workspace to organize blocks
-						}
-					}
-				}
+				workspace.cleanUp();
 			}
 		} catch (error) {
 			console.error(
@@ -545,7 +513,32 @@ window.onload = function () {
 		}
 	});
 
-	loadWorkspace();
+	document.addEventListener("keydown", function (event) {
+		if (event.ctrlKey && event.key === ".") {
+			event.preventDefault();
+
+			const workspace = Blockly.getMainWorkspace();
+
+			// Default to center position if no mouse event is available
+			let mouseX = 100;
+			let mouseY = 100;
+
+			// Create the placeholder block at the computed position
+			const placeholderBlock = workspace.newBlock("keyword_block");
+			placeholderBlock.initSvg();
+			placeholderBlock.render();
+			placeholderBlock.moveBy(mouseX, mouseY);
+
+			// Select the block for immediate editing
+			placeholderBlock.select();
+
+			// Automatically focus on the text input field
+			const textInputField = placeholderBlock.getField("KEYWORD");
+			if (textInputField) {
+				textInputField.showEditor_();
+			}
+		}
+	});
 };
 
 function executeCode() {

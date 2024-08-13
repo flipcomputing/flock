@@ -25,34 +25,42 @@ export const toolbox = {
 				{
 					kind: "block",
 					type: "start",
+					keyword: "start",
 				},
 				{
 					kind: "block",
 					type: "forever",
+					keyword: "ever",
 				},
 				{
 					kind: "block",
 					type: "when_clicked",
+					keyword: "click"
 				},
 				{
 					kind: "block",
 					type: "when_touches",
+					keyword: "touches"
 				},
 				{
 					kind: "block",
 					type: "when_key_pressed",
+					keyword: "press"
 				},
 				{
 					kind: "block",
 					type: "when_key_released",
+					keyword: "release"
 				},
 				{
 					kind: "block",
 					type: "broadcast_event",
+					keyword: "broadcast"
 				},
 				{
 					kind: "block",
 					type: "on_event",
+					keyword: "on"
 				},
 			],
 		},
@@ -64,6 +72,7 @@ export const toolbox = {
 				{
 					kind: "block",
 					type: "set_sky_color",
+					keyword: "sky",
 					inputs: {
 						COLOR: {
 							shadow: {
@@ -78,6 +87,7 @@ export const toolbox = {
 				{
 					kind: "block",
 					type: "create_ground",
+					keyword: "ground",
 					inputs: {
 						COLOR: {
 							shadow: {
@@ -298,6 +308,7 @@ export const toolbox = {
 				{
 					kind: "block",
 					type: "load_model",
+					keyword: "model",
 					inputs: {
 						SCALE: {
 							shadow: {
@@ -336,6 +347,7 @@ export const toolbox = {
 				{
 					kind: "block",
 					type: "load_character",
+					keyword: "character",
 					inputs: {
 						SCALE: {
 							shadow: {
@@ -422,6 +434,7 @@ export const toolbox = {
 				{
 					kind: "block",
 					type: "load_object",
+					keyword: "object",
 					inputs: {
 						COLOR: {
 							shadow: {
@@ -468,6 +481,7 @@ export const toolbox = {
 				{
 					kind: "block",
 					type: "create_box",
+					keyword: "box",
 					inputs: {
 						COLOR: {
 							shadow: {
@@ -530,6 +544,7 @@ export const toolbox = {
 				{
 					kind: "block",
 					type: "create_sphere",
+					keyword: "sphere",
 					inputs: {
 						COLOR: {
 							shadow: {
@@ -592,6 +607,7 @@ export const toolbox = {
 				{
 					kind: "block",
 					type: "create_cylinder",
+					keyword: "cylinder",
 					inputs: {
 						COLOR: {
 							shadow: {
@@ -654,6 +670,7 @@ export const toolbox = {
 				{
 					kind: "block",
 					type: "create_capsule",
+					keyword: "capsule",
 					inputs: {
 						COLOR: {
 							shadow: {
@@ -708,6 +725,7 @@ export const toolbox = {
 				{
 					kind: "block",
 					type: "create_plane",
+					keyword: "plane",
 					inputs: {
 						COLOR: {
 							shadow: {
@@ -762,6 +780,7 @@ export const toolbox = {
 				{
 					kind: "block",
 					type: "set_background_color",
+					keyword: "background",
 					inputs: {
 						COLOR: {
 							shadow: {
@@ -776,6 +795,7 @@ export const toolbox = {
 				{
 					kind: "block",
 					type: "create_map",
+					keyword: "map",
 					inputs: {
 						COLOR: {
 							shadow: {
@@ -790,6 +810,7 @@ export const toolbox = {
 				{
 					kind: "block",
 					type: "set_fog",
+					keyword: "fog",
 					inputs: {
 						FOG_COLOR: {
 							shadow: {
@@ -819,14 +840,17 @@ export const toolbox = {
 				{
 					kind: "block",
 					type: "show",
+					keyword: "show",
 				},
 				{
 					kind: "block",
 					type: "hide",
+					keyword: "hide",
 				},
 				{
 					kind: "block",
 					type: "tint",
+					keyword: "tint",
 					inputs: {
 						COLOR: {
 							shadow: {
@@ -841,6 +865,7 @@ export const toolbox = {
 				{
 					kind: "block",
 					type: "highlight",
+					keyword: "highlight",
 					inputs: {
 						COLOR: {
 							shadow: {
@@ -855,6 +880,7 @@ export const toolbox = {
 				{
 					kind: "block",
 					type: "change_colour",
+					keyword: "colour",
 					inputs: {
 						COLOR: {
 							shadow: {
@@ -869,6 +895,7 @@ export const toolbox = {
 				{
 					kind: "block",
 					type: "change_material",
+					keyword: "material",
 					inputs: {
 						COLOR: {
 							shadow: {
@@ -883,6 +910,7 @@ export const toolbox = {
 				{
 					kind: "block",
 					type: "set_alpha",
+					keyword: "alpha",
 					inputs: {
 						ALPHA: {
 							shadow: {
@@ -897,26 +925,33 @@ export const toolbox = {
 				{
 					kind: "block",
 					type: "clear_effects",
+					keyword: "clear",
+
 				},
 				{
 					kind: "block",
 					type: "switch_animation",
+					keyword: "switch",
 				},
 				{
 					kind: "block",
 					type: "play_animation",
+					keyword: "play",
 				},
 				{
 					kind: "block",
 					type: "colour",
+					keyword: "color",
 				},
 				{
 					kind: "block",
 					type: "random_colour",
+					keyword: "randcol",
 				},
 				{
 					kind: "block",
 					type: "colour_from_string",
+					keyword: "colstr",
 					inputs: {
 						COLOR: {
 							shadow: {
@@ -931,6 +966,7 @@ export const toolbox = {
 				{
 					kind: "block",
 					type: "scale",
+					keyword: "scale",
 					inputs: {
 						X: {
 							shadow: {
@@ -968,6 +1004,7 @@ export const toolbox = {
 				{
 					kind: "block",
 					type: "move_by_vector",
+					keyword: "move",
 					inputs: {
 						X: {
 							shadow: {
@@ -998,6 +1035,7 @@ export const toolbox = {
 				{
 					kind: "block",
 					type: "rotate_model_xyz",
+					keyword: "rotate",
 					inputs: {
 						X: {
 							shadow: {
@@ -1028,6 +1066,7 @@ export const toolbox = {
 				{
 					kind: "block",
 					type: "glide_to",
+					keyword: "glide",
 					inputs: {
 						X: {
 							shadow: {
@@ -1066,6 +1105,7 @@ export const toolbox = {
 				{
 					kind: "block",
 					type: "move_forward",
+					keyword: "forward",
 					inputs: {
 						SPEED: {
 							shadow: {
@@ -1080,6 +1120,7 @@ export const toolbox = {
 				{
 					kind: "block",
 					type: "up",
+					keyword: "up",
 					inputs: {
 						UP_FORCE: {
 							shadow: {
@@ -1094,6 +1135,7 @@ export const toolbox = {
 				{
 					kind: "block",
 					type: "apply_force",
+					keyword: "force",
 					inputs: {
 						X: {
 							shadow: {
@@ -1124,10 +1166,12 @@ export const toolbox = {
 				{
 					kind: "block",
 					type: "camera_follow",
+					keyword: "follow",
 				},
 				{
 					kind: "block",
 					type: "add_physics",
+					keyword: "physics",
 				},
 			],
 		},
@@ -1139,6 +1183,7 @@ export const toolbox = {
 				{
 					kind: "block",
 					type: "play_sound",
+					keyword: "sound",
 					inputs: {
 						SPEED: {
 							shadow: {
@@ -1172,10 +1217,12 @@ export const toolbox = {
 				{
 					kind: "block",
 					type: "wait",
+					keyword: "wait",
 				},
 				{
 					kind: "block",
 					type: "controls_repeat_ext",
+					keyword: "repeat",
 					inputs: {
 						TIMES: {
 							shadow: {
@@ -1190,14 +1237,17 @@ export const toolbox = {
 				{
 					kind: "block",
 					type: "controls_whileUntil",
+					keyword: "while",
 				},
 				{
 					kind: "block",
 					type: "controls_forEach",
+					keyword: "each",
 				},
 				{
 					kind: "block",
 					type: "controls_for",
+					keyword: "for",
 				},
 			],
 		},
@@ -1209,34 +1259,42 @@ export const toolbox = {
 				{
 					kind: "block",
 					type: "controls_if",
+					keyword: "if",
 				},
 				{
 					kind: "block",
 					type: "controls_ifelse",
+					keyword: "else",
 				},
 				{
 					kind: "block",
 					type: "logic_compare",
+					keyword: "compare",
 				},
 				{
 					kind: "block",
 					type: "logic_operation",
+					keyword: "op",
 				},
 				{
 					kind: "block",
 					type: "logic_negate",
+					keyword: "not",
 				},
 				{
 					kind: "block",
 					type: "logic_boolean",
+					keyword: "bool",
 				},
 				{
 					kind: "block",
 					type: "logic_null",
+					keyword: "null",
 				},
 				{
 					kind: "block",
 					type: "logic_ternary",
+					keyword: "ternary",
 				},
 			],
 		},
@@ -1248,26 +1306,32 @@ export const toolbox = {
 				{
 					kind: "block",
 					type: "key_pressed",
+					keyword: "ispressed",
 				},
 				{
 					kind: "block",
 					type: "touching_surface",
+					keyword: "surface",
 				},
 				{
 					kind: "block",
 					type: "meshes_touching",
+					keyword: "istouching",
 				},
 				{
 					kind: "block",
 					type: "get_property",
+					keyword: "get",
 				},		
 				{
 					kind: "block",
 					type: "canvas_controls",
+					keyword: "canvas",
 				},
 				{
 					kind: "block",
 					type: "button_controls",
+					keyword: "button",
 					inputs: {
 						COLOR: {
 							shadow: {
@@ -1289,6 +1353,7 @@ export const toolbox = {
 				{
 					kind: "block",
 					type: "print_text",
+					keyword: "print",
 					inputs: {
 						TEXT: {
 							shadow: {
@@ -1319,6 +1384,7 @@ export const toolbox = {
 				{
 					kind: "block",
 					type: "say",
+					keyword: "say",
 					inputs: {
 						TEXT: {
 							shadow: {
@@ -1376,10 +1442,12 @@ export const toolbox = {
 				{
 					kind: "block",
 					type: "text",
+					keyword: "text",
 				},
 				{
 					kind: "block",
 					type: "text_print",
+					keyword: "alert",
 					inputs: {
 						TEXT: {
 							shadow: {
@@ -1394,10 +1462,12 @@ export const toolbox = {
 				{
 					kind: "block",
 					type: "text_join",
+					keyword: "join",
 				},
 				{
 					kind: "block",
 					type: "text_append",
+					keyword: "join",
 					inputs: {
 						TEXT: {
 							shadow: {
@@ -1409,6 +1479,7 @@ export const toolbox = {
 				{
 					kind: "block",
 					type: "text_length",
+					keyword: "length",
 					inputs: {
 						VALUE: {
 							shadow: {
@@ -1423,6 +1494,7 @@ export const toolbox = {
 				{
 					kind: "block",
 					type: "text_isEmpty",
+					keyword: "isempty",
 					inputs: {
 						VALUE: {
 							shadow: {
@@ -1437,6 +1509,7 @@ export const toolbox = {
 				{
 					kind: "block",
 					type: "text_indexOf",
+					keyword: "index",
 					inputs: {
 						VALUE: {
 							block: {
@@ -1459,6 +1532,7 @@ export const toolbox = {
 				{
 					kind: "block",
 					type: "text_charAt",
+					keyword: "charat",
 					inputs: {
 						VALUE: {
 							block: {
@@ -1473,6 +1547,7 @@ export const toolbox = {
 				{
 					kind: "block",
 					type: "text_getSubstring",
+					keyword: "substring",
 					inputs: {
 						STRING: {
 							block: {
@@ -1487,6 +1562,7 @@ export const toolbox = {
 				{
 					kind: "block",
 					type: "text_changeCase",
+					keyword: "case",
 					inputs: {
 						TEXT: {
 							shadow: {
@@ -1501,6 +1577,7 @@ export const toolbox = {
 				{
 					kind: "block",
 					type: "text_trim",
+					keyword: "trim",
 					inputs: {
 						TEXT: {
 							shadow: {
@@ -1515,6 +1592,7 @@ export const toolbox = {
 				{
 					kind: "block",
 					type: "text_count",
+					keyword: "count",
 					inputs: {
 						SUB: {
 							shadow: {
@@ -1531,6 +1609,7 @@ export const toolbox = {
 				{
 					kind: "block",
 					type: "text_replace",
+					keyword: "replace",
 					inputs: {
 						FROM: {
 							shadow: {
@@ -1552,6 +1631,7 @@ export const toolbox = {
 				{
 					kind: "block",
 					type: "text_reverse",
+					keyword: "reverse",
 					inputs: {
 						TEXT: {
 							shadow: {
@@ -1560,14 +1640,16 @@ export const toolbox = {
 						},
 					},
 				},
-				{
+				/*{
 					kind: "label",
 					text: "Input/Output:",
 					"web-class": "ioLabel",
-				},
+				},*/
 				{
 					kind: "block",
 					type: "text_prompt_ext",
+					keyword: "prompt",
+					tooltip: "Ask the user for input.\nKeyword: prompt",
 					inputs: {
 						TEXT: {
 							shadow: {
@@ -1587,10 +1669,7 @@ export const toolbox = {
 			colour: categoryColours["Variables"],
 			custom: "VARIABLE",
 			contents: [
-				{
-					kind: "block",
-					type: "log_variable",
-				},
+				
 			],
 		},
 		{
@@ -1601,46 +1680,57 @@ export const toolbox = {
 				{
 					kind: "block",
 					type: "lists_create_empty",
+					keyword: "list"
 				},
 				{
 					kind: "block",
 					type: "lists_create_with",
+					keyword: "these",
 				},
 				{
 					kind: "block",
 					type: "lists_repeat",
+					keyword: "item*",
 				},
 				{
 					kind: "block",
 					type: "lists_length",
+					keyword: "items",
 				},
 				{
 					kind: "block",
 					type: "lists_isEmpty",
+					keyword: "noitems",
 				},
 				{
 					kind: "block",
 					type: "lists_indexOf",
+					keyword: "find",
 				},
 				{
 					kind: "block",
 					type: "lists_getIndex",
+					keyword: "lget",
 				},
 				{
 					kind: "block",
 					type: "lists_setIndex",
+					keyword: "lset",
 				},
 				{
 					kind: "block",
 					type: "lists_getSublist",
+					keyword: "sublist",
 				},
 				{
 					kind: "block",
 					type: "lists_split",
+					keyword: "split",
 				},
 				{
 					kind: "block",
 					type: "lists_sort",
+					keyword: "sort",
 				},
 			],
 		},
@@ -1652,6 +1742,7 @@ export const toolbox = {
 				{
 					kind: "block",
 					type: "math_arithmetic",
+					keyword: "math",
 					fields: {
 						OP: "ADD",
 					},
@@ -1677,6 +1768,7 @@ export const toolbox = {
 				{
 					kind: "block",
 					type: "math_random_int",
+					keyword: "randint",
 					inputs: {
 						FROM: {
 							shadow: {
@@ -1729,6 +1821,7 @@ export const toolbox = {
 				{
 					kind: "block",
 					type: "math_number",
+					keyword: "num",
 					fields: {
 						NUM: 0,
 					},
@@ -1736,18 +1829,22 @@ export const toolbox = {
 				{
 					kind: "block",
 					type: "math_constant",
+					keyword: "pi",
 				},
 				{
 					kind: "block",
 					type: "math_number_property",
+					keyword: "even",
 				},
 				{
 					kind: "block",
 					type: "math_round",
+					keyword: "round",
 				},
 				{
 					kind: "block",
 					type: "math_single",
+					keyword: "abs",
 					fields: {
 						OP: "ABS",
 					},
@@ -1755,18 +1852,22 @@ export const toolbox = {
 				{
 					kind: "block",
 					type: "math_trig",
+					keyword: "trig",
 				},
 				{
 					kind: "block",
 					type: "math_on_list",
+					keyword: "lmath",
 				},
 				{
 					kind: "block",
 					type: "math_modulo",
+					keyword: "mod",
 				},
 				{
 					kind: "block",
 					type: "math_constrain",
+					keyword: "constrain",
 					inputs: {
 						LOW: {
 							shadow: {
@@ -1789,6 +1890,7 @@ export const toolbox = {
 				{
 					kind: "block",
 					type: "math_random_float",
+					keyword: "randf",
 				},
 			],
 		},

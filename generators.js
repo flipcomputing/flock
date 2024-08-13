@@ -149,7 +149,11 @@ export function defineGenerators() {
 			Blockly.Names.NameType.VARIABLE,
 		);
 		const textColor = getFieldValue(block, "TEXT_COLOR", "#000000");
-		const backgroundColor = getFieldValue(block, "BACKGROUND_COLOR", "#ffffff");
+		const backgroundColor = getFieldValue(
+			block,
+			"BACKGROUND_COLOR",
+			"#ffffff",
+		);
 		const alpha =
 			javascriptGenerator.valueToCode(
 				block,
@@ -393,7 +397,6 @@ export function defineGenerators() {
 		return `await rotate(${meshName}, ${x}, ${y}, ${z});\n`;
 	};
 
-
 	javascriptGenerator.forBlock["forever"] = function (block) {
 		const branch = javascriptGenerator.statementToCode(block, "DO");
 
@@ -509,8 +512,6 @@ export function defineGenerators() {
 
 		return `onEvent("${eventName}", async function() {\n${statements_do}});\n`;
 	};
-
-	
 
 	javascriptGenerator.forBlock["highlight"] = function (block) {
 		const modelName = javascriptGenerator.nameDB_.getName(
@@ -657,7 +658,10 @@ export function defineGenerators() {
 			Blockly.Names.NameType.VARIABLE,
 		);
 
-		return [`isTouchingSurface(${modelName})`, javascriptGenerator.ORDER_NONE];
+		return [
+			`isTouchingSurface(${modelName})`,
+			javascriptGenerator.ORDER_NONE,
+		];
 	};
 
 	javascriptGenerator.forBlock["camera_follow"] = function (block) {
@@ -703,7 +707,6 @@ export function defineGenerators() {
 		const code = `checkMeshesTouching(${mesh1VarName}, ${mesh2VarName})`;
 		return [code, javascriptGenerator.ORDER_ATOMIC];
 	};
-
 
 	javascriptGenerator.forBlock["random_colour"] = function (block) {
 		const code = `randomColour()`;
@@ -820,12 +823,10 @@ export function defineGenerators() {
 				) || "null";
 		}
 
-		
 		const code = `await ${functionName}\n(${args.join(", ")});\n`;
-		
+
 		return [code, javascriptGenerator.ORDER_ATOMIC];
 	};
-
 
 	javascriptGenerator.init = function (workspace) {
 		console.log("Initializing JavaScript generator...");
@@ -890,4 +891,8 @@ export function defineGenerators() {
 		javascriptGenerator.isInitialized = true;
 	};
 
+	javascriptGenerator.forBlock["keyword_block"] = function (block) {
+		// Since this block is replaced with another block, we return an empty string.
+		return "";
+	};
 }

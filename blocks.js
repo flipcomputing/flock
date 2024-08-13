@@ -1,17 +1,31 @@
 import * as Blockly from "blockly";
-import { categoryColours } from "./toolbox.js";
+import { categoryColours, toolbox } from "./toolbox.js";
 import {
 	audioNames,
 	characterNames,
 	objectNames,
 	objectColours,
 	mapNames,
-	modelNames,	
+	modelNames,
 	animationNames,
-	materialNames
-} from "./config.js";	 
+	materialNames,
+} from "./config.js";
 
 let nextVariableIndexes = {};
+
+export const workspace = Blockly.inject("blocklyDiv", {
+	theme: Blockly.Themes.Modern,
+	renderer: "zelos",
+	zoom: {
+		controls: true,
+		wheel: true,
+		startScale: 0.7,
+		maxScale: 3,
+		minScale: 0.3,
+		scaleSpeed: 1.2,
+	},
+	toolbox: toolbox,
+});
 
 export function initializeVariableIndexes() {
 	nextVariableIndexes = {
@@ -27,7 +41,6 @@ export function initializeVariableIndexes() {
 		object: 1,
 	};
 
-	const workspace = Blockly.getMainWorkspace(); // Get the current Blockly workspace
 	const allVariables = workspace.getAllVariables(); // Retrieve all variables in the workspace
 
 	// Process each type of variable
@@ -53,8 +66,6 @@ export function initializeVariableIndexes() {
 	return nextVariableIndexes;
 }
 export function defineBlocks() {
-
-
 	Blockly.Blocks["start"] = {
 		init: function () {
 			this.jsonInit({
@@ -67,11 +78,11 @@ export function defineBlocks() {
 					},
 				],
 				colour: categoryColours["Events"],
-				tooltip: "Run the attached block when the project starts.",
+				tooltip:
+					"Run the attached blocks when the project starts.\nKeyword: start",
 			});
 		},
 	};
-
 
 	Blockly.Blocks["create_ground"] = {
 		init: function () {
@@ -90,7 +101,7 @@ export function defineBlocks() {
 				nextStatement: null,
 				colour: categoryColours["Scene"],
 				tooltip:
-					"Adds a ground plane with collisions enabled to the scene, with specified color.",
+					"Adds a ground plane with collisions enabled to the scene, with specified color.\nKeyword: ground",
 				helpUrl: "",
 			});
 		},
@@ -132,7 +143,7 @@ export function defineBlocks() {
 				nextStatement: null,
 				colour: categoryColours["Scene"],
 				tooltip:
-					"Creates a 5x5 ground map with specified elevation colors.",
+					"Creates a 5x5 ground map with specified elevation colors.\nKeyword:map",
 				helpUrl: "",
 			});
 		},
@@ -170,7 +181,8 @@ export function defineBlocks() {
 				],
 				output: null,
 				colour: categoryColours["Sensing"],
-				tooltip: "Gets the value of the selected property of a mesh.",
+				tooltip:
+					"Gets the value of the selected property of a mesh.\nKeyword: get",
 				helpUrl: "",
 			});
 		},
@@ -191,7 +203,8 @@ export function defineBlocks() {
 				previousStatement: null,
 				nextStatement: null,
 				colour: categoryColours["Sensing"],
-				tooltip: "Add or removes canvas motion controls.",
+				tooltip:
+					"Add or removes canvas motion controls.\nKeyword: canvas",
 				helpUrl: "",
 			});
 		},
@@ -226,7 +239,7 @@ export function defineBlocks() {
 				previousStatement: null,
 				nextStatement: null,
 				colour: categoryColours["Sensing"],
-				tooltip: "Configure button controls.",
+				tooltip: "Configure button controls.\nKeyword: button",
 				helpUrl: "",
 			});
 		},
@@ -248,7 +261,8 @@ export function defineBlocks() {
 				previousStatement: null,
 				nextStatement: null,
 				colour: categoryColours["Control"],
-				tooltip: "Wait for a specified time in milliseconds",
+				tooltip:
+					"Wait for a specified time in milliseconds.\nKeyword: wait",
 				helpUrl: "",
 			});
 		},
@@ -297,7 +311,8 @@ export function defineBlocks() {
 				previousStatement: null,
 				nextStatement: null,
 				colour: categoryColours["Motion"],
-				tooltip: "Glide to a specified position over a duration",
+				tooltip:
+					"Glide to a specified position over a duration\nKeyword: glide",
 				helpUrl: "",
 			});
 		},
@@ -319,12 +334,11 @@ export function defineBlocks() {
 				previousStatement: null,
 				nextStatement: null,
 				colour: categoryColours["Scene"],
-				tooltip: "Sets the sky color of the scene.",
+				tooltip: "Sets the sky color of the scene.\nKeyword: sky",
 				helpUrl: "",
 			});
 		},
 	};
-
 
 	Blockly.Blocks["set_fog"] = {
 		init: function () {
@@ -358,7 +372,7 @@ export function defineBlocks() {
 				previousStatement: null,
 				nextStatement: null,
 				colour: categoryColours["Scene"],
-				tooltip: "Configures the scene's fog.",
+				tooltip: "Configures the scene's fog.\nKeyword: fog",
 				helpUrl: "",
 			});
 		},
@@ -448,7 +462,7 @@ export function defineBlocks() {
 				],
 				inputsInline: true,
 				colour: categoryColours["Scene"],
-				tooltip: "",
+				tooltip: "Create a configurable character.\nKeyword: character",
 				helpUrl: "",
 				previousStatement: null,
 				nextStatement: null,
@@ -526,7 +540,7 @@ export function defineBlocks() {
 				],
 				inputsInline: true,
 				colour: categoryColours["Scene"],
-				tooltip: "",
+				tooltip: "Create an object.\nKeyword: object",
 				helpUrl: "",
 				previousStatement: null,
 				nextStatement: null,
@@ -611,7 +625,7 @@ export function defineBlocks() {
 				],
 				inputsInline: true,
 				colour: categoryColours["Scene"],
-				tooltip: "",
+				tooltip: "Load a model.\nKeyword: model",
 				helpUrl: "",
 				previousStatement: null,
 				nextStatement: null,
@@ -738,7 +752,7 @@ export function defineBlocks() {
 				inputsInline: true,
 				colour: categoryColours["Scene"],
 				tooltip:
-					"Creates a colored box with specified dimensions and position.",
+					"Creates a colored box with specified dimensions and position.\nKeyword: box",
 				helpUrl: "",
 			});
 
@@ -810,7 +824,7 @@ export function defineBlocks() {
 				inputsInline: true,
 				colour: categoryColours["Scene"],
 				tooltip:
-					"Creates a colored sphere with specified dimensions and position.",
+					"Creates a colored sphere with specified dimensions and position.\nKeyword: sphere",
 				helpUrl: "",
 			});
 
@@ -881,7 +895,7 @@ export function defineBlocks() {
 				inputsInline: true,
 				colour: categoryColours["Scene"],
 				tooltip:
-					"Creates a colored cylinder with specified dimensions and position.",
+					"Creates a colored cylinder with specified dimensions and position.\nKeyword: cylinder",
 				helpUrl: "",
 			});
 
@@ -946,7 +960,7 @@ export function defineBlocks() {
 				inputsInline: true,
 				colour: categoryColours["Scene"],
 				tooltip:
-					"Creates a colored capsule with specified dimensions and position.",
+					"Creates a colored capsule with specified dimensions and position.\nKeyword: capsule",
 				helpUrl: "",
 			});
 
@@ -968,7 +982,8 @@ export function defineBlocks() {
 				variableNamePrefix + nextVariableIndexes[variableNamePrefix]; // Ensure 'plane' is managed in your nextVariableIndexes
 			this.jsonInit({
 				type: "create_plane",
-				message0: "new plane %1 %2 width %3 height %4 \n at x %5 y %6 z %7",
+				message0:
+					"new plane %1 %2 width %3 height %4 \n at x %5 y %6 z %7",
 				args0: [
 					{
 						type: "field_variable",
@@ -1012,7 +1027,7 @@ export function defineBlocks() {
 				nextStatement: null,
 				colour: categoryColours["Scene"],
 				tooltip:
-					"Creates a colored 2D plane with specified width, height, and position.",
+					"Creates a colored 2D plane with specified width, height, and position.\nKeyword: plane",
 				helpUrl: "",
 			});
 
@@ -1026,7 +1041,6 @@ export function defineBlocks() {
 			});
 		},
 	};
-
 
 	Blockly.Blocks["set_background_color"] = {
 		init: function () {
@@ -1044,7 +1058,8 @@ export function defineBlocks() {
 				previousStatement: null,
 				nextStatement: null,
 				colour: categoryColours["Scene"],
-				tooltip: "Set the scene's background color",
+				tooltip:
+					"Set the scene's background color.\nKeyword: background",
 				helpUrl: "",
 			});
 		},
@@ -1077,7 +1092,7 @@ export function defineBlocks() {
 				previousStatement: null,
 				nextStatement: null,
 				colour: 160,
-				tooltip: "",
+				tooltip: "A text to the output panel.\nKeyword: print",
 				helpUrl: "",
 			});
 		},
@@ -1148,7 +1163,8 @@ export function defineBlocks() {
 				previousStatement: null,
 				nextStatement: null,
 				colour: 160,
-				tooltip: "Displays a piece of text as a billboard on a mesh.",
+				tooltip:
+					"Displays a piece of text as a billboard on a mesh.\nKeyword: say",
 				helpUrl: "",
 			});
 		},
@@ -1175,7 +1191,7 @@ export function defineBlocks() {
 				nextStatement: null,
 				colour: categoryColours["Looks"],
 				tooltip:
-					"Changes the animation of the specified model to the given animation.",
+					"Changes the animation of the specified model to the given animation.\nKeyword: switch",
 				helpUrl: "",
 			});
 		},
@@ -1202,7 +1218,7 @@ export function defineBlocks() {
 				previousStatement: null,
 				nextStatement: null,
 				colour: categoryColours["Scene"],
-				tooltip: "Creates a map based on the choice.",
+				tooltip: "Creates a map based on the choice.\nKeyword: map",
 				helpUrl: "",
 			});
 		},
@@ -1228,7 +1244,8 @@ export function defineBlocks() {
 				previousStatement: null,
 				nextStatement: null,
 				colour: categoryColours["Looks"],
-				tooltip: "Plays a selected animation once on the specified model.",
+				tooltip:
+					"Plays a selected animation once on the specified model.\nKeyword: play",
 				helpUrl: "",
 			});
 		},
@@ -1268,6 +1285,8 @@ export function defineBlocks() {
 				nextStatement: null,
 				colour: categoryColours["Motion"],
 				inputsInline: true,
+				tooltip:
+				"Moves a mesh a given amount in x y and z directions.\nKeyword: move",
 			});
 		},
 	};
@@ -1306,6 +1325,8 @@ export function defineBlocks() {
 				nextStatement: null,
 				colour: categoryColours["Looks"],
 				inputsInline: true,
+				tooltip:
+				"Resizes a mesh to the given x, y and z.\nKeyword: scale",
 			});
 		},
 	};
@@ -1345,7 +1366,7 @@ export function defineBlocks() {
 				colour: categoryColours["Motion"],
 				inputsInline: true,
 				tooltip:
-					"Rotates the model based on its current rotation plus additional x, y, z values.",
+					"Rotates the model based on its current rotation plus additional x, y, z values.\nKeyword: rotate",
 				helpUrl: "",
 			});
 		},
@@ -1356,7 +1377,8 @@ export function defineBlocks() {
 			let nextVariableName = "sound" + nextVariableIndexes["sound"];
 			this.jsonInit({
 				type: "play_sound",
-				message0: "set %1 to play sound %2 \nspeed %3 volume %4 mode %5 %6",
+				message0:
+					"set %1 to play sound %2 \nspeed %3 volume %4 mode %5 %6",
 				args0: [
 					{
 						type: "field_variable",
@@ -1408,7 +1430,7 @@ export function defineBlocks() {
 				nextStatement: null,
 				colour: categoryColours["Sound"],
 				tooltip:
-					"Plays the selected sound with adjustable speed and volume, and chooses to play once or loop.",
+					"Plays the selected sound with adjustable speed and volume, and chooses to play once or loop.\nKeyword: sound",
 				helpUrl: "",
 			});
 
@@ -1440,7 +1462,7 @@ export function defineBlocks() {
 				previousStatement: null,
 				nextStatement: null,
 				colour: categoryColours["Sound"],
-				tooltip: "Stops all sounds currently playing in the scene.",
+				tooltip: "Stops all sounds currently playing in the scene.\nKeyword:nosound",
 				helpUrl: "",
 			});
 		},
@@ -1460,7 +1482,7 @@ export function defineBlocks() {
 				],
 				colour: categoryColours["Events"],
 				tooltip:
-					"Executes the enclosed blocks each frame in the render loop.",
+					"Executes the enclosed blocks each frame in the render loop.\nKeyword: ever",
 				helpUrl: "",
 			});
 		},
@@ -1505,7 +1527,7 @@ export function defineBlocks() {
 				],
 				colour: categoryColours["Events"],
 				tooltip:
-					"Executes the blocks inside when the specified model trigger occurs.",
+					"Executes the blocks inside when the specified model trigger occurs.\nKeyword: click",
 				helpUrl: "",
 			});
 		},
@@ -1545,7 +1567,7 @@ export function defineBlocks() {
 				],
 				colour: categoryColours["Events"],
 				tooltip:
-					"Executes the blocks inside when the mesh intersects or no longer intersects with another mesh.",
+					"Executes the blocks inside when the mesh intersects or no longer intersects with another mesh.\nKeyword: touches",
 				helpUrl: "",
 			});
 		},
@@ -1618,7 +1640,7 @@ export function defineBlocks() {
 				],
 				colour: categoryColours["Events"],
 				tooltip:
-					"Executes the blocks inside when the specified key is pressed.",
+					"Executes the blocks inside when the specified key is pressed.\nKeyword: pressed",
 				helpUrl: "",
 			});
 		},
@@ -1691,7 +1713,7 @@ export function defineBlocks() {
 				],
 				colour: categoryColours["Events"],
 				tooltip:
-					"Executes the blocks inside when the specified key is released.",
+					"Executes the blocks inside when the specified key is released.\nKeyword: released",
 				helpUrl: "",
 			});
 		},
@@ -1712,7 +1734,7 @@ export function defineBlocks() {
 				previousStatement: null,
 				nextStatement: null,
 				colour: categoryColours["Events"],
-				tooltip: "",
+				tooltip: "Broadcast an event that can be handled with on event.\nKeyword: broadcast",
 				helpUrl: "",
 			});
 		},
@@ -1738,7 +1760,7 @@ export function defineBlocks() {
 					},
 				],
 				colour: categoryColours["Events"],
-				tooltip: "",
+				tooltip: "Handle a broadcast event.\nKeyword: on",
 				helpUrl: "",
 			});
 		},
@@ -1759,7 +1781,7 @@ export function defineBlocks() {
 				previousStatement: null,
 				nextStatement: null,
 				colour: categoryColours["Looks"],
-				tooltip: "Shows the selected model.",
+				tooltip: "Shows the selected model.\nKeyword: show",
 				helpUrl: "",
 			});
 		},
@@ -1780,7 +1802,7 @@ export function defineBlocks() {
 				previousStatement: null,
 				nextStatement: null,
 				colour: categoryColours["Looks"],
-				tooltip: "Hides the selected model.",
+				tooltip: "Hides the selected model.\nKeyword: hide",
 				helpUrl: "",
 			});
 		},
@@ -1807,7 +1829,7 @@ export function defineBlocks() {
 				previousStatement: null,
 				nextStatement: null,
 				colour: categoryColours["Looks"],
-				tooltip: "Changes the color of the selected model.",
+				tooltip: "Changes the color of the selected model.\nKeyword: colour",
 				helpUrl: "",
 			});
 		},
@@ -1849,7 +1871,7 @@ export function defineBlocks() {
 				inputsInline: true,
 				colour: categoryColours["Looks"],
 				tooltip:
-					"Apply a selected material with a colour tint to the specified object.",
+					"Apply a selected material with a colour tint to the specified object.\nKeyword: material",
 				helpUrl: "",
 				previousStatement: null,
 				nextStatement: null,
@@ -1879,7 +1901,7 @@ export function defineBlocks() {
 				previousStatement: null,
 				nextStatement: null,
 				colour: categoryColours["Looks"],
-				tooltip: "Highlights the selected model.",
+				tooltip: "Highlights the selected model.\nKeyword: highlight",
 				helpUrl: "",
 			});
 		},
@@ -1907,7 +1929,7 @@ export function defineBlocks() {
 				previousStatement: null,
 				nextStatement: null,
 				colour: categoryColours["Looks"],
-				tooltip: "Add colour tint effect.",
+				tooltip: "Add colour tint effect.\nKeyword: tint",
 				helpUrl: "",
 			});
 		},
@@ -1934,7 +1956,7 @@ export function defineBlocks() {
 				previousStatement: null,
 				nextStatement: null,
 				colour: categoryColours["Looks"],
-				tooltip: "Changes the color of the selected model.",
+				tooltip: "Changes the color of the selected model.\nKeyword: colour",
 				helpUrl: "",
 			});
 		},
@@ -1962,7 +1984,7 @@ export function defineBlocks() {
 				nextStatement: null,
 				colour: categoryColours["Looks"],
 				tooltip:
-					"Sets the alpha (transparency) of the material(s) on a specified mesh. Values should be 0 to 1.",
+					"Sets the alpha (transparency) of the material(s) on a specified mesh. Values should be 0 to 1.\nKeyword:alpha",
 				helpUrl: "",
 			});
 		},
@@ -1984,7 +2006,7 @@ export function defineBlocks() {
 				previousStatement: null,
 				nextStatement: null,
 				colour: categoryColours["Looks"],
-				tooltip: "Clear visual effects from selected model.",
+				tooltip: "Clear visual effects from selected model.\nKeyword: clear",
 				helpUrl: "",
 			});
 		},
@@ -2006,12 +2028,11 @@ export function defineBlocks() {
 				nextStatement: null,
 				colour: categoryColours["Motion"],
 				tooltip:
-					"Makes the camera follow a model specified by the variable.",
+					"Makes the camera follow a model specified by the variable.\nKeyword: follow",
 				helpUrl: "",
 			});
 		},
 	};
-
 
 	Blockly.Blocks["add_physics"] = {
 		init: function () {
@@ -2040,7 +2061,7 @@ export function defineBlocks() {
 				nextStatement: null,
 				colour: categoryColours["Motion"],
 				tooltip:
-					"Adds physics to the mesh. Choose between static, dynamic, and animated.",
+					"Adds physics to the mesh. Choose between static, dynamic, and animated.\nKeyword:physics",
 				helpUrl: "",
 			});
 		},
@@ -2071,7 +2092,7 @@ export function defineBlocks() {
 				],
 				output: "Boolean",
 				colour: categoryColours["Sensing"],
-				tooltip: "Returns true if the specified key is pressed.",
+				tooltip: "Returns true if the specified key is pressed.\nKeyword:ispressed",
 				helpUrl: "",
 			});
 		},
@@ -2097,7 +2118,7 @@ export function defineBlocks() {
 				output: "Boolean",
 				colour: categoryColours["Sensing"],
 				tooltip:
-					"Returns true if the two selected meshes are touching, with retries for loading.",
+					"Returns true if the two selected meshes are touching, with retries for loading.\nKeyword: istouching",
 				helpUrl: "",
 			});
 		},
@@ -2124,7 +2145,8 @@ export function defineBlocks() {
 				previousStatement: null,
 				nextStatement: null,
 				colour: categoryColours["Motion"],
-				tooltip: "Moves the model forward in the direction it's pointing.",
+				tooltip:
+					"Moves the model forward in the direction it's pointing.\nKeyword: forward",
 				helpUrl: "",
 			});
 		},
@@ -2163,7 +2185,7 @@ export function defineBlocks() {
 				previousStatement: null,
 				nextStatement: null,
 				colour: categoryColours["Motion"],
-				tooltip: "Apply a force to a mesh in XYZ directions",
+				tooltip: "Apply a force to a mesh in XYZ directions.\nKeyword: force",
 				helpUrl: "",
 			});
 		},
@@ -2189,7 +2211,7 @@ export function defineBlocks() {
 				previousStatement: null,
 				nextStatement: null,
 				colour: categoryColours["Motion"],
-				tooltip: "Apply the specified upwards force.",
+				tooltip: "Apply the specified upwards force.\nKeyword: up",
 				helpUrl: "",
 			});
 		},
@@ -2209,7 +2231,7 @@ export function defineBlocks() {
 				],
 				output: "Boolean",
 				colour: categoryColours["Sensing"],
-				tooltip: "Check if the model is touching a surface",
+				tooltip: "Check if the model is touching a surface.\nKeyword: surface",
 				helpUrl: "",
 			});
 		},
@@ -2229,7 +2251,7 @@ export function defineBlocks() {
 				],
 				output: "Colour",
 				colour: categoryColours["Looks"],
-				tooltip: "Pick a colour",
+				tooltip: "Pick a colour.\nKeyword: color",
 				helpUrl: "",
 			});
 		},
@@ -2278,7 +2300,7 @@ export function defineBlocks() {
 				],
 				output: "Colour",
 				colour: categoryColours["Looks"],
-				tooltip: "Pick a skin colour",
+				tooltip: "Pick a skin colour.\nKeyword: skin",
 				helpUrl: "",
 			});
 		},
@@ -2325,7 +2347,7 @@ export function defineBlocks() {
 				],
 				output: "Colour",
 				colour: categoryColours["Looks"], // You can set this to any colour category you prefer
-				tooltip: "Pick a greyscale colour for elevation",
+				tooltip: "Pick a greyscale colour for elevation.\nKeyword: grey",
 				helpUrl: "",
 			});
 		},
@@ -2345,7 +2367,7 @@ export function defineBlocks() {
 				],
 				output: "Colour",
 				colour: categoryColours["Looks"],
-				tooltip: "Returns a colour from a hex code or CSS colour name",
+				tooltip: "Returns a colour from a hex code or CSS colour name.\nKeyword: #color",
 				helpUrl: "",
 			});
 		},
@@ -2358,7 +2380,7 @@ export function defineBlocks() {
 				message0: "random colour",
 				output: "Colour",
 				colour: categoryColours["Looks"],
-				tooltip: "Generate a random colour",
+				tooltip: "Generate a random colour.\nKeyword: randcol",
 				helpUrl: "",
 			});
 		},
@@ -2392,10 +2414,124 @@ export function defineBlocks() {
 				inputsInline: true,
 				output: "Number",
 				colour: 230,
-				tooltip: "Generate a random integer with a seed",
+				tooltip: "Generate a random integer with a seed.\n Keyword: seed",
 				helpUrl: "",
 			});
 		},
 	};
+
+// Define the placeholder block
+Blockly.Blocks["keyword_block"] = {
+	init: function () {
+		// Add a dummy input field with a text input where users can type a keyword
+		this.appendDummyInput().appendField(
+			new Blockly.FieldTextInput("type keyword"),
+			"KEYWORD",
+		);
+
+		this.setColour(230);
+		this.setTooltip("Type a keyword to change this block.");
+		this.setHelpUrl("");
+
+		// Add the onchange event handler
+		this.setOnChange(function (changeEvent) {
+			// Prevent infinite loop by checking if block is already replaced
+			if (this.isDisposed() || this.isReplaced) {
+				return;
+			}
+
+			// Get the keyword entered by the user
+			const keyword = this.getFieldValue("KEYWORD").trim();
+
+			// Look up the block type based on the keyword
+			const blockType = findBlockTypeByKeyword(keyword);
+
+			if (blockType) {
+				// Mark the block as replaced to prevent further changes
+				this.isReplaced = true;
+
+				// Replace with the corresponding block
+				const workspace = this.workspace;
+				const newBlock = workspace.newBlock(blockType);
+
+				// Find the block definition in the toolbox and apply shadow blocks
+				const blockDefinition = findBlockDefinitionInToolbox(blockType);
+
+				if (blockDefinition && blockDefinition.inputs) {
+					applyToolboxSettings(newBlock, blockDefinition.inputs);
+				}
+
+				// Initialize and render the new block
+				newBlock.initSvg();
+				newBlock.render();
+
+				// Safeguard against NaN values
+				const posX = this.getRelativeToSurfaceXY().x || 0;
+				const posY = this.getRelativeToSurfaceXY().y || 0;
+
+				// Move the new block to the original block's position
+				newBlock.moveBy(posX, posY);
+
+				// Select the new block for immediate editing
+				newBlock.select();
+
+				// Dispose of the original placeholder block
+				this.dispose();
+			}
+		});
+	},
+};
+
+
+// Function to find the block type based on the keyword
+function findBlockTypeByKeyword(keyword) {
+	for (const category of toolbox.contents) {
+		if (Array.isArray(category.contents)) {
+			for (const item of category.contents) {
+				if (item.kind === "block" && item.keyword === keyword) {
+					return item.type; // Return the block type if the keyword matches
+				}
+			}
+		}
+	}
+	return null; // Return null if not found
+}
+
+// Function to find block definition in the toolbox by block type
+function findBlockDefinitionInToolbox(blockType) {
+	for (const category of toolbox.contents) {
+		for (const item of category.contents) {
+			if (item.kind === "block" && item.type === blockType) {
+				return item; // Return the block definition
+			}
+		}
+	}
+	return null; // Return null if not found
+}
+
+// Function to apply settings from the toolbox definition to the new block
+function applyToolboxSettings(newBlock, inputs) {
+	for (const inputName in inputs) {
+		const input = inputs[inputName];
+		if (input.shadow) {
+			const shadowBlock = workspace.newBlock(input.shadow.type);
+			shadowBlock.setShadow(true);
+			// Apply fields (default values) to the shadow block
+			for (const fieldName in input.shadow.fields) {
+				shadowBlock.setFieldValue(
+					input.shadow.fields[fieldName],
+					fieldName,
+				);
+			}
+			shadowBlock.initSvg();
+			shadowBlock.render();
+			newBlock
+				.getInput(inputName)
+				.connection.connect(shadowBlock.outputConnection);
+
+			workspace.cleanUp();
+		}
+	}
+}
 
 }

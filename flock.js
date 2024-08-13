@@ -1290,27 +1290,23 @@ export const flock = {
 						mesh.physics._pluginData.hpBodyId,
 						mesh.physics.startAsleep,
 					);
-					resolve();
 				} else {
 					console.log("Model not loaded:", modelName);
-					resolve();
 				}
 			});
 	},
 	hide(modelName) {
-			return flock.whenModelReady(modelName, async function (mesh) {
-				if (mesh) {
-					mesh.setEnabled(false);
-					flock.hk._hknp.HP_World_RemoveBody(
-						flock.hk.world,
-						mesh.physics._pluginData.hpBodyId,
-					);
-					resolve();
-				} else {
-					console.log("Mesh not loaded:", modelName);
-					resolve();
-				}
-			});
+		return flock.whenModelReady(modelName, async function (mesh) {
+			if (mesh) {
+				mesh.setEnabled(false);
+				flock.hk._hknp.HP_World_RemoveBody(
+					flock.hk.world,
+					mesh.physics._pluginData.hpBodyId,
+				);
+			} else {
+				console.log("Mesh not loaded:", modelName);
+			}
+		});
 	},
 	up(modelName, upForce = 10) {
 		const mesh = flock.scene.getMeshByName(modelName);
