@@ -2425,11 +2425,9 @@ Blockly.Blocks["keyword_block"] = {
 	init: function () {
 		// Add a dummy input field with a text input where users can type a keyword
 		this.appendDummyInput().appendField(
-			new Blockly.FieldTextInput("type keyword"),
+			new Blockly.FieldTextInput("type a keyword to add a block"),
 			"KEYWORD",
 		);
-
-		this.setColour(230);
 		this.setTooltip("Type a keyword to change this block.");
 		this.setHelpUrl("");
 
