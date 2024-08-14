@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <title>Flock</title>
-   
+
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="manifest" href="/flock/manifest.webmanifest" />
     <link rel="apple-touch-icon" href="/images/apple-touch-icon.png" />
@@ -17,13 +17,12 @@
     />
     <meta name="theme-color" content="#800080" />
     <style>
-
       /*.blocklyText {
           fill: black !important;
           font-weight: normal !important;
           font-family: 'Asap', Helvetica, Arial, Lucida, sans-serif;
       }*/
-    
+
       body {
         display: flex;
         flex-wrap: wrap;
@@ -69,7 +68,7 @@
       }
 
       .stackedContainer select.highlighted {
-        border: 4px solid magenta;
+        border: 4px solid #defd6c;
         padding: 5px;
         background-color: #f9f9f9;
       }
@@ -98,7 +97,7 @@
       }
 
       .highlighted {
-        border: 4px solid magenta;
+        border: 4px solid #ee5d6c;
         padding: 5px;
         background-color: #f9f9f9;
       }
@@ -263,14 +262,16 @@
             id="toolboxControl"
             class="highlighted"
             onclick="toggleToolbox()"
+            onmouseover="this.style.cursor='pointer'; toggleToolbox();"
             style="
           z-index: 100000;
           font-size: 16px;border-box width: 110px;
-          padding: 1px;
+          background-color: rgba(255,101,80,0.45);
+            padding: 1px;
           box-sizing: border-box;
         "
           >
-            Flock 🐑
+            Flock 🕊️
           </button>
           <button
             class="bigbutton"
