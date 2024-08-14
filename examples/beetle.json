@@ -5130,6 +5130,7 @@
 				"block": {
 				  "type": "apply_force",
 				  "id": "9,~f,4zI=TU4$GX%{F@c",
+				  "inline": true,
 				  "fields": {
 					"MESH_VAR": {
 					  "id": "~5L0YOef~VGK9DE9TIZv"

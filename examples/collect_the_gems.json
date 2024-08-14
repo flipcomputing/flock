@@ -75,6 +75,7 @@
 						"block": {
 						  "type": "procedures_callnoreturn",
 						  "id": "H^sEl!7Y($eatmM3w8v%",
+						  "inline": true,
 						  "extraState": {
 							"name": "stairs",
 							"params": [
@@ -212,7 +213,7 @@
 		"type": "forever",
 		"id": "rzARP?f-rL_OMXQ]LzxO",
 		"x": 10,
-		"y": 2438,
+		"y": 2226,
 		"inputs": {
 		  "DO": {
 			"block": {
@@ -574,7 +575,7 @@
 		"type": "start",
 		"id": "rYSM[9*$cgU?cfx}y-dk",
 		"x": 10,
-		"y": 1955,
+		"y": 1748,
 		"inputs": {
 		  "DO": {
 			"block": {
@@ -801,7 +802,7 @@
 		"type": "on_event",
 		"id": "gdeL9Um:-2~=((Hg5Ofl",
 		"x": 10,
-		"y": 3576,
+		"y": 3380,
 		"fields": {
 		  "EVENT_NAME": "jumped"
 		},
@@ -836,7 +837,7 @@
 		"type": "on_event",
 		"id": "JyO)XxgG$Q6={SNIy1c^",
 		"x": 10,
-		"y": 3801,
+		"y": 3602,
 		"fields": {
 		  "EVENT_NAME": "landed"
 		},
@@ -859,7 +860,7 @@
 		"type": "procedures_defnoreturn",
 		"id": "DFI[=|QVa~qxS/o?(kw8",
 		"x": 10,
-		"y": 3975,
+		"y": 3774,
 		"extraState": {
 		  "params": [
 			{
@@ -1178,7 +1179,7 @@
 		"type": "start",
 		"id": "q5g`3+j}=$|LsI:%L7Dd",
 		"x": 10,
-		"y": 592,
+		"y": 398,
 		"inputs": {
 		  "DO": {
 			"block": {
@@ -1487,7 +1488,7 @@
 		"type": "forever",
 		"id": "~en2}wCrci2aW!^U44y+",
 		"x": 10,
-		"y": 1270,
+		"y": 1070,
 		"inputs": {
 		  "DO": {
 			"block": {
@@ -1615,7 +1616,7 @@
 		"type": "when_touches",
 		"id": "fz:=K$[cMy1^=IC1903v",
 		"x": 10,
-		"y": 4314,
+		"y": 4112,
 		"fields": {
 		  "MODEL_VAR": {
 			"id": "f=8($HYZoE:IjT|U8x8J"
@@ -1832,7 +1833,7 @@
 		"type": "forever",
 		"id": "?{8}RA5?!=.I%mtDoKF_",
 		"x": 10,
-		"y": 1757,
+		"y": 1552,
 		"inputs": {
 		  "DO": {
 			"block": {
@@ -1940,7 +1941,7 @@
 		"type": "start",
 		"id": "hHS.ki-zZTT(B9n*(L[.",
 		"x": 10,
-		"y": 1519,
+		"y": 1316,
 		"inputs": {
 		  "DO": {
 			"block": {
@@ -2036,7 +2037,7 @@
 		"type": "when_touches",
 		"id": "~Zz[oRbN19i8r/2(}BSK",
 		"x": 10,
-		"y": 4842,
+		"y": 4632,
 		"fields": {
 		  "MODEL_VAR": {
 			"id": "f=8($HYZoE:IjT|U8x8J"
@@ -2253,7 +2254,7 @@
 		"type": "when_touches",
 		"id": "B)Ex{*(iP*ycoo1hv6zl",
 		"x": 10,
-		"y": 5370,
+		"y": 5152,
 		"fields": {
 		  "MODEL_VAR": {
 			"id": "f=8($HYZoE:IjT|U8x8J"
@@ -2470,7 +2471,7 @@
 		"type": "forever",
 		"id": "5YjmV;gfXA/2sR{Nw2R:",
 		"x": 10,
-		"y": 5898,
+		"y": 5672,
 		"inputs": {
 		  "DO": {
 			"block": {
@@ -2587,7 +2588,7 @@
 		"type": "on_event",
 		"id": ",ZD0*XTC#5Q_!y/;$GtM",
 		"x": 10,
-		"y": 6243,
+		"y": 6014,
 		"fields": {
 		  "EVENT_NAME": "win"
 		},

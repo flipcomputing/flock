@@ -271,7 +271,7 @@
         "type": "forever",
         "id": "rzARP?f-rL_OMXQ]LzxO",
         "x": 10,
-        "y": 985,
+        "y": 976,
         "inputs": {
           "DO": {
             "block": {
@@ -391,6 +391,7 @@
                       "block": {
                         "type": "apply_force",
                         "id": "$KG${QpmuXme`CkHy]_d",
+                        "inline": true,
                         "fields": {
                           "MESH_VAR": {
                             "id": "f=8($HYZoE:IjT|U8x8J"
@@ -633,7 +634,7 @@
         "type": "start",
         "id": "rYSM[9*$cgU?cfx}y-dk",
         "x": 10,
-        "y": 542,
+        "y": 538,
         "inputs": {
           "DO": {
             "block": {
@@ -806,7 +807,7 @@
         "type": "on_event",
         "id": "gdeL9Um:-2~=((Hg5Ofl",
         "x": 10,
-        "y": 2123,
+        "y": 2050,
         "fields": {
           "EVENT_NAME": "jumped"
         },
@@ -841,7 +842,7 @@
         "type": "on_event",
         "id": "JyO)XxgG$Q6={SNIy1c^",
         "x": 10,
-        "y": 2348,
+        "y": 2272,
         "fields": {
           "EVENT_NAME": "landed"
         },
@@ -864,7 +865,7 @@
         "type": "procedures_defnoreturn",
         "id": ",;|QW%96ML$|:cj!bPU0",
         "x": 10,
-        "y": 2522,
+        "y": 2444,
         "extraState": {
           "params": [
             {

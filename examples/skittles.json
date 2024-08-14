@@ -5,7 +5,7 @@
 	  {
 		"type": "start",
 		"id": "7=mBK,$Qg0Ot}g?x3^ab",
-		"x": 21,
+		"x": 10,
 		"y": 10,
 		"inputs": {
 		  "DO": {
@@ -346,8 +346,8 @@
 	  {
 		"type": "forever",
 		"id": ".E~jcZ/bQye2;V8;4=0.",
-		"x": 0,
-		"y": 794,
+		"x": 10,
+		"y": 692,
 		"inputs": {
 		  "DO": {
 			"block": {
@@ -522,6 +522,7 @@
 				  "block": {
 					"type": "apply_force",
 					"id": ".hy{Ci0MK%a^8BsUtDgB",
+					"inline": true,
 					"fields": {
 					  "MESH_VAR": {
 						"id": "(uVo8DriTq0,t_7FUK@Z"
