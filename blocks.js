@@ -1286,7 +1286,7 @@ export function defineBlocks() {
 				colour: categoryColours["Motion"],
 				inputsInline: true,
 				tooltip:
-				"Moves a mesh a given amount in x y and z directions.\nKeyword: move",
+					"Moves a mesh a given amount in x y and z directions.\nKeyword: move",
 			});
 		},
 	};
@@ -1326,7 +1326,7 @@ export function defineBlocks() {
 				colour: categoryColours["Looks"],
 				inputsInline: true,
 				tooltip:
-				"Resizes a mesh to the given x, y and z.\nKeyword: scale",
+					"Resizes a mesh to the given x, y and z.\nKeyword: scale",
 			});
 		},
 	};
@@ -1462,7 +1462,8 @@ export function defineBlocks() {
 				previousStatement: null,
 				nextStatement: null,
 				colour: categoryColours["Sound"],
-				tooltip: "Stops all sounds currently playing in the scene.\nKeyword:nosound",
+				tooltip:
+					"Stops all sounds currently playing in the scene.\nKeyword:nosound",
 				helpUrl: "",
 			});
 		},
@@ -1734,7 +1735,8 @@ export function defineBlocks() {
 				previousStatement: null,
 				nextStatement: null,
 				colour: categoryColours["Events"],
-				tooltip: "Broadcast an event that can be handled with on event.\nKeyword: broadcast",
+				tooltip:
+					"Broadcast an event that can be handled with on event.\nKeyword: broadcast",
 				helpUrl: "",
 			});
 		},
@@ -1829,7 +1831,8 @@ export function defineBlocks() {
 				previousStatement: null,
 				nextStatement: null,
 				colour: categoryColours["Looks"],
-				tooltip: "Changes the color of the selected model.\nKeyword: colour",
+				tooltip:
+					"Changes the color of the selected model.\nKeyword: colour",
 				helpUrl: "",
 			});
 		},
@@ -1956,7 +1959,8 @@ export function defineBlocks() {
 				previousStatement: null,
 				nextStatement: null,
 				colour: categoryColours["Looks"],
-				tooltip: "Changes the color of the selected model.\nKeyword: colour",
+				tooltip:
+					"Changes the color of the selected model.\nKeyword: colour",
 				helpUrl: "",
 			});
 		},
@@ -2006,7 +2010,8 @@ export function defineBlocks() {
 				previousStatement: null,
 				nextStatement: null,
 				colour: categoryColours["Looks"],
-				tooltip: "Clear visual effects from selected model.\nKeyword: clear",
+				tooltip:
+					"Clear visual effects from selected model.\nKeyword: clear",
 				helpUrl: "",
 			});
 		},
@@ -2092,7 +2097,8 @@ export function defineBlocks() {
 				],
 				output: "Boolean",
 				colour: categoryColours["Sensing"],
-				tooltip: "Returns true if the specified key is pressed.\nKeyword:ispressed",
+				tooltip:
+					"Returns true if the specified key is pressed.\nKeyword:ispressed",
 				helpUrl: "",
 			});
 		},
@@ -2182,10 +2188,12 @@ export function defineBlocks() {
 						align: "RIGHT",
 					},
 				],
+				inputsInline: true,
 				previousStatement: null,
 				nextStatement: null,
 				colour: categoryColours["Motion"],
-				tooltip: "Apply a force to a mesh in XYZ directions.\nKeyword: force",
+				tooltip:
+					"Apply a force to a mesh in XYZ directions.\nKeyword: force",
 				helpUrl: "",
 			});
 		},
@@ -2231,7 +2239,8 @@ export function defineBlocks() {
 				],
 				output: "Boolean",
 				colour: categoryColours["Sensing"],
-				tooltip: "Check if the model is touching a surface.\nKeyword: surface",
+				tooltip:
+					"Check if the model is touching a surface.\nKeyword: surface",
 				helpUrl: "",
 			});
 		},
@@ -2347,7 +2356,8 @@ export function defineBlocks() {
 				],
 				output: "Colour",
 				colour: categoryColours["Looks"], // You can set this to any colour category you prefer
-				tooltip: "Pick a greyscale colour for elevation.\nKeyword: grey",
+				tooltip:
+					"Pick a greyscale colour for elevation.\nKeyword: grey",
 				helpUrl: "",
 			});
 		},
@@ -2367,7 +2377,8 @@ export function defineBlocks() {
 				],
 				output: "Colour",
 				colour: categoryColours["Looks"],
-				tooltip: "Returns a colour from a hex code or CSS colour name.\nKeyword: #color",
+				tooltip:
+					"Returns a colour from a hex code or CSS colour name.\nKeyword: #color",
 				helpUrl: "",
 			});
 		},
@@ -2414,122 +2425,122 @@ export function defineBlocks() {
 				inputsInline: true,
 				output: "Number",
 				colour: 230,
-				tooltip: "Generate a random integer with a seed.\n Keyword: seed",
+				tooltip:
+					"Generate a random integer with a seed.\n Keyword: seed",
 				helpUrl: "",
 			});
 		},
 	};
 
-// Define the placeholder block
-Blockly.Blocks["keyword_block"] = {
-	init: function () {
-		// Add a dummy input field with a text input where users can type a keyword
-		this.appendDummyInput().appendField(
-			new Blockly.FieldTextInput("type a keyword to add a block"),
-			"KEYWORD",
-		);
-		this.setTooltip("Type a keyword to change this block.");
-		this.setHelpUrl("");
+	// Define the placeholder block
+	Blockly.Blocks["keyword_block"] = {
+		init: function () {
+			// Add a dummy input field with a text input where users can type a keyword
+			this.appendDummyInput().appendField(
+				new Blockly.FieldTextInput("type a keyword to add a block"),
+				"KEYWORD",
+			);
+			this.setTooltip("Type a keyword to change this block.");
+			this.setHelpUrl("");
 
-		// Add the onchange event handler
-		this.setOnChange(function (changeEvent) {
-			// Prevent infinite loop by checking if block is already replaced
-			if (this.isDisposed() || this.isReplaced) {
-				return;
-			}
-
-			// Get the keyword entered by the user
-			const keyword = this.getFieldValue("KEYWORD").trim();
-
-			// Look up the block type based on the keyword
-			const blockType = findBlockTypeByKeyword(keyword);
-
-			if (blockType) {
-				// Mark the block as replaced to prevent further changes
-				this.isReplaced = true;
-
-				// Replace with the corresponding block
-				const workspace = this.workspace;
-				const newBlock = workspace.newBlock(blockType);
-
-				// Find the block definition in the toolbox and apply shadow blocks
-				const blockDefinition = findBlockDefinitionInToolbox(blockType);
-
-				if (blockDefinition && blockDefinition.inputs) {
-					applyToolboxSettings(newBlock, blockDefinition.inputs);
+			// Add the onchange event handler
+			this.setOnChange(function (changeEvent) {
+				// Prevent infinite loop by checking if block is already replaced
+				if (this.isDisposed() || this.isReplaced) {
+					return;
 				}
 
-				// Initialize and render the new block
-				newBlock.initSvg();
-				newBlock.render();
+				// Get the keyword entered by the user
+				const keyword = this.getFieldValue("KEYWORD").trim();
 
-				// Safeguard against NaN values
-				const posX = this.getRelativeToSurfaceXY().x || 0;
-				const posY = this.getRelativeToSurfaceXY().y || 0;
+				// Look up the block type based on the keyword
+				const blockType = findBlockTypeByKeyword(keyword);
 
-				// Move the new block to the original block's position
-				newBlock.moveBy(posX, posY);
+				if (blockType) {
+					// Mark the block as replaced to prevent further changes
+					this.isReplaced = true;
 
-				// Select the new block for immediate editing
-				newBlock.select();
+					// Replace with the corresponding block
+					const workspace = this.workspace;
+					const newBlock = workspace.newBlock(blockType);
 
-				// Dispose of the original placeholder block
-				this.dispose();
+					// Find the block definition in the toolbox and apply shadow blocks
+					const blockDefinition =
+						findBlockDefinitionInToolbox(blockType);
+
+					if (blockDefinition && blockDefinition.inputs) {
+						applyToolboxSettings(newBlock, blockDefinition.inputs);
+					}
+
+					// Initialize and render the new block
+					newBlock.initSvg();
+					newBlock.render();
+
+					// Safeguard against NaN values
+					const posX = this.getRelativeToSurfaceXY().x || 0;
+					const posY = this.getRelativeToSurfaceXY().y || 0;
+
+					// Move the new block to the original block's position
+					newBlock.moveBy(posX, posY);
+
+					// Select the new block for immediate editing
+					newBlock.select();
+
+					// Dispose of the original placeholder block
+					this.dispose();
+				}
+			});
+		},
+	};
+
+	// Function to find the block type based on the keyword
+	function findBlockTypeByKeyword(keyword) {
+		for (const category of toolbox.contents) {
+			if (Array.isArray(category.contents)) {
+				for (const item of category.contents) {
+					if (item.kind === "block" && item.keyword === keyword) {
+						return item.type; // Return the block type if the keyword matches
+					}
+				}
 			}
-		});
-	},
-};
+		}
+		return null; // Return null if not found
+	}
 
-
-// Function to find the block type based on the keyword
-function findBlockTypeByKeyword(keyword) {
-	for (const category of toolbox.contents) {
-		if (Array.isArray(category.contents)) {
+	// Function to find block definition in the toolbox by block type
+	function findBlockDefinitionInToolbox(blockType) {
+		for (const category of toolbox.contents) {
 			for (const item of category.contents) {
-				if (item.kind === "block" && item.keyword === keyword) {
-					return item.type; // Return the block type if the keyword matches
+				if (item.kind === "block" && item.type === blockType) {
+					return item; // Return the block definition
 				}
 			}
 		}
+		return null; // Return null if not found
 	}
-	return null; // Return null if not found
-}
 
-// Function to find block definition in the toolbox by block type
-function findBlockDefinitionInToolbox(blockType) {
-	for (const category of toolbox.contents) {
-		for (const item of category.contents) {
-			if (item.kind === "block" && item.type === blockType) {
-				return item; // Return the block definition
+	// Function to apply settings from the toolbox definition to the new block
+	function applyToolboxSettings(newBlock, inputs) {
+		for (const inputName in inputs) {
+			const input = inputs[inputName];
+			if (input.shadow) {
+				const shadowBlock = workspace.newBlock(input.shadow.type);
+				shadowBlock.setShadow(true);
+				// Apply fields (default values) to the shadow block
+				for (const fieldName in input.shadow.fields) {
+					shadowBlock.setFieldValue(
+						input.shadow.fields[fieldName],
+						fieldName,
+					);
+				}
+				shadowBlock.initSvg();
+				shadowBlock.render();
+				newBlock
+					.getInput(inputName)
+					.connection.connect(shadowBlock.outputConnection);
+
+				workspace.cleanUp();
 			}
 		}
 	}
-	return null; // Return null if not found
-}
-
-// Function to apply settings from the toolbox definition to the new block
-function applyToolboxSettings(newBlock, inputs) {
-	for (const inputName in inputs) {
-		const input = inputs[inputName];
-		if (input.shadow) {
-			const shadowBlock = workspace.newBlock(input.shadow.type);
-			shadowBlock.setShadow(true);
-			// Apply fields (default values) to the shadow block
-			for (const fieldName in input.shadow.fields) {
-				shadowBlock.setFieldValue(
-					input.shadow.fields[fieldName],
-					fieldName,
-				);
-			}
-			shadowBlock.initSvg();
-			shadowBlock.render();
-			newBlock
-				.getInput(inputName)
-				.connection.connect(shadowBlock.outputConnection);
-
-			workspace.cleanUp();
-		}
-	}
-}
-
 }

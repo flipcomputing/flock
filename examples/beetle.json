@@ -890,6 +890,7 @@
 				  "block": {
 					"type": "procedures_callnoreturn",
 					"id": "fj:1l;YCCJB~zIXnrr7Z",
+					"inline": true,
 					"extraState": {
 					  "name": "takeATurn",
 					  "params": [
@@ -4396,7 +4397,7 @@
 		"type": "procedures_defnoreturn",
 		"id": "CC]^nJ_ma5LyfxzLX]cT",
 		"x": 10,
-		"y": 11773,
+		"y": 10096,
 		"extraState": {
 		  "params": [
 			{
@@ -5058,7 +5059,7 @@
 		"type": "procedures_defnoreturn",
 		"id": "SB+O/O0w*8k|eBX:U-_t",
 		"x": 10,
-		"y": 8506,
+		"y": 8218,
 		"inline": true,
 		"extraState": {
 		  "params": [
@@ -5127,20 +5128,38 @@
 			  },
 			  "next": {
 				"block": {
-				  "type": "up",
-				  "id": "~|U{X6A(0%d@UdiPnxF9",
+				  "type": "apply_force",
+				  "id": "9,~f,4zI=TU4$GX%{F@c",
 				  "fields": {
-					"MODEL_VAR": {
+					"MESH_VAR": {
 					  "id": "~5L0YOef~VGK9DE9TIZv"
 					}
 				  },
 				  "inputs": {
-					"UP_FORCE": {
+					"X": {
 					  "shadow": {
 						"type": "math_number",
-						"id": "%8jWXq/sbv_exY~%Bxgn",
+						"id": "j#y0N^bqjhb(Om.qPe/:",
+						"fields": {
+						  "NUM": 0
+						}
+					  }
+					},
+					"Y": {
+					  "shadow": {
+						"type": "math_number",
+						"id": "6VW%p`#_Rd{tzef0!mpM",
 						"fields": {
 						  "NUM": 5
+						}
+					  }
+					},
+					"Z": {
+					  "shadow": {
+						"type": "math_number",
+						"id": "6BRrAG(M|SUXyYh.9R!N",
+						"fields": {
+						  "NUM": 0
 						}
 					  }
 					}
@@ -5272,6 +5291,7 @@
 								  "block": {
 									"type": "procedures_callnoreturn",
 									"id": "?VYoNAhH?!C9U`N~[~jP",
+									"inline": true,
 									"extraState": {
 									  "name": "handleDiceRoll",
 									  "params": [
@@ -5378,6 +5398,7 @@
 								  "block": {
 									"type": "procedures_callnoreturn",
 									"id": "`9T8*~Ax~yr,-nxxHTSV",
+									"inline": true,
 									"extraState": {
 									  "name": "handleDiceRoll",
 									  "params": [
@@ -5484,6 +5505,7 @@
 								  "block": {
 									"type": "procedures_callnoreturn",
 									"id": "=a9C=:)1eY#U|Paehbhu",
+									"inline": true,
 									"extraState": {
 									  "name": "handleDiceRoll",
 									  "params": [
@@ -5590,6 +5612,7 @@
 								  "block": {
 									"type": "procedures_callnoreturn",
 									"id": "C~SZ6:S(MdyBe!9Gj6!C",
+									"inline": true,
 									"extraState": {
 									  "name": "handleDiceRoll",
 									  "params": [
@@ -5696,6 +5719,7 @@
 								  "block": {
 									"type": "procedures_callnoreturn",
 									"id": "y%h)(^YMSy_TwL$yx|M#",
+									"inline": true,
 									"extraState": {
 									  "name": "handleDiceRoll",
 									  "params": [
@@ -6186,7 +6210,7 @@
 		"type": "when_clicked",
 		"id": "Xya84(sWW*$+kidxC1;7",
 		"x": 10,
-		"y": 6275,
+		"y": 6131,
 		"disabledReasons": [
 		  "MANUALLY_DISABLED"
 		],
@@ -6740,7 +6764,7 @@
 		"type": "on_event",
 		"id": "myC{vhf*lio,pw5Bqz~v",
 		"x": 10,
-		"y": 6449,
+		"y": 6305,
 		"fields": {
 		  "EVENT_NAME": "Player 2"
 		},
@@ -6785,6 +6809,7 @@
 				  "block": {
 					"type": "procedures_callnoreturn",
 					"id": "NllpLnoU_*(fS{vMgJQ~",
+					"inline": true,
 					"extraState": {
 					  "name": "takeATurn",
 					  "params": [
@@ -6946,7 +6971,7 @@
 		"type": "on_event",
 		"id": "u`rumZk%_#zZ4{1!Ss{6",
 		"x": 10,
-		"y": 7212,
+		"y": 6924,
 		"fields": {
 		  "EVENT_NAME": "Player 1 Wins"
 		},
@@ -7137,7 +7162,7 @@
 		"type": "on_event",
 		"id": "O;3EB:IG)ms]Qa*YUM%C",
 		"x": 10,
-		"y": 7859,
+		"y": 7571,
 		"fields": {
 		  "EVENT_NAME": "Player 2 Wins"
 		},

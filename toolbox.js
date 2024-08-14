@@ -1117,7 +1117,7 @@ export const toolbox = {
 						},
 					},
 				},
-				{
+/*				{
 					kind: "block",
 					type: "up",
 					keyword: "up",
@@ -1131,7 +1131,7 @@ export const toolbox = {
 							},
 						},
 					},
-				},
+				},*/
 				{
 					kind: "block",
 					type: "apply_force",

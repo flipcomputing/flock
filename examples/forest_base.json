@@ -271,7 +271,7 @@
         "type": "forever",
         "id": "rzARP?f-rL_OMXQ]LzxO",
         "x": 10,
-        "y": 976,
+        "y": 985,
         "inputs": {
           "DO": {
             "block": {
@@ -389,20 +389,38 @@
                     },
                     "DO0": {
                       "block": {
-                        "type": "up",
-                        "id": "5e~v+4+K:i=T`$U?Q+20",
+                        "type": "apply_force",
+                        "id": "$KG${QpmuXme`CkHy]_d",
                         "fields": {
-                          "MODEL_VAR": {
+                          "MESH_VAR": {
                             "id": "f=8($HYZoE:IjT|U8x8J"
                           }
                         },
                         "inputs": {
-                          "UP_FORCE": {
+                          "X": {
                             "shadow": {
                               "type": "math_number",
-                              "id": "(j)Y@f@5-fYPhVNy:-cJ",
+                              "id": "k*MBM*K3Ptd91~n09W`m",
+                              "fields": {
+                                "NUM": 0
+                              }
+                            }
+                          },
+                          "Y": {
+                            "shadow": {
+                              "type": "math_number",
+                              "id": "3R5cAN5:nmZkqnDLwtcl",
                               "fields": {
                                 "NUM": 5
+                              }
+                            }
+                          },
+                          "Z": {
+                            "shadow": {
+                              "type": "math_number",
+                              "id": ",^]!w**N#,aJMGZc:Y8P",
+                              "fields": {
+                                "NUM": 0
                               }
                             }
                           }
@@ -615,7 +633,7 @@
         "type": "start",
         "id": "rYSM[9*$cgU?cfx}y-dk",
         "x": 10,
-        "y": 538,
+        "y": 542,
         "inputs": {
           "DO": {
             "block": {
@@ -788,7 +806,7 @@
         "type": "on_event",
         "id": "gdeL9Um:-2~=((Hg5Ofl",
         "x": 10,
-        "y": 2050,
+        "y": 2123,
         "fields": {
           "EVENT_NAME": "jumped"
         },
@@ -823,7 +841,7 @@
         "type": "on_event",
         "id": "JyO)XxgG$Q6={SNIy1c^",
         "x": 10,
-        "y": 2272,
+        "y": 2348,
         "fields": {
           "EVENT_NAME": "landed"
         },
@@ -846,7 +864,7 @@
         "type": "procedures_defnoreturn",
         "id": ",;|QW%96ML$|:cj!bPU0",
         "x": 10,
-        "y": 2444,
+        "y": 2522,
         "extraState": {
           "params": [
             {
