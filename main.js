@@ -381,13 +381,37 @@ function compressAndGenerateUrl(workspace) {
 	const jsonString = JSON.stringify(workspace);
 
 	// Compress the JSON string using pako
-	const compressed = pako.deflate(jsonString);
+	const compressed = pako.deflate(new TextEncoder().encode(jsonString));
 
 	// Convert the compressed data to a Base64 string
-	const encoded = btoa(String.fromCharCode.apply(null, [...compressed]));
+	const encoded = btoa(String.fromCharCode.apply(null, compressed));
 
+	// Construct the URL with the encoded workspace data
 	const baseUrl = window.location.origin + window.location.pathname;
 	const uri = `${baseUrl}?workspace=${encoded}`;
+
+	// ** Test Decompression **
+	// Decode the Base64 string to a binary string
+	const binaryString = atob(encoded);
+
+	// Convert the binary string to a Uint8Array
+	const compressedTest = Uint8Array.from(binaryString, char => char.charCodeAt(0));
+
+	// Decompress the data using pako
+	const decompressed = pako.inflate(compressedTest);
+
+	// Decode the decompressed Uint8Array back to a string
+	const jsonStringTest = new TextDecoder().decode(decompressed);
+
+	// Parse the JSON string back to an object
+	const workspaceTest = JSON.parse(jsonStringTest);
+
+	// Check if the original and decompressed workspaces match
+	const match = JSON.stringify(workspace) === JSON.stringify(workspaceTest);
+	console.log('Match:', match);
+	console.log('Decompressed Workspace:', workspaceTest);
+
+	// Return the generated URL
 	return uri;
 }
 
@@ -399,13 +423,15 @@ function decompressAndLoadWorkspace(encodedWorkspace) {
 	const compressed = Uint8Array.from(binaryString, char => char.charCodeAt(0));
 
 	// Decompress the data using pako
-	const decompressed = pako.inflate(compressed, { to: 'string' });
+	const decompressed = pako.inflate(compressed);
 
-	// Parse the decompressed string back to JSON
-	const workspaceObject = JSON.parse(decompressed);
+	// Decode the decompressed Uint8Array back to a string
+	const jsonString = new TextDecoder().decode(decompressed);
 
-	// Load the workspace in Blockly
-	Blockly.serialization.workspaces.load(workspaceObject, Blockly.getMainWorkspace());
+	// Parse the JSON string back to an object
+	const workspaceObject = JSON.parse(jsonString);
+
+	return workspaceObject;
 }
 function addShareableUrlContextMenuOption(workspace) {
 	Blockly.ContextMenuRegistry.registry.register({
@@ -423,7 +449,7 @@ function addShareableUrlContextMenuOption(workspace) {
 				Blockly.serialization.workspaces.save(workspace);
 			const shareableUrl = compressAndGenerateUrl(workspaceJson);
 			copyToClipboard(shareableUrl);
-			alert("Shareable URL copied to clipboard!");
+			alert(shareableUrl);
 		},
 		scopeType: Blockly.ContextMenuRegistry.ScopeType.WORKSPACE,
 		checkbox: false,
