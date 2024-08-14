@@ -6,6 +6,7 @@ import * as Blockly from "blockly";
 import { javascriptGenerator } from "blockly/javascript";
 import { registerFieldColour } from "@blockly/field-colour";
 import { FieldGridDropdown } from "@blockly/field-grid-dropdown";
+import {NavigationController} from '@blockly/keyboard-navigation';
 import * as BABYLON from "@babylonjs/core";
 import * as BABYLON_GUI from "@babylonjs/gui";
 import HavokPhysics from "@babylonjs/havok";
@@ -21,6 +22,11 @@ flock.GUI = BABYLON_GUI;
 
 registerFieldColour();
 Blockly.ContextMenuItems.registerCommentOptions();
+const navigationController = new NavigationController();
+navigationController.init();
+navigationController.addWorkspace(workspace);
+// Turns on keyboard navigation.
+navigationController.enable(workspace);
 
 flock.canvas = document.getElementById("renderCanvas");
 let engine = null;

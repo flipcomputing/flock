@@ -13,6 +13,7 @@
     "@blockly/block-shareable-procedures": "^5.0.6",
     "@blockly/field-colour": "^5.0.0",
     "@blockly/field-grid-dropdown": "^5.0.4",
+    "@blockly/keyboard-navigation": "^0.6.7",
     "babylonjs": "^7.8.0",
     "babylonjs-gui": "^7.8.0",
     "blockly": "^11.0.0"
