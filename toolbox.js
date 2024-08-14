@@ -1135,7 +1135,7 @@ export const toolbox = {
 				{
 					kind: "block",
 					type: "apply_force",
-					keyword: "force",
+					keyword: "push",
 					inputs: {
 						X: {
 							shadow: {
