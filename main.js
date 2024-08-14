@@ -401,22 +401,28 @@ function compressAndGenerateUrl(workspace) {
 function decompressAndLoadWorkspace(uri) {
 	// Extract the base64 string from the query parameter
 	const params = new URLSearchParams(uri.split("?")[1]);
+	console.log(params);
 	const base64 = params.get("data");
+	console.log(base64);
 
 	// Decode the base64 string
 	const binaryString = atob(decodeURIComponent(base64));
-
+	console.log(binaryString);
 	// Convert binary string back to byte array
 	const compressed = new Uint8Array(binaryString.length);
 	for (let i = 0; i < binaryString.length; i++) {
 		compressed[i] = binaryString.charCodeAt(i);
 	}
+	console.log(compressed);
 
 	// Decompress the data
 	const decompressed = pako.inflate(compressed, { to: "string" });
 
+	console.log(decompressed);
 	// Parse the JSON string
 	const jsonData = JSON.parse(decompressed);
+
+	console.log(jsonData);
 
 	return jsonData;
 }
