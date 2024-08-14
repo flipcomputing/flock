@@ -6,7 +6,7 @@ import * as Blockly from "blockly";
 import { javascriptGenerator } from "blockly/javascript";
 import { registerFieldColour } from "@blockly/field-colour";
 import { FieldGridDropdown } from "@blockly/field-grid-dropdown";
-import {NavigationController} from '@blockly/keyboard-navigation';
+import { NavigationController } from "@blockly/keyboard-navigation";
 import * as BABYLON from "@babylonjs/core";
 import * as BABYLON_GUI from "@babylonjs/gui";
 import HavokPhysics from "@babylonjs/havok";
@@ -16,7 +16,9 @@ import { flock } from "./flock.js";
 import { toolbox, initialBlocksJson } from "./toolbox.js";
 import { workspace, defineBlocks, initializeVariableIndexes } from "./blocks";
 import { defineGenerators, meshMap } from "./generators";
+import pako from "pako";
 import { FlowGraphLog10Block } from "babylonjs";
+
 flock.BABYLON = BABYLON;
 flock.GUI = BABYLON_GUI;
 
@@ -62,7 +64,6 @@ workspace.addChangeListener(Blockly.Events.disableOrphans);
 
 //Blockly.utils.colour.setHsvSaturation(0.20) // 0 (inclusive) to 1 (exclusive), defaulting to 0.45
 //Blockly.utils.colour.setHsvValue(0.70) // 0 (inclusive) to 1 (exclusive), defaulting to 0.65
-
 
 function createEngine() {
 	if (engine) {
@@ -294,21 +295,28 @@ function saveWorkspace() {
 
 // Function to load today's workspace state
 function loadWorkspace() {
-	const savedState = localStorage.getItem("flock_autosave.json");
+	const urlParams = new URLSearchParams(window.location.search);
+	const encodedWorkspace = urlParams.get("workspace");
 
-	if (savedState) {
-		console.log("Loading saved state...");
-		Blockly.serialization.workspaces.load(
-			JSON.parse(savedState),
-			workspace,
-		);
+	if (encodedWorkspace) {
+		decompressAndLoadWorkspace(encodedWorkspace);
 	} else {
-		console.log("Loading default program");
-		// Load the JSON into the workspace
-		Blockly.serialization.workspaces.load(
-			window.initialBlocksJson,
-			workspace,
-		);
+		const savedState = localStorage.getItem("flock_autosave.json");
+
+		if (savedState) {
+			console.log("Loading saved state...");
+			Blockly.serialization.workspaces.load(
+				JSON.parse(savedState),
+				workspace,
+			);
+		} else {
+			console.log("Loading default program");
+			// Load the JSON into the workspace
+			Blockly.serialization.workspaces.load(
+				window.initialBlocksJson,
+				workspace,
+			);
+		}
 	}
 
 	executeCode();
@@ -358,6 +366,77 @@ function removeEventListeners() {
 	flock.scene.eventListeners.length = 0; // Clear the array
 }
 
+function compressAndGenerateUrl(workspace) {
+	const jsonString = JSON.stringify(workspace);
+
+	// Compress the JSON string using pako
+	const compressed = pako.deflate(jsonString);
+
+	// Convert the compressed data to a Base64 string
+	const encoded = btoa(String.fromCharCode.apply(null, compressed));
+
+	const baseUrl = "https://flipcomputing.github.io/flock";
+	const uri = `${baseUrl}?workspace=${encoded}`;
+	return uri;
+}
+
+function copyToClipboard(text) {
+	const textarea = document.createElement("textarea");
+	textarea.value = text;
+	document.body.appendChild(textarea);
+	textarea.select();
+	document.execCommand("copy");
+	document.body.removeChild(textarea);
+}
+
+function decompressAndLoadWorkspace(encodedWorkspace) {
+	// Decode the Base64 string to a binary string
+	const binaryString = atob(encodedWorkspace);
+
+	// Convert the binary string to a Uint8Array
+	const compressed = Uint8Array.from(binaryString, (char) =>
+		char.charCodeAt(0),
+	);
+
+	// Decompress the data using pako
+	const decompressed = pako.inflate(compressed, { to: "string" });
+
+	// Parse the decompressed string back to JSON
+	const workspaceObject = JSON.parse(decompressed);
+
+	// Load the workspace in Blockly
+	Blockly.serialization.workspaces.load(
+		workspaceObject,
+		Blockly.getMainWorkspace(),
+	);
+}
+
+function addShareableUrlContextMenuOption(workspace) {
+	Blockly.ContextMenuRegistry.registry.register({
+		id: "generateShareableUrl",
+		weight: 200,
+		displayText: function () {
+			return "Generate Shareable URL";
+		},
+		preconditionFn: function (scope) {
+			// The option should always be enabled
+			return "enabled";
+		},
+		callback: function () {
+			const workspaceJson =
+				Blockly.serialization.workspaces.save(workspace);
+			const shareableUrl = compressAndGenerateUrl(workspaceJson);
+			copyToClipboard(shareableUrl);
+			alert("Shareable URL copied to clipboard!");
+		},
+		scopeType: Blockly.ContextMenuRegistry.ScopeType.WORKSPACE,
+		checkbox: false,
+	});
+}
+
+// Add the custom context menu option to the workspace
+addShareableUrlContextMenuOption(workspace);
+
 window.onload = function () {
 	// Initial view setup
 	window.loadingCode = true;
@@ -370,7 +449,7 @@ window.onload = function () {
 	flock.canvas.addEventListener("keyup", function (event) {
 		flock.canvas.pressedKeys.delete(event.key);
 	});
-	
+
 	loadWorkspace();
 	switchView("both");
 
@@ -479,7 +558,17 @@ window.onload = function () {
 			}
 		});
 
-	const blockTypesToCleanUp = ["start", "forever", "when_clicked", "when_touches", "when_key_pressed", "when_key_released", "on_event", "procedures_defnoreturn", "procedures_defreturn"];
+	const blockTypesToCleanUp = [
+		"start",
+		"forever",
+		"when_clicked",
+		"when_touches",
+		"when_key_pressed",
+		"when_key_released",
+		"on_event",
+		"procedures_defnoreturn",
+		"procedures_defreturn",
+	];
 
 	workspace.cleanUp = function () {
 		const topBlocks = workspace.getTopBlocks(false); // Get all top-level blocks without sorting
