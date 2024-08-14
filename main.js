@@ -295,30 +295,21 @@ function saveWorkspace() {
 
 // Function to load today's workspace state
 function loadWorkspace() {
-	const urlParams = new URLSearchParams(window.location.search);
-	const encodedWorkspace = urlParams.get("data");
+	const savedState = localStorage.getItem("flock_autosave.json");
 
-	console.log(encodedWorkspace);
-
-	if (encodedWorkspace) {
-		decompressAndLoadWorkspace(encodedWorkspace);
+	if (savedState) {
+		console.log("Loading saved state...");
+		Blockly.serialization.workspaces.load(
+			JSON.parse(savedState),
+			workspace,
+		);
 	} else {
-		const savedState = localStorage.getItem("flock_autosave.json");
-
-		if (savedState) {
-			console.log("Loading saved state...");
-			Blockly.serialization.workspaces.load(
-				JSON.parse(savedState),
-				workspace,
-			);
-		} else {
-			console.log("Loading default program");
-			// Load the JSON into the workspace
-			Blockly.serialization.workspaces.load(
-				window.initialBlocksJson,
-				workspace,
-			);
-		}
+		console.log("Loading default program");
+		// Load the JSON into the workspace
+		Blockly.serialization.workspaces.load(
+			window.initialBlocksJson,
+			workspace,
+		);
 	}
 
 	executeCode();
@@ -367,93 +358,6 @@ function removeEventListeners() {
 	});
 	flock.scene.eventListeners.length = 0; // Clear the array
 }
-
-function copyToClipboard(text) {
-	const textarea = document.createElement("textarea");
-	textarea.value = text;
-	document.body.appendChild(textarea);
-	textarea.select();
-	document.execCommand("copy");
-	document.body.removeChild(textarea);
-}
-
-function compressAndGenerateUrl(workspace) {
-	// Convert JSON data to a string
-	const jsonString = JSON.stringify(workspace);
-
-	// Compress the JSON string
-	const compressed = pako.deflate(jsonString, { to: "string" });
-
-	// Convert compressed data to base64
-	const base64 = btoa(
-		String.fromCharCode.apply(null, new Uint8Array(compressed)),
-	);
-
-	// URL encode the base64 string to make it safe for URLs
-	const safeBase64 = encodeURIComponent(base64);
-	const baseUrl = "https://flipcomputing.github.io/flock/";
-	// Append the base64 string as a query parameter to the base URL
-	const uri = `${baseUrl}?data=${safeBase64}`;
-
-	return uri;
-}
-
-function decompressAndLoadWorkspace(uri) {
-	// Extract the base64 string from the query parameter
-	const params = new URLSearchParams(uri.split("?")[1]);
-	console.log(params);
-	const base64 = params.get("data");
-	console.log(base64);
-
-	// Decode the base64 string
-	const binaryString = atob(decodeURIComponent(base64));
-	console.log(binaryString);
-	// Convert binary string back to byte array
-	const compressed = new Uint8Array(binaryString.length);
-	for (let i = 0; i < binaryString.length; i++) {
-		compressed[i] = binaryString.charCodeAt(i);
-	}
-	console.log(compressed);
-
-	// Decompress the data
-	const decompressed = pako.inflate(compressed, { to: "string" });
-
-	console.log(decompressed);
-	// Parse the JSON string
-	const jsonData = JSON.parse(decompressed);
-
-	console.log(jsonData);
-
-	return jsonData;
-}
-
-function addShareableUrlContextMenuOption(workspace) {
-	Blockly.ContextMenuRegistry.registry.register({
-		id: "generateShareableUrl",
-		weight: 200,
-		displayText: function () {
-			return "Generate Shareable URL";
-		},
-		preconditionFn: function (scope) {
-			// The option should always be enabled
-			return "enabled";
-		},
-		callback: function () {
-			const workspaceJson =
-				Blockly.serialization.workspaces.save(workspace);
-			const shareableUrl = compressAndGenerateUrl(workspaceJson);
-
-			copyToClipboard(shareableUrl);
-			alert(shareableUrl);
-			console.log(decompressAndLoadWorkspace(shareableUrl));
-		},
-		scopeType: Blockly.ContextMenuRegistry.ScopeType.WORKSPACE,
-		checkbox: false,
-	});
-}
-
-// Add the custom context menu option to the workspace
-addShareableUrlContextMenuOption(workspace);
 
 window.onload = function () {
 	// Initial view setup
