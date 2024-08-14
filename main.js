@@ -296,7 +296,7 @@ function saveWorkspace() {
 // Function to load today's workspace state
 function loadWorkspace() {
 	const urlParams = new URLSearchParams(window.location.search);
-	const encodedWorkspace = urlParams.get("workspace");
+	const encodedWorkspace = urlParams.get("data");
 
 	console.log(encodedWorkspace);
 
