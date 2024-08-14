@@ -298,6 +298,8 @@ function loadWorkspace() {
 	const urlParams = new URLSearchParams(window.location.search);
 	const encodedWorkspace = urlParams.get("workspace");
 
+	console.log(encodedWorkspace);
+
 	if (encodedWorkspace) {
 		decompressAndLoadWorkspace(encodedWorkspace);
 	} else {
@@ -366,20 +368,6 @@ function removeEventListeners() {
 	flock.scene.eventListeners.length = 0; // Clear the array
 }
 
-function compressAndGenerateUrl(workspace) {
-	const jsonString = JSON.stringify(workspace);
-
-	// Compress the JSON string using pako
-	const compressed = pako.deflate(jsonString);
-
-	// Convert the compressed data to a Base64 string
-	const encoded = btoa(String.fromCharCode.apply(null, compressed));
-
-	const baseUrl = "https://flipcomputing.github.io/flock";
-	const uri = `${baseUrl}?workspace=${encoded}`;
-	return uri;
-}
-
 function copyToClipboard(text) {
 	const textarea = document.createElement("textarea");
 	textarea.value = text;
@@ -389,28 +377,36 @@ function copyToClipboard(text) {
 	document.body.removeChild(textarea);
 }
 
+function compressAndGenerateUrl(workspace) {
+	const jsonString = JSON.stringify(workspace);
+
+	// Compress the JSON string using pako
+	const compressed = pako.deflate(jsonString);
+
+	// Convert the compressed data to a Base64 string
+	const encoded = btoa(String.fromCharCode.apply(null, [...compressed]));
+
+	const baseUrl = window.location.origin + window.location.pathname;
+	const uri = `${baseUrl}?workspace=${encoded}`;
+	return uri;
+}
+
 function decompressAndLoadWorkspace(encodedWorkspace) {
 	// Decode the Base64 string to a binary string
 	const binaryString = atob(encodedWorkspace);
 
 	// Convert the binary string to a Uint8Array
-	const compressed = Uint8Array.from(binaryString, (char) =>
-		char.charCodeAt(0),
-	);
+	const compressed = Uint8Array.from(binaryString, char => char.charCodeAt(0));
 
 	// Decompress the data using pako
-	const decompressed = pako.inflate(compressed, { to: "string" });
+	const decompressed = pako.inflate(compressed, { to: 'string' });
 
 	// Parse the decompressed string back to JSON
 	const workspaceObject = JSON.parse(decompressed);
 
 	// Load the workspace in Blockly
-	Blockly.serialization.workspaces.load(
-		workspaceObject,
-		Blockly.getMainWorkspace(),
-	);
+	Blockly.serialization.workspaces.load(workspaceObject, Blockly.getMainWorkspace());
 }
-
 function addShareableUrlContextMenuOption(workspace) {
 	Blockly.ContextMenuRegistry.registry.register({
 		id: "generateShareableUrl",
