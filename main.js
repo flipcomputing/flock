@@ -6,7 +6,7 @@ import * as Blockly from "blockly";
 import { javascriptGenerator } from "blockly/javascript";
 import { registerFieldColour } from "@blockly/field-colour";
 import { FieldGridDropdown } from "@blockly/field-grid-dropdown";
-import {WorkspaceSearch} from '@blockly/plugin-workspace-search';
+import { WorkspaceSearch } from "@blockly/plugin-workspace-search";
 import { NavigationController } from "@blockly/keyboard-navigation";
 /*import {
   ScrollOptions,
@@ -42,7 +42,6 @@ workspaceSearch.init();
 
 /*const plugin = new ScrollOptions(workspace);
 plugin.init();*/
-
 
 flock.canvas = document.getElementById("renderCanvas");
 let engine = null;
@@ -373,10 +372,19 @@ function removeEventListeners() {
 	flock.scene.eventListeners.length = 0; // Clear the array
 }
 
+let mousePos = { x: 0, y: 0 };
+flock.mousePos = mousePos;
+
 window.onload = function () {
 	// Initial view setup
 	window.loadingCode = true;
 
+	workspace.addChangeListener(function (e) {
+		if (e.type === Blockly.Events.MOUSE_MOVE) {
+			const svgCoords = Blockly.mouseToSvg(e);
+			flock.mousePos = { x: svgCoords.x, y: svgCoords.y };
+		}
+	});
 	flock.canvas.addEventListener("keydown", function (event) {
 		flock.canvas.currentKeyPressed = event.key;
 		flock.canvas.pressedKeys.add(event.key);
@@ -550,16 +558,21 @@ window.onload = function () {
 
 			const workspace = Blockly.getMainWorkspace();
 
-			// Default to center position if no mouse event is available
-			let mouseX = 100;
-			let mouseY = 100;
-
 			// Create the placeholder block at the computed position
 			const placeholderBlock = workspace.newBlock("keyword_block");
 			placeholderBlock.initSvg();
 			placeholderBlock.render();
-			placeholderBlock.moveBy(mouseX, mouseY);
+			
 
+			let workspaceCoordinates = workspace.getMetricsManager().getViewMetrics(true)
+			let posx = workspaceCoordinates.left + (workspaceCoordinates.width / 2)
+			let posy = workspaceCoordinates.top + (workspaceCoordinates.height / 2)
+			let blockCoordinates = new Blockly.utils.Coordinate(posx, posy)
+
+			placeholderBlock.initSvg()
+			placeholderBlock.render()
+			placeholderBlock.moveTo(blockCoordinates)
+ 
 			// Select the block for immediate editing
 			placeholderBlock.select();
 
@@ -980,8 +993,7 @@ window.viewMode = viewMode;
 window.codeMode = codeMode;
 
 function switchView(view) {
-	if(flock.scene)
-		flock.scene.debugLayer.hide();
+	if (flock.scene) flock.scene.debugLayer.hide();
 	const blocklyArea = document.getElementById("codePanel");
 	const blocklyDiv = document.getElementById("blocklyDiv");
 	const canvasArea = document.getElementById("rightArea");
