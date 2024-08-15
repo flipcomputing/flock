@@ -980,7 +980,8 @@ window.viewMode = viewMode;
 window.codeMode = codeMode;
 
 function switchView(view) {
-	flock.scene.debugLayer.hide();
+	if(flock.scene)
+		flock.scene.debugLayer.hide();
 	const blocklyArea = document.getElementById("codePanel");
 	const blocklyDiv = document.getElementById("blocklyDiv");
 	const canvasArea = document.getElementById("rightArea");
@@ -1005,44 +1006,6 @@ function switchView(view) {
 		viewMode = "canvas";
 		blocklyArea.style.display = "none";
 		canvasArea.style.display = "block";
-		gizmoButtons.style.display = "none";
-		menu.style.display = "flex";
-	}
-
-	onResize(); // Ensure both Blockly and Babylon.js canvas resize correctly
-}
-// Function to switch views
-function switchView2(view) {
-	const blocklyArea = document.getElementById("codePanel");
-	const blocklyDiv = document.getElementById("blocklyDiv");
-	const canvasArea = document.getElementById("rightArea");
-	const menu = document.getElementById("menu");
-	const gizmoButtons = document.getElementById("gizmoButtons");
-
-	if (view === "both") {
-		//flock.scene.debugLayer.hide();
-		viewMode = "both";
-		codeMode = "both";
-		blocklyArea.style.display = "block";
-		blocklyDiv.style.width = "50vw";
-		canvasArea.style.width = "50%";
-		blocklyArea.style.width = "50%";
-		gizmoButtons.style.display = "flex";
-		menu.style.display = "flex";
-		//menu.style.right = "unset";
-	} else if (view === "blockly") {
-		viewMode = "blockly";
-		codeMode = "blockly";
-		blocklyArea.style.display = "block";
-		blocklyArea.style.width = "100%";
-		blocklyDiv.style.width = "100vw";
-		canvasArea.style.width = "0%";
-		gizmoButtons.style.display = "none";
-		menu.style.display = "none";
-	} else if (view === "canvas") {
-		viewMode = "canvas";
-		blocklyArea.style.display = "none";
-		canvasArea.style.width = "100%";
 		gizmoButtons.style.display = "none";
 		menu.style.display = "flex";
 	}

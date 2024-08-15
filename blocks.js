@@ -10,6 +10,11 @@ import {
 	animationNames,
 	materialNames,
 } from "./config.js";
+/*import {
+  ScrollOptions,
+  ScrollBlockDragger,
+  ScrollMetricsManager,
+} from '@blockly/plugin-scroll-options';*/
 /*import {Multiselect, MultiselectBlockDragger} from '@mit-app-inventor/blockly-plugin-workspace-multiselect';*/
  
 let nextVariableIndexes = {};
