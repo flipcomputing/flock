@@ -10,10 +10,11 @@ import {
 	animationNames,
 	materialNames,
 } from "./config.js";
-
+/*import {Multiselect, MultiselectBlockDragger} from '@mit-app-inventor/blockly-plugin-workspace-multiselect';*/
+ 
 let nextVariableIndexes = {};
 
-export const workspace = Blockly.inject("blocklyDiv", {
+const options = {
 	theme: Blockly.Themes.Modern,
 	renderer: "zelos",
 	zoom: {
@@ -26,16 +27,58 @@ export const workspace = Blockly.inject("blocklyDiv", {
 	},
 	toolbox: toolbox,
 	/*plugins: {
-		// These are both required.
-		// Note that the ScrollBlockDragger drags things besides blocks.
-		// Block is included in the name for backwards compatibility.
-		blockDragger: ScrollBlockDragger,
-		metricsManager: ScrollMetricsManager,
-	  },
-	  move: {
-		wheel: true, // Required for wheel scroll to work.
-	  },*/
-});
+			// These are both required.
+			// Note that the ScrollBlockDragger drags things besides blocks.
+			// Block is included in the name for backwards compatibility.
+			blockDragger: ScrollBlockDragger,
+			metricsManager: ScrollMetricsManager,
+		  },
+		  move: {
+			wheel: true, // Required for wheel scroll to work.
+		  },*/
+	/*plugins: {
+		blockDragger: MultiselectBlockDragger, // Required to work
+	},
+
+	// // For integration with other plugins that also
+	// // need to change the blockDragger above (such as
+	// // scroll-options).
+	// baseBlockDragger: ScrollBlockDragger
+
+	// Double click the blocks to collapse/expand
+	// them (A feature from MIT App Inventor).
+	useDoubleClick: false,
+	// Bump neighbours after dragging to avoid overlapping.
+	bumpNeighbours: false,
+
+	// Keep the fields of multiple selected same-type blocks with the same value
+	multiFieldUpdate: true,
+
+	// Auto focus the workspace when the mouse enters.
+	workspaceAutoFocus: true,
+
+	// Use custom icon for the multi select controls.
+	multiselectIcon: {
+		hideIcon: false,
+		weight: 3,
+		enabledIcon:
+			"https://github.com/mit-cml/workspace-multiselect/raw/main/test/media/select.svg",
+		disabledIcon:
+			"https://github.com/mit-cml/workspace-multiselect/raw/main/test/media/unselect.svg",
+	},
+
+	multiselectCopyPaste: {
+		// Enable the copy/paste accross tabs feature (true by default).
+		crossTab: true,
+		// Show the copy/paste menu entries (true by default).
+		menu: true,
+	},*/
+};
+
+export const workspace = Blockly.inject("blocklyDiv", options);
+
+/*const multiselectPlugin = new Multiselect(workspace);
+multiselectPlugin.init(options);*/
 
 export function initializeVariableIndexes() {
 	nextVariableIndexes = {

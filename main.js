@@ -13,6 +13,7 @@ import { NavigationController } from "@blockly/keyboard-navigation";
   ScrollBlockDragger,
   ScrollMetricsManager,
 } from '@blockly/plugin-scroll-options';*/
+/*import {Multiselect, MultiselectBlockDragger} from '@mit-app-inventor/blockly-plugin-workspace-multiselect';*/
 import * as BABYLON from "@babylonjs/core";
 import * as BABYLON_GUI from "@babylonjs/gui";
 import HavokPhysics from "@babylonjs/havok";
@@ -41,6 +42,7 @@ workspaceSearch.init();
 
 /*const plugin = new ScrollOptions(workspace);
 plugin.init();*/
+
 
 flock.canvas = document.getElementById("renderCanvas");
 let engine = null;
