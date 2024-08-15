@@ -30,6 +30,13 @@ const options = {
 		minScale: 0.3,
 		scaleSpeed: 1.2,
 	},
+	move:{
+		scrollbars: {
+		  horizontal: true,
+		  vertical: true
+		},
+		drag: true,
+		wheel: true},
 	toolbox: toolbox,
 	/*plugins: {
 			// These are both required.
@@ -48,7 +55,7 @@ const options = {
 	// // For integration with other plugins that also
 	// // need to change the blockDragger above (such as
 	// // scroll-options).
-	// baseBlockDragger: ScrollBlockDragger
+	baseBlockDragger: ScrollBlockDragger,
 
 	// Double click the blocks to collapse/expand
 	// them (A feature from MIT App Inventor).
@@ -84,6 +91,9 @@ export const workspace = Blockly.inject("blocklyDiv", options);
 
 /*const multiselectPlugin = new Multiselect(workspace);
 multiselectPlugin.init(options);*/
+
+/*const plugin = new ScrollOptions(workspace);
+plugin.init();*/
 
 export function initializeVariableIndexes() {
 	nextVariableIndexes = {
