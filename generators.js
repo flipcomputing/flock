@@ -1,5 +1,7 @@
 import * as Blockly from "blockly";
 import { javascriptGenerator } from "blockly/javascript";
+import '@blockly/block-plus-minus';
+
 import { FlowGraphLog10Block } from "babylonjs";
 import { flock } from "./flock.js";
 
@@ -761,8 +763,9 @@ export function defineGenerators() {
 	javascriptGenerator.forBlock["procedures_defnoreturn"] = function (block) {
 		const functionName = block.getFieldValue("NAME");
 		// Retrieve the parameters as a comma-separated list
-		const params = block.arguments_;
-		console.log(block);
+		const args = block.argData_.map((elem) => elem.model.name);
+		const params = args.join(", ");
+		console.log(block, args);
 		const branch =
 			javascriptGenerator.statementToCode(
 				block,
@@ -770,8 +773,9 @@ export function defineGenerators() {
 				javascriptGenerator.ORDER_NONE,
 			) || "";
 
+		console.log(params);
 		// Generate the function code with async and parameters
-		const code = `async function ${functionName}(${params.join(", ")}) {\n${branch}\n}`;
+		const code = `async function ${functionName}(${params}) {\n${branch}\n}`;
 		return code;
 	};
 
@@ -795,8 +799,8 @@ export function defineGenerators() {
 
 	javascriptGenerator.forBlock["procedures_defreturn"] = function (block) {
 		const functionName = block.getFieldValue("NAME");
-		const params = block.arguments_ || []; // Ensuring this array is initialized correctly
-		const paramsCode = params.join(", "); // Creating a comma-separated string of parameters
+		const args = block.argData_.map((elem) => elem.model.name);
+		const params = args.join(", ");
 		const branch =
 			javascriptGenerator.statementToCode(
 				block,
@@ -811,7 +815,7 @@ export function defineGenerators() {
 			) || "";
 
 		// Generate the function code with async, parameters, and return statement
-		const code = `async function ${functionName}(${paramsCode}) {\n${branch}return ${returnValue};\n}`;
+		const code = `async function ${functionName}(${params}) {\n${branch}return ${returnValue}\n;}`;
 		return code;
 	};
 
@@ -828,7 +832,7 @@ export function defineGenerators() {
 				) || "null";
 		}
 
-		const code = `await ${functionName}\n(${args.join(", ")});\n`;
+		const code = `await ${functionName}\n(${args.join(", ")})\n`;
 
 		return [code, javascriptGenerator.ORDER_ATOMIC];
 	};

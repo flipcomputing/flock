@@ -1,4 +1,5 @@
 import * as Blockly from "blockly";
+import '@blockly/block-plus-minus';
 import { categoryColours, toolbox } from "./toolbox.js";
 import {
 	audioNames,
@@ -38,20 +39,15 @@ const options = {
 		drag: true,
 		wheel: true},
 	toolbox: toolbox,
-	/*plugins: {
-			// These are both required.
-			// Note that the ScrollBlockDragger drags things besides blocks.
-			// Block is included in the name for backwards compatibility.
-			blockDragger: ScrollBlockDragger,
-			metricsManager: ScrollMetricsManager,
+	plugins: {
+		
+	   // blockDragger: ScrollBlockDragger,
+		//metricsManager: ScrollMetricsManager,		
 		  },
-		  move: {
-			wheel: true, // Required for wheel scroll to work.
-		  },*/
 	/*plugins: {
-		blockDragger: MultiselectBlockDragger, // Required to work
+		, // Required to work
 	},
-
+blockDragger: MultiselectBlockDragger,
 	// // For integration with other plugins that also
 	// // need to change the blockDragger above (such as
 	// // scroll-options).
