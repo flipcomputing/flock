@@ -18,13 +18,23 @@ export const workspace = Blockly.inject("blocklyDiv", {
 	renderer: "zelos",
 	zoom: {
 		controls: true,
-		wheel: true,
+		wheel: false,
 		startScale: 0.7,
 		maxScale: 3,
 		minScale: 0.3,
 		scaleSpeed: 1.2,
 	},
 	toolbox: toolbox,
+	/*plugins: {
+		// These are both required.
+		// Note that the ScrollBlockDragger drags things besides blocks.
+		// Block is included in the name for backwards compatibility.
+		blockDragger: ScrollBlockDragger,
+		metricsManager: ScrollMetricsManager,
+	  },
+	  move: {
+		wheel: true, // Required for wheel scroll to work.
+	  },*/
 });
 
 export function initializeVariableIndexes() {

@@ -8,6 +8,11 @@ import { registerFieldColour } from "@blockly/field-colour";
 import { FieldGridDropdown } from "@blockly/field-grid-dropdown";
 import {WorkspaceSearch} from '@blockly/plugin-workspace-search';
 import { NavigationController } from "@blockly/keyboard-navigation";
+/*import {
+  ScrollOptions,
+  ScrollBlockDragger,
+  ScrollMetricsManager,
+} from '@blockly/plugin-scroll-options';*/
 import * as BABYLON from "@babylonjs/core";
 import * as BABYLON_GUI from "@babylonjs/gui";
 import HavokPhysics from "@babylonjs/havok";
@@ -32,8 +37,11 @@ navigationController.addWorkspace(workspace);
 navigationController.enable(workspace);
 
 const workspaceSearch = new WorkspaceSearch(workspace);
-
 workspaceSearch.init();
+
+/*const plugin = new ScrollOptions(workspace);
+plugin.init();*/
+
 flock.canvas = document.getElementById("renderCanvas");
 let engine = null;
 let hk = null;
