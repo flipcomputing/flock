@@ -6,6 +6,7 @@ import * as Blockly from "blockly";
 import { javascriptGenerator } from "blockly/javascript";
 import { registerFieldColour } from "@blockly/field-colour";
 import { FieldGridDropdown } from "@blockly/field-grid-dropdown";
+import {WorkspaceSearch} from '@blockly/plugin-workspace-search';
 import { NavigationController } from "@blockly/keyboard-navigation";
 import * as BABYLON from "@babylonjs/core";
 import * as BABYLON_GUI from "@babylonjs/gui";
@@ -30,6 +31,9 @@ navigationController.addWorkspace(workspace);
 // Turns on keyboard navigation.
 navigationController.enable(workspace);
 
+const workspaceSearch = new WorkspaceSearch(workspace);
+
+workspaceSearch.init();
 flock.canvas = document.getElementById("renderCanvas");
 let engine = null;
 let hk = null;
