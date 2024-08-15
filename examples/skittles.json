@@ -711,9 +711,17 @@
 					"next": {
 					  "block": {
 						"type": "wait",
-						"id": "lgE4^DUO3C?{q{W-1[{5",
-						"fields": {
-						  "DURATION": 2000
+						"id": "XPdo!f`J^dzetVP[O*dp",
+						"inputs": {
+						  "DURATION": {
+							"shadow": {
+							  "type": "math_number",
+							  "id": "i5VUs!FaY{5*Rpnuo3p]",
+							  "fields": {
+								"NUM": 2000
+							  }
+							}
+						  }
 						},
 						"next": {
 						  "block": {

@@ -45,7 +45,12 @@ export function defineGenerators() {
 	}
 
 	javascriptGenerator.forBlock["wait"] = function (block) {
-		const duration = block.getFieldValue("DURATION");
+		const duration =
+			javascriptGenerator.valueToCode(
+				block,
+				"DURATION",
+				javascriptGenerator.ORDER_ATOMIC,
+			) || "1000";
 
 		return `await wait(${duration});\n`;
 	};

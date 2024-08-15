@@ -310,10 +310,9 @@ export function defineBlocks() {
 				message0: "wait %1 ms",
 				args0: [
 					{
-						type: "field_number",
+						type: "input_value",
 						name: "DURATION",
-						value: 1000,
-						min: 0,
+						check: "Number",
 					},
 				],
 				previousStatement: null,

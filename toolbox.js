@@ -35,32 +35,32 @@ export const toolbox = {
 				{
 					kind: "block",
 					type: "when_clicked",
-					keyword: "click"
+					keyword: "click",
 				},
 				{
 					kind: "block",
 					type: "when_touches",
-					keyword: "touches"
+					keyword: "touches",
 				},
 				{
 					kind: "block",
 					type: "when_key_pressed",
-					keyword: "press"
+					keyword: "press",
 				},
 				{
 					kind: "block",
 					type: "when_key_released",
-					keyword: "release"
+					keyword: "release",
 				},
 				{
 					kind: "block",
 					type: "broadcast_event",
-					keyword: "broadcast"
+					keyword: "broadcast",
 				},
 				{
 					kind: "block",
 					type: "on_event",
-					keyword: "on"
+					keyword: "on",
 				},
 			],
 		},
@@ -926,7 +926,6 @@ export const toolbox = {
 					kind: "block",
 					type: "clear_effects",
 					keyword: "clear",
-
 				},
 				{
 					kind: "block",
@@ -1117,7 +1116,7 @@ export const toolbox = {
 						},
 					},
 				},
-/*				{
+				/*				{
 					kind: "block",
 					type: "up",
 					keyword: "up",
@@ -1218,6 +1217,16 @@ export const toolbox = {
 					kind: "block",
 					type: "wait",
 					keyword: "wait",
+					inputs: {
+						DURATION: {
+							shadow: {
+								type: "math_number",
+								fields: {
+									NUM: 1000,
+								},
+							},
+						},
+					},
 				},
 				{
 					kind: "block",
@@ -1322,7 +1331,7 @@ export const toolbox = {
 					kind: "block",
 					type: "get_property",
 					keyword: "get",
-				},		
+				},
 				{
 					kind: "block",
 					type: "canvas_controls",
@@ -1668,9 +1677,7 @@ export const toolbox = {
 			name: "Variables",
 			colour: categoryColours["Variables"],
 			custom: "VARIABLE",
-			contents: [
-				
-			],
+			contents: [],
 		},
 		{
 			kind: "category",
@@ -1680,7 +1687,7 @@ export const toolbox = {
 				{
 					kind: "block",
 					type: "lists_create_empty",
-					keyword: "list"
+					keyword: "list",
 				},
 				{
 					kind: "block",

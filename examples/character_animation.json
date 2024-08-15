@@ -5,8 +5,8 @@
 	  {
 		"type": "start",
 		"id": "x,1b%dy3@l|xC6~,mrMX",
-		"x": 0,
-		"y": 0,
+		"x": 10,
+		"y": 10,
 		"inputs": {
 		  "DO": {
 			"block": {
@@ -103,8 +103,8 @@
 	  {
 		"type": "start",
 		"id": "!d0f~{piJ7K=FIh(%a?t",
-		"x": 0,
-		"y": 1912,
+		"x": 10,
+		"y": 1792,
 		"inputs": {
 		  "DO": {
 			"block": {
@@ -236,8 +236,8 @@
 	  {
 		"type": "on_event",
 		"id": "tv0kQXkBjXbRtxDuMuby",
-		"x": 0,
-		"y": 904,
+		"x": 10,
+		"y": 905,
 		"fields": {
 		  "EVENT_NAME": "hey"
 		},
@@ -325,8 +325,8 @@
 	  {
 		"type": "on_event",
 		"id": ")wF0AtOEx:.4$vXI6,@L",
-		"x": 0,
-		"y": 2232,
+		"x": 10,
+		"y": 2106,
 		"fields": {
 		  "EVENT_NAME": "hello"
 		},
@@ -449,9 +449,17 @@
 					  "next": {
 						"block": {
 						  "type": "wait",
-						  "id": ";bf50x[UXT+MeQ4OK|o.",
-						  "fields": {
-							"DURATION": 1000
+						  "id": "XI3e}ZMXK1jZWBG[Vv7I",
+						  "inputs": {
+							"DURATION": {
+							  "shadow": {
+								"type": "math_number",
+								"id": "67/@Hhy]SM$Vab=X{L.b",
+								"fields": {
+								  "NUM": 1000
+								}
+							  }
+							}
 						  },
 						  "next": {
 							"block": {
@@ -475,8 +483,8 @@
 	  {
 		"type": "on_event",
 		"id": "HP%^Pyd|3[1rV{m4`tku",
-		"x": 0,
-		"y": 2662,
+		"x": 10,
+		"y": 2532,
 		"fields": {
 		  "EVENT_NAME": "park"
 		},
@@ -561,9 +569,17 @@
 				  "next": {
 					"block": {
 					  "type": "wait",
-					  "id": "w!{Xf]B]VN1+[7xPuJ[j",
-					  "fields": {
-						"DURATION": 1000
+					  "id": "Z7h#jsnds_@lV%UDrlnP",
+					  "inputs": {
+						"DURATION": {
+						  "shadow": {
+							"type": "math_number",
+							"id": "`JZU1c~H!^0p=Xx@scE.",
+							"fields": {
+							  "NUM": 1000
+							}
+						  }
+						}
 					  },
 					  "next": {
 						"block": {
@@ -585,8 +601,8 @@
 	  {
 		"type": "on_event",
 		"id": "$Wt3QbQ.|9h@`cs)QkxA",
-		"x": 0,
-		"y": 1184,
+		"x": 10,
+		"y": 1181,
 		"fields": {
 		  "EVENT_NAME": "sure"
 		},
@@ -750,9 +766,17 @@
 							"next": {
 							  "block": {
 								"type": "wait",
-								"id": "@9r`JZe%S3_lK:Fox18z",
-								"fields": {
-								  "DURATION": 20
+								"id": "Jm,D|Rm[C#HtZcjHMVum",
+								"inputs": {
+								  "DURATION": {
+									"shadow": {
+									  "type": "math_number",
+									  "id": "[=d^F{FxD-u0Y.(GG2RV",
+									  "fields": {
+										"NUM": 20
+									  }
+									}
+								  }
 								}
 							  }
 							}
@@ -841,8 +865,8 @@
 	  {
 		"type": "on_event",
 		"id": "S|MQzx%Vd@U/z6*@2x7p",
-		"x": 0,
-		"y": 3042,
+		"x": 10,
+		"y": 2907,
 		"fields": {
 		  "EVENT_NAME": "follow"
 		},
@@ -917,9 +941,17 @@
 			  "next": {
 				"block": {
 				  "type": "wait",
-				  "id": "NF+HFhsg;jh:}5{emyAP",
-				  "fields": {
-					"DURATION": 1000
+				  "id": "Qbi1axb9G=t(n|/V^9Xb",
+				  "inputs": {
+					"DURATION": {
+					  "shadow": {
+						"type": "math_number",
+						"id": "xk0(U.[W*z44PHtIC~EA",
+						"fields": {
+						  "NUM": 1000
+						}
+					  }
+					}
 				  },
 				  "next": {
 					"block": {
@@ -986,9 +1018,17 @@
 								"next": {
 								  "block": {
 									"type": "wait",
-									"id": "zl,ed=u3hfG$`D=c]4)t",
-									"fields": {
-									  "DURATION": 10
+									"id": "+Fi4!3X@5%_`2m](#7C]",
+									"inputs": {
+									  "DURATION": {
+										"shadow": {
+										  "type": "math_number",
+										  "id": "s!$W.vD1s(X|SN,L6.@l",
+										  "fields": {
+											"NUM": 20
+										  }
+										}
+									  }
 									}
 								  }
 								}
@@ -1105,8 +1145,8 @@
 	  {
 		"type": "on_event",
 		"id": "V?7An,.kz6bC$;9WM1!~",
-		"x": 0,
-		"y": 308,
+		"x": 10,
+		"y": 312,
 		"fields": {
 		  "EVENT_NAME": "ready"
 		},
@@ -1226,9 +1266,17 @@
 				  "next": {
 					"block": {
 					  "type": "wait",
-					  "id": "zVa6iSTx;;v}f{9rH-j!",
-					  "fields": {
-						"DURATION": 1000
+					  "id": "6/IF@pe!9@wK/mOmsN}:",
+					  "inputs": {
+						"DURATION": {
+						  "shadow": {
+							"type": "math_number",
+							"id": "_yUb^}ibs9z6s#^Ujs~/",
+							"fields": {
+							  "NUM": 1000
+							}
+						  }
+						}
 					  },
 					  "next": {
 						"block": {

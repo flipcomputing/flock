@@ -999,9 +999,17 @@
 							  "next": {
 								"block": {
 								  "type": "wait",
-								  "id": "(|;|L^h0htjU*,.CE{y5",
-								  "fields": {
-									"DURATION": 1000
+								  "id": "FI5:|q-Xk/lw,Scs{7^v",
+								  "inputs": {
+									"DURATION": {
+									  "shadow": {
+										"type": "math_number",
+										"id": "^Xo[lLPZfsxQ,19vo%iT",
+										"fields": {
+										  "NUM": 1000
+										}
+									  }
+									}
 								  },
 								  "next": {
 									"block": {
@@ -1015,9 +1023,17 @@
 									  "next": {
 										"block": {
 										  "type": "wait",
-										  "id": "!3AG7T!(.npu$H:5UV;1",
-										  "fields": {
-											"DURATION": 500
+										  "id": "2L.Rqzi2D/cc+$~D@=8E",
+										  "inputs": {
+											"DURATION": {
+											  "shadow": {
+												"type": "math_number",
+												"id": "QJ=tv)R!]jiluRc:lE%u",
+												"fields": {
+												  "NUM": 500
+												}
+											  }
+											}
 										  },
 										  "next": {
 											"block": {
@@ -1031,9 +1047,17 @@
 											  "next": {
 												"block": {
 												  "type": "wait",
-												  "id": "2B@R+rM`KKkoz(_2Ncj$",
-												  "fields": {
-													"DURATION": 1000
+												  "id": "|I]F}#oi?^2];xJB@4SH",
+												  "inputs": {
+													"DURATION": {
+													  "shadow": {
+														"type": "math_number",
+														"id": "kD9l9hRH$`5f!sPv,v|x",
+														"fields": {
+														  "NUM": 1000
+														}
+													  }
+													}
 												  },
 												  "next": {
 													"block": {
@@ -4397,7 +4421,7 @@
 		"type": "procedures_defnoreturn",
 		"id": "CC]^nJ_ma5LyfxzLX]cT",
 		"x": 10,
-		"y": 10096,
+		"y": 10015,
 		"extraState": {
 		  "params": [
 			{
@@ -5059,7 +5083,7 @@
 		"type": "procedures_defnoreturn",
 		"id": "SB+O/O0w*8k|eBX:U-_t",
 		"x": 10,
-		"y": 8218,
+		"y": 8191,
 		"inline": true,
 		"extraState": {
 		  "params": [
@@ -5130,7 +5154,6 @@
 				"block": {
 				  "type": "apply_force",
 				  "id": "9,~f,4zI=TU4$GX%{F@c",
-				  "inline": true,
 				  "fields": {
 					"MESH_VAR": {
 					  "id": "~5L0YOef~VGK9DE9TIZv"
@@ -5168,9 +5191,17 @@
 				  "next": {
 					"block": {
 					  "type": "wait",
-					  "id": "h5/EemTvO~6:-BX$9+`s",
-					  "fields": {
-						"DURATION": 1000
+					  "id": "LP;zfJm7-yUviH#JsG8S",
+					  "inputs": {
+						"DURATION": {
+						  "shadow": {
+							"type": "math_number",
+							"id": "jL]X7TxMx$73AEtd$R}L",
+							"fields": {
+							  "NUM": 1000
+							}
+						  }
+						}
 					  },
 					  "next": {
 						"block": {
@@ -6211,7 +6242,7 @@
 		"type": "when_clicked",
 		"id": "Xya84(sWW*$+kidxC1;7",
 		"x": 10,
-		"y": 6131,
+		"y": 6122,
 		"disabledReasons": [
 		  "MANUALLY_DISABLED"
 		],
@@ -6765,7 +6796,7 @@
 		"type": "on_event",
 		"id": "myC{vhf*lio,pw5Bqz~v",
 		"x": 10,
-		"y": 6305,
+		"y": 6296,
 		"fields": {
 		  "EVENT_NAME": "Player 2"
 		},
@@ -6919,9 +6950,17 @@
 							  "next": {
 								"block": {
 								  "type": "wait",
-								  "id": "{P)4;KYPBoxI1;DsKa2k",
-								  "fields": {
-									"DURATION": 1000
+								  "id": "{j],sc7DCXVmb{(C]ga@",
+								  "inputs": {
+									"DURATION": {
+									  "shadow": {
+										"type": "math_number",
+										"id": "eH%|Sx3ypI=^^a.=5p*]",
+										"fields": {
+										  "NUM": 1000
+										}
+									  }
+									}
 								  },
 								  "next": {
 									"block": {
@@ -6935,9 +6974,17 @@
 									  "next": {
 										"block": {
 										  "type": "wait",
-										  "id": "nchmQPLxZe;B)1}9{iL=",
-										  "fields": {
-											"DURATION": 500
+										  "id": "JV{n~K)%U46#@%_q!E,S",
+										  "inputs": {
+											"DURATION": {
+											  "shadow": {
+												"type": "math_number",
+												"id": "MNK4d75.o98uXHwUUdQ6",
+												"fields": {
+												  "NUM": 500
+												}
+											  }
+											}
 										  },
 										  "next": {
 											"block": {
@@ -6972,7 +7019,7 @@
 		"type": "on_event",
 		"id": "u`rumZk%_#zZ4{1!Ss{6",
 		"x": 10,
-		"y": 6924,
+		"y": 6909,
 		"fields": {
 		  "EVENT_NAME": "Player 1 Wins"
 		},
@@ -7056,9 +7103,17 @@
 					"next": {
 					  "block": {
 						"type": "wait",
-						"id": "]CQMePaD)l-6bl)iibX+",
-						"fields": {
-						  "DURATION": 10
+						"id": "ughMH+~IwCMM(A[Vpt!T",
+						"inputs": {
+						  "DURATION": {
+							"shadow": {
+							  "type": "math_number",
+							  "id": "pF]%G6w99cAHNgFFx(yR",
+							  "fields": {
+								"NUM": 10
+							  }
+							}
+						  }
 						}
 					  }
 					}
@@ -7144,9 +7199,17 @@
 						"next": {
 						  "block": {
 							"type": "wait",
-							"id": "*Y-2PST5(M=(g-Gq96^,",
-							"fields": {
-							  "DURATION": 10
+							"id": "@ukHeRnQr+oQ}LpQ`J-c",
+							"inputs": {
+							  "DURATION": {
+								"shadow": {
+								  "type": "math_number",
+								  "id": ")#Cv5B2wo^CK-u:.0hAQ",
+								  "fields": {
+									"NUM": 10
+								  }
+								}
+							  }
 							}
 						  }
 						}
@@ -7163,7 +7226,7 @@
 		"type": "on_event",
 		"id": "O;3EB:IG)ms]Qa*YUM%C",
 		"x": 10,
-		"y": 7571,
+		"y": 7550,
 		"fields": {
 		  "EVENT_NAME": "Player 2 Wins"
 		},
@@ -7247,9 +7310,17 @@
 					"next": {
 					  "block": {
 						"type": "wait",
-						"id": "a=|9_`(0S}Vv($.8CUj7",
-						"fields": {
-						  "DURATION": 10
+						"id": "xCFI):NWYi#V}3b8fVbt",
+						"inputs": {
+						  "DURATION": {
+							"shadow": {
+							  "type": "math_number",
+							  "id": "gNXC!3m.x(Tb$VCB}(cN",
+							  "fields": {
+								"NUM": 10
+							  }
+							}
+						  }
 						}
 					  }
 					}
@@ -7335,9 +7406,17 @@
 						"next": {
 						  "block": {
 							"type": "wait",
-							"id": ",{Wqddf6`b;6TwP0.$d7",
-							"fields": {
-							  "DURATION": 10
+							"id": ",eo*c8zW,Alf;|S$^@$G",
+							"inputs": {
+							  "DURATION": {
+								"shadow": {
+								  "type": "math_number",
+								  "id": "tdw)`~NaRh/k8G(aU4nT",
+								  "fields": {
+									"NUM": 10
+								  }
+								}
+							  }
 							}
 						  }
 						}
