@@ -842,7 +842,7 @@
 		"type": "when_clicked",
 		"id": "T49R.KFB*x#fI0.]*AP*",
 		"x": 10,
-		"y": 5410,
+		"y": 5582,
 		"fields": {
 		  "MODEL_VAR": {
 			"id": "HVK#874+GGeNQ^l)tw:z"
@@ -1099,19 +1099,23 @@
 		  "params": [
 			{
 			  "name": "beetle",
-			  "id": "#+2:M[X,*?e1j~{o(NlG"
+			  "id": "#+2:M[X,*?e1j~{o(NlG",
+			  "argId": "YoVd4hc!Dpkg*M@.axJ-"
 			},
 			{
 			  "name": "xpos",
-			  "id": "#,f?(8ICR(z590[0{v8i"
+			  "id": "#,f?(8ICR(z590[0{v8i",
+			  "argId": "k_2?hcIk{p}3Xf7Ie=zh"
 			},
 			{
 			  "name": "zpos",
-			  "id": "Mzr`d3pn:yQ7ZSbpwG4s"
+			  "id": "Mzr`d3pn:yQ7ZSbpwG4s",
+			  "argId": "t012e0c-Y2$=52u#dx|w"
 			},
 			{
 			  "name": "colour",
-			  "id": "3V,bpAf(:hb7Z!4iMg;~"
+			  "id": "3V,bpAf(:hb7Z!4iMg;~",
+			  "argId": "KOo`^9]!cZO0{_-8@GI;"
 			}
 		  ]
 		},
@@ -1124,7 +1128,11 @@
 		  }
 		},
 		"fields": {
-		  "NAME": "makeABeetle"
+		  "NAME": "makeABeetle",
+		  "YoVd4hc!Dpkg*M@.axJ-": "beetle",
+		  "k_2?hcIk{p}3Xf7Ie=zh": "xpos",
+		  "t012e0c-Y2$=52u#dx|w": "zpos",
+		  "KOo`^9]!cZO0{_-8@GI;": "colour"
 		},
 		"inputs": {
 		  "STACK": {
@@ -4421,32 +4429,38 @@
 		"type": "procedures_defnoreturn",
 		"id": "CC]^nJ_ma5LyfxzLX]cT",
 		"x": 10,
-		"y": 10015,
+		"y": 10187,
 		"extraState": {
 		  "params": [
 			{
 			  "name": "partName",
-			  "id": "khxdjV2WL@{*)P}IIP*N"
+			  "id": "khxdjV2WL@{*)P}IIP*N",
+			  "argId": "kfPurro2V)VA+9J:}J@m"
 			},
 			{
 			  "name": "beetle",
-			  "id": "#+2:M[X,*?e1j~{o(NlG"
+			  "id": "#+2:M[X,*?e1j~{o(NlG",
+			  "argId": "g`nMgSVIa`K1?t1QmY/#"
 			},
 			{
 			  "name": "constraint",
-			  "id": "mzV+#hI__t3v)jejFYnc"
+			  "id": "mzV+#hI__t3v)jejFYnc",
+			  "argId": "^748G:a~-d:^pss|;:Ss"
 			},
 			{
 			  "name": "first",
-			  "id": "(nAjH;Vb#Sf]zeqoIKS!"
+			  "id": "(nAjH;Vb#Sf]zeqoIKS!",
+			  "argId": "?c_lAu`95|,cwppN!a,O"
 			},
 			{
 			  "name": "last",
-			  "id": "{dk-@H+!M4CuCoKE_,Kb"
+			  "id": "{dk-@H+!M4CuCoKE_,Kb",
+			  "argId": "}yzVat8LmwtcD:u4,ESm"
 			},
 			{
 			  "name": "parts",
-			  "id": "fWCs^)i$jMkU.+nfBD!A"
+			  "id": "fWCs^)i$jMkU.+nfBD!A",
+			  "argId": "HBOyAs/[F5_TgNUByFPj"
 			}
 		  ]
 		},
@@ -4459,7 +4473,13 @@
 		  }
 		},
 		"fields": {
-		  "NAME": "handleDiceRoll"
+		  "NAME": "handleDiceRoll",
+		  "kfPurro2V)VA+9J:}J@m": "partName",
+		  "g`nMgSVIa`K1?t1QmY/#": "beetle",
+		  "^748G:a~-d:^pss|;:Ss": "constraint",
+		  "?c_lAu`95|,cwppN!a,O": "first",
+		  "}yzVat8LmwtcD:u4,ESm": "last",
+		  "HBOyAs/[F5_TgNUByFPj": "parts"
 		},
 		"inputs": {
 		  "STACK": {
@@ -5083,21 +5103,24 @@
 		"type": "procedures_defnoreturn",
 		"id": "SB+O/O0w*8k|eBX:U-_t",
 		"x": 10,
-		"y": 8191,
+		"y": 8363,
 		"inline": true,
 		"extraState": {
 		  "params": [
 			{
 			  "name": "beetle",
-			  "id": "#+2:M[X,*?e1j~{o(NlG"
+			  "id": "#+2:M[X,*?e1j~{o(NlG",
+			  "argId": "h+e*($My/SZ+Fve;vZ:O"
 			},
 			{
 			  "name": "dice",
-			  "id": "~5L0YOef~VGK9DE9TIZv"
+			  "id": "~5L0YOef~VGK9DE9TIZv",
+			  "argId": "2SxbI2w~3jPdlSE^E0;3"
 			},
 			{
 			  "name": "player",
-			  "id": "Aaw`5w?SimBTP!Yguuw1"
+			  "id": "Aaw`5w?SimBTP!Yguuw1",
+			  "argId": "BnBbD`fyX~w20hQ[{4Ou"
 			}
 		  ]
 		},
@@ -5110,7 +5133,10 @@
 		  }
 		},
 		"fields": {
-		  "NAME": "takeATurn"
+		  "NAME": "takeATurn",
+		  "h+e*($My/SZ+Fve;vZ:O": "beetle",
+		  "2SxbI2w~3jPdlSE^E0;3": "dice",
+		  "BnBbD`fyX~w20hQ[{4Ou": "player"
 		},
 		"inputs": {
 		  "STACK": {
@@ -5274,7 +5300,7 @@
 								"type": "math_number",
 								"id": "kP_]+]Q^D`j=H;,MW[gr",
 								"fields": {
-								  "NUM": 18
+								  "NUM": 48
 								}
 							  }
 							}
@@ -6242,7 +6268,7 @@
 		"type": "when_clicked",
 		"id": "Xya84(sWW*$+kidxC1;7",
 		"x": 10,
-		"y": 6122,
+		"y": 6294,
 		"disabledReasons": [
 		  "MANUALLY_DISABLED"
 		],
@@ -6276,7 +6302,7 @@
 		"type": "start",
 		"id": "(6AbBq~%m^#Gv@E6;$?v",
 		"x": 10,
-		"y": 4560,
+		"y": 4732,
 		"inputs": {
 		  "DO": {
 			"block": {
@@ -6347,7 +6373,7 @@
 					"type": "math_number",
 					"id": "g54g;kLYGl!KW`wu2az:",
 					"fields": {
-					  "NUM": -3
+					  "NUM": -5
 					}
 				  }
 				}
@@ -6434,7 +6460,7 @@
 							"type": "math_number",
 							"id": "/uzQC+PR~m*[8+;1h8,v",
 							"fields": {
-							  "NUM": 9
+							  "NUM": 16
 							}
 						  }
 						}
@@ -6501,7 +6527,7 @@
 								"type": "math_number",
 								"id": "!=)=$+ll6GSGo4,jH;ar",
 								"fields": {
-								  "NUM": 9
+								  "NUM": 16
 								}
 							  }
 							}
@@ -6509,7 +6535,7 @@
 						  "next": {
 							"block": {
 							  "type": "say",
-							  "id": ":zCNHY=`+$R4Td?6UC;@",
+							  "id": "6P}^yAG6Sx:#{cZhU18;",
 							  "fields": {
 								"MESH_VAR": {
 								  "id": ")T36X%WAS:pU:@Jkz88C"
@@ -6521,7 +6547,7 @@
 								"TEXT": {
 								  "shadow": {
 									"type": "text",
-									"id": "mC3MSYo$ivF%xt[cA,!f",
+									"id": "j0(0,)o0O8/(u-;osg$m",
 									"fields": {
 									  "TEXT": "3: Antenna"
 									}
@@ -6530,7 +6556,7 @@
 								"DURATION": {
 								  "shadow": {
 									"type": "math_number",
-									"id": "emtBDIue=]~s=xSxn3L,",
+									"id": ".V$OiC9Y)l[a3!|7~]TC",
 									"fields": {
 									  "NUM": 0
 									}
@@ -6539,7 +6565,7 @@
 								"TEXT_COLOR": {
 								  "shadow": {
 									"type": "colour",
-									"id": "t;v-Dg8Ig*u-Uq;8`d?u",
+									"id": "5!REQWPwg}-VJ#i^0~WJ",
 									"fields": {
 									  "COLOR": "#000000"
 									}
@@ -6548,7 +6574,7 @@
 								"BACKGROUND_COLOR": {
 								  "shadow": {
 									"type": "colour",
-									"id": "_w(/`)/Kq]m5Zaw4}n?2",
+									"id": "dZI?Lh9mpqAp?8*:GqeE",
 									"fields": {
 									  "COLOR": "#ffffff"
 									}
@@ -6557,7 +6583,7 @@
 								"ALPHA": {
 								  "shadow": {
 									"type": "math_number",
-									"id": "Ru#MC?H:aR6p9$NZk7%!",
+									"id": "C8fB^.5t|M0jHE;kMA?U",
 									"fields": {
 									  "NUM": 1
 									}
@@ -6566,9 +6592,9 @@
 								"SIZE": {
 								  "shadow": {
 									"type": "math_number",
-									"id": "oq^*L=:dCY[cB%gU]+pJ",
+									"id": "9nV+yB;G6M;x)ess@iij",
 									"fields": {
-									  "NUM": 9
+									  "NUM": 16
 									}
 								  }
 								}
@@ -6635,7 +6661,7 @@
 										"type": "math_number",
 										"id": "n*XI/y0MOFQCIC:;g2Ic",
 										"fields": {
-										  "NUM": 9
+										  "NUM": 16
 										}
 									  }
 									}
@@ -6702,7 +6728,7 @@
 											"type": "math_number",
 											"id": "ZcEF^I`{-GKklNo}TOvP",
 											"fields": {
-											  "NUM": 9
+											  "NUM": 16
 											}
 										  }
 										}
@@ -6769,7 +6795,7 @@
 												"type": "math_number",
 												"id": "HonfrX3yD7FG2K7|.n@~",
 												"fields": {
-												  "NUM": 9
+												  "NUM": 16
 												}
 											  }
 											}
@@ -6796,7 +6822,7 @@
 		"type": "on_event",
 		"id": "myC{vhf*lio,pw5Bqz~v",
 		"x": 10,
-		"y": 6296,
+		"y": 6468,
 		"fields": {
 		  "EVENT_NAME": "Player 2"
 		},
@@ -7019,7 +7045,7 @@
 		"type": "on_event",
 		"id": "u`rumZk%_#zZ4{1!Ss{6",
 		"x": 10,
-		"y": 6909,
+		"y": 7081,
 		"fields": {
 		  "EVENT_NAME": "Player 1 Wins"
 		},
@@ -7226,7 +7252,7 @@
 		"type": "on_event",
 		"id": "O;3EB:IG)ms]Qa*YUM%C",
 		"x": 10,
-		"y": 7550,
+		"y": 7722,
 		"fields": {
 		  "EVENT_NAME": "Player 2 Wins"
 		},

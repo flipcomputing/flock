@@ -1883,18 +1883,7 @@ export const flock = {
 
 		function handleMesh(mesh) {
 			return new Promise((resolve) => {
-				let targetMesh = mesh;
-				if (!mesh.material) {
-					const stack = [mesh];
-					while (stack.length > 0) {
-						const current = stack.pop();
-						if (current.material) {
-							targetMesh = current;
-							break;
-						}
-						stack.push(...current.getChildMeshes());
-					}
-				}
+				const targetMesh = mesh;
 
 				let plane = mesh
 					.getDescendants()
@@ -1903,7 +1892,7 @@ export const flock = {
 				if (!plane) {
 					plane = flock.BABYLON.MeshBuilder.CreatePlane(
 						"textPlane",
-						{ width: 2.5, height: 2.5 },
+						{ width: 1.5, height: 1.5 },
 						flock.scene,
 					);
 					plane.name = "textPlane";
@@ -1916,7 +1905,7 @@ export const flock = {
 					plane.advancedTexture = advancedTexture;
 
 					const boundingInfo = targetMesh.getBoundingInfo();
-					plane.position.y = boundingInfo.boundingBox.maximum.y + 1.5;
+					plane.position.y = boundingInfo.boundingBox.maximum.y + 0.85;
 					plane.billboardMode = flock.BABYLON.Mesh.BILLBOARDMODE_ALL;
 
 					const stackPanel = new flock.GUI.StackPanel();
@@ -1959,7 +1948,7 @@ export const flock = {
 					const textBlock = new flock.GUI.TextBlock();
 					textBlock.text = text;
 					textBlock.color = textColor;
-					textBlock.fontSize = size * 10 * scale;
+					textBlock.fontSize = size * 8 * scale;
 					textBlock.fontFamily = "Asap";
 					textBlock.alpha = 1;
 					textBlock.textWrapping = flock.GUI.TextWrapping.WordWrap;
