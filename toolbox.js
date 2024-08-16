@@ -56,11 +56,31 @@ export const toolbox = {
 					kind: "block",
 					type: "broadcast_event",
 					keyword: "broadcast",
+					inputs: {
+						EVENT_NAME: {
+							shadow: {
+								type: "text",
+								fields: {
+									TEXT: "go",
+								},
+							},
+						},
+					},
 				},
 				{
 					kind: "block",
 					type: "on_event",
 					keyword: "on",
+					inputs: {
+						EVENT_NAME: {
+							shadow: {
+								type: "text",
+								fields: {
+									TEXT: "go",
+								},
+							},
+						},
+					},
 				},
 			],
 		},
@@ -1171,7 +1191,7 @@ export const toolbox = {
 					kind: "block",
 					type: "camera_control",
 					keyword: "cam",
-				},			
+				},
 				{
 					kind: "block",
 					type: "add_physics",

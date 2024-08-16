@@ -1858,21 +1858,20 @@ export function defineBlocks() {
 				message0: "broadcast event %1",
 				args0: [
 					{
-						type: "field_input",
+						type: "input_value",
 						name: "EVENT_NAME",
-						text: "go",
+						check: "String",		
 					},
 				],
 				previousStatement: null,
 				nextStatement: null,
 				colour: categoryColours["Events"],
-				tooltip:
-					"Broadcast an event that can be handled with on event.\nKeyword: broadcast",
+				tooltip: "Broadcast an event that can be handled with on event.\nKeyword: broadcast",
 				helpUrl: "",
 			});
 		},
 	};
-
+	// Block definition for on_event
 	Blockly.Blocks["on_event"] = {
 		init: function () {
 			this.jsonInit({
@@ -1880,9 +1879,9 @@ export function defineBlocks() {
 				message0: "on event %1",
 				args0: [
 					{
-						type: "field_input",
+						type: "input_value",
 						name: "EVENT_NAME",
-						text: "go",
+						check: "String",
 					},
 				],
 				message1: "do %1",

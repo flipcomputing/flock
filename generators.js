@@ -507,19 +507,20 @@ export function defineGenerators() {
 		return `whenKeyReleased("${key}", async () => {${statements_do}});\n`;
 	};
 
+	// JavaScript generator for broadcast_event
 	javascriptGenerator.forBlock["broadcast_event"] = function (block) {
-		const eventName = block.getFieldValue("EVENT_NAME");
+		const eventName = javascriptGenerator.valueToCode(block, "EVENT_NAME", javascriptGenerator.ORDER_ATOMIC) || '"go"';
 
-		return `broadcastEvent("${eventName}");\n`;
+		return `broadcastEvent(${eventName});\n`;
 	};
 
+	// JavaScript generator for on_event
 	javascriptGenerator.forBlock["on_event"] = function (block) {
-		const eventName = block.getFieldValue("EVENT_NAME");
+		const eventName = javascriptGenerator.valueToCode(block, "EVENT_NAME", javascriptGenerator.ORDER_ATOMIC) || '"go"';
 		const statements_do = javascriptGenerator.statementToCode(block, "DO");
 
-		return `onEvent("${eventName}", async function() {\n${statements_do}});\n`;
+		return `onEvent(${eventName}, async function() {\n${statements_do}});\n`;
 	};
-
 	javascriptGenerator.forBlock["highlight"] = function (block) {
 		const modelName = javascriptGenerator.nameDB_.getName(
 			block.getFieldValue("MODEL_VAR"),

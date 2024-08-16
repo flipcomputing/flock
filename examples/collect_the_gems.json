@@ -277,8 +277,16 @@
 					  "block": {
 						"type": "broadcast_event",
 						"id": "[?br{3X;%v-Mm,@--]4A",
-						"fields": {
-						  "EVENT_NAME": "landed"
+						"inputs": {
+						  "EVENT_NAME": {
+							"block": {
+							  "type": "text",
+							  "id": "oL6tKVV}q3hDdnLLn5F3",
+							  "fields": {
+								"TEXT": "landed"
+							  }
+							}
+						  }
 						}
 					  }
 					}
@@ -391,8 +399,16 @@
 							  "block": {
 								"type": "broadcast_event",
 								"id": "~pA{BT(hxo;^5xG24EjQ",
-								"fields": {
-								  "EVENT_NAME": "jumped"
+								"inputs": {
+								  "EVENT_NAME": {
+									"block": {
+									  "type": "text",
+									  "id": "r0OS.dfuX0)U}ux@O4,g",
+									  "fields": {
+										"TEXT": "jumped"
+									  }
+									}
+								  }
 								}
 							  }
 							}
@@ -803,10 +819,16 @@
 		"id": "gdeL9Um:-2~=((Hg5Ofl",
 		"x": 10,
 		"y": 3333,
-		"fields": {
-		  "EVENT_NAME": "jumped"
-		},
 		"inputs": {
+		  "EVENT_NAME": {
+			"block": {
+			  "type": "text",
+			  "id": "sz(1M9Q|EbUSf8qo1N4L",
+			  "fields": {
+				"TEXT": "jumped"
+			  }
+			}
+		  },
 		  "DO": {
 			"block": {
 			  "type": "play_animation",
@@ -837,11 +859,17 @@
 		"type": "on_event",
 		"id": "JyO)XxgG$Q6={SNIy1c^",
 		"x": 10,
-		"y": 3558,
-		"fields": {
-		  "EVENT_NAME": "landed"
-		},
+		"y": 3566,
 		"inputs": {
+		  "EVENT_NAME": {
+			"block": {
+			  "type": "text",
+			  "id": "yA+u[qVReSE]yPb-+/a)",
+			  "fields": {
+				"TEXT": "landed"
+			  }
+			}
+		  },
 		  "DO": {
 			"block": {
 			  "type": "play_animation",
@@ -860,7 +888,7 @@
 		"type": "procedures_defnoreturn",
 		"id": "DFI[=|QVa~qxS/o?(kw8",
 		"x": 10,
-		"y": 3732,
+		"y": 3748,
 		"extraState": {
 		  "params": [
 			{
@@ -1624,7 +1652,7 @@
 		"type": "when_touches",
 		"id": "fz:=K$[cMy1^=IC1903v",
 		"x": 10,
-		"y": 4243,
+		"y": 4259,
 		"fields": {
 		  "MODEL_VAR": {
 			"id": "f=8($HYZoE:IjT|U8x8J"
@@ -2045,7 +2073,7 @@
 		"type": "when_touches",
 		"id": "~Zz[oRbN19i8r/2(}BSK",
 		"x": 10,
-		"y": 4771,
+		"y": 4787,
 		"fields": {
 		  "MODEL_VAR": {
 			"id": "f=8($HYZoE:IjT|U8x8J"
@@ -2262,7 +2290,7 @@
 		"type": "when_touches",
 		"id": "B)Ex{*(iP*ycoo1hv6zl",
 		"x": 10,
-		"y": 5299,
+		"y": 5315,
 		"fields": {
 		  "MODEL_VAR": {
 			"id": "f=8($HYZoE:IjT|U8x8J"
@@ -2350,6 +2378,7 @@
 							  "block": {
 								"type": "text_join",
 								"id": "J47EC6}j]]%*|2CjjHrw",
+								"inline": true,
 								"extraState": {
 								  "itemCount": 2
 								},
@@ -2479,7 +2508,7 @@
 		"type": "forever",
 		"id": "5YjmV;gfXA/2sR{Nw2R:",
 		"x": 10,
-		"y": 5827,
+		"y": 5795,
 		"inputs": {
 		  "DO": {
 			"block": {
@@ -2586,8 +2615,16 @@
 						  "block": {
 							"type": "broadcast_event",
 							"id": "7D6?$20QsW_{-fQS*[VK",
-							"fields": {
-							  "EVENT_NAME": "win"
+							"inputs": {
+							  "EVENT_NAME": {
+								"block": {
+								  "type": "text",
+								  "id": ";gLVFHLiA0w9Oa*wP:F#",
+								  "fields": {
+									"TEXT": "win"
+								  }
+								}
+							  }
 							}
 						  }
 						}
@@ -2604,11 +2641,17 @@
 		"type": "on_event",
 		"id": ",ZD0*XTC#5Q_!y/;$GtM",
 		"x": 10,
-		"y": 6169,
-		"fields": {
-		  "EVENT_NAME": "win"
-		},
+		"y": 6137,
 		"inputs": {
+		  "EVENT_NAME": {
+			"block": {
+			  "type": "text",
+			  "id": "L#^gai5+P-=|c57pl_-m",
+			  "fields": {
+				"TEXT": "win"
+			  }
+			}
+		  },
 		  "DO": {
 			"block": {
 			  "type": "print_text",
