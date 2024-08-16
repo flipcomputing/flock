@@ -70,8 +70,8 @@ workspace.addChangeListener(function (event) {
 
 workspace.addChangeListener(Blockly.Events.disableOrphans);
 
-//Blockly.utils.colour.setHsvSaturation(0.20) // 0 (inclusive) to 1 (exclusive), defaulting to 0.45
-//Blockly.utils.colour.setHsvValue(0.70) // 0 (inclusive) to 1 (exclusive), defaulting to 0.65
+//Blockly.utils.colour.setHsvSaturation(0.2) // 0 (inclusive) to 1 (exclusive), defaulting to 0.45
+//Blockly.utils.colour.setHsvValue(0.95) // 0 (inclusive) to 1 (exclusive), defaulting to 0.65
 
 function createEngine() {
 	if (engine) {

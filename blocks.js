@@ -24,7 +24,7 @@ export default Blockly.Theme.defineTheme("flock", {
 	base: Blockly.Themes.Modern,
 	componentStyles: {
 		workspaceBackgroundColour: "white",
-		//'toolboxBackgroundColour': 'blackBackground',
+		toolboxBackgroundColour: '#ffffff66',
 		//'toolboxForegroundColour': '#fff',
 		//'flyoutBackgroundColour': '#252526',
 		//'flyoutForegroundColour': '#ccc',
@@ -39,8 +39,8 @@ export default Blockly.Theme.defineTheme("flock", {
 });
 
 const options = {
-	theme: Blockly.Themes.Modern,
-	renderer: "zelos", //"flock",
+	theme: Blockly.Themes.Modern, // "flock"
+	renderer: "zelos", 
 	zoom: {
 		controls: true,
 		wheel: false,

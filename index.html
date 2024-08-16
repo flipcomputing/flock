@@ -9,43 +9,38 @@
     <link rel="apple-touch-icon" href="/images/apple-touch-icon.png" />
     <link rel="icon" href="/images/favicon.ico" type="image/x-icon" />
     <link rel="icon" href="/images/favicon.svg" type="image/svg+xml" />
-    
+
     <meta name="theme-color" content="#800080" />
     <style>
-      /*.blocklyText {
+      /*
+      .blocklyText {
           fill: black !important;
-          font-weight: normal !important;
-          font-family: 'Asap', Helvetica, Arial, Lucida, sans-serif;
+          
       }
 
       .zelos-renderer.classic-theme .blocklyDropDownText {
           fill: black !important; 
-      cursor: pointer;
+
       }
 
       .zelos-renderer.classic-theme .blocklyDropdownText {
           fill: black !important; 
-      cursor: pointer;
 
-      }
-      
-   
-      */
+      }*/
 
       .zelos-renderer.classic-theme .blocklyEditableText {
-        
-      cursor: pointer !important;
-
+        cursor: pointer !important;
       }
 
-      .zelos-renderer.classic-theme .blocklyText, .zelos-renderer.classic-theme .blocklyFlyoutLabelText {
-          font-weight: 500 !important;
-          font-family: 'Asap', Helvetica, Arial, Lucida, sans-serif !important;
+      .zelos-renderer.classic-theme .blocklyText,
+      .zelos-renderer.classic-theme .blocklyFlyoutLabelText {
+        font-weight: 500 !important;
+        font-family: "Asap", Helvetica, Arial, Lucida, sans-serif !important;
       }
 
       .blocklyTreeLabel {
         font-weight: normal !important;
-        font-family: 'Asap', Helvetica, Arial, Lucida, sans-serif !important;
+        font-family: "Asap", Helvetica, Arial, Lucida, sans-serif !important;
       }
 
       .blocklyDropDownArrow {
@@ -62,12 +57,23 @@
         z-index: 70;
       }
 
-      .blockly-ws-search-current {
-        fill: white;
+      .blockly-ws-search {
+          background: white;
+        margin-top: 5px;
+          border: solid #ee5d6c 4px;
+          box-shadow: 0px 10px 20px grey;
+          justify-content: center;
+          padding: 0.25em;
+          position: absolute;
+          z-index: 70;
       }
-
-      .blockly-ws-search-highlight {
-        fill: #defd6c;
+      
+      path.blocklyPath.blockly-ws-search-highlight {
+        fill: #ed808b;
+      }
+      
+      path.blocklyPath.blockly-ws-search-highlight.blockly-ws-search-current {
+        fill: #ee5d6c;
       }
 
       body {
@@ -77,11 +83,14 @@
         margin: 0px;
         gap: 0;
         box-sizing: border-box;
-         font-family: 'Asap', Helvetica, Arial, Lucida, sans-serif !important;
+        font-family: "Asap", Helvetica, Arial, Lucida, sans-serif !important;
       }
 
-      input, textarea, button {font-family: inherit}
-
+      input,
+      textarea,
+      button {
+        font-family: inherit;
+      }
 
       #menu {
         display: flex;
