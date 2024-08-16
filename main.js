@@ -2,6 +2,9 @@
 // Dr Tracy Gardner - https://github.com/tracygardner
 // Flip Computing Limited - flipcomputing.com
 
+import "@fontsource/asap";
+import "@fontsource/asap/500.css"; 
+import "@fontsource/asap/600.css"; 
 import * as Blockly from "blockly";
 import { javascriptGenerator } from "blockly/javascript";
 import { registerFieldColour } from "@blockly/field-colour";
@@ -230,6 +233,7 @@ const createScene = function () {
 			const textBlock = new flock.GUI.TextBlock("textBlock", text);
 			textBlock.color = color;
 			textBlock.fontSize = "20";
+			textBlock.fontFamily = "Asap";
 			textBlock.height = "25px";
 			textBlock.paddingLeft = "10px";
 			textBlock.paddingRight = "10px";

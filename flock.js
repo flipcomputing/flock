@@ -1146,6 +1146,7 @@ export const flock = {
 		button.background = "transparent";
 		button.fontSize = `${40 * flock.displayScale}px`; // Scale font size
 
+		button.fontFamily = "Asap";
 		button.onPointerDownObservable.add(() => {
 			flock.canvas.pressedButtons.add(key);
 			flock.gridKeyPressObservable.notifyObservers(key);
@@ -1884,6 +1885,7 @@ export const flock = {
 					textBlock.text = text;
 					textBlock.color = textColor;
 					textBlock.fontSize = size * 10 * scale;
+					textBlock.fontFamily = "Asap";
 					textBlock.alpha = 1;
 					textBlock.textWrapping = flock.GUI.TextWrapping.WordWrap;
 					textBlock.resizeToFit = true;
