@@ -1,5 +1,5 @@
 import * as Blockly from "blockly";
-import '@blockly/block-plus-minus';
+import "@blockly/block-plus-minus";
 import { categoryColours, toolbox } from "./toolbox.js";
 import {
 	audioNames,
@@ -17,12 +17,30 @@ import {
   ScrollMetricsManager,
 } from '@blockly/plugin-scroll-options';*/
 /*import {Multiselect, MultiselectBlockDragger} from '@mit-app-inventor/blockly-plugin-workspace-multiselect';*/
- 
+
 let nextVariableIndexes = {};
+
+export default Blockly.Theme.defineTheme("flock", {
+	base: Blockly.Themes.Modern,
+	componentStyles: {
+		workspaceBackgroundColour: "white",
+		//'toolboxBackgroundColour': 'blackBackground',
+		//'toolboxForegroundColour': '#fff',
+		//'flyoutBackgroundColour': '#252526',
+		//'flyoutForegroundColour': '#ccc',
+		//'flyoutOpacity': 1,
+		//'scrollbarColour': '#797979',
+		insertionMarkerColour: "#defd6c",
+		insertionMarkerOpacity: 0.3,
+		scrollbarOpacity: 0.4,
+		cursorColour: "#defd6c",
+		//'blackBackground': '#333',
+	},
+});
 
 const options = {
 	theme: Blockly.Themes.Modern,
-	renderer: "zelos",
+	renderer: "zelos", //"flock",
 	zoom: {
 		controls: true,
 		wheel: false,
@@ -31,19 +49,19 @@ const options = {
 		minScale: 0.3,
 		scaleSpeed: 1.2,
 	},
-	move:{
+	move: {
 		scrollbars: {
-		  horizontal: true,
-		  vertical: true
+			horizontal: true,
+			vertical: true,
 		},
 		drag: true,
-		wheel: true},
+		wheel: true,
+	},
 	toolbox: toolbox,
 	plugins: {
-		
-	   // blockDragger: ScrollBlockDragger,
-		//metricsManager: ScrollMetricsManager,		
-		  },
+		// blockDragger: ScrollBlockDragger,
+		//metricsManager: ScrollMetricsManager,
+	},
 	/*plugins: {
 		, // Required to work
 	},
