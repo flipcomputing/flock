@@ -31,12 +31,10 @@ const navigationController = new NavigationController();
 navigationController.init();
 navigationController.addWorkspace(workspace);
 // Turns on keyboard navigation.
-navigationController.enable(workspace);
+//navigationController.enable(workspace);
 
 const workspaceSearch = new WorkspaceSearch(workspace);
 workspaceSearch.init();
-
-
 
 flock.canvas = document.getElementById("renderCanvas");
 let engine = null;
@@ -894,7 +892,7 @@ const runCode = (code) => {
 				createCustomMap,
 				setSky,
 				buttonControls,
-				up,
+				cameraControl,
 				applyForce,
 				moveByVector,
 				glideTo,

@@ -1453,6 +1453,56 @@ export function defineBlocks() {
 		},
 	};
 
+	Blockly.Blocks["camera_control"] = {
+		init: function () {
+			this.jsonInit({
+				type: "camera_control",
+				message0: "camera %1 %2",
+				args0: [
+					{
+						type: "field_dropdown",
+						name: "ACTION",
+						options: [
+							["Rotate Left", "rotateLeft"],
+							["Rotate Right", "rotateRight"],
+							["Look Up", "rotateUp"],
+							["Look Down", "rotateDown"],
+							["Move Up", "moveUp"],
+							["Move Down", "moveDown"],
+							["Move Left", "moveLeft"],
+							["Move Right", "moveRight"],
+						],
+					},
+					{
+						type: "field_dropdown",
+						name: "KEY",
+						options: [
+							["A", "65"], // A key
+							["D", "68"], // D key
+							["W", "87"], // W key
+							["S", "83"], // S key
+							["Q", "81"], // Q key
+							["E", "69"], // E key
+							["F", "70"], // F key
+							["Space", "32"], // Space key
+							["Up Arrow", "38"], // Up arrow key
+							["Down Arrow", "40"], // Down arrow key
+							["Left Arrow", "37"], // Left arrow key
+							["Right Arrow", "39"], // Right arrow key
+						],
+					},
+
+				],
+				previousStatement: null,
+				nextStatement: null,
+				colour: categoryColours["Motion"],
+				tooltip: "Bind a specific key to a camera control action.",
+				helpUrl: "",
+			});
+		},
+	};
+
+
 	Blockly.Blocks["play_sound"] = {
 		init: function () {
 			let nextVariableName = "sound" + nextVariableIndexes["sound"];

@@ -4,6 +4,8 @@
 
 // Helper functions to make flock.BABYLON js easier to use in Flock
 console.log("Flock helpers loading");
+
+
 export const flock = {
 	console: console,
 	alert: alert,
@@ -20,7 +22,7 @@ export const flock = {
 		meshId,
 		maxAttempts = 10,
 		initialInterval = 100, // Start with a shorter interval
-		maxInterval = 1000 // Cap the interval at a maximum value
+		maxInterval = 1000, // Cap the interval at a maximum value
 	) {
 		let attempt = 1;
 		let interval = initialInterval;
@@ -34,9 +36,7 @@ export const flock = {
 				}
 			}
 
-			await new Promise((resolve) =>
-				setTimeout(resolve, interval),
-			);
+			await new Promise((resolve) => setTimeout(resolve, interval));
 
 			// Gradually increase the interval for the next attempt
 			interval = Math.min(interval * 2, maxInterval);
@@ -158,7 +158,7 @@ export const flock = {
 				mesh,
 				animationName,
 				true,
-				false
+				false,
 			);
 		});
 	},
@@ -1054,10 +1054,9 @@ export const flock = {
 		});
 	},
 	getProperty(modelName, propertyName) {
-		
 		return flock.whenModelReady(modelName, (mesh) => {
 			let propertyValue = null;
-			
+
 			mesh.computeWorldMatrix(true);
 
 			const position = mesh.getAbsolutePosition();
@@ -1136,7 +1135,6 @@ export const flock = {
 			}
 			return propertyValue;
 		});
-		
 	},
 	createSmallButton(text, key, color) {
 		const button = flock.GUI.Button.CreateSimpleButton("but", text);
@@ -1283,18 +1281,18 @@ export const flock = {
 		}
 	},
 	show(modelName) {
-			return flock.whenModelReady(modelName, function (mesh) {
-				if (mesh) {
-					mesh.setEnabled(true);
-					flock.hk._hknp.HP_World_AddBody(
-						flock.hk.world,
-						mesh.physics._pluginData.hpBodyId,
-						mesh.physics.startAsleep,
-					);
-				} else {
-					console.log("Model not loaded:", modelName);
-				}
-			});
+		return flock.whenModelReady(modelName, function (mesh) {
+			if (mesh) {
+				mesh.setEnabled(true);
+				flock.hk._hknp.HP_World_AddBody(
+					flock.hk.world,
+					mesh.physics._pluginData.hpBodyId,
+					mesh.physics.startAsleep,
+				);
+			} else {
+				console.log("Model not loaded:", modelName);
+			}
+		});
 	},
 	hide(modelName) {
 		return flock.whenModelReady(modelName, async function (mesh) {
@@ -1672,6 +1670,68 @@ export const flock = {
 			}
 		});
 	},
+	cameraControl(key, action) {
+
+		// Define a local function to handle the camera actions
+		function handleCameraAction() {
+			if (flock.scene.activeCamera.keysRotateLeft) {
+				// FreeCamera specific controls
+				switch (action) {
+					case "moveUp":
+						flock.scene.activeCamera.keysUp.push(key);
+						break;
+					case "moveDown":
+						flock.scene.activeCamera.keysDown.push(key);
+						break;
+					case "moveLeft":
+						flock.scene.activeCamera.keysLeft.push(key);
+						break;
+					case "moveRight":
+						flock.scene.activeCamera.keysRight.push(key);
+						break;
+					case "rotateUp":
+						flock.scene.activeCamera.keysRotateUp.push(key);
+						break;
+					case "rotateDown":
+						flock.scene.activeCamera.keysRotateDown.push(key);
+						break;
+					case "rotateLeft":
+						flock.scene.activeCamera.keysRotateLeft.push(key);
+						break;
+					case "rotateRight":
+						flock.scene.activeCamera.keysRotateRight.push(key);
+						break;
+				}
+			} else {
+				// ArcRotateCamera specific controls
+				switch (action) {
+					case "rotateLeft":
+					case "moveLeft":
+						flock.scene.activeCamera.keysLeft.push(key);
+						break;
+					case "rotateRight":
+					case "moveRight":
+						flock.scene.activeCamera.keysRight.push(key);
+						break;
+					case "moveUp":
+					case "rotateUp":
+						flock.scene.activeCamera.keysUp.push(key);
+						break;
+					case "moveDown":
+					case "rotateDown":
+						flock.scene.activeCamera.keysDown.push(key);
+						break;
+				}
+			}
+		}
+
+		if (flock.scene.activeCamera) {
+			handleCameraAction();
+			
+		} else {
+			console.error("No active camera found in the scene.");
+		}
+	},
 	updateDynamicMeshPositions(scene, dynamicMeshes) {
 		scene.onBeforeRenderObservable.add(() => {
 			dynamicMeshes.forEach((mesh) => {
@@ -1780,7 +1840,16 @@ export const flock = {
 		}
 		return false;
 	},
-	say(meshName, text, duration, textColor, backgroundColor, alpha, size, mode) {
+	say(
+		meshName,
+		text,
+		duration,
+		textColor,
+		backgroundColor,
+		alpha,
+		size,
+		mode,
+	) {
 		if (flock.scene) {
 			const mesh = flock.scene.getMeshByName(meshName);
 
@@ -1827,7 +1896,9 @@ export const flock = {
 					}
 				}
 
-				let plane = mesh.getDescendants().find((child) => child.name === "textPlane");
+				let plane = mesh
+					.getDescendants()
+					.find((child) => child.name === "textPlane");
 				let advancedTexture;
 				if (!plane) {
 					plane = flock.BABYLON.MeshBuilder.CreatePlane(
@@ -1840,7 +1911,8 @@ export const flock = {
 					plane.alpha = 1;
 					plane.checkCollisions = false;
 					plane.isPickable = false;
-					advancedTexture = flock.GUI.AdvancedDynamicTexture.CreateForMesh(plane);
+					advancedTexture =
+						flock.GUI.AdvancedDynamicTexture.CreateForMesh(plane);
 					plane.advancedTexture = advancedTexture;
 
 					const boundingInfo = targetMesh.getBoundingInfo();
@@ -1849,8 +1921,10 @@ export const flock = {
 
 					const stackPanel = new flock.GUI.StackPanel();
 					stackPanel.name = "stackPanel";
-					stackPanel.horizontalAlignment = flock.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
-					stackPanel.verticalAlignment = flock.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM;
+					stackPanel.horizontalAlignment =
+						flock.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
+					stackPanel.verticalAlignment =
+						flock.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM;
 					stackPanel.isVertical = true;
 					stackPanel.width = "100%";
 					stackPanel.adaptHeightToChildren = true;
@@ -1863,7 +1937,8 @@ export const flock = {
 					advancedTexture = plane.advancedTexture;
 				}
 
-				const stackPanel = advancedTexture.getControlByName("stackPanel");
+				const stackPanel =
+					advancedTexture.getControlByName("stackPanel");
 
 				if (mode === "REPLACE") {
 					stackPanel.clearControls();
@@ -1894,8 +1969,10 @@ export const flock = {
 					textBlock.paddingRight = 50;
 					textBlock.paddingTop = 20;
 					textBlock.paddingBottom = 20;
-					textBlock.textVerticalAlignment = flock.GUI.Control.VERTICAL_ALIGNMENT_TOP;
-					textBlock.textHorizontalAlignment = flock.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
+					textBlock.textVerticalAlignment =
+						flock.GUI.Control.VERTICAL_ALIGNMENT_TOP;
+					textBlock.textHorizontalAlignment =
+						flock.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
 					bg.addControl(textBlock);
 
 					if (duration > 0) {

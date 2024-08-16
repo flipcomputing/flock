@@ -1169,6 +1169,11 @@ export const toolbox = {
 				},
 				{
 					kind: "block",
+					type: "camera_control",
+					keyword: "cam",
+				},			
+				{
+					kind: "block",
 					type: "add_physics",
 					keyword: "physics",
 				},

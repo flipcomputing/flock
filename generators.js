@@ -1,6 +1,6 @@
 import * as Blockly from "blockly";
 import { javascriptGenerator } from "blockly/javascript";
-import '@blockly/block-plus-minus';
+import "@blockly/block-plus-minus";
 
 import { FlowGraphLog10Block } from "babylonjs";
 import { flock } from "./flock.js";
@@ -898,6 +898,13 @@ export function defineGenerators() {
 		/*	javascriptGenerator.definitions_["variables"] = variableDeclarations;*/
 
 		javascriptGenerator.isInitialized = true;
+	};
+
+	javascriptGenerator.forBlock["camera_control"] = function (block) {
+		const key = block.getFieldValue("KEY");
+		const action = block.getFieldValue("ACTION");
+
+		return `cameraControl(${key}, "${action}");\n`;
 	};
 
 	javascriptGenerator.forBlock["keyword_block"] = function (block) {
