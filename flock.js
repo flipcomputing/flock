@@ -1170,10 +1170,10 @@ export const flock = {
 		grid.addColumnDefinition(1);
 		flock.controlsTexture.addControl(grid);
 
-		const upButton = flock.createSmallButton("⯅", "w", color);
-		const downButton = flock.createSmallButton("⯆", "s", color);
-		const leftButton = flock.createSmallButton("⯇", "a", color);
-		const rightButton = flock.createSmallButton("⯈", "d", color);
+		const upButton = flock.createSmallButton("⮝", "w", color);
+		const downButton = flock.createSmallButton("⮟", "s", color);
+		const leftButton = flock.createSmallButton("⮜", "a", color);
+		const rightButton = flock.createSmallButton("⮞", "d", color);
 
 		// Add buttons to the grid
 		grid.addControl(upButton, 0, 1); // Add to row 0, column 1
@@ -1197,10 +1197,10 @@ export const flock = {
 		flock.controlsTexture.addControl(rightGrid);
 
 		// Create buttons for the right grid
-		const button1 = flock.createSmallButton("❤", "q", color);
+		const button1 = flock.createSmallButton("■", "q", color);
 		const button2 = flock.createSmallButton("✿", "e", color);
 		const button3 = flock.createSmallButton("✱", "f", color);
-		const button4 = flock.createSmallButton("🗲", " ", color);
+		const button4 = flock.createSmallButton("∞", " ", color);
 
 		// Add buttons to the right grid in a 2x2 layout
 		rightGrid.addControl(button1, 0, 0); // Row 0, Column 0
