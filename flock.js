@@ -1944,7 +1944,8 @@ export const flock = {
 					bg.forceResizeWidth = true;
 					stackPanel.addControl(bg);
 
-					const scale = (window.devicePixelRatio || 1) * 6;
+					const scale = 6; 
+					console.log(window.devicePixelRatio);//(window.devicePixelRatio || 1) * 6;
 					const textBlock = new flock.GUI.TextBlock();
 					textBlock.text = text;
 					textBlock.color = textColor;
