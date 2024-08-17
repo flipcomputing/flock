@@ -1944,11 +1944,11 @@ export const flock = {
 					bg.forceResizeWidth = true;
 					stackPanel.addControl(bg);
 
-					const scale = (window.devicePixelRatio || 1) * 0.75;
+					const scale = (window.devicePixelRatio || 1) * 6;
 					const textBlock = new flock.GUI.TextBlock();
 					textBlock.text = text;
 					textBlock.color = textColor;
-					textBlock.fontSize = size * 8 * scale;
+					textBlock.fontSize = size * scale;
 					textBlock.fontFamily = "Asap";
 					textBlock.alpha = 1;
 					textBlock.textWrapping = flock.GUI.TextWrapping.WordWrap;
