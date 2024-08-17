@@ -1170,10 +1170,10 @@ export const flock = {
 		grid.addColumnDefinition(1);
 		flock.controlsTexture.addControl(grid);
 
-		const upButton = flock.createSmallButton("⮝", "w", color);
-		const downButton = flock.createSmallButton("⮟", "s", color);
-		const leftButton = flock.createSmallButton("⮜", "a", color);
-		const rightButton = flock.createSmallButton("⮞", "d", color);
+		const upButton = flock.createSmallButton("△", "w", color);
+		const downButton = flock.createSmallButton("▽", "s", color);
+		const leftButton = flock.createSmallButton("◁", "a", color);
+		const rightButton = flock.createSmallButton("▷", "d", color);
 
 		// Add buttons to the grid
 		grid.addControl(upButton, 0, 1); // Add to row 0, column 1
