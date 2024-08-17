@@ -2184,10 +2184,10 @@ export function defineBlocks() {
 						type: "field_dropdown",
 						name: "PHYSICS_TYPE",
 						options: [
-							["static", "STATIC"],
 							["dynamic", "DYNAMIC"],
 							["animated", "ANIMATED"],
-							["none", "NONE"],
+							["static", "STATIC"],
+							["none", "NONE"],							
 						],
 						default: "DYNAMIC",
 					},

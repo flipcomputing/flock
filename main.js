@@ -63,6 +63,7 @@ defineGenerators();
 workspace.addChangeListener(function (event) {
 	if (event.type === Blockly.Events.FINISHED_LOADING) {
 		initializeVariableIndexes();
+		window.loadingCode = false;
 	}
 });
 
@@ -412,6 +413,7 @@ window.onload = function () {
 		.addEventListener("change", function (event) {
 			const reader = new FileReader();
 			reader.onload = function () {
+				window.loadingCode = true;
 				const text = reader.result;
 				const json = JSON.parse(text);
 
