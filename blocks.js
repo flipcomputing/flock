@@ -24,7 +24,7 @@ export default Blockly.Theme.defineTheme("flock", {
 	base: Blockly.Themes.Modern,
 	componentStyles: {
 		workspaceBackgroundColour: "white",
-		toolboxBackgroundColour: '#ffffff66',
+		toolboxBackgroundColour: "#ffffff66",
 		//'toolboxForegroundColour': '#fff',
 		//'flyoutBackgroundColour': '#252526',
 		//'flyoutForegroundColour': '#ccc',
@@ -40,7 +40,7 @@ export default Blockly.Theme.defineTheme("flock", {
 
 const options = {
 	theme: Blockly.Themes.Modern, // "flock"
-	renderer: "zelos", 
+	renderer: "zelos",
 	zoom: {
 		controls: true,
 		wheel: false,
@@ -1123,6 +1123,82 @@ export function defineBlocks() {
 		},
 	};
 
+	Blockly.Blocks["create_wall"] = {
+		init: function () {
+			const variableNamePrefix = "wall";
+			let nextVariableName =
+				variableNamePrefix + nextVariableIndexes[variableNamePrefix]; // Start with "wall1";
+			this.jsonInit({
+				type: "create_wall",
+				message0:
+					"new wall %1 type %2 colour %3 \n start x %4 z %5 end x %6 z %7 y position %8",
+				args0: [
+					{
+						type: "field_variable",
+						name: "ID_VAR",
+						variable: nextVariableName,
+					},
+					{
+						type: "field_dropdown",
+						name: "WALL_TYPE",
+						options: [
+							["solid", "SOLID_WALL"],
+							["door", "WALL_WITH_DOOR"],
+							["window", "WALL_WITH_WINDOW"],
+							 ["floor/roof", "FLOOR"]
+						],
+					},
+					{
+						type: "input_value",
+						name: "COLOR",
+						check: "Colour",
+					},
+					{
+						type: "input_value",
+						name: "START_X",
+						check: "Number",
+					},
+					{
+						type: "input_value",
+						name: "START_Z",
+						check: "Number",
+					},
+					{
+						type: "input_value",
+						name: "END_X",
+						check: "Number",
+					},
+					{
+						type: "input_value",
+						name: "END_Z",
+						check: "Number",
+					},
+					{
+						type: "input_value",
+						name: "Y_POSITION",
+						check: "Number",
+					},
+				],
+				inputsInline: true,
+				previousStatement: null, 
+				nextStatement: null,
+				colour: categoryColours["Scene"],
+				tooltip:
+					"Creates a wall with the selected type and color between specified start and end positions.\nKeyword: wall",
+				helpUrl: "",
+			});
+
+			this.setOnChange((changeEvent) => {
+				handleBlockCreateEvent(
+					this,
+					changeEvent,
+					variableNamePrefix,
+					nextVariableIndexes,
+				);
+			});
+		},
+	};
+
 	Blockly.Blocks["set_background_color"] = {
 		init: function () {
 			this.jsonInit({
@@ -1491,7 +1567,6 @@ export function defineBlocks() {
 							["Right Arrow", "39"], // Right arrow key
 						],
 					},
-
 				],
 				previousStatement: null,
 				nextStatement: null,
@@ -1501,7 +1576,6 @@ export function defineBlocks() {
 			});
 		},
 	};
-
 
 	Blockly.Blocks["play_sound"] = {
 		init: function () {
@@ -1860,13 +1934,14 @@ export function defineBlocks() {
 					{
 						type: "input_value",
 						name: "EVENT_NAME",
-						check: "String",		
+						check: "String",
 					},
 				],
 				previousStatement: null,
 				nextStatement: null,
 				colour: categoryColours["Events"],
-				tooltip: "Broadcast an event that can be handled with on event.\nKeyword: broadcast",
+				tooltip:
+					"Broadcast an event that can be handled with on event.\nKeyword: broadcast",
 				helpUrl: "",
 			});
 		},
@@ -2187,7 +2262,7 @@ export function defineBlocks() {
 							["dynamic", "DYNAMIC"],
 							["animated", "ANIMATED"],
 							["static", "STATIC"],
-							["none", "NONE"],							
+							["none", "NONE"],
 						],
 						default: "DYNAMIC",
 					},

@@ -184,7 +184,14 @@ const createScene = function () {
 	camera.rotation.x = BABYLON.Tools.ToRadians(0);
 	camera.angularSensibilityX = 2000;
 	camera.angularSensibilityY = 2000;
-	flock.scene.createDefaultLight();
+	const hemisphericLight = new BABYLON.HemisphericLight(
+		"hemisphericLight",
+		new BABYLON.Vector3(0, 1, 0), // Direction: Upwards, simulating light from the sky
+		flock.scene
+	);
+	hemisphericLight.intensity = 1.0; // Adjust the intensity to control how bright the scene is
+	hemisphericLight.diffuse = new BABYLON.Color3(1, 1, 1); // White diffuse light
+	hemisphericLight.groundColor = new BABYLON.Color3(0.5, 0.5, 0.5); // Optional ground color for additional effects
 	flock.scene.collisionsEnabled = true;
 
 	controlsTexture = flock.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
@@ -889,6 +896,7 @@ const runCode = (code) => {
 				newCylinder,
 				newCapsule,
 				newPlane,
+				newWall,
 				createGround,
 				createMap,
 				createCustomMap,

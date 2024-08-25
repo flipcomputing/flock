@@ -799,6 +799,61 @@ export const toolbox = {
 				},
 				{
 					kind: "block",
+					type: "create_wall",
+					keyword: "wall",
+					inputs: {
+						COLOR: {
+							shadow: {
+								type: "colour",
+								fields: {
+									COLOUR: "#9932CC",
+								},
+							},
+						},
+						START_X: {
+							shadow: {
+								type: "math_number",
+								fields: {
+									NUM: 0,
+								},
+							},
+						},
+						START_Z: {
+							shadow: {
+								type: "math_number",
+								fields: {
+									NUM: 0,
+								},
+							},
+						},
+						END_X: {
+							shadow: {
+								type: "math_number",
+								fields: {
+									NUM: 1,
+								},
+							},
+						},
+						END_Z: {
+							shadow: {
+								type: "math_number",
+								fields: {
+									NUM: 0,
+								},
+							},
+						},
+						Y_POSITION: {
+							shadow: {
+								type: "math_number",
+								fields: {
+									NUM: 0,
+								},
+							},
+						},
+					},
+				},
+				{
+					kind: "block",
 					type: "set_background_color",
 					keyword: "background",
 					inputs: {

@@ -342,6 +342,29 @@ export function defineGenerators() {
 		return `flock.scene.clearColor = BABYLON.Color4.FromHexString(${color} + "FF");\n`;
 	};
 
+	javascriptGenerator.forBlock["create_wall"] = function (block) {
+		const color = getFieldValue(block, "COLOR", "#9932CC");
+		const startX = getFieldValue(block, "START_X", "0");
+		const startZ = getFieldValue(block, "START_Z", "0");
+		const endX = getFieldValue(block, "END_X", "1");
+		const endZ = getFieldValue(block, "END_Z", "0");
+		const yPosition = getFieldValue(block, "Y_POSITION", "0");
+		const wallType = block.getFieldValue("WALL_TYPE");
+
+		let variableName = javascriptGenerator.nameDB_.getName(
+			block.getFieldValue("ID_VAR"),
+			Blockly.Names.NameType.VARIABLE
+		);
+
+		const wallId = `wall_${generateUUID()}`;
+		meshMap[wallId] = block;
+
+		// Directly passing all parameters to the helper function
+		return `${variableName} = newWall(${color}, ${startX}, ${startZ}, ${endX}, ${endZ}, ${yPosition}, "${wallType}", "${wallId}");\n`;
+	};
+
+
+
 	javascriptGenerator.forBlock["move_by_vector"] = function (block) {
 		const modelName = javascriptGenerator.nameDB_.getName(
 			block.getFieldValue("BLOCK_NAME"),
