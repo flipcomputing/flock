@@ -117,6 +117,7 @@ export function initializeVariableIndexes() {
 		cylinder: 1,
 		capsule: 1,
 		plane: 1,
+		wall: 1,
 		text: 1,
 		sound: 1,
 		character: 1,
