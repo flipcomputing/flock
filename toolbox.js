@@ -1491,6 +1491,11 @@ export const toolbox = {
 				},
 				{
 					kind: "block",
+					type: "time",
+					keyword: "time",
+				},
+				{
+					kind: "block",
 					type: "canvas_controls",
 					keyword: "canvas",
 				},
