@@ -2237,7 +2237,7 @@ export const flock = {
 				const targetMesh = mesh;
 				let plane;
 				let background = "transparent";
-				if (targetMesh.metadata.shape == "plane") {
+				if (targetMesh.metadata && targetMesh.metadata.shape == "plane") {
 					plane = targetMesh;
 					background = plane.material.diffuseColor.toHexString();
 				} else
@@ -2267,7 +2267,7 @@ export const flock = {
 						flock.GUI.AdvancedDynamicTexture.CreateForMesh(plane);
 					plane.advancedTexture = advancedTexture;
 
-					if (targetMesh.metadata.shape == "plane") {
+					if (targetMesh.metadata && targetMesh.metadata.shape == "plane") {
 						// Create a full-screen rectangle
 						let fullScreenRect = new flock.GUI.Rectangle();
 						fullScreenRect.width = "100%";
