@@ -911,6 +911,7 @@ const runCode = (code) => {
 				moveTo,
 				rotateTo,
 				positionAt,
+				distanceTo,
 				wait,
 				show,
 				hide,

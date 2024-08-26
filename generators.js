@@ -463,6 +463,22 @@ export function defineGenerators() {
 		return `await positionAt(${meshName}, ${x}, ${y}, ${z}, ${useY});\n`;
 	};
 
+	javascriptGenerator.forBlock["distance_to"] = function (block) {
+		const meshName1 = javascriptGenerator.nameDB_.getName(
+			block.getFieldValue("MODEL1"),
+			Blockly.Names.NameType.VARIABLE,
+		);
+
+		const meshName2 = javascriptGenerator.nameDB_.getName(
+			block.getFieldValue("MODEL2"),
+			Blockly.Names.NameType.VARIABLE,
+		);
+
+		const code = `distanceTo(${meshName1}, ${meshName2})`;
+		return [code, javascriptGenerator.ORDER_NONE];
+	};
+
+
 	javascriptGenerator.forBlock["get_property"] = function (block) {
 		const modelName = javascriptGenerator.nameDB_.getName(
 			block.getFieldValue("MESH"),
@@ -470,7 +486,7 @@ export function defineGenerators() {
 		);
 		const propertyName = block.getFieldValue("PROPERTY");
 
-		const code = `await getProperty(${modelName}, '${propertyName}')`;
+		const code = `getProperty(${modelName}, '${propertyName}')`;
 		return [code, javascriptGenerator.ORDER_NONE];
 	};
 

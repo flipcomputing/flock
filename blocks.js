@@ -1683,6 +1683,32 @@ export function defineBlocks() {
 	};
 
 
+	Blockly.Blocks["distance_to"] = {
+		init: function () {
+			this.jsonInit({
+				type: "distance_to",
+				message0: "distance from %1 to %2",
+				args0: [
+					{
+						type: "field_variable",
+						name: "MODEL1",
+						variable: "mesh1",
+					},
+					{
+						type: "field_variable",
+						name: "MODEL2",
+						variable: "mesh2",
+					}
+				],
+				output: "Number",
+				colour: categoryColours["Motion"],
+				inputsInline: true,
+				tooltip: "Calculates the distance between two meshes.",
+				helpUrl: "",
+			});
+		},
+	};
+
 	Blockly.Blocks["camera_control"] = {
 		init: function () {
 			this.jsonInit({

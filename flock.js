@@ -1481,7 +1481,8 @@ export const flock = {
 			const radZ = flock.BABYLON.Tools.ToRadians(z);
 
 			// Create a target rotation quaternion
-			const targetRotation = flock.BABYLON.Quaternion.RotationYawPitchRoll(radZ, radY, radX);
+			const targetRotation =
+				flock.BABYLON.Quaternion.RotationYawPitchRoll(radZ, radY, radX);
 
 			// Apply the rotation to the mesh
 			mesh.rotationQuaternion = targetRotation;
@@ -1518,88 +1519,103 @@ export const flock = {
 			mesh.computeWorldMatrix(true);
 		});
 	},
+	distanceTo(meshName1, meshName2) {
+		const mesh1 = flock.scene.getMeshByName(meshName1);
+		const mesh2 = flock.scene.getMeshByName(meshName2);
+		if (mesh1 && mesh2) {
+			const distance = flock.BABYLON.Vector3.Distance(
+				mesh1.position,
+				mesh2.position,
+			);
+			return distance;
+		} else {
+			return null;
+		}
+	},
 	getProperty(modelName, propertyName) {
-		return flock.whenModelReady(modelName, (mesh) => {
-			let propertyValue = null;
+		const mesh = flock.scene.getMeshByName(modelName);
 
-			mesh.computeWorldMatrix(true);
+		if (!mesh) return null;
 
-			const position = mesh.getAbsolutePosition();
+		let propertyValue = null;
 
-			let rotation = mesh.absoluteRotationQuaternion.toEulerAngles();
-			let allMeshes, materialNode, materialNodes;
-			switch (propertyName) {
-				case "POSITION_X":
-					propertyValue = position.x.toFixed(2);
-					break;
-				case "POSITION_Y":
-					propertyValue = position.y.toFixed(2);
-					break;
-				case "POSITION_Z":
-					propertyValue = position.z.toFixed(2);
-					break;
-				case "ROTATION_X":
-					propertyValue = flock.BABYLON.Tools.ToDegrees(
-						rotation.x,
-					).toFixed(2);
-					break;
-				case "ROTATION_Y":
-					propertyValue = flock.BABYLON.Tools.ToDegrees(
-						rotation.y,
-					).toFixed(2);
-					break;
-				case "ROTATION_Z":
-					propertyValue = flock.BABYLON.Tools.ToDegrees(
-						rotation.z,
-					).toFixed(2);
-					break;
-				case "SCALE_X":
-					propertyValue = mesh.scaling.x.toFixed(2);
-					break;
-				case "SCALE_Y":
-					propertyValue = mesh.scaling.y.toFixed(2);
-					break;
-				case "SCALE_Z":
-					propertyValue = mesh.scaling.z.toFixed(2);
-					break;
-				case "VISIBLE":
-					propertyValue = mesh.isVisible;
-					break;
-				case "ALPHA":
-					allMeshes = [mesh].concat(mesh.getDescendants());
-					materialNode = allMeshes.find((node) => node.material);
+		mesh.computeWorldMatrix(true);
 
-					if (materialNode) {
-						propertyValue = materialNode.material.alpha;
-					}
-					break;
-				case "COLOUR":
-					allMeshes = [mesh].concat(mesh.getDescendants());
-					materialNodes = allMeshes.filter((node) => node.material);
+		const position = mesh.getAbsolutePosition();
 
-					// Map to get the diffuseColor or albedoColor of each material as a hex string
-					const colors = materialNodes
-						.map((node) => {
-							if (node.material.diffuseColor) {
-								return node.material.diffuseColor.toHexString();
-							} else if (node.material.albedoColor) {
-								return node.material.albedoColor.toHexString();
-							}
-							return null;
-						})
-						.filter((color) => color !== null);
-					if (colors.length === 1) {
-						propertyValue = colors[0];
-					} else if (colors.length > 1) {
-						propertyValue = colors.join(", ");
-					}
+		let rotation = mesh.absoluteRotationQuaternion.toEulerAngles();
+		let allMeshes, materialNode, materialNodes;
+		switch (propertyName) {
+			case "POSITION_X":
+				propertyValue = position.x.toFixed(2);
+				break;
+			case "POSITION_Y":
+				propertyValue = position.y.toFixed(2);
+				break;
+			case "POSITION_Z":
+				propertyValue = position.z.toFixed(2);
+				break;
+			case "ROTATION_X":
+				propertyValue = flock.BABYLON.Tools.ToDegrees(
+					rotation.x,
+				).toFixed(2);
+				break;
+			case "ROTATION_Y":
+				propertyValue = flock.BABYLON.Tools.ToDegrees(
+					rotation.y,
+				).toFixed(2);
+				break;
+			case "ROTATION_Z":
+				propertyValue = flock.BABYLON.Tools.ToDegrees(
+					rotation.z,
+				).toFixed(2);
+				break;
+			case "SCALE_X":
+				propertyValue = mesh.scaling.x.toFixed(2);
+				break;
+			case "SCALE_Y":
+				propertyValue = mesh.scaling.y.toFixed(2);
+				break;
+			case "SCALE_Z":
+				propertyValue = mesh.scaling.z.toFixed(2);
+				break;
+			case "VISIBLE":
+				propertyValue = mesh.isVisible;
+				break;
+			case "ALPHA":
+				allMeshes = [mesh].concat(mesh.getDescendants());
+				materialNode = allMeshes.find((node) => node.material);
 
-					break;
-				default:
-					console.log("Property not recognized.");
-			}
-			return propertyValue;
-		});
+				if (materialNode) {
+					propertyValue = materialNode.material.alpha;
+				}
+				break;
+			case "COLOUR":
+				allMeshes = [mesh].concat(mesh.getDescendants());
+				materialNodes = allMeshes.filter((node) => node.material);
+
+				// Map to get the diffuseColor or albedoColor of each material as a hex string
+				const colors = materialNodes
+					.map((node) => {
+						if (node.material.diffuseColor) {
+							return node.material.diffuseColor.toHexString();
+						} else if (node.material.albedoColor) {
+							return node.material.albedoColor.toHexString();
+						}
+						return null;
+					})
+					.filter((color) => color !== null);
+				if (colors.length === 1) {
+					propertyValue = colors[0];
+				} else if (colors.length > 1) {
+					propertyValue = colors.join(", ");
+				}
+
+				break;
+			default:
+				console.log("Property not recognized.");
+		}
+		return propertyValue;
 	},
 	createSmallButton(text, key, color) {
 		const button = flock.GUI.Button.CreateSimpleButton("but", text);
@@ -2348,7 +2364,10 @@ export const flock = {
 				const targetMesh = mesh;
 				let plane;
 				let background = "transparent";
-				if (targetMesh.metadata && targetMesh.metadata.shape == "plane") {
+				if (
+					targetMesh.metadata &&
+					targetMesh.metadata.shape == "plane"
+				) {
 					plane = targetMesh;
 					background = plane.material.diffuseColor.toHexString();
 				} else
@@ -2378,14 +2397,16 @@ export const flock = {
 						flock.GUI.AdvancedDynamicTexture.CreateForMesh(plane);
 					plane.advancedTexture = advancedTexture;
 
-					if (targetMesh.metadata && targetMesh.metadata.shape == "plane") {
+					if (
+						targetMesh.metadata &&
+						targetMesh.metadata.shape == "plane"
+					) {
 						// Create a full-screen rectangle
 						let fullScreenRect = new flock.GUI.Rectangle();
 						fullScreenRect.width = "100%";
 						fullScreenRect.height = "100%";
 
-						fullScreenRect.background =
-background;
+						fullScreenRect.background = background;
 						fullScreenRect.color = "transparent";
 						advancedTexture.addControl(fullScreenRect);
 					}
