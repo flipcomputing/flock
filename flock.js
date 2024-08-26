@@ -1839,7 +1839,6 @@ export const flock = {
 			const meshwidth = Math.max(size.x, size.z);
 			texture.uScale = meshWidth / texturePhysicalSize;
 			texture.vScale = meshHeight / texturePhysicalSize;
-			console.log("Scale", texture.uScale, texture.vScale);
 
 			material.diffuseTexture = texture;
 			material.diffuseColor = flock.BABYLON.Color3.FromHexString(color);
@@ -2237,8 +2236,11 @@ export const flock = {
 			return new Promise((resolve) => {
 				const targetMesh = mesh;
 				let plane;
-				if ((targetMesh.metadata.shape = "plane")) plane = targetMesh;
-				else
+				let background = "transparent";
+				if (targetMesh.metadata.shape == "plane") {
+					plane = targetMesh;
+					background = plane.material.diffuseColor.toHexString();
+				} else
 					plane = mesh
 						.getDescendants()
 						.find((child) => child.name === "textPlane");
@@ -2260,12 +2262,22 @@ export const flock = {
 					plane.billboardMode = flock.BABYLON.Mesh.BILLBOARDMODE_ALL;
 				}
 
-				if (!plane.advancedTexture){
-					
+				if (!plane.advancedTexture) {
 					advancedTexture =
 						flock.GUI.AdvancedDynamicTexture.CreateForMesh(plane);
 					plane.advancedTexture = advancedTexture;
 
+					if (targetMesh.metadata.shape == "plane") {
+						// Create a full-screen rectangle
+						let fullScreenRect = new flock.GUI.Rectangle();
+						fullScreenRect.width = "100%";
+						fullScreenRect.height = "100%";
+
+						fullScreenRect.background =
+background;
+						fullScreenRect.color = "transparent";
+						advancedTexture.addControl(fullScreenRect);
+					}
 					const stackPanel = new flock.GUI.StackPanel();
 					stackPanel.name = "stackPanel";
 					stackPanel.horizontalAlignment =
