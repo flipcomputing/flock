@@ -414,9 +414,53 @@ export function defineGenerators() {
 			Blockly.Names.NameType.VARIABLE,
 		);
 
-		 const ignoreY = block.getFieldValue("IGNORE_Y") === 'TRUE';
+		 const useY = block.getFieldValue("USE_Y") === 'TRUE';
 
-		return `await lookAt(${meshName1}, ${meshName2}, ${ignoreY});\n`;
+		return `await lookAt(${meshName1}, ${meshName2}, ${useY});\n`;
+	};
+
+	javascriptGenerator.forBlock["move_to"] = function (block) {
+		const meshName1 = javascriptGenerator.nameDB_.getName(
+			block.getFieldValue("MODEL1"),
+			Blockly.Names.NameType.VARIABLE,
+		);
+
+		const meshName2 = javascriptGenerator.nameDB_.getName(
+			block.getFieldValue("MODEL2"),
+			Blockly.Names.NameType.VARIABLE,
+		);
+
+		 const useY = block.getFieldValue("USE_Y") === 'TRUE';
+		
+		return `await moveTo(${meshName1}, ${meshName2}, ${useY});\n`;
+	};
+
+	javascriptGenerator.forBlock["rotate_to"] = function (block) {
+		const meshName = javascriptGenerator.nameDB_.getName(
+			block.getFieldValue("MODEL"),
+			Blockly.Names.NameType.VARIABLE,
+		);
+
+		const x = javascriptGenerator.valueToCode(block, "X", javascriptGenerator.ORDER_ATOMIC) || '0';
+		const y = javascriptGenerator.valueToCode(block, "Y", javascriptGenerator.ORDER_ATOMIC) || '0';
+		const z = javascriptGenerator.valueToCode(block, "Z", javascriptGenerator.ORDER_ATOMIC) || '0';
+
+		return `await rotateTo(${meshName}, ${x}, ${y}, ${z});\n`;
+	};
+
+	javascriptGenerator.forBlock["position_at"] = function (block) {
+		const meshName = javascriptGenerator.nameDB_.getName(
+			block.getFieldValue("MODEL"),
+			Blockly.Names.NameType.VARIABLE,
+		);
+
+		const x = javascriptGenerator.valueToCode(block, "X", javascriptGenerator.ORDER_ATOMIC) || '0';
+		const y = javascriptGenerator.valueToCode(block, "Y", javascriptGenerator.ORDER_ATOMIC) || '0';
+		const z = javascriptGenerator.valueToCode(block, "Z", javascriptGenerator.ORDER_ATOMIC) || '0';
+
+		const useY = block.getFieldValue("USE_Y") === 'TRUE';
+
+		return `await positionAt(${meshName}, ${x}, ${y}, ${z}, ${useY});\n`;
 	};
 
 	javascriptGenerator.forBlock["get_property"] = function (block) {

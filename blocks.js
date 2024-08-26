@@ -1548,9 +1548,9 @@ export function defineBlocks() {
 					},
 					{
 						type: "field_checkbox",
-						name: "IGNORE_Y",
+						name: "USE_Y",
 						checked: false,
-						text: "Ignore Y axis"
+						text: "Use Y axis"
 					}
 				],
 				previousStatement: null,
@@ -1558,6 +1558,125 @@ export function defineBlocks() {
 				colour: categoryColours["Motion"],
 				inputsInline: true,
 				tooltip: "Rotates the first model towards the position of the second model.\nKeyword: look",
+				helpUrl: "",
+			});
+		},
+	};
+
+	Blockly.Blocks["move_to"] = {
+		init: function () {
+			this.jsonInit({
+				type: "move_to",
+				message0: "move %1 to %2 y? %3",
+				args0: [
+					{
+						type: "field_variable",
+						name: "MODEL1",
+						variable: "mesh1",
+					},
+					{
+						type: "field_variable",
+						name: "MODEL2",
+						variable: "mesh2",
+					},
+					{
+						type: "field_checkbox",
+						name: "USE_Y",
+						checked: false,
+						text: "Use Y axis"
+					}
+				],
+				previousStatement: null,
+				nextStatement: null,
+				colour: categoryColours["Motion"],
+				inputsInline: true,
+				tooltip: "Teleports the first model to the location of the second model.",
+				helpUrl: "",
+			});
+		},
+	};
+
+	Blockly.Blocks["rotate_to"] = {
+		init: function () {
+			this.jsonInit({
+				type: "rotate_to",
+				message0: "rotate %1 to x: %2 y: %3 z: %4",
+				args0: [
+					{
+						type: "field_variable",
+						name: "MODEL",
+						variable: "mesh",
+					},
+					{
+						type: "input_value",
+						name: "X",
+						check: "Number",
+						align: "RIGHT",
+					},
+					{
+						type: "input_value",
+						name: "Y",
+						check: "Number",
+						align: "RIGHT",
+					},
+					{
+						type: "input_value",
+						name: "Z",
+						check: "Number",
+						align: "RIGHT",
+					},
+				],
+				previousStatement: null,
+				nextStatement: null,
+				colour: categoryColours["Motion"],
+				inputsInline: true,
+				tooltip: "Rotates the model to face the specified coordinates.",
+				helpUrl: "",
+			});
+		},
+	};
+
+	Blockly.Blocks["position_at"] = {
+		init: function () {
+			this.jsonInit({
+				type: "position_at",
+				message0: "position %1 at x: %2 y: %3 z: %4 y? %5",
+				args0: [
+					{
+						type: "field_variable",
+						name: "MODEL",
+						variable: "mesh",
+					},
+					{
+						type: "input_value",
+						name: "X",
+						check: "Number",
+						align: "RIGHT",
+					},
+					{
+						type: "input_value",
+						name: "Y",
+						check: "Number",
+						align: "RIGHT",
+					},
+					{
+						type: "input_value",
+						name: "Z",
+						check: "Number",
+						align: "RIGHT",
+					},
+					{
+						type: "field_checkbox",
+						name: "USE_Y",
+						checked: true,
+						text: "Use Y axis"
+					}
+				],
+				previousStatement: null,
+				nextStatement: null,
+				colour: categoryColours["Motion"],
+				inputsInline: true,
+				tooltip: "Positions the model at the specified coordinates. Optionally, use the Y axis.",
 				helpUrl: "",
 			});
 		},

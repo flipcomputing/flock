@@ -1407,7 +1407,7 @@ export const flock = {
 			mesh.computeWorldMatrix(true);
 		});
 	},
-	lookAt(meshName1, meshName2, ignoreY = false) {
+	lookAt(meshName1, meshName2, useY = false) {
 		return flock.whenModelReady(meshName1, (mesh1) => {
 			return flock.whenModelReady(meshName2, (mesh2) => {
 				if (
@@ -1420,7 +1420,7 @@ export const flock = {
 				}
 
 				let targetPosition = mesh2.absolutePosition.clone();
-				if (ignoreY) {
+				if (!useY) {
 					targetPosition.y = mesh1.absolutePosition.y;
 				}
 
@@ -1434,6 +1434,88 @@ export const flock = {
 
 				mesh1.computeWorldMatrix(true);
 			});
+		});
+	},
+	moveTo(meshName1, meshName2, useY = false) {
+		return flock.whenModelReady(meshName1, (mesh1) => {
+			return flock.whenModelReady(meshName2, (mesh2) => {
+				if (
+					mesh1.physics.getMotionType() !==
+					flock.BABYLON.PhysicsMotionType.DYNAMIC
+				) {
+					mesh1.physics.setMotionType(
+						flock.BABYLON.PhysicsMotionType.ANIMATED,
+					);
+				}
+
+				const targetPosition = mesh2.absolutePosition.clone();
+				if (!useY) {
+					targetPosition.y = mesh1.absolutePosition.y;
+				}
+				mesh1.position.copyFrom(targetPosition);
+
+				mesh1.physics.disablePreStep = false;
+				mesh1.physics.setTargetTransform(
+					mesh1.position,
+					mesh1.rotationQuaternion,
+				);
+
+				mesh1.computeWorldMatrix(true);
+			});
+		});
+	},
+	rotateTo(meshName, x, y, z) {
+		return flock.whenModelReady(meshName, (mesh) => {
+			if (
+				mesh.physics.getMotionType() !==
+				flock.BABYLON.PhysicsMotionType.DYNAMIC
+			) {
+				mesh.physics.setMotionType(
+					flock.BABYLON.PhysicsMotionType.ANIMATED,
+				);
+			}
+
+			// Convert the X, Y, and Z inputs from degrees to radians
+			const radX = flock.BABYLON.Tools.ToRadians(x);
+			const radY = flock.BABYLON.Tools.ToRadians(y);
+			const radZ = flock.BABYLON.Tools.ToRadians(z);
+
+			// Create a target rotation quaternion
+			const targetRotation = flock.BABYLON.Quaternion.RotationYawPitchRoll(radZ, radY, radX);
+
+			// Apply the rotation to the mesh
+			mesh.rotationQuaternion = targetRotation;
+
+			mesh.physics.disablePreStep = false;
+			mesh.physics.setTargetTransform(
+				mesh.position,
+				mesh.rotationQuaternion,
+			);
+
+			mesh.computeWorldMatrix(true);
+		});
+	},
+	positionAt(meshName, x, y, z, useY = true) {
+		return flock.whenModelReady(meshName, (mesh) => {
+			if (
+				mesh.physics.getMotionType() !==
+				flock.BABYLON.PhysicsMotionType.DYNAMIC
+			) {
+				mesh.physics.setMotionType(
+					flock.BABYLON.PhysicsMotionType.ANIMATED,
+				);
+			}
+
+			let targetY = useY ? y : mesh.position.y;
+			mesh.position.set(x, targetY, z);
+
+			mesh.physics.disablePreStep = false;
+			mesh.physics.setTargetTransform(
+				mesh.position,
+				mesh.rotationQuaternion,
+			);
+
+			mesh.computeWorldMatrix(true);
 		});
 	},
 	getProperty(modelName, propertyName) {
