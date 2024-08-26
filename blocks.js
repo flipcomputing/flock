@@ -567,7 +567,7 @@ export function defineBlocks() {
 			const defaultColour = objectColours[defaultObject] || "#000000";
 			const variableNamePrefix = "object";
 			let nextVariableName =
-				variableNamePrefix + nextVariableIndexes[variableNamePrefix]++;
+				variableNamePrefix + nextVariableIndexes[variableNamePrefix];
 
 			this.jsonInit({
 				message0: `new %1 %2 %3 scale: %4 x: %5 y: %6 z: %7`,
@@ -642,6 +642,14 @@ export function defineBlocks() {
 
 			// Listen for changes in the MODELS field and update the COLOR field
 			this.setOnChange((changeEvent) => {
+				handleBlockCreateEvent(
+					this,
+					changeEvent,
+					variableNamePrefix,
+					nextVariableIndexes,
+				);
+
+				if (window.loadingCode) return;
 				if (
 					changeEvent.type === Blockly.Events.CHANGE &&
 					changeEvent.element === "field" &&
@@ -2236,6 +2244,7 @@ export function defineBlocks() {
 			});
 		},
 	};
+
 
 	Blockly.Blocks["change_material"] = {
 		init: function () {
