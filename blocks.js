@@ -1701,7 +1701,7 @@ export function defineBlocks() {
 					}
 				],
 				output: "Number",
-				colour: categoryColours["Motion"],
+				colour: categoryColours["Sensing"],
 				inputsInline: true,
 				tooltip: "Calculates the distance between two meshes.",
 				helpUrl: "",

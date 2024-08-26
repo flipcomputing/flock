@@ -1211,11 +1211,6 @@ export const toolbox = {
 				},
 				{
 					kind: "block",
-					type: "distance_to",
-					keyword: "dist",
-				},
-				{
-					kind: "block",
 					type: "glide_to",
 					keyword: "glide",
 					inputs: {
@@ -1488,6 +1483,11 @@ export const toolbox = {
 					kind: "block",
 					type: "get_property",
 					keyword: "get",
+				},
+				{
+					kind: "block",
+					type: "distance_to",
+					keyword: "dist",
 				},
 				{
 					kind: "block",
