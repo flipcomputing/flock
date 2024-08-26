@@ -180,6 +180,7 @@ const createScene = function () {
 		new BABYLON.Vector3(0, 3, -10),
 		flock.scene,
 	);
+	camera.minZ = 1;
 	camera.setTarget(BABYLON.Vector3.Zero());
 	camera.rotation.x = BABYLON.Tools.ToRadians(0);
 	camera.angularSensibilityX = 2000;

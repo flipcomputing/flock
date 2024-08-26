@@ -2389,22 +2389,32 @@ export const flock = {
 					plane.billboardMode = flock.BABYLON.Mesh.BILLBOARDMODE_ALL;
 				}
 
+				plane.material.needDepthPrePass = true;
+				plane.alwaysSelectAsActiveMesh = true;
+				
 				if (!plane.advancedTexture) {
 					const planeBoundingInfo = plane.getBoundingInfo();
-					const planeWidth = planeBoundingInfo.boundingBox.extendSize.x * 2;
-					const planeHeight = planeBoundingInfo.boundingBox.extendSize.y * 2;
+					const planeWidth =
+						planeBoundingInfo.boundingBox.extendSize.x * 2;
+					const planeHeight =
+						planeBoundingInfo.boundingBox.extendSize.y * 2;
 					const aspectRatio = planeWidth / planeHeight;
 
 					// Choose a base resolution (e.g., 1024 for the larger dimension)
 					const baseResolution = 1024;
-					const textureWidth = baseResolution * (aspectRatio > 1 ? 1 : aspectRatio);
-					const textureHeight = baseResolution * (aspectRatio > 1 ? 1 / aspectRatio : 1);
+					const textureWidth =
+						baseResolution * (aspectRatio > 1 ? 1 : aspectRatio);
+					const textureHeight =
+						baseResolution *
+						(aspectRatio > 1 ? 1 / aspectRatio : 1);
 
-					advancedTexture = flock.GUI.AdvancedDynamicTexture.CreateForMesh(
-						plane,
-						textureWidth,
-						textureHeight
-					);
+					advancedTexture =
+						flock.GUI.AdvancedDynamicTexture.CreateForMesh(
+							plane,
+							textureWidth,
+							textureHeight,
+						);
+					advancedTexture.isTransparent = true;
 					plane.advancedTexture = advancedTexture;
 
 					if (
@@ -2454,6 +2464,8 @@ export const flock = {
 					bg.thickness = 0;
 					bg.resizeToFit = true;
 					bg.forceResizeWidth = true;
+					bg.checkCollisions = false;
+					bg.isPickable = false;
 					stackPanel.addControl(bg);
 
 					const scale = 6;
