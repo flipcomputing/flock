@@ -1139,6 +1139,11 @@ export const toolbox = {
 				},
 				{
 					kind: "block",
+					type: "look_at",
+					keyword: "look",
+				},
+				{
+					kind: "block",
 					type: "glide_to",
 					keyword: "glide",
 					inputs: {

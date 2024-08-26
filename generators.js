@@ -403,6 +403,22 @@ export function defineGenerators() {
 		return `await rotate(${meshName}, ${x}, ${y}, ${z});\n`;
 	};
 
+	javascriptGenerator.forBlock["look_at"] = function (block) {
+		const meshName1 = javascriptGenerator.nameDB_.getName(
+			block.getFieldValue("MODEL1"),
+			Blockly.Names.NameType.VARIABLE,
+		);
+
+		const meshName2 = javascriptGenerator.nameDB_.getName(
+			block.getFieldValue("MODEL2"),
+			Blockly.Names.NameType.VARIABLE,
+		);
+
+		 const ignoreY = block.getFieldValue("IGNORE_Y") === 'TRUE';
+
+		return `await lookAt(${meshName1}, ${meshName2}, ${ignoreY});\n`;
+	};
+
 	javascriptGenerator.forBlock["get_property"] = function (block) {
 		const modelName = javascriptGenerator.nameDB_.getName(
 			block.getFieldValue("MESH"),

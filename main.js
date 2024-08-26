@@ -907,6 +907,7 @@ const runCode = (code) => {
 				moveByVector,
 				glideTo,
 				rotate,
+				lookAt,
 				wait,
 				show,
 				hide,

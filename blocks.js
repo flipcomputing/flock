@@ -1530,6 +1530,40 @@ export function defineBlocks() {
 		},
 	};
 
+	Blockly.Blocks["look_at"] = {
+		init: function () {
+			this.jsonInit({
+				type: "look_at",
+				message0: "look %1 at %2 y? %3",
+				args0: [
+					{
+						type: "field_variable",
+						name: "MODEL1",
+						variable: "mesh1",
+					},
+					{
+						type: "field_variable",
+						name: "MODEL2",
+						variable: "mesh2",
+					},
+					{
+						type: "field_checkbox",
+						name: "IGNORE_Y",
+						checked: false,
+						text: "Ignore Y axis"
+					}
+				],
+				previousStatement: null,
+				nextStatement: null,
+				colour: categoryColours["Motion"],
+				inputsInline: true,
+				tooltip: "Rotates the first model towards the position of the second model.\nKeyword: look",
+				helpUrl: "",
+			});
+		},
+	};
+
+
 	Blockly.Blocks["camera_control"] = {
 		init: function () {
 			this.jsonInit({

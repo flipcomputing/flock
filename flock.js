@@ -1407,6 +1407,35 @@ export const flock = {
 			mesh.computeWorldMatrix(true);
 		});
 	},
+	lookAt(meshName1, meshName2, ignoreY = false) {
+		return flock.whenModelReady(meshName1, (mesh1) => {
+			return flock.whenModelReady(meshName2, (mesh2) => {
+				if (
+					mesh1.physics.getMotionType() !==
+					flock.BABYLON.PhysicsMotionType.DYNAMIC
+				) {
+					mesh1.physics.setMotionType(
+						flock.BABYLON.PhysicsMotionType.ANIMATED,
+					);
+				}
+
+				let targetPosition = mesh2.absolutePosition.clone();
+				if (ignoreY) {
+					targetPosition.y = mesh1.absolutePosition.y;
+				}
+
+				mesh1.lookAt(targetPosition);
+
+				mesh1.physics.disablePreStep = false;
+				mesh1.physics.setTargetTransform(
+					mesh1.absolutePosition,
+					mesh1.rotationQuaternion,
+				);
+
+				mesh1.computeWorldMatrix(true);
+			});
+		});
+	},
 	getProperty(modelName, propertyName) {
 		return flock.whenModelReady(modelName, (mesh) => {
 			let propertyValue = null;
