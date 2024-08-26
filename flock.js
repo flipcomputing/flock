@@ -2021,7 +2021,7 @@ export const flock = {
 		model.rotationQuaternion.z = 0;
 		model.rotationQuaternion.normalize();
 	},
-	attachCamera(modelName) {
+	attachCamera(modelName, radius) {
 		return flock.whenModelReady(modelName, function (mesh) {
 			if (mesh) {
 				flock.updateDynamicMeshPositions(flock.scene, [mesh]);
@@ -2099,7 +2099,6 @@ export const flock = {
 				}
 				// Create the constraint for the platform
 				createVerticalConstraint(mesh, boxBody, flock.scene);
-
 				flock.scene.onAfterPhysicsObservable.add(() => {
 					const currentVelocity = mesh.physics.getLinearVelocity();
 					const newVelocity = new flock.BABYLON.Vector3(
@@ -2131,15 +2130,15 @@ export const flock = {
 					"camera",
 					Math.PI / 2,
 					Math.PI / 4,
-					10,
+					radius,
 					mesh.position,
 					flock.scene,
 				);
 				camera.checkCollisions = true;
 				camera.lowerBetaLimit = Math.PI / 2.5;
 				camera.upperBetaLimit = Math.PI / 2;
-				camera.lowerRadiusLimit = 7;
-				camera.upperRadiusLimit = 7;
+				camera.lowerRadiusLimit = radius * 0.6;
+				camera.upperRadiusLimit = radius * 1.6;
 				camera.angularSensibilityX = 2000;
 				camera.angularSensibilityY = 2000;
 				camera.setTarget(mesh.position);

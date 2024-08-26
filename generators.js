@@ -775,12 +775,16 @@ export function defineGenerators() {
 	};
 
 	javascriptGenerator.forBlock["camera_follow"] = function (block) {
-		const modelName = javascriptGenerator.nameDB_.getName(
-			block.getFieldValue("MESH_VAR"),
-			Blockly.Names.NameType.VARIABLE,
-		);
-		return `await attachCamera(${modelName});\n`;
+	  const modelName = javascriptGenerator.nameDB_.getName(
+		block.getFieldValue("MESH_VAR"),
+		Blockly.Names.NameType.VARIABLE,
+	  );
+
+	  const radius = javascriptGenerator.valueToCode(block, "RADIUS", javascriptGenerator.ORDER_ATOMIC) || 7;
+
+	  return `await attachCamera(${modelName}, ${radius});\n`;
 	};
+
 	javascriptGenerator.forBlock["add_physics"] = function (block) {
 		const modelName = javascriptGenerator.nameDB_.getName(
 			block.getFieldValue("MODEL_VAR"),

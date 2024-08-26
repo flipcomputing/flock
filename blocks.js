@@ -2426,26 +2426,31 @@ export function defineBlocks() {
 	};
 
 	Blockly.Blocks["camera_follow"] = {
-		init: function () {
-			this.jsonInit({
-				type: "camera_follow",
-				message0: "camera follow %1",
-				args0: [
-					{
-						type: "field_variable",
-						name: "MESH_VAR",
-						variable: "mesh1",
-					},
-				],
-				previousStatement: null,
-				nextStatement: null,
-				colour: categoryColours["Motion"],
-				tooltip:
-					"Makes the camera follow a model specified by the variable.\nKeyword: follow",
-				helpUrl: "",
-			});
-		},
+	  init: function () {
+		this.jsonInit({
+		  type: "camera_follow",
+		  message0: "camera follow %1 with radius %2",
+		  args0: [
+			{
+			  type: "field_variable",
+			  name: "MESH_VAR",
+			  variable: "mesh1",
+			},
+			{
+			  type: "input_value",
+			  name: "RADIUS",
+			  check: "Number",
+			},
+		  ],
+		  previousStatement: null,
+		  nextStatement: null,
+		  colour: categoryColours["Motion"],
+		  tooltip: "Makes the camera follow a model with a customizable distance (radius) from the target.\nKeyword: follow",
+		  helpUrl: "",
+		});
+	  },
 	};
+
 
 	Blockly.Blocks["add_physics"] = {
 		init: function () {

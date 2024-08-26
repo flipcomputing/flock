@@ -1313,6 +1313,16 @@ export const toolbox = {
 					kind: "block",
 					type: "camera_follow",
 					keyword: "follow",
+					inputs: {
+						RADIUS: {
+							shadow: {
+								type: "math_number",
+								fields: {
+									NUM: 7,
+								},
+							},
+						},
+					},
 				},
 				{
 					kind: "block",
