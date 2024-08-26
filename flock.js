@@ -978,12 +978,10 @@ export const flock = {
 			flock.scene,
 		);
 
-		// Physics shape for the plane
-		// Note: Planes are two-dimensional, thus depth is minimal or practically 0
 		const planeShape = new flock.BABYLON.PhysicsShapeBox(
 			new flock.BABYLON.Vector3(0, 0, 0),
 			new flock.BABYLON.Quaternion(0, 0, 0, 1),
-			new flock.BABYLON.Vector3(4, 4, 0.001), // Minimal depth
+			new flock.BABYLON.Vector3(width, height, 0.001), // Width and height divided by 2, minimal depth
 			flock.scene,
 		);
 
@@ -2392,8 +2390,21 @@ export const flock = {
 				}
 
 				if (!plane.advancedTexture) {
-					advancedTexture =
-						flock.GUI.AdvancedDynamicTexture.CreateForMesh(plane);
+					const planeBoundingInfo = plane.getBoundingInfo();
+					const planeWidth = planeBoundingInfo.boundingBox.extendSize.x * 2;
+					const planeHeight = planeBoundingInfo.boundingBox.extendSize.y * 2;
+					const aspectRatio = planeWidth / planeHeight;
+
+					// Choose a base resolution (e.g., 1024 for the larger dimension)
+					const baseResolution = 1024;
+					const textureWidth = baseResolution * (aspectRatio > 1 ? 1 : aspectRatio);
+					const textureHeight = baseResolution * (aspectRatio > 1 ? 1 / aspectRatio : 1);
+
+					advancedTexture = flock.GUI.AdvancedDynamicTexture.CreateForMesh(
+						plane,
+						textureWidth,
+						textureHeight
+					);
 					plane.advancedTexture = advancedTexture;
 
 					if (
