@@ -854,6 +854,45 @@ export const toolbox = {
 				},
 				{
 					kind: "block",
+					type: "parent_child",
+					keyword: "parent",
+					inputs: {
+						X_OFFSET: {
+							shadow: {
+								type: "math_number",
+								fields: {
+									NUM: 0
+								}
+							}
+						},
+						Y_OFFSET: {
+							shadow: {
+								type: "math_number",
+								fields: {
+									NUM: 0
+								}
+							}
+						},
+						Z_OFFSET: {
+							shadow: {
+								type: "math_number",
+								fields: {
+									NUM: 0
+								}
+							}
+						}
+					},
+					fields: {
+						REMOVE_RELATIONSHIP: "FALSE"
+					}
+				},
+				{
+					kind: "block",
+					type: "remove_parent",
+					keyword: "noparent",
+				},
+				{
+					kind: "block",
 					type: "set_background_color",
 					keyword: "background",
 					inputs: {

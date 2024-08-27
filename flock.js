@@ -401,6 +401,29 @@ export const flock = {
 
 		return modelId;
 	},
+	parentChild(parentModelName, childModelName, offsetX = 0, offsetY = 0, offsetZ = 0) {
+		return flock.whenModelReady(parentModelName, (parentMesh) => {
+			flock.whenModelReady(childModelName, (childMesh) => {
+				// Set the parent-child relationship
+				childMesh.parent = parentMesh;
+
+				// Apply the offset to the child's position relative to the parent
+				childMesh.position.set(offsetX, offsetY, offsetZ);
+			});
+		});
+	},
+	removeParent(childModelName) {
+		return flock.whenModelReady(childModelName, (childMesh) => {
+			// Calculate the world position before removing the parent
+			const worldPosition = childMesh.getAbsolutePosition();
+
+			// Remove the parent-child relationship
+			childMesh.parent = null;
+
+			// Set the child mesh's position to its world position
+			childMesh.position = worldPosition;
+		});
+	},
 	createGround(color) {
 		const ground = flock.BABYLON.MeshBuilder.CreateGround(
 			"ground",

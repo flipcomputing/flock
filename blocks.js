@@ -1457,6 +1457,72 @@ export function defineBlocks() {
 		},
 	};
 
+	Blockly.Blocks["parent_child"] = {
+		init: function () {
+			this.jsonInit({
+				type: "parent_child",
+				message0: "parent %1 child %2 offset x: %3 y: %4 z: %5",
+				args0: [
+					{
+						type: "field_variable",
+						name: "PARENT_MESH",
+						variable: "parentMesh",
+					},
+					{
+						type: "field_variable",
+						name: "CHILD_MESH",
+						variable: "childMesh",
+					},
+					{
+						type: "input_value",
+						name: "X_OFFSET",
+						check: "Number",
+						align: "RIGHT",
+					},
+					{
+						type: "input_value",
+						name: "Y_OFFSET",
+						check: "Number",
+						align: "RIGHT",
+					},
+					{
+						type: "input_value",
+						name: "Z_OFFSET",
+						check: "Number",
+						align: "RIGHT",
+					},
+				],
+				previousStatement: null,
+				nextStatement: null,
+				colour: categoryColours["Scene"],
+				inputsInline: true,
+				tooltip:
+					"Sets a parent-child relationship between two meshes with a specified offset in x, y, and z directions.\nKeyword: parent, child, offset, remove",
+			});
+		},
+	};
+
+	Blockly.Blocks["remove_parent"] = {
+		init: function () {
+			this.jsonInit({
+				type: "remove_parent",
+				message0: "remove parent %1",
+				args0: [
+					{
+						type: "field_variable",
+						name: "CHILD_MESH",
+						variable: "childMesh",
+					}
+				],
+				previousStatement: null,
+				nextStatement: null,
+				colour: categoryColours["Scene"],
+				tooltip: "Removes the parent relationship from the specified mesh.\nKeyword: remove, parent, child",
+			});
+		},
+	};
+
+
 	Blockly.Blocks["scale"] = {
 		init: function () {
 			this.jsonInit({

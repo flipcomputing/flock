@@ -785,6 +785,71 @@ export function defineGenerators() {
 	  return `await attachCamera(${modelName}, ${radius});\n`;
 	};
 
+	
+	javascriptGenerator.forBlock["parent_child"] = function (block) {
+		const parentMesh = javascriptGenerator.nameDB_.getName(
+			block.getFieldValue("PARENT_MESH"),
+			Blockly.Names.NameType.VARIABLE
+		);
+		const childMesh = javascriptGenerator.nameDB_.getName(
+			block.getFieldValue("CHILD_MESH"),
+			Blockly.Names.NameType.VARIABLE
+		);
+
+		const xOffset = javascriptGenerator.valueToCode(block, "X_OFFSET", javascriptGenerator.ORDER_ATOMIC) || '0';
+		const yOffset = javascriptGenerator.valueToCode(block, "Y_OFFSET", javascriptGenerator.ORDER_ATOMIC) || '0';
+		const zOffset = javascriptGenerator.valueToCode(block, "Z_OFFSET", javascriptGenerator.ORDER_ATOMIC) || '0';
+
+		const removeRelationship = block.getFieldValue("REMOVE_RELATIONSHIP") === 'TRUE';
+
+		let code = '';
+
+		if (removeRelationship) {
+			// Remove the parent-child relationship
+			code = `flock.whenModelReady(${childMesh}, (childMesh) => {
+				childMesh.parent = null;
+			});\n`;
+		} else {
+			// Establish the parent-child relationship with offset
+			code = `flock.whenModelReady(${parentMesh}, (parentMesh) => {
+				flock.whenModelReady(${childMesh}, (childMesh) => {
+					childMesh.parent = parentMesh;
+					childMesh.position.set(${xOffset}, ${yOffset}, ${zOffset});
+				});
+			});\n`;
+		}
+
+		return code;
+	};
+
+	javascriptGenerator.forBlock["parent_child"] = function (block) {
+		const parentMesh = javascriptGenerator.nameDB_.getName(
+			block.getFieldValue("PARENT_MESH"),
+			Blockly.Names.NameType.VARIABLE
+		);
+		const childMesh = javascriptGenerator.nameDB_.getName(
+			block.getFieldValue("CHILD_MESH"),
+			Blockly.Names.NameType.VARIABLE
+		);
+
+		const xOffset = javascriptGenerator.valueToCode(block, "X_OFFSET", javascriptGenerator.ORDER_ATOMIC) || '0';
+		const yOffset = javascriptGenerator.valueToCode(block, "Y_OFFSET", javascriptGenerator.ORDER_ATOMIC) || '0';
+		const zOffset = javascriptGenerator.valueToCode(block, "Z_OFFSET", javascriptGenerator.ORDER_ATOMIC) || '0';
+
+			// Establish the parent-child relationship with offset
+			return `parentChild(${parentMesh}, ${childMesh}, ${xOffset}, ${yOffset}, ${zOffset});\n`;
+	};
+
+
+	javascriptGenerator.forBlock["remove_parent"] = function (block) {
+		const childMesh = javascriptGenerator.nameDB_.getName(
+			block.getFieldValue("CHILD_MESH"),
+			Blockly.Names.NameType.VARIABLE
+		);
+
+		return `removeParent(${childMesh});\n`;
+	};
+	
 	javascriptGenerator.forBlock["add_physics"] = function (block) {
 		const modelName = javascriptGenerator.nameDB_.getName(
 			block.getFieldValue("MODEL_VAR"),

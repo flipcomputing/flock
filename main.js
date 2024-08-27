@@ -898,6 +898,8 @@ const runCode = (code) => {
 				newCapsule,
 				newPlane,
 				newWall,
+				parentChild,
+				removeParent,
 				createGround,
 				createMap,
 				createCustomMap,
