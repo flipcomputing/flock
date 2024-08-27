@@ -2367,6 +2367,7 @@ export const flock = {
 				) {
 					plane = targetMesh;
 					background = plane.material.diffuseColor.toHexString();
+					plane.material.needDepthPrePass = true;
 				} else
 					plane = mesh
 						.getDescendants()
@@ -2388,9 +2389,6 @@ export const flock = {
 						boundingInfo.boundingBox.maximum.y + 0.85;
 					plane.billboardMode = flock.BABYLON.Mesh.BILLBOARDMODE_ALL;
 				}
-
-				plane.material.needDepthPrePass = true;
-				plane.alwaysSelectAsActiveMesh = true;
 				
 				if (!plane.advancedTexture) {
 					const planeBoundingInfo = plane.getBoundingInfo();
