@@ -3085,7 +3085,6 @@ flock.canvas.pressedKeys = new Set();
 const displayScale = (window.devicePixelRatio || 1) * 0.75; // Get the device pixel ratio, default to 1 if not available
 flock.displayScale = displayScale;
 
-/*
 (async () => {
 	const scriptElement = document.getElementById("flock");
 	if (scriptElement) {
@@ -3093,4 +3092,4 @@ flock.displayScale = displayScale;
 		const userCode = scriptElement.textContent;
 		flock.runCode(userCode);
 	}	
-})();*/
+})();

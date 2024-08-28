@@ -18,7 +18,6 @@ import { initialBlocksJson } from "./toolbox.js";
 import { workspace, defineBlocks, initializeVariableIndexes } from "./blocks";
 import { defineGenerators, meshMap } from "./generators";
 
-
 registerFieldColour();
 Blockly.ContextMenuItems.registerCommentOptions();
 const navigationController = new NavigationController();
@@ -47,9 +46,14 @@ workspace.addChangeListener(Blockly.Events.disableOrphans);
 //Blockly.utils.colour.setHsvSaturation(0.2) // 0 (inclusive) to 1 (exclusive), defaulting to 0.45
 //Blockly.utils.colour.setHsvValue(0.95) // 0 (inclusive) to 1 (exclusive), defaulting to 0.65
 
-await flock.initialize();
-let gizmoManager = new flock.BABYLON.GizmoManager(flock.scene);
-window.initialBlocksJson = initialBlocksJson;
+let gizmoManager;
+(async () => {
+	await flock.initialize();
+	gizmoManager = new flock.BABYLON.GizmoManager(flock.scene);
+	window.initialBlocksJson = initialBlocksJson;
+})();
+
+
 /*
 function Mesh(id = "UNDEFINED") {
 	this.id = id;
