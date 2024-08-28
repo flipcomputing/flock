@@ -3,27 +3,21 @@
 // Flip Computing Limited - flipcomputing.com
 
 import "@fontsource/asap";
-import "@fontsource/asap/500.css"; 
-import "@fontsource/asap/600.css"; 
+import "@fontsource/asap/500.css";
+import "@fontsource/asap/600.css";
 import * as Blockly from "blockly";
 import { javascriptGenerator } from "blockly/javascript";
 import { registerFieldColour } from "@blockly/field-colour";
 import { FieldGridDropdown } from "@blockly/field-grid-dropdown";
 import { WorkspaceSearch } from "@blockly/plugin-workspace-search";
 import { NavigationController } from "@blockly/keyboard-navigation";
-import * as BABYLON from "@babylonjs/core";
-import * as BABYLON_GUI from "@babylonjs/gui";
-import HavokPhysics from "@babylonjs/havok";
 import "@babylonjs/core/Debug/debugLayer";
 import "@babylonjs/inspector";
 import { flock } from "./flock.js";
 import { initialBlocksJson } from "./toolbox.js";
 import { workspace, defineBlocks, initializeVariableIndexes } from "./blocks";
 import { defineGenerators, meshMap } from "./generators";
-import { FlowGraphLog10Block } from "babylonjs";
 
-flock.BABYLON = BABYLON;
-flock.GUI = BABYLON_GUI;
 
 registerFieldColour();
 Blockly.ContextMenuItems.registerCommentOptions();
@@ -35,25 +29,6 @@ navigationController.addWorkspace(workspace);
 
 const workspaceSearch = new WorkspaceSearch(workspace);
 workspaceSearch.init();
-
-flock.canvas = document.getElementById("renderCanvas");
-let engine = null;
-let hk = null;
-flock.scene = null;
-flock.document = document;
-let havokInstance = null;
-let engineReady = false;
-let gizmoManager = null;
-const gridKeyPressObservable = new flock.BABYLON.Observable();
-const gridKeyReleaseObservable = new flock.BABYLON.Observable();
-flock.gridKeyPressObservable = gridKeyPressObservable;
-flock.gridKeyReleaseObservable = gridKeyReleaseObservable;
-flock.canvas.pressedButtons = new Set();
-flock.canvas.pressedKeys = new Set();
-const displayScale = (window.devicePixelRatio || 1) * 0.75; // Get the device pixel ratio, default to 1 if not available
-flock.displayScale = displayScale;
-// Create an AdvancedDynamicTexture to hold the UI controls
-let controlsTexture = null;
 
 console.log("Welcome to Flock 🐑🐑🐑");
 
@@ -72,222 +47,8 @@ workspace.addChangeListener(Blockly.Events.disableOrphans);
 //Blockly.utils.colour.setHsvSaturation(0.2) // 0 (inclusive) to 1 (exclusive), defaulting to 0.45
 //Blockly.utils.colour.setHsvValue(0.95) // 0 (inclusive) to 1 (exclusive), defaulting to 0.65
 
-function createEngine() {
-	if (engine) {
-		engine.dispose();
-		engine = null;
-	}
-	engine = new BABYLON.Engine(flock.canvas, true, { stencil: true });
-	engine.enableOfflineSupport = false;
-	engine.setHardwareScalingLevel(1 / window.devicePixelRatio);
-}
-
-const createScene = function () {
-	if (flock.scene) {
-		removeEventListeners();
-		flock.gridKeyPressObservable.clear();
-		flock.gridKeyReleaseObservable.clear();
-		flock.scene.dispose();
-		flock.scene = null;
-		controlsTexture.dispose();
-		controlsTexture = null;
-		hk.dispose();
-		hk = null;
-	}
-
-	if (!engine) {
-		createEngine();
-	} else {
-		engine.stopRenderLoop();
-	}
-
-	flock.scene = new BABYLON.Scene(engine);
-
-	engine.runRenderLoop(function () {
-		flock.scene.render();
-	});
-
-	flock.scene.eventListeners = [];
-
-	hk = new BABYLON.HavokPlugin(true, havokInstance);
-	flock.scene.enablePhysics(new BABYLON.Vector3(0, -9.81, 0), hk);
-	flock.hk = hk;
-	flock.highlighter = new BABYLON.HighlightLayer("highlighter", flock.scene);
-	gizmoManager = new BABYLON.GizmoManager(flock.scene);
-
-	/*
-	flock.BABYLON.Effect.ShadersStore["customVertexShader"] = `
-		precision highp float;
-
-		attribute vec3 position;
-		attribute vec3 normal;
-		attribute vec2 uv;
-
-		uniform mat4 worldViewProjection;
-		uniform mat4 world; // Add the world matrix
-
-		varying vec3 vWorldPosition; // Pass the world position
-		varying vec2 vUV;
-
-		void main() {
-			vec4 worldPosition = world * vec4(position, 1.0);
-			vWorldPosition = worldPosition.xyz; // Store the world position
-			vUV = uv;
-
-			gl_Position = worldViewProjection * vec4(position, 1.0);
-		}
-	`;
-	BABYLON.Effect.ShadersStore["customFragmentShader"] = `
-		precision highp float;
-
-		varying vec3 vWorldPosition; // Receive the world position
-		varying vec2 vUV;
-
-		void main() {
-			vec3 color;
-
-			// Determine color based on the y-coordinate of the world position
-			if (vWorldPosition.y > 10.0) {
-				color = vec3(1.0, 1.0, 1.0); // Snow
-			} else if (vWorldPosition.y > 8.0) {
-				color = vec3(0.5, 0.5, 0.5); // Grey rocks
-			} else if (vWorldPosition.y > 0.0) {
-				color = vec3(0.13, 0.55, 0.13); // Grass
-			} else if (vWorldPosition.y > -1.0) {
-				color = vec3(0.55, 0.27, 0.07); // Brown rocks
-			} else {
-				color = vec3(0.96, 0.87, 0.20); // Beach
-			}
-
-			gl_FragColor = vec4(color, 1.0);
-		}
-	`;
-*/
-	/*
-	  const ground = BABYLON.MeshBuilder.CreateGroundFromHeightMap("heightmap", './textures/simple_height_map.png', {
-		width: 100,
-		height: 100,
-		minHeight: -5,
-		maxHeight: 5,
-		subdivisions: 25,
-		onReady: (groundMesh) => {
-		   const groundAggregate = new BABYLON.PhysicsAggregate(groundMesh, BABYLON.PhysicsShapeType.MESH, { mass: 0 }, flock.scene);
-		}
-	  }, flock.scene);*/
-
-	const camera = new BABYLON.FreeCamera(
-		"camera",
-		new BABYLON.Vector3(0, 3, -10),
-		flock.scene,
-	);
-	camera.minZ = 1;
-	camera.setTarget(BABYLON.Vector3.Zero());
-	camera.rotation.x = BABYLON.Tools.ToRadians(0);
-	camera.angularSensibilityX = 2000;
-	camera.angularSensibilityY = 2000;
-	const hemisphericLight = new BABYLON.HemisphericLight(
-		"hemisphericLight",
-		new BABYLON.Vector3(0, 1, 0), // Direction: Upwards, simulating light from the sky
-		flock.scene
-	);
-	hemisphericLight.intensity = 1.0; // Adjust the intensity to control how bright the scene is
-	hemisphericLight.diffuse = new BABYLON.Color3(1, 1, 1); // White diffuse light
-	hemisphericLight.groundColor = new BABYLON.Color3(0.5, 0.5, 0.5); // Optional ground color for additional effects
-	flock.scene.collisionsEnabled = true;
-
-	controlsTexture = flock.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
-	flock.controlsTexture = controlsTexture;
-	flock.createArrowControls("white");
-	flock.createButtonControls("white");
-
-	const advancedTexture =
-		flock.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
-
-	// Create a stack panel to hold the text lines
-	const stackPanel = new flock.GUI.StackPanel();
-	stackPanel.isVertical = true;
-	stackPanel.width = "100%";
-	stackPanel.height = "100%";
-	stackPanel.left = "0px";
-	stackPanel.top = "0px";
-	advancedTexture.addControl(stackPanel);
-
-	// Function to print text with scrolling
-	const textLines = []; // Array to keep track of text lines
-	flock.printText = function (text, duration, color) {
-		if (text === "" || !flock.scene) {
-			// Ensure scene is valid
-			return; // Return early if scene is invalid or text is empty
-		}
-
-		try {
-			flock.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
-
-			// Create a rectangle background
-			const bg = new flock.GUI.Rectangle("textBackground");
-			bg.background = "rgba(255, 255, 255, 0.5)";
-			bg.adaptWidthToChildren = true; // Adjust width based on child elements
-			bg.adaptHeightToChildren = true; // Adjust height based on child elements
-			bg.cornerRadius = 2;
-			bg.thickness = 0; // Remove border
-			bg.horizontalAlignment =
-				flock.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
-			bg.verticalAlignment = flock.GUI.Control.VERTICAL_ALIGNMENT_TOP;
-			bg.left = "5px"; // Position with some margin from left
-			bg.top = "5px"; // Position with some margin from top
-
-			// Create a text block
-			const textBlock = new flock.GUI.TextBlock("textBlock", text);
-			textBlock.color = color;
-			textBlock.fontSize = "20";
-			textBlock.fontFamily = "Asap";
-			textBlock.height = "25px";
-			textBlock.paddingLeft = "10px";
-			textBlock.paddingRight = "10px";
-			textBlock.paddingTop = "2px";
-			textBlock.paddingBottom = "2px";
-			textBlock.textVerticalAlignment =
-				flock.GUI.Control.VERTICAL_ALIGNMENT_TOP; // Align text to top
-			textBlock.textHorizontalAlignment =
-				flock.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT; // Align text to left
-			textBlock.textWrapping = flock.GUI.TextWrapping.WordWrap;
-			textBlock.resizeToFit = true;
-			textBlock.forceResizeWidth = true;
-
-			// Add the text block to the rectangle
-			bg.addControl(textBlock);
-
-			// Add the container to the stack panel
-			stackPanel.addControl(bg);
-			textLines.push(bg);
-
-			// Remove the text after the specified duration
-			setTimeout(() => {
-				if (flock.scene) {
-					// Ensure scene is still valid before removing
-					stackPanel.removeControl(bg);
-					textLines.splice(textLines.indexOf(bg), 1);
-				}
-			}, duration * 1000);
-		} catch (error) {
-			//console.warn("Unable to print text:", error);
-		}
-	};
-
-	return flock.scene;
-};
-async function initialize() {
-	BABYLON.Database.IDBStorageEnabled = true;
-	BABYLON.Engine.CollisionsEpsilon = 0.00005;
-	havokInstance = await HavokPhysics();
-
-	engineReady = true;
-	flock.scene = createScene();
-	flock.scene.eventListeners = [];
-}
-
-initialize();
-
+await flock.initialize();
+let gizmoManager = new flock.BABYLON.GizmoManager(flock.scene);
 window.initialBlocksJson = initialBlocksJson;
 /*
 function Mesh(id = "UNDEFINED") {
@@ -368,34 +129,19 @@ function exportCode() {
 	document.body.removeChild(element);
 }
 
-function removeEventListeners() {
-	flock.scene.eventListeners.forEach(({ event, handler }) => {
-		document.removeEventListener(event, handler);
-	});
-	flock.scene.eventListeners.length = 0; // Clear the array
-}
-
-let mousePos = { x: 0, y: 0 };
-flock.mousePos = mousePos;
+//let mousePos = { x: 0, y: 0 };
+//flock.mousePos = mousePos;
 
 window.onload = function () {
 	// Initial view setup
 	window.loadingCode = true;
 
-	workspace.addChangeListener(function (e) {
+	/*workspace.addChangeListener(function (e) {
 		if (e.type === Blockly.Events.MOUSE_MOVE) {
 			const svgCoords = Blockly.mouseToSvg(e);
-			flock.mousePos = { x: svgCoords.x, y: svgCoords.y };
+			mousePos = { x: svgCoords.x, y: svgCoords.y };
 		}
-	});
-	flock.canvas.addEventListener("keydown", function (event) {
-		flock.canvas.currentKeyPressed = event.key;
-		flock.canvas.pressedKeys.add(event.key);
-	});
-
-	flock.canvas.addEventListener("keyup", function (event) {
-		flock.canvas.pressedKeys.delete(event.key);
-	});
+	});*/
 
 	loadWorkspace();
 	switchView("both");
@@ -566,17 +312,20 @@ window.onload = function () {
 			const placeholderBlock = workspace.newBlock("keyword_block");
 			placeholderBlock.initSvg();
 			placeholderBlock.render();
-			
 
-			let workspaceCoordinates = workspace.getMetricsManager().getViewMetrics(true)
-			let posx = workspaceCoordinates.left + (workspaceCoordinates.width / 2)
-			let posy = workspaceCoordinates.top + (workspaceCoordinates.height / 2)
-			let blockCoordinates = new Blockly.utils.Coordinate(posx, posy)
+			let workspaceCoordinates = workspace
+				.getMetricsManager()
+				.getViewMetrics(true);
+			let posx =
+				workspaceCoordinates.left + workspaceCoordinates.width / 2;
+			let posy =
+				workspaceCoordinates.top + workspaceCoordinates.height / 2;
+			let blockCoordinates = new Blockly.utils.Coordinate(posx, posy);
 
-			placeholderBlock.initSvg()
-			placeholderBlock.render()
-			placeholderBlock.moveTo(blockCoordinates)
- 
+			placeholderBlock.initSvg();
+			placeholderBlock.render();
+			placeholderBlock.moveTo(blockCoordinates);
+
 			// Select the block for immediate editing
 			placeholderBlock.select();
 
@@ -590,8 +339,9 @@ window.onload = function () {
 };
 
 function executeCode() {
-	if (engineReady) {
-		flock.scene = createScene();
+	if (flock.engineReady) {
+		flock.scene = flock.createScene();
+		gizmoManager = new flock.BABYLON.GizmoManager(flock.scene);
 
 		const code = javascriptGenerator.workspaceToCode(workspace);
 		try {
@@ -880,83 +630,7 @@ const runCode = (code) => {
 	// Create a new sandboxed environment
 	try {
 		// Create a sandboxed function by embedding code into a new Function
-		const sandboxedFunction = new Function(
-			"flock",
-			`
-			"use strict";
-
-			const {
-				playAnimation,
-				switchAnimation,
-				highlight,
-				newCharacter,
-				newObject,
-				newModel,
-				newBox,
-				newSphere,
-				newCylinder,
-				newCapsule,
-				newPlane,
-				newWall,
-				parentChild,
-				removeParent,
-				createGround,
-				createMap,
-				createCustomMap,
-				setSky,
-				buttonControls,
-				cameraControl,
-				applyForce,
-				moveByVector,
-				glideTo,
-				rotate,
-				lookAt,
-				moveTo,
-				rotateTo,
-				positionAt,
-				distanceTo,
-				wait,
-				show,
-				hide,
-				clearEffects,
-				tint,
-				setAlpha,
-				setFog,
-				keyPressed,
-				isTouchingSurface,
-				seededRandom,
-				randomColour,
-				scaleMesh,
-				changeColour,
-				changeMaterial,
-				moveForward,
-				attachCamera,
-				canvasControls,
-				setPhysics,
-				checkMeshesTouching,
-				say,
-				onTrigger,
-				onEvent,
-				broadcastEvent,
-				Mesh,
-				forever,
-				whenKeyPressed,
-				whenKeyReleased,
-				printText,
-				onIntersect,
-				getProperty,
-			} = flock;
-			
-
-			// The code should be executed within the function context
-			return function() {
-				${code}
-			};
-		`,
-		)(flock);
-
-		// Execute the sandboxed function
-		sandboxedFunction();
+		flock.runCode(code);
 	} catch (error) {
 		console.error("Error executing sandboxed code:", error);
 	}
@@ -996,7 +670,7 @@ window.addEventListener("resize", onResize);
 function onResize() {
 	Blockly.svgResize(workspace);
 	resizeCanvas();
-	if (engine) engine.resize();
+	if (flock.engine) flock.engine.resize();
 }
 
 let viewMode = "both";
@@ -1048,7 +722,7 @@ onResize();
 function toggleToolbox() {
 	const toolboxControl = document.getElementById("toolboxControl");
 
-	if(!workspace) return;
+	if (!workspace) return;
 	if (toolboxVisible) {
 		toolboxVisible = false;
 		workspace.getToolbox().setVisible(false);

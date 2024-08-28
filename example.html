@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Flock standalone example</title>
+	</head>
+	<body>
+		<h1>Flock!</h1>
+		<canvas id="renderCanvas" width="960px" height="540px" tabindex="0"></canvas>
+
+		<script type="module">
+			import "https://1099a351-df60-40b5-bf61-4999bad0d153-00-4np7mg24c4rr.janeway.replit.dev/flock.js";
+		</script>
+		<script id="flock" type="application/javascript">
+			// Made with Flock
+			var player, box1;
+
+			function mathRandomInt(a, b) {
+				if (a > b) {
+					// Swap a and b to ensure a is smaller.
+					var c = a;
+					a = b;
+					b = c;
+				}
+				return Math.floor(Math.random() * (b - a + 1) + a);
+			}
+
+			(async () => {
+				setSky("#ffffff");
+				createGround("#ffffff");
+				printText("🌈 Hello", 30, "#000080");
+				buttonControls("ARROWS", true, "#cc33cc");
+				for (var count = 0; count < 100; count++) {
+					box1 = newBox(
+						randomColour(),
+						mathRandomInt(0.25, 5),
+						mathRandomInt(0.25, 5),
+						mathRandomInt(0.25, 5),
+						mathRandomInt(-20, 20),
+						mathRandomInt(0, 10),
+						mathRandomInt(-20, 20),
+						"box_2de3cb78-83a6-4eb2-a804-6a3373f680b9",
+					);
+					await setAlpha(box1, 0.75);
+				}
+			})();
+
+			(async () => {
+				player = newCharacter(
+					"Character2.glb",
+					"Character2.glb_106",
+					1,
+					0,
+					0,
+					0,
+					"#ffcc00",
+					"#f0d5b1",
+					"#33cc00",
+					"#339999",
+					"#00008b",
+					"#00cccc",
+				);
+				await setPhysics(player, "DYNAMIC");
+				await attachCamera(player, 7);
+			})();
+
+			forever(async () => {
+				if (keyPressed("w")) {
+					moveForward(player, 3);
+					await switchAnimation(player, "Walk");
+				} else if (keyPressed("s")) {
+					moveForward(player, -3);
+					await switchAnimation(player, "Walk");
+				} else {
+					await switchAnimation(player, "Idle");
+				}
+			});
+		</script>
+	</body>
+</html>
