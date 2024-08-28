@@ -34,6 +34,7 @@ console.log("Welcome to Flock 🐑🐑🐑");
 defineBlocks();
 defineGenerators();
 
+
 workspace.addChangeListener(function (event) {
 	if (event.type === Blockly.Events.FINISHED_LOADING) {
 		initializeVariableIndexes();
@@ -597,6 +598,33 @@ function openAboutPage() {
 
 window.openAboutPage = openAboutPage;
 
+function toggleToolbox() {
+	const toolboxControl = document.getElementById("toolboxControl");
+
+	if (!workspace) return;
+	if (toolboxVisible) {
+		toolboxVisible = false;
+		workspace.getToolbox().setVisible(false);
+		//onResize();
+	} else {
+		toolboxVisible = true;
+		workspace.getToolbox().setVisible(true);
+		// Delay binding the click event listener
+		setTimeout(() => {
+			document.addEventListener("click", handleClickOutside);
+		}, 100); // Small delay to ensure the menu is shown before adding the listener
+	}
+
+	function handleClickOutside(event) {
+		if (!toolboxControl.contains(event.target)) {
+			workspace.getToolbox().setVisible(false);
+			document.removeEventListener("click", handleClickOutside);
+		}
+	}
+}
+
+window.toggleToolbox = toggleToolbox;
+
 addImportContextMenuOption();
 
 function loadExample() {
@@ -722,33 +750,6 @@ let toolboxVisible = false;
 window.toolboxVisible = toolboxVisible;
 workspace.getToolbox().setVisible(false);
 onResize();
-
-function toggleToolbox() {
-	const toolboxControl = document.getElementById("toolboxControl");
-
-	if (!workspace) return;
-	if (toolboxVisible) {
-		toolboxVisible = false;
-		workspace.getToolbox().setVisible(false);
-		//onResize();
-	} else {
-		toolboxVisible = true;
-		workspace.getToolbox().setVisible(true);
-		// Delay binding the click event listener
-		setTimeout(() => {
-			document.addEventListener("click", handleClickOutside);
-		}, 100); // Small delay to ensure the menu is shown before adding the listener
-	}
-
-	function handleClickOutside(event) {
-		if (!toolboxControl.contains(event.target)) {
-			workspace.getToolbox().setVisible(false);
-			document.removeEventListener("click", handleClickOutside);
-		}
-	}
-}
-
-window.toggleToolbox = toggleToolbox;
 
 function observeFlyoutVisibility(workspace) {
 	// Access the flyout using Blockly's API

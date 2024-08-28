@@ -927,7 +927,7 @@ export function defineGenerators() {
 				"COLOR",
 				javascriptGenerator.ORDER_ATOMIC,
 			) || "''";
-		console.log(color);
+		
 		const code = `${color}`;
 		return [code, javascriptGenerator.ORDER_ATOMIC];
 	};
@@ -937,7 +937,7 @@ export function defineGenerators() {
 		// Retrieve the parameters as a comma-separated list
 		const args = block.argData_.map((elem) => elem.model.name);
 		const params = args.join(", ");
-		console.log(block, args);
+		
 		const branch =
 			javascriptGenerator.statementToCode(
 				block,
@@ -945,7 +945,7 @@ export function defineGenerators() {
 				javascriptGenerator.ORDER_NONE,
 			) || "";
 
-		console.log(params);
+		
 		// Generate the function code with async and parameters
 		const code = `async function ${functionName}(${params}) {\n${branch}\n}`;
 		return code;

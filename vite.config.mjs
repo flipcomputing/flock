@@ -28,6 +28,10 @@ export default {
           src: 'textures/*.png',
           dest: 'textures'
         },
+        /*{
+          src: 'flock.js', 
+          dest: ''      
+        }*/
       ]
     }),
     VitePWA({
@@ -94,4 +98,9 @@ export default {
     }
   },
   optimizeDeps: { exclude: ["@babylonjs/havok"] },
+  build: {
+    rollupOptions: {
+      input: 'index.html', 
+    },
+  },
 }

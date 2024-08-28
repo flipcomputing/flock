@@ -6,7 +6,7 @@ import HavokPhysics from "@babylonjs/havok";
 import * as BABYLON from "@babylonjs/core";
 import * as BABYLON_GUI from "@babylonjs/gui";
 import { FlowGraphLog10Block } from "babylonjs";
-import "@babylonjs/loaders";
+
 // Helper functions to make flock.BABYLON js easier to use in Flock
 console.log("Flock helpers loading");
 
