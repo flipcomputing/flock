@@ -38,7 +38,7 @@ export default Blockly.Theme.defineTheme("flock", {
 	},
 });
 
-const options = {
+export const options = {
 	theme: Blockly.Themes.Modern, // "flock"
 	renderer: "zelos",
 	zoom: {
@@ -101,7 +101,6 @@ blockDragger: MultiselectBlockDragger,
 	},*/
 };
 
-export const workspace = Blockly.inject("blocklyDiv", options);
 
 /*const multiselectPlugin = new Multiselect(workspace);
 multiselectPlugin.init(options);*/
@@ -121,10 +120,10 @@ export function initializeVariableIndexes() {
 		text: 1,
 		sound: 1,
 		character: 1,
-		object: 1,
+		object: 1
 	};
 
-	const allVariables = workspace.getAllVariables(); // Retrieve all variables in the workspace
+	const allVariables = Blockly.getMainWorkspace().getAllVariables(); // Retrieve all variables in the workspace
 
 	// Process each type of variable
 	Object.keys(nextVariableIndexes).forEach(function (type) {

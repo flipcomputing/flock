@@ -15,9 +15,10 @@ import "@babylonjs/core/Debug/debugLayer";
 import "@babylonjs/inspector";
 import { flock, initializeFlock } from "./flock.js";
 import { initialBlocksJson } from "./toolbox.js";
-import { workspace, defineBlocks, initializeVariableIndexes } from "./blocks";
+import { options, defineBlocks, initializeVariableIndexes } from "./blocks";
 import { defineGenerators, meshMap } from "./generators";
 
+let workspace = null;
 //Blockly.utils.colour.setHsvSaturation(0.2) // 0 (inclusive) to 1 (exclusive), defaulting to 0.45
 //Blockly.utils.colour.setHsvValue(0.95) // 0 (inclusive) to 1 (exclusive), defaulting to 0.65
 
@@ -101,8 +102,6 @@ function exportCode() {
 //flock.mousePos = mousePos;
 let gizmoManager;
 let toolboxVisible = false;
-
-
 
 function executeCode() {
 	if (flock.engineReady) {
@@ -539,7 +538,6 @@ function observeFlyoutVisibility(workspace) {
 	});
 }
 
-
 function runMenu() {
 	switchView("canvas");
 	executeCode();
@@ -622,6 +620,7 @@ window.onload = function () {
 		return; // standalone flock
 	}
 
+	workspace = Blockly.inject("blocklyDiv", options);
 	registerFieldColour();
 	Blockly.ContextMenuItems.registerCommentOptions();
 	const navigationController = new NavigationController();
