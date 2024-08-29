@@ -1,7 +1,7 @@
 import { VitePWA } from 'vite-plugin-pwa'
 import { viteStaticCopy } from 'vite-plugin-static-copy';
-import { copyFileSync } from 'fs';
-
+import { copyFileSync, readdirSync } from 'fs';
+import { resolve } from 'path';
 // Determine if we are in production mode
 const isProduction = process.env.NODE_ENV === 'production';
 
@@ -89,9 +89,31 @@ export default {
       },
     }),
     {
-      name: 'copy-library-file',
-      writeBundle() {
-        copyFileSync('flock.js', 'dist/flock.js');
+      name: 'copy-bundle-with-fixed-name',
+      writeBundle(options, bundle) {
+        let jsFileName;
+
+        // Look for the main JavaScript file in the bundle
+        for (const fileName in bundle) {
+          if (fileName.endsWith('.js')) {
+            jsFileName = fileName;
+            break;  // Assuming the first .js file is the main one; adjust if needed
+          }
+        }
+
+        if (jsFileName) {
+          const srcPath = resolve(options.dir, jsFileName);
+          const destPath = resolve(options.dir, 'flock.js');
+
+          try {
+            copyFileSync(srcPath, destPath);
+            console.log(`Copied ${jsFileName} to flock.js`);
+          } catch (error) {
+            console.error(`Failed to copy file: ${error.message}`);
+          }
+        } else {
+          console.error('No JavaScript file found in the bundle.');
+        }
       },
     },
   ],
