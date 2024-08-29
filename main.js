@@ -128,8 +128,14 @@ function stopCode() {
 	removeEventListeners();
 	switchView(codeMode);
 }
-
 window.stopCode = stopCode;
+
+function onResize() {
+	Blockly.svgResize(workspace);
+	resizeCanvas();
+	if (flock.engine) flock.engine.resize();
+}
+window.onResize = onResize;
 
 function toggleGizmo(gizmoType) {
 	// Disable all gizmos
@@ -425,6 +431,7 @@ const runCode = (code) => {
 
 // Function to maintain a 16:9 aspect ratio for the canvas
 function resizeCanvas() {
+	console.log("Resizing canvas...");
 	const canvasArea = document.getElementById("rightArea");
 	const canvas = document.getElementById("renderCanvas");
 
@@ -450,14 +457,6 @@ function resizeCanvas() {
 
 	canvas.style.width = `${newWidth}px`;
 	canvas.style.height = `${newHeight}px`;
-}
-
-// Resize Blockly workspace and Babylon.js canvas when the window is resized
-window.addEventListener("resize", onResize);
-function onResize() {
-	Blockly.svgResize(workspace);
-	resizeCanvas();
-	if (flock.engine) flock.engine.resize();
 }
 
 let viewMode = "both";
@@ -499,7 +498,6 @@ function switchView(view) {
 }
 
 window.switchView = switchView;
-window.onResize = onResize;
 
 function observeFlyoutVisibility(workspace) {
 	// Access the flyout using Blockly's API
@@ -617,11 +615,16 @@ window.onload = function () {
 	const scriptElement = document.getElementById("flock");
 	if (scriptElement) {
 		initializeFlock();
+		console.log("Standalone Flock");
 		return; // standalone flock
 	}
 
 	workspace = Blockly.inject("blocklyDiv", options);
 	registerFieldColour();
+
+	// Resize Blockly workspace and Babylon.js canvas when the window is resized
+	window.addEventListener("resize", onResize);
+	
 	Blockly.ContextMenuItems.registerCommentOptions();
 	const navigationController = new NavigationController();
 	navigationController.init();
@@ -653,7 +656,6 @@ window.onload = function () {
 			window.loadingCode = false;
 		}
 	});
-
 	workspace.addChangeListener(Blockly.Events.disableOrphans);
 
 	(async () => {
@@ -664,13 +666,6 @@ window.onload = function () {
 
 	// Initial view setup
 	window.loadingCode = true;
-
-	/*workspace.addChangeListener(function (e) {
-		if (e.type === Blockly.Events.MOUSE_MOVE) {
-			const svgCoords = Blockly.mouseToSvg(e);
-			mousePos = { x: svgCoords.x, y: svgCoords.y };
-		}
-	});*/
 
 	loadWorkspace();
 	switchView("both");
