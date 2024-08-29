@@ -8,10 +8,7 @@
 	<body>
 		<h1>Flock!</h1>
 		<canvas id="renderCanvas" width="960px" height="540px" tabindex="0"></canvas>
-
-		<script type="module">
-			import "https://flipcomputing.github.io/flock/flock.js";
-		</script>
+		
 		<script id="flock" type="application/javascript">
 			// Made with Flock
 			var player, box1;
@@ -76,6 +73,10 @@
 					await switchAnimation(player, "Idle");
 				}
 			});
+		</script>
+
+		<script type="module">
+			import "https://flipcomputing.github.io/flock/flock.js";
 		</script>
 	</body>
 </html>
