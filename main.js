@@ -644,11 +644,19 @@ window.onload = function () {
 	addImportContextMenuOption();
 	observeFlyoutVisibility(workspace);
 	window.toolboxVisible = toolboxVisible;
-	workspace.getToolbox().setVisible(false);
+
 	onResize();
 
 	// Call this function to autosave periodically
 	setInterval(saveWorkspace, 30000); // Autosave every 30 seconds
+
+	(async () => {
+		await flock.initialize();
+		gizmoManager = new flock.BABYLON.GizmoManager(flock.scene);
+		window.initialBlocksJson = initialBlocksJson;
+	})();
+
+	workspace.getToolbox().setVisible(false);
 
 	workspace.addChangeListener(function (event) {
 		if (event.type === Blockly.Events.FINISHED_LOADING) {
@@ -657,12 +665,6 @@ window.onload = function () {
 		}
 	});
 	workspace.addChangeListener(Blockly.Events.disableOrphans);
-
-	(async () => {
-		await flock.initialize();
-		gizmoManager = new flock.BABYLON.GizmoManager(flock.scene);
-		window.initialBlocksJson = initialBlocksJson;
-	})();
 
 	// Initial view setup
 	window.loadingCode = true;

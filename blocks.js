@@ -3002,7 +3002,7 @@ export function defineBlocks() {
 		for (const inputName in inputs) {
 			const input = inputs[inputName];
 			if (input.shadow) {
-				const shadowBlock = workspace.newBlock(input.shadow.type);
+				const shadowBlock = Blockly.getMainWorkspace().newBlock(input.shadow.type);
 				shadowBlock.setShadow(true);
 				// Apply fields (default values) to the shadow block
 				for (const fieldName in input.shadow.fields) {
@@ -3017,7 +3017,7 @@ export function defineBlocks() {
 					.getInput(inputName)
 					.connection.connect(shadowBlock.outputConnection);
 
-				workspace.cleanUp();
+				Blockly.getMainWorkspace().cleanUp();
 			}
 		}
 	}

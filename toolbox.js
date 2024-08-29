@@ -881,9 +881,6 @@ export const toolbox = {
 								}
 							}
 						}
-					},
-					fields: {
-						REMOVE_RELATIONSHIP: "FALSE"
 					}
 				},
 				{
