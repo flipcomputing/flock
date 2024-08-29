@@ -41,8 +41,8 @@ export default {
       devOptions: {
         enabled: true
       },
-      assetsInclude: ['**/*.glb', '**/*.gltf', '**/*.ogg', '**/*.json', '**/*.png',] ,
-      includeAssets: ['**/*.glb', '**/*.gltf', '**/*.ogg', '**/*.json', '**/*.png',],
+      assetsInclude: ['**/*.glb', '**/*.gltf', '**/*.ogg', '**/*.json', '**/*.png', '**/*.woff',  '**/*.woff2',] ,
+      includeAssets: ['**/*.glb', '**/*.gltf', '**/*.ogg', '**/*.json', '**/*.png', '**/*.woff',  '**/*.woff2',],
       manifest: {
         name: 'Flock 3D Blocks',
         short_name: 'Flock',
@@ -68,7 +68,7 @@ export default {
       workbox: {
         maximumFileSizeToCacheInBytes: 15000000,
         globPatterns: [
-          '**/*.{js,css,html,ico,png,svg,glb,gltf,ogg,wasm,json}'
+          '**/*.{js,css,html,ico,png,svg,glb,gltf,ogg,wasm,json,woff,woff2}'
         ],
         modifyURLPrefix: isProduction ? {
           '': '/flock/' // Prepend the base URL to all cached assets in production
