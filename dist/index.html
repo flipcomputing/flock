@@ -3,27 +3,79 @@
   <head>
     <meta charset="UTF-8" />
     <title>Flock</title>
-   
+
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="manifest" href="/flock/manifest.webmanifest" />
     <link rel="apple-touch-icon" href="/assets/apple-touch-icon-DqMZAnTJ.png" />
     <link rel="icon" href="/assets/favicon-B4zcTzyO.ico" type="image/x-icon" />
     <link rel="icon" href="/assets/favicon-CQgF5zeU.svg" type="image/svg+xml" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Asap:ital,wght@0,100..900;1,100..900&display=swap"
-      rel="stylesheet"
-    />
+
     <meta name="theme-color" content="#800080" />
     <style>
-
-      /*.blocklyText {
+      /*
+      .blocklyText {
           fill: black !important;
-          font-weight: normal !important;
-          font-family: 'Asap', Helvetica, Arial, Lucida, sans-serif;
+          
+      }
+
+      .zelos-renderer.classic-theme .blocklyDropDownText {
+          fill: black !important; 
+
+      }
+
+      .zelos-renderer.classic-theme .blocklyDropdownText {
+          fill: black !important; 
+
       }*/
-    
+
+      .zelos-renderer.classic-theme .blocklyEditableText {
+        cursor: pointer !important;
+      }
+
+      .zelos-renderer.classic-theme .blocklyText,
+      .zelos-renderer.classic-theme .blocklyFlyoutLabelText {
+        font-weight: 500 !important;
+        font-family: "Asap", Helvetica, Arial, Lucida, sans-serif !important;
+      }
+
+      .blocklyTreeLabel {
+        font-weight: normal !important;
+        font-family: "Asap", Helvetica, Arial, Lucida, sans-serif !important;
+      }
+
+      .blocklyDropDownArrow {
+        cursor: pointer;
+      }
+
+      .blockly-ws-search {
+        background: white;
+        border: solid lightgrey 0.5px;
+        box-shadow: 0px 10px 20px grey;
+        justify-content: center;
+        padding: 0.25em;
+        position: absolute;
+        z-index: 70;
+      }
+
+      .blockly-ws-search {
+          background: white;
+        margin-top: 5px;
+          border: solid #ee5d6c 4px;
+          box-shadow: 0px 10px 20px grey;
+          justify-content: center;
+          padding: 0.25em;
+          position: absolute;
+          z-index: 70;
+      }
+      
+      path.blocklyPath.blockly-ws-search-highlight {
+        fill: #ed808b;
+      }
+      
+      path.blocklyPath.blockly-ws-search-highlight.blockly-ws-search-current {
+        fill: #ee5d6c;
+      }
+
       body {
         display: flex;
         flex-wrap: wrap;
@@ -31,6 +83,13 @@
         margin: 0px;
         gap: 0;
         box-sizing: border-box;
+        font-family: "Asap", Helvetica, Arial, Lucida, sans-serif !important;
+      }
+
+      input,
+      textarea,
+      button {
+        font-family: inherit;
       }
 
       #menu {
@@ -69,7 +128,7 @@
       }
 
       .stackedContainer select.highlighted {
-        border: 4px solid magenta;
+        border: 4px solid #defd6c;
         padding: 5px;
         background-color: #f9f9f9;
       }
@@ -98,7 +157,7 @@
       }
 
       .highlighted {
-        border: 4px solid magenta;
+        border: 4px solid #ee5d6c;
         padding: 5px;
         background-color: #f9f9f9;
       }
@@ -191,7 +250,8 @@
         margin-top: auto;
       }
     </style>
-    <script type="module" crossorigin src="/assets/index-DPlmIoHl.js"></script>
+    <script type="module" crossorigin src="/assets/index-BARV7iAl.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-PG3r9K_h.css">
   <link rel="manifest" href="/flock/manifest.webmanifest"><script id="vite-plugin-pwa:register-sw" src="/flock/registerSW.js"></script></head>
 
   <body>
@@ -264,14 +324,16 @@
             id="toolboxControl"
             class="highlighted"
             onclick="toggleToolbox()"
+            onmouseover="this.style.cursor='pointer'; toggleToolbox();"
             style="
           z-index: 100000;
           font-size: 16px;border-box width: 110px;
-          padding: 1px;
+          background-color: rgba(255,101,80,0.45);
+            padding: 1px;
           box-sizing: border-box;
         "
           >
-            Flock 🐑
+            Flock 🕊️
           </button>
           <button
             class="bigbutton"
@@ -301,18 +363,25 @@
             onchange="loadExample()"
           >
             <option value="">🌴Examples</option>
+            <option value="examples/simple_starter.json">👋🏽Simple Starter</option>
+             <option value="examples/controller_starter.json">🎮Controller Starter</option>
             <option value="examples/forest_base.json">🌲Forest Base</option>
             <option value="examples/character_animation.json">
               🎥Character Animation
             </option>
             <option value="examples/cube_art.json">🎨 Cube Art</option>
+            <option value="examples/physics_fun.json">
+              👆🏾Physics Fun
+            </option>
             <option value="examples/collect_the_gems.json">
               💎 Collect the Gems
             </option>
             <option value="examples/water_map.json">💧 Water Map</option>
             <option value="examples/skittles.json">🎳 Skittles</option>
             <option value="examples/beetle.json">🪲 Beetle</option>
+             <option value="examples/roominator.json">🛋️Roominator</option>
             <option value="examples/ball_pit.json">🟠 Ball Pit</option>
+             <option value="examples/ur_enough.json">💗 UR Enough!</option>
           </select>
           <!-- Dropdown View Switcher -->
           <div class="dropdown bigbutton">

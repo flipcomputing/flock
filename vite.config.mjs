@@ -1,5 +1,6 @@
 import { VitePWA } from 'vite-plugin-pwa'
 import { viteStaticCopy } from 'vite-plugin-static-copy';
+import { copyFileSync } from 'fs';
 
 // Determine if we are in production mode
 const isProduction = process.env.NODE_ENV === 'production';
@@ -86,7 +87,13 @@ export default {
           },
         ],
       },
-    })
+    }),
+    {
+      name: 'copy-library-file',
+      writeBundle() {
+        copyFileSync('flock.js', 'dist/flock.js');
+      },
+    },
   ],
   server: {
     host: '0.0.0.0',
