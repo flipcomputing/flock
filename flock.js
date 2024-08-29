@@ -3085,11 +3085,14 @@ flock.canvas.pressedKeys = new Set();
 const displayScale = (window.devicePixelRatio || 1) * 0.75; // Get the device pixel ratio, default to 1 if not available
 flock.displayScale = displayScale;
 
-document.addEventListener('DOMContentLoaded', async () => {
+export function initializeFlock() {
 	const scriptElement = document.getElementById("flock");
 	if (scriptElement) {
-		await flock.initialize();
-		const userCode = scriptElement.textContent;
-		flock.runCode(userCode);
+		flock.initialize().then(() => {
+			const userCode = scriptElement.textContent;
+			flock.runCode(userCode);
+		}).catch(error => {
+			console.error('Error initializing flock:', error);
+		});
 	}
-});
+}

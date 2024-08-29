@@ -13,47 +13,13 @@ import { WorkspaceSearch } from "@blockly/plugin-workspace-search";
 import { NavigationController } from "@blockly/keyboard-navigation";
 import "@babylonjs/core/Debug/debugLayer";
 import "@babylonjs/inspector";
-import { flock } from "./flock.js";
+import { flock, initializeFlock } from "./flock.js";
 import { initialBlocksJson } from "./toolbox.js";
 import { workspace, defineBlocks, initializeVariableIndexes } from "./blocks";
 import { defineGenerators, meshMap } from "./generators";
 
-registerFieldColour();
-Blockly.ContextMenuItems.registerCommentOptions();
-const navigationController = new NavigationController();
-navigationController.init();
-navigationController.addWorkspace(workspace);
-// Turns on keyboard navigation.
-//navigationController.enable(workspace);
-
-const workspaceSearch = new WorkspaceSearch(workspace);
-workspaceSearch.init();
-
-console.log("Welcome to Flock 🐑🐑🐑");
-
-defineBlocks();
-defineGenerators();
-
-
-workspace.addChangeListener(function (event) {
-	if (event.type === Blockly.Events.FINISHED_LOADING) {
-		initializeVariableIndexes();
-		window.loadingCode = false;
-	}
-});
-
-workspace.addChangeListener(Blockly.Events.disableOrphans);
-
 //Blockly.utils.colour.setHsvSaturation(0.2) // 0 (inclusive) to 1 (exclusive), defaulting to 0.45
 //Blockly.utils.colour.setHsvValue(0.95) // 0 (inclusive) to 1 (exclusive), defaulting to 0.65
-
-let gizmoManager;
-(async () => {
-	await flock.initialize();
-	gizmoManager = new flock.BABYLON.GizmoManager(flock.scene);
-	window.initialBlocksJson = initialBlocksJson;
-})();
-
 
 /*
 function Mesh(id = "UNDEFINED") {
@@ -97,9 +63,6 @@ function loadWorkspace() {
 	executeCode();
 }
 
-// Call this function to autosave periodically
-setInterval(saveWorkspace, 30000); // Autosave every 30 seconds
-
 function stripFilename(inputString) {
 	const removeEnd = inputString.replace(/\(\d+\)/g, "");
 	// Find the last occurrence of '/' or '\'
@@ -136,212 +99,10 @@ function exportCode() {
 
 //let mousePos = { x: 0, y: 0 };
 //flock.mousePos = mousePos;
+let gizmoManager;
+let toolboxVisible = false;
 
-window.onload = function () {
-	// Initial view setup
-	window.loadingCode = true;
 
-	/*workspace.addChangeListener(function (e) {
-		if (e.type === Blockly.Events.MOUSE_MOVE) {
-			const svgCoords = Blockly.mouseToSvg(e);
-			mousePos = { x: svgCoords.x, y: svgCoords.y };
-		}
-	});*/
-
-	loadWorkspace();
-	switchView("both");
-
-	workspace.addChangeListener(function (event) {
-		if (
-			event.type === Blockly.Events.TOOLBOX_ITEM_SELECT ||
-			event.type === Blockly.Events.FLYOUT_SHOW
-		) {
-			const toolbox = workspace.getToolbox();
-			const selectedItem = toolbox.getSelectedItem();
-
-			if (selectedItem && selectedItem.getName() === "Snippets") {
-				window.loadingCode = true;
-			} else {
-				window.loadingCode = false;
-			}
-		}
-	});
-
-	document
-		.getElementById("fileInput")
-		.addEventListener("change", function (event) {
-			const reader = new FileReader();
-			reader.onload = function () {
-				window.loadingCode = true;
-				const text = reader.result;
-				const json = JSON.parse(text);
-
-				// Set the project name as the value of the projectName input field
-				document.getElementById("projectName").value = stripFilename(
-					document
-						.getElementById("fileInput")
-						.value.replace(".json", ""),
-				);
-
-				Blockly.serialization.workspaces.load(json, workspace);
-
-				executeCode();
-			};
-			reader.readAsText(event.target.files[0]);
-		});
-
-	// Add event listener to file input
-	document
-		.getElementById("importFile")
-		.addEventListener("change", handleSnippetUpload);
-
-	document
-		.getElementById("toggleDebug")
-		.addEventListener("click", function () {
-			if (!flock.scene) return;
-
-			const blocklyArea = document.getElementById("codePanel");
-			const canvasArea = document.getElementById("rightArea");
-			const menu = document.getElementById("menu");
-			const gizmoButtons = document.getElementById("gizmoButtons");
-
-			if (flock.scene.debugLayer.isVisible()) {
-				canvasArea.style.width = "100%";
-				canvasArea.style.flexGrow = "1";
-				switchView(viewMode);
-				flock.scene.debugLayer.hide();
-				onResize();
-			} else {
-				blocklyArea.style.display = "none";
-				canvasArea.style.display = "block";
-				canvasArea.style.width = "50vw";
-				canvasArea.style.flexGrow = "0";
-				gizmoButtons.style.display = "block";
-				menu.style.right = "unset";
-				flock.scene.debugLayer.show();
-				onResize();
-			}
-		});
-
-	document
-		.getElementById("fullscreenToggle")
-		.addEventListener("click", function () {
-			if (!document.fullscreenElement) {
-				// Go fullscreen
-				if (document.documentElement.requestFullscreen) {
-					document.documentElement.requestFullscreen();
-				} else if (document.documentElement.mozRequestFullScreen) {
-					/* Firefox */
-					document.documentElement.mozRequestFullScreen();
-				} else if (document.documentElement.webkitRequestFullscreen) {
-					/* Chrome, Safari & Opera */
-					document.documentElement.webkitRequestFullscreen();
-				} else if (document.documentElement.msRequestFullscreen) {
-					/* IE/Edge */
-					document.documentElement.msRequestFullscreen();
-				}
-			} else {
-				// Exit fullscreen
-				if (document.exitFullscreen) {
-					document.exitFullscreen();
-				} else if (document.mozCancelFullScreen) {
-					/* Firefox */
-					document.mozCancelFullScreen();
-				} else if (document.webkitExitFullscreen) {
-					/* Chrome, Safari & Opera */
-					document.webkitExitFullscreen();
-				} else if (document.msExitFullscreen) {
-					/* IE/Edge */
-					document.msExitFullscreen();
-				}
-			}
-		});
-
-	const blockTypesToCleanUp = [
-		"start",
-		"forever",
-		"when_clicked",
-		"when_touches",
-		"when_key_pressed",
-		"when_key_released",
-		"on_event",
-		"procedures_defnoreturn",
-		"procedures_defreturn",
-	];
-
-	workspace.cleanUp = function () {
-		const topBlocks = workspace.getTopBlocks(false); // Get all top-level blocks without sorting
-		const spacing = 40; // Define spacing between blocks
-		let cursorY = 10; // Starting y position
-		let cursorX = 10; // Starting x position
-
-		// Sort the blocks by their current y position (top to bottom)
-		topBlocks.sort(
-			(a, b) =>
-				a.getRelativeToSurfaceXY().y - b.getRelativeToSurfaceXY().y,
-		);
-
-		topBlocks.forEach((block) => {
-			// Check if the block is one of the specified types
-			if (blockTypesToCleanUp.includes(block.type)) {
-				const blockXY = block.getRelativeToSurfaceXY();
-				block.moveBy(cursorX - blockXY.x, cursorY - blockXY.y);
-				cursorY += block.getHeightWidth().height + spacing;
-			}
-		});
-	};
-
-	// Add change listener to handle cleanup after block move or delete
-	workspace.addChangeListener(function (event) {
-		try {
-			if (event.type === Blockly.Events.BLOCK_MOVE) {
-				const block = workspace.getBlockById(event.blockId);
-				if (!block) return;
-				workspace.cleanUp();
-			}
-		} catch (error) {
-			console.error(
-				"An error occurred during the Blockly workspace cleanup process:",
-				error,
-			);
-		}
-	});
-
-	document.addEventListener("keydown", function (event) {
-		if (event.ctrlKey && event.key === ".") {
-			event.preventDefault();
-
-			const workspace = Blockly.getMainWorkspace();
-
-			// Create the placeholder block at the computed position
-			const placeholderBlock = workspace.newBlock("keyword_block");
-			placeholderBlock.initSvg();
-			placeholderBlock.render();
-
-			let workspaceCoordinates = workspace
-				.getMetricsManager()
-				.getViewMetrics(true);
-			let posx =
-				workspaceCoordinates.left + workspaceCoordinates.width / 2;
-			let posy =
-				workspaceCoordinates.top + workspaceCoordinates.height / 2;
-			let blockCoordinates = new Blockly.utils.Coordinate(posx, posy);
-
-			placeholderBlock.initSvg();
-			placeholderBlock.render();
-			placeholderBlock.moveTo(blockCoordinates);
-
-			// Select the block for immediate editing
-			placeholderBlock.select();
-
-			// Automatically focus on the text input field
-			const textInputField = placeholderBlock.getField("KEYWORD");
-			if (textInputField) {
-				textInputField.showEditor_();
-			}
-		}
-	});
-};
 
 function executeCode() {
 	if (flock.engineReady) {
@@ -570,9 +331,6 @@ function addExportContextMenuOption() {
 	});
 }
 
-// Initialize Blockly and add custom context menu options
-addExportContextMenuOption();
-
 // Extend Blockly with custom context menu for importing snippets in the workspace
 function addImportContextMenuOption() {
 	Blockly.ContextMenuRegistry.registry.register({
@@ -624,8 +382,6 @@ function toggleToolbox() {
 }
 
 window.toggleToolbox = toggleToolbox;
-
-addImportContextMenuOption();
 
 function loadExample() {
 	window.loadingCode = true;
@@ -746,11 +502,6 @@ function switchView(view) {
 window.switchView = switchView;
 window.onResize = onResize;
 
-let toolboxVisible = false;
-window.toolboxVisible = toolboxVisible;
-workspace.getToolbox().setVisible(false);
-onResize();
-
 function observeFlyoutVisibility(workspace) {
 	// Access the flyout using Blockly's API
 	const flyout = workspace.getToolbox().getFlyout();
@@ -788,7 +539,6 @@ function observeFlyoutVisibility(workspace) {
 	});
 }
 
-observeFlyoutVisibility(workspace);
 
 function runMenu() {
 	switchView("canvas");
@@ -864,3 +614,256 @@ document.addEventListener("DOMContentLoaded", () => {
 		projectName.style.width = "80px";
 	}
 });
+
+window.onload = function () {
+	const scriptElement = document.getElementById("flock");
+	if (scriptElement) {
+		initializeFlock();
+		return; // standalone flock
+	}
+
+	registerFieldColour();
+	Blockly.ContextMenuItems.registerCommentOptions();
+	const navigationController = new NavigationController();
+	navigationController.init();
+	navigationController.addWorkspace(workspace);
+	// Turns on keyboard navigation.
+	//navigationController.enable(workspace);
+
+	const workspaceSearch = new WorkspaceSearch(workspace);
+	workspaceSearch.init();
+
+	console.log("Welcome to Flock 🐑🐑🐑");
+
+	defineBlocks();
+	defineGenerators();
+	// Initialize Blockly and add custom context menu options
+	addExportContextMenuOption();
+	addImportContextMenuOption();
+	observeFlyoutVisibility(workspace);
+	window.toolboxVisible = toolboxVisible;
+	workspace.getToolbox().setVisible(false);
+	onResize();
+
+	// Call this function to autosave periodically
+	setInterval(saveWorkspace, 30000); // Autosave every 30 seconds
+
+	workspace.addChangeListener(function (event) {
+		if (event.type === Blockly.Events.FINISHED_LOADING) {
+			initializeVariableIndexes();
+			window.loadingCode = false;
+		}
+	});
+
+	workspace.addChangeListener(Blockly.Events.disableOrphans);
+
+	(async () => {
+		await flock.initialize();
+		gizmoManager = new flock.BABYLON.GizmoManager(flock.scene);
+		window.initialBlocksJson = initialBlocksJson;
+	})();
+
+	// Initial view setup
+	window.loadingCode = true;
+
+	/*workspace.addChangeListener(function (e) {
+		if (e.type === Blockly.Events.MOUSE_MOVE) {
+			const svgCoords = Blockly.mouseToSvg(e);
+			mousePos = { x: svgCoords.x, y: svgCoords.y };
+		}
+	});*/
+
+	loadWorkspace();
+	switchView("both");
+
+	workspace.addChangeListener(function (event) {
+		if (
+			event.type === Blockly.Events.TOOLBOX_ITEM_SELECT ||
+			event.type === Blockly.Events.FLYOUT_SHOW
+		) {
+			const toolbox = workspace.getToolbox();
+			const selectedItem = toolbox.getSelectedItem();
+
+			if (selectedItem && selectedItem.getName() === "Snippets") {
+				window.loadingCode = true;
+			} else {
+				window.loadingCode = false;
+			}
+		}
+	});
+
+	document
+		.getElementById("fileInput")
+		.addEventListener("change", function (event) {
+			const reader = new FileReader();
+			reader.onload = function () {
+				window.loadingCode = true;
+				const text = reader.result;
+				const json = JSON.parse(text);
+
+				// Set the project name as the value of the projectName input field
+				document.getElementById("projectName").value = stripFilename(
+					document
+						.getElementById("fileInput")
+						.value.replace(".json", ""),
+				);
+
+				Blockly.serialization.workspaces.load(json, workspace);
+
+				executeCode();
+			};
+			reader.readAsText(event.target.files[0]);
+		});
+
+	// Add event listener to file input
+	document
+		.getElementById("importFile")
+		.addEventListener("change", handleSnippetUpload);
+
+	document
+		.getElementById("toggleDebug")
+		.addEventListener("click", function () {
+			if (!flock.scene) return;
+
+			const blocklyArea = document.getElementById("codePanel");
+			const canvasArea = document.getElementById("rightArea");
+			const menu = document.getElementById("menu");
+			const gizmoButtons = document.getElementById("gizmoButtons");
+
+			if (flock.scene.debugLayer.isVisible()) {
+				canvasArea.style.width = "100%";
+				canvasArea.style.flexGrow = "1";
+				switchView(viewMode);
+				flock.scene.debugLayer.hide();
+				onResize();
+			} else {
+				blocklyArea.style.display = "none";
+				canvasArea.style.display = "block";
+				canvasArea.style.width = "50vw";
+				canvasArea.style.flexGrow = "0";
+				gizmoButtons.style.display = "block";
+				menu.style.right = "unset";
+				flock.scene.debugLayer.show();
+				onResize();
+			}
+		});
+
+	document
+		.getElementById("fullscreenToggle")
+		.addEventListener("click", function () {
+			if (!document.fullscreenElement) {
+				// Go fullscreen
+				if (document.documentElement.requestFullscreen) {
+					document.documentElement.requestFullscreen();
+				} else if (document.documentElement.mozRequestFullScreen) {
+					/* Firefox */
+					document.documentElement.mozRequestFullScreen();
+				} else if (document.documentElement.webkitRequestFullscreen) {
+					/* Chrome, Safari & Opera */
+					document.documentElement.webkitRequestFullscreen();
+				} else if (document.documentElement.msRequestFullscreen) {
+					/* IE/Edge */
+					document.documentElement.msRequestFullscreen();
+				}
+			} else {
+				// Exit fullscreen
+				if (document.exitFullscreen) {
+					document.exitFullscreen();
+				} else if (document.mozCancelFullScreen) {
+					/* Firefox */
+					document.mozCancelFullScreen();
+				} else if (document.webkitExitFullscreen) {
+					/* Chrome, Safari & Opera */
+					document.webkitExitFullscreen();
+				} else if (document.msExitFullscreen) {
+					/* IE/Edge */
+					document.msExitFullscreen();
+				}
+			}
+		});
+
+	const blockTypesToCleanUp = [
+		"start",
+		"forever",
+		"when_clicked",
+		"when_touches",
+		"when_key_pressed",
+		"when_key_released",
+		"on_event",
+		"procedures_defnoreturn",
+		"procedures_defreturn",
+	];
+
+	workspace.cleanUp = function () {
+		const topBlocks = workspace.getTopBlocks(false); // Get all top-level blocks without sorting
+		const spacing = 40; // Define spacing between blocks
+		let cursorY = 10; // Starting y position
+		let cursorX = 10; // Starting x position
+
+		// Sort the blocks by their current y position (top to bottom)
+		topBlocks.sort(
+			(a, b) =>
+				a.getRelativeToSurfaceXY().y - b.getRelativeToSurfaceXY().y,
+		);
+
+		topBlocks.forEach((block) => {
+			// Check if the block is one of the specified types
+			if (blockTypesToCleanUp.includes(block.type)) {
+				const blockXY = block.getRelativeToSurfaceXY();
+				block.moveBy(cursorX - blockXY.x, cursorY - blockXY.y);
+				cursorY += block.getHeightWidth().height + spacing;
+			}
+		});
+	};
+
+	// Add change listener to handle cleanup after block move or delete
+	workspace.addChangeListener(function (event) {
+		try {
+			if (event.type === Blockly.Events.BLOCK_MOVE) {
+				const block = workspace.getBlockById(event.blockId);
+				if (!block) return;
+				workspace.cleanUp();
+			}
+		} catch (error) {
+			console.error(
+				"An error occurred during the Blockly workspace cleanup process:",
+				error,
+			);
+		}
+	});
+
+	document.addEventListener("keydown", function (event) {
+		if (event.ctrlKey && event.key === ".") {
+			event.preventDefault();
+
+			const workspace = Blockly.getMainWorkspace();
+
+			// Create the placeholder block at the computed position
+			const placeholderBlock = workspace.newBlock("keyword_block");
+			placeholderBlock.initSvg();
+			placeholderBlock.render();
+
+			let workspaceCoordinates = workspace
+				.getMetricsManager()
+				.getViewMetrics(true);
+			let posx =
+				workspaceCoordinates.left + workspaceCoordinates.width / 2;
+			let posy =
+				workspaceCoordinates.top + workspaceCoordinates.height / 2;
+			let blockCoordinates = new Blockly.utils.Coordinate(posx, posy);
+
+			placeholderBlock.initSvg();
+			placeholderBlock.render();
+			placeholderBlock.moveTo(blockCoordinates);
+
+			// Select the block for immediate editing
+			placeholderBlock.select();
+
+			// Automatically focus on the text input field
+			const textInputField = placeholderBlock.getField("KEYWORD");
+			if (textInputField) {
+				textInputField.showEditor_();
+			}
+		}
+	});
+};
