@@ -117,6 +117,22 @@ export const flock = {
 		sandboxedFunction();
 	},
 	async initialize() {
+		flock.BABYLON = BABYLON;
+		flock.GUI = BABYLON_GUI;
+		flock.canvas = document.getElementById("renderCanvas");
+		flock.scene = null;
+		flock.document = document;
+		flock.havokInstance = null;
+		flock.engineReady = false;
+		let gizmoManager = null;
+		const gridKeyPressObservable = new flock.BABYLON.Observable();
+		const gridKeyReleaseObservable = new flock.BABYLON.Observable();
+		flock.gridKeyPressObservable = gridKeyPressObservable;
+		flock.gridKeyReleaseObservable = gridKeyReleaseObservable;
+		flock.canvas.pressedButtons = new Set();
+		flock.canvas.pressedKeys = new Set();
+		const displayScale = (window.devicePixelRatio || 1) * 0.75; // Get the device pixel ratio, default to 1 if not available
+		flock.displayScale = displayScale;
 		flock.BABYLON.Database.IDBStorageEnabled = true;
 		flock.BABYLON.Engine.CollisionsEpsilon = 0.00005;
 		flock.havokInstance = await HavokPhysics();
@@ -3068,22 +3084,7 @@ export const flock = {
 	},
 };
 
-flock.BABYLON = BABYLON;
-flock.GUI = BABYLON_GUI;
-flock.canvas = document.getElementById("renderCanvas");
-flock.scene = null;
-flock.document = document;
-flock.havokInstance = null;
-flock.engineReady = false;
-let gizmoManager = null;
-const gridKeyPressObservable = new flock.BABYLON.Observable();
-const gridKeyReleaseObservable = new flock.BABYLON.Observable();
-flock.gridKeyPressObservable = gridKeyPressObservable;
-flock.gridKeyReleaseObservable = gridKeyReleaseObservable;
-flock.canvas.pressedButtons = new Set();
-flock.canvas.pressedKeys = new Set();
-const displayScale = (window.devicePixelRatio || 1) * 0.75; // Get the device pixel ratio, default to 1 if not available
-flock.displayScale = displayScale;
+
 
 export function initializeFlock() {
 	const scriptElement = document.getElementById("flock");
