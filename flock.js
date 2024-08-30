@@ -29,15 +29,14 @@ export const flock = {
 	canvas: {
 		pressedKeys: null,
 	},
-	start(){
-
+	start() {
 		console.log("Creating scene");
 
 		flock.scene = flock.createScene();
 
 		console.log("Scene created");
 	},
-	runCode(code){
+	runCode(code) {
 		const sandboxedFunction = new Function(
 			"flock",
 			`
@@ -139,7 +138,7 @@ export const flock = {
 		flock.BABYLON.Database.IDBStorageEnabled = true;
 		flock.BABYLON.Engine.CollisionsEpsilon = 0.00005;
 		flock.havokInstance = await HavokPhysics();
-		await document.fonts.ready;  // Wait for all fonts to be loaded
+		await document.fonts.ready; // Wait for all fonts to be loaded
 
 		flock.engineReady = true;
 		flock.scene = flock.createScene();
@@ -158,7 +157,9 @@ export const flock = {
 			flock.engine.dispose();
 			flock.engine = null;
 		}
-		flock.engine = new flock.BABYLON.Engine(flock.canvas, true, { stencil: true });
+		flock.engine = new flock.BABYLON.Engine(flock.canvas, true, {
+			stencil: true,
+		});
 		flock.engine.enableOfflineSupport = false;
 		flock.engine.setHardwareScalingLevel(1 / window.devicePixelRatio);
 	},
@@ -190,8 +191,14 @@ export const flock = {
 		flock.scene.eventListeners = [];
 
 		flock.hk = new flock.BABYLON.HavokPlugin(true, flock.havokInstance);
-		flock.scene.enablePhysics(new flock.BABYLON.Vector3(0, -9.81, 0), flock.hk);
-		flock.highlighter = new flock.BABYLON.HighlightLayer("highlighter", flock.scene);	
+		flock.scene.enablePhysics(
+			new flock.BABYLON.Vector3(0, -9.81, 0),
+			flock.hk,
+		);
+		flock.highlighter = new flock.BABYLON.HighlightLayer(
+			"highlighter",
+			flock.scene,
+		);
 
 		/*
 		flock.BABYLON.Effect.ShadersStore["customVertexShader"] = `
@@ -266,14 +273,15 @@ export const flock = {
 		const hemisphericLight = new BABYLON.HemisphericLight(
 			"hemisphericLight",
 			new BABYLON.Vector3(0, 1, 0), // Direction: Upwards, simulating light from the sky
-			flock.scene
+			flock.scene,
 		);
 		hemisphericLight.intensity = 1.0; // Adjust the intensity to control how bright the scene is
 		hemisphericLight.diffuse = new BABYLON.Color3(1, 1, 1); // White diffuse light
 		hemisphericLight.groundColor = new BABYLON.Color3(0.5, 0.5, 0.5); // Optional ground color for additional effects
 		flock.scene.collisionsEnabled = true;
 
-		flock.controlsTexture = flock.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
+		flock.controlsTexture =
+			flock.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
 		flock.createArrowControls("white");
 		flock.createButtonControls("white");
 
@@ -743,7 +751,13 @@ export const flock = {
 
 		return modelId;
 	},
-	parentChild(parentModelName, childModelName, offsetX = 0, offsetY = 0, offsetZ = 0) {
+	parentChild(
+		parentModelName,
+		childModelName,
+		offsetX = 0,
+		offsetY = 0,
+		offsetZ = 0,
+	) {
 		return flock.whenModelReady(parentModelName, (parentMesh) => {
 			flock.whenModelReady(childModelName, (childMesh) => {
 				// Set the parent-child relationship
@@ -1022,8 +1036,8 @@ export const flock = {
 
 		return shape;
 	},
-	async tint(modelName, color) {
-		await flock.whenModelReady(modelName, (mesh) => {
+	tint(modelName, color) {
+		return flock.whenModelReady(modelName, (mesh) => {
 			if (mesh.material) {
 				mesh.renderOverlay = true;
 				mesh.overlayAlpha = 0.5;
@@ -1734,8 +1748,8 @@ export const flock = {
 			mesh.computeWorldMatrix(true);
 		});
 	},
-	async scaleMesh(modelName, x, y, z) {
-		await flock.whenModelReady(modelName, (mesh) => {
+	scaleMesh(modelName, x, y, z) {
+		return flock.whenModelReady(modelName, (mesh) => {
 			mesh.scaling = new flock.BABYLON.Vector3(x, y, z);
 
 			mesh.computeWorldMatrix(true);
@@ -2754,7 +2768,7 @@ export const flock = {
 						boundingInfo.boundingBox.maximum.y + 0.85;
 					plane.billboardMode = flock.BABYLON.Mesh.BILLBOARDMODE_ALL;
 				}
-				
+
 				if (!plane.advancedTexture) {
 					const planeBoundingInfo = plane.getBoundingInfo();
 					const planeWidth =
@@ -2875,10 +2889,65 @@ export const flock = {
 		let b = parseInt(hex.substring(4, 6), 16);
 		return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 	},
-	async onTrigger(modelName, trigger, doCode) {
-		return new Promise(async (resolve) => {
-			await flock.whenModelReady(modelName, async function (mesh) {
-				if (mesh) {
+	onTrigger(modelName, trigger, doCode) {
+		return flock.whenModelReady(modelName, async function (mesh) {
+			if (mesh) {
+				if (!mesh.actionManager) {
+					mesh.actionManager = new flock.BABYLON.ActionManager(
+						flock.scene,
+					);
+				}
+				mesh.isPickable = true;
+
+				if (trigger === "OnRightOrLongPressTrigger") {
+					mesh.actionManager.registerAction(
+						new flock.BABYLON.ExecuteCodeAction(
+							flock.BABYLON.ActionManager.OnRightPickTrigger,
+							async function () {
+								await doCode();
+							},
+						),
+					);
+					mesh.actionManager.registerAction(
+						new flock.BABYLON.ExecuteCodeAction(
+							flock.BABYLON.ActionManager.OnLongPressTrigger,
+							async function () {
+								await doCode();
+							},
+						),
+					);
+				} else {
+					mesh.actionManager.registerAction(
+						new flock.BABYLON.ExecuteCodeAction(
+							flock.BABYLON.ActionManager[trigger],
+							async function () {
+								await doCode();
+							},
+						),
+					);
+				}
+			} else {
+				console.log("Model not loaded:", modelName);
+			}
+		});
+	},
+	onIntersect(modelName, otherModelName, trigger, doCode) {
+		return flock.whenModelReady(modelName, async function (mesh) {
+			if (!mesh) {
+				console.error("Model not loaded:", modelName);
+				return;
+			}
+
+			// Load the second model
+			return flock.whenModelReady(
+				otherModelName,
+				async function (otherMesh) {
+					if (!otherMesh) {
+						console.error("Model not loaded:", otherModelName);
+						return;
+					}
+
+					// Initialize actionManager if not present
 					if (!mesh.actionManager) {
 						mesh.actionManager = new flock.BABYLON.ActionManager(
 							flock.scene,
@@ -2886,93 +2955,28 @@ export const flock = {
 					}
 					mesh.isPickable = true;
 
-					if (trigger === "OnRightOrLongPressTrigger") {
-						mesh.actionManager.registerAction(
-							new flock.BABYLON.ExecuteCodeAction(
-								flock.BABYLON.ActionManager.OnRightPickTrigger,
-								async function () {
-									await doCode();
-								},
-							),
-						);
-						mesh.actionManager.registerAction(
-							new flock.BABYLON.ExecuteCodeAction(
-								flock.BABYLON.ActionManager.OnLongPressTrigger,
-								async function () {
-									await doCode();
-								},
-							),
-						);
-					} else {
-						mesh.actionManager.registerAction(
-							new flock.BABYLON.ExecuteCodeAction(
-								flock.BABYLON.ActionManager[trigger],
-								async function () {
-									await doCode();
-								},
-							),
-						);
-					}
-					resolve();
-				} else {
-					console.log("Model not loaded:", modelName);
-					resolve();
-				}
-			});
-		});
-	},
-	async onIntersect(modelName, otherModelName, trigger, doCode) {
-		return new Promise(async (resolve) => {
-			// Load the first model
-			await flock.whenModelReady(modelName, async function (mesh) {
-				if (!mesh) {
-					console.error("Model not loaded:", modelName);
-					resolve();
-					return;
-				}
-
-				// Load the second model
-				await flock.whenModelReady(
-					otherModelName,
-					async function (otherMesh) {
-						if (!otherMesh) {
-							console.error("Model not loaded:", otherModelName);
-							resolve();
-							return;
-						}
-
-						// Initialize actionManager if not present
-						if (!mesh.actionManager) {
-							mesh.actionManager =
-								new flock.BABYLON.ActionManager(flock.scene);
-						}
-						mesh.isPickable = true;
-
-						// Register the ExecuteCodeAction for intersection
-						const action = new flock.BABYLON.ExecuteCodeAction(
-							{
-								trigger: flock.BABYLON.ActionManager[trigger],
-								parameter: {
-									mesh: otherMesh,
-									usePreciseIntersection: true,
-								},
+					// Register the ExecuteCodeAction for intersection
+					const action = new flock.BABYLON.ExecuteCodeAction(
+						{
+							trigger: flock.BABYLON.ActionManager[trigger],
+							parameter: {
+								mesh: otherMesh,
+								usePreciseIntersection: true,
 							},
-							async function () {
-								await doCode(); // Execute the provided callback function
+						},
+						async function () {
+							await doCode(); // Execute the provided callback function
+						},
+						new flock.BABYLON.PredicateCondition(
+							flock.BABYLON.ActionManager,
+							() => {
+								return otherMesh.isEnabled();
 							},
-							new flock.BABYLON.PredicateCondition(
-								flock.BABYLON.ActionManager,
-								() => {
-									return otherMesh.isEnabled();
-								},
-							),
-						);
-						mesh.actionManager.registerAction(action); // Register the ExecuteCodeAction
-
-						resolve();
-					},
-				);
-			});
+						),
+					);
+					mesh.actionManager.registerAction(action); // Register the ExecuteCodeAction
+				},
+			);
 		});
 	},
 	onEvent(eventName, handler) {
@@ -3088,16 +3092,17 @@ export const flock = {
 	},
 };
 
-
-
 export function initializeFlock() {
 	const scriptElement = document.getElementById("flock");
 	if (scriptElement) {
-		flock.initialize().then(() => {
-			const userCode = scriptElement.textContent;
-			flock.runCode(userCode);
-		}).catch(error => {
-			console.error('Error initializing flock:', error);
-		});
+		flock
+			.initialize()
+			.then(() => {
+				const userCode = scriptElement.textContent;
+				flock.runCode(userCode);
+			})
+			.catch((error) => {
+				console.error("Error initializing flock:", error);
+			});
 	}
 }
