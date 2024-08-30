@@ -2,11 +2,13 @@ import { VitePWA } from 'vite-plugin-pwa'
 import { viteStaticCopy } from 'vite-plugin-static-copy';
 import { copyFileSync, readdirSync } from 'fs';
 import { resolve } from 'path';
+import cssInjectedByJsPlugin from 'vite-plugin-css-injected-by-js';
 // Determine if we are in production mode
 const isProduction = process.env.NODE_ENV === 'production';
 
 export default {
   plugins: [
+    cssInjectedByJsPlugin(),
     viteStaticCopy({
       targets: [
         {
