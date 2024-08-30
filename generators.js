@@ -57,6 +57,17 @@ export function defineGenerators() {
 		return `await wait(${duration});\n`;
 	};
 
+	javascriptGenerator.forBlock["wait_until"] = function(block) {
+		const condition = javascriptGenerator.valueToCode(
+			block,
+			'CONDITION',
+			javascriptGenerator.ORDER_ATOMIC
+		) || 'false'; // Default to false if no condition is connected
+
+		return `await waitUntil(() => ${condition});\n`;
+	};
+
+
 	javascriptGenerator.forBlock["glide_to"] = function (block) {
 		const x = getFieldValue(block, "X", "0");
 		const y = getFieldValue(block, "Y", "0");

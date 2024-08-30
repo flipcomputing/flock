@@ -349,6 +349,27 @@ export function defineBlocks() {
 		},
 	};
 
+	Blockly.Blocks['wait_until'] = {
+		init: function() {
+			this.jsonInit({
+				type: 'wait_until',
+				message0: 'wait until %1',
+				args0: [
+					{
+						type: 'input_value',
+						name: 'CONDITION',
+						check: 'Boolean',
+					},
+				],
+				previousStatement: null,
+				nextStatement: null,
+				colour: categoryColours['Control'],
+				tooltip: 'Wait until the condition is true.',
+				helpUrl: ''
+			});
+		},
+	};
+
 	Blockly.Blocks["glide_to"] = {
 		init: function () {
 			this.jsonInit({

@@ -76,6 +76,7 @@ export const flock = {
 				positionAt,
 				distanceTo,
 				wait,
+				waitUntil,
 				show,
 				hide,
 				clearEffects,
@@ -982,6 +983,22 @@ export const flock = {
 	},
 	wait(duration) {
 		return new Promise((resolve) => setTimeout(resolve, duration));
+	},
+	waitUntil(conditionFunc) {
+		return new Promise((resolve, reject) => {
+			const checkCondition = () => {
+				try {
+					if (conditionFunc()) {
+						flock.scene.onBeforeRenderObservable.removeCallback(checkCondition);
+						resolve();
+					}
+				} catch (error) {
+					flock.scene.onBeforeRenderObservable.removeCallback(checkCondition);
+					reject(error);
+				}
+			};
+		flock.scene.onBeforeRenderObservable.add(checkCondition);
+		});
 	},
 	clearEffects(modelName) {
 		return flock.whenModelReady(modelName, (mesh) => {

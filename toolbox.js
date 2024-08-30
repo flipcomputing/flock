@@ -1428,6 +1428,11 @@ export const toolbox = {
 				},
 				{
 					kind: "block",
+					type: "wait_until",
+					keyword: "until",
+				},
+				{
+					kind: "block",
 					type: "controls_repeat_ext",
 					keyword: "repeat",
 					inputs: {
