@@ -2,9 +2,7 @@
 // Dr Tracy Gardner - https://github.com/tracygardner
 // Flip Computing Limited - flipcomputing.com
 
-import "@fontsource/asap";
-import "@fontsource/asap/500.css";
-import "@fontsource/asap/600.css";
+
 import * as Blockly from "blockly";
 import { javascriptGenerator } from "blockly/javascript";
 import { registerFieldColour } from "@blockly/field-colour";
