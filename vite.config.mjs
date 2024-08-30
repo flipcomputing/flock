@@ -135,6 +135,7 @@ copyFileSync('example.html', 'dist/example.html');
   optimizeDeps: { exclude: ["@babylonjs/havok"] },
   build: {
     assetsInlineLimit: 100000,  // Set high enough to include font files
+    cssCodeSplit: false,  // Disables CSS code splitting and inlines CSS into JavaScript
     rollupOptions: {
       input: 'index.html', 
     },
