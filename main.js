@@ -45,7 +45,6 @@ function loadWorkspace() {
 	const savedState = localStorage.getItem("flock_autosave.json");
 
 	if (savedState) {
-		console.log("Loading saved state...");
 		Blockly.serialization.workspaces.load(
 			JSON.parse(savedState),
 			workspace,
@@ -429,7 +428,6 @@ const runCode = (code) => {
 
 // Function to maintain a 16:9 aspect ratio for the canvas
 function resizeCanvas() {
-	console.log("Resizing canvas...");
 	const canvasArea = document.getElementById("rightArea");
 	const canvas = document.getElementById("renderCanvas");
 

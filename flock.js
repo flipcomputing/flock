@@ -139,6 +139,7 @@ export const flock = {
 		flock.BABYLON.Database.IDBStorageEnabled = true;
 		flock.BABYLON.Engine.CollisionsEpsilon = 0.00005;
 		flock.havokInstance = await HavokPhysics();
+		await document.fonts.ready;  // Wait for all fonts to be loaded
 
 		flock.engineReady = true;
 		flock.scene = flock.createScene();
