@@ -2392,6 +2392,8 @@ export const flock = {
 	createMaterial(albedoColor, emissiveColor, textureSet, metallic, roughness, alpha) {
 		let material;
 
+		console.log(textureSet);
+
 		// Check if PBR is needed
 		if (metallic > 0 || roughness < 1) {
 			material = new BABYLON.PBRMetallicRoughnessMaterial("material", flock.scene);
@@ -2405,7 +2407,10 @@ export const flock = {
 			// Apply texture to the albedoTexture for PBR materials
 			if (textureSet !== "none.png") {
 				const baseTexturePath = `./textures/${textureSet}`;
-				material.albedoTexture = new BABYLON.Texture(baseTexturePath, flock.scene); 
+				material.baseTexture = new BABYLON.Texture(baseTexturePath, flock.scene); 
+
+				const normalTexturePath = `./textures/normal/${textureSet}`;
+				material.normalTexture = new BABYLON.Texture(normalTexturePath, flock.scene); 
 			}
 
 			if (flock.scene.environmentTexture) {
@@ -2422,6 +2427,9 @@ export const flock = {
 			if (textureSet !== "none.png") {
 				const baseTexturePath = `./textures/${textureSet}`;
 				material.diffuseTexture = new BABYLON.Texture(baseTexturePath, flock.scene);
+
+				const normalTexturePath = `./textures/normal/${textureSet}`;
+				material.bumpTexture = new BABYLON.Texture(normalTexturePath, flock.scene); 
 			}
 		}
 		
