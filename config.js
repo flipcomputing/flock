@@ -136,6 +136,7 @@ export const animationNames = [
 ];
 
 export const materialNames = [
+	"none.png",
 	"brick.png",
 	"rough.png",
 	"grass.png",

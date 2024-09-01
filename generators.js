@@ -919,6 +919,53 @@ export function defineGenerators() {
 		return [code, javascriptGenerator.ORDER_ATOMIC];
 	};
 
+	javascriptGenerator.forBlock["material"] = function (block) {
+		const baseColor = 
+			javascriptGenerator.valueToCode(
+				block,
+				"BASE_COLOR",
+				javascriptGenerator.ORDER_ATOMIC,
+			) || "1";
+		const emissiveColor = 
+			javascriptGenerator.valueToCode(
+				block,
+				"EMISSIVE_COLOR",
+				javascriptGenerator.ORDER_ATOMIC,
+			) || "1";
+		const textureSet = block.getFieldValue("TEXTURE_SET");
+		const metallic = 
+			javascriptGenerator.valueToCode(
+				block,
+				"METALLIC",
+				javascriptGenerator.ORDER_ATOMIC,
+			) || "1";
+		const roughness = 
+			javascriptGenerator.valueToCode(
+				block,
+				"ROUGHNESS",
+				javascriptGenerator.ORDER_ATOMIC,
+			) || "1";
+		const alpha = 
+			javascriptGenerator.valueToCode(
+				block,
+				"ALPHA",
+				javascriptGenerator.ORDER_ATOMIC,
+			) || "1";
+
+		// Generate the code to call the createMaterial helper function
+		const code = `createMaterial(${baseColor}, ${emissiveColor}, "${textureSet}", ${metallic}, ${roughness}, ${alpha})`;
+		return [code, javascriptGenerator.ORDER_FUNCTION_CALL];
+	};
+
+	javascriptGenerator.forBlock["set_material"] = function (block) {
+		const meshVar = javascriptGenerator.nameDB_.getName(block.getFieldValue('MESH'), Blockly.VARIABLE_CATEGORY_NAME);
+		const material = javascriptGenerator.valueToCode(block, "MATERIAL", javascriptGenerator.ORDER_ATOMIC);
+
+		const code = `setMaterial(${meshVar}, ${material});\n`;
+		return code;
+	};
+
+
 	javascriptGenerator.forBlock["skin_colour"] = function (block) {
 		const colour = block.getFieldValue("COLOR");
 		const code = `"${colour}"`;

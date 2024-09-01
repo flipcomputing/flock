@@ -5,7 +5,7 @@
 import HavokPhysics from "@babylonjs/havok";
 import * as BABYLON from "@babylonjs/core";
 import * as BABYLON_GUI from "@babylonjs/gui";
-import { FlowGraphLog10Block } from "babylonjs";
+import { FlowGraphLog10Block, SetMaterialIDBlock } from "babylonjs";
 import "@fontsource/asap";
 import "@fontsource/asap/500.css";
 import "@fontsource/asap/600.css";
@@ -90,6 +90,8 @@ export const flock = {
 				scaleMesh,
 				changeColour,
 				changeMaterial,
+				setMaterial,
+				createMaterial,
 				moveForward,
 				attachCamera,
 				canvasControls,
@@ -260,6 +262,19 @@ export const flock = {
 			   const groundAggregate = new BABYLON.PhysicsAggregate(groundMesh, BABYLON.PhysicsShapeType.MESH, { mass: 0 }, flock.scene);
 			}
 		  }, flock.scene);*/
+
+
+		// Create a reflection probe
+		let reflectionProbe = new BABYLON.ReflectionProbe("mainProbe", 512, flock.scene);
+
+		// Attach the reflection probe to a specific position in the scene (usually the center)
+		reflectionProbe.position = new BABYLON.Vector3(0, 0, 0);
+
+		// Render the reflection probe to create a dynamic reflection map
+		let dynamicReflectionTexture = reflectionProbe.cubeTexture;
+
+		// Apply the dynamic reflection texture to the scene's environment texture
+		flock.scene.environmentTexture = dynamicReflectionTexture;
 
 		const camera = new BABYLON.FreeCamera(
 			"camera",
@@ -2367,6 +2382,53 @@ export const flock = {
 			material.name = materialName;
 			materialNode.material = material;
 		});
+	},
+	setMaterial(modelName, material)
+		{
+			return flock.whenModelReady(modelName, (mesh) => {
+	mesh.material = material;
+			});								
+		},
+	createMaterial(albedoColor, emissiveColor, textureSet, metallic, roughness, alpha) {
+		let material;
+
+		// Check if PBR is needed
+		if (metallic > 0 || roughness < 1) {
+			material = new BABYLON.PBRMetallicRoughnessMaterial("material", flock.scene);
+
+			// Set albedoColor correctly for PBRMaterial
+			material.baseColor = BABYLON.Color3.FromHexString(albedoColor);
+
+			material.metallic = metallic;
+			material.roughness = roughness;
+
+			// Apply texture to the albedoTexture for PBR materials
+			if (textureSet !== "none.png") {
+				const baseTexturePath = `./textures/${textureSet}`;
+				material.albedoTexture = new BABYLON.Texture(baseTexturePath, flock.scene); 
+			}
+
+			if (flock.scene.environmentTexture) {
+				material.environmentTexture = flock.scene.environmentTexture;
+			} else {
+				console.warn("No environmentTexture found for the scene.");
+			}
+
+		} else {
+			material = new BABYLON.StandardMaterial("material", flock.scene);
+
+			material.diffuseColor = BABYLON.Color3.FromHexString(albedoColor); 
+
+			if (textureSet !== "none.png") {
+				const baseTexturePath = `./textures/${textureSet}`;
+				material.diffuseTexture = new BABYLON.Texture(baseTexturePath, flock.scene);
+			}
+		}
+		
+		material.emissiveColor = BABYLON.Color3.FromHexString(emissiveColor);
+
+		material.alpha = alpha;
+		return material;
 	},
 	moveForward(modelName, speed) {
 		const model = flock.scene.getMeshByName(modelName);

@@ -2896,6 +2896,101 @@ export function defineBlocks() {
 		},
 	};
 
+	Blockly.Blocks["material"] = {
+		init: function () {
+			this.jsonInit({
+				type: "material",
+				message0: "material %1 emissive %2 texture %3 \nmetallic %4 roughness %5 alpha %6",
+				args0: [
+					{
+						type: "input_value",
+						name: "BASE_COLOR",
+						colour: "#ffffff", // Default to white
+					},
+					{
+						type: "input_value",
+						name: "EMISSIVE_COLOR",
+						colour: "#000000", // Default to black (no emission)
+					},
+					{
+						type: "field_grid_dropdown",
+						name: "TEXTURE_SET",
+						columns: 4,
+						options: materialNames.map((name) => {
+							const baseName = name.replace(/\.[^/.]+$/, "");
+							return [
+								{
+									src: `./textures/${baseName}.png`,
+									width: 50,
+									height: 50,
+									alt: baseName,
+								},
+								name,
+							];
+						}),
+					},
+					{
+						type: "input_value",
+						name: "METALLIC",
+						value: 0,
+						min: 0,
+						max: 1,
+						precision: 0.01,
+					},
+					{
+						type: "input_value",
+						name: "ROUGHNESS",
+						value: 1,
+						min: 0,
+						max: 1,
+						precision: 0.01,
+					},
+					{
+						type: "input_value",
+						name: "ALPHA",
+						value: 1,
+						min: 0,
+						max: 1,
+						precision: 0.01,
+					},
+				],
+				output: "Material",
+				inputsInline: true,
+				colour: categoryColours["Looks"],
+				tooltip: "Define material properties",
+				helpUrl: "",
+			});
+		},
+	};
+
+	Blockly.Blocks["set_material"] = {
+		init: function () {
+			this.jsonInit({
+				type: "set_material",
+				message0: "set material of %1 to %2",
+				args0: [
+					{
+						type: "field_variable",
+						name: "MESH",
+						variable: "mesh",
+					},
+					{
+						type: "input_value",
+						name: "MATERIAL",
+						check: "Material",  // Ensure it only accepts blocks that output a Material
+					},
+				],
+				previousStatement: null,
+				nextStatement: null,
+				inputsInline: true,
+					colour: categoryColours["Looks"],
+				tooltip: "Set the specified material on the given mesh.",
+				helpUrl: "",
+			});
+		},
+	};
+
+
 	Blockly.Blocks["random_seeded_int"] = {
 		init: function () {
 			this.jsonInit({

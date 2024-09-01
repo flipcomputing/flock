@@ -1020,6 +1020,105 @@ export const toolbox = {
 				},
 				{
 					kind: "block",
+					type: "material",
+					inputs: {
+						BASE_COLOR: {
+							shadow: {
+								type: "colour",
+								fields: {
+									COLOR: "#FFFFFF",
+								},
+							},
+						},
+						EMISSIVE_COLOR: {
+							shadow: {
+								type: "colour",
+								fields: {
+									COLOR: "#000000", // Default emissive color: black (no emission)
+								},
+							},
+						},
+						METALLIC: {
+							shadow: {
+								type: "math_number",
+								fields: {
+									NUM: 0, // Default metallic value: 0 (non-metallic)
+								},
+							},
+						},
+						ROUGHNESS: {
+							shadow: {
+								type: "math_number",
+								fields: {
+									NUM: 1, // Default roughness value: 1 (fully rough)
+								},
+							},
+						},
+						ALPHA: {
+							shadow: {
+								type: "math_number",
+								fields: {
+									NUM: 1, // Default alpha value: 1 (fully opaque)
+								},
+							},
+						},
+					},
+				},
+				{
+					kind: "block",
+					type: "set_material",
+					inputs: {
+						MATERIAL: {
+							shadow: {
+								type: "material",
+								inputs: {
+									BASE_COLOR: {
+										shadow: {
+											type: "colour",
+											fields: {
+												COLOR: "#ff0000",  // Default base color: red
+											},
+										},
+									},
+									EMISSIVE_COLOR: {
+										shadow: {
+											type: "colour",
+											fields: {
+												COLOR: "#000000",  // Default emissive color: black (no emission)
+											},
+										},
+									},
+									METALLIC: {
+										shadow: {
+											type: "math_number",
+											fields: {
+												NUM: 0.0,  // Default metallic value: 0
+											},
+										},
+									},
+									ROUGHNESS: {
+										shadow: {
+											type: "math_number",
+											fields: {
+												NUM: 1.0,  // Default roughness value: 1 (fully rough)
+											},
+										},
+									},
+									ALPHA: {
+										shadow: {
+											type: "math_number",
+											fields: {
+												NUM: 1.0,  // Default alpha value: 1 (fully opaque)
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+				{
+					kind: "block",
 					type: "set_alpha",
 					keyword: "alpha",
 					inputs: {
