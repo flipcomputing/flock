@@ -90,6 +90,7 @@ export const objectColours = {
 
 export const modelNames = [
 	"Flock.glb",
+	"Character.glb",
 	"Character_Female_1.gltf",
 	"Character_Female_2.gltf",
 	"Character_Male_1.gltf",
