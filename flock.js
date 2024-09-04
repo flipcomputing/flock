@@ -266,16 +266,16 @@ export const flock = {
 
 
 		// Create a reflection probe
-		let reflectionProbe = new BABYLON.ReflectionProbe("mainProbe", 512, flock.scene);
+		//let reflectionProbe = new BABYLON.ReflectionProbe("mainProbe", 512, flock.scene);
 
 		// Attach the reflection probe to a specific position in the scene (usually the center)
-		reflectionProbe.position = new BABYLON.Vector3(0, 0, 0);
+		//reflectionProbe.position = new BABYLON.Vector3(0, 0, 0);
 
 		// Render the reflection probe to create a dynamic reflection map
-		let dynamicReflectionTexture = reflectionProbe.cubeTexture;
+		//let dynamicReflectionTexture = reflectionProbe.cubeTexture;
 
 		// Apply the dynamic reflection texture to the scene's environment texture
-		flock.scene.environmentTexture = dynamicReflectionTexture;
+		//flock.scene.environmentTexture = dynamicReflectionTexture;
 
 		const camera = new BABYLON.FreeCamera(
 			"camera",
