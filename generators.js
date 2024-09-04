@@ -927,6 +927,15 @@ export function defineGenerators() {
 		return [code, javascriptGenerator.ORDER_NONE];
 	};
 
+	javascriptGenerator.forBlock["dispose"] = function (block) {
+	  // Get the selected variable name
+	  const meshVar = javascriptGenerator.nameDB_.getName(block.getFieldValue('MODEL_VAR'), Blockly.Names.NameType.VARIABLE);
+
+	  // Generate code to call the dispose helper for the selected mesh
+	  const code = `dispose(${meshVar});\n`;
+	  return code;
+	};
+
 
 	javascriptGenerator.forBlock["colour"] = function (block) {
 		const colour = block.getFieldValue("COLOR");

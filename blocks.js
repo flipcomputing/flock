@@ -2571,6 +2571,29 @@ export function defineBlocks() {
 		},
 	};
 
+	Blockly.Blocks["dispose"] = {
+	  init: function () {
+		this.jsonInit({
+		  type: "dispose",
+		  message0: "dispose %1",
+		  args0: [
+			{
+			  type: "field_variable",
+			  name: "MODEL_VAR",
+			  variable: "mesh", // Default variable name "mesh"
+			},
+		  ],
+		  inputsInline: true,
+		  previousStatement: null,
+		  nextStatement: null,
+		  colour: categoryColours["Scene"],  // Use appropriate category color
+		  tooltip: "Removes the specified mesh from the scene.\nKeyword: dispose",
+		  helpUrl: "",
+		});
+	  },
+	};
+
+
 	Blockly.Blocks["key_pressed"] = {
 		init: function () {
 			this.jsonInit({

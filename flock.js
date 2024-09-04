@@ -82,6 +82,7 @@ export const flock = {
 				clearEffects,
 				tint,
 				setAlpha,
+				dispose,
 				setFog,
 				keyPressed,
 				isTouchingSurface,
@@ -1100,6 +1101,18 @@ export const flock = {
 					nextMesh.material.alpha = alphaValue;
 				}
 			});
+		});
+	},
+	dispose(modelName) {
+		return flock.whenModelReady(modelName, (mesh) => {
+	
+			// Dispose of all child meshes
+			mesh.getChildMeshes().forEach(function (childMesh) {
+				childMesh.dispose();
+			});
+
+			// Dispose of the main mesh
+			mesh.dispose();
 		});
 	},
 	async playAnimation(

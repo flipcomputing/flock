@@ -941,6 +941,11 @@ export const toolbox = {
 						},
 					},
 				},
+				{
+					kind: "block",
+					type: "dispose",
+					keyword: "dispose",
+				},
 			],
 		},
 		{
