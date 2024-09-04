@@ -913,6 +913,21 @@ export function defineGenerators() {
 		return [code, javascriptGenerator.ORDER_NONE];
 	};
 
+	javascriptGenerator.forBlock["to_number"] = function (block) {
+		const string = javascriptGenerator.valueToCode(block, "STRING", javascriptGenerator.ORDER_ATOMIC);
+		const conversionType = block.getFieldValue("TYPE");
+
+		let code;
+		if (conversionType === "INT") {
+			code = `parseInt(${string})`;
+		} else {
+			code = `parseFloat(${string})`;
+		}
+
+		return [code, javascriptGenerator.ORDER_NONE];
+	};
+
+
 	javascriptGenerator.forBlock["colour"] = function (block) {
 		const colour = block.getFieldValue("COLOR");
 		const code = `"${colour}"`;

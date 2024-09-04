@@ -3026,6 +3026,34 @@ export function defineBlocks() {
 		},
 	};
 
+	Blockly.Blocks["to_number"] = {
+	  init: function () {
+		this.jsonInit({
+		  type: "to_number",
+		  message0: "convert %1 to %2",
+		  args0: [
+			{
+			  type: "input_value",
+			  name: "STRING",
+			  check: "String",
+			},
+			{
+			  type: "field_dropdown",
+			  name: "TYPE",
+			  options: [
+				["integer", "INT"],
+				["float", "FLOAT"],
+			  ],
+			},
+		  ],
+		  inputsInline: true,
+		  output: "Number",
+		  colour: 230,
+		  tooltip: "Converts a string to an integer or float.",
+		  helpUrl: "",
+		});
+	  },
+	};
 	// Define the placeholder block
 	Blockly.Blocks["keyword_block"] = {
 		init: function () {

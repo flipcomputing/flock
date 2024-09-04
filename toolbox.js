@@ -2147,6 +2147,11 @@ export const toolbox = {
 				},
 				{
 					kind: "block",
+					type: "to_number",
+					keyword: "ton",
+				},
+				{
+					kind: "block",
 					type: "math_constant",
 					keyword: "pi",
 				},
