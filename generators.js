@@ -398,9 +398,14 @@ export function defineGenerators() {
 		const y = getFieldValue(block, "Y", "0");
 		const z = getFieldValue(block, "Z", "0");
 
-		return `await scaleMesh(${modelName}, ${x}, ${y}, ${z});\n`;
-	};
+		// Retrieve the origin values for x, y, and z axes
+		const xOrigin = block.getFieldValue("X_ORIGIN") || "'CENTRE'";
+		const yOrigin = block.getFieldValue("Y_ORIGIN") || "'CENTRE'";
+		const zOrigin = block.getFieldValue("Z_ORIGIN") || "'CENTRE'";
 
+		// Return the generated code with origin parameters
+		return `await scaleMesh(${modelName}, ${x}, ${y}, ${z}, '${xOrigin}', '${yOrigin}', '${zOrigin}');\n`;
+	};
 	javascriptGenerator.forBlock["rotate_model_xyz"] = function (block) {
 		const meshName = javascriptGenerator.nameDB_.getName(
 			block.getFieldValue("MODEL"),

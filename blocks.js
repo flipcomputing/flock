@@ -101,7 +101,6 @@ blockDragger: MultiselectBlockDragger,
 	},*/
 };
 
-
 /*const multiselectPlugin = new Multiselect(workspace);
 multiselectPlugin.init(options);*/
 
@@ -120,7 +119,7 @@ export function initializeVariableIndexes() {
 		text: 1,
 		sound: 1,
 		character: 1,
-		object: 1
+		object: 1,
 	};
 
 	const allVariables = Blockly.getMainWorkspace().getAllVariables(); // Retrieve all variables in the workspace
@@ -247,6 +246,12 @@ export function defineBlocks() {
 							["rotation x", "ROTATION_X"],
 							["rotation y", "ROTATION_Y"],
 							["rotation z", "ROTATION_Z"],
+							["min x", "MIN_X"],
+							["max x", "MAX_X"],
+							["min y", "MIN_Y"],
+							["max y", "MAX_Y"],
+							["min z", "MIN_Z"],
+							["max z", "MAX_Z"],
 							["scale x", "SCALE_X"],
 							["scale y", "SCALE_Y"],
 							["scale z", "SCALE_Z"],
@@ -349,23 +354,23 @@ export function defineBlocks() {
 		},
 	};
 
-	Blockly.Blocks['wait_until'] = {
-		init: function() {
+	Blockly.Blocks["wait_until"] = {
+		init: function () {
 			this.jsonInit({
-				type: 'wait_until',
-				message0: 'wait until %1',
+				type: "wait_until",
+				message0: "wait until %1",
 				args0: [
 					{
-						type: 'input_value',
-						name: 'CONDITION',
-						check: 'Boolean',
+						type: "input_value",
+						name: "CONDITION",
+						check: "Boolean",
 					},
 				],
 				previousStatement: null,
 				nextStatement: null,
-				colour: categoryColours['Control'],
-				tooltip: 'Wait until the condition is true.',
-				helpUrl: ''
+				colour: categoryColours["Control"],
+				tooltip: "Wait until the condition is true.",
+				helpUrl: "",
 			});
 		},
 	};
@@ -1174,7 +1179,7 @@ export function defineBlocks() {
 							["solid", "SOLID_WALL"],
 							["door", "WALL_WITH_DOOR"],
 							["window", "WALL_WITH_WINDOW"],
-							 ["floor/roof", "FLOOR"]
+							["floor/roof", "FLOOR"],
 						],
 					},
 					{
@@ -1209,7 +1214,7 @@ export function defineBlocks() {
 					},
 				],
 				inputsInline: true,
-				previousStatement: null, 
+				previousStatement: null,
 				nextStatement: null,
 				colour: categoryColours["Scene"],
 				tooltip:
@@ -1532,56 +1537,87 @@ export function defineBlocks() {
 						type: "field_variable",
 						name: "CHILD_MESH",
 						variable: "childMesh",
-					}
+					},
 				],
 				previousStatement: null,
 				nextStatement: null,
 				colour: categoryColours["Scene"],
-				tooltip: "Removes the parent relationship from the specified mesh.\nKeyword: remove, parent, child",
+				tooltip:
+					"Removes the parent relationship from the specified mesh.\nKeyword: remove, parent, child",
 			});
 		},
 	};
-
 
 	Blockly.Blocks["scale"] = {
-		init: function () {
-			this.jsonInit({
-				type: "scale",
-				message0: "scale %1 x: %2 y: %3 z: %4",
-				args0: [
-					{
-						type: "field_variable",
-						name: "BLOCK_NAME",
-						variable: "mesh",
-					},
-					{
-						type: "input_value",
-						name: "X",
-						check: "Number",
-						align: "RIGHT",
-					},
-					{
-						type: "input_value",
-						name: "Y",
-						check: "Number",
-						align: "RIGHT",
-					},
-					{
-						type: "input_value",
-						name: "Z",
-						check: "Number",
-						align: "RIGHT",
-					},
-				],
-				previousStatement: null,
-				nextStatement: null,
-				colour: categoryColours["Looks"],
-				inputsInline: true,
-				tooltip:
-					"Resizes a mesh to the given x, y and z.\nKeyword: scale",
-			});
-		},
+	  init: function () {
+		this.jsonInit({
+		  type: "scale",
+		  message0: "scale %1 x: %2 y: %3 z: %4",
+		  args0: [
+			{
+			  type: "field_variable",
+			  name: "BLOCK_NAME",
+			  variable: "mesh",
+			},
+			{
+			  type: "input_value",
+			  name: "X",
+			  check: "Number",
+			  align: "RIGHT",
+			},
+			{
+			  type: "input_value",
+			  name: "Y",
+			  check: "Number",
+			  align: "RIGHT",
+			},
+			{
+			  type: "input_value",
+			  name: "Z",
+			  check: "Number",
+			  align: "RIGHT",
+			},
+		  ],
+		  message1: "origin x: %1 y: %2 z: %3",
+		  args1: [
+			{
+			  type: "field_dropdown",
+			  name: "X_ORIGIN",
+			  options: [
+				["centre", "CENTRE"],
+				["left", "LEFT"],
+				["right", "RIGHT"],
+			  ],
+			},
+			{
+			  type: "field_dropdown",
+			  name: "Y_ORIGIN",
+			  options: [
+				["centre", "CENTRE"],
+				["base", "BASE"],
+				["top", "TOP"],
+			  ],
+			},
+			{
+			  type: "field_dropdown",
+			  name: "Z_ORIGIN",
+			  options: [
+				["centre", "CENTRE"],
+				["front", "FRONT"],
+				["back", "BACK"],
+			  ],
+			},
+		  ],
+		  previousStatement: null,
+		  nextStatement: null,
+		  colour: categoryColours["Looks"],
+		  inputsInline: true,
+		  tooltip:
+			"Resizes a mesh to the given x, y, and z and controls the origin of scaling.",
+		});
+	  },
 	};
+
 
 	Blockly.Blocks["rotate_model_xyz"] = {
 		init: function () {
@@ -1644,14 +1680,15 @@ export function defineBlocks() {
 						type: "field_checkbox",
 						name: "USE_Y",
 						checked: false,
-						text: "Use Y axis"
-					}
+						text: "Use Y axis",
+					},
 				],
 				previousStatement: null,
 				nextStatement: null,
 				colour: categoryColours["Motion"],
 				inputsInline: true,
-				tooltip: "Rotates the first model towards the position of the second model.\nKeyword: look",
+				tooltip:
+					"Rotates the first model towards the position of the second model.\nKeyword: look",
 				helpUrl: "",
 			});
 		},
@@ -1677,14 +1714,15 @@ export function defineBlocks() {
 						type: "field_checkbox",
 						name: "USE_Y",
 						checked: false,
-						text: "Use Y axis"
-					}
+						text: "Use Y axis",
+					},
 				],
 				previousStatement: null,
 				nextStatement: null,
 				colour: categoryColours["Motion"],
 				inputsInline: true,
-				tooltip: "Teleports the first model to the location of the second model.",
+				tooltip:
+					"Teleports the first model to the location of the second model.",
 				helpUrl: "",
 			});
 		},
@@ -1763,32 +1801,33 @@ export function defineBlocks() {
 						type: "field_checkbox",
 						name: "USE_Y",
 						checked: true,
-						text: "Use Y axis"
-					}
+						text: "Use Y axis",
+					},
 				],
 				previousStatement: null,
 				nextStatement: null,
 				colour: categoryColours["Motion"],
 				inputsInline: true,
-				tooltip: "Positions the model at the specified coordinates. Optionally, use the Y axis.",
+				tooltip:
+					"Positions the model at the specified coordinates. Optionally, use the Y axis.",
 				helpUrl: "",
 			});
 		},
 	};
 
-	Blockly.Blocks['time'] = {
-	  init: function() {
-		this.jsonInit({
-		  type: "time",
-		  message0: "time in ms",
-		  args0: [],
-		  output: "Number",
-		  colour: categoryColours["Sensing"], // Adjust the colour category as necessary
-		  inputsInline: true,
-		  tooltip: "Returns the current time in milliseconds.",
-		  helpUrl: ""
-		});
-	  }
+	Blockly.Blocks["time"] = {
+		init: function () {
+			this.jsonInit({
+				type: "time",
+				message0: "time in ms",
+				args0: [],
+				output: "Number",
+				colour: categoryColours["Sensing"], // Adjust the colour category as necessary
+				inputsInline: true,
+				tooltip: "Returns the current time in milliseconds.",
+				helpUrl: "",
+			});
+		},
 	};
 
 	Blockly.Blocks["distance_to"] = {
@@ -1806,7 +1845,7 @@ export function defineBlocks() {
 						type: "field_variable",
 						name: "MODEL2",
 						variable: "mesh2",
-					}
+					},
 				],
 				output: "Number",
 				colour: categoryColours["Sensing"],
@@ -2331,7 +2370,6 @@ export function defineBlocks() {
 		},
 	};
 
-
 	Blockly.Blocks["change_material"] = {
 		init: function () {
 			this.jsonInit({
@@ -2512,31 +2550,31 @@ export function defineBlocks() {
 	};
 
 	Blockly.Blocks["camera_follow"] = {
-	  init: function () {
-		this.jsonInit({
-		  type: "camera_follow",
-		  message0: "camera follow %1 with radius %2",
-		  args0: [
-			{
-			  type: "field_variable",
-			  name: "MESH_VAR",
-			  variable: "mesh1",
-			},
-			{
-			  type: "input_value",
-			  name: "RADIUS",
-			  check: "Number",
-			},
-		  ],
-		  previousStatement: null,
-		  nextStatement: null,
-		  colour: categoryColours["Motion"],
-		  tooltip: "Makes the camera follow a model with a customizable distance (radius) from the target.\nKeyword: follow",
-		  helpUrl: "",
-		});
-	  },
+		init: function () {
+			this.jsonInit({
+				type: "camera_follow",
+				message0: "camera follow %1 with radius %2",
+				args0: [
+					{
+						type: "field_variable",
+						name: "MESH_VAR",
+						variable: "mesh1",
+					},
+					{
+						type: "input_value",
+						name: "RADIUS",
+						check: "Number",
+					},
+				],
+				previousStatement: null,
+				nextStatement: null,
+				colour: categoryColours["Motion"],
+				tooltip:
+					"Makes the camera follow a model with a customizable distance (radius) from the target.\nKeyword: follow",
+				helpUrl: "",
+			});
+		},
 	};
-
 
 	Blockly.Blocks["add_physics"] = {
 		init: function () {
@@ -2572,27 +2610,27 @@ export function defineBlocks() {
 	};
 
 	Blockly.Blocks["dispose"] = {
-	  init: function () {
-		this.jsonInit({
-		  type: "dispose",
-		  message0: "dispose %1",
-		  args0: [
-			{
-			  type: "field_variable",
-			  name: "MODEL_VAR",
-			  variable: "mesh", // Default variable name "mesh"
-			},
-		  ],
-		  inputsInline: true,
-		  previousStatement: null,
-		  nextStatement: null,
-		  colour: categoryColours["Scene"],  // Use appropriate category color
-		  tooltip: "Removes the specified mesh from the scene.\nKeyword: dispose",
-		  helpUrl: "",
-		});
-	  },
+		init: function () {
+			this.jsonInit({
+				type: "dispose",
+				message0: "dispose %1",
+				args0: [
+					{
+						type: "field_variable",
+						name: "MODEL_VAR",
+						variable: "mesh", // Default variable name "mesh"
+					},
+				],
+				inputsInline: true,
+				previousStatement: null,
+				nextStatement: null,
+				colour: categoryColours["Scene"], // Use appropriate category color
+				tooltip:
+					"Removes the specified mesh from the scene.\nKeyword: dispose",
+				helpUrl: "",
+			});
+		},
 	};
-
 
 	Blockly.Blocks["key_pressed"] = {
 		init: function () {
@@ -2923,7 +2961,8 @@ export function defineBlocks() {
 		init: function () {
 			this.jsonInit({
 				type: "material",
-				message0: "material %1 emissive %2 texture %3 \nmetallic %4 roughness %5 alpha %6",
+				message0:
+					"material %1 emissive %2 texture %3 \nmetallic %4 roughness %5 alpha %6",
 				args0: [
 					{
 						type: "input_value",
@@ -3000,19 +3039,18 @@ export function defineBlocks() {
 					{
 						type: "input_value",
 						name: "MATERIAL",
-						check: "Material",  // Ensure it only accepts blocks that output a Material
+						check: "Material", // Ensure it only accepts blocks that output a Material
 					},
 				],
 				previousStatement: null,
 				nextStatement: null,
 				inputsInline: true,
-					colour: categoryColours["Looks"],
+				colour: categoryColours["Looks"],
 				tooltip: "Set the specified material on the given mesh.",
 				helpUrl: "",
 			});
 		},
 	};
-
 
 	Blockly.Blocks["random_seeded_int"] = {
 		init: function () {
@@ -3050,32 +3088,32 @@ export function defineBlocks() {
 	};
 
 	Blockly.Blocks["to_number"] = {
-	  init: function () {
-		this.jsonInit({
-		  type: "to_number",
-		  message0: "convert %1 to %2",
-		  args0: [
-			{
-			  type: "input_value",
-			  name: "STRING",
-			  check: "String",
-			},
-			{
-			  type: "field_dropdown",
-			  name: "TYPE",
-			  options: [
-				["integer", "INT"],
-				["float", "FLOAT"],
-			  ],
-			},
-		  ],
-		  inputsInline: true,
-		  output: "Number",
-		  colour: 230,
-		  tooltip: "Converts a string to an integer or float.",
-		  helpUrl: "",
-		});
-	  },
+		init: function () {
+			this.jsonInit({
+				type: "to_number",
+				message0: "convert %1 to %2",
+				args0: [
+					{
+						type: "input_value",
+						name: "STRING",
+						check: "String",
+					},
+					{
+						type: "field_dropdown",
+						name: "TYPE",
+						options: [
+							["integer", "INT"],
+							["float", "FLOAT"],
+						],
+					},
+				],
+				inputsInline: true,
+				output: "Number",
+				colour: 230,
+				tooltip: "Converts a string to an integer or float.",
+				helpUrl: "",
+			});
+		},
 	};
 	// Define the placeholder block
 	Blockly.Blocks["keyword_block"] = {
@@ -3169,7 +3207,9 @@ export function defineBlocks() {
 		for (const inputName in inputs) {
 			const input = inputs[inputName];
 			if (input.shadow) {
-				const shadowBlock = Blockly.getMainWorkspace().newBlock(input.shadow.type);
+				const shadowBlock = Blockly.getMainWorkspace().newBlock(
+					input.shadow.type,
+				);
 				shadowBlock.setShadow(true);
 				// Apply fields (default values) to the shadow block
 				for (const fieldName in input.shadow.fields) {

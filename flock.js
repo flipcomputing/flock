@@ -1795,10 +1795,83 @@ export const flock = {
 			mesh.computeWorldMatrix(true);
 		});
 	},
-	scaleMesh(modelName, x, y, z) {
+	scaleMesh(
+		modelName,
+		x,
+		y,
+		z,
+		xOrigin = "CENTRE",
+		yOrigin = "CENTRE",
+		zOrigin = "CENTRE",
+	) {
 		return flock.whenModelReady(modelName, (mesh) => {
-			mesh.scaling = new flock.BABYLON.Vector3(x, y, z);
+			mesh.metadata = mesh.metadata || {};
+			mesh.metadata.origin = { xOrigin, yOrigin, zOrigin };
 
+			// Get the original bounding box dimensions and positions
+			const boundingInfo = mesh.getBoundingInfo();
+			const originalDimensions = {
+				x:
+					boundingInfo.boundingBox.maximum.x -
+					boundingInfo.boundingBox.minimum.x,
+				y:
+					boundingInfo.boundingBox.maximum.y -
+					boundingInfo.boundingBox.minimum.y,
+				z:
+					boundingInfo.boundingBox.maximum.z -
+					boundingInfo.boundingBox.minimum.z,
+			};
+
+			// Store original world coordinates for base and top/bottom points
+			const originalMinY = boundingInfo.boundingBox.minimumWorld.y;
+			const originalMaxY = boundingInfo.boundingBox.maximumWorld.y;
+			const originalMinX = boundingInfo.boundingBox.minimumWorld.x;
+			const originalMaxX = boundingInfo.boundingBox.maximumWorld.x;
+			const originalMinZ = boundingInfo.boundingBox.minimumWorld.z;
+			const originalMaxZ = boundingInfo.boundingBox.maximumWorld.z;
+
+			// Apply scaling
+			mesh.scaling = new flock.BABYLON.Vector3(x, y, z);
+			mesh.computeWorldMatrix(true);
+
+			// Get the new bounding box information after scaling
+			const newBoundingInfo = mesh.getBoundingInfo();
+			const newMinY = newBoundingInfo.boundingBox.minimumWorld.y;
+			const newMaxY = newBoundingInfo.boundingBox.maximumWorld.y;
+			const newMinX = newBoundingInfo.boundingBox.minimumWorld.x;
+			const newMaxX = newBoundingInfo.boundingBox.maximumWorld.x;
+			const newMinZ = newBoundingInfo.boundingBox.minimumWorld.z;
+			const newMaxZ = newBoundingInfo.boundingBox.maximumWorld.z;
+
+			// Adjust position based on Y-origin
+			if (yOrigin === "BASE") {
+				const diffY = newMinY - originalMinY;
+				mesh.position.y -= diffY; // Shift the object down by the difference
+			} else if (yOrigin === "TOP") {
+				const diffY = newMaxY - originalMaxY;
+				mesh.position.y -= diffY; // Shift the object up by the difference
+			}
+
+			// Adjust position based on X-origin
+			if (xOrigin === "LEFT") {
+				const diffX = newMinX - originalMinX;
+				mesh.position.x -= diffX; // Shift the object to the left
+			} else if (xOrigin === "RIGHT") {
+				const diffX = newMaxX - originalMaxX;
+				mesh.position.x -= diffX; // Shift the object to the right
+			}
+
+			// Adjust position based on Z-origin
+			if (zOrigin === "FRONT") {
+				const diffZ = newMinZ - originalMinZ;
+				mesh.position.z -= diffZ; // Shift the object forward
+			} else if (zOrigin === "BACK") {
+				const diffZ = newMaxZ - originalMaxZ;
+				mesh.position.z -= diffZ; // Shift the object backward
+			}
+
+			// Refresh bounding info and recompute world matrix
+			mesh.refreshBoundingInfo();
 			mesh.computeWorldMatrix(true);
 		});
 	},
@@ -2002,6 +2075,122 @@ export const flock = {
 				break;
 			case "SCALE_Z":
 				propertyValue = mesh.scaling.z.toFixed(2);
+				break;
+			case "MIN_X":
+				if (mesh.metadata?.origin?.xOrigin === "LEFT") {
+					// Adjust based on LEFT origin
+					propertyValue =
+						mesh.getBoundingInfo().boundingBox.minimumWorld.x;
+				} else if (mesh.metadata?.origin?.xOrigin === "RIGHT") {
+					// Adjust based on RIGHT origin
+					const diffX =
+						(mesh.getBoundingInfo().boundingBox.maximum.x -
+							mesh.getBoundingInfo().boundingBox.minimum.x) *
+						(1 - mesh.scaling.x);
+					propertyValue =
+						mesh.getBoundingInfo().boundingBox.maximumWorld.x -
+						diffX;
+				} else {
+					// Default CENTER origin
+					propertyValue =
+						mesh.getBoundingInfo().boundingBox.minimum.x *
+						mesh.scaling.x;
+				}
+				break;
+
+			case "MAX_X":
+				if (mesh.metadata?.origin?.xOrigin === "RIGHT") {
+					propertyValue =
+						mesh.getBoundingInfo().boundingBox.maximumWorld.x;
+				} else if (mesh.metadata?.origin?.xOrigin === "LEFT") {
+					const diffX =
+						(mesh.getBoundingInfo().boundingBox.maximum.x -
+							mesh.getBoundingInfo().boundingBox.minimum.x) *
+						mesh.scaling.x;
+					propertyValue =
+						mesh.getBoundingInfo().boundingBox.minimumWorld.x +
+						diffX;
+				} else {
+					propertyValue =
+						mesh.getBoundingInfo().boundingBox.maximum.x *
+						mesh.scaling.x;
+				}
+				break;
+
+			case "MIN_Y":
+				if (mesh.metadata?.origin?.yOrigin === "BASE") {
+					propertyValue =
+						mesh.getBoundingInfo().boundingBox.minimumWorld.y;
+				} else if (mesh.metadata?.origin?.yOrigin === "TOP") {
+					const diffY =
+						(mesh.getBoundingInfo().boundingBox.maximum.y -
+							mesh.getBoundingInfo().boundingBox.minimum.y) *
+						(1 - mesh.scaling.y);
+					propertyValue =
+						mesh.getBoundingInfo().boundingBox.maximumWorld.y -
+						diffY;
+				} else {
+					propertyValue =
+						mesh.getBoundingInfo().boundingBox.minimum.y *
+						mesh.scaling.y;
+				}
+				break;
+
+			case "MAX_Y":
+				if (mesh.metadata?.origin?.yOrigin === "TOP") {
+					propertyValue =
+						mesh.getBoundingInfo().boundingBox.maximumWorld.y;
+				} else if (mesh.metadata?.origin?.yOrigin === "BASE") {
+					const diffY =
+						(mesh.getBoundingInfo().boundingBox.maximum.y -
+							mesh.getBoundingInfo().boundingBox.minimum.y) *
+						mesh.scaling.y;
+					propertyValue =
+						mesh.getBoundingInfo().boundingBox.minimumWorld.y +
+						diffY;
+				} else {
+					propertyValue =
+						mesh.getBoundingInfo().boundingBox.maximum.y *
+						mesh.scaling.y;
+				}
+				break;
+
+			case "MIN_Z":
+				if (mesh.metadata?.origin?.zOrigin === "FRONT") {
+					propertyValue =
+						mesh.getBoundingInfo().boundingBox.minimumWorld.z;
+				} else if (mesh.metadata?.origin?.zOrigin === "BACK") {
+					const diffZ =
+						(mesh.getBoundingInfo().boundingBox.maximum.z -
+							mesh.getBoundingInfo().boundingBox.minimum.z) *
+						(1 - mesh.scaling.z);
+					propertyValue =
+						mesh.getBoundingInfo().boundingBox.maximumWorld.z -
+						diffZ;
+				} else {
+					propertyValue =
+						mesh.getBoundingInfo().boundingBox.minimum.z *
+						mesh.scaling.z;
+				}
+				break;
+
+			case "MAX_Z":
+				if (mesh.metadata?.origin?.zOrigin === "BACK") {
+					propertyValue =
+						mesh.getBoundingInfo().boundingBox.maximumWorld.z;
+				} else if (mesh.metadata?.origin?.zOrigin === "FRONT") {
+					const diffZ =
+						(mesh.getBoundingInfo().boundingBox.maximum.z -
+							mesh.getBoundingInfo().boundingBox.minimum.z) *
+						mesh.scaling.z;
+					propertyValue =
+						mesh.getBoundingInfo().boundingBox.minimumWorld.z +
+						diffZ;
+				} else {
+					propertyValue =
+						mesh.getBoundingInfo().boundingBox.maximum.z *
+						mesh.scaling.z;
+				}
 				break;
 			case "VISIBLE":
 				propertyValue = mesh.isVisible;
@@ -2888,6 +3077,8 @@ export const flock = {
 					const boundingInfo = targetMesh.getBoundingInfo();
 					plane.position.y =
 						boundingInfo.boundingBox.maximum.y + 0.85;
+					plane.scalingDeterminant = 1;
+					plane.computeWorldMatrix();
 					plane.billboardMode = flock.BABYLON.Mesh.BILLBOARDMODE_ALL;
 				}
 
