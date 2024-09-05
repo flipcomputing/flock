@@ -167,18 +167,16 @@
         flex-basis: 50%;
         flex-grow: 1;
         flex-shrink: 0;
+        align-items: center; /* Vertically center logo and buttons */
         max-width: 100vw;
         min-width: min(375px, 100vw);
         min-height: min(333px, 100vh);
       }
 
-      #logoContainer {
-        margin-right: 20px; /* Add space between the logo and buttons */
-      }
-
       #logo {
-        width: 40px; /* Adjust the size of the logo */
-        height: auto; /* Maintain aspect ratio */
+        width: 80px; /* Adjust the size of the logo */
+        height: auto;
+        margin-right: 10px; /* Add space between logo and buttons */
       }
 
       #codePanel {
@@ -265,10 +263,8 @@
     <input type="file" id="importFile" style="display: none" accept=".json" />
 
     <div id="rightArea">
-      <div id="logoContainer">
-        <img src="images/FlockLogo.png" alt="Logo" id="logo">
-      </div>
       <div id="menu">
+        <img src="images/FlockLogo.png" alt="Logo" id="logo">
         <button class="bigbutton" onclick="executeCode()" title="Run your code">
           ▶️
         </button>
