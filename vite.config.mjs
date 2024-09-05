@@ -46,7 +46,7 @@ export default {
       assetsInclude: ['**/*.glb', '**/*.gltf', '**/*.ogg', '**/*.json', '**/*.png', '**/*.woff',  '**/*.woff2', '**/*.css',] ,
       includeAssets: ['**/*.glb', '**/*.gltf', '**/*.ogg', '**/*.json', '**/*.png', '**/*.woff',  '**/*.woff2', '**/*.css',],
       manifest: {
-        name: 'Flock 3D Blocks',
+        name: 'Flock - Creating coding in 3D',
         short_name: 'Flock',
         description: 'Create 3D apps with blocks',
         theme_color: '#800080',

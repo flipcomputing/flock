@@ -264,7 +264,6 @@ export const flock = {
 			}
 		  }, flock.scene);*/
 
-
 		// Create a reflection probe
 		//let reflectionProbe = new BABYLON.ReflectionProbe("mainProbe", 512, flock.scene);
 
@@ -1005,15 +1004,19 @@ export const flock = {
 			const checkCondition = () => {
 				try {
 					if (conditionFunc()) {
-						flock.scene.onBeforeRenderObservable.removeCallback(checkCondition);
+						flock.scene.onBeforeRenderObservable.removeCallback(
+							checkCondition,
+						);
 						resolve();
 					}
 				} catch (error) {
-					flock.scene.onBeforeRenderObservable.removeCallback(checkCondition);
+					flock.scene.onBeforeRenderObservable.removeCallback(
+						checkCondition,
+					);
 					reject(error);
 				}
 			};
-		flock.scene.onBeforeRenderObservable.add(checkCondition);
+			flock.scene.onBeforeRenderObservable.add(checkCondition);
 		});
 	},
 	clearEffects(modelName) {
@@ -1105,7 +1108,6 @@ export const flock = {
 	},
 	dispose(modelName) {
 		return flock.whenModelReady(modelName, (mesh) => {
-	
 			// Dispose of all child meshes
 			mesh.getChildMeshes().forEach(function (childMesh) {
 				childMesh.dispose();
@@ -2396,20 +2398,29 @@ export const flock = {
 			materialNode.material = material;
 		});
 	},
-	setMaterial(modelName, material)
-		{
-			return flock.whenModelReady(modelName, (mesh) => {
-	mesh.material = material;
-			});								
-		},
-	createMaterial(albedoColor, emissiveColor, textureSet, metallic, roughness, alpha) {
+	setMaterial(modelName, material) {
+		return flock.whenModelReady(modelName, (mesh) => {
+			mesh.material = material;
+		});
+	},
+	createMaterial(
+		albedoColor,
+		emissiveColor,
+		textureSet,
+		metallic,
+		roughness,
+		alpha,
+	) {
 		let material;
 
 		console.log(textureSet);
 
 		// Check if PBR is needed
 		if (metallic > 0 || roughness < 1) {
-			material = new BABYLON.PBRMetallicRoughnessMaterial("material", flock.scene);
+			material = new BABYLON.PBRMetallicRoughnessMaterial(
+				"material",
+				flock.scene,
+			);
 
 			// Set albedoColor correctly for PBRMaterial
 			material.baseColor = BABYLON.Color3.FromHexString(albedoColor);
@@ -2420,10 +2431,16 @@ export const flock = {
 			// Apply texture to the albedoTexture for PBR materials
 			if (textureSet !== "none.png") {
 				const baseTexturePath = `./textures/${textureSet}`;
-				material.baseTexture = new BABYLON.Texture(baseTexturePath, flock.scene); 
+				material.baseTexture = new BABYLON.Texture(
+					baseTexturePath,
+					flock.scene,
+				);
 
 				const normalTexturePath = `./textures/normal/${textureSet}`;
-				material.normalTexture = new BABYLON.Texture(normalTexturePath, flock.scene); 
+				material.normalTexture = new BABYLON.Texture(
+					normalTexturePath,
+					flock.scene,
+				);
 			}
 
 			if (flock.scene.environmentTexture) {
@@ -2431,21 +2448,26 @@ export const flock = {
 			} else {
 				console.warn("No environmentTexture found for the scene.");
 			}
-
 		} else {
 			material = new BABYLON.StandardMaterial("material", flock.scene);
 
-			material.diffuseColor = BABYLON.Color3.FromHexString(albedoColor); 
+			material.diffuseColor = BABYLON.Color3.FromHexString(albedoColor);
 
 			if (textureSet !== "none.png") {
 				const baseTexturePath = `./textures/${textureSet}`;
-				material.diffuseTexture = new BABYLON.Texture(baseTexturePath, flock.scene);
+				material.diffuseTexture = new BABYLON.Texture(
+					baseTexturePath,
+					flock.scene,
+				);
 
 				const normalTexturePath = `./textures/normal/${textureSet}`;
-				material.bumpTexture = new BABYLON.Texture(normalTexturePath, flock.scene); 
+				material.bumpTexture = new BABYLON.Texture(
+					normalTexturePath,
+					flock.scene,
+				);
 			}
 		}
-		
+
 		material.emissiveColor = BABYLON.Color3.FromHexString(emissiveColor);
 
 		material.alpha = alpha;
