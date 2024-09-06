@@ -801,6 +801,14 @@ export function defineGenerators() {
 	  return `await attachCamera(${modelName}, ${radius});\n`;
 	};
 
+	javascriptGenerator.forBlock["get_camera"] = function (block) {
+	  const variableName = javascriptGenerator.nameDB_.getName(
+		block.getFieldValue("VAR"),
+		Blockly.Names.NameType.VARIABLE,
+	  );
+
+	  return `const ${variableName} = getCamera();\n`;
+	};
 	
 	javascriptGenerator.forBlock["parent_child"] = function (block) {
 		const parentMesh = javascriptGenerator.nameDB_.getName(

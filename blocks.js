@@ -1728,6 +1728,8 @@ export function defineBlocks() {
 		},
 	};
 
+	
+
 	Blockly.Blocks["rotate_to"] = {
 		init: function () {
 			this.jsonInit({
@@ -1903,6 +1905,28 @@ export function defineBlocks() {
 			});
 		},
 	};
+
+	Blockly.Blocks['get_camera'] = {
+	  init: function() {
+		this.jsonInit({
+		  "type": "get_camera",
+		  "message0": "get camera as %1",
+		  "args0": [
+			{
+			  "type": "field_variable",
+			  "name": "VAR",
+			  "variable": "camera"  // Default variable is 'camera'
+			}
+		  ],
+		  "previousStatement": null,
+		  "nextStatement": null,
+		  "colour": categoryColours["Motion"],
+		  "tooltip": "Gets the current scene camera",
+		  "helpUrl": ""
+		});
+	  }
+	};
+
 
 	Blockly.Blocks["play_sound"] = {
 		init: function () {

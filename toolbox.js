@@ -1466,8 +1466,13 @@ export const toolbox = {
 				},
 				{
 					kind: "block",
-					type: "camera_control",
+					type: "get_camera",
 					keyword: "cam",
+				},
+				{
+					kind: "block",
+					type: "camera_control",
+					keyword: "cc",
 				},
 				{
 					kind: "block",
