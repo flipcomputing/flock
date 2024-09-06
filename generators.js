@@ -611,6 +611,18 @@ export function defineGenerators() {
 		}
 	};
 
+	javascriptGenerator.forBlock['local_variable'] = function(block, generator) {
+	  // Retrieve the variable selected by the user
+	  const variable = generator.nameDB_.getName(
+		block.getFieldValue('VAR'),
+		Blockly.VARIABLE_CATEGORY_NAME
+	  );
+
+	  // Generate a local 'let' declaration for the selected variable
+	  const code = `let ${variable};\n`;
+	  return code;
+	};
+
 	javascriptGenerator.forBlock["when_key_pressed"] = function (block) {
 		const key = block.getFieldValue("KEY");
 		const statements_do = javascriptGenerator.statementToCode(block, "DO");

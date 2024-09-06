@@ -1576,6 +1576,11 @@ export const toolbox = {
 					type: "controls_for",
 					keyword: "for",
 				},
+				{
+					kind: "block",
+					type: "local_variable",
+					keyword: "local",
+				},
 			],
 		},
 		{

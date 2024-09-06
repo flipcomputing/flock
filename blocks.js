@@ -1549,75 +1549,74 @@ export function defineBlocks() {
 	};
 
 	Blockly.Blocks["scale"] = {
-	  init: function () {
-		this.jsonInit({
-		  type: "scale",
-		  message0: "scale %1 x: %2 y: %3 z: %4",
-		  args0: [
-			{
-			  type: "field_variable",
-			  name: "BLOCK_NAME",
-			  variable: "mesh",
-			},
-			{
-			  type: "input_value",
-			  name: "X",
-			  check: "Number",
-			  align: "RIGHT",
-			},
-			{
-			  type: "input_value",
-			  name: "Y",
-			  check: "Number",
-			  align: "RIGHT",
-			},
-			{
-			  type: "input_value",
-			  name: "Z",
-			  check: "Number",
-			  align: "RIGHT",
-			},
-		  ],
-		  message1: "origin x: %1 y: %2 z: %3",
-		  args1: [
-			{
-			  type: "field_dropdown",
-			  name: "X_ORIGIN",
-			  options: [
-				["centre", "CENTRE"],
-				["left", "LEFT"],
-				["right", "RIGHT"],
-			  ],
-			},
-			{
-			  type: "field_dropdown",
-			  name: "Y_ORIGIN",
-			  options: [
-				["centre", "CENTRE"],
-				["base", "BASE"],
-				["top", "TOP"],
-			  ],
-			},
-			{
-			  type: "field_dropdown",
-			  name: "Z_ORIGIN",
-			  options: [
-				["centre", "CENTRE"],
-				["front", "FRONT"],
-				["back", "BACK"],
-			  ],
-			},
-		  ],
-		  previousStatement: null,
-		  nextStatement: null,
-		  colour: categoryColours["Looks"],
-		  inputsInline: true,
-		  tooltip:
-			"Resizes a mesh to the given x, y, and z and controls the origin of scaling.",
-		});
-	  },
+		init: function () {
+			this.jsonInit({
+				type: "scale",
+				message0: "scale %1 x: %2 y: %3 z: %4",
+				args0: [
+					{
+						type: "field_variable",
+						name: "BLOCK_NAME",
+						variable: "mesh",
+					},
+					{
+						type: "input_value",
+						name: "X",
+						check: "Number",
+						align: "RIGHT",
+					},
+					{
+						type: "input_value",
+						name: "Y",
+						check: "Number",
+						align: "RIGHT",
+					},
+					{
+						type: "input_value",
+						name: "Z",
+						check: "Number",
+						align: "RIGHT",
+					},
+				],
+				message1: "origin x: %1 y: %2 z: %3",
+				args1: [
+					{
+						type: "field_dropdown",
+						name: "X_ORIGIN",
+						options: [
+							["centre", "CENTRE"],
+							["left", "LEFT"],
+							["right", "RIGHT"],
+						],
+					},
+					{
+						type: "field_dropdown",
+						name: "Y_ORIGIN",
+						options: [
+							["centre", "CENTRE"],
+							["base", "BASE"],
+							["top", "TOP"],
+						],
+					},
+					{
+						type: "field_dropdown",
+						name: "Z_ORIGIN",
+						options: [
+							["centre", "CENTRE"],
+							["front", "FRONT"],
+							["back", "BACK"],
+						],
+					},
+				],
+				previousStatement: null,
+				nextStatement: null,
+				colour: categoryColours["Looks"],
+				inputsInline: true,
+				tooltip:
+					"Resizes a mesh to the given x, y, and z and controls the origin of scaling.",
+			});
+		},
 	};
-
 
 	Blockly.Blocks["rotate_model_xyz"] = {
 		init: function () {
@@ -1727,8 +1726,6 @@ export function defineBlocks() {
 			});
 		},
 	};
-
-	
 
 	Blockly.Blocks["rotate_to"] = {
 		init: function () {
@@ -1906,27 +1903,26 @@ export function defineBlocks() {
 		},
 	};
 
-	Blockly.Blocks['get_camera'] = {
-	  init: function() {
-		this.jsonInit({
-		  "type": "get_camera",
-		  "message0": "get camera as %1",
-		  "args0": [
-			{
-			  "type": "field_variable",
-			  "name": "VAR",
-			  "variable": "camera"  // Default variable is 'camera'
-			}
-		  ],
-		  "previousStatement": null,
-		  "nextStatement": null,
-		  "colour": categoryColours["Motion"],
-		  "tooltip": "Gets the current scene camera",
-		  "helpUrl": ""
-		});
-	  }
+	Blockly.Blocks["get_camera"] = {
+		init: function () {
+			this.jsonInit({
+				type: "get_camera",
+				message0: "get camera as %1",
+				args0: [
+					{
+						type: "field_variable",
+						name: "VAR",
+						variable: "camera", // Default variable is 'camera'
+					},
+				],
+				previousStatement: null,
+				nextStatement: null,
+				colour: categoryColours["Motion"],
+				tooltip: "Gets the current scene camera",
+				helpUrl: "",
+			});
+		},
 	};
-
 
 	Blockly.Blocks["play_sound"] = {
 		init: function () {
@@ -2122,6 +2118,8 @@ export function defineBlocks() {
 						name: "DO",
 					},
 				],
+				previousStatement: null,
+				nextStatement: null,
 				colour: categoryColours["Events"],
 				tooltip:
 					"Executes the blocks inside when the mesh intersects or no longer intersects with another mesh.\nKeyword: touches",
@@ -2129,6 +2127,28 @@ export function defineBlocks() {
 			});
 		},
 	};
+
+	Blockly.Blocks["local_variable"] = {
+	  init: function () {
+		this.jsonInit({
+		  type: "local_variable",
+		  message0: "local %1",
+		  args0: [
+			{
+			  type: "field_variable",
+			  name: "VAR",
+			  variable: "item", // default variable name
+			}
+		  ],
+		  previousStatement: null,
+		  nextStatement: null,
+		  colour: categoryColours["Control"],
+		  tooltip: "Declare a local version of a selected variable",
+		  helpUrl: ""
+		});
+	  }
+	};
+
 
 	Blockly.Blocks["when_key_pressed"] = {
 		init: function () {
@@ -3254,32 +3274,32 @@ export function defineBlocks() {
 	}
 }
 
-Blockly.Blocks['export_mesh'] = {
-  init: function() {
-	this.jsonInit({
-	  "type": "export_mesh",
-	  "message0": "export %1 as %2",
-	  "args0": [
-		{
-		  "type": "field_variable",
-		  "name": "MESH_VAR",
-		  "variable": "mesh"
-		},
-		{
-		  "type": "field_dropdown",
-		  "name": "FORMAT",
-		  "options": [
-			["STL", "STL"],
-			["OBJ", "OBJ"],
-			["GLB", "GLB"]
-		  ]
-		}
-	  ],
-	  "previousStatement": null,
-	  "nextStatement": null,
-	  "colour": categoryColours["Scene"],
-	  "tooltip": "Exports a mesh as STL, OBJ, or GLB.",
-	  "helpUrl": ""
-	});
-  }
+Blockly.Blocks["export_mesh"] = {
+	init: function () {
+		this.jsonInit({
+			type: "export_mesh",
+			message0: "export %1 as %2",
+			args0: [
+				{
+					type: "field_variable",
+					name: "MESH_VAR",
+					variable: "mesh",
+				},
+				{
+					type: "field_dropdown",
+					name: "FORMAT",
+					options: [
+						["STL", "STL"],
+						["OBJ", "OBJ"],
+						["GLB", "GLB"],
+					],
+				},
+			],
+			previousStatement: null,
+			nextStatement: null,
+			colour: categoryColours["Scene"],
+			tooltip: "Exports a mesh as STL, OBJ, or GLB.",
+			helpUrl: "",
+		});
+	},
 };
