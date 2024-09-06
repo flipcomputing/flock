@@ -5,6 +5,7 @@
 import HavokPhysics from "@babylonjs/havok";
 import * as BABYLON from "@babylonjs/core";
 import * as BABYLON_GUI from "@babylonjs/gui";
+import * as BABYLON_EXPORT from '@babylonjs/serializers';
 import { FlowGraphLog10Block, SetMaterialIDBlock } from "babylonjs";
 import "@fontsource/asap";
 import "@fontsource/asap/500.css";
@@ -24,6 +25,7 @@ export const flock = {
 	hk: null,
 	havokInstance: null,
 	GUI: null,
+	EXPORT: null,
 	canvas: null,
 	controlsTexture: null,
 	canvas: {
@@ -47,6 +49,7 @@ export const flock = {
 			createEngine,
 			createScene,
 				playAnimation,
+				playSound,
 				switchAnimation,
 				highlight,
 				newCharacter,
@@ -110,6 +113,7 @@ export const flock = {
 				printText,
 				onIntersect,
 				getProperty,
+				exportMesh,
 			} = flock;
 
 
@@ -126,6 +130,7 @@ export const flock = {
 	async initialize() {
 		flock.BABYLON = BABYLON;
 		flock.GUI = BABYLON_GUI;
+		flock.EXPORT = BABYLON_EXPORT;
 		flock.canvas = document.getElementById("renderCanvas");
 		flock.scene = null;
 		flock.document = document;
@@ -3445,6 +3450,43 @@ export const flock = {
 			});
 		});
 	},
+	download(filename, data, mimeType) {
+	  const blob = new Blob([data], { type: mimeType });
+	  const url = URL.createObjectURL(blob);
+	  const a = document.createElement('a');
+	  a.href = url;
+	  a.download = filename;
+	  document.body.appendChild(a);
+	  a.click();
+	  document.body.removeChild(a);
+	  URL.revokeObjectURL(url);
+	},
+	exportMesh(meshName, format) {
+		return flock.whenModelReady(meshName, async function (mesh) {
+			const rootChild = mesh.getChildMeshes().find(child => child.name === "__root__");
+			if (rootChild) {
+				mesh = rootChild;
+			}
+
+
+			const childMeshes = mesh.getChildMeshes(false);
+
+			  // Combine the parent mesh with its children
+			  const meshList = [mesh, ...childMeshes];
+			console.log(meshList);
+	  if (format === 'STL') {
+		const stlData = flock.EXPORT.STLExport.CreateSTL(meshList, true, mesh.name, false, false);
+		
+	  } else if (format === 'OBJ') {
+		const objData = flock.EXPORT.OBJExport.OBJ(mesh);
+		download(mesh.name + ".obj", objData, "text/plain");
+	  } else if (format === 'GLB') {
+		flock.EXPORT.GLTF2Export.GLBAsync(meshList, mesh.name + ".glb").then((glbData) => {
+		  const blob = new Blob([glbData.glb], { type: "model/gltf-binary" });
+		  download(mesh.name + ".glb", blob, "model/gltf-binary");
+		});
+	  }})
+	},								
 };
 
 export function initializeFlock() {

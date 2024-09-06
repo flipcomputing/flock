@@ -809,7 +809,18 @@ export function defineGenerators() {
 
 	  return `const ${variableName} = getCamera();\n`;
 	};
-	
+
+	javascriptGenerator.forBlock["export_mesh"] = function (block) {
+	  const meshVar = javascriptGenerator.nameDB_.getName(
+		block.getFieldValue('MESH_VAR'),
+		  Blockly.Names.NameType.VARIABLE,
+	  );
+	  const format = block.getFieldValue('FORMAT');
+
+	  // Generate the code that calls the helper function
+	  return `exportMesh(${meshVar}, "${format}");\n`;
+	};
+
 	javascriptGenerator.forBlock["parent_child"] = function (block) {
 		const parentMesh = javascriptGenerator.nameDB_.getName(
 			block.getFieldValue("PARENT_MESH"),

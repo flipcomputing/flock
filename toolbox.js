@@ -946,6 +946,12 @@ export const toolbox = {
 					type: "dispose",
 					keyword: "dispose",
 				},
+				{
+					kind: "block",
+					type: "export_mesh",
+					keyword: "export",
+				},
+				
 			],
 		},
 		{
