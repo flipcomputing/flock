@@ -149,6 +149,25 @@ export function defineGenerators() {
 		return `setFog(${fogColorHex}, "${fogMode}", ${fogDensity});\n`;
 	};
 
+	javascriptGenerator.forBlock['ui_text'] = function(block) {
+	  const text = javascriptGenerator.valueToCode(block, 'TEXT', javascriptGenerator.ORDER_ATOMIC);
+	  const x = javascriptGenerator.valueToCode(block, 'X', javascriptGenerator.ORDER_ATOMIC);
+	  const y = javascriptGenerator.valueToCode(block, 'Y', javascriptGenerator.ORDER_ATOMIC);
+	  const fontSize = javascriptGenerator.valueToCode(block, 'FONT_SIZE', javascriptGenerator.ORDER_ATOMIC);
+	  const duration = javascriptGenerator.valueToCode(block, 'DURATION', javascriptGenerator.ORDER_ATOMIC);
+	  const color = javascriptGenerator.valueToCode(block, 'COLOR', javascriptGenerator.ORDER_ATOMIC);
+
+	  const textBlockVar = javascriptGenerator.nameDB_.getName(
+		block.getFieldValue('TEXTBLOCK_VAR'),
+		Blockly.VARIABLE_CATEGORY_NAME
+	  );
+
+	  // Generate the code using the helper function
+	  const code = `${textBlockVar} = UIText(${text}, ${x}, ${y}, ${fontSize}, ${color}, ${duration}, ${textBlockVar});\n`;
+	  return code;
+	};
+
+
 	javascriptGenerator.forBlock["say"] = function (block) {
 		const text =
 			javascriptGenerator.valueToCode(
@@ -495,9 +514,10 @@ export function defineGenerators() {
 	};
 
 	javascriptGenerator.forBlock['time'] = function(block) {
-	  let code = 'Date.now()';
+	  let code = `Math.floor(new Date().getTime() / 1000)`;
 	  return [code, javascriptGenerator.ORDER_ATOMIC];
 	};
+	
 	javascriptGenerator.forBlock["get_property"] = function (block) {
 		const modelName = javascriptGenerator.nameDB_.getName(
 			block.getFieldValue("MESH"),

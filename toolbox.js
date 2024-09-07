@@ -1724,6 +1724,61 @@ export const toolbox = {
 					},
 				},
 				{
+				  kind: "block",
+				  type: "ui_text",
+				  keyword: "ui",
+				  inputs: {
+					TEXT: {
+					  shadow: {
+						type: "text",
+						fields: {
+						  TEXT: "Info"
+						}
+					  }
+					},
+					DURATION: {
+					  shadow: {
+						type: "math_number",
+						fields: {
+						  NUM: 0
+						}
+					  }
+					},
+					COLOR: {
+					  shadow: {
+						type: "colour",
+						fields: {
+						  COLOUR: "#000080"
+						}
+					  }
+					},
+					X: {
+					  shadow: {
+						type: "math_number",
+						fields: {
+						  NUM: 100
+						}
+					  }
+					},
+					Y: {
+					  shadow: {
+						type: "math_number",
+						fields: {
+						  NUM: 50
+						}
+					  }
+					},
+					FONT_SIZE: {
+					  shadow: {
+						type: "math_number",
+						fields: {
+						  NUM: 24
+						}
+					  }
+					}
+				  }
+				},
+				{
 					kind: "block",
 					type: "say",
 					keyword: "say",

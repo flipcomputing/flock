@@ -111,6 +111,7 @@ export const flock = {
 				whenKeyPressed,
 				whenKeyReleased,
 				printText,
+				UIText,
 				onIntersect,
 				getProperty,
 				exportMesh,
@@ -382,6 +383,50 @@ export const flock = {
 		};
 
 		return flock.scene;
+	},
+	UIText(text, x, y, fontSize, color, duration, existingTextBlock = null) {
+		if (!flock.scene.UITexture) {
+			flock.scene.UITexture = flock.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
+		}
+
+		// Retrieve the canvas dimensions for the Babylon.js scene
+		const canvas = flock.scene.getEngine().getRenderingCanvas();
+		const maxWidth = canvas.width;
+		const maxHeight = canvas.height;
+
+		// Adjust for negative x and y values (offsets from max canvas width/height)
+		const adjustedX = x < 0 ? maxWidth + x : x;
+		const adjustedY = y < 0 ? maxHeight + y : y;
+
+		let textBlock;
+
+		// Check if the TextBlock already exists (for updating text)
+		if (existingTextBlock) {
+			textBlock = existingTextBlock;
+			textBlock.text = text;
+		} else {
+			// Create a new TextBlock if it doesn't exist
+			textBlock = new flock.GUI.TextBlock();
+			textBlock.text = text;
+			flock.scene.UITexture.addControl(textBlock);
+		}
+
+		// Update the text block properties
+		textBlock.color = color;
+		textBlock.fontSize = fontSize;
+		textBlock.textHorizontalAlignment = flock.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
+		textBlock.textVerticalAlignment = flock.GUI.Control.VERTICAL_ALIGNMENT_TOP;
+		textBlock.left = adjustedX;
+		textBlock.top = adjustedY;
+
+		// Only remove the text if duration is greater than 0
+		if (duration > 0 && !existingTextBlock) {
+			setTimeout(() => {
+				advancedTexture.removeControl(textBlock);
+			}, duration * 1000);
+		}
+
+		return textBlock;
 	},
 	removeEventListeners() {
 		flock.scene.eventListeners.forEach(({ event, handler }) => {

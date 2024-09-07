@@ -1388,6 +1388,57 @@ export function defineBlocks() {
 		},
 	};
 
+	Blockly.Blocks["ui_text"] = {
+	  init: function () {
+		this.jsonInit({
+		  type: "ui_text",
+		  message0: "ui text %1 %2 at x: %3 y: %4  size: %5 for %6 seconds color: %7",
+		  args0: [
+			{
+			  type: "input_value",
+			  name: "TEXT",
+			  check: "String",
+			},
+			{
+			  type: "field_variable",
+			  name: "TEXTBLOCK_VAR", // Variable to store the TextBlock reference
+			},
+			{
+			  type: "input_value",
+			  name: "X",
+			  check: "Number",
+			},
+			{
+			  type: "input_value",
+			  name: "Y",
+			  check: "Number",
+			},
+			{
+			  type: "input_value",
+			  name: "FONT_SIZE",
+			  check: "Number",
+			},
+			{
+			  type: "input_value",
+			  name: "DURATION",
+			  check: "Number",
+			},
+			{
+			  type: "input_value",
+			  name: "COLOR",
+			  check: "Colour",
+			}
+		  ],
+		  inputsInline: true,
+		  previousStatement: null,
+		  nextStatement: null,
+		  colour: 160,
+		  tooltip: "Add text to the UI screen, and store control in a variable for later use or disposal.",
+		  helpUrl: "",
+		});
+	  }
+	};
+
 	Blockly.Blocks["create_map"] = {
 		init: function () {
 			this.jsonInit({
