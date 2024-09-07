@@ -5,7 +5,7 @@
 import HavokPhysics from "@babylonjs/havok";
 import * as BABYLON from "@babylonjs/core";
 import * as BABYLON_GUI from "@babylonjs/gui";
-import * as BABYLON_EXPORT from '@babylonjs/serializers';
+import * as BABYLON_EXPORT from "@babylonjs/serializers";
 import { FlowGraphLog10Block, SetMaterialIDBlock } from "babylonjs";
 import "@fontsource/asap";
 import "@fontsource/asap/500.css";
@@ -31,16 +31,12 @@ export const flock = {
 	canvas: {
 		pressedKeys: null,
 	},
+	document: document,
 	start() {
-		console.log("Creating scene");
-
 		flock.scene = flock.createScene();
-
-		console.log("Scene created");
 	},
 	runCode(code) {
-		const sandboxedFunction = new Function(
-			"flock",
+		const sandboxedCode =
 			`
 			"use strict";
 
@@ -116,25 +112,33 @@ export const flock = {
 				getProperty,
 				exportMesh,
 			} = flock;
+			
+			${code}			
+		`;
 
+		let iframe = document.getElementById("flock-iframe");
+		if (iframe) {
+			iframe.remove(); // Remove the iframe from the DOM
+		}
 
-			// The code should be executed within the function context
-			return function() {
-				${code}
-			};
-		`,
-		)(flock);
+		iframe = document.createElement("iframe");
+		iframe.id = "flock-iframe";
+		iframe.style.display = "none"; 
+		iframe.src = "about:blank"; 
+		document.body.appendChild(iframe);
 
-		// Execute the sandboxed function
-		sandboxedFunction();
+		iframe.contentWindow.flock = flock;
+		iframe.contentWindow.eval(sandboxedCode);
+
 	},
 	async initialize() {
 		flock.BABYLON = BABYLON;
 		flock.GUI = BABYLON_GUI;
 		flock.EXPORT = BABYLON_EXPORT;
-		flock.canvas = document.getElementById("renderCanvas");
-		flock.scene = null;
 		flock.document = document;
+		flock.canvas = flock.document.getElementById("renderCanvas");
+		console.log("Canvas: ", flock.canvas);
+		flock.scene = null;
 		flock.havokInstance = null;
 		flock.engineReady = false;
 		let gizmoManager = null;
@@ -149,7 +153,7 @@ export const flock = {
 		flock.BABYLON.Database.IDBStorageEnabled = true;
 		flock.BABYLON.Engine.CollisionsEpsilon = 0.00005;
 		flock.havokInstance = await HavokPhysics();
-		await document.fonts.ready; // Wait for all fonts to be loaded
+		await flock.document.fonts.ready; // Wait for all fonts to be loaded
 
 		flock.engineReady = true;
 		flock.scene = flock.createScene();
@@ -175,6 +179,7 @@ export const flock = {
 		flock.engine.setHardwareScalingLevel(1 / window.devicePixelRatio);
 	},
 	createScene() {
+		console.log("Creating scene");
 		if (flock.scene) {
 			flock.removeEventListeners();
 			flock.gridKeyPressObservable.clear();
@@ -283,24 +288,24 @@ export const flock = {
 		// Apply the dynamic reflection texture to the scene's environment texture
 		//flock.scene.environmentTexture = dynamicReflectionTexture;
 
-		const camera = new BABYLON.FreeCamera(
+		const camera = new flock.BABYLON.FreeCamera(
 			"camera",
-			new BABYLON.Vector3(0, 3, -10),
+			new flock.BABYLON.Vector3(0, 3, -10),
 			flock.scene,
 		);
 		camera.minZ = 1;
-		camera.setTarget(BABYLON.Vector3.Zero());
-		camera.rotation.x = BABYLON.Tools.ToRadians(0);
+		camera.setTarget(flock.BABYLON.Vector3.Zero());
+		camera.rotation.x = flock.BABYLON.Tools.ToRadians(0);
 		camera.angularSensibilityX = 2000;
 		camera.angularSensibilityY = 2000;
-		const hemisphericLight = new BABYLON.HemisphericLight(
+		const hemisphericLight = new flock.BABYLON.HemisphericLight(
 			"hemisphericLight",
-			new BABYLON.Vector3(0, 1, 0), // Direction: Upwards, simulating light from the sky
+			new flock.BABYLON.Vector3(0, 1, 0), // Direction: Upwards, simulating light from the sky
 			flock.scene,
 		);
 		hemisphericLight.intensity = 1.0; // Adjust the intensity to control how bright the scene is
-		hemisphericLight.diffuse = new BABYLON.Color3(1, 1, 1); // White diffuse light
-		hemisphericLight.groundColor = new BABYLON.Color3(0.5, 0.5, 0.5); // Optional ground color for additional effects
+		hemisphericLight.diffuse = new flock.BABYLON.Color3(1, 1, 1); // White diffuse light
+		hemisphericLight.groundColor = new flock.BABYLON.Color3(0.5, 0.5, 0.5); // Optional ground color for additional effects
 		flock.scene.collisionsEnabled = true;
 
 		flock.controlsTexture =
@@ -386,7 +391,8 @@ export const flock = {
 	},
 	UIText(text, x, y, fontSize, color, duration, existingTextBlock = null) {
 		if (!flock.scene.UITexture) {
-			flock.scene.UITexture = flock.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
+			flock.scene.UITexture =
+				flock.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
 		}
 
 		// Retrieve the canvas dimensions for the Babylon.js scene
@@ -414,8 +420,10 @@ export const flock = {
 		// Update the text block properties
 		textBlock.color = color;
 		textBlock.fontSize = fontSize;
-		textBlock.textHorizontalAlignment = flock.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
-		textBlock.textVerticalAlignment = flock.GUI.Control.VERTICAL_ALIGNMENT_TOP;
+		textBlock.textHorizontalAlignment =
+			flock.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
+		textBlock.textVerticalAlignment =
+			flock.GUI.Control.VERTICAL_ALIGNMENT_TOP;
 		textBlock.left = adjustedX;
 		textBlock.top = adjustedY;
 
@@ -430,7 +438,7 @@ export const flock = {
 	},
 	removeEventListeners() {
 		flock.scene.eventListeners.forEach(({ event, handler }) => {
-			document.removeEventListener(event, handler);
+			flock.document.removeEventListener(event, handler);
 		});
 		flock.scene.eventListeners.length = 0; // Clear the array
 	},
@@ -1360,11 +1368,11 @@ export const flock = {
 			flock.scene,
 		);
 
-		const startPoint = new BABYLON.Vector3(0, -height / 2, 0);
-		const endPoint = new BABYLON.Vector3(0, height / 2, 0);
+		const startPoint = new flock.BABYLON.Vector3(0, -height / 2, 0);
+		const endPoint = new flock.BABYLON.Vector3(0, height / 2, 0);
 
 		// Create the physics shape for the cylinder
-		const cylinderShape = new BABYLON.PhysicsShapeCylinder(
+		const cylinderShape = new flock.BABYLON.PhysicsShapeCylinder(
 			startPoint, // starting point of the cylinder segment
 			endPoint, // ending point of the cylinder segment
 			diameterBottom / 2, // radius of the cylinder (assuming diameterBottom is the larger diameter)
@@ -1806,7 +1814,7 @@ export const flock = {
 				mesh.getBoundingInfo().boundingBox.extendSizeWorld;
 
 			// Calculate the full size by doubling the extend sizes
-			const fullSize = new BABYLON.Vector3(
+			const fullSize = new flock.BABYLON.Vector3(
 				boundingBox.x * 2,
 				boundingBox.y * 2,
 				boundingBox.z * 2,
@@ -2054,7 +2062,7 @@ export const flock = {
 				mesh.rotation.z = radZ;
 			} else {
 				// Convert the X, Y, and Z inputs from degrees to radians
-				
+
 				// Create a target rotation quaternion
 				const targetRotation =
 					flock.BABYLON.Quaternion.RotationYawPitchRoll(
@@ -2590,11 +2598,11 @@ export const flock = {
 		}
 
 		try {
-			const colorDiv = document.createElement("div");
+			const colorDiv = flock.document.createElement("div");
 			colorDiv.style.color = colourString;
-			document.body.appendChild(colorDiv);
+			flock.document.body.appendChild(colorDiv);
 			const computedColor = getComputedStyle(colorDiv).color;
-			document.body.removeChild(colorDiv);
+			flock.document.body.removeChild(colorDiv);
 			return flock.rgbToHex(computedColor);
 		} catch (e) {
 			return "#000000";
@@ -2695,13 +2703,14 @@ export const flock = {
 
 		// Check if PBR is needed
 		if (metallic > 0 || roughness < 1) {
-			material = new BABYLON.PBRMetallicRoughnessMaterial(
+			material = new flock.BABYLON.PBRMetallicRoughnessMaterial(
 				"material",
 				flock.scene,
 			);
 
 			// Set albedoColor correctly for PBRMaterial
-			material.baseColor = BABYLON.Color3.FromHexString(albedoColor);
+			material.baseColor =
+				flock.BABYLON.Color3.FromHexString(albedoColor);
 
 			material.metallic = metallic;
 			material.roughness = roughness;
@@ -2709,13 +2718,13 @@ export const flock = {
 			// Apply texture to the albedoTexture for PBR materials
 			if (textureSet !== "none.png") {
 				const baseTexturePath = `./textures/${textureSet}`;
-				material.baseTexture = new BABYLON.Texture(
+				material.baseTexture = new flock.BABYLON.Texture(
 					baseTexturePath,
 					flock.scene,
 				);
 
 				const normalTexturePath = `./textures/normal/${textureSet}`;
-				material.normalTexture = new BABYLON.Texture(
+				material.normalTexture = new flock.BABYLON.Texture(
 					normalTexturePath,
 					flock.scene,
 				);
@@ -2727,26 +2736,31 @@ export const flock = {
 				console.warn("No environmentTexture found for the scene.");
 			}
 		} else {
-			material = new BABYLON.StandardMaterial("material", flock.scene);
+			material = new flock.BABYLON.StandardMaterial(
+				"material",
+				flock.scene,
+			);
 
-			material.diffuseColor = BABYLON.Color3.FromHexString(albedoColor);
+			material.diffuseColor =
+				flock.BABYLON.Color3.FromHexString(albedoColor);
 
 			if (textureSet !== "none.png") {
 				const baseTexturePath = `./textures/${textureSet}`;
-				material.diffuseTexture = new BABYLON.Texture(
+				material.diffuseTexture = new flock.BABYLON.Texture(
 					baseTexturePath,
 					flock.scene,
 				);
 
 				const normalTexturePath = `./textures/normal/${textureSet}`;
-				material.bumpTexture = new BABYLON.Texture(
+				material.bumpTexture = new flock.BABYLON.Texture(
 					normalTexturePath,
 					flock.scene,
 				);
 			}
 		}
 
-		material.emissiveColor = BABYLON.Color3.FromHexString(emissiveColor);
+		material.emissiveColor =
+			flock.BABYLON.Color3.FromHexString(emissiveColor);
 
 		material.alpha = alpha;
 		return material;
@@ -3496,46 +3510,58 @@ export const flock = {
 		});
 	},
 	download(filename, data, mimeType) {
-	  const blob = new Blob([data], { type: mimeType });
-	  const url = URL.createObjectURL(blob);
-	  const a = document.createElement('a');
-	  a.href = url;
-	  a.download = filename;
-	  document.body.appendChild(a);
-	  a.click();
-	  document.body.removeChild(a);
-	  URL.revokeObjectURL(url);
+		const blob = new Blob([data], { type: mimeType });
+		const url = URL.createObjectURL(blob);
+		const a = flock.document.createElement("a");
+		a.href = url;
+		a.download = filename;
+		flock.document.body.appendChild(a);
+		a.click();
+		flock.document.body.removeChild(a);
+		URL.revokeObjectURL(url);
 	},
 	exportMesh(meshName, format) {
 		return flock.whenModelReady(meshName, async function (mesh) {
-			const rootChild = mesh.getChildMeshes().find(child => child.name === "__root__");
+			const rootChild = mesh
+				.getChildMeshes()
+				.find((child) => child.name === "__root__");
 			if (rootChild) {
 				mesh = rootChild;
 			}
 
-
 			const childMeshes = mesh.getChildMeshes(false);
 
-			  // Combine the parent mesh with its children
-			  const meshList = [mesh, ...childMeshes];
+			// Combine the parent mesh with its children
+			const meshList = [mesh, ...childMeshes];
 			console.log(meshList);
-	  if (format === 'STL') {
-		const stlData = flock.EXPORT.STLExport.CreateSTL(meshList, true, mesh.name, false, false);
-		
-	  } else if (format === 'OBJ') {
-		const objData = flock.EXPORT.OBJExport.OBJ(mesh);
-		download(mesh.name + ".obj", objData, "text/plain");
-	  } else if (format === 'GLB') {
-		flock.EXPORT.GLTF2Export.GLBAsync(meshList, mesh.name + ".glb").then((glbData) => {
-		  const blob = new Blob([glbData.glb], { type: "model/gltf-binary" });
-		  download(mesh.name + ".glb", blob, "model/gltf-binary");
+			if (format === "STL") {
+				const stlData = flock.EXPORT.STLExport.CreateSTL(
+					meshList,
+					true,
+					mesh.name,
+					false,
+					false,
+				);
+			} else if (format === "OBJ") {
+				const objData = flock.EXPORT.OBJExport.OBJ(mesh);
+				download(mesh.name + ".obj", objData, "text/plain");
+			} else if (format === "GLB") {
+				flock.EXPORT.GLTF2Export.GLBAsync(
+					meshList,
+					mesh.name + ".glb",
+				).then((glbData) => {
+					const blob = new Blob([glbData.glb], {
+						type: "model/gltf-binary",
+					});
+					download(mesh.name + ".glb", blob, "model/gltf-binary");
+				});
+			}
 		});
-	  }})
-	},								
+	},
 };
 
 export function initializeFlock() {
-	const scriptElement = document.getElementById("flock");
+	const scriptElement = flock.document.getElementById("flock");
 	if (scriptElement) {
 		flock
 			.initialize()

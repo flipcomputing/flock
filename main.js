@@ -50,7 +50,6 @@ function loadWorkspace() {
 			workspace,
 		);
 	} else {*/
-		console.log("Loading default program", initialBlocksJson);
 		// Load the JSON into the workspace
 		Blockly.serialization.workspaces.load(
 			initialBlocksJson,
@@ -122,9 +121,10 @@ function executeCode() {
 
 function stopCode() {
 	flock.scene.dispose();
-	removeEventListeners();
+	flock.removeEventListeners();
 	switchView(codeMode);
 }
+
 window.stopCode = stopCode;
 
 function onResize() {

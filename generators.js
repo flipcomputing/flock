@@ -369,7 +369,7 @@ export function defineGenerators() {
 
 	javascriptGenerator.forBlock["set_background_color"] = function (block) {
 		const color = getFieldValue(block, "COLOR", "#6495ED");
-		return `flock.scene.clearColor = BABYLON.Color4.FromHexString(${color} + "FF");\n`;
+		return `flock.scene.clearColor = flock.BABYLON.Color4.FromHexString(${color} + "FF");\n`;
 	};
 
 	javascriptGenerator.forBlock["create_wall"] = function (block) {
