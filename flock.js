@@ -2420,32 +2420,53 @@ export const flock = {
 				if (mesh) {
 					const startPosition = mesh.position.clone();
 					const endPosition = new flock.BABYLON.Vector3(x, y, z);
-					const fps = 30;
-					const frames = 30 * (duration / 1000);
 
+					// Stop any ongoing glide animation
 					if (mesh.glide) {
 						mesh.glide.stop();
 					}
 
-					if (mesh.physics) mesh.physics.disablePreStep = false;
+					// Enable physics if applicable
+					if (mesh.physics) {
+						mesh.physics.disablePreStep = false;
+					}
 
-					mesh.glide =
-						flock.BABYLON.Animation.CreateAndStartAnimation(
-							"anim",
-							mesh,
-							"position",
-							fps,
-							frames,
-							startPosition,
-							endPosition,
-							flock.BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT,
-						);
+					// Create the animation with time-based interpolation
+					const animation = new flock.BABYLON.Animation(
+						"anim",
+						"position",
+						30,  // This is the target FPS, but the animation will be time-based
+						flock.BABYLON.Animation.ANIMATIONTYPE_VECTOR3,
+						flock.BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT
+					);
 
-					mesh.glide.onAnimationEndObservable.add(() => {
-						if (mesh.physics) mesh.physics.disablePreStep = true;
+					// Define the keyframes for the animation (time-based, not frame-based)
+					const keys = [
+						{ frame: 0, value: startPosition },
+						{ frame: duration / 1000 * 30, value: endPosition },  // Frames correspond to duration
+					];
+
+					animation.setKeys(keys);
+
+					// Apply the animation to the mesh
+					mesh.glide = mesh.animations = [animation];
+
+					// Start the animation
+					const animatable = flock.scene.beginAnimation(
+						mesh,
+						0,
+						duration / 1000 * 30,
+						false  // Do not loop
+					);
+
+					// Set up event listener for animation end
+					animatable.onAnimationEnd = () => {
+						if (mesh.physics) {
+							mesh.physics.disablePreStep = true;
+						}
 						mesh.glide = null;
 						resolve();
-					});
+					};
 				} else {
 					resolve();
 				}
