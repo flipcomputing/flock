@@ -2414,12 +2414,14 @@ export const flock = {
 				flock.createButtonControls(color);
 		}
 	},
-	async glideTo(meshName, x, y, z, duration) {
+	async glideTo(meshName, x, y, z, duration, reverse = false, loop = false) {
 		return new Promise(async (resolve) => {
 			await flock.whenModelReady(meshName, async function (mesh) {
 				if (mesh) {
-					const startPosition = mesh.position.clone();
+					const startPosition = mesh.position.clone();  // Store the original position
 					const endPosition = new flock.BABYLON.Vector3(x, y, z);
+					const fps = 30;
+					const frames = fps * (duration / 1000);
 
 					// Stop any ongoing glide animation
 					if (mesh.glide) {
@@ -2431,44 +2433,73 @@ export const flock = {
 						mesh.physics.disablePreStep = false;
 					}
 
-					// Create the animation with time-based interpolation
-					const animation = new flock.BABYLON.Animation(
-						"anim",
+					// Determine the loop mode based on reverse and loop
+					const loopMode = reverse ? flock.BABYLON.Animation.ANIMATIONLOOPMODE_YOYO : flock.BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT;
+
+					// Create the animation for forward movement
+					const glideAnimation = new flock.BABYLON.Animation(
+						"glideTo",
 						"position",
-						30,  // This is the target FPS, but the animation will be time-based
+						fps,
 						flock.BABYLON.Animation.ANIMATIONTYPE_VECTOR3,
-						flock.BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT
+						loopMode  // YOYO for reverse and loop, CONSTANT otherwise
 					);
 
-					// Define the keyframes for the animation (time-based, not frame-based)
-					const keys = [
+					// Define keyframes for forward motion
+					const glideKeys = [
 						{ frame: 0, value: startPosition },
-						{ frame: duration / 1000 * 30, value: endPosition },  // Frames correspond to duration
+						{ frame: frames, value: endPosition }
 					];
 
-					animation.setKeys(keys);
+					glideAnimation.setKeys(glideKeys);
 
-					// Apply the animation to the mesh
-					mesh.glide = mesh.animations = [animation];
+					// Attach the animation to the mesh
+					mesh.animations = [glideAnimation];
 
 					// Start the animation
-					const animatable = flock.scene.beginAnimation(
-						mesh,
-						0,
-						duration / 1000 * 30,
-						false  // Do not loop
-					);
+					const animatable = flock.scene.beginAnimation(mesh, 0, frames, loop);
 
-					// Set up event listener for animation end
-					animatable.onAnimationEnd = () => {
-						if (mesh.physics) {
-							mesh.physics.disablePreStep = true;
-						}
-						mesh.glide = null;
-						resolve();
-					};
+					if (reverse && !loop) {
+						// When reverse is true but loop is false, manually handle reverse
+						animatable.onAnimationEndObservable.add(() => {
+							// Create the reverse animation manually (end -> start)
+							const reverseAnimation = new flock.BABYLON.Animation(
+								"reverseGlide",
+								"position",
+								fps,
+								flock.BABYLON.Animation.ANIMATIONTYPE_VECTOR3,
+flock.BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT
+							);
+
+							const reverseKeys = [
+								{ frame: 0, value: endPosition },
+								{ frame: frames, value: startPosition }
+							];
+
+							reverseAnimation.setKeys(reverseKeys);
+
+							// Attach and start the reverse animation
+							mesh.animations = [reverseAnimation];
+							const reverseAnimatable = flock.scene.beginAnimation(mesh, 0, frames, false);
+
+							reverseAnimatable.onAnimationEndObservable.add(() => {
+								if (mesh.physics) {
+									mesh.physics.disablePreStep = true;
+								}
+								resolve();  // Resolve after reverse completes
+							});
+						});
+					} else {
+						// If not reversing or infinite looping, resolve after forward motion completes
+						animatable.onAnimationEndObservable.add(() => {
+							if (mesh.physics) {
+								mesh.physics.disablePreStep = true;
+							}
+							resolve();  // Resolve after forward motion or loop
+						});
+					}
 				} else {
-					resolve();
+					resolve();  // Resolve immediately if the mesh is not available
 				}
 			});
 		});

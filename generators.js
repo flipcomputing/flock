@@ -78,9 +78,14 @@ export function defineGenerators() {
 		);
 		const duration = getFieldValue(block, "DURATION", "0");
 		const mode = block.getFieldValue("MODE");
+		const reverse = block.getFieldValue("REVERSE") === "TRUE";  // Get reverse option
+		const loop = block.getFieldValue("LOOP") === "TRUE";        // Get loop option
 
+		// Handle async wrapping for await/start mode
 		const asyncWrapper = mode === "AWAIT" ? "await " : "";
-		return `${asyncWrapper}glideTo(${meshName}, ${x}, ${y}, ${z}, ${duration}, "${mode}");\n`;
+
+		// Generate the glideTo function call with reverse and loop options
+		return `${asyncWrapper}glideTo(${meshName}, ${x}, ${y}, ${z}, ${duration}, ${reverse}, ${loop});\n`;
 	};
 
 	javascriptGenerator.forBlock["start"] = function (block) {

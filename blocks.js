@@ -379,7 +379,7 @@ export function defineBlocks() {
 		init: function () {
 			this.jsonInit({
 				type: "glide_to",
-				message0: "glide %1 to x %2 y %3 z %4 in %5 ms %6",
+				message0: "glide %1 to x %2 y %3 z %4 in %5 ms %6 return? %7 loop? %8",
 				args0: [
 					{
 						type: "field_variable",
@@ -414,16 +414,29 @@ export function defineBlocks() {
 							["start", "START"],
 						],
 					},
+					{
+						type: "field_checkbox",
+						name: "REVERSE",
+						checked: false,  // Default: No reverse
+						text: "reverse",
+					},
+					{
+						type: "field_checkbox",
+						name: "LOOP",
+						checked: false,  // Default: No loop
+						text: "loop",
+					},
 				],
 				previousStatement: null,
 				nextStatement: null,
 				colour: categoryColours["Motion"],
 				tooltip:
-					"Glide to a specified position over a duration\nKeyword: glide",
+					"Glide to a specified position over a duration with options to reverse and loop",
 				helpUrl: "",
 			});
 		},
 	};
+
 
 	Blockly.Blocks["set_sky_color"] = {
 		init: function () {
