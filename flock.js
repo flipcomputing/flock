@@ -31,7 +31,9 @@ export const flock = {
 	canvas: {
 		pressedKeys: null,
 	},
+	abortController: null,
 	document: document,
+	disposed: null,
 	start() {
 		flock.scene = flock.createScene();
 	},
@@ -156,6 +158,7 @@ export const flock = {
 		await flock.document.fonts.ready; // Wait for all fonts to be loaded
 
 		flock.engineReady = true;
+		flock.abortController = new AbortController();
 		flock.scene = flock.createScene();
 		flock.scene.eventListeners = [];
 		flock.canvas.addEventListener("keydown", function (event) {
@@ -180,10 +183,19 @@ export const flock = {
 	},
 	createScene() {
 		console.log("Creating scene");
+		if(!flock.disposed)
+			flock.disposed = true;
+		if(flock.abortController){
+			console.log("Aborting");
+			flock.abortController.abort(); // Abort any previous operations
+			flock.abortController = new AbortController(); // Create a fresh controller
+		}
+			
 		if (flock.scene) {
 			flock.removeEventListeners();
 			flock.gridKeyPressObservable.clear();
 			flock.gridKeyReleaseObservable.clear();
+		flock.scene.animationGroups.forEach((group) => group.dispose());
 			flock.scene.dispose();
 			flock.scene = null;
 			flock.controlsTexture.dispose();
@@ -199,6 +211,7 @@ export const flock = {
 		}
 
 		flock.scene = new flock.BABYLON.Scene(flock.engine);
+		flock.disposed = false;
 
 		flock.engine.runRenderLoop(function () {
 			flock.scene.render();
@@ -375,13 +388,19 @@ export const flock = {
 				textLines.push(bg);
 
 				// Remove the text after the specified duration
-				setTimeout(() => {
+				const timeoutId = setTimeout(() => {
 					if (flock.scene) {
 						// Ensure scene is still valid before removing
 						stackPanel.removeControl(bg);
 						textLines.splice(textLines.indexOf(bg), 1);
 					}
 				}, duration * 1000);
+
+				// Listen for the abort signal to clear the timeout
+				flock.abortController.signal.addEventListener("abort", () => {
+					clearTimeout(timeoutId); // Clear the timeout if aborted
+				});
+
 			} catch (error) {
 				//console.warn("Unable to print text:", error);
 			}
@@ -429,10 +448,16 @@ export const flock = {
 
 		// Only remove the text if duration is greater than 0
 		if (duration > 0 && !existingTextBlock) {
-			setTimeout(() => {
+			const timeoutId = setTimeout(() => {
 				advancedTexture.removeControl(textBlock);
 			}, duration * 1000);
+
+			// Listen for the abort signal to clear the timeout
+			flock.abortController.signal.addEventListener("abort", () => {
+				clearTimeout(timeoutId); // Clear the timeout if aborted
+			});
 		}
+
 
 		return textBlock;
 	},
@@ -448,10 +473,18 @@ export const flock = {
 		initialInterval = 100, // Start with a shorter interval
 		maxInterval = 1000, // Cap the interval at a maximum value
 	) {
+		
 		let attempt = 1;
 		let interval = initialInterval;
+		const { signal } = flock.abortController; // Use the global controller signal
 
 		while (attempt <= maxAttempts) {
+
+			if (flock.disposed || !flock.scene || flock.scene.isDisposed) {
+				console.warn('Scene has been disposed or generator invalidated.');
+				return;
+			}
+			
 			if (flock.scene) {
 				if (meshId === "__active_camera__") {
 					yield flock.scene.activeCamera;
@@ -465,7 +498,21 @@ export const flock = {
 				}
 			}
 
-			await new Promise((resolve) => setTimeout(resolve, interval));
+			try {
+				await new Promise((resolve, reject) => {
+					const timeoutId = setTimeout(resolve, interval);
+
+					// Reject if the signal aborts
+					signal.addEventListener("abort", () => {
+						console.log("Aborting request");
+						clearTimeout(timeoutId);
+						reject(new Error("Timeout aborted"));
+					});
+				});
+			} catch (error) {
+				console.warn('Timeout aborted:', error);
+				return; // Exit the generator if aborted
+			}
 
 			// Gradually increase the interval for the next attempt
 			interval = Math.min(interval * 2, maxInterval);
@@ -1061,7 +1108,15 @@ export const flock = {
 		);
 	},
 	wait(duration) {
-		return new Promise((resolve) => setTimeout(resolve, duration));
+		return new Promise((resolve, reject) => {
+			const timeoutId = setTimeout(resolve, duration);
+
+			// Listen for the abort signal to cancel the wait
+			flock.abortController.signal.addEventListener("abort", () => {
+				clearTimeout(timeoutId); // Clear the timeout if aborted
+				reject(new Error("Wait aborted"));
+			});
+		});
 	},
 	waitUntil(conditionFunc) {
 		return new Promise((resolve, reject) => {
@@ -1207,9 +1262,16 @@ export const flock = {
 					});
 				});
 			}
-			await new Promise((resolve) =>
-				setTimeout(resolve, attemptInterval),
-			);
+			await new Promise((resolve, reject) => {
+				const timeoutId = setTimeout(resolve, attemptInterval);
+
+				// Listen for the abort signal to cancel the timeout
+				flock.abortController.signal.addEventListener("abort", () => {
+					clearTimeout(timeoutId); // Clear the timeout if aborted
+					reject(new Error("Timeout aborted")); // Reject the promise if aborted
+				});
+			});
+
 		}
 		console.error(
 			`Failed to find mesh "${modelName}" after ${maxAttempts} attempts.`,
@@ -3338,13 +3400,22 @@ flock.BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT
 					bg.addControl(textBlock);
 
 					if (duration > 0) {
-						setTimeout(function () {
+						const timeoutId = setTimeout(function () {
 							stackPanel.removeControl(bg);
 							bg.dispose();
 							textBlock.dispose();
 							resolve();
 						}, duration * 1000);
-					} else {
+
+						// Listen for abort signal to cancel the timeout
+						flock.abortController.signal.addEventListener("abort", () => {
+							clearTimeout(timeoutId); // Clear the timeout if aborted
+							bg.dispose(); // Optionally dispose of resources to avoid memory leaks
+							textBlock.dispose();
+							resolve(new Error("Action aborted"));
+						});
+					}
+else {
 						resolve(); // Resolve immediately if duration is 0
 					}
 				} else {
