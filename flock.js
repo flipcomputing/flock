@@ -38,8 +38,7 @@ export const flock = {
 		flock.scene = flock.createScene();
 	},
 	runCode(code) {
-		const sandboxedCode =
-			`
+		const sandboxedCode = `
 			"use strict";
 
 			const {
@@ -75,6 +74,8 @@ export const flock = {
 				lookAt,
 				moveTo,
 				rotateTo,
+				rotateAnim,
+				animateProperty,
 				positionAt,
 				distanceTo,
 				wait,
@@ -125,13 +126,12 @@ export const flock = {
 
 		iframe = document.createElement("iframe");
 		iframe.id = "flock-iframe";
-		iframe.style.display = "none"; 
-		iframe.src = "about:blank"; 
+		iframe.style.display = "none";
+		iframe.src = "about:blank";
 		document.body.appendChild(iframe);
 
 		iframe.contentWindow.flock = flock;
 		iframe.contentWindow.eval(sandboxedCode);
-
 	},
 	async initialize() {
 		flock.BABYLON = BABYLON;
@@ -183,19 +183,18 @@ export const flock = {
 	},
 	createScene() {
 		console.log("Creating scene");
-		if(!flock.disposed)
-			flock.disposed = true;
-		if(flock.abortController){
+		if (!flock.disposed) flock.disposed = true;
+		if (flock.abortController) {
 			console.log("Aborting");
 			flock.abortController.abort(); // Abort any previous operations
 			flock.abortController = new AbortController(); // Create a fresh controller
 		}
-			
+
 		if (flock.scene) {
 			flock.removeEventListeners();
 			flock.gridKeyPressObservable.clear();
 			flock.gridKeyReleaseObservable.clear();
-		flock.scene.animationGroups.forEach((group) => group.dispose());
+			flock.scene.animationGroups.forEach((group) => group.dispose());
 			flock.scene.dispose();
 			flock.scene = null;
 			flock.controlsTexture.dispose();
@@ -400,7 +399,6 @@ export const flock = {
 				flock.abortController.signal.addEventListener("abort", () => {
 					clearTimeout(timeoutId); // Clear the timeout if aborted
 				});
-
 			} catch (error) {
 				//console.warn("Unable to print text:", error);
 			}
@@ -458,7 +456,6 @@ export const flock = {
 			});
 		}
 
-
 		return textBlock;
 	},
 	removeEventListeners() {
@@ -473,18 +470,18 @@ export const flock = {
 		initialInterval = 100, // Start with a shorter interval
 		maxInterval = 1000, // Cap the interval at a maximum value
 	) {
-		
 		let attempt = 1;
 		let interval = initialInterval;
 		const { signal } = flock.abortController; // Use the global controller signal
 
 		while (attempt <= maxAttempts) {
-
 			if (flock.disposed || !flock.scene || flock.scene.isDisposed) {
-				console.warn('Scene has been disposed or generator invalidated.');
+				console.warn(
+					"Scene has been disposed or generator invalidated.",
+				);
 				return;
 			}
-			
+
 			if (flock.scene) {
 				if (meshId === "__active_camera__") {
 					yield flock.scene.activeCamera;
@@ -510,7 +507,7 @@ export const flock = {
 					});
 				});
 			} catch (error) {
-				console.warn('Timeout aborted:', error);
+				console.warn("Timeout aborted:", error);
 				return; // Exit the generator if aborted
 			}
 
@@ -1271,7 +1268,6 @@ export const flock = {
 					reject(new Error("Timeout aborted")); // Reject the promise if aborted
 				});
 			});
-
 		}
 		console.error(
 			`Failed to find mesh "${modelName}" after ${maxAttempts} attempts.`,
@@ -2148,6 +2144,194 @@ export const flock = {
 			mesh.computeWorldMatrix(true);
 		});
 	},
+	async rotateAnim(
+		meshName,
+		rotX,
+		rotY,
+		rotZ,
+		duration,
+		reverse = false,
+		loop = false,
+		easing = "Linear",
+	) {
+		return new Promise(async (resolve) => {
+			await flock.whenModelReady(meshName, async function (mesh) {
+				if (mesh) {
+					const startRotation = mesh.rotation.clone(); // Store the original rotation
+
+					// Convert degrees to radians
+					const targetRotation = new flock.BABYLON.Vector3(
+						rotX * (Math.PI / 180), // X-axis in radians
+						rotY * (Math.PI / 180), // Y-axis in radians
+						rotZ * (Math.PI / 180), // Z-axis in radians
+					);
+
+					const fps = 30;
+					const frames = fps * (duration / 1000);
+
+					// Determine the loop mode based on reverse and loop
+					let loopMode;
+					if (reverse) {
+						loopMode =
+							flock.BABYLON.Animation.ANIMATIONLOOPMODE_YOYO; // Reverse and loop
+					} else if (loop) {
+						loopMode =
+							flock.BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE; // Loop and reset to start
+					} else {
+						loopMode =
+							flock.BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT; // No loop
+					}
+
+					// Create the rotation animation
+					const rotateAnimation = new flock.BABYLON.Animation(
+						"rotateTo",
+						"rotation",
+						fps,
+						flock.BABYLON.Animation.ANIMATIONTYPE_VECTOR3,
+						loopMode,
+					);
+
+					// Define keyframes for rotation
+					const rotateKeys = [
+						{ frame: 0, value: startRotation },
+						{ frame: frames, value: targetRotation },
+					];
+
+					rotateAnimation.setKeys(rotateKeys);
+
+					// Apply easing if needed
+					if (easing !== "Linear") {
+						let easingFunction;
+						switch (easing) {
+							case "SineEase":
+								easingFunction = new flock.BABYLON.SineEase();
+								break;
+							case "CubicEase":
+								easingFunction = new flock.BABYLON.CubicEase();
+								break;
+							case "QuadraticEase":
+								easingFunction =
+									new flock.BABYLON.QuadraticEase();
+								break;
+							case "ExponentialEase":
+								easingFunction =
+									new flock.BABYLON.ExponentialEase();
+								break;
+							case "BounceEase":
+								easingFunction = new flock.BABYLON.BounceEase();
+								break;
+							case "ElasticEase":
+								easingFunction =
+									new flock.BABYLON.ElasticEase();
+								break;
+							case "BackEase":
+								easingFunction = new flock.BABYLON.BackEase();
+								break;
+							default:
+								easingFunction = new flock.BABYLON.SineEase();
+						}
+						easingFunction.setEasingMode(
+							flock.BABYLON.EasingFunction.EASINGMODE_EASEINOUT,
+						);
+						rotateAnimation.setEasingFunction(easingFunction);
+						
+					}
+
+					// Append the rotation animation to the mesh
+					mesh.animations.push(rotateAnimation); // Append, don’t overwrite existing animations
+
+					// Start the rotation animation
+					const animatable = flock.scene.beginAnimation(
+						mesh,
+						0,
+						frames,
+						loop,
+					);
+					animatable.onAnimationEndObservable.add(() => {
+						resolve(); // Resolve after rotation completes
+					});
+				} else {
+					resolve(); // Resolve immediately if the mesh is not available
+				}
+			});
+		});
+	},
+	async animateProperty(meshName, property, targetValue, duration, reverse = false, loop = false, mode = "START") {
+		const fps = 30;
+		const frames = fps * (duration / 1000);
+
+		// Await mesh to be ready
+		await flock.whenModelReady(meshName, async function(mesh) {
+			if (!mesh) {
+				console.error(`Mesh with name ${meshName} not found.`);
+				return;
+			}
+
+			// If the property is a color, convert the hex string to Color3
+			if (property === 'diffuseColor' || property === 'emissiveColor' || property === 'ambientColor' || property === 'specularColor') {
+				targetValue = flock.BABYLON.Color3.FromHexString(targetValue);
+			}
+
+			// Helper function to animate a material property
+			function animateProperty(material, property, targetValue) {
+				const startValue = material[property];
+
+				// Determine the animation type
+				const animationType = property === 'alpha' ? flock.BABYLON.Animation.ANIMATIONTYPE_FLOAT : flock.BABYLON.Animation.ANIMATIONTYPE_COLOR3;
+
+				// Create the animation
+				const animation = new flock.BABYLON.Animation(
+					`animate_${property}`,
+					property,
+					fps,
+					animationType,
+					reverse ? flock.BABYLON.Animation.ANIMATIONLOOPMODE_YOYO : flock.BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT
+				);
+
+				// Define keyframes
+				const keys = [
+					{ frame: 0, value: startValue },
+					{ frame: frames, value: targetValue }
+				];
+				animation.setKeys(keys);
+
+				material.animations = material.animations || [];
+				material.animations.push(animation);
+
+				// Start the animation
+				const animatable = flock.scene.beginAnimation(material, 0, frames, loop);
+				material.markAsDirty(flock.BABYLON.Material.MiscDirtyFlag); // Force material update
+
+				return animatable;
+			}
+
+			// Function to animate material and its children recursively
+			function animateMeshAndChildren(mesh) {
+				if (mesh.material) {
+					return animateProperty(mesh.material, property, targetValue);
+				}
+				if (mesh.getChildren) {
+					mesh.getChildren().forEach(child => animateMeshAndChildren(child));
+				}
+			}
+
+			// Start the animation based on the mode (await or start)
+			if (mode === "AWAIT") {
+				return new Promise((resolve) => {
+					const animatable = animateMeshAndChildren(mesh);
+					if (animatable) {
+						animatable.onAnimationEndObservable.add(() => {
+							resolve();
+						});
+					} else {
+						resolve();  // Resolve immediately if no animation
+					}
+				});
+			} else {
+				animateMeshAndChildren(mesh);
+			}
+		});
+	},
 	positionAt(meshName, x, y, z, useY = true) {
 		return flock.whenModelReady(meshName, (mesh) => {
 			if (mesh.physics) {
@@ -2476,11 +2660,20 @@ export const flock = {
 				flock.createButtonControls(color);
 		}
 	},
-	async glideTo(meshName, x, y, z, duration, reverse = false, loop = false) {
+	async glideTo(
+		meshName,
+		x,
+		y,
+		z,
+		duration,
+		reverse = false,
+		loop = false,
+		easing = "Linear",
+	) {
 		return new Promise(async (resolve) => {
 			await flock.whenModelReady(meshName, async function (mesh) {
 				if (mesh) {
-					const startPosition = mesh.position.clone();  // Store the original position
+					const startPosition = mesh.position.clone(); // Store the original position
 					const endPosition = new flock.BABYLON.Vector3(x, y, z);
 					const fps = 30;
 					const frames = fps * (duration / 1000);
@@ -2496,7 +2689,9 @@ export const flock = {
 					}
 
 					// Determine the loop mode based on reverse and loop
-					const loopMode = reverse ? flock.BABYLON.Animation.ANIMATIONLOOPMODE_YOYO : flock.BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT;
+					const loopMode = reverse
+						? flock.BABYLON.Animation.ANIMATIONLOOPMODE_YOYO
+						: flock.BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT;
 
 					// Create the animation for forward movement
 					const glideAnimation = new flock.BABYLON.Animation(
@@ -2504,52 +2699,104 @@ export const flock = {
 						"position",
 						fps,
 						flock.BABYLON.Animation.ANIMATIONTYPE_VECTOR3,
-						loopMode  // YOYO for reverse and loop, CONSTANT otherwise
+						loopMode, // YOYO for reverse and loop, CONSTANT otherwise
 					);
 
 					// Define keyframes for forward motion
 					const glideKeys = [
 						{ frame: 0, value: startPosition },
-						{ frame: frames, value: endPosition }
+						{ frame: frames, value: endPosition },
 					];
 
 					glideAnimation.setKeys(glideKeys);
 
+					// Apply easing only if it's not "Linear"
+					if (easing !== "Linear") {
+						let easingFunction;
+						switch (easing) {
+							case "SineEase":
+								easingFunction = new flock.BABYLON.SineEase();
+								break;
+							case "CubicEase":
+								easingFunction = new flock.BABYLON.CubicEase();
+								break;
+							case "QuadraticEase":
+								easingFunction =
+									new flock.BABYLON.QuadraticEase();
+								break;
+							case "ExponentialEase":
+								easingFunction =
+									new flock.BABYLON.ExponentialEase();
+								break;
+							case "BounceEase":
+								easingFunction = new flock.BABYLON.BounceEase();
+								break;
+							case "ElasticEase":
+								easingFunction =
+									new flock.BABYLON.ElasticEase();
+								break;
+							case "BackEase":
+								easingFunction = new flock.BABYLON.BackEase();
+								break;
+							default:
+								easingFunction = new flock.BABYLON.SineEase(); // Default to SineEase if no match
+						}
+						easingFunction.setEasingMode(
+							flock.BABYLON.EasingFunction.EASINGMODE_EASEINOUT,
+						); // Smooth easing
+						glideAnimation.setEasingFunction(easingFunction); // Apply the easing function
+						
+					}
+
 					// Attach the animation to the mesh
-					mesh.animations = [glideAnimation];
+					mesh.animations.push(glideAnimation);
 
 					// Start the animation
-					const animatable = flock.scene.beginAnimation(mesh, 0, frames, loop);
+					const animatable = flock.scene.beginAnimation(
+						mesh,
+						0,
+						frames,
+						loop,
+					);
 
 					if (reverse && !loop) {
 						// When reverse is true but loop is false, manually handle reverse
 						animatable.onAnimationEndObservable.add(() => {
 							// Create the reverse animation manually (end -> start)
-							const reverseAnimation = new flock.BABYLON.Animation(
-								"reverseGlide",
-								"position",
-								fps,
-								flock.BABYLON.Animation.ANIMATIONTYPE_VECTOR3,
-flock.BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT
-							);
+							const reverseAnimation =
+								new flock.BABYLON.Animation(
+									"reverseGlide",
+									"position",
+									fps,
+									flock.BABYLON.Animation.ANIMATIONTYPE_VECTOR3,
+									flock.BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT,
+								);
 
 							const reverseKeys = [
 								{ frame: 0, value: endPosition },
-								{ frame: frames, value: startPosition }
+								{ frame: frames, value: startPosition },
 							];
 
 							reverseAnimation.setKeys(reverseKeys);
 
 							// Attach and start the reverse animation
-							mesh.animations = [reverseAnimation];
-							const reverseAnimatable = flock.scene.beginAnimation(mesh, 0, frames, false);
+							mesh.animations.push(reverseAnimation);
+							const reverseAnimatable =
+								flock.scene.beginAnimation(
+									mesh,
+									0,
+									frames,
+									false,
+								);
 
-							reverseAnimatable.onAnimationEndObservable.add(() => {
-								if (mesh.physics) {
-									mesh.physics.disablePreStep = true;
-								}
-								resolve();  // Resolve after reverse completes
-							});
+							reverseAnimatable.onAnimationEndObservable.add(
+								() => {
+									if (mesh.physics) {
+										mesh.physics.disablePreStep = true;
+									}
+									resolve(); // Resolve after reverse completes
+								},
+							);
 						});
 					} else {
 						// If not reversing or infinite looping, resolve after forward motion completes
@@ -2557,11 +2804,11 @@ flock.BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT
 							if (mesh.physics) {
 								mesh.physics.disablePreStep = true;
 							}
-							resolve();  // Resolve after forward motion or loop
+							resolve(); // Resolve after forward motion or loop
 						});
 					}
 				} else {
-					resolve();  // Resolve immediately if the mesh is not available
+					resolve(); // Resolve immediately if the mesh is not available
 				}
 			});
 		});
@@ -3408,14 +3655,16 @@ flock.BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT
 						}, duration * 1000);
 
 						// Listen for abort signal to cancel the timeout
-						flock.abortController.signal.addEventListener("abort", () => {
-							clearTimeout(timeoutId); // Clear the timeout if aborted
-							bg.dispose(); // Optionally dispose of resources to avoid memory leaks
-							textBlock.dispose();
-							resolve(new Error("Action aborted"));
-						});
-					}
-else {
+						flock.abortController.signal.addEventListener(
+							"abort",
+							() => {
+								clearTimeout(timeoutId); // Clear the timeout if aborted
+								bg.dispose(); // Optionally dispose of resources to avoid memory leaks
+								textBlock.dispose();
+								resolve(new Error("Action aborted"));
+							},
+						);
+					} else {
 						resolve(); // Resolve immediately if duration is 0
 					}
 				} else {

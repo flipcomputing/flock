@@ -1214,6 +1214,11 @@ export const toolbox = {
 						},
 					},
 				},
+				{
+					kind: "block",
+					type: "animate_property",
+					keyword: "anp",
+				},
 			],
 		},
 		{
@@ -1389,6 +1394,45 @@ export const toolbox = {
 								type: "math_number",
 								fields: {
 									NUM: 1000,
+								},
+							},
+						},
+					},
+				},
+				{
+					kind: "block",
+					type: "rotate_anim",
+					keyword: "rotate",
+					inputs: {
+						ROT_X: {
+							shadow: {
+								type: "math_number",
+								fields: {
+									NUM: 0,  // Default rotation for X-axis
+								},
+							},
+						},
+						ROT_Y: {
+							shadow: {
+								type: "math_number",
+								fields: {
+									NUM: 0,  // Default rotation for Y-axis
+								},
+							},
+						},
+						ROT_Z: {
+							shadow: {
+								type: "math_number",
+								fields: {
+									NUM: 0,  // Default rotation for Z-axis
+								},
+							},
+						},
+						DURATION: {
+							shadow: {
+								type: "math_number",
+								fields: {
+									NUM: 1000,  // Default duration in milliseconds
 								},
 							},
 						},

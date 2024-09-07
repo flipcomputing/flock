@@ -57,35 +57,82 @@ export function defineGenerators() {
 		return `await wait(${duration});\n`;
 	};
 
-	javascriptGenerator.forBlock["wait_until"] = function(block) {
-		const condition = javascriptGenerator.valueToCode(
-			block,
-			'CONDITION',
-			javascriptGenerator.ORDER_ATOMIC
-		) || 'false'; // Default to false if no condition is connected
+	javascriptGenerator.forBlock["wait_until"] = function (block) {
+		const condition =
+			javascriptGenerator.valueToCode(
+				block,
+				"CONDITION",
+				javascriptGenerator.ORDER_ATOMIC,
+			) || "false"; // Default to false if no condition is connected
 
 		return `await waitUntil(() => ${condition});\n`;
 	};
 
-
 	javascriptGenerator.forBlock["glide_to"] = function (block) {
-		const x = getFieldValue(block, "X", "0");
-		const y = getFieldValue(block, "Y", "0");
-		const z = getFieldValue(block, "Z", "0");
 		const meshName = javascriptGenerator.nameDB_.getName(
 			block.getFieldValue("MESH_VAR"),
 			Blockly.Names.NameType.VARIABLE,
 		);
+		const x = getFieldValue(block, "X", "0");
+		const y = getFieldValue(block, "Y", "0");
+		const z = getFieldValue(block, "Z", "0");
 		const duration = getFieldValue(block, "DURATION", "0");
 		const mode = block.getFieldValue("MODE");
-		const reverse = block.getFieldValue("REVERSE") === "TRUE";  // Get reverse option
-		const loop = block.getFieldValue("LOOP") === "TRUE";        // Get loop option
+		const reverse = block.getFieldValue("REVERSE") === "TRUE";
+		const loop = block.getFieldValue("LOOP") === "TRUE";
+		const easing = block.getFieldValue("EASING");
 
-		// Handle async wrapping for await/start mode
 		const asyncWrapper = mode === "AWAIT" ? "await " : "";
 
-		// Generate the glideTo function call with reverse and loop options
-		return `${asyncWrapper}glideTo(${meshName}, ${x}, ${y}, ${z}, ${duration}, ${reverse}, ${loop});\n`;
+		return `${asyncWrapper}glideTo(${meshName}, ${x}, ${y}, ${z}, ${duration}, ${reverse}, ${loop}, "${easing}");\n`;
+	};
+
+	javascriptGenerator.forBlock["rotate_anim"] = function (block) {
+		const meshName = javascriptGenerator.nameDB_.getName(
+			block.getFieldValue("MESH_VAR"),
+			Blockly.Names.NameType.VARIABLE,
+		);
+		const rotX = getFieldValue(block, "ROT_X", "0");
+		const rotY = getFieldValue(block, "ROT_Y", "0");
+		const rotZ = getFieldValue(block, "ROT_Z", "0");
+		const duration = getFieldValue(block, "DURATION", "0");
+		const mode = block.getFieldValue("MODE");
+		const reverse = block.getFieldValue("REVERSE") === "TRUE";
+		const loop = block.getFieldValue("LOOP") === "TRUE";
+		const easing = block.getFieldValue("EASING");
+
+		const asyncWrapper = mode === "AWAIT" ? "await " : "";
+
+		return `${asyncWrapper}rotateAnim(${meshName}, ${rotX}, ${rotY}, ${rotZ}, ${duration}, ${reverse}, ${loop}, "${easing}");\n`;
+	};
+
+	javascriptGenerator.forBlock["animate_property"] = function (block) {
+		const mesh = javascriptGenerator.nameDB_.getName(
+			block.getFieldValue("MESH_VAR"),
+			Blockly.Names.NameType.VARIABLE,
+		);
+		const property = block.getFieldValue("PROPERTY");
+		const to =
+			javascriptGenerator.valueToCode(
+				block,
+				"TO",
+				javascriptGenerator.ORDER_ATOMIC,
+			) || "0";
+		const duration =
+			javascriptGenerator.valueToCode(
+				block,
+				"DURATION",
+				javascriptGenerator.ORDER_ATOMIC,
+			) || "60";
+		const reverse = block.getFieldValue("REVERSE") === "TRUE";
+		const loop = block.getFieldValue("LOOP") === "TRUE";
+		const startAwait = block.getFieldValue("START_AWAIT"); // Get dropdown value
+
+		const start = startAwait === "start" ? "true" : "false";
+		const awaitCompletion = startAwait === "await" ? "true" : "false";
+
+		const code = `animateProperty(${mesh}, '${property}', ${to}, ${duration}, ${reverse}, ${loop}, ${start}, ${awaitCompletion});\n`;
+		return code;
 	};
 
 	javascriptGenerator.forBlock["start"] = function (block) {
@@ -154,24 +201,47 @@ export function defineGenerators() {
 		return `setFog(${fogColorHex}, "${fogMode}", ${fogDensity});\n`;
 	};
 
-	javascriptGenerator.forBlock['ui_text'] = function(block) {
-	  const text = javascriptGenerator.valueToCode(block, 'TEXT', javascriptGenerator.ORDER_ATOMIC);
-	  const x = javascriptGenerator.valueToCode(block, 'X', javascriptGenerator.ORDER_ATOMIC);
-	  const y = javascriptGenerator.valueToCode(block, 'Y', javascriptGenerator.ORDER_ATOMIC);
-	  const fontSize = javascriptGenerator.valueToCode(block, 'FONT_SIZE', javascriptGenerator.ORDER_ATOMIC);
-	  const duration = javascriptGenerator.valueToCode(block, 'DURATION', javascriptGenerator.ORDER_ATOMIC);
-	  const color = javascriptGenerator.valueToCode(block, 'COLOR', javascriptGenerator.ORDER_ATOMIC);
+	javascriptGenerator.forBlock["ui_text"] = function (block) {
+		const text = javascriptGenerator.valueToCode(
+			block,
+			"TEXT",
+			javascriptGenerator.ORDER_ATOMIC,
+		);
+		const x = javascriptGenerator.valueToCode(
+			block,
+			"X",
+			javascriptGenerator.ORDER_ATOMIC,
+		);
+		const y = javascriptGenerator.valueToCode(
+			block,
+			"Y",
+			javascriptGenerator.ORDER_ATOMIC,
+		);
+		const fontSize = javascriptGenerator.valueToCode(
+			block,
+			"FONT_SIZE",
+			javascriptGenerator.ORDER_ATOMIC,
+		);
+		const duration = javascriptGenerator.valueToCode(
+			block,
+			"DURATION",
+			javascriptGenerator.ORDER_ATOMIC,
+		);
+		const color = javascriptGenerator.valueToCode(
+			block,
+			"COLOR",
+			javascriptGenerator.ORDER_ATOMIC,
+		);
 
-	  const textBlockVar = javascriptGenerator.nameDB_.getName(
-		block.getFieldValue('TEXTBLOCK_VAR'),
-		Blockly.VARIABLE_CATEGORY_NAME
-	  );
+		const textBlockVar = javascriptGenerator.nameDB_.getName(
+			block.getFieldValue("TEXTBLOCK_VAR"),
+			Blockly.VARIABLE_CATEGORY_NAME,
+		);
 
-	  // Generate the code using the helper function
-	  const code = `${textBlockVar} = UIText(${text}, ${x}, ${y}, ${fontSize}, ${color}, ${duration}, ${textBlockVar});\n`;
-	  return code;
+		// Generate the code using the helper function
+		const code = `${textBlockVar} = UIText(${text}, ${x}, ${y}, ${fontSize}, ${color}, ${duration}, ${textBlockVar});\n`;
+		return code;
 	};
-
 
 	javascriptGenerator.forBlock["say"] = function (block) {
 		const text =
@@ -388,7 +458,7 @@ export function defineGenerators() {
 
 		let variableName = javascriptGenerator.nameDB_.getName(
 			block.getFieldValue("ID_VAR"),
-			Blockly.Names.NameType.VARIABLE
+			Blockly.Names.NameType.VARIABLE,
 		);
 
 		const wallId = `wall_${generateUUID()}`;
@@ -397,8 +467,6 @@ export function defineGenerators() {
 		// Directly passing all parameters to the helper function
 		return `${variableName} = newWall(${color}, ${startX}, ${startZ}, ${endX}, ${endZ}, ${yPosition}, "${wallType}", "${wallId}");\n`;
 	};
-
-
 
 	javascriptGenerator.forBlock["move_by_vector"] = function (block) {
 		const modelName = javascriptGenerator.nameDB_.getName(
@@ -454,7 +522,7 @@ export function defineGenerators() {
 			Blockly.Names.NameType.VARIABLE,
 		);
 
-		 const useY = block.getFieldValue("USE_Y") === 'TRUE';
+		const useY = block.getFieldValue("USE_Y") === "TRUE";
 
 		return `await lookAt(${meshName1}, ${meshName2}, ${useY});\n`;
 	};
@@ -470,8 +538,8 @@ export function defineGenerators() {
 			Blockly.Names.NameType.VARIABLE,
 		);
 
-		 const useY = block.getFieldValue("USE_Y") === 'TRUE';
-		
+		const useY = block.getFieldValue("USE_Y") === "TRUE";
+
 		return `await moveTo(${meshName1}, ${meshName2}, ${useY});\n`;
 	};
 
@@ -481,9 +549,24 @@ export function defineGenerators() {
 			Blockly.Names.NameType.VARIABLE,
 		);
 
-		const x = javascriptGenerator.valueToCode(block, "X", javascriptGenerator.ORDER_ATOMIC) || '0';
-		const y = javascriptGenerator.valueToCode(block, "Y", javascriptGenerator.ORDER_ATOMIC) || '0';
-		const z = javascriptGenerator.valueToCode(block, "Z", javascriptGenerator.ORDER_ATOMIC) || '0';
+		const x =
+			javascriptGenerator.valueToCode(
+				block,
+				"X",
+				javascriptGenerator.ORDER_ATOMIC,
+			) || "0";
+		const y =
+			javascriptGenerator.valueToCode(
+				block,
+				"Y",
+				javascriptGenerator.ORDER_ATOMIC,
+			) || "0";
+		const z =
+			javascriptGenerator.valueToCode(
+				block,
+				"Z",
+				javascriptGenerator.ORDER_ATOMIC,
+			) || "0";
 
 		return `await rotateTo(${meshName}, ${x}, ${y}, ${z});\n`;
 	};
@@ -494,11 +577,26 @@ export function defineGenerators() {
 			Blockly.Names.NameType.VARIABLE,
 		);
 
-		const x = javascriptGenerator.valueToCode(block, "X", javascriptGenerator.ORDER_ATOMIC) || '0';
-		const y = javascriptGenerator.valueToCode(block, "Y", javascriptGenerator.ORDER_ATOMIC) || '0';
-		const z = javascriptGenerator.valueToCode(block, "Z", javascriptGenerator.ORDER_ATOMIC) || '0';
+		const x =
+			javascriptGenerator.valueToCode(
+				block,
+				"X",
+				javascriptGenerator.ORDER_ATOMIC,
+			) || "0";
+		const y =
+			javascriptGenerator.valueToCode(
+				block,
+				"Y",
+				javascriptGenerator.ORDER_ATOMIC,
+			) || "0";
+		const z =
+			javascriptGenerator.valueToCode(
+				block,
+				"Z",
+				javascriptGenerator.ORDER_ATOMIC,
+			) || "0";
 
-		const useY = block.getFieldValue("USE_Y") === 'TRUE';
+		const useY = block.getFieldValue("USE_Y") === "TRUE";
 
 		return `await positionAt(${meshName}, ${x}, ${y}, ${z}, ${useY});\n`;
 	};
@@ -518,11 +616,11 @@ export function defineGenerators() {
 		return [code, javascriptGenerator.ORDER_NONE];
 	};
 
-	javascriptGenerator.forBlock['time'] = function(block) {
-	  let code = `Math.floor(new Date().getTime() / 1000)`;
-	  return [code, javascriptGenerator.ORDER_ATOMIC];
+	javascriptGenerator.forBlock["time"] = function (block) {
+		let code = `Math.floor(new Date().getTime() / 1000)`;
+		return [code, javascriptGenerator.ORDER_ATOMIC];
 	};
-	
+
 	javascriptGenerator.forBlock["get_property"] = function (block) {
 		const modelName = javascriptGenerator.nameDB_.getName(
 			block.getFieldValue("MESH"),
@@ -636,16 +734,19 @@ export function defineGenerators() {
 		}
 	};
 
-	javascriptGenerator.forBlock['local_variable'] = function(block, generator) {
-	  // Retrieve the variable selected by the user
-	  const variable = generator.nameDB_.getName(
-		block.getFieldValue('VAR'),
-		Blockly.VARIABLE_CATEGORY_NAME
-	  );
+	javascriptGenerator.forBlock["local_variable"] = function (
+		block,
+		generator,
+	) {
+		// Retrieve the variable selected by the user
+		const variable = generator.nameDB_.getName(
+			block.getFieldValue("VAR"),
+			Blockly.VARIABLE_CATEGORY_NAME,
+		);
 
-	  // Generate a local 'let' declaration for the selected variable
-	  const code = `let ${variable};\n`;
-	  return code;
+		// Generate a local 'let' declaration for the selected variable
+		const code = `let ${variable};\n`;
+		return code;
 	};
 
 	javascriptGenerator.forBlock["when_key_pressed"] = function (block) {
@@ -664,14 +765,24 @@ export function defineGenerators() {
 
 	// JavaScript generator for broadcast_event
 	javascriptGenerator.forBlock["broadcast_event"] = function (block) {
-		const eventName = javascriptGenerator.valueToCode(block, "EVENT_NAME", javascriptGenerator.ORDER_ATOMIC) || '"go"';
+		const eventName =
+			javascriptGenerator.valueToCode(
+				block,
+				"EVENT_NAME",
+				javascriptGenerator.ORDER_ATOMIC,
+			) || '"go"';
 
 		return `broadcastEvent(${eventName});\n`;
 	};
 
 	// JavaScript generator for on_event
 	javascriptGenerator.forBlock["on_event"] = function (block) {
-		const eventName = javascriptGenerator.valueToCode(block, "EVENT_NAME", javascriptGenerator.ORDER_ATOMIC) || '"go"';
+		const eventName =
+			javascriptGenerator.valueToCode(
+				block,
+				"EVENT_NAME",
+				javascriptGenerator.ORDER_ATOMIC,
+			) || '"go"';
 		const statements_do = javascriptGenerator.statementToCode(block, "DO");
 
 		return `onEvent(${eventName}, async function() {\n${statements_do}});\n`;
@@ -828,53 +939,74 @@ export function defineGenerators() {
 	};
 
 	javascriptGenerator.forBlock["camera_follow"] = function (block) {
-	  const modelName = javascriptGenerator.nameDB_.getName(
-		block.getFieldValue("MESH_VAR"),
-		Blockly.Names.NameType.VARIABLE,
-	  );
+		const modelName = javascriptGenerator.nameDB_.getName(
+			block.getFieldValue("MESH_VAR"),
+			Blockly.Names.NameType.VARIABLE,
+		);
 
-	  const radius = javascriptGenerator.valueToCode(block, "RADIUS", javascriptGenerator.ORDER_ATOMIC) || 7;
+		const radius =
+			javascriptGenerator.valueToCode(
+				block,
+				"RADIUS",
+				javascriptGenerator.ORDER_ATOMIC,
+			) || 7;
 
-	  return `await attachCamera(${modelName}, ${radius});\n`;
+		return `await attachCamera(${modelName}, ${radius});\n`;
 	};
 
 	javascriptGenerator.forBlock["get_camera"] = function (block) {
-	  const variableName = javascriptGenerator.nameDB_.getName(
-		block.getFieldValue("VAR"),
-		Blockly.Names.NameType.VARIABLE,
-	  );
+		const variableName = javascriptGenerator.nameDB_.getName(
+			block.getFieldValue("VAR"),
+			Blockly.Names.NameType.VARIABLE,
+		);
 
-	  return `const ${variableName} = getCamera();\n`;
+		return `const ${variableName} = getCamera();\n`;
 	};
 
 	javascriptGenerator.forBlock["export_mesh"] = function (block) {
-	  const meshVar = javascriptGenerator.nameDB_.getName(
-		block.getFieldValue('MESH_VAR'),
-		  Blockly.Names.NameType.VARIABLE,
-	  );
-	  const format = block.getFieldValue('FORMAT');
+		const meshVar = javascriptGenerator.nameDB_.getName(
+			block.getFieldValue("MESH_VAR"),
+			Blockly.Names.NameType.VARIABLE,
+		);
+		const format = block.getFieldValue("FORMAT");
 
-	  // Generate the code that calls the helper function
-	  return `exportMesh(${meshVar}, "${format}");\n`;
+		// Generate the code that calls the helper function
+		return `exportMesh(${meshVar}, "${format}");\n`;
 	};
 
 	javascriptGenerator.forBlock["parent_child"] = function (block) {
 		const parentMesh = javascriptGenerator.nameDB_.getName(
 			block.getFieldValue("PARENT_MESH"),
-			Blockly.Names.NameType.VARIABLE
+			Blockly.Names.NameType.VARIABLE,
 		);
 		const childMesh = javascriptGenerator.nameDB_.getName(
 			block.getFieldValue("CHILD_MESH"),
-			Blockly.Names.NameType.VARIABLE
+			Blockly.Names.NameType.VARIABLE,
 		);
 
-		const xOffset = javascriptGenerator.valueToCode(block, "X_OFFSET", javascriptGenerator.ORDER_ATOMIC) || '0';
-		const yOffset = javascriptGenerator.valueToCode(block, "Y_OFFSET", javascriptGenerator.ORDER_ATOMIC) || '0';
-		const zOffset = javascriptGenerator.valueToCode(block, "Z_OFFSET", javascriptGenerator.ORDER_ATOMIC) || '0';
+		const xOffset =
+			javascriptGenerator.valueToCode(
+				block,
+				"X_OFFSET",
+				javascriptGenerator.ORDER_ATOMIC,
+			) || "0";
+		const yOffset =
+			javascriptGenerator.valueToCode(
+				block,
+				"Y_OFFSET",
+				javascriptGenerator.ORDER_ATOMIC,
+			) || "0";
+		const zOffset =
+			javascriptGenerator.valueToCode(
+				block,
+				"Z_OFFSET",
+				javascriptGenerator.ORDER_ATOMIC,
+			) || "0";
 
-		const removeRelationship = block.getFieldValue("REMOVE_RELATIONSHIP") === 'TRUE';
+		const removeRelationship =
+			block.getFieldValue("REMOVE_RELATIONSHIP") === "TRUE";
 
-		let code = '';
+		let code = "";
 
 		if (removeRelationship) {
 			// Remove the parent-child relationship
@@ -897,31 +1029,45 @@ export function defineGenerators() {
 	javascriptGenerator.forBlock["parent_child"] = function (block) {
 		const parentMesh = javascriptGenerator.nameDB_.getName(
 			block.getFieldValue("PARENT_MESH"),
-			Blockly.Names.NameType.VARIABLE
+			Blockly.Names.NameType.VARIABLE,
 		);
 		const childMesh = javascriptGenerator.nameDB_.getName(
 			block.getFieldValue("CHILD_MESH"),
-			Blockly.Names.NameType.VARIABLE
+			Blockly.Names.NameType.VARIABLE,
 		);
 
-		const xOffset = javascriptGenerator.valueToCode(block, "X_OFFSET", javascriptGenerator.ORDER_ATOMIC) || '0';
-		const yOffset = javascriptGenerator.valueToCode(block, "Y_OFFSET", javascriptGenerator.ORDER_ATOMIC) || '0';
-		const zOffset = javascriptGenerator.valueToCode(block, "Z_OFFSET", javascriptGenerator.ORDER_ATOMIC) || '0';
+		const xOffset =
+			javascriptGenerator.valueToCode(
+				block,
+				"X_OFFSET",
+				javascriptGenerator.ORDER_ATOMIC,
+			) || "0";
+		const yOffset =
+			javascriptGenerator.valueToCode(
+				block,
+				"Y_OFFSET",
+				javascriptGenerator.ORDER_ATOMIC,
+			) || "0";
+		const zOffset =
+			javascriptGenerator.valueToCode(
+				block,
+				"Z_OFFSET",
+				javascriptGenerator.ORDER_ATOMIC,
+			) || "0";
 
-			// Establish the parent-child relationship with offset
-			return `parentChild(${parentMesh}, ${childMesh}, ${xOffset}, ${yOffset}, ${zOffset});\n`;
+		// Establish the parent-child relationship with offset
+		return `parentChild(${parentMesh}, ${childMesh}, ${xOffset}, ${yOffset}, ${zOffset});\n`;
 	};
-
 
 	javascriptGenerator.forBlock["remove_parent"] = function (block) {
 		const childMesh = javascriptGenerator.nameDB_.getName(
 			block.getFieldValue("CHILD_MESH"),
-			Blockly.Names.NameType.VARIABLE
+			Blockly.Names.NameType.VARIABLE,
 		);
 
 		return `removeParent(${childMesh});\n`;
 	};
-	
+
 	javascriptGenerator.forBlock["add_physics"] = function (block) {
 		const modelName = javascriptGenerator.nameDB_.getName(
 			block.getFieldValue("MODEL_VAR"),
@@ -975,7 +1121,11 @@ export function defineGenerators() {
 	};
 
 	javascriptGenerator.forBlock["to_number"] = function (block) {
-		const string = javascriptGenerator.valueToCode(block, "STRING", javascriptGenerator.ORDER_ATOMIC);
+		const string = javascriptGenerator.valueToCode(
+			block,
+			"STRING",
+			javascriptGenerator.ORDER_ATOMIC,
+		);
 		const conversionType = block.getFieldValue("TYPE");
 
 		let code;
@@ -989,14 +1139,16 @@ export function defineGenerators() {
 	};
 
 	javascriptGenerator.forBlock["dispose"] = function (block) {
-	  // Get the selected variable name
-	  const meshVar = javascriptGenerator.nameDB_.getName(block.getFieldValue('MODEL_VAR'), Blockly.Names.NameType.VARIABLE);
+		// Get the selected variable name
+		const meshVar = javascriptGenerator.nameDB_.getName(
+			block.getFieldValue("MODEL_VAR"),
+			Blockly.Names.NameType.VARIABLE,
+		);
 
-	  // Generate code to call the dispose helper for the selected mesh
-	  const code = `dispose(${meshVar});\n`;
-	  return code;
+		// Generate code to call the dispose helper for the selected mesh
+		const code = `dispose(${meshVar});\n`;
+		return code;
 	};
-
 
 	javascriptGenerator.forBlock["colour"] = function (block) {
 		const colour = block.getFieldValue("COLOR");
@@ -1005,32 +1157,32 @@ export function defineGenerators() {
 	};
 
 	javascriptGenerator.forBlock["material"] = function (block) {
-		const baseColor = 
+		const baseColor =
 			javascriptGenerator.valueToCode(
 				block,
 				"BASE_COLOR",
 				javascriptGenerator.ORDER_ATOMIC,
 			) || "1";
-		const emissiveColor = 
+		const emissiveColor =
 			javascriptGenerator.valueToCode(
 				block,
 				"EMISSIVE_COLOR",
 				javascriptGenerator.ORDER_ATOMIC,
 			) || "1";
 		const textureSet = block.getFieldValue("TEXTURE_SET");
-		const metallic = 
+		const metallic =
 			javascriptGenerator.valueToCode(
 				block,
 				"METALLIC",
 				javascriptGenerator.ORDER_ATOMIC,
 			) || "1";
-		const roughness = 
+		const roughness =
 			javascriptGenerator.valueToCode(
 				block,
 				"ROUGHNESS",
 				javascriptGenerator.ORDER_ATOMIC,
 			) || "1";
-		const alpha = 
+		const alpha =
 			javascriptGenerator.valueToCode(
 				block,
 				"ALPHA",
@@ -1043,13 +1195,19 @@ export function defineGenerators() {
 	};
 
 	javascriptGenerator.forBlock["set_material"] = function (block) {
-		const meshVar = javascriptGenerator.nameDB_.getName(block.getFieldValue('MESH'), Blockly.VARIABLE_CATEGORY_NAME);
-		const material = javascriptGenerator.valueToCode(block, "MATERIAL", javascriptGenerator.ORDER_ATOMIC);
+		const meshVar = javascriptGenerator.nameDB_.getName(
+			block.getFieldValue("MESH"),
+			Blockly.VARIABLE_CATEGORY_NAME,
+		);
+		const material = javascriptGenerator.valueToCode(
+			block,
+			"MATERIAL",
+			javascriptGenerator.ORDER_ATOMIC,
+		);
 
 		const code = `setMaterial(${meshVar}, ${material});\n`;
 		return code;
 	};
-
 
 	javascriptGenerator.forBlock["skin_colour"] = function (block) {
 		const colour = block.getFieldValue("COLOR");
@@ -1070,7 +1228,7 @@ export function defineGenerators() {
 				"COLOR",
 				javascriptGenerator.ORDER_ATOMIC,
 			) || "''";
-		
+
 		const code = `${color}`;
 		return [code, javascriptGenerator.ORDER_ATOMIC];
 	};
@@ -1080,7 +1238,7 @@ export function defineGenerators() {
 		// Retrieve the parameters as a comma-separated list
 		const args = block.argData_.map((elem) => elem.model.name);
 		const params = args.join(", ");
-		
+
 		const branch =
 			javascriptGenerator.statementToCode(
 				block,
@@ -1088,7 +1246,6 @@ export function defineGenerators() {
 				javascriptGenerator.ORDER_NONE,
 			) || "";
 
-		
 		// Generate the function code with async and parameters
 		const code = `async function ${functionName}(${params}) {\n${branch}\n}`;
 		return code;

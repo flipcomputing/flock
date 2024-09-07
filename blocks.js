@@ -379,7 +379,8 @@ export function defineBlocks() {
 		init: function () {
 			this.jsonInit({
 				type: "glide_to",
-				message0: "glide %1 to x %2 y %3 z %4 in %5 ms %6 return? %7 loop? %8",
+				message0:
+					"glide %1 to x %2 y %3 z %4 in %5 ms %6 return? %7 loop? %8 %9",
 				args0: [
 					{
 						type: "field_variable",
@@ -417,26 +418,179 @@ export function defineBlocks() {
 					{
 						type: "field_checkbox",
 						name: "REVERSE",
-						checked: false,  // Default: No reverse
+						checked: false,
 						text: "reverse",
 					},
 					{
 						type: "field_checkbox",
 						name: "LOOP",
-						checked: false,  // Default: No loop
+						checked: false,
 						text: "loop",
+					},
+					{
+						type: "field_dropdown",
+						name: "EASING",
+						options: [
+							["Linear", "Linear"],
+							["SineEase", "SineEase"],
+							["CubicEase", "CubicEase"],
+							["QuadraticEase", "QuadraticEase"],
+							["ExponentialEase", "ExponentialEase"],
+							["BounceEase", "BounceEase"],
+							["ElasticEase", "ElasticEase"],
+							["BackEase", "BackEase"],
+						],
 					},
 				],
 				previousStatement: null,
 				nextStatement: null,
 				colour: categoryColours["Motion"],
 				tooltip:
-					"Glide to a specified position over a duration with options to reverse and loop",
+					"Glide to a specified position over a duration with options for reversing, looping, and easing.",
 				helpUrl: "",
 			});
 		},
 	};
 
+	Blockly.Blocks["rotate_anim"] = {
+		init: function () {
+			this.jsonInit({
+				type: "rotate_anim",
+				message0:
+					"rotate %1 to x %2 y %3 z %4 in %5 ms %6 reverse? %7 loop? %8  %9",
+				args0: [
+					{
+						type: "field_variable",
+						name: "MESH_VAR",
+						variable: "mesh1",
+					},
+					{
+						type: "input_value",
+						name: "ROT_X",
+						check: "Number",
+					},
+					{
+						type: "input_value",
+						name: "ROT_Y",
+						check: "Number",
+					},
+					{
+						type: "input_value",
+						name: "ROT_Z",
+						check: "Number",
+					},
+					{
+						type: "input_value",
+						name: "DURATION",
+						check: "Number",
+					},
+					{
+						type: "field_dropdown",
+						name: "MODE",
+						options: [
+							["await", "AWAIT"],
+							["start", "START"],
+						],
+					},
+					{
+						type: "field_checkbox",
+						name: "REVERSE",
+						checked: false,
+						text: "reverse",
+					},
+					{
+						type: "field_checkbox",
+						name: "LOOP",
+						checked: false,
+						text: "loop",
+					},
+					{
+						type: "field_dropdown",
+						name: "EASING",
+						options: [
+							["Linear", "Linear"],
+							["SineEase", "SineEase"],
+							["CubicEase", "CubicEase"],
+							["QuadraticEase", "QuadraticEase"],
+							["ExponentialEase", "ExponentialEase"],
+							["BounceEase", "BounceEase"],
+							["ElasticEase", "ElasticEase"],
+							["BackEase", "BackEase"],
+						],
+					},
+				],
+				previousStatement: null,
+				nextStatement: null,
+				colour: categoryColours["Motion"],
+				tooltip:
+					"Rotate a mesh to specified angles over a duration with options for reverse, looping, and easing.",
+				helpUrl: "",
+			});
+		},
+	};
+
+	Blockly.Blocks["animate_property"] = {
+		init: function () {
+			this.jsonInit({
+				type: "animate_property",
+				message0:
+					"animate %1 %2 to %3 in %4 ms reverse? %5 loop? %6 %7",
+				args0: [
+					{
+						type: "field_variable",
+						name: "MESH_VAR",
+						variable: "mesh1",
+					},
+					{
+						type: "field_dropdown",
+						name: "PROPERTY",
+						options: [
+							["diffuse color", "diffuseColor"],
+							["emissive color", "emissiveColor"],
+							["ambient color", "ambientColor"],
+							["specular color", "specularColor"],
+							["alpha", "alpha"],
+						],
+					},
+					{
+						type: "input_value",
+						name: "TO",
+					},
+					{
+						type: "input_value",
+						name: "DURATION",
+						check: "Number",
+					},
+					{
+						type: "field_checkbox",
+						name: "REVERSE",
+						checked: false,
+						text: "reverse",
+					},
+					{
+						type: "field_checkbox",
+						name: "LOOP",
+						checked: false,
+						text: "loop",
+					},
+					{
+						type: "field_dropdown",
+						name: "START_AWAIT",
+						options: [
+							["start", "start"],
+							["await", "await"],
+						],
+					},
+				],
+				previousStatement: null,
+				nextStatement: null,
+				colour: categoryColours["Looks"],
+				tooltip:
+					"Animates a material property of the mesh and its children.",
+				helpUrl: "",
+			});
+		},
+	};
 
 	Blockly.Blocks["set_sky_color"] = {
 		init: function () {
