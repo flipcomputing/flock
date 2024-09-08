@@ -96,6 +96,7 @@ export const flock = {
 				changeMaterial,
 				setMaterial,
 				createMaterial,
+				textMaterial,
 				moveForward,
 				attachCamera,
 				canvasControls,
@@ -2234,7 +2235,6 @@ export const flock = {
 							flock.BABYLON.EasingFunction.EASINGMODE_EASEINOUT,
 						);
 						rotateAnimation.setEasingFunction(easingFunction);
-						
 					}
 
 					// Append the rotation animation to the mesh
@@ -2256,19 +2256,32 @@ export const flock = {
 			});
 		});
 	},
-	async animateProperty(meshName, property, targetValue, duration, reverse = false, loop = false, mode = "START") {
+	async animateProperty(
+		meshName,
+		property,
+		targetValue,
+		duration,
+		reverse = false,
+		loop = false,
+		mode = "START",
+	) {
 		const fps = 30;
 		const frames = fps * (duration / 1000);
 
 		// Await mesh to be ready
-		await flock.whenModelReady(meshName, async function(mesh) {
+		await flock.whenModelReady(meshName, async function (mesh) {
 			if (!mesh) {
 				console.error(`Mesh with name ${meshName} not found.`);
 				return;
 			}
 
 			// If the property is a color, convert the hex string to Color3
-			if (property === 'diffuseColor' || property === 'emissiveColor' || property === 'ambientColor' || property === 'specularColor') {
+			if (
+				property === "diffuseColor" ||
+				property === "emissiveColor" ||
+				property === "ambientColor" ||
+				property === "specularColor"
+			) {
 				targetValue = flock.BABYLON.Color3.FromHexString(targetValue);
 			}
 
@@ -2277,7 +2290,10 @@ export const flock = {
 				const startValue = material[property];
 
 				// Determine the animation type
-				const animationType = property === 'alpha' ? flock.BABYLON.Animation.ANIMATIONTYPE_FLOAT : flock.BABYLON.Animation.ANIMATIONTYPE_COLOR3;
+				const animationType =
+					property === "alpha"
+						? flock.BABYLON.Animation.ANIMATIONTYPE_FLOAT
+						: flock.BABYLON.Animation.ANIMATIONTYPE_COLOR3;
 
 				// Create the animation
 				const animation = new flock.BABYLON.Animation(
@@ -2285,13 +2301,15 @@ export const flock = {
 					property,
 					fps,
 					animationType,
-					reverse ? flock.BABYLON.Animation.ANIMATIONLOOPMODE_YOYO : flock.BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT
+					reverse
+						? flock.BABYLON.Animation.ANIMATIONLOOPMODE_YOYO
+						: flock.BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT,
 				);
 
 				// Define keyframes
 				const keys = [
 					{ frame: 0, value: startValue },
-					{ frame: frames, value: targetValue }
+					{ frame: frames, value: targetValue },
 				];
 				animation.setKeys(keys);
 
@@ -2299,7 +2317,12 @@ export const flock = {
 				material.animations.push(animation);
 
 				// Start the animation
-				const animatable = flock.scene.beginAnimation(material, 0, frames, loop);
+				const animatable = flock.scene.beginAnimation(
+					material,
+					0,
+					frames,
+					loop,
+				);
 				material.markAsDirty(flock.BABYLON.Material.MiscDirtyFlag); // Force material update
 
 				return animatable;
@@ -2308,10 +2331,16 @@ export const flock = {
 			// Function to animate material and its children recursively
 			function animateMeshAndChildren(mesh) {
 				if (mesh.material) {
-					return animateProperty(mesh.material, property, targetValue);
+					return animateProperty(
+						mesh.material,
+						property,
+						targetValue,
+					);
 				}
 				if (mesh.getChildren) {
-					mesh.getChildren().forEach(child => animateMeshAndChildren(child));
+					mesh.getChildren().forEach((child) =>
+						animateMeshAndChildren(child),
+					);
 				}
 			}
 
@@ -2324,7 +2353,7 @@ export const flock = {
 							resolve();
 						});
 					} else {
-						resolve();  // Resolve immediately if no animation
+						resolve(); // Resolve immediately if no animation
 					}
 				});
 			} else {
@@ -2745,7 +2774,6 @@ export const flock = {
 							flock.BABYLON.EasingFunction.EASINGMODE_EASEINOUT,
 						); // Smooth easing
 						glideAnimation.setEasingFunction(easingFunction); // Apply the easing function
-						
 					}
 
 					// Attach the animation to the mesh
@@ -3124,6 +3152,33 @@ export const flock = {
 			flock.BABYLON.Color3.FromHexString(emissiveColor);
 
 		material.alpha = alpha;
+		return material;
+	},
+	textMaterial(text, color, backgroundColor, width, height, textSize) {
+		const dynamicTexture = new flock.BABYLON.DynamicTexture(
+			"dynamicTexture",
+			{ width: width, height: height },
+			flock.scene,
+		);
+
+		// Set the font size
+		const font = `bold ${textSize}px Arial`;
+		dynamicTexture.drawText("", null, null, font, color, backgroundColor); // Set font first
+
+		// Get text size for centering
+		const textWidth = dynamicTexture.getContext().measureText(text).width;
+		const textHeight = textSize; // Approximate text height as textSize
+
+		// Calculate position for centered text
+		const xPos = (width - textWidth) / 2;
+		const yPos = (height + textHeight) / 2;
+
+		// Draw the text at the calculated position
+		dynamicTexture.drawText(text, xPos, yPos, font, color, backgroundColor);
+
+		const material = new flock.BABYLON.StandardMaterial("textMaterial", flock.scene);
+		material.diffuseTexture = dynamicTexture;
+
 		return material;
 	},
 	moveForward(modelName, speed) {

@@ -1194,10 +1194,24 @@ export function defineGenerators() {
 		return [code, javascriptGenerator.ORDER_FUNCTION_CALL];
 	};
 
+	javascriptGenerator.forBlock['text_material'] = function (block, generator) {
+	  const variable = generator.nameDB_.getName(block.getFieldValue('MATERIAL_VAR'), Blockly.Names.NameType.VARIABLE);
+	  const text = generator.valueToCode(block, 'TEXT', javascriptGenerator.ORDER_ATOMIC) || "'Text'";
+	  const color = generator.valueToCode(block, 'COLOR', javascriptGenerator.ORDER_ATOMIC) || "'#FFFFFF'";
+	  const backgroundColor = generator.valueToCode(block, 'BACKGROUND_COLOR', javascriptGenerator.ORDER_ATOMIC) || "'transparent'";
+	  const width = generator.valueToCode(block, 'WIDTH', javascriptGenerator.ORDER_ATOMIC) || 512;
+	  const height = generator.valueToCode(block, 'HEIGHT', javascriptGenerator.ORDER_ATOMIC) || 512;
+	  const textSize = generator.valueToCode(block, 'TEXT_SIZE', javascriptGenerator.ORDER_ATOMIC) || 120;
+
+	  return `${variable} = textMaterial(${text}, ${color}, ${backgroundColor}, ${width}, ${height}, ${textSize});\n`;
+	};
+
+
+
 	javascriptGenerator.forBlock["set_material"] = function (block) {
 		const meshVar = javascriptGenerator.nameDB_.getName(
 			block.getFieldValue("MESH"),
-			Blockly.VARIABLE_CATEGORY_NAME,
+			Blockly.Names.NameType.VARIABLE,
 		);
 		const material = javascriptGenerator.valueToCode(
 			block,

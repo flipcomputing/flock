@@ -2679,6 +2679,60 @@ export function defineBlocks() {
 		},
 	};
 
+	Blockly.Blocks["text_material"] = {
+		init: function () {
+			this.jsonInit({
+				type: "text_material",
+				message0:
+					"store material in %1 with text %2 color %3 background %4 width %5 height %6 size %7",
+				args0: [
+					{
+						type: "field_variable",
+						name: "MATERIAL_VAR",
+						variable: "material",
+					},
+					{
+						type: "input_value",
+						name: "TEXT",
+						check: "String",
+					},
+					{
+						type: "input_value",
+						name: "COLOR",
+						check: "Colour",
+					},
+					{
+						type: "input_value",
+						name: "BACKGROUND_COLOR",
+						check: "Colour",
+					},
+					{
+						type: "input_value",
+						name: "WIDTH",
+						check: "Number",
+					},
+					{
+						type: "input_value",
+						name: "HEIGHT",
+						check: "Number",
+					},
+					{
+						type: "input_value",
+						name: "TEXT_SIZE",
+						check: "Number",
+					},
+				],
+				inputsInline: true,
+				previousStatement: null,
+				nextStatement: null,
+				colour: categoryColours["Looks"],
+				tooltip:
+					"Create a material with text or emoji, specifying width, height, background color, and text size.",
+				helpUrl: "",
+			});
+		},
+	};
+
 	Blockly.Blocks["highlight"] = {
 		init: function () {
 			this.jsonInit({

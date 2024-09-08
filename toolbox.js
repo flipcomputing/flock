@@ -1076,6 +1076,28 @@ export const toolbox = {
 					},
 				},
 				{
+				  kind: "block",
+				  type: "text_material",
+				  inputs: {
+					TEXT: {
+					  shadow: {
+						type: "text",
+						fields: {
+						  TEXT: "😊",
+						},
+					  },
+					},
+					COLOR: {
+					  shadow: {
+						type: "colour",
+						fields: {
+						  COLOUR: "#FF5733",
+						},
+					  },
+					},
+				  },
+				},
+				{
 					kind: "block",
 					type: "set_material",
 					inputs: {
