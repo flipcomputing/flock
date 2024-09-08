@@ -1336,9 +1336,11 @@ export const flock = {
 			"boxMaterial",
 			flock.scene,
 		);
+		
 		material.diffuseColor = flock.BABYLON.Color3.FromHexString(
 			flock.getColorFromString(color),
 		);
+
 		newBox.material = material;
 
 		return newBox.name;
@@ -3163,7 +3165,7 @@ export const flock = {
 		);
 
 		// Set the font size
-		const font = `bold ${textSize}px Arial`;
+		const font = `bold ${textSize}px Asap`;
 		dynamicTexture.drawText("", null, null, font, color, backgroundColor); // Set font first
 
 		// Get text size for centering
@@ -3181,33 +3183,55 @@ export const flock = {
 			"textMaterial",
 			flock.scene,
 		);
+
 		material.diffuseTexture = dynamicTexture;
 
 		return material;
 	},
 	createDecal(
 		modelName,
-		posX,
-		posY,
-		posZ,
-		normX,
-		normY,
-		normZ,
-		sizeX,
-		sizeY,
-		sizeZ,
-		material,
+		posX = 0,
+		posY = 0,
+		posZ = 0.5,    // Front face of the wall at z = 0.5
+		normalX = 0,
+		normalY = 0,
+		normalZ = -1,  // Normal facing the negative z-axis (toward the camera)
+		sizeX = 3,
+		sizeY = 3,
+		sizeZ = 1,
+		material    // Material passed as a parameter
 	) {
 		return flock.whenModelReady(modelName, (mesh) => {
-			console.log(material);
+			// Log the passed material to ensure it is available
+			console.log("Material:", material);
 
+			if (!material || !material.diffuseTexture) {
+				console.error("Material does not have a diffuse texture. Cannot apply decal.");
+				return;
+			}
+
+			// Ensure the material properties are correct
+			material.diffuseTexture.hasAlpha = true;
+			material.zOffset = -2;
+
+			// Define the position and normal for the decal
+			const position = new flock.BABYLON.Vector3(posX, posY, posZ);
+			const normal = new flock.BABYLON.Vector3(normalX, normalY, normalZ);
+
+			// Define the decal size
+			const decalSize = new flock.BABYLON.Vector3(sizeX, sizeY, sizeZ);
+
+			// Create the decal using Babylon's built-in CreateDecal function
 			const decal = flock.BABYLON.MeshBuilder.CreateDecal("decal", mesh, {
-				position: new flock.BABYLON.Vector3(posX, posY, posZ),
-				normal: new flock.BABYLON.Vector3(normX, normY, normZ),
-				size: new flock.BABYLON.Vector3(sizeX, sizeY, sizeZ),
+				position: position,
+				normal: normal,
+				size: decalSize,
 			});
-			material.backFaceCulling = false;
+
+			// Apply the passed material to the decal
 			decal.material = material;
+decal.setParent(mesh);
+			console.log("Decal applied with provided material.");
 		});
 	},
 	moveForward(modelName, speed) {

@@ -1150,7 +1150,7 @@ export const toolbox = {
 						},
 					},
 				},
-				/*{
+				{
 				  kind: "block",
 				  type: "decal",
 				  inputs: {
@@ -1227,7 +1227,7 @@ export const toolbox = {
 					  },
 					},
 				  },
-				},*/
+				},
 				{
 					kind: "block",
 					type: "set_alpha",
