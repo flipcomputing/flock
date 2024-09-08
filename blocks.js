@@ -2733,6 +2733,79 @@ export function defineBlocks() {
 		},
 	};
 
+	Blockly.Blocks["decal"] = {
+		init: function () {
+			this.jsonInit({
+				type: "decal",
+				message0:
+					"decal on %1 from x %2 y %3 z %4 \nangle x %5 y %6 z %7\nsize x %8 y %9 z %10 material %11",
+				args0: [
+					{
+						type: "field_variable",
+						name: "MESH",
+						variable: "mesh",
+					},
+					{
+						type: "input_value",
+						name: "POSITION_X",
+						check: "Number",
+					},
+					{
+						type: "input_value",
+						name: "POSITION_Y",
+						check: "Number",
+					},
+					{
+						type: "input_value",
+						name: "POSITION_Z",
+						check: "Number",
+					},
+					{
+						type: "input_value",
+						name: "NORMAL_X",
+						check: "Number",
+					},
+					{
+						type: "input_value",
+						name: "NORMAL_Y",
+						check: "Number",
+					},
+					{
+						type: "input_value",
+						name: "NORMAL_Z",
+						check: "Number",
+					},
+					{
+						type: "input_value",
+						name: "SIZE_X",
+						check: "Number",
+					},
+					{
+						type: "input_value",
+						name: "SIZE_Y",
+						check: "Number",
+					},
+					{
+						type: "input_value",
+						name: "SIZE_Z",
+						check: "Number",
+					},
+					{
+						type: "input_value",
+						name: "MATERIAL",
+					},
+				],
+				inputsInline: true,
+				previousStatement: null,
+				nextStatement: null,
+				colour: categoryColours["Looks"],
+				tooltip:
+					"Create a decal on a mesh with position, normal, size, and material.",
+				helpUrl: "",
+			});
+		},
+	};
+
 	Blockly.Blocks["highlight"] = {
 		init: function () {
 			this.jsonInit({

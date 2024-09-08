@@ -97,6 +97,7 @@ export const flock = {
 				setMaterial,
 				createMaterial,
 				textMaterial,
+				createDecal,
 				moveForward,
 				attachCamera,
 				canvasControls,
@@ -3176,10 +3177,38 @@ export const flock = {
 		// Draw the text at the calculated position
 		dynamicTexture.drawText(text, xPos, yPos, font, color, backgroundColor);
 
-		const material = new flock.BABYLON.StandardMaterial("textMaterial", flock.scene);
+		const material = new flock.BABYLON.StandardMaterial(
+			"textMaterial",
+			flock.scene,
+		);
 		material.diffuseTexture = dynamicTexture;
 
 		return material;
+	},
+	createDecal(
+		modelName,
+		posX,
+		posY,
+		posZ,
+		normX,
+		normY,
+		normZ,
+		sizeX,
+		sizeY,
+		sizeZ,
+		material,
+	) {
+		return flock.whenModelReady(modelName, (mesh) => {
+			console.log(material);
+
+			const decal = flock.BABYLON.MeshBuilder.CreateDecal("decal", mesh, {
+				position: new flock.BABYLON.Vector3(posX, posY, posZ),
+				normal: new flock.BABYLON.Vector3(normX, normY, normZ),
+				size: new flock.BABYLON.Vector3(sizeX, sizeY, sizeZ),
+			});
+			material.backFaceCulling = false;
+			decal.material = material;
+		});
 	},
 	moveForward(modelName, speed) {
 		const model = flock.scene.getMeshByName(modelName);

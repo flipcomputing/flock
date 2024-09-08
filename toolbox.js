@@ -1150,6 +1150,84 @@ export const toolbox = {
 						},
 					},
 				},
+				/*{
+				  kind: "block",
+				  type: "decal",
+				  inputs: {
+					POSITION_X: {
+					  shadow: {
+						type: "math_number",
+						fields: {
+						  NUM: 0,
+						},
+					  },
+					},
+					POSITION_Y: {
+					  shadow: {
+						type: "math_number",
+						fields: {
+						  NUM: 0,
+						},
+					  },
+					},
+					POSITION_Z: {
+					  shadow: {
+						type: "math_number",
+						fields: {
+						  NUM: 0,
+						},
+					  },
+					},
+					NORMAL_X: {
+					  shadow: {
+						type: "math_number",
+						fields: {
+						  NUM: 0,
+						},
+					  },
+					},
+					NORMAL_Y: {
+					  shadow: {
+						type: "math_number",
+						fields: {
+						  NUM: 1,
+						},
+					  },
+					},
+					NORMAL_Z: {
+					  shadow: {
+						type: "math_number",
+						fields: {
+						  NUM: 0,
+						},
+					  },
+					},
+					SIZE_X: {
+					  shadow: {
+						type: "math_number",
+						fields: {
+						  NUM: 1,
+						},
+					  },
+					},
+					SIZE_Y: {
+					  shadow: {
+						type: "math_number",
+						fields: {
+						  NUM: 1,
+						},
+					  },
+					},
+					SIZE_Z: {
+					  shadow: {
+						type: "math_number",
+						fields: {
+						  NUM: 0,
+						},
+					  },
+					},
+				  },
+				},*/
 				{
 					kind: "block",
 					type: "set_alpha",

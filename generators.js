@@ -1194,19 +1194,110 @@ export function defineGenerators() {
 		return [code, javascriptGenerator.ORDER_FUNCTION_CALL];
 	};
 
-	javascriptGenerator.forBlock['text_material'] = function (block, generator) {
-	  const variable = generator.nameDB_.getName(block.getFieldValue('MATERIAL_VAR'), Blockly.Names.NameType.VARIABLE);
-	  const text = generator.valueToCode(block, 'TEXT', javascriptGenerator.ORDER_ATOMIC) || "'Text'";
-	  const color = generator.valueToCode(block, 'COLOR', javascriptGenerator.ORDER_ATOMIC) || "'#FFFFFF'";
-	  const backgroundColor = generator.valueToCode(block, 'BACKGROUND_COLOR', javascriptGenerator.ORDER_ATOMIC) || "'transparent'";
-	  const width = generator.valueToCode(block, 'WIDTH', javascriptGenerator.ORDER_ATOMIC) || 512;
-	  const height = generator.valueToCode(block, 'HEIGHT', javascriptGenerator.ORDER_ATOMIC) || 512;
-	  const textSize = generator.valueToCode(block, 'TEXT_SIZE', javascriptGenerator.ORDER_ATOMIC) || 120;
+	javascriptGenerator.forBlock["text_material"] = function (block) {
+		const variable = javascriptGenerator.nameDB_.getName(
+			block.getFieldValue("MATERIAL_VAR"),
+			Blockly.Names.NameType.VARIABLE,
+		);
+		const text =
+			javascriptGenerator.valueToCode(
+				block,
+				"TEXT",
+				javascriptGenerator.ORDER_ATOMIC,
+			) || "'Text'";
+		const color =
+			javascriptGenerator.valueToCode(
+				block,
+				"COLOR",
+				javascriptGenerator.ORDER_ATOMIC,
+			) || "'#FFFFFF'";
+		const backgroundColor =
+			javascriptGenerator.valueToCode(
+				block,
+				"BACKGROUND_COLOR",
+				javascriptGenerator.ORDER_ATOMIC,
+			) || "'transparent'";
+		const width =
+			javascriptGenerator.valueToCode(
+				block,
+				"WIDTH",
+				javascriptGenerator.ORDER_ATOMIC,
+			) || 512;
+		const height =
+			javascriptGenerator.valueToCode(
+				block,
+				"HEIGHT",
+				javascriptGenerator.ORDER_ATOMIC,
+			) || 512;
+		const textSize =
+			javascriptGenerator.valueToCode(
+				block,
+				"TEXT_SIZE",
+				javascriptGenerator.ORDER_ATOMIC,
+			) || 120;
 
-	  return `${variable} = textMaterial(${text}, ${color}, ${backgroundColor}, ${width}, ${height}, ${textSize});\n`;
+		return `${variable} = textMaterial(${text}, ${color}, ${backgroundColor}, ${width}, ${height}, ${textSize});\n`;
 	};
 
+	javascriptGenerator.forBlock["decal"] = function (block) {
+		const mesh = javascriptGenerator.nameDB_.getName(
+			block.getFieldValue("MESH"),
+			Blockly.Names.NameType.VARIABLE,
+		);
+		const positionX = javascriptGenerator.valueToCode(
+			block,
+			"POSITION_X",
+			javascriptGenerator.ORDER_ATOMIC,
+		);
+		const positionY = javascriptGenerator.valueToCode(
+			block,
+			"POSITION_Y",
+			javascriptGenerator.ORDER_ATOMIC,
+		);
+		const positionZ = javascriptGenerator.valueToCode(
+			block,
+			"POSITION_Z",
+			javascriptGenerator.ORDER_ATOMIC,
+		);
+		const normalX = javascriptGenerator.valueToCode(
+			block,
+			"NORMAL_X",
+			javascriptGenerator.ORDER_ATOMIC,
+		);
+		const normalY = javascriptGenerator.valueToCode(
+			block,
+			"NORMAL_Y",
+			javascriptGenerator.ORDER_ATOMIC,
+		);
+		const normalZ = javascriptGenerator.valueToCode(
+			block,
+			"NORMAL_Z",
+			javascriptGenerator.ORDER_ATOMIC,
+		);
+		const sizeX = javascriptGenerator.valueToCode(
+			block,
+			"SIZE_X",
+			javascriptGenerator.ORDER_ATOMIC,
+		);
+		const sizeY = javascriptGenerator.valueToCode(
+			block,
+			"SIZE_Y",
+			javascriptGenerator.ORDER_ATOMIC,
+		);
+		const sizeZ = javascriptGenerator.valueToCode(
+			block,
+			"SIZE_Z",
+			javascriptGenerator.ORDER_ATOMIC,
+		);
+		const materialVar = javascriptGenerator.valueToCode(
+			block,
+			"MATERIAL",
+			javascriptGenerator.ORDER_ATOMIC,
+		);
 
+		const code = `createDecal(${mesh}, ${positionX}, ${positionY}, ${positionZ}, ${normalX}, ${normalY}, ${normalZ}, ${sizeX}, ${sizeY}, ${sizeZ}, ${materialVar});\n`;
+		return code;
+	};
 
 	javascriptGenerator.forBlock["set_material"] = function (block) {
 		const meshVar = javascriptGenerator.nameDB_.getName(
