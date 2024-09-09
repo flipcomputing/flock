@@ -1299,6 +1299,21 @@ export function defineGenerators() {
 		return code;
 	};
 
+	javascriptGenerator.forBlock['place_decal'] = function(block) {
+		const materialVar = javascriptGenerator.nameDB_.getName(
+			block.getFieldValue("MATERIAL"),
+			Blockly.Names.NameType.VARIABLE,
+		);
+		const angle = javascriptGenerator.valueToCode(
+			block,
+			"ANGLE",
+			javascriptGenerator.ORDER_ATOMIC,
+		);
+
+		// Use a helper function for placing the decal
+		return `placeDecal(${materialVar}, ${angle} );\n`;
+	};
+
 	javascriptGenerator.forBlock["set_material"] = function (block) {
 		const meshVar = javascriptGenerator.nameDB_.getName(
 			block.getFieldValue("MESH"),

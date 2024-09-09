@@ -861,27 +861,27 @@ export const toolbox = {
 							shadow: {
 								type: "math_number",
 								fields: {
-									NUM: 0
-								}
-							}
+									NUM: 0,
+								},
+							},
 						},
 						Y_OFFSET: {
 							shadow: {
 								type: "math_number",
 								fields: {
-									NUM: 0
-								}
-							}
+									NUM: 0,
+								},
+							},
 						},
 						Z_OFFSET: {
 							shadow: {
 								type: "math_number",
 								fields: {
-									NUM: 0
-								}
-							}
-						}
-					}
+									NUM: 0,
+								},
+							},
+						},
+					},
 				},
 				{
 					kind: "block",
@@ -951,7 +951,6 @@ export const toolbox = {
 					type: "export_mesh",
 					keyword: "export",
 				},
-				
 			],
 		},
 		{
@@ -1076,26 +1075,26 @@ export const toolbox = {
 					},
 				},
 				{
-				  kind: "block",
-				  type: "text_material",
-				  inputs: {
-					TEXT: {
-					  shadow: {
-						type: "text",
-						fields: {
-						  TEXT: "😊",
+					kind: "block",
+					type: "text_material",
+					inputs: {
+						TEXT: {
+							shadow: {
+								type: "text",
+								fields: {
+									TEXT: "😊",
+								},
+							},
 						},
-					  },
-					},
-					COLOR: {
-					  shadow: {
-						type: "colour",
-						fields: {
-						  COLOUR: "#FF5733",
+						COLOR: {
+							shadow: {
+								type: "colour",
+								fields: {
+									COLOUR: "#FF5733",
+								},
+							},
 						},
-					  },
 					},
-				  },
 				},
 				{
 					kind: "block",
@@ -1109,7 +1108,7 @@ export const toolbox = {
 										shadow: {
 											type: "colour",
 											fields: {
-												COLOR: "#ff0000",  // Default base color: red
+												COLOR: "#ff0000", // Default base color: red
 											},
 										},
 									},
@@ -1117,7 +1116,7 @@ export const toolbox = {
 										shadow: {
 											type: "colour",
 											fields: {
-												COLOR: "#000000",  // Default emissive color: black (no emission)
+												COLOR: "#000000", // Default emissive color: black (no emission)
 											},
 										},
 									},
@@ -1125,7 +1124,7 @@ export const toolbox = {
 										shadow: {
 											type: "math_number",
 											fields: {
-												NUM: 0.0,  // Default metallic value: 0
+												NUM: 0.0, // Default metallic value: 0
 											},
 										},
 									},
@@ -1133,7 +1132,7 @@ export const toolbox = {
 										shadow: {
 											type: "math_number",
 											fields: {
-												NUM: 1.0,  // Default roughness value: 1 (fully rough)
+												NUM: 1.0, // Default roughness value: 1 (fully rough)
 											},
 										},
 									},
@@ -1141,7 +1140,7 @@ export const toolbox = {
 										shadow: {
 											type: "math_number",
 											fields: {
-												NUM: 1.0,  // Default alpha value: 1 (fully opaque)
+												NUM: 1.0, // Default alpha value: 1 (fully opaque)
 											},
 										},
 									},
@@ -1151,82 +1150,96 @@ export const toolbox = {
 					},
 				},
 				{
-				  kind: "block",
-				  type: "decal",
-				  inputs: {
-					POSITION_X: {
-					  shadow: {
-						type: "math_number",
-						fields: {
-						  NUM: 0,
+					kind: "block",
+					type: "decal",
+					inputs: {
+						POSITION_X: {
+							shadow: {
+								type: "math_number",
+								fields: {
+									NUM: 0,
+								},
+							},
 						},
-					  },
-					},
-					POSITION_Y: {
-					  shadow: {
-						type: "math_number",
-						fields: {
-						  NUM: 0,
+						POSITION_Y: {
+							shadow: {
+								type: "math_number",
+								fields: {
+									NUM: 0,
+								},
+							},
 						},
-					  },
-					},
-					POSITION_Z: {
-					  shadow: {
-						type: "math_number",
-						fields: {
-						  NUM: 0,
+						POSITION_Z: {
+							shadow: {
+								type: "math_number",
+								fields: {
+									NUM: 0,
+								},
+							},
 						},
-					  },
-					},
-					NORMAL_X: {
-					  shadow: {
-						type: "math_number",
-						fields: {
-						  NUM: 0,
+						NORMAL_X: {
+							shadow: {
+								type: "math_number",
+								fields: {
+									NUM: 0,
+								},
+							},
 						},
-					  },
-					},
-					NORMAL_Y: {
-					  shadow: {
-						type: "math_number",
-						fields: {
-						  NUM: 1,
+						NORMAL_Y: {
+							shadow: {
+								type: "math_number",
+								fields: {
+									NUM: 1,
+								},
+							},
 						},
-					  },
-					},
-					NORMAL_Z: {
-					  shadow: {
-						type: "math_number",
-						fields: {
-						  NUM: 0,
+						NORMAL_Z: {
+							shadow: {
+								type: "math_number",
+								fields: {
+									NUM: 0,
+								},
+							},
 						},
-					  },
-					},
-					SIZE_X: {
-					  shadow: {
-						type: "math_number",
-						fields: {
-						  NUM: 1,
+						SIZE_X: {
+							shadow: {
+								type: "math_number",
+								fields: {
+									NUM: 1,
+								},
+							},
 						},
-					  },
-					},
-					SIZE_Y: {
-					  shadow: {
-						type: "math_number",
-						fields: {
-						  NUM: 1,
+						SIZE_Y: {
+							shadow: {
+								type: "math_number",
+								fields: {
+									NUM: 1,
+								},
+							},
 						},
-					  },
-					},
-					SIZE_Z: {
-					  shadow: {
-						type: "math_number",
-						fields: {
-						  NUM: 0,
+						SIZE_Z: {
+							shadow: {
+								type: "math_number",
+								fields: {
+									NUM: 0,
+								},
+							},
 						},
-					  },
 					},
-				  },
+				},
+				{
+					kind: "block",
+					type: "place_decal",
+					inputs: {
+						ANGLE: {
+							shadow: {
+								type: "math_number",
+								fields: {
+									NUM: 0,
+								},
+							},
+						},
+					},
 				},
 				{
 					kind: "block",
@@ -1508,7 +1521,7 @@ export const toolbox = {
 							shadow: {
 								type: "math_number",
 								fields: {
-									NUM: 0,  // Default rotation for X-axis
+									NUM: 0, // Default rotation for X-axis
 								},
 							},
 						},
@@ -1516,7 +1529,7 @@ export const toolbox = {
 							shadow: {
 								type: "math_number",
 								fields: {
-									NUM: 0,  // Default rotation for Y-axis
+									NUM: 0, // Default rotation for Y-axis
 								},
 							},
 						},
@@ -1524,7 +1537,7 @@ export const toolbox = {
 							shadow: {
 								type: "math_number",
 								fields: {
-									NUM: 0,  // Default rotation for Z-axis
+									NUM: 0, // Default rotation for Z-axis
 								},
 							},
 						},
@@ -1532,7 +1545,7 @@ export const toolbox = {
 							shadow: {
 								type: "math_number",
 								fields: {
-									NUM: 1000,  // Default duration in milliseconds
+									NUM: 1000, // Default duration in milliseconds
 								},
 							},
 						},
@@ -1868,59 +1881,59 @@ export const toolbox = {
 					},
 				},
 				{
-				  kind: "block",
-				  type: "ui_text",
-				  keyword: "ui",
-				  inputs: {
-					TEXT: {
-					  shadow: {
-						type: "text",
-						fields: {
-						  TEXT: "Info"
-						}
-					  }
+					kind: "block",
+					type: "ui_text",
+					keyword: "ui",
+					inputs: {
+						TEXT: {
+							shadow: {
+								type: "text",
+								fields: {
+									TEXT: "Info",
+								},
+							},
+						},
+						DURATION: {
+							shadow: {
+								type: "math_number",
+								fields: {
+									NUM: 0,
+								},
+							},
+						},
+						COLOR: {
+							shadow: {
+								type: "colour",
+								fields: {
+									COLOUR: "#000080",
+								},
+							},
+						},
+						X: {
+							shadow: {
+								type: "math_number",
+								fields: {
+									NUM: 100,
+								},
+							},
+						},
+						Y: {
+							shadow: {
+								type: "math_number",
+								fields: {
+									NUM: 50,
+								},
+							},
+						},
+						FONT_SIZE: {
+							shadow: {
+								type: "math_number",
+								fields: {
+									NUM: 24,
+								},
+							},
+						},
 					},
-					DURATION: {
-					  shadow: {
-						type: "math_number",
-						fields: {
-						  NUM: 0
-						}
-					  }
-					},
-					COLOR: {
-					  shadow: {
-						type: "colour",
-						fields: {
-						  COLOUR: "#000080"
-						}
-					  }
-					},
-					X: {
-					  shadow: {
-						type: "math_number",
-						fields: {
-						  NUM: 100
-						}
-					  }
-					},
-					Y: {
-					  shadow: {
-						type: "math_number",
-						fields: {
-						  NUM: 50
-						}
-					  }
-					},
-					FONT_SIZE: {
-					  shadow: {
-						type: "math_number",
-						fields: {
-						  NUM: 24
-						}
-					  }
-					}
-				  }
 				},
 				{
 					kind: "block",

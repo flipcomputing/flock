@@ -2733,6 +2733,31 @@ export function defineBlocks() {
 		},
 	};
 
+	Blockly.Blocks["place_decal"] = {
+		init: function () {
+			this.jsonInit({
+				message0: "decal %1 angle %2",
+				args0: [
+					{
+						type: "field_variable",
+						name: "MATERIAL",
+						variable: "material",
+					},
+					{
+						type: "input_value",
+						name: "ANGLE",
+						check: "Number",
+					},
+				],
+				previousStatement: null,
+				nextStatement: null,
+				colour: categoryColours["Looks"],
+				tooltip: "Place a decal on a mesh using the selected material.",
+				helpUrl: "",
+			});
+		},
+	};
+
 	Blockly.Blocks["decal"] = {
 		init: function () {
 			this.jsonInit({

@@ -98,6 +98,7 @@ export const flock = {
 				createMaterial,
 				textMaterial,
 				createDecal,
+				placeDecal,
 				moveForward,
 				attachCamera,
 				canvasControls,
@@ -1336,7 +1337,7 @@ export const flock = {
 			"boxMaterial",
 			flock.scene,
 		);
-		
+
 		material.diffuseColor = flock.BABYLON.Color3.FromHexString(
 			flock.getColorFromString(color),
 		);
@@ -3158,26 +3159,9 @@ export const flock = {
 		return material;
 	},
 	textMaterial(text, color, backgroundColor, width, height, textSize) {
-		const dynamicTexture = new flock.BABYLON.DynamicTexture(
-			"dynamicTexture",
-			{ width: width, height: height },
-			flock.scene,
-		);
 
-		// Set the font size
-		const font = `bold ${textSize}px Asap`;
-		dynamicTexture.drawText("", null, null, font, color, backgroundColor); // Set font first
-
-		// Get text size for centering
-		const textWidth = dynamicTexture.getContext().measureText(text).width;
-		const textHeight = textSize; // Approximate text height as textSize
-
-		// Calculate position for centered text
-		const xPos = (width - textWidth) / 2;
-		const yPos = (height + textHeight) / 2;
-
-		// Draw the text at the calculated position
-		dynamicTexture.drawText(text, xPos, yPos, font, color, backgroundColor);
+	const dynamicTexture = new flock.BABYLON.DynamicTexture("text texture", {width: 512, height: 512}, flock.scene);
+		dynamicTexture.drawText(text, null, null, "bold 200px Arial", "white", "transparent", true);
 
 		const material = new flock.BABYLON.StandardMaterial(
 			"textMaterial",
@@ -3192,21 +3176,23 @@ export const flock = {
 		modelName,
 		posX = 0,
 		posY = 0,
-		posZ = 0.5,    // Front face of the wall at z = 0.5
+		posZ = 0.5, // Front face of the wall at z = 0.5
 		normalX = 0,
 		normalY = 0,
-		normalZ = -1,  // Normal facing the negative z-axis (toward the camera)
+		normalZ = -1, // Normal facing the negative z-axis (toward the camera)
 		sizeX = 3,
 		sizeY = 3,
 		sizeZ = 1,
-		material    // Material passed as a parameter
+		material, // Material passed as a parameter
 	) {
 		return flock.whenModelReady(modelName, (mesh) => {
 			// Log the passed material to ensure it is available
 			console.log("Material:", material);
 
 			if (!material || !material.diffuseTexture) {
-				console.error("Material does not have a diffuse texture. Cannot apply decal.");
+				console.error(
+					"Material does not have a diffuse texture. Cannot apply decal.",
+				);
 				return;
 			}
 
@@ -3221,7 +3207,6 @@ export const flock = {
 			// Define the decal size
 			const decalSize = new flock.BABYLON.Vector3(sizeX, sizeY, sizeZ);
 
-			// Create the decal using Babylon's built-in CreateDecal function
 			const decal = flock.BABYLON.MeshBuilder.CreateDecal("decal", mesh, {
 				position: position,
 				normal: normal,
@@ -3230,9 +3215,40 @@ export const flock = {
 
 			// Apply the passed material to the decal
 			decal.material = material;
-decal.setParent(mesh);
+			decal.setParent(mesh);
 			console.log("Decal applied with provided material.");
 		});
+	},
+	placeDecal(material, angle = 0) {
+		const pickResult = flock.scene.pick(
+			flock.scene.pointerX,
+			flock.scene.pointerY	
+		);
+		if (
+			pickResult.hit 
+		) {
+			const normal = flock.scene.activeCamera
+				.getForwardRay()
+				.direction.negateInPlace()
+				.normalize();
+			const position = pickResult.pickedPoint;
+			const mesh = pickResult.pickedMesh;
+			const decalSize = new flock.BABYLON.Vector3(1, 1, 1);
+			material.diffuseTexture.hasAlpha = true;
+			material.zOffset = -2;
+
+			const decal = flock.BABYLON.MeshBuilder.CreateDecal("decal", mesh, {
+				position: position,
+				normal: normal,
+				size: decalSize,
+				angle: angle
+			});
+
+			// Apply the passed material to the decal
+			decal.material = material;
+			material.disableDepthWrite;
+			decal.setParent(mesh);
+		}
 	},
 	moveForward(modelName, speed) {
 		const model = flock.scene.getMeshByName(modelName);
