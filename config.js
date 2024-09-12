@@ -99,7 +99,7 @@ export const modelNames = [
 	"tree_fat.glb",
 	"tree_fat_fall.glb",
 	"tree_fat_darkh.glb",
-	//"boat1.glb",
+	"boat.glb",
 	//"bear_anim.glb",
 ];
 
