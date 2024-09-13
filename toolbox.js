@@ -1094,6 +1094,38 @@ export const toolbox = {
 								},
 							},
 						},
+						BACKGROUND_COLOR: {
+							shadow: {
+								type: "colour",
+								fields: {
+									COLOUR: "#FF5733",
+								},
+							},
+						},
+						WIDTH: {
+							shadow: {
+								type: "math_number",
+								fields: {
+									NUM: 50,
+								},
+							},
+						},
+						HEIGHT: {
+							shadow: {
+								type: "math_number",
+								fields: {
+									NUM: 50,
+								},
+							},
+						},
+						TEXT_SIZE: {
+							shadow: {
+								type: "math_number",
+								fields: {
+									NUM: 30,
+								},
+							},
+						},
 					},
 				},
 				{

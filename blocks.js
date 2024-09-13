@@ -2684,7 +2684,7 @@ export function defineBlocks() {
 			this.jsonInit({
 				type: "text_material",
 				message0:
-					"store material in %1 with text %2 color %3 background %4 width %5 height %6 size %7",
+					"material %1 text %2 color %3\ background %4\nwidth %5 height %6 size %7",
 				args0: [
 					{
 						type: "field_variable",

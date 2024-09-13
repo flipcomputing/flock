@@ -3187,8 +3187,8 @@ export const flock = {
 	},
 	textMaterial(text, color, backgroundColor, width, height, textSize) {
 
-	const dynamicTexture = new flock.BABYLON.DynamicTexture("text texture", {width: 512, height: 512}, flock.scene);
-		dynamicTexture.drawText(text, null, null, "bold 200px Arial", "white", "transparent", true);
+	const dynamicTexture = new flock.BABYLON.DynamicTexture("text texture", {width: width, height: height}, flock.scene);
+		dynamicTexture.drawText(text, null, null, `bold ${textSize}px Asap`, color, backgroundColor, true);
 
 		const material = new flock.BABYLON.StandardMaterial(
 			"textMaterial",
