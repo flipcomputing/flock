@@ -750,7 +750,7 @@ export const flock = {
 
 				bb.name = modelId;
 				bb.blockKey = blockId;
-				bb.isPickable = true;
+				bb.isPickable = false;
 				bb.position.addInPlace(new flock.BABYLON.Vector3(x, y, z));
 
 				mesh.computeWorldMatrix(true);
@@ -783,6 +783,15 @@ export const flock = {
 					false,
 					flock.scene,
 				);
+
+				const descendants = mesh.getChildMeshes(false); 
+				descendants.forEach((childMesh) => {
+					if (childMesh.getTotalVertices() > 0) {
+						// Ensure it has geometry
+						childMesh.isPickable = true;
+						childMesh.flipFaces(true);
+					}
+				});
 
 				const boxShape = flock.createCapsuleFromBoundingBox(
 					bb,
@@ -2939,9 +2948,27 @@ export const flock = {
 			2,
 		);
 
-		mesh.isPickable = false;
+		let parentPickable = false;
+		if (mesh.isPickable){
+			parentPickable = true;
+			mesh.isPickable = false;
+		}
+
+		const descendants = mesh.getChildMeshes(false);
+		descendants.forEach((childMesh) => {
+			if (childMesh.getTotalVertices() > 0) {
+				childMesh.isPickable = false;
+			}
+		});
 		const hit = flock.scene.pickWithRay(ray);
-		mesh.isPickable = true;
+		descendants.forEach((childMesh) => {
+			if (childMesh.getTotalVertices() > 0) {
+				childMesh.isPickable = true;
+			}
+		});
+
+		if(parentPickable)
+			mesh.ispickable = true;
 
 		//if(hit.hit) {console.log(hit.pickedMesh.name, hit.distance);}
 		return hit.hit && hit.pickedMesh !== null && hit.distance <= 0.06;
@@ -3508,11 +3535,31 @@ export const flock = {
 					2,
 				);
 
-				const rayHelper = new flock.BABYLON.RayHelper(ray);
+				//const rayHelper = new flock.BABYLON.RayHelper(ray);
 
-				mesh.isPickable = false;
+				let parentPickable = false;
+				if (mesh.isPickable){
+					parentPickable = true;
+					mesh.isPickable = false;
+				}
+
+				const descendants = mesh.getChildMeshes(false); // 'false' gets all descendants
+				descendants.forEach((childMesh) => {
+					if (childMesh.getTotalVertices() > 0) {
+						// Ensure it has geometry
+						childMesh.isPickable = false;
+					}
+				});
 				const hit = flock.scene.pickWithRay(ray);
-				mesh.isPickable = true;
+				descendants.forEach((childMesh) => {
+					if (childMesh.getTotalVertices() > 0) {
+						// Ensure it has geometry
+						childMesh.isPickable = true;
+					}
+				});
+
+				if(parentPickable)
+					mesh.ispickable = true;
 
 				if (hit.pickedMesh) {
 					// Move the mesh up to avoid intersection
@@ -3811,8 +3858,8 @@ export const flock = {
 					mesh.actionManager = new flock.BABYLON.ActionManager(
 						flock.scene,
 					);
+					mesh.actionManager.isRecursive = true;
 				}
-				mesh.isPickable = true;
 
 				if (trigger === "OnRightOrLongPressTrigger") {
 					mesh.actionManager.registerAction(
@@ -3867,10 +3914,9 @@ export const flock = {
 						mesh.actionManager = new flock.BABYLON.ActionManager(
 							flock.scene,
 						);
+						mesh.actionManager.isRecursive = true;
 					}
-					mesh.isPickable = true;
 
-					// Register the ExecuteCodeAction for intersection
 					const action = new flock.BABYLON.ExecuteCodeAction(
 						{
 							trigger: flock.BABYLON.ActionManager[trigger],
