@@ -179,6 +179,12 @@ function toggleGizmo(gizmoType) {
 						mesh.physics.disablePreStep = true;
 					}
 
+					mesh.computeWorldMatrix(true);
+					const boundingInfo = mesh.getBoundingInfo();
+					const boundingHeight = boundingInfo.boundingBox.extendSize.y * 2;
+					const scaledHeight = boundingHeight * mesh.scaling.y;
+					const meshY = mesh.position.y - scaledHeight / 2;
+
 					const block = meshMap[mesh.blockKey];
 
 					if (block) {
@@ -193,7 +199,7 @@ function toggleGizmo(gizmoType) {
 							.getInput("Y")
 							.connection.targetBlock()
 							.setFieldValue(
-								String(Math.round(mesh.position.y * 10) / 10),
+								String(Math.round(meshY * 10) / 10),
 								"NUM",
 							);
 						block
