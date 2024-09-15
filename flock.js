@@ -47,6 +47,7 @@ export const flock = {
 			createScene,
 				playAnimation,
 				playSound,
+				playNotes,
 				switchAnimation,
 				highlight,
 				newCharacter,
@@ -146,6 +147,7 @@ export const flock = {
 		flock.scene = null;
 		flock.havokInstance = null;
 		flock.engineReady = false;
+		flock.audioContext = flock.getAudioContext();
 		let gizmoManager = null;
 		const gridKeyPressObservable = new flock.BABYLON.Observable();
 		const gridKeyReleaseObservable = new flock.BABYLON.Observable();
@@ -204,6 +206,9 @@ export const flock = {
 			flock.controlsTexture = null;
 			flock.hk.dispose();
 			flock.hk = null;
+			
+			flock.globalStartTime = flock.audioContext.currentTime;
+			console.log("Initialize");
 		}
 
 		if (!flock.engine) {
@@ -784,7 +789,7 @@ export const flock = {
 					flock.scene,
 				);
 
-				const descendants = mesh.getChildMeshes(false); 
+				const descendants = mesh.getChildMeshes(false);
 				descendants.forEach((childMesh) => {
 					if (childMesh.getTotalVertices() > 0) {
 						// Ensure it has geometry
@@ -2949,7 +2954,7 @@ export const flock = {
 		);
 
 		let parentPickable = false;
-		if (mesh.isPickable){
+		if (mesh.isPickable) {
 			parentPickable = true;
 			mesh.isPickable = false;
 		}
@@ -2967,8 +2972,7 @@ export const flock = {
 			}
 		});
 
-		if(parentPickable)
-			mesh.ispickable = true;
+		if (parentPickable) mesh.ispickable = true;
 
 		//if(hit.hit) {console.log(hit.pickedMesh.name, hit.distance);}
 		return hit.hit && hit.pickedMesh !== null && hit.distance <= 0.06;
@@ -3186,9 +3190,20 @@ export const flock = {
 		return material;
 	},
 	textMaterial(text, color, backgroundColor, width, height, textSize) {
-
-	const dynamicTexture = new flock.BABYLON.DynamicTexture("text texture", {width: width, height: height}, flock.scene);
-		dynamicTexture.drawText(text, null, null, `bold ${textSize}px Asap`, color, backgroundColor, true);
+		const dynamicTexture = new flock.BABYLON.DynamicTexture(
+			"text texture",
+			{ width: width, height: height },
+			flock.scene,
+		);
+		dynamicTexture.drawText(
+			text,
+			null,
+			null,
+			`bold ${textSize}px Asap`,
+			color,
+			backgroundColor,
+			true,
+		);
 
 		const material = new flock.BABYLON.StandardMaterial(
 			"textMaterial",
@@ -3249,11 +3264,9 @@ export const flock = {
 	placeDecal(material, angle = 0) {
 		const pickResult = flock.scene.pick(
 			flock.scene.pointerX,
-			flock.scene.pointerY	
+			flock.scene.pointerY,
 		);
-		if (
-			pickResult.hit 
-		) {
+		if (pickResult.hit) {
 			const normal = flock.scene.activeCamera
 				.getForwardRay()
 				.direction.negateInPlace()
@@ -3268,7 +3281,7 @@ export const flock = {
 				position: position,
 				normal: normal,
 				size: decalSize,
-				angle: angle
+				angle: angle,
 			});
 
 			// Apply the passed material to the decal
@@ -3538,7 +3551,7 @@ export const flock = {
 				//const rayHelper = new flock.BABYLON.RayHelper(ray);
 
 				let parentPickable = false;
-				if (mesh.isPickable){
+				if (mesh.isPickable) {
 					parentPickable = true;
 					mesh.isPickable = false;
 				}
@@ -3558,8 +3571,7 @@ export const flock = {
 					}
 				});
 
-				if(parentPickable)
-					mesh.ispickable = true;
+				if (parentPickable) mesh.ispickable = true;
 
 				if (hit.pickedMesh) {
 					// Move the mesh up to avoid intersection
@@ -4050,6 +4062,123 @@ export const flock = {
 				resolve();
 			});
 		});
+	},
+	getAudioContext() {
+		if (!flock.audioContext) {
+			flock.audioContext = new (window.AudioContext ||
+				window.webkitAudioContext)();
+		}
+		console.log(flock.audioContext);
+		return flock.audioContext;
+	},
+
+	playNotes(meshName, notes, durations) {
+		return new Promise((resolve) => {
+			flock.whenModelReady(meshName, async function (mesh) {
+				const bpm = 60;
+				const context = flock.audioContext; // Ensure a global audio context
+
+				if (mesh && mesh.position) {
+
+					// Use a predefined global start time (e.g., set during initialization)
+					const globalStartTime = flock.globalStartTime;
+
+					// Calculate the total duration of the sequence in beats
+					const totalDurationInBeats = durations.reduce((acc, duration) => acc + duration, 0);
+					const totalDurationInSeconds = flock.durationInSeconds(totalDurationInBeats, bpm);
+
+					// Get the current global time
+					const globalTime = context.currentTime;
+
+					// Calculate how many full cycles have passed since the global start time
+					const cyclesSinceStart = Math.floor((globalTime - globalStartTime) / totalDurationInSeconds);
+
+					// Calculate the closest start time (in the future or tiny bit in the past for sync)
+					let sequenceStartTime = globalStartTime + cyclesSinceStart * totalDurationInSeconds;
+
+					// Allow a small amount of time in the past for synchronization
+					const syncThreshold = 0.05; // 50ms threshold for synchronization
+
+					// If the sequence start time is more than the sync threshold behind the global time, move it to the next cycle
+					if (sequenceStartTime < globalTime - syncThreshold) {
+						sequenceStartTime += totalDurationInSeconds; // Shift to the next available cycle
+					}
+
+					// Iterate over the notes and their respective durations
+					let offsetTime = 0;
+					for (let i = 0; i < notes.length; i++) {
+						const note = notes[i];
+						const duration = durations[i];
+
+						// Calculate the note's duration in seconds based on the BPM
+						const noteDuration = flock.durationInSeconds(duration, bpm);
+
+						if (note !== null) {
+							// Capture the current position of the mesh dynamically
+							const panner = context.createPanner();
+							const { x, y, z } = mesh.position;
+							panner.setPosition(x, y, z); // Set panner position based on the mesh
+
+							// Play the note at the calculated start time plus the offset
+							flock.playMidiNote(
+								context,
+								panner,
+								note,
+								noteDuration,
+								bpm,
+								sequenceStartTime + offsetTime // Schedule the note at the correct start time
+							);
+						}
+
+						// Move the offset time forward by the note's (or rest's) duration
+						offsetTime += noteDuration;
+					}
+
+					// Resolve the promise slightly before the sequence finishes
+					const resolveTime = totalDurationInSeconds - 0.05; // Resolve 50ms before the sequence ends
+					setTimeout(() => resolve(), resolveTime * 1000);
+				} else {
+					console.error('Mesh does not have a position property:', mesh);
+					resolve();
+				}
+			});
+		});
+	},
+
+playMidiNote(context, panner, note, duration, bpm, playTime) {
+		const osc = context.createOscillator();
+		const gainNode = context.createGain();
+
+		osc.frequency.value = flock.midiToFrequency(note); // Convert MIDI note to frequency
+
+		// Connect the oscillator to the gain node and panner
+		osc.connect(gainNode);
+		gainNode.connect(panner);
+		panner.connect(context.destination);
+
+		const gap = Math.min(0.01, (60 / bpm) * 0.01); // A small percentage of a beat, relative to BPM
+
+		gainNode.gain.setValueAtTime(1, playTime);
+
+		const fadeOutDuration = Math.min(0.05, duration * 0.1);
+
+		gainNode.gain.linearRampToValueAtTime(
+			0,
+			playTime + duration - gap - fadeOutDuration,
+		); // Gradual fade-out
+
+		osc.start(playTime); // Start the note at playTime
+		osc.stop(playTime + duration - gap); // Stop slightly earlier to add a gap
+	},
+	midiToFrequency(note) {
+		return 440 * Math.pow(2, (note - 69) / 12); // Convert MIDI note to frequency
+	},
+	durationInSeconds(duration, bpm) {
+		return (60 / bpm) * duration; // Convert beats to seconds
+	},
+	setPanning(panner, mesh) {
+		const position = mesh.position;
+		panner.setPosition(position.x, position.y, position.z); // Pan based on mesh position
 	},
 	download(filename, data, mimeType) {
 		const blob = new Blob([data], { type: mimeType });

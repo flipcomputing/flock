@@ -687,6 +687,29 @@ export function defineGenerators() {
 		return "flock.scene.sounds.forEach(function(sound) { sound.stop(); });\n";
 	};
 
+	javascriptGenerator.forBlock['midi_note'] = function(block) {
+		const note = block.getFieldValue('NOTE');
+		return [note, javascriptGenerator.ORDER_ATOMIC];
+	};
+
+	javascriptGenerator.forBlock['rest'] = function() {
+		// Rest is represented as null in sequences
+		return ['null', javascriptGenerator.ORDER_ATOMIC];
+	};
+
+	javascriptGenerator.forBlock['play_notes'] = function(block) {
+		const meshVar = javascriptGenerator.nameDB_.getName(
+			block.getFieldValue('MESH'),
+			Blockly.Names.NameType.VARIABLE
+		);
+		const notes = javascriptGenerator.valueToCode(block, 'NOTES', javascriptGenerator.ORDER_ATOMIC) || '[]';
+		const durations = javascriptGenerator.valueToCode(block, 'DURATIONS', javascriptGenerator.ORDER_ATOMIC) || '[]';
+
+		// Use a helper function to play notes
+		return `await playNotes(${meshVar}, ${notes}, ${durations});\n`;
+	};
+
+
 	javascriptGenerator.forBlock["when_clicked"] = function (block) {
 		const modelName = javascriptGenerator.nameDB_.getName(
 			block.getFieldValue("MODEL_VAR"),

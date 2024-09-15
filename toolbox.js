@@ -1708,6 +1708,63 @@ export const toolbox = {
 					kind: "block",
 					type: "stop_all_sounds",
 				},
+				{
+					kind: "block",
+					type: "midi_note",
+					fields: {
+						NOTE: 60,
+					},
+				},
+				{
+					kind: "block",
+					type: "rest",
+				},
+				{
+					kind: "block",
+					type: "play_notes",
+					keyword: "play_notes",
+					inputsInline: true, // Set lists to be inline
+					inputs: {
+						NOTES: {
+							block: {
+								type: "lists_create_with",
+								inline: true,
+								extraState: {
+								  itemCount: 1
+								},
+								inputs: {
+									ADD0: {
+										block: {
+											type: "midi_note",
+											fields: {
+												NOTE: 60, // Default MIDI note: 60 (Middle C)
+											},
+										},
+									},
+								},
+							},
+						},
+						DURATIONS: {
+							block: {
+								type: "lists_create_with",
+								inline: true,
+								extraState: {
+									itemCount: 1,
+								},
+								inputs: {
+									ADD0: {
+										block: {
+											type: "math_number",
+											fields: {
+												NUM: 1, // Default duration: 1 beat
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
 			],
 		},
 		{

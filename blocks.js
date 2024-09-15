@@ -2241,6 +2241,75 @@ export function defineBlocks() {
 		},
 	};
 
+	Blockly.Blocks["midi_note"] = {
+	  init: function () {
+		this.jsonInit({
+		  type: "midi_note",
+		  message0: "MIDI note %1",
+		  args0: [
+			{
+			  type: "field_number",
+			  name: "NOTE",
+			  value: 60,  // Default is Middle C
+			  min: 0,
+			  max: 127,
+			  precision: 1
+			}
+		  ],
+		  output: "Number",
+		  colour: categoryColours["Sound"],
+		  tooltip: "Represents a MIDI note value between 0 and 127.",
+		  helpUrl: ""
+		});
+	  }
+	};
+
+	Blockly.Blocks["rest"] = {
+	  init: function () {
+		this.jsonInit({
+		  type: "rest",
+		  message0: "rest",
+		  output: "Null",
+		  colour: categoryColours["Sound"],
+		  tooltip: "Represents a rest (silence) in a musical sequence.",
+		  helpUrl: ""
+		});
+	  }
+	};
+
+	Blockly.Blocks["play_notes"] = {
+	  init: function () {
+		this.jsonInit({
+		  type: "play_notes",
+		  message0: "play notes on %1\nnotes %2\ndurations %3",
+		  args0: [
+			  {
+				type: "field_variable",
+				name: "MESH",
+				variable: "mesh"
+			  },
+			{
+			  type: "input_value",
+			  name: "NOTES",
+			  check: "Array"
+			},
+			{
+			  type: "input_value",
+			  name: "DURATIONS",
+			  check: "Array"
+			},			
+		  ],
+		  inputsInline: true,
+		  previousStatement: null,
+		  nextStatement: null,
+		  colour: categoryColours["Sound"],
+		  tooltip: "Plays a sequence of MIDI notes and rests with corresponding durations, using mesh for panning.",
+		  helpUrl: ""
+		});
+	  }
+	};
+
+
 	Blockly.Blocks["forever"] = {
 		init: function () {
 			this.jsonInit({
