@@ -2281,13 +2281,13 @@ export function defineBlocks() {
 	  init: function () {
 		this.jsonInit({
 		  type: "play_notes",
-		  message0: "play notes on %1\nnotes %2\ndurations %3",
+		  message0: "play notes on %1\nnotes %2\ndurations %3\nmode %4",
 		  args0: [
-			  {
-				type: "field_variable",
-				name: "MESH",
-				variable: "mesh"
-			  },
+			{
+			  type: "field_variable",
+			  name: "MESH",
+			  variable: "mesh"
+			},
 			{
 			  type: "input_value",
 			  name: "NOTES",
@@ -2297,13 +2297,21 @@ export function defineBlocks() {
 			  type: "input_value",
 			  name: "DURATIONS",
 			  check: "Array"
-			},			
+			},
+			{
+			  type: "field_dropdown",
+			  name: "ASYNC",
+			  options: [
+				["start", "START"],
+				["await", "AWAIT"],
+			  ],
+			},
 		  ],
 		  inputsInline: true,
 		  previousStatement: null,
 		  nextStatement: null,
 		  colour: categoryColours["Sound"],
-		  tooltip: "Plays a sequence of MIDI notes and rests with corresponding durations, using mesh for panning.",
+		  tooltip: "Plays a sequence of MIDI notes and rests with corresponding durations, using mesh for panning. Can return immediately or after the notes have finished playing.",
 		  helpUrl: ""
 		});
 	  }

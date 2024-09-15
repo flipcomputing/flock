@@ -704,10 +704,16 @@ export function defineGenerators() {
 		);
 		const notes = javascriptGenerator.valueToCode(block, 'NOTES', javascriptGenerator.ORDER_ATOMIC) || '[]';
 		const durations = javascriptGenerator.valueToCode(block, 'DURATIONS', javascriptGenerator.ORDER_ATOMIC) || '[]';
+		const asyncMode = block.getFieldValue('ASYNC');
 
-		// Use a helper function to play notes
-		return `await playNotes(${meshVar}, ${notes}, ${durations});\n`;
+		// Use the appropriate function based on the async mode
+		if (asyncMode === 'AWAIT') {
+			return `await playNotes(${meshVar}, ${notes}, ${durations});\n`;
+		} else {
+			return `playNotes(${meshVar}, ${notes}, ${durations});\n`;
+		}
 	};
+
 
 
 	javascriptGenerator.forBlock["when_clicked"] = function (block) {

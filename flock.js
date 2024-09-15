@@ -206,7 +206,7 @@ export const flock = {
 			flock.controlsTexture = null;
 			flock.hk.dispose();
 			flock.hk = null;
-			
+
 			flock.globalStartTime = flock.audioContext.currentTime;
 			console.log("Initialize");
 		}
@@ -4068,47 +4068,44 @@ export const flock = {
 			flock.audioContext = new (window.AudioContext ||
 				window.webkitAudioContext)();
 		}
-		console.log(flock.audioContext);
 		return flock.audioContext;
 	},
 
 	playNotes(meshName, notes, durations) {
 		return new Promise((resolve) => {
 			flock.whenModelReady(meshName, async function (mesh) {
-				const bpm = 60;
+				notes = notes.map(note => note === '_' ? null : note);
+				durations = durations.map(Number);
+
+				console.log(notes, durations);
+				const bpm = 120;
 				const context = flock.audioContext; // Ensure a global audio context
 
 				if (mesh && mesh.position) {
-
 					// Use a predefined global start time (e.g., set during initialization)
 					const globalStartTime = flock.globalStartTime;
 
 					// Calculate the total duration of the sequence in beats
-					const totalDurationInBeats = durations.reduce((acc, duration) => acc + duration, 0);
-					const totalDurationInSeconds = flock.durationInSeconds(totalDurationInBeats, bpm);
+					const totalDurationInBeats = durations.reduce(
+						(acc, duration) => acc + duration,
+						0,
+					);
+					const totalDurationInSeconds = flock.durationInSeconds(
+						totalDurationInBeats,
+						bpm,
+					);
 
 					// Get the current global time
 					const globalTime = context.currentTime;
 
-					// Calculate how many full cycles have passed since the global start time
-					const cyclesSinceStart = Math.floor((globalTime - globalStartTime) / totalDurationInSeconds);
-
-					// Calculate the closest start time (in the future or tiny bit in the past for sync)
-					let sequenceStartTime = globalStartTime + cyclesSinceStart * totalDurationInSeconds;
-
-					// Allow a small amount of time in the past for synchronization
-					const syncThreshold = 0.05; // 50ms threshold for synchronization
-
-					// If the sequence start time is more than the sync threshold behind the global time, move it to the next cycle
-					if (sequenceStartTime < globalTime - syncThreshold) {
-						sequenceStartTime += totalDurationInSeconds; // Shift to the next available cycle
-					}
+					const sequenceStartTime = globalTime + 0.1; // Start slightly after the current time
+					const startDelay = 0;
 
 					// Iterate over the notes and their respective durations
 					let offsetTime = 0;
 					for (let i = 0; i < notes.length; i++) {
 						const note = notes[i];
-						const duration = durations[i];
+						const duration = Number(durations[i]);
 
 						// Calculate the note's duration in seconds based on the BPM
 						const noteDuration = flock.durationInSeconds(duration, bpm);
@@ -4126,7 +4123,7 @@ export const flock = {
 								note,
 								noteDuration,
 								bpm,
-								sequenceStartTime + offsetTime // Schedule the note at the correct start time
+								sequenceStartTime + offsetTime, // Schedule the note at the correct start time
 							);
 						}
 
@@ -4134,17 +4131,16 @@ export const flock = {
 						offsetTime += noteDuration;
 					}
 
-					// Resolve the promise slightly before the sequence finishes
+					// Resolve the promise after the delay and total duration, accounting for start delay
 					const resolveTime = totalDurationInSeconds - 0.05; // Resolve 50ms before the sequence ends
-					setTimeout(() => resolve(), resolveTime * 1000);
+					setTimeout(() => resolve(), (startDelay + resolveTime) * 1000);
 				} else {
-					console.error('Mesh does not have a position property:', mesh);
+					console.error("Mesh does not have a position property:", mesh);
 					resolve();
 				}
 			});
 		});
 	},
-
 playMidiNote(context, panner, note, duration, bpm, playTime) {
 		const osc = context.createOscillator();
 		const gainNode = context.createGain();
