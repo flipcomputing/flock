@@ -180,12 +180,19 @@ function toggleGizmo(gizmoType) {
 					}
 
 					mesh.computeWorldMatrix(true);
-					const boundingInfo = mesh.getBoundingInfo();
-					const boundingHeight = boundingInfo.boundingBox.extendSize.y * 2;
-					const scaledHeight = boundingHeight * mesh.scaling.y;
-					const meshY = mesh.position.y - scaledHeight / 2;
-
+					
 					const block = meshMap[mesh.blockKey];
+
+					const scale = block
+					.getInput("SCALE")
+					.connection.targetBlock()
+					.getFieldValue(
+						"NUM",
+					);
+
+					console.log(mesh.position.y, mesh.metadata.yOffset);
+					const meshY = mesh.position.y - (scale * mesh.metadata.yOffset);
+					
 
 					if (block) {
 						block

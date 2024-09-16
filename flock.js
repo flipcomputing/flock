@@ -677,6 +677,7 @@ export const flock = {
 			flock.scene,
 			function (meshes) {
 				const mesh = meshes[0];
+				
 				mesh.scaling = new flock.BABYLON.Vector3(scale, scale, scale);
 
 				const bb =
@@ -692,7 +693,11 @@ export const flock = {
 				mesh.computeWorldMatrix(true);
 				mesh.refreshBoundingInfo();
 
+				bb.metadata = bb.metadata || {};
+				bb.metadata.yOffset = ((bb.position.y - y) / scale); - y;
+				console.log(bb.metadata.yOffset, bb.position.y, scale, y);
 				flock.stopAnimationsTargetingMesh(flock.scene, mesh);
+				
 
 				const boxBody = new flock.BABYLON.PhysicsBody(
 					bb,
