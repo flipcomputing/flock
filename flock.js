@@ -709,8 +709,8 @@ export const flock = {
 				boxBody.shape = boxShape;
 				boxBody.setMassProperties({ mass: 1, restitution: 0.5 });
 				boxBody.disablePreStep = false;
-				boxBody.setAngularDamping(10000000);
-				boxBody.setLinearDamping(0);
+				//boxBody.setAngularDamping(10000000);
+				//boxBody.setLinearDamping(0);
 				bb.physics = boxBody;
 			},
 			null,
