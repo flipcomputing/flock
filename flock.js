@@ -48,6 +48,7 @@ export const flock = {
 				playAnimation,
 				playSound,
 				playNotes,
+				createInstrument,
 				switchAnimation,
 				highlight,
 				newCharacter,
@@ -677,7 +678,7 @@ export const flock = {
 			flock.scene,
 			function (meshes) {
 				const mesh = meshes[0];
-				
+
 				mesh.scaling = new flock.BABYLON.Vector3(scale, scale, scale);
 
 				const bb =
@@ -694,10 +695,10 @@ export const flock = {
 				mesh.refreshBoundingInfo();
 
 				bb.metadata = bb.metadata || {};
-				bb.metadata.yOffset = ((bb.position.y - y) / scale); - y;
+				bb.metadata.yOffset = (bb.position.y - y) / scale;
+				-y;
 				console.log(bb.metadata.yOffset, bb.position.y, scale, y);
 				flock.stopAnimationsTargetingMesh(flock.scene, mesh);
-				
 
 				const boxBody = new flock.BABYLON.PhysicsBody(
 					bb,
@@ -4076,14 +4077,13 @@ export const flock = {
 		return flock.audioContext;
 	},
 
-	playNotes(meshName, notes, durations) {
+	playNotes(meshName, notes, durations, instrument = null) {
 		return new Promise((resolve) => {
 			flock.whenModelReady(meshName, async function (mesh) {
-				notes = notes.map(note => note === '_' ? null : note);
+				notes = notes.map((note) => (note === "_" ? null : note));
 				durations = durations.map(Number);
 
-				console.log(notes, durations);
-				const bpm = 120;
+				const bpm = 60;
 				const context = flock.audioContext; // Ensure a global audio context
 
 				if (mesh && mesh.position) {
@@ -4106,6 +4106,9 @@ export const flock = {
 					const sequenceStartTime = globalTime + 0.1; // Start slightly after the current time
 					const startDelay = 0;
 
+					// Check if an instrument is passed, use the default one otherwise
+					instrument = instrument || flock.createInstrument('sine', 440, 0.1, 0.5, 0.7, 1.0);
+
 					// Iterate over the notes and their respective durations
 					let offsetTime = 0;
 					for (let i = 0; i < notes.length; i++) {
@@ -4113,7 +4116,10 @@ export const flock = {
 						const duration = Number(durations[i]);
 
 						// Calculate the note's duration in seconds based on the BPM
-						const noteDuration = flock.durationInSeconds(duration, bpm);
+						const noteDuration = flock.durationInSeconds(
+							duration,
+							bpm,
+						);
 
 						if (note !== null) {
 							// Capture the current position of the mesh dynamically
@@ -4121,7 +4127,7 @@ export const flock = {
 							const { x, y, z } = mesh.position;
 							panner.setPosition(x, y, z); // Set panner position based on the mesh
 
-							// Play the note at the calculated start time plus the offset
+							// Play the note using the specified instrument
 							flock.playMidiNote(
 								context,
 								panner,
@@ -4129,6 +4135,7 @@ export const flock = {
 								noteDuration,
 								bpm,
 								sequenceStartTime + offsetTime, // Schedule the note at the correct start time
+								instrument, // Pass the instrument to be used
 							);
 						}
 
@@ -4138,38 +4145,54 @@ export const flock = {
 
 					// Resolve the promise after the delay and total duration, accounting for start delay
 					const resolveTime = totalDurationInSeconds - 0.05; // Resolve 50ms before the sequence ends
-					setTimeout(() => resolve(), (startDelay + resolveTime) * 1000);
+					setTimeout(
+						() => resolve(),
+						(startDelay + resolveTime) * 1000,
+					);
 				} else {
-					console.error("Mesh does not have a position property:", mesh);
+					console.error(
+						"Mesh does not have a position property:",
+						mesh,
+					);
 					resolve();
 				}
 			});
 		});
 	},
-playMidiNote(context, panner, note, duration, bpm, playTime) {
-		const osc = context.createOscillator();
-		const gainNode = context.createGain();
+	playMidiNote(context, panner, note, duration, bpm, playTime, instrument = null) {
+	  // Create a new oscillator for each note
+	  const osc = context.createOscillator();
 
-		osc.frequency.value = flock.midiToFrequency(note); // Convert MIDI note to frequency
+	  // If an instrument is provided, reuse its gainNode but create a new oscillator each time
+	  const gainNode = instrument ? instrument.gainNode : context.createGain();
 
-		// Connect the oscillator to the gain node and panner
-		osc.connect(gainNode);
-		gainNode.connect(panner);
-		panner.connect(context.destination);
+	  // Set oscillator type based on the instrument or default to 'sine'
+	  osc.type = instrument ? instrument.oscillator.type : 'sine';
+	  osc.frequency.value = flock.midiToFrequency(note); // Convert MIDI note to frequency
 
-		const gap = Math.min(0.01, (60 / bpm) * 0.01); // A small percentage of a beat, relative to BPM
+	  // Connect the oscillator to the gain node and panner
+	  osc.connect(gainNode);
+	  gainNode.connect(panner);
+	  panner.connect(context.destination);
 
-		gainNode.gain.setValueAtTime(1, playTime);
+	  const gap = Math.min(0.01, (60 / bpm) * 0.01); // A small percentage of a beat, relative to BPM
 
-		const fadeOutDuration = Math.min(0.05, duration * 0.1);
+	  gainNode.gain.setValueAtTime(1, playTime);
 
-		gainNode.gain.linearRampToValueAtTime(
-			0,
-			playTime + duration - gap - fadeOutDuration,
-		); // Gradual fade-out
+	  const fadeOutDuration = Math.min(0.05, duration * 0.1);
 
-		osc.start(playTime); // Start the note at playTime
-		osc.stop(playTime + duration - gap); // Stop slightly earlier to add a gap
+	  gainNode.gain.linearRampToValueAtTime(
+		0,
+		playTime + duration - gap - fadeOutDuration
+	  ); // Gradual fade-out
+
+	  osc.start(playTime); // Start the note at playTime
+	  osc.stop(playTime + duration - gap); // Stop slightly earlier to add a gap
+
+	  // Clean up: disconnect the oscillator after it's done
+	  osc.onended = () => {
+		osc.disconnect();
+	  };
 	},
 	midiToFrequency(note) {
 		return 440 * Math.pow(2, (note - 69) / 12); // Convert MIDI note to frequency
@@ -4180,6 +4203,30 @@ playMidiNote(context, panner, note, duration, bpm, playTime) {
 	setPanning(panner, mesh) {
 		const position = mesh.position;
 		panner.setPosition(position.x, position.y, position.z); // Pan based on mesh position
+	},
+	createInstrument(type, frequency, attack, decay, sustain, release) {
+		const audioCtx = flock.audioContext;
+		const oscillator = audioCtx.createOscillator();
+		const gainNode = audioCtx.createGain();
+
+		oscillator.type = type;
+		oscillator.frequency.setValueAtTime(frequency, audioCtx.currentTime);
+
+		// Create ADSR envelope
+		gainNode.gain.setValueAtTime(0, audioCtx.currentTime);
+		gainNode.gain.linearRampToValueAtTime(1, audioCtx.currentTime + attack);
+		gainNode.gain.linearRampToValueAtTime(
+			sustain,
+			audioCtx.currentTime + attack + decay,
+		);
+		gainNode.gain.linearRampToValueAtTime(
+			0,
+			audioCtx.currentTime + attack + decay + release,
+		);
+
+		oscillator.connect(gainNode).connect(audioCtx.destination);
+
+		return { oscillator, gainNode, audioCtx };
 	},
 	download(filename, data, mimeType) {
 		const blob = new Blob([data], { type: mimeType });

@@ -1720,50 +1720,66 @@ export const toolbox = {
 					type: "rest",
 				},
 				{
-					kind: "block",
-					type: "play_notes",
-					keyword: "play_notes",
-					inputsInline: true, // Set lists to be inline
-					inputs: {
-						NOTES: {
-							block: {
-								type: "lists_create_with",
-								inline: true,
-								extraState: {
-								  itemCount: 1
-								},
-								inputs: {
-									ADD0: {
-										block: {
-											type: "midi_note",
-											fields: {
-												NOTE: 60, // Default MIDI note: 60 (Middle C)
-											},
-										},
-									},
-								},
-							},
+				  kind: "block",
+				  type: "play_notes",
+				  keyword: "play_notes",
+				  inputsInline: true, // Set lists to be inline
+				  inputs: {
+					NOTES: {
+					  block: {
+						type: "lists_create_with",
+						inline: true,
+						extraState: {
+						  itemCount: 1
 						},
-						DURATIONS: {
+						inputs: {
+						  ADD0: {
 							block: {
-								type: "lists_create_with",
-								inline: true,
-								extraState: {
-									itemCount: 1,
-								},
-								inputs: {
-									ADD0: {
-										block: {
-											type: "math_number",
-											fields: {
-												NUM: 1, // Default duration: 1 beat
-											},
-										},
-									},
-								},
+							  type: "midi_note",
+							  fields: {
+								NOTE: 60, // Default MIDI note: 60 (Middle C)
+							  },
 							},
+						  },
 						},
+					  },
 					},
+					DURATIONS: {
+					  block: {
+						type: "lists_create_with",
+						inline: true,
+						extraState: {
+						  itemCount: 1,
+						},
+						inputs: {
+						  ADD0: {
+							block: {
+							  type: "math_number",
+							  fields: {
+								NUM: 1, // Default duration: 1 beat
+							  },
+							},
+						  },
+						},
+					  },
+					},
+					INSTRUMENT: {
+					  shadow: {
+						type: "instrument", 
+						fields: {
+						  INSTRUMENT_TYPE: "default" // Default instrument selection
+						}
+					  }
+					}
+				  }
+				},
+				{
+					kind: "block",
+					type: "instrument",
+				},
+				{
+					kind: "block",
+					type: "create_instrument",
 				},
 			],
 		},

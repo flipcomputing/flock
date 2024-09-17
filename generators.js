@@ -687,34 +687,86 @@ export function defineGenerators() {
 		return "flock.scene.sounds.forEach(function(sound) { sound.stop(); });\n";
 	};
 
-	javascriptGenerator.forBlock['midi_note'] = function(block) {
-		const note = block.getFieldValue('NOTE');
+	javascriptGenerator.forBlock["midi_note"] = function (block) {
+		const note = block.getFieldValue("NOTE");
 		return [note, javascriptGenerator.ORDER_ATOMIC];
 	};
 
-	javascriptGenerator.forBlock['rest'] = function() {
+	javascriptGenerator.forBlock["rest"] = function () {
 		// Rest is represented as null in sequences
-		return ['null', javascriptGenerator.ORDER_ATOMIC];
+		return ["null", javascriptGenerator.ORDER_ATOMIC];
 	};
 
-	javascriptGenerator.forBlock['play_notes'] = function(block) {
+	javascriptGenerator.forBlock["play_notes"] = function (block) {
 		const meshVar = javascriptGenerator.nameDB_.getName(
-			block.getFieldValue('MESH'),
-			Blockly.Names.NameType.VARIABLE
+			block.getFieldValue("MESH"),
+			Blockly.Names.NameType.VARIABLE,
 		);
-		const notes = javascriptGenerator.valueToCode(block, 'NOTES', javascriptGenerator.ORDER_ATOMIC) || '[]';
-		const durations = javascriptGenerator.valueToCode(block, 'DURATIONS', javascriptGenerator.ORDER_ATOMIC) || '[]';
-		const asyncMode = block.getFieldValue('ASYNC');
+		const notes =
+			javascriptGenerator.valueToCode(
+				block,
+				"NOTES",
+				javascriptGenerator.ORDER_ATOMIC,
+			) || "[]";
+		const durations =
+			javascriptGenerator.valueToCode(
+				block,
+				"DURATIONS",
+				javascriptGenerator.ORDER_ATOMIC,
+			) || "[]";
+		const instrument = javascriptGenerator.valueToCode(
+		  block,
+		  "INSTRUMENT",
+		  javascriptGenerator.ORDER_ATOMIC
+		);
+		const asyncMode = block.getFieldValue("ASYNC");
 
 		// Use the appropriate function based on the async mode
-		if (asyncMode === 'AWAIT') {
-			return `await playNotes(${meshVar}, ${notes}, ${durations});\n`;
+		if (asyncMode === "AWAIT") {
+			return `await playNotes(${meshVar}, ${notes}, ${durations}, ${instrument});\n`;
 		} else {
-			return `playNotes(${meshVar}, ${notes}, ${durations});\n`;
+			return `playNotes(${meshVar}, ${notes}, ${durations}, ${instrument});\n`;
 		}
 	};
 
+	javascriptGenerator.forBlock["create_instrument"] = function (block) {
+		const instrumentVar = javascriptGenerator.nameDB_.getName(
+			block.getFieldValue("INSTRUMENT"),
+			Blockly.Names.NameType.VARIABLE,
+		);
+		const type = block.getFieldValue("TYPE");
+		const frequency = block.getFieldValue("FREQUENCY");
+		const attack = block.getFieldValue("ATTACK");
+		const decay = block.getFieldValue("DECAY");
+		const sustain = block.getFieldValue("SUSTAIN");
+		const release = block.getFieldValue("RELEASE");
 
+		// Assign the instrument to a variable
+		return `${instrumentVar} = createInstrument('${type}', ${frequency}, ${attack}, ${decay}, ${sustain}, ${release});\n`;
+	};
+
+	javascriptGenerator.forBlock["instrument"] = function (block) {
+		const instrumentType = block.getFieldValue("INSTRUMENT_TYPE");
+
+		let instrumentCode;
+		switch (instrumentType) {
+			case "piano":
+				instrumentCode = `createInstrument('square', 440, 0.1, 0.3, 0.7, 1.0)`; // Example settings for piano
+				break;
+			case "guitar":
+				instrumentCode = `createInstrument('sawtooth', 440, 0.1, 0.2, 0.6, 0.9)`; // Example settings for guitar
+				break;
+			case "violin":
+				instrumentCode = `createInstrument('triangle', 440, 0.15, 0.5, 0.8, 1.2)`; // Example settings for violin
+				break;
+			default:
+				instrumentCode = null; // Default instrument
+		}
+
+		const code =  instrumentCode;
+
+		return [code, javascriptGenerator.ORDER_ATOMIC];
+	};
 
 	javascriptGenerator.forBlock["when_clicked"] = function (block) {
 		const modelName = javascriptGenerator.nameDB_.getName(
@@ -1328,7 +1380,7 @@ export function defineGenerators() {
 		return code;
 	};
 
-	javascriptGenerator.forBlock['place_decal'] = function(block) {
+	javascriptGenerator.forBlock["place_decal"] = function (block) {
 		const materialVar = javascriptGenerator.nameDB_.getName(
 			block.getFieldValue("MATERIAL"),
 			Blockly.Names.NameType.VARIABLE,
