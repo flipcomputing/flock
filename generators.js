@@ -768,6 +768,20 @@ export function defineGenerators() {
 		return [code, javascriptGenerator.ORDER_ATOMIC];
 	};
 
+
+	javascriptGenerator.forBlock["set_scene_bpm"] = function (block) {
+		const bpm = javascriptGenerator.valueToCode(block, "BPM", javascriptGenerator.ORDER_ATOMIC);
+		return `setBPM(${bpm});\n`;
+	};
+
+	javascriptGenerator.forBlock["set_mesh_bpm"] = function (block) {
+		const meshVar = javascriptGenerator.nameDB_.getName(block.getFieldValue("MESH"), Blockly.Names.NameType.VARIABLE);
+		const bpm = javascriptGenerator.valueToCode(block, "BPM", javascriptGenerator.ORDER_ATOMIC);
+		return `await setBPM(${bpm}, ${meshVar});\n`;
+	};
+
+
+
 	javascriptGenerator.forBlock["when_clicked"] = function (block) {
 		const modelName = javascriptGenerator.nameDB_.getName(
 			block.getFieldValue("MODEL_VAR"),

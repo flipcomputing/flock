@@ -48,6 +48,7 @@ export const flock = {
 				playAnimation,
 				playSound,
 				playNotes,
+				setBPM,
 				createInstrument,
 				switchAnimation,
 				highlight,
@@ -4085,7 +4086,11 @@ export const flock = {
 				notes = notes.map((note) => (note === "_" ? null : note));
 				durations = durations.map(Number);
 
-				const bpm = 60;
+				const getBPM = (obj) => obj?.metadata?.bpm || null;
+				const getBPMFromMeshOrScene = (mesh, scene) =>
+					getBPM(mesh) || getBPM(mesh?.parent) || getBPM(scene) || 60;
+				const bpm = getBPMFromMeshOrScene(mesh, flock.scene);
+
 				const context = flock.audioContext; // Ensure a global audio context
 
 				if (mesh && mesh.position) {
@@ -4252,6 +4257,21 @@ export const flock = {
 		a.click();
 		flock.document.body.removeChild(a);
 		URL.revokeObjectURL(url);
+	},
+	setBPM(bpm, meshName = null) {
+		if (meshName) {
+			return flock.whenModelReady(meshName, async function (mesh) {
+				if (mesh) {
+					if(!mesh.metadata)
+						mesh.metadata = {};
+					mesh.metadata.bpm = bpm;
+				}
+			});
+		} else {
+			if(!flock.scene.metadata)
+				flock.scene.metadata = {};
+			flock.scene.metadata.bpm = bpm;
+		}
 	},
 	exportMesh(meshName, format) {
 		return flock.whenModelReady(meshName, async function (mesh) {

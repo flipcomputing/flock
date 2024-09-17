@@ -2324,6 +2324,56 @@ export function defineBlocks() {
 		},
 	};
 
+	Blockly.Blocks["set_scene_bpm"] = {
+		init: function () {
+			this.jsonInit({
+				type: "set_scene_bpm",
+				message0: "set scene BPM to %1",
+				args0: [
+					{
+						type: "input_value",
+						name: "BPM",
+						check: "Number",
+					},
+				],
+				inputsInline: true,
+				previousStatement: null,
+				nextStatement: null,
+				colour: categoryColours["Sound"], // Assuming "Sound" category
+				tooltip: "Sets the BPM for the entire scene",
+				helpUrl: "",
+			});
+		},
+	};
+
+	Blockly.Blocks["set_mesh_bpm"] = {
+		init: function () {
+			this.jsonInit({
+				type: "set_mesh_bpm",
+				message0: "set BPM of %1 to %2",
+				args0: [
+					{
+						type: "field_variable",
+						name: "MESH",
+						variable: "mesh",
+					},
+					{
+						type: "input_value",
+						name: "BPM",
+						check: "Number",
+					},
+				],
+				inputsInline: true,
+				previousStatement: null,
+				nextStatement: null,
+				colour: categoryColours["Sound"], // Assuming "Sound" category
+				tooltip: "Sets the BPM for a selected mesh",
+				helpUrl: "",
+			});
+		},
+	};
+
+
 	Blockly.Blocks["create_instrument"] = {
 		init: function () {
 			const variableNamePrefix = "instrument";
