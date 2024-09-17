@@ -696,8 +696,6 @@ export const flock = {
 
 				bb.metadata = bb.metadata || {};
 				bb.metadata.yOffset = (bb.position.y - y) / scale;
-				-y;
-				console.log(bb.metadata.yOffset, bb.position.y, scale, y);
 				flock.stopAnimationsTargetingMesh(flock.scene, mesh);
 
 				const boxBody = new flock.BABYLON.PhysicsBody(
@@ -767,6 +765,8 @@ export const flock = {
 				mesh.computeWorldMatrix(true);
 				mesh.refreshBoundingInfo();
 
+				bb.metadata = bb.metadata || {};
+				bb.metadata.yOffset = (bb.position.y - y) / scale;
 				flock.stopAnimationsTargetingMesh(flock.scene, mesh);
 
 				function applyColorToMaterial(part, materialName, color) {
@@ -850,6 +850,8 @@ export const flock = {
 				mesh.computeWorldMatrix(true);
 				mesh.refreshBoundingInfo();
 
+				bb.metadata = bb.metadata || {};
+				bb.metadata.yOffset = (bb.position.y - y) / scale;
 				flock.stopAnimationsTargetingMesh(flock.scene, mesh);
 
 				function applyColorToMaterial(part, color) {
@@ -4107,7 +4109,9 @@ export const flock = {
 					const startDelay = 0;
 
 					// Check if an instrument is passed, use the default one otherwise
-					instrument = instrument || flock.createInstrument('sine', 440, 0.1, 0.5, 0.7, 1.0);
+					instrument =
+						instrument ||
+						flock.createInstrument("sine", 440, 0.1, 0.5, 0.7, 1.0);
 
 					// Iterate over the notes and their respective durations
 					let offsetTime = 0;
@@ -4159,40 +4163,50 @@ export const flock = {
 			});
 		});
 	},
-	playMidiNote(context, panner, note, duration, bpm, playTime, instrument = null) {
-	  // Create a new oscillator for each note
-	  const osc = context.createOscillator();
+	playMidiNote(
+		context,
+		panner,
+		note,
+		duration,
+		bpm,
+		playTime,
+		instrument = null,
+	) {
+		// Create a new oscillator for each note
+		const osc = context.createOscillator();
 
-	  // If an instrument is provided, reuse its gainNode but create a new oscillator each time
-	  const gainNode = instrument ? instrument.gainNode : context.createGain();
+		// If an instrument is provided, reuse its gainNode but create a new oscillator each time
+		const gainNode = instrument
+			? instrument.gainNode
+			: context.createGain();
 
-	  // Set oscillator type based on the instrument or default to 'sine'
-	  osc.type = instrument ? instrument.oscillator.type : 'sine';
-	  osc.frequency.value = flock.midiToFrequency(note); // Convert MIDI note to frequency
+		// Set oscillator type based on the instrument or default to 'sine'
+		osc.type = instrument ? instrument.oscillator.type : "sine";
+		osc.frequency.value = flock.midiToFrequency(note); // Convert MIDI note to frequency
 
-	  // Connect the oscillator to the gain node and panner
-	  osc.connect(gainNode);
-	  gainNode.connect(panner);
-	  panner.connect(context.destination);
+		// Connect the oscillator to the gain node and panner
+		osc.connect(gainNode);
+		gainNode.connect(panner);
+		panner.connect(context.destination);
 
-	  const gap = Math.min(0.01, (60 / bpm) * 0.01); // A small percentage of a beat, relative to BPM
+		const gap = Math.min(0.01, (60 / bpm) * 0.01); // A small percentage of a beat, relative to BPM
 
-	  gainNode.gain.setValueAtTime(1, playTime);
+		gainNode.gain.setValueAtTime(1, playTime);
 
-	  const fadeOutDuration = Math.min(0.05, duration * 0.1);
+		const fadeOutDuration = Math.min(0.05, duration * 0.1);
 
-	  gainNode.gain.linearRampToValueAtTime(
-		0,
-		playTime + duration - gap - fadeOutDuration
-	  ); // Gradual fade-out
+		gainNode.gain.linearRampToValueAtTime(
+			0,
+			playTime + duration - gap - fadeOutDuration,
+		); // Gradual fade-out
 
-	  osc.start(playTime); // Start the note at playTime
-	  osc.stop(playTime + duration - gap); // Stop slightly earlier to add a gap
+		osc.start(playTime); // Start the note at playTime
+		osc.stop(playTime + duration - gap); // Stop slightly earlier to add a gap
 
-	  // Clean up: disconnect the oscillator after it's done
-	  osc.onended = () => {
-		osc.disconnect();
-	  };
+		// Clean up: disconnect the oscillator after it's done
+		osc.onended = () => {
+			osc.disconnect();
+		};
 	},
 	midiToFrequency(note) {
 		return 440 * Math.pow(2, (note - 69) / 12); // Convert MIDI note to frequency

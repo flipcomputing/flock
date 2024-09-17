@@ -2,7 +2,6 @@
 // Dr Tracy Gardner - https://github.com/tracygardner
 // Flip Computing Limited - flipcomputing.com
 
-
 import * as Blockly from "blockly";
 import { javascriptGenerator } from "blockly/javascript";
 import { registerFieldColour } from "@blockly/field-colour";
@@ -50,11 +49,8 @@ function loadWorkspace() {
 			workspace,
 		);
 	} else {*/
-		// Load the JSON into the workspace
-		Blockly.serialization.workspaces.load(
-			initialBlocksJson,
-			workspace,
-		);
+	// Load the JSON into the workspace
+	Blockly.serialization.workspaces.load(initialBlocksJson, workspace);
 	//}
 
 	executeCode();
@@ -180,20 +176,20 @@ function toggleGizmo(gizmoType) {
 					}
 
 					mesh.computeWorldMatrix(true);
-					
+
 					const block = meshMap[mesh.blockKey];
 
-					const scale = block
-					.getInput("SCALE")
-					.connection.targetBlock()
-					.getFieldValue(
-						"NUM",
-					);
+					let meshY = mesh.position.y;
 
-					console.log(mesh.position.y, mesh.metadata.yOffset);
-					const meshY = mesh.position.y - (scale * mesh.metadata.yOffset);
+					if (mesh.metadata && mesh.metadata.yOffset && mesh.metadata.yOffset != 0) {
+						const scale = block
+							.getInput("SCALE")
+							.connection.targetBlock()
+							.getFieldValue("NUM");
+
+						meshY -= (scale * mesh.metadata.yOffset);
+					}
 					
-
 					if (block) {
 						block
 							.getInput("X")
@@ -633,7 +629,7 @@ window.onload = function () {
 
 	// Resize Blockly workspace and Babylon.js canvas when the window is resized
 	window.addEventListener("resize", onResize);
-	
+
 	Blockly.ContextMenuItems.registerCommentOptions();
 	const navigationController = new NavigationController();
 	navigationController.init();
