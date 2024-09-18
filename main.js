@@ -116,6 +116,7 @@ function executeCode() {
 }
 
 function stopCode() {
+	flock.audioContext.close();
 	flock.scene.dispose();
 	flock.removeEventListeners();
 	switchView(codeMode);

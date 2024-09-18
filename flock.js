@@ -198,6 +198,8 @@ export const flock = {
 		}
 
 		if (flock.scene) {
+			flock.audioContext.close();
+			flock.audioContext = null;
 			flock.removeEventListeners();
 			flock.gridKeyPressObservable.clear();
 			flock.gridKeyReleaseObservable.clear();
@@ -208,9 +210,9 @@ export const flock = {
 			flock.controlsTexture = null;
 			flock.hk.dispose();
 			flock.hk = null;
-
-			flock.globalStartTime = flock.audioContext.currentTime;
+			
 			console.log("Initialize");
+
 		}
 
 		if (!flock.engine) {
@@ -237,6 +239,8 @@ export const flock = {
 			"highlighter",
 			flock.scene,
 		);
+
+		
 
 		/*
 		flock.BABYLON.Effect.ShadersStore["customVertexShader"] = `
@@ -413,6 +417,13 @@ export const flock = {
 				//console.warn("Unable to print text:", error);
 			}
 		};
+
+		flock.globalStartTime = flock.getAudioContext().currentTime;
+		flock.scene.onBeforeRenderObservable.add(() => {
+			const camera = flock.scene.activeCamera;
+			const context = flock.getAudioContext();
+			flock.updateListenerPositionAndOrientation(context, camera);
+		})
 
 		return flock.scene;
 	},
@@ -4079,7 +4090,6 @@ export const flock = {
 		}
 		return flock.audioContext;
 	},
-
 	playNotes(meshName, notes, durations, instrument = null) {
 		return new Promise((resolve) => {
 			flock.whenModelReady(meshName, async function (mesh) {
@@ -4092,6 +4102,12 @@ export const flock = {
 				const bpm = getBPMFromMeshOrScene(mesh, flock.scene);
 
 				const context = flock.audioContext; // Ensure a global audio context
+
+				// Continuous listener update in render loop
+				flock.scene.onBeforeRenderObservable.add(() => {
+					const camera = flock.scene.activeCamera;
+					flock.updateListenerPositionAndOrientation(context, camera);
+				});
 
 				if (mesh && mesh.position) {
 					// Use a predefined global start time (e.g., set during initialization)
@@ -4131,10 +4147,21 @@ export const flock = {
 						);
 
 						if (note !== null) {
-							// Capture the current position of the mesh dynamically
+							// Create a panner and set its position based on the mesh
 							const panner = context.createPanner();
-							const { x, y, z } = mesh.position;
-							panner.setPosition(x, y, z); // Set panner position based on the mesh
+
+							// Configure the panner for spatial effects
+							panner.panningModel = "HRTF"; // Head-Related Transfer Function for better 3D sound
+							panner.distanceModel = "inverse"; // Inverse distance model for volume attenuation
+							panner.refDistance = 1; // Reference distance for volume to start decreasing
+							panner.maxDistance = 100; // Maximum distance for sound
+							panner.rolloffFactor = 1; // How quickly sound attenuates with distance
+
+							// Update panner position in the render loop
+							const observer = flock.scene.onBeforeRenderObservable.add(() => {
+								const { x, y, z } = mesh.position;
+								panner.setPosition(x, y, z); // Set panner position based on the mesh
+							});
 
 							// Play the note using the specified instrument
 							flock.playMidiNote(
@@ -4146,6 +4173,11 @@ export const flock = {
 								sequenceStartTime + offsetTime, // Schedule the note at the correct start time
 								instrument, // Pass the instrument to be used
 							);
+
+							// Stop updating the panner after the note is finished
+							setTimeout(() => {
+								flock.scene.onBeforeRenderObservable.remove(observer); // Remove the observer
+							}, (sequenceStartTime + offsetTime + noteDuration) * 1000);
 						}
 
 						// Move the offset time forward by the note's (or rest's) duration
@@ -4167,6 +4199,25 @@ export const flock = {
 				}
 			});
 		});
+	},
+	updateListenerPositionAndOrientation(context, camera){
+		const { x: cx, y: cy, z: cz } = camera.position;
+		const forwardVector = camera.getForwardRay().direction;
+
+		// Update listener's position
+		context.listener.positionX.setValueAtTime(cx, context.currentTime);
+		context.listener.positionY.setValueAtTime(cy, context.currentTime);
+		context.listener.positionZ.setValueAtTime(cz, context.currentTime);
+
+		// Update listener's forward direction
+		context.listener.forwardX.setValueAtTime(forwardVector.x, context.currentTime);
+		context.listener.forwardY.setValueAtTime(forwardVector.y, context.currentTime);
+		context.listener.forwardZ.setValueAtTime(forwardVector.z, context.currentTime);
+
+		// Set the listener's up vector (typically pointing upwards in the Y direction)
+		context.listener.upX.setValueAtTime(0, context.currentTime);
+		context.listener.upY.setValueAtTime(1, context.currentTime);
+		context.listener.upZ.setValueAtTime(0, context.currentTime);
 	},
 	playMidiNote(
 		context,
@@ -4213,6 +4264,7 @@ export const flock = {
 			osc.disconnect();
 		};
 	},
+
 	midiToFrequency(note) {
 		return 440 * Math.pow(2, (note - 69) / 12); // Convert MIDI note to frequency
 	},
