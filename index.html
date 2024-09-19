@@ -258,6 +258,49 @@
         box-sizing: border-box;
         margin-top: auto;
       }
+
+      #shape-menu {
+        position: relative;
+        display: inline-block;
+      }
+
+      #shape-menu button {
+        border: none;
+        cursor: pointer;
+      }
+
+      #shape-menu button:hover {
+        background-color: #45a049; /* Darker green on hover */
+      }
+
+      #shapes-dropdown {
+        display: none;
+        position: absolute;
+        top: 100%; /* Position directly below the button */
+        left: 0;
+        background-color: #f9f9f9;
+        min-width: 160px;
+        box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+        z-index: 9999; /* Ensure it is above other elements */
+      }
+
+      #shapes-dropdown ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+      }
+
+      #shapes-dropdown ul li {
+        padding: 12px 16px;
+        text-decoration: none;
+        display: block;
+        color: black;
+        cursor: pointer;
+      }
+
+      #shapes-dropdown ul li:hover {
+        background-color: #ddd; /* Light grey on hover */
+      }
     </style>
   </head>
 
@@ -321,6 +364,17 @@
           Scale
         </button>
         <button class="gizmo-button" onclick="turnOffAllGizmos()">Hide</button>
+        <div id="shape-menu">
+        <button class="gizmo-button" onclick="showShapes()">➕</button>
+        <span id="shapes-dropdown" style="display: none">
+          <ul>
+            <li onclick="selectShape('create_box')">Box</li>
+            <li onclick="selectShape('create_sphere')">Sphere</li>
+            <li onclick="selectShape('create_cylinder')">Cylinder</li>
+            <li onclick="selectShape('create_capsule')">Capsule</li>
+            <li onclick="selectShape('create_plane')">Plane</li>
+          </ul>
+        </div></span>
         <button class="gizmo-button" onclick="openAboutPage()">🐑 About</button>
       </div>
     </div>
@@ -392,7 +446,9 @@
             <option value="examples/roominator.json">🛋️Roominator</option>
             <option value="examples/ball_pit.json">🟠 Ball Pit</option>
             <option value="examples/ur_enough.json">💗 UR Enough!</option>
-            <option value="examples/tallest_buildings.json">📊 Tallest buildings</option>
+            <option value="examples/tallest_buildings.json">
+              📊 Tallest buildings
+            </option>
             <option value="examples/candy_dash.json">🎃 Candy dash</option>
             <option value="examples/flockenspiel.json">🎵 Flockenspiel</option>
           </select>
