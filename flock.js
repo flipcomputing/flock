@@ -210,9 +210,8 @@ export const flock = {
 			flock.controlsTexture = null;
 			flock.hk.dispose();
 			flock.hk = null;
-			
-			console.log("Initialize");
 
+			console.log("Initialize");
 		}
 
 		if (!flock.engine) {
@@ -239,8 +238,6 @@ export const flock = {
 			"highlighter",
 			flock.scene,
 		);
-
-		
 
 		/*
 		flock.BABYLON.Effect.ShadersStore["customVertexShader"] = `
@@ -423,7 +420,7 @@ export const flock = {
 			const camera = flock.scene.activeCamera;
 			const context = flock.getAudioContext();
 			flock.updateListenerPositionAndOrientation(context, camera);
-		})
+		});
 
 		return flock.scene;
 	},
@@ -1341,6 +1338,7 @@ export const flock = {
 			{ width, height, depth },
 			flock.scene,
 		);
+		newBox.metadata = {};
 		newBox.position = new flock.BABYLON.Vector3(posX, posY, posZ);
 
 		newBox.blockKey = newBox.name;
@@ -4103,104 +4101,66 @@ export const flock = {
 
 				const context = flock.audioContext; // Ensure a global audio context
 
-				// Continuous listener update in render loop
-				flock.scene.onBeforeRenderObservable.add(() => {
-					const camera = flock.scene.activeCamera;
-					flock.updateListenerPositionAndOrientation(context, camera);
-				});
-
 				if (mesh && mesh.position) {
-					// Use a predefined global start time (e.g., set during initialization)
-					const globalStartTime = flock.globalStartTime;
+					// Create the panner node only once if it doesn't exist
+					if (!mesh.metadata.panner) {
+						const panner = context.createPanner();
+						mesh.metadata.panner = panner;
 
-					// Calculate the total duration of the sequence in beats
-					const totalDurationInBeats = durations.reduce(
-						(acc, duration) => acc + duration,
-						0,
-					);
-					const totalDurationInSeconds = flock.durationInSeconds(
-						totalDurationInBeats,
-						bpm,
-					);
+						// Configure the panner for spatial effects
+						panner.panningModel = "HRTF";
+						panner.distanceModel = "inverse";
+						panner.refDistance = 0.5;
+						panner.maxDistance = 50;
+						panner.rolloffFactor = 2;
+						panner.connect(context.destination);
+					}
 
-					// Get the current global time
-					const globalTime = context.currentTime;
+					const panner = mesh.metadata.panner;  // Reuse the same panner node
 
-					const sequenceStartTime = globalTime + 0.1; // Start slightly after the current time
-					const startDelay = 0;
+					// Continuously update the panner position while notes are playing
+					const observer = flock.scene.onBeforeRenderObservable.add(() => {
+						const { x, y, z } = mesh.position;
+						panner.positionX.value = -x;
+						panner.positionY.value = y;
+						panner.positionZ.value = z;
+					});
 
-					// Check if an instrument is passed, use the default one otherwise
-					instrument =
-						instrument ||
-						flock.createInstrument("sine", 440, 0.1, 0.5, 0.7, 1.0);
-
-					// Iterate over the notes and their respective durations
+					// Iterate over the notes and schedule playback
 					let offsetTime = 0;
 					for (let i = 0; i < notes.length; i++) {
 						const note = notes[i];
 						const duration = Number(durations[i]);
 
-						// Calculate the note's duration in seconds based on the BPM
-						const noteDuration = flock.durationInSeconds(
-							duration,
-							bpm,
-						);
-
 						if (note !== null) {
-							// Create a panner and set its position based on the mesh
-							const panner = context.createPanner();
-
-							// Configure the panner for spatial effects
-							panner.panningModel = "HRTF"; // Head-Related Transfer Function for better 3D sound
-							panner.distanceModel = "inverse"; // Inverse distance model for volume attenuation
-							panner.refDistance = 1; // Reference distance for volume to start decreasing
-							panner.maxDistance = 100; // Maximum distance for sound
-							panner.rolloffFactor = 1; // How quickly sound attenuates with distance
-
-							// Update panner position in the render loop
-							const observer = flock.scene.onBeforeRenderObservable.add(() => {
-								const { x, y, z } = mesh.position;
-								panner.setPosition(x, y, z); // Set panner position based on the mesh
-							});
-
-							// Play the note using the specified instrument
 							flock.playMidiNote(
 								context,
-								panner,
+								mesh,
 								note,
-								noteDuration,
+								duration,
 								bpm,
-								sequenceStartTime + offsetTime, // Schedule the note at the correct start time
-								instrument, // Pass the instrument to be used
+								context.currentTime + offsetTime,  // Schedule the note
+								instrument
 							);
-
-							// Stop updating the panner after the note is finished
-							setTimeout(() => {
-								flock.scene.onBeforeRenderObservable.remove(observer); // Remove the observer
-							}, (sequenceStartTime + offsetTime + noteDuration) * 1000);
 						}
 
-						// Move the offset time forward by the note's (or rest's) duration
-						offsetTime += noteDuration;
+						offsetTime += flock.durationInSeconds(duration, bpm);
 					}
 
-					// Resolve the promise after the delay and total duration, accounting for start delay
-					const resolveTime = totalDurationInSeconds - 0.05; // Resolve 50ms before the sequence ends
-					setTimeout(
-						() => resolve(),
-						(startDelay + resolveTime) * 1000,
-					);
+					// Resolve the promise after the last note has played
+					setTimeout(() => {
+						flock.scene.onBeforeRenderObservable.remove(observer);
+						resolve();
+					}, (offsetTime + 1) * 1000);  // Add a small buffer after the last note finishes
+
 				} else {
-					console.error(
-						"Mesh does not have a position property:",
-						mesh,
-					);
+					console.error("Mesh does not have a position property:", mesh);
 					resolve();
 				}
 			});
 		});
 	},
-	updateListenerPositionAndOrientation(context, camera){
+	updateListenerPositionAndOrientation(context, camera) {
 		const { x: cx, y: cy, z: cz } = camera.position;
 		const forwardVector = camera.getForwardRay().direction;
 
@@ -4210,9 +4170,18 @@ export const flock = {
 		context.listener.positionZ.setValueAtTime(cz, context.currentTime);
 
 		// Update listener's forward direction
-		context.listener.forwardX.setValueAtTime(forwardVector.x, context.currentTime);
-		context.listener.forwardY.setValueAtTime(forwardVector.y, context.currentTime);
-		context.listener.forwardZ.setValueAtTime(forwardVector.z, context.currentTime);
+		context.listener.forwardX.setValueAtTime(
+			-forwardVector.x,
+			context.currentTime,
+		);
+		context.listener.forwardY.setValueAtTime(
+			forwardVector.y,
+			context.currentTime,
+		);
+		context.listener.forwardZ.setValueAtTime(
+			forwardVector.z,
+			context.currentTime,
+		);
 
 		// Set the listener's up vector (typically pointing upwards in the Y direction)
 		context.listener.upX.setValueAtTime(0, context.currentTime);
@@ -4221,7 +4190,7 @@ export const flock = {
 	},
 	playMidiNote(
 		context,
-		panner,
+		mesh,
 		note,
 		duration,
 		bpm,
@@ -4230,7 +4199,7 @@ export const flock = {
 	) {
 		// Create a new oscillator for each note
 		const osc = context.createOscillator();
-
+		const panner = mesh.metadata.panner;
 		// If an instrument is provided, reuse its gainNode but create a new oscillator each time
 		const gainNode = instrument
 			? instrument.gainNode
@@ -4245,11 +4214,14 @@ export const flock = {
 		gainNode.connect(panner);
 		panner.connect(context.destination);
 
-		const gap = Math.min(0.01, (60 / bpm) * 0.01); // A small percentage of a beat, relative to BPM
+		const gap = Math.min(0.05, (60 / bpm) * 0.05); // Slightly larger gap
 
-		gainNode.gain.setValueAtTime(1, playTime);
+		gainNode.gain.setValueAtTime(
+			1,
+			Math.max(playTime, context.currentTime + 0.01),
+		);
 
-		const fadeOutDuration = Math.min(0.05, duration * 0.1);
+		const fadeOutDuration = Math.min(0.2, duration * 0.2); // Longer fade-out for clarity
 
 		gainNode.gain.linearRampToValueAtTime(
 			0,
@@ -4263,8 +4235,17 @@ export const flock = {
 		osc.onended = () => {
 			osc.disconnect();
 		};
-	},
 
+		// Fallback clean-up in case osc.onended is not triggered
+		setTimeout(
+			() => {
+				if (osc) {
+					osc.disconnect();
+				}
+			},
+			(playTime + duration) * 1000,
+		);
+	},
 	midiToFrequency(note) {
 		return 440 * Math.pow(2, (note - 69) / 12); // Convert MIDI note to frequency
 	},
@@ -4314,14 +4295,12 @@ export const flock = {
 		if (meshName) {
 			return flock.whenModelReady(meshName, async function (mesh) {
 				if (mesh) {
-					if(!mesh.metadata)
-						mesh.metadata = {};
+					if (!mesh.metadata) mesh.metadata = {};
 					mesh.metadata.bpm = bpm;
 				}
 			});
 		} else {
-			if(!flock.scene.metadata)
-				flock.scene.metadata = {};
+			if (!flock.scene.metadata) flock.scene.metadata = {};
 			flock.scene.metadata.bpm = bpm;
 		}
 	},
@@ -4338,7 +4317,6 @@ export const flock = {
 
 			// Combine the parent mesh with its children
 			const meshList = [mesh, ...childMeshes];
-			console.log(meshList);
 			if (format === "STL") {
 				const stlData = flock.EXPORT.STLExport.CreateSTL(
 					meshList,
