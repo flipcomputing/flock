@@ -180,7 +180,7 @@ function addShapeToWorkspace(shapeType, position) {
 
 	case 'create_capsule':
 	  addShadowBlock(block, 'COLOR', 'colour', '#9932CC');
-	  addShadowBlock(block, 'RADIUS', 'math_number', 1);
+	  addShadowBlock(block, 'RADIUS', 'math_number', 0.5);
 	  addShadowBlock(block, 'HEIGHT', 'math_number', 2);
 	  break;
 
