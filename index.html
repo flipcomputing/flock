@@ -355,6 +355,14 @@
         right: -15px; /* Align with the right edge of the container */
       }
 
+      #scene-explorer-host #commands {
+        display: none;
+      }
+
+      #inspector-host #commands {
+        display: none;
+      }
+
     </style>
   </head>
 
@@ -367,8 +375,8 @@
         <button class="bigbutton" onclick="executeCode()" title="Run your code">
           ▶️
         </button>
-        <button class="bigbutton" id="toggleDebug" title="Debug your code">
-          🪲
+        <button class="bigbutton" id="toggleDebug" title="Design your project">
+         🖼️ 
         </button>
         <button class="bigbutton" onclick="stopCode()" title="Stop your code">
           🛑
@@ -397,7 +405,7 @@
           <button
             style="border: none; font-size: 18px; padding: 0; padding-top: 0px"
           >
-            🖼️
+            🪟
           </button>
           <div class="dropdown-content">
             <button onclick="switchView('both')">Both</button>
@@ -553,7 +561,7 @@
           </select>
           <!-- Dropdown View Switcher -->
           <div class="dropdown bigbutton">
-            <button style="border: none; font-size: 18px">🖼️</button>
+            <button style="border: none; font-size: 18px">🪟</button>
             <div class="dropdown-content">
               <button onclick="switchView('both')">Both</button>
               <button onclick="switchView('blockly')">Blockly</button>
