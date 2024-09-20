@@ -12,6 +12,7 @@ import "@babylonjs/core/Debug/debugLayer";
 import "@babylonjs/inspector";
 import { flock, initializeFlock } from "./flock.js";
 import { initialBlocksJson } from "./toolbox.js";
+import { modelNames } from "./config.js";
 import { options, defineBlocks, initializeVariableIndexes } from "./blocks";
 import { defineGenerators, meshMap } from "./generators";
 
@@ -115,12 +116,93 @@ function executeCode() {
 	}
 }
 
+// Function to load models into the menu
+function loadModelImages() {
+  const modelRow = document.getElementById("model-row");
+  modelRow.innerHTML = ""; // Clear existing models
+
+  modelNames.forEach(name => {
+	const baseName = name.replace(/\.[^/.]+$/, ""); // Remove extension
+	const li = document.createElement("li");
+	li.innerHTML = `<img src="./images/${baseName}.png" alt="${baseName}" onclick="selectModel('${name}')">`;
+	modelRow.appendChild(li);
+  });
+}
+
+function scrollModels(direction) {
+  const modelRow = document.getElementById('model-row');
+  const scrollAmount = 100; // Adjust as needed
+  modelRow.scrollBy({
+	left: direction * scrollAmount,
+	behavior: 'smooth'
+  });
+}
+window.scrollModels = scrollModels;
+
+
+// Call this function to initialize the models when the menu is opened
 function showShapes() {
   const dropdown = document.getElementById('shapes-dropdown');
-
-  // Toggle visibility
   dropdown.style.display = dropdown.style.display === 'none' ? 'block' : 'none';
+  loadModelImages(); // Load the models into the menu
 }
+
+// Handle model selection and add block to workspace
+function selectModel(modelName) {
+  // Close the shapes menu after selecting a model
+  document.getElementById('shapes-dropdown').style.display = 'none';
+
+  document.body.style.cursor = 'crosshair'; // Change cursor to indicate picking mode
+
+  // Add a delay to avoid immediate firing
+  setTimeout(() => {
+	const onPick = function(event) {
+	  const pickResult = flock.scene.pick(event.clientX, event.clientY);
+	  if (pickResult.hit) {
+		const pickedPosition = pickResult.pickedPoint;
+
+		// Add the load_model block to the workspace at the picked location
+		const block = workspace.newBlock('load_model');
+		block.setFieldValue(modelName, 'MODELS'); // Set the selected model
+		setPositionValues(block, pickedPosition, 'load_model'); // Set X, Y, Z
+
+		// Create the shadow block for SCALE if it doesn't already exist
+		const scaleInput = block.getInput('SCALE');
+		if (!scaleInput.connection.targetBlock()) {
+		  const scaleShadowBlock = workspace.newBlock('math_number');
+		  scaleShadowBlock.setFieldValue('1', 'NUM'); // Default scale value
+		  scaleShadowBlock.setShadow(true);
+		  scaleShadowBlock.initSvg();
+		  scaleShadowBlock.render();
+		  scaleInput.connection.connect(scaleShadowBlock.outputConnection); // Connect the shadow block
+		}
+
+		block.initSvg();
+		block.render();
+
+		// Create a new start block and connect the model block to it
+		const startBlock = workspace.newBlock('start');
+		startBlock.initSvg();
+		startBlock.render();
+		const connection = startBlock.getInput('DO').connection;
+		if (connection) {
+		  connection.connect(block.previousConnection);
+		}
+	  }
+
+	  document.body.style.cursor = 'default';  // Reset cursor after picking
+	  window.removeEventListener('click', onPick);  // Remove the click listener after pick
+
+	  executeCode();
+	};
+
+	// Attach the event listener to wait for the next click on the scene
+	window.addEventListener('click', onPick);
+  }, 300); // Delay to avoid firing from the menu click
+}
+
+
+window.selectModel = selectModel;
 
 window.showShapes = showShapes;
 
@@ -158,34 +240,34 @@ function addShapeToWorkspace(shapeType, position) {
   // Set different fields based on the shape type
   switch (shapeType) {
 	case 'create_box':
-	  addShadowBlock(block, 'COLOR', 'colour', '#9932CC');  // Using 'colour' block type
+	  addShadowBlock(block, 'COLOR', 'colour', flock.randomColour());  // Using 'colour' block type
 	  addShadowBlock(block, 'WIDTH', 'math_number', 1);
 	  addShadowBlock(block, 'HEIGHT', 'math_number', 1);
 	  addShadowBlock(block, 'DEPTH', 'math_number', 1);
 	  break;
 
 	case 'create_sphere':
-	  addShadowBlock(block, 'COLOR', 'colour', '#9932CC');
+	  addShadowBlock(block, 'COLOR', 'colour', flock.randomColour());
 	  addShadowBlock(block, 'DIAMETER_X', 'math_number', 1);
 	  addShadowBlock(block, 'DIAMETER_Y', 'math_number', 1);
 	  addShadowBlock(block, 'DIAMETER_Z', 'math_number', 1);
 	  break;
 
 	case 'create_cylinder':
-	  addShadowBlock(block, 'COLOR', 'colour', '#9932CC');
+	  addShadowBlock(block, 'COLOR', 'colour', flock.randomColour());
 	  addShadowBlock(block, 'HEIGHT', 'math_number', 2);
 	  addShadowBlock(block, 'DIAMETER_TOP', 'math_number', 1);
 	  addShadowBlock(block, 'DIAMETER_BOTTOM', 'math_number', 1);
 	  break;
 
 	case 'create_capsule':
-	  addShadowBlock(block, 'COLOR', 'colour', '#9932CC');
+	  addShadowBlock(block, 'COLOR', 'colour', flock.randomColour());
 	  addShadowBlock(block, 'RADIUS', 'math_number', 0.5);
 	  addShadowBlock(block, 'HEIGHT', 'math_number', 2);
 	  break;
 
 	case 'create_plane':
-	  addShadowBlock(block, 'COLOR', 'colour', '#9932CC');
+	  addShadowBlock(block, 'COLOR', 'colour', flock.randomColour());
 	  addShadowBlock(block, 'WIDTH', 'math_number', 2);
 	  addShadowBlock(block, 'HEIGHT', 'math_number', 2);
 	  break;

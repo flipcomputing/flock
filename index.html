@@ -259,55 +259,103 @@
         margin-top: auto;
       }
 
-    #shape-menu {
-      position: relative;
-      display: inline-block;
-    }
+      #shape-menu {
+        position: relative;
+        display: inline-block;
+      }
 
-    #shapes-dropdown {
-      position: absolute;
-      bottom: 50px; /* Position the menu above the button */
-      left: 0;
-      display: flex; /* Display the items horizontally */
-      gap: 10px; /* Add space between images */
-      background-color: transparent; /* Menu background */
-      padding: 10px;
-      box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
-      border-radius: 5px;
-    }
+      #shapes-dropdown {
+        position: absolute;
+        bottom: 50px;
+        left: 0;
+        display: block;
+        background-color: rgba(1, 1, 1, 0.5);
+        padding: 10px;
+        box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+        border-radius: 5px;
+        width: 320px;
+        overflow: hidden; /* Ensure no visible overflow */
+      }
 
-    #shapes-dropdown ul {
-      display: flex; /* Display the list horizontally */
-      padding: 0;
-      margin: 0;
-      list-style: none;
-    }
+      /* Horizontal layout for shape and model rows */
+      #shapes-dropdown ul {
+        display: flex;
+        padding: 0;
+        margin: 2px;
+        list-style: none;
+        gap: 4px;
+        overflow-x: auto; /* Enable horizontal scrolling */
+        scroll-behavior: smooth;
+        white-space: nowrap;
+        scrollbar-width: none; /* Hide scrollbar in Firefox */
+      }
 
-    #shapes-dropdown ul li {
-      display: inline-block;
-      cursor: pointer;
-      margin: 5px;
-    }
-      
+      #shapes-dropdown ul::-webkit-scrollbar {
+        display: none; /* Hide scrollbar in Chrome, Safari, and other WebKit browsers */
+      }
+
       #shapes-dropdown ul li {
-        background-color: rgba(255, 255, 255, 0.5); /* Transparent white background */
-        border-radius: 5px; 
-        padding: 2px; 
-        display: inline-block; 
+        background-color: rgba(255, 255, 255, 0.5);
+        border-radius: 5px;
+        padding: 5px;
+        display: inline-block;
+        cursor: pointer;
+      }
+
+      #shapes-dropdown ul li img {
+        width: 50px;
+        height: 50px;
       }
 
       #shapes-dropdown ul li:hover {
-        background-color: rgba(255, 255, 255, 0.7); /* Less transparency on hover */
+        background-color: rgba(255, 255, 255, 0.7);
       }
-      
-    #shapes-dropdown ul li img {
-      width: 50px;
-      height: 50px;
-    }
 
-    #shapes-dropdown ul li:hover img{
-      transform: scale(1.2); /* Scale up image slightly on hover */
-    }</style>
+      #shapes-dropdown ul li:hover img {
+        transform: scale(1.2);
+      }
+
+      /* Container for scrollable content with arrows */
+      .scrollable-container {
+        position: relative;
+        display: flex;
+        align-items: center;
+        width: 100%;
+      }
+
+      #model-row {
+        overflow-x: hidden; /* Hide the scroll bar but allow content scrolling */
+        white-space: nowrap;
+        flex-grow: 1;
+        display: flex;
+        gap: 10px;
+      }
+
+      /* Arrow buttons for scrolling */
+      .scroll-button {
+        background-color: rgba(0, 0, 0, 0.5);
+        color: white;
+        border: none;
+        cursor: pointer;
+        font-size: 18px;
+        padding: 5px 10px;
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        z-index: 2;
+        width: 30px;
+        height: 30px;
+      }
+
+      .scroll-button.left {
+        left: -15px; /* Align with the left edge of the container */
+      }
+
+      .scroll-button.right {
+        right: -15px; /* Align with the right edge of the container */
+      }
+
+    </style>
   </head>
 
   <body>
@@ -371,19 +419,45 @@
         </button>
         <button class="gizmo-button" onclick="turnOffAllGizmos()">Hide</button>
         <div id="shape-menu">
-        <button class="gizmo-button" onclick="showShapes()">➕</button>
-        <span id="shapes-dropdown" style="display: none">
-          <ul>
-            <li onclick="selectShape('create_box')"><img src="./images/box.png" alt="Box" width="50"  height="50">
-</li>
-            <li onclick="selectShape('create_sphere')"><img src="./images/sphere.png" alt="Sphere" width="50"  height="50"></li>
-            <li onclick="selectShape('create_cylinder')"><img src="./images/cylinder.png" alt="Cylinder" width="50"  height="50"></li>
-            <li onclick="selectShape('create_capsule')"><img src="./images/capsule.png" alt="Capsule" width="50"  height="50"></li>
-            <li onclick="selectShape('create_plane')"><img src="./images/plane.png" alt="Plane" width="50"  height="50"></li>
-          </ul>
-        </div></span>
+          <!-- Gizmo button to toggle the shape menu -->
+          <button class="gizmo-button" onclick="showShapes()">➕</button>
+
+          <!-- Dropdown for shapes and models -->
+          <span id="shapes-dropdown" style="display: none;">
+            <!-- Shape Row -->
+            <ul id="shape-row">
+              <li onclick="selectShape('create_box')">
+                <img src="./images/box.png" alt="Box">
+              </li>
+              <li onclick="selectShape('create_sphere')">
+                <img src="./images/sphere.png" alt="Sphere">
+              </li>
+              <li onclick="selectShape('create_cylinder')">
+                <img src="./images/cylinder.png" alt="Cylinder">
+              </li>
+              <li onclick="selectShape('create_capsule')">
+                <img src="./images/capsule.png" alt="Capsule">
+              </li>
+              <li onclick="selectShape('create_plane')">
+                <img src="./images/plane.png" alt="Plane">
+              </li>
+            </ul>
+
+            <!-- Model Row with scroll buttons -->
+            <div class="scrollable-container">
+              <button class="scroll-button left" onclick="scrollModels(-1)">&Lang;</button>
+              <ul id="model-row">
+                <!-- Dynamically generated model items will be inserted here -->
+              </ul>
+              <button class="scroll-button right" onclick="scrollModels(1)">&Rang;</button>
+            </div>
+          </span>
+        </div>
+
+      </span>
         <button class="gizmo-button" onclick="openAboutPage()">🐑 About</button>
       </div>
+        </div>
     </div>
     <div id="codePanel">
       <div id="codePanelButtons">
