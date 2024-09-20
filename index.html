@@ -259,49 +259,55 @@
         margin-top: auto;
       }
 
-      #shape-menu {
-        position: relative;
-        display: inline-block;
-      }
+    #shape-menu {
+      position: relative;
+      display: inline-block;
+    }
 
-      #shape-menu button {
-        border: none;
-        cursor: pointer;
-      }
+    #shapes-dropdown {
+      position: absolute;
+      bottom: 50px; /* Position the menu above the button */
+      left: 0;
+      display: flex; /* Display the items horizontally */
+      gap: 10px; /* Add space between images */
+      background-color: transparent; /* Menu background */
+      padding: 10px;
+      box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+      border-radius: 5px;
+    }
 
-      #shape-menu button:hover {
-        background-color: #45a049; /* Darker green on hover */
-      }
+    #shapes-dropdown ul {
+      display: flex; /* Display the list horizontally */
+      padding: 0;
+      margin: 0;
+      list-style: none;
+    }
 
-      #shapes-dropdown {
-        display: none;
-        position: absolute;
-        top: 100%; /* Position directly below the button */
-        left: 0;
-        background-color: #f9f9f9;
-        min-width: 160px;
-        box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
-        z-index: 9999; /* Ensure it is above other elements */
-      }
-
-      #shapes-dropdown ul {
-        list-style: none;
-        padding: 0;
-        margin: 0;
-      }
-
+    #shapes-dropdown ul li {
+      display: inline-block;
+      cursor: pointer;
+      margin: 5px;
+    }
+      
       #shapes-dropdown ul li {
-        padding: 12px 16px;
-        text-decoration: none;
-        display: block;
-        color: black;
-        cursor: pointer;
+        background-color: rgba(255, 255, 255, 0.5); /* Transparent white background */
+        border-radius: 5px; 
+        padding: 2px; 
+        display: inline-block; 
       }
 
       #shapes-dropdown ul li:hover {
-        background-color: #ddd; /* Light grey on hover */
+        background-color: rgba(255, 255, 255, 0.7); /* Less transparency on hover */
       }
-    </style>
+      
+    #shapes-dropdown ul li img {
+      width: 50px;
+      height: 50px;
+    }
+
+    #shapes-dropdown ul li:hover img{
+      transform: scale(1.2); /* Scale up image slightly on hover */
+    }</style>
   </head>
 
   <body>
@@ -368,11 +374,12 @@
         <button class="gizmo-button" onclick="showShapes()">➕</button>
         <span id="shapes-dropdown" style="display: none">
           <ul>
-            <li onclick="selectShape('create_box')">Box</li>
-            <li onclick="selectShape('create_sphere')">Sphere</li>
-            <li onclick="selectShape('create_cylinder')">Cylinder</li>
-            <li onclick="selectShape('create_capsule')">Capsule</li>
-            <li onclick="selectShape('create_plane')">Plane</li>
+            <li onclick="selectShape('create_box')"><img src="./images/box.png" alt="Box" width="50"  height="50">
+</li>
+            <li onclick="selectShape('create_sphere')"><img src="./images/sphere.png" alt="Sphere" width="50"  height="50"></li>
+            <li onclick="selectShape('create_cylinder')"><img src="./images/cylinder.png" alt="Cylinder" width="50"  height="50"></li>
+            <li onclick="selectShape('create_capsule')"><img src="./images/capsule.png" alt="Capsule" width="50"  height="50"></li>
+            <li onclick="selectShape('create_plane')"><img src="./images/plane.png" alt="Plane" width="50"  height="50"></li>
           </ul>
         </div></span>
         <button class="gizmo-button" onclick="openAboutPage()">🐑 About</button>
