@@ -121,6 +121,27 @@ function executeCode() {
 	}
 }
 
+function updateBlockColorAndHighlight(mesh, selectedColor) {
+	// Step 1: Retrieve the block associated with the mesh
+	const block = meshMap[mesh.blockKey];
+
+	if (!block) {
+		console.error("Block not found for mesh:", mesh.blockKey);
+		return;
+	}
+
+	block
+		.getInput("COLOR")
+		.connection.targetBlock()
+		.setFieldValue(selectedColor, "COLOR");
+
+	// Step 3: Update and render the block
+	block.initSvg();
+	block.render();
+
+	highlightBlockById(workspace, block);
+}
+
 // Function to load models into the menu
 function loadModelImages() {
 	const modelRow = document.getElementById("model-row");
@@ -385,27 +406,32 @@ function selectCharacter(characterName) {
 						scaleShadowBlock.outputConnection,
 					); // Connect the shadow block
 				}
-			
+
 				// Create the shadow blocks for the colour inputs with specified default values
 				const colorFields = {
-				  HAIR_COLOR: '#000000',      // Hair: black
-				  SKIN_COLOR: '#A15C33',      // Skin: custom skin tone
-				  EYES_COLOR: '#000000',      // Eyes: black
-				  SLEEVES_COLOR: '#008B8B',   // Sleeves: dark cyan
-				  SHORTS_COLOR: '#00008B',    // Shorts: dark blue
-				  TSHIRT_COLOR: '#FF8F60'     // T-Shirt: light orange
+					HAIR_COLOR: "#000000", // Hair: black
+					SKIN_COLOR: "#A15C33", // Skin: custom skin tone
+					EYES_COLOR: "#000000", // Eyes: black
+					SLEEVES_COLOR: "#008B8B", // Sleeves: dark cyan
+					SHORTS_COLOR: "#00008B", // Shorts: dark blue
+					TSHIRT_COLOR: "#FF8F60", // T-Shirt: light orange
 				};
 
-				Object.keys(colorFields).forEach(colorInputName => {
-				  const colorInput = block.getInput(colorInputName);
-				  if (!colorInput.connection.targetBlock()) {
-					const colorShadowBlock = workspace.newBlock('colour');
-					colorShadowBlock.setFieldValue(colorFields[colorInputName], 'COLOR'); // Set the specific color
-					colorShadowBlock.setShadow(true);
-					colorShadowBlock.initSvg();
-					colorShadowBlock.render();
-					colorInput.connection.connect(colorShadowBlock.outputConnection); // Connect the shadow block
-				  }
+				Object.keys(colorFields).forEach((colorInputName) => {
+					const colorInput = block.getInput(colorInputName);
+					if (!colorInput.connection.targetBlock()) {
+						const colorShadowBlock = workspace.newBlock("colour");
+						colorShadowBlock.setFieldValue(
+							colorFields[colorInputName],
+							"COLOR",
+						); // Set the specific color
+						colorShadowBlock.setShadow(true);
+						colorShadowBlock.initSvg();
+						colorShadowBlock.render();
+						colorInput.connection.connect(
+							colorShadowBlock.outputConnection,
+						); // Connect the shadow block
+					}
 				});
 
 				block.initSvg();
@@ -575,6 +601,97 @@ function setNumberInput(block, inputName, value) {
 		targetBlock.setFieldValue(String(Math.round(value * 10) / 10), "NUM");
 	}
 }
+
+window.selectedColor = "#ffffff"; // Default color
+
+function openColorPicker() {
+	// Create a color picker input dynamically
+	const colorInput = document.createElement("input");
+	colorInput.type = "color";
+	colorInput.value = window.selectedColor; // Set the default color
+
+	// Trigger the color picker dialog
+	colorInput.click();
+
+	// Listen for color change
+	colorInput.addEventListener("input", (event) => {
+		window.selectedColor = event.target.value; // Store the selected color
+
+		// Now allow the user to pick a mesh from the Babylon.js canvas
+		pickMeshFromCanvas();
+	});
+}
+
+window.openColorPicker = openColorPicker;
+
+function pickMeshFromCanvas() {
+	const canvas = flock.scene.getEngine().getRenderingCanvas(); // Get the Babylon.js canvas
+
+	document.body.style.cursor = "crosshair"; // Change cursor to indicate picking mode
+
+	const onPickMesh = function (event) {
+		// Get the canvas bounds relative to the window
+		const canvasRect = canvas.getBoundingClientRect();
+
+		// Calculate the click position relative to the canvas, not the window
+		const canvasX = event.clientX - canvasRect.left;
+		const canvasY = event.clientY - canvasRect.top;
+
+		// Create a picking ray using the adjusted canvas coordinates
+		const pickRay = flock.scene.createPickingRay(
+			canvasX,
+			canvasY,
+			BABYLON.Matrix.Identity(),
+			flock.scene.activeCamera,
+		);
+
+		// Perform the picking
+		const pickResult = flock.scene.pickWithRay(
+			pickRay,
+			(mesh) => mesh.isPickable,
+		);
+
+		function applyColorToMeshOrDescendant(mesh, selectedColor) {
+			const findMeshWithMaterial = (mesh) =>
+				mesh.material
+					? mesh
+					: mesh.getDescendants().find((child) => child.material);
+
+			const targetMesh = findMeshWithMaterial(mesh);
+			// If a mesh with a material is found, apply the color
+			if (targetMesh) {
+				if (targetMesh.material && targetMesh.material.diffuseColor) {
+					targetMesh.material.diffuseColor =
+						new BABYLON.Color3.FromHexString(selectedColor);
+				} else {
+					targetMesh.material.albedoColor =
+						new BABYLON.Color3.FromHexString(
+							selectedColor,
+						).toLinearSpace();
+					targetMesh.material.emissiveColor =
+						flock.BABYLON.Color3.FromHexString(
+							flock.getColorFromString(selectedColor),
+						).toLinearSpace();
+					targetMesh.material.emissiveIntensity = 0.1;
+				}
+			}
+		}
+
+		if (pickResult.hit && pickResult.pickedMesh) {
+			applyColorToMeshOrDescendant(pickResult.pickedMesh, selectedColor);
+
+			updateBlockColorAndHighlight(pickResult.pickedMesh, selectedColor);
+
+			document.body.style.cursor = "default"; // Reset the cursor
+			window.removeEventListener("click", onPickMesh); // Remove the event listener after picking
+		}
+	};
+
+	// Add event listener to pick the mesh on the next click
+	window.addEventListener("click", onPickMesh);
+}
+
+window.pickMeshFromCanvas = pickMeshFromCanvas;
 
 function stopCode() {
 	flock.audioContext.close();
