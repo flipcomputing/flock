@@ -12,7 +12,12 @@ import "@babylonjs/core/Debug/debugLayer";
 import "@babylonjs/inspector";
 import { flock, initializeFlock } from "./flock.js";
 import { initialBlocksJson } from "./toolbox.js";
-import { modelNames, objectNames, characterNames, objectColours } from "./config.js";
+import {
+	modelNames,
+	objectNames,
+	characterNames,
+	objectColours,
+} from "./config.js";
 import { options, defineBlocks, initializeVariableIndexes } from "./blocks";
 import { defineGenerators, meshMap } from "./generators";
 
@@ -219,13 +224,38 @@ function scrollObjects(direction) {
 	});
 }
 
-// Call this function to initialize the objects when the menu is opened
+// Function to load characters into the menu
+function loadCharacterImages() {
+	const characterRow = document.getElementById("character-row");
+	characterRow.innerHTML = ""; // Clear existing characters
+
+	characterNames.forEach((name) => {
+		const baseName = name.replace(/\.[^/.]+$/, ""); // Remove extension
+		const li = document.createElement("li");
+		li.innerHTML = `<img src="./images/${baseName}.png" alt="${baseName}" onclick="selectCharacter('${name}')">`;
+		characterRow.appendChild(li);
+	});
+}
+
+// Scroll function to move the character row left or right
+function scrollCharacters(direction) {
+	const characterRow = document.getElementById("character-row");
+	const scrollAmount = 100; // Adjust scroll amount as needed
+	characterRow.scrollBy({
+		left: direction * scrollAmount,
+		behavior: "smooth",
+	});
+}
+window.scrollCharacters = scrollCharacters;
+
+// Call this function to initialize the characters when the menu is opened
 function showShapes() {
 	const dropdown = document.getElementById("shapes-dropdown");
 	dropdown.style.display =
 		dropdown.style.display === "none" ? "block" : "none";
 	loadModelImages(); // Load the models into the menu
 	loadObjectImages(); // Load the objects into the menu
+	loadCharacterImages(); // Load the characters into the menu
 }
 window.showShapes = showShapes;
 
@@ -324,6 +354,82 @@ function selectShape(shapeType) {
 }
 
 window.selectShape = selectShape;
+
+function selectCharacter(characterName) {
+	document.getElementById("shapes-dropdown").style.display = "none";
+	document.body.style.cursor = "crosshair"; // Change cursor to indicate picking mode
+
+	// Delay the pick listener to avoid firing immediately
+	setTimeout(() => {
+		const onPick = function (event) {
+			const pickResult = flock.scene.pick(event.clientX, event.clientY);
+			if (pickResult.hit) {
+				const pickedPosition = pickResult.pickedPoint;
+
+				// Add the load_character block to the workspace at the picked location
+				const block = workspace.newBlock("load_character");
+				block.setFieldValue(characterName, "MODELS"); // Set the selected character
+
+				// Set position values (X, Y, Z) from the picked position
+				setPositionValues(block, pickedPosition, "load_character");
+
+				// Create the shadow block for SCALE and COLOR inputs if they don't already exist
+				const scaleInput = block.getInput("SCALE");
+				if (!scaleInput.connection.targetBlock()) {
+					const scaleShadowBlock = workspace.newBlock("math_number");
+					scaleShadowBlock.setFieldValue("1", "NUM"); // Default scale value
+					scaleShadowBlock.setShadow(true);
+					scaleShadowBlock.initSvg();
+					scaleShadowBlock.render();
+					scaleInput.connection.connect(
+						scaleShadowBlock.outputConnection,
+					); // Connect the shadow block
+				}
+			
+				// Create the shadow blocks for the colour inputs with specified default values
+				const colorFields = {
+				  HAIR_COLOR: '#000000',      // Hair: black
+				  SKIN_COLOR: '#A15C33',      // Skin: custom skin tone
+				  EYES_COLOR: '#000000',      // Eyes: black
+				  SLEEVES_COLOR: '#008B8B',   // Sleeves: dark cyan
+				  SHORTS_COLOR: '#00008B',    // Shorts: dark blue
+				  TSHIRT_COLOR: '#FF8F60'     // T-Shirt: light orange
+				};
+
+				Object.keys(colorFields).forEach(colorInputName => {
+				  const colorInput = block.getInput(colorInputName);
+				  if (!colorInput.connection.targetBlock()) {
+					const colorShadowBlock = workspace.newBlock('colour');
+					colorShadowBlock.setFieldValue(colorFields[colorInputName], 'COLOR'); // Set the specific color
+					colorShadowBlock.setShadow(true);
+					colorShadowBlock.initSvg();
+					colorShadowBlock.render();
+					colorInput.connection.connect(colorShadowBlock.outputConnection); // Connect the shadow block
+				  }
+				});
+
+				block.initSvg();
+				block.render();
+
+				// Create a new start block and connect the character block to it
+				const startBlock = workspace.newBlock("start");
+				startBlock.initSvg();
+				startBlock.render();
+				const connection = startBlock.getInput("DO").connection;
+				if (connection) {
+					connection.connect(block.previousConnection);
+				}
+			}
+
+			document.body.style.cursor = "default";
+			window.removeEventListener("click", onPick);
+			executeCode();
+		};
+
+		window.addEventListener("click", onPick);
+	}, 300); // Small delay to avoid firing immediately from the menu click
+}
+window.selectCharacter = selectCharacter;
 
 function addShapeToWorkspace(shapeType, position) {
 	// Create the shape block in the Blockly workspace
