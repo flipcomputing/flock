@@ -122,23 +122,65 @@ function executeCode() {
 }
 
 function updateBlockColorAndHighlight(mesh, selectedColor) {
-	// Step 1: Retrieve the block associated with the mesh
-	const block = meshMap[mesh.blockKey];
+	let block = null;
 
-	if (!block) {
-		console.error("Block not found for mesh:", mesh.blockKey);
-		return;
+	// Check if the picked mesh is part of a character by examining its material name
+	const materialName = mesh.material?.name;
+	const characterMaterials = [
+		"Hair",
+		"Skin",
+		"Eyes",
+		"Sleeves",
+		"Shorts",
+		"TShirt",
+	];
+
+	if (characterMaterials.includes(materialName)) {
+
+		const ultimateParent = (mesh) => 
+		  mesh.parent ? ultimateParent(mesh.parent) : mesh;
+
+		block = meshMap[ultimateParent(mesh).blockKey];
+		// Update the corresponding character submesh color field (e.g., HAIR_COLOR, SKIN_COLOR)
+		const materialToFieldMap = {
+			Hair: "HAIR_COLOR",
+			Skin: "SKIN_COLOR",
+			Eyes: "EYES_COLOR",
+			Sleeves: "SLEEVES_COLOR",
+			Shorts: "SHORTS_COLOR",
+			TShirt: "TSHIRT_COLOR",
+		};
+
+		const fieldName = materialToFieldMap[materialName];
+
+		if (fieldName) {
+			// Update the corresponding character color field in the block
+			block
+				.getInput(fieldName)
+				.connection.targetBlock()
+				.setFieldValue(selectedColor, "COLOR");
+		} else {
+			console.error("No matching field for material:", materialName);
+		}
+	} else {
+		block = meshMap[mesh.blockKey];
+
+		if (!block) {
+			console.error("Block not found for mesh:", mesh.blockKey);
+			return;
+		}
+		// For non-character meshes, update the general "COLOR" field
+		block
+			.getInput("COLOR")
+			.connection.targetBlock()
+			.setFieldValue(selectedColor, "COLOR");
 	}
-
-	block
-		.getInput("COLOR")
-		.connection.targetBlock()
-		.setFieldValue(selectedColor, "COLOR");
 
 	// Step 3: Update and render the block
 	block.initSvg();
 	block.render();
 
+	// Step 4: Highlight the block in the Blockly workspace
 	highlightBlockById(workspace, block);
 }
 
@@ -456,6 +498,74 @@ function selectCharacter(characterName) {
 	}, 300); // Small delay to avoid firing immediately from the menu click
 }
 window.selectCharacter = selectCharacter;
+
+function updateCharacterColor(mesh, selectedColor) {
+	// Step 1: Identify the ultimate parent mesh
+	let parentMesh = mesh;
+	while (parentMesh.parent) {
+		parentMesh = parentMesh.parent; // Traverse up to the ultimate parent
+	}
+
+	// Step 2: Retrieve the corresponding Blockly block using the parent mesh's blockKey
+	const block = meshMap[parentMesh.blockKey];
+	if (!block) {
+		console.error("Block not found for mesh:", parentMesh.blockKey);
+		return;
+	}
+
+	// Step 3: Map material names to Blockly input field names
+	const materialToFieldMap = {
+		Hair: "HAIR_COLOR",
+		Skin: "SKIN_COLOR",
+		Eyes: "EYES_COLOR",
+		Sleeves: "SLEEVES_COLOR",
+		Shorts: "SHORTS_COLOR",
+		"T-Shirt": "TSHIRT_COLOR",
+	};
+
+	// Step 4: Find the field name based on the mesh's material name
+	const materialName = mesh.material.name; // Assumes the material name matches the part
+	const fieldName = materialToFieldMap[materialName];
+
+	if (!fieldName) {
+		console.error("No matching field for material:", materialName);
+		return;
+	}
+
+	// Step 5: Update the block's corresponding color field
+	const colorInput = block.getInput(fieldName);
+	if (colorInput && colorInput.connection.targetBlock()) {
+		// Update the color value in the already existing shadow block
+		colorInput.connection
+			.targetBlock()
+			.setFieldValue(selectedColor, "COLOR");
+	}
+
+	// Step 6: Re-render the block to apply the changes
+	block.initSvg();
+	block.render();
+}
+
+function onMeshPicked(pickedMesh, selectedColor) {
+	// Check if the picked mesh is part of a character by examining its material
+	const materialName = pickedMesh.material?.name;
+	const characterMaterials = [
+		"Hair",
+		"Skin",
+		"Eyes",
+		"Sleeves",
+		"Shorts",
+		"T-Shirt",
+	];
+
+	if (characterMaterials.includes(materialName)) {
+		// If the picked mesh is part of a character, update the Blockly block
+		updateCharacterColor(pickedMesh, selectedColor);
+	} else {
+		// For non-character meshes, use another function
+		applyColorToMeshOrDescendant(pickedMesh, selectedColor);
+	}
+}
 
 function addShapeToWorkspace(shapeType, position) {
 	// Create the shape block in the Blockly workspace
