@@ -12,7 +12,7 @@ import "@babylonjs/core/Debug/debugLayer";
 import "@babylonjs/inspector";
 import { flock, initializeFlock } from "./flock.js";
 import { initialBlocksJson } from "./toolbox.js";
-import { modelNames } from "./config.js";
+import { modelNames, objectNames, characterNames, objectColours } from "./config.js";
 import { options, defineBlocks, initializeVariableIndexes } from "./blocks";
 import { defineGenerators, meshMap } from "./generators";
 
@@ -118,255 +118,357 @@ function executeCode() {
 
 // Function to load models into the menu
 function loadModelImages() {
-  const modelRow = document.getElementById("model-row");
-  modelRow.innerHTML = ""; // Clear existing models
+	const modelRow = document.getElementById("model-row");
+	modelRow.innerHTML = ""; // Clear existing models
 
-  modelNames.forEach(name => {
-	const baseName = name.replace(/\.[^/.]+$/, ""); // Remove extension
-	const li = document.createElement("li");
-	li.innerHTML = `<img src="./images/${baseName}.png" alt="${baseName}" onclick="selectModel('${name}')">`;
-	modelRow.appendChild(li);
-  });
+	modelNames.forEach((name) => {
+		const baseName = name.replace(/\.[^/.]+$/, ""); // Remove extension
+		const li = document.createElement("li");
+		li.innerHTML = `<img src="./images/${baseName}.png" alt="${baseName}" onclick="selectModel('${name}')">`;
+		modelRow.appendChild(li);
+	});
 }
 
+// Function to load objects into the menu
+function loadObjectImages() {
+	const objectRow = document.getElementById("object-row");
+	objectRow.innerHTML = ""; // Clear existing objects
+
+	objectNames.forEach((name) => {
+		const baseName = name.replace(/\.[^/.]+$/, ""); // Remove extension
+		const li = document.createElement("li");
+		li.innerHTML = `<img src="./images/${baseName}.png" alt="${baseName}" onclick="selectObject('${name}')">`;
+		objectRow.appendChild(li);
+	});
+}
+
+function selectObject(objectName) {
+	document.getElementById("shapes-dropdown").style.display = "none";
+	document.body.style.cursor = "crosshair"; // Change cursor to indicate picking mode
+
+	// Delay the pick listener to avoid firing immediately
+	setTimeout(() => {
+		const onPick = function (event) {
+			const pickResult = flock.scene.pick(event.clientX, event.clientY);
+			if (pickResult.hit) {
+				const pickedPosition = pickResult.pickedPoint;
+
+				// Add the load_object block to the workspace at the picked location
+				const block = workspace.newBlock("load_object");
+				block.setFieldValue(objectName, "MODELS"); // Set the selected object
+
+				// Set position values (X, Y, Z) from the picked position
+				setPositionValues(block, pickedPosition, "load_object");
+
+				// Create the shadow block for SCALE and COLOR if they don't already exist
+				const scaleInput = block.getInput("SCALE");
+				if (!scaleInput.connection.targetBlock()) {
+					const scaleShadowBlock = workspace.newBlock("math_number");
+					scaleShadowBlock.setFieldValue("1", "NUM"); // Default scale value
+					scaleShadowBlock.setShadow(true);
+					scaleShadowBlock.initSvg();
+					scaleShadowBlock.render();
+					scaleInput.connection.connect(
+						scaleShadowBlock.outputConnection,
+					); // Connect the shadow block
+				}
+
+				const objectColour = objectColours[objectName];
+				const colorInput = block.getInput("COLOR");
+				if (!colorInput.connection.targetBlock()) {
+					const colorShadowBlock = workspace.newBlock("colour");
+					colorShadowBlock.setFieldValue(objectColour, "COLOR"); // Default color value
+					colorShadowBlock.setShadow(true);
+					colorShadowBlock.initSvg();
+					colorShadowBlock.render();
+					colorInput.connection.connect(
+						colorShadowBlock.outputConnection,
+					); // Connect the shadow block
+				}
+
+				block.initSvg();
+				block.render();
+
+				// Create a new start block and connect the object block to it
+				const startBlock = workspace.newBlock("start");
+				startBlock.initSvg();
+				startBlock.render();
+				const connection = startBlock.getInput("DO").connection;
+				if (connection) {
+					connection.connect(block.previousConnection);
+				}
+			}
+
+			document.body.style.cursor = "default";
+			window.removeEventListener("click", onPick);
+			executeCode();
+		};
+
+		window.addEventListener("click", onPick);
+	}, 300); // Small delay to avoid firing immediately from the menu click
+}
+window.selectObject = selectObject;
+
+// Scroll function to move the object row left or right
+function scrollObjects(direction) {
+	const objectRow = document.getElementById("object-row");
+	const scrollAmount = 100; // Adjust scroll amount as needed
+	objectRow.scrollBy({
+		left: direction * scrollAmount,
+		behavior: "smooth",
+	});
+}
+
+// Call this function to initialize the objects when the menu is opened
+function showShapes() {
+	const dropdown = document.getElementById("shapes-dropdown");
+	dropdown.style.display =
+		dropdown.style.display === "none" ? "block" : "none";
+	loadModelImages(); // Load the models into the menu
+	loadObjectImages(); // Load the objects into the menu
+}
+window.showShapes = showShapes;
+
 function scrollModels(direction) {
-  const modelRow = document.getElementById('model-row');
-  const scrollAmount = 100; // Adjust as needed
-  modelRow.scrollBy({
-	left: direction * scrollAmount,
-	behavior: 'smooth'
-  });
+	const modelRow = document.getElementById("model-row");
+	const scrollAmount = 100; // Adjust as needed
+	modelRow.scrollBy({
+		left: direction * scrollAmount,
+		behavior: "smooth",
+	});
 }
 window.scrollModels = scrollModels;
 
-
-// Call this function to initialize the models when the menu is opened
-function showShapes() {
-  const dropdown = document.getElementById('shapes-dropdown');
-  dropdown.style.display = dropdown.style.display === 'none' ? 'block' : 'none';
-  loadModelImages(); // Load the models into the menu
-}
-
 // Handle model selection and add block to workspace
 function selectModel(modelName) {
-  // Close the shapes menu after selecting a model
-  document.getElementById('shapes-dropdown').style.display = 'none';
+	// Close the shapes menu after selecting a model
+	document.getElementById("shapes-dropdown").style.display = "none";
 
-  document.body.style.cursor = 'crosshair'; // Change cursor to indicate picking mode
+	document.body.style.cursor = "crosshair"; // Change cursor to indicate picking mode
 
-  // Add a delay to avoid immediate firing
-  setTimeout(() => {
-	const onPick = function(event) {
-	  const pickResult = flock.scene.pick(event.clientX, event.clientY);
-	  if (pickResult.hit) {
-		const pickedPosition = pickResult.pickedPoint;
+	// Add a delay to avoid immediate firing
+	setTimeout(() => {
+		const onPick = function (event) {
+			const pickResult = flock.scene.pick(event.clientX, event.clientY);
+			if (pickResult.hit) {
+				const pickedPosition = pickResult.pickedPoint;
 
-		// Add the load_model block to the workspace at the picked location
-		const block = workspace.newBlock('load_model');
-		block.setFieldValue(modelName, 'MODELS'); // Set the selected model
-		setPositionValues(block, pickedPosition, 'load_model'); // Set X, Y, Z
+				// Add the load_model block to the workspace at the picked location
+				const block = workspace.newBlock("load_model");
+				block.setFieldValue(modelName, "MODELS"); // Set the selected model
+				setPositionValues(block, pickedPosition, "load_model"); // Set X, Y, Z
 
-		// Create the shadow block for SCALE if it doesn't already exist
-		const scaleInput = block.getInput('SCALE');
-		if (!scaleInput.connection.targetBlock()) {
-		  const scaleShadowBlock = workspace.newBlock('math_number');
-		  scaleShadowBlock.setFieldValue('1', 'NUM'); // Default scale value
-		  scaleShadowBlock.setShadow(true);
-		  scaleShadowBlock.initSvg();
-		  scaleShadowBlock.render();
-		  scaleInput.connection.connect(scaleShadowBlock.outputConnection); // Connect the shadow block
-		}
+				// Create the shadow block for SCALE if it doesn't already exist
+				const scaleInput = block.getInput("SCALE");
+				if (!scaleInput.connection.targetBlock()) {
+					const scaleShadowBlock = workspace.newBlock("math_number");
+					scaleShadowBlock.setFieldValue("1", "NUM"); // Default scale value
+					scaleShadowBlock.setShadow(true);
+					scaleShadowBlock.initSvg();
+					scaleShadowBlock.render();
+					scaleInput.connection.connect(
+						scaleShadowBlock.outputConnection,
+					); // Connect the shadow block
+				}
 
-		block.initSvg();
-		block.render();
+				block.initSvg();
+				block.render();
 
-		// Create a new start block and connect the model block to it
-		const startBlock = workspace.newBlock('start');
-		startBlock.initSvg();
-		startBlock.render();
-		const connection = startBlock.getInput('DO').connection;
-		if (connection) {
-		  connection.connect(block.previousConnection);
-		}
-	  }
+				// Create a new start block and connect the model block to it
+				const startBlock = workspace.newBlock("start");
+				startBlock.initSvg();
+				startBlock.render();
+				const connection = startBlock.getInput("DO").connection;
+				if (connection) {
+					connection.connect(block.previousConnection);
+				}
+			}
 
-	  document.body.style.cursor = 'default';  // Reset cursor after picking
-	  window.removeEventListener('click', onPick);  // Remove the click listener after pick
+			document.body.style.cursor = "default"; // Reset cursor after picking
+			window.removeEventListener("click", onPick); // Remove the click listener after pick
 
-	  executeCode();
-	};
+			executeCode();
+		};
 
-	// Attach the event listener to wait for the next click on the scene
-	window.addEventListener('click', onPick);
-  }, 300); // Delay to avoid firing from the menu click
+		// Attach the event listener to wait for the next click on the scene
+		window.addEventListener("click", onPick);
+	}, 300); // Delay to avoid firing from the menu click
 }
-
 
 window.selectModel = selectModel;
 
 window.showShapes = showShapes;
 
 function selectShape(shapeType) {
-  document.getElementById('shapes-dropdown').style.display = 'none';
-  document.body.style.cursor = 'crosshair';  // Change cursor to indicate picking mode
+	document.getElementById("shapes-dropdown").style.display = "none";
+	document.body.style.cursor = "crosshair"; // Change cursor to indicate picking mode
 
-  // Delay adding the click listener to avoid the immediate menu click issue
-  setTimeout(() => {
-	const onPick = function(event) {
-	  const pickResult = flock.scene.pick(event.clientX, event.clientY); // Get pick result from the scene
-	  if (pickResult.hit) {
-		const pickedPosition = pickResult.pickedPoint; // Get picked position
-		addShapeToWorkspace(shapeType, pickedPosition); // Add the selected shape at this position
-		document.body.style.cursor = 'default';  // Reset cursor after picking
-		window.removeEventListener('click', onPick);  // Remove the click listener after pick
-		  executeCode();
-	  } else {
-		console.log('No object was picked, please try again.');
-	  }
-	};
+	// Delay adding the click listener to avoid the immediate menu click issue
+	setTimeout(() => {
+		const onPick = function (event) {
+			const pickResult = flock.scene.pick(event.clientX, event.clientY); // Get pick result from the scene
+			if (pickResult.hit) {
+				const pickedPosition = pickResult.pickedPoint; // Get picked position
+				addShapeToWorkspace(shapeType, pickedPosition); // Add the selected shape at this position
+				document.body.style.cursor = "default"; // Reset cursor after picking
+				window.removeEventListener("click", onPick); // Remove the click listener after pick
+				executeCode();
+			} else {
+				console.log("No object was picked, please try again.");
+			}
+		};
 
-	// Attach the event listener to wait for the next click on the scene
-	window.addEventListener('click', onPick);
-  }, 300);  // Small delay (300ms) to avoid firing immediately
+		// Attach the event listener to wait for the next click on the scene
+		window.addEventListener("click", onPick);
+	}, 300); // Small delay (300ms) to avoid firing immediately
 }
-
 
 window.selectShape = selectShape;
 
 function addShapeToWorkspace(shapeType, position) {
-  // Create the shape block in the Blockly workspace
-  const block = workspace.newBlock(shapeType);
+	// Create the shape block in the Blockly workspace
+	const block = workspace.newBlock(shapeType);
 
-  // Set different fields based on the shape type
-  switch (shapeType) {
-	case 'create_box':
-	  addShadowBlock(block, 'COLOR', 'colour', flock.randomColour());  // Using 'colour' block type
-	  addShadowBlock(block, 'WIDTH', 'math_number', 1);
-	  addShadowBlock(block, 'HEIGHT', 'math_number', 1);
-	  addShadowBlock(block, 'DEPTH', 'math_number', 1);
-	  break;
+	// Set different fields based on the shape type
+	switch (shapeType) {
+		case "create_box":
+			addShadowBlock(block, "COLOR", "colour", flock.randomColour()); // Using 'colour' block type
+			addShadowBlock(block, "WIDTH", "math_number", 1);
+			addShadowBlock(block, "HEIGHT", "math_number", 1);
+			addShadowBlock(block, "DEPTH", "math_number", 1);
+			break;
 
-	case 'create_sphere':
-	  addShadowBlock(block, 'COLOR', 'colour', flock.randomColour());
-	  addShadowBlock(block, 'DIAMETER_X', 'math_number', 1);
-	  addShadowBlock(block, 'DIAMETER_Y', 'math_number', 1);
-	  addShadowBlock(block, 'DIAMETER_Z', 'math_number', 1);
-	  break;
+		case "create_sphere":
+			addShadowBlock(block, "COLOR", "colour", flock.randomColour());
+			addShadowBlock(block, "DIAMETER_X", "math_number", 1);
+			addShadowBlock(block, "DIAMETER_Y", "math_number", 1);
+			addShadowBlock(block, "DIAMETER_Z", "math_number", 1);
+			break;
 
-	case 'create_cylinder':
-	  addShadowBlock(block, 'COLOR', 'colour', flock.randomColour());
-	  addShadowBlock(block, 'HEIGHT', 'math_number', 2);
-	  addShadowBlock(block, 'DIAMETER_TOP', 'math_number', 1);
-	  addShadowBlock(block, 'DIAMETER_BOTTOM', 'math_number', 1);
-	  break;
+		case "create_cylinder":
+			addShadowBlock(block, "COLOR", "colour", flock.randomColour());
+			addShadowBlock(block, "HEIGHT", "math_number", 2);
+			addShadowBlock(block, "DIAMETER_TOP", "math_number", 1);
+			addShadowBlock(block, "DIAMETER_BOTTOM", "math_number", 1);
+			break;
 
-	case 'create_capsule':
-	  addShadowBlock(block, 'COLOR', 'colour', flock.randomColour());
-	  addShadowBlock(block, 'RADIUS', 'math_number', 0.5);
-	  addShadowBlock(block, 'HEIGHT', 'math_number', 2);
-	  break;
+		case "create_capsule":
+			addShadowBlock(block, "COLOR", "colour", flock.randomColour());
+			addShadowBlock(block, "RADIUS", "math_number", 0.5);
+			addShadowBlock(block, "HEIGHT", "math_number", 2);
+			break;
 
-	case 'create_plane':
-	  addShadowBlock(block, 'COLOR', 'colour', flock.randomColour());
-	  addShadowBlock(block, 'WIDTH', 'math_number', 2);
-	  addShadowBlock(block, 'HEIGHT', 'math_number', 2);
-	  break;
+		case "create_plane":
+			addShadowBlock(block, "COLOR", "colour", flock.randomColour());
+			addShadowBlock(block, "WIDTH", "math_number", 2);
+			addShadowBlock(block, "HEIGHT", "math_number", 2);
+			break;
 
-	default:
-	  console.error('Unknown shape type: ' + shapeType);
-  }
+		default:
+			console.error("Unknown shape type: " + shapeType);
+	}
 
-  // Set position values (X, Y, Z) from the picked position
-	 setPositionValues(block, position, shapeType);
+	// Set position values (X, Y, Z) from the picked position
+	setPositionValues(block, position, shapeType);
 
-  // Initialize and render the shape block
-  block.initSvg();
-  block.render();
+	// Initialize and render the shape block
+	block.initSvg();
+	block.render();
 
-  // Create a new 'start' block and connect the shape block to it
-  const startBlock = workspace.newBlock('start');
-  startBlock.initSvg();
-  startBlock.render();
+	// Create a new 'start' block and connect the shape block to it
+	const startBlock = workspace.newBlock("start");
+	startBlock.initSvg();
+	startBlock.render();
 
-  // Connect the shape block to the start block
-  const connection = startBlock.getInput('DO').connection;
-  if (connection) {
-	connection.connect(block.previousConnection);
-  }
+	// Connect the shape block to the start block
+	const connection = startBlock.getInput("DO").connection;
+	if (connection) {
+		connection.connect(block.previousConnection);
+	}
 }
 
 // Helper function to create and attach shadow blocks
 function addShadowBlock(block, inputName, blockType, defaultValue) {
-  const shadowBlock = workspace.newBlock(blockType);
+	const shadowBlock = workspace.newBlock(blockType);
 
-  // Determine the correct field based on block type
-  const fieldName = blockType === 'colour' ? 'COLOR' : 'NUM';
+	// Determine the correct field based on block type
+	const fieldName = blockType === "colour" ? "COLOR" : "NUM";
 
-  shadowBlock.setFieldValue(String(defaultValue), fieldName);
-  shadowBlock.initSvg();
-  shadowBlock.render();
+	shadowBlock.setFieldValue(String(defaultValue), fieldName);
+	shadowBlock.initSvg();
+	shadowBlock.render();
 
-  block.getInput(inputName).connection.connect(shadowBlock.outputConnection);
+	block.getInput(inputName).connection.connect(shadowBlock.outputConnection);
 }
 
 function setPositionValues(block, position, shapeType) {
-  let adjustedY = position.y;
+	let adjustedY = position.y;
 
-  // Adjust Y based on the shape type
-  switch (shapeType) {
-	case 'create_box':
-	  adjustedY += block.getInputTargetBlock('HEIGHT') ?
-				  block.getInputTargetBlock('HEIGHT').getFieldValue('NUM') / 2 : 0.5;  // Default to 0.5 if undefined
-	  break;
+	// Adjust Y based on the shape type
+	switch (shapeType) {
+		case "create_box":
+			adjustedY += block.getInputTargetBlock("HEIGHT")
+				? block.getInputTargetBlock("HEIGHT").getFieldValue("NUM") / 2
+				: 0.5; // Default to 0.5 if undefined
+			break;
 
-	case 'create_sphere':
-	  adjustedY += block.getInputTargetBlock('DIAMETER_Y') ?
-				  block.getInputTargetBlock('DIAMETER_Y').getFieldValue('NUM') / 2 : 0.5;
-	  break;
+		case "create_sphere":
+			adjustedY += block.getInputTargetBlock("DIAMETER_Y")
+				? block.getInputTargetBlock("DIAMETER_Y").getFieldValue("NUM") /
+					2
+				: 0.5;
+			break;
 
-	case 'create_cylinder':
-	  adjustedY += block.getInputTargetBlock('HEIGHT') ?
-				  block.getInputTargetBlock('HEIGHT').getFieldValue('NUM') / 2 : 1;
-	  break;
+		case "create_cylinder":
+			adjustedY += block.getInputTargetBlock("HEIGHT")
+				? block.getInputTargetBlock("HEIGHT").getFieldValue("NUM") / 2
+				: 1;
+			break;
 
-	case 'create_capsule':
-	  adjustedY += block.getInputTargetBlock('HEIGHT') ?
-				  block.getInputTargetBlock('HEIGHT').getFieldValue('NUM') / 2 : 1;
-	  break;
+		case "create_capsule":
+			adjustedY += block.getInputTargetBlock("HEIGHT")
+				? block.getInputTargetBlock("HEIGHT").getFieldValue("NUM") / 2
+				: 1;
+			break;
 
-	case 'create_plane':
-	  // Planes are flat, so no Y adjustment needed
-	  break;
+		case "create_plane":
+			// Planes are flat, so no Y adjustment needed
+			break;
 
-	default:
-	  console.error('Unknown shape type: ' + shapeType);
-  }
+		case "load_object":
+			// Adjust Y based on SCALE input
+			adjustedY += block.getInputTargetBlock("SCALE")
+				? block.getInputTargetBlock("SCALE").getFieldValue("NUM") / 2
+				: 2;
+			break;
 
-  // Set X, Y, Z values
-  setNumberInput(block, 'X', position.x);
-  setNumberInput(block, 'Y', adjustedY);
-  setNumberInput(block, 'Z', position.z);
+		default:
+			console.error("Unknown shape type: " + shapeType);
+	}
+
+	// Set X, Y, Z values
+	setNumberInput(block, "X", position.x);
+	setNumberInput(block, "Y", adjustedY);
+	setNumberInput(block, "Z", position.z);
 }
-
 
 // Helper function to set a numeric input value or create a shadow block if missing
 function setNumberInput(block, inputName, value) {
-  let inputConnection = block.getInput(inputName).connection;
-  let targetBlock = inputConnection.targetBlock();
+	let inputConnection = block.getInput(inputName).connection;
+	let targetBlock = inputConnection.targetBlock();
 
-  if (!targetBlock) {
-	// Create a shadow block for the input if none exists
-	const shadowBlock = workspace.newBlock('math_number');
-	shadowBlock.setFieldValue(String(Math.round(value * 10) / 10), 'NUM');
-	shadowBlock.initSvg();
-	shadowBlock.render();
-	inputConnection.connect(shadowBlock.outputConnection);
-  } else {
-	// Set the value if a block is already connected
-	targetBlock.setFieldValue(String(Math.round(value * 10) / 10), 'NUM');
-  }
+	if (!targetBlock) {
+		// Create a shadow block for the input if none exists
+		const shadowBlock = workspace.newBlock("math_number");
+		shadowBlock.setFieldValue(String(Math.round(value * 10) / 10), "NUM");
+		shadowBlock.initSvg();
+		shadowBlock.render();
+		inputConnection.connect(shadowBlock.outputConnection);
+	} else {
+		// Set the value if a block is already connected
+		targetBlock.setFieldValue(String(Math.round(value * 10) / 10), "NUM");
+	}
 }
-
 
 function stopCode() {
 	flock.audioContext.close();
@@ -435,15 +537,19 @@ function toggleGizmo(gizmoType) {
 
 					let meshY = mesh.position.y;
 
-					if (mesh.metadata && mesh.metadata.yOffset && mesh.metadata.yOffset != 0) {
+					if (
+						mesh.metadata &&
+						mesh.metadata.yOffset &&
+						mesh.metadata.yOffset != 0
+					) {
 						const scale = block
 							.getInput("SCALE")
 							.connection.targetBlock()
 							.getFieldValue("NUM");
 
-						meshY -= (scale * mesh.metadata.yOffset);
+						meshY -= scale * mesh.metadata.yOffset;
 					}
-					
+
 					if (block) {
 						block
 							.getInput("X")
