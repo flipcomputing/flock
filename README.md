@@ -1,5 +1,5 @@
 # flock
-**Flock - Creative coding in 3D**\
+**Flock XR - Creative coding in 3D**\
 A project from: [Flip Computing](https://flipcomputing.com/).
 
 Our prototype 3D block-based programming language is currently a proof of concept and is under development. Lots of features need more work and may change! We're looking for funding to continue with the work - let us know if you can help or have suggestions. 
