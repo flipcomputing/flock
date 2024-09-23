@@ -136,9 +136,8 @@ function updateBlockColorAndHighlight(mesh, selectedColor) {
 	];
 
 	if (characterMaterials.includes(materialName)) {
-
-		const ultimateParent = (mesh) => 
-		  mesh.parent ? ultimateParent(mesh.parent) : mesh;
+		const ultimateParent = (mesh) =>
+			mesh.parent ? ultimateParent(mesh.parent) : mesh;
 
 		block = meshMap[ultimateParent(mesh).blockKey];
 		// Update the corresponding character submesh color field (e.g., HAIR_COLOR, SKIN_COLOR)
@@ -214,66 +213,57 @@ function selectObject(objectName) {
 	document.getElementById("shapes-dropdown").style.display = "none";
 	document.body.style.cursor = "crosshair"; // Change cursor to indicate picking mode
 
-	// Delay the pick listener to avoid firing immediately
-	setTimeout(() => {
-		const onPick = function (event) {
-			const pickResult = flock.scene.pick(event.clientX, event.clientY);
-			if (pickResult.hit) {
-				const pickedPosition = pickResult.pickedPoint;
+	const canvas = document.getElementById("renderCanvas"); // Assuming your canvas has this ID
 
-				// Add the load_object block to the workspace at the picked location
+	const onClick = function (event) {
+		const pickResult = flock.scene.pick(event.clientX, event.clientY);
+		if (pickResult.hit) {
+			const pickedPosition = pickResult.pickedPoint;
+
+			// Start a Blockly event group to ensure undo/redo tracks all changes
+			Blockly.Events.setGroup(true);
+
+			try {
+				// Create the load_object block
 				const block = workspace.newBlock("load_object");
-				block.setFieldValue(objectName, "MODELS"); // Set the selected object
+				block.initSvg();
+				block.render();
+
+				// Set object name
+				block.setFieldValue(objectName, "MODELS");
 
 				// Set position values (X, Y, Z) from the picked position
 				setPositionValues(block, pickedPosition, "load_object");
 
-				// Create the shadow block for SCALE and COLOR if they don't already exist
-				const scaleInput = block.getInput("SCALE");
-				if (!scaleInput.connection.targetBlock()) {
-					const scaleShadowBlock = workspace.newBlock("math_number");
-					scaleShadowBlock.setFieldValue("1", "NUM"); // Default scale value
-					scaleShadowBlock.setShadow(true);
-					scaleShadowBlock.initSvg();
-					scaleShadowBlock.render();
-					scaleInput.connection.connect(
-						scaleShadowBlock.outputConnection,
-					); // Connect the shadow block
-				}
+				// Add shadow block for SCALE
+				addShadowBlock(block, "SCALE", "math_number", 1); // Using 'math_number' block for scale
 
-				const objectColour = objectColours[objectName];
-				const colorInput = block.getInput("COLOR");
-				if (!colorInput.connection.targetBlock()) {
-					const colorShadowBlock = workspace.newBlock("colour");
-					colorShadowBlock.setFieldValue(objectColour, "COLOR"); // Default color value
-					colorShadowBlock.setShadow(true);
-					colorShadowBlock.initSvg();
-					colorShadowBlock.render();
-					colorInput.connection.connect(
-						colorShadowBlock.outputConnection,
-					); // Connect the shadow block
-				}
+				// Add shadow block for COLOR
+				addShadowBlock(block, "COLOR", "colour", flock.randomColour()); // Using 'colour' block for color
 
-				block.initSvg();
-				block.render();
-
-				// Create a new start block and connect the object block to it
+				// Create a new 'start' block and connect the load_object block to it
 				const startBlock = workspace.newBlock("start");
 				startBlock.initSvg();
 				startBlock.render();
+
+				// Connect the load_object block to the start block
 				const connection = startBlock.getInput("DO").connection;
 				if (connection) {
 					connection.connect(block.previousConnection);
 				}
+
+			} finally {
+				// End the event group to ensure everything can be undone/redone as a group
+				Blockly.Events.setGroup(false);
 			}
+		}
 
-			document.body.style.cursor = "default";
-			window.removeEventListener("click", onPick);
-			executeCode();
-		};
+		document.body.style.cursor = "default";
+		canvas.removeEventListener("click", onClick);
+		executeCode(); // Your function to execute the Blockly code
+	};
 
-		window.addEventListener("click", onPick);
-	}, 300); // Small delay to avoid firing immediately from the menu click
+	canvas.addEventListener("click", onClick);
 }
 window.selectObject = selectObject;
 
@@ -346,48 +336,45 @@ function selectModel(modelName) {
 			if (pickResult.hit) {
 				const pickedPosition = pickResult.pickedPoint;
 
-				// Add the load_model block to the workspace at the picked location
-				const block = workspace.newBlock("load_model");
-				block.setFieldValue(modelName, "MODELS"); // Set the selected model
-				setPositionValues(block, pickedPosition, "load_model"); // Set X, Y, Z
+				// Start a Blockly event group to ensure undo/redo tracks all changes
+				Blockly.Events.setGroup(true);
 
-				// Create the shadow block for SCALE if it doesn't already exist
-				const scaleInput = block.getInput("SCALE");
-				if (!scaleInput.connection.targetBlock()) {
-					const scaleShadowBlock = workspace.newBlock("math_number");
-					scaleShadowBlock.setFieldValue("1", "NUM"); // Default scale value
-					scaleShadowBlock.setShadow(true);
-					scaleShadowBlock.initSvg();
-					scaleShadowBlock.render();
-					scaleInput.connection.connect(
-						scaleShadowBlock.outputConnection,
-					); // Connect the shadow block
-				}
+				try {
+					// Add the load_model block to the workspace at the picked location
+					const block = workspace.newBlock("load_model");
+					block.setFieldValue(modelName, "MODELS"); // Set the selected model
+					setPositionValues(block, pickedPosition, "load_model"); // Set X, Y, Z
 
-				block.initSvg();
-				block.render();
+					// Create shadow block for SCALE using the addShadowBlock helper function
+					addShadowBlock(block, "SCALE", "math_number", 1); // Default scale value
 
-				// Create a new start block and connect the model block to it
-				const startBlock = workspace.newBlock("start");
-				startBlock.initSvg();
-				startBlock.render();
-				const connection = startBlock.getInput("DO").connection;
-				if (connection) {
-					connection.connect(block.previousConnection);
+					block.initSvg();
+					block.render();
+
+					// Create a new start block and connect the model block to it
+					const startBlock = workspace.newBlock("start");
+					startBlock.initSvg();
+					startBlock.render();
+					const connection = startBlock.getInput("DO").connection;
+					if (connection) {
+						connection.connect(block.previousConnection);
+					}
+				} finally {
+					// End the event group to ensure undo/redo works properly
+					Blockly.Events.setGroup(false);
 				}
 			}
 
 			document.body.style.cursor = "default"; // Reset cursor after picking
 			window.removeEventListener("click", onPick); // Remove the click listener after pick
 
-			executeCode();
+			executeCode(); // Execute any code after the block is created
 		};
 
 		// Attach the event listener to wait for the next click on the scene
 		window.addEventListener("click", onPick);
 	}, 300); // Delay to avoid firing from the menu click
 }
-
 window.selectModel = selectModel;
 
 window.showShapes = showShapes;
@@ -402,6 +389,7 @@ function selectShape(shapeType) {
 			const pickResult = flock.scene.pick(event.clientX, event.clientY); // Get pick result from the scene
 			if (pickResult.hit) {
 				const pickedPosition = pickResult.pickedPoint; // Get picked position
+				
 				addShapeToWorkspace(shapeType, pickedPosition); // Add the selected shape at this position
 				document.body.style.cursor = "default"; // Reset cursor after picking
 				window.removeEventListener("click", onPick); // Remove the click listener after pick
@@ -429,74 +417,60 @@ function selectCharacter(characterName) {
 			if (pickResult.hit) {
 				const pickedPosition = pickResult.pickedPoint;
 
-				// Add the load_character block to the workspace at the picked location
-				const block = workspace.newBlock("load_character");
-				block.setFieldValue(characterName, "MODELS"); // Set the selected character
+				// Start a Blockly event group to ensure undo/redo tracks all changes
+				Blockly.Events.setGroup(true);
 
-				// Set position values (X, Y, Z) from the picked position
-				setPositionValues(block, pickedPosition, "load_character");
+				try {
+					// Add the load_character block to the workspace at the picked location
+					const block = workspace.newBlock("load_character");
+					block.setFieldValue(characterName, "MODELS"); // Set the selected character
 
-				// Create the shadow block for SCALE and COLOR inputs if they don't already exist
-				const scaleInput = block.getInput("SCALE");
-				if (!scaleInput.connection.targetBlock()) {
-					const scaleShadowBlock = workspace.newBlock("math_number");
-					scaleShadowBlock.setFieldValue("1", "NUM"); // Default scale value
-					scaleShadowBlock.setShadow(true);
-					scaleShadowBlock.initSvg();
-					scaleShadowBlock.render();
-					scaleInput.connection.connect(
-						scaleShadowBlock.outputConnection,
-					); // Connect the shadow block
-				}
+					// Set position values (X, Y, Z) from the picked position
+					setPositionValues(block, pickedPosition, "load_character");
 
-				// Create the shadow blocks for the colour inputs with specified default values
-				const colorFields = {
-					HAIR_COLOR: "#000000", // Hair: black
-					SKIN_COLOR: "#A15C33", // Skin: custom skin tone
-					EYES_COLOR: "#000000", // Eyes: black
-					SLEEVES_COLOR: "#008B8B", // Sleeves: dark cyan
-					SHORTS_COLOR: "#00008B", // Shorts: dark blue
-					TSHIRT_COLOR: "#FF8F60", // T-Shirt: light orange
-				};
+					// Add shadow block for SCALE using the addShadowBlock helper function
+					addShadowBlock(block, "SCALE", "math_number", 1); // Default scale value
 
-				Object.keys(colorFields).forEach((colorInputName) => {
-					const colorInput = block.getInput(colorInputName);
-					if (!colorInput.connection.targetBlock()) {
-						const colorShadowBlock = workspace.newBlock("colour");
-						colorShadowBlock.setFieldValue(
-							colorFields[colorInputName],
-							"COLOR",
-						); // Set the specific color
-						colorShadowBlock.setShadow(true);
-						colorShadowBlock.initSvg();
-						colorShadowBlock.render();
-						colorInput.connection.connect(
-							colorShadowBlock.outputConnection,
-						); // Connect the shadow block
+					// Add shadow blocks for colour inputs with default values
+					const colorFields = {
+						HAIR_COLOR: "#000000", // Hair: black
+						SKIN_COLOR: "#A15C33", // Skin: custom skin tone
+						EYES_COLOR: "#000000", // Eyes: black
+						SLEEVES_COLOR: "#008B8B", // Sleeves: dark cyan
+						SHORTS_COLOR: "#00008B", // Shorts: dark blue
+						TSHIRT_COLOR: "#FF8F60", // T-Shirt: light orange
+					};
+
+					Object.keys(colorFields).forEach((colorInputName) => {
+						addShadowBlock(block, colorInputName, "colour", colorFields[colorInputName]);
+					});
+
+					block.initSvg();
+					block.render();
+
+					// Create a new start block and connect the character block to it
+					const startBlock = workspace.newBlock("start");
+					startBlock.initSvg();
+					startBlock.render();
+					const connection = startBlock.getInput("DO").connection;
+					if (connection) {
+						connection.connect(block.previousConnection);
 					}
-				});
-
-				block.initSvg();
-				block.render();
-
-				// Create a new start block and connect the character block to it
-				const startBlock = workspace.newBlock("start");
-				startBlock.initSvg();
-				startBlock.render();
-				const connection = startBlock.getInput("DO").connection;
-				if (connection) {
-					connection.connect(block.previousConnection);
+				} finally {
+					// End the event group to ensure everything can be undone/redone as a group
+					Blockly.Events.setGroup(false);
 				}
 			}
 
 			document.body.style.cursor = "default";
 			window.removeEventListener("click", onPick);
-			executeCode();
+			executeCode(); // Your function to execute the Blockly code
 		};
 
 		window.addEventListener("click", onPick);
 	}, 300); // Small delay to avoid firing immediately from the menu click
 }
+
 window.selectCharacter = selectCharacter;
 
 function updateCharacterColor(mesh, selectedColor) {
@@ -568,6 +542,7 @@ function onMeshPicked(pickedMesh, selectedColor) {
 }
 
 function addShapeToWorkspace(shapeType, position) {
+	Blockly.Events.setGroup(true);
 	// Create the shape block in the Blockly workspace
 	const block = workspace.newBlock(shapeType);
 
@@ -607,7 +582,7 @@ function addShapeToWorkspace(shapeType, position) {
 			break;
 
 		default:
-			console.error("Unknown shape type: " + shapeType);
+			console.error("Unknown shape type: " + shapeType);		
 	}
 
 	// Set position values (X, Y, Z) from the picked position
@@ -627,6 +602,8 @@ function addShapeToWorkspace(shapeType, position) {
 	if (connection) {
 		connection.connect(block.previousConnection);
 	}
+
+	Blockly.Events.setGroup(false);
 }
 
 // Helper function to create and attach shadow blocks
@@ -743,13 +720,17 @@ function pickMeshFromCanvas() {
 		// Get the canvas bounds relative to the window
 		const canvasRect = canvas.getBoundingClientRect();
 
-		  // Check if the click happened outside the canvas
-		  if (event.clientX < canvasRect.left || event.clientX > canvasRect.right ||
-			  event.clientY < canvasRect.top || event.clientY > canvasRect.bottom) {
-			  window.removeEventListener('click', onPickMesh);
-			  document.body.style.cursor = "default"; 
+		// Check if the click happened outside the canvas
+		if (
+			event.clientX < canvasRect.left ||
+			event.clientX > canvasRect.right ||
+			event.clientY < canvasRect.top ||
+			event.clientY > canvasRect.bottom
+		) {
+			window.removeEventListener("click", onPickMesh);
+			document.body.style.cursor = "default";
 			return;
-		  }
+		}
 
 		// Calculate the click position relative to the canvas, not the window
 		const canvasX = event.clientX - canvasRect.left;
@@ -1518,13 +1499,23 @@ window.onload = function () {
 		});
 	};
 
-	// Add change listener to handle cleanup after block move or delete
+	let cleanupTimeout;
+
 	workspace.addChangeListener(function (event) {
 		try {
 			if (event.type === Blockly.Events.BLOCK_MOVE) {
 				const block = workspace.getBlockById(event.blockId);
 				if (!block) return;
-				workspace.cleanUp();
+
+				// Clear any existing cleanup timeout to avoid multiple calls
+				clearTimeout(cleanupTimeout);
+
+				// Set a new timeout to call cleanUp after block movement settles
+				cleanupTimeout = setTimeout(() => {
+					Blockly.Events.disable(); // Temporarily disable events
+					workspace.cleanUp();      // Clean up the workspace
+					Blockly.Events.enable();  // Re-enable events
+				}, 500); // Delay cleanup by 500ms to ensure block moves have settled
 			}
 		} catch (error) {
 			console.error(
@@ -1533,6 +1524,7 @@ window.onload = function () {
 			);
 		}
 	});
+
 
 	document.addEventListener("keydown", function (event) {
 		if (event.ctrlKey && event.key === ".") {
