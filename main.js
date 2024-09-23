@@ -743,6 +743,14 @@ function pickMeshFromCanvas() {
 		// Get the canvas bounds relative to the window
 		const canvasRect = canvas.getBoundingClientRect();
 
+		  // Check if the click happened outside the canvas
+		  if (event.clientX < canvasRect.left || event.clientX > canvasRect.right ||
+			  event.clientY < canvasRect.top || event.clientY > canvasRect.bottom) {
+			  window.removeEventListener('click', onPickMesh);
+			  document.body.style.cursor = "default"; 
+			return;
+		  }
+
 		// Calculate the click position relative to the canvas, not the window
 		const canvasX = event.clientX - canvasRect.left;
 		const canvasY = event.clientY - canvasRect.top;
