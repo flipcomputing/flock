@@ -1720,58 +1720,58 @@ export const toolbox = {
 					type: "rest",
 				},
 				{
-				  kind: "block",
-				  type: "play_notes",
-				  keyword: "play_notes",
-				  inputsInline: true, // Set lists to be inline
-				  inputs: {
-					NOTES: {
-					  block: {
-						type: "lists_create_with",
-						inline: true,
-						extraState: {
-						  itemCount: 1
-						},
-						inputs: {
-						  ADD0: {
+					kind: "block",
+					type: "play_notes",
+					keyword: "play_notes",
+					inputsInline: true, // Set lists to be inline
+					inputs: {
+						NOTES: {
 							block: {
-							  type: "midi_note",
-							  fields: {
-								NOTE: 60, // Default MIDI note: 60 (Middle C)
-							  },
+								type: "lists_create_with",
+								inline: true,
+								extraState: {
+									itemCount: 1,
+								},
+								inputs: {
+									ADD0: {
+										block: {
+											type: "midi_note",
+											fields: {
+												NOTE: 60, // Default MIDI note: 60 (Middle C)
+											},
+										},
+									},
+								},
 							},
-						  },
 						},
-					  },
-					},
-					DURATIONS: {
-					  block: {
-						type: "lists_create_with",
-						inline: true,
-						extraState: {
-						  itemCount: 1,
-						},
-						inputs: {
-						  ADD0: {
+						DURATIONS: {
 							block: {
-							  type: "math_number",
-							  fields: {
-								NUM: 1, // Default duration: 1 beat
-							  },
+								type: "lists_create_with",
+								inline: true,
+								extraState: {
+									itemCount: 1,
+								},
+								inputs: {
+									ADD0: {
+										block: {
+											type: "math_number",
+											fields: {
+												NUM: 1, // Default duration: 1 beat
+											},
+										},
+									},
+								},
 							},
-						  },
 						},
-					  },
+						INSTRUMENT: {
+							shadow: {
+								type: "instrument",
+								fields: {
+									INSTRUMENT_TYPE: "default", // Default instrument selection
+								},
+							},
+						},
 					},
-					INSTRUMENT: {
-					  shadow: {
-						type: "instrument", 
-						fields: {
-						  INSTRUMENT_TYPE: "default" // Default instrument selection
-						}
-					  }
-					}
-				  }
 				},
 				{
 					kind: "block",
@@ -2595,17 +2595,17 @@ export const toolbox = {
 			name: "Snippets",
 			contents: [
 				{
-					type: "start",
 					kind: "block",
+					type: "start",
 					inputs: {
 						DO: {
 							block: {
-								type: "load_model",
-								kind: "block",
+								type: "load_character",
 								fields: {
-									MODELS: "Character_Female_1.gltf",
+									MODELS: "Character1.glb",
 									ID_VAR: {
 										name: "player",
+										type: "",
 									},
 								},
 								inputs: {
@@ -2641,6 +2641,54 @@ export const toolbox = {
 											},
 										},
 									},
+									HAIR_COLOR: {
+										shadow: {
+											type: "colour",
+											fields: {
+												COLOR: "#000000",
+											},
+										},
+									},
+									SKIN_COLOR: {
+										shadow: {
+											type: "skin_colour",
+											fields: {
+												COLOR: "#a15c33",
+											},
+										},
+									},
+									EYES_COLOR: {
+										shadow: {
+											type: "colour",
+											fields: {
+												COLOR: "#000000",
+											},
+										},
+									},
+									SLEEVES_COLOR: {
+										shadow: {
+											type: "colour",
+											fields: {
+												COLOR: "#008b8b",
+											},
+										},
+									},
+									SHORTS_COLOR: {
+										shadow: {
+											type: "colour",
+											fields: {
+												COLOR: "#00008b",
+											},
+										},
+									},
+									TSHIRT_COLOR: {
+										shadow: {
+											type: "colour",
+											fields: {
+												COLOR: "#ff8f60",
+											},
+										},
+									},
 								},
 								next: {
 									block: {
@@ -2648,6 +2696,7 @@ export const toolbox = {
 										fields: {
 											MODEL_VAR: {
 												name: "player",
+												type: "",
 											},
 											PHYSICS_TYPE: "DYNAMIC",
 										},
@@ -2657,6 +2706,17 @@ export const toolbox = {
 												fields: {
 													MESH_VAR: {
 														name: "player",
+														type: "",
+													},
+												},
+												inputs: {
+													RADIUS: {
+														block: {
+															type: "math_number",
+															fields: {
+																NUM: 7,
+															},
+														},
 													},
 												},
 											},
@@ -2683,7 +2743,7 @@ export const toolbox = {
 										block: {
 											type: "key_pressed",
 											fields: {
-												KEY: "KeyW",
+												KEY: "w",
 											},
 										},
 									},
@@ -2693,6 +2753,7 @@ export const toolbox = {
 											fields: {
 												MODEL: {
 													name: "player",
+													type: "",
 												},
 											},
 											inputs: {
@@ -2711,6 +2772,7 @@ export const toolbox = {
 													fields: {
 														MODEL: {
 															name: "player",
+															type: "",
 														},
 														ANIMATION_NAME: "Walk",
 													},
@@ -2722,7 +2784,7 @@ export const toolbox = {
 										block: {
 											type: "key_pressed",
 											fields: {
-												KEY: "KeyS",
+												KEY: "s",
 											},
 										},
 									},
@@ -2732,6 +2794,7 @@ export const toolbox = {
 											fields: {
 												MODEL: {
 													name: "player",
+													type: "",
 												},
 											},
 											inputs: {
@@ -2750,6 +2813,7 @@ export const toolbox = {
 													fields: {
 														MODEL: {
 															name: "player",
+															type: "",
 														},
 														ANIMATION_NAME: "Walk",
 													},
@@ -2763,6 +2827,7 @@ export const toolbox = {
 											fields: {
 												MODEL: {
 													name: "player",
+													type: "",
 												},
 												ANIMATION_NAME: "Idle",
 											},
