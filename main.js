@@ -239,6 +239,7 @@ function selectObject(objectName) {
 				const block = workspace.newBlock("load_object");
 				block.initSvg();
 				block.render();
+				highlightBlockById(workspace, block);
 
 				// Set object name
 				block.setFieldValue(objectName, "MODELS");
@@ -250,7 +251,7 @@ function selectObject(objectName) {
 				addShadowBlock(block, "SCALE", "math_number", 1); // Using 'math_number' block for scale
 
 				// Add shadow block for COLOR
-				addShadowBlock(block, "COLOR", "colour", flock.randomColour()); // Using 'colour' block for color
+				addShadowBlock(block, "COLOR", "colour", objectColours[objectName]); 
 
 				// Create a new 'start' block and connect the load_object block to it
 				const startBlock = workspace.newBlock("start");
@@ -353,6 +354,7 @@ function selectModel(modelName) {
 					// Add the load_model block to the workspace at the picked location
 					const block = workspace.newBlock("load_model");
 					block.setFieldValue(modelName, "MODELS"); // Set the selected model
+					
 					setPositionValues(block, pickedPosition, "load_model"); // Set X, Y, Z
 
 					// Create shadow block for SCALE using the addShadowBlock helper function
@@ -360,6 +362,7 @@ function selectModel(modelName) {
 
 					block.initSvg();
 					block.render();
+					highlightBlockById(workspace, block);
 
 					// Create a new start block and connect the model block to it
 					const startBlock = workspace.newBlock("start");
@@ -462,6 +465,7 @@ function selectCharacter(characterName) {
 
 					block.initSvg();
 					block.render();
+					highlightBlockById(workspace, block);
 
 					// Create a new start block and connect the character block to it
 					const startBlock = workspace.newBlock("start");
@@ -606,6 +610,7 @@ function addShapeToWorkspace(shapeType, position) {
 	// Initialize and render the shape block
 	block.initSvg();
 	block.render();
+	highlightBlockById(workspace, block) 
 
 	// Create a new 'start' block and connect the shape block to it
 	const startBlock = workspace.newBlock("start");
@@ -766,9 +771,7 @@ function pickMeshFromCanvas() {
 		);
 
 		function applyColorToMeshOrDescendant(mesh, selectedColor) {
-			console.log(mesh, selectedColor);
 			if (!mesh) {
-				console.log("Sky");
 				flock.scene.clearColor = BABYLON.Color3.FromHexString(
 					flock.getColorFromString(selectedColor),
 				);
@@ -947,8 +950,26 @@ window.turnOffAllGizmos = turnOffAllGizmos;
 
 function highlightBlockById(workspace, block) {
 	if (block) {
+		// Unselect all other blocks
+		workspace.getAllBlocks().forEach(b => b.unselect());
+
+		// Select the new block
 		block.select();
-		workspace.centerOnBlock(block.id, true);
+
+		const blockRect = block.getBoundingRectangle();
+		const metrics = workspace.getMetrics();
+
+		// Check if the block is outside the visible area
+		const isOutsideViewport =
+			blockRect.top < metrics.viewTop ||
+			blockRect.bottom > metrics.viewTop + metrics.viewHeight ||
+			blockRect.left < metrics.viewLeft ||
+			blockRect.right > metrics.viewLeft + metrics.viewWidth;
+
+		if (isOutsideViewport) {
+			// Scroll the workspace to make the block visible without centering it
+			workspace.scrollbar.set(blockRect.left - 10, blockRect.top - 10); // Adjust for padding
+		}
 	}
 }
 
