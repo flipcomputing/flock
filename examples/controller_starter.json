@@ -118,7 +118,7 @@
 		"type": "forever",
 		"id": "rzARP?f-rL_OMXQ]LzxO",
 		"x": 10,
-		"y": 640,
+		"y": 680,
 		"collapsed": true,
 		"inputs": {
 		  "DO": {
@@ -521,10 +521,10 @@
 			  },
 			  "next": {
 				"block": {
-				  "type": "load_model",
-				  "id": "5,ku2R0:[|rIQX%c3oq.",
+				  "type": "load_character",
+				  "id": "kA`{f)5!}mLm:{vF7$vV",
 				  "fields": {
-					"MODELS": "Character_Female_1.gltf",
+					"MODELS": "Character1.glb",
 					"ID_VAR": {
 					  "id": "f=8($HYZoE:IjT|U8x8J"
 					}
@@ -533,7 +533,7 @@
 					"SCALE": {
 					  "shadow": {
 						"type": "math_number",
-						"id": "+P:36go6Nc}#)P;M,q.Y",
+						"id": "/43%L]$Z#oxyej7R0eq:",
 						"fields": {
 						  "NUM": 0.75
 						}
@@ -542,7 +542,7 @@
 					"X": {
 					  "shadow": {
 						"type": "math_number",
-						"id": "FL:EHvIP9*ElZlH~GDHo",
+						"id": "*^SiIAg|P26Iw=lHhG(E",
 						"fields": {
 						  "NUM": 0
 						}
@@ -551,7 +551,7 @@
 					"Y": {
 					  "shadow": {
 						"type": "math_number",
-						"id": ")`!~6n=,5SN_Lg8^=YIF",
+						"id": "39L)hD{S(ljwW4{olh6+",
 						"fields": {
 						  "NUM": 0
 						}
@@ -560,9 +560,63 @@
 					"Z": {
 					  "shadow": {
 						"type": "math_number",
-						"id": "3_q8EHR5HCCU%DN)By/g",
+						"id": "hVAmw*CPYbb;hR^sk3yn",
 						"fields": {
 						  "NUM": 0
+						}
+					  }
+					},
+					"HAIR_COLOR": {
+					  "shadow": {
+						"type": "colour",
+						"id": "Nc!;ibQ8E[:VsnNc+}Pw",
+						"fields": {
+						  "COLOR": "#000000"
+						}
+					  }
+					},
+					"SKIN_COLOR": {
+					  "shadow": {
+						"type": "skin_colour",
+						"id": "I$6g5l6/0xhZUt@H1Nu%",
+						"fields": {
+						  "COLOR": "#a15c33"
+						}
+					  }
+					},
+					"EYES_COLOR": {
+					  "shadow": {
+						"type": "colour",
+						"id": "nK2WA0(`CowZ!kIy4l;X",
+						"fields": {
+						  "COLOR": "#000000"
+						}
+					  }
+					},
+					"SLEEVES_COLOR": {
+					  "shadow": {
+						"type": "colour",
+						"id": "?48{bzc81c?4_CF!dU4u",
+						"fields": {
+						  "COLOR": "#008b8b"
+						}
+					  }
+					},
+					"SHORTS_COLOR": {
+					  "shadow": {
+						"type": "colour",
+						"id": "?uTgC0y/F%oD~;l=MgBg",
+						"fields": {
+						  "COLOR": "#00008b"
+						}
+					  }
+					},
+					"TSHIRT_COLOR": {
+					  "shadow": {
+						"type": "colour",
+						"id": "NTcH!O^WWH-?irgW]Sxt",
+						"fields": {
+						  "COLOR": "#ff8f60"
 						}
 					  }
 					}
@@ -611,7 +665,7 @@
 		"type": "on_event",
 		"id": "z(*s03cGJ=4OqgQOaeQJ",
 		"x": 10,
-		"y": 728,
+		"y": 768,
 		"collapsed": true,
 		"inputs": {
 		  "EVENT_NAME": {
@@ -653,7 +707,7 @@
 		"type": "on_event",
 		"id": "cWUxspp/*vx]T$1YYX;j",
 		"x": 10,
-		"y": 816,
+		"y": 856,
 		"collapsed": true,
 		"inputs": {
 		  "EVENT_NAME": {
@@ -689,6 +743,10 @@
 	{
 	  "name": "jumping",
 	  "id": "DetuuxWKd*Q_?Jr-Sz*k"
+	},
+	{
+	  "name": "character1",
+	  "id": "}UlX~N$2#KAQ3$ze2LY{"
 	}
   ]
 }

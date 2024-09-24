@@ -5,8 +5,8 @@
 	  {
 		"type": "start",
 		"id": "hP1(8=@A.+kG[L4(yPaZ",
-		"x": 0,
-		"y": 0,
+		"x": 10,
+		"y": 10,
 		"inputs": {
 		  "DO": {
 			"block": {
@@ -442,8 +442,8 @@
 	  {
 		"type": "start",
 		"id": "rYSM[9*$cgU?cfx}y-dk",
-		"x": 0,
-		"y": 2782,
+		"x": 10,
+		"y": 2368,
 		"inputs": {
 		  "DO": {
 			"block": {
@@ -480,10 +480,10 @@
 			  },
 			  "next": {
 				"block": {
-				  "type": "load_model",
-				  "id": "5,ku2R0:[|rIQX%c3oq.",
+				  "type": "load_character",
+				  "id": ")3:?9e:~HC1aQ#MPQfJ:",
 				  "fields": {
-					"MODELS": "Character_Male_1.gltf",
+					"MODELS": "Character4.glb",
 					"ID_VAR": {
 					  "id": "f=8($HYZoE:IjT|U8x8J"
 					}
@@ -492,16 +492,16 @@
 					"SCALE": {
 					  "shadow": {
 						"type": "math_number",
-						"id": "+P:36go6Nc}#)P;M,q.Y",
+						"id": "T~:/CV?:U+#yKZi)I}9l",
 						"fields": {
-						  "NUM": 0.75
+						  "NUM": 1
 						}
 					  }
 					},
 					"X": {
 					  "shadow": {
 						"type": "math_number",
-						"id": "FL:EHvIP9*ElZlH~GDHo",
+						"id": "~E{sc:b-Hoa!;05f6zV*",
 						"fields": {
 						  "NUM": 0
 						}
@@ -510,7 +510,7 @@
 					"Y": {
 					  "shadow": {
 						"type": "math_number",
-						"id": ")`!~6n=,5SN_Lg8^=YIF",
+						"id": "Gpm*pWQQb`tYKWX*,x@r",
 						"fields": {
 						  "NUM": 0
 						}
@@ -519,68 +519,145 @@
 					"Z": {
 					  "shadow": {
 						"type": "math_number",
-						"id": "3_q8EHR5HCCU%DN)By/g",
+						"id": "k#$R(?xdE$AR:4Y@giCJ",
 						"fields": {
 						  "NUM": 0
+						}
+					  }
+					},
+					"HAIR_COLOR": {
+					  "shadow": {
+						"type": "colour",
+						"id": "QDl;XE(qduZVgszP*+Kf",
+						"fields": {
+						  "COLOR": "#ffcc33"
+						}
+					  }
+					},
+					"SKIN_COLOR": {
+					  "shadow": {
+						"type": "skin_colour",
+						"id": "(KTmTs^W|},73C]RijR~",
+						"fields": {
+						  "COLOR": "#ffdfc4"
+						}
+					  }
+					},
+					"EYES_COLOR": {
+					  "shadow": {
+						"type": "colour",
+						"id": "ou0}pPll,BN.,gXD+S#r",
+						"fields": {
+						  "COLOR": "#33cc00"
+						}
+					  }
+					},
+					"SLEEVES_COLOR": {
+					  "shadow": {
+						"type": "colour",
+						"id": "~2AI:3b2#GIt$2~4VsSz",
+						"fields": {
+						  "COLOR": "#990000"
+						}
+					  }
+					},
+					"SHORTS_COLOR": {
+					  "shadow": {
+						"type": "colour",
+						"id": ":DcRyfp~`BVn;t1:]0*Z",
+						"fields": {
+						  "COLOR": "#00008b"
+						}
+					  }
+					},
+					"TSHIRT_COLOR": {
+					  "shadow": {
+						"type": "colour",
+						"id": "`]p{zh4LoHq-7Mf!(%L+",
+						"fields": {
+						  "COLOR": "#990000"
 						}
 					  }
 					}
 				  },
 				  "next": {
 					"block": {
-					  "type": "rotate_model_xyz",
-					  "id": "WEC=eL/iCV{jNvvjhlw~",
+					  "type": "play_animation",
+					  "id": "/{R#;k/T^~N?DqFKyyUP",
 					  "fields": {
+						"ANIMATION_NAME": "Idle",
 						"MODEL": {
 						  "id": "f=8($HYZoE:IjT|U8x8J"
 						}
 					  },
-					  "inputs": {
-						"X": {
-						  "shadow": {
-							"type": "math_number",
-							"id": "aZZeH-wVQmGoZ7T}dG1[",
-							"fields": {
-							  "NUM": 0
-							}
-						  }
-						},
-						"Y": {
-						  "shadow": {
-							"type": "math_number",
-							"id": "T(]%3eNVkX)4ZX#6yIfm",
-							"fields": {
-							  "NUM": 180
-							}
-						  }
-						},
-						"Z": {
-						  "shadow": {
-							"type": "math_number",
-							"id": "2+R|Tk07DRGDM2uydeZq",
-							"fields": {
-							  "NUM": 0
-							}
-						  }
-						}
-					  },
 					  "next": {
 						"block": {
-						  "type": "add_physics",
-						  "id": "}[0KVV#U`=m1,aAs`kQ0",
+						  "type": "rotate_model_xyz",
+						  "id": "WEC=eL/iCV{jNvvjhlw~",
 						  "fields": {
-							"MODEL_VAR": {
+							"MODEL": {
 							  "id": "f=8($HYZoE:IjT|U8x8J"
+							}
+						  },
+						  "inputs": {
+							"X": {
+							  "shadow": {
+								"type": "math_number",
+								"id": "aZZeH-wVQmGoZ7T}dG1[",
+								"fields": {
+								  "NUM": 0
+								}
+							  }
 							},
-							"PHYSICS_TYPE": "DYNAMIC"
+							"Y": {
+							  "shadow": {
+								"type": "math_number",
+								"id": "T(]%3eNVkX)4ZX#6yIfm",
+								"fields": {
+								  "NUM": 180
+								}
+							  }
+							},
+							"Z": {
+							  "shadow": {
+								"type": "math_number",
+								"id": "2+R|Tk07DRGDM2uydeZq",
+								"fields": {
+								  "NUM": 0
+								}
+							  }
+							}
 						  },
 						  "next": {
 							"block": {
-							  "type": "camera_follow",
-							  "id": "/n^2f7_/,Uaoz15%igTi",
+							  "type": "add_physics",
+							  "id": "}[0KVV#U`=m1,aAs`kQ0",
 							  "fields": {
-								"MESH_VAR": {
+								"MODEL_VAR": {
 								  "id": "f=8($HYZoE:IjT|U8x8J"
+								},
+								"PHYSICS_TYPE": "DYNAMIC"
+							  },
+							  "next": {
+								"block": {
+								  "type": "camera_follow",
+								  "id": "/n^2f7_/,Uaoz15%igTi",
+								  "fields": {
+									"MESH_VAR": {
+									  "id": "f=8($HYZoE:IjT|U8x8J"
+									}
+								  },
+								  "inputs": {
+									"RADIUS": {
+									  "block": {
+										"type": "math_number",
+										"id": "TQ5@}z6duEza/?yped$t",
+										"fields": {
+										  "NUM": 7
+										}
+									  }
+									}
+								  }
 								}
 							  }
 							}
@@ -598,8 +675,8 @@
 	  {
 		"type": "when_key_released",
 		"id": "A}`9$II5cHei7)T#eDGV",
-		"x": 0,
-		"y": 726,
+		"x": 10,
+		"y": 728,
 		"fields": {
 		  "KEY": "q"
 		},
@@ -819,8 +896,8 @@
 	  {
 		"type": "when_key_released",
 		"id": "v.5(qT,4h8#7IUmi+~~#",
-		"x": 0,
-		"y": 1240,
+		"x": 10,
+		"y": 1138,
 		"fields": {
 		  "KEY": "e"
 		},
@@ -1040,8 +1117,8 @@
 	  {
 		"type": "when_key_released",
 		"id": "2y(Y|ITm}L5b[to=bA8x",
-		"x": 0,
-		"y": 1754,
+		"x": 10,
+		"y": 1548,
 		"fields": {
 		  "KEY": "f"
 		},
@@ -1261,8 +1338,8 @@
 	  {
 		"type": "when_key_released",
 		"id": "Z0xh~xMoq=zZM_xs52R~",
-		"x": 0,
-		"y": 2268,
+		"x": 10,
+		"y": 1958,
 		"fields": {
 		  "KEY": " "
 		},
@@ -1482,8 +1559,8 @@
 	  {
 		"type": "forever",
 		"id": "EK/JYj*DY$WqS6h|_GEy",
-		"x": 0,
-		"y": 3170,
+		"x": 10,
+		"y": 2836,
 		"inputs": {
 		  "DO": {
 			"block": {
@@ -1687,6 +1764,10 @@
 	{
 	  "name": "ball drops",
 	  "id": "Sjqj?9vmnVJvH?dEUKvt"
+	},
+	{
+	  "name": "character1",
+	  "id": "([0a:81$Fd62W8^vs4}W"
 	}
   ]
 }
