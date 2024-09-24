@@ -141,8 +141,11 @@ export function defineGenerators() {
 	};
 
 	javascriptGenerator.forBlock["create_ground"] = function (block) {
+
+		const meshId = "ground";
+		meshMap[meshId] = block;
 		const color = getFieldValue(block, "COLOR", "#6495ED");
-		return `createGround(${color});\n`;
+		return `createGround(${color}, "${meshId}");\n`;
 	};
 
 	javascriptGenerator.forBlock["create_custom_map"] = function (block) {
@@ -160,6 +163,8 @@ export function defineGenerators() {
 	};
 
 	javascriptGenerator.forBlock["set_sky_color"] = function (block) {
+		const meshId = "sky";
+		meshMap[meshId] = block;
 		const color = getFieldValue(block, "COLOR", "#6495ED");
 		return `setSky(${color});\n`;
 	};

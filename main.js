@@ -22,9 +22,9 @@ import { options, defineBlocks, initializeVariableIndexes } from "./blocks";
 import { defineGenerators, meshMap } from "./generators";
 
 if (navigator.serviceWorker) {
-  navigator.serviceWorker.addEventListener('controllerchange', () => {
-	window.location.reload();
-  });
+	navigator.serviceWorker.addEventListener("controllerchange", () => {
+		window.location.reload();
+	});
 }
 
 let workspace = null;
@@ -127,21 +127,22 @@ function executeCode() {
 	}
 }
 
+const characterMaterials = [
+	"Hair",
+	"Skin",
+	"Eyes",
+	"Sleeves",
+	"Shorts",
+	"TShirt",
+];
+
 function updateBlockColorAndHighlight(mesh, selectedColor) {
 	let block = null;
 
 	// Check if the picked mesh is part of a character by examining its material name
-	const materialName = mesh.material?.name;
-	const characterMaterials = [
-		"Hair",
-		"Skin",
-		"Eyes",
-		"Sleeves",
-		"Shorts",
-		"TShirt",
-	];
+	const materialName = mesh?.material?.name;
 
-	if (characterMaterials.includes(materialName)) {
+	if (mesh && characterMaterials.includes(materialName)) {
 		const ultimateParent = (mesh) =>
 			mesh.parent ? ultimateParent(mesh.parent) : mesh;
 
@@ -168,7 +169,11 @@ function updateBlockColorAndHighlight(mesh, selectedColor) {
 			console.error("No matching field for material:", materialName);
 		}
 	} else {
-		block = meshMap[mesh.blockKey];
+		if (!mesh) {
+			block = meshMap["sky"];
+		} else {
+			block = meshMap[mesh.blockKey];
+		}
 
 		if (!block) {
 			console.error("Block not found for mesh:", mesh.blockKey);
@@ -257,7 +262,6 @@ function selectObject(objectName) {
 				if (connection) {
 					connection.connect(block.previousConnection);
 				}
-
 			} finally {
 				// End the event group to ensure everything can be undone/redone as a group
 				Blockly.Events.setGroup(false);
@@ -395,7 +399,7 @@ function selectShape(shapeType) {
 			const pickResult = flock.scene.pick(event.clientX, event.clientY); // Get pick result from the scene
 			if (pickResult.hit) {
 				const pickedPosition = pickResult.pickedPoint; // Get picked position
-				
+
 				addShapeToWorkspace(shapeType, pickedPosition); // Add the selected shape at this position
 				document.body.style.cursor = "default"; // Reset cursor after picking
 				window.removeEventListener("click", onPick); // Remove the click listener after pick
@@ -448,7 +452,12 @@ function selectCharacter(characterName) {
 					};
 
 					Object.keys(colorFields).forEach((colorInputName) => {
-						addShadowBlock(block, colorInputName, "colour", colorFields[colorInputName]);
+						addShadowBlock(
+							block,
+							colorInputName,
+							"colour",
+							colorFields[colorInputName],
+						);
 					});
 
 					block.initSvg();
@@ -588,7 +597,7 @@ function addShapeToWorkspace(shapeType, position) {
 			break;
 
 		default:
-			console.error("Unknown shape type: " + shapeType);		
+			console.error("Unknown shape type: " + shapeType);
 	}
 
 	// Set position values (X, Y, Z) from the picked position
@@ -757,6 +766,14 @@ function pickMeshFromCanvas() {
 		);
 
 		function applyColorToMeshOrDescendant(mesh, selectedColor) {
+			console.log(mesh, selectedColor);
+			if (!mesh) {
+				console.log("Sky");
+				flock.scene.clearColor = BABYLON.Color3.FromHexString(
+					flock.getColorFromString(selectedColor),
+				);
+				return;
+			}
 			const findMeshWithMaterial = (mesh) =>
 				mesh.material
 					? mesh
@@ -782,14 +799,12 @@ function pickMeshFromCanvas() {
 			}
 		}
 
-		if (pickResult.hit && pickResult.pickedMesh) {
-			applyColorToMeshOrDescendant(pickResult.pickedMesh, selectedColor);
+		applyColorToMeshOrDescendant(pickResult.pickedMesh, selectedColor);
 
-			updateBlockColorAndHighlight(pickResult.pickedMesh, selectedColor);
+		updateBlockColorAndHighlight(pickResult.pickedMesh, selectedColor);
 
-			document.body.style.cursor = "default"; // Reset the cursor
-			window.removeEventListener("click", onPickMesh); // Remove the event listener after picking
-		}
+		document.body.style.cursor = "default"; // Reset the cursor
+		window.removeEventListener("click", onPickMesh); // Remove the event listener after picking
 	};
 
 	// Add event listener to pick the mesh on the next click
@@ -1519,8 +1534,8 @@ window.onload = function () {
 				// Set a new timeout to call cleanUp after block movement settles
 				cleanupTimeout = setTimeout(() => {
 					Blockly.Events.disable(); // Temporarily disable events
-					workspace.cleanUp();      // Clean up the workspace
-					Blockly.Events.enable();  // Re-enable events
+					workspace.cleanUp(); // Clean up the workspace
+					Blockly.Events.enable(); // Re-enable events
 				}, 500); // Delay cleanup by 500ms to ensure block moves have settled
 			}
 		} catch (error) {
@@ -1530,7 +1545,6 @@ window.onload = function () {
 			);
 		}
 	});
-
 
 	document.addEventListener("keydown", function (event) {
 		if (event.ctrlKey && event.key === ".") {
@@ -1567,4 +1581,3 @@ window.onload = function () {
 		}
 	});
 };
-

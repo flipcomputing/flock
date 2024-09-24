@@ -867,12 +867,13 @@ export const flock = {
 			childMesh.position = worldPosition;
 		});
 	},
-	createGround(color) {
+	createGround(color, modelId) {
 		const ground = flock.BABYLON.MeshBuilder.CreateGround(
-			"ground",
+			modelId,
 			{ width: 100, height: 100, subdivisions: 2 },
 			flock.scene,
 		);
+		const blockId = modelId;
 		const groundAggregate = new flock.BABYLON.PhysicsAggregate(
 			ground,
 			flock.BABYLON.PhysicsShapeType.BOX,
@@ -880,6 +881,8 @@ export const flock = {
 			flock.scene,
 		);
 
+		ground.name = modelId;
+		ground.blockKey = blockId;
 		ground.receiveShadows = true;
 		const groundMaterial = new flock.BABYLON.StandardMaterial(
 			"groundMaterial",
