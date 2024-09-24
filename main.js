@@ -110,7 +110,7 @@ let toolboxVisible = false;
 function executeCode() {
 	if (flock.engineReady) {
 		flock.scene = flock.createScene();
-		gizmoManager = new flock.BABYLON.GizmoManager(flock.scene);
+		gizmoManager = new flock.BABYLON.GizmoManager(flock.scene, 8);
 
 		const code = javascriptGenerator.workspaceToCode(workspace);
 		try {
@@ -1462,7 +1462,7 @@ window.onload = function () {
 
 	(async () => {
 		await flock.initialize();
-		gizmoManager = new flock.BABYLON.GizmoManager(flock.scene);
+		gizmoManager = new flock.BABYLON.GizmoManager(flock.scene, 8);
 		window.initialBlocksJson = initialBlocksJson;
 	})();
 
