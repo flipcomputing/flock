@@ -841,6 +841,88 @@ function toggleGizmo(gizmoType) {
 
 	// Enable the selected gizmo
 	switch (gizmoType) {
+		case "bounds":
+			
+			gizmoManager.boundingBoxGizmoEnabled = true;
+
+gizmoManager.boundingBoxDragBehavior.onDragStartObservable.add(
+				function () {
+					const mesh = gizmoManager.attachedMesh;
+					const motionType = mesh.physics.getMotionType();
+					mesh.savedMotionType = motionType;
+					
+					if (
+						mesh.physics &&
+						mesh.physics.getMotionType() !=
+							BABYLON.PhysicsMotionType.STATIC
+					) {
+						mesh.physics.setMotionType(
+							BABYLON.PhysicsMotionType.STATIC,
+						);
+						mesh.physics.disablePreStep = false;
+					}
+
+					const block = meshMap[mesh.blockKey];
+					highlightBlockById(workspace, block);
+				},
+			);
+			
+gizmoManager.boundingBoxDragBehavior.onDragEndObservable.add(
+				function () {
+					// Retrieve the mesh associated with the bb gizmo
+					const mesh = gizmoManager.attachedMesh;
+					if (mesh.savedMotionType) {
+						mesh.physics.setMotionType(mesh.savedMotionType);
+						mesh.physics.disablePreStep = true;
+					}
+
+					mesh.computeWorldMatrix(true);
+
+					const block = meshMap[mesh.blockKey];
+
+					let meshY = mesh.position.y;
+
+					if (
+						mesh.metadata &&
+						mesh.metadata.yOffset &&
+						mesh.metadata.yOffset != 0
+					) {
+						const scale = block
+							.getInput("SCALE")
+							.connection.targetBlock()
+							.getFieldValue("NUM");
+
+						meshY -= scale * mesh.metadata.yOffset;
+					}
+
+					if (block) {
+						block
+							.getInput("X")
+							.connection.targetBlock()
+							.setFieldValue(
+								String(Math.round(mesh.position.x * 10) / 10),
+								"NUM",
+							);
+						block
+							.getInput("Y")
+							.connection.targetBlock()
+							.setFieldValue(
+								String(Math.round(meshY * 10) / 10),
+								"NUM",
+							);
+						block
+							.getInput("Z")
+							.connection.targetBlock()
+							.setFieldValue(
+								String(Math.round(mesh.position.z * 10) / 10),
+								"NUM",
+							);
+					}
+				},
+			);
+			
+			break;
+			
 		case "position":
 			gizmoManager.positionGizmoEnabled = true;
 			gizmoManager.gizmos.positionGizmo.snapDistance = 0.1;
@@ -867,7 +949,6 @@ function toggleGizmo(gizmoType) {
 					highlightBlockById(workspace, block);
 				},
 			);
-
 			gizmoManager.gizmos.positionGizmo.onDragEndObservable.add(
 				function () {
 					// Retrieve the mesh associated with the position gizmo
