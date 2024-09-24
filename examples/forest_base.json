@@ -271,7 +271,7 @@
         "type": "forever",
         "id": "rzARP?f-rL_OMXQ]LzxO",
         "x": 10,
-        "y": 974,
+        "y": 1014,
         "inputs": {
           "DO": {
             "block": {
@@ -739,10 +739,10 @@
                       },
                       "next": {
                         "block": {
-                          "type": "load_model",
-                          "id": "5,ku2R0:[|rIQX%c3oq.",
+                          "type": "load_character",
+                          "id": "8(Sk-M[i_wi%:Z#qL%WL",
                           "fields": {
-                            "MODELS": "Character_Female_1.gltf",
+                            "MODELS": "Character1.glb",
                             "ID_VAR": {
                               "id": "f=8($HYZoE:IjT|U8x8J"
                             }
@@ -751,7 +751,7 @@
                             "SCALE": {
                               "shadow": {
                                 "type": "math_number",
-                                "id": "+P:36go6Nc}#)P;M,q.Y",
+                                "id": "AVquwIf=C{2E!3kuI#C^",
                                 "fields": {
                                   "NUM": 0.75
                                 }
@@ -760,7 +760,7 @@
                             "X": {
                               "shadow": {
                                 "type": "math_number",
-                                "id": "FL:EHvIP9*ElZlH~GDHo",
+                                "id": "Z;a|I9q:Tz6]r.Tysg@;",
                                 "fields": {
                                   "NUM": 0
                                 }
@@ -769,7 +769,7 @@
                             "Y": {
                               "shadow": {
                                 "type": "math_number",
-                                "id": ")`!~6n=,5SN_Lg8^=YIF",
+                                "id": "2M:tSv7I1@1bUQ.d3Q]y",
                                 "fields": {
                                   "NUM": 0
                                 }
@@ -778,9 +778,63 @@
                             "Z": {
                               "shadow": {
                                 "type": "math_number",
-                                "id": "3_q8EHR5HCCU%DN)By/g",
+                                "id": "EGb3V#acw8.m?YqBMY}!",
                                 "fields": {
                                   "NUM": 0
+                                }
+                              }
+                            },
+                            "HAIR_COLOR": {
+                              "shadow": {
+                                "type": "colour",
+                                "id": "~zAwQ@d6JiNh-@tS1i7R",
+                                "fields": {
+                                  "COLOR": "#330000"
+                                }
+                              }
+                            },
+                            "SKIN_COLOR": {
+                              "shadow": {
+                                "type": "skin_colour",
+                                "id": ")q`6yDfZ;|c,_NvP,HiZ",
+                                "fields": {
+                                  "COLOR": "#a15c33"
+                                }
+                              }
+                            },
+                            "EYES_COLOR": {
+                              "shadow": {
+                                "type": "colour",
+                                "id": ")zle;viQ2zdY4]ySVs=+",
+                                "fields": {
+                                  "COLOR": "#000000"
+                                }
+                              }
+                            },
+                            "SLEEVES_COLOR": {
+                              "shadow": {
+                                "type": "colour",
+                                "id": "FwaQ@s5J|K|[,g|nkxN[",
+                                "fields": {
+                                  "COLOR": "#cc9933"
+                                }
+                              }
+                            },
+                            "SHORTS_COLOR": {
+                              "shadow": {
+                                "type": "colour",
+                                "id": "}WK;z@~vzm*^.~dGJ,Xg",
+                                "fields": {
+                                  "COLOR": "#333399"
+                                }
+                              }
+                            },
+                            "TSHIRT_COLOR": {
+                              "shadow": {
+                                "type": "colour",
+                                "id": "X1WE?t8_SE5,S/g{,.aS",
+                                "fields": {
+                                  "COLOR": "#cc9933"
                                 }
                               }
                             }
@@ -833,7 +887,7 @@
         "type": "procedures_defnoreturn",
         "id": ",;|QW%96ML$|:cj!bPU0",
         "x": 10,
-        "y": 2474,
+        "y": 2514,
         "extraState": {
           "params": [
             {
@@ -1740,7 +1794,7 @@
         "type": "on_event",
         "id": "z(*s03cGJ=4OqgQOaeQJ",
         "x": 10,
-        "y": 2064,
+        "y": 2104,
         "inputs": {
           "EVENT_NAME": {
             "shadow": {
@@ -1781,7 +1835,7 @@
         "type": "on_event",
         "id": "cWUxspp/*vx]T$1YYX;j",
         "x": 10,
-        "y": 2294,
+        "y": 2334,
         "inputs": {
           "EVENT_NAME": {
             "shadow": {
@@ -1888,6 +1942,10 @@
     {
       "name": "box10",
       "id": "hXi12cV9nLK6kmbn$w]G"
+    },
+    {
+      "name": "character1",
+      "id": "33CYzZEb|==nA|l}^Wu0"
     }
   ]
 }

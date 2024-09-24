@@ -196,7 +196,7 @@
 		"type": "forever",
 		"id": "}:.GBXat-!iRUk?$7tN}",
 		"x": 10,
-		"y": 722,
+		"y": 762,
 		"inputs": {
 		  "DO": {
 			"block": {
@@ -318,10 +318,10 @@
 		"inputs": {
 		  "DO": {
 			"block": {
-			  "type": "load_model",
-			  "id": "YJVy;_~qBHrqpVDX6l;/",
+			  "type": "load_character",
+			  "id": "3?S#;7JHe,7+}%~wYvF[",
 			  "fields": {
-				"MODELS": "Character_Female_1.gltf",
+				"MODELS": "Character3.glb",
 				"ID_VAR": {
 				  "id": "~RLNrM6%f-dB?Ty_cCpq"
 				}
@@ -330,7 +330,7 @@
 				"SCALE": {
 				  "shadow": {
 					"type": "math_number",
-					"id": "3IZd=k(UIn==ycrR4u]c",
+					"id": ":V8iC)E]WH9cYvLH3}S)",
 					"fields": {
 					  "NUM": 1
 					}
@@ -339,7 +339,7 @@
 				"X": {
 				  "shadow": {
 					"type": "math_number",
-					"id": "+i@Q(Cjf-c}IEh}9j6vK",
+					"id": "Tyc~7$:~Ck4jYM$tsSb!",
 					"fields": {
 					  "NUM": -15
 					}
@@ -348,7 +348,7 @@
 				"Y": {
 				  "shadow": {
 					"type": "math_number",
-					"id": "H7N}G8!qn9_XV;cmDAo)",
+					"id": "NEnn%bhF`MA]^%X.M7_j",
 					"fields": {
 					  "NUM": 10
 					}
@@ -357,9 +357,63 @@
 				"Z": {
 				  "shadow": {
 					"type": "math_number",
-					"id": "Y}*?A}y;_X+1Wgm=~OZG",
+					"id": "u5R-X`PTAC$wGT`vX]]l",
 					"fields": {
 					  "NUM": -5
+					}
+				  }
+				},
+				"HAIR_COLOR": {
+				  "shadow": {
+					"type": "colour",
+					"id": "gH5Dq^2%GRu(Y|SXd@9Y",
+					"fields": {
+					  "COLOR": "#000000"
+					}
+				  }
+				},
+				"SKIN_COLOR": {
+				  "shadow": {
+					"type": "skin_colour",
+					"id": "Gb?`SEj2co87H-nm*LoE",
+					"fields": {
+					  "COLOR": "#a15c33"
+					}
+				  }
+				},
+				"EYES_COLOR": {
+				  "shadow": {
+					"type": "colour",
+					"id": "!f|KKFB/@zYmHB5lz4oQ",
+					"fields": {
+					  "COLOR": "#000000"
+					}
+				  }
+				},
+				"SLEEVES_COLOR": {
+				  "shadow": {
+					"type": "colour",
+					"id": "V2wwt5ws95qXV|+}2Xw]",
+					"fields": {
+					  "COLOR": "#ffcccc"
+					}
+				  }
+				},
+				"SHORTS_COLOR": {
+				  "shadow": {
+					"type": "colour",
+					"id": "JAHk.Z8Mjrq*ctmJ9;Le",
+					"fields": {
+					  "COLOR": "#00008b"
+					}
+				  }
+				},
+				"TSHIRT_COLOR": {
+				  "shadow": {
+					"type": "colour",
+					"id": "f8U.v0aC@rj~b19Fhs[J",
+					"fields": {
+					  "COLOR": "#ff6666"
 					}
 				  }
 				}
@@ -416,6 +470,14 @@
 	{
 	  "name": "mesh",
 	  "id": "XpxuuUiToz5f/iO}-QOx"
+	},
+	{
+	  "name": "model1",
+	  "id": "**6Oe_1ESC7j1(ZMlXUp"
+	},
+	{
+	  "name": "character1",
+	  "id": "j~*y$*sX.Mcbxmx=WWkI"
 	}
   ]
 }
