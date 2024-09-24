@@ -239,78 +239,6 @@ export const flock = {
 			flock.scene,
 		);
 
-		/*
-		flock.BABYLON.Effect.ShadersStore["customVertexShader"] = `
-			precision highp float;
-
-			attribute vec3 position;
-			attribute vec3 normal;
-			attribute vec2 uv;
-
-			uniform mat4 worldViewProjection;
-			uniform mat4 world; // Add the world matrix
-
-			varying vec3 vWorldPosition; // Pass the world position
-			varying vec2 vUV;
-
-			void main() {
-				vec4 worldPosition = world * vec4(position, 1.0);
-				vWorldPosition = worldPosition.xyz; // Store the world position
-				vUV = uv;
-
-				gl_Position = worldViewProjection * vec4(position, 1.0);
-			}
-		`;
-		BABYLON.Effect.ShadersStore["customFragmentShader"] = `
-			precision highp float;
-
-			varying vec3 vWorldPosition; // Receive the world position
-			varying vec2 vUV;
-
-			void main() {
-				vec3 color;
-
-				// Determine color based on the y-coordinate of the world position
-				if (vWorldPosition.y > 10.0) {
-					color = vec3(1.0, 1.0, 1.0); // Snow
-				} else if (vWorldPosition.y > 8.0) {
-					color = vec3(0.5, 0.5, 0.5); // Grey rocks
-				} else if (vWorldPosition.y > 0.0) {
-					color = vec3(0.13, 0.55, 0.13); // Grass
-				} else if (vWorldPosition.y > -1.0) {
-					color = vec3(0.55, 0.27, 0.07); // Brown rocks
-				} else {
-					color = vec3(0.96, 0.87, 0.20); // Beach
-				}
-
-				gl_FragColor = vec4(color, 1.0);
-			}
-		`;
-	*/
-		/*
-		  const ground = BABYLON.MeshBuilder.CreateGroundFromHeightMap("heightmap", './textures/simple_height_map.png', {
-			width: 100,
-			height: 100,
-			minHeight: -5,
-			maxHeight: 5,
-			subdivisions: 25,
-			onReady: (groundMesh) => {
-			   const groundAggregate = new BABYLON.PhysicsAggregate(groundMesh, BABYLON.PhysicsShapeType.MESH, { mass: 0 }, flock.scene);
-			}
-		  }, flock.scene);*/
-
-		// Create a reflection probe
-		//let reflectionProbe = new BABYLON.ReflectionProbe("mainProbe", 512, flock.scene);
-
-		// Attach the reflection probe to a specific position in the scene (usually the center)
-		//reflectionProbe.position = new BABYLON.Vector3(0, 0, 0);
-
-		// Render the reflection probe to create a dynamic reflection map
-		//let dynamicReflectionTexture = reflectionProbe.cubeTexture;
-
-		// Apply the dynamic reflection texture to the scene's environment texture
-		//flock.scene.environmentTexture = dynamicReflectionTexture;
-
 		const camera = new flock.BABYLON.FreeCamera(
 			"camera",
 			new flock.BABYLON.Vector3(0, 3, -10),
@@ -321,6 +249,7 @@ export const flock = {
 		camera.rotation.x = flock.BABYLON.Tools.ToRadians(0);
 		camera.angularSensibilityX = 2000;
 		camera.angularSensibilityY = 2000;
+		camera.speed = 0.25;
 		const hemisphericLight = new flock.BABYLON.HemisphericLight(
 			"hemisphericLight",
 			new flock.BABYLON.Vector3(0, 1, 0), // Direction: Upwards, simulating light from the sky
@@ -3475,6 +3404,7 @@ export const flock = {
 				camera.upperRadiusLimit = radius * 1.6;
 				camera.angularSensibilityX = 2000;
 				camera.angularSensibilityY = 2000;
+				
 				camera.setTarget(mesh.position);
 				camera.attachControl(flock.canvas, true);
 				flock.scene.activeCamera = camera;
