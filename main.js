@@ -844,7 +844,7 @@ function toggleGizmo(gizmoType) {
 	gizmoManager.rotationGizmoEnabled = false;
 	gizmoManager.scaleGizmoEnabled = false;
 	gizmoManager.boundingBoxGizmoEnabled = false;
-	
+
 	// Enable the selected gizmo
 	switch (gizmoType) {
 		case "bounds":
@@ -1010,7 +1010,141 @@ function toggleGizmo(gizmoType) {
 		case "rotation":
 			gizmoManager.rotationGizmoEnabled = true;
 			gizmoManager.gizmos.rotationGizmo.updateGizmoRotationToMatchAttachedMesh = false;
-			
+
+			gizmoManager.gizmos.rotationGizmo.onDragStartObservable.add(
+				function () {
+					const mesh = gizmoManager.attachedMesh;
+					const motionType = mesh.physics.getMotionType();
+					mesh.savedMotionType = motionType;
+
+					if (
+						mesh.physics &&
+						mesh.physics.getMotionType() !=
+							BABYLON.PhysicsMotionType.STATIC
+					) {
+						mesh.physics.setMotionType(
+							BABYLON.PhysicsMotionType.STATIC,
+						);
+						mesh.physics.disablePreStep = false;
+					}
+
+					const block = meshMap[mesh.blockKey];
+					highlightBlockById(workspace, block);
+				},
+			);
+
+			gizmoManager.gizmos.rotationGizmo.onDragEndObservable.add(
+				function () {
+					const mesh = gizmoManager.attachedMesh;
+
+					if (mesh.savedMotionType) {
+						mesh.physics.setMotionType(mesh.savedMotionType);
+						mesh.physics.disablePreStep = true;
+					}
+
+					const block = meshMap[mesh.blockKey];
+
+					if (!block) {
+						return;
+					}
+
+					// Make sure the mutator is activated and the "do" section exists
+					if (!block.getInput("DO")) {
+						block
+							.appendStatementInput("DO")
+							.setCheck(null)
+							.appendField("then do");
+					}
+
+					// Check if the 'rotate_to' block already exists in the 'DO' section
+					let rotateBlock = null;
+					let modelVariable = block.getFieldValue("ID_VAR");
+					const statementConnection = block.getInput("DO").connection;
+					if (
+						statementConnection &&
+						statementConnection.targetBlock()
+					) {
+						// Iterate through the blocks in the 'do' section to find 'rotate_to'
+						let currentBlock = statementConnection.targetBlock();
+						while (currentBlock) {
+							if (currentBlock.type === "rotate_to") {
+								const modelField = currentBlock.getFieldValue('MODEL');
+								if (modelField === modelVariable) {
+								  rotateBlock = currentBlock;
+								  break;
+								}							
+							}
+							currentBlock = currentBlock.getNextBlock();
+						}
+					}
+
+					// Create a new 'rotate_to' block if it doesn't exist
+					if (!rotateBlock) {
+						rotateBlock = workspace.newBlock("rotate_to");
+						rotateBlock.setFieldValue(modelVariable, 'MODEL');
+						rotateBlock.initSvg();
+						rotateBlock.render();
+
+						// Add shadow blocks for X, Y, Z inputs
+						["X", "Y", "Z"].forEach((axis) => {
+							const input = rotateBlock.getInput(axis);
+							const shadowBlock =
+								workspace.newBlock("math_number");
+							shadowBlock.setShadow(true);
+							shadowBlock.initSvg();
+							shadowBlock.render();
+							input.connection.connect(
+								shadowBlock.outputConnection,
+							);
+						});
+
+						rotateBlock.render(); // Render the new block
+						// Connect the new 'rotate_to' block to the 'do' section
+						block
+							.getInput("DO")
+							.connection.connect(rotateBlock.previousConnection);
+					}
+
+					function getEulerAnglesFromQuaternion(quaternion) {
+						const euler = quaternion.toEulerAngles(); // Converts quaternion to Euler angles
+						return {
+						  x: Math.round(euler.x * (180 / Math.PI) * 10) / 10,
+						  y: Math.round(euler.y * (180 / Math.PI) * 10) / 10,
+						  z: Math.round(euler.z * (180 / Math.PI) * 10) / 10,
+						};
+					  }
+
+					  // Get the correct rotation values, checking for quaternion
+					  let rotationX = 0, rotationY = 0, rotationZ = 0;
+					  if (mesh.rotationQuaternion) {
+						// If using quaternion, convert it to Euler angles
+						const rotation = getEulerAnglesFromQuaternion(mesh.rotationQuaternion);
+						rotationX = rotation.x;
+						rotationY = rotation.y;
+						rotationZ = rotation.z;
+					  } else {
+						// If using standard Euler rotation
+						rotationX = Math.round(mesh.rotation.x * (180 / Math.PI) * 10) / 10;
+						rotationY = Math.round(mesh.rotation.y * (180 / Math.PI) * 10) / 10;
+						rotationZ = Math.round(mesh.rotation.z * (180 / Math.PI) * 10) / 10;
+					  }
+
+					  // Helper to update the value of the connected block or shadow block
+					  function setRotationValue(inputName, value) {
+						const input = rotateBlock.getInput(inputName);
+						const connectedBlock = input.connection.targetBlock();
+
+						if (connectedBlock) {
+						  connectedBlock.setFieldValue(String(value), 'NUM');
+						}
+					  }
+
+					  // Set the rotation values (X, Y, Z)
+					  setRotationValue('X', rotationX);
+					  setRotationValue('Y', rotationY);
+					  setRotationValue('Z', rotationZ);
+					});
+
 			break;
 		case "scale":
 			gizmoManager.scaleGizmoEnabled = true;
@@ -1063,36 +1197,38 @@ function highlightBlockById(workspace, block) {
 }
 
 function focusCameraOnMesh() {
-	const mesh = gizmoManager.attachedMesh;  // The target mesh you want the player to view
+	const mesh = gizmoManager.attachedMesh; // The target mesh you want the player to view
 	if (!mesh) return;
 
 	const boundingInfo = mesh.getBoundingInfo();
-	const newTarget = boundingInfo.boundingBox.centerWorld;  // Center of the new mesh
+	const newTarget = boundingInfo.boundingBox.centerWorld; // Center of the new mesh
 	const camera = flock.scene.activeCamera;
 
 	// If the camera is following a player (tracked via camera.metadata.following)
 	if (camera.metadata && camera.metadata.following) {
-		const player = camera.metadata.following;  // The player (mesh) the camera is following
+		const player = camera.metadata.following; // The player (mesh) the camera is following
 
 		// Maintain the player's Y position (on the ground)
 		const originalPlayerY = player.position.y;
 
 		// Set the player's position directly in front of the new target
-		const playerDistance = camera.radius;  // Distance the camera keeps from the player
+		const playerDistance = camera.radius; // Distance the camera keeps from the player
 		player.position.set(
 			newTarget.x,
-			originalPlayerY,  // Maintain player's Y position
-			newTarget.z + playerDistance  // Move the player in front of the target on the Z axis
+			originalPlayerY, // Maintain player's Y position
+			newTarget.z + playerDistance, // Move the player in front of the target on the Z axis
 		);
 
 		flock.attachCamera(player.name, camera.radius);
 		player.lookAt(newTarget);
-		
 	} else {
 		// For other types of cameras, retain the existing logic
 		const currentPosition = camera.position;
 		const currentTarget = camera.getTarget();
-		const currentDistance = BABYLON.Vector3.Distance(currentPosition, currentTarget);
+		const currentDistance = BABYLON.Vector3.Distance(
+			currentPosition,
+			currentTarget,
+		);
 		const currentYPosition = camera.position.y;
 
 		// Move the camera in front of the mesh, keeping the current distance and Y position
@@ -1100,7 +1236,7 @@ function focusCameraOnMesh() {
 		const newCameraPositionXZ = new BABYLON.Vector3(
 			newTarget.x + frontDirection.x * currentDistance,
 			currentYPosition,
-			newTarget.z + frontDirection.z * currentDistance
+			newTarget.z + frontDirection.z * currentDistance,
 		);
 
 		camera.position = newCameraPositionXZ;

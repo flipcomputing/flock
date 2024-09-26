@@ -141,7 +141,6 @@ export function defineGenerators() {
 	};
 
 	javascriptGenerator.forBlock["create_ground"] = function (block) {
-
 		const meshId = "ground";
 		meshMap[meshId] = block;
 		const color = getFieldValue(block, "COLOR", "#6495ED");
@@ -346,7 +345,17 @@ export function defineGenerators() {
 		const meshId = modelName + "_" + flock.scene.getUniqueId();
 		meshMap[meshId] = block;
 
-		return `${variableName} = newObject('${modelName}', '${meshId}', ${scale}, ${x}, ${y}, ${z}, ${color});\n`;
+		// Generate the code for the "do" part (if present)
+		let doCode = "";
+
+		if (block.getInput("DO")) {
+			doCode = javascriptGenerator.statementToCode(block, "DO") || "";
+		}
+
+		doCode = doCode ? `, async function() {\n${doCode}\n}` : "";
+
+		// Pass the "do" code as a callback function to be executed once the object is created
+		return `${variableName} = newObject('${modelName}', '${meshId}', ${scale}, ${x}, ${y}, ${z}, ${color}${doCode});\n`;
 	};
 
 	javascriptGenerator.forBlock["create_box"] = function (block) {
@@ -720,9 +729,9 @@ export function defineGenerators() {
 				javascriptGenerator.ORDER_ATOMIC,
 			) || "[]";
 		const instrument = javascriptGenerator.valueToCode(
-		  block,
-		  "INSTRUMENT",
-		  javascriptGenerator.ORDER_ATOMIC
+			block,
+			"INSTRUMENT",
+			javascriptGenerator.ORDER_ATOMIC,
 		);
 		const asyncMode = block.getFieldValue("ASYNC");
 
@@ -768,24 +777,32 @@ export function defineGenerators() {
 				instrumentCode = null; // Default instrument
 		}
 
-		const code =  instrumentCode;
+		const code = instrumentCode;
 
 		return [code, javascriptGenerator.ORDER_ATOMIC];
 	};
 
-
 	javascriptGenerator.forBlock["set_scene_bpm"] = function (block) {
-		const bpm = javascriptGenerator.valueToCode(block, "BPM", javascriptGenerator.ORDER_ATOMIC);
+		const bpm = javascriptGenerator.valueToCode(
+			block,
+			"BPM",
+			javascriptGenerator.ORDER_ATOMIC,
+		);
 		return `setBPM(${bpm});\n`;
 	};
 
 	javascriptGenerator.forBlock["set_mesh_bpm"] = function (block) {
-		const meshVar = javascriptGenerator.nameDB_.getName(block.getFieldValue("MESH"), Blockly.Names.NameType.VARIABLE);
-		const bpm = javascriptGenerator.valueToCode(block, "BPM", javascriptGenerator.ORDER_ATOMIC);
+		const meshVar = javascriptGenerator.nameDB_.getName(
+			block.getFieldValue("MESH"),
+			Blockly.Names.NameType.VARIABLE,
+		);
+		const bpm = javascriptGenerator.valueToCode(
+			block,
+			"BPM",
+			javascriptGenerator.ORDER_ATOMIC,
+		);
 		return `await setBPM(${bpm}, ${meshVar});\n`;
 	};
-
-
 
 	javascriptGenerator.forBlock["when_clicked"] = function (block) {
 		const modelName = javascriptGenerator.nameDB_.getName(

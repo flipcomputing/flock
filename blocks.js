@@ -754,105 +754,147 @@ export function defineBlocks() {
 		},
 	};
 
+	
+	// Define the load_object block with a custom button to toggle mutation
 	Blockly.Blocks["load_object"] = {
-		init: function () {
-			const defaultObject = "Star.glb";
-			const defaultColour = objectColours[defaultObject] || "#000000";
-			const variableNamePrefix = "object";
-			let nextVariableName =
-				variableNamePrefix + nextVariableIndexes[variableNamePrefix];
+	  init: function () {
+		const defaultObject = "Star.glb";
+		const defaultColour = objectColours[defaultObject] || "#000000";
+		const variableNamePrefix = "object";
+		let nextVariableName =
+		  variableNamePrefix + nextVariableIndexes[variableNamePrefix];
 
-			this.jsonInit({
-				message0: `new %1 %2 %3 scale: %4 x: %5 y: %6 z: %7`,
-				args0: [
-					{
-						type: "field_grid_dropdown",
-						name: "MODELS",
-						columns: 6,
-						options: objectNames.map((name) => {
-							const baseName = name.replace(/\.[^/.]+$/, "");
-							return [
-								{
-									src: `./images/${baseName}.png`,
-									width: 50,
-									height: 50,
-									alt: baseName,
-								},
-								name,
-							];
-						}),
-					},
-					{
-						type: "field_variable",
-						name: "ID_VAR",
-						variable: nextVariableName,
-					},
-					{
-						type: "input_value",
-						name: "COLOR",
-						check: "Colour",
-					},
-					{
-						type: "input_value",
-						name: "SCALE",
-						check: "Number",
-					},
-					{
-						type: "input_value",
-						name: "X",
-						check: "Number",
-					},
-					{
-						type: "input_value",
-						name: "Y",
-						check: "Number",
-					},
-					{
-						type: "input_value",
-						name: "Z",
-						check: "Number",
-					},
-				],
-				inputsInline: true,
-				colour: categoryColours["Scene"],
-				tooltip: "Create an object.\nKeyword: object",
-				helpUrl: "",
-				previousStatement: null,
-				nextStatement: null,
-			});
+		// Add the main inputs of the block
+		this.jsonInit({
+		  message0: `new %1 %2 %3 scale: %4 x: %5 y: %6 z: %7`,
+		  args0: [
+			{
+			  type: "field_grid_dropdown",
+			  name: "MODELS",
+			  columns: 6,
+			  options: objectNames.map((name) => {
+				const baseName = name.replace(/\.[^/.]+$/, "");
+				return [
+				  {
+					src: `./images/${baseName}.png`,
+					width: 50,
+					height: 50,
+					alt: baseName,
+				  },
+				  name,
+				];
+			  }),
+			},
+			{
+			  type: "field_variable",
+			  name: "ID_VAR",
+			  variable: nextVariableName,
+			},
+			{
+			  type: "input_value",
+			  name: "COLOR",
+			  check: "Colour",
+			},
+			{
+			  type: "input_value",
+			  name: "SCALE",
+			  check: "Number",
+			},
+			{
+			  type: "input_value",
+			  name: "X",
+			  check: "Number",
+			},
+			{
+			  type: "input_value",
+			  name: "Y",
+			  check: "Number",
+			},
+			{
+			  type: "input_value",
+			  name: "Z",
+			  check: "Number",
+			},
+		  ],
+		  inputsInline: true,
+		  colour: categoryColours["Scene"],
+		  tooltip: "Create an object.\nKeyword: object",
+		  helpUrl: "",
+		  previousStatement: null,
+		  nextStatement: null
+		});
 
-			// Function to update the COLOR field based on the selected model
-			const updateColorField = () => {
-				const selectedObject = this.getFieldValue("MODELS");
-				const colour = objectColours[selectedObject] || defaultColour;
-				const colorInput = this.getInput("COLOR");
-				const colorField = colorInput.connection.targetBlock();
-				if (colorField) {
-					colorField.setFieldValue(colour, "COLOR"); // Update COLOR field
-				}
-				//this.setColour(colour);
-			};
+		// Add a custom button to trigger the mutation
+		const toggleButton = new Blockly.FieldImage(
+'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0MCA0MCI+PHBhdGggZD0iTTE4LjUgMXYxMmgxMnYzaC0xMnYxMmgzdi0xMmgtMTJ2LTNoMTJ2LTN6Ii8+PC9zdmc+', // Custom icon URL
+		  15, 15, '*',  // Width, Height, Alt text
+		  this.toggleDoBlock.bind(this)  // Event handler to toggle the block
+		);
 
-			// Listen for changes in the MODELS field and update the COLOR field
-			this.setOnChange((changeEvent) => {
-				handleBlockCreateEvent(
-					this,
-					changeEvent,
-					variableNamePrefix,
-					nextVariableIndexes,
-				);
+		// Add the button to the block (at the top right, inline with other inputs)
+		this.appendDummyInput()
+		  .appendField(toggleButton, "TOGGLE_BUTTON");
 
-				if (window.loadingCode) return;
-				if (
-					changeEvent.type === Blockly.Events.CHANGE &&
-					changeEvent.element === "field" &&
-					changeEvent.name === "MODELS"
-				) {
-					updateColorField();
-				}
-			});
-		},
+		// Function to update the COLOR field based on the selected model
+		const updateColorField = () => {
+		  const selectedObject = this.getFieldValue("MODELS");
+		  const colour = objectColours[selectedObject] || defaultColour;
+		  const colorInput = this.getInput("COLOR");
+		  const colorField = colorInput.connection.targetBlock();
+		  if (colorField) {
+			colorField.setFieldValue(colour, "COLOR"); // Update COLOR field
+		  }
+		};
+
+		this.setOnChange((changeEvent) => {
+		  handleBlockCreateEvent(
+			this,
+			changeEvent,
+			variableNamePrefix,
+			nextVariableIndexes
+		  );
+
+		  if (window.loadingCode) return;
+		  if (
+			changeEvent.type === Blockly.Events.CHANGE &&
+			changeEvent.element === "field" &&
+			changeEvent.name === "MODELS"
+		  ) {
+			updateColorField();
+		  }
+		});
+	  },
+
+	  // Custom function to toggle the "do" block mutation
+	  toggleDoBlock: function () {
+		const hasDo = this.getInput('DO') ? true : false;
+		if (hasDo) {
+		  this.removeInput('DO');
+		} else {
+		  this.appendStatementInput('DO')
+			  .setCheck(null)
+			  .appendField("then do");
+		}
+	  },
+
+	  // Save the mutation state
+	  mutationToDom: function () {
+		const container = document.createElement('mutation');
+		container.setAttribute('has_do', this.getInput('DO') ? 'true' : 'false');
+		return container;
+	  },
+
+	  // Restore the mutation state
+	  domToMutation: function (xmlElement) {
+		const hasDo = xmlElement.getAttribute('has_do') === 'true';
+		if (hasDo) {
+		  this.appendStatementInput('DO')
+			  .setCheck(null)
+			  .appendField("then do");
+		}
+	  }
 	};
+
 
 	Blockly.Blocks["load_model"] = {
 		init: function () {
