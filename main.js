@@ -931,7 +931,6 @@ function toggleGizmo(gizmoType) {
 			gizmoManager.positionGizmoEnabled = true;
 			gizmoManager.gizmos.positionGizmo.snapDistance = 0.1;
 			gizmoManager.gizmos.positionGizmo.updateGizmoPositionToMatchAttachedMesh = true;
-
 			gizmoManager.gizmos.positionGizmo.onDragStartObservable.add(
 				function () {
 					const mesh = gizmoManager.attachedMesh;
@@ -1010,7 +1009,8 @@ function toggleGizmo(gizmoType) {
 			break;
 		case "rotation":
 			gizmoManager.rotationGizmoEnabled = true;
-			gizmoManager.updateGizmoRotationToMatchAttachedMesh = false;
+			gizmoManager.gizmos.rotationGizmo.updateGizmoRotationToMatchAttachedMesh = false;
+			
 			break;
 		case "scale":
 			gizmoManager.scaleGizmoEnabled = true;
