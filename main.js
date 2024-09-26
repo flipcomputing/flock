@@ -844,12 +844,11 @@ function toggleGizmo(gizmoType) {
 	gizmoManager.rotationGizmoEnabled = false;
 	gizmoManager.scaleGizmoEnabled = false;
 	gizmoManager.boundingBoxGizmoEnabled = false;
-
+	
 	// Enable the selected gizmo
 	switch (gizmoType) {
 		case "bounds":
 			gizmoManager.boundingBoxGizmoEnabled = true;
-
 			gizmoManager.boundingBoxDragBehavior.onDragStartObservable.add(
 				function () {
 					const mesh = gizmoManager.attachedMesh;
@@ -1011,6 +1010,7 @@ function toggleGizmo(gizmoType) {
 			break;
 		case "rotation":
 			gizmoManager.rotationGizmoEnabled = true;
+			gizmoManager.updateGizmoRotationToMatchAttachedMesh = false;
 			break;
 		case "scale":
 			gizmoManager.scaleGizmoEnabled = true;
