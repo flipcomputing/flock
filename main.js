@@ -1018,6 +1018,9 @@ function toggleGizmo(gizmoType) {
 		case "boundingBox":
 			gizmoManager.boundingBoxGizmoEnabled = true;
 			break;
+		case "focus":
+			focusCameraOnMesh();
+			break;
 		default:
 			break;
 	}
@@ -1082,15 +1085,9 @@ function focusCameraOnMesh() {
 			newTarget.z + playerDistance  // Move the player in front of the target on the Z axis
 		);
 
-		
 		flock.attachCamera(player.name, camera.radius);
 		player.lookAt(newTarget);
 		
-		// Adjust the camera alpha to ensure it's behind the player
-		//camera.alpha = Math.PI;  // Make sure the camera is behind the player (facing forward)
-		//camera.beta = Math.PI / 4;  // Optional: Set a default view angle (change as needed)
-
-		// Now the camera can still rotate using ArcRotateCamera controls
 	} else {
 		// For other types of cameras, retain the existing logic
 		const currentPosition = camera.position;
@@ -1110,43 +1107,6 @@ function focusCameraOnMesh() {
 		camera.setTarget(newTarget);
 	}
 }
-
-
-function focusCameraOnMesh2() {
-	const mesh = gizmoManager.attachedMesh;
-	if (!mesh) return;
-
-	const boundingInfo = mesh.getBoundingInfo();
-	const newTarget = boundingInfo.boundingBox.centerWorld;
-	const camera = flock.scene.activeCamera;
-
-	// Get the current camera position and its current target
-	const currentPosition = camera.position;
-	const currentTarget = camera.getTarget();
-
-	// Calculate the current distance from the camera to its current target
-	const currentDistance = BABYLON.Vector3.Distance(currentPosition, currentTarget);
-
-	// Keep the camera's current Y position
-	const currentYPosition = camera.position.y;
-
-	// Use the front direction (-Z axis) to position the camera in front of the new target
-	const frontDirection = new BABYLON.Vector3(0, 0, -1);
-
-	// Calculate new X and Z positions while retaining the camera's Y position
-	const newCameraPositionXZ = new BABYLON.Vector3(
-		newTarget.x + frontDirection.x * currentDistance,
-		currentYPosition, // Keep the current Y position
-		newTarget.z + frontDirection.z * currentDistance
-	);
-
-	// Set the new camera position (X, Y unchanged, Z adjusted)
-	camera.position = newCameraPositionXZ;
-
-	// Set the camera to look at the new mesh center
-	camera.setTarget(newTarget);
-}
-
 
 async function exportBlockSnippet(block) {
 	try {
