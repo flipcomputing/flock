@@ -110,6 +110,7 @@ let toolboxVisible = false;
 function executeCode() {
 	if (flock.engineReady) {
 		flock.scene = flock.createScene();
+
 		gizmoManager = new flock.BABYLON.GizmoManager(flock.scene, 8);
 
 		const code = javascriptGenerator.workspaceToCode(workspace);
@@ -251,7 +252,12 @@ function selectObject(objectName) {
 				addShadowBlock(block, "SCALE", "math_number", 1); // Using 'math_number' block for scale
 
 				// Add shadow block for COLOR
-				addShadowBlock(block, "COLOR", "colour", objectColours[objectName]); 
+				addShadowBlock(
+					block,
+					"COLOR",
+					"colour",
+					objectColours[objectName],
+				);
 
 				// Create a new 'start' block and connect the load_object block to it
 				const startBlock = workspace.newBlock("start");
@@ -287,7 +293,7 @@ function scrollObjects(direction) {
 		behavior: "smooth",
 	});
 }
-
+window.scrollObjects = scrollObjects;
 // Function to load characters into the menu
 function loadCharacterImages() {
 	const characterRow = document.getElementById("character-row");
@@ -354,7 +360,7 @@ function selectModel(modelName) {
 					// Add the load_model block to the workspace at the picked location
 					const block = workspace.newBlock("load_model");
 					block.setFieldValue(modelName, "MODELS"); // Set the selected model
-					
+
 					setPositionValues(block, pickedPosition, "load_model"); // Set X, Y, Z
 
 					// Create shadow block for SCALE using the addShadowBlock helper function
@@ -610,7 +616,7 @@ function addShapeToWorkspace(shapeType, position) {
 	// Initialize and render the shape block
 	block.initSvg();
 	block.render();
-	highlightBlockById(workspace, block) 
+	highlightBlockById(workspace, block);
 
 	// Create a new 'start' block and connect the shape block to it
 	const startBlock = workspace.newBlock("start");
@@ -842,15 +848,14 @@ function toggleGizmo(gizmoType) {
 	// Enable the selected gizmo
 	switch (gizmoType) {
 		case "bounds":
-			
 			gizmoManager.boundingBoxGizmoEnabled = true;
 
-gizmoManager.boundingBoxDragBehavior.onDragStartObservable.add(
+			gizmoManager.boundingBoxDragBehavior.onDragStartObservable.add(
 				function () {
 					const mesh = gizmoManager.attachedMesh;
 					const motionType = mesh.physics.getMotionType();
 					mesh.savedMotionType = motionType;
-					
+
 					if (
 						mesh.physics &&
 						mesh.physics.getMotionType() !=
@@ -866,8 +871,8 @@ gizmoManager.boundingBoxDragBehavior.onDragStartObservable.add(
 					highlightBlockById(workspace, block);
 				},
 			);
-			
-gizmoManager.boundingBoxDragBehavior.onDragEndObservable.add(
+
+			gizmoManager.boundingBoxDragBehavior.onDragEndObservable.add(
 				function () {
 					// Retrieve the mesh associated with the bb gizmo
 					const mesh = gizmoManager.attachedMesh;
@@ -920,9 +925,9 @@ gizmoManager.boundingBoxDragBehavior.onDragEndObservable.add(
 					}
 				},
 			);
-			
+
 			break;
-			
+
 		case "position":
 			gizmoManager.positionGizmoEnabled = true;
 			gizmoManager.gizmos.positionGizmo.snapDistance = 0.1;
@@ -1032,7 +1037,7 @@ window.turnOffAllGizmos = turnOffAllGizmos;
 function highlightBlockById(workspace, block) {
 	if (block) {
 		// Unselect all other blocks
-		workspace.getAllBlocks().forEach(b => b.unselect());
+		workspace.getAllBlocks().forEach((b) => b.unselect());
 
 		// Select the new block
 		block.select();
@@ -1053,6 +1058,95 @@ function highlightBlockById(workspace, block) {
 		}
 	}
 }
+
+function focusCameraOnMesh() {
+	const mesh = gizmoManager.attachedMesh;  // The target mesh you want the player to view
+	if (!mesh) return;
+
+	const boundingInfo = mesh.getBoundingInfo();
+	const newTarget = boundingInfo.boundingBox.centerWorld;  // Center of the new mesh
+	const camera = flock.scene.activeCamera;
+
+	// If the camera is following a player (tracked via camera.metadata.following)
+	if (camera.metadata && camera.metadata.following) {
+		const player = camera.metadata.following;  // The player (mesh) the camera is following
+
+		// Maintain the player's Y position (on the ground)
+		const originalPlayerY = player.position.y;
+
+		// Set the player's position directly in front of the new target
+		const playerDistance = camera.radius;  // Distance the camera keeps from the player
+		player.position.set(
+			newTarget.x,
+			originalPlayerY,  // Maintain player's Y position
+			newTarget.z + playerDistance  // Move the player in front of the target on the Z axis
+		);
+
+		
+		flock.attachCamera(player.name, camera.radius);
+		player.lookAt(newTarget);
+		
+		// Adjust the camera alpha to ensure it's behind the player
+		//camera.alpha = Math.PI;  // Make sure the camera is behind the player (facing forward)
+		//camera.beta = Math.PI / 4;  // Optional: Set a default view angle (change as needed)
+
+		// Now the camera can still rotate using ArcRotateCamera controls
+	} else {
+		// For other types of cameras, retain the existing logic
+		const currentPosition = camera.position;
+		const currentTarget = camera.getTarget();
+		const currentDistance = BABYLON.Vector3.Distance(currentPosition, currentTarget);
+		const currentYPosition = camera.position.y;
+
+		// Move the camera in front of the mesh, keeping the current distance and Y position
+		const frontDirection = new BABYLON.Vector3(0, 0, -1);
+		const newCameraPositionXZ = new BABYLON.Vector3(
+			newTarget.x + frontDirection.x * currentDistance,
+			currentYPosition,
+			newTarget.z + frontDirection.z * currentDistance
+		);
+
+		camera.position = newCameraPositionXZ;
+		camera.setTarget(newTarget);
+	}
+}
+
+
+function focusCameraOnMesh2() {
+	const mesh = gizmoManager.attachedMesh;
+	if (!mesh) return;
+
+	const boundingInfo = mesh.getBoundingInfo();
+	const newTarget = boundingInfo.boundingBox.centerWorld;
+	const camera = flock.scene.activeCamera;
+
+	// Get the current camera position and its current target
+	const currentPosition = camera.position;
+	const currentTarget = camera.getTarget();
+
+	// Calculate the current distance from the camera to its current target
+	const currentDistance = BABYLON.Vector3.Distance(currentPosition, currentTarget);
+
+	// Keep the camera's current Y position
+	const currentYPosition = camera.position.y;
+
+	// Use the front direction (-Z axis) to position the camera in front of the new target
+	const frontDirection = new BABYLON.Vector3(0, 0, -1);
+
+	// Calculate new X and Z positions while retaining the camera's Y position
+	const newCameraPositionXZ = new BABYLON.Vector3(
+		newTarget.x + frontDirection.x * currentDistance,
+		currentYPosition, // Keep the current Y position
+		newTarget.z + frontDirection.z * currentDistance
+	);
+
+	// Set the new camera position (X, Y unchanged, Z adjusted)
+	camera.position = newCameraPositionXZ;
+
+	// Set the camera to look at the new mesh center
+	camera.setTarget(newTarget);
+}
+
 
 async function exportBlockSnippet(block) {
 	try {
@@ -1462,7 +1556,13 @@ window.onload = function () {
 
 	(async () => {
 		await flock.initialize();
-		gizmoManager = new flock.BABYLON.GizmoManager(flock.scene, 8);
+
+		window.addEventListener("keydown", (event) => {
+			// Check if the dot key (.) is pressed (key code 190)
+			if (event.code === "Period") {
+				focusCameraOnMesh();
+			}
+		});
 		window.initialBlocksJson = initialBlocksJson;
 	})();
 

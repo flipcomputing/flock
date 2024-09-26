@@ -222,7 +222,7 @@ export const flock = {
 
 		flock.scene = new flock.BABYLON.Scene(flock.engine);
 		flock.disposed = false;
-
+		
 		flock.engine.runRenderLoop(function () {
 			flock.scene.render();
 		});
@@ -3377,19 +3377,6 @@ export const flock = {
 						flock.BABYLON.Vector3.Zero(),
 					);
 
-					/*const currentRotationQuaternion =
-						mesh.physics.transformNode.rotationQuaternion;
-					const currentEulerRotation =
-						currentRotationQuaternion.toEulerAngles();
-					const newRotationQuaternion =
-						flock.BABYLON.Quaternion.RotationYawPitchRoll(
-							currentEulerRotation.y,
-							0,
-							0,
-						);
-					mesh.physics.transformNode.rotationQuaternion.copyFrom(
-						newRotationQuaternion,
-					);*/
 				});
 
 				const camera = new flock.BABYLON.ArcRotateCamera(
@@ -3409,6 +3396,8 @@ export const flock = {
 				camera.angularSensibilityY = 2000;
 				
 				camera.setTarget(mesh.position);
+				camera.metadata = camera.metadata || {};
+				camera.metadata.following = mesh;
 				camera.attachControl(flock.canvas, true);
 				flock.scene.activeCamera = camera;
 			} else {
