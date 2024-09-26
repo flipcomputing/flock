@@ -96,6 +96,7 @@ export const modelNames = [
 	"tree_fat_fall.glb",
 	"tree_fat_darkh.glb",
 	"boat.glb",
+	"Cat.glb",
 ];
 
 export const mapNames = [
