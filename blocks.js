@@ -33,8 +33,6 @@ export function handleBlockSelect(event) {
 		) {
 			// If the block is a create block, update the window.currentMesh variable
 				window.updateCurrentMeshName(block, "ID_VAR");
-
-			console.log(window.currentMesh);
 		}
 	}
 }

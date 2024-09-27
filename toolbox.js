@@ -806,7 +806,7 @@ export const toolbox = {
 							shadow: {
 								type: "colour",
 								fields: {
-									COLOUR: "#9932CC",
+									COLOR: "#9932CC",
 								},
 							},
 						},
