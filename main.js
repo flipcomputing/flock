@@ -110,7 +110,17 @@ let toolboxVisible = false;
 
 function executeCode() {
 	if (flock.engineReady) {
+		
+		// Check if the debug layer is visible
+		const debugLayerVisible = flock.scene.debugLayer.isVisible();
+
+		// Recreate the scene
 		flock.scene = flock.createScene();
+
+		if (debugLayerVisible) {
+			flock.scene.debugLayer.show();
+		}
+
 
 		gizmoManager = new flock.BABYLON.GizmoManager(flock.scene, 8);
 
@@ -1846,6 +1856,7 @@ window.onload = function () {
 			const gizmoButtons = document.getElementById("gizmoButtons");
 
 			if (flock.scene.debugLayer.isVisible()) {
+				console.log("Debug layer is visible");
 				canvasArea.style.width = "100%";
 				canvasArea.style.flexGrow = "1";
 				switchView(viewMode);
