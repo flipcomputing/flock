@@ -75,9 +75,10 @@
                         "block": {
                           "type": "create_box",
                           "id": "zcv.bcKq$@!B/+`(JINe",
+                          "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" has_do=\"false\"></mutation>",
                           "fields": {
                             "ID_VAR": {
-                              "id": "5A#{r?jh/#w~gB|.B;!}"
+                              "id": "6{$Hf~t.cjeSt*;zA:JG"
                             }
                           },
                           "inputs": {
@@ -149,6 +150,7 @@
                             "block": {
                               "type": "create_box",
                               "id": "yXt(J4e5(fL2|K?h@0$T",
+                              "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" has_do=\"false\"></mutation>",
                               "fields": {
                                 "ID_VAR": {
                                   "id": "5A#{r?jh/#w~gB|.B;!}"
@@ -741,6 +743,7 @@
                         "block": {
                           "type": "load_character",
                           "id": "8(Sk-M[i_wi%:Z#qL%WL",
+                          "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" has_do=\"false\"></mutation>",
                           "fields": {
                             "MODELS": "Character1.glb",
                             "ID_VAR": {
@@ -1503,6 +1506,7 @@
                                                                   "block": {
                                                                     "type": "load_model",
                                                                     "id": "iL_6~dX38jpY[iH/:)6N",
+                                                                    "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" has_do=\"false\"></mutation>",
                                                                     "fields": {
                                                                       "MODELS": "tree_fat.glb",
                                                                       "ID_VAR": {
@@ -1611,6 +1615,7 @@
                                                                   "block": {
                                                                     "type": "load_model",
                                                                     "id": "[=*rnDMtCx07f+yz)Id",
+                                                                    "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" has_do=\"false\"></mutation>",
                                                                     "fields": {
                                                                       "MODELS": "tree_fat_fall.glb",
                                                                       "ID_VAR": {
@@ -1688,6 +1693,7 @@
                                                                   "block": {
                                                                     "type": "load_model",
                                                                     "id": "z0{SB1eJ_U:#H-|kaS$y",
+                                                                    "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" has_do=\"false\"></mutation>",
                                                                     "fields": {
                                                                       "MODELS": "tree_fat_darkh.glb",
                                                                       "ID_VAR": {
@@ -1926,26 +1932,6 @@
     {
       "name": "box2",
       "id": "5A#{r?jh/#w~gB|.B;!}"
-    },
-    {
-      "name": "box7",
-      "id": "}`aQ[/p5e8{X!|*UmwY$"
-    },
-    {
-      "name": "box8",
-      "id": "75L*O)qf2gSbkfUF)z+L"
-    },
-    {
-      "name": "box9",
-      "id": "DY,G#$KiA;.fQUl?1T2u"
-    },
-    {
-      "name": "box10",
-      "id": "hXi12cV9nLK6kmbn$w]G"
-    },
-    {
-      "name": "character1",
-      "id": "33CYzZEb|==nA|l}^Wu0"
     }
   ]
 }
