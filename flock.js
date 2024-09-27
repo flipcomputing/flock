@@ -2125,6 +2125,7 @@ export const flock = {
 	},
 	rotateTo(meshName, x, y, z) {
 		return flock.whenModelReady(meshName, (mesh) => {
+			console.log("Rotating", x, y, z);
 			
 			if (mesh.physics) {
 				if (

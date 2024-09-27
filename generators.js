@@ -478,7 +478,9 @@ export function defineGenerators() {
 		const planeId = `plane_${generateUUID()}`;
 		meshMap[planeId] = block;
 
-		return `${variableName} = newPlane(${color}, ${width}, ${height}, ${posX}, ${posY}, ${posZ}, "${planeId}");`;
+		const doCode = block.getInput("DO") ? javascriptGenerator.statementToCode(block, "DO") || "" : "";
+
+		return `${variableName} = newPlane(${color}, ${width}, ${height}, ${posX}, ${posY}, ${posZ}, "${planeId}");\n${doCode}\n`;
 	};
 
 	javascriptGenerator.forBlock["set_background_color"] = function (block) {

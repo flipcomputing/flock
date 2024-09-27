@@ -1504,7 +1504,10 @@ export function defineBlocks() {
 					variableNamePrefix,
 					nextVariableIndexes,
 				);
+
 			});
+
+			addDoMutatorWithToggleBehavior(this);
 		},
 	};
 
