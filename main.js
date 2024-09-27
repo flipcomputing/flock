@@ -119,7 +119,8 @@ function executeCode() {
 			console.log(code);
 			//new Function(`(async () => { ${code} })()`)();
 			runCode(code);
-			document.getElementById("renderCanvas").focus();
+			
+			//document.getElementById("renderCanvas").focus();
 		} catch (error) {
 			console.error("Error executing Blockly code:", error);
 		}
@@ -845,6 +846,7 @@ function toggleGizmo(gizmoType) {
 	gizmoManager.rotationGizmoEnabled = false;
 	gizmoManager.scaleGizmoEnabled = false;
 	gizmoManager.boundingBoxGizmoEnabled = false;
+	gizmoManager.attachableMeshes = flock.scene.meshes.filter(s => s.name !== "ground");
 
 	// Enable the selected gizmo
 	switch (gizmoType) {
@@ -937,14 +939,14 @@ function toggleGizmo(gizmoType) {
 					const mesh = gizmoManager.attachedMesh;
 					const motionType = mesh.physics.getMotionType();
 					mesh.savedMotionType = motionType;
-					//console.log(motionType);
+					
 					if (
 						mesh.physics &&
 						mesh.physics.getMotionType() !=
-							BABYLON.PhysicsMotionType.STATIC
+							BABYLON.PhysicsMotionType.ANIMATED
 					) {
 						mesh.physics.setMotionType(
-							BABYLON.PhysicsMotionType.STATIC,
+							BABYLON.PhysicsMotionType.ANIMATED,
 						);
 						mesh.physics.disablePreStep = false;
 					}
@@ -957,11 +959,11 @@ function toggleGizmo(gizmoType) {
 				function () {
 					// Retrieve the mesh associated with the position gizmo
 					const mesh = gizmoManager.attachedMesh;
+
 					if (mesh.savedMotionType) {
 						mesh.physics.setMotionType(mesh.savedMotionType);
 						mesh.physics.disablePreStep = true;
 					}
-
 					mesh.computeWorldMatrix(true);
 
 					const block = meshMap[mesh.blockKey];
@@ -1021,10 +1023,10 @@ function toggleGizmo(gizmoType) {
 					if (
 						mesh.physics &&
 						mesh.physics.getMotionType() !=
-							BABYLON.PhysicsMotionType.STATIC
+							BABYLON.PhysicsMotionType.ANIMATED
 					) {
 						mesh.physics.setMotionType(
-							BABYLON.PhysicsMotionType.STATIC,
+							BABYLON.PhysicsMotionType.ANIMATED,
 						);
 						mesh.physics.disablePreStep = false;
 					}
@@ -1156,9 +1158,9 @@ function toggleGizmo(gizmoType) {
 
 				if (
 					mesh.physics &&
-					mesh.physics.getMotionType() != BABYLON.PhysicsMotionType.STATIC
+					mesh.physics.getMotionType() != BABYLON.PhysicsMotionType.ANIMATED
 				) {
-					mesh.physics.setMotionType(BABYLON.PhysicsMotionType.STATIC);
+					mesh.physics.setMotionType(BABYLON.PhysicsMotionType.ANIMATED);
 					mesh.physics.disablePreStep = false;
 				}
 
@@ -1168,7 +1170,8 @@ function toggleGizmo(gizmoType) {
 
 			gizmoManager.gizmos.scaleGizmo.onDragEndObservable.add(function () {
 				const mesh = gizmoManager.attachedMesh;
-
+				
+				
 				if (mesh.savedMotionType) {
 					mesh.physics.setMotionType(mesh.savedMotionType);
 					mesh.physics.disablePreStep = true;
@@ -1276,7 +1279,8 @@ function highlightBlockById(workspace, block) {
 		workspace.getAllBlocks().forEach((b) => b.unselect());
 
 		// Select the new block
-		block.select();
+		if(window.codeMode === "both")
+			block.select();
 
 		const blockRect = block.getBoundingRectangle();
 		const metrics = workspace.getMetrics();
@@ -1525,7 +1529,7 @@ window.exportCode = exportCode;
 window.loadExample = loadExample;
 
 const runCode = (code) => {
-	if (codeMode == "blockly") {
+	if (codeMode === "blockly") {
 		switchView("canvas");
 	}
 	// Create a new sandboxed environment
@@ -1849,6 +1853,7 @@ window.onload = function () {
 				onResize();
 			} else {
 				blocklyArea.style.display = "none";
+				codeMode = "none";
 				canvasArea.style.display = "block";
 				canvasArea.style.width = "50vw";
 				canvasArea.style.flexGrow = "0";

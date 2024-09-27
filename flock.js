@@ -1939,6 +1939,7 @@ export const flock = {
 
 			// Apply scaling
 			mesh.scaling = new flock.BABYLON.Vector3(x, y, z);
+			mesh.physics.scaling = new flock.BABYLON.Vector3(x, y, z);
 			mesh.computeWorldMatrix(true);
 
 			// Get the new bounding box information after scaling
