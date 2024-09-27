@@ -3556,6 +3556,34 @@ export function defineBlocks() {
 		},
 	};
 
+	Blockly.Blocks["move_sideways"] = {
+		init: function () {
+			this.jsonInit({
+				type: "move_sideways",
+				message0: "sideways %1 speed %2",
+				args0: [
+					{
+						type: "field_variable",
+						name: "MODEL",
+						variable: window.currentMesh,  // Default to currentMesh
+					},
+					{
+						type: "input_value",
+						name: "SPEED",
+						check: "Number",
+					},
+				],
+				inputsInline: true,
+				previousStatement: null,
+				nextStatement: null,
+				colour: categoryColours["Motion"],
+				tooltip:
+					"Moves the model sideways relative to the camera. Positive speed moves right, negative moves left.\nKeyword: sideways",
+				helpUrl: "",
+			});
+		},
+	};
+
 	Blockly.Blocks["apply_force"] = {
 		init: function () {
 			this.jsonInit({

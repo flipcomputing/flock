@@ -103,6 +103,7 @@ export const flock = {
 				createDecal,
 				placeDecal,
 				moveForward,
+				moveSideways,
 				attachCamera,
 				canvasControls,
 				setPhysics,
@@ -3300,6 +3301,59 @@ export const flock = {
 		model.rotationQuaternion.x = 0;
 		model.rotationQuaternion.z = 0;
 		model.rotationQuaternion.normalize();
+	},
+	moveSideways(modelName, speed) {
+		const model = flock.scene.getMeshByName(modelName);
+		if (!model || speed === 0) return;
+
+		const sidewaysSpeed = -speed;
+
+		// Get the camera's right direction vector (perpendicular to the forward direction)
+		const cameraRight = flock.scene.activeCamera
+			.getForwardRay()
+			.direction.cross(flock.BABYLON.Vector3.Up())
+			.normalize();
+
+		const moveDirection = cameraRight.scale(sidewaysSpeed);
+		const currentVelocity = model.physics.getLinearVelocity();
+
+		// Set linear velocity in the sideways direction (left or right)
+		model.physics.setLinearVelocity(
+			new flock.BABYLON.Vector3(
+				moveDirection.x,
+				currentVelocity.y,
+				moveDirection.z,
+			),
+		);
+
+		/*
+		// Determine which direction the model should face based on sideways movement
+		const facingDirection =
+			speed >= 0
+				? new flock.BABYLON.Vector3(-cameraRight.x, 0, -cameraRight.z).normalize()  // Move right
+				: new flock.BABYLON.Vector3(cameraRight.x, 0, cameraRight.z).normalize();   // Move left
+
+		const targetRotation = flock.BABYLON.Quaternion.FromLookDirectionLH(
+			facingDirection,
+			flock.BABYLON.Vector3.Up(),
+		);
+
+		const currentRotation = model.rotationQuaternion;
+		const deltaRotation = targetRotation.multiply(
+			currentRotation.conjugate(),
+		);
+		const deltaEuler = deltaRotation.toEulerAngles();
+
+		// Apply angular velocity to smoothly rotate the model
+		model.physics.setAngularVelocity(
+			new flock.BABYLON.Vector3(0, deltaEuler.y * 5, 0),
+		);
+
+		// Normalize the model's rotation to avoid gimbal lock or rotation drift
+		model.rotationQuaternion.x = 0;
+		model.rotationQuaternion.z = 0;
+		model.rotationQuaternion.normalize();
+		*/
 	},
 	attachCamera(modelName, radius) {
 		return flock.whenModelReady(modelName, function (mesh) {

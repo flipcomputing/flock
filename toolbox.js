@@ -1598,6 +1598,21 @@ export const toolbox = {
 						},
 					},
 				},
+				{
+					kind: "block",
+					type: "move_sideways",
+					keyword: "side",
+					inputs: {
+						SPEED: {
+							shadow: {
+								type: "math_number",
+								fields: {
+									NUM: 1, // Default speed of 1
+								},
+							},
+						},
+					},
+				},
 				/*				{
 					kind: "block",
 					type: "up",
@@ -2729,114 +2744,114 @@ export const toolbox = {
 				},
 				{
 					kind: "block",
-				  type: "forever",
-				  inputs: {
-					DO: {
-					  block: {
-						type: "controls_if",
-						extraState: {
-						  elseIfCount: 1,
-						  hasElse: true
-						},
-						inputs: {
-						  IF0: {
+					type: "forever",
+					inputs: {
+						DO: {
 							block: {
-							  type: "key_pressed",
-							  fields: {
-								KEY: "w"
-							  }
-							}
-						  },
-						  DO0: {
-							block: {
-							  type: "move_forward",
-							  fields: {
-								MODEL: {
-								  name: "player",
-								  type: ""
-								}
-							  },
-							  inputs: {
-								SPEED: {
-								  shadow: {
-									type: "math_number",
-									fields: {
-									  NUM: 3
-									}
-								  }
-								}
-							  },
-							  next: {
-								block: {
-								  type: "switch_animation",
-								  fields: {
-									MODEL: {
-									  name: "player",
-									  type: ""
-									},
-									ANIMATION_NAME: "Walk"
-								  }
-								}
-							  }
-							}
-						  },
-						  IF1: {
-							block: {
-							  type: "key_pressed",
-							  fields: {
-								KEY: "s"
-							  }
-							}
-						  },
-						  DO1: {
-							block: {
-							  type: "move_forward",
-							  fields: {
-								MODEL: {
-								  name: "player",
-								  type: ""
-								}
-							  },
-							  inputs: {
-								SPEED: {
-								  shadow: {
-									type: "math_number",
-									fields: {
-									  NUM: -3
-									}
-								  }
-								}
-							  },
-							  next: {
-								block: {
-								  type: "switch_animation",
-								  fields: {
-									MODEL: {
-									  name: "player",
-									  type: ""
-									},
-									ANIMATION_NAME: "Walk"
-								  }
-								}
-							  }
-							}
-						  },
-						  ELSE: {
-							block: {
-							  type: "switch_animation",
-							  fields: {
-								MODEL: {
-								  name: "player",
-								  type: ""
+								type: "controls_if",
+								extraState: {
+									elseIfCount: 1,
+									hasElse: true,
 								},
-								ANIMATION_NAME: "Idle"
-							  }
-							}
-						  }
-						}
-					  }
-					}
-				  }
+								inputs: {
+									IF0: {
+										block: {
+											type: "key_pressed",
+											fields: {
+												KEY: "w",
+											},
+										},
+									},
+									DO0: {
+										block: {
+											type: "move_forward",
+											fields: {
+												MODEL: {
+													name: "player",
+													type: "",
+												},
+											},
+											inputs: {
+												SPEED: {
+													shadow: {
+														type: "math_number",
+														fields: {
+															NUM: 3,
+														},
+													},
+												},
+											},
+											next: {
+												block: {
+													type: "switch_animation",
+													fields: {
+														MODEL: {
+															name: "player",
+															type: "",
+														},
+														ANIMATION_NAME: "Walk",
+													},
+												},
+											},
+										},
+									},
+									IF1: {
+										block: {
+											type: "key_pressed",
+											fields: {
+												KEY: "s",
+											},
+										},
+									},
+									DO1: {
+										block: {
+											type: "move_forward",
+											fields: {
+												MODEL: {
+													name: "player",
+													type: "",
+												},
+											},
+											inputs: {
+												SPEED: {
+													shadow: {
+														type: "math_number",
+														fields: {
+															NUM: -3,
+														},
+													},
+												},
+											},
+											next: {
+												block: {
+													type: "switch_animation",
+													fields: {
+														MODEL: {
+															name: "player",
+															type: "",
+														},
+														ANIMATION_NAME: "Walk",
+													},
+												},
+											},
+										},
+									},
+									ELSE: {
+										block: {
+											type: "switch_animation",
+											fields: {
+												MODEL: {
+													name: "player",
+													type: "",
+												},
+												ANIMATION_NAME: "Idle",
+											},
+										},
+									},
+								},
+							},
+						},
+					},
 				},
 			],
 		},
