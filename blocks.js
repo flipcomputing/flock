@@ -751,11 +751,11 @@ export function defineBlocks() {
 					nextVariableIndexes,
 				);
 			});
+
+			addDoMutatorWithToggleBehavior(this);
 		},
 	};
 
-	
-	// Define the load_object block with a custom button to toggle mutation
 	Blockly.Blocks["load_object"] = {
 	  init: function () {
 		const defaultObject = "Star.glb";
@@ -824,17 +824,6 @@ export function defineBlocks() {
 		  nextStatement: null
 		});
 
-		// Add a custom button to trigger the mutation
-		const toggleButton = new Blockly.FieldImage(
-'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0MCA0MCI+PHBhdGggZD0iTTE4LjUgMXYxMmgxMnYzaC0xMnYxMmgzdi0xMmgtMTJ2LTNoMTJ2LTN6Ii8+PC9zdmc+', // Custom icon URL
-		  15, 15, '*',  // Width, Height, Alt text
-		  this.toggleDoBlock.bind(this)  // Event handler to toggle the block
-		);
-
-		// Add the button to the block (at the top right, inline with other inputs)
-		this.appendDummyInput()
-		  .appendField(toggleButton, "TOGGLE_BUTTON");
-
 		// Function to update the COLOR field based on the selected model
 		const updateColorField = () => {
 		  const selectedObject = this.getFieldValue("MODELS");
@@ -863,10 +852,14 @@ export function defineBlocks() {
 			updateColorField();
 		  }
 		});
-	  },
 
+		addDoMutatorWithToggleBehavior(this);
+	  }
+	};
+
+	function addDoMutatorWithToggleBehavior(block) {
 	  // Custom function to toggle the "do" block mutation
-	  toggleDoBlock: function () {
+	  block.toggleDoBlock = function () {
 		const hasDo = this.getInput('DO') ? true : false;
 		if (hasDo) {
 		  this.removeInput('DO');
@@ -875,25 +868,36 @@ export function defineBlocks() {
 			  .setCheck(null)
 			  .appendField("then do");
 		}
-	  },
+	  };
+
+	  // Add the toggle button to the block
+	  const toggleButton = new Blockly.FieldImage(
+		'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0MCA0MCI+PHBhdGggZD0iTTE4LjUgMXYxMmgxMnYzaC0xMnYxMmgzdi0xMmgtMTJ2LTNoMTJ2LTN6Ii8+PC9zdmc=', // Custom icon
+		15, 15, '*',  // Width, Height, Alt text
+		block.toggleDoBlock.bind(block)  // Bind the event handler to the block
+	  );
+
+	  // Add the button to the block
+	  block.appendDummyInput()
+		.appendField(toggleButton, "TOGGLE_BUTTON");
 
 	  // Save the mutation state
-	  mutationToDom: function () {
+	  block.mutationToDom = function () {
 		const container = document.createElement('mutation');
 		container.setAttribute('has_do', this.getInput('DO') ? 'true' : 'false');
 		return container;
-	  },
+	  };
 
 	  // Restore the mutation state
-	  domToMutation: function (xmlElement) {
+	  block.domToMutation = function (xmlElement) {
 		const hasDo = xmlElement.getAttribute('has_do') === 'true';
 		if (hasDo) {
 		  this.appendStatementInput('DO')
-			  .setCheck(null)
-			  .appendField("then do");
+			.setCheck(null)
+			.appendField("then do");
 		}
-	  }
-	};
+	  };
+	}
 
 
 	Blockly.Blocks["load_model"] = {
@@ -964,6 +968,8 @@ export function defineBlocks() {
 					nextVariableIndexes,
 				);
 			});
+
+			addDoMutatorWithToggleBehavior(this);
 		},
 	};
 
@@ -1841,7 +1847,7 @@ export function defineBlocks() {
 						align: "RIGHT",
 					},
 				],
-				message1: "origin x: %1 y: %2 z: %3",
+				message1: "\norigin x: %1 y: %2 z: %3",
 				args1: [
 					{
 						type: "field_dropdown",

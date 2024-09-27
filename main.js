@@ -1048,7 +1048,6 @@ function toggleGizmo(gizmoType) {
 						return;
 					}
 
-					// Make sure the mutator is activated and the "do" section exists
 					if (!block.getInput("DO")) {
 						block
 							.appendStatementInput("DO")
@@ -1146,8 +1145,107 @@ function toggleGizmo(gizmoType) {
 					});
 
 			break;
-		case "scale":
+			case "scale":
 			gizmoManager.scaleGizmoEnabled = true;
+
+			gizmoManager.gizmos.scaleGizmo.onDragStartObservable.add(function () {
+				const mesh = gizmoManager.attachedMesh;
+				const motionType = mesh.physics.getMotionType();
+				mesh.savedMotionType = motionType;
+
+				if (
+					mesh.physics &&
+					mesh.physics.getMotionType() != BABYLON.PhysicsMotionType.STATIC
+				) {
+					mesh.physics.setMotionType(BABYLON.PhysicsMotionType.STATIC);
+					mesh.physics.disablePreStep = false;
+				}
+
+				const block = meshMap[mesh.blockKey];
+				highlightBlockById(workspace, block);
+			});
+
+			gizmoManager.gizmos.scaleGizmo.onDragEndObservable.add(function () {
+				const mesh = gizmoManager.attachedMesh;
+
+				if (mesh.savedMotionType) {
+					mesh.physics.setMotionType(mesh.savedMotionType);
+					mesh.physics.disablePreStep = true;
+				}
+
+				const block = meshMap[mesh.blockKey];
+
+				if (!block) {
+					return;
+				}
+
+				if (!block.getInput("DO")) {
+					block
+						.appendStatementInput("DO")
+						.setCheck(null)
+						.appendField("then do");
+				}
+
+				// Check if the 'scale' block already exists in the 'DO' section
+				let scaleBlock = null;
+				let modelVariable = block.getFieldValue("ID_VAR");
+				const statementConnection = block.getInput("DO").connection;
+				if (statementConnection && statementConnection.targetBlock()) {
+					let currentBlock = statementConnection.targetBlock();
+					while (currentBlock) {
+						if (currentBlock.type === "scale") {
+							const modelField = currentBlock.getFieldValue('BLOCK_NAME');
+							if (modelField === modelVariable) {
+								scaleBlock = currentBlock;
+								break;
+							}
+						}
+						currentBlock = currentBlock.getNextBlock();
+					}
+				}
+
+				// Create a new 'scale' block if it doesn't exist
+				if (!scaleBlock) {
+					scaleBlock = workspace.newBlock("scale");
+					scaleBlock.setFieldValue(modelVariable, 'BLOCK_NAME');
+					scaleBlock.initSvg();
+					scaleBlock.render();
+
+					// Add shadow blocks for X, Y, Z inputs
+					["X", "Y", "Z"].forEach((axis) => {
+						const input = scaleBlock.getInput(axis);
+						const shadowBlock = workspace.newBlock("math_number");
+						shadowBlock.setShadow(true);
+						shadowBlock.initSvg();
+						shadowBlock.render();
+						input.connection.connect(shadowBlock.outputConnection);
+					});
+
+					scaleBlock.render(); // Render the new block
+					// Connect the new 'scale' block to the 'do' section
+					block.getInput("DO").connection.connect(scaleBlock.previousConnection);
+				}
+
+				// Helper to update the value of the connected block or shadow block
+				function setScaleValue(inputName, value) {
+					const input = scaleBlock.getInput(inputName);
+					const connectedBlock = input.connection.targetBlock();
+
+					if (connectedBlock) {
+						connectedBlock.setFieldValue(String(value), 'NUM');
+					}
+				}
+
+				// Set the scale values (X, Y, Z)
+				const scaleX = Math.round(mesh.scaling.x * 10) / 10;
+				const scaleY = Math.round(mesh.scaling.y * 10) / 10;
+				const scaleZ = Math.round(mesh.scaling.z * 10) / 10;
+
+				setScaleValue('X', scaleX);
+				setScaleValue('Y', scaleY);
+				setScaleValue('Z', scaleZ);
+			});
+
 			break;
 		case "boundingBox":
 			gizmoManager.boundingBoxGizmoEnabled = true;

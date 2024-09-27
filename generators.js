@@ -304,7 +304,16 @@ export function defineGenerators() {
 		const meshId = modelName + "_" + flock.scene.getUniqueId();
 		meshMap[meshId] = block;
 
-		return `${variableName} = newModel('${modelName}', '${meshId}', ${scale}, ${x}, ${y}, ${z});\n`;
+		// Generate the code for the "do" part (if present)
+		let doCode = "";
+
+		if (block.getInput("DO")) {
+			doCode = javascriptGenerator.statementToCode(block, "DO") || "";
+		}
+
+		doCode = doCode ? `, async function() {\n${doCode}\n}` : "";
+
+		return `${variableName} = newModel('${modelName}', '${meshId}', ${scale}, ${x}, ${y}, ${z}${doCode});\n`;
 	};
 
 	javascriptGenerator.forBlock["load_character"] = function (block) {
@@ -327,7 +336,16 @@ export function defineGenerators() {
 		const meshId = modelName + "_" + flock.scene.getUniqueId();
 		meshMap[meshId] = block;
 
-		return `${variableName} = newCharacter('${modelName}', '${meshId}', ${scale}, ${x}, ${y}, ${z}, ${hairColor}, ${skinColor}, ${eyesColor}, ${sleevesColor}, ${shortsColor}, ${tshirtColor});\n`;
+		// Generate the code for the "do" part (if present)
+		let doCode = "";
+
+		if (block.getInput("DO")) {
+			doCode = javascriptGenerator.statementToCode(block, "DO") || "";
+		}
+
+		doCode = doCode ? `, async function() {\n${doCode}\n}` : "";
+
+		return `${variableName} = newCharacter('${modelName}', '${meshId}', ${scale}, ${x}, ${y}, ${z}, ${hairColor}, ${skinColor}, ${eyesColor}, ${sleevesColor}, ${shortsColor}, ${tshirtColor}${doCode});\n`;
 	};
 
 	javascriptGenerator.forBlock["load_object"] = function (block) {
@@ -354,7 +372,6 @@ export function defineGenerators() {
 
 		doCode = doCode ? `, async function() {\n${doCode}\n}` : "";
 
-		// Pass the "do" code as a callback function to be executed once the object is created
 		return `${variableName} = newObject('${modelName}', '${meshId}', ${scale}, ${x}, ${y}, ${z}, ${color}${doCode});\n`;
 	};
 

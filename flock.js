@@ -222,7 +222,7 @@ export const flock = {
 
 		flock.scene = new flock.BABYLON.Scene(flock.engine);
 		flock.disposed = false;
-		
+
 		flock.engine.runRenderLoop(function () {
 			flock.scene.render();
 		});
@@ -605,7 +605,7 @@ export const flock = {
 			});
 		});
 	},
-	newModel(modelName, modelId, scale, x, y, z) {
+	newModel(modelName, modelId, scale, x, y, z, callback) {
 		const blockId = modelId;
 		modelId += "_" + flock.scene.getUniqueId();
 
@@ -654,6 +654,11 @@ export const flock = {
 				//boxBody.setAngularDamping(10000000);
 				//boxBody.setLinearDamping(0);
 				bb.physics = boxBody;
+
+				// Call the callback after everything is set up
+				if (typeof callback === "function") {
+					callback(); // Execute the "do" code
+				}
 			},
 			null,
 			function (error) {
@@ -676,6 +681,7 @@ export const flock = {
 		sleevesColor,
 		shortsColor,
 		tshirtColor,
+		callback,
 	) {
 		const blockId = modelId;
 		modelId += "_" + flock.scene.getUniqueId();
@@ -753,6 +759,11 @@ export const flock = {
 				boxBody.setAngularDamping(10000000);
 				boxBody.setLinearDamping(0);
 				bb.physics = boxBody;
+
+				// Call the callback after everything is set up
+				if (typeof callback === "function") {
+					callback(); // Execute the "do" code
+				}
 			},
 			null,
 			function (error) {
@@ -763,81 +774,84 @@ export const flock = {
 		return modelId;
 	},
 	newObject(modelName, modelId, scale, x, y, z, color, callback) {
-	  const blockId = modelId;
-	  modelId += "_" + flock.scene.getUniqueId();
+		const blockId = modelId;
+		modelId += "_" + flock.scene.getUniqueId();
 
-	  flock.BABYLON.SceneLoader.ImportMesh(
-		"",
-		"./models/",
-		modelName,
-		flock.scene,
-		function (meshes) {
-		  const mesh = meshes[0];
-		  mesh.scaling = new flock.BABYLON.Vector3(scale, scale, scale);
-
-		  const bb =
-			flock.BABYLON.BoundingBoxGizmo.MakeNotPickableAndWrapInBoundingBox(
-			  mesh,
-			);
-
-		  bb.name = modelId;
-		  bb.blockKey = blockId;
-		  bb.isPickable = true;
-		  bb.position.addInPlace(new flock.BABYLON.Vector3(x, y, z));
-
-		  mesh.computeWorldMatrix(true);
-		  mesh.refreshBoundingInfo();
-
-		  bb.metadata = bb.metadata || {};
-		  bb.metadata.yOffset = (bb.position.y - y) / scale;
-		  flock.stopAnimationsTargetingMesh(flock.scene, mesh);
-
-		  function applyColorToMaterial(part, color) {
-			if (part.material) {
-			  part.material.albedoColor =
-				flock.BABYLON.Color3.FromHexString(
-				  flock.getColorFromString(color),
-				).toLinearSpace();
-			  part.material.emissiveColor =
-				flock.BABYLON.Color3.FromHexString(
-				  flock.getColorFromString(color),
-				).toLinearSpace();
-			  part.material.emissiveIntensity = 0.1;
-			}
-			part.getChildMeshes().forEach((child) => {
-			  applyColorToMaterial(child, color);
-			});
-		  }
-
-		  applyColorToMaterial(mesh, color);
-
-		  const boxBody = new flock.BABYLON.PhysicsBody(
-			bb,
-			flock.BABYLON.PhysicsMotionType.STATIC,
-			false,
+		flock.BABYLON.SceneLoader.ImportMesh(
+			"",
+			"./models/",
+			modelName,
 			flock.scene,
-		  );
+			function (meshes) {
+				const mesh = meshes[0];
+				mesh.scaling = new flock.BABYLON.Vector3(scale, scale, scale);
 
-		  const boxShape = flock.createCapsuleFromBoundingBox(bb, flock.scene);
-		  boxBody.shape = boxShape;
-		  boxBody.setMassProperties({ mass: 1, restitution: 0.5 });
-		  boxBody.disablePreStep = false;
-		  boxBody.setAngularDamping(10000000);
-		  boxBody.setLinearDamping(0);
-		  bb.physics = boxBody;
+				const bb =
+					flock.BABYLON.BoundingBoxGizmo.MakeNotPickableAndWrapInBoundingBox(
+						mesh,
+					);
 
-		  // Call the callback after everything is set up
-		  if (typeof callback === 'function') {
-			callback();  // Execute the "do" code
-		  }
-		},
-		null,
-		function (error) {
-		  console.log("Error loading", error);
-		},
-	  );
+				bb.name = modelId;
+				bb.blockKey = blockId;
+				bb.isPickable = true;
+				bb.position.addInPlace(new flock.BABYLON.Vector3(x, y, z));
 
-	  return modelId;
+				mesh.computeWorldMatrix(true);
+				mesh.refreshBoundingInfo();
+
+				bb.metadata = bb.metadata || {};
+				bb.metadata.yOffset = (bb.position.y - y) / scale;
+				flock.stopAnimationsTargetingMesh(flock.scene, mesh);
+
+				function applyColorToMaterial(part, color) {
+					if (part.material) {
+						part.material.albedoColor =
+							flock.BABYLON.Color3.FromHexString(
+								flock.getColorFromString(color),
+							).toLinearSpace();
+						part.material.emissiveColor =
+							flock.BABYLON.Color3.FromHexString(
+								flock.getColorFromString(color),
+							).toLinearSpace();
+						part.material.emissiveIntensity = 0.1;
+					}
+					part.getChildMeshes().forEach((child) => {
+						applyColorToMaterial(child, color);
+					});
+				}
+
+				applyColorToMaterial(mesh, color);
+
+				const boxBody = new flock.BABYLON.PhysicsBody(
+					bb,
+					flock.BABYLON.PhysicsMotionType.STATIC,
+					false,
+					flock.scene,
+				);
+
+				const boxShape = flock.createCapsuleFromBoundingBox(
+					bb,
+					flock.scene,
+				);
+				boxBody.shape = boxShape;
+				boxBody.setMassProperties({ mass: 1, restitution: 0.5 });
+				boxBody.disablePreStep = false;
+				boxBody.setAngularDamping(10000000);
+				boxBody.setLinearDamping(0);
+				bb.physics = boxBody;
+
+				// Call the callback after everything is set up
+				if (typeof callback === "function") {
+					callback(); // Execute the "do" code
+				}
+			},
+			null,
+			function (error) {
+				console.log("Error loading", error);
+			},
+		);
+
+		return modelId;
 	},
 	parentChild(
 		parentModelName,
@@ -2092,11 +2106,12 @@ export const flock = {
 				// Convert the X, Y, and Z inputs from degrees to radians
 
 				// Create a target rotation quaternion
-				const targetRotation = flock.BABYLON.Quaternion.RotationYawPitchRoll(
-				  radY,  // Yaw (rotation around Y-axis)
-				  radX,  // Pitch (rotation around X-axis)
-				  radZ   // Roll (rotation around Z-axis)
-				);
+				const targetRotation =
+					flock.BABYLON.Quaternion.RotationYawPitchRoll(
+						radY, // Yaw (rotation around Y-axis)
+						radX, // Pitch (rotation around X-axis)
+						radZ, // Roll (rotation around Z-axis)
+					);
 
 				// Apply the rotation to the mesh
 				mesh.rotationQuaternion = targetRotation;
@@ -3376,7 +3391,6 @@ export const flock = {
 					mesh.physics.setAngularVelocity(
 						flock.BABYLON.Vector3.Zero(),
 					);
-
 				});
 
 				const camera = new flock.BABYLON.ArcRotateCamera(
@@ -3394,7 +3408,7 @@ export const flock = {
 				camera.upperRadiusLimit = radius * 1.6;
 				camera.angularSensibilityX = 2000;
 				camera.angularSensibilityY = 2000;
-				
+
 				camera.setTarget(mesh.position);
 				camera.metadata = camera.metadata || {};
 				camera.metadata.following = mesh;
@@ -4038,15 +4052,17 @@ export const flock = {
 						panner.connect(context.destination);
 					}
 
-					const panner = mesh.metadata.panner;  // Reuse the same panner node
+					const panner = mesh.metadata.panner; // Reuse the same panner node
 
 					// Continuously update the panner position while notes are playing
-					const observer = flock.scene.onBeforeRenderObservable.add(() => {
-						const { x, y, z } = mesh.position;
-						panner.positionX.value = -x;
-						panner.positionY.value = y;
-						panner.positionZ.value = z;
-					});
+					const observer = flock.scene.onBeforeRenderObservable.add(
+						() => {
+							const { x, y, z } = mesh.position;
+							panner.positionX.value = -x;
+							panner.positionY.value = y;
+							panner.positionZ.value = z;
+						},
+					);
 
 					// Iterate over the notes and schedule playback
 					let offsetTime = 0;
@@ -4061,8 +4077,8 @@ export const flock = {
 								note,
 								duration,
 								bpm,
-								context.currentTime + offsetTime,  // Schedule the note
-								instrument
+								context.currentTime + offsetTime, // Schedule the note
+								instrument,
 							);
 						}
 
@@ -4070,13 +4086,20 @@ export const flock = {
 					}
 
 					// Resolve the promise after the last note has played
-					setTimeout(() => {
-						flock.scene.onBeforeRenderObservable.remove(observer);
-						resolve();
-					}, (offsetTime + 1) * 1000);  // Add a small buffer after the last note finishes
-
+					setTimeout(
+						() => {
+							flock.scene.onBeforeRenderObservable.remove(
+								observer,
+							);
+							resolve();
+						},
+						(offsetTime + 1) * 1000,
+					); // Add a small buffer after the last note finishes
 				} else {
-					console.error("Mesh does not have a position property:", mesh);
+					console.error(
+						"Mesh does not have a position property:",
+						mesh,
+					);
 					resolve();
 				}
 			});
