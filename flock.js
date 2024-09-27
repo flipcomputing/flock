@@ -77,6 +77,7 @@ export const flock = {
 				lookAt,
 				moveTo,
 				rotateTo,
+				rotateCamera,
 				rotateAnim,
 				animateProperty,
 				positionAt,
@@ -1981,7 +1982,34 @@ export const flock = {
 		});
 	},
 	rotate(meshName, x, y, z) {
+		// Handle mesh rotation
 		return flock.whenModelReady(meshName, (mesh) => {
+
+			if (meshName === "camera") {
+				// Handle camera rotation
+				const camera = flock.scene.activeCamera;
+				if (!camera) return;
+
+				const incrementalRotation = flock.BABYLON.Quaternion.RotationYawPitchRoll(
+					flock.BABYLON.Tools.ToRadians(y),
+					flock.BABYLON.Tools.ToRadians(x),
+					flock.BABYLON.Tools.ToRadians(z),
+				);
+
+				// Check if the camera is ArcRotateCamera or FreeCamera, and rotate accordingly
+				if (camera.alpha !== undefined) {
+					// ArcRotateCamera: Adjust the 'alpha' (horizontal) and 'beta' (vertical)
+					camera.alpha += flock.BABYLON.Tools.ToRadians(y);
+					camera.beta += flock.BABYLON.Tools.ToRadians(x);
+				} else if (camera.rotation !== undefined) {
+					// FreeCamera: Adjust the camera's rotationQuaternion or Euler rotation
+					camera.rotationQuaternion
+						.multiplyInPlace(incrementalRotation)
+						.normalize();
+				}
+				return;
+			}
+
 			if (mesh.physics) {
 				if (
 					mesh.physics.getMotionType() !==
@@ -2010,6 +2038,20 @@ export const flock = {
 
 			mesh.computeWorldMatrix(true);
 		});
+	},
+	rotateCamera(yawAngle) {
+		const camera = flock.scene.activeCamera;
+		if (!camera || yawAngle === 0) return;
+
+		if (camera.alpha !== undefined) {
+			// ArcRotateCamera: Adjust the 'alpha' to rotate left or right
+			camera.alpha += flock.BABYLON.Tools.ToRadians(yawAngle);
+		} 
+		// Otherwise, assume it's a FreeCamera or similar
+		else if (camera.rotation !== undefined) {
+			// FreeCamera: Adjust the 'rotation.y' for yaw rotation (left/right)
+			camera.rotation.y += flock.BABYLON.Tools.ToRadians(yawAngle);
+		}
 	},
 	lookAt(meshName1, meshName2, useY = false) {
 		return flock.whenModelReady(meshName1, (mesh1) => {

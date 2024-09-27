@@ -1435,6 +1435,21 @@ export const toolbox = {
 				},
 				{
 					kind: "block",
+					type: "rotate_camera",
+					keyword: "",
+					inputs: {
+						DEGREES: {
+							shadow: {
+								type: "math_number",
+								fields: {
+									NUM: 5,
+								},
+							},
+						},
+					},
+				},
+				{
+					kind: "block",
 					type: "look_at",
 					keyword: "look",
 				},

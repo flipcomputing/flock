@@ -105,7 +105,7 @@
                                 "type": "math_number",
                                 "id": "vSuJmO,PGXYNP.f%SVbI",
                                 "fields": {
-                                  "NUM": 1
+                                  "NUM": 0.5
                                 }
                               }
                             },
@@ -482,7 +482,7 @@
                       "type": "controls_if",
                       "id": "7hT$50H]_xd)Ew.J/~pd",
                       "extraState": {
-                        "elseIfCount": 1
+                        "elseIfCount": 3
                       },
                       "inputs": {
                         "IF0": {
@@ -541,6 +541,58 @@
                                   "id": "WC~~5hBy6ZBQ~s.rzuFi",
                                   "fields": {
                                     "NUM": -5
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        },
+                        "IF2": {
+                          "block": {
+                            "type": "key_pressed",
+                            "id": "L2%.F;w,.O$0Vl,jApKq",
+                            "fields": {
+                              "KEY": "a"
+                            }
+                          }
+                        },
+                        "DO2": {
+                          "block": {
+                            "type": "rotate_camera",
+                            "id": "uR,hZq[{0gdsh)z~pSh@",
+                            "inputs": {
+                              "DEGREES": {
+                                "shadow": {
+                                  "type": "math_number",
+                                  "id": "#Vi.!4ABxYxJW)jD(fbv",
+                                  "fields": {
+                                    "NUM": 1
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        },
+                        "IF3": {
+                          "block": {
+                            "type": "key_pressed",
+                            "id": "87L^-z}]R$h8eG@:~U-X",
+                            "fields": {
+                              "KEY": "d"
+                            }
+                          }
+                        },
+                        "DO3": {
+                          "block": {
+                            "type": "rotate_camera",
+                            "id": "LY@T|h/;`)Np+:K1o1y;",
+                            "inputs": {
+                              "DEGREES": {
+                                "shadow": {
+                                  "type": "math_number",
+                                  "id": "V.JOK,326KO%RJ!)~Qpe",
+                                  "fields": {
+                                    "NUM": -1
                                   }
                                 }
                               }
@@ -890,7 +942,7 @@
         "type": "procedures_defnoreturn",
         "id": ",;|QW%96ML$|:cj!bPU0",
         "x": 10,
-        "y": 2514,
+        "y": 2710,
         "extraState": {
           "params": [
             {
@@ -1800,7 +1852,7 @@
         "type": "on_event",
         "id": "z(*s03cGJ=4OqgQOaeQJ",
         "x": 10,
-        "y": 2104,
+        "y": 2300,
         "inputs": {
           "EVENT_NAME": {
             "shadow": {
@@ -1841,7 +1893,7 @@
         "type": "on_event",
         "id": "cWUxspp/*vx]T$1YYX;j",
         "x": 10,
-        "y": 2334,
+        "y": 2530,
         "inputs": {
           "EVENT_NAME": {
             "shadow": {

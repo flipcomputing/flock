@@ -1120,6 +1120,17 @@ export function defineGenerators() {
 		return `const ${variableName} = getCamera();\n`;
 	};
 
+	javascriptGenerator.forBlock["rotate_camera"] = function (block) {
+		const degrees =
+			javascriptGenerator.valueToCode(
+				block,
+				"DEGREES",
+				javascriptGenerator.ORDER_ATOMIC,
+			) || "0";
+
+		return `rotateCamera(${degrees});\n`;
+	};
+
 	javascriptGenerator.forBlock["export_mesh"] = function (block) {
 		const meshVar = javascriptGenerator.nameDB_.getName(
 			block.getFieldValue("MESH_VAR"),

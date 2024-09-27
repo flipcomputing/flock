@@ -3584,6 +3584,29 @@ export function defineBlocks() {
 		},
 	};
 
+	Blockly.Blocks["rotate_camera"] = {
+		init: function () {
+			this.jsonInit({
+				type: "rotate_camera",
+				message0: "rotate camera by %1 degrees",
+				args0: [
+					{
+						type: "input_value",
+						name: "DEGREES",
+						check: "Number",
+					},
+				],
+				inputsInline: true,
+				previousStatement: null,
+				nextStatement: null,
+				colour: categoryColours["Motion"],
+				tooltip: "Rotates the camera left or right by the given degrees.\nKeyword: rotate",
+				helpUrl: "",
+			});
+		},
+	};
+
+
 	Blockly.Blocks["apply_force"] = {
 		init: function () {
 			this.jsonInit({

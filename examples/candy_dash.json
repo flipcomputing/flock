@@ -862,7 +862,7 @@
 					"type": "controls_if",
 					"id": "7hT$50H]_xd)Ew.J/~pd",
 					"extraState": {
-					  "elseIfCount": 1
+					  "elseIfCount": 3
 					},
 					"inputs": {
 					  "IF0": {
@@ -921,6 +921,58 @@
 								"id": "WC~~5hBy6ZBQ~s.rzuFi",
 								"fields": {
 								  "NUM": -5
+								}
+							  }
+							}
+						  }
+						}
+					  },
+					  "IF2": {
+						"block": {
+						  "type": "key_pressed",
+						  "id": "dPp,h]dZ#_.e5q)4,mu?",
+						  "fields": {
+							"KEY": "a"
+						  }
+						}
+					  },
+					  "DO2": {
+						"block": {
+						  "type": "rotate_camera",
+						  "id": "h:E!pYRo@Nd!=s0zos+S",
+						  "inputs": {
+							"DEGREES": {
+							  "shadow": {
+								"type": "math_number",
+								"id": "E=pLvxzA.K1~)t(JI]~M",
+								"fields": {
+								  "NUM": 1
+								}
+							  }
+							}
+						  }
+						}
+					  },
+					  "IF3": {
+						"block": {
+						  "type": "key_pressed",
+						  "id": "L*($KV.k0_eJ^!rB.~XO",
+						  "fields": {
+							"KEY": "d"
+						  }
+						}
+					  },
+					  "DO3": {
+						"block": {
+						  "type": "rotate_camera",
+						  "id": "*!yWI:6#$XQOS9C8g|^a",
+						  "inputs": {
+							"DEGREES": {
+							  "shadow": {
+								"type": "math_number",
+								"id": "u+Gl,k~Q/p-Ut~Uh~RAs",
+								"fields": {
+								  "NUM": -1
 								}
 							  }
 							}
@@ -1075,6 +1127,7 @@
 					"block": {
 					  "type": "load_character",
 					  "id": "#W_z`{VXM(PRc=;,).XN",
+					  "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" has_do=\"false\"></mutation>",
 					  "fields": {
 						"MODELS": "Character1.glb",
 						"ID_VAR": {
@@ -1265,7 +1318,7 @@
 		"type": "procedures_defnoreturn",
 		"id": ",;|QW%96ML$|:cj!bPU0",
 		"x": 10,
-		"y": 2802,
+		"y": 2998,
 		"collapsed": true,
 		"extraState": {
 		  "params": [
@@ -1882,6 +1935,7 @@
 																  "block": {
 																	"type": "load_model",
 																	"id": "iL_6~dX38jpY[iH/:)6N",
+																	"extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" has_do=\"false\"></mutation>",
 																	"fields": {
 																	  "MODELS": "tree_fat.glb",
 																	  "ID_VAR": {
@@ -1990,6 +2044,7 @@
 																  "block": {
 																	"type": "load_model",
 																	"id": "[=*rnDMtCx07f+yz)Id",
+																	"extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" has_do=\"false\"></mutation>",
 																	"fields": {
 																	  "MODELS": "tree_fat_fall.glb",
 																	  "ID_VAR": {
@@ -2067,6 +2122,7 @@
 																  "block": {
 																	"type": "load_model",
 																	"id": "z0{SB1eJ_U:#H-|kaS$y",
+																	"extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" has_do=\"false\"></mutation>",
 																	"fields": {
 																	  "MODELS": "tree_fat_darkh.glb",
 																	  "ID_VAR": {
@@ -2173,7 +2229,7 @@
 		"type": "procedures_defnoreturn",
 		"id": "dPD3~J-O{p_[L7PL+$Ec",
 		"x": 10,
-		"y": 2890,
+		"y": 3086,
 		"inline": true,
 		"fields": {
 		  "NAME": "candy"
@@ -2392,6 +2448,7 @@
 										  "block": {
 											"type": "create_sphere",
 											"id": "7:-HV]^Y*aM*@;7f)m_!",
+											"extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" has_do=\"false\"></mutation>",
 											"fields": {
 											  "ID_VAR": {
 												"id": "aEI5uKj{,04VX^BA[LAT"
@@ -2726,7 +2783,8 @@
 														  },
 														  "MODE": "START",
 														  "REVERSE": false,
-														  "LOOP": false
+														  "LOOP": false,
+														  "EASING": "Linear"
 														},
 														"inputs": {
 														  "X": {
