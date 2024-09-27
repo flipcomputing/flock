@@ -1616,7 +1616,22 @@ export const toolbox = {
 				{
 					kind: "block",
 					type: "move_sideways",
-					keyword: "side",
+					keyword: "sideways",
+					inputs: {
+						SPEED: {
+							shadow: {
+								type: "math_number",
+								fields: {
+									NUM: 3,
+								},
+							},
+						},
+					},
+				},
+				{
+					kind: "block",
+					type: "strafe",
+					keyword: "strafe",
 					inputs: {
 						SPEED: {
 							shadow: {

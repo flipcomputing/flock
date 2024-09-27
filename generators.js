@@ -1041,6 +1041,22 @@ export function defineGenerators() {
 		return `moveSideways(${modelName}, ${speed});\n`;
 	};
 
+
+	javascriptGenerator.forBlock["strafe"] = function (block) {
+		const modelName = javascriptGenerator.nameDB_.getName(
+			block.getFieldValue("MODEL"),
+			Blockly.Names.NameType.VARIABLE,
+		);
+		const speed =
+			javascriptGenerator.valueToCode(
+				block,
+				"SPEED",
+				javascriptGenerator.ORDER_ATOMIC,
+			) || "0";
+
+		return `strafe(${modelName}, ${speed});\n`;
+	};
+
 	javascriptGenerator.forBlock["up"] = function (block) {
 		const modelName = javascriptGenerator.nameDB_.getName(
 			block.getFieldValue("MODEL_VAR"),

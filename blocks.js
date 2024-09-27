@@ -33,7 +33,7 @@ export function handleBlockSelect(event) {
 			(block.type.startsWith("create_") || block.type.startsWith("load_"))
 		) {
 			// If the block is a create block, update the window.currentMesh variable
-				window.updateCurrentMeshName(block, "ID_VAR");
+			window.updateCurrentMeshName(block, "ID_VAR");
 		}
 	}
 }
@@ -763,12 +763,14 @@ export function defineBlocks() {
 
 			this.setOnChange((changeEvent) => {
 				if (
-					(changeEvent.type === Blockly.Events.BLOCK_CREATE || changeEvent.type === Blockly.Events.BLOCK_CHANGE)
+					changeEvent.type === Blockly.Events.BLOCK_CREATE ||
+					changeEvent.type === Blockly.Events.BLOCK_CHANGE
 				) {
-					const blockInWorkspace = Blockly.getMainWorkspace().getBlockById(this.id);  // Check if block is in the main workspace
+					const blockInWorkspace =
+						Blockly.getMainWorkspace().getBlockById(this.id); // Check if block is in the main workspace
 
 					if (blockInWorkspace) {
-						window.updateCurrentMeshName(this, "ID_VAR");  // Call the function to update window.currentMesh
+						window.updateCurrentMeshName(this, "ID_VAR"); // Call the function to update window.currentMesh
 					}
 				}
 
@@ -865,12 +867,14 @@ export function defineBlocks() {
 
 			this.setOnChange((changeEvent) => {
 				if (
-					(changeEvent.type === Blockly.Events.BLOCK_CREATE || changeEvent.type === Blockly.Events.BLOCK_CHANGE)
+					changeEvent.type === Blockly.Events.BLOCK_CREATE ||
+					changeEvent.type === Blockly.Events.BLOCK_CHANGE
 				) {
-					const blockInWorkspace = Blockly.getMainWorkspace().getBlockById(this.id);  // Check if block is in the main workspace
+					const blockInWorkspace =
+						Blockly.getMainWorkspace().getBlockById(this.id); // Check if block is in the main workspace
 
 					if (blockInWorkspace) {
-						window.updateCurrentMeshName(this, "ID_VAR");  // Call the function to update window.currentMesh
+						window.updateCurrentMeshName(this, "ID_VAR"); // Call the function to update window.currentMesh
 					}
 				}
 
@@ -1003,12 +1007,14 @@ export function defineBlocks() {
 
 			this.setOnChange((changeEvent) => {
 				if (
-					(changeEvent.type === Blockly.Events.BLOCK_CREATE || changeEvent.type === Blockly.Events.BLOCK_CHANGE)
+					changeEvent.type === Blockly.Events.BLOCK_CREATE ||
+					changeEvent.type === Blockly.Events.BLOCK_CHANGE
 				) {
-					const blockInWorkspace = Blockly.getMainWorkspace().getBlockById(this.id);  // Check if block is in the main workspace
+					const blockInWorkspace =
+						Blockly.getMainWorkspace().getBlockById(this.id); // Check if block is in the main workspace
 
 					if (blockInWorkspace) {
-						window.updateCurrentMeshName(this, "ID_VAR");  // Call the function to update window.currentMesh
+						window.updateCurrentMeshName(this, "ID_VAR"); // Call the function to update window.currentMesh
 					}
 				}
 
@@ -1081,7 +1087,7 @@ export function defineBlocks() {
 		const variableName = block.getField(variableFieldName).getText(); // Get the selected variable name
 
 		if (variableName) {
-			window.currentMesh = variableName; 
+			window.currentMesh = variableName;
 			window.currentBlock = block;
 		}
 	}
@@ -1151,12 +1157,14 @@ export function defineBlocks() {
 
 			this.setOnChange((changeEvent) => {
 				if (
-					(changeEvent.type === Blockly.Events.BLOCK_CREATE || changeEvent.type === Blockly.Events.BLOCK_CHANGE)
+					changeEvent.type === Blockly.Events.BLOCK_CREATE ||
+					changeEvent.type === Blockly.Events.BLOCK_CHANGE
 				) {
-					const blockInWorkspace = Blockly.getMainWorkspace().getBlockById(this.id);  // Check if block is in the main workspace
+					const blockInWorkspace =
+						Blockly.getMainWorkspace().getBlockById(this.id); // Check if block is in the main workspace
 
 					if (blockInWorkspace) {
-						window.updateCurrentMeshName(this, "ID_VAR");  // Call the function to update window.currentMesh
+						window.updateCurrentMeshName(this, "ID_VAR"); // Call the function to update window.currentMesh
 					}
 				}
 
@@ -1235,12 +1243,14 @@ export function defineBlocks() {
 
 			this.setOnChange((changeEvent) => {
 				if (
-					(changeEvent.type === Blockly.Events.BLOCK_CREATE || changeEvent.type === Blockly.Events.BLOCK_CHANGE)
+					changeEvent.type === Blockly.Events.BLOCK_CREATE ||
+					changeEvent.type === Blockly.Events.BLOCK_CHANGE
 				) {
-					const blockInWorkspace = Blockly.getMainWorkspace().getBlockById(this.id);  // Check if block is in the main workspace
+					const blockInWorkspace =
+						Blockly.getMainWorkspace().getBlockById(this.id); // Check if block is in the main workspace
 
 					if (blockInWorkspace) {
-						window.updateCurrentMeshName(this, "ID_VAR");  // Call the function to update window.currentMesh
+						window.updateCurrentMeshName(this, "ID_VAR"); // Call the function to update window.currentMesh
 					}
 				}
 
@@ -1317,14 +1327,15 @@ export function defineBlocks() {
 			});
 
 			this.setOnChange((changeEvent) => {
-
 				if (
-					(changeEvent.type === Blockly.Events.BLOCK_CREATE || changeEvent.type === Blockly.Events.BLOCK_CHANGE)
+					changeEvent.type === Blockly.Events.BLOCK_CREATE ||
+					changeEvent.type === Blockly.Events.BLOCK_CHANGE
 				) {
-					const blockInWorkspace = Blockly.getMainWorkspace().getBlockById(this.id);  // Check if block is in the main workspace
+					const blockInWorkspace =
+						Blockly.getMainWorkspace().getBlockById(this.id); // Check if block is in the main workspace
 
 					if (blockInWorkspace) {
-						window.updateCurrentMeshName(this, "ID_VAR");  // Call the function to update window.currentMesh
+						window.updateCurrentMeshName(this, "ID_VAR"); // Call the function to update window.currentMesh
 					}
 				}
 				handleBlockCreateEvent(
@@ -1395,12 +1406,14 @@ export function defineBlocks() {
 
 			this.setOnChange((changeEvent) => {
 				if (
-					(changeEvent.type === Blockly.Events.BLOCK_CREATE || changeEvent.type === Blockly.Events.BLOCK_CHANGE)
+					changeEvent.type === Blockly.Events.BLOCK_CREATE ||
+					changeEvent.type === Blockly.Events.BLOCK_CHANGE
 				) {
-					const blockInWorkspace = Blockly.getMainWorkspace().getBlockById(this.id);  // Check if block is in the main workspace
+					const blockInWorkspace =
+						Blockly.getMainWorkspace().getBlockById(this.id); // Check if block is in the main workspace
 
 					if (blockInWorkspace) {
-						window.updateCurrentMeshName(this, "ID_VAR");  // Call the function to update window.currentMesh
+						window.updateCurrentMeshName(this, "ID_VAR"); // Call the function to update window.currentMesh
 					}
 				}
 
@@ -1474,12 +1487,14 @@ export function defineBlocks() {
 
 			this.setOnChange((changeEvent) => {
 				if (
-					(changeEvent.type === Blockly.Events.BLOCK_CREATE || changeEvent.type === Blockly.Events.BLOCK_CHANGE)
+					changeEvent.type === Blockly.Events.BLOCK_CREATE ||
+					changeEvent.type === Blockly.Events.BLOCK_CHANGE
 				) {
-					const blockInWorkspace = Blockly.getMainWorkspace().getBlockById(this.id);  // Check if block is in the main workspace
+					const blockInWorkspace =
+						Blockly.getMainWorkspace().getBlockById(this.id); // Check if block is in the main workspace
 
 					if (blockInWorkspace) {
-						window.updateCurrentMeshName(this, "ID_VAR");  // Call the function to update window.currentMesh
+						window.updateCurrentMeshName(this, "ID_VAR"); // Call the function to update window.currentMesh
 					}
 				}
 
@@ -1560,12 +1575,14 @@ export function defineBlocks() {
 
 			this.setOnChange((changeEvent) => {
 				if (
-					(changeEvent.type === Blockly.Events.BLOCK_CREATE || changeEvent.type === Blockly.Events.BLOCK_CHANGE)
+					changeEvent.type === Blockly.Events.BLOCK_CREATE ||
+					changeEvent.type === Blockly.Events.BLOCK_CHANGE
 				) {
-					const blockInWorkspace = Blockly.getMainWorkspace().getBlockById(this.id);  // Check if block is in the main workspace
+					const blockInWorkspace =
+						Blockly.getMainWorkspace().getBlockById(this.id); // Check if block is in the main workspace
 
 					if (blockInWorkspace) {
-						window.updateCurrentMeshName(this, "ID_VAR");  // Call the function to update window.currentMesh
+						window.updateCurrentMeshName(this, "ID_VAR"); // Call the function to update window.currentMesh
 					}
 				}
 
@@ -3560,12 +3577,40 @@ export function defineBlocks() {
 		init: function () {
 			this.jsonInit({
 				type: "move_sideways",
-				message0: "sideways %1 speed %2",
+				message0: "move sideways %1 speed %2",
 				args0: [
 					{
 						type: "field_variable",
 						name: "MODEL",
-						variable: window.currentMesh,  // Default to currentMesh
+						variable: window.currentMesh,
+					},
+					{
+						type: "input_value",
+						name: "SPEED",
+						check: "Number",
+					},
+				],
+				inputsInline: true,
+				previousStatement: null,
+				nextStatement: null,
+				colour: categoryColours["Motion"],
+				tooltip:
+					"Turns the model and moves it sideways relative to the camera's direction. Positive speed moves right, negative moves left.\nKeyword: move sideways",
+				helpUrl: "",
+			});
+		},
+	};
+
+	Blockly.Blocks["strafe"] = {
+		init: function () {
+			this.jsonInit({
+				type: "strafe",
+				message0: "strafe %1 speed %2",
+				args0: [
+					{
+						type: "field_variable",
+						name: "MODEL",
+						variable: window.currentMesh, // Default to currentMesh
 					},
 					{
 						type: "input_value",
@@ -3600,12 +3645,12 @@ export function defineBlocks() {
 				previousStatement: null,
 				nextStatement: null,
 				colour: categoryColours["Motion"],
-				tooltip: "Rotates the camera left or right by the given degrees.\nKeyword: rotate",
+				tooltip:
+					"Rotates the camera left or right by the given degrees.\nKeyword: rotate",
 				helpUrl: "",
 			});
 		},
 	};
-
 
 	Blockly.Blocks["apply_force"] = {
 		init: function () {

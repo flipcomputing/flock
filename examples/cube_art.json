@@ -108,6 +108,7 @@
 								  "block": {
 									"type": "create_box",
 									"id": ")C}CoPM~GwY.o.DvG%Ec",
+									"extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" has_do=\"false\"></mutation>",
 									"fields": {
 									  "ID_VAR": {
 										"id": "Pey,Q|^^)8*d|Bs229+Q"
@@ -374,7 +375,7 @@
 			  "type": "controls_if",
 			  "id": "eVoYB+S$b[r[O%3v_!(F",
 			  "extraState": {
-				"elseIfCount": 1,
+				"elseIfCount": 3,
 				"hasElse": true
 			  },
 			  "inputs": {
@@ -464,6 +465,58 @@
 					}
 				  }
 				},
+				"IF2": {
+				  "block": {
+					"type": "key_pressed",
+					"id": "^v4Yk)ucvYx,;]!s$W#V",
+					"fields": {
+					  "KEY": "a"
+					}
+				  }
+				},
+				"DO2": {
+				  "block": {
+					"type": "rotate_camera",
+					"id": "0facFiQm8F~P;gw$+W,#",
+					"inputs": {
+					  "DEGREES": {
+						"shadow": {
+						  "type": "math_number",
+						  "id": "fJ^8[6xH5vJ!mGnKjF!o",
+						  "fields": {
+							"NUM": 1
+						  }
+						}
+					  }
+					}
+				  }
+				},
+				"IF3": {
+				  "block": {
+					"type": "key_pressed",
+					"id": "kH:u#:wZ3iKS=%y@)k#z",
+					"fields": {
+					  "KEY": "d"
+					}
+				  }
+				},
+				"DO3": {
+				  "block": {
+					"type": "rotate_camera",
+					"id": "*l^Pgb[DS1qq%mYxM/O!",
+					"inputs": {
+					  "DEGREES": {
+						"shadow": {
+						  "type": "math_number",
+						  "id": "%}QM@QFHh09;/`dQgmaT",
+						  "fields": {
+							"NUM": -1
+						  }
+						}
+					  }
+					}
+				  }
+				},
 				"ELSE": {
 				  "block": {
 					"type": "switch_animation",
@@ -491,6 +544,7 @@
 			"block": {
 			  "type": "load_character",
 			  "id": "Tu,7ioVs!0w8z^PEcbxX",
+			  "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" has_do=\"false\"></mutation>",
 			  "fields": {
 				"MODELS": "Character2.glb",
 				"ID_VAR": {

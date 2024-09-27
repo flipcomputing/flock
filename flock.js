@@ -105,6 +105,7 @@ export const flock = {
 				placeDecal,
 				moveForward,
 				moveSideways,
+				strafe,
 				attachCamera,
 				canvasControls,
 				setPhysics,
@@ -3345,6 +3346,57 @@ export const flock = {
 		model.rotationQuaternion.normalize();
 	},
 	moveSideways(modelName, speed) {
+		const model = flock.scene.getMeshByName(modelName);
+		if (!model || speed === 0) return;
+
+		const sidewaysSpeed = speed;
+
+		// Get the camera's right direction vector (perpendicular to the forward direction)
+		const cameraRight = flock.scene.activeCamera
+			.getForwardRay()
+			.direction.cross(flock.BABYLON.Vector3.Up())
+			.normalize();
+
+		const moveDirection = cameraRight.scale(sidewaysSpeed);
+		const currentVelocity = model.physics.getLinearVelocity();
+
+		// Set linear velocity in the sideways direction
+		model.physics.setLinearVelocity(
+			new flock.BABYLON.Vector3(
+				moveDirection.x,
+				currentVelocity.y,  // Keep Y velocity (no vertical movement)
+				moveDirection.z,
+			),
+		);
+
+		// Rotate the model to face the direction of movement
+		const facingDirection =
+			sidewaysSpeed >= 0
+				? new flock.BABYLON.Vector3(-cameraRight.x, 0, -cameraRight.z).normalize()  // Right
+				: new flock.BABYLON.Vector3(cameraRight.x, 0, cameraRight.z).normalize();   // Left
+
+		const targetRotation = flock.BABYLON.Quaternion.FromLookDirectionLH(
+			facingDirection,
+			flock.BABYLON.Vector3.Up(),
+		);
+
+		const currentRotation = model.rotationQuaternion;
+		const deltaRotation = targetRotation.multiply(
+			currentRotation.conjugate(),
+		);
+		const deltaEuler = deltaRotation.toEulerAngles();
+
+		// Apply angular velocity to smoothly rotate the player
+		model.physics.setAngularVelocity(
+			new flock.BABYLON.Vector3(0, deltaEuler.y * 5, 0),
+		);
+
+		// Normalize the model's rotation to avoid drift
+		model.rotationQuaternion.x = 0;
+		model.rotationQuaternion.z = 0;
+		model.rotationQuaternion.normalize();
+	},
+	strafe(modelName, speed) {
 		const model = flock.scene.getMeshByName(modelName);
 		if (!model || speed === 0) return;
 
