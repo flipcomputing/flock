@@ -20,6 +20,25 @@ import {
 
 let nextVariableIndexes = {};
 
+window.currentMesh = "mesh";
+
+export function handleBlockSelect(event) {
+	if (event.type === Blockly.Events.SELECTED) {
+		const block = Blockly.getMainWorkspace().getBlockById(
+			event.newElementId,
+		); // Get the selected block
+		if (
+			block &&
+			(block.type.startsWith("create_") || block.type.startsWith("load_"))
+		) {
+			// If the block is a create block, update the window.currentMesh variable
+				window.updateCurrentMeshName(block, "ID_VAR");
+
+			console.log(window.currentMesh);
+		}
+	}
+}
+
 export default Blockly.Theme.defineTheme("flock", {
 	base: Blockly.Themes.Modern,
 	componentStyles: {
@@ -264,7 +283,7 @@ export function defineBlocks() {
 					{
 						type: "field_variable",
 						name: "MESH",
-						variable: "mesh",
+						variable: window.currentMesh,
 					},
 				],
 				output: null,
@@ -386,7 +405,7 @@ export function defineBlocks() {
 					{
 						type: "field_variable",
 						name: "MESH_VAR",
-						variable: "mesh1",
+						variable: window.currentMesh,
 					},
 					{
 						type: "input_value",
@@ -463,7 +482,7 @@ export function defineBlocks() {
 					{
 						type: "field_variable",
 						name: "MESH_VAR",
-						variable: "mesh1",
+						variable: window.currentMesh,
 					},
 					{
 						type: "input_value",
@@ -540,7 +559,7 @@ export function defineBlocks() {
 					{
 						type: "field_variable",
 						name: "MESH_VAR",
-						variable: "mesh1",
+						variable: window.currentMesh,
 					},
 					{
 						type: "field_dropdown",
@@ -744,6 +763,16 @@ export function defineBlocks() {
 			});
 
 			this.setOnChange((changeEvent) => {
+				if (
+					(changeEvent.type === Blockly.Events.BLOCK_CREATE || changeEvent.type === Blockly.Events.BLOCK_CHANGE)
+				) {
+					const blockInWorkspace = Blockly.getMainWorkspace().getBlockById(this.id);  // Check if block is in the main workspace
+
+					if (blockInWorkspace) {
+						window.updateCurrentMeshName(this, "ID_VAR");  // Call the function to update window.currentMesh
+					}
+				}
+
 				handleBlockCreateEvent(
 					this,
 					changeEvent,
@@ -757,148 +786,161 @@ export function defineBlocks() {
 	};
 
 	Blockly.Blocks["load_object"] = {
-	  init: function () {
-		const defaultObject = "Star.glb";
-		const defaultColour = objectColours[defaultObject] || "#000000";
-		const variableNamePrefix = "object";
-		let nextVariableName =
-		  variableNamePrefix + nextVariableIndexes[variableNamePrefix];
+		init: function () {
+			const defaultObject = "Star.glb";
+			const defaultColour = objectColours[defaultObject] || "#000000";
+			const variableNamePrefix = "object";
+			let nextVariableName =
+				variableNamePrefix + nextVariableIndexes[variableNamePrefix];
 
-		// Add the main inputs of the block
-		this.jsonInit({
-		  message0: `new %1 %2 %3 scale: %4 x: %5 y: %6 z: %7`,
-		  args0: [
-			{
-			  type: "field_grid_dropdown",
-			  name: "MODELS",
-			  columns: 6,
-			  options: objectNames.map((name) => {
-				const baseName = name.replace(/\.[^/.]+$/, "");
-				return [
-				  {
-					src: `./images/${baseName}.png`,
-					width: 50,
-					height: 50,
-					alt: baseName,
-				  },
-				  name,
-				];
-			  }),
-			},
-			{
-			  type: "field_variable",
-			  name: "ID_VAR",
-			  variable: nextVariableName,
-			},
-			{
-			  type: "input_value",
-			  name: "COLOR",
-			  check: "Colour",
-			},
-			{
-			  type: "input_value",
-			  name: "SCALE",
-			  check: "Number",
-			},
-			{
-			  type: "input_value",
-			  name: "X",
-			  check: "Number",
-			},
-			{
-			  type: "input_value",
-			  name: "Y",
-			  check: "Number",
-			},
-			{
-			  type: "input_value",
-			  name: "Z",
-			  check: "Number",
-			},
-		  ],
-		  inputsInline: true,
-		  colour: categoryColours["Scene"],
-		  tooltip: "Create an object.\nKeyword: object",
-		  helpUrl: "",
-		  previousStatement: null,
-		  nextStatement: null
-		});
+			// Add the main inputs of the block
+			this.jsonInit({
+				message0: `new %1 %2 %3 scale: %4 x: %5 y: %6 z: %7`,
+				args0: [
+					{
+						type: "field_grid_dropdown",
+						name: "MODELS",
+						columns: 6,
+						options: objectNames.map((name) => {
+							const baseName = name.replace(/\.[^/.]+$/, "");
+							return [
+								{
+									src: `./images/${baseName}.png`,
+									width: 50,
+									height: 50,
+									alt: baseName,
+								},
+								name,
+							];
+						}),
+					},
+					{
+						type: "field_variable",
+						name: "ID_VAR",
+						variable: nextVariableName,
+					},
+					{
+						type: "input_value",
+						name: "COLOR",
+						check: "Colour",
+					},
+					{
+						type: "input_value",
+						name: "SCALE",
+						check: "Number",
+					},
+					{
+						type: "input_value",
+						name: "X",
+						check: "Number",
+					},
+					{
+						type: "input_value",
+						name: "Y",
+						check: "Number",
+					},
+					{
+						type: "input_value",
+						name: "Z",
+						check: "Number",
+					},
+				],
+				inputsInline: true,
+				colour: categoryColours["Scene"],
+				tooltip: "Create an object.\nKeyword: object",
+				helpUrl: "",
+				previousStatement: null,
+				nextStatement: null,
+			});
 
-		// Function to update the COLOR field based on the selected model
-		const updateColorField = () => {
-		  const selectedObject = this.getFieldValue("MODELS");
-		  const colour = objectColours[selectedObject] || defaultColour;
-		  const colorInput = this.getInput("COLOR");
-		  const colorField = colorInput.connection.targetBlock();
-		  if (colorField) {
-			colorField.setFieldValue(colour, "COLOR"); // Update COLOR field
-		  }
-		};
+			// Function to update the COLOR field based on the selected model
+			const updateColorField = () => {
+				const selectedObject = this.getFieldValue("MODELS");
+				const colour = objectColours[selectedObject] || defaultColour;
+				const colorInput = this.getInput("COLOR");
+				const colorField = colorInput.connection.targetBlock();
+				if (colorField) {
+					colorField.setFieldValue(colour, "COLOR"); // Update COLOR field
+				}
+			};
 
-		this.setOnChange((changeEvent) => {
-		  handleBlockCreateEvent(
-			this,
-			changeEvent,
-			variableNamePrefix,
-			nextVariableIndexes
-		  );
+			this.setOnChange((changeEvent) => {
+				if (
+					(changeEvent.type === Blockly.Events.BLOCK_CREATE || changeEvent.type === Blockly.Events.BLOCK_CHANGE)
+				) {
+					const blockInWorkspace = Blockly.getMainWorkspace().getBlockById(this.id);  // Check if block is in the main workspace
 
-		  if (window.loadingCode) return;
-		  if (
-			changeEvent.type === Blockly.Events.CHANGE &&
-			changeEvent.element === "field" &&
-			changeEvent.name === "MODELS"
-		  ) {
-			updateColorField();
-		  }
-		});
+					if (blockInWorkspace) {
+						window.updateCurrentMeshName(this, "ID_VAR");  // Call the function to update window.currentMesh
+					}
+				}
 
-		addDoMutatorWithToggleBehavior(this);
-	  }
+				handleBlockCreateEvent(
+					this,
+					changeEvent,
+					variableNamePrefix,
+					nextVariableIndexes,
+				);
+
+				if (window.loadingCode) return;
+				if (
+					changeEvent.type === Blockly.Events.CHANGE &&
+					changeEvent.element === "field" &&
+					changeEvent.name === "MODELS"
+				) {
+					updateColorField();
+				}
+			});
+
+			addDoMutatorWithToggleBehavior(this);
+		},
 	};
 
 	function addDoMutatorWithToggleBehavior(block) {
-	  // Custom function to toggle the "do" block mutation
-	  block.toggleDoBlock = function () {
-		const hasDo = this.getInput('DO') ? true : false;
-		if (hasDo) {
-		  this.removeInput('DO');
-		} else {
-		  this.appendStatementInput('DO')
-			  .setCheck(null)
-			  .appendField("then do");
-		}
-	  };
+		// Custom function to toggle the "do" block mutation
+		block.toggleDoBlock = function () {
+			const hasDo = this.getInput("DO") ? true : false;
+			if (hasDo) {
+				this.removeInput("DO");
+			} else {
+				this.appendStatementInput("DO")
+					.setCheck(null)
+					.appendField("then do");
+			}
+		};
 
-	  // Add the toggle button to the block
-	  const toggleButton = new Blockly.FieldImage(
-		   'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAiIGhlaWdodD0iMzAiIHZpZXdCb3g9IjAgMCAzMCAzMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4gPHBhdGggZmlsbD0id2hpdGUiIGQ9Ik0xNSA2djloLTl2M2g5djloM3YtOWg5di0zaC05di05eiIvPjwvc3ZnPg==', // Custom icon
-		30, 30, '*',  // Width, Height, Alt text
-		block.toggleDoBlock.bind(block)  // Bind the event handler to the block
-	  );
+		// Add the toggle button to the block
+		const toggleButton = new Blockly.FieldImage(
+			"data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAiIGhlaWdodD0iMzAiIHZpZXdCb3g9IjAgMCAzMCAzMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4gPHBhdGggZmlsbD0id2hpdGUiIGQ9Ik0xNSA2djloLTl2M2g5djloM3YtOWg5di0zaC05di05eiIvPjwvc3ZnPg==", // Custom icon
+			30,
+			30,
+			"*", // Width, Height, Alt text
+			block.toggleDoBlock.bind(block), // Bind the event handler to the block
+		);
 
-	  // Add the button to the block
-	  block.appendDummyInput()
-		.appendField(toggleButton, "TOGGLE_BUTTON");
+		// Add the button to the block
+		block.appendDummyInput().appendField(toggleButton, "TOGGLE_BUTTON");
 
-	  // Save the mutation state
-	  block.mutationToDom = function () {
-		const container = document.createElement('mutation');
-		container.setAttribute('has_do', this.getInput('DO') ? 'true' : 'false');
-		return container;
-	  };
+		// Save the mutation state
+		block.mutationToDom = function () {
+			const container = document.createElement("mutation");
+			container.setAttribute(
+				"has_do",
+				this.getInput("DO") ? "true" : "false",
+			);
+			return container;
+		};
 
-	  // Restore the mutation state
-	  block.domToMutation = function (xmlElement) {
-		const hasDo = xmlElement.getAttribute('has_do') === 'true';
-		if (hasDo) {
-		  this.appendStatementInput('DO')
-			.setCheck(null)
-			.appendField("then do");
-		}
-	  };
+		// Restore the mutation state
+		block.domToMutation = function (xmlElement) {
+			const hasDo = xmlElement.getAttribute("has_do") === "true";
+			if (hasDo) {
+				this.appendStatementInput("DO")
+					.setCheck(null)
+					.appendField("then do");
+			}
+		};
 	}
-
 
 	Blockly.Blocks["load_model"] = {
 		init: function () {
@@ -961,6 +1003,16 @@ export function defineBlocks() {
 			});
 
 			this.setOnChange((changeEvent) => {
+				if (
+					(changeEvent.type === Blockly.Events.BLOCK_CREATE || changeEvent.type === Blockly.Events.BLOCK_CHANGE)
+				) {
+					const blockInWorkspace = Blockly.getMainWorkspace().getBlockById(this.id);  // Check if block is in the main workspace
+
+					if (blockInWorkspace) {
+						window.updateCurrentMeshName(this, "ID_VAR");  // Call the function to update window.currentMesh
+					}
+				}
+
 				handleBlockCreateEvent(
 					this,
 					changeEvent,
@@ -1026,6 +1078,16 @@ export function defineBlocks() {
 		}
 	}
 
+	function updateCurrentMeshName(block, variableFieldName) {
+		const variableName = block.getField(variableFieldName).getText(); // Get the selected variable name
+
+		if (variableName) {
+			window.currentMesh = variableName; // Set window.currentMesh to the variable name
+		}
+	}
+
+	window.updateCurrentMeshName = updateCurrentMeshName;
+
 	Blockly.Blocks["create_box"] = {
 		init: function () {
 			const variableNamePrefix = "box";
@@ -1088,6 +1150,16 @@ export function defineBlocks() {
 			});
 
 			this.setOnChange((changeEvent) => {
+				if (
+					(changeEvent.type === Blockly.Events.BLOCK_CREATE || changeEvent.type === Blockly.Events.BLOCK_CHANGE)
+				) {
+					const blockInWorkspace = Blockly.getMainWorkspace().getBlockById(this.id);  // Check if block is in the main workspace
+
+					if (blockInWorkspace) {
+						window.updateCurrentMeshName(this, "ID_VAR");  // Call the function to update window.currentMesh
+					}
+				}
+
 				handleBlockCreateEvent(
 					this,
 					changeEvent,
@@ -1162,6 +1234,16 @@ export function defineBlocks() {
 			});
 
 			this.setOnChange((changeEvent) => {
+				if (
+					(changeEvent.type === Blockly.Events.BLOCK_CREATE || changeEvent.type === Blockly.Events.BLOCK_CHANGE)
+				) {
+					const blockInWorkspace = Blockly.getMainWorkspace().getBlockById(this.id);  // Check if block is in the main workspace
+
+					if (blockInWorkspace) {
+						window.updateCurrentMeshName(this, "ID_VAR");  // Call the function to update window.currentMesh
+					}
+				}
+
 				handleBlockCreateEvent(
 					this,
 					changeEvent,
@@ -1171,7 +1253,7 @@ export function defineBlocks() {
 			});
 
 			addDoMutatorWithToggleBehavior(this);
-		},	
+		},
 	};
 
 	Blockly.Blocks["create_cylinder"] = {
@@ -1235,6 +1317,16 @@ export function defineBlocks() {
 			});
 
 			this.setOnChange((changeEvent) => {
+
+				if (
+					(changeEvent.type === Blockly.Events.BLOCK_CREATE || changeEvent.type === Blockly.Events.BLOCK_CHANGE)
+				) {
+					const blockInWorkspace = Blockly.getMainWorkspace().getBlockById(this.id);  // Check if block is in the main workspace
+
+					if (blockInWorkspace) {
+						window.updateCurrentMeshName(this, "ID_VAR");  // Call the function to update window.currentMesh
+					}
+				}
 				handleBlockCreateEvent(
 					this,
 					changeEvent,
@@ -1302,6 +1394,17 @@ export function defineBlocks() {
 			});
 
 			this.setOnChange((changeEvent) => {
+				if (
+					(changeEvent.type === Blockly.Events.BLOCK_CREATE || changeEvent.type === Blockly.Events.BLOCK_CHANGE)
+				) {
+					const blockInWorkspace = Blockly.getMainWorkspace().getBlockById(this.id);  // Check if block is in the main workspace
+
+					if (blockInWorkspace) {
+						console.log("Workspace");
+						window.updateCurrentMeshName(this, "ID_VAR");  // Call the function to update window.currentMesh
+					}
+				}
+
 				handleBlockCreateEvent(
 					this,
 					changeEvent,
@@ -1371,6 +1474,16 @@ export function defineBlocks() {
 			});
 
 			this.setOnChange((changeEvent) => {
+				if (
+					(changeEvent.type === Blockly.Events.BLOCK_CREATE || changeEvent.type === Blockly.Events.BLOCK_CHANGE)
+				) {
+					const blockInWorkspace = Blockly.getMainWorkspace().getBlockById(this.id);  // Check if block is in the main workspace
+
+					if (blockInWorkspace) {
+						window.updateCurrentMeshName(this, "ID_VAR");  // Call the function to update window.currentMesh
+					}
+				}
+
 				handleBlockCreateEvent(
 					this,
 					changeEvent,
@@ -1447,6 +1560,16 @@ export function defineBlocks() {
 			});
 
 			this.setOnChange((changeEvent) => {
+				if (
+					(changeEvent.type === Blockly.Events.BLOCK_CREATE || changeEvent.type === Blockly.Events.BLOCK_CHANGE)
+				) {
+					const blockInWorkspace = Blockly.getMainWorkspace().getBlockById(this.id);  // Check if block is in the main workspace
+
+					if (blockInWorkspace) {
+						window.updateCurrentMeshName(this, "ID_VAR");  // Call the function to update window.currentMesh
+					}
+				}
+
 				handleBlockCreateEvent(
 					this,
 					changeEvent,
@@ -1533,7 +1656,7 @@ export function defineBlocks() {
 					{
 						type: "field_variable",
 						name: "MESH_VAR",
-						variable: "mesh",
+						variable: window.currentMesh,
 					},
 					{
 						type: "input_value",
@@ -1594,7 +1717,7 @@ export function defineBlocks() {
 					{
 						type: "field_variable",
 						name: "MODEL",
-						variable: "mesh",
+						variable: window.currentMesh,
 					},
 					{
 						type: "field_dropdown",
@@ -1706,7 +1829,7 @@ export function defineBlocks() {
 					{
 						type: "field_variable",
 						name: "MODEL",
-						variable: "mesh",
+						variable: window.currentMesh,
 					},
 				],
 				previousStatement: null,
@@ -1728,7 +1851,7 @@ export function defineBlocks() {
 					{
 						type: "field_variable",
 						name: "BLOCK_NAME",
-						variable: "mesh",
+						variable: window.currentMesh,
 					},
 					{
 						type: "input_value",
@@ -1773,7 +1896,7 @@ export function defineBlocks() {
 					{
 						type: "field_variable",
 						name: "CHILD_MESH",
-						variable: "childMesh",
+						variable: window.currentMesh,
 					},
 					{
 						type: "input_value",
@@ -1813,7 +1936,7 @@ export function defineBlocks() {
 					{
 						type: "field_variable",
 						name: "CHILD_MESH",
-						variable: "childMesh",
+						variable: window.currentMesh,
 					},
 				],
 				previousStatement: null,
@@ -1834,7 +1957,7 @@ export function defineBlocks() {
 					{
 						type: "field_variable",
 						name: "BLOCK_NAME",
-						variable: "mesh",
+						variable: window.currentMesh,
 					},
 					{
 						type: "input_value",
@@ -1904,7 +2027,7 @@ export function defineBlocks() {
 					{
 						type: "field_variable",
 						name: "MODEL",
-						variable: "mesh",
+						variable: window.currentMesh,
 					},
 					{
 						type: "input_value",
@@ -1945,7 +2068,7 @@ export function defineBlocks() {
 					{
 						type: "field_variable",
 						name: "MODEL1",
-						variable: "mesh1",
+						variable: window.currentMesh,
 					},
 					{
 						type: "field_variable",
@@ -1979,7 +2102,7 @@ export function defineBlocks() {
 					{
 						type: "field_variable",
 						name: "MODEL1",
-						variable: "mesh1",
+						variable: window.currentMesh,
 					},
 					{
 						type: "field_variable",
@@ -2013,7 +2136,7 @@ export function defineBlocks() {
 					{
 						type: "field_variable",
 						name: "MODEL",
-						variable: "mesh",
+						variable: window.currentMesh,
 					},
 					{
 						type: "input_value",
@@ -2053,7 +2176,7 @@ export function defineBlocks() {
 					{
 						type: "field_variable",
 						name: "MODEL",
-						variable: "mesh",
+						variable: window.currentMesh,
 					},
 					{
 						type: "input_value",
@@ -2115,7 +2238,7 @@ export function defineBlocks() {
 					{
 						type: "field_variable",
 						name: "MODEL1",
-						variable: "mesh1",
+						variable: window.currentMesh,
 					},
 					{
 						type: "field_variable",
@@ -2338,12 +2461,13 @@ export function defineBlocks() {
 		init: function () {
 			this.jsonInit({
 				type: "play_notes",
-				message0: "play notes on %1\nnotes %2\ndurations %3\ninstrument %4 mode %5",
+				message0:
+					"play notes on %1\nnotes %2\ndurations %3\ninstrument %4 mode %5",
 				args0: [
 					{
 						type: "field_variable",
 						name: "MESH",
-						variable: "mesh",
+						variable: window.currentMesh,
 					},
 					{
 						type: "input_value",
@@ -2411,7 +2535,7 @@ export function defineBlocks() {
 					{
 						type: "field_variable",
 						name: "MESH",
-						variable: "mesh",
+						variable: window.currentMesh,
 					},
 					{
 						type: "input_value",
@@ -2428,7 +2552,6 @@ export function defineBlocks() {
 			});
 		},
 	};
-
 
 	Blockly.Blocks["create_instrument"] = {
 		init: function () {
@@ -2569,7 +2692,7 @@ export function defineBlocks() {
 					{
 						type: "field_variable",
 						name: "MODEL_VAR",
-						variable: "mesh", // Default variable name
+						variable: window.currentMesh,
 					},
 					{
 						type: "field_dropdown",
@@ -2616,7 +2739,7 @@ export function defineBlocks() {
 					{
 						type: "field_variable",
 						name: "MODEL_VAR",
-						variable: "mesh1",
+						variable: window.currentMesh,
 					},
 					{
 						type: "field_dropdown",
@@ -2873,7 +2996,7 @@ export function defineBlocks() {
 					{
 						type: "field_variable",
 						name: "MODEL_VAR",
-						variable: "mesh",
+						variable: window.currentMesh,
 					},
 				],
 				previousStatement: null,
@@ -2894,7 +3017,7 @@ export function defineBlocks() {
 					{
 						type: "field_variable",
 						name: "MODEL_VAR",
-						variable: "mesh",
+						variable: window.currentMesh,
 					},
 				],
 				previousStatement: null,
@@ -2915,7 +3038,7 @@ export function defineBlocks() {
 					{
 						type: "field_variable",
 						name: "MODEL_VAR",
-						variable: "mesh",
+						variable: window.currentMesh,
 					},
 					{
 						type: "input_value",
@@ -2959,7 +3082,7 @@ export function defineBlocks() {
 					{
 						type: "field_variable",
 						name: "ID_VAR",
-						variable: "mesh",
+						variable: window.currentMesh,
 					},
 					{
 						type: "input_value",
@@ -3067,7 +3190,7 @@ export function defineBlocks() {
 					{
 						type: "field_variable",
 						name: "MESH",
-						variable: "mesh",
+						variable: window.currentMesh,
 					},
 					{
 						type: "input_value",
@@ -3139,7 +3262,7 @@ export function defineBlocks() {
 					{
 						type: "field_variable",
 						name: "MODEL_VAR",
-						variable: "mesh", // Default variable name, ensure it's defined in your environment
+						variable: window.currentMesh,
 					},
 					{
 						type: "input_value",
@@ -3167,7 +3290,7 @@ export function defineBlocks() {
 					{
 						type: "field_variable",
 						name: "MODEL_VAR",
-						variable: "mesh",
+						variable: window.currentMesh,
 					},
 					{
 						type: "input_value",
@@ -3195,7 +3318,7 @@ export function defineBlocks() {
 					{
 						type: "field_variable",
 						name: "MODEL_VAR",
-						variable: "mesh",
+						variable: window.currentMesh,
 					},
 					{
 						type: "input_value",
@@ -3223,7 +3346,7 @@ export function defineBlocks() {
 					{
 						type: "field_variable",
 						name: "MESH",
-						variable: "mesh",
+						variable: window.currentMesh,
 					},
 					{
 						type: "input_value",
@@ -3251,7 +3374,7 @@ export function defineBlocks() {
 					{
 						type: "field_variable",
 						name: "MODEL_VAR",
-						variable: "mesh",
+						variable: window.currentMesh,
 					},
 				],
 				inputsInline: true,
@@ -3274,7 +3397,7 @@ export function defineBlocks() {
 					{
 						type: "field_variable",
 						name: "MESH_VAR",
-						variable: "mesh1",
+						variable: window.currentMesh,
 					},
 					{
 						type: "input_value",
@@ -3301,7 +3424,7 @@ export function defineBlocks() {
 					{
 						type: "field_variable",
 						name: "MODEL_VAR",
-						variable: "mesh",
+						variable: window.currentMesh,
 					},
 					{
 						type: "field_dropdown",
@@ -3334,7 +3457,7 @@ export function defineBlocks() {
 					{
 						type: "field_variable",
 						name: "MODEL_VAR",
-						variable: "mesh", // Default variable name "mesh"
+						variable: window.currentMesh,
 					},
 				],
 				inputsInline: true,
@@ -3389,7 +3512,7 @@ export function defineBlocks() {
 					{
 						type: "field_variable",
 						name: "MESH1",
-						variable: "mesh1",
+						variable: window.currentMesh,
 					},
 					{
 						type: "field_variable",
@@ -3415,7 +3538,7 @@ export function defineBlocks() {
 					{
 						type: "field_variable",
 						name: "MODEL",
-						variable: "mesh",
+						variable: window.currentMesh,
 					},
 					{
 						type: "input_value",
@@ -3443,7 +3566,7 @@ export function defineBlocks() {
 					{
 						type: "field_variable",
 						name: "MESH_VAR",
-						variable: "mesh",
+						variable: window.currentMesh,
 					},
 					{
 						type: "input_value",
@@ -3484,7 +3607,7 @@ export function defineBlocks() {
 					{
 						type: "field_variable",
 						name: "MODEL_VAR",
-						variable: "mesh",
+						variable: window.currentMesh,
 					},
 					{
 						type: "input_value",
@@ -3510,7 +3633,7 @@ export function defineBlocks() {
 					{
 						type: "field_variable",
 						name: "MODEL_VAR",
-						variable: "mesh",
+						variable: window.currentMesh,
 					},
 				],
 				output: "Boolean",
@@ -3750,7 +3873,7 @@ export function defineBlocks() {
 					{
 						type: "field_variable",
 						name: "MESH",
-						variable: "mesh",
+						variable: window.currentMesh,
 					},
 					{
 						type: "input_value",
@@ -3955,7 +4078,7 @@ Blockly.Blocks["export_mesh"] = {
 				{
 					type: "field_variable",
 					name: "MESH_VAR",
-					variable: "mesh",
+					variable: window.currentMesh,
 				},
 				{
 					type: "field_dropdown",

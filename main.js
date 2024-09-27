@@ -17,8 +17,9 @@ import {
 	objectNames,
 	characterNames,
 	objectColours,
+	
 } from "./config.js";
-import { options, defineBlocks, initializeVariableIndexes } from "./blocks";
+import { options, defineBlocks, initializeVariableIndexes, handleBlockSelect} from "./blocks";
 import { defineGenerators, meshMap } from "./generators";
 
 if (navigator.serviceWorker) {
@@ -1719,6 +1720,8 @@ window.onload = function () {
 
 	workspace = Blockly.inject("blocklyDiv", options);
 	registerFieldColour();
+
+	workspace.addChangeListener(handleBlockSelect);
 
 	// Resize Blockly workspace and Babylon.js canvas when the window is resized
 	window.addEventListener("resize", onResize);
