@@ -392,7 +392,9 @@ export function defineGenerators() {
 		const boxId = `box_${generateUUID()}`;
 		meshMap[boxId] = block;
 
-		return `${variableName} = newBox(${color}, ${width}, ${height}, ${depth}, ${posX}, ${posY}, ${posZ}, "${boxId}");\n`;
+		const doCode = block.getInput("DO") ? javascriptGenerator.statementToCode(block, "DO") || "" : "";
+
+		return `${variableName} = newBox(${color}, ${width}, ${height}, ${depth}, ${posX}, ${posY}, ${posZ}, "${boxId}");\n${doCode}\n`;
 	};
 
 	javascriptGenerator.forBlock["create_sphere"] = function (block) {
@@ -412,7 +414,9 @@ export function defineGenerators() {
 		const sphereId = `sphere_${generateUUID()}`;
 		meshMap[sphereId] = block;
 
-		return `${variableName} = newSphere(${color}, ${diameterX}, ${diameterY}, ${diameterZ}, ${posX}, ${posY}, ${posZ}, "${sphereId}");\n`;
+		const doCode = block.getInput("DO") ? javascriptGenerator.statementToCode(block, "DO") || "" : "";
+
+		return `${variableName} = newSphere(${color}, ${diameterX}, ${diameterY}, ${diameterZ}, ${posX}, ${posY}, ${posZ}, "${sphereId}");\n${doCode}\n`;
 	};
 
 	javascriptGenerator.forBlock["create_cylinder"] = function (block) {
@@ -432,7 +436,9 @@ export function defineGenerators() {
 		const cylinderId = `cylinder_${generateUUID()}`;
 		meshMap[cylinderId] = block;
 
-		return `${variableName} = newCylinder(${color}, ${height}, ${diameterTop}, ${diameterBottom}, ${posX}, ${posY}, ${posZ}, "${cylinderId}");\n`;
+		const doCode = block.getInput("DO") ? javascriptGenerator.statementToCode(block, "DO") || "" : "";
+
+		return `${variableName} = newCylinder(${color}, ${height}, ${diameterTop}, ${diameterBottom}, ${posX}, ${posY}, ${posZ}, "${cylinderId}");\n${doCode}\n`;
 	};
 
 	javascriptGenerator.forBlock["create_capsule"] = function (block) {
@@ -451,7 +457,9 @@ export function defineGenerators() {
 		const capsuleId = `capsule_${generateUUID()}`;
 		meshMap[capsuleId] = block;
 
-		return `${variableName} = newCapsule(${color}, ${radius}, ${height}, ${posX}, ${posY}, ${posZ}, "${capsuleId}");\n`;
+		const doCode = block.getInput("DO") ? javascriptGenerator.statementToCode(block, "DO") || "" : "";
+	
+		return `${variableName} = newCapsule(${color}, ${radius}, ${height}, ${posX}, ${posY}, ${posZ}, "${capsuleId}");\n${doCode}\n`;
 	};
 
 	javascriptGenerator.forBlock["create_plane"] = function (block) {

@@ -1095,6 +1095,8 @@ export function defineBlocks() {
 					nextVariableIndexes,
 				);
 			});
+
+			addDoMutatorWithToggleBehavior(this);
 		},
 	};
 
@@ -1167,7 +1169,9 @@ export function defineBlocks() {
 					nextVariableIndexes,
 				);
 			});
-		},
+
+			addDoMutatorWithToggleBehavior(this);
+		},	
 	};
 
 	Blockly.Blocks["create_cylinder"] = {
@@ -1238,6 +1242,8 @@ export function defineBlocks() {
 					nextVariableIndexes,
 				);
 			});
+
+			addDoMutatorWithToggleBehavior(this);
 		},
 	};
 	Blockly.Blocks["create_capsule"] = {
@@ -1303,6 +1309,8 @@ export function defineBlocks() {
 					nextVariableIndexes,
 				);
 			});
+
+			addDoMutatorWithToggleBehavior(this);
 		},
 	};
 

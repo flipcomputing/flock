@@ -840,7 +840,6 @@ export const flock = {
 				boxBody.setLinearDamping(0);
 				bb.physics = boxBody;
 
-				// Call the callback after everything is set up
 				if (typeof callback === "function") {
 					callback(); // Execute the "do" code
 				}
@@ -1333,7 +1332,7 @@ export const flock = {
 		posX,
 		posY,
 		posZ,
-		sphereId,
+		sphereId
 	) {
 		const newSphere = flock.BABYLON.MeshBuilder.CreateSphere(
 			sphereId,
@@ -1386,7 +1385,6 @@ export const flock = {
 		posY,
 		posZ,
 		cylinderId,
-		sides = 24, // Default number of sides
 	) {
 		const newCylinder = flock.BABYLON.MeshBuilder.CreateCylinder(
 			cylinderId,
@@ -1394,7 +1392,7 @@ export const flock = {
 				height: height,
 				diameterTop: diameterTop,
 				diameterBottom: diameterBottom,
-				tessellation: sides,
+				tessellation: 24,
 			},
 			flock.scene,
 		);
@@ -1443,7 +1441,7 @@ export const flock = {
 		posX,
 		posY,
 		posZ,
-		capsuleId,
+		capsuleId
 	) {
 		const newCapsule = flock.BABYLON.MeshBuilder.CreateCapsule(
 			capsuleId,
@@ -2082,6 +2080,7 @@ export const flock = {
 	},
 	rotateTo(meshName, x, y, z) {
 		return flock.whenModelReady(meshName, (mesh) => {
+			
 			if (mesh.physics) {
 				if (
 					mesh.physics.getMotionType() !==
