@@ -1296,7 +1296,15 @@ function highlightBlockById(workspace, block) {
 }
 
 function focusCameraOnMesh() {
-	const mesh = gizmoManager.attachedMesh; // The target mesh you want the player to view
+	let mesh = gizmoManager.attachedMesh;
+	if (!mesh && window.currentMesh)
+	{
+		console.log("currentMesh", window.currentMesh, window.currentBlock);
+		
+		//console.log("blockId", blockId, meshMap);
+		mesh = flock.scene.getMeshByName(Object.keys(meshMap).find(key => meshMap[key] === window.currentBlock));
+	}
+	
 	if (!mesh) return;
 
 	const boundingInfo = mesh.getBoundingInfo();

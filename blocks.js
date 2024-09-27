@@ -21,6 +21,7 @@ import {
 let nextVariableIndexes = {};
 
 window.currentMesh = "mesh";
+window.currentBlock = null;
 
 export function handleBlockSelect(event) {
 	if (event.type === Blockly.Events.SELECTED) {
@@ -1080,7 +1081,8 @@ export function defineBlocks() {
 		const variableName = block.getField(variableFieldName).getText(); // Get the selected variable name
 
 		if (variableName) {
-			window.currentMesh = variableName; // Set window.currentMesh to the variable name
+			window.currentMesh = variableName; 
+			window.currentBlock = block;
 		}
 	}
 
@@ -1398,7 +1400,6 @@ export function defineBlocks() {
 					const blockInWorkspace = Blockly.getMainWorkspace().getBlockById(this.id);  // Check if block is in the main workspace
 
 					if (blockInWorkspace) {
-						console.log("Workspace");
 						window.updateCurrentMeshName(this, "ID_VAR");  // Call the function to update window.currentMesh
 					}
 				}
