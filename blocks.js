@@ -29,7 +29,7 @@ export function handleBlockSelect(event) {
 			event.newElementId,
 		); // Get the selected block
 		if (
-			block &&
+			block && block.type !== "create_ground" &&
 			(block.type.startsWith("create_") || block.type.startsWith("load_"))
 		) {
 			// If the block is a create block, update the window.currentMesh variable

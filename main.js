@@ -1334,12 +1334,12 @@ function focusCameraOnMesh() {
 	if (!mesh && window.currentMesh) {
 		console.log("currentMesh", window.currentMesh, window.currentBlock);
 
-		//console.log("blockId", blockId, meshMap);
-		mesh = flock.scene.getMeshByName(
+		const blockKey = 
 			Object.keys(meshMap).find(
-				(key) => meshMap[key] === window.currentBlock,
-			),
-		);
+				(key) => meshMap[key] === window.currentBlock);
+
+		mesh = flock.scene.meshes.find(mesh => mesh.blockKey === blockKey);
+				
 	}
 
 	if (!mesh) return;
