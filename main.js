@@ -1719,43 +1719,52 @@ function toggleMenu() {
 window.toggleMenu = toggleMenu;
 
 document.addEventListener("DOMContentLoaded", () => {
-	const requestFullscreen = () => {
-		const elem = document.documentElement;
+  const requestFullscreen = () => {
+	const elem = document.documentElement;
 
-		if (elem.requestFullscreen) {
-			elem.requestFullscreen();
-		} else if (elem.mozRequestFullScreen) {
-			// Firefox
-			elem.mozRequestFullScreen();
-		} else if (elem.webkitRequestFullscreen) {
-			// Chrome, Safari and Opera
-			elem.webkitRequestFullscreen();
-		} else if (elem.msRequestFullscreen) {
-			// IE/Edge
-			elem.msRequestFullscreen();
-		}
-	};
-
-	function isMobile() {
-		return /Mobi|Android/i.test(navigator.userAgent);
+	if (elem.requestFullscreen) {
+	  elem.requestFullscreen();
+	} else if (elem.mozRequestFullScreen) {
+	  // Firefox
+	  elem.mozRequestFullScreen();
+	} else if (elem.webkitRequestFullscreen) {
+	  // Chrome, Safari, and Opera
+	  elem.webkitRequestFullscreen();
+	} else if (elem.msRequestFullscreen) {
+	  // IE/Edge
+	  elem.msRequestFullscreen();
 	}
+  };
 
-	// Only trigger fullscreen if on a mobile device
-	if (isMobile()) {
-		if (
-			document.fullscreenEnabled ||
-			document.webkitFullscreenEnabled ||
-			document.mozFullScreenEnabled ||
-			document.msFullscreenEnabled
-		) {
-			requestFullscreen();
-		}
-		const examples = document.getElementById("exampleSelect");
-		examples.style.width = "55px";
-		const projectName = document.getElementById("projectName");
-		projectName.style.width = "80px";
+  const isMobile = () => {
+	return /Mobi|Android/i.test(navigator.userAgent);
+  };
+
+  const isStandalone = window.matchMedia("(display-mode: standalone)").matches;
+
+  // Request fullscreen on mobile only when running as a PWA
+  if (isMobile() && isStandalone) {
+	if (
+	  document.fullscreenEnabled ||
+	  document.webkitFullscreenEnabled ||
+	  document.mozFullScreenEnabled ||
+	  document.msFullscreenEnabled
+	) {
+	  requestFullscreen();
 	}
+  }
+
+  // Additional adjustments for mobile UI in fullscreen mode
+  const examples = document.getElementById("exampleSelect");
+  if (examples) {
+	examples.style.width = "55px";
+  }
+  const projectName = document.getElementById("projectName");
+  if (projectName) {
+	projectName.style.width = "80px";
+  }
 });
+
 
 // Function to be called once the app has fully loaded
 function initializeApp() {
