@@ -83,6 +83,7 @@ export const flock = {
 				positionAt,
 				distanceTo,
 				wait,
+				safeLoop,
 				waitUntil,
 				show,
 				hide,
@@ -1091,12 +1092,14 @@ export const flock = {
 		return new Promise((resolve, reject) => {
 			const timeoutId = setTimeout(resolve, duration);
 
-			// Listen for the abort signal to cancel the wait
 			flock.abortController.signal.addEventListener("abort", () => {
 				clearTimeout(timeoutId); // Clear the timeout if aborted
 				reject(new Error("Wait aborted"));
 			});
 		});
+	},
+	safeLoop(){
+		requestAnimationFrame(() => {});
 	},
 	waitUntil(conditionFunc) {
 		return new Promise((resolve, reject) => {
