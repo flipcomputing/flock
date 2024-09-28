@@ -17,9 +17,13 @@ import {
 	objectNames,
 	characterNames,
 	objectColours,
-	
 } from "./config.js";
-import { options, defineBlocks, initializeVariableIndexes, handleBlockSelect} from "./blocks";
+import {
+	options,
+	defineBlocks,
+	initializeVariableIndexes,
+	handleBlockSelect,
+} from "./blocks";
 import { defineGenerators, meshMap } from "./generators";
 
 if (navigator.serviceWorker) {
@@ -110,7 +114,6 @@ let toolboxVisible = false;
 
 function executeCode() {
 	if (flock.engineReady) {
-		
 		// Check if the debug layer is visible
 		const debugLayerVisible = flock.scene.debugLayer.isVisible();
 
@@ -121,16 +124,13 @@ function executeCode() {
 			flock.scene.debugLayer.show();
 		}
 
-
 		gizmoManager = new flock.BABYLON.GizmoManager(flock.scene, 8);
 
 		const code = javascriptGenerator.workspaceToCode(workspace);
 		try {
 			console.log(code);
-			//new Function(`(async () => { ${code} })()`)();
 			runCode(code);
-			
-			//document.getElementById("renderCanvas").focus();
+document.getElementById("renderCanvas").focus();
 		} catch (error) {
 			console.error("Error executing Blockly code:", error);
 		}
@@ -856,7 +856,9 @@ function toggleGizmo(gizmoType) {
 	gizmoManager.rotationGizmoEnabled = false;
 	gizmoManager.scaleGizmoEnabled = false;
 	gizmoManager.boundingBoxGizmoEnabled = false;
-	gizmoManager.attachableMeshes = flock.scene.meshes.filter(s => s.name !== "ground");
+	gizmoManager.attachableMeshes = flock.scene.meshes.filter(
+		(s) => s.name !== "ground",
+	);
 
 	// Enable the selected gizmo
 	switch (gizmoType) {
@@ -949,7 +951,7 @@ function toggleGizmo(gizmoType) {
 					const mesh = gizmoManager.attachedMesh;
 					const motionType = mesh.physics.getMotionType();
 					mesh.savedMotionType = motionType;
-					
+
 					if (
 						mesh.physics &&
 						mesh.physics.getMotionType() !=
@@ -1080,11 +1082,12 @@ function toggleGizmo(gizmoType) {
 						let currentBlock = statementConnection.targetBlock();
 						while (currentBlock) {
 							if (currentBlock.type === "rotate_to") {
-								const modelField = currentBlock.getFieldValue('MODEL');
+								const modelField =
+									currentBlock.getFieldValue("MODEL");
 								if (modelField === modelVariable) {
-								  rotateBlock = currentBlock;
-								  break;
-								}							
+									rotateBlock = currentBlock;
+									break;
+								}
 							}
 							currentBlock = currentBlock.getNextBlock();
 						}
@@ -1093,7 +1096,7 @@ function toggleGizmo(gizmoType) {
 					// Create a new 'rotate_to' block if it doesn't exist
 					if (!rotateBlock) {
 						rotateBlock = workspace.newBlock("rotate_to");
-						rotateBlock.setFieldValue(modelVariable, 'MODEL');
+						rotateBlock.setFieldValue(modelVariable, "MODEL");
 						rotateBlock.initSvg();
 						rotateBlock.render();
 
@@ -1120,68 +1123,83 @@ function toggleGizmo(gizmoType) {
 					function getEulerAnglesFromQuaternion(quaternion) {
 						const euler = quaternion.toEulerAngles(); // Converts quaternion to Euler angles
 						return {
-						  x: Math.round(euler.x * (180 / Math.PI) * 10) / 10,
-						  y: Math.round(euler.y * (180 / Math.PI) * 10) / 10,
-						  z: Math.round(euler.z * (180 / Math.PI) * 10) / 10,
+							x: Math.round(euler.x * (180 / Math.PI) * 10) / 10,
+							y: Math.round(euler.y * (180 / Math.PI) * 10) / 10,
+							z: Math.round(euler.z * (180 / Math.PI) * 10) / 10,
 						};
-					  }
+					}
 
-					  // Get the correct rotation values, checking for quaternion
-					  let rotationX = 0, rotationY = 0, rotationZ = 0;
-					  if (mesh.rotationQuaternion) {
+					// Get the correct rotation values, checking for quaternion
+					let rotationX = 0,
+						rotationY = 0,
+						rotationZ = 0;
+					if (mesh.rotationQuaternion) {
 						// If using quaternion, convert it to Euler angles
-						const rotation = getEulerAnglesFromQuaternion(mesh.rotationQuaternion);
+						const rotation = getEulerAnglesFromQuaternion(
+							mesh.rotationQuaternion,
+						);
 						rotationX = rotation.x;
 						rotationY = rotation.y;
 						rotationZ = rotation.z;
-					  } else {
+					} else {
 						// If using standard Euler rotation
-						rotationX = Math.round(mesh.rotation.x * (180 / Math.PI) * 10) / 10;
-						rotationY = Math.round(mesh.rotation.y * (180 / Math.PI) * 10) / 10;
-						rotationZ = Math.round(mesh.rotation.z * (180 / Math.PI) * 10) / 10;
-					  }
+						rotationX =
+							Math.round(mesh.rotation.x * (180 / Math.PI) * 10) /
+							10;
+						rotationY =
+							Math.round(mesh.rotation.y * (180 / Math.PI) * 10) /
+							10;
+						rotationZ =
+							Math.round(mesh.rotation.z * (180 / Math.PI) * 10) /
+							10;
+					}
 
-					  // Helper to update the value of the connected block or shadow block
-					  function setRotationValue(inputName, value) {
+					// Helper to update the value of the connected block or shadow block
+					function setRotationValue(inputName, value) {
 						const input = rotateBlock.getInput(inputName);
 						const connectedBlock = input.connection.targetBlock();
 
 						if (connectedBlock) {
-						  connectedBlock.setFieldValue(String(value), 'NUM');
+							connectedBlock.setFieldValue(String(value), "NUM");
 						}
-					  }
+					}
 
-					  // Set the rotation values (X, Y, Z)
-					  setRotationValue('X', rotationX);
-					  setRotationValue('Y', rotationY);
-					  setRotationValue('Z', rotationZ);
-					});
+					// Set the rotation values (X, Y, Z)
+					setRotationValue("X", rotationX);
+					setRotationValue("Y", rotationY);
+					setRotationValue("Z", rotationZ);
+				},
+			);
 
 			break;
-			case "scale":
+		case "scale":
 			gizmoManager.scaleGizmoEnabled = true;
 
-			gizmoManager.gizmos.scaleGizmo.onDragStartObservable.add(function () {
-				const mesh = gizmoManager.attachedMesh;
-				const motionType = mesh.physics.getMotionType();
-				mesh.savedMotionType = motionType;
+			gizmoManager.gizmos.scaleGizmo.onDragStartObservable.add(
+				function () {
+					const mesh = gizmoManager.attachedMesh;
+					const motionType = mesh.physics.getMotionType();
+					mesh.savedMotionType = motionType;
 
-				if (
-					mesh.physics &&
-					mesh.physics.getMotionType() != BABYLON.PhysicsMotionType.ANIMATED
-				) {
-					mesh.physics.setMotionType(BABYLON.PhysicsMotionType.ANIMATED);
-					mesh.physics.disablePreStep = false;
-				}
+					if (
+						mesh.physics &&
+						mesh.physics.getMotionType() !=
+							BABYLON.PhysicsMotionType.ANIMATED
+					) {
+						mesh.physics.setMotionType(
+							BABYLON.PhysicsMotionType.ANIMATED,
+						);
+						mesh.physics.disablePreStep = false;
+					}
 
-				const block = meshMap[mesh.blockKey];
-				highlightBlockById(workspace, block);
-			});
+					const block = meshMap[mesh.blockKey];
+					highlightBlockById(workspace, block);
+				},
+			);
 
 			gizmoManager.gizmos.scaleGizmo.onDragEndObservable.add(function () {
 				const mesh = gizmoManager.attachedMesh;
-				
-				
+
 				if (mesh.savedMotionType) {
 					mesh.physics.setMotionType(mesh.savedMotionType);
 					mesh.physics.disablePreStep = true;
@@ -1208,7 +1226,8 @@ function toggleGizmo(gizmoType) {
 					let currentBlock = statementConnection.targetBlock();
 					while (currentBlock) {
 						if (currentBlock.type === "scale") {
-							const modelField = currentBlock.getFieldValue('BLOCK_NAME');
+							const modelField =
+								currentBlock.getFieldValue("BLOCK_NAME");
 							if (modelField === modelVariable) {
 								scaleBlock = currentBlock;
 								break;
@@ -1221,7 +1240,7 @@ function toggleGizmo(gizmoType) {
 				// Create a new 'scale' block if it doesn't exist
 				if (!scaleBlock) {
 					scaleBlock = workspace.newBlock("scale");
-					scaleBlock.setFieldValue(modelVariable, 'BLOCK_NAME');
+					scaleBlock.setFieldValue(modelVariable, "BLOCK_NAME");
 					scaleBlock.initSvg();
 					scaleBlock.render();
 
@@ -1237,7 +1256,9 @@ function toggleGizmo(gizmoType) {
 
 					scaleBlock.render(); // Render the new block
 					// Connect the new 'scale' block to the 'do' section
-					block.getInput("DO").connection.connect(scaleBlock.previousConnection);
+					block
+						.getInput("DO")
+						.connection.connect(scaleBlock.previousConnection);
 				}
 
 				// Helper to update the value of the connected block or shadow block
@@ -1246,7 +1267,7 @@ function toggleGizmo(gizmoType) {
 					const connectedBlock = input.connection.targetBlock();
 
 					if (connectedBlock) {
-						connectedBlock.setFieldValue(String(value), 'NUM');
+						connectedBlock.setFieldValue(String(value), "NUM");
 					}
 				}
 
@@ -1255,9 +1276,9 @@ function toggleGizmo(gizmoType) {
 				const scaleY = Math.round(mesh.scaling.y * 10) / 10;
 				const scaleZ = Math.round(mesh.scaling.z * 10) / 10;
 
-				setScaleValue('X', scaleX);
-				setScaleValue('Y', scaleY);
-				setScaleValue('Z', scaleZ);
+				setScaleValue("X", scaleX);
+				setScaleValue("Y", scaleY);
+				setScaleValue("Z", scaleZ);
 			});
 
 			break;
@@ -1289,8 +1310,7 @@ function highlightBlockById(workspace, block) {
 		workspace.getAllBlocks().forEach((b) => b.unselect());
 
 		// Select the new block
-		if(window.codeMode === "both")
-			block.select();
+		if (window.codeMode === "both") block.select();
 
 		const blockRect = block.getBoundingRectangle();
 		const metrics = workspace.getMetrics();
@@ -1311,14 +1331,17 @@ function highlightBlockById(workspace, block) {
 
 function focusCameraOnMesh() {
 	let mesh = gizmoManager.attachedMesh;
-	if (!mesh && window.currentMesh)
-	{
+	if (!mesh && window.currentMesh) {
 		console.log("currentMesh", window.currentMesh, window.currentBlock);
-		
+
 		//console.log("blockId", blockId, meshMap);
-		mesh = flock.scene.getMeshByName(Object.keys(meshMap).find(key => meshMap[key] === window.currentBlock));
+		mesh = flock.scene.getMeshByName(
+			Object.keys(meshMap).find(
+				(key) => meshMap[key] === window.currentBlock,
+			),
+		);
 	}
-	
+
 	if (!mesh) return;
 
 	const boundingInfo = mesh.getBoundingInfo();

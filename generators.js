@@ -1690,3 +1690,194 @@ export function defineGenerators() {
 		return "";
 	};
 }
+
+javascriptGenerator.forBlock["controls_whileUntil"] = function(block) {
+	  const until = block.getFieldValue('MODE') === 'UNTIL';
+	  let argument0 =
+		  javascriptGenerator.valueToCode(
+		  block,
+		  'BOOL',
+		  until ? javascriptGenerator.ORDER_LOGICAL_NOT : javascriptGenerator.ORDER_NONE,
+		) || 'false';
+	  let branch = javascriptGenerator.statementToCode(block, 'DO');
+	  if (until) {
+		argument0 = '!' + argument0;
+	  }
+	  return 'while (' + argument0 + ') {\n' + branch + `\nawait wait(0);\n` + '}\n';
+
+};
+
+
+javascriptGenerator.forBlock["controls_doWhile"] = function(block) {
+	const condition = javascriptGenerator.valueToCode(block, 'BOOL', javascriptGenerator.ORDER_NONE) || 'false';
+	const branch = javascriptGenerator.statementToCode(block, 'DO');
+
+	return `
+	do {
+		${branch}
+
+		await wait(0); // Yield control to the browser
+	} while (${condition});\n`;
+};
+
+javascriptGenerator.forBlock["controls_repeat_ext"] = 
+function (block, generator) {
+ 
+  let repeats;
+  if (block.getField('TIMES')) {
+	repeats = String(Number(block.getFieldValue('TIMES')));
+  } else {
+	repeats = generator.valueToCode(block, 'TIMES', generator.ORDER_ASSIGNMENT) || '0';
+  }
+
+  let branch = generator.statementToCode(block, 'DO');
+	
+  let code = '';
+  const loopVar = generator.nameDB_.getDistinctName('count', Blockly.Names.NameType.VARIABLE);
+  let endVar = repeats;
+
+  if (!/^\w+$/.test(repeats) && isNaN(repeats)) {
+	endVar = generator.nameDB_.getDistinctName('repeat_end', Blockly.Names.NameType.VARIABLE);
+	code += 'var ' + endVar + ' = ' + repeats + ';\n';
+  }
+
+  code +=
+	'for (var ' + loopVar + ' = 0; ' + loopVar + ' < ' + endVar + '; ' + loopVar + '++) {\n' +
+	branch +
+	'\n   await wait(0);\n' + // Add yield inside the loop
+	'}\n';
+
+  return code;
+}
+
+javascriptGenerator.forBlock["controls_for"] = function (block, generator) {
+  const variable0 = generator.getVariableName(block.getFieldValue('VAR'));
+
+  const argument0 = generator.valueToCode(block, 'FROM', generator.ORDER_ASSIGNMENT) || '0';
+  const argument1 = generator.valueToCode(block, 'TO', generator.ORDER_ASSIGNMENT) || '0';
+  const increment = generator.valueToCode(block, 'BY', generator.ORDER_ASSIGNMENT) || '1';
+
+  let branch = generator.statementToCode(block, 'DO');
+
+  let code;
+
+  // Check if all arguments are simple numbers
+  if (
+	!isNaN(argument0) &&
+	!isNaN(argument1) &&
+	!isNaN(increment)
+  ) {
+	const up = Number(argument0) <= Number(argument1); 
+	code =
+	  'for (' +
+	  variable0 +
+	  ' = ' +
+	  argument0 +
+	  '; ' +
+	  variable0 +
+	  (up ? ' <= ' : ' >= ') +
+	  argument1 +
+	  '; ' +
+	  variable0;
+
+	const step = Math.abs(Number(increment));
+
+	if (step === 1) {
+	  code += up ? '++' : '--';
+	} else {
+	  code += (up ? ' += ' : ' -= ') + step;
+	}
+	code += ') {\n' + branch + '\n  await wait(0);\n' + '}\n';
+  } else {
+	code = '';
+
+	let startVar = argument0;
+	if (!/^\w+$/.test(argument0) && isNaN(argument0)) {
+	  startVar = generator.nameDB_.getDistinctName(variable0 + '_start', Blockly.Names.NameType.VARIABLE);
+	  code += 'var ' + startVar + ' = ' + argument0 + ';\n';
+	}
+
+	let endVar = argument1;
+	if (!/^\w+$/.test(argument1) && isNaN(argument1)) {
+	  endVar = generator.nameDB_.getDistinctName(variable0 + '_end', Blockly.Names.NameType.VARIABLE);
+	  code += 'var ' + endVar + ' = ' + argument1 + ';\n';
+	}
+
+	const incVar = generator.nameDB_.getDistinctName(variable0 + '_inc', Blockly.Names.NameType.VARIABLE);
+	code += 'var ' + incVar + ' = ';
+
+	if (!isNaN(increment)) {
+	  code += Math.abs(Number(increment)) + ';\n';
+	} else {
+	  code += 'Math.abs(' + increment + ');\n';
+	}
+
+	code += 'if (' + startVar + ' > ' + endVar + ') {\n';
+	code += generator.INDENT + incVar + ' = -' + incVar + ';\n';
+	code += '}\n';
+
+	code +=
+	  'for (' +
+	  variable0 +
+	  ' = ' +
+	  startVar +
+	  '; ' +
+	  incVar +
+	  ' >= 0 ? ' +
+	  variable0 +
+	  ' <= ' +
+	  endVar +
+	  ' : ' +
+	  variable0 +
+	  ' >= ' +
+	  endVar +
+	  '; ' +
+	  variable0 +
+	  ' += ' +
+	  incVar +
+	  ') {\n' +
+	  branch +
+	  '  await wait(0); \n' +
+	  '}\n';
+  }
+
+  return code;
+};
+
+javascriptGenerator.forBlock["controls_forEach"] = 
+function (block, generator) {
+  // For each loop.
+  const variable0 = generator.getVariableName(block.getFieldValue('VAR'));
+
+  // Use correct ORDER constant from the generator
+  const argument0 = generator.valueToCode(block, 'LIST', generator.ORDER_ASSIGNMENT) || '[]';
+
+  let branch = generator.statementToCode(block, 'DO');
+  let code = '';
+  let listVar = argument0;
+  
+  if (!/^\w+$/.test(argument0)) {
+	listVar = generator.nameDB_.getDistinctName(variable0 + '_list', Blockly.Names.NameType.VARIABLE);
+	code += 'var ' + listVar + ' = ' + argument0 + ';\n';
+  }
+
+  const indexVar = generator.nameDB_.getDistinctName(variable0 + '_index', Blockly.Names.NameType.VARIABLE);
+
+  // Construct the loop body
+  branch =
+	generator.INDENT +
+	variable0 +
+	' = ' +
+	listVar +
+	'[' +
+	indexVar +
+	'];\n' +
+	branch;
+
+  code += 'for (var ' + indexVar + ' in ' + listVar + ') {\n' +
+		  branch +
+		  '\n  await wait(0);\n' +
+		  '}\n';
+
+  return code;
+}
