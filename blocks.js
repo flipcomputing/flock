@@ -28,9 +28,6 @@ export function handleBlockSelect(event) {
 		const block = Blockly.getMainWorkspace().getBlockById(
 			event.newElementId,
 		); // Get the selected block
-
-		//if (window.currentBlock)
-		//	window.currentBlock.unselect();
 		
 		if (
 			block && block.type !== "create_ground" &&
