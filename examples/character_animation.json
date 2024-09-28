@@ -104,12 +104,13 @@
 		"type": "start",
 		"id": "!d0f~{piJ7K=FIh(%a?t",
 		"x": 10,
-		"y": 1816,
+		"y": 1836,
 		"inputs": {
 		  "DO": {
 			"block": {
 			  "type": "load_character",
 			  "id": "nk+JJwR#0wz,He@6=%XW",
+			  "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" has_do=\"false\"></mutation>",
 			  "fields": {
 				"MODELS": "Character4.glb",
 				"ID_VAR": {
@@ -245,7 +246,7 @@
 		"type": "on_event",
 		"id": "tv0kQXkBjXbRtxDuMuby",
 		"x": 10,
-		"y": 913,
+		"y": 904,
 		"inputs": {
 		  "EVENT_NAME": {
 			"block": {
@@ -348,7 +349,7 @@
 		"type": "on_event",
 		"id": ")wF0AtOEx:.4$vXI6,@L",
 		"x": 10,
-		"y": 2130,
+		"y": 2148,
 		"inputs": {
 		  "EVENT_NAME": {
 			"block": {
@@ -520,7 +521,7 @@
 		"type": "on_event",
 		"id": "HP%^Pyd|3[1rV{m4`tku",
 		"x": 10,
-		"y": 2564,
+		"y": 2576,
 		"inputs": {
 		  "EVENT_NAME": {
 			"block": {
@@ -652,7 +653,7 @@
 		"type": "on_event",
 		"id": "$Wt3QbQ.|9h@`cs)QkxA",
 		"x": 10,
-		"y": 1197,
+		"y": 1184,
 		"inputs": {
 		  "EVENT_NAME": {
 			"block": {
@@ -862,7 +863,10 @@
 								"MESH_VAR": {
 								  "id": "bbRQa+R0C{^D$CU`:@E."
 								},
-								"MODE": "AWAIT"
+								"MODE": "AWAIT",
+								"REVERSE": false,
+								"LOOP": false,
+								"EASING": "Linear"
 							  },
 							  "inputs": {
 								"X": {
@@ -930,7 +934,7 @@
 		"type": "on_event",
 		"id": "S|MQzx%Vd@U/z6*@2x7p",
 		"x": 10,
-		"y": 2947,
+		"y": 2954,
 		"inputs": {
 		  "EVENT_NAME": {
 			"block": {
@@ -1113,7 +1117,10 @@
 								"MESH_VAR": {
 								  "id": ":s5Ds*=Q+feAoqhShRWF"
 								},
-								"MODE": "AWAIT"
+								"MODE": "AWAIT",
+								"REVERSE": false,
+								"LOOP": false,
+								"EASING": "Linear"
 							  },
 							  "inputs": {
 								"X": {
@@ -1216,7 +1223,7 @@
 		"type": "on_event",
 		"id": "V?7An,.kz6bC$;9WM1!~",
 		"x": 10,
-		"y": 312,
+		"y": 310,
 		"inputs": {
 		  "EVENT_NAME": {
 			"block": {
@@ -1231,6 +1238,7 @@
 			"block": {
 			  "type": "load_character",
 			  "id": "%1@s,h?a48b~BKvIiR(B",
+			  "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" has_do=\"false\"></mutation>",
 			  "fields": {
 				"MODELS": "Character1.glb",
 				"ID_VAR": {
