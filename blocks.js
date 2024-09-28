@@ -399,7 +399,7 @@ export function defineBlocks() {
 			this.jsonInit({
 				type: "glide_to",
 				message0:
-					"glide %1 to x %2 y %3 z %4 in %5 ms %6 return? %7 loop? %8 %9",
+					"glide %1 to x %2 y %3 z %4 in %5 ms\n%6 return? %7 loop? %8 %9",
 				args0: [
 					{
 						type: "field_variable",
