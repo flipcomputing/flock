@@ -1556,6 +1556,8 @@ function loadExample() {
 				console.error("Error loading example:", error);
 			});
 	}
+
+	exampleSelect.value = ''; 
 }
 window.executeCode = executeCode;
 window.exportCode = exportCode;
