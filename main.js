@@ -238,10 +238,16 @@ function selectObject(objectName) {
 	document.getElementById("shapes-dropdown").style.display = "none";
 	document.body.style.cursor = "crosshair"; // Change cursor to indicate picking mode
 
-	const canvas = document.getElementById("renderCanvas"); // Assuming your canvas has this ID
+	const canvas = document.getElementById("renderCanvas"); 
 
 	const onClick = function (event) {
-		const pickResult = flock.scene.pick(event.clientX, event.clientY);
+		const canvasRect = flock.canvas.getBoundingClientRect();
+		const canvasX = event.clientX - canvasRect.left;
+		const canvasY = event.clientY - canvasRect.top;
+
+		// Now use the adjusted coordinates for picking
+		const pickResult = flock.scene.pick(canvasX, canvasY);
+		
 		if (pickResult.hit) {
 			const pickedPosition = pickResult.pickedPoint;
 
@@ -362,7 +368,11 @@ function selectModel(modelName) {
 	// Add a delay to avoid immediate firing
 	setTimeout(() => {
 		const onPick = function (event) {
-			const pickResult = flock.scene.pick(event.clientX, event.clientY);
+			const canvasRect = flock.canvas.getBoundingClientRect();
+			const canvasX = event.clientX - canvasRect.left;
+			const canvasY = event.clientY - canvasRect.top;
+
+			const pickResult = flock.scene.pick(canvasX, canvasY);
 			if (pickResult.hit) {
 				const pickedPosition = pickResult.pickedPoint;
 
@@ -418,7 +428,11 @@ function selectShape(shapeType) {
 	// Delay adding the click listener to avoid the immediate menu click issue
 	setTimeout(() => {
 		const onPick = function (event) {
-			const pickResult = flock.scene.pick(event.clientX, event.clientY); // Get pick result from the scene
+			const canvasRect = flock.canvas.getBoundingClientRect();
+			const canvasX = event.clientX - canvasRect.left;
+			const canvasY = event.clientY - canvasRect.top;
+			const pickResult = flock.scene.pick(canvasX, canvasY);
+			
 			if (pickResult.hit) {
 				const pickedPosition = pickResult.pickedPoint; // Get picked position
 
@@ -442,10 +456,13 @@ function selectCharacter(characterName) {
 	document.getElementById("shapes-dropdown").style.display = "none";
 	document.body.style.cursor = "crosshair"; // Change cursor to indicate picking mode
 
-	// Delay the pick listener to avoid firing immediately
 	setTimeout(() => {
 		const onPick = function (event) {
-			const pickResult = flock.scene.pick(event.clientX, event.clientY);
+			const canvasRect = flock.canvas.getBoundingClientRect();
+			const canvasX = event.clientX - canvasRect.left;
+			const canvasY = event.clientY - canvasRect.top;
+
+			const pickResult = flock.scene.pick(canvasX, canvasY);
 			if (pickResult.hit) {
 				const pickedPosition = pickResult.pickedPoint;
 
