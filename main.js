@@ -66,8 +66,8 @@ function loadWorkspace() {
 			workspace,
 		);
 	} else {
-	// Load the JSON into the workspace
-	Blockly.serialization.workspaces.load(initialBlocksJson, workspace);
+		// Load the JSON into the workspace
+		Blockly.serialization.workspaces.load(initialBlocksJson, workspace);
 	}
 
 	executeCode();
@@ -130,7 +130,7 @@ function executeCode() {
 		try {
 			console.log(code);
 			runCode(code);
-document.getElementById("renderCanvas").focus();
+			document.getElementById("renderCanvas").focus();
 		} catch (error) {
 			console.error("Error executing Blockly code:", error);
 		}
@@ -1557,7 +1557,7 @@ function loadExample() {
 			});
 	}
 
-	exampleSelect.value = ''; 
+	exampleSelect.value = "";
 }
 window.executeCode = executeCode;
 window.exportCode = exportCode;
@@ -1757,6 +1757,211 @@ document.addEventListener("DOMContentLoaded", () => {
 	}
 });
 
+// Function to be called once the app has fully loaded
+function initializeApp() {
+	console.log("Initializing app...");
+
+	// Add event listeners for menu buttons and controls
+	const runCodeButton = document.getElementById("runCodeButton");
+	const toggleDesignButton = document.getElementById("toggleDesign");
+	const stopCodeButton = document.getElementById("stopCodeButton");
+	const fileInput = document.getElementById("fileInput");
+	const exportCodeButton = document.getElementById("exportCodeButton");
+	const bothViewButton = document.getElementById("bothViewButton");
+	const blocklyViewButton = document.getElementById("blocklyViewButton");
+	const canvasViewButton = document.getElementById("canvasViewButton");
+
+	runCodeButton.addEventListener("click", executeCode);
+	stopCodeButton.addEventListener("click", stopCode);
+	toggleDesignButton.addEventListener("click", toggleDesign);
+	exportCodeButton.addEventListener("click", exportCode);
+
+	// Enable the file input after initialization
+	fileInput.removeAttribute("disabled");
+
+	// View switching buttons
+	bothViewButton.addEventListener("click", () => switchView("both"));
+	blocklyViewButton.addEventListener("click", () => switchView("blockly"));
+	canvasViewButton.addEventListener("click", () => switchView("canvas"));
+
+	// Add event listener to file input
+	document
+		.getElementById("importFile")
+		.addEventListener("change", handleSnippetUpload);
+
+	toggleDesignButton.addEventListener("click", function () {
+		if (!flock.scene) return;
+
+		const blocklyArea = document.getElementById("codePanel");
+		const canvasArea = document.getElementById("rightArea");
+		const menu = document.getElementById("menu");
+		const gizmoButtons = document.getElementById("gizmoButtons");
+
+		if (flock.scene.debugLayer.isVisible()) {
+			console.log("Debug layer is visible");
+			canvasArea.style.width = "100%";
+			canvasArea.style.flexGrow = "1";
+			switchView(viewMode);
+			flock.scene.debugLayer.hide();
+			onResize();
+		} else {
+			blocklyArea.style.display = "none";
+			codeMode = "none";
+			canvasArea.style.display = "block";
+			canvasArea.style.width = "50vw";
+			canvasArea.style.flexGrow = "0";
+			gizmoButtons.style.display = "block";
+			menu.style.right = "unset";
+			flock.scene.debugLayer.show();
+			onResize();
+		}
+	});
+
+	document
+		.getElementById("fullscreenToggle")
+		.addEventListener("click", function () {
+			if (!document.fullscreenElement) {
+				// Go fullscreen
+				if (document.documentElement.requestFullscreen) {
+					document.documentElement.requestFullscreen();
+				} else if (document.documentElement.mozRequestFullScreen) {
+					/* Firefox */
+					document.documentElement.mozRequestFullScreen();
+				} else if (document.documentElement.webkitRequestFullscreen) {
+					/* Chrome, Safari & Opera */
+					document.documentElement.webkitRequestFullscreen();
+				} else if (document.documentElement.msRequestFullscreen) {
+					/* IE/Edge */
+					document.documentElement.msRequestFullscreen();
+				}
+			} else {
+				// Exit fullscreen
+				if (document.exitFullscreen) {
+					document.exitFullscreen();
+				} else if (document.mozCancelFullScreen) {
+					/* Firefox */
+					document.mozCancelFullScreen();
+				} else if (document.webkitExitFullscreen) {
+					/* Chrome, Safari & Opera */
+					document.webkitExitFullscreen();
+				} else if (document.msExitFullscreen) {
+					/* IE/Edge */
+					document.msExitFullscreen();
+				}
+			}
+		});
+
+	console.log("Enabling gizmos");
+
+	// Enable gizmo buttons
+	const positionButton = document.getElementById("positionButton");
+	const rotationButton = document.getElementById("rotationButton");
+	const scaleButton = document.getElementById("scaleButton");
+	const boundsButton = document.getElementById("boundsButton");
+	const focusButton = document.getElementById("focusButton");
+	const hideButton = document.getElementById("hideButton");
+	const showShapesButton = document.getElementById("showShapesButton");
+	const colorPickerButton = document.getElementById("colorPickerButton");
+	const aboutButton = document.getElementById("aboutButton");
+
+	const scrollModelsLeftButton = document.getElementById(
+		"scrollModelsLeftButton",
+	);
+	const scrollModelsRightButton = document.getElementById(
+		"scrollModelsRightButton",
+	);
+	const scrollObjectsLeftButton = document.getElementById(
+		"scrollObjectsLeftButton",
+	);
+	const scrollObjectsRightButton = document.getElementById(
+		"scrollObjectsRightButton",
+	);
+	const scrollCharactersLeftButton = document.getElementById(
+		"scrollCharactersLeftButton",
+	);
+	const scrollCharactersRightButton = document.getElementById(
+		"scrollCharactersRightButton",
+	);
+
+	// Enable the buttons
+	positionButton.removeAttribute("disabled");
+	rotationButton.removeAttribute("disabled");
+	scaleButton.removeAttribute("disabled");
+	boundsButton.removeAttribute("disabled");
+	focusButton.removeAttribute("disabled");
+	hideButton.removeAttribute("disabled");
+	showShapesButton.removeAttribute("disabled");
+	colorPickerButton.removeAttribute("disabled");
+	aboutButton.removeAttribute("disabled");
+
+	scrollModelsLeftButton.removeAttribute("disabled");
+	scrollModelsRightButton.removeAttribute("disabled");
+	scrollObjectsLeftButton.removeAttribute("disabled");
+	scrollObjectsRightButton.removeAttribute("disabled");
+	scrollCharactersLeftButton.removeAttribute("disabled");
+	scrollCharactersRightButton.removeAttribute("disabled");
+
+	// Attach event listeners
+	positionButton.addEventListener("click", () => toggleGizmo("position"));
+	rotationButton.addEventListener("click", () => toggleGizmo("rotation"));
+	scaleButton.addEventListener("click", () => toggleGizmo("scale"));
+	boundsButton.addEventListener("click", () => toggleGizmo("bounds"));
+	focusButton.addEventListener("click", () => toggleGizmo("focus"));
+	hideButton.addEventListener("click", turnOffAllGizmos);
+	showShapesButton.addEventListener("click", showShapes);
+	colorPickerButton.addEventListener("click", openColorPicker);
+	aboutButton.addEventListener("click", openAboutPage);
+
+	scrollModelsLeftButton.addEventListener("click", () => scrollModels(-1));
+	scrollModelsRightButton.addEventListener("click", () => scrollModels(1));
+	scrollObjectsLeftButton.addEventListener("click", () => scrollObjects(-1));
+	scrollObjectsRightButton.addEventListener("click", () => scrollObjects(1));
+	scrollCharactersLeftButton.addEventListener("click", () =>
+		scrollCharacters(-1),
+	);
+	scrollCharactersRightButton.addEventListener("click", () =>
+		scrollCharacters(1),
+	);
+
+	// Enable buttons and dropdowns after initialization
+	const toolboxControl = document.getElementById("toolboxControl");
+	const runCodeButton2 = document.getElementById("runCodeButton2");
+	const exampleSelect = document.getElementById("exampleSelect");
+	const bothViewButton2 = document.getElementById("bothViewButton2");
+	const blocklyViewButton2 = document.getElementById("blocklyViewButton2");
+	const canvasViewButton2 = document.getElementById("canvasViewButton2");
+	const fullscreenToggle = document.getElementById("fullscreenToggle");
+
+	toolboxControl.removeAttribute("disabled");
+	runCodeButton.removeAttribute("disabled");
+	runCodeButton2.removeAttribute("disabled");
+	exampleSelect.removeAttribute("disabled");
+	bothViewButton.removeAttribute("disabled");
+	blocklyViewButton.removeAttribute("disabled");
+	canvasViewButton.removeAttribute("disabled");
+	bothViewButton2.removeAttribute("disabled");
+	blocklyViewButton2.removeAttribute("disabled");
+	canvasViewButton2.removeAttribute("disabled");
+	fullscreenToggle.removeAttribute("disabled");
+
+	// Add event listeners for buttons and controls
+	toolboxControl.addEventListener("mouseover", function () {
+		toolboxControl.style.cursor = "pointer";
+		toggleToolbox();
+	});
+
+	runCodeButton.addEventListener("click", executeCode);
+	exampleSelect.addEventListener("change", loadExample);
+
+	bothViewButton.addEventListener("click", () => switchView("both"));
+	blocklyViewButton.addEventListener("click", () => switchView("blockly"));
+	canvasViewButton.addEventListener("click", () => switchView("canvas"));
+
+	bothViewButton2.addEventListener("click", () => switchView("both"));
+	blocklyViewButton2.addEventListener("click", () => switchView("blockly"));
+	canvasViewButton2.addEventListener("click", () => switchView("canvas"));
+}
+
 window.onload = function () {
 	const scriptElement = document.getElementById("flock");
 	if (scriptElement) {
@@ -1865,75 +2070,6 @@ window.onload = function () {
 			reader.readAsText(event.target.files[0]);
 		});
 
-	// Add event listener to file input
-	document
-		.getElementById("importFile")
-		.addEventListener("change", handleSnippetUpload);
-
-	document
-		.getElementById("toggleDebug")
-		.addEventListener("click", function () {
-			if (!flock.scene) return;
-
-			const blocklyArea = document.getElementById("codePanel");
-			const canvasArea = document.getElementById("rightArea");
-			const menu = document.getElementById("menu");
-			const gizmoButtons = document.getElementById("gizmoButtons");
-
-			if (flock.scene.debugLayer.isVisible()) {
-				console.log("Debug layer is visible");
-				canvasArea.style.width = "100%";
-				canvasArea.style.flexGrow = "1";
-				switchView(viewMode);
-				flock.scene.debugLayer.hide();
-				onResize();
-			} else {
-				blocklyArea.style.display = "none";
-				codeMode = "none";
-				canvasArea.style.display = "block";
-				canvasArea.style.width = "50vw";
-				canvasArea.style.flexGrow = "0";
-				gizmoButtons.style.display = "block";
-				menu.style.right = "unset";
-				flock.scene.debugLayer.show();
-				onResize();
-			}
-		});
-
-	document
-		.getElementById("fullscreenToggle")
-		.addEventListener("click", function () {
-			if (!document.fullscreenElement) {
-				// Go fullscreen
-				if (document.documentElement.requestFullscreen) {
-					document.documentElement.requestFullscreen();
-				} else if (document.documentElement.mozRequestFullScreen) {
-					/* Firefox */
-					document.documentElement.mozRequestFullScreen();
-				} else if (document.documentElement.webkitRequestFullscreen) {
-					/* Chrome, Safari & Opera */
-					document.documentElement.webkitRequestFullscreen();
-				} else if (document.documentElement.msRequestFullscreen) {
-					/* IE/Edge */
-					document.documentElement.msRequestFullscreen();
-				}
-			} else {
-				// Exit fullscreen
-				if (document.exitFullscreen) {
-					document.exitFullscreen();
-				} else if (document.mozCancelFullScreen) {
-					/* Firefox */
-					document.mozCancelFullScreen();
-				} else if (document.webkitExitFullscreen) {
-					/* Chrome, Safari & Opera */
-					document.webkitExitFullscreen();
-				} else if (document.msExitFullscreen) {
-					/* IE/Edge */
-					document.msExitFullscreen();
-				}
-			}
-		});
-
 	const blockTypesToCleanUp = [
 		"start",
 		"forever",
@@ -2028,4 +2164,6 @@ window.onload = function () {
 			}
 		}
 	});
+
+	initializeApp();
 };
