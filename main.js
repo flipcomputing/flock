@@ -60,15 +60,15 @@ function saveWorkspace() {
 function loadWorkspace() {
 	const savedState = localStorage.getItem("flock_autosave.json");
 
-	/*if (savedState) {
+	if (savedState) {
 		Blockly.serialization.workspaces.load(
 			JSON.parse(savedState),
 			workspace,
 		);
-	} else {*/
+	} else {
 	// Load the JSON into the workspace
 	Blockly.serialization.workspaces.load(initialBlocksJson, workspace);
-	//}
+	}
 
 	executeCode();
 }
