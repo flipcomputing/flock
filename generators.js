@@ -1144,7 +1144,7 @@ export function defineGenerators() {
 			Blockly.Names.NameType.VARIABLE,
 		);
 
-		return `const ${variableName} = getCamera();\n`;
+		return `${variableName} = getCamera();\n`;
 	};
 
 	javascriptGenerator.forBlock["rotate_camera"] = function (block) {
