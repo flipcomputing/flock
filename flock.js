@@ -1335,7 +1335,7 @@ export const flock = {
 		posX,
 		posY,
 		posZ,
-		sphereId
+		sphereId,
 	) {
 		const newSphere = flock.BABYLON.MeshBuilder.CreateSphere(
 			sphereId,
@@ -1444,7 +1444,7 @@ export const flock = {
 		posX,
 		posY,
 		posZ,
-		capsuleId
+		capsuleId,
 	) {
 		const newCapsule = flock.BABYLON.MeshBuilder.CreateCapsule(
 			capsuleId,
@@ -1986,17 +1986,17 @@ export const flock = {
 	rotate(meshName, x, y, z) {
 		// Handle mesh rotation
 		return flock.whenModelReady(meshName, (mesh) => {
-
 			if (meshName === "camera") {
 				// Handle camera rotation
 				const camera = flock.scene.activeCamera;
 				if (!camera) return;
 
-				const incrementalRotation = flock.BABYLON.Quaternion.RotationYawPitchRoll(
-					flock.BABYLON.Tools.ToRadians(y),
-					flock.BABYLON.Tools.ToRadians(x),
-					flock.BABYLON.Tools.ToRadians(z),
-				);
+				const incrementalRotation =
+					flock.BABYLON.Quaternion.RotationYawPitchRoll(
+						flock.BABYLON.Tools.ToRadians(y),
+						flock.BABYLON.Tools.ToRadians(x),
+						flock.BABYLON.Tools.ToRadians(z),
+					);
 
 				// Check if the camera is ArcRotateCamera or FreeCamera, and rotate accordingly
 				if (camera.alpha !== undefined) {
@@ -2048,7 +2048,7 @@ export const flock = {
 		if (camera.alpha !== undefined) {
 			// ArcRotateCamera: Adjust the 'alpha' to rotate left or right
 			camera.alpha += flock.BABYLON.Tools.ToRadians(yawAngle);
-		} 
+		}
 		// Otherwise, assume it's a FreeCamera or similar
 		else if (camera.rotation !== undefined) {
 			// FreeCamera: Adjust the 'rotation.y' for yaw rotation (left/right)
@@ -2126,7 +2126,7 @@ export const flock = {
 	rotateTo(meshName, x, y, z) {
 		return flock.whenModelReady(meshName, (mesh) => {
 			console.log("Rotating", x, y, z);
-			
+
 			if (mesh.physics) {
 				if (
 					mesh.physics.getMotionType() !==
@@ -2815,6 +2815,25 @@ export const flock = {
 						loop,
 					);
 
+					animatable.onAnimationEndObservable.add(() => {
+						if (!loop) {
+							// Ensure the mesh reaches its final destination
+							mesh.position = endPosition.clone();
+						}
+
+						if (mesh.physics) {
+							mesh.physics.disablePreStep = true;
+						}
+
+						console.log(
+							"Animation ended.",
+							mesh.position.y.toFixed(10),
+							endPosition.y.toFixed(10),
+						);
+
+						resolve(); // Resolve after forward motion or loop
+					});
+
 					if (reverse && !loop) {
 						// When reverse is true but loop is false, manually handle reverse
 						animatable.onAnimationEndObservable.add(() => {
@@ -2850,6 +2869,18 @@ export const flock = {
 									if (mesh.physics) {
 										mesh.physics.disablePreStep = true;
 									}
+									resolve(); // Resolve after reverse completes
+								},
+							);
+
+							reverseAnimatable.onAnimationEndObservable.add(
+								() => {
+									mesh.position = startPosition.clone(); // Ensure the mesh returns to the starting position
+
+									if (mesh.physics) {
+										mesh.physics.disablePreStep = true;
+									}
+
 									resolve(); // Resolve after reverse completes
 								},
 							);
@@ -3366,7 +3397,7 @@ export const flock = {
 		model.physics.setLinearVelocity(
 			new flock.BABYLON.Vector3(
 				moveDirection.x,
-				currentVelocity.y,  // Keep Y velocity (no vertical movement)
+				currentVelocity.y, // Keep Y velocity (no vertical movement)
 				moveDirection.z,
 			),
 		);
@@ -3374,8 +3405,16 @@ export const flock = {
 		// Rotate the model to face the direction of movement
 		const facingDirection =
 			sidewaysSpeed >= 0
-				? new flock.BABYLON.Vector3(-cameraRight.x, 0, -cameraRight.z).normalize()  // Right
-				: new flock.BABYLON.Vector3(cameraRight.x, 0, cameraRight.z).normalize();   // Left
+				? new flock.BABYLON.Vector3(
+						-cameraRight.x,
+						0,
+						-cameraRight.z,
+					).normalize() // Right
+				: new flock.BABYLON.Vector3(
+						cameraRight.x,
+						0,
+						cameraRight.z,
+					).normalize(); // Left
 
 		const targetRotation = flock.BABYLON.Quaternion.FromLookDirectionLH(
 			facingDirection,
