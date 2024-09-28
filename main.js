@@ -33,6 +33,7 @@ if (navigator.serviceWorker) {
 }
 
 let workspace = null;
+
 //Blockly.utils.colour.setHsvSaturation(0.2) // 0 (inclusive) to 1 (exclusive), defaulting to 0.45
 //Blockly.utils.colour.setHsvValue(0.95) // 0 (inclusive) to 1 (exclusive), defaulting to 0.65
 
@@ -867,6 +868,7 @@ function toggleGizmo(gizmoType) {
 			gizmoManager.boundingBoxDragBehavior.onDragStartObservable.add(
 				function () {
 					const mesh = gizmoManager.attachedMesh;
+					
 					const motionType = mesh.physics.getMotionType();
 					mesh.savedMotionType = motionType;
 
@@ -890,6 +892,7 @@ function toggleGizmo(gizmoType) {
 				function () {
 					// Retrieve the mesh associated with the bb gizmo
 					const mesh = gizmoManager.attachedMesh;
+					
 					if (mesh.savedMotionType) {
 						mesh.physics.setMotionType(mesh.savedMotionType);
 						mesh.physics.disablePreStep = true;
@@ -1199,7 +1202,6 @@ function toggleGizmo(gizmoType) {
 
 			gizmoManager.gizmos.scaleGizmo.onDragEndObservable.add(function () {
 				const mesh = gizmoManager.attachedMesh;
-
 				if (mesh.savedMotionType) {
 					mesh.physics.setMotionType(mesh.savedMotionType);
 					mesh.physics.disablePreStep = true;
@@ -1284,6 +1286,7 @@ function toggleGizmo(gizmoType) {
 			break;
 		case "boundingBox":
 			gizmoManager.boundingBoxGizmoEnabled = true;
+
 			break;
 		case "focus":
 			focusCameraOnMesh();
@@ -1296,6 +1299,7 @@ function toggleGizmo(gizmoType) {
 window.toggleGizmo = toggleGizmo;
 
 function turnOffAllGizmos() {
+	gizmoManager.attachToMesh(null);
 	gizmoManager.positionGizmoEnabled = false;
 	gizmoManager.rotationGizmoEnabled = false;
 	gizmoManager.scaleGizmoEnabled = false;
@@ -1331,24 +1335,30 @@ function highlightBlockById(workspace, block) {
 
 function focusCameraOnMesh() {
 	let mesh = gizmoManager.attachedMesh;
+	if (mesh)
+		console.log("Gizmo", mesh.name);
 	if (!mesh && window.currentMesh) {
-		console.log("currentMesh", window.currentMesh, window.currentBlock);
+		console.log(window.currentMesh);
 
-		const blockKey = 
-			Object.keys(meshMap).find(
-				(key) => meshMap[key] === window.currentBlock);
+		const blockKey = Object.keys(meshMap).find(
+			(key) => meshMap[key] === window.currentBlock,
+		);
 
-		mesh = flock.scene.meshes.find(mesh => mesh.blockKey === blockKey);
-				
+		flock.scene.meshes.forEach((mesh) => {
+			console.log(mesh.name);
+		});
+
+		mesh = flock.scene.meshes.find((mesh) => mesh.blockKey === blockKey);
+
+		console.log("Found", blockKey, mesh.name);
 	}
 
 	if (!mesh) return;
 
+	mesh.computeWorldMatrix(true);
 	const boundingInfo = mesh.getBoundingInfo();
 	const newTarget = boundingInfo.boundingBox.centerWorld; // Center of the new mesh
 	const camera = flock.scene.activeCamera;
-
-	// If the camera is following a player (tracked via camera.metadata.following)
 	if (camera.metadata && camera.metadata.following) {
 		const player = camera.metadata.following; // The player (mesh) the camera is following
 
@@ -1356,16 +1366,27 @@ function focusCameraOnMesh() {
 		const originalPlayerY = player.position.y;
 
 		// Set the player's position directly in front of the new target
-		const playerDistance = camera.radius; // Distance the camera keeps from the player
-		player.position.set(
-			newTarget.x,
-			originalPlayerY, // Maintain player's Y position
-			newTarget.z + playerDistance, // Move the player in front of the target on the Z axis
-		);
+		const playerDistance = camera.radius; // Distance the camera keeps from the player (preserve this)
 
-		flock.attachCamera(player.name, camera.radius);
+		// Calculate the player's forward direction (based on rotation)
+		const forward = new flock.BABYLON.Vector3(0, 0, -1); // Default forward direction (Z axis)
+		const playerRotationMatrix = flock.BABYLON.Matrix.RotationY(player.rotation.y);
+		const playerForward = flock.BABYLON.Vector3.TransformCoordinates(forward, playerRotationMatrix);
+
+		// Update the player's position (in front of the target)
+		player.position.set(newTarget.x, originalPlayerY, newTarget.z + playerDistance);
+
 		player.lookAt(newTarget);
-	} else {
+		
+		const cameraPosition = player.position.subtract(playerForward.scale(playerDistance));
+
+		// Set the camera position behind the player
+		camera.setPosition(cameraPosition);
+
+		// Ensure the camera is still looking at the player
+		camera.setTarget(player.position);
+	}
+else {
 		// For other types of cameras, retain the existing logic
 		const currentPosition = camera.position;
 		const currentTarget = camera.getTarget();
@@ -1719,52 +1740,53 @@ function toggleMenu() {
 window.toggleMenu = toggleMenu;
 
 document.addEventListener("DOMContentLoaded", () => {
-  const requestFullscreen = () => {
-	const elem = document.documentElement;
+	const requestFullscreen = () => {
+		const elem = document.documentElement;
 
-	if (elem.requestFullscreen) {
-	  elem.requestFullscreen();
-	} else if (elem.mozRequestFullScreen) {
-	  // Firefox
-	  elem.mozRequestFullScreen();
-	} else if (elem.webkitRequestFullscreen) {
-	  // Chrome, Safari, and Opera
-	  elem.webkitRequestFullscreen();
-	} else if (elem.msRequestFullscreen) {
-	  // IE/Edge
-	  elem.msRequestFullscreen();
+		if (elem.requestFullscreen) {
+			elem.requestFullscreen();
+		} else if (elem.mozRequestFullScreen) {
+			// Firefox
+			elem.mozRequestFullScreen();
+		} else if (elem.webkitRequestFullscreen) {
+			// Chrome, Safari, and Opera
+			elem.webkitRequestFullscreen();
+		} else if (elem.msRequestFullscreen) {
+			// IE/Edge
+			elem.msRequestFullscreen();
+		}
+	};
+
+	const isMobile = () => {
+		return /Mobi|Android/i.test(navigator.userAgent);
+	};
+
+	const isStandalone = window.matchMedia(
+		"(display-mode: standalone)",
+	).matches;
+
+	// Request fullscreen on mobile only when running as a PWA
+	if (isMobile() && isStandalone) {
+		if (
+			document.fullscreenEnabled ||
+			document.webkitFullscreenEnabled ||
+			document.mozFullScreenEnabled ||
+			document.msFullscreenEnabled
+		) {
+			requestFullscreen();
+		}
 	}
-  };
 
-  const isMobile = () => {
-	return /Mobi|Android/i.test(navigator.userAgent);
-  };
-
-  const isStandalone = window.matchMedia("(display-mode: standalone)").matches;
-
-  // Request fullscreen on mobile only when running as a PWA
-  if (isMobile() && isStandalone) {
-	if (
-	  document.fullscreenEnabled ||
-	  document.webkitFullscreenEnabled ||
-	  document.mozFullScreenEnabled ||
-	  document.msFullscreenEnabled
-	) {
-	  requestFullscreen();
+	// Additional adjustments for mobile UI in fullscreen mode
+	const examples = document.getElementById("exampleSelect");
+	if (examples) {
+		examples.style.width = "55px";
 	}
-  }
-
-  // Additional adjustments for mobile UI in fullscreen mode
-  const examples = document.getElementById("exampleSelect");
-  if (examples) {
-	examples.style.width = "55px";
-  }
-  const projectName = document.getElementById("projectName");
-  if (projectName) {
-	projectName.style.width = "80px";
-  }
+	const projectName = document.getElementById("projectName");
+	if (projectName) {
+		projectName.style.width = "80px";
+	}
 });
-
 
 // Function to be called once the app has fully loaded
 function initializeApp() {

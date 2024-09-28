@@ -3500,6 +3500,11 @@ export const flock = {
 		return flock.whenModelReady(modelName, function (mesh) {
 			if (mesh) {
 				flock.updateDynamicMeshPositions(flock.scene, [mesh]);
+				let camera = flock.scene.activeCamera;
+				console.log(camera.getClassName);
+				
+				if (camera.getClassName() !== "ArcRotateCamera") {
+				
 				const newBox = flock.BABYLON.MeshBuilder.CreateBox(
 					"staticMesh",
 					{ height: 1, width: 1, depth: 1 },
@@ -3587,7 +3592,7 @@ export const flock = {
 					);
 				});
 
-				const camera = new flock.BABYLON.ArcRotateCamera(
+				camera = new flock.BABYLON.ArcRotateCamera(
 					"camera",
 					Math.PI / 2,
 					Math.PI / 4,
@@ -3603,6 +3608,7 @@ export const flock = {
 				camera.angularSensibilityX = 2000;
 				camera.angularSensibilityY = 2000;
 
+				}
 				camera.setTarget(mesh.position);
 				camera.metadata = camera.metadata || {};
 				camera.metadata.following = mesh;
