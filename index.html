@@ -92,6 +92,17 @@
         font-family: inherit;
       }
 
+      button {
+        -webkit-user-select: none; /* Disable selection in Safari and Chrome */
+        -moz-user-select: none;    /* Disable selection in Firefox */
+        -ms-user-select: none;     /* Disable selection in Internet Explorer/Edge */
+        user-select: none;         /* Standard syntax to disable text selection */
+
+        -webkit-touch-callout: none; /* Disable the callout (popup menu) on long press in mobile Safari */
+        -webkit-tap-highlight-color: transparent; /* Remove highlight color when tapping on buttons */
+      }
+
+
       #menu {
         display: flex;
         align-items: center;
