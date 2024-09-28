@@ -2825,12 +2825,6 @@ export const flock = {
 							mesh.physics.disablePreStep = true;
 						}
 
-						console.log(
-							"Animation ended.",
-							mesh.position.y.toFixed(10),
-							endPosition.y.toFixed(10),
-						);
-
 						resolve(); // Resolve after forward motion or loop
 					});
 
