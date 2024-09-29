@@ -2608,15 +2608,12 @@ window.onload = function () {
 let deferredPrompt;
 
 window.addEventListener('beforeinstallprompt', (e) => {
-  // Prevent the mini-infobar from appearing
-  e.preventDefault();
-  // Save the event to trigger later
-  deferredPrompt = e;
+  e.preventDefault(); // Prevent the mini-infobar from appearing
+  deferredPrompt = e; // Save the event for later use
 
-  // Optionally add a delay before showing the prompt
-  setTimeout(() => {
+  // Prompt the user after interaction (scroll, click, etc.)
+  window.addEventListener('click', () => {
 	if (deferredPrompt) {
-	  // Automatically show the install prompt
 	  deferredPrompt.prompt();
 	  deferredPrompt.userChoice.then((choiceResult) => {
 		if (choiceResult.outcome === 'accepted') {
@@ -2624,8 +2621,9 @@ window.addEventListener('beforeinstallprompt', (e) => {
 		} else {
 		  console.log('User dismissed the install prompt');
 		}
-		deferredPrompt = null;  // Clear the saved event
+		deferredPrompt = null; // Clear the event
 	  });
 	}
-  }, 3000); // 3-second delay to ensure the page has loaded
+  }, { once: true });
 });
+
