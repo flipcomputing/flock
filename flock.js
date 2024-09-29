@@ -183,27 +183,38 @@ export const flock = {
 		flock.scene = flock.createScene();
 		flock.scene.eventListeners = [];
 
-		flock.scene.onPointerObservable.add(function(pointerInfo) {
-		
-			if (pointerInfo.type === flock.BABYLON.PointerEventTypes.POINTERUP) {
-				
-			flock.scene.activeCamera.inputs.clear();
+		flock.scene.onPointerObservable.add(function (pointerInfo) {
+			if (
+				pointerInfo.type === flock.BABYLON.PointerEventTypes.POINTERUP
+			) {
+				flock.scene.activeCamera.inputs.clear();
 
-				if (pointerInfo.event.touches && pointerInfo.event.touches.length > 1) {
-					// Detach and reattach the camera inputs after a multi-touch drag
-						flock.scene.activeCamera.detachControl();
+				if (
+					pointerInfo.event.touches &&
+					pointerInfo.event.touches.length > 1
+				) {
+					const camera =  flock.scene.activeCamera;
+					camera.detachControl();
+
+					// Short delay to ensure controls are fully detached
 					setTimeout(() => {
-							flock.scene.activeCamera.attachControl(canvas, false);
-					}, 100);  // Reattach after a short delay
+						// Reattach the camera control and reset the target
+						camera.attachControl(canvas, true);
+						camera.setTarget(camera.target);
+					}, 100);  // Adjust delay as necessary
 				}
 			}
 		});
 
-		flock.canvas.addEventListener("touchmove", function(event) {
-			if (event.touches.length > 1) {
-				event.preventDefault();  // Prevent multi-touch drag but allow multiple touches
-			}
-		}, { passive: false });
+		flock.canvas.addEventListener(
+			"touchmove",
+			function (event) {
+				if (event.touches.length > 1) {
+					event.preventDefault(); // Prevent multi-touch drag but allow multiple touches
+				}
+			},
+			{ passive: false },
+		);
 
 		flock.canvas.addEventListener("keydown", function (event) {
 			flock.canvas.currentKeyPressed = event.key;
@@ -2161,7 +2172,6 @@ export const flock = {
 	},
 	rotateTo(meshName, x, y, z) {
 		return flock.whenModelReady(meshName, (mesh) => {
-			console.log("Rotating", x, y, z);
 
 			if (mesh.physics) {
 				if (
@@ -3655,15 +3665,14 @@ export const flock = {
 					camera.inputs.attached.pointers.pinchZoom = false;
 					camera.inputs.attached.pointers.pinchInwards = false;
 					camera.inputs.attached.pointers.useNaturalPinchZoom = true;
-					
+
 					camera.inputs.removeByType(
 						camera.inputs.attached.mousewheel,
 					);
 
-					camera.inputs.attached.pointers.onMultiTouch = function() {
+					camera.inputs.attached.pointers.onMultiTouch = function () {
 						// Do nothing to disable multi-touch behavior in Babylon.js
 					};
-					console.log(camera.inputs.attached.pointers);
 				}
 				camera.setTarget(mesh.position);
 				camera.metadata = camera.metadata || {};
