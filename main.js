@@ -2342,27 +2342,31 @@ function setMinimumFontSize(input) {
 	}
 }
 
-// Function to observe changes in the DOM for dynamically added blocklyHtmlInput elements
+// Function to enforce minimum font size before browser zooms
+function enforceMinimumFontSize(input) {
+	input.style.fontSize = '16px';  // Set the font size to 16px immediately
+	input.offsetHeight;  // Force a reflow to apply the font size change
+}
+
+// Function to observe and apply styles as soon as an input is inserted
 function observeBlocklyInputs() {
 	const observer = new MutationObserver((mutationsList) => {
 		mutationsList.forEach(mutation => {
 			if (mutation.type === 'childList') {
 				mutation.addedNodes.forEach(node => {
-					// Check if the added node is an INPUT element with the blocklyHtmlInput class
+					// Check if the added node is an input element
 					if (node.nodeType === Node.ELEMENT_NODE && node.classList.contains('blocklyHtmlInput')) {
-						setMinimumFontSize(node);  // Set font size immediately on addition
+						enforceMinimumFontSize(node);
 					}
 				});
 			}
 		});
 	});
 
-	// Start observing the entire document for added nodes (because input fields may appear anywhere)
+	// Start observing the entire document
 	observer.observe(document.body, { childList: true, subtree: true });
 }
 
-// Initial call to set up observers and handle existing inputs
-observeBlocklyInputs();
 
 window.onload = function () {
 	const scriptElement = document.getElementById("flock");
