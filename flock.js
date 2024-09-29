@@ -3608,7 +3608,11 @@ export const flock = {
 				camera.angularSensibilityX = 2000;
 				camera.angularSensibilityY = 2000;
 					camera.inputs.removeByType("ArcRotateCameraMouseWheelInput");
-
+					camera.inputs.attached.pointers.multiTouchPanAndZoom = false;
+					camera.inputs.attached.pointers.multiTouchPanning = false;
+					camera.inputs.attached.pointers.pinchZoom = false;
+		
+					camera.inputs.removeByType(camera.inputs.attached.mousewheel);
 
 				}
 				camera.setTarget(mesh.position);
