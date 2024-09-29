@@ -2278,7 +2278,6 @@ function initializeApp() {
 	focusButton.addEventListener("click", () => toggleGizmo("focus"));
 	hideButton.addEventListener("click", turnOffAllGizmos);
 	showShapesButton.addEventListener("click", showShapes);
-	colorPickerButton.addEventListener("click", openColorPicker);
 	aboutButton.addEventListener("click", openAboutPage);
 
 	scrollModelsLeftButton.addEventListener("click", () => scrollModels(-1));
