@@ -182,6 +182,29 @@ export const flock = {
 		flock.abortController = new AbortController();
 		flock.scene = flock.createScene();
 		flock.scene.eventListeners = [];
+
+		flock.scene.onPointerObservable.add(function(pointerInfo) {
+		
+			if (pointerInfo.type === flock.BABYLON.PointerEventTypes.POINTERUP) {
+				
+			flock.scene.activeCamera.inputs.clear();
+
+				if (pointerInfo.event.touches && pointerInfo.event.touches.length > 1) {
+					// Detach and reattach the camera inputs after a multi-touch drag
+						flock.scene.activeCamera.detachControl();
+					setTimeout(() => {
+							flock.scene.activeCamera.attachControl(canvas, false);
+					}, 100);  // Reattach after a short delay
+				}
+			}
+		});
+
+		flock.canvas.addEventListener("touchmove", function(event) {
+			if (event.touches.length > 1) {
+				event.preventDefault();  // Prevent multi-touch drag but allow multiple touches
+			}
+		}, { passive: false });
+
 		flock.canvas.addEventListener("keydown", function (event) {
 			flock.canvas.currentKeyPressed = event.key;
 			flock.canvas.pressedKeys.add(event.key);
@@ -3637,6 +3660,9 @@ export const flock = {
 						camera.inputs.attached.mousewheel,
 					);
 
+					camera.inputs.attached.pointers.onMultiTouch = function() {
+						// Do nothing to disable multi-touch behavior in Babylon.js
+					};
 					console.log(camera.inputs.attached.pointers);
 				}
 				camera.setTarget(mesh.position);
