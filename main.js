@@ -1072,25 +1072,24 @@ function setNumberInput(block, inputName, value) {
 
 window.selectedColor = "#ffffff"; // Default color
 
-function openColorPicker() {
-	// Create a color picker input dynamically
-	const colorInput = document.createElement("input");
-	colorInput.type = "color";
-	colorInput.value = window.selectedColor; // Set the default color
+document.addEventListener("DOMContentLoaded", function() {
+	const colorInput = document.getElementById('colorPickerButton');
 
-	// Trigger the color picker dialog
-	colorInput.click();
-
-	// Listen for color change
+	// Attach the event listener to capture color changes when user interacts with the input
 	colorInput.addEventListener("input", (event) => {
 		window.selectedColor = event.target.value; // Store the selected color
 
-		// Now allow the user to pick a mesh from the Babylon.js canvas
+		// Delay the blur to ensure the color selection is processed first
+		setTimeout(() => {
+			colorInput.blur();  // Close the picker after a brief delay
+			colorInput.setAttribute('type','text');
+			colorInput.setAttribute('type','color');
+		}, 100); // Adjust the delay time as needed
+		// Call a function to handle the selected color
 		pickMeshFromCanvas();
 	});
-}
+});
 
-window.openColorPicker = openColorPicker;
 
 function pickMeshFromCanvas() {
 	const canvas = flock.scene.getEngine().getRenderingCanvas(); // Get the Babylon.js canvas
