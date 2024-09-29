@@ -253,21 +253,6 @@ export const flock = {
 			flock.scene,
 		);
 
-		// To deal with touch rotation stopping after multi-touch on mobile (even when disabled)
-		flock.scene.onPointerObservable.add(function (pointerInfo) {
-			if (pointerInfo.type === flock.BABYLON.PointerEventTypes.POINTERUP) {
-				if (pointerInfo.event.touches && pointerInfo.event.touches.length > 1) {
-					const camera = flock.scene.activeCamera;
-					// Detach and reattach the camera inputs after a multi-touch drag
-					camera.detachControl();
-					setTimeout(() => {
-						camera.attachControl(canvas, true);
-					}, 100);  // Reattach after a short delay
-				}
-			}
-		});
-
-
 		const camera = new flock.BABYLON.FreeCamera(
 			"camera",
 			new flock.BABYLON.Vector3(0, 3, -10),
@@ -3657,7 +3642,7 @@ export const flock = {
 				camera.setTarget(mesh.position);
 				camera.metadata = camera.metadata || {};
 				camera.metadata.following = mesh;
-				camera.attachControl(flock.canvas, true);
+				camera.attachControl(flock.canvas, false);
 				flock.scene.activeCamera = camera;
 			} else {
 				console.log("Model not loaded:", modelName);
@@ -3841,7 +3826,7 @@ export const flock = {
 	},
 	canvasControls(setting) {
 		if (setting) {
-			flock.scene.activeCamera.attachControl(flock.canvas, true);
+			flock.scene.activeCamera.attachControl(flock.canvas, false);
 		} else {
 			flock.scene.activeCamera.detachControl();
 		}
