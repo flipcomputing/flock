@@ -2604,3 +2604,28 @@ window.onload = function () {
 
 	initializeApp();
 };
+
+let deferredPrompt;
+
+window.addEventListener('beforeinstallprompt', (e) => {
+  // Prevent the mini-infobar from appearing
+  e.preventDefault();
+  // Save the event to trigger later
+  deferredPrompt = e;
+
+  // Optionally add a delay before showing the prompt
+  setTimeout(() => {
+	if (deferredPrompt) {
+	  // Automatically show the install prompt
+	  deferredPrompt.prompt();
+	  deferredPrompt.userChoice.then((choiceResult) => {
+		if (choiceResult.outcome === 'accepted') {
+		  console.log('User accepted the install prompt');
+		} else {
+		  console.log('User dismissed the install prompt');
+		}
+		deferredPrompt = null;  // Clear the saved event
+	  });
+	}
+  }, 3000); // 3-second delay to ensure the page has loaded
+});
