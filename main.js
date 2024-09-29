@@ -2332,18 +2332,13 @@ function initializeApp() {
 	canvasViewButton2.addEventListener("click", () => switchView("canvas"));
 }
 
-/// Function to add focus and blur event listeners only if the current font size is less than 16px
-function enlargeInputTextOnFocus(input) {
+// Function to enforce minimum font size on newly created inputs
+function setMinimumFontSize(input) {
 	const currentFontSize = parseFloat(window.getComputedStyle(input).fontSize);
 
+	// Set font size immediately if it's less than 16px to prevent browser zoom
 	if (currentFontSize < 16) {
-		input.addEventListener('focus', () => {
-			input.style.fontSize = '16px';  // Set minimum font size on focus
-		});
-
-		input.addEventListener('blur', () => {
-			input.style.fontSize = '';  // Reset font size on blur (or to original size)
-		});
+		input.style.fontSize = '16px';
 	}
 }
 
@@ -2355,7 +2350,7 @@ function observeBlocklyInputs() {
 				mutation.addedNodes.forEach(node => {
 					// Check if the added node is an INPUT element with the blocklyHtmlInput class
 					if (node.nodeType === Node.ELEMENT_NODE && node.classList.contains('blocklyHtmlInput')) {
-						enlargeInputTextOnFocus(node);  // Add focus/blur listeners only if necessary
+						setMinimumFontSize(node);  // Set font size immediately on addition
 					}
 				});
 			}
@@ -2366,6 +2361,8 @@ function observeBlocklyInputs() {
 	observer.observe(document.body, { childList: true, subtree: true });
 }
 
+// Initial call to set up observers and handle existing inputs
+observeBlocklyInputs();
 
 window.onload = function () {
 	const scriptElement = document.getElementById("flock");
