@@ -2332,6 +2332,41 @@ function initializeApp() {
 	canvasViewButton2.addEventListener("click", () => switchView("canvas"));
 }
 
+/// Function to add focus and blur event listeners only if the current font size is less than 16px
+function enlargeInputTextOnFocus(input) {
+	const currentFontSize = parseFloat(window.getComputedStyle(input).fontSize);
+
+	if (currentFontSize < 16) {
+		input.addEventListener('focus', () => {
+			input.style.fontSize = '16px';  // Set minimum font size on focus
+		});
+
+		input.addEventListener('blur', () => {
+			input.style.fontSize = '';  // Reset font size on blur (or to original size)
+		});
+	}
+}
+
+// Function to observe changes in the DOM for dynamically added blocklyHtmlInput elements
+function observeBlocklyInputs() {
+	const observer = new MutationObserver((mutationsList) => {
+		mutationsList.forEach(mutation => {
+			if (mutation.type === 'childList') {
+				mutation.addedNodes.forEach(node => {
+					// Check if the added node is an INPUT element with the blocklyHtmlInput class
+					if (node.nodeType === Node.ELEMENT_NODE && node.classList.contains('blocklyHtmlInput')) {
+						enlargeInputTextOnFocus(node);  // Add focus/blur listeners only if necessary
+					}
+				});
+			}
+		});
+	});
+
+	// Start observing the entire document for added nodes (because input fields may appear anywhere)
+	observer.observe(document.body, { childList: true, subtree: true });
+}
+
+
 window.onload = function () {
 	const scriptElement = document.getElementById("flock");
 	if (scriptElement) {
@@ -2340,6 +2375,8 @@ window.onload = function () {
 		return; // standalone flock
 	}
 
+	observeBlocklyInputs();
+	
 	workspace = Blockly.inject("blocklyDiv", options);
 	registerFieldColour();
 
