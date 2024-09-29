@@ -253,6 +253,21 @@ export const flock = {
 			flock.scene,
 		);
 
+		// To deal with touch rotation stopping after multi-touch on mobile (even when disabled)
+		flock.scene.onPointerObservable.add(function (pointerInfo) {
+			if (pointerInfo.type === flock.BABYLON.PointerEventTypes.POINTERUP) {
+				if (pointerInfo.event.touches && pointerInfo.event.touches.length > 1) {
+					const camera = flock.scene.activeCamera;
+					// Detach and reattach the camera inputs after a multi-touch drag
+					camera.detachControl();
+					setTimeout(() => {
+						camera.attachControl(canvas, true);
+					}, 100);  // Reattach after a short delay
+				}
+			}
+		});
+
+
 		const camera = new flock.BABYLON.FreeCamera(
 			"camera",
 			new flock.BABYLON.Vector3(0, 3, -10),
@@ -3502,118 +3517,142 @@ export const flock = {
 			if (mesh) {
 				flock.updateDynamicMeshPositions(flock.scene, [mesh]);
 				let camera = flock.scene.activeCamera;
-							
+
 				if (camera.getClassName() !== "ArcRotateCamera") {
-				
-				const newBox = flock.BABYLON.MeshBuilder.CreateBox(
-					"staticMesh",
-					{ height: 1, width: 1, depth: 1 },
-				);
-				newBox.position = new flock.BABYLON.Vector3(0, -4, 0);
+					const newBox = flock.BABYLON.MeshBuilder.CreateBox(
+						"staticMesh",
+						{ height: 1, width: 1, depth: 1 },
+					);
+					newBox.position = new flock.BABYLON.Vector3(0, -4, 0);
 
-				newBox.blockKey = newBox.name;
-				newBox.name = newBox.name + newBox.uniqueId;
-				const boxBody = new flock.BABYLON.PhysicsBody(
-					newBox,
-					flock.BABYLON.PhysicsMotionType.STATIC,
-					false,
-					flock.scene,
-				);
+					newBox.blockKey = newBox.name;
+					newBox.name = newBox.name + newBox.uniqueId;
+					const boxBody = new flock.BABYLON.PhysicsBody(
+						newBox,
+						flock.BABYLON.PhysicsMotionType.STATIC,
+						false,
+						flock.scene,
+					);
 
-				const boxShape = new flock.BABYLON.PhysicsShapeBox(
-					new flock.BABYLON.Vector3(0, 0, 0),
-					new flock.BABYLON.Quaternion(0, 0, 0, 1),
-					new flock.BABYLON.Vector3(1, 1, 1),
-					flock.scene,
-				);
+					const boxShape = new flock.BABYLON.PhysicsShapeBox(
+						new flock.BABYLON.Vector3(0, 0, 0),
+						new flock.BABYLON.Quaternion(0, 0, 0, 1),
+						new flock.BABYLON.Vector3(1, 1, 1),
+						flock.scene,
+					);
 
-				/*boxBody.setMassProperties({
+					/*boxBody.setMassProperties({
 					inertia: flock.BABYLON.Vector3.ZeroReadOnly,
 				});*/
-				boxBody.shape = boxShape;
-				boxBody.setMassProperties({ mass: 1, restitution: 0.5 });
-				newBox.isVisible = false;
+					boxBody.shape = boxShape;
+					boxBody.setMassProperties({ mass: 1, restitution: 0.5 });
+					newBox.isVisible = false;
 
-				newBox.physics = boxBody;
+					newBox.physics = boxBody;
 
-				const material = new flock.BABYLON.StandardMaterial(
-					"staticMaterial",
-					flock.scene,
-				);
+					const material = new flock.BABYLON.StandardMaterial(
+						"staticMaterial",
+						flock.scene,
+					);
 
-				newBox.material = material;
+					newBox.material = material;
 
-				function createVerticalConstraint(mesh, referenceBody, scene) {
-					let constraint = new flock.BABYLON.Physics6DoFConstraint(
-						{
-							axisA: new flock.BABYLON.Vector3(1, 0, 0), // trying to turn the car
-							axisB: new flock.BABYLON.Vector3(1, 0, 0),
-							perpAxisA: new flock.BABYLON.Vector3(0, 1, 0),
-							perpAxisB: new flock.BABYLON.Vector3(0, 1, 0),
-						},
-						[
-							{
-								axis: flock.BABYLON.PhysicsConstraintAxis
-									.ANGULAR_X,
-								minLimit: 0,
-								maxLimit: 0,
-							},
-							{
-								axis: flock.BABYLON.PhysicsConstraintAxis
-									.ANGULAR_Z,
-								minLimit: 0,
-								maxLimit: 0,
-							},
-						],
+					function createVerticalConstraint(
+						mesh,
+						referenceBody,
 						scene,
-					);
+					) {
+						let constraint =
+							new flock.BABYLON.Physics6DoFConstraint(
+								{
+									axisA: new flock.BABYLON.Vector3(1, 0, 0), // trying to turn the car
+									axisB: new flock.BABYLON.Vector3(1, 0, 0),
+									perpAxisA: new flock.BABYLON.Vector3(
+										0,
+										1,
+										0,
+									),
+									perpAxisB: new flock.BABYLON.Vector3(
+										0,
+										1,
+										0,
+									),
+								},
+								[
+									{
+										axis: flock.BABYLON
+											.PhysicsConstraintAxis.ANGULAR_X,
+										minLimit: 0,
+										maxLimit: 0,
+									},
+									{
+										axis: flock.BABYLON
+											.PhysicsConstraintAxis.ANGULAR_Z,
+										minLimit: 0,
+										maxLimit: 0,
+									},
+								],
+								scene,
+							);
 
-					// Ensure both bodies are defined before adding constraint
-					if (mesh && referenceBody) {
-						mesh.physics.addConstraint(referenceBody, constraint);
-					} else {
-						console.error(
-							"Mesh body or reference body is not defined",
-						);
+						// Ensure both bodies are defined before adding constraint
+						if (mesh && referenceBody) {
+							mesh.physics.addConstraint(
+								referenceBody,
+								constraint,
+							);
+						} else {
+							console.error(
+								"Mesh body or reference body is not defined",
+							);
+						}
 					}
-				}
-				// Create the constraint for the platform
-				createVerticalConstraint(mesh, boxBody, flock.scene);
-				flock.scene.onAfterPhysicsObservable.add(() => {
-					const currentVelocity = mesh.physics.getLinearVelocity();
-					const newVelocity = new flock.BABYLON.Vector3(
-						0,
-						currentVelocity.y,
-						0,
-					);
-					mesh.physics.setLinearVelocity(newVelocity);
-					mesh.physics.setAngularVelocity(
-						flock.BABYLON.Vector3.Zero(),
-					);
-				});
+					// Create the constraint for the platform
+					createVerticalConstraint(mesh, boxBody, flock.scene);
+					flock.scene.onAfterPhysicsObservable.add(() => {
+						const currentVelocity =
+							mesh.physics.getLinearVelocity();
+						const newVelocity = new flock.BABYLON.Vector3(
+							0,
+							currentVelocity.y,
+							0,
+						);
+						mesh.physics.setLinearVelocity(newVelocity);
+						mesh.physics.setAngularVelocity(
+							flock.BABYLON.Vector3.Zero(),
+						);
+					});
 
-				camera = new flock.BABYLON.ArcRotateCamera(
-					"camera",
-					Math.PI / 2,
-					Math.PI / 4,
-					radius,
-					mesh.position,
-					flock.scene,
-				);
-				camera.checkCollisions = true;
-				camera.lowerBetaLimit = Math.PI / 2.5;
-				camera.upperBetaLimit = Math.PI / 2;
-				camera.lowerRadiusLimit = radius * 0.6;
-				camera.upperRadiusLimit = radius * 1.6;
-				camera.angularSensibilityX = 2000;
-				camera.angularSensibilityY = 2000;
-					camera.inputs.removeByType("ArcRotateCameraMouseWheelInput");
+					camera = new flock.BABYLON.ArcRotateCamera(
+						"camera",
+						Math.PI / 2,
+						Math.PI / 4,
+						radius,
+						mesh.position,
+						flock.scene,
+					);
+					camera.checkCollisions = true;
+					camera.lowerBetaLimit = Math.PI / 2.5;
+					camera.upperBetaLimit = Math.PI / 2;
+					camera.lowerRadiusLimit = radius * 0.6;
+					camera.upperRadiusLimit = radius * 1.6;
+					camera.angularSensibilityX = 2000;
+					camera.angularSensibilityY = 2000;
+					camera.panningSensibility = 0;
+					camera.inputs.removeByType(
+						"ArcRotateCameraMouseWheelInput",
+					);
 					camera.inputs.attached.pointers.multiTouchPanAndZoom = false;
 					camera.inputs.attached.pointers.multiTouchPanning = false;
 					camera.inputs.attached.pointers.pinchZoom = false;
-		
-					camera.inputs.removeByType(camera.inputs.attached.mousewheel);
+					camera.inputs.attached.pointers.pinchInwards = false;
+					camera.inputs.attached.pointers.useNaturalPinchZoom = true;
+					
+					camera.inputs.removeByType(
+						camera.inputs.attached.mousewheel,
+					);
 
+					console.log(camera.inputs.attached.pointers);
 				}
 				camera.setTarget(mesh.position);
 				camera.metadata = camera.metadata || {};
