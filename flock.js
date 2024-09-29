@@ -3607,6 +3607,8 @@ export const flock = {
 				camera.upperRadiusLimit = radius * 1.6;
 				camera.angularSensibilityX = 2000;
 				camera.angularSensibilityY = 2000;
+					camera.inputs.removeByType("ArcRotateCameraMouseWheelInput");
+
 
 				}
 				camera.setTarget(mesh.position);
