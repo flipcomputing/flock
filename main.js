@@ -966,6 +966,7 @@ function addShapeToWorkspace(shapeType, position) {
 				position.z,
 				"capsule_",
 			);
+			break;
 
 		case "create_plane":
 			newMesh = flock.newPlane(
