@@ -2332,38 +2332,43 @@ function initializeApp() {
 	canvasViewButton2.addEventListener("click", () => switchView("canvas"));
 }
 
-// Function to enforce minimum font size on newly created inputs
-function setMinimumFontSize(input) {
-	const currentFontSize = parseFloat(window.getComputedStyle(input).fontSize);
+// Function to enforce minimum font size and delay the focus to prevent zoom
+function enforceMinimumFontSize(input) {
 
-	// Set font size immediately if it's less than 16px to prevent browser zoom
+	const currentFontSize = parseFloat(input.style.fontSize);
+
+	// Set font size immediately if it's less than 16px
 	if (currentFontSize < 16) {
 		input.style.fontSize = '16px';
+		input.offsetHeight;  // Force reflow to apply the font size change
 	}
+
+
+	// Delay focus to prevent zoom
+	input.addEventListener('focus', (event) => {
+		event.preventDefault();  // Prevent the default focus action
+		setTimeout(() => {
+			input.focus();  // Focus the input after a short delay
+		}, 50);  // Adjust the delay as needed (50ms is usually enough)
+	}, { once: true });  // Add the event listener once for each input
 }
 
-// Function to enforce minimum font size before browser zooms
-function enforceMinimumFontSize(input) {
-	input.style.fontSize = '16px';  // Set the font size to 16px immediately
-	input.offsetHeight;  // Force a reflow to apply the font size change
-}
-
-// Function to observe and apply styles as soon as an input is inserted
+// Function to observe changes in the DOM for dynamically added blocklyHtmlInput elements
 function observeBlocklyInputs() {
 	const observer = new MutationObserver((mutationsList) => {
 		mutationsList.forEach(mutation => {
 			if (mutation.type === 'childList') {
 				mutation.addedNodes.forEach(node => {
-					// Check if the added node is an input element
+					// Check if the added node is an INPUT element with the blocklyHtmlInput class
 					if (node.nodeType === Node.ELEMENT_NODE && node.classList.contains('blocklyHtmlInput')) {
-						enforceMinimumFontSize(node);
+						enforceMinimumFontSize(node);  // Set font size and delay focus
 					}
 				});
 			}
 		});
 	});
 
-	// Start observing the entire document
+	// Start observing the entire document for added nodes (input fields may appear anywhere)
 	observer.observe(document.body, { childList: true, subtree: true });
 }
 
