@@ -46,12 +46,12 @@ export default {
       assetsInclude: ['**/*.glb', '**/*.gltf', '**/*.ogg', '**/*.json', '**/*.png', '**/*.woff',  '**/*.woff2', '**/*.css',] ,
       includeAssets: ['**/*.glb', '**/*.gltf', '**/*.ogg', '**/*.json', '**/*.png', '**/*.woff',  '**/*.woff2', '**/*.css',],
       manifest: {
-        name: 'Flock - Creating coding in 3D',
+        name: 'Flock XR - Creating coding in 3D',
         short_name: 'Flock',
         description: 'Create 3D apps with blocks',
         theme_color: '#800080',
-        display: 'standalone',
-        start_url: isProduction ? '/flock?standalone=true' : '/', // Ensure this reflects the base URL
+        display: 'fullscreen',
+        start_url: isProduction ? '/flock?fullscreen=true' : '/', // Ensure this reflects the base URL
         scope: isProduction ? '/flock/' : '/', // Ensure this reflects the base URL
 
         icons: [
