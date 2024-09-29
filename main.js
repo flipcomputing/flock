@@ -537,7 +537,7 @@ function selectShape(shapeType) {
 				addShapeToWorkspace(shapeType, pickedPosition); // Add the selected shape at this position
 				document.body.style.cursor = "default"; // Reset cursor after picking
 				window.removeEventListener("click", onPick); // Remove the click listener after pick
-				executeCode();
+				//executeCode();
 			} else {
 				console.log("No object was picked, please try again.");
 			}
@@ -694,7 +694,7 @@ function onMeshPicked(pickedMesh, selectedColor) {
 	}
 }
 
-function addShapeToWorkspace2(shapeType, position) {
+function addShapeToWorkspace(shapeType, position) {
 	Blockly.Events.setGroup(true);
 	// Create the shape block in the Blockly workspace
 	const block = workspace.newBlock(shapeType);
@@ -817,7 +817,7 @@ function addShapeToWorkspace2(shapeType, position) {
 				diameterY,
 				diameterZ,
 				position.x,
-				position.y,
+				position.y + diameter/2,
 				position.z,
 				"sphere_",
 			);		
@@ -830,41 +830,34 @@ function addShapeToWorkspace2(shapeType, position) {
 				diameterTop,
 				diameterBottom,
 				position.x,
-				position.y,
+				position.y + height/2,
 				position.z,
 				"cylinder_",
 			);
-			let cylc = flock.scene.getMeshById(newMesh);
-			cyl.name = newMesh + cyl.uniqueId;
 			break;
-
+ 
 		case "create_capsule":
 			newMesh = flock.newCapsule(
 				color,
 				radius,
 				height,
 				position.x,
-				position.y,
+				position.y + height/2,
 				position.z,
 				"capsule_",
 			);
-			let cap = flock.scene.getMeshById(newMesh);
-			cap.name = newMesh + cap.uniqueId;
-			break;
-
-
+		
 		case "create_plane":
 			newMesh = flock.newPlane(
 				color,
 				width,
 				height,
 				position.x,
-				position.y,
+				position.y + height/2,
 				position.z,
 				"plane_",
 			);
-			let plane = flock.scene.getMeshById(newMesh);
-			plane.name = newMesh + plane.uniqueId;
+			
 			break;
 	}
 
@@ -872,80 +865,7 @@ function addShapeToWorkspace2(shapeType, position) {
 	// Store the new mesh in the meshMap
 	meshMap[flock.scene.getMeshByName(newMesh).blockKey] = block;
 
-	// Log the new mesh and meshMap for debugging
-	console.log(newMesh, meshMap);
-
 	Blockly.Events.setGroup(false);
-
-	console.log("New mesh created:", newMesh);
-}
-
-function addShapeToWorkspace(shapeType, position) {
-	Blockly.Events.setGroup(true);
-	// Create the shape block in the Blockly workspace
-	const block = workspace.newBlock(shapeType);
-
-	// Set different fields based on the shape type
-	switch (shapeType) {
-		case "create_box":
-			addShadowBlock(block, "COLOR", "colour", flock.randomColour()); // Using 'colour' block type
-			addShadowBlock(block, "WIDTH", "math_number", 1);
-			addShadowBlock(block, "HEIGHT", "math_number", 1);
-			addShadowBlock(block, "DEPTH", "math_number", 1);
-
-			break;
-
-		case "create_sphere":
-			addShadowBlock(block, "COLOR", "colour", flock.randomColour());
-			addShadowBlock(block, "DIAMETER_X", "math_number", 1);
-			addShadowBlock(block, "DIAMETER_Y", "math_number", 1);
-			addShadowBlock(block, "DIAMETER_Z", "math_number", 1);
-			break;
-
-		case "create_cylinder":
-			addShadowBlock(block, "COLOR", "colour", flock.randomColour());
-			addShadowBlock(block, "HEIGHT", "math_number", 2);
-			addShadowBlock(block, "DIAMETER_TOP", "math_number", 1);
-			addShadowBlock(block, "DIAMETER_BOTTOM", "math_number", 1);
-			break;
-
-		case "create_capsule":
-			addShadowBlock(block, "COLOR", "colour", flock.randomColour());
-			addShadowBlock(block, "RADIUS", "math_number", 0.5);
-			addShadowBlock(block, "HEIGHT", "math_number", 2);
-			break;
-
-		case "create_plane":
-			addShadowBlock(block, "COLOR", "colour", flock.randomColour());
-			addShadowBlock(block, "WIDTH", "math_number", 2);
-			addShadowBlock(block, "HEIGHT", "math_number", 2);
-			break;
-
-		default:
-			console.error("Unknown shape type: " + shapeType);
-	}
-
-	// Set position values (X, Y, Z) from the picked position
-	setPositionValues(block, position, shapeType);
-
-	// Initialize and render the shape block
-	block.initSvg();
-	block.render();
-	highlightBlockById(workspace, block);
-
-	// Create a new 'start' block and connect the shape block to it
-	const startBlock = workspace.newBlock("start");
-	startBlock.initSvg();
-	startBlock.render();
-
-	// Connect the shape block to the start block
-	const connection = startBlock.getInput("DO").connection;
-	if (connection) {
-		connection.connect(block.previousConnection);
-	}
-
-	Blockly.Events.setGroup(false);
-
 }
 
 // Helper function to create and attach shadow blocks
@@ -1636,7 +1556,6 @@ function focusCameraOnMesh() {
 	let mesh = gizmoManager.attachedMesh;
 	if (mesh.name === "ground") mesh = null;
 	if (!mesh && window.currentMesh) {
-		console.log(window.currentMesh);
 
 		const blockKey = Object.keys(meshMap).find(
 			(key) => meshMap[key] === window.currentBlock,
