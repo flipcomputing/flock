@@ -3502,8 +3502,7 @@ export const flock = {
 			if (mesh) {
 				flock.updateDynamicMeshPositions(flock.scene, [mesh]);
 				let camera = flock.scene.activeCamera;
-				console.log(camera.getClassName);
-				
+							
 				if (camera.getClassName() !== "ArcRotateCamera") {
 				
 				const newBox = flock.BABYLON.MeshBuilder.CreateBox(

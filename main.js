@@ -295,6 +295,112 @@ function selectObject(objectName) {
 					setPositionValues(block, pickedPosition, "load_object");
 
 					// Add shadow block for SCALE
+					const scale = 1; // Default scale
+					addShadowBlock(block, "SCALE", "math_number", scale);
+
+					// Add shadow block for COLOR
+					const color = objectColours[objectName];
+					addShadowBlock(block, "COLOR", "colour", color);
+
+					// Create a new 'start' block and connect the load_object block to it
+					const startBlock = workspace.newBlock("start");
+					startBlock.initSvg();
+					startBlock.render();
+
+					// Connect the load_object block to the start block
+					const connection = startBlock.getInput("DO").connection;
+					if (connection) {
+						connection.connect(block.previousConnection);
+					}
+
+					const meshId = objectName + "_" + flock.scene.getUniqueId();
+					meshMap[meshId] = block;
+
+					flock.newObject(
+						objectName,
+						meshId,
+						scale,
+						pickedPosition.x,
+						pickedPosition.y + 2,
+						pickedPosition.z,
+						color,
+					);
+				} finally {
+					// End the event group to ensure everything can be undone/redone as a group
+					Blockly.Events.setGroup(false);
+				}
+			}
+
+			document.body.style.cursor = "default"; // Reset the cursor
+			window.removeEventListener("click", onPickMesh); // Remove the event listener after picking
+		};
+
+		// Add event listener to pick the mesh on the next click
+		window.addEventListener("click", onPickMesh);
+	}, 200);
+}
+
+function selectObject2(objectName) {
+	document.getElementById("shapes-dropdown").style.display = "none";
+	const canvas = flock.scene.getEngine().getRenderingCanvas(); // Get the Babylon.js canvas
+
+	document.body.style.cursor = "crosshair"; // Change cursor to indicate picking mode
+
+	setTimeout(() => {
+		const onPickMesh = function (event) {
+			// Get the canvas bounds relative to the window
+			const canvasRect = canvas.getBoundingClientRect();
+
+			// Check if the click happened outside the canvas
+			if (
+				event.clientX < canvasRect.left ||
+				event.clientX > canvasRect.right ||
+				event.clientY < canvasRect.top ||
+				event.clientY > canvasRect.bottom
+			) {
+				window.removeEventListener("click", onPickMesh);
+				document.body.style.cursor = "default";
+				return;
+			}
+
+			// Calculate the click position relative to the canvas, not the window
+			const canvasX = event.clientX - canvasRect.left;
+			const canvasY = event.clientY - canvasRect.top;
+
+			// Create a picking ray using the adjusted canvas coordinates
+			const pickRay = flock.scene.createPickingRay(
+				canvasX,
+				canvasY,
+				BABYLON.Matrix.Identity(),
+				flock.scene.activeCamera,
+			);
+
+			// Perform the picking
+			const pickResult = flock.scene.pickWithRay(
+				pickRay,
+				(mesh) => mesh.isPickable,
+			);
+
+			if (pickResult.hit) {
+				const pickedPosition = pickResult.pickedPoint;
+
+				// Start a Blockly event group to ensure undo/redo tracks all changes
+				Blockly.Events.setGroup(true);
+
+				try {
+					// Create the load_object block
+					const block = workspace.newBlock("load_object");
+					block.initSvg();
+					block.render();
+					highlightBlockById(workspace, block);
+
+					// Set object name
+					block.setFieldValue(objectName, "MODELS");
+
+					// Set position values (X, Y, Z) from the picked position
+					setPositionValues(block, pickedPosition, "load_object");
+
+					// Add shadow block for SCALE
 					addShadowBlock(block, "SCALE", "math_number", 1); // Using 'math_number' block for scale
 
 					// Add shadow block for COLOR
@@ -324,7 +430,7 @@ function selectObject(objectName) {
 			document.body.style.cursor = "default"; // Reset the cursor
 			window.removeEventListener("click", onPickMesh); // Remove the event listener after picking
 
-			executeCode();
+			//executeCode();
 		};
 
 		// Add event listener to pick the mesh on the next click
@@ -332,7 +438,7 @@ function selectObject(objectName) {
 	}, 200);
 }
 
-function selectObject2(objectName) {
+function selectObject3(objectName) {
 	document.getElementById("shapes-dropdown").style.display = "none";
 	document.body.style.cursor = "crosshair"; // Change cursor to indicate picking mode
 
@@ -456,7 +562,6 @@ function scrollModels(direction) {
 }
 window.scrollModels = scrollModels;
 
-// Handle model selection and add block to workspace
 function selectModel(modelName) {
 	// Close the shapes menu after selecting a model
 	document.getElementById("shapes-dropdown").style.display = "none";
@@ -485,7 +590,8 @@ function selectModel(modelName) {
 					setPositionValues(block, pickedPosition, "load_model"); // Set X, Y, Z
 
 					// Create shadow block for SCALE using the addShadowBlock helper function
-					addShadowBlock(block, "SCALE", "math_number", 1); // Default scale value
+					const scale = 1; // Default scale value
+					addShadowBlock(block, "SCALE", "math_number", scale);
 
 					block.initSvg();
 					block.render();
@@ -499,6 +605,21 @@ function selectModel(modelName) {
 					if (connection) {
 						connection.connect(block.previousConnection);
 					}
+
+					// Generate a unique ID for the model
+					const modelId = modelName + "_" + flock.scene.getUniqueId();
+
+					// Store the block reference in meshMap
+					meshMap[modelId] = block;
+
+					flock.newModel(
+						modelName,
+						modelId,
+						scale,
+						pickedPosition.x,
+						pickedPosition.y,
+						pickedPosition.z,
+					);
 				} finally {
 					// End the event group to ensure undo/redo works properly
 					Blockly.Events.setGroup(false);
@@ -507,14 +628,13 @@ function selectModel(modelName) {
 
 			document.body.style.cursor = "default"; // Reset cursor after picking
 			window.removeEventListener("click", onPick); // Remove the click listener after pick
-
-			executeCode(); // Execute any code after the block is created
 		};
 
 		// Attach the event listener to wait for the next click on the scene
 		window.addEventListener("click", onPick);
 	}, 300); // Delay to avoid firing from the menu click
 }
+
 window.selectModel = selectModel;
 
 window.showShapes = showShapes;
@@ -576,7 +696,8 @@ function selectCharacter(characterName) {
 					setPositionValues(block, pickedPosition, "load_character");
 
 					// Add shadow block for SCALE using the addShadowBlock helper function
-					addShadowBlock(block, "SCALE", "math_number", 1); // Default scale value
+					const scale = 1; // Default scale value
+					addShadowBlock(block, "SCALE", "math_number", scale);
 
 					// Add shadow blocks for colour inputs with default values
 					const colorFields = {
@@ -609,6 +730,28 @@ function selectCharacter(characterName) {
 					if (connection) {
 						connection.connect(block.previousConnection);
 					}
+
+					// Generate a unique ID for the character
+					const modelId =
+						characterName + "_" + flock.scene.getUniqueId();
+
+					// Store the block reference in meshMap
+					meshMap[modelId] = block;
+
+					flock.newCharacter(
+						characterName,
+						modelId,
+						scale,
+						pickedPosition.x,
+						pickedPosition.y,
+						pickedPosition.z,
+						colorFields.HAIR_COLOR,
+						colorFields.SKIN_COLOR,
+						colorFields.EYES_COLOR,
+						colorFields.SLEEVES_COLOR,
+						colorFields.SHORTS_COLOR,
+						colorFields.TSHIRT_COLOR,
+					);
 				} finally {
 					// End the event group to ensure everything can be undone/redone as a group
 					Blockly.Events.setGroup(false);
@@ -617,7 +760,6 @@ function selectCharacter(characterName) {
 
 			document.body.style.cursor = "default";
 			window.removeEventListener("click", onPick);
-			executeCode(); // Your function to execute the Blockly code
 		};
 
 		window.addEventListener("click", onPick);
@@ -671,27 +813,6 @@ function updateCharacterColor(mesh, selectedColor) {
 	// Step 6: Re-render the block to apply the changes
 	block.initSvg();
 	block.render();
-}
-
-function onMeshPicked(pickedMesh, selectedColor) {
-	// Check if the picked mesh is part of a character by examining its material
-	const materialName = pickedMesh.material?.name;
-	const characterMaterials = [
-		"Hair",
-		"Skin",
-		"Eyes",
-		"Sleeves",
-		"Shorts",
-		"T-Shirt",
-	];
-
-	if (characterMaterials.includes(materialName)) {
-		// If the picked mesh is part of a character, update the Blockly block
-		updateCharacterColor(pickedMesh, selectedColor);
-	} else {
-		// For non-character meshes, use another function
-		applyColorToMeshOrDescendant(pickedMesh, selectedColor);
-	}
 }
 
 function addShapeToWorkspace(shapeType, position) {
@@ -769,7 +890,6 @@ function addShapeToWorkspace(shapeType, position) {
 			break;
 
 		default:
-			console.error("Unknown shape type: " + shapeType);
 			Blockly.Events.setGroup(false);
 			return;
 	}
@@ -803,11 +923,11 @@ function addShapeToWorkspace(shapeType, position) {
 				height,
 				depth,
 				position.x,
-				position.y + height/2,
+				position.y + height / 2,
 				position.z,
 				"box_",
 			);
-			
+
 			break;
 
 		case "create_sphere":
@@ -817,10 +937,10 @@ function addShapeToWorkspace(shapeType, position) {
 				diameterY,
 				diameterZ,
 				position.x,
-				position.y + diameter/2,
+				position.y + diameterY / 2,
 				position.z,
 				"sphere_",
-			);		
+			);
 			break;
 
 		case "create_cylinder":
@@ -830,38 +950,37 @@ function addShapeToWorkspace(shapeType, position) {
 				diameterTop,
 				diameterBottom,
 				position.x,
-				position.y + height/2,
+				position.y + height / 2,
 				position.z,
 				"cylinder_",
 			);
 			break;
- 
+
 		case "create_capsule":
 			newMesh = flock.newCapsule(
 				color,
 				radius,
 				height,
 				position.x,
-				position.y + height/2,
+				position.y + height / 2,
 				position.z,
 				"capsule_",
 			);
-		
+
 		case "create_plane":
 			newMesh = flock.newPlane(
 				color,
 				width,
 				height,
 				position.x,
-				position.y + height/2,
+				position.y + height / 2,
 				position.z,
 				"plane_",
 			);
-			
+
 			break;
 	}
 
-	
 	// Store the new mesh in the meshMap
 	meshMap[flock.scene.getMeshByName(newMesh).blockKey] = block;
 
@@ -1556,7 +1675,6 @@ function focusCameraOnMesh() {
 	let mesh = gizmoManager.attachedMesh;
 	if (mesh.name === "ground") mesh = null;
 	if (!mesh && window.currentMesh) {
-
 		const blockKey = Object.keys(meshMap).find(
 			(key) => meshMap[key] === window.currentBlock,
 		);
@@ -2359,28 +2477,28 @@ window.onload = function () {
 	let cleanupTimeout;
 
 	// Get the canvas element
-	const canvas = document.getElementById('renderCanvas');
+	const canvas = document.getElementById("renderCanvas");
 
 	// Disable text selection on the body when the canvas is touched or clicked
 	function disableSelection() {
-		document.body.style.userSelect = 'none';  // Disable text selection
+		document.body.style.userSelect = "none"; // Disable text selection
 	}
 
 	// Enable text selection when touching or clicking outside the canvas
 	function enableSelection(event) {
 		// Check if the event target is outside the canvas
 		if (!canvas.contains(event.target)) {
-			document.body.style.userSelect = 'auto';  // Enable text selection
+			document.body.style.userSelect = "auto"; // Enable text selection
 		}
 	}
 
 	// For mouse events
-	canvas.addEventListener('mousedown', disableSelection);
-	document.addEventListener('mousedown', enableSelection);
+	canvas.addEventListener("mousedown", disableSelection);
+	document.addEventListener("mousedown", enableSelection);
 
 	// For touch events (mobile)
-	canvas.addEventListener('touchstart', disableSelection);
-	document.addEventListener('touchstart', enableSelection);
+	canvas.addEventListener("touchstart", disableSelection);
+	document.addEventListener("touchstart", enableSelection);
 
 	workspace.addChangeListener(function (event) {
 		try {
