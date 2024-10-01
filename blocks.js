@@ -28,9 +28,10 @@ export function handleBlockSelect(event) {
 		const block = Blockly.getMainWorkspace().getBlockById(
 			event.newElementId,
 		); // Get the selected block
-		
+
 		if (
-			block && block.type !== "create_ground" &&
+			block &&
+			block.type !== "create_ground" &&
 			(block.type.startsWith("create_") || block.type.startsWith("load_"))
 		) {
 			// If the block is a create block, update the window.currentMesh variable
@@ -1015,7 +1016,7 @@ export function defineBlocks() {
 						Blockly.getMainWorkspace().getBlockById(this.id); // Check if block is in the main workspace
 
 					if (blockInWorkspace) {
-						window.updateCurrentMeshName(this, "ID_VAR"); // Call the function to update window.currentMesh
+						window.updateOrCreateMeshFromBlockwindow(this);
 					}
 				}
 
@@ -1100,6 +1101,7 @@ export function defineBlocks() {
 			const variableNamePrefix = "box";
 			let nextVariableName =
 				variableNamePrefix + nextVariableIndexes[variableNamePrefix]; // Start with "box1";
+
 			this.jsonInit({
 				type: "create_box",
 				message0:
@@ -1165,10 +1167,9 @@ export function defineBlocks() {
 						Blockly.getMainWorkspace().getBlockById(this.id); // Check if block is in the main workspace
 
 					if (blockInWorkspace) {
-						window.updateCurrentMeshName(this, "ID_VAR"); // Call the function to update window.currentMesh
+						window.updateOrCreateMeshFromBlock(this);
 					}
 				}
-
 				handleBlockCreateEvent(
 					this,
 					changeEvent,
@@ -1176,7 +1177,6 @@ export function defineBlocks() {
 					nextVariableIndexes,
 				);
 			});
-
 			addDoMutatorWithToggleBehavior(this);
 		},
 	};
@@ -1251,7 +1251,7 @@ export function defineBlocks() {
 						Blockly.getMainWorkspace().getBlockById(this.id); // Check if block is in the main workspace
 
 					if (blockInWorkspace) {
-						window.updateCurrentMeshName(this, "ID_VAR"); // Call the function to update window.currentMesh
+						window.updateOrCreateMeshFromBlock(this);
 					}
 				}
 
@@ -1336,7 +1336,7 @@ export function defineBlocks() {
 						Blockly.getMainWorkspace().getBlockById(this.id); // Check if block is in the main workspace
 
 					if (blockInWorkspace) {
-						window.updateCurrentMeshName(this, "ID_VAR"); // Call the function to update window.currentMesh
+						window.updateOrCreateMeshFromBlock(this);
 					}
 				}
 				handleBlockCreateEvent(
@@ -1414,7 +1414,7 @@ export function defineBlocks() {
 						Blockly.getMainWorkspace().getBlockById(this.id); // Check if block is in the main workspace
 
 					if (blockInWorkspace) {
-						window.updateCurrentMeshName(this, "ID_VAR"); // Call the function to update window.currentMesh
+						window.updateOrCreateMeshFromBlock(this);
 					}
 				}
 
@@ -1495,7 +1495,7 @@ export function defineBlocks() {
 						Blockly.getMainWorkspace().getBlockById(this.id); // Check if block is in the main workspace
 
 					if (blockInWorkspace) {
-						window.updateCurrentMeshName(this, "ID_VAR"); // Call the function to update window.currentMesh
+						window.updateOrCreateMeshFromBlock(this);
 					}
 				}
 
@@ -1505,7 +1505,6 @@ export function defineBlocks() {
 					variableNamePrefix,
 					nextVariableIndexes,
 				);
-
 			});
 
 			addDoMutatorWithToggleBehavior(this);
@@ -4197,4 +4196,3 @@ Blockly.Blocks["export_mesh"] = {
 		});
 	},
 };
-

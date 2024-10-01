@@ -193,7 +193,7 @@ export const flock = {
 					pointerInfo.event.touches &&
 					pointerInfo.event.touches.length > 1
 				) {
-					const camera =  flock.scene.activeCamera;
+					const camera = flock.scene.activeCamera;
 					camera.detachControl();
 
 					// Short delay to ensure controls are fully detached
@@ -201,7 +201,7 @@ export const flock = {
 						// Reattach the camera control and reset the target
 						camera.attachControl(canvas, true);
 						camera.setTarget(camera.target);
-					}, 100);  // Adjust delay as necessary
+					}, 100); // Adjust delay as necessary
 				}
 			}
 		});
@@ -1256,11 +1256,43 @@ export const flock = {
 		return flock.whenModelReady(modelName, (mesh) => {
 			// Dispose of all child meshes
 			mesh.getChildMeshes().forEach(function (childMesh) {
+				// Break parent-child relationship
+				childMesh.parent = null;
+
+				// Remove from scene
+				flock.scene.removeMesh(childMesh);
+				childMesh.setEnabled(false);
+				flock.hk._hknp.HP_World_RemoveBody(
+					flock.hk.world,
+					childMesh.physics._pluginData.hpBodyId,
+				);
+
+				// Dispose of physics impostor if it exists
+				if (childMesh.physics) {
+					childMesh.physics.dispose();
+				}
+
+				// Dispose of the child mesh
 				childMesh.dispose();
 			});
 
+			// Remove the main mesh from scene and break any parent relationship
+			flock.scene.removeMesh(mesh);
+			mesh.parent = null;
+
+			// Dispose of physics impostor for the main mesh if it exists
+			mesh.setEnabled(false);
+			flock.hk._hknp.HP_World_RemoveBody(
+				flock.hk.world,
+				mesh.physics._pluginData.hpBodyId,
+			);
+			if (mesh.physics) {
+				mesh.physics.dispose();
+			}
+
 			// Dispose of the main mesh
 			mesh.dispose();
+
 		});
 	},
 	async playAnimation(
@@ -1443,6 +1475,7 @@ export const flock = {
 				diameterTop: diameterTop,
 				diameterBottom: diameterBottom,
 				tessellation: 24,
+				updatable: true,
 			},
 			flock.scene,
 		);
@@ -2172,7 +2205,6 @@ export const flock = {
 	},
 	rotateTo(meshName, x, y, z) {
 		return flock.whenModelReady(meshName, (mesh) => {
-
 			if (mesh.physics) {
 				if (
 					mesh.physics.getMotionType() !==

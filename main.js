@@ -907,13 +907,11 @@ function addShapeToWorkspace(shapeType, position) {
 	startBlock.initSvg();
 	startBlock.render();
 
-	// Connect the shape block to the start block
 	const connection = startBlock.getInput("DO").connection;
 	if (connection) {
 		connection.connect(block.previousConnection);
 	}
 
-	// Call the appropriate flock method to create the shape with the actual values
 	let newMesh;
 	switch (shapeType) {
 		case "create_box":
@@ -982,12 +980,395 @@ function addShapeToWorkspace(shapeType, position) {
 			break;
 	}
 
-	// Store the new mesh in the meshMap
 	meshMap[flock.scene.getMeshByName(newMesh).blockKey] = block;
 
 	Blockly.Events.setGroup(false);
 }
 
+function updateOrCreateMeshFromBlock(block) {
+	
+	if (!window.loadingCode) {
+		const blockKey = Object.keys(meshMap).find(
+			(key) => meshMap[key] === block,
+		);
+
+		const mesh = flock.scene.meshes.find(
+			(mesh) => mesh.blockKey === blockKey,
+		);
+
+		if (mesh) {
+			updateMeshFromBlock(mesh, block);
+		} else {
+			createMeshOnCanvas(block);
+		}
+	}
+}
+window.updateOrCreateMeshFromBlock = updateOrCreateMeshFromBlock;
+
+function createMeshOnCanvas(block) {
+	
+	Blockly.Events.setGroup(true);
+
+	let shapeType = block.type;
+	let color,
+		width,
+		height,
+		depth,
+		diameterX,
+		diameterY,
+		diameterZ,
+		radius,
+		diameterTop,
+		diameterBottom,
+		position;
+
+	// Retrieve values from the block's fields
+	switch (shapeType) {
+		case "create_box":
+			color = block
+				.getInput("COLOR")
+				.connection.targetBlock()
+				.getFieldValue("COLOR");
+			width = block
+				.getInput("WIDTH")
+				.connection.targetBlock()
+				.getFieldValue("NUM");
+			height = block
+				.getInput("HEIGHT")
+				.connection.targetBlock()
+				.getFieldValue("NUM");
+			depth = block
+				.getInput("DEPTH")
+				.connection.targetBlock()
+				.getFieldValue("NUM");
+			break;
+
+		case "create_sphere":
+			color = block
+				.getInput("COLOR")
+				.connection.targetBlock()
+				.getFieldValue("COLOR");
+			diameterX = block
+				.getInput("DIAMETER_X")
+				.connection.targetBlock()
+				.getFieldValue("NUM");
+			diameterY = block
+				.getInput("DIAMETER_Y")
+				.connection.targetBlock()
+				.getFieldValue("NUM");
+			diameterZ = block
+				.getInput("DIAMETER_Z")
+				.connection.targetBlock()
+				.getFieldValue("NUM");
+			break;
+
+		case "create_cylinder":
+			color = block
+				.getInput("COLOR")
+				.connection.targetBlock()
+				.getFieldValue("COLOR");
+			height = block
+				.getInput("HEIGHT")
+				.connection.targetBlock()
+				.getFieldValue("NUM");
+			diameterTop = block
+				.getInput("DIAMETER_TOP")
+				.connection.targetBlock()
+				.getFieldValue("NUM");
+			diameterBottom = block
+				.getInput("DIAMETER_BOTTOM")
+				.connection.targetBlock()
+				.getFieldValue("NUM");
+			break;
+
+		case "create_capsule":
+			color = block
+				.getInput("COLOR")
+				.connection.targetBlock()
+				.getFieldValue("COLOR");
+			radius = block
+				.getInput("RADIUS")
+				.connection.targetBlock()
+				.getFieldValue("NUM");
+			height = block
+				.getInput("HEIGHT")
+				.connection.targetBlock()
+				.getFieldValue("NUM");
+			break;
+
+		case "create_plane":
+			color = block
+				.getInput("COLOR")
+				.connection.targetBlock()
+				.getFieldValue("COLOR");
+			width = block
+				.getInput("WIDTH")
+				.connection.targetBlock()
+				.getFieldValue("NUM");
+			height = block
+				.getInput("HEIGHT")
+				.connection.targetBlock()
+				.getFieldValue("NUM");
+			break;
+
+		default:
+			Blockly.Events.setGroup(false);
+			return;
+	}
+
+	// Get position values from the block
+	position = {
+		x: block.getInput("X").connection.targetBlock().getFieldValue("NUM"),
+		y: block.getInput("Y").connection.targetBlock().getFieldValue("NUM"),
+		z: block.getInput("Z").connection.targetBlock().getFieldValue("NUM"),
+	};
+
+	// Create the appropriate mesh based on shapeType
+	let newMesh;
+	switch (shapeType) {
+		case "create_box":
+			newMesh = flock.newBox(
+				color,
+				width,
+				height,
+				depth,
+				position.x,
+				position.y,
+				position.z,
+				"box_" + flock.scene.getUniqueId(),
+			);
+			break;
+
+		case "create_sphere":
+			newMesh = flock.newSphere(
+				color,
+				diameterX,
+				diameterY,
+				diameterZ,
+				position.x,
+				position.y + diameterY / 2,
+				position.z,
+				"sphere_" + flock.scene.getUniqueId(),
+			);
+			break;
+
+		case "create_cylinder":
+			newMesh = flock.newCylinder(
+				color,
+				height,
+				diameterTop,
+				diameterBottom,
+				position.x,
+				position.y + height / 2,
+				position.z,
+				"cylinder_" + flock.scene.getUniqueId(),
+			);
+			break;
+
+		case "create_capsule":
+			newMesh = flock.newCapsule(
+				color,
+				radius,
+				height,
+				position.x,
+				position.y + height / 2,
+				position.z,
+				"capsule_" + flock.scene.getUniqueId(),
+			);
+			break;
+
+		case "create_plane":
+			newMesh = flock.newPlane(
+				color,
+				width,
+				height,
+				position.x,
+				position.y + height / 2,
+				position.z,
+				"plane_" + flock.scene.getUniqueId(),
+			);
+			break;
+	}
+
+	// Store the mesh in the meshMap
+	if (newMesh) {
+		meshMap[flock.scene.getMeshByName(newMesh).blockKey] = block;
+	}
+
+	Blockly.Events.setGroup(false);
+}
+
+function updateMeshFromBlock(mesh, block) {
+
+	const shapeType = block.type;
+
+	const color = block
+		.getInput("COLOR")
+		.connection.targetBlock()
+		.getFieldValue("COLOR");
+
+	// Retrieve the position values (X, Y, Z) from the connected blocks
+	const position = {
+		x: block.getInput("X").connection.targetBlock().getFieldValue("NUM"),
+		y: block.getInput("Y").connection.targetBlock().getFieldValue("NUM"),
+		z: block.getInput("Z").connection.targetBlock().getFieldValue("NUM"),
+	};
+
+	// Use flock API to change the color and position of the mesh
+	flock.changeColour(mesh.name, color);
+	flock.positionAt(mesh.name, position.x, position.y, position.z);
+
+	// Shape-specific updates based on the block type
+	switch (shapeType) {
+		case "create_box":
+			// Retrieve width, height, and depth from connected blocks
+			const width = block
+				.getInput("WIDTH")
+				.connection.targetBlock()
+				.getFieldValue("NUM");
+			const height = block
+				.getInput("HEIGHT")
+				.connection.targetBlock()
+				.getFieldValue("NUM");
+			const depth = block
+				.getInput("DEPTH")
+				.connection.targetBlock()
+				.getFieldValue("NUM");
+
+			// Set the absolute size of the box (not scaling)
+			setAbsoluteSize(mesh, width, height, depth);
+			break;
+
+		case "create_sphere":
+			// Retrieve diameter values for X, Y, Z from connected blocks
+			const diameterX = block
+				.getInput("DIAMETER_X")
+				.connection.targetBlock()
+				.getFieldValue("NUM");
+			const diameterY = block
+				.getInput("DIAMETER_Y")
+				.connection.targetBlock()
+				.getFieldValue("NUM");
+			const diameterZ = block
+				.getInput("DIAMETER_Z")
+				.connection.targetBlock()
+				.getFieldValue("NUM");
+
+			// Set the absolute size of the sphere based on diameters
+			setAbsoluteSize(mesh, diameterX, diameterY, diameterZ);
+			break;
+
+		case "create_cylinder":
+			// Retrieve height, diameterTop, and diameterBottom from connected blocks
+			const cylinderHeight = block
+				.getInput("HEIGHT")
+				.connection.targetBlock()
+				.getFieldValue("NUM");
+			const diameterTop = block
+				.getInput("DIAMETER_TOP")
+				.connection.targetBlock()
+				.getFieldValue("NUM");
+			const diameterBottom = block
+				.getInput("DIAMETER_BOTTOM")
+				.connection.targetBlock()
+				.getFieldValue("NUM");
+
+			updateCylinderGeometry(
+				mesh,
+				diameterTop,
+				diameterBottom,
+				cylinderHeight,
+			);
+			break;
+
+		case "create_capsule":
+			// Retrieve radius and height from connected blocks
+			const radius = block
+				.getInput("RADIUS")
+				.connection.targetBlock()
+				.getFieldValue("NUM");
+			const capsuleHeight = block
+				.getInput("HEIGHT")
+				.connection.targetBlock()
+				.getFieldValue("NUM");
+
+			// Set the absolute size of the capsule
+			setAbsoluteSize(mesh, radius * 2, capsuleHeight, radius * 2);
+			break;
+
+		case "create_plane":
+			// Retrieve width and height from connected blocks
+			const planeWidth = block
+				.getInput("WIDTH")
+				.connection.targetBlock()
+				.getFieldValue("NUM");
+			const planeHeight = block
+				.getInput("HEIGHT")
+				.connection.targetBlock()
+				.getFieldValue("NUM");
+
+			// Set the absolute size of the plane
+			setAbsoluteSize(mesh, planeWidth, planeHeight, 1); // Planes are usually flat in the Z dimension
+			break;
+
+		default:
+			console.warn(`Unknown shape type: ${shapeType}`);
+	}
+}
+
+function updateCylinderGeometry(mesh, diameterTop, diameterBottom, height) {
+
+	// If the mesh has geometry, dispose of it before updating
+	if (mesh.geometry) {
+		mesh.geometry.dispose();
+	}
+
+	// Create a temporary mesh to generate the vertex data for the updated cylinder
+	const tempMesh = BABYLON.MeshBuilder.CreateCylinder(
+		"",
+		{
+			height: height,
+			diameterTop: diameterTop,
+			diameterBottom: diameterBottom,
+			tessellation: 32,
+			updatable: true,
+		},
+		mesh.getScene(),
+	);
+
+	// Extract vertex data from the temporary mesh
+	const vertexData = BABYLON.VertexData.ExtractFromMesh(tempMesh);
+
+	// Create new geometry for the mesh
+	const newGeometry = new BABYLON.Geometry(
+		mesh.name + "_geometry",
+		mesh.getScene(),
+		vertexData,
+		true,
+		mesh,
+	);
+
+	// Apply the new geometry to the mesh
+	newGeometry.applyToMesh(mesh);
+	mesh.makeGeometryUnique();
+	// Dispose of the temporary mesh after extracting vertex data
+	tempMesh.dispose();
+}
+
+function setAbsoluteSize(mesh, width, height, depth) {
+	// Get the original bounding box size of the mesh
+	const boundingInfo = mesh.getBoundingInfo();
+	const originalSize = boundingInfo.boundingBox.extendSize;
+
+	// Calculate the scaling factors for each axis to set absolute size
+	mesh.scaling.x = width / (originalSize.x * 2);
+	mesh.scaling.y = height / (originalSize.y * 2);
+	mesh.scaling.z = depth / (originalSize.z * 2);
+}
+
+window.updateMeshFromBlock = updateMeshFromBlock;
+
+window.createMeshOnCanvas = createMeshOnCanvas;
 // Helper function to create and attach shadow blocks
 function addShadowBlock(block, inputName, blockType, defaultValue) {
 	const shadowBlock = workspace.newBlock(blockType);
@@ -1073,8 +1454,8 @@ function setNumberInput(block, inputName, value) {
 
 window.selectedColor = "#ffffff"; // Default color
 
-document.addEventListener("DOMContentLoaded", function() {
-	const colorInput = document.getElementById('colorPickerButton');
+document.addEventListener("DOMContentLoaded", function () {
+	const colorInput = document.getElementById("colorPickerButton");
 
 	// Attach the event listener to capture color changes when user interacts with the input
 	colorInput.addEventListener("input", (event) => {
@@ -1082,15 +1463,14 @@ document.addEventListener("DOMContentLoaded", function() {
 
 		// Delay the blur to ensure the color selection is processed first
 		setTimeout(() => {
-			colorInput.blur();  // Close the picker after a brief delay
-			colorInput.setAttribute('type','text');
-			colorInput.setAttribute('type','color');
+			colorInput.blur(); // Close the picker after a brief delay
+			colorInput.setAttribute("type", "text");
+			colorInput.setAttribute("type", "color");
 		}, 100); // Adjust the delay time as needed
 		// Call a function to handle the selected color
 		pickMeshFromCanvas();
 	});
 });
-
 
 function pickMeshFromCanvas() {
 	const canvas = flock.scene.getEngine().getRenderingCanvas(); // Get the Babylon.js canvas
@@ -2333,34 +2713,39 @@ function initializeApp() {
 
 // Function to enforce minimum font size and delay the focus to prevent zoom
 function enforceMinimumFontSize(input) {
-
 	const currentFontSize = parseFloat(input.style.fontSize);
 
 	// Set font size immediately if it's less than 16px
 	if (currentFontSize < 16) {
-		input.style.fontSize = '16px';
-		input.offsetHeight;  // Force reflow to apply the font size change
+		input.style.fontSize = "16px";
+		input.offsetHeight; // Force reflow to apply the font size change
 	}
 
-
 	// Delay focus to prevent zoom
-	input.addEventListener('focus', (event) => {
-		event.preventDefault();  // Prevent the default focus action
-		setTimeout(() => {
-			input.focus();  // Focus the input after a short delay
-		}, 50);  // Adjust the delay as needed (50ms is usually enough)
-	}, { once: true });  // Add the event listener once for each input
+	input.addEventListener(
+		"focus",
+		(event) => {
+			event.preventDefault(); // Prevent the default focus action
+			setTimeout(() => {
+				input.focus(); // Focus the input after a short delay
+			}, 50); // Adjust the delay as needed (50ms is usually enough)
+		},
+		{ once: true },
+	); // Add the event listener once for each input
 }
 
 // Function to observe changes in the DOM for dynamically added blocklyHtmlInput elements
 function observeBlocklyInputs() {
 	const observer = new MutationObserver((mutationsList) => {
-		mutationsList.forEach(mutation => {
-			if (mutation.type === 'childList') {
-				mutation.addedNodes.forEach(node => {
+		mutationsList.forEach((mutation) => {
+			if (mutation.type === "childList") {
+				mutation.addedNodes.forEach((node) => {
 					// Check if the added node is an INPUT element with the blocklyHtmlInput class
-					if (node.nodeType === Node.ELEMENT_NODE && node.classList.contains('blocklyHtmlInput')) {
-						enforceMinimumFontSize(node);  // Set font size and delay focus
+					if (
+						node.nodeType === Node.ELEMENT_NODE &&
+						node.classList.contains("blocklyHtmlInput")
+					) {
+						enforceMinimumFontSize(node); // Set font size and delay focus
 					}
 				});
 			}
@@ -2371,7 +2756,6 @@ function observeBlocklyInputs() {
 	observer.observe(document.body, { childList: true, subtree: true });
 }
 
-
 window.onload = function () {
 	const scriptElement = document.getElementById("flock");
 	if (scriptElement) {
@@ -2381,7 +2765,7 @@ window.onload = function () {
 	}
 
 	observeBlocklyInputs();
-	
+
 	workspace = Blockly.inject("blocklyDiv", options);
 	registerFieldColour();
 
@@ -2606,23 +2990,26 @@ window.onload = function () {
 
 let deferredPrompt;
 
-window.addEventListener('beforeinstallprompt', (e) => {
-  e.preventDefault(); // Prevent the mini-infobar from appearing
-  deferredPrompt = e; // Save the event for later use
+window.addEventListener("beforeinstallprompt", (e) => {
+	e.preventDefault(); // Prevent the mini-infobar from appearing
+	deferredPrompt = e; // Save the event for later use
 
-  // Prompt the user after interaction (scroll, click, etc.)
-  window.addEventListener('click', () => {
-	if (deferredPrompt) {
-	  deferredPrompt.prompt();
-	  deferredPrompt.userChoice.then((choiceResult) => {
-		if (choiceResult.outcome === 'accepted') {
-		  console.log('User accepted the install prompt');
-		} else {
-		  console.log('User dismissed the install prompt');
-		}
-		deferredPrompt = null; // Clear the event
-	  });
-	}
-  }, { once: true });
+	// Prompt the user after interaction (scroll, click, etc.)
+	window.addEventListener(
+		"click",
+		() => {
+			if (deferredPrompt) {
+				deferredPrompt.prompt();
+				deferredPrompt.userChoice.then((choiceResult) => {
+					if (choiceResult.outcome === "accepted") {
+						console.log("User accepted the install prompt");
+					} else {
+						console.log("User dismissed the install prompt");
+					}
+					deferredPrompt = null; // Clear the event
+				});
+			}
+		},
+		{ once: true },
+	);
 });
-

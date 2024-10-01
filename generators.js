@@ -5,7 +5,7 @@ import "@blockly/block-plus-minus";
 import { FlowGraphLog10Block } from "babylonjs";
 import { flock } from "./flock.js";
 
-export const meshMap = {};
+export let meshMap = {};
 export function defineGenerators() {
 	javascriptGenerator.forBlock["show"] = function (block) {
 		const modelName = javascriptGenerator.nameDB_.getName(
@@ -1625,6 +1625,7 @@ export function defineGenerators() {
 	};
 
 	javascriptGenerator.init = function (workspace) {
+		meshMap = {};
 		console.log("Initializing JavaScript generator...");
 		if (!javascriptGenerator.nameDB_) {
 			javascriptGenerator.nameDB_ = new Blockly.Names(
