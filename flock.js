@@ -1254,45 +1254,30 @@ export const flock = {
 	},
 	dispose(modelName) {
 		return flock.whenModelReady(modelName, (mesh) => {
-			// Dispose of all child meshes
-			mesh.getChildMeshes().forEach(function (childMesh) {
+			// Create a list of the mesh and its child meshes
+			const meshesToDispose = mesh.getChildMeshes().concat(mesh);
+
+			// Loop through each mesh in the list and dispose of it
+			meshesToDispose.forEach(function (currentMesh) {
 				// Break parent-child relationship
-				childMesh.parent = null;
+				currentMesh.parent = null;
 
 				// Remove from scene
-				flock.scene.removeMesh(childMesh);
-				childMesh.setEnabled(false);
-				flock.hk._hknp.HP_World_RemoveBody(
-					flock.hk.world,
-					childMesh.physics._pluginData.hpBodyId,
-				);
+				flock.scene.removeMesh(currentMesh);
+				currentMesh.setEnabled(false);
 
-				// Dispose of physics impostor if it exists
-				if (childMesh.physics) {
-					childMesh.physics.dispose();
+				// Remove body from the physics world if it exists
+				if (currentMesh.physics && currentMesh.physics._pluginData) {
+					flock.hk._hknp.HP_World_RemoveBody(
+						flock.hk.world,
+						currentMesh.physics._pluginData.hpBodyId
+					);
+					currentMesh.physics.dispose();
 				}
 
-				// Dispose of the child mesh
-				childMesh.dispose();
+				// Dispose of the mesh
+				currentMesh.dispose();
 			});
-
-			// Remove the main mesh from scene and break any parent relationship
-			flock.scene.removeMesh(mesh);
-			mesh.parent = null;
-
-			// Dispose of physics impostor for the main mesh if it exists
-			mesh.setEnabled(false);
-			flock.hk._hknp.HP_World_RemoveBody(
-				flock.hk.world,
-				mesh.physics._pluginData.hpBodyId,
-			);
-			if (mesh.physics) {
-				mesh.physics.dispose();
-			}
-
-			// Dispose of the main mesh
-			mesh.dispose();
-
 		});
 	},
 	async playAnimation(
