@@ -1047,7 +1047,7 @@ export function defineBlocks() {
 						Blockly.getMainWorkspace().getBlockById(this.id); // Check if block is in the main workspace
 
 					if (blockInWorkspace) {
-						window.updateOrCreateMeshFromBlockwindow(this);
+						window.updateOrCreateMeshFromBlock(this);
 					}
 				}
 
