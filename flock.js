@@ -1270,7 +1270,7 @@ export const flock = {
 				if (currentMesh.physics && currentMesh.physics._pluginData) {
 					flock.hk._hknp.HP_World_RemoveBody(
 						flock.hk.world,
-						currentMesh.physics._pluginData.hpBodyId
+						currentMesh.physics._pluginData.hpBodyId,
 					);
 					currentMesh.physics.dispose();
 				}
@@ -1352,6 +1352,7 @@ export const flock = {
 			flock.scene,
 		);
 		newBox.metadata = {};
+		newBox.metadata.shapeType = "Box";
 		newBox.position = new flock.BABYLON.Vector3(posX, posY, posZ);
 
 		newBox.blockKey = newBox.name;
@@ -1412,6 +1413,8 @@ export const flock = {
 		);
 		newSphere.position = new flock.BABYLON.Vector3(posX, posY, posZ);
 
+		newSphere.metadata = {};
+		newSphere.metadata.shapeType = "Sphere";
 		newSphere.blockKey = newSphere.name;
 		newSphere.name = newSphere.name + newSphere.uniqueId;
 
@@ -1465,7 +1468,8 @@ export const flock = {
 			flock.scene,
 		);
 		newCylinder.position = new flock.BABYLON.Vector3(posX, posY, posZ);
-
+		newCylinder.metadata = {};
+		newCylinder.metadata.shapeType = "Cylinder";
 		newCylinder.blockKey = newCylinder.name;
 		newCylinder.name = newCylinder.name + newCylinder.uniqueId;
 
@@ -1523,6 +1527,8 @@ export const flock = {
 		);
 		newCapsule.position = new flock.BABYLON.Vector3(posX, posY, posZ);
 
+		newCapsule.metadata = {};
+		newCapsule.metadata.shapeType = "Capsule";
 		newCapsule.blockKey = newCapsule.name;
 		newCapsule.name = newCapsule.name + newCapsule.uniqueId;
 

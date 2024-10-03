@@ -988,6 +988,7 @@ function addShapeToWorkspace(shapeType, position) {
 function updateOrCreateMeshFromBlock(block) {
 	
 	if (!window.loadingCode) {
+		
 		const blockKey = Object.keys(meshMap).find(
 			(key) => meshMap[key] === block,
 		);
@@ -1006,7 +1007,6 @@ function updateOrCreateMeshFromBlock(block) {
 window.updateOrCreateMeshFromBlock = updateOrCreateMeshFromBlock;
 
 function createMeshOnCanvas(block) {
-	
 	Blockly.Events.setGroup(true);
 
 	let shapeType = block.type;
@@ -1199,7 +1199,6 @@ function createMeshOnCanvas(block) {
 }
 
 function updateMeshFromBlock(mesh, block) {
-
 	const shapeType = block.type;
 
 	const color = block
@@ -1317,7 +1316,6 @@ function updateMeshFromBlock(mesh, block) {
 }
 
 function updateCylinderGeometry(mesh, diameterTop, diameterBottom, height) {
-
 	// If the mesh has geometry, dispose of it before updating
 	if (mesh.geometry) {
 		mesh.geometry.dispose();
@@ -1356,14 +1354,78 @@ function updateCylinderGeometry(mesh, diameterTop, diameterBottom, height) {
 }
 
 function setAbsoluteSize(mesh, width, height, depth) {
-	// Get the original bounding box size of the mesh
 	const boundingInfo = mesh.getBoundingInfo();
 	const originalSize = boundingInfo.boundingBox.extendSize;
 
-	// Calculate the scaling factors for each axis to set absolute size
 	mesh.scaling.x = width / (originalSize.x * 2);
 	mesh.scaling.y = height / (originalSize.y * 2);
 	mesh.scaling.z = depth / (originalSize.z * 2);
+
+	let shapeType = null;
+
+	if (mesh.metadata) shapeType = mesh.metadata.shapeType;
+
+	if (mesh.physics && shapeType) {
+		const shape = mesh.physics.shape;
+		let newShape;
+
+		// Create the new physics shape based on the type
+		switch (shapeType) {
+			case "Box":
+				newShape = new BABYLON.PhysicsShapeBox(
+					new BABYLON.Vector3(0, 0, 0),
+					new BABYLON.Quaternion(0, 0, 0, 1),
+					new BABYLON.Vector3(width, height, depth),
+					mesh.getScene(),
+				);
+				break;
+
+			case "Cylinder":
+				const diameterBottom = Math.min(width, depth);
+				const startPoint = new flock.BABYLON.Vector3(0, -height / 2, 0);
+				const endPoint = new flock.BABYLON.Vector3(0, height / 2, 0);
+
+				newShape = new flock.BABYLON.PhysicsShapeCylinder(
+					startPoint,
+					endPoint,
+					diameterBottom / 2,
+					mesh.getScene(),
+				);
+				break;
+
+			case "Sphere":
+				newShape = new flock.BABYLON.PhysicsShapeSphere(
+					new flock.BABYLON.Vector3(0, 0, 0),
+					Math.max(width, depth, height) / 2,
+					mesh.getScene(),
+				);
+				break;
+
+			case "Capsule":
+				const radius = Math.min(width, depth) / 2;
+				newShape = new flock.BABYLON.PhysicsShapeCapsule(
+					new flock.BABYLON.Vector3(0, 0, 0),
+					radius, // Radius of the spherical ends
+					height / 2, // Half the height of the cylindrical part
+					mesh.getScene(),
+				);
+				break;
+
+			default:
+				console.log(
+					"Unknown or unsupported physics shape type: " + shapeType,
+				);
+				break;
+		}
+
+		if (newShape) {
+			shape.dispose();
+			const physicsBody = mesh.physics;
+			physicsBody.shape = newShape;
+			mesh.physics.disablePreStep;
+			mesh.computeWorldMatrix(true);
+		}
+	}
 }
 
 window.updateMeshFromBlock = updateMeshFromBlock;
