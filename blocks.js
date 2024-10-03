@@ -40,6 +40,12 @@ export function handleBlockSelect(event) {
 	}
 }
 
+export function handleBlockDelete(event) {
+	if (event.type === Blockly.Events.BLOCK_DELETE) {
+		window.deleteMeshFromBlock(event.blockId);
+	}
+}
+
 function findCreateBlock(block) {
 	if (!block || typeof block.getParent !== "function") {
 		console.warn("Invalid block provided to findParentCreateOrLoad.");

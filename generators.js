@@ -6,6 +6,8 @@ import { FlowGraphLog10Block } from "babylonjs";
 import { flock } from "./flock.js";
 
 export let meshMap = {};
+export let meshBlockIdMap = {};
+
 export function defineGenerators() {
 	javascriptGenerator.forBlock["show"] = function (block) {
 		const modelName = javascriptGenerator.nameDB_.getName(
@@ -143,6 +145,7 @@ export function defineGenerators() {
 	javascriptGenerator.forBlock["create_ground"] = function (block) {
 		const meshId = "ground";
 		meshMap[meshId] = block;
+		meshBlockIdMap[meshId] = block.id;
 		const color = getFieldValue(block, "COLOR", "#6495ED");
 		return `createGround(${color}, "${meshId}");\n`;
 	};
@@ -164,6 +167,7 @@ export function defineGenerators() {
 	javascriptGenerator.forBlock["set_sky_color"] = function (block) {
 		const meshId = "sky";
 		meshMap[meshId] = block;
+		meshBlockIdMap[meshId] = block.id;
 		const color = getFieldValue(block, "COLOR", "#6495ED");
 		return `setSky(${color});\n`;
 	};
@@ -303,7 +307,7 @@ export function defineGenerators() {
 
 		const meshId = modelName + "_" + flock.scene.getUniqueId();
 		meshMap[meshId] = block;
-
+		meshBlockIdMap[meshId] = block.id;
 		// Generate the code for the "do" part (if present)
 		let doCode = "";
 
@@ -335,7 +339,7 @@ export function defineGenerators() {
 
 		const meshId = modelName + "_" + flock.scene.getUniqueId();
 		meshMap[meshId] = block;
-
+		meshBlockIdMap[meshId] = block.id;
 		// Generate the code for the "do" part (if present)
 		let doCode = "";
 
@@ -362,7 +366,7 @@ export function defineGenerators() {
 
 		const meshId = modelName + "_" + flock.scene.getUniqueId();
 		meshMap[meshId] = block;
-
+		meshBlockIdMap[meshId] = block.id;
 		// Generate the code for the "do" part (if present)
 		let doCode = "";
 
@@ -391,6 +395,7 @@ export function defineGenerators() {
 
 		const boxId = `box_${generateUUID()}`;
 		meshMap[boxId] = block;
+		meshBlockIdMap[boxId] = block.id;
 
 		const doCode = block.getInput("DO")
 			? javascriptGenerator.statementToCode(block, "DO") || ""
@@ -415,7 +420,7 @@ export function defineGenerators() {
 
 		const sphereId = `sphere_${generateUUID()}`;
 		meshMap[sphereId] = block;
-
+		meshBlockIdMap[sphereId] = block.id;
 		const doCode = block.getInput("DO")
 			? javascriptGenerator.statementToCode(block, "DO") || ""
 			: "";
@@ -439,7 +444,7 @@ export function defineGenerators() {
 
 		const cylinderId = `cylinder_${generateUUID()}`;
 		meshMap[cylinderId] = block;
-
+		meshBlockIdMap[cylinderId] = block.id;
 		const doCode = block.getInput("DO")
 			? javascriptGenerator.statementToCode(block, "DO") || ""
 			: "";
@@ -462,7 +467,7 @@ export function defineGenerators() {
 
 		const capsuleId = `capsule_${generateUUID()}`;
 		meshMap[capsuleId] = block;
-
+		meshBlockIdMap[capsuleId] = block.id;
 		const doCode = block.getInput("DO")
 			? javascriptGenerator.statementToCode(block, "DO") || ""
 			: "";
@@ -485,7 +490,7 @@ export function defineGenerators() {
 
 		const planeId = `plane_${generateUUID()}`;
 		meshMap[planeId] = block;
-
+		meshBlockIdMap[planeId] = block.id;
 		const doCode = block.getInput("DO")
 			? javascriptGenerator.statementToCode(block, "DO") || ""
 			: "";
@@ -514,7 +519,7 @@ export function defineGenerators() {
 
 		const wallId = `wall_${generateUUID()}`;
 		meshMap[wallId] = block;
-
+		meshBlockIdMap[wallId] = block.id;
 		// Directly passing all parameters to the helper function
 		return `${variableName} = newWall(${color}, ${startX}, ${startZ}, ${endX}, ${endZ}, ${yPosition}, "${wallType}", "${wallId}");\n`;
 	};
@@ -1626,6 +1631,7 @@ export function defineGenerators() {
 
 	javascriptGenerator.init = function (workspace) {
 		meshMap = {};
+		meshBlockIdMap = {};
 		console.log("Initializing JavaScript generator...");
 		if (!javascriptGenerator.nameDB_) {
 			javascriptGenerator.nameDB_ = new Blockly.Names(

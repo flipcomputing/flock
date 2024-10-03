@@ -23,8 +23,9 @@ import {
 	defineBlocks,
 	initializeVariableIndexes,
 	handleBlockSelect,
+	handleBlockDelete,
 } from "./blocks";
-import { defineGenerators, meshMap } from "./generators";
+import { defineGenerators, meshMap, meshBlockIdMap } from "./generators";
 
 if (navigator.serviceWorker) {
 	navigator.serviceWorker.addEventListener("controllerchange", () => {
@@ -339,173 +340,6 @@ function selectObject(objectName) {
 		window.addEventListener("click", onPickMesh);
 	}, 200);
 }
-
-function selectObject2(objectName) {
-	document.getElementById("shapes-dropdown").style.display = "none";
-	const canvas = flock.scene.getEngine().getRenderingCanvas(); // Get the Babylon.js canvas
-
-	document.body.style.cursor = "crosshair"; // Change cursor to indicate picking mode
-
-	setTimeout(() => {
-		const onPickMesh = function (event) {
-			// Get the canvas bounds relative to the window
-			const canvasRect = canvas.getBoundingClientRect();
-
-			// Check if the click happened outside the canvas
-			if (
-				event.clientX < canvasRect.left ||
-				event.clientX > canvasRect.right ||
-				event.clientY < canvasRect.top ||
-				event.clientY > canvasRect.bottom
-			) {
-				window.removeEventListener("click", onPickMesh);
-				document.body.style.cursor = "default";
-				return;
-			}
-
-			// Calculate the click position relative to the canvas, not the window
-			const canvasX = event.clientX - canvasRect.left;
-			const canvasY = event.clientY - canvasRect.top;
-
-			// Create a picking ray using the adjusted canvas coordinates
-			const pickRay = flock.scene.createPickingRay(
-				canvasX,
-				canvasY,
-				BABYLON.Matrix.Identity(),
-				flock.scene.activeCamera,
-			);
-
-			// Perform the picking
-			const pickResult = flock.scene.pickWithRay(
-				pickRay,
-				(mesh) => mesh.isPickable,
-			);
-
-			if (pickResult.hit) {
-				const pickedPosition = pickResult.pickedPoint;
-
-				// Start a Blockly event group to ensure undo/redo tracks all changes
-				Blockly.Events.setGroup(true);
-
-				try {
-					// Create the load_object block
-					const block = workspace.newBlock("load_object");
-					block.initSvg();
-					block.render();
-					highlightBlockById(workspace, block);
-
-					// Set object name
-					block.setFieldValue(objectName, "MODELS");
-
-					// Set position values (X, Y, Z) from the picked position
-					setPositionValues(block, pickedPosition, "load_object");
-
-					// Add shadow block for SCALE
-					addShadowBlock(block, "SCALE", "math_number", 1); // Using 'math_number' block for scale
-
-					// Add shadow block for COLOR
-					addShadowBlock(
-						block,
-						"COLOR",
-						"colour",
-						objectColours[objectName],
-					);
-
-					// Create a new 'start' block and connect the load_object block to it
-					const startBlock = workspace.newBlock("start");
-					startBlock.initSvg();
-					startBlock.render();
-
-					// Connect the load_object block to the start block
-					const connection = startBlock.getInput("DO").connection;
-					if (connection) {
-						connection.connect(block.previousConnection);
-					}
-				} finally {
-					// End the event group to ensure everything can be undone/redone as a group
-					Blockly.Events.setGroup(false);
-				}
-			}
-
-			document.body.style.cursor = "default"; // Reset the cursor
-			window.removeEventListener("click", onPickMesh); // Remove the event listener after picking
-
-			//executeCode();
-		};
-
-		// Add event listener to pick the mesh on the next click
-		window.addEventListener("click", onPickMesh);
-	}, 200);
-}
-
-function selectObject3(objectName) {
-	document.getElementById("shapes-dropdown").style.display = "none";
-	document.body.style.cursor = "crosshair"; // Change cursor to indicate picking mode
-
-	const canvas = document.getElementById("renderCanvas");
-
-	const onClick = function (event) {
-		const canvasRect = flock.canvas.getBoundingClientRect();
-		const canvasX = event.clientX - canvasRect.left;
-		const canvasY = event.clientY - canvasRect.top;
-
-		// Now use the adjusted coordinates for picking
-		const pickResult = flock.scene.pick(canvasX, canvasY);
-
-		if (pickResult.hit) {
-			const pickedPosition = pickResult.pickedPoint;
-
-			// Start a Blockly event group to ensure undo/redo tracks all changes
-			Blockly.Events.setGroup(true);
-
-			try {
-				// Create the load_object block
-				const block = workspace.newBlock("load_object");
-				block.initSvg();
-				block.render();
-				highlightBlockById(workspace, block);
-
-				// Set object name
-				block.setFieldValue(objectName, "MODELS");
-
-				// Set position values (X, Y, Z) from the picked position
-				setPositionValues(block, pickedPosition, "load_object");
-
-				// Add shadow block for SCALE
-				addShadowBlock(block, "SCALE", "math_number", 1); // Using 'math_number' block for scale
-
-				// Add shadow block for COLOR
-				addShadowBlock(
-					block,
-					"COLOR",
-					"colour",
-					objectColours[objectName],
-				);
-
-				// Create a new 'start' block and connect the load_object block to it
-				const startBlock = workspace.newBlock("start");
-				startBlock.initSvg();
-				startBlock.render();
-
-				// Connect the load_object block to the start block
-				const connection = startBlock.getInput("DO").connection;
-				if (connection) {
-					connection.connect(block.previousConnection);
-				}
-			} finally {
-				// End the event group to ensure everything can be undone/redone as a group
-				Blockly.Events.setGroup(false);
-			}
-		}
-
-		document.body.style.cursor = "default";
-		canvas.removeEventListener("click", onClick);
-		executeCode(); // Your function to execute the Blockly code
-	};
-
-	canvas.addEventListener("click", onClick);
-}
-window.selectObject = selectObject;
 
 // Scroll function to move the object row left or right
 function scrollObjects(direction) {
@@ -980,22 +814,18 @@ function addShapeToWorkspace(shapeType, position) {
 			break;
 	}
 
-	meshMap[flock.scene.getMeshByName(newMesh).blockKey] = block;
-
+	const blockKey = flock.scene.getMeshByName(newMesh).blockKey
+	meshMap[blockKey] = block;
+	meshBlockIdMap[blockKey] = block.id;
+	
 	Blockly.Events.setGroup(false);
 }
 
 function updateOrCreateMeshFromBlock(block) {
 	
 	if (!window.loadingCode) {
-		
-		const blockKey = Object.keys(meshMap).find(
-			(key) => meshMap[key] === block,
-		);
 
-		const mesh = flock.scene.meshes.find(
-			(mesh) => mesh.blockKey === blockKey,
-		);
+        const mesh = getMeshFromBlock(block);
 
 		if (mesh) {
 			updateMeshFromBlock(mesh, block);
@@ -1005,6 +835,18 @@ function updateOrCreateMeshFromBlock(block) {
 	}
 }
 window.updateOrCreateMeshFromBlock = updateOrCreateMeshFromBlock;
+
+function getMeshFromBlock(block) {
+	const blockKey = Object.keys(meshMap).find((key) => meshMap[key] === block);
+
+	return flock.scene.meshes.find((mesh) => mesh.blockKey === blockKey);
+}
+
+function getMeshFromBlockId(blockId) {
+	const blockKey = Object.keys(meshMap).find((key) => meshBlockIdMap[key] === blockId);
+
+	return flock.scene.meshes.find((mesh) => mesh.blockKey === blockKey);
+}
 
 function createMeshOnCanvas(block) {
 	Blockly.Events.setGroup(true);
@@ -1192,7 +1034,9 @@ function createMeshOnCanvas(block) {
 
 	// Store the mesh in the meshMap
 	if (newMesh) {
-		meshMap[flock.scene.getMeshByName(newMesh).blockKey] = block;
+		const blockKey = flock.scene.getMeshByName(newMesh).blockKey
+		meshMap[blockKey] = block;
+		meshBlockIdMap[blockKey] = block.id;
 	}
 
 	Blockly.Events.setGroup(false);
@@ -1200,6 +1044,7 @@ function createMeshOnCanvas(block) {
 
 function updateMeshFromBlock(mesh, block) {
 	const shapeType = block.type;
+	mesh.physics.disablePreStep = true;
 
 	const color = block
 		.getInput("COLOR")
@@ -1618,6 +1463,14 @@ function pickMeshFromCanvas() {
 }
 
 window.pickMeshFromCanvas = pickMeshFromCanvas;
+
+function deleteMeshFromBlock(blockId){
+	const mesh = getMeshFromBlockId(blockId);
+	
+	if (mesh)
+		flock.dispose(mesh.name);	
+}
+window.deleteMeshFromBlock = deleteMeshFromBlock;
 
 function stopCode() {
 	flock.audioContext.close();
@@ -2832,6 +2685,7 @@ window.onload = function () {
 	registerFieldColour();
 
 	workspace.addChangeListener(handleBlockSelect);
+	workspace.addChangeListener(handleBlockDelete);
 
 	// Resize Blockly workspace and Babylon.js canvas when the window is resized
 	window.addEventListener("resize", onResize);
