@@ -29,17 +29,40 @@ export function handleBlockSelect(event) {
 			event.newElementId,
 		); // Get the selected block
 
-		
 		if (
 			block &&
 			block.type !== "create_ground" &&
 			(block.type.startsWith("create_") || block.type.startsWith("load_"))
 		) {
-			
 			// If the block is a create block, update the window.currentMesh variable
 			window.updateCurrentMeshName(block, "ID_VAR");
 		}
 	}
+}
+
+function findCreateBlock(block) {
+	if (!block || typeof block.getParent !== "function") {
+		console.warn("Invalid block provided to findParentCreateOrLoad.");
+		return null;
+	}
+
+	let parent = block;
+
+	while (parent) {
+	
+		if (
+			parent.type.startsWith("create_") ||
+			parent.type.startsWith("load_")
+		) {
+			return parent;
+		}
+
+		// Move up the hierarchy
+		parent = parent.getParent();
+	}
+
+	// No matching parent found
+	return null;
 }
 
 export default Blockly.Theme.defineTheme("flock", {
@@ -1165,17 +1188,17 @@ export function defineBlocks() {
 					changeEvent.type === Blockly.Events.BLOCK_CREATE ||
 					changeEvent.type === Blockly.Events.BLOCK_CHANGE
 				) {
-					if (window.currentBlock && window.currentBlock.id === this.id) {
-
+					const parent = findCreateBlock(this);
+					if (parent == this) {
 						const blockInWorkspace =
-							Blockly.getMainWorkspace().getBlockById(this.id); 
+							Blockly.getMainWorkspace().getBlockById(this.id);
 
-						if (blockInWorkspace) {						
+						if (blockInWorkspace) {
 							window.updateOrCreateMeshFromBlock(this);
 						}
 					}
 				}
-				
+
 				handleBlockCreateEvent(
 					this,
 					changeEvent,
@@ -1253,12 +1276,12 @@ export function defineBlocks() {
 					changeEvent.type === Blockly.Events.BLOCK_CREATE ||
 					changeEvent.type === Blockly.Events.BLOCK_CHANGE
 				) {
-					if (window.currentBlock && window.currentBlock.id === this.id) {
-						
+					const parent = findCreateBlock(this);
+					if (parent == this) {
 						const blockInWorkspace =
-							Blockly.getMainWorkspace().getBlockById(this.id); 
+							Blockly.getMainWorkspace().getBlockById(this.id);
 
-						if (blockInWorkspace) {						
+						if (blockInWorkspace) {
 							window.updateOrCreateMeshFromBlock(this);
 						}
 					}
@@ -1341,12 +1364,12 @@ export function defineBlocks() {
 					changeEvent.type === Blockly.Events.BLOCK_CREATE ||
 					changeEvent.type === Blockly.Events.BLOCK_CHANGE
 				) {
-					if (window.currentBlock && window.currentBlock.id === this.id) {
-
+					const parent = findCreateBlock(this);
+					if (parent == this) {
 						const blockInWorkspace =
-							Blockly.getMainWorkspace().getBlockById(this.id); 
+							Blockly.getMainWorkspace().getBlockById(this.id);
 
-						if (blockInWorkspace) {						
+						if (blockInWorkspace) {
 							window.updateOrCreateMeshFromBlock(this);
 						}
 					}
@@ -1422,12 +1445,12 @@ export function defineBlocks() {
 					changeEvent.type === Blockly.Events.BLOCK_CREATE ||
 					changeEvent.type === Blockly.Events.BLOCK_CHANGE
 				) {
-					if (window.currentBlock && window.currentBlock.id === this.id) {
-
+					const parent = findCreateBlock(this);
+					if (parent == this) {
 						const blockInWorkspace =
-							Blockly.getMainWorkspace().getBlockById(this.id); 
+							Blockly.getMainWorkspace().getBlockById(this.id);
 
-						if (blockInWorkspace) {						
+						if (blockInWorkspace) {
 							window.updateOrCreateMeshFromBlock(this);
 						}
 					}
