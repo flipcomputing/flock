@@ -1356,7 +1356,7 @@ export const flock = {
 		newBox.position = new flock.BABYLON.Vector3(posX, posY, posZ);
 
 		newBox.blockKey = newBox.name;
-		newBox.name = newBox.name + newBox.uniqueId;
+		newBox.name = newBox.name + "_" + newBox.uniqueId;
 		const boxBody = new flock.BABYLON.PhysicsBody(
 			newBox,
 			flock.BABYLON.PhysicsMotionType.STATIC,
@@ -1416,7 +1416,7 @@ export const flock = {
 		newSphere.metadata = {};
 		newSphere.metadata.shapeType = "Sphere";
 		newSphere.blockKey = newSphere.name;
-		newSphere.name = newSphere.name + newSphere.uniqueId;
+		newSphere.name = newSphere.name + "_" + newSphere.uniqueId;
 
 		const sphereBody = new flock.BABYLON.PhysicsBody(
 			newSphere,
@@ -1471,7 +1471,7 @@ export const flock = {
 		newCylinder.metadata = {};
 		newCylinder.metadata.shapeType = "Cylinder";
 		newCylinder.blockKey = newCylinder.name;
-		newCylinder.name = newCylinder.name + newCylinder.uniqueId;
+		newCylinder.name = newCylinder.name + "_" + newCylinder.uniqueId;
 
 		const cylinderBody = new flock.BABYLON.PhysicsBody(
 			newCylinder,
@@ -1530,7 +1530,7 @@ export const flock = {
 		newCapsule.metadata = {};
 		newCapsule.metadata.shapeType = "Capsule";
 		newCapsule.blockKey = newCapsule.name;
-		newCapsule.name = newCapsule.name + newCapsule.uniqueId;
+		newCapsule.name = newCapsule.name + "_" + newCapsule.uniqueId;
 
 		const capsuleBody = new flock.BABYLON.PhysicsBody(
 			newCapsule,
@@ -1571,7 +1571,7 @@ export const flock = {
 		newPlane.metadata = newPlane.metadata || {}; //
 		newPlane.metadata.shape = "plane"; // Add or update the type property
 		newPlane.blockKey = newPlane.name;
-		newPlane.name = newPlane.name + newPlane.uniqueId;
+		newPlane.name = newPlane.name + "_" + newPlane.uniqueId;
 		newPlane.position = new flock.BABYLON.Vector3(posX, posY, posZ);
 
 		// Physics for the plane
@@ -3567,7 +3567,7 @@ export const flock = {
 					newBox.position = new flock.BABYLON.Vector3(0, -4, 0);
 
 					newBox.blockKey = newBox.name;
-					newBox.name = newBox.name + newBox.uniqueId;
+					newBox.name = newBox.name + "_" + newBox.uniqueId;
 					const boxBody = new flock.BABYLON.PhysicsBody(
 						newBox,
 						flock.BABYLON.PhysicsMotionType.STATIC,

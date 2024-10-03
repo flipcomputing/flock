@@ -27,17 +27,6 @@ export function defineGenerators() {
 		return `await hide(${modelName});\n`;
 	};
 
-	function generateUUID() {
-		return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(
-			/[xy]/g,
-			function (c) {
-				const r = (Math.random() * 16) | 0,
-					v = c == "x" ? r : (r & 0x3) | 0x8;
-				return v.toString(16);
-			},
-		);
-	}
-
 	function getFieldValue(block, fieldName, defaultValue) {
 		return (
 			javascriptGenerator.valueToCode(
@@ -393,7 +382,7 @@ export function defineGenerators() {
 			Blockly.Names.NameType.VARIABLE,
 		);
 
-		const boxId = `box_${generateUUID()}`;
+		const boxId = `box_${flock.scene.getUniqueId()}`;
 		meshMap[boxId] = block;
 		meshBlockIdMap[boxId] = block.id;
 
@@ -418,7 +407,7 @@ export function defineGenerators() {
 			Blockly.Names.NameType.VARIABLE,
 		);
 
-		const sphereId = `sphere_${generateUUID()}`;
+		const sphereId = `sphere_${flock.scene.getUniqueId()}`;
 		meshMap[sphereId] = block;
 		meshBlockIdMap[sphereId] = block.id;
 		const doCode = block.getInput("DO")
@@ -442,7 +431,7 @@ export function defineGenerators() {
 			Blockly.Names.NameType.VARIABLE,
 		);
 
-		const cylinderId = `cylinder_${generateUUID()}`;
+		const cylinderId = `cylinder_${flock.scene.getUniqueId()}`;
 		meshMap[cylinderId] = block;
 		meshBlockIdMap[cylinderId] = block.id;
 		const doCode = block.getInput("DO")
@@ -465,7 +454,7 @@ export function defineGenerators() {
 			Blockly.Names.NameType.VARIABLE,
 		);
 
-		const capsuleId = `capsule_${generateUUID()}`;
+		const capsuleId = `capsule_${flock.scene.getUniqueId()}`;
 		meshMap[capsuleId] = block;
 		meshBlockIdMap[capsuleId] = block.id;
 		const doCode = block.getInput("DO")
@@ -488,7 +477,7 @@ export function defineGenerators() {
 			Blockly.Names.NameType.VARIABLE,
 		);
 
-		const planeId = `plane_${generateUUID()}`;
+		const planeId = `plane_${flock.scene.getUniqueId()}`;
 		meshMap[planeId] = block;
 		meshBlockIdMap[planeId] = block.id;
 		const doCode = block.getInput("DO")
@@ -517,7 +506,7 @@ export function defineGenerators() {
 			Blockly.Names.NameType.VARIABLE,
 		);
 
-		const wallId = `wall_${generateUUID()}`;
+		const wallId = `wall_${flock.scene.getUniqueId()}`;
 		meshMap[wallId] = block;
 		meshBlockIdMap[wallId] = block.id;
 		// Directly passing all parameters to the helper function
