@@ -52,6 +52,7 @@ export default {
         theme_color: '#800080',
         display: 'fullscreen',
         start_url: isProduction ? '/flock?fullscreen=true' : '/', // Ensure this reflects the base URL
+        id: '/flock?fullscreen=true',
         scope: isProduction ? '/flock/' : '/', // Ensure this reflects the base URL
 
         icons: [

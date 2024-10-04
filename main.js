@@ -815,18 +815,16 @@ function addShapeToWorkspace(shapeType, position) {
 			break;
 	}
 
-	const blockKey = flock.scene.getMeshByName(newMesh).blockKey
+	const blockKey = flock.scene.getMeshByName(newMesh).blockKey;
 	meshMap[blockKey] = block;
 	meshBlockIdMap[blockKey] = block.id;
-	
+
 	Blockly.Events.setGroup(false);
 }
 
 function updateOrCreateMeshFromBlock(block) {
-	
 	if (!window.loadingCode) {
-
-        const mesh = getMeshFromBlock(block);
+		const mesh = getMeshFromBlock(block);
 
 		if (mesh) {
 			updateMeshFromBlock(mesh, block);
@@ -844,7 +842,9 @@ function getMeshFromBlock(block) {
 }
 
 function getMeshFromBlockId(blockId) {
-	const blockKey = Object.keys(meshMap).find((key) => meshBlockIdMap[key] === blockId);
+	const blockKey = Object.keys(meshMap).find(
+		(key) => meshBlockIdMap[key] === blockId,
+	);
 
 	return flock.scene.meshes.find((mesh) => mesh.blockKey === blockKey);
 }
@@ -1035,7 +1035,7 @@ function createMeshOnCanvas(block) {
 
 	// Store the mesh in the meshMap
 	if (newMesh) {
-		const blockKey = flock.scene.getMeshByName(newMesh).blockKey
+		const blockKey = flock.scene.getMeshByName(newMesh).blockKey;
 		meshMap[blockKey] = block;
 		meshBlockIdMap[blockKey] = block.id;
 	}
@@ -1465,11 +1465,10 @@ function pickMeshFromCanvas() {
 
 window.pickMeshFromCanvas = pickMeshFromCanvas;
 
-function deleteMeshFromBlock(blockId){
+function deleteMeshFromBlock(blockId) {
 	const mesh = getMeshFromBlockId(blockId);
-	
-	if (mesh)
-		flock.dispose(mesh.name);	
+
+	if (mesh) flock.dispose(mesh.name);
 }
 window.deleteMeshFromBlock = deleteMeshFromBlock;
 
@@ -1484,7 +1483,7 @@ window.stopCode = stopCode;
 
 function onResize() {
 	Blockly.svgResize(workspace);
-	document.body.style.zoom = 'reset'; 
+	document.body.style.zoom = "reset";
 	resizeCanvas();
 	if (flock.engine) flock.engine.resize();
 }
@@ -2404,16 +2403,9 @@ document.addEventListener("DOMContentLoaded", () => {
 	).matches;
 
 	// Request fullscreen on mobile only when running as a PWA
-	if (isFullscreen) {
-		if (
-			document.fullscreenEnabled ||
-			document.webkitFullscreenEnabled ||
-			document.mozFullScreenEnabled ||
-			document.msFullscreenEnabled
-		) {
-			requestFullscreen();	
-			document.getElementById('yourElementId').style.display = 'none';
-		}
+	if (isMobile() && isFullscreen) {
+		requestFullscreen();
+		document.getElementById("fullscreenToggle").style.display = "none";
 	}
 
 	// Additional adjustments for mobile UI in fullscreen mode
@@ -2493,10 +2485,11 @@ function initializeApp() {
 		const menu = document.getElementById("menu");
 		const gizmoButtons = document.getElementById("gizmoButtons");
 
-		const gizmosVisible = gizmoButtons && 
-		  getComputedStyle(gizmoButtons).display !== 'none' && 
-		  getComputedStyle(gizmoButtons).visibility !== 'hidden';
-		
+		const gizmosVisible =
+			gizmoButtons &&
+			getComputedStyle(gizmoButtons).display !== "none" &&
+			getComputedStyle(gizmoButtons).visibility !== "hidden";
+
 		if (gizmosVisible) {
 			console.log("Play view");
 			canvasArea.style.width = "100%";
@@ -2628,7 +2621,7 @@ function initializeApp() {
 	const toolboxControl = document.getElementById("toolboxControl");
 	const runCodeButton2 = document.getElementById("runCodeButton2");
 	const exampleSelect = document.getElementById("exampleSelect");
-	
+
 	const fullscreenToggle = document.getElementById("fullscreenToggle");
 
 	//toolboxControl.removeAttribute("disabled");
