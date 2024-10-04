@@ -2649,6 +2649,7 @@ function initializeApp() {
 	runCodeButton.addEventListener("click", executeCode);
 	exampleSelect.addEventListener("change", loadExample);
 
+	onResize();
 }
 
 // Function to enforce minimum font size and delay the focus to prevent zoom
@@ -2734,8 +2735,6 @@ window.onload = function () {
 	addImportContextMenuOption();
 	observeFlyoutVisibility(workspace);
 	window.toolboxVisible = toolboxVisible;
-
-	onResize();
 
 	// Call this function to autosave periodically
 	setInterval(saveWorkspace, 30000); // Autosave every 30 seconds
