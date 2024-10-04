@@ -1484,6 +1484,7 @@ window.stopCode = stopCode;
 
 function onResize() {
 	Blockly.svgResize(workspace);
+	document.body.style.zoom = 'reset'; 
 	resizeCanvas();
 	if (flock.engine) flock.engine.resize();
 }
