@@ -2422,6 +2422,14 @@ document.addEventListener("DOMContentLoaded", () => {
 	});
 
 
+if(isMobile())
+{
+	adjustViewport();
+	  //const dpr = window.devicePixelRatio || 1;
+	 // document.body.style.zoom = dpr;  // This adjusts the zoom based on DPR
+
+}
+
 	// Additional adjustments for mobile UI in fullscreen mode
 	const examples = document.getElementById("exampleSelect");
 	if (examples) {
