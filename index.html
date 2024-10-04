@@ -6,7 +6,7 @@
 
     <meta
       name="viewport"
-      content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover"
+      content="width=device-width, viewport-fit=cover"
     />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -99,8 +99,8 @@
       }
 
       html, body {
-        height: 100vh;
-        width: 100vw;
+        height: 100%;
+        width: 100%;
       }
 
       #renderCanvas {
@@ -136,6 +136,11 @@
         flex-wrap: wrap;
         margin: 0px;
         gap: 0;
+      }
+
+      #flockeditor {
+        width: 100vw;
+        height: 100vw;
       }
 
       input,
