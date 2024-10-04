@@ -340,6 +340,7 @@ function selectObject(objectName) {
 		window.addEventListener("click", onPickMesh);
 	}, 200);
 }
+window.selectObject = selectObject;
 
 // Scroll function to move the object row left or right
 function scrollObjects(direction) {
