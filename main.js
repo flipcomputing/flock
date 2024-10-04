@@ -2411,8 +2411,13 @@ document.addEventListener("DOMContentLoaded", () => {
 			document.mozFullScreenEnabled ||
 			document.msFullscreenEnabled
 		) {
-			requestFullscreen();
+			requestFullscreen();		
 		}
+	}
+
+	if (window.matchMedia('(display-mode: standalone)').matches) {
+		// PWA mode
+		document.getElementById('yourElementId').style.display = 'none';
 	}
 
 	// Additional adjustments for mobile UI in fullscreen mode
