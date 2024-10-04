@@ -91,7 +91,7 @@ define(['./workbox-07658ed7'], (function (workbox) { 'use strict';
     "revision": "3ca0b8505b4bec776b69afdba2768812"
   }, {
     "url": "index.html",
-    "revision": "0.a1i42la44k8"
+    "revision": "0.38iaolqdaqg"
   }], {});
   workbox.cleanupOutdatedCaches();
   workbox.registerRoute(new workbox.NavigationRoute(workbox.createHandlerBoundToURL("index.html"), {
@@ -101,6 +101,13 @@ define(['./workbox-07658ed7'], (function (workbox) { 'use strict';
     "cacheName": "github-pages-cache",
     plugins: [new workbox.ExpirationPlugin({
       maxEntries: 50,
+      maxAgeSeconds: 2592000
+    })]
+  }), 'GET');
+  workbox.registerRoute(/blockly\/media\/.*/, new workbox.CacheFirst({
+    "cacheName": "blockly-media",
+    plugins: [new workbox.ExpirationPlugin({
+      maxEntries: 20,
       maxAgeSeconds: 2592000
     })]
   }), 'GET');

@@ -87,6 +87,17 @@ export default {
               },
             },
           },
+          {
+            urlPattern: /blockly\/media\/.*/,  // Cache Blockly media files
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'blockly-media',
+              expiration: {
+                maxEntries: 20,
+                maxAgeSeconds: 30 * 24 * 60 * 60, // Cache for 30 days
+              },
+            },
+          },
         ],
       },
     }),

@@ -4,9 +4,12 @@
     <meta charset="UTF-8" />
     <title>Flock XR - Creative coding in 3D</title>
 
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover"
+    />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
 
     <link rel="manifest" href="/flock/manifest.webmanifest" />
     <link rel="apple-touch-icon" href="/images/apple-touch-icon.png" />
@@ -78,40 +81,41 @@
       path.blocklyPath.blockly-ws-search-highlight.blockly-ws-search-current {
         fill: #ee5d6c;
       }
-  
-      html, body {
-          overflow: hidden;
-          width: 100%;
-          height: 100%;
-          margin: 0;
-          padding: 0;
-          touch-action: none;
-          -webkit-touch-callout: none;
-          -webkit-user-select: none;
-          -khtml-user-select: none;
-          -moz-user-select: none;
-          -ms-user-select: none;
-          user-select: none;
-          outline: none;
-        -webkit-tap-highlight-color: transparent;
 
+      html,
+      body {
+        overflow: hidden;
+        width: 100%;
+        height: 100vh;
+        margin: 0;
+        padding: 0;
+        touch-action: none;
+        -webkit-touch-callout: none;
+        -webkit-user-select: none;
+        -khtml-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
+        outline: none;
+        -webkit-tap-highlight-color: transparent;
       }
 
       #renderCanvas {
-          width: 100%;
-          height: 100%;
-          touch-action: none;
-          -webkit-touch-callout: none;
-          -webkit-user-select: none;
-          -khtml-user-select: none;
-          -moz-user-select: none;
-          -ms-user-select: none;
-          user-select: none;
-          outline: none;
+        width: 100%;
+        height: 100%;
+        touch-action: none;
+        -webkit-touch-callout: none;
+        -webkit-user-select: none;
+        -khtml-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
+        outline: none;
       }
       body {
         min-height: calc(100% + env(safe-area-inset-top));
-        padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+        padding: env(safe-area-inset-top) env(safe-area-inset-right)
+          env(safe-area-inset-bottom) env(safe-area-inset-left);
 
         display: flex;
         flex-wrap: wrap;
@@ -122,27 +126,38 @@
         font-family: "Asap", Helvetica, Arial, Lucida, sans-serif !important;
       }
 
+      #maincontent {
+        width: 100vw;
+        height: 100%;
+        display: flex;
+        flex-wrap: wrap;
+        margin: 0px;
+        gap: 0;
+      }
+
       input,
       textarea,
       button {
         font-family: inherit;
       }
 
-      button, textarea, input {
+      button,
+      textarea,
+      input {
         -webkit-user-select: none; /* Disable selection in Safari and Chrome */
-        -moz-user-select: none;    /* Disable selection in Firefox */
-        -ms-user-select: none;     /* Disable selection in Internet Explorer/Edge */
-        user-select: none;         /* Standard syntax to disable text selection */
+        -moz-user-select: none; /* Disable selection in Firefox */
+        -ms-user-select: none; /* Disable selection in Internet Explorer/Edge */
+        user-select: none; /* Standard syntax to disable text selection */
 
         -webkit-touch-callout: none; /* Disable the callout (popup menu) on long press in mobile Safari */
         -webkit-tap-highlight-color: transparent; /* Remove highlight color when tapping on buttons */
       }
 
-
       #menu {
         display: flex;
+        flex-wrap: nowrap;
         align-items: center;
-        justify-content: flex-start; /* Ensure logo and buttons stay left-aligned */
+        justify-content: space-between;
         max-width: 100vw;
         gap: 5px;
         z-index: 10;
@@ -150,6 +165,14 @@
         padding: 0px;
         border-radius: 5px;
         box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+      }
+
+      #menuleft,
+      #menumiddle,
+      #menuright {
+        display: flex;
+        flex-wrap: nowrap;
+        align-items: center;
       }
 
       #codePanelButtons {
@@ -173,6 +196,7 @@
         border-radius: 5px;
         border: 1px solid #ccc;
         font-size: 14px;
+        min-width: 50px;
       }
 
       .stackedContainer select.highlighted {
@@ -214,10 +238,9 @@
       #rightArea {
         flex-basis: 50%;
         flex-grow: 1;
-        flex-shrink: 0;
+        flex-shrink: 1;
         max-width: 100vw;
-        min-width: min(375px, 100vw);
-        min-height: min(333px, 100vh);
+        min-width: min(330px, 100vw);
       }
 
       #logo {
@@ -229,21 +252,14 @@
       }
 
       #codePanel {
-        position: relative;
         height: 100%;
         border: none;
       }
 
       #blocklyDiv {
-        position: absolute;
-        top: 37.5px;
-        height: calc(100% - 37.5px);
+        height: 100%;
         border: none;
         width: 100%;
-      }
-
-      #rightArea {
-        height: 100vh;
       }
 
       #renderCanvas {
@@ -253,6 +269,7 @@
 
       .gizmo-buttons {
         display: flex;
+        flex-wrap: wrap;
         margin-top: 0px;
         gap: 5px;
         padding: 5px;
@@ -265,7 +282,7 @@
         cursor: pointer;
         border-radius: 5px;
         border: none;
-        background-color: #5ba680;
+        background-color: #317873;
         color: white;
       }
 
@@ -409,199 +426,84 @@
       #inspector-host #commands {
         display: none !important;
       }
-
     </style>
   </head>
 
   <body>
     <input type="file" id="importFile" style="display: none" accept=".json" />
 
-    <div id="rightArea">
+    <div id="flockeditor">
       <div id="menu">
-        <img src="images/FlockLogo.png" alt="Logo" id="logo" />
-        <button class="bigbutton" id="runCodeButton" title="Run your code">
-          ▶️
-        </button>
-        <button class="bigbutton" id="toggleDesign" title="Design your project">
-         🖼️ 
-        </button>
-        <button class="bigbutton" id="stopCodeButton" title="Stop your code">
-          🛑
-        </button>
-        <button
-          class="bigbutton"
-          title="Open a project from a file on your computer"
-        >
-          <input type="file" id="fileInput" style="display: none" disabled/>
-          <label for="fileInput">📂</label>
-        </button>
-
-        <div class="stackedContainer">
-          <input type="text" id="projectName" placeholder="Project name" />
-        </div>
-
-        <button
-          class="bigbutton"
-          id="exportCodeButton"
-          title="Save this project to a file on your computer."
-        >
-          💾
-        </button>
-        <!-- Dropdown View Switcher -->
-        <div class="dropdown bigbutton">
-          <button
-            style="border: none; font-size: 18px; padding: 0; padding-top: 0px"
-          >
-            🪟
+        <div id="menuleft">
+          <img src="images/FlockLogo.png" alt="Flock bird logo" id="logo" />
+          <button class="bigbutton" id="runCodeButton" title="Run your code">
+            ▶️
           </button>
-          <div class="dropdown-content">
-            <button id="bothViewButton" disabled>Both</button>
-            <button id="blocklyViewButton" disabled>Blockly</button>
-            <button id="canvasViewButton" disabled>Canvas</button>
-          </div>
-        </div>
-      </div>
-      <canvas id="renderCanvas" touch-action="none" tabindex="0"></canvas>
-      <div class="gizmo-buttons" id="gizmoButtons">
-        <button class="gizmo-button" id="positionButton" disabled>Position</button>
-        <button class="gizmo-button" id="rotationButton" disabled>Rotation</button>
-        <button class="gizmo-button" id="scaleButton" disabled>Scale</button>
-        <button class="gizmo-button" id="boundsButton" disabled>Bounds</button>
-        <div id="shape-menu">
-          <!-- Gizmo button to toggle the shape menu -->
-          <button class="gizmo-button" id="showShapesButton" disabled>➕</button>
-
-          <!-- Dropdown for shapes and models -->
-          <span id="shapes-dropdown" style="display: none;">
-            <!-- Shape Row -->
-            <ul id="shape-row">
-              <li onclick="selectShape('create_box')">
-                <img src="./images/box.png" alt="Box">
-              </li>
-              <li onclick="selectShape('create_sphere')">
-                <img src="./images/sphere.png" alt="Sphere">
-              </li>
-              <li onclick="selectShape('create_cylinder')">
-                <img src="./images/cylinder.png" alt="Cylinder">
-              </li>
-              <li onclick="selectShape('create_capsule')">
-                <img src="./images/capsule.png" alt="Capsule">
-              </li>
-              <li onclick="selectShape('create_plane')">
-                <img src="./images/plane.png" alt="Plane">
-              </li>
-            </ul>
-
-            <!-- Model Row with scroll buttons -->
-            <div class="scrollable-container">
-              <button class="scroll-button left" id="scrollModelsLeftButton" disabled>&Lang;</button>
-              <ul id="model-row">
-                <!-- Dynamically generated model items will be inserted here -->
-              </ul>
-              <button class="scroll-button right" id="scrollModelsRightButton" disabled>&Rang;</button>
-            </div>
-
-            <!-- Object Row -->
-            <div class="scrollable-container">
-              <button class="scroll-button left" id="scrollObjectsLeftButton" disabled>&Lang;</button>
-              <ul id="object-row">
-                <!-- Dynamically generated object items will be inserted here -->
-              </ul>
-              <button class="scroll-button right" id="scrollObjectsRightButton" disabled>&Rang;</button>
-            </div>
-
-            <!-- Character Row -->
-            <div class="scrollable-container">
-              <button class="scroll-button left" id="scrollCharactersLeftButton" disabled>&Lang;</button>
-              <ul id="character-row">
-                <!-- Dynamically generated character items will be inserted here -->
-              </ul>
-              <button class="scroll-button right" id="scrollCharactersRightButton" disabled>&Rang;</button>
-            </div>
-          </span>
-        </div>
-  
-        <input type="color"  id="colorPickerButton"  disabled>
-        <button class="gizmo-button" id="focusButton" disabled>Focus</button>
-        <button class="gizmo-button" id="hideButton" disabled>Hide</button>
-        <button class="gizmo-button" id="aboutButton" disabled>🐑 About</button>
-      </div>
-        </div>
-    </div>
-    <div id="codePanel">
-      <div id="codePanelButtons">
-        <div>
-          <button
-            value="Toolbox"
-            id="toolboxControl"
-            class="highlighted"
-            style="
-              z-index: 100000;
-              font-size: 16px;
-              border-box width: 110px;
-              background-color: rgba(255,101,80,0.45);
-              padding: 1px;
-              box-sizing: border-box;"
-           
-          >
-            Code
+          <button class="bigbutton" id="stopCodeButton" title="Stop your code">
+            🛑
           </button>
           <button
             class="bigbutton"
-            title="Run your code"
-            id="runCodeButton2"
-            disabled
+            title="Open a project from a file on your computer"
           >
-            ▶️
+            <input type="file" id="fileInput" style="display: none" disabled />
+            <label for="fileInput">📂</label>
           </button>
-        </div>
-        <div
-          id="menuControl"
-          style="
-            z-index: 100000;
-            right: 10px;
-            top: 0px;
-            font-size: 16px;
-            padding: 0;
-            margin: 0;
-            display: flex;
-            align-items: stretch;"
-        >
+            <input type="text" style="flex-shrink: 1; width: 100%; min-width: 10px; max-width: 80px;" id="projectName" placeholder="Project name" />
+          <button
+            class="bigbutton"
+            id="exportCodeButton"
+            title="Save this project to a file on your computer."
+          >
+            💾
+          </button>
           <select
-            class="highlighted"
             id="exampleSelect"
+            class="bigbutton"
             title="Choose an example project to load."
             disabled
           >
-            <option value="">🌴Examples</option>
-            <option value="examples/simple_starter.json">👋🏽Simple Starter</option>
-            <option value="examples/controller_starter.json">🎮Controller Starter</option>
+            <option value="">🌴</option>
+            <option value="examples/simple_starter.json">
+              👋🏽Simple Starter
+            </option>
+            <option value="examples/controller_starter.json">
+              🎮Controller Starter
+            </option>
             <option value="examples/forest_base.json">🌲Forest Base</option>
-            <option value="examples/character_animation.json">🎥Character Animation</option>
+            <option value="examples/character_animation.json">
+              🎥Character Animation
+            </option>
             <option value="examples/cube_art.json">🎨 Cube Art</option>
             <option value="examples/physics_fun.json">👆🏾Physics Fun</option>
-            <option value="examples/collect_the_gems.json">💎 Collect the Gems</option>
+            <option value="examples/collect_the_gems.json">
+              💎 Collect the Gems
+            </option>
             <option value="examples/water_map.json">💧 Water Map</option>
             <option value="examples/skittles.json">🎳 Skittles</option>
             <option value="examples/beetle.json">🪲 Beetle</option>
             <option value="examples/roominator.json">🛋️Roominator</option>
             <option value="examples/ball_pit.json">🟠 Ball Pit</option>
             <option value="examples/ur_enough.json">💗 UR Enough!</option>
-            <option value="examples/tallest_buildings.json">📊 Tallest buildings</option>
+            <option value="examples/tallest_buildings.json">
+              📊 Tallest buildings
+            </option>
             <option value="examples/candy_dash.json">🎃 Candy dash</option>
             <option value="examples/flockenspiel.json">🎵 Flockenspiel</option>
           </select>
-
-          <!-- Dropdown View Switcher -->
-          <div class="dropdown bigbutton">
-            <button style="border: none; font-size: 18px"> 🪟</button>
-            <div class="dropdown-content">
-              <button id="bothViewButton2" disabled>Both</button>
-              <button id="blocklyViewButton2" disabled>Blockly</button>
-              <button id="canvasViewButton2" disabled>Canvas</button>
-            </div>
-          </div>
-
+        </div>
+        <div id="menumiddle"></div>
+        <div id="menuright">
+          <button
+            class="bigbutton"
+            id="toggleDesign"
+            title="Design your project"
+          >
+            🖼️
+          </button>
+          <button class="bigbutton" id="togglePlay" title="Use your project">
+            🎮
+          </button>
           <button
             class="bigbutton"
             title="Switch between fullscreen and normal views."
@@ -611,7 +513,143 @@
           </button>
         </div>
       </div>
-      <div id="blocklyDiv"></div>
+      <div id="maincontent">
+        <div id="rightArea">
+          <canvas id="renderCanvas" touch-action="none" tabindex="0"></canvas>
+          <div class="gizmo-buttons" id="gizmoButtons">
+            <div id="shape-menu">
+              <!-- Gizmo button to toggle the shape menu -->
+              <button
+                class="gizmo-button"
+                id="showShapesButton"
+                style="font-size: huge"
+                disabled
+              >
+                <strong>＋</strong>
+              </button>
+
+              <!-- Dropdown for shapes and models -->
+              <span id="shapes-dropdown" style="display: none">
+                <!-- Shape Row -->
+                <ul id="shape-row">
+                  <li onclick="selectShape('create_box')">
+                    <img src="./images/box.png" alt="Box" />
+                  </li>
+                  <li onclick="selectShape('create_sphere')">
+                    <img src="./images/sphere.png" alt="Sphere" />
+                  </li>
+                  <li onclick="selectShape('create_cylinder')">
+                    <img src="./images/cylinder.png" alt="Cylinder" />
+                  </li>
+                  <li onclick="selectShape('create_capsule')">
+                    <img src="./images/capsule.png" alt="Capsule" />
+                  </li>
+                  <li onclick="selectShape('create_plane')">
+                    <img src="./images/plane.png" alt="Plane" />
+                  </li>
+                </ul>
+
+                <!-- Model Row with scroll buttons -->
+                <div class="scrollable-container">
+                  <button
+                    class="scroll-button left"
+                    id="scrollModelsLeftButton"
+                    disabled
+                  >
+                    &Lang;
+                  </button>
+                  <ul id="model-row">
+                    <!-- Dynamically generated model items will be inserted here -->
+                  </ul>
+                  <button
+                    class="scroll-button right"
+                    id="scrollModelsRightButton"
+                    disabled
+                  >
+                    &Rang;
+                  </button>
+                </div>
+
+                <!-- Object Row -->
+                <div class="scrollable-container">
+                  <button
+                    class="scroll-button left"
+                    id="scrollObjectsLeftButton"
+                    disabled
+                  >
+                    &Lang;
+                  </button>
+                  <ul id="object-row">
+                    <!-- Dynamically generated object items will be inserted here -->
+                  </ul>
+                  <button
+                    class="scroll-button right"
+                    id="scrollObjectsRightButton"
+                    disabled
+                  >
+                    &Rang;
+                  </button>
+                </div>
+
+                <!-- Character Row -->
+                <div class="scrollable-container">
+                  <button
+                    class="scroll-button left"
+                    id="scrollCharactersLeftButton"
+                    disabled
+                  >
+                    &Lang;
+                  </button>
+                  <ul id="character-row">
+                    <!-- Dynamically generated character items will be inserted here -->
+                  </ul>
+                  <button
+                    class="scroll-button right"
+                    id="scrollCharactersRightButton"
+                    disabled
+                  >
+                    &Rang;
+                  </button>
+                </div>
+              </span>
+            </div>
+            <input type="color" id="colorPickerButton" disabled />
+            <button class="gizmo-button" id="positionButton" disabled>
+              Position
+            </button>
+            <button class="gizmo-button" id="rotationButton" disabled>
+              Rotation
+            </button>
+            <button class="gizmo-button" id="scaleButton" disabled>
+              Scale
+            </button>
+            <button class="gizmo-button" id="boundsButton" disabled>
+              Bounds
+            </button>
+            <button class="gizmo-button" id="focusButton" disabled>
+              Focus
+            </button>
+            <button class="gizmo-button" id="hideButton" disabled>Hide</button>
+          </div>
+        </div>
+        <div id="codePanel">
+          <!--button
+            value="Toolbox"
+            id="toolboxControl"
+            style="
+              z-index: 100000;
+              font-size: 16px;
+              border: none;
+              padding: 10px;
+              background-color: rgba(255, 101, 80, 0.45);
+              box-sizing: border-box;
+            "
+          >
+            <strong>+ Code</strong>
+        </button-->
+          <div id="blocklyDiv"></div>
+        </div>
+      </div>
     </div>
     <script type="module" src="/main.js"></script>
   </body>

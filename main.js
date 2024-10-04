@@ -2161,6 +2161,7 @@ function openAboutPage() {
 
 window.openAboutPage = openAboutPage;
 
+/*
 function toggleToolbox() {
 	const toolboxControl = document.getElementById("toolboxControl");
 
@@ -2187,6 +2188,7 @@ function toggleToolbox() {
 }
 
 window.toggleToolbox = toggleToolbox;
+*/
 
 function loadExample() {
 	window.loadingCode = true;
@@ -2418,7 +2420,8 @@ document.addEventListener("DOMContentLoaded", () => {
 	}
 	const projectName = document.getElementById("projectName");
 	if (projectName) {
-		projectName.style.width = "80px";
+		//projectName.style.minWidth = "5px";
+		//projectName.style.maxWidth = "80px";
 	}
 });
 
@@ -2429,6 +2432,7 @@ function initializeApp() {
 	// Add event listeners for menu buttons and controls
 	const runCodeButton = document.getElementById("runCodeButton");
 	const toggleDesignButton = document.getElementById("toggleDesign");
+	const togglePlayButton = document.getElementById("togglePlay");
 	const stopCodeButton = document.getElementById("stopCodeButton");
 	const fileInput = document.getElementById("fileInput");
 	const exportCodeButton = document.getElementById("exportCodeButton");
@@ -2439,15 +2443,11 @@ function initializeApp() {
 	runCodeButton.addEventListener("click", executeCode);
 	stopCodeButton.addEventListener("click", stopCode);
 	toggleDesignButton.addEventListener("click", toggleDesign);
+	togglePlayButton.addEventListener("click", togglePlay);
 	exportCodeButton.addEventListener("click", exportCode);
 
 	// Enable the file input after initialization
 	fileInput.removeAttribute("disabled");
-
-	// View switching buttons
-	bothViewButton.addEventListener("click", () => switchView("both"));
-	blocklyViewButton.addEventListener("click", () => switchView("blockly"));
-	canvasViewButton.addEventListener("click", () => switchView("canvas"));
 
 	// Add event listener to file input
 	document
@@ -2466,7 +2466,7 @@ function initializeApp() {
 			console.log("Debug layer is visible");
 			canvasArea.style.width = "100%";
 			canvasArea.style.flexGrow = "1";
-			switchView(viewMode);
+			switchView("both");
 			flock.scene.debugLayer.hide();
 			onResize();
 		} else {
@@ -2478,6 +2478,40 @@ function initializeApp() {
 			gizmoButtons.style.display = "block";
 			menu.style.right = "unset";
 			flock.scene.debugLayer.show();
+			onResize();
+		}
+	});
+
+	togglePlayButton.addEventListener("click", function () {
+		if (!flock.scene) return;
+
+		const blocklyArea = document.getElementById("codePanel");
+		const canvasArea = document.getElementById("rightArea");
+		const menu = document.getElementById("menu");
+		const gizmoButtons = document.getElementById("gizmoButtons");
+
+		const gizmosVisible = gizmoButtons && 
+		  getComputedStyle(gizmoButtons).display !== 'none' && 
+		  getComputedStyle(gizmoButtons).visibility !== 'hidden';
+		
+		if (gizmosVisible) {
+			console.log("Play view");
+			canvasArea.style.width = "100%";
+			canvasArea.style.flexGrow = "1";
+			switchView("canvas");
+			flock.scene.debugLayer.hide();
+			gizmoButtons.style.display = "none";
+			onResize();
+		} else {
+			console.log("Hide view");
+			flock.scene.debugLayer.hide();
+			blocklyArea.style.display = "none";
+			codeMode = "none";
+			canvasArea.style.display = "block";
+			canvasArea.style.width = "50vw";
+			canvasArea.style.flexGrow = "0";
+			gizmoButtons.style.display = "block";
+			switchView("both");
 			onResize();
 		}
 	});
@@ -2527,7 +2561,7 @@ function initializeApp() {
 	const hideButton = document.getElementById("hideButton");
 	const showShapesButton = document.getElementById("showShapesButton");
 	const colorPickerButton = document.getElementById("colorPickerButton");
-	const aboutButton = document.getElementById("aboutButton");
+	const aboutButton = document.getElementById("logo");
 
 	const scrollModelsLeftButton = document.getElementById(
 		"scrollModelsLeftButton",
@@ -2591,39 +2625,23 @@ function initializeApp() {
 	const toolboxControl = document.getElementById("toolboxControl");
 	const runCodeButton2 = document.getElementById("runCodeButton2");
 	const exampleSelect = document.getElementById("exampleSelect");
-	const bothViewButton2 = document.getElementById("bothViewButton2");
-	const blocklyViewButton2 = document.getElementById("blocklyViewButton2");
-	const canvasViewButton2 = document.getElementById("canvasViewButton2");
+	
 	const fullscreenToggle = document.getElementById("fullscreenToggle");
 
-	toolboxControl.removeAttribute("disabled");
+	//toolboxControl.removeAttribute("disabled");
 	runCodeButton.removeAttribute("disabled");
-	runCodeButton2.removeAttribute("disabled");
 	exampleSelect.removeAttribute("disabled");
-	bothViewButton.removeAttribute("disabled");
-	blocklyViewButton.removeAttribute("disabled");
-	canvasViewButton.removeAttribute("disabled");
-	bothViewButton2.removeAttribute("disabled");
-	blocklyViewButton2.removeAttribute("disabled");
-	canvasViewButton2.removeAttribute("disabled");
 	fullscreenToggle.removeAttribute("disabled");
 
 	// Add event listeners for buttons and controls
-	toolboxControl.addEventListener("mouseover", function () {
+	/*toolboxControl.addEventListener("mouseover", function () {
 		toolboxControl.style.cursor = "pointer";
 		toggleToolbox();
-	});
+	});*/
 
 	runCodeButton.addEventListener("click", executeCode);
 	exampleSelect.addEventListener("change", loadExample);
 
-	bothViewButton.addEventListener("click", () => switchView("both"));
-	blocklyViewButton.addEventListener("click", () => switchView("blockly"));
-	canvasViewButton.addEventListener("click", () => switchView("canvas"));
-
-	bothViewButton2.addEventListener("click", () => switchView("both"));
-	blocklyViewButton2.addEventListener("click", () => switchView("blockly"));
-	canvasViewButton2.addEventListener("click", () => switchView("canvas"));
 }
 
 // Function to enforce minimum font size and delay the focus to prevent zoom
@@ -2727,7 +2745,7 @@ window.onload = function () {
 		window.initialBlocksJson = initialBlocksJson;
 	})();
 
-	workspace.getToolbox().setVisible(false);
+	//workspace.getToolbox().setVisible(false);
 
 	workspace.addChangeListener(function (event) {
 		if (event.type === Blockly.Events.FINISHED_LOADING) {
