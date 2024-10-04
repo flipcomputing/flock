@@ -2399,25 +2399,21 @@ document.addEventListener("DOMContentLoaded", () => {
 		return /Mobi|Android/i.test(navigator.userAgent);
 	};
 
-	const isStandalone = window.matchMedia(
-		"(display-mode: standalone)",
+	const isFullscreen = window.matchMedia(
+		"(display-mode: fullscreen)",
 	).matches;
 
 	// Request fullscreen on mobile only when running as a PWA
-	if (isMobile() && isStandalone) {
+	if (isFullscreen) {
 		if (
 			document.fullscreenEnabled ||
 			document.webkitFullscreenEnabled ||
 			document.mozFullScreenEnabled ||
 			document.msFullscreenEnabled
 		) {
-			requestFullscreen();		
+			requestFullscreen();	
+			document.getElementById('yourElementId').style.display = 'none';
 		}
-	}
-
-	if (window.matchMedia('(display-mode: standalone)').matches) {
-		// PWA mode
-		document.getElementById('yourElementId').style.display = 'none';
 	}
 
 	// Additional adjustments for mobile UI in fullscreen mode
