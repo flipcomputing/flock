@@ -2378,21 +2378,22 @@ window.toggleMenu = toggleMenu;
 
 document.addEventListener("DOMContentLoaded", () => {
 	const requestFullscreen = () => {
-		const elem = document.documentElement;
+	  const elem = document.documentElement;
 
-		if (elem.requestFullscreen) {
-			elem.requestFullscreen();
-		} else if (elem.mozRequestFullScreen) {
-			// Firefox
-			elem.mozRequestFullScreen();
-		} else if (elem.webkitRequestFullscreen) {
-			// Chrome, Safari, and Opera
-			elem.webkitRequestFullscreen();
-		} else if (elem.msRequestFullscreen) {
-			// IE/Edge
-			elem.msRequestFullscreen();
-		}
+	  if (elem.requestFullscreen) {
+		elem.requestFullscreen();
+	  } else if (elem.mozRequestFullScreen) {
+		// For Firefox
+		elem.mozRequestFullScreen();
+	  } else if (elem.webkitRequestFullscreen) {
+		// For Chrome, Safari, and Opera
+		elem.webkitRequestFullscreen(Element.ALLOW_KEYBOARD_INPUT);
+	  } else if (elem.msRequestFullscreen) {
+		// For IE/Edge
+		elem.msRequestFullscreen();
+	  }
 	};
+
 
 	const isMobile = () => {
 		return /Mobi|Android/i.test(navigator.userAgent);
@@ -2407,6 +2408,19 @@ document.addEventListener("DOMContentLoaded", () => {
 		requestFullscreen();
 		document.getElementById("fullscreenToggle").style.display = "none";
 	}
+
+	if (window.matchMedia('(display-mode: fullscreen)').matches) {
+	  // Adjust layout for fullscreen mode
+	  adjustViewport();
+	}
+
+	window.matchMedia('(display-mode: fullscreen)').addEventListener('change', (e) => {
+	  if (e.matches) {
+		// The app has entered fullscreen mode
+		adjustViewport();
+	  }
+	});
+
 
 	// Additional adjustments for mobile UI in fullscreen mode
 	const examples = document.getElementById("exampleSelect");
@@ -2942,3 +2956,12 @@ window.addEventListener("beforeinstallprompt", (e) => {
 		{ once: true },
 	);
 });
+
+const adjustViewport = () => {
+  const vh = window.innerHeight * 0.01;
+  document.documentElement.style.setProperty('--vh', `${vh}px`);
+};
+
+// Adjust viewport on page load and resize
+window.addEventListener('load', adjustViewport);
+window.addEventListener('resize', adjustViewport);
