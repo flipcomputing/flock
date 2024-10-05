@@ -2965,87 +2965,118 @@ export const flock = {
 		});
 	},
 	async animateKeyFrames(meshName, keyframes, property, easing = "Linear", loop = false, reverse = false) {
-		return new Promise(async (resolve) => {
-			await flock.whenModelReady(meshName, async function (mesh) {
-				if (mesh) {
-					const fps = 30;  // Frames per second for the animation
+	  return new Promise(async (resolve) => {
+		await flock.whenModelReady(meshName, async function (mesh) {
+		  if (mesh) {
+			let propertyToAnimate;
 
-					// If looping, add an extra keyframe at the end that matches the first keyframe
-					if (loop && keyframes.length > 1) {
-						const firstKeyframe = keyframes[0];  // Get the first keyframe
-						const extraKeyframe = { ...firstKeyframe };  // Create a copy of the first keyframe
-						keyframes.push(extraKeyframe);  // Add it to the end of the keyframes
-					}
+			// Select the appropriate property to animate
+			if (property === "color") {
+			  if (mesh.material.diffuseColor !== undefined) {
+				propertyToAnimate = "material.diffuseColor";
+			  } else if (mesh.material.albedoColor !== undefined) {
+				propertyToAnimate = "material.albedoColor";
+			  } else {
+				propertyToAnimate = "material.emissiveColor";  // Fallback to emissive color
+			  }
+			} else {
+			  propertyToAnimate = property;  // For other properties like position, scale, etc.
+			}
 
-					const totalDuration = keyframes.reduce((sum, keyframe) => sum + (keyframe.duration || 1), 0);
-					
-					// Create the animation
-					const keyframeAnimation = new flock.BABYLON.Animation(
-						"keyframeAnimation",
-						property,
-						fps,
-						flock.BABYLON.Animation.ANIMATIONTYPE_COLOR3,
-						reverse && loop ? flock.BABYLON.Animation.ANIMATIONLOOPMODE_YOYO : (loop ? flock.BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE : flock.BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT)
-					);
+			const fps = 30;  // Frames per second for the animation
 
-					// Define keyframes with timing and frame calculations
-					let currentFrame = 0;
-					const animationKeys = keyframes.map((keyframe) => {
-						const durationInFrames = fps * (keyframe.duration || 1);  // Convert duration to frames
-						const colorValue = flock.BABYLON.Color3.FromHexString(keyframe.color);
-						const frame = currentFrame;
-						currentFrame += durationInFrames;  // Increment current frame based on duration
-						return { frame, value: colorValue };
-					});
+			// Handle looping: Ensure the transition back to the first keyframe uses its duration
+			if (loop && keyframes.length > 1) {
+			  const firstKeyframe = keyframes[0];  // Get the first keyframe
+			  const lastKeyframe = keyframes[keyframes.length - 1];  // Get the last keyframe
 
-					keyframeAnimation.setKeys(animationKeys);
+			  // Add an extra keyframe that transitions back to the first keyframe smoothly
+			  const transitionKeyframe = { ...firstKeyframe, duration: firstKeyframe.duration };  // Copy the first keyframe with its duration
+			  keyframes.push(transitionKeyframe);  // Add this transition keyframe to the end
+			}
 
-					// Apply easing globally if needed
-					if (easing !== "Linear") {
-						let easingFunction;
-						switch (easing) {
-							case "SineEase":
-								easingFunction = new flock.BABYLON.SineEase();
-								break;
-							case "CubicEase":
-								easingFunction = new flock.BABYLON.CubicEase();
-								break;
-							case "QuadraticEase":
-								easingFunction = new flock.BABYLON.QuadraticEase();
-								break;
-							case "ExponentialEase":
-								easingFunction = new flock.BABYLON.ExponentialEase();
-								break;
-							case "BounceEase":
-								easingFunction = new flock.BABYLON.BounceEase();
-								break;
-							case "ElasticEase":
-								easingFunction = new flock.BABYLON.ElasticEase();
-								break;
-							case "BackEase":
-								easingFunction = new flock.BABYLON.BackEase();
-								break;
-							default:
-								easingFunction = new flock.BABYLON.SineEase();
-						}
-						easingFunction.setEasingMode(flock.BABYLON.EasingFunction.EASINGMODE_EASEINOUT);
-						keyframeAnimation.setEasingFunction(easingFunction);
-					}
+			// Create the animation
+			const keyframeAnimation = new flock.BABYLON.Animation(
+			  "keyframeAnimation",
+			  propertyToAnimate,
+			  fps,
+			  flock.BABYLON.Animation.ANIMATIONTYPE_COLOR3,  // Assuming color animation, adapt for other types if needed
+			  reverse && loop
+				? flock.BABYLON.Animation.ANIMATIONLOOPMODE_YOYO  // Yoyo mode for reverse and loop
+				: loop
+				  ? flock.BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE  // Forward looping only
+				  : flock.BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT  // No loop or reverse
+			);
 
-					// Attach the animation to the mesh
-					mesh.animations.push(keyframeAnimation);
-
-					// Start the animation
-					const animatable = flock.scene.beginAnimation(mesh, 0, currentFrame, loop);
-
-					animatable.onAnimationEndObservable.add(() => {
-						resolve();
-					});
-				} else {
-					resolve();  // Resolve immediately if the mesh is not available
-				}
+			// Define keyframes with timing and frame calculations
+			let currentFrame = 0;
+			const animationKeys = keyframes.map((keyframe) => {
+			  const durationInFrames = fps * (keyframe.duration || 1);  // Convert duration to frames
+			  const value = flock.BABYLON.Color3.FromHexString(keyframe.value);
+			  const frame = currentFrame;
+			  currentFrame += durationInFrames;  // Increment current frame based on duration
+			  return { frame, value };
 			});
+
+			keyframeAnimation.setKeys(animationKeys);
+
+			// Apply easing globally if needed
+			if (easing !== "Linear") {
+			  let easingFunction;
+			  switch (easing) {
+				case "SineEase":
+				  easingFunction = new flock.BABYLON.SineEase();
+				  break;
+				case "CubicEase":
+				  easingFunction = new flock.BABYLON.CubicEase();
+				  break;
+				case "QuadraticEase":
+				  easingFunction = new flock.BABYLON.QuadraticEase();
+				  break;
+				case "ExponentialEase":
+				  easingFunction = new flock.BABYLON.ExponentialEase();
+				  break;
+				case "BounceEase":
+				  easingFunction = new flock.BABYLON.BounceEase();
+				  break;
+				case "ElasticEase":
+				  easingFunction = new flock.BABYLON.ElasticEase();
+				  break;
+				case "BackEase":
+				  easingFunction = new flock.BABYLON.BackEase();
+				  break;
+				default:
+				  easingFunction = new flock.BABYLON.SineEase();
+			  }
+			  easingFunction.setEasingMode(flock.BABYLON.EasingFunction.EASINGMODE_EASEINOUT);
+			  keyframeAnimation.setEasingFunction(easingFunction);
+			}
+
+			// Attach the animation to the mesh
+			mesh.animations.push(keyframeAnimation);
+
+			// Start the animation
+			const animatable = flock.scene.beginAnimation(mesh, 0, currentFrame, loop);
+
+			// Handle reverse behaviour without looping (play forward, then backward once)
+			if (reverse && !loop) {
+			  animatable.onAnimationEndObservable.addOnce(() => {
+				// Play the animation in reverse
+				flock.scene.beginAnimation(mesh, currentFrame, 0, false).onAnimationEndObservable.add(() => {
+				  resolve();
+				});
+			  });
+			} else {
+			  // Otherwise, resolve once the animation completes
+			  animatable.onAnimationEndObservable.add(() => {
+				resolve();
+			  });
+			}
+		  } else {
+			resolve();  // Resolve immediately if the mesh is not available
+		  }
 		});
+	  });
 	},
 	addBeforePhysicsObservable(scene, ...meshes) {
 		const beforePhysicsObserver = scene.onBeforePhysicsObservable.add(
