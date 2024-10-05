@@ -126,6 +126,60 @@ export function defineGenerators() {
 		return code;
 	};
 
+	javascriptGenerator.forBlock["colour_keyframe"] = function (block) {
+		const colour = javascriptGenerator.valueToCode(block, "COLOR", javascriptGenerator.ORDER_ATOMIC);
+		const duration = block.getFieldValue("DURATION");
+		const code = `{ color: ${colour}, duration: ${duration} }`;
+		return [code, javascriptGenerator.ORDER_ATOMIC];
+	};
+
+	javascriptGenerator.forBlock["animate_keyframes"] = function (block) {
+		const meshVar = javascriptGenerator.nameDB_.getName(
+			block.getFieldValue("MESH"),
+			Blockly.Names.NameType.VARIABLE,
+		);
+		const keyframesBlock = block.getInputTargetBlock("KEYFRAMES");
+		const keyframesArray = [];
+
+		if (keyframesBlock) {
+			// Get all inputs in the keyframe block (should have color and duration)
+			for (let i = 0; i < keyframesBlock.inputList.length; i++) {
+				const keyframeInput = keyframesBlock.inputList[i];
+
+				// Retrieve the color and duration for each keyframe
+				const colorBlock = keyframeInput.connection.targetBlock();
+				const durationBlock = keyframeInput.connection.targetBlock();
+
+				let color = colorBlock 
+					? javascriptGenerator.valueToCode(colorBlock, "COLOR", javascriptGenerator.ORDER_NONE)
+					: "#ffffff";  // Correct default color as raw string (without quotes)
+
+				// Strip any extra quotes from the color string
+				color = color.replace(/^"|"$/g, "");
+
+				const duration = durationBlock 
+					? javascriptGenerator.valueToCode(durationBlock, "DURATION", javascriptGenerator.ORDER_ATOMIC)
+					: "1";  // Default duration of 1 second if not specified
+
+				keyframesArray.push({ color, duration });
+			}
+		}
+
+		const easing = block.getFieldValue("EASING") || "Linear";
+		const loop = block.getFieldValue("LOOP") === "TRUE";
+		const reverse = block.getFieldValue("REVERSE") === "TRUE";
+
+		const mode = block.getFieldValue("MODE");
+
+		const asyncWrapper = mode === "AWAIT" ? "await " : "";
+
+		const keyframesCode = JSON.stringify(keyframesArray);
+
+		// Return the final code, passing keyframes with durations
+		return `${asyncWrapper}animateKeyFrames(${meshVar}, ${keyframesCode}, "material.diffuseColor", "${easing}", ${loop}, ${reverse});\n`;
+	};
+
+
 	javascriptGenerator.forBlock["start"] = function (block) {
 		const branch = javascriptGenerator.statementToCode(block, "DO");
 		return `(async () => {\n${branch}})();\n`;

@@ -73,6 +73,7 @@ export const flock = {
 				applyForce,
 				moveByVector,
 				glideTo,
+				animateKeyFrames,
 				rotate,
 				lookAt,
 				moveTo,
@@ -2963,6 +2964,89 @@ export const flock = {
 			});
 		});
 	},
+	async animateKeyFrames(meshName, keyframes, property, easing = "Linear", loop = false, reverse = false) {
+		return new Promise(async (resolve) => {
+			await flock.whenModelReady(meshName, async function (mesh) {
+				if (mesh) {
+					const fps = 30;  // Frames per second for the animation
+
+					// If looping, add an extra keyframe at the end that matches the first keyframe
+					if (loop && keyframes.length > 1) {
+						const firstKeyframe = keyframes[0];  // Get the first keyframe
+						const extraKeyframe = { ...firstKeyframe };  // Create a copy of the first keyframe
+						keyframes.push(extraKeyframe);  // Add it to the end of the keyframes
+					}
+
+					const totalDuration = keyframes.reduce((sum, keyframe) => sum + (keyframe.duration || 1), 0);
+					
+					// Create the animation
+					const keyframeAnimation = new flock.BABYLON.Animation(
+						"keyframeAnimation",
+						property,
+						fps,
+						flock.BABYLON.Animation.ANIMATIONTYPE_COLOR3,
+						reverse && loop ? flock.BABYLON.Animation.ANIMATIONLOOPMODE_YOYO : (loop ? flock.BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE : flock.BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT)
+					);
+
+					// Define keyframes with timing and frame calculations
+					let currentFrame = 0;
+					const animationKeys = keyframes.map((keyframe) => {
+						const durationInFrames = fps * (keyframe.duration || 1);  // Convert duration to frames
+						const colorValue = flock.BABYLON.Color3.FromHexString(keyframe.color);
+						const frame = currentFrame;
+						currentFrame += durationInFrames;  // Increment current frame based on duration
+						return { frame, value: colorValue };
+					});
+
+					keyframeAnimation.setKeys(animationKeys);
+
+					// Apply easing globally if needed
+					if (easing !== "Linear") {
+						let easingFunction;
+						switch (easing) {
+							case "SineEase":
+								easingFunction = new flock.BABYLON.SineEase();
+								break;
+							case "CubicEase":
+								easingFunction = new flock.BABYLON.CubicEase();
+								break;
+							case "QuadraticEase":
+								easingFunction = new flock.BABYLON.QuadraticEase();
+								break;
+							case "ExponentialEase":
+								easingFunction = new flock.BABYLON.ExponentialEase();
+								break;
+							case "BounceEase":
+								easingFunction = new flock.BABYLON.BounceEase();
+								break;
+							case "ElasticEase":
+								easingFunction = new flock.BABYLON.ElasticEase();
+								break;
+							case "BackEase":
+								easingFunction = new flock.BABYLON.BackEase();
+								break;
+							default:
+								easingFunction = new flock.BABYLON.SineEase();
+						}
+						easingFunction.setEasingMode(flock.BABYLON.EasingFunction.EASINGMODE_EASEINOUT);
+						keyframeAnimation.setEasingFunction(easingFunction);
+					}
+
+					// Attach the animation to the mesh
+					mesh.animations.push(keyframeAnimation);
+
+					// Start the animation
+					const animatable = flock.scene.beginAnimation(mesh, 0, currentFrame, loop);
+
+					animatable.onAnimationEndObservable.add(() => {
+						resolve();
+					});
+				} else {
+					resolve();  // Resolve immediately if the mesh is not available
+				}
+			});
+		});
+	},
 	addBeforePhysicsObservable(scene, ...meshes) {
 		const beforePhysicsObserver = scene.onBeforePhysicsObservable.add(
 			() => {
@@ -3449,9 +3533,11 @@ export const flock = {
 		const sidewaysSpeed = speed;
 
 		// Get the camera's right direction vector (perpendicular to the forward direction)
-		const cameraRight = flock.scene.activeCamera.getDirection(
-		  flock.BABYLON.Vector3.Left() //Yes, we're the wrong side of the player! Need to fix
-		).normalize();
+		const cameraRight = flock.scene.activeCamera
+			.getDirection(
+				flock.BABYLON.Vector3.Left(), //Yes, we're the wrong side of the player! Need to fix
+			)
+			.normalize();
 
 		const moveDirection = cameraRight.scale(sidewaysSpeed);
 		const currentVelocity = model.physics.getLinearVelocity();

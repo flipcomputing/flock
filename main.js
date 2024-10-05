@@ -2323,7 +2323,7 @@ function observeFlyoutVisibility(workspace) {
 				if (displayStyle != "none") {
 					// Flyout is hidden
 					const toolboxControl =
-						document.getElementById("toolboxControl");
+						//document.getElementById("toolboxControl");
 					toolboxControl.style.zIndex = "2";
 					workspace.getToolbox().setVisible(false);
 					// Trigger any resize or UI adjustments if necessary
@@ -2744,7 +2744,7 @@ window.onload = function () {
 	// Initialize Blockly and add custom context menu options
 	addExportContextMenuOption();
 	addImportContextMenuOption();
-	observeFlyoutVisibility(workspace);
+	//observeFlyoutVisibility(workspace);
 	window.toolboxVisible = toolboxVisible;
 
 	// Call this function to autosave periodically

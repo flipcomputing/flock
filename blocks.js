@@ -644,6 +644,87 @@ export function defineBlocks() {
 		},
 	};
 
+	Blockly.Blocks["colour_keyframe"] = {
+		init: function () {
+			this.jsonInit({
+				type: "colour_keyframe",
+				message0: "duration: %1 colour: %2",
+				args0: [				
+					{
+						type: "input_value",
+						name: "DURATION",
+						check: "Number",
+					},
+					{
+						type: "input_value",
+						name: "COLOR",
+						check: "Colour",  // Reusing your existing colour block
+					},
+				],
+				colour: categoryColours["Motion"],
+				inputsInline: true,
+				output: "Keyframe",
+				tooltip: "Set a colour and duration for a keyframe.",
+				helpUrl: "",
+			});
+		},
+	};
+
+	Blockly.Blocks["animate_keyframes"] = {
+		init: function () {
+			this.jsonInit({
+				type: "animate_keyframes",
+				message0: "animate keyframes on %1\nkeyframes %2\neasing %3 loop %4 reverse %5 %6",
+				args0: [
+					{
+						type: "field_variable",
+						name: "MESH",
+						variable: window.currentMesh,  // Assuming current mesh is stored here
+					},
+					{
+						type: "input_value",
+						name: "KEYFRAMES",
+						check: "Array",  // Accepts an array of keyframes
+					},
+					{
+						type: "field_dropdown",
+						name: "EASING",
+						options: [
+							["linear", "LINEAR"],
+							["ease-in", "EASEIN"],
+							["ease-out", "EASEOUT"],
+							["ease-in-out", "EASEINOUT"]
+						]
+					},
+					{
+						type: "field_checkbox",
+						name: "LOOP",
+						checked: false  // Checkbox for looping
+					},
+					{
+						type: "field_checkbox",
+						name: "REVERSE",
+						checked: false  // Checkbox for reversing the animation
+					},
+					{
+						type: "field_dropdown",
+						name: "MODE",
+						options: [
+							["await", "AWAIT"],
+							["start", "START"],
+						],
+					},
+				],
+				inputsInline: true,
+				previousStatement: null,
+				nextStatement: null,
+				colour: categoryColours["Motion"],
+				tooltip: "Animates an array of keyframes on the selected mesh, with easing, optional looping, and reversing.",
+				helpUrl: ""
+			});
+		}
+	};
+
 	Blockly.Blocks["set_sky_color"] = {
 		init: function () {
 			this.jsonInit({
