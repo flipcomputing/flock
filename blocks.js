@@ -751,7 +751,7 @@ export function defineBlocks() {
 							["alpha", "alpha"],
 							["position", "position"],
 							["rotation", "rotation"],
-							["scale", "scale"],
+							["scaling", "scaling"],
 						],
 					},
 					{
