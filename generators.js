@@ -142,6 +142,15 @@ export function defineGenerators() {
 	  return [code, javascriptGenerator.ORDER_ATOMIC];
 	};
 
+	javascriptGenerator.forBlock["xyz_keyframe"] = function (block) {
+	  const x = javascriptGenerator.valueToCode(block, "X", javascriptGenerator.ORDER_ATOMIC);
+	  const y = javascriptGenerator.valueToCode(block, "Y", javascriptGenerator.ORDER_ATOMIC);
+	  const z = javascriptGenerator.valueToCode(block, "Z", javascriptGenerator.ORDER_ATOMIC);
+	  const duration = javascriptGenerator.valueToCode(block, "DURATION", javascriptGenerator.ORDER_ATOMIC);
+	  const code = `{ value: new flock.BABYLON.Vector3(${x}, ${y}, ${z}), duration: ${duration} }`;
+	  return [code, javascriptGenerator.ORDER_ATOMIC];
+	};
+
 	javascriptGenerator.forBlock["animate_keyframes"] = function (block) {
 	  const meshVar = javascriptGenerator.nameDB_.getName(
 		block.getFieldValue("MESH"),
