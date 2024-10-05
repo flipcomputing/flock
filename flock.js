@@ -3442,16 +3442,16 @@ export const flock = {
 		model.rotationQuaternion.normalize();
 	},
 	moveSideways(modelName, speed) {
+		//return;
 		const model = flock.scene.getMeshByName(modelName);
 		if (!model || speed === 0) return;
 
 		const sidewaysSpeed = speed;
 
 		// Get the camera's right direction vector (perpendicular to the forward direction)
-		const cameraRight = flock.scene.activeCamera
-			.getForwardRay()
-			.direction.cross(flock.BABYLON.Vector3.Up())
-			.normalize();
+		const cameraRight = flock.scene.activeCamera.getDirection(
+		  flock.BABYLON.Vector3.Left() //Yes, we're the wrong side of the player! Need to fix
+		).normalize();
 
 		const moveDirection = cameraRight.scale(sidewaysSpeed);
 		const currentVelocity = model.physics.getLinearVelocity();
