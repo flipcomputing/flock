@@ -1617,7 +1617,7 @@ export const toolbox = {
 					kind: "block",
 					type: "colour_keyframe",
 					inputs: {
-						COLOR: {
+						VALUE: {
 							shadow: {
 								type: "colour",
 								fields: {
@@ -1629,12 +1629,35 @@ export const toolbox = {
 							shadow: {
 								type: "math_number",
 								fields: {
-									NUM: 30,
+									NUM: 5,
 								},
 							},
 						},
 					},
 				},
+				{
+					kind: "block",
+					type: "number_keyframe",
+					inputs: {
+						VALUE: {
+							shadow: {
+								type: "math_number",
+								fields: {
+									NUM: 1,
+								},
+							},
+						},
+						DURATION: {
+							shadow: {
+								type: "math_number",
+								fields: {
+									NUM: 1,
+								},
+							},
+						},
+					},
+				},
+
 				{
 				  kind: "block",
 				  type: "animate_keyframes",
@@ -1652,7 +1675,7 @@ export const toolbox = {
 							block: {
 							  type: "colour_keyframe",
 							  inputs: {
-								COLOR: {
+								VALUE: {
 								  shadow: {
 									type: "colour",
 									fields: {

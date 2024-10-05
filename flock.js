@@ -2965,34 +2965,33 @@ export const flock = {
 		});
 	},
 	async animateKeyFrames(meshName, keyframes, property, easing = "Linear", loop = false, reverse = false) {
+
 	  return new Promise(async (resolve) => {
 		await flock.whenModelReady(meshName, async function (mesh) {
-		  if (mesh) {
+		  if (mesh && mesh.material) {
 			let propertyToAnimate;
 
-			// Select the appropriate property to animate
+			// Select the property to animate
 			if (property === "color") {
-			  if (mesh.material.diffuseColor !== undefined) {
-				propertyToAnimate = "material.diffuseColor";
-			  } else if (mesh.material.albedoColor !== undefined) {
-				propertyToAnimate = "material.albedoColor";
-			  } else {
-				propertyToAnimate = "material.emissiveColor";  // Fallback to emissive color
-			  }
+			  propertyToAnimate = mesh.material.diffuseColor !== undefined
+				? "material.diffuseColor"
+				: "material.albedoColor";
+			} else if (property === "alpha") {
+			  propertyToAnimate = "material.alpha";  // Opacity/alpha property
+				
+			  // Ensure proper alpha blending mode
+			  mesh.material.transparencyMode = flock.BABYLON.Material.MATERIAL_ALPHABLEND;
 			} else {
-			  propertyToAnimate = property;  // For other properties like position, scale, etc.
+			  propertyToAnimate = property;  // Other properties like position, scale, etc.
 			}
 
 			const fps = 30;  // Frames per second for the animation
 
-			// Handle looping: Ensure the transition back to the first keyframe uses its duration
+			// Handle looping: Ensure transition back to first keyframe uses its duration
 			if (loop && keyframes.length > 1) {
-			  const firstKeyframe = keyframes[0];  // Get the first keyframe
-			  const lastKeyframe = keyframes[keyframes.length - 1];  // Get the last keyframe
-
-			  // Add an extra keyframe that transitions back to the first keyframe smoothly
-			  const transitionKeyframe = { ...firstKeyframe, duration: firstKeyframe.duration };  // Copy the first keyframe with its duration
-			  keyframes.push(transitionKeyframe);  // Add this transition keyframe to the end
+			  const firstKeyframe = keyframes[0];
+			  const transitionKeyframe = { ...firstKeyframe, duration: firstKeyframe.duration };  // Copy with its duration
+			  keyframes.push(transitionKeyframe);  // Add transition keyframe
 			}
 
 			// Create the animation
@@ -3000,21 +2999,25 @@ export const flock = {
 			  "keyframeAnimation",
 			  propertyToAnimate,
 			  fps,
-			  flock.BABYLON.Animation.ANIMATIONTYPE_COLOR3,  // Assuming color animation, adapt for other types if needed
+			  property === "color"
+				? flock.BABYLON.Animation.ANIMATIONTYPE_COLOR3
+				: flock.BABYLON.Animation.ANIMATIONTYPE_FLOAT,  // Float type for alpha
 			  reverse && loop
-				? flock.BABYLON.Animation.ANIMATIONLOOPMODE_YOYO  // Yoyo mode for reverse and loop
+				? flock.BABYLON.Animation.ANIMATIONLOOPMODE_YOYO
 				: loop
-				  ? flock.BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE  // Forward looping only
-				  : flock.BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT  // No loop or reverse
+				  ? flock.BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE
+				  : flock.BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT
 			);
 
 			// Define keyframes with timing and frame calculations
 			let currentFrame = 0;
 			const animationKeys = keyframes.map((keyframe) => {
-			  const durationInFrames = fps * (keyframe.duration || 1);  // Convert duration to frames
-			  const value = flock.BABYLON.Color3.FromHexString(keyframe.value);
+			  const durationInFrames = fps * (keyframe.duration || 1);
+			  const value = property === "color"
+				? flock.BABYLON.Color3.FromHexString(keyframe.value)
+				: parseFloat(keyframe.value);  // Alpha value (float)
 			  const frame = currentFrame;
-			  currentFrame += durationInFrames;  // Increment current frame based on duration
+			  currentFrame += durationInFrames;
 			  return { frame, value };
 			});
 
@@ -3052,28 +3055,25 @@ export const flock = {
 			  keyframeAnimation.setEasingFunction(easingFunction);
 			}
 
-			// Attach the animation to the mesh
+			// Attach and start the animation
 			mesh.animations.push(keyframeAnimation);
 
-			// Start the animation
+			  mesh.material.markAsDirty(flock.BABYLON.Material.MiscDirtyFlag);
+
 			const animatable = flock.scene.beginAnimation(mesh, 0, currentFrame, loop);
 
-			// Handle reverse behaviour without looping (play forward, then backward once)
+			// Handle reverse behaviour without looping (forward, then backward once)
 			if (reverse && !loop) {
 			  animatable.onAnimationEndObservable.addOnce(() => {
-				// Play the animation in reverse
 				flock.scene.beginAnimation(mesh, currentFrame, 0, false).onAnimationEndObservable.add(() => {
 				  resolve();
 				});
 			  });
 			} else {
-			  // Otherwise, resolve once the animation completes
-			  animatable.onAnimationEndObservable.add(() => {
-				resolve();
-			  });
+			  animatable.onAnimationEndObservable.add(() => resolve());
 			}
 		  } else {
-			resolve();  // Resolve immediately if the mesh is not available
+			resolve();  // Resolve if no material is available
 		  }
 		});
 	  });

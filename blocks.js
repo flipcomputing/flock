@@ -55,7 +55,6 @@ function findCreateBlock(block) {
 	let parent = block;
 
 	while (parent) {
-	
 		if (
 			parent.type.startsWith("create_") ||
 			parent.type.startsWith("load_")
@@ -649,7 +648,7 @@ export function defineBlocks() {
 			this.jsonInit({
 				type: "colour_keyframe",
 				message0: "duration: %1 colour: %2",
-				args0: [				
+				args0: [
 					{
 						type: "input_value",
 						name: "DURATION",
@@ -658,7 +657,7 @@ export function defineBlocks() {
 					{
 						type: "input_value",
 						name: "VALUE",
-						check: "Colour",  // Reusing your existing colour block
+						check: "Colour", // Reusing your existing colour block
 					},
 				],
 				colour: categoryColours["Motion"],
@@ -670,70 +669,98 @@ export function defineBlocks() {
 		},
 	};
 
+	Blockly.Blocks["number_keyframe"] = {
+		init: function () {
+			this.jsonInit({
+				type: "number_keyframe",
+				message0: "duration: %1 colour: %2",
+				args0: [
+					{
+						type: "input_value",
+						name: "DURATION",
+						check: "Number",
+					},
+					{
+						type: "input_value",
+						name: "VALUE",
+						check: "Number", // Reusing your existing colour block
+					},
+				],
+				colour: categoryColours["Motion"],
+				inputsInline: true,
+				output: "Keyframe",
+				tooltip: "Set a number and duration for a keyframe.",
+				helpUrl: "",
+			});
+		},
+	};
+
 	Blockly.Blocks["animate_keyframes"] = {
-	  init: function () {
-		this.jsonInit({
-		  type: "animate_keyframes",
-		  message0: "animate keyframes on %1\nproperty %2 keyframes %3\neasing %4 loop %5 reverse %6 %7",
-		  args0: [
-			{
-			  type: "field_variable",
-			  name: "MESH",
-			  variable: window.currentMesh,  // Assuming current mesh is stored here
-			},
-			{
-			  type: "field_dropdown",
-			  name: "PROPERTY",
-			  options: [
-				["color", "COLOR"],
-				["alpha", "ALPHA"],
-				["position", "POSITION"],
-				["rotation", "ROTATION"],
-				["scale", "SCALE"]
-			  ]
-			},
-			{
-			  type: "input_value",
-			  name: "KEYFRAMES",
-			  check: "Array",  // Accepts an array of keyframes
-			},
-			{
-			  type: "field_dropdown",
-			  name: "EASING",
-			  options: [
-				["linear", "LINEAR"],
-				["ease-in", "EASEIN"],
-				["ease-out", "EASEOUT"],
-				["ease-in-out", "EASEINOUT"]
-			  ]
-			},
-			{
-			  type: "field_checkbox",
-			  name: "LOOP",
-			  checked: false  // Checkbox for looping
-			},
-			{
-			  type: "field_checkbox",
-			  name: "REVERSE",
-			  checked: false  // Checkbox for reversing the animation
-			},
-			{
-			  type: "field_dropdown",
-			  name: "MODE",
-			  options: [
-				["await", "AWAIT"],
-				["start", "START"],
-			  ],
-			},
-		  ],
-		  inputsInline: true,
-		  previousStatement: null,
-		  nextStatement: null,
-		  colour: categoryColours["Motion"],
-		  tooltip: "Animates an array of keyframes on the selected mesh, with easing, optional looping, and reversing.",
-		  helpUrl: ""
-		});
-	  }
+		init: function () {
+			this.jsonInit({
+				type: "animate_keyframes",
+				message0:
+					"animate keyframes on %1\nproperty %2 keyframes %3\neasing %4 loop %5 reverse %6 %7",
+				args0: [
+					{
+						type: "field_variable",
+						name: "MESH",
+						variable: window.currentMesh, // Assuming current mesh is stored here
+					},
+					{
+						type: "field_dropdown",
+						name: "PROPERTY",
+						options: [
+							["color", "color"],
+							["alpha", "alpha"],
+							["position", "position"],
+							["rotation", "rotation"],
+							["scale", "scale"],
+						],
+					},
+					{
+						type: "input_value",
+						name: "KEYFRAMES",
+						check: "Array", // Accepts an array of keyframes
+					},
+					{
+						type: "field_dropdown",
+						name: "EASING",
+						options: [
+							["linear", "LINEAR"],
+							["ease-in", "EASEIN"],
+							["ease-out", "EASEOUT"],
+							["ease-in-out", "EASEINOUT"],
+						],
+					},
+					{
+						type: "field_checkbox",
+						name: "LOOP",
+						checked: false, // Checkbox for looping
+					},
+					{
+						type: "field_checkbox",
+						name: "REVERSE",
+						checked: false, // Checkbox for reversing the animation
+					},
+					{
+						type: "field_dropdown",
+						name: "MODE",
+						options: [
+							["await", "AWAIT"],
+							["start", "START"],
+						],
+					},
+				],
+				inputsInline: true,
+				previousStatement: null,
+				nextStatement: null,
+				colour: categoryColours["Motion"],
+				tooltip:
+					"Animates an array of keyframes on the selected mesh, with easing, optional looping, and reversing.",
+				helpUrl: "",
+			});
+		},
 	};
 
 	Blockly.Blocks["set_sky_color"] = {

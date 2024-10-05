@@ -174,6 +174,8 @@ export function defineGenerators() {
 	  }
 
 	  const easing = block.getFieldValue("EASING") || "Linear";
+		 const property = block.getFieldValue("PROPERTY") || "color";
+		
 	  const loop = block.getFieldValue("LOOP") === "TRUE";
 	  const reverse = block.getFieldValue("REVERSE") === "TRUE";
 	  const mode = block.getFieldValue("MODE");
@@ -182,7 +184,7 @@ export function defineGenerators() {
 
 	  const keyframesCode = JSON.stringify(keyframesArray);
 
-	  return `${asyncWrapper}animateKeyFrames(${meshVar}, ${keyframesCode}, "color", "${easing}", ${loop}, ${reverse});\n`;
+	  return `${asyncWrapper}animateKeyFrames(${meshVar}, ${keyframesCode}, "${property}", "${easing}", ${loop}, ${reverse});\n`;
 	};
 
 	
