@@ -1060,7 +1060,9 @@ function updateMeshFromBlock(mesh, block) {
 	};
 
 	// Use flock API to change the color and position of the mesh
-	flock.changeColour(mesh.name, color);
+	if(color)
+		flock.changeColour(mesh.name, color);
+	
 	flock.positionAt(mesh.name, position.x, position.y, position.z);
 
 	// Shape-specific updates based on the block type
