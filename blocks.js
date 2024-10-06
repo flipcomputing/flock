@@ -202,7 +202,7 @@ export function defineBlocks() {
 		init: function () {
 			this.jsonInit({
 				type: "start",
-				message0: "start %1",
+				message0: "start\n%1",
 				args0: [
 					{
 						type: "input_statement",
@@ -854,7 +854,8 @@ export function defineBlocks() {
 				previousStatement: null,
 				nextStatement: null,
 				colour: categoryColours["Motion"],
-				tooltip: "Sets the pivot point for a mesh on the X, Y, and Z axes",
+				tooltip:
+					"Sets the pivot point for a mesh on the X, Y, and Z axes",
 				helpUrl: "",
 			});
 		},
@@ -2946,7 +2947,7 @@ export function defineBlocks() {
 		init: function () {
 			this.jsonInit({
 				type: "forever",
-				message0: "forever %1",
+				message0: "forever\n%1",
 				args0: [
 					{
 						type: "input_statement",
@@ -2992,7 +2993,7 @@ export function defineBlocks() {
 						],
 					},
 				],
-				message1: "do %1",
+				message1: "%1",
 				args1: [
 					{
 						type: "input_statement",
@@ -3034,7 +3035,7 @@ export function defineBlocks() {
 						variable: "mesh2",
 					},
 				],
-				message1: "do %1",
+				message1: "%1",
 				args1: [
 					{
 						type: "input_statement",
@@ -3130,7 +3131,7 @@ export function defineBlocks() {
 						],
 					},
 				],
-				message1: "do %1",
+				message1: "%1",
 				args1: [
 					{
 						type: "input_statement",
@@ -3203,7 +3204,7 @@ export function defineBlocks() {
 						],
 					},
 				],
-				message1: "do %1",
+				message1: "%1",
 				args1: [
 					{
 						type: "input_statement",
@@ -3252,7 +3253,7 @@ export function defineBlocks() {
 						check: "String",
 					},
 				],
-				message1: "do %1",
+				message1: "%1",
 				args1: [
 					{
 						type: "input_statement",
@@ -4456,3 +4457,12 @@ Blockly.Blocks["export_mesh"] = {
 		});
 	},
 };
+
+
+// Remove 'do' text to save space
+Blockly.Msg['CONTROLS_REPEAT_INPUT_DO'] = '';
+Blockly.Msg['CONTROLS_WHILEUNTIL_INPUT_DO'] = '';
+Blockly.Msg['CONTROLS_FOR_INPUT_DO'] = '';
+Blockly.Msg['CONTROLS_FOREACH_INPUT_DO'] = '';
+Blockly.Msg['CONTROLS_IF_MSG_THEN'] = ''; 
+Blockly.Msg['CONTROLS_IF_MSG_ELSE'] = 'else\n';
