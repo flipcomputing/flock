@@ -74,6 +74,7 @@ export const flock = {
 				moveByVector,
 				glideTo,
 				animateKeyFrames,
+				setPivotPoint,
 				rotate,
 				lookAt,
 				moveTo,
@@ -2964,7 +2965,7 @@ export const flock = {
 			});
 		});
 	},
-	async animateKeyFrames(meshName, keyframes, property, easing = "Linear", loop = false, reverse = false) {
+	animateKeyFrames(meshName, keyframes, property, easing = "Linear", loop = false, reverse = false) {
 	  //console.log(keyframes, property);
 	  return new Promise(async (resolve) => {
 		await flock.whenModelReady(meshName, async function (mesh) {
@@ -3102,6 +3103,41 @@ export const flock = {
 			resolve();  // Resolve if no material is available
 		  }
 		});
+	  });
+	},
+setPivotPoint(meshName, xPivot, yPivot, zPivot) {
+	  return flock.whenModelReady(meshName, (mesh) => {
+		if (mesh) {
+		  // Get the bounding box of the mesh
+		  const boundingBox = mesh.getBoundingInfo().boundingBox.extendSize;
+
+		  // Helper function to resolve 'min', 'centre', or 'max' into numeric values
+		  function resolvePivotValue(axisValue, axis) {
+			switch (axisValue) {
+			  case Number.MIN_SAFE_INTEGER:
+				return -boundingBox[axis]; // Min: Negative extent along the axis
+			  case Number.MAX_SAFE_INTEGER:
+				return boundingBox[axis];  // Max: Positive extent along the axis
+			  case 0:
+			  default:
+				return 0;  // Centre: Return 0 for the axis
+			}
+		  }
+
+		  // Resolve each pivot point for X, Y, and Z axes
+		  const resolvedX = resolvePivotValue(xPivot, "x");
+		  const resolvedY = resolvePivotValue(yPivot, "y");
+		  const resolvedZ = resolvePivotValue(zPivot, "z");
+
+		  // Set the pivot point for the main mesh
+		  const pivotPoint = new flock.BABYLON.Vector3(resolvedX, resolvedY, resolvedZ);
+		  mesh.setPivotPoint(pivotPoint);
+
+		  // Optionally apply the pivot to child meshes
+		  mesh.getChildMeshes().forEach((child) => {
+			child.setPivotPoint(pivotPoint);
+		  });
+		}
 	  });
 	},
 	addBeforePhysicsObservable(scene, ...meshes) {

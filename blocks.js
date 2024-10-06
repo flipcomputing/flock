@@ -736,7 +736,7 @@ export function defineBlocks() {
 			this.jsonInit({
 				type: "animate_keyframes",
 				message0:
-					"animate keyframes on %1\nproperty %2 keyframes %3\neasing %4 loop %5 reverse %6 %7",
+					"animate keyframes on %1 property %2\nkeyframes %3\neasing %4 loop %5 reverse %6 %7",
 				args0: [
 					{
 						type: "field_variable",
@@ -794,6 +794,67 @@ export function defineBlocks() {
 				colour: categoryColours["Motion"],
 				tooltip:
 					"Animates an array of keyframes on the selected mesh, with easing, optional looping, and reversing.",
+				helpUrl: "",
+			});
+		},
+	};
+
+	Blockly.Blocks["min_centre_max"] = {
+		init: function () {
+			this.jsonInit({
+				type: "min_centre_max",
+				message0: "%1",
+				args0: [
+					{
+						type: "field_dropdown",
+						name: "PIVOT_OPTION",
+						options: [
+							["min", "Number.MIN_SAFE_INTEGER"],
+							["centre", "0"],
+							["max", "Number.MAX_SAFE_INTEGER"],
+						],
+					},
+				],
+				output: "Number", // Returns a numeric value
+				colour: categoryColours["Motion"],
+				tooltip: "Choose min, centre, or max for the pivot point",
+				helpUrl: "",
+			});
+		},
+	};
+
+	Blockly.Blocks["set_pivot"] = {
+		init: function () {
+			this.jsonInit({
+				type: "set_pivot",
+				message0: "set pivot of %1 x: %2 y: %3 z: %4",
+				args0: [
+					{
+						type: "field_variable",
+						name: "MESH",
+						variable: window.currentMesh, // Assuming the mesh is stored here
+					},
+					{
+						type: "input_value",
+						name: "X_PIVOT",
+						check: "Number", // Accepts numeric input for X
+					},
+					{
+						type: "input_value",
+						name: "Y_PIVOT",
+						check: "Number", // Accepts numeric input for Y
+					},
+					{
+						type: "input_value",
+						name: "Z_PIVOT",
+						check: "Number", // Accepts numeric input for Z
+					},
+				],
+				inputsInline: true,
+				previousStatement: null,
+				nextStatement: null,
+				colour: categoryColours["Motion"],
+				tooltip: "Sets the pivot point for a mesh on the X, Y, and Z axes",
 				helpUrl: "",
 			});
 		},

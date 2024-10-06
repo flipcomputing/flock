@@ -1737,6 +1737,36 @@ export const toolbox = {
 					},
 				},
 				{
+				  kind: "block",
+				  type: "set_pivot",
+				  inputs: {
+					X_PIVOT: {
+					  shadow: {
+						type: "min_centre_max",
+						fields: {
+						  PIVOT_OPTION: "centre",  // Default to centre for X
+						},
+					  },
+					},
+					Y_PIVOT: {
+					  shadow: {
+						type: "min_centre_max",
+						fields: {
+						  PIVOT_OPTION: "min",  // Default to min for Y (base centre)
+						},
+					  },
+					},
+					Z_PIVOT: {
+					  shadow: {
+						type: "min_centre_max",
+						fields: {
+						  PIVOT_OPTION: "centre",  // Default to centre for Z
+						},
+					  },
+					},
+				  },
+				},
+				{
 					kind: "block",
 					type: "move_sideways",
 					keyword: "sideways",

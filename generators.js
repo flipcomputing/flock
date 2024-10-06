@@ -252,6 +252,27 @@ export function defineGenerators() {
 	  return `${asyncWrapper}animateKeyFrames(${meshVar}, [${keyframesCode}], "${property}", "${easing}", ${loop}, ${reverse});\n`;
 	};
 
+	javascriptGenerator.forBlock["min_centre_max"] = function (block) {
+	  const pivotOption = block.getFieldValue("PIVOT_OPTION");
+
+	  // Return the value for the selected pivot option
+	  return [`${pivotOption}`, javascriptGenerator.ORDER_ATOMIC];
+	};
+
+	javascriptGenerator.forBlock["set_pivot"] = function (block) {
+	  const meshVar = javascriptGenerator.nameDB_.getName(
+		block.getFieldValue("MESH"),
+		Blockly.Names.NameType.VARIABLE
+	  );
+
+	  const xPivot = javascriptGenerator.valueToCode(block, "X_PIVOT", javascriptGenerator.ORDER_ATOMIC) || 0;
+	  const yPivot = javascriptGenerator.valueToCode(block, "Y_PIVOT", javascriptGenerator.ORDER_ATOMIC) || 0;
+	  const zPivot = javascriptGenerator.valueToCode(block, "Z_PIVOT", javascriptGenerator.ORDER_ATOMIC) || 0;
+
+	  // Return the final code for setting the pivot on the mesh
+	  return `await setPivotPoint(${meshVar}, ${xPivot}, ${yPivot}, ${zPivot});\n`;
+	};
+
 	javascriptGenerator.forBlock["start"] = function (block) {
 		const branch = javascriptGenerator.statementToCode(block, "DO");
 		return `(async () => {\n${branch}})();\n`;
