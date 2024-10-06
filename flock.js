@@ -151,17 +151,6 @@ export const flock = {
 		flock.EXPORT = BABYLON_EXPORT;
 		flock.document = document;
 		flock.canvas = flock.document.getElementById("renderCanvas");
-		console.log("Canvas: ", flock.canvas);
-		/*const preventLongPress = (e) => {
-			e.preventDefault(); // Prevents default actions like context menu and selection
-		};
-
-		// Add event listeners to prevent long press behavior
-		flock.canvas.addEventListener("touchstart", preventLongPress); // Mobile touch events
-		flock.canvas.addEventListener("contextmenu", preventLongPress); // Right-click or long press context menu
-		flock.canvas.addEventListener("mousedown", preventLongPress); // Desktop mouse down events
-		flock.canvas.addEventListener("touchend", preventLongPress); // Mobile touch end event
-		*/
 		flock.scene = null;
 		flock.havokInstance = null;
 		flock.engineReady = false;

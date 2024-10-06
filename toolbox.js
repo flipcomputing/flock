@@ -1737,34 +1737,34 @@ export const toolbox = {
 					},
 				},
 				{
-				  kind: "block",
-				  type: "set_pivot",
-				  inputs: {
-					X_PIVOT: {
-					  shadow: {
-						type: "min_centre_max",
-						fields: {
-						  PIVOT_OPTION: "centre",  // Default to centre for X
+					kind: "block",
+					type: "set_pivot",
+					inputs: {
+						X_PIVOT: {
+							shadow: {
+								type: "min_centre_max",
+								fields: {
+									PIVOT_OPTION: "0", // Use the value "0" for "centre"
+								},
+							},
 						},
-					  },
-					},
-					Y_PIVOT: {
-					  shadow: {
-						type: "min_centre_max",
-						fields: {
-						  PIVOT_OPTION: "min",  // Default to min for Y (base centre)
+						Y_PIVOT: {
+							shadow: {
+								type: "min_centre_max",
+								fields: {
+									PIVOT_OPTION: "Number.MIN_SAFE_INTEGER", // Use the actual value for "min"
+								},
+							},
 						},
-					  },
-					},
-					Z_PIVOT: {
-					  shadow: {
-						type: "min_centre_max",
-						fields: {
-						  PIVOT_OPTION: "centre",  // Default to centre for Z
+						Z_PIVOT: {
+							shadow: {
+								type: "min_centre_max",
+								fields: {
+									PIVOT_OPTION: "0", // Use the value "0" for "centre"
+								},
+							},
 						},
-					  },
 					},
-				  },
 				},
 				{
 					kind: "block",

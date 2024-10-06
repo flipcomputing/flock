@@ -673,7 +673,7 @@ export function defineBlocks() {
 		init: function () {
 			this.jsonInit({
 				type: "number_keyframe",
-				message0: "duration: %1 colour: %2",
+				message0: "duration: %1 value: %2",
 				args0: [
 					{
 						type: "input_value",
