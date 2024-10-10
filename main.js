@@ -117,6 +117,16 @@ let toolboxVisible = false;
 function executeCode() {
 	if (flock.engineReady) {
 		// Check if the debug layer is visible
+
+		const container = document.getElementById("maincontent");
+		const switchViewsBtn = document.getElementById("switchViews");
+
+		if (currentView === "canvas") {
+			currentView = "code";
+			container.style.transform = `translateX(0px)`; // Move to Code view
+			switchViewsBtn.textContent = "Canvas >>"; // Update button text
+		}
+
 		const debugLayerVisible = flock.scene.debugLayer.isVisible();
 
 		// Recreate the scene
@@ -1060,9 +1070,8 @@ function updateMeshFromBlock(mesh, block) {
 	};
 
 	// Use flock API to change the color and position of the mesh
-	if(color)
-		flock.changeColour(mesh.name, color);
-	
+	if (color) flock.changeColour(mesh.name, color);
+
 	flock.positionAt(mesh.name, position.x, position.y, position.z);
 
 	// Shape-specific updates based on the block type
@@ -1485,7 +1494,7 @@ window.stopCode = stopCode;
 
 function onResize() {
 	Blockly.svgResize(workspace);
-	document.body.style.zoom = "reset";
+	//document.body.style.zoom = "reset";
 	resizeCanvas();
 	if (flock.engine) flock.engine.resize();
 }
@@ -2224,7 +2233,7 @@ window.exportCode = exportCode;
 window.loadExample = loadExample;
 
 const runCode = (code) => {
-	if (codeMode === "blockly") {
+	if (codeMode === "blockly" || currentView === "code") {
 		switchView("canvas");
 	}
 	// Create a new sandboxed environment
@@ -2242,7 +2251,7 @@ function resizeCanvas() {
 	const canvas = document.getElementById("renderCanvas");
 
 	const areaWidth = canvasArea.clientWidth;
-	let areaHeight = canvasArea.clientHeight - 45;
+	let areaHeight = canvasArea.clientHeight;
 
 	const gizmoButtons = document.getElementById("gizmoButtons");
 	if (gizmoButtons.style.display != "none") {
@@ -2273,9 +2282,7 @@ window.codeMode = codeMode;
 function switchView(view) {
 	if (flock.scene) flock.scene.debugLayer.hide();
 	const blocklyArea = document.getElementById("codePanel");
-	const blocklyDiv = document.getElementById("blocklyDiv");
 	const canvasArea = document.getElementById("rightArea");
-	const menu = document.getElementById("menu");
 	const gizmoButtons = document.getElementById("gizmoButtons");
 
 	if (view === "both") {
@@ -2283,21 +2290,16 @@ function switchView(view) {
 		codeMode = "both";
 		blocklyArea.style.display = "block";
 		canvasArea.style.display = "block";
+		blocklyArea.style.width = "0";
+		canvasArea.style.width = "0";
+		blocklyArea.style.flex = "1 1 50%";
+		canvasArea.style.flex = "1 1 50%";
 		gizmoButtons.style.display = "flex";
-		menu.style.display = "flex";
-	} else if (view === "blockly") {
-		viewMode = "blockly";
-		codeMode = "blockly";
-		blocklyArea.style.display = "block";
-		canvasArea.style.display = "none";
-		gizmoButtons.style.display = "none";
-		menu.style.display = "none";
 	} else if (view === "canvas") {
+		console.log("canvas");
 		viewMode = "canvas";
 		blocklyArea.style.display = "none";
 		canvasArea.style.display = "block";
-		gizmoButtons.style.display = "none";
-		menu.style.display = "flex";
 	}
 
 	onResize(); // Ensure both Blockly and Babylon.js canvas resize correctly
@@ -2326,7 +2328,7 @@ function observeFlyoutVisibility(workspace) {
 					// Flyout is hidden
 					const toolboxControl =
 						//document.getElementById("toolboxControl");
-					toolboxControl.style.zIndex = "2";
+						(toolboxControl.style.zIndex = "2");
 					workspace.getToolbox().setVisible(false);
 					// Trigger any resize or UI adjustments if necessary
 					onResize();
@@ -2343,7 +2345,7 @@ function observeFlyoutVisibility(workspace) {
 }
 
 function runMenu() {
-	switchView("canvas");
+	//switchView("canvas");
 	executeCode();
 }
 
@@ -2380,22 +2382,21 @@ window.toggleMenu = toggleMenu;
 
 document.addEventListener("DOMContentLoaded", () => {
 	const requestFullscreen = () => {
-	  const elem = document.documentElement;
+		const elem = document.documentElement;
 
-	  if (elem.requestFullscreen) {
-		elem.requestFullscreen();
-	  } else if (elem.mozRequestFullScreen) {
-		// For Firefox
-		elem.mozRequestFullScreen();
-	  } else if (elem.webkitRequestFullscreen) {
-		// For Chrome, Safari, and Opera
-		elem.webkitRequestFullscreen(Element.ALLOW_KEYBOARD_INPUT);
-	  } else if (elem.msRequestFullscreen) {
-		// For IE/Edge
-		elem.msRequestFullscreen();
-	  }
+		if (elem.requestFullscreen) {
+			elem.requestFullscreen();
+		} else if (elem.mozRequestFullScreen) {
+			// For Firefox
+			elem.mozRequestFullScreen();
+		} else if (elem.webkitRequestFullscreen) {
+			// For Chrome, Safari, and Opera
+			elem.webkitRequestFullscreen(Element.ALLOW_KEYBOARD_INPUT);
+		} else if (elem.msRequestFullscreen) {
+			// For IE/Edge
+			elem.msRequestFullscreen();
+		}
 	};
-
 
 	const isMobile = () => {
 		return /Mobi|Android/i.test(navigator.userAgent);
@@ -2411,26 +2412,25 @@ document.addEventListener("DOMContentLoaded", () => {
 		document.getElementById("fullscreenToggle").style.display = "none";
 	}
 
-	if (window.matchMedia('(display-mode: fullscreen)').matches) {
-	  // Adjust layout for fullscreen mode
-	  adjustViewport();
+	if (window.matchMedia("(display-mode: fullscreen)").matches) {
+		// Adjust layout for fullscreen mode
+		adjustViewport();
 	}
 
-	window.matchMedia('(display-mode: fullscreen)').addEventListener('change', (e) => {
-	  if (e.matches) {
-		// The app has entered fullscreen mode
+	window
+		.matchMedia("(display-mode: fullscreen)")
+		.addEventListener("change", (e) => {
+			if (e.matches) {
+				// The app has entered fullscreen mode
+				adjustViewport();
+			}
+		});
+
+	if (isMobile()) {
 		adjustViewport();
-	  }
-	});
-
-
-if(isMobile())
-{
-	adjustViewport();
-	  //const dpr = window.devicePixelRatio || 1;
-	 // document.body.style.zoom = dpr;  // This adjusts the zoom based on DPR
-
-}
+		//const dpr = window.devicePixelRatio || 1;
+		// document.body.style.zoom = dpr;  // This adjusts the zoom based on DPR
+	}
 
 	// Additional adjustments for mobile UI in fullscreen mode
 	const examples = document.getElementById("exampleSelect");
@@ -2444,7 +2444,102 @@ if(isMobile())
 	}
 });
 
+let currentView = "start"; // Start with the code view
 // Function to be called once the app has fully loaded
+
+const container = document.getElementById("maincontent");
+const bottomBar = document.getElementById("bottomBar");
+const switchViewsBtn = document.getElementById("switchViews");
+let startX = 0;
+let currentTranslate = 0;
+let previousTranslate = 0;
+let isDragging = false;
+const swipeThreshold = 50; // Minimum swipe distance
+
+function showCanvasView() {
+	const gizmoButtons = document.getElementById("gizmoButtons");
+
+	gizmoButtons.style.display = "block";
+	currentView = "canvas";
+	container.style.transform = `translateX(0px)`; // Move to Code view
+	switchViewsBtn.textContent = "Code >>"; // Update button text
+	onResize();
+}
+
+function showCodeView() {
+	const blocklyArea = document.getElementById("codePanel");
+	blocklyArea.style.display = "block";
+	const panelWidth = window.innerWidth;
+	currentView = "code";
+	container.style.transform = `translateX(-${panelWidth}px)`; // Move to Canvas view
+	switchViewsBtn.textContent = "<< Canvas"; // Update button text
+}
+
+function togglePanels() {
+	if (switchViewsBtn.textContent === "Code >>") {
+		showCodeView();
+	} else {
+		showCanvasView();
+	}
+}
+
+function setTranslateX(value) {
+	container.style.transform = `translateX(${value}px)`;
+}
+
+// Function to add the swipe event listeners
+function addSwipeListeners() {
+	// Handle touch start (drag begins)
+	bottomBar.addEventListener("touchstart", (e) => {
+		startX = e.touches[0].clientX;
+		isDragging = true;
+	});
+
+	// Handle touch move (drag in progress)
+	bottomBar.addEventListener("touchmove", (e) => {
+		if (!isDragging) return;
+		const currentX = e.touches[0].clientX;
+		const deltaX = currentX - startX;
+
+		currentTranslate = previousTranslate + deltaX;
+
+		// Ensure the container doesn't drag too far
+		if (currentTranslate > 0) currentTranslate = 0;
+		if (currentTranslate < -window.innerWidth)
+			currentTranslate = -window.innerWidth;
+
+		setTranslateX(currentTranslate);
+	});
+
+	// Handle touch end (drag ends, snap to nearest panel)
+	bottomBar.addEventListener("touchend", () => {
+		isDragging = false;
+
+		// Calculate the total distance swiped
+		const deltaX = currentTranslate - previousTranslate;
+
+		// Snap to the next or previous panel based on swipe distance and direction
+		if (deltaX < -swipeThreshold) {
+			showCodeView(); // Swipe left to switch to the Canvas view
+		} else if (deltaX > swipeThreshold) {
+			showCanvasView(); // Swipe right to switch to the Code view
+		}
+
+		previousTranslate = currentTranslate; // Update the last translate value
+	});
+}
+
+// Function to add the button event listener
+function addButtonListener() {
+	switchViewsBtn.addEventListener("click", togglePanels);
+}
+
+// Initialization function to set up everything
+function initializeUI() {
+	addSwipeListeners(); // Add swipe event listeners
+	addButtonListener(); // Add button click listener
+}
+
 function initializeApp() {
 	console.log("Initializing app...");
 
@@ -2455,9 +2550,6 @@ function initializeApp() {
 	const stopCodeButton = document.getElementById("stopCodeButton");
 	const fileInput = document.getElementById("fileInput");
 	const exportCodeButton = document.getElementById("exportCodeButton");
-	const bothViewButton = document.getElementById("bothViewButton");
-	const blocklyViewButton = document.getElementById("blocklyViewButton");
-	const canvasViewButton = document.getElementById("canvasViewButton");
 
 	runCodeButton.addEventListener("click", executeCode);
 	stopCodeButton.addEventListener("click", stopCode);
@@ -2478,13 +2570,9 @@ function initializeApp() {
 
 		const blocklyArea = document.getElementById("codePanel");
 		const canvasArea = document.getElementById("rightArea");
-		const menu = document.getElementById("menu");
 		const gizmoButtons = document.getElementById("gizmoButtons");
 
 		if (flock.scene.debugLayer.isVisible()) {
-			console.log("Debug layer is visible");
-			canvasArea.style.width = "100%";
-			canvasArea.style.flexGrow = "1";
 			switchView("both");
 			flock.scene.debugLayer.hide();
 			onResize();
@@ -2492,22 +2580,29 @@ function initializeApp() {
 			blocklyArea.style.display = "none";
 			codeMode = "none";
 			canvasArea.style.display = "block";
-			canvasArea.style.width = "50vw";
-			canvasArea.style.flexGrow = "0";
+			canvasArea.style.width = "0";
 			gizmoButtons.style.display = "block";
-			menu.style.right = "unset";
-			flock.scene.debugLayer.show();
+			// https://doc.babylonjs.com/typedoc/interfaces/BABYLON.IInspectorOptions
+			flock.scene.debugLayer.show({
+				embedMode: true,
+				handleResize: true,
+				enableClose: false,
+				enablePopup: false,
+			});
+			canvasArea.style.flex = "1 1 0";
 			onResize();
 		}
 	});
+
+	let savedView = "canvas";
 
 	togglePlayButton.addEventListener("click", function () {
 		if (!flock.scene) return;
 
 		const blocklyArea = document.getElementById("codePanel");
 		const canvasArea = document.getElementById("rightArea");
-		const menu = document.getElementById("menu");
 		const gizmoButtons = document.getElementById("gizmoButtons");
+		const bottomBar = document.getElementById("bottomBar");
 
 		const gizmosVisible =
 			gizmoButtons &&
@@ -2515,23 +2610,30 @@ function initializeApp() {
 			getComputedStyle(gizmoButtons).visibility !== "hidden";
 
 		if (gizmosVisible) {
-			console.log("Play view");
-			canvasArea.style.width = "100%";
-			canvasArea.style.flexGrow = "1";
-			switchView("canvas");
-			flock.scene.debugLayer.hide();
-			gizmoButtons.style.display = "none";
-			onResize();
-		} else {
-			console.log("Hide view");
+			savedView = currentView;
+			showCanvasView();
 			flock.scene.debugLayer.hide();
 			blocklyArea.style.display = "none";
-			codeMode = "none";
+			gizmoButtons.style.display = "none";
+			bottomBar.style.display = "none";
+			document.documentElement.style.setProperty(
+				"--dynamic-offset",
+				"40px",
+			);
+			onResize();
+		} else {
+			flock.scene.debugLayer.hide();
+			blocklyArea.style.display = "block";
 			canvasArea.style.display = "block";
-			canvasArea.style.width = "50vw";
-			canvasArea.style.flexGrow = "0";
 			gizmoButtons.style.display = "block";
+			bottomBar.style.display = "block";
 			switchView("both");
+			document.documentElement.style.setProperty(
+				"--dynamic-offset",
+				"65px",
+			);
+			if (savedView === "code") showCodeView();
+			else showCanvasView();
 			onResize();
 		}
 	});
@@ -2569,6 +2671,8 @@ function initializeApp() {
 				}
 			}
 		});
+
+	initializeUI();
 
 	console.log("Enabling gizmos");
 
@@ -2641,9 +2745,6 @@ function initializeApp() {
 		scrollCharacters(1),
 	);
 
-	// Enable buttons and dropdowns after initialization
-	const toolboxControl = document.getElementById("toolboxControl");
-	const runCodeButton2 = document.getElementById("runCodeButton2");
 	const exampleSelect = document.getElementById("exampleSelect");
 
 	const fullscreenToggle = document.getElementById("fullscreenToggle");
@@ -2968,10 +3069,10 @@ window.addEventListener("beforeinstallprompt", (e) => {
 });
 
 const adjustViewport = () => {
-  const vh = window.innerHeight * 0.01;
-  document.documentElement.style.setProperty('--vh', `${vh}px`);
+	const vh = window.innerHeight * 0.01;
+	document.documentElement.style.setProperty("--vh", `${vh}px`);
 };
 
 // Adjust viewport on page load and resize
-window.addEventListener('load', adjustViewport);
-window.addEventListener('resize', adjustViewport);
+window.addEventListener("load", adjustViewport);
+window.addEventListener("resize", adjustViewport);
