@@ -3057,7 +3057,6 @@ export const flock = {
 		loop = false,
 		reverse = false,
 	) {
-		//console.log(keyframes, property);
 		return new Promise(async (resolve) => {
 			await flock.whenModelReady(meshName, async function (mesh) {
 				if (mesh) {
@@ -3070,38 +3069,24 @@ export const flock = {
 								? "material.diffuseColor"
 								: "material.albedoColor";
 					} else if (property === "alpha") {
-						propertyToAnimate = "material.alpha"; // Opacity/alpha property
-						// Ensure proper alpha blending mode
+						propertyToAnimate = "material.alpha";
 						mesh.material.transparencyMode =
 							flock.BABYLON.Material.MATERIAL_ALPHABLEND;
 					} else {
-						// Handle position, rotation, scaling
 						propertyToAnimate = property;
 					}
 
-					const fps = 30; // Frames per second for the animation
+					const fps = 30; // Frames per second for the animation timeline
 
-					// Handle looping: Ensure transition back to first keyframe uses its duration
-					if (loop && keyframes.length > 1) {
-						const firstKeyframe = keyframes[0];
-						const transitionKeyframe = {
-							...firstKeyframe,
-							duration: firstKeyframe.duration,
-						}; // Copy with its duration
-						keyframes.push(transitionKeyframe); // Add transition keyframe
-					}
-
-					// Determine animation type based on property
 					const animationType =
 						property === "color"
 							? flock.BABYLON.Animation.ANIMATIONTYPE_COLOR3
 							: ["position", "rotation", "scaling"].includes(
-										property,
-								  )
+									property,
+							  )
 								? flock.BABYLON.Animation.ANIMATIONTYPE_VECTOR3
-								: flock.BABYLON.Animation.ANIMATIONTYPE_FLOAT; // Use Vector3 for position, rotation, scaling
+								: flock.BABYLON.Animation.ANIMATIONTYPE_FLOAT;
 
-					// Create the animation
 					const keyframeAnimation = new flock.BABYLON.Animation(
 						"keyframeAnimation",
 						propertyToAnimate,
@@ -3110,36 +3095,28 @@ export const flock = {
 						reverse && loop
 							? flock.BABYLON.Animation.ANIMATIONLOOPMODE_YOYO
 							: loop
-								? flock.BABYLON.Animation
-										.ANIMATIONLOOPMODE_CYCLE
-								: flock.BABYLON.Animation
-										.ANIMATIONLOOPMODE_CONSTANT,
+								? flock.BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE
+								: flock.BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT,
 					);
 
-					// Define keyframes with timing and frame calculations
+					// Set up animation keys based on each keyframe's duration
 					let currentFrame = 0;
-					const animationKeys = keyframes.map((keyframe) => {
-						const durationInFrames = fps * (keyframe.duration || 1);
-
+					const animationKeys = keyframes.map((keyframe, index) => {
 						let value;
 						if (property === "color") {
 							value = flock.BABYLON.Color3.FromHexString(
 								keyframe.value,
-							); // Color3 for color
+							);
 						} else if (
 							["position", "rotation", "scaling"].includes(
 								property,
 							)
 						) {
-							// If the keyframe value is an object, assume it's a valid Vector3
-							if (
-								keyframe.value instanceof flock.BABYLON.Vector3
-							) {
-								value = keyframe.value; // Already a Vector3
+							if (keyframe.value instanceof flock.BABYLON.Vector3) {
+								value = keyframe.value;
 							} else if (typeof keyframe.value === "string") {
-								// If it's a string, parse it into a Vector3
 								const vectorValues =
-									keyframe.value.match(/\d+(\.\d+)?/g); // Extract numeric values from string
+									keyframe.value.match(/-?\d+(\.\d+)?/g);
 								value = new flock.BABYLON.Vector3(
 									parseFloat(vectorValues[0]),
 									parseFloat(vectorValues[1]),
@@ -3147,17 +3124,39 @@ export const flock = {
 								);
 							}
 						} else {
-							value = parseFloat(keyframe.value); // Float for alpha or other numeric properties
+							value = parseFloat(keyframe.value);
 						}
 
-						const frame = currentFrame;
-						currentFrame += durationInFrames; // Increment current frame based on duration
-						return { frame, value };
+						// Set the frame based on the cumulative duration up to this point
+						if (index > 0) {
+							currentFrame += Math.round(
+								fps * (keyframes[index].duration || 1)
+							);
+						}
+
+						return { frame: currentFrame, value };
 					});
 
-					keyframeAnimation.setKeys(animationKeys);
+					// Handle looping: Add a transition back to the first keyframe if looping is enabled
+					if (loop && keyframes.length > 1) {
+						const firstKeyframe = keyframes[0];
+						const loopFrame =
+							currentFrame + Math.round(fps * firstKeyframe.duration);
+						animationKeys.push({
+							frame: loopFrame,
+							value: animationKeys[0].value,
+						});
+					}
 
-					// Apply easing globally if needed
+					// Ensure that keyframes are properly set up and interpolated
+					if (animationKeys.length > 1) {
+						keyframeAnimation.setKeys(animationKeys);
+					} else {
+						console.warn("Insufficient keyframes for animation.");
+						resolve();
+						return;
+					}
+
 					if (easing !== "Linear") {
 						let easingFunction;
 						switch (easing) {
@@ -3194,10 +3193,8 @@ export const flock = {
 						keyframeAnimation.setEasingFunction(easingFunction);
 					}
 
-					// Attach and start the animation
 					mesh.animations.push(keyframeAnimation);
 
-					// Ensure material gets updated (relevant for alpha changes)
 					if (property === "alpha") {
 						mesh.material.markAsDirty(
 							flock.BABYLON.Material.MiscDirtyFlag,
@@ -3211,7 +3208,6 @@ export const flock = {
 						loop,
 					);
 
-					// Handle reverse behaviour without looping (forward, then backward once)
 					if (reverse && !loop) {
 						animatable.onAnimationEndObservable.addOnce(() => {
 							flock.scene
@@ -3226,7 +3222,7 @@ export const flock = {
 						);
 					}
 				} else {
-					resolve(); // Resolve if no material is available
+					resolve();
 				}
 			});
 		});
