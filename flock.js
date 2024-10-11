@@ -352,6 +352,29 @@ export const flock = {
 			new flock.BABYLON.Vector3(0, 1, 0),
 			flock.scene
 		);
+
+		flock.scene.onPointerObservable.add(function (pointerInfo) {
+			if (
+				pointerInfo.type === flock.BABYLON.PointerEventTypes.POINTERUP
+			) {
+				flock.scene.activeCamera.inputs.clear();
+
+				if (
+					pointerInfo.event.touches &&
+					pointerInfo.event.touches.length > 1
+				) {
+					const camera = flock.scene.activeCamera;
+					camera.detachControl();
+
+					// Short delay to ensure controls are fully detached
+					setTimeout(() => {
+						// Reattach the camera control and reset the target
+						camera.attachControl(canvas, true);
+						camera.setTarget(camera.target);
+					}, 100); // Adjust delay as necessary
+				}
+			}
+		});
 		hemisphericLight.intensity = 1.0;
 		hemisphericLight.diffuse = new flock.BABYLON.Color3(1, 1, 1);
 		hemisphericLight.groundColor = new flock.BABYLON.Color3(0.5, 0.5, 0.5);
