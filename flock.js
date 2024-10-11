@@ -201,31 +201,8 @@ export const flock = {
 		
 		//flock.scene = await flock.createScene();
 
-		/*
-		flock.scene.onPointerObservable.add(function (pointerInfo) {
-			if (
-				pointerInfo.type === flock.BABYLON.PointerEventTypes.POINTERUP
-			) {
-				flock.scene.activeCamera.inputs.clear();
-
-				if (
-					pointerInfo.event.touches &&
-					pointerInfo.event.touches.length > 1
-				) {
-					const camera = flock.scene.activeCamera;
-					camera.detachControl();
-
-					// Short delay to ensure controls are fully detached
-					setTimeout(() => {
-						// Reattach the camera control and reset the target
-						camera.attachControl(canvas, true);
-						camera.setTarget(camera.target);
-					}, 100); // Adjust delay as necessary
-				}
-			}
-		});
-		*/
-
+		
+		
 		flock.canvas.addEventListener(
 			"touchmove",
 			function (event) {
@@ -257,10 +234,15 @@ export const flock = {
 		});
 		flock.engine.enableOfflineSupport = false;
 		flock.engine.setHardwareScalingLevel(1 / window.devicePixelRatio);
+
+
 	},
 	async disposeOldScene() {
 
 		if (flock.scene) {
+
+			flock.scene.activeCamera.inputs.clear();
+
 			// Abort any ongoing operations if applicable
 			if (flock.abortController) {
 				flock.abortController.abort(); // Abort any pending operations
@@ -293,6 +275,8 @@ export const flock = {
 			}
 						
 			// Dispose of the scene directly
+			flock.scene.activeCamera.inputs.clear();
+
 			flock.scene.dispose();
 			flock.scene = null;
 
@@ -320,6 +304,7 @@ export const flock = {
 
 		// Create the new scene
 		flock.scene = new flock.BABYLON.Scene(flock.engine);
+
 		flock.disposed = false;
 
 		flock.engine.runRenderLoop(() => {
@@ -355,9 +340,7 @@ export const flock = {
 			if (
 				pointerInfo.type === flock.BABYLON.PointerEventTypes.POINTERUP
 			) {
-				flock.scene.activeCamera.inputs.clear();
-
-				if (
+								if (
 					pointerInfo.event.touches &&
 					pointerInfo.event.touches.length > 1
 				) {
@@ -4008,10 +3991,11 @@ export const flock = {
 					camera.angularSensibilityY = 2000;
 					camera.panningSensibility = 0;
 
-					/*
+					
 					camera.inputs.removeByType(
 						"ArcRotateCameraMouseWheelInput",
 					);
+					
 					camera.inputs.attached.pointers.multiTouchPanAndZoom = false;
 					camera.inputs.attached.pointers.multiTouchPanning = false;
 					camera.inputs.attached.pointers.pinchZoom = false;
@@ -4025,7 +4009,7 @@ export const flock = {
 					camera.inputs.attached.pointers.onMultiTouch = function () {
 						// Do nothing to disable multi-touch behavior in Babylon.js
 					};
-					*/
+					
 				}
 				camera.setTarget(mesh.position);
 				camera.metadata = camera.metadata || {};
