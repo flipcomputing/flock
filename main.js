@@ -109,15 +109,16 @@ function exportCode() {
 	document.body.removeChild(element);
 }
 
-//let mousePos = { x: 0, y: 0 };
-//flock.mousePos = mousePos;
 let gizmoManager;
 let toolboxVisible = false;
 
 function executeCode() {
+
+	console.log("Execute code")
 	if (flock.engineReady) {
 		// Check if the debug layer is visible
-
+		console.log("Engine ready")
+		
 		const container = document.getElementById("maincontent");
 		const switchViewsBtn = document.getElementById("switchViews");
 
@@ -127,16 +128,14 @@ function executeCode() {
 			switchViewsBtn.textContent = "Canvas >>"; // Update button text
 		}
 
-		const debugLayerVisible = flock.scene.debugLayer.isVisible();
-
-		// Recreate the scene
-		flock.scene = flock.createScene();
-
-		if (debugLayerVisible) {
-			flock.scene.debugLayer.show();
+		if (gizmoManager) {
+			gizmoManager.dispose(); // Dispose the GizmoManager to release resources
+			gizmoManager = null; // Clear the global reference to allow garbage collection
 		}
-
-		gizmoManager = new flock.BABYLON.GizmoManager(flock.scene, 8);
+		// Recreate the scene
+		//console.log("Create scene")
+		//flock.scene = flock.createScene();
+		
 
 		const code = javascriptGenerator.workspaceToCode(workspace);
 		try {
@@ -146,7 +145,21 @@ function executeCode() {
 		} catch (error) {
 			console.error("Error executing Blockly code:", error);
 		}
+
+		const debugLayerVisible = flock.scene.debugLayer.isVisible();
+
+		if (debugLayerVisible) {
+			flock.scene.debugLayer.show({
+				embedMode: true,
+				enableClose: false,
+				enablePopup: false,
+			});
+		}
+
+		gizmoManager = new flock.BABYLON.GizmoManager(flock.scene, 8);
+
 	} else {
+		console.log("Engine not ready");
 		// Check again in 100 milliseconds
 		setTimeout(executeCode, 100);
 	}
@@ -612,53 +625,6 @@ function selectCharacter(characterName) {
 }
 
 window.selectCharacter = selectCharacter;
-
-function updateCharacterColor(mesh, selectedColor) {
-	// Step 1: Identify the ultimate parent mesh
-	let parentMesh = mesh;
-	while (parentMesh.parent) {
-		parentMesh = parentMesh.parent; // Traverse up to the ultimate parent
-	}
-
-	// Step 2: Retrieve the corresponding Blockly block using the parent mesh's blockKey
-	const block = meshMap[parentMesh.blockKey];
-	if (!block) {
-		console.error("Block not found for mesh:", parentMesh.blockKey);
-		return;
-	}
-
-	// Step 3: Map material names to Blockly input field names
-	const materialToFieldMap = {
-		Hair: "HAIR_COLOR",
-		Skin: "SKIN_COLOR",
-		Eyes: "EYES_COLOR",
-		Sleeves: "SLEEVES_COLOR",
-		Shorts: "SHORTS_COLOR",
-		"T-Shirt": "TSHIRT_COLOR",
-	};
-
-	// Step 4: Find the field name based on the mesh's material name
-	const materialName = mesh.material.name; // Assumes the material name matches the part
-	const fieldName = materialToFieldMap[materialName];
-
-	if (!fieldName) {
-		console.error("No matching field for material:", materialName);
-		return;
-	}
-
-	// Step 5: Update the block's corresponding color field
-	const colorInput = block.getInput(fieldName);
-	if (colorInput && colorInput.connection.targetBlock()) {
-		// Update the color value in the already existing shadow block
-		colorInput.connection
-			.targetBlock()
-			.setFieldValue(selectedColor, "COLOR");
-	}
-
-	// Step 6: Re-render the block to apply the changes
-	block.initSvg();
-	block.render();
-}
 
 function addShapeToWorkspace(shapeType, position) {
 	Blockly.Events.setGroup(true);
@@ -2307,43 +2273,6 @@ function switchView(view) {
 
 window.switchView = switchView;
 
-function observeFlyoutVisibility(workspace) {
-	// Access the flyout using Blockly's API
-	const flyout = workspace.getToolbox().getFlyout();
-	const flyoutSvgGroup = flyout.svgGroup_;
-
-	// Check if the flyout SVG group is available
-	if (!flyoutSvgGroup) {
-		console.error("Flyout SVG group not found.");
-		return;
-	}
-
-	// Create a MutationObserver to watch for style changes
-	const observer = new MutationObserver((mutations) => {
-		mutations.forEach((mutation) => {
-			if (mutation.attributeName === "style") {
-				const displayStyle =
-					window.getComputedStyle(flyoutSvgGroup).display;
-				if (displayStyle != "none") {
-					// Flyout is hidden
-					const toolboxControl =
-						//document.getElementById("toolboxControl");
-						(toolboxControl.style.zIndex = "2");
-					workspace.getToolbox().setVisible(false);
-					// Trigger any resize or UI adjustments if necessary
-					onResize();
-				}
-			}
-		});
-	});
-
-	// Start observing the flyout SVG group for attribute changes
-	observer.observe(flyoutSvgGroup, {
-		attributes: true,
-		attributeFilter: ["style"],
-	});
-}
-
 function runMenu() {
 	//switchView("canvas");
 	executeCode();
@@ -2585,7 +2514,6 @@ function initializeApp() {
 			// https://doc.babylonjs.com/typedoc/interfaces/BABYLON.IInspectorOptions
 			flock.scene.debugLayer.show({
 				embedMode: true,
-				handleResize: true,
 				enableClose: false,
 				enablePopup: false,
 			});

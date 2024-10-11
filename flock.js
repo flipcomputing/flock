@@ -34,9 +34,6 @@ export const flock = {
 	abortController: null,
 	document: document,
 	disposed: null,
-	start() {
-		flock.scene = flock.createScene();
-	},
 	runCode(code) {
 		const sandboxedCode = `
 			"use strict";
@@ -132,16 +129,43 @@ export const flock = {
 		`;
 
 		let iframe = document.getElementById("flock-iframe");
-		if (iframe) {
+
+		// If the iframe already exists and has content, dispose of its resources
+		if (iframe && iframe.contentWindow && iframe.contentWindow.flock) {
+			const { scene, engine, hk } = iframe.contentWindow.flock;
+
+			if (scene) {
+				console.log("Disposing scene");
+				scene.dispose();
+				iframe.contentWindow.flock.scene = null;
+			}
+
+			if (engine) {
+				console.log("Disposing engine");
+				engine.dispose();
+				iframe.contentWindow.flock.engine = null;
+			}
+
+			if (hk) {
+				console.log("Disposing HavokPlugin");
+				hk.dispose();
+				iframe.contentWindow.flock.hk = null;
+			}
+
+			console.log("Removing iframe");
+
+			flock.createScene();
 			iframe.remove(); // Remove the iframe from the DOM
 		}
 
+		// Recreate the iframe if it does not exist
 		iframe = document.createElement("iframe");
 		iframe.id = "flock-iframe";
 		iframe.style.display = "none";
 		iframe.src = "about:blank";
 		document.body.appendChild(iframe);
 
+		// Assign flock and evaluate the code inside the new iframe
 		iframe.contentWindow.flock = flock;
 		iframe.contentWindow.eval(sandboxedCode);
 	},
@@ -155,7 +179,6 @@ export const flock = {
 		flock.havokInstance = null;
 		flock.engineReady = false;
 		flock.audioContext = flock.getAudioContext();
-		let gizmoManager = null;
 		const gridKeyPressObservable = new flock.BABYLON.Observable();
 		const gridKeyReleaseObservable = new flock.BABYLON.Observable();
 		flock.gridKeyPressObservable = gridKeyPressObservable;
@@ -172,7 +195,6 @@ export const flock = {
 		flock.engineReady = true;
 		flock.abortController = new AbortController();
 		flock.scene = flock.createScene();
-		flock.scene.eventListeners = [];
 
 		flock.scene.onPointerObservable.add(function (pointerInfo) {
 			if (
@@ -236,19 +258,44 @@ export const flock = {
 			flock.abortController = new AbortController(); // Create a fresh controller
 		}
 
+		console.log("Previous aborted, setting up new scene");
 		if (flock.scene) {
+			console.log("Disposing scene");
+			flock.scene.meshes.forEach((mesh) => {
+				if (mesh.material) {
+					if (mesh.material.diffuseTexture)
+						mesh.material.diffuseTexture.dispose();
+					if (mesh.material.bumpTexture)
+						mesh.material.bumpTexture.dispose();
+					// Dispose other textures if they exist
+					mesh.material.dispose();
+				}
+				mesh.dispose();
+			});
+			flock.scene.meshes = [];
+			flock.scene.eventListeners = [];
+			if (flock.gridKeyPressObservable) {
+				flock.gridKeyPressObservable.clear();
+				flock.gridKeyPressObservable = null;
+			}
+			if (flock.gridKeyReleaseObservable) {
+				flock.gridKeyReleaseObservable.clear();
+				flock.gridKeyReleaseObservable = null;
+			}
+			flock.scene.animationGroups.forEach((group) => group.dispose());
 			flock.audioContext.close();
 			flock.audioContext = null;
 			flock.removeEventListeners();
-			flock.gridKeyPressObservable.clear();
-			flock.gridKeyReleaseObservable.clear();
 			flock.scene.animationGroups.forEach((group) => group.dispose());
 			flock.scene.dispose();
+			console.log("Scene disposed");
 			flock.scene = null;
 			flock.controlsTexture.dispose();
 			flock.controlsTexture = null;
-			flock.hk.dispose();
-			flock.hk = null;
+			if (flock.hk) {
+				flock.hk.dispose(); // Dispose the HavokPlugin to release resources
+				flock.hk = null; // Clear the reference to ensure it can be garbage collected
+			}
 
 			console.log("Initialize");
 		}
@@ -265,8 +312,6 @@ export const flock = {
 		flock.engine.runRenderLoop(function () {
 			flock.scene.render();
 		});
-
-		flock.scene.eventListeners = [];
 
 		flock.hk = new flock.BABYLON.HavokPlugin(true, flock.havokInstance);
 		flock.scene.enablePhysics(
@@ -454,7 +499,7 @@ export const flock = {
 		meshId,
 		maxAttempts = 10,
 		initialInterval = 100, // Start with a shorter interval
-		maxInterval = 1000, // Cap the interval at a maximum value
+		maxInterval = 1000 // Cap the interval at a maximum value
 	) {
 		let attempt = 1;
 		let interval = initialInterval;
@@ -462,50 +507,55 @@ export const flock = {
 
 		while (attempt <= maxAttempts) {
 			if (flock.disposed || !flock.scene || flock.scene.isDisposed) {
-				console.warn(
-					"Scene has been disposed or generator invalidated.",
-				);
+				console.warn("Scene has been disposed or generator invalidated.");
 				return;
 			}
 
 			if (flock.scene) {
-				if (meshId === "__active_camera__") {
-					yield flock.scene.activeCamera;
+				const mesh = flock.scene.getMeshByName(meshId);
+				if (mesh) {
+					yield mesh;
 					return;
-				} else {
-					const mesh = flock.scene.getMeshByName(meshId);
-					if (mesh) {
-						yield mesh;
-						return;
-					}
 				}
 			}
 
 			try {
+				// This promise will resolve after the interval unless the abort signal is triggered
 				await new Promise((resolve, reject) => {
-					const timeoutId = setTimeout(resolve, interval);
+					const timeoutId = setTimeout(() => {
+						resolve();
+					}, interval);
 
-					// Reject if the signal aborts
-					signal.addEventListener("abort", () => {
-						console.log("Aborting request");
+					// Reject the promise if the abort signal is triggered
+					const onAbort = () => {
 						clearTimeout(timeoutId);
-						reject(new Error("Timeout aborted"));
-					});
+						reject(new Error("Wait aborted"));
+					};
+
+					signal.addEventListener("abort", onAbort, { once: true });
+
+					// Cleanup: remove the event listener when the timeout resolves
+					signal.addEventListener(
+						"abort",
+						() => signal.removeEventListener("abort", onAbort),
+						{ once: true }
+					);
 				});
 			} catch (error) {
-				console.warn("Timeout aborted:", error);
-				return; // Exit the generator if aborted
+				// Handle the case where the abort signal is triggered
+				console.log("Timeout aborted:", error);
+				return; // Stop the generator as the scene is being restarted or aborted
 			}
+
+			//console.log(`Attempt ${attempt}: Retrying in ${interval}ms...`);
 
 			// Gradually increase the interval for the next attempt
 			interval = Math.min(interval * 2, maxInterval);
 			attempt++;
 		}
 
-		// Log a warning if meshId is not defined
-		console.warn(
-			`Mesh with ID '${meshId}' not found after ${maxAttempts} attempts.`,
-		);
+		// Log a warning if the mesh is not found after all attempts
+		console.warn(`Mesh with ID '${meshId}' not found after ${maxAttempts} attempts.`);
 	},
 	whenModelReady(meshId, callback) {
 		if (flock.scene) {
@@ -520,7 +570,7 @@ export const flock = {
 		// If the mesh is not immediately available, fall back to the generator and return a Promise
 		return (async () => {
 			const generator = flock.modelReadyGenerator(meshId);
-
+			console.log("Waiting for ", meshId);
 			for await (const mesh of generator) {
 				await callback(mesh);
 			}
@@ -623,7 +673,7 @@ export const flock = {
 	},
 	highlight(modelName, color) {
 		return flock.whenModelReady(modelName, (mesh) => {
-			if (mesh.material) {
+			if (mesh.material) {				
 				flock.highlighter.addMesh(
 					mesh,
 					flock.BABYLON.Color3.FromHexString(
@@ -647,13 +697,14 @@ export const flock = {
 	newModel(modelName, modelId, scale, x, y, z, callback) {
 		const blockId = modelId;
 		modelId += "_" + flock.scene.getUniqueId();
-
+console.log("Loading model");
 		flock.BABYLON.SceneLoader.ImportMesh(
 			"",
 			"./models/",
 			modelName,
 			flock.scene,
 			function (meshes) {
+				
 				const mesh = meshes[0];
 
 				mesh.scaling = new flock.BABYLON.Vector3(scale, scale, scale);
@@ -1125,12 +1176,20 @@ export const flock = {
 	},
 	wait(duration) {
 		return new Promise((resolve, reject) => {
-			const timeoutId = setTimeout(resolve, duration);
+			const timeoutId = setTimeout(() => {
+				flock.abortController.signal.removeEventListener(
+					"abort",
+					onAbort,
+				);
+				resolve();
+			}, duration);
 
-			flock.abortController.signal.addEventListener("abort", () => {
+			const onAbort = () => {
 				clearTimeout(timeoutId); // Clear the timeout if aborted
 				reject(new Error("Wait aborted"));
-			});
+			};
+
+			flock.abortController.signal.addEventListener("abort", onAbort);
 		});
 	},
 	safeLoop() {
@@ -1278,7 +1337,7 @@ export const flock = {
 		restart = true,
 	) {
 		const maxAttempts = 10;
-		const attemptInterval = 1000;
+		const attemptInterval = 10;
 
 		for (let attempt = 1; attempt <= maxAttempts; attempt++) {
 			const mesh = flock.scene.getMeshByName(modelName);
@@ -2954,180 +3013,227 @@ export const flock = {
 			});
 		});
 	},
-	animateKeyFrames(meshName, keyframes, property, easing = "Linear", loop = false, reverse = false) {
-	  //console.log(keyframes, property);
-	  return new Promise(async (resolve) => {
-		await flock.whenModelReady(meshName, async function (mesh) {
-		  if (mesh) {
-			let propertyToAnimate;
+	animateKeyFrames(
+		meshName,
+		keyframes,
+		property,
+		easing = "Linear",
+		loop = false,
+		reverse = false,
+	) {
+		//console.log(keyframes, property);
+		return new Promise(async (resolve) => {
+			await flock.whenModelReady(meshName, async function (mesh) {
+				if (mesh) {
+					let propertyToAnimate;
 
-			// Select the property to animate
-			if (property === "color") {
-			  propertyToAnimate = mesh.material.diffuseColor !== undefined
-				? "material.diffuseColor"
-				: "material.albedoColor";
-			} else if (property === "alpha") {
-			  propertyToAnimate = "material.alpha";  // Opacity/alpha property
-			  // Ensure proper alpha blending mode
-			  mesh.material.transparencyMode = flock.BABYLON.Material.MATERIAL_ALPHABLEND;
-			} else {
-			  // Handle position, rotation, scaling
-			  propertyToAnimate = property;
-			}
+					// Select the property to animate
+					if (property === "color") {
+						propertyToAnimate =
+							mesh.material.diffuseColor !== undefined
+								? "material.diffuseColor"
+								: "material.albedoColor";
+					} else if (property === "alpha") {
+						propertyToAnimate = "material.alpha"; // Opacity/alpha property
+						// Ensure proper alpha blending mode
+						mesh.material.transparencyMode =
+							flock.BABYLON.Material.MATERIAL_ALPHABLEND;
+					} else {
+						// Handle position, rotation, scaling
+						propertyToAnimate = property;
+					}
 
-			const fps = 30;  // Frames per second for the animation
+					const fps = 30; // Frames per second for the animation
 
-			// Handle looping: Ensure transition back to first keyframe uses its duration
-			if (loop && keyframes.length > 1) {
-			  const firstKeyframe = keyframes[0];
-			  const transitionKeyframe = { ...firstKeyframe, duration: firstKeyframe.duration };  // Copy with its duration
-			  keyframes.push(transitionKeyframe);  // Add transition keyframe
-			}
+					// Handle looping: Ensure transition back to first keyframe uses its duration
+					if (loop && keyframes.length > 1) {
+						const firstKeyframe = keyframes[0];
+						const transitionKeyframe = {
+							...firstKeyframe,
+							duration: firstKeyframe.duration,
+						}; // Copy with its duration
+						keyframes.push(transitionKeyframe); // Add transition keyframe
+					}
 
-			// Determine animation type based on property
-			const animationType = property === "color"
-			  ? flock.BABYLON.Animation.ANIMATIONTYPE_COLOR3
-			  : (["position", "rotation", "scaling"].includes(property)
-				? flock.BABYLON.Animation.ANIMATIONTYPE_VECTOR3
-				: flock.BABYLON.Animation.ANIMATIONTYPE_FLOAT);  // Use Vector3 for position, rotation, scaling
+					// Determine animation type based on property
+					const animationType =
+						property === "color"
+							? flock.BABYLON.Animation.ANIMATIONTYPE_COLOR3
+							: ["position", "rotation", "scaling"].includes(
+										property,
+								  )
+								? flock.BABYLON.Animation.ANIMATIONTYPE_VECTOR3
+								: flock.BABYLON.Animation.ANIMATIONTYPE_FLOAT; // Use Vector3 for position, rotation, scaling
 
-			// Create the animation
-			const keyframeAnimation = new flock.BABYLON.Animation(
-			  "keyframeAnimation",
-			  propertyToAnimate,
-			  fps,
-			  animationType,
-			  reverse && loop
-				? flock.BABYLON.Animation.ANIMATIONLOOPMODE_YOYO
-				: loop
-				  ? flock.BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE
-				  : flock.BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT
-			);
+					// Create the animation
+					const keyframeAnimation = new flock.BABYLON.Animation(
+						"keyframeAnimation",
+						propertyToAnimate,
+						fps,
+						animationType,
+						reverse && loop
+							? flock.BABYLON.Animation.ANIMATIONLOOPMODE_YOYO
+							: loop
+								? flock.BABYLON.Animation
+										.ANIMATIONLOOPMODE_CYCLE
+								: flock.BABYLON.Animation
+										.ANIMATIONLOOPMODE_CONSTANT,
+					);
 
-			// Define keyframes with timing and frame calculations
-			let currentFrame = 0;
-			const animationKeys = keyframes.map((keyframe) => {
-			  const durationInFrames = fps * (keyframe.duration || 1);
+					// Define keyframes with timing and frame calculations
+					let currentFrame = 0;
+					const animationKeys = keyframes.map((keyframe) => {
+						const durationInFrames = fps * (keyframe.duration || 1);
 
-			  let value;
-			  if (property === "color") {
-				value = flock.BABYLON.Color3.FromHexString(keyframe.value);  // Color3 for color
-			  } else if (["position", "rotation", "scaling"].includes(property)) {
-				// If the keyframe value is an object, assume it's a valid Vector3
-				if (keyframe.value instanceof flock.BABYLON.Vector3) {
-				  value = keyframe.value;  // Already a Vector3
-				} else if (typeof keyframe.value === 'string') {
-				  // If it's a string, parse it into a Vector3
-				  const vectorValues = keyframe.value.match(/\d+(\.\d+)?/g);  // Extract numeric values from string
-				  value = new flock.BABYLON.Vector3(
-					parseFloat(vectorValues[0]),
-					parseFloat(vectorValues[1]),
-					parseFloat(vectorValues[2])
-				  );
+						let value;
+						if (property === "color") {
+							value = flock.BABYLON.Color3.FromHexString(
+								keyframe.value,
+							); // Color3 for color
+						} else if (
+							["position", "rotation", "scaling"].includes(
+								property,
+							)
+						) {
+							// If the keyframe value is an object, assume it's a valid Vector3
+							if (
+								keyframe.value instanceof flock.BABYLON.Vector3
+							) {
+								value = keyframe.value; // Already a Vector3
+							} else if (typeof keyframe.value === "string") {
+								// If it's a string, parse it into a Vector3
+								const vectorValues =
+									keyframe.value.match(/\d+(\.\d+)?/g); // Extract numeric values from string
+								value = new flock.BABYLON.Vector3(
+									parseFloat(vectorValues[0]),
+									parseFloat(vectorValues[1]),
+									parseFloat(vectorValues[2]),
+								);
+							}
+						} else {
+							value = parseFloat(keyframe.value); // Float for alpha or other numeric properties
+						}
+
+						const frame = currentFrame;
+						currentFrame += durationInFrames; // Increment current frame based on duration
+						return { frame, value };
+					});
+
+					keyframeAnimation.setKeys(animationKeys);
+
+					// Apply easing globally if needed
+					if (easing !== "Linear") {
+						let easingFunction;
+						switch (easing) {
+							case "SineEase":
+								easingFunction = new flock.BABYLON.SineEase();
+								break;
+							case "CubicEase":
+								easingFunction = new flock.BABYLON.CubicEase();
+								break;
+							case "QuadraticEase":
+								easingFunction =
+									new flock.BABYLON.QuadraticEase();
+								break;
+							case "ExponentialEase":
+								easingFunction =
+									new flock.BABYLON.ExponentialEase();
+								break;
+							case "BounceEase":
+								easingFunction = new flock.BABYLON.BounceEase();
+								break;
+							case "ElasticEase":
+								easingFunction =
+									new flock.BABYLON.ElasticEase();
+								break;
+							case "BackEase":
+								easingFunction = new flock.BABYLON.BackEase();
+								break;
+							default:
+								easingFunction = new flock.BABYLON.SineEase();
+						}
+						easingFunction.setEasingMode(
+							flock.BABYLON.EasingFunction.EASINGMODE_EASEINOUT,
+						);
+						keyframeAnimation.setEasingFunction(easingFunction);
+					}
+
+					// Attach and start the animation
+					mesh.animations.push(keyframeAnimation);
+
+					// Ensure material gets updated (relevant for alpha changes)
+					if (property === "alpha") {
+						mesh.material.markAsDirty(
+							flock.BABYLON.Material.MiscDirtyFlag,
+						);
+					}
+
+					const animatable = flock.scene.beginAnimation(
+						mesh,
+						0,
+						currentFrame,
+						loop,
+					);
+
+					// Handle reverse behaviour without looping (forward, then backward once)
+					if (reverse && !loop) {
+						animatable.onAnimationEndObservable.addOnce(() => {
+							flock.scene
+								.beginAnimation(mesh, currentFrame, 0, false)
+								.onAnimationEndObservable.add(() => {
+									resolve();
+								});
+						});
+					} else {
+						animatable.onAnimationEndObservable.add(() =>
+							resolve(),
+						);
+					}
+				} else {
+					resolve(); // Resolve if no material is available
 				}
-			  } else {
-				value = parseFloat(keyframe.value);  // Float for alpha or other numeric properties
-			  }
-
-			  const frame = currentFrame;
-			  currentFrame += durationInFrames;  // Increment current frame based on duration
-			  return { frame, value };
 			});
-
-			keyframeAnimation.setKeys(animationKeys);
-
-			// Apply easing globally if needed
-			if (easing !== "Linear") {
-			  let easingFunction;
-			  switch (easing) {
-				case "SineEase":
-				  easingFunction = new flock.BABYLON.SineEase();
-				  break;
-				case "CubicEase":
-				  easingFunction = new flock.BABYLON.CubicEase();
-				  break;
-				case "QuadraticEase":
-				  easingFunction = new flock.BABYLON.QuadraticEase();
-				  break;
-				case "ExponentialEase":
-				  easingFunction = new flock.BABYLON.ExponentialEase();
-				  break;
-				case "BounceEase":
-				  easingFunction = new flock.BABYLON.BounceEase();
-				  break;
-				case "ElasticEase":
-				  easingFunction = new flock.BABYLON.ElasticEase();
-				  break;
-				case "BackEase":
-				  easingFunction = new flock.BABYLON.BackEase();
-				  break;
-				default:
-				  easingFunction = new flock.BABYLON.SineEase();
-			  }
-			  easingFunction.setEasingMode(flock.BABYLON.EasingFunction.EASINGMODE_EASEINOUT);
-			  keyframeAnimation.setEasingFunction(easingFunction);
-			}
-
-			// Attach and start the animation
-			mesh.animations.push(keyframeAnimation);
-
-			// Ensure material gets updated (relevant for alpha changes)
-			if (property === "alpha") {
-			  mesh.material.markAsDirty(flock.BABYLON.Material.MiscDirtyFlag);
-			}
-
-			const animatable = flock.scene.beginAnimation(mesh, 0, currentFrame, loop);
-
-			// Handle reverse behaviour without looping (forward, then backward once)
-			if (reverse && !loop) {
-			  animatable.onAnimationEndObservable.addOnce(() => {
-				flock.scene.beginAnimation(mesh, currentFrame, 0, false).onAnimationEndObservable.add(() => {
-				  resolve();
-				});
-			  });
-			} else {
-			  animatable.onAnimationEndObservable.add(() => resolve());
-			}
-		  } else {
-			resolve();  // Resolve if no material is available
-		  }
 		});
-	  });
 	},
-setPivotPoint(meshName, xPivot, yPivot, zPivot) {
-	  return flock.whenModelReady(meshName, (mesh) => {
-		if (mesh) {
-		  // Get the bounding box of the mesh
-		  const boundingBox = mesh.getBoundingInfo().boundingBox.extendSize;
+	setPivotPoint(meshName, xPivot, yPivot, zPivot) {
+		return flock.whenModelReady(meshName, (mesh) => {
+			if (mesh) {
+				// Get the bounding box of the mesh
+				const boundingBox =
+					mesh.getBoundingInfo().boundingBox.extendSize;
 
-		  // Helper function to resolve 'min', 'centre', or 'max' into numeric values
-		  function resolvePivotValue(axisValue, axis) {
-			switch (axisValue) {
-			  case Number.MIN_SAFE_INTEGER:
-				return -boundingBox[axis]; // Min: Negative extent along the axis
-			  case Number.MAX_SAFE_INTEGER:
-				return boundingBox[axis];  // Max: Positive extent along the axis
-			  case 0:
-			  default:
-				return 0;  // Centre: Return 0 for the axis
+				// Helper function to resolve 'min', 'centre', or 'max' into numeric values
+				function resolvePivotValue(axisValue, axis) {
+					switch (axisValue) {
+						case Number.MIN_SAFE_INTEGER:
+							return -boundingBox[axis]; // Min: Negative extent along the axis
+						case Number.MAX_SAFE_INTEGER:
+							return boundingBox[axis]; // Max: Positive extent along the axis
+						case 0:
+						default:
+							return 0; // Centre: Return 0 for the axis
+					}
+				}
+
+				// Resolve each pivot point for X, Y, and Z axes
+				const resolvedX = resolvePivotValue(xPivot, "x");
+				const resolvedY = resolvePivotValue(yPivot, "y");
+				const resolvedZ = resolvePivotValue(zPivot, "z");
+
+				// Set the pivot point for the main mesh
+				const pivotPoint = new flock.BABYLON.Vector3(
+					resolvedX,
+					resolvedY,
+					resolvedZ,
+				);
+				mesh.setPivotPoint(pivotPoint);
+
+				// Optionally apply the pivot to child meshes
+				mesh.getChildMeshes().forEach((child) => {
+					child.setPivotPoint(pivotPoint);
+				});
 			}
-		  }
-
-		  // Resolve each pivot point for X, Y, and Z axes
-		  const resolvedX = resolvePivotValue(xPivot, "x");
-		  const resolvedY = resolvePivotValue(yPivot, "y");
-		  const resolvedZ = resolvePivotValue(zPivot, "z");
-
-		  // Set the pivot point for the main mesh
-		  const pivotPoint = new flock.BABYLON.Vector3(resolvedX, resolvedY, resolvedZ);
-		  mesh.setPivotPoint(pivotPoint);
-
-		  // Optionally apply the pivot to child meshes
-		  mesh.getChildMeshes().forEach((child) => {
-			child.setPivotPoint(pivotPoint);
-		  });
-		}
-	  });
+		});
 	},
 	addBeforePhysicsObservable(scene, ...meshes) {
 		const beforePhysicsObserver = scene.onBeforePhysicsObservable.add(
