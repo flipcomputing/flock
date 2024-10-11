@@ -281,12 +281,10 @@ export const flock = {
 			// Clear observables before disposing the scene
 			if (flock.gridKeyPressObservable) {
 				flock.gridKeyPressObservable.clear();
-				flock.gridKeyPressObservable = null;
 			}
 
 			if (flock.gridKeyReleaseObservable) {
 				flock.gridKeyReleaseObservable.clear();
-				flock.gridKeyReleaseObservable = null;
 			}
 
 			if (flock.highlighter) {
@@ -379,6 +377,7 @@ export const flock = {
 		hemisphericLight.diffuse = new flock.BABYLON.Color3(1, 1, 1);
 		hemisphericLight.groundColor = new flock.BABYLON.Color3(0.5, 0.5, 0.5);
 
+		
 		// Enable collisions in the scene
 		flock.scene.collisionsEnabled = true;
 
