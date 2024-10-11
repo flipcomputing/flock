@@ -34,7 +34,7 @@ export const flock = {
 	abortController: null,
 	document: document,
 	disposed: null,
-	runCode(code) {
+	async runCode(code) {
 		const sandboxedCode = `
 			"use strict";
 
@@ -132,42 +132,46 @@ export const flock = {
 
 		// If the iframe already exists and has content, dispose of its resources
 		if (iframe && iframe.contentWindow && iframe.contentWindow.flock) {
-			const { scene, engine, hk } = iframe.contentWindow.flock;
+			const oldFlock = iframe.contentWindow.flock;
 
-			if (scene) {
-				console.log("Disposing scene");
-				scene.dispose();
-				iframe.contentWindow.flock.scene = null;
+			// Ensure the old scene is properly disposed using the disposeOldScene function
+			try {
+				await oldFlock.disposeOldScene(); // Use the dispose function directly
+				
+			} catch (error) {
+				console.error("Error during scene disposal:", error);
 			}
 
-			if (engine) {
-				console.log("Disposing engine");
-				engine.dispose();
-				iframe.contentWindow.flock.engine = null;
-			}
-
-			if (hk) {
-				console.log("Disposing HavokPlugin");
-				hk.dispose();
-				iframe.contentWindow.flock.hk = null;
-			}
-
-			console.log("Removing iframe");
-
-			flock.createScene();
-			iframe.remove(); // Remove the iframe from the DOM
+			// Remove the iframe from the DOM after resources are disposed
+			iframe.remove();
+			iframe = null; // Clear reference to the iframe to ensure it gets garbage collected
 		}
 
-		// Recreate the iframe if it does not exist
+		// Create a new iframe
 		iframe = document.createElement("iframe");
 		iframe.id = "flock-iframe";
 		iframe.style.display = "none";
 		iframe.src = "about:blank";
 		document.body.appendChild(iframe);
 
-		// Assign flock and evaluate the code inside the new iframe
+		// Assign flock and initialize the new scene inside the new iframe
 		iframe.contentWindow.flock = flock;
-		iframe.contentWindow.eval(sandboxedCode);
+
+		try {
+			// Initialize the new scene using the function from the new iframe's content window
+			await iframe.contentWindow.flock.initializeNewScene();
+			
+		} catch (error) {
+			console.error("Error during new scene creation:", error);
+		}
+
+		// Evaluate the sandboxed code inside the iframe to finalize setup or run additional logic
+		try {
+			iframe.contentWindow.flock = flock;
+			iframe.contentWindow.eval(sandboxedCode);
+		} catch (error) {
+			console.error("Error executing sandboxed code:", error);
+		}
 	},
 	async initialize() {
 		flock.BABYLON = BABYLON;
@@ -178,6 +182,7 @@ export const flock = {
 		flock.scene = null;
 		flock.havokInstance = null;
 		flock.engineReady = false;
+		flock.meshLoaders = new Map();
 		flock.audioContext = flock.getAudioContext();
 		const gridKeyPressObservable = new flock.BABYLON.Observable();
 		const gridKeyReleaseObservable = new flock.BABYLON.Observable();
@@ -191,11 +196,12 @@ export const flock = {
 		flock.BABYLON.Engine.CollisionsEpsilon = 0.00005;
 		flock.havokInstance = await HavokPhysics();
 		await flock.document.fonts.ready; // Wait for all fonts to be loaded
-
-		flock.engineReady = true;
 		flock.abortController = new AbortController();
-		flock.scene = flock.createScene();
+		
+		
+		//flock.scene = await flock.createScene();
 
+		/*
 		flock.scene.onPointerObservable.add(function (pointerInfo) {
 			if (
 				pointerInfo.type === flock.BABYLON.PointerEventTypes.POINTERUP
@@ -218,6 +224,7 @@ export const flock = {
 				}
 			}
 		});
+		*/
 
 		flock.canvas.addEventListener(
 			"touchmove",
@@ -237,6 +244,8 @@ export const flock = {
 		flock.canvas.addEventListener("keyup", function (event) {
 			flock.canvas.pressedKeys.delete(event.key);
 		});
+
+		flock.engineReady = true;
 	},
 	createEngine() {
 		if (flock.engine) {
@@ -249,99 +258,105 @@ export const flock = {
 		flock.engine.enableOfflineSupport = false;
 		flock.engine.setHardwareScalingLevel(1 / window.devicePixelRatio);
 	},
-	createScene() {
-		console.log("Creating scene");
-		if (!flock.disposed) flock.disposed = true;
-		if (flock.abortController) {
-			console.log("Aborting");
-			flock.abortController.abort(); // Abort any previous operations
-			flock.abortController = new AbortController(); // Create a fresh controller
-		}
+	async disposeOldScene() {
 
-		console.log("Previous aborted, setting up new scene");
 		if (flock.scene) {
-			console.log("Disposing scene");
-			flock.scene.meshes.forEach((mesh) => {
-				if (mesh.material) {
-					if (mesh.material.diffuseTexture)
-						mesh.material.diffuseTexture.dispose();
-					if (mesh.material.bumpTexture)
-						mesh.material.bumpTexture.dispose();
-					// Dispose other textures if they exist
-					mesh.material.dispose();
-				}
-				mesh.dispose();
-			});
-			flock.scene.meshes = [];
-			flock.scene.eventListeners = [];
+			// Abort any ongoing operations if applicable
+			if (flock.abortController) {
+				flock.abortController.abort(); // Abort any pending operations
+
+				// Wait briefly to ensure all asynchronous tasks complete
+				await new Promise((resolve) => setTimeout(resolve, 50));
+			}
+
+			// Remove event listeners before disposing of the scene
+			flock.removeEventListeners();
+
+			// Dispose of textures and controls related to the scene
+			if (flock.controlsTexture) {
+				flock.controlsTexture.dispose();
+				flock.controlsTexture = null;
+			}
+
+			// Clear observables before disposing the scene
 			if (flock.gridKeyPressObservable) {
 				flock.gridKeyPressObservable.clear();
 				flock.gridKeyPressObservable = null;
 			}
+
 			if (flock.gridKeyReleaseObservable) {
 				flock.gridKeyReleaseObservable.clear();
 				flock.gridKeyReleaseObservable = null;
 			}
-			flock.scene.animationGroups.forEach((group) => group.dispose());
-			flock.audioContext.close();
-			flock.audioContext = null;
-			flock.removeEventListeners();
-			flock.scene.animationGroups.forEach((group) => group.dispose());
+
+			if (flock.highlighter) {
+				flock.highlighter.dispose();
+				flock.highlighter = null;
+			}
+						
+			// Dispose of the scene directly
 			flock.scene.dispose();
-			console.log("Scene disposed");
 			flock.scene = null;
-			flock.controlsTexture.dispose();
-			flock.controlsTexture = null;
+
+			// Dispose of physics-related resources if they exist
 			if (flock.hk) {
-				flock.hk.dispose(); // Dispose the HavokPlugin to release resources
-				flock.hk = null; // Clear the reference to ensure it can be garbage collected
+				flock.hk.dispose();
+				flock.hk = null;
 			}
 
-			console.log("Initialize");
+			// If the audio context is present, close it
+			if (flock.audioContext) {
+				flock.audioContext.close();
+				flock.audioContext = null;
+			}
 		}
+	},
+	async initializeNewScene() {
 
+		// Ensure the engine exists and is running
 		if (!flock.engine) {
 			flock.createEngine();
 		} else {
 			flock.engine.stopRenderLoop();
 		}
 
+		// Create the new scene
 		flock.scene = new flock.BABYLON.Scene(flock.engine);
 		flock.disposed = false;
 
-		flock.engine.runRenderLoop(function () {
+		flock.engine.runRenderLoop(() => {
 			flock.scene.render();
 		});
 
+		// Reinitialize physics and other elements for the new scene
 		flock.hk = new flock.BABYLON.HavokPlugin(true, flock.havokInstance);
-		flock.scene.enablePhysics(
-			new flock.BABYLON.Vector3(0, -9.81, 0),
-			flock.hk,
-		);
+		flock.scene.enablePhysics(new flock.BABYLON.Vector3(0, -9.81, 0), flock.hk);
+
 		flock.highlighter = new flock.BABYLON.HighlightLayer(
 			"highlighter",
 			flock.scene,
 		);
 
-		const camera = new flock.BABYLON.FreeCamera(
-			"camera",
-			new flock.BABYLON.Vector3(0, 3, -10),
-			flock.scene,
-		);
+		// Set up a new camera
+		const camera = new flock.BABYLON.FreeCamera("camera", new flock.BABYLON.Vector3(0, 3, -10), flock.scene);
 		camera.minZ = 1;
 		camera.setTarget(flock.BABYLON.Vector3.Zero());
 		camera.rotation.x = flock.BABYLON.Tools.ToRadians(0);
 		camera.angularSensibilityX = 2000;
 		camera.angularSensibilityY = 2000;
 		camera.speed = 0.25;
+
+		// Set up lighting
 		const hemisphericLight = new flock.BABYLON.HemisphericLight(
 			"hemisphericLight",
-			new flock.BABYLON.Vector3(0, 1, 0), // Direction: Upwards, simulating light from the sky
-			flock.scene,
+			new flock.BABYLON.Vector3(0, 1, 0),
+			flock.scene
 		);
-		hemisphericLight.intensity = 1.0; // Adjust the intensity to control how bright the scene is
-		hemisphericLight.diffuse = new flock.BABYLON.Color3(1, 1, 1); // White diffuse light
-		hemisphericLight.groundColor = new flock.BABYLON.Color3(0.5, 0.5, 0.5); // Optional ground color for additional effects
+		hemisphericLight.intensity = 1.0;
+		hemisphericLight.diffuse = new flock.BABYLON.Color3(1, 1, 1);
+		hemisphericLight.groundColor = new flock.BABYLON.Color3(0.5, 0.5, 0.5);
+
+		// Enable collisions in the scene
 		flock.scene.collisionsEnabled = true;
 
 		flock.controlsTexture =
@@ -435,7 +450,15 @@ export const flock = {
 			flock.updateListenerPositionAndOrientation(context, camera);
 		});
 
-		return flock.scene;
+	}
+
+,
+	async resetScene() {
+		// Dispose of the old scene
+		await flock.disposeOldScene();
+
+		// Initialize the new scene
+		await flock.initializeNewScene();
 	},
 	UIText(text, x, y, fontSize, color, duration, existingTextBlock = null) {
 		if (!flock.scene.UITexture) {
@@ -490,25 +513,40 @@ export const flock = {
 		return textBlock;
 	},
 	removeEventListeners() {
-		flock.scene.eventListeners.forEach(({ event, handler }) => {
+		flock.scene.eventListeners?.forEach(({ event, handler }) => {
 			flock.document.removeEventListener(event, handler);
 		});
-		flock.scene.eventListeners.length = 0; // Clear the array
+
+		if(flock.scene && flock.scene.eventListeners)
+			flock.scene.eventListeners.length = 0; // Clear the array
 	},
-	async *modelReadyGenerator(
+	async * modelReadyGenerator(
 		meshId,
 		maxAttempts = 10,
-		initialInterval = 100, // Start with a shorter interval
-		maxInterval = 1000 // Cap the interval at a maximum value
+		initialInterval = 100,
+		maxInterval = 1000
 	) {
 		let attempt = 1;
 		let interval = initialInterval;
-		const { signal } = flock.abortController; // Use the global controller signal
+		const { signal } = flock.abortController;
 
 		while (attempt <= maxAttempts) {
 			if (flock.disposed || !flock.scene || flock.scene.isDisposed) {
 				console.warn("Scene has been disposed or generator invalidated.");
 				return;
+			}
+
+			if (flock.scene) {
+				if (meshId === "__active_camera__") {
+					yield flock.scene.activeCamera;
+					return;
+				} else {
+					const mesh = flock.scene.getMeshByName(meshId);
+					if (mesh) {
+						yield mesh;
+						return;
+					}
+				}
 			}
 
 			if (flock.scene) {
@@ -520,11 +558,8 @@ export const flock = {
 			}
 
 			try {
-				// This promise will resolve after the interval unless the abort signal is triggered
 				await new Promise((resolve, reject) => {
-					const timeoutId = setTimeout(() => {
-						resolve();
-					}, interval);
+					const timeoutId = setTimeout(resolve, interval);
 
 					// Reject the promise if the abort signal is triggered
 					const onAbort = () => {
@@ -534,7 +569,7 @@ export const flock = {
 
 					signal.addEventListener("abort", onAbort, { once: true });
 
-					// Cleanup: remove the event listener when the timeout resolves
+					// Ensure the event listener is cleaned up after resolving
 					signal.addEventListener(
 						"abort",
 						() => signal.removeEventListener("abort", onAbort),
@@ -542,19 +577,16 @@ export const flock = {
 					);
 				});
 			} catch (error) {
-				// Handle the case where the abort signal is triggered
 				console.log("Timeout aborted:", error);
-				return; // Stop the generator as the scene is being restarted or aborted
+				// Properly exit if the wait was aborted to prevent further processing
+				return;
 			}
 
-			//console.log(`Attempt ${attempt}: Retrying in ${interval}ms...`);
-
-			// Gradually increase the interval for the next attempt
 			interval = Math.min(interval * 2, maxInterval);
 			attempt++;
+			//console.log(`Attempt ${attempt}: Retrying in ${interval}ms...`);
 		}
 
-		// Log a warning if the mesh is not found after all attempts
 		console.warn(`Mesh with ID '${meshId}' not found after ${maxAttempts} attempts.`);
 	},
 	whenModelReady(meshId, callback) {
@@ -570,7 +602,6 @@ export const flock = {
 		// If the mesh is not immediately available, fall back to the generator and return a Promise
 		return (async () => {
 			const generator = flock.modelReadyGenerator(meshId);
-			console.log("Waiting for ", meshId);
 			for await (const mesh of generator) {
 				await callback(mesh);
 			}
@@ -697,7 +728,7 @@ export const flock = {
 	newModel(modelName, modelId, scale, x, y, z, callback) {
 		const blockId = modelId;
 		modelId += "_" + flock.scene.getUniqueId();
-console.log("Loading model");
+
 		flock.BABYLON.SceneLoader.ImportMesh(
 			"",
 			"./models/",

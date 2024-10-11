@@ -8,6 +8,16 @@ import { flock } from "./flock.js";
 export let meshMap = {};
 export let meshBlockIdMap = {};
 
+let uniqueIdCounter = 0;
+
+function generateUniqueId(prefix = "") {
+	// Increment the counter for each call
+	uniqueIdCounter++;
+	// Return a string with the prefix and the counter value
+	return `${prefix}_${uniqueIdCounter}`;
+}
+
+
 export function defineGenerators() {
 	javascriptGenerator.forBlock["show"] = function (block) {
 		const modelName = javascriptGenerator.nameDB_.getName(
@@ -441,7 +451,7 @@ export function defineGenerators() {
 			Blockly.Names.NameType.VARIABLE,
 		);
 
-		const meshId = modelName + "_" + flock.scene.getUniqueId();
+		const meshId = modelName + "_" + generateUniqueId();
 		meshMap[meshId] = block;
 		meshBlockIdMap[meshId] = block.id;
 		// Generate the code for the "do" part (if present)
@@ -473,7 +483,7 @@ export function defineGenerators() {
 			Blockly.Names.NameType.VARIABLE,
 		);
 
-		const meshId = modelName + "_" + flock.scene.getUniqueId();
+		const meshId = modelName + "_" + generateUniqueId();
 		meshMap[meshId] = block;
 		meshBlockIdMap[meshId] = block.id;
 		// Generate the code for the "do" part (if present)
@@ -500,7 +510,7 @@ export function defineGenerators() {
 			Blockly.Names.NameType.VARIABLE,
 		);
 
-		const meshId = modelName + "_" + flock.scene.getUniqueId();
+		const meshId = modelName + "_" + generateUniqueId();
 		meshMap[meshId] = block;
 		meshBlockIdMap[meshId] = block.id;
 		// Generate the code for the "do" part (if present)
@@ -529,7 +539,7 @@ export function defineGenerators() {
 			Blockly.Names.NameType.VARIABLE,
 		);
 
-		const boxId = `box_${flock.scene.getUniqueId()}`;
+		const boxId = `box_${generateUniqueId()}`;
 		meshMap[boxId] = block;
 		meshBlockIdMap[boxId] = block.id;
 
@@ -554,7 +564,7 @@ export function defineGenerators() {
 			Blockly.Names.NameType.VARIABLE,
 		);
 
-		const sphereId = `sphere_${flock.scene.getUniqueId()}`;
+		const sphereId = `sphere_${generateUniqueId()}`;
 		meshMap[sphereId] = block;
 		meshBlockIdMap[sphereId] = block.id;
 		const doCode = block.getInput("DO")
@@ -578,7 +588,7 @@ export function defineGenerators() {
 			Blockly.Names.NameType.VARIABLE,
 		);
 
-		const cylinderId = `cylinder_${flock.scene.getUniqueId()}`;
+		const cylinderId = `cylinder_${generateUniqueId()}`;
 		meshMap[cylinderId] = block;
 		meshBlockIdMap[cylinderId] = block.id;
 		const doCode = block.getInput("DO")
@@ -601,7 +611,7 @@ export function defineGenerators() {
 			Blockly.Names.NameType.VARIABLE,
 		);
 
-		const capsuleId = `capsule_${flock.scene.getUniqueId()}`;
+		const capsuleId = `capsule_${generateUniqueId()}`;
 		meshMap[capsuleId] = block;
 		meshBlockIdMap[capsuleId] = block.id;
 		const doCode = block.getInput("DO")
@@ -624,7 +634,7 @@ export function defineGenerators() {
 			Blockly.Names.NameType.VARIABLE,
 		);
 
-		const planeId = `plane_${flock.scene.getUniqueId()}`;
+		const planeId = `plane_${generateUniqueId()}`;
 		meshMap[planeId] = block;
 		meshBlockIdMap[planeId] = block.id;
 		const doCode = block.getInput("DO")
@@ -653,7 +663,7 @@ export function defineGenerators() {
 			Blockly.Names.NameType.VARIABLE,
 		);
 
-		const wallId = `wall_${flock.scene.getUniqueId()}`;
+		const wallId = `wall_${generateUniqueId()}`;
 		meshMap[wallId] = block;
 		meshBlockIdMap[wallId] = block.id;
 		// Directly passing all parameters to the helper function

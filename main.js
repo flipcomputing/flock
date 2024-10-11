@@ -112,58 +112,80 @@ function exportCode() {
 let gizmoManager;
 let toolboxVisible = false;
 
-function executeCode() {
+let isExecuting = false;
 
-	console.log("Execute code")
-	if (flock.engineReady) {
-		// Check if the debug layer is visible
-		console.log("Engine ready")
-		
-		const container = document.getElementById("maincontent");
-		const switchViewsBtn = document.getElementById("switchViews");
+async function executeCode() {
+	// Check if the function is already running
+	if (isExecuting) {
+		console.log("Function already running, skipping execution.");
+		return; // Exit if already running
+	}
 
-		if (currentView === "canvas") {
-			currentView = "code";
-			container.style.transform = `translateX(0px)`; // Move to Code view
-			switchViewsBtn.textContent = "Canvas >>"; // Update button text
-		}
+	// Set the flag to indicate the function is running
+	isExecuting = true;
 
-		if (gizmoManager) {
-			gizmoManager.dispose(); // Dispose the GizmoManager to release resources
-			gizmoManager = null; // Clear the global reference to allow garbage collection
-		}
-		// Recreate the scene
-		//console.log("Create scene")
-		//flock.scene = flock.createScene();
-		
+	// Utility function for delay
+	const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
-		const code = javascriptGenerator.workspaceToCode(workspace);
+	// Wait until the engine is ready using a loop with an async delay
+	while (!flock.engineReady) {
+		await delay(100);
+	}
+
+	console.log("Engine ready");
+
+	// Cache DOM elements
+	const container = document.getElementById("maincontent");
+	const switchViewsBtn = document.getElementById("switchViews");
+	const renderCanvas = document.getElementById("renderCanvas");
+
+	// Switch to code view if currently in canvas view
+	if (currentView === "canvas") {
+		currentView = "code";
+		container.style.transform = `translateX(0px)`; // Move to Code view
+		switchViewsBtn.textContent = "Canvas >>"; // Update button text
+	}
+
+	// Dispose of the GizmoManager if it exists
+	if (gizmoManager) {
+		gizmoManager.dispose();
+		gizmoManager = null; // Clear the global reference for garbage collection
+	}
+
+	// Generate the code from the workspace
+	const code = javascriptGenerator.workspaceToCode(workspace);
+
+	try {
+		console.log(code);
+		await flock.runCode(code);
+		renderCanvas?.focus(); // Focus the render canvas safely if it exists
+	} catch (error) {
+		console.error("Error executing Blockly code:", error);
+		isExecuting = false; // Reset the flag if there's an error
+		return; // Exit if there's an error in running the code
+	}
+
+	// Check if the debug layer is visible and show it if necessary
+	if (flock.scene?.debugLayer?.isVisible()) {
 		try {
-			console.log(code);
-			runCode(code);
-			document.getElementById("renderCanvas").focus();
-		} catch (error) {
-			console.error("Error executing Blockly code:", error);
-		}
-
-		const debugLayerVisible = flock.scene.debugLayer.isVisible();
-
-		if (debugLayerVisible) {
-			flock.scene.debugLayer.show({
+			await flock.scene.debugLayer.show({
 				embedMode: true,
 				enableClose: false,
 				enablePopup: false,
 			});
+		} catch (error) {
+			console.error("Error showing debug layer:", error);
 		}
-
-		gizmoManager = new flock.BABYLON.GizmoManager(flock.scene, 8);
-
-	} else {
-		console.log("Engine not ready");
-		// Check again in 100 milliseconds
-		setTimeout(executeCode, 100);
 	}
+
+	// Initialize a new GizmoManager for the scene
+	gizmoManager = new flock.BABYLON.GizmoManager(flock.scene, 8);
+
+	 await delay(500);
+	// Reset the flag to allow future executions
+	isExecuting = false;
 }
+
 
 const characterMaterials = [
 	"Hair",
@@ -515,7 +537,7 @@ function selectShape(shapeType) {
 				addShapeToWorkspace(shapeType, pickedPosition); // Add the selected shape at this position
 				document.body.style.cursor = "default"; // Reset cursor after picking
 				window.removeEventListener("click", onPick); // Remove the click listener after pick
-				//executeCode();
+				
 			} else {
 				console.log("No object was picked, please try again.");
 			}
@@ -1464,7 +1486,7 @@ function onResize() {
 	resizeCanvas();
 	if (flock.engine) flock.engine.resize();
 }
-window.onResize = onResize;
+window.onresize = onResize;
 
 function toggleGizmo(gizmoType) {
 	// Disable all gizmos
@@ -2168,7 +2190,7 @@ function toggleToolbox() {
 window.toggleToolbox = toggleToolbox;
 */
 
-function loadExample() {
+async function loadExample() {
 	window.loadingCode = true;
 
 	const exampleSelect = document.getElementById("exampleSelect");
@@ -2198,18 +2220,6 @@ window.executeCode = executeCode;
 window.exportCode = exportCode;
 window.loadExample = loadExample;
 
-const runCode = (code) => {
-	if (codeMode === "blockly" || currentView === "code") {
-		switchView("canvas");
-	}
-	// Create a new sandboxed environment
-	try {
-		// Create a sandboxed function by embedding code into a new Function
-		flock.runCode(code);
-	} catch (error) {
-		console.error("Error executing sandboxed code:", error);
-	}
-};
 
 // Function to maintain a 16:9 aspect ratio for the canvas
 function resizeCanvas() {
@@ -2273,24 +2283,14 @@ function switchView(view) {
 
 window.switchView = switchView;
 
-function runMenu() {
-	//switchView("canvas");
-	executeCode();
-}
-
-window.runMenu = runMenu;
-
 function toggleMenu() {
 	const menu = document.getElementById("menu");
 	const currentDisplay = window.getComputedStyle(menu).display;
-
-	console.log("Current display:", currentDisplay);
 
 	if (currentDisplay != "none") {
 		menu.style.display = "none";
 		document.removeEventListener("click", handleClickOutside);
 	} else {
-		console.log("Showing menu");
 		menu.style.display = "flex";
 
 		// Delay binding the click event listener
@@ -2688,7 +2688,6 @@ function initializeApp() {
 		toggleToolbox();
 	});*/
 
-	runCodeButton.addEventListener("click", executeCode);
 	exampleSelect.addEventListener("change", loadExample);
 
 	onResize();
