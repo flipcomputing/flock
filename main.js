@@ -25,7 +25,12 @@ import {
 	handleBlockSelect,
 	handleBlockDelete,
 } from "./blocks";
-import { defineGenerators, meshMap, meshBlockIdMap } from "./generators";
+import {
+	defineGenerators,
+	meshMap,
+	meshBlockIdMap,
+	generateUniqueId,
+} from "./generators";
 
 if (navigator.serviceWorker) {
 	navigator.serviceWorker.addEventListener("controllerchange", () => {
@@ -125,7 +130,7 @@ async function executeCode() {
 	isExecuting = true;
 
 	// Utility function for delay
-	const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+	const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 	// Wait until the engine is ready using a loop with an async delay
 	while (!flock.engineReady) {
@@ -181,11 +186,10 @@ async function executeCode() {
 	// Initialize a new GizmoManager for the scene
 	gizmoManager = new flock.BABYLON.GizmoManager(flock.scene, 8);
 
-	 await delay(500);
+	await delay(500);
 	// Reset the flag to allow future executions
 	isExecuting = false;
 }
-
 
 const characterMaterials = [
 	"Hair",
@@ -359,7 +363,7 @@ function selectObject(objectName) {
 						connection.connect(block.previousConnection);
 					}
 
-					const meshId = objectName + "_" + flock.scene.getUniqueId();
+					const meshId = objectName + "_" + generateUniqueId();
 					meshMap[meshId] = block;
 
 					flock.newObject(
@@ -487,7 +491,7 @@ function selectModel(modelName) {
 					}
 
 					// Generate a unique ID for the model
-					const modelId = modelName + "_" + flock.scene.getUniqueId();
+					const modelId = modelName + "_" + generateUniqueId();
 
 					// Store the block reference in meshMap
 					meshMap[modelId] = block;
@@ -537,7 +541,6 @@ function selectShape(shapeType) {
 				addShapeToWorkspace(shapeType, pickedPosition); // Add the selected shape at this position
 				document.body.style.cursor = "default"; // Reset cursor after picking
 				window.removeEventListener("click", onPick); // Remove the click listener after pick
-				
 			} else {
 				console.log("No object was picked, please try again.");
 			}
@@ -612,8 +615,7 @@ function selectCharacter(characterName) {
 					}
 
 					// Generate a unique ID for the character
-					const modelId =
-						characterName + "_" + flock.scene.getUniqueId();
+					const modelId = characterName + "_" + generateUniqueId();
 
 					// Store the block reference in meshMap
 					meshMap[modelId] = block;
@@ -836,7 +838,7 @@ window.updateOrCreateMeshFromBlock = updateOrCreateMeshFromBlock;
 function getMeshFromBlock(block) {
 	const blockKey = Object.keys(meshMap).find((key) => meshMap[key] === block);
 
-	return flock.scene.meshes.find((mesh) => mesh.blockKey === blockKey);
+	return flock.scene?.meshes?.find((mesh) => mesh.blockKey === blockKey);
 }
 
 function getMeshFromBlockId(blockId) {
@@ -844,7 +846,7 @@ function getMeshFromBlockId(blockId) {
 		(key) => meshBlockIdMap[key] === blockId,
 	);
 
-	return flock.scene.meshes.find((mesh) => mesh.blockKey === blockKey);
+	return flock.scene?.meshes?.find((mesh) => mesh.blockKey === blockKey);
 }
 
 function createMeshOnCanvas(block) {
@@ -976,7 +978,7 @@ function createMeshOnCanvas(block) {
 				position.x,
 				position.y,
 				position.z,
-				"box_" + flock.scene.getUniqueId(),
+				"box_" + generateUniqueId(),
 			);
 			break;
 
@@ -989,7 +991,7 @@ function createMeshOnCanvas(block) {
 				position.x,
 				position.y + diameterY / 2,
 				position.z,
-				"sphere_" + flock.scene.getUniqueId(),
+				"sphere_" + generateUniqueId(),
 			);
 			break;
 
@@ -1002,7 +1004,7 @@ function createMeshOnCanvas(block) {
 				position.x,
 				position.y + height / 2,
 				position.z,
-				"cylinder_" + flock.scene.getUniqueId(),
+				"cylinder_" + generateUniqueId(),
 			);
 			break;
 
@@ -1014,7 +1016,7 @@ function createMeshOnCanvas(block) {
 				position.x,
 				position.y + height / 2,
 				position.z,
-				"capsule_" + flock.scene.getUniqueId(),
+				"capsule_" + generateUniqueId(),
 			);
 			break;
 
@@ -1026,7 +1028,7 @@ function createMeshOnCanvas(block) {
 				position.x,
 				position.y + height / 2,
 				position.z,
-				"plane_" + flock.scene.getUniqueId(),
+				"plane_" + generateUniqueId(),
 			);
 			break;
 	}
@@ -1494,7 +1496,7 @@ function toggleGizmo(gizmoType) {
 	gizmoManager.rotationGizmoEnabled = false;
 	gizmoManager.scaleGizmoEnabled = false;
 	gizmoManager.boundingBoxGizmoEnabled = false;
-	gizmoManager.attachableMeshes = flock.scene.meshes.filter(
+	gizmoManager.attachableMeshes = flock.scene?.meshes?.filter(
 		(s) => s.name !== "ground",
 	);
 
@@ -1974,7 +1976,7 @@ function focusCameraOnMesh() {
 			(key) => meshMap[key] === window.currentBlock,
 		);
 
-		mesh = flock.scene.meshes.find((mesh) => mesh.blockKey === blockKey);
+		mesh = flock.scene?.meshes?.find((mesh) => mesh.blockKey === blockKey);
 	}
 
 	if (!mesh) return;
@@ -2219,7 +2221,6 @@ async function loadExample() {
 window.executeCode = executeCode;
 window.exportCode = exportCode;
 window.loadExample = loadExample;
-
 
 // Function to maintain a 16:9 aspect ratio for the canvas
 function resizeCanvas() {

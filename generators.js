@@ -10,7 +10,7 @@ export let meshBlockIdMap = {};
 
 let uniqueIdCounter = 0;
 
-function generateUniqueId(prefix = "") {
+export function generateUniqueId(prefix = "") {
 	// Increment the counter for each call
 	uniqueIdCounter++;
 	// Return a string with the prefix and the counter value

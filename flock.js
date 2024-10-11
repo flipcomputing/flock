@@ -4007,6 +4007,8 @@ export const flock = {
 					camera.angularSensibilityX = 2000;
 					camera.angularSensibilityY = 2000;
 					camera.panningSensibility = 0;
+
+					/*
 					camera.inputs.removeByType(
 						"ArcRotateCameraMouseWheelInput",
 					);
@@ -4023,6 +4025,7 @@ export const flock = {
 					camera.inputs.attached.pointers.onMultiTouch = function () {
 						// Do nothing to disable multi-touch behavior in Babylon.js
 					};
+					*/
 				}
 				camera.setTarget(mesh.position);
 				camera.metadata = camera.metadata || {};
