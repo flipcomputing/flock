@@ -2269,9 +2269,8 @@ function switchView(view) {
 		canvasArea.style.display = "block";
 		blocklyArea.style.width = "0";
 		canvasArea.style.width = "0";
-		blocklyArea.style.flex = "1 1 50%";
-		canvasArea.style.flex = "1 1 50%";
-		gizmoButtons.style.display = "flex";
+		blocklyArea.style.flex = "2 1 0";   // 2/3 of the space
+		canvasArea.style.flex = "1 1 0";    // 1/3 of the space		gizmoButtons.style.display = "flex";
 	} else if (view === "canvas") {
 		console.log("canvas");
 		viewMode = "canvas";
