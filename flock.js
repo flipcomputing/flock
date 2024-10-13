@@ -36,6 +36,7 @@ export const flock = {
 	disposed: null,
 	modelCache: {},
 	loadingCache: {},
+	flockNotReady: true,
 	async runCode(code) {
 		const sandboxedCode = `
 			"use strict";
@@ -234,6 +235,7 @@ export const flock = {
 		flock.engine.setHardwareScalingLevel(1 / window.devicePixelRatio);
 	},
 	async disposeOldScene() {
+		flock.flockNotReady = true;
 		if (flock.scene) {
 			flock.scene.activeCamera.inputs.clear();
 			flock.modelCache = null;
@@ -456,6 +458,8 @@ export const flock = {
 			const context = flock.getAudioContext();
 			flock.updateListenerPositionAndOrientation(context, camera);
 		});
+
+		flock.flockNotReady = false;
 	},
 
 	async resetScene() {
@@ -536,9 +540,10 @@ export const flock = {
 		const { signal } = flock.abortController;
 
 		while (attempt <= maxAttempts) {
-			// Check if the scene is disposed or aborted
-			if (flock.disposed || !flock.scene || flock.scene.isDisposed || signal.aborted) {
-				//console.warn("Scene has been disposed or generator aborted.");
+			if (flock.disposed || !flock.scene || flock.scene.isDisposed) {
+				console.warn(
+					"Scene has been disposed or generator invalidated.",
+				);
 				return;
 			}
 
@@ -555,27 +560,45 @@ export const flock = {
 				}
 			}
 
+			if (flock.scene) {
+				const mesh = flock.scene.getMeshByName(meshId);
+				if (mesh) {
+					yield mesh;
+					return;
+				}
+			}
+
 			try {
 				await new Promise((resolve, reject) => {
 					const timeoutId = setTimeout(resolve, interval);
 
-					// If the signal aborts, reject the promise
-					signal.addEventListener("abort", () => {
+					// Reject the promise if the abort signal is triggered
+					const onAbort = () => {
 						clearTimeout(timeoutId);
 						reject(new Error("Wait aborted"));
-					}, { once: true });
+					};
+
+					signal.addEventListener("abort", onAbort, { once: true });
+
+					// Ensure the event listener is cleaned up after resolving
+					signal.addEventListener(
+						"abort",
+						() => signal.removeEventListener("abort", onAbort),
+						{ once: true },
+					);
 				});
 			} catch (error) {
 				console.log("Timeout aborted:", error);
-				// Properly return to stop the generator
+				// Properly exit if the wait was aborted to prevent further processing
 				return;
 			}
 
 			interval = Math.min(interval * 2, maxInterval);
 			attempt++;
+			//console.log(`Attempt ${attempt}: Retrying in ${interval}ms...`);
 		}
 
-		console.log(
+		console.warn(
 			`Mesh with ID '${meshId}' not found after ${maxAttempts} attempts.`,
 		);
 	},
@@ -637,6 +660,9 @@ export const flock = {
 			return null;
 		}
 
+		if(flock.flockNotReady)
+			return null;
+		
 		let targetAnimationGroup = flock.scene?.animationGroups?.find(
 			(group) =>
 				group.name === newAnimationName &&
