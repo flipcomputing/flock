@@ -34,6 +34,8 @@ export const flock = {
 	abortController: null,
 	document: document,
 	disposed: null,
+	modelCache: {},
+	loadingCache: {},
 	async runCode(code) {
 		const sandboxedCode = `
 			"use strict";
@@ -97,6 +99,7 @@ export const flock = {
 				randomColour,
 				scaleMesh,
 				changeColour,
+				changeColourMesh,
 				changeMaterial,
 				setMaterial,
 				createMaterial,
@@ -137,7 +140,6 @@ export const flock = {
 			// Ensure the old scene is properly disposed using the disposeOldScene function
 			try {
 				await oldFlock.disposeOldScene(); // Use the dispose function directly
-				
 			} catch (error) {
 				console.error("Error during scene disposal:", error);
 			}
@@ -160,7 +162,6 @@ export const flock = {
 		try {
 			// Initialize the new scene using the function from the new iframe's content window
 			await iframe.contentWindow.flock.initializeNewScene();
-			
 		} catch (error) {
 			console.error("Error during new scene creation:", error);
 		}
@@ -197,12 +198,9 @@ export const flock = {
 		flock.havokInstance = await HavokPhysics();
 		await flock.document.fonts.ready; // Wait for all fonts to be loaded
 		flock.abortController = new AbortController();
-		
-		
+
 		//flock.scene = await flock.createScene();
 
-		
-		
 		flock.canvas.addEventListener(
 			"touchmove",
 			function (event) {
@@ -234,15 +232,12 @@ export const flock = {
 		});
 		flock.engine.enableOfflineSupport = false;
 		flock.engine.setHardwareScalingLevel(1 / window.devicePixelRatio);
-
-
 	},
 	async disposeOldScene() {
-
 		if (flock.scene) {
-
 			flock.scene.activeCamera.inputs.clear();
-
+			flock.modelCache = null;
+			flock.loadingCache = null;
 			// Abort any ongoing operations if applicable
 			if (flock.abortController) {
 				flock.abortController.abort(); // Abort any pending operations
@@ -273,7 +268,7 @@ export const flock = {
 				flock.highlighter.dispose();
 				flock.highlighter = null;
 			}
-						
+
 			// Dispose of the scene directly
 			flock.scene.activeCamera.inputs.clear();
 
@@ -294,13 +289,14 @@ export const flock = {
 		}
 	},
 	async initializeNewScene() {
-
 		// Ensure the engine exists and is running
 		if (!flock.engine) {
 			flock.createEngine();
 		} else {
 			flock.engine.stopRenderLoop();
 		}
+
+		flock.modelCache = {};
 
 		// Create the new scene
 		flock.scene = new flock.BABYLON.Scene(flock.engine);
@@ -313,7 +309,10 @@ export const flock = {
 
 		// Reinitialize physics and other elements for the new scene
 		flock.hk = new flock.BABYLON.HavokPlugin(true, flock.havokInstance);
-		flock.scene.enablePhysics(new flock.BABYLON.Vector3(0, -9.81, 0), flock.hk);
+		flock.scene.enablePhysics(
+			new flock.BABYLON.Vector3(0, -9.81, 0),
+			flock.hk,
+		);
 
 		flock.highlighter = new flock.BABYLON.HighlightLayer(
 			"highlighter",
@@ -321,7 +320,11 @@ export const flock = {
 		);
 
 		// Set up a new camera
-		const camera = new flock.BABYLON.FreeCamera("camera", new flock.BABYLON.Vector3(0, 3, -10), flock.scene);
+		const camera = new flock.BABYLON.FreeCamera(
+			"camera",
+			new flock.BABYLON.Vector3(0, 3, -10),
+			flock.scene,
+		);
 		camera.minZ = 1;
 		camera.setTarget(flock.BABYLON.Vector3.Zero());
 		camera.rotation.x = flock.BABYLON.Tools.ToRadians(0);
@@ -333,14 +336,14 @@ export const flock = {
 		const hemisphericLight = new flock.BABYLON.HemisphericLight(
 			"hemisphericLight",
 			new flock.BABYLON.Vector3(0, 1, 0),
-			flock.scene
+			flock.scene,
 		);
 
 		flock.scene.onPointerObservable.add(function (pointerInfo) {
 			if (
 				pointerInfo.type === flock.BABYLON.PointerEventTypes.POINTERUP
 			) {
-								if (
+				if (
 					pointerInfo.event.touches &&
 					pointerInfo.event.touches.length > 1
 				) {
@@ -360,7 +363,6 @@ export const flock = {
 		hemisphericLight.diffuse = new flock.BABYLON.Color3(1, 1, 1);
 		hemisphericLight.groundColor = new flock.BABYLON.Color3(0.5, 0.5, 0.5);
 
-		
 		// Enable collisions in the scene
 		flock.scene.collisionsEnabled = true;
 
@@ -454,10 +456,8 @@ export const flock = {
 			const context = flock.getAudioContext();
 			flock.updateListenerPositionAndOrientation(context, camera);
 		});
+	},
 
-	}
-
-,
 	async resetScene() {
 		// Dispose of the old scene
 		await flock.disposeOldScene();
@@ -522,14 +522,14 @@ export const flock = {
 			flock.document.removeEventListener(event, handler);
 		});
 
-		if(flock.scene && flock.scene.eventListeners)
+		if (flock.scene && flock.scene.eventListeners)
 			flock.scene.eventListeners.length = 0; // Clear the array
 	},
-	async * modelReadyGenerator(
+	async *modelReadyGenerator(
 		meshId,
 		maxAttempts = 10,
 		initialInterval = 100,
-		maxInterval = 1000
+		maxInterval = 1000,
 	) {
 		let attempt = 1;
 		let interval = initialInterval;
@@ -537,7 +537,9 @@ export const flock = {
 
 		while (attempt <= maxAttempts) {
 			if (flock.disposed || !flock.scene || flock.scene.isDisposed) {
-				console.warn("Scene has been disposed or generator invalidated.");
+				console.warn(
+					"Scene has been disposed or generator invalidated.",
+				);
 				return;
 			}
 
@@ -578,7 +580,7 @@ export const flock = {
 					signal.addEventListener(
 						"abort",
 						() => signal.removeEventListener("abort", onAbort),
-						{ once: true }
+						{ once: true },
 					);
 				});
 			} catch (error) {
@@ -592,7 +594,9 @@ export const flock = {
 			//console.log(`Attempt ${attempt}: Retrying in ${interval}ms...`);
 		}
 
-		console.warn(`Mesh with ID '${meshId}' not found after ${maxAttempts} attempts.`);
+		console.warn(
+			`Mesh with ID '${meshId}' not found after ${maxAttempts} attempts.`,
+		);
 	},
 	whenModelReady(meshId, callback) {
 		if (flock.scene) {
@@ -652,7 +656,7 @@ export const flock = {
 			return null;
 		}
 
-		let targetAnimationGroup = scene.animationGroups.find(
+		let targetAnimationGroup = flock.scene?.animationGroups?.find(
 			(group) =>
 				group.name === newAnimationName &&
 				flock.animationGroupTargetsDescendant(group, mesh),
@@ -709,7 +713,7 @@ export const flock = {
 	},
 	highlight(modelName, color) {
 		return flock.whenModelReady(modelName, (mesh) => {
-			if (mesh.material) {				
+			if (mesh.material) {
 				flock.highlighter.addMesh(
 					mesh,
 					flock.BABYLON.Color3.FromHexString(
@@ -740,7 +744,7 @@ export const flock = {
 			modelName,
 			flock.scene,
 			function (meshes) {
-				
+
 				const mesh = meshes[0];
 
 				mesh.scaling = new flock.BABYLON.Vector3(scale, scale, scale);
@@ -793,6 +797,180 @@ export const flock = {
 		);
 
 		return modelId;
+	},
+	newModelCache(modelName, modelId, scale, x, y, z, callback) {
+		const blockId = modelId;
+		modelId += "_" + flock.scene.getUniqueId();
+
+		// Check if the model has already been cached
+		if (flock.modelCache[modelName]) {
+			// Use the cached model and clone it
+			const originalMesh = flock.modelCache[modelName];
+			const clonedMesh = originalMesh.clone(modelId);
+
+			// Reset visibility and interaction properties for the cloned mesh and its children
+			clonedMesh.isVisible = true;
+			clonedMesh.isPickable = true;
+
+			clonedMesh.getChildMeshes().forEach(function (child) {
+				child.isVisible = true;
+				child.isPickable = true;
+			});
+
+			// Apply scaling and position to the cloned mesh
+			clonedMesh.scaling = new flock.BABYLON.Vector3(scale, scale, scale);
+			clonedMesh.position.addInPlace(new flock.BABYLON.Vector3(x, y, z));
+			clonedMesh.computeWorldMatrix(true);
+			clonedMesh.refreshBoundingInfo();
+
+			// Set up bounding box and physics
+			const bb =
+				flock.BABYLON.BoundingBoxGizmo.MakeNotPickableAndWrapInBoundingBox(
+					clonedMesh,
+				);
+			bb.name = modelId;
+			bb.blockKey = blockId;
+			bb.isPickable = true;
+			bb.metadata = bb.metadata || {};
+			bb.metadata.yOffset = (bb.position.y - y) / scale;
+			flock.stopAnimationsTargetingMesh(flock.scene, clonedMesh);
+
+			const boxBody = new flock.BABYLON.PhysicsBody(
+				bb,
+				flock.BABYLON.PhysicsMotionType.STATIC,
+				false,
+				flock.scene,
+			);
+			const boxShape = flock.createCapsuleFromBoundingBox(
+				bb,
+				flock.scene,
+			);
+			boxBody.shape = boxShape;
+			boxBody.setMassProperties({ mass: 1, restitution: 0.5 });
+			boxBody.disablePreStep = false;
+			bb.physics = boxBody;
+
+			// Call the callback after everything is set up
+			if (typeof callback === "function") {
+				callback(); // Execute the "do" code
+			}
+
+			return modelId; // Return the cloned model's ID
+		}
+
+		// If model is still loading, return the promise
+		if (flock.loadingCache[modelName]) {
+			return flock.loadingCache[modelName].then(() => {
+				return flock.newModel(
+					modelName,
+					modelId,
+					scale,
+					x,
+					y,
+					z,
+					callback,
+				); // Retry after load completes
+			});
+		}
+
+		// Load the model if not cached
+		flock.loadingCache[modelName] = new Promise((resolve, reject) => {
+			flock.BABYLON.SceneLoader.ImportMesh(
+				"",
+				"./models/",
+				modelName,
+				flock.scene,
+				function (meshes) {
+					const rootMesh = meshes[0];
+
+					// Cache the original loaded model
+					flock.modelCache[modelName] = rootMesh;
+					delete flock.loadingCache[modelName]; // Remove from loading cache
+
+					// Assign a meaningful name to the original root mesh only once
+					rootMesh.name = "Original " + modelName;
+
+					// Make the root mesh and all its children invisible and non-interactive
+					rootMesh.isVisible = false;
+					rootMesh.isPickable = false;
+					rootMesh.checkCollisions = false;
+
+					rootMesh.getChildMeshes().forEach(function (child) {
+						child.name = "Original " + child.name; // Give a meaningful name to the child
+						child.isVisible = false;
+						child.isPickable = false;
+						child.checkCollisions = false; // Disable collisions for all children
+					});
+
+					// Clone the original mesh for the first instance
+					const clonedMesh = rootMesh.clone(modelId);
+
+					// Reset visibility and interaction properties for the cloned mesh and its children
+					clonedMesh.isVisible = true;
+					clonedMesh.isPickable = true;
+
+					clonedMesh.getChildMeshes().forEach(function (child) {
+						child.isVisible = true;
+						child.isPickable = true;
+					});
+
+					// Apply scaling and position to the cloned mesh
+					clonedMesh.scaling = new flock.BABYLON.Vector3(
+						scale,
+						scale,
+						scale,
+					);
+					clonedMesh.position.addInPlace(
+						new flock.BABYLON.Vector3(x, y, z),
+					);
+					clonedMesh.computeWorldMatrix(true);
+					clonedMesh.refreshBoundingInfo();
+
+					// Set up bounding box and physics
+					const bb =
+						flock.BABYLON.BoundingBoxGizmo.MakeNotPickableAndWrapInBoundingBox(
+							clonedMesh,
+						);
+					bb.name = modelId;
+					bb.blockKey = blockId;
+					bb.isPickable = true;
+					bb.metadata = bb.metadata || {};
+					bb.metadata.yOffset = (bb.position.y - y) / scale;
+
+					flock.stopAnimationsTargetingMesh(flock.scene, clonedMesh);
+
+					const boxBody = new flock.BABYLON.PhysicsBody(
+						bb,
+						flock.BABYLON.PhysicsMotionType.STATIC,
+						false,
+						flock.scene,
+					);
+					const boxShape = flock.createCapsuleFromBoundingBox(
+						bb,
+						flock.scene,
+					);
+					boxBody.shape = boxShape;
+					boxBody.setMassProperties({ mass: 1, restitution: 0.5 });
+					boxBody.disablePreStep = false;
+					bb.physics = boxBody;
+
+					// Call the callback after everything is set up
+					if (typeof callback === "function") {
+						callback(); // Execute the "do" code
+					}
+
+					resolve(modelId); // Resolve the promise once loaded
+				},
+				null,
+				function (error) {
+					console.log("Error loading", error);
+					delete flock.loadingCache[modelName]; // Remove from loading cache on error
+					reject(error); // Reject the promise on error
+				},
+			);
+		});
+
+		return modelId; // Return the new model's ID (or await the promise)
 	},
 	newCharacter(
 		modelName,
@@ -3082,8 +3260,8 @@ export const flock = {
 						property === "color"
 							? flock.BABYLON.Animation.ANIMATIONTYPE_COLOR3
 							: ["position", "rotation", "scaling"].includes(
-									property,
-							  )
+										property,
+								  )
 								? flock.BABYLON.Animation.ANIMATIONTYPE_VECTOR3
 								: flock.BABYLON.Animation.ANIMATIONTYPE_FLOAT;
 
@@ -3095,8 +3273,10 @@ export const flock = {
 						reverse && loop
 							? flock.BABYLON.Animation.ANIMATIONLOOPMODE_YOYO
 							: loop
-								? flock.BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE
-								: flock.BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT,
+								? flock.BABYLON.Animation
+										.ANIMATIONLOOPMODE_CYCLE
+								: flock.BABYLON.Animation
+										.ANIMATIONLOOPMODE_CONSTANT,
 					);
 
 					// Set up animation keys based on each keyframe's duration
@@ -3112,7 +3292,9 @@ export const flock = {
 								property,
 							)
 						) {
-							if (keyframe.value instanceof flock.BABYLON.Vector3) {
+							if (
+								keyframe.value instanceof flock.BABYLON.Vector3
+							) {
 								value = keyframe.value;
 							} else if (typeof keyframe.value === "string") {
 								const vectorValues =
@@ -3130,7 +3312,7 @@ export const flock = {
 						// Set the frame based on the cumulative duration up to this point
 						if (index > 0) {
 							currentFrame += Math.round(
-								fps * (keyframes[index].duration || 1)
+								fps * (keyframes[index].duration || 1),
 							);
 						}
 
@@ -3141,7 +3323,8 @@ export const flock = {
 					if (loop && keyframes.length > 1) {
 						const firstKeyframe = keyframes[0];
 						const loopFrame =
-							currentFrame + Math.round(fps * firstKeyframe.duration);
+							currentFrame +
+							Math.round(fps * firstKeyframe.duration);
 						animationKeys.push({
 							frame: loopFrame,
 							value: animationKeys[0].value,
@@ -3442,47 +3625,50 @@ export const flock = {
 	},
 	changeColour(modelName, color) {
 		return flock.whenModelReady(modelName, (mesh) => {
-			let materialFound = false;
-
-			function applyColorToMaterial(part, color) {
-				if (part.material) {
-					// Check if part.material.diffuseColor exists and set it
-					if (part.material.diffuseColor !== undefined) {
-						part.material.diffuseColor =
-							flock.BABYLON.Color3.FromHexString(color);
-					} else {
-						// Handle materials without diffuseColor
-						part.material.albedoColor =
-							flock.BABYLON.Color3.FromHexString(
-								flock.getColorFromString(color),
-							).toLinearSpace();
-						part.material.emissiveColor =
-							flock.BABYLON.Color3.FromHexString(
-								flock.getColorFromString(color),
-							).toLinearSpace();
-						part.material.emissiveIntensity = 0.1;
-					}
-				}
-
-				part.getChildMeshes().forEach((child) => {
-					applyColorToMaterial(child, color);
-				});
-			}
-
-			// Start applying colour to the main mesh and its children
-			applyColorToMaterial(mesh, color);
-
-			// If no material was found on the main mesh or any child, create a new one
-			if (!materialFound) {
-				const material = new flock.BABYLON.StandardMaterial(
-					"meshMaterial",
-					flock.scene,
-				);
-				material.diffuseColor =
-					flock.BABYLON.Color3.FromHexString(color);
-				mesh.material = material;
-			}
+			flock.changeColourMesh(mesh, color);
 		});
+	},
+	changeColourMesh(mesh, color) {
+		let materialFound = false;
+
+		function applyColorToMaterial(part, color) {
+			if (part.material) {
+				// Check if part.material.diffuseColor exists and set it
+				if (part.material.diffuseColor !== undefined) {
+					part.material.diffuseColor =
+						flock.BABYLON.Color3.FromHexString(color);
+				} else {
+					// Handle materials without diffuseColor
+					part.material.albedoColor =
+						flock.BABYLON.Color3.FromHexString(
+							flock.getColorFromString(color),
+						).toLinearSpace();
+					part.material.emissiveColor =
+						flock.BABYLON.Color3.FromHexString(
+							flock.getColorFromString(color),
+						).toLinearSpace();
+					part.material.emissiveIntensity = 0.1;
+				}
+				materialFound = true;
+			}
+
+			part.getChildMeshes().forEach((child) => {
+				applyColorToMaterial(child, color);
+			});
+		}
+
+		// Start applying colour to the main mesh and its children
+		applyColorToMaterial(mesh, color);
+
+		// If no material was found on the main mesh or any child, create a new one
+		if (!materialFound) {
+			const material = new flock.BABYLON.StandardMaterial(
+				"meshMaterial",
+				flock.scene,
+			);
+			material.diffuseColor = flock.BABYLON.Color3.FromHexString(color);
+			mesh.material = material;
+		}
 	},
 	changeMaterial(modelName, materialName, color) {
 		return flock.whenModelReady(modelName, (mesh) => {
@@ -3987,11 +4173,10 @@ export const flock = {
 					camera.angularSensibilityY = 2000;
 					camera.panningSensibility = 0;
 
-					
 					camera.inputs.removeByType(
 						"ArcRotateCameraMouseWheelInput",
 					);
-					
+
 					camera.inputs.attached.pointers.multiTouchPanAndZoom = false;
 					camera.inputs.attached.pointers.multiTouchPanning = false;
 					camera.inputs.attached.pointers.pinchZoom = false;
@@ -4005,7 +4190,6 @@ export const flock = {
 					camera.inputs.attached.pointers.onMultiTouch = function () {
 						// Do nothing to disable multi-touch behavior in Babylon.js
 					};
-					
 				}
 				camera.setTarget(mesh.position);
 				camera.metadata = camera.metadata || {};

@@ -127,6 +127,7 @@
 								"block": {
 								  "type": "create_box",
 								  "id": ",t~0X;P9lCVx0ElG/Oz;",
+								  "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" has_do=\"false\"></mutation>",
 								  "fields": {
 									"ID_VAR": {
 									  "id": "=@_7d-nsKI#ao?b_,;IX"
@@ -201,6 +202,7 @@
 									"block": {
 									  "type": "create_box",
 									  "id": "`=R.8%A#gG*O4Mox6YYP",
+									  "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" has_do=\"false\"></mutation>",
 									  "fields": {
 										"ID_VAR": {
 										  "id": ".5XF:rm.q,huNp*-L;wF"
@@ -275,6 +277,7 @@
 										"block": {
 										  "type": "create_box",
 										  "id": "{,fMi.w[~)TxTmmFyM[-",
+										  "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" has_do=\"false\"></mutation>",
 										  "fields": {
 											"ID_VAR": {
 											  "id": "Y?K*+I;;nT_:rdw*_-e1"
@@ -349,6 +352,7 @@
 											"block": {
 											  "type": "create_box",
 											  "id": "9I=]B~Kuj8E[mo^rc*Wr",
+											  "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" has_do=\"false\"></mutation>",
 											  "fields": {
 												"ID_VAR": {
 												  "id": "Gx.K~6+ih3P[n,wC3BJb"
@@ -443,7 +447,7 @@
 		"type": "start",
 		"id": "rYSM[9*$cgU?cfx}y-dk",
 		"x": 10,
-		"y": 2368,
+		"y": 2392,
 		"inputs": {
 		  "DO": {
 			"block": {
@@ -482,6 +486,7 @@
 				"block": {
 				  "type": "load_character",
 				  "id": ")3:?9e:~HC1aQ#MPQfJ:",
+				  "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" has_do=\"false\"></mutation>",
 				  "fields": {
 					"MODELS": "Character4.glb",
 					"ID_VAR": {
@@ -582,13 +587,13 @@
 				  },
 				  "next": {
 					"block": {
-					  "type": "play_animation",
-					  "id": "/{R#;k/T^~N?DqFKyyUP",
+					  "type": "switch_animation",
+					  "id": "ItZ^sqxEEeBBhel|KNwp",
 					  "fields": {
-						"ANIMATION_NAME": "Idle",
 						"MODEL": {
 						  "id": "f=8($HYZoE:IjT|U8x8J"
-						}
+						},
+						"ANIMATION_NAME": "Idle"
 					  },
 					  "next": {
 						"block": {
@@ -676,7 +681,7 @@
 		"type": "when_key_released",
 		"id": "A}`9$II5cHei7)T#eDGV",
 		"x": 10,
-		"y": 728,
+		"y": 752,
 		"fields": {
 		  "KEY": "q"
 		},
@@ -685,6 +690,7 @@
 			"block": {
 			  "type": "create_sphere",
 			  "id": "#M}@!55i4!]%qwC~0^n_",
+			  "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" has_do=\"false\"></mutation>",
 			  "fields": {
 				"ID_VAR": {
 				  "id": "V26{6tlHlzOpevCq/#ts"
@@ -897,7 +903,7 @@
 		"type": "when_key_released",
 		"id": "v.5(qT,4h8#7IUmi+~~#",
 		"x": 10,
-		"y": 1138,
+		"y": 1162,
 		"fields": {
 		  "KEY": "e"
 		},
@@ -906,6 +912,7 @@
 			"block": {
 			  "type": "create_sphere",
 			  "id": "LT3YO$4HE0+oal9j*|~T",
+			  "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" has_do=\"false\"></mutation>",
 			  "fields": {
 				"ID_VAR": {
 				  "id": "Szp:KXZwpPKr3@b4U|,$"
@@ -1118,7 +1125,7 @@
 		"type": "when_key_released",
 		"id": "2y(Y|ITm}L5b[to=bA8x",
 		"x": 10,
-		"y": 1548,
+		"y": 1572,
 		"fields": {
 		  "KEY": "f"
 		},
@@ -1127,6 +1134,7 @@
 			"block": {
 			  "type": "create_sphere",
 			  "id": "#=8CvxV=u-lOz2TgM!,f",
+			  "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" has_do=\"false\"></mutation>",
 			  "fields": {
 				"ID_VAR": {
 				  "id": "iCmd8Y+9wKzh:uGf1l7|"
@@ -1339,7 +1347,7 @@
 		"type": "when_key_released",
 		"id": "Z0xh~xMoq=zZM_xs52R~",
 		"x": 10,
-		"y": 1958,
+		"y": 1982,
 		"fields": {
 		  "KEY": " "
 		},
@@ -1348,6 +1356,7 @@
 			"block": {
 			  "type": "create_sphere",
 			  "id": "7(!J},@A{|iYw=Nr(tZQ",
+			  "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" has_do=\"false\"></mutation>",
 			  "fields": {
 				"ID_VAR": {
 				  "id": "$(.OR{v=8hH$U4Z79@9("
@@ -1560,7 +1569,7 @@
 		"type": "forever",
 		"id": "EK/JYj*DY$WqS6h|_GEy",
 		"x": 10,
-		"y": 2836,
+		"y": 2884,
 		"inputs": {
 		  "DO": {
 			"block": {

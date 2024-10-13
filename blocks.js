@@ -1411,8 +1411,13 @@ export function defineBlocks() {
 					changeEvent.type === Blockly.Events.BLOCK_CREATE ||
 					changeEvent.type === Blockly.Events.BLOCK_CHANGE
 				) {
-					const parent = findCreateBlock(this);
-					if (parent == this) {
+					const parent = findCreateBlock(
+						Blockly.getMainWorkspace().getBlockById(
+							changeEvent.blockId,
+						),
+					);
+
+					if (parent === this) {
 						const blockInWorkspace =
 							Blockly.getMainWorkspace().getBlockById(this.id);
 
@@ -1499,7 +1504,11 @@ export function defineBlocks() {
 					changeEvent.type === Blockly.Events.BLOCK_CREATE ||
 					changeEvent.type === Blockly.Events.BLOCK_CHANGE
 				) {
-					const parent = findCreateBlock(this);
+					const parent = findCreateBlock(
+						Blockly.getMainWorkspace().getBlockById(
+							changeEvent.blockId,
+						),
+					);
 					if (parent == this) {
 						const blockInWorkspace =
 							Blockly.getMainWorkspace().getBlockById(this.id);
@@ -1587,8 +1596,13 @@ export function defineBlocks() {
 					changeEvent.type === Blockly.Events.BLOCK_CREATE ||
 					changeEvent.type === Blockly.Events.BLOCK_CHANGE
 				) {
-					const parent = findCreateBlock(this);
-					if (parent == this) {
+					const parent = findCreateBlock(
+						Blockly.getMainWorkspace().getBlockById(
+							changeEvent.blockId,
+						),
+					);
+
+					if (parent && parent === this) {
 						const blockInWorkspace =
 							Blockly.getMainWorkspace().getBlockById(this.id);
 
@@ -1668,7 +1682,11 @@ export function defineBlocks() {
 					changeEvent.type === Blockly.Events.BLOCK_CREATE ||
 					changeEvent.type === Blockly.Events.BLOCK_CHANGE
 				) {
-					const parent = findCreateBlock(this);
+					const parent = findCreateBlock(
+						Blockly.getMainWorkspace().getBlockById(
+							changeEvent.blockId,
+						),
+					);
 					if (parent == this) {
 						const blockInWorkspace =
 							Blockly.getMainWorkspace().getBlockById(this.id);
@@ -4458,11 +4476,10 @@ Blockly.Blocks["export_mesh"] = {
 	},
 };
 
-
 // Remove 'do' text to save space
-Blockly.Msg['CONTROLS_REPEAT_INPUT_DO'] = '';
-Blockly.Msg['CONTROLS_WHILEUNTIL_INPUT_DO'] = '';
-Blockly.Msg['CONTROLS_FOR_INPUT_DO'] = '';
-Blockly.Msg['CONTROLS_FOREACH_INPUT_DO'] = '';
-Blockly.Msg['CONTROLS_IF_MSG_THEN'] = ''; 
-Blockly.Msg['CONTROLS_IF_MSG_ELSE'] = 'else\n';
+Blockly.Msg["CONTROLS_REPEAT_INPUT_DO"] = "";
+Blockly.Msg["CONTROLS_WHILEUNTIL_INPUT_DO"] = "";
+Blockly.Msg["CONTROLS_FOR_INPUT_DO"] = "";
+Blockly.Msg["CONTROLS_FOREACH_INPUT_DO"] = "";
+Blockly.Msg["CONTROLS_IF_MSG_THEN"] = "";
+Blockly.Msg["CONTROLS_IF_MSG_ELSE"] = "else\n";

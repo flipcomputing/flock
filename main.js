@@ -157,6 +157,11 @@ async function executeCode() {
 		gizmoManager = null; // Clear the global reference for garbage collection
 	}
 
+	let showDebug = flock.scene?.debugLayer?.isVisible();
+
+	if (showDebug) {
+		flock.scene.debugLayer.hide();
+	}
 	// Generate the code from the workspace
 	const code = javascriptGenerator.workspaceToCode(workspace);
 
@@ -171,7 +176,7 @@ async function executeCode() {
 	}
 
 	// Check if the debug layer is visible and show it if necessary
-	if (flock.scene?.debugLayer?.isVisible()) {
+	if (showDebug) {
 		try {
 			await flock.scene.debugLayer.show({
 				embedMode: true,
@@ -201,12 +206,14 @@ const characterMaterials = [
 ];
 
 function updateBlockColorAndHighlight(mesh, selectedColor) {
-	let block = null;
 
-	// Check if the picked mesh is part of a character by examining its material name
+	let block;
+	
 	const materialName = mesh?.material?.name;
 
-	if (mesh && characterMaterials.includes(materialName)) {
+	if (mesh && materialName && characterMaterials.includes(materialName)) {
+
+		console.log("Updating character");
 		const ultimateParent = (mesh) =>
 			mesh.parent ? ultimateParent(mesh.parent) : mesh;
 
@@ -243,18 +250,17 @@ function updateBlockColorAndHighlight(mesh, selectedColor) {
 			console.error("Block not found for mesh:", mesh.blockKey);
 			return;
 		}
-		// For non-character meshes, update the general "COLOR" field
+		
 		block
 			.getInput("COLOR")
 			.connection.targetBlock()
 			.setFieldValue(selectedColor, "COLOR");
 	}
 
-	// Step 3: Update and render the block
-	block.initSvg();
-	block.render();
+	
+	block?.initSvg();
+	block?.render();
 
-	// Step 4: Highlight the block in the Blockly workspace
 	highlightBlockById(workspace, block);
 }
 
@@ -1382,6 +1388,7 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 
 function pickMeshFromCanvas() {
+
 	const canvas = flock.scene.getEngine().getRenderingCanvas(); // Get the Babylon.js canvas
 
 	document.body.style.cursor = "crosshair"; // Change cursor to indicate picking mode
@@ -1410,7 +1417,7 @@ function pickMeshFromCanvas() {
 		const pickRay = flock.scene.createPickingRay(
 			canvasX,
 			canvasY,
-			BABYLON.Matrix.Identity(),
+			flock.BABYLON.Matrix.Identity(),
 			flock.scene.activeCamera,
 		);
 
@@ -1419,42 +1426,9 @@ function pickMeshFromCanvas() {
 			pickRay,
 			(mesh) => mesh.isPickable,
 		);
-
-		function applyColorToMeshOrDescendant(mesh, selectedColor) {
-			if (!mesh) {
-				flock.scene.clearColor = BABYLON.Color3.FromHexString(
-					flock.getColorFromString(selectedColor),
-				);
-				return;
-			}
-			const findMeshWithMaterial = (mesh) =>
-				mesh.material
-					? mesh
-					: mesh.getDescendants().find((child) => child.material);
-
-			const targetMesh = findMeshWithMaterial(mesh);
-			// If a mesh with a material is found, apply the color
-			if (targetMesh) {
-				if (targetMesh.material && targetMesh.material.diffuseColor) {
-					targetMesh.material.diffuseColor =
-						new BABYLON.Color3.FromHexString(selectedColor);
-				} else {
-					targetMesh.material.albedoColor =
-						new BABYLON.Color3.FromHexString(
-							selectedColor,
-						).toLinearSpace();
-					targetMesh.material.emissiveColor =
-						flock.BABYLON.Color3.FromHexString(
-							flock.getColorFromString(selectedColor),
-						).toLinearSpace();
-					targetMesh.material.emissiveIntensity = 0.1;
-				}
-			}
-		}
-
-		applyColorToMeshOrDescendant(pickResult.pickedMesh, selectedColor);
-
-		updateBlockColorAndHighlight(pickResult.pickedMesh, selectedColor);
+	
+		flock.changeColourMesh(pickResult.pickedMesh, selectedColor);
+	updateBlockColorAndHighlight(pickResult.pickedMesh, selectedColor);
 
 		document.body.style.cursor = "default"; // Reset the cursor
 		window.removeEventListener("click", onPickMesh); // Remove the event listener after picking
