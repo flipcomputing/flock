@@ -191,7 +191,7 @@ async function executeCode() {
 	// Initialize a new GizmoManager for the scene
 	gizmoManager = new flock.BABYLON.GizmoManager(flock.scene, 8);
 
-	await delay(500);
+	await delay(1000);
 	// Reset the flag to allow future executions
 	isExecuting = false;
 }

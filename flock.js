@@ -536,10 +536,9 @@ export const flock = {
 		const { signal } = flock.abortController;
 
 		while (attempt <= maxAttempts) {
-			if (flock.disposed || !flock.scene || flock.scene.isDisposed) {
-				console.warn(
-					"Scene has been disposed or generator invalidated.",
-				);
+			// Check if the scene is disposed or aborted
+			if (flock.disposed || !flock.scene || flock.scene.isDisposed || signal.aborted) {
+				//console.warn("Scene has been disposed or generator aborted.");
 				return;
 			}
 
@@ -556,45 +555,27 @@ export const flock = {
 				}
 			}
 
-			if (flock.scene) {
-				const mesh = flock.scene.getMeshByName(meshId);
-				if (mesh) {
-					yield mesh;
-					return;
-				}
-			}
-
 			try {
 				await new Promise((resolve, reject) => {
 					const timeoutId = setTimeout(resolve, interval);
 
-					// Reject the promise if the abort signal is triggered
-					const onAbort = () => {
+					// If the signal aborts, reject the promise
+					signal.addEventListener("abort", () => {
 						clearTimeout(timeoutId);
 						reject(new Error("Wait aborted"));
-					};
-
-					signal.addEventListener("abort", onAbort, { once: true });
-
-					// Ensure the event listener is cleaned up after resolving
-					signal.addEventListener(
-						"abort",
-						() => signal.removeEventListener("abort", onAbort),
-						{ once: true },
-					);
+					}, { once: true });
 				});
 			} catch (error) {
 				console.log("Timeout aborted:", error);
-				// Properly exit if the wait was aborted to prevent further processing
+				// Properly return to stop the generator
 				return;
 			}
 
 			interval = Math.min(interval * 2, maxInterval);
 			attempt++;
-			//console.log(`Attempt ${attempt}: Retrying in ${interval}ms...`);
 		}
 
-		console.warn(
+		console.log(
 			`Mesh with ID '${meshId}' not found after ${maxAttempts} attempts.`,
 		);
 	},
@@ -1391,19 +1372,27 @@ export const flock = {
 	wait(duration) {
 		return new Promise((resolve, reject) => {
 			const timeoutId = setTimeout(() => {
-				flock.abortController.signal.removeEventListener(
-					"abort",
-					onAbort,
-				);
+				flock.abortController.signal.removeEventListener("abort", onAbort);
 				resolve();
 			}, duration);
 
 			const onAbort = () => {
 				clearTimeout(timeoutId); // Clear the timeout if aborted
+				flock.abortController.signal.removeEventListener("abort", onAbort);
+				// Instead of throwing an error, resolve gracefully here
 				reject(new Error("Wait aborted"));
 			};
 
 			flock.abortController.signal.addEventListener("abort", onAbort);
+		}).catch((error) => {
+			// Check if the error is the expected "Wait aborted" error and handle it
+			if (error.message === "Wait aborted") {
+				//console.log("Abort signal received, stopping the wait.");
+				// Prevent further processing, but don't propagate the error
+				return;
+			}
+			// If it's another error, rethrow it
+			throw error;
 		});
 	},
 	safeLoop() {
