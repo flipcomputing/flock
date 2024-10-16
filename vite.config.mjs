@@ -43,8 +43,8 @@ export default {
       devOptions: {
         enabled: true
       },
-      assetsInclude: ['**/*.glb', '**/*.gltf', '**/*.ogg', '**/*.json', '**/*.png', '**/*.woff',  '**/*.woff2', '**/*.css', '**/*.svg', ] ,
-      includeAssets: ['**/*.glb', '**/*.gltf', '**/*.ogg', '**/*.json', '**/*.png', '**/*.woff',  '**/*.woff2', '**/*.css', '**/*.svg',],
+      assetsInclude: ['**/*.glb', '**/*.gltf', '**/*.ogg', '**/*.json', '**/*.png', '**/*.woff', '**/*.woff2', '**/*.css', '**/*.svg',],
+      includeAssets: ['**/*.glb', '**/*.gltf', '**/*.ogg', '**/*.json', '**/*.png', '**/*.woff', '**/*.woff2', '**/*.css', '**/*.svg',],
       manifest: {
         name: 'Flock XR - Creating coding in 3D',
         short_name: 'Flock',
@@ -133,7 +133,7 @@ export default {
     {
       name: 'copy-library-files',
       writeBundle() {
-copyFileSync('example.html', 'dist/example.html');
+        copyFileSync('example.html', 'dist/example.html');
       },
     },
   ],
@@ -151,7 +151,7 @@ copyFileSync('example.html', 'dist/example.html');
     assetsInlineLimit: 100000,  // Set high enough to include font files
     cssCodeSplit: false,  // Disables CSS code splitting and inlines CSS into JavaScript
     rollupOptions: {
-      input: 'index.html', 
+      input: 'index.html',
     },
   },
 }

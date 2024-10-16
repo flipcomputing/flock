@@ -23,7 +23,7 @@ export const toolbox = {
 		{
 			kind: "category",
 			name: "Events",
-			icon: "/images/events.svg",
+			icon: "./images/events.svg",
 			colour: categoryColours["Events"],
 			contents: [
 				{
@@ -91,7 +91,7 @@ export const toolbox = {
 		{
 			kind: "category",
 			name: "Scene",
-			icon: "/images/scene.svg",
+			icon: "./images/scene.svg",
 			colour: categoryColours["Scene"],
 			contents: [
 				{
@@ -961,7 +961,7 @@ export const toolbox = {
 		{
 			kind: "category",
 			name: "Materials",
-			icon: "/images/looks.svg",
+			icon: "./images/looks.svg",
 			colour: categoryColours["Materials"],
 			contents: [
 				{
@@ -1375,7 +1375,7 @@ export const toolbox = {
 		{
 			kind: "category",
 			name: "Transform",
-			icon: "/images/motion.svg",
+			icon: "./images/motion.svg",
 			colour: categoryColours["Transform"],
 			contents: [
 				{
@@ -1884,7 +1884,7 @@ export const toolbox = {
 		{
 			kind: "category",
 			name: "Control",
-			icon: "/images/control.svg",
+			icon: "./images/control.svg",
 			colour: categoryColours["Control"],
 			contents: [
 				{
@@ -1947,7 +1947,7 @@ export const toolbox = {
 		{
 			kind: "category",
 			name: "Condition",
-			icon: "/images/conditions.svg",
+			icon: "./images/conditions.svg",
 			colour: categoryColours["Logic"],
 			contents: [
 				{
@@ -1995,7 +1995,7 @@ export const toolbox = {
 		{
 			kind: "category",
 			name: "Sensing",
-			icon: "/images/sensing.svg",
+			icon: "./images/sensing.svg",
 			colour: categoryColours["Sensing"],
 			contents: [
 				{
@@ -2053,7 +2053,7 @@ export const toolbox = {
 		{
 			kind: "category",
 			name: "Text",
-			icon: "/images/text.svg",
+			icon: "./images/text.svg",
 			categorystyle: "text_category",
 			contents: [
 				{
@@ -2427,7 +2427,7 @@ export const toolbox = {
 		{
 			kind: "category",
 			name: "Sound",
-			icon: "/images/sound.svg",
+			icon: "./images/sound.svg",
 			colour: categoryColours["Sound"],
 			contents: [
 				{
@@ -2563,7 +2563,7 @@ export const toolbox = {
 		{
 			kind: "category",
 			name: "Variables",
-			icon: "/images/variables.svg",
+			icon: "./images/variables.svg",
 			colour: categoryColours["Variables"],
 			custom: "VARIABLE",
 			contents: [],
@@ -2571,7 +2571,7 @@ export const toolbox = {
 		{
 			kind: "category",
 			name: "Lists",
-			icon: "/images/lists.svg",
+			icon: "./images/lists.svg",
 			colour: categoryColours["Lists"],
 			contents: [
 				{
@@ -2634,7 +2634,7 @@ export const toolbox = {
 		{
 			kind: "category",
 			name: "Math",
-			icon: "/images/math.svg",
+			icon: "./images/math.svg",
 			colour: categoryColours["Math"],
 			contents: [
 				{
@@ -2800,13 +2800,13 @@ export const toolbox = {
 		{
 			kind: "category",
 			name: "Functions",
-			icon: "/images/functions.svg",
+			icon: "./images/functions.svg",
 			custom: "PROCEDURE",
 			colour: "%{BKY_PROCEDURES_HUE}",
 		},
 		{
 			kind: "category",
-			icon: "/images/snippets.svg",
+			icon: "./images/snippets.svg",
 			colour: categoryColours["Snippets"],
 			name: "Snippets",
 			contents: [
