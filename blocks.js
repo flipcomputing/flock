@@ -47,8 +47,9 @@ export function handleBlockDelete(event) {
 }
 
 function findCreateBlock(block) {
+
 	if (!block || typeof block.getParent !== "function") {
-		console.warn("Invalid block provided to findParentCreateOrLoad.");
+		console.log("no id")
 		return null;
 	}
 
@@ -495,7 +496,7 @@ export function defineBlocks() {
 				],
 				previousStatement: null,
 				nextStatement: null,
-				colour: categoryColours["Motion"],
+				colour: categoryColours["Transform"],
 				tooltip:
 					"Glide to a specified position over a duration with options for reversing, looping, and easing.",
 				helpUrl: "",
@@ -572,7 +573,7 @@ export function defineBlocks() {
 				],
 				previousStatement: null,
 				nextStatement: null,
-				colour: categoryColours["Motion"],
+				colour: categoryColours["Transform"],
 				tooltip:
 					"Rotate a mesh to specified angles over a duration with options for reverse, looping, and easing.",
 				helpUrl: "",
@@ -635,7 +636,7 @@ export function defineBlocks() {
 				],
 				previousStatement: null,
 				nextStatement: null,
-				colour: categoryColours["Looks"],
+				colour: categoryColours["Materials"],
 				tooltip:
 					"Animates a material property of the mesh and its children.",
 				helpUrl: "",
@@ -660,7 +661,7 @@ export function defineBlocks() {
 						check: "Colour", // Reusing your existing colour block
 					},
 				],
-				colour: categoryColours["Motion"],
+				colour: categoryColours["Transform"],
 				inputsInline: true,
 				output: "Keyframe",
 				tooltip: "Set a colour and duration for a keyframe.",
@@ -686,7 +687,7 @@ export function defineBlocks() {
 						check: "Number", // Reusing your existing colour block
 					},
 				],
-				colour: categoryColours["Motion"],
+				colour: categoryColours["Transform"],
 				inputsInline: true,
 				output: "Keyframe",
 				tooltip: "Set a number and duration for a keyframe.",
@@ -722,7 +723,7 @@ export function defineBlocks() {
 						check: "Number",
 					},
 				],
-				colour: categoryColours["Motion"],
+				colour: categoryColours["Transform"],
 				inputsInline: true,
 				output: "Keyframe",
 				tooltip: "Set an XYZ keyframe with duration.",
@@ -791,7 +792,7 @@ export function defineBlocks() {
 				inputsInline: true,
 				previousStatement: null,
 				nextStatement: null,
-				colour: categoryColours["Motion"],
+				colour: categoryColours["Transform"],
 				tooltip:
 					"Animates an array of keyframes on the selected mesh, with easing, optional looping, and reversing.",
 				helpUrl: "",
@@ -816,7 +817,7 @@ export function defineBlocks() {
 					},
 				],
 				output: "Number", // Returns a numeric value
-				colour: categoryColours["Motion"],
+				colour: categoryColours["Transform"],
 				tooltip: "Choose min, centre, or max for the pivot point",
 				helpUrl: "",
 			});
@@ -853,7 +854,7 @@ export function defineBlocks() {
 				inputsInline: true,
 				previousStatement: null,
 				nextStatement: null,
-				colour: categoryColours["Motion"],
+				colour: categoryColours["Transform"],
 				tooltip:
 					"Sets the pivot point for a mesh on the X, Y, and Z axes",
 				helpUrl: "",
@@ -1016,6 +1017,7 @@ export function defineBlocks() {
 					changeEvent.type === Blockly.Events.BLOCK_CREATE ||
 					changeEvent.type === Blockly.Events.BLOCK_CHANGE
 				) {
+
 					const blockInWorkspace =
 						Blockly.getMainWorkspace().getBlockById(this.id); // Check if block is in the main workspace
 
@@ -1408,11 +1410,11 @@ export function defineBlocks() {
 
 			this.setOnChange((changeEvent) => {
 				if (
-					changeEvent.type === Blockly.Events.BLOCK_CREATE ||
-					changeEvent.type === Blockly.Events.BLOCK_CHANGE
+					(changeEvent.type === Blockly.Events.BLOCK_CREATE ||
+					changeEvent.type === Blockly.Events.BLOCK_CHANGE) &&  changeEvent.workspaceId === Blockly.getMainWorkspace().id
 				) {
 					const parent = findCreateBlock(
-						Blockly.getMainWorkspace().getBlockById(
+										Blockly.getMainWorkspace().getBlockById(
 							changeEvent.blockId,
 						),
 					);
@@ -1501,9 +1503,10 @@ export function defineBlocks() {
 
 			this.setOnChange((changeEvent) => {
 				if (
-					changeEvent.type === Blockly.Events.BLOCK_CREATE ||
-					changeEvent.type === Blockly.Events.BLOCK_CHANGE
+					(changeEvent.type === Blockly.Events.BLOCK_CREATE ||
+					changeEvent.type === Blockly.Events.BLOCK_CHANGE) &&  changeEvent.workspaceId === Blockly.getMainWorkspace().id
 				) {
+		
 					const parent = findCreateBlock(
 						Blockly.getMainWorkspace().getBlockById(
 							changeEvent.blockId,
@@ -1593,9 +1596,9 @@ export function defineBlocks() {
 
 			this.setOnChange((changeEvent) => {
 				if (
-					changeEvent.type === Blockly.Events.BLOCK_CREATE ||
-					changeEvent.type === Blockly.Events.BLOCK_CHANGE
-				) {
+					(changeEvent.type === Blockly.Events.BLOCK_CREATE ||
+					changeEvent.type === Blockly.Events.BLOCK_CHANGE) &&  changeEvent.workspaceId === Blockly.getMainWorkspace().id
+				) {				
 					const parent = findCreateBlock(
 						Blockly.getMainWorkspace().getBlockById(
 							changeEvent.blockId,
@@ -1679,9 +1682,10 @@ export function defineBlocks() {
 
 			this.setOnChange((changeEvent) => {
 				if (
-					changeEvent.type === Blockly.Events.BLOCK_CREATE ||
-					changeEvent.type === Blockly.Events.BLOCK_CHANGE
+					(changeEvent.type === Blockly.Events.BLOCK_CREATE ||
+					changeEvent.type === Blockly.Events.BLOCK_CHANGE) &&  changeEvent.workspaceId === Blockly.getMainWorkspace().id
 				) {
+				
 					const parent = findCreateBlock(
 						Blockly.getMainWorkspace().getBlockById(
 							changeEvent.blockId,
@@ -2025,7 +2029,7 @@ export function defineBlocks() {
 				],
 				previousStatement: null,
 				nextStatement: null,
-				colour: categoryColours["Looks"],
+				colour: categoryColours["Materials"],
 				tooltip:
 					"Changes the animation of the specified model to the given animation.\nKeyword: switch",
 				helpUrl: "",
@@ -2132,7 +2136,7 @@ export function defineBlocks() {
 				],
 				previousStatement: null,
 				nextStatement: null,
-				colour: categoryColours["Looks"],
+				colour: categoryColours["Materials"],
 				tooltip:
 					"Plays a selected animation once on the specified model.\nKeyword: play",
 				helpUrl: "",
@@ -2172,7 +2176,7 @@ export function defineBlocks() {
 				],
 				previousStatement: null,
 				nextStatement: null,
-				colour: categoryColours["Motion"],
+				colour: categoryColours["Transform"],
 				inputsInline: true,
 				tooltip:
 					"Moves a mesh a given amount in x y and z directions.\nKeyword: move",
@@ -2308,7 +2312,7 @@ export function defineBlocks() {
 				],
 				previousStatement: null,
 				nextStatement: null,
-				colour: categoryColours["Looks"],
+				colour: categoryColours["Materials"],
 				inputsInline: true,
 				tooltip:
 					"Resizes a mesh to the given x, y, and z and controls the origin of scaling.",
@@ -2348,7 +2352,7 @@ export function defineBlocks() {
 				],
 				previousStatement: null,
 				nextStatement: null,
-				colour: categoryColours["Motion"],
+				colour: categoryColours["Transform"],
 				inputsInline: true,
 				tooltip:
 					"Rotates the model based on its current rotation plus additional x, y, z values.\nKeyword: rotate",
@@ -2382,7 +2386,7 @@ export function defineBlocks() {
 				],
 				previousStatement: null,
 				nextStatement: null,
-				colour: categoryColours["Motion"],
+				colour: categoryColours["Transform"],
 				inputsInline: true,
 				tooltip:
 					"Rotates the first model towards the position of the second model.\nKeyword: look",
@@ -2416,7 +2420,7 @@ export function defineBlocks() {
 				],
 				previousStatement: null,
 				nextStatement: null,
-				colour: categoryColours["Motion"],
+				colour: categoryColours["Transform"],
 				inputsInline: true,
 				tooltip:
 					"Teleports the first model to the location of the second model.",
@@ -2457,7 +2461,7 @@ export function defineBlocks() {
 				],
 				previousStatement: null,
 				nextStatement: null,
-				colour: categoryColours["Motion"],
+				colour: categoryColours["Transform"],
 				inputsInline: true,
 				tooltip: "Rotates the model to face the specified coordinates.",
 				helpUrl: "",
@@ -2503,7 +2507,7 @@ export function defineBlocks() {
 				],
 				previousStatement: null,
 				nextStatement: null,
-				colour: categoryColours["Motion"],
+				colour: categoryColours["Transform"],
 				inputsInline: true,
 				tooltip:
 					"Positions the model at the specified coordinates. Optionally, use the Y axis.",
@@ -2594,7 +2598,7 @@ export function defineBlocks() {
 				],
 				previousStatement: null,
 				nextStatement: null,
-				colour: categoryColours["Motion"],
+				colour: categoryColours["Transform"],
 				tooltip: "Bind a specific key to a camera control action.",
 				helpUrl: "",
 			});
@@ -2615,7 +2619,7 @@ export function defineBlocks() {
 				],
 				previousStatement: null,
 				nextStatement: null,
-				colour: categoryColours["Motion"],
+				colour: categoryColours["Transform"],
 				tooltip: "Gets the current scene camera",
 				helpUrl: "",
 			});
@@ -3299,7 +3303,7 @@ export function defineBlocks() {
 				],
 				previousStatement: null,
 				nextStatement: null,
-				colour: categoryColours["Looks"],
+				colour: categoryColours["Materials"],
 				tooltip: "Shows the selected model.\nKeyword: show",
 				helpUrl: "",
 			});
@@ -3320,7 +3324,7 @@ export function defineBlocks() {
 				],
 				previousStatement: null,
 				nextStatement: null,
-				colour: categoryColours["Looks"],
+				colour: categoryColours["Materials"],
 				tooltip: "Hides the selected model.\nKeyword: hide",
 				helpUrl: "",
 			});
@@ -3347,7 +3351,7 @@ export function defineBlocks() {
 				inputsInline: true,
 				previousStatement: null,
 				nextStatement: null,
-				colour: categoryColours["Looks"],
+				colour: categoryColours["Materials"],
 				tooltip:
 					"Changes the color of the selected model.\nKeyword: colour",
 				helpUrl: "",
@@ -3389,7 +3393,7 @@ export function defineBlocks() {
 					},
 				],
 				inputsInline: true,
-				colour: categoryColours["Looks"],
+				colour: categoryColours["Materials"],
 				tooltip:
 					"Apply a selected material with a colour tint to the specified object.\nKeyword: material",
 				helpUrl: "",
@@ -3445,7 +3449,7 @@ export function defineBlocks() {
 				inputsInline: true,
 				previousStatement: null,
 				nextStatement: null,
-				colour: categoryColours["Looks"],
+				colour: categoryColours["Materials"],
 				tooltip:
 					"Create a material with text or emoji, specifying width, height, background color, and text size.",
 				helpUrl: "",
@@ -3471,7 +3475,7 @@ export function defineBlocks() {
 				],
 				previousStatement: null,
 				nextStatement: null,
-				colour: categoryColours["Looks"],
+				colour: categoryColours["Materials"],
 				tooltip: "Place a decal on a mesh using the selected material.",
 				helpUrl: "",
 			});
@@ -3543,7 +3547,7 @@ export function defineBlocks() {
 				inputsInline: true,
 				previousStatement: null,
 				nextStatement: null,
-				colour: categoryColours["Looks"],
+				colour: categoryColours["Materials"],
 				tooltip:
 					"Create a decal on a mesh with position, normal, size, and material.",
 				helpUrl: "",
@@ -3572,7 +3576,7 @@ export function defineBlocks() {
 				inputsInline: true,
 				previousStatement: null,
 				nextStatement: null,
-				colour: categoryColours["Looks"],
+				colour: categoryColours["Materials"],
 				tooltip: "Highlights the selected model.\nKeyword: highlight",
 				helpUrl: "",
 			});
@@ -3600,7 +3604,7 @@ export function defineBlocks() {
 				inputsInline: true,
 				previousStatement: null,
 				nextStatement: null,
-				colour: categoryColours["Looks"],
+				colour: categoryColours["Materials"],
 				tooltip: "Add colour tint effect.\nKeyword: tint",
 				helpUrl: "",
 			});
@@ -3627,7 +3631,7 @@ export function defineBlocks() {
 				inputsInline: true,
 				previousStatement: null,
 				nextStatement: null,
-				colour: categoryColours["Looks"],
+				colour: categoryColours["Materials"],
 				tooltip:
 					"Changes the color of the selected model.\nKeyword: colour",
 				helpUrl: "",
@@ -3655,7 +3659,7 @@ export function defineBlocks() {
 				inputsInline: true,
 				previousStatement: null,
 				nextStatement: null,
-				colour: categoryColours["Looks"],
+				colour: categoryColours["Materials"],
 				tooltip:
 					"Sets the alpha (transparency) of the material(s) on a specified mesh. Values should be 0 to 1.\nKeyword:alpha",
 				helpUrl: "",
@@ -3678,7 +3682,7 @@ export function defineBlocks() {
 				inputsInline: true,
 				previousStatement: null,
 				nextStatement: null,
-				colour: categoryColours["Looks"],
+				colour: categoryColours["Materials"],
 				tooltip:
 					"Clear visual effects from selected model.\nKeyword: clear",
 				helpUrl: "",
@@ -3705,7 +3709,7 @@ export function defineBlocks() {
 				],
 				previousStatement: null,
 				nextStatement: null,
-				colour: categoryColours["Motion"],
+				colour: categoryColours["Transform"],
 				tooltip:
 					"Makes the camera follow a model with a customizable distance (radius) from the target.\nKeyword: follow",
 				helpUrl: "",
@@ -3738,7 +3742,7 @@ export function defineBlocks() {
 				],
 				previousStatement: null,
 				nextStatement: null,
-				colour: categoryColours["Motion"],
+				colour: categoryColours["Transform"],
 				tooltip:
 					"Adds physics to the mesh. Choose between static, dynamic, and animated.\nKeyword:physics",
 				helpUrl: "",
@@ -3847,7 +3851,7 @@ export function defineBlocks() {
 				inputsInline: true,
 				previousStatement: null,
 				nextStatement: null,
-				colour: categoryColours["Motion"],
+				colour: categoryColours["Transform"],
 				tooltip:
 					"Moves the model forward in the direction it's pointing.\nKeyword: forward",
 				helpUrl: "",
@@ -3875,7 +3879,7 @@ export function defineBlocks() {
 				inputsInline: true,
 				previousStatement: null,
 				nextStatement: null,
-				colour: categoryColours["Motion"],
+				colour: categoryColours["Transform"],
 				tooltip:
 					"Turns the model and moves it sideways relative to the camera's direction. Positive speed moves right, negative moves left.\nKeyword: move sideways",
 				helpUrl: "",
@@ -3903,7 +3907,7 @@ export function defineBlocks() {
 				inputsInline: true,
 				previousStatement: null,
 				nextStatement: null,
-				colour: categoryColours["Motion"],
+				colour: categoryColours["Transform"],
 				tooltip:
 					"Moves the model sideways relative to the camera. Positive speed moves right, negative moves left.\nKeyword: sideways",
 				helpUrl: "",
@@ -3926,7 +3930,7 @@ export function defineBlocks() {
 				inputsInline: true,
 				previousStatement: null,
 				nextStatement: null,
-				colour: categoryColours["Motion"],
+				colour: categoryColours["Transform"],
 				tooltip:
 					"Rotates the camera left or right by the given degrees.\nKeyword: rotate",
 				helpUrl: "",
@@ -3967,7 +3971,7 @@ export function defineBlocks() {
 				inputsInline: true,
 				previousStatement: null,
 				nextStatement: null,
-				colour: categoryColours["Motion"],
+				colour: categoryColours["Transform"],
 				tooltip:
 					"Apply a force to a mesh in XYZ directions.\nKeyword: force",
 				helpUrl: "",
@@ -3994,7 +3998,7 @@ export function defineBlocks() {
 				],
 				previousStatement: null,
 				nextStatement: null,
-				colour: categoryColours["Motion"],
+				colour: categoryColours["Transform"],
 				tooltip: "Apply the specified upwards force.\nKeyword: up",
 				helpUrl: "",
 			});
@@ -4035,7 +4039,7 @@ export function defineBlocks() {
 					},
 				],
 				output: "Colour",
-				colour: categoryColours["Looks"],
+				colour: categoryColours["Materials"],
 				tooltip: "Pick a colour.\nKeyword: color",
 				helpUrl: "",
 			});
@@ -4084,7 +4088,7 @@ export function defineBlocks() {
 					},
 				],
 				output: "Colour",
-				colour: categoryColours["Looks"],
+				colour: categoryColours["Materials"],
 				tooltip: "Pick a skin colour.\nKeyword: skin",
 				helpUrl: "",
 			});
@@ -4131,7 +4135,7 @@ export function defineBlocks() {
 					},
 				],
 				output: "Colour",
-				colour: categoryColours["Looks"], // You can set this to any colour category you prefer
+				colour: categoryColours["Materials"], // You can set this to any colour category you prefer
 				tooltip:
 					"Pick a greyscale colour for elevation.\nKeyword: grey",
 				helpUrl: "",
@@ -4152,7 +4156,7 @@ export function defineBlocks() {
 					},
 				],
 				output: "Colour",
-				colour: categoryColours["Looks"],
+				colour: categoryColours["Materials"],
 				tooltip:
 					"Returns a colour from a hex code or CSS colour name.\nKeyword: #color",
 				helpUrl: "",
@@ -4166,7 +4170,7 @@ export function defineBlocks() {
 				type: "random_colour_block",
 				message0: "random colour",
 				output: "Colour",
-				colour: categoryColours["Looks"],
+				colour: categoryColours["Materials"],
 				tooltip: "Generate a random colour.\nKeyword: randcol",
 				helpUrl: "",
 			});
@@ -4234,7 +4238,7 @@ export function defineBlocks() {
 				],
 				output: "Material",
 				inputsInline: true,
-				colour: categoryColours["Looks"],
+				colour: categoryColours["Materials"],
 				tooltip: "Define material properties",
 				helpUrl: "",
 			});
@@ -4261,7 +4265,7 @@ export function defineBlocks() {
 				previousStatement: null,
 				nextStatement: null,
 				inputsInline: true,
-				colour: categoryColours["Looks"],
+				colour: categoryColours["Materials"],
 				tooltip: "Set the specified material on the given mesh.",
 				helpUrl: "",
 			});

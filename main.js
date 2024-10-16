@@ -88,7 +88,7 @@ function stripFilename(inputString) {
 		removeEnd.lastIndexOf("\\"),
 	);
 
-	if (lastIndex === -1) {
+	if (lastIndex =fi== -1) {
 		return removeEnd.trim();
 	}
 

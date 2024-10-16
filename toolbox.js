@@ -1,10 +1,13 @@
+import * as Blockly from "blockly";
+
 export const categoryColours = {
 	Events: 210,
 	Scene: 150,
-	Motion: 240,
-	Looks: 300,
+	Transform: 240,
+	Materials: 300,
 	Sound: 15,
 	Sensing: 180,
+	Snippets: 80,
 	Control: "%{BKY_LOOPS_HUE}",
 	Logic: "%{BKY_LOGIC_HUE}",
 	Variables: "%{BKY_VARIABLES_HUE}",
@@ -20,6 +23,7 @@ export const toolbox = {
 		{
 			kind: "category",
 			name: "Events",
+			icon: "/images/events.svg",
 			colour: categoryColours["Events"],
 			contents: [
 				{
@@ -87,6 +91,7 @@ export const toolbox = {
 		{
 			kind: "category",
 			name: "Scene",
+			icon: "/images/scene.svg",
 			colour: categoryColours["Scene"],
 			contents: [
 				{
@@ -955,8 +960,9 @@ export const toolbox = {
 		},
 		{
 			kind: "category",
-			name: "Looks",
-			colour: categoryColours["Looks"],
+			name: "Materials",
+			icon: "/images/looks.svg",
+			colour: categoryColours["Materials"],
 			contents: [
 				{
 					kind: "block",
@@ -1368,8 +1374,9 @@ export const toolbox = {
 		},
 		{
 			kind: "category",
-			name: "Motion",
-			colour: categoryColours["Motion"],
+			name: "Transform",
+			icon: "/images/motion.svg",
+			colour: categoryColours["Transform"],
 			contents: [
 				{
 					kind: "block",
@@ -1876,142 +1883,8 @@ export const toolbox = {
 		},
 		{
 			kind: "category",
-			name: "Sound",
-			colour: categoryColours["Sound"],
-			contents: [
-				{
-					kind: "block",
-					type: "play_sound",
-					keyword: "sound",
-					inputs: {
-						SPEED: {
-							shadow: {
-								type: "math_number",
-								fields: {
-									NUM: 1,
-								},
-							},
-						},
-						VOLUME: {
-							shadow: {
-								type: "math_number",
-								fields: {
-									NUM: 1,
-								},
-							},
-						},
-					},
-				},
-				{
-					kind: "block",
-					type: "stop_all_sounds",
-				},
-				{
-					kind: "block",
-					type: "midi_note",
-					fields: {
-						NOTE: 60,
-					},
-				},
-				{
-					kind: "block",
-					type: "rest",
-				},
-				{
-					kind: "block",
-					type: "play_notes",
-					keyword: "play_notes",
-					inputsInline: true, // Set lists to be inline
-					inputs: {
-						NOTES: {
-							block: {
-								type: "lists_create_with",
-								inline: true,
-								extraState: {
-									itemCount: 1,
-								},
-								inputs: {
-									ADD0: {
-										block: {
-											type: "midi_note",
-											fields: {
-												NOTE: 60, // Default MIDI note: 60 (Middle C)
-											},
-										},
-									},
-								},
-							},
-						},
-						DURATIONS: {
-							block: {
-								type: "lists_create_with",
-								inline: true,
-								extraState: {
-									itemCount: 1,
-								},
-								inputs: {
-									ADD0: {
-										block: {
-											type: "math_number",
-											fields: {
-												NUM: 1, // Default duration: 1 beat
-											},
-										},
-									},
-								},
-							},
-						},
-						INSTRUMENT: {
-							shadow: {
-								type: "instrument",
-								fields: {
-									INSTRUMENT_TYPE: "default", // Default instrument selection
-								},
-							},
-						},
-					},
-				},
-				{
-					kind: "block",
-					type: "set_scene_bpm",
-					inputs: {
-						BPM: {
-							shadow: {
-								type: "math_number",
-								fields: {
-									NUM: 60,
-								},
-							},
-						},
-					},
-				},
-				{
-					kind: "block",
-					type: "set_mesh_bpm",
-					inputs: {
-						BPM: {
-							shadow: {
-								type: "math_number",
-								fields: {
-									NUM: 60,
-								},
-							},
-						},
-					},
-				},
-				{
-					kind: "block",
-					type: "instrument",
-				},
-				{
-					kind: "block",
-					type: "create_instrument",
-				},
-			],
-		},
-		{
-			kind: "category",
 			name: "Control",
+			icon: "/images/control.svg",
 			colour: categoryColours["Control"],
 			contents: [
 				{
@@ -2074,6 +1947,7 @@ export const toolbox = {
 		{
 			kind: "category",
 			name: "Condition",
+			icon: "/images/conditions.svg",
 			colour: categoryColours["Logic"],
 			contents: [
 				{
@@ -2121,6 +1995,7 @@ export const toolbox = {
 		{
 			kind: "category",
 			name: "Sensing",
+			icon: "/images/sensing.svg",
 			colour: categoryColours["Sensing"],
 			contents: [
 				{
@@ -2178,6 +2053,7 @@ export const toolbox = {
 		{
 			kind: "category",
 			name: "Text",
+			icon: "/images/text.svg",
 			categorystyle: "text_category",
 			contents: [
 				{
@@ -2550,7 +2426,144 @@ export const toolbox = {
 		},
 		{
 			kind: "category",
+			name: "Sound",
+			icon: "/images/sound.svg",
+			colour: categoryColours["Sound"],
+			contents: [
+				{
+					kind: "block",
+					type: "play_sound",
+					keyword: "sound",
+					inputs: {
+						SPEED: {
+							shadow: {
+								type: "math_number",
+								fields: {
+									NUM: 1,
+								},
+							},
+						},
+						VOLUME: {
+							shadow: {
+								type: "math_number",
+								fields: {
+									NUM: 1,
+								},
+							},
+						},
+					},
+				},
+				{
+					kind: "block",
+					type: "stop_all_sounds",
+				},
+				{
+					kind: "block",
+					type: "midi_note",
+					fields: {
+						NOTE: 60,
+					},
+				},
+				{
+					kind: "block",
+					type: "rest",
+				},
+				{
+					kind: "block",
+					type: "play_notes",
+					keyword: "play_notes",
+					inputsInline: true, // Set lists to be inline
+					inputs: {
+						NOTES: {
+							block: {
+								type: "lists_create_with",
+								inline: true,
+								extraState: {
+									itemCount: 1,
+								},
+								inputs: {
+									ADD0: {
+										block: {
+											type: "midi_note",
+											fields: {
+												NOTE: 60, // Default MIDI note: 60 (Middle C)
+											},
+										},
+									},
+								},
+							},
+						},
+						DURATIONS: {
+							block: {
+								type: "lists_create_with",
+								inline: true,
+								extraState: {
+									itemCount: 1,
+								},
+								inputs: {
+									ADD0: {
+										block: {
+											type: "math_number",
+											fields: {
+												NUM: 1, // Default duration: 1 beat
+											},
+										},
+									},
+								},
+							},
+						},
+						INSTRUMENT: {
+							shadow: {
+								type: "instrument",
+								fields: {
+									INSTRUMENT_TYPE: "default", // Default instrument selection
+								},
+							},
+						},
+					},
+				},
+				{
+					kind: "block",
+					type: "set_scene_bpm",
+					inputs: {
+						BPM: {
+							shadow: {
+								type: "math_number",
+								fields: {
+									NUM: 60,
+								},
+							},
+						},
+					},
+				},
+				{
+					kind: "block",
+					type: "set_mesh_bpm",
+					inputs: {
+						BPM: {
+							shadow: {
+								type: "math_number",
+								fields: {
+									NUM: 60,
+								},
+							},
+						},
+					},
+				},
+				{
+					kind: "block",
+					type: "instrument",
+				},
+				{
+					kind: "block",
+					type: "create_instrument",
+				},
+			],
+		},
+		{
+			kind: "category",
 			name: "Variables",
+			icon: "/images/variables.svg",
 			colour: categoryColours["Variables"],
 			custom: "VARIABLE",
 			contents: [],
@@ -2558,6 +2571,7 @@ export const toolbox = {
 		{
 			kind: "category",
 			name: "Lists",
+			icon: "/images/lists.svg",
 			colour: categoryColours["Lists"],
 			contents: [
 				{
@@ -2620,6 +2634,7 @@ export const toolbox = {
 		{
 			kind: "category",
 			name: "Math",
+			icon: "/images/math.svg",
 			colour: categoryColours["Math"],
 			contents: [
 				{
@@ -2785,11 +2800,14 @@ export const toolbox = {
 		{
 			kind: "category",
 			name: "Functions",
+			icon: "/images/functions.svg",
 			custom: "PROCEDURE",
 			colour: "%{BKY_PROCEDURES_HUE}",
 		},
 		{
 			kind: "category",
+			icon: "/images/snippets.svg",
+			colour: categoryColours["Snippets"],
 			name: "Snippets",
 			contents: [
 				{
@@ -3116,3 +3134,68 @@ export const initialBlocksJson = {
 		],
 	},
 };
+
+class IconCategory extends Blockly.ToolboxCategory {
+	constructor(categoryDef, toolbox, opt_parent) {
+		super(categoryDef, toolbox, opt_parent);
+	}
+
+	addColourBorder_() {
+		// Do nothing to prevent the colored block from being added
+	}
+
+	/** @override */
+	createIconDom_() {
+		const img = document.createElement("img");
+		img.src = this.toolboxItemDef_.icon || "./default_icon.svg"; // Use a default icon if none provided
+		img.alt = this.toolboxItemDef_.name + " icon";
+		img.width = "24"; // Adjust as needed
+		img.height = "24"; // Adjust as needed
+		img.classList.add("customToolboxIcon");
+		return img;
+	}
+
+	/** @override */
+	createDom_() {
+		super.createDom_();
+
+		// Use the stored colour_ property for the tab colour
+		const tabColour = this.colour_;
+
+		// Apply custom class to the rowDiv_
+		this.rowDiv_.classList.add('custom-category');
+
+		// Set the background color of the category to match the tab colour
+		if (tabColour) {
+			 this.rowDiv_.style.setProperty('background-color', tabColour, 'important');
+		}
+
+		return this.htmlDiv_;
+	}
+
+	/** @override */
+	  setSelected(isSelected) {
+		super.setSelected(isSelected);
+
+		// Get the category color
+		const categoryColour =  this.colour_;
+
+		// Change background color when selected/deselected
+		if (isSelected) {
+
+		} else {
+		this.rowDiv_.style.setProperty('background-color', categoryColour, 'important');
+		}
+		  
+	  }
+}
+
+// Register the custom category
+Blockly.registry.register(
+	Blockly.registry.Type.TOOLBOX_ITEM,
+	Blockly.ToolboxCategory.registrationName,
+	IconCategory,
+	true,
+);
+
+//iconImg.alt = this.toolboxItemDef_.name + ' icon';

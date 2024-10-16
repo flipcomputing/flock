@@ -4198,10 +4198,6 @@ export const flock = {
 					camera.inputs.attached.pointers.pinchInwards = false;
 					camera.inputs.attached.pointers.useNaturalPinchZoom = true;
 
-					camera.inputs.removeByType(
-						camera.inputs.attached.mousewheel,
-					);
-
 					camera.inputs.attached.pointers.onMultiTouch = function () {
 						// Do nothing to disable multi-touch behavior in Babylon.js
 					};
