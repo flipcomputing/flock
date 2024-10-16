@@ -43,8 +43,8 @@ export default {
       devOptions: {
         enabled: true
       },
-      assetsInclude: ['**/*.glb', '**/*.gltf', '**/*.ogg', '**/*.json', '**/*.png', '**/*.woff',  '**/*.woff2', '**/*.css',] ,
-      includeAssets: ['**/*.glb', '**/*.gltf', '**/*.ogg', '**/*.json', '**/*.png', '**/*.woff',  '**/*.woff2', '**/*.css',],
+      assetsInclude: ['**/*.glb', '**/*.gltf', '**/*.ogg', '**/*.json', '**/*.png', '**/*.woff',  '**/*.woff2', '**/*.css', '**/*.svg', ] ,
+      includeAssets: ['**/*.glb', '**/*.gltf', '**/*.ogg', '**/*.json', '**/*.png', '**/*.woff',  '**/*.woff2', '**/*.css', '**/*.svg',],
       manifest: {
         name: 'Flock XR - Creating coding in 3D',
         short_name: 'Flock',
