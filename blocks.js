@@ -18,7 +18,7 @@ import {
 } from '@blockly/plugin-scroll-options';*/
 /*import {Multiselect, MultiselectBlockDragger} from '@mit-app-inventor/blockly-plugin-workspace-multiselect';*/
 
-let nextVariableIndexes = {};
+export let nextVariableIndexes = {};
 
 window.currentMesh = "mesh";
 window.currentBlock = null;
@@ -46,10 +46,9 @@ export function handleBlockDelete(event) {
 	}
 }
 
-function findCreateBlock(block) {
-
+export function findCreateBlock(block) {
 	if (!block || typeof block.getParent !== "function") {
-		console.log("no id")
+		console.log("no id");
 		return null;
 	}
 
@@ -1017,7 +1016,6 @@ export function defineBlocks() {
 					changeEvent.type === Blockly.Events.BLOCK_CREATE ||
 					changeEvent.type === Blockly.Events.BLOCK_CHANGE
 				) {
-
 					const blockInWorkspace =
 						Blockly.getMainWorkspace().getBlockById(this.id); // Check if block is in the main workspace
 
@@ -1151,52 +1149,6 @@ export function defineBlocks() {
 		},
 	};
 
-	function addDoMutatorWithToggleBehavior(block) {
-		// Custom function to toggle the "do" block mutation
-		block.toggleDoBlock = function () {
-			const hasDo = this.getInput("DO") ? true : false;
-			if (hasDo) {
-				this.removeInput("DO");
-			} else {
-				this.appendStatementInput("DO")
-					.setCheck(null)
-					.appendField("then do");
-			}
-		};
-
-		// Add the toggle button to the block
-		const toggleButton = new Blockly.FieldImage(
-			"data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAiIGhlaWdodD0iMzAiIHZpZXdCb3g9IjAgMCAzMCAzMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4gPHBhdGggZmlsbD0id2hpdGUiIGQ9Ik0xNSA2djloLTl2M2g5djloM3YtOWg5di0zaC05di05eiIvPjwvc3ZnPg==", // Custom icon
-			30,
-			30,
-			"*", // Width, Height, Alt text
-			block.toggleDoBlock.bind(block), // Bind the event handler to the block
-		);
-
-		// Add the button to the block
-		block.appendDummyInput().appendField(toggleButton, "TOGGLE_BUTTON");
-
-		// Save the mutation state
-		block.mutationToDom = function () {
-			const container = document.createElement("mutation");
-			container.setAttribute(
-				"has_do",
-				this.getInput("DO") ? "true" : "false",
-			);
-			return container;
-		};
-
-		// Restore the mutation state
-		block.domToMutation = function (xmlElement) {
-			const hasDo = xmlElement.getAttribute("has_do") === "true";
-			if (hasDo) {
-				this.appendStatementInput("DO")
-					.setCheck(null)
-					.appendField("then do");
-			}
-		};
-	}
-
 	Blockly.Blocks["load_model"] = {
 		init: function () {
 			const variableNamePrefix = "model";
@@ -1282,59 +1234,6 @@ export function defineBlocks() {
 		},
 	};
 
-	function handleBlockCreateEvent(
-		blockInstance,
-		changeEvent,
-		variableNamePrefix,
-		nextVariableIndexes,
-	) {
-		if (window.loadingCode) return; // Don't rename variables
-
-		if (
-			!blockInstance.isInFlyout &&
-			changeEvent.type === Blockly.Events.BLOCK_CREATE &&
-			changeEvent.ids.includes(blockInstance.id)
-		) {
-			// Check if the ID_VAR field already has a value
-			const idVarField = blockInstance.getField("ID_VAR");
-			if (idVarField) {
-				const variableId = idVarField.getValue();
-				const variable =
-					blockInstance.workspace.getVariableById(variableId);
-
-				// Check if the variable name matches the pattern "prefixn"
-				const variableNamePattern = new RegExp(
-					`^${variableNamePrefix}\\d+$`,
-				);
-				const variableName = variable ? variable.name : "";
-
-				if (!variableNamePattern.test(variableName)) {
-					// Don't change
-				} else {
-					// If the variable name matches the pattern, create and set a new variable
-					if (!nextVariableIndexes[variableNamePrefix]) {
-						nextVariableIndexes[variableNamePrefix] = 1; // Initialize if not already present
-					}
-					let newVariableName =
-						variableNamePrefix +
-						nextVariableIndexes[variableNamePrefix];
-					let newVariable =
-						blockInstance.workspace.getVariable(newVariableName);
-					if (!newVariable) {
-						newVariable = blockInstance.workspace.createVariable(
-							newVariableName,
-							null,
-						);
-					}
-					idVarField.setValue(newVariable.getId());
-
-					// Increment the variable index for the next variable name
-					nextVariableIndexes[variableNamePrefix] += 1;
-				}
-			}
-		}
-	}
-
 	function updateCurrentMeshName(block, variableFieldName) {
 		const variableName = block.getField(variableFieldName).getText(); // Get the selected variable name
 
@@ -1346,453 +1245,6 @@ export function defineBlocks() {
 
 	window.updateCurrentMeshName = updateCurrentMeshName;
 
-	Blockly.Blocks["create_box"] = {
-		init: function () {
-			const variableNamePrefix = "box";
-			let nextVariableName =
-				variableNamePrefix + nextVariableIndexes[variableNamePrefix]; // Start with "box1";
-
-			this.jsonInit({
-				type: "create_box",
-				message0:
-					"new box %1 %2 width %3 height %4 depth %5 \n at x %6 y %7 z %8",
-				args0: [
-					{
-						type: "field_variable",
-						name: "ID_VAR",
-						variable: nextVariableName,
-					},
-					{
-						type: "input_value",
-						name: "COLOR",
-						colour: "#9932CC",
-						check: "Colour",
-					},
-					{
-						type: "input_value",
-						name: "WIDTH",
-						check: "Number",
-					},
-					{
-						type: "input_value",
-						name: "HEIGHT",
-						check: "Number",
-					},
-					{
-						type: "input_value",
-						name: "DEPTH",
-						check: "Number",
-					},
-					{
-						type: "input_value",
-						name: "X",
-						check: "Number",
-					},
-					{
-						type: "input_value",
-						name: "Y",
-						check: "Number",
-					},
-					{
-						type: "input_value",
-						name: "Z",
-						check: "Number",
-					},
-				],
-				previousStatement: null,
-				nextStatement: null,
-				inputsInline: true,
-				colour: categoryColours["Scene"],
-				tooltip:
-					"Creates a colored box with specified dimensions and position.\nKeyword: box",
-				helpUrl: "",
-			});
-
-			this.setOnChange((changeEvent) => {
-				if (
-					(changeEvent.type === Blockly.Events.BLOCK_CREATE ||
-					changeEvent.type === Blockly.Events.BLOCK_CHANGE) &&  changeEvent.workspaceId === Blockly.getMainWorkspace().id
-				) {
-					const parent = findCreateBlock(
-										Blockly.getMainWorkspace().getBlockById(
-							changeEvent.blockId,
-						),
-					);
-
-					if (parent === this) {
-						const blockInWorkspace =
-							Blockly.getMainWorkspace().getBlockById(this.id);
-
-						if (blockInWorkspace) {
-							window.updateOrCreateMeshFromBlock(this);
-						}
-					}
-				}
-
-				handleBlockCreateEvent(
-					this,
-					changeEvent,
-					variableNamePrefix,
-					nextVariableIndexes,
-				);
-			});
-			addDoMutatorWithToggleBehavior(this);
-		},
-	};
-
-	Blockly.Blocks["create_sphere"] = {
-		init: function () {
-			const variableNamePrefix = "sphere";
-			let nextVariableName =
-				variableNamePrefix + nextVariableIndexes[variableNamePrefix];
-			this.jsonInit({
-				type: "create_sphere",
-				message0:
-					"new sphere %1 %2 diameter x %3 diameter y %4 diameter z %5\nat x %6 y %7 z %8",
-				args0: [
-					{
-						type: "field_variable",
-						name: "ID_VAR",
-						variable: nextVariableName,
-					},
-					{
-						type: "input_value",
-						name: "COLOR",
-						colour: "#9932CC",
-						check: "Colour",
-					},
-					{
-						type: "input_value",
-						name: "DIAMETER_X",
-						check: "Number",
-					},
-					{
-						type: "input_value",
-						name: "DIAMETER_Y",
-						check: "Number",
-					},
-					{
-						type: "input_value",
-						name: "DIAMETER_Z",
-						check: "Number",
-					},
-					{
-						type: "input_value",
-						name: "X",
-						check: "Number",
-					},
-					{
-						type: "input_value",
-						name: "Y",
-						check: "Number",
-					},
-					{
-						type: "input_value",
-						name: "Z",
-						check: "Number",
-					},
-				],
-				previousStatement: null,
-				nextStatement: null,
-				inputsInline: true,
-				colour: categoryColours["Scene"],
-				tooltip:
-					"Creates a colored sphere with specified dimensions and position.\nKeyword: sphere",
-				helpUrl: "",
-			});
-
-			this.setOnChange((changeEvent) => {
-				if (
-					(changeEvent.type === Blockly.Events.BLOCK_CREATE ||
-					changeEvent.type === Blockly.Events.BLOCK_CHANGE) &&  changeEvent.workspaceId === Blockly.getMainWorkspace().id
-				) {
-		
-					const parent = findCreateBlock(
-						Blockly.getMainWorkspace().getBlockById(
-							changeEvent.blockId,
-						),
-					);
-					if (parent == this) {
-						const blockInWorkspace =
-							Blockly.getMainWorkspace().getBlockById(this.id);
-
-						if (blockInWorkspace) {
-							window.updateOrCreateMeshFromBlock(this);
-						}
-					}
-				}
-
-				handleBlockCreateEvent(
-					this,
-					changeEvent,
-					variableNamePrefix,
-					nextVariableIndexes,
-				);
-			});
-
-			addDoMutatorWithToggleBehavior(this);
-		},
-	};
-
-	Blockly.Blocks["create_cylinder"] = {
-		init: function () {
-			const variableNamePrefix = "cylinder";
-			let nextVariableName =
-				variableNamePrefix + nextVariableIndexes[variableNamePrefix];
-			this.jsonInit({
-				type: "create_cylinder",
-				message0:
-					"new cylinder %1 %2 height %3 top %4 bottom %5 \nat x %6 y %7 z %8",
-				args0: [
-					{
-						type: "field_variable",
-						name: "ID_VAR",
-						variable: nextVariableName,
-					},
-					{
-						type: "input_value",
-						name: "COLOR",
-						check: "Colour",
-					},
-					{
-						type: "input_value",
-						name: "HEIGHT",
-						check: "Number",
-					},
-					{
-						type: "input_value",
-						name: "DIAMETER_TOP",
-						check: "Number",
-					},
-					{
-						type: "input_value",
-						name: "DIAMETER_BOTTOM",
-						check: "Number",
-					},
-					{
-						type: "input_value",
-						name: "X",
-						check: "Number",
-					},
-					{
-						type: "input_value",
-						name: "Y",
-						check: "Number",
-					},
-					{
-						type: "input_value",
-						name: "Z",
-						check: "Number",
-					},
-				],
-				previousStatement: null,
-				nextStatement: null,
-				inputsInline: true,
-				colour: categoryColours["Scene"],
-				tooltip:
-					"Creates a colored cylinder with specified dimensions and position.\nKeyword: cylinder",
-				helpUrl: "",
-			});
-
-			this.setOnChange((changeEvent) => {
-				if (
-					(changeEvent.type === Blockly.Events.BLOCK_CREATE ||
-					changeEvent.type === Blockly.Events.BLOCK_CHANGE) &&  changeEvent.workspaceId === Blockly.getMainWorkspace().id
-				) {				
-					const parent = findCreateBlock(
-						Blockly.getMainWorkspace().getBlockById(
-							changeEvent.blockId,
-						),
-					);
-
-					if (parent && parent === this) {
-						const blockInWorkspace =
-							Blockly.getMainWorkspace().getBlockById(this.id);
-
-						if (blockInWorkspace) {
-							window.updateOrCreateMeshFromBlock(this);
-						}
-					}
-				}
-				handleBlockCreateEvent(
-					this,
-					changeEvent,
-					variableNamePrefix,
-					nextVariableIndexes,
-				);
-			});
-
-			addDoMutatorWithToggleBehavior(this);
-		},
-	};
-	Blockly.Blocks["create_capsule"] = {
-		init: function () {
-			const variableNamePrefix = "capsule";
-			let nextVariableName =
-				variableNamePrefix + nextVariableIndexes[variableNamePrefix];
-			this.jsonInit({
-				type: "create_capsule",
-				message0:
-					"new capsule %1 %2 radius %3 height %4 \n at x %5 y %6 z %7",
-				args0: [
-					{
-						type: "field_variable",
-						name: "ID_VAR",
-						variable: nextVariableName,
-					},
-					{
-						type: "input_value",
-						name: "COLOR",
-						check: "Colour",
-					},
-					{
-						type: "input_value",
-						name: "RADIUS",
-						check: "Number",
-					},
-					{
-						type: "input_value",
-						name: "HEIGHT",
-						check: "Number",
-					},
-					{
-						type: "input_value",
-						name: "X",
-						check: "Number",
-					},
-					{
-						type: "input_value",
-						name: "Y",
-						check: "Number",
-					},
-					{
-						type: "input_value",
-						name: "Z",
-						check: "Number",
-					},
-				],
-				previousStatement: null,
-				nextStatement: null,
-				inputsInline: true,
-				colour: categoryColours["Scene"],
-				tooltip:
-					"Creates a colored capsule with specified dimensions and position.\nKeyword: capsule",
-				helpUrl: "",
-			});
-
-			this.setOnChange((changeEvent) => {
-				if (
-					(changeEvent.type === Blockly.Events.BLOCK_CREATE ||
-					changeEvent.type === Blockly.Events.BLOCK_CHANGE) &&  changeEvent.workspaceId === Blockly.getMainWorkspace().id
-				) {
-				
-					const parent = findCreateBlock(
-						Blockly.getMainWorkspace().getBlockById(
-							changeEvent.blockId,
-						),
-					);
-					if (parent == this) {
-						const blockInWorkspace =
-							Blockly.getMainWorkspace().getBlockById(this.id);
-
-						if (blockInWorkspace) {
-							window.updateOrCreateMeshFromBlock(this);
-						}
-					}
-				}
-
-				handleBlockCreateEvent(
-					this,
-					changeEvent,
-					variableNamePrefix,
-					nextVariableIndexes,
-				);
-			});
-
-			addDoMutatorWithToggleBehavior(this);
-		},
-	};
-
-	Blockly.Blocks["create_plane"] = {
-		init: function () {
-			const variableNamePrefix = "plane";
-			let nextVariableName =
-				variableNamePrefix + nextVariableIndexes[variableNamePrefix]; // Ensure 'plane' is managed in your nextVariableIndexes
-			this.jsonInit({
-				type: "create_plane",
-				message0:
-					"new plane %1 %2 width %3 height %4 \n at x %5 y %6 z %7",
-				args0: [
-					{
-						type: "field_variable",
-						name: "ID_VAR",
-						variable: nextVariableName,
-					},
-					{
-						type: "input_value",
-						name: "COLOR",
-						colour: "#9932CC",
-						check: "Colour",
-					},
-					{
-						type: "input_value",
-						name: "WIDTH",
-						check: "Number",
-					},
-					{
-						type: "input_value",
-						name: "HEIGHT",
-						check: "Number",
-					},
-					{
-						type: "input_value",
-						name: "X",
-						check: "Number",
-					},
-					{
-						type: "input_value",
-						name: "Y",
-						check: "Number",
-					},
-					{
-						type: "input_value",
-						name: "Z",
-						check: "Number",
-					},
-				],
-				inputsInline: true,
-				previousStatement: null,
-				nextStatement: null,
-				colour: categoryColours["Scene"],
-				tooltip:
-					"Creates a colored 2D plane with specified width, height, and position.\nKeyword: plane",
-				helpUrl: "",
-			});
-
-			this.setOnChange((changeEvent) => {
-				if (
-					changeEvent.type === Blockly.Events.BLOCK_CREATE ||
-					changeEvent.type === Blockly.Events.BLOCK_CHANGE
-				) {
-					const blockInWorkspace =
-						Blockly.getMainWorkspace().getBlockById(this.id); // Check if block is in the main workspace
-
-					if (blockInWorkspace) {
-						window.updateOrCreateMeshFromBlock(this);
-					}
-				}
-
-				handleBlockCreateEvent(
-					this,
-					changeEvent,
-					variableNamePrefix,
-					nextVariableIndexes,
-				);
-			});
-
-			addDoMutatorWithToggleBehavior(this);
-		},
-	};
 
 	Blockly.Blocks["create_wall"] = {
 		init: function () {
@@ -4487,3 +3939,102 @@ Blockly.Msg["CONTROLS_FOR_INPUT_DO"] = "";
 Blockly.Msg["CONTROLS_FOREACH_INPUT_DO"] = "";
 Blockly.Msg["CONTROLS_IF_MSG_THEN"] = "";
 Blockly.Msg["CONTROLS_IF_MSG_ELSE"] = "else\n";
+
+export function addDoMutatorWithToggleBehavior(block) {
+	// Custom function to toggle the "do" block mutation
+	block.toggleDoBlock = function () {
+		const hasDo = this.getInput("DO") ? true : false;
+		if (hasDo) {
+			this.removeInput("DO");
+		} else {
+			this.appendStatementInput("DO")
+				.setCheck(null)
+				.appendField("then do");
+		}
+	};
+
+	// Add the toggle button to the block
+	const toggleButton = new Blockly.FieldImage(
+		"data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAiIGhlaWdodD0iMzAiIHZpZXdCb3g9IjAgMCAzMCAzMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4gPHBhdGggZmlsbD0id2hpdGUiIGQ9Ik0xNSA2djloLTl2M2g5djloM3YtOWg5di0zaC05di05eiIvPjwvc3ZnPg==", // Custom icon
+		30,
+		30,
+		"*", // Width, Height, Alt text
+		block.toggleDoBlock.bind(block), // Bind the event handler to the block
+	);
+
+	// Add the button to the block
+	block.appendDummyInput().appendField(toggleButton, "TOGGLE_BUTTON");
+
+	// Save the mutation state
+	block.mutationToDom = function () {
+		const container = document.createElement("mutation");
+		container.setAttribute(
+			"has_do",
+			this.getInput("DO") ? "true" : "false",
+		);
+		return container;
+	};
+
+	// Restore the mutation state
+	block.domToMutation = function (xmlElement) {
+		const hasDo = xmlElement.getAttribute("has_do") === "true";
+		if (hasDo) {
+			this.appendStatementInput("DO")
+				.setCheck(null)
+				.appendField("then do");
+		}
+	};
+}
+
+export function handleBlockCreateEvent(
+	blockInstance,
+	changeEvent,
+	variableNamePrefix,
+	nextVariableIndexes,
+) {
+	if (window.loadingCode) return; // Don't rename variables
+
+	if (
+		!blockInstance.isInFlyout &&
+		changeEvent.type === Blockly.Events.BLOCK_CREATE &&
+		changeEvent.ids.includes(blockInstance.id)
+	) {
+		// Check if the ID_VAR field already has a value
+		const idVarField = blockInstance.getField("ID_VAR");
+		if (idVarField) {
+			const variableId = idVarField.getValue();
+			const variable =
+				blockInstance.workspace.getVariableById(variableId);
+
+			// Check if the variable name matches the pattern "prefixn"
+			const variableNamePattern = new RegExp(
+				`^${variableNamePrefix}\\d+$`,
+			);
+			const variableName = variable ? variable.name : "";
+
+			if (!variableNamePattern.test(variableName)) {
+				// Don't change
+			} else {
+				// If the variable name matches the pattern, create and set a new variable
+				if (!nextVariableIndexes[variableNamePrefix]) {
+					nextVariableIndexes[variableNamePrefix] = 1; // Initialize if not already present
+				}
+				let newVariableName =
+					variableNamePrefix +
+					nextVariableIndexes[variableNamePrefix];
+				let newVariable =
+					blockInstance.workspace.getVariable(newVariableName);
+				if (!newVariable) {
+					newVariable = blockInstance.workspace.createVariable(
+						newVariableName,
+						null,
+					);
+				}
+				idVarField.setValue(newVariable.getId());
+
+				// Increment the variable index for the next variable name
+				nextVariableIndexes[variableNamePrefix] += 1;
+			}
+		}
+	}
+}

@@ -26,6 +26,9 @@ import {
 	handleBlockDelete,
 } from "./blocks";
 import {
+	defineShapeBlocks
+} from "./blocks/shapes";
+import {
 	defineGenerators,
 	meshMap,
 	meshBlockIdMap,
@@ -2744,6 +2747,7 @@ window.onload = function () {
 	console.log("Welcome to Flock 🐑🐑🐑");
 
 	defineBlocks();
+	defineShapeBlocks();
 	defineGenerators();
 	// Initialize Blockly and add custom context menu options
 	addExportContextMenuOption();
