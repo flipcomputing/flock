@@ -11,6 +11,9 @@ import {
 	animationNames,
 	materialNames,
 } from "./config.js";
+import {
+	deleteMeshFromBlock
+} from "./ui/designview.js";
 /*import {
   ScrollOptions,
   ScrollBlockDragger,
@@ -42,7 +45,7 @@ export function handleBlockSelect(event) {
 
 export function handleBlockDelete(event) {
 	if (event.type === Blockly.Events.BLOCK_DELETE) {
-		window.deleteMeshFromBlock(event.blockId);
+		deleteMeshFromBlock(event.blockId);
 	}
 }
 

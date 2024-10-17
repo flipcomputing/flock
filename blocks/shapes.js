@@ -432,13 +432,14 @@ export function defineShapeBlocks() {
 			this.setOnChange((changeEvent) => {
 				if (
 					changeEvent.type === Blockly.Events.BLOCK_CREATE ||
-					changeEvent.type === Blockly.Events.BLOCK_CHANGE
+					changeEvent.type === Blockly.Events.BLOCK_CHANGE  &&
+					changeEvent.workspaceId === Blockly.getMainWorkspace().id
 				) {
 					const blockInWorkspace =
 						Blockly.getMainWorkspace().getBlockById(this.id); // Check if block is in the main workspace
 
 					if (blockInWorkspace) {
-						window.updateOrCreateMeshFromBlock(this);
+						updateOrCreateMeshFromBlock(this);
 					}
 				}
 
