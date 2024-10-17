@@ -1,6 +1,7 @@
 import * as Blockly from "blockly";
 import { categoryColours} from "../toolbox.js";
-import { nextVariableIndexes, handleBlockCreateEvent, findCreateBlock, addDoMutatorWithToggleBehavior } from "../blocks.js";
+import { nextVariableIndexes, handleBlockCreateEvent, findCreateBlock, addDoMutatorWithToggleBehavior} from "../blocks.js";
+import { updateOrCreateMeshFromBlock } from "../ui/designview.js";
 
 export function defineShapeBlocks() {
 	Blockly.Blocks["create_box"] = {
@@ -82,7 +83,7 @@ export function defineShapeBlocks() {
 							Blockly.getMainWorkspace().getBlockById(this.id);
 
 						if (blockInWorkspace) {
-							window.updateOrCreateMeshFromBlock(this);
+							updateOrCreateMeshFromBlock(this);
 						}
 					}
 				}
@@ -175,7 +176,7 @@ export function defineShapeBlocks() {
 							Blockly.getMainWorkspace().getBlockById(this.id);
 
 						if (blockInWorkspace) {
-							window.updateOrCreateMeshFromBlock(this);
+							updateOrCreateMeshFromBlock(this);
 						}
 					}
 				}
@@ -269,7 +270,7 @@ export function defineShapeBlocks() {
 							Blockly.getMainWorkspace().getBlockById(this.id);
 
 						if (blockInWorkspace) {
-							window.updateOrCreateMeshFromBlock(this);
+							updateOrCreateMeshFromBlock(this);
 						}
 					}
 				}
@@ -355,7 +356,7 @@ export function defineShapeBlocks() {
 							Blockly.getMainWorkspace().getBlockById(this.id);
 
 						if (blockInWorkspace) {
-							window.updateOrCreateMeshFromBlock(this);
+							updateOrCreateMeshFromBlock(this);
 						}
 					}
 				}
