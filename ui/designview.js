@@ -1255,7 +1255,7 @@ function loadObjectImages() {
 function highlightBlockById(workspace, block) {
 	if (block) {
 		// Unselect all other blocks
-			Blockly.getMainWorkspace().getAllBlocks().forEach((b) => b.unselect());
+			workspace.getAllBlocks().forEach((b) => b.unselect());
 
 		// Select the new block
 		if (window.codeMode === "both") block.select();
@@ -1387,7 +1387,7 @@ function toggleGizmo(gizmoType) {
 					}
 
 					const block = meshMap[mesh.blockKey];
-					highlightBlockById(workspace, block);
+					highlightBlockById(Blockly.getMainWorkspace(), block);
 				},
 			);
 
@@ -1469,7 +1469,7 @@ function toggleGizmo(gizmoType) {
 					}
 
 					const block = meshMap[mesh.blockKey];
-					highlightBlockById(workspace, block);
+					highlightBlockById(Blockly.getMainWorkspace(), block);
 				},
 			);
 			gizmoManager.gizmos.positionGizmo.onDragEndObservable.add(
@@ -1548,7 +1548,7 @@ function toggleGizmo(gizmoType) {
 					}
 
 					const block = meshMap[mesh.blockKey];
-					highlightBlockById(workspace, block);
+					highlightBlockById(Blockly.getMainWorkspace(), block);
 				},
 			);
 
@@ -1696,7 +1696,7 @@ function toggleGizmo(gizmoType) {
 					}
 
 					const block = meshMap[mesh.blockKey];
-					highlightBlockById(workspace, block);
+					highlightBlockById(Blockly.getMainWorkspace(), block);
 				},
 			);
 
@@ -1748,7 +1748,7 @@ function toggleGizmo(gizmoType) {
 					// Add shadow blocks for X, Y, Z inputs
 					["X", "Y", "Z"].forEach((axis) => {
 						const input = scaleBlock.getInput(axis);
-						const shadowBlock = workspace.newBlock("math_number");
+						const shadowBlock = Blockly.getMainWorkspace().newBlock("math_number");
 						shadowBlock.setShadow(true);
 						shadowBlock.initSvg();
 						shadowBlock.render();
@@ -1869,7 +1869,7 @@ function updateBlockColorAndHighlight(mesh, selectedColor) {
 	block?.initSvg();
 	block?.render();
 
-	highlightBlockById(workspace, block);
+	highlightBlockById(Blockly.getMainWorkspace(), block);
 }
 
 export function setGizmoManager(value) {
