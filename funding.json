@@ -1,0 +1,92 @@
+{
+	"version": "v1.0.0",
+	"entity": {
+		"type": "organisation",
+		"role": "owner",
+		"name": "Flip Computing",
+		"email": "tracy@flipcomputing.com",
+		"phone": "",
+		"description": "Flip Computing is an inclusion-first technical education organisation. We're developing an open source block-based 3D creation app called Flock. We want to make sure that computing is appealing to girls and women and other under-represented groups. We aim to democratise creation for the metaverse (3D, virtual worlds, spatial computing, XR, immersive tech). Flock is currently being developed by one developer in her spare time. We'd really appreciate support to take this idea further.",
+		"webpageUrl": {
+			"url": "https://github.com/flipcomputing/",
+			"wellKnown": ""
+		}
+	},
+	"projects": [
+		{
+			"guid": "flock-xr",
+			"name": "Flock XR",
+			"description": "Flock is a prototype for a block-based programming environment designed to allow young people and beginners to create in 3D. The intention is to turn Flock into a stable 3D creation tool that uses a mix of graphical tools and block-based coding (with a progression to JavaScript/TypeScript). One of the goals of Flock is to keep girls interested in computing in high school/secondary school. Once it's stable we plan to add more XR capabilities to enable young people and beginners to create projects that are valuable to them. Flock makes use of Blockly and Babylon JS. Flock offers a transition between the popular 2D creation tool Scratch and professional development tools such as Unity, Godot, Unreal Engine for Fortnite (UEFN)/Unreal and Babylon JS.",
+			"webpageUrl": {
+				"url": "https://github.com/flipcomputing/flock"
+			},
+			"repositoryUrl": {
+				"url": "https://github.com/flipcomputing/flock",
+				"wellKnown": ""
+			},
+			"licenses": [
+				"MIT"
+			],
+			"tags": [
+				"programming",
+				"editor",
+				"blockly",
+				"education",
+				"learning",
+				"metaverse",
+				"xr",
+				"coding",
+				"inclusion"
+			]
+		}
+	],
+	"funding": {
+		"channels": [
+			{
+				"guid": "github",
+				"type": "other",
+				"address": "https://github.com/sponsors/flipcomputing",
+				"description": "You can support us through GitHub Sponsors"
+			}
+		],
+		"plans": [
+			{
+				"guid": "user-ready",
+				"status": "active",
+				"name": "Software development including UX design",
+				"description": "This will fund development of core functionality and user experience design to test and stablise the codebase for users and put educational resources in place.",
+				"amount": 100000,
+				"currency": "USD",
+				"frequency": "one-time",
+				"channels": [
+					"github"
+				]
+			},
+			{
+				"guid": "developer-time",
+				"status": "active",
+				"name": "Developer compensation",
+				"description": "This will support a part-time software developer working on Flock.",
+				"amount": 1000,
+				"currency": "USD",
+				"frequency": "monthly",
+				"channels": [
+					"github"
+				]
+			},
+			{
+				"guid": "any-plan",
+				"status": "active",
+				"name": "Goodwill plan",
+				"description": "Show us some support and sponsor us for any amount to give us the motivation to continue.",
+				"amount": 0,
+				"currency": "USD",
+				"frequency": "one-time",
+				"channels": [
+					"github"
+				]
+			}
+		],
+		"history": []
+	}
+}
