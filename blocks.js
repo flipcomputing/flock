@@ -495,7 +495,7 @@ export function defineBlocks() {
 				],
 				previousStatement: null,
 				nextStatement: null,
-				colour: categoryColours["Transform"],
+				colour: categoryColours["Animate"],
 				tooltip:
 					"Glide to a specified position over a duration with options for reversing, looping, and easing.",
 				helpUrl: "",
@@ -572,7 +572,7 @@ export function defineBlocks() {
 				],
 				previousStatement: null,
 				nextStatement: null,
-				colour: categoryColours["Transform"],
+				colour: categoryColours["Animate"],
 				tooltip:
 					"Rotate a mesh to specified angles over a duration with options for reverse, looping, and easing.",
 				helpUrl: "",
@@ -635,7 +635,7 @@ export function defineBlocks() {
 				],
 				previousStatement: null,
 				nextStatement: null,
-				colour: categoryColours["Materials"],
+				colour: categoryColours["Animate"],
 				tooltip:
 					"Animates a material property of the mesh and its children.",
 				helpUrl: "",
@@ -660,7 +660,7 @@ export function defineBlocks() {
 						check: "Colour", // Reusing your existing colour block
 					},
 				],
-				colour: categoryColours["Transform"],
+				colour: categoryColours["Animate"],
 				inputsInline: true,
 				output: "Keyframe",
 				tooltip: "Set a colour and duration for a keyframe.",
@@ -686,7 +686,7 @@ export function defineBlocks() {
 						check: "Number", // Reusing your existing colour block
 					},
 				],
-				colour: categoryColours["Transform"],
+				colour: categoryColours["Animate"],
 				inputsInline: true,
 				output: "Keyframe",
 				tooltip: "Set a number and duration for a keyframe.",
@@ -722,7 +722,7 @@ export function defineBlocks() {
 						check: "Number",
 					},
 				],
-				colour: categoryColours["Transform"],
+				colour: categoryColours["Animate"],
 				inputsInline: true,
 				output: "Keyframe",
 				tooltip: "Set an XYZ keyframe with duration.",
@@ -791,7 +791,7 @@ export function defineBlocks() {
 				inputsInline: true,
 				previousStatement: null,
 				nextStatement: null,
-				colour: categoryColours["Transform"],
+				colour: categoryColours["Animate"],
 				tooltip:
 					"Animates an array of keyframes on the selected mesh, with easing, optional looping, and reversing.",
 				helpUrl: "",
@@ -1481,7 +1481,7 @@ export function defineBlocks() {
 				],
 				previousStatement: null,
 				nextStatement: null,
-				colour: categoryColours["Materials"],
+				colour: categoryColours["Animate"],
 				tooltip:
 					"Changes the animation of the specified model to the given animation.\nKeyword: switch",
 				helpUrl: "",
@@ -1588,7 +1588,7 @@ export function defineBlocks() {
 				],
 				previousStatement: null,
 				nextStatement: null,
-				colour: categoryColours["Materials"],
+				colour: categoryColours["Animate"],
 				tooltip:
 					"Plays a selected animation once on the specified model.\nKeyword: play",
 				helpUrl: "",

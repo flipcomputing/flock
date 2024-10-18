@@ -4,6 +4,7 @@ export const categoryColours = {
 	Events: 210,
 	Scene: 150,
 	Transform: 240,
+	Animate: 45,
 	Materials: 300,
 	Sound: 15,
 	Sensing: 180,
@@ -890,6 +891,16 @@ export const toolbox = {
 				},
 				{
 					kind: "block",
+					type: "show",
+					keyword: "show",
+				},
+				{
+					kind: "block",
+					type: "hide",
+					keyword: "hide",
+				},
+				{
+					kind: "block",
 					type: "remove_parent",
 					keyword: "noparent",
 				},
@@ -960,345 +971,10 @@ export const toolbox = {
 		},
 		{
 			kind: "category",
-			name: "Materials",
-			icon: "./images/looks.svg",
-			colour: categoryColours["Materials"],
+			name: "Animate",
+			icon: "./images/animate.svg",
+			colour: categoryColours["Animate"],
 			contents: [
-				{
-					kind: "block",
-					type: "show",
-					keyword: "show",
-				},
-				{
-					kind: "block",
-					type: "hide",
-					keyword: "hide",
-				},
-				{
-					kind: "block",
-					type: "tint",
-					keyword: "tint",
-					inputs: {
-						COLOR: {
-							shadow: {
-								type: "colour",
-								fields: {
-									COLOR: "#AA336A",
-								},
-							},
-						},
-					},
-				},
-				{
-					kind: "block",
-					type: "highlight",
-					keyword: "highlight",
-					inputs: {
-						COLOR: {
-							shadow: {
-								type: "colour",
-								fields: {
-									COLOR: "#FFD700",
-								},
-							},
-						},
-					},
-				},
-				{
-					kind: "block",
-					type: "change_colour",
-					keyword: "colour",
-					inputs: {
-						COLOR: {
-							shadow: {
-								type: "colour",
-								fields: {
-									COLOR: "#008080",
-								},
-							},
-						},
-					},
-				},
-				{
-					kind: "block",
-					type: "change_material",
-					keyword: "material",
-					inputs: {
-						COLOR: {
-							shadow: {
-								type: "colour",
-								fields: {
-									COLOR: "#008080",
-								},
-							},
-						},
-					},
-				},
-				{
-					kind: "block",
-					type: "material",
-					inputs: {
-						BASE_COLOR: {
-							shadow: {
-								type: "colour",
-								fields: {
-									COLOR: "#FFFFFF",
-								},
-							},
-						},
-						EMISSIVE_COLOR: {
-							shadow: {
-								type: "colour",
-								fields: {
-									COLOR: "#000000", // Default emissive color: black (no emission)
-								},
-							},
-						},
-						METALLIC: {
-							shadow: {
-								type: "math_number",
-								fields: {
-									NUM: 0, // Default metallic value: 0 (non-metallic)
-								},
-							},
-						},
-						ROUGHNESS: {
-							shadow: {
-								type: "math_number",
-								fields: {
-									NUM: 1, // Default roughness value: 1 (fully rough)
-								},
-							},
-						},
-						ALPHA: {
-							shadow: {
-								type: "math_number",
-								fields: {
-									NUM: 1, // Default alpha value: 1 (fully opaque)
-								},
-							},
-						},
-					},
-				},
-				{
-					kind: "block",
-					type: "text_material",
-					inputs: {
-						TEXT: {
-							shadow: {
-								type: "text",
-								fields: {
-									TEXT: "😊",
-								},
-							},
-						},
-						COLOR: {
-							shadow: {
-								type: "colour",
-								fields: {
-									COLOR: "#FF5733",
-								},
-							},
-						},
-						BACKGROUND_COLOR: {
-							shadow: {
-								type: "colour",
-								fields: {
-									COLOR: "#FF5733",
-								},
-							},
-						},
-						WIDTH: {
-							shadow: {
-								type: "math_number",
-								fields: {
-									NUM: 50,
-								},
-							},
-						},
-						HEIGHT: {
-							shadow: {
-								type: "math_number",
-								fields: {
-									NUM: 50,
-								},
-							},
-						},
-						TEXT_SIZE: {
-							shadow: {
-								type: "math_number",
-								fields: {
-									NUM: 30,
-								},
-							},
-						},
-					},
-				},
-				{
-					kind: "block",
-					type: "set_material",
-					inputs: {
-						MATERIAL: {
-							shadow: {
-								type: "material",
-								inputs: {
-									BASE_COLOR: {
-										shadow: {
-											type: "colour",
-											fields: {
-												COLOR: "#ff0000", // Default base color: red
-											},
-										},
-									},
-									EMISSIVE_COLOR: {
-										shadow: {
-											type: "colour",
-											fields: {
-												COLOR: "#000000", // Default emissive color: black (no emission)
-											},
-										},
-									},
-									METALLIC: {
-										shadow: {
-											type: "math_number",
-											fields: {
-												NUM: 0.0, // Default metallic value: 0
-											},
-										},
-									},
-									ROUGHNESS: {
-										shadow: {
-											type: "math_number",
-											fields: {
-												NUM: 1.0, // Default roughness value: 1 (fully rough)
-											},
-										},
-									},
-									ALPHA: {
-										shadow: {
-											type: "math_number",
-											fields: {
-												NUM: 1.0, // Default alpha value: 1 (fully opaque)
-											},
-										},
-									},
-								},
-							},
-						},
-					},
-				},
-				{
-					kind: "block",
-					type: "decal",
-					inputs: {
-						POSITION_X: {
-							shadow: {
-								type: "math_number",
-								fields: {
-									NUM: 0,
-								},
-							},
-						},
-						POSITION_Y: {
-							shadow: {
-								type: "math_number",
-								fields: {
-									NUM: 0,
-								},
-							},
-						},
-						POSITION_Z: {
-							shadow: {
-								type: "math_number",
-								fields: {
-									NUM: 0,
-								},
-							},
-						},
-						NORMAL_X: {
-							shadow: {
-								type: "math_number",
-								fields: {
-									NUM: 0,
-								},
-							},
-						},
-						NORMAL_Y: {
-							shadow: {
-								type: "math_number",
-								fields: {
-									NUM: 1,
-								},
-							},
-						},
-						NORMAL_Z: {
-							shadow: {
-								type: "math_number",
-								fields: {
-									NUM: 0,
-								},
-							},
-						},
-						SIZE_X: {
-							shadow: {
-								type: "math_number",
-								fields: {
-									NUM: 1,
-								},
-							},
-						},
-						SIZE_Y: {
-							shadow: {
-								type: "math_number",
-								fields: {
-									NUM: 1,
-								},
-							},
-						},
-						SIZE_Z: {
-							shadow: {
-								type: "math_number",
-								fields: {
-									NUM: 0,
-								},
-							},
-						},
-					},
-				},
-				{
-					kind: "block",
-					type: "place_decal",
-					inputs: {
-						ANGLE: {
-							shadow: {
-								type: "math_number",
-								fields: {
-									NUM: 0,
-								},
-							},
-						},
-					},
-				},
-				{
-					kind: "block",
-					type: "set_alpha",
-					keyword: "alpha",
-					inputs: {
-						ALPHA: {
-							shadow: {
-								type: "math_number",
-								fields: {
-									NUM: 0.5,
-								},
-							},
-						},
-					},
-				},
-				{
-					kind: "block",
-					type: "clear_effects",
-					keyword: "clear",
-				},
 				{
 					kind: "block",
 					type: "switch_animation",
@@ -1311,24 +987,38 @@ export const toolbox = {
 				},
 				{
 					kind: "block",
-					type: "colour",
-					keyword: "color",
-				},
-				{
-					kind: "block",
-					type: "random_colour",
-					keyword: "randcol",
-				},
-				{
-					kind: "block",
-					type: "colour_from_string",
-					keyword: "colstr",
+					type: "glide_to",
+					keyword: "glide",
 					inputs: {
-						COLOR: {
+						X: {
 							shadow: {
-								type: "text",
+								type: "math_number",
 								fields: {
-									TEXT: "#800080",
+									NUM: 0,
+								},
+							},
+						},
+						Y: {
+							shadow: {
+								type: "math_number",
+								fields: {
+									NUM: 0,
+								},
+							},
+						},
+						Z: {
+							shadow: {
+								type: "math_number",
+								fields: {
+									NUM: 0,
+								},
+							},
+						},
+						DURATION: {
+							shadow: {
+								type: "math_number",
+								fields: {
+									NUM: 1000,
 								},
 							},
 						},
@@ -1336,8 +1026,131 @@ export const toolbox = {
 				},
 				{
 					kind: "block",
-					type: "scale",
-					keyword: "scale",
+					type: "rotate_anim",
+					keyword: "rotate",
+					inputs: {
+						ROT_X: {
+							shadow: {
+								type: "math_number",
+								fields: {
+									NUM: 0, // Default rotation for X-axis
+								},
+							},
+						},
+						ROT_Y: {
+							shadow: {
+								type: "math_number",
+								fields: {
+									NUM: 0, // Default rotation for Y-axis
+								},
+							},
+						},
+						ROT_Z: {
+							shadow: {
+								type: "math_number",
+								fields: {
+									NUM: 0, // Default rotation for Z-axis
+								},
+							},
+						},
+						DURATION: {
+							shadow: {
+								type: "math_number",
+								fields: {
+									NUM: 1000, // Default duration in milliseconds
+								},
+							},
+						},
+					},
+				},
+				{
+					kind: "block",
+					type: "animate_keyframes",
+					keyword: "animate_keyframes",
+					inputsInline: true, // Set lists to be inline
+					inputs: {
+						KEYFRAMES: {
+							block: {
+								type: "lists_create_with",
+								extraState: {
+									itemCount: 1,
+								},
+								inputs: {
+									ADD0: {
+										block: {
+											type: "colour_keyframe",
+											inputs: {
+												VALUE: {
+													shadow: {
+														type: "colour",
+														fields: {
+															COLOR: "#ff0000", // Default colour: Red
+														},
+													},
+												},
+												DURATION: {
+													shadow: {
+														type: "math_number",
+														fields: {
+															NUM: 1, // Default duration: 1 second
+														},
+													},
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+				{
+					kind: "block",
+					type: "colour_keyframe",
+					inputs: {
+						VALUE: {
+							shadow: {
+								type: "colour",
+								fields: {
+									COLOR: "#000080",
+								},
+							},
+						},
+						DURATION: {
+							shadow: {
+								type: "math_number",
+								fields: {
+									NUM: 5,
+								},
+							},
+						},
+					},
+				},
+				{
+					kind: "block",
+					type: "number_keyframe",
+					inputs: {
+						VALUE: {
+							shadow: {
+								type: "math_number",
+								fields: {
+									NUM: 1,
+								},
+							},
+						},
+						DURATION: {
+							shadow: {
+								type: "math_number",
+								fields: {
+									NUM: 1,
+								},
+							},
+						},
+					},
+				},
+				{
+					kind: "block",
+					type: "xyz_keyframe",
 					inputs: {
 						X: {
 							shadow: {
@@ -1363,6 +1176,14 @@ export const toolbox = {
 								},
 							},
 						},
+						DURATION: {
+							shadow: {
+								type: "math_number",
+								fields: {
+									NUM: 1,
+								},
+							},
+						},
 					},
 				},
 				{
@@ -1372,6 +1193,7 @@ export const toolbox = {
 				},
 			],
 		},
+
 		{
 			kind: "category",
 			name: "Transform",
@@ -1529,84 +1351,6 @@ export const toolbox = {
 				},
 				{
 					kind: "block",
-					type: "glide_to",
-					keyword: "glide",
-					inputs: {
-						X: {
-							shadow: {
-								type: "math_number",
-								fields: {
-									NUM: 0,
-								},
-							},
-						},
-						Y: {
-							shadow: {
-								type: "math_number",
-								fields: {
-									NUM: 0,
-								},
-							},
-						},
-						Z: {
-							shadow: {
-								type: "math_number",
-								fields: {
-									NUM: 0,
-								},
-							},
-						},
-						DURATION: {
-							shadow: {
-								type: "math_number",
-								fields: {
-									NUM: 1000,
-								},
-							},
-						},
-					},
-				},
-				{
-					kind: "block",
-					type: "rotate_anim",
-					keyword: "rotate",
-					inputs: {
-						ROT_X: {
-							shadow: {
-								type: "math_number",
-								fields: {
-									NUM: 0, // Default rotation for X-axis
-								},
-							},
-						},
-						ROT_Y: {
-							shadow: {
-								type: "math_number",
-								fields: {
-									NUM: 0, // Default rotation for Y-axis
-								},
-							},
-						},
-						ROT_Z: {
-							shadow: {
-								type: "math_number",
-								fields: {
-									NUM: 0, // Default rotation for Z-axis
-								},
-							},
-						},
-						DURATION: {
-							shadow: {
-								type: "math_number",
-								fields: {
-									NUM: 1000, // Default duration in milliseconds
-								},
-							},
-						},
-					},
-				},
-				{
-					kind: "block",
 					type: "move_forward",
 					keyword: "forward",
 					inputs: {
@@ -1645,129 +1389,6 @@ export const toolbox = {
 								type: "math_number",
 								fields: {
 									NUM: 0,
-								},
-							},
-						},
-					},
-				},
-				{
-					kind: "block",
-					type: "colour_keyframe",
-					inputs: {
-						VALUE: {
-							shadow: {
-								type: "colour",
-								fields: {
-									COLOR: "#000080",
-								},
-							},
-						},
-						DURATION: {
-							shadow: {
-								type: "math_number",
-								fields: {
-									NUM: 5,
-								},
-							},
-						},
-					},
-				},
-				{
-					kind: "block",
-					type: "number_keyframe",
-					inputs: {
-						VALUE: {
-							shadow: {
-								type: "math_number",
-								fields: {
-									NUM: 1,
-								},
-							},
-						},
-						DURATION: {
-							shadow: {
-								type: "math_number",
-								fields: {
-									NUM: 1,
-								},
-							},
-						},
-					},
-				},
-				{
-					kind: "block",
-					type: "xyz_keyframe",
-					inputs: {
-						X: {
-							shadow: {
-								type: "math_number",
-								fields: {
-									NUM: 1,
-								},
-							},
-						},
-						Y: {
-							shadow: {
-								type: "math_number",
-								fields: {
-									NUM: 1,
-								},
-							},
-						},
-						Z: {
-							shadow: {
-								type: "math_number",
-								fields: {
-									NUM: 1,
-								},
-							},
-						},
-						DURATION: {
-							shadow: {
-								type: "math_number",
-								fields: {
-									NUM: 1,
-								},
-							},
-						},
-					},
-				},
-				{
-					kind: "block",
-					type: "animate_keyframes",
-					keyword: "animate_keyframes",
-					inputsInline: true, // Set lists to be inline
-					inputs: {
-						KEYFRAMES: {
-							block: {
-								type: "lists_create_with",
-								extraState: {
-									itemCount: 1,
-								},
-								inputs: {
-									ADD0: {
-										block: {
-											type: "colour_keyframe",
-											inputs: {
-												VALUE: {
-													shadow: {
-														type: "colour",
-														fields: {
-															COLOR: "#ff0000", // Default colour: Red
-														},
-													},
-												},
-												DURATION: {
-													shadow: {
-														type: "math_number",
-														fields: {
-															NUM: 1, // Default duration: 1 second
-														},
-													},
-												},
-											},
-										},
-									},
 								},
 							},
 						},
@@ -2447,6 +2068,395 @@ export const toolbox = {
 								type: "text",
 								fields: {
 									TEXT: "abc",
+								},
+							},
+						},
+					},
+				},
+			],
+		},
+		{
+			kind: "category",
+			name: "Materials",
+			icon: "./images/looks.svg",
+			colour: categoryColours["Materials"],
+			contents: [
+				{
+					kind: "block",
+					type: "tint",
+					keyword: "tint",
+					inputs: {
+						COLOR: {
+							shadow: {
+								type: "colour",
+								fields: {
+									COLOR: "#AA336A",
+								},
+							},
+						},
+					},
+				},
+				{
+					kind: "block",
+					type: "highlight",
+					keyword: "highlight",
+					inputs: {
+						COLOR: {
+							shadow: {
+								type: "colour",
+								fields: {
+									COLOR: "#FFD700",
+								},
+							},
+						},
+					},
+				},
+				{
+					kind: "block",
+					type: "change_colour",
+					keyword: "colour",
+					inputs: {
+						COLOR: {
+							shadow: {
+								type: "colour",
+								fields: {
+									COLOR: "#008080",
+								},
+							},
+						},
+					},
+				},
+				{
+					kind: "block",
+					type: "change_material",
+					keyword: "material",
+					inputs: {
+						COLOR: {
+							shadow: {
+								type: "colour",
+								fields: {
+									COLOR: "#008080",
+								},
+							},
+						},
+					},
+				},
+				{
+					kind: "block",
+					type: "material",
+					inputs: {
+						BASE_COLOR: {
+							shadow: {
+								type: "colour",
+								fields: {
+									COLOR: "#FFFFFF",
+								},
+							},
+						},
+						EMISSIVE_COLOR: {
+							shadow: {
+								type: "colour",
+								fields: {
+									COLOR: "#000000", // Default emissive color: black (no emission)
+								},
+							},
+						},
+						METALLIC: {
+							shadow: {
+								type: "math_number",
+								fields: {
+									NUM: 0, // Default metallic value: 0 (non-metallic)
+								},
+							},
+						},
+						ROUGHNESS: {
+							shadow: {
+								type: "math_number",
+								fields: {
+									NUM: 1, // Default roughness value: 1 (fully rough)
+								},
+							},
+						},
+						ALPHA: {
+							shadow: {
+								type: "math_number",
+								fields: {
+									NUM: 1, // Default alpha value: 1 (fully opaque)
+								},
+							},
+						},
+					},
+				},
+				{
+					kind: "block",
+					type: "text_material",
+					inputs: {
+						TEXT: {
+							shadow: {
+								type: "text",
+								fields: {
+									TEXT: "😊",
+								},
+							},
+						},
+						COLOR: {
+							shadow: {
+								type: "colour",
+								fields: {
+									COLOR: "#FF5733",
+								},
+							},
+						},
+						BACKGROUND_COLOR: {
+							shadow: {
+								type: "colour",
+								fields: {
+									COLOR: "#FF5733",
+								},
+							},
+						},
+						WIDTH: {
+							shadow: {
+								type: "math_number",
+								fields: {
+									NUM: 50,
+								},
+							},
+						},
+						HEIGHT: {
+							shadow: {
+								type: "math_number",
+								fields: {
+									NUM: 50,
+								},
+							},
+						},
+						TEXT_SIZE: {
+							shadow: {
+								type: "math_number",
+								fields: {
+									NUM: 30,
+								},
+							},
+						},
+					},
+				},
+				{
+					kind: "block",
+					type: "set_material",
+					inputs: {
+						MATERIAL: {
+							shadow: {
+								type: "material",
+								inputs: {
+									BASE_COLOR: {
+										shadow: {
+											type: "colour",
+											fields: {
+												COLOR: "#ff0000", // Default base color: red
+											},
+										},
+									},
+									EMISSIVE_COLOR: {
+										shadow: {
+											type: "colour",
+											fields: {
+												COLOR: "#000000", // Default emissive color: black (no emission)
+											},
+										},
+									},
+									METALLIC: {
+										shadow: {
+											type: "math_number",
+											fields: {
+												NUM: 0.0, // Default metallic value: 0
+											},
+										},
+									},
+									ROUGHNESS: {
+										shadow: {
+											type: "math_number",
+											fields: {
+												NUM: 1.0, // Default roughness value: 1 (fully rough)
+											},
+										},
+									},
+									ALPHA: {
+										shadow: {
+											type: "math_number",
+											fields: {
+												NUM: 1.0, // Default alpha value: 1 (fully opaque)
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+				{
+					kind: "block",
+					type: "decal",
+					inputs: {
+						POSITION_X: {
+							shadow: {
+								type: "math_number",
+								fields: {
+									NUM: 0,
+								},
+							},
+						},
+						POSITION_Y: {
+							shadow: {
+								type: "math_number",
+								fields: {
+									NUM: 0,
+								},
+							},
+						},
+						POSITION_Z: {
+							shadow: {
+								type: "math_number",
+								fields: {
+									NUM: 0,
+								},
+							},
+						},
+						NORMAL_X: {
+							shadow: {
+								type: "math_number",
+								fields: {
+									NUM: 0,
+								},
+							},
+						},
+						NORMAL_Y: {
+							shadow: {
+								type: "math_number",
+								fields: {
+									NUM: 1,
+								},
+							},
+						},
+						NORMAL_Z: {
+							shadow: {
+								type: "math_number",
+								fields: {
+									NUM: 0,
+								},
+							},
+						},
+						SIZE_X: {
+							shadow: {
+								type: "math_number",
+								fields: {
+									NUM: 1,
+								},
+							},
+						},
+						SIZE_Y: {
+							shadow: {
+								type: "math_number",
+								fields: {
+									NUM: 1,
+								},
+							},
+						},
+						SIZE_Z: {
+							shadow: {
+								type: "math_number",
+								fields: {
+									NUM: 0,
+								},
+							},
+						},
+					},
+				},
+				{
+					kind: "block",
+					type: "place_decal",
+					inputs: {
+						ANGLE: {
+							shadow: {
+								type: "math_number",
+								fields: {
+									NUM: 0,
+								},
+							},
+						},
+					},
+				},
+				{
+					kind: "block",
+					type: "set_alpha",
+					keyword: "alpha",
+					inputs: {
+						ALPHA: {
+							shadow: {
+								type: "math_number",
+								fields: {
+									NUM: 0.5,
+								},
+							},
+						},
+					},
+				},
+				{
+					kind: "block",
+					type: "clear_effects",
+					keyword: "clear",
+				},
+				{
+					kind: "block",
+					type: "colour",
+					keyword: "color",
+				},
+				{
+					kind: "block",
+					type: "random_colour",
+					keyword: "randcol",
+				},
+				{
+					kind: "block",
+					type: "colour_from_string",
+					keyword: "colstr",
+					inputs: {
+						COLOR: {
+							shadow: {
+								type: "text",
+								fields: {
+									TEXT: "#800080",
+								},
+							},
+						},
+					},
+				},
+				{
+					kind: "block",
+					type: "scale",
+					keyword: "scale",
+					inputs: {
+						X: {
+							shadow: {
+								type: "math_number",
+								fields: {
+									NUM: 1,
+								},
+							},
+						},
+						Y: {
+							shadow: {
+								type: "math_number",
+								fields: {
+									NUM: 1,
+								},
+							},
+						},
+						Z: {
+							shadow: {
+								type: "math_number",
+								fields: {
+									NUM: 1,
 								},
 							},
 						},
@@ -3193,31 +3203,37 @@ class IconCategory extends Blockly.ToolboxCategory {
 		const tabColour = this.colour_;
 
 		// Apply custom class to the rowDiv_
-		this.rowDiv_.classList.add('custom-category');
+		this.rowDiv_.classList.add("custom-category");
 
 		// Set the background color of the category to match the tab colour
 		if (tabColour) {
-			 this.rowDiv_.style.setProperty('background-color', tabColour, 'important');
+			this.rowDiv_.style.setProperty(
+				"background-color",
+				tabColour,
+				"important",
+			);
 		}
 
 		return this.htmlDiv_;
 	}
 
 	/** @override */
-	  setSelected(isSelected) {
+	setSelected(isSelected) {
 		super.setSelected(isSelected);
 
 		// Get the category color
-		const categoryColour =  this.colour_;
+		const categoryColour = this.colour_;
 
 		// Change background color when selected/deselected
 		if (isSelected) {
-
 		} else {
-		this.rowDiv_.style.setProperty('background-color', categoryColour, 'important');
+			this.rowDiv_.style.setProperty(
+				"background-color",
+				categoryColour,
+				"important",
+			);
 		}
-		  
-	  }
+	}
 }
 
 // Register the custom category
