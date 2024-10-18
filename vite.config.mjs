@@ -51,18 +51,18 @@ export default {
         description: 'Create 3D apps with blocks',
         theme_color: '#800080',
         display: 'fullscreen',
-        start_url: isProduction ? '/flock?fullscreen=true' : '/', // Ensure this reflects the base URL
-        id: '/flock?fullscreen=true',
-        scope: isProduction ? '/flock/' : '/', // Ensure this reflects the base URL
+        start_url: isProduction ? '/flock/?fullscreen=true' : '/',
+        id: isProduction ? '/flock/?fullscreen=true' : '/',
+        scope: isProduction ? '/flock/' : '/',
 
         icons: [
           {
-            src: '/flock/images/icon_192x192.png',
+            src: 'images/icon_192x192.png',
             sizes: '192x192',
             type: 'image/png'
           },
           {
-            src: '/flock/images/icon_512x512.png',
+            src: 'images/icon_512x512.png',
             sizes: '512x512',
             type: 'image/png'
           }
