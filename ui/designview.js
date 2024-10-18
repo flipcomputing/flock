@@ -27,6 +27,13 @@ window.selectedColor = "#ffffff"; // Default color
 document.addEventListener("DOMContentLoaded", function () {
 	const colorInput = document.getElementById("colorPickerButton");
 
+	window.addEventListener("keydown", (event) => {
+		// Check if the dot key (.) is pressed (key code 190)
+		if (event.code === "Period") {
+			focusCameraOnMesh();
+		}
+	});
+
 	// Attach the event listener to capture color changes when user interacts with the input
 	colorInput.addEventListener("input", (event) => {
 		window.selectedColor = event.target.value; // Store the selected color
@@ -1280,6 +1287,7 @@ function highlightBlockById(workspace, block) {
 function focusCameraOnMesh() {
 	let mesh = gizmoManager.attachedMesh;
 	if (mesh.name === "ground") mesh = null;
+	
 	if (!mesh && window.currentMesh) {
 		const blockKey = Object.keys(meshMap).find(
 			(key) => meshMap[key] === window.currentBlock,

@@ -1,6 +1,9 @@
 import * as Blockly from "blockly";
 import { categoryColours} from "../toolbox.js";
 
+window.currentMesh = "mesh";
+window.currentBlock = null;
+
 export function defineBaseBlocks() {
 	Blockly.Blocks["vector"] = {
 		init: function () {

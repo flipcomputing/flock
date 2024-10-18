@@ -873,12 +873,6 @@ window.onload = function () {
 	(async () => {
 		await flock.initialize();
 
-		window.addEventListener("keydown", (event) => {
-			// Check if the dot key (.) is pressed (key code 190)
-			if (event.code === "Period") {
-				focusCameraOnMesh();
-			}
-		});
 		window.initialBlocksJson = initialBlocksJson;
 	})();
 

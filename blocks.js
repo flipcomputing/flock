@@ -23,9 +23,6 @@ import {
 
 export let nextVariableIndexes = {};
 
-window.currentMesh = "mesh";
-window.currentBlock = null;
-
 export function handleBlockSelect(event) {
 	if (event.type === Blockly.Events.SELECTED) {
 		const block = Blockly.getMainWorkspace().getBlockById(
