@@ -91,6 +91,7 @@ export default Blockly.Theme.defineTheme("flock", {
 export const options = {
 	theme: Blockly.Themes.Modern, // "flock"
 	renderer: "zelos",
+	pathToMedia: "blockly/media/",
 	zoom: {
 		controls: true,
 		wheel: false,

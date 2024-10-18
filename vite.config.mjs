@@ -31,6 +31,10 @@ export default {
           src: 'textures/*.png',
           dest: 'textures'
         },
+        {
+          src: 'node_modules/blockly/media/*',
+          dest: 'blockly/media',
+        },
         /*{
           src: 'flock.js', 
           dest: ''      
