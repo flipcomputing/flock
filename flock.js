@@ -660,9 +660,8 @@ export const flock = {
 			return null;
 		}
 
-		if(flock.flockNotReady)
-			return null;
-		
+		if (flock.flockNotReady) return null;
+
 		let targetAnimationGroup = flock.scene?.animationGroups?.find(
 			(group) =>
 				group.name === newAnimationName &&
@@ -751,7 +750,6 @@ export const flock = {
 			modelName,
 			flock.scene,
 			function (meshes) {
-
 				const mesh = meshes[0];
 
 				mesh.scaling = new flock.BABYLON.Vector3(scale, scale, scale);
@@ -1398,13 +1396,19 @@ export const flock = {
 	wait(duration) {
 		return new Promise((resolve, reject) => {
 			const timeoutId = setTimeout(() => {
-				flock.abortController.signal.removeEventListener("abort", onAbort);
+				flock.abortController.signal.removeEventListener(
+					"abort",
+					onAbort,
+				);
 				resolve();
 			}, duration);
 
 			const onAbort = () => {
 				clearTimeout(timeoutId); // Clear the timeout if aborted
-				flock.abortController.signal.removeEventListener("abort", onAbort);
+				flock.abortController.signal.removeEventListener(
+					"abort",
+					onAbort,
+				);
 				// Instead of throwing an error, resolve gracefully here
 				reject(new Error("Wait aborted"));
 			};
@@ -1625,18 +1629,35 @@ export const flock = {
 		flock.scene.fogEnd = 100;
 	},
 	initializeMesh(mesh, position, color, shapeType) {
-
-		mesh.position = new flock.BABYLON.Vector3(position[0], position[1], position[2]);
+		mesh.position = new flock.BABYLON.Vector3(
+			position[0],
+			position[1],
+			position[2],
+		);
 		mesh.metadata = { shapeType };
 		mesh.blockKey = mesh.name;
 		mesh.name = `${mesh.name}_${mesh.uniqueId}`;
 
-		const material = new flock.BABYLON.StandardMaterial(`${shapeType.toLowerCase()}Material`, flock.scene);
-		material.diffuseColor = flock.BABYLON.Color3.FromHexString(flock.getColorFromString(color));
+		const material = new flock.BABYLON.StandardMaterial(
+			`${shapeType.toLowerCase()}Material`,
+			flock.scene,
+		);
+		material.diffuseColor = flock.BABYLON.Color3.FromHexString(
+			flock.getColorFromString(color),
+		);
 		mesh.material = material;
 	},
-	createPhysicsBody(mesh, shape, motionType = flock.BABYLON.PhysicsMotionType.STATIC) {
-		const physicsBody = new flock.BABYLON.PhysicsBody(mesh, motionType, false, flock.scene);
+	createPhysicsBody(
+		mesh,
+		shape,
+		motionType = flock.BABYLON.PhysicsMotionType.STATIC,
+	) {
+		const physicsBody = new flock.BABYLON.PhysicsBody(
+			mesh,
+			motionType,
+			false,
+			flock.scene,
+		);
 		physicsBody.shape = shape;
 		physicsBody.setMassProperties({ mass: 1, restitution: 0.5 });
 		mesh.physics = physicsBody;
@@ -1645,7 +1666,7 @@ export const flock = {
 		const newBox = flock.BABYLON.MeshBuilder.CreateBox(
 			boxId,
 			{ width, height, depth },
-			flock.scene
+			flock.scene,
 		);
 
 		flock.initializeMesh(newBox, position, color, "Box");
@@ -1654,7 +1675,7 @@ export const flock = {
 			new flock.BABYLON.Vector3(0, 0, 0),
 			new flock.BABYLON.Quaternion(0, 0, 0, 1),
 			new flock.BABYLON.Vector3(width, height, depth),
-			flock.scene
+			flock.scene,
 		);
 
 		flock.createPhysicsBody(newBox, boxShape);
@@ -1664,7 +1685,7 @@ export const flock = {
 		const newSphere = flock.BABYLON.MeshBuilder.CreateSphere(
 			sphereId,
 			{ diameterX, diameterY, diameterZ },
-			flock.scene
+			flock.scene,
 		);
 
 		flock.initializeMesh(newSphere, position, color, "Sphere");
@@ -1672,17 +1693,30 @@ export const flock = {
 		const sphereShape = new flock.BABYLON.PhysicsShapeSphere(
 			new flock.BABYLON.Vector3(0, 0, 0),
 			Math.max(diameterX, diameterY, diameterZ) / 2,
-			flock.scene
+			flock.scene,
 		);
 
 		flock.createPhysicsBody(newSphere, sphereShape);
 		return newSphere.name;
 	},
-	createCylinder(cylinderId, color, height, diameterTop, diameterBottom, position) {
+	createCylinder(
+		cylinderId,
+		color,
+		height,
+		diameterTop,
+		diameterBottom,
+		position,
+	) {
 		const newCylinder = flock.BABYLON.MeshBuilder.CreateCylinder(
 			cylinderId,
-			{ height, diameterTop, diameterBottom, tessellation: 24, updatable: true },
-			flock.scene
+			{
+				height,
+				diameterTop,
+				diameterBottom,
+				tessellation: 24,
+				updatable: true,
+			},
+			flock.scene,
 		);
 
 		flock.initializeMesh(newCylinder, position, color, "Cylinder");
@@ -1694,7 +1728,7 @@ export const flock = {
 			startPoint,
 			endPoint,
 			diameterBottom / 2,
-			flock.scene
+			flock.scene,
 		);
 
 		flock.createPhysicsBody(newCylinder, cylinderShape);
@@ -1704,7 +1738,7 @@ export const flock = {
 		const newCapsule = flock.BABYLON.MeshBuilder.CreateCapsule(
 			capsuleId,
 			{ radius, height, tessellation: 24, updatable: false },
-			flock.scene
+			flock.scene,
 		);
 
 		flock.initializeMesh(newCapsule, position, color, "Capsule");
@@ -1713,7 +1747,7 @@ export const flock = {
 			new flock.BABYLON.Vector3(0, 0, 0),
 			radius,
 			height / 2,
-			flock.scene
+			flock.scene,
 		);
 
 		flock.createPhysicsBody(newCapsule, capsuleShape);
@@ -1723,7 +1757,7 @@ export const flock = {
 		const newPlane = flock.BABYLON.MeshBuilder.CreatePlane(
 			planeId,
 			{ width, height, sideOrientation: flock.BABYLON.Mesh.DOUBLESIDE },
-			flock.scene
+			flock.scene,
 		);
 
 		flock.initializeMesh(newPlane, position, color, "Plane");
@@ -1732,10 +1766,14 @@ export const flock = {
 			new flock.BABYLON.Vector3(0, 0, 0),
 			new flock.BABYLON.Quaternion(0, 0, 0, 1),
 			new flock.BABYLON.Vector3(width, height, 0.001),
-			flock.scene
+			flock.scene,
 		);
 
-		flock.createPhysicsBody(newPlane, planeShape, flock.BABYLON.PhysicsMotionType.STATIC);
+		flock.createPhysicsBody(
+			newPlane,
+			planeShape,
+			flock.BABYLON.PhysicsMotionType.STATIC,
+		);
 		return newPlane.name;
 	},
 	newWall(color, startX, startZ, endX, endZ, yPosition, wallType, wallId) {
@@ -4753,29 +4791,42 @@ export const flock = {
 		const { x: cx, y: cy, z: cz } = camera.position;
 		const forwardVector = camera.getForwardRay().direction;
 
-		// Update listener's position
-		context.listener.positionX.setValueAtTime(cx, context.currentTime);
-		context.listener.positionY.setValueAtTime(cy, context.currentTime);
-		context.listener.positionZ.setValueAtTime(cz, context.currentTime);
+		if (context.listener.positionX) {
+			// Update listener's position
+			context.listener.positionX.setValueAtTime(cx, context.currentTime);
+			context.listener.positionY.setValueAtTime(cy, context.currentTime);
+			context.listener.positionZ.setValueAtTime(cz, context.currentTime);
 
-		// Update listener's forward direction
-		context.listener.forwardX.setValueAtTime(
-			-forwardVector.x,
-			context.currentTime,
-		);
-		context.listener.forwardY.setValueAtTime(
-			forwardVector.y,
-			context.currentTime,
-		);
-		context.listener.forwardZ.setValueAtTime(
-			forwardVector.z,
-			context.currentTime,
-		);
+			// Update listener's forward direction
+			context.listener.forwardX.setValueAtTime(
+				-forwardVector.x,
+				context.currentTime,
+			);
+			context.listener.forwardY.setValueAtTime(
+				forwardVector.y,
+				context.currentTime,
+			);
+			context.listener.forwardZ.setValueAtTime(
+				forwardVector.z,
+				context.currentTime,
+			);
 
-		// Set the listener's up vector (typically pointing upwards in the Y direction)
-		context.listener.upX.setValueAtTime(0, context.currentTime);
-		context.listener.upY.setValueAtTime(1, context.currentTime);
-		context.listener.upZ.setValueAtTime(0, context.currentTime);
+			// Set the listener's up vector (typically pointing upwards in the Y direction)
+			context.listener.upX.setValueAtTime(0, context.currentTime);
+			context.listener.upY.setValueAtTime(1, context.currentTime);
+			context.listener.upZ.setValueAtTime(0, context.currentTime);
+		} else {
+			// Firefox
+			context.listener.setPosition(cx, cy, cz);
+			context.listener.setOrientation(
+				-forwardVector.x,
+				forwardVector.y,
+				forwardVector.z,
+				0,
+				1,
+				0,
+			);
+		}
 	},
 	playMidiNote(
 		context,
