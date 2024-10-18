@@ -1754,26 +1754,51 @@ export const flock = {
 		return newCapsule.name;
 	},
 	createPlane(planeId, color, width, height, position) {
+
 		const newPlane = flock.BABYLON.MeshBuilder.CreatePlane(
 			planeId,
 			{ width, height, sideOrientation: flock.BABYLON.Mesh.DOUBLESIDE },
 			flock.scene,
 		);
+		
+		newPlane.metadata = newPlane.metadata || {}; //
+		newPlane.metadata.shape = "plane"; // Add or update the type property
+		newPlane.blockKey = newPlane.name;
+		newPlane.name = newPlane.name + "_" + newPlane.uniqueId;
+		newPlane.position = new flock.BABYLON.Vector3(position[0], position[1], position[2]);
 
-		flock.initializeMesh(newPlane, position, color, "Plane");
+		// Physics for the plane
+		const planeBody = new flock.BABYLON.PhysicsBody(
+			newPlane,
+			flock.BABYLON.PhysicsMotionType.STATIC, // Planes are typically static as they represent surfaces
+			false,
+			flock.scene,
+		);
 
 		const planeShape = new flock.BABYLON.PhysicsShapeBox(
 			new flock.BABYLON.Vector3(0, 0, 0),
 			new flock.BABYLON.Quaternion(0, 0, 0, 1),
-			new flock.BABYLON.Vector3(width, height, 0.001),
+			new flock.BABYLON.Vector3(width, height, 0.001), // Width and height divided by 2, minimal depth
 			flock.scene,
 		);
 
-		flock.createPhysicsBody(
-			newPlane,
-			planeShape,
-			flock.BABYLON.PhysicsMotionType.STATIC,
+		planeBody.shape = planeShape;
+		planeBody.setMassProperties({
+			mass: 0, // No mass as it is static
+			restitution: 0.5,
+			inertia: flock.BABYLON.Vector3.ZeroReadOnly, // No inertia as it does not move
+		});
+
+		newPlane.physics = planeBody;
+		const material = new flock.BABYLON.StandardMaterial(
+			"planeMaterial",
+			flock.scene,
 		);
+		material.diffuseColor = flock.BABYLON.Color3.FromHexString(
+			flock.getColorFromString(color),
+		);
+		newPlane.material = material;
+
 		return newPlane.name;
 	},
 	newWall(color, startX, startZ, endX, endZ, yPosition, wallType, wallId) {
