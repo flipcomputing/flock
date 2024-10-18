@@ -525,29 +525,48 @@ export function defineGenerators() {
 		return `${variableName} = newObject('${modelName}', '${meshId}', ${scale}, ${x}, ${y}, ${z}, ${color}${doCode});\n`;
 	};
 
-	javascriptGenerator.forBlock["create_box"] = function (block) {
-		const color = getFieldValue(block, "COLOR", "#9932CC");
-		const width = getFieldValue(block, "WIDTH", "1");
-		const height = getFieldValue(block, "HEIGHT", "1");
-		const depth = getFieldValue(block, "DEPTH", "1");
-		const posX = getFieldValue(block, "X", "0");
-		const posY = getFieldValue(block, "Y", "0");
-		const posZ = getFieldValue(block, "Z", "0");
-
+	// Function to create a mesh, taking mesh type, parameters, and position as arguments
+	function createMesh(block, meshType, params, position, idPrefix) {
 		let variableName = javascriptGenerator.nameDB_.getName(
 			block.getFieldValue("ID_VAR"),
-			Blockly.Names.NameType.VARIABLE,
+			Blockly.Names.NameType.VARIABLE
 		);
 
-		const boxId = `box_${generateUniqueId()}`;
-		meshMap[boxId] = block;
-		meshBlockIdMap[boxId] = block.id;
+		const meshId = `${idPrefix}_${generateUniqueId()}`;
+		meshMap[meshId] = block;
+		meshBlockIdMap[meshId] = block.id;
 
 		const doCode = block.getInput("DO")
 			? javascriptGenerator.statementToCode(block, "DO") || ""
 			: "";
 
-		return `${variableName} = newBox(${color}, ${width}, ${height}, ${depth}, ${posX}, ${posY}, ${posZ}, "${boxId}");\n${doCode}\n`;
+		return `${variableName} = create${meshType}("${meshId}", ${params.join(", ")}, ${position});\n${doCode}\n`;
+	}
+
+	function getPositionTuple(block) {
+		/*const vector = getFieldValue(block, "VECTOR", null);
+		if (vector) {
+			return vector; // Return the vector directly if provided
+		}*/
+
+		// Fallback to individual XYZ coordinates
+		const posX = getFieldValue(block, "X", "0");
+		const posY = getFieldValue(block, "Y", "0");
+		const posZ = getFieldValue(block, "Z", "0");
+
+		return `[${posX}, ${posY}, ${posZ}]`;
+	}
+
+	// Updated generators for each shape type using the helper
+	javascriptGenerator.forBlock["create_box"] = function (block) {
+		const color = getFieldValue(block, "COLOR", "#9932CC");
+		const width = getFieldValue(block, "WIDTH", "1");
+		const height = getFieldValue(block, "HEIGHT", "1");
+		const depth = getFieldValue(block, "DEPTH", "1");
+
+		const positionSource = getPositionTuple(block);
+
+		return createMesh(block, "Box", [color, width, height, depth], positionSource, "box");
 	};
 
 	javascriptGenerator.forBlock["create_sphere"] = function (block) {
@@ -555,23 +574,10 @@ export function defineGenerators() {
 		const diameterX = getFieldValue(block, "DIAMETER_X", "1");
 		const diameterY = getFieldValue(block, "DIAMETER_Y", "1");
 		const diameterZ = getFieldValue(block, "DIAMETER_Z", "1");
-		const posX = getFieldValue(block, "X", "0");
-		const posY = getFieldValue(block, "Y", "0.5");
-		const posZ = getFieldValue(block, "Z", "0");
 
-		let variableName = javascriptGenerator.nameDB_.getName(
-			block.getFieldValue("ID_VAR"),
-			Blockly.Names.NameType.VARIABLE,
-		);
+		const positionSource = getPositionTuple(block);
 
-		const sphereId = `sphere_${generateUniqueId()}`;
-		meshMap[sphereId] = block;
-		meshBlockIdMap[sphereId] = block.id;
-		const doCode = block.getInput("DO")
-			? javascriptGenerator.statementToCode(block, "DO") || ""
-			: "";
-
-		return `${variableName} = newSphere(${color}, ${diameterX}, ${diameterY}, ${diameterZ}, ${posX}, ${posY}, ${posZ}, "${sphereId}");\n${doCode}\n`;
+		return createMesh(block, "Sphere", [color, diameterX, diameterY, diameterZ], positionSource, "sphere");
 	};
 
 	javascriptGenerator.forBlock["create_cylinder"] = function (block) {
@@ -579,69 +585,30 @@ export function defineGenerators() {
 		const height = getFieldValue(block, "HEIGHT", "2");
 		const diameterTop = getFieldValue(block, "DIAMETER_TOP", "1");
 		const diameterBottom = getFieldValue(block, "DIAMETER_BOTTOM", "1");
-		const posX = getFieldValue(block, "X", "0");
-		const posY = getFieldValue(block, "Y", "0.5");
-		const posZ = getFieldValue(block, "Z", "0");
 
-		let variableName = javascriptGenerator.nameDB_.getName(
-			block.getFieldValue("ID_VAR"),
-			Blockly.Names.NameType.VARIABLE,
-		);
+		const positionSource = getPositionTuple(block);
 
-		const cylinderId = `cylinder_${generateUniqueId()}`;
-		meshMap[cylinderId] = block;
-		meshBlockIdMap[cylinderId] = block.id;
-		const doCode = block.getInput("DO")
-			? javascriptGenerator.statementToCode(block, "DO") || ""
-			: "";
-
-		return `${variableName} = newCylinder(${color}, ${height}, ${diameterTop}, ${diameterBottom}, ${posX}, ${posY}, ${posZ}, "${cylinderId}");\n${doCode}\n`;
+		return createMesh(block, "Cylinder", [color, height, diameterTop, diameterBottom], positionSource, "cylinder");
 	};
 
 	javascriptGenerator.forBlock["create_capsule"] = function (block) {
 		const color = getFieldValue(block, "COLOR", "#9932CC");
 		const radius = getFieldValue(block, "RADIUS", "1");
 		const height = getFieldValue(block, "HEIGHT", "2");
-		const posX = getFieldValue(block, "X", "0");
-		const posY = getFieldValue(block, "Y", "1");
-		const posZ = getFieldValue(block, "Z", "0");
 
-		let variableName = javascriptGenerator.nameDB_.getName(
-			block.getFieldValue("ID_VAR"),
-			Blockly.Names.NameType.VARIABLE,
-		);
+		const positionSource = getPositionTuple(block);
 
-		const capsuleId = `capsule_${generateUniqueId()}`;
-		meshMap[capsuleId] = block;
-		meshBlockIdMap[capsuleId] = block.id;
-		const doCode = block.getInput("DO")
-			? javascriptGenerator.statementToCode(block, "DO") || ""
-			: "";
-
-		return `${variableName} = newCapsule(${color}, ${radius}, ${height}, ${posX}, ${posY}, ${posZ}, "${capsuleId}");\n${doCode}\n`;
+		return createMesh(block, "Capsule", [color, radius, height], positionSource, "capsule");
 	};
 
 	javascriptGenerator.forBlock["create_plane"] = function (block) {
 		const color = getFieldValue(block, "COLOR", "#9932CC");
 		const width = getFieldValue(block, "WIDTH", "1");
 		const height = getFieldValue(block, "HEIGHT", "1");
-		const posX = getFieldValue(block, "X", "0");
-		const posY = getFieldValue(block, "Y", "0");
-		const posZ = getFieldValue(block, "Z", "0");
 
-		let variableName = javascriptGenerator.nameDB_.getName(
-			block.getFieldValue("ID_VAR"),
-			Blockly.Names.NameType.VARIABLE,
-		);
+		const positionSource = getPositionTuple(block);
 
-		const planeId = `plane_${generateUniqueId()}`;
-		meshMap[planeId] = block;
-		meshBlockIdMap[planeId] = block.id;
-		const doCode = block.getInput("DO")
-			? javascriptGenerator.statementToCode(block, "DO") || ""
-			: "";
-
-		return `${variableName} = newPlane(${color}, ${width}, ${height}, ${posX}, ${posY}, ${posZ}, "${planeId}");\n${doCode}\n`;
+		return createMesh(block, "Plane", [color, width, height], positionSource, "plane");
 	};
 
 	javascriptGenerator.forBlock["set_background_color"] = function (block) {
@@ -2086,4 +2053,26 @@ javascriptGenerator.forBlock["controls_forEach"] = function (block, generator) {
 		"}\n";
 
 	return code;
+};
+
+javascriptGenerator.forBlock["vector"] = function (block) {
+	const x = javascriptGenerator.valueToCode(
+		block,
+		"X",
+		javascriptGenerator.ORDER_ATOMIC
+	) || "0";
+	const y = javascriptGenerator.valueToCode(
+		block,
+		"Y",
+		javascriptGenerator.ORDER_ATOMIC
+	) || "0";
+	const z = javascriptGenerator.valueToCode(
+		block,
+		"Z",
+		javascriptGenerator.ORDER_ATOMIC
+	) || "0";
+
+	// Generate a tuple representing the vector
+	const code = `[${x}, ${y}, ${z}]`;
+	return [code, javascriptGenerator.ORDER_ATOMIC];
 };

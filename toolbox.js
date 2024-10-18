@@ -1622,6 +1622,36 @@ export const toolbox = {
 				},
 				{
 					kind: "block",
+					type: "vector", // Use the block's actual type name defined when you created it
+					inputs: {
+						X: {
+							shadow: {
+								type: "math_number",
+								fields: {
+									NUM: 0,
+								},
+							},
+						},
+						Y: {
+							shadow: {
+								type: "math_number",
+								fields: {
+									NUM: 0,
+								},
+							},
+						},
+						Z: {
+							shadow: {
+								type: "math_number",
+								fields: {
+									NUM: 0,
+								},
+							},
+						},
+					},
+				},
+				{
+					kind: "block",
 					type: "colour_keyframe",
 					inputs: {
 						VALUE: {

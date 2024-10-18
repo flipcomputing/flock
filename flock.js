@@ -55,11 +55,11 @@ export const flock = {
 				newCharacter,
 				newObject,
 				newModel,
-				newBox,
-				newSphere,
-				newCylinder,
-				newCapsule,
-				newPlane,
+				createBox,
+				createSphere,
+				createCylinder,
+				createCapsule,
+				createPlane,
 				newWall,
 				parentChild,
 				removeParent,
@@ -1624,267 +1624,118 @@ export const flock = {
 		flock.scene.fogStart = 50;
 		flock.scene.fogEnd = 100;
 	},
-	newBox(color, width, height, depth, posX, posY, posZ, boxId) {
+	initializeMesh(mesh, position, color, shapeType) {
+
+		mesh.position = new flock.BABYLON.Vector3(position[0], position[1], position[2]);
+		mesh.metadata = { shapeType };
+		mesh.blockKey = mesh.name;
+		mesh.name = `${mesh.name}_${mesh.uniqueId}`;
+
+		const material = new flock.BABYLON.StandardMaterial(`${shapeType.toLowerCase()}Material`, flock.scene);
+		material.diffuseColor = flock.BABYLON.Color3.FromHexString(flock.getColorFromString(color));
+		mesh.material = material;
+	},
+	createPhysicsBody(mesh, shape, motionType = flock.BABYLON.PhysicsMotionType.STATIC) {
+		const physicsBody = new flock.BABYLON.PhysicsBody(mesh, motionType, false, flock.scene);
+		physicsBody.shape = shape;
+		physicsBody.setMassProperties({ mass: 1, restitution: 0.5 });
+		mesh.physics = physicsBody;
+	},
+	createBox(boxId, color, width, height, depth, position) {
 		const newBox = flock.BABYLON.MeshBuilder.CreateBox(
 			boxId,
 			{ width, height, depth },
-			flock.scene,
+			flock.scene
 		);
-		newBox.metadata = {};
-		newBox.metadata.shapeType = "Box";
-		newBox.position = new flock.BABYLON.Vector3(posX, posY, posZ);
 
-		newBox.blockKey = newBox.name;
-		newBox.name = newBox.name + "_" + newBox.uniqueId;
-		const boxBody = new flock.BABYLON.PhysicsBody(
-			newBox,
-			flock.BABYLON.PhysicsMotionType.STATIC,
-			false,
-			flock.scene,
-		);
+		flock.initializeMesh(newBox, position, color, "Box");
 
 		const boxShape = new flock.BABYLON.PhysicsShapeBox(
 			new flock.BABYLON.Vector3(0, 0, 0),
 			new flock.BABYLON.Quaternion(0, 0, 0, 1),
 			new flock.BABYLON.Vector3(width, height, depth),
-			flock.scene,
+			flock.scene
 		);
 
-		boxBody.setMassProperties({
-			inertia: flock.BABYLON.Vector3.ZeroReadOnly,
-		});
-		boxBody.shape = boxShape;
-		boxBody.setMassProperties({ mass: 1, restitution: 0.5 });
-
-		newBox.physics = boxBody;
-
-		const material = new flock.BABYLON.StandardMaterial(
-			"boxMaterial",
-			flock.scene,
-		);
-
-		material.diffuseColor = flock.BABYLON.Color3.FromHexString(
-			flock.getColorFromString(color),
-		);
-
-		newBox.material = material;
-
+		flock.createPhysicsBody(newBox, boxShape);
 		return newBox.name;
 	},
-	newSphere(
-		color,
-		diameterX,
-		diameterY,
-		diameterZ,
-		posX,
-		posY,
-		posZ,
-		sphereId,
-	) {
+	createSphere(sphereId, color, diameterX, diameterY, diameterZ, position) {
 		const newSphere = flock.BABYLON.MeshBuilder.CreateSphere(
 			sphereId,
-			{
-				diameterX,
-				diameterY,
-				diameterZ,
-			},
-			flock.scene,
+			{ diameterX, diameterY, diameterZ },
+			flock.scene
 		);
-		newSphere.position = new flock.BABYLON.Vector3(posX, posY, posZ);
 
-		newSphere.metadata = {};
-		newSphere.metadata.shapeType = "Sphere";
-		newSphere.blockKey = newSphere.name;
-		newSphere.name = newSphere.name + "_" + newSphere.uniqueId;
-
-		const sphereBody = new flock.BABYLON.PhysicsBody(
-			newSphere,
-			flock.BABYLON.PhysicsMotionType.STATIC,
-			false,
-			flock.scene,
-		);
+		flock.initializeMesh(newSphere, position, color, "Sphere");
 
 		const sphereShape = new flock.BABYLON.PhysicsShapeSphere(
 			new flock.BABYLON.Vector3(0, 0, 0),
 			Math.max(diameterX, diameterY, diameterZ) / 2,
-			flock.scene,
+			flock.scene
 		);
 
-		sphereBody.shape = sphereShape;
-		sphereBody.setMassProperties({ mass: 1, restitution: 0.5 });
-		newSphere.physics = sphereBody;
-
-		const material = new flock.BABYLON.StandardMaterial(
-			"sphereMaterial",
-			flock.scene,
-		);
-		material.diffuseColor = flock.BABYLON.Color3.FromHexString(
-			flock.getColorFromString(color),
-		);
-		newSphere.material = material;
-
+		flock.createPhysicsBody(newSphere, sphereShape);
 		return newSphere.name;
 	},
-	newCylinder(
-		color,
-		height,
-		diameterTop,
-		diameterBottom,
-		posX,
-		posY,
-		posZ,
-		cylinderId,
-	) {
+	createCylinder(cylinderId, color, height, diameterTop, diameterBottom, position) {
 		const newCylinder = flock.BABYLON.MeshBuilder.CreateCylinder(
 			cylinderId,
-			{
-				height: height,
-				diameterTop: diameterTop,
-				diameterBottom: diameterBottom,
-				tessellation: 24,
-				updatable: true,
-			},
-			flock.scene,
+			{ height, diameterTop, diameterBottom, tessellation: 24, updatable: true },
+			flock.scene
 		);
-		newCylinder.position = new flock.BABYLON.Vector3(posX, posY, posZ);
-		newCylinder.metadata = {};
-		newCylinder.metadata.shapeType = "Cylinder";
-		newCylinder.blockKey = newCylinder.name;
-		newCylinder.name = newCylinder.name + "_" + newCylinder.uniqueId;
 
-		const cylinderBody = new flock.BABYLON.PhysicsBody(
-			newCylinder,
-			flock.BABYLON.PhysicsMotionType.STATIC,
-			false,
-			flock.scene,
-		);
+		flock.initializeMesh(newCylinder, position, color, "Cylinder");
 
 		const startPoint = new flock.BABYLON.Vector3(0, -height / 2, 0);
 		const endPoint = new flock.BABYLON.Vector3(0, height / 2, 0);
 
-		// Create the physics shape for the cylinder
 		const cylinderShape = new flock.BABYLON.PhysicsShapeCylinder(
-			startPoint, // starting point of the cylinder segment
-			endPoint, // ending point of the cylinder segment
-			diameterBottom / 2, // radius of the cylinder (assuming diameterBottom is the larger diameter)
-			flock.scene, // scene of the shape
+			startPoint,
+			endPoint,
+			diameterBottom / 2,
+			flock.scene
 		);
 
-		cylinderBody.shape = cylinderShape;
-		cylinderBody.setMassProperties({ mass: 1, restitution: 0.1 });
-		newCylinder.physics = cylinderBody;
-
-		const material = new flock.BABYLON.StandardMaterial(
-			"cylinderMaterial",
-			flock.scene,
-		);
-		material.diffuseColor = flock.BABYLON.Color3.FromHexString(
-			flock.getColorFromString(color),
-		);
-		newCylinder.material = material;
-
+		flock.createPhysicsBody(newCylinder, cylinderShape);
 		return newCylinder.name;
 	},
-	newCapsule(
-		color,
-		radius, // This is the diameter of the spheres at both ends of the capsule
-		height, // This is the height between the spheres
-		posX,
-		posY,
-		posZ,
-		capsuleId,
-	) {
+	createCapsule(capsuleId, color, radius, height, position) {
 		const newCapsule = flock.BABYLON.MeshBuilder.CreateCapsule(
 			capsuleId,
-			{
-				radius: radius,
-				height: height,
-				tessellation: 24,
-				updatable: false,
-			},
-			flock.scene,
+			{ radius, height, tessellation: 24, updatable: false },
+			flock.scene
 		);
-		newCapsule.position = new flock.BABYLON.Vector3(posX, posY, posZ);
 
-		newCapsule.metadata = {};
-		newCapsule.metadata.shapeType = "Capsule";
-		newCapsule.blockKey = newCapsule.name;
-		newCapsule.name = newCapsule.name + "_" + newCapsule.uniqueId;
-
-		const capsuleBody = new flock.BABYLON.PhysicsBody(
-			newCapsule,
-			flock.BABYLON.PhysicsMotionType.STATIC,
-			false,
-			flock.scene,
-		);
+		flock.initializeMesh(newCapsule, position, color, "Capsule");
 
 		const capsuleShape = new flock.BABYLON.PhysicsShapeCapsule(
 			new flock.BABYLON.Vector3(0, 0, 0),
-			radius, // Radius of the spherical ends
-			height / 2, // Half the height of the cylindrical part
-			flock.scene,
+			radius,
+			height / 2,
+			flock.scene
 		);
 
-		capsuleBody.shape = capsuleShape;
-		capsuleBody.setMassProperties({ mass: 1, restitution: 0.5 });
-		newCapsule.physics = capsuleBody;
-
-		const material = new flock.BABYLON.StandardMaterial(
-			"capsuleMaterial",
-			flock.scene,
-		);
-		material.diffuseColor = flock.BABYLON.Color3.FromHexString(
-			flock.getColorFromString(color),
-		);
-		newCapsule.material = material;
-
+		flock.createPhysicsBody(newCapsule, capsuleShape);
 		return newCapsule.name;
 	},
-	newPlane(color, width, height, posX, posY, posZ, planeId) {
+	createPlane(planeId, color, width, height, position) {
 		const newPlane = flock.BABYLON.MeshBuilder.CreatePlane(
 			planeId,
 			{ width, height, sideOrientation: flock.BABYLON.Mesh.DOUBLESIDE },
-			flock.scene,
+			flock.scene
 		);
 
-		newPlane.metadata = newPlane.metadata || {}; //
-		newPlane.metadata.shape = "plane"; // Add or update the type property
-		newPlane.blockKey = newPlane.name;
-		newPlane.name = newPlane.name + "_" + newPlane.uniqueId;
-		newPlane.position = new flock.BABYLON.Vector3(posX, posY, posZ);
-
-		// Physics for the plane
-		const planeBody = new flock.BABYLON.PhysicsBody(
-			newPlane,
-			flock.BABYLON.PhysicsMotionType.STATIC, // Planes are typically static as they represent surfaces
-			false,
-			flock.scene,
-		);
+		flock.initializeMesh(newPlane, position, color, "Plane");
 
 		const planeShape = new flock.BABYLON.PhysicsShapeBox(
 			new flock.BABYLON.Vector3(0, 0, 0),
 			new flock.BABYLON.Quaternion(0, 0, 0, 1),
-			new flock.BABYLON.Vector3(width, height, 0.001), // Width and height divided by 2, minimal depth
-			flock.scene,
+			new flock.BABYLON.Vector3(width, height, 0.001),
+			flock.scene
 		);
 
-		planeBody.shape = planeShape;
-		planeBody.setMassProperties({
-			mass: 0, // No mass as it is static
-			restitution: 0.5,
-			inertia: flock.BABYLON.Vector3.ZeroReadOnly, // No inertia as it does not move
-		});
-
-		newPlane.physics = planeBody;
-		const material = new flock.BABYLON.StandardMaterial(
-			"planeMaterial",
-			flock.scene,
-		);
-		material.diffuseColor = flock.BABYLON.Color3.FromHexString(
-			flock.getColorFromString(color),
-		);
-		newPlane.material = material;
-
+		flock.createPhysicsBody(newPlane, planeShape, flock.BABYLON.PhysicsMotionType.STATIC);
 		return newPlane.name;
 	},
 	newWall(color, startX, startZ, endX, endZ, yPosition, wallType, wallId) {

@@ -344,65 +344,65 @@ function createMeshOnCanvas(block) {
 	let newMesh;
 	switch (shapeType) {
 		case "create_box":
-			newMesh = flock.newBox(
+			newMesh = flock.createBox(
+				"box_" + generateUniqueId(),
 				color,
 				width,
 				height,
 				depth,
-				position.x,
+				[position.x,
 				position.y,
-				position.z,
-				"box_" + generateUniqueId(),
+				position.z]
 			);
 			break;
 
 		case "create_sphere":
-			newMesh = flock.newSphere(
+			newMesh = flock.createSphere(
+				"sphere_" + generateUniqueId(),
 				color,
 				diameterX,
 				diameterY,
 				diameterZ,
-				position.x,
+				[position.x,
 				position.y + diameterY / 2,
-				position.z,
-				"sphere_" + generateUniqueId(),
+				position.z]
 			);
 			break;
 
 		case "create_cylinder":
-			newMesh = flock.newCylinder(
+			newMesh = flock.createCylinder(
+				"cylinder_" + generateUniqueId(),
 				color,
 				height,
 				diameterTop,
 				diameterBottom,
-				position.x,
+				[position.x,
 				position.y + height / 2,
-				position.z,
-				"cylinder_" + generateUniqueId(),
+				position.z]			
 			);
 			break;
 
 		case "create_capsule":
-			newMesh = flock.newCapsule(
+			newMesh = flock.createCapsule(
+				"capsule_" + generateUniqueId(),
 				color,
 				radius,
 				height,
-				position.x,
+				[position.x,
 				position.y + height / 2,
-				position.z,
-				"capsule_" + generateUniqueId(),
+				position.z]				
 			);
 			break;
 
 		case "create_plane":
-			newMesh = flock.newPlane(
+			newMesh = flock.createPlane(
+				"plane_" + generateUniqueId(),
 				color,
 				width,
 				height,
-				position.x,
+				[position.x,
 				position.y + height / 2,
-				position.z,
-				"plane_" + generateUniqueId(),
+				position.z]			
 			);
 			break;
 	}
@@ -720,66 +720,66 @@ function addShapeToWorkspace(shapeType, position) {
 	let newMesh;
 	switch (shapeType) {
 		case "create_box":
-			newMesh = flock.newBox(
+			newMesh = flock.createBox(
+				"box_",
 				color,
 				width,
 				height,
 				depth,
-				position.x,
+				[position.x,
 				position.y + height / 2,
-				position.z,
-				"box_",
+				position.z]				
 			);
 
 			break;
 
 		case "create_sphere":
-			newMesh = flock.newSphere(
+			newMesh = flock.createSphere(
+				"sphere_",
 				color,
 				diameterX,
 				diameterY,
 				diameterZ,
-				position.x,
+				[position.x,
 				position.y + diameterY / 2,
-				position.z,
-				"sphere_",
+				position.z]				
 			);
 			break;
 
 		case "create_cylinder":
-			newMesh = flock.newCylinder(
+			newMesh = flock.createCylinder(
+				"cylinder_",
 				color,
 				height,
 				diameterTop,
 				diameterBottom,
-				position.x,
+				[position.x,
 				position.y + height / 2,
-				position.z,
-				"cylinder_",
+				position.z]				
 			);
 			break;
 
 		case "create_capsule":
-			newMesh = flock.newCapsule(
+			newMesh = flock.createCapsule(
+				"capsule_",
 				color,
 				radius,
 				height,
-				position.x,
+				[position.x,
 				position.y + height / 2,
-				position.z,
-				"capsule_",
+				position.z]				
 			);
 			break;
 
 		case "create_plane":
-			newMesh = flock.newPlane(
+			newMesh = flock.createPlane(
+				"plane_",
 				color,
 				width,
 				height,
-				position.x,
+				[position.x,
 				position.y + height / 2,
-				position.z,
-				"plane_",
+				position.z]				
 			);
 
 			break;

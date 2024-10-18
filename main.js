@@ -19,6 +19,7 @@ import {
 	handleBlockSelect,
 	handleBlockDelete,
 } from "./blocks";
+import { defineBaseBlocks } from "./blocks/base";
 import { defineShapeBlocks } from "./blocks/shapes";
 import { defineGenerators } from "./generators";
 import { enableGizmos, setGizmoManager, disposeGizmoManager} from "./ui/designview";
@@ -79,7 +80,7 @@ function stripFilename(inputString) {
 		removeEnd.lastIndexOf("\\"),
 	);
 
-	if ((lastIndex = fi == -1)) {
+	if ((lastIndex === -1)) {
 		return removeEnd.trim();
 	}
 
@@ -856,7 +857,8 @@ window.onload = function () {
 
 	console.log("Welcome to Flock 🐑🐑🐑");
 
-	defineBlocks();
+	defineBaseBlocks();
+	defineBlocks();	
 	defineShapeBlocks();
 	defineGenerators();
 	// Initialize Blockly and add custom context menu options
