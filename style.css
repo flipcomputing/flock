@@ -1,4 +1,472 @@
-html {
+ /*
+		.blocklyText {
+			fill: black !important;
+
+		}
+
+		.zelos-renderer.classic-theme .blocklyDropDownText {
+			fill: black !important;
+
+		}
+
+		.zelos-renderer.classic-theme .blocklyDropdownText {
+			fill: black !important;
+
+		}*/
+
+/* Global Styles */
+html,
+body {
+  overflow: hidden;
+  margin: 0;
+  padding: 0;
+  touch-action: none;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  outline: none;
+  -webkit-tap-highlight-color: transparent;
+  height: 100vh;
+  width: 100vw;
+}
+
+body {
+  display: flex;
+  gap: 0;
+  box-sizing: border-box;
+  font-family: "Asap", Helvetica, Arial, Lucida, sans-serif !important;
+}
+
+/* Form Elements */
+input,
+textarea,
+button {
+  font-family: inherit;
+  -webkit-user-select: none; /* Disable selection in Safari and Chrome */
+  -moz-user-select: none; /* Disable selection in Firefox */
+  -ms-user-select: none; /* Disable selection in IE/Edge */
+  user-select: none; /* Standard syntax */
+  -webkit-touch-callout: none; /* Disable callout in mobile Safari */
+  -webkit-tap-highlight-color: transparent; /* Remove tap highlight */
+}
+
+/* Blockly Styles */
+.zelos-renderer.classic-theme .blocklyEditableText {
+  cursor: pointer !important;
+}
+
+.zelos-renderer.classic-theme .blocklyText,
+.zelos-renderer.classic-theme .blocklyFlyoutLabelText {
+  font-weight: 500 !important;
+  font-family: "Asap", Helvetica, Arial, Lucida, sans-serif !important;
+}
+
+.blocklyTreeLabel {
+  font-weight: normal !important;
+  font-family: "Asap", Helvetica, Arial, Lucida, sans-serif !important;
+  color: white !important;
+  background-color: inherit;
+  font-size: 14px;
+  text-align: center;
+  margin-top: 5px;
+}
+
+.blocklyDropDownArrow {
+  cursor: pointer;
+}
+
+.blocklyToolboxDiv {
+  padding-top: 0;
+}
+
+.blocklyTreeRow {
+  border-left: none !important; /* Remove colored tab */
+}
+
+/* Search Highlight Styles */
+.blockly-ws-search {
+  background: white;
+  margin-top: 5px;
+  border: solid #ee5d6c 4px;
+  box-shadow: 0px 10px 20px grey;
+  justify-content: center;
+  padding: 0.25em;
+  position: absolute;
+  z-index: 70;
+}
+
+path.blocklyPath.blockly-ws-search-highlight {
+  fill: #ed808b;
+}
+
+path.blocklyPath.blockly-ws-search-highlight.blockly-ws-search-current {
+  fill: #ee5d6c;
+}
+
+/* Canvas Styles */
+#renderCanvas {
+  width: 100%;
+  height: auto;
+  touch-action: none;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  outline: none;
+}
+
+/* Layout Styles */
+#maincontent {
+  width: 100vw;
+  height: calc(100vh - 40px);
+  display: flex;
+  margin: 0;
+  gap: 0;
+}
+
+#blocklyDiv {
   height: 100%;
   width: 100%;
+  border: none;
+}
+
+#menu {
+  display: flex;
+  height: 40px;
+  align-items: center;
+  justify-content: space-between;
+  max-width: 100vw;
+  gap: 5px;
+  z-index: 10;
+  background-color: rgba(255, 255, 255, 0.9);
+  padding: 0;
+  border-radius: 5px;
+  box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+}
+
+#menuleft,
+#menumiddle,
+#menuright {
+  display: flex;
+  align-items: center;
+}
+
+#codePanelButtons {
+  display: flex;
+  height: 40px;
+  justify-content: space-between;
+  flex-shrink: 0;
+  border: none;
+}
+
+/* Buttons */
+.bigbutton {
+  display: inline-block;
+  margin: 0;
+  padding: 5px;
+  font-size: 18px;
+  background-color: #f0f0f0;
+  color: black;
+  border: none;
+  border-radius: 15px;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.bigbutton:hover {
+  background-color: #e0e0e0;
+}
+
+/* Gizmo Buttons */
+.gizmo-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  padding: 0;
+  margin: 0;
+  box-sizing: border-box;
+}
+
+.gizmo-button {
+  padding: 5px;
+  font-size: 12px;
+  cursor: pointer;
+  border-radius: 5px;
+  border: none;
+  background-color: #317873;
+  color: white;
+}
+
+/* Dropdown Styles */
+.dropdown {
+  position: relative;
+}
+
+.dropdown-content {
+  display: none;
+  position: absolute;
+  background-color: #f9f9f9;
+  min-width: 160px;
+  max-width: 200px;
+  box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.2);
+  z-index: 1;
+  border-radius: 5px;
+  white-space: nowrap;
+  right: 0;
+  left: auto;
+}
+
+.dropdown:hover .dropdown-content {
+  display: block;
+}
+
+.dropdown-content button {
+  font-size: 1em;
+}
+
+/* Shape Menu */
+#shape-menu {
+  position: relative;
+  display: inline-block;
+}
+
+#shapes-dropdown {
+  position: absolute;
+  bottom: -50px;
+  left: 0;
+  display: block;
+  background-color: rgba(1, 1, 1, 0.5);
+  padding: 10px;
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+  border-radius: 5px;
+  width: 320px;
+  overflow: hidden;
+}
+
+#shapes-dropdown ul {
+  display: flex;
+  padding: 0;
+  margin: 2px;
+  list-style: none;
+  gap: 4px;
+  overflow-x: auto;
+  scroll-behavior: smooth;
+  white-space: nowrap;
+  scrollbar-width: none;
+}
+
+#shapes-dropdown ul::-webkit-scrollbar {
+  display: none;
+}
+
+#shapes-dropdown ul li {
+  background-color: rgba(255, 255, 255, 0.5);
+  border-radius: 5px;
+  padding: 5px;
+  display: inline-block;
+  cursor: pointer;
+}
+
+#shapes-dropdown ul li img {
+  width: 50px;
+  height: 50px;
+}
+
+#shapes-dropdown ul li:hover {
+  background-color: rgba(255, 255, 255, 0.7);
+}
+
+#shapes-dropdown ul li:hover img {
+  transform: scale(1.2);
+}
+
+/* Scrollable Container with Arrows */
+.scrollable-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+#model-row {
+  overflow-x: hidden;
+  white-space: nowrap;
+  flex-grow: 1;
+  display: flex;
+  gap: 10px;
+}
+
+.scroll-button {
+  background-color: rgba(0, 0, 0, 0.5);
+  color: white;
+  border: none;
+  cursor: pointer;
+  font-size: 18px;
+  padding: 5px 10px;
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 2;
+  width: 30px;
+  height: 30px;
+}
+
+.scroll-button.left {
+  left: -15px;
+}
+
+.scroll-button.right {
+  right: -15px;
+}
+
+/* Responsive Styles */
+@media (max-width: 768px) {
+  :root {
+	--dynamic-offset: 65px;
+  }
+
+  .blocklyTreeRowContentContainer {
+	flex-direction: column !important;
+	background-color: var(--category-color) !important;
+	color: white;
+	font-size: 10px;
+	display: flex !important;
+	align-items: center !important;
+	justify-content: center !important;
+  }
+
+  .blocklyTreeRow {
+	flex-direction: column;
+	height: unset;
+	line-height: unset;
+	margin-bottom: 3px;
+	margin-top: 0;
+	padding: 3px;
+	padding-top: 5px;
+	white-space: nowrap;
+  }
+
+  #maincontent {
+	width: 200vw;
+	height: calc(100vh - var(--dynamic-offset));
+	overflow-x: auto;
+  }
+
+  #scene-explorer-host,
+  #inspector-host,
+  #toggleDesign {
+	display: none !important;
+  }
+
+  #codePanel,
+  #rightArea {
+	flex-basis: 100vw;
+	max-width: 100vw;
+	height: calc(100vh - var(--dynamic-offset));
+	flex-grow: 1;
+  }
+
+  #bottomBar {
+	position: fixed;
+	bottom: 0;
+	left: 0;
+	width: 100vw;
+	height: 25px;
+	background-color: purple;
+	color: white;
+	text-align: center;
+	line-height: 16px;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	box-sizing: border-box;
+	padding: 0 2px;
+  }
+
+  #switchViews {
+	background-color: transparent;
+	border: none;
+	color: white;
+	padding: 5px 10px;
+	margin: 0;
+	font-size: 16px;
+	cursor: pointer;
+	border-radius: 5px;
+  }
+}
+
+@media (min-width: 769px) {
+  .blocklyTreeRow {
+	flex-direction: row;
+	justify-content: start;
+	height: 25px;
+	line-height: 25px;
+	margin-bottom: 2px;
+	margin-top: 0;
+	padding: 2px;
+	white-space: nowrap;
+	padding-left: 5px;
+  }
+
+  .blocklyTreeRowContentContainer {
+	flex-direction: row !important;
+	justify-content: start;
+	gap: 4px;
+	color: white;
+	font-size: 10px;
+	display: flex !important;
+	align-items: flex-start !important;
+  }
+
+  .blocklyTreeRowContentContainer img {
+	height: 18px;
+	width: 18px;
+	padding: 4px;
+	padding-left: 8px;
+  }
+
+  #maincontent {
+	display: flex;
+	width: 100vw;
+	height: calc(100vh - 40px);
+  }
+
+  #codePanel {
+	flex: 2 1 0;
+	height: calc(100vh - 40px);
+	box-sizing: border-box;
+  }
+
+  #rightArea {
+	flex: 1 1 0;
+	height: calc(100vh - 40px);
+	box-sizing: border-box;
+  }
+
+  #bottomBar {
+	display: none;
+  }
+}
+
+/* Logo */
+#logo {
+  width: 54px;
+  height: auto;
+  flex-shrink: 0;
+  margin-right: 10px;
+  padding-left: 5px;
+}
+
+/* Custom Category */
+.custom-category img {
+  margin-bottom: 5px;
+}
+
+.custom-category div {
+  text-align: center;
 }
