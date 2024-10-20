@@ -2756,7 +2756,7 @@ export function defineBlocks() {
 				],
 				previousStatement: null,
 				nextStatement: null,
-				colour: categoryColours["Materials"],
+				colour: categoryColours["Scene"],
 				tooltip: "Shows the selected model.\nKeyword: show",
 				helpUrl: "",
 			});
@@ -2777,7 +2777,7 @@ export function defineBlocks() {
 				],
 				previousStatement: null,
 				nextStatement: null,
-				colour: categoryColours["Materials"],
+				colour: categoryColours["Scene"],
 				tooltip: "Hides the selected model.\nKeyword: hide",
 				helpUrl: "",
 			});
