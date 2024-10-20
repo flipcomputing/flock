@@ -62,6 +62,8 @@ export const flock = {
 				createPlane,
 				newWall,
 				parentChild,
+				makeFollow,
+				stopFollow,
 				removeParent,
 				createGround,
 				createMap,
@@ -237,7 +239,7 @@ export const flock = {
 	async disposeOldScene() {
 		flock.flockNotReady = true;
 		if (flock.scene) {
-			flock.scene.activeCamera.inputs.clear();
+			flock.scene.activeCamera.inputs?.clear();
 			flock.modelCache = null;
 			flock.loadingCache = null;
 			// Abort any ongoing operations if applicable
@@ -1188,6 +1190,44 @@ export const flock = {
 
 			// Set the child mesh's position to its world position
 			childMesh.position = worldPosition;
+		});
+	},
+	makeFollow(followerModelName, targetModelName, followPosition, offsetX = 0, offsetY = 0, offsetZ = 0) {
+		// Ensure both models are loaded before proceeding
+		return flock.whenModelReady(followerModelName, (followerMesh) => {
+			flock.whenModelReady(targetModelName, (targetMesh) => {
+				// Remove any existing follow observer before adding a new one
+				if (followerMesh._followObserver) {
+					flock.scene.onBeforeRenderObservable.remove(followerMesh._followObserver);
+				}
+
+				// Calculate Y position based on the follow position option
+				let getYPosition = () => {
+					if (followPosition === "TOP") {
+						return targetMesh.position.y + targetMesh.scaling.y;
+					} else if (followPosition === "CENTER") {
+						return targetMesh.position.y + targetMesh.scaling.y / 2;
+					} else {
+						return targetMesh.position.y;
+					}
+				};
+
+				// Create a new observer to update the follower's position
+				followerMesh._followObserver = flock.scene.onBeforeRenderObservable.add(() => {
+					followerMesh.position.x = targetMesh.position.x + parseFloat(offsetX);
+					followerMesh.position.y = getYPosition() + parseFloat(offsetY);
+					followerMesh.position.z = targetMesh.position.z + parseFloat(offsetZ);
+				});
+			});
+		});
+	},
+	stopFollow(followerModelName) {
+		return flock.whenModelReady(followerModelName, (followerMesh) => {
+			// Remove the follow observer if it exists
+			if (followerMesh._followObserver) {
+				flock.scene.onBeforeRenderObservable.remove(followerMesh._followObserver);
+				followerMesh._followObserver = null;
+			}
 		});
 	},
 	createGround(color, modelId) {

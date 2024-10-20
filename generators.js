@@ -1287,7 +1287,7 @@ export function defineGenerators() {
 		return `exportMesh(${meshVar}, "${format}");\n`;
 	};
 
-	javascriptGenerator.forBlock["parent_child"] = function (block) {
+	/*javascriptGenerator.forBlock["parent_child"] = function (block) {
 		const parentMesh = javascriptGenerator.nameDB_.getName(
 			block.getFieldValue("PARENT_MESH"),
 			Blockly.Names.NameType.VARIABLE,
@@ -1337,7 +1337,7 @@ export function defineGenerators() {
 		}
 
 		return code;
-	};
+	};*/
 
 	javascriptGenerator.forBlock["parent_child"] = function (block) {
 		const parentMesh = javascriptGenerator.nameDB_.getName(
@@ -1380,6 +1380,55 @@ export function defineGenerators() {
 
 		return `removeParent(${childMesh});\n`;
 	};
+
+	javascriptGenerator.forBlock["follow"] = function (block) {
+		const followerMesh = javascriptGenerator.nameDB_.getName(
+			block.getFieldValue("FOLLOWER_MESH"),
+			Blockly.Names.NameType.VARIABLE
+		);
+		const targetMesh = javascriptGenerator.nameDB_.getName(
+			block.getFieldValue("TARGET_MESH"),
+			Blockly.Names.NameType.VARIABLE
+		);
+		const followPosition = block.getFieldValue("FOLLOW_POSITION");
+
+		const xOffset =
+			javascriptGenerator.valueToCode(
+				block,
+				"X_OFFSET",
+				javascriptGenerator.ORDER_ATOMIC
+			) || "0";
+		const yOffset =
+			javascriptGenerator.valueToCode(
+				block,
+				"Y_OFFSET",
+				javascriptGenerator.ORDER_ATOMIC
+			) || "0";
+		const zOffset =
+			javascriptGenerator.valueToCode(
+				block,
+				"Z_OFFSET",
+				javascriptGenerator.ORDER_ATOMIC
+			) || "0";
+
+		// Use the helper method makeFollow for following the target
+		const code = `
+			makeFollow(${followerMesh}, ${targetMesh}, "${followPosition}", ${xOffset}, ${yOffset}, ${zOffset});
+		`;
+		return code;
+	};
+
+	javascriptGenerator.forBlock["stop_follow"] = function (block) {
+		const followerModelName = javascriptGenerator.nameDB_.getName(
+			block.getFieldValue("FOLLOWER_MESH"),
+			Blockly.Names.NameType.VARIABLE
+		);
+
+		// Generate code to call the stopFollow helper function
+		const code = `stopFollow("${followerModelName}");\n`;
+		return code;
+	};
+
 
 	javascriptGenerator.forBlock["add_physics"] = function (block) {
 		const modelName = javascriptGenerator.nameDB_.getName(

@@ -891,6 +891,42 @@ export const toolbox = {
 				},
 				{
 					kind: "block",
+					type: "follow",
+					keyword: "follow",
+					inputs: {
+						X_OFFSET: {
+							shadow: {
+								type: "math_number",
+								fields: {
+									NUM: 0,
+								},
+							},
+						},
+						Y_OFFSET: {
+							shadow: {
+								type: "math_number",
+								fields: {
+									NUM: 0,
+								},
+							},
+						},
+						Z_OFFSET: {
+							shadow: {
+								type: "math_number",
+								fields: {
+									NUM: 0,
+								},
+							},
+						},
+					},
+				},
+				{
+					kind: "block",
+					type: "stop_follow",
+					keyword: "fstop",
+				},
+				{
+					kind: "block",
 					type: "show",
 					keyword: "show",
 				},

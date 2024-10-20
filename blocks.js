@@ -1646,7 +1646,7 @@ export function defineBlocks() {
 					{
 						type: "field_variable",
 						name: "PARENT_MESH",
-						variable: "parentMesh",
+						variable: "parent",
 					},
 					{
 						type: "field_variable",
@@ -1702,6 +1702,84 @@ export function defineBlocks() {
 			});
 		},
 	};
+
+	Blockly.Blocks["stop_follow"] = {
+		init: function () {
+			this.jsonInit({
+				type: "stop_follow",
+				message0: "stop following %1",
+				args0: [
+					{
+						type: "field_variable",
+						name: "FOLLOWER_MESH",
+						variable: window.currentMesh,
+					},
+				],
+				previousStatement: null,
+				nextStatement: null,
+				colour: categoryColours["Scene"],
+				tooltip:
+					"Stops the specified mesh from following another.\nKeyword: ",
+			});
+		},
+	};
+
+
+	Blockly.Blocks["follow"] = {
+		init: function () {
+			this.jsonInit({
+				type: "follow",
+				message0: "make %1 follow %2 at %3 with offset x: %4 y: %5 z: %6",
+				args0: [
+					{
+						type: "field_variable",
+						name: "FOLLOWER_MESH",
+						variable: "follower",
+					},
+					{
+						type: "field_variable",
+						name: "TARGET_MESH",
+						variable: "target",
+					},
+					{
+						type: "field_dropdown",
+						name: "FOLLOW_POSITION",
+						options: [
+							["top", "TOP"],
+							["center", "CENTER"],
+							["bottom", "BOTTOM"],
+						],
+					},
+					{
+						type: "input_value",
+						name: "X_OFFSET",
+						check: "Number",
+						align: "RIGHT",
+					},
+					{
+						type: "input_value",
+						name: "Y_OFFSET",
+						check: "Number",
+						align: "RIGHT",
+					},
+					{
+						type: "input_value",
+						name: "Z_OFFSET",
+						check: "Number",
+						align: "RIGHT",
+					},
+				],
+				previousStatement: null,
+				nextStatement: null,
+				colour: categoryColours["Scene"],
+				inputsInline: true,
+				tooltip:
+					"Makes one mesh follow another at a specified position (top, center, or bottom) with offset in x, y, and z directions.",
+			});
+		},
+	};
+
+
 
 	Blockly.Blocks["scale"] = {
 		init: function () {
