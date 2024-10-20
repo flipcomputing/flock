@@ -14,6 +14,7 @@ import {
 import {
 	deleteMeshFromBlock
 } from "./ui/designview.js";
+import { flock } from "./flock.js";
 /*import {
   ScrollOptions,
   ScrollBlockDragger,
@@ -70,6 +71,7 @@ export function findCreateBlock(block) {
 	return null;
 }
 
+/*
 export default Blockly.Theme.defineTheme("flock", {
 	base: Blockly.Themes.Modern,
 	componentStyles: {
@@ -87,9 +89,13 @@ export default Blockly.Theme.defineTheme("flock", {
 		//'blackBackground': '#333',
 	},
 });
+*/
+
+
 
 export const options = {
-	theme: Blockly.Themes.Modern, // "flock"
+theme: Blockly.Themes.Modern, // "flock"
+	//theme: "flockTheme",
 	renderer: "zelos",
 	pathToMedia: "blockly/media/",
 	zoom: {

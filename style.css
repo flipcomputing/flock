@@ -1,10 +1,14 @@
- /*
+ 
 		.blocklyText {
 			fill: black !important;
 
 		}
 
-		.zelos-renderer.classic-theme .blocklyDropDownText {
+.blocklyDropdownField, .blocklyDropdownDiv, .blocklyDropdownContent {
+fill: black !important;
+}
+
+		.zelos-renderer.classic-theme .blocklyDropDownText, .zelos-renderer.classic-theme .blocklyMenuItemContent {
 			fill: black !important;
 
 		}
@@ -12,7 +16,11 @@
 		.zelos-renderer.classic-theme .blocklyDropdownText {
 			fill: black !important;
 
-		}*/
+		}
+
+.zelos-renderer.classic-theme.blocklyDropDownDiv .goog-menuitem-content {
+	color: #000  !important;
+}
 
 /* Global Styles */
 html,
@@ -67,7 +75,7 @@ button {
 .blocklyTreeLabel {
   font-weight: normal !important;
   font-family: "Asap", Helvetica, Arial, Lucida, sans-serif !important;
-  color: white !important;
+  color: black !important;
   background-color: inherit;
   font-size: 14px;
   text-align: center;

@@ -1,14 +1,14 @@
 import * as Blockly from "blockly";
 
 export const categoryColours = {
-	Events: 210,
-	Scene: 150,
+	Events: 200,
+	Scene: 90,
 	Transform: 240,
 	Animate: 45,
-	Materials: 300,
-	Sound: 15,
+	Materials: 280,
+	Sound: 25,
 	Sensing: 180,
-	Snippets: 80,
+	Snippets: 5,
 	Control: "%{BKY_LOOPS_HUE}",
 	Logic: "%{BKY_LOGIC_HUE}",
 	Variables: "%{BKY_VARIABLES_HUE}",

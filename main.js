@@ -32,8 +32,8 @@ if (navigator.serviceWorker) {
 
 let workspace = null;
 
-//Blockly.utils.colour.setHsvSaturation(0.2) // 0 (inclusive) to 1 (exclusive), defaulting to 0.45
-//Blockly.utils.colour.setHsvValue(0.95) // 0 (inclusive) to 1 (exclusive), defaulting to 0.65
+Blockly.utils.colour.setHsvSaturation(0.3) // 0 (inclusive) to 1 (exclusive), defaulting to 0.45
+Blockly.utils.colour.setHsvValue(0.85) // 0 (inclusive) to 1 (exclusive), defaulting to 0.65
 
 /*
 function Mesh(id = "UNDEFINED") {
@@ -1087,3 +1087,4 @@ const adjustViewport = () => {
 // Adjust viewport on page load and resize
 window.addEventListener("load", adjustViewport);
 window.addEventListener("resize", adjustViewport);
+
