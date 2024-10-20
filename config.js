@@ -130,6 +130,10 @@ export const animationNames = [
 	["Run Attack", "Run_Attack"],
 	["Run Hold", "Run_Hold"],
 	["Walk Hold", "Walk_Hold"],
+	["Dance1", "Dance1"],
+	["Dance2", "Dance2"],
+	["Dance3", "Dance3"],
+	["Dance4", "Dance4"],
 ];
 
 export const materialNames = [
