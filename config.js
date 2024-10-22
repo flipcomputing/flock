@@ -119,7 +119,7 @@ export const animationNames = [
 	["No", "No"],
 	["Duck", "Duck"],
 	["Fly", "Fly"],
-	["Fall", "Death"],
+	["Fall", "Fall"],
 	["Hit React", "HitReact"],
 	["Idle Attack", "Idle_Attack"],
 	["Idle_Hold", "Idle_Hold"],
