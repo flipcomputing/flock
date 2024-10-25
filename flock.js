@@ -1465,7 +1465,7 @@ export const flock = {
 		loop = false,
 		restart = true,
 	) {
-		const maxAttempts = 10;
+		const maxAttempts = 100;
 		const attemptInterval = 10;
 
 		for (let attempt = 1; attempt <= maxAttempts; attempt++) {
