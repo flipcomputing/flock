@@ -2559,17 +2559,54 @@ export function defineBlocks() {
 						name: "DO",
 					},
 				],
-				//previousStatement: null,
-				//nextStatement: null,
 				colour: categoryColours["Events"],
-				tooltip:
-					"Executes the blocks inside when the specified model trigger occurs.\nKeyword: click",
-				helpUrl: "",
+				tooltip: "Executes the blocks inside when the specified model trigger occurs.\nKeyword: click",
+				helpUrl: ""
 			});
+
+			// Set default state to top-level block
+			this.isInline = false;
+
+			// Add the toggle button
+			const toggleButton = new Blockly.FieldImage(
+				"data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAiIGhlaWdodD0iMzAiIHZpZXdCb3g9IjAgMCAzMCAzMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4gPHBhdGggZmlsbD0id2hpdGUiIGQ9Ik0xNSA2djloLTl2M2g5djloM3YtOWg5di0zaC05di05eiIvPjwvc3ZnPg==", // Custom icon
+				30,
+				30,
+				"*", // Width, Height, Alt text
+				() => {
+					this.toggleDoBlock();
+				}
+			);
+
+			// Append the toggle button to the block
+			this.appendDummyInput().appendField(toggleButton, "TOGGLE_BUTTON");
 		},
+		mutationToDom: function () {
+			const container = document.createElement("mutation");
+			container.setAttribute("inline", this.isInline);
+			return container;
+		},
+		domToMutation: function (xmlElement) {
+			const isInline = (xmlElement.getAttribute("inline") === "true");
+			this.updateShape_(isInline);
+		},
+		updateShape_: function (isInline) {
+			this.isInline = isInline;
+			if (isInline) {
+				this.setPreviousStatement(true);
+				this.setNextStatement(true);
+			} else {
+				this.setPreviousStatement(false);
+				this.setNextStatement(false);
+			}
+		},
+		toggleDoBlock: function () {
+			this.updateShape_(!this.isInline);
+		}
 	};
 
-	Blockly.Blocks["when_touches"] = {
+
+	Blockly.Blocks["when_touches2"] = {
 		init: function () {
 			this.jsonInit({
 				type: "when_touches",
@@ -2610,6 +2647,85 @@ export function defineBlocks() {
 			});
 		},
 	};
+
+	Blockly.Blocks["when_touches"] = {
+		init: function () {
+			this.jsonInit({
+				type: "when_touches",
+				message0: "when %1 intersect %2 %3",
+				args0: [
+					{
+						type: "field_variable",
+						name: "MODEL_VAR",
+						variable: window.currentMesh,
+					},
+					{
+						type: "field_dropdown",
+						name: "TRIGGER",
+						options: [
+							["enter", "OnIntersectionEnterTrigger"],
+							["exit", "OnIntersectionExitTrigger"],
+						],
+					},
+					{
+						type: "field_variable",
+						name: "OTHER_MODEL_VAR",
+						variable: "mesh2",
+					},
+				],
+				message1: "%1",
+				args1: [
+					{
+						type: "input_statement",
+						name: "DO",
+					},
+				],
+				colour: categoryColours["Events"],
+				tooltip: "Executes the blocks inside when the mesh intersects or no longer intersects with another mesh.\nKeyword: touches",
+				helpUrl: ""
+			});
+
+			// Set default state to top-level block
+			this.isInline = false;
+
+			// Add the toggle button
+			const toggleButton = new Blockly.FieldImage(
+				"data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAiIGhlaWdodD0iMzAiIHZpZXdCb3g9IjAgMCAzMCAzMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4gPHBhdGggZmlsbD0id2hpdGUiIGQ9Ik0xNSA2djloLTl2M2g5djloM3YtOWg5di0zaC05di05eiIvPjwvc3ZnPg==", // Custom icon
+				30,
+				30,
+				"*", // Width, Height, Alt text
+				() => {
+					this.toggleDoBlock();
+				}
+			);
+
+			// Append the toggle button to the block
+			this.appendDummyInput().appendField(toggleButton, "TOGGLE_BUTTON");
+		},
+		mutationToDom: function () {
+			const container = document.createElement("mutation");
+			container.setAttribute("inline", this.isInline);
+			return container;
+		},
+		domToMutation: function (xmlElement) {
+			const isInline = (xmlElement.getAttribute("inline") === "true");
+			this.updateShape_(isInline);
+		},
+		updateShape_: function (isInline) {
+			this.isInline = isInline;
+			if (isInline) {
+				this.setPreviousStatement(true);
+				this.setNextStatement(true);
+			} else {
+				this.setPreviousStatement(false);
+				this.setNextStatement(false);
+			}
+		},
+		toggleDoBlock: function () {
+			this.updateShape_(!this.isInline);
+		}
+	};
+
 
 	Blockly.Blocks["local_variable"] = {
 		init: function () {

@@ -10,12 +10,12 @@ import {
 
 export let gizmoManager;
 
-export function updateOrCreateMeshFromBlock(block) {
+export function updateOrCreateMeshFromBlock(block, changeEvent) {
 	if (!window.loadingCode) {
 		const mesh = getMeshFromBlock(block);
 
 		if (mesh) {
-			updateMeshFromBlock(mesh, block);
+			updateMeshFromBlock(mesh, block, changeEvent);
 		} else {
 			createMeshOnCanvas(block);
 		}
@@ -111,7 +111,7 @@ export function getMeshFromBlock(block) {
 	return flock.scene?.meshes?.find((mesh) => mesh.blockKey === blockKey);
 }
 
-export function updateMeshFromBlock(mesh, block) {
+export function updateMeshFromBlock(mesh, block, changeEvent) {
 	const shapeType = block.type;
 	mesh.physics.disablePreStep = true;
 

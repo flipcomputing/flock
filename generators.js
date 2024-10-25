@@ -959,31 +959,17 @@ export function defineGenerators() {
 		return `await setBPM(${bpm}, ${meshVar});\n`;
 	};
 
-	javascriptGenerator.forBlock["when_clicked"] = function (block) {
-		const modelName = javascriptGenerator.nameDB_.getName(
-			block.getFieldValue("MODEL_VAR"),
-			Blockly.Names.NameType.VARIABLE,
-		);
-
-		const trigger = block.getFieldValue("TRIGGER");
-		const doCode = javascriptGenerator.statementToCode(block, "DO");
-
-		return `onTrigger(${modelName}, "${trigger}", async function() {
-				${doCode}
-			});\n`;
-	};
-
 	javascriptGenerator.forBlock["when_touches"] = function (block) {
 		const modelName = javascriptGenerator.nameDB_.getName(
 			block.getFieldValue("MODEL_VAR"),
 			Blockly.Names.NameType.VARIABLE,
-			true,
+			true
 		);
 
 		const otherModelName = javascriptGenerator.nameDB_.getName(
 			block.getFieldValue("OTHER_MODEL_VAR"),
 			Blockly.Names.NameType.VARIABLE,
-			true,
+			true
 		);
 
 		const trigger = block.getFieldValue("TRIGGER");
@@ -994,16 +980,38 @@ export function defineGenerators() {
 			trigger === "OnIntersectionEnterTrigger" ||
 			trigger === "OnIntersectionExitTrigger"
 		) {
-			return `onIntersect(${modelName}, ${otherModelName}, "${trigger}", async function() {
-		  ${doCode}
-		});\n`;
+			// Check if the block is top-level (no previous or next connection)
+			const isTopLevel = !block.previousConnection && !block.nextConnection;
+			const asyncWrapper = isTopLevel ? "async function() {\n" : "function() {\n";
+
+			return `onIntersect(${modelName}, ${otherModelName}, "${trigger}", ${asyncWrapper}
+				${doCode}
+			});\n`;
 		} else {
 			console.error(
 				"Invalid trigger type for 'when_touches' block:",
-				trigger,
+				trigger
 			);
 			return "";
 		}
+	};
+
+	javascriptGenerator.forBlock["when_clicked"] = function (block) {
+		const modelName = javascriptGenerator.nameDB_.getName(
+			block.getFieldValue("MODEL_VAR"),
+			Blockly.Names.NameType.VARIABLE
+		);
+
+		const trigger = block.getFieldValue("TRIGGER");
+		const doCode = javascriptGenerator.statementToCode(block, "DO");
+
+		// Check if the block is top-level (no previous or next connection)
+		const isTopLevel = !block.previousConnection && !block.nextConnection;
+		const asyncWrapper = isTopLevel ? "async function() {\n" : "function() {\n";
+
+		return `onTrigger(${modelName}, "${trigger}", ${asyncWrapper}
+			${doCode}
+		});\n`;
 	};
 
 	javascriptGenerator.forBlock["local_variable"] = function (
