@@ -1609,39 +1609,22 @@ export const flock = {
 		loop = false,
 		restart = true,
 	) {
-		const maxAttempts = 10;
-		const attemptInterval = 10;
+		return flock.whenModelReady(modelName, (mesh) => {
+			const animGroup = flock.switchToAnimation(
+				flock.scene,
+				mesh,
+				animationName,
+				loop,
+				restart,
+			);
 
-		for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-			const mesh = flock.scene.getMeshByName(modelName);
-			if (mesh) {
-				const animGroup = flock.switchToAnimation(
-					flock.scene,
-					mesh,
-					animationName,
-					loop,
-					restart,
-				);
-
-				return new Promise((resolve) => {
-					animGroup.onAnimationEndObservable.addOnce(() => {
-						resolve();
-					});
-				});
-			}
-			await new Promise((resolve, reject) => {
-				const timeoutId = setTimeout(resolve, attemptInterval);
-
-				// Listen for the abort signal to cancel the timeout
-				flock.abortController.signal.addEventListener("abort", () => {
-					clearTimeout(timeoutId); // Clear the timeout if aborted
-					reject(new Error("Timeout aborted")); // Reject the promise if aborted
+			return new Promise((resolve) => {
+				animGroup.onAnimationEndObservable.addOnce(() => {
+					console.log(`Animation "${animationName}" completed for model "${modelName}"`);
+					resolve();
 				});
 			});
-		}
-		console.error(
-			`Failed to find mesh "${modelName}" after ${maxAttempts} attempts.`,
-		);
+		});
 	},
 	setFog(fogColorHex, fogMode, fogDensity = 0.1) {
 		const fogColorRgb = flock.BABYLON.Color3.FromHexString(
