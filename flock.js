@@ -742,244 +742,85 @@ export const flock = {
 			});
 		});
 	},
-	newModel(modelName, modelId, scale, x, y, z, callback) {
-		const blockId = modelId;
-		modelId += "_" + flock.scene.getUniqueId();
+	async newModel(modelName, modelId, scale, x, y, z, callback) {
+	  const blockId = modelId;
+	  modelId += "_" + flock.scene.getUniqueId();
 
-		flock.BABYLON.SceneLoader.ImportMesh(
-			"",
-			"./models/",
-			modelName,
-			flock.scene,
-			function (meshes) {
-				const mesh = meshes[0];
-
-				mesh.scaling = new flock.BABYLON.Vector3(scale, scale, scale);
-
-				const bb =
-					flock.BABYLON.BoundingBoxGizmo.MakeNotPickableAndWrapInBoundingBox(
-						mesh,
-					);
-
-				bb.name = modelId;
-				bb.blockKey = blockId;
-				bb.isPickable = true;
-				bb.position.addInPlace(new flock.BABYLON.Vector3(x, y, z));
-
-				mesh.computeWorldMatrix(true);
-				mesh.refreshBoundingInfo();
-
-				bb.metadata = bb.metadata || {};
-				bb.metadata.yOffset = (bb.position.y - y) / scale;
-				flock.stopAnimationsTargetingMesh(flock.scene, mesh);
-
-				const boxBody = new flock.BABYLON.PhysicsBody(
-					bb,
-					flock.BABYLON.PhysicsMotionType.STATIC,
-					false,
-					flock.scene,
-				);
-
-				const boxShape = flock.createCapsuleFromBoundingBox(
-					bb,
-					flock.scene,
-				);
-
-				boxBody.shape = boxShape;
-				boxBody.setMassProperties({ mass: 1, restitution: 0.5 });
-				boxBody.disablePreStep = false;
-				//boxBody.setAngularDamping(10000000);
-				//boxBody.setLinearDamping(0);
-				bb.physics = boxBody;
-
-				// Call the callback after everything is set up
-				if (typeof callback === "function") {
-					callback(); // Execute the "do" code
-				}
+	  try {
+		// Load the asset container without appending to the scene yet
+		const container = await flock.BABYLON.loadAssetContainerAsync(
+		  "./models/" + modelName,
+		  flock.scene,
+		  {
+			pluginOptions: {
+			  gltf: {
+			  },
 			},
-			null,
-			function (error) {
-				console.log("Error loading", error);
-			},
+		  }
 		);
 
-		return modelId;
-	},
-	newModelCache(modelName, modelId, scale, x, y, z, callback) {
-		const blockId = modelId;
-		modelId += "_" + flock.scene.getUniqueId();
+		const meshes = container.meshes;
+		const mesh = meshes[0];
 
-		// Check if the model has already been cached
-		if (flock.modelCache[modelName]) {
-			// Use the cached model and clone it
-			const originalMesh = flock.modelCache[modelName];
-			const clonedMesh = originalMesh.clone(modelId);
+		// Apply scaling to the mesh
+		mesh.scaling = new BABYLON.Vector3(scale, scale, scale);
 
-			// Reset visibility and interaction properties for the cloned mesh and its children
-			clonedMesh.isVisible = true;
-			clonedMesh.isPickable = true;
+		// Optionally, you can compute the world matrix and refresh bounding info
+		mesh.computeWorldMatrix(true);
+		mesh.refreshBoundingInfo();
 
-			clonedMesh.getChildMeshes().forEach(function (child) {
-				child.isVisible = true;
-				child.isPickable = true;
-			});
+		// Add all the assets in the container to the scene
+		container.addAllToScene();
 
-			// Apply scaling and position to the cloned mesh
-			clonedMesh.scaling = new flock.BABYLON.Vector3(scale, scale, scale);
-			clonedMesh.position.addInPlace(new flock.BABYLON.Vector3(x, y, z));
-			clonedMesh.computeWorldMatrix(true);
-			clonedMesh.refreshBoundingInfo();
+		// Set up physics
+		flock.setupPhysics(mesh, modelId, blockId, scale, x, y, z);
 
-			// Set up bounding box and physics
-			const bb =
-				flock.BABYLON.BoundingBoxGizmo.MakeNotPickableAndWrapInBoundingBox(
-					clonedMesh,
-				);
-			bb.name = modelId;
-			bb.blockKey = blockId;
-			bb.isPickable = true;
-			bb.metadata = bb.metadata || {};
-			bb.metadata.yOffset = (bb.position.y - y) / scale;
-			flock.stopAnimationsTargetingMesh(flock.scene, clonedMesh);
-
-			const boxBody = new flock.BABYLON.PhysicsBody(
-				bb,
-				flock.BABYLON.PhysicsMotionType.STATIC,
-				false,
-				flock.scene,
-			);
-			const boxShape = flock.createCapsuleFromBoundingBox(
-				bb,
-				flock.scene,
-			);
-			boxBody.shape = boxShape;
-			boxBody.setMassProperties({ mass: 1, restitution: 0.5 });
-			boxBody.disablePreStep = false;
-			bb.physics = boxBody;
-
-			// Call the callback after everything is set up
-			if (typeof callback === "function") {
-				callback(); // Execute the "do" code
-			}
-
-			return modelId; // Return the cloned model's ID
+		// Execute the callback after everything is set up
+		if (typeof callback === "function") {
+		  callback(); // Execute the "do" code
 		}
+	  } catch (error) {
+		console.log("Error loading model:", error);
+	  }
 
-		// If model is still loading, return the promise
-		if (flock.loadingCache[modelName]) {
-			return flock.loadingCache[modelName].then(() => {
-				return flock.newModel(
-					modelName,
-					modelId,
-					scale,
-					x,
-					y,
-					z,
-					callback,
-				); // Retry after load completes
-			});
-		}
-
-		// Load the model if not cached
-		flock.loadingCache[modelName] = new Promise((resolve, reject) => {
-			flock.BABYLON.SceneLoader.ImportMesh(
-				"",
-				"./models/",
-				modelName,
-				flock.scene,
-				function (meshes) {
-					const rootMesh = meshes[0];
-
-					// Cache the original loaded model
-					flock.modelCache[modelName] = rootMesh;
-					delete flock.loadingCache[modelName]; // Remove from loading cache
-
-					// Assign a meaningful name to the original root mesh only once
-					rootMesh.name = "Original " + modelName;
-
-					// Make the root mesh and all its children invisible and non-interactive
-					rootMesh.isVisible = false;
-					rootMesh.isPickable = false;
-					rootMesh.checkCollisions = false;
-
-					rootMesh.getChildMeshes().forEach(function (child) {
-						child.name = "Original " + child.name; // Give a meaningful name to the child
-						child.isVisible = false;
-						child.isPickable = false;
-						child.checkCollisions = false; // Disable collisions for all children
-					});
-
-					// Clone the original mesh for the first instance
-					const clonedMesh = rootMesh.clone(modelId);
-
-					// Reset visibility and interaction properties for the cloned mesh and its children
-					clonedMesh.isVisible = true;
-					clonedMesh.isPickable = true;
-
-					clonedMesh.getChildMeshes().forEach(function (child) {
-						child.isVisible = true;
-						child.isPickable = true;
-					});
-
-					// Apply scaling and position to the cloned mesh
-					clonedMesh.scaling = new flock.BABYLON.Vector3(
-						scale,
-						scale,
-						scale,
-					);
-					clonedMesh.position.addInPlace(
-						new flock.BABYLON.Vector3(x, y, z),
-					);
-					clonedMesh.computeWorldMatrix(true);
-					clonedMesh.refreshBoundingInfo();
-
-					// Set up bounding box and physics
-					const bb =
-						flock.BABYLON.BoundingBoxGizmo.MakeNotPickableAndWrapInBoundingBox(
-							clonedMesh,
-						);
-					bb.name = modelId;
-					bb.blockKey = blockId;
-					bb.isPickable = true;
-					bb.metadata = bb.metadata || {};
-					bb.metadata.yOffset = (bb.position.y - y) / scale;
-
-					flock.stopAnimationsTargetingMesh(flock.scene, clonedMesh);
-
-					const boxBody = new flock.BABYLON.PhysicsBody(
-						bb,
-						flock.BABYLON.PhysicsMotionType.STATIC,
-						false,
-						flock.scene,
-					);
-					const boxShape = flock.createCapsuleFromBoundingBox(
-						bb,
-						flock.scene,
-					);
-					boxBody.shape = boxShape;
-					boxBody.setMassProperties({ mass: 1, restitution: 0.5 });
-					boxBody.disablePreStep = false;
-					bb.physics = boxBody;
-
-					// Call the callback after everything is set up
-					if (typeof callback === "function") {
-						callback(); // Execute the "do" code
-					}
-
-					resolve(modelId); // Resolve the promise once loaded
-				},
-				null,
-				function (error) {
-					console.log("Error loading", error);
-					delete flock.loadingCache[modelName]; // Remove from loading cache on error
-					reject(error); // Reject the promise on error
-				},
-			);
-		});
-
-		return modelId; // Return the new model's ID (or await the promise)
+	  return modelId;
 	},
-	newCharacter(
+	setupPhysics(mesh, modelId, blockId, scale, x, y, z) {
+		
+		const bb =
+			flock.BABYLON.BoundingBoxGizmo.MakeNotPickableAndWrapInBoundingBox(
+				mesh,
+			);
+
+		bb.name = modelId;
+		bb.blockKey = blockId;
+		bb.isPickable = true;
+		bb.position.addInPlace(new flock.BABYLON.Vector3(x, y, z));
+
+		mesh.computeWorldMatrix(true);
+		mesh.refreshBoundingInfo();
+
+		bb.metadata = bb.metadata || {};
+		bb.metadata.yOffset = (bb.position.y - y) / scale;
+		flock.stopAnimationsTargetingMesh(flock.scene, mesh);
+
+		const boxBody = new flock.BABYLON.PhysicsBody(
+			bb,
+			flock.BABYLON.PhysicsMotionType.STATIC,
+			false,
+			flock.scene,
+		);
+
+		const boxShape = flock.createCapsuleFromBoundingBox(bb, flock.scene);
+
+		boxBody.shape = boxShape;
+		boxBody.setMassProperties({ mass: 1, restitution: 0.5 });
+		boxBody.disablePreStep = false;
+		//boxBody.setAngularDamping(10000000);
+		//boxBody.setLinearDamping(0);
+		bb.physics = boxBody;
+	},
+		newCharacter(
 		modelName,
 		modelId,
 		scale,
@@ -1192,13 +1033,22 @@ export const flock = {
 			childMesh.position = worldPosition;
 		});
 	},
-	makeFollow(followerModelName, targetModelName, followPosition, offsetX = 0, offsetY = 0, offsetZ = 0) {
+	makeFollow(
+		followerModelName,
+		targetModelName,
+		followPosition,
+		offsetX = 0,
+		offsetY = 0,
+		offsetZ = 0,
+	) {
 		// Ensure both models are loaded before proceeding
 		return flock.whenModelReady(followerModelName, (followerMesh) => {
 			flock.whenModelReady(targetModelName, (targetMesh) => {
 				// Remove any existing follow observer before adding a new one
 				if (followerMesh._followObserver) {
-					flock.scene.onBeforeRenderObservable.remove(followerMesh._followObserver);
+					flock.scene.onBeforeRenderObservable.remove(
+						followerMesh._followObserver,
+					);
 				}
 
 				// Calculate Y position based on the follow position option
@@ -1213,11 +1063,15 @@ export const flock = {
 				};
 
 				// Create a new observer to update the follower's position
-				followerMesh._followObserver = flock.scene.onBeforeRenderObservable.add(() => {
-					followerMesh.position.x = targetMesh.position.x + parseFloat(offsetX);
-					followerMesh.position.y = getYPosition() + parseFloat(offsetY);
-					followerMesh.position.z = targetMesh.position.z + parseFloat(offsetZ);
-				});
+				followerMesh._followObserver =
+					flock.scene.onBeforeRenderObservable.add(() => {
+						followerMesh.position.x =
+							targetMesh.position.x + parseFloat(offsetX);
+						followerMesh.position.y =
+							getYPosition() + parseFloat(offsetY);
+						followerMesh.position.z =
+							targetMesh.position.z + parseFloat(offsetZ);
+					});
 			});
 		});
 	},
@@ -1225,7 +1079,9 @@ export const flock = {
 		return flock.whenModelReady(followerModelName, (followerMesh) => {
 			// Remove the follow observer if it exists
 			if (followerMesh._followObserver) {
-				flock.scene.onBeforeRenderObservable.remove(followerMesh._followObserver);
+				flock.scene.onBeforeRenderObservable.remove(
+					followerMesh._followObserver,
+				);
 				followerMesh._followObserver = null;
 			}
 		});
@@ -1609,6 +1465,46 @@ export const flock = {
 		loop = false,
 		restart = true,
 	) {
+		const maxAttempts = 10;
+		const attemptInterval = 10;
+
+		for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+			const mesh = flock.scene.getMeshByName(modelName);
+			if (mesh) {
+				const animGroup = flock.switchToAnimation(
+					flock.scene,
+					mesh,
+					animationName,
+					loop,
+					restart,
+				);
+
+				return new Promise((resolve) => {
+					animGroup.onAnimationEndObservable.addOnce(() => {
+						resolve();
+					});
+				});
+			}
+			await new Promise((resolve, reject) => {
+				const timeoutId = setTimeout(resolve, attemptInterval);
+
+				// Listen for the abort signal to cancel the timeout
+				flock.abortController.signal.addEventListener("abort", () => {
+					clearTimeout(timeoutId); // Clear the timeout if aborted
+					reject(new Error("Timeout aborted")); // Reject the promise if aborted
+				});
+			});
+		}
+		console.error(
+			`Failed to find mesh "${modelName}" after ${maxAttempts} attempts.`,
+		);
+	},
+	async playAnimation2(
+		modelName,
+		animationName,
+		loop = false,
+		restart = true,
+	) {
 		return flock.whenModelReady(modelName, (mesh) => {
 			const animGroup = flock.switchToAnimation(
 				flock.scene,
@@ -1620,7 +1516,9 @@ export const flock = {
 
 			return new Promise((resolve) => {
 				animGroup.onAnimationEndObservable.addOnce(() => {
-					console.log(`Animation "${animationName}" completed for model "${modelName}"`);
+					console.log(
+						`Animation "${animationName}" completed for model "${modelName}"`,
+					);
 					resolve();
 				});
 			});
@@ -1777,18 +1675,21 @@ export const flock = {
 		return newCapsule.name;
 	},
 	createPlane(planeId, color, width, height, position) {
-
 		const newPlane = flock.BABYLON.MeshBuilder.CreatePlane(
 			planeId,
 			{ width, height, sideOrientation: flock.BABYLON.Mesh.DOUBLESIDE },
 			flock.scene,
 		);
-		
+
 		newPlane.metadata = newPlane.metadata || {}; //
 		newPlane.metadata.shape = "plane"; // Add or update the type property
 		newPlane.blockKey = newPlane.name;
 		newPlane.name = newPlane.name + "_" + newPlane.uniqueId;
-		newPlane.position = new flock.BABYLON.Vector3(position[0], position[1], position[2]);
+		newPlane.position = new flock.BABYLON.Vector3(
+			position[0],
+			position[1],
+			position[2],
+		);
 
 		// Physics for the plane
 		const planeBody = new flock.BABYLON.PhysicsBody(
