@@ -35,6 +35,8 @@ export const flock = {
 	document: document,
 	disposed: null,
 	modelCache: {},
+	geometryCache: {},
+	materialCache: {},
 	flockNotReady: true,
 	async runCode(code) {
 		const sandboxedCode = `
@@ -239,9 +241,9 @@ export const flock = {
 		flock.flockNotReady = true;
 		if (flock.scene) {
 			flock.scene.activeCamera.inputs?.clear();
-			console.log("Clearing ca")
 			flock.modelCache = null;
-			flock.loadingCache = null;
+			flock.geometryCache = null;
+			flock.materialCache = null;
 			// Abort any ongoing operations if applicable
 			if (flock.abortController) {
 				flock.abortController.abort(); // Abort any pending operations
@@ -301,6 +303,8 @@ export const flock = {
 		}
 
 		flock.modelCache = {};
+		flock.geometryCache = {};
+		flock.materialCache = {};
 
 		// Create the new scene
 		flock.scene = new flock.BABYLON.Scene(flock.engine);
@@ -756,15 +760,17 @@ export const flock = {
 					pluginOptions: {
 						gltf: {},
 					},
-				}
-			).then((container) => {
-				// Cache the loaded container for future clones
-				flock.modelCache[modelName] = container;
-				return container;
-			}).catch((error) => {
-				console.error("Error loading model:", error);
-				delete flock.modelCache[modelName]; // Clear the cache entry if loading fails
-			});
+				},
+			)
+				.then((container) => {
+					// Cache the loaded container for future clones
+					flock.modelCache[modelName] = container;
+					return container;
+				})
+				.catch((error) => {
+					console.error("Error loading model:", error);
+					delete flock.modelCache[modelName]; // Clear the cache entry if loading fails
+				});
 		}
 
 		// Use the cached promise or model container
@@ -791,9 +797,8 @@ export const flock = {
 		return modelId; // Return immediately
 	},
 	setupMesh(mesh, modelId, blockId, scale, x, y, z) {
-
 		mesh.scaling = new BABYLON.Vector3(scale, scale, scale);
-		
+
 		const bb =
 			flock.BABYLON.BoundingBoxGizmo.MakeNotPickableAndWrapInBoundingBox(
 				mesh,
@@ -827,7 +832,7 @@ export const flock = {
 		//boxBody.setLinearDamping(0);
 		bb.physics = boxBody;
 	},
-		newCharacter(
+	newCharacter(
 		modelName,
 		modelId,
 		scale,
@@ -1610,21 +1615,60 @@ export const flock = {
 		return newBox.name;
 	},
 	createSphere(sphereId, color, diameterX, diameterY, diameterZ, position) {
-		const newSphere = flock.BABYLON.MeshBuilder.CreateSphere(
-			sphereId,
-			{ diameterX, diameterY, diameterZ },
-			flock.scene,
-		);
+		const geometryKey = `Sphere_${diameterX}_${diameterY}_${diameterZ}`;
 
+		// Check if geometry is already cached without adding it to the scene
+		let sphereGeometry;
+		if (flock.geometryCache[geometryKey]) {
+			sphereGeometry = flock.geometryCache[geometryKey];
+		} else {
+			// Create the geometry template without adding it to any scene
+			sphereGeometry = flock.BABYLON.MeshBuilder.CreateSphere(
+				geometryKey,
+				{ diameterX, diameterY, diameterZ },
+				null, // Ensure it is not added to any scene
+			);
+			flock.geometryCache[geometryKey] = sphereGeometry;
+		}
+
+		// Check or create material cache
+		const color3 =
+			typeof color === "string"
+				? BABYLON.Color3.FromHexString(color)
+				: color;
+		const materialKey = `Color_${color3.toHexString()}`;
+
+		let material;
+		if (flock.materialCache[materialKey]) {
+			material = flock.materialCache[materialKey];
+		} else {
+			material = new flock.BABYLON.StandardMaterial(
+				materialKey,
+				flock.scene,
+			);
+			material.diffuseColor = color3;
+			flock.materialCache[materialKey] = material;
+			sphereGeometry.setEnabled(false); // Ensure it's not active in any scene
+			sphereGeometry.isVisible = false; // Further ensure it's hidden
+		}
+
+		// Clone the geometry and add the clone to the active scene
+		const newSphere = sphereGeometry.clone(sphereId);
+		newSphere.material = material;
+		newSphere.isVisible = true;
+		newSphere.setEnabled(true);
+
+		// Initialize the mesh with the provided position, color, and type
 		flock.initializeMesh(newSphere, position, color, "Sphere");
 
+		// Apply physics
 		const sphereShape = new flock.BABYLON.PhysicsShapeSphere(
-			new flock.BABYLON.Vector3(0, 0, 0),
+			new BABYLON.Vector3(0, 0, 0),
 			Math.max(diameterX, diameterY, diameterZ) / 2,
 			flock.scene,
 		);
-
 		flock.createPhysicsBody(newSphere, sphereShape);
+
 		return newSphere.name;
 	},
 	createCylinder(
