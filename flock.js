@@ -35,7 +35,6 @@ export const flock = {
 	document: document,
 	disposed: null,
 	modelCache: {},
-	loadingCache: {},
 	flockNotReady: true,
 	async runCode(code) {
 		const sandboxedCode = `
@@ -240,6 +239,7 @@ export const flock = {
 		flock.flockNotReady = true;
 		if (flock.scene) {
 			flock.scene.activeCamera.inputs?.clear();
+			console.log("Clearing ca")
 			flock.modelCache = null;
 			flock.loadingCache = null;
 			// Abort any ongoing operations if applicable
@@ -742,50 +742,57 @@ export const flock = {
 			});
 		});
 	},
-	async newModel(modelName, modelId, scale, x, y, z, callback) {
-	  const blockId = modelId;
-	  modelId += "_" + flock.scene.getUniqueId();
+	newModel(modelName, modelId, scale, x, y, z, callback) {
+		const blockId = modelId;
+		modelId += "_" + flock.scene.getUniqueId();
 
-	  try {
-		// Load the asset container without appending to the scene yet
-		const container = await flock.BABYLON.loadAssetContainerAsync(
-		  "./models/" + modelName,
-		  flock.scene,
-		  {
-			pluginOptions: {
-			  gltf: {
-			  },
-			},
-		  }
-		);
-
-		const meshes = container.meshes;
-		const mesh = meshes[0];
-
-		// Apply scaling to the mesh
-		mesh.scaling = new BABYLON.Vector3(scale, scale, scale);
-
-		// Optionally, you can compute the world matrix and refresh bounding info
-		mesh.computeWorldMatrix(true);
-		mesh.refreshBoundingInfo();
-
-		// Add all the assets in the container to the scene
-		container.addAllToScene();
-
-		// Set up physics
-		flock.setupPhysics(mesh, modelId, blockId, scale, x, y, z);
-
-		// Execute the callback after everything is set up
-		if (typeof callback === "function") {
-		  callback(); // Execute the "do" code
+		// If the model is already loaded or loading, use the cached entry
+		if (!flock.modelCache[modelName]) {
+			// Store the loading promise in the cache
+			flock.modelCache[modelName] = flock.BABYLON.loadAssetContainerAsync(
+				"./models/" + modelName,
+				flock.scene,
+				{
+					pluginOptions: {
+						gltf: {},
+					},
+				}
+			).then((container) => {
+				// Cache the loaded container for future clones
+				flock.modelCache[modelName] = container;
+				return container;
+			}).catch((error) => {
+				console.error("Error loading model:", error);
+				delete flock.modelCache[modelName]; // Clear the cache entry if loading fails
+			});
 		}
-	  } catch (error) {
-		console.log("Error loading model:", error);
-	  }
 
-	  return modelId;
+		// Use the cached promise or model container
+		const containerPromise = Promise.resolve(flock.modelCache[modelName]);
+
+		// Use the container once it is available
+		containerPromise.then((container) => {
+			if (!container) return; // In case of load failure
+
+			// Clone the first mesh for the model
+			const meshes = container.meshes;
+			const mesh = meshes[0].clone(modelId);
+
+			flock.setupMesh(mesh, modelId, blockId, scale, x, y, z);
+
+			flock.scene.addMesh(mesh);
+
+			// Execute the callback after everything is set up
+			if (typeof callback === "function") {
+				callback(); // Execute the "do" code
+			}
+		});
+
+		return modelId; // Return immediately
 	},
-	setupPhysics(mesh, modelId, blockId, scale, x, y, z) {
+	setupMesh(mesh, modelId, blockId, scale, x, y, z) {
+
+		mesh.scaling = new BABYLON.Vector3(scale, scale, scale);
 		
 		const bb =
 			flock.BABYLON.BoundingBoxGizmo.MakeNotPickableAndWrapInBoundingBox(
