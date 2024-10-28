@@ -750,11 +750,14 @@ export const flock = {
 		const blockId = modelId;
 		modelId += "_" + flock.scene.getUniqueId();
 
-		flock.BABYLON.SceneLoader.LoadAssetContainerAsync(
-			"./models/",
-			modelName,
-			flock.scene
-		).then((container) => {
+			flock.BABYLON.SceneLoader.LoadAssetContainerAsync(
+				"./models/",
+				modelName,
+				flock.scene,
+				null,
+				null,
+				{ signal: flock.abortController.signal } 
+			).then((container) => {
 			container.addAllToScene();
 			const mesh = container.meshes[0];
 			flock.setupMesh(mesh, modelId, blockId, scale, x, y, z);
@@ -766,56 +769,6 @@ export const flock = {
 		});
 
 		return modelId;
-	},
-	newModel2(modelName, modelId, scale, x, y, z, callback) {
-		const blockId = modelId;
-		modelId += "_" + flock.scene.getUniqueId();
-
-		// If the model is already loaded or loading, use the cached entry
-		if (!flock.modelCache[modelName]) {
-			// Store the loading promise in the cache
-			flock.modelCache[modelName] = flock.BABYLON.loadAssetContainerAsync(
-				"./models/" + modelName,
-				flock.scene,
-				{
-					pluginOptions: {
-						gltf: {},
-					},
-				},
-			)
-				.then((container) => {
-					// Cache the loaded container for future clones
-					flock.modelCache[modelName] = container;
-					return container;
-				})
-				.catch((error) => {
-					console.error("Error loading model:", error);
-					delete flock.modelCache[modelName]; // Clear the cache entry if loading fails
-				});
-		}
-
-		// Use the cached promise or model container
-		const containerPromise = Promise.resolve(flock.modelCache[modelName]);
-
-		// Use the container once it is available
-		containerPromise.then((container) => {
-			if (!container) return; // In case of load failure
-
-			// Clone the first mesh for the model
-			const meshes = container.meshes;
-			const mesh = meshes[0].clone(modelId);
-
-			flock.setupMesh(mesh, modelId, blockId, scale, x, y, z);
-
-			flock.scene.addMesh(mesh);
-
-			// Execute the callback after everything is set up
-			if (typeof callback === "function") {
-				callback(); // Execute the "do" code
-			}
-		});
-
-		return modelId; // Return immediately
 	},
 	setupMesh(mesh, modelId, blockId, scale, x, y, z) {
 		mesh.scaling = new BABYLON.Vector3(scale, scale, scale);
@@ -962,78 +915,43 @@ export const flock = {
 		const blockId = modelId;
 		modelId += "_" + flock.scene.getUniqueId();
 
-		flock.BABYLON.SceneLoader.ImportMesh(
-			"",
+		flock.BABYLON.SceneLoader.LoadAssetContainerAsync(
 			"./models/",
 			modelName,
 			flock.scene,
-			function (meshes) {
-				const mesh = meshes[0];
-				mesh.scaling = new flock.BABYLON.Vector3(scale, scale, scale);
-
-				const bb =
-					flock.BABYLON.BoundingBoxGizmo.MakeNotPickableAndWrapInBoundingBox(
-						mesh,
-					);
-
-				bb.name = modelId;
-				bb.blockKey = blockId;
-				bb.isPickable = true;
-				bb.position.addInPlace(new flock.BABYLON.Vector3(x, y, z));
-
-				mesh.computeWorldMatrix(true);
-				mesh.refreshBoundingInfo();
-
-				bb.metadata = bb.metadata || {};
-				bb.metadata.yOffset = (bb.position.y - y) / scale;
-				flock.stopAnimationsTargetingMesh(flock.scene, mesh);
-
-				function applyColorToMaterial(part, color) {
-					if (part.material) {
-						part.material.albedoColor =
-							flock.BABYLON.Color3.FromHexString(
-								flock.getColorFromString(color),
-							).toLinearSpace();
-						part.material.emissiveColor =
-							flock.BABYLON.Color3.FromHexString(
-								flock.getColorFromString(color),
-							).toLinearSpace();
-						part.material.emissiveIntensity = 0.1;
-					}
-					part.getChildMeshes().forEach((child) => {
-						applyColorToMaterial(child, color);
-					});
-				}
-
-				applyColorToMaterial(mesh, color);
-
-				const boxBody = new flock.BABYLON.PhysicsBody(
-					bb,
-					flock.BABYLON.PhysicsMotionType.STATIC,
-					false,
-					flock.scene,
-				);
-
-				const boxShape = flock.createCapsuleFromBoundingBox(
-					bb,
-					flock.scene,
-				);
-				boxBody.shape = boxShape;
-				boxBody.setMassProperties({ mass: 1, restitution: 0.5 });
-				boxBody.disablePreStep = false;
-				boxBody.setAngularDamping(10000000);
-				boxBody.setLinearDamping(0);
-				bb.physics = boxBody;
-
-				if (typeof callback === "function") {
-					callback(); // Execute the "do" code
-				}
-			},
 			null,
-			function (error) {
-				console.log("Error loading", error);
-			},
-		);
+			null,
+			{ signal: flock.abortController.signal }
+		)
+		.then((container) => {
+			container.addAllToScene();
+			const mesh = container.meshes[0];
+			flock.setupMesh(mesh, modelId, blockId, scale, x, y, z, color);
+			function applyColorToMaterial(part, color) {
+				if (part.material) {
+					part.material.albedoColor =
+						flock.BABYLON.Color3.FromHexString(
+							flock.getColorFromString(color),
+						).toLinearSpace();
+					part.material.emissiveColor =
+						flock.BABYLON.Color3.FromHexString(
+							flock.getColorFromString(color),
+						).toLinearSpace();
+					part.material.emissiveIntensity = 0.1;
+				}
+				part.getChildMeshes().forEach((child) => {
+					applyColorToMaterial(child, color);
+				});
+			}
+
+			applyColorToMaterial(mesh, color);
+			if (typeof callback === "function") {
+				callback();
+			}
+		})
+		.catch((error) => {
+			console.log("Error loading", error);
+		});
 
 		return modelId;
 	},
