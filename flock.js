@@ -750,62 +750,20 @@ export const flock = {
 		const blockId = modelId;
 		modelId += "_" + flock.scene.getUniqueId();
 
-		flock.BABYLON.SceneLoader.ImportMesh(
-			"",
+		flock.BABYLON.SceneLoader.LoadAssetContainerAsync(
 			"./models/",
 			modelName,
-			flock.scene,
-			function (meshes) {
-				const mesh = meshes[0];
-
-				mesh.scaling = new flock.BABYLON.Vector3(scale, scale, scale);
-
-				const bb =
-					flock.BABYLON.BoundingBoxGizmo.MakeNotPickableAndWrapInBoundingBox(
-						mesh,
-					);
-
-				bb.name = modelId;
-				bb.blockKey = blockId;
-				bb.isPickable = true;
-				bb.position.addInPlace(new flock.BABYLON.Vector3(x, y, z));
-
-				mesh.computeWorldMatrix(true);
-				mesh.refreshBoundingInfo();
-
-				bb.metadata = bb.metadata || {};
-				bb.metadata.yOffset = (bb.position.y - y) / scale;
-				flock.stopAnimationsTargetingMesh(flock.scene, mesh);
-
-				const boxBody = new flock.BABYLON.PhysicsBody(
-					bb,
-					flock.BABYLON.PhysicsMotionType.STATIC,
-					false,
-					flock.scene,
-				);
-
-				const boxShape = flock.createCapsuleFromBoundingBox(
-					bb,
-					flock.scene,
-				);
-
-				boxBody.shape = boxShape;
-				boxBody.setMassProperties({ mass: 1, restitution: 0.5 });
-				boxBody.disablePreStep = false;
-				//boxBody.setAngularDamping(10000000);
-				//boxBody.setLinearDamping(0);
-				bb.physics = boxBody;
-
-				// Call the callback after everything is set up
-				if (typeof callback === "function") {
-					callback(); // Execute the "do" code
-				}
-			},
-			null,
-			function (error) {
-				console.log("Error loading", error);
-			},
-		);
+			flock.scene
+		).then((container) => {
+			container.addAllToScene();
+			const mesh = container.meshes[0];
+			flock.setupMesh(mesh, modelId, blockId, scale, x, y, z);
+			if (typeof callback === "function") {
+				callback();
+			}
+		}).catch((error) => {
+			console.log("Error loading", error);
+		});
 
 		return modelId;
 	},
