@@ -1561,24 +1561,25 @@ export const flock = {
 		flock.scene.fogStart = 50;
 		flock.scene.fogEnd = 100;
 	},
-	initializeMesh(mesh, position, color, shapeType) {
-		mesh.position = new flock.BABYLON.Vector3(
-			position[0],
-			position[1],
-			position[2],
-		);
+	initializeMesh(mesh, position, color, shapeType, alpha = 1) {
+		// Set position
+		mesh.position = new BABYLON.Vector3(position[0], position[1], position[2]);
+
+		// Set metadata and unique name
 		mesh.metadata = { shapeType };
 		mesh.blockKey = mesh.name;
 		mesh.name = `${mesh.name}_${mesh.uniqueId}`;
 
-		const material = new flock.BABYLON.StandardMaterial(
-			`${shapeType.toLowerCase()}Material`,
-			flock.scene,
-		);
+		const material = new BABYLON.StandardMaterial(`${shapeType.toLowerCase()}Material`, mesh.getScene());
 		material.diffuseColor = flock.BABYLON.Color3.FromHexString(
 			flock.getColorFromString(color),
 		);
+		material.alpha = alpha;
 		mesh.material = material;
+
+		// Enable and make the mesh visible
+		mesh.isVisible = true;
+		mesh.setEnabled(true);
 	},
 	createPhysicsBody(
 		mesh,
@@ -1595,134 +1596,159 @@ export const flock = {
 		physicsBody.setMassProperties({ mass: 1, restitution: 0.5 });
 		mesh.physics = physicsBody;
 	},
-	createBox(boxId, color, width, height, depth, position) {
-		const newBox = flock.BABYLON.MeshBuilder.CreateBox(
-			boxId,
-			{ width, height, depth },
+	applyPhysics(geometry, physicsShape) {
+		const physicsBody = new flock.BABYLON.PhysicsBody(
+			geometry,
+			flock.BABYLON.PhysicsMotionType.STATIC,
+			false,
 			flock.scene,
 		);
+		physicsBody.shape = physicsShape;
+		physicsBody.setMassProperties({ mass: 1, restitution: 0.5 });
+		physicsBody.disablePreStep = false;
 
-		flock.initializeMesh(newBox, position, color, "Box");
+		geometry.physics = physicsBody;
+	},
+	createBox(boxId, color, width, height, depth, position, alpha = 1) {
+		const dimensions = { width, height, depth };
 
+		// Retrieve cached VertexData or create it if this is the first instance
+		const vertexData = flock.getOrCreateGeometry("Box", dimensions, flock.scene);
+
+		// Create a new mesh and apply the cached VertexData
+		const newBox = new BABYLON.Mesh(boxId, flock.scene);
+		vertexData.applyToMesh(newBox);
+
+		// Initialise the mesh with position, color, and other properties
+		flock.initializeMesh(newBox, position, color, "Box", alpha);
+
+		// Define and apply the physics shape
 		const boxShape = new flock.BABYLON.PhysicsShapeBox(
-			new flock.BABYLON.Vector3(0, 0, 0),
-			new flock.BABYLON.Quaternion(0, 0, 0, 1),
-			new flock.BABYLON.Vector3(width, height, depth),
-			flock.scene,
+			new BABYLON.Vector3(0, 0, 0),
+			new BABYLON.Quaternion(0, 0, 0, 1),
+			new BABYLON.Vector3(width, height, depth),
+			flock.scene
 		);
+		flock.applyPhysics(newBox, boxShape);
 
-		flock.createPhysicsBody(newBox, boxShape);
 		return newBox.name;
 	},
-	createSphere(sphereId, color, diameterX, diameterY, diameterZ, position) {
-		const geometryKey = `Sphere_${diameterX}_${diameterY}_${diameterZ}`;
+	createSphere(sphereId, color, diameterX, diameterY, diameterZ, position, alpha = 1) {
+		const dimensions = { diameterX, diameterY, diameterZ };
 
-		// Check if geometry is already cached without adding it to the scene
-		let sphereGeometry;
-		if (flock.geometryCache[geometryKey]) {
-			sphereGeometry = flock.geometryCache[geometryKey];
-		} else {
-			// Create the geometry template without adding it to any scene
-			sphereGeometry = flock.BABYLON.MeshBuilder.CreateSphere(
-				geometryKey,
-				{ diameterX, diameterY, diameterZ },
-				null, // Ensure it is not added to any scene
-			);
-			flock.geometryCache[geometryKey] = sphereGeometry;
+		// Retrieve cached VertexData or create it if this is the first instance
+		const vertexData = flock.getOrCreateGeometry("Sphere", dimensions, flock.scene);
+
+		// Create a new mesh and apply the cached VertexData
+		const newSphere = new BABYLON.Mesh(sphereId, flock.scene);
+		vertexData.applyToMesh(newSphere);
+
+		// Initialise the mesh with position, color, and other properties
+		flock.initializeMesh(newSphere, position, color, "Sphere", alpha);
+
+		// Define and apply the physics shape
+		const sphereShape = new flock.BABYLON.PhysicsShapeSphere(
+			new BABYLON.Vector3(0, 0, 0),
+			Math.max(diameterX, diameterY, diameterZ) / 2,
+			flock.scene
+		);
+		flock.applyPhysics(newSphere, sphereShape);
+
+		return newSphere.name;
+	},
+	getOrCreateGeometry(shapeType, dimensions, scene) {
+		const geometryKey = `${shapeType}_${Object.values(dimensions).join("_")}`;
+
+		// If VertexData isn’t cached, create a new mesh and extract it
+		if (!flock.geometryCache[geometryKey]) {
+			let initialMesh;
+
+			// Create the initial mesh based on shape type
+			if (shapeType === "Box") {
+				initialMesh = BABYLON.MeshBuilder.CreateBox(geometryKey, dimensions, scene);
+			} else if (shapeType === "Sphere") {
+				initialMesh = BABYLON.MeshBuilder.CreateSphere(geometryKey, dimensions, scene);
+			} else if (shapeType === "Cylinder") {
+				initialMesh = BABYLON.MeshBuilder.CreateCylinder(geometryKey, dimensions, scene);
+			} else if (shapeType === "Capsule") {
+				initialMesh = BABYLON.MeshBuilder.CreateCapsule(geometryKey, dimensions, scene);
+			} else {
+				throw new Error(`Unsupported shape type: ${shapeType}`);
+			}
+
+			// Extract and cache the VertexData from the initial mesh, then dispose the mesh
+			flock.geometryCache[geometryKey] = BABYLON.VertexData.ExtractFromMesh(initialMesh);
+			initialMesh.dispose(); // Dispose of the initial mesh to keep only VertexData
 		}
 
-		// Check or create material cache
+		// Return the cached VertexData
+		return flock.geometryCache[geometryKey];
+	},
+	getOrCreateMaterial(color, alpha, scene) {
 		const color3 =
 			typeof color === "string"
 				? BABYLON.Color3.FromHexString(color)
 				: color;
-		const materialKey = `Color_${color3.toHexString()}`;
+		const materialKey = `Color_${color3.toHexString()}_Alpha_${alpha}`;
 
-		let material;
-		if (flock.materialCache[materialKey]) {
-			material = flock.materialCache[materialKey];
-		} else {
-			material = new flock.BABYLON.StandardMaterial(
-				materialKey,
-				flock.scene,
-			);
+		if (!flock.materialCache[materialKey]) {
+			const material = new BABYLON.StandardMaterial(materialKey, scene);
 			material.diffuseColor = color3;
+			material.alpha = alpha;
 			flock.materialCache[materialKey] = material;
-			sphereGeometry.setEnabled(false); // Ensure it's not active in any scene
-			sphereGeometry.isVisible = false; // Further ensure it's hidden
 		}
 
-		// Clone the geometry and add the clone to the active scene
-		const newSphere = sphereGeometry.clone(sphereId);
-		newSphere.material = material;
-		newSphere.isVisible = true;
-		newSphere.setEnabled(true);
-
-		// Initialize the mesh with the provided position, color, and type
-		flock.initializeMesh(newSphere, position, color, "Sphere");
-
-		// Apply physics
-		const sphereShape = new flock.BABYLON.PhysicsShapeSphere(
-			new BABYLON.Vector3(0, 0, 0),
-			Math.max(diameterX, diameterY, diameterZ) / 2,
-			flock.scene,
-		);
-		flock.createPhysicsBody(newSphere, sphereShape);
-
-		return newSphere.name;
+		return flock.materialCache[materialKey];
 	},
-	createCylinder(
-		cylinderId,
-		color,
-		height,
-		diameterTop,
-		diameterBottom,
-		position,
-	) {
-		const newCylinder = flock.BABYLON.MeshBuilder.CreateCylinder(
-			cylinderId,
-			{
-				height,
-				diameterTop,
-				diameterBottom,
-				tessellation: 24,
-				updatable: true,
-			},
-			flock.scene,
-		);
+	createCylinder(cylinderId, color, height, diameterTop, diameterBottom, position, alpha = 1) {
+		const dimensions = { height, diameterTop, diameterBottom, tessellation: 24, updatable: true };
 
-		flock.initializeMesh(newCylinder, position, color, "Cylinder");
+		// Get or create cached VertexData
+		const vertexData = flock.getOrCreateGeometry("Cylinder", dimensions, flock.scene);
 
+		// Create a new mesh and apply the cached VertexData
+		const newCylinder = new BABYLON.Mesh(cylinderId, flock.scene);
+		vertexData.applyToMesh(newCylinder);
+
+		// Initialise the mesh with position, color, and other properties
+		flock.initializeMesh(newCylinder, position, color, "Cylinder", alpha);
+
+		// Create and apply physics shape
 		const startPoint = new flock.BABYLON.Vector3(0, -height / 2, 0);
 		const endPoint = new flock.BABYLON.Vector3(0, height / 2, 0);
-
 		const cylinderShape = new flock.BABYLON.PhysicsShapeCylinder(
 			startPoint,
 			endPoint,
 			diameterBottom / 2,
-			flock.scene,
+			flock.scene
 		);
+		flock.applyPhysics(newCylinder, cylinderShape);
 
-		flock.createPhysicsBody(newCylinder, cylinderShape);
 		return newCylinder.name;
 	},
-	createCapsule(capsuleId, color, radius, height, position) {
-		const newCapsule = flock.BABYLON.MeshBuilder.CreateCapsule(
-			capsuleId,
-			{ radius, height, tessellation: 24, updatable: false },
-			flock.scene,
-		);
 
-		flock.initializeMesh(newCapsule, position, color, "Capsule");
+	createCapsule(capsuleId, color, radius, height, position, alpha = 1) {
+		const dimensions = { radius, height, tessellation: 24, updatable: false };
 
+		// Get or create cached VertexData
+		const vertexData = flock.getOrCreateGeometry("Capsule", dimensions, flock.scene);
+
+		// Create a new mesh and apply the cached VertexData
+		const newCapsule = new BABYLON.Mesh(capsuleId, flock.scene);
+		vertexData.applyToMesh(newCapsule);
+
+		// Initialise the mesh with position, color, and other properties
+		flock.initializeMesh(newCapsule, position, color, "Capsule", alpha);
+
+		// Create and apply physics shape
 		const capsuleShape = new flock.BABYLON.PhysicsShapeCapsule(
 			new flock.BABYLON.Vector3(0, 0, 0),
 			radius,
 			height / 2,
-			flock.scene,
+			flock.scene
 		);
+		flock.applyPhysics(newCapsule, capsuleShape);
 
-		flock.createPhysicsBody(newCapsule, capsuleShape);
 		return newCapsule.name;
 	},
 	createPlane(planeId, color, width, height, position) {
