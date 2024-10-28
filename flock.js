@@ -750,6 +750,69 @@ export const flock = {
 		const blockId = modelId;
 		modelId += "_" + flock.scene.getUniqueId();
 
+		flock.BABYLON.SceneLoader.ImportMesh(
+			"",
+			"./models/",
+			modelName,
+			flock.scene,
+			function (meshes) {
+				const mesh = meshes[0];
+
+				mesh.scaling = new flock.BABYLON.Vector3(scale, scale, scale);
+
+				const bb =
+					flock.BABYLON.BoundingBoxGizmo.MakeNotPickableAndWrapInBoundingBox(
+						mesh,
+					);
+
+				bb.name = modelId;
+				bb.blockKey = blockId;
+				bb.isPickable = true;
+				bb.position.addInPlace(new flock.BABYLON.Vector3(x, y, z));
+
+				mesh.computeWorldMatrix(true);
+				mesh.refreshBoundingInfo();
+
+				bb.metadata = bb.metadata || {};
+				bb.metadata.yOffset = (bb.position.y - y) / scale;
+				flock.stopAnimationsTargetingMesh(flock.scene, mesh);
+
+				const boxBody = new flock.BABYLON.PhysicsBody(
+					bb,
+					flock.BABYLON.PhysicsMotionType.STATIC,
+					false,
+					flock.scene,
+				);
+
+				const boxShape = flock.createCapsuleFromBoundingBox(
+					bb,
+					flock.scene,
+				);
+
+				boxBody.shape = boxShape;
+				boxBody.setMassProperties({ mass: 1, restitution: 0.5 });
+				boxBody.disablePreStep = false;
+				//boxBody.setAngularDamping(10000000);
+				//boxBody.setLinearDamping(0);
+				bb.physics = boxBody;
+
+				// Call the callback after everything is set up
+				if (typeof callback === "function") {
+					callback(); // Execute the "do" code
+				}
+			},
+			null,
+			function (error) {
+				console.log("Error loading", error);
+			},
+		);
+
+		return modelId;
+	},
+	newModel2(modelName, modelId, scale, x, y, z, callback) {
+		const blockId = modelId;
+		modelId += "_" + flock.scene.getUniqueId();
+
 		// If the model is already loaded or loading, use the cached entry
 		if (!flock.modelCache[modelName]) {
 			// Store the loading promise in the cache
