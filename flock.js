@@ -247,6 +247,7 @@ export const flock = {
 			// Abort any ongoing operations if applicable
 			if (flock.abortController) {
 				flock.abortController.abort(); // Abort any pending operations
+				flock.scene.stopAllAnimations();
 
 				// Wait briefly to ensure all asynchronous tasks complete
 				await new Promise((resolve) => setTimeout(resolve, 50));
@@ -750,23 +751,25 @@ export const flock = {
 		const blockId = modelId;
 		modelId += "_" + flock.scene.getUniqueId();
 
-			flock.BABYLON.SceneLoader.LoadAssetContainerAsync(
-				"./models/",
-				modelName,
-				flock.scene,
-				null,
-				null,
-				{ signal: flock.abortController.signal } 
-			).then((container) => {
-			container.addAllToScene();
-			const mesh = container.meshes[0];
-			flock.setupMesh(mesh, modelId, blockId, scale, x, y, z);
-			if (typeof callback === "function") {
-				callback();
-			}
-		}).catch((error) => {
-			console.log("Error loading", error);
-		});
+		flock.BABYLON.SceneLoader.LoadAssetContainerAsync(
+			"./models/",
+			modelName,
+			flock.scene,
+			null,
+			null,
+			{ signal: flock.abortController.signal },
+		)
+			.then((container) => {
+				container.addAllToScene();
+				const mesh = container.meshes[0];
+				flock.setupMesh(mesh, modelId, blockId, scale, x, y, z);
+				if (typeof callback === "function") {
+					callback();
+				}
+			})
+			.catch((error) => {
+				console.log("Error loading", error);
+			});
 
 		return modelId;
 	},
@@ -806,6 +809,7 @@ export const flock = {
 		//boxBody.setLinearDamping(0);
 		bb.physics = boxBody;
 	},
+
 	newCharacter(
 		modelName,
 		modelId,
@@ -824,32 +828,18 @@ export const flock = {
 		const blockId = modelId;
 		modelId += "_" + flock.scene.getUniqueId();
 
-		flock.BABYLON.SceneLoader.ImportMesh(
-			"",
+		flock.BABYLON.SceneLoader.LoadAssetContainerAsync(
 			"./models/",
 			modelName,
 			flock.scene,
-			function (meshes) {
-				const mesh = meshes[0];
-
-				mesh.scaling = new flock.BABYLON.Vector3(scale, scale, scale);
-
-				const bb =
-					flock.BABYLON.BoundingBoxGizmo.MakeNotPickableAndWrapInBoundingBox(
-						mesh,
-					);
-
-				bb.name = modelId;
-				bb.blockKey = blockId;
-				bb.isPickable = false;
-				bb.position.addInPlace(new flock.BABYLON.Vector3(x, y, z));
-
-				mesh.computeWorldMatrix(true);
-				mesh.refreshBoundingInfo();
-
-				bb.metadata = bb.metadata || {};
-				bb.metadata.yOffset = (bb.position.y - y) / scale;
-				flock.stopAnimationsTargetingMesh(flock.scene, mesh);
+			null,
+			null,
+			{ signal: flock.abortController.signal },
+		)
+			.then((container) => {
+				container.addAllToScene();
+				const mesh = container.meshes[0];
+				flock.setupMesh(mesh, modelId, blockId, scale, x, y, z);
 
 				function applyColorToMaterial(part, materialName, color) {
 					if (part.material && part.material.name === materialName) {
@@ -870,13 +860,6 @@ export const flock = {
 				applyColorToMaterial(mesh, "Shorts", shortsColor);
 				applyColorToMaterial(mesh, "TShirt", tshirtColor);
 
-				const boxBody = new flock.BABYLON.PhysicsBody(
-					bb,
-					flock.BABYLON.PhysicsMotionType.STATIC,
-					false,
-					flock.scene,
-				);
-
 				const descendants = mesh.getChildMeshes(false);
 				descendants.forEach((childMesh) => {
 					if (childMesh.getTotalVertices() > 0) {
@@ -886,28 +869,13 @@ export const flock = {
 					}
 				});
 
-				const boxShape = flock.createCapsuleFromBoundingBox(
-					bb,
-					flock.scene,
-				);
-
-				boxBody.shape = boxShape;
-				boxBody.setMassProperties({ mass: 1, restitution: 0.5 });
-				boxBody.disablePreStep = false;
-				boxBody.setAngularDamping(10000000);
-				boxBody.setLinearDamping(0);
-				bb.physics = boxBody;
-
-				// Call the callback after everything is set up
 				if (typeof callback === "function") {
-					callback(); // Execute the "do" code
+					callback();
 				}
-			},
-			null,
-			function (error) {
+			})
+			.catch((error) => {
 				console.log("Error loading", error);
-			},
-		);
+			});
 
 		return modelId;
 	},
@@ -921,37 +889,37 @@ export const flock = {
 			flock.scene,
 			null,
 			null,
-			{ signal: flock.abortController.signal }
+			{ signal: flock.abortController.signal },
 		)
-		.then((container) => {
-			container.addAllToScene();
-			const mesh = container.meshes[0];
-			flock.setupMesh(mesh, modelId, blockId, scale, x, y, z, color);
-			function applyColorToMaterial(part, color) {
-				if (part.material) {
-					part.material.albedoColor =
-						flock.BABYLON.Color3.FromHexString(
-							flock.getColorFromString(color),
-						).toLinearSpace();
-					part.material.emissiveColor =
-						flock.BABYLON.Color3.FromHexString(
-							flock.getColorFromString(color),
-						).toLinearSpace();
-					part.material.emissiveIntensity = 0.1;
+			.then((container) => {
+				container.addAllToScene();
+				const mesh = container.meshes[0];
+				flock.setupMesh(mesh, modelId, blockId, scale, x, y, z, color);
+				function applyColorToMaterial(part, color) {
+					if (part.material) {
+						part.material.albedoColor =
+							flock.BABYLON.Color3.FromHexString(
+								flock.getColorFromString(color),
+							).toLinearSpace();
+						part.material.emissiveColor =
+							flock.BABYLON.Color3.FromHexString(
+								flock.getColorFromString(color),
+							).toLinearSpace();
+						part.material.emissiveIntensity = 0.1;
+					}
+					part.getChildMeshes().forEach((child) => {
+						applyColorToMaterial(child, color);
+					});
 				}
-				part.getChildMeshes().forEach((child) => {
-					applyColorToMaterial(child, color);
-				});
-			}
 
-			applyColorToMaterial(mesh, color);
-			if (typeof callback === "function") {
-				callback();
-			}
-		})
-		.catch((error) => {
-			console.log("Error loading", error);
-		});
+				applyColorToMaterial(mesh, color);
+				if (typeof callback === "function") {
+					callback();
+				}
+			})
+			.catch((error) => {
+				console.log("Error loading", error);
+			});
 
 		return modelId;
 	},
@@ -1502,14 +1470,21 @@ export const flock = {
 	},
 	initializeMesh(mesh, position, color, shapeType, alpha = 1) {
 		// Set position
-		mesh.position = new BABYLON.Vector3(position[0], position[1], position[2]);
+		mesh.position = new BABYLON.Vector3(
+			position[0],
+			position[1],
+			position[2],
+		);
 
 		// Set metadata and unique name
 		mesh.metadata = { shapeType };
 		mesh.blockKey = mesh.name;
 		mesh.name = `${mesh.name}_${mesh.uniqueId}`;
 
-		const material = new BABYLON.StandardMaterial(`${shapeType.toLowerCase()}Material`, mesh.getScene());
+		const material = new BABYLON.StandardMaterial(
+			`${shapeType.toLowerCase()}Material`,
+			mesh.getScene(),
+		);
 		material.diffuseColor = flock.BABYLON.Color3.FromHexString(
 			flock.getColorFromString(color),
 		);
@@ -1552,7 +1527,11 @@ export const flock = {
 		const dimensions = { width, height, depth };
 
 		// Retrieve cached VertexData or create it if this is the first instance
-		const vertexData = flock.getOrCreateGeometry("Box", dimensions, flock.scene);
+		const vertexData = flock.getOrCreateGeometry(
+			"Box",
+			dimensions,
+			flock.scene,
+		);
 
 		// Create a new mesh and apply the cached VertexData
 		const newBox = new BABYLON.Mesh(boxId, flock.scene);
@@ -1566,17 +1545,29 @@ export const flock = {
 			new BABYLON.Vector3(0, 0, 0),
 			new BABYLON.Quaternion(0, 0, 0, 1),
 			new BABYLON.Vector3(width, height, depth),
-			flock.scene
+			flock.scene,
 		);
 		flock.applyPhysics(newBox, boxShape);
 
 		return newBox.name;
 	},
-	createSphere(sphereId, color, diameterX, diameterY, diameterZ, position, alpha = 1) {
+	createSphere(
+		sphereId,
+		color,
+		diameterX,
+		diameterY,
+		diameterZ,
+		position,
+		alpha = 1,
+	) {
 		const dimensions = { diameterX, diameterY, diameterZ };
 
 		// Retrieve cached VertexData or create it if this is the first instance
-		const vertexData = flock.getOrCreateGeometry("Sphere", dimensions, flock.scene);
+		const vertexData = flock.getOrCreateGeometry(
+			"Sphere",
+			dimensions,
+			flock.scene,
+		);
 
 		// Create a new mesh and apply the cached VertexData
 		const newSphere = new BABYLON.Mesh(sphereId, flock.scene);
@@ -1589,7 +1580,7 @@ export const flock = {
 		const sphereShape = new flock.BABYLON.PhysicsShapeSphere(
 			new BABYLON.Vector3(0, 0, 0),
 			Math.max(diameterX, diameterY, diameterZ) / 2,
-			flock.scene
+			flock.scene,
 		);
 		flock.applyPhysics(newSphere, sphereShape);
 
@@ -1597,26 +1588,45 @@ export const flock = {
 	},
 	getOrCreateGeometry(shapeType, dimensions, scene) {
 		const geometryKey = `${shapeType}_${Object.values(dimensions).join("_")}`;
-
-		// If VertexData isn’t cached, create a new mesh and extract it
+	
+		if (!flock.geometryCache)
+			return
+		
 		if (!flock.geometryCache[geometryKey]) {
 			let initialMesh;
 
 			// Create the initial mesh based on shape type
 			if (shapeType === "Box") {
-				initialMesh = BABYLON.MeshBuilder.CreateBox(geometryKey, dimensions, scene);
+				initialMesh = BABYLON.MeshBuilder.CreateBox(
+					geometryKey,
+					dimensions,
+					scene,
+				);
 			} else if (shapeType === "Sphere") {
-				initialMesh = BABYLON.MeshBuilder.CreateSphere(geometryKey, dimensions, scene);
+				initialMesh = BABYLON.MeshBuilder.CreateSphere(
+					geometryKey,
+					dimensions,
+					scene,
+				);
 			} else if (shapeType === "Cylinder") {
-				initialMesh = BABYLON.MeshBuilder.CreateCylinder(geometryKey, dimensions, scene);
+				initialMesh = BABYLON.MeshBuilder.CreateCylinder(
+					geometryKey,
+					dimensions,
+					scene,
+				);
 			} else if (shapeType === "Capsule") {
-				initialMesh = BABYLON.MeshBuilder.CreateCapsule(geometryKey, dimensions, scene);
+				initialMesh = BABYLON.MeshBuilder.CreateCapsule(
+					geometryKey,
+					dimensions,
+					scene,
+				);
 			} else {
 				throw new Error(`Unsupported shape type: ${shapeType}`);
 			}
 
 			// Extract and cache the VertexData from the initial mesh, then dispose the mesh
-			flock.geometryCache[geometryKey] = BABYLON.VertexData.ExtractFromMesh(initialMesh);
+			flock.geometryCache[geometryKey] =
+				BABYLON.VertexData.ExtractFromMesh(initialMesh);
 			initialMesh.dispose(); // Dispose of the initial mesh to keep only VertexData
 		}
 
@@ -1639,11 +1649,29 @@ export const flock = {
 
 		return flock.materialCache[materialKey];
 	},
-	createCylinder(cylinderId, color, height, diameterTop, diameterBottom, position, alpha = 1) {
-		const dimensions = { height, diameterTop, diameterBottom, tessellation: 24, updatable: true };
+	createCylinder(
+		cylinderId,
+		color,
+		height,
+		diameterTop,
+		diameterBottom,
+		position,
+		alpha = 1,
+	) {
+		const dimensions = {
+			height,
+			diameterTop,
+			diameterBottom,
+			tessellation: 24,
+			updatable: true,
+		};
 
 		// Get or create cached VertexData
-		const vertexData = flock.getOrCreateGeometry("Cylinder", dimensions, flock.scene);
+		const vertexData = flock.getOrCreateGeometry(
+			"Cylinder",
+			dimensions,
+			flock.scene,
+		);
 
 		// Create a new mesh and apply the cached VertexData
 		const newCylinder = new BABYLON.Mesh(cylinderId, flock.scene);
@@ -1659,7 +1687,7 @@ export const flock = {
 			startPoint,
 			endPoint,
 			diameterBottom / 2,
-			flock.scene
+			flock.scene,
 		);
 		flock.applyPhysics(newCylinder, cylinderShape);
 
@@ -1667,10 +1695,19 @@ export const flock = {
 	},
 
 	createCapsule(capsuleId, color, radius, height, position, alpha = 1) {
-		const dimensions = { radius, height, tessellation: 24, updatable: false };
+		const dimensions = {
+			radius,
+			height,
+			tessellation: 24,
+			updatable: false,
+		};
 
 		// Get or create cached VertexData
-		const vertexData = flock.getOrCreateGeometry("Capsule", dimensions, flock.scene);
+		const vertexData = flock.getOrCreateGeometry(
+			"Capsule",
+			dimensions,
+			flock.scene,
+		);
 
 		// Create a new mesh and apply the cached VertexData
 		const newCapsule = new BABYLON.Mesh(capsuleId, flock.scene);
@@ -1684,7 +1721,7 @@ export const flock = {
 			new flock.BABYLON.Vector3(0, 0, 0),
 			radius,
 			height / 2,
-			flock.scene
+			flock.scene,
 		);
 		flock.applyPhysics(newCapsule, capsuleShape);
 
