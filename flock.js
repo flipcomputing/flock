@@ -2996,6 +2996,25 @@ export const flock = {
 				if (mesh) {
 					let propertyToAnimate;
 
+					if (property === "color" || property === "alpha") {
+					function findFirstDescendantWithMaterial(mesh) {
+						// Check if the mesh itself has a material
+						if (mesh.material) {
+							return mesh;
+						}
+						// Get all descendants and check if any of them have a material
+						const descendants = mesh.getDescendants();
+						for (const descendant of descendants) {
+							if (descendant.material) {
+								return descendant;
+							}
+						}
+						return null; // No mesh with material found
+					}
+
+					mesh = findFirstDescendantWithMaterial(mesh);
+
+					}
 					// Select the property to animate
 					if (property === "color") {
 						propertyToAnimate =
