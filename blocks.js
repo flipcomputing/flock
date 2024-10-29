@@ -128,6 +128,18 @@ class CustomZelosRenderer extends Blockly.zelos.Renderer {
 	}
 }
 
+Blockly.zelos.Renderer.prototype.FIELD_DROPDOWN_SVG_ARROW = true;
+
+Blockly.zelos.Renderer.prototype.createDropdownArrow_ = function() {
+  // Custom SVG creation for dropdown arrow
+  const arrow = Blockly.utils.dom.createSvgElement('path', {
+	'class': 'blocklyArrow',
+	'd': 'M 0,0 l 10,5 -10,5 z', // Define the arrow shape here
+	'fill': '#000000'            // Set fill color to black
+  }, null);
+  return arrow;
+};
+
 // Register the custom renderer
 Blockly.registry.register(
 	Blockly.registry.Type.RENDERER,

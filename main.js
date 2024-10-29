@@ -842,6 +842,7 @@ window.onload = function () {
 	workspace.addChangeListener(handleBlockSelect);
 	workspace.addChangeListener(handleBlockDelete);
 
+	
 	// Resize Blockly workspace and Babylon.js canvas when the window is resized
 	window.addEventListener("resize", onResize);
 

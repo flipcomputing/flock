@@ -35,6 +35,10 @@ export default {
           src: 'node_modules/blockly/media/*',
           dest: 'blockly/media',
         },
+        {
+          src: 'images/dropdown-arrow.svg',
+          dest: 'blockly/media',
+        },
         /*{
           src: 'flock.js', 
           dest: ''      
