@@ -11,9 +11,7 @@ import {
 	animationNames,
 	materialNames,
 } from "./config.js";
-import {
-	deleteMeshFromBlock
-} from "./ui/designview.js";
+import { deleteMeshFromBlock } from "./ui/designview.js";
 import { flock } from "./flock.js";
 /*import {
   ScrollOptions,
@@ -91,13 +89,15 @@ export default Blockly.Theme.defineTheme("flock", {
 });
 */
 
-
 export class CustomConstantProvider extends Blockly.zelos.ConstantProvider {
 	constructor() {
 		super();
 
-		this.NOTCH_OFFSET_LEFT = 2 * this.GRID_UNIT; 
-		this.NOTCH_HEIGHT = 2 * this.GRID_UNIT;	
+		this.NOTCH_OFFSET_LEFT = 2 * this.GRID_UNIT;
+		this.NOTCH_HEIGHT = 2 * this.GRID_UNIT;
+		this.FIELD_DROPDOWN_SVG_ARROW_DATAURI =
+		  'data:image/svg+xml;base64,PHN2ZyBpZD0iTGF5ZXJfMSIgZGF0YS1uYW1lPSJMYXllciAxIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMi43MSIgaGVpZ2h0PSI4Ljc5IiB2aWV3Qm94PSIwIDAgMTIuNzEgOC43OSI+PHRpdGxlPmRyb3Bkb3duLWFycm93PC90aXRsZT48ZyBvcGFjaXR5PSIwLjEiPjxwYXRoIGQ9Ik0xMi43MSwyLjQ0QTIuNDEsMi40MSwwLDAsMSwxMiw0LjE2TDguMDgsOC4wOGEyLjQ1LDIuNDUsMCwwLDEtMy40NSwwTDAuNzIsNC4xNkEyLjQyLDIuNDIsMCwwLDEsMCwyLjQ0LDIuNDgsMi40OCwwLDAsMSwuNzEuNzFDMSwwLjQ3LDEuNDMsMCw2LjM2LDBTMTEuNzUsMC40NiwxMiwuNzFBMi40NCwyLjQ0LDAsMCwxLDEyLjcxLDIuNDRaIiBmaWxsPSIjMjMxZjIwIi8+PC9nPjxwYXRoIGQ9Ik02LjM2LDcuNzlhMS40MywxLjQzLDAsMCwxLTEtLjQyTDEuNDIsMy40NWExLjQ0LDEuNDQsMCwwLDEsMC0yYzAuNTYtLjU2LDkuMzEtMC41Niw5Ljg3LDBhMS40NCwxLjQ0LDAsMCwxLDAsMkw3LjM3LDcuMzdBMS40MywxLjQzLDAsMCwxLDYuMzYsNy43OVoiIGZpbGw9IiMwMDAiLz48L3N2Zz4=';
+
 	}
 }
 
@@ -106,9 +106,7 @@ class CustomRenderInfo extends Blockly.zelos.RenderInfo {
 		super(renderer, block);
 	}
 
-	adjustXPosition_() {
-	}
-
+	adjustXPosition_() {}
 }
 
 // Custom renderer to use our updated RenderInfo
@@ -121,38 +119,26 @@ class CustomZelosRenderer extends Blockly.zelos.Renderer {
 	makeConstants_() {
 		return new CustomConstantProvider();
 	}
-	
+
 	// Override the method to return our custom RenderInfo
 	makeRenderInfo_(block) {
 		return new CustomRenderInfo(this, block);
 	}
+	
 }
-
-Blockly.zelos.Renderer.prototype.FIELD_DROPDOWN_SVG_ARROW = true;
-
-Blockly.zelos.Renderer.prototype.createDropdownArrow_ = function() {
-  // Custom SVG creation for dropdown arrow
-  const arrow = Blockly.utils.dom.createSvgElement('path', {
-	'class': 'blocklyArrow',
-	'd': 'M 0,0 l 10,5 -10,5 z', // Define the arrow shape here
-	'fill': '#000000'            // Set fill color to black
-  }, null);
-  return arrow;
-};
 
 // Register the custom renderer
 Blockly.registry.register(
 	Blockly.registry.Type.RENDERER,
-	'custom_zelos_renderer',
-	CustomZelosRenderer
+	"custom_zelos_renderer",
+	CustomZelosRenderer,
 );
 
-
 export const options = {
-theme: Blockly.Themes.Modern, // "flock"
+	theme: Blockly.Themes.Modern, // "flock"
 	//theme: "flockTheme",
 	//renderer: "zelos",
-	renderer: 'custom_zelos_renderer',
+	renderer: "custom_zelos_renderer",
 	pathToMedia: "blockly/media/",
 	zoom: {
 		controls: true,
@@ -1308,7 +1294,6 @@ export function defineBlocks() {
 
 	window.updateCurrentMeshName = updateCurrentMeshName;
 
-
 	Blockly.Blocks["create_wall"] = {
 		init: function () {
 			const variableNamePrefix = "wall";
@@ -1786,12 +1771,12 @@ export function defineBlocks() {
 		},
 	};
 
-
 	Blockly.Blocks["follow"] = {
 		init: function () {
 			this.jsonInit({
 				type: "follow",
-				message0: "make %1 follow %2 at %3 with offset x: %4 y: %5 z: %6",
+				message0:
+					"make %1 follow %2 at %3 with offset x: %4 y: %5 z: %6",
 				args0: [
 					{
 						type: "field_variable",
@@ -1840,8 +1825,6 @@ export function defineBlocks() {
 			});
 		},
 	};
-
-
 
 	Blockly.Blocks["scale"] = {
 		init: function () {
@@ -2616,8 +2599,9 @@ export function defineBlocks() {
 					},
 				],
 				colour: categoryColours["Events"],
-				tooltip: "Executes the blocks inside when the specified model trigger occurs.\nKeyword: click",
-				helpUrl: ""
+				tooltip:
+					"Executes the blocks inside when the specified model trigger occurs.\nKeyword: click",
+				helpUrl: "",
 			});
 
 			// Set default state to top-level block
@@ -2631,7 +2615,7 @@ export function defineBlocks() {
 				"*", // Width, Height, Alt text
 				() => {
 					this.toggleDoBlock();
-				}
+				},
 			);
 
 			// Append the toggle button to the block
@@ -2643,7 +2627,7 @@ export function defineBlocks() {
 			return container;
 		},
 		domToMutation: function (xmlElement) {
-			const isInline = (xmlElement.getAttribute("inline") === "true");
+			const isInline = xmlElement.getAttribute("inline") === "true";
 			this.updateShape_(isInline);
 		},
 		updateShape_: function (isInline) {
@@ -2658,9 +2642,8 @@ export function defineBlocks() {
 		},
 		toggleDoBlock: function () {
 			this.updateShape_(!this.isInline);
-		}
+		},
 	};
-
 
 	Blockly.Blocks["when_touches2"] = {
 		init: function () {
@@ -2737,8 +2720,9 @@ export function defineBlocks() {
 					},
 				],
 				colour: categoryColours["Events"],
-				tooltip: "Executes the blocks inside when the mesh intersects or no longer intersects with another mesh.\nKeyword: touches",
-				helpUrl: ""
+				tooltip:
+					"Executes the blocks inside when the mesh intersects or no longer intersects with another mesh.\nKeyword: touches",
+				helpUrl: "",
 			});
 
 			// Set default state to top-level block
@@ -2752,7 +2736,7 @@ export function defineBlocks() {
 				"*", // Width, Height, Alt text
 				() => {
 					this.toggleDoBlock();
-				}
+				},
 			);
 
 			// Append the toggle button to the block
@@ -2764,7 +2748,7 @@ export function defineBlocks() {
 			return container;
 		},
 		domToMutation: function (xmlElement) {
-			const isInline = (xmlElement.getAttribute("inline") === "true");
+			const isInline = xmlElement.getAttribute("inline") === "true";
 			this.updateShape_(isInline);
 		},
 		updateShape_: function (isInline) {
@@ -2779,9 +2763,8 @@ export function defineBlocks() {
 		},
 		toggleDoBlock: function () {
 			this.updateShape_(!this.isInline);
-		}
+		},
 	};
-
 
 	Blockly.Blocks["local_variable"] = {
 		init: function () {
