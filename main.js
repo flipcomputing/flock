@@ -176,6 +176,7 @@ async function executeCode() {
 		}
 	}
 
+	setGizmoManager(new flock.BABYLON.GizmoManager(flock.scene, 8));
 
 	await delay(1000);
 	// Reset the flag to allow future executions

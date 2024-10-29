@@ -744,7 +744,7 @@ export const flock = {
 		const blockId = modelId;
 		modelId += "_" + flock.scene.getUniqueId();
 
-		flock.BABYLON.SceneLoader.LoadAssetContainerAsync(
+	flock.BABYLON.SceneLoader.LoadAssetContainerAsync(
 			"./models/",
 			modelName,
 			flock.scene,

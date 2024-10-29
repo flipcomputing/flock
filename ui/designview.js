@@ -357,9 +357,7 @@ function createMeshOnCanvas(block) {
 				width,
 				height,
 				depth,
-				[position.x,
-				position.y,
-				position.z]
+				[position.x, position.y, position.z],
 			);
 			break;
 
@@ -370,9 +368,7 @@ function createMeshOnCanvas(block) {
 				diameterX,
 				diameterY,
 				diameterZ,
-				[position.x,
-				position.y + diameterY / 2,
-				position.z]
+				[position.x, position.y + diameterY / 2, position.z],
 			);
 			break;
 
@@ -383,9 +379,7 @@ function createMeshOnCanvas(block) {
 				height,
 				diameterTop,
 				diameterBottom,
-				[position.x,
-				position.y + height / 2,
-				position.z]			
+				[position.x, position.y + height / 2, position.z],
 			);
 			break;
 
@@ -395,9 +389,7 @@ function createMeshOnCanvas(block) {
 				color,
 				radius,
 				height,
-				[position.x,
-				position.y + height / 2,
-				position.z]				
+				[position.x, position.y + height / 2, position.z],
 			);
 			break;
 
@@ -407,9 +399,7 @@ function createMeshOnCanvas(block) {
 				color,
 				width,
 				height,
-				[position.x,
-				position.y + height / 2,
-				position.z]			
+				[position.x, position.y + height / 2, position.z],
 			);
 			break;
 	}
@@ -589,7 +579,7 @@ function setPositionValues(block, position, shapeType) {
 
 		case "load_character":
 			break;
-			
+
 		case "load_object":
 			// Adjust Y based on SCALE input
 			adjustedY += block.getInputTargetBlock("SCALE")
@@ -597,7 +587,6 @@ function setPositionValues(block, position, shapeType) {
 				: 2;
 			break;
 
-		
 		default:
 			console.error("Unknown shape type: " + shapeType);
 	}
@@ -734,16 +723,11 @@ function addShapeToWorkspace(shapeType, position) {
 	let newMesh;
 	switch (shapeType) {
 		case "create_box":
-			newMesh = flock.createBox(
-				"box_",
-				color,
-				width,
-				height,
-				depth,
-				[position.x,
+			newMesh = flock.createBox("box_", color, width, height, depth, [
+				position.x,
 				position.y + height / 2,
-				position.z]				
-			);
+				position.z,
+			]);
 
 			break;
 
@@ -754,9 +738,7 @@ function addShapeToWorkspace(shapeType, position) {
 				diameterX,
 				diameterY,
 				diameterZ,
-				[position.x,
-				position.y + diameterY / 2,
-				position.z]				
+				[position.x, position.y + diameterY / 2, position.z],
 			);
 			break;
 
@@ -767,34 +749,24 @@ function addShapeToWorkspace(shapeType, position) {
 				height,
 				diameterTop,
 				diameterBottom,
-				[position.x,
-				position.y + height / 2,
-				position.z]				
+				[position.x, position.y + height / 2, position.z],
 			);
 			break;
 
 		case "create_capsule":
-			newMesh = flock.createCapsule(
-				"capsule_",
-				color,
-				radius,
-				height,
-				[position.x,
+			newMesh = flock.createCapsule("capsule_", color, radius, height, [
+				position.x,
 				position.y + height / 2,
-				position.z]				
-			);
+				position.z,
+			]);
 			break;
 
 		case "create_plane":
-			newMesh = flock.createPlane(
-				"plane_",
-				color,
-				width,
-				height,
-				[position.x,
+			newMesh = flock.createPlane("plane_", color, width, height, [
+				position.x,
 				position.y + height / 2,
-				position.z]				
-			);
+				position.z,
+			]);
 
 			break;
 	}
@@ -875,20 +847,24 @@ function selectCharacter(characterName) {
 					// Store the block reference in meshMap
 					meshMap[modelId] = block;
 
-					flock.newCharacter(
-						characterName,
-						modelId,
-						scale,
-						pickedPosition.x,
-						pickedPosition.y,
-						pickedPosition.z,
-						colorFields.HAIR_COLOR,
-						colorFields.SKIN_COLOR,
-						colorFields.EYES_COLOR,
-						colorFields.SLEEVES_COLOR,
-						colorFields.SHORTS_COLOR,
-						colorFields.TSHIRT_COLOR,
-					);
+					flock.newCharacter({
+					  modelName: characterName,      // Map 'characterName' to 'modelName'
+					  modelId,                       // Directly use 'modelId'
+					  scale,                         // Directly use 'scale'
+					  position: {
+						x: pickedPosition.x,
+						y: pickedPosition.y,
+						z: pickedPosition.z,
+					  },
+					  colors: {
+						hair: colorFields.HAIR_COLOR,
+						skin: colorFields.SKIN_COLOR,
+						eyes: colorFields.EYES_COLOR,
+						sleeves: colorFields.SLEEVES_COLOR,
+						shorts: colorFields.SHORTS_COLOR,
+						tshirt: colorFields.TSHIRT_COLOR,
+					  },
+					});
 				} finally {
 					// End the event group to ensure everything can be undone/redone as a group
 					Blockly.Events.setGroup(false);
@@ -985,14 +961,16 @@ function selectModel(modelName) {
 					// Store the block reference in meshMap
 					meshMap[modelId] = block;
 
-					flock.newModel(
+					flock.newModel({
 						modelName,
 						modelId,
 						scale,
-						pickedPosition.x,
-						pickedPosition.y,
-						pickedPosition.z,
-					);
+						position: {
+							x: pickedPosition.x,
+							y: pickedPosition.y,
+							z: pickedPosition.z,
+						},
+					});
 				} finally {
 					// End the event group to ensure undo/redo works properly
 					Blockly.Events.setGroup(false);
@@ -1093,15 +1071,17 @@ function selectObject(objectName) {
 					const meshId = objectName + "_" + generateUniqueId();
 					meshMap[meshId] = block;
 
-					flock.newObject(
-						objectName,
-						meshId,
-						scale,
-						pickedPosition.x,
-						pickedPosition.y + 2,
-						pickedPosition.z,
-						color,
-					);
+					flock.newObject({
+					  modelName: objectName, 
+					  modelId: meshId,  
+					  color, 
+					  scale, 
+					  position: { 
+						x: pickedPosition.x,
+						y: pickedPosition.y,
+						z: pickedPosition.z,
+					  },
+					});
 				} finally {
 					// End the event group to ensure everything can be undone/redone as a group
 					Blockly.Events.setGroup(false);
@@ -1269,7 +1249,7 @@ function loadObjectImages() {
 function highlightBlockById(workspace, block) {
 	if (block) {
 		// Unselect all other blocks
-			workspace.getAllBlocks().forEach((b) => b.unselect());
+		workspace.getAllBlocks().forEach((b) => b.unselect());
 
 		// Select the new block
 		if (window.codeMode === "both") block.select();
@@ -1286,7 +1266,10 @@ function highlightBlockById(workspace, block) {
 
 		if (isOutsideViewport) {
 			// Scroll the workspace to make the block visible without centering it
-				Blockly.getMainWorkspace().scrollbar.set(blockRect.left - 10, blockRect.top - 10); // Adjust for padding
+			Blockly.getMainWorkspace().scrollbar.set(
+				blockRect.left - 10,
+				blockRect.top - 10,
+			); // Adjust for padding
 		}
 	}
 }
@@ -1294,7 +1277,7 @@ function highlightBlockById(workspace, block) {
 function focusCameraOnMesh() {
 	let mesh = gizmoManager.attachedMesh;
 	if (mesh.name === "ground") mesh = null;
-	
+
 	if (!mesh && window.currentMesh) {
 		const blockKey = Object.keys(meshMap).find(
 			(key) => meshMap[key] === window.currentBlock,
@@ -1613,7 +1596,8 @@ function toggleGizmo(gizmoType) {
 
 					// Create a new 'rotate_to' block if it doesn't exist
 					if (!rotateBlock) {
-						rotateBlock = Blockly.getMainWorkspace().newBlock("rotate_to");
+						rotateBlock =
+							Blockly.getMainWorkspace().newBlock("rotate_to");
 						rotateBlock.setFieldValue(modelVariable, "MODEL");
 						rotateBlock.initSvg();
 						rotateBlock.render();
@@ -1622,7 +1606,9 @@ function toggleGizmo(gizmoType) {
 						["X", "Y", "Z"].forEach((axis) => {
 							const input = rotateBlock.getInput(axis);
 							const shadowBlock =
-								Blockly.getMainWorkspace().newBlock("math_number");
+								Blockly.getMainWorkspace().newBlock(
+									"math_number",
+								);
 							shadowBlock.setShadow(true);
 							shadowBlock.initSvg();
 							shadowBlock.render();
@@ -1763,7 +1749,8 @@ function toggleGizmo(gizmoType) {
 					// Add shadow blocks for X, Y, Z inputs
 					["X", "Y", "Z"].forEach((axis) => {
 						const input = scaleBlock.getInput(axis);
-						const shadowBlock = Blockly.getMainWorkspace().newBlock("math_number");
+						const shadowBlock =
+							Blockly.getMainWorkspace().newBlock("math_number");
 						shadowBlock.setShadow(true);
 						shadowBlock.initSvg();
 						shadowBlock.render();
