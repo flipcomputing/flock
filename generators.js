@@ -463,7 +463,13 @@ export function defineGenerators() {
 
 		doCode = doCode ? `, async function() {\n${doCode}\n}` : "";
 
-		return `${variableName} = newModel('${modelName}', '${meshId}', ${scale}, ${x}, ${y}, ${z}${doCode});\n`;
+			return `${variableName} = newModel({
+				modelName: '${modelName}',
+				modelId: '${meshId}',
+				scale: ${scale},
+				position: { x: ${x}, y: ${y}, z: ${z} }
+				${doCode ? `, callback: ${doCode}` : ''}
+			});\n`;
 	};
 
 	javascriptGenerator.forBlock["load_character"] = function (block) {
@@ -495,7 +501,20 @@ export function defineGenerators() {
 
 		doCode = doCode ? `, async function() {\n${doCode}\n}` : "";
 
-		return `${variableName} = newCharacter('${modelName}', '${meshId}', ${scale}, ${x}, ${y}, ${z}, ${hairColor}, ${skinColor}, ${eyesColor}, ${sleevesColor}, ${shortsColor}, ${tshirtColor}${doCode});\n`;
+		return `${variableName} = newCharacter({
+		  modelName: '${modelName}',
+		  modelId: '${meshId}',
+		  scale: ${scale},
+		  position: { x: ${x}, y: ${y}, z: ${z} },
+		  colors: {
+			hair: ${hairColor},
+			skin: ${skinColor},
+			eyes: ${eyesColor},
+			sleeves: ${sleevesColor},
+			shorts: ${shortsColor},
+			tshirt: ${tshirtColor}
+		  }${doCode ? `, callback: ${doCode}` : ''}
+		});\n`;
 	};
 
 	javascriptGenerator.forBlock["load_object"] = function (block) {
@@ -522,8 +541,16 @@ export function defineGenerators() {
 
 		doCode = doCode ? `, async function() {\n${doCode}\n}` : "";
 
-		return `${variableName} = newObject('${modelName}', '${meshId}', ${scale}, ${x}, ${y}, ${z}, ${color}${doCode});\n`;
-	};
+		return `${variableName} = newObject({
+			modelName: '${modelName}',
+			modelId: '${meshId}',
+			color: ${color},
+			scale: ${scale},
+			position: { x: ${x}, y: ${y}, z: ${z} }
+			${doCode ? `, callback: ${doCode}` : ''}
+		});\n`;
+
+	}
 
 	// Function to create a mesh, taking mesh type, parameters, and position as arguments
 	function createMesh(block, meshType, params, position, idPrefix) {

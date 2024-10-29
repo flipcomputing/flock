@@ -8,17 +8,17 @@
 fill: black !important;
 }
 
-		.zelos-renderer.classic-theme .blocklyDropDownText, .zelos-renderer.classic-theme .blocklyMenuItemContent {
+		.custom_zelos_renderer-renderer.classic-theme .blocklyDropDownText, .custom_zelos_renderer-renderer.classic-theme .blocklyMenuItemContent {
 			fill: black !important;
 
 		}
 
-		.zelos-renderer.classic-theme .blocklyDropdownText {
+		.custom_zelos_renderer-renderer.classic-theme .blocklyDropdownText {
 			fill: black !important;
 
 		}
 
-.zelos-renderer.classic-theme.blocklyDropDownDiv .goog-menuitem-content {
+.custom_zelos_renderer-renderer.classic-theme.blocklyDropDownDiv .goog-menuitem-content {
 	color: #000  !important;
 }
 
@@ -62,12 +62,12 @@ button {
 }
 
 /* Blockly Styles */
-.zelos-renderer.classic-theme .blocklyEditableText {
+.custom_zelos_renderer-renderer.classic-theme .blocklyEditableText {
   cursor: pointer !important;
 }
 
-.zelos-renderer.classic-theme .blocklyText,
-.zelos-renderer.classic-theme .blocklyFlyoutLabelText {
+.custom_zelos_renderer-renderer.classic-theme .blocklyText,
+.custom_zelos_renderer-renderer.classic-theme .blocklyFlyoutLabelText {
   font-weight: 500 !important;
   font-family: "Asap", Helvetica, Arial, Lucida, sans-serif !important;
 }

@@ -261,7 +261,7 @@ export const flock = {
 
 			flock.highlighter?.dispose();
 			flock.highlighter = null;
-			
+
 			// Dispose of the scene directly
 			flock.scene.activeCamera?.inputs?.clear();
 
@@ -453,7 +453,8 @@ export const flock = {
 		await flock.initializeNewScene();
 	},
 	UIText(text, x, y, fontSize, color, duration, existingTextBlock = null) {
-		flock.scene.UITexture ??= flock.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
+		flock.scene.UITexture ??=
+			flock.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
 
 		// Retrieve the canvas dimensions for the Babylon.js scene
 		const canvas = flock.scene.getEngine().getRenderingCanvas();
@@ -732,7 +733,14 @@ export const flock = {
 			});
 		});
 	},
-	newModel(modelName, modelId, scale, x, y, z, callback) {
+	newModel({
+		modelName,
+		modelId,
+		scale = 1,
+		position = { x: 0, y: 0, z: 0 },
+		callback = () => {},
+	}) {
+		const { x, y, z } = position;
 		const blockId = modelId;
 		modelId += "_" + flock.scene.getUniqueId();
 
@@ -760,7 +768,7 @@ export const flock = {
 	},
 	setupMesh(mesh, modelId, blockId, scale, x, y, z) {
 		mesh.scaling = new BABYLON.Vector3(scale, scale, scale);
-		
+
 		const bb =
 			flock.BABYLON.BoundingBoxGizmo.MakeNotPickableAndWrapInBoundingBox(
 				mesh,
@@ -796,25 +804,28 @@ export const flock = {
 		boxBody.disablePreStep = false;
 		bb.physics = boxBody;
 	},
-	newCharacter(
+	newCharacter({
 		modelName,
 		modelId,
-		scale,
-		x,
-		y,
-		z,
-		hairColor,
-		skinColor,
-		eyesColor,
-		sleevesColor,
-		shortsColor,
-		tshirtColor,
-		callback,
-	) {
+		scale = 1,
+		position = { x: 0, y: 0, z: 0 },
+		colors = {
+			hair: "#000000",
+			skin: "#a15c33",
+			eyes: "#0000ff",
+			sleeves: "#ff0000",
+			shorts: "#00ff00",
+			tshirt: "#0000ff",
+		},
+		callback = () => {},
+	}) {
+		const { x, y, z } = position;
+		const { hair: hairColor, skin: skinColor, eyes: eyesColor, sleeves: sleevesColor, shorts: shortsColor, tshirt: tshirtColor } = colors;
+
 		const blockId = modelId;
 		modelId += "_" + flock.scene.getUniqueId();
 
-		flock.BABYLON.SceneLoader.LoadAssetContainerAsync(
+	flock.BABYLON.SceneLoader.LoadAssetContainerAsync(
 			"./models/",
 			modelName,
 			flock.scene,
@@ -865,7 +876,16 @@ export const flock = {
 
 		return modelId;
 	},
-	newObject(modelName, modelId, scale, x, y, z, color, callback) {
+	newObject({
+		modelName,
+		modelId,
+		color = "#FFFFFF",
+		scale = 1,
+		position = { x: 0, y: 0, z: 0 },
+		callback = () => {},
+	}) {
+		const { x, y, z } = position;
+
 		const blockId = modelId;
 		modelId += "_" + flock.scene.getUniqueId();
 
@@ -880,11 +900,11 @@ export const flock = {
 			.then((container) => {
 				container.addAllToScene();
 				const mesh = container.meshes[0];
-				
+
 				flock.setupMesh(mesh, modelId, blockId, scale, x, y, z, color);
 
 				flock.changeColourMesh(mesh, color);
-				
+
 				if (typeof callback === "function") {
 					callback();
 				}
@@ -936,7 +956,10 @@ export const flock = {
 		return flock.whenModelReady(followerModelName, (followerMesh) => {
 			flock.whenModelReady(targetModelName, (targetMesh) => {
 				// Remove any existing follow observer before adding a new one
-				followerMesh._followObserver && flock.scene.onBeforeRenderObservable.remove(followerMesh._followObserver);
+				followerMesh._followObserver &&
+					flock.scene.onBeforeRenderObservable.remove(
+						followerMesh._followObserver,
+					);
 
 				// Calculate Y position based on the follow position option
 				let getYPosition = () => {
@@ -1052,7 +1075,6 @@ export const flock = {
 
 		material.name = "ground";
 		ground.material = material;
-
 	},
 	createCustomMap(colors) {
 		console.log("Creating map", colors);
@@ -1085,7 +1107,7 @@ export const flock = {
 			flock.abortController.signal.addEventListener("abort", onAbort);
 		}).catch((error) => {
 			// Check if the error is the expected "Wait aborted" error and handle it
-			if (error.message === "Wait aborted") {				
+			if (error.message === "Wait aborted") {
 				return;
 			}
 			// If it's another error, rethrow it
