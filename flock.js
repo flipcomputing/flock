@@ -39,39 +39,42 @@ export const flock = {
 	materialCache: {},
 	flockNotReady: true,
 	async runCode(code) {
-	  let iframe = document.getElementById("flock-iframe");
+		let iframe = document.getElementById("flock-iframe");
 
-	  if (iframe) {
-		if (iframe.contentWindow && iframe.contentWindow.flock && iframe.contentWindow.flock.disposeOldScene) {
-		  try {
-			await iframe.contentWindow.flock.disposeOldScene(); 
-		  } catch (error) {
-			console.error("Error during scene disposal:", error);
-		  }
+		if (iframe) {
+			if (
+				iframe.contentWindow &&
+				iframe.contentWindow.flock &&
+				iframe.contentWindow.flock.disposeOldScene
+			) {
+				try {
+					await iframe.contentWindow.flock.disposeOldScene();
+				} catch (error) {
+					console.error("Error during scene disposal:", error);
+				}
+			}
+		} else {
+			// Step 3: If the iframe does not exist, create a new one
+			iframe = document.createElement("iframe");
+			iframe.id = "flock-iframe";
+			iframe.style.display = "none";
+			document.body.appendChild(iframe);
 		}
-		
-	  } else {
-		// Step 3: If the iframe does not exist, create a new one
-		iframe = document.createElement("iframe");
-		iframe.id = "flock-iframe";
-		iframe.style.display = "none";
-		document.body.appendChild(iframe);
-	  }
 
-	  await new Promise((resolve) => {
-		iframe.onload = () => {
-		  resolve();
-		};
-		iframe.src = "about:blank"; 
-	  });
+		await new Promise((resolve) => {
+			iframe.onload = () => {
+				resolve();
+			};
+			iframe.src = "about:blank";
+		});
 
-	  try {
-		const iframeWindow = iframe.contentWindow;
-		iframeWindow.flock = flock;
+		try {
+			const iframeWindow = iframe.contentWindow;
+			iframeWindow.flock = flock;
 
-		await iframeWindow.flock.initializeNewScene();
+			await iframeWindow.flock.initializeNewScene();
 
-		const sandboxFunction = new iframeWindow.Function(`
+			const sandboxFunction = new iframeWindow.Function(`
 		  "use strict";
 
 		  const {
@@ -168,11 +171,14 @@ export const flock = {
 		  ${code}
 		`);
 
-		// Execute the sandboxed function
-		sandboxFunction();
-	  } catch (error) {
-		console.error("Error during scene creation or code execution:", error);
-	  }
+			// Execute the sandboxed function
+			sandboxFunction();
+		} catch (error) {
+			console.error(
+				"Error during scene creation or code execution:",
+				error,
+			);
+		}
 	},
 	async initialize() {
 		flock.BABYLON = BABYLON;
@@ -794,7 +800,7 @@ export const flock = {
 	},
 	setupMesh(mesh, modelId, blockId, scale, x, y, z) {
 		mesh.scaling = new BABYLON.Vector3(scale, scale, scale);
-
+		
 		const bb =
 			flock.BABYLON.BoundingBoxGizmo.MakeNotPickableAndWrapInBoundingBox(
 				mesh,
@@ -802,11 +808,15 @@ export const flock = {
 
 		bb.name = modelId;
 		bb.blockKey = blockId;
-		bb.isPickable = true;
+		bb.isPickable = false;
 		bb.position.addInPlace(new flock.BABYLON.Vector3(x, y, z));
 
 		mesh.computeWorldMatrix(true);
 		mesh.refreshBoundingInfo();
+		mesh.isPickable = true;
+		mesh.getDescendants().forEach((child) => {
+			child.isPickable = true;
+		});
 
 		bb.metadata = bb.metadata || {};
 		bb.metadata.yOffset = (bb.position.y - y) / scale;
@@ -824,11 +834,8 @@ export const flock = {
 		boxBody.shape = boxShape;
 		boxBody.setMassProperties({ mass: 1, restitution: 0.5 });
 		boxBody.disablePreStep = false;
-		//boxBody.setAngularDamping(10000000);
-		//boxBody.setLinearDamping(0);
 		bb.physics = boxBody;
 	},
-
 	newCharacter(
 		modelName,
 		modelId,
@@ -913,6 +920,7 @@ export const flock = {
 			.then((container) => {
 				container.addAllToScene();
 				const mesh = container.meshes[0];
+				
 				flock.setupMesh(mesh, modelId, blockId, scale, x, y, z, color);
 				function applyColorToMaterial(part, color) {
 					if (part.material) {

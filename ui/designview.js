@@ -584,6 +584,12 @@ function setPositionValues(block, position, shapeType) {
 			// Planes are flat, so no Y adjustment needed
 			break;
 
+		case "load_model":
+			break;
+
+		case "load_character":
+			break;
+			
 		case "load_object":
 			// Adjust Y based on SCALE input
 			adjustedY += block.getInputTargetBlock("SCALE")
@@ -591,6 +597,7 @@ function setPositionValues(block, position, shapeType) {
 				: 2;
 			break;
 
+		
 		default:
 			console.error("Unknown shape type: " + shapeType);
 	}
