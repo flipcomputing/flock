@@ -39,144 +39,140 @@ export const flock = {
 	materialCache: {},
 	flockNotReady: true,
 	async runCode(code) {
-		const sandboxedCode = `
-			"use strict";
+	  let iframe = document.getElementById("flock-iframe");
 
-			const {
-			initialize,
-			createEngine,
-			createScene,
-				playAnimation,
-				playSound,
-				playNotes,
-				setBPM,
-				createInstrument,
-				switchAnimation,
-				highlight,
-				newCharacter,
-				newObject,
-				newModel,
-				createBox,
-				createSphere,
-				createCylinder,
-				createCapsule,
-				createPlane,
-				newWall,
-				parentChild,
-				makeFollow,
-				stopFollow,
-				removeParent,
-				createGround,
-				createMap,
-				createCustomMap,
-				setSky,
-				buttonControls,
-				getCamera,
-				cameraControl,
-				applyForce,
-				moveByVector,
-				glideTo,
-				animateKeyFrames,
-				setPivotPoint,
-				rotate,
-				lookAt,
-				moveTo,
-				rotateTo,
-				rotateCamera,
-				rotateAnim,
-				animateProperty,
-				positionAt,
-				distanceTo,
-				wait,
-				safeLoop,
-				waitUntil,
-				show,
-				hide,
-				clearEffects,
-				tint,
-				setAlpha,
-				dispose,
-				setFog,
-				keyPressed,
-				isTouchingSurface,
-				seededRandom,
-				randomColour,
-				scaleMesh,
-				changeColour,
-				changeColourMesh,
-				changeMaterial,
-				setMaterial,
-				createMaterial,
-				textMaterial,
-				createDecal,
-				placeDecal,
-				moveForward,
-				moveSideways,
-				strafe,
-				attachCamera,
-				canvasControls,
-				setPhysics,
-				checkMeshesTouching,
-				say,
-				onTrigger,
-				onEvent,
-				broadcastEvent,
-				Mesh,
-				forever,
-				whenKeyPressed,
-				whenKeyReleased,
-				printText,
-				UIText,
-				onIntersect,
-				getProperty,
-				exportMesh,
-			} = flock;
-			
-			${code}			
-		`;
-
-		let iframe = document.getElementById("flock-iframe");
-
-		// If the iframe already exists and has content, dispose of its resources
-		if (iframe && iframe.contentWindow && iframe.contentWindow.flock) {
-			const oldFlock = iframe.contentWindow.flock;
-
-			// Ensure the old scene is properly disposed using the disposeOldScene function
-			try {
-				await oldFlock.disposeOldScene(); // Use the dispose function directly
-			} catch (error) {
-				console.error("Error during scene disposal:", error);
-			}
-
-			// Remove the iframe from the DOM after resources are disposed
-			iframe.remove();
-			iframe = null; // Clear reference to the iframe to ensure it gets garbage collected
+	  if (iframe) {
+		if (iframe.contentWindow && iframe.contentWindow.flock && iframe.contentWindow.flock.disposeOldScene) {
+		  try {
+			await iframe.contentWindow.flock.disposeOldScene(); 
+		  } catch (error) {
+			console.error("Error during scene disposal:", error);
+		  }
 		}
-
-		// Create a new iframe
+		
+	  } else {
+		// Step 3: If the iframe does not exist, create a new one
 		iframe = document.createElement("iframe");
 		iframe.id = "flock-iframe";
 		iframe.style.display = "none";
-		iframe.src = "about:blank";
 		document.body.appendChild(iframe);
+	  }
 
-		// Assign flock and initialize the new scene inside the new iframe
-		iframe.contentWindow.flock = flock;
+	  await new Promise((resolve) => {
+		iframe.onload = () => {
+		  resolve();
+		};
+		iframe.src = "about:blank"; 
+	  });
 
-		try {
-			// Initialize the new scene using the function from the new iframe's content window
-			await iframe.contentWindow.flock.initializeNewScene();
-		} catch (error) {
-			console.error("Error during new scene creation:", error);
-		}
+	  try {
+		const iframeWindow = iframe.contentWindow;
+		iframeWindow.flock = flock;
 
-		// Evaluate the sandboxed code inside the iframe to finalize setup or run additional logic
-		try {
-			iframe.contentWindow.flock = flock;
-			iframe.contentWindow.eval(sandboxedCode);
-		} catch (error) {
-			console.error("Error executing sandboxed code:", error);
-		}
+		await iframeWindow.flock.initializeNewScene();
+
+		const sandboxFunction = new iframeWindow.Function(`
+		  "use strict";
+
+		  const {
+			initialize,
+			createEngine,
+			createScene,
+			playAnimation,
+			playSound,
+			playNotes,
+			setBPM,
+			createInstrument,
+			switchAnimation,
+			highlight,
+			newCharacter,
+			newObject,
+			newModel,
+			createBox,
+			createSphere,
+			createCylinder,
+			createCapsule,
+			createPlane,
+			newWall,
+			parentChild,
+			makeFollow,
+			stopFollow,
+			removeParent,
+			createGround,
+			createMap,
+			createCustomMap,
+			setSky,
+			buttonControls,
+			getCamera,
+			cameraControl,
+			applyForce,
+			moveByVector,
+			glideTo,
+			animateKeyFrames,
+			setPivotPoint,
+			rotate,
+			lookAt,
+			moveTo,
+			rotateTo,
+			rotateCamera,
+			rotateAnim,
+			animateProperty,
+			positionAt,
+			distanceTo,
+			wait,
+			safeLoop,
+			waitUntil,
+			show,
+			hide,
+			clearEffects,
+			tint,
+			setAlpha,
+			dispose,
+			setFog,
+			keyPressed,
+			isTouchingSurface,
+			seededRandom,
+			randomColour,
+			scaleMesh,
+			changeColour,
+			changeColourMesh,
+			changeMaterial,
+			setMaterial,
+			createMaterial,
+			textMaterial,
+			createDecal,
+			placeDecal,
+			moveForward,
+			moveSideways,
+			strafe,
+			attachCamera,
+			canvasControls,
+			setPhysics,
+			checkMeshesTouching,
+			say,
+			onTrigger,
+			onEvent,
+			broadcastEvent,
+			Mesh,
+			forever,
+			whenKeyPressed,
+			whenKeyReleased,
+			printText,
+			UIText,
+			onIntersect,
+			getProperty,
+			exportMesh,
+			abortSceneExecution
+		  } = flock;
+
+		  ${code}
+		`);
+
+		// Execute the sandboxed function
+		sandboxFunction();
+	  } catch (error) {
+		console.error("Error during scene creation or code execution:", error);
+	  }
 	},
 	async initialize() {
 		flock.BABYLON = BABYLON;
@@ -240,6 +236,12 @@ export const flock = {
 	async disposeOldScene() {
 		flock.flockNotReady = true;
 		if (flock.scene) {
+			flock.engine.stopRenderLoop();
+			flock.scene.meshes.forEach((mesh) => {
+				if (mesh.actionManager) {
+					mesh.actionManager.dispose(); // Dispose the action manager to remove all actions
+				}
+			});
 			flock.scene.activeCamera.inputs?.clear();
 			flock.modelCache = null;
 			flock.geometryCache = null;
@@ -312,6 +314,7 @@ export const flock = {
 
 		flock.disposed = false;
 
+		flock.abortController = new AbortController();
 		flock.engine.runRenderLoop(() => {
 			flock.scene.render();
 		});
@@ -610,9 +613,13 @@ export const flock = {
 		);
 	},
 	whenModelReady(meshId, callback) {
+		// Check if the mesh is immediately available
 		if (flock.scene) {
 			const mesh = flock.scene.getMeshByName(meshId);
 			if (mesh) {
+				if (flock.abortController.signal.aborted) {
+					return; // If already aborted, stop here
+				}
 				// Mesh is available immediately, invoke the callback synchronously
 				callback(mesh);
 				return; // Return immediately, no Promise needed
@@ -622,8 +629,20 @@ export const flock = {
 		// If the mesh is not immediately available, fall back to the generator and return a Promise
 		return (async () => {
 			const generator = flock.modelReadyGenerator(meshId);
-			for await (const mesh of generator) {
-				await callback(mesh);
+			try {
+				for await (const mesh of generator) {
+					if (flock.abortController.signal.aborted) {
+						console.log(`Aborted waiting for mesh: ${meshId}`);
+						return; // Exit the loop if the operation was aborted
+					}
+					await callback(mesh);
+				}
+			} catch (err) {
+				if (flock.abortController.signal.aborted) {
+					console.log(`Operation was aborted: ${meshId}`);
+				} else {
+					console.error(`Error in whenModelReady: ${err}`);
+				}
 			}
 		})();
 	},
@@ -1569,6 +1588,8 @@ export const flock = {
 			flock.scene,
 		);
 
+		if (!vertexData) return;
+
 		// Create a new mesh and apply the cached VertexData
 		const newSphere = new BABYLON.Mesh(sphereId, flock.scene);
 		vertexData.applyToMesh(newSphere);
@@ -1588,10 +1609,9 @@ export const flock = {
 	},
 	getOrCreateGeometry(shapeType, dimensions, scene) {
 		const geometryKey = `${shapeType}_${Object.values(dimensions).join("_")}`;
-	
-		if (!flock.geometryCache)
-			return
-		
+
+		if (!flock.geometryCache) return;
+
 		if (!flock.geometryCache[geometryKey]) {
 			let initialMesh;
 
@@ -4643,7 +4663,7 @@ export const flock = {
 		// Function to run the action
 		const runAction = async () => {
 			if (isDisposed) {
-				//console.log("Scene is disposed. Exiting action.");
+				console.log("Scene is disposed. Exiting action.");
 				return; // Exit if the scene is disposed
 			}
 

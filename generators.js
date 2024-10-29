@@ -1909,7 +1909,7 @@ javascriptGenerator.forBlock["controls_doWhile"] = function (block) {
 	do {
 		${branch}
 
-		safeLoop; // Yield control to the browser
+		safeLoop(); // Yield control to the browser
 	} while (${condition});\n`;
 };
 

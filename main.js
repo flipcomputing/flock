@@ -124,6 +124,7 @@ async function executeCode() {
 	const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 	// Wait until the engine is ready using a loop with an async delay
+	
 	while (!flock.engineReady) {
 		await delay(100);
 	}
@@ -175,7 +176,6 @@ async function executeCode() {
 		}
 	}
 
-	setGizmoManager(new flock.BABYLON.GizmoManager(flock.scene, 8));
 
 	await delay(1000);
 	// Reset the flag to allow future executions
