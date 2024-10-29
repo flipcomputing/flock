@@ -219,10 +219,9 @@ export const flock = {
 		flock.engineReady = true;
 	},
 	createEngine() {
-		if (flock.engine) {
-			flock.engine.dispose();
-			flock.engine = null;
-		}
+		flock.engine?.dispose();
+		flock.engine = null;
+
 		flock.engine = new flock.BABYLON.Engine(flock.canvas, true, {
 			stencil: true,
 		});
@@ -254,52 +253,30 @@ export const flock = {
 			// Remove event listeners before disposing of the scene
 			flock.removeEventListeners();
 
-			// Dispose of textures and controls related to the scene
-			if (flock.controlsTexture) {
-				flock.controlsTexture.dispose();
-				flock.controlsTexture = null;
-			}
+			flock.controlsTexture?.dispose();
+			flock.controlsTexture = null;
 
-			// Clear observables before disposing the scene
-			if (flock.gridKeyPressObservable) {
-				flock.gridKeyPressObservable.clear();
-			}
+			flock.gridKeyPressObservable?.clear();
+			flock.gridKeyReleaseObservable?.clear();
 
-			if (flock.gridKeyReleaseObservable) {
-				flock.gridKeyReleaseObservable.clear();
-			}
-
-			if (flock.highlighter) {
-				flock.highlighter.dispose();
-				flock.highlighter = null;
-			}
-
+			flock.highlighter?.dispose();
+			flock.highlighter = null;
+			
 			// Dispose of the scene directly
-			flock.scene.activeCamera.inputs.clear();
+			flock.scene.activeCamera?.inputs?.clear();
 
 			flock.scene.dispose();
 			flock.scene = null;
 
-			// Dispose of physics-related resources if they exist
-			if (flock.hk) {
-				flock.hk.dispose();
-				flock.hk = null;
-			}
+			flock.hk?.dispose();
+			flock.hk = null;
 
-			// If the audio context is present, close it
-			if (flock.audioContext) {
-				flock.audioContext.close();
-				flock.audioContext = null;
-			}
+			flock.audioContext?.close();
+			flock.audioContext = null;
 		}
 	},
 	async initializeNewScene() {
-		// Ensure the engine exists and is running
-		if (!flock.engine) {
-			flock.createEngine();
-		} else {
-			flock.engine.stopRenderLoop();
-		}
+		flock.engine ? flock.engine.stopRenderLoop() : flock.createEngine();
 
 		flock.modelCache = {};
 		flock.geometryCache = {};
@@ -476,10 +453,7 @@ export const flock = {
 		await flock.initializeNewScene();
 	},
 	UIText(text, x, y, fontSize, color, duration, existingTextBlock = null) {
-		if (!flock.scene.UITexture) {
-			flock.scene.UITexture =
-				flock.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
-		}
+		flock.scene.UITexture ??= flock.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
 
 		// Retrieve the canvas dimensions for the Babylon.js scene
 		const canvas = flock.scene.getEngine().getRenderingCanvas();
@@ -492,14 +466,10 @@ export const flock = {
 
 		let textBlock;
 
-		// Check if the TextBlock already exists (for updating text)
-		if (existingTextBlock) {
-			textBlock = existingTextBlock;
-			textBlock.text = text;
-		} else {
-			// Create a new TextBlock if it doesn't exist
-			textBlock = new flock.GUI.TextBlock();
-			textBlock.text = text;
+		textBlock = existingTextBlock ?? new flock.GUI.TextBlock();
+		textBlock.text = text;
+
+		if (!existingTextBlock) {
 			flock.scene.UITexture.addControl(textBlock);
 		}
 
@@ -912,24 +882,9 @@ export const flock = {
 				const mesh = container.meshes[0];
 				
 				flock.setupMesh(mesh, modelId, blockId, scale, x, y, z, color);
-				function applyColorToMaterial(part, color) {
-					if (part.material) {
-						part.material.albedoColor =
-							flock.BABYLON.Color3.FromHexString(
-								flock.getColorFromString(color),
-							).toLinearSpace();
-						part.material.emissiveColor =
-							flock.BABYLON.Color3.FromHexString(
-								flock.getColorFromString(color),
-							).toLinearSpace();
-						part.material.emissiveIntensity = 0.1;
-					}
-					part.getChildMeshes().forEach((child) => {
-						applyColorToMaterial(child, color);
-					});
-				}
 
-				applyColorToMaterial(mesh, color);
+				flock.changeColourMesh(mesh, color);
+				
 				if (typeof callback === "function") {
 					callback();
 				}
@@ -981,11 +936,7 @@ export const flock = {
 		return flock.whenModelReady(followerModelName, (followerMesh) => {
 			flock.whenModelReady(targetModelName, (targetMesh) => {
 				// Remove any existing follow observer before adding a new one
-				if (followerMesh._followObserver) {
-					flock.scene.onBeforeRenderObservable.remove(
-						followerMesh._followObserver,
-					);
-				}
+				followerMesh._followObserver && flock.scene.onBeforeRenderObservable.remove(followerMesh._followObserver);
 
 				// Calculate Y position based on the follow position option
 				let getYPosition = () => {
@@ -1083,17 +1034,6 @@ export const flock = {
 			flock.scene,
 		);
 
-		/*
-		const groundMaterial = new flock.BABYLON.StandardMaterial(
-			"groundMaterial",
-			flock.scene,
-		);
-
-		groundMaterial.diffuseColor = flock.BABYLON.Color3.FromHexString(
-			flock.getColorFromString(color),
-		);
-		ground.material = groundMaterial;*/
-
 		const texture = new flock.BABYLON.Texture(
 			`./textures/rough.png`,
 			flock.scene,
@@ -1113,109 +1053,6 @@ export const flock = {
 		material.name = "ground";
 		ground.material = material;
 
-		/*
-		let minHeight, maxHeight; // Define minHeight and maxHeight outside
-
-		function loadImage(url, callback) {
-			const img = new Image();
-			img.crossOrigin = "anonymous";
-			img.onload = function () {
-				callback(img);
-			};
-			img.src = url;
-		}
-
-		function extractHeightsFromImageData(imageData) {
-			const heights = [];
-			for (let i = 0; i < imageData.data.length; i += 4) {
-				const r = imageData.data[i];
-				const g = imageData.data[i + 1];
-				const b = imageData.data[i + 2];
-				const greyscale = (r + g + b) / 3;
-				heights.push(greyscale / 255); // Normalize to [0, 1]
-			}
-			return heights;
-		}
-
-		function calculateHeightRange(heights) {
-			let min = Infinity;
-			let max = -Infinity;
-			for (const height of heights) {
-				if (height < min) min = height;
-				if (height > max) max = height;
-			}
-			return { min, max };
-		}
-
-		// Assuming 'image' is already defined somewhere in your code with the image name
-		loadImage("./textures/" + image, function (img) {
-			const canvas = document.createElement("canvas");
-			const ctx = canvas.getContext("2d");
-			canvas.width = img.width;
-			canvas.height = img.height;
-			ctx.drawImage(img, 0, 0, img.width, img.height);
-			const imageData = ctx.getImageData(0, 0, img.width, img.height);
-			const heights = extractHeightsFromImageData(imageData);
-			const heightRange = calculateHeightRange(heights);
-			minHeight = heightRange.min;
-			maxHeight = heightRange.max;
-			console.log("Min Height:", minHeight);
-			console.log("Max Height:", maxHeight);
-
-			const desiredMinHeight = -2;
-			const desiredMaxHeight = 12;
-
-			// Normalize the calculated heights and map them to the desired range
-			const scale =
-				(desiredMaxHeight - desiredMinHeight) / (maxHeight - minHeight);
-			const offset = desiredMinHeight - minHeight * scale;
-
-			const ground = flock.BABYLON.MeshBuilder.CreateGroundFromHeightMap(
-				"heightmap",
-				"./textures/" + image,
-				{
-					width: 100,
-					height: 100,
-					minHeight: minHeight * scale + offset,
-					maxHeight: maxHeight * scale + offset,
-					subdivisions: 64,
-					onReady: (groundMesh) => {
-						const heightMapGroundShape =
-							new flock.BABYLON.PhysicsShapeMesh(
-								ground, // mesh from which to calculate the collisions
-								flock.scene, // scene of the shape
-							);
-						const heightMapGroundBody =
-							new flock.BABYLON.PhysicsBody(
-								ground,
-								flock.BABYLON.PhysicsMotionType.STATIC,
-								false,
-								flock.scene,
-							);
-						heightMapGroundShape.material = {
-							friction: 0.3,
-							restitution: 0.3,
-						};
-						heightMapGroundBody.shape = heightMapGroundShape;
-						heightMapGroundBody.setMassProperties({ mass: 0 });
-					},
-				},
-				flock.scene,
-			);
-
-			// Load shaders directly within the JavaScript file
-			const shaderMaterial = new flock.BABYLON.ShaderMaterial(
-				"customShader",
-				flock.scene,
-				"custom",
-				{
-					attributes: ["position", "normal", "uv"],
-					uniforms: ["worldViewProjection", "world"], // Include the world matrix
-				},
-			);
-
-			ground.material = shaderMaterial;
-		});*/
 	},
 	createCustomMap(colors) {
 		console.log("Creating map", colors);
@@ -1248,9 +1085,7 @@ export const flock = {
 			flock.abortController.signal.addEventListener("abort", onAbort);
 		}).catch((error) => {
 			// Check if the error is the expected "Wait aborted" error and handle it
-			if (error.message === "Wait aborted") {
-				//console.log("Abort signal received, stopping the wait.");
-				// Prevent further processing, but don't propagate the error
+			if (error.message === "Wait aborted") {				
 				return;
 			}
 			// If it's another error, rethrow it
@@ -1434,31 +1269,6 @@ export const flock = {
 		console.error(
 			`Failed to find mesh "${modelName}" after ${maxAttempts} attempts.`,
 		);
-	},
-	async playAnimation2(
-		modelName,
-		animationName,
-		loop = false,
-		restart = true,
-	) {
-		return flock.whenModelReady(modelName, (mesh) => {
-			const animGroup = flock.switchToAnimation(
-				flock.scene,
-				mesh,
-				animationName,
-				loop,
-				restart,
-			);
-
-			return new Promise((resolve) => {
-				animGroup.onAnimationEndObservable.addOnce(() => {
-					console.log(
-						`Animation "${animationName}" completed for model "${modelName}"`,
-					);
-					resolve();
-				});
-			});
-		});
 	},
 	setFog(fogColorHex, fogMode, fogDensity = 0.1) {
 		const fogColorRgb = flock.BABYLON.Color3.FromHexString(
