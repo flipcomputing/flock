@@ -42,17 +42,7 @@ export const flock = {
 		let iframe = document.getElementById("flock-iframe");
 
 		if (iframe) {
-			if (
-				iframe.contentWindow &&
-				iframe.contentWindow.flock &&
-				iframe.contentWindow.flock.disposeOldScene
-			) {
-				try {
-					await iframe.contentWindow.flock.disposeOldScene();
-				} catch (error) {
-					console.error("Error during scene disposal:", error);
-				}
-			}
+			await iframe.contentWindow?.flock?.disposeOldScene();
 		} else {
 			// Step 3: If the iframe does not exist, create a new one
 			iframe = document.createElement("iframe");
