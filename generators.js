@@ -461,14 +461,13 @@ export function defineGenerators() {
 			doCode = javascriptGenerator.statementToCode(block, "DO") || "";
 		}
 
-		doCode = doCode ? `, async function() {\n${doCode}\n}` : "";
+		doCode = doCode ? `async function() {\n${doCode}\n}` : "";
 
 			return `${variableName} = newModel({
 				modelName: '${modelName}',
 				modelId: '${meshId}',
 				scale: ${scale},
-				position: { x: ${x}, y: ${y}, z: ${z} }
-				${doCode ? `, callback: ${doCode}` : ''}
+				position: { x: ${x}, y: ${y}, z: ${z} }${doCode ? `,\ncallback: ${doCode}` : ''}
 			});\n`;
 	};
 
@@ -499,7 +498,7 @@ export function defineGenerators() {
 			doCode = javascriptGenerator.statementToCode(block, "DO") || "";
 		}
 
-		doCode = doCode ? `, async function() {\n${doCode}\n}` : "";
+		doCode = doCode ? `async function() {\n${doCode}\n}` : "";
 
 		return `${variableName} = newCharacter({
 		  modelName: '${modelName}',
@@ -539,15 +538,14 @@ export function defineGenerators() {
 			doCode = javascriptGenerator.statementToCode(block, "DO") || "";
 		}
 
-		doCode = doCode ? `, async function() {\n${doCode}\n}` : "";
+		doCode = doCode ? `async function() {\n${doCode}\n}` : "";
 
 		return `${variableName} = newObject({
 			modelName: '${modelName}',
 			modelId: '${meshId}',
 			color: ${color},
 			scale: ${scale},
-			position: { x: ${x}, y: ${y}, z: ${z} }
-			${doCode ? `, callback: ${doCode}` : ''}
+			position: { x: ${x}, y: ${y}, z: ${z} }${doCode ? `,\ncallback: ${doCode}` : ''}
 		});\n`;
 
 	}
