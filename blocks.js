@@ -22,6 +22,45 @@ import { flock } from "./flock.js";
 
 export let nextVariableIndexes = {};
 
+// Shared utility to add the toggle button to a block
+export function addToggleButton(block) {
+	const toggleButton = new Blockly.FieldImage(
+		"data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAiIGhlaWdodD0iMzAiIHZpZXdCb3g9IjAgMCAzMCAzMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4gPHBhdGggZmlsbD0id2hpdGUiIGQ9Ik0xNSA2djloLTl2M2g5djloM3YtOWg5di0zaC05di05eiIvPjwvc3ZnPg==", // Custom icon
+		30,
+		30,
+		"*", // Width, Height, Alt text
+		() => {
+			block.toggleDoBlock();
+		},
+	);
+
+	block.appendDummyInput().appendField(toggleButton, "TOGGLE_BUTTON");
+}
+
+// Shared utility for the mutationToDom function
+export function mutationToDom(block) {
+	const container = document.createElement("mutation");
+	container.setAttribute("inline", block.isInline);
+	return container;
+}
+
+// Shared utility for the domToMutation function
+export function domToMutation(block, xmlElement) {
+	const isInline = xmlElement.getAttribute("inline") === "true";
+	block.updateShape_(isInline);
+}
+
+// Shared utility to update the shape of the block
+function updateShape(block, isInline) {
+	block.isInline = isInline;
+	if (isInline) {
+		block.setPreviousStatement(true);
+		block.setNextStatement(true);
+	} else {
+		block.setPreviousStatement(false);
+		block.setNextStatement(false);
+	}
+}
 export function handleBlockSelect(event) {
 	if (event.type === Blockly.Events.SELECTED) {
 		const block = Blockly.getMainWorkspace().getBlockById(
@@ -96,8 +135,7 @@ export class CustomConstantProvider extends Blockly.zelos.ConstantProvider {
 		this.NOTCH_OFFSET_LEFT = 2 * this.GRID_UNIT;
 		this.NOTCH_HEIGHT = 2 * this.GRID_UNIT;
 		this.FIELD_DROPDOWN_SVG_ARROW_DATAURI =
-		  'data:image/svg+xml;base64,PHN2ZyBpZD0iTGF5ZXJfMSIgZGF0YS1uYW1lPSJMYXllciAxIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMi43MSIgaGVpZ2h0PSI4Ljc5IiB2aWV3Qm94PSIwIDAgMTIuNzEgOC43OSI+PHRpdGxlPmRyb3Bkb3duLWFycm93PC90aXRsZT48ZyBvcGFjaXR5PSIwLjEiPjxwYXRoIGQ9Ik0xMi43MSwyLjQ0QTIuNDEsMi40MSwwLDAsMSwxMiw0LjE2TDguMDgsOC4wOGEyLjQ1LDIuNDUsMCwwLDEtMy40NSwwTDAuNzIsNC4xNkEyLjQyLDIuNDIsMCwwLDEsMCwyLjQ0LDIuNDgsMi40OCwwLDAsMSwuNzEuNzFDMSwwLjQ3LDEuNDMsMCw2LjM2LDBTMTEuNzUsMC40NiwxMiwuNzFBMi40NCwyLjQ0LDAsMCwxLDEyLjcxLDIuNDRaIiBmaWxsPSIjMjMxZjIwIi8+PC9nPjxwYXRoIGQ9Ik02LjM2LDcuNzlhMS40MywxLjQzLDAsMCwxLTEtLjQyTDEuNDIsMy40NWExLjQ0LDEuNDQsMCwwLDEsMC0yYzAuNTYtLjU2LDkuMzEtMC41Niw5Ljg3LDBhMS40NCwxLjQ0LDAsMCwxLDAsMkw3LjM3LDcuMzdBMS40MywxLjQzLDAsMCwxLDYuMzYsNy43OVoiIGZpbGw9IiMwMDAiLz48L3N2Zz4=';
-
+			"data:image/svg+xml;base64,PHN2ZyBpZD0iTGF5ZXJfMSIgZGF0YS1uYW1lPSJMYXllciAxIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMi43MSIgaGVpZ2h0PSI4Ljc5IiB2aWV3Qm94PSIwIDAgMTIuNzEgOC43OSI+PHRpdGxlPmRyb3Bkb3duLWFycm93PC90aXRsZT48ZyBvcGFjaXR5PSIwLjEiPjxwYXRoIGQ9Ik0xMi43MSwyLjQ0QTIuNDEsMi40MSwwLDAsMSwxMiw0LjE2TDguMDgsOC4wOGEyLjQ1LDIuNDUsMCwwLDEtMy40NSwwTDAuNzIsNC4xNkEyLjQyLDIuNDIsMCwwLDEsMCwyLjQ0LDIuNDgsMi40OCwwLDAsMSwuNzEuNzFDMSwwLjQ3LDEuNDMsMCw2LjM2LDBTMTEuNzUsMC40NiwxMiwuNzFBMi40NCwyLjQ0LDAsMCwxLDEyLjcxLDIuNDRaIiBmaWxsPSIjMjMxZjIwIi8+PC9nPjxwYXRoIGQ9Ik02LjM2LDcuNzlhMS40MywxLjQzLDAsMCwxLTEtLjQyTDEuNDIsMy40NWExLjQ0LDEuNDQsMCwwLDEsMC0yYzAuNTYtLjU2LDkuMzEtMC41Niw5Ljg3LDBhMS40NCwxLjQ0LDAsMCwxLDAsMkw3LjM3LDcuMzdBMS40MywxLjQzLDAsMCwxLDYuMzYsNy43OVoiIGZpbGw9IiMwMDAiLz48L3N2Zz4=";
 	}
 }
 
@@ -124,7 +162,6 @@ class CustomZelosRenderer extends Blockly.zelos.Renderer {
 	makeRenderInfo_(block) {
 		return new CustomRenderInfo(this, block);
 	}
-	
 }
 
 // Register the custom renderer
@@ -2541,140 +2578,102 @@ export function defineBlocks() {
 		},
 	};
 
-	// Shared utility to add the toggle button to a block
-	function addToggleButton(block) {
-	  const toggleButton = new Blockly.FieldImage(
-		"data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAiIGhlaWdodD0iMzAiIHZpZXdCb3g9IjAgMCAzMCAzMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4gPHBhdGggZmlsbD0id2hpdGUiIGQ9Ik0xNSA2djloLTl2M2g5djloM3YtOWg5di0zaC05di05eiIvPjwvc3ZnPg==", // Custom icon
-		30,
-		30,
-		"*", // Width, Height, Alt text
-		() => {
-		  block.toggleDoBlock();
-		},
-	  );
-
-	  block.appendDummyInput().appendField(toggleButton, "TOGGLE_BUTTON");
-	}
-
-	// Shared utility for the mutationToDom function
-	function mutationToDom(block) {
-	  const container = document.createElement("mutation");
-	  container.setAttribute("inline", block.isInline);
-	  return container;
-	}
-
-	// Shared utility for the domToMutation function
-	function domToMutation(block, xmlElement) {
-	  const isInline = xmlElement.getAttribute("inline") === "true";
-	  block.updateShape_(isInline);
-	}
-
-	// Shared utility to update the shape of the block
-	function updateShape(block, isInline) {
-	  block.isInline = isInline;
-	  if (isInline) {
-		block.setPreviousStatement(true);
-		block.setNextStatement(true);
-	  } else {
-		block.setPreviousStatement(false);
-		block.setNextStatement(false);
-	  }
-	}
-
 	// Define the when_clicked block
 	Blockly.Blocks["when_clicked"] = {
-	  init: function () {
-		this.jsonInit({
-		  type: "model_clicked",
-		  message0: "when %1 is %2",
-		  args0: [
-			{
-			  type: "field_variable",
-			  name: "MODEL_VAR",
-			  variable: window.currentMesh,
-			},
-			{
-			  type: "field_dropdown",
-			  name: "TRIGGER",
-			  options: [
-				["clicked", "OnPickTrigger"],
-				["double-clicked", "OnDoublePickTrigger"],
-				["mouse down", "OnPickDownTrigger"],
-				["mouse up", "OnPickUpTrigger"],
-				["mouse out", "OnPickOutTrigger"],
-				["left-clicked", "OnLeftPickTrigger"],
-				["right-clicked / long pressed", "OnRightOrLongPressTrigger"],
-				["pointer over", "OnPointerOverTrigger"],
-				["pointer out", "OnPointerOutTrigger"],
-			  ],
-			},
-		  ],
-		  message1: "%1",
-		  args1: [
-			{
-			  type: "input_statement",
-			  name: "DO",
-			},
-		  ],
-		  colour: categoryColours["Events"],
-		  tooltip:
-			"Executes the blocks inside when the specified model trigger occurs.\nKeyword: click",
-		  helpUrl: "",
-		});
+		init: function () {
+			this.jsonInit({
+				type: "model_clicked",
+				message0: "when %1 is %2",
+				args0: [
+					{
+						type: "field_variable",
+						name: "MODEL_VAR",
+						variable: window.currentMesh,
+					},
+					{
+						type: "field_dropdown",
+						name: "TRIGGER",
+						options: [
+							["clicked", "OnPickTrigger"],
+							["double-clicked", "OnDoublePickTrigger"],
+							["mouse down", "OnPickDownTrigger"],
+							["mouse up", "OnPickUpTrigger"],
+							["mouse out", "OnPickOutTrigger"],
+							["left-clicked", "OnLeftPickTrigger"],
+							[
+								"right-clicked / long pressed",
+								"OnRightOrLongPressTrigger",
+							],
+							["pointer over", "OnPointerOverTrigger"],
+							["pointer out", "OnPointerOutTrigger"],
+						],
+					},
+				],
+				message1: "%1",
+				args1: [
+					{
+						type: "input_statement",
+						name: "DO",
+					},
+				],
+				colour: categoryColours["Events"],
+				tooltip:
+					"Executes the blocks inside when the specified model trigger occurs.\nKeyword: click",
+				helpUrl: "",
+			});
 
-		this.isInline = false;
-		addToggleButton(this);
-	  },
-	  mutationToDom: function () {
-		return mutationToDom(this);
-	  },
-	  domToMutation: function (xmlElement) {
-		domToMutation(this, xmlElement);
-	  },
-	  updateShape_: function (isInline) {
-		updateShape(this, isInline);
-	  },
-	  toggleDoBlock: function () {
-		this.updateShape_(!this.isInline);
-	  },
+			this.isInline = false;
+			addToggleButton(this);
+		},
+		mutationToDom: function () {
+			return mutationToDom(this);
+		},
+		domToMutation: function (xmlElement) {
+			domToMutation(this, xmlElement);
+		},
+		updateShape_: function (isInline) {
+			updateShape(this, isInline);
+		},
+		toggleDoBlock: function () {
+			this.updateShape_(!this.isInline);
+		},
 	};
 
 	// Define the forever block
 	Blockly.Blocks["forever"] = {
-	  init: function () {
-		this.jsonInit({
-		  type: "forever",
-		  message0: "forever\n%1",
-		  args0: [
-			{
-			  type: "input_statement",
-			  name: "DO",
-			  check: null,
-			},
-		  ],
-		  colour: categoryColours["Events"],
-		  tooltip:
-			"Executes the enclosed blocks each frame in the render loop.\nKeyword: ever",
-		  helpUrl: "",
-		});
+		init: function () {
+			this.jsonInit({
+				type: "forever",
+				message0: "forever\n%1",
+				args0: [
+					{
+						type: "input_statement",
+						name: "DO",
+						check: null,
+					},
+				],
+				colour: categoryColours["Events"],
+				tooltip:
+					"Executes the enclosed blocks each frame in the render loop.\nKeyword: ever",
+				helpUrl: "",
+			});
 
-		this.isInline = false;
-		addToggleButton(this);
-	  },
-	  mutationToDom: function () {
-		return mutationToDom(this);
-	  },
-	  domToMutation: function (xmlElement) {
-		domToMutation(this, xmlElement);
-	  },
-	  updateShape_: function (isInline) {
-		updateShape(this, isInline);
-	  },
-	  toggleDoBlock: function () {
-		this.updateShape_(!this.isInline);
-	  },
+			this.isInline = false;
+			addToggleButton(this);
+		},
+		mutationToDom: function () {
+			return mutationToDom(this);
+		},
+		domToMutation: function (xmlElement) {
+			domToMutation(this, xmlElement);
+		},
+		updateShape_: function (isInline) {
+			updateShape(this, isInline);
+		},
+		toggleDoBlock: function () {
+			this.updateShape_(!this.isInline);
+		},
 	};
-
 
 	/*Blockly.Blocks["forever"] = {
 		init: function () {
@@ -4324,7 +4323,7 @@ export function addDoMutatorWithToggleBehavior(block) {
 		} else {
 			this.appendStatementInput("DO")
 				.setCheck(null)
-				.appendField("then do");
+				.appendField("");
 		}
 	};
 
@@ -4356,7 +4355,7 @@ export function addDoMutatorWithToggleBehavior(block) {
 		if (hasDo) {
 			this.appendStatementInput("DO")
 				.setCheck(null)
-				.appendField("then do");
+				.appendField("");
 		}
 	};
 }

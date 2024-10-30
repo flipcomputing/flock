@@ -4,6 +4,7 @@ import {
 	nextVariableIndexes,
 	findCreateBlock,
 	handleBlockCreateEvent,
+	addDoMutatorWithToggleBehavior,
 } from "../blocks.js";
 import { updateOrCreateMeshFromBlock } from "../ui/designview.js";
 
@@ -57,6 +58,9 @@ export function defineShapeBlocks() {
 				this.setOnChange((changeEvent) =>
 					handleBlockChange(this, changeEvent, variableNamePrefix),
 				);
+
+				// Add the mutator with toggle behavior
+				addDoMutatorWithToggleBehavior(this);
 			},
 		};
 	}
