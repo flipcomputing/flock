@@ -2541,7 +2541,142 @@ export function defineBlocks() {
 		},
 	};
 
+	// Shared utility to add the toggle button to a block
+	function addToggleButton(block) {
+	  const toggleButton = new Blockly.FieldImage(
+		"data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAiIGhlaWdodD0iMzAiIHZpZXdCb3g9IjAgMCAzMCAzMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4gPHBhdGggZmlsbD0id2hpdGUiIGQ9Ik0xNSA2djloLTl2M2g5djloM3YtOWg5di0zaC05di05eiIvPjwvc3ZnPg==", // Custom icon
+		30,
+		30,
+		"*", // Width, Height, Alt text
+		() => {
+		  block.toggleDoBlock();
+		},
+	  );
+
+	  block.appendDummyInput().appendField(toggleButton, "TOGGLE_BUTTON");
+	}
+
+	// Shared utility for the mutationToDom function
+	function mutationToDom(block) {
+	  const container = document.createElement("mutation");
+	  container.setAttribute("inline", block.isInline);
+	  return container;
+	}
+
+	// Shared utility for the domToMutation function
+	function domToMutation(block, xmlElement) {
+	  const isInline = xmlElement.getAttribute("inline") === "true";
+	  block.updateShape_(isInline);
+	}
+
+	// Shared utility to update the shape of the block
+	function updateShape(block, isInline) {
+	  block.isInline = isInline;
+	  if (isInline) {
+		block.setPreviousStatement(true);
+		block.setNextStatement(true);
+	  } else {
+		block.setPreviousStatement(false);
+		block.setNextStatement(false);
+	  }
+	}
+
+	// Define the when_clicked block
+	Blockly.Blocks["when_clicked"] = {
+	  init: function () {
+		this.jsonInit({
+		  type: "model_clicked",
+		  message0: "when %1 is %2",
+		  args0: [
+			{
+			  type: "field_variable",
+			  name: "MODEL_VAR",
+			  variable: window.currentMesh,
+			},
+			{
+			  type: "field_dropdown",
+			  name: "TRIGGER",
+			  options: [
+				["clicked", "OnPickTrigger"],
+				["double-clicked", "OnDoublePickTrigger"],
+				["mouse down", "OnPickDownTrigger"],
+				["mouse up", "OnPickUpTrigger"],
+				["mouse out", "OnPickOutTrigger"],
+				["left-clicked", "OnLeftPickTrigger"],
+				["right-clicked / long pressed", "OnRightOrLongPressTrigger"],
+				["pointer over", "OnPointerOverTrigger"],
+				["pointer out", "OnPointerOutTrigger"],
+			  ],
+			},
+		  ],
+		  message1: "%1",
+		  args1: [
+			{
+			  type: "input_statement",
+			  name: "DO",
+			},
+		  ],
+		  colour: categoryColours["Events"],
+		  tooltip:
+			"Executes the blocks inside when the specified model trigger occurs.\nKeyword: click",
+		  helpUrl: "",
+		});
+
+		this.isInline = false;
+		addToggleButton(this);
+	  },
+	  mutationToDom: function () {
+		return mutationToDom(this);
+	  },
+	  domToMutation: function (xmlElement) {
+		domToMutation(this, xmlElement);
+	  },
+	  updateShape_: function (isInline) {
+		updateShape(this, isInline);
+	  },
+	  toggleDoBlock: function () {
+		this.updateShape_(!this.isInline);
+	  },
+	};
+
+	// Define the forever block
 	Blockly.Blocks["forever"] = {
+	  init: function () {
+		this.jsonInit({
+		  type: "forever",
+		  message0: "forever\n%1",
+		  args0: [
+			{
+			  type: "input_statement",
+			  name: "DO",
+			  check: null,
+			},
+		  ],
+		  colour: categoryColours["Events"],
+		  tooltip:
+			"Executes the enclosed blocks each frame in the render loop.\nKeyword: ever",
+		  helpUrl: "",
+		});
+
+		this.isInline = false;
+		addToggleButton(this);
+	  },
+	  mutationToDom: function () {
+		return mutationToDom(this);
+	  },
+	  domToMutation: function (xmlElement) {
+		domToMutation(this, xmlElement);
+	  },
+	  updateShape_: function (isInline) {
+		updateShape(this, isInline);
+	  },
+	  toggleDoBlock: function () {
+		this.updateShape_(!this.isInline);
+	  },
+	};
+
+
+	/*Blockly.Blocks["forever"] = {
 		init: function () {
 			this.jsonInit({
 				type: "forever",
@@ -2559,9 +2694,9 @@ export function defineBlocks() {
 				helpUrl: "",
 			});
 		},
-	};
+	};*/
 
-	Blockly.Blocks["when_clicked"] = {
+	/*Blockly.Blocks["when_clicked"] = {
 		init: function () {
 			this.jsonInit({
 				type: "model_clicked",
@@ -2643,7 +2778,7 @@ export function defineBlocks() {
 		toggleDoBlock: function () {
 			this.updateShape_(!this.isInline);
 		},
-	};
+	};*/
 
 	Blockly.Blocks["when_touches2"] = {
 		init: function () {
