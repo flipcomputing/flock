@@ -88,6 +88,8 @@ export const flock = {
 			createPlane,
 			newWall,
 			parentChild,
+			hold, 
+			drop,
 			makeFollow,
 			stopFollow,
 			removeParent,
@@ -914,6 +916,45 @@ export const flock = {
 			});
 
 		return modelId;
+	},
+	hold(
+	  meshToAttach,
+	  targetMesh,
+	  xOffset = 0,
+	  yOffset = 0,
+	  zOffset = 0
+	) {
+	  return flock.whenModelReady(targetMesh, (targetMeshInstance) => {
+		flock.whenModelReady(meshToAttach, (meshToAttachInstance) => {
+		  // Find the first mesh with a skeleton (including descendants)
+		  const targetWithSkeleton = targetMeshInstance.skeleton
+			? targetMeshInstance
+			: targetMeshInstance.getChildMeshes().find(mesh => mesh.skeleton);
+
+		  if (targetWithSkeleton) {
+			const bone = targetWithSkeleton.skeleton.bones.find(b => b.name === 'PoleTarget.R');
+			if (bone) {
+				console.log(meshToAttachInstance)
+								meshToAttachInstance.attachToBone(bone, targetWithSkeleton);
+				meshToAttachInstance.position = new flock.BABYLON.Vector3(xOffset, yOffset, zOffset);
+			}
+		  }
+		});
+	  });
+	},
+	drop(meshToDetach) {
+	  return flock.whenModelReady(meshToDetach, (meshToDetachInstance) => {
+		
+
+		  const worldPosition = meshToDetachInstance.getAbsolutePosition();
+
+		  // Detach the mesh from the bone
+		  meshToDetachInstance.detachFromBone();
+
+
+		  // Set the child mesh's position to its world position
+			  meshToDetachInstance.position = worldPosition;
+	  });
 	},
 	parentChild(
 		parentModelName,

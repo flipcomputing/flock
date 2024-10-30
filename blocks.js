@@ -1808,6 +1808,72 @@ export function defineBlocks() {
 		},
 	};
 
+	Blockly.Blocks["hold"] = {
+	  init: function () {
+		this.jsonInit({
+		  type: "hold",
+		  message0: "%1 hold %2 offset x: %3 y: %4 z: %5",
+		  args0: [		
+			{
+			  type: "field_variable",
+			  name: "TARGET_MESH",
+			  variable: "target",
+			},
+			  {
+				type: "field_variable",
+				name: "MESH_TO_ATTACH",
+				variable: "mesh",
+			  },
+			{
+			  type: "input_value",
+			  name: "X_OFFSET",
+			  check: "Number",
+			  align: "RIGHT",
+			},
+			{
+			  type: "input_value",
+			  name: "Y_OFFSET",
+			  check: "Number",
+			  align: "RIGHT",
+			},
+			{
+			  type: "input_value",
+			  name: "Z_OFFSET",
+			  check: "Number",
+			  align: "RIGHT",
+			},
+		  ],
+		  previousStatement: null,
+		  nextStatement: null,
+		  colour: categoryColours["Scene"],
+		  inputsInline: true,
+		  tooltip:
+			"Attaches a mesh to the specified bone of another mesh with a specified offset in x, y, and z directions.\nKeyword: attach, bone, mesh, offset",
+		});
+	  },
+	};
+
+	Blockly.Blocks["drop"] = {
+	  init: function () {
+		this.jsonInit({
+		  type: "drop",
+		  message0: "drop %1",
+		  args0: [
+			{
+			  type: "field_variable",
+			  name: "MESH_TO_DETACH",
+			  variable: "mesh",
+			}
+		  ],
+		  previousStatement: null,
+		  nextStatement: null,
+		  colour: categoryColours["Scene"],
+		  inputsInline: true,
+		  tooltip: "Detaches a mesh from its currently attached bone.\nKeyword: detach, bone, mesh",
+		});
+	  },
+	};
+
 	Blockly.Blocks["follow"] = {
 		init: function () {
 			this.jsonInit({

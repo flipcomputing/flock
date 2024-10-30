@@ -1414,6 +1414,36 @@ export function defineGenerators() {
 		return `removeParent(${childMesh});\n`;
 	};
 
+	javascriptGenerator.forBlock["hold"] = function (block) {
+	  const meshToAttach = javascriptGenerator.nameDB_.getName(
+		block.getFieldValue("MESH_TO_ATTACH"),
+		Blockly.Names.NameType.VARIABLE
+	  );
+	  const targetMesh = javascriptGenerator.nameDB_.getName(
+		block.getFieldValue("TARGET_MESH"),
+		Blockly.Names.NameType.VARIABLE
+	  );
+	  const xOffset = javascriptGenerator.valueToCode(block, "X_OFFSET", javascriptGenerator.ORDER_ATOMIC) || "0";
+	  const yOffset = javascriptGenerator.valueToCode(block, "Y_OFFSET", javascriptGenerator.ORDER_ATOMIC) || "0";
+	  const zOffset = javascriptGenerator.valueToCode(block, "Z_OFFSET", javascriptGenerator.ORDER_ATOMIC) || "0";
+
+	  // Establish the hold action with offset
+	  return `await hold(${meshToAttach}, ${targetMesh}, ${xOffset}, ${yOffset}, ${zOffset});
+	`;
+	};
+
+
+	javascriptGenerator.forBlock["drop"] = function (block) {
+	  const meshToDetach = javascriptGenerator.nameDB_.getName(
+		block.getFieldValue("MESH_TO_DETACH"),
+		Blockly.Names.NameType.VARIABLE
+	  );
+
+	  // Establish the drop action
+	  return `await drop(${meshToDetach});
+	`;
+	};
+
 	javascriptGenerator.forBlock["follow"] = function (block) {
 		const followerMesh = javascriptGenerator.nameDB_.getName(
 			block.getFieldValue("FOLLOWER_MESH"),

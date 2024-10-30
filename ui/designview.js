@@ -848,22 +848,22 @@ function selectCharacter(characterName) {
 					meshMap[modelId] = block;
 
 					flock.newCharacter({
-					  modelName: characterName,      // Map 'characterName' to 'modelName'
-					  modelId,                       // Directly use 'modelId'
-					  scale,                         // Directly use 'scale'
-					  position: {
-						x: pickedPosition.x,
-						y: pickedPosition.y,
-						z: pickedPosition.z,
-					  },
-					  colors: {
-						hair: colorFields.HAIR_COLOR,
-						skin: colorFields.SKIN_COLOR,
-						eyes: colorFields.EYES_COLOR,
-						sleeves: colorFields.SLEEVES_COLOR,
-						shorts: colorFields.SHORTS_COLOR,
-						tshirt: colorFields.TSHIRT_COLOR,
-					  },
+						modelName: characterName, // Map 'characterName' to 'modelName'
+						modelId, // Directly use 'modelId'
+						scale, // Directly use 'scale'
+						position: {
+							x: pickedPosition.x,
+							y: pickedPosition.y,
+							z: pickedPosition.z,
+						},
+						colors: {
+							hair: colorFields.HAIR_COLOR,
+							skin: colorFields.SKIN_COLOR,
+							eyes: colorFields.EYES_COLOR,
+							sleeves: colorFields.SLEEVES_COLOR,
+							shorts: colorFields.SHORTS_COLOR,
+							tshirt: colorFields.TSHIRT_COLOR,
+						},
 					});
 				} finally {
 					// End the event group to ensure everything can be undone/redone as a group
@@ -1072,15 +1072,15 @@ function selectObject(objectName) {
 					meshMap[meshId] = block;
 
 					flock.newObject({
-					  modelName: objectName, 
-					  modelId: meshId,  
-					  color, 
-					  scale, 
-					  position: { 
-						x: pickedPosition.x,
-						y: pickedPosition.y,
-						z: pickedPosition.z,
-					  },
+						modelName: objectName,
+						modelId: meshId,
+						color,
+						scale,
+						position: {
+							x: pickedPosition.x,
+							y: pickedPosition.y,
+							z: pickedPosition.z,
+						},
 					});
 				} finally {
 					// End the event group to ensure everything can be undone/redone as a group
@@ -1485,40 +1485,51 @@ function toggleGizmo(gizmoType) {
 					let meshY = mesh.position.y;
 
 					if (
-						mesh.metadata &&
-						mesh.metadata.yOffset &&
+						mesh.metadata?.yOffset &&
 						mesh.metadata.yOffset != 0
 					) {
-						const scale = block
-							.getInput("SCALE")
-							.connection.targetBlock()
-							.getFieldValue("NUM");
+						try {
+							const scale = block
+								.getInput("SCALE")
+								.connection.targetBlock()
+								.getFieldValue("NUM");
 
-						meshY -= scale * mesh.metadata.yOffset;
+							meshY -= scale * mesh.metadata.yOffset;
+						} catch (e) {}						
 					}
 
 					if (block) {
-						block
-							.getInput("X")
-							.connection.targetBlock()
-							.setFieldValue(
-								String(Math.round(mesh.position.x * 10) / 10),
-								"NUM",
-							);
-						block
-							.getInput("Y")
-							.connection.targetBlock()
-							.setFieldValue(
-								String(Math.round(meshY * 10) / 10),
-								"NUM",
-							);
-						block
-							.getInput("Z")
-							.connection.targetBlock()
-							.setFieldValue(
-								String(Math.round(mesh.position.z * 10) / 10),
-								"NUM",
-							);
+						try {
+							block
+								.getInput("X")
+								.connection.targetBlock()
+								.setFieldValue(
+									String(
+										Math.round(mesh.position.x * 10) / 10,
+									),
+									"NUM",
+								);
+						} catch (e) {}
+						try {
+							block
+								.getInput("Y")
+								.connection.targetBlock()
+								.setFieldValue(
+									String(Math.round(meshY * 10) / 10),
+									"NUM",
+								);
+						} catch (e) {}
+						try {
+							block
+								.getInput("Z")
+								.connection.targetBlock()
+								.setFieldValue(
+									String(
+										Math.round(mesh.position.z * 10) / 10,
+									),
+									"NUM",
+								);
+						} catch (e) {}
 					}
 				},
 			);

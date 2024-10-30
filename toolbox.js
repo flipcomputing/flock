@@ -860,6 +860,16 @@ export const toolbox = {
 				},
 				{
 					kind: "block",
+					type: "show",
+					keyword: "show",
+				},
+				{
+					kind: "block",
+					type: "hide",
+					keyword: "hide",
+				},
+				{
+					kind: "block",
 					type: "parent_child",
 					keyword: "parent",
 					inputs: {
@@ -927,13 +937,39 @@ export const toolbox = {
 				},
 				{
 					kind: "block",
-					type: "show",
-					keyword: "show",
+					type: "hold",
+					keyword: "hold",
+					inputs: {
+						X_OFFSET: {
+							shadow: {
+								type: "math_number",
+								fields: {
+									NUM: 0,
+								},
+							},
+						},
+						Y_OFFSET: {
+							shadow: {
+								type: "math_number",
+								fields: {
+									NUM: 0,
+								},
+							},
+						},
+						Z_OFFSET: {
+							shadow: {
+								type: "math_number",
+								fields: {
+									NUM: 0,
+								},
+							},
+						},
+					},
 				},
 				{
 					kind: "block",
-					type: "hide",
-					keyword: "hide",
+					type: "drop",
+					keyword: "drop",
 				},
 				{
 					kind: "block",
