@@ -995,18 +995,36 @@ export const flock = {
 				});
 			}),
 		).then((meshes) => {
-			const validMeshes = meshes.filter((mesh) => mesh);
-			if (validMeshes.length) {
-				const mergedMesh = flock.BABYLON.Mesh.MergeMeshes(
-					validMeshes,
-					true,
-				);
 
-				mergedMesh.rotationQuaternion =
-					flock.BABYLON.Quaternion.Identity();
-				mergedMesh.name = modelId;
-				mergedMesh.blockKey = blockId;
+				const validMeshes = meshes.filter((mesh) => mesh !== null);
 
+				if (validMeshes.length) {
+					// Start with the first mesh as a base for union operations
+					let baseCSG = BABYLON.CSG2.FromMesh(validMeshes[0]);
+
+					// Union with each subsequent mesh
+					for (let i = 1; i < validMeshes.length; i++) {
+						const nextCSG = BABYLON.CSG2.FromMesh(validMeshes[i]);
+						baseCSG = baseCSG.add(nextCSG); // Use `add` for union in CSG2
+					}
+
+					// Convert the CSG result back to a Babylon mesh
+					const mergedMesh = baseCSG.toMesh("mergedMesh", null, validMeshes[0].getScene());
+
+					mergedMesh.position.copyFrom(validMeshes[0].position);
+					if (validMeshes[0].rotationQuaternion) {
+						mergedMesh.rotationQuaternion = validMeshes[0].rotationQuaternion.clone();
+					} else {
+						mergedMesh.rotation.copyFrom(validMeshes[0].rotation);
+					}
+					mergedMesh.scaling.copyFrom(validMeshes[0].scaling);
+					mergedMesh.rotationQuaternion = BABYLON.Quaternion.Identity();
+
+					// Dispose of original meshes to clean up
+					validMeshes.forEach((mesh) => mesh.dispose());
+				
+					mergedMesh.name = modelId;
+					mergedMesh.blockKey = blockId;
 				return modelId;
 			} else {
 				console.warn("No valid meshes to merge.");
