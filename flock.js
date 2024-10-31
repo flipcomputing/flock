@@ -1010,7 +1010,6 @@ export const flock = {
 
 					// Convert the CSG result back to a Babylon mesh
 					const mergedMesh = baseCSG.toMesh("mergedMesh", null, validMeshes[0].getScene());
-
 					mergedMesh.position.copyFrom(validMeshes[0].position);
 					if (validMeshes[0].rotationQuaternion) {
 						mergedMesh.rotationQuaternion = validMeshes[0].rotationQuaternion.clone();
@@ -1022,6 +1021,14 @@ export const flock = {
 
 					// Dispose of original meshes to clean up
 					validMeshes.forEach((mesh) => mesh.dispose());
+
+					const meshShape = new flock.BABYLON.PhysicsShapeMesh(
+						mergedMesh, // Pass the CSG-created mesh
+						flock.scene
+					);
+
+					
+					flock.applyPhysics(mergedMesh, meshShape);
 				
 					mergedMesh.name = modelId;
 					mergedMesh.blockKey = blockId;
@@ -1103,6 +1110,12 @@ export const flock = {
 					outerCSG.dispose();
 					subtractedCSG.dispose();
 
+					const meshShape = new flock.BABYLON.PhysicsShapeMesh(
+						resultMesh, // Pass the CSG-created mesh
+						flock.scene
+					);
+
+					flock.applyPhysics(resultMesh, meshShape);
 					resultMesh.name = modelId;
 					resultMesh.blockKey = blockId;
 					resolve(modelId);
