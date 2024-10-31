@@ -805,6 +805,58 @@ export const toolbox = {
 				},
 				{
 					kind: "block",
+					type: "merge_meshes",
+					inputsInline: true,
+					inputs: {
+						MESH_LIST: {
+							block: {
+								type: "lists_create_with",
+								inline: true,
+								extraState: {
+									itemCount: 1,
+								},
+								inputs: {
+									ADD0: {
+										block: {
+											type: "variables_get",
+											fields: {
+												VAR: "mesh1", // Default variable for a mesh
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+				{
+					kind: "block",
+					type: "subtract_meshes",
+					inputsInline: true,
+					inputs: {
+						MESH_LIST: {
+							block: {
+								type: "lists_create_with",
+								inline: true,
+								extraState: {
+									itemCount: 1,
+								},
+								inputs: {
+									ADD0: {
+										block: {
+											type: "variables_get",
+											fields: {
+												VAR: "mesh2", // Default variable for a mesh to subtract
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+				{
+					kind: "block",
 					type: "create_wall",
 					keyword: "wall",
 					inputs: {

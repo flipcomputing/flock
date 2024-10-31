@@ -88,6 +88,8 @@ export const flock = {
 			createPlane,
 			newWall,
 			parentChild,
+			mergeMeshes,
+			subtractMeshes,
 			hold, 
 			drop,
 			makeFollow,
@@ -198,6 +200,8 @@ export const flock = {
 		flock.abortController = new AbortController();
 
 		//flock.scene = await flock.createScene();
+
+		await flock.BABYLON.InitializeCSG2Async();
 
 		flock.canvas.addEventListener(
 			"touchmove",
@@ -746,7 +750,7 @@ export const flock = {
 		const blockId = modelId;
 		modelId += "_" + flock.scene.getUniqueId();
 
-	flock.BABYLON.SceneLoader.LoadAssetContainerAsync(
+		flock.BABYLON.SceneLoader.LoadAssetContainerAsync(
 			"./models/",
 			modelName,
 			flock.scene,
@@ -822,12 +826,19 @@ export const flock = {
 		callback = () => {},
 	}) {
 		const { x, y, z } = position;
-		const { hair: hairColor, skin: skinColor, eyes: eyesColor, sleeves: sleevesColor, shorts: shortsColor, tshirt: tshirtColor } = colors;
+		const {
+			hair: hairColor,
+			skin: skinColor,
+			eyes: eyesColor,
+			sleeves: sleevesColor,
+			shorts: shortsColor,
+			tshirt: tshirtColor,
+		} = colors;
 
 		const blockId = modelId;
 		modelId += "_" + flock.scene.getUniqueId();
 
-	flock.BABYLON.SceneLoader.LoadAssetContainerAsync(
+		flock.BABYLON.SceneLoader.LoadAssetContainerAsync(
 			"./models/",
 			modelName,
 			flock.scene,
@@ -917,45 +928,168 @@ export const flock = {
 
 		return modelId;
 	},
-	hold(
-	  meshToAttach,
-	  targetMesh,
-	  xOffset = 0,
-	  yOffset = 0,
-	  zOffset = 0
-	) {
-	  return flock.whenModelReady(targetMesh, (targetMeshInstance) => {
-		flock.whenModelReady(meshToAttach, (meshToAttachInstance) => {
-		  // Find the first mesh with a skeleton (including descendants)
-		  const targetWithSkeleton = targetMeshInstance.skeleton
-			? targetMeshInstance
-			: targetMeshInstance.getChildMeshes().find(mesh => mesh.skeleton);
+	hold(meshToAttach, targetMesh, xOffset = 0, yOffset = 0, zOffset = 0) {
+		return flock.whenModelReady(targetMesh, (targetMeshInstance) => {
+			flock.whenModelReady(meshToAttach, (meshToAttachInstance) => {
+				// Find the first mesh with a skeleton (including descendants)
+				const targetWithSkeleton = targetMeshInstance.skeleton
+					? targetMeshInstance
+					: targetMeshInstance
+							.getChildMeshes()
+							.find((mesh) => mesh.skeleton);
 
-		  if (targetWithSkeleton) {
-			const bone = targetWithSkeleton.skeleton.bones.find(b => b.name === 'PoleTarget.R');
-			if (bone) {
-				console.log(meshToAttachInstance)
-								meshToAttachInstance.attachToBone(bone, targetWithSkeleton);
-				meshToAttachInstance.position = new flock.BABYLON.Vector3(xOffset, yOffset, zOffset);
-			}
-		  }
+				if (targetWithSkeleton) {
+					const bone = targetWithSkeleton.skeleton.bones.find(
+						(b) => b.name === "PoleTarget.R",
+					);
+					if (bone) {
+						console.log(meshToAttachInstance);
+						meshToAttachInstance.attachToBone(
+							bone,
+							targetWithSkeleton,
+						);
+						meshToAttachInstance.position =
+							new flock.BABYLON.Vector3(
+								xOffset,
+								yOffset,
+								zOffset,
+							);
+					}
+				}
+			});
 		});
-	  });
 	},
 	drop(meshToDetach) {
-	  return flock.whenModelReady(meshToDetach, (meshToDetachInstance) => {
-		
+		return flock.whenModelReady(meshToDetach, (meshToDetachInstance) => {
+			const worldPosition = meshToDetachInstance.getAbsolutePosition();
 
-		  const worldPosition = meshToDetachInstance.getAbsolutePosition();
+			// Detach the mesh from the bone
+			meshToDetachInstance.detachFromBone();
 
-		  // Detach the mesh from the bone
-		  meshToDetachInstance.detachFromBone();
-
-
-		  // Set the child mesh's position to its world position
-			  meshToDetachInstance.position = worldPosition;
-	  });
+			// Set the child mesh's position to its world position
+			meshToDetachInstance.position = worldPosition;
+		});
 	},
+	mergeMeshes(modelId, meshList) {
+		const blockId = modelId;
+		modelId += "_" + flock.scene.getUniqueId();
+		
+		return Promise.all(
+			meshList.map((meshName) => {
+				return new Promise((resolve) => {
+					// Use `whenModelReady` to handle both synchronous and async mesh retrieval
+					flock.whenModelReady(meshName, (mesh) => {
+						if (mesh) {
+							console.log(`Resolved mesh for ${meshName}:`, mesh);
+							mesh.name = modelId;
+							mesh.blockKey = blockId;
+							resolve(mesh);
+						} else {
+							console.warn(
+								`Could not resolve mesh for ${meshName}`,
+							);
+							resolve(null); // Resolve with null if not found
+						}
+					});
+				});
+			}),
+		).then((meshes) => {
+			const validMeshes = meshes.filter((mesh) => mesh);
+			if (validMeshes.length) {
+				const mergedMesh = flock.BABYLON.Mesh.MergeMeshes(
+					validMeshes,
+					true,
+				);
+				
+				mergedMesh.name = modelId;
+				mergedMesh.blockKey = blockId;
+
+				return modelId;
+			} else {
+				console.warn("No valid meshes to merge.");
+				return null;
+			}
+		});
+	},
+	subtractMeshes(modelId, baseMeshName, meshNames) {
+		const blockId = modelId;
+		modelId += "_" + flock.scene.getUniqueId();
+		return new Promise((resolve) => {
+			flock.whenModelReady(baseMeshName, (baseMesh) => {
+				if (!baseMesh) {
+					console.warn(
+						`Base mesh ${baseMeshName} could not be resolved.`,
+					);
+					resolve(null); // Exit if base mesh is not available
+					return;
+				}
+
+				Promise.all(
+					meshNames.map(
+						(meshName) =>
+							new Promise((innerResolve) => {
+								flock.whenModelReady(meshName, (mesh) => {
+									if (mesh) {
+										console.log(
+											`Resolved mesh for ${meshName}`,
+										);
+										innerResolve(mesh);
+									} else {
+										console.warn(
+											`Could not resolve mesh for ${meshName}`,
+										);
+										innerResolve(null);
+									}
+								});
+							}),
+					),
+				).then((meshes) => {
+					const validMeshes = meshes.filter((mesh) => mesh);
+					console.log("Meshes to subtract:", validMeshes);
+
+					if (!validMeshes.length) {
+						console.warn(
+							"No valid meshes to subtract from the base mesh.",
+						);
+						resolve(null);
+						return;
+					}
+
+					const outerCSG = flock.BABYLON.CSG2.FromMesh(baseMesh);
+					const subtractedCSG = validMeshes.reduce(
+						(csgResult, mesh) => {
+							const meshCSG = flock.BABYLON.CSG2.FromMesh(mesh);
+							return csgResult.subtract(meshCSG);
+						},
+						outerCSG,
+					);
+
+					const resultMesh = subtractedCSG.toMesh(
+						"resultMesh",
+						null,
+						baseMesh.getScene(),
+					);
+
+					
+					// Apply the base mesh's position, rotation, and scaling to the result mesh
+					resultMesh.position.copyFrom(baseMesh.position);
+					resultMesh.rotation.copyFrom(baseMesh.rotation);
+					resultMesh.scaling.copyFrom(baseMesh.scaling);
+
+					// Dispose of meshes and CSG2 objects
+					validMeshes.forEach((mesh) => mesh.dispose());
+					baseMesh.dispose();
+					outerCSG.dispose();
+					subtractedCSG.dispose();
+
+					resultMesh.name = modelId;
+					resultMesh.blockKey = blockId;
+					resolve(modelId);
+				});
+			});
+		});
+	},
+
 	parentChild(
 		parentModelName,
 		childModelName,
@@ -3038,23 +3172,22 @@ export const flock = {
 					let propertyToAnimate;
 
 					if (property === "color" || property === "alpha") {
-					function findFirstDescendantWithMaterial(mesh) {
-						// Check if the mesh itself has a material
-						if (mesh.material) {
-							return mesh;
-						}
-						// Get all descendants and check if any of them have a material
-						const descendants = mesh.getDescendants();
-						for (const descendant of descendants) {
-							if (descendant.material) {
-								return descendant;
+						function findFirstDescendantWithMaterial(mesh) {
+							// Check if the mesh itself has a material
+							if (mesh.material) {
+								return mesh;
 							}
+							// Get all descendants and check if any of them have a material
+							const descendants = mesh.getDescendants();
+							for (const descendant of descendants) {
+								if (descendant.material) {
+									return descendant;
+								}
+							}
+							return null; // No mesh with material found
 						}
-						return null; // No mesh with material found
-					}
 
-					mesh = findFirstDescendantWithMaterial(mesh);
-
+						mesh = findFirstDescendantWithMaterial(mesh);
 					}
 					// Select the property to animate
 					if (property === "color") {
@@ -4869,6 +5002,7 @@ export const flock = {
 
 			// Combine the parent mesh with its children
 			const meshList = [mesh, ...childMeshes];
+			
 			if (format === "STL") {
 				const stlData = flock.EXPORT.STLExport.CreateSTL(
 					meshList,

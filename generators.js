@@ -1320,57 +1320,50 @@ export function defineGenerators() {
 		return `exportMesh(${meshVar}, "${format}");\n`;
 	};
 
-	/*javascriptGenerator.forBlock["parent_child"] = function (block) {
-		const parentMesh = javascriptGenerator.nameDB_.getName(
-			block.getFieldValue("PARENT_MESH"),
-			Blockly.Names.NameType.VARIABLE,
-		);
-		const childMesh = javascriptGenerator.nameDB_.getName(
-			block.getFieldValue("CHILD_MESH"),
+	javascriptGenerator.forBlock["merge_meshes"] = function (block) {		
+		const resultVar = javascriptGenerator.nameDB_.getName(
+			block.getFieldValue("RESULT_VAR"),
 			Blockly.Names.NameType.VARIABLE,
 		);
 
-		const xOffset =
-			javascriptGenerator.valueToCode(
-				block,
-				"X_OFFSET",
-				javascriptGenerator.ORDER_ATOMIC,
-			) || "0";
-		const yOffset =
-			javascriptGenerator.valueToCode(
-				block,
-				"Y_OFFSET",
-				javascriptGenerator.ORDER_ATOMIC,
-			) || "0";
-		const zOffset =
-			javascriptGenerator.valueToCode(
-				block,
-				"Z_OFFSET",
-				javascriptGenerator.ORDER_ATOMIC,
-			) || "0";
+		const meshList = javascriptGenerator.valueToCode(
+			block,
+			"MESH_LIST",
+			javascriptGenerator.ORDER_ATOMIC,
+		) || "[]";
 
-		const removeRelationship =
-			block.getFieldValue("REMOVE_RELATIONSHIP") === "TRUE";
+		const meshId = "merged" + "_" + generateUniqueId();
+		meshMap[meshId] = block;
+		meshBlockIdMap[meshId] = block.id;
+		
+		// Use helper function to merge the meshes
+		return `${resultVar} = await mergeMeshes("${meshId}", ${meshList});\n`;
+	};
 
-		let code = "";
+	javascriptGenerator.forBlock["subtract_meshes"] = function (block) {
+		const resultVar = javascriptGenerator.nameDB_.getName(
+			block.getFieldValue("RESULT_VAR"),
+			Blockly.Names.NameType.VARIABLE,
+		);
+		const baseMesh = javascriptGenerator.nameDB_.getName(
+			block.getFieldValue("BASE_MESH"),
+			Blockly.Names.NameType.VARIABLE,
+		);
+	
+		const meshList = javascriptGenerator.valueToCode(
+			block,
+			"MESH_LIST",
+			javascriptGenerator.ORDER_ATOMIC,
+		) || "[]";
 
-		if (removeRelationship) {
-			// Remove the parent-child relationship
-			code = `flock.whenModelReady(${childMesh}, (childMesh) => {
-				childMesh.parent = null;
-			});\n`;
-		} else {
-			// Establish the parent-child relationship with offset
-			code = `flock.whenModelReady(${parentMesh}, (parentMesh) => {
-				flock.whenModelReady(${childMesh}, (childMesh) => {
-					childMesh.parent = parentMesh;
-					childMesh.position.set(${xOffset}, ${yOffset}, ${zOffset});
-				});
-			});\n`;
-		}
+		const meshId = "subtracted" + "_" + generateUniqueId();
+		meshMap[meshId] = block;
+		meshBlockIdMap[meshId] = block.id;
 
-		return code;
-	};*/
+		// Use helper function to subtract meshes from the base mesh
+		return `${resultVar} = await subtractMeshes("${meshId}", ${baseMesh}, ${meshList});\n`;
+	};
+
 
 	javascriptGenerator.forBlock["parent_child"] = function (block) {
 		const parentMesh = javascriptGenerator.nameDB_.getName(
@@ -1431,7 +1424,6 @@ export function defineGenerators() {
 	  return `await hold(${meshToAttach}, ${targetMesh}, ${xOffset}, ${yOffset}, ${zOffset});
 	`;
 	};
-
 
 	javascriptGenerator.forBlock["drop"] = function (block) {
 	  const meshToDetach = javascriptGenerator.nameDB_.getName(

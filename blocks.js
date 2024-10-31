@@ -1331,6 +1331,63 @@ export function defineBlocks() {
 
 	window.updateCurrentMeshName = updateCurrentMeshName;
 
+	Blockly.Blocks["merge_meshes"] = {
+		init: function () {
+			this.jsonInit({
+				message0: "set %1 to merge meshes %2",
+				args0: [
+					{
+						type: "field_variable",
+						name: "RESULT_VAR",
+						variable: "result",
+					},
+					{
+						type: "input_value",
+						name: "MESH_LIST",
+						check: "Array",
+					},
+				],
+				colour: categoryColours["Scene"],
+				tooltip:
+					"Merge a list of meshes into one and store the result.",
+				helpUrl: "",
+				previousStatement: null,
+				nextStatement: null,
+			});
+		},
+	};
+
+	Blockly.Blocks["subtract_meshes"] = {
+		init: function () {
+			this.jsonInit({
+				message0: "set %1 to subtract meshes %2 from %3",
+				args0: [
+					{
+						type: "field_variable",
+						name: "RESULT_VAR",
+						variable: "result",
+					},
+					{
+						type: "input_value",
+						name: "MESH_LIST",
+						check: "Array",
+					},
+					{
+						type: "field_variable",
+						name: "BASE_MESH",
+						variable: "Mesh",
+					},
+				],
+				colour: categoryColours["Scene"],
+				tooltip:
+					"Subtract a list of meshes from a base mesh and store the result.",
+				helpUrl: "",
+				previousStatement: null,
+				nextStatement: null,
+			});
+		},
+	};
+
 	Blockly.Blocks["create_wall"] = {
 		init: function () {
 			const variableNamePrefix = "wall";
@@ -1809,69 +1866,70 @@ export function defineBlocks() {
 	};
 
 	Blockly.Blocks["hold"] = {
-	  init: function () {
-		this.jsonInit({
-		  type: "hold",
-		  message0: "%1 hold %2 offset x: %3 y: %4 z: %5",
-		  args0: [		
-			{
-			  type: "field_variable",
-			  name: "TARGET_MESH",
-			  variable: "target",
-			},
-			  {
-				type: "field_variable",
-				name: "MESH_TO_ATTACH",
-				variable: "mesh",
-			  },
-			{
-			  type: "input_value",
-			  name: "X_OFFSET",
-			  check: "Number",
-			  align: "RIGHT",
-			},
-			{
-			  type: "input_value",
-			  name: "Y_OFFSET",
-			  check: "Number",
-			  align: "RIGHT",
-			},
-			{
-			  type: "input_value",
-			  name: "Z_OFFSET",
-			  check: "Number",
-			  align: "RIGHT",
-			},
-		  ],
-		  previousStatement: null,
-		  nextStatement: null,
-		  colour: categoryColours["Scene"],
-		  inputsInline: true,
-		  tooltip:
-			"Attaches a mesh to the specified bone of another mesh with a specified offset in x, y, and z directions.\nKeyword: attach, bone, mesh, offset",
-		});
-	  },
+		init: function () {
+			this.jsonInit({
+				type: "hold",
+				message0: "%1 hold %2 offset x: %3 y: %4 z: %5",
+				args0: [
+					{
+						type: "field_variable",
+						name: "TARGET_MESH",
+						variable: "target",
+					},
+					{
+						type: "field_variable",
+						name: "MESH_TO_ATTACH",
+						variable: "mesh",
+					},
+					{
+						type: "input_value",
+						name: "X_OFFSET",
+						check: "Number",
+						align: "RIGHT",
+					},
+					{
+						type: "input_value",
+						name: "Y_OFFSET",
+						check: "Number",
+						align: "RIGHT",
+					},
+					{
+						type: "input_value",
+						name: "Z_OFFSET",
+						check: "Number",
+						align: "RIGHT",
+					},
+				],
+				previousStatement: null,
+				nextStatement: null,
+				colour: categoryColours["Scene"],
+				inputsInline: true,
+				tooltip:
+					"Attaches a mesh to the specified bone of another mesh with a specified offset in x, y, and z directions.\nKeyword: attach, bone, mesh, offset",
+			});
+		},
 	};
 
 	Blockly.Blocks["drop"] = {
-	  init: function () {
-		this.jsonInit({
-		  type: "drop",
-		  message0: "drop %1",
-		  args0: [
-			{
-			  type: "field_variable",
-			  name: "MESH_TO_DETACH",
-			  variable: "mesh",
-			}
-		  ],
-		  previousStatement: null,
-		  nextStatement: null,
-		  colour: categoryColours["Scene"],
-		  inputsInline: true,
-		  tooltip: "Detaches a mesh from its currently attached bone.\nKeyword: detach, bone, mesh",
-		});
-	  },
+		init: function () {
+			this.jsonInit({
+				type: "drop",
+				message0: "drop %1",
+				args0: [
+					{
+						type: "field_variable",
+						name: "MESH_TO_DETACH",
+						variable: "mesh",
+					},
+				],
+				previousStatement: null,
+				nextStatement: null,
+				colour: categoryColours["Scene"],
+				inputsInline: true,
+				tooltip:
+					"Detaches a mesh from its currently attached bone.\nKeyword: detach, bone, mesh",
+			});
+		},
 	};
 
 	Blockly.Blocks["follow"] = {
@@ -4387,9 +4445,7 @@ export function addDoMutatorWithToggleBehavior(block) {
 		if (hasDo) {
 			this.removeInput("DO");
 		} else {
-			this.appendStatementInput("DO")
-				.setCheck(null)
-				.appendField("");
+			this.appendStatementInput("DO").setCheck(null).appendField("");
 		}
 	};
 
@@ -4419,9 +4475,7 @@ export function addDoMutatorWithToggleBehavior(block) {
 	block.domToMutation = function (xmlElement) {
 		const hasDo = xmlElement.getAttribute("has_do") === "true";
 		if (hasDo) {
-			this.appendStatementInput("DO")
-				.setCheck(null)
-				.appendField("");
+			this.appendStatementInput("DO").setCheck(null).appendField("");
 		}
 	};
 }
