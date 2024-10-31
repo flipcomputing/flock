@@ -1387,6 +1387,32 @@ export function defineBlocks() {
 			});
 		},
 	};
+	Blockly.Blocks["intersection_meshes"] = {
+		init: function () {
+			this.jsonInit({
+				message0: "set %1 to intersect %2",
+				args0: [
+					{
+						type: "field_variable",
+						name: "RESULT_VAR",
+						variable: "result",
+					},
+					{
+						type: "input_value",
+						name: "MESH_LIST",
+						check: "Array",
+					},
+				],
+				colour: categoryColours["Scene"],
+				tooltip:
+					"Intersect a list of meshes and store the resulting geometry.",
+				helpUrl: "",
+				previousStatement: null,
+				nextStatement: null,
+			});
+		},
+	};
+
 
 	Blockly.Blocks["create_wall"] = {
 		init: function () {

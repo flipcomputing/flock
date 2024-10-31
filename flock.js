@@ -90,6 +90,7 @@ export const flock = {
 			parentChild,
 			mergeMeshes,
 			subtractMeshes,
+			intersectMeshes,
 			hold, 
 			drop,
 			makeFollow,
@@ -1123,7 +1124,70 @@ export const flock = {
 			});
 		});
 	},
+	intersectMeshes(modelId, meshList) {
+		const blockId = modelId;
+		modelId += "_" + flock.scene.getUniqueId();
 
+		return Promise.all(
+			meshList.map((meshName) => {
+				return new Promise((resolve) => {
+					// Use `whenModelReady` to handle both synchronous and async mesh retrieval
+					flock.whenModelReady(meshName, (mesh) => {
+						if (mesh) {
+							mesh.name = modelId;
+							mesh.blockKey = blockId;
+							resolve(mesh);
+						} else {
+							console.warn(`Could not resolve mesh for ${meshName}`);
+							resolve(null); // Resolve with null if not found
+						}
+					});
+				});
+			}),
+		).then((meshes) => {
+			const validMeshes = meshes.filter((mesh) => mesh !== null);
+
+			if (validMeshes.length) {
+				// Start with the first mesh as a base for intersection operations
+				let baseCSG = BABYLON.CSG2.FromMesh(validMeshes[0]);
+
+				// Intersect with each subsequent mesh
+				for (let i = 1; i < validMeshes.length; i++) {
+					const nextCSG = BABYLON.CSG2.FromMesh(validMeshes[i]);
+					baseCSG = baseCSG.intersect(nextCSG); // Use `intersect` for CSG2
+				}
+
+				// Convert the CSG result back to a Babylon mesh
+				const intersectedMesh = baseCSG.toMesh("intersectedMesh", null, validMeshes[0].getScene());
+				intersectedMesh.position.copyFrom(validMeshes[0].position);
+				if (validMeshes[0].rotationQuaternion) {
+					intersectedMesh.rotationQuaternion = validMeshes[0].rotationQuaternion.clone();
+				} else {
+					intersectedMesh.rotation.copyFrom(validMeshes[0].rotation);
+				}
+				intersectedMesh.scaling.copyFrom(validMeshes[0].scaling);
+				intersectedMesh.rotationQuaternion = BABYLON.Quaternion.Identity();
+
+				// Dispose of original meshes to clean up
+				validMeshes.forEach((mesh) => mesh.dispose());
+
+				// Apply physics to the intersected mesh
+				const meshShape = new flock.BABYLON.PhysicsShapeMesh(
+					intersectedMesh, // Pass the CSG-created mesh
+					flock.scene
+				);
+				flock.applyPhysics(intersectedMesh, meshShape);
+
+				intersectedMesh.name = modelId;
+				intersectedMesh.blockKey = blockId;
+
+				return modelId;
+			} else {
+				console.warn("No valid meshes to intersect.");
+				return null;
+			}
+		});
+	},
 	parentChild(
 		parentModelName,
 		childModelName,

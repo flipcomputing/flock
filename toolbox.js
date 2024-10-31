@@ -857,6 +857,32 @@ export const toolbox = {
 				},
 				{
 					kind: "block",
+					type: "intersection_meshes",
+					inputsInline: true,
+					inputs: {
+						MESH_LIST: {
+							block: {
+								type: "lists_create_with",
+								inline: true,
+								extraState: {
+									itemCount: 1,
+								},
+								inputs: {
+									ADD0: {
+										block: {
+											type: "variables_get",
+											fields: {
+												VAR: "mesh1", // Default variable for a mesh
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+				{
+					kind: "block",
 					type: "create_wall",
 					keyword: "wall",
 					inputs: {
