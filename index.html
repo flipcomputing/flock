@@ -18,7 +18,7 @@
 
     <meta name="theme-color" content="#800080" />
 
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css" />
   </head>
 
   <body>
@@ -92,6 +92,9 @@
             </option>
             <option value="examples/candy_dash.json">🎃 Candy dash</option>
             <option value="examples/flockenspiel.json">🎵 Flockenspiel</option>
+            <option value="examples/pendant.json">
+              📿 3D Printable Pendant
+            </option>
           </select>
         </div>
         <div id="menuright">
@@ -123,10 +126,15 @@
               <button
                 class="gizmo-button"
                 id="showShapesButton"
-                style="margin-left:5px;"
+                style="margin-left: 5px"
                 disabled
               >
-                 <img src="images/add.svg"  width="20px" height="20px" alt="position"/>
+                <img
+                  src="images/add.svg"
+                  width="20px"
+                  height="20px"
+                  alt="position"
+                />
               </button>
 
               <!-- Dropdown for shapes and models -->
@@ -216,21 +224,53 @@
             </div>
             <input type="color" id="colorPickerButton" disabled />
             <button class="gizmo-button" id="positionButton" disabled>
-               <img src="images/position.svg"  width="20px" height="20px" alt="position"/>
+              <img
+                src="images/position.svg"
+                width="20px"
+                height="20px"
+                alt="position"
+              />
             </button>
             <button class="gizmo-button" id="rotationButton" disabled>
-              <img src="images/rotate.svg" width="20px" height="20px" alt="rotate"/>
+              <img
+                src="images/rotate.svg"
+                width="20px"
+                height="20px"
+                alt="rotate"
+              />
             </button>
-            <button class="gizmo-button" id="scaleButton"  disabled>
-              <img src="images/scale.svg" width="20px" height="20px"   alt="scale"/>
+            <button class="gizmo-button" id="scaleButton" disabled>
+              <img
+                src="images/scale.svg"
+                width="20px"
+                height="20px"
+                alt="scale"
+              />
             </button>
             <button class="gizmo-button" id="boundsButton" disabled>
-              <img src="images/bounds.svg"  width="20px" height="20px" alt="bounds"/>
+              <img
+                src="images/bounds.svg"
+                width="20px"
+                height="20px"
+                alt="bounds"
+              />
             </button>
             <button class="gizmo-button" id="focusButton" disabled>
-              <img src="images/focus.svg"  width="20px" height="20px" alt="focus"/>
+              <img
+                src="images/focus.svg"
+                width="20px"
+                height="20px"
+                alt="focus"
+              />
             </button>
-            <button class="gizmo-button" id="hideButton" disabled>  <img src="images/pointer.svg"  width="20px" height="20px"  alt="pointer"/></button>
+            <button class="gizmo-button" id="hideButton" disabled>
+              <img
+                src="images/pointer.svg"
+                width="20px"
+                height="20px"
+                alt="pointer"
+              />
+            </button>
           </div>
         </div>
         <div id="codePanel">
