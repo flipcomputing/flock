@@ -200,9 +200,8 @@ export const flock = {
 		flock.abortController = new AbortController();
 
 		try {
-		await flock.BABYLON.InitializeCSG2Async();
-		}
-		catch (error) {
+			await flock.BABYLON.InitializeCSG2Async();
+		} catch (error) {
 			console.error("Error initializing CSG2:", error);
 		}
 
@@ -1002,8 +1001,9 @@ export const flock = {
 					validMeshes,
 					true,
 				);
-			
-				mergedMesh.rotationQuaternion = flock.BABYLON.Quaternion.Identity();
+
+				mergedMesh.rotationQuaternion =
+					flock.BABYLON.Quaternion.Identity();
 				mergedMesh.name = modelId;
 				mergedMesh.blockKey = blockId;
 
