@@ -201,7 +201,8 @@ export const flock = {
 
 		//flock.scene = await flock.createScene();
 
-		await flock.BABYLON.InitializeCSG2Async();
+		/*
+		await flock.BABYLON.InitializeCSG2Async();*/
 
 		flock.canvas.addEventListener(
 			"touchmove",
@@ -973,14 +974,13 @@ export const flock = {
 	mergeMeshes(modelId, meshList) {
 		const blockId = modelId;
 		modelId += "_" + flock.scene.getUniqueId();
-		
+
 		return Promise.all(
 			meshList.map((meshName) => {
 				return new Promise((resolve) => {
 					// Use `whenModelReady` to handle both synchronous and async mesh retrieval
 					flock.whenModelReady(meshName, (mesh) => {
 						if (mesh) {
-							console.log(`Resolved mesh for ${meshName}:`, mesh);
 							mesh.name = modelId;
 							mesh.blockKey = blockId;
 							resolve(mesh);
@@ -1000,7 +1000,7 @@ export const flock = {
 					validMeshes,
 					true,
 				);
-				
+
 				mergedMesh.name = modelId;
 				mergedMesh.blockKey = blockId;
 
@@ -1030,9 +1030,6 @@ export const flock = {
 							new Promise((innerResolve) => {
 								flock.whenModelReady(meshName, (mesh) => {
 									if (mesh) {
-										console.log(
-											`Resolved mesh for ${meshName}`,
-										);
 										innerResolve(mesh);
 									} else {
 										console.warn(
@@ -1045,7 +1042,6 @@ export const flock = {
 					),
 				).then((meshes) => {
 					const validMeshes = meshes.filter((mesh) => mesh);
-					console.log("Meshes to subtract:", validMeshes);
 
 					if (!validMeshes.length) {
 						console.warn(
@@ -1070,10 +1066,14 @@ export const flock = {
 						baseMesh.getScene(),
 					);
 
-					
 					// Apply the base mesh's position, rotation, and scaling to the result mesh
 					resultMesh.position.copyFrom(baseMesh.position);
-					resultMesh.rotation.copyFrom(baseMesh.rotation);
+					if (baseMesh.rotationQuaternion) {
+						resultMesh.rotationQuaternion =
+							baseMesh.rotationQuaternion.clone();
+					} else {
+						resultMesh.rotation.copyFrom(baseMesh.rotation);
+					}
 					resultMesh.scaling.copyFrom(baseMesh.scaling);
 
 					// Dispose of meshes and CSG2 objects
@@ -2159,11 +2159,13 @@ export const flock = {
 	moveByVector(modelName, x, y, z) {
 		return flock.whenModelReady(modelName, (mesh) => {
 			mesh.position.addInPlace(new flock.BABYLON.Vector3(x, y, z));
-			mesh.physics.disablePreStep = false;
-			mesh.physics.setTargetTransform(
-				mesh.position,
-				mesh.rotationQuaternion,
-			);
+			if (mesh.physics) {
+				mesh.physics.disablePreStep = false;
+				mesh.physics.setTargetTransform(
+					mesh.position,
+					mesh.rotationQuaternion,
+				);
+			}
 
 			mesh.computeWorldMatrix(true);
 		});
@@ -2298,12 +2300,14 @@ export const flock = {
 			mesh.rotationQuaternion
 				.multiplyInPlace(incrementalRotation)
 				.normalize();
-			mesh.physics.disablePreStep = false;
-			mesh.physics.setTargetTransform(
-				mesh.absolutePosition,
-				mesh.rotationQuaternion,
-			);
 
+			if (mesh.physics) {
+				mesh.physics.disablePreStep = false;
+				mesh.physics.setTargetTransform(
+					mesh.absolutePosition,
+					mesh.rotationQuaternion,
+				);
+			}
 			mesh.computeWorldMatrix(true);
 		});
 	},
@@ -5002,7 +5006,7 @@ export const flock = {
 
 			// Combine the parent mesh with its children
 			const meshList = [mesh, ...childMeshes];
-			
+
 			if (format === "STL") {
 				const stlData = flock.EXPORT.STLExport.CreateSTL(
 					meshList,
