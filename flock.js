@@ -199,10 +199,12 @@ export const flock = {
 		await flock.document.fonts.ready; // Wait for all fonts to be loaded
 		flock.abortController = new AbortController();
 
-		//flock.scene = await flock.createScene();
-
-		/*
-		await flock.BABYLON.InitializeCSG2Async();*/
+		try {
+		await flock.BABYLON.InitializeCSG2Async();
+		}
+		catch (error) {
+			console.error("Error initializing CSG2:", error);
+		}
 
 		flock.canvas.addEventListener(
 			"touchmove",
@@ -1000,7 +1002,8 @@ export const flock = {
 					validMeshes,
 					true,
 				);
-
+			
+				mergedMesh.rotationQuaternion = flock.BABYLON.Quaternion.Identity();
 				mergedMesh.name = modelId;
 				mergedMesh.blockKey = blockId;
 

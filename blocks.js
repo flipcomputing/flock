@@ -1334,7 +1334,7 @@ export function defineBlocks() {
 	Blockly.Blocks["merge_meshes"] = {
 		init: function () {
 			this.jsonInit({
-				message0: "set %1 to merge meshes %2",
+				message0: "set %1 to merge %2",
 				args0: [
 					{
 						type: "field_variable",
@@ -1360,7 +1360,7 @@ export function defineBlocks() {
 	Blockly.Blocks["subtract_meshes"] = {
 		init: function () {
 			this.jsonInit({
-				message0: "set %1 to subtract meshes %2 from %3",
+				message0: "set %1 to %2 subtract %3",
 				args0: [
 					{
 						type: "field_variable",
@@ -1368,14 +1368,14 @@ export function defineBlocks() {
 						variable: "result",
 					},
 					{
-						type: "input_value",
-						name: "MESH_LIST",
-						check: "Array",
-					},
-					{
 						type: "field_variable",
 						name: "BASE_MESH",
 						variable: "Mesh",
+					},
+					{
+						type: "input_value",
+						name: "MESH_LIST",
+						check: "Array",
 					},
 				],
 				colour: categoryColours["Scene"],
