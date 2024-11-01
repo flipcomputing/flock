@@ -34,6 +34,7 @@ export const flock = {
 	abortController: null,
 	document: document,
 	disposed: null,
+	events: {},
 	modelCache: {},
 	geometryCache: {},
 	materialCache: {},
@@ -247,6 +248,7 @@ export const flock = {
 				}
 			});
 			flock.scene.activeCamera.inputs?.clear();
+			flock.events = null;
 			flock.modelCache = null;
 			flock.geometryCache = null;
 			flock.materialCache = null;
@@ -287,6 +289,7 @@ export const flock = {
 	async initializeNewScene() {
 		flock.engine ? flock.engine.stopRenderLoop() : flock.createEngine();
 
+		flock.events = {};
 		flock.modelCache = {};
 		flock.geometryCache = {};
 		flock.materialCache = {};
@@ -4625,15 +4628,40 @@ export const flock = {
 			);
 		});
 	},
-	onEvent(eventName, handler) {
-		flock.document.addEventListener(eventName, handler);
-		if (!flock.scene.eventListeners) {
-			flock.scene.eventListeners = [];
-		}
-		flock.scene.eventListeners.push({ event: eventName, handler });
+	sanitizeEventName(eventName) {
+		return eventName.replace(/[^a-zA-Z0-9_-]/g, '');
 	},
-	broadcastEvent(eventName) {
-		flock.document.dispatchEvent(new CustomEvent(eventName));
+	isAllowedEventName(eventName) {
+		return !eventName.startsWith('_');
+	},
+	onEvent(eventName, handler, once = false) {
+		eventName = flock.sanitizeEventName(eventName);
+		if (!flock.isAllowedEventName(eventName)) {
+			console.warn(`Event name ${eventName} is reserved and cannot be broadcasted.`);
+			return;
+		}
+		if (!flock.events[eventName]) {
+			flock.events[eventName] = new flock.BABYLON.Observable();
+		}
+		if (once) {
+			const wrappedHandler = (data) => {
+				handler(data);
+				flock.events[eventName].remove(wrappedHandler);
+			};
+			flock.events[eventName].add(wrappedHandler);
+		} else {
+			flock.events[eventName].add(handler);
+		}
+	},
+	broadcastEvent(eventName, data) {
+		eventName = flock.sanitizeEventName(eventName);
+		if (!flock.isAllowedEventName(eventName)) {
+			console.warn(`Event name ${eventName} is reserved and cannot be broadcasted.`);
+			return;
+		}
+		if (flock.events[eventName]) {
+			flock.events[eventName].notifyObservers(data);
+		}
 	},
 	whenKeyPressed(key, callback) {
 		// Register the callback for the keyboard observable
