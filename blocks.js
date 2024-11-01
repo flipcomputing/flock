@@ -1413,7 +1413,6 @@ export function defineBlocks() {
 		},
 	};
 
-
 	Blockly.Blocks["create_wall"] = {
 		init: function () {
 			const variableNamePrefix = "wall";
@@ -2825,152 +2824,6 @@ export function defineBlocks() {
 		},
 	};
 
-	/*Blockly.Blocks["forever"] = {
-		init: function () {
-			this.jsonInit({
-				type: "forever",
-				message0: "forever\n%1",
-				args0: [
-					{
-						type: "input_statement",
-						name: "DO",
-						check: null,
-					},
-				],
-				colour: categoryColours["Events"],
-				tooltip:
-					"Executes the enclosed blocks each frame in the render loop.\nKeyword: ever",
-				helpUrl: "",
-			});
-		},
-	};*/
-
-	/*Blockly.Blocks["when_clicked"] = {
-		init: function () {
-			this.jsonInit({
-				type: "model_clicked",
-				message0: "when %1 is %2",
-				args0: [
-					{
-						type: "field_variable",
-						name: "MODEL_VAR",
-						variable: window.currentMesh,
-					},
-					{
-						type: "field_dropdown",
-						name: "TRIGGER",
-						options: [
-							["clicked", "OnPickTrigger"],
-							["double-clicked", "OnDoublePickTrigger"],
-							["mouse down", "OnPickDownTrigger"],
-							["mouse up", "OnPickUpTrigger"],
-							["mouse out", "OnPickOutTrigger"],
-							["left-clicked", "OnLeftPickTrigger"],
-							[
-								"right-clicked / long pressed",
-								"OnRightOrLongPressTrigger",
-							],
-							["pointer over", "OnPointerOverTrigger"],
-							["pointer out", "OnPointerOutTrigger"],
-						],
-					},
-				],
-				message1: "%1",
-				args1: [
-					{
-						type: "input_statement",
-						name: "DO",
-					},
-				],
-				colour: categoryColours["Events"],
-				tooltip:
-					"Executes the blocks inside when the specified model trigger occurs.\nKeyword: click",
-				helpUrl: "",
-			});
-
-			// Set default state to top-level block
-			this.isInline = false;
-
-			// Add the toggle button
-			const toggleButton = new Blockly.FieldImage(
-				"data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAiIGhlaWdodD0iMzAiIHZpZXdCb3g9IjAgMCAzMCAzMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4gPHBhdGggZmlsbD0id2hpdGUiIGQ9Ik0xNSA2djloLTl2M2g5djloM3YtOWg5di0zaC05di05eiIvPjwvc3ZnPg==", // Custom icon
-				30,
-				30,
-				"*", // Width, Height, Alt text
-				() => {
-					this.toggleDoBlock();
-				},
-			);
-
-			// Append the toggle button to the block
-			this.appendDummyInput().appendField(toggleButton, "TOGGLE_BUTTON");
-		},
-		mutationToDom: function () {
-			const container = document.createElement("mutation");
-			container.setAttribute("inline", this.isInline);
-			return container;
-		},
-		domToMutation: function (xmlElement) {
-			const isInline = xmlElement.getAttribute("inline") === "true";
-			this.updateShape_(isInline);
-		},
-		updateShape_: function (isInline) {
-			this.isInline = isInline;
-			if (isInline) {
-				this.setPreviousStatement(true);
-				this.setNextStatement(true);
-			} else {
-				this.setPreviousStatement(false);
-				this.setNextStatement(false);
-			}
-		},
-		toggleDoBlock: function () {
-			this.updateShape_(!this.isInline);
-		},
-	};*/
-
-	Blockly.Blocks["when_touches2"] = {
-		init: function () {
-			this.jsonInit({
-				type: "when_touches",
-				message0: "when %1 intersect %2 %3",
-				args0: [
-					{
-						type: "field_variable",
-						name: "MODEL_VAR",
-						variable: window.currentMesh,
-					},
-					{
-						type: "field_dropdown",
-						name: "TRIGGER",
-						options: [
-							["enter", "OnIntersectionEnterTrigger"],
-							["exit", "OnIntersectionExitTrigger"],
-						],
-					},
-					{
-						type: "field_variable",
-						name: "OTHER_MODEL_VAR",
-						variable: "mesh2",
-					},
-				],
-				message1: "%1",
-				args1: [
-					{
-						type: "input_statement",
-						name: "DO",
-					},
-				],
-				previousStatement: null,
-				nextStatement: null,
-				colour: categoryColours["Events"],
-				tooltip:
-					"Executes the blocks inside when the mesh intersects or no longer intersects with another mesh.\nKeyword: touches",
-				helpUrl: "",
-			});
-		},
-	};
-
 	Blockly.Blocks["when_touches"] = {
 		init: function () {
 			this.jsonInit({
@@ -3141,6 +2994,20 @@ export function defineBlocks() {
 					"Executes the blocks inside when the specified key is pressed.\nKeyword: pressed",
 				helpUrl: "",
 			});
+
+			addToggleButton(this);
+		},
+		mutationToDom: function () {
+			return mutationToDom(this);
+		},
+		domToMutation: function (xmlElement) {
+			domToMutation(this, xmlElement);
+		},
+		updateShape_: function (isInline) {
+			updateShape(this, isInline);
+		},
+		toggleDoBlock: function () {
+			this.updateShape_(!this.isInline);
 		},
 	};
 
@@ -3214,6 +3081,19 @@ export function defineBlocks() {
 					"Executes the blocks inside when the specified key is released.\nKeyword: released",
 				helpUrl: "",
 			});
+			addToggleButton(this);
+		},
+		mutationToDom: function () {
+			return mutationToDom(this);
+		},
+		domToMutation: function (xmlElement) {
+			domToMutation(this, xmlElement);
+		},
+		updateShape_: function (isInline) {
+			updateShape(this, isInline);
+		},
+		toggleDoBlock: function () {
+			this.updateShape_(!this.isInline);
 		},
 	};
 
@@ -3262,6 +3142,19 @@ export function defineBlocks() {
 				tooltip: "Handle a broadcast event.\nKeyword: on",
 				helpUrl: "",
 			});
+			addToggleButton(this);
+		},
+		mutationToDom: function () {
+			return mutationToDom(this);
+		},
+		domToMutation: function (xmlElement) {
+			domToMutation(this, xmlElement);
+		},
+		updateShape_: function (isInline) {
+			updateShape(this, isInline);
+		},
+		toggleDoBlock: function () {
+			this.updateShape_(!this.isInline);
 		},
 	};
 
@@ -4558,3 +4451,44 @@ export function handleBlockCreateEvent(
 		}
 	}
 }
+
+	// Extend the built-in Blockly procedures_defreturn block to add custom toggle functionality
+
+	// Reference to the original init function of the procedures_defreturn block
+	Blockly.Blocks['procedures_defreturn'].init = (function(originalInit) {
+		return function() {
+			// Call the original initialization function to ensure the block retains its default behaviour
+			originalInit.call(this);
+
+			// Use the existing addToggleButton helper to add the button to the block
+			addToggleButton(this);
+		};
+	})(Blockly.Blocks['procedures_defreturn'].init);
+
+	// Create an extension that adds extra UI logic without modifying the core mutator methods
+	Blockly.Extensions.register('custom_procedure_ui_extension', function() {
+		// Add the toggle behaviour method using your helper
+		this.toggleDoBlock = function() {
+			// Update the shape when toggled without interfering with mutator methods
+			updateShape(this, !this.isInline);
+		};
+	});
+
+	// Apply the extension to the built-in 'procedures_defreturn' block
+	Blockly.Extensions.apply('custom_procedure_ui_extension', Blockly.Blocks['procedures_defreturn']);
+
+	// Extend the built-in Blockly procedures_defnoreturn block to add custom toggle functionality
+
+	// Reference to the original init function of the procedures_defnoreturn block
+	Blockly.Blocks['procedures_defnoreturn'].init = (function(originalInit) {
+		return function() {
+			// Call the original initialization function to ensure the block retains its default behaviour
+			originalInit.call(this);
+
+			// Use the existing addToggleButton helper to add the button to the block
+			addToggleButton(this);
+		};
+	})(Blockly.Blocks['procedures_defnoreturn'].init);
+
+	// Apply the extension to the built-in 'procedures_defnoreturn' block
+	Blockly.Extensions.apply('custom_procedure_ui_extension', Blockly.Blocks['procedures_defnoreturn']);
