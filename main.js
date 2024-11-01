@@ -11,7 +11,6 @@ import { NavigationController } from "@blockly/keyboard-navigation";
 import "@babylonjs/core/Debug/debugLayer";
 import "@babylonjs/inspector";
 import { flock, initializeFlock } from "./flock.js";
-import { initialBlocksJson } from "./toolbox.js";
 import {
 	options,
 	defineBlocks,
@@ -65,8 +64,17 @@ function loadWorkspace() {
 			workspace,
 		);
 	} else {
+		const starter = "examples/starter.json";
 		// Load the JSON into the workspace
-		Blockly.serialization.workspaces.load(initialBlocksJson, workspace);
+		fetch(starter)
+		.then((response) => response.json())
+		.then((json) => {
+			Blockly.serialization.workspaces.load(json, workspace);
+			executeCode();
+		})
+		.catch((error) => {
+			console.error("Error loading example:", error);
+		});
 	}
 
 	executeCode();

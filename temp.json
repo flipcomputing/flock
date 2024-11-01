@@ -1,0 +1,606 @@
+{
+  blocks: {
+	languageVersion: 0,
+	blocks: [
+	  {
+		type: "start",
+		id: "hP1(8=@A.+kG[L4(yPaZ",
+		x: 10,
+		y: 10,
+		inputs: {
+		  DO: {
+			block: {
+			  type: "set_sky_color",
+			  id: "LvX7C$m$;68`G_Qvq=pL",
+			  icons: {
+				comment: {
+				  text: "Try changing the\nsky color",
+				  pinned: false,
+				  height: 80,
+				  width: 160
+				}
+			  },
+			  inputs: {
+				COLOR: {
+				  shadow: {
+					type: "colour",
+					id: "Mlh8zzfY)p3!M2.q:a(8",
+					fields: {
+					  COLOR: "#6495ed"
+					}
+				  }
+				}
+			  },
+			  next: {
+				block: {
+				  type: "create_ground",
+				  id: "S%:d.e-l98E_Phu`CHx?",
+				  icons: {
+					comment: {
+					  text: "Try changing the ground colour",
+					  pinned: false,
+					  height: 80,
+					  width: 160
+					}
+				  },
+				  inputs: {
+					COLOR: {
+					  shadow: {
+						type: "colour",
+						id: "Pe/-b7d5B1Qr*:EvoPsA",
+						fields: {
+						  COLOR: "#71bc78"
+						}
+					  }
+					}
+				  },
+				  next: {
+					block: {
+					  type: "print_text",
+					  id: ":s)nLqT7z]646prN_I|p",
+					  inputs: {
+						TEXT: {
+						  shadow: {
+							type: "text",
+							id: "7.K|z)gsi7|Wk-AT]f#Z",
+							fields: {
+							  TEXT: "Welcome 👋🏿👋🏾👋🏽👋🏼👋🏻"
+							}
+						  }
+						},
+						DURATION: {
+						  shadow: {
+							type: "math_number",
+							id: "`tuU!Fnn[^b{|l$4-3Ym",
+							fields: {
+							  NUM: 20
+							}
+						  }
+						},
+						COLOR: {
+						  shadow: {
+							type: "colour",
+							id: "e{^$*:~w4=k,$EoOP6:~",
+							fields: {
+							  COLOR: "#000080"
+							}
+						  }
+						}
+					  },
+					  next: {
+						block: {
+						  type: "load_model",
+						  id: ".+)T{we6k$0zydY`QZHr",
+						  extraState: "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" has_do=\"false\"></mutation>",
+						  fields: {
+							ID_VAR: {
+							  id: "H]1?IQv^=%_LL!pnT;:Y"
+							},
+							MODELS: "Cat.glb"
+						  },
+						  inputs: {
+							SCALE: {
+							  shadow: {
+								type: "math_number",
+								id: "X^|9]u5aG=h=fiG]xipL",
+								fields: {
+								  NUM: 0.75
+								}
+							  }
+							},
+							X: {
+							  shadow: {
+								type: "math_number",
+								id: "j%SUw$z0v!;-cc8EGuix",
+								fields: {
+								  NUM: 0
+								}
+							  }
+							},
+							Y: {
+							  shadow: {
+								type: "math_number",
+								id: "DYOdcKHa~/EyxY}ez-ou",
+								fields: {
+								  NUM: 0
+								}
+							  }
+							},
+							Z: {
+							  shadow: {
+								type: "math_number",
+								id: "CR~;tCN}$%{Q0v,OyJm!",
+								fields: {
+								  NUM: 0
+								}
+							  }
+							}
+						  },
+						  next: {
+							block: {
+							  type: "switch_animation",
+							  id: ")i)[HpTJW~WD9K{gJ)hp",
+							  fields: {
+								MODEL: {
+								  id: "H]1?IQv^=%_LL!pnT;:Y"
+								},
+								ANIMATION_NAME: "Idle"
+							  },
+							  next: {
+								block: {
+								  type: "say",
+								  id: "=nP|-S{4mBj-iTGS_1xT",
+								  fields: {
+									MESH_VAR: {
+									  id: "H]1?IQv^=%_LL!pnT;:Y"
+									},
+									MODE: "REPLACE",
+									ASYNC: "START"
+								  },
+								  inputs: {
+									TEXT: {
+									  shadow: {
+										type: "text",
+										id: ":M`8+`)7#N%1c`Vioc%U",
+										fields: {
+										  TEXT: "👆🏾 Click or tap me!"
+										}
+									  }
+									},
+									DURATION: {
+									  shadow: {
+										type: "math_number",
+										id: "osCzr|`3LwN2^3=XkK)p",
+										fields: {
+										  NUM: 0
+										}
+									  }
+									},
+									TEXT_COLOR: {
+									  shadow: {
+										type: "colour",
+										id: "FK1O8_bI[#wViP.T|%`Q",
+										fields: {
+										  COLOR: "#993399"
+										}
+									  }
+									},
+									BACKGROUND_COLOR: {
+									  shadow: {
+										type: "colour",
+										id: "kJXj;he`Vn7/6=u{V(y3",
+										fields: {
+										  COLOR: "#ffffff"
+										}
+									  }
+									},
+									ALPHA: {
+									  shadow: {
+										type: "math_number",
+										id: "txrX(XZhK!eRl/tik3TS",
+										fields: {
+										  NUM: 1
+										}
+									  }
+									},
+									SIZE: {
+									  shadow: {
+										type: "math_number",
+										id: "=Hq;aX97j.rz/bt*#S4C",
+										fields: {
+										  NUM: 20
+										}
+									  }
+									}
+								  }
+								}
+							  }
+							}
+						  }
+						}
+					  }
+					}
+				  }
+				}
+			  }
+			}
+		  }
+		}
+	  },
+	  {
+		type: "start",
+		id: "~D}tXQlU1{M6S=%edJVA",
+		x: 10,
+		y: 1168,
+		collapsed: true,
+		inputs: {
+		  DO: {
+			block: {
+			  type: "canvas_controls",
+			  id: "d,~@TGzN;5,zaSOUkj%R",
+			  fields: {
+				CONTROLS: false
+			  },
+			  next: {
+				block: {
+				  type: "button_controls",
+				  id: "!7Ut_G~(,`(?/K?+Eo0k",
+				  fields: {
+					CONTROL: "BOTH",
+					ENABLED: false
+				  },
+				  inputs: {
+					COLOR: {
+					  shadow: {
+						type: "colour",
+						id: "1)!e9e8=UG36Tg,$:luu",
+						fields: {
+						  COLOR: "#ffffff"
+						}
+					  }
+					}
+				  }
+				}
+			  }
+			}
+		  }
+		}
+	  },
+	  {
+		type: "when_clicked",
+		id: "/F1c1Tq9MwU|WLyfSr=T",
+		x: 10,
+		y: 510,
+		extraState: "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" inline=\"false\"></mutation>",
+		fields: {
+		  MODEL_VAR: {
+			id: "H]1?IQv^=%_LL!pnT;:Y"
+		  },
+		  TRIGGER: "OnPickTrigger"
+		},
+		inputs: {
+		  DO: {
+			block: {
+			  type: "say",
+			  id: "odzkze@ooI:/4n%grdzp",
+			  icons: {
+				comment: {
+				  text: "Try the different\noptions",
+				  pinned: false,
+				  height: 80,
+				  width: 160
+				}
+			  },
+			  fields: {
+				MESH_VAR: {
+				  id: "H]1?IQv^=%_LL!pnT;:Y"
+				},
+				MODE: "REPLACE",
+				ASYNC: "START"
+			  },
+			  inputs: {
+				TEXT: {
+				  shadow: {
+					type: "text",
+					id: "}NrTdQ)#NOJZA}V1zX?m",
+					fields: {
+					  TEXT: "👋🏾 Hello "
+					}
+				  }
+				},
+				DURATION: {
+				  shadow: {
+					type: "math_number",
+					id: "ZJ/c,o?aH4g78[!G{vT2",
+					fields: {
+					  NUM: 3
+					}
+				  }
+				},
+				TEXT_COLOR: {
+				  shadow: {
+					type: "colour",
+					id: ".KoxkDUpWX[g$6%ic0uL",
+					fields: {
+					  COLOR: "#993399"
+					}
+				  }
+				},
+				BACKGROUND_COLOR: {
+				  shadow: {
+					type: "colour",
+					id: "YFt=/dNwy0)f|IL`C{bt",
+					fields: {
+					  COLOR: "#ffffff"
+					}
+				  }
+				},
+				ALPHA: {
+				  shadow: {
+					type: "math_number",
+					id: "sAKH-Ia:AObz2?!Le|P0",
+					fields: {
+					  NUM: 1
+					}
+				  }
+				},
+				SIZE: {
+				  shadow: {
+					type: "math_number",
+					id: "oFZ#y$;C@YS8ftZ@%jc3",
+					fields: {
+					  NUM: 20
+					}
+				  }
+				}
+			  },
+			  next: {
+				block: {
+				  type: "play_animation",
+				  id: "P(W34VOw?5Oc,JNX|@%+",
+				  icons: {
+					comment: {
+					  text: "Play an animation\n until done",
+					  pinned: false,
+					  height: 68.57144165039062,
+					  width: 159.04766845703125
+					}
+				  },
+				  fields: {
+					ANIMATION_NAME: "Wave",
+					MODEL: {
+					  id: "H]1?IQv^=%_LL!pnT;:Y"
+					}
+				  },
+				  next: {
+					block: {
+					  type: "switch_animation",
+					  id: "sDhp/1}oenGay?t,H2wb",
+					  icons: {
+						comment: {
+						  text: "Switch to an animation\nand keep playing it",
+						  pinned: false,
+						  height: 77.14285278320312,
+						  width: 185.71429443359375
+						}
+					  },
+					  fields: {
+						MODEL: {
+						  id: "H]1?IQv^=%_LL!pnT;:Y"
+						},
+						ANIMATION_NAME: "Idle"
+					  },
+					  next: {
+						block: {
+						  type: "say",
+						  id: "NlLUq$/,}Wf}i8~(cdf,",
+						  fields: {
+							MESH_VAR: {
+							  id: "H]1?IQv^=%_LL!pnT;:Y"
+							},
+							MODE: "ADD",
+							ASYNC: "START"
+						  },
+						  inputs: {
+							TEXT: {
+							  shadow: {
+								type: "text",
+								id: "m8u21*n=+NCia72eVdXS",
+								fields: {
+								  TEXT: "Change my code and make me dance!"
+								}
+							  }
+							},
+							DURATION: {
+							  shadow: {
+								type: "math_number",
+								id: "9j]`QI$Q.rn6:M?##6U7",
+								fields: {
+								  NUM: 3
+								}
+							  }
+							},
+							TEXT_COLOR: {
+							  shadow: {
+								type: "colour",
+								id: "cV{FdQ%k4@P,31?S!}Mb",
+								fields: {
+								  COLOR: "#000099"
+								}
+							  }
+							},
+							BACKGROUND_COLOR: {
+							  shadow: {
+								type: "colour",
+								id: "qZaPl?2]^sl#H/Sp{A%(",
+								fields: {
+								  COLOR: "#ffffff"
+								}
+							  }
+							},
+							ALPHA: {
+							  shadow: {
+								type: "math_number",
+								id: "+a{ifT[Kr,d`D21F-*OT",
+								fields: {
+								  NUM: 1
+								}
+							  }
+							},
+							SIZE: {
+							  shadow: {
+								type: "math_number",
+								id: "2TVUZ)IUiN#cJ!!~IVrh",
+								fields: {
+								  NUM: 16
+								}
+							  }
+							}
+						  }
+						}
+					  }
+					}
+				  }
+				}
+			  }
+			}
+		  }
+		}
+	  },
+	  {
+		type: "start",
+		id: "_AFj4gSiY!{fUCr@01?d",
+		x: 10,
+		y: 932,
+		inputs: {
+		  DO: {
+			block: {
+			  type: "load_character",
+			  id: "tM+=+8JA2^-[m%-{u`qr",
+			  disabledReasons: [
+				"MANUALLY_DISABLED"
+			  ],
+			  extraState: "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" has_do=\"false\"></mutation>",
+			  icons: {
+				comment: {
+				  text: "Right-click or tap and hold \nand enable this block. ",
+				  pinned: false,
+				  height: 81.90478515625,
+				  width: 241.90475463867188
+				}
+			  },
+			  fields: {
+				ID_VAR: {
+				  id: "nR@9%DMJ;6)0xKajV0Uw"
+				},
+				MODELS: "Character1.glb"
+			  },
+			  inputs: {
+				SCALE: {
+				  shadow: {
+					type: "math_number",
+					id: "P1Np%0Q1|mhtKEN5gVO;",
+					fields: {
+					  NUM: 1
+					}
+				  }
+				},
+				X: {
+				  shadow: {
+					type: "math_number",
+					id: "JmnJzO2/3n$Kv4Xdol.B",
+					fields: {
+					  NUM: 3
+					}
+				  }
+				},
+				Y: {
+				  shadow: {
+					type: "math_number",
+					id: "eL!0?qjONEY.(6[|]R6y",
+					fields: {
+					  NUM: 0
+					}
+				  }
+				},
+				Z: {
+				  shadow: {
+					type: "math_number",
+					id: "w_x$I($xx|lBwXA8{_Rm",
+					fields: {
+					  NUM: 0
+					}
+				  }
+				},
+				HAIR_COLOR: {
+				  shadow: {
+					type: "colour",
+					id: "PUsrwSL%X=80W.wuez4U",
+					fields: {
+					  COLOR: "#000000"
+					}
+				  }
+				},
+				SKIN_COLOR: {
+				  shadow: {
+					type: "skin_colour",
+					id: "kb:OYLcMICl*Emz$(9n!",
+					fields: {
+					  COLOR: "#a15c33"
+					}
+				  }
+				},
+				EYES_COLOR: {
+				  shadow: {
+					type: "colour",
+					id: "9Ce;8=xG4d/.iy371x#T",
+					fields: {
+					  COLOR: "#000000"
+					}
+				  }
+				},
+				SLEEVES_COLOR: {
+				  shadow: {
+					type: "colour",
+					id: "==i$Uu1uHLA[[g5Q[$)g",
+					fields: {
+					  COLOR: "#008b8b"
+					}
+				  }
+				},
+				SHORTS_COLOR: {
+				  shadow: {
+					type: "colour",
+					id: "piE,M3|yxu!_%zxPtS7(",
+					fields: {
+					  COLOR: "#00008b"
+					}
+				  }
+				},
+				TSHIRT_COLOR: {
+				  shadow: {
+					type: "colour",
+					id: "*Y,+IZ^w5Qm,VX%acDN7",
+					fields: {
+					  COLOR: "#ff8f60"
+					}
+				  }
+				}
+			  }
+			}
+		  }
+		}
+	  }
+	]
+  },
+  variables: [
+	{
+	  name: "cat",
+	  id: "H]1?IQv^=%_LL!pnT;:Y"
+	},
+	{
+	  name: "character2",
+	  id: "nR@9%DMJ;6)0xKajV0Uw"
+	}
+  ]
+}
