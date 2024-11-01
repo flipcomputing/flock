@@ -4494,3 +4494,49 @@ export function handleBlockCreateEvent(
 
 	// Apply the extension to the built-in 'procedures_defnoreturn' block
 	Blockly.Extensions.apply('custom_procedure_ui_extension', Blockly.Blocks['procedures_defnoreturn']);
+
+// Define unique IDs for each option
+Blockly.FieldVariable.ADD_VARIABLE_ID = "ADD_VARIABLE_ID";
+Blockly.FieldVariable.RENAME_VARIABLE_ID = "RENAME_VARIABLE_ID";
+Blockly.FieldVariable.DELETE_VARIABLE_ID = "DELETE_VARIABLE_ID";
+
+// Extend `getOptions` to include "New variable..." at the top of the dropdown
+const originalGetOptions = Blockly.FieldVariable.prototype.getOptions;
+Blockly.FieldVariable.prototype.getOptions = function() {
+	// Retrieve the default options
+	const options = originalGetOptions.call(this);
+
+	// Add the "New variable..." option at the beginning
+	options.unshift(['New variable...', Blockly.FieldVariable.ADD_VARIABLE_ID]);
+
+	return options;
+};
+
+// Save a reference to the original `onItemSelected_` method
+const originalOnItemSelected = Blockly.FieldVariable.prototype.onItemSelected_;
+Blockly.FieldVariable.prototype.onItemSelected_ = function(menu, menuItem) {
+	const id = menuItem.getValue();
+
+	if (id === Blockly.FieldVariable.ADD_VARIABLE_ID) {
+		// Open the variable creation dialog, receiving the new variable name
+		Blockly.Variables.createVariableButtonHandler(this.sourceBlock_.workspace, (newVariableName) => {
+			if (newVariableName) {
+				// Find the variable by its name to get the full variable object
+				const newVariable = this.sourceBlock_.workspace.getVariable(newVariableName);
+
+				if (newVariable) {
+					// Set the new variable as selected
+					this.doValueUpdate_(newVariable.getId());
+					this.forceRerender();  // Refresh the UI to show the new selection			
+				} else {
+					console.log("New variable not found in workspace.");
+				}
+			} else {
+				console.log("Variable creation was cancelled.");
+			}
+		});
+	} else {
+		// Use the stored reference to avoid recursion
+		originalOnItemSelected.call(this, menu, menuItem);
+	}
+};
