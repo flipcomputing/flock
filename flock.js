@@ -977,63 +977,18 @@ export const flock = {
 		const blockId = modelId;
 		modelId += "_" + flock.scene.getUniqueId();
 
-		return Promise.all(
-			meshList.map((meshName) => {
-				return new Promise((resolve) => {
-					// Use `whenModelReady` to handle both synchronous and async mesh retrieval
-					flock.whenModelReady(meshName, (mesh) => {
-						if (mesh) {
-							mesh.name = modelId;
-							mesh.blockKey = blockId;
-							resolve(mesh);
-						} else {
-							console.warn(
-								`Could not resolve mesh for ${meshName}`,
-							);
-							resolve(null); // Resolve with null if not found
-						}
-					});
-				});
-			}),
-		).then((meshes) => {
+		return flock.prepareMeshes(modelId, meshList, blockId).then((validMeshes) => {
+			if (validMeshes.length) {
+				let baseCSG = BABYLON.CSG2.FromMesh(validMeshes[0]);
+				validMeshes.slice(1).forEach((mesh) => baseCSG = baseCSG.add(BABYLON.CSG2.FromMesh(mesh)));
 
-				const validMeshes = meshes.filter((mesh) => mesh !== null);
+				const mergedMesh = baseCSG.toMesh("mergedMesh", null, validMeshes[0].getScene());
+				flock.applyResultMeshProperties(mergedMesh, validMeshes[0], modelId, blockId);
 
-				if (validMeshes.length) {
-					// Start with the first mesh as a base for union operations
-					let baseCSG = BABYLON.CSG2.FromMesh(validMeshes[0]);
+				// Dispose of original meshes to clean up
+				validMeshes.forEach((mesh) => mesh.dispose());
 
-					// Union with each subsequent mesh
-					for (let i = 1; i < validMeshes.length; i++) {
-						const nextCSG = BABYLON.CSG2.FromMesh(validMeshes[i]);
-						baseCSG = baseCSG.add(nextCSG); // Use `add` for union in CSG2
-					}
-
-					// Convert the CSG result back to a Babylon mesh
-					const mergedMesh = baseCSG.toMesh("mergedMesh", null, validMeshes[0].getScene());
-					mergedMesh.position.copyFrom(validMeshes[0].position);
-					if (validMeshes[0].rotationQuaternion) {
-						mergedMesh.rotationQuaternion = validMeshes[0].rotationQuaternion.clone();
-					} else {
-						mergedMesh.rotation.copyFrom(validMeshes[0].rotation);
-					}
-					mergedMesh.scaling.copyFrom(validMeshes[0].scaling);
-					mergedMesh.rotationQuaternion = BABYLON.Quaternion.Identity();
-
-					// Dispose of original meshes to clean up
-					validMeshes.forEach((mesh) => mesh.dispose());
-
-					const meshShape = new flock.BABYLON.PhysicsShapeMesh(
-						mergedMesh, // Pass the CSG-created mesh
-						flock.scene
-					);
-
-					
-					flock.applyPhysics(mergedMesh, meshShape);
-				
-					mergedMesh.name = modelId;
-					mergedMesh.blockKey = blockId;
-				return modelId;
+				return modelId; // Return the modelId as per original functionality
 			} else {
 				console.warn("No valid meshes to merge.");
 				return null;
@@ -1043,83 +998,30 @@ export const flock = {
 	subtractMeshes(modelId, baseMeshName, meshNames) {
 		const blockId = modelId;
 		modelId += "_" + flock.scene.getUniqueId();
+
 		return new Promise((resolve) => {
 			flock.whenModelReady(baseMeshName, (baseMesh) => {
 				if (!baseMesh) {
-					console.warn(
-						`Base mesh ${baseMeshName} could not be resolved.`,
-					);
-					resolve(null); // Exit if base mesh is not available
+					console.warn(`Base mesh ${baseMeshName} could not be resolved.`);
+					resolve(null);
 					return;
 				}
 
-				Promise.all(
-					meshNames.map(
-						(meshName) =>
-							new Promise((innerResolve) => {
-								flock.whenModelReady(meshName, (mesh) => {
-									if (mesh) {
-										innerResolve(mesh);
-									} else {
-										console.warn(
-											`Could not resolve mesh for ${meshName}`,
-										);
-										innerResolve(null);
-									}
-								});
-							}),
-					),
-				).then((meshes) => {
-					const validMeshes = meshes.filter((mesh) => mesh);
+				flock.prepareMeshes(modelId, meshNames, blockId).then((validMeshes) => {
+					if (validMeshes.length) {
+						let outerCSG = BABYLON.CSG2.FromMesh(baseMesh);
+						validMeshes.forEach((mesh) => outerCSG = outerCSG.subtract(BABYLON.CSG2.FromMesh(mesh)));
 
-					if (!validMeshes.length) {
-						console.warn(
-							"No valid meshes to subtract from the base mesh.",
-						);
-						resolve(null);
-						return;
-					}
+						const resultMesh = outerCSG.toMesh("resultMesh", null, baseMesh.getScene());
+						flock.applyResultMeshProperties(resultMesh, baseMesh, modelId, blockId);
 
-					const outerCSG = flock.BABYLON.CSG2.FromMesh(baseMesh);
-					const subtractedCSG = validMeshes.reduce(
-						(csgResult, mesh) => {
-							const meshCSG = flock.BABYLON.CSG2.FromMesh(mesh);
-							return csgResult.subtract(meshCSG);
-						},
-						outerCSG,
-					);
-
-					const resultMesh = subtractedCSG.toMesh(
-						"resultMesh",
-						null,
-						baseMesh.getScene(),
-					);
-
-					// Apply the base mesh's position, rotation, and scaling to the result mesh
-					resultMesh.position.copyFrom(baseMesh.position);
-					if (baseMesh.rotationQuaternion) {
-						resultMesh.rotationQuaternion =
-							baseMesh.rotationQuaternion.clone();
+						validMeshes.forEach((mesh) => mesh.dispose());
+						baseMesh.dispose();
+						resolve(modelId); // Return the modelId as per original functionality
 					} else {
-						resultMesh.rotation.copyFrom(baseMesh.rotation);
+						console.warn("No valid meshes to subtract from the base mesh.");
+						resolve(null);
 					}
-					resultMesh.scaling.copyFrom(baseMesh.scaling);
-
-					// Dispose of meshes and CSG2 objects
-					validMeshes.forEach((mesh) => mesh.dispose());
-					baseMesh.dispose();
-					outerCSG.dispose();
-					subtractedCSG.dispose();
-
-					const meshShape = new flock.BABYLON.PhysicsShapeMesh(
-						resultMesh, // Pass the CSG-created mesh
-						flock.scene
-					);
-
-					flock.applyPhysics(resultMesh, meshShape);
-					resultMesh.name = modelId;
-					resultMesh.blockKey = blockId;
-					resolve(modelId);
 				});
 			});
 		});
@@ -1128,10 +1030,27 @@ export const flock = {
 		const blockId = modelId;
 		modelId += "_" + flock.scene.getUniqueId();
 
+		return flock.prepareMeshes(modelId, meshList, blockId).then((validMeshes) => {
+			if (validMeshes.length) {
+				let baseCSG = BABYLON.CSG2.FromMesh(validMeshes[0]);
+				validMeshes.slice(1).forEach((mesh) => baseCSG = baseCSG.intersect(BABYLON.CSG2.FromMesh(mesh)));
+
+				const intersectedMesh = baseCSG.toMesh("intersectedMesh", null, validMeshes[0].getScene());
+				flock.applyResultMeshProperties(intersectedMesh, validMeshes[0], modelId, blockId);
+
+				validMeshes.forEach((mesh) => mesh.dispose());
+
+				return modelId; // Return the modelId as per original functionality
+			} else {
+				console.warn("No valid meshes to intersect.");
+				return null;
+			}
+		});
+	},
+	prepareMeshes(modelId, meshNames, blockId) {
 		return Promise.all(
-			meshList.map((meshName) => {
+			meshNames.map((meshName) => {
 				return new Promise((resolve) => {
-					// Use `whenModelReady` to handle both synchronous and async mesh retrieval
 					flock.whenModelReady(meshName, (mesh) => {
 						if (mesh) {
 							mesh.name = modelId;
@@ -1139,54 +1058,25 @@ export const flock = {
 							resolve(mesh);
 						} else {
 							console.warn(`Could not resolve mesh for ${meshName}`);
-							resolve(null); // Resolve with null if not found
+							resolve(null);
 						}
 					});
 				});
-			}),
-		).then((meshes) => {
-			const validMeshes = meshes.filter((mesh) => mesh !== null);
-
-			if (validMeshes.length) {
-				// Start with the first mesh as a base for intersection operations
-				let baseCSG = BABYLON.CSG2.FromMesh(validMeshes[0]);
-
-				// Intersect with each subsequent mesh
-				for (let i = 1; i < validMeshes.length; i++) {
-					const nextCSG = BABYLON.CSG2.FromMesh(validMeshes[i]);
-					baseCSG = baseCSG.intersect(nextCSG); // Use `intersect` for CSG2
-				}
-
-				// Convert the CSG result back to a Babylon mesh
-				const intersectedMesh = baseCSG.toMesh("intersectedMesh", null, validMeshes[0].getScene());
-				intersectedMesh.position.copyFrom(validMeshes[0].position);
-				if (validMeshes[0].rotationQuaternion) {
-					intersectedMesh.rotationQuaternion = validMeshes[0].rotationQuaternion.clone();
-				} else {
-					intersectedMesh.rotation.copyFrom(validMeshes[0].rotation);
-				}
-				intersectedMesh.scaling.copyFrom(validMeshes[0].scaling);
-				intersectedMesh.rotationQuaternion = BABYLON.Quaternion.Identity();
-
-				// Dispose of original meshes to clean up
-				validMeshes.forEach((mesh) => mesh.dispose());
-
-				// Apply physics to the intersected mesh
-				const meshShape = new flock.BABYLON.PhysicsShapeMesh(
-					intersectedMesh, // Pass the CSG-created mesh
-					flock.scene
-				);
-				flock.applyPhysics(intersectedMesh, meshShape);
-
-				intersectedMesh.name = modelId;
-				intersectedMesh.blockKey = blockId;
-
-				return modelId;
-			} else {
-				console.warn("No valid meshes to intersect.");
-				return null;
-			}
-		});
+			})
+		).then((meshes) => meshes.filter((mesh) => mesh !== null));
+	},
+	applyResultMeshProperties(resultMesh, referenceMesh, modelId, blockId) {
+		resultMesh.position.copyFrom(referenceMesh.position);
+		if (referenceMesh.rotationQuaternion) {
+			resultMesh.rotationQuaternion = referenceMesh.rotationQuaternion.clone();
+		} else {
+			resultMesh.rotation.copyFrom(referenceMesh.rotation);
+		}
+		resultMesh.scaling.copyFrom(referenceMesh.scaling);
+		resultMesh.rotationQuaternion = BABYLON.Quaternion.Identity();
+		resultMesh.name = modelId;
+		resultMesh.blockKey = blockId;
+		flock.applyPhysics(resultMesh, new flock.BABYLON.PhysicsShapeMesh(resultMesh, flock.scene));
 	},
 	parentChild(
 		parentModelName,
