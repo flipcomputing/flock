@@ -102,13 +102,19 @@ function pickMeshFromCanvas() {
 export function deleteMeshFromBlock(blockId) {
 	const mesh = getMeshFromBlockId(blockId);
 
-	if (mesh) flock.dispose(mesh.name);
+	if (mesh && mesh.name !== "__root__") {
+		flock.dispose(mesh.name);
+	}
 }
 
 export function getMeshFromBlock(block) {
 	const blockKey = Object.keys(meshMap).find((key) => meshMap[key] === block);
 
-	return flock.scene?.meshes?.find((mesh) => mesh.blockKey === blockKey);
+	const found = flock.scene?.meshes?.find(
+		(mesh) => mesh.blockKey === blockKey,
+	);
+
+	return found;
 }
 
 export function updateMeshFromBlock(mesh, block, changeEvent) {
@@ -1484,10 +1490,7 @@ function toggleGizmo(gizmoType) {
 
 					let meshY = mesh.position.y;
 
-					if (
-						mesh.metadata?.yOffset &&
-						mesh.metadata.yOffset != 0
-					) {
+					if (mesh.metadata?.yOffset && mesh.metadata.yOffset != 0) {
 						try {
 							const scale = block
 								.getInput("SCALE")
@@ -1495,7 +1498,7 @@ function toggleGizmo(gizmoType) {
 								.getFieldValue("NUM");
 
 							meshY -= scale * mesh.metadata.yOffset;
-						} catch (e) {}						
+						} catch (e) {}
 					}
 
 					if (block) {
@@ -1835,7 +1838,6 @@ function updateBlockColorAndHighlight(mesh, selectedColor) {
 	const materialName = mesh?.material?.name;
 
 	if (mesh && materialName && characterMaterials.includes(materialName)) {
-		console.log("Updating character");
 		const ultimateParent = (mesh) =>
 			mesh.parent ? ultimateParent(mesh.parent) : mesh;
 

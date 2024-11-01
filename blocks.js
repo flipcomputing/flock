@@ -79,10 +79,12 @@ export function handleBlockSelect(event) {
 }
 
 export function handleBlockDelete(event) {
-	if (event.type === Blockly.Events.BLOCK_DELETE) {
+	if (event.type === Blockly.Events.BLOCK_DELETE && 
+		(event.oldJson?.type.startsWith('load_') || event.oldJson?.type.startsWith('create_'))) {
 		deleteMeshFromBlock(event.blockId);
 	}
 }
+
 
 export function findCreateBlock(block) {
 	if (!block || typeof block.getParent !== "function") {
