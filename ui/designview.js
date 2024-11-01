@@ -119,7 +119,8 @@ export function getMeshFromBlock(block) {
 
 export function updateMeshFromBlock(mesh, block, changeEvent) {
 	const shapeType = block.type;
-	mesh.physics.disablePreStep = true;
+	if(mesh && mesh.physics)
+		mesh.physics.disablePreStep = true;
 
 	const color = block
 		.getInput("COLOR")
