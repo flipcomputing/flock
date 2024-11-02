@@ -134,9 +134,6 @@ export function updateMeshFromBlock(mesh, block, changeEvent) {
 		z: block.getInput("Z").connection.targetBlock().getFieldValue("NUM"),
 	};
 
-	// Use flock API to change the color and position of the mesh
-	if (color) flock.changeColour(mesh.name, color);
-
 	flock.positionAt(mesh.name, position.x, position.y, position.z);
 
 	// Shape-specific updates based on the block type
@@ -235,6 +232,11 @@ export function updateMeshFromBlock(mesh, block, changeEvent) {
 		default:
 			console.warn(`Unknown shape type: ${shapeType}`);
 	}
+
+	// Use flock API to change the color and position of the mesh
+	if (color) 
+		flock.changeColour(mesh.name, color);
+
 }
 
 function createMeshOnCanvas(block) {

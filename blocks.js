@@ -4540,3 +4540,6 @@ Blockly.FieldVariable.prototype.onItemSelected_ = function(menu, menuItem) {
 		originalOnItemSelected.call(this, menu, menuItem);
 	}
 };
+
+
+Blockly.Msg['LISTS_CREATE_WITH_INPUT_WITH'] = "create list"

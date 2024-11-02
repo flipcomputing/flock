@@ -882,8 +882,6 @@ window.onload = function () {
 
 	(async () => {
 		await flock.initialize();
-
-		window.initialBlocksJson = initialBlocksJson;
 	})();
 
 	//workspace.getToolbox().setVisible(false);

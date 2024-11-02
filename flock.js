@@ -980,23 +980,41 @@ export const flock = {
 		const blockId = modelId;
 		modelId += "_" + flock.scene.getUniqueId();
 
-		return flock.prepareMeshes(modelId, meshList, blockId).then((validMeshes) => {
-			if (validMeshes.length) {
-				let baseCSG = BABYLON.CSG2.FromMesh(validMeshes[0]);
-				validMeshes.slice(1).forEach((mesh) => baseCSG = baseCSG.add(BABYLON.CSG2.FromMesh(mesh)));
+		return flock
+			.prepareMeshes(modelId, meshList, blockId)
+			.then((validMeshes) => {
+				if (validMeshes.length) {
+					let baseCSG = BABYLON.CSG2.FromMesh(validMeshes[0]);
+					validMeshes
+						.slice(1)
+						.forEach(
+							(mesh) =>
+								(baseCSG = baseCSG.add(
+									BABYLON.CSG2.FromMesh(mesh),
+								)),
+						);
 
-				const mergedMesh = baseCSG.toMesh("mergedMesh", null, validMeshes[0].getScene());
-				flock.applyResultMeshProperties(mergedMesh, validMeshes[0], modelId, blockId);
+					const mergedMesh = baseCSG.toMesh(
+						"mergedMesh",
+						null,
+						validMeshes[0].getScene(),
+					);
+					flock.applyResultMeshProperties(
+						mergedMesh,
+						validMeshes[0],
+						modelId,
+						blockId,
+					);
 
-				// Dispose of original meshes to clean up
-				validMeshes.forEach((mesh) => mesh.dispose());
+					// Dispose of original meshes to clean up
+					validMeshes.forEach((mesh) => mesh.dispose());
 
-				return modelId; // Return the modelId as per original functionality
-			} else {
-				console.warn("No valid meshes to merge.");
-				return null;
-			}
-		});
+					return modelId; // Return the modelId as per original functionality
+				} else {
+					console.warn("No valid meshes to merge.");
+					return null;
+				}
+			});
 	},
 	subtractMeshes(modelId, baseMeshName, meshNames) {
 		const blockId = modelId;
@@ -1005,27 +1023,47 @@ export const flock = {
 		return new Promise((resolve) => {
 			flock.whenModelReady(baseMeshName, (baseMesh) => {
 				if (!baseMesh) {
-					console.warn(`Base mesh ${baseMeshName} could not be resolved.`);
+					console.warn(
+						`Base mesh ${baseMeshName} could not be resolved.`,
+					);
 					resolve(null);
 					return;
 				}
 
-				flock.prepareMeshes(modelId, meshNames, blockId).then((validMeshes) => {
-					if (validMeshes.length) {
-						let outerCSG = BABYLON.CSG2.FromMesh(baseMesh);
-						validMeshes.forEach((mesh) => outerCSG = outerCSG.subtract(BABYLON.CSG2.FromMesh(mesh)));
+				flock
+					.prepareMeshes(modelId, meshNames, blockId)
+					.then((validMeshes) => {
+						if (validMeshes.length) {
+							let outerCSG = BABYLON.CSG2.FromMesh(baseMesh);
+							validMeshes.forEach(
+								(mesh) =>
+									(outerCSG = outerCSG.subtract(
+										BABYLON.CSG2.FromMesh(mesh),
+									)),
+							);
 
-						const resultMesh = outerCSG.toMesh("resultMesh", null, baseMesh.getScene());
-						flock.applyResultMeshProperties(resultMesh, baseMesh, modelId, blockId);
+							const resultMesh = outerCSG.toMesh(
+								"resultMesh",
+								null,
+								baseMesh.getScene(),
+							);
+							flock.applyResultMeshProperties(
+								resultMesh,
+								baseMesh,
+								modelId,
+								blockId,
+							);
 
-						validMeshes.forEach((mesh) => mesh.dispose());
-						baseMesh.dispose();
-						resolve(modelId); // Return the modelId as per original functionality
-					} else {
-						console.warn("No valid meshes to subtract from the base mesh.");
-						resolve(null);
-					}
-				});
+							validMeshes.forEach((mesh) => mesh.dispose());
+							baseMesh.dispose();
+							resolve(modelId); // Return the modelId as per original functionality
+						} else {
+							console.warn(
+								"No valid meshes to subtract from the base mesh.",
+							);
+							resolve(null);
+						}
+					});
 			});
 		});
 	},
@@ -1033,22 +1071,40 @@ export const flock = {
 		const blockId = modelId;
 		modelId += "_" + flock.scene.getUniqueId();
 
-		return flock.prepareMeshes(modelId, meshList, blockId).then((validMeshes) => {
-			if (validMeshes.length) {
-				let baseCSG = BABYLON.CSG2.FromMesh(validMeshes[0]);
-				validMeshes.slice(1).forEach((mesh) => baseCSG = baseCSG.intersect(BABYLON.CSG2.FromMesh(mesh)));
+		return flock
+			.prepareMeshes(modelId, meshList, blockId)
+			.then((validMeshes) => {
+				if (validMeshes.length) {
+					let baseCSG = BABYLON.CSG2.FromMesh(validMeshes[0]);
+					validMeshes
+						.slice(1)
+						.forEach(
+							(mesh) =>
+								(baseCSG = baseCSG.intersect(
+									BABYLON.CSG2.FromMesh(mesh),
+								)),
+						);
 
-				const intersectedMesh = baseCSG.toMesh("intersectedMesh", null, validMeshes[0].getScene());
-				flock.applyResultMeshProperties(intersectedMesh, validMeshes[0], modelId, blockId);
+					const intersectedMesh = baseCSG.toMesh(
+						"intersectedMesh",
+						null,
+						validMeshes[0].getScene(),
+					);
+					flock.applyResultMeshProperties(
+						intersectedMesh,
+						validMeshes[0],
+						modelId,
+						blockId,
+					);
 
-				validMeshes.forEach((mesh) => mesh.dispose());
+					validMeshes.forEach((mesh) => mesh.dispose());
 
-				return modelId; // Return the modelId as per original functionality
-			} else {
-				console.warn("No valid meshes to intersect.");
-				return null;
-			}
-		});
+					return modelId; // Return the modelId as per original functionality
+				} else {
+					console.warn("No valid meshes to intersect.");
+					return null;
+				}
+			});
 	},
 	prepareMeshes(modelId, meshNames, blockId) {
 		return Promise.all(
@@ -1060,18 +1116,21 @@ export const flock = {
 							mesh.blockKey = blockId;
 							resolve(mesh);
 						} else {
-							console.warn(`Could not resolve mesh for ${meshName}`);
+							console.warn(
+								`Could not resolve mesh for ${meshName}`,
+							);
 							resolve(null);
 						}
 					});
 				});
-			})
+			}),
 		).then((meshes) => meshes.filter((mesh) => mesh !== null));
 	},
 	applyResultMeshProperties(resultMesh, referenceMesh, modelId, blockId) {
 		resultMesh.position.copyFrom(referenceMesh.position);
 		if (referenceMesh.rotationQuaternion) {
-			resultMesh.rotationQuaternion = referenceMesh.rotationQuaternion.clone();
+			resultMesh.rotationQuaternion =
+				referenceMesh.rotationQuaternion.clone();
 		} else {
 			resultMesh.rotation.copyFrom(referenceMesh.rotation);
 		}
@@ -1079,7 +1138,10 @@ export const flock = {
 		resultMesh.rotationQuaternion = BABYLON.Quaternion.Identity();
 		resultMesh.name = modelId;
 		resultMesh.blockKey = blockId;
-		flock.applyPhysics(resultMesh, new flock.BABYLON.PhysicsShapeMesh(resultMesh, flock.scene));
+		flock.applyPhysics(
+			resultMesh,
+			new flock.BABYLON.PhysicsShapeMesh(resultMesh, flock.scene),
+		);
 	},
 	parentChild(
 		parentModelName,
@@ -3613,6 +3675,11 @@ export const flock = {
 			material.diffuseColor = flock.BABYLON.Color3.FromHexString(color);
 			mesh.material = material;
 		}
+
+		try {
+			mesh.forceSharedVertices();
+			mesh.convertToFlatShadedMesh();
+		} catch (e) {}
 	},
 	changeMaterial(modelName, materialName, color) {
 		return flock.whenModelReady(modelName, (mesh) => {
@@ -4629,15 +4696,17 @@ export const flock = {
 		});
 	},
 	sanitizeEventName(eventName) {
-		return eventName.replace(/[^a-zA-Z0-9_-]/g, '');
+		return eventName.replace(/[^a-zA-Z0-9_-]/g, "");
 	},
 	isAllowedEventName(eventName) {
-		return !eventName.startsWith('_');
+		return !eventName.startsWith("_");
 	},
 	onEvent(eventName, handler, once = false) {
 		eventName = flock.sanitizeEventName(eventName);
 		if (!flock.isAllowedEventName(eventName)) {
-			console.warn(`Event name ${eventName} is reserved and cannot be broadcasted.`);
+			console.warn(
+				`Event name ${eventName} is reserved and cannot be broadcasted.`,
+			);
 			return;
 		}
 		if (!flock.events[eventName]) {
@@ -4656,7 +4725,9 @@ export const flock = {
 	broadcastEvent(eventName, data) {
 		eventName = flock.sanitizeEventName(eventName);
 		if (!flock.isAllowedEventName(eventName)) {
-			console.warn(`Event name ${eventName} is reserved and cannot be broadcasted.`);
+			console.warn(
+				`Event name ${eventName} is reserved and cannot be broadcasted.`,
+			);
 			return;
 		}
 		if (flock.events[eventName]) {
