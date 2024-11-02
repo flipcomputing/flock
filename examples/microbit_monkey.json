@@ -1,0 +1,266 @@
+{
+  "workspaceComments": [
+	{
+	  "height": 284.76185607910156,
+	  "width": 834.2857666015625,
+	  "id": "J:(Zo*Rw)V!@USY42jG`",
+	  "x": 21.359679036968686,
+	  "y": -396.4336120118262,
+	  "text": "1. Connect your micro:bit  (using USB or bluetooth). \n\n2. Open https://makecode.microbit.org/S75356-86793-57168-32678\n\n3. Click Edit then Download.\n\n4.. Close the makecode editor. You may need to reconnect/pair your micro:bit\n\n5. Shake your micro:bit to wave to the monkey and they should wave back!\n\n(If you have Bluetooth problems, try getting your device to forget about the micro:bit and try \nagain. The program will stay on your micro:bit until you need to reprogram it \nfor something else.)"
+	}
+  ],
+  "blocks": {
+	"languageVersion": 0,
+	"blocks": [
+	  {
+		"type": "start",
+		"id": "hP1(8=@A.+kG[L4(yPaZ",
+		"x": 10,
+		"y": 10,
+		"inputs": {
+		  "DO": {
+			"block": {
+			  "type": "set_sky_color",
+			  "id": "LvX7C$m$;68`G_Qvq=pL",
+			  "icons": {
+				"comment": {
+				  "text": "Try changing the\nsky color",
+				  "pinned": false,
+				  "height": 80,
+				  "width": 160
+				}
+			  },
+			  "inputs": {
+				"COLOR": {
+				  "shadow": {
+					"type": "colour",
+					"id": "Mlh8zzfY)p3!M2.q:a(8",
+					"fields": {
+					  "COLOR": "#6495ed"
+					}
+				  }
+				}
+			  },
+			  "next": {
+				"block": {
+				  "type": "create_ground",
+				  "id": "S%:d.e-l98E_Phu`CHx?",
+				  "icons": {
+					"comment": {
+					  "text": "Try changing the ground colour",
+					  "pinned": false,
+					  "height": 80,
+					  "width": 160
+					}
+				  },
+				  "inputs": {
+					"COLOR": {
+					  "shadow": {
+						"type": "colour",
+						"id": "Pe/-b7d5B1Qr*:EvoPsA",
+						"fields": {
+						  "COLOR": "#71bc78"
+						}
+					  }
+					}
+				  },
+				  "next": {
+					"block": {
+					  "type": "print_text",
+					  "id": ":s)nLqT7z]646prN_I|p",
+					  "inputs": {
+						"TEXT": {
+						  "shadow": {
+							"type": "text",
+							"id": "7.K|z)gsi7|Wk-AT]f#Z",
+							"fields": {
+							  "TEXT": "Welcome 👋🏿👋🏾👋🏽👋🏼👋🏻"
+							}
+						  }
+						},
+						"DURATION": {
+						  "shadow": {
+							"type": "math_number",
+							"id": "`tuU!Fnn[^b{|l$4-3Ym",
+							"fields": {
+							  "NUM": 20
+							}
+						  }
+						},
+						"COLOR": {
+						  "shadow": {
+							"type": "colour",
+							"id": "e{^$*:~w4=k,$EoOP6:~",
+							"fields": {
+							  "COLOR": "#000080"
+							}
+						  }
+						}
+					  },
+					  "next": {
+						"block": {
+						  "type": "load_model",
+						  "id": ".+)T{we6k$0zydY`QZHr",
+						  "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" has_do=\"false\"></mutation>",
+						  "fields": {
+							"ID_VAR": {
+							  "id": "H]1?IQv^=%_LL!pnT;:Y"
+							},
+							"MODELS": "Monkey.glb"
+						  },
+						  "inputs": {
+							"SCALE": {
+							  "shadow": {
+								"type": "math_number",
+								"id": "X^|9]u5aG=h=fiG]xipL",
+								"fields": {
+								  "NUM": 0.75
+								}
+							  }
+							},
+							"X": {
+							  "shadow": {
+								"type": "math_number",
+								"id": "j%SUw$z0v!;-cc8EGuix",
+								"fields": {
+								  "NUM": 0
+								}
+							  }
+							},
+							"Y": {
+							  "shadow": {
+								"type": "math_number",
+								"id": "DYOdcKHa~/EyxY}ez-ou",
+								"fields": {
+								  "NUM": 0
+								}
+							  }
+							},
+							"Z": {
+							  "shadow": {
+								"type": "math_number",
+								"id": "CR~;tCN}$%{Q0v,OyJm!",
+								"fields": {
+								  "NUM": 0
+								}
+							  }
+							}
+						  },
+						  "next": {
+							"block": {
+							  "type": "switch_animation",
+							  "id": ")i)[HpTJW~WD9K{gJ)hp",
+							  "fields": {
+								"MODEL": {
+								  "id": "H]1?IQv^=%_LL!pnT;:Y"
+								},
+								"ANIMATION_NAME": "Idle"
+							  }
+							}
+						  }
+						}
+					  }
+					}
+				  }
+				}
+			  }
+			}
+		  }
+		}
+	  },
+	  {
+		"type": "start",
+		"id": "~D}tXQlU1{M6S=%edJVA",
+		"x": 10,
+		"y": 410,
+		"collapsed": true,
+		"inputs": {
+		  "DO": {
+			"block": {
+			  "type": "canvas_controls",
+			  "id": "d,~@TGzN;5,zaSOUkj%R",
+			  "fields": {
+				"CONTROLS": false
+			  },
+			  "next": {
+				"block": {
+				  "type": "button_controls",
+				  "id": "!7Ut_G~(,`(?/K?+Eo0k",
+				  "fields": {
+					"CONTROL": "BOTH",
+					"ENABLED": false
+				  },
+				  "inputs": {
+					"COLOR": {
+					  "shadow": {
+						"type": "colour",
+						"id": "1)!e9e8=UG36Tg,$:luu",
+						"fields": {
+						  "COLOR": "#ffffff"
+						}
+					  }
+					}
+				  }
+				}
+			  }
+			}
+		  }
+		}
+	  },
+	  {
+		"type": "microbit_input",
+		"id": "Pa3FBRj-vbOVE5~JVm^O",
+		"x": 11,
+		"y": 388,
+		"extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" inline=\"false\"></mutation>",
+		"fields": {
+		  "EVENT": "i"
+		},
+		"inputs": {
+		  "DO": {
+			"block": {
+			  "type": "play_animation",
+			  "id": "p`cVCd,Z%ynNh8?6HEIP",
+			  "fields": {
+				"ANIMATION_NAME": "Wave",
+				"MODEL": {
+				  "id": "H]1?IQv^=%_LL!pnT;:Y"
+				}
+			  },
+			  "next": {
+				"block": {
+				  "type": "switch_animation",
+				  "id": "yNM_!U]SiBk4-wx({7B:",
+				  "icons": {
+					"comment": {
+					  "text": "Switch to an animation\nand keep playing it",
+					  "pinned": false,
+					  "height": 77.14285278320312,
+					  "width": 185.71429443359375
+					}
+				  },
+				  "fields": {
+					"MODEL": {
+					  "id": "H]1?IQv^=%_LL!pnT;:Y"
+					},
+					"ANIMATION_NAME": "Idle"
+				  }
+				}
+			  }
+			}
+		  }
+		}
+	  }
+	]
+  },
+  "variables": [
+	{
+	  "name": "monkey",
+	  "id": "H]1?IQv^=%_LL!pnT;:Y"
+	},
+	{
+	  "name": "character2",
+	  "id": "nR@9%DMJ;6)0xKajV0Uw"
+	}
+  ]
+}

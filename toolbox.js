@@ -1849,6 +1849,11 @@ export const toolbox = {
 						},
 					},
 				},
+				{
+					kind: "block",
+					type: "microbit_input",
+					keyword: "microbit",
+				},
 			],
 		},
 		{

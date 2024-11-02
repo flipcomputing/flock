@@ -4557,3 +4557,64 @@ Blockly.FieldVariable.prototype.onItemSelected_ = function (menu, menuItem) {
 };
 
 Blockly.Msg["LISTS_CREATE_WITH_INPUT_WITH"] = "create list";
+
+
+Blockly.Blocks["microbit_input"] = {
+	init: function () {
+		this.jsonInit({
+			type: "microbit_input",
+			message0: "when micro:bit event %1",
+			args0: [
+				{
+					type: "field_dropdown",
+					name: "EVENT",
+					options: [
+						["Pin P0 released", "0"],
+						["Pin P1 released", "1"],
+						["Pin P2 released", "2"],
+						["Logo long pressed", "l"],
+						["Logo touched", "j"],
+						["Logo pressed", "h"],
+						["Logo released", "k"],
+						["Button A pressed", " "],
+						["Button B pressed", "q"],
+						["Button A+B pressed", "r"],
+						["Gesture: FreeFall", "t"],
+						["Gesture: LogoUp", "o"],
+						["Gesture: LogoDown", "p"],
+						["Gesture: TiltLeft", "a"],
+						["Gesture: TiltRight", "d"],
+						["Gesture: ScreenUp", "y"],
+						["Gesture: ScreenDown", "h"],
+						["Gesture: Shake", "i"],
+					],
+				},
+			],
+			message1: "%1",
+			args1: [
+				{
+					type: "input_statement",
+					name: "DO",
+				},
+			],
+			colour: categoryColours["Sensing"],
+			tooltip:
+				"Executes the blocks inside when a specified micro:bit event is triggered.",
+			helpUrl: "",
+		});
+
+		addToggleButton(this);
+	},
+	mutationToDom: function () {
+		return mutationToDom(this);
+	},
+	domToMutation: function (xmlElement) {
+		domToMutation(this, xmlElement);
+	},
+	updateShape_: function (isInline) {
+		updateShape(this, isInline);
+	},
+	toggleDoBlock: function () {
+		this.updateShape_(!this.isInline);
+	},
+};

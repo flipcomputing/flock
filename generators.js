@@ -2199,3 +2199,10 @@ javascriptGenerator.forBlock["vector"] = function (block) {
 	const code = `[${x}, ${y}, ${z}]`;
 	return [code, javascriptGenerator.ORDER_ATOMIC];
 };
+
+javascriptGenerator.forBlock["microbit_input"] = function (block) {
+	const event = block.getFieldValue("EVENT");
+	const statements_do = javascriptGenerator.statementToCode(block, "DO");
+
+	return `whenKeyPressed("${event}", async () => {${statements_do}});\n`;
+};
