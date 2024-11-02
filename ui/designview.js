@@ -28,12 +28,12 @@ document.addEventListener("DOMContentLoaded", function () {
 	const colorInput = document.getElementById("colorPickerButton");
 
 	window.addEventListener("keydown", (event) => {
-		// Check if the dot key (.) is pressed (key code 190)
-		if (event.code === "Period") {
+		// Check if both Ctrl and the comma key (,) are pressed
+		if (event.ctrlKey && event.code === "Comma") {
 			focusCameraOnMesh();
 		}
 	});
-
+	
 	// Attach the event listener to capture color changes when user interacts with the input
 	colorInput.addEventListener("input", (event) => {
 		window.selectedColor = event.target.value; // Store the selected color
