@@ -79,12 +79,14 @@ export function handleBlockSelect(event) {
 }
 
 export function handleBlockDelete(event) {
-	if (event.type === Blockly.Events.BLOCK_DELETE && 
-		(event.oldJson?.type.startsWith('load_') || event.oldJson?.type.startsWith('create_'))) {
+	if (
+		event.type === Blockly.Events.BLOCK_DELETE &&
+		(event.oldJson?.type.startsWith("load_") ||
+			event.oldJson?.type.startsWith("create_"))
+	) {
 		deleteMeshFromBlock(event.blockId);
 	}
 }
-
 
 export function findCreateBlock(block) {
 	if (!block || typeof block.getParent !== "function") {
@@ -179,6 +181,7 @@ export const options = {
 	//renderer: "zelos",
 	renderer: "custom_zelos_renderer",
 	pathToMedia: "blockly/media/",
+	modalInputs: false,
 	zoom: {
 		controls: true,
 		wheel: false,
@@ -4454,46 +4457,52 @@ export function handleBlockCreateEvent(
 	}
 }
 
-	// Extend the built-in Blockly procedures_defreturn block to add custom toggle functionality
+// Extend the built-in Blockly procedures_defreturn block to add custom toggle functionality
 
-	// Reference to the original init function of the procedures_defreturn block
-	Blockly.Blocks['procedures_defreturn'].init = (function(originalInit) {
-		return function() {
-			// Call the original initialization function to ensure the block retains its default behaviour
-			originalInit.call(this);
+// Reference to the original init function of the procedures_defreturn block
+Blockly.Blocks["procedures_defreturn"].init = (function (originalInit) {
+	return function () {
+		// Call the original initialization function to ensure the block retains its default behaviour
+		originalInit.call(this);
 
-			// Use the existing addToggleButton helper to add the button to the block
-			addToggleButton(this);
-		};
-	})(Blockly.Blocks['procedures_defreturn'].init);
+		// Use the existing addToggleButton helper to add the button to the block
+		addToggleButton(this);
+	};
+})(Blockly.Blocks["procedures_defreturn"].init);
 
-	// Create an extension that adds extra UI logic without modifying the core mutator methods
-	Blockly.Extensions.register('custom_procedure_ui_extension', function() {
-		// Add the toggle behaviour method using your helper
-		this.toggleDoBlock = function() {
-			// Update the shape when toggled without interfering with mutator methods
-			updateShape(this, !this.isInline);
-		};
-	});
+// Create an extension that adds extra UI logic without modifying the core mutator methods
+Blockly.Extensions.register("custom_procedure_ui_extension", function () {
+	// Add the toggle behaviour method using your helper
+	this.toggleDoBlock = function () {
+		// Update the shape when toggled without interfering with mutator methods
+		updateShape(this, !this.isInline);
+	};
+});
 
-	// Apply the extension to the built-in 'procedures_defreturn' block
-	Blockly.Extensions.apply('custom_procedure_ui_extension', Blockly.Blocks['procedures_defreturn']);
+// Apply the extension to the built-in 'procedures_defreturn' block
+Blockly.Extensions.apply(
+	"custom_procedure_ui_extension",
+	Blockly.Blocks["procedures_defreturn"],
+);
 
-	// Extend the built-in Blockly procedures_defnoreturn block to add custom toggle functionality
+// Extend the built-in Blockly procedures_defnoreturn block to add custom toggle functionality
 
-	// Reference to the original init function of the procedures_defnoreturn block
-	Blockly.Blocks['procedures_defnoreturn'].init = (function(originalInit) {
-		return function() {
-			// Call the original initialization function to ensure the block retains its default behaviour
-			originalInit.call(this);
+// Reference to the original init function of the procedures_defnoreturn block
+Blockly.Blocks["procedures_defnoreturn"].init = (function (originalInit) {
+	return function () {
+		// Call the original initialization function to ensure the block retains its default behaviour
+		originalInit.call(this);
 
-			// Use the existing addToggleButton helper to add the button to the block
-			addToggleButton(this);
-		};
-	})(Blockly.Blocks['procedures_defnoreturn'].init);
+		// Use the existing addToggleButton helper to add the button to the block
+		addToggleButton(this);
+	};
+})(Blockly.Blocks["procedures_defnoreturn"].init);
 
-	// Apply the extension to the built-in 'procedures_defnoreturn' block
-	Blockly.Extensions.apply('custom_procedure_ui_extension', Blockly.Blocks['procedures_defnoreturn']);
+// Apply the extension to the built-in 'procedures_defnoreturn' block
+Blockly.Extensions.apply(
+	"custom_procedure_ui_extension",
+	Blockly.Blocks["procedures_defnoreturn"],
+);
 
 // Define unique IDs for each option
 Blockly.FieldVariable.ADD_VARIABLE_ID = "ADD_VARIABLE_ID";
@@ -4502,44 +4511,49 @@ Blockly.FieldVariable.DELETE_VARIABLE_ID = "DELETE_VARIABLE_ID";
 
 // Extend `getOptions` to include "New variable..." at the top of the dropdown
 const originalGetOptions = Blockly.FieldVariable.prototype.getOptions;
-Blockly.FieldVariable.prototype.getOptions = function() {
+Blockly.FieldVariable.prototype.getOptions = function () {
 	// Retrieve the default options
 	const options = originalGetOptions.call(this);
 
 	// Add the "New variable..." option at the beginning
-	options.unshift(['New variable...', Blockly.FieldVariable.ADD_VARIABLE_ID]);
+	options.unshift(["New variable...", Blockly.FieldVariable.ADD_VARIABLE_ID]);
 
 	return options;
 };
 
 // Save a reference to the original `onItemSelected_` method
 const originalOnItemSelected = Blockly.FieldVariable.prototype.onItemSelected_;
-Blockly.FieldVariable.prototype.onItemSelected_ = function(menu, menuItem) {
+Blockly.FieldVariable.prototype.onItemSelected_ = function (menu, menuItem) {
 	const id = menuItem.getValue();
 
 	if (id === Blockly.FieldVariable.ADD_VARIABLE_ID) {
 		// Open the variable creation dialog, receiving the new variable name
-		Blockly.Variables.createVariableButtonHandler(this.sourceBlock_.workspace, (newVariableName) => {
-			if (newVariableName) {
-				// Find the variable by its name to get the full variable object
-				const newVariable = this.sourceBlock_.workspace.getVariable(newVariableName);
+		Blockly.Variables.createVariableButtonHandler(
+			this.sourceBlock_.workspace,
+			(newVariableName) => {
+				if (newVariableName) {
+					// Find the variable by its name to get the full variable object
+					const newVariable =
+						this.sourceBlock_.workspace.getVariable(
+							newVariableName,
+						);
 
-				if (newVariable) {
-					// Set the new variable as selected
-					this.doValueUpdate_(newVariable.getId());
-					this.forceRerender();  // Refresh the UI to show the new selection			
+					if (newVariable) {
+						// Set the new variable as selected
+						this.doValueUpdate_(newVariable.getId());
+						this.forceRerender(); // Refresh the UI to show the new selection
+					} else {
+						console.log("New variable not found in workspace.");
+					}
 				} else {
-					console.log("New variable not found in workspace.");
+					console.log("Variable creation was cancelled.");
 				}
-			} else {
-				console.log("Variable creation was cancelled.");
-			}
-		});
+			},
+		);
 	} else {
 		// Use the stored reference to avoid recursion
 		originalOnItemSelected.call(this, menu, menuItem);
 	}
 };
 
-
-Blockly.Msg['LISTS_CREATE_WITH_INPUT_WITH'] = "create list"
+Blockly.Msg["LISTS_CREATE_WITH_INPUT_WITH"] = "create list";
