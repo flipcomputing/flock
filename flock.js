@@ -332,10 +332,9 @@ export const flock = {
 		// Set up lighting
 		const hemisphericLight = new flock.BABYLON.HemisphericLight(
 			"hemisphericLight",
-			new flock.BABYLON.Vector3(0, 1, 0),
+			new flock.BABYLON.Vector3(1, 1, 0),
 			flock.scene,
 		);
-
 		flock.scene.onPointerObservable.add(function (pointerInfo) {
 			if (
 				pointerInfo.type === flock.BABYLON.PointerEventTypes.POINTERUP
