@@ -1015,9 +1015,6 @@ export function defineGenerators() {
 			trigger === "OnIntersectionEnterTrigger" ||
 			trigger === "OnIntersectionExitTrigger"
 		) {
-			// Check if the block is top-level (no previous or next connection)
-			//const isTopLevel = !block.previousConnection && !block.nextConnection;
-			//const asyncWrapper = isTopLevel ? "async function() {\n" : "function() {\n";
 
 			return `onIntersect(${modelName}, ${otherModelName}, "${trigger}", async function() {\n
 				${doCode}
@@ -1039,12 +1036,8 @@ export function defineGenerators() {
 
 		const trigger = block.getFieldValue("TRIGGER");
 		const doCode = javascriptGenerator.statementToCode(block, "DO");
-
-		// Check if the block is top-level (no previous or next connection)
-		const isTopLevel = !block.previousConnection && !block.nextConnection;
-		const asyncWrapper = isTopLevel ? "async function() {\n" : "function() {\n";
-
-		return `onTrigger(${modelName}, "${trigger}", ${asyncWrapper}
+		
+		return `onTrigger(${modelName}, "${trigger}", async function() {\n
 			${doCode}
 		});\n`;
 	};

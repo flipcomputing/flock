@@ -3298,19 +3298,25 @@ export const flock = {
 								property,
 							)
 						) {
-							if (keyframe.value instanceof flock.BABYLON.Vector3) {
+							if (
+								keyframe.value instanceof flock.BABYLON.Vector3
+							) {
 								value = keyframe.value;
 							} else if (typeof keyframe.value === "number") {
-								value = new flock.BABYLON.Vector3(keyframe.value, keyframe.value, keyframe.value);
+								value = new flock.BABYLON.Vector3(
+									keyframe.value,
+									keyframe.value,
+									keyframe.value,
+								);
 							} else if (typeof keyframe.value === "string") {
-								const vectorValues = keyframe.value.match(/-?\d+(\.\d+)?/g);
+								const vectorValues =
+									keyframe.value.match(/-?\d+(\.\d+)?/g);
 								value = new flock.BABYLON.Vector3(
 									parseFloat(vectorValues[0]),
 									parseFloat(vectorValues[1]),
 									parseFloat(vectorValues[2]),
 								);
 							}
-
 						} else {
 							value = parseFloat(keyframe.value);
 						}
