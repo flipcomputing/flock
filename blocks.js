@@ -890,6 +890,29 @@ export function defineBlocks() {
 		},
 	};
 
+	Blockly.Blocks["stop_animations"] = {
+		init: function () {
+			this.jsonInit({
+				type: "stop_animations",
+				message0: "stop animations %1",
+				args0: [
+					{
+						type: "field_variable",
+						name: "MODEL_VAR",
+						variable: window.currentMesh,
+					},
+				],
+				inputsInline: true,
+				previousStatement: null,
+				nextStatement: null,
+				colour: categoryColours["Animate"],
+				tooltip:
+					"Stop all keyframe animations on the selected model.\nKeyword: stop",
+				helpUrl: "",
+			});
+		},
+	};
+
 	Blockly.Blocks["min_centre_max"] = {
 		init: function () {
 			this.jsonInit({
@@ -4557,7 +4580,6 @@ Blockly.FieldVariable.prototype.onItemSelected_ = function (menu, menuItem) {
 };
 
 Blockly.Msg["LISTS_CREATE_WITH_INPUT_WITH"] = "create list";
-
 
 Blockly.Blocks["microbit_input"] = {
 	init: function () {

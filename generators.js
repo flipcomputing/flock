@@ -172,6 +172,16 @@ export function defineGenerators() {
 	  return `${asyncWrapper}animateKeyFrames(${meshVar}, [${keyframesCode}], "${property}", "${easing}", ${loop}, ${reverse});\n`;
 	};
 
+	javascriptGenerator.forBlock["stop_animations"] = function (block) {
+		const modelName = javascriptGenerator.nameDB_.getName(
+			block.getFieldValue("MODEL_VAR"),
+			Blockly.Names.NameType.VARIABLE,
+		);
+
+		return `await stopAnimations(${modelName});\n`;
+	};
+
+
 	javascriptGenerator.forBlock["colour_keyframe"] = function (block) {
 	  const color = javascriptGenerator.valueToCode(
 		block,

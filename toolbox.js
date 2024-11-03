@@ -1338,9 +1338,15 @@ export const toolbox = {
 				},
 				{
 					kind: "block",
+					type: "stop_animations",
+					keyword: "anistop",
+				},
+				{
+					kind: "block",
 					type: "animate_property",
 					keyword: "anp",
 				},
+				
 			],
 		},
 
