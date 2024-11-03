@@ -2953,19 +2953,13 @@ export const flock = {
 	},
 	createSmallButton(text, key, color) {
 		const button = flock.GUI.Button.CreateSimpleButton("but", text);
-		button.width = `${47 * flock.displayScale}px`; // Reduced size (2/3 of 70)
-		button.height = `${47 * flock.displayScale}px`;
-		button.minWidth = "40px"; // Minimum width
-		button.minHeight = "40px"; // Minimum height
+		button.width = `${70 * flock.displayScale}px`; // Scale size
+		button.height = `${70 * flock.displayScale}px`;
 		button.color = color;
 		button.background = "transparent";
-		button.fontSize = `${27 * flock.displayScale}px`; // Reduced font size (2/3 of 40)
-		button.paddingLeft = `${5 * flock.displayScale}px`; // Adjusted padding for spacing
-		button.paddingRight = `${5 * flock.displayScale}px`;
-		button.paddingTop = `${3 * flock.displayScale}px`;
-		button.paddingBottom = `${3 * flock.displayScale}px`;
-		button.fontFamily = "Asap";
+		button.fontSize = `${40 * flock.displayScale}px`; // Scale font size
 
+		button.fontFamily = "Asap";
 		button.onPointerDownObservable.add(() => {
 			flock.canvas.pressedButtons.add(key);
 			flock.gridKeyPressObservable.notifyObservers(key);
@@ -2977,27 +2971,18 @@ export const flock = {
 		});
 		return button;
 	},
-
 	createArrowControls(color) {
+		// Create a grid
 		const grid = new flock.GUI.Grid();
-		grid.width = `${160 * flock.displayScale}px`; // Reduced width
-		grid.height = `${107 * flock.displayScale}px`; // Reduced height
-		grid.minWidth = "80px";
-		grid.minHeight = "80px";
-		grid.paddingLeft = `${10 * flock.displayScale}px`;
-		grid.paddingRight = `${10 * flock.displayScale}px`;
-		grid.paddingTop = `${5 * flock.displayScale}px`;
-		grid.paddingBottom = `${5 * flock.displayScale}px`;
+		grid.width = `${240 * flock.displayScale}px`;
+		grid.height = `${160 * flock.displayScale}px`;
 		grid.horizontalAlignment = flock.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
 		grid.verticalAlignment = flock.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM;
-
-		// Adjusted row and column definitions to manage spacing
-		grid.addRowDefinition(0.5); 
-		grid.addRowDefinition(0.5);
-		grid.addColumnDefinition(0.5);
-		grid.addColumnDefinition(0.5);
-		grid.addColumnDefinition(0.5);
-
+		grid.addRowDefinition(1);
+		grid.addRowDefinition(1);
+		grid.addColumnDefinition(1);
+		grid.addColumnDefinition(1);
+		grid.addColumnDefinition(1);
 		flock.controlsTexture.addControl(grid);
 
 		const upButton = flock.createSmallButton("△", "w", color);
@@ -3005,43 +2990,39 @@ export const flock = {
 		const leftButton = flock.createSmallButton("◁", "a", color);
 		const rightButton = flock.createSmallButton("▷", "d", color);
 
-		grid.addControl(upButton, 0, 1);
-		grid.addControl(leftButton, 1, 0);
-		grid.addControl(downButton, 1, 1);
-		grid.addControl(rightButton, 1, 2);
+		// Add buttons to the grid
+		grid.addControl(upButton, 0, 1); // Add to row 0, column 1
+		grid.addControl(leftButton, 1, 0); // Add to row 1, column 0
+		grid.addControl(downButton, 1, 1); // Add to row 1, column 1
+		grid.addControl(rightButton, 1, 2); // Add to row 1, column 2
 	},
-
 	createButtonControls(color) {
+		// Create another grid for the buttons on the right
 		const rightGrid = new flock.GUI.Grid();
-		rightGrid.width = `${107 * flock.displayScale}px`; // Reduced width
-		rightGrid.height = `${107 * flock.displayScale}px`; // Reduced height
-		rightGrid.minWidth = "80px";
-		rightGrid.minHeight = "80px";
-		rightGrid.paddingLeft = `${8 * flock.displayScale}px`; // Adjusted padding
-		rightGrid.paddingRight = `${8 * flock.displayScale}px`;
-		rightGrid.paddingTop = `${5 * flock.displayScale}px`;
-		rightGrid.paddingBottom = `${5 * flock.displayScale}px`;
-		rightGrid.horizontalAlignment = flock.GUI.Control.HORIZONTAL_ALIGNMENT_RIGHT;
-		rightGrid.verticalAlignment = flock.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM;
-
-		rightGrid.addRowDefinition(0.5);
-		rightGrid.addRowDefinition(0.5);
-		rightGrid.addColumnDefinition(0.5);
-		rightGrid.addColumnDefinition(0.5);
-
+		rightGrid.width = `${160 * flock.displayScale}px`; // Scale width
+		rightGrid.height = `${160 * flock.displayScale}px`; // Scale height
+		rightGrid.horizontalAlignment =
+			flock.GUI.Control.HORIZONTAL_ALIGNMENT_RIGHT;
+		rightGrid.verticalAlignment =
+			flock.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM;
+		rightGrid.addRowDefinition(1);
+		rightGrid.addRowDefinition(1);
+		rightGrid.addColumnDefinition(1);
+		rightGrid.addColumnDefinition(1);
 		flock.controlsTexture.addControl(rightGrid);
 
+		// Create buttons for the right grid
 		const button1 = flock.createSmallButton("■", "q", color);
 		const button2 = flock.createSmallButton("✿", "e", color);
 		const button3 = flock.createSmallButton("✱", "f", color);
 		const button4 = flock.createSmallButton("∞", " ", color);
 
-		rightGrid.addControl(button1, 0, 0);
-		rightGrid.addControl(button2, 0, 1);
-		rightGrid.addControl(button3, 1, 0);
-		rightGrid.addControl(button4, 1, 1);
+		// Add buttons to the right grid in a 2x2 layout
+		rightGrid.addControl(button1, 0, 0); // Row 0, Column 0
+		rightGrid.addControl(button2, 0, 1); // Row 0, Column 1
+		rightGrid.addControl(button3, 1, 0); // Row 1, Column 0
+		rightGrid.addControl(button4, 1, 1); // Row 1, Column 1
 	},
-
 	buttonControls(control, enabled, color) {
 		if (flock.controlsTexture) {
 			flock.controlsTexture.dispose();
