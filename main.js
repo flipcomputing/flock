@@ -56,28 +56,41 @@ function saveWorkspace() {
 
 // Function to load today's workspace state
 function loadWorkspace() {
+	const urlParams = new URLSearchParams(window.location.search);
+	const projectUrl = urlParams.get('project'); // Check for project URL parameter
 	const savedState = localStorage.getItem("flock_autosave.json");
 
-	if (savedState) {
+	if (projectUrl) {
+		// Load from project URL parameter
+		fetch(projectUrl)
+			.then((response) => response.json())
+			.then((json) => {
+				Blockly.serialization.workspaces.load(json, workspace);
+				executeCode();
+			})
+			.catch((error) => {
+				console.error("Error loading project from URL:", error);
+			});
+	} else if (savedState) {
+		// Load from local storage if available
 		Blockly.serialization.workspaces.load(
 			JSON.parse(savedState),
 			workspace,
 		);
+		executeCode();
 	} else {
+		// Load from default starter JSON if no other options
 		const starter = "examples/starter.json";
-		// Load the JSON into the workspace
 		fetch(starter)
-		.then((response) => response.json())
-		.then((json) => {
-			Blockly.serialization.workspaces.load(json, workspace);
-			executeCode();
-		})
-		.catch((error) => {
-			console.error("Error loading example:", error);
-		});
+			.then((response) => response.json())
+			.then((json) => {
+				Blockly.serialization.workspaces.load(json, workspace);
+				executeCode();
+			})
+			.catch((error) => {
+				console.error("Error loading starter example:", error);
+			});
 	}
-
-	executeCode();
 }
 
 function stripFilename(inputString) {
