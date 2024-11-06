@@ -235,7 +235,9 @@ export const flock = {
 
 		flock.engine = new flock.BABYLON.Engine(flock.canvas, true, {
 			stencil: true,
-		});
+			deterministicLockstep: true,
+		}, true);
+
 		flock.engine.enableOfflineSupport = false;
 		flock.engine.setHardwareScalingLevel(1 / window.devicePixelRatio);
 	},
