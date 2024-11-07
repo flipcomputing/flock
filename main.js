@@ -861,12 +861,37 @@ window.onload = function () {
 	workspace = Blockly.inject("blocklyDiv", options);
 	registerFieldColour();
 
+	// Resize Blockly workspace and Babylon.js canvas when the window is resized
+	window.addEventListener("resize", onResize);
+
 	workspace.addChangeListener(handleBlockSelect);
 	workspace.addChangeListener(handleBlockDelete);
 
-	
-	// Resize Blockly workspace and Babylon.js canvas when the window is resized
-	window.addEventListener("resize", onResize);
+	Blockly.getMainWorkspace().addChangeListener((event) => {
+		// Check if the event is a block collapse action
+		if (event.type === Blockly.Events.BLOCK_CHANGE && event.element === "collapsed") {
+			const block = Blockly.getMainWorkspace().getBlockById(event.blockId);
+
+			// Check if the block is a top-level block (no parent)
+			if (block && !block.getParent() && block.isCollapsed()) {
+				// Call Blockly's built-in clean up function
+				Blockly.getMainWorkspace().cleanUp();
+			}
+		}
+	});
+
+	Blockly.getMainWorkspace().addChangeListener((event) => {
+		// Check if the event is a block collapse/expand action
+		if (event.type === Blockly.Events.BLOCK_CHANGE && event.element === "collapsed") {
+			const block = Blockly.getMainWorkspace().getBlockById(event.blockId);
+
+			// Check if the block is a top-level block (no parent)
+			if (block && !block.getParent()) {
+				// Call Blockly's built-in clean up function when the block is collapsed or expanded
+				Blockly.getMainWorkspace().cleanUp();
+			}
+		}
+	});
 
 	Blockly.ContextMenuItems.registerCommentOptions();
 	const navigationController = new NavigationController();
