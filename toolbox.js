@@ -1346,7 +1346,6 @@ export const toolbox = {
 					type: "animate_property",
 					keyword: "anp",
 				},
-				
 			],
 		},
 
@@ -1868,6 +1867,21 @@ export const toolbox = {
 			icon: "./images/text.svg",
 			categorystyle: "text_category",
 			contents: [
+				{
+					kind: "block",
+					type: "comment",
+					keyword: "//",
+					inputs: {
+						COMMENT: {
+							shadow: {
+								type: "text",
+								fields: {
+									TEXT: "comment",
+								},
+							},
+						},
+					},
+				},
 				{
 					kind: "block",
 					type: "print_text",
@@ -3259,7 +3273,6 @@ export const toolbox = {
 		},
 	],
 };
-
 
 class IconCategory extends Blockly.ToolboxCategory {
 	constructor(categoryDef, toolbox, opt_parent) {

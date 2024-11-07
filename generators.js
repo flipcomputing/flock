@@ -335,6 +335,16 @@ export function defineGenerators() {
 		return `buttonControls("${control}", ${enabled}, ${color});\n`;
 	};
 
+	javascriptGenerator.forBlock["comment"] = function (block) {
+		const commentText =
+			javascriptGenerator.valueToCode(
+				block,
+				"COMMENT",
+				javascriptGenerator.ORDER_ATOMIC
+			) || "''";
+		return `// ${commentText}\n`;
+	};
+
 	javascriptGenerator.forBlock["print_text"] = function (block) {
 		const text =
 			javascriptGenerator.valueToCode(

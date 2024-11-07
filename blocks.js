@@ -1552,6 +1552,28 @@ export function defineBlocks() {
 		},
 	};
 
+	Blockly.Blocks["comment"] = {
+		init: function () {
+			this.jsonInit({
+				type: "comment",
+				message0: "// %1",
+				args0: [
+					{
+						type: "input_value",
+						name: "COMMENT",
+						check: "String",
+					}
+				],
+				inputsInline: true,
+				previousStatement: null,
+				nextStatement: null,
+				colour: "#d3d3d3",
+				tooltip: "A comment line.",
+				helpUrl: "",
+			});
+		},
+	};
+
 	Blockly.Blocks["print_text"] = {
 		init: function () {
 			this.jsonInit({
