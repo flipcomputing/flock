@@ -682,7 +682,7 @@ export function defineGenerators() {
 		return `${variableName} = newWall(${color}, ${startX}, ${startZ}, ${endX}, ${endZ}, ${yPosition}, "${wallType}", "${wallId}");\n`;
 	};
 
-	javascriptGenerator.forBlock["move_by_vector"] = function (block) {
+	javascriptGenerator.forBlock["move_by_xyz"] = function (block) {
 		const modelName = javascriptGenerator.nameDB_.getName(
 			block.getFieldValue("BLOCK_NAME"),
 			Blockly.Names.NameType.VARIABLE,

@@ -544,7 +544,7 @@
 					  },
 					  "DO0": {
 						"block": {
-						  "type": "move_by_vector",
+						  "type": "move_by_xyz",
 						  "id": "5BPAyI+8XNy-TiP^kA$*",
 						  "fields": {
 							"BLOCK_NAME": {

@@ -1562,7 +1562,7 @@ export function defineBlocks() {
 						type: "input_value",
 						name: "COMMENT",
 						check: "String",
-					}
+					},
 				],
 				inputsInline: true,
 				previousStatement: null,
@@ -1813,10 +1813,10 @@ export function defineBlocks() {
 		},
 	};
 
-	Blockly.Blocks["move_by_vector"] = {
+	Blockly.Blocks["move_by_xyz"] = {
 		init: function () {
 			this.jsonInit({
-				type: "move_by_vector",
+				type: "move_by_xyz",
 				message0: "move %1 by x: %2 y: %3 z: %4",
 				args0: [
 					{
