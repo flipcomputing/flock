@@ -2191,7 +2191,7 @@ javascriptGenerator.forBlock["controls_forEach"] = function (block, generator) {
 	return code;
 };
 
-javascriptGenerator.forBlock["vector"] = function (block) {
+javascriptGenerator.forBlock["xyz"] = function (block) {
 	const x = javascriptGenerator.valueToCode(
 		block,
 		"X",

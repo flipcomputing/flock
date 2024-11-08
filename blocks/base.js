@@ -5,10 +5,10 @@ window.currentMesh = "mesh";
 window.currentBlock = null;
 
 export function defineBaseBlocks() {
-	Blockly.Blocks["vector"] = {
+	Blockly.Blocks["xyz"] = {
 		init: function () {
 			this.jsonInit({
-				type: "vector",
+				type: "xyz",
 				message0: "x: %1 y: %2 z: %3",
 				args0: [
 					{ type: "input_value", name: "X", check: "Number" },

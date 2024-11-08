@@ -1537,7 +1537,7 @@ export const toolbox = {
 				},
 				{
 					kind: "block",
-					type: "vector", // Use the block's actual type name defined when you created it
+					type: "xyz", // Use the block's actual type name defined when you created it
 					inputs: {
 						X: {
 							shadow: {
