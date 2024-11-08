@@ -2281,11 +2281,11 @@ export function defineBlocks() {
 		},
 	};
 
-	Blockly.Blocks["position_at"] = {
+	Blockly.Blocks["move_to_xyz"] = {
 		init: function () {
 			this.jsonInit({
-				type: "position_at",
-				message0: "position %1 at x: %2 y: %3 z: %4 y? %5",
+				type: "move_to_xyz",
+				message0: "move %1 to x: %2 y: %3 z: %4 y? %5",
 				args0: [
 					{
 						type: "field_variable",

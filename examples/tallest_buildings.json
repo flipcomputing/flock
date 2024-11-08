@@ -235,7 +235,7 @@
                                       },
                                       "next": {
                                         "block": {
-                                          "type": "position_at",
+                                          "type": "move_to_xyz",
                                           "id": "-n,EGW`CG@`+9Ro]d@m[",
                                           "fields": {
                                             "MODEL": {
@@ -3542,7 +3542,7 @@
           },
           "DO": {
             "block": {
-              "type": "position_at",
+              "type": "move_to_xyz",
               "id": "C)a6((xF~(JRmVunE;*y",
               "fields": {
                 "MODEL": {
@@ -3812,7 +3812,7 @@
               },
               "next": {
                 "block": {
-                  "type": "position_at",
+                  "type": "move_to_xyz",
                   "id": "0Ckuw_$3sm(nZNWp1*?I",
                   "fields": {
                     "MODEL": {

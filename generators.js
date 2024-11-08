@@ -785,7 +785,7 @@ export function defineGenerators() {
 		return `await rotateTo(${meshName}, ${x}, ${y}, ${z});\n`;
 	};
 
-	javascriptGenerator.forBlock["position_at"] = function (block) {
+	javascriptGenerator.forBlock["move_to_xyz"] = function (block) {
 		const meshName = javascriptGenerator.nameDB_.getName(
 			block.getFieldValue("MODEL"),
 			Blockly.Names.NameType.VARIABLE,

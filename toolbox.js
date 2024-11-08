@@ -1439,7 +1439,7 @@ export const toolbox = {
 				},
 				{
 					kind: "block",
-					type: "move_to",
+					type: "move_to_xyz",
 					keyword: "goto",
 				},
 				{
@@ -1475,7 +1475,7 @@ export const toolbox = {
 				},
 				{
 					kind: "block",
-					type: "position_at",
+					type: "move_to",
 					keyword: "pos",
 					inputs: {
 						X: {
