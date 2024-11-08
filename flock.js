@@ -159,6 +159,7 @@ export const flock = {
 			whenKeyReleased,
 			printText,
 			UIText,
+			UIButton,
 			onIntersect,
 			getProperty,
 			exportMesh,
@@ -512,6 +513,59 @@ export const flock = {
 
 		return textBlock;
 	},
+	UIButton(text, x, y, width, textColor, backgroundColor, buttonId) {
+		// Ensure we have access to the UI texture
+		flock.scene.UITexture ??= flock.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
+
+		// Create a Babylon.js GUI button
+		const button = flock.GUI.Button.CreateSimpleButton(buttonId, text);
+
+		// Set button width based on predefined options (Small, Medium, Large)
+		switch (width.toUpperCase()) {
+			case "SMALL":
+				button.width = "10%";  // Width as a percentage of the screen width
+				break;
+			case "MEDIUM":
+				button.width = "15%";
+				break;
+			case "LARGE":
+				button.width = "20%";
+				break;
+			default:
+				button.width = "10%"; // Default to SMALL if no valid option is provided
+		}
+
+		// Enable text wrapping and allow height to be adjusted automatically
+		button.textBlock.textWrapping = true; // Enable text wrapping
+		button.height = "40px";  // Allow the height to adapt based on content
+
+		// Set button text color and background color
+		button.color = textColor || "white";
+		button.background = backgroundColor || "blue";
+
+		// Set button alignment to position it in the screen space
+		if (x < 0) {
+			button.horizontalAlignment = flock.GUI.Control.HORIZONTAL_ALIGNMENT_RIGHT;
+			button.left = `${x}px`;  // Negative offset from the right side
+		} else {
+			button.horizontalAlignment = flock.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
+			button.left = `${x}px`;  // Positive offset from the left side
+		}
+
+		if (y < 0) {
+			button.verticalAlignment = flock.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM;
+			button.top = `${y}px`;  // Negative offset from the bottom side
+		} else {
+			button.verticalAlignment = flock.GUI.Control.VERTICAL_ALIGNMENT_TOP;
+			button.top = `${y}px`;  // Positive offset from the top side
+		}
+
+		// Add the button to the Advanced Dynamic Texture UI
+		flock.scene.UITexture.addControl(button);
+
+		// Return the button name so it can be used for lookups
+		return button.name;
+	},
 	removeEventListeners() {
 		flock.scene.eventListeners?.forEach(({ event, handler }) => {
 			flock.document.removeEventListener(event, handler);
@@ -593,34 +647,40 @@ export const flock = {
 			`Mesh with ID '${meshId}' not found after ${maxAttempts} attempts.`,
 		);
 	},
-	whenModelReady(meshId, callback) {
-		// Check if the mesh is immediately available
+	whenModelReady(targetId, callback) {
+		// Check if the target (mesh or GUI button) is immediately available
 		if (flock.scene) {
-			const mesh = flock.scene.getMeshByName(meshId);
-			if (mesh) {
+			let target = flock.scene.getMeshByName(targetId);
+
+			if (!target && flock.scene.UITexture) {
+				target = flock.scene.UITexture.getControlByName(targetId);
+				
+			}
+
+			if (target) {
 				if (flock.abortController.signal.aborted) {
 					return; // If already aborted, stop here
 				}
-				// Mesh is available immediately, invoke the callback synchronously
-				callback(mesh);
+				// Target is available immediately, invoke the callback synchronously
+				callback(target);
 				return; // Return immediately, no Promise needed
 			}
 		}
 
-		// If the mesh is not immediately available, fall back to the generator and return a Promise
+		// If the target is not immediately available, fall back to the generator and return a Promise
 		return (async () => {
-			const generator = flock.modelReadyGenerator(meshId);
+			const generator = flock.modelReadyGenerator(targetId);
 			try {
-				for await (const mesh of generator) {
+				for await (const target of generator) {
 					if (flock.abortController.signal.aborted) {
-						console.log(`Aborted waiting for mesh: ${meshId}`);
+						console.log(`Aborted waiting for target: ${targetId}`);
 						return; // Exit the loop if the operation was aborted
 					}
-					await callback(mesh);
+					await callback(target);
 				}
 			} catch (err) {
 				if (flock.abortController.signal.aborted) {
-					console.log(`Operation was aborted: ${meshId}`);
+					console.log(`Operation was aborted: ${targetId}`);
 				} else {
 					console.error(`Error in whenModelReady: ${err}`);
 				}
@@ -951,7 +1011,6 @@ export const flock = {
 						(b) => b.name === "PoleTarget.R",
 					);
 					if (bone) {
-						console.log(meshToAttachInstance);
 						meshToAttachInstance.attachToBone(
 							bone,
 							targetWithSkeleton,
@@ -2308,7 +2367,7 @@ export const flock = {
 	},
 	rotate(meshName, x, y, z) {
 		// Handle mesh rotation
-		return flock.whenModelReady(meshName, (mesh) => {			
+		return flock.whenModelReady(meshName, (mesh) => {
 			if (meshName === "__active_camera__") {
 				// Handle camera rotation
 				const camera = flock.scene.activeCamera;
@@ -4632,44 +4691,64 @@ export const flock = {
 		return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 	},
 	onTrigger(modelName, trigger, doCode) {
-		return flock.whenModelReady(modelName, async function (mesh) {
-			if (mesh) {
-				if (!mesh.actionManager) {
-					mesh.actionManager = new flock.BABYLON.ActionManager(
-						flock.scene,
-					);
-					mesh.actionManager.isRecursive = true;
-				}
+		return flock.whenModelReady(modelName, async function (target) {
+			if (target) {
+				if (target instanceof flock.BABYLON.AbstractMesh) {
+					// Handle mesh
+					if (!target.actionManager) {
+						target.actionManager = new flock.BABYLON.ActionManager(
+							flock.scene,
+						);
+						target.actionManager.isRecursive = true;
+					}
 
-				if (trigger === "OnRightOrLongPressTrigger") {
-					mesh.actionManager.registerAction(
-						new flock.BABYLON.ExecuteCodeAction(
-							flock.BABYLON.ActionManager.OnRightPickTrigger,
-							async function () {
-								await doCode();
-							},
-						),
-					);
-					mesh.actionManager.registerAction(
-						new flock.BABYLON.ExecuteCodeAction(
-							flock.BABYLON.ActionManager.OnLongPressTrigger,
-							async function () {
-								await doCode();
-							},
-						),
-					);
-				} else {
-					mesh.actionManager.registerAction(
-						new flock.BABYLON.ExecuteCodeAction(
-							flock.BABYLON.ActionManager[trigger],
-							async function () {
-								await doCode();
-							},
-						),
-					);
+					if (trigger === "OnRightOrLongPressTrigger") {
+						target.actionManager.registerAction(
+							new flock.BABYLON.ExecuteCodeAction(
+								flock.BABYLON.ActionManager.OnRightPickTrigger,
+								async function () {
+									await doCode();
+								},
+							),
+						);
+						target.actionManager.registerAction(
+							new flock.BABYLON.ExecuteCodeAction(
+								flock.BABYLON.ActionManager.OnLongPressTrigger,
+								async function () {
+									await doCode();
+								},
+							),
+						);
+					} else {
+						target.actionManager.registerAction(
+							new flock.BABYLON.ExecuteCodeAction(
+								flock.BABYLON.ActionManager[trigger],
+								async function () {
+									await doCode();
+								},
+							),
+						);
+					}
+				} else if (target instanceof flock.GUI.Button) {
+					if (trigger === "OnPointerUpTrigger") {
+						target.onPointerUpObservable.add(async function () {
+							await doCode();
+						});
+					} else if (trigger === "OnRightOrLongPressTrigger") {
+						// Babylon.js GUI does not have built-in right-click/long press support,
+						// adding a custom right-click or long press trigger logic can be done here if necessary.
+						console.warn(
+							"OnRightOrLongPressTrigger is not natively supported for GUI buttons."
+						);
+					} else {
+						// Default to OnPickTrigger if no other trigger is specified
+						target.onPointerClickObservable.add(async function () {
+							await doCode();
+						});
+					}
 				}
 			} else {
-				console.log("Model not loaded:", modelName);
+				console.log("Model or GUI Button not loaded:", modelName);
 			}
 		});
 	},

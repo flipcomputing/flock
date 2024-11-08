@@ -1751,9 +1751,65 @@ export function defineBlocks() {
 				inputsInline: true,
 				previousStatement: null,
 				nextStatement: null,
-				colour: 160,
+				colour: categoryColours["Text"],
 				tooltip:
 					"Add text to the UI screen, and store control in a variable for later use or disposal.",
+				helpUrl: "",
+			});
+		},
+	};
+
+	Blockly.Blocks["ui_button"] = {
+		init: function () {
+			this.jsonInit({
+				type: "ui_button",
+				message0: 
+					"ui button %1 %2 at x: %3 y: %4 size: %5 text color: %6 background color: %7",
+				args0: [
+					{
+						type: "input_value",
+						name: "TEXT",
+						check: "String",
+					},
+					{
+						type: "field_variable",
+						name: "BUTTON_VAR", // Variable to store the Button reference
+					},
+					{
+						type: "input_value",
+						name: "X",
+						check: "Number",
+					},
+					{
+						type: "input_value",
+						name: "Y",
+						check: "Number",
+					},
+					{
+						type: "field_dropdown",
+						name: "SIZE",
+						options: [
+							["small", "SMALL"],
+							["medium", "MEDIUM"],
+							["large", "LARGE"],
+						],
+					},
+					{
+						type: "input_value",
+						name: "TEXT_COLOR",
+						check: "Colour",
+					},
+					{
+						type: "input_value",
+						name: "BACKGROUND_COLOR",
+						check: "Colour",
+					},
+				],
+				inputsInline: true,
+				previousStatement: null,
+				nextStatement: null,
+				colour: categoryColours["Text"],
+				tooltip: "Add a button to the UI screen with a preset size, and store control in a variable for later use or disposal.",
 				helpUrl: "",
 			});
 		},

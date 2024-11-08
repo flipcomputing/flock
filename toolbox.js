@@ -1956,6 +1956,58 @@ export const toolbox = {
 				},
 				{
 					kind: "block",
+					type: "ui_button",
+					keyword: "ui",
+					inputs: {
+						TEXT: {
+							shadow: {
+								type: "text",
+								fields: {
+									TEXT: "Click Me",
+								},
+							},
+						},
+						X: {
+							shadow: {
+								type: "math_number",
+								fields: {
+									NUM: 100,
+								},
+							},
+						},
+						Y: {
+							shadow: {
+								type: "math_number",
+								fields: {
+									NUM: 50,
+								},
+							},
+						},
+						TEXT_COLOR: {
+							shadow: {
+								type: "colour",
+								fields: {
+									COLOR: "#FFFFFF",  // Using "COLOR" to match your example
+								},
+							},
+						},
+						BACKGROUND_COLOR: {
+							shadow: {
+								type: "colour",
+								fields: {
+									COLOR: "#007ACC",  // Using "COLOR" to match your example
+								},
+							},
+						},
+					},
+					fields: {
+						WIDTH: {
+							value: "SMALL"
+						},
+					},
+				},
+				{
+					kind: "block",
 					type: "say",
 					keyword: "say",
 					inputs: {
