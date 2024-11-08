@@ -3782,7 +3782,7 @@ export function defineBlocks() {
 		init: function () {
 			this.jsonInit({
 				type: "move_sideways",
-				message0: "move sideways %1 speed %2",
+				message0: "sideways %1 speed %2",
 				args0: [
 					{
 						type: "field_variable",

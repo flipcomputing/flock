@@ -1636,7 +1636,7 @@ export const toolbox = {
 					type: "get_camera",
 					keyword: "cam",
 				},
-				{
+				/*{
 					kind: "block",
 					type: "rotate_camera",
 					keyword: "",
@@ -1650,7 +1650,7 @@ export const toolbox = {
 							},
 						},
 					},
-				},
+				},*/
 				{
 					kind: "block",
 					type: "camera_follow",

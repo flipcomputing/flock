@@ -2308,8 +2308,8 @@ export const flock = {
 	},
 	rotate(meshName, x, y, z) {
 		// Handle mesh rotation
-		return flock.whenModelReady(meshName, (mesh) => {
-			if (meshName === "camera") {
+		return flock.whenModelReady(meshName, (mesh) => {			
+			if (meshName === "__active_camera__") {
 				// Handle camera rotation
 				const camera = flock.scene.activeCamera;
 				if (!camera) return;
