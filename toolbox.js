@@ -1388,6 +1388,42 @@ export const toolbox = {
 				},
 				{
 					kind: "block",
+					type: "move_to_xyz",
+					keyword: "pos",
+					inputs: {
+						X: {
+							shadow: {
+								type: "math_number",
+								fields: {
+									NUM: 0,
+								},
+							},
+						},
+						Y: {
+							shadow: {
+								type: "math_number",
+								fields: {
+									NUM: 0,
+								},
+							},
+						},
+						Z: {
+							shadow: {
+								type: "math_number",
+								fields: {
+									NUM: 0,
+								},
+							},
+						},
+					},
+				},
+				{
+					kind: "block",
+					type: "move_to",
+					keyword: "goto",
+				},
+				{
+					kind: "block",
 					type: "rotate_model_xyz",
 					keyword: "rotate",
 					inputs: {
@@ -1416,31 +1452,6 @@ export const toolbox = {
 							},
 						},
 					},
-				},
-				{
-					kind: "block",
-					type: "rotate_camera",
-					keyword: "",
-					inputs: {
-						DEGREES: {
-							shadow: {
-								type: "math_number",
-								fields: {
-									NUM: 5,
-								},
-							},
-						},
-					},
-				},
-				{
-					kind: "block",
-					type: "look_at",
-					keyword: "look",
-				},
-				{
-					kind: "block",
-					type: "move_to",
-					keyword: "goto",
 				},
 				{
 					kind: "block",
@@ -1475,35 +1486,10 @@ export const toolbox = {
 				},
 				{
 					kind: "block",
-					type: "move_to_xyz",
-					keyword: "pos",
-					inputs: {
-						X: {
-							shadow: {
-								type: "math_number",
-								fields: {
-									NUM: 0,
-								},
-							},
-						},
-						Y: {
-							shadow: {
-								type: "math_number",
-								fields: {
-									NUM: 0,
-								},
-							},
-						},
-						Z: {
-							shadow: {
-								type: "math_number",
-								fields: {
-									NUM: 0,
-								},
-							},
-						},
-					},
+					type: "look_at",
+					keyword: "look",
 				},
+
 				{
 					kind: "block",
 					type: "move_forward",
@@ -1514,6 +1500,36 @@ export const toolbox = {
 								type: "math_number",
 								fields: {
 									NUM: 3,
+								},
+							},
+						},
+					},
+				},
+				{
+					kind: "block",
+					type: "move_sideways",
+					keyword: "sideways",
+					inputs: {
+						SPEED: {
+							shadow: {
+								type: "math_number",
+								fields: {
+									NUM: 3,
+								},
+							},
+						},
+					},
+				},
+				{
+					kind: "block",
+					type: "strafe",
+					keyword: "strafe",
+					inputs: {
+						SPEED: {
+							shadow: {
+								type: "math_number",
+								fields: {
+									NUM: 1, // Default speed of 1
 								},
 							},
 						},
@@ -1581,49 +1597,9 @@ export const toolbox = {
 				},
 				{
 					kind: "block",
-					type: "move_sideways",
-					keyword: "sideways",
-					inputs: {
-						SPEED: {
-							shadow: {
-								type: "math_number",
-								fields: {
-									NUM: 3,
-								},
-							},
-						},
-					},
+					type: "add_physics",
+					keyword: "physics",
 				},
-				{
-					kind: "block",
-					type: "strafe",
-					keyword: "strafe",
-					inputs: {
-						SPEED: {
-							shadow: {
-								type: "math_number",
-								fields: {
-									NUM: 1, // Default speed of 1
-								},
-							},
-						},
-					},
-				},
-				/*				{
-					kind: "block",
-					type: "up",
-					keyword: "up",
-					inputs: {
-						UP_FORCE: {
-							shadow: {
-								type: "math_number",
-								fields: {
-									NUM: 2,
-								},
-							},
-						},
-					},
-				},*/
 				{
 					kind: "block",
 					type: "apply_force",
@@ -1657,6 +1633,26 @@ export const toolbox = {
 				},
 				{
 					kind: "block",
+					type: "get_camera",
+					keyword: "cam",
+				},
+				{
+					kind: "block",
+					type: "rotate_camera",
+					keyword: "",
+					inputs: {
+						DEGREES: {
+							shadow: {
+								type: "math_number",
+								fields: {
+									NUM: 5,
+								},
+							},
+						},
+					},
+				},
+				{
+					kind: "block",
 					type: "camera_follow",
 					keyword: "follow",
 					inputs: {
@@ -1672,18 +1668,8 @@ export const toolbox = {
 				},
 				{
 					kind: "block",
-					type: "get_camera",
-					keyword: "cam",
-				},
-				{
-					kind: "block",
 					type: "camera_control",
 					keyword: "cc",
-				},
-				{
-					kind: "block",
-					type: "add_physics",
-					keyword: "physics",
 				},
 			],
 		},
