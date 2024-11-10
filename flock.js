@@ -3160,19 +3160,16 @@ export const flock = {
 								easingFunction = new flock.BABYLON.CubicEase();
 								break;
 							case "QuadraticEase":
-								easingFunction =
-									new flock.BABYLON.QuadraticEase();
+								easingFunction = new flock.BABYLON.QuadraticEase();
 								break;
 							case "ExponentialEase":
-								easingFunction =
-									new flock.BABYLON.ExponentialEase();
+								easingFunction = new flock.BABYLON.ExponentialEase();
 								break;
 							case "BounceEase":
 								easingFunction = new flock.BABYLON.BounceEase();
 								break;
 							case "ElasticEase":
-								easingFunction =
-									new flock.BABYLON.ElasticEase();
+								easingFunction = new flock.BABYLON.ElasticEase();
 								break;
 							case "BackEase":
 								easingFunction = new flock.BABYLON.BackEase();
@@ -3197,31 +3194,23 @@ export const flock = {
 						loop,
 					);
 
+					let animationCompleted = false;
+
 					animatable.onAnimationEndObservable.add(() => {
-						if (!loop) {
+						if (!loop && !reverse) {
 							// Ensure the mesh reaches its final destination
 							mesh.position = endPosition.clone();
 						}
 
-						if (mesh.physics) {
-							mesh.physics.disablePreStep = true;
-						}
-
-						resolve(); // Resolve after forward motion or loop
-					});
-
-					if (reverse && !loop) {
-						// When reverse is true but loop is false, manually handle reverse
-						animatable.onAnimationEndObservable.add(() => {
-							// Create the reverse animation manually (end -> start)
-							const reverseAnimation =
-								new flock.BABYLON.Animation(
-									"reverseGlide",
-									"position",
-									fps,
-									flock.BABYLON.Animation.ANIMATIONTYPE_VECTOR3,
-									flock.BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT,
-								);
+						if (reverse && !animationCompleted) {
+							// If reverse is true, handle the reverse movement
+							const reverseAnimation = new flock.BABYLON.Animation(
+								"reverseGlide",
+								"position",
+								fps,
+								flock.BABYLON.Animation.ANIMATIONTYPE_VECTOR3,
+								flock.BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT,
+							);
 
 							const reverseKeys = [
 								{ frame: 0, value: endPosition },
@@ -3232,44 +3221,34 @@ export const flock = {
 
 							// Attach and start the reverse animation
 							mesh.animations.push(reverseAnimation);
-							const reverseAnimatable =
-								flock.scene.beginAnimation(
-									mesh,
-									0,
-									frames,
-									false,
-								);
-
-							reverseAnimatable.onAnimationEndObservable.add(
-								() => {
-									if (mesh.physics) {
-										mesh.physics.disablePreStep = true;
-									}
-									resolve(); // Resolve after reverse completes
-								},
+							const reverseAnimatable = flock.scene.beginAnimation(
+								mesh,
+								0,
+								frames,
+								false,
 							);
 
-							reverseAnimatable.onAnimationEndObservable.add(
-								() => {
-									mesh.position = startPosition.clone(); // Ensure the mesh returns to the starting position
+							reverseAnimatable.onAnimationEndObservable.add(() => {
+								mesh.position = startPosition.clone(); // Ensure the mesh returns to the starting position
 
-									if (mesh.physics) {
-										mesh.physics.disablePreStep = true;
-									}
+								if (mesh.physics) {
+									mesh.physics.disablePreStep = true;
+								}
 
-									resolve(); // Resolve after reverse completes
-								},
-							);
-						});
-					} else {
-						// If not reversing or infinite looping, resolve after forward motion completes
-						animatable.onAnimationEndObservable.add(() => {
+								animationCompleted = true;
+								resolve(); // Resolve after reverse completes
+							});
+						} else {
 							if (mesh.physics) {
 								mesh.physics.disablePreStep = true;
 							}
-							resolve(); // Resolve after forward motion or loop
-						});
-					}
+
+							if (!reverse) {
+								animationCompleted = true;
+								resolve(); // Resolve after forward motion completes
+							}
+						}
+					});
 				} else {
 					resolve(); // Resolve immediately if the mesh is not available
 				}

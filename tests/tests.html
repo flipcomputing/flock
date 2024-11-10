@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Flock Test Example</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        padding: 20px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Flock Test Example</h1>
+    <canvas
+      id="renderCanvas"
+      touch-action="none"
+      style="width: 640px; height: 360px"
+      tabindex="0"
+    ></canvas>
+
+    <script
+      type="module"
+      src="https://unpkg.com/mocha@10.2.0/mocha.js"
+    ></script>
+    <script type="module" src="https://unpkg.com/chai@4.3.7/chai.js"></script>
+
+    <!-- Mocha test results will be displayed here -->
+    <div id="mocha"></div>
+
+    <!-- Import the test suite -->
+    <script type="module">
+      import * as flockmodule from "../flock.js";
+      import { runTests } from './babylon.test.js';  // Import the test suite
+      import { runGlideToTests } from './glide.test.js';  // Make sure this path is correct
+
+    
+      const flock = flockmodule.flock;
+
+      await flock.initialize();
+      mocha.setup('bdd'); 
+
+      try {
+        let iframe = document.getElementById("flock-iframe");
+
+        if (iframe) {
+          await iframe.contentWindow?.flock?.disposeOldScene();
+        } else {
+          // Step 3: If the iframe does not exist, create a new one
+          iframe = document.createElement("iframe");
+          iframe.id = "flock-iframe";
+          iframe.style.display = "none";
+          document.body.appendChild(iframe);
+        }
+
+        await new Promise((resolve) => {
+          iframe.onload = () => {
+            resolve();
+          };
+          iframe.src = "about:blank";
+        });
+
+        const iframeWindow = iframe.contentWindow;
+        iframeWindow.flock = flock;
+
+        await iframeWindow.flock.initializeNewScene();
+
+      }
+      catch(e){
+        console.log(e);
+      }
+
+      // Run the Mocha tests
+      //runTests(flock, chai.expect); // Run tests from the imported file
+      // Run the glideTo tests
+      runGlideToTests(flock);
+
+      mocha.run();
+    </script>
+  </body>
+</html>
