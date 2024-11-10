@@ -515,7 +515,8 @@ export const flock = {
 	},
 	UIButton(text, x, y, width, textColor, backgroundColor, buttonId) {
 		// Ensure we have access to the UI texture
-		flock.scene.UITexture ??= flock.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
+		flock.scene.UITexture ??=
+			flock.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
 
 		// Create a Babylon.js GUI button
 		const button = flock.GUI.Button.CreateSimpleButton(buttonId, text);
@@ -523,7 +524,7 @@ export const flock = {
 		// Set button width based on predefined options (Small, Medium, Large)
 		switch (width.toUpperCase()) {
 			case "SMALL":
-				button.width = "10%";  // Width as a percentage of the screen width
+				button.width = "10%"; // Width as a percentage of the screen width
 				break;
 			case "MEDIUM":
 				button.width = "15%";
@@ -537,7 +538,7 @@ export const flock = {
 
 		// Enable text wrapping and allow height to be adjusted automatically
 		button.textBlock.textWrapping = true; // Enable text wrapping
-		button.height = "40px";  // Allow the height to adapt based on content
+		button.height = "40px"; // Allow the height to adapt based on content
 
 		// Set button text color and background color
 		button.color = textColor || "white";
@@ -545,19 +546,22 @@ export const flock = {
 
 		// Set button alignment to position it in the screen space
 		if (x < 0) {
-			button.horizontalAlignment = flock.GUI.Control.HORIZONTAL_ALIGNMENT_RIGHT;
-			button.left = `${x}px`;  // Negative offset from the right side
+			button.horizontalAlignment =
+				flock.GUI.Control.HORIZONTAL_ALIGNMENT_RIGHT;
+			button.left = `${x}px`; // Negative offset from the right side
 		} else {
-			button.horizontalAlignment = flock.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
-			button.left = `${x}px`;  // Positive offset from the left side
+			button.horizontalAlignment =
+				flock.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
+			button.left = `${x}px`; // Positive offset from the left side
 		}
 
 		if (y < 0) {
-			button.verticalAlignment = flock.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM;
-			button.top = `${y}px`;  // Negative offset from the bottom side
+			button.verticalAlignment =
+				flock.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM;
+			button.top = `${y}px`; // Negative offset from the bottom side
 		} else {
 			button.verticalAlignment = flock.GUI.Control.VERTICAL_ALIGNMENT_TOP;
-			button.top = `${y}px`;  // Positive offset from the top side
+			button.top = `${y}px`; // Positive offset from the top side
 		}
 
 		// Add the button to the Advanced Dynamic Texture UI
@@ -654,7 +658,6 @@ export const flock = {
 
 			if (!target && flock.scene.UITexture) {
 				target = flock.scene.UITexture.getControlByName(targetId);
-				
 			}
 
 			if (target) {
@@ -2826,37 +2829,39 @@ export const flock = {
 		let allMeshes, materialNode, materialNodes;
 		switch (propertyName) {
 			case "POSITION_X":
-				propertyValue = position.x.toFixed(2);
+				propertyValue = parseFloat(position.x.toFixed(2));
 				break;
 			case "POSITION_Y":
-				propertyValue = position.y.toFixed(2);
+				propertyValue = parseFloat(position.y.toFixed(2));
 				break;
 			case "POSITION_Z":
-				propertyValue = position.z.toFixed(2);
+				propertyValue = parseFloat(position.z.toFixed(2));
 				break;
 			case "ROTATION_X":
-				propertyValue = flock.BABYLON.Tools.ToDegrees(
-					rotation.x,
-				).toFixed(2);
+				propertyValue = parseFloat(
+					flock.BABYLON.Tools.ToDegrees(rotation.x).toFixed(2),
+				);
 				break;
 			case "ROTATION_Y":
-				propertyValue = flock.BABYLON.Tools.ToDegrees(
-					rotation.y,
-				).toFixed(2);
+				parseFloat(
+					(propertyValue = flock.BABYLON.Tools.ToDegrees(
+						rotation.y,
+					).toFixed(2)),
+				);
 				break;
 			case "ROTATION_Z":
-				propertyValue = flock.BABYLON.Tools.ToDegrees(
-					rotation.z,
-				).toFixed(2);
+				propertyValue = parseFloat(
+					flock.BABYLON.Tools.ToDegrees(rotation.z).toFixed(2),
+				);
 				break;
 			case "SCALE_X":
-				propertyValue = mesh.scaling.x.toFixed(2);
+				propertyValue = parseFloat(mesh.scaling.x.toFixed(2));
 				break;
 			case "SCALE_Y":
-				propertyValue = mesh.scaling.y.toFixed(2);
+				propertyValue = parseFloat(mesh.scaling.y.toFixed(2));
 				break;
 			case "SCALE_Z":
-				propertyValue = mesh.scaling.z.toFixed(2);
+				propertyValue = parseFloat(mesh.scaling.z.toFixed(2));
 				break;
 			case "MIN_X":
 				if (mesh.metadata?.origin?.xOrigin === "LEFT") {
@@ -3160,16 +3165,19 @@ export const flock = {
 								easingFunction = new flock.BABYLON.CubicEase();
 								break;
 							case "QuadraticEase":
-								easingFunction = new flock.BABYLON.QuadraticEase();
+								easingFunction =
+									new flock.BABYLON.QuadraticEase();
 								break;
 							case "ExponentialEase":
-								easingFunction = new flock.BABYLON.ExponentialEase();
+								easingFunction =
+									new flock.BABYLON.ExponentialEase();
 								break;
 							case "BounceEase":
 								easingFunction = new flock.BABYLON.BounceEase();
 								break;
 							case "ElasticEase":
-								easingFunction = new flock.BABYLON.ElasticEase();
+								easingFunction =
+									new flock.BABYLON.ElasticEase();
 								break;
 							case "BackEase":
 								easingFunction = new flock.BABYLON.BackEase();
@@ -3204,13 +3212,14 @@ export const flock = {
 
 						if (reverse && !animationCompleted) {
 							// If reverse is true, handle the reverse movement
-							const reverseAnimation = new flock.BABYLON.Animation(
-								"reverseGlide",
-								"position",
-								fps,
-								flock.BABYLON.Animation.ANIMATIONTYPE_VECTOR3,
-								flock.BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT,
-							);
+							const reverseAnimation =
+								new flock.BABYLON.Animation(
+									"reverseGlide",
+									"position",
+									fps,
+									flock.BABYLON.Animation.ANIMATIONTYPE_VECTOR3,
+									flock.BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT,
+								);
 
 							const reverseKeys = [
 								{ frame: 0, value: endPosition },
@@ -3221,23 +3230,26 @@ export const flock = {
 
 							// Attach and start the reverse animation
 							mesh.animations.push(reverseAnimation);
-							const reverseAnimatable = flock.scene.beginAnimation(
-								mesh,
-								0,
-								frames,
-								false,
+							const reverseAnimatable =
+								flock.scene.beginAnimation(
+									mesh,
+									0,
+									frames,
+									false,
+								);
+
+							reverseAnimatable.onAnimationEndObservable.add(
+								() => {
+									mesh.position = startPosition.clone(); // Ensure the mesh returns to the starting position
+
+									if (mesh.physics) {
+										mesh.physics.disablePreStep = true;
+									}
+
+									animationCompleted = true;
+									resolve(); // Resolve after reverse completes
+								},
 							);
-
-							reverseAnimatable.onAnimationEndObservable.add(() => {
-								mesh.position = startPosition.clone(); // Ensure the mesh returns to the starting position
-
-								if (mesh.physics) {
-									mesh.physics.disablePreStep = true;
-								}
-
-								animationCompleted = true;
-								resolve(); // Resolve after reverse completes
-							});
 						} else {
 							if (mesh.physics) {
 								mesh.physics.disablePreStep = true;
@@ -4717,7 +4729,7 @@ export const flock = {
 						// Babylon.js GUI does not have built-in right-click/long press support,
 						// adding a custom right-click or long press trigger logic can be done here if necessary.
 						console.warn(
-							"OnRightOrLongPressTrigger is not natively supported for GUI buttons."
+							"OnRightOrLongPressTrigger is not natively supported for GUI buttons.",
 						);
 					} else {
 						// Default to OnPickTrigger if no other trigger is specified

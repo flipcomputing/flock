@@ -2083,12 +2083,12 @@ export const toolbox = {
 							},
 						},
 					},
-				},
+				},*/
 				{
 					kind: "block",
 					type: "text_join",
 					keyword: "join",
-				},*/
+				},
 				{
 					kind: "block",
 					type: "text_append",
