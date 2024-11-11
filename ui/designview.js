@@ -33,7 +33,7 @@ document.addEventListener("DOMContentLoaded", function () {
 			focusCameraOnMesh();
 		}
 	});
-	
+
 	// Attach the event listener to capture color changes when user interacts with the input
 	colorInput.addEventListener("input", (event) => {
 		window.selectedColor = event.target.value; // Store the selected color
@@ -119,8 +119,7 @@ export function getMeshFromBlock(block) {
 
 export function updateMeshFromBlock(mesh, block, changeEvent) {
 	const shapeType = block.type;
-	if(mesh && mesh.physics)
-		mesh.physics.disablePreStep = true;
+	if (mesh && mesh.physics) mesh.physics.disablePreStep = true;
 
 	const color = block
 		.getInput("COLOR")
@@ -234,9 +233,7 @@ export function updateMeshFromBlock(mesh, block, changeEvent) {
 	}
 
 	// Use flock API to change the color and position of the mesh
-	if (color) 
-		flock.changeColour(mesh.name, color);
-
+	if (color) flock.changeColour(mesh.name, color);
 }
 
 function createMeshOnCanvas(block) {
@@ -1263,24 +1260,10 @@ function highlightBlockById(workspace, block) {
 		// Select the new block
 		if (window.codeMode === "both") block.select();
 
-		const blockRect = block.getBoundingRectangle();
-		const metrics = Blockly.getMainWorkspace().getMetrics();
-
-		// Check if the block is outside the visible area
-		const isOutsideViewport =
-			blockRect.top < metrics.viewTop ||
-			blockRect.bottom > metrics.viewTop + metrics.viewHeight ||
-			blockRect.left < metrics.viewLeft ||
-			blockRect.right > metrics.viewLeft + metrics.viewWidth;
-
-		if (isOutsideViewport) {
-			// Scroll the workspace to make the block visible without centering it
-			Blockly.getMainWorkspace().scrollbar.set(
-				blockRect.left - 10,
-				blockRect.top - 10,
-			); // Adjust for padding
-		}
+		// Center the block within the viewport
+		workspace.centerOnBlock(block.id);
 	}
+
 }
 
 function focusCameraOnMesh() {
@@ -1885,7 +1868,6 @@ function updateBlockColorAndHighlight(mesh, selectedColor) {
 	}
 
 	block?.initSvg();
-	block?.render();
 
 	highlightBlockById(Blockly.getMainWorkspace(), block);
 }
