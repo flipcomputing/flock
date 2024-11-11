@@ -3,7 +3,7 @@ import * as Blockly from "blockly";
 export const categoryColours = {
 	Events: 200,
 	Scene: 90,
-	Transform: 240,
+	Transform: 65,
 	Animate: 45,
 	Materials: 280,
 	Sound: 25,
