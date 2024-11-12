@@ -155,8 +155,7 @@ export const flock = {
 			broadcastEvent,
 			Mesh,
 			forever,
-			whenKeyPressed,
-			whenKeyReleased,
+			whenKeyEvent,
 			printText,
 			UIText,
 			UIButton,
@@ -4829,37 +4828,25 @@ export const flock = {
 			flock.events[eventName].notifyObservers(data);
 		}
 	},
-	whenKeyPressed(key, callback) {
+	whenKeyEvent(key, callback, isReleased = false) {
+		// Determine the type of keyboard event based on isReleased parameter
+		const eventType = isReleased
+			? flock.BABYLON.KeyboardEventTypes.KEYUP
+			: flock.BABYLON.KeyboardEventTypes.KEYDOWN;
+
 		// Register the callback for the keyboard observable
 		flock.scene.onKeyboardObservable.add((kbInfo) => {
-			if (
-				kbInfo.type === flock.BABYLON.KeyboardEventTypes.KEYDOWN &&
-				kbInfo.event.key === key
-			) {
+			if (kbInfo.type === eventType && kbInfo.event.key === key) {
 				callback();
 			}
 		});
 
 		// Register the callback for the grid input observable
-		flock.gridKeyPressObservable.add(function (pressedKey) {
-			if (pressedKey === key) {
-				callback();
-			}
-		});
-	},
-	whenKeyReleased(key, callback) {
-		// Register the callback for the keyboard observable
-		flock.scene.onKeyboardObservable.add((kbInfo) => {
-			if (
-				kbInfo.type === flock.BABYLON.KeyboardEventTypes.KEYUP &&
-				kbInfo.event.key === key
-			) {
-				callback();
-			}
-		});
+		const gridObservable = isReleased
+			? flock.gridKeyReleaseObservable
+			: flock.gridKeyPressObservable;
 
-		// Register the callback for the grid input observable
-		flock.gridKeyReleaseObservable.add((inputKey) => {
+		gridObservable.add((inputKey) => {
 			if (inputKey === key) {
 				callback();
 			}

@@ -1245,18 +1245,14 @@ export function defineGenerators() {
 		return code;
 	};
 
-	javascriptGenerator.forBlock["when_key_pressed"] = function (block) {
+	
+	javascriptGenerator.forBlock["when_key_event"] = function (block) {
 		const key = block.getFieldValue("KEY");
+		const event = block.getFieldValue("EVENT"); // "pressed" or "released"
 		const statements_do = javascriptGenerator.statementToCode(block, "DO");
 
-		return `whenKeyPressed("${key}", async () => {${statements_do}});\n`;
-	};
-
-	javascriptGenerator.forBlock["when_key_released"] = function (block) {
-		const key = block.getFieldValue("KEY");
-		const statements_do = javascriptGenerator.statementToCode(block, "DO");
-
-		return `whenKeyReleased("${key}", async () => {${statements_do}});\n`;
+		// Pass "true" if event is "released" for the whenKeyPressed helper function
+		return `whenKeyEvent("${key}", async () => {${statements_do}}, ${event === "released"});\n`;
 	};
 
 	// JavaScript generator for broadcast_event

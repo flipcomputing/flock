@@ -3030,11 +3030,11 @@ export function defineBlocks() {
 		},
 	};
 
-	Blockly.Blocks["when_key_pressed"] = {
+	Blockly.Blocks["when_key_event"] = {
 		init: function () {
 			this.jsonInit({
-				type: "when_key_pressed",
-				message0: "when key pressed %1",
+				type: "when_key_event",
+				message0: "when key %1 %2",
 				args0: [
 					{
 						type: "field_grid_dropdown",
@@ -3087,91 +3087,12 @@ export function defineBlocks() {
 							["⯆", "ArrowDown"],
 						],
 					},
-				],
-				message1: "%1",
-				args1: [
 					{
-						type: "input_statement",
-						name: "DO",
-					},
-				],
-				colour: categoryColours["Events"],
-				tooltip:
-					"Executes the blocks inside when the specified key is pressed.\nKeyword: pressed",
-				helpUrl: "",
-			});
-
-			addToggleButton(this);
-		},
-		mutationToDom: function () {
-			return mutationToDom(this);
-		},
-		domToMutation: function (xmlElement) {
-			domToMutation(this, xmlElement);
-		},
-		updateShape_: function (isInline) {
-			updateShape(this, isInline);
-		},
-		toggleDoBlock: function () {
-			this.updateShape_(!this.isInline);
-		},
-	};
-
-	Blockly.Blocks["when_key_released"] = {
-		init: function () {
-			this.jsonInit({
-				type: "when_key_released",
-				message0: "when key released %1",
-				args0: [
-					{
-						type: "field_grid_dropdown",
-						name: "KEY",
-						columns: 10,
+						type: "field_dropdown",
+						name: "EVENT",
 						options: [
-							["0", "0"],
-							["1", "1"],
-							["2", "2"],
-							["3", "3"],
-							["4", "4"],
-							["5", "5"],
-							["6", "6"],
-							["7", "7"],
-							["8", "8"],
-							["9", "9"],
-							["a", "a"],
-							["b", "b"],
-							["c", "c"],
-							["d", "d"],
-							["e", "e"],
-							["f", "f"],
-							["g", "g"],
-							["h", "h"],
-							["i", "i"],
-							["j", "j"],
-							["k", "k"],
-							["l", "l"],
-							["m", "m"],
-							["n", "n"],
-							["o", "o"],
-							["p", "p"],
-							["q", "q"],
-							["r", "r"],
-							["s", "s"],
-							["t", "t"],
-							["u", "u"],
-							["v", "v"],
-							["w", "w"],
-							["x", "x"],
-							["y", "y"],
-							["z", "z"],
-							[" ", " "],
-							[",", ","],
-							[".", "."],
-							["/", "/"],
-							["⯇", "ArrowLeft"],
-							["⯅", "ArrowUp"],
-							["⯈", "ArrowRight"],
-							["⯆", "ArrowDown"],
+							["pressed", "pressed"],
+							["released", "released"],
 						],
 					},
 				],
@@ -3184,9 +3105,10 @@ export function defineBlocks() {
 				],
 				colour: categoryColours["Events"],
 				tooltip:
-					"Executes the blocks inside when the specified key is released.\nKeyword: released",
+					"Executes the blocks inside when the specified key is pressed or released.",
 				helpUrl: "",
 			});
+
 			addToggleButton(this);
 		},
 		mutationToDom: function () {
@@ -3585,34 +3507,6 @@ export function defineBlocks() {
 			});
 		},
 	};
-
-/*	Blockly.Blocks["change_color"] = {
-		init: function () {
-			this.jsonInit({
-				type: "change_color",
-				message0: "color %1 %2",
-				args0: [
-					{
-						type: "field_variable",
-						name: "MODEL_VAR",
-						variable: window.currentMesh,
-					},
-					{
-						type: "input_value",
-						name: "COLOR",
-						check: "Colour",
-					},
-				],
-				inputsInline: true,
-				previousStatement: null,
-				nextStatement: null,
-				colour: categoryColours["Materials"],
-				tooltip:
-					"Changes the color of the selected model.\nKeyword: colour",
-				helpUrl: "",
-			});
-		},
-	};*/
 
 	Blockly.Blocks["set_alpha"] = {
 		init: function () {

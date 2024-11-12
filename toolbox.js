@@ -49,13 +49,8 @@ export const toolbox = {
 				},
 				{
 					kind: "block",
-					type: "when_key_pressed",
+					type: "when_key_event",
 					keyword: "press",
-				},
-				{
-					kind: "block",
-					type: "when_key_released",
-					keyword: "release",
 				},
 				{
 					kind: "block",

@@ -678,7 +678,7 @@
 		}
 	  },
 	  {
-		"type": "when_key_released",
+		"type": "when_key_event",
 		"id": "A}`9$II5cHei7)T#eDGV",
 		"x": 10,
 		"y": 752,
@@ -900,7 +900,7 @@
 		}
 	  },
 	  {
-		"type": "when_key_released",
+		"type": "when_key_event",
 		"id": "v.5(qT,4h8#7IUmi+~~#",
 		"x": 10,
 		"y": 1162,
@@ -1122,7 +1122,7 @@
 		}
 	  },
 	  {
-		"type": "when_key_released",
+		"type": "when_key_event",
 		"id": "2y(Y|ITm}L5b[to=bA8x",
 		"x": 10,
 		"y": 1572,
@@ -1344,7 +1344,7 @@
 		}
 	  },
 	  {
-		"type": "when_key_released",
+		"type": "when_key_event",
 		"id": "Z0xh~xMoq=zZM_xs52R~",
 		"x": 10,
 		"y": 1982,
