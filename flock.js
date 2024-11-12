@@ -986,7 +986,7 @@ export const flock = {
 
 				flock.setupMesh(mesh, modelId, blockId, scale, x, y, z, color);
 
-				flock.changeColourMesh(mesh, color);
+				flock.changeColorMesh(mesh, color);
 
 				if (typeof callback === "function") {
 					callback();

@@ -1763,7 +1763,7 @@ export function defineBlocks() {
 		init: function () {
 			this.jsonInit({
 				type: "ui_button",
-				message0: 
+				message0:
 					"ui button %1 %2 at x: %3 y: %4 size: %5 text color: %6 background color: %7",
 				args0: [
 					{
@@ -1809,7 +1809,8 @@ export function defineBlocks() {
 				previousStatement: null,
 				nextStatement: null,
 				colour: categoryColours["Text"],
-				tooltip: "Add a button to the UI screen with a preset size, and store control in a variable for later use or disposal.",
+				tooltip:
+					"Add a button to the UI screen with a preset size, and store control in a variable for later use or disposal.",
 				helpUrl: "",
 			});
 		},
@@ -3703,8 +3704,8 @@ export function defineBlocks() {
 	Blockly.Blocks["move_forward"] = {
 		init: function () {
 			this.jsonInit({
-				type: "move_forward",
-				message0: "forward %1 speed %2",
+				type: "move",
+				message0: "move %1 %2 speed %3",
 				args0: [
 					{
 						type: "field_variable",
@@ -3712,32 +3713,13 @@ export function defineBlocks() {
 						variable: window.currentMesh,
 					},
 					{
-						type: "input_value",
-						name: "SPEED",
-						check: "Number",
-					},
-				],
-				inputsInline: true,
-				previousStatement: null,
-				nextStatement: null,
-				colour: categoryColours["Transform"],
-				tooltip:
-					"Moves the model forward in the direction it's pointing.\nKeyword: forward",
-				helpUrl: "",
-			});
-		},
-	};
-
-	Blockly.Blocks["move_sideways"] = {
-		init: function () {
-			this.jsonInit({
-				type: "move_sideways",
-				message0: "sideways %1 speed %2",
-				args0: [
-					{
-						type: "field_variable",
-						name: "MODEL",
-						variable: window.currentMesh,
+						type: "field_dropdown",
+						name: "DIRECTION",
+						options: [
+							["forward", "forward"],
+							["sideways", "sideways"],
+							["strafe", "strafe"],
+						],
 					},
 					{
 						type: "input_value",
@@ -3750,35 +3732,7 @@ export function defineBlocks() {
 				nextStatement: null,
 				colour: categoryColours["Transform"],
 				tooltip:
-					"Turns the model and moves it sideways relative to the camera's direction. Positive speed moves right, negative moves left.\nKeyword: move sideways",
-				helpUrl: "",
-			});
-		},
-	};
-
-	Blockly.Blocks["strafe"] = {
-		init: function () {
-			this.jsonInit({
-				type: "strafe",
-				message0: "strafe %1 speed %2",
-				args0: [
-					{
-						type: "field_variable",
-						name: "MODEL",
-						variable: window.currentMesh, // Default to currentMesh
-					},
-					{
-						type: "input_value",
-						name: "SPEED",
-						check: "Number",
-					},
-				],
-				inputsInline: true,
-				previousStatement: null,
-				nextStatement: null,
-				colour: categoryColours["Transform"],
-				tooltip:
-					"Moves the model sideways relative to the camera. Positive speed moves right, negative moves left.\nKeyword: sideways",
+					"Moves the model in the specified direction. 'Forward' moves it in the direction it's pointing, 'sideways' moves it relative to the camera's direction, and 'strafe' moves it sideways relative to the camera's direction.",
 				helpUrl: "",
 			});
 		},

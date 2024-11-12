@@ -1372,39 +1372,24 @@ export function defineGenerators() {
 				"SPEED",
 				javascriptGenerator.ORDER_ATOMIC,
 			) || "0";
+		const direction = block.getFieldValue("DIRECTION");
 
-		return `moveForward(${modelName}, ${speed});\n`;
+		// Choose the appropriate helper function based on the direction
+		let helperFunction;
+		switch (direction) {
+			case "sideways":
+				helperFunction = "moveSideways";
+				break;
+			case "strafe":
+				helperFunction = "strafe";
+				break;
+			default:
+				helperFunction = "moveForward";
+		}
+
+		return `${helperFunction}(${modelName}, ${speed});\n`;
 	};
 
-	javascriptGenerator.forBlock["move_sideways"] = function (block) {
-		const modelName = javascriptGenerator.nameDB_.getName(
-			block.getFieldValue("MODEL"),
-			Blockly.Names.NameType.VARIABLE,
-		);
-		const speed =
-			javascriptGenerator.valueToCode(
-				block,
-				"SPEED",
-				javascriptGenerator.ORDER_ATOMIC,
-			) || "0";
-
-		return `moveSideways(${modelName}, ${speed});\n`;
-	};
-
-	javascriptGenerator.forBlock["strafe"] = function (block) {
-		const modelName = javascriptGenerator.nameDB_.getName(
-			block.getFieldValue("MODEL"),
-			Blockly.Names.NameType.VARIABLE,
-		);
-		const speed =
-			javascriptGenerator.valueToCode(
-				block,
-				"SPEED",
-				javascriptGenerator.ORDER_ATOMIC,
-			) || "0";
-
-		return `strafe(${modelName}, ${speed});\n`;
-	};
 
 	javascriptGenerator.forBlock["up"] = function (block) {
 		const modelName = javascriptGenerator.nameDB_.getName(

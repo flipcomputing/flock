@@ -1484,7 +1484,6 @@ export const toolbox = {
 					type: "look_at",
 					keyword: "look",
 				},
-
 				{
 					kind: "block",
 					type: "move_forward",
@@ -1495,36 +1494,6 @@ export const toolbox = {
 								type: "math_number",
 								fields: {
 									NUM: 3,
-								},
-							},
-						},
-					},
-				},
-				{
-					kind: "block",
-					type: "move_sideways",
-					keyword: "sideways",
-					inputs: {
-						SPEED: {
-							shadow: {
-								type: "math_number",
-								fields: {
-									NUM: 3,
-								},
-							},
-						},
-					},
-				},
-				{
-					kind: "block",
-					type: "strafe",
-					keyword: "strafe",
-					inputs: {
-						SPEED: {
-							shadow: {
-								type: "math_number",
-								fields: {
-									NUM: 1, // Default speed of 1
 								},
 							},
 						},
