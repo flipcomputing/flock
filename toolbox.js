@@ -876,7 +876,7 @@ export const toolbox = {
 						},
 					},
 				},
-				{
+				/*{
 					kind: "block",
 					type: "create_wall",
 					keyword: "wall",
@@ -930,7 +930,7 @@ export const toolbox = {
 							},
 						},
 					},
-				},
+				},*/
 				{
 					kind: "block",
 					type: "show",
