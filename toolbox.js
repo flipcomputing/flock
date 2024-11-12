@@ -2030,7 +2030,7 @@ export const toolbox = {
 							shadow: {
 								type: "colour",
 								fields: {
-									COLOR: "#FFFFFF",  // Using "COLOR" to match your example
+									COLOR: "#FFFFFF", // Using "COLOR" to match your example
 								},
 							},
 						},
@@ -2038,14 +2038,14 @@ export const toolbox = {
 							shadow: {
 								type: "colour",
 								fields: {
-									COLOR: "#007ACC",  // Using "COLOR" to match your example
+									COLOR: "#007ACC", // Using "COLOR" to match your example
 								},
 							},
 						},
 					},
 					fields: {
 						WIDTH: {
-							value: "SMALL"
+							value: "SMALL",
 						},
 					},
 				},
@@ -2326,7 +2326,7 @@ export const toolbox = {
 				},
 				{
 					kind: "block",
-					type: "change_colour",
+					type: "change_color",
 					keyword: "colour",
 					inputs: {
 						COLOR: {

@@ -1331,9 +1331,7 @@
                                       "inline": true,
                                       "extraState": {
                                         "name": "forest",
-                                        "params": [
-                                          "seed"
-                                        ]
+                                        "params": ["seed"]
                                       },
                                       "inputs": {
                                         "ARG0": {
@@ -2773,7 +2771,7 @@
                                                       },
                                                       "DO0": {
                                                         "block": {
-                                                          "type": "change_colour",
+                                                          "type": "change_color",
                                                           "id": "S:4(k-U2(4pD(gh{LW!9",
                                                           "fields": {
                                                             "MODEL_VAR": {

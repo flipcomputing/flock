@@ -3310,7 +3310,7 @@ export function defineBlocks() {
 		init: function () {
 			this.jsonInit({
 				type: "change_color",
-				message0: "change color of %1 to %2",
+				message0: "color %1 to %2",
 				args0: [
 					{
 						type: "field_variable",
@@ -3586,11 +3586,11 @@ export function defineBlocks() {
 		},
 	};
 
-	Blockly.Blocks["change_colour"] = {
+/*	Blockly.Blocks["change_color"] = {
 		init: function () {
 			this.jsonInit({
-				type: "change_colour",
-				message0: "colour %1 %2",
+				type: "change_color",
+				message0: "color %1 %2",
 				args0: [
 					{
 						type: "field_variable",
@@ -3612,7 +3612,7 @@ export function defineBlocks() {
 				helpUrl: "",
 			});
 		},
-	};
+	};*/
 
 	Blockly.Blocks["set_alpha"] = {
 		init: function () {

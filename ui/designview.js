@@ -88,7 +88,7 @@ function pickMeshFromCanvas() {
 			(mesh) => mesh.isPickable,
 		);
 
-		flock.changeColourMesh(pickResult.pickedMesh, selectedColor);
+		flock.changeColorMesh(pickResult.pickedMesh, selectedColor);
 		updateBlockColorAndHighlight(pickResult.pickedMesh, selectedColor);
 
 		document.body.style.cursor = "default"; // Reset the cursor
@@ -233,7 +233,7 @@ export function updateMeshFromBlock(mesh, block, changeEvent) {
 	}
 
 	// Use flock API to change the color and position of the mesh
-	if (color) flock.changeColour(mesh.name, color);
+	if (color) flock.changeColor(mesh.name, color);
 }
 
 function createMeshOnCanvas(block) {

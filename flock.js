@@ -134,8 +134,8 @@ export const flock = {
 			seededRandom,
 			randomColour,
 			scaleMesh,
-			changeColour,
-			changeColourMesh,
+			changeColor,
+			changeColorMesh,
 			changeMaterial,
 			setMaterial,
 			createMaterial,
@@ -3702,12 +3702,12 @@ export const flock = {
 			return "#000000";
 		}
 	},
-	changeColour(modelName, color) {
+	changeColor(modelName, color) {
 		return flock.whenModelReady(modelName, (mesh) => {
-			flock.changeColourMesh(mesh, color);
+			flock.changeColorMesh(mesh, color);
 		});
 	},
-	changeColourMesh(mesh, color) {
+	changeColorMesh(mesh, color) {
 		let materialFound = false;
 
 		function applyColorToMaterial(part, color) {

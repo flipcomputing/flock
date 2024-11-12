@@ -17,7 +17,6 @@ export function generateUniqueId(prefix = "") {
 	return `${prefix}_${uniqueIdCounter}`;
 }
 
-
 export function defineGenerators() {
 	javascriptGenerator.forBlock["show"] = function (block) {
 		const modelName = javascriptGenerator.nameDB_.getName(
@@ -108,68 +107,108 @@ export function defineGenerators() {
 	};
 
 	javascriptGenerator.forBlock["animate_keyframes"] = function (block) {
-	  const meshVar = javascriptGenerator.nameDB_.getName(
-		block.getFieldValue("MESH"),
-		Blockly.Names.NameType.VARIABLE
-	  );
-	  const keyframesBlock = block.getInputTargetBlock("KEYFRAMES");
-	  const keyframesArray = [];
+		const meshVar = javascriptGenerator.nameDB_.getName(
+			block.getFieldValue("MESH"),
+			Blockly.Names.NameType.VARIABLE,
+		);
+		const keyframesBlock = block.getInputTargetBlock("KEYFRAMES");
+		const keyframesArray = [];
 
-	  if (keyframesBlock) {
-		// Loop through keyframe blocks to gather data
-		for (let i = 0; i < keyframesBlock.inputList.length; i++) {
-		  const keyframeInput = keyframesBlock.inputList[i];
+		if (keyframesBlock) {
+			// Loop through keyframe blocks to gather data
+			for (let i = 0; i < keyframesBlock.inputList.length; i++) {
+				const keyframeInput = keyframesBlock.inputList[i];
 
-		  const valueBlock = keyframeInput.connection ? keyframeInput.connection.targetBlock() : null;
-		  const durationBlock = keyframeInput.connection ? keyframeInput.connection.targetBlock() : null;
+				const valueBlock = keyframeInput.connection
+					? keyframeInput.connection.targetBlock()
+					: null;
+				const durationBlock = keyframeInput.connection
+					? keyframeInput.connection.targetBlock()
+					: null;
 
-		  let value;
-		  const property = block.getFieldValue("PROPERTY");
+				let value;
+				const property = block.getFieldValue("PROPERTY");
 
-		  if (valueBlock) {
-			if (property === "color") {
-			  // Handle color keyframe (as a string)
-			  value = javascriptGenerator.valueToCode(valueBlock, "VALUE", javascriptGenerator.ORDER_NONE);
-			} else if (["position", "rotation", "scaling"].includes(property)) {
-			  // Handle XYZ (Vector3) keyframe for position, rotation, or scaling
-			  const x = javascriptGenerator.valueToCode(valueBlock, "X", javascriptGenerator.ORDER_ATOMIC) || 0;
-			  const y = javascriptGenerator.valueToCode(valueBlock, "Y", javascriptGenerator.ORDER_ATOMIC) || 0;
-			  const z = javascriptGenerator.valueToCode(valueBlock, "Z", javascriptGenerator.ORDER_ATOMIC) || 0;
-			  value = `new flock.BABYLON.Vector3(${x}, ${y}, ${z})`;  // Generate the text for Vector3, not the object itself
-			} else {
-			  // Handle alpha or other properties
-			  value = javascriptGenerator.valueToCode(valueBlock, "VALUE", javascriptGenerator.ORDER_ATOMIC);
+				if (valueBlock) {
+					if (property === "color") {
+						// Handle color keyframe (as a string)
+						value = javascriptGenerator.valueToCode(
+							valueBlock,
+							"VALUE",
+							javascriptGenerator.ORDER_NONE,
+						);
+					} else if (
+						["position", "rotation", "scaling"].includes(property)
+					) {
+						// Handle XYZ (Vector3) keyframe for position, rotation, or scaling
+						const x =
+							javascriptGenerator.valueToCode(
+								valueBlock,
+								"X",
+								javascriptGenerator.ORDER_ATOMIC,
+							) || 0;
+						const y =
+							javascriptGenerator.valueToCode(
+								valueBlock,
+								"Y",
+								javascriptGenerator.ORDER_ATOMIC,
+							) || 0;
+						const z =
+							javascriptGenerator.valueToCode(
+								valueBlock,
+								"Z",
+								javascriptGenerator.ORDER_ATOMIC,
+							) || 0;
+						value = `new flock.BABYLON.Vector3(${x}, ${y}, ${z})`; // Generate the text for Vector3, not the object itself
+					} else {
+						// Handle alpha or other properties
+						value = javascriptGenerator.valueToCode(
+							valueBlock,
+							"VALUE",
+							javascriptGenerator.ORDER_ATOMIC,
+						);
+					}
+				} else {
+					// Default values for missing blocks
+					value =
+						property === "color"
+							? '"#ffffff"'
+							: `new flock.BABYLON.Vector3(0, 0, 0)`; // Correct color string for colours
+				}
+
+				const duration = durationBlock
+					? javascriptGenerator.valueToCode(
+							durationBlock,
+							"DURATION",
+							javascriptGenerator.ORDER_ATOMIC,
+						)
+					: "1"; // Default duration of 1 second if not specified
+
+				keyframesArray.push({ value, duration });
 			}
-		  } else {
-			// Default values for missing blocks
-			value = property === "color" ? '"#ffffff"' : `new flock.BABYLON.Vector3(0, 0, 0)`;  // Correct color string for colours
-		  }
-
-		  const duration = durationBlock
-			? javascriptGenerator.valueToCode(durationBlock, "DURATION", javascriptGenerator.ORDER_ATOMIC)
-			: "1";  // Default duration of 1 second if not specified
-
-		  keyframesArray.push({ value, duration });
 		}
-	  }
 
-	  const easing = block.getFieldValue("EASING") || "Linear";
-	  const property = block.getFieldValue("PROPERTY") || "color";  // Default to "color" if no property is set
+		const easing = block.getFieldValue("EASING") || "Linear";
+		const property = block.getFieldValue("PROPERTY") || "color"; // Default to "color" if no property is set
 
-	  const loop = block.getFieldValue("LOOP") === "TRUE";
-	  const reverse = block.getFieldValue("REVERSE") === "TRUE";
-	  const mode = block.getFieldValue("MODE");
+		const loop = block.getFieldValue("LOOP") === "TRUE";
+		const reverse = block.getFieldValue("REVERSE") === "TRUE";
+		const mode = block.getFieldValue("MODE");
 
-	  const asyncWrapper = mode === "AWAIT" ? "await " : "";
+		const asyncWrapper = mode === "AWAIT" ? "await " : "";
 
-	  // Generate the keyframes text for both colors and Vector3
-	  const keyframesCode = keyframesArray.map(kf => `{
+		// Generate the keyframes text for both colors and Vector3
+		const keyframesCode = keyframesArray
+			.map(
+				(kf) => `{
 		value: ${kf.value}, 
 		duration: ${kf.duration}
-	  }`).join(", ");
+	  }`,
+			)
+			.join(", ");
 
-	  // Return the final code, passing keyframes with durations and properties
-	  return `${asyncWrapper}animateKeyFrames(${meshVar}, [${keyframesCode}], "${property}", "${easing}", ${loop}, ${reverse});\n`;
+		// Return the final code, passing keyframes with durations and properties
+		return `${asyncWrapper}animateKeyFrames(${meshVar}, [${keyframesCode}], "${property}", "${easing}", ${loop}, ${reverse});\n`;
 	};
 
 	javascriptGenerator.forBlock["stop_animations"] = function (block) {
@@ -181,116 +220,186 @@ export function defineGenerators() {
 		return `await stopAnimations(${modelName});\n`;
 	};
 
-
 	javascriptGenerator.forBlock["colour_keyframe"] = function (block) {
-	  const color = javascriptGenerator.valueToCode(
-		block,
-		"COLOR",
-		javascriptGenerator.ORDER_ATOMIC
-	  );
-	  const duration = javascriptGenerator.valueToCode(
-		block,
-		"DURATION",
-		javascriptGenerator.ORDER_ATOMIC
-	  );
+		const color = javascriptGenerator.valueToCode(
+			block,
+			"COLOR",
+			javascriptGenerator.ORDER_ATOMIC,
+		);
+		const duration = javascriptGenerator.valueToCode(
+			block,
+			"DURATION",
+			javascriptGenerator.ORDER_ATOMIC,
+		);
 
-	  const code = `{ value: ${color}, duration: ${duration} }`;
-	  return [code, javascriptGenerator.ORDER_ATOMIC];
+		const code = `{ value: ${color}, duration: ${duration} }`;
+		return [code, javascriptGenerator.ORDER_ATOMIC];
 	};
 
 	javascriptGenerator.forBlock["xyz_keyframe"] = function (block) {
-	  const x = javascriptGenerator.valueToCode(block, "X", javascriptGenerator.ORDER_ATOMIC);
-	  const y = javascriptGenerator.valueToCode(block, "Y", javascriptGenerator.ORDER_ATOMIC);
-	  const z = javascriptGenerator.valueToCode(block, "Z", javascriptGenerator.ORDER_ATOMIC);
-	  const duration = javascriptGenerator.valueToCode(block, "DURATION", javascriptGenerator.ORDER_ATOMIC);
-	  const code = `{ value: new flock.BABYLON.Vector3(${x}, ${y}, ${z}), duration: ${duration} }`;
-	  return [code, javascriptGenerator.ORDER_ATOMIC];
+		const x = javascriptGenerator.valueToCode(
+			block,
+			"X",
+			javascriptGenerator.ORDER_ATOMIC,
+		);
+		const y = javascriptGenerator.valueToCode(
+			block,
+			"Y",
+			javascriptGenerator.ORDER_ATOMIC,
+		);
+		const z = javascriptGenerator.valueToCode(
+			block,
+			"Z",
+			javascriptGenerator.ORDER_ATOMIC,
+		);
+		const duration = javascriptGenerator.valueToCode(
+			block,
+			"DURATION",
+			javascriptGenerator.ORDER_ATOMIC,
+		);
+		const code = `{ value: new flock.BABYLON.Vector3(${x}, ${y}, ${z}), duration: ${duration} }`;
+		return [code, javascriptGenerator.ORDER_ATOMIC];
 	};
 
 	javascriptGenerator.forBlock["animate_keyframes"] = function (block) {
-	  const meshVar = javascriptGenerator.nameDB_.getName(
-		block.getFieldValue("MESH"),
-		Blockly.Names.NameType.VARIABLE
-	  );
-	  const keyframesBlock = block.getInputTargetBlock("KEYFRAMES");
-	  const keyframesArray = [];
+		const meshVar = javascriptGenerator.nameDB_.getName(
+			block.getFieldValue("MESH"),
+			Blockly.Names.NameType.VARIABLE,
+		);
+		const keyframesBlock = block.getInputTargetBlock("KEYFRAMES");
+		const keyframesArray = [];
 
-	  if (keyframesBlock) {
-		// Loop through keyframe blocks to gather data
-		for (let i = 0; i < keyframesBlock.inputList.length; i++) {
-		  const keyframeInput = keyframesBlock.inputList[i];
+		if (keyframesBlock) {
+			// Loop through keyframe blocks to gather data
+			for (let i = 0; i < keyframesBlock.inputList.length; i++) {
+				const keyframeInput = keyframesBlock.inputList[i];
 
-		  const valueBlock = keyframeInput.connection ? keyframeInput.connection.targetBlock() : null;
-		  const durationBlock = keyframeInput.connection ? keyframeInput.connection.targetBlock() : null;
+				const valueBlock = keyframeInput.connection
+					? keyframeInput.connection.targetBlock()
+					: null;
+				const durationBlock = keyframeInput.connection
+					? keyframeInput.connection.targetBlock()
+					: null;
 
-		  let value;
-		  const property = block.getFieldValue("PROPERTY");
+				let value;
+				const property = block.getFieldValue("PROPERTY");
 
-		  if (valueBlock) {
-			if (property === "color") {
-			  // Handle color keyframe (as a string)
-			  value = javascriptGenerator.valueToCode(valueBlock, "VALUE", javascriptGenerator.ORDER_NONE);
-			} else if (["position", "rotation", "scaling"].includes(property)) {
-			  // Handle XYZ (Vector3) keyframe for position, rotation, or scaling
-			  const x = javascriptGenerator.valueToCode(valueBlock, "X", javascriptGenerator.ORDER_ATOMIC) || 0;
-			  const y = javascriptGenerator.valueToCode(valueBlock, "Y", javascriptGenerator.ORDER_ATOMIC) || 0;
-			  const z = javascriptGenerator.valueToCode(valueBlock, "Z", javascriptGenerator.ORDER_ATOMIC) || 0;
-			  value = `new flock.BABYLON.Vector3(${x}, ${y}, ${z})`;  // Generate the text for Vector3, not the object itself
-			} else {
-			  // Handle alpha or other properties
-			  value = javascriptGenerator.valueToCode(valueBlock, "VALUE", javascriptGenerator.ORDER_ATOMIC);
+				if (valueBlock) {
+					if (property === "color") {
+						// Handle color keyframe (as a string)
+						value = javascriptGenerator.valueToCode(
+							valueBlock,
+							"VALUE",
+							javascriptGenerator.ORDER_NONE,
+						);
+					} else if (
+						["position", "rotation", "scaling"].includes(property)
+					) {
+						// Handle XYZ (Vector3) keyframe for position, rotation, or scaling
+						const x =
+							javascriptGenerator.valueToCode(
+								valueBlock,
+								"X",
+								javascriptGenerator.ORDER_ATOMIC,
+							) || 0;
+						const y =
+							javascriptGenerator.valueToCode(
+								valueBlock,
+								"Y",
+								javascriptGenerator.ORDER_ATOMIC,
+							) || 0;
+						const z =
+							javascriptGenerator.valueToCode(
+								valueBlock,
+								"Z",
+								javascriptGenerator.ORDER_ATOMIC,
+							) || 0;
+						value = `new flock.BABYLON.Vector3(${x}, ${y}, ${z})`; // Generate the text for Vector3, not the object itself
+					} else {
+						// Handle alpha or other properties
+						value = javascriptGenerator.valueToCode(
+							valueBlock,
+							"VALUE",
+							javascriptGenerator.ORDER_ATOMIC,
+						);
+					}
+				} else {
+					// Default values for missing blocks
+					value =
+						property === "color"
+							? '"#ffffff"'
+							: `new flock.BABYLON.Vector3(0, 0, 0)`; // Correct color string for colours
+				}
+
+				const duration = durationBlock
+					? javascriptGenerator.valueToCode(
+							durationBlock,
+							"DURATION",
+							javascriptGenerator.ORDER_ATOMIC,
+						)
+					: "1"; // Default duration of 1 second if not specified
+
+				keyframesArray.push({ value, duration });
 			}
-		  } else {
-			// Default values for missing blocks
-			value = property === "color" ? '"#ffffff"' : `new flock.BABYLON.Vector3(0, 0, 0)`;  // Correct color string for colours
-		  }
-
-		  const duration = durationBlock
-			? javascriptGenerator.valueToCode(durationBlock, "DURATION", javascriptGenerator.ORDER_ATOMIC)
-			: "1";  // Default duration of 1 second if not specified
-
-		  keyframesArray.push({ value, duration });
 		}
-	  }
 
-	  const easing = block.getFieldValue("EASING") || "Linear";
-	  const property = block.getFieldValue("PROPERTY") || "color";  // Default to "color" if no property is set
+		const easing = block.getFieldValue("EASING") || "Linear";
+		const property = block.getFieldValue("PROPERTY") || "color"; // Default to "color" if no property is set
 
-	  const loop = block.getFieldValue("LOOP") === "TRUE";
-	  const reverse = block.getFieldValue("REVERSE") === "TRUE";
-	  const mode = block.getFieldValue("MODE");
+		const loop = block.getFieldValue("LOOP") === "TRUE";
+		const reverse = block.getFieldValue("REVERSE") === "TRUE";
+		const mode = block.getFieldValue("MODE");
 
-	  const asyncWrapper = mode === "AWAIT" ? "await " : "";
+		const asyncWrapper = mode === "AWAIT" ? "await " : "";
 
-	  // Generate the keyframes text for both colors and Vector3
-	  const keyframesCode = keyframesArray.map(kf => `{
+		// Generate the keyframes text for both colors and Vector3
+		const keyframesCode = keyframesArray
+			.map(
+				(kf) => `{
 		value: ${kf.value}, 
 		duration: ${kf.duration}
-	  }`).join(", ");
+	  }`,
+			)
+			.join(", ");
 
-	  // Return the final code, passing keyframes with durations and properties
-	  return `${asyncWrapper}animateKeyFrames(${meshVar}, [${keyframesCode}], "${property}", "${easing}", ${loop}, ${reverse});\n`;
+		// Return the final code, passing keyframes with durations and properties
+		return `${asyncWrapper}animateKeyFrames(${meshVar}, [${keyframesCode}], "${property}", "${easing}", ${loop}, ${reverse});\n`;
 	};
 
 	javascriptGenerator.forBlock["min_centre_max"] = function (block) {
-	  const pivotOption = block.getFieldValue("PIVOT_OPTION");
+		const pivotOption = block.getFieldValue("PIVOT_OPTION");
 
-	  // Return the value for the selected pivot option
-	  return [`${pivotOption}`, javascriptGenerator.ORDER_ATOMIC];
+		// Return the value for the selected pivot option
+		return [`${pivotOption}`, javascriptGenerator.ORDER_ATOMIC];
 	};
 
 	javascriptGenerator.forBlock["set_pivot"] = function (block) {
-	  const meshVar = javascriptGenerator.nameDB_.getName(
-		block.getFieldValue("MESH"),
-		Blockly.Names.NameType.VARIABLE
-	  );
+		const meshVar = javascriptGenerator.nameDB_.getName(
+			block.getFieldValue("MESH"),
+			Blockly.Names.NameType.VARIABLE,
+		);
 
-	  const xPivot = javascriptGenerator.valueToCode(block, "X_PIVOT", javascriptGenerator.ORDER_ATOMIC) || 0;
-	  const yPivot = javascriptGenerator.valueToCode(block, "Y_PIVOT", javascriptGenerator.ORDER_ATOMIC) || 0;
-	  const zPivot = javascriptGenerator.valueToCode(block, "Z_PIVOT", javascriptGenerator.ORDER_ATOMIC) || 0;
+		const xPivot =
+			javascriptGenerator.valueToCode(
+				block,
+				"X_PIVOT",
+				javascriptGenerator.ORDER_ATOMIC,
+			) || 0;
+		const yPivot =
+			javascriptGenerator.valueToCode(
+				block,
+				"Y_PIVOT",
+				javascriptGenerator.ORDER_ATOMIC,
+			) || 0;
+		const zPivot =
+			javascriptGenerator.valueToCode(
+				block,
+				"Z_PIVOT",
+				javascriptGenerator.ORDER_ATOMIC,
+			) || 0;
 
-	  // Return the final code for setting the pivot on the mesh
-	  return `await setPivotPoint(${meshVar}, ${xPivot}, ${yPivot}, ${zPivot});\n`;
+		// Return the final code for setting the pivot on the mesh
+		return `await setPivotPoint(${meshVar}, ${xPivot}, ${yPivot}, ${zPivot});\n`;
 	};
 
 	javascriptGenerator.forBlock["start"] = function (block) {
@@ -340,7 +449,7 @@ export function defineGenerators() {
 			javascriptGenerator.valueToCode(
 				block,
 				"COMMENT",
-				javascriptGenerator.ORDER_ATOMIC
+				javascriptGenerator.ORDER_ATOMIC,
 			) || "''";
 		return `// ${commentText}\n`;
 	};
@@ -434,7 +543,7 @@ export function defineGenerators() {
 			"Y",
 			javascriptGenerator.ORDER_ATOMIC,
 		);
-		const width = `"${block.getFieldValue("WIDTH")}"`;  // Get dropdown value directly
+		const width = `"${block.getFieldValue("WIDTH")}"`; // Get dropdown value directly
 		const textColor = javascriptGenerator.valueToCode(
 			block,
 			"TEXT_COLOR",
@@ -524,11 +633,11 @@ export function defineGenerators() {
 
 		doCode = doCode ? `async function() {\n${doCode}\n}` : "";
 
-			return `${variableName} = newModel({
+		return `${variableName} = newModel({
 				modelName: '${modelName}',
 				modelId: '${meshId}',
 				scale: ${scale},
-				position: { x: ${x}, y: ${y}, z: ${z} }${doCode ? `,\ncallback: ${doCode}` : ''}
+				position: { x: ${x}, y: ${y}, z: ${z} }${doCode ? `,\ncallback: ${doCode}` : ""}
 			});\n`;
 	};
 
@@ -573,7 +682,7 @@ export function defineGenerators() {
 			sleeves: ${sleevesColor},
 			shorts: ${shortsColor},
 			tshirt: ${tshirtColor}
-		  }${doCode ? `, callback: ${doCode}` : ''}
+		  }${doCode ? `, callback: ${doCode}` : ""}
 		});\n`;
 	};
 
@@ -606,16 +715,15 @@ export function defineGenerators() {
 			modelId: '${meshId}',
 			color: ${color},
 			scale: ${scale},
-			position: { x: ${x}, y: ${y}, z: ${z} }${doCode ? `,\ncallback: ${doCode}` : ''}
+			position: { x: ${x}, y: ${y}, z: ${z} }${doCode ? `,\ncallback: ${doCode}` : ""}
 		});\n`;
-
-	}
+	};
 
 	// Function to create a mesh, taking mesh type, parameters, and position as arguments
 	function createMesh(block, meshType, params, position, idPrefix) {
 		let variableName = javascriptGenerator.nameDB_.getName(
 			block.getFieldValue("ID_VAR"),
-			Blockly.Names.NameType.VARIABLE
+			Blockly.Names.NameType.VARIABLE,
 		);
 
 		const meshId = `${idPrefix}_${generateUniqueId()}`;
@@ -652,7 +760,13 @@ export function defineGenerators() {
 
 		const positionSource = getPositionTuple(block);
 
-		return createMesh(block, "Box", [color, width, height, depth], positionSource, "box");
+		return createMesh(
+			block,
+			"Box",
+			[color, width, height, depth],
+			positionSource,
+			"box",
+		);
 	};
 
 	javascriptGenerator.forBlock["create_sphere"] = function (block) {
@@ -663,7 +777,13 @@ export function defineGenerators() {
 
 		const positionSource = getPositionTuple(block);
 
-		return createMesh(block, "Sphere", [color, diameterX, diameterY, diameterZ], positionSource, "sphere");
+		return createMesh(
+			block,
+			"Sphere",
+			[color, diameterX, diameterY, diameterZ],
+			positionSource,
+			"sphere",
+		);
 	};
 
 	javascriptGenerator.forBlock["create_cylinder"] = function (block) {
@@ -674,7 +794,13 @@ export function defineGenerators() {
 
 		const positionSource = getPositionTuple(block);
 
-		return createMesh(block, "Cylinder", [color, height, diameterTop, diameterBottom], positionSource, "cylinder");
+		return createMesh(
+			block,
+			"Cylinder",
+			[color, height, diameterTop, diameterBottom],
+			positionSource,
+			"cylinder",
+		);
 	};
 
 	javascriptGenerator.forBlock["create_capsule"] = function (block) {
@@ -684,7 +810,13 @@ export function defineGenerators() {
 
 		const positionSource = getPositionTuple(block);
 
-		return createMesh(block, "Capsule", [color, radius, height], positionSource, "capsule");
+		return createMesh(
+			block,
+			"Capsule",
+			[color, radius, height],
+			positionSource,
+			"capsule",
+		);
 	};
 
 	javascriptGenerator.forBlock["create_plane"] = function (block) {
@@ -694,7 +826,13 @@ export function defineGenerators() {
 
 		const positionSource = getPositionTuple(block);
 
-		return createMesh(block, "Plane", [color, width, height], positionSource, "plane");
+		return createMesh(
+			block,
+			"Plane",
+			[color, width, height],
+			positionSource,
+			"plane",
+		);
 	};
 
 	javascriptGenerator.forBlock["set_background_color"] = function (block) {
@@ -1049,13 +1187,13 @@ export function defineGenerators() {
 		const modelName = javascriptGenerator.nameDB_.getName(
 			block.getFieldValue("MODEL_VAR"),
 			Blockly.Names.NameType.VARIABLE,
-			true
+			true,
 		);
 
 		const otherModelName = javascriptGenerator.nameDB_.getName(
 			block.getFieldValue("OTHER_MODEL_VAR"),
 			Blockly.Names.NameType.VARIABLE,
-			true
+			true,
 		);
 
 		const trigger = block.getFieldValue("TRIGGER");
@@ -1066,14 +1204,13 @@ export function defineGenerators() {
 			trigger === "OnIntersectionEnterTrigger" ||
 			trigger === "OnIntersectionExitTrigger"
 		) {
-
 			return `onIntersect(${modelName}, ${otherModelName}, "${trigger}", async function() {\n
 				${doCode}
 			});\n`;
 		} else {
 			console.error(
 				"Invalid trigger type for 'when_touches' block:",
-				trigger
+				trigger,
 			);
 			return "";
 		}
@@ -1082,12 +1219,12 @@ export function defineGenerators() {
 	javascriptGenerator.forBlock["when_clicked"] = function (block) {
 		const modelName = javascriptGenerator.nameDB_.getName(
 			block.getFieldValue("MODEL_VAR"),
-			Blockly.Names.NameType.VARIABLE
+			Blockly.Names.NameType.VARIABLE,
 		);
 
 		const trigger = block.getFieldValue("TRIGGER");
 		const doCode = javascriptGenerator.statementToCode(block, "DO");
-		
+
 		return `onTrigger(${modelName}, "${trigger}", async function() {\n
 			${doCode}
 		});\n`;
@@ -1165,14 +1302,14 @@ export function defineGenerators() {
 		return `await tint(${modelName}, ${color});\n`;
 	};
 
-	javascriptGenerator.forBlock["change_colour"] = function (block) {
+	javascriptGenerator.forBlock["change_color"] = function (block) {
 		const modelName = javascriptGenerator.nameDB_.getName(
 			block.getFieldValue("MODEL_VAR"),
 			Blockly.Names.NameType.VARIABLE,
 		);
 		const color = getFieldValue(block, "COLOR", "#ffffff");
 
-		return `await changeColour(${modelName}, ${color});\n`;
+		return `await changeColor(${modelName}, ${color});\n`;
 	};
 
 	javascriptGenerator.forBlock["change_material"] = function (block) {
@@ -1374,22 +1511,23 @@ export function defineGenerators() {
 		return `exportMesh(${meshVar}, "${format}");\n`;
 	};
 
-	javascriptGenerator.forBlock["merge_meshes"] = function (block) {		
+	javascriptGenerator.forBlock["merge_meshes"] = function (block) {
 		const resultVar = javascriptGenerator.nameDB_.getName(
 			block.getFieldValue("RESULT_VAR"),
 			Blockly.Names.NameType.VARIABLE,
 		);
 
-		const meshList = javascriptGenerator.valueToCode(
-			block,
-			"MESH_LIST",
-			javascriptGenerator.ORDER_ATOMIC,
-		) || "[]";
+		const meshList =
+			javascriptGenerator.valueToCode(
+				block,
+				"MESH_LIST",
+				javascriptGenerator.ORDER_ATOMIC,
+			) || "[]";
 
 		const meshId = "merged" + "_" + generateUniqueId();
 		meshMap[meshId] = block;
 		meshBlockIdMap[meshId] = block.id;
-		
+
 		// Use helper function to merge the meshes
 		return `${resultVar} = await mergeMeshes("${meshId}", ${meshList});\n`;
 	};
@@ -1403,12 +1541,13 @@ export function defineGenerators() {
 			block.getFieldValue("BASE_MESH"),
 			Blockly.Names.NameType.VARIABLE,
 		);
-	
-		const meshList = javascriptGenerator.valueToCode(
-			block,
-			"MESH_LIST",
-			javascriptGenerator.ORDER_ATOMIC,
-		) || "[]";
+
+		const meshList =
+			javascriptGenerator.valueToCode(
+				block,
+				"MESH_LIST",
+				javascriptGenerator.ORDER_ATOMIC,
+			) || "[]";
 
 		const meshId = "subtracted" + "_" + generateUniqueId();
 		meshMap[meshId] = block;
@@ -1418,17 +1557,18 @@ export function defineGenerators() {
 		return `${resultVar} = await subtractMeshes("${meshId}", ${baseMesh}, ${meshList});\n`;
 	};
 
-	javascriptGenerator.forBlock["intersection_meshes"] = function (block) {		
+	javascriptGenerator.forBlock["intersection_meshes"] = function (block) {
 		const resultVar = javascriptGenerator.nameDB_.getName(
 			block.getFieldValue("RESULT_VAR"),
 			Blockly.Names.NameType.VARIABLE,
 		);
 
-		const meshList = javascriptGenerator.valueToCode(
-			block,
-			"MESH_LIST",
-			javascriptGenerator.ORDER_ATOMIC,
-		) || "[]";
+		const meshList =
+			javascriptGenerator.valueToCode(
+				block,
+				"MESH_LIST",
+				javascriptGenerator.ORDER_ATOMIC,
+			) || "[]";
 
 		const meshId = "intersected" + "_" + generateUniqueId();
 		meshMap[meshId] = block;
@@ -1481,42 +1621,57 @@ export function defineGenerators() {
 	};
 
 	javascriptGenerator.forBlock["hold"] = function (block) {
-	  const meshToAttach = javascriptGenerator.nameDB_.getName(
-		block.getFieldValue("MESH_TO_ATTACH"),
-		Blockly.Names.NameType.VARIABLE
-	  );
-	  const targetMesh = javascriptGenerator.nameDB_.getName(
-		block.getFieldValue("TARGET_MESH"),
-		Blockly.Names.NameType.VARIABLE
-	  );
-	  const xOffset = javascriptGenerator.valueToCode(block, "X_OFFSET", javascriptGenerator.ORDER_ATOMIC) || "0";
-	  const yOffset = javascriptGenerator.valueToCode(block, "Y_OFFSET", javascriptGenerator.ORDER_ATOMIC) || "0";
-	  const zOffset = javascriptGenerator.valueToCode(block, "Z_OFFSET", javascriptGenerator.ORDER_ATOMIC) || "0";
+		const meshToAttach = javascriptGenerator.nameDB_.getName(
+			block.getFieldValue("MESH_TO_ATTACH"),
+			Blockly.Names.NameType.VARIABLE,
+		);
+		const targetMesh = javascriptGenerator.nameDB_.getName(
+			block.getFieldValue("TARGET_MESH"),
+			Blockly.Names.NameType.VARIABLE,
+		);
+		const xOffset =
+			javascriptGenerator.valueToCode(
+				block,
+				"X_OFFSET",
+				javascriptGenerator.ORDER_ATOMIC,
+			) || "0";
+		const yOffset =
+			javascriptGenerator.valueToCode(
+				block,
+				"Y_OFFSET",
+				javascriptGenerator.ORDER_ATOMIC,
+			) || "0";
+		const zOffset =
+			javascriptGenerator.valueToCode(
+				block,
+				"Z_OFFSET",
+				javascriptGenerator.ORDER_ATOMIC,
+			) || "0";
 
-	  // Establish the hold action with offset
-	  return `await hold(${meshToAttach}, ${targetMesh}, ${xOffset}, ${yOffset}, ${zOffset});
+		// Establish the hold action with offset
+		return `await hold(${meshToAttach}, ${targetMesh}, ${xOffset}, ${yOffset}, ${zOffset});
 	`;
 	};
 
 	javascriptGenerator.forBlock["drop"] = function (block) {
-	  const meshToDetach = javascriptGenerator.nameDB_.getName(
-		block.getFieldValue("MESH_TO_DETACH"),
-		Blockly.Names.NameType.VARIABLE
-	  );
+		const meshToDetach = javascriptGenerator.nameDB_.getName(
+			block.getFieldValue("MESH_TO_DETACH"),
+			Blockly.Names.NameType.VARIABLE,
+		);
 
-	  // Establish the drop action
-	  return `await drop(${meshToDetach});
+		// Establish the drop action
+		return `await drop(${meshToDetach});
 	`;
 	};
 
 	javascriptGenerator.forBlock["follow"] = function (block) {
 		const followerMesh = javascriptGenerator.nameDB_.getName(
 			block.getFieldValue("FOLLOWER_MESH"),
-			Blockly.Names.NameType.VARIABLE
+			Blockly.Names.NameType.VARIABLE,
 		);
 		const targetMesh = javascriptGenerator.nameDB_.getName(
 			block.getFieldValue("TARGET_MESH"),
-			Blockly.Names.NameType.VARIABLE
+			Blockly.Names.NameType.VARIABLE,
 		);
 		const followPosition = block.getFieldValue("FOLLOW_POSITION");
 
@@ -1524,19 +1679,19 @@ export function defineGenerators() {
 			javascriptGenerator.valueToCode(
 				block,
 				"X_OFFSET",
-				javascriptGenerator.ORDER_ATOMIC
+				javascriptGenerator.ORDER_ATOMIC,
 			) || "0";
 		const yOffset =
 			javascriptGenerator.valueToCode(
 				block,
 				"Y_OFFSET",
-				javascriptGenerator.ORDER_ATOMIC
+				javascriptGenerator.ORDER_ATOMIC,
 			) || "0";
 		const zOffset =
 			javascriptGenerator.valueToCode(
 				block,
 				"Z_OFFSET",
-				javascriptGenerator.ORDER_ATOMIC
+				javascriptGenerator.ORDER_ATOMIC,
 			) || "0";
 
 		// Use the helper method makeFollow for following the target
@@ -1549,14 +1704,13 @@ export function defineGenerators() {
 	javascriptGenerator.forBlock["stop_follow"] = function (block) {
 		const followerModelName = javascriptGenerator.nameDB_.getName(
 			block.getFieldValue("FOLLOWER_MESH"),
-			Blockly.Names.NameType.VARIABLE
+			Blockly.Names.NameType.VARIABLE,
 		);
 
 		// Generate code to call the stopFollow helper function
 		const code = `stopFollow("${followerModelName}");\n`;
 		return code;
 	};
-
 
 	javascriptGenerator.forBlock["add_physics"] = function (block) {
 		const modelName = javascriptGenerator.nameDB_.getName(
@@ -2233,21 +2387,24 @@ javascriptGenerator.forBlock["controls_forEach"] = function (block, generator) {
 };
 
 javascriptGenerator.forBlock["xyz"] = function (block) {
-	const x = javascriptGenerator.valueToCode(
-		block,
-		"X",
-		javascriptGenerator.ORDER_ATOMIC
-	) || "0";
-	const y = javascriptGenerator.valueToCode(
-		block,
-		"Y",
-		javascriptGenerator.ORDER_ATOMIC
-	) || "0";
-	const z = javascriptGenerator.valueToCode(
-		block,
-		"Z",
-		javascriptGenerator.ORDER_ATOMIC
-	) || "0";
+	const x =
+		javascriptGenerator.valueToCode(
+			block,
+			"X",
+			javascriptGenerator.ORDER_ATOMIC,
+		) || "0";
+	const y =
+		javascriptGenerator.valueToCode(
+			block,
+			"Y",
+			javascriptGenerator.ORDER_ATOMIC,
+		) || "0";
+	const z =
+		javascriptGenerator.valueToCode(
+			block,
+			"Z",
+			javascriptGenerator.ORDER_ATOMIC,
+		) || "0";
 
 	// Generate a tuple representing the vector
 	const code = `[${x}, ${y}, ${z}]`;
