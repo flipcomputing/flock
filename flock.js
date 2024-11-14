@@ -1857,12 +1857,31 @@ export const flock = {
 		// Initialise the mesh with position, color, and other properties
 		flock.initializeMesh(newCapsule, position, color, "Capsule", alpha);
 
-		// Create and apply physics shape
+		// Define central point for the capsule
+		const center = new flock.BABYLON.Vector3(0, 0, 0);
+
+		// Calculate physics shape parameters
+		const capsuleRadius = radius;
+		const cylinderHeight = Math.max(0, height - 2 * capsuleRadius);
+
+		// Define the start and end points of the cylindrical segment
+		const segmentStart = new flock.BABYLON.Vector3(
+			center.x,
+			center.y - cylinderHeight / 2,
+			center.z
+		);
+		const segmentEnd = new flock.BABYLON.Vector3(
+			center.x,
+			center.y + cylinderHeight / 2,
+			center.z
+		);
+
+		// Create and apply the physics shape using the central reference
 		const capsuleShape = new flock.BABYLON.PhysicsShapeCapsule(
-			new flock.BABYLON.Vector3(0, 0, 0),
-			radius,
-			height / 2,
-			flock.scene,
+			segmentStart,
+			segmentEnd,
+			capsuleRadius,
+			flock.scene
 		);
 		flock.applyPhysics(newCapsule, capsuleShape);
 
