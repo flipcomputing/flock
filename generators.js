@@ -1245,7 +1245,6 @@ export function defineGenerators() {
 		return code;
 	};
 
-	
 	javascriptGenerator.forBlock["when_key_event"] = function (block) {
 		const key = block.getFieldValue("KEY");
 		const event = block.getFieldValue("EVENT"); // "pressed" or "released"
@@ -1389,7 +1388,6 @@ export function defineGenerators() {
 
 		return `${helperFunction}(${modelName}, ${speed});\n`;
 	};
-
 
 	javascriptGenerator.forBlock["up"] = function (block) {
 		const modelName = javascriptGenerator.nameDB_.getName(
@@ -2119,6 +2117,14 @@ export function defineGenerators() {
 		javascriptGenerator.isInitialized = true;
 	};
 
+	javascriptGenerator.forBlock["device_camera_background"] = function (
+		block,
+	) {
+		const cameraType = block.getFieldValue("CAMERA");
+
+		return `setCameraBackground("${cameraType}");\n`;
+	};
+
 	javascriptGenerator.forBlock["camera_control"] = function (block) {
 		const key = block.getFieldValue("KEY");
 		const action = block.getFieldValue("ACTION");
@@ -2396,5 +2402,5 @@ javascriptGenerator.forBlock["microbit_input"] = function (block) {
 	const event = block.getFieldValue("EVENT");
 	const statements_do = javascriptGenerator.statementToCode(block, "DO");
 
-	return `whenKeyPressed("${event}", async () => {${statements_do}});\n`;
+	return `whenKeyEvent("${event}", async () => {${statements_do}});\n`;
 };

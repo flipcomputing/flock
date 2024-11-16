@@ -1066,6 +1066,11 @@ export const toolbox = {
 				},
 				{
 					kind: "block",
+					type: "device_camera_background",
+					keyword: "devcam",
+				},
+				{
+					kind: "block",
 					type: "create_map",
 					keyword: "map",
 					inputs: {

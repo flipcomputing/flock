@@ -104,6 +104,7 @@ export const flock = {
 			buttonControls,
 			getCamera,
 			cameraControl,
+			setCameraBackground,
 			applyForce,
 			moveByVector,
 			glideTo,
@@ -4363,6 +4364,31 @@ export const flock = {
 		} else {
 			console.error("No active camera found in the scene.");
 		}
+	},
+	setCameraBackground(cameraType) {
+		if (!flock.scene) {
+			console.error("Scene not available. Ensure the scene is initialised before setting the camera background.");
+			return;
+		}
+
+		const videoLayer = new flock.BABYLON.Layer("videoLayer", null, flock.scene, true);
+
+		flock.BABYLON.VideoTexture.CreateFromWebCam(
+			flock.scene,
+			(videoTexture) => {
+				videoTexture._invertY = false; // Correct orientation
+				 videoTexture.uScale = -1; // Flip horizontally for mirror effect
+				videoLayer.texture = videoTexture; // Assign the video feed to the layer
+			},
+			{
+				facingMode: cameraType, // "user" for front, "environment" for back
+				minWidth: 640,
+				minHeight: 480,
+				maxWidth: 1920,
+				maxHeight: 1080,
+				deviceId: ""
+			}
+		);
 	},
 	updateDynamicMeshPositions(scene, dynamicMeshes) {
 		scene.onBeforeRenderObservable.add(() => {
