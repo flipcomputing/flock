@@ -4393,7 +4393,7 @@ export const flock = {
 	updateDynamicMeshPositions(scene, dynamicMeshes) {
 		scene.onBeforeRenderObservable.add(() => {
 			dynamicMeshes.forEach((mesh) => {
-				// Cast a ray upwards from inside the mesh to check for intersections
+				// Compute the world matrix for accurate raycasting
 				mesh.computeWorldMatrix(true);
 				const boundingInfo = mesh.getBoundingInfo();
 				const minY = boundingInfo.boundingBox.minimumWorld.y;
@@ -4407,38 +4407,33 @@ export const flock = {
 				const ray = new flock.BABYLON.Ray(
 					rayOrigin,
 					new flock.BABYLON.Vector3(0, 1, 0),
-					2,
+					2, // Ray length
 				);
 
-				//const rayHelper = new flock.BABYLON.RayHelper(ray);
-
-				let parentPickable = false;
-				if (mesh.isPickable) {
-					parentPickable = true;
-					mesh.isPickable = false;
-				}
-
-				const descendants = mesh.getChildMeshes(false); // 'false' gets all descendants
+				// Temporarily disable mesh picking to avoid self-collision
+				const descendants = mesh.getChildMeshes(false);
+				const originalPickableState = [];
 				descendants.forEach((childMesh) => {
-					if (childMesh.getTotalVertices() > 0) {
-						// Ensure it has geometry
-						childMesh.isPickable = false;
-					}
-				});
-				const hit = flock.scene.pickWithRay(ray);
-				descendants.forEach((childMesh) => {
-					if (childMesh.getTotalVertices() > 0) {
-						// Ensure it has geometry
-						childMesh.isPickable = true;
-					}
+					originalPickableState.push(childMesh.isPickable);
+					childMesh.isPickable = false;
 				});
 
-				if (parentPickable) mesh.ispickable = true;
+				const hit = scene.pickWithRay(ray);
 
-				if (hit.pickedMesh) {
-					// Move the mesh up to avoid intersection
-					mesh.position.y += hit.distance;
-					mesh.computeWorldMatrix(true);
+				// Restore the original pickable state
+				descendants.forEach((childMesh, index) => {
+					childMesh.isPickable = originalPickableState[index];
+				});
+
+				if (hit.pickedMesh && hit.pickedPoint) {
+					const distance = hit.distance;
+
+					// Only adjust position if the hit is below the mesh
+					const upwardMovementThreshold = 0.1; // Avoid excessive upward movement
+					if (distance > 0 && distance < upwardMovementThreshold) {
+						mesh.position.y += distance;
+						mesh.computeWorldMatrix(true);
+					}
 				}
 			});
 		});
