@@ -1048,21 +1048,25 @@ export const flock = {
 			.prepareMeshes(modelId, meshList, blockId)
 			.then((validMeshes) => {
 				if (validMeshes.length) {
-					let baseCSG = BABYLON.CSG2.FromMesh(validMeshes[0]);
-					validMeshes
-						.slice(1)
-						.forEach(
-							(mesh) =>
-								(baseCSG = baseCSG.add(
-									BABYLON.CSG2.FromMesh(mesh),
-								)),
-						);
+					// Create the base CSG from the first mesh, respecting its world matrix
+					let baseCSG = flock.BABYLON.CSG2.FromMesh(validMeshes[0], false);
 
+					// Merge subsequent meshes
+					validMeshes.slice(1).forEach((mesh) => {
+						const meshCSG = flock.BABYLON.CSG2.FromMesh(mesh, false);
+						baseCSG = baseCSG.add(meshCSG);
+					});
+
+					// Generate the resulting merged mesh with options
 					const mergedMesh = baseCSG.toMesh(
 						"mergedMesh",
-						null,
 						validMeshes[0].getScene(),
+						{
+							centerMesh: false, // Keep the original combined position
+							rebuildNormals: true, // Ensure normals are rebuilt for proper shading
+						},
 					);
+
 					flock.applyResultMeshProperties(
 						mergedMesh,
 						validMeshes[0],
@@ -1070,7 +1074,7 @@ export const flock = {
 						blockId,
 					);
 
-					// Dispose of original meshes to clean up
+					// Dispose of the original meshes
 					validMeshes.forEach((mesh) => mesh.dispose());
 
 					return modelId; // Return the modelId as per original functionality
@@ -1087,47 +1091,62 @@ export const flock = {
 		return new Promise((resolve) => {
 			flock.whenModelReady(baseMeshName, (baseMesh) => {
 				if (!baseMesh) {
-					console.warn(
-						`Base mesh ${baseMeshName} could not be resolved.`,
-					);
+					console.warn(`Base mesh ${baseMeshName} could not be resolved.`);
 					resolve(null);
 					return;
 				}
 
-				flock
-					.prepareMeshes(modelId, meshNames, blockId)
-					.then((validMeshes) => {
-						if (validMeshes.length) {
-							let outerCSG = BABYLON.CSG2.FromMesh(baseMesh);
-							validMeshes.forEach(
-								(mesh) =>
-									(outerCSG = outerCSG.subtract(
-										BABYLON.CSG2.FromMesh(mesh),
-									)),
-							);
+				flock.prepareMeshes(modelId, meshNames, blockId).then((validMeshes) => {
+					if (validMeshes.length) {
+						// Calculate the combined bounding box centre
+						let min = baseMesh.getBoundingInfo().boundingBox.minimumWorld.clone();
+						let max = baseMesh.getBoundingInfo().boundingBox.maximumWorld.clone();
 
-							const resultMesh = outerCSG.toMesh(
-								"resultMesh",
-								null,
-								baseMesh.getScene(),
-							);
-							flock.applyResultMeshProperties(
-								resultMesh,
-								baseMesh,
-								modelId,
-								blockId,
-							);
+						validMeshes.forEach((mesh) => {
+							const boundingInfo = mesh.getBoundingInfo();
+							const meshMin = boundingInfo.boundingBox.minimumWorld;
+							const meshMax = boundingInfo.boundingBox.maximumWorld;
 
-							validMeshes.forEach((mesh) => mesh.dispose());
-							baseMesh.dispose();
-							resolve(modelId); // Return the modelId as per original functionality
-						} else {
-							console.warn(
-								"No valid meshes to subtract from the base mesh.",
-							);
-							resolve(null);
-						}
-					});
+							min = flock.BABYLON.Vector3.Minimize(min, meshMin);
+							max = flock.BABYLON.Vector3.Maximize(max, meshMax);
+						});
+
+						const combinedCentre = min.add(max).scale(0.5);
+
+						// Perform the subtraction
+						let outerCSG = flock.BABYLON.CSG2.FromMesh(baseMesh, false);
+						validMeshes.forEach((mesh) => {
+							const meshCSG = flock.BABYLON.CSG2.FromMesh(mesh, false);
+							outerCSG = outerCSG.subtract(meshCSG);
+						});
+
+						// Generate the resulting mesh
+						const resultMesh = outerCSG.toMesh(
+							"resultMesh",
+							baseMesh.getScene(),
+						);
+
+						// Align the resulting mesh to the combined centre
+						resultMesh.position = combinedCentre;
+
+						// Apply properties to the resulting mesh
+						flock.applyResultMeshProperties(
+							resultMesh,
+							baseMesh,
+							modelId,
+							blockId,
+						);
+
+						// Dispose of the original meshes
+						validMeshes.forEach((mesh) => mesh.dispose());
+						baseMesh.dispose();
+
+						resolve(modelId); // Return the modelId as per original functionality
+					} else {
+						console.warn("No valid meshes to subtract from the base mesh.");
+						resolve(null);
+					}
+				});
 			});
 		});
 	},
@@ -1139,21 +1158,40 @@ export const flock = {
 			.prepareMeshes(modelId, meshList, blockId)
 			.then((validMeshes) => {
 				if (validMeshes.length) {
-					let baseCSG = BABYLON.CSG2.FromMesh(validMeshes[0]);
-					validMeshes
-						.slice(1)
-						.forEach(
-							(mesh) =>
-								(baseCSG = baseCSG.intersect(
-									BABYLON.CSG2.FromMesh(mesh),
-								)),
-						);
+					// Calculate the combined bounding box centre
+					let min = new flock.BABYLON.Vector3(Number.MAX_VALUE, Number.MAX_VALUE, Number.MAX_VALUE);
+					let max = new flock.BABYLON.Vector3(Number.MIN_VALUE, Number.MIN_VALUE, Number.MIN_VALUE);
 
+					validMeshes.forEach((mesh) => {
+						const boundingInfo = mesh.getBoundingInfo();
+						const meshMin = boundingInfo.boundingBox.minimumWorld;
+						const meshMax = boundingInfo.boundingBox.maximumWorld;
+
+						min = flock.BABYLON.Vector3.Minimize(min, meshMin);
+						max = flock.BABYLON.Vector3.Maximize(max, meshMax);
+					});
+
+					const combinedCentre = min.add(max).scale(0.5);
+
+					// Create the base CSG
+					let baseCSG = flock.BABYLON.CSG2.FromMesh(validMeshes[0], false);
+
+					// Intersect each subsequent mesh
+					validMeshes.slice(1).forEach((mesh) => {
+						const meshCSG = flock.BABYLON.CSG2.FromMesh(mesh, false);
+						baseCSG = baseCSG.intersect(meshCSG);
+					});
+
+					// Generate the resulting intersected mesh
 					const intersectedMesh = baseCSG.toMesh(
 						"intersectedMesh",
-						null,
 						validMeshes[0].getScene(),
 					);
+
+					// Align the resulting mesh to the combined centre
+					intersectedMesh.position = combinedCentre;
+
+					// Apply properties to the resulting mesh
 					flock.applyResultMeshProperties(
 						intersectedMesh,
 						validMeshes[0],
@@ -1161,6 +1199,7 @@ export const flock = {
 						blockId,
 					);
 
+					// Dispose of the original meshes
 					validMeshes.forEach((mesh) => mesh.dispose());
 
 					return modelId; // Return the modelId as per original functionality
@@ -1191,7 +1230,7 @@ export const flock = {
 		).then((meshes) => meshes.filter((mesh) => mesh !== null));
 	},
 	applyResultMeshProperties(resultMesh, referenceMesh, modelId, blockId) {
-		resultMesh.position.copyFrom(referenceMesh.position);
+		//resultMesh.position.copyFrom(referenceMesh.position);
 		if (referenceMesh.rotationQuaternion) {
 			resultMesh.rotationQuaternion =
 				referenceMesh.rotationQuaternion.clone();
@@ -1199,7 +1238,7 @@ export const flock = {
 			resultMesh.rotation.copyFrom(referenceMesh.rotation);
 		}
 		resultMesh.scaling.copyFrom(referenceMesh.scaling);
-		resultMesh.rotationQuaternion = BABYLON.Quaternion.Identity();
+		resultMesh.rotationQuaternion = flock.BABYLON.Quaternion.Identity();
 		resultMesh.name = modelId;
 		resultMesh.blockKey = blockId;
 		flock.applyPhysics(
