@@ -3817,34 +3817,171 @@ export const flock = {
 	changeMaterial(modelName, materialName, color) {
 		return flock.whenModelReady(modelName, (mesh) => {
 			const allMeshes = [mesh].concat(mesh.getDescendants());
-			const materialNode = allMeshes.find((node) => node.material);
+			const materialNode = allMeshes.find((node) => node.material) || mesh;
 
+			// Create the texture
 			const texture = new flock.BABYLON.Texture(
 				`./textures/${materialName}`,
-				flock.scene,
+				flock.scene
 			);
 
+			// Create the material
 			const material = new flock.BABYLON.StandardMaterial(
 				materialName,
-				flock.scene,
+				flock.scene
 			);
 
-			const texturePhysicalSize = 2;
+			// Texture physical size (e.g., bricks are 1m x 1m)
+			const texturePhysicalSize = 4; // Adjust to match the real-world size of your texture
+
+			// Compute bounding box dimensions
 			const boundingInfo = materialNode.getBoundingInfo();
 			const size = boundingInfo.boundingBox.extendSize.scale(2);
 
-			const meshWidth = boundingInfo.boundingBox.extendSize.x; // full width in meters
-			const meshHeight = boundingInfo.boundingBox.extendSize.y; // full height in meters
-			const meshwidth = Math.max(size.x, size.z);
-			texture.uScale = meshWidth / texturePhysicalSize;
-			texture.vScale = meshHeight / texturePhysicalSize;
+			// UV scales per axis for consistent texture size
+			const uScaleX = size.x / texturePhysicalSize; // Horizontal scale for X-aligned walls
+			const uScaleZ = size.z / texturePhysicalSize; // Horizontal scale for Z-aligned walls
+			const vScaleY = size.y / texturePhysicalSize; // Vertical scale for Y-aligned walls
 
+			// Adjust UV mapping for consistent texture size and alignment
+			const positions = materialNode.getVerticesData(BABYLON.VertexBuffer.PositionKind);
+			const normals = materialNode.getVerticesData(BABYLON.VertexBuffer.NormalKind);
+			let uvs = materialNode.getVerticesData(BABYLON.VertexBuffer.UVKind);
+
+			if (!uvs) {
+				// Generate default UVs if missing
+				uvs = new Array((positions.length / 3) * 2).fill(0);
+			}
+
+			if (positions && normals) {
+				for (let i = 0; i < positions.length / 3; i++) {
+					const normal = new BABYLON.Vector3(
+						normals[i * 3],
+						normals[i * 3 + 1],
+						normals[i * 3 + 2]
+					);
+
+					const position = new BABYLON.Vector3(
+						positions[i * 3],
+						positions[i * 3 + 1],
+						positions[i * 3 + 2]
+					);
+
+					let u = 0, v = 0;
+
+					// Handle front/back walls (z-axis alignment)
+					if (Math.abs(normal.z) > Math.abs(normal.x) && Math.abs(normal.z) > Math.abs(normal.y)) {
+						u = position.x / texturePhysicalSize; // Horizontal scale on x-axis
+						v = position.y / texturePhysicalSize; // Vertical scale on y-axis
+					}
+					// Handle side walls (x-axis alignment)
+					else if (Math.abs(normal.x) > Math.abs(normal.y) && Math.abs(normal.x) > Math.abs(normal.z)) {
+						u = position.z / texturePhysicalSize; // Horizontal scale on z-axis
+						v = position.y / texturePhysicalSize; // Vertical scale on y-axis
+					}
+					// Handle top/bottom (y-axis alignment)
+					else if (Math.abs(normal.y) > Math.abs(normal.x) && Math.abs(normal.y) > Math.abs(normal.z)) {
+						u = position.x / texturePhysicalSize; // Horizontal scale on x-axis
+						v = position.z / texturePhysicalSize; // Vertical scale on z-axis
+					}
+
+					uvs[i * 2] = u;
+					uvs[i * 2 + 1] = v;
+				}
+
+				// Update UV data
+				materialNode.setVerticesData(BABYLON.VertexBuffer.UVKind, uvs);
+			}
+
+			// Set global texture scaling for consistent results
+			texture.uScale = 1; // Keep UV scales consistent via vertex mapping
+			texture.vScale = 1;
+
+			// Assign material properties
 			material.diffuseTexture = texture;
 			material.diffuseColor = flock.BABYLON.Color3.FromHexString(color);
-
 			material.name = materialName;
-			materialNode.material = material;
+
+			// Apply material to all meshes
+			allMeshes.forEach((node) => {
+				node.material = material;
+			});
 		});
+	},
+	adjustUVMapping(mesh) {
+		if (!mesh.isVerticesDataPresent(BABYLON.VertexBuffer.PositionKind)) {
+			console.warn("Mesh has no vertex positions. Skipping UV adjustment.");
+			return;
+		}
+		if (!mesh.isVerticesDataPresent(BABYLON.VertexBuffer.NormalKind)) {
+			console.warn("Mesh has no vertex normals. Skipping UV adjustment.");
+			return;
+		}
+
+		const positions = mesh.getVerticesData(BABYLON.VertexBuffer.PositionKind);
+		const normals = mesh.getVerticesData(BABYLON.VertexBuffer.NormalKind);
+		const indices = mesh.getIndices(); // Required for face-based calculations
+		const uvs = mesh.getVerticesData(BABYLON.VertexBuffer.UVKind) || new Array((positions.length / 3) * 2).fill(0);
+
+		// Iterate over faces (triangles)
+		for (let i = 0; i < indices.length; i += 3) {
+			const idx0 = indices[i];
+			const idx1 = indices[i + 1];
+			const idx2 = indices[i + 2];
+
+			const v0 = new BABYLON.Vector3(
+				positions[idx0 * 3],
+				positions[idx0 * 3 + 1],
+				positions[idx0 * 3 + 2]
+			);
+			const v1 = new BABYLON.Vector3(
+				positions[idx1 * 3],
+				positions[idx1 * 3 + 1],
+				positions[idx1 * 3 + 2]
+			);
+			const v2 = new BABYLON.Vector3(
+				positions[idx2 * 3],
+				positions[idx2 * 3 + 1],
+				positions[idx2 * 3 + 2]
+			);
+
+			const normal = new BABYLON.Vector3(
+				normals[idx0 * 3],
+				normals[idx0 * 3 + 1],
+				normals[idx0 * 3 + 2]
+			);
+
+			// Calculate edge vectors and face area
+			const edge1 = v1.subtract(v0);
+			const edge2 = v2.subtract(v0);
+			const faceNormal = BABYLON.Vector3.Cross(edge1, edge2).normalize();
+			const scale = 1.0; // Texture scaling factor (adjust as needed)
+
+			// Determine UV axes based on the face's orientation
+			let uAxis, vAxis;
+			if (Math.abs(faceNormal.y) > Math.abs(faceNormal.x) && Math.abs(faceNormal.y) > Math.abs(faceNormal.z)) {
+				// Horizontal face (aligned with z-axis)
+				uAxis = new BABYLON.Vector3(1, 0, 0); // x-axis
+				vAxis = new BABYLON.Vector3(0, 0, 1); // z-axis
+			} else {
+				// Vertical face (aligned with y-axis)
+				uAxis = new BABYLON.Vector3(1, 0, 0); // x-axis
+				vAxis = new BABYLON.Vector3(0, 1, 0); // y-axis
+			}
+
+			// Assign UV coordinates for each vertex in the face
+			[v0, v1, v2].forEach((vertex, vertexIndex) => {
+				const index = [idx0, idx1, idx2][vertexIndex];
+				const localU = BABYLON.Vector3.Dot(vertex, uAxis) * scale;
+				const localV = BABYLON.Vector3.Dot(vertex, vAxis) * scale;
+
+				uvs[index * 2] = localU;
+				uvs[index * 2 + 1] = localV;
+			});
+		}
+
+		// Apply updated UV mapping
+		mesh.setVerticesData(BABYLON.VertexBuffer.UVKind, uvs);
 	},
 	setMaterial(modelName, material) {
 		return flock.whenModelReady(modelName, (mesh) => {
