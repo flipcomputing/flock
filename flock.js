@@ -5404,14 +5404,13 @@ export const flock = {
 				const objData = flock.EXPORT.OBJExport.OBJ(mesh);
 				download(mesh.name + ".obj", objData, "text/plain");
 			} else if (format === "GLB") {
+				mesh.flipFaces();
 				flock.EXPORT.GLTF2Export.GLBAsync(
-					meshList,
+					flock.scene,
 					mesh.name + ".glb",
-				).then((glbData) => {
-					const blob = new Blob([glbData.glb], {
-						type: "model/gltf-binary",
-					});
-					download(mesh.name + ".glb", blob, "model/gltf-binary");
+				).then((glb) => {
+					mesh.flipFaces();
+					glb.downloadFiles();					
 				});
 			}
 		});
