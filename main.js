@@ -333,6 +333,54 @@ function addImportContextMenuOption() {
 	});
 }
 
+function addExportPNGContextMenuOption() {
+	Blockly.ContextMenuRegistry.registry.register({
+		id: 'exportPNG',
+		weight: 100,
+		displayText: function() {
+			return 'Export as PNG';
+		},
+		preconditionFn: function(scope) {
+			return 'enabled';
+		},
+		callback: function(scope) {
+			if (scope.block) {
+				exportBlockAsPNG(scope.block);
+			} else if (scope.workspace) {
+				exportWorkspaceAsPNG(scope.workspace);
+			}
+		},
+		scopeType: Blockly.ContextMenuRegistry.ScopeType.BLOCK,
+		checkbox: false,
+	});
+}
+
+// Extend Blockly with custom context menu for exporting SVG of the workspace
+function addExportSVGContextMenuOption() {
+	Blockly.ContextMenuRegistry.registry.register({
+		id: "exportSVG",
+		weight: 101,
+		displayText: function () {
+			return "Export as SVG";
+		},
+		preconditionFn: function (scope) {
+			return "enabled";
+		},
+		callback: function (scope) {
+			if (scope.block) {
+				// Export selected block or stack as SVG
+				exportBlockAsSVG(scope.block);
+			} else if (scope.workspace) {
+				// Export the entire workspace as SVG
+				exportWorkspaceAsSVG(scope.workspace);
+			}
+		},
+		scopeType: Blockly.ContextMenuRegistry.ScopeType.BLOCK,
+		checkbox: false,
+	});
+}
+
+
 function openAboutPage() {
 	window.open("https://github.com/flipcomputing/flock/", "_blank");
 }
@@ -803,6 +851,176 @@ function initializeApp() {
 	onResize();
 }
 
+
+async function exportWorkspaceAsSVG(workspace) {
+	// Get the SVG element representing the entire workspace
+	const svg = workspace.getParentSvg().cloneNode(true);
+
+	// Adjust the dimensions to fit the content
+	const bbox = svg.getBBox();
+	svg.setAttribute("width", bbox.width);
+	svg.setAttribute("height", bbox.height);
+	svg.setAttribute("viewBox", `${bbox.x} ${bbox.y} ${bbox.width} ${bbox.height}`);
+
+	// Convert the SVG to a data URL
+	const serializer = new XMLSerializer();
+	const svgString = serializer.serializeToString(svg);
+	const blob = new Blob([svgString], { type: "image/svg+xml;charset=utf-8" });
+
+	// Create a download link
+	const link = document.createElement("a");
+	link.href = URL.createObjectURL(blob);
+	link.download = "workspace.svg";
+	link.click();
+}
+
+async function getSVG(block){
+	 const svgBlock = block.getSvgRoot().cloneNode(true);
+	  const serializer = new XMLSerializer();
+
+	  // Remove any existing transforms to ensure accurate positioning
+	  svgBlock.removeAttribute("transform");
+
+	  // Get the block's bounding box
+	  const bbox = block.getSvgRoot().getBBox();
+
+	  // Process <image> elements to embed them as Base64
+	  const images = svgBlock.querySelectorAll("image");
+	  await Promise.all(
+		Array.from(images).map(async (img) => {
+		  const href = img.getAttribute("xlink:href") || img.getAttribute("href");
+		  if (href && !href.startsWith("data:")) {
+			try {
+			  const response = await fetch(href);
+			  const blob = await response.blob();
+			  const reader = new FileReader();
+			  const dataUrl = await new Promise((resolve) => {
+				reader.onload = () => resolve(reader.result);
+				reader.readAsDataURL(blob);
+			  });
+			  img.setAttribute("xlink:href", dataUrl);
+			  img.setAttribute("href", dataUrl); // Ensure compatibility
+			} catch (error) {
+			  console.error(`Failed to embed image: ${href}`, error);
+			}
+		  }
+		})
+	  );
+
+	  // Fix UI elements
+	  const uiElements = svgBlock.querySelectorAll("rect.blocklyFieldRect");
+	  uiElements.forEach((element) => {
+		const parentBlock = element.closest(".blocklyDraggable");
+		if (element.classList.contains("blocklyDropdownRect")) {
+		  // Dropdowns: Match block background colour and add a light grey border
+		  const blockFill = parentBlock?.querySelector(".blocklyPath")?.getAttribute("fill");
+		  if (blockFill) {
+			element.setAttribute("fill", blockFill); // Match block background
+		  }
+		  element.setAttribute("stroke", "#999999"); // Light grey border
+		  element.setAttribute("stroke-width", "1px");
+		} else if (element.classList.contains("blocklyCheckbox")) {
+		  // Checkboxes: Ensure white background and grey border
+			element.setAttribute("style", "fill: #ffffff !important;");
+		  element.setAttribute("stroke", "#999999"); // Light grey border
+		  element.setAttribute("stroke-width", "1px");
+		} else {
+		  // Other text boxes: Transparent background with grey border
+		  element.setAttribute("fill", "none");
+		  element.setAttribute("stroke", "#999999");
+		  element.setAttribute("stroke-width", "1px");
+		}
+	  });
+
+	  // Fix text/tick colours
+	  const uiTexts = svgBlock.querySelectorAll("text.blocklyCheckbox, text.blocklyText");
+	  uiTexts.forEach((textElement) => {
+		  textElement.setAttribute("style", "fill: #000000 !important;");
+		textElement.setAttribute("stroke", "none"); // Ensure no outline
+		textElement.setAttribute("font-weight", "600"); // Heavier font weight
+	  });
+
+
+		const checkboxBackgrounds = svgBlock.querySelectorAll("rect.blocklyFieldRect");
+
+		checkboxBackgrounds.forEach((checkbox) => {
+		  if (checkbox.parentElement.querySelector("text.blocklyCheckbox")) {
+			// Ensure checkbox background is explicitly white
+			checkbox.setAttribute("fill", "#ffffff"); // White background
+			checkbox.setAttribute("stroke", "#999999"); // Light grey border
+			checkbox.setAttribute("stroke-width", "1px"); // Visible border
+		  }
+		});
+
+
+
+		// Ensure checkbox tick is visible and styled
+		const checkboxTicks = svgBlock.querySelectorAll("text.blocklyCheckbox");
+		checkboxTicks.forEach((tick) => {
+		  tick.setAttribute("fill", "#000000"); // Black tick
+		  tick.setAttribute("style", "display: block;"); // Ensure tick is visible
+		  tick.setAttribute("font-weight", "600"); // Ensure heavier font weight
+		});
+
+	  // Embed the Asap font as Base64
+	  const asapFont = `
+		@font-face {
+		  font-family: 'Asap';
+		  src: url('data:font/woff2;base64,...') format('woff2');
+		}
+		.blocklyText {
+		  font-family: 'Asap', sans-serif;
+		  font-weight: 600; /* Make font heavier */
+		}
+	  `;
+
+	  // Create a <style> element for the embedded font
+	  const styleElement = document.createElementNS("http://www.w3.org/2000/svg", "style");
+	  styleElement.textContent = asapFont;
+	  svgBlock.insertBefore(styleElement, svgBlock.firstChild);
+
+	  // Wrap the cloned SVG block in a new SVG element
+	  const wrapperSVG = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+	  wrapperSVG.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+	  wrapperSVG.setAttribute("width", bbox.width);
+	  wrapperSVG.setAttribute("height", bbox.height);
+	  wrapperSVG.setAttribute("viewBox", `0 0 ${bbox.width} ${bbox.height}`);
+
+	  // Add a translation to correctly position the block's content
+	  const translationGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
+	  translationGroup.setAttribute("transform", `translate(${-bbox.x}, ${-bbox.y})`);
+	  translationGroup.appendChild(svgBlock);
+
+	  wrapperSVG.appendChild(translationGroup);
+
+	  // Serialize the final SVG
+	  const svgString = serializer.serializeToString(wrapperSVG);
+	  const svgDeclaration = '<?xml version="1.0" encoding="UTF-8"?>';
+	  const finalSVG = `${svgDeclaration}${svgString}`;
+
+	return finalSVG;
+
+}
+/**
+ * Export a Blockly block as an SVG string.
+ * @param {Blockly.Block} block - The block to export.
+ * @returns {string} The SVG string.
+ */
+async function exportBlockAsSVG(block) {
+
+const finalSVG = await getSVG(block);
+  // Create and download the SVG blob
+  const blob = new Blob([finalSVG], { type: "image/svg+xml" });
+  const link = document.createElement("a");
+  link.download = `${block.type}.svg`;
+  link.href = URL.createObjectURL(blob);
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+}
+
+
+
 // Function to enforce minimum font size and delay the focus to prevent zoom
 function enforceMinimumFontSize(input) {
 	const currentFontSize = parseFloat(input.style.fontSize);
@@ -912,6 +1130,8 @@ window.onload = function () {
 	// Initialize Blockly and add custom context menu options
 	addExportContextMenuOption();
 	addImportContextMenuOption();
+	addExportSVGContextMenuOption();
+	//addExportPNGContextMenuOption();
 	//observeFlyoutVisibility(workspace);
 	window.toolboxVisible = toolboxVisible;
 
