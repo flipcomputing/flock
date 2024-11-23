@@ -4568,19 +4568,20 @@ export const flock = {
 		);
 	},
 	async setXRMode(mode) {
+		//console.log("Setting XR mode:", mode);
+		//flock.printText("Setting up XR mode", 20, "#000000");
 		if (mode === "VR") {
-			const xrHelper = await flock.scene.createDefaultXRExperienceAsync();
+			flock.xrHelper = await flock.scene.createDefaultXRExperienceAsync();
 			// Start immersive VR
 			//await xrHelper.baseExperience.enterXRAsync("immersive-vr", "local-floor");
 		} else if (mode === "AR") {
-			const xrHelper = await await flock.scene.createDefaultXRExperienceAsync({
+			flock.xrHelper = await await flock.scene.createDefaultXRExperienceAsync({
 				// ask for an ar-session
 				uiOptions: {
 				  sessionMode: "immersive-ar",
 				},
 			  });
-
-			
+	
 			// Start immersive AR
 			//await xrHelper.baseExperience.enterXRAsync("immersive-ar", "unbounded");
 		} else if (mode === "MAGIC_WINDOW") {
@@ -4589,6 +4590,8 @@ export const flock = {
 				camera.inputs.addDeviceOrientation();
 			}
 		}
+
+		//flock.printText("Setup XR mode", 20, "#000000");
 	},
 	updateDynamicMeshPositions(scene, dynamicMeshes) {
 		scene.onBeforeRenderObservable.add(() => {
@@ -4923,55 +4926,73 @@ export const flock = {
 	onTrigger(modelName, trigger, doCode) {
 		return flock.whenModelReady(modelName, async function (target) {
 			if (target) {
+				//flock.printText("On trigger", 20, "#9932CC");	
 				if (target instanceof flock.BABYLON.AbstractMesh) {
-					// Handle mesh
+					// Ensure the mesh is pickable
+					target.isPickable = true;
+
+					// Use ActionManager for non-AR/VR environments
 					if (!target.actionManager) {
-						target.actionManager = new flock.BABYLON.ActionManager(
-							flock.scene,
-						);
+						target.actionManager = new flock.BABYLON.ActionManager(flock.scene);
 						target.actionManager.isRecursive = true;
 					}
 
-					if (trigger === "OnRightOrLongPressTrigger") {
-						target.actionManager.registerAction(
-							new flock.BABYLON.ExecuteCodeAction(
-								flock.BABYLON.ActionManager.OnRightPickTrigger,
-								async function () {
-									await doCode();
-								},
-							),
-						);
-						target.actionManager.registerAction(
-							new flock.BABYLON.ExecuteCodeAction(
-								flock.BABYLON.ActionManager.OnLongPressTrigger,
-								async function () {
-									await doCode();
-								},
-							),
-						);
-					} else {
-						target.actionManager.registerAction(
-							new flock.BABYLON.ExecuteCodeAction(
-								flock.BABYLON.ActionManager[trigger],
-								async function () {
-									await doCode();
-								},
-							),
-						);
+					// Register trigger in ActionManager
+					target.actionManager.registerAction(
+						new flock.BABYLON.ExecuteCodeAction(
+							flock.BABYLON.ActionManager[trigger],
+							async function () {
+								await doCode();
+							},
+						),
+					);
+
+					// Add AR/VR-specific pointer handling
+					if (flock.xrHelper && flock.xrHelper.baseExperience) {
+
+						//flock.printText(`XR`, 20, "#9932CC");			
+						//console.log("XR", flock.xrHelper);
+						flock.xrHelper.baseExperience.onStateChangedObservable.add((state) => {
+							if (
+								state === flock.BABYLON.WebXRState.IN_XR &&
+								flock.xrHelper.baseExperience.sessionManager.sessionMode === "immersive-ar"
+							) {
+
+					//flock.printText("AR mode", 20, "#9932CC");	
+								flock.xrHelper.baseExperience.featuresManager.enableFeature(
+									BABYLON.WebXRHitTest.Name,
+									"latest",
+									{
+										onHitTestResultObservable: (results) => {
+											if (results.length > 0) {
+												const hitTest = results[0];
+												const position = hitTest.transformationMatrix.getTranslation();
+												target.position.copyFrom(position); // Place mesh
+												target.isVisible = true; // Make mesh visible if hidden
+											}
+										},
+									}
+								);
+								// Enable onPointerDown only in AR mode
+								flock.scene.onPointerDown = function (evt, pickResult) {
+									//flock.printText("Pointer down", 20, "#9932CC");	
+									if (pickResult.hit && pickResult.pickedMesh === target) {
+										doCode();
+									}
+								};
+							} else if (state === BABYLON.WebXRState.NOT_IN_XR) {
+								// Remove onPointerDown when exiting XR
+								flock.scene.onPointerDown = null;
+							}
+						});
 					}
 				} else if (target instanceof flock.GUI.Button) {
+					// Handle GUI Button interactions
 					if (trigger === "OnPointerUpTrigger") {
 						target.onPointerUpObservable.add(async function () {
 							await doCode();
 						});
-					} else if (trigger === "OnRightOrLongPressTrigger") {
-						// Babylon.js GUI does not have built-in right-click/long press support,
-						// adding a custom right-click or long press trigger logic can be done here if necessary.
-						console.warn(
-							"OnRightOrLongPressTrigger is not natively supported for GUI buttons.",
-						);
 					} else {
-						// Default to OnPickTrigger if no other trigger is specified
 						target.onPointerClickObservable.add(async function () {
 							await doCode();
 						});
