@@ -444,16 +444,28 @@ export const flock = {
 		}
 	},
 	async initializeXR() {
+		
 		if (flock.xrHelper) return; // Avoid reinitializing
+
+		//flock.printText("Initial", 20, "#000000");
 
 		// Create the XR experience
 		flock.xrHelper = await flock.scene.createDefaultXRExperienceAsync();
+		flock.uiPlane = flock.BABYLON.MeshBuilder.CreatePlane("uiPlane", { size: 2 }, flock.scene);
+
+		
+		flock.meshTexture = flock.GUI.AdvancedDynamicTexture.CreateForMesh(flock.uiPlane);
 
 		// Adjust the stack panel when entering/exiting XR
 		flock.xrHelper.baseExperience.onStateChangedObservable.add((state) => {
-			if (state === BABYLON.WebXRState.IN_XR) {
-				console.log("Setting up plane")
-				
+
+			//flock.printText("State change ", 20, "#000000");
+			//console.log("New state", state, flock.BABYLON.WebXRState.ENTERING_XR)
+			if (state === flock.BABYLON.WebXRState.ENTERING_XR) {
+				console.log("Setting up plane");
+
+				flock.advancedTexture.removeControl(flock.stackPanel);
+				flock.meshTexture.addControl(flock.stackPanel);
 				// Activate the plane-based UI
 				flock.uiPlane.isVisible = true;
 				flock.uiPlane.parent = flock.scene.activeCamera; // Attach to the XR camera
@@ -465,9 +477,12 @@ export const flock = {
 				// Hide the fullscreen UI
 				flock.advancedTexture.rootContainer.isVisible = false;
 			} else {
+
+				flock.meshTexture.removeControl(flock.stackPanel);
+				flock.advancedTexture.addControl(flock.stackPanel);
 				// Deactivate the plane-based UI
 				flock.uiPlane.isVisible = false;
-
+				
 				// Restore the fullscreen UI
 				flock.advancedTexture.rootContainer.isVisible = true;
 				flock.stackPanel.width = "75%"; // Restore original width
@@ -4620,7 +4635,7 @@ export const flock = {
 		});
 		//console.log("Setting XR mode:", mode);
 		//flock.printText("Setting up XR mode", 20, "#000000");
-		if (mode === "VR") {
+/*		if (mode === "VR") {
 			flock.xrHelper = await flock.scene.createDefaultXRExperienceAsync();
 			// Start immersive VR
 			//await xrHelper.baseExperience.enterXRAsync("immersive-vr", "local-floor");
@@ -4642,6 +4657,7 @@ export const flock = {
 		}
 
 		//flock.printText("Setup XR mode", 20, "#000000");
+		*/
 	},
 	updateDynamicMeshPositions(scene, dynamicMeshes) {
 		scene.onBeforeRenderObservable.add(() => {
