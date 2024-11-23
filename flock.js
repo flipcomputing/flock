@@ -4573,7 +4573,14 @@ export const flock = {
 			// Start immersive VR
 			//await xrHelper.baseExperience.enterXRAsync("immersive-vr", "local-floor");
 		} else if (mode === "AR") {
-			const xrHelper = await flock.scene.createDefaultXRExperienceAsync();
+			const xrHelper = await await flock.scene.createDefaultXRExperienceAsync({
+				// ask for an ar-session
+				uiOptions: {
+				  sessionMode: "immersive-ar",
+				},
+			  });
+
+			
 			// Start immersive AR
 			//await xrHelper.baseExperience.enterXRAsync("immersive-ar", "unbounded");
 		} else if (mode === "MAGIC_WINDOW") {
