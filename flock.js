@@ -397,9 +397,33 @@ export const flock = {
 			}
 
 			try {
-				const advancedTexture = flock.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
-				advancedTexture.layer.layerMask = 2; 
+				const isXR = flock.xrHelper && flock.xrHelper.baseExperience.state === BABYLON.WebXRState.IN_XR;
 
+				let advancedTexture;
+				let cleanup = () => {};
+
+				if (isXR) {
+					// Use a 3D plane for XR
+					const plane = flock.BABYLON.MeshBuilder.CreatePlane("textPlane", { size: 2 }, flock.scene);
+					plane.position = new flock.BABYLON.Vector3(0, 2, -4); // Place in front of the camera
+					plane.parent = flock.scene.activeCamera; // Attach to camera for consistent placement
+					plane.layerMask = 2; // Match XR camera layer
+
+					advancedTexture = flock.GUI.AdvancedDynamicTexture.CreateForMesh(plane);
+
+					cleanup = () => {
+						advancedTexture.dispose();
+						plane.dispose();
+					};
+				} else {
+					// Use fullscreen UI for desktop and mobile
+					advancedTexture = flock.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
+
+					cleanup = () => {
+						advancedTexture.dispose();
+					};
+				}
+				
 				// Create a rectangle background
 				const bg = new flock.GUI.Rectangle("textBackground");
 				bg.background = "rgba(255, 255, 255, 0.5)";
