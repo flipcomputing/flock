@@ -292,40 +292,39 @@ export const flock = {
 		}
 	},
 	async initializeNewScene() {
+		// Stop existing render loop or create a new engine
 		flock.engine ? flock.engine.stopRenderLoop() : flock.createEngine();
 
+		// Reset scene-wide state
 		flock.events = {};
 		flock.modelCache = {};
 		flock.geometryCache = {};
 		flock.materialCache = {};
+		flock.disposed = false;
 
 		// Create the new scene
 		flock.scene = new flock.BABYLON.Scene(flock.engine);
 
-		flock.disposed = false;
-
+		// Abort controller for clean-up
 		flock.abortController = new AbortController();
+
+		// Start the render loop
 		flock.engine.runRenderLoop(() => {
 			flock.scene.render();
 		});
 
-		// Reinitialize physics and other elements for the new scene
+		// Enable physics
 		flock.hk = new flock.BABYLON.HavokPlugin(true, flock.havokInstance);
-		flock.scene.enablePhysics(
-			new flock.BABYLON.Vector3(0, -9.81, 0),
-			flock.hk,
-		);
+		flock.scene.enablePhysics(new flock.BABYLON.Vector3(0, -9.81, 0), flock.hk);
 
-		flock.highlighter = new flock.BABYLON.HighlightLayer(
-			"highlighter",
-			flock.scene,
-		);
+		// Add highlight layer
+		flock.highlighter = new flock.BABYLON.HighlightLayer("highlighter", flock.scene);
 
 		// Set up a new camera
 		const camera = new flock.BABYLON.FreeCamera(
 			"camera",
 			new flock.BABYLON.Vector3(0, 3, -10),
-			flock.scene,
+			flock.scene
 		);
 		camera.minZ = 1;
 		camera.setTarget(flock.BABYLON.Vector3.Zero());
@@ -333,163 +332,150 @@ export const flock = {
 		camera.angularSensibilityX = 2000;
 		camera.angularSensibilityY = 2000;
 		camera.speed = 0.25;
+		flock.scene.activeCamera = camera;
 
 		// Set up lighting
 		const hemisphericLight = new flock.BABYLON.HemisphericLight(
 			"hemisphericLight",
 			new flock.BABYLON.Vector3(1, 1, 0),
-			flock.scene,
+			flock.scene
 		);
-		flock.scene.onPointerObservable.add(function (pointerInfo) {
-			if (
-				pointerInfo.type === flock.BABYLON.PointerEventTypes.POINTERUP
-			) {
-				if (
-					pointerInfo.event.touches &&
-					pointerInfo.event.touches.length > 1
-				) {
-					const camera = flock.scene.activeCamera;
-					camera.detachControl();
-
-					// Short delay to ensure controls are fully detached
-					setTimeout(() => {
-						// Reattach the camera control and reset the target
-						camera.attachControl(canvas, true);
-						camera.setTarget(camera.target);
-					}, 100); // Adjust delay as necessary
-				}
-			}
-		});
 		hemisphericLight.intensity = 1.0;
 		hemisphericLight.diffuse = new flock.BABYLON.Color3(1, 1, 1);
 		hemisphericLight.groundColor = new flock.BABYLON.Color3(0.5, 0.5, 0.5);
 
-		// Enable collisions in the scene
+		// Enable collisions
 		flock.scene.collisionsEnabled = true;
 
-		flock.controlsTexture =
-			flock.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
+		// Create the UI
+		flock.advancedTexture = flock.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
 
-		flock.controlsTexture.layer.layerMask = 2; 
-		flock.createArrowControls("white");
-		flock.createButtonControls("white");
+		// Stack panel for text
+		flock.stackPanel = new flock.GUI.StackPanel();
+		flock.stackPanel.width = "100%"; // Fixed width for the panel
+		flock.stackPanel.horizontalAlignment = flock.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT; // Align to the left
+		flock.stackPanel.verticalAlignment = flock.GUI.Control.VERTICAL_ALIGNMENT_TOP; // Align to the top
 
-		const advancedTexture =
-			flock.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
+		flock.stackPanel.isVertical = true;
+		flock.advancedTexture.addControl(flock.stackPanel);
 
-		advancedTexture.layer.layerMask = 2; 
+		// Touch handling for detaching camera (from your original code)
+		flock.scene.onPointerObservable.add((pointerInfo) => {
+			if (
+				pointerInfo.type === flock.BABYLON.PointerEventTypes.POINTERUP &&
+				pointerInfo.event.touches &&
+				pointerInfo.event.touches.length > 1
+			) {
+				const camera = flock.scene.activeCamera;
+				camera.detachControl();
 
-		// Create a stack panel to hold the text lines
-		const stackPanel = new flock.GUI.StackPanel();
-		stackPanel.isVertical = true;
-		stackPanel.width = "100%";
-		stackPanel.height = "100%";
-		stackPanel.left = "0px";
-		stackPanel.top = "0px";
-		advancedTexture.addControl(stackPanel);
-
-		// Function to print text with scrolling
-		const textLines = []; // Array to keep track of text lines
-		flock.printText = function (text, duration, color) {
-			if (text === "" || !flock.scene) {
-				// Ensure scene is valid
-				return; // Return early if scene is invalid or text is empty
+				setTimeout(() => {
+					camera.attachControl(canvas, true);
+					camera.setTarget(camera.target);
+				}, 100);
 			}
-
-			try {
-				const isXR = flock.xrHelper && flock.xrHelper.baseExperience.state === BABYLON.WebXRState.IN_XR;
-
-				let advancedTexture;
-				let cleanup = () => {};
-
-				if (isXR) {
-					// Use a 3D plane for XR
-					const plane = flock.BABYLON.MeshBuilder.CreatePlane("textPlane", { size: 2 }, flock.scene);
-					plane.position = new flock.BABYLON.Vector3(0, 2, -4); // Place in front of the camera
-					plane.parent = flock.scene.activeCamera; // Attach to camera for consistent placement
-					plane.layerMask = 2; // Match XR camera layer
-
-					advancedTexture = flock.GUI.AdvancedDynamicTexture.CreateForMesh(plane);
-
-					cleanup = () => {
-						advancedTexture.dispose();
-						plane.dispose();
-					};
-				} else {
-					// Use fullscreen UI for desktop and mobile
-					advancedTexture = flock.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
-
-					cleanup = () => {
-						advancedTexture.dispose();
-					};
-				}
-				
-				// Create a rectangle background
-				const bg = new flock.GUI.Rectangle("textBackground");
-				bg.background = "rgba(255, 255, 255, 0.5)";
-				bg.adaptWidthToChildren = true; // Adjust width based on child elements
-				bg.adaptHeightToChildren = true; // Adjust height based on child elements
-				bg.cornerRadius = 2;
-				bg.thickness = 0; // Remove border
-				bg.horizontalAlignment =
-					flock.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
-				bg.verticalAlignment = flock.GUI.Control.VERTICAL_ALIGNMENT_TOP;
-				bg.left = "5px"; // Position with some margin from left
-				bg.top = "5px"; // Position with some margin from top
-
-				// Create a text block
-				const textBlock = new flock.GUI.TextBlock("textBlock", text);
-				textBlock.color = color;
-				textBlock.fontSize = "20";
-				textBlock.fontFamily = "Asap";
-				textBlock.height = "25px";
-				textBlock.paddingLeft = "10px";
-				textBlock.paddingRight = "10px";
-				textBlock.paddingTop = "2px";
-				textBlock.paddingBottom = "2px";
-				textBlock.textVerticalAlignment =
-					flock.GUI.Control.VERTICAL_ALIGNMENT_TOP; // Align text to top
-				textBlock.textHorizontalAlignment =
-					flock.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT; // Align text to left
-				textBlock.textWrapping = flock.GUI.TextWrapping.WordWrap;
-				textBlock.resizeToFit = true;
-				textBlock.forceResizeWidth = true;
-
-				// Add the text block to the rectangle
-				bg.addControl(textBlock);
-
-				// Add the container to the stack panel
-				stackPanel.addControl(bg);
-				textLines.push(bg);
-
-				// Remove the text after the specified duration
-				const timeoutId = setTimeout(() => {
-					if (flock.scene) {
-						// Ensure scene is still valid before removing
-						stackPanel.removeControl(bg);
-						textLines.splice(textLines.indexOf(bg), 1);
-					}
-				}, duration * 1000);
-
-				// Listen for the abort signal to clear the timeout
-				flock.abortController.signal.addEventListener("abort", () => {
-					clearTimeout(timeoutId); // Clear the timeout if aborted
-				});
-			} catch (error) {
-				//console.warn("Unable to print text:", error);
-			}
-		};
-
-		flock.globalStartTime = flock.getAudioContext().currentTime;
-		flock.scene.onBeforeRenderObservable.add(() => {
-			const camera = flock.scene.activeCamera;
-			const context = flock.getAudioContext();
-			flock.updateListenerPositionAndOrientation(context, camera);
 		});
 
-		flock.flockNotReady = false;
-	},
+		// Observable for audio updates
+		flock.globalStartTime = flock.getAudioContext().currentTime;
+		flock.scene.onBeforeRenderObservable.add(() => {
+			const context = flock.getAudioContext();
+			flock.updateListenerPositionAndOrientation(context, flock.scene.activeCamera);
+		});
 
+		// Mark scene as ready
+		flock.flockNotReady = false;
+
+		// Reset XR helper
+		flock.xrHelper = null;
+	},
+	printText(text, duration, color = "white") {
+		if (!text || !flock.scene || !flock.stackPanel) return;
+
+		try {
+			// Create a rectangle container for the text
+			const bg = new flock.GUI.Rectangle("textBackground");
+			bg.background = "rgba(255, 255, 255, 0.5)";
+			bg.adaptWidthToChildren = true; // Adjust width to fit the text
+			bg.adaptHeightToChildren = true; // Adjust height to fit the text
+			bg.cornerRadius = 2; // Match the original corner rounding
+			bg.thickness = 0; // No border
+			bg.horizontalAlignment = flock.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT; // Align the container to the left
+			bg.verticalAlignment = flock.GUI.Control.VERTICAL_ALIGNMENT_TOP; // Align to the top
+			bg.left = "5px"; // Preserve original spacing
+			bg.top = "5px";
+
+			// Create the text block inside the rectangle
+			const textBlock = new flock.GUI.TextBlock("textBlock", text);
+			textBlock.color = color;
+			textBlock.fontSize = "20"; // Match the original font size
+			textBlock.fontFamily = "Asap"; // Retain original font
+			textBlock.height = "25px"; // Match the original height
+			textBlock.paddingLeft = "10px"; // Padding for left alignment
+			textBlock.paddingRight = "10px";
+			textBlock.paddingTop = "2px";
+			textBlock.paddingBottom = "2px";
+			textBlock.textHorizontalAlignment = flock.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT; // Left align the text
+			textBlock.textVerticalAlignment = flock.GUI.Control.VERTICAL_ALIGNMENT_CENTER; // Center vertically within the rectangle
+			textBlock.textWrapping = flock.GUI.TextWrapping.WordWrap; // Enable word wrap
+			textBlock.resizeToFit = true; // Allow resizing
+			textBlock.forceResizeWidth = true;
+
+			// Add the text block to the rectangle
+			bg.addControl(textBlock);
+
+			// Add the rectangle to the stack panel
+			flock.stackPanel.addControl(bg);
+
+			// Remove the text after the specified duration
+			const timeoutId = setTimeout(() => {
+				if (flock.scene) {
+					// Ensure the scene is still valid
+					flock.stackPanel.removeControl(bg);
+				}
+			}, duration * 1000);
+
+			// Handle cleanup in case of scene disposal
+			flock.abortController.signal.addEventListener("abort", () => {
+				clearTimeout(timeoutId);
+			});
+		} catch (error) {
+			console.warn("Unable to print text:", error);
+		}
+	},
+	async initializeXR() {
+		if (flock.xrHelper) return; // Avoid reinitializing
+
+		// Create the XR experience
+		flock.xrHelper = await flock.scene.createDefaultXRExperienceAsync();
+
+		// Adjust the stack panel when entering/exiting XR
+		flock.xrHelper.baseExperience.onStateChangedObservable.add((state) => {
+			if (state === BABYLON.WebXRState.IN_XR) {
+				console.log("Setting up plane")
+				
+				// Activate the plane-based UI
+				flock.uiPlane.isVisible = true;
+				flock.uiPlane.parent = flock.scene.activeCamera; // Attach to the XR camera
+				flock.uiPlane.position = new flock.BABYLON.Vector3(0, 1.5, -2); // Position in front of the user
+				flock.stackPanel.width = "50%"; // Adjust width for XR
+				flock.stackPanel.horizontalAlignment = flock.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
+				flock.stackPanel.verticalAlignment = flock.GUI.Control.VERTICAL_ALIGNMENT_TOP;
+
+				// Hide the fullscreen UI
+				flock.advancedTexture.rootContainer.isVisible = false;
+			} else {
+				// Deactivate the plane-based UI
+				flock.uiPlane.isVisible = false;
+
+				// Restore the fullscreen UI
+				flock.advancedTexture.rootContainer.isVisible = true;
+				flock.stackPanel.width = "75%"; // Restore original width
+				flock.stackPanel.horizontalAlignment = flock.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
+				flock.stackPanel.verticalAlignment = flock.GUI.Control.VERTICAL_ALIGNMENT_TOP;
+			}
+		});
+	},
 	async resetScene() {
 		// Dispose of the old scene
 		await flock.disposeOldScene();
@@ -501,7 +487,6 @@ export const flock = {
 		flock.scene.UITexture ??=
 			flock.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
 
-				flock.scene.UITexture.layer.layerMask = 2; 
 		// Retrieve the canvas dimensions for the Babylon.js scene
 		const canvas = flock.scene.getEngine().getRenderingCanvas();
 		const maxWidth = canvas.width;
@@ -548,7 +533,6 @@ export const flock = {
 		// Ensure we have access to the UI texture
 		flock.scene.UITexture ??=
 			flock.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
-		flock.scene.UITexture.layer.layerMask = 2; 
 
 		// Create a Babylon.js GUI button
 		const button = flock.GUI.Button.CreateSimpleButton(buttonId, text);
@@ -3187,7 +3171,6 @@ export const flock = {
 		if (enabled) {
 			flock.controlsTexture =
 				flock.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
-			flock.controlsTexture.layer.layerMask = 2; 
 
 			if (control == "ARROWS" || control == "BOTH")
 				flock.createArrowControls(color);
@@ -4631,12 +4614,14 @@ export const flock = {
 		);
 	},
 	async setXRMode(mode) {
+
+		flock.initializeXR().then(() => {
+			flock.printText("XR Mode!", 5, "white"); // Print a message to confirm XR initialization
+		});
 		//console.log("Setting XR mode:", mode);
 		//flock.printText("Setting up XR mode", 20, "#000000");
 		if (mode === "VR") {
 			flock.xrHelper = await flock.scene.createDefaultXRExperienceAsync();
-			flock.xrHelper.baseExperience.camera.layerMask = 1 | 2; // Default objects + GUI
-			console.log("Layer mask", flock.xrHelper.baseExperience.camera.layerMask)
 			// Start immersive VR
 			//await xrHelper.baseExperience.enterXRAsync("immersive-vr", "local-floor");
 		} else if (mode === "AR") {
