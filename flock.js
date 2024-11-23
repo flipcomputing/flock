@@ -393,7 +393,8 @@ export const flock = {
 			}
 
 			try {
-				flock.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
+				const advancedTexture = flock.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
+				advancedTexture.layer.layerMask = 2; 
 
 				// Create a rectangle background
 				const bg = new flock.GUI.Rectangle("textBackground");
@@ -3725,8 +3726,8 @@ export const flock = {
 				// Button mappings
 				if (key === "SPACE" && gamepad.buttons[0]?.pressed) return true; // A button for jump
 				if (key === "Q" && gamepad.buttons[1]?.pressed) return true; // B button for action 1
-				if (key === "E" && gamepad.buttons[2]?.pressed) return true; // X button for action 2
-				if (key === "R" && gamepad.buttons[3]?.pressed) return true; // Y button for action 3
+				if (key === "F" && gamepad.buttons[2]?.pressed) return true; // X button for action 2
+				if (key === "E" && gamepad.buttons[3]?.pressed) return true; // Y button for action 3
 
 				// General button check
 				if (key === "ANY" && gamepad.buttons.some((button) => button.pressed)) return true;
