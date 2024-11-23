@@ -1070,6 +1070,11 @@ export const toolbox = {
 					keyword: "devcam",
 				},
 				{
+					"kind": "block",
+					"type": "set_xr_mode",
+					"keyword": "xr"
+				},
+				{
 					kind: "block",
 					type: "create_map",
 					keyword: "map",

@@ -105,6 +105,7 @@ export const flock = {
 			getCamera,
 			cameraControl,
 			setCameraBackground,
+			setXRMode,
 			applyForce,
 			moveByVector,
 			glideTo,
@@ -4565,6 +4566,22 @@ export const flock = {
 				deviceId: ""
 			}
 		);
+	},
+	async setXRMode(mode) {
+		if (mode === "VR") {
+			const xrHelper = await flock.scene.createDefaultXRExperienceAsync();
+			// Start immersive VR
+			//await xrHelper.baseExperience.enterXRAsync("immersive-vr", "local-floor");
+		} else if (mode === "AR") {
+			const xrHelper = await flock.scene.createDefaultXRExperienceAsync();
+			// Start immersive AR
+			//await xrHelper.baseExperience.enterXRAsync("immersive-ar", "unbounded");
+		} else if (mode === "MAGIC_WINDOW") {
+			// Enable Magic Window mode (basic gyroscope interaction)
+			if (!camera.inputs.attached.deviceOrientation) {
+				camera.inputs.addDeviceOrientation();
+			}
+		}
 	},
 	updateDynamicMeshPositions(scene, dynamicMeshes) {
 		scene.onBeforeRenderObservable.add(() => {

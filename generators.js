@@ -2125,6 +2125,12 @@ export function defineGenerators() {
 		return `setCameraBackground("${cameraType}");\n`;
 	};
 
+	javascriptGenerator.forBlock["set_xr_mode"] = function (block) {
+		const mode = block.getFieldValue("MODE");
+
+		return `await setXRMode("${mode}");\n`;
+	};
+
 	javascriptGenerator.forBlock["camera_control"] = function (block) {
 		const key = block.getFieldValue("KEY");
 		const action = block.getFieldValue("ACTION");

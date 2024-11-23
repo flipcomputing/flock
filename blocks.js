@@ -1577,6 +1577,32 @@ export function defineBlocks() {
 		},
 	};
 
+	Blockly.Blocks["set_xr_mode"] = {
+		init: function () {
+			this.jsonInit({
+				type: "set_xr_mode",
+				message0: "set XR mode to %1",
+				args0: [
+					{
+						type: "field_dropdown",
+						name: "MODE",
+						options: [
+							["VR (Oculus Quest or phone viewer)", "VR"],
+							["AR (Augmented Reality)", "AR"],
+							["Magic Window (look-around)", "MAGIC_WINDOW"]
+						],
+					},
+				],
+				previousStatement: null,
+				nextStatement: null,
+				colour: categoryColours["Scene"],
+				tooltip: "Set the XR mode for the scene.\nOptions: VR, AR, Magic Window.",
+				helpUrl: "",
+			});
+		},
+	};
+
+
 	Blockly.Blocks["comment"] = {
 		init: function () {
 			this.jsonInit({
