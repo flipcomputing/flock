@@ -369,11 +369,15 @@ export const flock = {
 
 		flock.controlsTexture =
 			flock.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
+
+		flock.controlsTexture.layer.layerMask = 2; 
 		flock.createArrowControls("white");
 		flock.createButtonControls("white");
 
 		const advancedTexture =
 			flock.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
+
+		advancedTexture.layer.layerMask = 2; 
 
 		// Create a stack panel to hold the text lines
 		const stackPanel = new flock.GUI.StackPanel();
@@ -473,6 +477,7 @@ export const flock = {
 		flock.scene.UITexture ??=
 			flock.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
 
+				flock.scene.UITexture.layer.layerMask = 2; 
 		// Retrieve the canvas dimensions for the Babylon.js scene
 		const canvas = flock.scene.getEngine().getRenderingCanvas();
 		const maxWidth = canvas.width;
@@ -519,6 +524,7 @@ export const flock = {
 		// Ensure we have access to the UI texture
 		flock.scene.UITexture ??=
 			flock.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
+		flock.scene.UITexture.layer.layerMask = 2; 
 
 		// Create a Babylon.js GUI button
 		const button = flock.GUI.Button.CreateSimpleButton(buttonId, text);
@@ -3157,6 +3163,7 @@ export const flock = {
 		if (enabled) {
 			flock.controlsTexture =
 				flock.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
+			flock.controlsTexture.layer.layerMask = 2; 
 
 			if (control == "ARROWS" || control == "BOTH")
 				flock.createArrowControls(color);
@@ -4604,10 +4611,12 @@ export const flock = {
 		//flock.printText("Setting up XR mode", 20, "#000000");
 		if (mode === "VR") {
 			flock.xrHelper = await flock.scene.createDefaultXRExperienceAsync();
+			flock.xrHelper.baseExperience.camera.layerMask = 1 | 2; // Default objects + GUI
+			console.log("Layer mask", flock.xrHelper.baseExperience.camera.layerMask)
 			// Start immersive VR
 			//await xrHelper.baseExperience.enterXRAsync("immersive-vr", "local-floor");
 		} else if (mode === "AR") {
-			flock.xrHelper = await await flock.scene.createDefaultXRExperienceAsync({
+			flock.xrHelper = await flock.scene.createDefaultXRExperienceAsync({
 				// ask for an ar-session
 				uiOptions: {
 				  sessionMode: "immersive-ar",
