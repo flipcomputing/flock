@@ -3707,20 +3707,51 @@ export const flock = {
 		return hit.hit && hit.pickedMesh !== null && hit.distance <= 0.06;
 	},
 	keyPressed(key) {
+		// Combine all input sources: keys, buttons, and controllers
+		const pressedKeys = flock.canvas.pressedKeys;
+		const pressedButtons = flock.canvas.pressedButtons;
+
+		// Check VR controller inputs
+		const vrPressed = flock.xrHelper?.baseExperience?.input?.inputSources.some((inputSource) => {
+			if (inputSource.gamepad) {
+				const gamepad = inputSource.gamepad;
+
+				// Thumbstick movement
+				if (key === "W" && gamepad.axes[1] < -0.5) return true; // Forward
+				if (key === "S" && gamepad.axes[1] > 0.5) return true; // Backward
+				if (key === "A" && gamepad.axes[0] < -0.5) return true; // Left
+				if (key === "D" && gamepad.axes[0] > 0.5) return true; // Right
+
+				// Button mappings
+				if (key === "SPACE" && gamepad.buttons[0]?.pressed) return true; // A button for jump
+				if (key === "Q" && gamepad.buttons[1]?.pressed) return true; // B button for action 1
+				if (key === "E" && gamepad.buttons[2]?.pressed) return true; // X button for action 2
+				if (key === "R" && gamepad.buttons[3]?.pressed) return true; // Y button for action 3
+
+				// General button check
+				if (key === "ANY" && gamepad.buttons.some((button) => button.pressed)) return true;
+			}
+			return false;
+		});
+
+		// Combine all sources
 		if (key === "ANY") {
 			return (
-				flock.canvas.pressedKeys.size > 0 ||
-				flock.canvas.pressedButtons.size > 0
+				pressedKeys.size > 0 ||
+				pressedButtons.size > 0 ||
+				vrPressed
 			);
 		} else if (key === "NONE") {
 			return (
-				flock.canvas.pressedKeys.size === 0 &&
-				flock.canvas.pressedButtons.size === 0
+				pressedKeys.size === 0 &&
+				pressedButtons.size === 0 &&
+				!vrPressed
 			);
 		} else {
 			return (
-				flock.canvas.pressedKeys.has(key) ||
-				flock.canvas.pressedButtons.has(key)
+				pressedKeys.has(key) ||
+				pressedButtons.has(key) ||
+				vrPressed
 			);
 		}
 	},
