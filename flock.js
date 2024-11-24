@@ -470,13 +470,16 @@ export const flock = {
 
 		// Ensure the UI plane follows the wrist (using a controller or camera offset)
 		flock.xrHelper.input.onControllerAddedObservable.add((controller) => {
-			if (controller.inputSource.targetRayMode === "tracked-pointer") {
-				// Attach the UI plane to the controller
-				flock.uiPlane.parent = controller.grip || controller.pointer; // Use grip if available, fallback to pointer
-				flock.uiPlane.position.set(0, 0.05, 0.05);
-// Offset position slightly above and in front of the controller
+			if (controller.inputSource.handedness === "left") {
+				// Attach the UI plane to the left-hand controller
+				flock.uiPlane.parent = controller.grip || controller.pointer;
+
+				// Position the UI plane to simulate a watch
+				flock.uiPlane.position.set(0.1, -0.05, 0); // Slightly to the side, closer to the wrist
+				flock.uiPlane.rotation.set(Math.PI / 2, 0, 0); // Rotate to face the user
 			}
 		});
+
 
 		// Handle XR state changes
 		flock.xrHelper.baseExperience.onStateChangedObservable.add((state) => {
