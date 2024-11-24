@@ -469,7 +469,7 @@ export const flock = {
 				// Activate the plane-based UI
 				flock.uiPlane.isVisible = true;
 				flock.uiPlane.parent = flock.scene.activeCamera; // Attach to the XR camera
-				flock.uiPlane.position = new flock.BABYLON.Vector3(0, 1.5, -2); // Position in front of the user
+				flock.uiPlane.position = new flock.BABYLON.Vector3(0, 1.5, 2); // Position in front of the user
 				flock.stackPanel.width = "50%"; // Adjust width for XR
 				flock.stackPanel.horizontalAlignment = flock.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
 				flock.stackPanel.verticalAlignment = flock.GUI.Control.VERTICAL_ALIGNMENT_TOP;
