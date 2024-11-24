@@ -4648,32 +4648,6 @@ export const flock = {
 
 		await flock.initializeXR(mode);
 		flock.printText("XR Mode!", 5, "white"); 
-		
-		//console.log("Setting XR mode:", mode);
-		//flock.printText("Setting up XR mode", 20, "#000000");
-/*		if (mode === "VR") {
-			flock.xrHelper = await flock.scene.createDefaultXRExperienceAsync();
-			// Start immersive VR
-			//await xrHelper.baseExperience.enterXRAsync("immersive-vr", "local-floor");
-		} else if (mode === "AR") {
-			flock.xrHelper = await flock.scene.createDefaultXRExperienceAsync({
-				// ask for an ar-session
-				uiOptions: {
-				  sessionMode: "immersive-ar",
-				},
-			  });
-	
-			// Start immersive AR
-			//await xrHelper.baseExperience.enterXRAsync("immersive-ar", "unbounded");
-		} else if (mode === "MAGIC_WINDOW") {
-			// Enable Magic Window mode (basic gyroscope interaction)
-			if (!camera.inputs.attached.deviceOrientation) {
-				camera.inputs.addDeviceOrientation();
-			}
-		}
-
-		//flock.printText("Setup XR mode", 20, "#000000");
-		*/
 	},
 	updateDynamicMeshPositions(scene, dynamicMeshes) {
 		scene.onBeforeRenderObservable.add(() => {
@@ -5228,7 +5202,9 @@ export const flock = {
 			let wasPressed = false;
 
 			flock.scene.onBeforeRenderObservable.add(() => {
+				
 				const button = gamepad.buttons[buttonIndex];
+
 				if (!button) {
 					//console.warn(`Button index ${buttonIndex} not found on ${handedness} controller.`);
 					return;
@@ -5237,6 +5213,9 @@ export const flock = {
 				const isPressed = button.value > 0.5; // Press threshold
 
 				if (isPressed !== wasPressed) {
+
+					flock.printText(buttonIndex, 20, "#9932CC");
+					console.log("Button pressed:", buttonIndex);
 					if (isPressed && !isReleased) {
 						//console.log(`Key '${key}' (button index ${buttonIndex}) pressed on ${handedness} controller`);
 						callback();
