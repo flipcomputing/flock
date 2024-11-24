@@ -478,8 +478,8 @@ export const flock = {
 
 				// Position the plane in front of the XR camera
 				flock.scene.onBeforeRenderObservable.add(() => {
-					if (flock.scene.activeCamera) {
-						const camera = flock.scene.activeCamera;
+					if (flock.xrHelper?.baseExperience?.camera) {
+						const camera = flock.xrHelper?.baseExperience?.camera;
 						const forward = camera.getDirection(new flock.BABYLON.Vector3(0, 0, 1));
 						const targetPosition = camera.position.add(forward.scale(2)).add(new flock.BABYLON.Vector3(0, 1.5, 0));
 
