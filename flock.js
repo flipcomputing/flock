@@ -464,6 +464,10 @@ export const flock = {
 		// Create a texture for the plane
 		flock.meshTexture = flock.GUI.AdvancedDynamicTexture.CreateForMesh(flock.uiPlane);
 
+	
+		flock.uiPlane.layerMask = 2; // Set plane to XR layer
+		
+
 		// Handle XR state changes
 		flock.xrHelper.baseExperience.onStateChangedObservable.add((state) => {
 			if (state === flock.BABYLON.WebXRState.ENTERING_XR) {
