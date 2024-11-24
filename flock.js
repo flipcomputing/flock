@@ -5153,6 +5153,76 @@ export const flock = {
 
 		flock.scene.onKeyboardObservable.add((kbInfo) => {
 			if (kbInfo.type === eventType && kbInfo.event.key === key) {
+				console.log(`Keyboard key '${key}' pressed/released`);
+				callback();
+			}
+		});
+
+		// Register the callback for the grid input observable
+		const gridObservable = isReleased
+			? flock.gridKeyReleaseObservable
+			: flock.gridKeyPressObservable;
+
+		gridObservable.add((inputKey) => {
+			if (inputKey === key) {
+				callback();
+			}
+		});
+
+		// Handle VR controller button input
+		flock.xrHelper?.input.onControllerAddedObservable.add((controller) => {
+			//console.log("Controller added:", controller.inputSource.handedness);
+
+			const handedness = controller.inputSource.handedness;
+
+			// Map button IDs to the corresponding keyboard keys
+			const buttonMap =
+				handedness === "left"
+					? { "y-button": "q", "x-button": "e" } // Left controller: Y -> Q, X -> E
+					: handedness === "right"
+					? { "b-button": "f", "a-button": " " } // Right controller: B -> F, A -> Space
+					: {}; // Unknown handedness: No mapping
+
+			controller.onMotionControllerInitObservable.add((motionController) => {
+				const componentIds = motionController.getComponentIds();
+				//console.log(`Available components for ${handedness} controller:`, componentIds);
+
+				Object.entries(buttonMap).forEach(([buttonId, mappedKey]) => {
+					if (mappedKey !== key) return;
+
+					const component = motionController.getComponent(buttonId);
+
+					if (!component) {
+						console.warn(`Button ID '${buttonId}' not found for ${handedness} controller.`);
+						return;
+					}
+
+					//console.log(`Observing button ID '${buttonId}' for key '${key}' on ${handedness} controller.`);
+
+					// Monitor button state changes
+					component.onButtonStateChangedObservable.add(() => {
+						const isPressed = component.pressed;
+
+						if (isPressed && !isReleased) {
+							console.log(`Key '${key}' (button ID '${buttonId}') pressed on ${handedness} controller`);
+							callback();
+						} else if (!isPressed && isReleased) {
+							console.log(`Key '${key}' (button ID '${buttonId}') released on ${handedness} controller`);
+							callback();
+						}
+					});
+				});
+			});
+		});
+	},
+	whenKeyEvent2(key, callback, isReleased = false) {
+		// Handle keyboard input
+		const eventType = isReleased
+			? flock.BABYLON.KeyboardEventTypes.KEYUP
+			: flock.BABYLON.KeyboardEventTypes.KEYDOWN;
+
+		flock.scene.onKeyboardObservable.add((kbInfo) => {
+			if (kbInfo.type === eventType && kbInfo.event.key === key) {
 				callback();
 			}
 		});
