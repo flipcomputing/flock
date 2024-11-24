@@ -4646,9 +4646,9 @@ export const flock = {
 	},
 	async setXRMode(mode) {
 
-		flock.initializeXR(mode).then(() => {
-			flock.printText("XR Mode!", 5, "white"); // Print a message to confirm XR initialization
-		});
+		await flock.initializeXR(mode);
+		flock.printText("XR Mode!", 5, "white"); 
+		
 		//console.log("Setting XR mode:", mode);
 		//flock.printText("Setting up XR mode", 20, "#000000");
 /*		if (mode === "VR") {
@@ -5172,12 +5172,11 @@ export const flock = {
 		}
 	},
 	whenKeyEvent(key, callback, isReleased = false) {
-		// Determine the type of keyboard event based on isReleased parameter
+		// Handle keyboard input
 		const eventType = isReleased
 			? flock.BABYLON.KeyboardEventTypes.KEYUP
 			: flock.BABYLON.KeyboardEventTypes.KEYDOWN;
 
-		// Register the callback for the keyboard observable
 		flock.scene.onKeyboardObservable.add((kbInfo) => {
 			if (kbInfo.type === eventType && kbInfo.event.key === key) {
 				callback();
@@ -5193,6 +5192,61 @@ export const flock = {
 			if (inputKey === key) {
 				callback();
 			}
+		});
+
+		// Handle VR controller button input
+		flock.xrHelper?.input.onControllerAddedObservable.add((controller) => {
+
+			const handedness = controller.inputSource.handedness;
+
+			// Map VR buttons to the corresponding keyboard keys
+			const buttonMap =
+				handedness === "left"
+					? { 4: "q", 5: "e" } // Left controller: Index 4 -> Q, Index 5 -> E
+					: handedness === "right"
+					? { 4: "f", 5: " " } // Right controller: Index 4 -> F, Index 5 -> Space
+					: {}; // Unknown handedness: No mapping
+
+			const gamepad = controller.inputSource.gamepad;
+
+			if (!gamepad) {
+				console.warn(`No gamepad detected for ${handedness} controller.`);
+				return;
+			}
+
+			// Find the button corresponding to the key
+			const buttonIndex = Object.keys(buttonMap).find(
+				(index) => buttonMap[index] === key
+			);
+
+			if (buttonIndex === undefined) {
+				//console.log(`Key '${key}' is not mapped for ${handedness} controller.`);
+				return;
+			}
+
+			// Monitor the specific button
+			let wasPressed = false;
+
+			flock.scene.onBeforeRenderObservable.add(() => {
+				const button = gamepad.buttons[buttonIndex];
+				if (!button) {
+					//console.warn(`Button index ${buttonIndex} not found on ${handedness} controller.`);
+					return;
+				}
+
+				const isPressed = button.value > 0.5; // Press threshold
+
+				if (isPressed !== wasPressed) {
+					if (isPressed && !isReleased) {
+						//console.log(`Key '${key}' (button index ${buttonIndex}) pressed on ${handedness} controller`);
+						callback();
+					} else if (!isPressed && isReleased) {
+						//console.log(`Key '${key}' (button index ${buttonIndex}) released on ${handedness} controller`);
+						callback();
+					}
+					wasPressed = isPressed;
+				}
+			});
 		});
 	},
 	async forever(action) {
