@@ -451,7 +451,7 @@ export const flock = {
 
 		// Create the XR experience
 		flock.xrHelper = await flock.scene.createDefaultXRExperienceAsync();
-		flock.uiPlane = flock.BABYLON.MeshBuilder.CreatePlane("uiPlane", { size: 2 }, flock.scene);
+		flock.uiPlane = flock.BABYLON.MeshBuilder.CreatePlane("uiPlane", { size: 4 }, flock.scene);
 
 		
 		flock.meshTexture = flock.GUI.AdvancedDynamicTexture.CreateForMesh(flock.uiPlane);
@@ -466,17 +466,40 @@ export const flock = {
 
 				flock.advancedTexture.removeControl(flock.stackPanel);
 				flock.meshTexture.addControl(flock.stackPanel);
-				// Activate the plane-based UI
+
+				console.log("Set up XR1");
+								// Activate the plane-based UI
 				flock.uiPlane.isVisible = true;
-				flock.uiPlane.parent = flock.scene.activeCamera; // Attach to the XR camera
-				flock.uiPlane.position = new flock.BABYLON.Vector3(0, 1.5, 2); // Position in front of the user
-				flock.stackPanel.width = "50%"; // Adjust width for XR
+				
+				console.log("Set up XR2");
+				
+				console.log("Set up XR3");
+				
+				console.log("Set up XR4");
+				
+				flock.uiPlane.billboardMode = flock.BABYLON.Mesh.BILLBOARDMODE_ALL;
+
+				flock.scene.onBeforeRenderObservable.add(() => {
+					if (flock.scene.activeCamera) {
+						const camera = flock.scene.activeCamera;
+						const forward = camera.getDirection(new flock.BABYLON.Vector3(0, 0, 1)); // Forward vector
+						const cameraPosition = camera.position;
+
+						// Position the plane slightly in front of the camera
+						flock.uiPlane.position = cameraPosition.add(forward.scale(2)).add(new flock.BABYLON.Vector3(0, 3, 0));
+					}
+				});
+
+//flock.stackPanel.width = "50%"; // Adjust width for XR
+				
+				console.log("Set up XR5");
 				flock.stackPanel.horizontalAlignment = flock.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
-				flock.stackPanel.verticalAlignment = flock.GUI.Control.VERTICAL_ALIGNMENT_TOP;
+				flock.stackPanel.verticalAlignment = flock.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM;
 
 				// Hide the fullscreen UI
-				flock.advancedTexture.rootContainer.isVisible = false;
-			} else {
+				flock.advancedTexture.isVisible = false;
+				console.log("Set up XR");
+			} else if (state === flock.BABYLON.WebXRState.EXITING_XR) {
 
 				flock.meshTexture.removeControl(flock.stackPanel);
 				flock.advancedTexture.addControl(flock.stackPanel);
