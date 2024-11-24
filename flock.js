@@ -479,14 +479,21 @@ export const flock = {
 				
 				flock.uiPlane.billboardMode = flock.BABYLON.Mesh.BILLBOARDMODE_ALL;
 
+				flock.uiPlane.layerMask = 0xFFFFFFFF; // Match both eye layers
+				flock.xrHelper.baseExperience.camera.layerMask = 0xFFFFFFFF;
+				flock.uiPlane.alwaysSelectAsActiveMesh = true;
+			flock.uiPlane.material.disableDepthWrite = true;
+
 				flock.scene.onBeforeRenderObservable.add(() => {
 					if (flock.scene.activeCamera) {
 						const camera = flock.scene.activeCamera;
-						const forward = camera.getDirection(new flock.BABYLON.Vector3(0, 0, 1)); // Forward vector
-						const cameraPosition = camera.position;
+						const forward = camera.getDirection(new flock.BABYLON.Vector3(0, 0, 1));
+						const targetPosition = camera.position.add(forward.scale(2)).add(new flock.BABYLON.Vector3(0, 1.5, 0));
 
-						// Position the plane slightly in front of the camera
-						flock.uiPlane.position = cameraPosition.add(forward.scale(2)).add(new flock.BABYLON.Vector3(0, 3, 0));
+						// Avoid micro-movements causing flicker
+						if (!flock.uiPlane.position.equalsWithEpsilon(targetPosition, 0.01)) {
+							flock.uiPlane.position.copyFrom(targetPosition);
+						}
 					}
 				});
 
@@ -505,7 +512,7 @@ export const flock = {
 				flock.advancedTexture.addControl(flock.stackPanel);
 				// Deactivate the plane-based UI
 				flock.uiPlane.isVisible = false;
-				
+
 				// Restore the fullscreen UI
 				flock.advancedTexture.rootContainer.isVisible = true;
 				flock.stackPanel.width = "75%"; // Restore original width
