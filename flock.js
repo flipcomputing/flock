@@ -444,80 +444,67 @@ export const flock = {
 		}
 	},
 	async initializeXR() {
-		
 		if (flock.xrHelper) return; // Avoid reinitializing
-
-		//flock.printText("Initial", 20, "#000000");
 
 		// Create the XR experience
 		flock.xrHelper = await flock.scene.createDefaultXRExperienceAsync();
-		flock.uiPlane = flock.BABYLON.MeshBuilder.CreatePlane("uiPlane", { size: 4 }, flock.scene);
 
-		
+		// Create a UI plane for XR
+		flock.uiPlane = flock.BABYLON.MeshBuilder.CreatePlane("uiPlane", { size: 4 }, flock.scene);
+		flock.uiPlane.isVisible = false; // Start hidden
+		flock.uiPlane.billboardMode = flock.BABYLON.Mesh.BILLBOARDMODE_ALL;
+		flock.uiPlane.layerMask = 0xFFFFFFFF;
+		flock.uiPlane.alwaysSelectAsActiveMesh = true;
+
+		// Assign material with no depth writing
+		const planeMaterial = new flock.BABYLON.StandardMaterial("uiPlaneMaterial", flock.scene);
+		planeMaterial.disableDepthWrite = true;
+		flock.uiPlane.material = planeMaterial;
+
+		// Create a texture for the plane
 		flock.meshTexture = flock.GUI.AdvancedDynamicTexture.CreateForMesh(flock.uiPlane);
 
-		// Adjust the stack panel when entering/exiting XR
+		// Handle XR state changes
 		flock.xrHelper.baseExperience.onStateChangedObservable.add((state) => {
-
-			//flock.printText("State change ", 20, "#000000");
-			//console.log("New state", state, flock.BABYLON.WebXRState.ENTERING_XR)
 			if (state === flock.BABYLON.WebXRState.ENTERING_XR) {
-				console.log("Setting up plane");
-
+				// Switch to XR UI
 				flock.advancedTexture.removeControl(flock.stackPanel);
 				flock.meshTexture.addControl(flock.stackPanel);
-
-				console.log("Set up XR1");
-								// Activate the plane-based UI
 				flock.uiPlane.isVisible = true;
-				
-				console.log("Set up XR2");
-				
-				console.log("Set up XR3");
-				
-				console.log("Set up XR4");
-				
-				flock.uiPlane.billboardMode = flock.BABYLON.Mesh.BILLBOARDMODE_ALL;
 
-				flock.uiPlane.layerMask = 0xFFFFFFFF; // Match both eye layers
-				flock.xrHelper.baseExperience.camera.layerMask = 0xFFFFFFFF;
-				flock.uiPlane.alwaysSelectAsActiveMesh = true;
-			flock.uiPlane.material.disableDepthWrite = true;
+				// Centre the stack panel for XR
+				flock.stackPanel.horizontalAlignment = flock.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
+				flock.stackPanel.verticalAlignment = flock.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM;
 
+				// Position the plane in front of the XR camera
 				flock.scene.onBeforeRenderObservable.add(() => {
 					if (flock.scene.activeCamera) {
 						const camera = flock.scene.activeCamera;
 						const forward = camera.getDirection(new flock.BABYLON.Vector3(0, 0, 1));
 						const targetPosition = camera.position.add(forward.scale(2)).add(new flock.BABYLON.Vector3(0, 1.5, 0));
 
-						// Avoid micro-movements causing flicker
-						if (!flock.uiPlane.position.equalsWithEpsilon(targetPosition, 0.01)) {
+						// Update position only if there's significant movement
+						if (!flock.uiPlane.position.equalsWithEpsilon(targetPosition, 0.05)) {
 							flock.uiPlane.position.copyFrom(targetPosition);
 						}
 					}
 				});
 
-//flock.stackPanel.width = "50%"; // Adjust width for XR
-				
-				console.log("Set up XR5");
-				flock.stackPanel.horizontalAlignment = flock.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
-				flock.stackPanel.verticalAlignment = flock.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM;
-
-				// Hide the fullscreen UI
+				// Hide fullscreen UI
 				flock.advancedTexture.isVisible = false;
-				console.log("Set up XR");
 			} else if (state === flock.BABYLON.WebXRState.EXITING_XR) {
-
+				// Restore non-XR UI
 				flock.meshTexture.removeControl(flock.stackPanel);
 				flock.advancedTexture.addControl(flock.stackPanel);
-				// Deactivate the plane-based UI
 				flock.uiPlane.isVisible = false;
 
-				// Restore the fullscreen UI
-				flock.advancedTexture.rootContainer.isVisible = true;
-				flock.stackPanel.width = "75%"; // Restore original width
+				// Restore original stack panel alignment
+				flock.stackPanel.width = "100%";
 				flock.stackPanel.horizontalAlignment = flock.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
 				flock.stackPanel.verticalAlignment = flock.GUI.Control.VERTICAL_ALIGNMENT_TOP;
+
+				// Show fullscreen UI
+				flock.advancedTexture.rootContainer.isVisible = true;
 			}
 		});
 	},
