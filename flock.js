@@ -443,71 +443,63 @@ export const flock = {
 			console.warn("Unable to print text:", error);
 		}
 	},
-	async initializeXR() {
+	async initializeXR(mode) {
 		if (flock.xrHelper) return; // Avoid reinitializing
 
-		// Create the XR experience
-		flock.xrHelper = await flock.scene.createDefaultXRExperienceAsync();
+		if (mode === "VR") {
+			flock.xrHelper = await flock.scene.createDefaultXRExperienceAsync();
+		} else if (mode === "AR") {
+			flock.xrHelper = await flock.scene.createDefaultXRExperienceAsync({
+				uiOptions: { sessionMode: "immersive-ar" },
+			});
+		} else if (mode === "MAGIC_WINDOW") {
+			if (!camera.inputs.attached.deviceOrientation) {
+				camera.inputs.addDeviceOrientation();
+			}
+		}
 
-		// Create a UI plane for XR
-		flock.uiPlane = flock.BABYLON.MeshBuilder.CreatePlane("uiPlane", { size: 4 }, flock.scene);
+		// Create a UI plane for the wrist
+		flock.uiPlane = flock.BABYLON.MeshBuilder.CreatePlane("uiPlane", { size: 0.4 }, flock.scene); // Smaller size for wrist UI
 		flock.uiPlane.isVisible = false; // Start hidden
-		flock.uiPlane.billboardMode = flock.BABYLON.Mesh.BILLBOARDMODE_ALL;
-		flock.uiPlane.layerMask = 0xFFFFFFFF;
-		flock.uiPlane.alwaysSelectAsActiveMesh = true;
 
-		// Assign material with no depth writing
 		const planeMaterial = new flock.BABYLON.StandardMaterial("uiPlaneMaterial", flock.scene);
 		planeMaterial.disableDepthWrite = true;
 		flock.uiPlane.material = planeMaterial;
 
-		// Create a texture for the plane
 		flock.meshTexture = flock.GUI.AdvancedDynamicTexture.CreateForMesh(flock.uiPlane);
 
-	
-		flock.uiPlane.layerMask = 2; // Set plane to XR layer
-		
+		// Ensure the UI plane follows the wrist (using a controller or camera offset)
+		flock.xrHelper.input.onControllerAddedObservable.add((controller) => {
+			if (controller.inputSource.targetRayMode === "tracked-pointer") {
+				// Attach the UI plane to the controller
+				flock.uiPlane.parent = controller.grip || controller.pointer; // Use grip if available, fallback to pointer
+				flock.uiPlane.position.set(0, 0.05, 0.05);
+// Offset position slightly above and in front of the controller
+			}
+		});
 
 		// Handle XR state changes
 		flock.xrHelper.baseExperience.onStateChangedObservable.add((state) => {
 			if (state === flock.BABYLON.WebXRState.ENTERING_XR) {
-				// Switch to XR UI
 				flock.advancedTexture.removeControl(flock.stackPanel);
 				flock.meshTexture.addControl(flock.stackPanel);
 				flock.uiPlane.isVisible = true;
 
-				// Centre the stack panel for XR
+				// Update alignment for wrist UI
 				flock.stackPanel.horizontalAlignment = flock.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
-				flock.stackPanel.verticalAlignment = flock.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM;
+				flock.stackPanel.verticalAlignment = flock.GUI.Control.VERTICAL_ALIGNMENT_TOP;
 
-				// Position the plane in front of the XR camera
-				flock.scene.onBeforeRenderObservable.add(() => {
-					if (flock.xrHelper?.baseExperience?.camera) {
-						const camera = flock.xrHelper?.baseExperience?.camera;
-						const forward = camera.getDirection(new flock.BABYLON.Vector3(0, 0, 1));
-						const targetPosition = camera.position.add(forward.scale(2)).add(new flock.BABYLON.Vector3(0, 1.5, 0));
-
-						// Update position only if there's significant movement
-						if (!flock.uiPlane.position.equalsWithEpsilon(targetPosition, 0.05)) {
-							flock.uiPlane.position.copyFrom(targetPosition);
-						}
-					}
-				});
-
-				// Hide fullscreen UI
-				flock.advancedTexture.isVisible = false;
+				flock.advancedTexture.isVisible = false; // Hide fullscreen UI
 			} else if (state === flock.BABYLON.WebXRState.EXITING_XR) {
-				// Restore non-XR UI
 				flock.meshTexture.removeControl(flock.stackPanel);
 				flock.advancedTexture.addControl(flock.stackPanel);
 				flock.uiPlane.isVisible = false;
 
-				// Restore original stack panel alignment
+				// Restore alignment for non-XR
 				flock.stackPanel.width = "100%";
 				flock.stackPanel.horizontalAlignment = flock.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
 				flock.stackPanel.verticalAlignment = flock.GUI.Control.VERTICAL_ALIGNMENT_TOP;
 
-				// Show fullscreen UI
 				flock.advancedTexture.rootContainer.isVisible = true;
 			}
 		});
@@ -4651,7 +4643,7 @@ export const flock = {
 	},
 	async setXRMode(mode) {
 
-		flock.initializeXR().then(() => {
+		flock.initializeXR(mode).then(() => {
 			flock.printText("XR Mode!", 5, "white"); // Print a message to confirm XR initialization
 		});
 		//console.log("Setting XR mode:", mode);
