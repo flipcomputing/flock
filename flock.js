@@ -3378,194 +3378,227 @@ export const flock = {
 		property,
 		easing = "Linear",
 		loop = false,
-		reverse = false,
+		reverse = false
 	) {
 		return new Promise(async (resolve) => {
-			await flock.whenModelReady(meshName, async function (mesh) {
-				if (mesh) {
-					let propertyToAnimate;
-
-					if (property === "color" || property === "alpha") {
-						function findFirstDescendantWithMaterial(mesh) {
-							if (mesh.material) {
-								return mesh;
-							}
-							const descendants = mesh.getDescendants();
-							for (const descendant of descendants) {
-								if (descendant.material) {
-									return descendant;
-								}
-							}
-							return null; // No mesh with material found
-						}
-
-						mesh = findFirstDescendantWithMaterial(mesh);
-					}
-
-					// Resolve the property to animate
-					if (property === "color") {
-						propertyToAnimate =
-							mesh.material.diffuseColor !== undefined
-								? "material.diffuseColor"
-								: "material.albedoColor";
-					} else if (property === "alpha") {
-						propertyToAnimate = "material.alpha";
-						mesh.material.transparencyMode =
-							flock.BABYLON.Material.MATERIAL_ALPHABLEND;
-					} else {
-						propertyToAnimate = property;
-					}
-
-					const fps = 30; // Frames per second for the animation timeline
-
-					const animationType =
-						property === "color"
-							? flock.BABYLON.Animation.ANIMATIONTYPE_COLOR3
-							: ["position", "rotation", "scaling"].includes(
-									property,
-							  )
-								? flock.BABYLON.Animation.ANIMATIONTYPE_VECTOR3
-								: flock.BABYLON.Animation.ANIMATIONTYPE_FLOAT;
-
-					const keyframeAnimation = new flock.BABYLON.Animation(
-						"keyframeAnimation",
-						propertyToAnimate,
-						fps,
-						animationType,
-						loop
-							? flock.BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE
-							: flock.BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT,
-					);
-
-					// Generate forward keyframes
-					let currentFrame = 0;
-					const forwardKeyframes = keyframes.map((keyframe) => {
-						let value;
-						if (property === "color") {
-							value = flock.BABYLON.Color3.FromHexString(
-								keyframe.value,
-							);
-						} else if (
-							["position", "rotation", "scaling"].includes(property)
-						) {
-							if (keyframe.value instanceof flock.BABYLON.Vector3) {
-								value = keyframe.value;
-							} else if (typeof keyframe.value === "number") {
-								value = new flock.BABYLON.Vector3(
-									keyframe.value,
-									keyframe.value,
-									keyframe.value,
-								);
-							} else if (typeof keyframe.value === "string") {
-								const vectorValues =
-									keyframe.value.match(/-?\d+(\.\d+)?/g);
-								value = new flock.BABYLON.Vector3(
-									parseFloat(vectorValues[0]),
-									parseFloat(vectorValues[1]),
-									parseFloat(vectorValues[2]),
-								);
-							}
-						} else {
-							value = parseFloat(keyframe.value);
-						}
-
-						const frame = currentFrame;
-						currentFrame += Math.round(
-							fps * (keyframe.duration || 1),
-						);
-						return { frame, value };
-					});
-
-					// Generate reverse keyframes
-					const reverseKeyframes = reverse
-						? [...forwardKeyframes]
-							  .reverse()
-							  .slice(1) // Avoid duplicating the middle keyframe
-							  .map((keyframe, index) => ({
-								  frame:
-									  currentFrame +
-									  index *
-										  Math.round(
-											  fps * (keyframes[0].duration || 1),
-										  ),
-								  value: keyframe.value,
-							  }))
-						: [];
-
-					// Combine forward and reverse keyframes
-					const symmetricKeyframes = [...forwardKeyframes, ...reverseKeyframes];
-
-					console.log("Generated Keyframes:", symmetricKeyframes);
-
-					if (symmetricKeyframes.length > 1) {
-						keyframeAnimation.setKeys(symmetricKeyframes);
-					} else {
-						console.warn("Insufficient keyframes for animation.");
-						resolve();
-						return;
-					}
-
-					if (easing !== "Linear") {
-						let easingFunction;
-						switch (easing) {
-							case "SineEase":
-								easingFunction = new flock.BABYLON.SineEase();
-								break;
-							case "CubicEase":
-								easingFunction = new flock.BABYLON.CubicEase();
-								break;
-							case "QuadraticEase":
-								easingFunction =
-									new flock.BABYLON.QuadraticEase();
-								break;
-							case "ExponentialEase":
-								easingFunction =
-									new flock.BABYLON.ExponentialEase();
-								break;
-							case "BounceEase":
-								easingFunction = new flock.BABYLON.BounceEase();
-								break;
-							case "ElasticEase":
-								easingFunction = new flock.BABYLON.ElasticEase();
-								break;
-							case "BackEase":
-								easingFunction = new flock.BABYLON.BackEase();
-								break;
-							default:
-								easingFunction = new flock.BABYLON.SineEase();
-						}
-						easingFunction.setEasingMode(
-							flock.BABYLON.EasingFunction.EASINGMODE_EASEINOUT,
-						);
-						keyframeAnimation.setEasingFunction(easingFunction);
-					}
-
-					mesh.animations.push(keyframeAnimation);
-
-					if (property === "alpha") {
-						mesh.material.markAsDirty(
-							flock.BABYLON.Material.MiscDirtyFlag,
-						);
-					}
-
-					const lastFrame = symmetricKeyframes[symmetricKeyframes.length - 1].frame;
-
-					console.log(`Animating from frame 0 to ${lastFrame}`);
-
-					const animatable = flock.scene.beginAnimation(
-						mesh,
-						0,
-						lastFrame,
-						loop,
-					);
-
-					animatable.onAnimationEndObservable.add(() => {
-						console.log("Animation completed.");
-						resolve();
-					});
-				} else {
+			await flock.whenModelReady(meshName, async (mesh) => {
+				if (!mesh) {
 					resolve();
+					return;
 				}
+
+				let propertyToAnimate;
+
+				// Resolve material-related properties
+				if (property === "color" || property === "alpha") {
+					function findFirstDescendantWithMaterial(mesh) {
+						if (mesh.material) {
+							return mesh;
+						}
+						const descendants = mesh.getDescendants();
+						for (const descendant of descendants) {
+							if (descendant.material) {
+								return descendant;
+							}
+						}
+						return null; // No mesh with material found
+					}
+					mesh = findFirstDescendantWithMaterial(mesh);
+				}
+
+				// Resolve the property to animate
+				if (property === "color") {
+					propertyToAnimate =
+						mesh.material.diffuseColor !== undefined
+							? "material.diffuseColor"
+							: "material.albedoColor";
+				} else if (property === "alpha") {
+					propertyToAnimate = "material.alpha";
+					mesh.material.transparencyMode =
+						flock.BABYLON.Material.MATERIAL_ALPHABLEND;
+				} else {
+					propertyToAnimate = property;
+				}
+
+				const fps = 30; // Frames per second for the animation timeline
+				const animationType =
+					property === "color"
+						? flock.BABYLON.Animation.ANIMATIONTYPE_COLOR3
+						: ["position", "rotation", "scaling"].includes(property)
+						? flock.BABYLON.Animation.ANIMATIONTYPE_VECTOR3
+						: flock.BABYLON.Animation.ANIMATIONTYPE_FLOAT;
+
+				const keyframeAnimation = new flock.BABYLON.Animation(
+					"keyframeAnimation",
+					propertyToAnimate,
+					fps,
+					animationType,
+					loop
+						? flock.BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE
+						: flock.BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT
+				);
+
+				// Generate forward keyframes with consistent frame calculation
+				let currentFrame = 0;
+				const forwardKeyframes = keyframes.map((keyframe) => {
+					let value;
+
+					// Resolve value based on property type
+					if (property === "color") {
+						value = flock.BABYLON.Color3.FromHexString(
+							keyframe.value
+						);
+					} else if (
+						["position", "rotation", "scaling"].includes(property)
+					) {
+						if (keyframe.value instanceof flock.BABYLON.Vector3) {
+							value =
+								property === "rotation"
+									? new flock.BABYLON.Vector3(
+										  flock.BABYLON.Tools.ToRadians(
+											  keyframe.value.x
+										  ),
+										  flock.BABYLON.Tools.ToRadians(
+											  keyframe.value.y
+										  ),
+										  flock.BABYLON.Tools.ToRadians(
+											  keyframe.value.z
+										  )
+									  )
+									: keyframe.value;
+						} else if (typeof keyframe.value === "number") {
+							const radians = flock.BABYLON.Tools.ToRadians(
+								keyframe.value
+							);
+							value =
+								property === "rotation"
+									? new flock.BABYLON.Vector3(
+										  radians,
+										  radians,
+										  radians
+									  )
+									: new flock.BABYLON.Vector3(
+										  keyframe.value,
+										  keyframe.value,
+										  keyframe.value
+									  );
+						} else if (typeof keyframe.value === "string") {
+							const vectorValues =
+								keyframe.value.match(/-?\d+(\.\d+)?/g);
+							value =
+								property === "rotation"
+									? new flock.BABYLON.Vector3(
+										  flock.BABYLON.Tools.ToRadians(
+											  parseFloat(vectorValues[0])
+										  ),
+										  flock.BABYLON.Tools.ToRadians(
+											  parseFloat(vectorValues[1])
+										  ),
+										  flock.BABYLON.Tools.ToRadians(
+											  parseFloat(vectorValues[2])
+										  )
+									  )
+									: new flock.BABYLON.Vector3(
+										  parseFloat(vectorValues[0]),
+										  parseFloat(vectorValues[1]),
+										  parseFloat(vectorValues[2])
+									  );
+						}
+					} else {
+						value = parseFloat(keyframe.value);
+					}
+
+					// Calculate frame duration based on FPS
+					const frameDuration = (keyframe.duration || 1) * fps;
+					const frame = currentFrame;
+					currentFrame += Math.round(frameDuration); // Increment frames
+					return { frame, value };
+				});
+
+				// Combine forward and reverse keyframes if needed
+				const reverseKeyframes = reverse
+					? [...forwardKeyframes]
+						  .reverse()
+						  .slice(1) // Avoid duplicating the middle keyframe
+						  .map((keyframe, index) => ({
+							  frame: currentFrame + index,
+							  value: keyframe.value,
+						  }))
+					: [];
+				const symmetricKeyframes = [
+					...forwardKeyframes,
+					...reverseKeyframes,
+				];
+
+				console.log("Generated Keyframes:", symmetricKeyframes);
+
+				if (symmetricKeyframes.length > 1) {
+					keyframeAnimation.setKeys(symmetricKeyframes);
+				} else {
+					console.warn("Insufficient keyframes for animation.");
+					resolve();
+					return;
+				}
+
+				if (easing !== "Linear") {
+					let easingFunction;
+					switch (easing) {
+						case "SineEase":
+							easingFunction = new flock.BABYLON.SineEase();
+							break;
+						case "CubicEase":
+							easingFunction = new flock.BABYLON.CubicEase();
+							break;
+						case "QuadraticEase":
+							easingFunction =
+								new flock.BABYLON.QuadraticEase();
+							break;
+						case "ExponentialEase":
+							easingFunction =
+								new flock.BABYLON.ExponentialEase();
+							break;
+						case "BounceEase":
+							easingFunction = new flock.BABYLON.BounceEase();
+							break;
+						case "ElasticEase":
+							easingFunction = new flock.BABYLON.ElasticEase();
+							break;
+						case "BackEase":
+							easingFunction = new flock.BABYLON.BackEase();
+							break;
+						default:
+							easingFunction = new flock.BABYLON.SineEase();
+					}
+					easingFunction.setEasingMode(
+						flock.BABYLON.EasingFunction.EASINGMODE_EASEINOUT
+					);
+					keyframeAnimation.setEasingFunction(easingFunction);
+				}
+
+				mesh.animations.push(keyframeAnimation);
+
+				if (property === "alpha") {
+					mesh.material.markAsDirty(
+						flock.BABYLON.Material.MiscDirtyFlag
+					);
+				}
+
+				const lastFrame =
+					symmetricKeyframes[symmetricKeyframes.length - 1].frame;
+
+				console.log(`Animating from frame 0 to ${lastFrame}`);
+
+				const animatable = flock.scene.beginAnimation(
+					mesh,
+					0,
+					lastFrame,
+					loop
+				);
+
+				animatable.onAnimationEndObservable.add(() => {
+					console.log("Animation completed.");
+					resolve();
+				});
 			});
 		});
 	},
