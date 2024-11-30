@@ -3387,11 +3387,9 @@ export const flock = {
 
 					if (property === "color" || property === "alpha") {
 						function findFirstDescendantWithMaterial(mesh) {
-							// Check if the mesh itself has a material
 							if (mesh.material) {
 								return mesh;
 							}
-							// Get all descendants and check if any of them have a material
 							const descendants = mesh.getDescendants();
 							for (const descendant of descendants) {
 								if (descendant.material) {
@@ -3403,7 +3401,8 @@ export const flock = {
 
 						mesh = findFirstDescendantWithMaterial(mesh);
 					}
-					// Select the property to animate
+
+					// Resolve the property to animate
 					if (property === "color") {
 						propertyToAnimate =
 							mesh.material.diffuseColor !== undefined
@@ -3423,8 +3422,8 @@ export const flock = {
 						property === "color"
 							? flock.BABYLON.Animation.ANIMATIONTYPE_COLOR3
 							: ["position", "rotation", "scaling"].includes(
-										property,
-								  )
+									property,
+							  )
 								? flock.BABYLON.Animation.ANIMATIONTYPE_VECTOR3
 								: flock.BABYLON.Animation.ANIMATIONTYPE_FLOAT;
 
@@ -3433,31 +3432,23 @@ export const flock = {
 						propertyToAnimate,
 						fps,
 						animationType,
-						reverse && loop
-							? flock.BABYLON.Animation.ANIMATIONLOOPMODE_YOYO
-							: loop
-								? flock.BABYLON.Animation
-										.ANIMATIONLOOPMODE_CYCLE
-								: flock.BABYLON.Animation
-										.ANIMATIONLOOPMODE_CONSTANT,
+						loop
+							? flock.BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE
+							: flock.BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT,
 					);
 
-					// Set up animation keys based on each keyframe's duration
+					// Generate forward keyframes
 					let currentFrame = 0;
-					const animationKeys = keyframes.map((keyframe, index) => {
+					const forwardKeyframes = keyframes.map((keyframe) => {
 						let value;
 						if (property === "color") {
 							value = flock.BABYLON.Color3.FromHexString(
 								keyframe.value,
 							);
 						} else if (
-							["position", "rotation", "scaling"].includes(
-								property,
-							)
+							["position", "rotation", "scaling"].includes(property)
 						) {
-							if (
-								keyframe.value instanceof flock.BABYLON.Vector3
-							) {
+							if (keyframe.value instanceof flock.BABYLON.Vector3) {
 								value = keyframe.value;
 							} else if (typeof keyframe.value === "number") {
 								value = new flock.BABYLON.Vector3(
@@ -3478,31 +3469,36 @@ export const flock = {
 							value = parseFloat(keyframe.value);
 						}
 
-						// Set the frame based on the cumulative duration up to this point
-						if (index > 0) {
-							currentFrame += Math.round(
-								fps * (keyframes[index].duration || 1),
-							);
-						}
-
-						return { frame: currentFrame, value };
+						const frame = currentFrame;
+						currentFrame += Math.round(
+							fps * (keyframe.duration || 1),
+						);
+						return { frame, value };
 					});
 
-					// Handle looping: Add a transition back to the first keyframe if looping is enabled
-					if (loop && keyframes.length > 1) {
-						const firstKeyframe = keyframes[0];
-						const loopFrame =
-							currentFrame +
-							Math.round(fps * firstKeyframe.duration);
-						animationKeys.push({
-							frame: loopFrame,
-							value: animationKeys[0].value,
-						});
-					}
+					// Generate reverse keyframes
+					const reverseKeyframes = reverse
+						? [...forwardKeyframes]
+							  .reverse()
+							  .slice(1) // Avoid duplicating the middle keyframe
+							  .map((keyframe, index) => ({
+								  frame:
+									  currentFrame +
+									  index *
+										  Math.round(
+											  fps * (keyframes[0].duration || 1),
+										  ),
+								  value: keyframe.value,
+							  }))
+						: [];
 
-					// Ensure that keyframes are properly set up and interpolated
-					if (animationKeys.length > 1) {
-						keyframeAnimation.setKeys(animationKeys);
+					// Combine forward and reverse keyframes
+					const symmetricKeyframes = [...forwardKeyframes, ...reverseKeyframes];
+
+					console.log("Generated Keyframes:", symmetricKeyframes);
+
+					if (symmetricKeyframes.length > 1) {
+						keyframeAnimation.setKeys(symmetricKeyframes);
 					} else {
 						console.warn("Insufficient keyframes for animation.");
 						resolve();
@@ -3530,8 +3526,7 @@ export const flock = {
 								easingFunction = new flock.BABYLON.BounceEase();
 								break;
 							case "ElasticEase":
-								easingFunction =
-									new flock.BABYLON.ElasticEase();
+								easingFunction = new flock.BABYLON.ElasticEase();
 								break;
 							case "BackEase":
 								easingFunction = new flock.BABYLON.BackEase();
@@ -3553,26 +3548,21 @@ export const flock = {
 						);
 					}
 
+					const lastFrame = symmetricKeyframes[symmetricKeyframes.length - 1].frame;
+
+					console.log(`Animating from frame 0 to ${lastFrame}`);
+
 					const animatable = flock.scene.beginAnimation(
 						mesh,
 						0,
-						currentFrame,
+						lastFrame,
 						loop,
 					);
 
-					if (reverse && !loop) {
-						animatable.onAnimationEndObservable.addOnce(() => {
-							flock.scene
-								.beginAnimation(mesh, currentFrame, 0, false)
-								.onAnimationEndObservable.add(() => {
-									resolve();
-								});
-						});
-					} else {
-						animatable.onAnimationEndObservable.add(() =>
-							resolve(),
-						);
-					}
+					animatable.onAnimationEndObservable.add(() => {
+						console.log("Animation completed.");
+						resolve();
+					});
 				} else {
 					resolve();
 				}
@@ -5212,89 +5202,6 @@ export const flock = {
 						}
 					});
 				});
-			});
-		});
-	},
-	whenKeyEvent2(key, callback, isReleased = false) {
-		// Handle keyboard input
-		const eventType = isReleased
-			? flock.BABYLON.KeyboardEventTypes.KEYUP
-			: flock.BABYLON.KeyboardEventTypes.KEYDOWN;
-
-		flock.scene.onKeyboardObservable.add((kbInfo) => {
-			if (kbInfo.type === eventType && kbInfo.event.key === key) {
-				callback();
-			}
-		});
-
-		// Register the callback for the grid input observable
-		const gridObservable = isReleased
-			? flock.gridKeyReleaseObservable
-			: flock.gridKeyPressObservable;
-
-		gridObservable.add((inputKey) => {
-			if (inputKey === key) {
-				callback();
-			}
-		});
-
-		// Handle VR controller button input
-		flock.xrHelper?.input.onControllerAddedObservable.add((controller) => {
-
-			const handedness = controller.inputSource.handedness;
-
-			// Map VR buttons to the corresponding keyboard keys
-			const buttonMap =
-				handedness === "left"
-					? { 4: "q", 5: "e" } // Left controller: Index 4 -> Q, Index 5 -> E
-					: handedness === "right"
-					? { 4: "f", 5: " " } // Right controller: Index 4 -> F, Index 5 -> Space
-					: {}; // Unknown handedness: No mapping
-
-			const gamepad = controller.inputSource.gamepad;
-
-			if (!gamepad) {
-				console.warn(`No gamepad detected for ${handedness} controller.`);
-				return;
-			}
-
-			// Find the button corresponding to the key
-			const buttonIndex = Object.keys(buttonMap).find(
-				(index) => buttonMap[index] === key
-			);
-
-			if (buttonIndex === undefined) {
-				//console.log(`Key '${key}' is not mapped for ${handedness} controller.`);
-				return;
-			}
-
-			// Monitor the specific button
-			let wasPressed = false;
-
-			flock.scene.onBeforeRenderObservable.add(() => {
-				
-				const button = gamepad.buttons[buttonIndex];
-
-				if (!button) {
-					//console.warn(`Button index ${buttonIndex} not found on ${handedness} controller.`);
-					return;
-				}
-
-				const isPressed = button.value > 0.5; // Press threshold
-
-				if (isPressed !== wasPressed) {
-
-					flock.printText(buttonIndex, 20, "#9932CC");
-					console.log("Button pressed:", buttonIndex);
-					if (isPressed && !isReleased) {
-						//console.log(`Key '${key}' (button index ${buttonIndex}) pressed on ${handedness} controller`);
-						callback();
-					} else if (!isPressed && isReleased) {
-						//console.log(`Key '${key}' (button index ${buttonIndex}) released on ${handedness} controller`);
-						callback();
-					}
-					wasPressed = isPressed;
-				}
 			});
 		});
 	},
