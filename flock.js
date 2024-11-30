@@ -3448,15 +3448,41 @@ export const flock = {
 						["position", "rotation", "scaling"].includes(property)
 					) {
 						if (keyframe.value instanceof flock.BABYLON.Vector3) {
-							value = keyframe.value;
+							value =
+								property === "rotation"
+									? new flock.BABYLON.Vector3(
+										  flock.BABYLON.Tools.ToRadians(
+											  keyframe.value.x
+										  ),
+										  flock.BABYLON.Tools.ToRadians(
+											  keyframe.value.y
+										  ),
+										  flock.BABYLON.Tools.ToRadians(
+											  keyframe.value.z
+										  )
+									  )
+									: keyframe.value;
 						} else if (typeof keyframe.value === "string") {
 							const vectorValues =
 								keyframe.value.match(/-?\d+(\.\d+)?/g);
-							value = new flock.BABYLON.Vector3(
-								parseFloat(vectorValues[0]),
-								parseFloat(vectorValues[1]),
-								parseFloat(vectorValues[2])
-							);
+							value =
+								property === "rotation"
+									? new flock.BABYLON.Vector3(
+										  flock.BABYLON.Tools.ToRadians(
+											  parseFloat(vectorValues[0])
+										  ),
+										  flock.BABYLON.Tools.ToRadians(
+											  parseFloat(vectorValues[1])
+										  ),
+										  flock.BABYLON.Tools.ToRadians(
+											  parseFloat(vectorValues[2])
+										  )
+									  )
+									: new flock.BABYLON.Vector3(
+										  parseFloat(vectorValues[0]),
+										  parseFloat(vectorValues[1]),
+										  parseFloat(vectorValues[2])
+									  );
 						}
 					} else {
 						value = parseFloat(keyframe.value);
@@ -3482,6 +3508,7 @@ export const flock = {
 						  }))
 					: [];
 
+				// Combine forward and reverse keyframes
 				const allKeyframes = [...forwardKeyframes, ...reverseKeyframes];
 
 				// Log generated keyframes for debugging
