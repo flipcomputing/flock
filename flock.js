@@ -5307,9 +5307,9 @@ export const flock = {
 			}
 		});
 
-		// Handle VR controller button input
+		// Ensure this runs for new controllers as well as existing ones
 		flock.xrHelper?.input.onControllerAddedObservable.add((controller) => {
-			//console.log("Controller added:", controller.inputSource.handedness);
+			console.log(`DEBUG: Controller added: ${controller.inputSource.handedness}`);
 
 			const handedness = controller.inputSource.handedness;
 
@@ -5321,48 +5321,52 @@ export const flock = {
 						? { "b-button": "f", "a-button": " " } // Right controller: B -> F, A -> Space
 						: {}; // Unknown handedness: No mapping
 
-			controller.onMotionControllerInitObservable.add(
-				(motionController) => {
-					const componentIds = motionController.getComponentIds();
-					//console.log(`Available components for ${handedness} controller:`, componentIds);
+			controller.onMotionControllerInitObservable.add((motionController) => {
+				const componentIds = motionController.getComponentIds();
+				//console.log(`Available components for ${handedness} controller:`, componentIds);
 
-					Object.entries(buttonMap).forEach(
-						([buttonId, mappedKey]) => {
-							if (mappedKey !== key) return;
+				Object.entries(buttonMap).forEach(([buttonId, mappedKey]) => {
+					if (mappedKey !== key) return;
 
-							const component =
-								motionController.getComponent(buttonId);
+					const component = motionController.getComponent(buttonId);
 
-							if (!component) {
-								console.warn(
-									`Button ID '${buttonId}' not found for ${handedness} controller.`,
-								);
-								return;
-							}
+					if (!component) {
+						console.warn(
+							`Button ID '${buttonId}' not found for ${handedness} controller.`,
+						);
+						return;
+					}
 
-							//console.log(`Observing button ID '${buttonId}' for key '${key}' on ${handedness} controller.`);
+					//console.log(`Observing button ID '${buttonId}' for key '${key}' on ${handedness} controller.`);
 
-							// Monitor button state changes
-							component.onButtonStateChangedObservable.add(() => {
-								const isPressed = component.pressed;
+					// Monitor button state changes
+					component.onButtonStateChangedObservable.add(() => {
+						const isPressed = component.pressed;
 
-								if (isPressed && !isReleased) {
-									console.log(
-										`Key '${key}' (button ID '${buttonId}') pressed on ${handedness} controller`,
-									);
-									callback();
-								} else if (!isPressed && isReleased) {
-									console.log(
-										`Key '${key}' (button ID '${buttonId}') released on ${handedness} controller`,
-									);
-									callback();
-								}
-							});
-						},
-					);
-				},
-			);
+						if (isPressed && !isReleased) {
+							console.log(
+								`Key '${key}' (button ID '${buttonId}') pressed on ${handedness} controller`,
+							);
+							callback();
+						} else if (!isPressed && isReleased) {
+							console.log(
+								`Key '${key}' (button ID '${buttonId}') released on ${handedness} controller`,
+							);
+							callback();
+						}
+					});
+				});
+			});
 		});
+
+		// Handle existing controllers at the time of setup
+		if (flock.xrHelper?.input.controllers) {
+			flock.xrHelper.input.controllers.forEach((controller) => {
+				console.log(`DEBUG: Found existing controller: ${controller.inputSource.handedness}`);
+				flock.xrHelper.input.onControllerAddedObservable.notifyObservers(controller);
+			});
+		}
+
 	},
 	async forever(action) {
 		let isDisposed = false;
