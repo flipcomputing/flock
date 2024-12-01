@@ -3571,16 +3571,16 @@ export const flock = {
 							value =
 								property === "rotation"
 									? new flock.BABYLON.Vector3(
-											flock.BABYLON.Tools.ToRadians(
-												keyframe.value.x,
-											),
-											flock.BABYLON.Tools.ToRadians(
-												keyframe.value.y,
-											),
-											flock.BABYLON.Tools.ToRadians(
-												keyframe.value.z,
-											),
-										)
+										  flock.BABYLON.Tools.ToRadians(
+											  keyframe.value.x,
+										  ),
+										  flock.BABYLON.Tools.ToRadians(
+											  keyframe.value.y,
+										  ),
+										  flock.BABYLON.Tools.ToRadians(
+											  keyframe.value.z,
+										  ),
+									  )
 									: keyframe.value;
 						} else if (typeof keyframe.value === "string") {
 							const vectorValues =
@@ -3588,21 +3588,21 @@ export const flock = {
 							value =
 								property === "rotation"
 									? new flock.BABYLON.Vector3(
-											flock.BABYLON.Tools.ToRadians(
-												parseFloat(vectorValues[0]),
-											),
-											flock.BABYLON.Tools.ToRadians(
-												parseFloat(vectorValues[1]),
-											),
-											flock.BABYLON.Tools.ToRadians(
-												parseFloat(vectorValues[2]),
-											),
-										)
+										  flock.BABYLON.Tools.ToRadians(
+											  parseFloat(vectorValues[0]),
+										  ),
+										  flock.BABYLON.Tools.ToRadians(
+											  parseFloat(vectorValues[1]),
+										  ),
+										  flock.BABYLON.Tools.ToRadians(
+											  parseFloat(vectorValues[2]),
+										  ),
+									  )
 									: new flock.BABYLON.Vector3(
-											parseFloat(vectorValues[0]),
-											parseFloat(vectorValues[1]),
-											parseFloat(vectorValues[2]),
-										);
+										  parseFloat(vectorValues[0]),
+										  parseFloat(vectorValues[1]),
+										  parseFloat(vectorValues[2]),
+									  );
 						}
 					} else {
 						value = parseFloat(keyframe.value);
@@ -3617,15 +3617,35 @@ export const flock = {
 					return { frame, value };
 				});
 
+				// Add an initial keyframe at the end for smooth looping if necessary
+				if (
+					loop &&
+					!reverse &&
+					forwardKeyframes.length > 0 &&
+					keyframes.length > 0 &&
+					keyframes[keyframes.length - 1].duration > 0 // Explicit check for non-zero duration
+				) {
+
+					console.log("Adding initial keyframe for looping", keyframes[keyframes.length - 1].duration);
+					const initialKeyframe = {
+						frame: currentFrame,
+						value: forwardKeyframes[0].value, // Use the initial keyframe value
+					};
+					forwardKeyframes.push(initialKeyframe);
+					currentFrame += fps; // Increment frames for the loop-back duration
+					
+				}
+
+
 				// Generate reverse keyframes if required
 				const reverseKeyframes = reverse
 					? forwardKeyframes
-							.slice(0, -1) // Exclude the last frame to avoid duplication
-							.reverse()
-							.map((keyframe, index) => ({
-								frame: currentFrame + index, // Continue frame numbering
-								value: keyframe.value,
-							}))
+						  .slice(0, -1) // Exclude the last frame to avoid duplication
+						  .reverse()
+						  .map((keyframe, index) => ({
+							  frame: currentFrame + index, // Continue frame numbering
+							  value: keyframe.value,
+						  }))
 					: [];
 
 				// Combine forward and reverse keyframes

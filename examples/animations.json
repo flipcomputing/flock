@@ -94,8 +94,8 @@
                     "PROPERTY": "color",
                     "EASING": "EASEINOUT",
                     "LOOP": true,
-                    "REVERSE": true,
-                    "MODE": "AWAIT"
+                    "REVERSE": false,
+                    "MODE": "START"
                   },
                   "inputs": {
                     "KEYFRAMES": {
@@ -103,7 +103,7 @@
                         "type": "lists_create_with",
                         "id": ")E8KjQ:ApHl5mH1oQ|hp",
                         "extraState": {
-                          "itemCount": 2
+                          "itemCount": 3
                         },
                         "inputs": {
                           "ADD0": {
@@ -111,21 +111,21 @@
                               "type": "colour_keyframe",
                               "id": "bX2|iw8b,w0vbO}!^S=t",
                               "inputs": {
+                                "VALUE": {
+                                  "shadow": {
+                                    "type": "colour",
+                                    "id": "6adPO-*cCmS*uR{O};I(",
+                                    "fields": {
+                                      "COLOR": "#00cccc"
+                                    }
+                                  }
+                                },
                                 "DURATION": {
                                   "shadow": {
                                     "type": "math_number",
                                     "id": "2yM7w(84bB^VXSNa63^d",
                                     "fields": {
                                       "NUM": 4
-                                    }
-                                  }
-                                },
-                                "VALUE": {
-                                  "shadow": {
-                                    "type": "colour",
-                                    "id": "6adPO-*cCmS*uR{O};I(",
-                                    "fields": {
-                                      "COLOR": "#ff0000"
                                     }
                                   }
                                 }
@@ -137,21 +137,47 @@
                               "type": "colour_keyframe",
                               "id": "hOwD,m/a4mU#I=(2+0p]",
                               "inputs": {
-                                "DURATION": {
-                                  "shadow": {
-                                    "type": "math_number",
-                                    "id": "ER6|@y1wMPJUn#1oW5w`",
-                                    "fields": {
-                                      "NUM": 10
-                                    }
-                                  }
-                                },
                                 "VALUE": {
                                   "shadow": {
                                     "type": "colour",
                                     "id": "WUU)%_6D?Mbz#+o-9:j,",
                                     "fields": {
                                       "COLOR": "#ffff00"
+                                    }
+                                  }
+                                },
+                                "DURATION": {
+                                  "shadow": {
+                                    "type": "math_number",
+                                    "id": "ER6|@y1wMPJUn#1oW5w`",
+                                    "fields": {
+                                      "NUM": 4
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                          },
+                          "ADD2": {
+                            "block": {
+                              "type": "colour_keyframe",
+                              "id": "XJ{-zjb?MA1.K08xRv_Q",
+                              "inputs": {
+                                "VALUE": {
+                                  "shadow": {
+                                    "type": "colour",
+                                    "id": "^:6SDQXmjm%m_o5jEjN|",
+                                    "fields": {
+                                      "COLOR": "#cc33cc"
+                                    }
+                                  }
+                                },
+                                "DURATION": {
+                                  "shadow": {
+                                    "type": "math_number",
+                                    "id": "Zbr4j?Y5J?bc.+6ff_X^",
+                                    "fields": {
+                                      "NUM": 4
                                     }
                                   }
                                 }
@@ -172,7 +198,7 @@
         "type": "start",
         "id": "~D}tXQlU1{M6S=%edJVA",
         "x": 10,
-        "y": 2662,
+        "y": 2710,
         "inputs": {
           "DO": {
             "block": {
@@ -210,7 +236,7 @@
         "type": "start",
         "id": "~Mrn0^n;*1K0Jmjf5`xn",
         "x": 10,
-        "y": 918,
+        "y": 966,
         "inputs": {
           "DO": {
             "block": {
@@ -373,21 +399,21 @@
                                   "type": "number_keyframe",
                                   "id": "AE.tJ!(*5=_L{Dfdd`ch",
                                   "inputs": {
-                                    "DURATION": {
-                                      "shadow": {
-                                        "type": "math_number",
-                                        "id": "P#1s^?r?b~.zZpwFDne.",
-                                        "fields": {
-                                          "NUM": 3
-                                        }
-                                      }
-                                    },
                                     "VALUE": {
                                       "shadow": {
                                         "type": "math_number",
                                         "id": "M)#swJ:Rx|$iIF4EgF%*",
                                         "fields": {
                                           "NUM": 1
+                                        }
+                                      }
+                                    },
+                                    "DURATION": {
+                                      "shadow": {
+                                        "type": "math_number",
+                                        "id": "P#1s^?r?b~.zZpwFDne.",
+                                        "fields": {
+                                          "NUM": 3
                                         }
                                       }
                                     }
@@ -399,21 +425,21 @@
                                   "type": "number_keyframe",
                                   "id": "Q6g{J5xP[`T?VJqU%tLn",
                                   "inputs": {
-                                    "DURATION": {
-                                      "shadow": {
-                                        "type": "math_number",
-                                        "id": "WMNTSXFyR6^OuY-0858=",
-                                        "fields": {
-                                          "NUM": 3
-                                        }
-                                      }
-                                    },
                                     "VALUE": {
                                       "shadow": {
                                         "type": "math_number",
                                         "id": "J[g5]WQc~p,6e|.J#N.J",
                                         "fields": {
                                           "NUM": 0.2
+                                        }
+                                      }
+                                    },
+                                    "DURATION": {
+                                      "shadow": {
+                                        "type": "math_number",
+                                        "id": "WMNTSXFyR6^OuY-0858=",
+                                        "fields": {
+                                          "NUM": 3
                                         }
                                       }
                                     }
@@ -452,15 +478,6 @@
                                       "type": "xyz_keyframe",
                                       "id": "QW+jIlgw*=|!f?hOBWv8",
                                       "inputs": {
-                                        "DURATION": {
-                                          "shadow": {
-                                            "type": "math_number",
-                                            "id": "xMKES{#S!7|-{[_L#1k3",
-                                            "fields": {
-                                              "NUM": 4
-                                            }
-                                          }
-                                        },
                                         "X": {
                                           "shadow": {
                                             "type": "math_number",
@@ -487,6 +504,15 @@
                                               "NUM": 0
                                             }
                                           }
+                                        },
+                                        "DURATION": {
+                                          "shadow": {
+                                            "type": "math_number",
+                                            "id": "xMKES{#S!7|-{[_L#1k3",
+                                            "fields": {
+                                              "NUM": 4
+                                            }
+                                          }
                                         }
                                       }
                                     }
@@ -496,15 +522,6 @@
                                       "type": "xyz_keyframe",
                                       "id": "8hW.dr342I[ao{hw96K_",
                                       "inputs": {
-                                        "DURATION": {
-                                          "shadow": {
-                                            "type": "math_number",
-                                            "id": "YX3;x3|d{D8nU1AVXR#w",
-                                            "fields": {
-                                              "NUM": 0
-                                            }
-                                          }
-                                        },
                                         "X": {
                                           "shadow": {
                                             "type": "math_number",
@@ -531,6 +548,15 @@
                                               "NUM": 360
                                             }
                                           }
+                                        },
+                                        "DURATION": {
+                                          "shadow": {
+                                            "type": "math_number",
+                                            "id": "YX3;x3|d{D8nU1AVXR#w",
+                                            "fields": {
+                                              "NUM": 0
+                                            }
+                                          }
                                         }
                                       }
                                     }
@@ -553,7 +579,7 @@
         "type": "start",
         "id": ":pD@]g%24L5rjS{4KnOh",
         "x": 10,
-        "y": 1588,
+        "y": 1636,
         "inputs": {
           "DO": {
             "block": {
@@ -641,15 +667,6 @@
                               "type": "xyz_keyframe",
                               "id": "3S*u,sM%6MgHwLj_`N)*",
                               "inputs": {
-                                "DURATION": {
-                                  "shadow": {
-                                    "type": "math_number",
-                                    "id": "erWl^RB;ei.q8sR8%M+)",
-                                    "fields": {
-                                      "NUM": 1
-                                    }
-                                  }
-                                },
                                 "X": {
                                   "shadow": {
                                     "type": "math_number",
@@ -676,6 +693,15 @@
                                       "NUM": 1
                                     }
                                   }
+                                },
+                                "DURATION": {
+                                  "shadow": {
+                                    "type": "math_number",
+                                    "id": "erWl^RB;ei.q8sR8%M+)",
+                                    "fields": {
+                                      "NUM": 1
+                                    }
+                                  }
                                 }
                               }
                             }
@@ -685,15 +711,6 @@
                               "type": "xyz_keyframe",
                               "id": "!gG`@RFt2$I6L=.sfBEB",
                               "inputs": {
-                                "DURATION": {
-                                  "shadow": {
-                                    "type": "math_number",
-                                    "id": "SG_$^~vveqhm?PmzQ5_F",
-                                    "fields": {
-                                      "NUM": 1
-                                    }
-                                  }
-                                },
                                 "X": {
                                   "shadow": {
                                     "type": "math_number",
@@ -718,6 +735,15 @@
                                     "id": "y?E2{Lrf_KB/u_%rW~dP",
                                     "fields": {
                                       "NUM": 2
+                                    }
+                                  }
+                                },
+                                "DURATION": {
+                                  "shadow": {
+                                    "type": "math_number",
+                                    "id": "SG_$^~vveqhm?PmzQ5_F",
+                                    "fields": {
+                                      "NUM": 1
                                     }
                                   }
                                 }
@@ -889,15 +915,6 @@
                                       "type": "xyz_keyframe",
                                       "id": "():/d@%3;0Gb.;8WPYZj",
                                       "inputs": {
-                                        "DURATION": {
-                                          "shadow": {
-                                            "type": "math_number",
-                                            "id": "uP0)VGK}3,ycFQ@l|hQq",
-                                            "fields": {
-                                              "NUM": 3
-                                            }
-                                          }
-                                        },
                                         "X": {
                                           "shadow": {
                                             "type": "math_number",
@@ -924,6 +941,15 @@
                                               "NUM": 0
                                             }
                                           }
+                                        },
+                                        "DURATION": {
+                                          "shadow": {
+                                            "type": "math_number",
+                                            "id": "uP0)VGK}3,ycFQ@l|hQq",
+                                            "fields": {
+                                              "NUM": 3
+                                            }
+                                          }
                                         }
                                       }
                                     }
@@ -933,15 +959,6 @@
                                       "type": "xyz_keyframe",
                                       "id": "[2bYhcF4R==nk2Y}8NTC",
                                       "inputs": {
-                                        "DURATION": {
-                                          "shadow": {
-                                            "type": "math_number",
-                                            "id": "_2%bMo}dC|uGd`fvi_fv",
-                                            "fields": {
-                                              "NUM": 0
-                                            }
-                                          }
-                                        },
                                         "X": {
                                           "shadow": {
                                             "type": "math_number",
@@ -964,6 +981,15 @@
                                           "shadow": {
                                             "type": "math_number",
                                             "id": "-d%a#-E}gGJm=~1Mv$ej",
+                                            "fields": {
+                                              "NUM": 0
+                                            }
+                                          }
+                                        },
+                                        "DURATION": {
+                                          "shadow": {
+                                            "type": "math_number",
+                                            "id": "_2%bMo}dC|uGd`fvi_fv",
                                             "fields": {
                                               "NUM": 0
                                             }
@@ -1096,7 +1122,7 @@
         "type": "start",
         "id": "L{E={lt?S3H3S65T-H$U",
         "x": 10,
-        "y": 2882,
+        "y": 2930,
         "inputs": {
           "DO": {
             "block": {
@@ -1462,15 +1488,6 @@
                                                   "type": "xyz_keyframe",
                                                   "id": "??=y|C{e7PPVJA:/yG[^",
                                                   "inputs": {
-                                                    "DURATION": {
-                                                      "shadow": {
-                                                        "type": "math_number",
-                                                        "id": "~~vH}mcIdXh:X1RDt[jr",
-                                                        "fields": {
-                                                          "NUM": 0.5
-                                                        }
-                                                      }
-                                                    },
                                                     "X": {
                                                       "shadow": {
                                                         "type": "math_number",
@@ -1497,6 +1514,15 @@
                                                           "NUM": 1
                                                         }
                                                       }
+                                                    },
+                                                    "DURATION": {
+                                                      "shadow": {
+                                                        "type": "math_number",
+                                                        "id": "~~vH}mcIdXh:X1RDt[jr",
+                                                        "fields": {
+                                                          "NUM": 0.5
+                                                        }
+                                                      }
                                                     }
                                                   }
                                                 }
@@ -1506,15 +1532,6 @@
                                                   "type": "xyz_keyframe",
                                                   "id": "7bPUIrt1qO%OcG2(|aU#",
                                                   "inputs": {
-                                                    "DURATION": {
-                                                      "shadow": {
-                                                        "type": "math_number",
-                                                        "id": "NW*;DD3ovzn8(E/ZvI=W",
-                                                        "fields": {
-                                                          "NUM": 0.5
-                                                        }
-                                                      }
-                                                    },
                                                     "X": {
                                                       "shadow": {
                                                         "type": "math_number",
@@ -1541,6 +1558,15 @@
                                                           "NUM": 1
                                                         }
                                                       }
+                                                    },
+                                                    "DURATION": {
+                                                      "shadow": {
+                                                        "type": "math_number",
+                                                        "id": "NW*;DD3ovzn8(E/ZvI=W",
+                                                        "fields": {
+                                                          "NUM": 0.5
+                                                        }
+                                                      }
                                                     }
                                                   }
                                                 }
@@ -1550,15 +1576,6 @@
                                                   "type": "xyz_keyframe",
                                                   "id": "OK_9mek./=XnM.09;KHA",
                                                   "inputs": {
-                                                    "DURATION": {
-                                                      "shadow": {
-                                                        "type": "math_number",
-                                                        "id": "A6b_O3acl_/szlBrb)I]",
-                                                        "fields": {
-                                                          "NUM": 1
-                                                        }
-                                                      }
-                                                    },
                                                     "X": {
                                                       "shadow": {
                                                         "type": "math_number",
@@ -1581,6 +1598,15 @@
                                                       "shadow": {
                                                         "type": "math_number",
                                                         "id": "Q;(;=2WlqX}3LG4W]*8L",
+                                                        "fields": {
+                                                          "NUM": 1
+                                                        }
+                                                      }
+                                                    },
+                                                    "DURATION": {
+                                                      "shadow": {
+                                                        "type": "math_number",
+                                                        "id": "A6b_O3acl_/szlBrb)I]",
                                                         "fields": {
                                                           "NUM": 1
                                                         }
@@ -1621,15 +1647,6 @@
                                                       "type": "xyz_keyframe",
                                                       "id": "i:;G^[IP[=J]%r83lVqj",
                                                       "inputs": {
-                                                        "DURATION": {
-                                                          "shadow": {
-                                                            "type": "math_number",
-                                                            "id": "B7[.-D4a[{M4cgXbx,N/",
-                                                            "fields": {
-                                                              "NUM": 1
-                                                            }
-                                                          }
-                                                        },
                                                         "X": {
                                                           "shadow": {
                                                             "type": "math_number",
@@ -1656,6 +1673,15 @@
                                                               "NUM": 0
                                                             }
                                                           }
+                                                        },
+                                                        "DURATION": {
+                                                          "shadow": {
+                                                            "type": "math_number",
+                                                            "id": "B7[.-D4a[{M4cgXbx,N/",
+                                                            "fields": {
+                                                              "NUM": 1
+                                                            }
+                                                          }
                                                         }
                                                       }
                                                     }
@@ -1665,15 +1691,6 @@
                                                       "type": "xyz_keyframe",
                                                       "id": "Nk2w0CTx3!5#vCgbDM3Y",
                                                       "inputs": {
-                                                        "DURATION": {
-                                                          "shadow": {
-                                                            "type": "math_number",
-                                                            "id": "xGLS}`],WVg#te(M2nz1",
-                                                            "fields": {
-                                                              "NUM": 1
-                                                            }
-                                                          }
-                                                        },
                                                         "X": {
                                                           "shadow": {
                                                             "type": "math_number",
@@ -1698,6 +1715,15 @@
                                                             "id": "#b^v:qmgIM$}pE@zYO^-",
                                                             "fields": {
                                                               "NUM": 0
+                                                            }
+                                                          }
+                                                        },
+                                                        "DURATION": {
+                                                          "shadow": {
+                                                            "type": "math_number",
+                                                            "id": "xGLS}`],WVg#te(M2nz1",
+                                                            "fields": {
+                                                              "NUM": 1
                                                             }
                                                           }
                                                         }
@@ -1730,7 +1756,7 @@
         "type": "start",
         "id": "35ix[Oa+=o,iD?AIRxZ?",
         "x": 10,
-        "y": 1980,
+        "y": 2028,
         "inputs": {
           "DO": {
             "block": {
@@ -1965,15 +1991,6 @@
                                                   "type": "xyz_keyframe",
                                                   "id": "{3dglXAx4uDefOs9gRk:",
                                                   "inputs": {
-                                                    "DURATION": {
-                                                      "shadow": {
-                                                        "type": "math_number",
-                                                        "id": "d@~c{r3?Y#dh-By)TlR*",
-                                                        "fields": {
-                                                          "NUM": 10
-                                                        }
-                                                      }
-                                                    },
                                                     "X": {
                                                       "shadow": {
                                                         "type": "math_number",
@@ -2000,6 +2017,15 @@
                                                           "NUM": 0
                                                         }
                                                       }
+                                                    },
+                                                    "DURATION": {
+                                                      "shadow": {
+                                                        "type": "math_number",
+                                                        "id": "d@~c{r3?Y#dh-By)TlR*",
+                                                        "fields": {
+                                                          "NUM": 7
+                                                        }
+                                                      }
                                                     }
                                                   }
                                                 }
@@ -2009,15 +2035,6 @@
                                                   "type": "xyz_keyframe",
                                                   "id": "T^;~!FaqL^(#9OJ(~$hB",
                                                   "inputs": {
-                                                    "DURATION": {
-                                                      "shadow": {
-                                                        "type": "math_number",
-                                                        "id": "G9W}b@hQonj?q(RkgF]5",
-                                                        "fields": {
-                                                          "NUM": 0
-                                                        }
-                                                      }
-                                                    },
                                                     "X": {
                                                       "shadow": {
                                                         "type": "math_number",
@@ -2040,6 +2057,15 @@
                                                       "shadow": {
                                                         "type": "math_number",
                                                         "id": "e2dvFh_!$-MIkURk!FaR",
+                                                        "fields": {
+                                                          "NUM": 0
+                                                        }
+                                                      }
+                                                    },
+                                                    "DURATION": {
+                                                      "shadow": {
+                                                        "type": "math_number",
+                                                        "id": "G9W}b@hQonj?q(RkgF]5",
                                                         "fields": {
                                                           "NUM": 0
                                                         }
