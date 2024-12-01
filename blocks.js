@@ -738,17 +738,17 @@ export function defineBlocks() {
 		init: function () {
 			this.jsonInit({
 				type: "colour_keyframe",
-				message0: "duration: %1 colour: %2",
-				args0: [
-					{
-						type: "input_value",
-						name: "DURATION",
-						check: "Number",
-					},
+				message0: "colour: %1 duration: %2",
+				args0: [					
 					{
 						type: "input_value",
 						name: "VALUE",
 						check: "Colour", // Reusing your existing colour block
+					},
+					{
+						type: "input_value",
+						name: "DURATION",
+						check: "Number",
 					},
 				],
 				colour: categoryColours["Animate"],
@@ -764,17 +764,17 @@ export function defineBlocks() {
 		init: function () {
 			this.jsonInit({
 				type: "number_keyframe",
-				message0: "duration: %1 value: %2",
-				args0: [
-					{
-						type: "input_value",
-						name: "DURATION",
-						check: "Number",
-					},
+				message0: "value: %1 duration: %2",
+				args0: [					
 					{
 						type: "input_value",
 						name: "VALUE",
 						check: "Number", // Reusing your existing colour block
+					},
+					{
+						type: "input_value",
+						name: "DURATION",
+						check: "Number",
 					},
 				],
 				colour: categoryColours["Animate"],
@@ -790,13 +790,8 @@ export function defineBlocks() {
 		init: function () {
 			this.jsonInit({
 				type: "xyz_keyframe",
-				message0: "duration: %1 x: %2 y: %3 z: %4",
+				message0: "x: %1 y: %2 z: %3 duration: %4",
 				args0: [
-					{
-						type: "input_value",
-						name: "DURATION",
-						check: "Number",
-					},
 					{
 						type: "input_value",
 						name: "X",
@@ -810,6 +805,11 @@ export function defineBlocks() {
 					{
 						type: "input_value",
 						name: "Z",
+						check: "Number",
+					},
+					{
+						type: "input_value",
+						name: "DURATION",
 						check: "Number",
 					},
 				],
