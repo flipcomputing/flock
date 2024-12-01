@@ -5307,7 +5307,6 @@ export const flock = {
 			}
 		});
 
-		// Ensure this runs for new controllers as well as existing ones
 		flock.xrHelper?.input.onControllerAddedObservable.add((controller) => {
 			console.log(`DEBUG: Controller added: ${controller.inputSource.handedness}`);
 
@@ -5322,50 +5321,43 @@ export const flock = {
 						: {}; // Unknown handedness: No mapping
 
 			controller.onMotionControllerInitObservable.add((motionController) => {
-				const componentIds = motionController.getComponentIds();
-				//console.log(`Available components for ${handedness} controller:`, componentIds);
-
 				Object.entries(buttonMap).forEach(([buttonId, mappedKey]) => {
-					if (mappedKey !== key) return;
-
 					const component = motionController.getComponent(buttonId);
 
 					if (!component) {
 						console.warn(
-							`Button ID '${buttonId}' not found for ${handedness} controller.`,
+							`DEBUG: Button ID '${buttonId}' not found for ${handedness} controller.`,
 						);
 						return;
 					}
 
-					//console.log(`Observing button ID '${buttonId}' for key '${key}' on ${handedness} controller.`);
+					console.log(`DEBUG: Observing button ID '${buttonId}' for key '${mappedKey}' on ${handedness} controller.`);
 
 					// Monitor button state changes
 					component.onButtonStateChangedObservable.add(() => {
 						const isPressed = component.pressed;
 
-						if (isPressed && !isReleased) {
-							console.log(
-								`Key '${key}' (button ID '${buttonId}') pressed on ${handedness} controller`,
-							);
-							callback();
-						} else if (!isPressed && isReleased) {
-							console.log(
-								`Key '${key}' (button ID '${buttonId}') released on ${handedness} controller`,
-							);
-							callback();
+						// Debug to verify key comparison
+						console.log(`DEBUG: Comparing '${mappedKey}' with '${key}'`);
+
+						// Only trigger for the specific key
+						if (mappedKey === key) {
+							if (isReleased && !isPressed) {
+								console.log(
+									`DEBUG: Key '${mappedKey}' (button ID '${buttonId}') released on ${handedness} controller.`
+								);
+								callback(mappedKey, "released");
+							} else if (!isReleased && isPressed) {
+								console.log(
+									`DEBUG: Key '${mappedKey}' (button ID '${buttonId}') pressed on ${handedness} controller.`
+								);
+								callback(mappedKey, "pressed");
+							}
 						}
 					});
 				});
 			});
 		});
-
-		// Handle existing controllers at the time of setup
-		if (flock.xrHelper?.input.controllers) {
-			flock.xrHelper.input.controllers.forEach((controller) => {
-				console.log(`DEBUG: Found existing controller: ${controller.inputSource.handedness}`);
-				flock.xrHelper.input.onControllerAddedObservable.notifyObservers(controller);
-			});
-		}
 
 	},
 	async forever(action) {
