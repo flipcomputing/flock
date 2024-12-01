@@ -63,6 +63,76 @@ export function defineShapeBlocks() {
 				addDoMutatorWithToggleBehavior(this);
 			},
 		};
+
+		Blockly.Blocks["create_particle_effect"] = {
+			init: function () {
+				this.jsonInit({
+					message0: `set %1 to particle effect with emitter mesh: %2 
+						with rate: %3 size range: %4 to %5 
+						colors: start %6 end %7 alpha: %8 to %9 gravity: %10`,
+					args0: [
+						{
+							type: "field_variable",
+							name: "ID_VAR",
+							variable: "particleEffect", // Default particle effect variable
+						},
+						{
+							type: "field_variable",
+							name: "EMITTER_MESH",
+							variable: "meshEmitter", // Default mesh emitter variable
+						},
+						{
+							type: "input_value",
+							name: "RATE",
+							check: "Number",
+						},
+						{
+							type: "input_value",
+							name: "MIN_SIZE",
+							check: "Number",
+						},
+						{
+							type: "input_value",
+							name: "MAX_SIZE",
+							check: "Number",
+						},
+						{
+							type: "input_value",
+							name: "START_COLOR",
+							check: "Colour",
+						},
+						{
+							type: "input_value",
+							name: "END_COLOR",
+							check: "Colour",
+						},
+						{
+							type: "input_value",
+							name: "START_ALPHA",
+							check: "Number",
+						},
+						{
+							type: "input_value",
+							name: "END_ALPHA",
+							check: "Number",
+						},
+						{
+							type: "field_checkbox",
+							name: "GRAVITY",
+							checked: false,
+						},
+					],
+					inputsInline: true,
+					colour: categoryColours["Scene"],
+					tooltip: "Create a particle effect attached to a mesh with configurable gravity, size, colour, and transparency.",
+					helpUrl: "",
+					previousStatement: null,
+					nextStatement: null,
+				});
+			},
+		};
+
+
 	}
 
 	// Extracted common change handler

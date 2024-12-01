@@ -800,6 +800,69 @@ export const toolbox = {
 				},
 				{
 					kind: "block",
+					type: "create_particle_effect",
+					keyword: "particle",
+					inputs: {
+						RATE: {
+							shadow: {
+								type: "math_number",
+								fields: {
+									NUM: 10,
+								},
+							},
+						},
+						MIN_SIZE: {
+							shadow: {
+								type: "math_number",
+								fields: {
+									NUM: 0.1,
+								},
+							},
+						},
+						MAX_SIZE: {
+							shadow: {
+								type: "math_number",
+								fields: {
+									NUM: 1,
+								},
+							},
+						},
+						START_COLOR: {
+							shadow: {
+								type: "colour",
+								fields: {
+									COLOR: "#FFFFFF",
+								},
+							},
+						},
+						END_COLOR: {
+							shadow: {
+								type: "colour",
+								fields: {
+									COLOR: "#000000",
+								},
+							},
+						},
+						START_ALPHA: {
+							shadow: {
+								type: "math_number",
+								fields: {
+									NUM: 1,
+								},
+							},
+						},
+						END_ALPHA: {
+							shadow: {
+								type: "math_number",
+								fields: {
+									NUM: 0,
+								},
+							},
+						},
+					},
+				},
+				{
+					kind: "block",
 					type: "merge_meshes",
 					inputsInline: true,
 					inputs: {

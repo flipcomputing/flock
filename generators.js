@@ -719,6 +719,46 @@ export function defineGenerators() {
 		});\n`;
 	};
 
+	javascriptGenerator.forBlock["create_particle_effect"] = function (block) {
+		const emitRate = parseFloat(getFieldValue(block, "RATE", "10"));
+		const startColor = getFieldValue(block, "START_COLOR", "#FFFFFF");
+		const endColor = getFieldValue(block, "END_COLOR", "#000000");
+		const minSize = javascriptGenerator.valueToCode(block, "MIN_SIZE", javascriptGenerator.ORDER_ATOMIC) || "0.1";
+		const maxSize = javascriptGenerator.valueToCode(block, "MAX_SIZE", javascriptGenerator.ORDER_ATOMIC) || "1.0";
+
+		const variableName = javascriptGenerator.nameDB_.getName(
+			block.getFieldValue("ID_VAR"),
+			Blockly.Names.NameType.VARIABLE,
+		);
+
+		const emitterMesh = javascriptGenerator.nameDB_.getName(
+			block.getFieldValue("EMITTER_MESH"),
+			Blockly.Names.NameType.VARIABLE,
+		);
+
+		const gravity = block.getFieldValue("GRAVITY") === "TRUE";
+
+		// Manually construct the options object
+		const options = `
+		{
+			name: "${variableName}",
+			emitterMesh: ${emitterMesh},
+			emitRate: ${emitRate},
+			colors: {
+				start: ${startColor},
+				end: ${endColor}
+			},
+			sizes: {
+				start: ${minSize},
+				end: ${maxSize}
+			},
+			gravity: ${gravity}
+		}`;
+
+		return `${variableName} = createParticleEffect(${options.trim()});\n`;
+	};
+
+
 	// Function to create a mesh, taking mesh type, parameters, and position as arguments
 	function createMesh(block, meshType, params, position, idPrefix) {
 		let variableName = javascriptGenerator.nameDB_.getName(

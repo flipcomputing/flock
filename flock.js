@@ -81,6 +81,7 @@ export const flock = {
 			highlight,
 			newCharacter,
 			newObject,
+			createParticleEffect,
 			newModel,
 			createBox,
 			createSphere,
@@ -315,16 +316,22 @@ export const flock = {
 
 		// Enable physics
 		flock.hk = new flock.BABYLON.HavokPlugin(true, flock.havokInstance);
-		flock.scene.enablePhysics(new flock.BABYLON.Vector3(0, -9.81, 0), flock.hk);
+		flock.scene.enablePhysics(
+			new flock.BABYLON.Vector3(0, -9.81, 0),
+			flock.hk,
+		);
 
 		// Add highlight layer
-		flock.highlighter = new flock.BABYLON.HighlightLayer("highlighter", flock.scene);
+		flock.highlighter = new flock.BABYLON.HighlightLayer(
+			"highlighter",
+			flock.scene,
+		);
 
 		// Set up a new camera
 		const camera = new flock.BABYLON.FreeCamera(
 			"camera",
 			new flock.BABYLON.Vector3(0, 3, -10),
-			flock.scene
+			flock.scene,
 		);
 		camera.minZ = 1;
 		camera.setTarget(flock.BABYLON.Vector3.Zero());
@@ -338,7 +345,7 @@ export const flock = {
 		const hemisphericLight = new flock.BABYLON.HemisphericLight(
 			"hemisphericLight",
 			new flock.BABYLON.Vector3(1, 1, 0),
-			flock.scene
+			flock.scene,
 		);
 		hemisphericLight.intensity = 1.0;
 		hemisphericLight.diffuse = new flock.BABYLON.Color3(1, 1, 1);
@@ -348,13 +355,16 @@ export const flock = {
 		flock.scene.collisionsEnabled = true;
 
 		// Create the UI
-		flock.advancedTexture = flock.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
+		flock.advancedTexture =
+			flock.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
 
 		// Stack panel for text
 		flock.stackPanel = new flock.GUI.StackPanel();
 		flock.stackPanel.width = "100%"; // Fixed width for the panel
-		flock.stackPanel.horizontalAlignment = flock.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT; // Align to the left
-		flock.stackPanel.verticalAlignment = flock.GUI.Control.VERTICAL_ALIGNMENT_TOP; // Align to the top
+		flock.stackPanel.horizontalAlignment =
+			flock.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT; // Align to the left
+		flock.stackPanel.verticalAlignment =
+			flock.GUI.Control.VERTICAL_ALIGNMENT_TOP; // Align to the top
 
 		flock.stackPanel.isVertical = true;
 		flock.advancedTexture.addControl(flock.stackPanel);
@@ -362,7 +372,8 @@ export const flock = {
 		// Touch handling for detaching camera (from your original code)
 		flock.scene.onPointerObservable.add((pointerInfo) => {
 			if (
-				pointerInfo.type === flock.BABYLON.PointerEventTypes.POINTERUP &&
+				pointerInfo.type ===
+					flock.BABYLON.PointerEventTypes.POINTERUP &&
 				pointerInfo.event.touches &&
 				pointerInfo.event.touches.length > 1
 			) {
@@ -380,7 +391,10 @@ export const flock = {
 		flock.globalStartTime = flock.getAudioContext().currentTime;
 		flock.scene.onBeforeRenderObservable.add(() => {
 			const context = flock.getAudioContext();
-			flock.updateListenerPositionAndOrientation(context, flock.scene.activeCamera);
+			flock.updateListenerPositionAndOrientation(
+				context,
+				flock.scene.activeCamera,
+			);
 		});
 
 		// Mark scene as ready
@@ -400,7 +414,8 @@ export const flock = {
 			bg.adaptHeightToChildren = true; // Adjust height to fit the text
 			bg.cornerRadius = 2; // Match the original corner rounding
 			bg.thickness = 0; // No border
-			bg.horizontalAlignment = flock.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT; // Align the container to the left
+			bg.horizontalAlignment =
+				flock.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT; // Align the container to the left
 			bg.verticalAlignment = flock.GUI.Control.VERTICAL_ALIGNMENT_TOP; // Align to the top
 			bg.left = "5px"; // Preserve original spacing
 			bg.top = "5px";
@@ -415,8 +430,10 @@ export const flock = {
 			textBlock.paddingRight = "10px";
 			textBlock.paddingTop = "2px";
 			textBlock.paddingBottom = "2px";
-			textBlock.textHorizontalAlignment = flock.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT; // Left align the text
-			textBlock.textVerticalAlignment = flock.GUI.Control.VERTICAL_ALIGNMENT_CENTER; // Center vertically within the rectangle
+			textBlock.textHorizontalAlignment =
+				flock.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT; // Left align the text
+			textBlock.textVerticalAlignment =
+				flock.GUI.Control.VERTICAL_ALIGNMENT_CENTER; // Center vertically within the rectangle
 			textBlock.textWrapping = flock.GUI.TextWrapping.WordWrap; // Enable word wrap
 			textBlock.resizeToFit = true; // Allow resizing
 			textBlock.forceResizeWidth = true;
@@ -459,14 +476,23 @@ export const flock = {
 		}
 
 		// Create a UI plane for the wrist
-		flock.uiPlane = flock.BABYLON.MeshBuilder.CreatePlane("uiPlane", { size: 0.4 }, flock.scene); // Smaller size for wrist UI
+		flock.uiPlane = flock.BABYLON.MeshBuilder.CreatePlane(
+			"uiPlane",
+			{ size: 0.4 },
+			flock.scene,
+		); // Smaller size for wrist UI
 		flock.uiPlane.isVisible = false; // Start hidden
 
-		const planeMaterial = new flock.BABYLON.StandardMaterial("uiPlaneMaterial", flock.scene);
+		const planeMaterial = new flock.BABYLON.StandardMaterial(
+			"uiPlaneMaterial",
+			flock.scene,
+		);
 		planeMaterial.disableDepthWrite = true;
 		flock.uiPlane.material = planeMaterial;
 
-		flock.meshTexture = flock.GUI.AdvancedDynamicTexture.CreateForMesh(flock.uiPlane);
+		flock.meshTexture = flock.GUI.AdvancedDynamicTexture.CreateForMesh(
+			flock.uiPlane,
+		);
 
 		// Ensure the UI plane follows the wrist (using a controller or camera offset)
 		flock.xrHelper.input.onControllerAddedObservable.add((controller) => {
@@ -480,7 +506,6 @@ export const flock = {
 			}
 		});
 
-
 		// Handle XR state changes
 		flock.xrHelper.baseExperience.onStateChangedObservable.add((state) => {
 			if (state === flock.BABYLON.WebXRState.ENTERING_XR) {
@@ -489,8 +514,10 @@ export const flock = {
 				flock.uiPlane.isVisible = true;
 
 				// Update alignment for wrist UI
-				flock.stackPanel.horizontalAlignment = flock.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
-				flock.stackPanel.verticalAlignment = flock.GUI.Control.VERTICAL_ALIGNMENT_TOP;
+				flock.stackPanel.horizontalAlignment =
+					flock.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
+				flock.stackPanel.verticalAlignment =
+					flock.GUI.Control.VERTICAL_ALIGNMENT_TOP;
 
 				flock.advancedTexture.isVisible = false; // Hide fullscreen UI
 			} else if (state === flock.BABYLON.WebXRState.EXITING_XR) {
@@ -500,8 +527,10 @@ export const flock = {
 
 				// Restore alignment for non-XR
 				flock.stackPanel.width = "100%";
-				flock.stackPanel.horizontalAlignment = flock.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
-				flock.stackPanel.verticalAlignment = flock.GUI.Control.VERTICAL_ALIGNMENT_TOP;
+				flock.stackPanel.horizontalAlignment =
+					flock.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
+				flock.stackPanel.verticalAlignment =
+					flock.GUI.Control.VERTICAL_ALIGNMENT_TOP;
 
 				flock.advancedTexture.rootContainer.isVisible = true;
 			}
@@ -1046,6 +1075,51 @@ export const flock = {
 
 		return modelId;
 	},
+	createParticleEffect({ name, emitterMesh, emitRate, colors, sizes, gravity }) {
+		const CIRCLE_TEXTURE_PATH = "./textures/circle_texture.png";
+
+		return flock.whenModelReady(emitterMesh, (meshInstance) => {
+			// Create the particle system
+			const particleSystem = new flock.BABYLON.ParticleSystem(name, 500, flock.scene);
+
+			// Texture of each particle
+			particleSystem.particleTexture = new flock.BABYLON.Texture(CIRCLE_TEXTURE_PATH, flock.scene);
+
+			// Set the emitter mesh
+			particleSystem.emitter = meshInstance;
+
+			// Use a MeshParticleEmitter to emit particles from the mesh's surface
+			const meshEmitter = new flock.BABYLON.MeshParticleEmitter(meshInstance);
+			particleSystem.particleEmitterType = meshEmitter;
+
+			const startColor = flock.BABYLON.Color4.FromHexString(colors.start);
+			const endColor = flock.BABYLON.Color4.FromHexString(colors.end);
+
+			// Add color gradients
+			particleSystem.addColorGradient(0, startColor); // Colour at the start of the particle's lifetime
+			particleSystem.addColorGradient(1, endColor);  // Colour at the end of the particle's lifetime
+
+			// Add size gradients
+			particleSystem.addSizeGradient(0, sizes.start); // Size at the start of the particle's lifetime
+			particleSystem.addSizeGradient(1, sizes.end);  // Size at the end of the particle's lifetime
+
+			// Set the emit rate with a maximum limit
+			const MAX_EMIT_RATE = 100;
+			particleSystem.emitRate = Math.min(emitRate, MAX_EMIT_RATE);
+
+			// Apply gravity if enabled
+			particleSystem.gravity = gravity
+				? new flock.BABYLON.Vector3(0, -9.81, 0) // Standard gravity
+				: new flock.BABYLON.Vector3(0, 0, 0);   // No gravity
+
+					// Start the particle system
+			particleSystem.start();
+
+			console.log(`Particle system "${name}" started with emit rate: ${particleSystem.emitRate}, gravity: ${gravity}, using emitter mesh:`, meshInstance);
+
+			return particleSystem;
+		});
+	},
 	hold(meshToAttach, targetMesh, xOffset = 0, yOffset = 0, zOffset = 0) {
 		return flock.whenModelReady(targetMesh, (targetMeshInstance) => {
 			flock.whenModelReady(meshToAttach, (meshToAttachInstance) => {
@@ -1096,11 +1170,17 @@ export const flock = {
 			.then((validMeshes) => {
 				if (validMeshes.length) {
 					// Create the base CSG from the first mesh, respecting its world matrix
-					let baseCSG = flock.BABYLON.CSG2.FromMesh(validMeshes[0], false);
+					let baseCSG = flock.BABYLON.CSG2.FromMesh(
+						validMeshes[0],
+						false,
+					);
 
 					// Merge subsequent meshes
 					validMeshes.slice(1).forEach((mesh) => {
-						const meshCSG = flock.BABYLON.CSG2.FromMesh(mesh, false);
+						const meshCSG = flock.BABYLON.CSG2.FromMesh(
+							mesh,
+							false,
+						);
 						baseCSG = baseCSG.add(meshCSG);
 					});
 
@@ -1138,62 +1218,86 @@ export const flock = {
 		return new Promise((resolve) => {
 			flock.whenModelReady(baseMeshName, (baseMesh) => {
 				if (!baseMesh) {
-					console.warn(`Base mesh ${baseMeshName} could not be resolved.`);
+					console.warn(
+						`Base mesh ${baseMeshName} could not be resolved.`,
+					);
 					resolve(null);
 					return;
 				}
 
-				flock.prepareMeshes(modelId, meshNames, blockId).then((validMeshes) => {
-					if (validMeshes.length) {
-						// Calculate the combined bounding box centre
-						let min = baseMesh.getBoundingInfo().boundingBox.minimumWorld.clone();
-						let max = baseMesh.getBoundingInfo().boundingBox.maximumWorld.clone();
+				flock
+					.prepareMeshes(modelId, meshNames, blockId)
+					.then((validMeshes) => {
+						if (validMeshes.length) {
+							// Calculate the combined bounding box centre
+							let min = baseMesh
+								.getBoundingInfo()
+								.boundingBox.minimumWorld.clone();
+							let max = baseMesh
+								.getBoundingInfo()
+								.boundingBox.maximumWorld.clone();
 
-						validMeshes.forEach((mesh) => {
-							const boundingInfo = mesh.getBoundingInfo();
-							const meshMin = boundingInfo.boundingBox.minimumWorld;
-							const meshMax = boundingInfo.boundingBox.maximumWorld;
+							validMeshes.forEach((mesh) => {
+								const boundingInfo = mesh.getBoundingInfo();
+								const meshMin =
+									boundingInfo.boundingBox.minimumWorld;
+								const meshMax =
+									boundingInfo.boundingBox.maximumWorld;
 
-							min = flock.BABYLON.Vector3.Minimize(min, meshMin);
-							max = flock.BABYLON.Vector3.Maximize(max, meshMax);
-						});
+								min = flock.BABYLON.Vector3.Minimize(
+									min,
+									meshMin,
+								);
+								max = flock.BABYLON.Vector3.Maximize(
+									max,
+									meshMax,
+								);
+							});
 
-						const combinedCentre = min.add(max).scale(0.5);
+							const combinedCentre = min.add(max).scale(0.5);
 
-						// Perform the subtraction
-						let outerCSG = flock.BABYLON.CSG2.FromMesh(baseMesh, false);
-						validMeshes.forEach((mesh) => {
-							const meshCSG = flock.BABYLON.CSG2.FromMesh(mesh, false);
-							outerCSG = outerCSG.subtract(meshCSG);
-						});
+							// Perform the subtraction
+							let outerCSG = flock.BABYLON.CSG2.FromMesh(
+								baseMesh,
+								false,
+							);
+							validMeshes.forEach((mesh) => {
+								const meshCSG = flock.BABYLON.CSG2.FromMesh(
+									mesh,
+									false,
+								);
+								outerCSG = outerCSG.subtract(meshCSG);
+							});
 
-						// Generate the resulting mesh
-						const resultMesh = outerCSG.toMesh(
-							"resultMesh",
-							baseMesh.getScene(),
-						);
+							// Generate the resulting mesh
+							const resultMesh = outerCSG.toMesh(
+								"resultMesh",
+								baseMesh.getScene(),
+							);
 
-						// Align the resulting mesh to the combined centre
-						resultMesh.position = combinedCentre;
+							// Align the resulting mesh to the combined centre
+							resultMesh.position = combinedCentre;
 
-						// Apply properties to the resulting mesh
-						flock.applyResultMeshProperties(
-							resultMesh,
-							baseMesh,
-							modelId,
-							blockId,
-						);
+							// Apply properties to the resulting mesh
+							flock.applyResultMeshProperties(
+								resultMesh,
+								baseMesh,
+								modelId,
+								blockId,
+							);
 
-						// Dispose of the original meshes
-						validMeshes.forEach((mesh) => mesh.dispose());
-						baseMesh.dispose();
+							// Dispose of the original meshes
+							validMeshes.forEach((mesh) => mesh.dispose());
+							baseMesh.dispose();
 
-						resolve(modelId); // Return the modelId as per original functionality
-					} else {
-						console.warn("No valid meshes to subtract from the base mesh.");
-						resolve(null);
-					}
-				});
+							resolve(modelId); // Return the modelId as per original functionality
+						} else {
+							console.warn(
+								"No valid meshes to subtract from the base mesh.",
+							);
+							resolve(null);
+						}
+					});
 			});
 		});
 	},
@@ -1206,8 +1310,16 @@ export const flock = {
 			.then((validMeshes) => {
 				if (validMeshes.length) {
 					// Calculate the combined bounding box centre
-					let min = new flock.BABYLON.Vector3(Number.MAX_VALUE, Number.MAX_VALUE, Number.MAX_VALUE);
-					let max = new flock.BABYLON.Vector3(Number.MIN_VALUE, Number.MIN_VALUE, Number.MIN_VALUE);
+					let min = new flock.BABYLON.Vector3(
+						Number.MAX_VALUE,
+						Number.MAX_VALUE,
+						Number.MAX_VALUE,
+					);
+					let max = new flock.BABYLON.Vector3(
+						Number.MIN_VALUE,
+						Number.MIN_VALUE,
+						Number.MIN_VALUE,
+					);
 
 					validMeshes.forEach((mesh) => {
 						const boundingInfo = mesh.getBoundingInfo();
@@ -1221,11 +1333,17 @@ export const flock = {
 					const combinedCentre = min.add(max).scale(0.5);
 
 					// Create the base CSG
-					let baseCSG = flock.BABYLON.CSG2.FromMesh(validMeshes[0], false);
+					let baseCSG = flock.BABYLON.CSG2.FromMesh(
+						validMeshes[0],
+						false,
+					);
 
 					// Intersect each subsequent mesh
 					validMeshes.slice(1).forEach((mesh) => {
-						const meshCSG = flock.BABYLON.CSG2.FromMesh(mesh, false);
+						const meshCSG = flock.BABYLON.CSG2.FromMesh(
+							mesh,
+							false,
+						);
 						baseCSG = baseCSG.intersect(meshCSG);
 					});
 
@@ -1955,12 +2073,12 @@ export const flock = {
 		const segmentStart = new flock.BABYLON.Vector3(
 			center.x,
 			center.y - cylinderHeight / 2,
-			center.z
+			center.z,
 		);
 		const segmentEnd = new flock.BABYLON.Vector3(
 			center.x,
 			center.y + cylinderHeight / 2,
-			center.z
+			center.z,
 		);
 
 		// Create and apply the physics shape using the central reference
@@ -1968,7 +2086,7 @@ export const flock = {
 			segmentStart,
 			segmentEnd,
 			capsuleRadius,
-			flock.scene
+			flock.scene,
 		);
 		flock.applyPhysics(newCapsule, capsuleShape);
 
@@ -3378,7 +3496,7 @@ export const flock = {
 		property,
 		easing = "Linear",
 		loop = false,
-		reverse = false
+		reverse = false,
 	) {
 		return new Promise(async (resolve) => {
 			await flock.whenModelReady(meshName, async (mesh) => {
@@ -3425,15 +3543,15 @@ export const flock = {
 					property === "color"
 						? flock.BABYLON.Animation.ANIMATIONTYPE_COLOR3
 						: ["position", "rotation", "scaling"].includes(property)
-						? flock.BABYLON.Animation.ANIMATIONTYPE_VECTOR3
-						: flock.BABYLON.Animation.ANIMATIONTYPE_FLOAT;
+							? flock.BABYLON.Animation.ANIMATIONTYPE_VECTOR3
+							: flock.BABYLON.Animation.ANIMATIONTYPE_FLOAT;
 
 				const keyframeAnimation = new flock.BABYLON.Animation(
 					"keyframeAnimation",
 					propertyToAnimate,
 					fps,
 					animationType,
-					flock.BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE // Force cycle mode
+					flock.BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE, // Force cycle mode
 				);
 
 				// Generate forward keyframes with seconds-to-frames conversion
@@ -3443,7 +3561,9 @@ export const flock = {
 
 					// Resolve value based on property type
 					if (property === "color") {
-						value = flock.BABYLON.Color3.FromHexString(keyframe.value);
+						value = flock.BABYLON.Color3.FromHexString(
+							keyframe.value,
+						);
 					} else if (
 						["position", "rotation", "scaling"].includes(property)
 					) {
@@ -3451,16 +3571,16 @@ export const flock = {
 							value =
 								property === "rotation"
 									? new flock.BABYLON.Vector3(
-										  flock.BABYLON.Tools.ToRadians(
-											  keyframe.value.x
-										  ),
-										  flock.BABYLON.Tools.ToRadians(
-											  keyframe.value.y
-										  ),
-										  flock.BABYLON.Tools.ToRadians(
-											  keyframe.value.z
-										  )
-									  )
+											flock.BABYLON.Tools.ToRadians(
+												keyframe.value.x,
+											),
+											flock.BABYLON.Tools.ToRadians(
+												keyframe.value.y,
+											),
+											flock.BABYLON.Tools.ToRadians(
+												keyframe.value.z,
+											),
+										)
 									: keyframe.value;
 						} else if (typeof keyframe.value === "string") {
 							const vectorValues =
@@ -3468,21 +3588,21 @@ export const flock = {
 							value =
 								property === "rotation"
 									? new flock.BABYLON.Vector3(
-										  flock.BABYLON.Tools.ToRadians(
-											  parseFloat(vectorValues[0])
-										  ),
-										  flock.BABYLON.Tools.ToRadians(
-											  parseFloat(vectorValues[1])
-										  ),
-										  flock.BABYLON.Tools.ToRadians(
-											  parseFloat(vectorValues[2])
-										  )
-									  )
+											flock.BABYLON.Tools.ToRadians(
+												parseFloat(vectorValues[0]),
+											),
+											flock.BABYLON.Tools.ToRadians(
+												parseFloat(vectorValues[1]),
+											),
+											flock.BABYLON.Tools.ToRadians(
+												parseFloat(vectorValues[2]),
+											),
+										)
 									: new flock.BABYLON.Vector3(
-										  parseFloat(vectorValues[0]),
-										  parseFloat(vectorValues[1]),
-										  parseFloat(vectorValues[2])
-									  );
+											parseFloat(vectorValues[0]),
+											parseFloat(vectorValues[1]),
+											parseFloat(vectorValues[2]),
+										);
 						}
 					} else {
 						value = parseFloat(keyframe.value);
@@ -3490,7 +3610,7 @@ export const flock = {
 
 					// Calculate frame duration based on FPS
 					const frameDuration = Math.round(
-						(keyframe.duration || 1) * fps
+						(keyframe.duration || 1) * fps,
 					); // Convert seconds to frames
 					const frame = currentFrame;
 					currentFrame += frameDuration; // Increment frames
@@ -3500,12 +3620,12 @@ export const flock = {
 				// Generate reverse keyframes if required
 				const reverseKeyframes = reverse
 					? forwardKeyframes
-						  .slice(0, -1) // Exclude the last frame to avoid duplication
-						  .reverse()
-						  .map((keyframe, index) => ({
-							  frame: currentFrame + index, // Continue frame numbering
-							  value: keyframe.value,
-						  }))
+							.slice(0, -1) // Exclude the last frame to avoid duplication
+							.reverse()
+							.map((keyframe, index) => ({
+								frame: currentFrame + index, // Continue frame numbering
+								value: keyframe.value,
+							}))
 					: [];
 
 				// Combine forward and reverse keyframes
@@ -3526,7 +3646,7 @@ export const flock = {
 
 				if (property === "alpha") {
 					mesh.material.markAsDirty(
-						flock.BABYLON.Material.MiscDirtyFlag
+						flock.BABYLON.Material.MiscDirtyFlag,
 					);
 				}
 
@@ -3534,7 +3654,12 @@ export const flock = {
 
 				console.log(`Animating from frame 0 to ${lastFrame}`);
 
-				const animatable = flock.scene.beginAnimation(mesh, 0, lastFrame, loop);
+				const animatable = flock.scene.beginAnimation(
+					mesh,
+					0,
+					lastFrame,
+					loop,
+				);
 
 				animatable.onAnimationEndObservable.add(() => {
 					console.log("Animation completed.");
@@ -3722,35 +3847,42 @@ export const flock = {
 		const pressedButtons = flock.canvas.pressedButtons;
 
 		// Check VR controller inputs
-		const vrPressed = flock.xrHelper?.baseExperience?.input?.inputSources.some((inputSource) => {
-			if (inputSource.gamepad) {
-				const gamepad = inputSource.gamepad;
+		const vrPressed =
+			flock.xrHelper?.baseExperience?.input?.inputSources.some(
+				(inputSource) => {
+					if (inputSource.gamepad) {
+						const gamepad = inputSource.gamepad;
 
-				// Thumbstick movement
-				if (key === "W" && gamepad.axes[1] < -0.5) return true; // Forward
-				if (key === "S" && gamepad.axes[1] > 0.5) return true; // Backward
-				if (key === "A" && gamepad.axes[0] < -0.5) return true; // Left
-				if (key === "D" && gamepad.axes[0] > 0.5) return true; // Right
+						// Thumbstick movement
+						if (key === "W" && gamepad.axes[1] < -0.5) return true; // Forward
+						if (key === "S" && gamepad.axes[1] > 0.5) return true; // Backward
+						if (key === "A" && gamepad.axes[0] < -0.5) return true; // Left
+						if (key === "D" && gamepad.axes[0] > 0.5) return true; // Right
 
-				// Button mappings
-				if (key === "SPACE" && gamepad.buttons[0]?.pressed) return true; // A button for jump
-				if (key === "Q" && gamepad.buttons[1]?.pressed) return true; // B button for action 1
-				if (key === "F" && gamepad.buttons[2]?.pressed) return true; // X button for action 2
-				if (key === "E" && gamepad.buttons[3]?.pressed) return true; // Y button for action 3
+						// Button mappings
+						if (key === "SPACE" && gamepad.buttons[0]?.pressed)
+							return true; // A button for jump
+						if (key === "Q" && gamepad.buttons[1]?.pressed)
+							return true; // B button for action 1
+						if (key === "F" && gamepad.buttons[2]?.pressed)
+							return true; // X button for action 2
+						if (key === "E" && gamepad.buttons[3]?.pressed)
+							return true; // Y button for action 3
 
-				// General button check
-				if (key === "ANY" && gamepad.buttons.some((button) => button.pressed)) return true;
-			}
-			return false;
-		});
+						// General button check
+						if (
+							key === "ANY" &&
+							gamepad.buttons.some((button) => button.pressed)
+						)
+							return true;
+					}
+					return false;
+				},
+			);
 
 		// Combine all sources
 		if (key === "ANY") {
-			return (
-				pressedKeys.size > 0 ||
-				pressedButtons.size > 0 ||
-				vrPressed
-			);
+			return pressedKeys.size > 0 || pressedButtons.size > 0 || vrPressed;
 		} else if (key === "NONE") {
 			return (
 				pressedKeys.size === 0 &&
@@ -3758,11 +3890,7 @@ export const flock = {
 				!vrPressed
 			);
 		} else {
-			return (
-				pressedKeys.has(key) ||
-				pressedButtons.has(key) ||
-				vrPressed
-			);
+			return pressedKeys.has(key) || pressedButtons.has(key) || vrPressed;
 		}
 	},
 	seededRandom(from, to, seed) {
@@ -3859,18 +3987,19 @@ export const flock = {
 	changeMaterial(modelName, materialName, color) {
 		return flock.whenModelReady(modelName, (mesh) => {
 			const allMeshes = [mesh].concat(mesh.getDescendants());
-			const materialNode = allMeshes.find((node) => node.material) || mesh;
+			const materialNode =
+				allMeshes.find((node) => node.material) || mesh;
 
 			// Create the texture
 			const texture = new flock.BABYLON.Texture(
 				`./textures/${materialName}`,
-				flock.scene
+				flock.scene,
 			);
 
 			// Create the material
 			const material = new flock.BABYLON.StandardMaterial(
 				materialName,
-				flock.scene
+				flock.scene,
 			);
 
 			// Texture physical size (e.g., bricks are 1m x 1m)
@@ -3886,8 +4015,12 @@ export const flock = {
 			const vScaleY = size.y / texturePhysicalSize; // Vertical scale for Y-aligned walls
 
 			// Adjust UV mapping for consistent texture size and alignment
-			const positions = materialNode.getVerticesData(BABYLON.VertexBuffer.PositionKind);
-			const normals = materialNode.getVerticesData(BABYLON.VertexBuffer.NormalKind);
+			const positions = materialNode.getVerticesData(
+				BABYLON.VertexBuffer.PositionKind,
+			);
+			const normals = materialNode.getVerticesData(
+				BABYLON.VertexBuffer.NormalKind,
+			);
 			let uvs = materialNode.getVerticesData(BABYLON.VertexBuffer.UVKind);
 
 			if (!uvs) {
@@ -3900,29 +4033,39 @@ export const flock = {
 					const normal = new BABYLON.Vector3(
 						normals[i * 3],
 						normals[i * 3 + 1],
-						normals[i * 3 + 2]
+						normals[i * 3 + 2],
 					);
 
 					const position = new BABYLON.Vector3(
 						positions[i * 3],
 						positions[i * 3 + 1],
-						positions[i * 3 + 2]
+						positions[i * 3 + 2],
 					);
 
-					let u = 0, v = 0;
+					let u = 0,
+						v = 0;
 
 					// Handle front/back walls (z-axis alignment)
-					if (Math.abs(normal.z) > Math.abs(normal.x) && Math.abs(normal.z) > Math.abs(normal.y)) {
+					if (
+						Math.abs(normal.z) > Math.abs(normal.x) &&
+						Math.abs(normal.z) > Math.abs(normal.y)
+					) {
 						u = position.x / texturePhysicalSize; // Horizontal scale on x-axis
 						v = position.y / texturePhysicalSize; // Vertical scale on y-axis
 					}
 					// Handle side walls (x-axis alignment)
-					else if (Math.abs(normal.x) > Math.abs(normal.y) && Math.abs(normal.x) > Math.abs(normal.z)) {
+					else if (
+						Math.abs(normal.x) > Math.abs(normal.y) &&
+						Math.abs(normal.x) > Math.abs(normal.z)
+					) {
 						u = position.z / texturePhysicalSize; // Horizontal scale on z-axis
 						v = position.y / texturePhysicalSize; // Vertical scale on y-axis
 					}
 					// Handle top/bottom (y-axis alignment)
-					else if (Math.abs(normal.y) > Math.abs(normal.x) && Math.abs(normal.y) > Math.abs(normal.z)) {
+					else if (
+						Math.abs(normal.y) > Math.abs(normal.x) &&
+						Math.abs(normal.y) > Math.abs(normal.z)
+					) {
 						u = position.x / texturePhysicalSize; // Horizontal scale on x-axis
 						v = position.z / texturePhysicalSize; // Vertical scale on z-axis
 					}
@@ -3952,7 +4095,9 @@ export const flock = {
 	},
 	adjustUVMapping(mesh) {
 		if (!mesh.isVerticesDataPresent(BABYLON.VertexBuffer.PositionKind)) {
-			console.warn("Mesh has no vertex positions. Skipping UV adjustment.");
+			console.warn(
+				"Mesh has no vertex positions. Skipping UV adjustment.",
+			);
 			return;
 		}
 		if (!mesh.isVerticesDataPresent(BABYLON.VertexBuffer.NormalKind)) {
@@ -3960,10 +4105,14 @@ export const flock = {
 			return;
 		}
 
-		const positions = mesh.getVerticesData(BABYLON.VertexBuffer.PositionKind);
+		const positions = mesh.getVerticesData(
+			BABYLON.VertexBuffer.PositionKind,
+		);
 		const normals = mesh.getVerticesData(BABYLON.VertexBuffer.NormalKind);
 		const indices = mesh.getIndices(); // Required for face-based calculations
-		const uvs = mesh.getVerticesData(BABYLON.VertexBuffer.UVKind) || new Array((positions.length / 3) * 2).fill(0);
+		const uvs =
+			mesh.getVerticesData(BABYLON.VertexBuffer.UVKind) ||
+			new Array((positions.length / 3) * 2).fill(0);
 
 		// Iterate over faces (triangles)
 		for (let i = 0; i < indices.length; i += 3) {
@@ -3974,23 +4123,23 @@ export const flock = {
 			const v0 = new BABYLON.Vector3(
 				positions[idx0 * 3],
 				positions[idx0 * 3 + 1],
-				positions[idx0 * 3 + 2]
+				positions[idx0 * 3 + 2],
 			);
 			const v1 = new BABYLON.Vector3(
 				positions[idx1 * 3],
 				positions[idx1 * 3 + 1],
-				positions[idx1 * 3 + 2]
+				positions[idx1 * 3 + 2],
 			);
 			const v2 = new BABYLON.Vector3(
 				positions[idx2 * 3],
 				positions[idx2 * 3 + 1],
-				positions[idx2 * 3 + 2]
+				positions[idx2 * 3 + 2],
 			);
 
 			const normal = new BABYLON.Vector3(
 				normals[idx0 * 3],
 				normals[idx0 * 3 + 1],
-				normals[idx0 * 3 + 2]
+				normals[idx0 * 3 + 2],
 			);
 
 			// Calculate edge vectors and face area
@@ -4001,7 +4150,10 @@ export const flock = {
 
 			// Determine UV axes based on the face's orientation
 			let uAxis, vAxis;
-			if (Math.abs(faceNormal.y) > Math.abs(faceNormal.x) && Math.abs(faceNormal.y) > Math.abs(faceNormal.z)) {
+			if (
+				Math.abs(faceNormal.y) > Math.abs(faceNormal.x) &&
+				Math.abs(faceNormal.y) > Math.abs(faceNormal.z)
+			) {
 				// Horizontal face (aligned with z-axis)
 				uAxis = new BABYLON.Vector3(1, 0, 0); // x-axis
 				vAxis = new BABYLON.Vector3(0, 0, 1); // z-axis
@@ -4585,17 +4737,24 @@ export const flock = {
 	},
 	setCameraBackground(cameraType) {
 		if (!flock.scene) {
-			console.error("Scene not available. Ensure the scene is initialised before setting the camera background.");
+			console.error(
+				"Scene not available. Ensure the scene is initialised before setting the camera background.",
+			);
 			return;
 		}
 
-		const videoLayer = new flock.BABYLON.Layer("videoLayer", null, flock.scene, true);
+		const videoLayer = new flock.BABYLON.Layer(
+			"videoLayer",
+			null,
+			flock.scene,
+			true,
+		);
 
 		flock.BABYLON.VideoTexture.CreateFromWebCam(
 			flock.scene,
 			(videoTexture) => {
 				videoTexture._invertY = false; // Correct orientation
-				 videoTexture.uScale = -1; // Flip horizontally for mirror effect
+				videoTexture.uScale = -1; // Flip horizontally for mirror effect
 				videoLayer.texture = videoTexture; // Assign the video feed to the layer
 			},
 			{
@@ -4604,14 +4763,13 @@ export const flock = {
 				minHeight: 480,
 				maxWidth: 1920,
 				maxHeight: 1080,
-				deviceId: ""
-			}
+				deviceId: "",
+			},
 		);
 	},
 	async setXRMode(mode) {
-
 		await flock.initializeXR(mode);
-		flock.printText("XR Mode!", 5, "white"); 
+		flock.printText("XR Mode!", 5, "white");
 	},
 	updateDynamicMeshPositions(scene, dynamicMeshes) {
 		scene.onBeforeRenderObservable.add(() => {
@@ -4946,14 +5104,16 @@ export const flock = {
 	onTrigger(modelName, trigger, doCode) {
 		return flock.whenModelReady(modelName, async function (target) {
 			if (target) {
-				//flock.printText("On trigger", 20, "#9932CC");	
+				//flock.printText("On trigger", 20, "#9932CC");
 				if (target instanceof flock.BABYLON.AbstractMesh) {
 					// Ensure the mesh is pickable
 					target.isPickable = true;
 
 					// Use ActionManager for non-AR/VR environments
 					if (!target.actionManager) {
-						target.actionManager = new flock.BABYLON.ActionManager(flock.scene);
+						target.actionManager = new flock.BABYLON.ActionManager(
+							flock.scene,
+						);
 						target.actionManager.isRecursive = true;
 					}
 
@@ -4969,42 +5129,56 @@ export const flock = {
 
 					// Add AR/VR-specific pointer handling
 					if (flock.xrHelper && flock.xrHelper.baseExperience) {
-
-						//flock.printText(`XR`, 20, "#9932CC");			
+						//flock.printText(`XR`, 20, "#9932CC");
 						//console.log("XR", flock.xrHelper);
-						flock.xrHelper.baseExperience.onStateChangedObservable.add((state) => {
-							if (
-								state === flock.BABYLON.WebXRState.IN_XR &&
-								flock.xrHelper.baseExperience.sessionManager.sessionMode === "immersive-ar"
-							) {
-
-					//flock.printText("AR mode", 20, "#9932CC");	
-								flock.xrHelper.baseExperience.featuresManager.enableFeature(
-									BABYLON.WebXRHitTest.Name,
-									"latest",
-									{
-										onHitTestResultObservable: (results) => {
-											if (results.length > 0) {
-												const hitTest = results[0];
-												const position = hitTest.transformationMatrix.getTranslation();
-												target.position.copyFrom(position); // Place mesh
-												target.isVisible = true; // Make mesh visible if hidden
-											}
+						flock.xrHelper.baseExperience.onStateChangedObservable.add(
+							(state) => {
+								if (
+									state === flock.BABYLON.WebXRState.IN_XR &&
+									flock.xrHelper.baseExperience.sessionManager
+										.sessionMode === "immersive-ar"
+								) {
+									//flock.printText("AR mode", 20, "#9932CC");
+									flock.xrHelper.baseExperience.featuresManager.enableFeature(
+										BABYLON.WebXRHitTest.Name,
+										"latest",
+										{
+											onHitTestResultObservable: (
+												results,
+											) => {
+												if (results.length > 0) {
+													const hitTest = results[0];
+													const position =
+														hitTest.transformationMatrix.getTranslation();
+													target.position.copyFrom(
+														position,
+													); // Place mesh
+													target.isVisible = true; // Make mesh visible if hidden
+												}
+											},
 										},
-									}
-								);
-								// Enable onPointerDown only in AR mode
-								flock.scene.onPointerDown = function (evt, pickResult) {
-									//flock.printText("Pointer down", 20, "#9932CC");	
-									if (pickResult.hit && pickResult.pickedMesh === target) {
-										doCode();
-									}
-								};
-							} else if (state === BABYLON.WebXRState.NOT_IN_XR) {
-								// Remove onPointerDown when exiting XR
-								flock.scene.onPointerDown = null;
-							}
-						});
+									);
+									// Enable onPointerDown only in AR mode
+									flock.scene.onPointerDown = function (
+										evt,
+										pickResult,
+									) {
+										//flock.printText("Pointer down", 20, "#9932CC");
+										if (
+											pickResult.hit &&
+											pickResult.pickedMesh === target
+										) {
+											doCode();
+										}
+									};
+								} else if (
+									state === BABYLON.WebXRState.NOT_IN_XR
+								) {
+									// Remove onPointerDown when exiting XR
+									flock.scene.onPointerDown = null;
+								}
+							},
+						);
 					}
 				} else if (target instanceof flock.GUI.Button) {
 					// Handle GUI Button interactions
@@ -5144,39 +5318,50 @@ export const flock = {
 				handedness === "left"
 					? { "y-button": "q", "x-button": "e" } // Left controller: Y -> Q, X -> E
 					: handedness === "right"
-					? { "b-button": "f", "a-button": " " } // Right controller: B -> F, A -> Space
-					: {}; // Unknown handedness: No mapping
+						? { "b-button": "f", "a-button": " " } // Right controller: B -> F, A -> Space
+						: {}; // Unknown handedness: No mapping
 
-			controller.onMotionControllerInitObservable.add((motionController) => {
-				const componentIds = motionController.getComponentIds();
-				//console.log(`Available components for ${handedness} controller:`, componentIds);
+			controller.onMotionControllerInitObservable.add(
+				(motionController) => {
+					const componentIds = motionController.getComponentIds();
+					//console.log(`Available components for ${handedness} controller:`, componentIds);
 
-				Object.entries(buttonMap).forEach(([buttonId, mappedKey]) => {
-					if (mappedKey !== key) return;
+					Object.entries(buttonMap).forEach(
+						([buttonId, mappedKey]) => {
+							if (mappedKey !== key) return;
 
-					const component = motionController.getComponent(buttonId);
+							const component =
+								motionController.getComponent(buttonId);
 
-					if (!component) {
-						console.warn(`Button ID '${buttonId}' not found for ${handedness} controller.`);
-						return;
-					}
+							if (!component) {
+								console.warn(
+									`Button ID '${buttonId}' not found for ${handedness} controller.`,
+								);
+								return;
+							}
 
-					//console.log(`Observing button ID '${buttonId}' for key '${key}' on ${handedness} controller.`);
+							//console.log(`Observing button ID '${buttonId}' for key '${key}' on ${handedness} controller.`);
 
-					// Monitor button state changes
-					component.onButtonStateChangedObservable.add(() => {
-						const isPressed = component.pressed;
+							// Monitor button state changes
+							component.onButtonStateChangedObservable.add(() => {
+								const isPressed = component.pressed;
 
-						if (isPressed && !isReleased) {
-							console.log(`Key '${key}' (button ID '${buttonId}') pressed on ${handedness} controller`);
-							callback();
-						} else if (!isPressed && isReleased) {
-							console.log(`Key '${key}' (button ID '${buttonId}') released on ${handedness} controller`);
-							callback();
-						}
-					});
-				});
-			});
+								if (isPressed && !isReleased) {
+									console.log(
+										`Key '${key}' (button ID '${buttonId}') pressed on ${handedness} controller`,
+									);
+									callback();
+								} else if (!isPressed && isReleased) {
+									console.log(
+										`Key '${key}' (button ID '${buttonId}') released on ${handedness} controller`,
+									);
+									callback();
+								}
+							});
+						},
+					);
+				},
+			);
 		});
 	},
 	async forever(action) {
@@ -5521,7 +5706,7 @@ export const flock = {
 					mesh.name + ".glb",
 				).then((glb) => {
 					mesh.flipFaces();
-					glb.downloadFiles();					
+					glb.downloadFiles();
 				});
 			}
 		});
