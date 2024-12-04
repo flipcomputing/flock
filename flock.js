@@ -5346,7 +5346,7 @@ export const flock = {
 
 					if (!component) {
 						console.warn(
-							`DEBUG: Button ID '${buttonId}' not found for ${handedness} controller.`,
+							`DEBUG: Button ID '${buttonId}' not found for ${handedness} controller.`
 						);
 						return;
 					}
@@ -5356,18 +5356,20 @@ export const flock = {
 					// Monitor button state changes
 					component.onButtonStateChangedObservable.add(() => {
 						const isPressed = component.pressed;
+						const value = component.value; // Check the pressure value
+						const pressThreshold = 0.9; // Adjust threshold as needed
 
-						// Debug to verify key comparison
-						console.log(`DEBUG: Comparing '${mappedKey}' with '${key}'`);
+						// Debug to verify key comparison and value
+						console.log(`DEBUG: Comparing '${mappedKey}' with '${key}', value: ${value}`);
 
 						// Only trigger for the specific key
 						if (mappedKey === key) {
-							if (isReleased && !isPressed) {
+							if (isReleased && !isPressed && value < pressThreshold) {
 								console.log(
 									`DEBUG: Key '${mappedKey}' (button ID '${buttonId}') released on ${handedness} controller.`
 								);
 								callback(mappedKey, "released");
-							} else if (!isReleased && isPressed) {
+							} else if (!isReleased && isPressed && value >= pressThreshold) {
 								console.log(
 									`DEBUG: Key '${mappedKey}' (button ID '${buttonId}') pressed on ${handedness} controller.`
 								);
@@ -5377,6 +5379,7 @@ export const flock = {
 					});
 				});
 			});
+
 		});
 
 	},
