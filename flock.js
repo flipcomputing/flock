@@ -5357,7 +5357,7 @@ export const flock = {
 					component.onButtonStateChangedObservable.add(() => {
 						const isPressed = component.pressed;
 						const value = component.value; // Check the pressure value
-						const pressThreshold = 0.9; // Adjust threshold as needed
+						const pressThreshold = 1.0; // Adjust threshold as needed
 
 						// Debug to verify key comparison and value
 						console.log(`DEBUG: Comparing '${mappedKey}' with '${key}', value: ${value}`);
