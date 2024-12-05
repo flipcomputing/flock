@@ -5337,8 +5337,8 @@ export const flock = {
 				handedness === "left"
 					? { "y-button": "q", "x-button": "e" } // Left controller: Y -> Q, X -> E
 					: handedness === "right"
-						? { "b-button": "f", "a-button": " " } // Right controller: B -> F, A -> Space
-						: {}; // Unknown handedness: No mapping
+					? { "b-button": "f", "a-button": " " } // Right controller: B -> F, A -> Space
+					: {}; // Unknown handedness: No mapping
 
 			controller.onMotionControllerInitObservable.add((motionController) => {
 				Object.entries(buttonMap).forEach(([buttonId, mappedKey]) => {
@@ -5364,6 +5364,12 @@ export const flock = {
 							`DEBUG: Button '${buttonId}', mappedKey '${mappedKey}', pressed: ${isPressed}`
 						);
 
+						// Ignore touch-only events
+						if (!isPressed && component.touched) {
+							console.log(`DEBUG: Ignoring touch event for '${buttonId}'.`);
+							return;
+						}
+
 						// Trigger the callback only for the specific key
 						if (mappedKey === key) {
 							if (isReleased && !isPressed) {
@@ -5382,6 +5388,7 @@ export const flock = {
 				});
 			});
 		});
+
 
 
 	},
