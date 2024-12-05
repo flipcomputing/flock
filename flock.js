@@ -5351,25 +5351,27 @@ export const flock = {
 						return;
 					}
 
-					console.log(`DEBUG: Observing button ID '${buttonId}' for key '${mappedKey}' on ${handedness} controller.`);
+					console.log(
+						`DEBUG: Observing button ID '${buttonId}' for key '${mappedKey}' on ${handedness} controller.`
+					);
 
 					// Monitor button state changes
 					component.onButtonStateChangedObservable.add(() => {
 						const isPressed = component.pressed;
-						const value = component.value; // Check the pressure value
-						const pressThreshold = 1.0; // Adjust threshold as needed
 
-						// Debug to verify key comparison and value
-						console.log(`DEBUG: Comparing '${mappedKey}' with '${key}', value: ${value}`);
+						// Debugging to verify button states
+						console.log(
+							`DEBUG: Button '${buttonId}', mappedKey '${mappedKey}', pressed: ${isPressed}`
+						);
 
-						// Only trigger for the specific key
+						// Trigger the callback only for the specific key
 						if (mappedKey === key) {
-							if (isReleased && !isPressed && value < pressThreshold) {
+							if (isReleased && !isPressed) {
 								console.log(
 									`DEBUG: Key '${mappedKey}' (button ID '${buttonId}') released on ${handedness} controller.`
 								);
 								callback(mappedKey, "released");
-							} else if (!isReleased && isPressed && value >= pressThreshold) {
+							} else if (!isReleased && isPressed) {
 								console.log(
 									`DEBUG: Key '${mappedKey}' (button ID '${buttonId}') pressed on ${handedness} controller.`
 								);
@@ -5379,8 +5381,8 @@ export const flock = {
 					});
 				});
 			});
-
 		});
+
 
 	},
 	async forever(action) {
