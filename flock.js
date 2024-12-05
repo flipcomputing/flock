@@ -5342,6 +5342,10 @@ export const flock = {
 
 			controller.onMotionControllerInitObservable.add((motionController) => {
 				Object.entries(buttonMap).forEach(([buttonId, mappedKey]) => {
+					// Trigger the callback only for the specific key
+					if (mappedKey !== key) {
+						return;
+					}
 					const component = motionController.getComponent(buttonId);
 
 					if (!component) {
@@ -5355,41 +5359,52 @@ export const flock = {
 						`DEBUG: Observing button ID '${buttonId}' for key '${mappedKey}' on ${handedness} controller.`
 					);
 
-					// Monitor button state changes
+					// Track the last known pressed state for this specific button
+					let lastPressedState = false;
+
+					// Monitor state changes for this specific button
 					component.onButtonStateChangedObservable.add(() => {
 						const isPressed = component.pressed;
 
 						// Debugging to verify button states
 						console.log(
-							`DEBUG: Button '${buttonId}', mappedKey '${mappedKey}', pressed: ${isPressed}`
+							`DEBUG: Observable fired for '${buttonId}', pressed: ${isPressed}`
 						);
 
-						// Ignore touch-only events
-						if (!isPressed && component.touched) {
-							console.log(`DEBUG: Ignoring touch event for '${buttonId}'.`);
+						// Ensure this logic only processes events for the current button
+						if (motionController.getComponent(buttonId) !== component) {
+
+							
+							console.log(
+								`DEBUG: Skipping event for '${buttonId}' as it doesn't match the triggering component.`
+							);
 							return;
 						}
 
-						// Trigger the callback only for the specific key
-						if (mappedKey === key) {
-							if (isReleased && !isPressed) {
-								console.log(
-									`DEBUG: Key '${mappedKey}' (button ID '${buttonId}') released on ${handedness} controller.`
-								);
-								callback(mappedKey, "released");
-							} else if (!isReleased && isPressed) {
-								console.log(
-									`DEBUG: Key '${mappedKey}' (button ID '${buttonId}') pressed on ${handedness} controller.`
-								);
-								callback(mappedKey, "pressed");
-							}
+						// Ignore repeated callbacks for the same state
+						if (isPressed === lastPressedState) {
+							console.log(
+								`DEBUG: No state change for '${buttonId}', skipping callback.`
+							);
+							return;
 						}
+
+						// Only handle "released" transitions
+						if (!isPressed && lastPressedState) {
+							console.log(
+								`DEBUG: Key '${mappedKey}' (button ID '${buttonId}') released on ${handedness} controller.`
+							);
+							callback(mappedKey, "released");
+						}
+
+						// Update last pressed state
+						lastPressedState = isPressed;
 					});
 				});
 			});
 		});
 
-
+		
 
 	},
 	async forever(action) {
