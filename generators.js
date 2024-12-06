@@ -106,6 +106,121 @@ export function defineGenerators() {
 		return `${asyncWrapper}rotateAnim(${meshName}, ${rotX}, ${rotY}, ${rotZ}, ${duration}, ${reverse}, ${loop}, "${easing}");\n`;
 	};
 
+	javascriptGenerator.forBlock["animation"] = function (block) {
+		const meshVariable = javascriptGenerator.nameDB_.getName(
+			block.getFieldValue("MESH"),
+			Blockly.Names.NameType.VARIABLE
+		);
+		const property = block.getFieldValue("PROPERTY");
+		const animationGroupVar = javascriptGenerator.nameDB_.getName(
+			block.getFieldValue("ANIMATION_GROUP"),
+			Blockly.Names.NameType.VARIABLE
+		);
+		const keyframesBlock = block.getInputTargetBlock("KEYFRAMES");
+		const keyframesArray = [];
+
+		if (keyframesBlock) {
+			// Loop through keyframe blocks to gather data
+			for (let i = 0; i < keyframesBlock.inputList.length; i++) {
+				const keyframeInput = keyframesBlock.inputList[i];
+
+				const valueBlock = keyframeInput.connection
+					? keyframeInput.connection.targetBlock()
+					: null;
+				const durationBlock = keyframeInput.connection
+					? keyframeInput.connection.targetBlock()
+					: null;
+
+				let value;
+
+				if (valueBlock) {
+					if (property === "color") {
+						// Handle color keyframe (as a string)
+						value = javascriptGenerator.valueToCode(
+							valueBlock,
+							"VALUE",
+							javascriptGenerator.ORDER_NONE
+						);
+					} else if (
+						["position", "rotation", "scaling"].includes(property)
+					) {
+						// Handle XYZ (Vector3) keyframe for position, rotation, or scaling
+						const x =
+							javascriptGenerator.valueToCode(
+								valueBlock,
+								"X",
+								javascriptGenerator.ORDER_ATOMIC
+							) || 0;
+						const y =
+							javascriptGenerator.valueToCode(
+								valueBlock,
+								"Y",
+								javascriptGenerator.ORDER_ATOMIC
+							) || 0;
+						const z =
+							javascriptGenerator.valueToCode(
+								valueBlock,
+								"Z",
+								javascriptGenerator.ORDER_ATOMIC
+							) || 0;
+						value = `new flock.BABYLON.Vector3(${x}, ${y}, ${z})`; // Generate the text for Vector3
+					} else {
+						// Handle alpha or other scalar properties
+						value = javascriptGenerator.valueToCode(
+							valueBlock,
+							"VALUE",
+							javascriptGenerator.ORDER_ATOMIC
+						);
+					}
+				} else {
+					// Default values for missing blocks
+					value =
+						property === "color"
+							? '"#ffffff"' // Default color
+							: `new flock.BABYLON.Vector3(0, 0, 0)`; // Default for Vector3
+				}
+
+				const duration = durationBlock
+					? javascriptGenerator.valueToCode(
+							durationBlock,
+							"DURATION",
+							javascriptGenerator.ORDER_ATOMIC
+					  )
+					: "1"; // Default duration of 1 second if not specified
+
+				keyframesArray.push({ value, duration });
+			}
+		}
+
+		const easing = block.getFieldValue("EASING") || "Linear";
+		const loop = block.getFieldValue("LOOP") === "TRUE";
+		const reverse = block.getFieldValue("REVERSE") === "TRUE";
+		const mode = block.getFieldValue("MODE");
+
+		const keyframesCode = keyframesArray
+			.map(
+				(kf) => `{
+			value: ${kf.value}, 
+			duration: ${kf.duration}
+		  }`
+			)
+			.join(", ");
+
+		return `
+			const ${animationGroupVar} = await createAnimation(
+				"${animationGroupVar}",
+				${meshVariable},
+				"${property}",
+				[${keyframesCode}],
+				"${easing}",
+				${loop},
+				${reverse},
+				"${mode}"
+			);
+		`;
+	};
+
+
 	javascriptGenerator.forBlock["animate_keyframes"] = function (block) {
 		const meshVar = javascriptGenerator.nameDB_.getName(
 			block.getFieldValue("MESH"),

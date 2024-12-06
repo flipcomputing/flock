@@ -110,6 +110,7 @@ export const flock = {
 			applyForce,
 			moveByVector,
 			glideTo,
+			createAnimation,
 			animateKeyFrames,
 			setPivotPoint,
 			rotate,
@@ -3489,6 +3490,241 @@ export const flock = {
 				}
 			});
 		});
+	},	
+	resolvePropertyToAnimate(property, mesh) {
+		if (!mesh) {
+			console.warn("Mesh not found.");
+			return null;
+		}
+
+		switch (property) {
+			case "color":
+				return mesh.material?.diffuseColor !== undefined
+					? "material.diffuseColor"
+					: "material.albedoColor";
+
+			case "alpha":
+				if (mesh.material) {
+					mesh.material.transparencyMode = BABYLON.Material.MATERIAL_ALPHABLEND;
+				}
+				return "material.alpha";
+
+			case "position.x":
+			case "position.y":
+			case "position.z":
+				return `position.${property.split(".")[1]}`;
+
+			case "rotation.x":
+			case "rotation.y":
+			case "rotation.z":
+				return `rotation.${property.split(".")[1]}`;
+
+			case "scaling.x":
+			case "scaling.y":
+			case "scaling.z":
+				return `scaling.${property.split(".")[1]}`;
+
+			default:
+				// Fallback to generic property
+				return property;
+		}
+	},
+
+	determineAnimationType(property) {
+		switch (true) {
+			case property === "color":
+				return BABYLON.Animation.ANIMATIONTYPE_COLOR3;
+
+			case ["position", "rotation", "scaling"].some((p) => property.startsWith(p)):
+				return BABYLON.Animation.ANIMATIONTYPE_VECTOR3;
+
+			default:
+				return BABYLON.Animation.ANIMATIONTYPE_FLOAT;
+		}
+	},
+	parseKeyframeValue(property, value) {
+		if (["rotation.x", "rotation.y", "rotation.z"].some((p) => property.startsWith(p))) {
+			return BABYLON.Tools.ToRadians(value); // Single-axis rotation in degrees
+		}
+
+		if (property.startsWith("rotation")) {
+			// Handle Vector3 rotation values
+			if (value instanceof BABYLON.Vector3) {
+				return new BABYLON.Vector3(
+					BABYLON.Tools.ToRadians(value.x || 0),
+					BABYLON.Tools.ToRadians(value.y || 0),
+					BABYLON.Tools.ToRadians(value.z || 0)
+				);
+			} else if (typeof value === "string") {
+				// Handle Vector3 string input like "0, 90, 180"
+				const vectorValues = value.match(/-?\d+(\.\d+)?/g).map(Number);
+				return new BABYLON.Vector3(
+					BABYLON.Tools.ToRadians(vectorValues[0] || 0),
+					BABYLON.Tools.ToRadians(vectorValues[1] || 0),
+					BABYLON.Tools.ToRadians(vectorValues[2] || 0)
+				);
+			}
+		}
+
+		if (property === "color") {
+			return BABYLON.Color3.FromHexString(value);
+		}
+
+		if (["position", "scaling"].some((p) => property.startsWith(p))) {
+			// Handle Vector3 position and scaling
+			if (value instanceof BABYLON.Vector3) {
+				return value;
+			} else if (typeof value === "string") {
+				const vectorValues = value.match(/-?\d+(\.\d+)?/g).map(Number);
+				return new BABYLON.Vector3(
+					vectorValues[0] || 0,
+					vectorValues[1] || 0,
+					vectorValues[2] || 0
+				);
+			}
+		}
+
+		return parseFloat(value); // Default for scalar properties
+	},
+	findFirstDescendantWithMaterial(mesh) {
+		if (mesh.material) return mesh;
+		const descendants = mesh.getDescendants();
+		return descendants.find((descendant) => descendant.material) || null;
+	},
+	createAnimation(
+		animationGroupName,
+		meshName,
+		property,
+		keyframes,
+		easing = "Linear",
+		loop = false,
+		reverse = false,
+		mode = "START" // Default to starting the animation
+	) {
+		return new Promise(async (resolve) => {
+			// Ensure the animation group exists or create a new one
+			let animationGroup = flock.scene.getAnimationGroupByName(animationGroupName);
+			if (!animationGroup) {
+				animationGroup = new flock.BABYLON.AnimationGroup(animationGroupName, flock.scene);
+				console.log(`Created new animation group: ${animationGroupName}`);
+			}
+
+			await flock.whenModelReady(meshName, async (mesh) => {
+				if (!mesh) {
+					console.warn(`Mesh ${meshName} not found.`);
+					resolve(animationGroup);
+					return;
+				}
+
+				const propertyToAnimate = flock.resolvePropertyToAnimate(property, mesh),
+					fps = 30, // Frames per second
+					animationType = flock.determineAnimationType(property),
+					loopMode = BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE; // Always use cycle mode for looping
+
+				const keyframeAnimation = new flock.BABYLON.Animation(
+					`${animationGroupName}_${property}`,
+					propertyToAnimate,
+					fps,
+					animationType,
+					loopMode
+				);
+
+				// Convert keyframes (with absolute time in seconds) to Babylon.js frames
+				const forwardKeyframes = keyframes.map((keyframe) => ({
+					frame: Math.round((keyframe.duration || 0) * fps), // Convert seconds to frames
+					value: flock.parseKeyframeValue(property, keyframe.value),
+				}));
+
+				// Generate reverse keyframes by mirroring forward frames
+				const reverseKeyframes = reverse
+					? forwardKeyframes
+							.slice(0, -1) // Exclude the last frame to avoid duplication
+							.reverse()
+							.map((keyframe, index) => ({
+								frame: forwardKeyframes[forwardKeyframes.length - 1].frame +
+									Math.round((index + 1) * fps),
+								value: keyframe.value,
+							}))
+					: [];
+
+				// Combine forward and reverse keyframes
+				const allKeyframes = [...forwardKeyframes, ...reverseKeyframes];
+
+				// Debugging: Log keyframes
+				console.log("Generated Keyframes (with frames):", allKeyframes);
+
+				// Ensure sufficient keyframes
+				if (allKeyframes.length > 1) {
+					keyframeAnimation.setKeys(allKeyframes);
+				} else {
+					console.warn("Insufficient keyframes for animation.");
+					resolve(animationGroup);
+					return;
+				}
+
+				// Apply easing function
+				flock.applyEasing(keyframeAnimation, easing);
+
+				// Add the animation to the group
+				animationGroup.addTargetedAnimation(keyframeAnimation, mesh);
+
+				console.log(
+					`Added animation to group "${animationGroupName}" for property "${property}" on mesh "${meshName}".`
+				);
+
+				const lastFrame = allKeyframes[allKeyframes.length - 1].frame;
+
+				if (mode === "START" || mode === "AWAIT") {
+					// Play the animation group
+					animationGroup.play(loop);
+
+					if (mode === "AWAIT") {
+						animationGroup.onAnimationEndObservable.add(() => {
+							console.log("Animation group completed.");
+							resolve(animationGroup);
+						});
+					} else {
+						resolve(animationGroup);
+					}
+				} else if (mode === "CREATE") {
+					// Do not start the animation group
+					console.log("Animation group created but not started.");
+					resolve(animationGroup);
+				} else {
+					console.warn(`Unknown mode: ${mode}`);
+					resolve(animationGroup);
+				}
+			});
+		});
+	},
+	applyEasing(animation, easing) {
+		let easingFunction;
+
+		switch (easing.toLowerCase()) {
+			case "ease-in":
+				easingFunction = new BABYLON.QuadraticEase();
+				easingFunction.setEasingMode(BABYLON.EasingFunction.EASINGMODE_EASEIN);
+				break;
+			case "ease-out":
+				easingFunction = new BABYLON.QuadraticEase();
+				easingFunction.setEasingMode(BABYLON.EasingFunction.EASINGMODE_EASEOUT);
+				break;
+			case "ease-in-out":
+				easingFunction = new BABYLON.QuadraticEase();
+				easingFunction.setEasingMode(BABYLON.EasingFunction.EASINGMODE_EASEINOUT);
+				break;
+			case "linear":
+			default:
+				easingFunction = null; // No easing for linear
+				break;
+		}
+
+		if (easingFunction) {
+			animation.setEasingFunction(easingFunction);
+			console.log(`Applied easing: ${easing}`);
+		} else {
+			console.log("No easing applied (linear).");
+		}
 	},
 	animateKeyFrames(
 		meshName,

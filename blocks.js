@@ -738,17 +738,17 @@ export function defineBlocks() {
 		init: function () {
 			this.jsonInit({
 				type: "colour_keyframe",
-				message0: "colour: %1 duration: %2",
-				args0: [					
-					{
-						type: "input_value",
-						name: "VALUE",
-						check: "Colour", // Reusing your existing colour block
-					},
+				message0: "at %1 colour: %2",
+				args0: [
 					{
 						type: "input_value",
 						name: "DURATION",
 						check: "Number",
+					},
+					{
+						type: "input_value",
+						name: "VALUE",
+						check: "Colour", // Reusing your existing colour block
 					},
 				],
 				colour: categoryColours["Animate"],
@@ -764,17 +764,17 @@ export function defineBlocks() {
 		init: function () {
 			this.jsonInit({
 				type: "number_keyframe",
-				message0: "value: %1 duration: %2",
-				args0: [					
-					{
-						type: "input_value",
-						name: "VALUE",
-						check: "Number", // Reusing your existing colour block
-					},
+				message0: "at: %1 value: %2",
+				args0: [
 					{
 						type: "input_value",
 						name: "DURATION",
 						check: "Number",
+					},
+					{
+						type: "input_value",
+						name: "VALUE",
+						check: "Number", // Reusing your existing colour block
 					},
 				],
 				colour: categoryColours["Animate"],
@@ -790,8 +790,13 @@ export function defineBlocks() {
 		init: function () {
 			this.jsonInit({
 				type: "xyz_keyframe",
-				message0: "x: %1 y: %2 z: %3 duration: %4",
+				message0: "at: %1 x: %2 y: %3 z: %4",
 				args0: [
+					{
+						type: "input_value",
+						name: "DURATION",
+						check: "Number",
+					},
 					{
 						type: "input_value",
 						name: "X",
@@ -805,11 +810,6 @@ export function defineBlocks() {
 					{
 						type: "input_value",
 						name: "Z",
-						check: "Number",
-					},
-					{
-						type: "input_value",
-						name: "DURATION",
 						check: "Number",
 					},
 				],
@@ -885,6 +885,91 @@ export function defineBlocks() {
 				colour: categoryColours["Animate"],
 				tooltip:
 					"Animates an array of keyframes on the selected mesh, with easing, optional looping, and reversing.",
+				helpUrl: "",
+			});
+		},
+	};
+
+	Blockly.Blocks["animation"] = {
+		init: function () {
+			this.jsonInit({
+				type: "animation",
+				message0:
+					"animate %1 property %2 group %3\nkeyframes %4\neasing %5 loop %6 reverse %7 mode %8",
+				args0: [
+					{
+						type: "field_variable",
+						name: "MESH",
+						variable: window.currentMesh, // Assuming current mesh is stored here
+					},
+					{
+						type: "field_dropdown",
+						name: "PROPERTY",
+						options: [
+							// Full properties
+							["color", "color"],
+							["alpha", "alpha"],
+							["position", "position"],
+							["rotation", "rotation"],
+							["scaling", "scaling"],
+							// Individual components
+							["position.x", "position.x"],
+							["position.y", "position.y"],
+							["position.z", "position.z"],
+							["rotation.x", "rotation.x"],
+							["rotation.y", "rotation.y"],
+							["rotation.z", "rotation.z"],
+							["scaling.x", "scaling.x"],
+							["scaling.y", "scaling.y"],
+							["scaling.z", "scaling.z"],
+						],
+					},
+					{
+						type: "field_variable",
+						name: "ANIMATION_GROUP",
+						variable: "animation1", // Default variable name for the animation group
+					},
+					{
+						type: "input_value",
+						name: "KEYFRAMES",
+						check: "Array", // Accepts an array of keyframes
+					},
+					{
+						type: "field_dropdown",
+						name: "EASING",
+						options: [
+							["linear", "LINEAR"],
+							["ease-in", "EASEIN"],
+							["ease-out", "EASEOUT"],
+							["ease-in-out", "EASEINOUT"],
+						],
+					},
+					{
+						type: "field_checkbox",
+						name: "LOOP",
+						checked: false, // Checkbox for looping
+					},
+					{
+						type: "field_checkbox",
+						name: "REVERSE",
+						checked: false, // Checkbox for reversing the animation
+					},
+					{
+						type: "field_dropdown",
+						name: "MODE",
+						options: [
+							["start", "START"], // Start the animation immediately (default)
+							["await", "AWAIT"], // Start and wait for the animation to complete
+							["create", "CREATE"], // Create the animation without starting it
+						],
+					},
+				],
+				inputsInline: true,
+				previousStatement: null,
+				nextStatement: null,
+				colour: categoryColours["Animate"],
+				tooltip:
+					"Creates an animation group for the selected mesh and property, with keyframes, easing, optional looping, and reversing. Choose create, start, or await to control behaviour.",
 				helpUrl: "",
 			});
 		},
@@ -1589,19 +1674,19 @@ export function defineBlocks() {
 						options: [
 							["VR (Oculus Quest or phone viewer)", "VR"],
 							["AR (Augmented Reality)", "AR"],
-							["Magic Window (look-around)", "MAGIC_WINDOW"]
+							["Magic Window (look-around)", "MAGIC_WINDOW"],
 						],
 					},
 				],
 				previousStatement: null,
 				nextStatement: null,
 				colour: categoryColours["Scene"],
-				tooltip: "Set the XR mode for the scene.\nOptions: VR, AR, Magic Window.",
+				tooltip:
+					"Set the XR mode for the scene.\nOptions: VR, AR, Magic Window.",
 				helpUrl: "",
 			});
 		},
 	};
-
 
 	Blockly.Blocks["comment"] = {
 		init: function () {
@@ -4556,7 +4641,7 @@ Blockly.FieldVariable.prototype.onItemSelected_ = function (menu, menuItem) {
 	}
 };
 
-Blockly.Msg["LISTS_CREATE_WITH_INPUT_WITH"] = "create list";
+Blockly.Msg["LISTS_CREATE_WITH_INPUT_WITH"] = "";
 
 Blockly.Blocks["microbit_input"] = {
 	init: function () {
