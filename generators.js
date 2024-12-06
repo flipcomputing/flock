@@ -207,8 +207,8 @@ export function defineGenerators() {
 			.join(", ");
 
 		return `
-			const ${animationGroupVar} = await createAnimation(
-				"${animationGroupVar}",
+			${animationGroupVar} = await createAnimation(
+				${animationGroupVar},
 				${meshVariable},
 				"${property}",
 				[${keyframesCode}],

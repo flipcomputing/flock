@@ -3602,6 +3602,10 @@ export const flock = {
 		mode = "START" // Default to starting the animation
 	) {
 		return new Promise(async (resolve) => {
+			// Ensure animationGroupName is not null; generate a unique name if it is
+
+			animationGroupName = animationGroupName || `animation_${flock.scene.getUniqueId()}`;
+
 			// Ensure the animation group exists or create a new one
 			let animationGroup = flock.scene.getAnimationGroupByName(animationGroupName);
 			if (!animationGroup) {
@@ -3612,7 +3616,7 @@ export const flock = {
 			await flock.whenModelReady(meshName, async (mesh) => {
 				if (!mesh) {
 					console.warn(`Mesh ${meshName} not found.`);
-					resolve(animationGroup);
+					resolve(animationGroupName);
 					return;
 				}
 
@@ -3638,13 +3642,13 @@ export const flock = {
 				// Generate reverse keyframes by mirroring forward frames
 				const reverseKeyframes = reverse
 					? forwardKeyframes
-							.slice(0, -1) // Exclude the last frame to avoid duplication
-							.reverse()
-							.map((keyframe, index) => ({
-								frame: forwardKeyframes[forwardKeyframes.length - 1].frame +
-									Math.round((index + 1) * fps),
-								value: keyframe.value,
-							}))
+						  .slice(0, -1) // Exclude the last frame to avoid duplication
+						  .reverse()
+						  .map((keyframe, index) => ({
+							  frame: forwardKeyframes[forwardKeyframes.length - 1].frame +
+								  Math.round((index + 1) * fps),
+							  value: keyframe.value,
+						  }))
 					: [];
 
 				// Combine forward and reverse keyframes
@@ -3658,7 +3662,7 @@ export const flock = {
 					keyframeAnimation.setKeys(allKeyframes);
 				} else {
 					console.warn("Insufficient keyframes for animation.");
-					resolve(animationGroup);
+					resolve(animationGroupName);
 					return;
 				}
 
@@ -3681,15 +3685,15 @@ export const flock = {
 					if (mode === "AWAIT") {
 						animationGroup.onAnimationEndObservable.add(() => {
 							console.log("Animation group completed.");
-							resolve(animationGroup);
+							resolve(animationGroupName);
 						});
 					} else {
-						resolve(animationGroup);
+						resolve(animationGroupName);
 					}
 				} else if (mode === "CREATE") {
 					// Do not start the animation group
 					console.log("Animation group created but not started.");
-					resolve(animationGroup);
+					resolve(animationGroupName);
 				} else {
 					console.warn(`Unknown mode: ${mode}`);
 					resolve(animationGroup);
