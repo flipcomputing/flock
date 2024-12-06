@@ -5980,13 +5980,13 @@ export const flock = {
 				download(mesh.name + ".obj", objData, "text/plain");
 			} else if (format === "GLB") {
 				mesh.flipFaces();
-				flock.EXPORT.GLTF2Export.GLBAsync(
-					flock.scene,
-					mesh.name + ".glb",
-				).then((glb) => {
-					mesh.flipFaces();
+				flock.EXPORT.GLTF2Export.GLBAsync(flock.scene, mesh.name + ".glb", {
+					shouldExportNode: (node) => node === mesh || mesh.getChildMeshes().includes(node),
+				}).then((glb) => {
+					mesh.flipFaces(); 
 					glb.downloadFiles();
 				});
+
 			}
 		});
 	},
