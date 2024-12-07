@@ -1726,8 +1726,31 @@ export const flock = {
 			// Create a list of the mesh and its child meshes
 			const meshesToDispose = mesh.getChildMeshes().concat(mesh);
 
+			// Find and dispose animations targeting the mesh or its children
+			meshesToDispose.forEach((currentMesh) => {
+				// Loop through all animation groups and process animations targeting this mesh
+				flock.scene.animationGroups.slice().forEach((animationGroup) => {
+					// Filter targeted animations for this mesh
+					const animationsToRemove = animationGroup.targetedAnimations.filter(
+						(anim) => anim.target === currentMesh
+					);
+
+					// Remove the targeted animations
+					animationsToRemove.forEach((animation) => {
+						animationGroup.removeTargetedAnimation(animation);
+					});
+
+					// If the animation group has no more targeted animations, dispose it
+					if (animationGroup.targetedAnimations.length === 0) {
+						animationGroup.stop(); // Stop the animation group
+						animationGroup.dispose(); // Dispose of the group
+						console.log(`Animation group "${animationGroup.name}" disposed.`);
+					}
+				});
+			});
+
 			// Loop through each mesh in the list and dispose of it
-			meshesToDispose.forEach(function (currentMesh) {
+			meshesToDispose.forEach((currentMesh) => {
 				// Break parent-child relationship
 				currentMesh.parent = null;
 
@@ -3603,7 +3626,6 @@ export const flock = {
 	) {
 		return new Promise(async (resolve) => {
 			// Ensure animationGroupName is not null; generate a unique name if it is
-
 			animationGroupName = animationGroupName || `animation_${flock.scene.getUniqueId()}`;
 
 			// Ensure the animation group exists or create a new one
@@ -3620,63 +3642,80 @@ export const flock = {
 					return;
 				}
 
-				const propertyToAnimate = flock.resolvePropertyToAnimate(property, mesh),
-					fps = 30, // Frames per second
-					animationType = flock.determineAnimationType(property),
-					loopMode = BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE; // Always use cycle mode for looping
+				// Determine meshes to animate based on the property
+				const meshesToAnimate =
+					property === "alpha"
+						? [mesh, ...mesh.getDescendants()].filter((m) => m.material) // Include all descendants for alpha
+						: [mesh].filter((m) => m.material); // Only animate the root mesh for other properties
 
-				const keyframeAnimation = new flock.BABYLON.Animation(
-					`${animationGroupName}_${property}`,
-					propertyToAnimate,
-					fps,
-					animationType,
-					loopMode
-				);
-
-				// Convert keyframes (with absolute time in seconds) to Babylon.js frames
-				const forwardKeyframes = keyframes.map((keyframe) => ({
-					frame: Math.round((keyframe.duration || 0) * fps), // Convert seconds to frames
-					value: flock.parseKeyframeValue(property, keyframe.value),
-				}));
-
-				// Generate reverse keyframes by mirroring forward frames
-				const reverseKeyframes = reverse
-					? forwardKeyframes
-						  .slice(0, -1) // Exclude the last frame to avoid duplication
-						  .reverse()
-						  .map((keyframe, index) => ({
-							  frame: forwardKeyframes[forwardKeyframes.length - 1].frame +
-								  Math.round((index + 1) * fps),
-							  value: keyframe.value,
-						  }))
-					: [];
-
-				// Combine forward and reverse keyframes
-				const allKeyframes = [...forwardKeyframes, ...reverseKeyframes];
-
-				// Debugging: Log keyframes
-				console.log("Generated Keyframes (with frames):", allKeyframes);
-
-				// Ensure sufficient keyframes
-				if (allKeyframes.length > 1) {
-					keyframeAnimation.setKeys(allKeyframes);
-				} else {
-					console.warn("Insufficient keyframes for animation.");
+				if (meshesToAnimate.length === 0) {
+					console.warn(`No meshes with materials found for ${meshName}.`);
 					resolve(animationGroupName);
 					return;
 				}
 
-				// Apply easing function
-				flock.applyEasing(keyframeAnimation, easing);
+				for (const targetMesh of meshesToAnimate) {
+					const propertyToAnimate = flock.resolvePropertyToAnimate(property, targetMesh),
+						fps = 30, // Frames per second
+						animationType = flock.determineAnimationType(property),
+						loopMode = BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE; // Always use cycle mode for looping
 
-				// Add the animation to the group
-				animationGroup.addTargetedAnimation(keyframeAnimation, mesh);
+					const keyframeAnimation = new flock.BABYLON.Animation(
+						`${animationGroupName}_${property}`,
+						propertyToAnimate,
+						fps,
+						animationType,
+						loopMode
+					);
 
-				console.log(
-					`Added animation to group "${animationGroupName}" for property "${property}" on mesh "${meshName}".`
-				);
+					// Convert keyframes (with absolute time in seconds) to Babylon.js frames
+					const forwardKeyframes = keyframes.map((keyframe) => ({
+						frame: Math.round((keyframe.duration || 0) * fps), // Convert seconds to frames
+						value: flock.parseKeyframeValue(property, keyframe.value),
+					}));
 
-				const lastFrame = allKeyframes[allKeyframes.length - 1].frame;
+					// Generate reverse keyframes by mirroring forward frames
+					const reverseKeyframes = reverse
+						? forwardKeyframes
+							  .slice(0, -1) // Exclude the last frame to avoid duplication
+							  .reverse()
+							  .map((keyframe, index) => ({
+								  frame: forwardKeyframes[forwardKeyframes.length - 1].frame +
+									  Math.round((index + 1) * fps),
+								  value: keyframe.value,
+							  }))
+						: [];
+
+					// Combine forward and reverse keyframes
+					const allKeyframes = [...forwardKeyframes, ...reverseKeyframes];
+
+					// Debugging: Log keyframes
+					console.log("Generated Keyframes (with frames):", allKeyframes);
+
+					// Ensure sufficient keyframes
+					if (allKeyframes.length > 1) {
+						keyframeAnimation.setKeys(allKeyframes);
+					} else {
+						console.warn("Insufficient keyframes for animation.");
+						continue; // Skip this mesh
+					}
+
+					// Apply easing function
+					flock.applyEasing(keyframeAnimation, easing);
+
+					// Add the animation to the group
+					animationGroup.addTargetedAnimation(keyframeAnimation, targetMesh);
+
+					console.log(
+						`Added animation to group "${animationGroupName}" for property "${property}" on mesh "${targetMesh.name}".`
+					);
+				}
+
+				if (animationGroup.targetedAnimations.length === 0) {
+					console.warn("No animations added to the group.");
+					resolve(animationGroupName);
+					return;
+				}
 
 				if (mode === "START" || mode === "AWAIT") {
 					// Play the animation group
