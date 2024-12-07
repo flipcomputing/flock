@@ -3715,10 +3715,8 @@ export const flock = {
 					return;
 				}
 
-				const lastFrame = keyframes[keyframes.length - 1].frame;
-
 				if (mode === "START" || mode === "AWAIT") {
-					// Play the animation group
+					// Start the animation group
 					animationGroup.play(loop);
 
 					if (mode === "AWAIT") {
@@ -3730,7 +3728,10 @@ export const flock = {
 						resolve(animationGroupName);
 					}
 				} else if (mode === "CREATE") {
-					// Do not start the animation group
+					
+					// Do not start the animation group and prevent automatic playback
+					animationGroup.stop(); // Explicitly ensure animations do not play
+					animationGroup.onAnimationGroupPlayObservable.clear(); // Clear any unintended triggers
 					console.log("Animation group created but not started.");
 					resolve(animationGroupName);
 				} else {
