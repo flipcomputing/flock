@@ -1767,10 +1767,6 @@ export const flock = {
 				const isOrphanedGroup = targets.length === 0;
 
 				if (targetsMeshOrDescendants || isOrphanedGroup) {
-					console.log(
-						`Disposing animation group "${animationGroup.name}". Targets: `,
-						targets
-					);
 					animationGroup.stop();
 					animationGroup.dispose();
 
@@ -1785,9 +1781,7 @@ export const flock = {
 			// 3. Dispose standalone animations on meshes
 			meshesToDispose.forEach((currentMesh) => {
 				if (currentMesh.animations) {
-					currentMesh.animations.forEach((animation) => {
-						console.log(`Removing standalone animation from mesh "${currentMesh.name}".`);
-					});
+					
 					currentMesh.animations.length = 0; // Clear animations array
 				}
 			});
@@ -1812,16 +1806,9 @@ export const flock = {
 
 				// Dispose the mesh
 				currentMesh.dispose();
-				console.log(`Mesh "${currentMesh.name}" disposed.`);
+				
 			});
-
-			// 5. Debug: Check for remaining animation groups
-			flock.scene.animationGroups.forEach((group) => {
-				console.log(
-					`Remaining animation group "${group.name}" targets:`,
-					group.targetedAnimations.map((anim) => anim.target)
-				);
-			});
+			
 		});
 	},
 	async playAnimation(
@@ -4112,7 +4099,7 @@ export const flock = {
 				const allKeyframes = [...forwardKeyframes, ...reverseKeyframes];
 
 				// Log generated keyframes for debugging
-				console.log("Generated Keyframes: ", allKeyframes);
+				//console.log("Generated Keyframes: ", allKeyframes);
 
 				if (allKeyframes.length > 1) {
 					keyframeAnimation.setKeys(allKeyframes);
@@ -4132,7 +4119,7 @@ export const flock = {
 
 				const lastFrame = allKeyframes[allKeyframes.length - 1].frame;
 
-				console.log(`Animating from frame 0 to ${lastFrame}`);
+				//console.log(`Animating from frame 0 to ${lastFrame}`);
 
 				const animatable = flock.scene.beginAnimation(
 					mesh,
@@ -4142,7 +4129,7 @@ export const flock = {
 				);
 
 				animatable.onAnimationEndObservable.add(() => {
-					console.log("Animation completed.");
+					//console.log("Animation completed.");
 					resolve();
 				});
 			});
