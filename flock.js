@@ -1750,40 +1750,49 @@ export const flock = {
 	},
 	dispose(modelName) {
 		return flock.whenModelReady(modelName, (mesh) => {
-			// Create a list of the mesh and its child meshes
+			// 1. Gather all meshes and descendants
 			const meshesToDispose = mesh.getChildMeshes().concat(mesh);
+			const allDescendants = mesh.getDescendants();
 
-			// Filter animation groups that target any of the meshes to be disposed
-			const groupsToProcess = flock.scene.animationGroups.filter(
-				(animationGroup) =>
-					animationGroup.targetedAnimations.some((anim) =>
-						meshesToDispose.includes(anim.target)
-					)
-			);
+			// 2. Process AnimationGroups
+			flock.scene.animationGroups.slice().forEach((animationGroup) => {
+				const targets = animationGroup.targetedAnimations.map((anim) => anim.target);
 
-			// Process each relevant animation group
-			groupsToProcess.forEach((animationGroup) => {
-				// Get the animations that should remain
-				const remainingAnimations = animationGroup.targetedAnimations.filter((anim) => {
-					const shouldRemove = meshesToDispose.includes(anim.target);
-					return !shouldRemove; // Keep animations not targeting disposed meshes
-				});
+				// Identify if the group targets meshes or descendants
+				const targetsMeshOrDescendants =
+					targets.some((target) => meshesToDispose.includes(target)) ||
+					targets.some((target) => allDescendants.includes(target));
 
-				// Update the animation group by clearing and re-adding remaining animations
-				animationGroup.targetedAnimations.length = 0; // Clear existing animations
-				remainingAnimations.forEach((anim) =>
-					animationGroup.addTargetedAnimation(anim.animation, anim.target)
-				);
+				// Orphaned or programmatically created groups (no specific targets)
+				const isOrphanedGroup = targets.length === 0;
 
-				// If no animations remain, dispose of the animation group
-				if (animationGroup.targetedAnimations.length === 0) {
+				if (targetsMeshOrDescendants || isOrphanedGroup) {
+					console.log(
+						`Disposing animation group "${animationGroup.name}". Targets: `,
+						targets
+					);
 					animationGroup.stop();
 					animationGroup.dispose();
-					
-				} 
+
+					// Remove the group from the scene's animationGroups array
+					const index = flock.scene.animationGroups.indexOf(animationGroup);
+					if (index !== -1) {
+						flock.scene.animationGroups.splice(index, 1);
+					}
+				}
 			});
 
-			// Loop through each mesh in the list and dispose of it
+			// 3. Dispose standalone animations on meshes
+			meshesToDispose.forEach((currentMesh) => {
+				if (currentMesh.animations) {
+					currentMesh.animations.forEach((animation) => {
+						console.log(`Removing standalone animation from mesh "${currentMesh.name}".`);
+					});
+					currentMesh.animations.length = 0; // Clear animations array
+				}
+			});
+
+			// 4. Remove and dispose meshes
 			meshesToDispose.forEach((currentMesh) => {
 				// Break parent-child relationship
 				currentMesh.parent = null;
@@ -1792,7 +1801,7 @@ export const flock = {
 				flock.scene.removeMesh(currentMesh);
 				currentMesh.setEnabled(false);
 
-				// Remove body from the physics world if it exists
+				// Remove physics body if it exists
 				if (currentMesh.physics && currentMesh.physics._pluginData) {
 					flock.hk._hknp.HP_World_RemoveBody(
 						flock.hk.world,
@@ -1801,8 +1810,17 @@ export const flock = {
 					currentMesh.physics.dispose();
 				}
 
-				// Dispose of the mesh
+				// Dispose the mesh
 				currentMesh.dispose();
+				console.log(`Mesh "${currentMesh.name}" disposed.`);
+			});
+
+			// 5. Debug: Check for remaining animation groups
+			flock.scene.animationGroups.forEach((group) => {
+				console.log(
+					`Remaining animation group "${group.name}" targets:`,
+					group.targetedAnimations.map((anim) => anim.target)
+				);
 			});
 		});
 	},
