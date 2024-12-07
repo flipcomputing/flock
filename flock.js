@@ -3618,6 +3618,31 @@ export const flock = {
 		const descendants = mesh.getDescendants();
 		return descendants.find((descendant) => descendant.material) || null;
 	},
+	addAnimationToGroup(animationGroup, animation, target) {
+		// Add the animation to the group
+		animationGroup.addTargetedAnimation(animation, target);
+
+		if (animationGroup.isStarted) {
+			// Get the current frame of the first animation in the group
+			const currentFrame = animationGroup.targetedAnimations[0]?.animation.runtimeAnimations[0]?.currentFrame;
+
+			if (currentFrame !== undefined) {
+				// Find the RuntimeAnimation for the newly added animation
+				const runtimeAnimation = animation.runtimeAnimations.find(
+					(ra) => ra.target === target
+				);
+
+				if (runtimeAnimation) {
+					runtimeAnimation.goToFrame(currentFrame);
+					console.log(`New animation synchronised to frame ${currentFrame}.`);
+				} else {
+					console.warn("RuntimeAnimation for the new animation not found.");
+				}
+			} else {
+				console.warn("Could not retrieve the current frame for synchronisation.");
+			}
+		}
+	},
 	createAnimation(
 		animationGroupName,
 		meshName,
@@ -3702,7 +3727,7 @@ export const flock = {
 					flock.applyEasing(keyframeAnimation, easing);
 
 					// Add the animation to the group
-					animationGroup.addTargetedAnimation(keyframeAnimation, targetMesh);
+		flock.addAnimationToGroup(animationGroup, keyframeAnimation, targetMesh);
 
 					console.log(
 						`Added animation to group "${animationGroupName}" for property "${property}" on mesh "${targetMesh.name}".`
