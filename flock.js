@@ -1712,11 +1712,15 @@ export const flock = {
 	},
 	setAlpha(modelName, alphaValue) {
 		return flock.whenModelReady(modelName, (mesh) => {
-			let allMeshes = [mesh].concat(mesh.getChildMeshes(false));
+			// Get the mesh and all its descendants
+			let allMeshes = [mesh, ...mesh.getDescendants()];
 
+			// Set alpha for each mesh's material if it exists
 			allMeshes.forEach((nextMesh) => {
 				if (nextMesh.material) {
 					nextMesh.material.alpha = alphaValue;
+					   nextMesh.material.transparencyMode = BABYLON.Material.MATERIAL_ALPHABLEND;
+
 				}
 			});
 		});
