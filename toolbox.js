@@ -1365,6 +1365,26 @@ export const toolbox = {
 				},
 				{
 					kind: "block",
+					type: "control_animation_group",
+					keyword: "group",
+					inputsInline: true
+				},
+				{
+					kind: "block",
+					type: "animate_from",
+					inputs: {
+						TIME: {
+							shadow: {
+								type: "math_number",
+								fields: {
+									NUM: 1.0, // Default time in seconds
+								},
+							},
+						},
+					},
+				},
+				{
+					kind: "block",
 					type: "colour_keyframe",
 					inputs: {
 						VALUE: {

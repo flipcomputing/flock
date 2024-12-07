@@ -1544,6 +1544,30 @@ export function defineGenerators() {
 		return `${helperFunction}(${modelName}, ${speed});\n`;
 	};
 
+	javascriptGenerator.forBlock['control_animation_group'] = function (block) {
+		const animationGroupName = javascriptGenerator.nameDB_.getName(
+			block.getFieldValue('GROUP_NAME'),
+			Blockly.Names.NameType.VARIABLE
+		);
+		const action = block.getFieldValue('ACTION');
+
+		return `${action}AnimationGroup(${animationGroupName});\n`;
+	};
+
+	javascriptGenerator.forBlock["animate_from"] = function (block) {
+		const groupVariable = javascriptGenerator.nameDB_.getName(
+			block.getFieldValue("GROUP_NAME"),
+			Blockly.Names.NameType.VARIABLE
+		);
+		const timeInSeconds = javascriptGenerator.valueToCode(
+			block,
+			"TIME",
+			javascriptGenerator.ORDER_ATOMIC
+		);
+
+		return `animateFrom(${groupVariable}, ${timeInSeconds});\n`;
+	};
+
 	javascriptGenerator.forBlock["up"] = function (block) {
 		const modelName = javascriptGenerator.nameDB_.getName(
 			block.getFieldValue("MODEL_VAR"),

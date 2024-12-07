@@ -992,6 +992,65 @@ export function defineBlocks() {
 		},
 	};
 
+	Blockly.Blocks["control_animation_group"] = {
+		init: function () {
+			this.jsonInit({
+				type: "animation_group_control",
+				message0: "animation group %1 %2",
+				args0: [
+					{
+						type: "field_variable",
+						name: "GROUP_NAME",
+						variable: "animation1",
+					},
+					{
+						type: "field_dropdown",
+						name: "ACTION",
+						options: [
+							["▶️ Play", "play"],
+							["⏸️ Pause", "pause"],
+							["⏹️ Stop", "stop"],
+						],
+					},
+				],
+				inputsInline: true,
+				previousStatement: null,
+				nextStatement: null,
+				colour: categoryColours["Animate"],
+				tooltip: "Controls the animation group by playing, pausing, or stopping it.",
+				helpUrl: "",
+			});
+		},
+	};
+
+	Blockly.Blocks["animate_from"] = {
+		init: function () {
+			this.jsonInit({
+				type: "animate_from",
+				message0: "animate group %1 from %2 seconds",
+				args0: [
+					{
+						type: "field_variable",
+						name: "GROUP_NAME",
+						variable: "animation1",
+					},
+					{
+						type: "input_value",
+						name: "TIME",
+						check: "Number",
+					},
+				],
+				inputsInline: true,
+				previousStatement: null,
+				nextStatement: null,
+				colour: categoryColours["Animate"],
+				tooltip: "Starts animating the group from the specified time (in seconds).",
+				helpUrl: "",
+			});
+		},
+	};
+
+
 	Blockly.Blocks["stop_animations"] = {
 		init: function () {
 			this.jsonInit({
