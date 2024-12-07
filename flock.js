@@ -3646,17 +3646,11 @@ export const flock = {
 					return;
 				}
 
-				// Determine meshes to animate based on the property
+				// Determine the meshes to animate
 				const meshesToAnimate =
 					property === "alpha"
-						? [mesh, ...mesh.getDescendants()].filter((m) => m.material) // Include all descendants for alpha
-						: [mesh].filter((m) => m.material); // Only animate the root mesh for other properties
-
-				if (meshesToAnimate.length === 0) {
-					console.warn(`No meshes with materials found for ${meshName}.`);
-					resolve(animationGroupName);
-					return;
-				}
+						? [mesh, ...mesh.getDescendants()].filter((m) => m.material) // Include descendants for alpha
+						: [mesh]; // Only the root mesh for other properties
 
 				for (const targetMesh of meshesToAnimate) {
 					const propertyToAnimate = flock.resolvePropertyToAnimate(property, targetMesh),
@@ -3721,6 +3715,8 @@ export const flock = {
 					return;
 				}
 
+				const lastFrame = keyframes[keyframes.length - 1].frame;
+
 				if (mode === "START" || mode === "AWAIT") {
 					// Play the animation group
 					animationGroup.play(loop);
@@ -3743,6 +3739,35 @@ export const flock = {
 				}
 			});
 		});
+	},
+	applyEasing(animation, easing) {
+		let easingFunction;
+
+		switch (easing.toLowerCase()) {
+			case "ease-in":
+				easingFunction = new BABYLON.QuadraticEase();
+				easingFunction.setEasingMode(BABYLON.EasingFunction.EASINGMODE_EASEIN);
+				break;
+			case "ease-out":
+				easingFunction = new BABYLON.QuadraticEase();
+				easingFunction.setEasingMode(BABYLON.EasingFunction.EASINGMODE_EASEOUT);
+				break;
+			case "ease-in-out":
+				easingFunction = new BABYLON.QuadraticEase();
+				easingFunction.setEasingMode(BABYLON.EasingFunction.EASINGMODE_EASEINOUT);
+				break;
+			case "linear":
+			default:
+				easingFunction = null; // No easing for linear
+				break;
+		}
+
+		if (easingFunction) {
+			animation.setEasingFunction(easingFunction);
+			console.log(`Applied easing: ${easing}`);
+		} else {
+			console.log("No easing applied (linear).");
+		}
 	},
 	applyEasing(animation, easing) {
 		let easingFunction;
