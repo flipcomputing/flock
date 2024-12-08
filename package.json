@@ -22,6 +22,7 @@
     "@blockly/plugin-workspace-search": "^9.1.0",
     "@fontsource/asap": "^5.0.20",
     "@mit-app-inventor/blockly-plugin-workspace-multiselect": "^0.1.12",
+    "@types/estree": "^1.0.6",
     "babylonjs": "^7.24.0",
     "babylonjs-gui": "^7.8.0",
     "babylonjs-serializers": "^7.24.0",
@@ -31,10 +32,10 @@
   },
   "devDependencies": {
     "@babylonjs/inspector": "^7.8.0",
+    "chai": "^5.1.2",
+    "mocha": "^10.8.2",
     "vite": "^5.3.4",
     "vite-plugin-pwa": "^0.20.0",
-    "vite-plugin-static-copy": "^1.0.6",
-    "chai": "^5.1.2",
-    "mocha": "^10.8.2"
+    "vite-plugin-static-copy": "^1.0.6"
   }
 }
