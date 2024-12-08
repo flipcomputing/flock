@@ -908,13 +908,13 @@ export const flock = {
 		const blockId = modelId;
 		modelId += "_" + flock.scene.getUniqueId();
 
-		// Check if a master copy is already cached
+		// Check if a first copy is already cached
 		if (flock.modelCache[modelName]) {
-			//console.log(`Using cached master model: ${modelName}`);
+			//console.log(`Using cached first model: ${modelName}`);
 
-			// Clone from the cached master copy
-			const masterMesh = flock.modelCache[modelName];
-			const mesh = masterMesh.clone(modelId);
+			// Clone from the cached first copy
+			const firstMesh = flock.modelCache[modelName];
+			const mesh = firstMesh.clone(modelId);
 
 			// Reset transformations
 			mesh.scaling.copyFrom(BABYLON.Vector3.One());
@@ -928,6 +928,22 @@ export const flock = {
 			mesh.refreshBoundingInfo();
 			mesh.setEnabled(true);
 			mesh.visibility = 1;
+
+			// Function to set metadata
+			const setMetadata = (mesh) => {
+				mesh.metadata = {
+					sharedMaterial: true,
+					sharedGeometry: true,
+				};
+			};
+
+			// Set metadata on the root mesh
+			setMetadata(mesh);
+
+			// Set metadata on all descendants
+			mesh.getDescendants().forEach((descendant) => {
+				setMetadata(descendant);
+			});
 
 			if (callback) {
 				requestAnimationFrame(callback);
@@ -954,10 +970,10 @@ export const flock = {
 			.then((container) => {
 				console.log(`Model loaded: ${modelName}`);
 
-				// Clone a master copy from the first mesh
-				const masterMesh = container.meshes[0].clone(`${modelName}_master`);
-				masterMesh.setEnabled(false); // Disable the master copy
-				flock.modelCache[modelName] = masterMesh;
+				// Clone a first copy from the first mesh
+				const firstMesh = container.meshes[0].clone(`${modelName}_first`);
+				firstMesh.setEnabled(false); // Disable the first copy
+				flock.modelCache[modelName] = firstMesh;
 
 				container.addAllToScene();
 				flock.setupMesh(container.meshes[0], modelId, blockId, scale, x, y, z);
@@ -979,7 +995,8 @@ export const flock = {
 
 		return modelId;
 	},
-	ensureUniqueMaterial(mesh) {
+	ensureUniqueMaterial(mesh){
+
 		// Helper function to clone material for a mesh
 		const cloneMaterial = (targetMesh) => {
 			const newMaterial = targetMesh.material.clone(`${targetMesh.material.name}_clone`);
@@ -1831,7 +1848,6 @@ flock.BABYLON.SceneLoader.LoadAssetContainerAsync(
 
 			// Set alpha for each mesh's material if it exists
 			allMeshes.forEach((nextMesh) => {
-				flock.ensureUniqueMaterial(nextMesh); 
 				if (nextMesh.material) {
 					nextMesh.material.alpha = alphaValue;
 					nextMesh.material.transparencyMode =
@@ -3340,7 +3356,6 @@ flock.BABYLON.SceneLoader.LoadAssetContainerAsync(
 					: "material.albedoColor";
 
 			case "alpha":
-				flock.ensureUniqueMaterial(mesh); 
 				if (mesh.material) {
 					mesh.material.transparencyMode =
 						BABYLON.Material.MATERIAL_ALPHABLEND;
@@ -3536,6 +3551,11 @@ flock.BABYLON.SceneLoader.LoadAssetContainerAsync(
 					resolve(animationGroupName);
 					return;
 				}
+				if (property === "alpha")
+				{
+					flock.ensureUniqueMaterial(mesh); 
+
+				}
 
 				// Determine the meshes to animate
 				const meshesToAnimate =
@@ -3546,9 +3566,7 @@ flock.BABYLON.SceneLoader.LoadAssetContainerAsync(
 						: [mesh]; // Only the root mesh for other properties
 
 				for (const targetMesh of meshesToAnimate) {
-					if(property === "alpha"){
-						flock.ensureUniqueMaterial(targetMesh); 
-					}
+			
 					const propertyToAnimate = flock.resolvePropertyToAnimate(
 							property,
 							targetMesh,
