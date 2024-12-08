@@ -1074,7 +1074,6 @@ export const flock = {
 
 		const blockId = modelId;
 		modelId += "_" + flock.scene.getUniqueId();
-
 		flock.BABYLON.SceneLoader.LoadAssetContainerAsync(
 			"./models/",
 			modelName,
@@ -1761,6 +1760,7 @@ export const flock = {
 
 			// Set alpha for each mesh's material if it exists
 			allMeshes.forEach((nextMesh) => {
+				flock.ensureUniqueMaterial(nextMesh); 
 				if (nextMesh.material) {
 					nextMesh.material.alpha = alphaValue;
 					nextMesh.material.transparencyMode =
@@ -3253,11 +3253,13 @@ export const flock = {
 
 		switch (property) {
 			case "color":
+				flock.ensureUniqueMaterial(mesh); 
 				return mesh.material?.diffuseColor !== undefined
 					? "material.diffuseColor"
 					: "material.albedoColor";
 
 			case "alpha":
+				flock.ensureUniqueMaterial(mesh); 
 				if (mesh.material) {
 					mesh.material.transparencyMode =
 						BABYLON.Material.MATERIAL_ALPHABLEND;
@@ -3463,6 +3465,9 @@ export const flock = {
 						: [mesh]; // Only the root mesh for other properties
 
 				for (const targetMesh of meshesToAnimate) {
+					if(property === "alpha"){
+						flock.ensureUniqueMaterial(targetMesh); 
+					}
 					const propertyToAnimate = flock.resolvePropertyToAnimate(
 							property,
 							targetMesh,
