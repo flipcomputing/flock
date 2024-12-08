@@ -36,6 +36,8 @@ export const flock = {
 	disposed: null,
 	events: {},
 	modelCache: {},
+	originalModelTransformations: {},
+	modelsBeingLoaded: {},
 	geometryCache: {},
 	materialCache: {},
 	flockNotReady: true,
@@ -261,6 +263,8 @@ export const flock = {
 			flock.scene.activeCamera.inputs?.clear();
 			flock.events = null;
 			flock.modelCache = null;
+			flock.modelsBeingLoaded = null;
+			flock.originalModelTransformations = null;
 			flock.geometryCache = null;
 			flock.materialCache = null;
 			// Abort any ongoing operations if applicable
@@ -304,6 +308,8 @@ export const flock = {
 		// Reset scene-wide state
 		flock.events = {};
 		flock.modelCache = {};
+		flock.modelsBeingLoaded = {};
+		flock.originalModelTransformations = {};
 		flock.geometryCache = {};
 		flock.materialCache = {};
 		flock.disposed = false;
@@ -896,32 +902,80 @@ export const flock = {
 		modelId,
 		scale = 1,
 		position = { x: 0, y: 0, z: 0 },
-		callback = () => {},
+		callback = null,
 	}) {
 		const { x, y, z } = position;
 		const blockId = modelId;
 		modelId += "_" + flock.scene.getUniqueId();
 
-		flock.BABYLON.SceneLoader.LoadAssetContainerAsync(
+		// Check if a master copy is already cached
+		if (flock.modelCache[modelName]) {
+			//console.log(`Using cached master model: ${modelName}`);
+
+			// Clone from the cached master copy
+			const masterMesh = flock.modelCache[modelName];
+			const mesh = masterMesh.clone(modelId);
+
+			// Reset transformations
+			mesh.scaling.copyFrom(BABYLON.Vector3.One());
+			mesh.position.copyFrom(BABYLON.Vector3.Zero());
+			mesh.rotationQuaternion = null;
+			mesh.rotation.copyFrom(BABYLON.Vector3.Zero());
+
+			flock.setupMesh(mesh, modelId, blockId, scale, x, y, z); // Neutral setup
+
+			mesh.computeWorldMatrix(true);
+			mesh.refreshBoundingInfo();
+			mesh.setEnabled(true);
+			mesh.visibility = 1;
+
+			if (callback) {
+				requestAnimationFrame(callback);
+			}
+
+			return modelId;
+		}
+
+		// Check if model is already being loaded
+		if (flock.modelsBeingLoaded[modelName]) {
+			//console.log(`Waiting for model to load: ${modelName}`);
+			return flock.modelsBeingLoaded[modelName].then(() => {
+				return flock.newModel({ modelName, modelId, scale, position, callback });
+			});
+		}
+
+		// Start loading the model
+		//console.log(`Loading model: ${modelName}`);
+		const loadPromise = flock.BABYLON.SceneLoader.LoadAssetContainerAsync(
 			"./models/",
 			modelName,
 			flock.scene,
-			null,
-			null,
-			{ signal: flock.abortController.signal },
 		)
 			.then((container) => {
+				console.log(`Model loaded: ${modelName}`);
+
+				// Clone a master copy from the first mesh
+				const masterMesh = container.meshes[0].clone(`${modelName}_master`);
+				masterMesh.setEnabled(false); // Disable the master copy
+				flock.modelCache[modelName] = masterMesh;
+
 				container.addAllToScene();
-				const mesh = container.meshes[0];
-				flock.setupMesh(mesh, modelId, blockId, scale, x, y, z);
-				if (typeof callback === "function") {	
-				requestAnimationFrame(() => callback());
-					
+				flock.setupMesh(container.meshes[0], modelId, blockId, scale, x, y, z);
+
+				if (callback) {
+					requestAnimationFrame(callback);
 				}
 			})
 			.catch((error) => {
-				console.log("Error loading", error);
+				console.error(`Error loading model: ${modelName}`, error);
+				
+			})
+			.finally(() => {
+				delete flock.modelsBeingLoaded[modelName]; // Remove from loading map
 			});
+
+		// Track the ongoing load
+		flock.modelsBeingLoaded[modelName] = loadPromise;
 
 		return modelId;
 	},
@@ -1074,7 +1128,8 @@ export const flock = {
 
 		const blockId = modelId;
 		modelId += "_" + flock.scene.getUniqueId();
-		flock.BABYLON.SceneLoader.LoadAssetContainerAsync(
+
+flock.BABYLON.SceneLoader.LoadAssetContainerAsync(
 			"./models/",
 			modelName,
 			flock.scene,
@@ -1083,15 +1138,20 @@ export const flock = {
 			{ signal: flock.abortController.signal },
 		)
 			.then((container) => {
+				
 				container.addAllToScene();
+				
 				const mesh = container.meshes[0];
-
+				
 				flock.setupMesh(mesh, modelId, blockId, scale, x, y, z, color);
-
+				
 				flock.changeColorMesh(mesh, color);
 
 				if (typeof callback === "function") {
-					requestAnimationFrame(() => callback());
+					
+					requestAnimationFrame(() => {
+						callback();
+					});
 				}
 			})
 			.catch((error) => {
