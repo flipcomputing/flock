@@ -109,12 +109,12 @@ export function defineGenerators() {
 	javascriptGenerator.forBlock["animation"] = function (block) {
 		const meshVariable = javascriptGenerator.nameDB_.getName(
 			block.getFieldValue("MESH"),
-			Blockly.Names.NameType.VARIABLE
+			Blockly.Names.NameType.VARIABLE,
 		);
 		const property = block.getFieldValue("PROPERTY");
 		const animationGroupVar = javascriptGenerator.nameDB_.getName(
 			block.getFieldValue("ANIMATION_GROUP"),
-			Blockly.Names.NameType.VARIABLE
+			Blockly.Names.NameType.VARIABLE,
 		);
 		const keyframesBlock = block.getInputTargetBlock("KEYFRAMES");
 		const keyframesArray = [];
@@ -139,7 +139,7 @@ export function defineGenerators() {
 						value = javascriptGenerator.valueToCode(
 							valueBlock,
 							"VALUE",
-							javascriptGenerator.ORDER_NONE
+							javascriptGenerator.ORDER_NONE,
 						);
 					} else if (
 						["position", "rotation", "scaling"].includes(property)
@@ -149,19 +149,19 @@ export function defineGenerators() {
 							javascriptGenerator.valueToCode(
 								valueBlock,
 								"X",
-								javascriptGenerator.ORDER_ATOMIC
+								javascriptGenerator.ORDER_ATOMIC,
 							) || 0;
 						const y =
 							javascriptGenerator.valueToCode(
 								valueBlock,
 								"Y",
-								javascriptGenerator.ORDER_ATOMIC
+								javascriptGenerator.ORDER_ATOMIC,
 							) || 0;
 						const z =
 							javascriptGenerator.valueToCode(
 								valueBlock,
 								"Z",
-								javascriptGenerator.ORDER_ATOMIC
+								javascriptGenerator.ORDER_ATOMIC,
 							) || 0;
 						value = `new flock.BABYLON.Vector3(${x}, ${y}, ${z})`; // Generate the text for Vector3
 					} else {
@@ -169,7 +169,7 @@ export function defineGenerators() {
 						value = javascriptGenerator.valueToCode(
 							valueBlock,
 							"VALUE",
-							javascriptGenerator.ORDER_ATOMIC
+							javascriptGenerator.ORDER_ATOMIC,
 						);
 					}
 				} else {
@@ -184,8 +184,8 @@ export function defineGenerators() {
 					? javascriptGenerator.valueToCode(
 							durationBlock,
 							"DURATION",
-							javascriptGenerator.ORDER_ATOMIC
-					  )
+							javascriptGenerator.ORDER_ATOMIC,
+						)
 					: "1"; // Default duration of 1 second if not specified
 
 				keyframesArray.push({ value, duration });
@@ -202,7 +202,7 @@ export function defineGenerators() {
 				(kf) => `{
 			value: ${kf.value}, 
 			duration: ${kf.duration}
-		  }`
+		  }`,
 			)
 			.join(", ");
 
@@ -219,7 +219,6 @@ export function defineGenerators() {
 			);
 		`;
 	};
-
 
 	javascriptGenerator.forBlock["animate_keyframes"] = function (block) {
 		const meshVar = javascriptGenerator.nameDB_.getName(
@@ -834,12 +833,57 @@ export function defineGenerators() {
 		});\n`;
 	};
 
+	javascriptGenerator.forBlock["clone_mesh"] = function (block) {
+		// Get the source mesh variable
+		const sourceMeshName = javascriptGenerator.nameDB_.getName(
+			block.getFieldValue("SOURCE_MESH"),
+			Blockly.Names.NameType.VARIABLE,
+		);
+
+		// Get the target clone variable
+		const cloneVariableName = javascriptGenerator.nameDB_.getName(
+			block.getFieldValue("CLONE_VAR"),
+			Blockly.Names.NameType.VARIABLE,
+		);
+
+		// Generate a unique ID for the clone
+		const cloneId = sourceMeshName + "_" + generateUniqueId();
+		meshMap[cloneId] = block;
+		meshBlockIdMap[cloneId] = block.id;
+
+		// Generate the code for the "do" part (if present)
+		let doCode = "";
+		if (block.getInput("DO")) {
+			doCode = javascriptGenerator.statementToCode(block, "DO") || "";
+		}
+
+		// Wrap "DO" code in an async function if it exists
+		doCode = doCode ? `async function() {\n${doCode}\n}` : "";
+
+		// Return the code to clone the mesh
+		return `${cloneVariableName} = cloneMesh({
+			sourceMeshName: ${sourceMeshName},
+			cloneId: '${cloneId}'${doCode ? `,\ncallback: ${doCode}` : ""}
+		});\n`;
+	};
+
+
 	javascriptGenerator.forBlock["create_particle_effect"] = function (block) {
 		const emitRate = parseFloat(getFieldValue(block, "RATE", "10"));
 		const startColor = getFieldValue(block, "START_COLOR", "#FFFFFF");
 		const endColor = getFieldValue(block, "END_COLOR", "#000000");
-		const minSize = javascriptGenerator.valueToCode(block, "MIN_SIZE", javascriptGenerator.ORDER_ATOMIC) || "0.1";
-		const maxSize = javascriptGenerator.valueToCode(block, "MAX_SIZE", javascriptGenerator.ORDER_ATOMIC) || "1.0";
+		const minSize =
+			javascriptGenerator.valueToCode(
+				block,
+				"MIN_SIZE",
+				javascriptGenerator.ORDER_ATOMIC,
+			) || "0.1";
+		const maxSize =
+			javascriptGenerator.valueToCode(
+				block,
+				"MAX_SIZE",
+				javascriptGenerator.ORDER_ATOMIC,
+			) || "1.0";
 
 		const variableName = javascriptGenerator.nameDB_.getName(
 			block.getFieldValue("ID_VAR"),
@@ -872,7 +916,6 @@ export function defineGenerators() {
 
 		return `${variableName} = createParticleEffect(${options.trim()});\n`;
 	};
-
 
 	// Function to create a mesh, taking mesh type, parameters, and position as arguments
 	function createMesh(block, meshType, params, position, idPrefix) {
@@ -1544,12 +1587,12 @@ export function defineGenerators() {
 		return `${helperFunction}(${modelName}, ${speed});\n`;
 	};
 
-	javascriptGenerator.forBlock['control_animation_group'] = function (block) {
+	javascriptGenerator.forBlock["control_animation_group"] = function (block) {
 		const animationGroupName = javascriptGenerator.nameDB_.getName(
-			block.getFieldValue('GROUP_NAME'),
-			Blockly.Names.NameType.VARIABLE
+			block.getFieldValue("GROUP_NAME"),
+			Blockly.Names.NameType.VARIABLE,
 		);
-		const action = block.getFieldValue('ACTION');
+		const action = block.getFieldValue("ACTION");
 
 		return `${action}AnimationGroup(${animationGroupName});\n`;
 	};
@@ -1557,12 +1600,12 @@ export function defineGenerators() {
 	javascriptGenerator.forBlock["animate_from"] = function (block) {
 		const groupVariable = javascriptGenerator.nameDB_.getName(
 			block.getFieldValue("GROUP_NAME"),
-			Blockly.Names.NameType.VARIABLE
+			Blockly.Names.NameType.VARIABLE,
 		);
 		const timeInSeconds = javascriptGenerator.valueToCode(
 			block,
 			"TIME",
-			javascriptGenerator.ORDER_ATOMIC
+			javascriptGenerator.ORDER_ATOMIC,
 		);
 
 		return `animateFrom(${groupVariable}, ${timeInSeconds});\n`;

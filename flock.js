@@ -88,7 +88,7 @@ export const flock = {
 			createCylinder,
 			createCapsule,
 			createPlane,
-			newWall,
+			cloneMesh,
 			parentChild,
 			mergeMeshes,
 			subtractMeshes,
@@ -914,8 +914,9 @@ export const flock = {
 				container.addAllToScene();
 				const mesh = container.meshes[0];
 				flock.setupMesh(mesh, modelId, blockId, scale, x, y, z);
-				if (typeof callback === "function") {
-					callback();
+				if (typeof callback === "function") {	
+				requestAnimationFrame(() => callback());
+					
 				}
 			})
 			.catch((error) => {
@@ -923,6 +924,26 @@ export const flock = {
 			});
 
 		return modelId;
+	},
+	ensureUniqueMaterial(mesh) {
+		if (mesh.metadata?.sharedMaterial) {
+			// Clone the material
+			const newMaterial = mesh.material.clone(`${mesh.material.name}_clone`);
+			mesh.material = newMaterial;
+
+			// Mark the material as no longer shared
+			mesh.metadata.sharedMaterial = false;
+		}
+	},
+	ensureUniqueGeometry(mesh) {
+		if (mesh.metadata?.sharedGeometry) {
+			// Clone the geometry
+			const newGeometry = mesh.geometry.clone();
+			mesh.geometry = newGeometry;
+
+			// Mark the geometry as no longer shared
+			mesh.metadata.sharedGeometry = false;
+		}
 	},
 	setupMesh(mesh, modelId, blockId, scale, x, y, z) {
 		mesh.scaling = new BABYLON.Vector3(scale, scale, scale);
@@ -1032,7 +1053,7 @@ export const flock = {
 				});
 
 				if (typeof callback === "function") {
-					callback();
+					requestAnimationFrame(() => callback());
 				}
 			})
 			.catch((error) => {
@@ -1071,7 +1092,7 @@ export const flock = {
 				flock.changeColorMesh(mesh, color);
 
 				if (typeof callback === "function") {
-					callback();
+					requestAnimationFrame(() => callback());
 				}
 			})
 			.catch((error) => {
@@ -2206,358 +2227,29 @@ export const flock = {
 
 		return newPlane.name;
 	},
-	newWall(color, startX, startZ, endX, endZ, yPosition, wallType, wallId) {
-		const wallHeight = 3; // Consistent wall height
-		const wallThickness = 0.2; // Fixed thickness for all walls
-		const floorThickness = 0.05; // Fixed thickness for all walls
+	cloneMesh({ sourceMeshName, cloneId, callback = null }) {
+		// Generate the unique ID immediately
+		const uniqueCloneId = cloneId + "_" + flock.scene.getUniqueId();
 
-		let width, depth, posX, posZ;
+		// Use whenModelReady to ensure the source mesh is loaded
+		flock.whenModelReady(sourceMeshName, (sourceMesh) => {
+			// Create the clone
+			 const clone = sourceMesh.clone(uniqueCloneId);
 
-		if (wallType === "FLOOR") {
-			// Floor Calculations
-			width = Math.abs(endX - startX) + wallThickness; // Full span along X-axis
-			depth = Math.abs(endZ - startZ) + wallThickness; // Full span along Z-axis
-			posX = (parseFloat(startX) + parseFloat(endX)) / 2;
-			posZ = (parseFloat(startZ) + parseFloat(endZ)) / 2;
-		} else if (startX !== endX) {
-			// Horizontal wall (along X-axis)
-			width = Math.abs(endX - startX) + wallThickness;
-			depth = wallThickness;
-			posX = (parseFloat(startX) + parseFloat(endX)) / 2;
-			posZ = startZ; // Z remains constant
-		} else {
-			// Vertical wall (along Z-axis)
-			width = wallThickness;
-			depth = Math.abs(endZ - startZ) + wallThickness; // Extend depth slightly
-			posX = startX; // X remains constant
-			posZ = (parseFloat(startZ) + parseFloat(endZ)) / 2;
-		}
+			// Add metadata to track shared resources
+			clone.metadata = {
+				sharedMaterial: true,
+				sharedGeometry: true,
+			};
 
-		// Create material once
-		const material = new flock.BABYLON.StandardMaterial(
-			"wallMaterial",
-			flock.scene,
-		);
-		material.diffuseColor = flock.BABYLON.Color3.FromHexString(
-			flock.getColorFromString(color),
-		);
-
-		if (wallType === "SOLID_WALL") {
-			// Create a solid wall
-			const solidWall = flock.BABYLON.MeshBuilder.CreateBox(
-				wallId,
-				{ width, height: wallHeight, depth },
-				flock.scene,
-			);
-			solidWall.position = new flock.BABYLON.Vector3(
-				posX,
-				yPosition + wallHeight / 2,
-				posZ,
-			);
-			solidWall.material = material;
-			assignPhysicsProperties(solidWall);
-		} else if (wallType === "WALL_WITH_DOOR") {
-			const doorHeight = 2.5;
-			const doorWidth = 1.5;
-			const halfDoorWidth = doorWidth / 2;
-
-			if (width > depth) {
-				// Horizontal wall with door
-				// Wall section above the door
-				const topWall = flock.BABYLON.MeshBuilder.CreateBox(
-					wallId + "_top",
-					{ width, height: wallHeight - doorHeight, depth },
-					flock.scene,
-				);
-				topWall.position = new flock.BABYLON.Vector3(
-					posX,
-					yPosition + wallHeight - (wallHeight - doorHeight) / 2,
-					posZ,
-				);
-				topWall.material = material;
-				assignPhysicsProperties(topWall);
-
-				// Left part of the wall (before the door)
-				const leftWall = flock.BABYLON.MeshBuilder.CreateBox(
-					wallId + "_left",
-					{
-						width: (width - doorWidth) / 2,
-						height: doorHeight,
-						depth,
-					},
-					flock.scene,
-				);
-				leftWall.position = new flock.BABYLON.Vector3(
-					posX - halfDoorWidth - (width - doorWidth) / 4,
-					yPosition + doorHeight / 2,
-					posZ,
-				);
-				leftWall.material = material;
-				assignPhysicsProperties(leftWall);
-
-				// Right part of the wall (after the door)
-				const rightWall = flock.BABYLON.MeshBuilder.CreateBox(
-					wallId + "_right",
-					{
-						width: (width - doorWidth) / 2,
-						height: doorHeight,
-						depth,
-					},
-					flock.scene,
-				);
-				rightWall.position = new flock.BABYLON.Vector3(
-					posX + halfDoorWidth + (width - doorWidth) / 4,
-					yPosition + doorHeight / 2,
-					posZ,
-				);
-				rightWall.material = material;
-				assignPhysicsProperties(rightWall);
-			} else {
-				// Vertical wall with door
-
-				// Wall section above the door
-				const topWall = flock.BABYLON.MeshBuilder.CreateBox(
-					wallId + "_top",
-					{ width, height: wallHeight - doorHeight, depth },
-					flock.scene,
-				);
-				topWall.position = new flock.BABYLON.Vector3(
-					posX,
-					yPosition + wallHeight - (wallHeight - doorHeight) / 2,
-					posZ,
-				);
-				topWall.material = material;
-				assignPhysicsProperties(topWall);
-
-				// Front part of the wall (before the door)
-				const frontWall = flock.BABYLON.MeshBuilder.CreateBox(
-					wallId + "_front",
-					{
-						width,
-						height: doorHeight,
-						depth: (depth - doorWidth) / 2,
-					},
-					flock.scene,
-				);
-				frontWall.position = new flock.BABYLON.Vector3(
-					posX,
-					yPosition + doorHeight / 2,
-					posZ - halfDoorWidth - (depth - doorWidth) / 4,
-				);
-				frontWall.material = material;
-				assignPhysicsProperties(frontWall);
-
-				// Back part of the wall (after the door)
-				const backWall = flock.BABYLON.MeshBuilder.CreateBox(
-					wallId + "_back",
-					{
-						width,
-						height: doorHeight,
-						depth: (depth - doorWidth) / 2,
-					},
-					flock.scene,
-				);
-				backWall.position = new flock.BABYLON.Vector3(
-					posX,
-					yPosition + doorHeight / 2,
-					posZ + halfDoorWidth + (depth - doorWidth) / 4,
-				);
-				backWall.material = material;
-				assignPhysicsProperties(backWall);
+			// Execute the callback after ensuring the variable assignment
+			if (callback) {
+				requestAnimationFrame(() => callback());
 			}
-		} else if (wallType === "WALL_WITH_WINDOW") {
-			const windowHeight = 1.5;
-			const windowWidth = 3;
-			const halfWindowWidth = windowWidth / 2;
+		});
 
-			if (width > depth) {
-				// Horizontal wall with window
-
-				// Wall section above the window
-				const topWall = flock.BABYLON.MeshBuilder.CreateBox(
-					wallId + "_top",
-					{ width, height: (wallHeight - windowHeight) / 2, depth },
-					flock.scene,
-				);
-				topWall.position = new flock.BABYLON.Vector3(
-					posX,
-					yPosition + wallHeight - (wallHeight - windowHeight) / 4,
-					posZ,
-				);
-				topWall.material = material;
-				assignPhysicsProperties(topWall);
-
-				// Wall section below the window
-				const bottomWall = flock.BABYLON.MeshBuilder.CreateBox(
-					wallId + "_bottom",
-					{ width, height: (wallHeight - windowHeight) / 2, depth },
-					flock.scene,
-				);
-				bottomWall.position = new flock.BABYLON.Vector3(
-					posX,
-					yPosition + (wallHeight - windowHeight) / 4,
-					posZ,
-				);
-				bottomWall.material = material;
-				assignPhysicsProperties(bottomWall);
-
-				// Left part of the wall (before the window)
-				const leftWall = flock.BABYLON.MeshBuilder.CreateBox(
-					wallId + "_left",
-					{
-						width: (width - windowWidth) / 2,
-						height: windowHeight,
-						depth,
-					},
-					flock.scene,
-				);
-				leftWall.position = new flock.BABYLON.Vector3(
-					posX - halfWindowWidth - (width - windowWidth) / 4,
-					yPosition + wallHeight / 2,
-					posZ,
-				);
-				leftWall.material = material;
-				assignPhysicsProperties(leftWall);
-
-				// Right part of the wall (after the window)
-				const rightWall = flock.BABYLON.MeshBuilder.CreateBox(
-					wallId + "_right",
-					{
-						width: (width - windowWidth) / 2,
-						height: windowHeight,
-						depth,
-					},
-					flock.scene,
-				);
-				rightWall.position = new flock.BABYLON.Vector3(
-					posX + halfWindowWidth + (width - windowWidth) / 4,
-					yPosition + wallHeight / 2,
-					posZ,
-				);
-				rightWall.material = material;
-				assignPhysicsProperties(rightWall);
-			} else {
-				// Vertical wall with window
-
-				// Wall section above the window
-				const topWall = flock.BABYLON.MeshBuilder.CreateBox(
-					wallId + "_top",
-					{ width, height: (wallHeight - windowHeight) / 2, depth },
-					flock.scene,
-				);
-				topWall.position = new flock.BABYLON.Vector3(
-					posX,
-					yPosition + wallHeight - (wallHeight - windowHeight) / 4,
-					posZ,
-				);
-				topWall.material = material;
-				assignPhysicsProperties(topWall);
-
-				// Wall section below the window
-				const bottomWall = flock.BABYLON.MeshBuilder.CreateBox(
-					wallId + "_bottom",
-					{ width, height: (wallHeight - windowHeight) / 2, depth },
-					flock.scene,
-				);
-				bottomWall.position = new flock.BABYLON.Vector3(
-					posX,
-					yPosition + (wallHeight - windowHeight) / 4,
-					posZ,
-				);
-				bottomWall.material = material;
-				assignPhysicsProperties(bottomWall);
-
-				// Front part of the wall (before the window)
-				const frontWall = flock.BABYLON.MeshBuilder.CreateBox(
-					wallId + "_front",
-					{
-						width,
-						height: windowHeight,
-						depth: (depth - windowWidth) / 2,
-					},
-					flock.scene,
-				);
-				frontWall.position = new flock.BABYLON.Vector3(
-					posX,
-					yPosition + wallHeight / 2,
-					posZ - halfWindowWidth - (depth - windowWidth) / 4,
-				);
-				frontWall.material = material;
-				assignPhysicsProperties(frontWall);
-
-				// Back part of the wall (after the window)
-				const backWall = flock.BABYLON.MeshBuilder.CreateBox(
-					wallId + "_back",
-					{
-						width,
-						height: windowHeight,
-						depth: (depth - windowWidth) / 2,
-					},
-					flock.scene,
-				);
-				backWall.position = new flock.BABYLON.Vector3(
-					posX,
-					yPosition + wallHeight / 2,
-					posZ + halfWindowWidth + (depth - windowWidth) / 4,
-				);
-				backWall.material = material;
-				assignPhysicsProperties(backWall);
-			}
-		} else if (wallType === "FLOOR") {
-			// Create a floor or roof
-			const floor = flock.BABYLON.MeshBuilder.CreateBox(
-				wallId + "_floor",
-				{ width, height: floorThickness, depth },
-				flock.scene,
-			);
-			floor.position = new flock.BABYLON.Vector3(
-				posX,
-				yPosition + floorThickness / 2,
-				posZ,
-			);
-			floor.material = material;
-			assignPhysicsProperties(floor);
-		}
-
-		// Nested function to assign physics properties to each wall segment
-		function assignPhysicsProperties(mesh) {
-			// Get the bounding box's half-sizes
-			const boundingBox =
-				mesh.getBoundingInfo().boundingBox.extendSizeWorld;
-
-			// Calculate the full size by doubling the extend sizes
-			const fullSize = new flock.BABYLON.Vector3(
-				boundingBox.x * 2,
-				boundingBox.y * 2,
-				boundingBox.z * 2,
-			);
-
-			// Create a static physics body for the wall
-			const body = new flock.BABYLON.PhysicsBody(
-				mesh,
-				flock.BABYLON.PhysicsMotionType.STATIC,
-				false,
-				flock.scene,
-			);
-
-			// Create a physics shape (collider) with the full dimensions
-			const shape = new flock.BABYLON.PhysicsShapeBox(
-				new flock.BABYLON.Vector3(0, 0, 0),
-				new flock.BABYLON.Quaternion(0, 0, 0, 1),
-				fullSize, // Use full size here
-				flock.scene,
-			);
-
-			// Set mass properties (static objects typically have infinite mass, but this setup uses mass 1 for example purposes)
-			body.setMassProperties({
-				inertia: flock.BABYLON.Vector3.ZeroReadOnly,
-			});
-			body.shape = shape;
-			body.setMassProperties({ mass: 1, restitution: 0.5 });
-
-			// Assign the physics body to the mesh
-			mesh.physics = body;
-		}
+		// Return the unique ID immediately
+		return uniqueCloneId;
 	},
 	moveByVector(modelName, x, y, z) {
 		return flock.whenModelReady(modelName, (mesh) => {
@@ -4403,6 +4095,7 @@ export const flock = {
 		});
 	},
 	changeColorMesh(mesh, color) {
+		flock.ensureUniqueMaterial(mesh); 
 		let materialFound = false;
 
 		function applyColorToMaterial(part, color) {

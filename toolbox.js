@@ -800,6 +800,11 @@ export const toolbox = {
 				},
 				{
 					kind: "block",
+					type: "clone_mesh",
+					keyword: "clone",
+				},
+				{
+					kind: "block",
 					type: "create_particle_effect",
 					keyword: "particle",
 					inputs: {

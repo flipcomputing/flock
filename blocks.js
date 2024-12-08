@@ -263,6 +263,7 @@ export function initializeVariableIndexes() {
 		object: 1,
 		instrument: 1,
 		animation: 1,
+		clone: 1,
 	};
 
 	const allVariables = Blockly.getMainWorkspace().getAllVariables(); // Retrieve all variables in the workspace
@@ -1508,6 +1509,51 @@ export function defineBlocks() {
 			addDoMutatorWithToggleBehavior(this);
 		},
 	};
+
+	Blockly.Blocks["clone_mesh"] = {
+		init: function () {
+			const variableNamePrefix = "clone";
+			let nextVariableName =
+				variableNamePrefix + nextVariableIndexes[variableNamePrefix]; // Start with "clone1"
+
+			this.jsonInit({
+				message0: "set %1 to clone of %2",
+				args0: [
+					{
+						type: "field_variable",
+						name: "CLONE_VAR",
+						variable: nextVariableName, // Dynamic variable name
+					},
+					{
+						type: "field_variable",
+						name: "SOURCE_MESH",
+						variable: "mesh1", // Default mesh reference
+					},
+				],
+				inputsInline: true,
+				colour: categoryColours["Scene"],
+				tooltip: "Clone a mesh and assign it to a variable.\nKeyword: clone",
+				helpUrl: "",
+				previousStatement: null,
+				nextStatement: null,
+			});
+
+			// Set dynamic variable name handling
+			this.setOnChange((changeEvent) => {
+
+				handleBlockCreateEvent(
+					this,
+					changeEvent,
+					variableNamePrefix,
+					nextVariableIndexes,
+				);
+			});
+
+			// Add mutator for "constructor-like" initialisation
+			addDoMutatorWithToggleBehavior(this);
+		},
+	};
+
 
 	function updateCurrentMeshName(block, variableFieldName) {
 		const variableName = block.getField(variableFieldName).getText(); // Get the selected variable name
