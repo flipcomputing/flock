@@ -980,14 +980,25 @@ export const flock = {
 		return modelId;
 	},
 	ensureUniqueMaterial(mesh) {
-		if (mesh.metadata?.sharedMaterial) {
-			// Clone the material
-			const newMaterial = mesh.material.clone(`${mesh.material.name}_clone`);
-			mesh.material = newMaterial;
+		// Helper function to clone material for a mesh
+		const cloneMaterial = (targetMesh) => {
+			const newMaterial = targetMesh.material.clone(`${targetMesh.material.name}_clone`);
+			targetMesh.material = newMaterial;
+			targetMesh.metadata = targetMesh.metadata || {};
+			targetMesh.metadata.sharedMaterial = false;
+		};
 
-			// Mark the material as no longer shared
-			mesh.metadata.sharedMaterial = false;
+		// Check the root mesh
+		if (mesh.material && mesh.metadata?.sharedMaterial) {
+			cloneMaterial(mesh);
 		}
+
+		// Check all descendants
+		mesh.getDescendants().forEach((descendant) => {
+			if (descendant.material && descendant.metadata?.sharedMaterial) {
+				cloneMaterial(descendant);
+			}
+		});
 	},
 	ensureUniqueGeometry(mesh) {
 		if (mesh.metadata?.sharedGeometry) {
@@ -2294,13 +2305,23 @@ flock.BABYLON.SceneLoader.LoadAssetContainerAsync(
 		// Use whenModelReady to ensure the source mesh is loaded
 		flock.whenModelReady(sourceMeshName, (sourceMesh) => {
 			// Create the clone
-			 const clone = sourceMesh.clone(uniqueCloneId);
+			const clone = sourceMesh.clone(uniqueCloneId);
 
-			// Add metadata to track shared resources
-			clone.metadata = {
-				sharedMaterial: true,
-				sharedGeometry: true,
+			// Function to set metadata
+			const setMetadata = (mesh) => {
+				mesh.metadata = {
+					sharedMaterial: true,
+					sharedGeometry: true,
+				};
 			};
+
+			// Set metadata on the root mesh
+			setMetadata(clone);
+
+			// Set metadata on all descendants
+			clone.getDescendants().forEach((descendant) => {
+				setMetadata(descendant);
+			});
 
 			// Execute the callback after ensuring the variable assignment
 			if (callback) {
