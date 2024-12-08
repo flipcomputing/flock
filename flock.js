@@ -914,7 +914,7 @@ export const flock = {
 
 			// Clone from the cached first copy
 			const firstMesh = flock.modelCache[modelName];
-			const mesh = firstMesh.clone(modelId);
+			const mesh = firstMesh.clone(blockId);
 
 			// Reset transformations
 			mesh.scaling.copyFrom(BABYLON.Vector3.One());
