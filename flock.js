@@ -2315,37 +2315,57 @@ flock.BABYLON.SceneLoader.LoadAssetContainerAsync(
 		return newPlane.name;
 	},
 	cloneMesh({ sourceMeshName, cloneId, callback = null }) {
-		// Generate the unique ID immediately
 		const uniqueCloneId = cloneId + "_" + flock.scene.getUniqueId();
 
-		// Use whenModelReady to ensure the source mesh is loaded
 		flock.whenModelReady(sourceMeshName, (sourceMesh) => {
-			// Create the clone
 			const clone = sourceMesh.clone(uniqueCloneId);
 
-			// Function to set metadata
-			const setMetadata = (mesh) => {
-				mesh.metadata = {
-					sharedMaterial: true,
-					sharedGeometry: true,
+			if (clone) {
+				sourceMesh.computeWorldMatrix(true);
+
+				const worldPosition = new BABYLON.Vector3();
+				const worldRotation = new BABYLON.Quaternion();
+				sourceMesh.getWorldMatrix().decompose(undefined, worldRotation, worldPosition);
+
+				clone.parent = null;
+				clone.position.copyFrom(worldPosition);
+				clone.rotationQuaternion = worldRotation.clone();
+				clone.scaling.copyFrom(sourceMesh.scaling);
+
+				// Clone and synchronise the physics body
+				if (sourceMesh.physics) {
+					const cloneBody = new flock.BABYLON.PhysicsBody(
+						clone,
+						sourceMesh.physics.getMotionType(),
+						false,
+						flock.scene
+					);
+
+					const cloneShape = flock.createCapsuleFromBoundingBox(clone, flock.scene);
+
+					cloneBody.shape = cloneShape;
+					
+					cloneBody.setTargetTransform(clone.position, clone.rotationQuaternion);
+					clone.physics = cloneBody;
+				}
+
+				// Copy metadata
+				const setMetadata = (mesh) => {
+					mesh.metadata = {
+						sharedMaterial: true,
+						sharedGeometry: true,
+					};
 				};
-			};
 
-			// Set metadata on the root mesh
-			setMetadata(clone);
+				setMetadata(clone);
+				clone.getDescendants().forEach(setMetadata);
 
-			// Set metadata on all descendants
-			clone.getDescendants().forEach((descendant) => {
-				setMetadata(descendant);
-			});
-
-			// Execute the callback after ensuring the variable assignment
-			if (callback) {
-				requestAnimationFrame(() => callback());
+				if (callback) {
+					requestAnimationFrame(() => callback(clone));
+				}
 			}
 		});
 
-		// Return the unique ID immediately
 		return uniqueCloneId;
 	},
 	moveByVector(modelName, x, y, z) {
@@ -2587,52 +2607,41 @@ flock.BABYLON.SceneLoader.LoadAssetContainerAsync(
 	},
 	rotateTo(meshName, x, y, z) {
 		return flock.whenModelReady(meshName, (mesh) => {
-			if (mesh.physics) {
-				if (
-					mesh.physics.getMotionType() !==
-					flock.BABYLON.PhysicsMotionType.DYNAMIC
-				) {
-					mesh.physics.setMotionType(
-						flock.BABYLON.PhysicsMotionType.ANIMATED,
-					);
-				}
+			if (!mesh.physics) {
+				// Fallback: Apply directly if no physics body
+				const radX = flock.BABYLON.Tools.ToRadians(x);
+				const radY = flock.BABYLON.Tools.ToRadians(y);
+				const radZ = flock.BABYLON.Tools.ToRadians(z);
+
+				mesh.rotationQuaternion =
+					flock.BABYLON.Quaternion.RotationYawPitchRoll(radY, radX, radZ);
+				mesh.computeWorldMatrix(true);
+				return;
 			}
 
+			// Set motion type to animated if needed
+			if (mesh.physics.getMotionType() !== flock.BABYLON.PhysicsMotionType.ANIMATED) {
+				mesh.physics.setMotionType(flock.BABYLON.PhysicsMotionType.ANIMATED);
+			}
+
+			// Convert degrees to radians
 			const radX = flock.BABYLON.Tools.ToRadians(x);
 			const radY = flock.BABYLON.Tools.ToRadians(y);
 			const radZ = flock.BABYLON.Tools.ToRadians(z);
 
-			if (mesh instanceof flock.BABYLON.Camera) {
-				// Apply rotation in Euler angles (ArcRotateCamera, FreeCamera, etc.)
-				mesh.rotation.x = radX;
-				mesh.rotation.y = radY;
-				mesh.rotation.z = radZ;
-			} else {
-				// Convert the X, Y, and Z inputs from degrees to radians
+			// Target rotation as quaternion
+			const targetRotation =
+				flock.BABYLON.Quaternion.RotationYawPitchRoll(radY, radX, radZ);
 
-				// Create a target rotation quaternion
-				const targetRotation =
-					flock.BABYLON.Quaternion.RotationYawPitchRoll(
-						radY, // Yaw (rotation around Y-axis)
-						radX, // Pitch (rotation around X-axis)
-						radZ, // Roll (rotation around Z-axis)
-					);
+			// Set rotation using the physics body
+			mesh.physics.setTargetTransform(mesh.position, targetRotation);
 
-				// Apply the rotation to the mesh
-				mesh.rotationQuaternion = targetRotation;
-			}
-
-			if (mesh.physics) {
-				mesh.physics.disablePreStep = false;
-				mesh.physics.setTargetTransform(
-					mesh.position,
-					mesh.rotationQuaternion,
-				);
-			}
-
+			// Synchronise graphics with physics
+			mesh.rotationQuaternion = targetRotation;
 			mesh.computeWorldMatrix(true);
 		});
 	},
+
 	async rotateAnim(
 		meshName,
 		rotX,
