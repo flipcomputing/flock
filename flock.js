@@ -1889,12 +1889,21 @@ flock.BABYLON.SceneLoader.LoadAssetContainerAsync(
 			// 3. Dispose standalone animations on meshes
 			meshesToDispose.forEach((currentMesh) => {
 				if (currentMesh.animations) {
-					
 					currentMesh.animations.length = 0; // Clear animations array
 				}
 			});
 
-			// 4. Remove and dispose meshes
+			// 4. Dispose materials if sharedMaterial is false
+			meshesToDispose.forEach((currentMesh) => {
+				if (currentMesh.metadata && currentMesh.metadata.sharedMaterial === false) {
+					if (currentMesh.material) {
+						// Dispose material
+						currentMesh.material.dispose();
+					}
+				}
+			});
+
+			// 5. Remove and dispose meshes
 			meshesToDispose.forEach((currentMesh) => {
 				// Break parent-child relationship
 				currentMesh.parent = null;
@@ -1914,9 +1923,7 @@ flock.BABYLON.SceneLoader.LoadAssetContainerAsync(
 
 				// Dispose the mesh
 				currentMesh.dispose();
-				
 			});
-			
 		});
 	},
 	async playAnimation(
