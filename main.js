@@ -1318,31 +1318,34 @@ window.onload = function () {
 	initializeApp();
 };
 
-let deferredPrompt;
+let deferredPrompt = null;
 
 window.addEventListener("beforeinstallprompt", (e) => {
 	e.preventDefault(); // Prevent the mini-infobar from appearing
-	deferredPrompt = e; // Save the event for later use
+	if (!deferredPrompt) {
+		deferredPrompt = e; // Save the event for later use
 
-	// Prompt the user after interaction (scroll, click, etc.)
-	window.addEventListener(
-		"click",
-		() => {
-			if (deferredPrompt) {
-				deferredPrompt.prompt();
-				deferredPrompt.userChoice.then((choiceResult) => {
-					if (choiceResult.outcome === "accepted") {
-						console.log("User accepted the install prompt");
-					} else {
-						console.log("User dismissed the install prompt");
-					}
-					deferredPrompt = null; // Clear the event
-				});
-			}
-		},
-		{ once: true },
-	);
+		// Prompt the user after interaction (scroll, click, etc.)
+		window.addEventListener(
+			"click",
+			() => {
+				if (deferredPrompt) {
+					deferredPrompt.prompt();
+					deferredPrompt.userChoice.then((choiceResult) => {
+						if (choiceResult.outcome === "accepted") {
+							console.log("User accepted the install prompt");
+						} else {
+							console.log("User dismissed the install prompt");
+						}
+						deferredPrompt = null; // Clear the event
+					});
+				}
+			},
+			{ once: true } // Ensure the listener is only triggered once
+		);
+	}
 });
+
 
 const adjustViewport = () => {
 	const vh = window.innerHeight * 0.01;
