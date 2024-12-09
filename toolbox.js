@@ -1625,6 +1625,37 @@ export const toolbox = {
 				},
 				{
 					kind: "block",
+					type: "scale",
+					keyword: "scale",
+					inputs: {
+						X: {
+							shadow: {
+								type: "math_number",
+								fields: {
+									NUM: 1,
+								},
+							},
+						},
+						Y: {
+							shadow: {
+								type: "math_number",
+								fields: {
+									NUM: 1,
+								},
+							},
+						},
+						Z: {
+							shadow: {
+								type: "math_number",
+								fields: {
+									NUM: 1,
+								},
+							},
+						},
+					},
+				},
+				{
+					kind: "block",
 					type: "move_forward",
 					keyword: "forward",
 					inputs: {
@@ -2742,37 +2773,6 @@ export const toolbox = {
 								type: "text",
 								fields: {
 									TEXT: "#800080",
-								},
-							},
-						},
-					},
-				},
-				{
-					kind: "block",
-					type: "scale",
-					keyword: "scale",
-					inputs: {
-						X: {
-							shadow: {
-								type: "math_number",
-								fields: {
-									NUM: 1,
-								},
-							},
-						},
-						Y: {
-							shadow: {
-								type: "math_number",
-								fields: {
-									NUM: 1,
-								},
-							},
-						},
-						Z: {
-							shadow: {
-								type: "math_number",
-								fields: {
-									NUM: 1,
 								},
 							},
 						},

@@ -2381,7 +2381,7 @@ export function defineBlocks() {
 		init: function () {
 			this.jsonInit({
 				type: "scale",
-				message0: "scale %1 x: %2 y: %3 z: %4",
+				message0: "scale %1 x: %2 y: %3 z: %4\norigin x: %5 y: %6 z: %7",
 				args0: [
 					{
 						type: "field_variable",
@@ -2392,23 +2392,17 @@ export function defineBlocks() {
 						type: "input_value",
 						name: "X",
 						check: "Number",
-						align: "RIGHT",
 					},
 					{
 						type: "input_value",
 						name: "Y",
 						check: "Number",
-						align: "RIGHT",
 					},
 					{
 						type: "input_value",
 						name: "Z",
 						check: "Number",
-						align: "RIGHT",
 					},
-				],
-				message1: "\norigin x: %1 y: %2 z: %3",
-				args1: [
 					{
 						type: "field_dropdown",
 						name: "X_ORIGIN",
@@ -2439,7 +2433,7 @@ export function defineBlocks() {
 				],
 				previousStatement: null,
 				nextStatement: null,
-				colour: categoryColours["Materials"],
+				colour: categoryColours["Transform"],
 				inputsInline: true,
 				tooltip:
 					"Resizes a mesh to the given x, y, and z and controls the origin of scaling.",
