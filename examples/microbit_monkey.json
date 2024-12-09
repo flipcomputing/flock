@@ -1,12 +1,12 @@
 {
   "workspaceComments": [
 	{
-	  "height": 284.76185607910156,
+	  "height": 324.7619171142578,
 	  "width": 834.2857666015625,
 	  "id": "J:(Zo*Rw)V!@USY42jG`",
 	  "x": 21.359679036968686,
 	  "y": -396.4336120118262,
-	  "text": "1. Connect your micro:bit  (using USB or bluetooth). \n\n2. Open https://makecode.microbit.org/S75356-86793-57168-32678\n\n3. Click Edit then Download.\n\n4.. Close the makecode editor. You may need to reconnect/pair your micro:bit\n\n5. Shake your micro:bit to wave to the monkey and they should wave back!\n\n(If you have Bluetooth problems, try getting your device to forget about the micro:bit and try \nagain. The program will stay on your micro:bit until you need to reprogram it \nfor something else.)"
+	  "text": "1. Connect your micro:bit  (using USB or bluetooth). \n\n2. Open https://makecode.microbit.org/S75356-86793-57168-32678\n\n3. Click Edit then Download.\n\n4.. Close the makecode editor. \n\n5. Pair your micro:bit using bluetooth (Bluetooth device settings on your computer)\n\n6. Shake your micro:bit to wave to the monkey and they should wave back!\n\n(If you have Bluetooth problems, try getting your device to forget about the micro:bit and try \nagain. The program will stay on your micro:bit until you need to reprogram it \nfor something else.)"
 	}
   ],
   "blocks": {
