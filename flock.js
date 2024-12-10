@@ -1135,7 +1135,7 @@ export const flock = {
 				});
 
 				if (callback) {
-					requestAnimationFrame(() => callback(clone));
+					requestAnimationFrame(() => callback());
 				}
 			})
 			.catch((error) => {
@@ -2369,7 +2369,7 @@ flock.BABYLON.SceneLoader.LoadAssetContainerAsync(
 				clone.getDescendants().forEach(setMetadata);
 
 				if (callback) {
-					requestAnimationFrame(() => callback(clone));
+					requestAnimationFrame(() => callback());
 				}
 			}
 		});
