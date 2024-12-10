@@ -2430,6 +2430,36 @@ export const toolbox = {
 			contents: [
 				{
 					kind: "block",
+					type: "change_color",
+					keyword: "colour",
+					inputs: {
+						COLOR: {
+							shadow: {
+								type: "colour",
+								fields: {
+									COLOR: "#008080",
+								},
+							},
+						},
+					},
+				},
+				{
+					kind: "block",
+					type: "set_alpha",
+					keyword: "alpha",
+					inputs: {
+						ALPHA: {
+							shadow: {
+								type: "math_number",
+								fields: {
+									NUM: 0.5,
+								},
+							},
+						},
+					},
+				},
+				{
+					kind: "block",
 					type: "tint",
 					keyword: "tint",
 					inputs: {
@@ -2460,18 +2490,8 @@ export const toolbox = {
 				},
 				{
 					kind: "block",
-					type: "change_color",
-					keyword: "colour",
-					inputs: {
-						COLOR: {
-							shadow: {
-								type: "colour",
-								fields: {
-									COLOR: "#008080",
-								},
-							},
-						},
-					},
+					type: "clear_effects",
+					keyword: "clear",
 				},
 				{
 					kind: "block",
@@ -2641,7 +2661,7 @@ export const toolbox = {
 						},
 					},
 				},
-				{
+				/*{
 					kind: "block",
 					type: "decal",
 					inputs: {
@@ -2735,29 +2755,9 @@ export const toolbox = {
 				},
 				{
 					kind: "block",
-					type: "set_alpha",
-					keyword: "alpha",
-					inputs: {
-						ALPHA: {
-							shadow: {
-								type: "math_number",
-								fields: {
-									NUM: 0.5,
-								},
-							},
-						},
-					},
-				},
-				{
-					kind: "block",
-					type: "clear_effects",
-					keyword: "clear",
-				},
-				{
-					kind: "block",
 					type: "colour",
 					keyword: "color",
-				},
+				},*/
 				{
 					kind: "block",
 					type: "random_colour",
@@ -2833,7 +2833,7 @@ export const toolbox = {
 						NOTES: {
 							block: {
 								type: "lists_create_with",
-								inline: true,
+								inline: false,
 								extraState: {
 									itemCount: 1,
 								},
@@ -2852,7 +2852,7 @@ export const toolbox = {
 						DURATIONS: {
 							block: {
 								type: "lists_create_with",
-								inline: true,
+								inline: false,
 								extraState: {
 									itemCount: 1,
 								},

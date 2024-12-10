@@ -602,7 +602,7 @@ export function defineBlocks() {
 			this.jsonInit({
 				type: "rotate_anim",
 				message0:
-					"rotate %1 to x %2 y %3 z %4 in %5 ms %6 reverse? %7 loop? %8  %9",
+					"rotate %1 to x %2 y %3 z %4 in %5 ms\n%6 reverse? %7 loop? %8  %9",
 				args0: [
 					{
 						type: "field_variable",
@@ -2327,7 +2327,7 @@ export function defineBlocks() {
 			this.jsonInit({
 				type: "follow",
 				message0:
-					"make %1 follow %2 at %3 with offset x: %4 y: %5 z: %6",
+					"make %1 follow %2 at %3\noffset x: %4 y: %5 z: %6",
 				args0: [
 					{
 						type: "field_variable",
@@ -2358,13 +2358,11 @@ export function defineBlocks() {
 						type: "input_value",
 						name: "Y_OFFSET",
 						check: "Number",
-						align: "RIGHT",
 					},
 					{
 						type: "input_value",
 						name: "Z_OFFSET",
-						check: "Number",
-						align: "RIGHT",
+						check: "Number",	
 					},
 				],
 				previousStatement: null,
@@ -2885,7 +2883,7 @@ export function defineBlocks() {
 			this.jsonInit({
 				type: "play_notes",
 				message0:
-					"play notes on %1\nnotes %2\ndurations %3\ninstrument %4 mode %5",
+					"play notes on %1\nnotes %2 durations %3\ninstrument %4 mode %5",
 				args0: [
 					{
 						type: "field_variable",
