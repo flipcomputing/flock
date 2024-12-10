@@ -1327,7 +1327,7 @@ export const toolbox = {
 						},
 					},
 				},
-				{
+				/*{
 					kind: "block",
 					type: "animate_keyframes",
 					keyword: "animate_keyframes",
@@ -1367,7 +1367,7 @@ export const toolbox = {
 							},
 						},
 					},
-				},
+				},*/
 				{
 					kind: "block",
 					type: "control_animation_group",
@@ -1475,11 +1475,11 @@ export const toolbox = {
 					type: "stop_animations",
 					keyword: "anistop",
 				},
-				{
+				/*{
 					kind: "block",
 					type: "animate_property",
 					keyword: "anp",
-				},
+				},*/
 			],
 		},
 
