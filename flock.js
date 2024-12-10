@@ -1849,6 +1849,7 @@ flock.BABYLON.SceneLoader.LoadAssetContainerAsync(
 			// Set alpha for each mesh's material if it exists
 			allMeshes.forEach((nextMesh) => {
 				if (nextMesh.material) {
+					flock.ensureUniqueMaterial(nextMesh); 
 					nextMesh.material.alpha = alphaValue;
 					nextMesh.material.transparencyMode =
 						BABYLON.Material.MATERIAL_ALPHABLEND;
