@@ -1134,8 +1134,8 @@ export const flock = {
 					}
 				});
 
-				if (typeof callback === "function") {
-					requestAnimationFrame(() => callback());
+				if (callback) {
+					requestAnimationFrame(() => callback(clone));
 				}
 			})
 			.catch((error) => {
