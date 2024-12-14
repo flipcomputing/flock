@@ -1835,10 +1835,7 @@ export const flock = {
 			// If it's another error, rethrow it
 			throw error;
 		});
-	},
-	safeLoop() {
-		requestAnimationFrame(() => {});
-	},
+	},	
 	waitUntil(conditionFunc) {
 		return new Promise((resolve, reject) => {
 			const checkCondition = () => {

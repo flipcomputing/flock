@@ -2421,7 +2421,7 @@ javascriptGenerator.forBlock["controls_doWhile"] = function (block) {
 	do {
 		${branch}
 
-		safeLoop(); // Yield control to the browser
+		await wait(0);
 	} while (${condition});\n`;
 };
 
@@ -2466,7 +2466,7 @@ javascriptGenerator.forBlock["controls_repeat_ext"] = function (
 		loopVar +
 		"++) {\n" +
 		branch +
-		"safeLoop();\n" +
+		"await wait(0);\n" +
 		"}\n";
 
 	return code;
@@ -2484,22 +2484,14 @@ javascriptGenerator.forBlock["controls_for"] = function (block, generator) {
 
 	let branch = generator.statementToCode(block, "DO");
 
-	// Generate the loop code
 	let code =
-		"for (" +
-		variable0 +
-		" = " +
-		argument0 +
-		"; " +
-		`${increment} > 0 ? ${variable0} <= ${argument1} : ${variable0} >= ${argument1}` +
-		"; " +
-		`${variable0} += ${increment}) {\n` +
+		`for (${variable0} = ${argument0}; ${variable0} ${increment > 0 ? "<=" : ">="} ${argument1}; ${variable0} += ${increment}) {\n` +
 		branch +
+		"  await wait(0);\n" + 
 		"}\n";
 
 	return code;
 };
-
 
 javascriptGenerator.forBlock["controls_forEach"] = function (block, generator) {
 	// For each loop.
@@ -2545,7 +2537,7 @@ javascriptGenerator.forBlock["controls_forEach"] = function (block, generator) {
 		listVar +
 		") {\n" +
 		branch +
-		"\n  safeLoop();\n" +
+		"\n  await wait(0);\n" +
 		"}\n";
 
 	return code;
