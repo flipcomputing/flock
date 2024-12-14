@@ -1318,6 +1318,7 @@ window.onload = function () {
 	initializeApp();
 };
 
+/*
 let deferredPrompt = null;
 
 window.addEventListener("beforeinstallprompt", (e) => {
@@ -1345,7 +1346,7 @@ window.addEventListener("beforeinstallprompt", (e) => {
 		);
 	}
 });
-
+*/
 
 const adjustViewport = () => {
 	const vh = window.innerHeight * 0.01;
