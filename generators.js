@@ -2484,95 +2484,22 @@ javascriptGenerator.forBlock["controls_for"] = function (block, generator) {
 
 	let branch = generator.statementToCode(block, "DO");
 
-	let code;
-
-	// Check if all arguments are simple numbers
-	if (!isNaN(argument0) && !isNaN(argument1) && !isNaN(increment)) {
-		const up = Number(argument0) <= Number(argument1);
-		code =
-			"for (" +
-			variable0 +
-			" = " +
-			argument0 +
-			"; " +
-			variable0 +
-			(up ? " <= " : " >= ") +
-			argument1 +
-			"; " +
-			variable0;
-
-		const step = Math.abs(Number(increment));
-
-		if (step === 1) {
-			code += up ? "++" : "--";
-		} else {
-			code += (up ? " += " : " -= ") + step;
-		}
-		code += ") {\n" + branch + "\n  await wait(0);\n" + "}\n";
-	} else {
-		code = "";
-
-		let startVar = argument0;
-		if (!/^\w+$/.test(argument0) && isNaN(argument0)) {
-			startVar = generator.nameDB_.getDistinctName(
-				variable0 + "_start",
-				Blockly.Names.NameType.VARIABLE,
-			);
-			code += "var " + startVar + " = " + argument0 + ";\n";
-		}
-
-		let endVar = argument1;
-		if (!/^\w+$/.test(argument1) && isNaN(argument1)) {
-			endVar = generator.nameDB_.getDistinctName(
-				variable0 + "_end",
-				Blockly.Names.NameType.VARIABLE,
-			);
-			code += "var " + endVar + " = " + argument1 + ";\n";
-		}
-
-		const incVar = generator.nameDB_.getDistinctName(
-			variable0 + "_inc",
-			Blockly.Names.NameType.VARIABLE,
-		);
-		code += "var " + incVar + " = ";
-
-		if (!isNaN(increment)) {
-			code += Math.abs(Number(increment)) + ";\n";
-		} else {
-			code += "Math.abs(" + increment + ");\n";
-		}
-
-		code += "if (" + startVar + " > " + endVar + ") {\n";
-		code += generator.INDENT + incVar + " = -" + incVar + ";\n";
-		code += "}\n";
-
-		code +=
-			"for (" +
-			variable0 +
-			" = " +
-			startVar +
-			"; " +
-			incVar +
-			" >= 0 ? " +
-			variable0 +
-			" <= " +
-			endVar +
-			" : " +
-			variable0 +
-			" >= " +
-			endVar +
-			"; " +
-			variable0 +
-			" += " +
-			incVar +
-			") {\n" +
-			branch +
-			"safeLoop();\n" +
-			"}\n";
-	}
+	// Generate the loop code
+	let code =
+		"for (" +
+		variable0 +
+		" = " +
+		argument0 +
+		"; " +
+		`${increment} > 0 ? ${variable0} <= ${argument1} : ${variable0} >= ${argument1}` +
+		"; " +
+		`${variable0} += ${increment}) {\n` +
+		branch +
+		"}\n";
 
 	return code;
 };
+
 
 javascriptGenerator.forBlock["controls_forEach"] = function (block, generator) {
 	// For each loop.
