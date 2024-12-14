@@ -252,6 +252,7 @@ export const flock = {
 		flock.engine.setHardwareScalingLevel(1 / window.devicePixelRatio);
 	},
 	async disposeOldScene() {
+		console.log("Disposing old scene");
 		flock.flockNotReady = true;
 		if (flock.scene) {
 			flock.engine.stopRenderLoop();
@@ -260,7 +261,7 @@ export const flock = {
 					mesh.actionManager.dispose(); // Dispose the action manager to remove all actions
 				}
 			});
-			flock.scene.activeCamera.inputs?.clear();
+			flock.scene.activeCamera?.inputs?.clear();
 			flock.events = null;
 			flock.modelCache = null;
 			flock.modelsBeingLoaded = null;
@@ -297,7 +298,10 @@ export const flock = {
 			flock.hk?.dispose();
 			flock.hk = null;
 
-			flock.audioContext?.close();
+			if (flock.audioContext?.state !== "closed") {
+				flock.audioContext?.close();
+			}
+
 			flock.audioContext = null;
 		}
 	},
@@ -365,18 +369,18 @@ export const flock = {
 		// Enable collisions
 		flock.scene.collisionsEnabled = true;
 
-		const isTouchScreen = 
-			'ontouchstart' in window || 
-			navigator.maxTouchPoints > 0 || 
+		const isTouchScreen =
+			"ontouchstart" in window ||
+			navigator.maxTouchPoints > 0 ||
 			window.matchMedia("(pointer: coarse)").matches;
-	
-		if(isTouchScreen){
+
+		if (isTouchScreen) {
 			flock.controlsTexture =
 				flock.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
 			flock.createArrowControls("white");
 			flock.createButtonControls("white");
 		}
-	
+
 		// Create the UI
 		flock.advancedTexture =
 			flock.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
@@ -968,7 +972,13 @@ export const flock = {
 		if (flock.modelsBeingLoaded[modelName]) {
 			//console.log(`Waiting for model to load: ${modelName}`);
 			return flock.modelsBeingLoaded[modelName].then(() => {
-				return flock.newModel({ modelName, modelId, scale, position, callback });
+				return flock.newModel({
+					modelName,
+					modelId,
+					scale,
+					position,
+					callback,
+				});
 			});
 		}
 
@@ -983,12 +993,22 @@ export const flock = {
 				console.log(`Model loaded: ${modelName}`);
 
 				// Clone a first copy from the first mesh
-				const firstMesh = container.meshes[0].clone(`${modelName}_first`);
+				const firstMesh = container.meshes[0].clone(
+					`${modelName}_first`,
+				);
 				firstMesh.setEnabled(false); // Disable the first copy
 				flock.modelCache[modelName] = firstMesh;
 
 				container.addAllToScene();
-				flock.setupMesh(container.meshes[0], modelId, blockId, scale, x, y, z);
+				flock.setupMesh(
+					container.meshes[0],
+					modelId,
+					blockId,
+					scale,
+					x,
+					y,
+					z,
+				);
 
 				if (callback) {
 					requestAnimationFrame(callback);
@@ -996,7 +1016,6 @@ export const flock = {
 			})
 			.catch((error) => {
 				console.error(`Error loading model: ${modelName}`, error);
-				
 			})
 			.finally(() => {
 				delete flock.modelsBeingLoaded[modelName]; // Remove from loading map
@@ -1007,11 +1026,12 @@ export const flock = {
 
 		return modelId;
 	},
-	ensureUniqueMaterial(mesh){
-
+	ensureUniqueMaterial(mesh) {
 		// Helper function to clone material for a mesh
 		const cloneMaterial = (targetMesh) => {
-			const newMaterial = targetMesh.material.clone(`${targetMesh.material.name}_clone`);
+			const newMaterial = targetMesh.material.clone(
+				`${targetMesh.material.name}_clone`,
+			);
 			targetMesh.material = newMaterial;
 			targetMesh.metadata = targetMesh.metadata || {};
 			targetMesh.metadata.sharedMaterial = false;
@@ -1169,7 +1189,7 @@ export const flock = {
 		const blockId = modelId;
 		modelId += "_" + flock.scene.getUniqueId();
 
-flock.BABYLON.SceneLoader.LoadAssetContainerAsync(
+		flock.BABYLON.SceneLoader.LoadAssetContainerAsync(
 			"./models/",
 			modelName,
 			flock.scene,
@@ -1178,17 +1198,15 @@ flock.BABYLON.SceneLoader.LoadAssetContainerAsync(
 			{ signal: flock.abortController.signal },
 		)
 			.then((container) => {
-				
 				container.addAllToScene();
-				
+
 				const mesh = container.meshes[0];
-				
+
 				flock.setupMesh(mesh, modelId, blockId, scale, x, y, z, color);
-				
+
 				flock.changeColorMesh(mesh, color);
 
 				if (typeof callback === "function") {
-					
 					requestAnimationFrame(() => {
 						callback();
 					});
@@ -1861,7 +1879,7 @@ flock.BABYLON.SceneLoader.LoadAssetContainerAsync(
 			// Set alpha for each mesh's material if it exists
 			allMeshes.forEach((nextMesh) => {
 				if (nextMesh.material) {
-					flock.ensureUniqueMaterial(nextMesh); 
+					flock.ensureUniqueMaterial(nextMesh);
 					nextMesh.material.alpha = alphaValue;
 					nextMesh.material.transparencyMode =
 						BABYLON.Material.MATERIAL_ALPHABLEND;
@@ -1877,10 +1895,14 @@ flock.BABYLON.SceneLoader.LoadAssetContainerAsync(
 
 			// Process AnimationGroups
 			flock.scene.animationGroups.slice().forEach((animationGroup) => {
-				const targets = animationGroup.targetedAnimations.map((anim) => anim.target);
+				const targets = animationGroup.targetedAnimations.map(
+					(anim) => anim.target,
+				);
 
 				if (
-					targets.some((target) => meshesToDispose.includes(target)) ||
+					targets.some((target) =>
+						meshesToDispose.includes(target),
+					) ||
 					targets.some((target) => allDescendants.includes(target)) ||
 					targets.length === 0 // Orphaned group
 				) {
@@ -2343,7 +2365,9 @@ flock.BABYLON.SceneLoader.LoadAssetContainerAsync(
 
 				const worldPosition = new BABYLON.Vector3();
 				const worldRotation = new BABYLON.Quaternion();
-				sourceMesh.getWorldMatrix().decompose(undefined, worldRotation, worldPosition);
+				sourceMesh
+					.getWorldMatrix()
+					.decompose(undefined, worldRotation, worldPosition);
 
 				clone.parent = null;
 				clone.position.copyFrom(worldPosition);
@@ -2356,14 +2380,20 @@ flock.BABYLON.SceneLoader.LoadAssetContainerAsync(
 						clone,
 						sourceMesh.physics.getMotionType(),
 						false,
-						flock.scene
+						flock.scene,
 					);
 
-					const cloneShape = flock.createCapsuleFromBoundingBox(clone, flock.scene);
+					const cloneShape = flock.createCapsuleFromBoundingBox(
+						clone,
+						flock.scene,
+					);
 
 					cloneBody.shape = cloneShape;
-					
-					cloneBody.setTargetTransform(clone.position, clone.rotationQuaternion);
+
+					cloneBody.setTargetTransform(
+						clone.position,
+						clone.rotationQuaternion,
+					);
 					clone.physics = cloneBody;
 				}
 
@@ -2632,14 +2662,23 @@ flock.BABYLON.SceneLoader.LoadAssetContainerAsync(
 				const radZ = flock.BABYLON.Tools.ToRadians(z);
 
 				mesh.rotationQuaternion =
-					flock.BABYLON.Quaternion.RotationYawPitchRoll(radY, radX, radZ);
+					flock.BABYLON.Quaternion.RotationYawPitchRoll(
+						radY,
+						radX,
+						radZ,
+					);
 				mesh.computeWorldMatrix(true);
 				return;
 			}
 
 			// Set motion type to animated if needed
-			if (mesh.physics.getMotionType() !== flock.BABYLON.PhysicsMotionType.ANIMATED) {
-				mesh.physics.setMotionType(flock.BABYLON.PhysicsMotionType.ANIMATED);
+			if (
+				mesh.physics.getMotionType() !==
+				flock.BABYLON.PhysicsMotionType.ANIMATED
+			) {
+				mesh.physics.setMotionType(
+					flock.BABYLON.PhysicsMotionType.ANIMATED,
+				);
 			}
 
 			// Convert degrees to radians
@@ -3377,7 +3416,7 @@ flock.BABYLON.SceneLoader.LoadAssetContainerAsync(
 
 		switch (property) {
 			case "color":
-				flock.ensureUniqueMaterial(mesh); 
+				flock.ensureUniqueMaterial(mesh);
 				return mesh.material?.diffuseColor !== undefined
 					? "material.diffuseColor"
 					: "material.albedoColor";
@@ -3496,7 +3535,7 @@ flock.BABYLON.SceneLoader.LoadAssetContainerAsync(
 				if (runtimeAnimation) {
 					runtimeAnimation.goToFrame(currentFrame);
 					//console.log(`New animation synchronised to frame ${currentFrame}.`);
-				} 
+				}
 			} else {
 				console.warn(
 					"Could not retrieve the current frame for synchronisation.",
@@ -3505,7 +3544,9 @@ flock.BABYLON.SceneLoader.LoadAssetContainerAsync(
 		}
 	},
 	playAnimationGroup(groupName) {
-		const animationGroup = flock.scene.animationGroups.find(group => group.name === groupName);
+		const animationGroup = flock.scene.animationGroups.find(
+			(group) => group.name === groupName,
+		);
 		if (animationGroup) {
 			animationGroup.play();
 		} else {
@@ -3513,7 +3554,9 @@ flock.BABYLON.SceneLoader.LoadAssetContainerAsync(
 		}
 	},
 	pauseAnimationGroup(groupName) {
-		const animationGroup = flock.scene.animationGroups.find(group => group.name === groupName);
+		const animationGroup = flock.scene.animationGroups.find(
+			(group) => group.name === groupName,
+		);
 		if (animationGroup) {
 			animationGroup.pause();
 		} else {
@@ -3521,7 +3564,9 @@ flock.BABYLON.SceneLoader.LoadAssetContainerAsync(
 		}
 	},
 	stopAnimationGroup(groupName) {
-		const animationGroup = flock.scene.animationGroups.find(group => group.name === groupName);
+		const animationGroup = flock.scene.animationGroups.find(
+			(group) => group.name === groupName,
+		);
 		if (animationGroup) {
 			animationGroup.stop();
 		} else {
@@ -3529,11 +3574,15 @@ flock.BABYLON.SceneLoader.LoadAssetContainerAsync(
 		}
 	},
 	animateFrom(groupName, timeInSeconds) {
-		const animationGroup = flock.scene.animationGroups.find(group => group.name === groupName);
+		const animationGroup = flock.scene.animationGroups.find(
+			(group) => group.name === groupName,
+		);
 		if (animationGroup) {
 			const animation = animationGroup.targetedAnimations[0]?.animation;
 			if (!animation) {
-				console.warn(`Animation group '${groupName}' has no animations.`);
+				console.warn(
+					`Animation group '${groupName}' has no animations.`,
+				);
 				return;
 			}
 
@@ -3578,10 +3627,8 @@ flock.BABYLON.SceneLoader.LoadAssetContainerAsync(
 					resolve(animationGroupName);
 					return;
 				}
-				if (property === "alpha")
-				{
-					flock.ensureUniqueMaterial(mesh); 
-
+				if (property === "alpha") {
+					flock.ensureUniqueMaterial(mesh);
 				}
 
 				// Determine the meshes to animate
@@ -3593,7 +3640,6 @@ flock.BABYLON.SceneLoader.LoadAssetContainerAsync(
 						: [mesh]; // Only the root mesh for other properties
 
 				for (const targetMesh of meshesToAnimate) {
-			
 					const propertyToAnimate = flock.resolvePropertyToAnimate(
 							property,
 							targetMesh,
@@ -3724,8 +3770,7 @@ flock.BABYLON.SceneLoader.LoadAssetContainerAsync(
 
 		if (easingFunction) {
 			animation.setEasingFunction(easingFunction);
-			
-		} 
+		}
 	},
 	applyEasing(animation, easing) {
 		let easingFunction;
@@ -3758,7 +3803,7 @@ flock.BABYLON.SceneLoader.LoadAssetContainerAsync(
 		if (easingFunction) {
 			animation.setEasingFunction(easingFunction);
 			//console.log(`Applied easing: ${easing}`);
-		} 
+		}
 	},
 	animateKeyFrames(
 		meshName,
@@ -4226,7 +4271,7 @@ flock.BABYLON.SceneLoader.LoadAssetContainerAsync(
 		});
 	},
 	changeColorMesh(mesh, color) {
-		flock.ensureUniqueMaterial(mesh); 
+		flock.ensureUniqueMaterial(mesh);
 		let materialFound = false;
 
 		function applyColorToMaterial(part, color) {
