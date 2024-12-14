@@ -206,7 +206,8 @@ async function executeCode() {
 
 function stopCode() {
 	flock.audioContext.close();
-	flock.scene.dispose();
+	//flock.scene.dispose();
+	flock.engine.stopRenderLoop();
 	flock.removeEventListeners();
 	switchView(codeMode);
 }
