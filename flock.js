@@ -95,6 +95,7 @@ export const flock = {
 			mergeMeshes,
 			subtractMeshes,
 			intersectMeshes,
+			createHull,
 			hold, 
 			drop,
 			makeFollow,
@@ -1536,6 +1537,68 @@ export const flock = {
 				}
 			});
 	},
+	createHull(modelId, meshList, scene, havokPlugin) {
+		const blockId = modelId;
+		modelId += "_" + flock.scene.getUniqueId();
+
+		return flock
+			.prepareMeshes(modelId, meshList, blockId)
+			.then((validMeshes) => {
+				if (validMeshes.length) {
+					// Merge the valid meshes into a single mesh
+					const mergedMesh = BABYLON.Mesh.MergeMeshes(validMeshes, true);
+
+					if (!mergedMesh) {
+						console.warn("Failed to merge meshes for hull creation.");
+						return null;
+					}
+
+					// Apply the material of the first mesh to the merged mesh
+					mergedMesh.material = validMeshes[0].material;
+
+					// Create the convex hull physics aggregate
+					const hullAggregate = new BABYLON.PhysicsAggregate(
+						mergedMesh,
+						BABYLON.PhysicsShapeType.CONVEX_HULL,
+						{ mass: 0 }, // Adjust mass based on use case
+						scene
+					);
+
+					// Create a debug mesh to visualize the convex hull
+					const debugMesh = flock.debugMeshFromBody(hullAggregate.body, havokPlugin, scene);
+
+					// Apply metadata or transformations to the debug mesh
+					debugMesh.id = modelId;
+					debugMesh.name = modelId;
+
+					// Assign the material to the debug mesh as well
+					debugMesh.material = validMeshes[0].material;
+
+					// Dispose of original meshes after creating the hull
+					validMeshes.forEach((mesh) => mesh.dispose());
+
+					return debugMesh; // Return the debug mesh for further use
+				} else {
+					console.warn("No valid meshes to create a hull.");
+					return null;
+				}
+			});
+	},
+	debugMeshFromBody(body){
+		const bodyInfoGeom = flock.hk.getBodyGeometry(body)
+		const { positions, indices } = bodyInfoGeom
+
+		const debugMesh = new flock.BABYLON.Mesh("custom", flock.scene)
+		indices.reverse()       
+
+		const vertexData = new flock.BABYLON.VertexData()
+		vertexData.positions = positions
+		vertexData.indices = indices	
+
+		vertexData.applyToMesh(debugMesh)
+
+		return debugMesh
+	},
 	prepareMeshes(modelId, meshNames, blockId) {
 		return Promise.all(
 			meshNames.map((meshName) => {
@@ -1935,7 +1998,6 @@ export const flock = {
 
 					// Dispose material if not already disposed
 					if (!disposedMaterials.has(material)) {
-						
 						disposedMaterials.add(material);
 
 						// Remove from scene.materials
@@ -1970,7 +2032,6 @@ export const flock = {
 					currentMesh.dispose();
 				}
 			});
-
 		});
 	},
 	async playAnimation(

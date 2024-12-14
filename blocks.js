@@ -1648,6 +1648,32 @@ export function defineBlocks() {
 		},
 	};
 
+	Blockly.Blocks["hull_meshes"] = {
+		init: function () {
+			this.jsonInit({
+				message0: "set %1 to hull of %2",
+				args0: [
+					{
+						type: "field_variable",
+						name: "RESULT_VAR",
+						variable: "result",
+					},
+					{
+						type: "input_value",
+						name: "MESH_LIST",
+						check: "Array",
+					},
+				],
+				colour: categoryColours["Scene"],
+				tooltip:
+					"Create a convex hull from a list of meshes and store the result.",
+				helpUrl: "",
+				previousStatement: null,
+				nextStatement: null,
+			});
+		},
+	};
+
 	Blockly.Blocks["create_wall"] = {
 		init: function () {
 			const variableNamePrefix = "wall";

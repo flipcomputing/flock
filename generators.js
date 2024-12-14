@@ -1779,6 +1779,27 @@ export function defineGenerators() {
 		return `${resultVar} = await intersectMeshes("${meshId}", ${meshList});\n`;
 	};
 
+	javascriptGenerator.forBlock["hull_meshes"] = function (block) {
+		const resultVar = javascriptGenerator.nameDB_.getName(
+			block.getFieldValue("RESULT_VAR"),
+			Blockly.Names.NameType.VARIABLE
+		);
+
+		const meshList =
+			javascriptGenerator.valueToCode(
+				block,
+				"MESH_LIST",
+				javascriptGenerator.ORDER_ATOMIC
+			) || "[]";
+
+		const meshId = "hull" + "_" + generateUniqueId();
+		meshMap[meshId] = block;
+		meshBlockIdMap[meshId] = block.id;
+
+		// Use helper function to create the hull
+		return `${resultVar} = await createHull("${meshId}", ${meshList});\n`;
+	};
+
 	javascriptGenerator.forBlock["parent_child"] = function (block) {
 		const parentMesh = javascriptGenerator.nameDB_.getName(
 			block.getFieldValue("PARENT_MESH"),
