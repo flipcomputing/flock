@@ -223,6 +223,15 @@
 												}
 											  }
 											},
+											"TESSELLATIONS": {
+											  "block": {
+												"type": "math_number",
+												"id": "ibj^|aTo{zL=j:S2).sw",
+												"fields": {
+												  "NUM": 24
+												}
+											  }
+											},
 											"X": {
 											  "shadow": {
 												"type": "math_number",
@@ -295,6 +304,15 @@
 													"id": "hyKqC8Ck_N1QG)#Geovb",
 													"fields": {
 													  "NUM": 3.3
+													}
+												  }
+												},
+												"TESSELLATIONS": {
+												  "block": {
+													"type": "math_number",
+													"id": "uuW{7RMZCh?O41$GACLG",
+													"fields": {
+													  "NUM": 24
 													}
 												  }
 												},
@@ -524,18 +542,18 @@
 																	"next": {
 																	  "block": {
 																		"type": "create_cylinder",
-																		"id": "[OFEE4b8AbG)(H`dy~tf",
+																		"id": "Thqku:Rr?TZ~n9o#kpus",
 																		"extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" has_do=\"false\"></mutation>",
 																		"fields": {
 																		  "ID_VAR": {
-																			"id": "CxoZ]idCAK1;wRAP5_XR"
+																			"id": ":8`ev}O/$(XMQJ#E5;]*"
 																		  }
 																		},
 																		"inputs": {
 																		  "COLOR": {
 																			"shadow": {
 																			  "type": "colour",
-																			  "id": ":5L+nxC*wU]PJ$$OKUB?",
+																			  "id": "y1@F}.H*?e1CP/-./sjw",
 																			  "fields": {
 																				"COLOR": "#ff6666"
 																			  }
@@ -544,7 +562,7 @@
 																		  "HEIGHT": {
 																			"shadow": {
 																			  "type": "math_number",
-																			  "id": "jj1V4:{u^o@hFyg]h_j!",
+																			  "id": "f[v12ev)@BZ:r1?i:!8o",
 																			  "fields": {
 																				"NUM": 0.1
 																			  }
@@ -553,25 +571,34 @@
 																		  "DIAMETER_TOP": {
 																			"shadow": {
 																			  "type": "math_number",
-																			  "id": "AqCg2?%%kSh~L[3b8RBH",
+																			  "id": "UB0pCFD6qh|vPr_T1M9f",
 																			  "fields": {
-																				"NUM": 2
+																				"NUM": 1.8
 																			  }
 																			}
 																		  },
 																		  "DIAMETER_BOTTOM": {
 																			"shadow": {
 																			  "type": "math_number",
-																			  "id": "JgeQ.C$i+XRkm:0B=VDb",
+																			  "id": "?]}%j0F/P!0y|_|oDc/:",
 																			  "fields": {
-																				"NUM": 2
+																				"NUM": 1.8
+																			  }
+																			}
+																		  },
+																		  "TESSELLATIONS": {
+																			"block": {
+																			  "type": "math_number",
+																			  "id": "+D5c#0!4YIP}U[Z{f6d-",
+																			  "fields": {
+																				"NUM": 24
 																			  }
 																			}
 																		  },
 																		  "X": {
 																			"shadow": {
 																			  "type": "math_number",
-																			  "id": "q}{:Q~|/04E;ra9X~Hy9",
+																			  "id": "v;vkx1_ISvrq}6ez#*AW",
 																			  "fields": {
 																				"NUM": 0
 																			  }
@@ -580,7 +607,7 @@
 																		  "Y": {
 																			"shadow": {
 																			  "type": "math_number",
-																			  "id": "!R$7D=T1y.wj)f~e-1:(",
+																			  "id": "Cg,_)bpz+4e%kkiEdEG~",
 																			  "fields": {
 																				"NUM": 0
 																			  }
@@ -589,7 +616,7 @@
 																		  "Z": {
 																			"shadow": {
 																			  "type": "math_number",
-																			  "id": "yZ?la*KaVldqy4+=y3@e",
+																			  "id": "Y{J`z{I/Z/xA{`148WsW",
 																			  "fields": {
 																				"NUM": 0
 																			  }
@@ -599,18 +626,18 @@
 																		"next": {
 																		  "block": {
 																			"type": "create_cylinder",
-																			"id": "Thqku:Rr?TZ~n9o#kpus",
+																			"id": "[OFEE4b8AbG)(H`dy~tf",
 																			"extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" has_do=\"false\"></mutation>",
 																			"fields": {
 																			  "ID_VAR": {
-																				"id": ":8`ev}O/$(XMQJ#E5;]*"
+																				"id": "CxoZ]idCAK1;wRAP5_XR"
 																			  }
 																			},
 																			"inputs": {
 																			  "COLOR": {
 																				"shadow": {
 																				  "type": "colour",
-																				  "id": "y1@F}.H*?e1CP/-./sjw",
+																				  "id": ":5L+nxC*wU]PJ$$OKUB?",
 																				  "fields": {
 																					"COLOR": "#ff6666"
 																				  }
@@ -619,7 +646,7 @@
 																			  "HEIGHT": {
 																				"shadow": {
 																				  "type": "math_number",
-																				  "id": "f[v12ev)@BZ:r1?i:!8o",
+																				  "id": "jj1V4:{u^o@hFyg]h_j!",
 																				  "fields": {
 																					"NUM": 0.1
 																				  }
@@ -628,25 +655,34 @@
 																			  "DIAMETER_TOP": {
 																				"shadow": {
 																				  "type": "math_number",
-																				  "id": "UB0pCFD6qh|vPr_T1M9f",
+																				  "id": "AqCg2?%%kSh~L[3b8RBH",
 																				  "fields": {
-																					"NUM": 1.8
+																					"NUM": 2
 																				  }
 																				}
 																			  },
 																			  "DIAMETER_BOTTOM": {
 																				"shadow": {
 																				  "type": "math_number",
-																				  "id": "?]}%j0F/P!0y|_|oDc/:",
+																				  "id": "JgeQ.C$i+XRkm:0B=VDb",
 																				  "fields": {
-																					"NUM": 1.8
+																					"NUM": 2
+																				  }
+																				}
+																			  },
+																			  "TESSELLATIONS": {
+																				"block": {
+																				  "type": "math_number",
+																				  "id": ")_lsWWZ6@BV(g;[$vICZ",
+																				  "fields": {
+																					"NUM": 24
 																				  }
 																				}
 																			  },
 																			  "X": {
 																				"shadow": {
 																				  "type": "math_number",
-																				  "id": "v;vkx1_ISvrq}6ez#*AW",
+																				  "id": "q}{:Q~|/04E;ra9X~Hy9",
 																				  "fields": {
 																					"NUM": 0
 																				  }
@@ -655,7 +691,7 @@
 																			  "Y": {
 																				"shadow": {
 																				  "type": "math_number",
-																				  "id": "Cg,_)bpz+4e%kkiEdEG~",
+																				  "id": "!R$7D=T1y.wj)f~e-1:(",
 																				  "fields": {
 																					"NUM": 0
 																				  }
@@ -664,7 +700,7 @@
 																			  "Z": {
 																				"shadow": {
 																				  "type": "math_number",
-																				  "id": "Y{J`z{I/Z/xA{`148WsW",
+																				  "id": "yZ?la*KaVldqy4+=y3@e",
 																				  "fields": {
 																					"NUM": 0
 																				  }
@@ -947,18 +983,18 @@
 														  "next": {
 															"block": {
 															  "type": "create_cylinder",
-															  "id": "9gFu/OU@dU*Zm`t-LWv+",
+															  "id": "lcWtwo)=myuCnm:2GT[Q",
 															  "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" has_do=\"false\"></mutation>",
 															  "fields": {
 																"ID_VAR": {
-																  "id": "iK-llYYyd/5aFlXWYRyp"
+																  "id": "|^w0wB7Ptnc4!+$Nxg3h"
 																}
 															  },
 															  "inputs": {
 																"COLOR": {
 																  "shadow": {
 																	"type": "colour",
-																	"id": "8@d(2pw)`2-}QTED=:J_",
+																	"id": "vN#S}+ZcZ.:;M.}c=C!m",
 																	"fields": {
 																	  "COLOR": "#ff6666"
 																	}
@@ -967,7 +1003,7 @@
 																"HEIGHT": {
 																  "shadow": {
 																	"type": "math_number",
-																	"id": "E}4@2|`7[pC[:tFJ;re#",
+																	"id": "YBl`|S|aSidCxXHS*!Z.",
 																	"fields": {
 																	  "NUM": 0.1
 																	}
@@ -976,25 +1012,34 @@
 																"DIAMETER_TOP": {
 																  "shadow": {
 																	"type": "math_number",
-																	"id": "JacgFd!{bWR6lO(ML4yw",
+																	"id": "shnmQLS+w2igW=Xz%RNH",
 																	"fields": {
-																	  "NUM": 0.5
+																	  "NUM": 0.2
 																	}
 																  }
 																},
 																"DIAMETER_BOTTOM": {
 																  "shadow": {
 																	"type": "math_number",
-																	"id": "a%RYF*Ix5bp@ZHM[p8YH",
+																	"id": "sfG9K-XxURpH}m;^~G^:",
 																	"fields": {
-																	  "NUM": 0.5
+																	  "NUM": 0.2
+																	}
+																  }
+																},
+																"TESSELLATIONS": {
+																  "block": {
+																	"type": "math_number",
+																	"id": "QS[=!c~RfmlsC7C|R{_I",
+																	"fields": {
+																	  "NUM": 24
 																	}
 																  }
 																},
 																"X": {
 																  "shadow": {
 																	"type": "math_number",
-																	"id": "byq9Y^L_5_7H1zh1ZSpP",
+																	"id": "hAOda2C8am4561{`/v#Z",
 																	"fields": {
 																	  "NUM": 0
 																	}
@@ -1003,7 +1048,7 @@
 																"Y": {
 																  "shadow": {
 																	"type": "math_number",
-																	"id": ":P8UQ+$*K#rtdQtjkyl.",
+																	"id": ",*E~l15G)`yl(K.o*(Z|",
 																	"fields": {
 																	  "NUM": 0
 																	}
@@ -1012,7 +1057,7 @@
 																"Z": {
 																  "shadow": {
 																	"type": "math_number",
-																	"id": "S$fGSk5t?%MU}gPm|:|-",
+																	"id": "ze~V*Va4v(.zbyEL6],b",
 																	"fields": {
 																	  "NUM": 1.9
 																	}
@@ -1022,18 +1067,18 @@
 															  "next": {
 																"block": {
 																  "type": "create_cylinder",
-																  "id": "lcWtwo)=myuCnm:2GT[Q",
+																  "id": "9gFu/OU@dU*Zm`t-LWv+",
 																  "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" has_do=\"false\"></mutation>",
 																  "fields": {
 																	"ID_VAR": {
-																	  "id": "|^w0wB7Ptnc4!+$Nxg3h"
+																	  "id": "iK-llYYyd/5aFlXWYRyp"
 																	}
 																  },
 																  "inputs": {
 																	"COLOR": {
 																	  "shadow": {
 																		"type": "colour",
-																		"id": "vN#S}+ZcZ.:;M.}c=C!m",
+																		"id": "8@d(2pw)`2-}QTED=:J_",
 																		"fields": {
 																		  "COLOR": "#ff6666"
 																		}
@@ -1042,7 +1087,7 @@
 																	"HEIGHT": {
 																	  "shadow": {
 																		"type": "math_number",
-																		"id": "YBl`|S|aSidCxXHS*!Z.",
+																		"id": "E}4@2|`7[pC[:tFJ;re#",
 																		"fields": {
 																		  "NUM": 0.1
 																		}
@@ -1051,25 +1096,34 @@
 																	"DIAMETER_TOP": {
 																	  "shadow": {
 																		"type": "math_number",
-																		"id": "shnmQLS+w2igW=Xz%RNH",
+																		"id": "JacgFd!{bWR6lO(ML4yw",
 																		"fields": {
-																		  "NUM": 0.2
+																		  "NUM": 0.5
 																		}
 																	  }
 																	},
 																	"DIAMETER_BOTTOM": {
 																	  "shadow": {
 																		"type": "math_number",
-																		"id": "sfG9K-XxURpH}m;^~G^:",
+																		"id": "a%RYF*Ix5bp@ZHM[p8YH",
 																		"fields": {
-																		  "NUM": 0.2
+																		  "NUM": 0.5
+																		}
+																	  }
+																	},
+																	"TESSELLATIONS": {
+																	  "block": {
+																		"type": "math_number",
+																		"id": "sm8Pb(,|h7y*}Fh7;7+s",
+																		"fields": {
+																		  "NUM": 24
 																		}
 																	  }
 																	},
 																	"X": {
 																	  "shadow": {
 																		"type": "math_number",
-																		"id": "hAOda2C8am4561{`/v#Z",
+																		"id": "byq9Y^L_5_7H1zh1ZSpP",
 																		"fields": {
 																		  "NUM": 0
 																		}
@@ -1078,7 +1132,7 @@
 																	"Y": {
 																	  "shadow": {
 																		"type": "math_number",
-																		"id": ",*E~l15G)`yl(K.o*(Z|",
+																		"id": ":P8UQ+$*K#rtdQtjkyl.",
 																		"fields": {
 																		  "NUM": 0
 																		}
@@ -1087,7 +1141,7 @@
 																	"Z": {
 																	  "shadow": {
 																		"type": "math_number",
-																		"id": "ze~V*Va4v(.zbyEL6],b",
+																		"id": "S$fGSk5t?%MU}gPm|:|-",
 																		"fields": {
 																		  "NUM": 1.9
 																		}

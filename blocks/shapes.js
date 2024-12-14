@@ -197,7 +197,7 @@ export function defineShapeBlocks() {
 			type: "create_cylinder",
 			variableNamePrefix: "cylinder",
 			message0:
-				"set %1 to cylinder %2 height %3 top %4 bottom %5 \nat x %6 y %7 z %8",
+				"set %1 to cylinder %2 height %3 top %4 bottom %5 sides %6\nat x %7 y %8 z %9",
 			additionalArgs0: [
 				{ type: "input_value", name: "HEIGHT", check: "Number" },
 				{ type: "input_value", name: "DIAMETER_TOP", check: "Number" },
@@ -206,6 +206,7 @@ export function defineShapeBlocks() {
 					name: "DIAMETER_BOTTOM",
 					check: "Number",
 				},
+				  { type: "input_value", name: "TESSELLATIONS", check: "Number" },
 			],
 			tooltip:
 				"Creates a colored cylinder with specified dimensions and position.\nKeyword: cylinder",

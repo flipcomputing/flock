@@ -662,6 +662,15 @@ export const toolbox = {
 								},
 							},
 						},
+						TESSELLATIONS: {
+							// Add the tessellations input
+							shadow: {
+								type: "math_number",
+								fields: {
+									NUM: 24, // Default tessellation value
+								},
+							},
+						},
 						X: {
 							shadow: {
 								type: "math_number",
@@ -1164,9 +1173,9 @@ export const toolbox = {
 					keyword: "devcam",
 				},
 				{
-					"kind": "block",
-					"type": "set_xr_mode",
-					"keyword": "xr"
+					kind: "block",
+					type: "set_xr_mode",
+					keyword: "xr",
 				},
 				{
 					kind: "block",
@@ -1398,7 +1407,7 @@ export const toolbox = {
 					kind: "block",
 					type: "control_animation_group",
 					keyword: "group",
-					inputsInline: true
+					inputsInline: true,
 				},
 				{
 					kind: "block",

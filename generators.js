@@ -989,17 +989,19 @@ export function defineGenerators() {
 		const height = getFieldValue(block, "HEIGHT", "2");
 		const diameterTop = getFieldValue(block, "DIAMETER_TOP", "1");
 		const diameterBottom = getFieldValue(block, "DIAMETER_BOTTOM", "1");
+		const tessellations = getFieldValue(block, "TESSELLATIONS", "12"); // Default to 12 if not provided
 
 		const positionSource = getPositionTuple(block);
 
 		return createMesh(
 			block,
 			"Cylinder",
-			[color, height, diameterTop, diameterBottom],
+			[color, height, diameterTop, diameterBottom, tessellations],
 			positionSource,
 			"cylinder",
 		);
 	};
+
 
 	javascriptGenerator.forBlock["create_capsule"] = function (block) {
 		const color = getFieldValue(block, "COLOR", "#9932CC");

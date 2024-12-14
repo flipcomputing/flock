@@ -2288,6 +2288,7 @@ export const flock = {
 		height,
 		diameterTop,
 		diameterBottom,
+		tessellation = 24, // Default tessellation to 12
 		position,
 		alpha = 1,
 	) {
@@ -2295,7 +2296,7 @@ export const flock = {
 			height,
 			diameterTop,
 			diameterBottom,
-			tessellation: 24,
+			tessellation, // Include tessellation in dimensions
 			updatable: true,
 		};
 
