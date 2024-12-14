@@ -1890,7 +1890,6 @@ export const flock = {
 	dispose(modelName) {
 		return flock.whenModelReady(modelName, (mesh) => {
 			const meshesToDispose = mesh.getChildMeshes().concat(mesh);
-			const allDescendants = mesh.getDescendants();
 			const disposedMaterials = new Set();
 
 			// Process AnimationGroups
@@ -1903,7 +1902,9 @@ export const flock = {
 					targets.some((target) =>
 						meshesToDispose.includes(target),
 					) ||
-					targets.some((target) => allDescendants.includes(target)) ||
+					targets.some((target) =>
+						mesh.getDescendants().includes(target),
+					) ||
 					targets.length === 0 // Orphaned group
 				) {
 					animationGroup.targetedAnimations.forEach((anim) => {
@@ -1924,15 +1925,27 @@ export const flock = {
 				}
 			});
 
-			// Dispose materials
+			// Detach and Dispose Materials
 			meshesToDispose.forEach((currentMesh) => {
-				if (
-					currentMesh.material &&
-					currentMesh.metadata?.sharedMaterial === false &&
-					!disposedMaterials.has(currentMesh.material)
-				) {
-					currentMesh.material.dispose();
-					disposedMaterials.add(currentMesh.material);
+				if (currentMesh.material) {
+					const material = currentMesh.material;
+
+					// Detach material from the mesh
+					currentMesh.material = null;
+
+					// Dispose material if not already disposed
+					if (!disposedMaterials.has(material)) {
+						
+						disposedMaterials.add(material);
+
+						// Remove from scene.materials
+						flock.scene.materials = flock.scene.materials.filter(
+							(mat) => mat !== material,
+						);
+
+						// Dispose the material
+						material.dispose();
+					}
 				}
 			});
 
@@ -1957,6 +1970,7 @@ export const flock = {
 					currentMesh.dispose();
 				}
 			});
+
 		});
 	},
 	async playAnimation(
