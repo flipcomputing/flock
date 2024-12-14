@@ -1576,6 +1576,7 @@ export const flock = {
 
 					// Dispose of original meshes after creating the hull
 					validMeshes.forEach((mesh) => mesh.dispose());
+					mergedMesh.dispose();
 
 					return modelId; // Return the debug mesh for further use
 				} else {
