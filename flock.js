@@ -1537,7 +1537,7 @@ export const flock = {
 				}
 			});
 	},
-	createHull(modelId, meshList, scene, havokPlugin) {
+	createHull(modelId, meshList) {
 		const blockId = modelId;
 		modelId += "_" + flock.scene.getUniqueId();
 
@@ -1561,11 +1561,11 @@ export const flock = {
 						mergedMesh,
 						BABYLON.PhysicsShapeType.CONVEX_HULL,
 						{ mass: 0 }, // Adjust mass based on use case
-						scene
+						flock.scene
 					);
 
 					// Create a debug mesh to visualize the convex hull
-					const debugMesh = flock.debugMeshFromBody(hullAggregate.body, havokPlugin, scene);
+					const debugMesh = flock.debugMeshFromBody(hullAggregate.body);
 
 					// Apply metadata or transformations to the debug mesh
 					debugMesh.id = modelId;
@@ -1577,7 +1577,7 @@ export const flock = {
 					// Dispose of original meshes after creating the hull
 					validMeshes.forEach((mesh) => mesh.dispose());
 
-					return debugMesh; // Return the debug mesh for further use
+					return modelId; // Return the debug mesh for further use
 				} else {
 					console.warn("No valid meshes to create a hull.");
 					return null;
