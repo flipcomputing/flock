@@ -365,6 +365,11 @@ export const flock = {
 		// Enable collisions
 		flock.scene.collisionsEnabled = true;
 
+		flock.controlsTexture =
+			flock.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
+		flock.createArrowControls("white");
+		flock.createButtonControls("white");
+
 		// Create the UI
 		flock.advancedTexture =
 			flock.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
