@@ -365,11 +365,18 @@ export const flock = {
 		// Enable collisions
 		flock.scene.collisionsEnabled = true;
 
-		flock.controlsTexture =
-			flock.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
-		flock.createArrowControls("white");
-		flock.createButtonControls("white");
-
+		const isTouchScreen = 
+			'ontouchstart' in window || 
+			navigator.maxTouchPoints > 0 || 
+			window.matchMedia("(pointer: coarse)").matches;
+	
+		if(isTouchScreen){
+			flock.controlsTexture =
+				flock.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
+			flock.createArrowControls("white");
+			flock.createButtonControls("white");
+		}
+	
 		// Create the UI
 		flock.advancedTexture =
 			flock.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
