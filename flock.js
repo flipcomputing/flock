@@ -1871,71 +1871,69 @@ flock.BABYLON.SceneLoader.LoadAssetContainerAsync(
 	},
 	dispose(modelName) {
 		return flock.whenModelReady(modelName, (mesh) => {
-			// 1. Gather all meshes and descendants
 			const meshesToDispose = mesh.getChildMeshes().concat(mesh);
 			const allDescendants = mesh.getDescendants();
+			const disposedMaterials = new Set();
 
-			// 2. Process AnimationGroups
+			// Process AnimationGroups
 			flock.scene.animationGroups.slice().forEach((animationGroup) => {
 				const targets = animationGroup.targetedAnimations.map((anim) => anim.target);
 
-				// Identify if the group targets meshes or descendants
-				const targetsMeshOrDescendants =
+				if (
 					targets.some((target) => meshesToDispose.includes(target)) ||
-					targets.some((target) => allDescendants.includes(target));
-
-				// Orphaned or programmatically created groups (no specific targets)
-				const isOrphanedGroup = targets.length === 0;
-
-				if (targetsMeshOrDescendants || isOrphanedGroup) {
+					targets.some((target) => allDescendants.includes(target)) ||
+					targets.length === 0 // Orphaned group
+				) {
+					animationGroup.targetedAnimations.forEach((anim) => {
+						anim.target = null; // Detach references
+					});
 					animationGroup.stop();
 					animationGroup.dispose();
-
-					// Remove the group from the scene's animationGroups array
-					const index = flock.scene.animationGroups.indexOf(animationGroup);
-					if (index !== -1) {
-						flock.scene.animationGroups.splice(index, 1);
-					}
 				}
 			});
 
-			// 3. Dispose standalone animations on meshes
+			// Dispose standalone animations
 			meshesToDispose.forEach((currentMesh) => {
 				if (currentMesh.animations) {
-					currentMesh.animations.length = 0; // Clear animations array
+					currentMesh.animations.forEach((animation) => {
+						animation.dispose?.();
+					});
+					currentMesh.animations.length = 0;
 				}
 			});
 
-			// 4. Dispose materials if sharedMaterial is false
+			// Dispose materials
 			meshesToDispose.forEach((currentMesh) => {
-				if (currentMesh.metadata && currentMesh.metadata.sharedMaterial === false) {
-					if (currentMesh.material) {
-						// Dispose material
-						currentMesh.material.dispose();
-					}
+				if (
+					currentMesh.material &&
+					currentMesh.metadata?.sharedMaterial === false &&
+					!disposedMaterials.has(currentMesh.material)
+				) {
+					currentMesh.material.dispose();
+					disposedMaterials.add(currentMesh.material);
 				}
 			});
 
-			// 5. Remove and dispose meshes
+			// Break parent-child relationships
 			meshesToDispose.forEach((currentMesh) => {
-				// Break parent-child relationship
 				currentMesh.parent = null;
+			});
 
-				// Remove from scene
-				flock.scene.removeMesh(currentMesh);
-				currentMesh.setEnabled(false);
+			// Dispose meshes in reverse order
+			meshesToDispose.reverse().forEach((currentMesh) => {
+				if (!currentMesh.isDisposed()) {
+					// Remove physics body
+					if (currentMesh.physics) {
+						currentMesh.physics.dispose();
+					}
 
-				// Remove physics body if it exists
-				if (currentMesh.physics && currentMesh.physics._pluginData) {
-					flock.hk._hknp.HP_World_RemoveBody(
-						flock.hk.world,
-						currentMesh.physics._pluginData.hpBodyId
-					);
-					currentMesh.physics.dispose();
+					// Remove from scene
+					flock.scene.removeMesh(currentMesh);
+					currentMesh.setEnabled(false);
+
+					// Dispose the mesh
+					currentMesh.dispose();
 				}
-
-				// Dispose the mesh
-				currentMesh.dispose();
 			});
 		});
 	},
