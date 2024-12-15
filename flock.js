@@ -3048,17 +3048,19 @@ export const flock = {
 		}
 	},
 	getProperty(modelName, propertyName) {
-		const mesh = flock.scene.getMeshByName(modelName);
+
+		const mesh = (modelName === "__active_camera__") ? flock.scene.activeCamera : flock.scene.getMeshByName(modelName);
 
 		if (!mesh) return null;
-
+		
+		const position = (modelName === "__active_camera__") ? mesh.globalPosition : mesh.getAbsolutePosition();
+		
 		let propertyValue = null;
 
 		mesh.computeWorldMatrix(true);
 
-		const position = mesh.getAbsolutePosition();
+		const rotation =  (modelName === "__active_camera__") ? mesh.absoluteRotation.toEulerAngles() : mesh.absoluteRotationQuaternion.toEulerAngles();
 
-		let rotation = mesh.absoluteRotationQuaternion.toEulerAngles();
 		let allMeshes, materialNode, materialNodes;
 		switch (propertyName) {
 			case "POSITION_X":
