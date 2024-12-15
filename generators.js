@@ -2510,8 +2510,6 @@ javascriptGenerator.forBlock["controls_for"] = function (block, generator) {
 };
 
 
-
-
 javascriptGenerator.forBlock["controls_forEach"] = function (block, generator) {
 	// For each loop.
 	const variable0 = generator.getVariableName(block.getFieldValue("VAR"));

@@ -435,6 +435,7 @@ export const flock = {
 	printText(text, duration, color = "white") {
 		if (!text || !flock.scene || !flock.stackPanel) return;
 
+		console.log(text);
 		try {
 			// Create a rectangle container for the text
 			const bg = new flock.GUI.Rectangle("textBackground");
