@@ -2482,16 +2482,35 @@ javascriptGenerator.forBlock["controls_for"] = function (block, generator) {
 	const increment =
 		generator.valueToCode(block, "BY", generator.ORDER_ASSIGNMENT) || "1";
 
-	let branch = generator.statementToCode(block, "DO");
+	const branch = generator.statementToCode(block, "DO");
 
-	let code =
-		`for (${variable0} = ${argument0}; ${variable0} ${increment > 0 ? "<=" : ">="} ${argument1}; ${variable0} += ${increment}) {\n` +
-		branch +
-		"  await wait(0);\n" + 
-		"}\n";
+	// Timing and iteration counter variables
+	const timingVar = generator.nameDB_.getDistinctName(
+		`${variable0}_timing`,
+		Blockly.Names.DEVELOPER_VARIABLE_TYPE
+	);
 
-	return code;
+	const counterVar = generator.nameDB_.getDistinctName(
+		`${variable0}_counter`,
+		Blockly.Names.DEVELOPER_VARIABLE_TYPE
+	);
+
+	return `
+		let ${timingVar} = performance.now();
+		let ${counterVar} = 0;
+		for (${variable0} = ${argument0}; (${increment} > 0 ? ${variable0} <= ${argument1} : ${variable0} >= ${argument1}); ${variable0} += ${increment}) {
+			${branch}
+			${counterVar}++;
+			if (${counterVar} % 10 === 0 && performance.now() - ${timingVar} > 16) {
+				await new Promise(resolve => requestAnimationFrame(resolve));
+				${timingVar} = performance.now();
+			}
+		}
+	`;
 };
+
+
+
 
 javascriptGenerator.forBlock["controls_forEach"] = function (block, generator) {
 	// For each loop.

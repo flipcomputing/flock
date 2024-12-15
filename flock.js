@@ -41,6 +41,7 @@ export const flock = {
 	geometryCache: {},
 	materialCache: {},
 	flockNotReady: true,
+	lastFrameTime: 0,
 	async runCode(code) {
 		let iframe = document.getElementById("flock-iframe");
 
@@ -1836,6 +1837,22 @@ export const flock = {
 			throw error;
 		});
 	},	
+	async safeLoop(iteration, loopBody, chunkSize = 100, timing = { lastFrameTime: performance.now() }, state = {}) {
+		if (state.stopExecution) return; // Check if we should stop further iterations
+
+		// Execute the loop body
+		await loopBody(iteration);
+
+		// Yield control after every `chunkSize` iterations
+		if (iteration % chunkSize === 0) {
+			const currentTime = performance.now();
+
+			if (currentTime - timing.lastFrameTime > 16) {
+				await new Promise(resolve => requestAnimationFrame(resolve));
+				timing.lastFrameTime = performance.now(); // Update timing for this loop
+			}
+		}
+	},
 	waitUntil(conditionFunc) {
 		return new Promise((resolve, reject) => {
 			const checkCondition = () => {
