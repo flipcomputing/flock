@@ -1316,7 +1316,7 @@ export const flock = {
 		});
 	},
 	drop(meshToDetach) {
-		return flock.whenModelReady(meshToDetach, (meshToDetachInstance) => {
+		return flock.whenModelReady(meshToDetach, (meshToDetachIntance) => {
 			const worldPosition = meshToDetachInstance.getAbsolutePosition();
 
 			// Detach the mesh from the bone
@@ -1349,8 +1349,7 @@ export const flock = {
 						baseCSG = baseCSG.add(meshCSG);
 					});
 
-					// Generate the resulting merged mesh with options
-					const mergedMesh = baseCSG.toMesh(
+					const mergedMesh1 = baseCSG.toMesh(
 						"mergedMesh",
 						validMeshes[0].getScene(),
 						{
@@ -1358,6 +1357,23 @@ export const flock = {
 							rebuildNormals: true, // Ensure normals are rebuilt for proper shading
 						},
 					);
+
+					mergedMesh1.refreshBoundingInfo(); // Ensure bounding info is up-to-date
+					const boundingInfo = mergedMesh1.getBoundingInfo();
+					const worldCenter = boundingInfo.boundingBox.centerWorld.clone();
+
+					const mergedMesh = baseCSG.toMesh(
+						"mergedMesh",
+						validMeshes[0].getScene(),
+						{
+							centerMesh: true, // Keep the original combined position
+							rebuildNormals: true, // Ensure normals are rebuilt for proper shading
+						},
+					);
+
+					mergedMesh.position = worldCenter;
+
+					mergedMesh1.dispose();
 
 					flock.applyResultMeshProperties(
 						mergedMesh,
