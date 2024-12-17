@@ -2222,7 +2222,7 @@ export function defineGenerators() {
 	};
 
 	javascriptGenerator.forBlock["procedures_defnoreturn"] = function (block) {
-		const functionName = block.getFieldValue("NAME");
+		 const functionName = block.getFieldValue("NAME").replace(/[^\w]/g, "_");
 		// Retrieve the parameters as a comma-separated list
 		const args = block.argData_.map((elem) => elem.model.name);
 		const params = args.join(", ");
@@ -2241,7 +2241,7 @@ export function defineGenerators() {
 
 	// Generator for asynchronous function call with arguments
 	javascriptGenerator.forBlock["procedures_callnoreturn"] = function (block) {
-		const functionName = block.getFieldValue("NAME");
+		 const functionName = block.getFieldValue("NAME").replace(/[^\w]/g, "_");
 		// Retrieve the arguments as a comma-separated list that should match the parameters
 		const args = [];
 		const variables = block.arguments_;
