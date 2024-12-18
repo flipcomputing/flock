@@ -120,6 +120,7 @@
 		"x": 10,
 		"y": 680,
 		"collapsed": true,
+		"extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" inline=\"false\"></mutation>",
 		"inputs": {
 		  "DO": {
 			"block": {
@@ -347,7 +348,8 @@
 							"fields": {
 							  "MODEL": {
 								"id": "f=8($HYZoE:IjT|U8x8J"
-							  }
+							  },
+							  "DIRECTION": "forward"
 							},
 							"inputs": {
 							  "SPEED": {
@@ -378,7 +380,8 @@
 							"fields": {
 							  "MODEL": {
 								"id": "f=8($HYZoE:IjT|U8x8J"
-							  }
+							  },
+							  "DIRECTION": "forward"
 							},
 							"inputs": {
 							  "SPEED": {
@@ -523,11 +526,12 @@
 				"block": {
 				  "type": "load_character",
 				  "id": "kA`{f)5!}mLm:{vF7$vV",
+				  "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" has_do=\"false\"></mutation>",
 				  "fields": {
-					"MODELS": "Character1.glb",
 					"ID_VAR": {
 					  "id": "f=8($HYZoE:IjT|U8x8J"
-					}
+					},
+					"MODELS": "Character1.glb"
 				  },
 				  "inputs": {
 					"SCALE": {
@@ -562,7 +566,7 @@
 						"type": "math_number",
 						"id": "hVAmw*CPYbb;hR^sk3yn",
 						"fields": {
-						  "NUM": 0
+						  "NUM": 10
 						}
 					  }
 					},
@@ -667,6 +671,7 @@
 		"x": 10,
 		"y": 768,
 		"collapsed": true,
+		"extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" inline=\"undefined\"></mutation>",
 		"inputs": {
 		  "EVENT_NAME": {
 			"shadow": {
@@ -709,6 +714,7 @@
 		"x": 10,
 		"y": 856,
 		"collapsed": true,
+		"extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" inline=\"undefined\"></mutation>",
 		"inputs": {
 		  "EVENT_NAME": {
 			"shadow": {
