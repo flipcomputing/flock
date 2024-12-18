@@ -979,7 +979,6 @@ export function defineBlocks() {
 			});
 
 			this.setOnChange((changeEvent) => {
-				
 				handleBlockCreateEvent(
 					this,
 					changeEvent,
@@ -1018,7 +1017,8 @@ export function defineBlocks() {
 				previousStatement: null,
 				nextStatement: null,
 				colour: categoryColours["Animate"],
-				tooltip: "Controls the animation group by playing, pausing, or stopping it.",
+				tooltip:
+					"Controls the animation group by playing, pausing, or stopping it.",
 				helpUrl: "",
 			});
 		},
@@ -1045,12 +1045,12 @@ export function defineBlocks() {
 				previousStatement: null,
 				nextStatement: null,
 				colour: categoryColours["Animate"],
-				tooltip: "Starts animating the group from the specified time (in seconds).",
+				tooltip:
+					"Starts animating the group from the specified time (in seconds).",
 				helpUrl: "",
 			});
 		},
 	};
-
 
 	Blockly.Blocks["stop_animations"] = {
 		init: function () {
@@ -1204,7 +1204,7 @@ export function defineBlocks() {
 				variableNamePrefix + nextVariableIndexes[variableNamePrefix];
 			this.jsonInit({
 				message0: `set %1 to %2 scale: %3 x: %4 y: %5 z: %6
-				Hair: %7 Skin: %8 Eyes: %9 Sleeves: %10 Shorts: %11 T-Shirt: %12`,
+				Hair: %7 Skin: %8 Eyes: %9 T-Shirt: %10 Shorts: %11 Detail: %12`,
 				args0: [
 					{
 						type: "field_variable",
@@ -1265,7 +1265,7 @@ export function defineBlocks() {
 					},
 					{
 						type: "input_value",
-						name: "SLEEVES_COLOR",
+						name: "TSHIRT_COLOR",
 						check: "Colour",
 					},
 					{
@@ -1275,7 +1275,7 @@ export function defineBlocks() {
 					},
 					{
 						type: "input_value",
-						name: "TSHIRT_COLOR",
+						name: "SLEEVES_COLOR",
 						check: "Colour",
 					},
 				],
@@ -1532,7 +1532,8 @@ export function defineBlocks() {
 				],
 				inputsInline: true,
 				colour: categoryColours["Scene"],
-				tooltip: "Clone a mesh and assign it to a variable.\nKeyword: clone",
+				tooltip:
+					"Clone a mesh and assign it to a variable.\nKeyword: clone",
 				helpUrl: "",
 				previousStatement: null,
 				nextStatement: null,
@@ -1540,7 +1541,6 @@ export function defineBlocks() {
 
 			// Set dynamic variable name handling
 			this.setOnChange((changeEvent) => {
-
 				handleBlockCreateEvent(
 					this,
 					changeEvent,
@@ -1553,7 +1553,6 @@ export function defineBlocks() {
 			addDoMutatorWithToggleBehavior(this);
 		},
 	};
-
 
 	function updateCurrentMeshName(block, variableFieldName) {
 		const variableName = block.getField(variableFieldName).getText(); // Get the selected variable name
@@ -2352,8 +2351,7 @@ export function defineBlocks() {
 		init: function () {
 			this.jsonInit({
 				type: "follow",
-				message0:
-					"make %1 follow %2 at %3\noffset x: %4 y: %5 z: %6",
+				message0: "make %1 follow %2 at %3\noffset x: %4 y: %5 z: %6",
 				args0: [
 					{
 						type: "field_variable",
@@ -2387,7 +2385,7 @@ export function defineBlocks() {
 					{
 						type: "input_value",
 						name: "Z_OFFSET",
-						check: "Number",	
+						check: "Number",
 					},
 				],
 				previousStatement: null,
@@ -2404,7 +2402,8 @@ export function defineBlocks() {
 		init: function () {
 			this.jsonInit({
 				type: "scale",
-				message0: "scale %1 x: %2 y: %3 z: %4\norigin x: %5 y: %6 z: %7",
+				message0:
+					"scale %1 x: %2 y: %3 z: %4\norigin x: %5 y: %6 z: %7",
 				args0: [
 					{
 						type: "field_variable",
@@ -4625,60 +4624,59 @@ export function addDoMutatorWithToggleBehavior(block) {
 	};
 }
 
-	export function handleBlockCreateEvent(
-		blockInstance,
-		changeEvent,
-		variableNamePrefix,
-		nextVariableIndexes,
-		fieldName = "ID_VAR" // Default field name to handle
+export function handleBlockCreateEvent(
+	blockInstance,
+	changeEvent,
+	variableNamePrefix,
+	nextVariableIndexes,
+	fieldName = "ID_VAR", // Default field name to handle
+) {
+	if (window.loadingCode) return; // Don't rename variables during code loading
+
+	if (
+		!blockInstance.isInFlyout &&
+		changeEvent.type === Blockly.Events.BLOCK_CREATE &&
+		changeEvent.ids.includes(blockInstance.id)
 	) {
-		if (window.loadingCode) return; // Don't rename variables during code loading
+		// Check if the specified field already has a value
+		const variableField = blockInstance.getField(fieldName);
+		if (variableField) {
+			const variableId = variableField.getValue();
+			const variable =
+				blockInstance.workspace.getVariableById(variableId);
 
-		if (
-			!blockInstance.isInFlyout &&
-			changeEvent.type === Blockly.Events.BLOCK_CREATE &&
-			changeEvent.ids.includes(blockInstance.id)
-		) {
-			// Check if the specified field already has a value
-			const variableField = blockInstance.getField(fieldName);
-			if (variableField) {
-				const variableId = variableField.getValue();
-				const variable =
-					blockInstance.workspace.getVariableById(variableId);
+			// Check if the variable name matches the pattern "prefixn"
+			const variableNamePattern = new RegExp(
+				`^${variableNamePrefix}\\d+$`,
+			);
+			const variableName = variable ? variable.name : "";
 
-				// Check if the variable name matches the pattern "prefixn"
-				const variableNamePattern = new RegExp(
-					`^${variableNamePrefix}\\d+$`,
-				);
-				const variableName = variable ? variable.name : "";
-
-				if (!variableNamePattern.test(variableName)) {
-					// Don't change if the variable name doesn't match the expected pattern
-				} else {
-					// Create and set a new variable if necessary
-					if (!nextVariableIndexes[variableNamePrefix]) {
-						nextVariableIndexes[variableNamePrefix] = 1; // Initialise if not already present
-					}
-					let newVariableName =
-						variableNamePrefix +
-						nextVariableIndexes[variableNamePrefix];
-					let newVariable =
-						blockInstance.workspace.getVariable(newVariableName);
-					if (!newVariable) {
-						newVariable = blockInstance.workspace.createVariable(
-							newVariableName,
-							null,
-						);
-					}
-					variableField.setValue(newVariable.getId());
-
-					// Increment the variable index for the next variable name
-					nextVariableIndexes[variableNamePrefix] += 1;
+			if (!variableNamePattern.test(variableName)) {
+				// Don't change if the variable name doesn't match the expected pattern
+			} else {
+				// Create and set a new variable if necessary
+				if (!nextVariableIndexes[variableNamePrefix]) {
+					nextVariableIndexes[variableNamePrefix] = 1; // Initialise if not already present
 				}
+				let newVariableName =
+					variableNamePrefix +
+					nextVariableIndexes[variableNamePrefix];
+				let newVariable =
+					blockInstance.workspace.getVariable(newVariableName);
+				if (!newVariable) {
+					newVariable = blockInstance.workspace.createVariable(
+						newVariableName,
+						null,
+					);
+				}
+				variableField.setValue(newVariable.getId());
+
+				// Increment the variable index for the next variable name
+				nextVariableIndexes[variableNamePrefix] += 1;
 			}
 		}
 	}
-
+}
 
 // Extend the built-in Blockly procedures_defreturn block to add custom toggle functionality
 

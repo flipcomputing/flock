@@ -68,6 +68,7 @@ export const characterNames = [
 	"Character2.glb",
 	"Character3.glb",
 	"Character4.glb",
+	"Person.glb",
 ];
 
 export const objectNames = [
