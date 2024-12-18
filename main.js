@@ -1112,6 +1112,36 @@ window.onload = function () {
 		}
 	});
 
+	workspace.addChangeListener(function (event) {
+		if (
+			event.type === Blockly.Events.BLOCK_MOVE ||
+			event.type === Blockly.Events.BLOCK_CREATE ||
+			event.type === Blockly.Events.SELECTED
+		) {
+			requestAnimationFrame(() => {
+				enforceOrphanZOrder();
+			});
+		}
+	});
+
+	function enforceOrphanZOrder() {
+		workspace.getAllBlocks().forEach(block => {
+			// Check if the block is orphaned
+			if (!block.getParent() && !block.isInFlyout) {
+				bringToTop(block);
+			}
+		});
+	}
+
+	function bringToTop(block) {
+		const svgGroup = block.getSvgRoot();
+		if (svgGroup && svgGroup.parentNode) {
+			svgGroup.parentNode.appendChild(svgGroup);
+		}
+	}
+
+
+
 	Blockly.ContextMenuItems.registerCommentOptions();
 	const navigationController = new NavigationController();
 	navigationController.init();
