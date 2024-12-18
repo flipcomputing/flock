@@ -809,12 +809,12 @@
 						}
 					  }
 					},
-					"SLEEVES_COLOR": {
+					"TSHIRT_COLOR": {
 					  "shadow": {
 						"type": "colour",
-						"id": "?48{bzc81c?4_CF!dU4u",
+						"id": "NTcH!O^WWH-?irgW]Sxt",
 						"fields": {
-						  "COLOR": "#008b8b"
+						  "COLOR": "#ff8f60"
 						}
 					  }
 					},
@@ -827,12 +827,12 @@
 						}
 					  }
 					},
-					"TSHIRT_COLOR": {
+					"SLEEVES_COLOR": {
 					  "shadow": {
 						"type": "colour",
-						"id": "NTcH!O^WWH-?irgW]Sxt",
+						"id": "?48{bzc81c?4_CF!dU4u",
 						"fields": {
-						  "COLOR": "#ff8f60"
+						  "COLOR": "#008b8b"
 						}
 					  }
 					}
@@ -1099,7 +1099,7 @@
 								"type": "math_number",
 								"id": "pVc%3T8KCe@FD)p`V*#6",
 								"fields": {
-								  "NUM": 500
+								  "NUM": 200
 								}
 							  }
 							},
@@ -1291,7 +1291,7 @@
 												"type": "math_number",
 												"id": "1j3Q.|SJxf8vNSh!cL4C",
 												"fields": {
-												  "NUM": 500
+												  "NUM": 200
 												}
 											  }
 											},
@@ -1865,28 +1865,12 @@
 	  "id": "DetuuxWKd*Q_?Jr-Sz*k"
 	},
 	{
-	  "name": "character1",
-	  "id": "}UlX~N$2#KAQ3$ze2LY{"
-	},
-	{
 	  "name": "sphere1",
 	  "id": "seg}aw6yE`EG,RI$$!^%"
 	},
 	{
 	  "name": "sphere2",
 	  "id": "zm8=)J|lenQz7__7Q8gn"
-	},
-	{
-	  "name": "result",
-	  "id": "O^S.ro-1G]8-]s3HSiCm"
-	},
-	{
-	  "name": "Mesh",
-	  "id": "**a,YG!eo8kyCM}:LMy,"
-	},
-	{
-	  "name": "i",
-	  "id": "qDdrvBMzwR[[fD|$jD(?"
 	},
 	{
 	  "name": "dome",
