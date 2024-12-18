@@ -1182,7 +1182,7 @@ export const flock = {
 
 		return modelId;
 	},
-	newObject({
+	newObject2({
 		modelName,
 		modelId,
 		color = "#FFFFFF",
@@ -1221,6 +1221,116 @@ export const flock = {
 			.catch((error) => {
 				console.log("Error loading", error);
 			});
+
+		return modelId;
+	},
+	newObject({
+		modelName,
+		modelId,
+		color = "#FFFFFF",
+		scale = 1,
+		position = { x: 0, y: 0, z: 0 },
+		callback = null,
+	}) {
+		const { x, y, z } = position;
+		const blockId = modelId;
+		modelId += "_" + flock.scene.getUniqueId();
+
+		// Check if a first copy is already cached
+		if (flock.modelCache[modelName]) {
+			//console.log(`Using cached first model: ${modelName}`);
+
+			// Clone from the cached first copy
+			const firstMesh = flock.modelCache[modelName];
+			const mesh = firstMesh.clone(blockId);
+
+			// Reset transformations
+			mesh.scaling.copyFrom(BABYLON.Vector3.One());
+			mesh.position.copyFrom(BABYLON.Vector3.Zero());
+			mesh.rotationQuaternion = null;
+			mesh.rotation.copyFrom(BABYLON.Vector3.Zero());
+
+			flock.setupMesh(mesh, modelId, blockId, scale, x, y, z, color);
+			flock.changeColorMesh(mesh, color);
+
+			mesh.computeWorldMatrix(true);
+			mesh.refreshBoundingInfo();
+			mesh.setEnabled(true);
+			mesh.visibility = 1;
+
+			// Function to set metadata
+			const setMetadata = (mesh) => {
+				mesh.metadata = {
+					sharedMaterial: true,
+					sharedGeometry: true,
+				};
+			};
+
+			// Set metadata on the root mesh
+			setMetadata(mesh);
+
+			// Set metadata on all descendants
+			mesh.getDescendants().forEach((descendant) => {
+				setMetadata(descendant);
+			});
+
+			if (callback) {
+				requestAnimationFrame(callback);
+			}
+
+			return modelId;
+		}
+
+		// Check if model is already being loaded
+		if (flock.modelsBeingLoaded[modelName]) {
+			console.log(`Waiting for model to load: ${modelName}`);
+			return flock.modelsBeingLoaded[modelName].then(() => {
+				return flock.newObject({
+					modelName,
+					modelId,
+					color,
+					scale,
+					position,
+					callback,
+				});
+			});
+		}
+
+		// Start loading the model
+		//console.log(`Loading model: ${modelName}`);
+		const loadPromise = flock.BABYLON.SceneLoader.LoadAssetContainerAsync(
+			"./models/",
+			modelName,
+			flock.scene,
+		)
+			.then((container) => {
+				console.log(`Model loaded: ${modelName}`);
+
+				// Clone a first copy from the first mesh
+				const firstMesh = container.meshes[0].clone(
+					`${modelName}_first`,
+				);
+				firstMesh.setEnabled(false); // Disable the first copy
+				flock.modelCache[modelName] = firstMesh;
+
+				container.addAllToScene();
+	
+				flock.setupMesh(container.meshes[0], modelId, blockId, scale, x, y, z, color);
+				flock.changeColorMesh(container.meshes[0], color);
+
+				if (callback) {
+					requestAnimationFrame(callback);
+				}
+			})
+			.catch((error) => {
+				console.error(`Error loading model: ${modelName}`, error);
+			})
+			.finally(() => {
+				delete flock.modelsBeingLoaded[modelName]; // Remove from loading map
+			});
+
+		// Track the ongoing load
+		flock.modelsBeingLoaded[modelName] = loadPromise;
 
 		return modelId;
 	},
@@ -1280,10 +1390,10 @@ export const flock = {
 			// Start the particle system
 			particleSystem.start();
 
-			console.log(
+			/*console.log(
 				`Particle system "${name}" started with emit rate: ${particleSystem.emitRate}, gravity: ${gravity}, using emitter mesh:`,
 				meshInstance,
-			);
+			);*/
 
 			return particleSystem;
 		});
