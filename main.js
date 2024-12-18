@@ -1421,3 +1421,4 @@ const adjustViewport = () => {
 // Adjust viewport on page load and resize
 window.addEventListener("load", adjustViewport);
 window.addEventListener("resize", adjustViewport);
+

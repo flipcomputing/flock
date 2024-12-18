@@ -655,108 +655,233 @@ export const toolbox = {
 					},
 				},
 				{
-					kind: "block",
-					type: "merge_meshes",
-					inputsInline: true,
-					inputs: {
-						MESH_LIST: {
-							block: {
-								type: "lists_create_with",
-								inline: true,
-								extraState: {
-									itemCount: 1,
-								},
-								inputs: {
-									ADD0: {
-										block: {
-											type: "variables_get",
-											fields: {
-												VAR: "mesh1", // Default variable for a mesh
+					kind: "category",
+					name: "Combine",
+					icon: "./images/combine.svg",
+					colour: categoryColours["Scene"],
+					contents: [
+						{
+							kind: "block",
+							type: "merge_meshes",
+							inputsInline: true,
+							inputs: {
+								MESH_LIST: {
+									block: {
+										type: "lists_create_with",
+										inline: true,
+										extraState: {
+											itemCount: 1,
+										},
+										inputs: {
+											ADD0: {
+												block: {
+													type: "variables_get",
+													fields: {
+														VAR: "mesh1", // Default variable for a mesh
+													},
+												},
 											},
 										},
 									},
 								},
 							},
 						},
-					},
+						{
+							kind: "block",
+							type: "subtract_meshes",
+							inputsInline: true,
+							inputs: {
+								MESH_LIST: {
+									block: {
+										type: "lists_create_with",
+										inline: true,
+										extraState: {
+											itemCount: 1,
+										},
+										inputs: {
+											ADD0: {
+												block: {
+													type: "variables_get",
+													fields: {
+														VAR: "mesh2", // Default variable for a mesh to subtract
+													},
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+						{
+							kind: "block",
+							type: "intersection_meshes",
+							inputsInline: true,
+							inputs: {
+								MESH_LIST: {
+									block: {
+										type: "lists_create_with",
+										inline: true,
+										extraState: {
+											itemCount: 1,
+										},
+										inputs: {
+											ADD0: {
+												block: {
+													type: "variables_get",
+													fields: {
+														VAR: "mesh1", // Default variable for a mesh
+													},
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+						{
+							kind: "block",
+							type: "hull_meshes",
+							inputsInline: true,
+							inputs: {
+								MESH_LIST: {
+									block: {
+										type: "lists_create_with",
+										inline: true,
+										extraState: {
+											itemCount: 1,
+										},
+										inputs: {
+											ADD0: {
+												block: {
+													type: "variables_get",
+													fields: {
+														VAR: "mesh1", // Default variable for a mesh
+													},
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					],
 				},
 				{
-					kind: "block",
-					type: "subtract_meshes",
-					inputsInline: true,
-					inputs: {
-						MESH_LIST: {
-							block: {
-								type: "lists_create_with",
-								inline: true,
-								extraState: {
-									itemCount: 1,
+					kind: "category",
+					name: "Connect",
+					icon: "./images/connect.svg",
+					colour: categoryColours["Scene"],
+					contents: [
+						{
+							kind: "block",
+							type: "parent_child",
+							keyword: "parent",
+							inputs: {
+								X_OFFSET: {
+									shadow: {
+										type: "math_number",
+										fields: {
+											NUM: 0,
+										},
+									},
 								},
-								inputs: {
-									ADD0: {
-										block: {
-											type: "variables_get",
-											fields: {
-												VAR: "mesh2", // Default variable for a mesh to subtract
-											},
+								Y_OFFSET: {
+									shadow: {
+										type: "math_number",
+										fields: {
+											NUM: 0,
+										},
+									},
+								},
+								Z_OFFSET: {
+									shadow: {
+										type: "math_number",
+										fields: {
+											NUM: 0,
 										},
 									},
 								},
 							},
 						},
-					},
-				},
-				{
-					kind: "block",
-					type: "intersection_meshes",
-					inputsInline: true,
-					inputs: {
-						MESH_LIST: {
-							block: {
-								type: "lists_create_with",
-								inline: true,
-								extraState: {
-									itemCount: 1,
+						{
+							kind: "block",
+							type: "remove_parent",
+							keyword: "noparent",
+						},
+						{
+							kind: "block",
+							type: "follow",
+							keyword: "follow",
+							inputs: {
+								X_OFFSET: {
+									shadow: {
+										type: "math_number",
+										fields: {
+											NUM: 0,
+										},
+									},
 								},
-								inputs: {
-									ADD0: {
-										block: {
-											type: "variables_get",
-											fields: {
-												VAR: "mesh1", // Default variable for a mesh
-											},
+								Y_OFFSET: {
+									shadow: {
+										type: "math_number",
+										fields: {
+											NUM: 0,
+										},
+									},
+								},
+								Z_OFFSET: {
+									shadow: {
+										type: "math_number",
+										fields: {
+											NUM: 0,
 										},
 									},
 								},
 							},
 						},
-					},
-				},
-				{
-					kind: "block",
-					type: "hull_meshes",
-					inputsInline: true,
-					inputs: {
-						MESH_LIST: {
-							block: {
-								type: "lists_create_with",
-								inline: true,
-								extraState: {
-									itemCount: 1,
+						{
+							kind: "block",
+							type: "stop_follow",
+							keyword: "fstop",
+						},
+						{
+							kind: "block",
+							type: "hold",
+							keyword: "hold",
+							inputs: {
+								X_OFFSET: {
+									shadow: {
+										type: "math_number",
+										fields: {
+											NUM: 0,
+										},
+									},
 								},
-								inputs: {
-									ADD0: {
-										block: {
-											type: "variables_get",
-											fields: {
-												VAR: "mesh1", // Default variable for a mesh
-											},
+								Y_OFFSET: {
+									shadow: {
+										type: "math_number",
+										fields: {
+											NUM: 0,
+										},
+									},
+								},
+								Z_OFFSET: {
+									shadow: {
+										type: "math_number",
+										fields: {
+											NUM: 0,
 										},
 									},
 								},
 							},
 						},
-					},
+						{
+							kind: "block",
+							type: "drop",
+							keyword: "drop",
+						},
+
+						]
 				},
 				{
 					kind: "block",
@@ -767,114 +892,6 @@ export const toolbox = {
 					kind: "block",
 					type: "hide",
 					keyword: "hide",
-				},
-				{
-					kind: "block",
-					type: "parent_child",
-					keyword: "parent",
-					inputs: {
-						X_OFFSET: {
-							shadow: {
-								type: "math_number",
-								fields: {
-									NUM: 0,
-								},
-							},
-						},
-						Y_OFFSET: {
-							shadow: {
-								type: "math_number",
-								fields: {
-									NUM: 0,
-								},
-							},
-						},
-						Z_OFFSET: {
-							shadow: {
-								type: "math_number",
-								fields: {
-									NUM: 0,
-								},
-							},
-						},
-					},
-				},
-				{
-					kind: "block",
-					type: "follow",
-					keyword: "follow",
-					inputs: {
-						X_OFFSET: {
-							shadow: {
-								type: "math_number",
-								fields: {
-									NUM: 0,
-								},
-							},
-						},
-						Y_OFFSET: {
-							shadow: {
-								type: "math_number",
-								fields: {
-									NUM: 0,
-								},
-							},
-						},
-						Z_OFFSET: {
-							shadow: {
-								type: "math_number",
-								fields: {
-									NUM: 0,
-								},
-							},
-						},
-					},
-				},
-				{
-					kind: "block",
-					type: "stop_follow",
-					keyword: "fstop",
-				},
-				{
-					kind: "block",
-					type: "hold",
-					keyword: "hold",
-					inputs: {
-						X_OFFSET: {
-							shadow: {
-								type: "math_number",
-								fields: {
-									NUM: 0,
-								},
-							},
-						},
-						Y_OFFSET: {
-							shadow: {
-								type: "math_number",
-								fields: {
-									NUM: 0,
-								},
-							},
-						},
-						Z_OFFSET: {
-							shadow: {
-								type: "math_number",
-								fields: {
-									NUM: 0,
-								},
-							},
-						},
-					},
-				},
-				{
-					kind: "block",
-					type: "drop",
-					keyword: "drop",
-				},
-				{
-					kind: "block",
-					type: "remove_parent",
-					keyword: "noparent",
 				},
 				{
 					kind: "block",
@@ -3260,7 +3277,73 @@ Blockly.registry.register(
 	Blockly.registry.Type.TOOLBOX_ITEM,
 	Blockly.ToolboxCategory.registrationName,
 	IconCategory,
-	true,
+	true
 );
 
-//iconImg.alt = this.toolboxItemDef_.name + ' icon';
+class CustomCollapsibleToolboxCategory extends Blockly.CollapsibleToolboxCategory {
+	constructor(categoryDef, toolbox, opt_parent) {
+		super(categoryDef, toolbox, opt_parent);
+		// Store the original icon and color
+		this.originalIcon = categoryDef.icon || "./default_icon.svg";
+		this.originalColor = categoryDef.colour || '#000000';
+	}
+
+	// Preserve the original icon
+	createIconDom_() {
+		const img = document.createElement("img");
+		img.src = this.originalIcon;
+		img.alt = this.toolboxItemDef_.name + " icon";
+		img.width = "24";
+		img.height = "24";
+		img.classList.add("customToolboxIcon");
+		return img;
+	}
+
+	setSelected(isSelected) {
+		super.setSelected(isSelected);
+
+		// Get the category color
+		const categoryColour = this.colour_;
+
+		// Change background color when selected/deselected
+		if (isSelected) {
+		} else {
+			this.rowDiv_.style.setProperty(
+				"background-color",
+				categoryColour,
+				"important",
+			);
+		}
+	}
+	
+	/** @override */
+	createDom_() {
+		super.createDom_();
+
+		// Use the stored colour_ property for the tab colour
+		const tabColour = this.colour_;
+
+		// Apply custom class to the rowDiv_
+		this.rowDiv_.classList.add("custom-category");
+
+		// Set the background color of the category to match the tab colour
+		if (tabColour) {
+			this.rowDiv_.style.setProperty(
+				"background-color",
+				tabColour,
+				"important",
+			);
+		}
+
+		return this.htmlDiv_;
+	}
+
+}
+
+// Register the custom collapsible category
+Blockly.registry.register(
+	Blockly.registry.Type.TOOLBOX_ITEM,
+	Blockly.CollapsibleToolboxCategory.registrationName,
+	CustomCollapsibleToolboxCategory,
+	true
+);
