@@ -1156,9 +1156,12 @@ export const flock = {
 				applyColorToMaterial(mesh, "Hair", hairColor);
 				applyColorToMaterial(mesh, "Skin", skinColor);
 				applyColorToMaterial(mesh, "Eyes", eyesColor);
-				applyColorToMaterial(mesh, "Sleeves", sleevesColor);
+				applyColorToMaterial(mesh, "Detail", sleevesColor);
 				applyColorToMaterial(mesh, "Shorts", shortsColor);
 				applyColorToMaterial(mesh, "TShirt", tshirtColor);
+				applyColorToMaterial(mesh, "Tshirt", tshirtColor);
+				applyColorToMaterial(mesh, "Sleeves", sleevesColor);
+				applyColorToMaterial(mesh, "Shoes", sleevesColor);
 
 				const descendants = mesh.getChildMeshes(false);
 				descendants.forEach((childMesh) => {
@@ -1360,7 +1363,8 @@ export const flock = {
 
 					mergedMesh1.refreshBoundingInfo(); // Ensure bounding info is up-to-date
 					const boundingInfo = mergedMesh1.getBoundingInfo();
-					const worldCenter = boundingInfo.boundingBox.centerWorld.clone();
+					const worldCenter =
+						boundingInfo.boundingBox.centerWorld.clone();
 
 					const mergedMesh = baseCSG.toMesh(
 						"mergedMesh",
@@ -1564,10 +1568,15 @@ export const flock = {
 			.then((validMeshes) => {
 				if (validMeshes.length) {
 					// Merge the valid meshes into a single mesh
-					const mergedMesh = BABYLON.Mesh.MergeMeshes(validMeshes, true);
+					const mergedMesh = BABYLON.Mesh.MergeMeshes(
+						validMeshes,
+						true,
+					);
 
 					if (!mergedMesh) {
-						console.warn("Failed to merge meshes for hull creation.");
+						console.warn(
+							"Failed to merge meshes for hull creation.",
+						);
 						return null;
 					}
 
@@ -1579,11 +1588,13 @@ export const flock = {
 						mergedMesh,
 						BABYLON.PhysicsShapeType.CONVEX_HULL,
 						{ mass: 0 }, // Adjust mass based on use case
-						flock.scene
+						flock.scene,
 					);
 
 					// Create a debug mesh to visualize the convex hull
-					const debugMesh = flock.debugMeshFromBody(hullAggregate.body);
+					const debugMesh = flock.debugMeshFromBody(
+						hullAggregate.body,
+					);
 
 					// Apply metadata or transformations to the debug mesh
 					debugMesh.id = modelId;
@@ -1603,20 +1614,20 @@ export const flock = {
 				}
 			});
 	},
-	debugMeshFromBody(body){
-		const bodyInfoGeom = flock.hk.getBodyGeometry(body)
-		const { positions, indices } = bodyInfoGeom
+	debugMeshFromBody(body) {
+		const bodyInfoGeom = flock.hk.getBodyGeometry(body);
+		const { positions, indices } = bodyInfoGeom;
 
-		const debugMesh = new flock.BABYLON.Mesh("custom", flock.scene)
-		indices.reverse()       
+		const debugMesh = new flock.BABYLON.Mesh("custom", flock.scene);
+		indices.reverse();
 
-		const vertexData = new flock.BABYLON.VertexData()
-		vertexData.positions = positions
-		vertexData.indices = indices	
+		const vertexData = new flock.BABYLON.VertexData();
+		vertexData.positions = positions;
+		vertexData.indices = indices;
 
-		vertexData.applyToMesh(debugMesh)
+		vertexData.applyToMesh(debugMesh);
 
-		return debugMesh
+		return debugMesh;
 	},
 	prepareMeshes(modelId, meshNames, blockId) {
 		return Promise.all(
@@ -1853,8 +1864,14 @@ export const flock = {
 			// If it's another error, rethrow it
 			throw error;
 		});
-	},	
-	async safeLoop(iteration, loopBody, chunkSize = 100, timing = { lastFrameTime: performance.now() }, state = {}) {
+	},
+	async safeLoop(
+		iteration,
+		loopBody,
+		chunkSize = 100,
+		timing = { lastFrameTime: performance.now() },
+		state = {},
+	) {
 		if (state.stopExecution) return; // Check if we should stop further iterations
 
 		// Execute the loop body
@@ -1865,7 +1882,7 @@ export const flock = {
 			const currentTime = performance.now();
 
 			if (currentTime - timing.lastFrameTime > 16) {
-				await new Promise(resolve => requestAnimationFrame(resolve));
+				await new Promise((resolve) => requestAnimationFrame(resolve));
 				timing.lastFrameTime = performance.now(); // Update timing for this loop
 			}
 		}
@@ -3064,18 +3081,26 @@ export const flock = {
 		}
 	},
 	getProperty(modelName, propertyName) {
-
-		const mesh = (modelName === "__active_camera__") ? flock.scene.activeCamera : flock.scene.getMeshByName(modelName);
+		const mesh =
+			modelName === "__active_camera__"
+				? flock.scene.activeCamera
+				: flock.scene.getMeshByName(modelName);
 
 		if (!mesh) return null;
-		
-		const position = (modelName === "__active_camera__") ? mesh.globalPosition : mesh.getAbsolutePosition();
-		
+
+		const position =
+			modelName === "__active_camera__"
+				? mesh.globalPosition
+				: mesh.getAbsolutePosition();
+
 		let propertyValue = null;
 
 		mesh.computeWorldMatrix(true);
 
-		const rotation =  (modelName === "__active_camera__") ? mesh.absoluteRotation.toEulerAngles() : mesh.absoluteRotationQuaternion.toEulerAngles();
+		const rotation =
+			modelName === "__active_camera__"
+				? mesh.absoluteRotation.toEulerAngles()
+				: mesh.absoluteRotationQuaternion.toEulerAngles();
 
 		let allMeshes, materialNode, materialNodes;
 		switch (propertyName) {

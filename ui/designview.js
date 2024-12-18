@@ -1813,7 +1813,7 @@ const characterMaterials = [
 	"Hair",
 	"Skin",
 	"Eyes",
-	"Sleeves",
+	"Detail",
 	"Shorts",
 	"TShirt",
 ];
@@ -1833,7 +1833,7 @@ function updateBlockColorAndHighlight(mesh, selectedColor) {
 			Hair: "HAIR_COLOR",
 			Skin: "SKIN_COLOR",
 			Eyes: "EYES_COLOR",
-			Sleeves: "SLEEVES_COLOR",
+			Detail: "SLEEVES_COLOR",
 			Shorts: "SHORTS_COLOR",
 			TShirt: "TSHIRT_COLOR",
 		};
