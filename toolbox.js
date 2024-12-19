@@ -880,8 +880,63 @@ export const toolbox = {
 							type: "drop",
 							keyword: "drop",
 						},
-
-						]
+					],
+				},
+				{
+					kind: "category",
+					name: "XR",
+					icon: "./images/xr.svg",
+					colour: categoryColours["Scene"],
+					contents: [
+						{
+							kind: "block",
+							type: "device_camera_background",
+							keyword: "devcam",
+						},
+						{
+							kind: "block",
+							type: "set_xr_mode",
+							keyword: "xr",
+						},
+						{
+							kind: "block",
+							type: "export_mesh",
+							keyword: "export",
+						},
+					],
+				},
+				{
+					kind: "category",
+					name: "Camera",
+					icon: "./images/camera.svg",
+					colour: categoryColours["Scene"],
+					contents: [
+						{
+							kind: "block",
+							type: "get_camera",
+							keyword: "cam",
+						},
+						{
+							kind: "block",
+							type: "camera_follow",
+							keyword: "follow",
+							inputs: {
+								RADIUS: {
+									shadow: {
+										type: "math_number",
+										fields: {
+											NUM: 7,
+										},
+									},
+								},
+							},
+						},
+						{
+							kind: "block",
+							type: "camera_control",
+							keyword: "cc",
+						},
+					],
 				},
 				{
 					kind: "block",
@@ -895,15 +950,10 @@ export const toolbox = {
 				},
 				{
 					kind: "block",
-					type: "device_camera_background",
-					keyword: "devcam",
+					type: "dispose",
+					keyword: "dispose",
 				},
-				{
-					kind: "block",
-					type: "set_xr_mode",
-					keyword: "xr",
-				},
-				{
+				/*{
 					kind: "block",
 					type: "create_map",
 					keyword: "map",
@@ -917,7 +967,7 @@ export const toolbox = {
 							},
 						},
 					},
-				},
+				},*/
 				{
 					kind: "block",
 					type: "set_fog",
@@ -940,16 +990,6 @@ export const toolbox = {
 							},
 						},
 					},
-				},
-				{
-					kind: "block",
-					type: "dispose",
-					keyword: "dispose",
-				},
-				{
-					kind: "block",
-					type: "export_mesh",
-					keyword: "export",
 				},
 			],
 		},
@@ -1049,198 +1089,206 @@ export const toolbox = {
 				},
 				{
 					kind: "block",
-					type: "animation",
-					keyword: "animation",
-					inputsInline: true, // Set lists to be inline
-					inputs: {
-						KEYFRAMES: {
-							block: {
-								type: "lists_create_with",
-								extraState: {
-									itemCount: 1,
-								},
-								inputs: {
-									ADD0: {
-										block: {
-											type: "colour_keyframe", // Reusing your `colour_keyframe` block
-											inputs: {
-												VALUE: {
-													shadow: {
-														type: "colour",
-														fields: {
-															COLOR: "#ff0000", // Default colour: Red
-														},
-													},
-												},
-												DURATION: {
-													shadow: {
-														type: "math_number",
-														fields: {
-															NUM: 1, // Default duration: 1 second
-														},
-													},
-												},
-											},
-										},
-									},
-								},
-							},
-						},
-					},
-				},
-				/*{
-					kind: "block",
-					type: "animate_keyframes",
-					keyword: "animate_keyframes",
-					inputsInline: true, // Set lists to be inline
-					inputs: {
-						KEYFRAMES: {
-							block: {
-								type: "lists_create_with",
-								extraState: {
-									itemCount: 1,
-								},
-								inputs: {
-									ADD0: {
-										block: {
-											type: "colour_keyframe",
-											inputs: {
-												VALUE: {
-													shadow: {
-														type: "colour",
-														fields: {
-															COLOR: "#ff0000", // Default colour: Red
-														},
-													},
-												},
-												DURATION: {
-													shadow: {
-														type: "math_number",
-														fields: {
-															NUM: 1, // Default duration: 1 second
-														},
-													},
-												},
-											},
-										},
-									},
-								},
-							},
-						},
-					},
-				},*/
-				{
-					kind: "block",
-					type: "control_animation_group",
-					keyword: "group",
-					inputsInline: true,
-				},
-				{
-					kind: "block",
-					type: "animate_from",
-					inputs: {
-						TIME: {
-							shadow: {
-								type: "math_number",
-								fields: {
-									NUM: 1.0, // Default time in seconds
-								},
-							},
-						},
-					},
-				},
-				{
-					kind: "block",
-					type: "colour_keyframe",
-					inputs: {
-						VALUE: {
-							shadow: {
-								type: "colour",
-								fields: {
-									COLOR: "#000080",
-								},
-							},
-						},
-						DURATION: {
-							shadow: {
-								type: "math_number",
-								fields: {
-									NUM: 5,
-								},
-							},
-						},
-					},
-				},
-				{
-					kind: "block",
-					type: "number_keyframe",
-					inputs: {
-						VALUE: {
-							shadow: {
-								type: "math_number",
-								fields: {
-									NUM: 1,
-								},
-							},
-						},
-						DURATION: {
-							shadow: {
-								type: "math_number",
-								fields: {
-									NUM: 1,
-								},
-							},
-						},
-					},
-				},
-				{
-					kind: "block",
-					type: "xyz_keyframe",
-					inputs: {
-						X: {
-							shadow: {
-								type: "math_number",
-								fields: {
-									NUM: 1,
-								},
-							},
-						},
-						Y: {
-							shadow: {
-								type: "math_number",
-								fields: {
-									NUM: 1,
-								},
-							},
-						},
-						Z: {
-							shadow: {
-								type: "math_number",
-								fields: {
-									NUM: 1,
-								},
-							},
-						},
-						DURATION: {
-							shadow: {
-								type: "math_number",
-								fields: {
-									NUM: 1,
-								},
-							},
-						},
-					},
-				},
-				{
-					kind: "block",
 					type: "stop_animations",
 					keyword: "anistop",
 				},
-				/*{
-					kind: "block",
-					type: "animate_property",
-					keyword: "anp",
-				},*/
+				{
+					kind: "category",
+					name: "Keyframe",
+					icon: "./images/keyframe.svg",
+					colour: categoryColours["Animate"],
+					contents: [
+						{
+							kind: "block",
+							type: "animation",
+							keyword: "animation",
+							inputsInline: true, // Set lists to be inline
+							inputs: {
+								KEYFRAMES: {
+									block: {
+										type: "lists_create_with",
+										extraState: {
+											itemCount: 1,
+										},
+										inputs: {
+											ADD0: {
+												block: {
+													type: "colour_keyframe", // Reusing your `colour_keyframe` block
+													inputs: {
+														VALUE: {
+															shadow: {
+																type: "colour",
+																fields: {
+																	COLOR: "#ff0000", // Default colour: Red
+																},
+															},
+														},
+														DURATION: {
+															shadow: {
+																type: "math_number",
+																fields: {
+																	NUM: 1, // Default duration: 1 second
+																},
+															},
+														},
+													},
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+						/*{
+							kind: "block",
+							type: "animate_keyframes",
+							keyword: "animate_keyframes",
+							inputsInline: true, // Set lists to be inline
+							inputs: {
+								KEYFRAMES: {
+									block: {
+										type: "lists_create_with",
+										extraState: {
+											itemCount: 1,
+										},
+										inputs: {
+											ADD0: {
+												block: {
+													type: "colour_keyframe",
+													inputs: {
+														VALUE: {
+															shadow: {
+																type: "colour",
+																fields: {
+																	COLOR: "#ff0000", // Default colour: Red
+																},
+															},
+														},
+														DURATION: {
+															shadow: {
+																type: "math_number",
+																fields: {
+																	NUM: 1, // Default duration: 1 second
+																},
+															},
+														},
+													},
+												},
+											},
+										},
+									},
+								},
+							},
+						},*/
+						{
+							kind: "block",
+							type: "control_animation_group",
+							keyword: "group",
+							inputsInline: true,
+						},
+						{
+							kind: "block",
+							type: "animate_from",
+							inputs: {
+								TIME: {
+									shadow: {
+										type: "math_number",
+										fields: {
+											NUM: 1.0, // Default time in seconds
+										},
+									},
+								},
+							},
+						},
+						{
+							kind: "block",
+							type: "colour_keyframe",
+							inputs: {
+								VALUE: {
+									shadow: {
+										type: "colour",
+										fields: {
+											COLOR: "#000080",
+										},
+									},
+								},
+								DURATION: {
+									shadow: {
+										type: "math_number",
+										fields: {
+											NUM: 5,
+										},
+									},
+								},
+							},
+						},
+						{
+							kind: "block",
+							type: "number_keyframe",
+							inputs: {
+								VALUE: {
+									shadow: {
+										type: "math_number",
+										fields: {
+											NUM: 1,
+										},
+									},
+								},
+								DURATION: {
+									shadow: {
+										type: "math_number",
+										fields: {
+											NUM: 1,
+										},
+									},
+								},
+							},
+						},
+						{
+							kind: "block",
+							type: "xyz_keyframe",
+							inputs: {
+								X: {
+									shadow: {
+										type: "math_number",
+										fields: {
+											NUM: 1,
+										},
+									},
+								},
+								Y: {
+									shadow: {
+										type: "math_number",
+										fields: {
+											NUM: 1,
+										},
+									},
+								},
+								Z: {
+									shadow: {
+										type: "math_number",
+										fields: {
+											NUM: 1,
+										},
+									},
+								},
+								DURATION: {
+									shadow: {
+										type: "math_number",
+										fields: {
+											NUM: 1,
+										},
+									},
+								},
+							},
+						},
+						/*{
+							kind: "block",
+							type: "animate_property",
+							keyword: "anp",
+						},*/
+					],
+				},
 			],
 		},
 
@@ -1491,80 +1539,48 @@ export const toolbox = {
 					},
 				},
 				{
-					kind: "block",
-					type: "add_physics",
-					keyword: "physics",
-				},
-				{
-					kind: "block",
-					type: "apply_force",
-					keyword: "push",
-					inputs: {
-						X: {
-							shadow: {
-								type: "math_number",
-								fields: {
-									NUM: 0,
+					kind: "category",
+					name: "Physics",
+					icon: "./images/physics.svg",
+					colour: categoryColours["Transform"],
+					contents: [
+						{
+							kind: "block",
+							type: "add_physics",
+							keyword: "physics",
+						},
+						{
+							kind: "block",
+							type: "apply_force",
+							keyword: "push",
+							inputs: {
+								X: {
+									shadow: {
+										type: "math_number",
+										fields: {
+											NUM: 0,
+										},
+									},
+								},
+								Y: {
+									shadow: {
+										type: "math_number",
+										fields: {
+											NUM: 2,
+										},
+									},
+								},
+								Z: {
+									shadow: {
+										type: "math_number",
+										fields: {
+											NUM: 0,
+										},
+									},
 								},
 							},
 						},
-						Y: {
-							shadow: {
-								type: "math_number",
-								fields: {
-									NUM: 2,
-								},
-							},
-						},
-						Z: {
-							shadow: {
-								type: "math_number",
-								fields: {
-									NUM: 0,
-								},
-							},
-						},
-					},
-				},
-				{
-					kind: "block",
-					type: "get_camera",
-					keyword: "cam",
-				},
-				/*{
-					kind: "block",
-					type: "rotate_camera",
-					keyword: "",
-					inputs: {
-						DEGREES: {
-							shadow: {
-								type: "math_number",
-								fields: {
-									NUM: 5,
-								},
-							},
-						},
-					},
-				},*/
-				{
-					kind: "block",
-					type: "camera_follow",
-					keyword: "follow",
-					inputs: {
-						RADIUS: {
-							shadow: {
-								type: "math_number",
-								fields: {
-									NUM: 7,
-								},
-							},
-						},
-					},
-				},
-				{
-					kind: "block",
-					type: "camera_control",
-					keyword: "cc",
+					],
 				},
 			],
 		},
@@ -1964,21 +1980,12 @@ export const toolbox = {
 						},
 					},
 				},
-				/*{
-					kind: "block",
-					type: "text_print",
-					keyword: "alert",
-					inputs: {
-						TEXT: {
-							shadow: {
-								type: "text",
-								fields: {
-									TEXT: "Something happened!",
-								},
-							},
-						},
-					},
-				},*/
+							{
+								kind: "category",
+								name: "Strings",
+								icon: "./images/text.svg",
+								categorystyle: "text_category",
+								contents: [
 				{
 					kind: "block",
 					type: "text_join",
@@ -2181,6 +2188,7 @@ export const toolbox = {
 						},
 					},
 				},
+						]}
 			],
 		},
 		{
@@ -3277,7 +3285,7 @@ Blockly.registry.register(
 	Blockly.registry.Type.TOOLBOX_ITEM,
 	Blockly.ToolboxCategory.registrationName,
 	IconCategory,
-	true
+	true,
 );
 
 class CustomCollapsibleToolboxCategory extends Blockly.CollapsibleToolboxCategory {
@@ -3285,7 +3293,7 @@ class CustomCollapsibleToolboxCategory extends Blockly.CollapsibleToolboxCategor
 		super(categoryDef, toolbox, opt_parent);
 		// Store the original icon and color
 		this.originalIcon = categoryDef.icon || "./default_icon.svg";
-		this.originalColor = categoryDef.colour || '#000000';
+		this.originalColor = categoryDef.colour || "#000000";
 	}
 
 	// Preserve the original icon
@@ -3315,7 +3323,7 @@ class CustomCollapsibleToolboxCategory extends Blockly.CollapsibleToolboxCategor
 			);
 		}
 	}
-	
+
 	/** @override */
 	createDom_() {
 		super.createDom_();
@@ -3337,7 +3345,6 @@ class CustomCollapsibleToolboxCategory extends Blockly.CollapsibleToolboxCategor
 
 		return this.htmlDiv_;
 	}
-
 }
 
 // Register the custom collapsible category
@@ -3345,5 +3352,5 @@ Blockly.registry.register(
 	Blockly.registry.Type.TOOLBOX_ITEM,
 	Blockly.CollapsibleToolboxCategory.registrationName,
 	CustomCollapsibleToolboxCategory,
-	true
+	true,
 );
