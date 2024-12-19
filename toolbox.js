@@ -953,7 +953,7 @@ export const toolbox = {
 					type: "dispose",
 					keyword: "dispose",
 				},
-				/*{
+				{
 					kind: "block",
 					type: "create_map",
 					keyword: "map",
@@ -967,7 +967,7 @@ export const toolbox = {
 							},
 						},
 					},
-				},*/
+				},
 				{
 					kind: "block",
 					type: "set_fog",
