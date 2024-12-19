@@ -600,7 +600,7 @@ export const toolbox = {
 							shadow: {
 								type: "math_number",
 								fields: {
-									NUM: 10,
+									NUM: 100,
 								},
 							},
 						},
