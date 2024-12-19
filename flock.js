@@ -1314,8 +1314,17 @@ export const flock = {
 				flock.modelCache[modelName] = firstMesh;
 
 				container.addAllToScene();
-	
-				flock.setupMesh(container.meshes[0], modelId, blockId, scale, x, y, z, color);
+
+				flock.setupMesh(
+					container.meshes[0],
+					modelId,
+					blockId,
+					scale,
+					x,
+					y,
+					z,
+					color,
+				);
 				flock.changeColorMesh(container.meshes[0], color);
 
 				if (callback) {
@@ -2749,6 +2758,7 @@ export const flock = {
 	rotate(meshName, x, y, z) {
 		// Handle mesh rotation
 		return flock.whenModelReady(meshName, (mesh) => {
+			
 			if (meshName === "__active_camera__") {
 				// Handle camera rotation
 				const camera = flock.scene.activeCamera;
@@ -2768,6 +2778,21 @@ export const flock = {
 					camera.beta += flock.BABYLON.Tools.ToRadians(x);
 				} else if (camera.rotation !== undefined) {
 					// FreeCamera: Adjust the camera's rotationQuaternion or Euler rotation
+					if (!camera.rotationQuaternion) {
+						camera.rotationQuaternion =
+							flock.BABYLON.Quaternion.RotationYawPitchRoll(
+								flock.BABYLON.Tools.ToRadians(
+									camera.rotation.y,
+								),
+								flock.BABYLON.Tools.ToRadians(
+									camera.rotation.x,
+								),
+								flock.BABYLON.Tools.ToRadians(
+									camera.rotation.z,
+								),
+							);
+					}
+
 					camera.rotationQuaternion
 						.multiplyInPlace(incrementalRotation)
 						.normalize();
@@ -2806,7 +2831,7 @@ export const flock = {
 			mesh.computeWorldMatrix(true);
 		});
 	},
-	rotateCamera(yawAngle) {
+	/*rotateCamera(yawAngle) {
 		const camera = flock.scene.activeCamera;
 		if (!camera || yawAngle === 0) return;
 
@@ -2819,7 +2844,7 @@ export const flock = {
 			// FreeCamera: Adjust the 'rotation.y' for yaw rotation (left/right)
 			camera.rotation.y += flock.BABYLON.Tools.ToRadians(yawAngle);
 		}
-	},
+	},*/
 	lookAt(meshName1, meshName2, useY = false) {
 		return flock.whenModelReady(meshName1, (mesh1) => {
 			return flock.whenModelReady(meshName2, (mesh2) => {
