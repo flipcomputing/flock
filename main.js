@@ -28,28 +28,45 @@ import {
 } from "./ui/designview";
 
 if ('serviceWorker' in navigator) {
-  // Register the service worker
-  navigator.serviceWorker
-	.register('/flock/sw.js')
-	.then((registration) => {
-	  console.log('Service Worker registered:', registration);
-	})
-	.catch((error) => {
-	  console.error('Service Worker registration failed:', error);
-	});
+  navigator.serviceWorker.register('/flock/sw.js').then((registration) => {
+	console.log('Service Worker registered:', registration);
 
-  // Handle service worker updates
-  let isFirstLoad = !navigator.serviceWorker.controller;
+	// Check for updates to the Service Worker
+	registration.onupdatefound = () => {
+	  const newWorker = registration.installing;
 
-navigator.serviceWorker.addEventListener('controllerchange', () => {
-	if (!isFirstLoad) {
-	  console.log('New service worker activated, reloading...');
-	  window.location.reload();
-	}
-	isFirstLoad = false;
+	  if (newWorker) {
+		newWorker.onstatechange = () => {
+		  if (newWorker.state === 'installed') {
+			// If the old Service Worker is controlling the page
+			if (navigator.serviceWorker.controller) {
+			  // Notify the user about the update
+			  console.log('New update available');
+			  showUpdateNotification();
+			}
+		  }
+		};
+	  }
+	};
+  }).catch((error) => {
+	console.error('Service Worker registration failed:', error);
   });
 }
 
+function showUpdateNotification() {
+  const notification = document.createElement('div');
+  notification.innerHTML = `
+	<div style="position: fixed; bottom: 0; left: 0; width: 100%; background: #800080; color: white; text-align: center; padding: 10px; z-index: 1000;">
+	  A new version is available. <button id="reload-btn" style="background: white; color: #800080; padding: 5px 10px; border: none; cursor: pointer;">Reload</button>
+	</div>
+  `;
+  document.body.appendChild(notification);
+
+  document.getElementById('reload-btn').addEventListener('click', () => {
+	// Reload the page to activate the new service worker
+	window.location.reload();
+  });
+}
 
 let workspace = null;
 
