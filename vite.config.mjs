@@ -79,26 +79,40 @@ export default {
       workbox: {
         maximumFileSizeToCacheInBytes: 20971520,
         globPatterns: [
-          '**/*.{js,css,html,ico,png,svg,glb,gltf,ogg,wasm,json,woff,woff2}'
+          '**/*.{js,css,html,ico,png,svg,glb,gltf,ogg,wasm,json,woff,woff2}', // Precache all assets
         ],
         modifyURLPrefix: isProduction ? {
-          '': '/flock/' // Prepend the base URL to all cached assets in production
+          '': '/flock/', // Prepend the base URL to all cached assets in production
         } : {},
         runtimeCaching: [
           {
-            urlPattern: new RegExp('^https://flipcomputing\\.github\\.io/flock/'),
-            handler: 'CacheFirst',
+            // Cache dynamically requested assets (models, images, sounds)
+            urlPattern: /.*\.(glb|gltf|ogg|png|json|svg)$/,
+            handler: 'CacheFirst', // Prioritise cache for faster offline availability
             options: {
-              cacheName: 'github-pages-cache',
+              cacheName: 'dynamic-assets',
               expiration: {
-                maxEntries: 50,
-                maxAgeSeconds: 30 * 24 * 60 * 60, // 30 Days
+                maxEntries: 500, // Store up to 500 assets
+                maxAgeSeconds: 30 * 24 * 60 * 60, // Cache for 30 days
               },
             },
           },
           {
-            urlPattern: /blockly\/media\/.*/,  // Cache Blockly media files
-            handler: 'CacheFirst',
+            // Cache assets from GitHub Pages
+            urlPattern: new RegExp('^https://flipcomputing\\.github\\.io/flock/'),
+            handler: 'CacheFirst', // Cache GitHub-hosted assets
+            options: {
+              cacheName: 'github-pages-cache',
+              expiration: {
+                maxEntries: 50, // Store up to 50 assets
+                maxAgeSeconds: 30 * 24 * 60 * 60, // Cache for 30 days
+              },
+            },
+          },
+          {
+            // Cache Blockly media files
+            urlPattern: /blockly\/media\/.*/,
+            handler: 'CacheFirst', // Serve Blockly media files from cache
             options: {
               cacheName: 'blockly-media',
               expiration: {
@@ -108,6 +122,7 @@ export default {
             },
           },
         ],
+        cleanupOutdatedCaches: true, // Remove old cache versions
       },
     }),
     {

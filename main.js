@@ -27,11 +27,29 @@ import {
 	disposeGizmoManager,
 } from "./ui/designview";
 
-if (navigator.serviceWorker) {
-	navigator.serviceWorker.addEventListener("controllerchange", () => {
-		window.location.reload();
+if ('serviceWorker' in navigator) {
+  // Register the service worker
+  navigator.serviceWorker
+	.register('/sw.js')
+	.then((registration) => {
+	  console.log('Service Worker registered:', registration);
+	})
+	.catch((error) => {
+	  console.error('Service Worker registration failed:', error);
 	});
+
+  // Handle service worker updates
+  let isFirstLoad = !navigator.serviceWorker.controller;
+
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+	if (!isFirstLoad) {
+	  console.log('New service worker activated, reloading...');
+	  window.location.reload();
+	}
+	isFirstLoad = false;
+  });
 }
+
 
 let workspace = null;
 

@@ -34,6 +34,10 @@ build = ["npm", "run", "build"]
 publicDir = "dist"
 
 [[ports]]
+localPort = 4173
+externalPort = 3001
+
+[[ports]]
 localPort = 5173
 externalPort = 80
 

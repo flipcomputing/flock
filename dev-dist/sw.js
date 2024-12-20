@@ -91,12 +91,19 @@ define(['./workbox-d9a5ed57'], (function (workbox) { 'use strict';
     "revision": "3ca0b8505b4bec776b69afdba2768812"
   }, {
     "url": "index.html",
-    "revision": "0.8b6gps21o7o"
+    "revision": "0.l85ir23gg6o"
   }], {});
   workbox.cleanupOutdatedCaches();
   workbox.registerRoute(new workbox.NavigationRoute(workbox.createHandlerBoundToURL("index.html"), {
     allowlist: [/^\/$/]
   }));
+  workbox.registerRoute(/.*\.(glb|gltf|ogg|png|json|svg)$/, new workbox.CacheFirst({
+    "cacheName": "dynamic-assets",
+    plugins: [new workbox.ExpirationPlugin({
+      maxEntries: 500,
+      maxAgeSeconds: 2592000
+    })]
+  }), 'GET');
   workbox.registerRoute(/^https:\/\/flipcomputing\.github\.io\/flock\//, new workbox.CacheFirst({
     "cacheName": "github-pages-cache",
     plugins: [new workbox.ExpirationPlugin({
