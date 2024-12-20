@@ -1739,18 +1739,20 @@ export const flock = {
 					);
 
 					// Create a debug mesh to visualize the convex hull
-					const debugMesh = flock.debugMeshFromBody(hullAggregate.body);
+					const hullMesh = flock.hullMeshFromBody(hullAggregate.body);
 
 					// Offset the debug mesh to the original world position
-					debugMesh.position = combinedCentre;
+					hullMesh.position = combinedCentre;
 
-					// Apply metadata or transformations to the debug mesh
-					debugMesh.id = modelId;
-					debugMesh.name = modelId;
+					hullMesh.material = validMeshes[0].material;
 
-					// Assign the material to the debug mesh as well
-					debugMesh.material = validMeshes[0].material;
-
+					// Apply properties to the resulting mesh
+					flock.applyResultMeshProperties(
+						hullMesh,
+						validMeshes[0],
+						modelId,
+						blockId,
+					);
 					// Dispose of original meshes after creating the hull
 					validMeshes.forEach((mesh) => mesh.dispose());
 					mergedMesh.dispose();
@@ -1763,20 +1765,20 @@ export const flock = {
 			});
 	},
 
-	debugMeshFromBody(body) {
+	hullMeshFromBody(body) {
 		const bodyInfoGeom = flock.hk.getBodyGeometry(body);
 		const { positions, indices } = bodyInfoGeom;
 
-		const debugMesh = new flock.BABYLON.Mesh("custom", flock.scene);
+		const hullMesh = new flock.BABYLON.Mesh("custom", flock.scene);
 		indices.reverse();
 
 		const vertexData = new flock.BABYLON.VertexData();
 		vertexData.positions = positions;
 		vertexData.indices = indices;
 
-		vertexData.applyToMesh(debugMesh);
+		vertexData.applyToMesh(hullMesh);
 
-		return debugMesh;
+		return hullMesh;
 	},
 	prepareMeshes(modelId, meshNames, blockId) {
 		return Promise.all(
