@@ -30,7 +30,7 @@ import {
 if ('serviceWorker' in navigator) {
   // Register the service worker
   navigator.serviceWorker
-	.register('/sw.js')
+	.register('/flock/sw.js')
 	.then((registration) => {
 	  console.log('Service Worker registered:', registration);
 	})
