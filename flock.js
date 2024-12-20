@@ -1548,17 +1548,19 @@ export const flock = {
 								const meshMax =
 									boundingInfo.boundingBox.maximumWorld;
 
-								min = flock.BABYLON.Vector3.Minimize(
-									min,
-									meshMin,
-								);
-								max = flock.BABYLON.Vector3.Maximize(
-									max,
-									meshMax,
-								);
+								min = flock.BABYLON.Vector3.Minimize(min, meshMin);
+								max = flock.BABYLON.Vector3.Maximize(max, meshMax);
 							});
 
 							const combinedCentre = min.add(max).scale(0.5);
+
+							// Calculate the offset to keep the resulting mesh visually aligned
+							const baseWorldPosition = baseMesh
+								.getAbsolutePosition()
+								.clone();
+							const offset = baseWorldPosition.subtract(
+								combinedCentre,
+							);
 
 							// Perform the subtraction
 							let outerCSG = flock.BABYLON.CSG2.FromMesh(
@@ -1579,8 +1581,8 @@ export const flock = {
 								baseMesh.getScene(),
 							);
 
-							// Align the resulting mesh to the combined centre
-							resultMesh.position = combinedCentre;
+							// Centre the mesh locally and then apply the world offset
+							resultMesh.position = combinedCentre.add(offset);
 
 							// Apply properties to the resulting mesh
 							flock.applyResultMeshProperties(
