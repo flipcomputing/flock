@@ -64,6 +64,7 @@ function showUpdateNotification() {
 
   document.getElementById('reload-btn').addEventListener('click', () => {
 	// Reload the page to activate the new service worker
+	  console.log('Loading new version.');
 	window.location.reload();
   });
 }
