@@ -1246,13 +1246,48 @@ window.onload = function () {
 		  cursorY <= blockBounds.bottom
 		) {
 		 
-		  block.addSelect();
+			if (isBlockDraggable(block)) {
+			  block.addSelect();
+			  lastHighlightedBlock = block;
+			}
 		  lastHighlightedBlock = block;
 		  break;
 		}
 	  }
 	}
 
+	function isBlockDraggable(block) {
+	  // Check if block is a shadow block
+	  if (block.isShadow()) {
+		return false;
+	  }
+
+	  if (block.previousConnection || block.nextConnection) {
+		return false;
+	  }
+
+	  // Check if block is a C-block
+	  if (block.statementInputCount > 0) {
+		return false;
+	  }
+
+	  // Check if block is movable
+	  if (!block.isMovable()) {	
+		return false;
+	  }
+
+	  // Check if block is deletable
+	  if (!block.isDeletable()) {
+		return false;
+	  }
+
+	  // Output blocks are allowed
+	  if (block.outputConnection) {
+		return true;
+	  }
+
+	  return true;
+	}
 
 	workspace.addChangeListener(function (event) {
 		if (
