@@ -2258,7 +2258,7 @@ export function defineGenerators() {
 	};
 
 	javascriptGenerator.forBlock["procedures_defreturn"] = function (block) {
-		const functionName = block.getFieldValue("NAME");
+		 const functionName = block.getFieldValue("NAME").replace(/[^\w]/g, "_");
 		const args = block.argData_.map((elem) => elem.model.name);
 		const params = args.join(", ");
 		const branch =
@@ -2280,7 +2280,7 @@ export function defineGenerators() {
 	};
 
 	javascriptGenerator.forBlock["procedures_callreturn"] = function (block) {
-		const functionName = block.getFieldValue("NAME");
+		 const functionName = block.getFieldValue("NAME").replace(/[^\w]/g, "_");
 		const args = [];
 		const variables = block.arguments_ || []; // Ensure 'arguments_' is populated with the argument names
 		for (let i = 0; i < variables.length; i++) {
