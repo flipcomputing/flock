@@ -1688,6 +1688,25 @@ export const flock = {
 			.prepareMeshes(modelId, meshList, blockId)
 			.then((validMeshes) => {
 				if (validMeshes.length) {
+					// Calculate the combined bounding box centre
+					let min = validMeshes[0]
+						.getBoundingInfo()
+						.boundingBox.minimumWorld.clone();
+					let max = validMeshes[0]
+						.getBoundingInfo()
+						.boundingBox.maximumWorld.clone();
+
+					validMeshes.forEach((mesh) => {
+						const boundingInfo = mesh.getBoundingInfo();
+						const meshMin = boundingInfo.boundingBox.minimumWorld;
+						const meshMax = boundingInfo.boundingBox.maximumWorld;
+
+						min = flock.BABYLON.Vector3.Minimize(min, meshMin);
+						max = flock.BABYLON.Vector3.Maximize(max, meshMax);
+					});
+
+					const combinedCentre = min.add(max).scale(0.5);
+
 					// Merge the valid meshes into a single mesh
 					const mergedMesh = BABYLON.Mesh.MergeMeshes(
 						validMeshes,
@@ -1695,11 +1714,18 @@ export const flock = {
 					);
 
 					if (!mergedMesh) {
-						console.warn(
-							"Failed to merge meshes for hull creation.",
-						);
+						console.warn("Failed to merge meshes for hull creation.");
 						return null;
 					}
+
+					// Offset the merged mesh to be locally centred
+					mergedMesh.bakeTransformIntoVertices(
+						BABYLON.Matrix.Translation(
+							-combinedCentre.x,
+							-combinedCentre.y,
+							-combinedCentre.z,
+						),
+					);
 
 					// Apply the material of the first mesh to the merged mesh
 					mergedMesh.material = validMeshes[0].material;
@@ -1713,9 +1739,10 @@ export const flock = {
 					);
 
 					// Create a debug mesh to visualize the convex hull
-					const debugMesh = flock.debugMeshFromBody(
-						hullAggregate.body,
-					);
+					const debugMesh = flock.debugMeshFromBody(hullAggregate.body);
+
+					// Offset the debug mesh to the original world position
+					debugMesh.position = combinedCentre;
 
 					// Apply metadata or transformations to the debug mesh
 					debugMesh.id = modelId;
@@ -1735,6 +1762,7 @@ export const flock = {
 				}
 			});
 	},
+
 	debugMeshFromBody(body) {
 		const bodyInfoGeom = flock.hk.getBodyGeometry(body);
 		const { positions, indices } = bodyInfoGeom;
