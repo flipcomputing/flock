@@ -27,45 +27,48 @@ import {
 	disposeGizmoManager,
 } from "./ui/designview";
 
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('/flock/sw.js').then((registration) => {
-	console.log('Service Worker registered:', registration);
+if ("serviceWorker" in navigator) {
+	navigator.serviceWorker
+		.register("/flock/sw.js")
+		.then((registration) => {
+			console.log("Service Worker registered:", registration);
 
-	// Check for updates to the Service Worker
-	registration.onupdatefound = () => {
-	  const newWorker = registration.installing;
+			// Check for updates to the Service Worker
+			registration.onupdatefound = () => {
+				const newWorker = registration.installing;
 
-	  if (newWorker) {
-		newWorker.onstatechange = () => {
-		  if (newWorker.state === 'installed') {
-			// If the old Service Worker is controlling the page
-			if (navigator.serviceWorker.controller) {
-			  // Notify the user about the update
-			  console.log('New update available');
-			  showUpdateNotification();
-			}
-		  }
-		};
-	  }
-	};
-  }).catch((error) => {
-	console.error('Service Worker registration failed:', error);
-  });
+				if (newWorker) {
+					newWorker.onstatechange = () => {
+						if (newWorker.state === "installed") {
+							// If the old Service Worker is controlling the page
+							if (navigator.serviceWorker.controller) {
+								// Notify the user about the update
+								console.log("New update available");
+								showUpdateNotification();
+							}
+						}
+					};
+				}
+			};
+		})
+		.catch((error) => {
+			console.error("Service Worker registration failed:", error);
+		});
 }
 
 function showUpdateNotification() {
-  const notification = document.createElement('div');
-  notification.innerHTML = `
+	const notification = document.createElement("div");
+	notification.innerHTML = `
 	<div style="position: fixed; bottom: 0; left: 0; width: 100%; background: #800080; color: white; text-align: center; padding: 10px; z-index: 1000;">
 	  A new version of Flock is available. <button id="reload-btn" style="background: white; color: #800080; padding: 5px 10px; border: none; cursor: pointer;">Reload</button>
 	</div>
   `;
-  document.body.appendChild(notification);
+	document.body.appendChild(notification);
 
-  document.getElementById('reload-btn').addEventListener('click', () => {
-	// Reload the page to activate the new service worker
-	window.location.reload();
-  });
+	document.getElementById("reload-btn").addEventListener("click", () => {
+		// Reload the page to activate the new service worker
+		window.location.reload();
+	});
 }
 
 let workspace = null;
@@ -1183,6 +1186,74 @@ window.onload = function () {
 		}
 	});
 
+
+
+	const workspaceSvg = workspace.getParentSvg();
+
+	// Bind mousemove event using browserEvents
+	Blockly.browserEvents.bind(
+	  workspaceSvg,
+	  'mousemove',
+	  null,
+	  (event) => {
+
+		   const mouseXY = Blockly.utils.browserEvents.mouseToSvg(event, workspace.getParentSvg(), workspace.getInverseScreenCTM());
+
+		  const absoluteMetrics = workspace.getMetricsManager().getAbsoluteMetrics();
+			mouseXY.x -= absoluteMetrics.left;
+			mouseXY.y -= absoluteMetrics.top;
+
+			// Adjust for scrolling
+			mouseXY.x -= workspace.scrollX;
+			mouseXY.y -= workspace.scrollY;
+
+			// Adjust for zoom scaling
+			mouseXY.x /= workspace.scale;
+			mouseXY.y /= workspace.scale;
+
+			highlightBlockUnderCursor(workspace, mouseXY.x, mouseXY.y);
+	  }
+	);
+
+	let lastHighlightedBlock = null;
+
+	function highlightBlockUnderCursor(workspace, cursorX, cursorY) {
+	  if (lastHighlightedBlock) {
+		lastHighlightedBlock.removeSelect();
+		lastHighlightedBlock = null;
+	  }
+
+	  const allBlocks = workspace.getAllBlocks();
+
+	  // Flatten all descendants of each block to consider nested blocks
+	  const blocksWithDescendants = [];
+	  for (const block of allBlocks) {
+		blocksWithDescendants.push(...block.getDescendants(false));
+	  }
+
+	  // Iterate through blocks in reverse order to prioritize inner blocks
+	  for (let i = blocksWithDescendants.length - 1; i >= 0; i--) {
+		const block = blocksWithDescendants[i];
+		if (!block.rendered) continue;
+
+		const blockBounds = block.getBoundingRectangle();
+
+		// Check if cursor is within block bounds
+		if (
+		  cursorX >= blockBounds.left &&
+		  cursorX <= blockBounds.right &&
+		  cursorY >= blockBounds.top &&
+		  cursorY <= blockBounds.bottom
+		) {
+		 
+		  block.addSelect();
+		  lastHighlightedBlock = block;
+		  break;
+		}
+	  }
+	}
+
+
 	workspace.addChangeListener(function (event) {
 		if (
 			event.type === Blockly.Events.BLOCK_MOVE ||
@@ -1456,4 +1527,3 @@ const adjustViewport = () => {
 // Adjust viewport on page load and resize
 window.addEventListener("load", adjustViewport);
 window.addEventListener("resize", adjustViewport);
-
