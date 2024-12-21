@@ -175,12 +175,16 @@ Blockly.registry.register(
 	CustomZelosRenderer,
 );
 
+const mediaPath = window.location.pathname.includes('/flock/')
+  ? '/flock/blockly/media/'  // For GitHub Pages
+  : '/blockly/media/';                  // For local dev
+
 export const options = {
 	theme: Blockly.Themes.Modern, // "flock"
 	//theme: "flockTheme",
 	//renderer: "zelos",
 	renderer: "custom_zelos_renderer",
-	media: "/flock/blockly/media/",
+	media: mediaPath,
 	modalInputs: false,
 	zoom: {
 		controls: true,
