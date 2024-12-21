@@ -180,7 +180,7 @@ export const options = {
 	//theme: "flockTheme",
 	//renderer: "zelos",
 	renderer: "custom_zelos_renderer",
-	pathToMedia: "blockly/media/",
+	media: "/flock/blockly/media/",
 	modalInputs: false,
 	zoom: {
 		controls: true,
