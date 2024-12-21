@@ -541,6 +541,9 @@ function addShadowBlock(block, inputName, blockType, defaultValue) {
 	const fieldName = blockType === "colour" ? "COLOR" : "NUM";
 
 	shadowBlock.setFieldValue(String(defaultValue), fieldName);
+	shadowBlock.setShadow(true); // Ensure it's treated as a shadow block
+	shadowBlock.setMovable(false); // Prevent dragging
+	shadowBlock.setDeletable(false); // Prevent deletion
 	shadowBlock.initSvg();
 	shadowBlock.render();
 	block.getInput(inputName).connection.connect(shadowBlock.outputConnection);
@@ -612,6 +615,9 @@ function setNumberInput(block, inputName, value) {
 		// Create a shadow block for the input if none exists
 		const shadowBlock = Blockly.getMainWorkspace().newBlock("math_number");
 		shadowBlock.setFieldValue(String(Math.round(value * 10) / 10), "NUM");
+		shadowBlock.setShadow(true); // Ensure it's treated as a shadow block
+		shadowBlock.setMovable(false); // Prevent dragging
+		shadowBlock.setDeletable(false); // Prevent deletion
 		shadowBlock.initSvg();
 		shadowBlock.render();
 		inputConnection.connect(shadowBlock.outputConnection);
@@ -1728,8 +1734,7 @@ function toggleGizmo(gizmoType) {
 					let currentBlock = statementConnection.targetBlock();
 					while (currentBlock) {
 						if (currentBlock.type === "scale") {
-							const modelField =
-								currentBlock.getFieldValue("BLOCK_NAME");
+							const modelField = currentBlock.getFieldValue("BLOCK_NAME");
 							if (modelField === modelVariable) {
 								scaleBlock = currentBlock;
 								break;
@@ -1749,15 +1754,20 @@ function toggleGizmo(gizmoType) {
 					// Add shadow blocks for X, Y, Z inputs
 					["X", "Y", "Z"].forEach((axis) => {
 						const input = scaleBlock.getInput(axis);
-						const shadowBlock =
-							Blockly.getMainWorkspace().newBlock("math_number");
-						shadowBlock.setShadow(true);
-						shadowBlock.initSvg();
-						shadowBlock.render();
+
+						// Create a shadow block
+						const shadowBlock = Blockly.getMainWorkspace().newBlock("math_number");
+						shadowBlock.setFieldValue("1", "NUM"); // Default value
+						shadowBlock.setShadow(true);           // Mark as shadow
+						shadowBlock.initSvg();                 // Initialize SVG
+						shadowBlock.render();                  // Render the shadow block
+
+						// Connect the shadow block to the input
 						input.connection.connect(shadowBlock.outputConnection);
 					});
 
-					scaleBlock.render(); // Render the new block
+					scaleBlock.render();
+
 					// Connect the new 'scale' block to the 'do' section
 					block
 						.getInput("DO")
@@ -1783,6 +1793,7 @@ function toggleGizmo(gizmoType) {
 				setScaleValue("Y", scaleY);
 				setScaleValue("Z", scaleZ);
 			});
+
 
 			break;
 		case "boundingBox":
