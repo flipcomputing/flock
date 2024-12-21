@@ -4,6 +4,7 @@ import {
 	nextVariableIndexes,
 	findCreateBlock,
 	handleBlockCreateEvent,
+	handleBlockDelete,
 	addDoMutatorWithToggleBehavior,
 } from "../blocks.js";
 import { updateOrCreateMeshFromBlock } from "../ui/designview.js";
@@ -137,6 +138,7 @@ export function defineShapeBlocks() {
 
 	// Extracted common change handler
 	function handleBlockChange(block, changeEvent, variableNamePrefix) {
+		handleBlockDelete(changeEvent);
 		if (
 			(changeEvent.type === Blockly.Events.BLOCK_CREATE ||
 				changeEvent.type === Blockly.Events.BLOCK_CHANGE) &&

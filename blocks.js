@@ -79,14 +79,39 @@ export function handleBlockSelect(event) {
 }
 
 export function handleBlockDelete(event) {
-	if (
-		event.type === Blockly.Events.BLOCK_DELETE &&
-		(event.oldJson?.type.startsWith("load_") ||
-			event.oldJson?.type.startsWith("create_"))
-	) {
-		deleteMeshFromBlock(event.blockId);
+	if (event.type === Blockly.Events.BLOCK_DELETE) {
+		// Recursively delete meshes for qualifying blocks
+		function deleteMeshesRecursively(blockJson) {
+			// Check if block type matches the prefixes
+			if (
+				blockJson.type.startsWith("load_") ||
+				blockJson.type.startsWith("create_")
+			) {
+				deleteMeshFromBlock(blockJson.id);
+			}
+
+			// Check inputs for child blocks
+			if (blockJson.inputs) {
+				for (const key in blockJson.inputs) {
+					const inputBlock = blockJson.inputs[key].block;
+					if (inputBlock) {
+						deleteMeshesRecursively(inputBlock);
+					}
+				}
+			}
+
+			// Check 'next' for connected blocks
+			if (blockJson.next && blockJson.next.block) {
+				deleteMeshesRecursively(blockJson.next.block);
+			}
+		}
+
+		// Process the main deleted block and its connections
+		deleteMeshesRecursively(event.oldJson);
 	}
 }
+
+
 
 export function findCreateBlock(block) {
 	if (!block || typeof block.getParent !== "function") {
