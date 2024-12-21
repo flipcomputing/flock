@@ -111,8 +111,6 @@ export function handleBlockDelete(event) {
 	}
 }
 
-
-
 export function findCreateBlock(block) {
 	if (!block || typeof block.getParent !== "function") {
 		console.log("no id");
@@ -1422,7 +1420,11 @@ export function defineBlocks() {
 				}
 			};
 
+			updateColorField();
+				
+
 			this.setOnChange((changeEvent) => {
+
 				if (
 					changeEvent.type === Blockly.Events.BLOCK_CREATE ||
 					changeEvent.type === Blockly.Events.BLOCK_CHANGE
@@ -1431,7 +1433,8 @@ export function defineBlocks() {
 						Blockly.getMainWorkspace().getBlockById(this.id); // Check if block is in the main workspace
 
 					if (blockInWorkspace) {
-						window.updateCurrentMeshName(this, "ID_VAR"); // Call the function to update window.currentMesh
+						if (window.loadingCode) return;
+									updateOrCreateMeshFromBlock(this);
 					}
 				}
 
@@ -1444,14 +1447,7 @@ export function defineBlocks() {
 
 				handleBlockDelete(changeEvent);
 
-				if (window.loadingCode) return;
-				if (
-					changeEvent.type === Blockly.Events.CHANGE &&
-					changeEvent.element === "field" &&
-					changeEvent.name === "MODELS"
-				) {
-					updateColorField();
-				}
+				
 			});
 
 			addDoMutatorWithToggleBehavior(this);
@@ -1519,10 +1515,15 @@ export function defineBlocks() {
 			});
 
 			this.setOnChange((changeEvent) => {
+
+				if(this.id != changeEvent.blockId)
+					return;
+				
 				if (
 					changeEvent.type === Blockly.Events.BLOCK_CREATE ||
 					changeEvent.type === Blockly.Events.BLOCK_CHANGE
 				) {
+
 					const blockInWorkspace =
 						Blockly.getMainWorkspace().getBlockById(this.id); // Check if block is in the main workspace
 
@@ -4668,6 +4669,9 @@ export function handleBlockCreateEvent(
 ) {
 	if (window.loadingCode) return; // Don't rename variables during code loading
 
+	if(blockInstance.id !== changeEvent.blockId)
+		return;
+	
 	// Check if this is an undo/redo operation
 	const isUndo = !changeEvent.recordUndo;
 

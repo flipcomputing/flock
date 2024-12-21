@@ -136,6 +136,10 @@ export function defineShapeBlocks() {
 
 	// Extracted common change handler
 	function handleBlockChange(block, changeEvent, variableNamePrefix) {
+
+		if(changeEvent.blockId !== block.id)
+			return;
+		
 		handleBlockDelete(changeEvent);
 		
 		if (
@@ -143,7 +147,6 @@ export function defineShapeBlocks() {
 				changeEvent.type === Blockly.Events.BLOCK_CHANGE) &&
 			changeEvent.workspaceId === Blockly.getMainWorkspace().id
 		) {
-			console.log("handleBlockChange", block, changeEvent);
 			// Update the mesh or create a new one if necessary
 			const parent = findCreateBlock(
 				Blockly.getMainWorkspace().getBlockById(changeEvent.blockId),

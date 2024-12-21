@@ -923,6 +923,7 @@ export const flock = {
 		position = { x: 0, y: 0, z: 0 },
 		callback = null,
 	}) {
+
 		const { x, y, z } = position;
 		const blockId = modelId;
 		modelId += "_" + flock.scene.getUniqueId();
@@ -948,21 +949,6 @@ export const flock = {
 			mesh.setEnabled(true);
 			mesh.visibility = 1;
 
-			// Function to set metadata
-			const setMetadata = (mesh) => {
-				mesh.metadata = {
-					sharedMaterial: true,
-					sharedGeometry: true,
-				};
-			};
-
-			// Set metadata on the root mesh
-			setMetadata(mesh);
-
-			// Set metadata on all descendants
-			mesh.getDescendants().forEach((descendant) => {
-				setMetadata(descendant);
-			});
 
 			if (callback) {
 				requestAnimationFrame(callback);
@@ -993,8 +979,6 @@ export const flock = {
 			flock.scene,
 		)
 			.then((container) => {
-				console.log(`Model loaded: ${modelName}`);
-
 				// Clone a first copy from the first mesh
 				const firstMesh = container.meshes[0].clone(
 					`${modelName}_first`,
@@ -1030,6 +1014,7 @@ export const flock = {
 		return modelId;
 	},
 	ensureUniqueMaterial(mesh) {
+
 		// Helper function to clone material for a mesh
 		const cloneMaterial = (targetMesh) => {
 			const newMaterial = targetMesh.material.clone(
@@ -1062,7 +1047,7 @@ export const flock = {
 			mesh.metadata.sharedGeometry = false;
 		}
 	},
-	setupMesh(mesh, modelId, blockId, scale, x, y, z) {
+	setupMesh(mesh, modelId, blockId, scale, x, y, z, color=null) {
 		mesh.scaling = new BABYLON.Vector3(scale, scale, scale);
 
 		const bb =
@@ -1085,6 +1070,24 @@ export const flock = {
 		bb.metadata = bb.metadata || {};
 		bb.metadata.yOffset = (bb.position.y - y) / scale;
 		flock.stopAnimationsTargetingMesh(flock.scene, mesh);
+		
+		// Function to set metadata
+		const setMetadata = (mesh) => {
+			mesh.metadata = {
+				sharedMaterial:  true,
+				sharedGeometry: true,
+			};
+		};
+
+		// Set metadata on the root mesh
+		setMetadata(bb);
+
+
+		// Set metadata on all descendants
+		bb.getDescendants().forEach((descendant) => {
+			setMetadata(descendant);
+		});
+		
 
 		const boxBody = new flock.BABYLON.PhysicsBody(
 			bb,
@@ -1236,6 +1239,8 @@ export const flock = {
 		const blockId = modelId;
 		modelId += "_" + flock.scene.getUniqueId();
 
+		console.log("New object", blockId)
+
 		// Check if a first copy is already cached
 		if (flock.modelCache[modelName]) {
 			//console.log(`Using cached first model: ${modelName}`);
@@ -1249,7 +1254,6 @@ export const flock = {
 			mesh.position.copyFrom(BABYLON.Vector3.Zero());
 			mesh.rotationQuaternion = null;
 			mesh.rotation.copyFrom(BABYLON.Vector3.Zero());
-
 			flock.setupMesh(mesh, modelId, blockId, scale, x, y, z, color);
 			flock.changeColorMesh(mesh, color);
 
@@ -1257,22 +1261,6 @@ export const flock = {
 			mesh.refreshBoundingInfo();
 			mesh.setEnabled(true);
 			mesh.visibility = 1;
-
-			// Function to set metadata
-			const setMetadata = (mesh) => {
-				mesh.metadata = {
-					sharedMaterial: true,
-					sharedGeometry: true,
-				};
-			};
-
-			// Set metadata on the root mesh
-			setMetadata(mesh);
-
-			// Set metadata on all descendants
-			mesh.getDescendants().forEach((descendant) => {
-				setMetadata(descendant);
-			});
 
 			if (callback) {
 				requestAnimationFrame(callback);
@@ -1296,16 +1284,14 @@ export const flock = {
 			});
 		}
 
-		// Start loading the model
-		//console.log(`Loading model: ${modelName}`);
+		
 		const loadPromise = flock.BABYLON.SceneLoader.LoadAssetContainerAsync(
 			"./models/",
 			modelName,
 			flock.scene,
 		)
 			.then((container) => {
-				console.log(`Model loaded: ${modelName}`);
-
+				
 				// Clone a first copy from the first mesh
 				const firstMesh = container.meshes[0].clone(
 					`${modelName}_first`,
@@ -2196,17 +2182,23 @@ export const flock = {
 					// Detach material from the mesh
 					currentMesh.material = null;
 
+					
 					// Dispose material if not already disposed
 					if (!disposedMaterials.has(material)) {
-						disposedMaterials.add(material);
+						const sharedMaterials =
+							currentMesh.metadata?.sharedMaterials;
+						
+						if (sharedMaterials === false) {
+							disposedMaterials.add(material);
 
-						// Remove from scene.materials
-						flock.scene.materials = flock.scene.materials.filter(
-							(mat) => mat !== material,
-						);
+							// Remove from scene.materials
+							flock.scene.materials = flock.scene.materials.filter(
+								(mat) => mat !== material,
+							);
 
-						// Dispose the material
-						material.dispose();
+							// Dispose the material
+							material.dispose();
+						}
 					}
 				}
 			});

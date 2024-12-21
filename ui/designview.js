@@ -12,9 +12,8 @@ export let gizmoManager;
 
 export function updateOrCreateMeshFromBlock(block, changeEvent) {
 	if (!window.loadingCode) {
-		
 		const mesh = getMeshFromBlock(block);
-		console.log("Update or create", block, mesh);
+		
 		if (mesh) {
 			updateMeshFromBlock(mesh, block, changeEvent);
 		} else {
@@ -107,7 +106,6 @@ export function deleteMeshFromBlock(blockId) {
 		(key) => meshBlockIdMap[key] === blockId,
 	);
 
-	console.log(blockId, meshBlockIdMap, meshMap, blockKey);
 	if (blockKey) {
 		// Remove mappings
 		delete meshMap[blockKey];
@@ -121,12 +119,9 @@ export function deleteMeshFromBlock(blockId) {
 
 export function getMeshFromBlock(block) {
 
-	console.log("Get mesh from block", block, meshMap);
-	
 	const blockKey = Object.keys(meshMap).find((key) => meshMap[key] === block);
-
-	if(!blockKey)
-		return null;
+	
+	if (!blockKey) return null;
 
 	const found = flock.scene?.meshes?.find(
 		(mesh) => mesh.blockKey === blockKey,
@@ -136,6 +131,7 @@ export function getMeshFromBlock(block) {
 }
 
 export function updateMeshFromBlock(mesh, block, changeEvent) {
+
 	const shapeType = block.type;
 	if (mesh && mesh.physics) mesh.physics.disablePreStep = true;
 
@@ -155,6 +151,10 @@ export function updateMeshFromBlock(mesh, block, changeEvent) {
 
 	// Shape-specific updates based on the block type
 	switch (shapeType) {
+
+		case "load_object":
+			console.log("Need to handle update of object");
+			break
 		case "create_box":
 			// Retrieve width, height, and depth from connected blocks
 			const width = block
@@ -255,127 +255,139 @@ export function updateMeshFromBlock(mesh, block, changeEvent) {
 }
 
 function createMeshOnCanvas(block) {
-	console.log("Create mesh on canvas", block)
 	Blockly.Events.setGroup(true);
 
 	let shapeType = block.type;
-	let color,
-		width,
-		height,
-		depth,
-		diameterX,
-		diameterY,
-		diameterZ,
-		radius,
-		diameterTop,
-		diameterBottom,
-		position;
+	let position, scale, color, modelName, newMesh;
 
-	// Retrieve values from the block's fields
-	switch (shapeType) {
-		case "create_box":
-			color = block
-				.getInput("COLOR")
-				.connection.targetBlock()
-				.getFieldValue("COLOR");
-			width = block
-				.getInput("WIDTH")
-				.connection.targetBlock()
-				.getFieldValue("NUM");
-			height = block
-				.getInput("HEIGHT")
-				.connection.targetBlock()
-				.getFieldValue("NUM");
-			depth = block
-				.getInput("DEPTH")
-				.connection.targetBlock()
-				.getFieldValue("NUM");
-			break;
-
-		case "create_sphere":
-			color = block
-				.getInput("COLOR")
-				.connection.targetBlock()
-				.getFieldValue("COLOR");
-			diameterX = block
-				.getInput("DIAMETER_X")
-				.connection.targetBlock()
-				.getFieldValue("NUM");
-			diameterY = block
-				.getInput("DIAMETER_Y")
-				.connection.targetBlock()
-				.getFieldValue("NUM");
-			diameterZ = block
-				.getInput("DIAMETER_Z")
-				.connection.targetBlock()
-				.getFieldValue("NUM");
-			break;
-
-		case "create_cylinder":
-			color = block
-				.getInput("COLOR")
-				.connection.targetBlock()
-				.getFieldValue("COLOR");
-			height = block
-				.getInput("HEIGHT")
-				.connection.targetBlock()
-				.getFieldValue("NUM");
-			diameterTop = block
-				.getInput("DIAMETER_TOP")
-				.connection.targetBlock()
-				.getFieldValue("NUM");
-			diameterBottom = block
-				.getInput("DIAMETER_BOTTOM")
-				.connection.targetBlock()
-				.getFieldValue("NUM");
-			break;
-
-		case "create_capsule":
-			color = block
-				.getInput("COLOR")
-				.connection.targetBlock()
-				.getFieldValue("COLOR");
-			radius = block
-				.getInput("RADIUS")
-				.connection.targetBlock()
-				.getFieldValue("NUM");
-			height = block
-				.getInput("HEIGHT")
-				.connection.targetBlock()
-				.getFieldValue("NUM");
-			break;
-
-		case "create_plane":
-			color = block
-				.getInput("COLOR")
-				.connection.targetBlock()
-				.getFieldValue("COLOR");
-			width = block
-				.getInput("WIDTH")
-				.connection.targetBlock()
-				.getFieldValue("NUM");
-			height = block
-				.getInput("HEIGHT")
-				.connection.targetBlock()
-				.getFieldValue("NUM");
-			break;
-
-		default:
-			Blockly.Events.setGroup(false);
-			return;
-	}
-
-	// Get position values from the block
+	// Retrieve position for all block types
 	position = {
 		x: block.getInput("X").connection.targetBlock().getFieldValue("NUM"),
 		y: block.getInput("Y").connection.targetBlock().getFieldValue("NUM"),
 		z: block.getInput("Z").connection.targetBlock().getFieldValue("NUM"),
 	};
 
-	// Create the appropriate mesh based on shapeType
-	let newMesh;
+	let meshId;
+	// Handle block types
 	switch (shapeType) {
+		// --- Model Loading Blocks ---
+		case "load_model":
+
+			modelName = block.getFieldValue("MODELS");
+			scale = block
+				.getInput("SCALE")
+				.connection.targetBlock()
+				.getFieldValue("NUM");
+
+			meshId = modelName + "_" + generateUniqueId();
+			meshMap[meshId] = block;
+			meshBlockIdMap[meshId] = block.id;
+			// Use flock API for loading models
+			
+			newMesh = flock.newModel({
+				modelName: modelName,
+				modelId: meshId,
+				scale: scale,
+				position: [position.x, position.y, position.z],
+			});
+			break;
+
+		case "load_character":
+			modelName = block.getFieldValue("MODELS");
+			scale = block
+				.getInput("SCALE")
+				.connection.targetBlock()
+				.getFieldValue("NUM");
+
+			// Retrieve colours
+			const colors = {
+				hair: block
+					.getInput("HAIR_COLOR")
+					.connection.targetBlock()
+					.getFieldValue("COLOR"),
+				skin: block
+					.getInput("SKIN_COLOR")
+					.connection.targetBlock()
+					.getFieldValue("COLOR"),
+				eyes: block
+					.getInput("EYES_COLOR")
+					.connection.targetBlock()
+					.getFieldValue("COLOR"),
+				tshirt: block
+					.getInput("TSHIRT_COLOR")
+					.connection.targetBlock()
+					.getFieldValue("COLOR"),
+				shorts: block
+					.getInput("SHORTS_COLOR")
+					.connection.targetBlock()
+					.getFieldValue("COLOR"),
+				sleeves: block
+					.getInput("SLEEVES_COLOR")
+					.connection.targetBlock()
+					.getFieldValue("COLOR"),
+			};
+
+			meshId = modelName + "_" + generateUniqueId();
+			meshMap[meshId] = block;
+			meshBlockIdMap[meshId] = block.id;
+			// Use flock API for characters
+			newMesh = flock.newCharacter({
+				modelName: modelName,
+				modelId: meshId,
+				scale: scale,
+				position: [position.x, position.y, position.z],
+				colors: colors,
+			});
+			break;
+
+		case "load_object":
+			modelName = block.getFieldValue("MODELS");
+			scale = block
+				.getInput("SCALE")
+				.connection.targetBlock()
+				.getFieldValue("NUM");
+			color = block
+				.getInput("COLOR")
+				.connection.targetBlock()
+				.getFieldValue("COLOR");
+
+			meshId = modelName + "_" + generateUniqueId();
+			meshMap[meshId] = block;
+			meshBlockIdMap[meshId] = block.id;
+
+			// Use flock API for objects
+			newMesh = flock.newObject({
+				modelName: modelName,
+				modelId: meshId,
+				color: color,
+				scale: scale,
+				position: [position.x, position.y, position.z],
+				callback: () => {
+				
+				},
+			});
+
+			break;
+
+		// --- Shape Creation Blocks ---
 		case "create_box":
+			color = block
+				.getInput("COLOR")
+				.connection.targetBlock()
+				.getFieldValue("COLOR");
+			const width = block
+				.getInput("WIDTH")
+				.connection.targetBlock()
+				.getFieldValue("NUM");
+			const height = block
+				.getInput("HEIGHT")
+				.connection.targetBlock()
+				.getFieldValue("NUM");
+			const depth = block
+				.getInput("DEPTH")
+				.connection.targetBlock()
+				.getFieldValue("NUM");
+
 			newMesh = flock.createBox(
 				"box_" + generateUniqueId(),
 				color,
@@ -387,6 +399,23 @@ function createMeshOnCanvas(block) {
 			break;
 
 		case "create_sphere":
+			color = block
+				.getInput("COLOR")
+				.connection.targetBlock()
+				.getFieldValue("COLOR");
+			const diameterX = block
+				.getInput("DIAMETER_X")
+				.connection.targetBlock()
+				.getFieldValue("NUM");
+			const diameterY = block
+				.getInput("DIAMETER_Y")
+				.connection.targetBlock()
+				.getFieldValue("NUM");
+			const diameterZ = block
+				.getInput("DIAMETER_Z")
+				.connection.targetBlock()
+				.getFieldValue("NUM");
+
 			newMesh = flock.createSphere(
 				"sphere_" + generateUniqueId(),
 				color,
@@ -398,45 +427,102 @@ function createMeshOnCanvas(block) {
 			break;
 
 		case "create_cylinder":
+			color = block
+				.getInput("COLOR")
+				.connection.targetBlock()
+				.getFieldValue("COLOR");
+			const cylinderHeight = block
+				.getInput("HEIGHT")
+				.connection.targetBlock()
+				.getFieldValue("NUM");
+			const diameterTop = block
+				.getInput("DIAMETER_TOP")
+				.connection.targetBlock()
+				.getFieldValue("NUM");
+			const diameterBottom = block
+				.getInput("DIAMETER_BOTTOM")
+				.connection.targetBlock()
+				.getFieldValue("NUM");
+
 			newMesh = flock.createCylinder(
 				"cylinder_" + generateUniqueId(),
 				color,
-				height,
+				cylinderHeight,
 				diameterTop,
 				diameterBottom,
-				[position.x, position.y + height / 2, position.z],
+				[position.x, position.y + cylinderHeight / 2, position.z],
 			);
 			break;
 
 		case "create_capsule":
+			color = block
+				.getInput("COLOR")
+				.connection.targetBlock()
+				.getFieldValue("COLOR");
+			const capsuleRadius = block
+				.getInput("RADIUS")
+				.connection.targetBlock()
+				.getFieldValue("NUM");
+			const capsuleHeight = block
+				.getInput("HEIGHT")
+				.connection.targetBlock()
+				.getFieldValue("NUM");
+
 			newMesh = flock.createCapsule(
 				"capsule_" + generateUniqueId(),
 				color,
-				radius,
-				height,
-				[position.x, position.y + height / 2, position.z],
+				capsuleRadius,
+				capsuleHeight,
+				[position.x, position.y + capsuleHeight / 2, position.z],
 			);
 			break;
 
 		case "create_plane":
+			color = block
+				.getInput("COLOR")
+				.connection.targetBlock()
+				.getFieldValue("COLOR");
+			const planeWidth = block
+				.getInput("WIDTH")
+				.connection.targetBlock()
+				.getFieldValue("NUM");
+			const planeHeight = block
+				.getInput("HEIGHT")
+				.connection.targetBlock()
+				.getFieldValue("NUM");
+
 			newMesh = flock.createPlane(
 				"plane_" + generateUniqueId(),
 				color,
-				width,
-				height,
-				[position.x, position.y + height / 2, position.z],
+				planeWidth,
+				planeHeight,
+				[position.x, position.y + planeHeight / 2, position.z],
 			);
 			break;
+
+		default:
+			Blockly.Events.setGroup(false);
+			return;
 	}
 
-	// Store the mesh in the meshMap
-	if (newMesh) {
-		const blockKey = flock.scene.getMeshByName(newMesh).blockKey;
-		meshMap[blockKey] = block;
-		meshBlockIdMap[blockKey] = block.id;
+	switch (shapeType) {
+		case "load_model":
+		case "load_object":
+		case "load_character":
+			break;
+
+		default:
+			
+			// Store the mesh in the meshMap
+			if (newMesh) {
+
+				const blockKey = flock.scene.getMeshByName(newMesh).blockKey;
+				meshMap[blockKey] = block;
+				meshBlockIdMap[blockKey] = block.id;
+
+			}
 	}
 
-	console.log(meshMap);
 	Blockly.Events.setGroup(false);
 }
 
@@ -987,6 +1073,7 @@ function selectModel(modelName) {
 						connection.connect(block.previousConnection);
 					}
 
+					
 					// Generate a unique ID for the model
 					const modelId = modelName + "_" + generateUniqueId();
 
@@ -1003,6 +1090,7 @@ function selectModel(modelName) {
 							z: pickedPosition.z,
 						},
 					});
+					
 				} finally {
 					// End the event group to ensure undo/redo works properly
 					Blockly.Events.setGroup(false);
@@ -1289,7 +1377,6 @@ function highlightBlockById(workspace, block) {
 		// Center the block within the viewport
 		workspace.centerOnBlock(block.id);
 	}
-
 }
 
 function focusCameraOnMesh() {
@@ -1754,7 +1841,8 @@ function toggleGizmo(gizmoType) {
 					let currentBlock = statementConnection.targetBlock();
 					while (currentBlock) {
 						if (currentBlock.type === "scale") {
-							const modelField = currentBlock.getFieldValue("BLOCK_NAME");
+							const modelField =
+								currentBlock.getFieldValue("BLOCK_NAME");
 							if (modelField === modelVariable) {
 								scaleBlock = currentBlock;
 								break;
@@ -1776,11 +1864,12 @@ function toggleGizmo(gizmoType) {
 						const input = scaleBlock.getInput(axis);
 
 						// Create a shadow block
-						const shadowBlock = Blockly.getMainWorkspace().newBlock("math_number");
+						const shadowBlock =
+							Blockly.getMainWorkspace().newBlock("math_number");
 						shadowBlock.setFieldValue("1", "NUM"); // Default value
-						shadowBlock.setShadow(true);           // Mark as shadow
-						shadowBlock.initSvg();                 // Initialize SVG
-						shadowBlock.render();                  // Render the shadow block
+						shadowBlock.setShadow(true); // Mark as shadow
+						shadowBlock.initSvg(); // Initialize SVG
+						shadowBlock.render(); // Render the shadow block
 
 						// Connect the shadow block to the input
 						input.connection.connect(shadowBlock.outputConnection);
@@ -1813,7 +1902,6 @@ function toggleGizmo(gizmoType) {
 				setScaleValue("Y", scaleY);
 				setScaleValue("Z", scaleZ);
 			});
-
 
 			break;
 		case "boundingBox":
