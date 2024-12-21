@@ -87,10 +87,10 @@
                           "id": "JohVNpH#v94Kp9[wDA-I",
                           "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" has_do=\"false\"></mutation>",
                           "fields": {
-                            "MODELS": "Character1.glb",
                             "ID_VAR": {
                               "id": "f=8($HYZoE:IjT|U8x8J"
-                            }
+                            },
+                            "MODELS": "Character1.glb"
                           },
                           "inputs": {
                             "SCALE": {
@@ -156,12 +156,12 @@
                                 }
                               }
                             },
-                            "SLEEVES_COLOR": {
+                            "TSHIRT_COLOR": {
                               "shadow": {
                                 "type": "colour",
-                                "id": "g{^F-SQQX,wo:^:@!/DZ",
+                                "id": "UCw`/51JMXTK@_Dweh_(",
                                 "fields": {
-                                  "COLOR": "#008b8b"
+                                  "COLOR": "#ff8f60"
                                 }
                               }
                             },
@@ -174,12 +174,12 @@
                                 }
                               }
                             },
-                            "TSHIRT_COLOR": {
+                            "SLEEVES_COLOR": {
                               "shadow": {
                                 "type": "colour",
-                                "id": "UCw`/51JMXTK@_Dweh_(",
+                                "id": "g{^F-SQQX,wo:^:@!/DZ",
                                 "fields": {
-                                  "COLOR": "#ff8f60"
+                                  "COLOR": "#008b8b"
                                 }
                               }
                             }
@@ -406,7 +406,7 @@
                                                       "next": {
                                                         "block": {
                                                           "type": "glide_to",
-                                                          "id": "Ob)dH@soql8Iz_iQXva=",
+                                                          "id": "9+ors^0c]^FQ#|K:JGfb",
                                                           "fields": {
                                                             "MESH_VAR": {
                                                               "id": "a7e8X(mUSI~dp3FD5.k1"
@@ -424,12 +424,21 @@
                                                                 "fields": {
                                                                   "NUM": -2
                                                                 }
+                                                              },
+                                                              "block": {
+                                                                "type": "variables_get",
+                                                                "id": "fQ;Y2hwGWz+@(#j3/#DF",
+                                                                "fields": {
+                                                                  "VAR": {
+                                                                    "id": "ruoB#:2L]FWcob%DwkpI"
+                                                                  }
+                                                                }
                                                               }
                                                             },
                                                             "Y": {
                                                               "shadow": {
                                                                 "type": "math_number",
-                                                                "id": "cP@_`#6cv/VOO6Aj|KAm",
+                                                                "id": "v=UG~o}radO%N}:fH^H#",
                                                                 "fields": {
                                                                   "NUM": 1
                                                                 }
@@ -438,7 +447,7 @@
                                                             "Z": {
                                                               "shadow": {
                                                                 "type": "math_number",
-                                                                "id": "35yz=9s_8$qkHO(}wEr)",
+                                                                "id": "9%mcLSYP]z$?u)}-FEU#",
                                                                 "fields": {
                                                                   "NUM": -15
                                                                 }
@@ -447,9 +456,9 @@
                                                             "DURATION": {
                                                               "shadow": {
                                                                 "type": "math_number",
-                                                                "id": "GqVp@gQ/;q-V*r/ydL$M",
+                                                                "id": "%D%Jo-iS:c8-7Z?KIV;~",
                                                                 "fields": {
-                                                                  "NUM": 2000
+                                                                  "NUM": 3000
                                                                 }
                                                               }
                                                             }
@@ -520,6 +529,54 @@
                                                                         "id": "~2^Y.l5[U),ntdlFO}UO",
                                                                         "fields": {
                                                                           "NUM": 46
+                                                                        }
+                                                                      },
+                                                                      "block": {
+                                                                        "type": "math_arithmetic",
+                                                                        "id": "w*g3xrH9DV-I^.zKx!n=",
+                                                                        "fields": {
+                                                                          "OP": "DIVIDE"
+                                                                        },
+                                                                        "inputs": {
+                                                                          "A": {
+                                                                            "shadow": {
+                                                                              "type": "math_number",
+                                                                              "id": "e3BWtxccotHo~xD66`J5",
+                                                                              "fields": {
+                                                                                "NUM": 1
+                                                                              }
+                                                                            },
+                                                                            "block": {
+                                                                              "type": "lists_getIndex",
+                                                                              "id": "inz?a,M|q7iyy_cWMCSy",
+                                                                              "fields": {
+                                                                                "MODE": "GET",
+                                                                                "WHERE": "LAST"
+                                                                              },
+                                                                              "inputs": {
+                                                                                "VALUE": {
+                                                                                  "block": {
+                                                                                    "type": "variables_get",
+                                                                                    "id": "MlWP;xXLmM}L0*wJM8V$",
+                                                                                    "fields": {
+                                                                                      "VAR": {
+                                                                                        "id": "ouPYlwIkj6Ys^#mROF)r"
+                                                                                      }
+                                                                                    }
+                                                                                  }
+                                                                                }
+                                                                              }
+                                                                            }
+                                                                          },
+                                                                          "B": {
+                                                                            "shadow": {
+                                                                              "type": "math_number",
+                                                                              "id": "B_DUZY4WM%LzMsw;kBaq",
+                                                                              "fields": {
+                                                                                "NUM": 10
+                                                                              }
+                                                                            }
+                                                                          }
                                                                         }
                                                                       }
                                                                     },
@@ -661,6 +718,54 @@
                                                                                         "id": "cRlE];lV.dzxL1_v~m6U",
                                                                                         "fields": {
                                                                                           "NUM": 46
+                                                                                        }
+                                                                                      },
+                                                                                      "block": {
+                                                                                        "type": "math_arithmetic",
+                                                                                        "id": "EDMk_8}=aTXBN?yH!]Vp",
+                                                                                        "fields": {
+                                                                                          "OP": "DIVIDE"
+                                                                                        },
+                                                                                        "inputs": {
+                                                                                          "A": {
+                                                                                            "shadow": {
+                                                                                              "type": "math_number",
+                                                                                              "id": "e3BWtxccotHo~xD66`J5",
+                                                                                              "fields": {
+                                                                                                "NUM": 1
+                                                                                              }
+                                                                                            },
+                                                                                            "block": {
+                                                                                              "type": "lists_getIndex",
+                                                                                              "id": "#Le?_aT(Q+rQm=`)TN.|",
+                                                                                              "fields": {
+                                                                                                "MODE": "GET",
+                                                                                                "WHERE": "LAST"
+                                                                                              },
+                                                                                              "inputs": {
+                                                                                                "VALUE": {
+                                                                                                  "block": {
+                                                                                                    "type": "variables_get",
+                                                                                                    "id": "]jbQpS|Tx+_,C(tMZMlH",
+                                                                                                    "fields": {
+                                                                                                      "VAR": {
+                                                                                                        "id": "ouPYlwIkj6Ys^#mROF)r"
+                                                                                                      }
+                                                                                                    }
+                                                                                                  }
+                                                                                                }
+                                                                                              }
+                                                                                            }
+                                                                                          },
+                                                                                          "B": {
+                                                                                            "shadow": {
+                                                                                              "type": "math_number",
+                                                                                              "id": "`Zu{Gga`H5xuRnx)=ig~",
+                                                                                              "fields": {
+                                                                                                "NUM": 10
+                                                                                              }
+                                                                                            }
+                                                                                          }
                                                                                         }
                                                                                       }
                                                                                     },
@@ -961,7 +1066,7 @@
         "type": "start",
         "id": "z@1GhYh$m33CivOGTrd+",
         "x": 10,
-        "y": 1570,
+        "y": 1620,
         "inputs": {
           "DO": {
             "block": {
@@ -1361,6 +1466,7 @@
                                                           "block": {
                                                             "type": "create_box",
                                                             "id": "V|STTu$8v,gpHV._I?s:",
+                                                            "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" has_do=\"false\"></mutation>",
                                                             "fields": {
                                                               "ID_VAR": {
                                                                 "id": "R|a(9}idY=Bl*pVWmqj2"
@@ -1609,6 +1715,7 @@
                                                                       "block": {
                                                                         "type": "create_box",
                                                                         "id": "3iorwkT3u-weNj_d1qTL",
+                                                                        "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" has_do=\"false\"></mutation>",
                                                                         "fields": {
                                                                           "ID_VAR": {
                                                                             "id": "qPj[_%h4~]?]%v8|k_p("
@@ -1919,6 +2026,7 @@
                                                                                   "block": {
                                                                                     "type": "create_box",
                                                                                     "id": "?L]c]6^HK7Ry;/q/kA3a",
+                                                                                    "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" has_do=\"false\"></mutation>",
                                                                                     "fields": {
                                                                                       "ID_VAR": {
                                                                                         "id": ".w-P|!AZJD(TaQc4F~O?"
@@ -2742,230 +2850,77 @@
                                                                                                 },
                                                                                                 "next": {
                                                                                                   "block": {
-                                                                                                    "type": "animate_keyframes",
-                                                                                                    "id": "5*eFfG1OZX3]m^+RSg[b",
+                                                                                                    "type": "local_variable",
+                                                                                                    "id": "5n9$G6_F/FBP/([T|8iU",
                                                                                                     "fields": {
-                                                                                                      "MESH": {
-                                                                                                        "id": "]-ggKS|=1%A}h1rr_}N("
-                                                                                                      },
-                                                                                                      "PROPERTY": "scaling",
-                                                                                                      "EASING": "LINEAR",
-                                                                                                      "LOOP": false,
-                                                                                                      "REVERSE": false,
-                                                                                                      "MODE": "START"
-                                                                                                    },
-                                                                                                    "inputs": {
-                                                                                                      "KEYFRAMES": {
-                                                                                                        "block": {
-                                                                                                          "type": "lists_create_with",
-                                                                                                          "id": "Ev-,ld,UM29+SN~#mC@w",
-                                                                                                          "extraState": {
-                                                                                                            "itemCount": 2
-                                                                                                          },
-                                                                                                          "inputs": {
-                                                                                                            "ADD0": {
-                                                                                                              "block": {
-                                                                                                                "type": "xyz_keyframe",
-                                                                                                                "id": "YapN_!/5^Vxpuu*0;Z8Q",
-                                                                                                                "inputs": {
-                                                                                                                  "DURATION": {
-                                                                                                                    "shadow": {
-                                                                                                                      "type": "math_number",
-                                                                                                                      "id": "cVa,7dmDZLE2,LZ,J:Ri",
-                                                                                                                      "fields": {
-                                                                                                                        "NUM": 0
-                                                                                                                      }
-                                                                                                                    }
-                                                                                                                  },
-                                                                                                                  "X": {
-                                                                                                                    "shadow": {
-                                                                                                                      "type": "math_number",
-                                                                                                                      "id": "c|J-^$Ss]cD5GCoW_;P?",
-                                                                                                                      "fields": {
-                                                                                                                        "NUM": 1
-                                                                                                                      }
-                                                                                                                    }
-                                                                                                                  },
-                                                                                                                  "Y": {
-                                                                                                                    "shadow": {
-                                                                                                                      "type": "math_number",
-                                                                                                                      "id": "g^S-ncev``+$DR/tC5b7",
-                                                                                                                      "fields": {
-                                                                                                                        "NUM": 0
-                                                                                                                      }
-                                                                                                                    }
-                                                                                                                  },
-                                                                                                                  "Z": {
-                                                                                                                    "shadow": {
-                                                                                                                      "type": "math_number",
-                                                                                                                      "id": "1Zb@1-(t5J-{SiICY_WT",
-                                                                                                                      "fields": {
-                                                                                                                        "NUM": 1
-                                                                                                                      }
-                                                                                                                    }
-                                                                                                                  }
-                                                                                                                }
-                                                                                                              }
-                                                                                                            },
-                                                                                                            "ADD1": {
-                                                                                                              "block": {
-                                                                                                                "type": "xyz_keyframe",
-                                                                                                                "id": "UrxjlmQW)?:j99[t_7M6",
-                                                                                                                "inputs": {
-                                                                                                                  "DURATION": {
-                                                                                                                    "shadow": {
-                                                                                                                      "type": "math_number",
-                                                                                                                      "id": ")oX6VSm-SE1%,1%i:!^7",
-                                                                                                                      "fields": {
-                                                                                                                        "NUM": 1000
-                                                                                                                      }
-                                                                                                                    },
-                                                                                                                    "block": {
-                                                                                                                      "type": "variables_get",
-                                                                                                                      "id": "Nb$jX@7V6Ep+AvM50cdZ",
-                                                                                                                      "fields": {
-                                                                                                                        "VAR": {
-                                                                                                                          "id": "7jq]E?:-Eu,/PbGX`C~i"
-                                                                                                                        }
-                                                                                                                      }
-                                                                                                                    }
-                                                                                                                  },
-                                                                                                                  "X": {
-                                                                                                                    "shadow": {
-                                                                                                                      "type": "math_number",
-                                                                                                                      "id": "Q?4meC,},`K1l=!3v:XW",
-                                                                                                                      "fields": {
-                                                                                                                        "NUM": 1
-                                                                                                                      }
-                                                                                                                    }
-                                                                                                                  },
-                                                                                                                  "Y": {
-                                                                                                                    "shadow": {
-                                                                                                                      "type": "math_number",
-                                                                                                                      "id": "vx30@to8-Cl];7Bej;h9",
-                                                                                                                      "fields": {
-                                                                                                                        "NUM": 10
-                                                                                                                      }
-                                                                                                                    },
-                                                                                                                    "block": {
-                                                                                                                      "type": "math_arithmetic",
-                                                                                                                      "id": "Fh#6;++#ztL8Ff%rX5;;",
-                                                                                                                      "fields": {
-                                                                                                                        "OP": "DIVIDE"
-                                                                                                                      },
-                                                                                                                      "inputs": {
-                                                                                                                        "A": {
-                                                                                                                          "shadow": {
-                                                                                                                            "type": "math_number",
-                                                                                                                            "id": "Z_OO-Z2Rv]Ol/v`vMcCA",
-                                                                                                                            "fields": {
-                                                                                                                              "NUM": 1
-                                                                                                                            }
-                                                                                                                          },
-                                                                                                                          "block": {
-                                                                                                                            "type": "lists_getIndex",
-                                                                                                                            "id": "lFybA15Boq**:r@{.`gI",
-                                                                                                                            "fields": {
-                                                                                                                              "MODE": "GET",
-                                                                                                                              "WHERE": "FROM_START"
-                                                                                                                            },
-                                                                                                                            "inputs": {
-                                                                                                                              "VALUE": {
-                                                                                                                                "block": {
-                                                                                                                                  "type": "variables_get",
-                                                                                                                                  "id": "O*gi7wWZ/[NW$_P9SQTR",
-                                                                                                                                  "fields": {
-                                                                                                                                    "VAR": {
-                                                                                                                                      "id": "ouPYlwIkj6Ys^#mROF)r"
-                                                                                                                                    }
-                                                                                                                                  }
-                                                                                                                                }
-                                                                                                                              },
-                                                                                                                              "AT": {
-                                                                                                                                "block": {
-                                                                                                                                  "type": "variables_get",
-                                                                                                                                  "id": "o0O@0ml2-2-)YLK=q9iG",
-                                                                                                                                  "fields": {
-                                                                                                                                    "VAR": {
-                                                                                                                                      "id": "$nIyO{2YK3F~%B?`DNhX"
-                                                                                                                                    }
-                                                                                                                                  }
-                                                                                                                                }
-                                                                                                                              }
-                                                                                                                            }
-                                                                                                                          }
-                                                                                                                        },
-                                                                                                                        "B": {
-                                                                                                                          "shadow": {
-                                                                                                                            "type": "math_number",
-                                                                                                                            "id": ";+FtO*OTpG[`O^d?sHVw",
-                                                                                                                            "fields": {
-                                                                                                                              "NUM": 10
-                                                                                                                            }
-                                                                                                                          }
-                                                                                                                        }
-                                                                                                                      }
-                                                                                                                    }
-                                                                                                                  },
-                                                                                                                  "Z": {
-                                                                                                                    "shadow": {
-                                                                                                                      "type": "math_number",
-                                                                                                                      "id": ":gNCq[8nr|j#0=#XJ7Ej",
-                                                                                                                      "fields": {
-                                                                                                                        "NUM": 1
-                                                                                                                      }
-                                                                                                                    }
-                                                                                                                  }
-                                                                                                                }
-                                                                                                              }
-                                                                                                            }
-                                                                                                          }
-                                                                                                        }
+                                                                                                      "VAR": {
+                                                                                                        "id": "G#8KKyJ}*[RDWa-0[/f|"
                                                                                                       }
                                                                                                     },
                                                                                                     "next": {
                                                                                                       "block": {
-                                                                                                        "type": "animate_keyframes",
-                                                                                                        "id": "4x|Ssw{KE}eHrvzh]/7T",
+                                                                                                        "type": "animation",
+                                                                                                        "id": "o?gwWR)/s)z:2dY/wYY*",
                                                                                                         "fields": {
                                                                                                           "MESH": {
                                                                                                             "id": "]-ggKS|=1%A}h1rr_}N("
                                                                                                           },
-                                                                                                          "PROPERTY": "alpha",
+                                                                                                          "PROPERTY": "scaling",
+                                                                                                          "ANIMATION_GROUP": {
+                                                                                                            "id": "G#8KKyJ}*[RDWa-0[/f|"
+                                                                                                          },
                                                                                                           "EASING": "LINEAR",
                                                                                                           "LOOP": false,
                                                                                                           "REVERSE": false,
-                                                                                                          "MODE": "START"
+                                                                                                          "MODE": "CREATE"
                                                                                                         },
                                                                                                         "inputs": {
                                                                                                           "KEYFRAMES": {
                                                                                                             "block": {
                                                                                                               "type": "lists_create_with",
-                                                                                                              "id": "R4tmi-LHMQQ5K~rPB+wo",
+                                                                                                              "id": "aP#@bzqH/$HzB~E}ipw@",
                                                                                                               "extraState": {
                                                                                                                 "itemCount": 2
                                                                                                               },
                                                                                                               "inputs": {
                                                                                                                 "ADD0": {
                                                                                                                   "block": {
-                                                                                                                    "type": "number_keyframe",
-                                                                                                                    "id": "_`}dcfRo@thQ]$sWX{u7",
+                                                                                                                    "type": "xyz_keyframe",
+                                                                                                                    "id": "YapN_!/5^Vxpuu*0;Z8Q",
                                                                                                                     "inputs": {
                                                                                                                       "DURATION": {
                                                                                                                         "shadow": {
                                                                                                                           "type": "math_number",
-                                                                                                                          "id": "wE{JK4h2$05rbsywpQfY",
+                                                                                                                          "id": "cVa,7dmDZLE2,LZ,J:Ri",
                                                                                                                           "fields": {
                                                                                                                             "NUM": 0
                                                                                                                           }
                                                                                                                         }
                                                                                                                       },
-                                                                                                                      "VALUE": {
+                                                                                                                      "X": {
                                                                                                                         "shadow": {
                                                                                                                           "type": "math_number",
-                                                                                                                          "id": "2409~H.x1z1J,{/!I7(n",
+                                                                                                                          "id": "c|J-^$Ss]cD5GCoW_;P?",
                                                                                                                           "fields": {
-                                                                                                                            "NUM": 0.3
+                                                                                                                            "NUM": 1
+                                                                                                                          }
+                                                                                                                        }
+                                                                                                                      },
+                                                                                                                      "Y": {
+                                                                                                                        "shadow": {
+                                                                                                                          "type": "math_number",
+                                                                                                                          "id": "g^S-ncev``+$DR/tC5b7",
+                                                                                                                          "fields": {
+                                                                                                                            "NUM": 0
+                                                                                                                          }
+                                                                                                                        }
+                                                                                                                      },
+                                                                                                                      "Z": {
+                                                                                                                        "shadow": {
+                                                                                                                          "type": "math_number",
+                                                                                                                          "id": "1Zb@1-(t5J-{SiICY_WT",
+                                                                                                                          "fields": {
+                                                                                                                            "NUM": 1
                                                                                                                           }
                                                                                                                         }
                                                                                                                       }
@@ -2974,20 +2929,20 @@
                                                                                                                 },
                                                                                                                 "ADD1": {
                                                                                                                   "block": {
-                                                                                                                    "type": "number_keyframe",
-                                                                                                                    "id": "LN7Wp$^hHVr^oG(,s5xo",
+                                                                                                                    "type": "xyz_keyframe",
+                                                                                                                    "id": "UrxjlmQW)?:j99[t_7M6",
                                                                                                                     "inputs": {
                                                                                                                       "DURATION": {
                                                                                                                         "shadow": {
                                                                                                                           "type": "math_number",
-                                                                                                                          "id": "k),!!XzEFa1_~e8}eJyy",
+                                                                                                                          "id": ")oX6VSm-SE1%,1%i:!^7",
                                                                                                                           "fields": {
-                                                                                                                            "NUM": 1
+                                                                                                                            "NUM": 1000
                                                                                                                           }
                                                                                                                         },
                                                                                                                         "block": {
                                                                                                                           "type": "variables_get",
-                                                                                                                          "id": "SWQr5zkLYwWUU*:q!yd,",
+                                                                                                                          "id": "Nb$jX@7V6Ep+AvM50cdZ",
                                                                                                                           "fields": {
                                                                                                                             "VAR": {
                                                                                                                               "id": "7jq]E?:-Eu,/PbGX`C~i"
@@ -2995,10 +2950,87 @@
                                                                                                                           }
                                                                                                                         }
                                                                                                                       },
-                                                                                                                      "VALUE": {
+                                                                                                                      "X": {
                                                                                                                         "shadow": {
                                                                                                                           "type": "math_number",
-                                                                                                                          "id": "ADT;02GC~C$/G}kIW;]G",
+                                                                                                                          "id": "Q?4meC,},`K1l=!3v:XW",
+                                                                                                                          "fields": {
+                                                                                                                            "NUM": 1
+                                                                                                                          }
+                                                                                                                        }
+                                                                                                                      },
+                                                                                                                      "Y": {
+                                                                                                                        "shadow": {
+                                                                                                                          "type": "math_number",
+                                                                                                                          "id": "vx30@to8-Cl];7Bej;h9",
+                                                                                                                          "fields": {
+                                                                                                                            "NUM": 10
+                                                                                                                          }
+                                                                                                                        },
+                                                                                                                        "block": {
+                                                                                                                          "type": "math_arithmetic",
+                                                                                                                          "id": "Fh#6;++#ztL8Ff%rX5;;",
+                                                                                                                          "fields": {
+                                                                                                                            "OP": "DIVIDE"
+                                                                                                                          },
+                                                                                                                          "inputs": {
+                                                                                                                            "A": {
+                                                                                                                              "shadow": {
+                                                                                                                                "type": "math_number",
+                                                                                                                                "id": "Z_OO-Z2Rv]Ol/v`vMcCA",
+                                                                                                                                "fields": {
+                                                                                                                                  "NUM": 1
+                                                                                                                                }
+                                                                                                                              },
+                                                                                                                              "block": {
+                                                                                                                                "type": "lists_getIndex",
+                                                                                                                                "id": "lFybA15Boq**:r@{.`gI",
+                                                                                                                                "fields": {
+                                                                                                                                  "MODE": "GET",
+                                                                                                                                  "WHERE": "FROM_START"
+                                                                                                                                },
+                                                                                                                                "inputs": {
+                                                                                                                                  "VALUE": {
+                                                                                                                                    "block": {
+                                                                                                                                      "type": "variables_get",
+                                                                                                                                      "id": "O*gi7wWZ/[NW$_P9SQTR",
+                                                                                                                                      "fields": {
+                                                                                                                                        "VAR": {
+                                                                                                                                          "id": "ouPYlwIkj6Ys^#mROF)r"
+                                                                                                                                        }
+                                                                                                                                      }
+                                                                                                                                    }
+                                                                                                                                  },
+                                                                                                                                  "AT": {
+                                                                                                                                    "block": {
+                                                                                                                                      "type": "variables_get",
+                                                                                                                                      "id": "o0O@0ml2-2-)YLK=q9iG",
+                                                                                                                                      "fields": {
+                                                                                                                                        "VAR": {
+                                                                                                                                          "id": "$nIyO{2YK3F~%B?`DNhX"
+                                                                                                                                        }
+                                                                                                                                      }
+                                                                                                                                    }
+                                                                                                                                  }
+                                                                                                                                }
+                                                                                                                              }
+                                                                                                                            },
+                                                                                                                            "B": {
+                                                                                                                              "shadow": {
+                                                                                                                                "type": "math_number",
+                                                                                                                                "id": ";+FtO*OTpG[`O^d?sHVw",
+                                                                                                                                "fields": {
+                                                                                                                                  "NUM": 10
+                                                                                                                                }
+                                                                                                                              }
+                                                                                                                            }
+                                                                                                                          }
+                                                                                                                        }
+                                                                                                                      },
+                                                                                                                      "Z": {
+                                                                                                                        "shadow": {
+                                                                                                                          "type": "math_number",
+                                                                                                                          "id": ":gNCq[8nr|j#0=#XJ7Ej",
                                                                                                                           "fields": {
                                                                                                                             "NUM": 1
                                                                                                                           }
@@ -3013,23 +3045,26 @@
                                                                                                         },
                                                                                                         "next": {
                                                                                                           "block": {
-                                                                                                            "type": "animate_keyframes",
-                                                                                                            "id": "k5oOups{{ipX`rh#GrFq",
+                                                                                                            "type": "animation",
+                                                                                                            "id": "3D}uDwoNwvD,Q3l@eRnL",
                                                                                                             "fields": {
                                                                                                               "MESH": {
-                                                                                                                "id": "qPj[_%h4~]?]%v8|k_p("
+                                                                                                                "id": "]-ggKS|=1%A}h1rr_}N("
                                                                                                               },
                                                                                                               "PROPERTY": "alpha",
+                                                                                                              "ANIMATION_GROUP": {
+                                                                                                                "id": "G#8KKyJ}*[RDWa-0[/f|"
+                                                                                                              },
                                                                                                               "EASING": "LINEAR",
                                                                                                               "LOOP": false,
                                                                                                               "REVERSE": false,
-                                                                                                              "MODE": "START"
+                                                                                                              "MODE": "CREATE"
                                                                                                             },
                                                                                                             "inputs": {
                                                                                                               "KEYFRAMES": {
                                                                                                                 "block": {
                                                                                                                   "type": "lists_create_with",
-                                                                                                                  "id": "N;iq$I1G+l+F+STevMBc",
+                                                                                                                  "id": "#tlw)WO$_-/-NOw}e81E",
                                                                                                                   "extraState": {
                                                                                                                     "itemCount": 2
                                                                                                                   },
@@ -3037,12 +3072,12 @@
                                                                                                                     "ADD0": {
                                                                                                                       "block": {
                                                                                                                         "type": "number_keyframe",
-                                                                                                                        "id": "{zPLXzHQF}D6*Jb{AcuB",
+                                                                                                                        "id": "_`}dcfRo@thQ]$sWX{u7",
                                                                                                                         "inputs": {
                                                                                                                           "DURATION": {
                                                                                                                             "shadow": {
                                                                                                                               "type": "math_number",
-                                                                                                                              "id": "Irb+zY4S`GajX$sV=:(Z",
+                                                                                                                              "id": "wE{JK4h2$05rbsywpQfY",
                                                                                                                               "fields": {
                                                                                                                                 "NUM": 0
                                                                                                                               }
@@ -3051,7 +3086,7 @@
                                                                                                                           "VALUE": {
                                                                                                                             "shadow": {
                                                                                                                               "type": "math_number",
-                                                                                                                              "id": "^)xrPQUKTOe{Mm:f#jD4",
+                                                                                                                              "id": "2409~H.x1z1J,{/!I7(n",
                                                                                                                               "fields": {
                                                                                                                                 "NUM": 0.3
                                                                                                                               }
@@ -3063,7 +3098,7 @@
                                                                                                                     "ADD1": {
                                                                                                                       "block": {
                                                                                                                         "type": "number_keyframe",
-                                                                                                                        "id": "M.2TjI%e/1!~4sN^cRZA",
+                                                                                                                        "id": "LN7Wp$^hHVr^oG(,s5xo",
                                                                                                                         "inputs": {
                                                                                                                           "DURATION": {
                                                                                                                             "shadow": {
@@ -3075,7 +3110,7 @@
                                                                                                                             },
                                                                                                                             "block": {
                                                                                                                               "type": "variables_get",
-                                                                                                                              "id": "P2}3tZzM[I0d3IJE`GIh",
+                                                                                                                              "id": "SWQr5zkLYwWUU*:q!yd,",
                                                                                                                               "fields": {
                                                                                                                                 "VAR": {
                                                                                                                                   "id": "7jq]E?:-Eu,/PbGX`C~i"
@@ -3086,9 +3121,102 @@
                                                                                                                           "VALUE": {
                                                                                                                             "shadow": {
                                                                                                                               "type": "math_number",
-                                                                                                                              "id": "5Lk*4QSoyT5B/FYpkn-^",
+                                                                                                                              "id": "ADT;02GC~C$/G}kIW;]G",
                                                                                                                               "fields": {
                                                                                                                                 "NUM": 1
+                                                                                                                              }
+                                                                                                                            }
+                                                                                                                          }
+                                                                                                                        }
+                                                                                                                      }
+                                                                                                                    }
+                                                                                                                  }
+                                                                                                                }
+                                                                                                              }
+                                                                                                            },
+                                                                                                            "next": {
+                                                                                                              "block": {
+                                                                                                                "type": "animation",
+                                                                                                                "id": "U^LX([]ytN4*bQB`V#jb",
+                                                                                                                "fields": {
+                                                                                                                  "MESH": {
+                                                                                                                    "id": "qPj[_%h4~]?]%v8|k_p("
+                                                                                                                  },
+                                                                                                                  "PROPERTY": "alpha",
+                                                                                                                  "ANIMATION_GROUP": {
+                                                                                                                    "id": "G#8KKyJ}*[RDWa-0[/f|"
+                                                                                                                  },
+                                                                                                                  "EASING": "LINEAR",
+                                                                                                                  "LOOP": false,
+                                                                                                                  "REVERSE": false,
+                                                                                                                  "MODE": "START"
+                                                                                                                },
+                                                                                                                "inputs": {
+                                                                                                                  "KEYFRAMES": {
+                                                                                                                    "block": {
+                                                                                                                      "type": "lists_create_with",
+                                                                                                                      "id": "inUhLod=;4Z{ZI|XGGZj",
+                                                                                                                      "extraState": {
+                                                                                                                        "itemCount": 2
+                                                                                                                      },
+                                                                                                                      "inputs": {
+                                                                                                                        "ADD0": {
+                                                                                                                          "block": {
+                                                                                                                            "type": "number_keyframe",
+                                                                                                                            "id": "^4Pvk7HACso20DD2%@[h",
+                                                                                                                            "inputs": {
+                                                                                                                              "DURATION": {
+                                                                                                                                "shadow": {
+                                                                                                                                  "type": "math_number",
+                                                                                                                                  "id": "@eb4_(LFlMG^:KVwRFR-",
+                                                                                                                                  "fields": {
+                                                                                                                                    "NUM": 0
+                                                                                                                                  }
+                                                                                                                                }
+                                                                                                                              },
+                                                                                                                              "VALUE": {
+                                                                                                                                "shadow": {
+                                                                                                                                  "type": "math_number",
+                                                                                                                                  "id": "{-HN4wn:iR]V+o~2[.a$",
+                                                                                                                                  "fields": {
+                                                                                                                                    "NUM": 0.3
+                                                                                                                                  }
+                                                                                                                                }
+                                                                                                                              }
+                                                                                                                            }
+                                                                                                                          }
+                                                                                                                        },
+                                                                                                                        "ADD1": {
+                                                                                                                          "block": {
+                                                                                                                            "type": "number_keyframe",
+                                                                                                                            "id": "EzvF~_HDtnJgRUyQ`0{4",
+                                                                                                                            "inputs": {
+                                                                                                                              "DURATION": {
+                                                                                                                                "shadow": {
+                                                                                                                                  "type": "math_number",
+                                                                                                                                  "id": "k),!!XzEFa1_~e8}eJyy",
+                                                                                                                                  "fields": {
+                                                                                                                                    "NUM": 1
+                                                                                                                                  }
+                                                                                                                                },
+                                                                                                                                "block": {
+                                                                                                                                  "type": "variables_get",
+                                                                                                                                  "id": "~QFcEl=[TRntF6IsjmUH",
+                                                                                                                                  "fields": {
+                                                                                                                                    "VAR": {
+                                                                                                                                      "id": "7jq]E?:-Eu,/PbGX`C~i"
+                                                                                                                                    }
+                                                                                                                                  }
+                                                                                                                                }
+                                                                                                                              },
+                                                                                                                              "VALUE": {
+                                                                                                                                "shadow": {
+                                                                                                                                  "type": "math_number",
+                                                                                                                                  "id": "A_*+N4GxwtL%*7(h,B)f",
+                                                                                                                                  "fields": {
+                                                                                                                                    "NUM": 1
+                                                                                                                                  }
+                                                                                                                                }
                                                                                                                               }
                                                                                                                             }
                                                                                                                           }
@@ -3529,7 +3657,8 @@
         "type": "on_event",
         "id": "/8*5Q5sRD0|QC$@=o4MU",
         "x": 10,
-        "y": 4732,
+        "y": 4872,
+        "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" inline=\"undefined\"></mutation>",
         "inputs": {
           "EVENT_NAME": {
             "shadow": {
@@ -3784,7 +3913,8 @@
         "type": "on_event",
         "id": "$|$xOVQs[22U*6`Ewew-",
         "x": 10,
-        "y": 5300,
+        "y": 5440,
+        "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" inline=\"undefined\"></mutation>",
         "inputs": {
           "EVENT_NAME": {
             "shadow": {
@@ -4153,10 +4283,6 @@
       "id": "f=8($HYZoE:IjT|U8x8J"
     },
     {
-      "name": "jumping",
-      "id": "DetuuxWKd*Q_?Jr-Sz*k"
-    },
-    {
       "name": "Name",
       "id": "8B].Q!uj+i@^QN[+A36b"
     },
@@ -4177,10 +4303,6 @@
       "id": "R|a(9}idY=Bl*pVWmqj2"
     },
     {
-      "name": "mesh",
-      "id": "GSPI(mvhqJlBurU?MBxL"
-    },
-    {
       "name": "Started",
       "id": "8TkwP#1#jCui9)2p?=a["
     },
@@ -4197,24 +4319,12 @@
       "id": "|?(=kCxWNqw}SYZYAP*c"
     },
     {
-      "name": "box2",
-      "id": "EgBw12;!U^x!pOgEb:9|"
-    },
-    {
       "name": "duration",
       "id": "7jq]E?:-Eu,/PbGX`C~i"
     },
     {
-      "name": "Built",
-      "id": "eaOLzb.F/$WrO0(??b*~"
-    },
-    {
       "name": "columns",
       "id": "fu`$}d[|yq5)-!^j%?mF"
-    },
-    {
-      "name": "column",
-      "id": "Mp+k@BHsFu!_!vWkRA~H"
     },
     {
       "name": "Colour",
@@ -4229,14 +4339,6 @@
       "id": ".w-P|!AZJD(TaQc4F~O?"
     },
     {
-      "name": "parentMesh",
-      "id": "B.`61B|]34^H/xvw]uju"
-    },
-    {
-      "name": "childMesh",
-      "id": "1rs|sVc%.@s7xY-s74e`"
-    },
-    {
       "name": "labels",
       "id": "#`f[=rS[gG0CIp}WUFRr"
     },
@@ -4245,28 +4347,8 @@
       "id": "qPj[_%h4~]?]%v8|k_p("
     },
     {
-      "name": "box3",
-      "id": "A_ffDX$JPNq2bKt|uWPv"
-    },
-    {
-      "name": "box4",
-      "id": "/lMF7RZmA@k1p_:sq*oz"
-    },
-    {
       "name": "camera",
       "id": "a7e8X(mUSI~dp3FD5.k1"
-    },
-    {
-      "name": "mesh1",
-      "id": "VldZChn0R8RP,:{7iI?s"
-    },
-    {
-      "name": "mesh2",
-      "id": "k::P,VI.Iy0vmab_l!)Z"
-    },
-    {
-      "name": "target",
-      "id": "kuQ+xb*r{=;)s3vm{;kt"
     },
     {
       "name": "camera x",
@@ -4277,14 +4359,6 @@
       "id": "ntjsLDtirrw-vZ5CKH?K"
     },
     {
-      "name": "character1",
-      "id": ":p+e}~MRt|~WKk]o611Q"
-    },
-    {
-      "name": "i",
-      "id": "VCp$i@AIF#lM3W}Ud,B$"
-    },
-    {
       "name": "j",
       "id": "$nIyO{2YK3F~%B?`DNhX"
     },
@@ -4293,20 +4367,12 @@
       "id": "]-ggKS|=1%A}h1rr_}N("
     },
     {
-      "name": "item",
-      "id": "Dt+2LWyH`nLC],e:%Y}w"
-    },
-    {
       "name": "k",
       "id": "@IxM7G;;,r~UrCwpe^Rl"
     },
     {
-      "name": "h",
-      "id": "38,az6rCs0dN}IkH0aVU"
-    },
-    {
-      "name": "follower",
-      "id": "-gB.+0=G;=^F]BE58F14"
+      "name": "animation1",
+      "id": "G#8KKyJ}*[RDWa-0[/f|"
     }
   ]
 }
