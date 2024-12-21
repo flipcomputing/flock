@@ -1335,6 +1335,8 @@ export function defineBlocks() {
 					variableNamePrefix,
 					nextVariableIndexes,
 				);
+
+				handleBlockDelete(changeEvent);
 			});
 
 			addDoMutatorWithToggleBehavior(this);
@@ -1440,6 +1442,8 @@ export function defineBlocks() {
 					nextVariableIndexes,
 				);
 
+				handleBlockDelete(changeEvent);
+
 				if (window.loadingCode) return;
 				if (
 					changeEvent.type === Blockly.Events.CHANGE &&
@@ -1533,6 +1537,8 @@ export function defineBlocks() {
 					variableNamePrefix,
 					nextVariableIndexes,
 				);
+
+				handleBlockDelete(changeEvent);
 			});
 
 			addDoMutatorWithToggleBehavior(this);
@@ -4662,11 +4668,17 @@ export function handleBlockCreateEvent(
 ) {
 	if (window.loadingCode) return; // Don't rename variables during code loading
 
+	// Check if this is an undo/redo operation
+	const isUndo = !changeEvent.recordUndo;
+
 	if (
 		!blockInstance.isInFlyout &&
 		changeEvent.type === Blockly.Events.BLOCK_CREATE &&
 		changeEvent.ids.includes(blockInstance.id)
 	) {
+		// Skip renaming variables if this is an undo
+		if (isUndo) return;
+
 		// Check if the specified field already has a value
 		const variableField = blockInstance.getField(fieldName);
 		if (variableField) {
@@ -4706,6 +4718,7 @@ export function handleBlockCreateEvent(
 		}
 	}
 }
+
 
 // Extend the built-in Blockly procedures_defreturn block to add custom toggle functionality
 
