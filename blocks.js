@@ -11,7 +11,7 @@ import {
 	animationNames,
 	materialNames,
 } from "./config.js";
-import { deleteMeshFromBlock } from "./ui/designview.js";
+import { deleteMeshFromBlock, updateOrCreateMeshFromBlock } from "./ui/designview.js";
 import { flock } from "./flock.js";
 /*import {
   ScrollOptions,
@@ -1527,7 +1527,7 @@ export function defineBlocks() {
 						Blockly.getMainWorkspace().getBlockById(this.id); // Check if block is in the main workspace
 
 					if (blockInWorkspace) {
-						//window.updateOrCreateMeshFromBlock(this);
+						updateOrCreateMeshFromBlock(this);
 					}
 				}
 

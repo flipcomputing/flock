@@ -12,8 +12,9 @@ export let gizmoManager;
 
 export function updateOrCreateMeshFromBlock(block, changeEvent) {
 	if (!window.loadingCode) {
+		
 		const mesh = getMeshFromBlock(block);
-
+		console.log("Update or create", block, mesh);
 		if (mesh) {
 			updateMeshFromBlock(mesh, block, changeEvent);
 		} else {
@@ -102,13 +103,30 @@ function pickMeshFromCanvas() {
 export function deleteMeshFromBlock(blockId) {
 	const mesh = getMeshFromBlockId(blockId);
 
+	const blockKey = Object.keys(meshBlockIdMap).find(
+		(key) => meshBlockIdMap[key] === blockId,
+	);
+
+	console.log(blockId, meshBlockIdMap, meshMap, blockKey);
+	if (blockKey) {
+		// Remove mappings
+		delete meshMap[blockKey];
+		delete meshBlockIdMap[blockKey];
+	}
+
 	if (mesh && mesh.name !== "__root__") {
 		flock.dispose(mesh.name);
 	}
 }
 
 export function getMeshFromBlock(block) {
+
+	console.log("Get mesh from block", block, meshMap);
+	
 	const blockKey = Object.keys(meshMap).find((key) => meshMap[key] === block);
+
+	if(!blockKey)
+		return null;
 
 	const found = flock.scene?.meshes?.find(
 		(mesh) => mesh.blockKey === blockKey,
@@ -237,6 +255,7 @@ export function updateMeshFromBlock(mesh, block, changeEvent) {
 }
 
 function createMeshOnCanvas(block) {
+	console.log("Create mesh on canvas", block)
 	Blockly.Events.setGroup(true);
 
 	let shapeType = block.type;
@@ -417,6 +436,7 @@ function createMeshOnCanvas(block) {
 		meshBlockIdMap[blockKey] = block.id;
 	}
 
+	console.log(meshMap);
 	Blockly.Events.setGroup(false);
 }
 
