@@ -1239,8 +1239,6 @@ export const flock = {
 		const blockId = modelId;
 		modelId += "_" + flock.scene.getUniqueId();
 
-		console.log("New object", blockId)
-
 		// Check if a first copy is already cached
 		if (flock.modelCache[modelName]) {
 			//console.log(`Using cached first model: ${modelName}`);

@@ -79,6 +79,7 @@ export function handleBlockSelect(event) {
 }
 
 export function handleBlockDelete(event) {
+
 	if (event.type === Blockly.Events.BLOCK_DELETE) {
 		// Recursively delete meshes for qualifying blocks
 		function deleteMeshesRecursively(blockJson) {
@@ -1315,6 +1316,9 @@ export function defineBlocks() {
 			});
 
 			this.setOnChange((changeEvent) => {
+
+				if(changeEvent.blockId !== this.id)
+					return;
 				if (
 					changeEvent.type === Blockly.Events.BLOCK_CREATE ||
 					changeEvent.type === Blockly.Events.BLOCK_CHANGE
@@ -1425,6 +1429,9 @@ export function defineBlocks() {
 
 			this.setOnChange((changeEvent) => {
 
+				if(changeEvent.blockId !== this.id)
+					return;
+				
 				if (
 					changeEvent.type === Blockly.Events.BLOCK_CREATE ||
 					changeEvent.type === Blockly.Events.BLOCK_CHANGE
@@ -1434,7 +1441,7 @@ export function defineBlocks() {
 
 					if (blockInWorkspace) {
 						if (window.loadingCode) return;
-									updateOrCreateMeshFromBlock(this);
+									updateOrCreateMeshFromBlock(this, changeEvent);
 					}
 				}
 
@@ -1445,7 +1452,7 @@ export function defineBlocks() {
 					nextVariableIndexes,
 				);
 
-				handleBlockDelete(changeEvent);
+				handleBlockDelete(this, changeEvent);
 
 				
 			});
@@ -1528,7 +1535,7 @@ export function defineBlocks() {
 						Blockly.getMainWorkspace().getBlockById(this.id); // Check if block is in the main workspace
 
 					if (blockInWorkspace) {
-						updateOrCreateMeshFromBlock(this);
+						updateOrCreateMeshFromBlock(this, changeEvent);
 					}
 				}
 

@@ -11,13 +11,17 @@ import {
 export let gizmoManager;
 
 export function updateOrCreateMeshFromBlock(block, changeEvent) {
-	if (!window.loadingCode) {
+	if (block.id !== changeEvent.blockId) return;
+	if (!window.loadingCode && !block.disposed) {
 		const mesh = getMeshFromBlock(block);
-		
+
 		if (mesh) {
 			updateMeshFromBlock(mesh, block, changeEvent);
 		} else {
-			createMeshOnCanvas(block);
+			requestAnimationFrame(() => {
+		
+				createMeshOnCanvas(block); // Execute after a render frame
+			});
 		}
 	}
 }
@@ -118,9 +122,8 @@ export function deleteMeshFromBlock(blockId) {
 }
 
 export function getMeshFromBlock(block) {
-
 	const blockKey = Object.keys(meshMap).find((key) => meshMap[key] === block);
-	
+
 	if (!blockKey) return null;
 
 	const found = flock.scene?.meshes?.find(
@@ -131,14 +134,17 @@ export function getMeshFromBlock(block) {
 }
 
 export function updateMeshFromBlock(mesh, block, changeEvent) {
-
 	const shapeType = block.type;
 	if (mesh && mesh.physics) mesh.physics.disablePreStep = true;
 
-	const color = block
-		.getInput("COLOR")
-		.connection.targetBlock()
-		.getFieldValue("COLOR");
+	let color;
+
+	if (block.type !== "load_model") {
+		color = block
+			.getInput("COLOR")
+			.connection.targetBlock()
+			.getFieldValue("COLOR");
+	}
 
 	// Retrieve the position values (X, Y, Z) from the connected blocks
 	const position = {
@@ -147,14 +153,15 @@ export function updateMeshFromBlock(mesh, block, changeEvent) {
 		z: block.getInput("Z").connection.targetBlock().getFieldValue("NUM"),
 	};
 
-	flock.positionAt(mesh.name, position.x, position.y, position.z);
+	flock.positionAt(mesh.name, position.x, position.y, position.z, false);
 
 	// Shape-specific updates based on the block type
 	switch (shapeType) {
-
 		case "load_object":
+		case "load_model":
+		case "load_character":
 			console.log("Need to handle update of object");
-			break
+			break;
 		case "create_box":
 			// Retrieve width, height, and depth from connected blocks
 			const width = block
@@ -272,7 +279,6 @@ function createMeshOnCanvas(block) {
 	switch (shapeType) {
 		// --- Model Loading Blocks ---
 		case "load_model":
-
 			modelName = block.getFieldValue("MODELS");
 			scale = block
 				.getInput("SCALE")
@@ -283,7 +289,7 @@ function createMeshOnCanvas(block) {
 			meshMap[meshId] = block;
 			meshBlockIdMap[meshId] = block.id;
 			// Use flock API for loading models
-			
+
 			newMesh = flock.newModel({
 				modelName: modelName,
 				modelId: meshId,
@@ -352,8 +358,6 @@ function createMeshOnCanvas(block) {
 				.getFieldValue("COLOR");
 
 			meshId = modelName + "_" + generateUniqueId();
-			meshMap[meshId] = block;
-			meshBlockIdMap[meshId] = block.id;
 
 			// Use flock API for objects
 			newMesh = flock.newObject({
@@ -362,10 +366,11 @@ function createMeshOnCanvas(block) {
 				color: color,
 				scale: scale,
 				position: [position.x, position.y, position.z],
-				callback: () => {
-				
-				},
+				callback: () => {},
 			});
+
+			meshMap[meshId] = block;
+			meshBlockIdMap[meshId] = block.id;
 
 			break;
 
@@ -512,14 +517,11 @@ function createMeshOnCanvas(block) {
 			break;
 
 		default:
-			
 			// Store the mesh in the meshMap
 			if (newMesh) {
-
 				const blockKey = flock.scene.getMeshByName(newMesh).blockKey;
 				meshMap[blockKey] = block;
 				meshBlockIdMap[blockKey] = block.id;
-
 			}
 	}
 
@@ -964,7 +966,7 @@ function selectCharacter(characterName) {
 
 					// Store the block reference in meshMap
 					meshMap[modelId] = block;
-
+					meshBlockIdMap[modelId] = block.id;
 					flock.newCharacter({
 						modelName: characterName, // Map 'characterName' to 'modelName'
 						modelId, // Directly use 'modelId'
@@ -1073,13 +1075,12 @@ function selectModel(modelName) {
 						connection.connect(block.previousConnection);
 					}
 
-					
 					// Generate a unique ID for the model
 					const modelId = modelName + "_" + generateUniqueId();
 
 					// Store the block reference in meshMap
 					meshMap[modelId] = block;
-
+					meshBlockIdMap[modelId] = block.id;
 					flock.newModel({
 						modelName,
 						modelId,
@@ -1090,7 +1091,6 @@ function selectModel(modelName) {
 							z: pickedPosition.z,
 						},
 					});
-					
 				} finally {
 					// End the event group to ensure undo/redo works properly
 					Blockly.Events.setGroup(false);
@@ -1191,6 +1191,7 @@ function selectObject(objectName) {
 					const meshId = objectName + "_" + generateUniqueId();
 					meshMap[meshId] = block;
 
+					meshBlockIdMap[meshId] = block.id;
 					flock.newObject({
 						modelName: objectName,
 						modelId: meshId,
