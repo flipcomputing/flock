@@ -1300,11 +1300,13 @@ export const flock = {
 		emitterMesh,
 		emitRate,
 		colors,
+		alphas,
 		sizes,
+		shape,
 		gravity,
 	}) {
-		const CIRCLE_TEXTURE_PATH = "./textures/circle_texture.png";
 
+		console.log("Creating particle effect", alphas);
 		return flock.whenModelReady(emitterMesh, (meshInstance) => {
 			// Create the particle system
 			const particleSystem = new flock.BABYLON.ParticleSystem(
@@ -1314,8 +1316,9 @@ export const flock = {
 			);
 
 			// Texture of each particle
+			const texturePath = `./textures/${shape}`;
 			particleSystem.particleTexture = new flock.BABYLON.Texture(
-				CIRCLE_TEXTURE_PATH,
+				texturePath,
 				flock.scene,
 			);
 
@@ -1327,17 +1330,34 @@ export const flock = {
 				meshInstance,
 			);
 			particleSystem.particleEmitterType = meshEmitter;
+			 particleSystem.blendMode = 4;
 
 			const startColor = flock.BABYLON.Color4.FromHexString(colors.start);
 			const endColor = flock.BABYLON.Color4.FromHexString(colors.end);
 
-			// Add color gradients
-			particleSystem.addColorGradient(0, startColor); // Colour at the start of the particle's lifetime
-			particleSystem.addColorGradient(1, endColor); // Colour at the end of the particle's lifetime
+			// Combine colors with alpha values
+			const startColorWithAlpha = new flock.BABYLON.Color4(
+				startColor.r,
+				startColor.g,
+				startColor.b,
+				alphas.start
+			);
+			const endColorWithAlpha = new flock.BABYLON.Color4(
+				endColor.r,
+				endColor.g,
+				endColor.b,
+				alphas.end
+			);
+
+			// Set colors with alpha
+			// Add color gradients with alpha values
+			particleSystem.addColorGradient(0, startColorWithAlpha);
+			particleSystem.addColorGradient(1, endColorWithAlpha);
+
 
 			// Add size gradients
-			particleSystem.addSizeGradient(0, sizes.start); // Size at the start of the particle's lifetime
-			particleSystem.addSizeGradient(1, sizes.end); // Size at the end of the particle's lifetime
+			particleSystem.addSizeGradient(0, sizes.start);
+			particleSystem.addSizeGradient(1, sizes.end);
 
 			// Set the emit rate with a maximum limit
 			const MAX_EMIT_RATE = 500;
@@ -1345,16 +1365,11 @@ export const flock = {
 
 			// Apply gravity if enabled
 			particleSystem.gravity = gravity
-				? new flock.BABYLON.Vector3(0, -9.81, 0) // Standard gravity
-				: new flock.BABYLON.Vector3(0, 0, 0); // No gravity
+				? new flock.BABYLON.Vector3(0, -9.81, 0)
+				: new flock.BABYLON.Vector3(0, 0, 0);
 
 			// Start the particle system
 			particleSystem.start();
-
-			/*console.log(
-				`Particle system "${name}" started with emit rate: ${particleSystem.emitRate}, gravity: ${gravity}, using emitter mesh:`,
-				meshInstance,
-			);*/
 
 			return particleSystem;
 		});

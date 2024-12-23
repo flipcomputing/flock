@@ -68,8 +68,8 @@ export function defineShapeBlocks() {
 			init: function () {
 				this.jsonInit({
 					message0: `set %1 to particle effect with emitter mesh: %2 
-						with rate: %3 size range: %4 to %5 
-						colors: start %6 end %7 alpha: %8 to %9 gravity: %10`,
+						with rate: %3 size range: %4 to %5 shape: %6 
+						colors: start %7 end %8 alpha: %9 to %10 gravity: %11`,
 					args0: [
 						{
 							type: "field_variable",
@@ -95,6 +95,17 @@ export function defineShapeBlocks() {
 							type: "input_value",
 							name: "MAX_SIZE",
 							check: "Number",
+						},
+						{
+							type: "field_dropdown",
+							name: "SHAPE",
+							options: [
+								["Circle", "circle_texture.png"],
+								["Heart", "heart_texture.png"],
+								["Star", "star_texture.png"],
+								["Crescent", "crescent_texture.png"],
+								["Square", "square_texture.png"],
+							],
 						},
 						{
 							type: "input_value",
@@ -124,13 +135,15 @@ export function defineShapeBlocks() {
 					],
 					inputsInline: true,
 					colour: categoryColours["Scene"],
-					tooltip: "Create a particle effect attached to a mesh with configurable gravity, size, colour, and transparency.",
+					tooltip: "Create a particle effect attached to a mesh with configurable shape, gravity, size, colour, and transparency.",
 					helpUrl: "",
 					previousStatement: null,
 					nextStatement: null,
 				});
 			},
 		};
+
+		
 	}
 
 	// Extracted common change handler

@@ -872,6 +872,8 @@ export function defineGenerators() {
 		const emitRate = parseFloat(getFieldValue(block, "RATE", "10"));
 		const startColor = getFieldValue(block, "START_COLOR", "#FFFFFF");
 		const endColor = getFieldValue(block, "END_COLOR", "#000000");
+		const startAlpha = parseFloat(getFieldValue(block, "START_ALPHA", "1.0"));
+		const endAlpha = parseFloat(getFieldValue(block, "END_ALPHA", "1.0"));
 		const minSize =
 			javascriptGenerator.valueToCode(
 				block,
@@ -895,6 +897,8 @@ export function defineGenerators() {
 			Blockly.Names.NameType.VARIABLE,
 		);
 
+		const shape = block.getFieldValue("SHAPE");
+
 		const gravity = block.getFieldValue("GRAVITY") === "TRUE";
 
 		// Manually construct the options object
@@ -907,10 +911,15 @@ export function defineGenerators() {
 				start: ${startColor},
 				end: ${endColor}
 			},
+			alphas: {
+				start: ${startAlpha},
+				end: ${endAlpha}
+			},
 			sizes: {
 				start: ${minSize},
 				end: ${maxSize}
 			},
+			shape: "${shape}",
 			gravity: ${gravity}
 		}`;
 
