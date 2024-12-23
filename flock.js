@@ -1055,10 +1055,8 @@ export const flock = {
 				mesh,
 			);
 
-		console.log("Setting up mesh", modelId, blockId);
 		bb.name = modelId;
 		bb.blockKey = blockId;
-		mesh.blockKey = blockId;
 		bb.isPickable = false;
 		bb.position.addInPlace(new flock.BABYLON.Vector3(x, y, z));
 
@@ -1067,7 +1065,6 @@ export const flock = {
 		mesh.isPickable = true;
 		mesh.getDescendants().forEach((child) => {
 			child.isPickable = true;
-			child.blockKey = blockId;
 		});
 
 		bb.metadata = bb.metadata || {};
@@ -1106,6 +1103,38 @@ export const flock = {
 		boxBody.disablePreStep = false;
 		bb.physics = boxBody;
 	},
+	applyColorToMaterial(part, materialName, color) {
+		if (part.material && part.material.name === materialName) {
+			part.material.albedoColor =
+				flock.BABYLON.Color3.FromHexString(
+					flock.getColorFromString(color),
+				);
+		}
+		part.getChildMeshes().forEach((child) => {
+			flock.applyColorToMaterial(child, materialName, color);
+		});
+	},
+	applyColorsToCharacter(mesh, colors)
+		{
+			const {
+				hair: hairColor,
+				skin: skinColor,
+				eyes: eyesColor,
+				sleeves: sleevesColor,
+				shorts: shortsColor,
+				tshirt: tshirtColor,
+			} = colors;
+
+			flock.applyColorToMaterial(mesh, "Hair", hairColor);
+			flock.applyColorToMaterial(mesh, "Skin", skinColor);
+			flock.applyColorToMaterial(mesh, "Eyes", eyesColor);
+			flock.applyColorToMaterial(mesh, "Detail", sleevesColor);
+			flock.applyColorToMaterial(mesh, "Shorts", shortsColor);
+			flock.applyColorToMaterial(mesh, "TShirt", tshirtColor);
+			flock.applyColorToMaterial(mesh, "Tshirt", tshirtColor);
+			flock.applyColorToMaterial(mesh, "Sleeves", sleevesColor);
+			flock.applyColorToMaterial(mesh, "Shoes", sleevesColor);
+		},
 	newCharacter({
 		modelName,
 		modelId,
@@ -1122,15 +1151,7 @@ export const flock = {
 		callback = () => {},
 	}) {
 		const { x, y, z } = position;
-		const {
-			hair: hairColor,
-			skin: skinColor,
-			eyes: eyesColor,
-			sleeves: sleevesColor,
-			shorts: shortsColor,
-			tshirt: tshirtColor,
-		} = colors;
-
+		
 		const blockId = modelId;
 		modelId += "_" + flock.scene.getUniqueId();
 
@@ -1147,27 +1168,7 @@ export const flock = {
 				const mesh = container.meshes[0];
 				flock.setupMesh(mesh, modelId, blockId, scale, x, y, z);
 
-				function applyColorToMaterial(part, materialName, color) {
-					if (part.material && part.material.name === materialName) {
-						part.material.albedoColor =
-							flock.BABYLON.Color3.FromHexString(
-								flock.getColorFromString(color),
-							);
-					}
-					part.getChildMeshes().forEach((child) => {
-						applyColorToMaterial(child, materialName, color);
-					});
-				}
-
-				applyColorToMaterial(mesh, "Hair", hairColor);
-				applyColorToMaterial(mesh, "Skin", skinColor);
-				applyColorToMaterial(mesh, "Eyes", eyesColor);
-				applyColorToMaterial(mesh, "Detail", sleevesColor);
-				applyColorToMaterial(mesh, "Shorts", shortsColor);
-				applyColorToMaterial(mesh, "TShirt", tshirtColor);
-				applyColorToMaterial(mesh, "Tshirt", tshirtColor);
-				applyColorToMaterial(mesh, "Sleeves", sleevesColor);
-				applyColorToMaterial(mesh, "Shoes", sleevesColor);
+				flock.applyColorsToCharacter(mesh, colors);
 
 				const descendants = mesh.getChildMeshes(false);
 				descendants.forEach((childMesh) => {
@@ -1180,48 +1181,6 @@ export const flock = {
 
 				if (callback) {
 					requestAnimationFrame(() => callback());
-				}
-			})
-			.catch((error) => {
-				console.log("Error loading", error);
-			});
-
-		return modelId;
-	},
-	newObject2({
-		modelName,
-		modelId,
-		color = "#FFFFFF",
-		scale = 1,
-		position = { x: 0, y: 0, z: 0 },
-		callback = () => {},
-	}) {
-		const { x, y, z } = position;
-
-		const blockId = modelId;
-		modelId += "_" + flock.scene.getUniqueId();
-
-		flock.BABYLON.SceneLoader.LoadAssetContainerAsync(
-			"./models/",
-			modelName,
-			flock.scene,
-			null,
-			null,
-			{ signal: flock.abortController.signal },
-		)
-			.then((container) => {
-				container.addAllToScene();
-
-				const mesh = container.meshes[0];
-
-				flock.setupMesh(mesh, modelId, blockId, scale, x, y, z, color);
-
-				flock.changeColorMesh(mesh, color);
-
-				if (typeof callback === "function") {
-					requestAnimationFrame(() => {
-						callback();
-					});
 				}
 			})
 			.catch((error) => {

@@ -11,18 +11,28 @@ import {
 export let gizmoManager;
 
 export function updateOrCreateMeshFromBlock(block, changeEvent) {
-	if (block.id !== changeEvent.blockId) return;
-	if (!window.loadingCode && !block.disposed) {
+	if (window.loadingCode || block.disposed) return;
+
+	if (
+		(changeEvent.type === Blockly.Events.BLOCK_CHANGE &&
+			block.id === changeEvent.blockId) ||
+		block.id ===
+			Blockly.getMainWorkspace()
+				.getBlockById(changeEvent.blockId)
+				?.getParent()?.id
+	) {
+
 		const mesh = getMeshFromBlock(block);
 
 		if (mesh) {
-		
 			updateMeshFromBlock(mesh, block, changeEvent);
-		} else {
-			requestAnimationFrame(() => {
-		
-				createMeshOnCanvas(block); // Execute after a render frame
-			});
+		}
+	} else {
+		if (
+			changeEvent.type === Blockly.Events.BLOCK_CREATE &&
+			block.id === changeEvent.blockId
+		) {
+			createMeshOnCanvas(block);
 		}
 	}
 }
@@ -135,14 +145,13 @@ export function getMeshFromBlock(block) {
 }
 
 export function updateMeshFromBlock(mesh, block, changeEvent) {
-	
 	const shapeType = block.type;
-	console.log("Updating", block.type);
+
 	if (mesh && mesh.physics) mesh.physics.disablePreStep = true;
 
-	let color;
+	let color, model;
 
-	if (block.type !== "load_model") {
+	if (block.type !== "load_model" && block.type !== "load_character") {
 		color = block
 			.getInput("COLOR")
 			.connection.targetBlock()
@@ -161,9 +170,45 @@ export function updateMeshFromBlock(mesh, block, changeEvent) {
 	// Shape-specific updates based on the block type
 	switch (shapeType) {
 		case "load_object":
+
+			model = block.getFieldValue("MODELS");
+			
+			console.log("Need to handle update of object", model);
+			break;
 		case "load_model":
+			model = block.getFieldValue("MODELS");
+			console.log("Need to handle update of model");
+			break;
 		case "load_character":
-			console.log("Need to handle update of object");
+			model = block.getFieldValue("MODELS");
+			// Retrieve colours
+			const colors = {
+				hair: block
+					.getInput("HAIR_COLOR")
+					.connection.targetBlock()
+					.getFieldValue("COLOR"),
+				skin: block
+					.getInput("SKIN_COLOR")
+					.connection.targetBlock()
+					.getFieldValue("COLOR"),
+				eyes: block
+					.getInput("EYES_COLOR")
+					.connection.targetBlock()
+					.getFieldValue("COLOR"),
+				tshirt: block
+					.getInput("TSHIRT_COLOR")
+					.connection.targetBlock()
+					.getFieldValue("COLOR"),
+				shorts: block
+					.getInput("SHORTS_COLOR")
+					.connection.targetBlock()
+					.getFieldValue("COLOR"),
+				sleeves: block
+					.getInput("SLEEVES_COLOR")
+					.connection.targetBlock()
+					.getFieldValue("COLOR"),
+			};
+			flock.applyColorsToCharacter(getMeshFromBlock(block), colors);
 			break;
 		case "create_box":
 			// Retrieve width, height, and depth from connected blocks
@@ -218,16 +263,16 @@ export function updateMeshFromBlock(mesh, block, changeEvent) {
 				.connection.targetBlock()
 				.getFieldValue("NUM");
 			const sides = block
-			.getInput("TESSELLATIONS")
-			.connection.targetBlock()
-			.getFieldValue("NUM");
+				.getInput("TESSELLATIONS")
+				.connection.targetBlock()
+				.getFieldValue("NUM");
 
 			updateCylinderGeometry(
 				mesh,
 				diameterTop,
 				diameterBottom,
 				cylinderHeight,
-				sides
+				sides,
 			);
 			break;
 
@@ -302,7 +347,7 @@ function createMeshOnCanvas(block) {
 				modelName: modelName,
 				modelId: meshId,
 				scale: scale,
-				position: [position.x, position.y, position.z],
+				position: { x: position.x, y: position.y, z: position.z },
 			});
 			break;
 
@@ -349,12 +394,13 @@ function createMeshOnCanvas(block) {
 				modelName: modelName,
 				modelId: meshId,
 				scale: scale,
-				position: [position.x, position.y, position.z],
+				position: { x: position.x, y: position.y, z: position.z },
 				colors: colors,
 			});
 			break;
 
 		case "load_object":
+
 			modelName = block.getFieldValue("MODELS");
 			scale = block
 				.getInput("SCALE")
@@ -366,14 +412,14 @@ function createMeshOnCanvas(block) {
 				.getFieldValue("COLOR");
 
 			meshId = modelName + "_" + generateUniqueId();
-
+			
 			// Use flock API for objects
 			newMesh = flock.newObject({
 				modelName: modelName,
 				modelId: meshId,
 				color: color,
 				scale: scale,
-				position: [position.x, position.y, position.z],
+				position: { x: position.x, y: position.y, z: position.z },
 				callback: () => {},
 			});
 
@@ -611,7 +657,13 @@ function setAbsoluteSize(mesh, width, height, depth) {
 	}
 }
 
-function updateCylinderGeometry(mesh, diameterTop, diameterBottom, height, sides) {
+function updateCylinderGeometry(
+	mesh,
+	diameterTop,
+	diameterBottom,
+	height,
+	sides,
+) {
 	// If the mesh has geometry, dispose of it before updating
 	if (mesh.geometry) {
 		mesh.geometry.dispose();
@@ -752,7 +804,6 @@ function getMeshFromBlockId(blockId) {
 }
 
 function addShapeToWorkspace(shapeType, position) {
-	console.log(position);
 	Blockly.Events.setGroup(true);
 	// Create the shape block in the Blockly workspace
 	const block = Blockly.getMainWorkspace().newBlock(shapeType);
@@ -766,7 +817,8 @@ function addShapeToWorkspace(shapeType, position) {
 		diameterZ,
 		radius,
 		diameterTop,
-		diameterBottom, sides;
+		diameterBottom,
+		sides;
 
 	// Set different fields based on the shape type and capture the actual values
 	switch (shapeType) {
@@ -807,12 +859,7 @@ function addShapeToWorkspace(shapeType, position) {
 				"math_number",
 				diameterBottom,
 			);
-			addShadowBlock(
-				block,
-				"TESSELLATIONS",
-				"math_number",
-				sides,
-			);
+			addShadowBlock(block, "TESSELLATIONS", "math_number", sides);
 			break;
 
 		case "create_capsule":
@@ -855,63 +902,6 @@ function addShapeToWorkspace(shapeType, position) {
 	if (connection) {
 		connection.connect(block.previousConnection);
 	}
-
-	let newMesh;
-	switch (shapeType) {
-		case "create_box":
-			newMesh = flock.createBox("box_", color, width, height, depth, [
-				position.x,
-				position.y + height / 2,
-				position.z,
-			]);
-
-			break;
-
-		case "create_sphere":
-			newMesh = flock.createSphere(
-				"sphere_",
-				color,
-				diameterX,
-				diameterY,
-				diameterZ,
-				[position.x, position.y + diameterY / 2, position.z],
-			);
-			break;
-
-		case "create_cylinder":
-			newMesh = flock.createCylinder(
-				"cylinder_",
-				color,
-				height,
-				diameterTop,
-				diameterBottom,
-				sides,
-				[position.x, position.y + height / 2, position.z],
-			
-			);
-			break;
-
-		case "create_capsule":
-			newMesh = flock.createCapsule("capsule_", color, radius, height, [
-				position.x,
-				position.y + height / 2,
-				position.z,
-			]);
-			break;
-
-		case "create_plane":
-			newMesh = flock.createPlane("plane_", color, width, height, [
-				position.x,
-				position.y + height / 2,
-				position.z,
-			]);
-
-			break;
-	}
-
-	const blockKey = flock.scene.getMeshByName(newMesh).blockKey;
-	meshMap[blockKey] = block;
-	meshBlockIdMap[blockKey] = block.id;
 
 	Blockly.Events.setGroup(false);
 }
@@ -978,31 +968,6 @@ function selectCharacter(characterName) {
 					if (connection) {
 						connection.connect(block.previousConnection);
 					}
-
-					// Generate a unique ID for the character
-					const modelId = characterName + "_" + generateUniqueId();
-
-					// Store the block reference in meshMap
-					meshMap[modelId] = block;
-					meshBlockIdMap[modelId] = block.id;
-					flock.newCharacter({
-						modelName: characterName, // Map 'characterName' to 'modelName'
-						modelId, // Directly use 'modelId'
-						scale, // Directly use 'scale'
-						position: {
-							x: pickedPosition.x,
-							y: pickedPosition.y,
-							z: pickedPosition.z,
-						},
-						colors: {
-							hair: colorFields.HAIR_COLOR,
-							skin: colorFields.SKIN_COLOR,
-							eyes: colorFields.EYES_COLOR,
-							sleeves: colorFields.SLEEVES_COLOR,
-							shorts: colorFields.SHORTS_COLOR,
-							tshirt: colorFields.TSHIRT_COLOR,
-						},
-					});
 				} finally {
 					// End the event group to ensure everything can be undone/redone as a group
 					Blockly.Events.setGroup(false);
@@ -1092,23 +1057,6 @@ function selectModel(modelName) {
 					if (connection) {
 						connection.connect(block.previousConnection);
 					}
-
-					// Generate a unique ID for the model
-					const modelId = modelName + "_" + generateUniqueId();
-
-					// Store the block reference in meshMap
-					meshMap[modelId] = block;
-					meshBlockIdMap[modelId] = block.id;
-					flock.newModel({
-						modelName,
-						modelId,
-						scale,
-						position: {
-							x: pickedPosition.x,
-							y: pickedPosition.y,
-							z: pickedPosition.z,
-						},
-					});
 				} finally {
 					// End the event group to ensure undo/redo works properly
 					Blockly.Events.setGroup(false);
@@ -1205,22 +1153,6 @@ function selectObject(objectName) {
 					if (connection) {
 						connection.connect(block.previousConnection);
 					}
-
-					const meshId = objectName + "_" + generateUniqueId();
-					meshMap[meshId] = block;
-
-					meshBlockIdMap[meshId] = block.id;
-					flock.newObject({
-						modelName: objectName,
-						modelId: meshId,
-						color,
-						scale,
-						position: {
-							x: pickedPosition.x,
-							y: pickedPosition.y + 2,
-							z: pickedPosition.z,
-						},
-					});
 				} finally {
 					// End the event group to ensure everything can be undone/redone as a group
 					Blockly.Events.setGroup(false);
@@ -1959,14 +1891,12 @@ const characterMaterials = [
 function updateBlockColorAndHighlight(mesh, selectedColor) {
 	let block;
 
-	const materialName = mesh?.material?.name?.replace(/_clone$/, '');
+	const materialName = mesh?.material?.name?.replace(/_clone$/, "");
 
-	console.log(materialName);
+	const ultimateParent = (mesh) =>
+		mesh.parent ? ultimateParent(mesh.parent) : mesh;
 
 	if (mesh && materialName && characterMaterials.includes(materialName)) {
-		const ultimateParent = (mesh) =>
-			mesh.parent ? ultimateParent(mesh.parent) : mesh;
-
 		block = meshMap[ultimateParent(mesh).blockKey];
 		// Update the corresponding character submesh color field (e.g., HAIR_COLOR, SKIN_COLOR)
 		const materialToFieldMap = {
@@ -1993,12 +1923,19 @@ function updateBlockColorAndHighlight(mesh, selectedColor) {
 		if (!mesh) {
 			block = meshMap["sky"];
 		} else {
-			block = meshMap[mesh.blockKey];
+			const ultimateParent = (mesh) =>
+				mesh.parent ? ultimateParent(mesh.parent) : mesh;
+
+			block = meshMap[ultimateParent(mesh).blockKey];
 		}
 
 		if (!block) {
-			console.error("Block not found for mesh:", mesh.blockKey, mesh);
-			console.log(meshMap, mesh.blockKey);
+			console.error(
+				"Block not found for mesh:",
+				ultimateParent(mesh).blockKey,
+				mesh,
+			);
+
 			return;
 		}
 

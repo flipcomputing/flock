@@ -4,7 +4,6 @@ import {
 	nextVariableIndexes,
 	findCreateBlock,
 	handleBlockCreateEvent,
-	handleBlockDelete,
 	addDoMutatorWithToggleBehavior,
 } from "../blocks.js";
 import { updateOrCreateMeshFromBlock } from "../ui/designview.js";
@@ -137,26 +136,25 @@ export function defineShapeBlocks() {
 	// Extracted common change handler
 	function handleBlockChange(block, changeEvent, variableNamePrefix) {
 
-		if(changeEvent.blockId !== block.id)
-			return;
-		
-		handleBlockDelete(changeEvent);
 		
 		if (
 			(changeEvent.type === Blockly.Events.BLOCK_CREATE ||
 				changeEvent.type === Blockly.Events.BLOCK_CHANGE) &&
 			changeEvent.workspaceId === Blockly.getMainWorkspace().id
 		) {
+			
 			// Update the mesh or create a new one if necessary
 			const parent = findCreateBlock(
 				Blockly.getMainWorkspace().getBlockById(changeEvent.blockId),
 			);
 
 			if (parent === block) {
+
 				const blockInWorkspace =
 					Blockly.getMainWorkspace().getBlockById(block.id);
 				if (blockInWorkspace) {
-					updateOrCreateMeshFromBlock(block, changeEvent);
+					
+		updateOrCreateMeshFromBlock(block, changeEvent);
 				}
 			}
 

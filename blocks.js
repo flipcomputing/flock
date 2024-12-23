@@ -11,7 +11,10 @@ import {
 	animationNames,
 	materialNames,
 } from "./config.js";
-import { deleteMeshFromBlock, updateOrCreateMeshFromBlock } from "./ui/designview.js";
+import {
+	deleteMeshFromBlock,
+	updateOrCreateMeshFromBlock,
+} from "./ui/designview.js";
 import { flock } from "./flock.js";
 /*import {
   ScrollOptions,
@@ -79,8 +82,9 @@ export function handleBlockSelect(event) {
 }
 
 export function handleBlockDelete(event) {
-
+	
 	if (event.type === Blockly.Events.BLOCK_DELETE) {
+
 		// Recursively delete meshes for qualifying blocks
 		function deleteMeshesRecursively(blockJson) {
 			// Check if block type matches the prefixes
@@ -199,9 +203,9 @@ Blockly.registry.register(
 	CustomZelosRenderer,
 );
 
-const mediaPath = window.location.pathname.includes('/flock/')
-  ? '/flock/blockly/media/'  // For GitHub Pages
-  : '/blockly/media/';                  // For local dev
+const mediaPath = window.location.pathname.includes("/flock/")
+	? "/flock/blockly/media/" // For GitHub Pages
+	: "/blockly/media/"; // For local dev
 
 export const options = {
 	theme: Blockly.Themes.Modern, // "flock"
@@ -1316,9 +1320,6 @@ export function defineBlocks() {
 			});
 
 			this.setOnChange((changeEvent) => {
-
-				if(changeEvent.blockId !== this.id)
-					return;
 				if (
 					changeEvent.type === Blockly.Events.BLOCK_CREATE ||
 					changeEvent.type === Blockly.Events.BLOCK_CHANGE
@@ -1327,6 +1328,7 @@ export function defineBlocks() {
 						Blockly.getMainWorkspace().getBlockById(this.id); // Check if block is in the main workspace
 
 					if (blockInWorkspace) {
+						updateOrCreateMeshFromBlock(this, changeEvent);
 						window.updateCurrentMeshName(this, "ID_VAR"); // Call the function to update window.currentMesh
 					}
 				}
@@ -1338,7 +1340,6 @@ export function defineBlocks() {
 					nextVariableIndexes,
 				);
 
-				handleBlockDelete(changeEvent);
 			});
 
 			addDoMutatorWithToggleBehavior(this);
@@ -1425,12 +1426,8 @@ export function defineBlocks() {
 			};
 
 			updateColorField();
-				
 
 			this.setOnChange((changeEvent) => {
-
-				if(changeEvent.blockId !== this.id)
-					return;
 				
 				if (
 					changeEvent.type === Blockly.Events.BLOCK_CREATE ||
@@ -1441,7 +1438,7 @@ export function defineBlocks() {
 
 					if (blockInWorkspace) {
 						if (window.loadingCode) return;
-									updateOrCreateMeshFromBlock(this, changeEvent);
+						updateOrCreateMeshFromBlock(this, changeEvent);
 					}
 				}
 
@@ -1452,9 +1449,6 @@ export function defineBlocks() {
 					nextVariableIndexes,
 				);
 
-				handleBlockDelete(this, changeEvent);
-
-				
 			});
 
 			addDoMutatorWithToggleBehavior(this);
@@ -1522,15 +1516,12 @@ export function defineBlocks() {
 			});
 
 			this.setOnChange((changeEvent) => {
+				if (this.id != changeEvent.blockId) return;
 
-				if(this.id != changeEvent.blockId)
-					return;
-				
 				if (
 					changeEvent.type === Blockly.Events.BLOCK_CREATE ||
 					changeEvent.type === Blockly.Events.BLOCK_CHANGE
 				) {
-
 					const blockInWorkspace =
 						Blockly.getMainWorkspace().getBlockById(this.id); // Check if block is in the main workspace
 
@@ -1545,8 +1536,6 @@ export function defineBlocks() {
 					variableNamePrefix,
 					nextVariableIndexes,
 				);
-
-				handleBlockDelete(changeEvent);
 			});
 
 			addDoMutatorWithToggleBehavior(this);
@@ -4676,9 +4665,8 @@ export function handleBlockCreateEvent(
 ) {
 	if (window.loadingCode) return; // Don't rename variables during code loading
 
-	if(blockInstance.id !== changeEvent.blockId)
-		return;
-	
+	if (blockInstance.id !== changeEvent.blockId) return;
+
 	// Check if this is an undo/redo operation
 	const isUndo = !changeEvent.recordUndo;
 
@@ -4729,7 +4717,6 @@ export function handleBlockCreateEvent(
 		}
 	}
 }
-
 
 // Extend the built-in Blockly procedures_defreturn block to add custom toggle functionality
 
