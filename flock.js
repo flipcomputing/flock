@@ -1055,8 +1055,10 @@ export const flock = {
 				mesh,
 			);
 
+		console.log("Setting up mesh", modelId, blockId);
 		bb.name = modelId;
 		bb.blockKey = blockId;
+		mesh.blockKey = blockId;
 		bb.isPickable = false;
 		bb.position.addInPlace(new flock.BABYLON.Vector3(x, y, z));
 
@@ -1065,6 +1067,7 @@ export const flock = {
 		mesh.isPickable = true;
 		mesh.getDescendants().forEach((child) => {
 			child.isPickable = true;
+			child.blockKey = blockId;
 		});
 
 		bb.metadata = bb.metadata || {};
@@ -2481,6 +2484,7 @@ export const flock = {
 		position,
 		alpha = 1,
 	) {
+		
 		const dimensions = {
 			height,
 			diameterTop,

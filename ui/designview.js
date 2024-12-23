@@ -16,6 +16,7 @@ export function updateOrCreateMeshFromBlock(block, changeEvent) {
 		const mesh = getMeshFromBlock(block);
 
 		if (mesh) {
+		
 			updateMeshFromBlock(mesh, block, changeEvent);
 		} else {
 			requestAnimationFrame(() => {
@@ -134,7 +135,9 @@ export function getMeshFromBlock(block) {
 }
 
 export function updateMeshFromBlock(mesh, block, changeEvent) {
+	
 	const shapeType = block.type;
+	console.log("Updating", block.type);
 	if (mesh && mesh.physics) mesh.physics.disablePreStep = true;
 
 	let color;
@@ -214,12 +217,17 @@ export function updateMeshFromBlock(mesh, block, changeEvent) {
 				.getInput("DIAMETER_BOTTOM")
 				.connection.targetBlock()
 				.getFieldValue("NUM");
+			const sides = block
+			.getInput("TESSELLATIONS")
+			.connection.targetBlock()
+			.getFieldValue("NUM");
 
 			updateCylinderGeometry(
 				mesh,
 				diameterTop,
 				diameterBottom,
 				cylinderHeight,
+				sides
 			);
 			break;
 
@@ -603,7 +611,7 @@ function setAbsoluteSize(mesh, width, height, depth) {
 	}
 }
 
-function updateCylinderGeometry(mesh, diameterTop, diameterBottom, height) {
+function updateCylinderGeometry(mesh, diameterTop, diameterBottom, height, sides) {
 	// If the mesh has geometry, dispose of it before updating
 	if (mesh.geometry) {
 		mesh.geometry.dispose();
@@ -616,7 +624,7 @@ function updateCylinderGeometry(mesh, diameterTop, diameterBottom, height) {
 			height: height,
 			diameterTop: diameterTop,
 			diameterBottom: diameterBottom,
-			tessellation: 32,
+			tessellation: sides,
 			updatable: true,
 		},
 		mesh.getScene(),
@@ -744,6 +752,7 @@ function getMeshFromBlockId(blockId) {
 }
 
 function addShapeToWorkspace(shapeType, position) {
+	console.log(position);
 	Blockly.Events.setGroup(true);
 	// Create the shape block in the Blockly workspace
 	const block = Blockly.getMainWorkspace().newBlock(shapeType);
@@ -757,7 +766,7 @@ function addShapeToWorkspace(shapeType, position) {
 		diameterZ,
 		radius,
 		diameterTop,
-		diameterBottom;
+		diameterBottom, sides;
 
 	// Set different fields based on the shape type and capture the actual values
 	switch (shapeType) {
@@ -788,6 +797,7 @@ function addShapeToWorkspace(shapeType, position) {
 			height = 2;
 			diameterTop = 1;
 			diameterBottom = 1;
+			sides = 24;
 			addShadowBlock(block, "COLOR", "colour", color);
 			addShadowBlock(block, "HEIGHT", "math_number", height);
 			addShadowBlock(block, "DIAMETER_TOP", "math_number", diameterTop);
@@ -796,6 +806,12 @@ function addShapeToWorkspace(shapeType, position) {
 				"DIAMETER_BOTTOM",
 				"math_number",
 				diameterBottom,
+			);
+			addShadowBlock(
+				block,
+				"TESSELLATIONS",
+				"math_number",
+				sides,
 			);
 			break;
 
@@ -869,7 +885,9 @@ function addShapeToWorkspace(shapeType, position) {
 				height,
 				diameterTop,
 				diameterBottom,
+				sides,
 				[position.x, position.y + height / 2, position.z],
+			
 			);
 			break;
 
@@ -1199,7 +1217,7 @@ function selectObject(objectName) {
 						scale,
 						position: {
 							x: pickedPosition.x,
-							y: pickedPosition.y,
+							y: pickedPosition.y + 2,
 							z: pickedPosition.z,
 						},
 					});
@@ -1941,7 +1959,9 @@ const characterMaterials = [
 function updateBlockColorAndHighlight(mesh, selectedColor) {
 	let block;
 
-	const materialName = mesh?.material?.name;
+	const materialName = mesh?.material?.name?.replace(/_clone$/, '');
+
+	console.log(materialName);
 
 	if (mesh && materialName && characterMaterials.includes(materialName)) {
 		const ultimateParent = (mesh) =>
@@ -1977,7 +1997,8 @@ function updateBlockColorAndHighlight(mesh, selectedColor) {
 		}
 
 		if (!block) {
-			console.error("Block not found for mesh:", mesh.blockKey);
+			console.error("Block not found for mesh:", mesh.blockKey, mesh);
+			console.log(meshMap, mesh.blockKey);
 			return;
 		}
 
