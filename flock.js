@@ -5226,7 +5226,8 @@ export const flock = {
 						// Do nothing to disable multi-touch behavior in Babylon.js
 					};
 				}
-				camera.setTarget(mesh.position);
+				//camera.setTarget(mesh.position);
+				camera.lockedTarget = mesh; 
 				camera.metadata = camera.metadata || {};
 				camera.metadata.following = mesh;
 				camera.attachControl(flock.canvas, false);
