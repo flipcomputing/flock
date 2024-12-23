@@ -923,7 +923,6 @@ export const flock = {
 		position = { x: 0, y: 0, z: 0 },
 		callback = null,
 	}) {
-
 		const { x, y, z } = position;
 		const blockId = modelId;
 		modelId += "_" + flock.scene.getUniqueId();
@@ -942,7 +941,7 @@ export const flock = {
 			mesh.rotationQuaternion = null;
 			mesh.rotation.copyFrom(BABYLON.Vector3.Zero());
 
-			flock.setupMesh(mesh,  modelName, modelId, blockId, scale, x, y, z); // Neutral setup
+			flock.setupMesh(mesh, modelName, modelId, blockId, scale, x, y, z); // Neutral setup
 
 			mesh.computeWorldMatrix(true);
 			mesh.refreshBoundingInfo();
@@ -988,7 +987,7 @@ export const flock = {
 				container.addAllToScene();
 				flock.setupMesh(
 					container.meshes[0],
-					 modelName, 
+					modelName,
 					modelId,
 					blockId,
 					scale,
@@ -1014,7 +1013,6 @@ export const flock = {
 		return modelId;
 	},
 	ensureUniqueMaterial(mesh) {
-
 		// Helper function to clone material for a mesh
 		const cloneMaterial = (targetMesh) => {
 			const newMaterial = targetMesh.material.clone(
@@ -1047,7 +1045,7 @@ export const flock = {
 			mesh.metadata.sharedGeometry = false;
 		}
 	},
-	setupMesh(mesh,  modelName, modelId, blockId, scale, x, y, z, color=null) {
+	setupMesh(mesh, modelName, modelId, blockId, scale, x, y, z, color = null) {
 		mesh.scaling = new BABYLON.Vector3(scale, scale, scale);
 
 		const bb =
@@ -1055,7 +1053,6 @@ export const flock = {
 				mesh,
 			);
 
-		
 		bb.name = modelId;
 		bb.blockKey = blockId;
 		bb.isPickable = false;
@@ -1072,10 +1069,10 @@ export const flock = {
 		bb.metadata.yOffset = (bb.position.y - y) / scale;
 		bb.metadata.modelName = modelName;
 		flock.stopAnimationsTargetingMesh(flock.scene, mesh);
-		
+
 		const setMetadata = (mesh) => {
 			// Ensure metadata exists
-			mesh.metadata = mesh.metadata || {}; 
+			mesh.metadata = mesh.metadata || {};
 
 			// Add or update specific properties without overwriting existing metadata
 			mesh.metadata.sharedMaterial = true;
@@ -1085,12 +1082,10 @@ export const flock = {
 		// Set metadata on the root mesh
 		setMetadata(bb);
 
-
 		// Set metadata on all descendants
 		bb.getDescendants().forEach((descendant) => {
 			setMetadata(descendant);
 		});
-		
 
 		const boxBody = new flock.BABYLON.PhysicsBody(
 			bb,
@@ -1108,39 +1103,35 @@ export const flock = {
 	},
 	applyColorToMaterial(part, materialName, color) {
 		if (part.material && part.material.name === materialName) {
-			part.material.albedoColor =
-				flock.BABYLON.Color3.FromHexString(
-					flock.getColorFromString(color),
-				);
+			part.material.albedoColor = flock.BABYLON.Color3.FromHexString(
+				flock.getColorFromString(color),
+			);
 		}
 		part.getChildMeshes().forEach((child) => {
 			flock.applyColorToMaterial(child, materialName, color);
 		});
 	},
-	applyColorsToCharacter(mesh, colors)
-		{
-			const {
-				hair: hairColor,
-				skin: skinColor,
-				eyes: eyesColor,
-				sleeves: sleevesColor,
-				shorts: shortsColor,
-				tshirt: tshirtColor,
-			} = colors;
+	applyColorsToCharacter(mesh, colors) {
+		const {
+			hair: hairColor,
+			skin: skinColor,
+			eyes: eyesColor,
+			sleeves: sleevesColor,
+			shorts: shortsColor,
+			tshirt: tshirtColor,
+		} = colors;
 
-			flock.applyColorToMaterial(mesh, "Hair", hairColor);
-			flock.applyColorToMaterial(mesh, "Skin", skinColor);
-			flock.applyColorToMaterial(mesh, "Eyes", eyesColor);
-			flock.applyColorToMaterial(mesh, "Detail", sleevesColor);
-			flock.applyColorToMaterial(mesh, "Shorts", shortsColor);
-			flock.applyColorToMaterial(mesh, "TShirt", tshirtColor);
-			flock.applyColorToMaterial(mesh, "Tshirt", tshirtColor);
-			flock.applyColorToMaterial(mesh, "Sleeves", sleevesColor);
-			flock.applyColorToMaterial(mesh, "Shoes", sleevesColor);
-		},
-	changeModel(mesh, modelName){
-		
+		flock.applyColorToMaterial(mesh, "Hair", hairColor);
+		flock.applyColorToMaterial(mesh, "Skin", skinColor);
+		flock.applyColorToMaterial(mesh, "Eyes", eyesColor);
+		flock.applyColorToMaterial(mesh, "Detail", sleevesColor);
+		flock.applyColorToMaterial(mesh, "Shorts", shortsColor);
+		flock.applyColorToMaterial(mesh, "TShirt", tshirtColor);
+		flock.applyColorToMaterial(mesh, "Tshirt", tshirtColor);
+		flock.applyColorToMaterial(mesh, "Sleeves", sleevesColor);
+		flock.applyColorToMaterial(mesh, "Shoes", sleevesColor);
 	},
+	changeModel(mesh, modelName) {},
 	newCharacter({
 		modelName,
 		modelId,
@@ -1157,7 +1148,7 @@ export const flock = {
 		callback = () => {},
 	}) {
 		const { x, y, z } = position;
-		
+
 		const blockId = modelId;
 		modelId += "_" + flock.scene.getUniqueId();
 
@@ -1172,7 +1163,16 @@ export const flock = {
 			.then((container) => {
 				container.addAllToScene();
 				const mesh = container.meshes[0];
-				flock.setupMesh(mesh, modelName, modelId, blockId, scale, x, y, z);
+				flock.setupMesh(
+					mesh,
+					modelName,
+					modelId,
+					blockId,
+					scale,
+					x,
+					y,
+					z,
+				);
 
 				flock.applyColorsToCharacter(mesh, colors);
 
@@ -1220,7 +1220,17 @@ export const flock = {
 			mesh.position.copyFrom(BABYLON.Vector3.Zero());
 			mesh.rotationQuaternion = null;
 			mesh.rotation.copyFrom(BABYLON.Vector3.Zero());
-			flock.setupMesh(mesh, modelName, modelId, blockId, scale, x, y, z, color);
+			flock.setupMesh(
+				mesh,
+				modelName,
+				modelId,
+				blockId,
+				scale,
+				x,
+				y,
+				z,
+				color,
+			);
 			flock.changeColorMesh(mesh, color);
 
 			mesh.computeWorldMatrix(true);
@@ -1249,14 +1259,13 @@ export const flock = {
 				});
 			});
 		}
-	
+
 		const loadPromise = flock.BABYLON.SceneLoader.LoadAssetContainerAsync(
 			"./models/",
 			modelName,
 			flock.scene,
 		)
 			.then((container) => {
-				
 				// Clone a first copy from the first mesh
 				const firstMesh = container.meshes[0].clone(
 					`${modelName}_first`,
@@ -1268,7 +1277,7 @@ export const flock = {
 
 				flock.setupMesh(
 					container.meshes[0],
-					 modelName, 
+					modelName,
 					modelId,
 					blockId,
 					scale,
@@ -1305,8 +1314,6 @@ export const flock = {
 		shape,
 		gravity,
 	}) {
-
-		console.log("Creating particle effect", alphas);
 		return flock.whenModelReady(emitterMesh, (meshInstance) => {
 			// Create the particle system
 			const particleSystem = new flock.BABYLON.ParticleSystem(
@@ -1330,7 +1337,7 @@ export const flock = {
 				meshInstance,
 			);
 			particleSystem.particleEmitterType = meshEmitter;
-			 particleSystem.blendMode = 4;
+			particleSystem.blendMode = 4;
 
 			const startColor = flock.BABYLON.Color4.FromHexString(colors.start);
 			const endColor = flock.BABYLON.Color4.FromHexString(colors.end);
@@ -1340,20 +1347,19 @@ export const flock = {
 				startColor.r,
 				startColor.g,
 				startColor.b,
-				alphas.start
+				alphas.start,
 			);
 			const endColorWithAlpha = new flock.BABYLON.Color4(
 				endColor.r,
 				endColor.g,
 				endColor.b,
-				alphas.end
+				alphas.end,
 			);
 
 			// Set colors with alpha
 			// Add color gradients with alpha values
 			particleSystem.addColorGradient(0, startColorWithAlpha);
 			particleSystem.addColorGradient(1, endColorWithAlpha);
-
 
 			// Add size gradients
 			particleSystem.addSizeGradient(0, sizes.start);
@@ -1515,8 +1521,14 @@ export const flock = {
 								const meshMax =
 									boundingInfo.boundingBox.maximumWorld;
 
-								min = flock.BABYLON.Vector3.Minimize(min, meshMin);
-								max = flock.BABYLON.Vector3.Maximize(max, meshMax);
+								min = flock.BABYLON.Vector3.Minimize(
+									min,
+									meshMin,
+								);
+								max = flock.BABYLON.Vector3.Maximize(
+									max,
+									meshMax,
+								);
 							});
 
 							const combinedCentre = min.add(max).scale(0.5);
@@ -1525,9 +1537,8 @@ export const flock = {
 							const baseWorldPosition = baseMesh
 								.getAbsolutePosition()
 								.clone();
-							const offset = baseWorldPosition.subtract(
-								combinedCentre,
-							);
+							const offset =
+								baseWorldPosition.subtract(combinedCentre);
 
 							// Perform the subtraction
 							let outerCSG = flock.BABYLON.CSG2.FromMesh(
@@ -1681,7 +1692,9 @@ export const flock = {
 					);
 
 					if (!mergedMesh) {
-						console.warn("Failed to merge meshes for hull creation.");
+						console.warn(
+							"Failed to merge meshes for hull creation.",
+						);
 						return null;
 					}
 
@@ -2163,19 +2176,19 @@ export const flock = {
 					// Detach material from the mesh
 					currentMesh.material = null;
 
-					
 					// Dispose material if not already disposed
 					if (!disposedMaterials.has(material)) {
 						const sharedMaterials =
 							currentMesh.metadata?.sharedMaterials;
-						
+
 						if (sharedMaterials === false) {
 							disposedMaterials.add(material);
 
 							// Remove from scene.materials
-							flock.scene.materials = flock.scene.materials.filter(
-								(mat) => mat !== material,
-							);
+							flock.scene.materials =
+								flock.scene.materials.filter(
+									(mat) => mat !== material,
+								);
 
 							// Dispose the material
 							material.dispose();
@@ -2464,7 +2477,6 @@ export const flock = {
 		position,
 		alpha = 1,
 	) {
-		
 		const dimensions = {
 			height,
 			diameterTop,
@@ -2649,7 +2661,7 @@ export const flock = {
 
 				const setMetadata = (mesh) => {
 					// Ensure metadata exists
-					mesh.metadata = mesh.metadata || {}; 
+					mesh.metadata = mesh.metadata || {};
 
 					// Add or update specific properties without overwriting existing metadata
 					mesh.metadata.sharedMaterial = true;
@@ -2765,7 +2777,6 @@ export const flock = {
 	rotate(meshName, x, y, z) {
 		// Handle mesh rotation
 		return flock.whenModelReady(meshName, (mesh) => {
-			
 			if (meshName === "__active_camera__") {
 				// Handle camera rotation
 				const camera = flock.scene.activeCamera;
@@ -3535,44 +3546,38 @@ export const flock = {
 		return new Promise(async (resolve) => {
 			await flock.whenModelReady(meshName, async function (mesh) {
 				if (mesh) {
-					const startPosition = mesh.position.clone(); // Store the original position
+					const startPosition = mesh.position.clone(); // Capture start position
 					const endPosition = new flock.BABYLON.Vector3(x, y, z);
 					const fps = 30;
 					const frames = fps * (duration / 1000);
 
-					// Stop any ongoing glide animation
-					if (mesh.glide) {
-						mesh.glide.stop();
-					}
-
-					// Enable physics if applicable
-					if (mesh.physics) {
-						mesh.physics.disablePreStep = false;
-					}
-
-					// Determine the loop mode based on reverse and loop
-					const loopMode = reverse
-						? flock.BABYLON.Animation.ANIMATIONLOOPMODE_YOYO
-						: flock.BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT;
-
-					// Create the animation for forward movement
 					const glideAnimation = new flock.BABYLON.Animation(
 						"glideTo",
 						"position",
 						fps,
 						flock.BABYLON.Animation.ANIMATIONTYPE_VECTOR3,
-						loopMode, // YOYO for reverse and loop, CONSTANT otherwise
+						(loop || reverse)
+							? flock.BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE // Continuous loop or reverse
+							: flock.BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT // Stops at end
 					);
 
-					// Define keyframes for forward motion
+					// Define keyframes for forward and reverse motion
 					const glideKeys = [
-						{ frame: 0, value: startPosition },
-						{ frame: frames, value: endPosition },
+						{ frame: 0, value: startPosition }, // Start position
+						{ frame: frames, value: endPosition }, // End position
 					];
 
+					// Add reverse motion if required
+					if (reverse || loop) {
+						glideKeys.push(
+							{ frame: frames * 2, value: startPosition } // Return to start
+						);
+					}
+
+					// Set keyframes
 					glideAnimation.setKeys(glideKeys);
 
-					// Apply easing only if it's not "Linear"
+					// Apply easing if specified
 					if (easing !== "Linear") {
 						let easingFunction;
 						switch (easing) {
@@ -3583,30 +3588,27 @@ export const flock = {
 								easingFunction = new flock.BABYLON.CubicEase();
 								break;
 							case "QuadraticEase":
-								easingFunction =
-									new flock.BABYLON.QuadraticEase();
+								easingFunction = new flock.BABYLON.QuadraticEase();
 								break;
 							case "ExponentialEase":
-								easingFunction =
-									new flock.BABYLON.ExponentialEase();
+								easingFunction = new flock.BABYLON.ExponentialEase();
 								break;
 							case "BounceEase":
 								easingFunction = new flock.BABYLON.BounceEase();
 								break;
 							case "ElasticEase":
-								easingFunction =
-									new flock.BABYLON.ElasticEase();
+								easingFunction = new flock.BABYLON.ElasticEase();
 								break;
 							case "BackEase":
 								easingFunction = new flock.BABYLON.BackEase();
 								break;
 							default:
-								easingFunction = new flock.BABYLON.SineEase(); // Default to SineEase if no match
+								easingFunction = new flock.BABYLON.SineEase(); // Default to SineEase
 						}
 						easingFunction.setEasingMode(
-							flock.BABYLON.EasingFunction.EASINGMODE_EASEINOUT,
-						); // Smooth easing
-						glideAnimation.setEasingFunction(easingFunction); // Apply the easing function
+							flock.BABYLON.EasingFunction.EASINGMODE_EASEINOUT
+						);
+						glideAnimation.setEasingFunction(easingFunction);
 					}
 
 					// Attach the animation to the mesh
@@ -3616,69 +3618,18 @@ export const flock = {
 					const animatable = flock.scene.beginAnimation(
 						mesh,
 						0,
-						frames,
-						loop,
+						reverse || loop ? frames * 2 : frames, // Double frames if looping or reversing
+						loop
 					);
-
-					let animationCompleted = false;
 
 					animatable.onAnimationEndObservable.add(() => {
 						if (!loop && !reverse) {
-							// Ensure the mesh reaches its final destination
+							// Ensure mesh ends at the final position for non-looping animations
 							mesh.position = endPosition.clone();
 						}
-
-						if (reverse && !animationCompleted) {
-							// If reverse is true, handle the reverse movement
-							const reverseAnimation =
-								new flock.BABYLON.Animation(
-									"reverseGlide",
-									"position",
-									fps,
-									flock.BABYLON.Animation.ANIMATIONTYPE_VECTOR3,
-									flock.BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT,
-								);
-
-							const reverseKeys = [
-								{ frame: 0, value: endPosition },
-								{ frame: frames, value: startPosition },
-							];
-
-							reverseAnimation.setKeys(reverseKeys);
-
-							// Attach and start the reverse animation
-							mesh.animations.push(reverseAnimation);
-							const reverseAnimatable =
-								flock.scene.beginAnimation(
-									mesh,
-									0,
-									frames,
-									false,
-								);
-
-							reverseAnimatable.onAnimationEndObservable.add(
-								() => {
-									mesh.position = startPosition.clone(); // Ensure the mesh returns to the starting position
-
-									if (mesh.physics) {
-										mesh.physics.disablePreStep = true;
-									}
-
-									animationCompleted = true;
-									resolve(); // Resolve after reverse completes
-								},
-							);
-						} else {
-							if (mesh.physics) {
-								mesh.physics.disablePreStep = true;
-							}
-
-							if (!reverse) {
-								animationCompleted = true;
-								resolve(); // Resolve after forward motion completes
-							}
-						}
+						resolve();
 					});
+
 				} else {
 					resolve(); // Resolve immediately if the mesh is not available
 				}
