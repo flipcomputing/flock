@@ -21,7 +21,6 @@ export function updateOrCreateMeshFromBlock(block, changeEvent) {
 				.getBlockById(changeEvent.blockId)
 				?.getParent()?.id
 	) {
-
 		const mesh = getMeshFromBlock(block);
 
 		if (mesh) {
@@ -144,18 +143,55 @@ export function getMeshFromBlock(block) {
 	return found;
 }
 
+function cloneWithMaterials(tempMesh) {
+	const clonedMesh = tempMesh.clone(tempMesh.name);
+
+	// Clone the material, if it exists
+	if (tempMesh.material) {
+		clonedMesh.material = tempMesh.material.clone(tempMesh.material.name);
+	}
+
+	// Recursively clone child meshes
+	tempMesh.getChildMeshes().forEach((child, index) => {
+		const clonedChild = cloneWithMaterials(child);
+		clonedChild.parent = clonedMesh; // Attach cloned child to the cloned parent
+	});
+
+	return clonedMesh;
+}
+
+function changeModel(tempMesh, mesh, modelName){
+	const newObjectMesh = cloneWithMaterials(flock.scene
+		.getMeshByName(tempMesh)
+		.getChildMeshes()[0]);
+
+	mesh.getChildMeshes()[0].dispose();
+
+	newObjectMesh.parent = mesh;
+
+	newObjectMesh.metadata.modelName = modelName;
+		flock.scene.getMeshByName(tempMesh).dispose();
+}
+
 export function updateMeshFromBlock(mesh, block, changeEvent) {
 	const shapeType = block.type;
 
 	if (mesh && mesh.physics) mesh.physics.disablePreStep = true;
 
-	let color, model;
+	let color, modelName, modelId, scale;
 
 	if (block.type !== "load_model" && block.type !== "load_character") {
 		color = block
 			.getInput("COLOR")
 			.connection.targetBlock()
 			.getFieldValue("COLOR");
+	}
+
+	if (block.type.startsWith("load_")) {
+		scale = block
+			.getInput("SCALE")
+			.connection.targetBlock()
+			.getFieldValue("NUM");
 	}
 
 	// Retrieve the position values (X, Y, Z) from the connected blocks
@@ -170,17 +206,51 @@ export function updateMeshFromBlock(mesh, block, changeEvent) {
 	// Shape-specific updates based on the block type
 	switch (shapeType) {
 		case "load_object":
+			/*
+			modelName = block.getFieldValue("MODELS");
 
-			model = block.getFieldValue("MODELS");
-			
-			console.log("Need to handle update of object", model);
+			if (modelName !== mesh.metadata.modelName) {
+				modelId = "tempid";
+
+				let tempMesh = flock.newObject({
+					modelName: modelName,
+					modelId: modelId,
+					color: color,
+					scale: scale,
+					position: { x: position.x, y: position.y, z: position.z },
+					callback: () => {
+						changeModel(tempMesh, mesh, modelName);
+						
+					},
+				});
+			}
+			*/
+
+			console.log("Need to handle update of object", modelName);
+
 			break;
 		case "load_model":
-			model = block.getFieldValue("MODELS");
+			/*
+			modelName = block.getFieldValue("MODELS");
+
+			if (modelName !== mesh.metadata.modelName) {
+				modelId = "tempid";
+
+				let tempMesh = flock.newModel({
+					modelName: modelName,
+					modelId: modelId,
+					scale: scale,
+					position: { x: position.x, y: position.y, z: position.z },
+					callback: () => {
+						changeModel(tempMesh, mesh, modelName);
+
+					},
+				});
+			}*/
 			console.log("Need to handle update of model");
 			break;
 		case "load_character":
-			model = block.getFieldValue("MODELS");
+			modelName = block.getFieldValue("MODELS");
 			// Retrieve colours
 			const colors = {
 				hair: block
@@ -400,7 +470,6 @@ function createMeshOnCanvas(block) {
 			break;
 
 		case "load_object":
-
 			modelName = block.getFieldValue("MODELS");
 			scale = block
 				.getInput("SCALE")
@@ -412,7 +481,7 @@ function createMeshOnCanvas(block) {
 				.getFieldValue("COLOR");
 
 			meshId = modelName + "_" + generateUniqueId();
-			
+
 			// Use flock API for objects
 			newMesh = flock.newObject({
 				modelName: modelName,

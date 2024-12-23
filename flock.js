@@ -942,13 +942,12 @@ export const flock = {
 			mesh.rotationQuaternion = null;
 			mesh.rotation.copyFrom(BABYLON.Vector3.Zero());
 
-			flock.setupMesh(mesh, modelId, blockId, scale, x, y, z); // Neutral setup
+			flock.setupMesh(mesh,  modelName, modelId, blockId, scale, x, y, z); // Neutral setup
 
 			mesh.computeWorldMatrix(true);
 			mesh.refreshBoundingInfo();
 			mesh.setEnabled(true);
 			mesh.visibility = 1;
-
 
 			if (callback) {
 				requestAnimationFrame(callback);
@@ -989,6 +988,7 @@ export const flock = {
 				container.addAllToScene();
 				flock.setupMesh(
 					container.meshes[0],
+					 modelName, 
 					modelId,
 					blockId,
 					scale,
@@ -1047,7 +1047,7 @@ export const flock = {
 			mesh.metadata.sharedGeometry = false;
 		}
 	},
-	setupMesh(mesh, modelId, blockId, scale, x, y, z, color=null) {
+	setupMesh(mesh,  modelName, modelId, blockId, scale, x, y, z, color=null) {
 		mesh.scaling = new BABYLON.Vector3(scale, scale, scale);
 
 		const bb =
@@ -1055,6 +1055,7 @@ export const flock = {
 				mesh,
 			);
 
+		
 		bb.name = modelId;
 		bb.blockKey = blockId;
 		bb.isPickable = false;
@@ -1069,14 +1070,16 @@ export const flock = {
 
 		bb.metadata = bb.metadata || {};
 		bb.metadata.yOffset = (bb.position.y - y) / scale;
+		bb.metadata.modelName = modelName;
 		flock.stopAnimationsTargetingMesh(flock.scene, mesh);
 		
-		// Function to set metadata
 		const setMetadata = (mesh) => {
-			mesh.metadata = {
-				sharedMaterial:  true,
-				sharedGeometry: true,
-			};
+			// Ensure metadata exists
+			mesh.metadata = mesh.metadata || {}; 
+
+			// Add or update specific properties without overwriting existing metadata
+			mesh.metadata.sharedMaterial = true;
+			mesh.metadata.sharedGeometry = true;
 		};
 
 		// Set metadata on the root mesh
@@ -1135,6 +1138,9 @@ export const flock = {
 			flock.applyColorToMaterial(mesh, "Sleeves", sleevesColor);
 			flock.applyColorToMaterial(mesh, "Shoes", sleevesColor);
 		},
+	changeModel(mesh, modelName){
+		
+	},
 	newCharacter({
 		modelName,
 		modelId,
@@ -1166,7 +1172,7 @@ export const flock = {
 			.then((container) => {
 				container.addAllToScene();
 				const mesh = container.meshes[0];
-				flock.setupMesh(mesh, modelId, blockId, scale, x, y, z);
+				flock.setupMesh(mesh, modelName, modelId, blockId, scale, x, y, z);
 
 				flock.applyColorsToCharacter(mesh, colors);
 
@@ -1214,7 +1220,7 @@ export const flock = {
 			mesh.position.copyFrom(BABYLON.Vector3.Zero());
 			mesh.rotationQuaternion = null;
 			mesh.rotation.copyFrom(BABYLON.Vector3.Zero());
-			flock.setupMesh(mesh, modelId, blockId, scale, x, y, z, color);
+			flock.setupMesh(mesh, modelName, modelId, blockId, scale, x, y, z, color);
 			flock.changeColorMesh(mesh, color);
 
 			mesh.computeWorldMatrix(true);
@@ -1243,8 +1249,7 @@ export const flock = {
 				});
 			});
 		}
-
-		
+	
 		const loadPromise = flock.BABYLON.SceneLoader.LoadAssetContainerAsync(
 			"./models/",
 			modelName,
@@ -1263,6 +1268,7 @@ export const flock = {
 
 				flock.setupMesh(
 					container.meshes[0],
+					 modelName, 
 					modelId,
 					blockId,
 					scale,
@@ -2626,12 +2632,13 @@ export const flock = {
 					clone.physics = cloneBody;
 				}
 
-				// Copy metadata
 				const setMetadata = (mesh) => {
-					mesh.metadata = {
-						sharedMaterial: true,
-						sharedGeometry: true,
-					};
+					// Ensure metadata exists
+					mesh.metadata = mesh.metadata || {}; 
+
+					// Add or update specific properties without overwriting existing metadata
+					mesh.metadata.sharedMaterial = true;
+					mesh.metadata.sharedGeometry = true;
 				};
 
 				setMetadata(clone);
