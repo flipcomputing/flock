@@ -1382,17 +1382,13 @@ export const flock = {
 				? new flock.BABYLON.Vector3(0, -9.81, 0)
 				: new flock.BABYLON.Vector3(0, 0, 0);
 
+			particleSystem.minEmitPower = 1; // Minimum particle speed
+			particleSystem.maxEmitPower = 3; // Maximum particle speed
+			
 			if (direction) {
 				const { x, y, z } = direction;
 
-				if (x != 0 || y != 0 || z != 0) {
-					console.log("Using force")
-					// Set emit power to control speed
-					particleSystem.minEmitPower = 1; // Minimum particle speed
-					particleSystem.maxEmitPower = 3; // Maximum particle speed
-
-					// Access the emitter and set its direction range
-
+				if (x != 0 || y != 0 || z != 0) {					
 					meshEmitter.useMeshNormalsForDirection = false;
 					meshEmitter.direction1 = new flock.BABYLON.Vector3(x, y, z); // Start direction
 					meshEmitter.direction2 = new flock.BABYLON.Vector3(x, y, z); // End direction

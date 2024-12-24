@@ -68,8 +68,8 @@ export function defineShapeBlocks() {
 			init: function () {
 				this.jsonInit({
 					message0: `set %1 to particle effect with emitter mesh: %2 
-						shape: %3 with rate: %4 size: %5 to %6 lifetime: %7 to %8 
-						colors: start %9 end %10 alpha: %11 to %12 
+						shape: %3 colors: start %4 end %5 alpha: %6 to %7 
+						with rate: %8 size: %9 to %10 lifetime: %11 to %12 
 						gravity: %13 force x: %14 y: %15 z: %16`,
 					args0: [
 						{
@@ -96,6 +96,26 @@ export function defineShapeBlocks() {
 						},
 						{
 							type: "input_value",
+							name: "START_COLOR",
+							check: "Colour",
+						},
+						{
+							type: "input_value",
+							name: "END_COLOR",
+							check: "Colour",
+						},
+						{
+							type: "input_value",
+							name: "START_ALPHA",
+							check: "Number",
+						},
+						{
+							type: "input_value",
+							name: "END_ALPHA",
+							check: "Number",
+						},
+						{
+							type: "input_value",
 							name: "RATE",
 							check: "Number",
 						},
@@ -117,26 +137,6 @@ export function defineShapeBlocks() {
 						{
 							type: "input_value",
 							name: "MAX_LIFETIME",
-							check: "Number",
-						},
-						{
-							type: "input_value",
-							name: "START_COLOR",
-							check: "Colour",
-						},
-						{
-							type: "input_value",
-							name: "END_COLOR",
-							check: "Colour",
-						},
-						{
-							type: "input_value",
-							name: "START_ALPHA",
-							check: "Number",
-						},
-						{
-							type: "input_value",
-							name: "END_ALPHA",
 							check: "Number",
 						},
 						{
