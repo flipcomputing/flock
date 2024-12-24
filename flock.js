@@ -1311,6 +1311,7 @@ export const flock = {
 		colors,
 		alphas,
 		sizes,
+		lifetime,
 		shape,
 		gravity,
 		direction,
@@ -1368,6 +1369,10 @@ export const flock = {
 			particleSystem.addSizeGradient(0, sizes.start);
 			particleSystem.addSizeGradient(1, sizes.end);
 
+			// Apply lifetime values
+			particleSystem.minLifeTime = lifetime.min; // Set minimum lifetime
+			particleSystem.maxLifeTime = lifetime.max; // Set maximum lifetime
+			
 			// Set the emit rate with a maximum limit
 			const MAX_EMIT_RATE = 500;
 			particleSystem.emitRate = Math.min(emitRate, MAX_EMIT_RATE);

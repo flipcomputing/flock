@@ -883,6 +883,10 @@ export function defineGenerators() {
 		const minSize = javascriptGenerator.valueToCode(block, "MIN_SIZE", javascriptGenerator.ORDER_ATOMIC) || "0.1";
 		const maxSize = javascriptGenerator.valueToCode(block, "MAX_SIZE", javascriptGenerator.ORDER_ATOMIC) || "1.0";
 
+		// Lifetime inputs
+		const minLifetime = javascriptGenerator.valueToCode(block, "MIN_LIFETIME", javascriptGenerator.ORDER_ATOMIC) || "1.0";
+		const maxLifetime = javascriptGenerator.valueToCode(block, "MAX_LIFETIME", javascriptGenerator.ORDER_ATOMIC) || "5.0";
+
 		// Direction inputs
 		const x = javascriptGenerator.valueToCode(block, "X", javascriptGenerator.ORDER_ATOMIC) || "0";
 		const y = javascriptGenerator.valueToCode(block, "Y", javascriptGenerator.ORDER_ATOMIC) || "0";
@@ -901,7 +905,7 @@ export function defineGenerators() {
 		const shape = block.getFieldValue("SHAPE");
 		const gravity = block.getFieldValue("GRAVITY") === "TRUE";
 
-		// Construct options including direction
+		// Construct options including lifetime and direction
 		const options = `
 		{
 			name: "${variableName}",
@@ -919,6 +923,10 @@ export function defineGenerators() {
 				start: ${minSize},
 				end: ${maxSize}
 			},
+			lifetime: {
+				min: ${minLifetime},
+				max: ${maxLifetime}
+			},
 			shape: "${shape}",
 			gravity: ${gravity},
 			direction: { x: ${x}, y: ${y}, z: ${z} }
@@ -926,6 +934,7 @@ export function defineGenerators() {
 
 		return `${variableName} = createParticleEffect(${options.trim()});\n`;
 	};
+
 
 
 	// Function to create a mesh, taking mesh type, parameters, and position as arguments

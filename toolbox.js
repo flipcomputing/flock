@@ -600,7 +600,7 @@ export const toolbox = {
 							shadow: {
 								type: "math_number",
 								fields: {
-									NUM: 100,
+									NUM: 20,
 								},
 							},
 						},
@@ -674,6 +674,22 @@ export const toolbox = {
 								type: "math_number",
 								fields: {
 									NUM: 0,
+								},
+							},
+						},
+						MIN_LIFETIME: {
+							shadow: {
+								type: "math_number",
+								fields: {
+									NUM: 1,
+								},
+							},
+						},
+						MAX_LIFETIME: {
+							shadow: {
+								type: "math_number",
+								fields: {
+									NUM: 3,
 								},
 							},
 						},
