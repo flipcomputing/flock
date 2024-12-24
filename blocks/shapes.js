@@ -90,7 +90,11 @@ export function defineShapeBlocks() {
 								[{src: "./textures/heart_texture.png", width: 32, height: 32, alt: "Heart"}, "heart_texture.png"],
 								[{src: "./textures/star_texture.png", width: 32, height: 32, alt: "Star"}, "star_texture.png"],
 								[{src: "./textures/strip_texture.png", width: 32, height: 32, alt: "Strip"}, "strip_texture.png"],
+								[{src: "./textures/leaf_texture.png", width: 32, height: 32, alt: "Leaf"}, "leaf_texture.png"],
 								[{src: "./textures/crescent_texture.png", width: 32, height: 32, alt: "Crescent"}, "crescent_texture.png"],
+								[{src: "./textures/lightning_texture.png", width: 32, height: 32, alt: "Lightning bolt"}, "lightning_texture.png"],
+								[{src: "./textures/droplet_texture.png", width: 32, height: 32, alt: "Droplet"}, "droplet_texture.png"],
+								[{src: "./textures/shard_texture.png", width: 32, height: 32, alt: "Shard"}, "shard_texture.png"],
 								[{src: "./textures/square_texture.png", width: 32, height: 32, alt: "Square"}, "square_texture.png"]
 							],
 						},

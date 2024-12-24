@@ -290,6 +290,7 @@ export function initializeVariableIndexes() {
 		plane: 1,
 		wall: 1,
 		text: 1,
+		'3dtext': 1,
 		sound: 1,
 		character: 1,
 		object: 1,
@@ -1583,6 +1584,73 @@ export function defineBlocks() {
 
 			// Add mutator for "constructor-like" initialisation
 			addDoMutatorWithToggleBehavior(this);
+		},
+	};
+
+	Blockly.Blocks["create_3d_text"] = {
+		init: function () {
+			const defaultColour = "#FFFFFF";
+			const variableNamePrefix = "text";
+			let nextVariableName =
+				variableNamePrefix + nextVariableIndexes[variableNamePrefix];
+
+			this.jsonInit({
+				message0: `set %1 to text: %2 font: %3 size: %4 color: %5
+				depth: %6 x: %7 y: %8 z: %9 `,
+				args0: [
+					{
+						type: "field_variable",
+						name: "ID_VAR",
+						variable: nextVariableName,
+					},
+					{
+						type: "input_value",
+						name: "TEXT",
+						check: "String",
+					},
+					{
+						type: "field_dropdown",
+						name: "FONT",
+						options: [["Sans Bold", "./fonts/FreeSans_Bold.json"]],
+					},
+					{
+						type: "input_value",
+						name: "SIZE",
+						check: "Number",
+					},
+					{
+						type: "input_value",
+						name: "DEPTH",
+						check: "Number",
+					},
+					{
+						type: "input_value",
+						name: "COLOR",
+						check: "Colour",
+					},
+					{
+						type: "input_value",
+						name: "X",
+						check: "Number",
+					},
+					{
+						type: "input_value",
+						name: "Y",
+						check: "Number",
+					},
+					{
+						type: "input_value",
+						name: "Z",
+						check: "Number",
+					},
+				],
+				inputsInline: true,
+				colour: categoryColours["Scene"],
+				tooltip: "Creates 3D text in the scene.",
+				helpUrl: "",
+				previousStatement: null,
+				nextStatement: null,
+			});
 		},
 	};
 

@@ -867,39 +867,133 @@ export function defineGenerators() {
 		});\n`;
 	};
 
-
-	javascriptGenerator.forBlock["create_particle_effect"] = function (block) {
-		const emitRate = parseFloat(
-			javascriptGenerator.valueToCode(block, "RATE", javascriptGenerator.ORDER_ATOMIC) || "10"
-		);
-		const startColor = javascriptGenerator.valueToCode(block, "START_COLOR", javascriptGenerator.ORDER_ATOMIC) || '"#FFFFFF"';
-		const endColor = javascriptGenerator.valueToCode(block, "END_COLOR", javascriptGenerator.ORDER_ATOMIC) || '"#000000"';
-		const startAlpha = parseFloat(
-			javascriptGenerator.valueToCode(block, "START_ALPHA", javascriptGenerator.ORDER_ATOMIC) || "1.0"
-		);
-		const endAlpha = parseFloat(
-			javascriptGenerator.valueToCode(block, "END_ALPHA", javascriptGenerator.ORDER_ATOMIC) || "1.0"
-		);
-		const minSize = javascriptGenerator.valueToCode(block, "MIN_SIZE", javascriptGenerator.ORDER_ATOMIC) || "0.1";
-		const maxSize = javascriptGenerator.valueToCode(block, "MAX_SIZE", javascriptGenerator.ORDER_ATOMIC) || "1.0";
-
-		// Lifetime inputs
-		const minLifetime = javascriptGenerator.valueToCode(block, "MIN_LIFETIME", javascriptGenerator.ORDER_ATOMIC) || "1.0";
-		const maxLifetime = javascriptGenerator.valueToCode(block, "MAX_LIFETIME", javascriptGenerator.ORDER_ATOMIC) || "5.0";
-
-		// Direction inputs
-		const x = javascriptGenerator.valueToCode(block, "X", javascriptGenerator.ORDER_ATOMIC) || "0";
-		const y = javascriptGenerator.valueToCode(block, "Y", javascriptGenerator.ORDER_ATOMIC) || "0";
-		const z = javascriptGenerator.valueToCode(block, "Z", javascriptGenerator.ORDER_ATOMIC) || "0";
-
+	javascriptGenerator.forBlock["create_3d_text"] = function (block) {
+		const text = getFieldValue(block, "TEXT", "Hello World");
+		const size = getFieldValue(block, "SIZE", "50");
+		const depth = getFieldValue(block, "DEPTH", "1.0");
+		const x = getFieldValue(block, "X", "0");
+		const y = getFieldValue(block, "Y", "0");
+		const z = getFieldValue(block, "Z", "0");
+		const color = getFieldValue(block, "COLOR", "#FFFFFF");
+		const font = block.getFieldValue("FONT") || './fonts/FreeSans_Bold.json';
 		const variableName = javascriptGenerator.nameDB_.getName(
 			block.getFieldValue("ID_VAR"),
 			Blockly.Names.NameType.VARIABLE
 		);
 
+		const meshId = "text_" + generateUniqueId();
+		meshMap[meshId] = block;
+		meshBlockIdMap[meshId] = block.id;
+
+		// Generate the code for the "do" part (if present)
+		let doCode = "";
+
+		if (block.getInput("DO")) {
+			doCode = javascriptGenerator.statementToCode(block, "DO") || "";
+		}
+
+		doCode = doCode ? `async function() {\n${doCode}\n}` : "";
+
+		return `${variableName} = create3DText({
+			text: ${text},
+			font: '${font}',
+			color: ${color},
+			size: ${size},
+			depth: ${depth},
+			position: { x: ${x}, y: ${y}, z: ${z} },
+			modelId: '${meshId}'${doCode ? `,\ncallback: ${doCode}` : ""}
+		});\n`;
+	};
+
+	javascriptGenerator.forBlock["create_particle_effect"] = function (block) {
+		const emitRate = parseFloat(
+			javascriptGenerator.valueToCode(
+				block,
+				"RATE",
+				javascriptGenerator.ORDER_ATOMIC,
+			) || "10",
+		);
+		const startColor =
+			javascriptGenerator.valueToCode(
+				block,
+				"START_COLOR",
+				javascriptGenerator.ORDER_ATOMIC,
+			) || '"#FFFFFF"';
+		const endColor =
+			javascriptGenerator.valueToCode(
+				block,
+				"END_COLOR",
+				javascriptGenerator.ORDER_ATOMIC,
+			) || '"#000000"';
+		const startAlpha = parseFloat(
+			javascriptGenerator.valueToCode(
+				block,
+				"START_ALPHA",
+				javascriptGenerator.ORDER_ATOMIC,
+			) || "1.0",
+		);
+		const endAlpha = parseFloat(
+			javascriptGenerator.valueToCode(
+				block,
+				"END_ALPHA",
+				javascriptGenerator.ORDER_ATOMIC,
+			) || "1.0",
+		);
+		const minSize =
+			javascriptGenerator.valueToCode(
+				block,
+				"MIN_SIZE",
+				javascriptGenerator.ORDER_ATOMIC,
+			) || "0.1";
+		const maxSize =
+			javascriptGenerator.valueToCode(
+				block,
+				"MAX_SIZE",
+				javascriptGenerator.ORDER_ATOMIC,
+			) || "1.0";
+
+		// Lifetime inputs
+		const minLifetime =
+			javascriptGenerator.valueToCode(
+				block,
+				"MIN_LIFETIME",
+				javascriptGenerator.ORDER_ATOMIC,
+			) || "1.0";
+		const maxLifetime =
+			javascriptGenerator.valueToCode(
+				block,
+				"MAX_LIFETIME",
+				javascriptGenerator.ORDER_ATOMIC,
+			) || "5.0";
+
+		// Direction inputs
+		const x =
+			javascriptGenerator.valueToCode(
+				block,
+				"X",
+				javascriptGenerator.ORDER_ATOMIC,
+			) || "0";
+		const y =
+			javascriptGenerator.valueToCode(
+				block,
+				"Y",
+				javascriptGenerator.ORDER_ATOMIC,
+			) || "0";
+		const z =
+			javascriptGenerator.valueToCode(
+				block,
+				"Z",
+				javascriptGenerator.ORDER_ATOMIC,
+			) || "0";
+
+		const variableName = javascriptGenerator.nameDB_.getName(
+			block.getFieldValue("ID_VAR"),
+			Blockly.Names.NameType.VARIABLE,
+		);
+
 		const emitterMesh = javascriptGenerator.nameDB_.getName(
 			block.getFieldValue("EMITTER_MESH"),
-			Blockly.Names.NameType.VARIABLE
+			Blockly.Names.NameType.VARIABLE,
 		);
 
 		const shape = block.getFieldValue("SHAPE");
@@ -934,8 +1028,6 @@ export function defineGenerators() {
 
 		return `${variableName} = createParticleEffect(${options.trim()});\n`;
 	};
-
-
 
 	// Function to create a mesh, taking mesh type, parameters, and position as arguments
 	function createMesh(block, meshType, params, position, idPrefix) {
@@ -1021,7 +1113,6 @@ export function defineGenerators() {
 			"cylinder",
 		);
 	};
-
 
 	javascriptGenerator.forBlock["create_capsule"] = function (block) {
 		const color = getFieldValue(block, "COLOR", "#9932CC");
@@ -1804,14 +1895,14 @@ export function defineGenerators() {
 	javascriptGenerator.forBlock["hull_meshes"] = function (block) {
 		const resultVar = javascriptGenerator.nameDB_.getName(
 			block.getFieldValue("RESULT_VAR"),
-			Blockly.Names.NameType.VARIABLE
+			Blockly.Names.NameType.VARIABLE,
 		);
 
 		const meshList =
 			javascriptGenerator.valueToCode(
 				block,
 				"MESH_LIST",
-				javascriptGenerator.ORDER_ATOMIC
+				javascriptGenerator.ORDER_ATOMIC,
 			) || "[]";
 
 		const meshId = "hull" + "_" + generateUniqueId();
@@ -2242,7 +2333,7 @@ export function defineGenerators() {
 	};
 
 	javascriptGenerator.forBlock["procedures_defnoreturn"] = function (block) {
-		 const functionName = block.getFieldValue("NAME").replace(/[^\w]/g, "_");
+		const functionName = block.getFieldValue("NAME").replace(/[^\w]/g, "_");
 		// Retrieve the parameters as a comma-separated list
 		const args = block.argData_.map((elem) => elem.model.name);
 		const params = args.join(", ");
@@ -2261,7 +2352,7 @@ export function defineGenerators() {
 
 	// Generator for asynchronous function call with arguments
 	javascriptGenerator.forBlock["procedures_callnoreturn"] = function (block) {
-		 const functionName = block.getFieldValue("NAME").replace(/[^\w]/g, "_");
+		const functionName = block.getFieldValue("NAME").replace(/[^\w]/g, "_");
 		// Retrieve the arguments as a comma-separated list that should match the parameters
 		const args = [];
 		const variables = block.arguments_;
@@ -2278,7 +2369,7 @@ export function defineGenerators() {
 	};
 
 	javascriptGenerator.forBlock["procedures_defreturn"] = function (block) {
-		 const functionName = block.getFieldValue("NAME").replace(/[^\w]/g, "_");
+		const functionName = block.getFieldValue("NAME").replace(/[^\w]/g, "_");
 		const args = block.argData_.map((elem) => elem.model.name);
 		const params = args.join(", ");
 		const branch =
@@ -2300,7 +2391,7 @@ export function defineGenerators() {
 	};
 
 	javascriptGenerator.forBlock["procedures_callreturn"] = function (block) {
-		 const functionName = block.getFieldValue("NAME").replace(/[^\w]/g, "_");
+		const functionName = block.getFieldValue("NAME").replace(/[^\w]/g, "_");
 		const args = [];
 		const variables = block.arguments_ || []; // Ensure 'arguments_' is populated with the argument names
 		for (let i = 0; i < variables.length; i++) {
@@ -2507,12 +2598,12 @@ javascriptGenerator.forBlock["controls_for"] = function (block, generator) {
 	// Timing and iteration counter variables
 	const timingVar = generator.nameDB_.getDistinctName(
 		`${variable0}_timing`,
-		Blockly.Names.DEVELOPER_VARIABLE_TYPE
+		Blockly.Names.DEVELOPER_VARIABLE_TYPE,
 	);
 
 	const counterVar = generator.nameDB_.getDistinctName(
 		`${variable0}_counter`,
-		Blockly.Names.DEVELOPER_VARIABLE_TYPE
+		Blockly.Names.DEVELOPER_VARIABLE_TYPE,
 	);
 
 	return `
@@ -2528,7 +2619,6 @@ javascriptGenerator.forBlock["controls_for"] = function (block, generator) {
 		}
 	`;
 };
-
 
 javascriptGenerator.forBlock["controls_forEach"] = function (block, generator) {
 	// For each loop.

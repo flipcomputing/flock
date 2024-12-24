@@ -10,6 +10,7 @@ import { FlowGraphLog10Block, SetMaterialIDBlock } from "babylonjs";
 import "@fontsource/asap";
 import "@fontsource/asap/500.css";
 import "@fontsource/asap/600.css";
+import earcut from "earcut";
 
 // Helper functions to make flock.BABYLON js easier to use in Flock
 console.log("Flock helpers loading");
@@ -85,6 +86,7 @@ export const flock = {
 			newCharacter,
 			newObject,
 			createParticleEffect,
+			create3DText,
 			newModel,
 			createBox,
 			createSphere,
@@ -1301,6 +1303,55 @@ export const flock = {
 
 		// Track the ongoing load
 		flock.modelsBeingLoaded[modelName] = loadPromise;
+
+		return modelId;
+	},
+	create3DText({
+		text,
+		font,
+		color = "#FFFFFF",
+		size = 50,
+		depth = 1.0,
+		position = { x: 0, y: 0, z: 0 },
+		modelId,
+		callback = null,
+	}) {
+		const { x, y, z } = position;
+
+		// Return modelId immediately
+		setTimeout(async () => {
+			const fontData = await (await fetch(font)).json();
+
+			const mesh = BABYLON.MeshBuilder.CreateText(
+				modelId,
+				text,
+				fontData,
+				{
+					size: size,
+					depth: depth,
+				},
+				flock.scene,
+				earcut
+			);
+
+			mesh.position.set(x, y, z);
+			const material = new BABYLON.StandardMaterial("textMaterial", flock.scene);
+
+			material.diffuseColor = flock.BABYLON.Color3.FromHexString(
+				flock.getColorFromString(color),
+			);
+			
+			mesh.material = material;
+
+			mesh.computeWorldMatrix(true);
+			mesh.refreshBoundingInfo();
+			mesh.setEnabled(true);
+			mesh.visibility = 1;
+
+			if (callback) {
+				requestAnimationFrame(callback);
+			}
+		}, 0);
 
 		return modelId;
 	},

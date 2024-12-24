@@ -22,6 +22,11 @@ export const toolbox = {
 	kind: "categoryToolbox",
 	contents: [
 		{
+			kind: "search",
+			name: "Search",
+			contents: [],
+		},
+		{
 			kind: "category",
 			name: "Events",
 			icon: "./images/events.svg",
@@ -2016,6 +2021,69 @@ export const toolbox = {
 								type: "text",
 								fields: {
 									TEXT: "comment",
+								},
+							},
+						},
+					},
+				},
+				{
+					kind: "block",
+					type: "create_3d_text",
+					keyword: "text",
+					inputs: {
+						TEXT: {
+							shadow: {
+								type: "text",
+								fields: {
+									TEXT: "Hello World",
+								},
+							},
+						},
+						COLOR: {
+							shadow: {
+								type: "colour",
+								fields: {
+									COLOR: "#FFFFFF",
+								},
+							},
+						},
+						SIZE: {
+							shadow: {
+								type: "math_number",
+								fields: {
+									NUM: 50,
+								},
+							},
+						},
+						DEPTH: {
+							shadow: {
+								type: "math_number",
+								fields: {
+									NUM: 1.0,
+								},
+							},
+						},
+						X: {
+							shadow: {
+								type: "math_number",
+								fields: {
+									NUM: 0,
+								},
+							},
+						},
+						Y: {
+							shadow: {
+								type: "math_number",
+								fields: {
+									NUM: 0,
+								},
+							},
+						},
+						Z: {
+							shadow: {
+								type: "math_number",
+								fields: {
+									NUM: 0,
 								},
 							},
 						},
