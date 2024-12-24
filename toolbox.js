@@ -652,6 +652,31 @@ export const toolbox = {
 								},
 							},
 						},
+
+						X: {
+							shadow: {
+								type: "math_number",
+								fields: {
+									NUM: 0,
+								},
+							},
+						},
+						Y: {
+							shadow: {
+								type: "math_number",
+								fields: {
+									NUM: 0,
+								},
+							},
+						},
+						Z: {
+							shadow: {
+								type: "math_number",
+								fields: {
+									NUM: 0,
+								},
+							},
+						},
 					},
 				},
 				{
@@ -1980,215 +2005,216 @@ export const toolbox = {
 						},
 					},
 				},
-							{
-								kind: "category",
-								name: "Strings",
-								icon: "./images/text.svg",
-								categorystyle: "text_category",
-								contents: [
 				{
-					kind: "block",
-					type: "text_join",
-					keyword: "join",
-				},
-				{
-					kind: "block",
-					type: "text_append",
-					keyword: "join",
-					inputs: {
-						TEXT: {
-							shadow: {
-								type: "text",
-							},
+					kind: "category",
+					name: "Strings",
+					icon: "./images/text.svg",
+					categorystyle: "text_category",
+					contents: [
+						{
+							kind: "block",
+							type: "text_join",
+							keyword: "join",
 						},
-					},
-				},
-				{
-					kind: "block",
-					type: "text_length",
-					keyword: "length",
-					inputs: {
-						VALUE: {
-							shadow: {
-								type: "text",
-								fields: {
-									TEXT: "abc",
+						{
+							kind: "block",
+							type: "text_append",
+							keyword: "join",
+							inputs: {
+								TEXT: {
+									shadow: {
+										type: "text",
+									},
 								},
 							},
 						},
-					},
-				},
-				{
-					kind: "block",
-					type: "text_isEmpty",
-					keyword: "isempty",
-					inputs: {
-						VALUE: {
-							shadow: {
-								type: "text",
-								fields: {
-									TEXT: "",
+						{
+							kind: "block",
+							type: "text_length",
+							keyword: "length",
+							inputs: {
+								VALUE: {
+									shadow: {
+										type: "text",
+										fields: {
+											TEXT: "abc",
+										},
+									},
 								},
 							},
 						},
-					},
-				},
-				{
-					kind: "block",
-					type: "text_indexOf",
-					keyword: "index",
-					inputs: {
-						VALUE: {
-							block: {
-								type: "variables_get",
-								fields: {
-									VAR: "text",
+						{
+							kind: "block",
+							type: "text_isEmpty",
+							keyword: "isempty",
+							inputs: {
+								VALUE: {
+									shadow: {
+										type: "text",
+										fields: {
+											TEXT: "",
+										},
+									},
 								},
 							},
 						},
-						FIND: {
-							shadow: {
-								type: "text",
-								fields: {
-									TEXT: "abc",
+						{
+							kind: "block",
+							type: "text_indexOf",
+							keyword: "index",
+							inputs: {
+								VALUE: {
+									block: {
+										type: "variables_get",
+										fields: {
+											VAR: "text",
+										},
+									},
+								},
+								FIND: {
+									shadow: {
+										type: "text",
+										fields: {
+											TEXT: "abc",
+										},
+									},
 								},
 							},
 						},
-					},
-				},
-				{
-					kind: "block",
-					type: "text_charAt",
-					keyword: "charat",
-					inputs: {
-						VALUE: {
-							block: {
-								type: "variables_get",
-								fields: {
-									VAR: "text",
+						{
+							kind: "block",
+							type: "text_charAt",
+							keyword: "charat",
+							inputs: {
+								VALUE: {
+									block: {
+										type: "variables_get",
+										fields: {
+											VAR: "text",
+										},
+									},
 								},
 							},
 						},
-					},
-				},
-				{
-					kind: "block",
-					type: "text_getSubstring",
-					keyword: "substring",
-					inputs: {
-						STRING: {
-							block: {
-								type: "variables_get",
-								fields: {
-									VAR: "text",
+						{
+							kind: "block",
+							type: "text_getSubstring",
+							keyword: "substring",
+							inputs: {
+								STRING: {
+									block: {
+										type: "variables_get",
+										fields: {
+											VAR: "text",
+										},
+									},
 								},
 							},
 						},
-					},
-				},
-				{
-					kind: "block",
-					type: "text_changeCase",
-					keyword: "case",
-					inputs: {
-						TEXT: {
-							shadow: {
-								type: "text",
-								fields: {
-									TEXT: "abc",
+						{
+							kind: "block",
+							type: "text_changeCase",
+							keyword: "case",
+							inputs: {
+								TEXT: {
+									shadow: {
+										type: "text",
+										fields: {
+											TEXT: "abc",
+										},
+									},
 								},
 							},
 						},
-					},
-				},
-				{
-					kind: "block",
-					type: "text_trim",
-					keyword: "trim",
-					inputs: {
-						TEXT: {
-							shadow: {
-								type: "text",
-								fields: {
-									TEXT: "abc",
+						{
+							kind: "block",
+							type: "text_trim",
+							keyword: "trim",
+							inputs: {
+								TEXT: {
+									shadow: {
+										type: "text",
+										fields: {
+											TEXT: "abc",
+										},
+									},
 								},
 							},
 						},
-					},
-				},
-				{
-					kind: "block",
-					type: "text_count",
-					keyword: "count",
-					inputs: {
-						SUB: {
-							shadow: {
-								type: "text",
+						{
+							kind: "block",
+							type: "text_count",
+							keyword: "count",
+							inputs: {
+								SUB: {
+									shadow: {
+										type: "text",
+									},
+								},
+								TEXT: {
+									shadow: {
+										type: "text",
+									},
+								},
 							},
 						},
-						TEXT: {
-							shadow: {
-								type: "text",
+						{
+							kind: "block",
+							type: "text_replace",
+							keyword: "replace",
+							inputs: {
+								FROM: {
+									shadow: {
+										type: "text",
+									},
+								},
+								TO: {
+									shadow: {
+										type: "text",
+									},
+								},
+								TEXT: {
+									shadow: {
+										type: "text",
+									},
+								},
 							},
 						},
-					},
-				},
-				{
-					kind: "block",
-					type: "text_replace",
-					keyword: "replace",
-					inputs: {
-						FROM: {
-							shadow: {
-								type: "text",
+						{
+							kind: "block",
+							type: "text_reverse",
+							keyword: "reverse",
+							inputs: {
+								TEXT: {
+									shadow: {
+										type: "text",
+									},
+								},
 							},
 						},
-						TO: {
-							shadow: {
-								type: "text",
-							},
-						},
-						TEXT: {
-							shadow: {
-								type: "text",
-							},
-						},
-					},
-				},
-				{
-					kind: "block",
-					type: "text_reverse",
-					keyword: "reverse",
-					inputs: {
-						TEXT: {
-							shadow: {
-								type: "text",
-							},
-						},
-					},
-				},
-				/*{
+						/*{
 					kind: "label",
 					text: "Input/Output:",
 					"web-class": "ioLabel",
 				},*/
-				{
-					kind: "block",
-					type: "text_prompt_ext",
-					keyword: "prompt",
-					tooltip: "Ask the user for input.\nKeyword: prompt",
-					inputs: {
-						TEXT: {
-							shadow: {
-								type: "text",
-								fields: {
-									TEXT: "abc",
+						{
+							kind: "block",
+							type: "text_prompt_ext",
+							keyword: "prompt",
+							tooltip: "Ask the user for input.\nKeyword: prompt",
+							inputs: {
+								TEXT: {
+									shadow: {
+										type: "text",
+										fields: {
+											TEXT: "abc",
+										},
+									},
 								},
 							},
 						},
-					},
+					],
 				},
-						]}
 			],
 		},
 		{

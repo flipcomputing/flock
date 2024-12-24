@@ -495,3 +495,8 @@ path.blocklyPath.blockly-ws-search-highlight.blockly-ws-search-current {
 .custom-category div {
   text-align: center;
 }
+
+.blocklyDropDownContent img {
+  background-color: transparent !important; /* Ensure transparent background */
+  object-fit: contain; /* Preserve aspect ratio */
+}

@@ -1313,6 +1313,7 @@ export const flock = {
 		sizes,
 		shape,
 		gravity,
+		direction,
 	}) {
 		return flock.whenModelReady(emitterMesh, (meshInstance) => {
 			// Create the particle system
@@ -1337,7 +1338,10 @@ export const flock = {
 				meshInstance,
 			);
 			particleSystem.particleEmitterType = meshEmitter;
-			particleSystem.blendMode = 4;
+			particleSystem.blendMode =
+				BABYLON.ParticleSystem.BLENDMODE_STANDARD;
+			particleSystem.particleTexture.hasAlpha = true;
+			particleSystem.particleTexture.getAlphaFromRGB = false; // Ensure alpha isn't affected by RGB
 
 			const startColor = flock.BABYLON.Color4.FromHexString(colors.start);
 			const endColor = flock.BABYLON.Color4.FromHexString(colors.end);
@@ -1357,7 +1361,6 @@ export const flock = {
 			);
 
 			// Set colors with alpha
-			// Add color gradients with alpha values
 			particleSystem.addColorGradient(0, startColorWithAlpha);
 			particleSystem.addColorGradient(1, endColorWithAlpha);
 
@@ -1374,12 +1377,30 @@ export const flock = {
 				? new flock.BABYLON.Vector3(0, -9.81, 0)
 				: new flock.BABYLON.Vector3(0, 0, 0);
 
+			if (direction) {
+				const { x, y, z } = direction;
+
+				if (x != 0 || y != 0 || z != 0) {
+					console.log("Using force")
+					// Set emit power to control speed
+					particleSystem.minEmitPower = 1; // Minimum particle speed
+					particleSystem.maxEmitPower = 3; // Maximum particle speed
+
+					// Access the emitter and set its direction range
+
+					meshEmitter.useMeshNormalsForDirection = false;
+					meshEmitter.direction1 = new flock.BABYLON.Vector3(x, y, z); // Start direction
+					meshEmitter.direction2 = new flock.BABYLON.Vector3(x, y, z); // End direction
+				}
+			}
+
 			// Start the particle system
 			particleSystem.start();
 
 			return particleSystem;
 		});
 	},
+
 	hold(meshToAttach, targetMesh, xOffset = 0, yOffset = 0, zOffset = 0) {
 		return flock.whenModelReady(targetMesh, (targetMeshInstance) => {
 			flock.whenModelReady(meshToAttach, (meshToAttachInstance) => {
@@ -3556,9 +3577,10 @@ export const flock = {
 						"position",
 						fps,
 						flock.BABYLON.Animation.ANIMATIONTYPE_VECTOR3,
-						(loop || reverse)
+						loop || reverse
 							? flock.BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE // Continuous loop or reverse
-							: flock.BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT // Stops at end
+							: flock.BABYLON.Animation
+									.ANIMATIONLOOPMODE_CONSTANT, // Stops at end
 					);
 
 					// Define keyframes for forward and reverse motion
@@ -3570,7 +3592,7 @@ export const flock = {
 					// Add reverse motion if required
 					if (reverse || loop) {
 						glideKeys.push(
-							{ frame: frames * 2, value: startPosition } // Return to start
+							{ frame: frames * 2, value: startPosition }, // Return to start
 						);
 					}
 
@@ -3588,16 +3610,19 @@ export const flock = {
 								easingFunction = new flock.BABYLON.CubicEase();
 								break;
 							case "QuadraticEase":
-								easingFunction = new flock.BABYLON.QuadraticEase();
+								easingFunction =
+									new flock.BABYLON.QuadraticEase();
 								break;
 							case "ExponentialEase":
-								easingFunction = new flock.BABYLON.ExponentialEase();
+								easingFunction =
+									new flock.BABYLON.ExponentialEase();
 								break;
 							case "BounceEase":
 								easingFunction = new flock.BABYLON.BounceEase();
 								break;
 							case "ElasticEase":
-								easingFunction = new flock.BABYLON.ElasticEase();
+								easingFunction =
+									new flock.BABYLON.ElasticEase();
 								break;
 							case "BackEase":
 								easingFunction = new flock.BABYLON.BackEase();
@@ -3606,7 +3631,7 @@ export const flock = {
 								easingFunction = new flock.BABYLON.SineEase(); // Default to SineEase
 						}
 						easingFunction.setEasingMode(
-							flock.BABYLON.EasingFunction.EASINGMODE_EASEINOUT
+							flock.BABYLON.EasingFunction.EASINGMODE_EASEINOUT,
 						);
 						glideAnimation.setEasingFunction(easingFunction);
 					}
@@ -3619,7 +3644,7 @@ export const flock = {
 						mesh,
 						0,
 						reverse || loop ? frames * 2 : frames, // Double frames if looping or reversing
-						loop
+						loop,
 					);
 
 					animatable.onAnimationEndObservable.add(() => {
@@ -3629,7 +3654,6 @@ export const flock = {
 						}
 						resolve();
 					});
-
 				} else {
 					resolve(); // Resolve immediately if the mesh is not available
 				}
@@ -5227,7 +5251,7 @@ export const flock = {
 					};
 				}
 				//camera.setTarget(mesh.position);
-				camera.lockedTarget = mesh; 
+				camera.lockedTarget = mesh;
 				camera.metadata = camera.metadata || {};
 				camera.metadata.following = mesh;
 				camera.attachControl(flock.canvas, false);

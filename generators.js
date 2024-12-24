@@ -869,39 +869,39 @@ export function defineGenerators() {
 
 
 	javascriptGenerator.forBlock["create_particle_effect"] = function (block) {
-		const emitRate = parseFloat(getFieldValue(block, "RATE", "10"));
-		const startColor = getFieldValue(block, "START_COLOR", "#FFFFFF");
-		const endColor = getFieldValue(block, "END_COLOR", "#000000");
-		const startAlpha = parseFloat(getFieldValue(block, "START_ALPHA", "1.0"));
-		const endAlpha = parseFloat(getFieldValue(block, "END_ALPHA", "1.0"));
-		const minSize =
-			javascriptGenerator.valueToCode(
-				block,
-				"MIN_SIZE",
-				javascriptGenerator.ORDER_ATOMIC,
-			) || "0.1";
-		const maxSize =
-			javascriptGenerator.valueToCode(
-				block,
-				"MAX_SIZE",
-				javascriptGenerator.ORDER_ATOMIC,
-			) || "1.0";
+		const emitRate = parseFloat(
+			javascriptGenerator.valueToCode(block, "RATE", javascriptGenerator.ORDER_ATOMIC) || "10"
+		);
+		const startColor = javascriptGenerator.valueToCode(block, "START_COLOR", javascriptGenerator.ORDER_ATOMIC) || '"#FFFFFF"';
+		const endColor = javascriptGenerator.valueToCode(block, "END_COLOR", javascriptGenerator.ORDER_ATOMIC) || '"#000000"';
+		const startAlpha = parseFloat(
+			javascriptGenerator.valueToCode(block, "START_ALPHA", javascriptGenerator.ORDER_ATOMIC) || "1.0"
+		);
+		const endAlpha = parseFloat(
+			javascriptGenerator.valueToCode(block, "END_ALPHA", javascriptGenerator.ORDER_ATOMIC) || "1.0"
+		);
+		const minSize = javascriptGenerator.valueToCode(block, "MIN_SIZE", javascriptGenerator.ORDER_ATOMIC) || "0.1";
+		const maxSize = javascriptGenerator.valueToCode(block, "MAX_SIZE", javascriptGenerator.ORDER_ATOMIC) || "1.0";
+
+		// Direction inputs
+		const x = javascriptGenerator.valueToCode(block, "X", javascriptGenerator.ORDER_ATOMIC) || "0";
+		const y = javascriptGenerator.valueToCode(block, "Y", javascriptGenerator.ORDER_ATOMIC) || "0";
+		const z = javascriptGenerator.valueToCode(block, "Z", javascriptGenerator.ORDER_ATOMIC) || "0";
 
 		const variableName = javascriptGenerator.nameDB_.getName(
 			block.getFieldValue("ID_VAR"),
-			Blockly.Names.NameType.VARIABLE,
+			Blockly.Names.NameType.VARIABLE
 		);
 
 		const emitterMesh = javascriptGenerator.nameDB_.getName(
 			block.getFieldValue("EMITTER_MESH"),
-			Blockly.Names.NameType.VARIABLE,
+			Blockly.Names.NameType.VARIABLE
 		);
 
 		const shape = block.getFieldValue("SHAPE");
-
 		const gravity = block.getFieldValue("GRAVITY") === "TRUE";
 
-		// Manually construct the options object
+		// Construct options including direction
 		const options = `
 		{
 			name: "${variableName}",
@@ -920,11 +920,13 @@ export function defineGenerators() {
 				end: ${maxSize}
 			},
 			shape: "${shape}",
-			gravity: ${gravity}
+			gravity: ${gravity},
+			direction: { x: ${x}, y: ${y}, z: ${z} }
 		}`;
 
 		return `${variableName} = createParticleEffect(${options.trim()});\n`;
 	};
+
 
 	// Function to create a mesh, taking mesh type, parameters, and position as arguments
 	function createMesh(block, meshType, params, position, idPrefix) {

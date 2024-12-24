@@ -69,7 +69,8 @@ export function defineShapeBlocks() {
 				this.jsonInit({
 					message0: `set %1 to particle effect with emitter mesh: %2 
 						with rate: %3 size range: %4 to %5 shape: %6 
-						colors: start %7 end %8 alpha: %9 to %10 gravity: %11`,
+						colors: start %7 end %8 alpha: %9 to %10 gravity: %11
+						force x: %12 y %13 z %14`,
 					args0: [
 						{
 							type: "field_variable",
@@ -97,14 +98,15 @@ export function defineShapeBlocks() {
 							check: "Number",
 						},
 						{
-							type: "field_dropdown",
+							type: "field_grid_dropdown",
 							name: "SHAPE",
 							options: [
-								["Circle", "circle_texture.png"],
-								["Heart", "heart_texture.png"],
-								["Star", "star_texture.png"],
-								["Crescent", "crescent_texture.png"],
-								["Square", "square_texture.png"],
+								[{src: "./textures/circle_texture.png", width: 32, height: 32, alt: "Circle"}, "circle_texture.png"],
+								[{src: "./textures/heart_texture.png", width: 32, height: 32, alt: "Heart"}, "heart_texture.png"],
+								[{src: "./textures/star_texture.png", width: 32, height: 32, alt: "Star"}, "star_texture.png"],
+								[{src: "./textures/strip_texture.png", width: 32, height: 32, alt: "Strip"}, "strip_texture.png"],
+								[{src: "./textures/crescent_texture.png", width: 32, height: 32, alt: "Crescent"}, "crescent_texture.png"],
+								[{src: "./textures/square_texture.png", width: 32, height: 32, alt: "Square"}, "square_texture.png"]
 							],
 						},
 						{
@@ -132,6 +134,9 @@ export function defineShapeBlocks() {
 							name: "GRAVITY",
 							checked: false,
 						},
+						{ type: "input_value", name: "X", check: "Number" },
+						{ type: "input_value", name: "Y", check: "Number" },
+						{ type: "input_value", name: "Z", check: "Number" },
 					],
 					inputsInline: true,
 					colour: categoryColours["Scene"],
