@@ -1,4 +1,5 @@
 import * as Blockly from "blockly";
+import '@blockly/toolbox-search';
 
 export const categoryColours = {
 	Events: 200,
@@ -21,11 +22,6 @@ export const categoryColours = {
 export const toolbox = {
 	kind: "categoryToolbox",
 	contents: [
-		{
-			kind: "search",
-			name: "Search",
-			contents: [],
-		},
 		{
 			kind: "category",
 			name: "Events",
@@ -1151,38 +1147,39 @@ export const toolbox = {
 							inputsInline: true, // Set lists to be inline
 							inputs: {
 								KEYFRAMES: {
-									block: {
-										type: "lists_create_with",
-										extraState: {
-											itemCount: 1,
-										},
-										inputs: {
-											ADD0: {
-												block: {
-													type: "colour_keyframe", // Reusing your `colour_keyframe` block
-													inputs: {
-														VALUE: {
-															shadow: {
-																type: "colour",
-																fields: {
-																	COLOR: "#ff0000", // Default colour: Red
-																},
-															},
-														},
-														DURATION: {
-															shadow: {
-																type: "math_number",
-																fields: {
-																	NUM: 1, // Default duration: 1 second
-																},
-															},
-														},
-													},
-												},
-											},
-										},
+								  shadow: {
+									type: "lists_create_with",
+									extraState: {
+									  itemCount: 1,
 									},
+									inputs: {
+									  ADD0: {
+										shadow: {
+										  type: "colour_keyframe",
+										  inputs: {
+											VALUE: {
+											  shadow: {
+												type: "colour",
+												fields: {
+												  COLOR: "#ff0000",
+												},
+											  },
+											},
+											DURATION: {
+											  shadow: {
+												type: "math_number",
+												fields: {
+												  NUM: 1,
+												},
+											  },
+											},
+										  },
+										},
+									  },
+									},
+								  },
 								},
+
 							},
 						},
 						/*{
@@ -2739,58 +2736,58 @@ export const toolbox = {
 					type: "rest",
 				},
 				{
-					kind: "block",
-					type: "play_notes",
-					keyword: "play_notes",
-					inputsInline: true, // Set lists to be inline
-					inputs: {
-						NOTES: {
-							block: {
-								type: "lists_create_with",
-								inline: false,
-								extraState: {
-									itemCount: 1,
-								},
-								inputs: {
-									ADD0: {
-										block: {
-											type: "midi_note",
-											fields: {
-												NOTE: 60, // Default MIDI note: 60 (Middle C)
-											},
-										},
-									},
-								},
-							},
+				  kind: "block",
+				  type: "play_notes",
+				  keyword: "play_notes",
+				  inputsInline: true, // Set lists to be inline
+				  inputs: {
+					NOTES: {
+					  shadow: {
+						type: "lists_create_with", // Use a shadow for the list
+						inline: false,
+						extraState: {
+						  itemCount: 1, // Default item count
 						},
-						DURATIONS: {
-							block: {
-								type: "lists_create_with",
-								inline: false,
-								extraState: {
-									itemCount: 1,
-								},
-								inputs: {
-									ADD0: {
-										block: {
-											type: "math_number",
-											fields: {
-												NUM: 1, // Default duration: 1 beat
-											},
-										},
-									},
-								},
-							},
-						},
-						INSTRUMENT: {
+						inputs: {
+						  ADD0: {
 							shadow: {
-								type: "instrument",
-								fields: {
-									INSTRUMENT_TYPE: "default", // Default instrument selection
-								},
+							  type: "midi_note", // Shadow for each note
+							  fields: {
+								NOTE: 60, // Default MIDI note: 60 (Middle C)
+							  },
 							},
+						  },
 						},
+					  },
 					},
+					DURATIONS: {
+					  shadow: {
+						type: "lists_create_with", // Use a shadow for durations
+						inline: false,
+						extraState: {
+						  itemCount: 1, // Default item count
+						},
+						inputs: {
+						  ADD0: {
+							shadow: {
+							  type: "math_number", // Shadow for each duration
+							  fields: {
+								NUM: 1, // Default duration: 1 beat
+							  },
+							},
+						  },
+						},
+					  },
+					},
+					INSTRUMENT: {
+					  shadow: {
+						type: "instrument", // Shadow for instrument selection
+						fields: {
+						  INSTRUMENT_TYPE: "default", // Default instrument selection
+						},
+					  },
+					},
+				  },
 				},
 				{
 					kind: "block",
@@ -3326,7 +3323,13 @@ export const toolbox = {
 				},
 			],
 		},
+		{
+			kind: "search",
+			name: "Search",
+			contents: [],
+		},
 	],
+	
 };
 
 class IconCategory extends Blockly.ToolboxCategory {

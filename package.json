@@ -20,6 +20,7 @@
     "@blockly/keyboard-navigation": "^0.6.7",
     "@blockly/plugin-scroll-options": "^6.0.7",
     "@blockly/plugin-workspace-search": "^9.1.0",
+    "@blockly/toolbox-search": "^2.0.12",
     "@fontsource/asap": "^5.0.20",
     "@mit-app-inventor/blockly-plugin-workspace-multiselect": "^0.1.12",
     "@types/estree": "^1.0.6",

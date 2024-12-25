@@ -1141,8 +1141,229 @@ window.onload = function () {
 
 	observeBlocklyInputs();
 
+	defineBaseBlocks();
+	defineBlocks();
+	defineShapeBlocks();
+	defineGenerators();
+	// Initialize Blockly and add custom context menu options
+	addExportContextMenuOption();
+	addImportContextMenuOption();
+	addExportSVGContextMenuOption();
+	//addExportPNGContextMenuOption();
+	//observeFlyoutVisibility(workspace);
+	window.toolboxVisible = toolboxVisible;
+
+	function getBlocksFromToolbox(workspace) {
+		const toolboxBlocks = [];
+
+		const seenBlocks = new Set();
+
+		function processItem(item, categoryName = "") {
+			const currentCategory = item.getName
+				? item.getName()
+				: categoryName;
+
+			if (currentCategory === "Snippets") {
+				return;
+			}
+
+			if (item.getContents) {
+				const contents = item.getContents();
+				const blocks = Array.isArray(contents) ? contents : [contents];
+
+				blocks.forEach((block) => {
+					if (block.kind === "block" && !seenBlocks.has(block.type)) {
+						seenBlocks.add(block.type); // Track processed block types
+						toolboxBlocks.push({
+							type: block.type,
+							text: block.type,
+							full: block,
+						});
+					}
+				});
+			}
+
+			if (item.getChildToolboxItems) {
+				item.getChildToolboxItems().forEach((child) => {
+					processItem(child, currentCategory);
+				});
+			}
+		}
+
+		// Process all toolbox items
+		workspace
+			.getToolbox()
+			.getToolboxItems()
+			.forEach((item) => processItem(item));
+
+		return toolboxBlocks;
+	}
+
+	function overrideSearchPlugin(workspace) {
+		// Get the registered search category
+		const SearchCategory = Blockly.registry.getClass(
+			Blockly.registry.Type.TOOLBOX_ITEM,
+			"search",
+		);
+
+		if (!SearchCategory) {
+			console.error("Search category not found in registry!");
+			return;
+		}
+
+		// Hook into the category's prototype
+		const toolboxBlocks = getBlocksFromToolbox(workspace);
+		SearchCategory.prototype.initBlockSearcher = function () {
+			this.blockSearcher.indexBlocks = function () {
+				this.indexedBlocks_ = toolboxBlocks; // Replace the index with toolbox blocks
+			};
+
+			// Rebuild the index immediately
+			this.blockSearcher.indexBlocks();
+		};
+
+		SearchCategory.prototype.matchBlocks = function () {
+			// Skip processing on initial focus
+			if (!this.hasInputStarted) {
+				this.hasInputStarted = true;
+				return;
+			}
+
+			const query = this.searchField?.value.toLowerCase().trim() || "";
+
+			// Filter blocks based on the query
+			const matches = this.blockSearcher.indexedBlocks_.filter(
+				(block) => {
+					// Check if the block has a text property
+					if (block.text) {
+						return block.text.toLowerCase().includes(query); // Only match valid blocks
+					}
+					return false; // Ignore blocks without text
+				},
+			);
+
+			// Display matches (ensure this step renders results correctly)
+			this.showMatchingBlocks(matches);
+		};
+
+		/**
+		 * Recursively builds XML from block JSON, preserving all shadows.
+		 */
+		function createXmlFromJson(blockJson, isShadow = false) {
+			// Create a block or shadow element
+			const blockXml = Blockly.utils.xml.createElement(
+				isShadow ? "shadow" : "block",
+			);
+			blockXml.setAttribute("type", blockJson.type);
+
+			// Add mutation directly for blocks like 'lists_create_with'
+			if (
+				blockJson.type === "lists_create_with" &&
+				blockJson.extraState
+			) {
+				const mutation = Blockly.utils.xml.createElement("mutation");
+				mutation.setAttribute("items", blockJson.extraState.itemCount); // Add itemCount
+				blockXml.appendChild(mutation); // Attach mutation inside the block
+			}
+
+			// Process inputs and shadows
+			if (blockJson.inputs) {
+				Object.entries(blockJson.inputs).forEach(([name, input]) => {
+					const valueXml = Blockly.utils.xml.createElement("value");
+					valueXml.setAttribute("name", name);
+
+					if (input.block) {
+						// Add nested blocks
+						const nestedXml = createXmlFromJson(input.block, false);
+						valueXml.appendChild(nestedXml);
+					}
+
+					if (input.shadow) {
+						// Add shadow blocks
+						const shadowXml = createXmlFromJson(input.shadow, true);
+						valueXml.appendChild(shadowXml);
+					}
+
+					blockXml.appendChild(valueXml);
+				});
+			}
+
+			// Preserve fields (e.g., values like numbers or text)
+			if (blockJson.fields) {
+				Object.entries(blockJson.fields).forEach(([name, value]) => {
+					const fieldXml = Blockly.utils.xml.createElement("field");
+					fieldXml.setAttribute("name", name);
+					fieldXml.textContent = value;
+					blockXml.appendChild(fieldXml);
+				});
+			}
+
+			return blockXml;
+		}
+
+		SearchCategory.prototype.showMatchingBlocks = function (matches) {
+			const flyout = this.workspace_.getToolbox().getFlyout();
+			if (!flyout) {
+				console.error("Flyout not found!");
+				return;
+			}
+
+			// Clear the flyout
+			flyout.hide();
+			flyout.show([]);
+
+			const xmlList = [];
+			const mutations = [];
+
+			matches.forEach((match) => {
+				const blockJson = match.full; // Full structure
+				const blockXml = createXmlFromJson(blockJson); // Generate XML
+
+				xmlList.push(blockXml); // Store XML
+
+				// Handle mutations (e.g., itemCount for lists_create_with)
+				if (
+					blockJson.type === "lists_create_with" &&
+					blockJson.extraState
+				) {
+					const mutation =
+						Blockly.utils.xml.createElement("mutation");
+					mutation.setAttribute(
+						"items",
+						blockJson.extraState.itemCount,
+					); // Apply itemCount
+					mutations.push(mutation);
+				} else {
+					mutations.push(null); // No mutation needed
+				}
+			});
+
+			// Display the blocks in the flyout
+			flyout.show(xmlList);
+
+			// Apply mutations after rendering
+			const flyoutWorkspace = flyout.getWorkspace();
+			flyoutWorkspace.getAllBlocks(false).forEach((block, index) => {
+				const mutation = mutations[index];
+				if (mutation) {
+					block.domToMutation(mutation); // Apply mutation dynamically
+				}
+			});
+		};
+
+		const toolboxDef = workspace.options.languageTree; // Get toolbox XML/JSON
+
+		workspace.updateToolbox(toolboxDef); // Force rebuild toolbox
+	}
+
 	workspace = Blockly.inject("blocklyDiv", options);
+
 	registerFieldColour();
+
+	overrideSearchPlugin(workspace);
+
+	const workspaceSearch = new WorkspaceSearch(workspace);
+	workspaceSearch.init();
 
 	// Resize Blockly workspace and Babylon.js canvas when the window is resized
 	window.addEventListener("resize", onResize);
@@ -1186,107 +1407,104 @@ window.onload = function () {
 		}
 	});
 
-
-
 	const workspaceSvg = workspace.getParentSvg();
 
 	// Bind mousemove event using browserEvents
-	Blockly.browserEvents.bind(
-	  workspaceSvg,
-	  'mousemove',
-	  null,
-	  (event) => {
+	Blockly.browserEvents.bind(workspaceSvg, "mousemove", null, (event) => {
+		const mouseXY = Blockly.utils.browserEvents.mouseToSvg(
+			event,
+			workspace.getParentSvg(),
+			workspace.getInverseScreenCTM(),
+		);
 
-		   const mouseXY = Blockly.utils.browserEvents.mouseToSvg(event, workspace.getParentSvg(), workspace.getInverseScreenCTM());
+		const absoluteMetrics = workspace
+			.getMetricsManager()
+			.getAbsoluteMetrics();
+		mouseXY.x -= absoluteMetrics.left;
+		mouseXY.y -= absoluteMetrics.top;
 
-		  const absoluteMetrics = workspace.getMetricsManager().getAbsoluteMetrics();
-			mouseXY.x -= absoluteMetrics.left;
-			mouseXY.y -= absoluteMetrics.top;
+		// Adjust for scrolling
+		mouseXY.x -= workspace.scrollX;
+		mouseXY.y -= workspace.scrollY;
 
-			// Adjust for scrolling
-			mouseXY.x -= workspace.scrollX;
-			mouseXY.y -= workspace.scrollY;
+		// Adjust for zoom scaling
+		mouseXY.x /= workspace.scale;
+		mouseXY.y /= workspace.scale;
 
-			// Adjust for zoom scaling
-			mouseXY.x /= workspace.scale;
-			mouseXY.y /= workspace.scale;
-
-			highlightBlockUnderCursor(workspace, mouseXY.x, mouseXY.y);
-	  }
-	);
+		highlightBlockUnderCursor(workspace, mouseXY.x, mouseXY.y);
+	});
 
 	let lastHighlightedBlock = null;
 
 	function highlightBlockUnderCursor(workspace, cursorX, cursorY) {
-	  if (lastHighlightedBlock) {
-		lastHighlightedBlock.removeSelect();
-		lastHighlightedBlock = null;
-	  }
-
-	  const allBlocks = workspace.getAllBlocks();
-
-	  // Flatten all descendants of each block to consider nested blocks
-	  const blocksWithDescendants = [];
-	  for (const block of allBlocks) {
-		blocksWithDescendants.push(...block.getDescendants(false));
-	  }
-
-	  // Iterate through blocks in reverse order to prioritize inner blocks
-	  for (let i = blocksWithDescendants.length - 1; i >= 0; i--) {
-		const block = blocksWithDescendants[i];
-		if (!block.rendered) continue;
-
-		const blockBounds = block.getBoundingRectangle();
-
-		// Check if cursor is within block bounds
-		if (
-		  cursorX >= blockBounds.left &&
-		  cursorX <= blockBounds.right &&
-		  cursorY >= blockBounds.top &&
-		  cursorY <= blockBounds.bottom
-		) {
-		 
-			if (isBlockDraggable(block)) {
-			  block.addSelect();
-			  lastHighlightedBlock = block;
-			}
-		  lastHighlightedBlock = block;
-		  break;
+		if (lastHighlightedBlock) {
+			lastHighlightedBlock.removeSelect();
+			lastHighlightedBlock = null;
 		}
-	  }
+
+		const allBlocks = workspace.getAllBlocks();
+
+		// Flatten all descendants of each block to consider nested blocks
+		const blocksWithDescendants = [];
+		for (const block of allBlocks) {
+			blocksWithDescendants.push(...block.getDescendants(false));
+		}
+
+		// Iterate through blocks in reverse order to prioritize inner blocks
+		for (let i = blocksWithDescendants.length - 1; i >= 0; i--) {
+			const block = blocksWithDescendants[i];
+			if (!block.rendered) continue;
+
+			const blockBounds = block.getBoundingRectangle();
+
+			// Check if cursor is within block bounds
+			if (
+				cursorX >= blockBounds.left &&
+				cursorX <= blockBounds.right &&
+				cursorY >= blockBounds.top &&
+				cursorY <= blockBounds.bottom
+			) {
+				if (isBlockDraggable(block)) {
+					block.addSelect();
+					lastHighlightedBlock = block;
+				}
+				lastHighlightedBlock = block;
+				break;
+			}
+		}
 	}
 
 	function isBlockDraggable(block) {
-	  // Check if block is a shadow block
-	  if (block.isShadow()) {
-		return false;
-	  }
+		// Check if block is a shadow block
+		if (block.isShadow()) {
+			return false;
+		}
 
-	  if (block.previousConnection || block.nextConnection) {
-		return false;
-	  }
+		if (block.previousConnection || block.nextConnection) {
+			return false;
+		}
 
-	  // Check if block is a C-block
-	  if (block.statementInputCount > 0) {
-		return false;
-	  }
+		// Check if block is a C-block
+		if (block.statementInputCount > 0) {
+			return false;
+		}
 
-	  // Check if block is movable
-	  if (!block.isMovable()) {	
-		return false;
-	  }
+		// Check if block is movable
+		if (!block.isMovable()) {
+			return false;
+		}
 
-	  // Check if block is deletable
-	  if (!block.isDeletable()) {
-		return false;
-	  }
+		// Check if block is deletable
+		if (!block.isDeletable()) {
+			return false;
+		}
 
-	  // Output blocks are allowed
-	  if (block.outputConnection) {
+		// Output blocks are allowed
+		if (block.outputConnection) {
+			return true;
+		}
+
 		return true;
-	  }
-
-	  return true;
 	}
 
 	workspace.addChangeListener(function (event) {
@@ -1324,22 +1542,7 @@ window.onload = function () {
 	// Turns on keyboard navigation.
 	//navigationController.enable(workspace);
 
-	const workspaceSearch = new WorkspaceSearch(workspace);
-	workspaceSearch.init();
-
 	console.log("Welcome to Flock 🐑🐑🐑");
-
-	defineBaseBlocks();
-	defineBlocks();
-	defineShapeBlocks();
-	defineGenerators();
-	// Initialize Blockly and add custom context menu options
-	addExportContextMenuOption();
-	addImportContextMenuOption();
-	addExportSVGContextMenuOption();
-	//addExportPNGContextMenuOption();
-	//observeFlyoutVisibility(workspace);
-	window.toolboxVisible = toolboxVisible;
 
 	// Call this function to autosave periodically
 	setInterval(saveWorkspace, 30000); // Autosave every 30 seconds

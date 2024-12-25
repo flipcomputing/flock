@@ -231,6 +231,7 @@ export const options = {
 		wheel: true,
 	},
 	toolbox: toolbox,
+	searchAllBlocks: false,
 	plugins: {
 		// blockDragger: ScrollBlockDragger,
 		//metricsManager: ScrollMetricsManager,
@@ -935,7 +936,7 @@ export function defineBlocks() {
 			this.jsonInit({
 				type: "animation",
 				message0:
-					"animate %1 property %2 group %3\nkeyframes %4\neasing %5 loop %6 reverse %7 mode %8",
+					"animation %1 property %2 group %3\nkeyframes %4\neasing %5 loop %6 reverse %7 mode %8",
 				args0: [
 					{
 						type: "field_variable",
