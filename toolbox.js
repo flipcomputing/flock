@@ -574,6 +574,21 @@ export const toolbox = {
 				},
 				{
 					kind: "block",
+					type: "show",
+					keyword: "show",
+				},
+				{
+					kind: "block",
+					type: "hide",
+					keyword: "hide",
+				},
+				{
+					kind: "block",
+					type: "dispose",
+					keyword: "dispose",
+				},
+				{
+					kind: "block",
 					type: "clone_mesh",
 					keyword: "clone",
 				},
@@ -683,234 +698,6 @@ export const toolbox = {
 				},
 				{
 					kind: "category",
-					name: "Combine",
-					icon: "./images/combine.svg",
-					colour: categoryColours["Scene"],
-					contents: [
-						{
-							kind: "block",
-							type: "merge_meshes",
-							inputsInline: true,
-							inputs: {
-								MESH_LIST: {
-									block: {
-										type: "lists_create_with",
-										inline: true,
-										extraState: {
-											itemCount: 1,
-										},
-										inputs: {
-											ADD0: {
-												block: {
-													type: "variables_get",
-													fields: {
-														VAR: "mesh1", // Default variable for a mesh
-													},
-												},
-											},
-										},
-									},
-								},
-							},
-						},
-						{
-							kind: "block",
-							type: "subtract_meshes",
-							inputsInline: true,
-							inputs: {
-								MESH_LIST: {
-									block: {
-										type: "lists_create_with",
-										inline: true,
-										extraState: {
-											itemCount: 1,
-										},
-										inputs: {
-											ADD0: {
-												block: {
-													type: "variables_get",
-													fields: {
-														VAR: "mesh2", // Default variable for a mesh to subtract
-													},
-												},
-											},
-										},
-									},
-								},
-							},
-						},
-						{
-							kind: "block",
-							type: "intersection_meshes",
-							inputsInline: true,
-							inputs: {
-								MESH_LIST: {
-									block: {
-										type: "lists_create_with",
-										inline: true,
-										extraState: {
-											itemCount: 1,
-										},
-										inputs: {
-											ADD0: {
-												block: {
-													type: "variables_get",
-													fields: {
-														VAR: "mesh1", // Default variable for a mesh
-													},
-												},
-											},
-										},
-									},
-								},
-							},
-						},
-						{
-							kind: "block",
-							type: "hull_meshes",
-							inputsInline: true,
-							inputs: {
-								MESH_LIST: {
-									block: {
-										type: "lists_create_with",
-										inline: true,
-										extraState: {
-											itemCount: 1,
-										},
-										inputs: {
-											ADD0: {
-												block: {
-													type: "variables_get",
-													fields: {
-														VAR: "mesh1", // Default variable for a mesh
-													},
-												},
-											},
-										},
-									},
-								},
-							},
-						},
-					],
-				},
-				{
-					kind: "category",
-					name: "Connect",
-					icon: "./images/connect.svg",
-					colour: categoryColours["Scene"],
-					contents: [
-						{
-							kind: "block",
-							type: "parent_child",
-							keyword: "parent",
-							inputs: {
-								X_OFFSET: {
-									shadow: {
-										type: "math_number",
-										fields: {
-											NUM: 0,
-										},
-									},
-								},
-								Y_OFFSET: {
-									shadow: {
-										type: "math_number",
-										fields: {
-											NUM: 0,
-										},
-									},
-								},
-								Z_OFFSET: {
-									shadow: {
-										type: "math_number",
-										fields: {
-											NUM: 0,
-										},
-									},
-								},
-							},
-						},
-						{
-							kind: "block",
-							type: "remove_parent",
-							keyword: "noparent",
-						},
-						{
-							kind: "block",
-							type: "follow",
-							keyword: "follow",
-							inputs: {
-								X_OFFSET: {
-									shadow: {
-										type: "math_number",
-										fields: {
-											NUM: 0,
-										},
-									},
-								},
-								Y_OFFSET: {
-									shadow: {
-										type: "math_number",
-										fields: {
-											NUM: 0,
-										},
-									},
-								},
-								Z_OFFSET: {
-									shadow: {
-										type: "math_number",
-										fields: {
-											NUM: 0,
-										},
-									},
-								},
-							},
-						},
-						{
-							kind: "block",
-							type: "stop_follow",
-							keyword: "fstop",
-						},
-						{
-							kind: "block",
-							type: "hold",
-							keyword: "hold",
-							inputs: {
-								X_OFFSET: {
-									shadow: {
-										type: "math_number",
-										fields: {
-											NUM: 0,
-										},
-									},
-								},
-								Y_OFFSET: {
-									shadow: {
-										type: "math_number",
-										fields: {
-											NUM: 0,
-										},
-									},
-								},
-								Z_OFFSET: {
-									shadow: {
-										type: "math_number",
-										fields: {
-											NUM: 0,
-										},
-									},
-								},
-							},
-						},
-						{
-							kind: "block",
-							type: "drop",
-							keyword: "drop",
-						},
-					],
-				},
-				{
-					kind: "category",
 					name: "XR",
 					icon: "./images/xr.svg",
 					colour: categoryColours["Scene"],
@@ -965,21 +752,7 @@ export const toolbox = {
 						},
 					],
 				},
-				{
-					kind: "block",
-					type: "show",
-					keyword: "show",
-				},
-				{
-					kind: "block",
-					type: "hide",
-					keyword: "hide",
-				},
-				{
-					kind: "block",
-					type: "dispose",
-					keyword: "dispose",
-				},
+
 				{
 					kind: "block",
 					type: "set_sky_color",
@@ -1648,6 +1421,234 @@ export const toolbox = {
 										type: "math_number",
 										fields: {
 											NUM: 0,
+										},
+									},
+								},
+							},
+						},
+					],
+				},
+				{
+					kind: "category",
+					name: "Connect",
+					icon: "./images/connect.svg",
+					colour: categoryColours["Transform"],
+					contents: [
+						{
+							kind: "block",
+							type: "parent_child",
+							keyword: "parent",
+							inputs: {
+								X_OFFSET: {
+									shadow: {
+										type: "math_number",
+										fields: {
+											NUM: 0,
+										},
+									},
+								},
+								Y_OFFSET: {
+									shadow: {
+										type: "math_number",
+										fields: {
+											NUM: 0,
+										},
+									},
+								},
+								Z_OFFSET: {
+									shadow: {
+										type: "math_number",
+										fields: {
+											NUM: 0,
+										},
+									},
+								},
+							},
+						},
+						{
+							kind: "block",
+							type: "remove_parent",
+							keyword: "noparent",
+						},
+						{
+							kind: "block",
+							type: "follow",
+							keyword: "follow",
+							inputs: {
+								X_OFFSET: {
+									shadow: {
+										type: "math_number",
+										fields: {
+											NUM: 0,
+										},
+									},
+								},
+								Y_OFFSET: {
+									shadow: {
+										type: "math_number",
+										fields: {
+											NUM: 0,
+										},
+									},
+								},
+								Z_OFFSET: {
+									shadow: {
+										type: "math_number",
+										fields: {
+											NUM: 0,
+										},
+									},
+								},
+							},
+						},
+						{
+							kind: "block",
+							type: "stop_follow",
+							keyword: "fstop",
+						},
+						{
+							kind: "block",
+							type: "hold",
+							keyword: "hold",
+							inputs: {
+								X_OFFSET: {
+									shadow: {
+										type: "math_number",
+										fields: {
+											NUM: 0,
+										},
+									},
+								},
+								Y_OFFSET: {
+									shadow: {
+										type: "math_number",
+										fields: {
+											NUM: 0,
+										},
+									},
+								},
+								Z_OFFSET: {
+									shadow: {
+										type: "math_number",
+										fields: {
+											NUM: 0,
+										},
+									},
+								},
+							},
+						},
+						{
+							kind: "block",
+							type: "drop",
+							keyword: "drop",
+						},
+					],
+				},
+				{
+					kind: "category",
+					name: "Combine",
+					icon: "./images/combine.svg",
+					colour: categoryColours["Transform"],
+					contents: [
+						{
+							kind: "block",
+							type: "merge_meshes",
+							inputsInline: true,
+							inputs: {
+								MESH_LIST: {
+									block: {
+										type: "lists_create_with",
+										inline: true,
+										extraState: {
+											itemCount: 1,
+										},
+										inputs: {
+											ADD0: {
+												block: {
+													type: "variables_get",
+													fields: {
+														VAR: "mesh1", // Default variable for a mesh
+													},
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+						{
+							kind: "block",
+							type: "subtract_meshes",
+							inputsInline: true,
+							inputs: {
+								MESH_LIST: {
+									block: {
+										type: "lists_create_with",
+										inline: true,
+										extraState: {
+											itemCount: 1,
+										},
+										inputs: {
+											ADD0: {
+												block: {
+													type: "variables_get",
+													fields: {
+														VAR: "mesh2", // Default variable for a mesh to subtract
+													},
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+						{
+							kind: "block",
+							type: "intersection_meshes",
+							inputsInline: true,
+							inputs: {
+								MESH_LIST: {
+									block: {
+										type: "lists_create_with",
+										inline: true,
+										extraState: {
+											itemCount: 1,
+										},
+										inputs: {
+											ADD0: {
+												block: {
+													type: "variables_get",
+													fields: {
+														VAR: "mesh1", // Default variable for a mesh
+													},
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+						{
+							kind: "block",
+							type: "hull_meshes",
+							inputsInline: true,
+							inputs: {
+								MESH_LIST: {
+									block: {
+										type: "lists_create_with",
+										inline: true,
+										extraState: {
+											itemCount: 1,
+										},
+										inputs: {
+											ADD0: {
+												block: {
+													type: "variables_get",
+													fields: {
+														VAR: "mesh1", // Default variable for a mesh
+													},
+												},
+											},
 										},
 									},
 								},

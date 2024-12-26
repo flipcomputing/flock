@@ -1682,7 +1682,7 @@ export function defineBlocks() {
 						check: "Array",
 					},
 				],
-				colour: categoryColours["Scene"],
+				colour: categoryColours["Transform"],
 				tooltip:
 					"Merge a list of meshes into one and store the result.",
 				helpUrl: "",
@@ -1713,7 +1713,7 @@ export function defineBlocks() {
 						check: "Array",
 					},
 				],
-				colour: categoryColours["Scene"],
+				colour: categoryColours["Transform"],
 				tooltip:
 					"Subtract a list of meshes from a base mesh and store the result.",
 				helpUrl: "",
@@ -1738,7 +1738,7 @@ export function defineBlocks() {
 						check: "Array",
 					},
 				],
-				colour: categoryColours["Scene"],
+				colour: categoryColours["Transform"],
 				tooltip:
 					"Intersect a list of meshes and store the resulting geometry.",
 				helpUrl: "",
@@ -1764,7 +1764,7 @@ export function defineBlocks() {
 						check: "Array",
 					},
 				],
-				colour: categoryColours["Scene"],
+				colour: categoryColours["Transform"],
 				tooltip:
 					"Create a convex hull from a list of meshes and store the result.",
 				helpUrl: "",
@@ -2331,7 +2331,7 @@ export function defineBlocks() {
 				],
 				previousStatement: null,
 				nextStatement: null,
-				colour: categoryColours["Scene"],
+				colour: categoryColours["Transform"],
 				inputsInline: true,
 				tooltip:
 					"Sets a parent-child relationship between two meshes with a specified offset in x, y, and z directions.\nKeyword: parent, child, offset, remove",
@@ -2353,7 +2353,7 @@ export function defineBlocks() {
 				],
 				previousStatement: null,
 				nextStatement: null,
-				colour: categoryColours["Scene"],
+				colour: categoryColours["Transform"],
 				tooltip:
 					"Removes the parent relationship from the specified mesh.\nKeyword: remove, parent, child",
 			});
@@ -2374,7 +2374,7 @@ export function defineBlocks() {
 				],
 				previousStatement: null,
 				nextStatement: null,
-				colour: categoryColours["Scene"],
+				colour: categoryColours["Transform"],
 				tooltip:
 					"Stops the specified mesh from following another.\nKeyword: ",
 			});
@@ -2418,7 +2418,7 @@ export function defineBlocks() {
 				],
 				previousStatement: null,
 				nextStatement: null,
-				colour: categoryColours["Scene"],
+				colour: categoryColours["Transform"],
 				inputsInline: true,
 				tooltip:
 					"Attaches a mesh to the specified bone of another mesh with a specified offset in x, y, and z directions.\nKeyword: attach, bone, mesh, offset",
@@ -2440,7 +2440,7 @@ export function defineBlocks() {
 				],
 				previousStatement: null,
 				nextStatement: null,
-				colour: categoryColours["Scene"],
+				colour: categoryColours["Transform"],
 				inputsInline: true,
 				tooltip:
 					"Detaches a mesh from its currently attached bone.\nKeyword: detach, bone, mesh",
@@ -2491,7 +2491,7 @@ export function defineBlocks() {
 				],
 				previousStatement: null,
 				nextStatement: null,
-				colour: categoryColours["Scene"],
+				colour: categoryColours["Transform"],
 				inputsInline: true,
 				tooltip:
 					"Makes one mesh follow another at a specified position (top, center, or bottom) with offset in x, y, and z directions.",
