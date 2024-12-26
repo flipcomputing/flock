@@ -2401,6 +2401,31 @@ export const toolbox = {
 				},
 				{
 					kind: "block",
+					type: "colour",
+					keyword: "setcol",
+				},
+				{
+					kind: "block",
+					type: "random_colour",
+					keyword: "randcol",
+				},
+				{
+					kind: "block",
+					type: "colour_from_string",
+					keyword: "colstr",
+					inputs: {
+						COLOR: {
+							shadow: {
+								type: "text",
+								fields: {
+									TEXT: "#800080",
+								},
+							},
+						},
+					},
+				},
+				{
+					kind: "block",
 					type: "change_material",
 					keyword: "material",
 					inputs: {
@@ -2664,31 +2689,7 @@ export const toolbox = {
 					type: "colour",
 					keyword: "color",
 				},*/
-				{
-					kind: "block",
-					type: "colour",
-					keyword: "randcol",
-				},
-				{
-					kind: "block",
-					type: "random_colour",
-					keyword: "randcol",
-				},
-				{
-					kind: "block",
-					type: "colour_from_string",
-					keyword: "colstr",
-					inputs: {
-						COLOR: {
-							shadow: {
-								type: "text",
-								fields: {
-									TEXT: "#800080",
-								},
-							},
-						},
-					},
-				},
+
 			],
 		},
 		{
