@@ -23,6 +23,11 @@ export const toolbox = {
 	kind: "categoryToolbox",
 	contents: [
 		{
+			kind: "search",
+			name: "Search",
+			contents: [],
+		},
+		{
 			kind: "category",
 			name: "Events",
 			icon: "./images/events.svg",
@@ -3324,11 +3329,6 @@ export const toolbox = {
 					},
 				},
 			],
-		},
-		{
-			kind: "search",
-			name: "Search",
-			contents: [],
 		},
 	],
 	
