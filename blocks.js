@@ -1621,14 +1621,14 @@ export function defineBlocks() {
 					},
 					{
 						type: "input_value",
-						name: "DEPTH",
-						check: "Number",
-					},
-					{
-						type: "input_value",
 						name: "COLOR",
 						check: "Colour",
 					},
+					{
+						type: "input_value",
+						name: "DEPTH",
+						check: "Number",
+					},					
 					{
 						type: "input_value",
 						name: "X",
@@ -1646,7 +1646,7 @@ export function defineBlocks() {
 					},
 				],
 				inputsInline: true,
-				colour: categoryColours["Scene"],
+				colour: categoryColours["Text"],
 				tooltip: "Creates 3D text in the scene.",
 				helpUrl: "",
 				previousStatement: null,

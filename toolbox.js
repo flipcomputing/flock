@@ -574,21 +574,6 @@ export const toolbox = {
 				},
 				{
 					kind: "block",
-					type: "create_ground",
-					keyword: "ground",
-					inputs: {
-						COLOR: {
-							shadow: {
-								type: "colour",
-								fields: {
-									COLOR: "#71BC78",
-								},
-							},
-						},
-					},
-				},
-				{
-					kind: "block",
 					type: "clone_mesh",
 					keyword: "clone",
 				},
@@ -994,6 +979,51 @@ export const toolbox = {
 					kind: "block",
 					type: "dispose",
 					keyword: "dispose",
+				},
+				{
+					kind: "block",
+					type: "set_sky_color",
+					keyword: "sky",
+					inputs: {
+						COLOR: {
+							shadow: {
+								type: "colour",
+								fields: {
+									COLOR: "#6495ED",
+								},
+							},
+						},
+					},
+				},
+				{
+					kind: "block",
+					type: "create_ground",
+					keyword: "ground",
+					inputs: {
+						COLOR: {
+							shadow: {
+								type: "colour",
+								fields: {
+									COLOR: "#71BC78",
+								},
+							},
+						},
+					},
+				},
+				{
+					kind: "block",
+					type: "set_background_color",
+					keyword: "background",
+					inputs: {
+						COLOR: {
+							shadow: {
+								type: "colour",
+								fields: {
+									COLOR: "#6495ED",
+								},
+							},
+						},
+					},
 				},
 				{
 					kind: "block",
@@ -2654,36 +2684,6 @@ export const toolbox = {
 								type: "text",
 								fields: {
 									TEXT: "#800080",
-								},
-							},
-						},
-					},
-				},
-				{
-					kind: "block",
-					type: "set_sky_color",
-					keyword: "sky",
-					inputs: {
-						COLOR: {
-							shadow: {
-								type: "colour",
-								fields: {
-									COLOR: "#6495ED",
-								},
-							},
-						},
-					},
-				},
-				{
-					kind: "block",
-					type: "set_background_color",
-					keyword: "background",
-					inputs: {
-						COLOR: {
-							shadow: {
-								type: "colour",
-								fields: {
-									COLOR: "#6495ED",
 								},
 							},
 						},
