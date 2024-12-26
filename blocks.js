@@ -775,7 +775,7 @@ export function defineBlocks() {
 		init: function () {
 			this.jsonInit({
 				type: "colour_keyframe",
-				message0: "at %1 colour: %2",
+				message0: "at %1 color: %2",
 				args0: [
 					{
 						type: "input_value",
@@ -4342,7 +4342,7 @@ export function defineBlocks() {
 		init: function () {
 			this.jsonInit({
 				type: "colour_from_string",
-				message0: "colour %1",
+				message0: "color %1",
 				args0: [
 					{
 						type: "input_value",
@@ -4363,7 +4363,7 @@ export function defineBlocks() {
 		init: function () {
 			this.jsonInit({
 				type: "random_colour_block",
-				message0: "random colour",
+				message0: "random color",
 				output: "Colour",
 				colour: categoryColours["Materials"],
 				tooltip: "Generate a random colour.\nKeyword: randcol",

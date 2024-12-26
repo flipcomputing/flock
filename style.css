@@ -364,7 +364,7 @@ path.blocklyPath.blockly-ws-search-highlight.blockly-ws-search-current {
   }
 
   .blocklyTreeRowContentContainer {
-    padding-top: 18px; /* Reserve space for the search box */
+    padding-top: 20px; /* Reserve space for the search box */
   }
 
   #maincontent {
