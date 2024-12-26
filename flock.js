@@ -3722,13 +3722,16 @@ export const flock = {
 					const animatable = flock.scene.beginAnimation(
 						mesh,
 						0,
-						reverse || loop ? frames * 2 : frames, // Double frames if looping or reversing
+						reverse ? frames * 2 : frames,
 						loop,
 					);
-
-					animatable.onAnimationEndObservable.add(() => {
-						if (!loop && !reverse) {
+			animatable.onAnimationEndObservable.add(() => {
+						if (reverse) {
 							// Ensure mesh ends at the final position for non-looping animations
+							mesh.position = startPosition.clone();
+							
+						}
+						else {
 							mesh.position = endPosition.clone();
 						}
 						resolve();
