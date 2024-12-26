@@ -174,6 +174,38 @@ export function defineShapeBlocks() {
 			},
 		};
 
+		Blockly.Blocks["control_particle_system"] = {
+		  init: function () {
+			this.jsonInit({
+			  type: "particle_system_control",
+			  message0: "particle system %1 %2",
+			  args0: [
+				{
+				  type: "field_variable",
+				  name: "SYSTEM_NAME",
+				  variable: "particles1",
+				},
+				{
+				  type: "field_dropdown",
+				  name: "ACTION",
+				  options: [
+					["▶️ Start", "start"],
+					["⏹️ Stop", "stop"],
+					["🔄 Reset", "reset"],
+				  ],
+				},
+			  ],
+			  inputsInline: true,
+			  previousStatement: null,
+			  nextStatement: null,
+			  colour: categoryColours["Scene"],
+			  tooltip:
+				"Controls the particle system by starting, stopping, or resetting it.",
+			  helpUrl: "",
+			});
+		  },
+		};
+
 		
 	}
 

@@ -702,6 +702,12 @@ export const toolbox = {
 					},
 				},
 				{
+					kind: "block",
+					type: "control_particle_system",
+					keyword: "group",
+					inputsInline: true,
+				},
+				{
 					kind: "category",
 					name: "XR",
 					icon: "./images/xr.svg",

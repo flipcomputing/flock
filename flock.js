@@ -121,6 +121,9 @@ export const flock = {
 			playAnimationGroup, 
 			pauseAnimationGroup, 
 			stopAnimationGroup,
+			startParticleSystem,
+			stopParticleSystem,
+			resetParticleSystem,
 			animateKeyFrames,
 			setPivotPoint,
 			rotate,
@@ -1367,10 +1370,12 @@ export const flock = {
 		gravity,
 		direction,
 	}) {
-		return flock.whenModelReady(emitterMesh, (meshInstance) => {
+		let resultName = name  + "_" + flock.scene.getUniqueId(); // Placeholder for the synchronous return value
+
+		flock.whenModelReady(emitterMesh, (meshInstance) => {
 			// Create the particle system
 			const particleSystem = new flock.BABYLON.ParticleSystem(
-				name,
+				resultName,
 				500,
 				flock.scene,
 			);
@@ -1386,14 +1391,12 @@ export const flock = {
 			particleSystem.emitter = meshInstance;
 
 			// Use a MeshParticleEmitter to emit particles from the mesh's surface
-			const meshEmitter = new flock.BABYLON.MeshParticleEmitter(
-				meshInstance,
-			);
+			const meshEmitter = new flock.BABYLON.MeshParticleEmitter(meshInstance);
 			particleSystem.particleEmitterType = meshEmitter;
 			particleSystem.blendMode =
 				BABYLON.ParticleSystem.BLENDMODE_STANDARD;
 			particleSystem.particleTexture.hasAlpha = true;
-			particleSystem.particleTexture.getAlphaFromRGB = false; // Ensure alpha isn't affected by RGB
+			particleSystem.particleTexture.getAlphaFromRGB = false;
 
 			const startColor = flock.BABYLON.Color4.FromHexString(colors.start);
 			const endColor = flock.BABYLON.Color4.FromHexString(colors.end);
@@ -1421,9 +1424,9 @@ export const flock = {
 			particleSystem.addSizeGradient(1, sizes.end);
 
 			// Apply lifetime values
-			particleSystem.minLifeTime = lifetime.min; // Set minimum lifetime
-			particleSystem.maxLifeTime = lifetime.max; // Set maximum lifetime
-			
+			particleSystem.minLifeTime = lifetime.min;
+			particleSystem.maxLifeTime = lifetime.max;
+
 			// Set the emit rate with a maximum limit
 			const MAX_EMIT_RATE = 500;
 			particleSystem.emitRate = Math.min(emitRate, MAX_EMIT_RATE);
@@ -1433,26 +1436,25 @@ export const flock = {
 				? new flock.BABYLON.Vector3(0, -9.81, 0)
 				: new flock.BABYLON.Vector3(0, 0, 0);
 
-			particleSystem.minEmitPower = 1; // Minimum particle speed
-			particleSystem.maxEmitPower = 3; // Maximum particle speed
-			
+			particleSystem.minEmitPower = 1;
+			particleSystem.maxEmitPower = 3;
+
 			if (direction) {
 				const { x, y, z } = direction;
 
 				if (x != 0 || y != 0 || z != 0) {					
 					meshEmitter.useMeshNormalsForDirection = false;
-					meshEmitter.direction1 = new flock.BABYLON.Vector3(x, y, z); // Start direction
-					meshEmitter.direction2 = new flock.BABYLON.Vector3(x, y, z); // End direction
+					meshEmitter.direction1 = new flock.BABYLON.Vector3(x, y, z);
+					meshEmitter.direction2 = new flock.BABYLON.Vector3(x, y, z);
 				}
 			}
 
 			// Start the particle system
 			particleSystem.start();
-
-			return particleSystem;
 		});
-	},
 
+		return resultName; // Return the name immediately
+	},
 	hold(meshToAttach, targetMesh, xOffset = 0, yOffset = 0, zOffset = 0) {
 		return flock.whenModelReady(targetMesh, (targetMeshInstance) => {
 			flock.whenModelReady(meshToAttach, (meshToAttachInstance) => {
@@ -3877,6 +3879,40 @@ export const flock = {
 			console.warn(`Animation group '${groupName}' not found.`);
 		}
 	},
+	startParticleSystem(systemName) {
+		const particleSystem = flock.scene.particleSystems.find(
+			(system) => system.name === systemName,
+		);
+		if (particleSystem) {
+			particleSystem.start();
+		} else {
+			console.warn(`Particle system '${systemName}' not found.`);
+		}
+	},
+
+	stopParticleSystem(systemName) {
+		
+		const particleSystem = flock.scene.particleSystems.find(
+			(system) => system.name === systemName,
+		);
+
+		if (particleSystem) {
+			particleSystem.stop();
+		} else {
+			console.warn(`Particle system '${systemName}' not found.`);
+		}
+	},
+
+	resetParticleSystem(systemName) {
+		const particleSystem = flock.scene.particleSystems.find(
+			(system) => system.name === systemName,
+		);
+		if (particleSystem) {
+			particleSystem.reset();
+		} else {
+			console.warn(`Particle system '${systemName}' not found.`);
+		}
+	},
 	animateFrom(groupName, timeInSeconds) {
 		const animationGroup = flock.scene.animationGroups.find(
 			(group) => group.name === groupName,
@@ -4025,8 +4061,7 @@ export const flock = {
 
 					if (mode === "AWAIT") {
 						animationGroup.onAnimationEndObservable.add(() => {
-							console.log("Animation group completed.");
-							resolve(animationGroupName);
+													resolve(animationGroupName);
 						});
 					} else {
 						resolve(animationGroupName);

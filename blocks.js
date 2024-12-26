@@ -1058,6 +1058,8 @@ export function defineBlocks() {
 		},
 	};
 
+	
+
 	Blockly.Blocks["animate_from"] = {
 		init: function () {
 			this.jsonInit({

@@ -1029,6 +1029,18 @@ export function defineGenerators() {
 		return `${variableName} = createParticleEffect(${options.trim()});\n`;
 	};
 
+	
+	javascriptGenerator.forBlock["control_particle_system"] = function (block) {
+	  const systemName = javascriptGenerator.nameDB_.getName(
+		block.getFieldValue("SYSTEM_NAME"),
+		Blockly.Names.NameType.VARIABLE
+	  );
+	  const action = block.getFieldValue("ACTION");
+
+	  return `${action}ParticleSystem(${systemName});\n`;
+	};
+
+
 	// Function to create a mesh, taking mesh type, parameters, and position as arguments
 	function createMesh(block, meshType, params, position, idPrefix) {
 		let variableName = javascriptGenerator.nameDB_.getName(
