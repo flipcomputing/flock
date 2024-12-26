@@ -26,8 +26,6 @@ export function runGlideToTests(flock) {
 			flock.glideTo(box1, 6, 0, 0, 500).then(() => {
 				const box = flock.scene.getMeshByName(box1);
 
-
-
 				// Assert the box has moved to the correct position
 				expect(box.position.x).to.equal(6);
 				expect(box.position.y).to.equal(0);
