@@ -638,7 +638,7 @@ export const toolbox = {
 							shadow: {
 								type: "colour",
 								fields: {
-									COLOR: "#000000",
+									COLOR: "#00ffff",
 								},
 							},
 						},
@@ -671,7 +671,7 @@ export const toolbox = {
 							shadow: {
 								type: "math_number",
 								fields: {
-									NUM: 0,
+									NUM: 2,
 								},
 							},
 						},
@@ -696,6 +696,38 @@ export const toolbox = {
 								type: "math_number",
 								fields: {
 									NUM: 3,
+								},
+							},
+						},
+						MIN_ANGULAR_SPEED: {
+							shadow: {
+								type: "math_number",
+								fields: {
+									NUM: 0,
+								},
+							},
+						},
+						MAX_ANGULAR_SPEED: {
+							shadow: {
+								type: "math_number",
+								fields: {
+									NUM: 0,
+								},
+							},
+						},
+						MIN_INITIAL_ROTATION: {
+							shadow: {
+								type: "math_number",
+								fields: {
+									NUM: 0,
+								},
+							},
+						},
+						MAX_INITIAL_ROTATION: {
+							shadow: {
+								type: "math_number",
+								fields: {
+									NUM: 0,
 								},
 							},
 						},
@@ -846,305 +878,6 @@ export const toolbox = {
 							},
 						},
 					},
-				},
-			],
-		},
-		{
-			kind: "category",
-			name: "Animate",
-			icon: "./images/animate.svg",
-			colour: categoryColours["Animate"],
-			contents: [
-				{
-					kind: "block",
-					type: "switch_animation",
-					keyword: "switch",
-				},
-				{
-					kind: "block",
-					type: "play_animation",
-					keyword: "play",
-				},
-				{
-					kind: "block",
-					type: "glide_to",
-					keyword: "glide",
-					inputs: {
-						X: {
-							shadow: {
-								type: "math_number",
-								fields: {
-									NUM: 0,
-								},
-							},
-						},
-						Y: {
-							shadow: {
-								type: "math_number",
-								fields: {
-									NUM: 0,
-								},
-							},
-						},
-						Z: {
-							shadow: {
-								type: "math_number",
-								fields: {
-									NUM: 0,
-								},
-							},
-						},
-						DURATION: {
-							shadow: {
-								type: "math_number",
-								fields: {
-									NUM: 1000,
-								},
-							},
-						},
-					},
-				},
-				{
-					kind: "block",
-					type: "rotate_anim",
-					keyword: "rotate",
-					inputs: {
-						ROT_X: {
-							shadow: {
-								type: "math_number",
-								fields: {
-									NUM: 0, // Default rotation for X-axis
-								},
-							},
-						},
-						ROT_Y: {
-							shadow: {
-								type: "math_number",
-								fields: {
-									NUM: 0, // Default rotation for Y-axis
-								},
-							},
-						},
-						ROT_Z: {
-							shadow: {
-								type: "math_number",
-								fields: {
-									NUM: 0, // Default rotation for Z-axis
-								},
-							},
-						},
-						DURATION: {
-							shadow: {
-								type: "math_number",
-								fields: {
-									NUM: 1000, // Default duration in milliseconds
-								},
-							},
-						},
-					},
-				},
-				{
-					kind: "block",
-					type: "stop_animations",
-					keyword: "anistop",
-				},
-				{
-					kind: "category",
-					name: "Keyframe",
-					icon: "./images/keyframe.svg",
-					colour: categoryColours["Animate"],
-					contents: [
-						{
-							kind: "block",
-							type: "animation",
-							keyword: "animation",
-							inputsInline: true, // Set lists to be inline
-							inputs: {
-								KEYFRAMES: {
-								  shadow: {
-									type: "lists_create_with",
-									extraState: {
-									  itemCount: 1,
-									},
-									inputs: {
-									  ADD0: {
-										shadow: {
-										  type: "colour_keyframe",
-										  inputs: {
-											VALUE: {
-											  shadow: {
-												type: "colour",
-												fields: {
-												  COLOR: "#ff0000",
-												},
-											  },
-											},
-											DURATION: {
-											  shadow: {
-												type: "math_number",
-												fields: {
-												  NUM: 1,
-												},
-											  },
-											},
-										  },
-										},
-									  },
-									},
-								  },
-								},
-
-							},
-						},
-						/*{
-							kind: "block",
-							type: "animate_keyframes",
-							keyword: "animate_keyframes",
-							inputsInline: true, // Set lists to be inline
-							inputs: {
-								KEYFRAMES: {
-									block: {
-										type: "lists_create_with",
-										extraState: {
-											itemCount: 1,
-										},
-										inputs: {
-											ADD0: {
-												block: {
-													type: "colour_keyframe",
-													inputs: {
-														VALUE: {
-															shadow: {
-																type: "colour",
-																fields: {
-																	COLOR: "#ff0000", // Default colour: Red
-																},
-															},
-														},
-														DURATION: {
-															shadow: {
-																type: "math_number",
-																fields: {
-																	NUM: 1, // Default duration: 1 second
-																},
-															},
-														},
-													},
-												},
-											},
-										},
-									},
-								},
-							},
-						},*/
-						{
-							kind: "block",
-							type: "control_animation_group",
-							keyword: "group",
-							inputsInline: true,
-						},
-						{
-							kind: "block",
-							type: "animate_from",
-							inputs: {
-								TIME: {
-									shadow: {
-										type: "math_number",
-										fields: {
-											NUM: 1.0, // Default time in seconds
-										},
-									},
-								},
-							},
-						},
-						{
-							kind: "block",
-							type: "colour_keyframe",
-							inputs: {
-								VALUE: {
-									shadow: {
-										type: "colour",
-										fields: {
-											COLOR: "#000080",
-										},
-									},
-								},
-								DURATION: {
-									shadow: {
-										type: "math_number",
-										fields: {
-											NUM: 5,
-										},
-									},
-								},
-							},
-						},
-						{
-							kind: "block",
-							type: "number_keyframe",
-							inputs: {
-								VALUE: {
-									shadow: {
-										type: "math_number",
-										fields: {
-											NUM: 1,
-										},
-									},
-								},
-								DURATION: {
-									shadow: {
-										type: "math_number",
-										fields: {
-											NUM: 1,
-										},
-									},
-								},
-							},
-						},
-						{
-							kind: "block",
-							type: "xyz_keyframe",
-							inputs: {
-								X: {
-									shadow: {
-										type: "math_number",
-										fields: {
-											NUM: 1,
-										},
-									},
-								},
-								Y: {
-									shadow: {
-										type: "math_number",
-										fields: {
-											NUM: 1,
-										},
-									},
-								},
-								Z: {
-									shadow: {
-										type: "math_number",
-										fields: {
-											NUM: 1,
-										},
-									},
-								},
-								DURATION: {
-									shadow: {
-										type: "math_number",
-										fields: {
-											NUM: 1,
-										},
-									},
-								},
-							},
-						},
-						/*{
-							kind: "block",
-							type: "animate_property",
-							keyword: "anp",
-						},*/
-					],
 				},
 			],
 		},
@@ -1671,6 +1404,305 @@ export const toolbox = {
 		},
 		{
 			kind: "category",
+			name: "Animate",
+			icon: "./images/animate.svg",
+			colour: categoryColours["Animate"],
+			contents: [
+				{
+					kind: "block",
+					type: "switch_animation",
+					keyword: "switch",
+				},
+				{
+					kind: "block",
+					type: "play_animation",
+					keyword: "play",
+				},
+				{
+					kind: "block",
+					type: "glide_to",
+					keyword: "glide",
+					inputs: {
+						X: {
+							shadow: {
+								type: "math_number",
+								fields: {
+									NUM: 0,
+								},
+							},
+						},
+						Y: {
+							shadow: {
+								type: "math_number",
+								fields: {
+									NUM: 0,
+								},
+							},
+						},
+						Z: {
+							shadow: {
+								type: "math_number",
+								fields: {
+									NUM: 0,
+								},
+							},
+						},
+						DURATION: {
+							shadow: {
+								type: "math_number",
+								fields: {
+									NUM: 1000,
+								},
+							},
+						},
+					},
+				},
+				{
+					kind: "block",
+					type: "rotate_anim",
+					keyword: "rotate",
+					inputs: {
+						ROT_X: {
+							shadow: {
+								type: "math_number",
+								fields: {
+									NUM: 0, // Default rotation for X-axis
+								},
+							},
+						},
+						ROT_Y: {
+							shadow: {
+								type: "math_number",
+								fields: {
+									NUM: 0, // Default rotation for Y-axis
+								},
+							},
+						},
+						ROT_Z: {
+							shadow: {
+								type: "math_number",
+								fields: {
+									NUM: 0, // Default rotation for Z-axis
+								},
+							},
+						},
+						DURATION: {
+							shadow: {
+								type: "math_number",
+								fields: {
+									NUM: 1000, // Default duration in milliseconds
+								},
+							},
+						},
+					},
+				},
+				{
+					kind: "block",
+					type: "stop_animations",
+					keyword: "anistop",
+				},
+				{
+					kind: "category",
+					name: "Keyframe",
+					icon: "./images/keyframe.svg",
+					colour: categoryColours["Animate"],
+					contents: [
+						{
+							kind: "block",
+							type: "animation",
+							keyword: "animation",
+							inputsInline: true, // Set lists to be inline
+							inputs: {
+								KEYFRAMES: {
+								  shadow: {
+									type: "lists_create_with",
+									extraState: {
+									  itemCount: 1,
+									},
+									inputs: {
+									  ADD0: {
+										shadow: {
+										  type: "colour_keyframe",
+										  inputs: {
+											VALUE: {
+											  shadow: {
+												type: "colour",
+												fields: {
+												  COLOR: "#ff0000",
+												},
+											  },
+											},
+											DURATION: {
+											  shadow: {
+												type: "math_number",
+												fields: {
+												  NUM: 1,
+												},
+											  },
+											},
+										  },
+										},
+									  },
+									},
+								  },
+								},
+
+							},
+						},
+						/*{
+							kind: "block",
+							type: "animate_keyframes",
+							keyword: "animate_keyframes",
+							inputsInline: true, // Set lists to be inline
+							inputs: {
+								KEYFRAMES: {
+									block: {
+										type: "lists_create_with",
+										extraState: {
+											itemCount: 1,
+										},
+										inputs: {
+											ADD0: {
+												block: {
+													type: "colour_keyframe",
+													inputs: {
+														VALUE: {
+															shadow: {
+																type: "colour",
+																fields: {
+																	COLOR: "#ff0000", // Default colour: Red
+																},
+															},
+														},
+														DURATION: {
+															shadow: {
+																type: "math_number",
+																fields: {
+																	NUM: 1, // Default duration: 1 second
+																},
+															},
+														},
+													},
+												},
+											},
+										},
+									},
+								},
+							},
+						},*/
+						{
+							kind: "block",
+							type: "control_animation_group",
+							keyword: "group",
+							inputsInline: true,
+						},
+						{
+							kind: "block",
+							type: "animate_from",
+							inputs: {
+								TIME: {
+									shadow: {
+										type: "math_number",
+										fields: {
+											NUM: 1.0, // Default time in seconds
+										},
+									},
+								},
+							},
+						},
+						{
+							kind: "block",
+							type: "colour_keyframe",
+							inputs: {
+								VALUE: {
+									shadow: {
+										type: "colour",
+										fields: {
+											COLOR: "#000080",
+										},
+									},
+								},
+								DURATION: {
+									shadow: {
+										type: "math_number",
+										fields: {
+											NUM: 5,
+										},
+									},
+								},
+							},
+						},
+						{
+							kind: "block",
+							type: "number_keyframe",
+							inputs: {
+								VALUE: {
+									shadow: {
+										type: "math_number",
+										fields: {
+											NUM: 1,
+										},
+									},
+								},
+								DURATION: {
+									shadow: {
+										type: "math_number",
+										fields: {
+											NUM: 1,
+										},
+									},
+								},
+							},
+						},
+						{
+							kind: "block",
+							type: "xyz_keyframe",
+							inputs: {
+								X: {
+									shadow: {
+										type: "math_number",
+										fields: {
+											NUM: 1,
+										},
+									},
+								},
+								Y: {
+									shadow: {
+										type: "math_number",
+										fields: {
+											NUM: 1,
+										},
+									},
+								},
+								Z: {
+									shadow: {
+										type: "math_number",
+										fields: {
+											NUM: 1,
+										},
+									},
+								},
+								DURATION: {
+									shadow: {
+										type: "math_number",
+										fields: {
+											NUM: 1,
+										},
+									},
+								},
+							},
+						},
+						/*{
+							kind: "block",
+							type: "animate_property",
+							keyword: "anp",
+						},*/
+					],
+				},
+			],
+		},
+		{
+			kind: "category",
 			name: "Control",
 			icon: "./images/control.svg",
 			colour: categoryColours["Control"],
@@ -2090,7 +2122,7 @@ export const toolbox = {
 							shadow: {
 								type: "math_number",
 								fields: {
-									NUM: 50,
+									NUM: 1,
 								},
 							},
 						},
