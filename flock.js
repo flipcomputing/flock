@@ -4644,6 +4644,8 @@ export const flock = {
 		return "#" + result.join("");
 	},
 	getColorFromString(colourString) {
+
+		
 		if (/^#([0-9A-F]{3}){1,2}$/i.test(colourString)) {
 			return colourString;
 		}
@@ -4653,6 +4655,7 @@ export const flock = {
 			colorDiv.style.color = colourString;
 			flock.document.body.appendChild(colorDiv);
 			const computedColor = getComputedStyle(colorDiv).color;
+			
 			flock.document.body.removeChild(colorDiv);
 			return flock.rgbToHex(computedColor);
 		} catch (e) {

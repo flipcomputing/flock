@@ -1285,7 +1285,7 @@ export function defineGenerators() {
 	};
 
 	javascriptGenerator.forBlock["time"] = function (block) {
-		let code = `Math.floor(new Date().getTime())`;
+		let code = `Math.floor(new Date().getTime()) / 1000`;
 		return [code, javascriptGenerator.ORDER_ATOMIC];
 	};
 

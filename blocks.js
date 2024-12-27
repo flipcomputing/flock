@@ -2766,12 +2766,12 @@ export function defineBlocks() {
 		init: function () {
 			this.jsonInit({
 				type: "time",
-				message0: "time in ms",
+				message0: "time in s",
 				args0: [],
 				output: "Number",
 				colour: categoryColours["Sensing"], // Adjust the colour category as necessary
 				inputsInline: true,
-				tooltip: "Returns the current time in milliseconds.",
+				tooltip: "Returns the current time in seconds.",
 				helpUrl: "",
 			});
 		},
