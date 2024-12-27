@@ -1365,6 +1365,12 @@ export const flock = {
 			mesh.setEnabled(true);
 			mesh.visibility = 1;
 
+			const textShape = new flock.BABYLON.PhysicsShapeMesh(
+			  mesh,
+			  flock.scene
+			);
+			flock.applyPhysics(mesh, textShape);
+
 			if (callback) {
 				requestAnimationFrame(callback);
 			}
