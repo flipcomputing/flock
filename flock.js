@@ -1457,11 +1457,10 @@ export const flock = {
 			if (direction) {
 				const { x, y, z } = direction;
 
-				if (x != 0 || y != 0 || z != 0) {					
 					meshEmitter.useMeshNormalsForDirection = false;
 					meshEmitter.direction1 = new flock.BABYLON.Vector3(x, y, z);
 					meshEmitter.direction2 = new flock.BABYLON.Vector3(x, y, z);
-				}
+				
 			}
 
 			// Inside the createParticleEffect function
