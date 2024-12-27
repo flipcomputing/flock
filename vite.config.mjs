@@ -32,6 +32,10 @@ export default {
           dest: 'textures'
         },
         {
+          src: 'fonts/*.json',
+          dest: 'fonts'
+        },
+        {
           src: 'node_modules/blockly/media/*',
           dest: 'blockly/media',
         },

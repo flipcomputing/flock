@@ -1449,15 +1449,27 @@ export const flock = {
 			// Apply gravity if enabled
 			particleSystem.gravity = gravity
 				? new flock.BABYLON.Vector3(0, -9.81, 0)
-				: new flock.BABYLON.Vector3(0, 0, 0);
-
-			particleSystem.minEmitPower = 1;
-			particleSystem.maxEmitPower = 3;
-
+				: new flock.BABYLON.Vector3(0, 0, 0);		
+			
 			if (direction) {
+				
 				const { x, y, z } = direction;
 
+				if(x != 0 || y != 0 || z != 0){
+					particleSystem.minEmitPower = 1;
+					particleSystem.maxEmitPower = 3;
+
 					meshEmitter.useMeshNormalsForDirection = false;
+				}else{
+					
+				console.log("Zero direction"); 
+									 meshEmitter.useMeshFacesOnly = true;
+					meshEmitter.useMeshNormalsForDirection = false;
+					meshEmitter.direction1 = new BABYLON.Vector3(0, 0, 1);
+					meshEmitter.direction2 = new BABYLON.Vector3(0, 0, 1);
+					particleSystem.minEmitPower = 0;
+					particleSystem.maxEmitPower = 0;
+				}
 					meshEmitter.direction1 = new flock.BABYLON.Vector3(x, y, z);
 					meshEmitter.direction2 = new flock.BABYLON.Vector3(x, y, z);
 				
@@ -1477,7 +1489,7 @@ export const flock = {
 				}
 			}
 
-
+			
 			// Start the particle system
 			particleSystem.start();
 		});
