@@ -70,7 +70,8 @@ export function defineShapeBlocks() {
 					message0: `set %1 to particle effect with emitter mesh: %2 
 						shape: %3 colors: start %4 end %5 alpha: %6 to %7 
 						with rate: %8 size: %9 to %10 lifetime: %11 to %12 
-						gravity: %13 force x: %14 y: %15 z: %16`,
+						gravity: %13 force x: %14 y: %15 z: %16 
+						angular speed: %17 to %18 initial angle: %19 to %20`,
 					args0: [
 						{
 							type: "field_variable",
@@ -164,17 +165,38 @@ export function defineShapeBlocks() {
 							type: "input_value",
 							name: "Z",
 							check: "Number",
-						}
+						},
+						{
+							type: "input_value",
+							name: "MIN_ANGULAR_SPEED",
+							check: "Number",
+						},
+						{
+							type: "input_value",
+							name: "MAX_ANGULAR_SPEED",
+							check: "Number",
+						},
+						{
+							type: "input_value",
+							name: "MIN_INITIAL_ROTATION",
+							check: "Number",
+						},
+						{
+							type: "input_value",
+							name: "MAX_INITIAL_ROTATION",
+							check: "Number",
+						},
 					],
 					inputsInline: true,
 					colour: categoryColours["Scene"],
-					tooltip: "Create a particle effect attached to a mesh with configurable shape, gravity, size, colour, transparency, lifetime, and force.",
+					tooltip: "Create a particle effect attached to a mesh with configurable shape, gravity, size, colour, transparency, lifetime, force, and rotation.",
 					helpUrl: "",
 					previousStatement: null,
 					nextStatement: null,
 				});
 			},
 		};
+
 
 		Blockly.Blocks["control_particle_system"] = {
 		  init: function () {

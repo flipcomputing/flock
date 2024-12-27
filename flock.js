@@ -1383,6 +1383,7 @@ export const flock = {
 		shape,
 		gravity,
 		direction,
+		rotation
 	}) {
 		let resultName = name  + "_" + flock.scene.getUniqueId(); // Placeholder for the synchronous return value
 
@@ -1462,6 +1463,21 @@ export const flock = {
 					meshEmitter.direction2 = new flock.BABYLON.Vector3(x, y, z);
 				}
 			}
+
+			// Inside the createParticleEffect function
+			if (rotation) {
+				// Convert angular speeds from degrees per second to radians per second
+				if (rotation.angularSpeed) {
+					particleSystem.minAngularSpeed = rotation.angularSpeed.min * Math.PI / 180;
+					particleSystem.maxAngularSpeed = rotation.angularSpeed.max * Math.PI / 180;
+				}
+				// Convert initial rotations from degrees to radians
+				if (rotation.initialRotation) {
+					particleSystem.minInitialRotation = rotation.initialRotation.min * Math.PI / 180;
+					particleSystem.maxInitialRotation = rotation.initialRotation.max * Math.PI / 180;
+				}
+			}
+
 
 			// Start the particle system
 			particleSystem.start();
