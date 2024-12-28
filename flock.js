@@ -1393,10 +1393,10 @@ export const flock = {
 	}) {
 		let resultName = name  + "_" + flock.scene.getUniqueId(); // Placeholder for the synchronous return value
 
-		flock.whenModelReady(emitterMesh, (meshInstance) => {
+		return flock.whenModelReady(emitterMesh, (meshInstance) => {
 			// Create the particle system
 			const particleSystem = new flock.BABYLON.ParticleSystem(
-				resultName,
+				name,
 				500,
 				flock.scene,
 			);
@@ -1412,12 +1412,11 @@ export const flock = {
 			particleSystem.emitter = meshInstance;
 
 			// Use a MeshParticleEmitter to emit particles from the mesh's surface
-			const meshEmitter = new flock.BABYLON.MeshParticleEmitter(meshInstance);
+			const meshEmitter = new flock.BABYLON.MeshParticleEmitter(
+				meshInstance,
+			);
 			particleSystem.particleEmitterType = meshEmitter;
-			particleSystem.blendMode =
-				BABYLON.ParticleSystem.BLENDMODE_STANDARD;
-			particleSystem.particleTexture.hasAlpha = true;
-			particleSystem.particleTexture.getAlphaFromRGB = false;
+			 particleSystem.blendMode = 4;
 
 			const startColor = flock.BABYLON.Color4.FromHexString(colors.start);
 			const endColor = flock.BABYLON.Color4.FromHexString(colors.end);
@@ -1427,26 +1426,24 @@ export const flock = {
 				startColor.r,
 				startColor.g,
 				startColor.b,
-				alphas.start,
+				alphas.start
 			);
 			const endColorWithAlpha = new flock.BABYLON.Color4(
 				endColor.r,
 				endColor.g,
 				endColor.b,
-				alphas.end,
+				alphas.end
 			);
 
 			// Set colors with alpha
+			// Add color gradients with alpha values
 			particleSystem.addColorGradient(0, startColorWithAlpha);
 			particleSystem.addColorGradient(1, endColorWithAlpha);
+
 
 			// Add size gradients
 			particleSystem.addSizeGradient(0, sizes.start);
 			particleSystem.addSizeGradient(1, sizes.end);
-
-			// Apply lifetime values
-			particleSystem.minLifeTime = lifetime.min;
-			particleSystem.maxLifeTime = lifetime.max;
 
 			// Set the emit rate with a maximum limit
 			const MAX_EMIT_RATE = 500;
@@ -1455,33 +1452,20 @@ export const flock = {
 			// Apply gravity if enabled
 			particleSystem.gravity = gravity
 				? new flock.BABYLON.Vector3(0, -9.81, 0)
-				: new flock.BABYLON.Vector3(0, 0, 0);		
-			
+				: new flock.BABYLON.Vector3(0, 0, 0);
+
 			if (direction) {
-				
+
 				const { x, y, z } = direction;
 
 				if(x != 0 || y != 0 || z != 0){
 					particleSystem.minEmitPower = 1;
 					particleSystem.maxEmitPower = 3;
-
-					meshEmitter.useMeshNormalsForDirection = false;
-				}else{
-					
-				console.log("Zero direction"); 
-									 meshEmitter.useMeshFacesOnly = true;
-					meshEmitter.useMeshNormalsForDirection = false;
-					meshEmitter.direction1 = new BABYLON.Vector3(0, 0, 1);
-					meshEmitter.direction2 = new BABYLON.Vector3(0, 0, 1);
-					particleSystem.minEmitPower = 0;
-					particleSystem.maxEmitPower = 0;
-				}
-					meshEmitter.direction1 = new flock.BABYLON.Vector3(x, y, z);
-					meshEmitter.direction2 = new flock.BABYLON.Vector3(x, y, z);
-				
+					meshEmitter.useMeshNormalsForDirection = false;}
+				meshEmitter.direction1 = new flock.BABYLON.Vector3(x, y, z);
+				meshEmitter.direction2 = new flock.BABYLON.Vector3(x, y, z);
 			}
 
-			// Inside the createParticleEffect function
 			if (rotation) {
 				// Convert angular speeds from degrees per second to radians per second
 				if (rotation.angularSpeed) {
@@ -1495,9 +1479,10 @@ export const flock = {
 				}
 			}
 
-			
 			// Start the particle system
 			particleSystem.start();
+
+			return particleSystem;
 		});
 
 		return resultName; // Return the name immediately
