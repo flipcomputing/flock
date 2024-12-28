@@ -1435,6 +1435,11 @@ export const flock = {
 				alphas.end
 			);
 
+/*			particleSystem.blendMode =
+				BABYLON.ParticleSystem.BLENDMODE_STANDARD;
+			particleSystem.particleTexture.hasAlpha = true;
+			particleSystem.particleTexture.getAlphaFromRGB = false;*/
+
 			// Set colors with alpha
 			// Add color gradients with alpha values
 			particleSystem.addColorGradient(0, startColorWithAlpha);
@@ -1465,9 +1470,12 @@ export const flock = {
 				if(x != 0 || y != 0 || z != 0){
 					particleSystem.minEmitPower = 1;
 					particleSystem.maxEmitPower = 3;
-					meshEmitter.useMeshNormalsForDirection = false;}
-				meshEmitter.direction1 = new flock.BABYLON.Vector3(x, y, z);
-				meshEmitter.direction2 = new flock.BABYLON.Vector3(x, y, z);
+					meshEmitter.useMeshNormalsForDirection = false;
+
+					meshEmitter.direction1 = new flock.BABYLON.Vector3(x, y, z);
+					meshEmitter.direction2 = new flock.BABYLON.Vector3(x, y, z);
+								
+				}				
 			}
 
 			if (rotation) {
