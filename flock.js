@@ -1348,16 +1348,19 @@ export const flock = {
 					depth: depth,
 				},
 				flock.scene,
-				earcut
+				earcut,
 			);
 
 			mesh.position.set(x, y, z);
-			const material = new BABYLON.StandardMaterial("textMaterial", flock.scene);
+			const material = new BABYLON.StandardMaterial(
+				"textMaterial",
+				flock.scene,
+			);
 
 			material.diffuseColor = flock.BABYLON.Color3.FromHexString(
 				flock.getColorFromString(color),
 			);
-			
+
 			mesh.material = material;
 
 			mesh.computeWorldMatrix(true);
@@ -1366,8 +1369,8 @@ export const flock = {
 			mesh.visibility = 1;
 
 			const textShape = new flock.BABYLON.PhysicsShapeMesh(
-			  mesh,
-			  flock.scene
+				mesh,
+				flock.scene,
 			);
 			flock.applyPhysics(mesh, textShape);
 
@@ -1389,9 +1392,9 @@ export const flock = {
 		shape,
 		gravity,
 		direction,
-		rotation
+		rotation,
 	}) {
-		let resultName = name  + "_" + flock.scene.getUniqueId(); // Placeholder for the synchronous return value
+		let resultName = name + "_" + flock.scene.getUniqueId(); // Placeholder for the synchronous return value
 
 		flock.whenModelReady(emitterMesh, (meshInstance) => {
 			// Create the particle system
@@ -1416,7 +1419,7 @@ export const flock = {
 				meshInstance,
 			);
 			particleSystem.particleEmitterType = meshEmitter;
-			 particleSystem.blendMode = 4;
+			particleSystem.blendMode = 4;
 
 			const startColor = flock.BABYLON.Color4.FromHexString(colors.start);
 			const endColor = flock.BABYLON.Color4.FromHexString(colors.end);
@@ -1426,16 +1429,16 @@ export const flock = {
 				startColor.r,
 				startColor.g,
 				startColor.b,
-				alphas.start
+				alphas.start,
 			);
 			const endColorWithAlpha = new flock.BABYLON.Color4(
 				endColor.r,
 				endColor.g,
 				endColor.b,
-				alphas.end
+				alphas.end,
 			);
 
-/*			particleSystem.blendMode =
+			/*			particleSystem.blendMode =
 				BABYLON.ParticleSystem.BLENDMODE_STANDARD;
 			particleSystem.particleTexture.hasAlpha = true;
 			particleSystem.particleTexture.getAlphaFromRGB = false;*/
@@ -1445,7 +1448,6 @@ export const flock = {
 			particleSystem.addColorGradient(0, startColorWithAlpha);
 			particleSystem.addColorGradient(1, endColorWithAlpha);
 
-
 			// Add size gradients
 			particleSystem.addSizeGradient(0, sizes.start);
 			particleSystem.addSizeGradient(1, sizes.end);
@@ -1453,7 +1455,7 @@ export const flock = {
 			// Apply lifetime values
 			particleSystem.minLifeTime = lifetime.min;
 			particleSystem.maxLifeTime = lifetime.max;
-			
+
 			// Set the emit rate with a maximum limit
 			const MAX_EMIT_RATE = 500;
 			particleSystem.emitRate = Math.min(emitRate, MAX_EMIT_RATE);
@@ -1464,30 +1466,32 @@ export const flock = {
 				: new flock.BABYLON.Vector3(0, 0, 0);
 
 			if (direction) {
-
 				const { x, y, z } = direction;
 
-				if(x != 0 || y != 0 || z != 0){
+				if (x != 0 || y != 0 || z != 0) {
 					particleSystem.minEmitPower = 1;
 					particleSystem.maxEmitPower = 3;
 					meshEmitter.useMeshNormalsForDirection = false;
 
 					meshEmitter.direction1 = new flock.BABYLON.Vector3(x, y, z);
 					meshEmitter.direction2 = new flock.BABYLON.Vector3(x, y, z);
-								
-				}				
+				}
 			}
 
 			if (rotation) {
 				// Convert angular speeds from degrees per second to radians per second
 				if (rotation.angularSpeed) {
-					particleSystem.minAngularSpeed = rotation.angularSpeed.min * Math.PI / 180;
-					particleSystem.maxAngularSpeed = rotation.angularSpeed.max * Math.PI / 180;
+					particleSystem.minAngularSpeed =
+						(rotation.angularSpeed.min * Math.PI) / 180;
+					particleSystem.maxAngularSpeed =
+						(rotation.angularSpeed.max * Math.PI) / 180;
 				}
 				// Convert initial rotations from degrees to radians
 				if (rotation.initialRotation) {
-					particleSystem.minInitialRotation = rotation.initialRotation.min * Math.PI / 180;
-					particleSystem.maxInitialRotation = rotation.initialRotation.max * Math.PI / 180;
+					particleSystem.minInitialRotation =
+						(rotation.initialRotation.min * Math.PI) / 180;
+					particleSystem.maxInitialRotation =
+						(rotation.initialRotation.max * Math.PI) / 180;
 				}
 			}
 
@@ -2252,15 +2256,16 @@ export const flock = {
 	dispose(modelName) {
 		return flock.whenModelReady(modelName, (mesh) => {
 			let meshesToDispose = [mesh];
-			
-			if (mesh.getChildMeshes)
-			{
-				meshesToDispose = mesh.getChildMeshes().concat(mesh)
 
-					const disposedMaterials = new Set();
+			if (mesh.getChildMeshes) {
+				meshesToDispose = mesh.getChildMeshes().concat(mesh);
 
-					// Process AnimationGroups
-					flock.scene.animationGroups.slice().forEach((animationGroup) => {
+				const disposedMaterials = new Set();
+
+				// Process AnimationGroups
+				flock.scene.animationGroups
+					.slice()
+					.forEach((animationGroup) => {
 						const targets = animationGroup.targetedAnimations.map(
 							(anim) => anim.target,
 						);
@@ -2274,81 +2279,80 @@ export const flock = {
 							) ||
 							targets.length === 0 // Orphaned group
 						) {
-							animationGroup.targetedAnimations.forEach((anim) => {
-								anim.target = null; // Detach references
-							});
+							animationGroup.targetedAnimations.forEach(
+								(anim) => {
+									anim.target = null; // Detach references
+								},
+							);
 							animationGroup.stop();
 							animationGroup.dispose();
 						}
 					});
 
-					// Dispose standalone animations
-					meshesToDispose.forEach((currentMesh) => {
-						if (currentMesh.animations) {
-							currentMesh.animations.forEach((animation) => {
-								animation.dispose?.();
-							});
-							currentMesh.animations.length = 0;
-						}
-					});
+				// Dispose standalone animations
+				meshesToDispose.forEach((currentMesh) => {
+					if (currentMesh.animations) {
+						currentMesh.animations.forEach((animation) => {
+							animation.dispose?.();
+						});
+						currentMesh.animations.length = 0;
+					}
+				});
 
-					// Detach and Dispose Materials
-					meshesToDispose.forEach((currentMesh) => {
-						if (currentMesh.material) {
-							const material = currentMesh.material;
+				// Detach and Dispose Materials
+				meshesToDispose.forEach((currentMesh) => {
+					if (currentMesh.material) {
+						const material = currentMesh.material;
 
-							// Detach material from the mesh
-							currentMesh.material = null;
+						// Detach material from the mesh
+						currentMesh.material = null;
 
-							// Dispose material if not already disposed
-							if (!disposedMaterials.has(material)) {
-								const sharedMaterials =
-									currentMesh.metadata?.sharedMaterials;
+						// Dispose material if not already disposed
+						if (!disposedMaterials.has(material)) {
+							const sharedMaterials =
+								currentMesh.metadata?.sharedMaterials;
 
-								if (sharedMaterials === false) {
-									disposedMaterials.add(material);
+							if (sharedMaterials === false) {
+								disposedMaterials.add(material);
 
-									// Remove from scene.materials
-									flock.scene.materials =
-										flock.scene.materials.filter(
-											(mat) => mat !== material,
-										);
+								// Remove from scene.materials
+								flock.scene.materials =
+									flock.scene.materials.filter(
+										(mat) => mat !== material,
+									);
 
-									// Dispose the material
-									material.dispose();
-								}
+								// Dispose the material
+								material.dispose();
 							}
 						}
-					});
+					}
+				});
 
-					// Break parent-child relationships
-					meshesToDispose.forEach((currentMesh) => {
-						currentMesh.parent = null;
-					});
+				// Break parent-child relationships
+				meshesToDispose.forEach((currentMesh) => {
+					currentMesh.parent = null;
+				});
 
-					// Dispose meshes in reverse order
-					meshesToDispose.reverse().forEach((currentMesh) => {
-						if (!currentMesh.isDisposed()) {
-							// Remove physics body
-							if (currentMesh.physics) {
-								currentMesh.physics.dispose();
-							}
-
-							// Remove from scene
-							flock.scene.removeMesh(currentMesh);
-							currentMesh.setEnabled(false);
-
-							// Dispose the mesh
-							currentMesh.dispose();
+				// Dispose meshes in reverse order
+				meshesToDispose.reverse().forEach((currentMesh) => {
+					if (!currentMesh.isDisposed()) {
+						// Remove physics body
+						if (currentMesh.physics) {
+							currentMesh.physics.dispose();
 						}
-					});
-				
-			}
-			else{
+
+						// Remove from scene
+						flock.scene.removeMesh(currentMesh);
+						currentMesh.setEnabled(false);
+
+						// Dispose the mesh
+						currentMesh.dispose();
+					}
+				});
+			} else {
 				mesh.dispose();
 			}
-			
-			});
+		});
 	},
 	async playAnimation(
 		modelName,
@@ -3755,13 +3759,19 @@ export const flock = {
 						reverse ? frames * 2 : frames,
 						loop,
 					);
-			animatable.onAnimationEndObservable.add(() => {
+
+					console.log("Physics", mesh.physics);
+
+					mesh.physics.disablePreStep = false;
+					mesh.physics.setPrestepType(
+						flock.BABYLON.PhysicsPrestepType.ACTION,
+					);
+
+					animatable.onAnimationEndObservable.add(() => {
 						if (reverse) {
 							// Ensure mesh ends at the final position for non-looping animations
 							mesh.position = startPosition.clone();
-							
-						}
-						else {
+						} else {
 							mesh.position = endPosition.clone();
 						}
 						resolve();
@@ -3949,7 +3959,6 @@ export const flock = {
 	},
 
 	stopParticleSystem(systemName) {
-		
 		const particleSystem = flock.scene.particleSystems.find(
 			(system) => system.name === systemName,
 		);
@@ -4004,6 +4013,7 @@ export const flock = {
 		mode = "START", // Default to starting the animation
 	) {
 		return new Promise(async (resolve) => {
+			
 			// Ensure animationGroupName is not null; generate a unique name if it is
 			animationGroupName =
 				animationGroupName || `animation_${flock.scene.getUniqueId()}`;
@@ -4025,6 +4035,10 @@ export const flock = {
 					resolve(animationGroupName);
 					return;
 				}
+				mesh.physics.disablePreStep = false;
+				mesh.physics.setPrestepType(
+					flock.BABYLON.PhysicsPrestepType.ACTION,
+				);
 				if (property === "alpha") {
 					flock.ensureUniqueMaterial(mesh);
 				}
@@ -4119,7 +4133,7 @@ export const flock = {
 
 					if (mode === "AWAIT") {
 						animationGroup.onAnimationEndObservable.add(() => {
-													resolve(animationGroupName);
+							resolve(animationGroupName);
 						});
 					} else {
 						resolve(animationGroupName);
@@ -4647,8 +4661,6 @@ export const flock = {
 		return "#" + result.join("");
 	},
 	getColorFromString(colourString) {
-
-		
 		if (/^#([0-9A-F]{3}){1,2}$/i.test(colourString)) {
 			return colourString;
 		}
@@ -4658,7 +4670,7 @@ export const flock = {
 			colorDiv.style.color = colourString;
 			flock.document.body.appendChild(colorDiv);
 			const computedColor = getComputedStyle(colorDiv).color;
-			
+
 			flock.document.body.removeChild(colorDiv);
 			return flock.rgbToHex(computedColor);
 		} catch (e) {
@@ -4820,7 +4832,9 @@ export const flock = {
 
 			// Assign material properties
 			material.diffuseTexture = texture;
-			material.diffuseColor = flock.BABYLON.Color3.FromHexString(flock.getColorFromString(color));
+			material.diffuseColor = flock.BABYLON.Color3.FromHexString(
+				flock.getColorFromString(color),
+			);
 			material.name = materialName;
 
 			// Apply material to all meshes
