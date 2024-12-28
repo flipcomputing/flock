@@ -1393,10 +1393,10 @@ export const flock = {
 	}) {
 		let resultName = name  + "_" + flock.scene.getUniqueId(); // Placeholder for the synchronous return value
 
-		return flock.whenModelReady(emitterMesh, (meshInstance) => {
+		flock.whenModelReady(emitterMesh, (meshInstance) => {
 			// Create the particle system
 			const particleSystem = new flock.BABYLON.ParticleSystem(
-				name,
+				resultName,
 				500,
 				flock.scene,
 			);
