@@ -4820,7 +4820,7 @@ export const flock = {
 
 			// Assign material properties
 			material.diffuseTexture = texture;
-			material.diffuseColor = flock.BABYLON.Color3.FromHexString(color);
+			material.diffuseColor = flock.BABYLON.Color3.FromHexString(flock.getColorFromString(color));
 			material.name = materialName;
 
 			// Apply material to all meshes
