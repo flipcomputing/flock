@@ -160,17 +160,17 @@ function cloneWithMaterials(tempMesh) {
 	return clonedMesh;
 }
 
-function changeModel(tempMesh, mesh, modelName){
-	const newObjectMesh = cloneWithMaterials(flock.scene
-		.getMeshByName(tempMesh)
-		.getChildMeshes()[0]);
+function changeModel(tempMesh, mesh, modelName) {
+	const newObjectMesh = cloneWithMaterials(
+		flock.scene.getMeshByName(tempMesh).getChildMeshes()[0],
+	);
 
 	mesh.getChildMeshes()[0].dispose();
 
 	newObjectMesh.parent = mesh;
 
 	newObjectMesh.metadata.modelName = modelName;
-		flock.scene.getMeshByName(tempMesh).dispose();
+	flock.scene.getMeshByName(tempMesh).dispose();
 }
 
 export function updateMeshFromBlock(mesh, block, changeEvent) {
@@ -185,6 +185,8 @@ export function updateMeshFromBlock(mesh, block, changeEvent) {
 			.getInput("COLOR")
 			.connection.targetBlock()
 			.getFieldValue("COLOR");
+
+		console.log("Getting colour", color);
 	}
 
 	if (block.type.startsWith("load_")) {
@@ -381,7 +383,10 @@ export function updateMeshFromBlock(mesh, block, changeEvent) {
 	}
 
 	// Use flock API to change the color and position of the mesh
-	if (color) flock.changeColor(mesh.name, color);
+	if (color) {
+		color = flock.getColorFromString(color);
+		flock.changeColor(mesh.name, color);
+	}
 }
 
 function createMeshOnCanvas(block) {
