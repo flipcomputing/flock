@@ -4233,6 +4233,7 @@ export function defineBlocks() {
 						type: "field_colour",
 						name: "COLOR",
 						colour: "#9932CC",
+
 					},
 				],
 				output: "Colour",
@@ -4341,24 +4342,25 @@ export function defineBlocks() {
 	};
 
 	Blockly.Blocks["colour_from_string"] = {
-		init: function () {
-			this.jsonInit({
-				type: "colour_from_string",
-				message0: "color %1",
-				args0: [
-					{
-						type: "input_value",
-						name: "COLOR",
-						check: "String",
-					},
-				],
-				output: "Colour",
-				colour: categoryColours["Materials"],
-				tooltip:
-					"Returns a colour from a hex code or CSS colour name.\nKeyword: #color",
-				helpUrl: "",
-			});
-		},
+	  init: function () {
+		this.jsonInit({
+		  message0: "- %1 -",
+		  args0: [
+			{
+			  type: "field_input",
+			  name: "COLOR",
+			  text: "#800080"
+			}
+		  ],
+		  output: "Colour"
+		});
+
+this.getField("COLOR").setValidator(function (newVal) {
+		  const validatedVal =flock.getColorFromString(newVal) || "#000000";
+			this.sourceBlock_.setColour(validatedVal);
+		  return newVal;
+		});
+	  }
 	};
 
 	Blockly.Blocks["random_colour"] = {

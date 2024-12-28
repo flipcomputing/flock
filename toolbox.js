@@ -2456,17 +2456,7 @@ export const toolbox = {
 				{
 					kind: "block",
 					type: "colour_from_string",
-					keyword: "colstr",
-					inputs: {
-						COLOR: {
-							shadow: {
-								type: "text",
-								fields: {
-									TEXT: "#800080",
-								},
-							},
-						},
-					},
+					keyword: "colstr"
 				},
 				{
 					kind: "block",

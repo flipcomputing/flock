@@ -1259,12 +1259,12 @@
                             }
                           }
                         },
-                        "SLEEVES_COLOR": {
+                        "TSHIRT_COLOR": {
                           "shadow": {
                             "type": "colour",
-                            "id": "@/+l+L6aEwKN{i@L3,aO",
+                            "id": "zt,o@Mmib01OfX_UdWlD",
                             "fields": {
-                              "COLOR": "#ff6600"
+                              "COLOR": "#6600cc"
                             }
                           }
                         },
@@ -1277,12 +1277,12 @@
                             }
                           }
                         },
-                        "TSHIRT_COLOR": {
+                        "SLEEVES_COLOR": {
                           "shadow": {
                             "type": "colour",
-                            "id": "zt,o@Mmib01OfX_UdWlD",
+                            "id": "@/+l+L6aEwKN{i@L3,aO",
                             "fields": {
-                              "COLOR": "#6600cc"
+                              "COLOR": "#ff6600"
                             }
                           }
                         }
@@ -2800,17 +2800,9 @@
                                                                       },
                                                                       "block": {
                                                                         "type": "colour_from_string",
-                                                                        "id": "T$Kp-X2[/UA0.L`f|+2p",
-                                                                        "inputs": {
-                                                                          "COLOR": {
-                                                                            "shadow": {
-                                                                              "type": "text",
-                                                                              "id": "(J[t@dO%U-=:/*N1=#,n",
-                                                                              "fields": {
-                                                                                "TEXT": "#008800"
-                                                                              }
-                                                                            }
-                                                                          }
+                                                                        "id": "2i6]eGTaajVeK;zbbdZ5",
+                                                                        "fields": {
+                                                                          "COLOR": "#008000"
                                                                         }
                                                                       }
                                                                     }
@@ -3030,17 +3022,9 @@
                                                                                   "B": {
                                                                                     "block": {
                                                                                       "type": "colour_from_string",
-                                                                                      "id": "HlL[$3Q^u^-MT0g8?(}e",
-                                                                                      "inputs": {
-                                                                                        "COLOR": {
-                                                                                          "shadow": {
-                                                                                            "type": "text",
-                                                                                            "id": "t_P6sqtK4~d=:nJQn:`!",
-                                                                                            "fields": {
-                                                                                              "TEXT": "#008800"
-                                                                                            }
-                                                                                          }
-                                                                                        }
+                                                                                      "id": "q4#M0]3Y~.-sOj4,`oj8",
+                                                                                      "fields": {
+                                                                                        "COLOR": "#008000"
                                                                                       }
                                                                                     }
                                                                                   }
@@ -3082,7 +3066,7 @@
                                                                                         "id": "(szKR03q2PRmgy2C+;LF",
                                                                                         "fields": {
                                                                                           "ID_VAR": {
-                                                                                            "id": "H.(-m;^bd}KrEn~l?2n]"
+                                                                                            "id": "B9AuuiqdA=-4+,W#DN{0"
                                                                                           },
                                                                                           "SOUND_NAME": "lowDown.ogg",
                                                                                           "MODE": "ONCE",
@@ -3148,17 +3132,9 @@
                                                                                                 },
                                                                                                 "block": {
                                                                                                   "type": "colour_from_string",
-                                                                                                  "id": "2UaTT;=o$QV.#AsB!w%J",
-                                                                                                  "inputs": {
-                                                                                                    "COLOR": {
-                                                                                                      "shadow": {
-                                                                                                        "type": "text",
-                                                                                                        "id": "T+XWp(Y:q7tM=}lw9P2#",
-                                                                                                        "fields": {
-                                                                                                          "TEXT": "#008800"
-                                                                                                        }
-                                                                                                      }
-                                                                                                    }
+                                                                                                  "id": "iW.i](L)muO9Jwh.R=[O",
+                                                                                                  "fields": {
+                                                                                                    "COLOR": "#008000"
                                                                                                   }
                                                                                                 }
                                                                                               },
@@ -3487,9 +3463,7 @@
               "inline": true,
               "extraState": {
                 "name": "forest",
-                "params": [
-                  "seed"
-                ]
+                "params": ["seed"]
               },
               "inputs": {
                 "ARG0": {
@@ -3512,10 +3486,6 @@
     {
       "name": "player",
       "id": "f=8($HYZoE:IjT|U8x8J"
-    },
-    {
-      "name": "sound1",
-      "id": "[M~[3_S:EYe8;l#KV?ki"
     },
     {
       "name": "seed",
@@ -3558,22 +3528,6 @@
       "id": "aEI5uKj{,04VX^BA[LAT"
     },
     {
-      "name": "angle",
-      "id": "?p/!3hVrxZWw+yrYx5?l"
-    },
-    {
-      "name": "candy_x",
-      "id": "e*V+01{z:BXcK8ZFGl;i"
-    },
-    {
-      "name": "candy_y",
-      "id": "6vUroz#gK3y3kmuzpS3t"
-    },
-    {
-      "name": "candy_z",
-      "id": "ofnOEa;6DP@YMhX_KAB|"
-    },
-    {
       "name": "candy_colour",
       "id": "2XuaBX75pVfIURl(]`k,"
     },
@@ -3586,24 +3540,12 @@
       "id": "D;Y:no6Fi|SOrv]9~^tk"
     },
     {
-      "name": "sound3",
-      "id": "|+lf_;(.i2Ppg+X9T0j|"
-    },
-    {
-      "name": "sound4",
-      "id": "6AiR{fI,W_kb_+qw3;jv"
-    },
-    {
       "name": "yuck",
       "id": "eCslcC(@4jNh+mPoExRi"
     },
     {
       "name": "k",
       "id": ".WcC=?HM2@vVV~nq(0/i"
-    },
-    {
-      "name": "m",
-      "id": ":Lu%s2fpFL#PG*:gq8b*"
     },
     {
       "name": "start time",
@@ -3622,40 +3564,12 @@
       "id": "t[RF7190;32v7r1*+8w2"
     },
     {
-      "name": "sound7",
-      "id": "$|zVGe5.]h-tl?|0/k!A"
-    },
-    {
-      "name": "sound8",
-      "id": "PpE|E}^mN*vF(Pc+;I]G"
-    },
-    {
-      "name": "mesh2",
-      "id": "4LZ5p-[ey9p7EYwfZo05"
-    },
-    {
-      "name": "sound9",
-      "id": "}@=9^$wK_h`n:6RT4eC^"
-    },
-    {
       "name": "camera",
       "id": "XY^YJdj*+HGRan%pg:?C"
     },
     {
-      "name": "animation1",
-      "id": "NH-KJ4NhysLXgcq~s;,!"
-    },
-    {
-      "name": "soundundefined",
-      "id": "PSY#Qv_o479h0_]m*#NZ"
-    },
-    {
-      "name": "sound10",
-      "id": "H.(-m;^bd}KrEn~l?2n]"
-    },
-    {
-      "name": "item",
-      "id": "uay9%U.y[gaykxId+m+p"
+      "name": "sound1",
+      "id": "B9AuuiqdA=-4+,W#DN{0"
     }
   ]
 }

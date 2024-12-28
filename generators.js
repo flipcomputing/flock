@@ -2098,7 +2098,6 @@ export function defineGenerators() {
 		const code = `"${colour}"`;
 		return [code, javascriptGenerator.ORDER_ATOMIC];
 	};
-
 	javascriptGenerator.forBlock["material"] = function (block) {
 		const baseColor =
 			javascriptGenerator.valueToCode(
@@ -2284,7 +2283,7 @@ export function defineGenerators() {
 		return [code, javascriptGenerator.ORDER_ATOMIC];
 	};
 
-	javascriptGenerator.forBlock["colour_from_string"] = function (block) {
+	javascriptGenerator.forBlock["colour_from_string2"] = function (block) {
 		const color =
 			javascriptGenerator.valueToCode(
 				block,
@@ -2294,6 +2293,11 @@ export function defineGenerators() {
 
 		const code = `${color}`;
 		return [code, javascriptGenerator.ORDER_ATOMIC];
+	};
+
+	javascriptGenerator.forBlock["colour_from_string"] = function (block) {
+	  const colourValue = block.getFieldValue("COLOR") || "#000000";
+	  return [`"${colourValue}"`, javascriptGenerator.ORDER_ATOMIC];
 	};
 
 	javascriptGenerator.forBlock["procedures_defnoreturn"] = function (block) {
