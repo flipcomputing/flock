@@ -3784,60 +3784,100 @@ export const flock = {
 				return "material.alpha";
 
 			default:
-				// Fallback to generic property
+				// Handle rotation.x, rotation.y, rotation.z with quaternions
+				if (
+					["rotation.x", "rotation.y", "rotation.z"].includes(property) &&
+					mesh.rotationQuaternion // Only applies if using quaternions
+				) {
+					return "rotationQuaternion"; // Map to rotationQuaternion
+				}
+
+				// Leave everything else unchanged
 				return property;
 		}
 	},
 	determineAnimationType(property) {
-		switch (true) {
-			case property === "color":
-				return BABYLON.Animation.ANIMATIONTYPE_COLOR3;
+		// Handle rotation.x, rotation.y, rotation.z with quaternions
+		if (["rotation.x", "rotation.y", "rotation.z"].includes(property)) {
+			console.log("Detected rotation property.");
+			return flock.BABYLON.Animation.ANIMATIONTYPE_QUATERNION; // Quaternion type
+		}
 
-			case ["position", "rotation", "scaling"].some((p) =>
-				property === p, 
-			):
-				return BABYLON.Animation.ANIMATIONTYPE_VECTOR3;
+		switch (property) {
+			case "color":
+				return flock.BABYLON.Animation.ANIMATIONTYPE_COLOR3;
+
+			case "position":
+			case "rotation":
+			case "scaling":
+				return flock.BABYLON.Animation.ANIMATIONTYPE_VECTOR3; // Full Vector3 properties
 
 			default:
-				return BABYLON.Animation.ANIMATIONTYPE_FLOAT;
+				return flock.BABYLON.Animation.ANIMATIONTYPE_FLOAT; // Scalars like position.x and scaling.x
 		}
 	},
-	parseKeyframeValue(property, value) {
-		console.log(property, value);
+	parseKeyframeValue(property, value, mesh) {
+
+		// Handle quaternion rotation for rotation.x, rotation.y, and rotation.z
 		if (
-			["rotation.x", "rotation.y", "rotation.z"].some((p) =>
-				property === p,
-			)
+			["rotation.x", "rotation.y", "rotation.z"].includes(property) &&
+			mesh.rotationQuaternion // Only applies if using quaternions
 		) {
-			console.log("Handling rotation", value);
-			return BABYLON.Tools.ToRadians(value); // Single-axis rotation in degrees
+			// Ensure the quaternion exists
+			if (!mesh.rotationQuaternion) {
+				mesh.rotationQuaternion = BABYLON.Quaternion.FromEulerVector(
+					mesh.rotation || BABYLON.Vector3.Zero()
+				);
+			}
+
+			// Convert quaternion to Euler angles
+			const euler = mesh.rotationQuaternion.toEulerAngles();
+
+			// Update the specified axis (convert degrees to radians)
+			const radians = BABYLON.Tools.ToRadians(value); // Degrees → Radians
+			switch (property) {
+				case "rotation.x":
+					euler.x = radians;
+					break;
+				case "rotation.y":
+					euler.y = radians;
+					break;
+				case "rotation.z":
+					euler.z = radians;
+					break;
+			}
+
+			// Return the updated quaternion
+			return BABYLON.Quaternion.RotationYawPitchRoll(
+				euler.y, euler.x, euler.z
+			);
 		}
 
+		// Handle full Vector3 rotations
 		if (property.startsWith("rotation")) {
-			// Handle Vector3 rotation values
 			if (value instanceof BABYLON.Vector3) {
 				return new BABYLON.Vector3(
 					BABYLON.Tools.ToRadians(value.x || 0),
 					BABYLON.Tools.ToRadians(value.y || 0),
-					BABYLON.Tools.ToRadians(value.z || 0),
+					BABYLON.Tools.ToRadians(value.z || 0)
 				);
 			} else if (typeof value === "string") {
-				// Handle Vector3 string input like "0, 90, 180"
 				const vectorValues = value.match(/-?\d+(\.\d+)?/g).map(Number);
 				return new BABYLON.Vector3(
 					BABYLON.Tools.ToRadians(vectorValues[0] || 0),
 					BABYLON.Tools.ToRadians(vectorValues[1] || 0),
-					BABYLON.Tools.ToRadians(vectorValues[2] || 0),
+					BABYLON.Tools.ToRadians(vectorValues[2] || 0)
 				);
 			}
 		}
 
+		// Colors remain unchanged
 		if (property === "color") {
 			return BABYLON.Color3.FromHexString(value);
 		}
 
+		// Handle position and scaling as Vector3
 		if (["position", "scaling"].some((p) => property.startsWith(p))) {
-			// Handle Vector3 position and scaling
 			if (value instanceof BABYLON.Vector3) {
 				return value;
 			} else if (typeof value === "string") {
@@ -3845,14 +3885,14 @@ export const flock = {
 				return new BABYLON.Vector3(
 					vectorValues[0] || 0,
 					vectorValues[1] || 0,
-					vectorValues[2] || 0,
+					vectorValues[2] || 0
 				);
 			}
 		}
 
-		// Handle single-axis properties like position.x, scaling.x, etc.
+		// Scalar values for properties like position.x, scaling.x
 		if (/\.(x|y|z)$/.test(property)) {
-			return parseFloat(value);
+			return parseFloat(value); // Scalar values remain unchanged
 		}
 
 		return parseFloat(value); // Default for scalar properties
@@ -4010,7 +4050,7 @@ export const flock = {
 				mesh.physics.setPrestepType(
 					flock.BABYLON.PhysicsPrestepType.ACTION,
 				);*/
-				
+
 				if (property === "alpha") {
 					flock.ensureUniqueMaterial(mesh);
 				}
@@ -4046,22 +4086,23 @@ export const flock = {
 						value: flock.parseKeyframeValue(
 							property,
 							keyframe.value,
+							mesh,
 						),
 					}));
 
 					// Generate reverse keyframes by mirroring forward frames
 					const reverseKeyframes = reverse
-						? forwardKeyframes
-								.slice(0, -1) // Exclude the last frame to avoid duplication
-								.reverse()
-								.map((keyframe, index) => ({
-									frame:
-										forwardKeyframes[
-											forwardKeyframes.length - 1
-										].frame + Math.round((index + 1) * fps),
-									value: keyframe.value,
-								}))
-						: [];
+					? forwardKeyframes
+						.slice(0, -1) // Exclude the last frame to avoid duplication
+						.reverse()
+						.map((keyframe, index) => ({
+							frame:
+								forwardKeyframes[forwardKeyframes.length - 1].frame +
+								(forwardKeyframes[index + 1]?.frame - keyframe.frame),
+							value: keyframe.value,
+						}))
+					: [];
+
 
 					// Combine forward and reverse keyframes
 					const allKeyframes = [
@@ -4070,7 +4111,14 @@ export const flock = {
 					];
 
 					// Debugging: Log keyframes
-					console.log("Generated Keyframes (with frames):", allKeyframes, property, animationType, "quaternion", mesh.rotationQuaternion);
+					/*console.log(
+						"Generated Keyframes (with frames):",
+						allKeyframes,
+						propertyToAnimate,
+						animationType,
+						"quaternion",
+						mesh.rotationQuaternion,
+					);*/
 
 					// Ensure sufficient keyframes
 					if (allKeyframes.length > 1) {
@@ -4114,7 +4162,7 @@ export const flock = {
 					// Do not start the animation group and prevent automatic playback
 					animationGroup.stop(); // Explicitly ensure animations do not play
 					animationGroup.onAnimationGroupPlayObservable.clear(); // Clear any unintended triggers
-					console.log("Animation group created but not started.");
+					//console.log("Animation group created but not started.");
 					resolve(animationGroupName);
 				} else {
 					console.warn(`Unknown mode: ${mode}`);
@@ -4303,10 +4351,7 @@ export const flock = {
 										);
 						}
 					} else {
-						
 						value = parseFloat(keyframe.value);
-					
-						
 					}
 
 					// Calculate frame duration based on FPS
@@ -4326,10 +4371,7 @@ export const flock = {
 					keyframes.length > 0 &&
 					keyframes[keyframes.length - 1].duration > 0 // Explicit check for non-zero duration
 				) {
-					console.log(
-						"Adding initial keyframe for looping",
-						keyframes[keyframes.length - 1].duration,
-					);
+					
 					const initialKeyframe = {
 						frame: currentFrame,
 						value: forwardKeyframes[0].value, // Use the initial keyframe value
