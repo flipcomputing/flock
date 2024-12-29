@@ -2772,24 +2772,7 @@ export const flock = {
 
 				// Clone and synchronise the physics body
 				if (sourceMesh.physics) {
-					const cloneBody = new flock.BABYLON.PhysicsBody(
-						clone,
-						sourceMesh.physics.getMotionType(),
-						false,
-						flock.scene,
-					);
-
-					const cloneShape = flock.createCapsuleFromBoundingBox(
-						clone,
-						flock.scene,
-					);
-
-					cloneBody.shape = cloneShape;
-
-					cloneBody.setTargetTransform(
-						clone.position,
-						clone.rotationQuaternion,
-					);
+					const cloneBody = sourceMesh.physics.clone(clone);
 					clone.physics = cloneBody;
 				}
 
@@ -3759,8 +3742,6 @@ export const flock = {
 						reverse ? frames * 2 : frames,
 						loop,
 					);
-
-					console.log("Physics", mesh.physics);
 
 					mesh.physics.disablePreStep = false;
 					mesh.physics.setPrestepType(
