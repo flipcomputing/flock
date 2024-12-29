@@ -29,6 +29,7 @@
     "babylonjs-serializers": "^7.24.0",
     "blockly": "^11.0.0",
     "earcut": "^3.0.1",
+    "Flock": "file:",
     "pako": "^2.1.0",
     "vite-plugin-css-injected-by-js": "^3.5.1"
   },

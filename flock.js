@@ -3783,34 +3783,18 @@ export const flock = {
 				}
 				return "material.alpha";
 
-			case "position.x":
-			case "position.y":
-			case "position.z":
-				return `position.${property.split(".")[1]}`;
-
-			case "rotation.x":
-			case "rotation.y":
-			case "rotation.z":
-				return `rotation.${property.split(".")[1]}`;
-
-			case "scaling.x":
-			case "scaling.y":
-			case "scaling.z":
-				return `scaling.${property.split(".")[1]}`;
-
 			default:
 				// Fallback to generic property
 				return property;
 		}
 	},
-
 	determineAnimationType(property) {
 		switch (true) {
 			case property === "color":
 				return BABYLON.Animation.ANIMATIONTYPE_COLOR3;
 
 			case ["position", "rotation", "scaling"].some((p) =>
-				property.startsWith(p),
+				property === p, 
 			):
 				return BABYLON.Animation.ANIMATIONTYPE_VECTOR3;
 
@@ -3819,11 +3803,13 @@ export const flock = {
 		}
 	},
 	parseKeyframeValue(property, value) {
+		console.log(property, value);
 		if (
 			["rotation.x", "rotation.y", "rotation.z"].some((p) =>
-				property.startsWith(p),
+				property === p,
 			)
 		) {
+			console.log("Handling rotation", value);
 			return BABYLON.Tools.ToRadians(value); // Single-axis rotation in degrees
 		}
 
@@ -3862,6 +3848,11 @@ export const flock = {
 					vectorValues[2] || 0,
 				);
 			}
+		}
+
+		// Handle single-axis properties like position.x, scaling.x, etc.
+		if (/\.(x|y|z)$/.test(property)) {
+			return parseFloat(value);
 		}
 
 		return parseFloat(value); // Default for scalar properties
@@ -3994,7 +3985,6 @@ export const flock = {
 		mode = "START", // Default to starting the animation
 	) {
 		return new Promise(async (resolve) => {
-			
 			// Ensure animationGroupName is not null; generate a unique name if it is
 			animationGroupName =
 				animationGroupName || `animation_${flock.scene.getUniqueId()}`;
@@ -4016,10 +4006,11 @@ export const flock = {
 					resolve(animationGroupName);
 					return;
 				}
-				mesh.physics.disablePreStep = false;
+				/*mesh.physics.disablePreStep = false;
 				mesh.physics.setPrestepType(
 					flock.BABYLON.PhysicsPrestepType.ACTION,
-				);
+				);*/
+				
 				if (property === "alpha") {
 					flock.ensureUniqueMaterial(mesh);
 				}
@@ -4079,7 +4070,7 @@ export const flock = {
 					];
 
 					// Debugging: Log keyframes
-					//console.log("Generated Keyframes (with frames):", allKeyframes,);
+					console.log("Generated Keyframes (with frames):", allKeyframes, property, animationType, "quaternion", mesh.rotationQuaternion);
 
 					// Ensure sufficient keyframes
 					if (allKeyframes.length > 1) {
@@ -4312,7 +4303,10 @@ export const flock = {
 										);
 						}
 					} else {
+						
 						value = parseFloat(keyframe.value);
+					
+						
 					}
 
 					// Calculate frame duration based on FPS
