@@ -16,6 +16,10 @@ import {
 	updateOrCreateMeshFromBlock,
 } from "./ui/designview.js";
 import { flock } from "./flock.js";
+import {registerFieldColour} from '@blockly/field-colour';
+
+registerFieldColour();
+
 /*import {
   ScrollOptions,
   ScrollBlockDragger,

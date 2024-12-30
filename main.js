@@ -1356,9 +1356,9 @@ window.onload = function () {
 		workspace.updateToolbox(toolboxDef); // Force rebuild toolbox
 	}
 
-	workspace = Blockly.inject("blocklyDiv", options);
 
-	registerFieldColour();
+
+	workspace = Blockly.inject("blocklyDiv", options);
 
 	overrideSearchPlugin(workspace);
 
