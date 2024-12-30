@@ -225,75 +225,37 @@ export const flock = {
 			console.error("Error initializing CSG2:", error);
 		}
 
-		/*flock.canvas.addEventListener(
-			"touchmove",
-			function (event) {
-				if (event.touches.length > 1) {
-					event.preventDefault(); // Prevent multi-touch drag but allow multiple touches
-				}
-			},
-			{ passive: false },
-		);*/
-
-	/*	flock.canvas.addEventListener(
-			"touchstart",
-			(event) => {
-				flock.printText(`Canvas: Touch Start ${event.touches.length}`, 5);
-				//logTouchDetails(event);
-			},
-			{ passive: false }
-		);*/
-
-		/*flock.canvas.addEventListener(
-			"touchmove",
-			(event) => {
-				console.log("Canvas: Touch Move");
-				logTouchDetails(event);
-			},
-			{ passive: false }
-		);*/
-
 		flock.canvas.addEventListener(
 			"touchend",
 			(event) => {
 				//flock.printText(`Canvas: Touch End ${event.touches.length}`, 5);
 				//logTouchDetails(event);
 
-				if(event.touches.length === 0){
-									flock.scene.activeCamera.detachControl(flock.canvas);
-					setTimeout(() => {
-						flock.scene.activeCamera.attachControl(flock.canvas, true);
-						//console.log("Camera inputs reset!");
-					}, 100);  // Small delay
-
+				if (event.touches.length === 0) {
+					const input = flock.scene.activeCamera.inputs.attached.pointers;
+				
+					// Check if cleanup is incomplete
+					if (
+						input._pointA !== null ||
+						input._pointB !== null ||
+						input._isMultiTouch === true
+					) {
+						//flock.printText("Stuck state detected!");
+						flock.scene.activeCamera.detachControl(flock.canvas);
+						setTimeout(() => {
+							flock.scene.activeCamera.attachControl(
+								flock.canvas,
+								true,
+							);
+							//console.log("Camera inputs reset!");
+						}, 100); // Small delay
+					}
+					
 				}
 			},
-			{ passive: false }
+			{ passive: false },
 		);
 
-/*flock.canvas.addEventListener(
-			"touchcancel",
-			(event) => {
-				flock.printText("Canvas: Touch Cancel", 5);
-				//logTouchDetails(event);
-			},
-			{ passive: false }
-		);*/
-
-		// Helper function to log touch details
-		function logTouchDetails(event) {
-			console.log("Touch Count:", event.touches.length);
-			console.log(
-				"Touch Details:",
-				Array.from(event.touches).map((touch) => ({
-					id: touch.identifier,
-					x: touch.clientX,
-					y: touch.clientY,
-				}))
-			);
-		}
-
-		
 		flock.canvas.addEventListener("keydown", function (event) {
 			flock.canvas.currentKeyPressed = event.key;
 			flock.canvas.pressedKeys.add(event.key);
@@ -461,23 +423,6 @@ export const flock = {
 
 		flock.stackPanel.isVertical = true;
 		flock.advancedTexture.addControl(flock.stackPanel);
-
-/*		flock.scene.onPointerObservable.add((pointerInfo) => {
-			if (
-				pointerInfo.type ===
-					flock.BABYLON.PointerEventTypes.POINTERUP &&
-				pointerInfo.event.touches &&
-				pointerInfo.event.touches.length > 1
-			) {
-				const camera = flock.scene.activeCamera;
-				camera.detachControl();
-
-				setTimeout(() => {
-					camera.attachControl(canvas, true);
-					camera.setTarget(camera.target);
-				}, 100);
-			}
-		});*/
 
 		// Observable for audio updates
 		flock.globalStartTime = flock.getAudioContext().currentTime;
@@ -3844,7 +3789,9 @@ export const flock = {
 			default:
 				// Handle rotation.x, rotation.y, rotation.z with quaternions
 				if (
-					["rotation.x", "rotation.y", "rotation.z"].includes(property) &&
+					["rotation.x", "rotation.y", "rotation.z"].includes(
+						property,
+					) &&
 					mesh.rotationQuaternion // Only applies if using quaternions
 				) {
 					return "rotationQuaternion"; // Map to rotationQuaternion
@@ -3875,7 +3822,6 @@ export const flock = {
 		}
 	},
 	parseKeyframeValue(property, value, mesh) {
-
 		// Handle quaternion rotation for rotation.x, rotation.y, and rotation.z
 		if (
 			["rotation.x", "rotation.y", "rotation.z"].includes(property) &&
@@ -3884,7 +3830,7 @@ export const flock = {
 			// Ensure the quaternion exists
 			if (!mesh.rotationQuaternion) {
 				mesh.rotationQuaternion = BABYLON.Quaternion.FromEulerVector(
-					mesh.rotation || BABYLON.Vector3.Zero()
+					mesh.rotation || BABYLON.Vector3.Zero(),
 				);
 			}
 
@@ -3907,7 +3853,9 @@ export const flock = {
 
 			// Return the updated quaternion
 			return BABYLON.Quaternion.RotationYawPitchRoll(
-				euler.y, euler.x, euler.z
+				euler.y,
+				euler.x,
+				euler.z,
 			);
 		}
 
@@ -3917,14 +3865,14 @@ export const flock = {
 				return new BABYLON.Vector3(
 					BABYLON.Tools.ToRadians(value.x || 0),
 					BABYLON.Tools.ToRadians(value.y || 0),
-					BABYLON.Tools.ToRadians(value.z || 0)
+					BABYLON.Tools.ToRadians(value.z || 0),
 				);
 			} else if (typeof value === "string") {
 				const vectorValues = value.match(/-?\d+(\.\d+)?/g).map(Number);
 				return new BABYLON.Vector3(
 					BABYLON.Tools.ToRadians(vectorValues[0] || 0),
 					BABYLON.Tools.ToRadians(vectorValues[1] || 0),
-					BABYLON.Tools.ToRadians(vectorValues[2] || 0)
+					BABYLON.Tools.ToRadians(vectorValues[2] || 0),
 				);
 			}
 		}
@@ -3943,7 +3891,7 @@ export const flock = {
 				return new BABYLON.Vector3(
 					vectorValues[0] || 0,
 					vectorValues[1] || 0,
-					vectorValues[2] || 0
+					vectorValues[2] || 0,
 				);
 			}
 		}
@@ -4150,17 +4098,19 @@ export const flock = {
 
 					// Generate reverse keyframes by mirroring forward frames
 					const reverseKeyframes = reverse
-					? forwardKeyframes
-						.slice(0, -1) // Exclude the last frame to avoid duplication
-						.reverse()
-						.map((keyframe, index) => ({
-							frame:
-								forwardKeyframes[forwardKeyframes.length - 1].frame +
-								(forwardKeyframes[index + 1]?.frame - keyframe.frame),
-							value: keyframe.value,
-						}))
-					: [];
-
+						? forwardKeyframes
+								.slice(0, -1) // Exclude the last frame to avoid duplication
+								.reverse()
+								.map((keyframe, index) => ({
+									frame:
+										forwardKeyframes[
+											forwardKeyframes.length - 1
+										].frame +
+										(forwardKeyframes[index + 1]?.frame -
+											keyframe.frame),
+									value: keyframe.value,
+								}))
+						: [];
 
 					// Combine forward and reverse keyframes
 					const allKeyframes = [
@@ -4429,7 +4379,6 @@ export const flock = {
 					keyframes.length > 0 &&
 					keyframes[keyframes.length - 1].duration > 0 // Explicit check for non-zero duration
 				) {
-					
 					const initialKeyframe = {
 						frame: currentFrame,
 						value: forwardKeyframes[0].value, // Use the initial keyframe value
@@ -5481,14 +5430,9 @@ export const flock = {
 					camera.inputs.attached.pointers.multiTouchPanning = false;
 					camera.inputs.attached.pointers.pinchZoom = false;
 					camera.inputs.attached.pointers.pinchInwards = false;
-					camera.inputs.attached.pointers.useNaturalPinchZoom = true;
-
-					/*camera.inputs.attached.pointers.onMultiTouch = function () {
-						// Do nothing to disable multi-touch behavior in Babylon.js
-					};*/
-					
+					camera.inputs.attached.pointers.useNaturalPinchZoom = false;
 				}
-				//camera.setTarget(mesh.position);
+
 				camera.lockedTarget = mesh;
 				camera.metadata = camera.metadata || {};
 				camera.metadata.following = mesh;
