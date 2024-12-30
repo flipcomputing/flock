@@ -225,7 +225,7 @@ export const flock = {
 			console.error("Error initializing CSG2:", error);
 		}
 
-		flock.canvas.addEventListener(
+		/*flock.canvas.addEventListener(
 			"touchmove",
 			function (event) {
 				if (event.touches.length > 1) {
@@ -233,8 +233,67 @@ export const flock = {
 				}
 			},
 			{ passive: false },
+		);*/
+
+	/*	flock.canvas.addEventListener(
+			"touchstart",
+			(event) => {
+				flock.printText(`Canvas: Touch Start ${event.touches.length}`, 5);
+				//logTouchDetails(event);
+			},
+			{ passive: false }
+		);*/
+
+		/*flock.canvas.addEventListener(
+			"touchmove",
+			(event) => {
+				console.log("Canvas: Touch Move");
+				logTouchDetails(event);
+			},
+			{ passive: false }
+		);*/
+
+		flock.canvas.addEventListener(
+			"touchend",
+			(event) => {
+				//flock.printText(`Canvas: Touch End ${event.touches.length}`, 5);
+				//logTouchDetails(event);
+
+				if(event.touches.length === 0){
+									flock.scene.activeCamera.detachControl(flock.canvas);
+					setTimeout(() => {
+						flock.scene.activeCamera.attachControl(flock.canvas, true);
+						//console.log("Camera inputs reset!");
+					}, 100);  // Small delay
+
+				}
+			},
+			{ passive: false }
 		);
 
+/*flock.canvas.addEventListener(
+			"touchcancel",
+			(event) => {
+				flock.printText("Canvas: Touch Cancel", 5);
+				//logTouchDetails(event);
+			},
+			{ passive: false }
+		);*/
+
+		// Helper function to log touch details
+		function logTouchDetails(event) {
+			console.log("Touch Count:", event.touches.length);
+			console.log(
+				"Touch Details:",
+				Array.from(event.touches).map((touch) => ({
+					id: touch.identifier,
+					x: touch.clientX,
+					y: touch.clientY,
+				}))
+			);
+		}
+
+		
 		flock.canvas.addEventListener("keydown", function (event) {
 			flock.canvas.currentKeyPressed = event.key;
 			flock.canvas.pressedKeys.add(event.key);
@@ -403,8 +462,7 @@ export const flock = {
 		flock.stackPanel.isVertical = true;
 		flock.advancedTexture.addControl(flock.stackPanel);
 
-		// Touch handling for detaching camera (from your original code)
-		flock.scene.onPointerObservable.add((pointerInfo) => {
+/*		flock.scene.onPointerObservable.add((pointerInfo) => {
 			if (
 				pointerInfo.type ===
 					flock.BABYLON.PointerEventTypes.POINTERUP &&
@@ -419,7 +477,7 @@ export const flock = {
 					camera.setTarget(camera.target);
 				}, 100);
 			}
-		});
+		});*/
 
 		// Observable for audio updates
 		flock.globalStartTime = flock.getAudioContext().currentTime;
@@ -437,7 +495,7 @@ export const flock = {
 		// Reset XR helper
 		flock.xrHelper = null;
 	},
-	printText(text, duration, color = "white") {
+	printText(text, duration = 30, color = "white") {
 		if (!text || !flock.scene || !flock.stackPanel) return;
 
 		console.log(text);
@@ -5425,9 +5483,10 @@ export const flock = {
 					camera.inputs.attached.pointers.pinchInwards = false;
 					camera.inputs.attached.pointers.useNaturalPinchZoom = true;
 
-					camera.inputs.attached.pointers.onMultiTouch = function () {
+					/*camera.inputs.attached.pointers.onMultiTouch = function () {
 						// Do nothing to disable multi-touch behavior in Babylon.js
-					};
+					};*/
+					
 				}
 				//camera.setTarget(mesh.position);
 				camera.lockedTarget = mesh;
