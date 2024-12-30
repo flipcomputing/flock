@@ -17,6 +17,7 @@ import {
 	initializeVariableIndexes,
 	handleBlockSelect,
 	handleBlockDelete,
+	CustomZelosRenderer
 } from "./blocks";
 import { defineBaseBlocks } from "./blocks/base";
 import { defineShapeBlocks } from "./blocks/shapes";
@@ -1353,11 +1354,16 @@ window.onload = function () {
 
 		const toolboxDef = workspace.options.languageTree; // Get toolbox XML/JSON
 
-		workspace.updateToolbox(toolboxDef); // Force rebuild toolbox
+	workspace.updateToolbox(toolboxDef); // Force rebuild toolbox
 	}
 
-
-
+	// Register the custom renderer
+	Blockly.registry.register(
+		Blockly.registry.Type.RENDERER,
+		"custom_zelos_renderer",
+		CustomZelosRenderer,
+	);
+	
 	workspace = Blockly.inject("blocklyDiv", options);
 
 	overrideSearchPlugin(workspace);

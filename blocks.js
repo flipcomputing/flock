@@ -183,8 +183,7 @@ class CustomRenderInfo extends Blockly.zelos.RenderInfo {
 	adjustXPosition_() {}
 }
 
-// Custom renderer to use our updated RenderInfo
-class CustomZelosRenderer extends Blockly.zelos.Renderer {
+export class CustomZelosRenderer extends Blockly.zelos.Renderer {
 	constructor(name) {
 		super(name);
 	}
@@ -199,13 +198,6 @@ class CustomZelosRenderer extends Blockly.zelos.Renderer {
 		return new CustomRenderInfo(this, block);
 	}
 }
-
-// Register the custom renderer
-Blockly.registry.register(
-	Blockly.registry.Type.RENDERER,
-	"custom_zelos_renderer",
-	CustomZelosRenderer,
-);
 
 const mediaPath = window.location.pathname.includes("/flock/")
 	? "/flock/blockly/media/" // For GitHub Pages
