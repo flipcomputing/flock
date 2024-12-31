@@ -2004,83 +2004,78 @@ export const flock = {
 			}
 		});
 	},
-	createGround(color, modelId) {
-		const ground = flock.BABYLON.MeshBuilder.CreateGround(
-			modelId,
-			{ width: 100, height: 100, subdivisions: 2 },
-			flock.scene,
-		);
-		const blockId = modelId;
-		const groundAggregate = new flock.BABYLON.PhysicsAggregate(
-			ground,
-			flock.BABYLON.PhysicsShapeType.BOX,
-			{ mass: 0, friction: 0.5 },
-			flock.scene,
-		);
-
-		ground.name = modelId;
-		ground.blockKey = blockId;
-		ground.receiveShadows = true;
-		const groundMaterial = new flock.BABYLON.StandardMaterial(
-			"groundMaterial",
-			flock.scene,
-		);
-
-		groundMaterial.diffuseColor = flock.BABYLON.Color3.FromHexString(
-			flock.getColorFromString(color),
-		);
-		ground.material = groundMaterial;
-	},
-	createMap(image, color) {
+	createMap(image, color, texture) {
 		console.log("Creating map from image", image);
-		const ground = flock.BABYLON.MeshBuilder.CreateGroundFromHeightMap(
-			"heightmap",
-			"./textures/" + image,
-			{
-				width: 100,
-				height: 100,
-				minHeight: 0,
-				maxHeight: 10,
-				subdivisions: 64,
-				onReady: (groundMesh) => {
-					const heightMapGroundShape =
-						new flock.BABYLON.PhysicsShapeMesh(
-							ground, // mesh from which to calculate the collisions
-							flock.scene, // scene of the shape
-						);
-					const heightMapGroundBody = new flock.BABYLON.PhysicsBody(
-						ground,
-						flock.BABYLON.PhysicsMotionType.STATIC,
-						false,
-						flock.scene,
-					);
-					heightMapGroundShape.material = {
-						friction: 0.3,
-						restitution: 0.3,
-					};
-					heightMapGroundBody.shape = heightMapGroundShape;
-					heightMapGroundBody.setMassProperties({ mass: 0 });
-				},
-			},
-			flock.scene,
-		);
 
-		const texture = new flock.BABYLON.Texture(
-			`./textures/rough.png`,
-			flock.scene,
-		);
+		let ground;
+		if (image === "NONE") {
+			const modelId = "flatGround";
+			ground = flock.BABYLON.MeshBuilder.CreateGround(
+				modelId,
+				{ width: 100, height: 100, subdivisions: 2 },
+				flock.scene
+			);
+			const groundAggregate = new flock.BABYLON.PhysicsAggregate(
+				ground,
+				flock.BABYLON.PhysicsShapeType.BOX,
+				{ mass: 0, friction: 0.5 },
+				flock.scene
+			);
+			ground.name = modelId;
+			ground.blockKey = modelId;
+			ground.receiveShadows = true;
+		} else {
+			ground = flock.BABYLON.MeshBuilder.CreateGroundFromHeightMap(
+				"heightmap",
+				"./textures/" + image,
+				{
+					width: 100,
+					height: 100,
+					minHeight: 0,
+					maxHeight: 10,
+					subdivisions: 64,
+					onReady: (groundMesh) => {
+						const heightMapGroundShape =
+							new flock.BABYLON.PhysicsShapeMesh(
+								ground, // mesh from which to calculate the collisions
+								flock.scene, // scene of the shape
+							);
+						const heightMapGroundBody = new flock.BABYLON.PhysicsBody(
+							ground,
+							flock.BABYLON.PhysicsMotionType.STATIC,
+							false,
+							flock.scene,
+						);
+						heightMapGroundShape.material = {
+							friction: 0.3,
+							restitution: 0.3,
+						};
+						heightMapGroundBody.shape = heightMapGroundShape;
+						heightMapGroundBody.setMassProperties({ mass: 0 });
+					},
+				},
+				flock.scene,
+			);
+		}
 
 		const material = new flock.BABYLON.StandardMaterial(
 			"ground",
 			flock.scene,
 		);
 
-		texture.uScale = 10;
-		texture.vScale = 10;
+		if (texture && texture !== "NONE") {
+			const tex = new flock.BABYLON.Texture(
+				`./textures/${texture}`,
+				flock.scene,
+			);
+			tex.uScale = 10;
+			tex.vScale = 10;
+			material.diffuseTexture = tex;
+		}
 
-		material.diffuseTexture = texture;
-		material.diffuseColor = flock.BABYLON.Color3.FromHexString(color);
-
+		material.diffuseColor = flock.BABYLON.Color3.FromHexString(flock.getColorFromString(color));
+		material.specularColor = new flock.BABYLON.Color3(0, 0, 0); // Reduces shininess
+		material.specularPower = 50; // Controls sharpness of specular highlights
 		material.name = "ground";
 		ground.material = material;
 	},

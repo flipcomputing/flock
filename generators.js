@@ -1631,9 +1631,11 @@ export function defineGenerators() {
 	javascriptGenerator.forBlock["create_map"] = function (block) {
 		const mapName = block.getFieldValue("MAP_NAME");
 		const color = getFieldValue(block, "COLOR", "#6495ED");
+		const texture = block.getFieldValue("TEXTURE");
 
-		return `createMap("${mapName}", ${color});\n`;
+		return `createMap("${mapName}", ${color}, "${texture}");\n`;
 	};
+
 
 	javascriptGenerator.forBlock["move_forward"] = function (block) {
 		const modelName = javascriptGenerator.nameDB_.getName(

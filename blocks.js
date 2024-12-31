@@ -2202,12 +2202,12 @@ export function defineBlocks() {
 		init: function () {
 			this.jsonInit({
 				type: "create_map",
-				message0: "map %1 %2",
+				message0: "map %1 %2 texture %3",
 				args0: [
 					{
 						type: "field_dropdown",
 						name: "MAP_NAME",
-						options: mapNames,
+						options: [["Flat", "NONE"]].concat(mapNames),
 					},
 					{
 						type: "input_value",
@@ -2215,15 +2215,33 @@ export function defineBlocks() {
 						colour: "#71BC78",
 						check: "Colour",
 					},
+					{
+						type: "field_grid_dropdown",
+						name: "TEXTURE",
+						columns: 4,
+						options: materialNames.map((name) => {
+							const baseName = name.replace(/\.[^/.]+$/, "");
+							return [
+								{
+									src: `./textures/${baseName}.png`,
+									width: 50,
+									height: 50,
+									alt: baseName,
+								},
+								name,
+							];
+						}),
+					},
 				],
 				previousStatement: null,
 				nextStatement: null,
 				colour: categoryColours["Scene"],
-				tooltip: "Creates a map based on the choice.\nKeyword: map",
+				tooltip: "Creates a map with an optional texture and colour.",
 				helpUrl: "",
 			});
 		},
 	};
+
 
 	Blockly.Blocks["play_animation"] = {
 		init: function () {
