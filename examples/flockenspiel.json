@@ -18,22 +18,26 @@
 					"type": "colour",
 					"id": "Mlh8zzfY)p3!M2.q:a(8",
 					"fields": {
-					  "COLOR": "#6495ed"
+					  "COLOR": "#33ccff"
 					}
 				  }
 				}
 			  },
 			  "next": {
 				"block": {
-				  "type": "create_ground",
-				  "id": "S%:d.e-l98E_Phu`CHx?",
+				  "type": "create_map",
+				  "id": "bo9B/r?F=GyLz`2.H=GC",
+				  "fields": {
+					"MAP_NAME": "circular_depression.png",
+					"TEXTURE": "grass.png"
+				  },
 				  "inputs": {
 					"COLOR": {
 					  "shadow": {
 						"type": "colour",
-						"id": "Pe/-b7d5B1Qr*:EvoPsA",
+						"id": "5zg38%)+gMkxEi*k-nfe",
 						"fields": {
-						  "COLOR": "#71bc78"
+						  "COLOR": "#66ff99"
 						}
 					  }
 					}
@@ -118,7 +122,7 @@
 		"type": "start",
 		"id": "rYSM[9*$cgU?cfx}y-dk",
 		"x": 10,
-		"y": 342,
+		"y": 370,
 		"inputs": {
 		  "DO": {
 			"block": {
@@ -233,7 +237,7 @@
 		"type": "start",
 		"id": "R-/s$mznFNBCtuKIhWo1",
 		"x": 10,
-		"y": 688,
+		"y": 716,
 		"inputs": {
 		  "DO": {
 			"block": {
@@ -789,7 +793,7 @@
 		"type": "forever",
 		"id": "#XfxE5T1:ZF%ugv8Tgp*",
 		"x": 10,
-		"y": 1564,
+		"y": 1592,
 		"collapsed": true,
 		"extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" inline=\"false\"></mutation>",
 		"inputs": {
