@@ -1597,7 +1597,7 @@ export const flock = {
 
 					mergedMesh1.metadata = mergedMesh1.metadata || {};
 					mergedMesh1.metadata.sharedMaterial = false;
-					
+
 					flock.applyResultMeshProperties(
 						mergedMesh,
 						validMeshes[0],
@@ -1796,6 +1796,7 @@ export const flock = {
 			.prepareMeshes(modelId, meshList, blockId)
 			.then((validMeshes) => {
 				if (validMeshes.length) {
+					
 					// Calculate the combined bounding box centre
 					let min = validMeshes[0]
 						.getBoundingInfo()
@@ -1812,15 +1813,15 @@ export const flock = {
 						min = flock.BABYLON.Vector3.Minimize(min, meshMin);
 						max = flock.BABYLON.Vector3.Maximize(max, meshMax);
 					});
-
+					
 					const combinedCentre = min.add(max).scale(0.5);
 
 					// Merge the valid meshes into a single mesh
 					const mergedMesh = BABYLON.Mesh.MergeMeshes(
 						validMeshes,
-						true,
+						false,
 					);
-
+					
 					if (!mergedMesh) {
 						console.warn(
 							"Failed to merge meshes for hull creation.",
@@ -1838,7 +1839,7 @@ export const flock = {
 					);
 
 					// Apply the material of the first mesh to the merged mesh
-					mergedMesh.material = validMeshes[0].material;
+					//mergedMesh.material = validMeshes[0].material.clone();
 
 					// Create the convex hull physics aggregate
 					const hullAggregate = new BABYLON.PhysicsAggregate(
@@ -1854,7 +1855,7 @@ export const flock = {
 					// Offset the debug mesh to the original world position
 					hullMesh.position = combinedCentre;
 
-					hullMesh.material = validMeshes[0].material;
+					hullMesh.material = validMeshes[0].material.clone();
 
 					// Apply properties to the resulting mesh
 					flock.applyResultMeshProperties(
@@ -1865,7 +1866,9 @@ export const flock = {
 					);
 					// Dispose of original meshes after creating the hull
 					validMeshes.forEach((mesh) => flock.disposeMesh(mesh));
+
 					flock.disposeMesh(mergedMesh);
+				
 
 					return modelId; // Return the debug mesh for further use
 				} else {
@@ -1874,7 +1877,6 @@ export const flock = {
 				}
 			});
 	},
-
 	hullMeshFromBody(body) {
 		const bodyInfoGeom = flock.hk.getBodyGeometry(body);
 		const { positions, indices } = bodyInfoGeom;
@@ -1896,8 +1898,8 @@ export const flock = {
 				return new Promise((resolve) => {
 					flock.whenModelReady(meshName, (mesh) => {
 						if (mesh) {
-							mesh.name = modelId;
-							mesh.blockKey = blockId;
+							//mesh.name = modelId;
+							//mesh.blockKey = blockId;
 							resolve(mesh);
 						} else {
 							console.warn(
@@ -1931,24 +1933,34 @@ export const flock = {
 
 		// Check and replace material if any are default
 		const hasDefaultMaterial = (material) => {
-			if (!material || material === resultMesh.getScene().defaultMaterial) {
+			if (
+				!material ||
+				material === resultMesh.getScene().defaultMaterial
+			) {
 				return true;
 			}
 			if (material instanceof flock.BABYLON.MultiMaterial) {
 				return material.subMaterials.some(
-					(subMaterial) => !subMaterial || subMaterial === resultMesh.getScene().defaultMaterial
+					(subMaterial) =>
+						!subMaterial ||
+						subMaterial === resultMesh.getScene().defaultMaterial,
 				);
 			}
 			return false;
 		};
 
 		if (hasDefaultMaterial(resultMesh.material)) {
-			console.warn("Material missing or default applied. Replacing with reference material.");
+			console.warn(
+				"Material missing or default applied. Replacing with reference material.",
+			);
 
 			// Dispose of the old material(s)
 			if (resultMesh.material instanceof flock.BABYLON.MultiMaterial) {
 				resultMesh.material.subMaterials.forEach((subMaterial) => {
-					if (subMaterial && subMaterial !== resultMesh.getScene().defaultMaterial) {
+					if (
+						subMaterial &&
+						subMaterial !== resultMesh.getScene().defaultMaterial
+					) {
 						subMaterial.dispose();
 					}
 				});
@@ -1960,9 +1972,13 @@ export const flock = {
 			// Apply new material
 			if (referenceMesh.material instanceof flock.BABYLON.MultiMaterial) {
 				// Use the first material from the MultiMaterial
-				resultMesh.material = referenceMesh.material.subMaterials[0].clone("clonedMaterial");
+				resultMesh.material =
+					referenceMesh.material.subMaterials[0].clone(
+						"clonedMaterial",
+					);
 			} else {
-				resultMesh.material = referenceMesh.material.clone("clonedMaterial");
+				resultMesh.material =
+					referenceMesh.material.clone("clonedMaterial");
 			}
 		}
 
@@ -2360,96 +2376,88 @@ export const flock = {
 
 		if (mesh.getChildMeshes) {
 			meshesToDispose = mesh.getChildMeshes().concat(mesh);
-
-			const disposedMaterials = new Set();
-
-			// Process AnimationGroups
-			flock.scene.animationGroups.slice().forEach((animationGroup) => {
-				const targets = animationGroup.targetedAnimations.map(
-					(anim) => anim.target,
-				);
-
-				if (
-					targets.some((target) =>
-						meshesToDispose.includes(target),
-					) ||
-					targets.some((target) =>
-						mesh.getDescendants().includes(target),
-					) ||
-					targets.length === 0 // Orphaned group
-				) {
-					animationGroup.targetedAnimations.forEach((anim) => {
-						anim.target = null; // Detach references
-					});
-					animationGroup.stop();
-					animationGroup.dispose();
-				}
-			});
-
-			// Dispose standalone animations
-			meshesToDispose.forEach((currentMesh) => {
-				if (currentMesh.animations) {
-					currentMesh.animations.forEach((animation) => {
-						animation.dispose?.();
-					});
-					currentMesh.animations.length = 0;
-				}
-			});
-
-			// Detach and Dispose Materials
-			meshesToDispose.forEach((currentMesh) => {
-				if (currentMesh.material) {
-					
-					const material = currentMesh.material;
-
-					// Detach material from the mesh
-					currentMesh.material = null;
-
-					// Dispose material if not already disposed
-					if (!disposedMaterials.has(material)) {
-						const sharedMaterial =
-							currentMesh.metadata?.sharedMaterial;
-
-
-						if (sharedMaterial === false) {
-							disposedMaterials.add(material);
-
-							// Remove from scene.materials
-							flock.scene.materials =
-								flock.scene.materials.filter(
-									(mat) => mat !== material,
-								);
-
-							material.dispose();
-						}
-					}
-				}
-			});
-
-			// Break parent-child relationships
-			meshesToDispose.forEach((currentMesh) => {
-				currentMesh.parent = null;
-			});
-
-			// Dispose meshes in reverse order
-			meshesToDispose.reverse().forEach((currentMesh) => {
-				if (!currentMesh.isDisposed()) {
-					// Remove physics body
-					if (currentMesh.physics) {
-						currentMesh.physics.dispose();
-					}
-
-					// Remove from scene
-					flock.scene.removeMesh(currentMesh);
-					currentMesh.setEnabled(false);
-
-					// Dispose the mesh
-					currentMesh.dispose();
-				}
-			});
-		} else {
-			mesh.dispose();
 		}
+
+		const disposedMaterials = new Set();
+
+		// Process AnimationGroups
+		flock.scene.animationGroups.slice().forEach((animationGroup) => {
+			const targets = animationGroup.targetedAnimations.map(
+				(anim) => anim.target,
+			);
+
+			if (
+				targets.some((target) => meshesToDispose.includes(target)) ||
+				targets.some((target) =>
+					mesh.getDescendants().includes(target),
+				) ||
+				targets.length === 0 // Orphaned group
+			) {
+				animationGroup.targetedAnimations.forEach((anim) => {
+					anim.target = null; // Detach references
+				});
+				animationGroup.stop();
+				animationGroup.dispose();
+			}
+		});
+
+		// Dispose standalone animations
+		meshesToDispose.forEach((currentMesh) => {
+			if (currentMesh.animations) {
+				currentMesh.animations.forEach((animation) => {
+					animation.dispose?.();
+				});
+				currentMesh.animations.length = 0;
+			}
+		});
+
+		// Detach and Dispose Materials
+		meshesToDispose.forEach((currentMesh) => {
+			if (currentMesh.material) {
+				const material = currentMesh.material;
+
+				// Detach material from the mesh
+				currentMesh.material = null;
+
+				// Dispose material if not already disposed
+				if (!disposedMaterials.has(material)) {
+					const sharedMaterial = currentMesh.metadata?.sharedMaterial;
+
+					if (sharedMaterial === false) {
+						disposedMaterials.add(material);
+
+						// Remove from scene.materials
+						flock.scene.materials = flock.scene.materials.filter(
+							(mat) => mat !== material,
+						);
+
+						material.dispose();
+					}
+				}
+			}
+		});
+
+		// Break parent-child relationships
+		meshesToDispose.forEach((currentMesh) => {
+			currentMesh.parent = null;
+		});
+
+		// Dispose meshes in reverse order
+		meshesToDispose.reverse().forEach((currentMesh) => {
+			if (!currentMesh.isDisposed()) {
+				// Remove physics body
+				if (currentMesh.physics) {
+					currentMesh.physics.dispose();
+				}
+
+				// Remove from scene
+				flock.scene.removeMesh(currentMesh);
+				currentMesh.setEnabled(false);
+
+				// Dispose the mesh
+				currentMesh.dispose();
+			}
+		});
 	},
 	dispose(modelName) {
 		return flock.whenModelReady(modelName, (mesh) => {
@@ -3904,7 +3912,7 @@ export const flock = {
 	determineAnimationType(property) {
 		// Handle rotation.x, rotation.y, rotation.z with quaternions
 		if (["rotation.x", "rotation.y", "rotation.z"].includes(property)) {
-			console.log("Detected rotation property.");
+			
 			return flock.BABYLON.Animation.ANIMATIONTYPE_QUATERNION; // Quaternion type
 		}
 
@@ -4601,16 +4609,6 @@ export const flock = {
 				});
 			},
 		);
-
-		// Log if the observable is successfully added
-		if (beforePhysicsObserver) {
-			console.log(
-				"Before physics observable added successfully for meshes:",
-				meshes,
-			);
-		} else {
-			console.log("Failed to add before physics observable");
-		}
 	},
 	show(modelName) {
 		return flock.whenModelReady(modelName, function (mesh) {
@@ -6162,7 +6160,6 @@ export const flock = {
 
 		flock.scene.onKeyboardObservable.add((kbInfo) => {
 			if (kbInfo.type === eventType && kbInfo.event.key === key) {
-				console.log(`Keyboard key '${key}' pressed/released`);
 				callback();
 			}
 		});
