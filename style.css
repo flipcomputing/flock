@@ -3,10 +3,10 @@
   margin-left: 10px;
   margin-right: 10px;
 } 
-		.blocklyText {
-			fillt: black !important;
-
-		}
+		
+.blocklyText {
+			fill: black !important;
+}
 
 .blocklyDropdownField, .blocklyDropdownDiv, .blocklyDropdownContent {
 fill: black !important;
