@@ -1508,37 +1508,35 @@ export const toolbox = {
 					colour: categoryColours["Animate"],
 					contents: [
 						{
-							kind: "block",
-							type: "animation",
-							keyword: "animation",
-							inputsInline: true, // Set lists to be inline
-							inputs: {
-								KEYFRAMES: {
-								  shadow: {
-									type: "lists_create_with",
-									extraState: {
-									  itemCount: 1,
-									},
-									inputs: {
-									  ADD0: {
-										shadow: {
-										  type: "colour_keyframe",
-										  inputs: {
-											VALUE: {
-											  shadow: {
-												type: "colour",
-												fields: {
-												  COLOR: "#ff0000",
-												},
-											  },
+						  kind: "block",
+						  type: "animation",
+						  keyword: "animation",
+						  inputsInline: true, // Set lists to be inline
+						  inputs: {
+							KEYFRAMES: {
+							  block: { // Real list block
+								type: "lists_create_with",
+								extraState: {
+								  itemCount: 1, // Default item count
+								},
+								inputs: {
+								  ADD0: { // Real keyframe block
+									block: {
+									  type: "colour_keyframe",
+									  inputs: {
+										VALUE: { // Real colour block
+										  block: {
+											type: "colour",
+											fields: {
+											  COLOR: "#ff0000", // Default colour
 											},
-											DURATION: {
-											  shadow: {
-												type: "math_number",
-												fields: {
-												  NUM: 1,
-												},
-											  },
+										  },
+										},
+										DURATION: { // Real number block
+										  block: {
+											type: "math_number",
+											fields: {
+											  NUM: 1, // Default duration
 											},
 										  },
 										},
@@ -1546,8 +1544,9 @@ export const toolbox = {
 									},
 								  },
 								},
-
+							  },
 							},
+						  },
 						},
 						/*{
 							kind: "block",
@@ -2458,6 +2457,7 @@ export const toolbox = {
 					type: "colour_from_string",
 					keyword: "colstr"
 				},
+
 				{
 					kind: "block",
 					type: "change_material",
@@ -2773,70 +2773,43 @@ export const toolbox = {
 				{
 				  kind: "block",
 				  type: "play_notes",
-				  keyword: "play_notes",
-				  inputsInline: true, // Set lists to be inline
+				  inputsInline: true,
 				  inputs: {
 					NOTES: {
-					  shadow: {
-						type: "lists_create_with", // Use a shadow for the list
-						inline: false,
-						extraState: {
-						  itemCount: 1, // Default item count
-						},
+					  block: { // Real block initially
+						type: "lists_create_with",
+						extraState: { itemCount: 1 },
 						inputs: {
 						  ADD0: {
-							shadow: {
-							  type: "midi_note", // Shadow for each note
-							  fields: {
-								NOTE: 60, // Default MIDI note: 60 (Middle C)
-							  },
+							block: {
+							  type: "midi_note",
+							  fields: { NOTE: 60 },
 							},
 						  },
 						},
 					  },
 					},
 					DURATIONS: {
-					  shadow: {
-						type: "lists_create_with", // Use a shadow for durations
-						inline: false,
-						extraState: {
-						  itemCount: 1, // Default item count
-						},
+					  block: { // Real block initially
+						type: "lists_create_with",
+						extraState: { itemCount: 1 },
 						inputs: {
 						  ADD0: {
-							shadow: {
-							  type: "math_number", // Shadow for each duration
-							  fields: {
-								NUM: 1, // Default duration: 1 beat
-							  },
+							block: {
+							  type: "math_number",
+							  fields: { NUM: 1 },
 							},
 						  },
 						},
 					  },
 					},
 					INSTRUMENT: {
-					  shadow: {
-						type: "instrument", // Shadow for instrument selection
-						fields: {
-						  INSTRUMENT_TYPE: "default", // Default instrument selection
-						},
+					  block: { // Real block initially
+						type: "instrument",
+						fields: { INSTRUMENT_TYPE: "default" },
 					  },
 					},
 				  },
-				},
-				{
-					kind: "block",
-					type: "set_scene_bpm",
-					inputs: {
-						BPM: {
-							shadow: {
-								type: "math_number",
-								fields: {
-									NUM: 60,
-								},
-							},
-						},
-					},
 				},
 				{
 					kind: "block",
