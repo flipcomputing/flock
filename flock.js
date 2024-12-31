@@ -2025,16 +2025,37 @@ export const flock = {
 			ground.blockKey = modelId;
 			ground.receiveShadows = true;
 		} else {
+			const minHeight = 0;
+			const maxHeight = 10;
+
 			ground = flock.BABYLON.MeshBuilder.CreateGroundFromHeightMap(
 				"heightmap",
 				"./textures/" + image,
 				{
 					width: 100,
 					height: 100,
-					minHeight: 0,
-					maxHeight: 10,
+					minHeight: minHeight,
+					maxHeight: maxHeight,
 					subdivisions: 64,
 					onReady: (groundMesh) => {
+						// Retrieve height at (0, 0) by sampling the vertex data
+						const vertexData = groundMesh.getVerticesData(flock.BABYLON.VertexBuffer.PositionKind);
+						let minDistance = Infinity;
+						let closestY = 0;
+						for (let i = 0; i < vertexData.length; i += 3) {
+							const x = vertexData[i];
+							const z = vertexData[i + 2];
+							const y = vertexData[i + 1];
+							const distance = Math.sqrt(x * x + z * z);
+							if (distance < minDistance) {
+								minDistance = distance;
+								closestY = y;
+							}
+						}
+
+						// Adjust the ground position so that (0, 0) is at y=0
+						groundMesh.position.y -= closestY;
+
 						const heightMapGroundShape =
 							new flock.BABYLON.PhysicsShapeMesh(
 								ground, // mesh from which to calculate the collisions
@@ -2063,6 +2084,9 @@ export const flock = {
 			flock.scene,
 		);
 
+		material.specularColor = new flock.BABYLON.Color3(0, 0, 0); // Reduces shininess
+		material.specularPower = 50; // Controls sharpness of specular highlights
+
 		if (texture && texture !== "NONE") {
 			const tex = new flock.BABYLON.Texture(
 				`./textures/${texture}`,
@@ -2074,8 +2098,6 @@ export const flock = {
 		}
 
 		material.diffuseColor = flock.BABYLON.Color3.FromHexString(flock.getColorFromString(color));
-		material.specularColor = new flock.BABYLON.Color3(0, 0, 0); // Reduces shininess
-		material.specularPower = 50; // Controls sharpness of specular highlights
 		material.name = "ground";
 		ground.material = material;
 	},
