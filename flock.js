@@ -232,8 +232,9 @@ export const flock = {
 				//logTouchDetails(event);
 
 				if (event.touches.length === 0) {
-					const input = flock.scene.activeCamera.inputs.attached.pointers;
-				
+					const input =
+						flock.scene.activeCamera.inputs.attached.pointers;
+
 					// Check if cleanup is incomplete
 					if (
 						input._pointA !== null ||
@@ -250,7 +251,6 @@ export const flock = {
 							//console.log("Camera inputs reset!");
 						}, 100); // Small delay
 					}
-					
 				}
 			},
 			{ passive: false },
@@ -1595,8 +1595,9 @@ export const flock = {
 
 					mergedMesh.position = worldCenter;
 
-					mergedMesh1.dispose();
-
+					mergedMesh1.metadata = mergedMesh1.metadata || {};
+					mergedMesh1.metadata.sharedMaterial = false;
+					
 					flock.applyResultMeshProperties(
 						mergedMesh,
 						validMeshes[0],
@@ -1604,8 +1605,9 @@ export const flock = {
 						blockId,
 					);
 
+					flock.disposeMesh(mergedMesh1);
 					// Dispose of the original meshes
-					validMeshes.forEach((mesh) => mesh.dispose());
+					validMeshes.forEach((mesh) => flock.disposeMesh(mesh));
 
 					return modelId; // Return the modelId as per original functionality
 				} else {
@@ -1697,8 +1699,10 @@ export const flock = {
 							);
 
 							// Dispose of the original meshes
-							validMeshes.forEach((mesh) => mesh.dispose());
-							baseMesh.dispose();
+							validMeshes.forEach((mesh) =>
+								flock.disposeMesh(mesh),
+							);
+							flock.disposeMesh(baseMesh);
 
 							resolve(modelId); // Return the modelId as per original functionality
 						} else {
@@ -1775,7 +1779,7 @@ export const flock = {
 					);
 
 					// Dispose of the original meshes
-					validMeshes.forEach((mesh) => mesh.dispose());
+					validMeshes.forEach((mesh) => flock.disposeMesh(mesh));
 
 					return modelId; // Return the modelId as per original functionality
 				} else {
@@ -1860,8 +1864,8 @@ export const flock = {
 						blockId,
 					);
 					// Dispose of original meshes after creating the hull
-					validMeshes.forEach((mesh) => mesh.dispose());
-					mergedMesh.dispose();
+					validMeshes.forEach((mesh) => flock.disposeMesh(mesh));
+					flock.disposeMesh(mergedMesh);
 
 					return modelId; // Return the debug mesh for further use
 				} else {
@@ -1918,6 +1922,50 @@ export const flock = {
 		resultMesh.rotationQuaternion = flock.BABYLON.Quaternion.Identity();
 		resultMesh.name = modelId;
 		resultMesh.blockKey = blockId;
+
+		// Initialise metadata if not found
+		if (!resultMesh.metadata) {
+			resultMesh.metadata = {};
+		}
+		resultMesh.metadata.sharedMaterial = false;
+
+		// Check and replace material if any are default
+		const hasDefaultMaterial = (material) => {
+			if (!material || material === resultMesh.getScene().defaultMaterial) {
+				return true;
+			}
+			if (material instanceof flock.BABYLON.MultiMaterial) {
+				return material.subMaterials.some(
+					(subMaterial) => !subMaterial || subMaterial === resultMesh.getScene().defaultMaterial
+				);
+			}
+			return false;
+		};
+
+		if (hasDefaultMaterial(resultMesh.material)) {
+			console.warn("Material missing or default applied. Replacing with reference material.");
+
+			// Dispose of the old material(s)
+			if (resultMesh.material instanceof flock.BABYLON.MultiMaterial) {
+				resultMesh.material.subMaterials.forEach((subMaterial) => {
+					if (subMaterial && subMaterial !== resultMesh.getScene().defaultMaterial) {
+						subMaterial.dispose();
+					}
+				});
+				resultMesh.material.dispose();
+			} else if (resultMesh.material) {
+				resultMesh.material.dispose();
+			}
+
+			// Apply new material
+			if (referenceMesh.material instanceof flock.BABYLON.MultiMaterial) {
+				// Use the first material from the MultiMaterial
+				resultMesh.material = referenceMesh.material.subMaterials[0].clone("clonedMaterial");
+			} else {
+				resultMesh.material = referenceMesh.material.clone("clonedMaterial");
+			}
+		}
+
 		flock.applyPhysics(
 			resultMesh,
 			new flock.BABYLON.PhysicsShapeMesh(resultMesh, flock.scene),
@@ -2040,13 +2088,13 @@ export const flock = {
 			ground = flock.BABYLON.MeshBuilder.CreateGround(
 				modelId,
 				{ width: 100, height: 100, subdivisions: 2 },
-				flock.scene
+				flock.scene,
 			);
 			const groundAggregate = new flock.BABYLON.PhysicsAggregate(
 				ground,
 				flock.BABYLON.PhysicsShapeType.BOX,
 				{ mass: 0, friction: 0.5 },
-				flock.scene
+				flock.scene,
 			);
 			ground.name = modelId;
 			ground.blockKey = modelId;
@@ -2066,7 +2114,9 @@ export const flock = {
 					subdivisions: 64,
 					onReady: (groundMesh) => {
 						// Retrieve height at (0, 0) by sampling the vertex data
-						const vertexData = groundMesh.getVerticesData(flock.BABYLON.VertexBuffer.PositionKind);
+						const vertexData = groundMesh.getVerticesData(
+							flock.BABYLON.VertexBuffer.PositionKind,
+						);
 						let minDistance = Infinity;
 						let closestY = 0;
 						for (let i = 0; i < vertexData.length; i += 3) {
@@ -2088,12 +2138,13 @@ export const flock = {
 								ground, // mesh from which to calculate the collisions
 								flock.scene, // scene of the shape
 							);
-						const heightMapGroundBody = new flock.BABYLON.PhysicsBody(
-							ground,
-							flock.BABYLON.PhysicsMotionType.STATIC,
-							false,
-							flock.scene,
-						);
+						const heightMapGroundBody =
+							new flock.BABYLON.PhysicsBody(
+								ground,
+								flock.BABYLON.PhysicsMotionType.STATIC,
+								false,
+								flock.scene,
+							);
 						heightMapGroundShape.material = {
 							friction: 0.3,
 							restitution: 0.3,
@@ -2126,7 +2177,9 @@ export const flock = {
 			material.diffuseTexture = tex;
 		}
 
-		material.diffuseColor = flock.BABYLON.Color3.FromHexString(flock.getColorFromString(color));
+		material.diffuseColor = flock.BABYLON.Color3.FromHexString(
+			flock.getColorFromString(color),
+		);
 		material.name = "ground";
 		ground.material = material;
 	},
@@ -2302,105 +2355,105 @@ export const flock = {
 			});
 		});
 	},
+	disposeMesh(mesh) {
+		let meshesToDispose = [mesh];
+
+		if (mesh.getChildMeshes) {
+			meshesToDispose = mesh.getChildMeshes().concat(mesh);
+
+			const disposedMaterials = new Set();
+
+			// Process AnimationGroups
+			flock.scene.animationGroups.slice().forEach((animationGroup) => {
+				const targets = animationGroup.targetedAnimations.map(
+					(anim) => anim.target,
+				);
+
+				if (
+					targets.some((target) =>
+						meshesToDispose.includes(target),
+					) ||
+					targets.some((target) =>
+						mesh.getDescendants().includes(target),
+					) ||
+					targets.length === 0 // Orphaned group
+				) {
+					animationGroup.targetedAnimations.forEach((anim) => {
+						anim.target = null; // Detach references
+					});
+					animationGroup.stop();
+					animationGroup.dispose();
+				}
+			});
+
+			// Dispose standalone animations
+			meshesToDispose.forEach((currentMesh) => {
+				if (currentMesh.animations) {
+					currentMesh.animations.forEach((animation) => {
+						animation.dispose?.();
+					});
+					currentMesh.animations.length = 0;
+				}
+			});
+
+			// Detach and Dispose Materials
+			meshesToDispose.forEach((currentMesh) => {
+				if (currentMesh.material) {
+					
+					const material = currentMesh.material;
+
+					// Detach material from the mesh
+					currentMesh.material = null;
+
+					// Dispose material if not already disposed
+					if (!disposedMaterials.has(material)) {
+						const sharedMaterial =
+							currentMesh.metadata?.sharedMaterial;
+
+
+						if (sharedMaterial === false) {
+							disposedMaterials.add(material);
+
+							// Remove from scene.materials
+							flock.scene.materials =
+								flock.scene.materials.filter(
+									(mat) => mat !== material,
+								);
+
+							material.dispose();
+						}
+					}
+				}
+			});
+
+			// Break parent-child relationships
+			meshesToDispose.forEach((currentMesh) => {
+				currentMesh.parent = null;
+			});
+
+			// Dispose meshes in reverse order
+			meshesToDispose.reverse().forEach((currentMesh) => {
+				if (!currentMesh.isDisposed()) {
+					// Remove physics body
+					if (currentMesh.physics) {
+						currentMesh.physics.dispose();
+					}
+
+					// Remove from scene
+					flock.scene.removeMesh(currentMesh);
+					currentMesh.setEnabled(false);
+
+					// Dispose the mesh
+					currentMesh.dispose();
+				}
+			});
+		} else {
+			mesh.dispose();
+		}
+	},
 	dispose(modelName) {
 		return flock.whenModelReady(modelName, (mesh) => {
-			let meshesToDispose = [mesh];
-
-			if (mesh.getChildMeshes) {
-				meshesToDispose = mesh.getChildMeshes().concat(mesh);
-
-				const disposedMaterials = new Set();
-
-				// Process AnimationGroups
-				flock.scene.animationGroups
-					.slice()
-					.forEach((animationGroup) => {
-						const targets = animationGroup.targetedAnimations.map(
-							(anim) => anim.target,
-						);
-
-						if (
-							targets.some((target) =>
-								meshesToDispose.includes(target),
-							) ||
-							targets.some((target) =>
-								mesh.getDescendants().includes(target),
-							) ||
-							targets.length === 0 // Orphaned group
-						) {
-							animationGroup.targetedAnimations.forEach(
-								(anim) => {
-									anim.target = null; // Detach references
-								},
-							);
-							animationGroup.stop();
-							animationGroup.dispose();
-						}
-					});
-
-				// Dispose standalone animations
-				meshesToDispose.forEach((currentMesh) => {
-					if (currentMesh.animations) {
-						currentMesh.animations.forEach((animation) => {
-							animation.dispose?.();
-						});
-						currentMesh.animations.length = 0;
-					}
-				});
-
-				// Detach and Dispose Materials
-				meshesToDispose.forEach((currentMesh) => {
-					if (currentMesh.material) {
-						const material = currentMesh.material;
-
-						// Detach material from the mesh
-						currentMesh.material = null;
-
-						// Dispose material if not already disposed
-						if (!disposedMaterials.has(material)) {
-							const sharedMaterials =
-								currentMesh.metadata?.sharedMaterials;
-
-							if (sharedMaterials === false) {
-								disposedMaterials.add(material);
-
-								// Remove from scene.materials
-								flock.scene.materials =
-									flock.scene.materials.filter(
-										(mat) => mat !== material,
-									);
-
-								// Dispose the material
-								material.dispose();
-							}
-						}
-					}
-				});
-
-				// Break parent-child relationships
-				meshesToDispose.forEach((currentMesh) => {
-					currentMesh.parent = null;
-				});
-
-				// Dispose meshes in reverse order
-				meshesToDispose.reverse().forEach((currentMesh) => {
-					if (!currentMesh.isDisposed()) {
-						// Remove physics body
-						if (currentMesh.physics) {
-							currentMesh.physics.dispose();
-						}
-
-						// Remove from scene
-						flock.scene.removeMesh(currentMesh);
-						currentMesh.setEnabled(false);
-
-						// Dispose the mesh
-						currentMesh.dispose();
-					}
-				});
-			} else {
-				mesh.dispose();
-			}
+			flock.disposeMesh(mesh);
 		});
 	},
 	async playAnimation(
@@ -2490,6 +2543,7 @@ export const flock = {
 		);
 		material.alpha = alpha;
 		mesh.material = material;
+		mesh.metadata.sharedMaterial = false;
 
 		// Enable and make the mesh visible
 		mesh.isVisible = true;
