@@ -2004,6 +2004,33 @@ export const flock = {
 			}
 		});
 	},
+	createGround(color, modelId) {
+		const ground = flock.BABYLON.MeshBuilder.CreateGround(
+			modelId,
+			{ width: 100, height: 100, subdivisions: 2 },
+			flock.scene,
+		);
+		const blockId = modelId;
+		const groundAggregate = new flock.BABYLON.PhysicsAggregate(
+			ground,
+			flock.BABYLON.PhysicsShapeType.BOX,
+			{ mass: 0, friction: 0.5 },
+			flock.scene,
+		);
+
+		ground.name = modelId;
+		ground.blockKey = blockId;
+		ground.receiveShadows = true;
+		const groundMaterial = new flock.BABYLON.StandardMaterial(
+			"groundMaterial",
+			flock.scene,
+		);
+
+		groundMaterial.diffuseColor = flock.BABYLON.Color3.FromHexString(
+			flock.getColorFromString(color),
+		);
+		ground.material = groundMaterial;
+	},
 	createMap(image, color, texture) {
 		console.log("Creating map from image", image);
 
@@ -2079,6 +2106,8 @@ export const flock = {
 			);
 		}
 
+		ground.name = "ground";
+		ground.blockKey = "ground";
 		const material = new flock.BABYLON.StandardMaterial(
 			"ground",
 			flock.scene,

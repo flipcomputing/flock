@@ -875,10 +875,11 @@ export function defineGenerators() {
 		const y = getFieldValue(block, "Y", "0");
 		const z = getFieldValue(block, "Z", "0");
 		const color = getFieldValue(block, "COLOR", "#FFFFFF");
-		const font = block.getFieldValue("FONT") || './fonts/FreeSans_Bold.json';
+		const font =
+			block.getFieldValue("FONT") || "./fonts/FreeSans_Bold.json";
 		const variableName = javascriptGenerator.nameDB_.getName(
 			block.getFieldValue("ID_VAR"),
-			Blockly.Names.NameType.VARIABLE
+			Blockly.Names.NameType.VARIABLE,
 		);
 
 		const meshId = "text_" + generateUniqueId();
@@ -907,36 +908,113 @@ export function defineGenerators() {
 
 	javascriptGenerator.forBlock["create_particle_effect"] = function (block) {
 		const emitRate = parseFloat(
-			javascriptGenerator.valueToCode(block, "RATE", javascriptGenerator.ORDER_ATOMIC) || "10"
+			javascriptGenerator.valueToCode(
+				block,
+				"RATE",
+				javascriptGenerator.ORDER_ATOMIC,
+			) || "10",
 		);
-		const startColor = javascriptGenerator.valueToCode(block, "START_COLOR", javascriptGenerator.ORDER_ATOMIC) || '"#FFFFFF"';
-		const endColor = javascriptGenerator.valueToCode(block, "END_COLOR", javascriptGenerator.ORDER_ATOMIC) || '"#000000"';
+		const startColor =
+			javascriptGenerator.valueToCode(
+				block,
+				"START_COLOR",
+				javascriptGenerator.ORDER_ATOMIC,
+			) || '"#FFFFFF"';
+		const endColor =
+			javascriptGenerator.valueToCode(
+				block,
+				"END_COLOR",
+				javascriptGenerator.ORDER_ATOMIC,
+			) || '"#000000"';
 		const startAlpha = parseFloat(
-			javascriptGenerator.valueToCode(block, "START_ALPHA", javascriptGenerator.ORDER_ATOMIC) || "1.0"
+			javascriptGenerator.valueToCode(
+				block,
+				"START_ALPHA",
+				javascriptGenerator.ORDER_ATOMIC,
+			) || "1.0",
 		);
 		const endAlpha = parseFloat(
-			javascriptGenerator.valueToCode(block, "END_ALPHA", javascriptGenerator.ORDER_ATOMIC) || "1.0"
+			javascriptGenerator.valueToCode(
+				block,
+				"END_ALPHA",
+				javascriptGenerator.ORDER_ATOMIC,
+			) || "1.0",
 		);
-		const minSize = javascriptGenerator.valueToCode(block, "MIN_SIZE", javascriptGenerator.ORDER_ATOMIC) || "0.1";
-		const maxSize = javascriptGenerator.valueToCode(block, "MAX_SIZE", javascriptGenerator.ORDER_ATOMIC) || "1.0";
-		const minLifetime = javascriptGenerator.valueToCode(block, "MIN_LIFETIME", javascriptGenerator.ORDER_ATOMIC) || "1.0";
-		const maxLifetime = javascriptGenerator.valueToCode(block, "MAX_LIFETIME", javascriptGenerator.ORDER_ATOMIC) || "5.0";
-		const x = javascriptGenerator.valueToCode(block, "X", javascriptGenerator.ORDER_ATOMIC) || "0";
-		const y = javascriptGenerator.valueToCode(block, "Y", javascriptGenerator.ORDER_ATOMIC) || "0";
-		const z = javascriptGenerator.valueToCode(block, "Z", javascriptGenerator.ORDER_ATOMIC) || "0";
-		const minAngularSpeed = javascriptGenerator.valueToCode(block, "MIN_ANGULAR_SPEED", javascriptGenerator.ORDER_ATOMIC) || 0;
-		const maxAngularSpeed = javascriptGenerator.valueToCode(block, "MAX_ANGULAR_SPEED", javascriptGenerator.ORDER_ATOMIC) || 0;
-		const minInitialRotation = javascriptGenerator.valueToCode(block, "MIN_INITIAL_ROTATION", javascriptGenerator.ORDER_ATOMIC) || 0;
-		const maxInitialRotation = javascriptGenerator.valueToCode(block, "MAX_INITIAL_ROTATION", javascriptGenerator.ORDER_ATOMIC) || 0;
+		const minSize =
+			javascriptGenerator.valueToCode(
+				block,
+				"MIN_SIZE",
+				javascriptGenerator.ORDER_ATOMIC,
+			) || "0.1";
+		const maxSize =
+			javascriptGenerator.valueToCode(
+				block,
+				"MAX_SIZE",
+				javascriptGenerator.ORDER_ATOMIC,
+			) || "1.0";
+		const minLifetime =
+			javascriptGenerator.valueToCode(
+				block,
+				"MIN_LIFETIME",
+				javascriptGenerator.ORDER_ATOMIC,
+			) || "1.0";
+		const maxLifetime =
+			javascriptGenerator.valueToCode(
+				block,
+				"MAX_LIFETIME",
+				javascriptGenerator.ORDER_ATOMIC,
+			) || "5.0";
+		const x =
+			javascriptGenerator.valueToCode(
+				block,
+				"X",
+				javascriptGenerator.ORDER_ATOMIC,
+			) || "0";
+		const y =
+			javascriptGenerator.valueToCode(
+				block,
+				"Y",
+				javascriptGenerator.ORDER_ATOMIC,
+			) || "0";
+		const z =
+			javascriptGenerator.valueToCode(
+				block,
+				"Z",
+				javascriptGenerator.ORDER_ATOMIC,
+			) || "0";
+		const minAngularSpeed =
+			javascriptGenerator.valueToCode(
+				block,
+				"MIN_ANGULAR_SPEED",
+				javascriptGenerator.ORDER_ATOMIC,
+			) || 0;
+		const maxAngularSpeed =
+			javascriptGenerator.valueToCode(
+				block,
+				"MAX_ANGULAR_SPEED",
+				javascriptGenerator.ORDER_ATOMIC,
+			) || 0;
+		const minInitialRotation =
+			javascriptGenerator.valueToCode(
+				block,
+				"MIN_INITIAL_ROTATION",
+				javascriptGenerator.ORDER_ATOMIC,
+			) || 0;
+		const maxInitialRotation =
+			javascriptGenerator.valueToCode(
+				block,
+				"MAX_INITIAL_ROTATION",
+				javascriptGenerator.ORDER_ATOMIC,
+			) || 0;
 
 		const variableName = javascriptGenerator.nameDB_.getName(
 			block.getFieldValue("ID_VAR"),
-			Blockly.Names.NameType.VARIABLE
+			Blockly.Names.NameType.VARIABLE,
 		);
 
 		const emitterMesh = javascriptGenerator.nameDB_.getName(
 			block.getFieldValue("EMITTER_MESH"),
-			Blockly.Names.NameType.VARIABLE
+			Blockly.Names.NameType.VARIABLE,
 		);
 
 		const shape = block.getFieldValue("SHAPE");
@@ -981,17 +1059,15 @@ export function defineGenerators() {
 		return `${variableName} = createParticleEffect(${options.trim()});\n`;
 	};
 
-	
 	javascriptGenerator.forBlock["control_particle_system"] = function (block) {
-	  const systemName = javascriptGenerator.nameDB_.getName(
-		block.getFieldValue("SYSTEM_NAME"),
-		Blockly.Names.NameType.VARIABLE
-	  );
-	  const action = block.getFieldValue("ACTION");
+		const systemName = javascriptGenerator.nameDB_.getName(
+			block.getFieldValue("SYSTEM_NAME"),
+			Blockly.Names.NameType.VARIABLE,
+		);
+		const action = block.getFieldValue("ACTION");
 
-	  return `${action}ParticleSystem(${systemName});\n`;
+		return `${action}ParticleSystem(${systemName});\n`;
 	};
-
 
 	// Function to create a mesh, taking mesh type, parameters, and position as arguments
 	function createMesh(block, meshType, params, position, idPrefix) {
@@ -1633,9 +1709,12 @@ export function defineGenerators() {
 		const color = getFieldValue(block, "COLOR", "#6495ED");
 		const texture = block.getFieldValue("TEXTURE");
 
+		const meshId = "ground";
+		meshMap[meshId] = block;
+		meshBlockIdMap[meshId] = block.id;
+
 		return `createMap("${mapName}", ${color}, "${texture}");\n`;
 	};
-
 
 	javascriptGenerator.forBlock["move_forward"] = function (block) {
 		const modelName = javascriptGenerator.nameDB_.getName(
@@ -2298,8 +2377,8 @@ export function defineGenerators() {
 	};
 
 	javascriptGenerator.forBlock["colour_from_string"] = function (block) {
-	  const colourValue = block.getFieldValue("COLOR") || "#000000";
-	  return [`"${colourValue}"`, javascriptGenerator.ORDER_ATOMIC];
+		const colourValue = block.getFieldValue("COLOR") || "#000000";
+		return [`"${colourValue}"`, javascriptGenerator.ORDER_ATOMIC];
 	};
 
 	javascriptGenerator.forBlock["procedures_defnoreturn"] = function (block) {

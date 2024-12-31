@@ -2001,6 +2001,7 @@ function updateBlockColorAndHighlight(mesh, selectedColor) {
 				mesh.parent ? ultimateParent(mesh.parent) : mesh;
 
 			block = meshMap[ultimateParent(mesh).blockKey];
+
 		}
 
 		if (!block) {
@@ -2010,6 +2011,7 @@ function updateBlockColorAndHighlight(mesh, selectedColor) {
 				mesh,
 			);
 
+			console.log(blockKey, meshMap);
 			return;
 		}
 
