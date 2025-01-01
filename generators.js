@@ -1567,19 +1567,44 @@ export function defineGenerators() {
 		}
 	};
 
-	javascriptGenerator.forBlock["when_clicked"] = function (block) {
-		const modelName = javascriptGenerator.nameDB_.getName(
-			block.getFieldValue("MODEL_VAR"),
-			Blockly.Names.NameType.VARIABLE,
-		);
+	javascriptGenerator.forBlock['when_clicked'] = function(block) {
+	  // Retrieve the model variable name
+	  const modelName = javascriptGenerator.nameDB_.getName(
+		block.getFieldValue('MODEL_VAR'),
+		Blockly.Names.NameType.VARIABLE
+	  );
 
-		const trigger = block.getFieldValue("TRIGGER");
-		const mode = block.getFieldValue("MODE"); // Get the selected mode
-		const doCode = javascriptGenerator.statementToCode(block, "DO");
+	  // Retrieve the trigger type
+	  const trigger = block.getFieldValue('TRIGGER');
 
-		return `onTrigger(${modelName}, "${trigger}", async function() {\n
-			${doCode}
-		}, { mode: "${mode}" });\n`; // Pass the mode in the options
+	  // Retrieve the execution mode
+	  const mode = block.getFieldValue('MODE');
+
+	  // Generate code for the 'DO' input section
+	  const doCode = javascriptGenerator.statementToCode(block, 'DO').trim();
+
+	  // Initialize an array to hold code for 'THEN' sections
+	  const thenCodes = [];
+
+	  // Iterate over possible 'THEN' inputs and collect their code
+	  for (let i = 0; i < block.thenCount_; i++) {
+		const thenCode = javascriptGenerator.statementToCode(block, 'THEN' + i).trim();
+		if (thenCode) {
+		  thenCodes.push(thenCode);
+		}
+	  }
+
+	  // Combine 'DO' and 'THEN' codes into a single array, filtering out any empty entries
+	  const allActions = [doCode, ...thenCodes].filter(code => code);
+
+	  // Map each action code to an asynchronous function string
+	  const actionFunctions = allActions.map(code => `async function() {\n${code}\n}`).join(',\n');
+
+	  // Construct the final JavaScript code string
+	  const code = `onTrigger(${modelName}, "${trigger}", [\n${actionFunctions}\n], { mode: "${mode}" });\n`;
+
+	  // Return the constructed code
+	  return code;
 	};
 
 	javascriptGenerator.forBlock["local_variable"] = function (

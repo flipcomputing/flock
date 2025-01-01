@@ -3225,78 +3225,113 @@ export function defineBlocks() {
 		},
 	};
 
-	Blockly.Blocks["when_clicked"] = {
-		init: function () {
-			this.jsonInit({
-				type: "model_clicked",
-				message0: "when %1 is %2",
-				args0: [
-					{
-						type: "field_variable",
-						name: "MODEL_VAR",
-						variable: window.currentMesh,
-					},
-					{
-						type: "field_dropdown",
-						name: "TRIGGER",
-						options: [
-							["clicked", "OnPickTrigger"],
-							["double-clicked", "OnDoublePickTrigger"],
-							["mouse down", "OnPickDownTrigger"],
-							["mouse up", "OnPickUpTrigger"],
-							["mouse out", "OnPickOutTrigger"],
-							["left-clicked", "OnLeftPickTrigger"],
-							[
-								"right-clicked / long pressed",
-								"OnRightOrLongPressTrigger",
-							],
-							["pointer over", "OnPointerOverTrigger"],
-							["pointer out", "OnPointerOutTrigger"],
-						],
-					},
-				],
-				message1: "%1",
-				args1: [
-					{
-						type: "input_statement",
-						name: "DO",
-					},
-				],
-				message2: "execution mode %1",
-				args2: [
-					{
-						type: "field_dropdown",
-						name: "MODE",
-						options: [
-							["wait", "wait"],
-							["once", "once"],
-							["every", "every"],
-						],
-					},
-				],
-				colour: categoryColours["Events"],
-				tooltip:
-					"Executes the blocks inside when the specified model trigger occurs.\nKeyword: click",
-				helpUrl: "",
-			});
+	Blockly.Blocks['when_clicked'] = {
+	  init: function () {
+		this.jsonInit({
+		  type: 'when_clicked',
+		  message0: 'when %1 is %2',
+		  args0: [
+			{
+			  type: 'field_variable',
+			  name: 'MODEL_VAR',
+			  variable: 'model'
+			},
+			{
+			  type: 'field_dropdown',
+			  name: 'TRIGGER',
+			  options: [
+				['clicked', 'OnPickTrigger'],
+				['double-clicked', 'OnDoublePickTrigger'],
+				['mouse down', 'OnPickDownTrigger'],
+				['mouse up', 'OnPickUpTrigger'],
+				['mouse out', 'OnPickOutTrigger'],
+				['left-clicked', 'OnLeftPickTrigger'],
+				['right-clicked / long pressed', 'OnRightOrLongPressTrigger'],
+				['pointer over', 'OnPointerOverTrigger'],
+				['pointer out', 'OnPointerOutTrigger']
+			  ]
+			}
+		  ],
+		  message1: '%1',
+		  args1: [
+			{
+			  type: 'input_statement',
+			  name: 'DO'
+			}
+		  ],
+		  colour: categoryColours['Events'],
+		  tooltip: 'Executes the blocks inside when the specified model trigger occurs.\nKeyword: click',
+		  helpUrl: ''
+		});
 
-			this.isInline = false;
-			addToggleButton(this);
-		},
-		mutationToDom: function () {
-			return mutationToDom(this);
-		},
-		domToMutation: function (xmlElement) {
-			domToMutation(this, xmlElement);
-		},
-		updateShape_: function (isInline) {
-			updateShape(this, isInline);
-		},
-		toggleDoBlock: function () {
-			this.updateShape_(!this.isInline);
-		},
+		// Default to top-level mode
+		this.isInline = false;
+		this.setPreviousStatement(false);
+		this.setNextStatement(false);
+
+		// Add inline toggle button
+		const toggleButton = new Blockly.FieldImage(
+		  "data:image/svg+xml;base64,CjxzdmcgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB2aWV3Qm94PSIwIDAgNjQgNjQiIHdpZHRoPSIzMCIgaGVpZ2h0PSIzMCI+CiAgPHBhdGggZD0iTSAwIDQgQSA0IDQgMCAwIDEgNCAwIEggMTIgYyAyIDAgMyAxIDQgMiBsIDQgNCBjIDEgMSAyIDIgNCAyIGggMTIgYyAyIDAgMyAtMSA0IC0yIGwgNCAtNCBjIDEgLTEgMiAtMiA0IC0yIEwgNjAgMCBhIDQgNCAwIDAgMSA0IDQgTCA2NCA0NCBhIDQgNCAwIDAgMSAtNCA0IEwgNDggNDggYyAtMiAwIC0zIDEgLTQgMiBsIC00IDQgYyAtMSAxIC0yIDIgLTQgMiBoIC0xMiBjIC0yIDAgLTMgLTEgLTQgLTIgbCAtNCAtNCBjIC0xIC0xIC0yIC0yIC00IC0yIEwgNCA0OCBhIDQgNCAwIDAgMSAtNCAtNCBaIiAKICAgICAgICBzdHJva2U9IiNmZmZmZmYiIGZpbGw9Im5vbmUiIHN0cm9rZS13aWR0aD0iNyIvPgo8L3N2Zz4K",
+		  30,
+		  30,
+		  '*',
+		  () => {
+			this.toggleDoBlock();
+		  }
+		);
+
+		// Place the execution mode dropdown first, then the icon at the end
+		const input = this.appendDummyInput();
+		input.appendField("execution mode")
+			 .appendField(new Blockly.FieldDropdown([
+			   ['wait', 'wait'],
+			   ['once', 'once'],
+			   ['every', 'every']
+			 ]), 'MODE')
+			 .appendField(toggleButton, 'TOGGLE_BUTTON'); // Now at the end
+	  },
+
+	  mutationToDom: function () {
+		const container = document.createElement('mutation');
+		container.setAttribute('inline', this.isInline);
+		return container;
+	  },
+
+	  domToMutation: function (xmlElement) {
+		const isInline = xmlElement.getAttribute('inline') === 'true' || false;
+		this.updateShape_(isInline);
+	  },
+
+	  updateShape_: function (isInline) {
+		this.isInline = isInline;
+
+		if (isInline) {
+		  this.setPreviousStatement(true);
+		  this.setNextStatement(true);
+		} else {
+		  this.setPreviousStatement(false);
+		  this.setNextStatement(false);
+		}
+	  },
+
+	  toggleDoBlock: function () {
+		const isInline = !this.isInline;
+
+		if (!isInline) {
+		  this.unplug(true); // Disconnect blocks when switching to top-level
+		}
+
+		this.updateShape_(isInline);
+
+		if (this.hasDisabledReason('ORPHANED_BLOCK')) {
+		  this.setDisabledReason(false, 'ORPHANED_BLOCK');
+		}
+
+		Blockly.Events.fire(new Blockly.Events.BlockChange(this, 'mutation', null, '', ''));
+		
+		Blockly.Events.fire(new Blockly.Events.BlockMove(this));
+	  }
 	};
-
 
 	// Define the forever block
 	Blockly.Blocks["forever"] = {
