@@ -3225,7 +3225,6 @@ export function defineBlocks() {
 		},
 	};
 
-	// Define the when_clicked block
 	Blockly.Blocks["when_clicked"] = {
 		init: function () {
 			this.jsonInit({
@@ -3263,6 +3262,18 @@ export function defineBlocks() {
 						name: "DO",
 					},
 				],
+				message2: "execution mode %1",
+				args2: [
+					{
+						type: "field_dropdown",
+						name: "MODE",
+						options: [
+							["wait", "wait"],
+							["once", "once"],
+							["every", "every"],
+						],
+					},
+				],
 				colour: categoryColours["Events"],
 				tooltip:
 					"Executes the blocks inside when the specified model trigger occurs.\nKeyword: click",
@@ -3285,6 +3296,7 @@ export function defineBlocks() {
 			this.updateShape_(!this.isInline);
 		},
 	};
+
 
 	// Define the forever block
 	Blockly.Blocks["forever"] = {

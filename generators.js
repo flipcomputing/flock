@@ -1574,11 +1574,12 @@ export function defineGenerators() {
 		);
 
 		const trigger = block.getFieldValue("TRIGGER");
+		const mode = block.getFieldValue("MODE"); // Get the selected mode
 		const doCode = javascriptGenerator.statementToCode(block, "DO");
 
 		return `onTrigger(${modelName}, "${trigger}", async function() {\n
 			${doCode}
-		});\n`;
+		}, { mode: "${mode}" });\n`; // Pass the mode in the options
 	};
 
 	javascriptGenerator.forBlock["local_variable"] = function (
