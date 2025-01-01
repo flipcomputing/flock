@@ -5981,6 +5981,7 @@ export const flock = {
 			let isExecuting = false;
 			let doCodes = Array.isArray(doCode) ? doCode : [doCode];
 			let currentIndex = 0;
+			let queue = [];
 
 			// Helper to handle action registration for meshes
 			function registerMeshAction(mesh, trigger, action) {
@@ -5989,12 +5990,20 @@ export const flock = {
 					mesh.actionManager = new flock.BABYLON.ActionManager(flock.scene);
 					mesh.actionManager.isRecursive = true;
 				}
-				mesh.actionManager.registerAction(
-					new flock.BABYLON.ExecuteCodeAction(
-						flock.BABYLON.ActionManager[trigger],
-						action
-					)
+
+				let actionSequence = new flock.BABYLON.ExecuteCodeAction(
+					flock.BABYLON.ActionManager[trigger],
+					action
 				);
+
+				for (let i = 1; i < doCodes.length; i++) {
+					actionSequence = actionSequence.then(new flock.BABYLON.ExecuteCodeAction(
+						flock.BABYLON.ActionManager[trigger],
+						async () => await doCodes[i]()
+					));
+				}
+
+				mesh.actionManager.registerAction(actionSequence);
 			}
 
 			// Helper to handle GUI button registration
@@ -6008,16 +6017,26 @@ export const flock = {
 
 			// Execute the next code in sequence
 			async function executeAction() {
-				if (mode === 'wait' && isExecuting) return;
 				if (mode === 'once' && isExecuting) return;
 
-				try {
+				if (mode === 'wait') {
+					if (isExecuting) return;
 					isExecuting = true;
-					await doCodes[currentIndex]();
-					currentIndex = (currentIndex + 1) % doCodes.length;
-				} finally {
-					if (mode !== 'once') {
+					try {
+						await doCodes[currentIndex]();
+						currentIndex = (currentIndex + 1) % doCodes.length;
+					} finally {
 						isExecuting = false;
+						if (queue.length > 0) {
+							queue.shift()(); // Process next queued action
+						}
+					}
+				} else if (mode === 'every') {
+					try {
+						await doCodes[currentIndex]();
+						currentIndex = (currentIndex + 1) % doCodes.length;
+					} catch (e) {
+						console.error("Action execution failed:", e);
 					}
 				}
 			}
@@ -6025,8 +6044,9 @@ export const flock = {
 			// Handle meshes
 			if (target instanceof flock.BABYLON.AbstractMesh) {
 				registerMeshAction(target, trigger, async () => {
-					if (mode === 'every') {
-						executeAction();
+					if (mode === 'wait') {
+						queue.push(() => executeAction());
+						if (!isExecuting) queue.shift()(); // Start processing if idle
 					} else {
 						await executeAction();
 					}
@@ -6056,7 +6076,12 @@ export const flock = {
 
 							flock.scene.onPointerDown = function (evt, pickResult) {
 								if (pickResult.hit && pickResult.pickedMesh === target) {
-									executeAction();
+									if (mode === 'wait') {
+										queue.push(() => executeAction());
+										if (!isExecuting) queue.shift()();
+									} else {
+										executeAction();
+									}
 								}
 							};
 						} else if (state === BABYLON.WebXRState.NOT_IN_XR) {
@@ -6068,7 +6093,12 @@ export const flock = {
 			// Handle GUI buttons
 			else if (target instanceof flock.GUI.Button) {
 				registerButtonAction(target, trigger, async () => {
-					await executeAction();
+					if (mode === 'wait') {
+						queue.push(() => executeAction());
+						if (!isExecuting) queue.shift()();
+					} else {
+						await executeAction();
+					}
 				});
 			}
 		});
