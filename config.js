@@ -154,5 +154,6 @@ export const materialNames = [
 	"flowers.png",
 	"swirl.png",
 	"fishes.png",
+	"eyeball.png",
 	"windmill_tile.png",
 ];
