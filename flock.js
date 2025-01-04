@@ -1636,9 +1636,9 @@ export const flock = {
 						blockId,
 					);
 
-					flock.disposeMesh(mergedMesh1);
+					mergedMesh1.dispose();
 					// Dispose of the original meshes
-					validMeshes.forEach((mesh) => flock.disposeMesh(mesh));
+					validMeshes.forEach((mesh) => mesh.dispose());
 
 					return modelId; // Return the modelId as per original functionality
 				} else {
