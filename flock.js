@@ -6008,10 +6008,10 @@ export const flock = {
 			}
 
 			let { mode } = options;
-			let isExecuting = false;
+			let isExecuting = false; // Tracks whether action is currently executing
+			let hasExecuted = false; // Tracks whether action has executed in 'once' mode
 			let doCodes = Array.isArray(doCode) ? doCode : [doCode];
 			let currentIndex = 0;
-			let queue = [];
 
 			// Helper to handle action registration for meshes
 			function registerMeshAction(mesh, trigger, action) {
@@ -6047,39 +6047,33 @@ export const flock = {
 
 			// Execute the next code in sequence
 			async function executeAction() {
-				if (mode === 'once' && isExecuting) return;
+				// Handle 'once' mode - execute only once
+				if (mode === 'once') {
+					if (hasExecuted) return; // Skip if already executed
+					hasExecuted = true; // Mark as executed
+				}
 
+				// Handle 'wait' mode - discard if already executing
 				if (mode === 'wait') {
-					if (isExecuting) return;
+					if (isExecuting) return; // Skip if still processing
 					isExecuting = true;
-					try {
-						await doCodes[currentIndex]();
-						currentIndex = (currentIndex + 1) % doCodes.length;
-					} finally {
-						isExecuting = false;
-						if (queue.length > 0) {
-							queue.shift()(); // Process next queued action
-						}
-					}
-				} else if (mode === 'every') {
-					try {
-						await doCodes[currentIndex]();
-						currentIndex = (currentIndex + 1) % doCodes.length;
-					} catch (e) {
-						console.error("Action execution failed:", e);
-					}
+				}
+
+				try {
+					await doCodes[currentIndex]();
+					currentIndex = (currentIndex + 1) % doCodes.length;
+				} catch (e) {
+					console.error("Action execution failed:", e);
+				} finally {
+					// Reset execution flag only for 'wait' mode
+					if (mode === 'wait') isExecuting = false;
 				}
 			}
 
 			// Handle meshes
 			if (target instanceof flock.BABYLON.AbstractMesh) {
 				registerMeshAction(target, trigger, async () => {
-					if (mode === 'wait') {
-						queue.push(() => executeAction());
-						if (!isExecuting) queue.shift()(); // Start processing if idle
-					} else {
-						await executeAction();
-					}
+					await executeAction(); // Always execute immediately
 				});
 
 				// Handle AR/VR-specific interactions
@@ -6106,12 +6100,7 @@ export const flock = {
 
 							flock.scene.onPointerDown = function (evt, pickResult) {
 								if (pickResult.hit && pickResult.pickedMesh === target) {
-									if (mode === 'wait') {
-										queue.push(() => executeAction());
-										if (!isExecuting) queue.shift()();
-									} else {
-										executeAction();
-									}
+									executeAction(); // Discard extra triggers in 'wait' mode
 								}
 							};
 						} else if (state === BABYLON.WebXRState.NOT_IN_XR) {
@@ -6123,16 +6112,12 @@ export const flock = {
 			// Handle GUI buttons
 			else if (target instanceof flock.GUI.Button) {
 				registerButtonAction(target, trigger, async () => {
-					if (mode === 'wait') {
-						queue.push(() => executeAction());
-						if (!isExecuting) queue.shift()();
-					} else {
-						await executeAction();
-					}
+					await executeAction(); // Execute immediately
 				});
 			}
 		});
 	},
+
 	onIntersect(modelName, otherModelName, trigger, doCode) {
 		return flock.whenModelReady(modelName, async function (mesh) {
 			if (!mesh) {
