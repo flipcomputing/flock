@@ -46,152 +46,182 @@ export const flock = {
 	async runCode(code) {
 		let iframe = document.getElementById("flock-iframe");
 
-		if (iframe) {
-			await iframe.contentWindow?.flock?.disposeOldScene();
-		} else {
-			// Step 3: If the iframe does not exist, create a new one
-			iframe = document.createElement("iframe");
-			iframe.id = "flock-iframe";
-			iframe.style.display = "none";
-			document.body.appendChild(iframe);
-		}
-
-		await new Promise((resolve) => {
-			iframe.onload = () => {
-				resolve();
-			};
-			iframe.src = "about:blank";
-		});
-
 		try {
+			// Step 1: Dispose old scene if iframe exists
+			if (iframe) {
+				await iframe.contentWindow?.flock?.disposeOldScene();
+			} else {
+				// Step 2: Create a new iframe if not found
+				iframe = document.createElement("iframe");
+				iframe.id = "flock-iframe";
+				iframe.style.display = "none";
+				document.body.appendChild(iframe);
+			}
+
+			// Step 3: Wait for iframe to load
+			await new Promise((resolve, reject) => {
+				iframe.onload = () => resolve();
+				iframe.onerror = () => reject(new Error("Failed to load iframe"));
+				iframe.src = "about:blank";
+			});
+
+			// Step 4: Access iframe window and set up flock
 			const iframeWindow = iframe.contentWindow;
+			if (!iframeWindow) throw new Error("Iframe window is unavailable");
+
 			iframeWindow.flock = flock;
 
+			// Step 5: Initialise new scene
 			await iframeWindow.flock.initializeNewScene();
 
+			// Step 6: Create sandboxed function
 			const sandboxFunction = new iframeWindow.Function(`
-		  "use strict";
+			"use strict";
 
-		  const {
-			initialize,
-			createEngine,
-			createScene,
-			playAnimation,
-			playSound,
-			playNotes,
-			setBPM,
-			createInstrument,
-			switchAnimation,
-			highlight,
-			newCharacter,
-			newObject,
-			createParticleEffect,
-			create3DText,
-			newModel,
-			createBox,
-			createSphere,
-			createCylinder,
-			createCapsule,
-			createPlane,
-			cloneMesh,
-			parentChild,
-			mergeMeshes,
-			subtractMeshes,
-			intersectMeshes,
-			createHull,
-			hold, 
-			drop,
-			makeFollow,
-			stopFollow,
-			removeParent,
-			createGround,
-			createMap,
-			createCustomMap,
-			setSky,
-			buttonControls,
-			getCamera,
-			cameraControl,
-			setCameraBackground,
-			setXRMode,
-			applyForce,
-			moveByVector,
-			glideTo,
-			createAnimation,
-			animateFrom,
-			playAnimationGroup, 
-			pauseAnimationGroup, 
-			stopAnimationGroup,
-			startParticleSystem,
-			stopParticleSystem,
-			resetParticleSystem,
-			animateKeyFrames,
-			setPivotPoint,
-			rotate,
-			lookAt,
-			moveTo,
-			rotateTo,
-			rotateCamera,
-			rotateAnim,
-			animateProperty,
-			positionAt,
-			distanceTo,
-			wait,
-			safeLoop,
-			waitUntil,
-			show,
-			hide,
-			clearEffects,
-			stopAnimations,
-			tint,
-			setAlpha,
-			dispose,
-			setFog,
-			keyPressed,
-			isTouchingSurface,
-			seededRandom,
-			randomColour,
-			scaleMesh,
-			changeColor,
-			changeColorMesh,
-			changeMaterial,
-			setMaterial,
-			createMaterial,
-			textMaterial,
-			createDecal,
-			placeDecal,
-			moveForward,
-			moveSideways,
-			strafe,
-			attachCamera,
-			canvasControls,
-			setPhysics,
-			checkMeshesTouching,
-			say,
-			onTrigger,
-			onEvent,
-			broadcastEvent,
-			Mesh,
-			forever,
-			whenKeyEvent,
-			printText,
-			UIText,
-			UIButton,
-			onIntersect,
-			getProperty,
-			exportMesh,
-			abortSceneExecution
-		  } = flock;
+			const {
+				initialize,
+				createEngine,
+				createScene,
+				playAnimation,
+				playSound,
+				playNotes,
+				setBPM,
+				createInstrument,
+				switchAnimation,
+				highlight,
+				newCharacter,
+				newObject,
+				createParticleEffect,
+				create3DText,
+				newModel,
+				createBox,
+				createSphere,
+				createCylinder,
+				createCapsule,
+				createPlane,
+				cloneMesh,
+				parentChild,
+				mergeMeshes,
+				subtractMeshes,
+				intersectMeshes,
+				createHull,
+				hold, 
+				drop,
+				makeFollow,
+				stopFollow,
+				removeParent,
+				createGround,
+				createMap,
+				createCustomMap,
+				setSky,
+				buttonControls,
+				getCamera,
+				cameraControl,
+				setCameraBackground,
+				setXRMode,
+				applyForce,
+				moveByVector,
+				glideTo,
+				createAnimation,
+				animateFrom,
+				playAnimationGroup, 
+				pauseAnimationGroup, 
+				stopAnimationGroup,
+				startParticleSystem,
+				stopParticleSystem,
+				resetParticleSystem,
+				animateKeyFrames,
+				setPivotPoint,
+				rotate,
+				lookAt,
+				moveTo,
+				rotateTo,
+				rotateCamera,
+				rotateAnim,
+				animateProperty,
+				positionAt,
+				distanceTo,
+				wait,
+				safeLoop,
+				waitUntil,
+				show,
+				hide,
+				clearEffects,
+				stopAnimations,
+				tint,
+				setAlpha,
+				dispose,
+				setFog,
+				keyPressed,
+				isTouchingSurface,
+				seededRandom,
+				randomColour,
+				scaleMesh,
+				changeColor,
+				changeColorMesh,
+				changeMaterial,
+				setMaterial,
+				createMaterial,
+				textMaterial,
+				createDecal,
+				placeDecal,
+				moveForward,
+				moveSideways,
+				strafe,
+				attachCamera,
+				canvasControls,
+				setPhysics,
+				checkMeshesTouching,
+				say,
+				onTrigger,
+				onEvent,
+				broadcastEvent,
+				Mesh,
+				forever,
+				whenKeyEvent,
+				printText,
+				UIText,
+				UIButton,
+				onIntersect,
+				getProperty,
+				exportMesh,
+				abortSceneExecution
+			} = flock;
 
-		  ${code}
-		`);
+			${code}
+			`);
 
-			// Execute the sandboxed function
-			sandboxFunction();
+			// Step 7: Execute the sandboxed function
+			try {
+				sandboxFunction();
+			} catch (sandboxError) {
+				throw new Error(`Sandbox execution failed: ${sandboxError.message}`);
+			}
+
 		} catch (error) {
-			console.error(
-				"Error during scene creation or code execution:",
-				error,
-			);
+			// General Error Handling
+			console.error("Error during scene setup or code execution:", error);
+
+			// Clean up resources and stop execution
+			try {
+				flock.audioContext.close();
+				flock.engine.stopRenderLoop();
+				flock.removeEventListeners();
+			} catch (cleanupError) {
+				console.error("Error during cleanup:", cleanupError);
+			}
+
+			// Fallback: Load starter project
+			const starter = "examples/starter.json";
+			fetch(starter)
+				.then((response) => response.json())
+				.then((json) => {
+					Blockly.serialization.workspaces.load(json, workspace);
+					executeCode(); // Retry with starter project
+				})
+				.catch((starterError) => {
+					console.error("Error loading starter project:", starterError);
+				});
 		}
 	},
 	async initialize() {

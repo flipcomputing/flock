@@ -213,7 +213,6 @@ async function executeCode() {
 	const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 	// Wait until the engine is ready using a loop with an async delay
-
 	while (!flock.engineReady) {
 		await delay(100);
 	}
@@ -239,6 +238,7 @@ async function executeCode() {
 	if (showDebug) {
 		flock.scene.debugLayer.hide();
 	}
+
 	// Generate the code from the workspace
 	const code = javascriptGenerator.workspaceToCode(workspace);
 
@@ -249,7 +249,19 @@ async function executeCode() {
 	} catch (error) {
 		console.error("Error executing Blockly code:", error);
 		isExecuting = false; // Reset the flag if there's an error
-		return; // Exit if there's an error in running the code
+
+		// Load the starter project if execution fails
+		const starter = "examples/starter.json";
+		fetch(starter)
+			.then((response) => response.json())
+			.then((json) => {
+				Blockly.serialization.workspaces.load(json, workspace);
+				executeCode(); // Retry execution with the starter project
+			})
+			.catch((loadError) => {
+				console.error("Error loading starter project after execution failure:", loadError);
+			});
+		return; // Exit after handling the error
 	}
 
 	// Check if the debug layer is visible and show it if necessary
@@ -271,6 +283,7 @@ async function executeCode() {
 	// Reset the flag to allow future executions
 	isExecuting = false;
 }
+
 
 function stopCode() {
 	flock.audioContext.close();
