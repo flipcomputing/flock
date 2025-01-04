@@ -1507,47 +1507,7 @@ export const toolbox = {
 					icon: "./images/keyframe.svg",
 					colour: categoryColours["Animate"],
 					contents: [
-						{
-						  kind: "block",
-						  type: "animation",
-						  keyword: "animation",
-						  inputsInline: true, // Set lists to be inline
-						  inputs: {
-							KEYFRAMES: {
-							  block: { // Real list block
-								type: "lists_create_with",
-								extraState: {
-								  itemCount: 1, // Default item count
-								},
-								inputs: {
-								  ADD0: { // Real keyframe block
-									block: {
-									  type: "colour_keyframe",
-									  inputs: {
-										VALUE: { // Real colour block
-										  block: {
-											type: "colour",
-											fields: {
-											  COLOR: "#ff0000", // Default colour
-											},
-										  },
-										},
-										DURATION: { // Real number block
-										  block: {
-											type: "math_number",
-											fields: {
-											  NUM: 1, // Default duration
-											},
-										  },
-										},
-									  },
-									},
-								  },
-								},
-							  },
-							},
-						  },
-						},
+						
 						/*{
 							kind: "block",
 							type: "animate_keyframes",
@@ -1753,8 +1713,8 @@ export const toolbox = {
 				},
 				{
 					kind: "block",
-					type: "controls_for",
-					keyword: "for",
+					type: "controls_flow_statements",
+					keyword: "break",
 				},
 				{
 					kind: "block",
