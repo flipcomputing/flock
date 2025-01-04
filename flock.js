@@ -1577,75 +1577,6 @@ export const flock = {
 			meshToDetachInstance.position = worldPosition;
 		});
 	},
-	mergeMeshes2(modelId, meshList) {
-		const blockId = modelId;
-		modelId += "_" + flock.scene.getUniqueId();
-
-		return flock
-			.prepareMeshes(modelId, meshList, blockId)
-			.then((validMeshes) => {
-				if (validMeshes.length) {
-					// Create the base CSG from the first mesh, respecting its world matrix
-					let baseCSG = flock.BABYLON.CSG2.FromMesh(
-						validMeshes[0],
-						false,
-					);
-
-					// Merge subsequent meshes
-					validMeshes.slice(1).forEach((mesh) => {
-						const meshCSG = flock.BABYLON.CSG2.FromMesh(
-							mesh,
-							false,
-						);
-						baseCSG = baseCSG.add(meshCSG);
-					});
-
-					const mergedMesh1 = baseCSG.toMesh(
-						"mergedMesh",
-						validMeshes[0].getScene(),
-						{
-							centerMesh: false, // Keep the original combined position
-							rebuildNormals: true, // Ensure normals are rebuilt for proper shading
-						},
-					);
-
-					mergedMesh1.refreshBoundingInfo(); // Ensure bounding info is up-to-date
-					const boundingInfo = mergedMesh1.getBoundingInfo();
-					const worldCenter =
-						boundingInfo.boundingBox.centerWorld.clone();
-
-					const mergedMesh = baseCSG.toMesh(
-						"mergedMesh",
-						validMeshes[0].getScene(),
-						{
-							centerMesh: true, // Keep the original combined position
-							rebuildNormals: true, // Ensure normals are rebuilt for proper shading
-						},
-					);
-
-					mergedMesh.position = worldCenter;
-
-					mergedMesh1.metadata = mergedMesh1.metadata || {};
-					mergedMesh1.metadata.sharedMaterial = false;
-
-					flock.applyResultMeshProperties(
-						mergedMesh,
-						validMeshes[0],
-						modelId,
-						blockId,
-					);
-
-					flock.disposeMesh(mergedMesh1);
-					// Dispose of the original meshes
-					validMeshes.forEach((mesh) => flock.disposeMesh(mesh));
-
-					return modelId; // Return the modelId as per original functionality
-				} else {
-					console.warn("No valid meshes to merge.");
-					return null;
-				}
-			});
-	},
 	mergeMeshes(modelId, meshList) {
 		const blockId = modelId;
 		modelId += "_" + flock.scene.getUniqueId();
@@ -1694,7 +1625,9 @@ export const flock = {
 
 					mergedMesh.position = worldCenter;
 
-					mergedMesh1.dispose();
+
+					mergedMesh1.metadata = mergedMesh1.metadata || {};
+					mergedMesh1.metadata.sharedMaterial = false;
 
 					flock.applyResultMeshProperties(
 						mergedMesh,
@@ -1703,8 +1636,9 @@ export const flock = {
 						blockId,
 					);
 
+					flock.disposeMesh(mergedMesh1);
 					// Dispose of the original meshes
-					validMeshes.forEach((mesh) => mesh.dispose());
+					validMeshes.forEach((mesh) => flock.disposeMesh(mesh));
 
 					return modelId; // Return the modelId as per original functionality
 				} else {
@@ -1798,105 +1732,6 @@ export const flock = {
 							// Dispose of the original meshes
 							validMeshes.forEach((mesh) => mesh.dispose());
 							baseMesh.dispose();
-
-							resolve(modelId); // Return the modelId as per original functionality
-						} else {
-							console.warn(
-								"No valid meshes to subtract from the base mesh.",
-							);
-							resolve(null);
-						}
-					});
-			});
-		});
-	},
-	subtractMeshes2(modelId, baseMeshName, meshNames) {
-		const blockId = modelId;
-		modelId += "_" + flock.scene.getUniqueId();
-
-		return new Promise((resolve) => {
-			flock.whenModelReady(baseMeshName, (baseMesh) => {
-				if (!baseMesh) {
-					console.warn(
-						`Base mesh ${baseMeshName} could not be resolved.`,
-					);
-					resolve(null);
-					return;
-				}
-
-				flock
-					.prepareMeshes(modelId, meshNames, blockId)
-					.then((validMeshes) => {
-						if (validMeshes.length) {
-							// Calculate the combined bounding box centre
-							let min = baseMesh
-								.getBoundingInfo()
-								.boundingBox.minimumWorld.clone();
-							let max = baseMesh
-								.getBoundingInfo()
-								.boundingBox.maximumWorld.clone();
-
-							validMeshes.forEach((mesh) => {
-								const boundingInfo = mesh.getBoundingInfo();
-								const meshMin =
-									boundingInfo.boundingBox.minimumWorld;
-								const meshMax =
-									boundingInfo.boundingBox.maximumWorld;
-
-								min = flock.BABYLON.Vector3.Minimize(
-									min,
-									meshMin,
-								);
-								max = flock.BABYLON.Vector3.Maximize(
-									max,
-									meshMax,
-								);
-							});
-
-							const combinedCentre = min.add(max).scale(0.5);
-
-							// Calculate the offset to keep the resulting mesh visually aligned
-							const baseWorldPosition = baseMesh
-								.getAbsolutePosition()
-								.clone();
-							const offset =
-								baseWorldPosition.subtract(combinedCentre);
-
-							// Perform the subtraction
-							let outerCSG = flock.BABYLON.CSG2.FromMesh(
-								baseMesh,
-								false,
-							);
-							validMeshes.forEach((mesh) => {
-								const meshCSG = flock.BABYLON.CSG2.FromMesh(
-									mesh,
-									false,
-								);
-								outerCSG = outerCSG.subtract(meshCSG);
-							});
-
-							// Generate the resulting mesh
-							const resultMesh = outerCSG.toMesh(
-								"resultMesh",
-								baseMesh.getScene(),
-							);
-
-							// Centre the mesh locally and then apply the world offset
-							resultMesh.position = combinedCentre.add(offset);
-
-							// Apply properties to the resulting mesh
-							flock.applyResultMeshProperties(
-								resultMesh,
-								baseMesh,
-								modelId,
-								blockId,
-							);
-
-							// Dispose of the original meshes
-							validMeshes.forEach((mesh) =>
-								flock.disposeMesh(mesh),
-							);
-							flock.disposeMesh(baseMesh);
 
 							resolve(modelId); // Return the modelId as per original functionality
 						} else {
