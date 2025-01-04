@@ -102,28 +102,10 @@ function loadWorkspace() {
 	const urlParams = new URLSearchParams(window.location.search);
 	const projectUrl = urlParams.get("project"); // Check for project URL parameter
 	const savedState = localStorage.getItem("flock_autosave.json");
+	const starter = "examples/starter.json"; // Starter JSON fallback
 
-	if (projectUrl) {
-		// Load from project URL parameter
-		fetch(projectUrl)
-			.then((response) => response.json())
-			.then((json) => {
-				Blockly.serialization.workspaces.load(json, workspace);
-				executeCode();
-			})
-			.catch((error) => {
-				console.error("Error loading project from URL:", error);
-			});
-	} else if (savedState) {
-		// Load from local storage if available
-		Blockly.serialization.workspaces.load(
-			JSON.parse(savedState),
-			workspace,
-		);
-		executeCode();
-	} else {
-		// Load from default starter JSON if no other options
-		const starter = "examples/starter.json";
+	// Helper function to load starter project
+	function loadStarter() {
 		fetch(starter)
 			.then((response) => response.json())
 			.then((json) => {
@@ -134,7 +116,41 @@ function loadWorkspace() {
 				console.error("Error loading starter example:", error);
 			});
 	}
+
+	if (projectUrl) {
+		if (projectUrl === "starter") {
+			// Explicit request for the starter project
+			loadStarter();
+		} else {
+			// Load from project URL parameter
+			fetch(projectUrl)
+				.then((response) => {
+					if (!response.ok) throw new Error("Invalid response");
+					return response.json();
+				})
+				.then((json) => {
+					Blockly.serialization.workspaces.load(json, workspace);
+					executeCode();
+				})
+				.catch((error) => {
+					console.error("Error loading project from URL:", error);
+					// Fallback to starter project
+					loadStarter();
+				});
+		}
+	} else if (savedState) {
+		// Load from local storage if available
+		Blockly.serialization.workspaces.load(
+			JSON.parse(savedState),
+			workspace,
+		);
+		executeCode();
+	} else {
+		// Load starter project if no other options
+		loadStarter();
+	}
 }
+
 
 function stripFilename(inputString) {
 	const removeEnd = inputString.replace(/\(\d+\)/g, "");
@@ -1411,6 +1427,128 @@ window.onload = function () {
 				Blockly.getMainWorkspace().cleanUp();
 			}
 		}
+	});
+
+	
+	let dummyNextBlock = null;      // Store the dummy next block
+	let dummyPreviousBlock = null;  // Store the dummy previous block
+	let draggedBlock = null;        // Variable to store the currently dragged block
+
+	// Listen for the drag start event to detect when a block starts being dragged
+	workspace.getCanvas().addEventListener('mousedown', function(event) {
+	  // Check if the event target is a block being dragged (using Blockly's internal event system)
+	  if (event.target && event.target.block && event.target.block.type === 'when_clicked') {
+		draggedBlock = event.target.block; // Store the dragged block
+		console.log('Drag started for block:', draggedBlock);
+
+		// Listen for mousemove to track the block's position during dragging
+		workspace.getCanvas().addEventListener('mousemove', onMouseMove);
+	  }
+	});
+
+	// Listen for mouse move events during dragging to track the block's position
+	function onMouseMove(event) {
+	  if (draggedBlock) {
+		console.log('Dragging block:', draggedBlock);
+
+		// Check if the dragged block is over any other block
+		checkIfOverAnyBlock(draggedBlock);
+	  }
+	}
+
+	// Check if the dragged "when_clicked" block is over any other block
+	function checkIfOverAnyBlock(sourceBlock) {
+	  const allBlocks = workspace.getAllBlocks();
+	  let isOverOtherBlock = false;
+
+	  for (let i = 0; i < allBlocks.length; i++) {
+		const targetBlock = allBlocks[i];
+
+		// Skip the source block itself
+		if (sourceBlock === targetBlock) continue;
+
+		// Check if the dragged block is near the target block
+		if (isBlockOverAnotherBlock(sourceBlock, targetBlock)) {
+		  isOverOtherBlock = true;
+		  break;  // Stop as soon as we detect it's over a block
+		}
+	  }
+
+	  // If the dragged block is over another block, add the next/previous blocks
+	  if (isOverOtherBlock) {
+		addNextAndPreviousBlocks(sourceBlock);
+	  } else {
+		// If not over another block, remove the next/previous blocks
+		removeNextAndPreviousBlocks();
+	  }
+	}
+
+	// Check if the dragged block is near another block (e.g., within a certain distance)
+	function isBlockOverAnotherBlock(sourceBlock, targetBlock) {
+	  const sourcePosition = sourceBlock.getRelativeToSurfaceXY();
+	  const targetPosition = targetBlock.getRelativeToSurfaceXY();
+
+	  // Define a "nearby" threshold distance (you can adjust this value)
+	  const threshold = 50;
+
+	  // Calculate the distance between the blocks
+	  const distanceX = Math.abs(sourcePosition.x - targetPosition.x);
+	  const distanceY = Math.abs(sourcePosition.y - targetPosition.y);
+
+	  return distanceX < threshold && distanceY < threshold;  // If within the threshold, it's "over" the target block
+	}
+
+	// Add the "next" and "previous" blocks to the dragged block (when_clicked)
+	function addNextAndPreviousBlocks(sourceBlock) {
+	  // Only add the blocks if they don't already exist
+	  if (!dummyNextBlock && !dummyPreviousBlock) {
+		dummyNextBlock = workspace.newBlock('next_statement');
+		dummyPreviousBlock = workspace.newBlock('previous_statement');
+
+		// Attach the dummy blocks to the source block
+		dummyNextBlock.setParent(sourceBlock);
+		dummyPreviousBlock.setParent(sourceBlock);
+
+		// Make these blocks non-interactive (they are just visual cues)
+		dummyNextBlock.setEditable(false);
+		dummyPreviousBlock.setEditable(false);
+
+		// Position them next to the dragged block
+		dummyNextBlock.moveBy(10, 10);
+		dummyPreviousBlock.moveBy(10, 30);
+
+		console.log('Dummy next and previous blocks added');
+	  }
+	}
+
+	// Remove the next and previous blocks if the dragged block is not over another block
+	function removeNextAndPreviousBlocks() {
+	  if (dummyNextBlock) {
+		dummyNextBlock.dispose();
+		dummyNextBlock = null;
+	  }
+	  if (dummyPreviousBlock) {
+		dummyPreviousBlock.dispose();
+		dummyPreviousBlock = null;
+	  }
+
+	  console.log('Dummy next and previous blocks removed');
+	}
+
+	// Listen for the drag end event to clean up after the drag ends
+	workspace.getCanvas().addEventListener('mouseup', function(event) {
+	  if (draggedBlock) {
+		console.log('Drag ended for block:', draggedBlock);
+
+		// Stop the mousemove listener after the drag is done
+		workspace.getCanvas().removeEventListener('mousemove', onMouseMove);
+
+		// Clean up the visual blocks after the drag ends
+		removeNextAndPreviousBlocks();
+
+		// Reset the draggedBlock variable
+		draggedBlock = null;
+	  }
 	});
 
 	const workspaceSvg = workspace.getParentSvg();
