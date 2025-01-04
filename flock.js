@@ -1950,10 +1950,9 @@ export const flock = {
 		).then((meshes) => meshes.filter((mesh) => mesh !== null));
 	},
 	applyResultMeshProperties(resultMesh, referenceMesh, modelId, blockId) {
-		//resultMesh.position.copyFrom(referenceMesh.position);
+		// Copy transformation properties
 		if (referenceMesh.rotationQuaternion) {
-			resultMesh.rotationQuaternion =
-				referenceMesh.rotationQuaternion.clone();
+			resultMesh.rotationQuaternion = referenceMesh.rotationQuaternion.clone();
 		} else {
 			resultMesh.rotation.copyFrom(referenceMesh.rotation);
 		}
@@ -1961,12 +1960,39 @@ export const flock = {
 		resultMesh.rotationQuaternion = flock.BABYLON.Quaternion.Identity();
 		resultMesh.name = modelId;
 		resultMesh.blockKey = blockId;
+
+		// Apply physics
 		flock.applyPhysics(
 			resultMesh,
 			new flock.BABYLON.PhysicsShapeMesh(resultMesh, flock.scene),
 		);
-	},
 
+		// Log and replace default materials
+		const isDefaultMaterial = (material) => {
+			return (
+				material instanceof flock.BABYLON.StandardMaterial &&
+				material.name === "default material"
+			);
+		};
+
+		const replaceMaterial = (material) => {
+			console.log("Replacing default material:", material);
+			return referenceMesh.material.clone("clonedMaterial");
+		};
+
+		if (resultMesh.material) {
+			if (resultMesh.material instanceof flock.BABYLON.MultiMaterial) {
+				resultMesh.material.subMaterials = resultMesh.material.subMaterials.map((subMaterial) => {
+					if (subMaterial && isDefaultMaterial(subMaterial)) {
+						return replaceMaterial(subMaterial);
+					}
+					return subMaterial;
+				});
+			} else if (isDefaultMaterial(resultMesh.material)) {
+				resultMesh.material = replaceMaterial(resultMesh.material);
+			}
+		}
+	},
 	parentChild(
 		parentModelName,
 		childModelName,
