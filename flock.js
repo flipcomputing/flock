@@ -61,7 +61,8 @@ export const flock = {
 			// Step 3: Wait for iframe to load
 			await new Promise((resolve, reject) => {
 				iframe.onload = () => resolve();
-				iframe.onerror = () => reject(new Error("Failed to load iframe"));
+				iframe.onerror = () =>
+					reject(new Error("Failed to load iframe"));
 				iframe.src = "about:blank";
 			});
 
@@ -195,9 +196,10 @@ export const flock = {
 			try {
 				sandboxFunction();
 			} catch (sandboxError) {
-				throw new Error(`Sandbox execution failed: ${sandboxError.message}`);
+				throw new Error(
+					`Sandbox execution failed: ${sandboxError.message}`,
+				);
 			}
-
 		} catch (error) {
 			// General Error Handling
 			console.error("Error during scene setup or code execution:", error);
@@ -220,7 +222,10 @@ export const flock = {
 					executeCode(); // Retry with starter project
 				})
 				.catch((starterError) => {
-					console.error("Error loading starter project:", starterError);
+					console.error(
+						"Error loading starter project:",
+						starterError,
+					);
 				});
 		}
 	},
@@ -1625,7 +1630,6 @@ export const flock = {
 
 					mergedMesh.position = worldCenter;
 
-
 					mergedMesh1.metadata = mergedMesh1.metadata || {};
 					mergedMesh1.metadata.sharedMaterial = false;
 
@@ -1637,8 +1641,11 @@ export const flock = {
 					);
 
 					mergedMesh1.dispose();
-					// Dispose of the original meshes
 					validMeshes.forEach((mesh) => mesh.dispose());
+
+					//flock.disposeMesh(mergedMesh1);
+					// Dispose of the original meshes
+					//validMeshes.forEach((mesh) => flock.disposeMesh(mesh));
 
 					return modelId; // Return the modelId as per original functionality
 				} else {
@@ -1729,9 +1736,11 @@ export const flock = {
 								blockId,
 							);
 
-							// Dispose of the original meshes
-							validMeshes.forEach((mesh) => mesh.dispose());
 							baseMesh.dispose();
+							validMeshes.forEach((mesh) => mesh.dispose());
+							// Dispose of the original meshes
+							//validMeshes.forEach((mesh) => flock.disposeMesh(mesh));
+							//flock.disposeMesh(baseMesh);
 
 							resolve(modelId); // Return the modelId as per original functionality
 						} else {
@@ -1807,8 +1816,9 @@ export const flock = {
 						blockId,
 					);
 
-					// Dispose of the original meshes
 					validMeshes.forEach((mesh) => mesh.dispose());
+					// Dispose of the original meshes
+					//validMeshes.forEach((mesh) => flock.disposeMesh(mesh));
 
 					return modelId; // Return the modelId as per original functionality
 				} else {
@@ -3882,7 +3892,6 @@ export const flock = {
 	determineAnimationType(property) {
 		// Handle rotation.x, rotation.y, rotation.z with quaternions
 		if (["rotation.x", "rotation.y", "rotation.z"].includes(property)) {
-			
 			return flock.BABYLON.Animation.ANIMATIONTYPE_QUATERNION; // Quaternion type
 		}
 
@@ -5940,7 +5949,7 @@ export const flock = {
 		let b = parseInt(hex.substring(4, 6), 16);
 		return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 	},
-	onTrigger(modelName, trigger, doCode, options = { mode: 'wait' }) {
+	onTrigger(modelName, trigger, doCode, options = { mode: "wait" }) {
 		return flock.whenModelReady(modelName, async function (target) {
 			if (!target) {
 				console.log("Model or GUI Button not loaded:", modelName);
@@ -5957,20 +5966,24 @@ export const flock = {
 			function registerMeshAction(mesh, trigger, action) {
 				mesh.isPickable = true;
 				if (!mesh.actionManager) {
-					mesh.actionManager = new flock.BABYLON.ActionManager(flock.scene);
+					mesh.actionManager = new flock.BABYLON.ActionManager(
+						flock.scene,
+					);
 					mesh.actionManager.isRecursive = true;
 				}
 
 				let actionSequence = new flock.BABYLON.ExecuteCodeAction(
 					flock.BABYLON.ActionManager[trigger],
-					action
+					action,
 				);
 
 				for (let i = 1; i < doCodes.length; i++) {
-					actionSequence = actionSequence.then(new flock.BABYLON.ExecuteCodeAction(
-						flock.BABYLON.ActionManager[trigger],
-						async () => await doCodes[i]()
-					));
+					actionSequence = actionSequence.then(
+						new flock.BABYLON.ExecuteCodeAction(
+							flock.BABYLON.ActionManager[trigger],
+							async () => await doCodes[i](),
+						),
+					);
 				}
 
 				mesh.actionManager.registerAction(actionSequence);
@@ -5988,13 +6001,13 @@ export const flock = {
 			// Execute the next code in sequence
 			async function executeAction() {
 				// Handle 'once' mode - execute only once
-				if (mode === 'once') {
+				if (mode === "once") {
 					if (hasExecuted) return; // Skip if already executed
 					hasExecuted = true; // Mark as executed
 				}
 
 				// Handle 'wait' mode - discard if already executing
-				if (mode === 'wait') {
+				if (mode === "wait") {
 					if (isExecuting) return; // Skip if still processing
 					isExecuting = true;
 				}
@@ -6006,7 +6019,7 @@ export const flock = {
 					console.error("Action execution failed:", e);
 				} finally {
 					// Reset execution flag only for 'wait' mode
-					if (mode === 'wait') isExecuting = false;
+					if (mode === "wait") isExecuting = false;
 				}
 			}
 
@@ -6018,35 +6031,49 @@ export const flock = {
 
 				// Handle AR/VR-specific interactions
 				if (flock.xrHelper && flock.xrHelper.baseExperience) {
-					flock.xrHelper.baseExperience.onStateChangedObservable.add((state) => {
-						if (
-							state === flock.BABYLON.WebXRState.IN_XR &&
-							flock.xrHelper.baseExperience.sessionManager.sessionMode === "immersive-ar"
-						) {
-							flock.xrHelper.baseExperience.featuresManager.enableFeature(
-								BABYLON.WebXRHitTest.Name,
-								"latest",
-								{
-									onHitTestResultObservable: (results) => {
-										if (results.length > 0) {
-											const hitTest = results[0];
-											const position = hitTest.transformationMatrix.getTranslation();
-											target.position.copyFrom(position);
-											target.isVisible = true;
-										}
+					flock.xrHelper.baseExperience.onStateChangedObservable.add(
+						(state) => {
+							if (
+								state === flock.BABYLON.WebXRState.IN_XR &&
+								flock.xrHelper.baseExperience.sessionManager
+									.sessionMode === "immersive-ar"
+							) {
+								flock.xrHelper.baseExperience.featuresManager.enableFeature(
+									BABYLON.WebXRHitTest.Name,
+									"latest",
+									{
+										onHitTestResultObservable: (
+											results,
+										) => {
+											if (results.length > 0) {
+												const hitTest = results[0];
+												const position =
+													hitTest.transformationMatrix.getTranslation();
+												target.position.copyFrom(
+													position,
+												);
+												target.isVisible = true;
+											}
+										},
 									},
-								}
-							);
+								);
 
-							flock.scene.onPointerDown = function (evt, pickResult) {
-								if (pickResult.hit && pickResult.pickedMesh === target) {
-									executeAction(); // Discard extra triggers in 'wait' mode
-								}
-							};
-						} else if (state === BABYLON.WebXRState.NOT_IN_XR) {
-							flock.scene.onPointerDown = null;
-						}
-					});
+								flock.scene.onPointerDown = function (
+									evt,
+									pickResult,
+								) {
+									if (
+										pickResult.hit &&
+										pickResult.pickedMesh === target
+									) {
+										executeAction(); // Discard extra triggers in 'wait' mode
+									}
+								};
+							} else if (state === BABYLON.WebXRState.NOT_IN_XR) {
+								flock.scene.onPointerDown = null;
+							}
+						},
+					);
 				}
 			}
 			// Handle GUI buttons
