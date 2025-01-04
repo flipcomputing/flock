@@ -97,6 +97,15 @@ function saveWorkspace() {
 	localStorage.setItem(key, JSON.stringify(state));
 }
 
+function loadWorkspaceAndExecute(json, workspace, executeCallback) {
+	try {
+		Blockly.serialization.workspaces.load(json, workspace);
+		executeCallback(); // Runs only if loading succeeds
+	} catch (error) {
+		console.error('Failed to load workspace:', error);
+	}
+}
+
 // Function to load today's workspace state
 function loadWorkspace() {
 	const urlParams = new URLSearchParams(window.location.search);
@@ -109,8 +118,8 @@ function loadWorkspace() {
 		fetch(starter)
 			.then((response) => response.json())
 			.then((json) => {
-				Blockly.serialization.workspaces.load(json, workspace);
-				executeCode();
+				loadWorkspaceAndExecute(json, workspace, executeCode);
+
 			})
 			.catch((error) => {
 				console.error("Error loading starter example:", error);
@@ -129,8 +138,8 @@ function loadWorkspace() {
 					return response.json();
 				})
 				.then((json) => {
-					Blockly.serialization.workspaces.load(json, workspace);
-					executeCode();
+					loadWorkspaceAndExecute(json, workspace, executeCode);
+
 				})
 				.catch((error) => {
 					console.error("Error loading project from URL:", error);
@@ -140,11 +149,8 @@ function loadWorkspace() {
 		}
 	} else if (savedState) {
 		// Load from local storage if available
-		Blockly.serialization.workspaces.load(
-			JSON.parse(savedState),
-			workspace,
-		);
-		executeCode();
+		loadWorkspaceAndExecute(JSON.parse(savedState), workspace, executeCode);
+	
 	} else {
 		// Load starter project if no other options
 		loadStarter();
@@ -255,8 +261,8 @@ async function executeCode() {
 		fetch(starter)
 			.then((response) => response.json())
 			.then((json) => {
-				Blockly.serialization.workspaces.load(json, workspace);
-				executeCode(); // Retry execution with the starter project
+				loadWorkspaceAndExecute(json, workspace, executeCode);
+
 			})
 			.catch((loadError) => {
 				console.error("Error loading starter project after execution failure:", loadError);
@@ -513,8 +519,8 @@ async function loadExample() {
 		fetch(exampleFile)
 			.then((response) => response.json())
 			.then((json) => {
-				Blockly.serialization.workspaces.load(json, workspace);
-				executeCode();
+				loadWorkspaceAndExecute(json, workspace, executeCode);
+
 			})
 			.catch((error) => {
 				console.error("Error loading example:", error);
@@ -1756,9 +1762,8 @@ window.onload = function () {
 						.value.replace(".json", ""),
 				);
 
-				Blockly.serialization.workspaces.load(json, workspace);
+				loadWorkspaceAndExecute(json, workspace, executeCode);
 
-				executeCode();
 			};
 			reader.readAsText(event.target.files[0]);
 		});
