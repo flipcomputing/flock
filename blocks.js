@@ -3223,7 +3223,7 @@ export function defineBlocks() {
 		init: function () {
 			this.jsonInit({
 				type: "when_clicked",
-				message0: "when %1 is %2 %3",
+				message0: "when %1 is %2",
 				args0: [
 					{
 						type: "field_variable",
@@ -3248,7 +3248,7 @@ export function defineBlocks() {
 							["pointer out", "OnPointerOutTrigger"],
 						],
 					},
-					{
+					/*{
 						type: "field_dropdown",
 						name: "MODE",
 						options: [
@@ -3256,7 +3256,7 @@ export function defineBlocks() {
 							["once", "once"],
 							["every", "every"],
 						],
-					},
+					},*/
 				],
 				message1: "%1",
 				implicitAlign1: "LEFT",

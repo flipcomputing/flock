@@ -1578,7 +1578,7 @@ export function defineGenerators() {
 	  const trigger = block.getFieldValue('TRIGGER');
 
 	  // Retrieve the execution mode
-	  const mode = block.getFieldValue('MODE');
+	  const mode = block.getFieldValue('MODE') || "wait";
 
 	  // Generate code for the 'DO' input section
 	  const doCode = javascriptGenerator.statementToCode(block, 'DO').trim();
