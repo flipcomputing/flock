@@ -1130,17 +1130,14 @@ export function defineBlocks() {
 		oldInit.call(this);
 
 		// Override the tooltip after the original init
-		this.setTooltip(() => {
-			const elseIfCount = this.elseifCount_ || 0;
-			const elseCount = this.elseCount_ || 0;
+		this.setTooltip(() => 
 
-			let tooltip = 'Executes actions if a condition is true. ';
-			if (elseIfCount = 0) {
-				tooltip += `Drag additional conditions to create else if branches.`;
-			}
-			if (elseCount = 0) {
-				tooltip += 'Drag a statement at the end to create an else branch.';
-			}
+			let tooltip = 'Executes actions if a condition is true.';
+			
+				tooltip += ` Drag additional conditions to create else if branches.`;
+			
+				tooltip += ' Drag a statement at the end to create an else branch.';
+			
 			return tooltip;
 		});
 	};
