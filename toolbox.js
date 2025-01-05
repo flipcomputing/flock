@@ -1708,6 +1708,11 @@ export const toolbox = {
 				},
 				{
 					kind: "block",
+					type: "controls_for",
+					keyword: "for",
+				},
+				{
+					kind: "block",
 					type: "controls_forEach",
 					keyword: "each",
 				},
