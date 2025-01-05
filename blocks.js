@@ -1130,8 +1130,8 @@ export function defineBlocks() {
 		oldInit.call(this);
 
 		// Override the tooltip after the original init
-		this.setTooltip(() => 
-
+		this.setTooltip(() => {
+		
 			let tooltip = 'Executes actions if a condition is true.';
 			
 				tooltip += ` Drag additional conditions to create else if branches.`;
