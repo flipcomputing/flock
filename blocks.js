@@ -1,5 +1,6 @@
 import * as Blockly from "blockly";
-import "@blockly/block-plus-minus";
+//import "@blockly/block-plus-minus";
+import * as BlockDynamicConnection from "@blockly/block-dynamic-connection";
 import { categoryColours, toolbox } from "./toolbox.js";
 import {
 	audioNames,
@@ -20,16 +21,10 @@ import { registerFieldColour } from "@blockly/field-colour";
 
 registerFieldColour();
 
-/*import {
-  ScrollOptions,
-  ScrollBlockDragger,
-  ScrollMetricsManager,
-} from '@blockly/plugin-scroll-options';*/
-/*import {Multiselect, MultiselectBlockDragger} from '@mit-app-inventor/blockly-plugin-workspace-multiselect';*/
-
 export let nextVariableIndexes = {};
 
-const inlineIcon = "data:image/svg+xml,%3C%3Fxml%20version%3D%221.0%22%20encoding%3D%22utf-8%22%3F%3E%3Csvg%20version%3D%221.1%22%20id%3D%22Layer_1%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20x%3D%220px%22%20y%3D%220px%22%20width%3D%22122.88px%22%20height%3D%2280.593px%22%20viewBox%3D%220%200%20122.88%2080.593%22%20enable-background%3D%22new%200%200%20122.88%2080.593%22%20xml%3Aspace%3D%22preserve%22%3E%3Cg%3E%3Cpolygon%20fill%3D%22white%22%20points%3D%22122.88%2C80.593%20122.88%2C49.772%2061.44%2C0%200%2C49.772%200%2C80.593%2061.44%2C30.82%20122.88%2C80.593%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E";
+const inlineIcon =
+	"data:image/svg+xml,%3C%3Fxml%20version%3D%221.0%22%20encoding%3D%22utf-8%22%3F%3E%3Csvg%20version%3D%221.1%22%20id%3D%22Layer_1%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20x%3D%220px%22%20y%3D%220px%22%20width%3D%22122.88px%22%20height%3D%2280.593px%22%20viewBox%3D%220%200%20122.88%2080.593%22%20enable-background%3D%22new%200%200%20122.88%2080.593%22%20xml%3Aspace%3D%22preserve%22%3E%3Cg%3E%3Cpolygon%20fill%3D%22white%22%20points%3D%22122.88%2C80.593%20122.88%2C49.772%2061.44%2C0%200%2C49.772%200%2C80.593%2061.44%2C30.82%20122.88%2C80.593%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E";
 
 // Shared utility to add the toggle button to a block
 export function addToggleButton(block) {
@@ -43,7 +38,10 @@ export function addToggleButton(block) {
 		},
 	);
 
-	block.appendDummyInput().setAlign(Blockly.inputs.Align.RIGHT).appendField(toggleButton, "TOGGLE_BUTTON");
+	block
+		.appendDummyInput()
+		.setAlign(Blockly.inputs.Align.RIGHT)
+		.appendField(toggleButton, "TOGGLE_BUTTON");
 }
 
 // Shared utility for the mutationToDom function
@@ -229,53 +227,9 @@ export const options = {
 	toolbox: toolbox,
 	searchAllBlocks: false,
 	plugins: {
-		// blockDragger: ScrollBlockDragger,
-		//metricsManager: ScrollMetricsManager,
+		connectionPreviewer: BlockDynamicConnection.decoratePreviewer(),
 	},
-	/*plugins: {
-		, // Required to work
-	},
-blockDragger: MultiselectBlockDragger,
-	// // For integration with other plugins that also
-	// // need to change the blockDragger above (such as
-	// // scroll-options).
-	baseBlockDragger: ScrollBlockDragger,
-
-	// Double click the blocks to collapse/expand
-	// them (A feature from MIT App Inventor).
-	useDoubleClick: false,
-	// Bump neighbours after dragging to avoid overlapping.
-	bumpNeighbours: false,
-
-	// Keep the fields of multiple selected same-type blocks with the same value
-	multiFieldUpdate: true,
-
-	// Auto focus the workspace when the mouse enters.
-	workspaceAutoFocus: true,
-
-	// Use custom icon for the multi select controls.
-	multiselectIcon: {
-		hideIcon: false,
-		weight: 3,
-		enabledIcon:
-			"https://github.com/mit-cml/workspace-multiselect/raw/main/test/media/select.svg",
-		disabledIcon:
-			"https://github.com/mit-cml/workspace-multiselect/raw/main/test/media/unselect.svg",
-	},
-
-	multiselectCopyPaste: {
-		// Enable the copy/paste accross tabs feature (true by default).
-		crossTab: true,
-		// Show the copy/paste menu entries (true by default).
-		menu: true,
-	},*/
 };
-
-/*const multiselectPlugin = new Multiselect(workspace);
-multiselectPlugin.init(options);*/
-
-/*const plugin = new ScrollOptions(workspace);
-plugin.init();*/
 
 export function initializeVariableIndexes() {
 	nextVariableIndexes = {
@@ -322,6 +276,8 @@ export function initializeVariableIndexes() {
 }
 
 export function defineBlocks() {
+	BlockDynamicConnection.overrideOldBlockDefinitions();
+	
 	Blockly.Blocks["start"] = {
 		init: function () {
 			this.jsonInit({
@@ -1166,6 +1122,29 @@ export function defineBlocks() {
 			});
 		},
 	};
+
+	const oldInit = Blockly.Blocks['controls_if'].init;
+
+	Blockly.Blocks['controls_if'].init = function() {
+		// Call the original init function
+		oldInit.call(this);
+
+		// Override the tooltip after the original init
+		this.setTooltip(() => {
+			const elseIfCount = this.elseifCount_ || 0;
+			const elseCount = this.elseCount_ || 0;
+
+			let tooltip = 'Executes actions if a condition is true. ';
+			if (elseIfCount = 0) {
+				tooltip += `Drag additional conditions to create else if branches.`;
+			}
+			if (elseCount = 0) {
+				tooltip += 'Drag a statement at the end to create an else branch.';
+			}
+			return tooltip;
+		});
+	};
+
 
 	Blockly.Blocks["set_sky_color"] = {
 		init: function () {
@@ -3219,7 +3198,6 @@ export function defineBlocks() {
 		},
 	};
 
-
 	Blockly.Blocks["when_clicked"] = {
 		init: function () {
 			this.jsonInit({
@@ -3340,8 +3318,6 @@ export function defineBlocks() {
 		},
 	};
 
-
-
 	// Define the forever block
 	Blockly.Blocks["forever"] = {
 		init: function () {
@@ -3431,7 +3407,9 @@ export function defineBlocks() {
 			);
 
 			// Append the toggle button to the block
-			this.appendDummyInput().setAlign(Blockly.inputs.Align.RIGHT).appendField(toggleButton, "TOGGLE_BUTTON");
+			this.appendDummyInput()
+				.setAlign(Blockly.inputs.Align.RIGHT)
+				.appendField(toggleButton, "TOGGLE_BUTTON");
 		},
 		mutationToDom: function () {
 			const container = document.createElement("mutation");
@@ -4778,7 +4756,10 @@ export function addDoMutatorWithToggleBehavior(block) {
 	);
 
 	// Add the button to the block
-	block.appendDummyInput().setAlign(Blockly.inputs.Align.RIGHT).appendField(toggleButton, "TOGGLE_BUTTON");
+	block
+		.appendDummyInput()
+		.setAlign(Blockly.inputs.Align.RIGHT)
+		.appendField(toggleButton, "TOGGLE_BUTTON");
 
 	// Save the mutation state
 	block.mutationToDom = function () {

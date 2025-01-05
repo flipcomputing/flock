@@ -8,6 +8,7 @@ import { registerFieldColour } from "@blockly/field-colour";
 import { FieldGridDropdown } from "@blockly/field-grid-dropdown";
 import { WorkspaceSearch } from "@blockly/plugin-workspace-search";
 import { NavigationController } from "@blockly/keyboard-navigation";
+import * as BlockDynamicConnection from '@blockly/block-dynamic-connection';
 import "@babylonjs/core/Debug/debugLayer";
 import "@babylonjs/inspector";
 import { flock, initializeFlock } from "./flock.js";
@@ -621,6 +622,7 @@ function toggleMenu() {
 window.toggleMenu = toggleMenu;
 
 document.addEventListener("DOMContentLoaded", () => {
+	
 	const requestFullscreen = () => {
 		const elem = document.documentElement;
 
@@ -1400,6 +1402,8 @@ window.onload = function () {
 	);
 	
 	workspace = Blockly.inject("blocklyDiv", options);
+
+	workspace.addChangeListener(BlockDynamicConnection.finalizeConnections);
 
 	overrideSearchPlugin(workspace);
 

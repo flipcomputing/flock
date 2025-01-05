@@ -1736,11 +1736,6 @@ export const toolbox = {
 				},
 				{
 					kind: "block",
-					type: "controls_ifelse",
-					keyword: "else",
-				},
-				{
-					kind: "block",
 					type: "logic_compare",
 					keyword: "compare",
 				},

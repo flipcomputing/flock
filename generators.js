@@ -543,6 +543,9 @@ export function defineGenerators() {
 		return `await createCustomMap([${colors.join(", ")}]);\n`;
 	};
 
+	javascriptGenerator.forBlock["logic_placeholder"] = function (block) {
+		return "";	
+	}
 	javascriptGenerator.forBlock["set_sky_color"] = function (block) {
 		const meshId = "sky";
 		meshMap[meshId] = block;
