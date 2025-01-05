@@ -277,8 +277,12 @@ export function initializeVariableIndexes() {
 
 export function defineBlocks() {
 	//BlockDynamicConnection.overrideOldBlockDefinitions();
+	//Blockly.Blocks['dynamic_list_create'].minInputs = 1;
+	
+//	 Blockly.Blocks['lists_create_with'] = Blockly.Blocks['dynamic_list_create'];
 
-	 Blockly.Blocks['text_join'] = Blockly.Blocks['dynamic_text_join'];
+
+//	 Blockly.Blocks['text_join'] = Blockly.Blocks['dynamic_text_join'];
 	  Blockly.Blocks['controls_if'] = Blockly.Blocks['dynamic_if'];
 	
 	Blockly.Blocks["start"] = {

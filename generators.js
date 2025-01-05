@@ -1937,6 +1937,8 @@ export function defineGenerators() {
 				javascriptGenerator.ORDER_ATOMIC,
 			) || "[]";
 
+		console.log(meshList);
+
 		const meshId = "subtracted" + "_" + generateUniqueId();
 		meshMap[meshId] = block;
 		meshBlockIdMap[meshId] = block.id;
