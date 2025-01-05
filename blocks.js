@@ -277,12 +277,12 @@ export function initializeVariableIndexes() {
 
 export function defineBlocks() {
 	//BlockDynamicConnection.overrideOldBlockDefinitions();
-	//Blockly.Blocks['dynamic_list_create'].minInputs = 1;
+	Blockly.Blocks['dynamic_list_create'].minInputs = 1;
 	
-//	 Blockly.Blocks['lists_create_with'] = Blockly.Blocks['dynamic_list_create'];
+	 Blockly.Blocks['lists_create_with'] = Blockly.Blocks['dynamic_list_create'];
 
 
-//	 Blockly.Blocks['text_join'] = Blockly.Blocks['dynamic_text_join'];
+	 Blockly.Blocks['text_join'] = Blockly.Blocks['dynamic_text_join'];
 	  Blockly.Blocks['controls_if'] = Blockly.Blocks['dynamic_if'];
 	
 	Blockly.Blocks["start"] = {
@@ -4732,13 +4732,13 @@ Blockly.Blocks["export_mesh"] = {
 };
 
 // Remove 'do' text to save space
+Blockly.Msg["TEXT_JOIN_TITLE_CREATEWITH"] = "join"
 Blockly.Msg["CONTROLS_REPEAT_INPUT_DO"] = "";
 Blockly.Msg["CONTROLS_WHILEUNTIL_INPUT_DO"] = "";
 Blockly.Msg["CONTROLS_FOR_INPUT_DO"] = "";
 Blockly.Msg["CONTROLS_FOREACH_INPUT_DO"] = "";
 Blockly.Msg["CONTROLS_IF_MSG_THEN"] = "";
 Blockly.Msg["CONTROLS_IF_MSG_ELSE"] = "else\n";
-
 export function addDoMutatorWithToggleBehavior(block) {
 	// Custom function to toggle the "do" block mutation
 	block.toggleDoBlock = function () {
@@ -4945,7 +4945,7 @@ Blockly.FieldVariable.prototype.onItemSelected_ = function (menu, menuItem) {
 	}
 };
 
-Blockly.Msg["LISTS_CREATE_WITH_INPUT_WITH"] = "";
+Blockly.Msg["LISTS_CREATE_WITH_INPUT_WITH"] = "list";
 
 Blockly.Blocks["microbit_input"] = {
 	init: function () {

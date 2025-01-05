@@ -2781,3 +2781,57 @@ javascriptGenerator.forBlock["microbit_input"] = function (block) {
 
 	return `whenKeyEvent("${event}", async () => {${statements_do}});\n`;
 };
+
+const strRegExp = /^\s*'([^']|\\')*'\s*$/;
+const forceString = function (value) {
+  if (strRegExp.test(value)) {
+	return [value, javascriptGenerator.ORDER_ATOMIC];
+  }
+  return ['String(' + value + ')', javascriptGenerator.ORDER_FUNCTION_CALL];
+};
+
+javascriptGenerator.forBlock["text_join"] = function (
+  block,
+  generator
+) {
+  const joinBlock = block;
+  switch (joinBlock.itemCount) {
+	case 0:
+	  return ["''", javascriptGenerator.ORDER_ATOMIC];
+	case 1: {
+	  const element =
+		generator.valueToCode(joinBlock, "ADD0", javascriptGenerator.ORDER_NONE) || "''";
+	  const codeAndOrder = forceString(element);
+	  return codeAndOrder;
+	}
+	case 2: {
+	  const element0 =
+		generator.valueToCode(joinBlock, "ADD0", javascriptGenerator.ORDER_NONE) || "''";
+	  const element1 =
+		generator.valueToCode(joinBlock, "ADD1", javascriptGenerator.ORDER_NONE) || "''";
+	  const code = forceString(element0)[0] + " + " + forceString(element1)[0];
+	  return [code, javascriptGenerator.ORDER_ADDITION];
+	}
+	default: {
+	  const elements = new Array(joinBlock.itemCount);
+	  for (let i = 0; i < joinBlock.itemCount; i++) {
+		elements[i] =
+		  generator.valueToCode(joinBlock, "ADD" + i, javascriptGenerator.ORDER_NONE) || "''";
+	  }
+	  const code = "[" + elements.join(",") + "].join('')";
+	  return [code, javascriptGenerator.ORDER_FUNCTION_CALL];
+	}
+  }
+};
+javascriptGenerator.forBlock["lists_create_with"] = function (
+  block,
+  generator
+) {
+  const createWithBlock = block;
+  const elements = new Array(createWithBlock.itemCount);
+  for (let i = 0; i < createWithBlock.itemCount; i++) {
+	elements[i] = generator.valueToCode(block, "ADD" + i, javascriptGenerator.ORDER_NONE) || "null";
+  }
+  const code = "[" + elements.join(", ") + "]";
+  return [code, javascriptGenerator.ORDER_ATOMIC];
+};
