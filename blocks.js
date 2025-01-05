@@ -29,10 +29,12 @@ registerFieldColour();
 
 export let nextVariableIndexes = {};
 
+const inlineIcon = "data:image/svg+xml,%3C%3Fxml%20version%3D%221.0%22%20encoding%3D%22utf-8%22%3F%3E%3Csvg%20version%3D%221.1%22%20id%3D%22Layer_1%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20x%3D%220px%22%20y%3D%220px%22%20width%3D%22122.88px%22%20height%3D%2280.593px%22%20viewBox%3D%220%200%20122.88%2080.593%22%20enable-background%3D%22new%200%200%20122.88%2080.593%22%20xml%3Aspace%3D%22preserve%22%3E%3Cg%3E%3Cpolygon%20fill%3D%22white%22%20points%3D%22122.88%2C80.593%20122.88%2C49.772%2061.44%2C0%200%2C49.772%200%2C80.593%2061.44%2C30.82%20122.88%2C80.593%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E";
+
 // Shared utility to add the toggle button to a block
 export function addToggleButton(block) {
 	const toggleButton = new Blockly.FieldImage(
-		"data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAiIGhlaWdodD0iMzAiIHZpZXdCb3g9IjAgMCAzMCAzMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4gPHBhdGggZmlsbD0id2hpdGUiIGQ9Ik0xNSA2djloLTl2M2g5djloM3YtOWg5di0zaC05di05eiIvPjwvc3ZnPg==", // Custom icon
+		inlineIcon, // Custom icon
 		30,
 		30,
 		"*", // Width, Height, Alt text
@@ -41,7 +43,7 @@ export function addToggleButton(block) {
 		},
 	);
 
-	block.appendDummyInput().appendField(toggleButton, "TOGGLE_BUTTON");
+	block.appendDummyInput().setAlign(Blockly.inputs.Align.RIGHT).appendField(toggleButton, "TOGGLE_BUTTON");
 }
 
 // Shared utility for the mutationToDom function
@@ -3217,7 +3219,6 @@ export function defineBlocks() {
 		},
 	};
 
-	const inlineIcon = "data:image/svg+xml,%3C%3Fxml%20version%3D%221.0%22%20encoding%3D%22utf-8%22%3F%3E%3Csvg%20version%3D%221.1%22%20id%3D%22Layer_1%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20x%3D%220px%22%20y%3D%220px%22%20width%3D%22122.88px%22%20height%3D%2280.593px%22%20viewBox%3D%220%200%20122.88%2080.593%22%20enable-background%3D%22new%200%200%20122.88%2080.593%22%20xml%3Aspace%3D%22preserve%22%3E%3Cg%3E%3Cpolygon%20fill%3D%22white%22%20points%3D%22122.88%2C80.593%20122.88%2C49.772%2061.44%2C0%200%2C49.772%200%2C80.593%2061.44%2C30.82%20122.88%2C80.593%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E"
 
 	Blockly.Blocks["when_clicked"] = {
 		init: function () {
@@ -3420,7 +3421,7 @@ export function defineBlocks() {
 
 			// Add the toggle button
 			const toggleButton = new Blockly.FieldImage(
-				"data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAiIGhlaWdodD0iMzAiIHZpZXdCb3g9IjAgMCAzMCAzMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4gPHBhdGggZmlsbD0id2hpdGUiIGQ9Ik0xNSA2djloLTl2M2g5djloM3YtOWg5di0zaC05di05eiIvPjwvc3ZnPg==", // Custom icon
+				inlineIcon, // Custom icon
 				30,
 				30,
 				"*", // Width, Height, Alt text
@@ -3430,7 +3431,7 @@ export function defineBlocks() {
 			);
 
 			// Append the toggle button to the block
-			this.appendDummyInput().appendField(toggleButton, "TOGGLE_BUTTON");
+			this.appendDummyInput().setAlign(Blockly.inputs.Align.RIGHT).appendField(toggleButton, "TOGGLE_BUTTON");
 		},
 		mutationToDom: function () {
 			const container = document.createElement("mutation");
@@ -4777,7 +4778,7 @@ export function addDoMutatorWithToggleBehavior(block) {
 	);
 
 	// Add the button to the block
-	block.appendDummyInput().appendField(toggleButton, "TOGGLE_BUTTON");
+	block.appendDummyInput().setAlign(Blockly.inputs.Align.RIGHT).appendField(toggleButton, "TOGGLE_BUTTON");
 
 	// Save the mutation state
 	block.mutationToDom = function () {
