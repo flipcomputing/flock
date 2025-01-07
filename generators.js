@@ -836,6 +836,39 @@ export function defineGenerators() {
 		});\n`;
 	};
 
+	javascriptGenerator.forBlock["load_multi_object"] = function (block) {
+		const modelName = block.getFieldValue("MODELS");
+		const scale = getFieldValue(block, "SCALE", "1");
+		const x = getFieldValue(block, "X", "0");
+		const y = getFieldValue(block, "Y", "0");
+		const z = getFieldValue(block, "Z", "0");
+		const color = getFieldValue(block, "COLORS", "#000000");
+		const variableName = javascriptGenerator.nameDB_.getName(
+			block.getFieldValue("ID_VAR"),
+			Blockly.Names.NameType.VARIABLE,
+		);
+
+		const meshId = modelName + "_" + generateUniqueId();
+		meshMap[meshId] = block;
+		meshBlockIdMap[meshId] = block.id;
+		// Generate the code for the "do" part (if present)
+		let doCode = "";
+
+		if (block.getInput("DO")) {
+			doCode = javascriptGenerator.statementToCode(block, "DO") || "";
+		}
+
+		doCode = doCode ? `async function() {\n${doCode}\n}` : "";
+
+		return `${variableName} = newObject({
+			modelName: '${modelName}',
+			modelId: '${meshId}',
+			color: ${color},
+			scale: ${scale},
+			position: { x: ${x}, y: ${y}, z: ${z} }${doCode ? `,\ncallback: ${doCode}` : ""}
+		});\n`;
+	};
+
 	javascriptGenerator.forBlock["clone_mesh"] = function (block) {
 		// Get the source mesh variable
 		const sourceMeshName = javascriptGenerator.nameDB_.getName(

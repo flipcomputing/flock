@@ -73,6 +73,10 @@ export const characterNames = [
 	"Monkey.glb",
 ];
 
+export const multiObjectNames = [
+	"tree_fat.glb",
+];
+
 export const objectNames = [
 	"Star.glb",
 	"Heart.glb",

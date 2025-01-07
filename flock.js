@@ -4833,42 +4833,49 @@ export const flock = {
 		flock.ensureUniqueMaterial(mesh);
 		let materialFound = false;
 
+		// Ensure color is an array
+		const colors = Array.isArray(color) ? color : [color];
+		let colorIndex = 0;
+
 		function applyColorToMaterial(part, color) {
 			if (part.material) {
-				// Check if part.material.diffuseColor exists and set it
+				const hexColor = flock.getColorFromString(color);
+				const babylonColor = flock.BABYLON.Color3.FromHexString(hexColor);
+
+				// Set diffuse or albedo/emissive colors
 				if (part.material.diffuseColor !== undefined) {
-					part.material.diffuseColor =
-						flock.BABYLON.Color3.FromHexString(color);
+					part.material.diffuseColor = babylonColor;
 				} else {
-					// Handle materials without diffuseColor
-					part.material.albedoColor =
-						flock.BABYLON.Color3.FromHexString(
-							flock.getColorFromString(color),
-						).toLinearSpace();
-					part.material.emissiveColor =
-						flock.BABYLON.Color3.FromHexString(
-							flock.getColorFromString(color),
-						).toLinearSpace();
+					part.material.albedoColor = babylonColor.toLinearSpace();
+					part.material.emissiveColor = babylonColor.toLinearSpace();
 					part.material.emissiveIntensity = 0.1;
 				}
 				materialFound = true;
 			}
 
+			// Apply colours to submeshes with materials
 			part.getChildMeshes().forEach((child) => {
-				applyColorToMaterial(child, color);
+				if (child.material) {
+					// Use the next colour, or the last colour if we've run out
+					const currentColor = colors[colorIndex] || colors[colors.length - 1];
+					applyColorToMaterial(child, currentColor);
+					if (colorIndex < colors.length - 1) {
+						colorIndex++;
+					}
+				} else {
+					applyColorToMaterial(child, color);
+				}
 			});
 		}
 
 		// Start applying colour to the main mesh and its children
-		applyColorToMaterial(mesh, color);
+		const initialColor = colors[0];
+		applyColorToMaterial(mesh, initialColor);
 
-		// If no material was found on the main mesh or any child, create a new one
+		// If no material was found, create a new one
 		if (!materialFound) {
-			const material = new flock.BABYLON.StandardMaterial(
-				"meshMaterial",
-				flock.scene,
-			);
-			material.diffuseColor = flock.BABYLON.Color3.FromHexString(color);
+			const material = new flock.BABYLON.StandardMaterial("meshMaterial", flock.scene);
+			material.diffuseColor = flock.BABYLON.Color3.FromHexString(colors[0]);
 			mesh.material = material;
 		}
 

@@ -6,6 +6,7 @@ import {
 	audioNames,
 	characterNames,
 	objectNames,
+	multiObjectNames,
 	objectColours,
 	mapNames,
 	modelNames,
@@ -1418,6 +1419,97 @@ export function defineBlocks() {
 					if (blockInWorkspace) {
 						if (window.loadingCode) return;
 						updateOrCreateMeshFromBlock(this, changeEvent);
+					}
+				}
+
+				handleBlockCreateEvent(
+					this,
+					changeEvent,
+					variableNamePrefix,
+					nextVariableIndexes,
+				);
+			});
+
+			addDoMutatorWithToggleBehavior(this);
+		},
+	};
+
+	Blockly.Blocks["load_multi_object"] = {
+		init: function () {
+			const variableNamePrefix = "object";
+			let nextVariableName =
+				variableNamePrefix + nextVariableIndexes[variableNamePrefix];
+			this.jsonInit({
+				message0: `set %1 to %2 scale: %3 x: %4 y: %5 z: %6
+				colors: %7`,
+				args0: [
+					{
+						type: "field_variable",
+						name: "ID_VAR",
+						variable: nextVariableName,
+					},
+					{
+						type: "field_grid_dropdown",
+						name: "MODELS",
+						columns: 6,
+						options: multiObjectNames.map((name) => {
+							const baseName = name.replace(/\.[^/.]+$/, "");
+							return [
+								{
+									src: `./images/${baseName}.png`,
+									width: 50,
+									height: 50,
+									alt: baseName,
+								},
+								name,
+							];
+						}),
+					},
+					{
+						type: "input_value",
+						name: "SCALE",
+						check: "Number",
+					},
+					{
+						type: "input_value",
+						name: "X",
+						check: "Number",
+					},
+					{
+						type: "input_value",
+						name: "Y",
+						check: "Number",
+					},
+					{
+						type: "input_value",
+						name: "Z",
+						check: "Number",
+					},
+					{
+						type: "input_value",
+						name: "COLORS",
+						check: "Array",
+					},
+				],
+				inputsInline: true,
+				colour: categoryColours["Scene"],
+				tooltip: "Create an object with colours.\nKeyword: object",
+				helpUrl: "",
+				previousStatement: null,
+				nextStatement: null,
+			});
+
+			this.setOnChange((changeEvent) => {
+				if (
+					changeEvent.type === Blockly.Events.BLOCK_CREATE ||
+					changeEvent.type === Blockly.Events.BLOCK_CHANGE
+				) {
+					const blockInWorkspace =
+						Blockly.getMainWorkspace().getBlockById(this.id); // Check if block is in the main workspace
+
+					if (blockInWorkspace) {
+						updateOrCreateMeshFromBlock(this, changeEvent);
+						window.updateCurrentMeshName(this, "ID_VAR"); // Call the function to update window.currentMesh
 					}
 				}
 

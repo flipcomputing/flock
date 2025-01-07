@@ -1,5 +1,5 @@
 import * as Blockly from "blockly";
-import '@blockly/toolbox-search';
+import "@blockly/toolbox-search";
 
 export const categoryColours = {
 	Events: 200,
@@ -269,6 +269,79 @@ export const toolbox = {
 						},
 					},
 				},
+				/*{
+					kind: "block",
+					type: "load_multi_object",
+					keyword: "object",
+					inputs: {
+						SCALE: {
+							shadow: {
+								type: "math_number",
+								fields: {
+									NUM: 1,
+								},
+							},
+						},
+						X: {
+							shadow: {
+								type: "math_number",
+								fields: {
+									NUM: 0,
+								},
+							},
+						},
+						Y: {
+							shadow: {
+								type: "math_number",
+								fields: {
+									NUM: 0,
+								},
+							},
+						},
+						Z: {
+							shadow: {
+								type: "math_number",
+								fields: {
+									NUM: 0,
+								},
+							},
+						},
+						COLORS: {
+							block: {
+								// Real block initially
+								type: "lists_create_with",
+								extraState: { itemCount: 3 },
+								inline: true,
+								inputs: {
+									ADD0: {
+										block: {
+											type: "colour",
+											fields: {
+												COLOR: "#9932CC",
+											},
+										},
+									},
+									ADD1: {
+										block: {
+											type: "colour",
+											fields: {
+												COLOR: "#9932CC",
+											},
+										},
+									},
+									ADD2: {
+										block: {
+											type: "colour",
+											fields: {
+												COLOR: "#9932CC",
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},*/
 				{
 					kind: "block",
 					type: "create_box",
@@ -1507,7 +1580,6 @@ export const toolbox = {
 					icon: "./images/keyframe.svg",
 					colour: categoryColours["Animate"],
 					contents: [
-						
 						/*{
 							kind: "block",
 							type: "animate_keyframes",
@@ -2415,7 +2487,7 @@ export const toolbox = {
 				{
 					kind: "block",
 					type: "colour_from_string",
-					keyword: "colstr"
+					keyword: "colstr",
 				},
 
 				{
@@ -2683,7 +2755,6 @@ export const toolbox = {
 					type: "colour",
 					keyword: "color",
 				},*/
-
 			],
 		},
 		{
@@ -2731,45 +2802,48 @@ export const toolbox = {
 					type: "rest",
 				},
 				{
-				  kind: "block",
-				  type: "play_notes",
-				  inputsInline: true,
-				  inputs: {
-					NOTES: {
-					  block: { // Real block initially
-						type: "lists_create_with",
-						extraState: { itemCount: 1 },
-						inputs: {
-						  ADD0: {
+					kind: "block",
+					type: "play_notes",
+					inputsInline: true,
+					inputs: {
+						NOTES: {
 							block: {
-							  type: "midi_note",
-							  fields: { NOTE: 60 },
+								// Real block initially
+								type: "lists_create_with",
+								extraState: { itemCount: 1 },
+								inputs: {
+									ADD0: {
+										block: {
+											type: "midi_note",
+											fields: { NOTE: 60 },
+										},
+									},
+								},
 							},
-						  },
 						},
-					  },
-					},
-					DURATIONS: {
-					  block: { // Real block initially
-						type: "lists_create_with",
-						extraState: { itemCount: 1 },
-						inputs: {
-						  ADD0: {
+						DURATIONS: {
 							block: {
-							  type: "math_number",
-							  fields: { NUM: 1 },
+								// Real block initially
+								type: "lists_create_with",
+								extraState: { itemCount: 1 },
+								inputs: {
+									ADD0: {
+										block: {
+											type: "math_number",
+											fields: { NUM: 1 },
+										},
+									},
+								},
 							},
-						  },
 						},
-					  },
+						INSTRUMENT: {
+							block: {
+								// Real block initially
+								type: "instrument",
+								fields: { INSTRUMENT_TYPE: "default" },
+							},
+						},
 					},
-					INSTRUMENT: {
-					  block: { // Real block initially
-						type: "instrument",
-						fields: { INSTRUMENT_TYPE: "default" },
-					  },
-					},
-				  },
 				},
 				{
 					kind: "block",
@@ -3292,7 +3366,6 @@ export const toolbox = {
 			],
 		},
 	],
-	
 };
 
 class IconCategory extends Blockly.ToolboxCategory {
