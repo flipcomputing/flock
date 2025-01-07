@@ -1079,7 +1079,7 @@ export function defineGenerators() {
 			Blockly.Names.NameType.VARIABLE,
 		);
 
-		const meshId = `${idPrefix}_${generateUniqueId()}`;
+		const meshId = `${variableName}`;
 		meshMap[meshId] = block;
 		meshBlockIdMap[meshId] = block.id;
 
@@ -2538,14 +2538,14 @@ export function defineGenerators() {
 	  return\` ${this.id}\`;
 	};`;*/
 
-			defvars.map(function (name) {
-				return `let ${name};`;
+			let defvarsmesh = defvars.map(function (name) {
+				return `var ${name} = '${name}';`;
 			});
-			for (let v of defvars) {
+			/*for (let v of defvars) {
 				variableDeclarations += `var ${v} = new Mesh();\n console.log(${v});\n`;
-			}
+			}*/
 			javascriptGenerator.definitions_["variables"] =
-				`// Made with Flock\n` + "var " + defvars.join(", ") + ";";
+				`// Made with Flock XR\n` + defvarsmesh.join(" ") + "\n";
 		}
 
 		/*	javascriptGenerator.definitions_["variables"] = variableDeclarations;*/

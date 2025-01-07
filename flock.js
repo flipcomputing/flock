@@ -631,14 +631,14 @@ export const flock = {
 
 		let textBlock;
 
-		textBlock = existingTextBlock ?? new flock.GUI.TextBlock();
-		textBlock.text = text;
-
-		if (!existingTextBlock) {
+		if (!existingTextBlock || typeof existingTextBlock === "string") {
+			textBlock = new flock.GUI.TextBlock();
 			flock.scene.UITexture.addControl(textBlock);
+		} else {
+			textBlock = existingTextBlock;
 		}
 
-		// Update the text block properties
+		textBlock.text = text;
 		textBlock.color = color;
 		textBlock.fontSize = fontSize;
 		textBlock.textHorizontalAlignment =
@@ -1952,7 +1952,8 @@ export const flock = {
 	applyResultMeshProperties(resultMesh, referenceMesh, modelId, blockId) {
 		// Copy transformation properties
 		if (referenceMesh.rotationQuaternion) {
-			resultMesh.rotationQuaternion = referenceMesh.rotationQuaternion.clone();
+			resultMesh.rotationQuaternion =
+				referenceMesh.rotationQuaternion.clone();
 		} else {
 			resultMesh.rotation.copyFrom(referenceMesh.rotation);
 		}
@@ -1982,12 +1983,13 @@ export const flock = {
 
 		if (resultMesh.material) {
 			if (resultMesh.material instanceof flock.BABYLON.MultiMaterial) {
-				resultMesh.material.subMaterials = resultMesh.material.subMaterials.map((subMaterial) => {
-					if (subMaterial && isDefaultMaterial(subMaterial)) {
-						return replaceMaterial(subMaterial);
-					}
-					return subMaterial;
-				});
+				resultMesh.material.subMaterials =
+					resultMesh.material.subMaterials.map((subMaterial) => {
+						if (subMaterial && isDefaultMaterial(subMaterial)) {
+							return replaceMaterial(subMaterial);
+						}
+						return subMaterial;
+					});
 			} else if (isDefaultMaterial(resultMesh.material)) {
 				resultMesh.material = replaceMaterial(resultMesh.material);
 			}
@@ -2546,7 +2548,7 @@ export const flock = {
 		// Set metadata and unique name
 		mesh.metadata = { shapeType };
 		mesh.blockKey = mesh.name;
-		mesh.name = `${mesh.name}_${mesh.uniqueId}`;
+		//mesh.name = `${mesh.name}_${mesh.uniqueId}`;
 
 		const material = new BABYLON.StandardMaterial(
 			`${shapeType.toLowerCase()}Material`,
@@ -2592,6 +2594,10 @@ export const flock = {
 		geometry.physics = physicsBody;
 	},
 	createBox(boxId, color, width, height, depth, position, alpha = 1) {
+		if (flock.scene.getMeshByName(boxId)) {
+			boxId = boxId + "_" + flock.scene.getUniqueId();
+		}
+
 		const dimensions = { width, height, depth };
 
 		// Retrieve cached VertexData or create it if this is the first instance
@@ -2603,6 +2609,7 @@ export const flock = {
 
 		// Create a new mesh and apply the cached VertexData
 		const newBox = new BABYLON.Mesh(boxId, flock.scene);
+
 		vertexData.applyToMesh(newBox);
 
 		// Initialise the mesh with position, color, and other properties
@@ -2628,6 +2635,10 @@ export const flock = {
 		position,
 		alpha = 1,
 	) {
+		if (flock.scene.getMeshByName(sphereId)) {
+			sphereId = sphereId + "_" + flock.scene.getUniqueId();
+		}
+
 		const dimensions = { diameterX, diameterY, diameterZ };
 
 		// Retrieve cached VertexData or create it if this is the first instance
@@ -2736,6 +2747,10 @@ export const flock = {
 			updatable: true,
 		};
 
+		if (flock.scene.getMeshByName(cylinderId)) {
+			cylinderId = cylinderId + "_" + flock.scene.getUniqueId();
+		}
+
 		// Get or create cached VertexData
 		const vertexData = flock.getOrCreateGeometry(
 			"Cylinder",
@@ -2771,6 +2786,10 @@ export const flock = {
 			tessellation: 24,
 			updatable: false,
 		};
+
+		if (flock.scene.getMeshByName(capsuleId)) {
+			capsuleId = capsuleId + "_" + flock.scene.getUniqueId();
+		}
 
 		// Get or create cached VertexData
 		const vertexData = flock.getOrCreateGeometry(
@@ -3860,11 +3879,12 @@ export const flock = {
 						loop,
 					);
 
-					mesh.physics.disablePreStep = false;
-					mesh.physics.setPrestepType(
-						flock.BABYLON.PhysicsPrestepType.ACTION,
-					);
-
+					if (mesh.physics) {
+						mesh.physics.disablePreStep = false;
+						mesh.physics.setPrestepType(
+							flock.BABYLON.PhysicsPrestepType.ACTION,
+						);
+					}
 					animatable.onAnimationEndObservable.add(() => {
 						if (reverse) {
 							// Ensure mesh ends at the final position for non-looping animations
