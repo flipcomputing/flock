@@ -2128,7 +2128,7 @@ export const toolbox = {
 						{
 							kind: "block",
 							type: "text_join",
-							keyword: "join",
+							keyword: "text",
 						},
 						{
 							kind: "block",

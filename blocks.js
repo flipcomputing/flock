@@ -4732,7 +4732,7 @@ Blockly.Blocks["export_mesh"] = {
 };
 
 // Remove 'do' text to save space
-Blockly.Msg["TEXT_JOIN_TITLE_CREATEWITH"] = "join"
+Blockly.Msg["TEXT_JOIN_TITLE_CREATEWITH"] = "text"
 Blockly.Msg["CONTROLS_REPEAT_INPUT_DO"] = "";
 Blockly.Msg["CONTROLS_WHILEUNTIL_INPUT_DO"] = "";
 Blockly.Msg["CONTROLS_FOR_INPUT_DO"] = "";
