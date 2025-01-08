@@ -180,7 +180,8 @@ export function updateMeshFromBlock(mesh, block, changeEvent) {
 
 	let color, modelName, modelId, scale;
 
-	if (block.type !== "load_model" && block.type !== "load_character") {
+	if (!["load_model", "load_multi_object", "load_character"].includes(block.type))
+{
 		color = block
 			.getInput("COLOR")
 			.connection.targetBlock()
@@ -250,6 +251,9 @@ export function updateMeshFromBlock(mesh, block, changeEvent) {
 				});
 			}*/
 			console.log("Need to handle update of model");
+			break;
+			case "load_multi_object":
+			console.log("Need to handle update of multi model");
 			break;
 		case "load_character":
 			modelName = block.getFieldValue("MODELS");
@@ -1582,7 +1586,7 @@ function toggleGizmo(gizmoType) {
 			gizmoManager.gizmos.positionGizmo.onDragStartObservable.add(
 				function () {
 					const mesh = gizmoManager.attachedMesh;
-					const motionType = mesh.physics.getMotionType();
+					const motionType = mesh.physics?.getMotionType();
 					mesh.savedMotionType = motionType;
 
 					if (
@@ -1820,7 +1824,7 @@ function toggleGizmo(gizmoType) {
 			gizmoManager.gizmos.scaleGizmo.onDragStartObservable.add(
 				function () {
 					const mesh = gizmoManager.attachedMesh;
-					const motionType = mesh.physics.getMotionType();
+					const motionType = mesh.physics?.getMotionType();
 					mesh.savedMotionType = motionType;
 
 					if (
