@@ -4830,6 +4830,7 @@ export const flock = {
 		});
 	},
 	changeColorMesh(mesh, color) {
+		console.log("Changing color of mesh:", mesh.name, color);
 		flock.ensureUniqueMaterial(mesh);
 		let materialFound = false;
 

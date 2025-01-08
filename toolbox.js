@@ -269,7 +269,7 @@ export const toolbox = {
 						},
 					},
 				},
-				/*{
+				{
 					kind: "block",
 					type: "load_multi_object",
 					keyword: "object",
@@ -317,7 +317,7 @@ export const toolbox = {
 										block: {
 											type: "colour",
 											fields: {
-												COLOR: "#9932CC",
+												COLOR: "#2a9d8f",
 											},
 										},
 									},
@@ -325,7 +325,7 @@ export const toolbox = {
 										block: {
 											type: "colour",
 											fields: {
-												COLOR: "#9932CC",
+												COLOR: "#e9c46a",
 											},
 										},
 									},
@@ -333,7 +333,7 @@ export const toolbox = {
 										block: {
 											type: "colour",
 											fields: {
-												COLOR: "#9932CC",
+												COLOR: "#e76f51",
 											},
 										},
 									},
@@ -341,7 +341,7 @@ export const toolbox = {
 							},
 						},
 					},
-				},*/
+				},
 				{
 					kind: "block",
 					type: "create_box",
