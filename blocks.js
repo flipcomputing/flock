@@ -4141,6 +4141,37 @@ export function defineBlocks() {
 		},
 	};
 
+	Blockly.Blocks['add_physics_shape'] = {
+	  init: function () {
+		this.jsonInit({
+		  type: 'add_physics_shape',
+		  message0: 'add physics shape %1 type %2',
+		  args0: [
+			{
+			  type: 'field_variable',
+			  name: 'MODEL_VAR',
+			  variable: window.currentMesh,
+			},
+			{
+			  type: 'field_dropdown',
+			  name: 'SHAPE_TYPE',
+			  options: [
+				['capsule', 'CAPSULE'],
+				['mesh', 'MESH'],
+			  ],
+			  default: 'MESH',
+			},
+		  ],
+		  previousStatement: null,
+		  nextStatement: null,
+		  colour: categoryColours['Transform'],
+		  tooltip: 'Add a physics shape to the mesh. Options are capsule or mesh.\nKeyword:physics',
+		  helpUrl: '',
+		});
+	  },
+	};
+
+
 	Blockly.Blocks["dispose"] = {
 		init: function () {
 			this.jsonInit({

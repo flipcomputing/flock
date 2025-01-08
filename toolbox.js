@@ -1214,6 +1214,11 @@ export const toolbox = {
 						},
 						{
 							kind: "block",
+							type: "add_physics_shape",
+							keyword: "collider",
+						},
+						{
+							kind: "block",
 							type: "apply_force",
 							keyword: "push",
 							inputs: {

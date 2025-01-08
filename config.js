@@ -75,6 +75,7 @@ export const characterNames = [
 
 export const multiObjectNames = [
 	"tree_fat.glb",
+	"hut.glb",
 ];
 
 export const objectNames = [

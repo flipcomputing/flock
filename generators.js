@@ -2167,6 +2167,17 @@ export function defineGenerators() {
 		// Note: Ensure that the execution environment supports async/await at this level
 		return `await setPhysics(${modelName}, "${physicsType}");\n`;
 	};
+	javascriptGenerator.forBlock['add_physics_shape'] = function (block) {
+	  const modelName = javascriptGenerator.nameDB_.getName(
+		block.getFieldValue('MODEL_VAR'),
+		Blockly.Names.NameType.VARIABLE,
+	  );
+
+	  const shapeType = block.getFieldValue('SHAPE_TYPE');
+
+	  // Note: Ensure that the execution environment supports async/await at this level
+	  return `await setPhysicsShape(${modelName}, "${shapeType}");\n`;
+	};
 
 	javascriptGenerator.forBlock["canvas_controls"] = function (block) {
 		const controls = block.getFieldValue("CONTROLS") == "TRUE";

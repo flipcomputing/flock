@@ -172,6 +172,7 @@ export const flock = {
 				attachCamera,
 				canvasControls,
 				setPhysics,
+				setPhysicsShape,
 				checkMeshesTouching,
 				say,
 				onTrigger,
@@ -4841,7 +4842,8 @@ export const flock = {
 		function applyColorToMaterial(part, color) {
 			if (part.material) {
 				const hexColor = flock.getColorFromString(color);
-				const babylonColor = flock.BABYLON.Color3.FromHexString(hexColor);
+				const babylonColor =
+					flock.BABYLON.Color3.FromHexString(hexColor);
 
 				// Set diffuse or albedo/emissive colors
 				if (part.material.diffuseColor !== undefined) {
@@ -4858,7 +4860,8 @@ export const flock = {
 			part.getChildMeshes().forEach((child) => {
 				if (child.material) {
 					// Use the next colour, or the last colour if we've run out
-					const currentColor = colors[colorIndex] || colors[colors.length - 1];
+					const currentColor =
+						colors[colorIndex] || colors[colors.length - 1];
 					applyColorToMaterial(child, currentColor);
 					if (colorIndex < colors.length - 1) {
 						colorIndex++;
@@ -4875,8 +4878,13 @@ export const flock = {
 
 		// If no material was found, create a new one
 		if (!materialFound) {
-			const material = new flock.BABYLON.StandardMaterial("meshMaterial", flock.scene);
-			material.diffuseColor = flock.BABYLON.Color3.FromHexString(colors[0]);
+			const material = new flock.BABYLON.StandardMaterial(
+				"meshMaterial",
+				flock.scene,
+			);
+			material.diffuseColor = flock.BABYLON.Color3.FromHexString(
+				colors[0],
+			);
 			mesh.material = material;
 		}
 
@@ -5779,6 +5787,89 @@ export const flock = {
 					break;
 			}
 		});
+	},
+	setPhysicsShape(modelName, shapeType) {
+	  return flock.whenModelReady(modelName, (mesh) => {
+		const disposePhysics = (targetMesh) => {
+		  if (targetMesh.physics) {
+			const body = targetMesh.physics;
+
+			// Remove the body from the physics world
+			flock.hk._hknp.HP_World_RemoveBody(
+			  flock.hk.world,
+			  body._pluginData.hpBodyId
+			);
+
+			// Dispose of the shape explicitly
+			if (body.shape) {
+			  body.shape.dispose();
+			  body.shape = null; // Clear shape reference
+			}
+
+			// Dispose of the body explicitly
+			body.dispose();
+			targetMesh.physics = null; // Clear reference
+		  }
+		};
+
+		const applyPhysicsShape = (targetMesh) => {
+		  // Dispose physics if no material
+		  if (!targetMesh.material) {
+			disposePhysics(targetMesh);
+			return; // Skip further processing
+		  }
+
+		  if (!targetMesh.geometry) {
+			return; // Skip if no geometry
+		  }
+
+		  // Dispose existing physics before applying a new shape
+		  disposePhysics(targetMesh);
+
+		  let physicsShape;
+		  switch (shapeType) {
+			case 'CAPSULE':
+			  const boundingBox = targetMesh.getBoundingInfo().boundingBox;
+			  const radius = Math.max(
+				boundingBox.maximum.x - boundingBox.minimum.x,
+				boundingBox.maximum.z - boundingBox.minimum.z
+			  ) / 2;
+			  const height = boundingBox.maximum.y - boundingBox.minimum.y;
+			  physicsShape = new flock.BABYLON.PhysicsShapeCapsule(
+				targetMesh, flock.scene, { radius: radius, height: height }
+			  );
+			  break;
+			case 'MESH':
+			  physicsShape = new flock.BABYLON.PhysicsShapeMesh(targetMesh, flock.scene);
+			  break;
+			default:
+			  console.error('Invalid shape type provided:', shapeType);
+			  return;
+		  }
+
+		  const physicsBody = new flock.BABYLON.PhysicsBody(
+			targetMesh,
+			flock.BABYLON.PhysicsMotionType.STATIC, // Default motion type
+			false,
+			flock.scene
+		  );
+		  physicsBody.shape = physicsShape;
+		  physicsBody.setMassProperties({ mass: 1, restitution: 0.5 });
+		  physicsBody.disablePreStep = false;
+
+		  targetMesh.physics = physicsBody;
+		};
+
+		// Apply to main mesh
+		applyPhysicsShape(mesh);
+
+		// Apply to submeshes
+		if (mesh.getChildMeshes) {
+		  mesh.getChildMeshes().forEach((subMesh) => {
+			applyPhysicsShape(subMesh);
+		  });
+		}
+	  });
 	},
 	canvasControls(setting) {
 		if (setting) {
