@@ -173,8 +173,55 @@ function stripFilename(inputString) {
 
 	return removeEnd.substring(lastIndex + 1).trim();
 }
+async function exportCode() {
+	try {
+		const projectName =
+			document.getElementById("projectName").value || "default_project";
 
-function exportCode() {
+		let ws = Blockly.getMainWorkspace();
+		let usedModels = Blockly.Variables.allUsedVarModels(ws);
+		let allModels = ws.getAllVariables();
+		for (const model of allModels) {
+			if (!usedModels.find((element) => element.getId() === model.getId())) {
+				ws.deleteVariableById(model.getId());
+			}
+		}
+
+		const json = Blockly.serialization.workspaces.save(workspace);
+		const jsonString = JSON.stringify(json, null, 2); // Pretty-print the JSON
+
+		// Use File System Access API if available
+		if ("showSaveFilePicker" in window) {
+			const options = {
+				suggestedName: `${projectName}.json`,
+				types: [
+					{
+						description: "JSON Files",
+						accept: { "application/json": [".json"] },
+					},
+				],
+			};
+
+			const fileHandle = await window.showSaveFilePicker(options);
+			const writable = await fileHandle.createWritable();
+			await writable.write(jsonString);
+			await writable.close();
+		} else {
+			// Fallback for older browsers
+			const blob = new Blob([jsonString], { type: "application/json" });
+			const link = document.createElement("a");
+			link.href = URL.createObjectURL(blob);
+			link.download = `${projectName}.json`;
+			document.body.appendChild(link);
+			link.click();
+			document.body.removeChild(link);
+		}
+	} catch (e) {
+		console.error("Error exporting project:", e);
+	}
+}
+
+function exportCode2() {
 	const projectName =
 		document.getElementById("projectName").value || "default_project";
 
