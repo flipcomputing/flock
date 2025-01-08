@@ -4156,8 +4156,8 @@ export function defineBlocks() {
 			  type: 'field_dropdown',
 			  name: 'SHAPE_TYPE',
 			  options: [
+				  ['mesh', 'MESH'],
 				['capsule', 'CAPSULE'],
-				['mesh', 'MESH'],
 			  ],
 			  default: 'MESH',
 			},
