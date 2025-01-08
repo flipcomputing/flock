@@ -106,6 +106,7 @@ export const modelNames = [
 	"Cat.glb",
 	"Monkey.glb",
 	"Person.glb",
+	"hut.glb",
 ];
 
 export const mapNames = [
