@@ -3,7 +3,7 @@ import "@blockly/toolbox-search";
 
 export const categoryColours = {
 	Events: 5,
-	Scene: 90,
+	Scene: 85,
 	Transform: 65,
 	Animate: 45,
 	Materials: 280,
