@@ -2,14 +2,14 @@ import * as Blockly from "blockly";
 import "@blockly/toolbox-search";
 
 export const categoryColours = {
-	Events: 200,
+	Events: 5,
 	Scene: 90,
 	Transform: 65,
 	Animate: 45,
 	Materials: 280,
 	Sound: 25,
 	Sensing: 180,
-	Snippets: 5,
+	Snippets: 200,
 	Control: "%{BKY_LOOPS_HUE}",
 	Logic: "%{BKY_LOGIC_HUE}",
 	Variables: "%{BKY_VARIABLES_HUE}",
@@ -27,69 +27,7 @@ export const toolbox = {
 			name: "Search",
 			contents: [],
 		},
-		{
-			kind: "category",
-			name: "Events",
-			icon: "./images/events.svg",
-			colour: categoryColours["Events"],
-			contents: [
-				{
-					kind: "block",
-					type: "start",
-					keyword: "start",
-				},
-				{
-					kind: "block",
-					type: "forever",
-					keyword: "ever",
-				},
-				{
-					kind: "block",
-					type: "when_clicked",
-					keyword: "click",
-				},
-				{
-					kind: "block",
-					type: "when_touches",
-					keyword: "touches",
-				},
-				{
-					kind: "block",
-					type: "when_key_event",
-					keyword: "press",
-				},
-				{
-					kind: "block",
-					type: "broadcast_event",
-					keyword: "broadcast",
-					inputs: {
-						EVENT_NAME: {
-							shadow: {
-								type: "text",
-								fields: {
-									TEXT: "go",
-								},
-							},
-						},
-					},
-				},
-				{
-					kind: "block",
-					type: "on_event",
-					keyword: "on",
-					inputs: {
-						EVENT_NAME: {
-							shadow: {
-								type: "text",
-								fields: {
-									TEXT: "go",
-								},
-							},
-						},
-					},
-				},
-			],
-		},
+		
 		{
 			kind: "category",
 			name: "Scene",
@@ -954,7 +892,69 @@ export const toolbox = {
 				},
 			],
 		},
-
+		{
+			kind: "category",
+			name: "Events",
+			icon: "./images/events.svg",
+			colour: categoryColours["Events"],
+			contents: [
+				{
+					kind: "block",
+					type: "start",
+					keyword: "start",
+				},
+				{
+					kind: "block",
+					type: "forever",
+					keyword: "ever",
+				},
+				{
+					kind: "block",
+					type: "when_clicked",
+					keyword: "click",
+				},
+				{
+					kind: "block",
+					type: "when_touches",
+					keyword: "touches",
+				},
+				{
+					kind: "block",
+					type: "when_key_event",
+					keyword: "press",
+				},
+				{
+					kind: "block",
+					type: "broadcast_event",
+					keyword: "broadcast",
+					inputs: {
+						EVENT_NAME: {
+							shadow: {
+								type: "text",
+								fields: {
+									TEXT: "go",
+								},
+							},
+						},
+					},
+				},
+				{
+					kind: "block",
+					type: "on_event",
+					keyword: "on",
+					inputs: {
+						EVENT_NAME: {
+							shadow: {
+								type: "text",
+								fields: {
+									TEXT: "go",
+								},
+							},
+						},
+					},
+				},
+			],
+		},
 		{
 			kind: "category",
 			name: "Transform",
