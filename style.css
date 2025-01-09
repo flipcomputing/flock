@@ -551,9 +551,20 @@ path.blocklyPath.blockly-ws-search-highlight.blockly-ws-search-current {
     display: none !important;
 }
 
+.icon {
+  width: 1.5em;
+  height: 1.5em;
+}
 
-
-
+.iconbutton {
+  cursor: pointer;
+  margin: 0;
+  padding: 4px;
+  border-radius: 5px;
+  background: #563C5C;
+  border: none;
+  margin: 2px;
+}
 
 
 
