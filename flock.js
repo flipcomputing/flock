@@ -4874,11 +4874,13 @@ export const flock = {
 		const colors = Array.isArray(color) ? color : [color];
 		let colorIndex = 0;
 
-		function applyColorToMaterial(part, color) {
+		function applyColorInOrder(part) {
+			// Process the current mesh
+			const currentColor = colors[colorIndex % colors.length];
+
 			if (part.material) {
-				const hexColor = flock.getColorFromString(color);
-				const babylonColor =
-					flock.BABYLON.Color3.FromHexString(hexColor);
+				const hexColor = flock.getColorFromString(currentColor);
+				const babylonColor = flock.BABYLON.Color3.FromHexString(hexColor);
 
 				// Set diffuse or albedo/emissive colors
 				if (part.material.diffuseColor !== undefined) {
@@ -4889,37 +4891,25 @@ export const flock = {
 					part.material.emissiveIntensity = 0.1;
 				}
 				materialFound = true;
+
+				// Move to the next colour
+				colorIndex++;
 			}
 
-			// Apply colours to submeshes with materials
-			part.getChildMeshes().forEach((child) => {
-				if (child.material) {
-					// Use the next colour, or the last colour if we've run out
-					const currentColor =
-						colors[colorIndex] || colors[colors.length - 1];
-					applyColorToMaterial(child, currentColor);
-					if (colorIndex < colors.length - 1) {
-						colorIndex++;
-					}
-				} else {
-					applyColorToMaterial(child, color);
-				}
-			});
+			// Process the submeshes (children) of the current mesh, sorted alphabetically
+			const sortedChildMeshes = part.getChildMeshes().sort((a, b) =>
+				a.name.localeCompare(b.name)
+			);
+			sortedChildMeshes.forEach((child) => applyColorInOrder(child));
 		}
 
-		// Start applying colour to the main mesh and its children
-		const initialColor = colors[0];
-		applyColorToMaterial(mesh, initialColor);
+		// Start applying colours to the main mesh and its hierarchy
+		applyColorInOrder(mesh);
 
 		// If no material was found, create a new one
 		if (!materialFound) {
-			const material = new flock.BABYLON.StandardMaterial(
-				"meshMaterial",
-				flock.scene,
-			);
-			material.diffuseColor = flock.BABYLON.Color3.FromHexString(
-				colors[0],
-			);
+			const material = new flock.BABYLON.StandardMaterial("meshMaterial", flock.scene);
+			material.diffuseColor = flock.BABYLON.Color3.FromHexString(colors[0]);
 			mesh.material = material;
 		}
 
