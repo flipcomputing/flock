@@ -5578,7 +5578,7 @@ export const flock = {
 						flock.scene,
 					);
 					camera.checkCollisions = true;
-					camera.lowerBetaLimit = Math.PI / 2.5;
+					camera.lowerBetaLimit = Math.PI / 3;
 					camera.upperBetaLimit = Math.PI / 2;
 					camera.lowerRadiusLimit = radius * 0.6;
 					camera.upperRadiusLimit = radius * 1.6;
