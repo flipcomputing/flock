@@ -2843,7 +2843,7 @@ const forceString = function (value) {
   return ['String(' + value + ')', javascriptGenerator.ORDER_FUNCTION_CALL];
 };
 
-javascriptGenerator.forBlock["text_join"] = function (
+/*javascriptGenerator.forBlock["text_join"] = function (
   block,
   generator
 ) {
@@ -2887,4 +2887,4 @@ javascriptGenerator.forBlock["lists_create_with"] = function (
   }
   const code = "[" + elements.join(", ") + "]";
   return [code, javascriptGenerator.ORDER_ATOMIC];
-};
+};*/
