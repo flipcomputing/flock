@@ -23,6 +23,7 @@ export const flock = {
 	BABYLON: BABYLON,
 	scene: null,
 	highlighter: null,
+	glowLayer: null,
 	hk: null,
 	havokInstance: null,
 	GUI: null,
@@ -90,6 +91,7 @@ export const flock = {
 				createInstrument,
 				switchAnimation,
 				highlight,
+				glow,
 				newCharacter,
 				newObject,
 				createParticleEffect,
@@ -352,6 +354,8 @@ export const flock = {
 
 			flock.highlighter?.dispose();
 			flock.highlighter = null;
+			flock.glowLayer?.dispose();
+			flock.glowLayer = null;
 
 			// Dispose of the scene directly
 			flock.scene.activeCamera?.inputs?.clear();
@@ -952,26 +956,45 @@ export const flock = {
 		});
 	},
 	highlight(modelName, color) {
-		return flock.whenModelReady(modelName, (mesh) => {
+		const applyHighlight = (mesh) => {
 			if (mesh.material) {
 				flock.highlighter.addMesh(
 					mesh,
 					flock.BABYLON.Color3.FromHexString(
-						flock.getColorFromString(color),
-					),
+						flock.getColorFromString(color)
+					)
 				);
 			}
+		};
 
-			mesh.getChildMeshes().forEach(function (childMesh) {
-				if (childMesh.material) {
-					flock.highlighter.addMesh(
-						childMesh,
-						flock.BABYLON.Color3.FromHexString(
-							flock.getColorFromString(color),
-						),
-					);
-				}
-			});
+		return flock.whenModelReady(modelName, (mesh) => {
+			applyHighlight(mesh);
+			mesh.getChildMeshes().forEach(applyHighlight);
+		});
+	},
+
+	glow(modelName, glowColor) {
+		// Ensure the glow layer is initialised
+		if (!flock.glowLayer) {
+			flock.glowLayer = new flock.BABYLON.GlowLayer("glowLayer", flock.scene);
+			flock.glowLayer.intensity = 0.5; // Adjust glow intensity as needed
+		}
+
+		const applyGlow = (mesh, glowColor) => {
+			if (mesh.material) {
+				// Use diffuse color if glowColor is not specified
+				const emissiveColor = glowColor || mesh.material.diffuseColor  || mesh.material.albedoColor || flock.BABYLON.Color3.Black();
+				mesh.material.emissiveColor = emissiveColor;
+				mesh.material.emissiveIntensity = 1.0;
+			}
+
+			// Add the mesh to the glow layer
+			flock.glowLayer.addIncludedOnlyMesh(mesh);
+		};
+
+		return flock.whenModelReady(modelName, (mesh) => {
+			applyGlow(mesh, glowColor);
+			mesh.getChildMeshes().forEach((childMesh) => applyGlow(childMesh, glowColor));
 		});
 	},
 	newModel({
@@ -2290,15 +2313,27 @@ export const flock = {
 	},
 	clearEffects(modelName) {
 		return flock.whenModelReady(modelName, (mesh) => {
-			flock.highlighter.removeMesh(mesh);
-			mesh.renderOverlay = false;
-
-			mesh.getChildMeshes().forEach(function (childMesh) {
-				if (childMesh.material) {
-					flock.highlighter.removeMesh(childMesh);
+			const removeEffects = (targetMesh) => {
+				if (targetMesh.material) {
+					// Reset emissive color to black
+					targetMesh.material.emissiveColor = flock.BABYLON.Color3.Black();
 				}
-				childMesh.renderOverlay = false;
-			});
+
+				// Remove mesh from glow layer
+				if (flock.glowLayer) {
+					flock.glowLayer.removeIncludedOnlyMesh(targetMesh);
+				}
+
+				flock.highlighter.removeMesh(targetMesh);
+				// Disable any render overlay
+				targetMesh.renderOverlay = false;
+			};
+
+			// Apply to the main mesh
+			removeEffects(mesh);
+
+			// Apply to child meshes
+			mesh.getChildMeshes().forEach(removeEffects);
 		});
 	},
 	createCapsuleFromBoundingBox(mesh, scene) {

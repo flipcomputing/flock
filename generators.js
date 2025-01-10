@@ -1700,6 +1700,15 @@ export function defineGenerators() {
 		return `await highlight(${modelName}, ${color});\n`;
 	};
 
+	javascriptGenerator.forBlock["glow"] = function (block) {
+		const modelName = javascriptGenerator.nameDB_.getName(
+			block.getFieldValue("MODEL_VAR"),
+			Blockly.Names.NameType.VARIABLE
+		);
+		return `await glow(${modelName});\n`;
+	};
+
+
 	javascriptGenerator.forBlock["tint"] = function (block) {
 		const modelName = javascriptGenerator.nameDB_.getName(
 			block.getFieldValue("MODEL_VAR"),

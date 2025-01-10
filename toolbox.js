@@ -2476,6 +2476,11 @@ export const toolbox = {
 				},
 				{
 					kind: "block",
+					type: "glow",
+					keyword: "glow"
+				},
+				{
+					kind: "block",
 					type: "clear_effects",
 					keyword: "clear",
 				},

@@ -4002,6 +4002,29 @@ export function defineBlocks() {
 		},
 	};
 
+	Blockly.Blocks["glow"] = {
+		init: function () {
+			this.jsonInit({
+				type: "glow",
+				message0: "glow %1",
+				args0: [
+					{
+						type: "field_variable",
+						name: "MODEL_VAR",
+						variable: window.currentMesh,
+					},
+				],
+				inputsInline: true,
+				previousStatement: null,
+				nextStatement: null,
+				colour: categoryColours["Materials"],
+				tooltip: "Adds a glow effect to the selected model.\nKeyword: glow",
+				helpUrl: "",
+			});
+		},
+	};
+
+
 	Blockly.Blocks["tint"] = {
 		init: function () {
 			this.jsonInit({
