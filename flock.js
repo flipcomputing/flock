@@ -6543,13 +6543,7 @@ export const flock = {
 				if (mesh.metadata.currentSound === sound) {
 					delete mesh.metadata.currentSound;
 				}
-			});
-
-			sound.onDisposeObservable.add(() => {
-				if (mesh.metadata.currentSound === sound) {
-					delete mesh.metadata.currentSound;
-				}
-			});
+			});		
 		};
 
 		if (meshName === "__everywhere__") {
