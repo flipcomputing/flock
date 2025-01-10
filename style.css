@@ -551,6 +551,11 @@ path.blocklyPath.blockly-ws-search-highlight.blockly-ws-search-current {
     display: none !important;
 }
 
+.svg {
+  display: inline-block;
+  white-space: nowrap;
+}
+
 .icon {
   width: 1.5em;
   height: 1.5em;
