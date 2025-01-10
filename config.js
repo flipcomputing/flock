@@ -1,4 +1,10 @@
 export const audioNames = [
+	"theme-bright.ogg",
+	"theme-calm.ogg",
+	"theme-electronic.ogg",
+	"theme-game.ogg",
+	"theme-medieval.ogg",
+	"theme-metal.ogg",
 	"highDown.ogg",
 	"highUp.ogg",
 	"laser1.ogg",

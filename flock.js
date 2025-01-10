@@ -6494,23 +6494,101 @@ export const flock = {
 		};
 		flock.scene.onDisposeObservable.add(disposeHandler);
 	},
-	playSound(scene, soundName) {
-		return new Promise((resolve, reject) => {
-			// Load and play the sound
-			const sound = new flock.BABYLON.Sound(
-				soundName,
-				`sounds/${soundName}`,
-				scene,
-				null,
-				{
-					autoplay: true,
-				},
-			);
+	playSound(meshName = "__everywhere__", soundName, options = {}) {
+		console.log(`playSound called with meshName: ${meshName}, soundName: ${soundName}, options:`, options);
 
-			// Register an observer to the onEndedObservable
-			sound.onEndedObservable.add(() => {
-				//console.log(`${soundName} finished playing`);
-				resolve();
+		return new Promise((resolve, reject) => {
+			// Function to handle sound playing for a specific mesh
+			const handleMeshSound = (mesh) => {
+				// Ensure mesh.metadata exists
+				if (!mesh.metadata) {
+					mesh.metadata = {};
+				}
+
+				// Check if the same sound is already playing
+				const currentSound = mesh.metadata.currentSound;
+				if (currentSound) {
+					if (currentSound.name === soundName) {
+						console.log(`Sound "${soundName}" is already playing on mesh "${meshName}". Ignoring.`);
+						resolve();
+						return;
+					} else {
+						console.log(`Stopping currently playing sound on mesh "${meshName}".`);
+						currentSound.stop();
+					}
+				}
+
+				// Load and play the new sound
+				const sound = new flock.BABYLON.Sound(
+					soundName,
+					`sounds/${soundName}`,
+					flock.scene, // Use the default scene
+					null,
+					{
+						autoplay: true, // Start playing immediately
+						playbackRate: options.playbackRate || 1,
+						volume: options.volume || 1,
+						spatialSound: true, // Enable spatial audio
+						maxDistance: 20,
+						distanceModel: "linear", // Linear attenuation model
+					},
+				);
+
+				// Attach sound to the mesh
+				sound.attachToMesh(mesh);
+
+				// Store the new sound in mesh.metadata
+				mesh.metadata.currentSound = sound;
+
+				// Register an observer to resolve the promise and clean up when the sound finishes
+				sound.onEndedObservable.add(() => {
+					console.log(`Sound "${soundName}" finished playing on mesh "${meshName}".`);
+					if (mesh.metadata.currentSound === sound) {
+						delete mesh.metadata.currentSound;
+					}
+					resolve();
+				});
+
+				sound.onDisposeObservable.add(() => {
+					if (mesh.metadata.currentSound === sound) {
+						delete mesh.metadata.currentSound;
+					}
+				});
+			};
+
+			// Handle global sound
+			if (meshName === "__everywhere__") {
+				console.log(`Playing global sound: ${soundName}`);
+				const sound = new flock.BABYLON.Sound(
+					soundName,
+					`sounds/${soundName}`,
+					flock.scene,
+					null,
+					{
+						autoplay: true,
+						playbackRate: options.playbackRate || 1,
+						volume: options.volume || 1,
+					},
+				);
+
+				// Register an observer to resolve the promise when the sound finishes
+				sound.onEndedObservable.add(() => {
+					console.log(`Global sound "${soundName}" finished playing.`);
+					resolve();
+				});
+
+				return;
+			}
+
+			// Find and handle the sound for the specified mesh
+			flock.whenModelReady(meshName, (mesh) => {
+				if (mesh) {
+					console.log(`Mesh "${meshName}" found. Handling sound.`);
+					handleMeshSound(mesh);
+				} else {
+					console.warn(`Mesh "${meshName}" not found. Cannot play sound.`);
+					reject(`Mesh "${meshName}" not found.`);
+				}
 			});
 		});
 	},

@@ -340,12 +340,36 @@ async function executeCode() {
 
 
 function stopCode() {
-	flock.audioContext.close();
-	//flock.scene.dispose();
+	// Stop all playing sounds
+	if (flock.scene && flock.scene.mainSoundTrack) {
+		flock.scene.mainSoundTrack.soundCollection.forEach((sound) => {
+			if (sound.isPlaying) {
+				sound.stop();
+				console.log(`Stopped sound: ${sound.name}`);
+			}
+		});
+	}
+
+	// Close the audio context
+	if (flock.audioContext) {
+		flock.audioContext.close().then(() => {
+			console.log("Audio context closed.");
+		}).catch((error) => {
+			console.error("Error closing audio context:", error);
+		});
+	}
+
+	// Stop rendering
 	flock.engine.stopRenderLoop();
+	console.log("Render loop stopped.");
+
+	// Remove event listeners
 	flock.removeEventListeners();
+
+	// Switch to code view
 	switchView(codeMode);
 }
+
 
 window.stopCode = stopCode;
 

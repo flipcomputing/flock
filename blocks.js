@@ -2961,7 +2961,7 @@ export function defineBlocks() {
 			this.jsonInit({
 				type: "play_sound",
 				message0:
-					"set %1 to play sound %2 \nspeed %3 volume %4 mode %5 %6",
+					"set %1 to play sound %2 on %3 \nspeed %4 volume %5 mode %6 async %7",
 				args0: [
 					{
 						type: "field_variable",
@@ -2974,6 +2974,10 @@ export function defineBlocks() {
 						options: function () {
 							return audioNames.map((name) => [name, name]);
 						},
+					},
+					{
+						type: "input_dummy",
+						name: "MESH_INPUT", // Dummy input for the dropdown
 					},
 					{
 						type: "input_value",
@@ -3013,30 +3017,30 @@ export function defineBlocks() {
 				nextStatement: null,
 				colour: categoryColours["Sound"],
 				tooltip:
-					"Plays the selected sound with adjustable speed and volume, and chooses to play once or loop.\nKeyword: sound",
+					"Plays the selected sound on a mesh with adjustable speed, volume, and mode.\nKeyword: sound",
 				helpUrl: "",
-			});
-
-			this.setOnChange(function (changeEvent) {
-				if (
-					!this.isInFlyout &&
-					changeEvent.type === Blockly.Events.BLOCK_CREATE &&
-					changeEvent.ids.includes(this.id)
-				) {
-					let variable = this.workspace.getVariable(nextVariableName);
-					if (!variable) {
-						variable = this.workspace.createVariable(
-							nextVariableName,
-							null,
-						);
-						this.getField("ID_VAR").setValue(variable.getId());
-					}
-
-					nextVariableIndexes["sound"] += 1;
-				}
+				extensions: ['dynamic_mesh_dropdown'], // Attach the extension
 			});
 		},
 	};
+
+	Blockly.Extensions.register('dynamic_mesh_dropdown', function () {
+		const dropdown = new Blockly.FieldDropdown(function () {
+			const options = [["everywhere", "__everywhere__"]];
+			const workspace = this.sourceBlock_ && this.sourceBlock_.workspace;
+			if (workspace) {
+				const variables = workspace.getAllVariables();
+				variables.forEach((v) => {
+					options.push([v.name, v.name]);
+				});
+			}
+			return options;
+		});
+
+		// Attach the dropdown to the block
+		this.getInput('MESH_INPUT').appendField(dropdown, 'MESH_NAME');
+	});
+
 
 	Blockly.Blocks["stop_all_sounds"] = {
 		init: function () {

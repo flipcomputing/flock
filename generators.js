@@ -1442,25 +1442,35 @@ export function defineGenerators() {
 		return `await playAnimation(${modelVar}, "${animationName}");\n`;
 	};
 
+
+
+
 	javascriptGenerator.forBlock["play_sound"] = function (block) {
+		const idVar = javascriptGenerator.nameDB_.getName(
+			block.getFieldValue("ID_VAR"),
+			Blockly.Names.NameType.VARIABLE
+		);
 		const soundName = block.getFieldValue("SOUND_NAME");
-		const speed = parseFloat(getFieldValue(block, "SPEED", 1));
-		const volume = parseFloat(getFieldValue(block, "VOLUME", 1));
-		const mode = block.getFieldValue("MODE");
+		const meshName = block.getFieldValue("MESH_NAME");
+		const speed = parseFloat(javascriptGenerator.valueToCode(block, "SPEED", javascriptGenerator.ORDER_ATOMIC) || 1);
+		const volume = parseFloat(javascriptGenerator.valueToCode(block, "VOLUME", javascriptGenerator.ORDER_ATOMIC) || 1);
+		const mode = block.getFieldValue("MODE") === "LOOP";
 		const async = block.getFieldValue("ASYNC");
 
-		let options = {
+		// Create options object
+		const options = {
 			playbackRate: speed,
 			volume: volume,
-			loop: mode === "LOOP",
+			loop: mode,
 		};
-
 		const optionsString = JSON.stringify(options);
 
+		// Use flock.playSound helper function
 		return async === "AWAIT"
-			? `await flock.playSoundAsync(flock.scene, "${soundName}", ${optionsString});\n`
-			: `new flock.BABYLON.Sound("${soundName}", "sounds/${soundName}", flock.scene, null, { autoplay: true, ...${optionsString} });\n`;
+			? `await flock.playSound("${meshName}", "${soundName}", ${optionsString});\n`
+			: `flock.playSound("${meshName}", "${soundName}", ${optionsString});\n`;
 	};
+
 
 	javascriptGenerator.forBlock["stop_all_sounds"] = function (block) {
 		// JavaScript code to stop all sounds in a Babylon.js scene
