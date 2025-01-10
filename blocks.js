@@ -2961,7 +2961,7 @@ export function defineBlocks() {
 			this.jsonInit({
 				type: "play_sound",
 				message0:
-					"set %1 to play sound %2 on %3 \nspeed %4 volume %5 mode %6 async %7",
+					"set %1 to play sound %2 from %3 \nspeed %4 volume %5 mode %6 async %7",
 				args0: [
 					{
 						type: "field_variable",

@@ -1467,8 +1467,8 @@ export function defineGenerators() {
 
 		// Use flock.playSound helper function
 		return async === "AWAIT"
-			? `await flock.playSound("${meshName}", "${soundName}", ${optionsString});\n`
-			: `flock.playSound("${meshName}", "${soundName}", ${optionsString});\n`;
+			? `await flock.playSound(${meshName}, "${soundName}", ${optionsString});\n`
+			: `flock.playSound(${meshName}, "${soundName}", ${optionsString});\n`;
 	};
 
 
