@@ -3768,7 +3768,7 @@ export function defineBlocks() {
 					{
 						type: "input_value",
 						name: "COLOR",
-						check: "Colour",
+						check: ["Colour", "Array"], // Accepts either Colour or Array
 					},
 				],
 				inputsInline: true,
@@ -3781,6 +3781,7 @@ export function defineBlocks() {
 			});
 		},
 	};
+
 
 	Blockly.Blocks["change_material"] = {
 		init: function () {
