@@ -989,7 +989,7 @@ export const flock = {
 			}
 
 			// Add the mesh to the glow layer
-			flock.glowLayer.addIncludedOnlyMesh(mesh);
+			//flock.glowLayer.addIncludedOnlyMesh(mesh);
 		};
 
 		return flock.whenModelReady(modelName, (mesh) => {
