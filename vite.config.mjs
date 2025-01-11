@@ -3,6 +3,8 @@ import { viteStaticCopy } from 'vite-plugin-static-copy';
 import { copyFileSync, readdirSync } from 'fs';
 import { resolve } from 'path';
 import cssInjectedByJsPlugin from 'vite-plugin-css-injected-by-js';
+import { writeFileSync } from 'fs';
+
 // Determine if we are in production mode
 const isProduction = process.env.NODE_ENV === 'production';
 
@@ -130,6 +132,33 @@ export default {
       },
     }),
     {
+      name: 'create-flock-proxy',
+      writeBundle(options, bundle) {
+        let hashedFileName;
+
+        for (const fileName in bundle) {
+          if (fileName.startsWith('assets/index-') && fileName.endsWith('.js')) {
+            hashedFileName = fileName;
+            break;
+          }
+        }
+
+        if (hashedFileName) {
+          const proxyContent = `export * from './${hashedFileName}';\n`;
+          const proxyPath = resolve(options.dir, 'flock.js');
+
+          try {
+            writeFileSync(proxyPath, proxyContent);
+            console.log(`Generated proxy file: flock.js -> ${hashedFileName}`);
+          } catch (error) {
+            console.error(`Failed to create proxy file: ${error.message}`);
+          }
+        } else {
+          console.error('No hashed flock file found in the bundle.');
+        }
+      },
+    },
+    /*{
       name: 'copy-bundle-with-fixed-name',
       writeBundle(options, bundle) {
         let jsFileName;
@@ -156,7 +185,7 @@ export default {
           console.error('No JavaScript file found in the bundle.');
         }
       },
-    },
+    },*/
     {
       name: 'copy-library-files',
       writeBundle() {
