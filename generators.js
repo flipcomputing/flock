@@ -2597,7 +2597,7 @@ javascriptGenerator.ORDER_ATOMIC,
 			defvars.push(
 				javascriptGenerator.nameDB_.getName(
 					devVarList[i],
-					Blockly.NameType.DEVELOPER_VARIABLE,
+					Blockly.Names.NameType.DEVELOPER_VARIABLE,
 				),
 			);
 		}
