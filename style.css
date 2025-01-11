@@ -574,6 +574,96 @@ path.blocklyPath.blockly-ws-search-highlight.blockly-ws-search-current {
 }
 
 /* Hide the Advanced section based on its title */
-.paneContainer:has(.header .title:contains("ADVANCED")) {
+.paneContainer:has(.header .collapse img[title="ADVANCED"]) {
   display: none !important;
 }
+
+.paneContainer:has(.header .collapse img[title="DISPLAY"]) {
+  display: none !important;
+}
+
+.paneContainer:has(.header .collapse img[title="OCCLUSIONS"]) {
+  display: none !important;
+}
+
+.paneContainer:has(.header .collapse img[title="DEBUG"]) {
+  display: none !important;
+}
+
+.paneContainer:has(.header .collapse img[title="METADATA"]) {
+  display: none !important;
+}
+
+.paneContainer:has(.header .collapse img[title="EDGE RENDERING"]) {
+  display: none !important;
+}
+
+.paneContainer:has(.header .collapse img[title="COLLISIONS"]) {
+  display: none !important;
+}
+
+.paneContainer:has(.header .collapse img[title="CONTROLS"]) {
+  display: none !important;
+}
+
+.paneContainer:has(.header .collapse img[title="SETUP"]) {
+  display: none !important;
+}
+
+.paneContainer:has(.header .collapse img[title="FILE"]) {
+  display: none !important;
+}
+
+.paneContainer:has(.header .collapse img[title="SNIPPET"]) {
+  display: none !important;
+}
+
+.paneContainer:has(.header .collapse img[title="SPRITESHEET"]) {
+  display: none !important;
+}
+
+.paneContainer:has(.header .collapse img[title="FONT"]) {
+  display: none !important;
+}
+
+.paneContainer:has(.header .collapse img[title="SHADOWS"]) {
+  display: none !important;
+}
+
+.paneContainer:has(.header .collapse img[title="PREVIEW"]) {
+  display: none !important;
+}
+
+.paneContainer:has(.header .collapse img[title="ADVANCED TEXTURE PROPERTIES"]) {
+    display: none !important;
+  }
+
+.paneContainer:has(.header .collapse img[title="TRANSPARENCY"]) {
+  display: none !important;
+}
+
+.paneContainer:has(.header .collapse img[title="STENCIL"]) {
+  display: none !important;
+}
+
+.paneContainer:has(.header .collapse img[title="TEXTURES"]) {
+  display: none !important;
+}
+
+.paneContainer:has(.header .collapse img[title="LEVELS"]) {
+  display: none !important;
+}
+
+.paneContainer:has(.header .collapse img[title="NORMAL MAP"]) {
+  display: none !important;
+}
+
+.paneContainer:has(.header .collapse img[title="LIGHTING & COLORS"]) .checkBoxLine {
+  display: none !important;
+}
+
+.copy, .expand, .listLine, .sliderLine, .coordinates {
+  display: none !important;
+}
+}
+
