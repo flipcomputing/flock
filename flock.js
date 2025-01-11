@@ -3106,7 +3106,7 @@ export const flock = {
 
 		newPlane.physics = planeBody;
 
-		flock.setSizeBasedPlaneUVs(newPlane, width, height);
+		//flock.setSizeBasedPlaneUVs(newPlane, width, height);
 		
 		const material = new flock.BABYLON.StandardMaterial(
 			"planeMaterial",

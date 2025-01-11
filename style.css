@@ -573,8 +573,7 @@ path.blocklyPath.blockly-ws-search-highlight.blockly-ws-search-current {
   margin: 2px;
 }
 
-
-
-
-
-
+/* Hide the Advanced section based on its title */
+.paneContainer:has(.header .title:contains("ADVANCED")) {
+  display: none !important;
+}
