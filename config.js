@@ -84,6 +84,7 @@ export const multiObjectNames = [
 	"hut.glb",
 	"hut2.glb",
 	"hut3.glb",
+	"hut4.glb",
 ];
 
 export const objectNames = [
@@ -118,6 +119,7 @@ export const modelNames = [
 	"hut.glb",
 	"hut2.glb",
 	"hut3.glb",
+	"hut4.glb",
 ];
 
 export const mapNames = [
