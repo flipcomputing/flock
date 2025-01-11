@@ -5196,6 +5196,52 @@ export const flock = {
 	},
 	createMaterial(
 		albedoColor,
+		textureSet,
+		alpha,
+		texturePhysicalSize = 4 // Default physical size in meters
+	) {
+		let material;
+
+		console.log(textureSet);
+	
+			material = new flock.BABYLON.StandardMaterial(
+				"material",
+				flock.scene,
+			);
+
+			material.diffuseColor =
+				flock.BABYLON.Color3.FromHexString(albedoColor);
+
+			if (textureSet !== "none.png") {
+				const baseTexturePath = `./textures/${textureSet}`;
+				material.diffuseTexture = new flock.BABYLON.Texture(
+					baseTexturePath,
+					flock.scene,
+				);
+
+				const normalTexturePath = `./textures/normal/${textureSet}`;
+				material.bumpTexture = new flock.BABYLON.Texture(
+					normalTexturePath,
+					flock.scene,
+				);
+
+				/*
+				// Apply consistent texture scaling
+				material.diffuseTexture.uScale = 1 / texturePhysicalSize;
+				material.diffuseTexture.vScale = 1 / texturePhysicalSize;
+				material.bumpTexture.uScale = 1 / texturePhysicalSize;
+				material.bumpTexture.vScale = 1 / texturePhysicalSize;*/
+			}
+		
+
+		/*material.emissiveColor =
+			flock.BABYLON.Color3.FromHexString(emissiveColor);*/
+
+		material.alpha = alpha;
+		return material;
+	},
+	createMaterial2(
+		albedoColor,
 		emissiveColor,
 		textureSet,
 		metallic,

@@ -2270,7 +2270,32 @@ export function defineGenerators() {
 		const code = `"${colour}"`;
 		return [code, javascriptGenerator.ORDER_ATOMIC];
 	};
+	
 	javascriptGenerator.forBlock["material"] = function (block) {
+		const baseColor =
+			javascriptGenerator.valueToCode(
+				block,
+				"BASE_COLOR",
+
+				
+
+javascriptGenerator.ORDER_ATOMIC,
+			) || "1";
+
+		const textureSet = block.getFieldValue("TEXTURE_SET");
+		const alpha =
+			javascriptGenerator.valueToCode(
+				block,
+				"ALPHA",
+				javascriptGenerator.ORDER_ATOMIC,
+			) || "1";
+
+		// Generate the code to call the createMaterial helper function
+		const code = `createMaterial(${baseColor},  "${textureSet}", ${alpha})`;
+		return [code, javascriptGenerator.ORDER_FUNCTION_CALL];
+	};
+
+	javascriptGenerator.forBlock["material2"] = function (block) {
 		const baseColor =
 			javascriptGenerator.valueToCode(
 				block,
@@ -2307,7 +2332,7 @@ export function defineGenerators() {
 		const code = `createMaterial(${baseColor}, ${emissiveColor}, "${textureSet}", ${metallic}, ${roughness}, ${alpha})`;
 		return [code, javascriptGenerator.ORDER_FUNCTION_CALL];
 	};
-
+	
 	javascriptGenerator.forBlock["text_material"] = function (block) {
 		const variable = javascriptGenerator.nameDB_.getName(
 			block.getFieldValue("MATERIAL_VAR"),

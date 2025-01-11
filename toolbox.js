@@ -27,7 +27,7 @@ export const toolbox = {
 			name: "Search",
 			contents: [],
 		},
-		
+
 		{
 			kind: "category",
 			name: "Scene",
@@ -2477,7 +2477,7 @@ export const toolbox = {
 				{
 					kind: "block",
 					type: "glow",
-					keyword: "glow"
+					keyword: "glow",
 				},
 				{
 					kind: "block",
@@ -2527,6 +2527,28 @@ export const toolbox = {
 								},
 							},
 						},
+					ALPHA: {
+						shadow: {
+							type: "math_number",
+							fields: {
+								NUM: 1, // Default alpha value: 1 (fully opaque)
+							},
+						},
+					},
+					}
+				},
+				/*{
+					kind: "block",
+					type: "material",
+					inputs: {
+						BASE_COLOR: {
+							shadow: {
+								type: "colour",
+								fields: {
+									COLOR: "#FFFFFF",
+								},
+							},
+						},
 						EMISSIVE_COLOR: {
 							shadow: {
 								type: "colour",
@@ -2560,7 +2582,7 @@ export const toolbox = {
 							},
 						},
 					},
-				},
+				},*/
 				{
 					kind: "block",
 					type: "text_material",
@@ -2631,6 +2653,36 @@ export const toolbox = {
 											},
 										},
 									},
+									
+									ALPHA: {
+										shadow: {
+											type: "math_number",
+											fields: {
+												NUM: 1.0, // Default alpha value: 1 (fully opaque)
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+				/*{
+					kind: "block",
+					type: "set_material",
+					inputs: {
+						MATERIAL: {
+							shadow: {
+								type: "material",
+								inputs: {
+									BASE_COLOR: {
+										shadow: {
+											type: "colour",
+											fields: {
+												COLOR: "#ff0000", // Default base color: red
+											},
+										},
+									},
 									EMISSIVE_COLOR: {
 										shadow: {
 											type: "colour",
@@ -2667,7 +2719,7 @@ export const toolbox = {
 							},
 						},
 					},
-				},
+				},*/
 				/*{
 					kind: "block",
 					type: "decal",

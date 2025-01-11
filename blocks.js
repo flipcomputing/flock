@@ -4579,6 +4579,55 @@ export function defineBlocks() {
 			this.jsonInit({
 				type: "material",
 				message0:
+					"material %1 %2 alpha %3",
+					
+				args0: [
+				{
+					type: "field_grid_dropdown",
+					name: "TEXTURE_SET",
+					columns: 4,
+					options: materialNames.map((name) => {
+						const baseName = name.replace(/\.[^/.]+$/, "");
+						return [
+							{
+								src: `./textures/${baseName}.png`,
+								width: 50,
+								height: 50,
+								alt: baseName,
+							},
+							name,
+						];
+					}),
+				},
+					{
+						type: "input_value",
+						name: "BASE_COLOR",
+						colour: "#ffffff", // Default to white
+					},	
+					{
+						type: "input_value",
+						name: "ALPHA",
+						value: 1,
+						min: 0,
+						max: 1,
+						precision: 0.01,
+					},
+					
+				],
+				output: "Material",
+				inputsInline: true,
+				colour: categoryColours["Materials"],
+				tooltip: "Define material properties",
+				helpUrl: "",
+			});
+		},
+	};
+
+	Blockly.Blocks["material2"] = {
+		init: function () {
+			this.jsonInit({
+				type: "material",
+				message0:
 					"material %1 emissive %2 texture %3 \nmetallic %4 roughness %5 alpha %6",
 				args0: [
 					{
