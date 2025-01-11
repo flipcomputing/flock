@@ -5,6 +5,7 @@
 import HavokPhysics from "@babylonjs/havok";
 import * as BABYLON from "@babylonjs/core";
 import * as BABYLON_GUI from "@babylonjs/gui";
+import { GradientMaterial } from "@babylonjs/materials"; 
 import * as BABYLON_EXPORT from "@babylonjs/serializers";
 import { FlowGraphLog10Block, SetMaterialIDBlock } from "babylonjs";
 import "@fontsource/asap";
@@ -21,6 +22,7 @@ export const flock = {
 	engineReady: false,
 	alert: alert,
 	BABYLON: BABYLON,
+	GradientMaterial: GradientMaterial,
 	scene: null,
 	highlighter: null,
 	glowLayer: null,
@@ -2235,9 +2237,26 @@ export const flock = {
 		console.log("Creating map", colors);
 	},
 	setSky(color) {
-		flock.scene.clearColor = flock.BABYLON.Color3.FromHexString(
-			flock.getColorFromString(color),
-		);
+		if (Array.isArray(color) && color.length === 2) {
+			// Handle gradient case
+			const skySphere = flock.BABYLON.MeshBuilder.CreateSphere("skySphere", { segments: 32, diameter: 1000 }, flock.scene);
+			const gradientMaterial = new flock.GradientMaterial("skyGradient", flock.scene);
+			
+			gradientMaterial.bottomColor = flock.BABYLON.Color3.FromHexString(flock.getColorFromString(color[0]));
+			gradientMaterial.topColor = flock.BABYLON.Color3.FromHexString(flock.getColorFromString(color[1]));
+			gradientMaterial.offset = 0.8; // Push the gradient midpoint towards the top
+			gradientMaterial.smoothness = 0.5; // Sharper gradient transition
+			gradientMaterial.scale = 0.01;
+			
+			gradientMaterial.backFaceCulling = false; // Render on the inside of the sphere
+			skySphere.material = gradientMaterial;
+			skySphere.isPickable = false; // Make non-interactive
+		} else {
+			// Handle single colour case
+			flock.scene.clearColor = flock.BABYLON.Color3.FromHexString(
+				flock.getColorFromString(color)
+			);
+		}
 	},
 	wait(duration) {
 		return new Promise((resolve, reject) => {

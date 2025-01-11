@@ -1442,7 +1442,6 @@ export function defineGenerators() {
 		return `await playAnimation(${modelVar}, "${animationName}");\n`;
 	};
 
-
 	javascriptGenerator.forBlock["play_sound"] = function (block) {
 		const idVar = javascriptGenerator.nameDB_.getName(
 			block.getFieldValue("ID_VAR"),

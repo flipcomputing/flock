@@ -279,13 +279,12 @@ export function initializeVariableIndexes() {
 export function defineBlocks() {
 	//BlockDynamicConnection.overrideOldBlockDefinitions();
 	//Blockly.Blocks['dynamic_list_create'].minInputs = 1;
-	
-//	 Blockly.Blocks['lists_create_with'] = Blockly.Blocks['dynamic_list_create'];
 
+	//	 Blockly.Blocks['lists_create_with'] = Blockly.Blocks['dynamic_list_create'];
 
-//	 Blockly.Blocks['text_join'] = Blockly.Blocks['dynamic_text_join'];
-	  Blockly.Blocks['controls_if'] = Blockly.Blocks['dynamic_if'];
-	
+	//	 Blockly.Blocks['text_join'] = Blockly.Blocks['dynamic_text_join'];
+	Blockly.Blocks["controls_if"] = Blockly.Blocks["dynamic_if"];
+
 	Blockly.Blocks["start"] = {
 		init: function () {
 			this.jsonInit({
@@ -1131,25 +1130,23 @@ export function defineBlocks() {
 		},
 	};
 
-	const oldInit = Blockly.Blocks['controls_if'].init;
+	const oldInit = Blockly.Blocks["controls_if"].init;
 
-	Blockly.Blocks['controls_if'].init = function() {
+	Blockly.Blocks["controls_if"].init = function () {
 		// Call the original init function
 		oldInit.call(this);
 
 		// Override the tooltip after the original init
 		this.setTooltip(() => {
-		
-			let tooltip = 'Executes actions if a condition is true.';
-			
-				tooltip += ` Drag additional conditions to create else if branches.`;
-			
-				tooltip += ' Drag a statement at the end to create an else branch.';
-			
+			let tooltip = "Executes actions if a condition is true.";
+
+			tooltip += ` Drag additional conditions to create else if branches.`;
+
+			tooltip += " Drag a statement at the end to create an else branch.";
+
 			return tooltip;
 		});
 	};
-
 
 	Blockly.Blocks["set_sky_color"] = {
 		init: function () {
@@ -1161,7 +1158,7 @@ export function defineBlocks() {
 						type: "input_value",
 						name: "COLOR",
 						colour: "#6495ED",
-						check: "Colour",
+						check: ["Colour", "Array"],
 					},
 				],
 				previousStatement: null,
@@ -3019,12 +3016,12 @@ export function defineBlocks() {
 				tooltip:
 					"Plays the selected sound on a mesh with adjustable speed, volume, and mode.\nKeyword: sound",
 				helpUrl: "",
-				extensions: ['dynamic_mesh_dropdown'], // Attach the extension
+				extensions: ["dynamic_mesh_dropdown"], // Attach the extension
 			});
 		},
 	};
 
-	Blockly.Extensions.register('dynamic_mesh_dropdown', function () {
+	Blockly.Extensions.register("dynamic_mesh_dropdown", function () {
 		const dropdown = new Blockly.FieldDropdown(function () {
 			const options = [["everywhere", "__everywhere__"]];
 			const workspace = this.sourceBlock_ && this.sourceBlock_.workspace;
@@ -3038,9 +3035,8 @@ export function defineBlocks() {
 		});
 
 		// Attach the dropdown to the block
-		this.getInput('MESH_INPUT').appendField(dropdown, 'MESH_NAME');
+		this.getInput("MESH_INPUT").appendField(dropdown, "MESH_NAME");
 	});
-
 
 	Blockly.Blocks["stop_all_sounds"] = {
 		init: function () {
@@ -3782,7 +3778,6 @@ export function defineBlocks() {
 		},
 	};
 
-
 	Blockly.Blocks["change_material"] = {
 		init: function () {
 			this.jsonInit({
@@ -4023,12 +4018,12 @@ export function defineBlocks() {
 				previousStatement: null,
 				nextStatement: null,
 				colour: categoryColours["Materials"],
-				tooltip: "Adds a glow effect to the selected model.\nKeyword: glow",
+				tooltip:
+					"Adds a glow effect to the selected model.\nKeyword: glow",
 				helpUrl: "",
 			});
 		},
 	};
-
 
 	Blockly.Blocks["tint"] = {
 		init: function () {
@@ -4169,36 +4164,36 @@ export function defineBlocks() {
 		},
 	};
 
-	Blockly.Blocks['add_physics_shape'] = {
-	  init: function () {
-		this.jsonInit({
-		  type: 'add_physics_shape',
-		  message0: 'add physics shape %1 type %2',
-		  args0: [
-			{
-			  type: 'field_variable',
-			  name: 'MODEL_VAR',
-			  variable: window.currentMesh,
-			},
-			{
-			  type: 'field_dropdown',
-			  name: 'SHAPE_TYPE',
-			  options: [
-				  ['mesh', 'MESH'],
-				['capsule', 'CAPSULE'],
-			  ],
-			  default: 'MESH',
-			},
-		  ],
-		  previousStatement: null,
-		  nextStatement: null,
-		  colour: categoryColours['Transform'],
-		  tooltip: 'Add a physics shape to the mesh. Options are capsule or mesh.\nKeyword:physics',
-		  helpUrl: '',
-		});
-	  },
+	Blockly.Blocks["add_physics_shape"] = {
+		init: function () {
+			this.jsonInit({
+				type: "add_physics_shape",
+				message0: "add physics shape %1 type %2",
+				args0: [
+					{
+						type: "field_variable",
+						name: "MODEL_VAR",
+						variable: window.currentMesh,
+					},
+					{
+						type: "field_dropdown",
+						name: "SHAPE_TYPE",
+						options: [
+							["mesh", "MESH"],
+							["capsule", "CAPSULE"],
+						],
+						default: "MESH",
+					},
+				],
+				previousStatement: null,
+				nextStatement: null,
+				colour: categoryColours["Transform"],
+				tooltip:
+					"Add a physics shape to the mesh. Options are capsule or mesh.\nKeyword:physics",
+				helpUrl: "",
+			});
+		},
 	};
-
 
 	Blockly.Blocks["dispose"] = {
 		init: function () {
@@ -4661,7 +4656,7 @@ export function defineBlocks() {
 					{
 						type: "input_value",
 						name: "MATERIAL",
-						check: ["Material", "Array"] // Ensure it only accepts blocks that output a Material
+						check: ["Material", "Array"], // Ensure it only accepts blocks that output a Material
 					},
 				],
 				previousStatement: null,
@@ -4883,7 +4878,7 @@ Blockly.Blocks["export_mesh"] = {
 };
 
 // Remove 'do' text to save space
-Blockly.Msg["TEXT_JOIN_TITLE_CREATEWITH"] = "text"
+Blockly.Msg["TEXT_JOIN_TITLE_CREATEWITH"] = "text";
 Blockly.Msg["CONTROLS_REPEAT_INPUT_DO"] = "";
 Blockly.Msg["CONTROLS_WHILEUNTIL_INPUT_DO"] = "";
 Blockly.Msg["CONTROLS_FOR_INPUT_DO"] = "";
