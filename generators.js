@@ -1443,15 +1443,14 @@ export function defineGenerators() {
 	};
 
 
-
-
 	javascriptGenerator.forBlock["play_sound"] = function (block) {
 		const idVar = javascriptGenerator.nameDB_.getName(
 			block.getFieldValue("ID_VAR"),
 			Blockly.Names.NameType.VARIABLE
 		);
 		const soundName = block.getFieldValue("SOUND_NAME");
-		const meshName = block.getFieldValue("MESH_NAME");
+		const meshNameField = block.getFieldValue("MESH_NAME");
+		const meshName = meshNameField === "__everywhere__" ? `"${meshNameField}"` : meshNameField; // Handle "__everywhere__" as a string
 		const speed = parseFloat(javascriptGenerator.valueToCode(block, "SPEED", javascriptGenerator.ORDER_ATOMIC) || 1);
 		const volume = parseFloat(javascriptGenerator.valueToCode(block, "VOLUME", javascriptGenerator.ORDER_ATOMIC) || 1);
 		const mode = block.getFieldValue("MODE") === "LOOP";
@@ -1470,7 +1469,6 @@ export function defineGenerators() {
 			? `await flock.playSound(${meshName}, "${soundName}", ${optionsString});\n`
 			: `flock.playSound(${meshName}, "${soundName}", ${optionsString});\n`;
 	};
-
 
 	javascriptGenerator.forBlock["stop_all_sounds"] = function (block) {
 		// JavaScript code to stop all sounds in a Babylon.js scene

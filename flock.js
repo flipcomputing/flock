@@ -6566,56 +6566,53 @@ export const flock = {
 		console.log(`playSound called with meshName: ${meshName}, soundName: ${soundName}, options:`, options);
 
 		const handleMeshSound = (mesh) => {
-			// Ensure mesh.metadata exists
+			if (!mesh) {
+				console.warn(`Mesh "${meshName}" not found. Cannot play sound "${soundName}".`);
+				return;
+			}
+
 			if (!mesh.metadata) {
 				mesh.metadata = {};
 			}
 
-			// Check if the same sound is already playing
 			const currentSound = mesh.metadata.currentSound;
 			if (currentSound) {
 				if (currentSound.name === soundName) {
 					console.log(`Sound "${soundName}" is already playing on mesh "${meshName}". Ignoring.`);
-					return; // Do nothing if the same sound is playing
+					return;
 				} else {
 					console.log(`Stopping currently playing sound on mesh "${meshName}".`);
 					currentSound.stop();
 				}
 			}
 
-			// Load and play the new sound
 			const sound = new flock.BABYLON.Sound(
 				soundName,
 				`sounds/${soundName}`,
-				flock.scene, // Use the default scene
+				flock.scene,
 				null,
 				{
-					autoplay: true, // Start playing immediately
+					autoplay: true,
 					playbackRate: options.playbackRate || 1,
 					volume: options.volume || 1,
-					spatialSound: true, // Enable spatial audio
+					spatialSound: true,
 					maxDistance: 20,
-					distanceModel: "linear", // Linear attenuation model
+					distanceModel: "linear",
 				},
 			);
 
-			// Attach sound to the mesh
 			sound.attachToMesh(mesh);
-
-			// Store the new sound in mesh.metadata
 			mesh.metadata.currentSound = sound;
 
-			// Clean up when the sound finishes or is disposed
 			sound.onEndedObservable.add(() => {
 				console.log(`Sound "${soundName}" finished playing on mesh "${meshName}".`);
 				if (mesh.metadata.currentSound === sound) {
 					delete mesh.metadata.currentSound;
 				}
-			});		
+			});
 		};
 
 		if (meshName === "__everywhere__") {
-			// Play a global sound if no specific mesh is specified
 			const sound = new flock.BABYLON.Sound(
 				soundName,
 				`sounds/${soundName}`,
@@ -6636,9 +6633,7 @@ export const flock = {
 			});
 		}
 
-		// Use `flock.whenModelReady` to ensure the mesh is ready
 		return flock.whenModelReady(meshName, (mesh) => {
-		
 			handleMeshSound(mesh);
 		});
 	},
