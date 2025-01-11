@@ -210,7 +210,9 @@ path.blocklyPath.blockly-ws-search-highlight.blockly-ws-search-current {
   cursor: pointer;
   border-radius: 5px;
   border: none;
-  background-color: #317873;
+  background-color: #004d4d;
+ /*background-color: #317873;*/
+  /*background-color: #511D91;*/
   color: white;
 }
 
