@@ -5705,7 +5705,7 @@ export const flock = {
 					camera = new flock.BABYLON.ArcRotateCamera(
 						"camera",
 						Math.PI / 2,
-						Math.PI / 4,
+						Math.PI ,
 						radius,
 						mesh.position,
 						flock.scene,
