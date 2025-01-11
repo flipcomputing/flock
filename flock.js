@@ -5133,45 +5133,26 @@ export const flock = {
 
 		return material;
 	},
-	setMaterial(modelName, materialConfigs) {
+	setMaterial(modelName, materials) {
 		return flock.whenModelReady(modelName, (mesh) => {
 			const allMeshes = [mesh].concat(mesh.getDescendants());
-			const validMeshes = allMeshes.filter((part) => part.isMesh);
+			const validMeshes = allMeshes.filter((part) => part instanceof flock.BABYLON.Mesh);
+
+			// Log valid meshes for debugging
+			console.log("Valid meshes:", validMeshes);
 
 			// Sort meshes alphabetically by name
 			const sortedMeshes = validMeshes.sort((a, b) => a.name.localeCompare(b.name));
 
 			sortedMeshes.forEach((part, index) => {
-				const config = materialConfigs[index % materialConfigs.length];
-				if (!config) {
-					console.warn(`No material config provided for mesh: ${part.name}`);
+				const material = Array.isArray(materials) 
+					? materials[index % materials.length] 
+					: materials;
+
+				if (!(material instanceof flock.BABYLON.Material)) {
+					console.error(`Invalid material provided for mesh ${part.name}:`, material);
 					return;
 				}
-
-				const {
-					albedoColor = "#ffffff",
-					emissiveColor = "#000000",
-					textureSet = null,
-					alpha = 1,
-				} = config;
-
-				// Create the material
-				const material = new flock.BABYLON.StandardMaterial(
-					`material_${part.name}_${index}`,
-					flock.scene
-				);
-
-				// Assign diffuse texture if provided
-				if (textureSet) {
-					material.diffuseTexture = new flock.BABYLON.Texture(`./textures/${textureSet}`, flock.scene);
-				}
-
-				// Set colours
-				material.diffuseColor = flock.BABYLON.Color3.FromHexString(albedoColor);
-				material.emissiveColor = flock.BABYLON.Color3.FromHexString(emissiveColor);
-
-				// Set alpha
-				material.alpha = alpha;
 
 				// Apply the material to the mesh
 				part.material = material;

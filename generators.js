@@ -2434,15 +2434,17 @@ export function defineGenerators() {
 	javascriptGenerator.forBlock["set_material"] = function (block) {
 		const meshVar = javascriptGenerator.nameDB_.getName(
 			block.getFieldValue("MESH"),
-			Blockly.Names.NameType.VARIABLE,
+			Blockly.Names.NameType.VARIABLE
 		);
+
 		const material = javascriptGenerator.valueToCode(
 			block,
 			"MATERIAL",
-			javascriptGenerator.ORDER_ATOMIC,
+			javascriptGenerator.ORDER_ATOMIC
 		);
 
-		const code = `setMaterial(${meshVar}, ${material});\n`;
+		// Ensure the MATERIAL input is wrapped in an array if not already one
+		const code = `setMaterial(${meshVar}, Array.isArray(${material}) ? ${material} : [${material}]);\n`;
 		return code;
 	};
 
