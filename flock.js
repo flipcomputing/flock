@@ -2629,6 +2629,49 @@ export const flock = {
 
 		geometry.physics = physicsBody;
 	},
+	setSizeBasedBoxUVs(mesh, width, height, depth, texturePhysicalSize = 4) {
+		const positions = mesh.getVerticesData(BABYLON.VertexBuffer.PositionKind);
+		const normals = mesh.getVerticesData(BABYLON.VertexBuffer.NormalKind);
+		const uvs = mesh.getVerticesData(BABYLON.VertexBuffer.UVKind) || new Array((positions.length / 3) * 2).fill(0);
+
+		for (let i = 0; i < positions.length / 3; i++) {
+			const normal = new BABYLON.Vector3(
+				normals[i * 3],
+				normals[i * 3 + 1],
+				normals[i * 3 + 2]
+			);
+
+			const position = new BABYLON.Vector3(
+				positions[i * 3],
+				positions[i * 3 + 1],
+				positions[i * 3 + 2]
+			);
+
+			let u = 0, v = 0;
+
+			// Front/Back faces (aligned with Z-axis)
+			if (Math.abs(normal.z) > Math.abs(normal.x) && Math.abs(normal.z) > Math.abs(normal.y)) {
+				u = position.x / texturePhysicalSize; // Horizontal scale
+				v = position.y / texturePhysicalSize; // Vertical scale
+			}
+			// Side faces (aligned with X-axis)
+			else if (Math.abs(normal.x) > Math.abs(normal.y) && Math.abs(normal.x) > Math.abs(normal.z)) {
+				u = position.z / texturePhysicalSize; // Horizontal scale
+				v = position.y / texturePhysicalSize; // Vertical scale
+			}
+			// Top/Bottom faces (aligned with Y-axis)
+			else if (Math.abs(normal.y) > Math.abs(normal.x) && Math.abs(normal.y) > Math.abs(normal.z)) {
+				u = position.x / texturePhysicalSize; // Horizontal scale
+				v = position.z / texturePhysicalSize; // Vertical scale
+			}
+
+			uvs[i * 2] = u;
+			uvs[i * 2 + 1] = v;
+		}
+
+		// Apply updated UV mapping
+		mesh.setVerticesData(BABYLON.VertexBuffer.UVKind, uvs, true);
+	},
 	createBox(boxId, color, width, height, depth, position, alpha = 1) {
 		if (flock.scene.getMeshByName(boxId)) {
 			boxId = boxId + "_" + flock.scene.getUniqueId();
@@ -2637,16 +2680,14 @@ export const flock = {
 		const dimensions = { width, height, depth };
 
 		// Retrieve cached VertexData or create it if this is the first instance
-		const vertexData = flock.getOrCreateGeometry(
-			"Box",
-			dimensions,
-			flock.scene,
-		);
+		const vertexData = flock.getOrCreateGeometry("Box", dimensions, flock.scene);
 
 		// Create a new mesh and apply the cached VertexData
 		const newBox = new BABYLON.Mesh(boxId, flock.scene);
-
 		vertexData.applyToMesh(newBox);
+
+		// Adjust UV mapping based on size
+		flock.setSizeBasedBoxUVs(newBox, width, height, depth);
 
 		// Initialise the mesh with position, color, and other properties
 		flock.initializeMesh(newBox, position, color, "Box", alpha);
@@ -2661,6 +2702,28 @@ export const flock = {
 		flock.applyPhysics(newBox, boxShape);
 
 		return newBox.name;
+	},
+	setSphereUVs(mesh, diameter, texturePhysicalSize = 1) {
+		const positions = mesh.getVerticesData(BABYLON.VertexBuffer.PositionKind);
+		const uvs = mesh.getVerticesData(BABYLON.VertexBuffer.UVKind) || new Array((positions.length / 3) * 2).fill(0);
+
+		const normalizedDiameter = diameter / texturePhysicalSize; // Normalize by texture physical size
+
+		for (let i = 0; i < positions.length / 3; i++) {
+			const x = positions[i * 3];
+			const y = positions[i * 3 + 1];
+			const z = positions[i * 3 + 2];
+
+			// Calculate longitude (theta) and latitude (phi)
+			const theta = Math.atan2(z, x); // Longitude angle
+			const phi = Math.acos(y / (diameter / 2)); // Latitude angle
+
+			// Scale UVs inversely with diameter
+			uvs[i * 2] = (theta / (2 * Math.PI) + 0.5) * texturePhysicalSize; // U-axis
+			uvs[i * 2 + 1] = (phi / Math.PI) * texturePhysicalSize; // V-axis
+		}
+
+		mesh.setVerticesData(BABYLON.VertexBuffer.UVKind, uvs, true);
 	},
 	createSphere(
 		sphereId,
@@ -2690,6 +2753,7 @@ export const flock = {
 		const newSphere = new BABYLON.Mesh(sphereId, flock.scene);
 		vertexData.applyToMesh(newSphere);
 
+		flock.setSphereUVs(newSphere, diameterX, diameterY, diameterZ, 1);
 		// Initialise the mesh with position, color, and other properties
 		flock.initializeMesh(newSphere, position, color, "Sphere", alpha);
 
@@ -2765,6 +2829,55 @@ export const flock = {
 
 		return flock.materialCache[materialKey];
 	},
+	setSizeBasedCylinderUVs(mesh, height, diameterTop, diameterBottom, texturePhysicalSize = 4) {
+		const positions = mesh.getVerticesData(BABYLON.VertexBuffer.PositionKind);
+		const normals = mesh.getVerticesData(BABYLON.VertexBuffer.NormalKind);
+		const uvs = mesh.getVerticesData(BABYLON.VertexBuffer.UVKind) || new Array((positions.length / 3) * 2).fill(0);
+
+		const radiusTop = diameterTop / 2;
+		const radiusBottom = diameterBottom / 2;
+
+		for (let i = 0; i < positions.length / 3; i++) {
+			const normal = new BABYLON.Vector3(
+				normals[i * 3],
+				normals[i * 3 + 1],
+				normals[i * 3 + 2]
+			);
+
+			const position = new BABYLON.Vector3(
+				positions[i * 3],
+				positions[i * 3 + 1],
+				positions[i * 3 + 2]
+			);
+
+			let u = 0, v = 0;
+
+			// Side faces (curved surface) - unchanged
+			if (Math.abs(normal.y) < Math.max(Math.abs(normal.x), Math.abs(normal.z))) {
+				const angle = Math.atan2(position.z, position.x); // Angle around the Y-axis
+				const averageRadius = (radiusTop + radiusBottom) / 2;
+				const circumference = 2 * Math.PI * averageRadius;
+				u = (angle / (2 * Math.PI)) * (circumference / texturePhysicalSize); // Scale based on circumference
+				v = (position.y + height / 2) / texturePhysicalSize; // Scale along height
+			}
+			// Top cap
+			else if (normal.y > 0) {
+				u = (position.x / radiusTop / (texturePhysicalSize / 2)) + 0.5; // Adjust scaling by factor of 2
+				v = (position.z / radiusTop / (texturePhysicalSize / 2)) + 0.5;
+			}
+			// Bottom cap
+			else {
+				u = (position.x / radiusBottom / (texturePhysicalSize / 2)) + 0.5; // Adjust scaling by factor of 2
+				v = (position.z / radiusBottom / (texturePhysicalSize / 2)) + 0.5;
+			}
+
+			uvs[i * 2] = u;
+			uvs[i * 2 + 1] = v;
+		}
+
+		// Apply updated UV mapping
+		mesh.setVerticesData(BABYLON.VertexBuffer.UVKind, uvs, true);
+	},
 	createCylinder(
 		cylinderId,
 		color,
@@ -2798,6 +2911,8 @@ export const flock = {
 		const newCylinder = new BABYLON.Mesh(cylinderId, flock.scene);
 		vertexData.applyToMesh(newCylinder);
 
+		flock.setSizeBasedCylinderUVs(newCylinder, height, diameterTop, diameterBottom); // Adjust texturePhysicalSize as needed
+
 		// Initialise the mesh with position, color, and other properties
 		flock.initializeMesh(newCylinder, position, color, "Cylinder", alpha);
 
@@ -2814,7 +2929,43 @@ export const flock = {
 
 		return newCylinder.name;
 	},
+	setCapsuleUVs(mesh, radius, height, texturePhysicalSize = 4) {
+		const positions = mesh.getVerticesData(BABYLON.VertexBuffer.PositionKind);
+		const uvs = mesh.getVerticesData(BABYLON.VertexBuffer.UVKind) || new Array((positions.length / 3) * 2).fill(0);
 
+		const cylinderHeight = Math.max(0, height - 2 * radius); // Height of the cylindrical part
+		const circumference = 2 * Math.PI * radius; // Circumference of the cylinder
+
+		for (let i = 0; i < positions.length / 3; i++) {
+			const x = positions[i * 3];
+			const y = positions[i * 3 + 1];
+			const z = positions[i * 3 + 2];
+
+			let u = 0, v = 0;
+
+			// Determine whether the vertex is in the spherical cap or cylindrical body
+			if (Math.abs(y) > cylinderHeight / 2) {
+				// Spherical cap (top or bottom)
+				const theta = Math.atan2(z, x); // Longitude angle
+				const offsetY = (y > 0 ? y - cylinderHeight / 2 : y + cylinderHeight / 2); // Offset for cap position
+
+				u = (theta / (2 * Math.PI)) + 0.5; // Wrap U-axis around the cap
+				v = (offsetY / radius + 1) / (2 * texturePhysicalSize); // Scale V-axis by the texture size
+			} else {
+				// Cylindrical body
+				const theta = Math.atan2(z, x); // Longitude angle
+
+				u = (theta / (2 * Math.PI)) + 0.5; // Wrap U-axis around the cylinder
+				v = ((y + cylinderHeight / 2) / (texturePhysicalSize * cylinderHeight)); // V-axis based on height
+			}
+
+			// Apply the calculated UV coordinates
+			uvs[i * 2] = u * (circumference / texturePhysicalSize); // Normalize U-axis for physical size
+			uvs[i * 2 + 1] = v; // V-axis remains proportional to height
+		}
+
+		mesh.setVerticesData(BABYLON.VertexBuffer.UVKind, uvs, true);
+	},
 	createCapsule(capsuleId, color, radius, height, position, alpha = 1) {
 		const dimensions = {
 			radius,
@@ -2840,6 +2991,8 @@ export const flock = {
 
 		// Initialise the mesh with position, color, and other properties
 		flock.initializeMesh(newCapsule, position, color, "Capsule", alpha);
+
+		flock.setCapsuleUVs(newCapsule, radius, height, 1); // Adjust texturePhysicalSize as needed
 
 		// Define central point for the capsule
 		const center = new flock.BABYLON.Vector3(0, 0, 0);
@@ -2870,6 +3023,28 @@ export const flock = {
 		flock.applyPhysics(newCapsule, capsuleShape);
 
 		return newCapsule.name;
+	},
+	setSizeBasedPlaneUVs(mesh, width, height, texturePhysicalSize = 4) {
+		const positions = mesh.getVerticesData(BABYLON.VertexBuffer.PositionKind);
+		const uvs = mesh.getVerticesData(BABYLON.VertexBuffer.UVKind) || new Array((positions.length / 3) * 2).fill(0);
+
+		for (let i = 0; i < positions.length / 3; i++) {
+			const position = new BABYLON.Vector3(
+				positions[i * 3],
+				positions[i * 3 + 1],
+				positions[i * 3 + 2]
+			);
+
+			// Calculate UV coordinates based on the physical size of the texture
+			const u = (position.x / width) * (width / texturePhysicalSize) + 0.5; // Scale proportionally to width
+			const v = (position.y / height) * (height / texturePhysicalSize) + 0.5; // Scale proportionally to height
+
+			uvs[i * 2] = u;
+			uvs[i * 2 + 1] = v;
+		}
+
+		// Apply updated UV mapping
+		mesh.setVerticesData(BABYLON.VertexBuffer.UVKind, uvs, true);
 	},
 	createPlane(planeId, color, width, height, position) {
 		const newPlane = flock.BABYLON.MeshBuilder.CreatePlane(
@@ -2911,6 +3086,9 @@ export const flock = {
 		});
 
 		newPlane.physics = planeBody;
+
+		flock.setSizeBasedPlaneUVs(newPlane, width, height);
+		
 		const material = new flock.BABYLON.StandardMaterial(
 			"planeMaterial",
 			flock.scene,
@@ -4922,203 +5100,99 @@ export const flock = {
 	},
 	changeMaterial(modelName, materialName, color) {
 		return flock.whenModelReady(modelName, (mesh) => {
+			const texturePath = `./textures/${materialName}`;
+			flock.changeMaterialMesh(mesh, materialName, texturePath, color);
+		});
+	},
+
+	changeMaterialMesh(mesh, materialName, texturePath, color) {
+		console.log("Creating material for mesh:", mesh.name, materialName, color);
+		flock.ensureUniqueMaterial(mesh);
+
+		// Create a new material
+		const material = new flock.BABYLON.StandardMaterial(materialName, flock.scene);
+
+		// Load the texture if provided
+		if (texturePath) {
+			const texture = new flock.BABYLON.Texture(texturePath, flock.scene);
+			material.diffuseTexture = texture;
+		}
+
+		// Set colour if provided
+		if (color) {
+			const hexColor = flock.getColorFromString(color);
+			const babylonColor = flock.BABYLON.Color3.FromHexString(hexColor);
+			material.diffuseColor = babylonColor;
+		}
+
+		// Assign the material to the mesh and its descendants
+		const allMeshes = [mesh].concat(mesh.getDescendants());
+		allMeshes.forEach((part) => {
+			part.material = material;
+		});
+
+		return material;
+	},
+	setMaterial(modelName, materialConfigs) {
+		return flock.whenModelReady(modelName, (mesh) => {
 			const allMeshes = [mesh].concat(mesh.getDescendants());
-			const materialNode =
-				allMeshes.find((node) => node.material) || mesh;
+			const validMeshes = allMeshes.filter((part) => part.isMesh);
 
-			// Create the texture
-			const texture = new flock.BABYLON.Texture(
-				`./textures/${materialName}`,
-				flock.scene,
-			);
+			// Sort meshes alphabetically by name
+			const sortedMeshes = validMeshes.sort((a, b) => a.name.localeCompare(b.name));
 
-			// Create the material
-			const material = new flock.BABYLON.StandardMaterial(
-				materialName,
-				flock.scene,
-			);
-
-			// Texture physical size (e.g., bricks are 1m x 1m)
-			const texturePhysicalSize = 4; // Adjust to match the real-world size of your texture
-
-			// Compute bounding box dimensions
-			const boundingInfo = materialNode.getBoundingInfo();
-			const size = boundingInfo.boundingBox.extendSize.scale(2);
-
-			// UV scales per axis for consistent texture size
-			const uScaleX = size.x / texturePhysicalSize; // Horizontal scale for X-aligned walls
-			const uScaleZ = size.z / texturePhysicalSize; // Horizontal scale for Z-aligned walls
-			const vScaleY = size.y / texturePhysicalSize; // Vertical scale for Y-aligned walls
-
-			// Adjust UV mapping for consistent texture size and alignment
-			const positions = materialNode.getVerticesData(
-				BABYLON.VertexBuffer.PositionKind,
-			);
-			const normals = materialNode.getVerticesData(
-				BABYLON.VertexBuffer.NormalKind,
-			);
-			let uvs = materialNode.getVerticesData(BABYLON.VertexBuffer.UVKind);
-
-			if (!uvs) {
-				// Generate default UVs if missing
-				uvs = new Array((positions.length / 3) * 2).fill(0);
-			}
-
-			if (positions && normals) {
-				for (let i = 0; i < positions.length / 3; i++) {
-					const normal = new BABYLON.Vector3(
-						normals[i * 3],
-						normals[i * 3 + 1],
-						normals[i * 3 + 2],
-					);
-
-					const position = new BABYLON.Vector3(
-						positions[i * 3],
-						positions[i * 3 + 1],
-						positions[i * 3 + 2],
-					);
-
-					let u = 0,
-						v = 0;
-
-					// Handle front/back walls (z-axis alignment)
-					if (
-						Math.abs(normal.z) > Math.abs(normal.x) &&
-						Math.abs(normal.z) > Math.abs(normal.y)
-					) {
-						u = position.x / texturePhysicalSize; // Horizontal scale on x-axis
-						v = position.y / texturePhysicalSize; // Vertical scale on y-axis
-					}
-					// Handle side walls (x-axis alignment)
-					else if (
-						Math.abs(normal.x) > Math.abs(normal.y) &&
-						Math.abs(normal.x) > Math.abs(normal.z)
-					) {
-						u = position.z / texturePhysicalSize; // Horizontal scale on z-axis
-						v = position.y / texturePhysicalSize; // Vertical scale on y-axis
-					}
-					// Handle top/bottom (y-axis alignment)
-					else if (
-						Math.abs(normal.y) > Math.abs(normal.x) &&
-						Math.abs(normal.y) > Math.abs(normal.z)
-					) {
-						u = position.x / texturePhysicalSize; // Horizontal scale on x-axis
-						v = position.z / texturePhysicalSize; // Vertical scale on z-axis
-					}
-
-					uvs[i * 2] = u;
-					uvs[i * 2 + 1] = v;
+			sortedMeshes.forEach((part, index) => {
+				const config = materialConfigs[index % materialConfigs.length];
+				if (!config) {
+					console.warn(`No material config provided for mesh: ${part.name}`);
+					return;
 				}
 
-				// Update UV data
-				materialNode.setVerticesData(BABYLON.VertexBuffer.UVKind, uvs);
-			}
+				const {
+					albedoColor = "#ffffff",
+					emissiveColor = "#000000",
+					textureSet = null,
+					alpha = 1,
+				} = config;
 
-			// Set global texture scaling for consistent results
-			texture.uScale = 1; // Keep UV scales consistent via vertex mapping
-			texture.vScale = 1;
+				// Create the material
+				const material = new flock.BABYLON.StandardMaterial(
+					`material_${part.name}_${index}`,
+					flock.scene
+				);
 
-			// Assign material properties
-			material.diffuseTexture = texture;
-			material.diffuseColor = flock.BABYLON.Color3.FromHexString(
-				flock.getColorFromString(color),
-			);
-			material.name = materialName;
+				// Assign diffuse texture if provided
+				if (textureSet) {
+					material.diffuseTexture = new flock.BABYLON.Texture(`./textures/${textureSet}`, flock.scene);
+				}
 
-			// Apply material to all meshes
-			allMeshes.forEach((node) => {
-				node.material = material;
+				// Set colours
+				material.diffuseColor = flock.BABYLON.Color3.FromHexString(albedoColor);
+				material.emissiveColor = flock.BABYLON.Color3.FromHexString(emissiveColor);
+
+				// Set alpha
+				material.alpha = alpha;
+
+				// Apply the material to the mesh
+				part.material = material;
+				console.log(`Material applied to mesh: ${part.name}`);
 			});
 		});
 	},
-	adjustUVMapping(mesh) {
-		if (!mesh.isVerticesDataPresent(BABYLON.VertexBuffer.PositionKind)) {
-			console.warn(
-				"Mesh has no vertex positions. Skipping UV adjustment.",
-			);
-			return;
-		}
-		if (!mesh.isVerticesDataPresent(BABYLON.VertexBuffer.NormalKind)) {
-			console.warn("Mesh has no vertex normals. Skipping UV adjustment.");
-			return;
-		}
-
-		const positions = mesh.getVerticesData(
-			BABYLON.VertexBuffer.PositionKind,
-		);
-		const normals = mesh.getVerticesData(BABYLON.VertexBuffer.NormalKind);
-		const indices = mesh.getIndices(); // Required for face-based calculations
-		const uvs =
-			mesh.getVerticesData(BABYLON.VertexBuffer.UVKind) ||
-			new Array((positions.length / 3) * 2).fill(0);
-
-		// Iterate over faces (triangles)
-		for (let i = 0; i < indices.length; i += 3) {
-			const idx0 = indices[i];
-			const idx1 = indices[i + 1];
-			const idx2 = indices[i + 2];
-
-			const v0 = new BABYLON.Vector3(
-				positions[idx0 * 3],
-				positions[idx0 * 3 + 1],
-				positions[idx0 * 3 + 2],
-			);
-			const v1 = new BABYLON.Vector3(
-				positions[idx1 * 3],
-				positions[idx1 * 3 + 1],
-				positions[idx1 * 3 + 2],
-			);
-			const v2 = new BABYLON.Vector3(
-				positions[idx2 * 3],
-				positions[idx2 * 3 + 1],
-				positions[idx2 * 3 + 2],
-			);
-
-			const normal = new BABYLON.Vector3(
-				normals[idx0 * 3],
-				normals[idx0 * 3 + 1],
-				normals[idx0 * 3 + 2],
-			);
-
-			// Calculate edge vectors and face area
-			const edge1 = v1.subtract(v0);
-			const edge2 = v2.subtract(v0);
-			const faceNormal = BABYLON.Vector3.Cross(edge1, edge2).normalize();
-			const scale = 1.0; // Texture scaling factor (adjust as needed)
-
-			// Determine UV axes based on the face's orientation
-			let uAxis, vAxis;
-			if (
-				Math.abs(faceNormal.y) > Math.abs(faceNormal.x) &&
-				Math.abs(faceNormal.y) > Math.abs(faceNormal.z)
-			) {
-				// Horizontal face (aligned with z-axis)
-				uAxis = new BABYLON.Vector3(1, 0, 0); // x-axis
-				vAxis = new BABYLON.Vector3(0, 0, 1); // z-axis
-			} else {
-				// Vertical face (aligned with y-axis)
-				uAxis = new BABYLON.Vector3(1, 0, 0); // x-axis
-				vAxis = new BABYLON.Vector3(0, 1, 0); // y-axis
-			}
-
-			// Assign UV coordinates for each vertex in the face
-			[v0, v1, v2].forEach((vertex, vertexIndex) => {
-				const index = [idx0, idx1, idx2][vertexIndex];
-				const localU = BABYLON.Vector3.Dot(vertex, uAxis) * scale;
-				const localV = BABYLON.Vector3.Dot(vertex, vAxis) * scale;
-
-				uvs[index * 2] = localU;
-				uvs[index * 2 + 1] = localV;
-			});
-		}
-
-		// Apply updated UV mapping
-		mesh.setVerticesData(BABYLON.VertexBuffer.UVKind, uvs);
-	},
-	setMaterial(modelName, material) {
-		return flock.whenModelReady(modelName, (mesh) => {
-			mesh.material = material;
+	createTriplanarMaterial(scene, texturePath, scale = 1) {
+		const shaderMaterial = new BABYLON.ShaderMaterial("triplanar", scene, {
+			vertex: "default",
+			fragment: "triplanar",
+		}, {
+			attributes: ["position", "normal", "uv"],
+			uniforms: ["worldViewProjection", "world", "scale"],
 		});
+
+		const texture = new BABYLON.Texture(texturePath, scene);
+		shaderMaterial.setTexture("textureSampler", texture);
+		shaderMaterial.setFloat("scale", scale);
+
+		return shaderMaterial;
 	},
 	createMaterial(
 		albedoColor,
@@ -5127,6 +5201,7 @@ export const flock = {
 		metallic,
 		roughness,
 		alpha,
+		texturePhysicalSize = 1 // Default physical size in meters
 	) {
 		let material;
 
@@ -5159,6 +5234,12 @@ export const flock = {
 					normalTexturePath,
 					flock.scene,
 				);
+
+				// Apply consistent texture scaling
+				material.baseTexture.uScale = 1 / texturePhysicalSize;
+				material.baseTexture.vScale = 1 / texturePhysicalSize;
+				material.normalTexture.uScale = 1 / texturePhysicalSize;
+				material.normalTexture.vScale = 1 / texturePhysicalSize;
 			}
 
 			if (flock.scene.environmentTexture) {
@@ -5187,6 +5268,12 @@ export const flock = {
 					normalTexturePath,
 					flock.scene,
 				);
+
+				// Apply consistent texture scaling
+				material.diffuseTexture.uScale = 1 / texturePhysicalSize;
+				material.diffuseTexture.vScale = 1 / texturePhysicalSize;
+				material.bumpTexture.uScale = 1 / texturePhysicalSize;
+				material.bumpTexture.vScale = 1 / texturePhysicalSize;
 			}
 		}
 

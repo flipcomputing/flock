@@ -3813,7 +3813,7 @@ export function defineBlocks() {
 					{
 						type: "input_value",
 						name: "COLOR",
-						check: "Colour",
+						check: ["Colour", "Array"], // Accepts either Colour or Array
 					},
 				],
 				inputsInline: true,
@@ -4661,7 +4661,7 @@ export function defineBlocks() {
 					{
 						type: "input_value",
 						name: "MATERIAL",
-						check: "Material", // Ensure it only accepts blocks that output a Material
+						check: ["Material", "Array"] // Ensure it only accepts blocks that output a Material
 					},
 				],
 				previousStatement: null,
