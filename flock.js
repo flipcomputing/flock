@@ -1183,6 +1183,7 @@ export const flock = {
 		boxBody.setMassProperties({ mass: 1, restitution: 0.5 });
 		boxBody.disablePreStep = false;
 		bb.physics = boxBody;
+
 	},
 	applyColorToMaterial(part, materialName, color) {
 		if (part.material && part.material.name === materialName) {
@@ -1278,6 +1279,39 @@ export const flock = {
 
 		return modelId;
 	},
+	ensureStandardMaterial(mesh) {
+		 if (!mesh) return;
+
+		 // Set to track replaced materials
+		 const replacedMaterials = new Set();
+
+		 const defaultMaterial = flock.scene.defaultMaterial || new flock.BABYLON.StandardMaterial("defaultMaterial", flock.scene);
+
+		 const replaceIfPBRMaterial = (targetMesh) => {
+			 const material = targetMesh.material;
+
+			 if (material && material.getClassName() === "PBRMaterial") {
+				 // Replace with a cloned default material, preserving the name
+				 const originalName = material.name;
+				 targetMesh.material = defaultMaterial.clone(originalName);
+
+				 // Store the replaced material for later disposal
+				 replacedMaterials.add(material);
+			 }
+		 };
+
+		 // Replace material on the main mesh
+		 replaceIfPBRMaterial(mesh);
+
+		 // Replace materials on all child meshes
+		 mesh.getChildMeshes().forEach(replaceIfPBRMaterial);
+
+		 // Dispose of all replaced materials
+		 replacedMaterials.forEach(material => {
+			 console.log(`Disposing material: ${material.name}`);
+			 material.dispose();
+		 });
+	 },	 
 	newObject({
 		modelName,
 		modelId,
@@ -1314,6 +1348,7 @@ export const flock = {
 				z,
 				color,
 			);
+			
 			flock.changeColorMesh(mesh, color);
 
 			mesh.computeWorldMatrix(true);
@@ -1350,6 +1385,8 @@ export const flock = {
 		)
 			.then((container) => {
 				// Clone a first copy from the first mesh
+				flock.ensureStandardMaterial(container.meshes[0]);
+				
 				const firstMesh = container.meshes[0].clone(
 					`${modelName}_first`,
 				);
@@ -1369,6 +1406,7 @@ export const flock = {
 					z,
 					color,
 				);
+				
 				flock.changeColorMesh(container.meshes[0], color);
 
 				if (callback) {
@@ -5063,7 +5101,7 @@ export const flock = {
 		});
 	},
 	changeColorMesh(mesh, color) {
-		console.log("Changing color of mesh:", mesh.name, color);
+		
 		flock.ensureUniqueMaterial(mesh);
 		let materialFound = false;
 
