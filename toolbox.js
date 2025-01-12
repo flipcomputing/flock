@@ -2515,8 +2515,37 @@ const toolboxMaterials = 	{
 				type: "colour_from_string",
 				keyword: "colstr",
 			},
-
 			{
+				kind: "block",
+				type: "set_material",
+				inputs: {
+					MATERIAL: {
+						shadow: {
+							type: "material",
+							inputs: {
+								BASE_COLOR: {
+									shadow: {
+										type: "colour",
+										fields: {
+											COLOR: "#FF7F50", 
+										},
+									},
+								},
+
+								ALPHA: {
+									shadow: {
+										type: "math_number",
+										fields: {
+											NUM: 1.0, // Default alpha value: 1 (fully opaque)
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			/*{
 				kind: "block",
 				type: "change_material",
 				keyword: "material",
@@ -2530,7 +2559,7 @@ const toolboxMaterials = 	{
 						},
 					},
 				},
-			},
+			},*/
 			{
 				kind: "block",
 				type: "material",
@@ -2653,36 +2682,7 @@ const toolboxMaterials = 	{
 					},
 				},
 			},
-			{
-				kind: "block",
-				type: "set_material",
-				inputs: {
-					MATERIAL: {
-						shadow: {
-							type: "material",
-							inputs: {
-								BASE_COLOR: {
-									shadow: {
-										type: "colour",
-										fields: {
-											COLOR: "#ff0000", // Default base color: red
-										},
-									},
-								},
-
-								ALPHA: {
-									shadow: {
-										type: "math_number",
-										fields: {
-											NUM: 1.0, // Default alpha value: 1 (fully opaque)
-										},
-									},
-								},
-							},
-						},
-					},
-				},
-			},
+			
 			/*{
 				kind: "block",
 				type: "set_material",

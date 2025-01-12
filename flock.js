@@ -5123,8 +5123,7 @@ export const flock = {
 			flock.changeMaterialMesh(mesh, materialName, texturePath, color);
 		});
 	},
-
-	changeMaterialMesh(mesh, materialName, texturePath, color) {
+	changeMaterialMesh(mesh, materialName, texturePath, color, alpha=1) {
 		console.log("Creating material for mesh:", mesh.name, materialName, color);
 		flock.ensureUniqueMaterial(mesh);
 
@@ -5144,6 +5143,8 @@ export const flock = {
 			material.diffuseColor = babylonColor;
 		}
 
+		material.alpha = alpha;
+		
 		// Assign the material to the mesh and its descendants
 		const allMeshes = [mesh].concat(mesh.getDescendants());
 		allMeshes.forEach((part) => {
@@ -5195,49 +5196,32 @@ export const flock = {
 		return shaderMaterial;
 	},
 	createMaterial(
-		albedoColor,
-		textureSet,
+		color,
+		materialName,
 		alpha,
-		texturePhysicalSize = 4 // Default physical size in meters
 	) {
 		let material;
 
-		console.log(textureSet);
-	
-			material = new flock.BABYLON.StandardMaterial(
-				"material",
-				flock.scene,
-			);
+		console.log(materialName);
+		const texturePath = `./textures/${materialName}`;
 
-			material.diffuseColor =
-				flock.BABYLON.Color3.FromHexString(albedoColor);
+		material = new flock.BABYLON.StandardMaterial(materialName, flock.scene);
 
-			if (textureSet !== "none.png") {
-				const baseTexturePath = `./textures/${textureSet}`;
-				material.diffuseTexture = new flock.BABYLON.Texture(
-					baseTexturePath,
-					flock.scene,
-				);
+		// Load the texture if provided
+		if (texturePath) {
+			const texture = new flock.BABYLON.Texture(texturePath, flock.scene);
+			material.diffuseTexture = texture;
+		}
 
-				const normalTexturePath = `./textures/normal/${textureSet}`;
-				material.bumpTexture = new flock.BABYLON.Texture(
-					normalTexturePath,
-					flock.scene,
-				);
-
-				/*
-				// Apply consistent texture scaling
-				material.diffuseTexture.uScale = 1 / texturePhysicalSize;
-				material.diffuseTexture.vScale = 1 / texturePhysicalSize;
-				material.bumpTexture.uScale = 1 / texturePhysicalSize;
-				material.bumpTexture.vScale = 1 / texturePhysicalSize;*/
-			}
-		
-
-		/*material.emissiveColor =
-			flock.BABYLON.Color3.FromHexString(emissiveColor);*/
+		// Set colour if provided
+		if (color) {
+			const hexColor = flock.getColorFromString(color);
+			const babylonColor = flock.BABYLON.Color3.FromHexString(hexColor);
+			material.diffuseColor = babylonColor;
+		}
 
 		material.alpha = alpha;
+		
 		return material;
 	},
 	createMaterial2(

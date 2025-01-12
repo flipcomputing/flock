@@ -2277,8 +2277,6 @@ export function defineGenerators() {
 				block,
 				"BASE_COLOR",
 
-				
-
 javascriptGenerator.ORDER_ATOMIC,
 			) || "1";
 
