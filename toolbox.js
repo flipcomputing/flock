@@ -263,77 +263,68 @@ const toolboxScene = {
 			},
 		},
 		{
-			kind: "block",
-			type: "load_multi_object",
-			keyword: "object",
-			inputs: {
-				SCALE: {
-					shadow: {
-						type: "math_number",
-						fields: {
-							NUM: 1,
-						},
-					},
+		  kind: "block",
+		  type: "load_multi_object",
+		  keyword: "object",
+		  inputs: {
+			SCALE: {
+			  shadow: {
+				type: "math_number",
+				fields: {
+				  NUM: 1,
 				},
-				X: {
-					shadow: {
-						type: "math_number",
-						fields: {
-							NUM: 0,
-						},
-					},
-				},
-				Y: {
-					shadow: {
-						type: "math_number",
-						fields: {
-							NUM: 0,
-						},
-					},
-				},
-				Z: {
-					shadow: {
-						type: "math_number",
-						fields: {
-							NUM: 0,
-						},
-					},
-				},
-				COLORS: {
-					block: {
-						// Real block initially
-						type: "lists_create_with",
-						extraState: { itemCount: 3 },
-						inline: true,
-						inputs: {
-							ADD0: {
-								block: {
-									type: "colour",
-									fields: {
-										COLOR: "#2a9d8f",
-									},
-								},
-							},
-							ADD1: {
-								block: {
-									type: "colour",
-									fields: {
-										COLOR: "#e9c46a",
-									},
-								},
-							},
-							ADD2: {
-								block: {
-									type: "colour",
-									fields: {
-										COLOR: "#e76f51",
-									},
-								},
-							},
-						},
-					},
-				},
+			  },
 			},
+			X: {
+			  shadow: {
+				type: "math_number",
+				fields: {
+				  NUM: 0,
+				},
+			  },
+			},
+			Y: {
+			  shadow: {
+				type: "math_number",
+				fields: {
+				  NUM: 0,
+				},
+			  },
+			},
+			Z: {
+			  shadow: {
+				type: "math_number",
+				fields: {
+				  NUM: 0,
+				},
+			  },
+			},
+			COLORS: {
+			  shadow: {
+				type: "lists_create_with",
+				extraState: { itemCount: 2 },
+				inline: true,
+				inputs: {
+				  ADD0: {
+					shadow: {
+					  type: "colour",
+					  fields: {
+						COLOR: "#177245",
+					  },
+					},
+				  },
+				  ADD1: {
+					shadow: {
+					  type: "colour",
+					  fields: {
+						COLOR: "#3D2B1F",
+					  },
+					},
+				  },
+				},
+			  },
+			},
+		  },
 		},
 		{
 			kind: "block",

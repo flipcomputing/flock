@@ -97,12 +97,17 @@ export const objectNames = [
 ];
 
 export const objectColours = {
-	"Star.glb": "#FFD700", // Gold
-	"Heart.glb": "#FF69B4", // Hot Pink
-	"Coin.glb": "#F4C542", // Light Gold
-	"Gem1.glb": "#00BFFF", // Deep Sky Blue
-	"Gem2.glb": "#8A2BE2", // Blue Violet
-	"Gem3.glb": "#FF4500", // Orange Red
+	"Star.glb": ["#FFD700"], // Gold
+	"Heart.glb": ["#FF69B4"], // Hot Pink
+	"Coin.glb": ["#F4C542"], // Light Gold
+	"Gem1.glb": ["#00BFFF"], // Deep Sky Blue
+	"Gem2.glb": ["#8A2BE2"], // Blue Violet
+	"Gem3.glb": ["#FF4500"], // Orange Red
+	"tree_fat.glb": ["#177245", "#3D2B1F"],
+	"hut.glb": ["#FFD700", "#FF4500", "#00BFFF"],
+	"hut2.glb": ["#00BFFF", "#FFD700", "#FF4500", "#8A2BE2"],
+	"hut3.glb": ["#50C878", "#FFBF00", "#FE5A1D"],
+	"hut4.glb": ["#FFFFFF", "#FF0000"],
 };
 
 export const modelNames = [
@@ -161,7 +166,7 @@ export const animationNames = [
 
 export const materialNames = [
 	"none.png",
-	"arrows.png", 
+	"arrows.png",
 	"brick.png",
 	"carpet.png",
 	"circles.png",
@@ -175,10 +180,10 @@ export const materialNames = [
 	"mushroom.png", 
 	"rough.png",
 	"shapes.png",
-	"stars.png",  
+	"stars.png",
 	"swirl.png",
 	"tiles.png",
-	"triangles.png", 
+	"triangles.png",
 	"wiggles.png",
 	"windmill.png",
 	"wood.png",

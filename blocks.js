@@ -1432,95 +1432,182 @@ export function defineBlocks() {
 	};
 
 	Blockly.Blocks["load_multi_object"] = {
-		init: function () {
-			const variableNamePrefix = "object";
-			let nextVariableName =
-				variableNamePrefix + nextVariableIndexes[variableNamePrefix];
-			this.jsonInit({
-				message0: `set %1 to %2 scale: %3 x: %4 y: %5 z: %6
-				colors: %7`,
-				args0: [
-					{
-						type: "field_variable",
-						name: "ID_VAR",
-						variable: nextVariableName,
-					},
-					{
-						type: "field_grid_dropdown",
-						name: "MODELS",
-						columns: 6,
-						options: multiObjectNames.map((name) => {
-							const baseName = name.replace(/\.[^/.]+$/, "");
-							return [
-								{
-									src: `./images/${baseName}.png`,
-									width: 50,
-									height: 50,
-									alt: baseName,
-								},
-								name,
-							];
-						}),
-					},
-					{
-						type: "input_value",
-						name: "SCALE",
-						check: "Number",
-					},
-					{
-						type: "input_value",
-						name: "X",
-						check: "Number",
-					},
-					{
-						type: "input_value",
-						name: "Y",
-						check: "Number",
-					},
-					{
-						type: "input_value",
-						name: "Z",
-						check: "Number",
-					},
-					{
-						type: "input_value",
-						name: "COLORS",
-						check: "Array",
-					},
-				],
-				inputsInline: true,
-				colour: categoryColours["Scene"],
-				tooltip: "Create an object with colours.\nKeyword: object",
-				helpUrl: "",
-				previousStatement: null,
-				nextStatement: null,
-			});
+	  init: function () {
+		const variableNamePrefix = "object";
+		let nextVariableName =
+		  variableNamePrefix + nextVariableIndexes[variableNamePrefix];
 
-			this.setOnChange((changeEvent) => {
-				if (
-					changeEvent.type === Blockly.Events.BLOCK_CREATE ||
-					changeEvent.type === Blockly.Events.BLOCK_CHANGE
-				) {
-					const blockInWorkspace =
-						Blockly.getMainWorkspace().getBlockById(this.id); // Check if block is in the main workspace
+		this.jsonInit({
+		  message0: "set %1 to %2 scale: %3 x: %4 y: %5 z: %6 colors: %7",
+		  args0: [
+			{
+			  type: "field_variable",
+			  name: "ID_VAR",
+			  variable: nextVariableName,
+			},
+			{
+			  type: "field_grid_dropdown",
+			  name: "MODELS",
+			  columns: 6,
+			  options: multiObjectNames.map((name) => {
+				const baseName = name.replace(/\.[^/.]+$/, "");
+				return [
+				  {
+					src: `./images/${baseName}.png`,
+					width: 50,
+					height: 50,
+					alt: baseName,
+				  },
+				  name,
+				];
+			  }),
+			},
+			{
+			  type: "input_value",
+			  name: "SCALE",
+			  check: "Number",
+			},
+			{
+			  type: "input_value",
+			  name: "X",
+			  check: "Number",
+			},
+			{
+			  type: "input_value",
+			  name: "Y",
+			  check: "Number",
+			},
+			{
+			  type: "input_value",
+			  name: "Z",
+			  check: "Number",
+			},
+			{
+			  type: "input_value",
+			  name: "COLORS",
+			  check: "Array",
+			},
+		  ],
+		  inputsInline: true,
+		  colour: categoryColours["Scene"],
+		  tooltip: "Create an object with colours.\nKeyword: object",
+		  helpUrl: "",
+		  previousStatement: null,
+		  nextStatement: null,
+		});
 
-					if (blockInWorkspace) {
-						updateOrCreateMeshFromBlock(this, changeEvent);
-						window.updateCurrentMeshName(this, "ID_VAR"); // Call the function to update window.currentMesh
-					}
+		const updateColorsField = () => {
+		  const selectedObject = this.getFieldValue("MODELS");
+		  const colours = objectColours[selectedObject] || ["#000000", "#FFFFFF", "#CCCCCC"];
+		  const colorsInput = this.getInput("COLORS");
+		  const listBlock = colorsInput.connection?.targetBlock();
+
+		  if (listBlock && listBlock.type === "lists_create_with") {
+			const currentItemCount = listBlock.inputList.filter(input => input.name.startsWith("ADD")).length;
+			const requiredItemCount = colours.length;
+
+			// Update itemCount_
+			listBlock.itemCount_ = requiredItemCount;
+
+			// Check if all colour blocks are shadows
+			const allShadows = listBlock.inputList
+			  .filter(input => input.name.startsWith("ADD"))
+			  .every(input => {
+				const targetBlock = input.connection?.targetBlock();
+				return targetBlock && targetBlock.isShadow();
+			  });
+
+			if (allShadows) {
+			  // Adjust the number of inputs to match the required number of colours
+			  if (currentItemCount < requiredItemCount) {
+				for (let i = currentItemCount; i < requiredItemCount; i++) {
+				  const shadowBlock = listBlock.workspace.newBlock("colour");
+				  shadowBlock.setFieldValue(colours[i] || "#000000", "COLOR");
+				  shadowBlock.setShadow(true);
+				  shadowBlock.initSvg();
+				  listBlock.appendValueInput(`ADD${i}`).setCheck("Colour").connection.connect(shadowBlock.outputConnection);
 				}
+			  } else if (currentItemCount > requiredItemCount) {
+				for (let i = currentItemCount - 1; i >= requiredItemCount; i--) {
+				  const inputToRemove = listBlock.getInput(`ADD${i}`);
+				  if (inputToRemove) {
+					const connectedBlock = inputToRemove.connection?.targetBlock();
+					if (connectedBlock && connectedBlock.isShadow()) {
+					  connectedBlock.dispose(false);
+					}
+					listBlock.removeInput(`ADD${i}`);
+				  }
+				}
+			  }
 
-				handleBlockCreateEvent(
-					this,
-					changeEvent,
-					variableNamePrefix,
-					nextVariableIndexes,
-				);
+			  // Update existing inputs with the new model colors only if they are shadows
+			  listBlock.inputList.filter(input => input.name.startsWith("ADD")).forEach((input, index) => {
+				const shadowBlock = input.connection?.targetBlock();
+				if (shadowBlock && shadowBlock.isShadow()) {
+				  shadowBlock.setFieldValue(colours[index], "COLOR");
+				}
+			  });
+
+			  // Refresh the block to ensure updates are visible
+			  listBlock.initSvg();
+			  listBlock.render();
+			}
+		  } else if (!listBlock) {
+			// If no list block is connected, create a new shadow list with the correct colours
+			const newListBlock = this.workspace.newBlock("lists_create_with");
+			newListBlock.setShadow(true);
+			newListBlock.extraState = { itemCount: colours.length };
+
+			colours.forEach((colour, index) => {
+			  const shadowBlock = this.workspace.newBlock("colour");
+			  shadowBlock.setFieldValue(colour, "COLOR");
+			  shadowBlock.setShadow(true);
+			  shadowBlock.initSvg();
+			  newListBlock.appendValueInput(`ADD${index}`).setCheck("Colour").connection.connect(shadowBlock.outputConnection);
 			});
 
-			addDoMutatorWithToggleBehavior(this);
-		},
+			newListBlock.initSvg();
+			newListBlock.render();
+			colorsInput.connection.connect(newListBlock.outputConnection);
+		  }
+		};
+
+		this.setOnChange((changeEvent) => {
+		  if (
+			changeEvent.type === Blockly.Events.BLOCK_CHANGE &&
+			changeEvent.element === "field" &&
+			changeEvent.name === "MODELS"
+		  ) {
+			const blockInWorkspace =
+			  Blockly.getMainWorkspace().getBlockById(this.id); // Check if block is in the main workspace
+
+			if (blockInWorkspace) {
+			  updateColorsField.call(this);
+			}
+		  }
+
+		  if (changeEvent.type === Blockly.Events.BLOCK_CREATE) {
+			const blockInWorkspace =
+			  Blockly.getMainWorkspace().getBlockById(this.id); // Check if block is in the main workspace
+
+			if (blockInWorkspace) {
+			  updateOrCreateMeshFromBlock(this, changeEvent);
+			  console.debug("Mesh created for block:", this.id);
+			}
+		  }
+
+		  handleBlockCreateEvent(
+			this,
+			changeEvent,
+			variableNamePrefix,
+			nextVariableIndexes
+		  );
+		});
+
+		addDoMutatorWithToggleBehavior(this);
+	  },
 	};
+
 
 	Blockly.Blocks["load_model"] = {
 		init: function () {
