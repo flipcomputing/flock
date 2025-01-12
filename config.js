@@ -103,7 +103,7 @@ export const objectColours = {
 	"Gem1.glb": ["#00BFFF"], // Deep Sky Blue
 	"Gem2.glb": ["#8A2BE2"], // Blue Violet
 	"Gem3.glb": ["#FF4500"], // Orange Red
-	"tree_fat.glb": ["#177245", "#3D2B1F"],
+	"tree_fat.glb": ["#66CDAA", "#CD853F"],
 	"hut.glb": ["#FFD700", "#FF4500", "#00BFFF"],
 	"hut2.glb": ["#00BFFF", "#FFD700", "#FF4500", "#8A2BE2"],
 	"hut3.glb": ["#50C878", "#FFBF00", "#FE5A1D"],

@@ -309,7 +309,7 @@ const toolboxScene = {
 					shadow: {
 					  type: "colour",
 					  fields: {
-						COLOR: "#177245",
+						COLOR: "#66CDAA",
 					  },
 					},
 				  },
@@ -317,7 +317,7 @@ const toolboxScene = {
 					shadow: {
 					  type: "colour",
 					  fields: {
-						COLOR: "#3D2B1F",
+						COLOR: "#CD853F",
 					  },
 					},
 				  },
