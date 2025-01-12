@@ -172,6 +172,7 @@ export const materialNames = [
 	"fruit.png",
 	"grass.png",
 	"leaves.png",
+	"mushroom.png", 
 	"rough.png",
 	"shapes.png",
 	"stars.png",  
