@@ -1170,6 +1170,28 @@ export function defineBlocks() {
 		},
 	};
 
+	Blockly.Blocks["light_intensity"] = {
+		init: function () {
+			this.jsonInit({
+				type: "light_intensity",
+				message0: "set light intensity to %1",
+				args0: [
+					{
+						type: "input_value",
+						name: "INTENSITY",
+						check: "Number",
+					},
+				],
+				previousStatement: null,
+				nextStatement: null,
+				colour: categoryColours["Scene"], 
+				tooltip: "Set the intensity of the main light.\nKeyword: light intensity",
+				helpUrl: "",
+			});
+		},
+	};
+
+
 	Blockly.Blocks["set_fog"] = {
 		init: function () {
 			this.jsonInit({

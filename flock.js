@@ -26,6 +26,7 @@ export const flock = {
 	scene: null,
 	highlighter: null,
 	glowLayer: null,
+	mainLight: null,
 	hk: null,
 	havokInstance: null,
 	GUI: null,
@@ -119,6 +120,7 @@ export const flock = {
 				createMap,
 				createCustomMap,
 				setSky,
+				lightIntensity,
 				buttonControls,
 				getCamera,
 				cameraControl,
@@ -358,6 +360,8 @@ export const flock = {
 			flock.highlighter = null;
 			flock.glowLayer?.dispose();
 			flock.glowLayer = null;
+			flock.mainLight?.dispose();
+			flock.mainLight = null;
 
 			// Dispose of the scene directly
 			flock.scene.activeCamera?.inputs?.clear();
@@ -435,6 +439,8 @@ export const flock = {
 		hemisphericLight.intensity = 1.0;
 		hemisphericLight.diffuse = new flock.BABYLON.Color3(1, 1, 1);
 		hemisphericLight.groundColor = new flock.BABYLON.Color3(0.5, 0.5, 0.5);
+
+		flock.mainLight = hemisphericLight;
 
 		// Enable collisions
 		flock.scene.collisionsEnabled = true;
@@ -2294,6 +2300,14 @@ export const flock = {
 			flock.scene.clearColor = flock.BABYLON.Color3.FromHexString(
 				flock.getColorFromString(color)
 			);
+		}
+	},
+
+	lightIntensity(intensity) {
+		if (flock.mainLight) {
+			flock.mainLight.intensity = intensity;
+		} else {
+			console.warn("Main light is not defined. Please ensure flock.mainLight exists.");
 		}
 	},
 	wait(duration) {

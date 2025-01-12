@@ -554,6 +554,18 @@ export function defineGenerators() {
 		return `setSky(${color});\n`;
 	};
 
+	javascriptGenerator.forBlock["light_intensity"] = function (block) {
+		const intensity =
+			javascriptGenerator.valueToCode(
+				block,
+				"INTENSITY",
+				javascriptGenerator.ORDER_ATOMIC
+			) || "1.0";
+
+		return `lightIntensity(${intensity});\n`;
+	};
+
+
 	javascriptGenerator.forBlock["button_controls"] = function (block) {
 		const color = getFieldValue(block, "COLOR", "#6495ED");
 		const control = block.getFieldValue("CONTROL");

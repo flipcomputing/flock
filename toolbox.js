@@ -49,6 +49,30 @@ const toolboxSceneXR = {
 		],
 	};
 
+const toolboxSceneLights = {
+	kind: "category",
+		name: "Lights",
+		icon: "./images/lights.svg",
+		colour: categoryColours["Scene"],
+		contents: [
+			{
+				kind: "block",
+				type: "light_intensity",
+				keyword: "intensity",
+				inputs: {
+					INTENSITY: {
+						shadow: {
+							type: "math_number",
+							fields: {
+								NUM: 1,
+							},
+						},
+					},
+				},
+			},
+			]
+};
+
 const toolboxSceneCamera = {
 		kind: "category",
 		name: "Camera",
@@ -796,7 +820,7 @@ const toolboxScene = {
 			keyword: "group",
 			inputsInline: true,
 		},
-		toolboxSceneCamera, toolboxSceneXR,
+		toolboxSceneLights, toolboxSceneCamera, toolboxSceneXR,
 		{
 			kind: "block",
 			type: "set_sky_color",
