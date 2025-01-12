@@ -1438,7 +1438,7 @@ export function defineBlocks() {
 		  variableNamePrefix + nextVariableIndexes[variableNamePrefix];
 
 		this.jsonInit({
-		  message0: "set %1 to %2 scale: %3 x: %4 y: %5 z: %6 colors: %7",
+		  message0: "set %1 to %2 scale: %3 x: %4 y: %5 z: %6\ncolors: %7",
 		  args0: [
 			{
 			  type: "field_variable",
