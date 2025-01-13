@@ -395,7 +395,7 @@ path.blocklyPath.blockly-ws-search-highlight.blockly-ws-search-current {
 	left: 0;
 	width: 100vw;
 	height: 25px;
-	background-color: purple;
+	background-color: #511D91;
 	color: white;
 	text-align: center;
 	line-height: 16px;
@@ -568,7 +568,7 @@ path.blocklyPath.blockly-ws-search-highlight.blockly-ws-search-current {
   margin: 0;
   padding: 4px;
   border-radius: 5px;
-  background: #563C5C;
+  background: #511D91;
   border: none;
   margin: 2px;
 }
