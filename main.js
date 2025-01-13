@@ -748,7 +748,7 @@ document.addEventListener("DOMContentLoaded", () => {
 	// Additional adjustments for mobile UI in fullscreen mode
 	const examples = document.getElementById("exampleSelect");
 	if (examples) {
-		examples.style.width = "80px";
+		examples.style.width = "70px";
 	}
 	const projectName = document.getElementById("projectName");
 	if (projectName) {
