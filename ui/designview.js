@@ -187,7 +187,6 @@ export function updateMeshFromBlock(mesh, block, changeEvent) {
 			.connection.targetBlock()
 			.getFieldValue("COLOR");
 
-		console.log("Getting colour", color);
 	}
 
 	if (block.type.startsWith("load_")) {
@@ -325,6 +324,7 @@ export function updateMeshFromBlock(mesh, block, changeEvent) {
 			break;
 
 		case "create_cylinder":
+
 			// Retrieve height, diameterTop, and diameterBottom from connected blocks
 			const cylinderHeight = block
 				.getInput("HEIGHT")
@@ -379,7 +379,7 @@ export function updateMeshFromBlock(mesh, block, changeEvent) {
 				.getFieldValue("NUM");
 
 			// Set the absolute size of the plane
-			setAbsoluteSize(mesh, planeWidth, planeHeight, 1); // Planes are usually flat in the Z dimension
+			setAbsoluteSize(mesh, planeWidth, planeHeight, 0); // Planes are usually flat in the Z dimension
 			break;
 
 		default:
@@ -394,6 +394,7 @@ export function updateMeshFromBlock(mesh, block, changeEvent) {
 }
 
 function createMeshOnCanvas(block) {
+
 	Blockly.Events.setGroup(true);
 
 	let shapeType = block.type;
@@ -559,7 +560,7 @@ function createMeshOnCanvas(block) {
 				diameterX,
 				diameterY,
 				diameterZ,
-				[position.x, position.y + diameterY / 2, position.z],
+				[position.x, position.y, position.z],
 			);
 			break;
 
@@ -587,7 +588,8 @@ function createMeshOnCanvas(block) {
 				cylinderHeight,
 				diameterTop,
 				diameterBottom,
-				[position.x, position.y + cylinderHeight / 2, position.z],
+				24,
+				[position.x, position.y, position.z],
 			);
 			break;
 
@@ -610,7 +612,7 @@ function createMeshOnCanvas(block) {
 				color,
 				capsuleRadius,
 				capsuleHeight,
-				[position.x, position.y + capsuleHeight / 2, position.z],
+				[position.x, position.y, position.z],
 			);
 			break;
 
@@ -633,7 +635,7 @@ function createMeshOnCanvas(block) {
 				color,
 				planeWidth,
 				planeHeight,
-				[position.x, position.y + planeHeight / 2, position.z],
+				[position.x, position.y, position.z],
 			);
 			break;
 
@@ -666,7 +668,7 @@ function setAbsoluteSize(mesh, width, height, depth) {
 
 	mesh.scaling.x = width / (originalSize.x * 2);
 	mesh.scaling.y = height / (originalSize.y * 2);
-	mesh.scaling.z = depth / (originalSize.z * 2);
+	mesh.scaling.z = depth === 0 ? 1 : depth / (originalSize.z * 2);
 
 	let shapeType = null;
 
@@ -826,7 +828,9 @@ function setPositionValues(block, position, shapeType) {
 			break;
 
 		case "create_plane":
-			// Planes are flat, so no Y adjustment needed
+			adjustedY += block.getInputTargetBlock("HEIGHT")
+			? block.getInputTargetBlock("HEIGHT").getFieldValue("NUM") / 2
+			: 1;
 			break;
 
 		case "load_model":
