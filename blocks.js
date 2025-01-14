@@ -2489,7 +2489,7 @@ export function defineBlocks() {
 		init: function () {
 			this.jsonInit({
 				type: "parent_child",
-				message0: "parent %1 child %2 offset x: %3 y: %4 z: %5",
+				message0: "parent %1 child %2\noffset x: %3 y: %4 z: %5",
 				args0: [
 					{
 						type: "field_variable",
@@ -2534,7 +2534,7 @@ export function defineBlocks() {
 		init: function () {
 			this.jsonInit({
 				type: "remove_parent",
-				message0: "remove parent %1",
+				message0: "remove parent from %1",
 				args0: [
 					{
 						type: "field_variable",
