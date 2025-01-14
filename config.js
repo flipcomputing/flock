@@ -147,6 +147,7 @@ export const animationNames = [
 	["No", "No"],
 	["Duck", "Duck"],
 	["Fall", "Fall"],
+	["Fly", "Fly"],
 	["Jump", "Jump"],
 	["Flip", "Flip"],
 	["Dance1", "Dance1"],
