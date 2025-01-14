@@ -2576,7 +2576,7 @@ export function defineBlocks() {
 		init: function () {
 			this.jsonInit({
 				type: "hold",
-				message0: "%1 hold %2 offset x: %3 y: %4 z: %5",
+				message0: "make %1 hold %2\noffset x: %3 y: %4 z: %5",
 				args0: [
 					{
 						type: "field_variable",
