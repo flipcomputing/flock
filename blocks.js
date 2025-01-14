@@ -2504,20 +2504,17 @@ export function defineBlocks() {
 					{
 						type: "input_value",
 						name: "X_OFFSET",
-						check: "Number",
-						align: "RIGHT",
+						check: "Number",			
 					},
 					{
 						type: "input_value",
 						name: "Y_OFFSET",
-						check: "Number",
-						align: "RIGHT",
+						check: "Number",			
 					},
 					{
 						type: "input_value",
 						name: "Z_OFFSET",
-						check: "Number",
-						align: "RIGHT",
+						check: "Number",			
 					},
 				],
 				previousStatement: null,
