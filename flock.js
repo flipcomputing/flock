@@ -1633,7 +1633,7 @@ export const flock = {
 
 				if (targetWithSkeleton) {
 					const bone = targetWithSkeleton.skeleton.bones.find(
-						(b) => b.name === "PoleTarget.R",
+						(b) => b.name === "Hold",
 					);
 					if (bone) {
 						meshToAttachInstance.attachToBone(
