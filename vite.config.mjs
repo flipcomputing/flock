@@ -61,9 +61,9 @@ export default {
       includeAssets: ['**/*.glb', '**/*.gltf', '**/*.ogg', '**/*.json', '**/*.png', '**/*.woff', '**/*.woff2', '**/*.css', '**/*.svg',],
       manifest: {
         name: 'Flock XR - Creating coding in 3D',
-        short_name: 'Flock',
+        short_name: 'Flock XR',
         description: 'Create 3D apps with blocks',
-        theme_color: '#800080',
+        theme_color: '#511d91',
         display: 'fullscreen',
         start_url: isProduction ? '/flock/?fullscreen=true' : '/',
         id: isProduction ? '/flock/?fullscreen=true' : '/',
