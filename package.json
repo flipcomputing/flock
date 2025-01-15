@@ -20,6 +20,7 @@
     "@blockly/field-colour": "^5.0.0",
     "@blockly/field-grid-dropdown": "^5.0.4",
     "@blockly/keyboard-navigation": "^0.6.7",
+    "@blockly/plugin-cross-tab-copy-paste": "^6.0.12",
     "@blockly/plugin-scroll-options": "^6.0.7",
     "@blockly/plugin-workspace-search": "^9.1.0",
     "@blockly/toolbox-search": "^2.0.12",
