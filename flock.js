@@ -1302,6 +1302,7 @@ export const flock = {
 		const defaultMaterial =
 			flock.scene.defaultMaterial ||
 			new flock.BABYLON.StandardMaterial("defaultMaterial", flock.scene);
+		defaultMaterial.backFaceCulling = false;
 
 		const replaceIfPBRMaterial = (targetMesh) => {
 			const material = targetMesh.material;
@@ -1310,6 +1311,7 @@ export const flock = {
 				// Replace with a cloned default material, preserving the name
 				const originalName = material.name;
 				targetMesh.material = defaultMaterial.clone(originalName);
+				targetMesh.backFaceCulling = false;
 
 				// Store the replaced material for later disposal
 				replacedMaterials.add(material);
@@ -2031,6 +2033,7 @@ export const flock = {
 	},
 	applyResultMeshProperties(resultMesh, referenceMesh, modelId, blockId) {
 		// Copy transformation properties
+		referenceMesh.material.backFaceCulling = false;
 		if (referenceMesh.rotationQuaternion) {
 			resultMesh.rotationQuaternion =
 				referenceMesh.rotationQuaternion.clone();
@@ -2072,6 +2075,7 @@ export const flock = {
 					});
 			} else if (isDefaultMaterial(resultMesh.material)) {
 				resultMesh.material = replaceMaterial(resultMesh.material);
+				resultMesh.material.backFaceCulling = false;
 			}
 		}
 	},
@@ -2941,6 +2945,7 @@ export const flock = {
 			const material = new BABYLON.StandardMaterial(materialKey, scene);
 			material.diffuseColor = color3;
 			material.alpha = alpha;
+			material.backFaceCulling = false;
 			flock.materialCache[materialKey] = material;
 		}
 
@@ -5245,6 +5250,7 @@ export const flock = {
 			material.diffuseColor = flock.BABYLON.Color3.FromHexString(
 				colors[0],
 			);
+			material.backFaceCulling = false;
 			mesh.material = material;
 		}
 
@@ -5290,6 +5296,7 @@ export const flock = {
 		}
 
 		material.alpha = alpha;
+		material.backFaceCulling = false;
 
 		// Assign the material to the mesh and its descendants
 		const allMeshes = [mesh].concat(mesh.getDescendants());
@@ -5378,6 +5385,7 @@ export const flock = {
 		}
 
 		material.alpha = alpha;
+		material.backFaceCulling = false;
 
 		return material;
 	},
@@ -5461,6 +5469,7 @@ export const flock = {
 				material.diffuseTexture.vScale = 1 / texturePhysicalSize;
 				material.bumpTexture.uScale = 1 / texturePhysicalSize;
 				material.bumpTexture.vScale = 1 / texturePhysicalSize;
+				material.backFaceCulling = false;
 			}
 		}
 
@@ -5468,6 +5477,8 @@ export const flock = {
 			flock.BABYLON.Color3.FromHexString(emissiveColor);
 
 		material.alpha = alpha;
+
+		material.backFaceCulling = false;
 		return material;
 	},
 	textMaterial(text, color, backgroundColor, width, height, textSize) {
@@ -5492,6 +5503,7 @@ export const flock = {
 		);
 
 		material.diffuseTexture = dynamicTexture;
+		material.backFaceCulling = false;
 
 		return material;
 	},
