@@ -49,7 +49,7 @@ document.addEventListener("DOMContentLoaded", function () {
 	});
 
 	// Attach the event listener to capture color changes when user interacts with the input
-	colorInput.addEventListener("input", (event) => {
+	colorInput?.addEventListener("input", (event) => {
 		window.selectedColor = event.target.value; // Store the selected color
 
 		// Delay the blur to ensure the color selection is processed first
