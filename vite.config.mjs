@@ -209,7 +209,7 @@ export default {
     cssCodeSplit: false,  // Disables CSS code splitting and inlines CSS into JavaScript
     rollupOptions: {
       input: 'index.html',
-      tutorial: 'tutorial.js'
+      tutorial: 'tutorial.html'
     },
   },
 }
