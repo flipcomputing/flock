@@ -193,7 +193,8 @@ export const flock = {
 				onIntersect,
 				getProperty,
 				exportMesh,
-				abortSceneExecution
+				abortSceneExecution,
+				setPhysicsShape,
 			} = flock;
 
 			${code}
@@ -3199,7 +3200,6 @@ export const flock = {
 		mesh.setVerticesData(BABYLON.VertexBuffer.UVKind, uvs, true);
 	},
 	createPlane(planeId, color, width, height, position) {
-		
 		const newPlane = flock.BABYLON.MeshBuilder.CreatePlane(
 			planeId,
 			{ width, height, sideOrientation: flock.BABYLON.Mesh.DOUBLESIDE },
@@ -3239,7 +3239,7 @@ export const flock = {
 		});
 
 		newPlane.physics = planeBody;
-		
+
 		//flock.setSizeBasedPlaneUVs(newPlane, width, height);
 
 		const material = new flock.BABYLON.StandardMaterial(
