@@ -207,8 +207,10 @@ export default {
     assetsInlineLimit: 100000,  // Set high enough to include font files
     cssCodeSplit: false,  // Disables CSS code splitting and inlines CSS into JavaScript
     rollupOptions: {
-      input: 'index.html',
-      tutorial: 'tutorial.html'
-    },
+      input: {
+        main: 'index.html',
+        tutorial: 'tutorial.html'
+      }
+    }
   },
 }
