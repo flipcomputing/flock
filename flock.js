@@ -194,7 +194,6 @@ export const flock = {
 				getProperty,
 				exportMesh,
 				abortSceneExecution,
-				setPhysicsShape,
 			} = flock;
 
 			${code}
