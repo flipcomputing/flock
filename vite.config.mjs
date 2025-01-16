@@ -190,7 +190,6 @@ export default {
       name: 'copy-library-files',
       writeBundle() {
         copyFileSync('example.html', 'dist/example.html');
-        copyFileSync('tutorial.html', 'dist/tutorial.html');
       },
     },
   ],
