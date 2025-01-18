@@ -2,6 +2,7 @@ export const audioNames = [
 	"theme-bright.ogg",
 	"theme-calm.ogg",
 	"theme-electronic.ogg",
+	"theme-electronic.mp3",
 	"theme-game.ogg",
 	"theme-medieval.ogg",
 	"theme-metal.ogg",

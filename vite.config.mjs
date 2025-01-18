@@ -18,7 +18,7 @@ export default {
           dest: 'models'
         },
         {
-          src: 'sounds/*.ogg',
+          src: 'sounds/*.{ogg,mps,aac,wav}',
           dest: 'sounds'
         },
         {
@@ -57,8 +57,8 @@ export default {
       devOptions: {
         enabled: true
       },
-      assetsInclude: ['**/*.glb', '**/*.gltf', '**/*.ogg', '**/*.json', '**/*.png', '**/*.woff', '**/*.woff2', '**/*.css', '**/*.svg',],
-      includeAssets: ['**/*.glb', '**/*.gltf', '**/*.ogg', '**/*.json', '**/*.png', '**/*.woff', '**/*.woff2', '**/*.css', '**/*.svg',],
+      assetsInclude: ['**/*.glb', '**/*.gltf', '**/*.ogg', '**/*.aac', '**/*.mp3','**/*.json', '**/*.png', '**/*.woff', '**/*.woff2', '**/*.css', '**/*.svg',],
+      includeAssets: ['**/*.glb', '**/*.gltf', '**/*.ogg', '**/*.acc', '**/*.mp3','**/*.json', '**/*.png', '**/*.woff', '**/*.woff2', '**/*.css', '**/*.svg',],
       manifest: {
         name: 'Flock XR - Creating coding in 3D',
         short_name: 'Flock XR',
@@ -85,7 +85,7 @@ export default {
       workbox: {
         maximumFileSizeToCacheInBytes: 20971520,
         globPatterns: [
-          '**/*.{js,css,html,ico,png,svg,glb,gltf,ogg,wasm,json,woff,woff2}', // Precache all assets
+          '**/*.{js,css,html,ico,png,svg,glb,gltf,ogg,mp3,aac,wasm,json,woff,woff2}', // Precache all assets
         ],
         modifyURLPrefix: isProduction ? {
           '': '/flock/', // Prepend the base URL to all cached assets in production
@@ -93,7 +93,7 @@ export default {
         runtimeCaching: [
           {
             // Cache dynamically requested assets (models, images, sounds)
-            urlPattern: /.*\.(glb|gltf|ogg|png|json|svg)$/,
+            urlPattern: /.*\.(glb|gltf|ogg|mp3|aac|png|json|svg)$/,
             handler: 'CacheFirst', // Prioritise cache for faster offline availability
             options: {
               cacheName: 'dynamic-assets',
