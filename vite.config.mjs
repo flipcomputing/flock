@@ -18,7 +18,7 @@ export default {
           dest: 'models'
         },
         {
-          src: 'sounds/*.{ogg,mps,aac,wav}',
+          src: 'sounds/*.{ogg,mp3,aac,wav}',
           dest: 'sounds'
         },
         {
