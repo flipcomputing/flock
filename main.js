@@ -9,7 +9,7 @@ import { FieldGridDropdown } from "@blockly/field-grid-dropdown";
 import { WorkspaceSearch } from "@blockly/plugin-workspace-search";
 import { NavigationController } from "@blockly/keyboard-navigation";
 import * as BlockDynamicConnection from '@blockly/block-dynamic-connection';
-import {CrossTabCopyPaste} from '@blockly/plugin-cross-tab-copy-paste';
+//import {CrossTabCopyPaste} from '@blockly/plugin-cross-tab-copy-paste';
 import "@babylonjs/core/Debug/debugLayer";
 import "@babylonjs/inspector";
 import { flock, initializeFlock } from "./flock.js";
@@ -1482,19 +1482,16 @@ window.onload = function () {
 	};
 
 	// Initialize plugin.
-	const plugin = new CrossTabCopyPaste();
+	/*const plugin = new CrossTabCopyPaste();
 	plugin.init(copyPasteOptions, () => {
 	  console.log('Use this error callback to handle TypeError while pasting');
-	});
-
-	// optional: Remove the duplication command from Blockly's context menu.
-	Blockly.ContextMenuRegistry.registry.unregister('blockDuplicate');
+	});*/
 
 	// optional: You can change the position of the menu added to the context menu.
-	Blockly.ContextMenuRegistry.registry.getItem('blockCopyToStorage').weight = 2;
+	/*Blockly.ContextMenuRegistry.registry.getItem('blockCopyToStorage').weight = 2;
 	Blockly.ContextMenuRegistry.registry.getItem(
 	  'blockPasteFromStorage',
-	).weight = 3;
+	).weight = 3;*/
 	workspace.addChangeListener(BlockDynamicConnection.finalizeConnections);
 
 	overrideSearchPlugin(workspace);
