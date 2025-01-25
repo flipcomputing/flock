@@ -434,6 +434,7 @@ async function exportBlockSnippet(block) {
 	}
 }
 
+
 // Function to handle file upload and import JSON snippet into workspace
 function handleSnippetUpload(event) {
 	window.loadingCode = true;
@@ -454,8 +455,70 @@ function handleSnippetUpload(event) {
 
 // Function to trigger file input for importing snippet
 function importSnippet() {
-	document.getElementById("importFile").click();
+	const fileInput = document.getElementById("importFile");
+	fileInput.click();
+
+	fileInput.onchange = (event) => {
+		const file = event.target.files[0];
+		if (file) {
+			const reader = new FileReader();
+			reader.onload = () => {
+				try {
+					const content = reader.result;
+
+					// Parse SVG content
+					const parser = new DOMParser();
+					const svgDoc = parser.parseFromString(content, "image/svg+xml");
+
+					// Extract metadata
+					const metadataElement = svgDoc.querySelector("metadata");
+					if (!metadataElement) {
+						console.error("No <metadata> tag found in the SVG file.");
+						return;
+					}
+
+					// Extract and parse JSON from metadata
+					const metadataContent = metadataElement.textContent.trim();
+					let blockJson;
+					try {
+						const parsedData = JSON.parse(metadataContent);
+
+						// Ensure the key containing JSON exists
+						if (!parsedData.blockJson) {
+							console.error("Metadata JSON does not contain 'blockJson'.");
+							return;
+						}
+
+						// Parse the block JSON if needed
+						blockJson = JSON.parse(parsedData.blockJson);
+					} catch (parseError) {
+						console.error("Error parsing metadata JSON:", parseError);
+						return;
+					}
+
+					// Log the extracted JSON metadata
+					console.log("Extracted JSON Metadata:", blockJson);
+
+					// Load blocks into Blockly workspace without clearing
+					try {
+						const workspace = Blockly.getMainWorkspace(); // Ensure correct reference
+					
+				
+			
+						Blockly.serialization.blocks.append(blockJson, workspace); // Append instead of replace
+						console.log("Blocks successfully loaded into the workspace.");
+					} catch (workspaceError) {
+						console.error("Error loading blocks into workspace:", workspaceError);
+					}
+				} catch (error) {
+					console.error("An error occurred while processing the SVG file:", error);
+				}
+			};
+			reader.readAsText(file);
+		}
+	};
 }
+
 
 function addExportContextMenuOption() {
 	Blockly.ContextMenuRegistry.registry.register({
