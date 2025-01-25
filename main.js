@@ -1109,6 +1109,8 @@ async function getSVG(block) {
 	}
   });
 
+	
+
   const uiTexts = svgBlock.querySelectorAll("text.blocklyCheckbox, text.blocklyText");
   uiTexts.forEach((textElement) => {
 	textElement.setAttribute("style", "fill: #000000 !important;");
@@ -1138,16 +1140,19 @@ async function getSVG(block) {
 
   // Create the style for embedding the font
   const style = document.createElementNS("http://www.w3.org/2000/svg", "style");
-  style.textContent = `
-	@font-face {
-	  font-family: "Asap";
-	  src: url('data:font/woff2;base64,${fontBase64}') format('woff2');
-	}
-	.blocklyText {
-	  font-family: "Asap", sans-serif;
-	  font-weight: 500;
-	}
-  `;
+	style.textContent = `
+	  @font-face {
+		font-family: "Asap";
+		src: url('data:font/woff2;base64,${fontBase64}') format('woff2');
+	  }
+	  .blocklyText {
+		font-family: "Asap", sans-serif;
+		font-weight: 500;
+	  }
+	 .blocklyEditableText rect.blocklyFieldRect:not(.blocklyDropdownRect)  {
+		fill: white !important;  /* Make the background transparent */
+	  }
+	`;
   svgBlock.insertBefore(style, svgBlock.firstChild);
 
   // Wrap the cloned SVG block in a new SVG element
