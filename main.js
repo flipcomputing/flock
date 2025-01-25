@@ -1036,6 +1036,7 @@ async function exportWorkspaceAsSVG(workspace) {
 	link.download = "workspace.svg";
 	link.click();
 }
+
 async function convertFontToBase64(fontUrl) {
   const response = await fetch(fontUrl);
   const fontBlob = await response.blob();
@@ -1051,17 +1052,14 @@ async function convertFontToBase64(fontUrl) {
   });
 }
 
-async function getSVG(block) {
+async function generateSVG(block) {
   const svgBlock = block.getSvgRoot().cloneNode(true);
   const serializer = new XMLSerializer();
 
-  // Remove any existing transforms to ensure accurate positioning
   svgBlock.removeAttribute("transform");
 
-  // Get the block's bounding box
   const bbox = block.getSvgRoot().getBBox();
 
-  // Process <image> elements to embed them as Base64
   const images = svgBlock.querySelectorAll("image");
   await Promise.all(
 	Array.from(images).map(async (img) => {
@@ -1077,7 +1075,7 @@ async function getSVG(block) {
 			reader.readAsDataURL(blob);
 		  });
 		  img.setAttribute("xlink:href", dataUrl);
-		  img.setAttribute("href", dataUrl); // Ensure compatibility
+		  img.setAttribute("href", dataUrl);
 		} catch (error) {
 		  console.error(`Failed to embed image: ${href}`, error);
 		}
@@ -1085,7 +1083,6 @@ async function getSVG(block) {
 	})
   );
 
-  // Fix UI elements (same as your existing code)
   const uiElements = svgBlock.querySelectorAll("rect.blocklyFieldRect");
   uiElements.forEach((element) => {
 	const parentBlock = element.closest(".blocklyDraggable");
@@ -1094,13 +1091,13 @@ async function getSVG(block) {
 		?.querySelector(".blocklyPath")
 		?.getAttribute("fill");
 	  if (blockFill) {
-		element.setAttribute("fill", blockFill); // Match block background
+		element.setAttribute("fill", blockFill); 
 	  }
-	  element.setAttribute("stroke", "#999999"); // Light grey border
+	  element.setAttribute("stroke", "#999999"); 
 	  element.setAttribute("stroke-width", "1px");
 	} else if (element.classList.contains("blocklyCheckbox")) {
 	  element.setAttribute("style", "fill: #ffffff !important;");
-	  element.setAttribute("stroke", "#999999"); // Light grey border
+	  element.setAttribute("stroke", "#999999"); 
 	  element.setAttribute("stroke-width", "1px");
 	} else {
 	  element.setAttribute("fill", "none");
@@ -1109,53 +1106,31 @@ async function getSVG(block) {
 	}
   });
 
-	
-
   const uiTexts = svgBlock.querySelectorAll("text.blocklyCheckbox, text.blocklyText");
   uiTexts.forEach((textElement) => {
 	textElement.setAttribute("style", "fill: #000000 !important;");
-	textElement.setAttribute("stroke", "none"); // Ensure no outline
-	textElement.setAttribute("font-weight", "600"); // Heavier font weight
+	textElement.setAttribute("stroke", "none"); 
+	textElement.setAttribute("font-weight", "600"); 
   });
 
-  // Ensure checkbox background and ticks are styled
-  const checkboxBackgrounds = svgBlock.querySelectorAll("rect.blocklyFieldRect");
-  checkboxBackgrounds.forEach((checkbox) => {
-	if (checkbox.parentElement.querySelector("text.blocklyCheckbox")) {
-	  checkbox.setAttribute("fill", "#ffffff");
-	  checkbox.setAttribute("stroke", "#999999");
-	  checkbox.setAttribute("stroke-width", "1px");
-	}
-  });
-
-  const checkboxTicks = svgBlock.querySelectorAll("text.blocklyCheckbox");
-  checkboxTicks.forEach((tick) => {
-	tick.setAttribute("fill", "#000000"); // Black tick
-	tick.setAttribute("style", "display: block;");
-	tick.setAttribute("font-weight", "600"); // Heavier font weight
-  });
-
-  // Get Base64-encoded font data
   const fontBase64 = await convertFontToBase64('./fonts/Asap-Medium.woff2');
 
-  // Create the style for embedding the font
   const style = document.createElementNS("http://www.w3.org/2000/svg", "style");
-	style.textContent = `
-	  @font-face {
-		font-family: "Asap";
-		src: url('data:font/woff2;base64,${fontBase64}') format('woff2');
-	  }
-	  .blocklyText {
-		font-family: "Asap", sans-serif;
-		font-weight: 500;
-	  }
-	 .blocklyEditableText rect.blocklyFieldRect:not(.blocklyDropdownRect)  {
-		fill: white !important;  /* Make the background transparent */
-	  }
-	`;
+  style.textContent = `
+	@font-face {
+	  font-family: "Asap";
+	  src: url('data:font/woff2;base64,${fontBase64}') format('woff2');
+	}
+	.blocklyText {
+	  font-family: "Asap", sans-serif;
+	  font-weight: 500;
+	}
+	.blocklyEditableText rect.blocklyFieldRect:not(.blocklyDropdownRect) {
+	  fill: #ffffff !important; 
+	}
+  `;
   svgBlock.insertBefore(style, svgBlock.firstChild);
 
-  // Wrap the cloned SVG block in a new SVG element
   const wrapperSVG = document.createElementNS("http://www.w3.org/2000/svg", "svg");
   wrapperSVG.setAttribute("xmlns", "http://www.w3.org/2000/svg");
   wrapperSVG.setAttribute("width", bbox.width);
@@ -1168,7 +1143,6 @@ async function getSVG(block) {
 
   wrapperSVG.appendChild(translationGroup);
 
-  // Serialize the final SVG
   const svgString = serializer.serializeToString(wrapperSVG);
   const svgDeclaration = '<?xml version="1.0" encoding="UTF-8"?>';
   const finalSVG = `${svgDeclaration}${svgString}`;
@@ -1177,7 +1151,9 @@ async function getSVG(block) {
 }
 
 async function exportBlockAsSVG(block) {
-  const finalSVG = await getSVG(block);
+  const finalSVG = await generateSVG(block);
+
+  // Create and download the SVG blob
   const blob = new Blob([finalSVG], { type: "image/svg+xml" });
   const link = document.createElement("a");
   link.download = `${block.type}.svg`;
@@ -1186,6 +1162,44 @@ async function exportBlockAsSVG(block) {
   link.click();
   document.body.removeChild(link);
 }
+
+async function exportBlockAsPNG(block) {
+  const finalSVG = await generateSVG(block);
+
+  // Create an image element and load the SVG into it
+  const img = new Image();
+  const svgBlob = new Blob([finalSVG], { type: 'image/svg+xml' });
+  const svgUrl = URL.createObjectURL(svgBlob);
+
+  img.onload = () => {
+	// Create a canvas and draw the SVG image onto it
+	const canvas = document.createElement('canvas');
+	canvas.width = img.width;
+	canvas.height = img.height;
+	const ctx = canvas.getContext('2d');
+
+	ctx.drawImage(img, 0, 0);
+
+	// Export the canvas as a PNG
+	const pngDataUrl = canvas.toDataURL('image/png');
+
+	// Trigger the download
+	const link = document.createElement('a');
+	link.download = `${block.type}.png`;
+	link.href = pngDataUrl;
+	link.click();
+
+	// Clean up
+	URL.revokeObjectURL(svgUrl);
+  };
+
+  img.onerror = (error) => {
+	console.error('Failed to load SVG image:', error);
+  };
+
+  img.src = svgUrl; // Load the SVG into the image element
+}
+
 
 
 // Function to enforce minimum font size and delay the focus to prevent zoom
@@ -1251,7 +1265,7 @@ window.onload = function () {
 	addExportContextMenuOption();
 	addImportContextMenuOption();
 	addExportSVGContextMenuOption();
-	//addExportPNGContextMenuOption();
+	addExportPNGContextMenuOption();
 	//observeFlyoutVisibility(workspace);
 	window.toolboxVisible = toolboxVisible;
 
