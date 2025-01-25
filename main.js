@@ -1143,12 +1143,22 @@ async function generateSVG(block) {
 
   wrapperSVG.appendChild(translationGroup);
 
+  // Get the JSON representation of the block
+  const blockJson = JSON.stringify(Blockly.serialization.blocks.save(block));
+  const encodedJson = encodeURIComponent(blockJson); // Ensure it is URL-encoded
+
+  // Embed the JSON in a <metadata> tag inside the SVG
+  const metadata = document.createElementNS("http://www.w3.org/2000/svg", "metadata");
+  metadata.textContent = `{"blockJson": "${encodedJson}"}`;
+  wrapperSVG.appendChild(metadata);
+
   const svgString = serializer.serializeToString(wrapperSVG);
   const svgDeclaration = '<?xml version="1.0" encoding="UTF-8"?>';
   const finalSVG = `${svgDeclaration}${svgString}`;
 
   return finalSVG;
 }
+
 
 async function exportBlockAsSVG(block) {
   const finalSVG = await generateSVG(block);
