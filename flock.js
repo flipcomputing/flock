@@ -5989,6 +5989,86 @@ export const flock = {
 		flock.printText("XR Mode!", 5, "white");
 	},
 	updateDynamicMeshPositions(scene, dynamicMeshes) {
+			const maxSlopeAngle = Math.PI / 4; // 45 degrees maximum slope
+			const jumpThreshold = 0.2; // Small distance to detect ground proximity
+			const upwardForceLimit = 5; // Clamp upward velocity
+
+			scene.onBeforeRenderObservable.add(() => {
+				dynamicMeshes.forEach((mesh) => {
+					if (!mesh.physics) {
+						//console.log(`Mesh ${mesh.name} has no physics object.`);
+						return;
+					}
+
+					const physics = mesh.physics;
+					const velocity = physics.getLinearVelocity();
+
+					// Ground detection using raycast
+					const boundingInfo = mesh.getBoundingInfo();
+					const rayOrigin = new flock.BABYLON.Vector3(
+						boundingInfo.boundingBox.centerWorld.x,
+						boundingInfo.boundingBox.minimumWorld.y - 0.1,
+						boundingInfo.boundingBox.centerWorld.z
+					);
+
+					const ray = new flock.BABYLON.Ray(rayOrigin, flock.BABYLON.Vector3.Down(), 2);
+					const hit = scene.pickWithRay(ray);
+
+					const isGrounded = hit.pickedMesh && hit.distance < jumpThreshold;
+
+					if (isGrounded) {
+						mesh.isJumping = false; // Reset jumping state
+						//console.log(`[${mesh.name}] Grounded. Resetting jumping state.`);
+					} else if (velocity.y > 0) {
+						mesh.isJumping = true; // Only set jumping if moving upward
+						//console.log(`[${mesh.name}] Jumping.`);
+					}
+
+					// Skip corrections while jumping
+					if (mesh.isJumping) {
+						return;
+					}
+
+					if (isGrounded && hit.getNormal(true)) {
+						const groundNormal = hit.getNormal(true);
+						const slopeAngle = Math.acos(
+							flock.BABYLON.Vector3.Dot(groundNormal, flock.BABYLON.Vector3.Up())
+						);
+
+						//console.log(`[${mesh.name}] Slope Angle: ${(slopeAngle * 180) / Math.PI} degrees`);
+
+						if (slopeAngle <= maxSlopeAngle) {
+							flock.handleSlopeMovement(mesh, physics, velocity, groundNormal);
+						} else {
+							//console.log(`[${mesh.name}] Slope too steep. Stopping upward motion.`);
+							physics.setLinearVelocity(
+								new flock.BABYLON.Vector3(velocity.x, Math.min(0, velocity.y), velocity.z)
+							);
+						}
+					} else {
+						//console.log(`[${mesh.name}] No ground detected.`);
+					}
+				});
+			});
+		},
+		handleSlopeMovement(mesh, physics, velocity, groundNormal) {
+			// Adjust velocity to follow the slope
+			const slopeDirection = new flock.BABYLON.Vector3(velocity.x, 0, velocity.z).normalize();
+			const adjustedDirection = slopeDirection.add(groundNormal).normalize();
+			const adjustedVelocity = adjustedDirection.scale(velocity.length());
+
+	//console.log(`[${mesh.name}] Adjusted Velocity:`, adjustedVelocity);
+
+			// Apply adjusted velocity
+			physics.setLinearVelocity(
+				new flock.BABYLON.Vector3(
+					adjustedVelocity.x,
+					Math.min(5, velocity.y), // Clamp upward force
+					adjustedVelocity.z
+				)
+			);
+		},
+	updateDynamicMeshPositions2(scene, dynamicMeshes) {
 		scene.onBeforeRenderObservable.add(() => {
 			dynamicMeshes.forEach((mesh) => {
 				// Compute the world matrix for accurate raycasting
