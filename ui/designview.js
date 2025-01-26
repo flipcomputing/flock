@@ -10,6 +10,10 @@ import {
 
 export let gizmoManager;
 
+const blueColor = BABYLON.Color3.FromHexString("#0072B2");  // Colour for X-axis
+const greenColor = BABYLON.Color3.FromHexString("#009E73"); // Colour for Y-axis
+const orangeColor = BABYLON.Color3.FromHexString("#D55E00"); // Colour for Z-axis
+
 export function updateOrCreateMeshFromBlock(block, changeEvent) {
 	if (window.loadingCode || block.disposed) return;
 
@@ -1585,8 +1589,8 @@ function toggleGizmo(gizmoType) {
 
 		case "position":
 			gizmoManager.positionGizmoEnabled = true;
-			gizmoManager.gizmos.positionGizmo.snapDistance = 0.1;
-			gizmoManager.gizmos.positionGizmo.updateGizmoPositionToMatchAttachedMesh = true;
+			gizmoManager.gizmos.positionGizmo.snapDistance = 0.1;		
+gizmoManager.gizmos.positionGizmo.xGizmo._coloredMaterial.diffuseColor = blueColor;			gizmoManager.gizmos.positionGizmo.yGizmo._coloredMaterial.diffuseColor = 	greenColor;		gizmoManager.gizmos.positionGizmo.zGizmo._coloredMaterial.diffuseColor = 	orangeColor;					gizmoManager.gizmos.positionGizmo.updateGizmoPositionToMatchAttachedMesh = true;
 			gizmoManager.gizmos.positionGizmo.onDragStartObservable.add(
 				function () {
 					const mesh = gizmoManager.attachedMesh;
@@ -1673,6 +1677,9 @@ function toggleGizmo(gizmoType) {
 		case "rotation":
 			gizmoManager.rotationGizmoEnabled = true;
 			gizmoManager.gizmos.rotationGizmo.updateGizmoRotationToMatchAttachedMesh = false;
+			gizmoManager.gizmos.rotationGizmo.xGizmo._coloredMaterial.diffuseColor = blueColor;
+			gizmoManager.gizmos.rotationGizmo.yGizmo._coloredMaterial.diffuseColor = greenColor;
+			gizmoManager.gizmos.rotationGizmo.zGizmo._coloredMaterial.diffuseColor = orangeColor;
 
 			gizmoManager.gizmos.rotationGizmo.onDragStartObservable.add(
 				function () {
@@ -1824,7 +1831,9 @@ function toggleGizmo(gizmoType) {
 			break;
 		case "scale":
 			gizmoManager.scaleGizmoEnabled = true;
-
+			gizmoManager.gizmos.scaleGizmo.xGizmo._coloredMaterial.diffuseColor = blueColor;
+			gizmoManager.gizmos.scaleGizmo.yGizmo._coloredMaterial.diffuseColor = greenColor;
+			gizmoManager.gizmos.scaleGizmo.zGizmo._coloredMaterial.diffuseColor = orangeColor;
 			gizmoManager.gizmos.scaleGizmo.onDragStartObservable.add(
 				function () {
 					const mesh = gizmoManager.attachedMesh;
@@ -2036,7 +2045,43 @@ function updateBlockColorAndHighlight(mesh, selectedColor) {
 
 export function setGizmoManager(value) {
 	gizmoManager = value;
+
+	console.log("Gizmo manager set", gizmoManager);
+
+	
+
+	if (gizmoManager) {
+		// Get the gizmos for position, rotation, and scale
+		const positionGizmo = gizmoManager.gizmos.positionGizmo;
+		const rotationGizmo = gizmoManager.gizmos.rotationGizmo;
+		const scaleGizmo = gizmoManager.gizmos.scaleGizmo;
+
+		// Update diffuse colours for position gizmo if available
+		if (positionGizmo) {
+			console.log(positionGizmo);
+			if (positionGizmo.xGizmo) positionGizmo.xGizmo._coloredMaterial.diffuseColor = blueColor;
+			if (positionGizmo.yGizmo) positionGizmo.yGizmo._coloredMaterial.diffuseColor = orangeColor;
+			if (positionGizmo.zGizmo) positionGizmo.zGizmo._coloredMaterial.diffuseColor = greenColor;
+		}
+
+		// Update diffuse colours for rotation gizmo if available
+		if (rotationGizmo) {
+			if (rotationGizmo.xGizmo) rotationGizmo.xGizmo._coloredMaterial.diffuseColor = blueColor;
+			if (rotationGizmo.yGizmo) rotationGizmo.yGizmo._coloredMaterial.diffuseColor = orangeColor;
+			if (rotationGizmo.zGizmo) rotationGizmo.zGizmo._coloredMaterial.diffuseColor = greenColor;
+		}
+
+		// Update diffuse colours for scale gizmo if available
+		if (scaleGizmo) {
+			if (scaleGizmo.xGizmo) scaleGizmo.xGizmo._coloredMaterial.diffuseColor = blueColor;
+			if (scaleGizmo.yGizmo) scaleGizmo.yGizmo._coloredMaterial.diffuseColor = orangeColor;
+			if (scaleGizmo.zGizmo) scaleGizmo.zGizmo._coloredMaterial.diffuseColor = greenColor;
+		}
+	} else {
+		console.warn("Gizmo manager is not defined");
+	}
 }
+
 
 export function disposeGizmoManager() {
 	if (gizmoManager) {
