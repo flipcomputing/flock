@@ -503,8 +503,6 @@ function importSnippet() {
 					try {
 						const workspace = Blockly.getMainWorkspace(); // Ensure correct reference
 					
-				
-			
 						Blockly.serialization.blocks.append(blockJson, workspace); // Append instead of replace
 						console.log("Blocks successfully loaded into the workspace.");
 					} catch (workspaceError) {
