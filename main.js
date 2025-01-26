@@ -8,7 +8,7 @@ import { registerFieldColour } from "@blockly/field-colour";
 import { FieldGridDropdown } from "@blockly/field-grid-dropdown";
 import { WorkspaceSearch } from "@blockly/plugin-workspace-search";
 import { NavigationController } from "@blockly/keyboard-navigation";
-import * as BlockDynamicConnection from '@blockly/block-dynamic-connection';
+import * as BlockDynamicConnection from "@blockly/block-dynamic-connection";
 //import {CrossTabCopyPaste} from '@blockly/plugin-cross-tab-copy-paste';
 import "@babylonjs/core/Debug/debugLayer";
 import "@babylonjs/inspector";
@@ -19,7 +19,7 @@ import {
 	initializeVariableIndexes,
 	handleBlockSelect,
 	handleBlockDelete,
-	CustomZelosRenderer
+	CustomZelosRenderer,
 } from "./blocks";
 import { defineBaseBlocks } from "./blocks/base";
 import { defineShapeBlocks } from "./blocks/shapes";
@@ -104,7 +104,7 @@ function loadWorkspaceAndExecute(json, workspace, executeCallback) {
 		Blockly.serialization.workspaces.load(json, workspace);
 		executeCallback(); // Runs only if loading succeeds
 	} catch (error) {
-		console.error('Failed to load workspace:', error);
+		console.error("Failed to load workspace:", error);
 	}
 }
 
@@ -121,7 +121,6 @@ function loadWorkspace() {
 			.then((response) => response.json())
 			.then((json) => {
 				loadWorkspaceAndExecute(json, workspace, executeCode);
-
 			})
 			.catch((error) => {
 				console.error("Error loading starter example:", error);
@@ -141,7 +140,6 @@ function loadWorkspace() {
 				})
 				.then((json) => {
 					loadWorkspaceAndExecute(json, workspace, executeCode);
-
 				})
 				.catch((error) => {
 					console.error("Error loading project from URL:", error);
@@ -152,13 +150,11 @@ function loadWorkspace() {
 	} else if (savedState) {
 		// Load from local storage if available
 		loadWorkspaceAndExecute(JSON.parse(savedState), workspace, executeCode);
-	
 	} else {
 		// Load starter project if no other options
 		loadStarter();
 	}
 }
-
 
 function stripFilename(inputString) {
 	const removeEnd = inputString.replace(/\(\d+\)/g, "");
@@ -183,7 +179,9 @@ async function exportCode() {
 		let usedModels = Blockly.Variables.allUsedVarModels(ws);
 		let allModels = ws.getAllVariables();
 		for (const model of allModels) {
-			if (!usedModels.find((element) => element.getId() === model.getId())) {
+			if (
+				!usedModels.find((element) => element.getId() === model.getId())
+			) {
 				ws.deleteVariableById(model.getId());
 			}
 		}
@@ -311,10 +309,12 @@ async function executeCode() {
 			.then((response) => response.json())
 			.then((json) => {
 				loadWorkspaceAndExecute(json, workspace, executeCode);
-
 			})
 			.catch((loadError) => {
-				console.error("Error loading starter project after execution failure:", loadError);
+				console.error(
+					"Error loading starter project after execution failure:",
+					loadError,
+				);
 			});
 		return; // Exit after handling the error
 	}
@@ -339,7 +339,6 @@ async function executeCode() {
 	isExecuting = false;
 }
 
-
 function stopCode() {
 	// Stop all playing sounds
 	if (flock.scene && flock.scene.mainSoundTrack) {
@@ -353,11 +352,14 @@ function stopCode() {
 
 	// Close the audio context
 	if (flock.audioContext) {
-		flock.audioContext.close().then(() => {
-			console.log("Audio context closed.");
-		}).catch((error) => {
-			console.error("Error closing audio context:", error);
-		});
+		flock.audioContext
+			.close()
+			.then(() => {
+				console.log("Audio context closed.");
+			})
+			.catch((error) => {
+				console.error("Error closing audio context:", error);
+			});
 	}
 
 	// Stop rendering
@@ -370,7 +372,6 @@ function stopCode() {
 	// Switch to code view
 	switchView(codeMode);
 }
-
 
 window.stopCode = stopCode;
 
@@ -434,6 +435,8 @@ async function exportBlockSnippet(block) {
 	}
 }
 
+import { getMetadata } from "meta-png";
+
 function importSnippet() {
 	const fileInput = document.getElementById("importFile");
 	fileInput.click();
@@ -451,64 +454,100 @@ function importSnippet() {
 					// Handle SVG
 					try {
 						const parser = new DOMParser();
-						const svgDoc = parser.parseFromString(content, "image/svg+xml");
+						const svgDoc = parser.parseFromString(
+							content,
+							"image/svg+xml",
+						);
 
 						// Extract metadata
-						const metadataElement = svgDoc.querySelector("metadata");
+						const metadataElement =
+							svgDoc.querySelector("metadata");
 						if (!metadataElement) {
-							console.error("No <metadata> tag found in the SVG file.");
+							console.error(
+								"No <metadata> tag found in the SVG file.",
+							);
 							return;
 						}
 
 						// Extract and parse JSON from metadata
-						const metadataContent = metadataElement.textContent.trim();
+						const metadataContent =
+							metadataElement.textContent.trim();
 						let blockJson;
 						try {
 							const parsedData = JSON.parse(metadataContent);
 
 							// Ensure the key containing JSON exists
 							if (!parsedData.blockJson) {
-								console.error("Metadata JSON does not contain 'blockJson'.");
+								console.error(
+									"Metadata JSON does not contain 'blockJson'.",
+								);
 								return;
 							}
 
 							// Parse the block JSON if needed
 							blockJson = JSON.parse(parsedData.blockJson);
 						} catch (parseError) {
-							console.error("Error parsing metadata JSON:", parseError);
+							console.error(
+								"Error parsing metadata JSON:",
+								parseError,
+							);
 							return;
 						}
-
-						// Log the extracted JSON metadata
-						console.log("Extracted JSON Metadata:", blockJson);
 
 						// Load blocks into Blockly workspace without clearing
 						try {
 							const workspace = Blockly.getMainWorkspace(); // Ensure correct reference
 
-							Blockly.serialization.blocks.append(blockJson, workspace); // Append instead of replace
-							console.log("Blocks successfully loaded into the workspace.");
+							Blockly.serialization.blocks.append(
+								blockJson,
+								workspace,
+							); 
+							
 						} catch (workspaceError) {
-							console.error("Error loading blocks into workspace:", workspaceError);
+							console.error(
+								"Error loading blocks into workspace:",
+								workspaceError,
+							);
 						}
 					} catch (error) {
-						console.error("An error occurred while processing the SVG file:", error);
+						console.error(
+							"An error occurred while processing the SVG file:",
+							error,
+						);
 					}
 				} else if (fileType === "image/png") {
-					// Placeholder for PNG handling
-					console.log("PNG file handling is not implemented yet.");
+					// Handle PNG metadata
+					try {
+						const arrayBuffer = new Uint8Array(content);
+						const encodedMetadata = getMetadata(arrayBuffer, "blockJson");
+
+						if (!encodedMetadata) {
+							console.error("No metadata found in the PNG file.");
+							return;
+						}
+
+						// Decode the URL-encoded metadata and parse it as JSON
+						const decodedMetadata = JSON.parse(decodeURIComponent(encodedMetadata));
+
+						// Load blocks into Blockly workspace without clearing
+						const workspace = Blockly.getMainWorkspace();
+						Blockly.serialization.blocks.append(decodedMetadata, workspace);
+						
+					} catch (error) {
+						console.error("Error processing PNG metadata:", error);
+					}
 				} else if (fileType === "application/json") {
 					// Handle JSON
 					try {
 						const blockJson = JSON.parse(content);
 
-						// Log the JSON content
-						console.log("JSON file content:", blockJson);
-
 						// Load blocks into Blockly workspace without clearing
 						const workspace = Blockly.getMainWorkspace();
-						Blockly.serialization.blocks.append(blockJson, workspace);
-						console.log("JSON blocks successfully loaded into the workspace.");
+						Blockly.serialization.blocks.append(
+							blockJson,
+							workspace,
+						);
+						
 					} catch (error) {
 						console.error("Error processing JSON file:", error);
 					}
@@ -516,10 +555,15 @@ function importSnippet() {
 					console.error("Unsupported file type:", fileType);
 				}
 			};
-			reader.readAsText(file);
+			if (fileType === "image/png") {
+				reader.readAsArrayBuffer(file); // PNG files need ArrayBuffer for metadata
+			} else {
+				reader.readAsText(file); // Other files use text
+			}
 		}
 	};
 }
+
 
 function addExportContextMenuOption() {
 	Blockly.ContextMenuRegistry.registry.register({
@@ -657,7 +701,6 @@ async function loadExample() {
 			.then((response) => response.json())
 			.then((json) => {
 				loadWorkspaceAndExecute(json, workspace, executeCode);
-
 			})
 			.catch((error) => {
 				console.error("Error loading example:", error);
@@ -758,7 +801,6 @@ function toggleMenu() {
 window.toggleMenu = toggleMenu;
 
 document.addEventListener("DOMContentLoaded", () => {
-	
 	const requestFullscreen = () => {
 		const elem = document.documentElement;
 
@@ -1097,85 +1139,90 @@ async function exportWorkspaceAsSVG(workspace) {
 }
 
 async function convertFontToBase64(fontUrl) {
-  const response = await fetch(fontUrl);
-  const fontBlob = await response.blob();
-  const reader = new FileReader();
+	const response = await fetch(fontUrl);
+	const fontBlob = await response.blob();
+	const reader = new FileReader();
 
-  return new Promise((resolve, reject) => {
-	reader.onloadend = () => {
-	  const base64Data = reader.result.split(',')[1]; // Remove the data URL prefix
-	  resolve(base64Data);
-	};
-	reader.onerror = reject;
-	reader.readAsDataURL(fontBlob); // Read as data URL and convert to base64
-  });
+	return new Promise((resolve, reject) => {
+		reader.onloadend = () => {
+			const base64Data = reader.result.split(",")[1]; // Remove the data URL prefix
+			resolve(base64Data);
+		};
+		reader.onerror = reject;
+		reader.readAsDataURL(fontBlob); // Read as data URL and convert to base64
+	});
 }
 
 async function generateSVG(block) {
-  const svgBlock = block.getSvgRoot().cloneNode(true);
-  const serializer = new XMLSerializer();
+	const svgBlock = block.getSvgRoot().cloneNode(true);
+	const serializer = new XMLSerializer();
 
-  svgBlock.removeAttribute("transform");
+	svgBlock.removeAttribute("transform");
 
-  const bbox = block.getSvgRoot().getBBox();
+	const bbox = block.getSvgRoot().getBBox();
 
-  const images = svgBlock.querySelectorAll("image");
-  await Promise.all(
-	Array.from(images).map(async (img) => {
-	  const href =
-		img.getAttribute("xlink:href") || img.getAttribute("href");
-	  if (href && !href.startsWith("data:")) {
-		try {
-		  const response = await fetch(href);
-		  const blob = await response.blob();
-		  const reader = new FileReader();
-		  const dataUrl = await new Promise((resolve) => {
-			reader.onload = () => resolve(reader.result);
-			reader.readAsDataURL(blob);
-		  });
-		  img.setAttribute("xlink:href", dataUrl);
-		  img.setAttribute("href", dataUrl);
-		} catch (error) {
-		  console.error(`Failed to embed image: ${href}`, error);
+	const images = svgBlock.querySelectorAll("image");
+	await Promise.all(
+		Array.from(images).map(async (img) => {
+			const href =
+				img.getAttribute("xlink:href") || img.getAttribute("href");
+			if (href && !href.startsWith("data:")) {
+				try {
+					const response = await fetch(href);
+					const blob = await response.blob();
+					const reader = new FileReader();
+					const dataUrl = await new Promise((resolve) => {
+						reader.onload = () => resolve(reader.result);
+						reader.readAsDataURL(blob);
+					});
+					img.setAttribute("xlink:href", dataUrl);
+					img.setAttribute("href", dataUrl);
+				} catch (error) {
+					console.error(`Failed to embed image: ${href}`, error);
+				}
+			}
+		}),
+	);
+
+	const uiElements = svgBlock.querySelectorAll("rect.blocklyFieldRect");
+	uiElements.forEach((element) => {
+		const parentBlock = element.closest(".blocklyDraggable");
+		if (element.classList.contains("blocklyDropdownRect")) {
+			const blockFill = parentBlock
+				?.querySelector(".blocklyPath")
+				?.getAttribute("fill");
+			if (blockFill) {
+				element.setAttribute("fill", blockFill);
+			}
+			element.setAttribute("stroke", "#999999");
+			element.setAttribute("stroke-width", "1px");
+		} else if (element.classList.contains("blocklyCheckbox")) {
+			element.setAttribute("style", "fill: #ffffff !important;");
+			element.setAttribute("stroke", "#999999");
+			element.setAttribute("stroke-width", "1px");
+		} else {
+			element.setAttribute("fill", "none");
+			element.setAttribute("stroke", "#999999");
+			element.setAttribute("stroke-width", "1px");
 		}
-	  }
-	})
-  );
+	});
 
-  const uiElements = svgBlock.querySelectorAll("rect.blocklyFieldRect");
-  uiElements.forEach((element) => {
-	const parentBlock = element.closest(".blocklyDraggable");
-	if (element.classList.contains("blocklyDropdownRect")) {
-	  const blockFill = parentBlock
-		?.querySelector(".blocklyPath")
-		?.getAttribute("fill");
-	  if (blockFill) {
-		element.setAttribute("fill", blockFill); 
-	  }
-	  element.setAttribute("stroke", "#999999"); 
-	  element.setAttribute("stroke-width", "1px");
-	} else if (element.classList.contains("blocklyCheckbox")) {
-	  element.setAttribute("style", "fill: #ffffff !important;");
-	  element.setAttribute("stroke", "#999999"); 
-	  element.setAttribute("stroke-width", "1px");
-	} else {
-	  element.setAttribute("fill", "none");
-	  element.setAttribute("stroke", "#999999");
-	  element.setAttribute("stroke-width", "1px");
-	}
-  });
+	const uiTexts = svgBlock.querySelectorAll(
+		"text.blocklyCheckbox, text.blocklyText",
+	);
+	uiTexts.forEach((textElement) => {
+		textElement.setAttribute("style", "fill: #000000 !important;");
+		textElement.setAttribute("stroke", "none");
+		textElement.setAttribute("font-weight", "600");
+	});
 
-  const uiTexts = svgBlock.querySelectorAll("text.blocklyCheckbox, text.blocklyText");
-  uiTexts.forEach((textElement) => {
-	textElement.setAttribute("style", "fill: #000000 !important;");
-	textElement.setAttribute("stroke", "none"); 
-	textElement.setAttribute("font-weight", "600"); 
-  });
+	const fontBase64 = await convertFontToBase64("./fonts/Asap-Medium.woff2");
 
-  const fontBase64 = await convertFontToBase64('./fonts/Asap-Medium.woff2');
-
-  const style = document.createElementNS("http://www.w3.org/2000/svg", "style");
-  style.textContent = `
+	const style = document.createElementNS(
+		"http://www.w3.org/2000/svg",
+		"style",
+	);
+	style.textContent = `
 	@font-face {
 	  font-family: "Asap";
 	  src: url('data:font/woff2;base64,${fontBase64}') format('woff2');
@@ -1188,88 +1235,121 @@ async function generateSVG(block) {
 	  fill: #ffffff !important; 
 	}
   `;
-  svgBlock.insertBefore(style, svgBlock.firstChild);
+	svgBlock.insertBefore(style, svgBlock.firstChild);
 
-  const wrapperSVG = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-  wrapperSVG.setAttribute("xmlns", "http://www.w3.org/2000/svg");
-  wrapperSVG.setAttribute("width", bbox.width);
-  wrapperSVG.setAttribute("height", bbox.height);
-  wrapperSVG.setAttribute("viewBox", `0 0 ${bbox.width} ${bbox.height}`);
+	const wrapperSVG = document.createElementNS(
+		"http://www.w3.org/2000/svg",
+		"svg",
+	);
+	wrapperSVG.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+	wrapperSVG.setAttribute("width", bbox.width);
+	wrapperSVG.setAttribute("height", bbox.height);
+	wrapperSVG.setAttribute("viewBox", `0 0 ${bbox.width} ${bbox.height}`);
 
-  const translationGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
-  translationGroup.setAttribute("transform", `translate(${-bbox.x}, ${-bbox.y})`);
-  translationGroup.appendChild(svgBlock);
+	const translationGroup = document.createElementNS(
+		"http://www.w3.org/2000/svg",
+		"g",
+	);
+	translationGroup.setAttribute(
+		"transform",
+		`translate(${-bbox.x}, ${-bbox.y})`,
+	);
+	translationGroup.appendChild(svgBlock);
 
-  wrapperSVG.appendChild(translationGroup);
+	wrapperSVG.appendChild(translationGroup);
 
-  // Get the JSON representation of the block
-  const blockJson = JSON.stringify(Blockly.serialization.blocks.save(block));
-  const encodedJson = encodeURIComponent(blockJson); // Ensure it is URL-encoded
+	// Get the JSON representation of the block
+	const blockJson = JSON.stringify(Blockly.serialization.blocks.save(block));
+	const encodedJson = encodeURIComponent(blockJson); // Ensure it is URL-encoded
 
-  // Embed the JSON in a <metadata> tag inside the SVG
-  const metadata = document.createElementNS("http://www.w3.org/2000/svg", "metadata");
-  metadata.textContent = `{"blockJson": "${encodedJson}"}`;
-  wrapperSVG.appendChild(metadata);
+	// Embed the JSON in a <metadata> tag inside the SVG
+	const metadata = document.createElementNS(
+		"http://www.w3.org/2000/svg",
+		"metadata",
+	);
+	metadata.textContent = `{"blockJson": "${encodedJson}"}`;
+	wrapperSVG.appendChild(metadata);
 
-  const svgString = serializer.serializeToString(wrapperSVG);
-  const svgDeclaration = '<?xml version="1.0" encoding="UTF-8"?>';
-  const finalSVG = `${svgDeclaration}${svgString}`;
+	const svgString = serializer.serializeToString(wrapperSVG);
+	const svgDeclaration = '<?xml version="1.0" encoding="UTF-8"?>';
+	const finalSVG = `${svgDeclaration}${svgString}`;
 
-  return finalSVG;
+	return finalSVG;
 }
-
 
 async function exportBlockAsSVG(block) {
-  const finalSVG = await generateSVG(block);
+	const finalSVG = await generateSVG(block);
 
-  // Create and download the SVG blob
-  const blob = new Blob([finalSVG], { type: "image/svg+xml" });
-  const link = document.createElement("a");
-  link.download = `${block.type}.svg`;
-  link.href = URL.createObjectURL(blob);
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
+	// Create and download the SVG blob
+	const blob = new Blob([finalSVG], { type: "image/svg+xml" });
+	const link = document.createElement("a");
+	link.download = `${block.type}.svg`;
+	link.href = URL.createObjectURL(blob);
+	document.body.appendChild(link);
+	link.click();
+	document.body.removeChild(link);
 }
+
+import { addMetadata } from "meta-png";
 
 async function exportBlockAsPNG(block) {
-  const finalSVG = await generateSVG(block);
+	const finalSVG = await generateSVG(block);
 
-  // Create an image element and load the SVG into it
-  const img = new Image();
-  const svgBlob = new Blob([finalSVG], { type: 'image/svg+xml' });
-  const svgUrl = URL.createObjectURL(svgBlob);
+	// Get the JSON representation of the block
+	const blockJson = JSON.stringify(Blockly.serialization.blocks.save(block));
+	const encodedJson = encodeURIComponent(blockJson); // Ensure it is URL-encoded
+	// Create an image element and load the SVG into it
+	const img = new Image();
+	const svgBlob = new Blob([finalSVG], { type: "image/svg+xml" });
+	const svgUrl = URL.createObjectURL(svgBlob);
 
-  img.onload = () => {
-	// Create a canvas and draw the SVG image onto it
-	const canvas = document.createElement('canvas');
-	canvas.width = img.width;
-	canvas.height = img.height;
-	const ctx = canvas.getContext('2d');
+	img.onload = () => {
+		const canvas = document.createElement("canvas");
+		canvas.width = img.width;
+		canvas.height = img.height;
+		const ctx = canvas.getContext("2d");
+		ctx.drawImage(img, 0, 0);
 
-	ctx.drawImage(img, 0, 0);
+		canvas.toBlob(async (pngBlob) => {
+			if (!pngBlob) {
+				console.error("Failed to create PNG blob");
+				return;
+			}
 
-	// Export the canvas as a PNG
-	const pngDataUrl = canvas.toDataURL('image/png');
+			// Convert PNG Blob to ArrayBuffer
+			const arrayBuffer = await pngBlob.arrayBuffer();
 
-	// Trigger the download
-	const link = document.createElement('a');
-	link.download = `${block.type}.png`;
-	link.href = pngDataUrl;
-	link.click();
+			// Add metadata using meta-png
+			const updatedPngBuffer = addMetadata(
+				new Uint8Array(arrayBuffer),
+				"blockJson",
+				encodedJson,
+			);
 
-	// Clean up
-	URL.revokeObjectURL(svgUrl);
-  };
+			// Create a Blob from the updated PNG
+			const updatedBlob = new Blob([updatedPngBuffer], {
+				type: "image/png",
+			});
+			const updatedUrl = URL.createObjectURL(updatedBlob);
 
-  img.onerror = (error) => {
-	console.error('Failed to load SVG image:', error);
-  };
+			// Trigger the download
+			const link = document.createElement("a");
+			link.download = `${block.type}.png`;
+			link.href = updatedUrl;
+			link.click();
 
-  img.src = svgUrl; // Load the SVG into the image element
+			// Clean up
+			URL.revokeObjectURL(svgUrl);
+			URL.revokeObjectURL(updatedUrl);
+		}, "image/png");
+	};
+
+	img.onerror = (error) => {
+		console.error("Failed to load SVG image:", error);
+	};
+
+	img.src = svgUrl;
 }
-
-
 
 // Function to enforce minimum font size and delay the focus to prevent zoom
 function enforceMinimumFontSize(input) {
@@ -1538,7 +1618,7 @@ window.onload = function () {
 
 		const toolboxDef = workspace.options.languageTree; // Get toolbox XML/JSON
 
-	workspace.updateToolbox(toolboxDef); // Force rebuild toolbox
+		workspace.updateToolbox(toolboxDef); // Force rebuild toolbox
 	}
 
 	// Register the custom renderer
@@ -1547,13 +1627,12 @@ window.onload = function () {
 		"custom_zelos_renderer",
 		CustomZelosRenderer,
 	);
-	
+
 	workspace = Blockly.inject("blocklyDiv", options);
 
-	
 	const copyPasteOptions = {
-	  contextMenu: true,
-	  shortcut: true,
+		contextMenu: true,
+		shortcut: true,
 	};
 
 	// Initialize plugin.
@@ -1616,126 +1695,129 @@ window.onload = function () {
 		}
 	});
 
-	
-	let dummyNextBlock = null;      // Store the dummy next block
-	let dummyPreviousBlock = null;  // Store the dummy previous block
-	let draggedBlock = null;        // Variable to store the currently dragged block
+	let dummyNextBlock = null; // Store the dummy next block
+	let dummyPreviousBlock = null; // Store the dummy previous block
+	let draggedBlock = null; // Variable to store the currently dragged block
 
 	// Listen for the drag start event to detect when a block starts being dragged
-	workspace.getCanvas().addEventListener('mousedown', function(event) {
-	  // Check if the event target is a block being dragged (using Blockly's internal event system)
-	  if (event.target && event.target.block && event.target.block.type === 'when_clicked') {
-		draggedBlock = event.target.block; // Store the dragged block
-		console.log('Drag started for block:', draggedBlock);
+	workspace.getCanvas().addEventListener("mousedown", function (event) {
+		// Check if the event target is a block being dragged (using Blockly's internal event system)
+		if (
+			event.target &&
+			event.target.block &&
+			event.target.block.type === "when_clicked"
+		) {
+			draggedBlock = event.target.block; // Store the dragged block
+			//console.log("Drag started for block:", draggedBlock);
 
-		// Listen for mousemove to track the block's position during dragging
-		workspace.getCanvas().addEventListener('mousemove', onMouseMove);
-	  }
+			// Listen for mousemove to track the block's position during dragging
+			workspace.getCanvas().addEventListener("mousemove", onMouseMove);
+		}
 	});
 
 	// Listen for mouse move events during dragging to track the block's position
 	function onMouseMove(event) {
-	  if (draggedBlock) {
-		console.log('Dragging block:', draggedBlock);
+		if (draggedBlock) {
+			//console.log("Dragging block:", draggedBlock);
 
-		// Check if the dragged block is over any other block
-		checkIfOverAnyBlock(draggedBlock);
-	  }
+			// Check if the dragged block is over any other block
+			checkIfOverAnyBlock(draggedBlock);
+		}
 	}
 
 	// Check if the dragged "when_clicked" block is over any other block
 	function checkIfOverAnyBlock(sourceBlock) {
-	  const allBlocks = workspace.getAllBlocks();
-	  let isOverOtherBlock = false;
+		const allBlocks = workspace.getAllBlocks();
+		let isOverOtherBlock = false;
 
-	  for (let i = 0; i < allBlocks.length; i++) {
-		const targetBlock = allBlocks[i];
+		for (let i = 0; i < allBlocks.length; i++) {
+			const targetBlock = allBlocks[i];
 
-		// Skip the source block itself
-		if (sourceBlock === targetBlock) continue;
+			// Skip the source block itself
+			if (sourceBlock === targetBlock) continue;
 
-		// Check if the dragged block is near the target block
-		if (isBlockOverAnotherBlock(sourceBlock, targetBlock)) {
-		  isOverOtherBlock = true;
-		  break;  // Stop as soon as we detect it's over a block
+			// Check if the dragged block is near the target block
+			if (isBlockOverAnotherBlock(sourceBlock, targetBlock)) {
+				isOverOtherBlock = true;
+				break; // Stop as soon as we detect it's over a block
+			}
 		}
-	  }
 
-	  // If the dragged block is over another block, add the next/previous blocks
-	  if (isOverOtherBlock) {
-		addNextAndPreviousBlocks(sourceBlock);
-	  } else {
-		// If not over another block, remove the next/previous blocks
-		removeNextAndPreviousBlocks();
-	  }
+		// If the dragged block is over another block, add the next/previous blocks
+		if (isOverOtherBlock) {
+			addNextAndPreviousBlocks(sourceBlock);
+		} else {
+			// If not over another block, remove the next/previous blocks
+			removeNextAndPreviousBlocks();
+		}
 	}
 
 	// Check if the dragged block is near another block (e.g., within a certain distance)
 	function isBlockOverAnotherBlock(sourceBlock, targetBlock) {
-	  const sourcePosition = sourceBlock.getRelativeToSurfaceXY();
-	  const targetPosition = targetBlock.getRelativeToSurfaceXY();
+		const sourcePosition = sourceBlock.getRelativeToSurfaceXY();
+		const targetPosition = targetBlock.getRelativeToSurfaceXY();
 
-	  // Define a "nearby" threshold distance (you can adjust this value)
-	  const threshold = 50;
+		// Define a "nearby" threshold distance (you can adjust this value)
+		const threshold = 50;
 
-	  // Calculate the distance between the blocks
-	  const distanceX = Math.abs(sourcePosition.x - targetPosition.x);
-	  const distanceY = Math.abs(sourcePosition.y - targetPosition.y);
+		// Calculate the distance between the blocks
+		const distanceX = Math.abs(sourcePosition.x - targetPosition.x);
+		const distanceY = Math.abs(sourcePosition.y - targetPosition.y);
 
-	  return distanceX < threshold && distanceY < threshold;  // If within the threshold, it's "over" the target block
+		return distanceX < threshold && distanceY < threshold; // If within the threshold, it's "over" the target block
 	}
 
 	// Add the "next" and "previous" blocks to the dragged block (when_clicked)
 	function addNextAndPreviousBlocks(sourceBlock) {
-	  // Only add the blocks if they don't already exist
-	  if (!dummyNextBlock && !dummyPreviousBlock) {
-		dummyNextBlock = workspace.newBlock('next_statement');
-		dummyPreviousBlock = workspace.newBlock('previous_statement');
+		// Only add the blocks if they don't already exist
+		if (!dummyNextBlock && !dummyPreviousBlock) {
+			dummyNextBlock = workspace.newBlock("next_statement");
+			dummyPreviousBlock = workspace.newBlock("previous_statement");
 
-		// Attach the dummy blocks to the source block
-		dummyNextBlock.setParent(sourceBlock);
-		dummyPreviousBlock.setParent(sourceBlock);
+			// Attach the dummy blocks to the source block
+			dummyNextBlock.setParent(sourceBlock);
+			dummyPreviousBlock.setParent(sourceBlock);
 
-		// Make these blocks non-interactive (they are just visual cues)
-		dummyNextBlock.setEditable(false);
-		dummyPreviousBlock.setEditable(false);
+			// Make these blocks non-interactive (they are just visual cues)
+			dummyNextBlock.setEditable(false);
+			dummyPreviousBlock.setEditable(false);
 
-		// Position them next to the dragged block
-		dummyNextBlock.moveBy(10, 10);
-		dummyPreviousBlock.moveBy(10, 30);
+			// Position them next to the dragged block
+			dummyNextBlock.moveBy(10, 10);
+			dummyPreviousBlock.moveBy(10, 30);
 
-		console.log('Dummy next and previous blocks added');
-	  }
+			//console.log("Dummy next and previous blocks added");
+		}
 	}
 
 	// Remove the next and previous blocks if the dragged block is not over another block
 	function removeNextAndPreviousBlocks() {
-	  if (dummyNextBlock) {
-		dummyNextBlock.dispose();
-		dummyNextBlock = null;
-	  }
-	  if (dummyPreviousBlock) {
-		dummyPreviousBlock.dispose();
-		dummyPreviousBlock = null;
-	  }
+		if (dummyNextBlock) {
+			dummyNextBlock.dispose();
+			dummyNextBlock = null;
+		}
+		if (dummyPreviousBlock) {
+			dummyPreviousBlock.dispose();
+			dummyPreviousBlock = null;
+		}
 
-	  console.log('Dummy next and previous blocks removed');
+		//console.log("Dummy next and previous blocks removed");
 	}
 
 	// Listen for the drag end event to clean up after the drag ends
-	workspace.getCanvas().addEventListener('mouseup', function(event) {
-	  if (draggedBlock) {
-		console.log('Drag ended for block:', draggedBlock);
+	workspace.getCanvas().addEventListener("mouseup", function (event) {
+		if (draggedBlock) {
+			//console.log("Drag ended for block:", draggedBlock);
 
-		// Stop the mousemove listener after the drag is done
-		workspace.getCanvas().removeEventListener('mousemove', onMouseMove);
+			// Stop the mousemove listener after the drag is done
+			workspace.getCanvas().removeEventListener("mousemove", onMouseMove);
 
-		// Clean up the visual blocks after the drag ends
-		removeNextAndPreviousBlocks();
+			// Clean up the visual blocks after the drag ends
+			removeNextAndPreviousBlocks();
 
-		// Reset the draggedBlock variable
-		draggedBlock = null;
-	  }
+			// Reset the draggedBlock variable
+			draggedBlock = null;
+		}
 	});
 
 	const workspaceSvg = workspace.getParentSvg();
@@ -1931,7 +2013,6 @@ window.onload = function () {
 				);
 
 				loadWorkspaceAndExecute(json, workspace, executeCode);
-
 			};
 			reader.readAsText(event.target.files[0]);
 		});
