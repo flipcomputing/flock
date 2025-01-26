@@ -1296,9 +1296,10 @@ export const flock = {
 	ensureStandardMaterial(mesh) {
 		if (!mesh) return;
 
-		// Set to track replaced materials
-		const replacedMaterials = new Set();
+		// Set to track replaced materials and their corresponding replacements
+		const replacedMaterialsMap = new Map();
 
+		// Default material to use as the replacement base
 		const defaultMaterial =
 			flock.scene.defaultMaterial ||
 			new flock.BABYLON.StandardMaterial("defaultMaterial", flock.scene);
@@ -1308,13 +1309,17 @@ export const flock = {
 			const material = targetMesh.material;
 
 			if (material && material.getClassName() === "PBRMaterial") {
-				// Replace with a cloned default material, preserving the name
-				const originalName = material.name;
-				targetMesh.material = defaultMaterial.clone(originalName);
-				targetMesh.backFaceCulling = false;
+				if (!replacedMaterialsMap.has(material)) {
+					// Replace with a cloned default material, preserving the name
+					const originalName = material.name;
+					const newMaterial = defaultMaterial.clone(originalName);
+					replacedMaterialsMap.set(material, newMaterial);
+					console.log(`Replacing PBR material: ${originalName}`);
+				}
 
-				// Store the replaced material for later disposal
-				replacedMaterials.add(material);
+				// Assign the replaced material to the mesh
+				targetMesh.material = replacedMaterialsMap.get(material);
+				targetMesh.backFaceCulling = false;
 			}
 		};
 
@@ -1325,9 +1330,9 @@ export const flock = {
 		mesh.getChildMeshes().forEach(replaceIfPBRMaterial);
 
 		// Dispose of all replaced materials
-		replacedMaterials.forEach((material) => {
-			console.log(`Disposing material: ${material.name}`);
-			material.dispose();
+		replacedMaterialsMap.forEach((newMaterial, oldMaterial) => {
+			console.log(`Disposing original material: ${oldMaterial.name}`);
+			oldMaterial.dispose();
 		});
 	},
 	newObject({
@@ -1367,7 +1372,7 @@ export const flock = {
 				color,
 			);
 
-			flock.changeColorMesh(mesh, color);
+			flock.changeColorMesh(mesh, color, false);
 
 			mesh.computeWorldMatrix(true);
 			mesh.refreshBoundingInfo();
@@ -1425,7 +1430,7 @@ export const flock = {
 					color,
 				);
 
-				flock.changeColorMesh(container.meshes[0], color);
+				flock.changeColorMesh(container.meshes[0], color, false);
 
 				if (callback) {
 					requestAnimationFrame(callback);
@@ -5200,35 +5205,49 @@ export const flock = {
 			flock.changeColorMesh(mesh, color);
 		});
 	},
-	changeColorMesh(mesh, color) {
-		flock.ensureUniqueMaterial(mesh);
-		let materialFound = false;
+	changeColorMesh(mesh, color, unique=true) {
+		console.log("Applying colors", color, unique);
+
+		if(unique)
+			flock.ensureUniqueMaterial(mesh);
 
 		// Ensure color is an array
 		const colors = Array.isArray(color) ? color : [color];
 		let colorIndex = 0;
 
+		// Map to keep track of materials and their assigned colours
+		const materialToColorMap = new Map();
+
 		function applyColorInOrder(part) {
-			// Process the current mesh
-			const currentColor = colors[colorIndex % colors.length];
-
 			if (part.material) {
-				const hexColor = flock.getColorFromString(currentColor);
-				const babylonColor =
-					flock.BABYLON.Color3.FromHexString(hexColor);
+				// Check if the material is already processed
+				if (!materialToColorMap.has(part.material)) {
+					const hexColor = flock.getColorFromString(
+						colors[colorIndex % colors.length]
+					);
+					const babylonColor = flock.BABYLON.Color3.FromHexString(hexColor);
 
-				// Set diffuse or albedo/emissive colors
-				if (part.material.diffuseColor !== undefined) {
-					part.material.diffuseColor = babylonColor;
+					// Apply the colour to the material
+					if (part.material.diffuseColor !== undefined) {
+						part.material.diffuseColor = babylonColor;
+					} else {
+						part.material.albedoColor = babylonColor.toLinearSpace();
+						part.material.emissiveColor = babylonColor.toLinearSpace();
+						part.material.emissiveIntensity = 0.1;
+					}
+
+					// Map the material to the colour and log the assignment
+					materialToColorMap.set(part.material, hexColor);
+					console.log(
+						`Assigned colour ${hexColor} to material ${part.material.name || "unnamed"}`
+					);
+					colorIndex++;
 				} else {
-					part.material.albedoColor = babylonColor.toLinearSpace();
-					part.material.emissiveColor = babylonColor.toLinearSpace();
-					part.material.emissiveIntensity = 0.1;
+					// Material already processed, log the reuse
+					console.log(
+						`Shared material detected: ${part.material.name || "unnamed"}`
+					);
 				}
-				materialFound = true;
-
-				// Move to the next colour
-				colorIndex++;
 			}
 
 			// Process the submeshes (children) of the current mesh, sorted alphabetically
@@ -5242,16 +5261,15 @@ export const flock = {
 		applyColorInOrder(mesh);
 
 		// If no material was found, create a new one
-		if (!materialFound) {
+		if (materialToColorMap.size === 0) {
 			const material = new flock.BABYLON.StandardMaterial(
 				"meshMaterial",
-				flock.scene,
+				flock.scene
 			);
-			material.diffuseColor = flock.BABYLON.Color3.FromHexString(
-				colors[0],
-			);
+			material.diffuseColor = flock.BABYLON.Color3.FromHexString(colors[0]);
 			material.backFaceCulling = false;
 			mesh.material = material;
+			console.log(`No existing material found. Created new material.`);
 		}
 
 		try {
