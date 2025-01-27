@@ -1314,6 +1314,7 @@ export function enableGizmos() {
 	const boundsButton = document.getElementById("boundsButton");
 	const focusButton = document.getElementById("focusButton");
 	const hideButton = document.getElementById("hideButton");
+	const duplicateButton = document.getElementById("duplicateButton");
 	const showShapesButton = document.getElementById("showShapesButton");
 	const colorPickerButton = document.getElementById("colorPickerButton");
 	const aboutButton = document.getElementById("logo");
@@ -1344,6 +1345,7 @@ export function enableGizmos() {
 	boundsButton.removeAttribute("disabled");
 	focusButton.removeAttribute("disabled");
 	hideButton.removeAttribute("disabled");
+	duplicateButton.removeAttribute("disabled");
 	showShapesButton.removeAttribute("disabled");
 	colorPickerButton.removeAttribute("disabled");
 	aboutButton.removeAttribute("disabled");
@@ -1362,6 +1364,7 @@ export function enableGizmos() {
 	boundsButton.addEventListener("click", () => toggleGizmo("bounds"));
 	focusButton.addEventListener("click", () => toggleGizmo("focus"));
 	hideButton.addEventListener("click", () => toggleGizmo("select"));
+	duplicateButton.addEventListener("click", () => toggleGizmo("duplicate"));
 	showShapesButton.addEventListener("click", showShapes);
 	aboutButton.addEventListener("click", openAboutPage);
 
@@ -1508,6 +1511,9 @@ function toggleGizmo(gizmoType) {
 
 	// Enable the selected gizmo
 	switch (gizmoType) {
+		case "duplicate":
+
+			break;
 		case "select":
 			gizmoManager.selectGizmoEnabled = true;
 			flock.scene.onPointerObservable.add((event) => {
