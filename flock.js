@@ -1112,24 +1112,40 @@ export const flock = {
 	},
 	ensureUniqueMaterial(mesh) {
 		// Helper function to clone material for a mesh
-		const cloneMaterial = (targetMesh) => {
-			const newMaterial = targetMesh.material.clone(
-				`${targetMesh.material.name}_clone`,
-			);
-			targetMesh.material = newMaterial;
-			targetMesh.metadata = targetMesh.metadata || {};
-			targetMesh.metadata.sharedMaterial = false;
+		const cloneMaterial = (originalMaterial) => {
+			return originalMaterial.clone(`${originalMaterial.name}_clone`);
 		};
 
-		// Check the root mesh
-		if (mesh.material && mesh.metadata?.sharedMaterial) {
-			cloneMaterial(mesh);
-		}
+		// Recursive function to collect all meshes in the hierarchy
+		const collectMeshes = (node, meshes = []) => {
+			if (node instanceof BABYLON.Mesh) {
+				meshes.push(node);
+			}
+			if (node.getChildren) {
+				node.getChildren().forEach((child) => collectMeshes(child, meshes));
+			}
+			return meshes;
+		};
 
-		// Check all descendants
-		mesh.getDescendants().forEach((descendant) => {
-			if (descendant.material && descendant.metadata?.sharedMaterial) {
-				cloneMaterial(descendant);
+		// Collect all meshes in the hierarchy (root + descendants)
+		const allMeshes = collectMeshes(mesh);
+
+		// Create a mapping of original materials to their clones
+		const materialMapping = new Map();
+
+		// Iterate through all collected meshes
+		allMeshes.forEach((currentMesh) => {
+			if (currentMesh.material && currentMesh.metadata?.sharedMaterial) {
+				// Check if the material has already been cloned
+				if (!materialMapping.has(currentMesh.material)) {
+					// Clone the material and store it in the mapping
+					const clonedMaterial = cloneMaterial(currentMesh.material);
+					materialMapping.set(currentMesh.material, clonedMaterial);
+				}
+
+				// Assign the cloned material to the current mesh
+				currentMesh.material = materialMapping.get(currentMesh.material);
+				currentMesh.metadata.sharedMaterial = false; // Material is now unique to this hierarchy
 			}
 		});
 	},
@@ -1314,7 +1330,7 @@ export const flock = {
 					const originalName = material.name;
 					const newMaterial = defaultMaterial.clone(originalName);
 					replacedMaterialsMap.set(material, newMaterial);
-					console.log(`Replacing PBR material: ${originalName}`);
+					
 				}
 
 				// Assign the replaced material to the mesh
@@ -1331,7 +1347,7 @@ export const flock = {
 
 		// Dispose of all replaced materials
 		replacedMaterialsMap.forEach((newMaterial, oldMaterial) => {
-			console.log(`Disposing original material: ${oldMaterial.name}`);
+			
 			oldMaterial.dispose();
 		});
 	},
@@ -1372,7 +1388,7 @@ export const flock = {
 				color,
 			);
 
-			flock.changeColorMesh(mesh, color, false);
+			flock.changeColorMesh(mesh, color);
 
 			mesh.computeWorldMatrix(true);
 			mesh.refreshBoundingInfo();
@@ -1429,8 +1445,7 @@ export const flock = {
 					z,
 					color,
 				);
-
-				flock.changeColorMesh(container.meshes[0], color, false);
+				flock.changeColorMesh(container.meshes[0], color);
 
 				if (callback) {
 					requestAnimationFrame(callback);
@@ -2065,7 +2080,6 @@ export const flock = {
 		};
 
 		const replaceMaterial = (material) => {
-			console.log("Replacing default material:", material);
 			return referenceMesh.material.clone("clonedMaterial");
 		};
 
@@ -5206,7 +5220,6 @@ export const flock = {
 		});
 	},
 	changeColorMesh(mesh, color, unique=true) {
-		console.log("Applying colors", color, unique);
 
 		if(unique)
 			flock.ensureUniqueMaterial(mesh);
@@ -5238,15 +5251,11 @@ export const flock = {
 
 					// Map the material to the colour and log the assignment
 					materialToColorMap.set(part.material, hexColor);
-					console.log(
-						`Assigned colour ${hexColor} to material ${part.material.name || "unnamed"}`
-					);
+					
 					colorIndex++;
 				} else {
 					// Material already processed, log the reuse
-					console.log(
-						`Shared material detected: ${part.material.name || "unnamed"}`
-					);
+					
 				}
 			}
 
@@ -5269,7 +5278,7 @@ export const flock = {
 			material.diffuseColor = flock.BABYLON.Color3.FromHexString(colors[0]);
 			material.backFaceCulling = false;
 			mesh.material = material;
-			console.log(`No existing material found. Created new material.`);
+			
 		}
 
 		try {
@@ -5286,12 +5295,7 @@ export const flock = {
 		});
 	},
 	changeMaterialMesh(mesh, materialName, texturePath, color, alpha = 1) {
-		console.log(
-			"Creating material for mesh:",
-			mesh.name,
-			materialName,
-			color,
-		);
+		
 		flock.ensureUniqueMaterial(mesh);
 
 		// Create a new material
@@ -5331,9 +5335,6 @@ export const flock = {
 				(part) => part instanceof flock.BABYLON.Mesh,
 			);
 
-			// Log valid meshes for debugging
-			console.log("Valid meshes:", validMeshes);
-
 			// Sort meshes alphabetically by name
 			const sortedMeshes = validMeshes.sort((a, b) =>
 				a.name.localeCompare(b.name),
@@ -5354,7 +5355,6 @@ export const flock = {
 
 				// Apply the material to the mesh
 				part.material = material;
-				console.log(`Material applied to mesh: ${part.name}`);
 			});
 		});
 	},
@@ -5381,7 +5381,6 @@ export const flock = {
 	createMaterial(color, materialName, alpha) {
 		let material;
 
-		console.log(materialName);
 		const texturePath = `./textures/${materialName}`;
 
 		material = new flock.BABYLON.StandardMaterial(
@@ -5417,8 +5416,6 @@ export const flock = {
 		texturePhysicalSize = 1, // Default physical size in meters
 	) {
 		let material;
-
-		console.log(textureSet);
 
 		// Check if PBR is needed
 		if (metallic > 0 || roughness < 1) {
@@ -5539,9 +5536,6 @@ export const flock = {
 		material, // Material passed as a parameter
 	) {
 		return flock.whenModelReady(modelName, (mesh) => {
-			// Log the passed material to ensure it is available
-			console.log("Material:", material);
-
 			if (!material || !material.diffuseTexture) {
 				console.error(
 					"Material does not have a diffuse texture. Cannot apply decal.",
@@ -5569,7 +5563,6 @@ export const flock = {
 			// Apply the passed material to the decal
 			decal.material = material;
 			decal.setParent(mesh);
-			console.log("Decal applied with provided material.");
 		});
 	},
 	placeDecal(material, angle = 0) {

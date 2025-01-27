@@ -844,10 +844,11 @@ function setPositionValues(block, position, shapeType) {
 			break;
 
 		case "load_object":
+			console.log("Adjusting y");
 			// Adjust Y based on SCALE input
 			adjustedY += block.getInputTargetBlock("SCALE")
-				? block.getInputTargetBlock("SCALE").getFieldValue("NUM") / 2
-				: 2;
+				? 0.5 + block.getInputTargetBlock("SCALE").getFieldValue("NUM") / 2
+				: 1;
 			break;
 
 		default:
@@ -1542,6 +1543,9 @@ function deleteBlockWithUndo(blockId) {
 
 
 function toggleGizmo(gizmoType) {
+	if(gizmoManager.attachedMesh.type === "create_ground")
+		return;
+	
 	// Disable all gizmos
 	gizmoManager.positionGizmoEnabled = false;
 	gizmoManager.rotationGizmoEnabled = false;
@@ -1549,6 +1553,8 @@ function toggleGizmo(gizmoType) {
 	if(gizmoManager.attachedMesh)
 		gizmoManager.attachedMesh.showBoundingBox = false;
 	gizmoManager.boundingBoxGizmoEnabled = false;
+	document.body.style.cursor = "default";
+	
 
 	gizmoManager.attachableMeshes = flock.scene?.meshes?.filter(
 		(s) => s.name !== "ground",
@@ -1618,6 +1624,10 @@ console.log("Duplicate");
 							includeShadows: true, // Include shadow blocks in the duplication
 						});
 
+						// Remove the "next" connection from the serialized JSON
+						if (blockJson.next) {
+							delete blockJson.next;
+						}
 						// Append the duplicated block and its children
 						const duplicateBlock = Blockly.serialization.blocks.append(blockJson, workspace);
 
@@ -1641,8 +1651,6 @@ console.log("Duplicate");
 					}
 				}
 
-				document.body.style.cursor = "default";
-				window.removeEventListener("click", onPickMesh);
 			};
 
 			// Use setTimeout to defer listener setup
