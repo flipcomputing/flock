@@ -1361,7 +1361,7 @@ export function enableGizmos() {
 	scaleButton.addEventListener("click", () => toggleGizmo("scale"));
 	boundsButton.addEventListener("click", () => toggleGizmo("bounds"));
 	focusButton.addEventListener("click", () => toggleGizmo("focus"));
-	hideButton.addEventListener("click", turnOffAllGizmos);
+	hideButton.addEventListener("click", () => toggleGizmo("select"));
 	showShapesButton.addEventListener("click", showShapes);
 	aboutButton.addEventListener("click", openAboutPage);
 
@@ -1499,13 +1499,37 @@ function toggleGizmo(gizmoType) {
 	gizmoManager.positionGizmoEnabled = false;
 	gizmoManager.rotationGizmoEnabled = false;
 	gizmoManager.scaleGizmoEnabled = false;
-	gizmoManager.boundingBoxGizmoEnabled = false;
+	gizmoManager.attachedMesh.showBoundingBox = false;
+	gizmoManager.boundingBoxGizmoEnabled = false;	
+	
 	gizmoManager.attachableMeshes = flock.scene?.meshes?.filter(
 		(s) => s.name !== "ground",
 	);
 
 	// Enable the selected gizmo
 	switch (gizmoType) {
+		case "select":
+			gizmoManager.selectGizmoEnabled = true;
+			flock.scene.onPointerObservable.add((event) => {
+				if (event.type === flock.BABYLON.PointerEventTypes.POINTERPICK) {
+					const pickedMesh = event.pickInfo.pickedMesh;
+
+					if (pickedMesh) {
+						// Attach the gizmo to the selected mesh
+						gizmoManager.attachToMesh(pickedMesh);
+
+						// Show bounding box for the selected mesh
+						gizmoManager.attachedMesh.showBoundingBox = true;
+					} else {
+						// Deselect if no mesh is picked
+						if (gizmoManager.attachedMesh) {
+							gizmoManager.attachedMesh.showBoundingBox = false;
+							gizmoManager.attachToMesh(null); // Detach the gizmo
+						}
+					}
+				}
+			});
+			break;
 		case "bounds":
 			gizmoManager.boundingBoxGizmoEnabled = true;
 			gizmoManager.boundingBoxDragBehavior.onDragStartObservable.add(
