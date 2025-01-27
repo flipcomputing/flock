@@ -1314,7 +1314,7 @@ export function enableGizmos() {
 	const boundsButton = document.getElementById("boundsButton");
 	const focusButton = document.getElementById("focusButton");
 	const hideButton = document.getElementById("hideButton");
-	//const duplicateButton = document.getElementById("duplicateButton");
+	const duplicateButton = document.getElementById("duplicateButton");
 	const deleteButton = document.getElementById("deleteButton");
 	const showShapesButton = document.getElementById("showShapesButton");
 	const colorPickerButton = document.getElementById("colorPickerButton");
@@ -1346,7 +1346,7 @@ export function enableGizmos() {
 	boundsButton.removeAttribute("disabled");
 	focusButton.removeAttribute("disabled");
 	hideButton.removeAttribute("disabled");
-	//duplicateButton.removeAttribute("disabled");
+	duplicateButton.removeAttribute("disabled");
 	deleteButton.removeAttribute("disabled");
 	showShapesButton.removeAttribute("disabled");
 	colorPickerButton.removeAttribute("disabled");
@@ -1366,7 +1366,7 @@ export function enableGizmos() {
 	boundsButton.addEventListener("click", () => toggleGizmo("bounds"));
 	focusButton.addEventListener("click", () => toggleGizmo("focus"));
 	hideButton.addEventListener("click", () => toggleGizmo("select"));
-	//duplicateButton.addEventListener("click", () => toggleGizmo("duplicate"));
+	duplicateButton.addEventListener("click", () => toggleGizmo("duplicate"));
 	deleteButton.addEventListener("click", () => toggleGizmo("delete"));
 	showShapesButton.addEventListener("click", showShapes);
 	aboutButton.addEventListener("click", openAboutPage);
@@ -1554,16 +1554,125 @@ function toggleGizmo(gizmoType) {
 		(s) => s.name !== "ground",
 	);
 
+	let blockKey, blockId;
+
 	// Enable the selected gizmo
 	switch (gizmoType) {
+			
 		case "delete":
-			console.log(gizmoManager.attachedMesh);
-			let blockKey = findParentWithBlockId(gizmoManager.attachedMesh).blockKey;	
-			let blockId = meshBlockIdMap[blockKey];			
+			blockKey = findParentWithBlockId(gizmoManager.attachedMesh).blockKey;	
+			blockId = meshBlockIdMap[blockKey];			
 			deleteBlockWithUndo(blockId);
 			gizmoManager.attachToMesh(null);
 			break;
 		case "duplicate":
+			blockKey = findParentWithBlockId(gizmoManager.attachedMesh).blockKey;	
+			blockId = meshBlockIdMap[blockKey];			
+console.log("Duplicate");
+			document.body.style.cursor = "crosshair"; // Change cursor to indicate picking mode
+			console.log("Picking");
+			const canvas = flock.scene.getEngine().getRenderingCanvas(); // Get the Babylon.js canvas
+
+			const onPickMesh = function (event) {
+				const canvasRect = canvas.getBoundingClientRect();
+
+				if (
+					event.clientX < canvasRect.left ||
+					event.clientX > canvasRect.right ||
+					event.clientY < canvasRect.top ||
+					event.clientY > canvasRect.bottom
+				) {
+					window.removeEventListener("click", onPickMesh);
+					document.body.style.cursor = "default";
+					return;
+				}
+
+				const canvasX = event.clientX - canvasRect.left;
+				const canvasY = event.clientY - canvasRect.top;
+
+				const pickRay = flock.scene.createPickingRay(
+					canvasX,
+					canvasY,
+					flock.BABYLON.Matrix.Identity(),
+					flock.scene.activeCamera,
+				);
+
+				const pickResult = flock.scene.pickWithRay(
+					pickRay,
+					(mesh) => mesh.isPickable,
+				);
+
+				if (pickResult.hit) {
+					const pickedPosition = pickResult.pickedPoint;
+
+					const x = pickedPosition.x.toFixed(2);
+					const y = pickedPosition.y.toFixed(2);
+					const z = pickedPosition.z.toFixed(2);
+
+					const workspace = Blockly.getMainWorkspace();
+					const originalBlock = workspace.getBlockById(blockId);
+
+					if (originalBlock) {
+						// Serialize the block and its children, including shadows
+						const blockJson = Blockly.serialization.blocks.save(originalBlock, {
+							includeShadows: true, // Include shadow blocks in the duplication
+						});
+
+						// Append the duplicated block and its children
+						const duplicateBlock = Blockly.serialization.blocks.append(blockJson, workspace);
+
+						// Set the X, Y, Z fields of the duplicate
+						// Set the X, Y, Z fields of the duplicate
+						if (duplicateBlock.getInput("X")) {
+							const xInput = duplicateBlock.getInput("X").connection.targetBlock();
+							if (xInput) {
+								xInput.setFieldValue(String(x), "NUM");
+							}
+						}
+
+						if (duplicateBlock.getInput("Y")) {
+							const yInput = duplicateBlock.getInput("Y").connection.targetBlock();
+							if (yInput) {
+								yInput.setFieldValue(String(y), "NUM");
+							}
+						}
+
+						if (duplicateBlock.getInput("Z")) {
+							const zInput = duplicateBlock.getInput("Z").connection.targetBlock();
+							if (zInput) {
+								zInput.setFieldValue(String(z), "NUM");
+							}
+						}
+
+
+						// Connect the new block as the next block
+						if (
+							originalBlock.nextConnection &&
+							duplicateBlock.previousConnection
+						) {
+							originalBlock.nextConnection.connect(duplicateBlock.previousConnection);
+						} else {
+							// If no connection, visually position it
+							duplicateBlock.moveBy(50, 50);
+						}
+
+						// Initialise and render the duplicated block
+						duplicateBlock.initSvg();
+						duplicateBlock.render();
+					}
+				}
+
+				document.body.style.cursor = "default";
+				window.removeEventListener("click", onPickMesh);
+			};
+
+			// Use setTimeout to defer listener setup
+			document.body.style.cursor = "crosshair";
+			setTimeout(() => {
+				window.addEventListener("click", onPickMesh);
+			}, 50);
+
+
 			break;
 		case "select":
 			gizmoManager.selectGizmoEnabled = true;
