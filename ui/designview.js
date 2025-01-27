@@ -1621,30 +1621,9 @@ console.log("Duplicate");
 						// Append the duplicated block and its children
 						const duplicateBlock = Blockly.serialization.blocks.append(blockJson, workspace);
 
-						// Set the X, Y, Z fields of the duplicate
-						// Set the X, Y, Z fields of the duplicate
-						if (duplicateBlock.getInput("X")) {
-							const xInput = duplicateBlock.getInput("X").connection.targetBlock();
-							if (xInput) {
-								xInput.setFieldValue(String(x), "NUM");
-							}
-						}
-
-						if (duplicateBlock.getInput("Y")) {
-							const yInput = duplicateBlock.getInput("Y").connection.targetBlock();
-							if (yInput) {
-								yInput.setFieldValue(String(y), "NUM");
-							}
-						}
-
-						if (duplicateBlock.getInput("Z")) {
-							const zInput = duplicateBlock.getInput("Z").connection.targetBlock();
-							if (zInput) {
-								zInput.setFieldValue(String(z), "NUM");
-							}
-						}
-
-
+						console.log(pickedPosition, duplicateBlock.type);
+						setPositionValues(duplicateBlock, pickedPosition, duplicateBlock.type);
+						
 						// Connect the new block as the next block
 						if (
 							originalBlock.nextConnection &&
