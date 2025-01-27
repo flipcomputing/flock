@@ -1543,7 +1543,7 @@ function deleteBlockWithUndo(blockId) {
 
 
 function toggleGizmo(gizmoType) {
-	if(gizmoManager.attachedMesh.type === "create_ground")
+	if(!gizmoManager.attachedMesh || gizmoManager.attachedMesh.type === "create_ground")
 		return;
 	
 	// Disable all gizmos
@@ -1669,7 +1669,7 @@ console.log("Duplicate");
 				) {
 					const pickedMesh = event.pickInfo.pickedMesh;
 
-					if (pickedMesh) {
+					if (pickedMesh && pickedMesh.name !== "ground" ) {
 						// Attach the gizmo to the selected mesh
 						gizmoManager.attachToMesh(pickedMesh);
 
