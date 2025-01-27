@@ -10,7 +10,7 @@ import {
 
 export let gizmoManager;
 
-const blueColor = BABYLON.Color3.FromHexString("#0072B2");  // Colour for X-axis
+const blueColor = BABYLON.Color3.FromHexString("#0072B2"); // Colour for X-axis
 const greenColor = BABYLON.Color3.FromHexString("#009E73"); // Colour for Y-axis
 const orangeColor = BABYLON.Color3.FromHexString("#D55E00"); // Colour for Z-axis
 
@@ -184,13 +184,15 @@ export function updateMeshFromBlock(mesh, block, changeEvent) {
 
 	let color, modelName, modelId, scale;
 
-	if (!["load_model", "load_multi_object", "load_character"].includes(block.type))
-{
+	if (
+		!["load_model", "load_multi_object", "load_character"].includes(
+			block.type,
+		)
+	) {
 		color = block
 			.getInput("COLOR")
 			.connection.targetBlock()
 			.getFieldValue("COLOR");
-
 	}
 
 	if (block.type.startsWith("load_")) {
@@ -255,7 +257,7 @@ export function updateMeshFromBlock(mesh, block, changeEvent) {
 			}*/
 			console.log("Need to handle update of model");
 			break;
-			case "load_multi_object":
+		case "load_multi_object":
 			console.log("Need to handle update of multi model");
 			break;
 		case "load_character":
@@ -328,7 +330,6 @@ export function updateMeshFromBlock(mesh, block, changeEvent) {
 			break;
 
 		case "create_cylinder":
-
 			// Retrieve height, diameterTop, and diameterBottom from connected blocks
 			const cylinderHeight = block
 				.getInput("HEIGHT")
@@ -398,7 +399,6 @@ export function updateMeshFromBlock(mesh, block, changeEvent) {
 }
 
 function createMeshOnCanvas(block) {
-
 	Blockly.Events.setGroup(true);
 
 	let shapeType = block.type;
@@ -833,8 +833,8 @@ function setPositionValues(block, position, shapeType) {
 
 		case "create_plane":
 			adjustedY += block.getInputTargetBlock("HEIGHT")
-			? block.getInputTargetBlock("HEIGHT").getFieldValue("NUM") / 2
-			: 1;
+				? block.getInputTargetBlock("HEIGHT").getFieldValue("NUM") / 2
+				: 1;
 			break;
 
 		case "load_model":
@@ -1314,7 +1314,8 @@ export function enableGizmos() {
 	const boundsButton = document.getElementById("boundsButton");
 	const focusButton = document.getElementById("focusButton");
 	const hideButton = document.getElementById("hideButton");
-	const duplicateButton = document.getElementById("duplicateButton");
+	//const duplicateButton = document.getElementById("duplicateButton");
+	const deleteButton = document.getElementById("deleteButton");
 	const showShapesButton = document.getElementById("showShapesButton");
 	const colorPickerButton = document.getElementById("colorPickerButton");
 	const aboutButton = document.getElementById("logo");
@@ -1345,7 +1346,8 @@ export function enableGizmos() {
 	boundsButton.removeAttribute("disabled");
 	focusButton.removeAttribute("disabled");
 	hideButton.removeAttribute("disabled");
-	duplicateButton.removeAttribute("disabled");
+	//duplicateButton.removeAttribute("disabled");
+	deleteButton.removeAttribute("disabled");
 	showShapesButton.removeAttribute("disabled");
 	colorPickerButton.removeAttribute("disabled");
 	aboutButton.removeAttribute("disabled");
@@ -1364,7 +1366,8 @@ export function enableGizmos() {
 	boundsButton.addEventListener("click", () => toggleGizmo("bounds"));
 	focusButton.addEventListener("click", () => toggleGizmo("focus"));
 	hideButton.addEventListener("click", () => toggleGizmo("select"));
-	duplicateButton.addEventListener("click", () => toggleGizmo("duplicate"));
+	//duplicateButton.addEventListener("click", () => toggleGizmo("duplicate"));
+	deleteButton.addEventListener("click", () => toggleGizmo("delete"));
 	showShapesButton.addEventListener("click", showShapes);
 	aboutButton.addEventListener("click", openAboutPage);
 
@@ -1497,27 +1500,77 @@ function focusCameraOnMesh() {
 	}
 }
 
+function findParentWithBlockId(mesh) {
+	let currentNode = mesh;
+	while (currentNode) {
+		if (currentNode.blockKey !== undefined) {			
+			return currentNode;
+		}
+		currentNode = currentNode.parent;
+	}
+	
+	return null;
+}
+
+function deleteBlockWithUndo(blockId) {
+	const workspace = Blockly.getMainWorkspace();
+	const block = workspace.getBlockById(blockId);
+	if (block) {
+		// Start a group for undo
+		Blockly.Events.setGroup(true);
+		try {
+			const parentBlock = block.getParent();
+
+			// Check if the parent is of type "start" and has no other children
+			if (
+				parentBlock &&
+				parentBlock.type === 'start' &&
+				parentBlock.getChildren().length === 1
+			) {				
+				parentBlock.dispose(false, true); // Dispose the parent block
+			} else {				
+				block.dispose(false, true); // Dispose the child block
+			}
+		} finally {
+			// End the group for undo
+			Blockly.Events.setGroup(false);
+		}
+	} else {
+		console.log(`Block with id ${blockId} not found.`);
+	}
+}
+
+
 function toggleGizmo(gizmoType) {
 	// Disable all gizmos
 	gizmoManager.positionGizmoEnabled = false;
 	gizmoManager.rotationGizmoEnabled = false;
 	gizmoManager.scaleGizmoEnabled = false;
-	gizmoManager.attachedMesh.showBoundingBox = false;
-	gizmoManager.boundingBoxGizmoEnabled = false;	
-	
+	if(gizmoManager.attachedMesh)
+		gizmoManager.attachedMesh.showBoundingBox = false;
+	gizmoManager.boundingBoxGizmoEnabled = false;
+
 	gizmoManager.attachableMeshes = flock.scene?.meshes?.filter(
 		(s) => s.name !== "ground",
 	);
 
 	// Enable the selected gizmo
 	switch (gizmoType) {
+		case "delete":
+			console.log(gizmoManager.attachedMesh);
+			let blockKey = findParentWithBlockId(gizmoManager.attachedMesh).blockKey;	
+			let blockId = meshBlockIdMap[blockKey];			
+			deleteBlockWithUndo(blockId);
+			gizmoManager.attachToMesh(null);
+			break;
 		case "duplicate":
-
 			break;
 		case "select":
 			gizmoManager.selectGizmoEnabled = true;
 			flock.scene.onPointerObservable.add((event) => {
-				if (event.type === flock.BABYLON.PointerEventTypes.POINTERPICK) {
+				if (
+					event.type === flock.BABYLON.PointerEventTypes.POINTERPICK
+				) {
 					const pickedMesh = event.pickInfo.pickedMesh;
 
 					if (pickedMesh) {
@@ -1619,8 +1672,14 @@ function toggleGizmo(gizmoType) {
 
 		case "position":
 			gizmoManager.positionGizmoEnabled = true;
-			gizmoManager.gizmos.positionGizmo.snapDistance = 0.1;		
-gizmoManager.gizmos.positionGizmo.xGizmo._coloredMaterial.diffuseColor = blueColor;			gizmoManager.gizmos.positionGizmo.yGizmo._coloredMaterial.diffuseColor = 	greenColor;		gizmoManager.gizmos.positionGizmo.zGizmo._coloredMaterial.diffuseColor = 	orangeColor;					gizmoManager.gizmos.positionGizmo.updateGizmoPositionToMatchAttachedMesh = true;
+			gizmoManager.gizmos.positionGizmo.snapDistance = 0.1;
+			gizmoManager.gizmos.positionGizmo.xGizmo._coloredMaterial.diffuseColor =
+				blueColor;
+			gizmoManager.gizmos.positionGizmo.yGizmo._coloredMaterial.diffuseColor =
+				greenColor;
+			gizmoManager.gizmos.positionGizmo.zGizmo._coloredMaterial.diffuseColor =
+				orangeColor;
+			gizmoManager.gizmos.positionGizmo.updateGizmoPositionToMatchAttachedMesh = true;
 			gizmoManager.gizmos.positionGizmo.onDragStartObservable.add(
 				function () {
 					const mesh = gizmoManager.attachedMesh;
@@ -1707,9 +1766,12 @@ gizmoManager.gizmos.positionGizmo.xGizmo._coloredMaterial.diffuseColor = blueCol
 		case "rotation":
 			gizmoManager.rotationGizmoEnabled = true;
 			gizmoManager.gizmos.rotationGizmo.updateGizmoRotationToMatchAttachedMesh = false;
-			gizmoManager.gizmos.rotationGizmo.xGizmo._coloredMaterial.diffuseColor = blueColor;
-			gizmoManager.gizmos.rotationGizmo.yGizmo._coloredMaterial.diffuseColor = greenColor;
-			gizmoManager.gizmos.rotationGizmo.zGizmo._coloredMaterial.diffuseColor = orangeColor;
+			gizmoManager.gizmos.rotationGizmo.xGizmo._coloredMaterial.diffuseColor =
+				blueColor;
+			gizmoManager.gizmos.rotationGizmo.yGizmo._coloredMaterial.diffuseColor =
+				greenColor;
+			gizmoManager.gizmos.rotationGizmo.zGizmo._coloredMaterial.diffuseColor =
+				orangeColor;
 
 			gizmoManager.gizmos.rotationGizmo.onDragStartObservable.add(
 				function () {
@@ -1861,9 +1923,12 @@ gizmoManager.gizmos.positionGizmo.xGizmo._coloredMaterial.diffuseColor = blueCol
 			break;
 		case "scale":
 			gizmoManager.scaleGizmoEnabled = true;
-			gizmoManager.gizmos.scaleGizmo.xGizmo._coloredMaterial.diffuseColor = blueColor;
-			gizmoManager.gizmos.scaleGizmo.yGizmo._coloredMaterial.diffuseColor = greenColor;
-			gizmoManager.gizmos.scaleGizmo.zGizmo._coloredMaterial.diffuseColor = orangeColor;
+			gizmoManager.gizmos.scaleGizmo.xGizmo._coloredMaterial.diffuseColor =
+				blueColor;
+			gizmoManager.gizmos.scaleGizmo.yGizmo._coloredMaterial.diffuseColor =
+				greenColor;
+			gizmoManager.gizmos.scaleGizmo.zGizmo._coloredMaterial.diffuseColor =
+				orangeColor;
 			gizmoManager.gizmos.scaleGizmo.onDragStartObservable.add(
 				function () {
 					const mesh = gizmoManager.attachedMesh;
@@ -2048,7 +2113,6 @@ function updateBlockColorAndHighlight(mesh, selectedColor) {
 				mesh.parent ? ultimateParent(mesh.parent) : mesh;
 
 			block = meshMap[ultimateParent(mesh).blockKey];
-
 		}
 
 		if (!block) {
@@ -2076,7 +2140,6 @@ function updateBlockColorAndHighlight(mesh, selectedColor) {
 export function setGizmoManager(value) {
 	gizmoManager = value;
 }
-
 
 export function disposeGizmoManager() {
 	if (gizmoManager) {
