@@ -2045,41 +2045,6 @@ function updateBlockColorAndHighlight(mesh, selectedColor) {
 
 export function setGizmoManager(value) {
 	gizmoManager = value;
-
-	console.log("Gizmo manager set", gizmoManager);
-
-	
-
-	if (gizmoManager) {
-		// Get the gizmos for position, rotation, and scale
-		const positionGizmo = gizmoManager.gizmos.positionGizmo;
-		const rotationGizmo = gizmoManager.gizmos.rotationGizmo;
-		const scaleGizmo = gizmoManager.gizmos.scaleGizmo;
-
-		// Update diffuse colours for position gizmo if available
-		if (positionGizmo) {
-			console.log(positionGizmo);
-			if (positionGizmo.xGizmo) positionGizmo.xGizmo._coloredMaterial.diffuseColor = blueColor;
-			if (positionGizmo.yGizmo) positionGizmo.yGizmo._coloredMaterial.diffuseColor = orangeColor;
-			if (positionGizmo.zGizmo) positionGizmo.zGizmo._coloredMaterial.diffuseColor = greenColor;
-		}
-
-		// Update diffuse colours for rotation gizmo if available
-		if (rotationGizmo) {
-			if (rotationGizmo.xGizmo) rotationGizmo.xGizmo._coloredMaterial.diffuseColor = blueColor;
-			if (rotationGizmo.yGizmo) rotationGizmo.yGizmo._coloredMaterial.diffuseColor = orangeColor;
-			if (rotationGizmo.zGizmo) rotationGizmo.zGizmo._coloredMaterial.diffuseColor = greenColor;
-		}
-
-		// Update diffuse colours for scale gizmo if available
-		if (scaleGizmo) {
-			if (scaleGizmo.xGizmo) scaleGizmo.xGizmo._coloredMaterial.diffuseColor = blueColor;
-			if (scaleGizmo.yGizmo) scaleGizmo.yGizmo._coloredMaterial.diffuseColor = orangeColor;
-			if (scaleGizmo.zGizmo) scaleGizmo.zGizmo._coloredMaterial.diffuseColor = greenColor;
-		}
-	} else {
-		console.warn("Gizmo manager is not defined");
-	}
 }
 
 
