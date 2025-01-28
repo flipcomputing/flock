@@ -163,7 +163,7 @@
 						"type": "math_number",
 						"id": "/43%L]$Z#oxyej7R0eq:",
 						"fields": {
-						  "NUM": 0.75
+						  "NUM": 1
 						}
 					  }
 					},
@@ -3854,7 +3854,7 @@
 	{
 	  "name": "cylinder4",
 	  "id": "zajp7W},#zh-I6~Ea21,"
-	},
+	},0
 	{
 	  "name": "cylinder5",
 	  "id": "b*?w$oS*j#Y7za}WOmZW"

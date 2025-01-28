@@ -160,7 +160,7 @@
                                   },
                                   "inputs": {
                                     "SCALE": {
-                                      "shadow": {
+                                      "shadow": {                     
                                         "type": "math_number",
                                         "id": "zv9FFhATyh!~sT.6R#Br",
                                         "fields": {
@@ -711,7 +711,7 @@
                         "type": "math_number",
                         "id": "/43%L]$Z#oxyej7R0eq:",
                         "fields": {
-                          "NUM": 0.75
+                          "NUM": 1
                         }
                       }
                     },
@@ -1706,7 +1706,7 @@
     {
       "name": "sphere1",
       "id": ";=S{E5yiS?;a*J1^H+d6"
-    },
+    },sca
     {
       "name": "box1",
       "id": "#SFE@]|O6z;yVc$U}N*E"

@@ -8,7 +8,7 @@
 		"x": 10,
 		"y": 10,
 		"inputs": {
-		  "DO": {
+		  "DO": {sca
 			"block": {
 			  "type": "set_sky_color",
 			  "id": "LvX7C$m$;68`G_Qvq=pL",
@@ -751,7 +751,7 @@
 						"type": "math_number",
 						"id": "/43%L]$Z#oxyej7R0eq:",
 						"fields": {
-						  "NUM": 0.75
+						  "NUM": 1
 						}
 					  }
 					},
