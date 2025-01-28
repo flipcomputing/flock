@@ -847,7 +847,8 @@ function setPositionValues(block, position, shapeType) {
 			console.log("Adjusting y");
 			// Adjust Y based on SCALE input
 			adjustedY += block.getInputTargetBlock("SCALE")
-				? 0.5 + block.getInputTargetBlock("SCALE").getFieldValue("NUM") / 2
+				? 0.5 +
+					block.getInputTargetBlock("SCALE").getFieldValue("NUM") / 2
 				: 1;
 			break;
 
@@ -1504,12 +1505,12 @@ function focusCameraOnMesh() {
 function findParentWithBlockId(mesh) {
 	let currentNode = mesh;
 	while (currentNode) {
-		if (currentNode.blockKey !== undefined) {			
+		if (currentNode.blockKey !== undefined) {
 			return currentNode;
 		}
 		currentNode = currentNode.parent;
 	}
-	
+
 	return null;
 }
 
@@ -1525,11 +1526,11 @@ function deleteBlockWithUndo(blockId) {
 			// Check if the parent is of type "start" and has no other children
 			if (
 				parentBlock &&
-				parentBlock.type === 'start' &&
+				parentBlock.type === "start" &&
 				parentBlock.getChildren().length === 1
-			) {				
+			) {
 				parentBlock.dispose(false, true); // Dispose the parent block
-			} else {				
+			} else {
 				block.dispose(false, true); // Dispose the child block
 			}
 		} finally {
@@ -1541,20 +1542,20 @@ function deleteBlockWithUndo(blockId) {
 	}
 }
 
-
 function toggleGizmo(gizmoType) {
-	if(!gizmoManager.attachedMesh || gizmoManager.attachedMesh.type === "create_ground")
-		return;
-	
+
 	// Disable all gizmos
 	gizmoManager.positionGizmoEnabled = false;
 	gizmoManager.rotationGizmoEnabled = false;
 	gizmoManager.scaleGizmoEnabled = false;
-	if(gizmoManager.attachedMesh)
+	if (gizmoManager.attachedMesh)	
+	{
 		gizmoManager.attachedMesh.showBoundingBox = false;
+		console.log(gizmoManager.attachedMesh.showBoundingBox);
+	}
+	
 	gizmoManager.boundingBoxGizmoEnabled = false;
 	document.body.style.cursor = "default";
-	
 
 	gizmoManager.attachableMeshes = flock.scene?.meshes?.filter(
 		(s) => s.name !== "ground",
@@ -1564,17 +1565,21 @@ function toggleGizmo(gizmoType) {
 
 	// Enable the selected gizmo
 	switch (gizmoType) {
-			
 		case "delete":
-			blockKey = findParentWithBlockId(gizmoManager.attachedMesh).blockKey;	
-			blockId = meshBlockIdMap[blockKey];			
+			blockKey = findParentWithBlockId(
+				gizmoManager.attachedMesh,
+			).blockKey;
+			blockId = meshBlockIdMap[blockKey];
+
 			deleteBlockWithUndo(blockId);
 			gizmoManager.attachToMesh(null);
 			break;
 		case "duplicate":
-			blockKey = findParentWithBlockId(gizmoManager.attachedMesh).blockKey;	
-			blockId = meshBlockIdMap[blockKey];			
-console.log("Duplicate");
+			blockKey = findParentWithBlockId(
+				gizmoManager.attachedMesh,
+			).blockKey;
+			blockId = meshBlockIdMap[blockKey];
+			console.log("Duplicate");
 			document.body.style.cursor = "crosshair"; // Change cursor to indicate picking mode
 			console.log("Picking");
 			const canvas = flock.scene.getEngine().getRenderingCanvas(); // Get the Babylon.js canvas
@@ -1620,26 +1625,39 @@ console.log("Duplicate");
 
 					if (originalBlock) {
 						// Serialize the block and its children, including shadows
-						const blockJson = Blockly.serialization.blocks.save(originalBlock, {
-							includeShadows: true, // Include shadow blocks in the duplication
-						});
+						const blockJson = Blockly.serialization.blocks.save(
+							originalBlock,
+							{
+								includeShadows: true, // Include shadow blocks in the duplication
+							},
+						);
 
 						// Remove the "next" connection from the serialized JSON
 						if (blockJson.next) {
 							delete blockJson.next;
 						}
 						// Append the duplicated block and its children
-						const duplicateBlock = Blockly.serialization.blocks.append(blockJson, workspace);
+						const duplicateBlock =
+							Blockly.serialization.blocks.append(
+								blockJson,
+								workspace,
+							);
 
 						console.log(pickedPosition, duplicateBlock.type);
-						setPositionValues(duplicateBlock, pickedPosition, duplicateBlock.type);
-						
+						setPositionValues(
+							duplicateBlock,
+							pickedPosition,
+							duplicateBlock.type,
+						);
+
 						// Connect the new block as the next block
 						if (
 							originalBlock.nextConnection &&
 							duplicateBlock.previousConnection
 						) {
-							originalBlock.nextConnection.connect(duplicateBlock.previousConnection);
+							originalBlock.nextConnection.connect(
+								duplicateBlock.previousConnection,
+							);
 						} else {
 							// If no connection, visually position it
 							duplicateBlock.moveBy(50, 50);
@@ -1650,7 +1668,6 @@ console.log("Duplicate");
 						duplicateBlock.render();
 					}
 				}
-
 			};
 
 			// Use setTimeout to defer listener setup
@@ -1659,20 +1676,34 @@ console.log("Duplicate");
 				window.addEventListener("click", onPickMesh);
 			}, 50);
 
-
 			break;
 		case "select":
-			gizmoManager.selectGizmoEnabled = true;
+			console.log("Select gizmo");
+			gizmoManager.selectGizmoEnabled = true;		
 			flock.scene.onPointerObservable.add((event) => {
 				if (
 					event.type === flock.BABYLON.PointerEventTypes.POINTERPICK
 				) {
+					console.log("Picking");
+					if (gizmoManager.attachedMesh)
+					{
+
+						console.log("Deselecting");
+						const oldSelection =gizmoManager.attachedMesh;
+						gizmoManager.attachToMesh(null);
+						
+						oldSelection.showBoundingBox = false;
+
+							console.log("Remove bounding box", oldSelection);
+					
+					}
 					const pickedMesh = event.pickInfo.pickedMesh;
 
-					if (pickedMesh && pickedMesh.name !== "ground" ) {
-						// Attach the gizmo to the selected mesh
+					if (pickedMesh && pickedMesh.name !== "ground") {
+						// Attach the gizmo to the selected mes
+										
 						gizmoManager.attachToMesh(pickedMesh);
-
+						console.log("Attaching", gizmoManager.attachedMesh);
 						// Show bounding box for the selected mesh
 						gizmoManager.attachedMesh.showBoundingBox = true;
 					} else {
