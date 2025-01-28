@@ -1542,19 +1542,20 @@ function deleteBlockWithUndo(blockId) {
 	}
 }
 
-function toggleGizmo(gizmoType) {
 
+
+function toggleGizmo(gizmoType) {
 	// Disable all gizmos
 	gizmoManager.positionGizmoEnabled = false;
 	gizmoManager.rotationGizmoEnabled = false;
 	gizmoManager.scaleGizmoEnabled = false;
-	if (gizmoManager.attachedMesh)	
-	{
+	gizmoManager.boundingBoxGizmoEnabled = false;
+
+	if (gizmoManager.attachedMesh) {
 		gizmoManager.attachedMesh.showBoundingBox = false;
 		console.log(gizmoManager.attachedMesh.showBoundingBox);
 	}
-	
-	gizmoManager.boundingBoxGizmoEnabled = false;
+
 	document.body.style.cursor = "default";
 
 	gizmoManager.attachableMeshes = flock.scene?.meshes?.filter(
@@ -1679,31 +1680,27 @@ function toggleGizmo(gizmoType) {
 			break;
 		case "select":
 			console.log("Select gizmo");
-			gizmoManager.selectGizmoEnabled = true;		
+			gizmoManager.selectGizmoEnabled = true;
 			flock.scene.onPointerObservable.add((event) => {
 				if (
 					event.type === flock.BABYLON.PointerEventTypes.POINTERPICK
 				) {
 					console.log("Picking");
-					if (gizmoManager.attachedMesh)
-					{
 
+					if (gizmoManager.attachedMesh) {
+						console.log("Old", gizmoManager.attachedMesh.blockKey);
 						console.log("Deselecting");
-						const oldSelection =gizmoManager.attachedMesh;
-						gizmoManager.attachToMesh(null);
-						
-						oldSelection.showBoundingBox = false;
+						gizmoManager.attachedMesh.showBoundingBox = false;
 
-							console.log("Remove bounding box", oldSelection);
-					
+						
 					}
 					const pickedMesh = event.pickInfo.pickedMesh;
 
 					if (pickedMesh && pickedMesh.name !== "ground") {
-						// Attach the gizmo to the selected mes
-										
+						// Attach the gizmo to the selected mesh
+						console.log("New", pickedMesh.blockKey);
 						gizmoManager.attachToMesh(pickedMesh);
-						console.log("Attaching", gizmoManager.attachedMesh);
+
 						// Show bounding box for the selected mesh
 						gizmoManager.attachedMesh.showBoundingBox = true;
 					} else {
@@ -2266,6 +2263,13 @@ function updateBlockColorAndHighlight(mesh, selectedColor) {
 
 export function setGizmoManager(value) {
 	gizmoManager = value;
+
+	const originalAttach = gizmoManager.attachToMesh.bind(gizmoManager);
+	gizmoManager.attachToMesh = (mesh) => {
+		if(gizmoManager.attachedMesh)
+			gizmoManager.attachedMesh.showBoundingBox = false;
+		originalAttach(mesh);
+	};
 }
 
 export function disposeGizmoManager() {
