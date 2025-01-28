@@ -1222,9 +1222,13 @@ export const flock = {
 	},
 	applyColorToMaterial(part, materialName, color) {
 		if (part.material && part.material.name === materialName) {
-			part.material.albedoColor = flock.BABYLON.Color3.FromHexString(
+
+			part.material.diffuseColor = flock.BABYLON.Color3.FromHexString(
 				flock.getColorFromString(color),
 			);
+			part.material.albedoColor = flock.BABYLON.Color3.FromHexString(
+				flock.getColorFromString(color),
+			);		
 		}
 		part.getChildMeshes().forEach((child) => {
 			flock.applyColorToMaterial(child, materialName, color);
@@ -1293,6 +1297,9 @@ export const flock = {
 					z,
 				);
 
+				
+				if(modelName.startsWith("Character"))
+	flock.ensureStandardMaterial(mesh);
 				flock.applyColorsToCharacter(mesh, colors);
 
 				const descendants = mesh.getChildMeshes(false);
@@ -3100,8 +3107,8 @@ export const flock = {
 
 		// Initialise the mesh with position, color, and other properties
 		flock.initializeMesh(newCylinder, position, color, "Cylinder", alpha);
-		newCylinder.blockKey = blockKey; 
-		
+		newCylinder.blockKey = blockKey;
+
 		// Create and apply physics shape
 		const startPoint = new flock.BABYLON.Vector3(0, -height / 2, 0);
 		const endPoint = new flock.BABYLON.Vector3(0, height / 2, 0);
