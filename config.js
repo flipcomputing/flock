@@ -86,6 +86,7 @@ export const multiObjectNames = [
 	"hut2.glb",
 	"hut3.glb",
 	"hut4.glb",
+	"tree.glb",
 ];
 
 export const objectNames = [
