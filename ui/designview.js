@@ -1682,6 +1682,7 @@ function toggleGizmo(gizmoType) {
 
 			break;
 		case "select":		
+			console.log("Select", meshBlockIdMap);
 			gizmoManager.selectGizmoEnabled = true;
 			flock.scene.onPointerObservable.add((event) => {
 				if (
@@ -1700,6 +1701,8 @@ function toggleGizmo(gizmoType) {
 
 						// Show bounding box for the selected mesh
 						gizmoManager.attachedMesh.showBoundingBox = true;
+
+						console.log("Selected", gizmoManager.attachedMesh.blockKey);
 					} else {
 						// Deselect if no mesh is picked
 						if (gizmoManager.attachedMesh) {
@@ -1833,6 +1836,8 @@ function toggleGizmo(gizmoType) {
 					mesh.computeWorldMatrix(true);
 
 					const block = meshMap[mesh.blockKey];
+
+					console.log("Positioning block", block, meshMap);
 
 					let meshY = mesh.position.y;
 

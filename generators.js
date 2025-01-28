@@ -1128,14 +1128,14 @@ export function defineGenerators() {
 		);
 
 		const meshId = `${variableName}`;
-		meshMap[meshId] = block;
-		meshBlockIdMap[meshId] = block.id;
+		meshMap[block.id] = block;
+		meshBlockIdMap[block.id] = block.id;
 
 		const doCode = block.getInput("DO")
 			? javascriptGenerator.statementToCode(block, "DO") || ""
 			: "";
 
-		return `${variableName} = create${meshType}("${meshId}", ${params.join(", ")}, ${position});\n${doCode}\n`;
+		return `${variableName} = create${meshType}("${meshId}__${block.id}", ${params.join(", ")}, ${position});\n${doCode}\n`;
 	}
 
 	function getPositionTuple(block) {

@@ -12,6 +12,7 @@ import "@fontsource/asap";
 import "@fontsource/asap/500.css";
 import "@fontsource/asap/600.css";
 import earcut from "earcut";
+import { meshBlockIdMap } from "./generators";
 
 // Helper functions to make flock.BABYLON js easier to use in Flock
 console.log("Flock helpers loading");
@@ -1122,7 +1123,9 @@ export const flock = {
 				meshes.push(node);
 			}
 			if (node.getChildren) {
-				node.getChildren().forEach((child) => collectMeshes(child, meshes));
+				node.getChildren().forEach((child) =>
+					collectMeshes(child, meshes),
+				);
 			}
 			return meshes;
 		};
@@ -1144,7 +1147,9 @@ export const flock = {
 				}
 
 				// Assign the cloned material to the current mesh
-				currentMesh.material = materialMapping.get(currentMesh.material);
+				currentMesh.material = materialMapping.get(
+					currentMesh.material,
+				);
 				currentMesh.metadata.sharedMaterial = false; // Material is now unique to this hierarchy
 			}
 		});
@@ -1330,7 +1335,6 @@ export const flock = {
 					const originalName = material.name;
 					const newMaterial = defaultMaterial.clone(originalName);
 					replacedMaterialsMap.set(material, newMaterial);
-					
 				}
 
 				// Assign the replaced material to the mesh
@@ -1347,7 +1351,6 @@ export const flock = {
 
 		// Dispose of all replaced materials
 		replacedMaterialsMap.forEach((newMaterial, oldMaterial) => {
-			
 			oldMaterial.dispose();
 		});
 	},
@@ -2805,6 +2808,12 @@ export const flock = {
 		mesh.setVerticesData(BABYLON.VertexBuffer.UVKind, uvs, true);
 	},
 	createBox(boxId, color, width, height, depth, position, alpha = 1) {
+		let blockKey = boxId;
+
+		if (boxId.includes("__")) {
+			[boxId, blockKey] = boxId.split("__");
+		}
+
 		if (flock.scene.getMeshByName(boxId)) {
 			boxId = boxId + "_" + flock.scene.getUniqueId();
 		}
@@ -2827,6 +2836,7 @@ export const flock = {
 
 		// Initialise the mesh with position, color, and other properties
 		flock.initializeMesh(newBox, position, color, "Box", alpha);
+		newBox.blockKey = blockKey;
 
 		// Define and apply the physics shape
 		const boxShape = new flock.BABYLON.PhysicsShapeBox(
@@ -2874,6 +2884,12 @@ export const flock = {
 		position,
 		alpha = 1,
 	) {
+		let blockKey = sphereId;
+
+		if (sphereId.includes("__")) {
+			[sphereId, blockKey] = sphereId.split("__");
+		}
+
 		if (flock.scene.getMeshByName(sphereId)) {
 			sphereId = sphereId + "_" + flock.scene.getUniqueId();
 		}
@@ -2896,6 +2912,7 @@ export const flock = {
 		flock.setSphereUVs(newSphere, diameterX, diameterY, diameterZ, 1);
 		// Initialise the mesh with position, color, and other properties
 		flock.initializeMesh(newSphere, position, color, "Sphere", alpha);
+		newSphere.blockKey = blockKey;
 
 		// Define and apply the physics shape
 		const sphereShape = new flock.BABYLON.PhysicsShapeSphere(
@@ -3053,6 +3070,12 @@ export const flock = {
 			updatable: true,
 		};
 
+		let blockKey = cylinderId;
+
+		if (cylinderId.includes("__")) {
+			[cylinderId, blockKey] = cylinderId.split("__");
+		}
+
 		if (flock.scene.getMeshByName(cylinderId)) {
 			cylinderId = cylinderId + "_" + flock.scene.getUniqueId();
 		}
@@ -3077,7 +3100,8 @@ export const flock = {
 
 		// Initialise the mesh with position, color, and other properties
 		flock.initializeMesh(newCylinder, position, color, "Cylinder", alpha);
-
+		newCylinder.blockKey = blockKey; 
+		
 		// Create and apply physics shape
 		const startPoint = new flock.BABYLON.Vector3(0, -height / 2, 0);
 		const endPoint = new flock.BABYLON.Vector3(0, height / 2, 0);
@@ -3137,6 +3161,12 @@ export const flock = {
 		mesh.setVerticesData(BABYLON.VertexBuffer.UVKind, uvs, true);
 	},
 	createCapsule(capsuleId, color, radius, height, position, alpha = 1) {
+		let blockKey = capsuleId;
+
+		if (capsuleId.includes("__")) {
+			[capsuleId, blockKey] = capsuleId.split("__");
+		}
+
 		const dimensions = {
 			radius,
 			height,
@@ -3161,6 +3191,7 @@ export const flock = {
 
 		// Initialise the mesh with position, color, and other properties
 		flock.initializeMesh(newCapsule, position, color, "Capsule", alpha);
+		newCapsule.blockKey = blockKey;
 
 		flock.setCapsuleUVs(newCapsule, radius, height, 1); // Adjust texturePhysicalSize as needed
 
@@ -3229,6 +3260,12 @@ export const flock = {
 			flock.scene,
 		);
 
+		let blockKey = planeId;
+
+		if (planeId.includes("__")) {
+			[planeId, blockKey] = planeId.split("__");
+		}
+
 		newPlane.metadata = newPlane.metadata || {}; //
 		newPlane.metadata.shape = "plane"; // Add or update the type property
 		newPlane.blockKey = newPlane.name;
@@ -3273,6 +3310,7 @@ export const flock = {
 			flock.getColorFromString(color),
 		);
 		newPlane.material = material;
+		newPlane.blockKey = blockKey;
 
 		return newPlane.name;
 	},
@@ -5219,10 +5257,8 @@ export const flock = {
 			flock.changeColorMesh(mesh, color);
 		});
 	},
-	changeColorMesh(mesh, color, unique=true) {
-
-		if(unique)
-			flock.ensureUniqueMaterial(mesh);
+	changeColorMesh(mesh, color, unique = true) {
+		if (unique) flock.ensureUniqueMaterial(mesh);
 
 		// Ensure color is an array
 		const colors = Array.isArray(color) ? color : [color];
@@ -5236,26 +5272,28 @@ export const flock = {
 				// Check if the material is already processed
 				if (!materialToColorMap.has(part.material)) {
 					const hexColor = flock.getColorFromString(
-						colors[colorIndex % colors.length]
+						colors[colorIndex % colors.length],
 					);
-					const babylonColor = flock.BABYLON.Color3.FromHexString(hexColor);
+					const babylonColor =
+						flock.BABYLON.Color3.FromHexString(hexColor);
 
 					// Apply the colour to the material
 					if (part.material.diffuseColor !== undefined) {
 						part.material.diffuseColor = babylonColor;
 					} else {
-						part.material.albedoColor = babylonColor.toLinearSpace();
-						part.material.emissiveColor = babylonColor.toLinearSpace();
+						part.material.albedoColor =
+							babylonColor.toLinearSpace();
+						part.material.emissiveColor =
+							babylonColor.toLinearSpace();
 						part.material.emissiveIntensity = 0.1;
 					}
 
 					// Map the material to the colour and log the assignment
 					materialToColorMap.set(part.material, hexColor);
-					
+
 					colorIndex++;
 				} else {
 					// Material already processed, log the reuse
-					
 				}
 			}
 
@@ -5273,12 +5311,13 @@ export const flock = {
 		if (materialToColorMap.size === 0) {
 			const material = new flock.BABYLON.StandardMaterial(
 				"meshMaterial",
-				flock.scene
+				flock.scene,
 			);
-			material.diffuseColor = flock.BABYLON.Color3.FromHexString(colors[0]);
+			material.diffuseColor = flock.BABYLON.Color3.FromHexString(
+				colors[0],
+			);
 			material.backFaceCulling = false;
 			mesh.material = material;
-			
 		}
 
 		try {
@@ -5295,7 +5334,6 @@ export const flock = {
 		});
 	},
 	changeMaterialMesh(mesh, materialName, texturePath, color, alpha = 1) {
-		
 		flock.ensureUniqueMaterial(mesh);
 
 		// Create a new material
@@ -5982,85 +6020,106 @@ export const flock = {
 		flock.printText("XR Mode!", 5, "white");
 	},
 	updateDynamicMeshPositions(scene, dynamicMeshes) {
-			const maxSlopeAngle = Math.PI / 4; // 45 degrees maximum slope
-			const jumpThreshold = 0.2; // Small distance to detect ground proximity
-			const upwardForceLimit = 5; // Clamp upward velocity
+		const maxSlopeAngle = Math.PI / 4; // 45 degrees maximum slope
+		const jumpThreshold = 0.2; // Small distance to detect ground proximity
+		const upwardForceLimit = 5; // Clamp upward velocity
 
-			scene.onBeforeRenderObservable.add(() => {
-				dynamicMeshes.forEach((mesh) => {
-					if (!mesh.physics) {
-						//console.log(`Mesh ${mesh.name} has no physics object.`);
-						return;
-					}
+		scene.onBeforeRenderObservable.add(() => {
+			dynamicMeshes.forEach((mesh) => {
+				if (!mesh.physics) {
+					//console.log(`Mesh ${mesh.name} has no physics object.`);
+					return;
+				}
 
-					const physics = mesh.physics;
-					const velocity = physics.getLinearVelocity();
+				const physics = mesh.physics;
+				const velocity = physics.getLinearVelocity();
 
-					// Ground detection using raycast
-					const boundingInfo = mesh.getBoundingInfo();
-					const rayOrigin = new flock.BABYLON.Vector3(
-						boundingInfo.boundingBox.centerWorld.x,
-						boundingInfo.boundingBox.minimumWorld.y - 0.1,
-						boundingInfo.boundingBox.centerWorld.z
+				// Ground detection using raycast
+				const boundingInfo = mesh.getBoundingInfo();
+				const rayOrigin = new flock.BABYLON.Vector3(
+					boundingInfo.boundingBox.centerWorld.x,
+					boundingInfo.boundingBox.minimumWorld.y - 0.1,
+					boundingInfo.boundingBox.centerWorld.z,
+				);
+
+				const ray = new flock.BABYLON.Ray(
+					rayOrigin,
+					flock.BABYLON.Vector3.Down(),
+					2,
+				);
+				const hit = scene.pickWithRay(ray);
+
+				const isGrounded =
+					hit.pickedMesh && hit.distance < jumpThreshold;
+
+				if (isGrounded) {
+					mesh.isJumping = false; // Reset jumping state
+					//console.log(`[${mesh.name}] Grounded. Resetting jumping state.`);
+				} else if (velocity.y > 0) {
+					mesh.isJumping = true; // Only set jumping if moving upward
+					//console.log(`[${mesh.name}] Jumping.`);
+				}
+
+				// Skip corrections while jumping
+				if (mesh.isJumping) {
+					return;
+				}
+
+				if (isGrounded && hit.getNormal(true)) {
+					const groundNormal = hit.getNormal(true);
+					const slopeAngle = Math.acos(
+						flock.BABYLON.Vector3.Dot(
+							groundNormal,
+							flock.BABYLON.Vector3.Up(),
+						),
 					);
 
-					const ray = new flock.BABYLON.Ray(rayOrigin, flock.BABYLON.Vector3.Down(), 2);
-					const hit = scene.pickWithRay(ray);
+					//console.log(`[${mesh.name}] Slope Angle: ${(slopeAngle * 180) / Math.PI} degrees`);
 
-					const isGrounded = hit.pickedMesh && hit.distance < jumpThreshold;
-
-					if (isGrounded) {
-						mesh.isJumping = false; // Reset jumping state
-						//console.log(`[${mesh.name}] Grounded. Resetting jumping state.`);
-					} else if (velocity.y > 0) {
-						mesh.isJumping = true; // Only set jumping if moving upward
-						//console.log(`[${mesh.name}] Jumping.`);
-					}
-
-					// Skip corrections while jumping
-					if (mesh.isJumping) {
-						return;
-					}
-
-					if (isGrounded && hit.getNormal(true)) {
-						const groundNormal = hit.getNormal(true);
-						const slopeAngle = Math.acos(
-							flock.BABYLON.Vector3.Dot(groundNormal, flock.BABYLON.Vector3.Up())
+					if (slopeAngle <= maxSlopeAngle) {
+						flock.handleSlopeMovement(
+							mesh,
+							physics,
+							velocity,
+							groundNormal,
 						);
-
-						//console.log(`[${mesh.name}] Slope Angle: ${(slopeAngle * 180) / Math.PI} degrees`);
-
-						if (slopeAngle <= maxSlopeAngle) {
-							flock.handleSlopeMovement(mesh, physics, velocity, groundNormal);
-						} else {
-							//console.log(`[${mesh.name}] Slope too steep. Stopping upward motion.`);
-							physics.setLinearVelocity(
-								new flock.BABYLON.Vector3(velocity.x, Math.min(0, velocity.y), velocity.z)
-							);
-						}
 					} else {
-						//console.log(`[${mesh.name}] No ground detected.`);
+						//console.log(`[${mesh.name}] Slope too steep. Stopping upward motion.`);
+						physics.setLinearVelocity(
+							new flock.BABYLON.Vector3(
+								velocity.x,
+								Math.min(0, velocity.y),
+								velocity.z,
+							),
+						);
 					}
-				});
+				} else {
+					//console.log(`[${mesh.name}] No ground detected.`);
+				}
 			});
-		},
-		handleSlopeMovement(mesh, physics, velocity, groundNormal) {
-			// Adjust velocity to follow the slope
-			const slopeDirection = new flock.BABYLON.Vector3(velocity.x, 0, velocity.z).normalize();
-			const adjustedDirection = slopeDirection.add(groundNormal).normalize();
-			const adjustedVelocity = adjustedDirection.scale(velocity.length());
+		});
+	},
+	handleSlopeMovement(mesh, physics, velocity, groundNormal) {
+		// Adjust velocity to follow the slope
+		const slopeDirection = new flock.BABYLON.Vector3(
+			velocity.x,
+			0,
+			velocity.z,
+		).normalize();
+		const adjustedDirection = slopeDirection.add(groundNormal).normalize();
+		const adjustedVelocity = adjustedDirection.scale(velocity.length());
 
-	//console.log(`[${mesh.name}] Adjusted Velocity:`, adjustedVelocity);
+		//console.log(`[${mesh.name}] Adjusted Velocity:`, adjustedVelocity);
 
-			// Apply adjusted velocity
-			physics.setLinearVelocity(
-				new flock.BABYLON.Vector3(
-					adjustedVelocity.x,
-					Math.min(5, velocity.y), // Clamp upward force
-					adjustedVelocity.z
-				)
-			);
-		},
+		// Apply adjusted velocity
+		physics.setLinearVelocity(
+			new flock.BABYLON.Vector3(
+				adjustedVelocity.x,
+				Math.min(5, velocity.y), // Clamp upward force
+				adjustedVelocity.z,
+			),
+		);
+	},
 	updateDynamicMeshPositions2(scene, dynamicMeshes) {
 		scene.onBeforeRenderObservable.add(() => {
 			dynamicMeshes.forEach((mesh) => {
