@@ -1598,8 +1598,11 @@ export function defineBlocks() {
 		  if (
 			changeEvent.type === Blockly.Events.BLOCK_CHANGE &&
 			changeEvent.element === "field" &&
-			changeEvent.name === "MODELS"
+			changeEvent.name === "MODELS"  &&
+			  changeEvent.blockId === this.id
 		  ) {
+
+			  
 			const blockInWorkspace =
 			  Blockly.getMainWorkspace().getBlockById(this.id); // Check if block is in the main workspace
 
