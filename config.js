@@ -81,12 +81,11 @@ export const characterNames = [
 ];
 
 export const multiObjectNames = [
-	"tree_fat.glb",
+	"tree.glb",
 	"hut.glb",
 	"hut2.glb",
 	"hut3.glb",
 	"hut4.glb",
-	"tree.glb",
 ];
 
 export const objectNames = [
@@ -117,17 +116,7 @@ export const modelNames = [
 	"Flock.glb",
 	"Character.glb",
 	//"bird.glb",
-	"tree_fat.glb",
-	"tree_fat_fall.glb",
-	"tree_fat_darkh.glb",
 	"boat.glb",
-	"Cat.glb",
-	"Monkey.glb",
-	"Person.glb",
-	"hut.glb",
-	"hut2.glb",
-	"hut3.glb",
-	"hut4.glb",
 ];
 
 export const mapNames = [
