@@ -844,7 +844,7 @@ function setPositionValues(block, position, shapeType) {
 			break;
 
 		case "load_object":
-			console.log("Adjusting y");
+			//console.log("Adjusting y");
 			// Adjust Y based on SCALE input
 			adjustedY += block.getInputTargetBlock("SCALE")
 				? 0.5 +
@@ -1316,8 +1316,8 @@ export function enableGizmos() {
 	const boundsButton = document.getElementById("boundsButton");
 	const focusButton = document.getElementById("focusButton");
 	const hideButton = document.getElementById("hideButton");
-	const duplicateButton = document.getElementById("duplicateButton");
-	const deleteButton = document.getElementById("deleteButton");
+	//const duplicateButton = document.getElementById("duplicateButton");
+	//const deleteButton = document.getElementById("deleteButton");
 	const showShapesButton = document.getElementById("showShapesButton");
 	const colorPickerButton = document.getElementById("colorPickerButton");
 	const aboutButton = document.getElementById("logo");
@@ -1348,8 +1348,8 @@ export function enableGizmos() {
 	boundsButton.removeAttribute("disabled");
 	focusButton.removeAttribute("disabled");
 	hideButton.removeAttribute("disabled");
-	duplicateButton.removeAttribute("disabled");
-	deleteButton.removeAttribute("disabled");
+	//duplicateButton.removeAttribute("disabled");
+	//deleteButton.removeAttribute("disabled");
 	showShapesButton.removeAttribute("disabled");
 	colorPickerButton.removeAttribute("disabled");
 	aboutButton.removeAttribute("disabled");
@@ -1368,8 +1368,8 @@ export function enableGizmos() {
 	boundsButton.addEventListener("click", () => toggleGizmo("bounds"));
 	focusButton.addEventListener("click", () => toggleGizmo("focus"));
 	hideButton.addEventListener("click", () => toggleGizmo("select"));
-	duplicateButton.addEventListener("click", () => toggleGizmo("duplicate"));
-	deleteButton.addEventListener("click", () => toggleGizmo("delete"));
+	//duplicateButton.addEventListener("click", () => toggleGizmo("duplicate"));
+	//deleteButton.addEventListener("click", () => toggleGizmo("delete"));
 	showShapesButton.addEventListener("click", showShapes);
 	aboutButton.addEventListener("click", openAboutPage);
 
@@ -1515,6 +1515,7 @@ function findParentWithBlockId(mesh) {
 }
 
 function deleteBlockWithUndo(blockId) {
+	console.log("Deleting block with ID:", blockId);
 	const workspace = Blockly.getMainWorkspace();
 	const block = workspace.getBlockById(blockId);
 	if (block) {
@@ -1553,7 +1554,6 @@ function toggleGizmo(gizmoType) {
 
 	if (gizmoManager.attachedMesh) {
 		gizmoManager.attachedMesh.showBoundingBox = false;
-		console.log(gizmoManager.attachedMesh.showBoundingBox);
 	}
 
 	document.body.style.cursor = "default";
@@ -1566,11 +1566,15 @@ function toggleGizmo(gizmoType) {
 
 	// Enable the selected gizmo
 	switch (gizmoType) {
+			
 		case "delete":
+		
 			blockKey = findParentWithBlockId(
 				gizmoManager.attachedMesh,
 			).blockKey;
 			blockId = meshBlockIdMap[blockKey];
+
+			console.log("Delete", blockKey, blockId, meshBlockIdMap), 
 
 			deleteBlockWithUndo(blockId);
 			gizmoManager.attachToMesh(null);
@@ -1580,9 +1584,9 @@ function toggleGizmo(gizmoType) {
 				gizmoManager.attachedMesh,
 			).blockKey;
 			blockId = meshBlockIdMap[blockKey];
-			console.log("Duplicate");
+
 			document.body.style.cursor = "crosshair"; // Change cursor to indicate picking mode
-			console.log("Picking");
+			
 			const canvas = flock.scene.getEngine().getRenderingCanvas(); // Get the Babylon.js canvas
 
 			const onPickMesh = function (event) {
@@ -1644,7 +1648,6 @@ function toggleGizmo(gizmoType) {
 								workspace,
 							);
 
-						console.log(pickedPosition, duplicateBlock.type);
 						setPositionValues(
 							duplicateBlock,
 							pickedPosition,
@@ -1678,27 +1681,21 @@ function toggleGizmo(gizmoType) {
 			}, 50);
 
 			break;
-		case "select":
-			console.log("Select gizmo");
+		case "select":		
 			gizmoManager.selectGizmoEnabled = true;
 			flock.scene.onPointerObservable.add((event) => {
 				if (
 					event.type === flock.BABYLON.PointerEventTypes.POINTERPICK
 				) {
-					console.log("Picking");
-
 					if (gizmoManager.attachedMesh) {
-						console.log("Old", gizmoManager.attachedMesh.blockKey);
-						console.log("Deselecting");
-						gizmoManager.attachedMesh.showBoundingBox = false;
-
 						
+				gizmoManager.attachedMesh.showBoundingBox = false;
+			
 					}
 					const pickedMesh = event.pickInfo.pickedMesh;
 
 					if (pickedMesh && pickedMesh.name !== "ground") {
 						// Attach the gizmo to the selected mesh
-						console.log("New", pickedMesh.blockKey);
 						gizmoManager.attachToMesh(pickedMesh);
 
 						// Show bounding box for the selected mesh
@@ -2246,7 +2243,6 @@ function updateBlockColorAndHighlight(mesh, selectedColor) {
 				mesh,
 			);
 
-			console.log(blockKey, meshMap);
 			return;
 		}
 
