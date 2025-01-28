@@ -8,7 +8,7 @@
 		"x": 10,
 		"y": 10,
 		"inputs": {
-		  "DO": {sca
+		  "DO": {
 			"block": {
 			  "type": "set_sky_color",
 			  "id": "LvX7C$m$;68`G_Qvq=pL",
