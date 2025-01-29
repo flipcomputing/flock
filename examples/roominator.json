@@ -455,7 +455,7 @@
                         "type": "math_number",
                         "id": "xhu0|8}-+))[(~xmC)5N",
                         "fields": {
-                          "NUM": 1
+                          "NUM": 1.25
                         }
                       }
                     },
@@ -491,7 +491,7 @@
                         "type": "colour",
                         "id": "_@ZrxGl!~Hb(Iu#QoHg7",
                         "fields": {
-                          "COLOR": "#cc6600"
+                          "COLOR": "#330000"
                         }
                       }
                     },
@@ -500,7 +500,7 @@
                         "type": "skin_colour",
                         "id": "02YbB#;?`WZseCq}gfV[",
                         "fields": {
-                          "COLOR": "#ffdfc4"
+                          "COLOR": "#7a421d"
                         }
                       }
                     },
@@ -509,7 +509,7 @@
                         "type": "colour",
                         "id": "o:fpX{bS7{ucmN=~T81$",
                         "fields": {
-                          "COLOR": "#009900"
+                          "COLOR": "#000000"
                         }
                       }
                     },
