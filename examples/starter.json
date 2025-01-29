@@ -96,7 +96,7 @@
                             "ID_VAR": {
                               "id": "H]1?IQv^=%_LL!pnT;:Y"
                             },
-                            "MODELS": "Cat.glb"
+                            "MODELS": "Flock.glb"
                           },
                           "inputs": {
                             "SCALE": {
@@ -104,7 +104,7 @@
                                 "type": "math_number",
                                 "id": "X^|9]u5aG=h=fiG]xipL",
                                 "fields": {
-                                  "NUM": 0.75
+                                  "NUM": 2.5
                                 }
                               }
                             },
@@ -559,12 +559,12 @@
                     }
                   }
                 },
-                "SLEEVES_COLOR": {
+                "TSHIRT_COLOR": {
                   "shadow": {
                     "type": "colour",
-                    "id": "==i$Uu1uHLA[[g5Q[$)g",
+                    "id": "*Y,+IZ^w5Qm,VX%acDN7",
                     "fields": {
-                      "COLOR": "#008b8b"
+                      "COLOR": "#ff8f60"
                     }
                   }
                 },
@@ -577,12 +577,12 @@
                     }
                   }
                 },
-                "TSHIRT_COLOR": {
+                "SLEEVES_COLOR": {
                   "shadow": {
                     "type": "colour",
-                    "id": "*Y,+IZ^w5Qm,VX%acDN7",
+                    "id": "==i$Uu1uHLA[[g5Q[$)g",
                     "fields": {
-                      "COLOR": "#ff8f60"
+                      "COLOR": "#008b8b"
                     }
                   }
                 }
@@ -595,7 +595,7 @@
   },
   "variables": [
     {
-      "name": "cat",
+      "name": "bird",
       "id": "H]1?IQv^=%_LL!pnT;:Y"
     },
     {
