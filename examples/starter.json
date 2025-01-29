@@ -231,7 +231,7 @@
         "type": "start",
         "id": "~D}tXQlU1{M6S=%edJVA",
         "x": 10,
-        "y": 1168,
+        "y": 1068,
         "collapsed": true,
         "inputs": {
           "DO": {
@@ -389,75 +389,6 @@
                           "id": "H]1?IQv^=%_LL!pnT;:Y"
                         },
                         "ANIMATION_NAME": "Idle"
-                      },
-                      "next": {
-                        "block": {
-                          "type": "say",
-                          "id": "NlLUq$/,}Wf}i8~(cdf,",
-                          "fields": {
-                            "MESH_VAR": {
-                              "id": "H]1?IQv^=%_LL!pnT;:Y"
-                            },
-                            "MODE": "ADD",
-                            "ASYNC": "START"
-                          },
-                          "inputs": {
-                            "TEXT": {
-                              "shadow": {
-                                "type": "text",
-                                "id": "m8u21*n=+NCia72eVdXS",
-                                "fields": {
-                                  "TEXT": "Change my code and make me dance!"
-                                }
-                              }
-                            },
-                            "DURATION": {
-                              "shadow": {
-                                "type": "math_number",
-                                "id": "9j]`QI$Q.rn6:M?##6U7",
-                                "fields": {
-                                  "NUM": 3
-                                }
-                              }
-                            },
-                            "TEXT_COLOR": {
-                              "shadow": {
-                                "type": "colour",
-                                "id": "cV{FdQ%k4@P,31?S!}Mb",
-                                "fields": {
-                                  "COLOR": "#000099"
-                                }
-                              }
-                            },
-                            "BACKGROUND_COLOR": {
-                              "shadow": {
-                                "type": "colour",
-                                "id": "qZaPl?2]^sl#H/Sp{A%(",
-                                "fields": {
-                                  "COLOR": "#ffffff"
-                                }
-                              }
-                            },
-                            "ALPHA": {
-                              "shadow": {
-                                "type": "math_number",
-                                "id": "+a{ifT[Kr,d`D21F-*OT",
-                                "fields": {
-                                  "NUM": 1
-                                }
-                              }
-                            },
-                            "SIZE": {
-                              "shadow": {
-                                "type": "math_number",
-                                "id": "2TVUZ)IUiN#cJ!!~IVrh",
-                                "fields": {
-                                  "NUM": 16
-                                }
-                              }
-                            }
-                          }
-                        }
                       }
                     }
                   }
@@ -471,7 +402,7 @@
         "type": "start",
         "id": "_AFj4gSiY!{fUCr@01?d",
         "x": 10,
-        "y": 932,
+        "y": 832,
         "inputs": {
           "DO": {
             "block": {
