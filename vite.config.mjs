@@ -34,7 +34,7 @@ export default {
           dest: 'textures'
         },
         {
-          src: 'fonts/*.json',
+          src: 'fonts/*.{json,woff2}',
           dest: 'fonts'
         },
         {
