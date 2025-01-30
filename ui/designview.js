@@ -979,7 +979,7 @@ function addShapeToWorkspace(shapeType, position) {
 	// Initialize and render the shape block
 	block.initSvg();
 	block.render();
-	highlightBlockById(Blockly.getMainWorkspace(), block);
+	//highlightBlockById(Blockly.getMainWorkspace(), block);
 
 	// Create a new 'start' block and connect the shape block to it
 	const startBlock = Blockly.getMainWorkspace().newBlock("start");
@@ -1045,7 +1045,7 @@ function selectCharacter(characterName) {
 
 					block.initSvg();
 					block.render();
-					highlightBlockById(Blockly.getMainWorkspace(), block);
+					//highlightBlockById(Blockly.getMainWorkspace(), block);
 
 					// Create a new start block and connect the character block to it
 					const startBlock =
@@ -1134,7 +1134,7 @@ function selectModel(modelName) {
 
 					block.initSvg();
 					block.render();
-					highlightBlockById(Blockly.getMainWorkspace(), block);
+					//highlightBlockById(Blockly.getMainWorkspace(), block);
 
 					// Create a new start block and connect the model block to it
 					const startBlock =
@@ -1214,7 +1214,7 @@ function selectObject(objectName) {
 						Blockly.getMainWorkspace().newBlock("load_object");
 					block.initSvg();
 					block.render();
-					highlightBlockById(Blockly.getMainWorkspace(), block);
+					//highlightBlockById(Blockly.getMainWorkspace(), block);
 
 					// Set object name
 					block.setFieldValue(objectName, "MODELS");
@@ -1734,7 +1734,7 @@ function toggleGizmo(gizmoType) {
 					}
 
 					const block = meshMap[mesh.blockKey];
-					highlightBlockById(Blockly.getMainWorkspace(), block);
+					//highlightBlockById(Blockly.getMainWorkspace(), block);
 				},
 			);
 
@@ -1822,7 +1822,7 @@ function toggleGizmo(gizmoType) {
 					}
 
 					const block = meshMap[mesh.blockKey];
-					highlightBlockById(Blockly.getMainWorkspace(), block);
+					//highlightBlockById(Blockly.getMainWorkspace(), block);
 				},
 			);
 			gizmoManager.gizmos.positionGizmo.onDragEndObservable.add(
@@ -1917,7 +1917,7 @@ function toggleGizmo(gizmoType) {
 					}
 
 					const block = meshMap[mesh.blockKey];
-					highlightBlockById(Blockly.getMainWorkspace(), block);
+					//highlightBlockById(Blockly.getMainWorkspace(), block);
 				},
 			);
 
@@ -2073,7 +2073,7 @@ function toggleGizmo(gizmoType) {
 					}
 
 					const block = meshMap[mesh.blockKey];
-					highlightBlockById(Blockly.getMainWorkspace(), block);
+					//highlightBlockById(Blockly.getMainWorkspace(), block);
 				},
 			);
 
@@ -2259,7 +2259,7 @@ function updateBlockColorAndHighlight(mesh, selectedColor) {
 
 	block?.initSvg();
 
-	highlightBlockById(Blockly.getMainWorkspace(), block);
+	//highlightBlockById(Blockly.getMainWorkspace(), block);
 }
 
 export function setGizmoManager(value) {
