@@ -1294,21 +1294,29 @@ import { addMetadata } from "meta-png";
 
 async function exportBlockAsPNG(block) {
 	const finalSVG = await generateSVG(block);
-
-	// Get the JSON representation of the block
 	const blockJson = JSON.stringify(Blockly.serialization.blocks.save(block));
-	const encodedJson = encodeURIComponent(blockJson); // Ensure it is URL-encoded
-	// Create an image element and load the SVG into it
+	const encodedJson = encodeURIComponent(blockJson);
+
 	const img = new Image();
 	const svgBlob = new Blob([finalSVG], { type: "image/svg+xml" });
 	const svgUrl = URL.createObjectURL(svgBlob);
 
+	const scale = 2; // Adjust for higher resolution
+
 	img.onload = () => {
 		const canvas = document.createElement("canvas");
-		canvas.width = img.width;
-		canvas.height = img.height;
+		const scaledWidth = img.width * scale;
+		const scaledHeight = img.height * scale;
+		canvas.width = scaledWidth;
+		canvas.height = scaledHeight;
 		const ctx = canvas.getContext("2d");
-		ctx.drawImage(img, 0, 0);
+
+		// Improve image quality by setting a higher resolution
+		ctx.imageSmoothingEnabled = true;
+		ctx.imageSmoothingQuality = "high";
+
+		// Draw at a higher resolution
+		ctx.drawImage(img, 0, 0, scaledWidth, scaledHeight);
 
 		canvas.toBlob(async (pngBlob) => {
 			if (!pngBlob) {
@@ -1316,29 +1324,21 @@ async function exportBlockAsPNG(block) {
 				return;
 			}
 
-			// Convert PNG Blob to ArrayBuffer
 			const arrayBuffer = await pngBlob.arrayBuffer();
-
-			// Add metadata using meta-png
 			const updatedPngBuffer = addMetadata(
 				new Uint8Array(arrayBuffer),
 				"blockJson",
-				encodedJson,
+				encodedJson
 			);
 
-			// Create a Blob from the updated PNG
-			const updatedBlob = new Blob([updatedPngBuffer], {
-				type: "image/png",
-			});
+			const updatedBlob = new Blob([updatedPngBuffer], { type: "image/png" });
 			const updatedUrl = URL.createObjectURL(updatedBlob);
 
-			// Trigger the download
 			const link = document.createElement("a");
 			link.download = `${block.type}.png`;
 			link.href = updatedUrl;
 			link.click();
 
-			// Clean up
 			URL.revokeObjectURL(svgUrl);
 			URL.revokeObjectURL(updatedUrl);
 		}, "image/png");
