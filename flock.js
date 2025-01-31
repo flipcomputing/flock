@@ -32,7 +32,6 @@ export const flock = {
 	havokInstance: null,
 	GUI: null,
 	EXPORT: null,
-	canvas: null,
 	controlsTexture: null,
 	canvas: {
 		pressedKeys: null,

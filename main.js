@@ -949,9 +949,77 @@ function addSwipeListeners() {
 	});
 }
 
+let savedView = "canvas";
+
+function togglePlayMode() {
+	if (!flock.scene) return;
+
+	const blocklyArea = document.getElementById("codePanel");
+	const canvasArea = document.getElementById("rightArea");
+	const gizmoButtons = document.getElementById("gizmoButtons");
+	const bottomBar = document.getElementById("bottomBar");
+
+	const gizmosVisible =
+		gizmoButtons &&
+		getComputedStyle(gizmoButtons).display !== "none" &&
+		getComputedStyle(gizmoButtons).visibility !== "hidden";
+
+	if (gizmosVisible) {
+		savedView = currentView;
+		showCanvasView();
+		flock.scene.debugLayer.hide();
+		blocklyArea.style.display = "none";
+		gizmoButtons.style.display = "none";
+		bottomBar.style.display = "none";
+		document.documentElement.style.setProperty("--dynamic-offset", "40px");
+	} else {
+		flock.scene.debugLayer.hide();
+		blocklyArea.style.display = "block";
+		canvasArea.style.display = "block";
+		gizmoButtons.style.display = "block";
+		bottomBar.style.display = "block";
+		switchView("both");
+		document.documentElement.style.setProperty("--dynamic-offset", "65px");
+
+		if (savedView === "code") showCodeView();
+		else showCanvasView();
+	}
+
+	onResize();
+}
+
 // Function to add the button event listener
 function addButtonListener() {
 	switchViewsBtn.addEventListener("click", togglePanels);
+}
+
+function toggleDesignMode() {
+	if (!flock.scene) return;
+
+	const blocklyArea = document.getElementById("codePanel");
+	const canvasArea = document.getElementById("rightArea");
+	const gizmoButtons = document.getElementById("gizmoButtons");
+
+	if (flock.scene.debugLayer.isVisible()) {
+		switchView("both");
+		flock.scene.debugLayer.hide();
+	} else {
+		blocklyArea.style.display = "none";
+		codeMode = "none";
+		canvasArea.style.display = "block";
+		canvasArea.style.width = "0";
+		gizmoButtons.style.display = "block";
+
+		flock.scene.debugLayer.show({
+			embedMode: true,
+			enableClose: false,
+			enablePopup: false,
+		});
+
+		canvasArea.style.flex = "1 1 0";
+	}
+
+	onResize();
 }
 
 // Initialization function to set up everything
@@ -973,84 +1041,14 @@ function initializeApp() {
 
 	runCodeButton.addEventListener("click", executeCode);
 	stopCodeButton.addEventListener("click", stopCode);
-	toggleDesignButton.addEventListener("click", toggleDesign);
-	togglePlayButton.addEventListener("click", togglePlay);
 	exportCodeButton.addEventListener("click", exportCode);
 
 	// Enable the file input after initialization
 	fileInput.removeAttribute("disabled");
 
-	toggleDesignButton.addEventListener("click", function () {
-		if (!flock.scene) return;
+	toggleDesignButton.addEventListener("click", toggleDesignMode);
 
-		const blocklyArea = document.getElementById("codePanel");
-		const canvasArea = document.getElementById("rightArea");
-		const gizmoButtons = document.getElementById("gizmoButtons");
-
-		if (flock.scene.debugLayer.isVisible()) {
-			switchView("both");
-			flock.scene.debugLayer.hide();
-			onResize();
-		} else {
-			blocklyArea.style.display = "none";
-			codeMode = "none";
-			canvasArea.style.display = "block";
-			canvasArea.style.width = "0";
-			gizmoButtons.style.display = "block";
-			// https://doc.babylonjs.com/typedoc/interfaces/BABYLON.IInspectorOptions
-			flock.scene.debugLayer.show({
-				embedMode: true,
-				enableClose: false,
-				enablePopup: false,
-			});
-			canvasArea.style.flex = "1 1 0";
-			onResize();
-		}
-	});
-
-	let savedView = "canvas";
-
-	togglePlayButton.addEventListener("click", function () {
-		if (!flock.scene) return;
-
-		const blocklyArea = document.getElementById("codePanel");
-		const canvasArea = document.getElementById("rightArea");
-		const gizmoButtons = document.getElementById("gizmoButtons");
-		const bottomBar = document.getElementById("bottomBar");
-
-		const gizmosVisible =
-			gizmoButtons &&
-			getComputedStyle(gizmoButtons).display !== "none" &&
-			getComputedStyle(gizmoButtons).visibility !== "hidden";
-
-		if (gizmosVisible) {
-			savedView = currentView;
-			showCanvasView();
-			flock.scene.debugLayer.hide();
-			blocklyArea.style.display = "none";
-			gizmoButtons.style.display = "none";
-			bottomBar.style.display = "none";
-			document.documentElement.style.setProperty(
-				"--dynamic-offset",
-				"40px",
-			);
-			onResize();
-		} else {
-			flock.scene.debugLayer.hide();
-			blocklyArea.style.display = "block";
-			canvasArea.style.display = "block";
-			gizmoButtons.style.display = "block";
-			bottomBar.style.display = "block";
-			switchView("both");
-			document.documentElement.style.setProperty(
-				"--dynamic-offset",
-				"65px",
-			);
-			if (savedView === "code") showCodeView();
-			else showCanvasView();
-			onResize();
-		}
-	});
+	togglePlayButton.addEventListener("click", togglePlayMode);
 
 	document
 		.getElementById("fullscreenToggle")
