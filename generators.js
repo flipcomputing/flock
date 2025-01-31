@@ -544,8 +544,8 @@ export function defineGenerators() {
 	};
 
 	javascriptGenerator.forBlock["logic_placeholder"] = function (block) {
-		return "";	
-	}
+		return "";
+	};
 	javascriptGenerator.forBlock["set_sky_color"] = function (block) {
 		const meshId = "sky";
 		meshMap[meshId] = block;
@@ -559,12 +559,11 @@ export function defineGenerators() {
 			javascriptGenerator.valueToCode(
 				block,
 				"INTENSITY",
-				javascriptGenerator.ORDER_ATOMIC
+				javascriptGenerator.ORDER_ATOMIC,
 			) || "1.0";
 
 		return `lightIntensity(${intensity});\n`;
 	};
-
 
 	javascriptGenerator.forBlock["button_controls"] = function (block) {
 		const color = getFieldValue(block, "COLOR", "#6495ED");
@@ -787,9 +786,9 @@ export function defineGenerators() {
 			Blockly.Names.NameType.VARIABLE,
 		);
 
-		const meshId = modelName + "_" + generateUniqueId();
-		meshMap[meshId] = block;
-		meshBlockIdMap[meshId] = block.id;
+		const meshId = `${variableName}__${block.id}`;
+		meshMap[block.id] = block;
+		meshBlockIdMap[block.id] = block.id;
 		// Generate the code for the "do" part (if present)
 		let doCode = "";
 
@@ -850,7 +849,6 @@ export function defineGenerators() {
 	};
 
 	javascriptGenerator.forBlock["load_multi_object"] = function (block) {
-
 		console.log("Multi");
 		const modelName = block.getFieldValue("MODELS");
 		const scale = getFieldValue(block, "SCALE", "1");
@@ -1461,13 +1459,28 @@ export function defineGenerators() {
 	javascriptGenerator.forBlock["play_sound"] = function (block) {
 		const idVar = javascriptGenerator.nameDB_.getName(
 			block.getFieldValue("ID_VAR"),
-			Blockly.Names.NameType.VARIABLE
+			Blockly.Names.NameType.VARIABLE,
 		);
 		const soundName = block.getFieldValue("SOUND_NAME");
 		const meshNameField = block.getFieldValue("MESH_NAME");
-		const meshName = meshNameField === "__everywhere__" ? `"${meshNameField}"` : meshNameField; // Handle "__everywhere__" as a string
-		const speed = parseFloat(javascriptGenerator.valueToCode(block, "SPEED", javascriptGenerator.ORDER_ATOMIC) || 1);
-		const volume = parseFloat(javascriptGenerator.valueToCode(block, "VOLUME", javascriptGenerator.ORDER_ATOMIC) || 1);
+		const meshName =
+			meshNameField === "__everywhere__"
+				? `"${meshNameField}"`
+				: meshNameField; // Handle "__everywhere__" as a string
+		const speed = parseFloat(
+			javascriptGenerator.valueToCode(
+				block,
+				"SPEED",
+				javascriptGenerator.ORDER_ATOMIC,
+			) || 1,
+		);
+		const volume = parseFloat(
+			javascriptGenerator.valueToCode(
+				block,
+				"VOLUME",
+				javascriptGenerator.ORDER_ATOMIC,
+			) || 1,
+		);
 		const mode = block.getFieldValue("MODE") === "LOOP";
 		const async = block.getFieldValue("ASYNC");
 
@@ -1626,44 +1639,48 @@ export function defineGenerators() {
 		}
 	};
 
-	javascriptGenerator.forBlock['when_clicked'] = function(block) {
-	  // Retrieve the model variable name
-	  const modelName = javascriptGenerator.nameDB_.getName(
-		block.getFieldValue('MODEL_VAR'),
-		Blockly.Names.NameType.VARIABLE
-	  );
+	javascriptGenerator.forBlock["when_clicked"] = function (block) {
+		// Retrieve the model variable name
+		const modelName = javascriptGenerator.nameDB_.getName(
+			block.getFieldValue("MODEL_VAR"),
+			Blockly.Names.NameType.VARIABLE,
+		);
 
-	  // Retrieve the trigger type
-	  const trigger = block.getFieldValue('TRIGGER');
+		// Retrieve the trigger type
+		const trigger = block.getFieldValue("TRIGGER");
 
-	  // Retrieve the execution mode
-	  const mode = block.getFieldValue('MODE') || "wait";
+		// Retrieve the execution mode
+		const mode = block.getFieldValue("MODE") || "wait";
 
-	  // Generate code for the 'DO' input section
-	  const doCode = javascriptGenerator.statementToCode(block, 'DO').trim();
+		// Generate code for the 'DO' input section
+		const doCode = javascriptGenerator.statementToCode(block, "DO").trim();
 
-	  // Initialize an array to hold code for 'THEN' sections
-	  const thenCodes = [];
+		// Initialize an array to hold code for 'THEN' sections
+		const thenCodes = [];
 
-	  // Iterate over possible 'THEN' inputs and collect their code
-	  for (let i = 0; i < block.thenCount_; i++) {
-		const thenCode = javascriptGenerator.statementToCode(block, 'THEN' + i).trim();
-		if (thenCode) {
-		  thenCodes.push(thenCode);
+		// Iterate over possible 'THEN' inputs and collect their code
+		for (let i = 0; i < block.thenCount_; i++) {
+			const thenCode = javascriptGenerator
+				.statementToCode(block, "THEN" + i)
+				.trim();
+			if (thenCode) {
+				thenCodes.push(thenCode);
+			}
 		}
-	  }
 
-	  // Combine 'DO' and 'THEN' codes into a single array, filtering out any empty entries
-	  const allActions = [doCode, ...thenCodes].filter(code => code);
+		// Combine 'DO' and 'THEN' codes into a single array, filtering out any empty entries
+		const allActions = [doCode, ...thenCodes].filter((code) => code);
 
-	  // Map each action code to an asynchronous function string
-	  const actionFunctions = allActions.map(code => `async function() {\n${code}\n}`).join(',\n');
+		// Map each action code to an asynchronous function string
+		const actionFunctions = allActions
+			.map((code) => `async function() {\n${code}\n}`)
+			.join(",\n");
 
-	  // Construct the final JavaScript code string
-	  const code = `onTrigger(${modelName}, "${trigger}", [\n${actionFunctions}\n], { mode: "${mode}" });\n`;
+		// Construct the final JavaScript code string
+		const code = `onTrigger(${modelName}, "${trigger}", [\n${actionFunctions}\n], { mode: "${mode}" });\n`;
 
-	  // Return the constructed code
-	  return code;
+		// Return the constructed code
+		return code;
 	};
 
 	javascriptGenerator.forBlock["local_variable"] = function (
@@ -1726,11 +1743,10 @@ export function defineGenerators() {
 	javascriptGenerator.forBlock["glow"] = function (block) {
 		const modelName = javascriptGenerator.nameDB_.getName(
 			block.getFieldValue("MODEL_VAR"),
-			Blockly.Names.NameType.VARIABLE
+			Blockly.Names.NameType.VARIABLE,
 		);
 		return `await glow(${modelName});\n`;
 	};
-
 
 	javascriptGenerator.forBlock["tint"] = function (block) {
 		const modelName = javascriptGenerator.nameDB_.getName(
@@ -2199,16 +2215,16 @@ export function defineGenerators() {
 		// Note: Ensure that the execution environment supports async/await at this level
 		return `await setPhysics(${modelName}, "${physicsType}");\n`;
 	};
-	javascriptGenerator.forBlock['add_physics_shape'] = function (block) {
-	  const modelName = javascriptGenerator.nameDB_.getName(
-		block.getFieldValue('MODEL_VAR'),
-		Blockly.Names.NameType.VARIABLE,
-	  );
+	javascriptGenerator.forBlock["add_physics_shape"] = function (block) {
+		const modelName = javascriptGenerator.nameDB_.getName(
+			block.getFieldValue("MODEL_VAR"),
+			Blockly.Names.NameType.VARIABLE,
+		);
 
-	  const shapeType = block.getFieldValue('SHAPE_TYPE');
+		const shapeType = block.getFieldValue("SHAPE_TYPE");
 
-	  // Note: Ensure that the execution environment supports async/await at this level
-	  return `await setPhysicsShape(${modelName}, "${shapeType}");\n`;
+		// Note: Ensure that the execution environment supports async/await at this level
+		return `await setPhysicsShape(${modelName}, "${shapeType}");\n`;
 	};
 
 	javascriptGenerator.forBlock["canvas_controls"] = function (block) {
@@ -2286,14 +2302,14 @@ export function defineGenerators() {
 		const code = `"${colour}"`;
 		return [code, javascriptGenerator.ORDER_ATOMIC];
 	};
-	
+
 	javascriptGenerator.forBlock["material"] = function (block) {
 		const baseColor =
 			javascriptGenerator.valueToCode(
 				block,
 				"BASE_COLOR",
 
-javascriptGenerator.ORDER_ATOMIC,
+				javascriptGenerator.ORDER_ATOMIC,
 			) || "1";
 
 		const textureSet = block.getFieldValue("TEXTURE_SET");
@@ -2346,7 +2362,7 @@ javascriptGenerator.ORDER_ATOMIC,
 		const code = `createMaterial(${baseColor}, ${emissiveColor}, "${textureSet}", ${metallic}, ${roughness}, ${alpha})`;
 		return [code, javascriptGenerator.ORDER_FUNCTION_CALL];
 	};
-	
+
 	javascriptGenerator.forBlock["text_material"] = function (block) {
 		const variable = javascriptGenerator.nameDB_.getName(
 			block.getFieldValue("MATERIAL_VAR"),
@@ -2470,13 +2486,13 @@ javascriptGenerator.ORDER_ATOMIC,
 	javascriptGenerator.forBlock["set_material"] = function (block) {
 		const meshVar = javascriptGenerator.nameDB_.getName(
 			block.getFieldValue("MESH"),
-			Blockly.Names.NameType.VARIABLE
+			Blockly.Names.NameType.VARIABLE,
 		);
 
 		const material = javascriptGenerator.valueToCode(
 			block,
 			"MATERIAL",
-			javascriptGenerator.ORDER_ATOMIC
+			javascriptGenerator.ORDER_ATOMIC,
 		);
 
 		// Ensure the MATERIAL input is wrapped in an array if not already one
@@ -2885,10 +2901,10 @@ javascriptGenerator.forBlock["microbit_input"] = function (block) {
 
 const strRegExp = /^\s*'([^']|\\')*'\s*$/;
 const forceString = function (value) {
-  if (strRegExp.test(value)) {
-	return [value, javascriptGenerator.ORDER_ATOMIC];
-  }
-  return ['String(' + value + ')', javascriptGenerator.ORDER_FUNCTION_CALL];
+	if (strRegExp.test(value)) {
+		return [value, javascriptGenerator.ORDER_ATOMIC];
+	}
+	return ["String(" + value + ")", javascriptGenerator.ORDER_FUNCTION_CALL];
 };
 
 /*javascriptGenerator.forBlock["text_join"] = function (

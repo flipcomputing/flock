@@ -404,6 +404,8 @@ export function updateMeshFromBlock(mesh, block, changeEvent) {
 }
 
 function createMeshOnCanvas(block) {
+	//console.log("Create mesh on canvas", block.id);
+
 	Blockly.Events.setGroup(true);
 
 	let shapeType = block.type;
@@ -442,6 +444,7 @@ function createMeshOnCanvas(block) {
 
 		case "load_character":
 			modelName = block.getFieldValue("MODELS");
+
 			scale = block
 				.getInput("SCALE")
 				.connection.targetBlock()
@@ -475,10 +478,9 @@ function createMeshOnCanvas(block) {
 					.getFieldValue("COLOR"),
 			};
 
-			meshId = modelName + "_" + generateUniqueId();
-			meshMap[meshId] = block;
-			meshBlockIdMap[meshId] = block.id;
+			meshId = `${modelName}__${block.id}`;
 			// Use flock API for characters
+
 			newMesh = flock.newCharacter({
 				modelName: modelName,
 				modelId: meshId,
@@ -499,7 +501,7 @@ function createMeshOnCanvas(block) {
 				.connection.targetBlock()
 				.getFieldValue("COLOR");
 
-			meshId = `temp__${block.id}`;
+			meshId = `${modelName}__${block.id}`;
 			// Use flock API for objects
 			newMesh = flock.newObject({
 				modelName: modelName,
@@ -509,11 +511,6 @@ function createMeshOnCanvas(block) {
 				position: { x: position.x, y: position.y, z: position.z },
 				callback: () => {},
 			});
-
-			console.log("Updating meshMap", meshId, block);
-			meshMap[block.id] = block;
-			meshBlockIdMap[block.id] = block.id;
-
 			break;
 
 		// --- Shape Creation Blocks ---
@@ -536,13 +533,14 @@ function createMeshOnCanvas(block) {
 				.getFieldValue("NUM");
 
 			newMesh = flock.createBox(
-				"box_" + generateUniqueId(),
+				`box__${block.id}`,
 				color,
 				width,
 				height,
 				depth,
 				[position.x, position.y, position.z],
 			);
+
 			break;
 
 		case "create_sphere":
@@ -564,7 +562,7 @@ function createMeshOnCanvas(block) {
 				.getFieldValue("NUM");
 
 			newMesh = flock.createSphere(
-				"sphere_" + generateUniqueId(),
+				`sphere__${block.id}`,
 				color,
 				diameterX,
 				diameterY,
@@ -592,7 +590,7 @@ function createMeshOnCanvas(block) {
 				.getFieldValue("NUM");
 
 			newMesh = flock.createCylinder(
-				"cylinder_" + generateUniqueId(),
+				`cylinder__${block.id}`,
 				color,
 				cylinderHeight,
 				diameterTop,
@@ -617,7 +615,7 @@ function createMeshOnCanvas(block) {
 				.getFieldValue("NUM");
 
 			newMesh = flock.createCapsule(
-				"capsule_" + generateUniqueId(),
+				`capsule__${block.id}`,
 				color,
 				capsuleRadius,
 				capsuleHeight,
@@ -640,7 +638,7 @@ function createMeshOnCanvas(block) {
 				.getFieldValue("NUM");
 
 			newMesh = flock.createPlane(
-				"plane_" + generateUniqueId(),
+				`plane__${block.id}`,
 				color,
 				planeWidth,
 				planeHeight,
@@ -653,13 +651,9 @@ function createMeshOnCanvas(block) {
 			return;
 	}
 
-	//console.log("Storing mesh", newMesh);
-	
 	if (newMesh) {
-		flock.scene.getMeshByName(newMesh).blockKey = block.id;
 		meshMap[block.id] = block;
 		meshBlockIdMap[block.id] = block.id;
-
 	}
 
 	Blockly.Events.setGroup(false);
@@ -1530,7 +1524,7 @@ function deleteBlockWithUndo(blockId) {
 				shouldCheckStartBlock = true;
 			}
 
-			// Delete the selected block	
+			// Delete the selected block
 			block.dispose(true);
 
 			// After deletion, check if the start block is now empty
@@ -1538,20 +1532,22 @@ function deleteBlockWithUndo(blockId) {
 				let remainingChildren = 0;
 
 				// Count remaining input-connected blocks
-				startBlock.inputList.forEach(input => {
+				startBlock.inputList.forEach((input) => {
 					if (input.connection && input.connection.targetBlock()) {
 						remainingChildren++;
 					}
 				});
 
 				// Check if the start block still has a next block
-				if (startBlock.nextConnection && startBlock.nextConnection.targetBlock()) {
+				if (
+					startBlock.nextConnection &&
+					startBlock.nextConnection.targetBlock()
+				) {
 					remainingChildren++;
 				}
 
 				// If no children remain, delete the start block
 				if (remainingChildren === 0) {
-					
 					startBlock.dispose(true);
 				}
 			}
@@ -1562,7 +1558,6 @@ function deleteBlockWithUndo(blockId) {
 		console.log(`Block with ID ${blockId} not found.`);
 	}
 }
-
 
 function toggleGizmo(gizmoType) {
 	// Disable all gizmos
@@ -1585,9 +1580,7 @@ function toggleGizmo(gizmoType) {
 
 	// Enable the selected gizmo
 	switch (gizmoType) {
-			
 		case "delete":
-		
 			blockKey = findParentWithBlockId(
 				gizmoManager.attachedMesh,
 			).blockKey;
@@ -1604,7 +1597,7 @@ function toggleGizmo(gizmoType) {
 			blockId = meshBlockIdMap[blockKey];
 
 			document.body.style.cursor = "crosshair"; // Change cursor to indicate picking mode
-			
+
 			const canvas = flock.scene.getEngine().getRenderingCanvas(); // Get the Babylon.js canvas
 
 			const onPickMesh = function (event) {
@@ -1704,22 +1697,19 @@ function toggleGizmo(gizmoType) {
 			}, 50);
 
 			break;
-		case "select":		
-			
+		case "select":
 			gizmoManager.selectGizmoEnabled = true;
 			flock.scene.onPointerObservable.add((event) => {
 				if (
 					event.type === flock.BABYLON.PointerEventTypes.POINTERPICK
 				) {
 					if (gizmoManager.attachedMesh) {
-						
-				gizmoManager.attachedMesh.showBoundingBox = false;
+						gizmoManager.attachedMesh.showBoundingBox = false;
 						blockKey = findParentWithBlockId(
 							gizmoManager.attachedMesh,
 						).blockKey;
 
 						//console.log("Select", blockKey, meshMap);
-
 					}
 					const pickedMesh = event.pickInfo.pickedMesh;
 
@@ -1729,7 +1719,6 @@ function toggleGizmo(gizmoType) {
 
 						// Show bounding box for the selected mesh
 						gizmoManager.attachedMesh.showBoundingBox = true;
-						
 					} else {
 						// Deselect if no mesh is picked
 						if (gizmoManager.attachedMesh) {
@@ -2292,7 +2281,7 @@ export function setGizmoManager(value) {
 
 	const originalAttach = gizmoManager.attachToMesh.bind(gizmoManager);
 	gizmoManager.attachToMesh = (mesh) => {
-		if(gizmoManager.attachedMesh)
+		if (gizmoManager.attachedMesh)
 			gizmoManager.attachedMesh.showBoundingBox = false;
 		originalAttach(mesh);
 	};
