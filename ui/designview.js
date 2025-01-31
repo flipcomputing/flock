@@ -1316,8 +1316,8 @@ export function enableGizmos() {
 	const boundsButton = document.getElementById("boundsButton");
 	const focusButton = document.getElementById("focusButton");
 	const hideButton = document.getElementById("hideButton");
-	//const duplicateButton = document.getElementById("duplicateButton");
-	//const deleteButton = document.getElementById("deleteButton");
+	const duplicateButton = document.getElementById("duplicateButton");
+	const deleteButton = document.getElementById("deleteButton");
 	const showShapesButton = document.getElementById("showShapesButton");
 	const colorPickerButton = document.getElementById("colorPickerButton");
 	const aboutButton = document.getElementById("logo");
@@ -1348,8 +1348,8 @@ export function enableGizmos() {
 	boundsButton.removeAttribute("disabled");
 	focusButton.removeAttribute("disabled");
 	hideButton.removeAttribute("disabled");
-	//duplicateButton.removeAttribute("disabled");
-	//deleteButton.removeAttribute("disabled");
+	duplicateButton.removeAttribute("disabled");
+	deleteButton.removeAttribute("disabled");
 	showShapesButton.removeAttribute("disabled");
 	colorPickerButton.removeAttribute("disabled");
 	aboutButton.removeAttribute("disabled");
@@ -1368,8 +1368,8 @@ export function enableGizmos() {
 	boundsButton.addEventListener("click", () => toggleGizmo("bounds"));
 	focusButton.addEventListener("click", () => toggleGizmo("focus"));
 	hideButton.addEventListener("click", () => toggleGizmo("select"));
-	//duplicateButton.addEventListener("click", () => toggleGizmo("duplicate"));
-	//deleteButton.addEventListener("click", () => toggleGizmo("delete"));
+	duplicateButton.addEventListener("click", () => toggleGizmo("duplicate"));
+	deleteButton.addEventListener("click", () => toggleGizmo("delete"));
 	showShapesButton.addEventListener("click", showShapes);
 	aboutButton.addEventListener("click", openAboutPage);
 
@@ -1515,34 +1515,54 @@ function findParentWithBlockId(mesh) {
 }
 
 function deleteBlockWithUndo(blockId) {
-	console.log("Deleting block with ID:", blockId);
 	const workspace = Blockly.getMainWorkspace();
 	const block = workspace.getBlockById(blockId);
+
 	if (block) {
-		// Start a group for undo
 		Blockly.Events.setGroup(true);
 		try {
 			const parentBlock = block.getParent();
 
-			// Check if the parent is of type "start" and has no other children
-			if (
-				parentBlock &&
-				parentBlock.type === "start" &&
-				parentBlock.getChildren().length === 1
-			) {
-				parentBlock.dispose(false, true); // Dispose the parent block
-			} else {
-				block.dispose(false, true); // Dispose the child block
+			// Store reference to parent block before deletion
+			let shouldCheckStartBlock = false;
+			let startBlock = null;
+			if (parentBlock && parentBlock.type === "start") {
+				startBlock = parentBlock;
+				shouldCheckStartBlock = true;
+			}
+
+			// Delete the selected block	
+			block.dispose(true);
+
+			// After deletion, check if the start block is now empty
+			if (shouldCheckStartBlock && startBlock) {
+				let remainingChildren = 0;
+
+				// Count remaining input-connected blocks
+				startBlock.inputList.forEach(input => {
+					if (input.connection && input.connection.targetBlock()) {
+						remainingChildren++;
+					}
+				});
+
+				// Check if the start block still has a next block
+				if (startBlock.nextConnection && startBlock.nextConnection.targetBlock()) {
+					remainingChildren++;
+				}
+
+				// If no children remain, delete the start block
+				if (remainingChildren === 0) {
+					
+					startBlock.dispose(true);
+				}
 			}
 		} finally {
-			// End the group for undo
 			Blockly.Events.setGroup(false);
 		}
 	} else {
-		console.log(`Block with id ${blockId} not found.`);
+		console.log(`Block with ID ${blockId} not found.`);
 	}
 }
-
 
 
 function toggleGizmo(gizmoType) {
@@ -1573,8 +1593,6 @@ function toggleGizmo(gizmoType) {
 				gizmoManager.attachedMesh,
 			).blockKey;
 			blockId = meshBlockIdMap[blockKey];
-
-			console.log("Delete", blockKey, blockId, meshBlockIdMap), 
 
 			deleteBlockWithUndo(blockId);
 			gizmoManager.attachToMesh(null);
@@ -1682,7 +1700,7 @@ function toggleGizmo(gizmoType) {
 
 			break;
 		case "select":		
-			console.log("Select", meshBlockIdMap);
+			
 			gizmoManager.selectGizmoEnabled = true;
 			flock.scene.onPointerObservable.add((event) => {
 				if (
@@ -1701,8 +1719,7 @@ function toggleGizmo(gizmoType) {
 
 						// Show bounding box for the selected mesh
 						gizmoManager.attachedMesh.showBoundingBox = true;
-
-						console.log("Selected", gizmoManager.attachedMesh.blockKey);
+						
 					} else {
 						// Deselect if no mesh is picked
 						if (gizmoManager.attachedMesh) {
@@ -1836,8 +1853,6 @@ function toggleGizmo(gizmoType) {
 					mesh.computeWorldMatrix(true);
 
 					const block = meshMap[mesh.blockKey];
-
-					console.log("Positioning block", block, meshMap);
 
 					let meshY = mesh.position.y;
 
