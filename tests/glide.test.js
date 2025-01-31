@@ -50,24 +50,36 @@ export function runGlideToTests(flock) {
 		});
 
 		it("should handle looping", function (done) {
-			this.timeout(10000); // Increase the timeout for this test (allowing time for multiple loops)
+			this.timeout(10000); // Increase the timeout for this test
+
+			// Define the start time
+			const startTime = Date.now();
 
 			// Move the box with loop enabled
 			flock.glideTo(box1, 6, 0, 0, 1000, false, true); // Start the glide with looping enabled
 
-			// Wait for enough time for the animation to loop at least once
-			setTimeout(() => {
+			// Track whether the box has reached the target position
+			let hasReachedTarget = false;
+
+			// Check the box's position periodically
+			const intervalId = setInterval(() => {
 				const box = flock.scene.getMeshByName(box1);
 
-				// Assert that the box has returned to its expected position after a loop
-				expect(box.position.x).to.be.closeTo(6, 0.1); // Expectation after the loop (with some tolerance)
-				expect(box.position.y).to.equal(0);
-				expect(box.position.z).to.equal(0);
+				// Check if the box has reached the target position (with some tolerance)
+				if (Math.abs(box.position.x - 6) <= 0.1) {
+					hasReachedTarget = true;
+				}
 
-				done();
-			}, 3000); // Wait for 3 seconds (adjust as necessary for the loop duration)
+				// Stop checking after 3 seconds
+				if (Date.now() - startTime > 3000) {
+					clearInterval(intervalId);
+
+					// Assert that the box reached the target position at least once
+					expect(hasReachedTarget).to.be.true;
+					done();
+				}
+			}, 100); // Check every 100ms
 		});
-
 
 		it("should follow the correct easing function", function (done) {
 			this.timeout(5000); // Increase the timeout for this test

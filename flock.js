@@ -1016,7 +1016,6 @@ export const flock = {
 			mesh.getChildMeshes().forEach(applyHighlight);
 		});
 	},
-
 	glow(modelName, glowColor) {
 		// Ensure the glow layer is initialised
 		if (!flock.glowLayer) {
@@ -1026,7 +1025,6 @@ export const flock = {
 			);
 			flock.glowLayer.intensity = 0.5; // Adjust glow intensity as needed
 		}
-
 		const applyGlow = (mesh, glowColor) => {
 			if (mesh.material) {
 				// Use diffuse color if glowColor is not specified
@@ -1466,7 +1464,6 @@ export const flock = {
 
 		return modelId;
 	},
-
 	cloneFromCache(
 		modelName,
 		modelId,
@@ -1567,119 +1564,6 @@ export const flock = {
 			.finally(() => {
 				delete flock.modelsBeingLoaded[modelName]; // Remove from loading map
 			});
-	},
-
-	newObject2({
-		modelName,
-		modelId,
-		color = "#FFFFFF",
-		scale = 1,
-		position = { x: 0, y: 0, z: 0 },
-		callback = null,
-	}) {
-		const { x, y, z } = position;
-		const blockId = modelId;
-		modelId += "_" + flock.scene.getUniqueId();
-
-		// Check if a first copy is already cached
-		if (flock.modelCache[modelName]) {
-			//console.log(`Using cached first model: ${modelName}`);
-
-			// Clone from the cached first copy
-			const firstMesh = flock.modelCache[modelName];
-			const mesh = firstMesh.clone(blockId);
-
-			// Reset transformations
-			mesh.scaling.copyFrom(BABYLON.Vector3.One());
-			mesh.position.copyFrom(BABYLON.Vector3.Zero());
-			mesh.rotationQuaternion = null;
-			mesh.rotation.copyFrom(BABYLON.Vector3.Zero());
-			flock.setupMesh(
-				mesh,
-				modelName,
-				modelId,
-				blockId,
-				scale,
-				x,
-				y,
-				z,
-				color,
-			);
-
-			flock.changeColorMesh(mesh, color);
-
-			mesh.computeWorldMatrix(true);
-			mesh.refreshBoundingInfo();
-			mesh.setEnabled(true);
-			mesh.visibility = 1;
-
-			if (callback) {
-				requestAnimationFrame(callback);
-			}
-
-			return modelId;
-		}
-
-		// Check if model is already being loaded
-		if (flock.modelsBeingLoaded[modelName]) {
-			console.log(`Waiting for model to load: ${modelName}`);
-			return flock.modelsBeingLoaded[modelName].then(() => {
-				return flock.newObject({
-					modelName,
-					modelId,
-					color,
-					scale,
-					position,
-					callback,
-				});
-			});
-		}
-
-		const loadPromise = flock.BABYLON.SceneLoader.LoadAssetContainerAsync(
-			"./models/",
-			modelName,
-			flock.scene,
-		)
-			.then((container) => {
-				// Clone a first copy from the first mesh
-				flock.ensureStandardMaterial(container.meshes[0]);
-
-				const firstMesh = container.meshes[0].clone(
-					`${modelName}_first`,
-				);
-				firstMesh.setEnabled(false); // Disable the first copy
-				flock.modelCache[modelName] = firstMesh;
-
-				container.addAllToScene();
-
-				flock.setupMesh(
-					container.meshes[0],
-					modelName,
-					modelId,
-					blockId,
-					scale,
-					x,
-					y,
-					z,
-					color,
-				);
-				flock.changeColorMesh(container.meshes[0], color);
-
-				if (callback) {
-					requestAnimationFrame(callback);
-				}
-			})
-			.catch((error) => {
-				console.error(`Error loading model: ${modelName}`, error);
-			})
-			.finally(() => {
-				delete flock.modelsBeingLoaded[modelName]; // Remove from loading map
-			});
-
-		// Track the ongoing load
-		flock.modelsBeingLoaded[modelName] = loadPromise;
-
-		return modelId;
 	},
 	create3DText({
 		text,
