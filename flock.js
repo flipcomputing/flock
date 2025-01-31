@@ -612,16 +612,22 @@ export const flock = {
 		// Initialize the new scene
 		await flock.initializeNewScene();
 	},
-	UIText(text, x, y, fontSize, color, duration, existingTextBlock = null) {
+	UIText(text, x, y, fontSize, color, duration, id = null) {
 		// Ensure flock.scene and flock.GUI are initialized
 		if (!flock.scene || !flock.GUI) {
 			throw new Error("flock.scene or flock.GUI is not initialized.");
 		}
 
 		// Ensure UITexture and controls exist
-		flock.scene.UITexture ??= flock.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
+		flock.scene.UITexture ??=
+			flock.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
 		flock.scene.UITexture.controls ??= [];
 		flock.abortController ??= new AbortController();
+
+		// Generate a unique ID if none is provided
+		const textBlockId =
+			id ||
+			`textBlock_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
 		// Get canvas dimensions
 		const maxWidth = flock.scene.getEngine().getRenderWidth();
@@ -631,69 +637,71 @@ export const flock = {
 		const adjustedX = x < 0 ? maxWidth + x : x;
 		const adjustedY = y < 0 ? maxHeight + y : y;
 
-		let textBlock = existingTextBlock;
+		// Check if a TextBlock with the given ID already exists
+		let textBlock = flock.scene.UITexture.getControlByName(textBlockId);
 
-		// Remove the previous text block if it exists
-		if (textBlock && flock.scene.UITexture.controls.includes(textBlock)) {
-			flock.scene.UITexture.removeControl(textBlock);
-			const index = flock.scene.UITexture.controls.indexOf(textBlock);
-			if (index !== -1) {
-				flock.scene.UITexture.controls.splice(index, 1);
-			}
-			textBlock = null;
+		if (textBlock) {
+			// Reuse the existing TextBlock and update its properties
+			textBlock.text = text;
+			textBlock.color = color || "white"; // Default color
+			textBlock.fontSize = fontSize || 24; // Default font size
+			textBlock.left = adjustedX;
+			textBlock.top = adjustedY;
+			textBlock.isVisible = true; // Ensure the text block is visible
+		} else {
+			textBlock = new flock.GUI.TextBlock(textBlockId); // Assign the ID as the name
+			flock.scene.UITexture.addControl(textBlock);
+			flock.scene.UITexture.controls.push(textBlock);
+
+			// Set initial text properties
+			textBlock.text = text;
+			textBlock.color = color || "white"; // Default color
+			textBlock.fontSize = fontSize || 24; // Default font size
+			textBlock.textHorizontalAlignment =
+				flock.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
+			textBlock.textVerticalAlignment =
+				flock.GUI.Control.VERTICAL_ALIGNMENT_TOP;
+			textBlock.left = adjustedX;
+			textBlock.top = adjustedY;
 		}
-
-		// Create a new text block
-		textBlock = new flock.GUI.TextBlock();
-		flock.scene.UITexture.addControl(textBlock);
-		flock.scene.UITexture.controls.push(textBlock);
-
-		// Set text properties
-		textBlock.text = text;
-		textBlock.color = color || "white";  // Default color
-		textBlock.fontSize = fontSize || 24;  // Default font size
-		textBlock.textHorizontalAlignment = flock.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
-		textBlock.textVerticalAlignment = flock.GUI.Control.VERTICAL_ALIGNMENT_TOP;
-		textBlock.left = adjustedX;
-		textBlock.top = adjustedY;
 
 		// Ensure the text disappears after the duration
 		if (duration > 0) {
-			const timeoutId = setTimeout(() => {
+			setTimeout(() => {
 				if (flock.scene.UITexture.controls.includes(textBlock)) {
-					flock.scene.UITexture.removeControl(textBlock);
-					const index = flock.scene.UITexture.controls.indexOf(textBlock);
-					if (index !== -1) {
-						flock.scene.UITexture.controls.splice(index, 1);
-					}
+					console.log(
+						`Hiding TextBlock "${textBlockId}" after ${duration} seconds.`,
+					);
+					textBlock.isVisible = false; // Hide the text block
+				} else {
+					console.warn(
+						`TextBlock "${textBlockId}" not found in controls array.`,
+					);
 				}
 			}, duration * 1000);
-
-			// Attach abort listener to cancel timeout if needed
-			const signal = flock.abortController.signal;
-			const abortListener = () => clearTimeout(timeoutId);
-			signal.addEventListener("abort", abortListener, { once: true });
-
-			// Return a cleanup function to remove the listener
-			return {
-				textBlock,
-				cleanup: () => {
-					signal.removeEventListener("abort", abortListener);
-					clearTimeout(timeoutId);
-				}
-			};
 		}
 
-		return textBlock;
+		// Return the ID for future reference
+		return textBlockId;
 	},
-	UIButton(text, x, y, width, textSize, textColor, backgroundColor, buttonId) {
+	UIButton(
+		text,
+		x,
+		y,
+		width,
+		textSize,
+		textColor,
+		backgroundColor,
+		buttonId,
+	) {
 		// Ensure flock.scene and flock.GUI are initialized
 		if (!flock.scene || !flock.GUI) {
 			throw new Error("flock.scene or flock.GUI is not initialized.");
 		}
 
 		// Ensure UITexture exists
-		flock.scene.UITexture ??= flock.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
+		flock.scene.UITexture ??=
+			flock.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
 
 		// Validate buttonId
 		if (!buttonId || typeof buttonId !== "string") {
@@ -705,14 +713,16 @@ export const flock = {
 
 		// Preset button sizes for consistency
 		const buttonSizes = {
-			"SMALL": { width: "100px", height: "40px" },
-			"MEDIUM": { width: "150px", height: "50px" },
-			"LARGE": { width: "200px", height: "60px" }
+			SMALL: { width: "100px", height: "40px" },
+			MEDIUM: { width: "150px", height: "50px" },
+			LARGE: { width: "200px", height: "60px" },
 		};
 
 		// Validate and apply the selected size
 		if (typeof width !== "string") {
-			throw new Error("Invalid button size. Please provide a valid size: 'SMALL', 'MEDIUM', or 'LARGE'.");
+			throw new Error(
+				"Invalid button size. Please provide a valid size: 'SMALL', 'MEDIUM', or 'LARGE'.",
+			);
 		}
 
 		const size = buttonSizes[width.toUpperCase()] || buttonSizes["SMALL"];
@@ -723,9 +733,11 @@ export const flock = {
 		if (button.textBlock) {
 			button.textBlock.textWrapping = true;
 			button.textBlock.resizeToFit = true;
-			button.textBlock.fontSize = textSize ? `${textSize}px` : "16px";  // Default font size
+			button.textBlock.fontSize = textSize ? `${textSize}px` : "16px"; // Default font size
 		} else {
-			console.warn("No textBlock found for the button. Text-related settings will not be applied.");
+			console.warn(
+				"No textBlock found for the button. Text-related settings will not be applied.",
+			);
 		}
 
 		// Set button text color and background color
@@ -740,13 +752,15 @@ export const flock = {
 		// Set button alignment
 		button.left = `${x}px`;
 		button.top = `${y}px`;
-		button.horizontalAlignment = x < 0 
-			? flock.GUI.Control.HORIZONTAL_ALIGNMENT_RIGHT 
-			: flock.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
+		button.horizontalAlignment =
+			x < 0
+				? flock.GUI.Control.HORIZONTAL_ALIGNMENT_RIGHT
+				: flock.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
 
-		button.verticalAlignment = y < 0 
-			? flock.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM 
-			: flock.GUI.Control.VERTICAL_ALIGNMENT_TOP;
+		button.verticalAlignment =
+			y < 0
+				? flock.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM
+				: flock.GUI.Control.VERTICAL_ALIGNMENT_TOP;
 
 		// Add the button to the UI
 		flock.scene.UITexture.addControl(button);
@@ -2826,6 +2840,13 @@ export const flock = {
 		});
 	},
 	dispose(modelName) {
+		const uiButton = flock.scene.UITexture?.getControlByName(modelName);
+
+		if (uiButton) {
+			// Handle UI button case
+			uiButton.dispose();
+			return;
+		}
 		return flock.whenModelReady(modelName, (mesh) => {
 			flock.disposeMesh(mesh);
 		});
@@ -5221,6 +5242,14 @@ export const flock = {
 		);
 	},
 	show(modelName) {
+		// Check if the ID refers to a UI button
+		const uiButton = flock.scene.UITexture?.getControlByName(modelName);
+
+		if (uiButton) {
+			// Handle UI button case
+			uiButton.isVisible = true; // Hide the button
+			return;
+		}
 		return flock.whenModelReady(modelName, function (mesh) {
 			if (mesh) {
 				mesh.setEnabled(true);
@@ -5235,6 +5264,13 @@ export const flock = {
 		});
 	},
 	hide(modelName) {
+		const uiButton = flock.scene.UITexture?.getControlByName(modelName);
+
+		if (uiButton) {
+			// Handle UI button case
+			uiButton.isVisible = false; // Hide the button
+			return;
+		}
 		return flock.whenModelReady(modelName, async function (mesh) {
 			if (mesh) {
 				mesh.setEnabled(false);
@@ -6425,15 +6461,13 @@ export const flock = {
 				let physicsShape, radius, boundingBox, height;
 				switch (shapeType) {
 					case "CAPSULE":
-						boundingBox =
-							targetMesh.getBoundingInfo().boundingBox;
+						boundingBox = targetMesh.getBoundingInfo().boundingBox;
 						radius =
 							Math.max(
 								boundingBox.maximum.x - boundingBox.minimum.x,
 								boundingBox.maximum.z - boundingBox.minimum.z,
 							) / 2;
-						height =
-							boundingBox.maximum.y - boundingBox.minimum.y;
+						height = boundingBox.maximum.y - boundingBox.minimum.y;
 						physicsShape = new flock.BABYLON.PhysicsShapeCapsule(
 							targetMesh,
 							flock.scene,
@@ -7432,7 +7466,7 @@ export const flock = {
 					false,
 				);
 			} else if (format === "OBJ") {
-				const objData = flock.EXPORT.OBJExport.OBJ(mesh);			
+				const objData = flock.EXPORT.OBJExport.OBJ(mesh);
 				//download(mesh.name + ".obj", objData, "text/plain");
 			} else if (format === "GLB") {
 				mesh.flipFaces();
