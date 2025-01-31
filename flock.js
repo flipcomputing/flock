@@ -12,7 +12,6 @@ import "@fontsource/asap";
 import "@fontsource/asap/500.css";
 import "@fontsource/asap/600.css";
 import earcut from "earcut";
-import { meshBlockIdMap } from "./generators";
 
 // Helper functions to make flock.BABYLON js easier to use in Flock
 console.log("Flock helpers loading");
@@ -76,7 +75,6 @@ export const flock = {
 
 			iframeWindow.flock = flock;
 
-			// Step 5: Initialise new scene
 			await iframeWindow.flock.initializeNewScene();
 
 			// Step 6: Create sandboxed function
@@ -199,7 +197,6 @@ export const flock = {
 			${code}
 			`);
 
-			// Step 7: Execute the sandboxed function
 			try {
 				sandboxFunction();
 			} catch (sandboxError) {
@@ -219,21 +216,6 @@ export const flock = {
 			} catch (cleanupError) {
 				console.error("Error during cleanup:", cleanupError);
 			}
-
-			// Fallback: Load starter project
-			const starter = "examples/starter.json";
-			fetch(starter)
-				.then((response) => response.json())
-				.then((json) => {
-					Blockly.serialization.workspaces.load(json, workspace);
-					executeCode(); // Retry with starter project
-				})
-				.catch((starterError) => {
-					console.error(
-						"Error loading starter project:",
-						starterError,
-					);
-				});
 		}
 	},
 	async initialize() {
@@ -556,6 +538,7 @@ export const flock = {
 				uiOptions: { sessionMode: "immersive-ar" },
 			});
 		} else if (mode === "MAGIC_WINDOW") {
+			let camera = flock.scene.activeCamera;
 			if (!camera.inputs.attached.deviceOrientation) {
 				camera.inputs.addDeviceOrientation();
 			}
@@ -664,7 +647,7 @@ export const flock = {
 		// Only remove the text if duration is greater than 0
 		if (duration > 0 && !existingTextBlock) {
 			const timeoutId = setTimeout(() => {
-				advancedTexture.removeControl(textBlock);
+				flock.scene.UITexture.removeControl(textBlock);
 			}, duration * 1000);
 
 			// Listen for the abort signal to clear the timeout
@@ -1252,7 +1235,6 @@ export const flock = {
 		flock.applyColorToMaterial(mesh, "Sleeves", sleevesColor);
 		flock.applyColorToMaterial(mesh, "Shoes", sleevesColor);
 	},
-	changeModel(mesh, modelName) {},
 	newCharacter({
 		modelName,
 		modelId,
@@ -1276,10 +1258,9 @@ export const flock = {
 		}
 
 		if (flock.scene.getMeshByName(modelId)) {
-	
 			modelId = modelId + "_" + flock.scene.getUniqueId();
 		}
-			flock.BABYLON.SceneLoader.LoadAssetContainerAsync(
+		flock.BABYLON.SceneLoader.LoadAssetContainerAsync(
 			"./models/",
 			modelName,
 			flock.scene,
@@ -1858,10 +1839,8 @@ export const flock = {
 		});
 	},
 	drop(meshToDetach) {
-		return flock.whenModelReady(meshToDetach, (meshToDetachIntance) => {
+		return flock.whenModelReady(meshToDetach, (meshToDetachInstance) => {
 			const worldPosition = meshToDetachInstance.getAbsolutePosition();
-
-			// Detach the mesh from the bone
 			meshToDetachInstance.detachFromBone();
 
 			// Set the child mesh's position to its world position
@@ -2263,7 +2242,7 @@ export const flock = {
 			);
 		};
 
-		const replaceMaterial = (material) => {
+		const replaceMaterial = () => {
 			return referenceMesh.material.clone("clonedMaterial");
 		};
 
@@ -2272,12 +2251,12 @@ export const flock = {
 				resultMesh.material.subMaterials =
 					resultMesh.material.subMaterials.map((subMaterial) => {
 						if (subMaterial && isDefaultMaterial(subMaterial)) {
-							return replaceMaterial(subMaterial);
+							return replaceMaterial();
 						}
 						return subMaterial;
 					});
 			} else if (isDefaultMaterial(resultMesh.material)) {
-				resultMesh.material = replaceMaterial(resultMesh.material);
+				resultMesh.material = replaceMaterial();
 				resultMesh.material.backFaceCulling = false;
 			}
 		}
@@ -2384,6 +2363,7 @@ export const flock = {
 			"groundMaterial",
 			flock.scene,
 		);
+		ground.physics = groundAggregate;
 
 		groundMaterial.diffuseColor = flock.BABYLON.Color3.FromHexString(
 			flock.getColorFromString(color),
@@ -2407,6 +2387,7 @@ export const flock = {
 				{ mass: 0, friction: 0.5 },
 				flock.scene,
 			);
+			ground.physics = groundAggregate;
 			ground.name = modelId;
 			ground.blockKey = modelId;
 			ground.receiveShadows = true;
@@ -2989,7 +2970,6 @@ export const flock = {
 		mesh.setVerticesData(BABYLON.VertexBuffer.UVKind, uvs, true);
 	},
 	createBox(boxId, color, width, height, depth, position, alpha = 1) {
-		
 		let blockKey = boxId;
 
 		if (boxId.includes("__")) {
@@ -2999,7 +2979,7 @@ export const flock = {
 		if (flock.scene.getMeshByName(boxId)) {
 			boxId = boxId + "_" + flock.scene.getUniqueId();
 		}
-	
+
 		const dimensions = { width, height, depth };
 
 		// Retrieve cached VertexData or create it if this is the first instance
@@ -3038,8 +3018,6 @@ export const flock = {
 		const uvs =
 			mesh.getVerticesData(BABYLON.VertexBuffer.UVKind) ||
 			new Array((positions.length / 3) * 2).fill(0);
-
-		const normalizedDiameter = diameter / texturePhysicalSize; // Normalize by texture physical size
 
 		for (let i = 0; i < positions.length / 3; i++) {
 			const x = positions[i * 3];
@@ -3571,17 +3549,6 @@ export const flock = {
 
 			// Get the original bounding box dimensions and positions
 			const boundingInfo = mesh.getBoundingInfo();
-			const originalDimensions = {
-				x:
-					boundingInfo.boundingBox.maximum.x -
-					boundingInfo.boundingBox.minimum.x,
-				y:
-					boundingInfo.boundingBox.maximum.y -
-					boundingInfo.boundingBox.minimum.y,
-				z:
-					boundingInfo.boundingBox.maximum.z -
-					boundingInfo.boundingBox.minimum.z,
-			};
 
 			// Store original world coordinates for base and top/bottom points
 			const originalMinY = boundingInfo.boundingBox.minimumWorld.y;
@@ -4110,6 +4077,7 @@ export const flock = {
 				: mesh.getAbsolutePosition();
 
 		let propertyValue = null;
+		let colors = null;
 
 		mesh.computeWorldMatrix(true);
 
@@ -4287,7 +4255,7 @@ export const flock = {
 				materialNodes = allMeshes.filter((node) => node.material);
 
 				// Map to get the diffuseColor or albedoColor of each material as a hex string
-				const colors = materialNodes
+				colors = materialNodes
 					.map((node) => {
 						if (node.material.diffuseColor) {
 							return node.material.diffuseColor.toHexString();
@@ -4952,38 +4920,6 @@ export const flock = {
 
 		if (easingFunction) {
 			animation.setEasingFunction(easingFunction);
-		}
-	},
-	applyEasing(animation, easing) {
-		let easingFunction;
-
-		switch (easing.toLowerCase()) {
-			case "ease-in":
-				easingFunction = new BABYLON.QuadraticEase();
-				easingFunction.setEasingMode(
-					BABYLON.EasingFunction.EASINGMODE_EASEIN,
-				);
-				break;
-			case "ease-out":
-				easingFunction = new BABYLON.QuadraticEase();
-				easingFunction.setEasingMode(
-					BABYLON.EasingFunction.EASINGMODE_EASEOUT,
-				);
-				break;
-			case "ease-in-out":
-				easingFunction = new BABYLON.QuadraticEase();
-				easingFunction.setEasingMode(
-					BABYLON.EasingFunction.EASINGMODE_EASEINOUT,
-				);
-				break;
-			case "linear":
-			default:
-				easingFunction = null; // No easing for linear
-				break;
-		}
-
-		if (easingFunction) {
-			animation.setEasingFunction(easingFunction);
 			//console.log(`Applied easing: ${easing}`);
 		}
 	},
@@ -5507,7 +5443,9 @@ export const flock = {
 				mesh.forceSharedVertices();
 				mesh.convertToFlatShadedMesh();
 			}
-		} catch (e) {}
+		} catch (e) {
+			console.log("Error converting mesh to flat shaded:", e);
+		}
 	},
 	changeMaterial(modelName, materialName, color) {
 		return flock.whenModelReady(modelName, (mesh) => {
@@ -6204,8 +6142,6 @@ export const flock = {
 	updateDynamicMeshPositions(scene, dynamicMeshes) {
 		const maxSlopeAngle = Math.PI / 4; // 45 degrees maximum slope
 		const jumpThreshold = 0.2; // Small distance to detect ground proximity
-		const upwardForceLimit = 5; // Clamp upward velocity
-
 		scene.onBeforeRenderObservable.add(() => {
 			dynamicMeshes.forEach((mesh) => {
 				if (!mesh.physics) {
@@ -6447,17 +6383,17 @@ export const flock = {
 				// Dispose existing physics before applying a new shape
 				disposePhysics(targetMesh);
 
-				let physicsShape;
+				let physicsShape, radius, boundingBox, height;
 				switch (shapeType) {
 					case "CAPSULE":
-						const boundingBox =
+						boundingBox =
 							targetMesh.getBoundingInfo().boundingBox;
-						const radius =
+						radius =
 							Math.max(
 								boundingBox.maximum.x - boundingBox.minimum.x,
 								boundingBox.maximum.z - boundingBox.minimum.z,
 							) / 2;
-						const height =
+						height =
 							boundingBox.maximum.y - boundingBox.minimum.y;
 						physicsShape = new flock.BABYLON.PhysicsShapeCapsule(
 							targetMesh,
@@ -7457,8 +7393,8 @@ export const flock = {
 					false,
 				);
 			} else if (format === "OBJ") {
-				const objData = flock.EXPORT.OBJExport.OBJ(mesh);
-				download(mesh.name + ".obj", objData, "text/plain");
+				const objData = flock.EXPORT.OBJExport.OBJ(mesh);			
+				//download(mesh.name + ".obj", objData, "text/plain");
 			} else if (format === "GLB") {
 				mesh.flipFaces();
 				flock.EXPORT.GLTF2Export.GLBAsync(

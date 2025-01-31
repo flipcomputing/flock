@@ -4,7 +4,7 @@
 
 import * as Blockly from "blockly";
 import { javascriptGenerator } from "blockly/javascript";
-import { registerFieldColour } from "@blockly/field-colour";
+//import { registerFieldColour } from "@blockly/field-colour";
 import { FieldGridDropdown } from "@blockly/field-grid-dropdown";
 import { WorkspaceSearch } from "@blockly/plugin-workspace-search";
 import { NavigationController } from "@blockly/keyboard-navigation";
@@ -218,34 +218,6 @@ async function exportCode() {
 	} catch (e) {
 		console.error("Error exporting project:", e);
 	}
-}
-
-function exportCode2() {
-	const projectName =
-		document.getElementById("projectName").value || "default_project";
-
-	let ws = Blockly.getMainWorkspace();
-	let usedModels = Blockly.Variables.allUsedVarModels(ws);
-	let allModels = ws.getAllVariables();
-	for (var model of allModels) {
-		if (!usedModels.find((element) => element.getId() == model.getId())) {
-			ws.deleteVariableById(model.getId());
-		}
-	}
-
-	const json = Blockly.serialization.workspaces.save(workspace);
-	const jsonString = JSON.stringify(json, null, 2); // Pretty-print the JSON
-
-	const element = document.createElement("a");
-	element.setAttribute(
-		"href",
-		"data:text/json;charset=utf-8," + encodeURIComponent(jsonString),
-	);
-	element.setAttribute("download", projectName + ".json");
-
-	document.body.appendChild(element); // Required for Firefox
-	element.click();
-	document.body.removeChild(element);
 }
 
 let toolboxVisible = false;
@@ -616,7 +588,7 @@ function addExportPNGContextMenuOption() {
 			if (scope.block) {
 				exportBlockAsPNG(scope.block);
 			} else if (scope.workspace) {
-				exportWorkspaceAsPNG(scope.workspace);
+				//exportWorkspaceAsPNG(scope.workspace);
 			}
 		},
 		scopeType: Blockly.ContextMenuRegistry.ScopeType.BLOCK,
@@ -751,7 +723,6 @@ function switchView(view) {
 	if (flock.scene) flock.scene.debugLayer.hide();
 	const blocklyArea = document.getElementById("codePanel");
 	const canvasArea = document.getElementById("rightArea");
-	const gizmoButtons = document.getElementById("gizmoButtons");
 
 	if (view === "both") {
 		viewMode = "both";
@@ -1628,23 +1599,7 @@ window.onload = function () {
 
 	workspace = Blockly.inject("blocklyDiv", options);
 
-	const copyPasteOptions = {
-		contextMenu: true,
-		shortcut: true,
-	};
-
-	// Initialize plugin.
-	/*const plugin = new CrossTabCopyPaste();
-	plugin.init(copyPasteOptions, () => {
-	  console.log('Use this error callback to handle TypeError while pasting');
-	});*/
-
-	// optional: You can change the position of the menu added to the context menu.
-	/*Blockly.ContextMenuRegistry.registry.getItem('blockCopyToStorage').weight = 2;
-	Blockly.ContextMenuRegistry.registry.getItem(
-	  'blockPasteFromStorage',
-	).weight = 3;*/
-	workspace.addChangeListener(BlockDynamicConnection.finalizeConnections);
+workspace.addChangeListener(BlockDynamicConnection.finalizeConnections);
 
 	overrideSearchPlugin(workspace);
 
