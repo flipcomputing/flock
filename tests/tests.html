@@ -34,7 +34,7 @@
       import * as flockmodule from "../flock.js";
       import { runTests } from './babylon.test.js';  // Import the test suite
       import { runGlideToTests } from './glide.test.js';  // Make sure this path is correct
-
+      import { runUITests } from './uitextbutton.test.js';  // Make sure this path is correct
     
       const flock = flockmodule.flock;
 
@@ -74,7 +74,8 @@
       // Run the Mocha tests
       //runTests(flock, chai.expect); // Run tests from the imported file
       // Run the glideTo tests
-      runGlideToTests(flock);
+      runUITests(flock);
+     // runGlideToTests(flock);
 
       mocha.run();
     </script>
