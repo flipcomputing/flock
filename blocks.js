@@ -2271,7 +2271,7 @@ export function defineBlocks() {
 			this.jsonInit({
 				type: "ui_text",
 				message0:
-					"ui text %1 %2 at x: %3 y: %4  size: %5 for %6 seconds color: %7",
+					"ui text %1 %2 at x: %3 y: %4\nsize: %5 for %6 seconds color: %7",
 				args0: [
 					{
 						type: "input_value",
@@ -2324,7 +2324,7 @@ export function defineBlocks() {
 			this.jsonInit({
 				type: "ui_button",
 				message0:
-					"ui button %1 %2 at x: %3 y: %4 size: %5 text color: %6 background color: %7",
+					"ui button %1 %2 at x: %3 y: %4\nsize: %5 text size: %6 text color: %7 background color: %8",
 				args0: [
 					{
 						type: "input_value",
@@ -2355,6 +2355,15 @@ export function defineBlocks() {
 						],
 					},
 					{
+						type: "field_dropdown",
+						name: "TEXT_SIZE",
+						options: [
+							["small", "14px"],
+							["medium", "18px"],
+							["large", "24px"],
+						],
+					},
+					{
 						type: "input_value",
 						name: "TEXT_COLOR",
 						check: "Colour",
@@ -2375,6 +2384,7 @@ export function defineBlocks() {
 			});
 		},
 	};
+
 
 	Blockly.Blocks["create_map"] = {
 		init: function () {

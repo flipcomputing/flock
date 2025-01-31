@@ -652,45 +652,28 @@ export function defineGenerators() {
 	};
 
 	javascriptGenerator.forBlock["ui_button"] = function (block) {
-		// Retrieve all the values from the block
-		const text = javascriptGenerator.valueToCode(
-			block,
-			"TEXT",
-			javascriptGenerator.ORDER_ATOMIC,
-		);
-		const x = javascriptGenerator.valueToCode(
-			block,
-			"X",
-			javascriptGenerator.ORDER_ATOMIC,
-		);
-		const y = javascriptGenerator.valueToCode(
-			block,
-			"Y",
-			javascriptGenerator.ORDER_ATOMIC,
-		);
-		const width = `"${block.getFieldValue("WIDTH")}"`; // Get dropdown value directly
-		const textColor = javascriptGenerator.valueToCode(
-			block,
-			"TEXT_COLOR",
-			javascriptGenerator.ORDER_ATOMIC,
-		);
-		const backgroundColor = javascriptGenerator.valueToCode(
-			block,
-			"BACKGROUND_COLOR",
-			javascriptGenerator.ORDER_ATOMIC,
-		);
+		// Retrieve values from the block
+		const text = javascriptGenerator.valueToCode(block, "TEXT", javascriptGenerator.ORDER_ATOMIC);
+		const x = javascriptGenerator.valueToCode(block, "X", javascriptGenerator.ORDER_ATOMIC);
+		const y = javascriptGenerator.valueToCode(block, "Y", javascriptGenerator.ORDER_ATOMIC);
+		const width = `"${block.getFieldValue("SIZE")}"`; // Fix: Use "SIZE" instead of "WIDTH"
+		const textSize = `"${block.getFieldValue("TEXT_SIZE")}"`; // Fix: Add text size support
+		const textColor = javascriptGenerator.valueToCode(block, "TEXT_COLOR", javascriptGenerator.ORDER_ATOMIC);
+		const backgroundColor = javascriptGenerator.valueToCode(block, "BACKGROUND_COLOR", javascriptGenerator.ORDER_ATOMIC);
 
 		// Get the button variable
 		const buttonVar = javascriptGenerator.nameDB_.getName(
 			block.getFieldValue("BUTTON_VAR"),
-			Blockly.VARIABLE_CATEGORY_NAME,
+			Blockly.VARIABLE_CATEGORY_NAME
 		);
 
 		const buttonId = `Button_${generateUniqueId()}`;
-		// Generate the code using the helper function
-		const code = `${buttonVar} = UIButton( ${text}, ${x}, ${y}, ${width}, ${textColor}, ${backgroundColor}, "${buttonId}");\n`;
+
+		// Generate the UIButton call with text size support
+		const code = `${buttonVar} = UIButton(${text}, ${x}, ${y}, ${width}, ${textSize}, ${textColor}, ${backgroundColor}, "${buttonId}");\n`;
 		return code;
 	};
+
 
 	javascriptGenerator.forBlock["say"] = function (block) {
 		const text =

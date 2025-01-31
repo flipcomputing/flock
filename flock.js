@@ -686,62 +686,73 @@ export const flock = {
 
 		return textBlock;
 	},
-	UIButton(text, x, y, width, textColor, backgroundColor, buttonId) {
-		// Ensure we have access to the UI texture
-		flock.scene.UITexture ??=
-			flock.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
+	UIButton(text, x, y, width, textSize, textColor, backgroundColor, buttonId) {
+		// Ensure flock.scene and flock.GUI are initialized
+		if (!flock.scene || !flock.GUI) {
+			throw new Error("flock.scene or flock.GUI is not initialized.");
+		}
+
+		// Ensure UITexture exists
+		flock.scene.UITexture ??= flock.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
+
+		// Validate buttonId
+		if (!buttonId || typeof buttonId !== "string") {
+			throw new Error("buttonId must be a valid non-empty string.");
+		}
 
 		// Create a Babylon.js GUI button
 		const button = flock.GUI.Button.CreateSimpleButton(buttonId, text);
 
-		// Set button width based on predefined options (Small, Medium, Large)
-		switch (width.toUpperCase()) {
-			case "SMALL":
-				button.width = "10%"; // Width as a percentage of the screen width
-				break;
-			case "MEDIUM":
-				button.width = "15%";
-				break;
-			case "LARGE":
-				button.width = "20%";
-				break;
-			default:
-				button.width = "10%"; // Default to SMALL if no valid option is provided
+		// Preset button sizes for consistency
+		const buttonSizes = {
+			"SMALL": { width: "100px", height: "40px" },
+			"MEDIUM": { width: "150px", height: "50px" },
+			"LARGE": { width: "200px", height: "60px" }
+		};
+
+		// Validate and apply the selected size
+		if (typeof width !== "string") {
+			throw new Error("Invalid button size. Please provide a valid size: 'SMALL', 'MEDIUM', or 'LARGE'.");
 		}
 
-		// Enable text wrapping and allow height to be adjusted automatically
-		button.textBlock.textWrapping = true; // Enable text wrapping
-		button.height = "40px"; // Allow the height to adapt based on content
+		const size = buttonSizes[width.toUpperCase()] || buttonSizes["SMALL"];
+		button.width = size.width;
+		button.height = size.height;
+
+		// Configure text block settings
+		if (button.textBlock) {
+			button.textBlock.textWrapping = true;
+			button.textBlock.resizeToFit = true;
+			button.textBlock.fontSize = textSize ? `${textSize}px` : "16px";  // Default font size
+		} else {
+			console.warn("No textBlock found for the button. Text-related settings will not be applied.");
+		}
 
 		// Set button text color and background color
 		button.color = textColor || "white";
 		button.background = backgroundColor || "blue";
 
-		// Set button alignment to position it in the screen space
-		if (x < 0) {
-			button.horizontalAlignment =
-				flock.GUI.Control.HORIZONTAL_ALIGNMENT_RIGHT;
-			button.left = `${x}px`; // Negative offset from the right side
-		} else {
-			button.horizontalAlignment =
-				flock.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
-			button.left = `${x}px`; // Positive offset from the left side
+		// Validate x and y positions
+		if (typeof x !== "number" || typeof y !== "number") {
+			throw new Error("x and y must be numbers.");
 		}
 
-		if (y < 0) {
-			button.verticalAlignment =
-				flock.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM;
-			button.top = `${y}px`; // Negative offset from the bottom side
-		} else {
-			button.verticalAlignment = flock.GUI.Control.VERTICAL_ALIGNMENT_TOP;
-			button.top = `${y}px`; // Positive offset from the top side
-		}
+		// Set button alignment
+		button.left = `${x}px`;
+		button.top = `${y}px`;
+		button.horizontalAlignment = x < 0 
+			? flock.GUI.Control.HORIZONTAL_ALIGNMENT_RIGHT 
+			: flock.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
 
-		// Add the button to the Advanced Dynamic Texture UI
+		button.verticalAlignment = y < 0 
+			? flock.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM 
+			: flock.GUI.Control.VERTICAL_ALIGNMENT_TOP;
+
+		// Add the button to the UI
 		flock.scene.UITexture.addControl(button);
 
-		// Return the button name so it can be used for lookups
-		return button.name;
+		// Return the buttonId for future reference
+		return buttonId;
 	},
 	removeEventListeners() {
 		flock.scene.eventListeners?.forEach(({ event, handler }) => {
