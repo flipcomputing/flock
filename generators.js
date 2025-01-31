@@ -1,10 +1,7 @@
 import * as Blockly from "blockly";
 import { javascriptGenerator } from "blockly/javascript";
 import "@blockly/block-plus-minus";
-
 import { FlowGraphLog10Block } from "babylonjs";
-import { flock } from "./flock.js";
-
 export let meshMap = {};
 export let meshBlockIdMap = {};
 
