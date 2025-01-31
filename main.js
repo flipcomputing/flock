@@ -621,11 +621,7 @@ function addExportSVGContextMenuOption() {
 	});
 }
 
-function openAboutPage() {
-	window.open("https://github.com/flipcomputing/flock/", "_blank");
-}
 
-window.openAboutPage = openAboutPage;
 
 /*
 function toggleToolbox() {

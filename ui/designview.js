@@ -1,5 +1,4 @@
 import * as Blockly from "blockly";
-import { javascriptGenerator } from "blockly/javascript";
 import { meshMap, meshBlockIdMap, generateUniqueId } from "../generators";
 import { flock } from "../flock.js";
 import {
@@ -11,9 +10,9 @@ import {
 
 export let gizmoManager;
 
-const blueColor = BABYLON.Color3.FromHexString("#0072B2"); // Colour for X-axis
-const greenColor = BABYLON.Color3.FromHexString("#009E73"); // Colour for Y-axis
-const orangeColor = BABYLON.Color3.FromHexString("#D55E00"); // Colour for Z-axis
+const blueColor = flock.BABYLON.Color3.FromHexString("#0072B2"); // Colour for X-axis
+const greenColor = flock.BABYLON.Color3.FromHexString("#009E73"); // Colour for Y-axis
+const orangeColor = flock.BABYLON.Color3.FromHexString("#D55E00"); // Colour for Z-axis
 
 export function updateOrCreateMeshFromBlock(block, changeEvent) {
 	if (window.loadingCode || block.disposed) return;
@@ -69,7 +68,7 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 
 function pickMeshFromCanvas() {
-	const canvas = flock.scene.getEngine().getRenderingCanvas(); // Get the Babylon.js canvas
+	const canvas = flock.scene.getEngine().getRenderingCanvas(); // Get the flock.BABYLON.js canvas
 
 	document.body.style.cursor = "crosshair"; // Change cursor to indicate picking mode
 
@@ -151,43 +150,13 @@ export function getMeshFromBlock(block) {
 	return found;
 }
 
-function cloneWithMaterials(tempMesh) {
-	const clonedMesh = tempMesh.clone(tempMesh.name);
-
-	// Clone the material, if it exists
-	if (tempMesh.material) {
-		clonedMesh.material = tempMesh.material.clone(tempMesh.material.name);
-	}
-
-	// Recursively clone child meshes
-	tempMesh.getChildMeshes().forEach((child, index) => {
-		const clonedChild = cloneWithMaterials(child);
-		clonedChild.parent = clonedMesh; // Attach cloned child to the cloned parent
-	});
-
-	return clonedMesh;
-}
-
-function changeModel(tempMesh, mesh, modelName) {
-	const newObjectMesh = cloneWithMaterials(
-		flock.scene.getMeshByName(tempMesh).getChildMeshes()[0],
-	);
-
-	mesh.getChildMeshes()[0].dispose();
-
-	newObjectMesh.parent = mesh;
-
-	newObjectMesh.metadata.modelName = modelName;
-	flock.scene.getMeshByName(tempMesh).dispose();
-}
-
-export function updateMeshFromBlock(mesh, block, changeEvent) {
+export function updateMeshFromBlock(mesh, block) {
 	//console.log("Update mesh from block");
 	const shapeType = block.type;
 
 	if (mesh && mesh.physics) mesh.physics.disablePreStep = true;
 
-	let color, modelName, modelId, scale;
+	let color, modelName;
 
 	if (
 		!["load_model", "load_multi_object", "load_character"].includes(
@@ -201,7 +170,7 @@ export function updateMeshFromBlock(mesh, block, changeEvent) {
 	}
 
 	if (block.type.startsWith("load_")) {
-		scale = block
+		let scale = block
 			.getInput("SCALE")
 			.connection.targetBlock()
 			.getFieldValue("NUM");
@@ -216,6 +185,21 @@ export function updateMeshFromBlock(mesh, block, changeEvent) {
 
 	flock.positionAt(mesh.name, position.x, position.y, position.z, false);
 
+	let colors,
+		width,
+		height,
+		depth,
+		diameterX,
+		diameterY,
+		diameterZ,
+		cylinderHeight,
+		diameterTop,
+		diameterBottom,
+		sides,
+		capsuleHeight,
+		radius,
+		planeWidth,
+		planeHeight;
 	// Shape-specific updates based on the block type
 	switch (shapeType) {
 		case "load_object":
@@ -268,7 +252,7 @@ export function updateMeshFromBlock(mesh, block, changeEvent) {
 		case "load_character":
 			modelName = block.getFieldValue("MODELS");
 			// Retrieve colours
-			const colors = {
+			colors = {
 				hair: block
 					.getInput("HAIR_COLOR")
 					.connection.targetBlock()
@@ -298,15 +282,15 @@ export function updateMeshFromBlock(mesh, block, changeEvent) {
 			break;
 		case "create_box":
 			// Retrieve width, height, and depth from connected blocks
-			const width = block
+			width = block
 				.getInput("WIDTH")
 				.connection.targetBlock()
 				.getFieldValue("NUM");
-			const height = block
+			height = block
 				.getInput("HEIGHT")
 				.connection.targetBlock()
 				.getFieldValue("NUM");
-			const depth = block
+			depth = block
 				.getInput("DEPTH")
 				.connection.targetBlock()
 				.getFieldValue("NUM");
@@ -317,15 +301,15 @@ export function updateMeshFromBlock(mesh, block, changeEvent) {
 
 		case "create_sphere":
 			// Retrieve diameter values for X, Y, Z from connected blocks
-			const diameterX = block
+			diameterX = block
 				.getInput("DIAMETER_X")
 				.connection.targetBlock()
 				.getFieldValue("NUM");
-			const diameterY = block
+			diameterY = block
 				.getInput("DIAMETER_Y")
 				.connection.targetBlock()
 				.getFieldValue("NUM");
-			const diameterZ = block
+			diameterZ = block
 				.getInput("DIAMETER_Z")
 				.connection.targetBlock()
 				.getFieldValue("NUM");
@@ -336,19 +320,19 @@ export function updateMeshFromBlock(mesh, block, changeEvent) {
 
 		case "create_cylinder":
 			// Retrieve height, diameterTop, and diameterBottom from connected blocks
-			const cylinderHeight = block
+			cylinderHeight = block
 				.getInput("HEIGHT")
 				.connection.targetBlock()
 				.getFieldValue("NUM");
-			const diameterTop = block
+			diameterTop = block
 				.getInput("DIAMETER_TOP")
 				.connection.targetBlock()
 				.getFieldValue("NUM");
-			const diameterBottom = block
+			diameterBottom = block
 				.getInput("DIAMETER_BOTTOM")
 				.connection.targetBlock()
 				.getFieldValue("NUM");
-			const sides = block
+			sides = block
 				.getInput("TESSELLATIONS")
 				.connection.targetBlock()
 				.getFieldValue("NUM");
@@ -364,11 +348,11 @@ export function updateMeshFromBlock(mesh, block, changeEvent) {
 
 		case "create_capsule":
 			// Retrieve radius and height from connected blocks
-			const radius = block
+			radius = block
 				.getInput("RADIUS")
 				.connection.targetBlock()
 				.getFieldValue("NUM");
-			const capsuleHeight = block
+			capsuleHeight = block
 				.getInput("HEIGHT")
 				.connection.targetBlock()
 				.getFieldValue("NUM");
@@ -379,11 +363,11 @@ export function updateMeshFromBlock(mesh, block, changeEvent) {
 
 		case "create_plane":
 			// Retrieve width and height from connected blocks
-			const planeWidth = block
+			planeWidth = block
 				.getInput("WIDTH")
 				.connection.targetBlock()
 				.getFieldValue("NUM");
-			const planeHeight = block
+			planeHeight = block
 				.getInput("HEIGHT")
 				.connection.targetBlock()
 				.getFieldValue("NUM");
@@ -418,7 +402,7 @@ function createMeshOnCanvas(block) {
 		z: block.getInput("Z").connection.targetBlock().getFieldValue("NUM"),
 	};
 
-	let meshId;
+	let meshId, colors, width, height, depth, diameterX, diameterY, diameterZ, cylinderHeight, diameterTop, diameterBottom, capsuleHeight, capsuleRadius, planeWidth, planeHeight;
 	// Handle block types
 	switch (shapeType) {
 		// --- Model Loading Blocks ---
@@ -451,7 +435,7 @@ function createMeshOnCanvas(block) {
 				.getFieldValue("NUM");
 
 			// Retrieve colours
-			const colors = {
+			colors = {
 				hair: block
 					.getInput("HAIR_COLOR")
 					.connection.targetBlock()
@@ -519,15 +503,15 @@ function createMeshOnCanvas(block) {
 				.getInput("COLOR")
 				.connection.targetBlock()
 				.getFieldValue("COLOR");
-			const width = block
+			width = block
 				.getInput("WIDTH")
 				.connection.targetBlock()
 				.getFieldValue("NUM");
-			const height = block
+			height = block
 				.getInput("HEIGHT")
 				.connection.targetBlock()
 				.getFieldValue("NUM");
-			const depth = block
+			depth = block
 				.getInput("DEPTH")
 				.connection.targetBlock()
 				.getFieldValue("NUM");
@@ -548,15 +532,15 @@ function createMeshOnCanvas(block) {
 				.getInput("COLOR")
 				.connection.targetBlock()
 				.getFieldValue("COLOR");
-			const diameterX = block
+			diameterX = block
 				.getInput("DIAMETER_X")
 				.connection.targetBlock()
 				.getFieldValue("NUM");
-			const diameterY = block
+			diameterY = block
 				.getInput("DIAMETER_Y")
 				.connection.targetBlock()
 				.getFieldValue("NUM");
-			const diameterZ = block
+			diameterZ = block
 				.getInput("DIAMETER_Z")
 				.connection.targetBlock()
 				.getFieldValue("NUM");
@@ -576,15 +560,15 @@ function createMeshOnCanvas(block) {
 				.getInput("COLOR")
 				.connection.targetBlock()
 				.getFieldValue("COLOR");
-			const cylinderHeight = block
+			cylinderHeight = block
 				.getInput("HEIGHT")
 				.connection.targetBlock()
 				.getFieldValue("NUM");
-			const diameterTop = block
+			diameterTop = block
 				.getInput("DIAMETER_TOP")
 				.connection.targetBlock()
 				.getFieldValue("NUM");
-			const diameterBottom = block
+			diameterBottom = block
 				.getInput("DIAMETER_BOTTOM")
 				.connection.targetBlock()
 				.getFieldValue("NUM");
@@ -605,11 +589,11 @@ function createMeshOnCanvas(block) {
 				.getInput("COLOR")
 				.connection.targetBlock()
 				.getFieldValue("COLOR");
-			const capsuleRadius = block
+			capsuleRadius = block
 				.getInput("RADIUS")
 				.connection.targetBlock()
 				.getFieldValue("NUM");
-			const capsuleHeight = block
+			capsuleHeight = block
 				.getInput("HEIGHT")
 				.connection.targetBlock()
 				.getFieldValue("NUM");
@@ -628,11 +612,11 @@ function createMeshOnCanvas(block) {
 				.getInput("COLOR")
 				.connection.targetBlock()
 				.getFieldValue("COLOR");
-			const planeWidth = block
+			planeWidth = block
 				.getInput("WIDTH")
 				.connection.targetBlock()
 				.getFieldValue("NUM");
-			const planeHeight = block
+			planeHeight = block
 				.getInput("HEIGHT")
 				.connection.targetBlock()
 				.getFieldValue("NUM");
@@ -673,23 +657,23 @@ function setAbsoluteSize(mesh, width, height, depth) {
 
 	if (mesh.physics && shapeType) {
 		const shape = mesh.physics.shape;
-		let newShape;
+		let newShape, diameterBottom, startPoint, endPoint, radius;
 
 		// Create the new physics shape based on the type
 		switch (shapeType) {
 			case "Box":
-				newShape = new BABYLON.PhysicsShapeBox(
-					new BABYLON.Vector3(0, 0, 0),
-					new BABYLON.Quaternion(0, 0, 0, 1),
-					new BABYLON.Vector3(width, height, depth),
+				newShape = new flock.BABYLON.PhysicsShapeBox(
+					new flock.BABYLON.Vector3(0, 0, 0),
+					new flock.BABYLON.Quaternion(0, 0, 0, 1),
+					new flock.BABYLON.Vector3(width, height, depth),
 					mesh.getScene(),
 				);
 				break;
 
 			case "Cylinder":
-				const diameterBottom = Math.min(width, depth);
-				const startPoint = new flock.BABYLON.Vector3(0, -height / 2, 0);
-				const endPoint = new flock.BABYLON.Vector3(0, height / 2, 0);
+				diameterBottom = Math.min(width, depth);
+			startPoint = new flock.BABYLON.Vector3(0, -height / 2, 0);
+				 endPoint = new flock.BABYLON.Vector3(0, height / 2, 0);
 
 				newShape = new flock.BABYLON.PhysicsShapeCylinder(
 					startPoint,
@@ -708,7 +692,7 @@ function setAbsoluteSize(mesh, width, height, depth) {
 				break;
 
 			case "Capsule":
-				const radius = Math.min(width, depth) / 2;
+				radius = Math.min(width, depth) / 2;
 				newShape = new flock.BABYLON.PhysicsShapeCapsule(
 					new flock.BABYLON.Vector3(0, 0, 0),
 					radius, // Radius of the spherical ends
@@ -747,7 +731,7 @@ function updateCylinderGeometry(
 	}
 
 	// Create a temporary mesh to generate the vertex data for the updated cylinder
-	const tempMesh = BABYLON.MeshBuilder.CreateCylinder(
+	const tempMesh = flock.BABYLON.MeshBuilder.CreateCylinder(
 		"",
 		{
 			height: height,
@@ -760,10 +744,10 @@ function updateCylinderGeometry(
 	);
 
 	// Extract vertex data from the temporary mesh
-	const vertexData = BABYLON.VertexData.ExtractFromMesh(tempMesh);
+	const vertexData = flock.BABYLON.VertexData.ExtractFromMesh(tempMesh);
 
 	// Create new geometry for the mesh
-	const newGeometry = new BABYLON.Geometry(
+	const newGeometry = new flock.BABYLON.Geometry(
 		mesh.name + "_geometry",
 		mesh.getScene(),
 		vertexData,
@@ -1156,7 +1140,7 @@ window.selectModel = selectModel;
 
 function selectObject(objectName) {
 	document.getElementById("shapes-dropdown").style.display = "none";
-	const canvas = flock.scene.getEngine().getRenderingCanvas(); // Get the Babylon.js canvas
+	const canvas = flock.scene.getEngine().getRenderingCanvas(); // Get the flock.BABYLON.js canvas
 
 	document.body.style.cursor = "crosshair"; // Change cursor to indicate picking mode
 
@@ -1185,7 +1169,7 @@ function selectObject(objectName) {
 			const pickRay = flock.scene.createPickingRay(
 				canvasX,
 				canvasY,
-				BABYLON.Matrix.Identity(),
+				flock.BABYLON.Matrix.Identity(),
 				flock.scene.activeCamera,
 			);
 
@@ -1302,6 +1286,12 @@ function scrollModels(direction) {
 	});
 }
 
+function openAboutPage() {
+	window.open("https://github.com/flipcomputing/flock/", "_blank");
+}
+
+window.openAboutPage = openAboutPage;
+
 export function enableGizmos() {
 	const positionButton = document.getElementById("positionButton");
 	const rotationButton = document.getElementById("rotationButton");
@@ -1365,7 +1355,6 @@ export function enableGizmos() {
 	deleteButton.addEventListener("click", () => toggleGizmo("delete"));
 	showShapesButton.addEventListener("click", showShapes);
 	aboutButton.addEventListener("click", openAboutPage);
-
 	scrollModelsLeftButton.addEventListener("click", () => scrollModels(-1));
 	scrollModelsRightButton.addEventListener("click", () => scrollModels(1));
 	scrollObjectsLeftButton.addEventListener("click", () => scrollObjects(-1));
@@ -1476,15 +1465,15 @@ function focusCameraOnMesh() {
 		// For other types of cameras, retain the existing logic
 		const currentPosition = camera.position;
 		const currentTarget = camera.getTarget();
-		const currentDistance = BABYLON.Vector3.Distance(
+		const currentDistance = flock.BABYLON.Vector3.Distance(
 			currentPosition,
 			currentTarget,
 		);
 		const currentYPosition = camera.position.y;
 
 		// Move the camera in front of the mesh, keeping the current distance and Y position
-		const frontDirection = new BABYLON.Vector3(0, 0, -1);
-		const newCameraPositionXZ = new BABYLON.Vector3(
+		const frontDirection = new flock.BABYLON.Vector3(0, 0, -1);
+		const newCameraPositionXZ = new flock.BABYLON.Vector3(
 			newTarget.x + frontDirection.x * currentDistance,
 			currentYPosition,
 			newTarget.z + frontDirection.z * currentDistance,
@@ -1576,7 +1565,7 @@ function toggleGizmo(gizmoType) {
 		(s) => s.name !== "ground",
 	);
 
-	let blockKey, blockId;
+	let blockKey, blockId, canvas, onPickMesh;
 
 	// Enable the selected gizmo
 	switch (gizmoType) {
@@ -1598,9 +1587,9 @@ function toggleGizmo(gizmoType) {
 
 			document.body.style.cursor = "crosshair"; // Change cursor to indicate picking mode
 
-			const canvas = flock.scene.getEngine().getRenderingCanvas(); // Get the Babylon.js canvas
+			canvas = flock.scene.getEngine().getRenderingCanvas(); // Get the flock.BABYLON.js canvas
 
-			const onPickMesh = function (event) {
+			onPickMesh = function (event) {
 				const canvasRect = canvas.getBoundingClientRect();
 
 				if (
@@ -1631,10 +1620,6 @@ function toggleGizmo(gizmoType) {
 
 				if (pickResult.hit) {
 					const pickedPosition = pickResult.pickedPoint;
-
-					const x = pickedPosition.x.toFixed(2);
-					const y = pickedPosition.y.toFixed(2);
-					const z = pickedPosition.z.toFixed(2);
 
 					const workspace = Blockly.getMainWorkspace();
 					const originalBlock = workspace.getBlockById(blockId);
@@ -1741,15 +1726,15 @@ function toggleGizmo(gizmoType) {
 					if (
 						mesh.physics &&
 						mesh.physics.getMotionType() !=
-							BABYLON.PhysicsMotionType.STATIC
+							flock.BABYLON.PhysicsMotionType.STATIC
 					) {
 						mesh.physics.setMotionType(
-							BABYLON.PhysicsMotionType.STATIC,
+							flock.BABYLON.PhysicsMotionType.STATIC,
 						);
 						mesh.physics.disablePreStep = false;
 					}
 
-					const block = meshMap[mesh.blockKey];
+					//const block = meshMap[mesh.blockKey];
 					//highlightBlockById(Blockly.getMainWorkspace(), block);
 				},
 			);
@@ -1829,16 +1814,15 @@ function toggleGizmo(gizmoType) {
 					if (
 						mesh.physics &&
 						mesh.physics.getMotionType() !=
-							BABYLON.PhysicsMotionType.ANIMATED
+							flock.BABYLON.PhysicsMotionType.ANIMATED
 					) {
 						mesh.physics.setMotionType(
-							BABYLON.PhysicsMotionType.ANIMATED,
+							flock.BABYLON.PhysicsMotionType.ANIMATED,
 						);
 						mesh.physics.disablePreStep = false;
 					}
 
-					const block = meshMap[mesh.blockKey];
-					//highlightBlockById(Blockly.getMainWorkspace(), block);
+					//const block = meshMap[mesh.blockKey];					//highlightBlockById(Blockly.getMainWorkspace(), block);
 				},
 			);
 			gizmoManager.gizmos.positionGizmo.onDragEndObservable.add(
@@ -1922,16 +1906,16 @@ function toggleGizmo(gizmoType) {
 					if (
 						mesh.physics &&
 						mesh.physics.getMotionType() !=
-							BABYLON.PhysicsMotionType.ANIMATED
+							flock.BABYLON.PhysicsMotionType.ANIMATED
 					) {
 						mesh.physics.setMotionType(
-							BABYLON.PhysicsMotionType.ANIMATED,
+							flock.BABYLON.PhysicsMotionType.ANIMATED,
 						);
 						mesh.physics.disablePreStep = false;
 					}
 
-					const block = meshMap[mesh.blockKey];
-					//highlightBlockById(Blockly.getMainWorkspace(), block);
+					//const block = meshMap[mesh.blockKey];
+//highlightBlockById(Blockly.getMainWorkspace(), block);
 				},
 			);
 
@@ -2078,16 +2062,16 @@ function toggleGizmo(gizmoType) {
 					if (
 						mesh.physics &&
 						mesh.physics.getMotionType() !=
-							BABYLON.PhysicsMotionType.ANIMATED
+							flock.BABYLON.PhysicsMotionType.ANIMATED
 					) {
 						mesh.physics.setMotionType(
-							BABYLON.PhysicsMotionType.ANIMATED,
+							flock.BABYLON.PhysicsMotionType.ANIMATED,
 						);
 						mesh.physics.disablePreStep = false;
 					}
 
-					const block = meshMap[mesh.blockKey];
-					//highlightBlockById(Blockly.getMainWorkspace(), block);
+					//const block = meshMap[mesh.blockKey];
+//highlightBlockById(Blockly.getMainWorkspace(), block);
 				},
 			);
 
