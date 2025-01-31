@@ -1767,7 +1767,6 @@ export function defineBlocks() {
 
 	Blockly.Blocks["create_3d_text"] = {
 		init: function () {
-			const defaultColour = "#FFFFFF";
 			const variableNamePrefix = "text";
 			let nextVariableName =
 				variableNamePrefix + nextVariableIndexes[variableNamePrefix];

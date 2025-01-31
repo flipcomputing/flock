@@ -1117,7 +1117,7 @@ export function defineGenerators() {
 	};
 
 	// Function to create a mesh, taking mesh type, parameters, and position as arguments
-	function createMesh(block, meshType, params, position, idPrefix) {
+	function createMesh(block, meshType, params, position) {
 		let variableName = javascriptGenerator.nameDB_.getName(
 			block.getFieldValue("ID_VAR"),
 			Blockly.Names.NameType.VARIABLE,
@@ -1491,8 +1491,8 @@ export function defineGenerators() {
 
 		// Use flock.playSound helper function
 		return async === "AWAIT"
-			? `await flock.playSound(${meshName}, "${soundName}", ${optionsString});\n`
-			: `flock.playSound(${meshName}, "${soundName}", ${optionsString});\n`;
+			? `${idVar} = await flock.playSound(${meshName}, "${soundName}", ${optionsString});\n`
+			: `${idVar} = flock.playSound(${meshName}, "${soundName}", ${optionsString});\n`;
 	};
 
 	javascriptGenerator.forBlock["stop_all_sounds"] = function (block) {
@@ -2642,31 +2642,15 @@ export function defineGenerators() {
 
 		// Declare all of the variables.
 		if (defvars.length) {
-			var variableDeclarations = "";
-			/*var variableDeclarations = `function Mesh(id = "UNDEFINED") {
-			  this.id = id;
-			}\n
-			flock.Mesh = Mesh
-			Mesh.prototype.toString = function MeshToString() {
-			console.log("Mesh.toString");
-	  return\` ${this.id}\`;
-	};`;*/
-
 			let defvarsmesh = defvars.map(function (name) {
 				return `var ${name} = '${name}';`;
-			});
-			/*for (let v of defvars) {
-				variableDeclarations += `var ${v} = new Mesh();\n console.log(${v});\n`;
-			}*/
+			});			
 			javascriptGenerator.definitions_["variables"] =
 				`// Made with Flock XR\n` + defvarsmesh.join(" ") + "\n";
 		}
 
-		/*	javascriptGenerator.definitions_["variables"] = variableDeclarations;*/
-
 		javascriptGenerator.isInitialized = true;
 	};
-
 	javascriptGenerator.forBlock["device_camera_background"] = function (
 		block,
 	) {
@@ -2896,13 +2880,6 @@ javascriptGenerator.forBlock["microbit_input"] = function (block) {
 	return `whenKeyEvent("${event}", async () => {${statements_do}});\n`;
 };
 
-const strRegExp = /^\s*'([^']|\\')*'\s*$/;
-const forceString = function (value) {
-	if (strRegExp.test(value)) {
-		return [value, javascriptGenerator.ORDER_ATOMIC];
-	}
-	return ["String(" + value + ")", javascriptGenerator.ORDER_FUNCTION_CALL];
-};
 
 /*javascriptGenerator.forBlock["text_join"] = function (
   block,
