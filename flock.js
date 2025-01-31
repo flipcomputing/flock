@@ -613,28 +613,33 @@ export const flock = {
 		await flock.initializeNewScene();
 	},
 	UIText(text, x, y, fontSize, color, duration, existingTextBlock = null) {
-		// Ensure UITexture exists
+		// Ensure flock.scene and flock.GUI are initialized
+		if (!flock.scene || !flock.GUI) {
+			throw new Error("flock.scene or flock.GUI is not initialized.");
+		}
+
+		// Ensure UITexture and controls exist
 		flock.scene.UITexture ??= flock.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
-
-		// Ensure UITexture.controls exists
 		flock.scene.UITexture.controls ??= [];
-
-		// Ensure abortController exists
 		flock.abortController ??= new AbortController();
 
-		const canvas = flock.scene.getEngine().getRenderingCanvas();
-		const maxWidth = canvas.width;
-		const maxHeight = canvas.height;
+		// Get canvas dimensions
+		const maxWidth = flock.scene.getEngine().getRenderWidth();
+		const maxHeight = flock.scene.getEngine().getRenderHeight();
 
+		// Adjust negative coordinates
 		const adjustedX = x < 0 ? maxWidth + x : x;
 		const adjustedY = y < 0 ? maxHeight + y : y;
 
 		let textBlock = existingTextBlock;
 
-		// 🔥 Immediately remove the previous text before creating a new one
+		// Remove the previous text block if it exists
 		if (textBlock && flock.scene.UITexture.controls.includes(textBlock)) {
 			flock.scene.UITexture.removeControl(textBlock);
-			flock.scene.UITexture.controls = flock.scene.UITexture.controls.filter(tb => tb !== textBlock);
+			const index = flock.scene.UITexture.controls.indexOf(textBlock);
+			if (index !== -1) {
+				flock.scene.UITexture.controls.splice(index, 1);
+			}
 			textBlock = null;
 		}
 
@@ -645,8 +650,8 @@ export const flock = {
 
 		// Set text properties
 		textBlock.text = text;
-		textBlock.color = color;
-		textBlock.fontSize = fontSize;
+		textBlock.color = color || "white";  // Default color
+		textBlock.fontSize = fontSize || 24;  // Default font size
 		textBlock.textHorizontalAlignment = flock.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
 		textBlock.textVerticalAlignment = flock.GUI.Control.VERTICAL_ALIGNMENT_TOP;
 		textBlock.left = adjustedX;
@@ -657,13 +662,26 @@ export const flock = {
 			const timeoutId = setTimeout(() => {
 				if (flock.scene.UITexture.controls.includes(textBlock)) {
 					flock.scene.UITexture.removeControl(textBlock);
-					flock.scene.UITexture.controls = flock.scene.UITexture.controls.filter(tb => tb !== textBlock);
+					const index = flock.scene.UITexture.controls.indexOf(textBlock);
+					if (index !== -1) {
+						flock.scene.UITexture.controls.splice(index, 1);
+					}
 				}
 			}, duration * 1000);
 
 			// Attach abort listener to cancel timeout if needed
 			const signal = flock.abortController.signal;
-			signal.addEventListener("abort", () => clearTimeout(timeoutId), { once: true });
+			const abortListener = () => clearTimeout(timeoutId);
+			signal.addEventListener("abort", abortListener, { once: true });
+
+			// Return a cleanup function to remove the listener
+			return {
+				textBlock,
+				cleanup: () => {
+					signal.removeEventListener("abort", abortListener);
+					clearTimeout(timeoutId);
+				}
+			};
 		}
 
 		return textBlock;
