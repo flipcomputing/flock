@@ -1165,6 +1165,7 @@ export const flock = {
 		}
 	},
 	setupMesh(mesh, modelName, modelId, blockId, scale, x, y, z, color = null) {
+
 		mesh.scaling = new BABYLON.Vector3(scale, scale, scale);
 
 		const bb =
@@ -1361,7 +1362,99 @@ export const flock = {
 			oldMaterial.dispose();
 		});
 	},
-	newObject({
+	newObject({ modelName, modelId, color = "#FFFFFF", scale = 1, position = { x: 0, y: 0, z: 0 }, callback = null }) {
+		const { x, y, z } = position;
+
+		// Preserve original modelId for recursive calls
+		const originalModelId = modelId;
+
+		// Extract blockKey (part after '__')
+		let blockKey;
+		if (modelId.includes("__")) {
+			[modelId, blockKey] = modelId.split("__");
+		} else {
+			console.error(`Error: modelId "${modelId}" does not contain "__"`);
+			return null; // Fail early if modelId format is incorrect
+		}		
+
+		if (flock.scene.getMeshByName(modelId)) {
+			modelId = modelId + "_" + flock.scene.getUniqueId();
+		}
+		
+		// Clone if cached
+		if (flock.modelCache[modelName]) {
+			return flock.cloneFromCache(modelName, modelId, blockKey, scale, x, y, z, color, callback);
+		}
+
+		// If model is already being loaded, return the same originalModelId
+		if (flock.modelsBeingLoaded[modelName]) {
+			console.log(`Waiting for model to load: ${modelName}`);
+			return flock.modelsBeingLoaded[modelName].then(() => {
+				return flock.newObject({ modelName, modelId: originalModelId, color, scale, position, callback }); // ✅ Use originalModelId
+			});
+		}
+
+		// Load model asynchronously and ensure correct blockKey is passed
+		flock.modelsBeingLoaded[modelName] = flock.loadAndCacheModel(modelName, modelId, blockKey, scale, x, y, z, color, callback);
+
+		return modelId;
+	},
+
+	cloneFromCache(modelName, modelId, blockKey, scale, x, y, z, color, callback) {
+		const firstMesh = flock.modelCache[modelName];
+		const mesh = firstMesh.clone(modelId); // Clone should use the unique modelId
+
+		if (!blockKey) {
+			console.error(`Error: blockKey is missing when cloning model "${modelId}"`);
+			return null; // Fail early if blockKey was not correctly passed
+		}
+
+		// Reset transformations
+		mesh.scaling.copyFrom(BABYLON.Vector3.One());
+		mesh.position.copyFrom(BABYLON.Vector3.Zero());
+		mesh.rotationQuaternion = null;
+		mesh.rotation.copyFrom(BABYLON.Vector3.Zero());
+
+		// Use the correct blockKey from the original modelId
+		flock.setupMesh(mesh, modelName, modelId, blockKey, scale, x, y, z, color);
+		flock.changeColorMesh(mesh, color);
+
+		mesh.computeWorldMatrix(true);
+		mesh.refreshBoundingInfo();
+		mesh.setEnabled(true);
+		mesh.visibility = 1;
+
+		if (callback) requestAnimationFrame(callback);
+
+		return modelId;
+	},
+
+	loadAndCacheModel(modelName, modelId, blockKey, scale, x, y, z, color, callback) {
+		return flock.BABYLON.SceneLoader.LoadAssetContainerAsync("./models/", modelName, flock.scene)
+			.then(container => {
+				flock.ensureStandardMaterial(container.meshes[0]);
+
+				const firstMesh = container.meshes[0].clone(`${modelName}_first`);
+				firstMesh.setEnabled(false); // Disable the first copy
+				flock.modelCache[modelName] = firstMesh;
+
+				container.addAllToScene();
+
+				// Ensure blockKey is preserved correctly
+				flock.setupMesh(container.meshes[0], modelName, modelId, blockKey, scale, x, y, z, color);
+				flock.changeColorMesh(container.meshes[0], color);
+
+				if (callback) requestAnimationFrame(callback);
+			})
+			.catch(error => {
+				console.error(`Error loading model: ${modelName}`, error);
+			})
+			.finally(() => {
+				delete flock.modelsBeingLoaded[modelName]; // Remove from loading map
+			});
+	},
+
+	newObject2({
 		modelName,
 		modelId,
 		color = "#FFFFFF",
@@ -1416,6 +1509,7 @@ export const flock = {
 		if (flock.modelsBeingLoaded[modelName]) {
 			console.log(`Waiting for model to load: ${modelName}`);
 			return flock.modelsBeingLoaded[modelName].then(() => {
+				
 				return flock.newObject({
 					modelName,
 					modelId,
@@ -6176,6 +6270,7 @@ export const flock = {
 		});
 	},
 	setPhysics(modelName, physicsType) {
+		
 		return flock.whenModelReady(modelName, (mesh) => {
 			switch (physicsType) {
 				case "STATIC":
@@ -6214,7 +6309,7 @@ export const flock = {
 					);*/
 					mesh.physics.disablePreStep = false;
 					break;
-				case "NONE":
+				case "NONE":					
 					mesh.physics.setMotionType(
 						flock.BABYLON.PhysicsMotionType.STATIC,
 					);

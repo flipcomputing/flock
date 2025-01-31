@@ -1,4 +1,5 @@
 import * as Blockly from "blockly";
+import { javascriptGenerator } from "blockly/javascript";
 import { meshMap, meshBlockIdMap, generateUniqueId } from "../generators";
 import { flock } from "../flock.js";
 import {
@@ -118,6 +119,7 @@ function pickMeshFromCanvas() {
 }
 
 export function deleteMeshFromBlock(blockId) {
+	//console.log("Deleting mesh from block:", blockId);
 	const mesh = getMeshFromBlockId(blockId);
 
 	const blockKey = Object.keys(meshBlockIdMap).find(
@@ -129,6 +131,8 @@ export function deleteMeshFromBlock(blockId) {
 		delete meshMap[blockKey];
 		delete meshBlockIdMap[blockKey];
 	}
+
+	//console.log("Mesh map after deletion:", blockId, blockKey, meshMap)
 
 	if (mesh && mesh.name !== "__root__") {
 		flock.dispose(mesh.name);
@@ -178,6 +182,7 @@ function changeModel(tempMesh, mesh, modelName) {
 }
 
 export function updateMeshFromBlock(mesh, block, changeEvent) {
+	//console.log("Update mesh from block");
 	const shapeType = block.type;
 
 	if (mesh && mesh.physics) mesh.physics.disablePreStep = true;
@@ -494,8 +499,7 @@ function createMeshOnCanvas(block) {
 				.connection.targetBlock()
 				.getFieldValue("COLOR");
 
-			meshId = modelName + "_" + generateUniqueId();
-
+			meshId = `temp__${block.id}`;
 			// Use flock API for objects
 			newMesh = flock.newObject({
 				modelName: modelName,
@@ -506,8 +510,9 @@ function createMeshOnCanvas(block) {
 				callback: () => {},
 			});
 
-			meshMap[meshId] = block;
-			meshBlockIdMap[meshId] = block.id;
+			console.log("Updating meshMap", meshId, block);
+			meshMap[block.id] = block;
+			meshBlockIdMap[block.id] = block.id;
 
 			break;
 
@@ -648,19 +653,13 @@ function createMeshOnCanvas(block) {
 			return;
 	}
 
-	switch (shapeType) {
-		case "load_model":
-		case "load_object":
-		case "load_character":
-			break;
+	//console.log("Storing mesh", newMesh);
+	
+	if (newMesh) {
+		flock.scene.getMeshByName(newMesh).blockKey = block.id;
+		meshMap[block.id] = block;
+		meshBlockIdMap[block.id] = block.id;
 
-		default:
-			// Store the mesh in the meshMap
-			if (newMesh) {
-				const blockKey = flock.scene.getMeshByName(newMesh).blockKey;
-				meshMap[blockKey] = block;
-				meshBlockIdMap[blockKey] = block.id;
-			}
 	}
 
 	Blockly.Events.setGroup(false);
@@ -1594,6 +1593,7 @@ function toggleGizmo(gizmoType) {
 			).blockKey;
 			blockId = meshBlockIdMap[blockKey];
 
+			//console.log("Delete", blockKey, meshMap);
 			deleteBlockWithUndo(blockId);
 			gizmoManager.attachToMesh(null);
 			break;
@@ -1646,8 +1646,11 @@ function toggleGizmo(gizmoType) {
 					const workspace = Blockly.getMainWorkspace();
 					const originalBlock = workspace.getBlockById(blockId);
 
+					//console.log("Duplicate", blockKey, meshMap);
 					if (originalBlock) {
 						// Serialize the block and its children, including shadows
+
+						Blockly.Events.setGroup(true);
 						const blockJson = Blockly.serialization.blocks.save(
 							originalBlock,
 							{
@@ -1685,6 +1688,8 @@ function toggleGizmo(gizmoType) {
 							duplicateBlock.moveBy(50, 50);
 						}
 
+						Blockly.Events.setGroup(false);
+
 						// Initialise and render the duplicated block
 						duplicateBlock.initSvg();
 						duplicateBlock.render();
@@ -1709,7 +1714,12 @@ function toggleGizmo(gizmoType) {
 					if (gizmoManager.attachedMesh) {
 						
 				gizmoManager.attachedMesh.showBoundingBox = false;
-			
+						blockKey = findParentWithBlockId(
+							gizmoManager.attachedMesh,
+						).blockKey;
+
+						//console.log("Select", blockKey, meshMap);
+
 					}
 					const pickedMesh = event.pickInfo.pickedMesh;
 
