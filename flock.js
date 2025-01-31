@@ -613,47 +613,57 @@ export const flock = {
 		await flock.initializeNewScene();
 	},
 	UIText(text, x, y, fontSize, color, duration, existingTextBlock = null) {
-		flock.scene.UITexture ??=
-			flock.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
+		// Ensure UITexture exists
+		flock.scene.UITexture ??= flock.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
 
-		// Retrieve the canvas dimensions for the Babylon.js scene
+		// Ensure UITexture.controls exists
+		flock.scene.UITexture.controls ??= [];
+
+		// Ensure abortController exists
+		flock.abortController ??= new AbortController();
+
 		const canvas = flock.scene.getEngine().getRenderingCanvas();
 		const maxWidth = canvas.width;
 		const maxHeight = canvas.height;
 
-		// Adjust for negative x and y values (offsets from max canvas width/height)
 		const adjustedX = x < 0 ? maxWidth + x : x;
 		const adjustedY = y < 0 ? maxHeight + y : y;
 
-		let textBlock;
+		let textBlock = existingTextBlock;
 
-		if (!existingTextBlock || typeof existingTextBlock === "string") {
-			textBlock = new flock.GUI.TextBlock();
-			flock.scene.UITexture.addControl(textBlock);
-		} else {
-			textBlock = existingTextBlock;
+		// 🔥 Immediately remove the previous text before creating a new one
+		if (textBlock && flock.scene.UITexture.controls.includes(textBlock)) {
+			flock.scene.UITexture.removeControl(textBlock);
+			flock.scene.UITexture.controls = flock.scene.UITexture.controls.filter(tb => tb !== textBlock);
+			textBlock = null;
 		}
 
+		// Create a new text block
+		textBlock = new flock.GUI.TextBlock();
+		flock.scene.UITexture.addControl(textBlock);
+		flock.scene.UITexture.controls.push(textBlock);
+
+		// Set text properties
 		textBlock.text = text;
 		textBlock.color = color;
 		textBlock.fontSize = fontSize;
-		textBlock.textHorizontalAlignment =
-			flock.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
-		textBlock.textVerticalAlignment =
-			flock.GUI.Control.VERTICAL_ALIGNMENT_TOP;
+		textBlock.textHorizontalAlignment = flock.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
+		textBlock.textVerticalAlignment = flock.GUI.Control.VERTICAL_ALIGNMENT_TOP;
 		textBlock.left = adjustedX;
 		textBlock.top = adjustedY;
 
-		// Only remove the text if duration is greater than 0
-		if (duration > 0 && !existingTextBlock) {
+		// Ensure the text disappears after the duration
+		if (duration > 0) {
 			const timeoutId = setTimeout(() => {
-				flock.scene.UITexture.removeControl(textBlock);
+				if (flock.scene.UITexture.controls.includes(textBlock)) {
+					flock.scene.UITexture.removeControl(textBlock);
+					flock.scene.UITexture.controls = flock.scene.UITexture.controls.filter(tb => tb !== textBlock);
+				}
 			}, duration * 1000);
 
-			// Listen for the abort signal to clear the timeout
-			flock.abortController.signal.addEventListener("abort", () => {
-				clearTimeout(timeoutId); // Clear the timeout if aborted
-			});
+			// Attach abort listener to cancel timeout if needed
+			const signal = flock.abortController.signal;
+			signal.addEventListener("abort", () => clearTimeout(timeoutId), { once: true });
 		}
 
 		return textBlock;
