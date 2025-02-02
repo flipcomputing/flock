@@ -93,11 +93,11 @@ export const flock = {
 				switchAnimation,
 				highlight,
 				glow,
-				newCharacter,
-				newObject,
+				createCharacter,
+				createObject,
 				createParticleEffect,
 				create3DText,
-				newModel,
+				createModel,
 				createBox,
 				createSphere,
 				createCylinder,
@@ -1041,7 +1041,7 @@ export const flock = {
 			);
 		});
 	},
-	newModel({
+	createModel({
 		modelName,
 		modelId,
 		scale = 1,
@@ -1084,7 +1084,7 @@ export const flock = {
 		if (flock.modelsBeingLoaded[modelName]) {
 			//console.log(`Waiting for model to load: ${modelName}`);
 			return flock.modelsBeingLoaded[modelName].then(() => {
-				return flock.newModel({
+				return flock.createModel({
 					modelName,
 					modelId,
 					scale,
@@ -1279,7 +1279,7 @@ export const flock = {
 		flock.applyColorToMaterial(mesh, "Sleeves", sleevesColor);
 		flock.applyColorToMaterial(mesh, "Shoes", sleevesColor);
 	},
-	newCharacter({
+	createCharacter({
 		modelName,
 		modelId,
 		scale = 1,
@@ -1389,7 +1389,7 @@ export const flock = {
 			oldMaterial.dispose();
 		});
 	},
-	newObject({
+	createObject({
 		modelName,
 		modelId,
 		color = "#FFFFFF",
@@ -1431,7 +1431,7 @@ export const flock = {
 		if (flock.modelsBeingLoaded[modelName]) {
 			//console.log(`Waiting for model to load: ${modelName}`);
 			return flock.modelsBeingLoaded[modelName].then(() => {
-				return flock.newObject({
+				return flock.createObject({
 					modelName,
 					modelId: originalModelId,
 					color,

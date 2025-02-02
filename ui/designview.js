@@ -433,7 +433,7 @@ function createMeshOnCanvas(block) {
 			meshBlockIdMap[meshId] = block.id;
 			// Use flock API for loading models
 
-			newMesh = flock.newModel({
+			newMesh = flock.createModel({
 				modelName: modelName,
 				modelId: meshId,
 				scale: scale,
@@ -480,7 +480,7 @@ function createMeshOnCanvas(block) {
 			meshId = `${modelName}__${block.id}`;
 			// Use flock API for characters
 
-			newMesh = flock.newCharacter({
+			newMesh = flock.createCharacter({
 				modelName: modelName,
 				modelId: meshId,
 				scale: scale,
@@ -502,7 +502,7 @@ function createMeshOnCanvas(block) {
 
 			meshId = `${modelName}__${block.id}`;
 			// Use flock API for objects
-			newMesh = flock.newObject({
+			newMesh = flock.createObject({
 				modelName: modelName,
 				modelId: meshId,
 				color: color,
@@ -537,7 +537,7 @@ function createMeshOnCanvas(block) {
 			  }
 
 			  meshId = `${modelName}__${block.id}`;
-			  newMesh = flock.newObject({
+			  newMesh = flock.createObject({
 				modelName: modelName,
 				modelId: meshId,
 				color: colorsArray,

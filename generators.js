@@ -741,7 +741,7 @@ export function defineGenerators() {
 
 		doCode = doCode ? `async function() {\n${doCode}\n}` : "";
 
-		return `${variableName} = newModel({
+		return `${variableName} = createModel({
 				modelName: '${modelName}',
 				modelId: '${meshId}',
 				scale: ${scale},
@@ -778,7 +778,7 @@ export function defineGenerators() {
 
 		doCode = doCode ? `async function() {\n${doCode}\n}` : "";
 
-		return `${variableName} = newCharacter({
+		return `${variableName} = createCharacter({
 		  modelName: '${modelName}',
 		  modelId: '${meshId}',
 		  scale: ${scale},
@@ -819,7 +819,7 @@ export function defineGenerators() {
 
 		doCode = doCode ? `async function() {\n${doCode}\n}` : "";
 
-		return `${variableName} = newObject({
+		return `${variableName} = createObject({
 			modelName: '${modelName}',
 			modelId: '${meshId}',
 			color: ${color},
@@ -854,7 +854,7 @@ export function defineGenerators() {
 
 		doCode = doCode ? `async function() {\n${doCode}\n}` : "";
 
-		return `${variableName} = newObject({
+		return `${variableName} = createObject({
 			modelName: '${modelName}',
 			modelId: '${meshId}',
 			color: ${color},
