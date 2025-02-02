@@ -808,14 +808,6 @@ export const flock = {
 				}
 			}
 
-			if (flock.scene) {
-				const mesh = flock.scene.getMeshByName(meshId);
-				if (mesh) {
-					yield mesh;
-					return;
-				}
-			}
-
 			try {
 				await new Promise((resolve, reject) => {
 					const timeoutId = setTimeout(resolve, interval);

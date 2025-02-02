@@ -91,7 +91,7 @@ Mesh.prototype.toString = function MeshToString() {
 */
 // Function to save the current workspace state
 function saveWorkspace() {
-	var state = Blockly.serialization.workspaces.save(workspace);
+	const state = Blockly.serialization.workspaces.save(workspace);
 
 	const key = "flock_autosave.json";
 

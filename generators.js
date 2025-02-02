@@ -1907,8 +1907,7 @@ export function defineGenerators() {
 			) || "0";
 
 		// Generate the code
-		var code = `applyForce(${mesh}, ${forceX}, ${forceY}, ${forceZ});\n`;
-		return code;
+		return `applyForce(${mesh}, ${forceX}, ${forceY}, ${forceZ});\n`;
 	};
 
 	javascriptGenerator.forBlock["touching_surface"] = function (block) {
@@ -2636,7 +2635,7 @@ export function defineGenerators() {
 		// Declare all of the variables.
 		if (defvars.length) {
 			let defvarsmesh = defvars.map(function (name) {
-				return `var ${name} = '${name}';`;
+				return `let ${name} = '${name}';`;
 			});			
 			javascriptGenerator.definitions_["variables"] =
 				`// Made with Flock XR\n` + defvarsmesh.join(" ") + "\n";
@@ -2734,11 +2733,11 @@ javascriptGenerator.forBlock["controls_repeat_ext"] = function (
 			"repeat_end",
 			Blockly.Names.NameType.VARIABLE,
 		);
-		code += "var " + endVar + " = " + repeats + ";\n";
+		code += "let " + endVar + " = " + repeats + ";\n";
 	}
 
 	code +=
-		"for (var " +
+		"for (let " +
 		loopVar +
 		" = 0; " +
 		loopVar +
@@ -2780,7 +2779,7 @@ javascriptGenerator.forBlock["controls_for"] = function (block, generator) {
 	return `
 		let ${timingVar} = performance.now();
 		let ${counterVar} = 0;
-		for (${variable0} = ${argument0}; (${increment} > 0 ? ${variable0} <= ${argument1} : ${variable0} >= ${argument1}); ${variable0} += ${increment}) {
+		for (let ${variable0} = ${argument0}; (${increment} > 0 ? ${variable0} <= ${argument1} : ${variable0} >= ${argument1}); ${variable0} += ${increment}) {
 			${branch}
 			${counterVar}++;
 			if (${counterVar} % 10 === 0 && performance.now() - ${timingVar} > 16) {
