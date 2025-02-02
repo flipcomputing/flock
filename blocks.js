@@ -2415,6 +2415,33 @@ export function defineBlocks() {
 		},
 	};
 
+	Blockly.Blocks["create_map2"] = {
+	  init: function () {
+		this.jsonInit({
+		  type: "create_map",
+		  message0: "map %1 with material %2",
+		  args0: [
+			{
+			  type: "field_dropdown",
+			  name: "MAP_NAME",
+			  options: [["Flat", "NONE"]].concat(mapNames)
+			},
+			{
+			  type: "input_value",
+			  name: "MATERIAL",
+			  check: ["Material", "Array"]
+			}
+		  ],
+		  previousStatement: null,
+		  nextStatement: null,
+		  inputsInline: true,
+		  colour: categoryColours["Scene"],
+		  tooltip: "Creates a map with the specified material.",
+		  helpUrl: ""
+		});
+	  },
+	};
+
 	Blockly.Blocks["play_animation"] = {
 		init: function () {
 			this.jsonInit({

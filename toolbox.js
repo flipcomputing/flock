@@ -883,6 +883,37 @@ const toolboxScene = {
 		},
 		{
 			kind: "block",
+			type: "create_map2",
+			keyword: "map",
+			inputs: {
+				MATERIAL: {
+					shadow: {
+						type: "material",
+						inputs: {
+							BASE_COLOR: {
+								shadow: {
+									type: "colour",
+									fields: {
+										COLOR: "#71BC78",
+									},
+								},
+							},
+
+							ALPHA: {
+								shadow: {
+									type: "math_number",
+									fields: {
+										NUM: 1.0, // Default alpha value: 1 (fully opaque)
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		{
+			kind: "block",
 			type: "set_fog",
 			keyword: "fog",
 			inputs: {

@@ -1806,6 +1806,16 @@ export function defineGenerators() {
 		return `createMap("${mapName}", ${color}, "${texture}");\n`;
 	};
 
+	javascriptGenerator.forBlock["create_map2"] = function(block) {
+	  const mapName = block.getFieldValue("MAP_NAME");
+	  const material = javascriptGenerator.valueToCode(block, "MATERIAL", javascriptGenerator.ORDER_NONE) || "null";
+	  const meshId = "ground";
+	  meshMap[meshId] = block;
+	  meshBlockIdMap[meshId] = block.id;
+	  return `createMap2("${mapName}", ${material});\n`;
+	};
+
+
 	javascriptGenerator.forBlock["move_forward"] = function (block) {
 		const modelName = javascriptGenerator.nameDB_.getName(
 			block.getFieldValue("MODEL"),
