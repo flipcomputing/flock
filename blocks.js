@@ -1588,8 +1588,6 @@ export function defineBlocks() {
 			  }
 			};
 
-
-
 			this.setOnChange((changeEvent) => {
 				if (
 					changeEvent.type === Blockly.Events.BLOCK_CREATE &&

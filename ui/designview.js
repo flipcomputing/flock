@@ -794,6 +794,7 @@ function addShadowBlock(block, inputName, blockType, defaultValue) {
 }
 
 function setPositionValues(block, position, shapeType) {
+	console.log("Set position values", position, shapeType);
 	let adjustedY = position.y;
 
 	// Adjust Y based on the shape type
@@ -1220,7 +1221,7 @@ function selectObjectWithCommand(objectName, menu, command) {
 					block.setFieldValue(objectName, "MODELS");
 
 					// Set position values (X, Y, Z) from the picked position
-					setPositionValues(block, pickedPosition, "load_object");
+					setPositionValues(block, pickedPosition, command);
 
 					// Add shadow block for SCALE
 					const scale = 1; // Default scale
