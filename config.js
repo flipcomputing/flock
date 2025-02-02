@@ -71,6 +71,7 @@ export const audioNames = [
 ];
 
 export const characterNames = [
+	
 	"Character1.glb",
 	"Character2.glb",
 	"Character3.glb",
@@ -86,6 +87,7 @@ export const multiObjectNames = [
 	"hut2.glb",
 	"hut3.glb",
 	"hut4.glb",
+	"boat.glb",
 ];
 
 export const objectNames = [
@@ -110,6 +112,7 @@ export const objectColours = {
 	"hut2.glb": ["#00BFFF", "#FFD700", "#FF4500", "#8A2BE2", "#2C28E7", "#878787"],
 	"hut3.glb": ["#50C878", "#FFBF00", "#FE5A1D", "#B09B6B", "#878787"],
 	"hut4.glb": ["#FFFCF0", "#FF89DB", "#E7223B", "#3AE744", "#878787"],
+	"boat.glb": ["#FFFCF0", "#FF89DB", "#E7223B", "#3AE744", "#878787"],
 };
 
 export const modelNames = [
