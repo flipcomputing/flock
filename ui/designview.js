@@ -1213,7 +1213,7 @@ function selectObjectWithCommand(objectName, menu, command) {
 					// Create the load_object block
 					const block = Blockly.getMainWorkspace().newBlock(command);
 					block.initSvg();
-					block.render();
+					
 					//highlightBlockById(Blockly.getMainWorkspace(), block);
 
 					// Set object name
@@ -1230,7 +1230,9 @@ function selectObjectWithCommand(objectName, menu, command) {
 						// Add shadow block for COLOR
 						const color = objectColours[objectName];
 						addShadowBlock(block, "COLOR", "colour", color);
-					}		
+					}
+
+					block.render();
 
 					// Create a new 'start' block and connect the load_object block to it
 					const startBlock =
