@@ -1597,7 +1597,9 @@ export function defineBlocks() {
 						Blockly.getMainWorkspace().getBlockById(this.id);
 					if (blockInWorkspace) {
 						updateColorsField.call(this);
-					}
+						if (!window.loadingCode) 
+						updateOrCreateMeshFromBlock(this, changeEvent);
+					}					
 				}
 
 				if (

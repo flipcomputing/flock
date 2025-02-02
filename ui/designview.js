@@ -512,6 +512,42 @@ function createMeshOnCanvas(block) {
 			});
 			break;
 
+
+			case "load_multi_object":
+			  modelName = block.getFieldValue("MODELS");
+			  scale = block.getInput("SCALE")
+				.connection.targetBlock()
+				.getFieldValue("NUM");
+
+			  const colorsBlock = block.getInput("COLORS").connection.targetBlock();
+			  let colorsArray = [];
+			  if (colorsBlock && colorsBlock.type === "lists_create_with") {
+				colorsBlock.inputList.forEach(input => {
+				  // Only process value inputs named "ADD*"
+				  if (input.name && input.name.startsWith("ADD") && input.connection) {
+					const colorBlock = input.connection.targetBlock();
+					if (colorBlock) {
+					  const colorVal = colorBlock.getFieldValue("COLOR");
+					  if (colorVal) {
+						colorsArray.push(colorVal);
+					  }
+					}
+				  }
+				});
+			  }
+
+			  meshId = `${modelName}__${block.id}`;
+			  newMesh = flock.newObject({
+				modelName: modelName,
+				modelId: meshId,
+				color: colorsArray,
+				scale: scale,
+				position: { x: position.x, y: position.y, z: position.z },
+				callback: () => {}
+			  });
+			  break;
+
+
 		// --- Shape Creation Blocks ---
 		case "create_box":
 			color = block
@@ -831,6 +867,9 @@ function setPositionValues(block, position, shapeType) {
 			break;
 
 		case "load_model":
+			break;
+
+		case "load_multi_object":
 			break;
 
 		case "load_character":
@@ -1214,7 +1253,7 @@ function selectObjectWithCommand(objectName, menu, command) {
 					// Create the load_object block
 					const block = Blockly.getMainWorkspace().newBlock(command);
 					block.initSvg();
-					
+
 					//highlightBlockById(Blockly.getMainWorkspace(), block);
 
 					// Set object name
