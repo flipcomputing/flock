@@ -1184,13 +1184,13 @@ export function defineBlocks() {
 				],
 				previousStatement: null,
 				nextStatement: null,
-				colour: categoryColours["Scene"], 
-				tooltip: "Set the intensity of the main light.\nKeyword: light intensity",
+				colour: categoryColours["Scene"],
+				tooltip:
+					"Set the intensity of the main light.\nKeyword: light intensity",
 				helpUrl: "",
 			});
 		},
 	};
-
 
 	Blockly.Blocks["set_fog"] = {
 		init: function () {
@@ -1602,7 +1602,7 @@ export function defineBlocks() {
 			  changeEvent.blockId === this.id
 		  ) {
 
-			  
+
 			const blockInWorkspace =
 			  Blockly.getMainWorkspace().getBlockById(this.id); // Check if block is in the main workspace
 
@@ -1632,7 +1632,6 @@ export function defineBlocks() {
 		addDoMutatorWithToggleBehavior(this);
 	  },
 	};
-
 
 	Blockly.Blocks["load_model"] = {
 		init: function () {
@@ -2385,7 +2384,6 @@ export function defineBlocks() {
 		},
 	};
 
-
 	Blockly.Blocks["create_map"] = {
 		init: function () {
 			this.jsonInit({
@@ -2516,17 +2514,17 @@ export function defineBlocks() {
 					{
 						type: "input_value",
 						name: "X_OFFSET",
-						check: "Number",			
+						check: "Number",
 					},
 					{
 						type: "input_value",
 						name: "Y_OFFSET",
-						check: "Number",			
+						check: "Number",
 					},
 					{
 						type: "input_value",
 						name: "Z_OFFSET",
-						check: "Number",			
+						check: "Number",
 					},
 				],
 				previousStatement: null,
@@ -4696,32 +4694,31 @@ export function defineBlocks() {
 		init: function () {
 			this.jsonInit({
 				type: "material",
-				message0:
-					"material %1 %2 alpha %3",
-					
+				message0: "material %1 %2 alpha %3",
+
 				args0: [
-				{
-					type: "field_grid_dropdown",
-					name: "TEXTURE_SET",
-					columns: 4,
-					options: materialNames.map((name) => {
-						const baseName = name.replace(/\.[^/.]+$/, "");
-						return [
-							{
-								src: `./textures/${baseName}.png`,
-								width: 50,
-								height: 50,
-								alt: baseName,
-							},
-							name,
-						];
-					}),
-				},
+					{
+						type: "field_grid_dropdown",
+						name: "TEXTURE_SET",
+						columns: 4,
+						options: materialNames.map((name) => {
+							const baseName = name.replace(/\.[^/.]+$/, "");
+							return [
+								{
+									src: `./textures/${baseName}.png`,
+									width: 50,
+									height: 50,
+									alt: baseName,
+								},
+								name,
+							];
+						}),
+					},
 					{
 						type: "input_value",
 						name: "BASE_COLOR",
 						colour: "#ffffff", // Default to white
-					},	
+					},
 					{
 						type: "input_value",
 						name: "ALPHA",
@@ -4730,7 +4727,6 @@ export function defineBlocks() {
 						max: 1,
 						precision: 0.01,
 					},
-					
 				],
 				output: "Material",
 				inputsInline: true,

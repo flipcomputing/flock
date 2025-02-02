@@ -3,6 +3,7 @@ import { meshMap, meshBlockIdMap, generateUniqueId } from "../generators";
 import { flock } from "../flock.js";
 import {
 	modelNames,
+	multiObjectNames,
 	objectNames,
 	characterNames,
 	objectColours,
@@ -402,7 +403,21 @@ function createMeshOnCanvas(block) {
 		z: block.getInput("Z").connection.targetBlock().getFieldValue("NUM"),
 	};
 
-	let meshId, colors, width, height, depth, diameterX, diameterY, diameterZ, cylinderHeight, diameterTop, diameterBottom, capsuleHeight, capsuleRadius, planeWidth, planeHeight;
+	let meshId,
+		colors,
+		width,
+		height,
+		depth,
+		diameterX,
+		diameterY,
+		diameterZ,
+		cylinderHeight,
+		diameterTop,
+		diameterBottom,
+		capsuleHeight,
+		capsuleRadius,
+		planeWidth,
+		planeHeight;
 	// Handle block types
 	switch (shapeType) {
 		// --- Model Loading Blocks ---
@@ -672,8 +687,8 @@ function setAbsoluteSize(mesh, width, height, depth) {
 
 			case "Cylinder":
 				diameterBottom = Math.min(width, depth);
-			startPoint = new flock.BABYLON.Vector3(0, -height / 2, 0);
-				 endPoint = new flock.BABYLON.Vector3(0, height / 2, 0);
+				startPoint = new flock.BABYLON.Vector3(0, -height / 2, 0);
+				endPoint = new flock.BABYLON.Vector3(0, height / 2, 0);
 
 				newShape = new flock.BABYLON.PhysicsShapeCylinder(
 					startPoint,
@@ -1139,7 +1154,16 @@ function selectModel(modelName) {
 window.selectModel = selectModel;
 
 function selectObject(objectName) {
-	document.getElementById("shapes-dropdown").style.display = "none";
+	selectObjectWithCommand(objectName, "shapes-dropdown", "load_object");
+}
+
+function selectMultiObject(objectName) {
+	selectObjectWithCommand(objectName, "shapes-dropdown", "load_multi_object");
+}
+window.selectMultiObject = selectMultiObject;
+
+function selectObjectWithCommand(objectName, menu, command) {
+	document.getElementById(menu).style.display = "none";
 	const canvas = flock.scene.getEngine().getRenderingCanvas(); // Get the flock.BABYLON.js canvas
 
 	document.body.style.cursor = "crosshair"; // Change cursor to indicate picking mode
@@ -1187,8 +1211,7 @@ function selectObject(objectName) {
 
 				try {
 					// Create the load_object block
-					const block =
-						Blockly.getMainWorkspace().newBlock("load_object");
+					const block = Blockly.getMainWorkspace().newBlock(command);
 					block.initSvg();
 					block.render();
 					//highlightBlockById(Blockly.getMainWorkspace(), block);
@@ -1203,9 +1226,11 @@ function selectObject(objectName) {
 					const scale = 1; // Default scale
 					addShadowBlock(block, "SCALE", "math_number", scale);
 
-					// Add shadow block for COLOR
-					const color = objectColours[objectName];
-					addShadowBlock(block, "COLOR", "colour", color);
+					if (command === "load_object") {
+						// Add shadow block for COLOR
+						const color = objectColours[objectName];
+						addShadowBlock(block, "COLOR", "colour", color);
+					}		
 
 					// Create a new 'start' block and connect the load_object block to it
 					const startBlock =
@@ -1272,8 +1297,9 @@ function showShapes() {
 	const dropdown = document.getElementById("shapes-dropdown");
 	dropdown.style.display =
 		dropdown.style.display === "none" ? "block" : "none";
-	loadModelImages(); // Load the models into the menu
+	//loadModelImages(); // Load the models into the menu
 	loadObjectImages(); // Load the objects into the menu
+	loadMultiImages(); // Load the objects into the menu
 	loadCharacterImages(); // Load the characters into the menu
 }
 
@@ -1367,30 +1393,27 @@ export function enableGizmos() {
 	);
 }
 
-// Function to load models into the menu
-function loadModelImages() {
-	const modelRow = document.getElementById("model-row");
-	modelRow.innerHTML = ""; // Clear existing models
+// Shared function to load images into the menu
+function loadImages(rowId, namesArray, selectCallback) {
+	const row = document.getElementById(rowId);
+	row.innerHTML = ""; // Clear existing items
 
-	modelNames.forEach((name) => {
+	namesArray.forEach((name) => {
 		const baseName = name.replace(/\.[^/.]+$/, ""); // Remove extension
 		const li = document.createElement("li");
-		li.innerHTML = `<img src="./images/${baseName}.png" alt="${baseName}" onclick="selectModel('${name}')">`;
-		modelRow.appendChild(li);
+		li.innerHTML = `<img src="./images/${baseName}.png" alt="${baseName}" onclick="${selectCallback}('${name}')">`;
+		row.appendChild(li);
 	});
 }
 
-// Function to load objects into the menu
-function loadObjectImages() {
-	const objectRow = document.getElementById("object-row");
-	objectRow.innerHTML = ""; // Clear existing objects
+// Refactored loadModelImages using the shared function
+function loadMultiImages() {
+	loadImages("model-row", multiObjectNames, "selectMultiObject");
+}
 
-	objectNames.forEach((name) => {
-		const baseName = name.replace(/\.[^/.]+$/, ""); // Remove extension
-		const li = document.createElement("li");
-		li.innerHTML = `<img src="./images/${baseName}.png" alt="${baseName}" onclick="selectObject('${name}')">`;
-		objectRow.appendChild(li);
-	});
+// Refactored loadObjectImages using the shared function
+function loadObjectImages() {
+	loadImages("object-row", objectNames, "selectObject");
 }
 
 function highlightBlockById(workspace, block) {
@@ -1915,7 +1938,7 @@ function toggleGizmo(gizmoType) {
 					}
 
 					//const block = meshMap[mesh.blockKey];
-//highlightBlockById(Blockly.getMainWorkspace(), block);
+					//highlightBlockById(Blockly.getMainWorkspace(), block);
 				},
 			);
 
@@ -2071,7 +2094,7 @@ function toggleGizmo(gizmoType) {
 					}
 
 					//const block = meshMap[mesh.blockKey];
-//highlightBlockById(Blockly.getMainWorkspace(), block);
+					//highlightBlockById(Blockly.getMainWorkspace(), block);
 				},
 			);
 

@@ -1436,7 +1436,7 @@ export const flock = {
 
 		// If model is already being loaded, return the same originalModelId
 		if (flock.modelsBeingLoaded[modelName]) {
-			console.log(`Waiting for model to load: ${modelName}`);
+			//console.log(`Waiting for model to load: ${modelName}`);
 			return flock.modelsBeingLoaded[modelName].then(() => {
 				return flock.newObject({
 					modelName,
@@ -1565,6 +1565,7 @@ export const flock = {
 				delete flock.modelsBeingLoaded[modelName]; // Remove from loading map
 			});
 	},
+
 	create3DText({
 		text,
 		font,
