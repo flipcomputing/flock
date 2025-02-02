@@ -2460,6 +2460,7 @@ export const flock = {
 				  closestY = y;
 				}
 			  }
+
 			  groundMesh.position.y -= closestY;
 			  const heightMapGroundShape = new flock.BABYLON.PhysicsShapeMesh(ground, flock.scene);
 			  const heightMapGroundBody = new flock.BABYLON.PhysicsBody(ground, flock.BABYLON.PhysicsMotionType.STATIC, false, flock.scene);
@@ -2473,8 +2474,17 @@ export const flock = {
 	  }
 	  ground.name = "ground";
 	  ground.blockKey = "ground";
+
+		console.log("Scaling material");
 	  // Simply assign the passed-through material:
+		if (material.diffuseTexture) {
+		  material.diffuseTexture.wrapU = flock.BABYLON.Texture.WRAP_ADDRESSMODE;
+		  material.diffuseTexture.wrapV = flock.BABYLON.Texture.WRAP_ADDRESSMODE;
+		  material.diffuseTexture.uScale = 25;
+		  material.diffuseTexture.vScale = 25;
+		}
 	  ground.material = material;
+	
 	  return ground;
 	},
 	createCustomMap(colors) {
