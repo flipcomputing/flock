@@ -2371,7 +2371,7 @@ export function defineBlocks() {
 		},
 	};
 
-	Blockly.Blocks["create_map"] = {
+	Blockly.Blocks["create_map1"] = {
 		init: function () {
 			this.jsonInit({
 				type: "create_map",
@@ -2415,7 +2415,7 @@ export function defineBlocks() {
 		},
 	};
 
-	Blockly.Blocks["create_map2"] = {
+	Blockly.Blocks["create_map"] = {
 	  init: function () {
 		this.jsonInit({
 		  type: "create_map",

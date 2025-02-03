@@ -1827,7 +1827,7 @@ export function defineGenerators() {
 		return `await switchAnimation(${modelName}, "${animationName}");\n`;
 	};
 
-	javascriptGenerator.forBlock["create_map"] = function (block) {
+	javascriptGenerator.forBlock["create_map1"] = function (block) {
 		const mapName = block.getFieldValue("MAP_NAME");
 		const color = getFieldValue(block, "COLOR", "#6495ED");
 		const texture = block.getFieldValue("TEXTURE");
@@ -1839,13 +1839,13 @@ export function defineGenerators() {
 		return `createMap("${mapName}", ${color}, "${texture}");\n`;
 	};
 
-	javascriptGenerator.forBlock["create_map2"] = function(block) {
+	javascriptGenerator.forBlock["create_map"] = function(block) {
 	  const mapName = block.getFieldValue("MAP_NAME");
 	  const material = javascriptGenerator.valueToCode(block, "MATERIAL", javascriptGenerator.ORDER_NONE) || "null";
 	  const meshId = "ground";
 	  meshMap[meshId] = block;
 	  meshBlockIdMap[meshId] = block.id;
-	  return `createMap2("${mapName}", ${material});\n`;
+	  return `createMap("${mapName}", ${material});\n`;
 	};
 
 

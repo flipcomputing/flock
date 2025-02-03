@@ -2426,7 +2426,7 @@ export const flock = {
 		);
 		ground.material = groundMaterial;
 	},
-	createMap(image, color, texture) {
+	createMap1(image, color, texture) {
 		console.log("Creating map from image", image);
 
 		let ground;
@@ -2531,7 +2531,7 @@ export const flock = {
 		material.name = "ground";
 		ground.material = material;
 	},
-	createMap2(image, material) {
+	createMap(image, material) {
 	  console.log("Creating map from image", image);
 	  let ground;
 	  if (image === "NONE") {

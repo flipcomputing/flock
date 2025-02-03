@@ -866,7 +866,7 @@ const toolboxScene = {
 				},
 			},
 		},
-		{
+		/*{
 			kind: "block",
 			type: "create_map",
 			keyword: "map",
@@ -880,10 +880,10 @@ const toolboxScene = {
 					},
 				},
 			},
-		},
+		},*/
 		{
 			kind: "block",
-			type: "create_map2",
+			type: "create_map",
 			keyword: "map",
 			inputs: {
 				MATERIAL: {
