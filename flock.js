@@ -1203,7 +1203,7 @@ export const flock = {
 		bb.name = modelId;
 		bb.blockKey = blockId;
 
-		console.log("Model setup", bb.name, bb.blockKey);
+		//console.log("Model setup", bb.name, bb.blockKey);
 		bb.isPickable = false;
 		bb.position.addInPlace(new flock.BABYLON.Vector3(x, y, z));
 
@@ -1403,16 +1403,24 @@ export const flock = {
 	}) {
 		//console.log("Create object colors", color);
 		const { x, y, z } = position;
-		const blockId = modelId;
-		modelId += "_" + flock.scene.getUniqueId();
 
+		let blockKey = modelId;
+		let meshName;
+		if (modelId.includes("__")) {
+			[meshName, blockKey] = modelId.split("__");
+		}
+
+		if (flock.scene.getMeshByName(meshName) || flock.modelsBeingLoaded[modelName]) {
+			meshName = meshName + "_" + flock.scene.getUniqueId();
+		}
+		
 		// Check if a first copy is already cached
 		if (flock.modelCache[modelName]) {
 			//console.log(`Using cached first model: ${modelName}`);
 
 			// Clone from the cached first copy
 			const firstMesh = flock.modelCache[modelName];
-			const mesh = firstMesh.clone(blockId);
+			const mesh = firstMesh.clone(blockKey);
 
 			// Reset transformations
 			mesh.scaling.copyFrom(BABYLON.Vector3.One());
@@ -1422,8 +1430,8 @@ export const flock = {
 			flock.setupMesh(
 				mesh,
 				modelName,
-				modelId,
-				blockId,
+				meshName,
+				blockKey,
 				scale,
 				x,
 				y,
@@ -1442,7 +1450,7 @@ export const flock = {
 				requestAnimationFrame(callback);
 			}
 
-			return modelId;
+			return meshName;
 		}
 
 		if (flock.modelsBeingLoaded[modelName]) {
@@ -1450,12 +1458,12 @@ export const flock = {
 			flock.modelsBeingLoaded[modelName].then(() => {
 				if (flock.modelCache[modelName]) {
 					const firstMesh = flock.modelCache[modelName];
-					const mesh = firstMesh.clone(blockId);
+					const mesh = firstMesh.clone(blockKey);
 					mesh.scaling.copyFrom(BABYLON.Vector3.One());
 					mesh.position.copyFrom(BABYLON.Vector3.Zero());
 					mesh.rotationQuaternion = null;
 					mesh.rotation.copyFrom(BABYLON.Vector3.Zero());
-					flock.setupMesh(mesh, modelName, modelId, blockId, scale, x, y, z, color);
+					flock.setupMesh(mesh, modelName, meshName, blockKey, scale, x, y, z, color);
 					flock.changeColorMesh(mesh, color);
 					mesh.computeWorldMatrix(true);
 					mesh.refreshBoundingInfo();
@@ -1466,7 +1474,7 @@ export const flock = {
 					}
 				}
 			});
-			return modelId;
+			return meshName;
 		}
 
 		const loadPromise = flock.BABYLON.SceneLoader.LoadAssetContainerAsync(
@@ -1489,8 +1497,8 @@ export const flock = {
 				flock.setupMesh(
 					container.meshes[0],
 					modelName,
-					modelId,
-					blockId,
+					meshName,
+					blockKey,
 					scale,
 					x,
 					y,
@@ -1513,7 +1521,7 @@ export const flock = {
 		// Track the ongoing load
 		flock.modelsBeingLoaded[modelName] = loadPromise;
 
-		return modelId;
+		return meshName;
 	},
 	createObject2({
 		modelName,

@@ -501,9 +501,10 @@ function createMeshOnCanvas(block) {
 				.getInput("COLOR")
 				.connection.targetBlock()
 				.getFieldValue("COLOR");
-
-			meshId = modelName + "_" + generateUniqueId();
-
+			
+			meshId = `${modelName}__${block.id}`;
+			meshMap[block.id] = block;
+			meshBlockIdMap[block.id] = block.id;
 			// Use flock API for objects
 			newMesh = flock.createObject({
 				modelName: modelName,
@@ -513,9 +514,6 @@ function createMeshOnCanvas(block) {
 				position: { x: position.x, y: position.y, z: position.z },
 				callback: () => {},
 			});
-
-			meshMap[meshId] = block;
-			meshBlockIdMap[meshId] = block.id;
 
 			break;
 
@@ -549,8 +547,10 @@ function createMeshOnCanvas(block) {
 				});
 			}
 
-			meshId = modelName + "_" + generateUniqueId();
-
+			meshId = `${modelName}__${block.id}`;
+			meshMap[block.id] = block;
+			meshBlockIdMap[block.id] = block.id;
+			
 			newMesh = flock.createObject({
 				modelName: modelName,
 				modelId: meshId,
@@ -560,8 +560,6 @@ function createMeshOnCanvas(block) {
 				callback: () => {},
 			});
 
-			meshMap[meshId] = block;
-			meshBlockIdMap[meshId] = block.id;
 			break;
 
 		// --- Shape Creation Blocks ---
@@ -2360,7 +2358,8 @@ export function setGizmoManager(value) {
 	const originalAttach = gizmoManager.attachToMesh.bind(gizmoManager);
 	gizmoManager.attachToMesh = (mesh) => {		
 		if (gizmoManager.attachedMesh)
-			gizmoManager.attachedMesh.showBoundingBox = false;
+			gizmoManager.attachedMesh.getChildMeshes().forEach(child => child.showBoundingBox = false);
+
 		while (mesh && mesh.parent && !mesh.parent.physicsImpostor) {
 		  mesh = mesh.parent;
 		}

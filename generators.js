@@ -806,9 +806,9 @@ export function defineGenerators() {
 			Blockly.Names.NameType.VARIABLE,
 		);
 
-		const meshId = modelName + "_" + generateUniqueId();
-		meshMap[meshId] = block;
-		meshBlockIdMap[meshId] = block.id;
+		const meshId = `${variableName}__${block.id}`;
+		meshMap[block.id] = block;
+		meshBlockIdMap[block.id] = block.id;
 		// Generate the code for the "do" part (if present)
 		let doCode = "";
 
@@ -875,9 +875,9 @@ export function defineGenerators() {
 			Blockly.Names.NameType.VARIABLE,
 		);
 
-		const meshId = modelName + "_" + generateUniqueId();
-		meshMap[meshId] = block;
-		meshBlockIdMap[meshId] = block.id;
+		const meshId = `${variableName}__${block.id}`;
+		meshMap[block.id] = block;
+		meshBlockIdMap[block.id] = block.id;
 		// Generate the code for the "do" part (if present)
 		let doCode = "";
 
