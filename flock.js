@@ -1440,19 +1440,28 @@ export const flock = {
 			return modelId;
 		}
 
-		// Check if model is already being loaded
 		if (flock.modelsBeingLoaded[modelName]) {
 			console.log(`Waiting for model to load: ${modelName}`);
-			return flock.modelsBeingLoaded[modelName].then(() => {
-				return flock.createObject({
-					modelName,
-					modelId,
-					color,
-					scale,
-					position,
-					callback,
-				});
+			flock.modelsBeingLoaded[modelName].then(() => {
+				if (flock.modelCache[modelName]) {
+					const firstMesh = flock.modelCache[modelName];
+					const mesh = firstMesh.clone(blockId);
+					mesh.scaling.copyFrom(BABYLON.Vector3.One());
+					mesh.position.copyFrom(BABYLON.Vector3.Zero());
+					mesh.rotationQuaternion = null;
+					mesh.rotation.copyFrom(BABYLON.Vector3.Zero());
+					flock.setupMesh(mesh, modelName, modelId, blockId, scale, x, y, z, color);
+					flock.changeColorMesh(mesh, color);
+					mesh.computeWorldMatrix(true);
+					mesh.refreshBoundingInfo();
+					mesh.setEnabled(true);
+					mesh.visibility = 1;
+					if (callback) {
+						requestAnimationFrame(callback);
+					}
+				}
 			});
+			return modelId;
 		}
 
 		const loadPromise = flock.BABYLON.SceneLoader.LoadAssetContainerAsync(
