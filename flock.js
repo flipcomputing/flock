@@ -1425,8 +1425,8 @@ export const flock = {
 			// Reset transformations
 			mesh.scaling.copyFrom(BABYLON.Vector3.One());
 			mesh.position.copyFrom(BABYLON.Vector3.Zero());
-			mesh.rotationQuaternion = null;
-			mesh.rotation.copyFrom(BABYLON.Vector3.Zero());
+			//mesh.rotationQuaternion = null;
+			//mesh.rotation.copyFrom(BABYLON.Vector3.Zero());
 			flock.setupMesh(
 				mesh,
 				modelName,
@@ -1461,8 +1461,8 @@ export const flock = {
 					const mesh = firstMesh.clone(blockKey);
 					mesh.scaling.copyFrom(BABYLON.Vector3.One());
 					mesh.position.copyFrom(BABYLON.Vector3.Zero());
-					mesh.rotationQuaternion = null;
-					mesh.rotation.copyFrom(BABYLON.Vector3.Zero());
+					//mesh.rotationQuaternion = null;
+					//mesh.rotation.copyFrom(BABYLON.Vector3.Zero());
 					flock.setupMesh(mesh, modelName, meshName, blockKey, scale, x, y, z, color);
 					flock.changeColorMesh(mesh, color);
 					mesh.computeWorldMatrix(true);
@@ -1489,11 +1489,12 @@ export const flock = {
 				const firstMesh = container.meshes[0].clone(
 					`${modelName}_first`,
 				);
+			
 				firstMesh.setEnabled(false); // Disable the first copy
 				flock.modelCache[modelName] = firstMesh;
 
 				container.addAllToScene();
-
+				
 				flock.setupMesh(
 					container.meshes[0],
 					modelName,
