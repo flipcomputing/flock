@@ -31,6 +31,14 @@
         "version": 51623,
         "index": 432
       }
+    ],
+    "models/tree_fat.glb": [
+      {
+        "id": "93a51461-2d1b-4d51-a8a0-3e6b116a70f2",
+        "line": 1,
+        "version": 1,
+        "index": 0
+      }
     ]
   }
 }
