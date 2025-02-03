@@ -1202,6 +1202,8 @@ export const flock = {
 
 		bb.name = modelId;
 		bb.blockKey = blockId;
+
+		console.log("Model setup", bb.name, bb.blockKey);
 		bb.isPickable = false;
 		bb.position.addInPlace(new flock.BABYLON.Vector3(x, y, z));
 
@@ -1399,7 +1401,6 @@ export const flock = {
 		position = { x: 0, y: 0, z: 0 },
 		callback = null,
 	}) {
-
 		//console.log("Create object colors", color);
 		const { x, y, z } = position;
 		const blockId = modelId;
@@ -3898,7 +3899,7 @@ export const flock = {
 		});
 	},
 	rotateTo(meshName, x, y, z) {
-		console.log("Rotate", meshName, x, y, z);
+		
 		return flock.whenModelReady(meshName, (mesh) => {
 			if (!mesh.physics) {
 				// Fallback: Apply directly if no physics body

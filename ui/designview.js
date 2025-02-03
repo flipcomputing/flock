@@ -119,12 +119,14 @@ function pickMeshFromCanvas() {
 }
 
 export function deleteMeshFromBlock(blockId) {
-	//console.log("Deleting mesh from block:", blockId);
+	
 	const mesh = getMeshFromBlockId(blockId);
 
 	const blockKey = Object.keys(meshBlockIdMap).find(
 		(key) => meshBlockIdMap[key] === blockId,
 	);
+
+	//console.log("Deleting mesh from block:", blockId, blockKey, meshBlockIdMap, mesh);
 
 	if (blockKey) {
 		// Remove mappings
@@ -477,7 +479,7 @@ function createMeshOnCanvas(block) {
 					.getFieldValue("COLOR"),
 			};
 
-			meshId = `${modelName}__${block.id}`;
+			meshId = modelName + "_" + generateUniqueId();
 			// Use flock API for characters
 
 			newMesh = flock.createCharacter({
@@ -517,41 +519,50 @@ function createMeshOnCanvas(block) {
 
 			break;
 
-
-			case "load_multi_object":
-			  modelName = block.getFieldValue("MODELS");
-			  scale = block.getInput("SCALE")
+		case "load_multi_object":
+			modelName = block.getFieldValue("MODELS");
+			scale = block
+				.getInput("SCALE")
 				.connection.targetBlock()
 				.getFieldValue("NUM");
 
-			  const colorsBlock = block.getInput("COLORS").connection.targetBlock();
-			  let colorsArray = [];
-			  if (colorsBlock && colorsBlock.type === "lists_create_with") {
-				colorsBlock.inputList.forEach(input => {
-				  // Only process value inputs named "ADD*"
-				  if (input.name && input.name.startsWith("ADD") && input.connection) {
-					const colorBlock = input.connection.targetBlock();
-					if (colorBlock) {
-					  const colorVal = colorBlock.getFieldValue("COLOR");
-					  if (colorVal) {
-						colorsArray.push(colorVal);
-					  }
+			const colorsBlock = block
+				.getInput("COLORS")
+				.connection.targetBlock();
+			let colorsArray = [];
+			if (colorsBlock && colorsBlock.type === "lists_create_with") {
+				colorsBlock.inputList.forEach((input) => {
+					// Only process value inputs named "ADD*"
+					if (
+						input.name &&
+						input.name.startsWith("ADD") &&
+						input.connection
+					) {
+						const colorBlock = input.connection.targetBlock();
+						if (colorBlock) {
+							const colorVal = colorBlock.getFieldValue("COLOR");
+							if (colorVal) {
+								colorsArray.push(colorVal);
+							}
+						}
 					}
-				  }
 				});
-			  }
+			}
 
-			  meshId = `${modelName}__${block.id}`;
-			  newMesh = flock.createObject({
+			meshId = modelName + "_" + generateUniqueId();
+
+			newMesh = flock.createObject({
 				modelName: modelName,
 				modelId: meshId,
 				color: colorsArray,
 				scale: scale,
 				position: { x: position.x, y: position.y, z: position.z },
-				callback: () => {}
-			  });
-			  break;
+				callback: () => {},
+			});
 
+			meshMap[meshId] = block;
+			meshBlockIdMap[meshId] = block.id;
+			break;
 
 		// --- Shape Creation Blocks ---
 		case "create_box":
@@ -835,7 +846,7 @@ function addShadowBlock(block, inputName, blockType, defaultValue) {
 }
 
 function setPositionValues(block, position, shapeType) {
-	console.log("Set position values", position, shapeType);
+	//console.log("Set position values", position, shapeType);
 	let adjustedY = position.y;
 
 	// Adjust Y based on the shape type
@@ -929,6 +940,7 @@ function getMeshFromBlockId(blockId) {
 }
 
 function addShapeToWorkspace(shapeType, position) {
+	//console.log("Adding shape to workspace", shapeType, position);
 	Blockly.Events.setGroup(true);
 	// Create the shape block in the Blockly workspace
 	const block = Blockly.getMainWorkspace().newBlock(shapeType);
@@ -1255,6 +1267,7 @@ function selectObjectWithCommand(objectName, menu, command) {
 				Blockly.Events.setGroup(true);
 
 				try {
+					//console.log("Create new block", command);
 					// Create the load_object block
 					const block = Blockly.getMainWorkspace().newBlock(command);
 					block.initSvg();
@@ -1772,8 +1785,9 @@ function toggleGizmo(gizmoType) {
 						// Attach the gizmo to the selected mesh
 						gizmoManager.attachToMesh(pickedMesh);
 
+						//console.log("Selected", pickedMesh.name, gizmoManager.attachedMesh.name);
 						// Show bounding box for the selected mesh
-						gizmoManager.attachedMesh.showBoundingBox = true;
+						pickedMesh.showBoundingBox = true;
 					} else {
 						// Deselect if no mesh is picked
 						if (gizmoManager.attachedMesh) {
@@ -1969,8 +1983,12 @@ function toggleGizmo(gizmoType) {
 
 			gizmoManager.gizmos.rotationGizmo.onDragStartObservable.add(
 				function () {
-					const mesh = gizmoManager.attachedMesh;
-					const motionType = mesh.physics.getMotionType();
+					let mesh = gizmoManager.attachedMesh;
+					while (mesh.parent && !mesh.parent.physicsImpostor) {
+					  mesh = mesh.parent;
+					}
+					//console.log("Mesh rotated", mesh.name, mesh.blockKey, mesh.physics);
+					const motionType = mesh.physics.getMotionType() || flock.BABYLON.PhysicsMotionType.STATIC;
 					mesh.savedMotionType = motionType;
 
 					if (
@@ -1991,7 +2009,11 @@ function toggleGizmo(gizmoType) {
 
 			gizmoManager.gizmos.rotationGizmo.onDragEndObservable.add(
 				function () {
-					const mesh = gizmoManager.attachedMesh;
+					let mesh = gizmoManager.attachedMesh;
+					while (mesh.parent && !mesh.parent.physics) {
+					  mesh = mesh.parent;
+					}
+					
 
 					if (mesh.savedMotionType) {
 						mesh.physics.setMotionType(mesh.savedMotionType);
@@ -1999,10 +2021,12 @@ function toggleGizmo(gizmoType) {
 
 					const block = meshMap[mesh.blockKey];
 
+					//console.log("Rotating", mesh, blockKey, meshMap);
 					if (!block) {
 						return;
 					}
 
+					//console.log("Rotating", block);
 					if (!block.getInput("DO")) {
 						block
 							.appendStatementInput("DO")
@@ -2334,9 +2358,12 @@ export function setGizmoManager(value) {
 	gizmoManager = value;
 
 	const originalAttach = gizmoManager.attachToMesh.bind(gizmoManager);
-	gizmoManager.attachToMesh = (mesh) => {
+	gizmoManager.attachToMesh = (mesh) => {		
 		if (gizmoManager.attachedMesh)
 			gizmoManager.attachedMesh.showBoundingBox = false;
+		while (mesh && mesh.parent && !mesh.parent.physicsImpostor) {
+		  mesh = mesh.parent;
+		}
 		originalAttach(mesh);
 	};
 }
