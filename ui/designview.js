@@ -500,7 +500,8 @@ function createMeshOnCanvas(block) {
 				.connection.targetBlock()
 				.getFieldValue("COLOR");
 
-			meshId = `${modelName}__${block.id}`;
+			meshId = modelName + "_" + generateUniqueId();
+
 			// Use flock API for objects
 			newMesh = flock.createObject({
 				modelName: modelName,
@@ -510,6 +511,10 @@ function createMeshOnCanvas(block) {
 				position: { x: position.x, y: position.y, z: position.z },
 				callback: () => {},
 			});
+
+			meshMap[meshId] = block;
+			meshBlockIdMap[meshId] = block.id;
+
 			break;
 
 
