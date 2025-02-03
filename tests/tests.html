@@ -36,8 +36,10 @@
       import { runGlideToTests } from './glide.test.js'; 
       import { runUITests } from './uitextbutton.test.js'; 
       import { runStressTests } from './boxes.test.js';
+      import { runCreateObjectTests } from './objects.test.js';
     
       const flock = flockmodule.flock;
+      flock.modelPath = "../models/";
 
       await flock.initialize();
       mocha.setup('bdd'); 
@@ -77,7 +79,8 @@
       // Run the glideTo tests
       //runUITests(flock);
      //runGlideToTests(flock);
-      runStressTests(flock);
+      //runStressTests(flock);
+      runCreateObjectTests(flock);
 
       mocha.run();
     </script>

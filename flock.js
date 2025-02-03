@@ -5,6 +5,7 @@
 import HavokPhysics from "@babylonjs/havok";
 import * as BABYLON from "@babylonjs/core";
 import * as BABYLON_GUI from "@babylonjs/gui";
+import "@babylonjs/loaders";
 import { GradientMaterial } from "@babylonjs/materials";
 import * as BABYLON_EXPORT from "@babylonjs/serializers";
 import { FlowGraphLog10Block, SetMaterialIDBlock } from "babylonjs";
@@ -18,6 +19,7 @@ console.log("Flock helpers loading");
 
 export const flock = {
 	console: console,
+	modelPath: "./models/",
 	engine: null,
 	engineReady: false,
 	alert: alert,
@@ -1097,7 +1099,7 @@ export const flock = {
 		// Start loading the model
 		//console.log(`Loading model: ${modelName}`);
 		const loadPromise = flock.BABYLON.SceneLoader.LoadAssetContainerAsync(
-			"./models/",
+			flock.modelPath,
 			modelName,
 			flock.scene,
 		)
@@ -1305,7 +1307,7 @@ export const flock = {
 			modelId = modelId + "_" + flock.scene.getUniqueId();
 		}
 		flock.BABYLON.SceneLoader.LoadAssetContainerAsync(
-			"./models/",
+			flock.modelPath,
 			modelName,
 			flock.scene,
 			null,
@@ -1397,6 +1399,8 @@ export const flock = {
 		position = { x: 0, y: 0, z: 0 },
 		callback = null,
 	}) {
+
+		//console.log("Create object colors", color);
 		const { x, y, z } = position;
 		const blockId = modelId;
 		modelId += "_" + flock.scene.getUniqueId();
@@ -1465,7 +1469,7 @@ export const flock = {
 		}
 
 		const loadPromise = flock.BABYLON.SceneLoader.LoadAssetContainerAsync(
-			"./models/",
+			flock.modelPath,
 			modelName,
 			flock.scene,
 		)
@@ -1641,7 +1645,7 @@ export const flock = {
 		callback,
 	) {
 		return flock.BABYLON.SceneLoader.LoadAssetContainerAsync(
-			"./models/",
+			flock.modelPath,
 			modelName,
 			flock.scene,
 		)
