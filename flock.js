@@ -1396,133 +1396,112 @@ export const flock = {
 	createObject({
 		modelName,
 		modelId,
-		color = "#FFFFFF",
+		color = ["#FFFFFF", "#FFFFFF"],
 		scale = 1,
 		position = { x: 0, y: 0, z: 0 },
 		callback = null,
-	}) {
-		//console.log("Create object colors", color);
-		const { x, y, z } = position;
-
-		let blockKey = modelId;
-		let meshName;
-		if (modelId.includes("__")) {
-			[meshName, blockKey] = modelId.split("__");
-		}
-
-		if (flock.scene.getMeshByName(meshName) || flock.modelsBeingLoaded[modelName]) {
-			meshName = meshName + "_" + flock.scene.getUniqueId();
-		}
-		
-		// Check if a first copy is already cached
-		if (flock.modelCache[modelName]) {
-			//console.log(`Using cached first model: ${modelName}`);
-
-			// Clone from the cached first copy
-			const firstMesh = flock.modelCache[modelName];
-			const mesh = firstMesh.clone(blockKey);
-
-			// Reset transformations
-			mesh.scaling.copyFrom(BABYLON.Vector3.One());
-			mesh.position.copyFrom(BABYLON.Vector3.Zero());
-			//mesh.rotationQuaternion = null;
-			//mesh.rotation.copyFrom(BABYLON.Vector3.Zero());
-			flock.setupMesh(
-				mesh,
-				modelName,
-				meshName,
-				blockKey,
-				scale,
-				x,
-				y,
-				z,
-				color,
-			);
-
-			flock.changeColorMesh(mesh, color);
-
-			mesh.computeWorldMatrix(true);
-			mesh.refreshBoundingInfo();
-			mesh.setEnabled(true);
-			mesh.visibility = 1;
-
-			if (callback) {
-				requestAnimationFrame(callback);
+	} = {}) {
+		try {
+			// Basic parameter validation with warnings
+			if (!modelName) {
+				console.warn('createObject: Missing modelName parameter');
+				return "error_" + flock.scene.getUniqueId();
 			}
 
-			return meshName;
-		}
+			if (!modelId) {
+				console.warn('createObject: Missing modelId parameter');
+				return "error_" + flock.scene.getUniqueId();
+			}
 
-		if (flock.modelsBeingLoaded[modelName]) {
-			console.log(`Waiting for model to load: ${modelName}`);
-			flock.modelsBeingLoaded[modelName].then(() => {
-				if (flock.modelCache[modelName]) {
-					const firstMesh = flock.modelCache[modelName];
-					const mesh = firstMesh.clone(blockKey);
-					mesh.scaling.copyFrom(BABYLON.Vector3.One());
-					mesh.position.copyFrom(BABYLON.Vector3.Zero());
-					//mesh.rotationQuaternion = null;
-					//mesh.rotation.copyFrom(BABYLON.Vector3.Zero());
-					flock.setupMesh(mesh, modelName, meshName, blockKey, scale, x, y, z, color);
-					flock.changeColorMesh(mesh, color);
-					mesh.computeWorldMatrix(true);
-					mesh.refreshBoundingInfo();
-					mesh.setEnabled(true);
-					mesh.visibility = 1;
-					if (callback) {
-						requestAnimationFrame(callback);
-					}
-				}
-			});
-			return meshName;
-		}
+			if (!position || typeof position !== 'object') {
+				console.warn('createObject: Invalid position parameter');
+				position = { x: 0, y: 0, z: 0 };
+			}
 
-		const loadPromise = flock.BABYLON.SceneLoader.LoadAssetContainerAsync(
-			flock.modelPath,
-			modelName,
-			flock.scene,
-		)
-			.then((container) => {
-				// Clone a first copy from the first mesh
-				flock.ensureStandardMaterial(container.meshes[0]);
+			const { x, y, z } = position;
 
-				const firstMesh = container.meshes[0].clone(
-					`${modelName}_first`,
-				);
-			
-				firstMesh.setEnabled(false); // Disable the first copy
-				flock.modelCache[modelName] = firstMesh;
+			let blockKey = modelId;
+			let meshName;
+			if (modelId.includes("__")) {
+				[meshName, blockKey] = modelId.split("__");
+			}
 
-				container.addAllToScene();
+			if (flock.scene.getMeshByName(meshName) || flock.modelsBeingLoaded[modelName]) {
+				meshName = meshName + "_" + flock.scene.getUniqueId();
+			}
+
+			// Rest of the original function remains unchanged
+			if (flock.modelCache[modelName]) {
+				const firstMesh = flock.modelCache[modelName];
+				const mesh = firstMesh.clone(blockKey);
+				mesh.scaling.copyFrom(BABYLON.Vector3.One());
+				mesh.position.copyFrom(BABYLON.Vector3.Zero());
 				
-				flock.setupMesh(
-					container.meshes[0],
-					modelName,
-					meshName,
-					blockKey,
-					scale,
-					x,
-					y,
-					z,
-					color,
-				);
-				flock.changeColorMesh(container.meshes[0], color);
-
+				flock.setupMesh(mesh, modelName, meshName, blockKey, scale, x, y, z, color);
+				flock.changeColorMesh(mesh, color);
+				mesh.computeWorldMatrix(true);
+				mesh.refreshBoundingInfo();
+				mesh.setEnabled(true);
+				mesh.visibility = 1;
 				if (callback) {
 					requestAnimationFrame(callback);
 				}
-			})
-			.catch((error) => {
-				console.error(`Error loading model: ${modelName}`, error);
-			})
-			.finally(() => {
-				delete flock.modelsBeingLoaded[modelName]; // Remove from loading map
-			});
+				return meshName;
+			}
 
-		// Track the ongoing load
-		flock.modelsBeingLoaded[modelName] = loadPromise;
+			if (flock.modelsBeingLoaded[modelName]) {
+				console.log(`Waiting for model to load: ${modelName}`);
+				flock.modelsBeingLoaded[modelName].then(() => {
+					if (flock.modelCache[modelName]) {
+						const firstMesh = flock.modelCache[modelName];
+						const mesh = firstMesh.clone(blockKey);
+						mesh.scaling.copyFrom(BABYLON.Vector3.One());
+						mesh.position.copyFrom(BABYLON.Vector3.Zero());
+						flock.setupMesh(mesh, modelName, meshName, blockKey, scale, x, y, z, color);
+						flock.changeColorMesh(mesh, color);
+						mesh.computeWorldMatrix(true);
+						mesh.refreshBoundingInfo();
+						mesh.setEnabled(true);
+						mesh.visibility = 1;
+						if (callback) {
+							requestAnimationFrame(callback);
+						}
+					}
+				});
+				return meshName;
+			}
 
-		return meshName;
+			const loadPromise = flock.BABYLON.SceneLoader.LoadAssetContainerAsync(
+				flock.modelPath,
+				modelName,
+				flock.scene,
+			)
+				.then((container) => {
+					flock.ensureStandardMaterial(container.meshes[0]);
+					const firstMesh = container.meshes[0].clone(`${modelName}_first`);
+					firstMesh.setEnabled(false);
+					flock.modelCache[modelName] = firstMesh;
+					container.addAllToScene();
+					flock.setupMesh(container.meshes[0], modelName, meshName, blockKey, scale, x, y, z, color);
+					flock.changeColorMesh(container.meshes[0], color);
+					if (callback) {
+						requestAnimationFrame(callback);
+					}
+				})
+				.catch((error) => {
+					console.error(`Error loading model: ${modelName}`, error);
+				})
+				.finally(() => {
+					delete flock.modelsBeingLoaded[modelName];
+				});
+
+			flock.modelsBeingLoaded[modelName] = loadPromise;
+			return meshName;
+
+		} catch (error) {
+			console.warn('createObject: Error creating object:', error);
+			return "error_" + flock.scene.getUniqueId();
+		}
 	},
 	create3DText({
 		text,
@@ -3877,7 +3856,7 @@ export const flock = {
 					}
 
 					// Append the rotation animation to the mesh
-					mesh.animations.push(rotateAnimation); // Append, don’t overwrite existing animations
+					mesh.animations.push(rotateAnimation); // Append, don't overwrite existing animations
 
 					// Start the rotation animation
 					const animatable = flock.scene.beginAnimation(
