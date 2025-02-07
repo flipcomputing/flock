@@ -473,8 +473,7 @@ function importSnippet() {
 							Blockly.serialization.blocks.append(
 								blockJson,
 								workspace,
-							); 
-							
+							);
 						} catch (workspaceError) {
 							console.error(
 								"Error loading blocks into workspace:",
@@ -491,7 +490,10 @@ function importSnippet() {
 					// Handle PNG metadata
 					try {
 						const arrayBuffer = new Uint8Array(content);
-						const encodedMetadata = getMetadata(arrayBuffer, "blockJson");
+						const encodedMetadata = getMetadata(
+							arrayBuffer,
+							"blockJson",
+						);
 
 						if (!encodedMetadata) {
 							console.error("No metadata found in the PNG file.");
@@ -499,12 +501,16 @@ function importSnippet() {
 						}
 
 						// Decode the URL-encoded metadata and parse it as JSON
-						const decodedMetadata = JSON.parse(decodeURIComponent(encodedMetadata));
+						const decodedMetadata = JSON.parse(
+							decodeURIComponent(encodedMetadata),
+						);
 
 						// Load blocks into Blockly workspace without clearing
 						const workspace = Blockly.getMainWorkspace();
-						Blockly.serialization.blocks.append(decodedMetadata, workspace);
-						
+						Blockly.serialization.blocks.append(
+							decodedMetadata,
+							workspace,
+						);
 					} catch (error) {
 						console.error("Error processing PNG metadata:", error);
 					}
@@ -519,7 +525,6 @@ function importSnippet() {
 							blockJson,
 							workspace,
 						);
-						
 					} catch (error) {
 						console.error("Error processing JSON file:", error);
 					}
@@ -535,7 +540,6 @@ function importSnippet() {
 		}
 	};
 }
-
 
 function addExportContextMenuOption() {
 	Blockly.ContextMenuRegistry.registry.register({
@@ -620,8 +624,6 @@ function addExportSVGContextMenuOption() {
 		checkbox: false,
 	});
 }
-
-
 
 /*
 function toggleToolbox() {
@@ -1293,10 +1295,12 @@ async function exportBlockAsPNG(block) {
 			const updatedPngBuffer = addMetadata(
 				new Uint8Array(arrayBuffer),
 				"blockJson",
-				encodedJson
+				encodedJson,
 			);
 
-			const updatedBlob = new Blob([updatedPngBuffer], { type: "image/png" });
+			const updatedBlob = new Blob([updatedPngBuffer], {
+				type: "image/png",
+			});
 			const updatedUrl = URL.createObjectURL(updatedBlob);
 
 			const link = document.createElement("a");
@@ -1596,22 +1600,22 @@ window.onload = function () {
 	workspace = Blockly.inject("blocklyDiv", options);
 
 	// Add this debug listener right after workspace injection
-	workspace.addChangeListener(function(event) {
+	workspace.addChangeListener(function (event) {
 		// Only log events that are recorded in the undo stack
 		if (event.recordUndo) {
 			// Add stack trace to see where the event is coming from
-			/*console.log('Undoable Event:', {
+			/*console.log("Undoable Event:", {
 				type: event.type,
 				blockId: event.blockId,
 				group: event.group,
 				timestamp: event.timestamp,
 				details: event,
-				trace: new Error().stack
+				trace: new Error().stack,
 			});*/
-			
+
 			// Log the current undo stack size
 			const undoStack = workspace.undoStack_;
-			/*console.log('Undo Stack Size:', undoStack ? undoStack.length : 0);*/
+			//console.log("Undo Stack Size:", undoStack ? undoStack.length : 0);
 		}
 	});
 
@@ -1997,15 +2001,16 @@ window.onload = function () {
 
 	workspace.cleanUp = function () {
 		//console.log('Starting workspace cleanup');
-		Blockly.Events.setGroup(true);  // Start a new group for cleanup events
-		
+		Blockly.Events.setGroup(true); // Start a new group for cleanup events
+
 		const topBlocks = workspace.getTopBlocks(false);
 		const spacing = 40;
 		let cursorY = 10;
 		let cursorX = 10;
 
-		topBlocks.sort((a, b) => 
-			a.getRelativeToSurfaceXY().y - b.getRelativeToSurfaceXY().y
+		topBlocks.sort(
+			(a, b) =>
+				a.getRelativeToSurfaceXY().y - b.getRelativeToSurfaceXY().y,
 		);
 
 		topBlocks.forEach((block) => {
@@ -2016,8 +2021,8 @@ window.onload = function () {
 				cursorY += block.getHeightWidth().height + spacing;
 			}
 		});
-		
-		Blockly.Events.setGroup(false);  // End the group
+
+		Blockly.Events.setGroup(false); // End the group
 		//console.log('Finished workspace cleanup');
 	};
 
