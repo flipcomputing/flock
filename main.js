@@ -1595,7 +1595,27 @@ window.onload = function () {
 
 	workspace = Blockly.inject("blocklyDiv", options);
 
-workspace.addChangeListener(BlockDynamicConnection.finalizeConnections);
+	// Add this debug listener right after workspace injection
+	workspace.addChangeListener(function(event) {
+		// Only log events that are recorded in the undo stack
+		if (event.recordUndo) {
+			// Add stack trace to see where the event is coming from
+			/*console.log('Undoable Event:', {
+				type: event.type,
+				blockId: event.blockId,
+				group: event.group,
+				timestamp: event.timestamp,
+				details: event,
+				trace: new Error().stack
+			});*/
+			
+			// Log the current undo stack size
+			const undoStack = workspace.undoStack_;
+			//console.log('Undo Stack Size:', undoStack ? undoStack.length : 0);
+		}
+	});
+
+	workspace.addChangeListener(BlockDynamicConnection.finalizeConnections);
 
 	overrideSearchPlugin(workspace);
 
@@ -1978,25 +1998,29 @@ workspace.addChangeListener(BlockDynamicConnection.finalizeConnections);
 	];
 
 	workspace.cleanUp = function () {
-		const topBlocks = workspace.getTopBlocks(false); // Get all top-level blocks without sorting
-		const spacing = 40; // Define spacing between blocks
-		let cursorY = 10; // Starting y position
-		let cursorX = 10; // Starting x position
+		//console.log('Starting workspace cleanup');
+		Blockly.Events.setGroup(true);  // Start a new group for cleanup events
+		
+		const topBlocks = workspace.getTopBlocks(false);
+		const spacing = 40;
+		let cursorY = 10;
+		let cursorX = 10;
 
-		// Sort the blocks by their current y position (top to bottom)
-		topBlocks.sort(
-			(a, b) =>
-				a.getRelativeToSurfaceXY().y - b.getRelativeToSurfaceXY().y,
+		topBlocks.sort((a, b) => 
+			a.getRelativeToSurfaceXY().y - b.getRelativeToSurfaceXY().y
 		);
 
 		topBlocks.forEach((block) => {
-			// Check if the block is one of the specified types
 			if (blockTypesToCleanUp.includes(block.type)) {
 				const blockXY = block.getRelativeToSurfaceXY();
+				//console.log(`Moving block ${block.type} during cleanup`);
 				block.moveBy(cursorX - blockXY.x, cursorY - blockXY.y);
 				cursorY += block.getHeightWidth().height + spacing;
 			}
 		});
+		
+		Blockly.Events.setGroup(false);  // End the group
+		//console.log('Finished workspace cleanup');
 	};
 
 	let cleanupTimeout;
@@ -2026,6 +2050,17 @@ workspace.addChangeListener(BlockDynamicConnection.finalizeConnections);
 	document.addEventListener("touchstart", enableSelection);
 
 	workspace.addChangeListener(function (event) {
+		// Log all events during cleanup
+		if (window.cleanupInProgress) {
+			/*console.log('Event during cleanup:', {
+				type: event.type,
+				blockId: event.blockId,
+				group: event.group,
+				recordUndo: event.recordUndo,
+				trace: new Error().stack
+			});*/
+		}
+
 		try {
 			if (event.type === Blockly.Events.BLOCK_MOVE) {
 				const block = workspace.getBlockById(event.blockId);
@@ -2036,9 +2071,11 @@ workspace.addChangeListener(BlockDynamicConnection.finalizeConnections);
 
 				// Set a new timeout to call cleanUp after block movement settles
 				cleanupTimeout = setTimeout(() => {
+					window.cleanupInProgress = true;
 					Blockly.Events.disable(); // Temporarily disable events
 					workspace.cleanUp(); // Clean up the workspace
 					Blockly.Events.enable(); // Re-enable events
+					window.cleanupInProgress = false;
 				}, 500); // Delay cleanup by 500ms to ensure block moves have settled
 			}
 		} catch (error) {
