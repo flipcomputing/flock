@@ -97,13 +97,13 @@ function pickMeshFromCanvas() {
       canvasX,
       canvasY,
       flock.BABYLON.Matrix.Identity(),
-      flock.scene.activeCamera
+      flock.scene.activeCamera,
     );
 
     // Perform the picking
     const pickResult = flock.scene.pickWithRay(
       pickRay,
-      (mesh) => mesh.isPickable
+      (mesh) => mesh.isPickable,
     );
 
     flock.changeColorMesh(pickResult.pickedMesh, selectedColor);
@@ -121,7 +121,7 @@ export function deleteMeshFromBlock(blockId) {
   const mesh = getMeshFromBlockId(blockId);
 
   const blockKey = Object.keys(meshBlockIdMap).find(
-    (key) => meshBlockIdMap[key] === blockId
+    (key) => meshBlockIdMap[key] === blockId,
   );
 
   //console.log("Deleting mesh from block:", blockId, blockKey, meshBlockIdMap, mesh);
@@ -339,7 +339,7 @@ export function updateMeshFromBlock(mesh, block) {
         diameterTop,
         diameterBottom,
         cylinderHeight,
-        sides
+        sides,
       );
       break;
 
@@ -575,7 +575,7 @@ function createMeshOnCanvas(block) {
         width,
         height,
         depth,
-        [position.x, position.y, position.z]
+        [position.x, position.y, position.z],
       );
 
       break;
@@ -604,7 +604,7 @@ function createMeshOnCanvas(block) {
         diameterX,
         diameterY,
         diameterZ,
-        [position.x, position.y, position.z]
+        [position.x, position.y, position.z],
       );
       break;
 
@@ -633,7 +633,7 @@ function createMeshOnCanvas(block) {
         diameterTop,
         diameterBottom,
         24,
-        [position.x, position.y, position.z]
+        [position.x, position.y, position.z],
       );
       break;
 
@@ -656,7 +656,7 @@ function createMeshOnCanvas(block) {
         color,
         capsuleRadius,
         capsuleHeight,
-        [position.x, position.y, position.z]
+        [position.x, position.y, position.z],
       );
       break;
 
@@ -679,7 +679,7 @@ function createMeshOnCanvas(block) {
         color,
         planeWidth,
         planeHeight,
-        [position.x, position.y, position.z]
+        [position.x, position.y, position.z],
       );
       break;
 
@@ -719,7 +719,7 @@ function setAbsoluteSize(mesh, width, height, depth) {
           new flock.BABYLON.Vector3(0, 0, 0),
           new flock.BABYLON.Quaternion(0, 0, 0, 1),
           new flock.BABYLON.Vector3(width, height, depth),
-          mesh.getScene()
+          mesh.getScene(),
         );
         break;
 
@@ -732,7 +732,7 @@ function setAbsoluteSize(mesh, width, height, depth) {
           startPoint,
           endPoint,
           diameterBottom / 2,
-          mesh.getScene()
+          mesh.getScene(),
         );
         break;
 
@@ -740,7 +740,7 @@ function setAbsoluteSize(mesh, width, height, depth) {
         newShape = new flock.BABYLON.PhysicsShapeSphere(
           new flock.BABYLON.Vector3(0, 0, 0),
           Math.max(width, depth, height) / 2,
-          mesh.getScene()
+          mesh.getScene(),
         );
         break;
 
@@ -750,7 +750,7 @@ function setAbsoluteSize(mesh, width, height, depth) {
           new flock.BABYLON.Vector3(0, 0, 0),
           radius, // Radius of the spherical ends
           height / 2, // Half the height of the cylindrical part
-          mesh.getScene()
+          mesh.getScene(),
         );
         break;
 
@@ -774,7 +774,7 @@ function updateCylinderGeometry(
   diameterTop,
   diameterBottom,
   height,
-  sides
+  sides,
 ) {
   // If the mesh has geometry, dispose of it before updating
   if (mesh.geometry) {
@@ -791,7 +791,7 @@ function updateCylinderGeometry(
       tessellation: sides,
       updatable: true,
     },
-    mesh.getScene()
+    mesh.getScene(),
   );
 
   // Extract vertex data from the temporary mesh
@@ -803,7 +803,7 @@ function updateCylinderGeometry(
     mesh.getScene(),
     vertexData,
     true,
-    mesh
+    mesh,
   );
 
   // Apply the new geometry to the mesh
@@ -915,7 +915,7 @@ function setNumberInput(block, inputName, value) {
 
 function getMeshFromBlockId(blockId) {
   const blockKey = Object.keys(meshMap).find(
-    (key) => meshBlockIdMap[key] === blockId
+    (key) => meshBlockIdMap[key] === blockId,
   );
 
   return flock.scene?.meshes?.find((mesh) => mesh.blockKey === blockKey);
@@ -1064,7 +1064,7 @@ function selectCharacter(characterName) {
               block,
               colorInputName,
               "colour",
-              colorFields[colorInputName]
+              colorFields[colorInputName],
             );
           });
 
@@ -1193,110 +1193,106 @@ function selectMultiObject(objectName) {
 window.selectMultiObject = selectMultiObject;
 
 function selectObjectWithCommand(objectName, menu, command) {
-	document.getElementById(menu).style.display = "none";
-	const canvas = flock.scene.getEngine().getRenderingCanvas(); // Get the flock.BABYLON.js canvas
+  document.getElementById(menu).style.display = "none";
+  const canvas = flock.scene.getEngine().getRenderingCanvas(); // Get the flock.BABYLON.js canvas
 
-	document.body.style.cursor = "crosshair"; // Change cursor to indicate picking mode
+  document.body.style.cursor = "crosshair"; // Change cursor to indicate picking mode
 
-	setTimeout(() => {
-		const onPickMesh = function (event) {
-			// Get the canvas bounds relative to the window
-			const canvasRect = canvas.getBoundingClientRect();
+  setTimeout(() => {
+    const onPickMesh = function (event) {
+      // Get the canvas bounds relative to the window
+      const canvasRect = canvas.getBoundingClientRect();
 
-			// Check if the click happened outside the canvas
-			if (
-				event.clientX < canvasRect.left ||
-				event.clientX > canvasRect.right ||
-				event.clientY < canvasRect.top ||
-				event.clientY > canvasRect.bottom
-			) {
-				window.removeEventListener("click", onPickMesh);
-				document.body.style.cursor = "default";
-				return;
-			}
+      // Check if the click happened outside the canvas
+      if (
+        event.clientX < canvasRect.left ||
+        event.clientX > canvasRect.right ||
+        event.clientY < canvasRect.top ||
+        event.clientY > canvasRect.bottom
+      ) {
+        window.removeEventListener("click", onPickMesh);
+        document.body.style.cursor = "default";
+        return;
+      }
 
-			// Calculate the click position relative to the canvas, not the window
-			const canvasX = event.clientX - canvasRect.left;
-			const canvasY = event.clientY - canvasRect.top;
+      // Calculate the click position relative to the canvas, not the window
+      const canvasX = event.clientX - canvasRect.left;
+      const canvasY = event.clientY - canvasRect.top;
 
-			// Create a picking ray using the adjusted canvas coordinates
-			const pickRay = flock.scene.createPickingRay(
-				canvasX,
-				canvasY,
-				flock.BABYLON.Matrix.Identity(),
-				flock.scene.activeCamera,
-			);
+      // Create a picking ray using the adjusted canvas coordinates
+      const pickRay = flock.scene.createPickingRay(
+        canvasX,
+        canvasY,
+        flock.BABYLON.Matrix.Identity(),
+        flock.scene.activeCamera,
+      );
 
-			// Perform the picking
-			const pickResult = flock.scene.pickWithRay(
-				pickRay,
-				(mesh) => mesh.isPickable,
-			);
+      // Perform the picking
+      const pickResult = flock.scene.pickWithRay(
+        pickRay,
+        (mesh) => mesh.isPickable,
+      );
 
-			if (pickResult.hit) {
-				const pickedPosition = pickResult.pickedPoint;
+      if (pickResult.hit) {
+        const pickedPosition = pickResult.pickedPoint;
 
-				// Start a Blockly event group to ensure undo/redo tracks all changes
-				Blockly.Events.setGroup(true);
+        // Start a Blockly event group to ensure undo/redo tracks all changes
+        Blockly.Events.setGroup(true);
 
-				try {
-					//console.log("Create new block", command);
-					// Create the load_object block
-					const block = Blockly.getMainWorkspace().newBlock(command);
-					block.initSvg();
+        try {
+          //console.log("Create new block", command);
+          // Create the load_object block
+          const block = Blockly.getMainWorkspace().newBlock(command);
+          block.initSvg();
 
-					//highlightBlockById(Blockly.getMainWorkspace(), block);
+          //highlightBlockById(Blockly.getMainWorkspace(), block);
 
-					// Set object name
-					block.setFieldValue(objectName, "MODELS");
+          // Set object name
+          block.setFieldValue(objectName, "MODELS");
 
-					// Set position values (X, Y, Z) from the picked position
-					setPositionValues(block, pickedPosition, command);
+          // Set position values (X, Y, Z) from the picked position
+          setPositionValues(block, pickedPosition, command);
 
-					// Add shadow block for SCALE
-					const scale = 1; // Default scale
-					addShadowBlock(block, "SCALE", "math_number", scale);
+          // Add shadow block for SCALE
+          const scale = 1; // Default scale
+          addShadowBlock(block, "SCALE", "math_number", scale);
 
-					if (command === "load_object") {
-						// Add shadow block for COLOR
-						const color = objectColours[objectName];
-						addShadowBlock(block, "COLOR", "colour", color);
-					} else if (command === "load_multi_object") {
-           
+          if (command === "load_object") {
+            // Add shadow block for COLOR
+            const color = objectColours[objectName];
+            addShadowBlock(block, "COLOR", "colour", color);
+          } else if (command === "load_multi_object") {
             console.log("load_multi_object", block);
-              if (Blockly.Blocks['load_multi_object'].updateColorsField) {
-                 Blockly.Blocks['load_multi_object'].updateColorsField.call(block);            
-             
-           }
- 
+            if (Blockly.Blocks["load_multi_object"].updateColorsField) {
+              Blockly.Blocks["load_multi_object"].updateColorsField.call(block);
+            }
           }
 
-					block.render();
+          block.render();
 
-					// Create a new 'start' block and connect the load_object block to it
-					const startBlock =
-						Blockly.getMainWorkspace().newBlock("start");
-					startBlock.initSvg();
-					startBlock.render();
+          // Create a new 'start' block and connect the load_object block to it
+          const startBlock = Blockly.getMainWorkspace().newBlock("start");
+          startBlock.initSvg();
+          startBlock.render();
 
-					// Connect the load_object block to the start block
-					const connection = startBlock.getInput("DO").connection;
-					if (connection) {
-						connection.connect(block.previousConnection);
-					}
-				} finally {
-					// End the event group to ensure everything can be undone/redone as a group
-					Blockly.Events.setGroup(false);
-				}
-			}
+          // Connect the load_object block to the start block
+          const connection = startBlock.getInput("DO").connection;
+          if (connection) {
+            connection.connect(block.previousConnection);
+          }
+        } finally {
+          // End the event group to ensure everything can be undone/redone as a group
+          Blockly.Events.setGroup(false);
+        }
+      }
 
-			document.body.style.cursor = "default"; // Reset the cursor
-			window.removeEventListener("click", onPickMesh); // Remove the event listener after picking
-		};
+      document.body.style.cursor = "default"; // Reset the cursor
+      window.removeEventListener("click", onPickMesh); // Remove the event listener after picking
+    };
 
-		// Add event listener to pick the mesh on the next click
-		window.addEventListener("click", onPickMesh);
-	}, 200);
+    // Add event listener to pick the mesh on the next click
+    window.addEventListener("click", onPickMesh);
+  }, 200);
 }
 window.selectObject = selectObject;
 
@@ -1372,22 +1368,22 @@ export function enableGizmos() {
   const aboutButton = document.getElementById("logo");
 
   const scrollModelsLeftButton = document.getElementById(
-    "scrollModelsLeftButton"
+    "scrollModelsLeftButton",
   );
   const scrollModelsRightButton = document.getElementById(
-    "scrollModelsRightButton"
+    "scrollModelsRightButton",
   );
   const scrollObjectsLeftButton = document.getElementById(
-    "scrollObjectsLeftButton"
+    "scrollObjectsLeftButton",
   );
   const scrollObjectsRightButton = document.getElementById(
-    "scrollObjectsRightButton"
+    "scrollObjectsRightButton",
   );
   const scrollCharactersLeftButton = document.getElementById(
-    "scrollCharactersLeftButton"
+    "scrollCharactersLeftButton",
   );
   const scrollCharactersRightButton = document.getElementById(
-    "scrollCharactersRightButton"
+    "scrollCharactersRightButton",
   );
 
   // Enable the buttons
@@ -1426,10 +1422,10 @@ export function enableGizmos() {
   scrollObjectsLeftButton.addEventListener("click", () => scrollObjects(-1));
   scrollObjectsRightButton.addEventListener("click", () => scrollObjects(1));
   scrollCharactersLeftButton.addEventListener("click", () =>
-    scrollCharacters(-1)
+    scrollCharacters(-1),
   );
   scrollCharactersRightButton.addEventListener("click", () =>
-    scrollCharacters(1)
+    scrollCharacters(1),
   );
 }
 
@@ -1475,7 +1471,7 @@ function focusCameraOnMesh() {
 
   if (!mesh && window.currentMesh) {
     const blockKey = Object.keys(meshMap).find(
-      (key) => meshMap[key] === window.currentBlock
+      (key) => meshMap[key] === window.currentBlock,
     );
 
     mesh = flock.scene?.meshes?.find((mesh) => mesh.blockKey === blockKey);
@@ -1499,24 +1495,24 @@ function focusCameraOnMesh() {
     // Calculate the player's forward direction (based on rotation)
     const forward = new flock.BABYLON.Vector3(0, 0, -1); // Default forward direction (Z axis)
     const playerRotationMatrix = flock.BABYLON.Matrix.RotationY(
-      player.rotation.y
+      player.rotation.y,
     );
     const playerForward = flock.BABYLON.Vector3.TransformCoordinates(
       forward,
-      playerRotationMatrix
+      playerRotationMatrix,
     );
 
     // Update the player's position (in front of the target)
     player.position.set(
       newTarget.x,
       originalPlayerY,
-      newTarget.z + playerDistance
+      newTarget.z + playerDistance,
     );
 
     player.lookAt(newTarget);
 
     const cameraPosition = player.position.subtract(
-      playerForward.scale(playerDistance)
+      playerForward.scale(playerDistance),
     );
 
     // Set the camera position behind the player
@@ -1530,7 +1526,7 @@ function focusCameraOnMesh() {
     const currentTarget = camera.getTarget();
     const currentDistance = flock.BABYLON.Vector3.Distance(
       currentPosition,
-      currentTarget
+      currentTarget,
     );
     const currentYPosition = camera.position.y;
 
@@ -1539,7 +1535,7 @@ function focusCameraOnMesh() {
     const newCameraPositionXZ = new flock.BABYLON.Vector3(
       newTarget.x + frontDirection.x * currentDistance,
       currentYPosition,
-      newTarget.z + frontDirection.z * currentDistance
+      newTarget.z + frontDirection.z * currentDistance,
     );
 
     camera.position = newCameraPositionXZ;
@@ -1625,7 +1621,7 @@ function toggleGizmo(gizmoType) {
   document.body.style.cursor = "default";
 
   gizmoManager.attachableMeshes = flock.scene?.meshes?.filter(
-    (s) => s.name !== "ground"
+    (s) => s.name !== "ground",
   );
 
   let blockKey, blockId, canvas, onPickMesh;
@@ -1669,12 +1665,12 @@ function toggleGizmo(gizmoType) {
           canvasX,
           canvasY,
           flock.BABYLON.Matrix.Identity(),
-          flock.scene.activeCamera
+          flock.scene.activeCamera,
         );
 
         const pickResult = flock.scene.pickWithRay(
           pickRay,
-          (mesh) => mesh.isPickable
+          (mesh) => mesh.isPickable,
         );
 
         if (pickResult.hit) {
@@ -1699,13 +1695,13 @@ function toggleGizmo(gizmoType) {
             // Append the duplicated block and its children
             const duplicateBlock = Blockly.serialization.blocks.append(
               blockJson,
-              workspace
+              workspace,
             );
 
             setPositionValues(
               duplicateBlock,
               pickedPosition,
-              duplicateBlock.type
+              duplicateBlock.type,
             );
 
             // Connect the new block as the next block
@@ -1714,7 +1710,7 @@ function toggleGizmo(gizmoType) {
               duplicateBlock.previousConnection
             ) {
               originalBlock.nextConnection.connect(
-                duplicateBlock.previousConnection
+                duplicateBlock.previousConnection,
               );
             } else {
               // If no connection, visually position it
@@ -1744,7 +1740,7 @@ function toggleGizmo(gizmoType) {
           if (gizmoManager.attachedMesh) {
             gizmoManager.attachedMesh.showBoundingBox = false;
             blockKey = findParentWithBlockId(
-              gizmoManager.attachedMesh
+              gizmoManager.attachedMesh,
             ).blockKey;
 
             //console.log("Select", blockKey, meshMap);
@@ -1788,7 +1784,7 @@ function toggleGizmo(gizmoType) {
 
           //const block = meshMap[mesh.blockKey];
           //highlightBlockById(Blockly.getMainWorkspace(), block);
-        }
+        },
       );
 
       gizmoManager.boundingBoxDragBehavior.onDragEndObservable.add(function () {
@@ -1824,7 +1820,7 @@ function toggleGizmo(gizmoType) {
             .connection.targetBlock()
             .setFieldValue(
               String(Math.round(mesh.position.x * 10) / 10),
-              "NUM"
+              "NUM",
             );
           block
             .getInput("Y")
@@ -1835,7 +1831,7 @@ function toggleGizmo(gizmoType) {
             .connection.targetBlock()
             .setFieldValue(
               String(Math.round(mesh.position.z * 10) / 10),
-              "NUM"
+              "NUM",
             );
         }
       });
@@ -1899,7 +1895,7 @@ function toggleGizmo(gizmoType) {
               .connection.targetBlock()
               .setFieldValue(
                 String(Math.round(mesh.position.x * 10) / 10),
-                "NUM"
+                "NUM",
               );
           } catch (e) {}
           try {
@@ -1914,7 +1910,7 @@ function toggleGizmo(gizmoType) {
               .connection.targetBlock()
               .setFieldValue(
                 String(Math.round(mesh.position.z * 10) / 10),
-                "NUM"
+                "NUM",
               );
           } catch (e) {}
         }
@@ -2040,7 +2036,7 @@ function toggleGizmo(gizmoType) {
         if (mesh.rotationQuaternion) {
           // If using quaternion, convert it to Euler angles
           const rotation = getEulerAnglesFromQuaternion(
-            mesh.rotationQuaternion
+            mesh.rotationQuaternion,
           );
           rotationX = rotation.x;
           rotationY = rotation.y;
@@ -2220,33 +2216,42 @@ const characterMaterials = [
 function updateBlockColorAndHighlight(mesh, selectedColor) {
   let block;
 
-  const materialName = mesh?.material?.name?.replace(/_clone$/, "");
+  //console.log(mesh, selectedColor);
 
+  const materialName = mesh?.material?.name?.replace(/_clone$/, "");
+  const colorIndex = mesh.metadata.materialIndex;
   const ultimateParent = (mesh) =>
     mesh.parent ? ultimateParent(mesh.parent) : mesh;
 
-  if (mesh && materialName && characterMaterials.includes(materialName)) {
+  if (mesh && materialName) {
     block = meshMap[ultimateParent(mesh).blockKey];
-    // Update the corresponding character submesh color field (e.g., HAIR_COLOR, SKIN_COLOR)
-    const materialToFieldMap = {
-      Hair: "HAIR_COLOR",
-      Skin: "SKIN_COLOR",
-      Eyes: "EYES_COLOR",
-      Detail: "SLEEVES_COLOR",
-      Shorts: "SHORTS_COLOR",
-      TShirt: "TSHIRT_COLOR",
-    };
 
-    const fieldName = materialToFieldMap[materialName];
+    if (characterMaterials.includes(materialName)) {
+      // Update the corresponding character submesh color field (e.g., HAIR_COLOR, SKIN_COLOR)
 
-    if (fieldName) {
-      // Update the corresponding character color field in the block
-      block
-        .getInput(fieldName)
-        .connection.targetBlock()
-        .setFieldValue(selectedColor, "COLOR");
+      const materialToFieldMap = {
+        Hair: "HAIR_COLOR",
+        Skin: "SKIN_COLOR",
+        Eyes: "EYES_COLOR",
+        Detail: "SLEEVES_COLOR",
+        Shorts: "SHORTS_COLOR",
+        TShirt: "TSHIRT_COLOR",
+      };
+
+      const fieldName = materialToFieldMap[materialName];
+
+      if (fieldName) {
+        // Update the corresponding character color field in the block
+        block
+          .getInput(fieldName)
+          .connection.targetBlock()
+          .setFieldValue(selectedColor, "COLOR");
+      } else {
+        console.error("No matching field for material:", materialName);
+      }
     } else {
-      console.error("No matching field for material:", materialName);
+      //console.log(materialName, mesh.metadata, ultimateParent(mesh), block);
+      block.updateColorAtIndex(selectedColor, colorIndex);
     }
   } else {
     if (!mesh) {
@@ -2262,7 +2267,7 @@ function updateBlockColorAndHighlight(mesh, selectedColor) {
       console.error(
         "Block not found for mesh:",
         ultimateParent(mesh).blockKey,
-        mesh
+        mesh,
       );
 
       return;

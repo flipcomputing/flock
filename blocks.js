@@ -36,7 +36,7 @@ export function addToggleButton(block) {
     "*", // Width, Height, Alt text
     () => {
       block.toggleDoBlock();
-    }
+    },
   );
 
   block
@@ -968,7 +968,7 @@ export function defineBlocks() {
           changeEvent,
           variableNamePrefix,
           nextVariableIndexes,
-          "ANIMATION_GROUP"
+          "ANIMATION_GROUP",
         );
 
         if (window.loadingCode) return;
@@ -1316,7 +1316,7 @@ export function defineBlocks() {
           changeEvent.type === Blockly.Events.BLOCK_CHANGE
         ) {
           const blockInWorkspace = Blockly.getMainWorkspace().getBlockById(
-            this.id
+            this.id,
           ); // Check if block is in the main workspace
 
           if (blockInWorkspace) {
@@ -1329,7 +1329,7 @@ export function defineBlocks() {
           this,
           changeEvent,
           variableNamePrefix,
-          nextVariableIndexes
+          nextVariableIndexes,
         );
       });
 
@@ -1424,7 +1424,7 @@ export function defineBlocks() {
           changeEvent.type === Blockly.Events.BLOCK_CHANGE
         ) {
           const blockInWorkspace = Blockly.getMainWorkspace().getBlockById(
-            this.id
+            this.id,
           ); // Check if block is in the main workspace
 
           if (blockInWorkspace) {
@@ -1437,7 +1437,7 @@ export function defineBlocks() {
           this,
           changeEvent,
           variableNamePrefix,
-          nextVariableIndexes
+          nextVariableIndexes,
         );
       });
 
@@ -1511,9 +1511,13 @@ export function defineBlocks() {
       });
 
       // Change from a local constant to a method on the block prototype
-      Blockly.Blocks['load_multi_object'].updateColorsField = function() {
+      Blockly.Blocks["load_multi_object"].updateColorsField = function () {
         const selectedObject = this.getFieldValue("MODELS");
-        const colours = objectColours[selectedObject] || ["#000000", "#FFFFFF", "#CCCCCC"];
+        const colours = objectColours[selectedObject] || [
+          "#000000",
+          "#FFFFFF",
+          "#CCCCCC",
+        ];
         const requiredItemCount = colours.length;
         const colorsInput = this.getInput("COLORS");
         let listBlock = colorsInput.connection?.targetBlock();
@@ -1528,30 +1532,30 @@ export function defineBlocks() {
 
           // Remove any extra inputs beyond the required count.
           listBlock.inputList
-              .filter(input => input.name && input.name.startsWith("ADD"))
-              .forEach(input => {
-                  const index = parseInt(input.name.substring(3));
-                  if (index >= requiredItemCount) {
-                      listBlock.removeInput(input.name);
-                  }
-              });
+            .filter((input) => input.name && input.name.startsWith("ADD"))
+            .forEach((input) => {
+              const index = parseInt(input.name.substring(3));
+              if (index >= requiredItemCount) {
+                listBlock.removeInput(input.name);
+              }
+            });
 
           // For each required input, update or create its shadow colour block.
           for (let i = 0; i < requiredItemCount; i++) {
-              let input = listBlock.getInput("ADD" + i);
-              if (!input) {
-                  input = listBlock.appendValueInput("ADD" + i).setCheck("Colour");
-              }
-              let shadowBlock = input.connection?.targetBlock();
-              if (!shadowBlock || !shadowBlock.isShadow()) {
-                  shadowBlock = listBlock.workspace.newBlock("colour");
-                  shadowBlock.setFieldValue(colours[i] || "#000000", "COLOR");
-                  shadowBlock.setShadow(true);
-                  shadowBlock.initSvg();
-                  input.connection.connect(shadowBlock.outputConnection);
-              } else {
-                  shadowBlock.setFieldValue(colours[i] || "#000000", "COLOR");
-              }
+            let input = listBlock.getInput("ADD" + i);
+            if (!input) {
+              input = listBlock.appendValueInput("ADD" + i).setCheck("Colour");
+            }
+            let shadowBlock = input.connection?.targetBlock();
+            if (!shadowBlock || !shadowBlock.isShadow()) {
+              shadowBlock = listBlock.workspace.newBlock("colour");
+              shadowBlock.setFieldValue(colours[i] || "#000000", "COLOR");
+              shadowBlock.setShadow(true);
+              shadowBlock.initSvg();
+              input.connection.connect(shadowBlock.outputConnection);
+            } else {
+              shadowBlock.setFieldValue(colours[i] || "#000000", "COLOR");
+            }
           }
           listBlock.initSvg();
           listBlock.render();
@@ -1561,23 +1565,63 @@ export function defineBlocks() {
           listBlock.setShadow(true);
           listBlock.domToMutation(mutation);
           for (let i = 0; i < requiredItemCount; i++) {
-              let input = listBlock.getInput("ADD" + i);
-              if (!input) {
-                  input = listBlock.appendValueInput("ADD" + i).setCheck("Colour");
-              }
-              const shadowBlock = listBlock.workspace.newBlock("colour");
-              shadowBlock.setFieldValue(colours[i] || "#000000", "COLOR");
-              shadowBlock.setShadow(true);
-              shadowBlock.initSvg();
-              input.connection.connect(shadowBlock.outputConnection);
+            let input = listBlock.getInput("ADD" + i);
+            if (!input) {
+              input = listBlock.appendValueInput("ADD" + i).setCheck("Colour");
+            }
+            const shadowBlock = listBlock.workspace.newBlock("colour");
+            shadowBlock.setFieldValue(colours[i] || "#000000", "COLOR");
+            shadowBlock.setShadow(true);
+            shadowBlock.initSvg();
+            input.connection.connect(shadowBlock.outputConnection);
           }
           listBlock.setInputsInline(true);
-          listBlock.setTooltip(Blockly.Msg["LISTS_CREATE_WITH_TOOLTIP"] || "Create a list of colours.");
-          listBlock.setHelpUrl("https://developers.google.com/blockly/guides/create-custom-blocks/define-blocks");
+          listBlock.setTooltip(
+            Blockly.Msg["LISTS_CREATE_WITH_TOOLTIP"] ||
+              "Create a list of colours.",
+          );
+          listBlock.setHelpUrl(
+            "https://developers.google.com/blockly/guides/create-custom-blocks/define-blocks",
+          );
           listBlock.initSvg();
           listBlock.render();
           colorsInput.connection.connect(listBlock.outputConnection);
         }
+      };
+
+      Blockly.Blocks["load_multi_object"].updateColorAtIndex = function (
+        colour,
+        colourIndex,
+      ) {
+        const colorsInput = this.getInput("COLORS");
+        if (!colorsInput || !colorsInput.connection) {
+          console.log("COLORS input is not available.");
+          return;
+        }
+        const listBlock = colorsInput.connection.targetBlock();
+        if (!listBlock || listBlock.type !== "lists_create_with") {
+          console.log("List block not found or of incorrect type.");
+          return;
+        }
+
+        const inputName = "ADD" + colourIndex;
+        let input = listBlock.getInput(inputName);
+        if (!input) {
+          console.log("Input", inputName, "not found. Creating new input.");
+          input = listBlock.appendValueInput(inputName).setCheck("Colour");
+        }
+
+        let shadowBlock = input.connection?.targetBlock();
+        if (!shadowBlock || !shadowBlock.isShadow()) {
+          shadowBlock = listBlock.workspace.newBlock("colour");
+          shadowBlock.setShadow(true);
+          shadowBlock.initSvg();
+          input.connection.connect(shadowBlock.outputConnection);
+        }
+
+        shadowBlock.setFieldValue(colour, "COLOR");
+        shadowBlock.render();
+        listBlock.render();
       };
 
       this.setOnChange((changeEvent) => {
@@ -1586,12 +1630,12 @@ export function defineBlocks() {
           changeEvent.blockId === this.id
         ) {
           const blockInWorkspace = Blockly.getMainWorkspace().getBlockById(
-            this.id
+            this.id,
           );
           if (blockInWorkspace) {
             //updateColorsField.call(this);
             //if (!window.loadingCode)
-              updateOrCreateMeshFromBlock(this, changeEvent);
+            updateOrCreateMeshFromBlock(this, changeEvent);
           }
         }
 
@@ -1602,10 +1646,10 @@ export function defineBlocks() {
           changeEvent.blockId === this.id
         ) {
           const blockInWorkspace = Blockly.getMainWorkspace().getBlockById(
-            this.id
+            this.id,
           );
           if (blockInWorkspace) {
-            updateColorsField.call(this);
+            this.updateColorsField();
           }
         }
       });
@@ -1682,7 +1726,7 @@ export function defineBlocks() {
           changeEvent.type === Blockly.Events.BLOCK_CHANGE
         ) {
           const blockInWorkspace = Blockly.getMainWorkspace().getBlockById(
-            this.id
+            this.id,
           ); // Check if block is in the main workspace
 
           if (blockInWorkspace) {
@@ -1694,7 +1738,7 @@ export function defineBlocks() {
           this,
           changeEvent,
           variableNamePrefix,
-          nextVariableIndexes
+          nextVariableIndexes,
         );
       });
 
@@ -1736,7 +1780,7 @@ export function defineBlocks() {
           this,
           changeEvent,
           variableNamePrefix,
-          nextVariableIndexes
+          nextVariableIndexes,
         );
       });
 
@@ -1999,7 +2043,7 @@ export function defineBlocks() {
           changeEvent.type === Blockly.Events.BLOCK_CHANGE
         ) {
           const blockInWorkspace = Blockly.getMainWorkspace().getBlockById(
-            this.id
+            this.id,
           ); // Check if block is in the main workspace
 
           if (blockInWorkspace) {
@@ -2011,7 +2055,7 @@ export function defineBlocks() {
           this,
           changeEvent,
           variableNamePrefix,
-          nextVariableIndexes
+          nextVariableIndexes,
         );
       });
     },
@@ -3382,7 +3426,7 @@ export function defineBlocks() {
           this,
           changeEvent,
           variableNamePrefix,
-          nextVariableIndexes
+          nextVariableIndexes,
         );
       });
     },
@@ -3476,7 +3520,7 @@ export function defineBlocks() {
         "*",
         () => {
           this.toggleDoBlock();
-        }
+        },
       );
 
       // Add toggle button to a separate input
@@ -3522,7 +3566,7 @@ export function defineBlocks() {
       }
 
       Blockly.Events.fire(
-        new Blockly.Events.BlockChange(this, "mutation", null, "", "")
+        new Blockly.Events.BlockChange(this, "mutation", null, "", ""),
       );
 
       Blockly.Events.fire(new Blockly.Events.BlockMove(this));
@@ -3614,7 +3658,7 @@ export function defineBlocks() {
         "*", // Width, Height, Alt text
         () => {
           this.toggleDoBlock();
-        }
+        },
       );
 
       // Append the toggle button to the block
@@ -4891,7 +4935,7 @@ export function defineBlocks() {
       // Add a dummy input field with a text input where users can type a keyword
       this.appendDummyInput().appendField(
         new Blockly.FieldTextInput("type a keyword to add a block"),
-        "KEYWORD"
+        "KEYWORD",
       );
       this.setTooltip("Type a keyword to change this block.");
       this.setHelpUrl("");
@@ -4977,7 +5021,7 @@ export function defineBlocks() {
       const input = inputs[inputName];
       if (input.shadow) {
         const shadowBlock = Blockly.getMainWorkspace().newBlock(
-          input.shadow.type
+          input.shadow.type,
         );
         shadowBlock.setShadow(true);
         // Apply fields (default values) to the shadow block
@@ -5051,7 +5095,7 @@ export function addDoMutatorWithToggleBehavior(block) {
     30,
     30,
     "*", // Width, Height, Alt text
-    block.toggleDoBlock.bind(block) // Bind the event handler to the block
+    block.toggleDoBlock.bind(block), // Bind the event handler to the block
   );
 
   // Add the button to the block
@@ -5081,7 +5125,7 @@ export function handleBlockCreateEvent(
   changeEvent,
   variableNamePrefix,
   nextVariableIndexes,
-  fieldName = "ID_VAR" // Default field name to handle
+  fieldName = "ID_VAR", // Default field name to handle
 ) {
   if (window.loadingCode) return; // Don't rename variables during code loading
 
@@ -5121,7 +5165,7 @@ export function handleBlockCreateEvent(
         if (!newVariable) {
           newVariable = blockInstance.workspace.createVariable(
             newVariableName,
-            null
+            null,
           );
         }
         variableField.setValue(newVariable.getId());
@@ -5158,7 +5202,7 @@ Blockly.Extensions.register("custom_procedure_ui_extension", function () {
 // Apply the extension to the built-in 'procedures_defreturn' block
 Blockly.Extensions.apply(
   "custom_procedure_ui_extension",
-  Blockly.Blocks["procedures_defreturn"]
+  Blockly.Blocks["procedures_defreturn"],
 );
 
 // Extend the built-in Blockly procedures_defnoreturn block to add custom toggle functionality
@@ -5177,7 +5221,7 @@ Blockly.Blocks["procedures_defnoreturn"].init = (function (originalInit) {
 // Apply the extension to the built-in 'procedures_defnoreturn' block
 Blockly.Extensions.apply(
   "custom_procedure_ui_extension",
-  Blockly.Blocks["procedures_defnoreturn"]
+  Blockly.Blocks["procedures_defnoreturn"],
 );
 
 // Define unique IDs for each option
@@ -5222,7 +5266,7 @@ Blockly.FieldVariable.prototype.onItemSelected_ = function (menu, menuItem) {
         } else {
           console.log("Variable creation was cancelled.");
         }
-      }
+      },
     );
   } else {
     // Use the stored reference to avoid recursion
@@ -5292,29 +5336,29 @@ Blockly.Blocks["microbit_input"] = {
   },
 };
 
-(function() {
-  const dynamicIf = Blockly.Blocks['dynamic_if'];
+(function () {
+  const dynamicIf = Blockly.Blocks["dynamic_if"];
   if (!dynamicIf) return;
 
   const originalFinalize = dynamicIf.finalizeConnections;
   const originalMutationToDom = dynamicIf.mutationToDom;
 
-  dynamicIf.mutationToDom = function() {
+  dynamicIf.mutationToDom = function () {
     if (this._skipFinalizeInMutationToDom) {
       if (!this.elseifCount && !this.elseCount) return null;
-      const container = Blockly.utils.xml.createElement('mutation');
+      const container = Blockly.utils.xml.createElement("mutation");
       if (this.elseifCount) {
-        container.setAttribute('elseif', `${this.elseifCount}`);
+        container.setAttribute("elseif", `${this.elseifCount}`);
       }
       if (this.elseCount) {
-        container.setAttribute('else', '1');
+        container.setAttribute("else", "1");
       }
       return container;
     }
     return originalMutationToDom.call(this);
   };
 
-  dynamicIf.finalizeConnections = function() {
+  dynamicIf.finalizeConnections = function () {
     // Capture the old state without causing recursion.
     this._skipFinalizeInMutationToDom = true;
     const oldStateDOM = this.mutationToDom();
@@ -5337,10 +5381,16 @@ Blockly.Blocks["microbit_input"] = {
 
     // Fire one synthetic mutation event to represent the entire rebuild.
     let mutationEvent;
-    if (typeof Blockly.Events.Mutation === 'function') {
+    if (typeof Blockly.Events.Mutation === "function") {
       mutationEvent = new Blockly.Events.Mutation(this, oldState, newState);
     } else {
-      mutationEvent = new Blockly.Events.BlockChange(this, 'mutation', '', oldState, newState);
+      mutationEvent = new Blockly.Events.BlockChange(
+        this,
+        "mutation",
+        "",
+        oldState,
+        newState,
+      );
     }
     Blockly.Events.fire(mutationEvent);
   };

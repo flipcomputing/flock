@@ -1404,17 +1404,17 @@ export const flock = {
 		try {
 			// Basic parameter validation with warnings
 			if (!modelName) {
-				console.warn('createObject: Missing modelName parameter');
+				console.warn("createObject: Missing modelName parameter");
 				return "error_" + flock.scene.getUniqueId();
 			}
 
 			if (!modelId) {
-				console.warn('createObject: Missing modelId parameter');
+				console.warn("createObject: Missing modelId parameter");
 				return "error_" + flock.scene.getUniqueId();
 			}
 
-			if (!position || typeof position !== 'object') {
-				console.warn('createObject: Invalid position parameter');
+			if (!position || typeof position !== "object") {
+				console.warn("createObject: Invalid position parameter");
 				position = { x: 0, y: 0, z: 0 };
 			}
 
@@ -1426,7 +1426,10 @@ export const flock = {
 				[meshName, blockKey] = modelId.split("__");
 			}
 
-			if (flock.scene.getMeshByName(meshName) || flock.modelsBeingLoaded[modelName]) {
+			if (
+				flock.scene.getMeshByName(meshName) ||
+				flock.modelsBeingLoaded[modelName]
+			) {
 				meshName = meshName + "_" + flock.scene.getUniqueId();
 			}
 
@@ -1436,8 +1439,18 @@ export const flock = {
 				const mesh = firstMesh.clone(blockKey);
 				mesh.scaling.copyFrom(BABYLON.Vector3.One());
 				mesh.position.copyFrom(BABYLON.Vector3.Zero());
-				
-				flock.setupMesh(mesh, modelName, meshName, blockKey, scale, x, y, z, color);
+
+				flock.setupMesh(
+					mesh,
+					modelName,
+					meshName,
+					blockKey,
+					scale,
+					x,
+					y,
+					z,
+					color,
+				);
 				flock.changeColorMesh(mesh, color);
 				mesh.computeWorldMatrix(true);
 				mesh.refreshBoundingInfo();
@@ -1457,7 +1470,17 @@ export const flock = {
 						const mesh = firstMesh.clone(blockKey);
 						mesh.scaling.copyFrom(BABYLON.Vector3.One());
 						mesh.position.copyFrom(BABYLON.Vector3.Zero());
-						flock.setupMesh(mesh, modelName, meshName, blockKey, scale, x, y, z, color);
+						flock.setupMesh(
+							mesh,
+							modelName,
+							meshName,
+							blockKey,
+							scale,
+							x,
+							y,
+							z,
+							color,
+						);
 						flock.changeColorMesh(mesh, color);
 						mesh.computeWorldMatrix(true);
 						mesh.refreshBoundingInfo();
@@ -1471,35 +1494,50 @@ export const flock = {
 				return meshName;
 			}
 
-			const loadPromise = flock.BABYLON.SceneLoader.LoadAssetContainerAsync(
-				flock.modelPath,
-				modelName,
-				flock.scene,
-			)
-				.then((container) => {
-					flock.ensureStandardMaterial(container.meshes[0]);
-					const firstMesh = container.meshes[0].clone(`${modelName}_first`);
-					firstMesh.setEnabled(false);
-					flock.modelCache[modelName] = firstMesh;
-					container.addAllToScene();
-					flock.setupMesh(container.meshes[0], modelName, meshName, blockKey, scale, x, y, z, color);
-					flock.changeColorMesh(container.meshes[0], color);
-					if (callback) {
-						requestAnimationFrame(callback);
-					}
-				})
-				.catch((error) => {
-					console.error(`Error loading model: ${modelName}`, error);
-				})
-				.finally(() => {
-					delete flock.modelsBeingLoaded[modelName];
-				});
+			const loadPromise =
+				flock.BABYLON.SceneLoader.LoadAssetContainerAsync(
+					flock.modelPath,
+					modelName,
+					flock.scene,
+				)
+					.then((container) => {
+						flock.ensureStandardMaterial(container.meshes[0]);
+						const firstMesh = container.meshes[0].clone(
+							`${modelName}_first`,
+						);
+						firstMesh.setEnabled(false);
+						flock.modelCache[modelName] = firstMesh;
+						container.addAllToScene();
+						flock.setupMesh(
+							container.meshes[0],
+							modelName,
+							meshName,
+							blockKey,
+							scale,
+							x,
+							y,
+							z,
+							color,
+						);
+						flock.changeColorMesh(container.meshes[0], color);
+						if (callback) {
+							requestAnimationFrame(callback);
+						}
+					})
+					.catch((error) => {
+						console.error(
+							`Error loading model: ${modelName}`,
+							error,
+						);
+					})
+					.finally(() => {
+						delete flock.modelsBeingLoaded[modelName];
+					});
 
 			flock.modelsBeingLoaded[modelName] = loadPromise;
 			return meshName;
-
 		} catch (error) {
-			console.warn('createObject: Error creating object:', error);
+			console.warn("createObject: Error creating object:", error);
 			return "error_" + flock.scene.getUniqueId();
 		}
 	},
@@ -2351,77 +2389,94 @@ export const flock = {
 		ground.material = material;
 	},
 	createMap(image, material) {
-	  console.log("Creating map from image", image);
-	  let ground;
-	  if (image === "NONE") {
-		const modelId = "flatGround";
-		ground = flock.BABYLON.MeshBuilder.CreateGround(
-		  modelId,
-		  { width: 100, height: 100, subdivisions: 2 },
-		  flock.scene
-		);
-		const groundAggregate = new flock.BABYLON.PhysicsAggregate(
-		  ground,
-		  flock.BABYLON.PhysicsShapeType.BOX,
-		  { mass: 0, friction: 0.5 },
-		  flock.scene
-		);
-		ground.physics = groundAggregate;
-		ground.name = modelId;
-		ground.blockKey = modelId;
-		ground.receiveShadows = true;
-	  } else {
-		const minHeight = 0;
-		const maxHeight = 10;
-		ground = flock.BABYLON.MeshBuilder.CreateGroundFromHeightMap(
-		  "heightmap",
-		  "./textures/" + image,
-		  {
-			width: 100,
-			height: 100,
-			minHeight: minHeight,
-			maxHeight: maxHeight,
-			subdivisions: 64,
-			onReady: (groundMesh) => {
-			  const vertexData = groundMesh.getVerticesData(flock.BABYLON.VertexBuffer.PositionKind);
-			  let minDistance = Infinity;
-			  let closestY = 0;
-			  for (let i = 0; i < vertexData.length; i += 3) {
-				const x = vertexData[i];
-				const z = vertexData[i + 2];
-				const y = vertexData[i + 1];
-				const distance = Math.sqrt(x * x + z * z);
-				if (distance < minDistance) {
-				  minDistance = distance;
-				  closestY = y;
-				}
-			  }
+		console.log("Creating map from image", image);
+		let ground;
+		if (image === "NONE") {
+			const modelId = "flatGround";
+			ground = flock.BABYLON.MeshBuilder.CreateGround(
+				modelId,
+				{ width: 100, height: 100, subdivisions: 2 },
+				flock.scene,
+			);
+			const groundAggregate = new flock.BABYLON.PhysicsAggregate(
+				ground,
+				flock.BABYLON.PhysicsShapeType.BOX,
+				{ mass: 0, friction: 0.5 },
+				flock.scene,
+			);
+			ground.physics = groundAggregate;
+			ground.name = modelId;
+			ground.blockKey = modelId;
+			ground.receiveShadows = true;
+		} else {
+			const minHeight = 0;
+			const maxHeight = 10;
+			ground = flock.BABYLON.MeshBuilder.CreateGroundFromHeightMap(
+				"heightmap",
+				"./textures/" + image,
+				{
+					width: 100,
+					height: 100,
+					minHeight: minHeight,
+					maxHeight: maxHeight,
+					subdivisions: 64,
+					onReady: (groundMesh) => {
+						const vertexData = groundMesh.getVerticesData(
+							flock.BABYLON.VertexBuffer.PositionKind,
+						);
+						let minDistance = Infinity;
+						let closestY = 0;
+						for (let i = 0; i < vertexData.length; i += 3) {
+							const x = vertexData[i];
+							const z = vertexData[i + 2];
+							const y = vertexData[i + 1];
+							const distance = Math.sqrt(x * x + z * z);
+							if (distance < minDistance) {
+								minDistance = distance;
+								closestY = y;
+							}
+						}
 
-			  groundMesh.position.y -= closestY;
-			  const heightMapGroundShape = new flock.BABYLON.PhysicsShapeMesh(ground, flock.scene);
-			  const heightMapGroundBody = new flock.BABYLON.PhysicsBody(ground, flock.BABYLON.PhysicsMotionType.STATIC, false, flock.scene);
-			  heightMapGroundShape.material = { friction: 0.3, restitution: 0.3 };
-			  heightMapGroundBody.shape = heightMapGroundShape;
-			  heightMapGroundBody.setMassProperties({ mass: 0 });
-			},
-		  },
-		  flock.scene
-		);
-	  }
-	  ground.name = "ground";
-	  ground.blockKey = "ground";
+						groundMesh.position.y -= closestY;
+						const heightMapGroundShape =
+							new flock.BABYLON.PhysicsShapeMesh(
+								ground,
+								flock.scene,
+							);
+						const heightMapGroundBody =
+							new flock.BABYLON.PhysicsBody(
+								ground,
+								flock.BABYLON.PhysicsMotionType.STATIC,
+								false,
+								flock.scene,
+							);
+						heightMapGroundShape.material = {
+							friction: 0.3,
+							restitution: 0.3,
+						};
+						heightMapGroundBody.shape = heightMapGroundShape;
+						heightMapGroundBody.setMassProperties({ mass: 0 });
+					},
+				},
+				flock.scene,
+			);
+		}
+		ground.name = "ground";
+		ground.blockKey = "ground";
 
 		console.log("Scaling material");
-	  // Simply assign the passed-through material:
+		// Simply assign the passed-through material:
 		if (material.diffuseTexture) {
-		  material.diffuseTexture.wrapU = flock.BABYLON.Texture.WRAP_ADDRESSMODE;
-		  material.diffuseTexture.wrapV = flock.BABYLON.Texture.WRAP_ADDRESSMODE;
-		  material.diffuseTexture.uScale = 25;
-		  material.diffuseTexture.vScale = 25;
+			material.diffuseTexture.wrapU =
+				flock.BABYLON.Texture.WRAP_ADDRESSMODE;
+			material.diffuseTexture.wrapV =
+				flock.BABYLON.Texture.WRAP_ADDRESSMODE;
+			material.diffuseTexture.uScale = 25;
+			material.diffuseTexture.vScale = 25;
 		}
-	  ground.material = material;
-	
-	  return ground;
+		ground.material = material;
+
+		return ground;
 	},
 	createCustomMap(colors) {
 		console.log("Creating map", colors);
@@ -3559,7 +3614,7 @@ export const flock = {
 			mesh.computeWorldMatrix(true);
 		});
 	},
-	rotate(meshName, x, y, z) {		
+	rotate(meshName, x, y, z) {
 		// Handle mesh rotation
 		return flock.whenModelReady(meshName, (mesh) => {
 			if (meshName === "__active_camera__") {
@@ -3717,7 +3772,6 @@ export const flock = {
 		});
 	},
 	rotateTo(meshName, x, y, z) {
-		
 		return flock.whenModelReady(meshName, (mesh) => {
 			if (!mesh.physics) {
 				// Fallback: Apply directly if no physics body
@@ -5353,15 +5407,16 @@ export const flock = {
 		const colors = Array.isArray(color) ? color : [color];
 		let colorIndex = 0;
 
-		// Map to keep track of materials and their assigned colours
+		// Map to keep track of materials and their assigned colours and indices
 		const materialToColorMap = new Map();
 
 		function applyColorInOrder(part) {
 			if (part.material) {
 				// Check if the material is already processed
 				if (!materialToColorMap.has(part.material)) {
+					const currentIndex = colorIndex % colors.length;
 					const hexColor = flock.getColorFromString(
-						colors[colorIndex % colors.length],
+						colors[currentIndex],
 					);
 					const babylonColor =
 						flock.BABYLON.Color3.FromHexString(hexColor);
@@ -5377,12 +5432,30 @@ export const flock = {
 						part.material.emissiveIntensity = 0.1;
 					}
 
-					// Map the material to the colour and log the assignment
-					materialToColorMap.set(part.material, hexColor);
+					// Map the material to the colour and its assigned index
+					materialToColorMap.set(part.material, {
+						hexColor,
+						index: currentIndex,
+					});
+
+					// Set metadata on this mesh with its colour index
+					if (!part.metadata) {
+						part.metadata = {};
+					}
+					if (!part.metadata.materialIndex) {
+						part.metadata.materialIndex = colorIndex;
+					}
 
 					colorIndex++;
 				} else {
-					// Material already processed, log the reuse
+					// Material already processed, reapply the existing index
+					if (!part.metadata) {
+						part.metadata = {};
+					}
+
+					if (!part.metadata.materialIndex) {
+						part.metadata.materialIndex = colorIndex;
+					}
 				}
 			}
 
@@ -5396,7 +5469,7 @@ export const flock = {
 		// Start applying colours to the main mesh and its hierarchy
 		applyColorInOrder(mesh);
 
-		// If no material was found, create a new one
+		// If no material was found, create a new one and set metadata
 		if (materialToColorMap.size === 0) {
 			const material = new flock.BABYLON.StandardMaterial(
 				"meshMaterial",
@@ -5407,6 +5480,10 @@ export const flock = {
 			);
 			material.backFaceCulling = false;
 			mesh.material = material;
+			if (!mesh.metadata) {
+				mesh.metadata = {};
+			}
+			mesh.metadata.materialIndex = 0;
 		}
 
 		try {
