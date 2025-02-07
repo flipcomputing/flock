@@ -1261,7 +1261,15 @@ function selectObjectWithCommand(objectName, menu, command) {
 						// Add shadow block for COLOR
 						const color = objectColours[objectName];
 						addShadowBlock(block, "COLOR", "colour", color);
-					}
+					} else if (command === "load_multi_object") {
+           
+            console.log("load_multi_object", block);
+              if (Blockly.Blocks['load_multi_object'].updateColorsField) {
+                 Blockly.Blocks['load_multi_object'].updateColorsField.call(block);            
+             
+           }
+ 
+          }
 
 					block.render();
 
