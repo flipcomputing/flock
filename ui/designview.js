@@ -1193,100 +1193,102 @@ function selectMultiObject(objectName) {
 window.selectMultiObject = selectMultiObject;
 
 function selectObjectWithCommand(objectName, menu, command) {
-  document.getElementById(menu).style.display = "none";
-  const canvas = flock.scene.getEngine().getRenderingCanvas(); // Get the flock.BABYLON.js canvas
+	document.getElementById(menu).style.display = "none";
+	const canvas = flock.scene.getEngine().getRenderingCanvas(); // Get the flock.BABYLON.js canvas
 
-  document.body.style.cursor = "crosshair"; // Change cursor to indicate picking mode
+	document.body.style.cursor = "crosshair"; // Change cursor to indicate picking mode
 
-  setTimeout(() => {
-    const onPickMesh = function (event) {
-      // Get the canvas bounds relative to the window
-      const canvasRect = canvas.getBoundingClientRect();
+	setTimeout(() => {
+		const onPickMesh = function (event) {
+			// Get the canvas bounds relative to the window
+			const canvasRect = canvas.getBoundingClientRect();
 
-      // Check if the click happened outside the canvas
-      if (
-        event.clientX < canvasRect.left ||
-        event.clientX > canvasRect.right ||
-        event.clientY < canvasRect.top ||
-        event.clientY > canvasRect.bottom
-      ) {
-        window.removeEventListener("click", onPickMesh);
-        document.body.style.cursor = "default";
-        return;
-      }
+			// Check if the click happened outside the canvas
+			if (
+				event.clientX < canvasRect.left ||
+				event.clientX > canvasRect.right ||
+				event.clientY < canvasRect.top ||
+				event.clientY > canvasRect.bottom
+			) {
+				window.removeEventListener("click", onPickMesh);
+				document.body.style.cursor = "default";
+				return;
+			}
 
-      // Calculate the click position relative to the canvas, not the window
-      const canvasX = event.clientX - canvasRect.left;
-      const canvasY = event.clientY - canvasRect.top;
+			// Calculate the click position relative to the canvas, not the window
+			const canvasX = event.clientX - canvasRect.left;
+			const canvasY = event.clientY - canvasRect.top;
 
-      // Create a picking ray using the adjusted canvas coordinates
-      const pickRay = flock.scene.createPickingRay(
-        canvasX,
-        canvasY,
-        flock.BABYLON.Matrix.Identity(),
-        flock.scene.activeCamera
-      );
+			// Create a picking ray using the adjusted canvas coordinates
+			const pickRay = flock.scene.createPickingRay(
+				canvasX,
+				canvasY,
+				flock.BABYLON.Matrix.Identity(),
+				flock.scene.activeCamera,
+			);
 
-      // Perform the picking
-      const pickResult = flock.scene.pickWithRay(
-        pickRay,
-        (mesh) => mesh.isPickable
-      );
+			// Perform the picking
+			const pickResult = flock.scene.pickWithRay(
+				pickRay,
+				(mesh) => mesh.isPickable,
+			);
 
-      if (pickResult.hit) {
-        const pickedPosition = pickResult.pickedPoint;
+			if (pickResult.hit) {
+				const pickedPosition = pickResult.pickedPoint;
 
-        // Start a Blockly event group to ensure undo/redo tracks all changes
-        Blockly.Events.setGroup(true);
+				// Start a Blockly event group to ensure undo/redo tracks all changes
+				Blockly.Events.setGroup(true);
 
-        try {
-          const block = Blockly.getMainWorkspace().newBlock(command);
-          block.initSvg();
+				try {
+					//console.log("Create new block", command);
+					// Create the load_object block
+					const block = Blockly.getMainWorkspace().newBlock(command);
+					block.initSvg();
 
-          // Set object name
-          block.setFieldValue(objectName, "MODELS");
+					//highlightBlockById(Blockly.getMainWorkspace(), block);
 
-          if (command === "load_multi_object") {
-             if (Blockly.Blocks['load_multi_object'].updateColorsField) {
-                Blockly.Blocks['load_multi_object'].updateColorsField.call(block);
-            }
-          }
+					// Set object name
+					block.setFieldValue(objectName, "MODELS");
 
-          // Set position values (X, Y, Z) from the picked position
-          setPositionValues(block, pickedPosition, command);
+					// Set position values (X, Y, Z) from the picked position
+					setPositionValues(block, pickedPosition, command);
 
-          // Add shadow block for SCALE
-          const scale = 1; // Default scale
-          addShadowBlock(block, "SCALE", "math_number", scale);
-          
-          block.render();
-          
-          // Create a new 'start' block and connect the load_object block to it
-          const startBlock = Blockly.getMainWorkspace().newBlock("start");
-       
-          startBlock.initSvg();
-          startBlock.render();
+					// Add shadow block for SCALE
+					const scale = 1; // Default scale
+					addShadowBlock(block, "SCALE", "math_number", scale);
 
-          // Connect the load_object block to the start block
-          const connection = startBlock.getInput("DO").connection;
-          if (connection) {
-            connection.connect(block.previousConnection);
-           }
+					if (command === "load_object") {
+						// Add shadow block for COLOR
+						const color = objectColours[objectName];
+						addShadowBlock(block, "COLOR", "colour", color);
+					}
 
-        } finally {
-          // End the event group to ensure everything can be undone/redone as a group
-          Blockly.Events.setGroup(false);
-        }
+					block.render();
 
-      }
+					// Create a new 'start' block and connect the load_object block to it
+					const startBlock =
+						Blockly.getMainWorkspace().newBlock("start");
+					startBlock.initSvg();
+					startBlock.render();
 
-      document.body.style.cursor = "default"; // Reset the cursor
-      window.removeEventListener("click", onPickMesh); // Remove the event listener after picking
-    };
+					// Connect the load_object block to the start block
+					const connection = startBlock.getInput("DO").connection;
+					if (connection) {
+						connection.connect(block.previousConnection);
+					}
+				} finally {
+					// End the event group to ensure everything can be undone/redone as a group
+					Blockly.Events.setGroup(false);
+				}
+			}
 
-    // Add event listener to pick the mesh on the next click
-    window.addEventListener("click", onPickMesh);
-  }, 200);
+			document.body.style.cursor = "default"; // Reset the cursor
+			window.removeEventListener("click", onPickMesh); // Remove the event listener after picking
+		};
+
+		// Add event listener to pick the mesh on the next click
+		window.addEventListener("click", onPickMesh);
+	}, 200);
 }
 window.selectObject = selectObject;
 
