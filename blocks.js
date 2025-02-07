@@ -5291,3 +5291,57 @@ Blockly.Blocks["microbit_input"] = {
     this.updateShape_(!this.isInline);
   },
 };
+
+(function() {
+  const dynamicIf = Blockly.Blocks['dynamic_if'];
+  if (!dynamicIf) return;
+
+  const originalFinalize = dynamicIf.finalizeConnections;
+  const originalMutationToDom = dynamicIf.mutationToDom;
+
+  dynamicIf.mutationToDom = function() {
+    if (this._skipFinalizeInMutationToDom) {
+      if (!this.elseifCount && !this.elseCount) return null;
+      const container = Blockly.utils.xml.createElement('mutation');
+      if (this.elseifCount) {
+        container.setAttribute('elseif', `${this.elseifCount}`);
+      }
+      if (this.elseCount) {
+        container.setAttribute('else', '1');
+      }
+      return container;
+    }
+    return originalMutationToDom.call(this);
+  };
+
+  dynamicIf.finalizeConnections = function() {
+    // Capture the old state without causing recursion.
+    this._skipFinalizeInMutationToDom = true;
+    const oldStateDOM = this.mutationToDom();
+    const oldState = oldStateDOM ? Blockly.Xml.domToText(oldStateDOM) : null;
+    this._skipFinalizeInMutationToDom = false;
+
+    // Disable events during the rebuild so extra events aren’t recorded.
+    Blockly.Events.disable();
+    try {
+      originalFinalize.call(this);
+    } finally {
+      Blockly.Events.enable();
+    }
+
+    // Capture the new state.
+    this._skipFinalizeInMutationToDom = true;
+    const newStateDOM = this.mutationToDom();
+    const newState = newStateDOM ? Blockly.Xml.domToText(newStateDOM) : null;
+    this._skipFinalizeInMutationToDom = false;
+
+    // Fire one synthetic mutation event to represent the entire rebuild.
+    let mutationEvent;
+    if (typeof Blockly.Events.Mutation === 'function') {
+      mutationEvent = new Blockly.Events.Mutation(this, oldState, newState);
+    } else {
+      mutationEvent = new Blockly.Events.BlockChange(this, 'mutation', '', oldState, newState);
+    }
+    Blockly.Events.fire(mutationEvent);
+  };
+})();

@@ -1611,7 +1611,7 @@ window.onload = function () {
 			
 			// Log the current undo stack size
 			const undoStack = workspace.undoStack_;
-			//console.log('Undo Stack Size:', undoStack ? undoStack.length : 0);
+			/*console.log('Undo Stack Size:', undoStack ? undoStack.length : 0);*/
 		}
 	});
 
@@ -1677,8 +1677,6 @@ window.onload = function () {
 			event.target.block.type === "when_clicked"
 		) {
 			draggedBlock = event.target.block; // Store the dragged block
-			//console.log("Drag started for block:", draggedBlock);
-
 			// Listen for mousemove to track the block's position during dragging
 			workspace.getCanvas().addEventListener("mousemove", onMouseMove);
 		}

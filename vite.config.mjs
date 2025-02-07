@@ -201,7 +201,8 @@ export default {
       allow: [
         "../.."
       ]
-    }
+    },
+    allowedHosts: ['1099a351-df60-40b5-bf61-4999bad0d153-00-4np7mg24c4rr.janeway.replit.dev'] //added this
   },
   optimizeDeps: { exclude: ["@babylonjs/havok"] },
   build: {
