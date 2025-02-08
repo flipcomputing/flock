@@ -473,8 +473,9 @@ function createMeshOnCanvas(block) {
           .getFieldValue("COLOR"),
       };
 
-      meshId = modelName + "_" + generateUniqueId();
-      // Use flock API for characters
+      meshId = `${modelName}__${block.id}`;
+      meshMap[block.id] = block;
+      meshBlockIdMap[block.id] = block.id;
 
       newMesh = flock.createCharacter({
         modelName: modelName,
@@ -1262,7 +1263,7 @@ function selectObjectWithCommand(objectName, menu, command) {
             const color = objectColours[objectName];
             addShadowBlock(block, "COLOR", "colour", color);
           } else if (command === "load_multi_object") {
-            console.log("load_multi_object", block);
+            
             if (Blockly.Blocks["load_multi_object"].updateColorsField) {
               Blockly.Blocks["load_multi_object"].updateColorsField.call(block);
             }
@@ -2208,7 +2209,7 @@ const characterMaterials = [
   "Hair",
   "Skin",
   "Eyes",
-  "Detail",
+  "Sleeves",
   "Shorts",
   "TShirt",
 ];
@@ -2226,6 +2227,18 @@ function updateBlockColorAndHighlight(mesh, selectedColor) {
   if (mesh && materialName) {
     block = meshMap[ultimateParent(mesh).blockKey];
 
+    if (!block) {
+      console.error(
+        "Block not found for mesh:",
+        ultimateParent(mesh).blockKey,
+        mesh.name, ultimateParent(mesh).name, meshMap
+      );
+
+      return;
+    }
+
+    //console.log(materialName, mesh.metadata, ultimateParent(mesh), block);
+
     if (characterMaterials.includes(materialName)) {
       // Update the corresponding character submesh color field (e.g., HAIR_COLOR, SKIN_COLOR)
 
@@ -2233,7 +2246,7 @@ function updateBlockColorAndHighlight(mesh, selectedColor) {
         Hair: "HAIR_COLOR",
         Skin: "SKIN_COLOR",
         Eyes: "EYES_COLOR",
-        Detail: "SLEEVES_COLOR",
+        Sleeves: "SLEEVES_COLOR",
         Shorts: "SHORTS_COLOR",
         TShirt: "TSHIRT_COLOR",
       };
@@ -2249,36 +2262,20 @@ function updateBlockColorAndHighlight(mesh, selectedColor) {
       } else {
         console.error("No matching field for material:", materialName);
       }
-    } else {
-      //console.log(materialName, mesh.metadata, ultimateParent(mesh), block);
+    } else if (block.type === "load_multi_object") {
       block.updateColorAtIndex(selectedColor, colorIndex);
-    }
-  } else {
-    if (!mesh) {
-      block = meshMap["sky"];
     } else {
-      const ultimateParent = (mesh) =>
-        mesh.parent ? ultimateParent(mesh.parent) : mesh;
+      if (!mesh) {
+        block = meshMap["sky"];
+      }
 
-      block = meshMap[ultimateParent(mesh).blockKey];
+      block
+        .getInput("COLOR")
+        .connection.targetBlock()
+        .setFieldValue(selectedColor, "COLOR");
     }
-
-    if (!block) {
-      console.error(
-        "Block not found for mesh:",
-        ultimateParent(mesh).blockKey,
-        mesh,
-      );
-
-      return;
-    }
-
-    block
-      .getInput("COLOR")
-      .connection.targetBlock()
-      .setFieldValue(selectedColor, "COLOR");
   }
-
+  
   block?.initSvg();
 
   //highlightBlockById(Blockly.getMainWorkspace(), block);
