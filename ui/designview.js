@@ -150,7 +150,7 @@ export function getMeshFromBlock(block) {
 }
 
 export function updateMeshFromBlock(mesh, block) {
-  //console.log("Update mesh from block");
+  //console.log("Update mesh from block", block.type);
   const shapeType = block.type;
 
   if (mesh && mesh.physics) mesh.physics.disablePreStep = true;
@@ -167,10 +167,13 @@ export function updateMeshFromBlock(mesh, block) {
   }
 
   if (block.type.startsWith("load_")) {
+   
     let scale = block
       .getInput("SCALE")
       .connection.targetBlock()
       .getFieldValue("NUM");
+
+    flock.scaleMeshProportional(mesh.name, scale, scale, scale);
   }
 
   // Retrieve the position values (X, Y, Z) from the connected blocks

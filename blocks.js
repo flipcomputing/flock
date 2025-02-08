@@ -1625,20 +1625,21 @@ export function defineBlocks() {
       };
 
       this.setOnChange((changeEvent) => {
+
         if (
-          changeEvent.type === Blockly.Events.BLOCK_CREATE &&
-          changeEvent.blockId === this.id
+          changeEvent.type === Blockly.Events.BLOCK_CREATE ||
+          changeEvent.type === Blockly.Events.BLOCK_CHANGE
         ) {
           const blockInWorkspace = Blockly.getMainWorkspace().getBlockById(
             this.id,
-          );
+          ); // Check if block is in the main workspace
+
           if (blockInWorkspace) {
-            //updateColorsField.call(this);
-            //if (!window.loadingCode)
+            if (window.loadingCode) return;
             updateOrCreateMeshFromBlock(this, changeEvent);
           }
         }
-
+       
         if (
           changeEvent.type === Blockly.Events.BLOCK_CHANGE &&
           changeEvent.element === "field" &&

@@ -165,6 +165,7 @@ export const flock = {
 				seededRandom,
 				randomColour,
 				scaleMesh,
+				scaleMeshProportional,
 				changeColor,
 				changeColorMesh,
 				changeMaterial,
@@ -1193,8 +1194,9 @@ export const flock = {
 		}
 	},
 	setupMesh(mesh, modelName, modelId, blockId, scale, x, y, z, color = null) {
+		
 		mesh.scaling = new BABYLON.Vector3(scale, scale, scale);
-
+		
 		const bb =
 			flock.BABYLON.BoundingBoxGizmo.MakeNotPickableAndWrapInBoundingBox(
 				mesh,
@@ -3612,6 +3614,33 @@ export const flock = {
 			// Refresh bounding info and recompute world matrix
 			mesh.refreshBoundingInfo();
 			mesh.computeWorldMatrix(true);
+		});
+	},
+	scaleMeshProportional(modelName, x, y, z) {
+		return flock.whenModelReady(modelName, (mesh) => {
+			// Get the first actual mesh inside the bounding box
+			let targetMesh = mesh.getChildMeshes()[0] || mesh;
+
+			// Ensure the world matrix is up-to-date
+			targetMesh.computeWorldMatrix(true);
+			targetMesh.refreshBoundingInfo();
+
+			// Get the bounding box's scaling (it may not be 1,1,1)
+			const boundingBoxScale = mesh.scaling.clone(); // This is the wrapper’s scale
+
+			// Compensate for the bounding box’s transformation
+			const correctedScale = new BABYLON.Vector3(
+				x / boundingBoxScale.x,
+				y / boundingBoxScale.y,
+				z / boundingBoxScale.z
+			);
+
+			// Apply the corrected scaling to achieve the same final effect
+			targetMesh.scaling = correctedScale;
+
+			// Recalculate bounding box after scaling the mesh
+			targetMesh.computeWorldMatrix(true);
+			targetMesh.refreshBoundingInfo();			
 		});
 	},
 	rotate(meshName, x, y, z) {
