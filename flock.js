@@ -1194,9 +1194,8 @@ export const flock = {
 		}
 	},
 	setupMesh(mesh, modelName, modelId, blockId, scale, x, y, z, color = null) {
-		
 		mesh.scaling = new BABYLON.Vector3(scale, scale, scale);
-		
+
 		const bb =
 			flock.BABYLON.BoundingBoxGizmo.MakeNotPickableAndWrapInBoundingBox(
 				mesh,
@@ -1465,7 +1464,7 @@ export const flock = {
 			}
 
 			if (flock.modelsBeingLoaded[modelName]) {
-				console.log(`Waiting for model to load: ${modelName}`);
+				//console.log(`Waiting for model to load: ${modelName}`);
 				flock.modelsBeingLoaded[modelName].then(() => {
 					if (flock.modelCache[modelName]) {
 						const firstMesh = flock.modelCache[modelName];
@@ -3561,8 +3560,6 @@ export const flock = {
 
 			// Get the original bounding box dimensions and positions
 			const boundingInfo = mesh.getBoundingInfo();
-
-			// Store original world coordinates for base and top/bottom points
 			const originalMinY = boundingInfo.boundingBox.minimumWorld.y;
 			const originalMaxY = boundingInfo.boundingBox.maximumWorld.y;
 			const originalMinX = boundingInfo.boundingBox.minimumWorld.x;
@@ -3570,13 +3567,15 @@ export const flock = {
 			const originalMinZ = boundingInfo.boundingBox.minimumWorld.z;
 			const originalMaxZ = boundingInfo.boundingBox.maximumWorld.z;
 
-			// Apply scaling
+			// Apply scaling to the mesh
 			mesh.scaling = new flock.BABYLON.Vector3(x, y, z);
-			mesh.physics.scaling = new flock.BABYLON.Vector3(x, y, z);
+
+			mesh.refreshBoundingInfo();
 			mesh.computeWorldMatrix(true);
 
 			// Get the new bounding box information after scaling
 			const newBoundingInfo = mesh.getBoundingInfo();
+			//console.log(newBoundingInfo);
 			const newMinY = newBoundingInfo.boundingBox.minimumWorld.y;
 			const newMaxY = newBoundingInfo.boundingBox.maximumWorld.y;
 			const newMinX = newBoundingInfo.boundingBox.minimumWorld.x;
@@ -3614,7 +3613,73 @@ export const flock = {
 			// Refresh bounding info and recompute world matrix
 			mesh.refreshBoundingInfo();
 			mesh.computeWorldMatrix(true);
+			flock.updatePhysics(mesh);
 		});
+	},
+	updatePhysics(mesh, parent = null) {
+		if (!parent) parent = mesh;
+		// If the mesh has a physics body, update its shape
+		if (parent.physics) {
+			// Preserve the disablePreStep setting if it exists
+			const disablePreStep = parent.physics.disablePreStep || false;
+
+			// Recreate the physics shape based on the new scale
+			//console.log(parent.physics.shape.constructor.name);
+
+			// Handling Capsule shape
+			if (
+				parent.physics.shape.constructor.name === "_PhysicsShapeCapsule"
+			) {
+				const newShape = flock.createCapsuleFromBoundingBox(
+					mesh,
+					flock.scene,
+				);
+				parent.physics.shape = newShape;
+				parent.physics.setMassProperties({ mass: 1, restitution: 0.5 }); // Adjust properties as needed
+			}
+
+			// Handling Box shape
+			else if (
+				parent.physics.shape.constructor.name === "_PhysicsShapeBox"
+			) {
+				// Extract bounding box dimensions in world space (after scaling)
+				const boundingBox = mesh.getBoundingInfo().boundingBox;
+				const width =
+					boundingBox.maximumWorld.x - boundingBox.minimumWorld.x;
+				const height =
+					boundingBox.maximumWorld.y - boundingBox.minimumWorld.y;
+				const depth =
+					boundingBox.maximumWorld.z - boundingBox.minimumWorld.z;
+
+				const boxShape = new flock.BABYLON.PhysicsShapeBox(
+					new flock.BABYLON.Vector3(0, 0, 0),
+					new BABYLON.Quaternion(0, 0, 0, 1), // No rotation
+					new BABYLON.Vector3(width, height, depth), // Updated dimensions
+					flock.scene,
+				);
+
+				// Update the physics body with the new shape
+				parent.physics.shape = boxShape;
+			}
+
+			// Handling Mesh shape
+			else if (
+				parent.physics.shape.constructor.name === "_PhysicsShapeMesh"
+			) {
+				// Create a new mesh shape based on the updated geometry of the mesh
+				const newMeshShape = new flock.BABYLON.PhysicsShapeMesh(
+					mesh,
+					flock.scene,
+				);
+
+				// Update the physics body with the new mesh shape
+				parent.physics.shape = newMeshShape;
+			}
+
+			// Preserve the disablePreStep setting from the previous physics object
+			parent.physics.disablePreStep = disablePreStep;
+			parent.physics.setMassProperties({ mass: 1, restitution: 0.5 });
+		}
 	},
 	scaleMeshProportional(modelName, x, y, z) {
 		return flock.whenModelReady(modelName, (mesh) => {
@@ -3629,18 +3694,28 @@ export const flock = {
 			const boundingBoxScale = mesh.scaling.clone(); // This is the wrapper’s scale
 
 			// Compensate for the bounding box’s transformation
-			const correctedScale = new BABYLON.Vector3(
+			const correctedScale = new flock.BABYLON.Vector3(
 				x / boundingBoxScale.x,
 				y / boundingBoxScale.y,
-				z / boundingBoxScale.z
+				z / boundingBoxScale.z,
 			);
 
-			// Apply the corrected scaling to achieve the same final effect
 			targetMesh.scaling = correctedScale;
 
-			// Recalculate bounding box after scaling the mesh
+			targetMesh.getChildMeshes()[0].refreshBoundingInfo();
+			targetMesh.getChildMeshes()[0].computeWorldMatrix(true);
+			// Refresh bounding info and world matrix
+			targetMesh.refreshBoundingInfo();
 			targetMesh.computeWorldMatrix(true);
-			targetMesh.refreshBoundingInfo();			
+
+			mesh.refreshBoundingInfo();
+			mesh.computeWorldMatrix(true);
+
+			// Update the physics shape based on the new scale
+			flock.updatePhysics(
+				targetMesh.getChildMeshes()[0] || targetMesh,
+				mesh,
+			);
 		});
 	},
 	rotate(meshName, x, y, z) {

@@ -174,6 +174,8 @@ export function updateMeshFromBlock(mesh, block) {
       .getFieldValue("NUM");
 
     flock.scaleMeshProportional(mesh.name, scale, scale, scale);
+  } else {
+    flock.updatePhysics(mesh);
   }
 
   // Retrieve the position values (X, Y, Z) from the connected blocks
