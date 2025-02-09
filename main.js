@@ -123,10 +123,10 @@ function loadWorkspaceAndExecute(json, workspace, executeCallback) {
 }
 
 
-// Function to load today's workspace state
 function loadWorkspace() {
 	const urlParams = new URLSearchParams(window.location.search);
 	const projectUrl = urlParams.get("project"); // Check for project URL parameter
+	const reset = urlParams.get("reset"); // Check for reset URL parameter
 	const savedState = localStorage.getItem("flock_autosave.json");
 	const starter = "examples/starter.json"; // Starter JSON fallback
 
@@ -140,6 +140,16 @@ function loadWorkspace() {
 			.catch((error) => {
 				console.error("Error loading starter example:", error);
 			});
+	}
+
+	// Reset logic if 'reset' URL parameter is present
+	if (reset) {
+		console.warn("Resetting workspace and clearing local storage.");
+		workspace.clear();  // Clear the workspace
+		localStorage.removeItem("flock_autosave.json");  // Clear the saved state in localStorage
+		// Optionally reload the starter project after reset
+		loadStarter();
+		return; // Exit the function after reset
 	}
 
 	if (projectUrl) {
