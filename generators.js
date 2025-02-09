@@ -862,7 +862,7 @@ export function defineGenerators() {
 	};
 
 	javascriptGenerator.forBlock["load_multi_object"] = function (block) {
-		console.log("Multi");
+
 		const modelName = block.getFieldValue("MODELS");
 		const scale = getFieldValue(block, "SCALE", "1");
 		const x = getFieldValue(block, "X", "0");
