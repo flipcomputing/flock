@@ -101,12 +101,27 @@ function saveWorkspace() {
 
 function loadWorkspaceAndExecute(json, workspace, executeCallback) {
 	try {
+		// Ensure that the workspace and json are valid before attempting to load
+		if (!workspace || !json) {
+			throw new Error("Invalid workspace or json data.");
+		}
+
 		Blockly.serialization.workspaces.load(json, workspace);
 		executeCallback(); // Runs only if loading succeeds
+
 	} catch (error) {
 		console.error("Failed to load workspace:", error);
+
+		// Additional handling for corrupt local storage or recovery
+		if (error.message.includes("isDeadOrDying")) {
+			// Try to reset workspace or handle specific cleanup for the isDeadOrDying error
+			console.warn("Workspace might be corrupted, attempting reset.");
+			workspace.clear();  // Clear the workspace if needed
+			localStorage.removeItem("flock_autosave.json") 
+		}
 	}
 }
+
 
 // Function to load today's workspace state
 function loadWorkspace() {
