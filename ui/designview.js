@@ -1759,34 +1759,60 @@ function toggleGizmo(gizmoType) {
       break;
     case "select":
       gizmoManager.selectGizmoEnabled = true;
-      flock.scene.onPointerObservable.add((event) => {
-        if (event.type === flock.BABYLON.PointerEventTypes.POINTERPICK) {
-          if (gizmoManager.attachedMesh) {
-            gizmoManager.attachedMesh.showBoundingBox = false;
-            blockKey = findParentWithBlockId(
-              gizmoManager.attachedMesh,
-            ).blockKey;
+    
+      // Store the pointer observable
+      const pointerObservable = flock.scene.onPointerObservable;
 
-            //console.log("Select", blockKey, meshMap);
+      // Add the observer
+      const pointerObserver = pointerObservable.add((event) => {
+          if (event.type === flock.BABYLON.PointerEventTypes.POINTERPICK) {
+              if (gizmoManager.attachedMesh) {
+                  gizmoManager.attachedMesh.showBoundingBox = false;
+                  blockKey = findParentWithBlockId(gizmoManager.attachedMesh).blockKey;
+              }
+              const pickedMesh = event.pickInfo.pickedMesh;
+
+              if (pickedMesh && pickedMesh.name !== "ground") {
+                  // Assuming 'mesh' is your Babylon.js mesh object
+                  const position = pickedMesh.getAbsolutePosition();
+
+                  // Round the coordinates to 2 decimal places
+                  const roundedPosition = new BABYLON.Vector3(
+                      parseFloat(position.x.toFixed(2)),
+                      parseFloat(position.y.toFixed(2)),
+                      parseFloat(position.z.toFixed(2))
+                  );
+                  flock.printText("Position: " + roundedPosition, 30, "black");
+
+                  // Attach the gizmo to the selected mesh
+                  gizmoManager.attachToMesh(pickedMesh);
+
+                  // Show bounding box for the selected mesh
+                  pickedMesh.showBoundingBox = true;
+              } else {
+                  if(pickedMesh && pickedMesh.name === "ground"){
+                      const position = event.pickInfo.pickedPoint;
+
+                      // Round the coordinates to 2 decimal places
+                      const roundedPosition = new BABYLON.Vector3(
+                          parseFloat(position.x.toFixed(2)),
+                          parseFloat(position.y.toFixed(2)),
+                          parseFloat(position.z.toFixed(2))
+                      );
+                      flock.printText("Position: " + roundedPosition, 30, "black");            
+                  }
+
+                  // Deselect if no mesh is picked
+                  if (gizmoManager.attachedMesh) {
+                      gizmoManager.attachedMesh.showBoundingBox = false;
+                      gizmoManager.attachToMesh(null); // Detach the gizmo
+                  }
+              }
+
+pointerObservable.remove(pointerObserver);
           }
-          const pickedMesh = event.pickInfo.pickedMesh;
-
-          if (pickedMesh && pickedMesh.name !== "ground") {
-            // Attach the gizmo to the selected mesh
-            gizmoManager.attachToMesh(pickedMesh);
-
-            //console.log("Selected", pickedMesh.name, gizmoManager.attachedMesh.name);
-            // Show bounding box for the selected mesh
-            pickedMesh.showBoundingBox = true;
-          } else {
-            // Deselect if no mesh is picked
-            if (gizmoManager.attachedMesh) {
-              gizmoManager.attachedMesh.showBoundingBox = false;
-              gizmoManager.attachToMesh(null); // Detach the gizmo
-            }
-          }
-        }
       });
+
       break;
     case "bounds":
       gizmoManager.boundingBoxGizmoEnabled = true;
