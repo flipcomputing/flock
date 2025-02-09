@@ -5548,6 +5548,7 @@ export const flock = {
 					}
 					if (!part.metadata.materialIndex) {
 						part.metadata.materialIndex = colorIndex;
+
 					}
 
 					colorIndex++;
@@ -5557,7 +5558,7 @@ export const flock = {
 						part.metadata = {};
 					}
 
-					if (!part.metadata.materialIndex) {
+					if (part.metadata.materialIndex === undefined) {
 						part.metadata.materialIndex = colorIndex;
 					}
 				}

@@ -16,26 +16,24 @@ const greenColor = flock.BABYLON.Color3.FromHexString("#009E73"); // Colour for 
 const orangeColor = flock.BABYLON.Color3.FromHexString("#D55E00"); // Colour for Z-axis
 
 export function updateOrCreateMeshFromBlock(block, changeEvent) {
+  /*console.log(
+    "updateOrCreateMeshFromBlock",
+    block.id,
+    changeEvent.blockId,
+    changeEvent.type,
+  );*/
   if (window.loadingCode || block.disposed) return;
 
   if (
-    (changeEvent.type === Blockly.Events.BLOCK_CHANGE &&
-      block.id === changeEvent.blockId) ||
-    block.id ===
-      Blockly.getMainWorkspace().getBlockById(changeEvent.blockId)?.getParent()
-        ?.id
+    changeEvent.type === Blockly.Events.BLOCK_CREATE &&
+    block.id === changeEvent.blockId
   ) {
+    createMeshOnCanvas(block);
+  } else if (changeEvent.type === Blockly.Events.BLOCK_CHANGE) {
     const mesh = getMeshFromBlock(block);
 
     if (mesh) {
       updateMeshFromBlock(mesh, block, changeEvent);
-    }
-  } else {
-    if (
-      changeEvent.type === Blockly.Events.BLOCK_CREATE &&
-      block.id === changeEvent.blockId
-    ) {
-      createMeshOnCanvas(block);
     }
   }
 }
@@ -164,10 +162,28 @@ export function updateMeshFromBlock(mesh, block) {
       .getInput("COLOR")
       .connection.targetBlock()
       .getFieldValue("COLOR");
+  } else if (block.type === "load_multi_object") {
+    // Get the block connected to the "COLORS" input
+    const colorsBlock = block.getInput("COLORS").connection.targetBlock();
+
+    // Initialize an array to store the color values
+    let colorsArray = [];
+
+    if (colorsBlock) {
+      // Loop through the child blocks (array items) and get their values
+      colorsBlock.childBlocks_.forEach((childBlock) => {
+        // Get the color value from the child block
+        const color = childBlock.getFieldValue("COLOR");
+        if (color) {
+          colorsArray.push(color);
+        }
+      });
+    }
+
+    color = colorsArray;    
   }
 
   if (block.type.startsWith("load_")) {
-   
     let scale = block
       .getInput("SCALE")
       .connection.targetBlock()
@@ -225,7 +241,7 @@ export function updateMeshFromBlock(mesh, block) {
 			}
 			*/
 
-      console.log("Need to handle update of object", modelName);
+      //console.log("Need to handle update of object", modelName);
 
       break;
     case "load_model":
@@ -246,10 +262,10 @@ export function updateMeshFromBlock(mesh, block) {
 					},
 				});
 			}*/
-      console.log("Need to handle update of model");
+      //console.log("Need to handle update of model");
       break;
     case "load_multi_object":
-      console.log("Need to handle update of multi model");
+      //console.log("Need to handle update of multi model");
       break;
     case "load_character":
       modelName = block.getFieldValue("MODELS");
@@ -384,7 +400,10 @@ export function updateMeshFromBlock(mesh, block) {
 
   // Use flock API to change the color and position of the mesh
   if (color) {
-    color = flock.getColorFromString(color);
+    const ultimateParent = (mesh) =>
+      mesh.parent ? ultimateParent(mesh.parent) : mesh;
+    //color = flock.getColorFromString(color);
+    mesh = ultimateParent(mesh);
     flock.changeColor(mesh.name, color);
   }
 }
@@ -1268,7 +1287,6 @@ function selectObjectWithCommand(objectName, menu, command) {
             const color = objectColours[objectName];
             addShadowBlock(block, "COLOR", "colour", color);
           } else if (command === "load_multi_object") {
-            
             if (Blockly.Blocks["load_multi_object"].updateColorsField) {
               Blockly.Blocks["load_multi_object"].updateColorsField.call(block);
             }
@@ -2236,7 +2254,9 @@ function updateBlockColorAndHighlight(mesh, selectedColor) {
       console.error(
         "Block not found for mesh:",
         ultimateParent(mesh).blockKey,
-        mesh.name, ultimateParent(mesh).name, meshMap
+        mesh.name,
+        ultimateParent(mesh).name,
+        meshMap,
       );
 
       return;
@@ -2280,7 +2300,7 @@ function updateBlockColorAndHighlight(mesh, selectedColor) {
         .setFieldValue(selectedColor, "COLOR");
     }
   }
-  
+
   block?.initSvg();
 
   //highlightBlockById(Blockly.getMainWorkspace(), block);

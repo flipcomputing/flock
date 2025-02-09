@@ -1593,6 +1593,8 @@ export function defineBlocks() {
         colour,
         colourIndex,
       ) {
+
+        //console.log("Update colour", colour, colourIndex);
         const colorsInput = this.getInput("COLORS");
         if (!colorsInput || !colorsInput.connection) {
           console.log("COLORS input is not available.");
@@ -1608,7 +1610,8 @@ export function defineBlocks() {
         let input = listBlock.getInput(inputName);
         if (!input) {
           console.log("Input", inputName, "not found. Creating new input.");
-          input = listBlock.appendValueInput(inputName).setCheck("Colour");
+          //input = listBlock.appendValueInput(inputName).setCheck("Colour");
+          return;
         }
 
         let shadowBlock = input.connection?.targetBlock();
