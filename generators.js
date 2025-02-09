@@ -1789,7 +1789,6 @@ export function defineGenerators() {
 		const material = block.getFieldValue("MATERIALS");
 		const color = getFieldValue(block, "COLOR", "#ffffff");
 
-		console.log(modelName, material, color);
 		return `await changeMaterial(${modelName}, "${material}", ${color});\n`;
 	};
 
@@ -2039,8 +2038,6 @@ export function defineGenerators() {
 				"MESH_LIST",
 				javascriptGenerator.ORDER_ATOMIC,
 			) || "[]";
-
-		console.log(meshList);
 
 		const meshId = "subtracted" + "_" + generateUniqueId();
 		meshMap[meshId] = block;

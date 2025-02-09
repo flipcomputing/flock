@@ -2465,7 +2465,7 @@ export const flock = {
 		ground.name = "ground";
 		ground.blockKey = "ground";
 
-		console.log("Scaling material");
+		//console.log("Scaling material");
 		// Simply assign the passed-through material:
 		if (material.diffuseTexture) {
 			material.diffuseTexture.wrapU =
