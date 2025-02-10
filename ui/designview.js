@@ -2115,7 +2115,9 @@ pointerObservable.remove(pointerObserver);
       });
 
       break;
-    case "scale":
+      case "scale":
+
+      case "scale":
       gizmoManager.scaleGizmoEnabled = true;
       gizmoManager.gizmos.scaleGizmo.xGizmo._coloredMaterial.diffuseColor =
         blueColor;
@@ -2230,6 +2232,7 @@ pointerObservable.remove(pointerObserver);
       });
 
       break;
+
     case "boundingBox":
       gizmoManager.boundingBoxGizmoEnabled = true;
 
