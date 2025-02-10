@@ -180,7 +180,7 @@ export function updateMeshFromBlock(mesh, block) {
       });
     }
 
-    color = colorsArray;    
+    color = colorsArray;
   }
 
   if (block.type.startsWith("load_")) {
@@ -1759,58 +1759,60 @@ function toggleGizmo(gizmoType) {
       break;
     case "select":
       gizmoManager.selectGizmoEnabled = true;
-    
+
       // Store the pointer observable
       const pointerObservable = flock.scene.onPointerObservable;
 
       // Add the observer
       const pointerObserver = pointerObservable.add((event) => {
-          if (event.type === flock.BABYLON.PointerEventTypes.POINTERPICK) {
-              if (gizmoManager.attachedMesh) {
-                  gizmoManager.attachedMesh.showBoundingBox = false;
-                  blockKey = findParentWithBlockId(gizmoManager.attachedMesh).blockKey;
-              }
-              const pickedMesh = event.pickInfo.pickedMesh;
-
-              if (pickedMesh && pickedMesh.name !== "ground") {
-                  // Assuming 'mesh' is your Babylon.js mesh object
-                  const position = pickedMesh.getAbsolutePosition();
-
-                  // Round the coordinates to 2 decimal places
-                  const roundedPosition = new BABYLON.Vector3(
-                      parseFloat(position.x.toFixed(2)),
-                      parseFloat(position.y.toFixed(2)),
-                      parseFloat(position.z.toFixed(2))
-                  );
-                  flock.printText("Position: " + roundedPosition, 30, "black");
-
-                  // Attach the gizmo to the selected mesh
-                  gizmoManager.attachToMesh(pickedMesh);
-
-                  // Show bounding box for the selected mesh
-                  pickedMesh.showBoundingBox = true;
-              } else {
-                  if(pickedMesh && pickedMesh.name === "ground"){
-                      const position = event.pickInfo.pickedPoint;
-
-                      // Round the coordinates to 2 decimal places
-                      const roundedPosition = new BABYLON.Vector3(
-                          parseFloat(position.x.toFixed(2)),
-                          parseFloat(position.y.toFixed(2)),
-                          parseFloat(position.z.toFixed(2))
-                      );
-                      flock.printText("Position: " + roundedPosition, 30, "black");            
-                  }
-
-                  // Deselect if no mesh is picked
-                  if (gizmoManager.attachedMesh) {
-                      gizmoManager.attachedMesh.showBoundingBox = false;
-                      gizmoManager.attachToMesh(null); // Detach the gizmo
-                  }
-              }
-
-pointerObservable.remove(pointerObserver);
+        if (event.type === flock.BABYLON.PointerEventTypes.POINTERPICK) {
+          if (gizmoManager.attachedMesh) {
+            gizmoManager.attachedMesh.showBoundingBox = false;
+            blockKey = findParentWithBlockId(
+              gizmoManager.attachedMesh,
+            ).blockKey;
           }
+          const pickedMesh = event.pickInfo.pickedMesh;
+
+          if (pickedMesh && pickedMesh.name !== "ground") {
+            // Assuming 'mesh' is your Babylon.js mesh object
+            const position = pickedMesh.getAbsolutePosition();
+
+            // Round the coordinates to 2 decimal places
+            const roundedPosition = new BABYLON.Vector3(
+              parseFloat(position.x.toFixed(2)),
+              parseFloat(position.y.toFixed(2)),
+              parseFloat(position.z.toFixed(2)),
+            );
+            flock.printText("Position: " + roundedPosition, 30, "black");
+
+            // Attach the gizmo to the selected mesh
+            gizmoManager.attachToMesh(pickedMesh);
+
+            // Show bounding box for the selected mesh
+            pickedMesh.showBoundingBox = true;
+          } else {
+            if (pickedMesh && pickedMesh.name === "ground") {
+              const position = event.pickInfo.pickedPoint;
+
+              // Round the coordinates to 2 decimal places
+              const roundedPosition = new BABYLON.Vector3(
+                parseFloat(position.x.toFixed(2)),
+                parseFloat(position.y.toFixed(2)),
+                parseFloat(position.z.toFixed(2)),
+              );
+              flock.printText("Position: " + roundedPosition, 30, "black");
+            }
+
+            // Deselect if no mesh is picked
+            if (gizmoManager.attachedMesh) {
+              gizmoManager.attachedMesh.showBoundingBox = false;
+              gizmoManager.attachToMesh(null); // Detach the gizmo
+            }
+          }
+
+          pointerObservable.remove(pointerObserver);
+        }
       });
 
       break;
@@ -2115,9 +2117,8 @@ pointerObservable.remove(pointerObserver);
       });
 
       break;
-      case "scale":
 
-      case "scale":
+    case "scale":
       gizmoManager.scaleGizmoEnabled = true;
       gizmoManager.gizmos.scaleGizmo.xGizmo._coloredMaterial.diffuseColor =
         blueColor;
@@ -2125,6 +2126,8 @@ pointerObservable.remove(pointerObserver);
         greenColor;
       gizmoManager.gizmos.scaleGizmo.zGizmo._coloredMaterial.diffuseColor =
         orangeColor;
+
+      gizmoManager.gizmos.scaleGizmo.sensitivity = 4;
       gizmoManager.gizmos.scaleGizmo.onDragStartObservable.add(function () {
         const mesh = gizmoManager.attachedMesh;
         const motionType = mesh.physics?.getMotionType();
@@ -2155,80 +2158,128 @@ pointerObservable.remove(pointerObserver);
           return;
         }
 
-        if (!block.getInput("DO")) {
-          block
-            .appendStatementInput("DO")
-            .setCheck(null)
-            .appendField("then do");
-        }
+        console.log("Block type", block.type);
 
-        // Check if the 'scale' block already exists in the 'DO' section
-        let scaleBlock = null;
-        let modelVariable = block.getFieldValue("ID_VAR");
-        const statementConnection = block.getInput("DO").connection;
-        if (statementConnection && statementConnection.targetBlock()) {
-          let currentBlock = statementConnection.targetBlock();
-          while (currentBlock) {
-            if (currentBlock.type === "scale") {
-              const modelField = currentBlock.getFieldValue("BLOCK_NAME");
-              if (modelField === modelVariable) {
-                scaleBlock = currentBlock;
-                break;
+        switch (block.type) {
+          case "create_box":
+            try {
+              block
+                .getInput("WIDTH")
+                .connection.targetBlock()
+                .setFieldValue(
+                  String(Math.round(mesh.scaling.x * 10) / 10),
+                  "NUM",
+                );
+
+              block
+                .getInput("HEIGHT")
+                .connection.targetBlock()
+                .setFieldValue(
+                  String(Math.round(mesh.scaling.y * 10) / 10),
+                  "NUM",
+                );
+
+              block
+                .getInput("DEPTH")
+                .connection.targetBlock()
+                .setFieldValue(
+                  String(Math.round(mesh.scaling.z * 10) / 10),
+                  "NUM",
+                );
+            } catch (e) {}
+            break;
+
+          case "create_capsule":
+            break;
+
+          case "create_cylinder":
+            break;
+
+          case "create_sphere":
+            break;
+
+          case "create_plane":
+            break;
+
+          default:
+            console.log("Need to handle scaling");
+            /*
+            if (!block.getInput("DO")) {
+              block
+                .appendStatementInput("DO")
+                .setCheck(null)
+                .appendField("then do");
+            }
+
+            // Check if the 'scale' block already exists in the 'DO' section
+            let scaleBlock = null;
+            let modelVariable = block.getFieldValue("ID_VAR");
+            const statementConnection = block.getInput("DO").connection;
+            if (statementConnection && statementConnection.targetBlock()) {
+              let currentBlock = statementConnection.targetBlock();
+              while (currentBlock) {
+                if (currentBlock.type === "scale") {
+                  const modelField = currentBlock.getFieldValue("BLOCK_NAME");
+                  if (modelField === modelVariable) {
+                    scaleBlock = currentBlock;
+                    break;
+                  }
+                }
+                currentBlock = currentBlock.getNextBlock();
               }
             }
-            currentBlock = currentBlock.getNextBlock();
-          }
+
+            // Create a new 'scale' block if it doesn't exist
+            if (!scaleBlock) {
+              scaleBlock = Blockly.getMainWorkspace().newBlock("scale");
+              scaleBlock.setFieldValue(modelVariable, "BLOCK_NAME");
+              scaleBlock.initSvg();
+              scaleBlock.render();
+
+              // Add shadow blocks for X, Y, Z inputs
+              ["X", "Y", "Z"].forEach((axis) => {
+                const input = scaleBlock.getInput(axis);
+
+                // Create a shadow block
+                const shadowBlock =
+                  Blockly.getMainWorkspace().newBlock("math_number");
+                shadowBlock.setFieldValue("1", "NUM"); // Default value
+                shadowBlock.setShadow(true); // Mark as shadow
+                shadowBlock.initSvg(); // Initialize SVG
+                shadowBlock.render(); // Render the shadow block
+
+                // Connect the shadow block to the input
+                input.connection.connect(shadowBlock.outputConnection);
+              });
+
+              scaleBlock.render();
+
+              // Connect the new 'scale' block to the 'do' section
+              block
+                .getInput("DO")
+                .connection.connect(scaleBlock.previousConnection);
+            }
+
+            // Helper to update the value of the connected block or shadow block
+            function setScaleValue(inputName, value) {
+              const input = scaleBlock.getInput(inputName);
+              const connectedBlock = input.connection.targetBlock();
+
+              if (connectedBlock) {
+                connectedBlock.setFieldValue(String(value), "NUM");
+              }
+            }
+
+            // Set the scale values (X, Y, Z)
+            const scaleX = Math.round(mesh.scaling.x * 10) / 10;
+            const scaleY = Math.round(mesh.scaling.y * 10) / 10;
+            const scaleZ = Math.round(mesh.scaling.z * 10) / 10;
+
+            setScaleValue("X", scaleX);
+            setScaleValue("Y", scaleY);
+            setScaleValue("Z", scaleZ);
+            */
         }
-
-        // Create a new 'scale' block if it doesn't exist
-        if (!scaleBlock) {
-          scaleBlock = Blockly.getMainWorkspace().newBlock("scale");
-          scaleBlock.setFieldValue(modelVariable, "BLOCK_NAME");
-          scaleBlock.initSvg();
-          scaleBlock.render();
-
-          // Add shadow blocks for X, Y, Z inputs
-          ["X", "Y", "Z"].forEach((axis) => {
-            const input = scaleBlock.getInput(axis);
-
-            // Create a shadow block
-            const shadowBlock =
-              Blockly.getMainWorkspace().newBlock("math_number");
-            shadowBlock.setFieldValue("1", "NUM"); // Default value
-            shadowBlock.setShadow(true); // Mark as shadow
-            shadowBlock.initSvg(); // Initialize SVG
-            shadowBlock.render(); // Render the shadow block
-
-            // Connect the shadow block to the input
-            input.connection.connect(shadowBlock.outputConnection);
-          });
-
-          scaleBlock.render();
-
-          // Connect the new 'scale' block to the 'do' section
-          block
-            .getInput("DO")
-            .connection.connect(scaleBlock.previousConnection);
-        }
-
-        // Helper to update the value of the connected block or shadow block
-        function setScaleValue(inputName, value) {
-          const input = scaleBlock.getInput(inputName);
-          const connectedBlock = input.connection.targetBlock();
-
-          if (connectedBlock) {
-            connectedBlock.setFieldValue(String(value), "NUM");
-          }
-        }
-
-        // Set the scale values (X, Y, Z)
-        const scaleX = Math.round(mesh.scaling.x * 10) / 10;
-        const scaleY = Math.round(mesh.scaling.y * 10) / 10;
-        const scaleZ = Math.round(mesh.scaling.z * 10) / 10;
-
-        setScaleValue("X", scaleX);
-        setScaleValue("Y", scaleY);
-        setScaleValue("Z", scaleZ);
       });
 
       break;
