@@ -722,11 +722,13 @@ function createMeshOnCanvas(block) {
 }
 
 function setAbsoluteSize(mesh, width, height, depth) {
+
   const boundingInfo = mesh.getBoundingInfo();
   const originalSize = boundingInfo.boundingBox.extendSize;
 
   mesh.scaling.x = width / (originalSize.x * 2);
   mesh.scaling.y = height / (originalSize.y * 2);
+
   mesh.scaling.z = depth === 0 ? 1 : depth / (originalSize.z * 2);
 
   let shapeType = null;
@@ -2147,139 +2149,89 @@ function toggleGizmo(gizmoType) {
       });
 
       gizmoManager.gizmos.scaleGizmo.onDragEndObservable.add(function () {
-        const mesh = gizmoManager.attachedMesh;
-        if (mesh.savedMotionType) {
-          mesh.physics.setMotionType(mesh.savedMotionType);
-        }
+          const mesh = gizmoManager.attachedMesh;
+          if (mesh.savedMotionType) {
+              mesh.physics.setMotionType(mesh.savedMotionType);
+          }
 
-        const block = meshMap[mesh.blockKey];
+          const block = meshMap[mesh.blockKey];
 
-        if (!block) {
-          return;
-        }
+          if (!block) {
+              return;
+          }
 
-        console.log("Block type", block.type);
+          console.log("Block type", block.type);
 
-        switch (block.type) {
-          case "create_box":
-            try {
-              block
-                .getInput("WIDTH")
-                .connection.targetBlock()
-                .setFieldValue(
-                  String(Math.round(mesh.scaling.x * 10) / 10),
-                  "NUM",
-                );
+          try {
+            // Get the original dimensions of the mesh before scaling
+            const originalSize = mesh.getBoundingInfo().boundingBox.extendSize.scale(2);
 
-              block
-                .getInput("HEIGHT")
-                .connection.targetBlock()
-                .setFieldValue(
-                  String(Math.round(mesh.scaling.y * 10) / 10),
-                  "NUM",
-                );
+            // Compute the new scaled dimensions
+            const newWidth = Math.round(originalSize.x * mesh.scaling.x * 10) / 10;
+            const newHeight = Math.round(originalSize.y * mesh.scaling.y * 10) / 10;
+            const newDepth = Math.round(originalSize.z * mesh.scaling.z * 10) / 10;
 
-              block
-                .getInput("DEPTH")
-                .connection.targetBlock()
-                .setFieldValue(
-                  String(Math.round(mesh.scaling.z * 10) / 10),
-                  "NUM",
-                );
-            } catch (e) {}
-            break;
+            // Common scale factors for radius-based shapes
+            const scaleX = mesh.scaling.x;
+            const scaleY = mesh.scaling.y;
+            const scaleZ = mesh.scaling.z;
 
-          case "create_capsule":
-            break;
-
-          case "create_cylinder":
-            break;
-
-          case "create_sphere":
-            break;
-
-          case "create_plane":
-            break;
-
-          default:
-            console.log("Need to handle scaling");
-            /*
-            if (!block.getInput("DO")) {
-              block
-                .appendStatementInput("DO")
-                .setCheck(null)
-                .appendField("then do");
-            }
-
-            // Check if the 'scale' block already exists in the 'DO' section
-            let scaleBlock = null;
-            let modelVariable = block.getFieldValue("ID_VAR");
-            const statementConnection = block.getInput("DO").connection;
-            if (statementConnection && statementConnection.targetBlock()) {
-              let currentBlock = statementConnection.targetBlock();
-              while (currentBlock) {
-                if (currentBlock.type === "scale") {
-                  const modelField = currentBlock.getFieldValue("BLOCK_NAME");
-                  if (modelField === modelVariable) {
-                    scaleBlock = currentBlock;
+            switch (block.type) {
+                case "create_plane":
+                    block.getInput("WIDTH").connection.targetBlock().setFieldValue(String(newWidth), "NUM");
+                    block.getInput("HEIGHT").connection.targetBlock().setFieldValue(String(newHeight), "NUM");
                     break;
-                  }
-                }
-                currentBlock = currentBlock.getNextBlock();
-              }
+
+                case "create_box":
+                    block.getInput("WIDTH").connection.targetBlock().setFieldValue(String(newWidth), "NUM");
+                    block.getInput("HEIGHT").connection.targetBlock().setFieldValue(String(newHeight), "NUM");
+                    block.getInput("DEPTH").connection.targetBlock().setFieldValue(String(newDepth), "NUM");
+                    break;
+
+                case "create_capsule":
+                  /*  const currentRadius = parseFloat(
+                        block.getInput("RADIUS").connection.targetBlock().getFieldValue("NUM")
+                    );
+                    const currentHeight = parseFloat(
+                        block.getInput("HEIGHT").connection.targetBlock().getFieldValue("NUM")
+                    );
+
+                    const newRadiusX = Math.round(currentRadius * scaleX * 10) / 10;
+                    const newRadiusZ = Math.round(currentRadius * scaleZ * 10) / 10;
+                    const newCapsuleHeight = Math.round(currentHeight * scaleY * 10) / 10;
+
+                    block.getInput("RADIUS").connection.targetBlock().setFieldValue(String(newRadiusX), "NUM");
+                    block.getInput("RADIUS").connection.targetBlock().setFieldValue(String(newRadiusZ), "NUM");
+                    block.getInput("HEIGHT").connection.targetBlock().setFieldValue(String(newCapsuleHeight), "NUM");*/
+                    break;
+
+                case "create_cylinder":
+/*                    const currentTopDiameter = parseFloat(
+                        block.getInput("DIAMETER_TOP").connection.targetBlock().getFieldValue("NUM")
+                    );
+                    const currentBottomDiameter = parseFloat(
+                        block.getInput("DIAMETER_BOTTOM").connection.targetBlock().getFieldValue("NUM")
+                    );
+
+                    const newTopDiameter = Math.round(currentTopDiameter * scaleX * 10) / 10;
+                    const newBottomDiameter = Math.round(currentBottomDiameter * scaleX * 10) / 10;
+                    const newCylinderHeight = Math.round(newHeight * 10) / 10;
+
+                    block.getInput("DIAMETER_TOP").connection.targetBlock().setFieldValue(String(newTopDiameter), "NUM");
+                    block.getInput("DIAMETER_BOTTOM").connection.targetBlock().setFieldValue(String(newBottomDiameter), "NUM");
+                    block.getInput("HEIGHT").connection.targetBlock().setFieldValue(String(newCylinderHeight), "NUM");*/
+                    break;
+
+                case "create_sphere":
+                    block.getInput("DIAMETER_X").connection.targetBlock().setFieldValue(String(newWidth), "NUM");
+                    block.getInput("DIAMETER_Y").connection.targetBlock().setFieldValue(String(newHeight), "NUM");
+                    block.getInput("DIAMETER_Z").connection.targetBlock().setFieldValue(String(newDepth), "NUM");
+                    break;
             }
+          } catch (e) {
+            console.error("Error updating block values:", e);
+          }
 
-            // Create a new 'scale' block if it doesn't exist
-            if (!scaleBlock) {
-              scaleBlock = Blockly.getMainWorkspace().newBlock("scale");
-              scaleBlock.setFieldValue(modelVariable, "BLOCK_NAME");
-              scaleBlock.initSvg();
-              scaleBlock.render();
-
-              // Add shadow blocks for X, Y, Z inputs
-              ["X", "Y", "Z"].forEach((axis) => {
-                const input = scaleBlock.getInput(axis);
-
-                // Create a shadow block
-                const shadowBlock =
-                  Blockly.getMainWorkspace().newBlock("math_number");
-                shadowBlock.setFieldValue("1", "NUM"); // Default value
-                shadowBlock.setShadow(true); // Mark as shadow
-                shadowBlock.initSvg(); // Initialize SVG
-                shadowBlock.render(); // Render the shadow block
-
-                // Connect the shadow block to the input
-                input.connection.connect(shadowBlock.outputConnection);
-              });
-
-              scaleBlock.render();
-
-              // Connect the new 'scale' block to the 'do' section
-              block
-                .getInput("DO")
-                .connection.connect(scaleBlock.previousConnection);
-            }
-
-            // Helper to update the value of the connected block or shadow block
-            function setScaleValue(inputName, value) {
-              const input = scaleBlock.getInput(inputName);
-              const connectedBlock = input.connection.targetBlock();
-
-              if (connectedBlock) {
-                connectedBlock.setFieldValue(String(value), "NUM");
-              }
-            }
-
-            // Set the scale values (X, Y, Z)
-            const scaleX = Math.round(mesh.scaling.x * 10) / 10;
-            const scaleY = Math.round(mesh.scaling.y * 10) / 10;
-            const scaleZ = Math.round(mesh.scaling.z * 10) / 10;
-
-            setScaleValue("X", scaleX);
-            setScaleValue("Y", scaleY);
-            setScaleValue("Z", scaleZ);
-            */
-        }
       });
 
       break;
