@@ -653,18 +653,38 @@ export function defineGenerators() {
 
 	javascriptGenerator.forBlock["ui_button"] = function (block) {
 		// Retrieve values from the block
-		const text = javascriptGenerator.valueToCode(block, "TEXT", javascriptGenerator.ORDER_ATOMIC);
-		const x = javascriptGenerator.valueToCode(block, "X", javascriptGenerator.ORDER_ATOMIC);
-		const y = javascriptGenerator.valueToCode(block, "Y", javascriptGenerator.ORDER_ATOMIC);
+		const text = javascriptGenerator.valueToCode(
+			block,
+			"TEXT",
+			javascriptGenerator.ORDER_ATOMIC,
+		);
+		const x = javascriptGenerator.valueToCode(
+			block,
+			"X",
+			javascriptGenerator.ORDER_ATOMIC,
+		);
+		const y = javascriptGenerator.valueToCode(
+			block,
+			"Y",
+			javascriptGenerator.ORDER_ATOMIC,
+		);
 		const width = `"${block.getFieldValue("SIZE")}"`; // Fix: Use "SIZE" instead of "WIDTH"
 		const textSize = `"${block.getFieldValue("TEXT_SIZE")}"`; // Fix: Add text size support
-		const textColor = javascriptGenerator.valueToCode(block, "TEXT_COLOR", javascriptGenerator.ORDER_ATOMIC);
-		const backgroundColor = javascriptGenerator.valueToCode(block, "BACKGROUND_COLOR", javascriptGenerator.ORDER_ATOMIC);
+		const textColor = javascriptGenerator.valueToCode(
+			block,
+			"TEXT_COLOR",
+			javascriptGenerator.ORDER_ATOMIC,
+		);
+		const backgroundColor = javascriptGenerator.valueToCode(
+			block,
+			"BACKGROUND_COLOR",
+			javascriptGenerator.ORDER_ATOMIC,
+		);
 
 		// Get the button variable
 		const buttonVar = javascriptGenerator.nameDB_.getName(
 			block.getFieldValue("BUTTON_VAR"),
-			Blockly.VARIABLE_CATEGORY_NAME
+			Blockly.VARIABLE_CATEGORY_NAME,
 		);
 
 		const buttonId = `Button_${generateUniqueId()}`;
@@ -673,7 +693,6 @@ export function defineGenerators() {
 		const code = `${buttonVar} = UIButton(${text}, ${x}, ${y}, ${width}, ${textSize}, ${textColor}, ${backgroundColor}, "${buttonId}");\n`;
 		return code;
 	};
-
 
 	javascriptGenerator.forBlock["say"] = function (block) {
 		const text =
@@ -862,7 +881,6 @@ export function defineGenerators() {
 	};
 
 	javascriptGenerator.forBlock["load_multi_object"] = function (block) {
-
 		const modelName = block.getFieldValue("MODELS");
 		const scale = getFieldValue(block, "SCALE", "1");
 		const x = getFieldValue(block, "X", "0");
@@ -1219,7 +1237,7 @@ export function defineGenerators() {
 
 	javascriptGenerator.forBlock["create_capsule"] = function (block) {
 		const color = getFieldValue(block, "COLOR", "#9932CC");
-		const radius = getFieldValue(block, "RADIUS", "1");
+		const diameter = getFieldValue(block, "DIAMETER", "1");
 		const height = getFieldValue(block, "HEIGHT", "2");
 
 		const positionSource = getPositionTuple(block);
@@ -1227,7 +1245,7 @@ export function defineGenerators() {
 		return createMesh(
 			block,
 			"Capsule",
-			[color, radius, height],
+			[color, diameter, height],
 			positionSource,
 			"capsule",
 		);
@@ -1838,15 +1856,19 @@ export function defineGenerators() {
 		return `createMap("${mapName}", ${color}, "${texture}");\n`;
 	};
 
-	javascriptGenerator.forBlock["create_map"] = function(block) {
-	  const mapName = block.getFieldValue("MAP_NAME");
-	  const material = javascriptGenerator.valueToCode(block, "MATERIAL", javascriptGenerator.ORDER_NONE) || "null";
-	  const meshId = "ground";
-	  meshMap[meshId] = block;
-	  meshBlockIdMap[meshId] = block.id;
-	  return `createMap("${mapName}", ${material});\n`;
+	javascriptGenerator.forBlock["create_map"] = function (block) {
+		const mapName = block.getFieldValue("MAP_NAME");
+		const material =
+			javascriptGenerator.valueToCode(
+				block,
+				"MATERIAL",
+				javascriptGenerator.ORDER_NONE,
+			) || "null";
+		const meshId = "ground";
+		meshMap[meshId] = block;
+		meshBlockIdMap[meshId] = block.id;
+		return `createMap("${mapName}", ${material});\n`;
 	};
-
 
 	javascriptGenerator.forBlock["move_forward"] = function (block) {
 		const modelName = javascriptGenerator.nameDB_.getName(
@@ -2666,7 +2688,7 @@ export function defineGenerators() {
 		if (defvars.length) {
 			let defvarsmesh = defvars.map(function (name) {
 				return `let ${name} = '${name}';`;
-			});			
+			});
 			javascriptGenerator.definitions_["variables"] =
 				`// Made with Flock XR\n` + defvarsmesh.join(" ") + "\n";
 		}
@@ -2901,7 +2923,6 @@ javascriptGenerator.forBlock["microbit_input"] = function (block) {
 
 	return `whenKeyEvent("${event}", async () => {${statements_do}});\n`;
 };
-
 
 /*javascriptGenerator.forBlock["text_join"] = function (
   block,

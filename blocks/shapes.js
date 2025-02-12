@@ -286,9 +286,9 @@ export function defineShapeBlocks() {
 	  type: "create_capsule",
 	  variableNamePrefix: "capsule",
 	  message0:
-		"set %1 to capsule %2 radius %3 height %4 \nat x %5 y %6 z %7",
+		"set %1 to capsule %2 diameter %3 height %4 \nat x %5 y %6 z %7",
 	  additionalArgs0: [
-		{ type: "input_value", name: "RADIUS", check: "Number" },
+		{ type: "input_value", name: "DIAMETER", check: "Number" },
 		{ type: "input_value", name: "HEIGHT", check: "Number" },
 	  ],
 	  tooltip: "Creates a colored capsule with specified dimensions and position.\nKeyword: capsule",

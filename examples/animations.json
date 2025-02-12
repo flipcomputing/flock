@@ -1,5 +1,5 @@
 {
-  "blocks": {
+  "blocks": {c
     "languageVersion": 0,
     "blocks": [
       {
@@ -1113,12 +1113,12 @@
                     }
                   }
                 },
-                "RADIUS": {
+                "DIAMETER": {
                   "shadow": {
                     "type": "math_number",
                     "id": "zThny:ss08JyR;PxcIr4",
                     "fields": {
-                      "NUM": 0.5
+                      "NUM": 1
                     }
                   }
                 },

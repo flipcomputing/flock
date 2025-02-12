@@ -3328,10 +3328,10 @@ export const flock = {
 			uvs[i * 2] = u * (circumference / texturePhysicalSize); // Normalize U-axis for physical size
 			uvs[i * 2 + 1] = v; // V-axis remains proportional to height
 		}
-
 		mesh.setVerticesData(BABYLON.VertexBuffer.UVKind, uvs, true);
 	},
-	createCapsule(capsuleId, color, radius, height, position, alpha = 1) {
+	createCapsule(capsuleId, color, diameter, height, position, alpha = 1) {
+		let radius = diameter / 2;
 		let blockKey = capsuleId;
 
 		if (capsuleId.includes("__")) {

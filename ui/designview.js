@@ -215,7 +215,7 @@ export function updateMeshFromBlock(mesh, block) {
     diameterBottom,
     sides,
     capsuleHeight,
-    radius,
+    diameter,
     planeWidth,
     planeHeight;
   // Shape-specific updates based on the block type
@@ -365,9 +365,9 @@ export function updateMeshFromBlock(mesh, block) {
       break;
 
     case "create_capsule":
-      // Retrieve radius and height from connected blocks
-      radius = block
-        .getInput("RADIUS")
+      // Retrieve diameter and height from connected blocks
+      diameter = block
+        .getInput("DIAMETER")
         .connection.targetBlock()
         .getFieldValue("NUM");
       capsuleHeight = block
@@ -376,7 +376,7 @@ export function updateMeshFromBlock(mesh, block) {
         .getFieldValue("NUM");
 
       // Set the absolute size of the capsule
-      setAbsoluteSize(mesh, radius * 2, capsuleHeight, radius * 2);
+      setAbsoluteSize(mesh, diameter, capsuleHeight, diameter);
       break;
 
     case "create_plane":
@@ -435,7 +435,7 @@ function createMeshOnCanvas(block) {
     diameterTop,
     diameterBottom,
     capsuleHeight,
-    capsuleRadius,
+    capsuleDiameter,
     planeWidth,
     planeHeight;
   // Handle block types
@@ -667,8 +667,8 @@ function createMeshOnCanvas(block) {
         .getInput("COLOR")
         .connection.targetBlock()
         .getFieldValue("COLOR");
-      capsuleRadius = block
-        .getInput("RADIUS")
+      capsuleDiameter = block
+        .getInput("DIAMETER")
         .connection.targetBlock()
         .getFieldValue("NUM");
       capsuleHeight = block
@@ -679,7 +679,7 @@ function createMeshOnCanvas(block) {
       newMesh = flock.createCapsule(
         `capsule__${block.id}`,
         color,
-        capsuleRadius,
+        capsuleDiameter,
         capsuleHeight,
         [position.x, position.y, position.z],
       );
@@ -722,7 +722,6 @@ function createMeshOnCanvas(block) {
 }
 
 function setAbsoluteSize(mesh, width, height, depth) {
-
   const boundingInfo = mesh.getBoundingInfo();
   const originalSize = boundingInfo.boundingBox.extendSize;
 
@@ -737,7 +736,7 @@ function setAbsoluteSize(mesh, width, height, depth) {
 
   if (mesh.physics && shapeType) {
     const shape = mesh.physics.shape;
-    let newShape, diameterBottom, startPoint, endPoint, radius;
+    let newShape, diameterBottom, startPoint, endPoint, diameter;
 
     // Create the new physics shape based on the type
     switch (shapeType) {
@@ -772,13 +771,9 @@ function setAbsoluteSize(mesh, width, height, depth) {
         break;
 
       case "Capsule":
-        radius = Math.min(width, depth) / 2;
-        newShape = new flock.BABYLON.PhysicsShapeCapsule(
-          new flock.BABYLON.Vector3(0, 0, 0),
-          radius, // Radius of the spherical ends
-          height / 2, // Half the height of the cylindrical part
-          mesh.getScene(),
-        );
+        diameter = Math.min(width, depth);
+        console.log("Physics shape", diameter), height;
+        newShape = flock.createCapsuleFromBoundingBox(mesh, mesh.getScene());
         break;
 
       default:
@@ -961,7 +956,7 @@ function addShapeToWorkspace(shapeType, position) {
     diameterX,
     diameterY,
     diameterZ,
-    radius,
+    diameter,
     diameterTop,
     diameterBottom,
     sides;
@@ -1005,10 +1000,10 @@ function addShapeToWorkspace(shapeType, position) {
 
     case "create_capsule":
       color = flock.randomColour();
-      radius = 0.5;
+      diameter = 1;
       height = 2;
       addShadowBlock(block, "COLOR", "colour", color);
-      addShadowBlock(block, "RADIUS", "math_number", radius);
+      addShadowBlock(block, "DIAMETER", "math_number", diameter);
       addShadowBlock(block, "HEIGHT", "math_number", height);
       break;
 
@@ -2149,47 +2144,67 @@ function toggleGizmo(gizmoType) {
       });
 
       gizmoManager.gizmos.scaleGizmo.onDragEndObservable.add(function () {
-          const mesh = gizmoManager.attachedMesh;
-          if (mesh.savedMotionType) {
-              mesh.physics.setMotionType(mesh.savedMotionType);
-          }
+        const mesh = gizmoManager.attachedMesh;
+        if (mesh.savedMotionType) {
+          mesh.physics.setMotionType(mesh.savedMotionType);
+        }
 
-          const block = meshMap[mesh.blockKey];
+        const block = meshMap[mesh.blockKey];
 
-          if (!block) {
-              return;
-          }
+        if (!block) {
+          return;
+        }
 
-          console.log("Block type", block.type);
+        console.log("Block type", block.type);
 
-          try {
-            // Get the original dimensions of the mesh before scaling
-            const originalSize = mesh.getBoundingInfo().boundingBox.extendSize.scale(2);
+        try {
+          // Get the original dimensions of the mesh before scaling
+          const originalSize = mesh
+            .getBoundingInfo()
+            .boundingBox.extendSize.scale(2);
 
-            // Compute the new scaled dimensions
-            const newWidth = Math.round(originalSize.x * mesh.scaling.x * 10) / 10;
-            const newHeight = Math.round(originalSize.y * mesh.scaling.y * 10) / 10;
-            const newDepth = Math.round(originalSize.z * mesh.scaling.z * 10) / 10;
+          // Compute the new scaled dimensions
+          const newWidth =
+            Math.round(originalSize.x * mesh.scaling.x * 10) / 10;
+          const newHeight =
+            Math.round(originalSize.y * mesh.scaling.y * 10) / 10;
+          const newDepth =
+            Math.round(originalSize.z * mesh.scaling.z * 10) / 10;
 
-            // Common scale factors for radius-based shapes
-            const scaleX = mesh.scaling.x;
-            const scaleY = mesh.scaling.y;
-            const scaleZ = mesh.scaling.z;
+          // Common scale factors for radius-based shapes
+          const scaleX = mesh.scaling.x;
+          const scaleY = mesh.scaling.y;
+          const scaleZ = mesh.scaling.z;
 
-            switch (block.type) {
-                case "create_plane":
-                    block.getInput("WIDTH").connection.targetBlock().setFieldValue(String(newWidth), "NUM");
-                    block.getInput("HEIGHT").connection.targetBlock().setFieldValue(String(newHeight), "NUM");
-                    break;
+          switch (block.type) {
+            case "create_plane":
+              block
+                .getInput("WIDTH")
+                .connection.targetBlock()
+                .setFieldValue(String(newWidth), "NUM");
+              block
+                .getInput("HEIGHT")
+                .connection.targetBlock()
+                .setFieldValue(String(newHeight), "NUM");
+              break;
 
-                case "create_box":
-                    block.getInput("WIDTH").connection.targetBlock().setFieldValue(String(newWidth), "NUM");
-                    block.getInput("HEIGHT").connection.targetBlock().setFieldValue(String(newHeight), "NUM");
-                    block.getInput("DEPTH").connection.targetBlock().setFieldValue(String(newDepth), "NUM");
-                    break;
+            case "create_box":
+              block
+                .getInput("WIDTH")
+                .connection.targetBlock()
+                .setFieldValue(String(newWidth), "NUM");
+              block
+                .getInput("HEIGHT")
+                .connection.targetBlock()
+                .setFieldValue(String(newHeight), "NUM");
+              block
+                .getInput("DEPTH")
+                .connection.targetBlock()
+                .setFieldValue(String(newDepth), "NUM");
+              break;
 
-                case "create_capsule":
-                  /*  const currentRadius = parseFloat(
+            case "create_capsule":
+              /*  const currentRadius = parseFloat(
                         block.getInput("RADIUS").connection.targetBlock().getFieldValue("NUM")
                     );
                     const currentHeight = parseFloat(
@@ -2203,60 +2218,103 @@ function toggleGizmo(gizmoType) {
                     block.getInput("RADIUS").connection.targetBlock().setFieldValue(String(newRadiusX), "NUM");
                     block.getInput("RADIUS").connection.targetBlock().setFieldValue(String(newRadiusZ), "NUM");
                     block.getInput("HEIGHT").connection.targetBlock().setFieldValue(String(newCapsuleHeight), "NUM");*/
-                    break;
+              break;
 
-                case "create_cylinder":
-                const boundingInfo = mesh.getBoundingInfo();
-                const originalSize = boundingInfo.boundingBox.extendSize; // No scaling applied yet
+            case "create_cylinder":
+              const boundingInfo = mesh.getBoundingInfo();
+              const originalSize = boundingInfo.boundingBox.extendSize; // No scaling applied yet
 
-                // Compute the correctly scaled dimensions using the reverse of setAbsoluteSize()
-                let newTopDiameter = mesh.scaling.x * originalSize.x * 2;
-                let newBottomDiameter = mesh.scaling.z * originalSize.z * 2;
-                let newCylinderHeight = mesh.scaling.y * originalSize.y * 2;
+              // Compute the correctly scaled dimensions using the reverse of setAbsoluteSize()
+              let newTopDiameter = mesh.scaling.x * originalSize.x * 2;
+              let newBottomDiameter = mesh.scaling.z * originalSize.z * 2;
+              let newCylinderHeight = mesh.scaling.y * originalSize.y * 2;
 
-                // Detect which axis was scaled
-                const xChanged = Math.abs(mesh.scaling.x - 1) > 0.01;
-                const yChanged = Math.abs(mesh.scaling.y - 1) > 0.01;
-                const zChanged = Math.abs(mesh.scaling.z - 1) > 0.01;
+              // Detect which axis was scaled
+              const xChanged = Math.abs(mesh.scaling.x - 1) > 0.01;
+              const yChanged = Math.abs(mesh.scaling.y - 1) > 0.01;
+              const zChanged = Math.abs(mesh.scaling.z - 1) > 0.01;
 
-                // If only Y changed, keep X/Z the same
-                if (yChanged && !xChanged && !zChanged) {
-                    newTopDiameter = parseFloat(block.getInput("DIAMETER_TOP").connection.targetBlock().getFieldValue("NUM"));
-                    newBottomDiameter = parseFloat(block.getInput("DIAMETER_BOTTOM").connection.targetBlock().getFieldValue("NUM"));
-                }
+              // If only Y changed, keep X/Z the same
+              if (yChanged && !xChanged && !zChanged) {
+                newTopDiameter = parseFloat(
+                  block
+                    .getInput("DIAMETER_TOP")
+                    .connection.targetBlock()
+                    .getFieldValue("NUM"),
+                );
+                newBottomDiameter = parseFloat(
+                  block
+                    .getInput("DIAMETER_BOTTOM")
+                    .connection.targetBlock()
+                    .getFieldValue("NUM"),
+                );
+              }
 
-                // If X/Z changed but the diameters started the same, keep them equal
-                if (xChanged || zChanged) {
-                    const uniformScale = (mesh.scaling.x + mesh.scaling.z) / 2;
-                    newTopDiameter = newBottomDiameter = uniformScale * originalSize.x * 2;
-                }
+              // If X/Z changed but the diameters started the same, keep them equal
+              if (xChanged || zChanged) {
+                const uniformScale = (mesh.scaling.x + mesh.scaling.z) / 2;
+                newTopDiameter = newBottomDiameter =
+                  uniformScale * originalSize.x * 2;
+              }
 
-                // Update the Blockly block values
-                block.getInput("DIAMETER_TOP").connection.targetBlock().setFieldValue(String(Math.round(newTopDiameter * 10) / 10), "NUM");
-                block.getInput("DIAMETER_BOTTOM").connection.targetBlock().setFieldValue(String(Math.round(newBottomDiameter * 10) / 10), "NUM");
-                block.getInput("HEIGHT").connection.targetBlock().setFieldValue(String(Math.round(newCylinderHeight * 10) / 10), "NUM");
+              // Update the Blockly block values
+              block
+                .getInput("DIAMETER_TOP")
+                .connection.targetBlock()
+                .setFieldValue(
+                  String(Math.round(newTopDiameter * 10) / 10),
+                  "NUM",
+                );
+              block
+                .getInput("DIAMETER_BOTTOM")
+                .connection.targetBlock()
+                .setFieldValue(
+                  String(Math.round(newBottomDiameter * 10) / 10),
+                  "NUM",
+                );
+              block
+                .getInput("HEIGHT")
+                .connection.targetBlock()
+                .setFieldValue(
+                  String(Math.round(newCylinderHeight * 10) / 10),
+                  "NUM",
+                );
 
-                // Debugging logs
-                console.log("Scaling Gizmo Adjustments - Cylinder:");
-                console.log("New Top Diameter:", newTopDiameter);
-                console.log("New Bottom Diameter:", newBottomDiameter);
-                console.log("New Cylinder Height:", newCylinderHeight);
-                console.log("Scaling Factors:", mesh.scaling);
-                console.log("Original Size:", originalSize);
-                console.log("X Changed:", xChanged, "Y Changed:", yChanged, "Z Changed:", zChanged);
-                break;
+              // Debugging logs
+              console.log("Scaling Gizmo Adjustments - Cylinder:");
+              console.log("New Top Diameter:", newTopDiameter);
+              console.log("New Bottom Diameter:", newBottomDiameter);
+              console.log("New Cylinder Height:", newCylinderHeight);
+              console.log("Scaling Factors:", mesh.scaling);
+              console.log("Original Size:", originalSize);
+              console.log(
+                "X Changed:",
+                xChanged,
+                "Y Changed:",
+                yChanged,
+                "Z Changed:",
+                zChanged,
+              );
+              break;
 
-
-                case "create_sphere":
-                    block.getInput("DIAMETER_X").connection.targetBlock().setFieldValue(String(newWidth), "NUM");
-                    block.getInput("DIAMETER_Y").connection.targetBlock().setFieldValue(String(newHeight), "NUM");
-                    block.getInput("DIAMETER_Z").connection.targetBlock().setFieldValue(String(newDepth), "NUM");
-                    break;
-            }
-          } catch (e) {
-            console.error("Error updating block values:", e);
+            case "create_sphere":
+              block
+                .getInput("DIAMETER_X")
+                .connection.targetBlock()
+                .setFieldValue(String(newWidth), "NUM");
+              block
+                .getInput("DIAMETER_Y")
+                .connection.targetBlock()
+                .setFieldValue(String(newHeight), "NUM");
+              block
+                .getInput("DIAMETER_Z")
+                .connection.targetBlock()
+                .setFieldValue(String(newDepth), "NUM");
+              break;
           }
-
+        } catch (e) {
+          console.error("Error updating block values:", e);
+        }
       });
 
       break;

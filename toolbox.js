@@ -561,11 +561,11 @@ const toolboxScene = {
 						},
 					},
 				},
-				RADIUS: {
+				DIAMETER: {
 					shadow: {
 						type: "math_number",
 						fields: {
-							NUM: 0.5,
+							NUM: 1,
 						},
 					},
 				},
