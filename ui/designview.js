@@ -1375,7 +1375,7 @@ function scrollModels(direction) {
 }
 
 function openAboutPage() {
-  window.open("https://github.com/flipcomputing/flock/", "_blank");
+  window.open("https://flockxr.com/", "_blank");
 }
 
 window.openAboutPage = openAboutPage;
