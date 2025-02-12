@@ -2206,21 +2206,46 @@ function toggleGizmo(gizmoType) {
                     break;
 
                 case "create_cylinder":
-/*                    const currentTopDiameter = parseFloat(
-                        block.getInput("DIAMETER_TOP").connection.targetBlock().getFieldValue("NUM")
-                    );
-                    const currentBottomDiameter = parseFloat(
-                        block.getInput("DIAMETER_BOTTOM").connection.targetBlock().getFieldValue("NUM")
-                    );
+                const boundingInfo = mesh.getBoundingInfo();
+                const originalSize = boundingInfo.boundingBox.extendSize; // No scaling applied yet
 
-                    const newTopDiameter = Math.round(currentTopDiameter * scaleX * 10) / 10;
-                    const newBottomDiameter = Math.round(currentBottomDiameter * scaleX * 10) / 10;
-                    const newCylinderHeight = Math.round(newHeight * 10) / 10;
+                // Compute the correctly scaled dimensions using the reverse of setAbsoluteSize()
+                let newTopDiameter = mesh.scaling.x * originalSize.x * 2;
+                let newBottomDiameter = mesh.scaling.z * originalSize.z * 2;
+                let newCylinderHeight = mesh.scaling.y * originalSize.y * 2;
 
-                    block.getInput("DIAMETER_TOP").connection.targetBlock().setFieldValue(String(newTopDiameter), "NUM");
-                    block.getInput("DIAMETER_BOTTOM").connection.targetBlock().setFieldValue(String(newBottomDiameter), "NUM");
-                    block.getInput("HEIGHT").connection.targetBlock().setFieldValue(String(newCylinderHeight), "NUM");*/
-                    break;
+                // Detect which axis was scaled
+                const xChanged = Math.abs(mesh.scaling.x - 1) > 0.01;
+                const yChanged = Math.abs(mesh.scaling.y - 1) > 0.01;
+                const zChanged = Math.abs(mesh.scaling.z - 1) > 0.01;
+
+                // If only Y changed, keep X/Z the same
+                if (yChanged && !xChanged && !zChanged) {
+                    newTopDiameter = parseFloat(block.getInput("DIAMETER_TOP").connection.targetBlock().getFieldValue("NUM"));
+                    newBottomDiameter = parseFloat(block.getInput("DIAMETER_BOTTOM").connection.targetBlock().getFieldValue("NUM"));
+                }
+
+                // If X/Z changed but the diameters started the same, keep them equal
+                if (xChanged || zChanged) {
+                    const uniformScale = (mesh.scaling.x + mesh.scaling.z) / 2;
+                    newTopDiameter = newBottomDiameter = uniformScale * originalSize.x * 2;
+                }
+
+                // Update the Blockly block values
+                block.getInput("DIAMETER_TOP").connection.targetBlock().setFieldValue(String(Math.round(newTopDiameter * 10) / 10), "NUM");
+                block.getInput("DIAMETER_BOTTOM").connection.targetBlock().setFieldValue(String(Math.round(newBottomDiameter * 10) / 10), "NUM");
+                block.getInput("HEIGHT").connection.targetBlock().setFieldValue(String(Math.round(newCylinderHeight * 10) / 10), "NUM");
+
+                // Debugging logs
+                console.log("Scaling Gizmo Adjustments - Cylinder:");
+                console.log("New Top Diameter:", newTopDiameter);
+                console.log("New Bottom Diameter:", newBottomDiameter);
+                console.log("New Cylinder Height:", newCylinderHeight);
+                console.log("Scaling Factors:", mesh.scaling);
+                console.log("Original Size:", originalSize);
+                console.log("X Changed:", xChanged, "Y Changed:", yChanged, "Z Changed:", zChanged);
+                break;
+
 
                 case "create_sphere":
                     block.getInput("DIAMETER_X").connection.targetBlock().setFieldValue(String(newWidth), "NUM");
