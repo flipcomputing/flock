@@ -1737,12 +1737,12 @@
                                             }
                                           }
                                         },
-                                        "RADIUS": {
+                                        "DIAMETER": {
                                           "shadow": {
                                             "type": "math_number",
                                             "id": ")Gp5vnKN5orAOYF_+4}C",
                                             "fields": {
-                                              "NUM": 0.05
+                                              "NUM": 0.1
                                             }
                                           }
                                         },
@@ -1812,12 +1812,12 @@
                                                     }
                                                   }
                                                 },
-                                                "RADIUS": {
+                                                "DIAMETER": {
                                                   "shadow": {
                                                     "type": "math_number",
                                                     "id": "bc=sz@9[NjM,2bApV.VB",
                                                     "fields": {
-                                                      "NUM": 0.05
+                                                      "NUM": 0.1
                                                     }
                                                   }
                                                 },
@@ -1925,12 +1925,12 @@
                                                                 }
                                                               }
                                                             },
-                                                            "RADIUS": {
+                                                            "DIAMETER": {
                                                               "shadow": {
                                                                 "type": "math_number",
                                                                 "id": "SFnpQ`Td.;G.+Q6tg1$d",
                                                                 "fields": {
-                                                                  "NUM": 0.05
+                                                                  "NUM": 0.1
                                                                 }
                                                               }
                                                             },
@@ -2038,12 +2038,12 @@
                                                                             }
                                                                           }
                                                                         },
-                                                                        "RADIUS": {
+                                                                        "DIAMETER": {
                                                                           "shadow": {
                                                                             "type": "math_number",
                                                                             "id": "CrA0Q=;S/ex5[_F-_]CV",
                                                                             "fields": {
-                                                                              "NUM": 0.05
+                                                                              "NUM": 0.1
                                                                             }
                                                                           }
                                                                         },
@@ -2151,12 +2151,12 @@
                                                                                         }
                                                                                       }
                                                                                     },
-                                                                                    "RADIUS": {
+                                                                                    "DIAMETER": {
                                                                                       "shadow": {
                                                                                         "type": "math_number",
                                                                                         "id": "AzBe87;:96-F|Wkuu8yj",
                                                                                         "fields": {
-                                                                                          "NUM": 0.05
+                                                                                          "NUM": 0.1
                                                                                         }
                                                                                       }
                                                                                     },
@@ -2264,12 +2264,12 @@
                                                                                                     }
                                                                                                   }
                                                                                                 },
-                                                                                                "RADIUS": {
+                                                                                                "DIAMETER": {
                                                                                                   "shadow": {
                                                                                                     "type": "math_number",
                                                                                                     "id": "1iW?Ow/9|ja$2w-xP2a$",
                                                                                                     "fields": {
-                                                                                                      "NUM": 0.05
+                                                                                                      "NUM": 0.1
                                                                                                     }
                                                                                                   }
                                                                                                 },
@@ -2377,12 +2377,12 @@
                                                                                                                 }
                                                                                                               }
                                                                                                             },
-                                                                                                            "RADIUS": {
+                                                                                                            "DIAMETER": {
                                                                                                               "shadow": {
                                                                                                                 "type": "math_number",
                                                                                                                 "id": "=yHnZ$dLin`K#-j2HxWe",
                                                                                                                 "fields": {
-                                                                                                                  "NUM": 0.05
+                                                                                                                  "NUM": 0.1
                                                                                                                 }
                                                                                                               }
                                                                                                             },
