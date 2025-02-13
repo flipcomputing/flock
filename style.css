@@ -577,18 +577,20 @@ path.blocklyPath.blockly-ws-search-highlight.blockly-ws-search-current {
 .paneContainer:has(.header .collapse img[title="ADVANCED"]) {
   display: none !important;
 }
-
+/*
 .paneContainer:has(.header .collapse img[title="DISPLAY"]) {
   display: none !important;
 }
+*/
 
 .paneContainer:has(.header .collapse img[title="OCCLUSIONS"]) {
   display: none !important;
 }
 
+/*
 .paneContainer:has(.header .collapse img[title="DEBUG"]) {
   display: none !important;
-}
+}*/
 
 .paneContainer:has(.header .collapse img[title="METADATA"]) {
   display: none !important;
@@ -661,8 +663,8 @@ path.blocklyPath.blockly-ws-search-highlight.blockly-ws-search-current {
 .paneContainer:has(.header .collapse img[title="LIGHTING & COLORS"]) .checkBoxLine {
   display: none !important;
 }
-
+/*
 .copy, .expand, .listLine, .sliderLine, .coordinates {
   display: none !important;
-}
+}*/
 
