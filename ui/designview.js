@@ -865,9 +865,9 @@ function setPositionValues(block, position, shapeType) {
       break;
 
     case "create_sphere":
-      adjustedY += block.getInputTargetBlock("DIAMETER_Y")
+      /*adjustedY += block.getInputTargetBlock("DIAMETER_Y")
         ? block.getInputTargetBlock("DIAMETER_Y").getFieldValue("NUM") / 2
-        : 0.5;
+        : 0.5;*/
       break;
 
     case "create_cylinder":
@@ -1935,8 +1935,6 @@ function toggleGizmo(gizmoType) {
               .getFieldValue("NUM");
 
             meshY -= scale * mesh.metadata.yOffset;
-
-            
           } catch (e) {}
         }
 
@@ -1951,18 +1949,18 @@ function toggleGizmo(gizmoType) {
               );
           } catch (e) {}
           try {
-
             switch (block.type) {
               case "create_box":
-                console.log("Moving box", meshY, mesh
-                           .getBoundingInfo()
-                           .boundingBox.extendSize.y)
-               meshY -=  mesh
-                  .getBoundingInfo()
-                  .boundingBox.extendSize.y;
+              case "create_sphere":
+                console.log(
+                  "Moving box",
+                  meshY,
+                  mesh.getBoundingInfo().boundingBox.extendSize.y,
+                );
+                meshY -= mesh.getBoundingInfo().boundingBox.extendSize.y;
                 break;
             }
-            
+
             block
               .getInput("Y")
               .connection.targetBlock()
