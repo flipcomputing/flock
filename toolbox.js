@@ -399,7 +399,7 @@ const toolboxScene = {
 					shadow: {
 						type: "math_number",
 						fields: {
-							NUM: 0.5,
+							NUM: 0,
 						},
 					},
 				},

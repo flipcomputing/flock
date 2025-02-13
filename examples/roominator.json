@@ -585,7 +585,7 @@
         "type": "on_event",
         "id": "z(*s03cGJ=4OqgQOaeQJ",
         "x": 10,
-        "y": 4088,
+        "y": 4038,
         "collapsed": true,
         "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" inline=\"false\"></mutation>",
         "inputs": {
@@ -628,7 +628,7 @@
         "type": "on_event",
         "id": "cWUxspp/*vx]T$1YYX;j",
         "x": 10,
-        "y": 4176,
+        "y": 4126,
         "collapsed": true,
         "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" inline=\"false\"></mutation>",
         "inputs": {
@@ -659,7 +659,7 @@
         "type": "start",
         "id": "x2X9+eEI@un=]E4?2L4a",
         "x": 10,
-        "y": 2332,
+        "y": 2282,
         "inputs": {
           "DO": {
             "block": {
@@ -925,7 +925,7 @@
         "type": "start",
         "id": "hY:X_i:YhrhfnLm_)_tX",
         "x": 10,
-        "y": 2740,
+        "y": 2690,
         "inputs": {
           "DO": {
             "block": {
@@ -1191,7 +1191,7 @@
         "type": "start",
         "id": "eT|!(*#K^(S73CH9P,HP",
         "x": 10,
-        "y": 3148,
+        "y": 3098,
         "inputs": {
           "DO": {
             "block": {
@@ -1399,7 +1399,7 @@
         "type": "start",
         "id": "(jKkAzt;0Z#m/u[hVgN9",
         "x": 10,
-        "y": 3520,
+        "y": 3470,
         "inputs": {
           "DO": {
             "block": {
@@ -1537,7 +1537,7 @@
                         "type": "math_number",
                         "id": "JSZfO1+u}==+XA/ODut,",
                         "fields": {
-                          "NUM": 2.6
+                          "NUM": 2.3
                         }
                       }
                     },
@@ -1612,7 +1612,7 @@
                             "type": "math_number",
                             "id": ";0dCB(3`^c=xFXovv0:Q",
                             "fields": {
-                              "NUM": 2.6
+                              "NUM": 2.3
                             }
                           }
                         },
@@ -1687,7 +1687,7 @@
                                 "type": "math_number",
                                 "id": "B1mPH%cF{uCzjYVQ8+d8",
                                 "fields": {
-                                  "NUM": 2.6
+                                  "NUM": 2.3
                                 }
                               }
                             },
@@ -1715,7 +1715,7 @@
         "type": "forever",
         "id": "rzARP?f-rL_OMXQ]LzxO",
         "x": 10,
-        "y": 4000,
+        "y": 3950,
         "collapsed": true,
         "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" inline=\"false\"></mutation>",
         "inputs": {
@@ -2201,7 +2201,7 @@
         "type": "start",
         "id": "94!ryxBonZ@miJ.cK=E[",
         "x": 10,
-        "y": 1740,
+        "y": 1690,
         "inputs": {
           "DO": {
             "block": {
@@ -2264,7 +2264,7 @@
                     "type": "math_number",
                     "id": "uaZ9g8Qyg0JFm-L[UK;6",
                     "fields": {
-                      "NUM": 1
+                      "NUM": 0
                     }
                   }
                 },
@@ -2339,7 +2339,7 @@
                         "type": "math_number",
                         "id": "f8z=xLI?;]q[akFY8KO2",
                         "fields": {
-                          "NUM": 0.5
+                          "NUM": 0
                         }
                       }
                     },
@@ -2423,7 +2423,7 @@
                             "type": "math_number",
                             "id": "[[Tkmcz%iFCL=AnVJb?_",
                             "fields": {
-                              "NUM": 1.25
+                              "NUM": 1
                             }
                           }
                         },
@@ -2507,7 +2507,7 @@
                                 "type": "math_number",
                                 "id": "-]SFQ3ti%TO%de?C~F=]",
                                 "fields": {
-                                  "NUM": 1.25
+                                  "NUM": 1
                                 }
                               }
                             },
@@ -2651,7 +2651,7 @@
                     "type": "math_number",
                     "id": "jzNHv]h#kvqt?z^[~^=7",
                     "fields": {
-                      "NUM": 30
+                      "NUM": 0.1
                     }
                   }
                 },
@@ -2660,7 +2660,7 @@
                     "type": "math_number",
                     "id": "Mk(($910ZTG$o)^NOG3~",
                     "fields": {
-                      "NUM": 0.1
+                      "NUM": 30
                     }
                   }
                 },
@@ -2678,7 +2678,7 @@
                     "type": "math_number",
                     "id": "QGnD`8[nyF.MAJ|]mZcC",
                     "fields": {
-                      "NUM": 0.05
+                      "NUM": 0
                     }
                   }
                 },
@@ -2760,7 +2760,7 @@
                         "type": "math_number",
                         "id": "|hx^rtHdDn6p?`yLA{5w",
                         "fields": {
-                          "NUM": 5
+                          "NUM": 0
                         }
                       }
                     },
@@ -2835,7 +2835,7 @@
                             "type": "math_number",
                             "id": "J?yxF5CD3Z]qZouTqdvD",
                             "fields": {
-                              "NUM": 5
+                              "NUM": 0
                             }
                           }
                         },
@@ -2910,7 +2910,7 @@
                                 "type": "math_number",
                                 "id": "Rh3(S0eMS#_deyxd.^e%",
                                 "fields": {
-                                  "NUM": 5
+                                  "NUM": 0
                                 }
                               }
                             },
@@ -2958,46 +2958,6 @@
                                           "fields": {
                                             "NUM": 1
                                           }
-                                        }
-                                      }
-                                    }
-                                  }
-                                }
-                              },
-                              "next": {
-                                "block": {
-                                  "type": "rotate_model_xyz",
-                                  "id": "}rjsl2VVnE9yfT]0)}z0",
-                                  "fields": {
-                                    "MODEL": {
-                                      "id": "OY|9=m}caNHyJ?q}9Q(/"
-                                    }
-                                  },
-                                  "inputs": {
-                                    "X": {
-                                      "shadow": {
-                                        "type": "math_number",
-                                        "id": "K[W_W+x)-pXI@ep+=W(;",
-                                        "fields": {
-                                          "NUM": 90
-                                        }
-                                      }
-                                    },
-                                    "Y": {
-                                      "shadow": {
-                                        "type": "math_number",
-                                        "id": ",[5J^k,zv9G]^qWV0:YV",
-                                        "fields": {
-                                          "NUM": 0
-                                        }
-                                      }
-                                    },
-                                    "Z": {
-                                      "shadow": {
-                                        "type": "math_number",
-                                        "id": "4e62ZlHgPaP-%Ag34Fxg",
-                                        "fields": {
-                                          "NUM": 0
                                         }
                                       }
                                     }

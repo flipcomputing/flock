@@ -132,7 +132,7 @@
                                 "type": "math_number",
                                 "id": "sQ`[,`/vOtOjO(At=WIo",
                                 "fields": {
-                                  "NUM": 0.5
+                                  "NUM": 0
                                 }
                               }
                             },
@@ -238,7 +238,9 @@
                                       "inline": true,
                                       "extraState": {
                                         "name": "forest",
-                                        "params": ["seed"]
+                                        "params": [
+                                          "seed"
+                                        ]
                                       },
                                       "inputs": {
                                         "ARG0": {

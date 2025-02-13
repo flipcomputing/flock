@@ -858,9 +858,10 @@ function setPositionValues(block, position, shapeType) {
   // Adjust Y based on the shape type
   switch (shapeType) {
     case "create_box":
-      adjustedY += block.getInputTargetBlock("HEIGHT")
+      /*adjustedY += block.getInputTargetBlock("HEIGHT")
         ? block.getInputTargetBlock("HEIGHT").getFieldValue("NUM") / 2
         : 0.5; // Default to 0.5 if undefined
+        */
       break;
 
     case "create_sphere":
@@ -1934,6 +1935,8 @@ function toggleGizmo(gizmoType) {
               .getFieldValue("NUM");
 
             meshY -= scale * mesh.metadata.yOffset;
+
+            
           } catch (e) {}
         }
 
@@ -1948,6 +1951,18 @@ function toggleGizmo(gizmoType) {
               );
           } catch (e) {}
           try {
+
+            switch (block.type) {
+              case "create_box":
+                console.log("Moving box", meshY, mesh
+                           .getBoundingInfo()
+                           .boundingBox.extendSize.y)
+               meshY -=  mesh
+                  .getBoundingInfo()
+                  .boundingBox.extendSize.y;
+                break;
+            }
+            
             block
               .getInput("Y")
               .connection.targetBlock()

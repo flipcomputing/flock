@@ -2868,6 +2868,7 @@ export const flock = {
 		flock.scene.fogEnd = 100;
 	},
 	initializeMesh(mesh, position, color, shapeType, alpha = 1) {
+		
 		// Set position
 		mesh.position = new BABYLON.Vector3(
 			position[0],
@@ -2875,6 +2876,7 @@ export const flock = {
 			position[2],
 		);
 
+		
 		// Set metadata and unique name
 		mesh.metadata = { shapeType };
 		mesh.blockKey = mesh.name;
@@ -2994,21 +2996,24 @@ export const flock = {
 		const dimensions = { width, height, depth };
 
 		// Retrieve cached VertexData or create it if this is the first instance
-		const vertexData = flock.getOrCreateGeometry(
-			"Box",
-			dimensions,
-			flock.scene,
-		);
+		const vertexData = flock.getOrCreateGeometry("Box", dimensions, flock.scene);
 
 		// Create a new mesh and apply the cached VertexData
 		const newBox = new BABYLON.Mesh(boxId, flock.scene);
 		vertexData.applyToMesh(newBox);
 
-		// Adjust UV mapping based on size
+		// Apply size-based UV mapping
 		flock.setSizeBasedBoxUVs(newBox, width, height, depth);
+
+		// Bake the scaling into the mesh
+		newBox.bakeCurrentTransformIntoVertices();
+
+		// Reset scaling to (1,1,1) since the transformation is now baked
+		newBox.scaling.set(1, 1, 1);
 
 		// Initialise the mesh with position, color, and other properties
 		flock.initializeMesh(newBox, position, color, "Box", alpha);
+		 newBox.position.y += height / 2; // Middle of the box
 		newBox.blockKey = blockKey;
 
 		// Define and apply the physics shape
