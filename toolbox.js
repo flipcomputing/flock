@@ -20,92 +20,92 @@ export const categoryColours = {
 };
 
 const toolboxSearch = {
-		kind: "search",
-		name: "Search",
-		contents: [],
-	};
+	kind: "search",
+	name: "Search",
+	contents: [],
+};
 
 const toolboxSceneXR = {
-		kind: "category",
-		name: "XR",
-		icon: "./images/xr.svg",
-		colour: categoryColours["Scene"],
-		contents: [
-			{
-				kind: "block",
-				type: "device_camera_background",
-				keyword: "devcam",
-			},
-			{
-				kind: "block",
-				type: "set_xr_mode",
-				keyword: "xr",
-			},
-			{
-				kind: "block",
-				type: "export_mesh",
-				keyword: "export",
-			},
-		],
-	};
+	kind: "category",
+	name: "XR",
+	icon: "./images/xr.svg",
+	colour: categoryColours["Scene"],
+	contents: [
+		{
+			kind: "block",
+			type: "device_camera_background",
+			keyword: "devcam",
+		},
+		{
+			kind: "block",
+			type: "set_xr_mode",
+			keyword: "xr",
+		},
+		{
+			kind: "block",
+			type: "export_mesh",
+			keyword: "export",
+		},
+	],
+};
 
 const toolboxSceneLights = {
 	kind: "category",
-		name: "Lights",
-		icon: "./images/lights.svg",
-		colour: categoryColours["Scene"],
-		contents: [
-			{
-				kind: "block",
-				type: "light_intensity",
-				keyword: "intensity",
-				inputs: {
-					INTENSITY: {
-						shadow: {
-							type: "math_number",
-							fields: {
-								NUM: 1,
-							},
+	name: "Lights",
+	icon: "./images/lights.svg",
+	colour: categoryColours["Scene"],
+	contents: [
+		{
+			kind: "block",
+			type: "light_intensity",
+			keyword: "intensity",
+			inputs: {
+				INTENSITY: {
+					shadow: {
+						type: "math_number",
+						fields: {
+							NUM: 1,
 						},
 					},
 				},
 			},
-			]
+		},
+	],
 };
 
 const toolboxSceneCamera = {
-		kind: "category",
-		name: "Camera",
-		icon: "./images/camera.svg",
-		colour: categoryColours["Scene"],
-		contents: [
-			{
-				kind: "block",
-				type: "get_camera",
-				keyword: "cam",
-			},
-			{
-				kind: "block",
-				type: "camera_follow",
-				keyword: "follow",
-				inputs: {
-					RADIUS: {
-						shadow: {
-							type: "math_number",
-							fields: {
-								NUM: 7,
-							},
+	kind: "category",
+	name: "Camera",
+	icon: "./images/camera.svg",
+	colour: categoryColours["Scene"],
+	contents: [
+		{
+			kind: "block",
+			type: "get_camera",
+			keyword: "cam",
+		},
+		{
+			kind: "block",
+			type: "camera_follow",
+			keyword: "follow",
+			inputs: {
+				RADIUS: {
+					shadow: {
+						type: "math_number",
+						fields: {
+							NUM: 7,
 						},
 					},
 				},
 			},
-			{
-				kind: "block",
-				type: "camera_control",
-				keyword: "cc",
-			},
-		],
-	};
+		},
+		{
+			kind: "block",
+			type: "camera_control",
+			keyword: "cc",
+		},
+	],
+};
 
 const toolboxScene = {
 	kind: "category",
@@ -287,68 +287,68 @@ const toolboxScene = {
 			},
 		},
 		{
-		  kind: "block",
-		  type: "load_multi_object",
-		  keyword: "object",
-		  inputs: {
-			SCALE: {
-			  shadow: {
-				type: "math_number",
-				fields: {
-				  NUM: 1,
-				},
-			  },
-			},
-			X: {
-			  shadow: {
-				type: "math_number",
-				fields: {
-				  NUM: 0,
-				},
-			  },
-			},
-			Y: {
-			  shadow: {
-				type: "math_number",
-				fields: {
-				  NUM: 0,
-				},
-			  },
-			},
-			Z: {
-			  shadow: {
-				type: "math_number",
-				fields: {
-				  NUM: 0,
-				},
-			  },
-			},
-			COLORS: {
-			  shadow: {
-				type: "lists_create_with",
-				extraState: { itemCount: 2 },
-				inline: true,
-				inputs: {
-				  ADD0: {
+			kind: "block",
+			type: "load_multi_object",
+			keyword: "object",
+			inputs: {
+				SCALE: {
 					shadow: {
-					  type: "colour",
-					  fields: {
-						COLOR: "#66CDAA",
-					  },
+						type: "math_number",
+						fields: {
+							NUM: 1,
+						},
 					},
-				  },
-				  ADD1: {
-					shadow: {
-					  type: "colour",
-					  fields: {
-						COLOR: "#CD853F",
-					  },
-					},
-				  },
 				},
-			  },
+				X: {
+					shadow: {
+						type: "math_number",
+						fields: {
+							NUM: 0,
+						},
+					},
+				},
+				Y: {
+					shadow: {
+						type: "math_number",
+						fields: {
+							NUM: 0,
+						},
+					},
+				},
+				Z: {
+					shadow: {
+						type: "math_number",
+						fields: {
+							NUM: 0,
+						},
+					},
+				},
+				COLORS: {
+					shadow: {
+						type: "lists_create_with",
+						extraState: { itemCount: 2 },
+						inline: true,
+						inputs: {
+							ADD0: {
+								shadow: {
+									type: "colour",
+									fields: {
+										COLOR: "#66CDAA",
+									},
+								},
+							},
+							ADD1: {
+								shadow: {
+									type: "colour",
+									fields: {
+										COLOR: "#CD853F",
+									},
+								},
+							},
+						},
+					},
+				},
 			},
-		  },
 		},
 		{
 			kind: "block",
@@ -820,7 +820,9 @@ const toolboxScene = {
 			keyword: "group",
 			inputsInline: true,
 		},
-		toolboxSceneLights, toolboxSceneCamera, toolboxSceneXR,
+		toolboxSceneLights,
+		toolboxSceneCamera,
+		toolboxSceneXR,
 		{
 			kind: "block",
 			type: "set_sky_color",
@@ -939,261 +941,260 @@ const toolboxScene = {
 };
 
 const toolboxEvents = {
-		kind: "category",
-		name: "Events",
-		icon: "./images/events.svg",
-		colour: categoryColours["Events"],
-		contents: [
-			{
-				kind: "block",
-				type: "start",
-				keyword: "start",
-			},
-			{
-				kind: "block",
-				type: "forever",
-				keyword: "ever",
-			},
-			{
-				kind: "block",
-				type: "when_clicked",
-				keyword: "click",
-			},
-			{
-				kind: "block",
-				type: "when_touches",
-				keyword: "touches",
-			},
-			{
-				kind: "block",
-				type: "when_key_event",
-				keyword: "press",
-			},
-			{
-				kind: "block",
-				type: "broadcast_event",
-				keyword: "broadcast",
-				inputs: {
-					EVENT_NAME: {
-						shadow: {
-							type: "text",
-							fields: {
-								TEXT: "go",
-							},
+	kind: "category",
+	name: "Events",
+	icon: "./images/events.svg",
+	colour: categoryColours["Events"],
+	contents: [
+		{
+			kind: "block",
+			type: "start",
+			keyword: "start",
+		},
+		{
+			kind: "block",
+			type: "forever",
+			keyword: "ever",
+		},
+		{
+			kind: "block",
+			type: "when_clicked",
+			keyword: "click",
+		},
+		{
+			kind: "block",
+			type: "when_touches",
+			keyword: "touches",
+		},
+		{
+			kind: "block",
+			type: "when_key_event",
+			keyword: "press",
+		},
+		{
+			kind: "block",
+			type: "broadcast_event",
+			keyword: "broadcast",
+			inputs: {
+				EVENT_NAME: {
+					shadow: {
+						type: "text",
+						fields: {
+							TEXT: "go",
 						},
 					},
 				},
 			},
-			{
-				kind: "block",
-				type: "on_event",
-				keyword: "on",
-				inputs: {
-					EVENT_NAME: {
-						shadow: {
-							type: "text",
-							fields: {
-								TEXT: "go",
-							},
+		},
+		{
+			kind: "block",
+			type: "on_event",
+			keyword: "on",
+			inputs: {
+				EVENT_NAME: {
+					shadow: {
+						type: "text",
+						fields: {
+							TEXT: "go",
 						},
 					},
 				},
 			},
-		],
-	};
+		},
+	],
+};
 
 const toolboxTransformPhysics = {
-		kind: "category",
-		name: "Physics",
-		icon: "./images/physics.svg",
-		colour: categoryColours["Transform"],
-		contents: [
-			{
-				kind: "block",
-				type: "add_physics",
-				keyword: "physics",
-			},
-			{
-				kind: "block",
-				type: "add_physics_shape",
-				keyword: "collider",
-			},
-			{
-				kind: "block",
-				type: "apply_force",
-				keyword: "push",
-				inputs: {
-					X: {
-						shadow: {
-							type: "math_number",
-							fields: {
-								NUM: 0,
-							},
+	kind: "category",
+	name: "Physics",
+	icon: "./images/physics.svg",
+	colour: categoryColours["Transform"],
+	contents: [
+		{
+			kind: "block",
+			type: "add_physics",
+			keyword: "physics",
+		},
+		{
+			kind: "block",
+			type: "add_physics_shape",
+			keyword: "collider",
+		},
+		{
+			kind: "block",
+			type: "apply_force",
+			keyword: "push",
+			inputs: {
+				X: {
+					shadow: {
+						type: "math_number",
+						fields: {
+							NUM: 0,
 						},
 					},
-					Y: {
-						shadow: {
-							type: "math_number",
-							fields: {
-								NUM: 2,
-							},
+				},
+				Y: {
+					shadow: {
+						type: "math_number",
+						fields: {
+							NUM: 2,
 						},
 					},
-					Z: {
-						shadow: {
-							type: "math_number",
-							fields: {
-								NUM: 0,
-							},
+				},
+				Z: {
+					shadow: {
+						type: "math_number",
+						fields: {
+							NUM: 0,
 						},
 					},
 				},
 			},
-		],
-	};
+		},
+	],
+};
 
 const toolboxTransformConnect = {
-		kind: "category",
-		name: "Connect",
-		icon: "./images/connect.svg",
-		colour: categoryColours["Transform"],
-		contents: [
-			{
-				kind: "block",
-				type: "parent_child",
-				keyword: "parent",
-				inputs: {
-					X_OFFSET: {
-						shadow: {
-							type: "math_number",
-							fields: {
-								NUM: 0,
-							},
+	kind: "category",
+	name: "Connect",
+	icon: "./images/connect.svg",
+	colour: categoryColours["Transform"],
+	contents: [
+		{
+			kind: "block",
+			type: "parent_child",
+			keyword: "parent",
+			inputs: {
+				X_OFFSET: {
+					shadow: {
+						type: "math_number",
+						fields: {
+							NUM: 0,
 						},
 					},
-					Y_OFFSET: {
-						shadow: {
-							type: "math_number",
-							fields: {
-								NUM: 0,
-							},
+				},
+				Y_OFFSET: {
+					shadow: {
+						type: "math_number",
+						fields: {
+							NUM: 0,
 						},
 					},
-					Z_OFFSET: {
-						shadow: {
-							type: "math_number",
-							fields: {
-								NUM: 0,
-							},
+				},
+				Z_OFFSET: {
+					shadow: {
+						type: "math_number",
+						fields: {
+							NUM: 0,
 						},
 					},
 				},
 			},
-			{
-				kind: "block",
-				type: "remove_parent",
-				keyword: "noparent",
-			},
-			{
-				kind: "block",
-				type: "follow",
-				keyword: "follow",
-				inputs: {
-					X_OFFSET: {
-						shadow: {
-							type: "math_number",
-							fields: {
-								NUM: 0,
-							},
+		},
+		{
+			kind: "block",
+			type: "remove_parent",
+			keyword: "noparent",
+		},
+		{
+			kind: "block",
+			type: "follow",
+			keyword: "follow",
+			inputs: {
+				X_OFFSET: {
+					shadow: {
+						type: "math_number",
+						fields: {
+							NUM: 0,
 						},
 					},
-					Y_OFFSET: {
-						shadow: {
-							type: "math_number",
-							fields: {
-								NUM: 0,
-							},
+				},
+				Y_OFFSET: {
+					shadow: {
+						type: "math_number",
+						fields: {
+							NUM: 0,
 						},
 					},
-					Z_OFFSET: {
-						shadow: {
-							type: "math_number",
-							fields: {
-								NUM: 0,
-							},
+				},
+				Z_OFFSET: {
+					shadow: {
+						type: "math_number",
+						fields: {
+							NUM: 0,
 						},
 					},
 				},
 			},
-			{
-				kind: "block",
-				type: "stop_follow",
-				keyword: "fstop",
-			},
-			{
-				kind: "block",
-				type: "hold",
-				keyword: "hold",
-				inputs: {
-					X_OFFSET: {
-						shadow: {
-							type: "math_number",
-							fields: {
-								NUM: 0,
-							},
+		},
+		{
+			kind: "block",
+			type: "stop_follow",
+			keyword: "fstop",
+		},
+		{
+			kind: "block",
+			type: "hold",
+			keyword: "hold",
+			inputs: {
+				X_OFFSET: {
+					shadow: {
+						type: "math_number",
+						fields: {
+							NUM: 0,
 						},
 					},
-					Y_OFFSET: {
-						shadow: {
-							type: "math_number",
-							fields: {
-								NUM: 0,
-							},
+				},
+				Y_OFFSET: {
+					shadow: {
+						type: "math_number",
+						fields: {
+							NUM: 0,
 						},
 					},
-					Z_OFFSET: {
-						shadow: {
-							type: "math_number",
-							fields: {
-								NUM: 0,
-							},
+				},
+				Z_OFFSET: {
+					shadow: {
+						type: "math_number",
+						fields: {
+							NUM: 0,
 						},
 					},
 				},
 			},
-			{
-				kind: "block",
-				type: "drop",
-				keyword: "drop",
-			},
-		],
-	};
+		},
+		{
+			kind: "block",
+			type: "drop",
+			keyword: "drop",
+		},
+	],
+};
 
 const toolboxTransformCombine = {
-		kind: "category",
-		name: "Combine",
-		icon: "./images/combine.svg",
-		colour: categoryColours["Transform"],
-		contents: [
-			{
-				kind: "block",
-				type: "merge_meshes",
-				inputsInline: true,
-				inputs: {
-					MESH_LIST: {
-						block: {
-							type: "lists_create_with",
-							inline: true,
-							extraState: {
-								itemCount: 1,
-							},
-							inputs: {
-								ADD0: {
-									block: {
-										type: "variables_get",
-										fields: {
-											VAR: "mesh1", // Default variable for a mesh
-										},
+	kind: "category",
+	name: "Combine",
+	icon: "./images/combine.svg",
+	colour: categoryColours["Transform"],
+	contents: [
+		{
+			kind: "block",
+			type: "merge_meshes",
+			inputsInline: true,
+			inputs: {
+				MESH_LIST: {
+					block: {
+						type: "lists_create_with",
+						inline: true,
+						extraState: {
+							itemCount: 1,
+						},
+						inputs: {
+							ADD0: {
+								block: {
+									type: "variables_get",
+									fields: {
+										VAR: "mesh1", // Default variable for a mesh
 									},
 								},
 							},
@@ -1201,25 +1202,25 @@ const toolboxTransformCombine = {
 					},
 				},
 			},
-			{
-				kind: "block",
-				type: "subtract_meshes",
-				inputsInline: true,
-				inputs: {
-					MESH_LIST: {
-						block: {
-							type: "lists_create_with",
-							inline: true,
-							extraState: {
-								itemCount: 1,
-							},
-							inputs: {
-								ADD0: {
-									block: {
-										type: "variables_get",
-										fields: {
-											VAR: "mesh2", // Default variable for a mesh to subtract
-										},
+		},
+		{
+			kind: "block",
+			type: "subtract_meshes",
+			inputsInline: true,
+			inputs: {
+				MESH_LIST: {
+					block: {
+						type: "lists_create_with",
+						inline: true,
+						extraState: {
+							itemCount: 1,
+						},
+						inputs: {
+							ADD0: {
+								block: {
+									type: "variables_get",
+									fields: {
+										VAR: "mesh2", // Default variable for a mesh to subtract
 									},
 								},
 							},
@@ -1227,25 +1228,25 @@ const toolboxTransformCombine = {
 					},
 				},
 			},
-			{
-				kind: "block",
-				type: "intersection_meshes",
-				inputsInline: true,
-				inputs: {
-					MESH_LIST: {
-						block: {
-							type: "lists_create_with",
-							inline: true,
-							extraState: {
-								itemCount: 1,
-							},
-							inputs: {
-								ADD0: {
-									block: {
-										type: "variables_get",
-										fields: {
-											VAR: "mesh1", // Default variable for a mesh
-										},
+		},
+		{
+			kind: "block",
+			type: "intersection_meshes",
+			inputsInline: true,
+			inputs: {
+				MESH_LIST: {
+					block: {
+						type: "lists_create_with",
+						inline: true,
+						extraState: {
+							itemCount: 1,
+						},
+						inputs: {
+							ADD0: {
+								block: {
+									type: "variables_get",
+									fields: {
+										VAR: "mesh1", // Default variable for a mesh
 									},
 								},
 							},
@@ -1253,25 +1254,25 @@ const toolboxTransformCombine = {
 					},
 				},
 			},
-			{
-				kind: "block",
-				type: "hull_meshes",
-				inputsInline: true,
-				inputs: {
-					MESH_LIST: {
-						block: {
-							type: "lists_create_with",
-							inline: true,
-							extraState: {
-								itemCount: 1,
-							},
-							inputs: {
-								ADD0: {
-									block: {
-										type: "variables_get",
-										fields: {
-											VAR: "mesh1", // Default variable for a mesh
-										},
+		},
+		{
+			kind: "block",
+			type: "hull_meshes",
+			inputsInline: true,
+			inputs: {
+				MESH_LIST: {
+					block: {
+						type: "lists_create_with",
+						inline: true,
+						extraState: {
+							itemCount: 1,
+						},
+						inputs: {
+							ADD0: {
+								block: {
+									type: "variables_get",
+									fields: {
+										VAR: "mesh1", // Default variable for a mesh
 									},
 								},
 							},
@@ -1279,299 +1280,298 @@ const toolboxTransformCombine = {
 					},
 				},
 			},
-		],
-	};
+		},
+	],
+};
 
 const toolboxTransform = {
-		kind: "category",
-		name: "Transform",
-		icon: "./images/motion.svg",
-		colour: categoryColours["Transform"],
-		contents: [
-			{
-				kind: "block",
-				type: "move_by_xyz",
-				keyword: "move",
-				inputs: {
-					X: {
-						shadow: {
-							type: "math_number",
-							fields: {
-								NUM: 1,
-							},
+	kind: "category",
+	name: "Transform",
+	icon: "./images/motion.svg",
+	colour: categoryColours["Transform"],
+	contents: [
+		{
+			kind: "block",
+			type: "move_by_xyz",
+			keyword: "move",
+			inputs: {
+				X: {
+					shadow: {
+						type: "math_number",
+						fields: {
+							NUM: 1,
 						},
 					},
-					Y: {
-						shadow: {
-							type: "math_number",
-							fields: {
-								NUM: 0,
-							},
+				},
+				Y: {
+					shadow: {
+						type: "math_number",
+						fields: {
+							NUM: 0,
 						},
 					},
-					Z: {
-						shadow: {
-							type: "math_number",
-							fields: {
-								NUM: 0,
-							},
+				},
+				Z: {
+					shadow: {
+						type: "math_number",
+						fields: {
+							NUM: 0,
 						},
 					},
 				},
 			},
-			{
-				kind: "block",
-				type: "move_to_xyz",
-				keyword: "pos",
-				inputs: {
-					X: {
-						shadow: {
-							type: "math_number",
-							fields: {
-								NUM: 0,
-							},
+		},
+		{
+			kind: "block",
+			type: "move_to_xyz",
+			keyword: "pos",
+			inputs: {
+				X: {
+					shadow: {
+						type: "math_number",
+						fields: {
+							NUM: 0,
 						},
 					},
-					Y: {
-						shadow: {
-							type: "math_number",
-							fields: {
-								NUM: 0,
-							},
+				},
+				Y: {
+					shadow: {
+						type: "math_number",
+						fields: {
+							NUM: 0,
 						},
 					},
-					Z: {
-						shadow: {
-							type: "math_number",
-							fields: {
-								NUM: 0,
-							},
+				},
+				Z: {
+					shadow: {
+						type: "math_number",
+						fields: {
+							NUM: 0,
 						},
 					},
 				},
 			},
-			{
-				kind: "block",
-				type: "move_to",
-				keyword: "goto",
-			},
-			{
-				kind: "block",
-				type: "rotate_model_xyz",
-				keyword: "rotate",
-				inputs: {
-					X: {
-						shadow: {
-							type: "math_number",
-							fields: {
-								NUM: 0,
-							},
+		},
+		{
+			kind: "block",
+			type: "move_to",
+			keyword: "goto",
+		},
+		{
+			kind: "block",
+			type: "rotate_model_xyz",
+			keyword: "rotate",
+			inputs: {
+				X: {
+					shadow: {
+						type: "math_number",
+						fields: {
+							NUM: 0,
 						},
 					},
-					Y: {
-						shadow: {
-							type: "math_number",
-							fields: {
-								NUM: 45,
-							},
+				},
+				Y: {
+					shadow: {
+						type: "math_number",
+						fields: {
+							NUM: 45,
 						},
 					},
-					Z: {
-						shadow: {
-							type: "math_number",
-							fields: {
-								NUM: 0,
-							},
+				},
+				Z: {
+					shadow: {
+						type: "math_number",
+						fields: {
+							NUM: 0,
 						},
 					},
 				},
 			},
-			{
-				kind: "block",
-				type: "rotate_to",
-				keyword: "rxyz",
-				inputs: {
-					X: {
-						shadow: {
-							type: "math_number",
-							fields: {
-								NUM: 0,
-							},
+		},
+		{
+			kind: "block",
+			type: "rotate_to",
+			keyword: "rxyz",
+			inputs: {
+				X: {
+					shadow: {
+						type: "math_number",
+						fields: {
+							NUM: 0,
 						},
 					},
-					Y: {
-						shadow: {
-							type: "math_number",
-							fields: {
-								NUM: 0,
-							},
+				},
+				Y: {
+					shadow: {
+						type: "math_number",
+						fields: {
+							NUM: 0,
 						},
 					},
-					Z: {
-						shadow: {
-							type: "math_number",
-							fields: {
-								NUM: 0,
-							},
+				},
+				Z: {
+					shadow: {
+						type: "math_number",
+						fields: {
+							NUM: 0,
 						},
 					},
 				},
 			},
-			{
-				kind: "block",
-				type: "look_at",
-				keyword: "look",
-			},
-			{
-				kind: "block",
-				type: "scale",
-				keyword: "scale",
-				inputs: {
-					X: {
-						shadow: {
-							type: "math_number",
-							fields: {
-								NUM: 1,
-							},
+		},
+		{
+			kind: "block",
+			type: "look_at",
+			keyword: "look",
+		},
+		{
+			kind: "block",
+			type: "scale",
+			keyword: "scale",
+			inputs: {
+				X: {
+					shadow: {
+						type: "math_number",
+						fields: {
+							NUM: 1,
 						},
 					},
-					Y: {
-						shadow: {
-							type: "math_number",
-							fields: {
-								NUM: 1,
-							},
+				},
+				Y: {
+					shadow: {
+						type: "math_number",
+						fields: {
+							NUM: 1,
 						},
 					},
-					Z: {
-						shadow: {
-							type: "math_number",
-							fields: {
-								NUM: 1,
-							},
+				},
+				Z: {
+					shadow: {
+						type: "math_number",
+						fields: {
+							NUM: 1,
 						},
 					},
 				},
 			},
-			{
-				kind: "block",
-				type: "move_forward",
-				keyword: "forward",
-				inputs: {
-					SPEED: {
-						shadow: {
-							type: "math_number",
-							fields: {
-								NUM: 3,
-							},
+		},
+		{
+			kind: "block",
+			type: "move_forward",
+			keyword: "forward",
+			inputs: {
+				SPEED: {
+					shadow: {
+						type: "math_number",
+						fields: {
+							NUM: 3,
 						},
 					},
 				},
 			},
-			{
-				kind: "block",
-				type: "xyz", // Use the block's actual type name defined when you created it
-				inputs: {
-					X: {
-						shadow: {
-							type: "math_number",
-							fields: {
-								NUM: 0,
-							},
+		},
+		{
+			kind: "block",
+			type: "xyz", // Use the block's actual type name defined when you created it
+			inputs: {
+				X: {
+					shadow: {
+						type: "math_number",
+						fields: {
+							NUM: 0,
 						},
 					},
-					Y: {
-						shadow: {
-							type: "math_number",
-							fields: {
-								NUM: 0,
-							},
+				},
+				Y: {
+					shadow: {
+						type: "math_number",
+						fields: {
+							NUM: 0,
 						},
 					},
-					Z: {
-						shadow: {
-							type: "math_number",
-							fields: {
-								NUM: 0,
-							},
+				},
+				Z: {
+					shadow: {
+						type: "math_number",
+						fields: {
+							NUM: 0,
 						},
 					},
 				},
 			},
-			{
-				kind: "block",
-				type: "set_pivot",
-				inputs: {
-					X_PIVOT: {
-						shadow: {
-							type: "min_centre_max",
-							fields: {
-								PIVOT_OPTION: "0", // Use the value "0" for "centre"
-							},
+		},
+		{
+			kind: "block",
+			type: "set_pivot",
+			inputs: {
+				X_PIVOT: {
+					shadow: {
+						type: "min_centre_max",
+						fields: {
+							PIVOT_OPTION: "0", // Use the value "0" for "centre"
 						},
 					},
-					Y_PIVOT: {
-						shadow: {
-							type: "min_centre_max",
-							fields: {
-								PIVOT_OPTION: "Number.MIN_SAFE_INTEGER", // Use the actual value for "min"
-							},
+				},
+				Y_PIVOT: {
+					shadow: {
+						type: "min_centre_max",
+						fields: {
+							PIVOT_OPTION: "Number.MIN_SAFE_INTEGER", // Use the actual value for "min"
 						},
 					},
-					Z_PIVOT: {
-						shadow: {
-							type: "min_centre_max",
-							fields: {
-								PIVOT_OPTION: "0", // Use the value "0" for "centre"
-							},
+				},
+				Z_PIVOT: {
+					shadow: {
+						type: "min_centre_max",
+						fields: {
+							PIVOT_OPTION: "0", // Use the value "0" for "centre"
 						},
 					},
 				},
 			},
-			toolboxTransformPhysics,
-			toolboxTransformConnect,
-			toolboxTransformCombine,
-			
-		],
-	};
+		},
+		toolboxTransformPhysics,
+		toolboxTransformConnect,
+		toolboxTransformCombine,
+	],
+};
 
 const toolboxAnimateKeyframe = {
-		kind: "category",
-		name: "Keyframe",
-		icon: "./images/keyframe.svg",
-		colour: categoryColours["Animate"],
-		contents: [
-			{
-				kind: "block",
-				type: "animate_keyframes",
-				keyword: "animate_keyframes",
-				inputsInline: true, // Set lists to be inline
-				inputs: {
-					KEYFRAMES: {
-						block: {
-							type: "lists_create_with",
-							extraState: {
-								itemCount: 1,
-							},
-							inputs: {
-								ADD0: {
-									block: {
-										type: "colour_keyframe",
-										inputs: {
-											VALUE: {
-												shadow: {
-													type: "colour",
-													fields: {
-														COLOR: "#ff0000", // Default colour: Red
-													},
+	kind: "category",
+	name: "Keyframe",
+	icon: "./images/keyframe.svg",
+	colour: categoryColours["Animate"],
+	contents: [
+		{
+			kind: "block",
+			type: "animate_keyframes",
+			keyword: "animate_keyframes",
+			inputsInline: true, // Set lists to be inline
+			inputs: {
+				KEYFRAMES: {
+					block: {
+						type: "lists_create_with",
+						extraState: {
+							itemCount: 1,
+						},
+						inputs: {
+							ADD0: {
+								block: {
+									type: "colour_keyframe",
+									inputs: {
+										VALUE: {
+											shadow: {
+												type: "colour",
+												fields: {
+													COLOR: "#ff0000", // Default colour: Red
 												},
 											},
-											DURATION: {
-												shadow: {
-													type: "math_number",
-													fields: {
-														NUM: 1, // Default duration: 1 second
-													},
+										},
+										DURATION: {
+											shadow: {
+												type: "math_number",
+												fields: {
+													NUM: 1, // Default duration: 1 second
 												},
 											},
 										},
@@ -1582,1008 +1582,1032 @@ const toolboxAnimateKeyframe = {
 					},
 				},
 			},
-			{
-				kind: "block",
-				type: "control_animation_group",
-				keyword: "group",
-				inputsInline: true,
-			},
-			{
-				kind: "block",
-				type: "animate_from",
-				inputs: {
-					TIME: {
-						shadow: {
-							type: "math_number",
-							fields: {
-								NUM: 1.0, // Default time in seconds
-							},
+		},
+		{
+			kind: "block",
+			type: "control_animation_group",
+			keyword: "group",
+			inputsInline: true,
+		},
+		{
+			kind: "block",
+			type: "animate_from",
+			inputs: {
+				TIME: {
+					shadow: {
+						type: "math_number",
+						fields: {
+							NUM: 1.0, // Default time in seconds
 						},
 					},
 				},
 			},
-			{
-				kind: "block",
-				type: "colour_keyframe",
-				inputs: {
-					VALUE: {
-						shadow: {
-							type: "colour",
-							fields: {
-								COLOR: "#000080",
-							},
+		},
+		{
+			kind: "block",
+			type: "colour_keyframe",
+			inputs: {
+				VALUE: {
+					shadow: {
+						type: "colour",
+						fields: {
+							COLOR: "#000080",
 						},
 					},
-					DURATION: {
-						shadow: {
-							type: "math_number",
-							fields: {
-								NUM: 5,
-							},
+				},
+				DURATION: {
+					shadow: {
+						type: "math_number",
+						fields: {
+							NUM: 5,
 						},
 					},
 				},
 			},
-			{
-				kind: "block",
-				type: "number_keyframe",
-				inputs: {
-					VALUE: {
-						shadow: {
-							type: "math_number",
-							fields: {
-								NUM: 1,
-							},
+		},
+		{
+			kind: "block",
+			type: "number_keyframe",
+			inputs: {
+				VALUE: {
+					shadow: {
+						type: "math_number",
+						fields: {
+							NUM: 1,
 						},
 					},
-					DURATION: {
-						shadow: {
-							type: "math_number",
-							fields: {
-								NUM: 1,
-							},
+				},
+				DURATION: {
+					shadow: {
+						type: "math_number",
+						fields: {
+							NUM: 1,
 						},
 					},
 				},
 			},
-			{
-				kind: "block",
-				type: "xyz_keyframe",
-				inputs: {
-					X: {
-						shadow: {
-							type: "math_number",
-							fields: {
-								NUM: 1,
-							},
+		},
+		{
+			kind: "block",
+			type: "xyz_keyframe",
+			inputs: {
+				X: {
+					shadow: {
+						type: "math_number",
+						fields: {
+							NUM: 1,
 						},
 					},
-					Y: {
-						shadow: {
-							type: "math_number",
-							fields: {
-								NUM: 1,
-							},
+				},
+				Y: {
+					shadow: {
+						type: "math_number",
+						fields: {
+							NUM: 1,
 						},
 					},
-					Z: {
-						shadow: {
-							type: "math_number",
-							fields: {
-								NUM: 1,
-							},
+				},
+				Z: {
+					shadow: {
+						type: "math_number",
+						fields: {
+							NUM: 1,
 						},
 					},
-					DURATION: {
-						shadow: {
-							type: "math_number",
-							fields: {
-								NUM: 1,
-							},
+				},
+				DURATION: {
+					shadow: {
+						type: "math_number",
+						fields: {
+							NUM: 1,
 						},
 					},
 				},
 			},
-			/*{
+		},
+		/*{
 				kind: "block",
 				type: "animate_property",
 				keyword: "anp",
 			},*/
-		],
-	};
+	],
+};
 
 const toolboxAnimate = {
-		kind: "category",
-		name: "Animate",
-		icon: "./images/animate.svg",
-		colour: categoryColours["Animate"],
-		contents: [
-			{
-				kind: "block",
-				type: "switch_animation",
-				keyword: "switch",
-			},
-			{
-				kind: "block",
-				type: "play_animation",
-				keyword: "play",
-			},
-			{
-				kind: "block",
-				type: "glide_to",
-				keyword: "glide",
-				inputs: {
-					X: {
-						shadow: {
-							type: "math_number",
-							fields: {
-								NUM: 0,
-							},
+	kind: "category",
+	name: "Animate",
+	icon: "./images/animate.svg",
+	colour: categoryColours["Animate"],
+	contents: [
+		{
+			kind: "block",
+			type: "switch_animation",
+			keyword: "switch",
+		},
+		{
+			kind: "block",
+			type: "play_animation",
+			keyword: "play",
+		},
+		{
+			kind: "block",
+			type: "glide_to",
+			keyword: "glide",
+			inputs: {
+				X: {
+					shadow: {
+						type: "math_number",
+						fields: {
+							NUM: 0,
 						},
 					},
-					Y: {
-						shadow: {
-							type: "math_number",
-							fields: {
-								NUM: 0,
-							},
+				},
+				Y: {
+					shadow: {
+						type: "math_number",
+						fields: {
+							NUM: 0,
 						},
 					},
-					Z: {
-						shadow: {
-							type: "math_number",
-							fields: {
-								NUM: 0,
-							},
+				},
+				Z: {
+					shadow: {
+						type: "math_number",
+						fields: {
+							NUM: 0,
 						},
 					},
-					DURATION: {
-						shadow: {
-							type: "math_number",
-							fields: {
-								NUM: 1000,
-							},
+				},
+				DURATION: {
+					shadow: {
+						type: "math_number",
+						fields: {
+							NUM: 1000,
 						},
 					},
 				},
 			},
-			{
-				kind: "block",
-				type: "rotate_anim",
-				keyword: "rotate",
-				inputs: {
-					ROT_X: {
-						shadow: {
-							type: "math_number",
-							fields: {
-								NUM: 0, // Default rotation for X-axis
-							},
+		},
+		{
+			kind: "block",
+			type: "rotate_anim",
+			keyword: "rotate",
+			inputs: {
+				ROT_X: {
+					shadow: {
+						type: "math_number",
+						fields: {
+							NUM: 0, // Default rotation for X-axis
 						},
 					},
-					ROT_Y: {
-						shadow: {
-							type: "math_number",
-							fields: {
-								NUM: 0, // Default rotation for Y-axis
-							},
+				},
+				ROT_Y: {
+					shadow: {
+						type: "math_number",
+						fields: {
+							NUM: 0, // Default rotation for Y-axis
 						},
 					},
-					ROT_Z: {
-						shadow: {
-							type: "math_number",
-							fields: {
-								NUM: 0, // Default rotation for Z-axis
-							},
+				},
+				ROT_Z: {
+					shadow: {
+						type: "math_number",
+						fields: {
+							NUM: 0, // Default rotation for Z-axis
 						},
 					},
-					DURATION: {
-						shadow: {
-							type: "math_number",
-							fields: {
-								NUM: 1000, // Default duration in milliseconds
-							},
+				},
+				DURATION: {
+					shadow: {
+						type: "math_number",
+						fields: {
+							NUM: 1000, // Default duration in milliseconds
 						},
 					},
 				},
 			},
-			{
-				kind: "block",
-				type: "stop_animations",
-				keyword: "anistop",
-			},
-			toolboxAnimateKeyframe,
-		],
-	};
+		},
+		{
+			kind: "block",
+			type: "stop_animations",
+			keyword: "anistop",
+		},
+		toolboxAnimateKeyframe,
+	],
+};
 
 const toolboxControl = {
-		kind: "category",
-		name: "Control",
-		icon: "./images/control.svg",
-		colour: categoryColours["Control"],
-		contents: [
-			{
-				kind: "block",
-				type: "wait",
-				keyword: "wait",
-				inputs: {
-					DURATION: {
-						shadow: {
-							type: "math_number",
-							fields: {
-								NUM: 1000,
-							},
+	kind: "category",
+	name: "Control",
+	icon: "./images/control.svg",
+	colour: categoryColours["Control"],
+	contents: [
+		{
+			kind: "block",
+			type: "wait",
+			keyword: "wait",
+			inputs: {
+				DURATION: {
+					shadow: {
+						type: "math_number",
+						fields: {
+							NUM: 1000,
 						},
 					},
 				},
 			},
-			{
-				kind: "block",
-				type: "wait_until",
-				keyword: "until",
-			},
-			{
-				kind: "block",
-				type: "controls_repeat_ext",
-				keyword: "repeat",
-				inputs: {
-					TIMES: {
-						shadow: {
-							type: "math_number",
-							fields: {
-								NUM: 10,
-							},
+		},
+		{
+			kind: "block",
+			type: "wait_until",
+			keyword: "until",
+		},
+		{
+			kind: "block",
+			type: "controls_repeat_ext",
+			keyword: "repeat",
+			inputs: {
+				TIMES: {
+					shadow: {
+						type: "math_number",
+						fields: {
+							NUM: 10,
 						},
 					},
 				},
 			},
-			{
-				kind: "block",
-				type: "controls_whileUntil",
-				keyword: "while",
-			},
-			{
-				kind: "block",
-				type: "controls_for",
-				keyword: "for",
-			},
-			{
-				kind: "block",
-				type: "controls_forEach",
-				keyword: "each",
-			},
-			{
-				kind: "block",
-				type: "controls_flow_statements",
-				keyword: "break",
-			},
-			{
-				kind: "block",
-				type: "local_variable",
-				keyword: "local",
-			},
-		],
-	};
+		},
+		{
+			kind: "block",
+			type: "controls_whileUntil",
+			keyword: "while",
+		},
+		{
+			kind: "block",
+			type: "controls_for",
+			keyword: "for",
+		},
+		{
+			kind: "block",
+			type: "controls_forEach",
+			keyword: "each",
+		},
+		{
+			kind: "block",
+			type: "controls_flow_statements",
+			keyword: "break",
+		},
+		{
+			kind: "block",
+			type: "local_variable",
+			keyword: "local",
+		},
+	],
+};
 
 const toolboxCondition = {
-		kind: "category",
-		name: "Condition",
-		icon: "./images/conditions.svg",
-		colour: categoryColours["Logic"],
-		contents: [
-			{
-				kind: "block",
-				type: "controls_if",
-				keyword: "if",
-			},
-			{
-				kind: "block",
-				type: "logic_compare",
-				keyword: "compare",
-			},
-			{
-				kind: "block",
-				type: "logic_operation",
-				keyword: "op",
-			},
-			{
-				kind: "block",
-				type: "logic_negate",
-				keyword: "not",
-			},
-			{
-				kind: "block",
-				type: "logic_boolean",
-				keyword: "bool",
-			},
-			{
-				kind: "block",
-				type: "logic_null",
-				keyword: "null",
-			},
-			{
-				kind: "block",
-				type: "logic_ternary",
-				keyword: "ternary",
-			},
-		],
-	};
+	kind: "category",
+	name: "Condition",
+	icon: "./images/conditions.svg",
+	colour: categoryColours["Logic"],
+	contents: [
+		{
+			kind: "block",
+			type: "controls_if",
+			keyword: "if",
+		},
+		{
+			kind: "block",
+			type: "logic_compare",
+			keyword: "compare",
+		},
+		{
+			kind: "block",
+			type: "logic_operation",
+			keyword: "op",
+		},
+		{
+			kind: "block",
+			type: "logic_negate",
+			keyword: "not",
+		},
+		{
+			kind: "block",
+			type: "logic_boolean",
+			keyword: "bool",
+		},
+		{
+			kind: "block",
+			type: "logic_null",
+			keyword: "null",
+		},
+		{
+			kind: "block",
+			type: "logic_ternary",
+			keyword: "ternary",
+		},
+	],
+};
 
 const toolboxSensing = {
-		kind: "category",
-		name: "Sensing",
-		icon: "./images/sensing.svg",
-		colour: categoryColours["Sensing"],
-		contents: [
-			{
-				kind: "block",
-				type: "key_pressed",
-				keyword: "ispressed",
-			},
-			{
-				kind: "block",
-				type: "touching_surface",
-				keyword: "surface",
-			},
-			{
-				kind: "block",
-				type: "meshes_touching",
-				keyword: "istouching",
-			},
-			{
-				kind: "block",
-				type: "get_property",
-				keyword: "get",
-			},
-			{
-				kind: "block",
-				type: "distance_to",
-				keyword: "dist",
-			},
-			{
-				kind: "block",
-				type: "time",
-				keyword: "time",
-			},
-			{
-				kind: "block",
-				type: "canvas_controls",
-				keyword: "canvas",
-			},
-			{
-				kind: "block",
-				type: "button_controls",
-				keyword: "button",
-				inputs: {
-					COLOR: {
-						shadow: {
-							type: "colour",
-							fields: {
-								COLOR: "#FFFFFF",
-							},
+	kind: "category",
+	name: "Sensing",
+	icon: "./images/sensing.svg",
+	colour: categoryColours["Sensing"],
+	contents: [
+		{
+			kind: "block",
+			type: "key_pressed",
+			keyword: "ispressed",
+		},
+		{
+			kind: "block",
+			type: "touching_surface",
+			keyword: "surface",
+		},
+		{
+			kind: "block",
+			type: "meshes_touching",
+			keyword: "istouching",
+		},
+		{
+			kind: "block",
+			type: "get_property",
+			keyword: "get",
+		},
+		{
+			kind: "block",
+			type: "distance_to",
+			keyword: "dist",
+		},
+		{
+			kind: "block",
+			type: "time",
+			keyword: "time",
+		},
+		{
+			kind: "block",
+			type: "canvas_controls",
+			keyword: "canvas",
+		},
+		{
+			kind: "block",
+			type: "button_controls",
+			keyword: "button",
+			inputs: {
+				COLOR: {
+					shadow: {
+						type: "colour",
+						fields: {
+							COLOR: "#FFFFFF",
 						},
 					},
 				},
 			},
-			{
-				kind: "block",
-				type: "microbit_input",
-				keyword: "microbit",
-			},
-		],
-	};
+		},
+		{
+			kind: "block",
+			type: "microbit_input",
+			keyword: "microbit",
+		},
+	],
+};
 
 const toolboxText = {
-		kind: "category",
-		name: "Text",
-		icon: "./images/text.svg",
-		categorystyle: "text_category",
-		contents: [
-			{
-				kind: "block",
-				type: "print_text",
-				keyword: "print",
-				inputs: {
-					TEXT: {
-						shadow: {
-							type: "text",
-							fields: {
-								TEXT: "🌈 Hello",
-							},
+	kind: "category",
+	name: "Text",
+	icon: "./images/text.svg",
+	categorystyle: "text_category",
+	contents: [
+		{
+			kind: "block",
+			type: "print_text",
+			keyword: "print",
+			inputs: {
+				TEXT: {
+					shadow: {
+						type: "text",
+						fields: {
+							TEXT: "🌈 Hello",
 						},
 					},
-					DURATION: {
-						shadow: {
-							type: "math_number",
-							fields: {
-								NUM: 30,
-							},
+				},
+				DURATION: {
+					shadow: {
+						type: "math_number",
+						fields: {
+							NUM: 30,
 						},
 					},
-					COLOR: {
-						shadow: {
-							type: "colour",
-							fields: {
-								COLOR: "#000080",
-							},
+				},
+				COLOR: {
+					shadow: {
+						type: "colour",
+						fields: {
+							COLOR: "#000080",
 						},
 					},
 				},
 			},
-			{
-				kind: "block",
-				type: "say",
-				keyword: "say",
-				inputs: {
-					TEXT: {
-						shadow: {
-							type: "text",
-							fields: {
-								TEXT: "Hello",
-							},
-						},
-					},
-					DURATION: {
-						shadow: {
-							type: "math_number",
-							fields: {
-								NUM: 3,
-							},
-						},
-					},
-					ALPHA: {
-						shadow: {
-							type: "math_number",
-							fields: {
-								NUM: 1,
-							},
-						},
-					},
-					SIZE: {
-						shadow: {
-							type: "math_number",
-							fields: {
-								NUM: 20,
-							},
-						},
-					},
-					TEXT_COLOR: {
-						shadow: {
-							type: "colour",
-							fields: {
-								COLOR: "#000000",
-							},
-						},
-					},
-					BACKGROUND_COLOR: {
-						shadow: {
-							type: "colour",
-							fields: {
-								COLOR: "#ffffff",
-							},
+		},
+		{
+			kind: "block",
+			type: "say",
+			keyword: "say",
+			inputs: {
+				TEXT: {
+					shadow: {
+						type: "text",
+						fields: {
+							TEXT: "Hello",
 						},
 					},
 				},
-				fields: {
-					MODE: "ADD",
+				DURATION: {
+					shadow: {
+						type: "math_number",
+						fields: {
+							NUM: 3,
+						},
+					},
 				},
-			},
-			{
-				kind: "block",
-				type: "ui_text",
-				keyword: "ui",
-				inputs: {
-					TEXT: {
-						shadow: {
-							type: "text",
-							fields: {
-								TEXT: "Info",
-							},
+				ALPHA: {
+					shadow: {
+						type: "math_number",
+						fields: {
+							NUM: 1,
 						},
 					},
-					DURATION: {
-						shadow: {
-							type: "math_number",
-							fields: {
-								NUM: 0,
-							},
+				},
+				SIZE: {
+					shadow: {
+						type: "math_number",
+						fields: {
+							NUM: 20,
 						},
 					},
-					COLOR: {
-						shadow: {
-							type: "colour",
-							fields: {
-								COLOR: "#000080",
-							},
+				},
+				TEXT_COLOR: {
+					shadow: {
+						type: "colour",
+						fields: {
+							COLOR: "#000000",
 						},
 					},
-					X: {
-						shadow: {
-							type: "math_number",
-							fields: {
-								NUM: 100,
-							},
-						},
-					},
-					Y: {
-						shadow: {
-							type: "math_number",
-							fields: {
-								NUM: 50,
-							},
-						},
-					},
-					FONT_SIZE: {
-						shadow: {
-							type: "math_number",
-							fields: {
-								NUM: 24,
-							},
+				},
+				BACKGROUND_COLOR: {
+					shadow: {
+						type: "colour",
+						fields: {
+							COLOR: "#ffffff",
 						},
 					},
 				},
 			},
-			{
-				kind: "block",
-				type: "ui_button",
-				keyword: "ui",
-				inputs: {
-					TEXT: {
-						shadow: {
-							type: "text",
-							fields: {
-								TEXT: "Click Me",
-							},
-						},
-					},
-					X: {
-						shadow: {
-							type: "math_number",
-							fields: {
-								NUM: 100,
-							},
-						},
-					},
-					Y: {
-						shadow: {
-							type: "math_number",
-							fields: {
-								NUM: 50,
-							},
-						},
-					},
-					TEXT_COLOR: {
-						shadow: {
-							type: "colour",
-							fields: {
-								COLOR: "#FFFFFF", // Using "COLOR" to match your example
-							},
-						},
-					},
-					BACKGROUND_COLOR: {
-						shadow: {
-							type: "colour",
-							fields: {
-								COLOR: "#007ACC", // Using "COLOR" to match your example
-							},
+			fields: {
+				MODE: "ADD",
+			},
+		},
+		{
+			kind: "block",
+			type: "ui_text",
+			keyword: "ui",
+			inputs: {
+				TEXT: {
+					shadow: {
+						type: "text",
+						fields: {
+							TEXT: "Info",
 						},
 					},
 				},
-				fields: {
-					WIDTH: {
-						value: "SMALL",
+				DURATION: {
+					shadow: {
+						type: "math_number",
+						fields: {
+							NUM: 0,
+						},
 					},
 				},
-			},
-			{
-				kind: "block",
-				type: "text",
-				keyword: "text",
-			},
-			{
-				kind: "block",
-				type: "comment",
-				keyword: "//",
-				inputs: {
-					COMMENT: {
-						shadow: {
-							type: "text",
-							fields: {
-								TEXT: "comment",
-							},
+				COLOR: {
+					shadow: {
+						type: "colour",
+						fields: {
+							COLOR: "#000080",
+						},
+					},
+				},
+				X: {
+					shadow: {
+						type: "math_number",
+						fields: {
+							NUM: 100,
+						},
+					},
+				},
+				Y: {
+					shadow: {
+						type: "math_number",
+						fields: {
+							NUM: 50,
+						},
+					},
+				},
+				FONT_SIZE: {
+					shadow: {
+						type: "math_number",
+						fields: {
+							NUM: 24,
 						},
 					},
 				},
 			},
-			{
-				kind: "block",
-				type: "create_3d_text",
-				keyword: "text",
-				inputs: {
-					TEXT: {
-						shadow: {
-							type: "text",
-							fields: {
-								TEXT: "Hello World",
-							},
+		},
+		{
+			kind: "block",
+			type: "ui_button",
+			keyword: "ui",
+			inputs: {
+				TEXT: {
+					shadow: {
+						type: "text",
+						fields: {
+							TEXT: "Click Me",
 						},
 					},
-					COLOR: {
-						shadow: {
-							type: "colour",
-							fields: {
-								COLOR: "#FFFFFF",
-							},
+				},
+				X: {
+					shadow: {
+						type: "math_number",
+						fields: {
+							NUM: 100,
 						},
 					},
-					SIZE: {
-						shadow: {
-							type: "math_number",
-							fields: {
-								NUM: 1,
-							},
+				},
+				Y: {
+					shadow: {
+						type: "math_number",
+						fields: {
+							NUM: 50,
 						},
 					},
-					DEPTH: {
-						shadow: {
-							type: "math_number",
-							fields: {
-								NUM: 1.0,
-							},
+				},
+				TEXT_COLOR: {
+					shadow: {
+						type: "colour",
+						fields: {
+							COLOR: "#FFFFFF", // Using "COLOR" to match your example
 						},
 					},
-					X: {
-						shadow: {
-							type: "math_number",
-							fields: {
-								NUM: 0,
-							},
-						},
-					},
-					Y: {
-						shadow: {
-							type: "math_number",
-							fields: {
-								NUM: 0,
-							},
-						},
-					},
-					Z: {
-						shadow: {
-							type: "math_number",
-							fields: {
-								NUM: 0,
-							},
+				},
+				BACKGROUND_COLOR: {
+					shadow: {
+						type: "colour",
+						fields: {
+							COLOR: "#007ACC", // Using "COLOR" to match your example
 						},
 					},
 				},
 			},
-			{
-				kind: "category",
-				name: "Strings",
-				icon: "./images/text.svg",
-				categorystyle: "text_category",
-				contents: [
-					{
-						kind: "block",
-						type: "text_join",
-						keyword: "text",
+			fields: {
+				WIDTH: {
+					value: "SMALL",
+				},
+			},
+		},
+		{
+			kind: "block",
+			type: "text",
+			keyword: "text",
+		},
+		{
+			kind: "block",
+			type: "comment",
+			keyword: "//",
+			inputs: {
+				COMMENT: {
+					shadow: {
+						type: "text",
+						fields: {
+							TEXT: "comment",
+						},
 					},
-					{
-						kind: "block",
-						type: "text_append",
-						keyword: "join",
-						inputs: {
-							TEXT: {
-								shadow: {
-									type: "text",
+				},
+			},
+		},
+		{
+			kind: "block",
+			type: "create_3d_text",
+			keyword: "text",
+			inputs: {
+				TEXT: {
+					shadow: {
+						type: "text",
+						fields: {
+							TEXT: "Hello World",
+						},
+					},
+				},
+				COLOR: {
+					shadow: {
+						type: "colour",
+						fields: {
+							COLOR: "#FFFFFF",
+						},
+					},
+				},
+				SIZE: {
+					shadow: {
+						type: "math_number",
+						fields: {
+							NUM: 1,
+						},
+					},
+				},
+				DEPTH: {
+					shadow: {
+						type: "math_number",
+						fields: {
+							NUM: 1.0,
+						},
+					},
+				},
+				X: {
+					shadow: {
+						type: "math_number",
+						fields: {
+							NUM: 0,
+						},
+					},
+				},
+				Y: {
+					shadow: {
+						type: "math_number",
+						fields: {
+							NUM: 0,
+						},
+					},
+				},
+				Z: {
+					shadow: {
+						type: "math_number",
+						fields: {
+							NUM: 0,
+						},
+					},
+				},
+			},
+		},
+		{
+			kind: "category",
+			name: "Strings",
+			icon: "./images/text.svg",
+			categorystyle: "text_category",
+			contents: [
+				{
+					kind: "block",
+					type: "text_join",
+					keyword: "text",
+				},
+				{
+					kind: "block",
+					type: "text_append",
+					keyword: "join",
+					inputs: {
+						TEXT: {
+							shadow: {
+								type: "text",
+							},
+						},
+					},
+				},
+				{
+					kind: "block",
+					type: "text_length",
+					keyword: "length",
+					inputs: {
+						VALUE: {
+							shadow: {
+								type: "text",
+								fields: {
+									TEXT: "abc",
 								},
 							},
 						},
 					},
-					{
-						kind: "block",
-						type: "text_length",
-						keyword: "length",
-						inputs: {
-							VALUE: {
-								shadow: {
-									type: "text",
-									fields: {
-										TEXT: "abc",
-									},
+				},
+				{
+					kind: "block",
+					type: "text_isEmpty",
+					keyword: "isempty",
+					inputs: {
+						VALUE: {
+							shadow: {
+								type: "text",
+								fields: {
+									TEXT: "",
 								},
 							},
 						},
 					},
-					{
-						kind: "block",
-						type: "text_isEmpty",
-						keyword: "isempty",
-						inputs: {
-							VALUE: {
-								shadow: {
-									type: "text",
-									fields: {
-										TEXT: "",
-									},
+				},
+				{
+					kind: "block",
+					type: "text_indexOf",
+					keyword: "index",
+					inputs: {
+						VALUE: {
+							block: {
+								type: "variables_get",
+								fields: {
+									VAR: "text",
+								},
+							},
+						},
+						FIND: {
+							shadow: {
+								type: "text",
+								fields: {
+									TEXT: "abc",
 								},
 							},
 						},
 					},
-					{
-						kind: "block",
-						type: "text_indexOf",
-						keyword: "index",
-						inputs: {
-							VALUE: {
-								block: {
-									type: "variables_get",
-									fields: {
-										VAR: "text",
-									},
-								},
-							},
-							FIND: {
-								shadow: {
-									type: "text",
-									fields: {
-										TEXT: "abc",
-									},
+				},
+				{
+					kind: "block",
+					type: "text_charAt",
+					keyword: "charat",
+					inputs: {
+						VALUE: {
+							block: {
+								type: "variables_get",
+								fields: {
+									VAR: "text",
 								},
 							},
 						},
 					},
-					{
-						kind: "block",
-						type: "text_charAt",
-						keyword: "charat",
-						inputs: {
-							VALUE: {
-								block: {
-									type: "variables_get",
-									fields: {
-										VAR: "text",
-									},
+				},
+				{
+					kind: "block",
+					type: "text_getSubstring",
+					keyword: "substring",
+					inputs: {
+						STRING: {
+							block: {
+								type: "variables_get",
+								fields: {
+									VAR: "text",
 								},
 							},
 						},
 					},
-					{
-						kind: "block",
-						type: "text_getSubstring",
-						keyword: "substring",
-						inputs: {
-							STRING: {
-								block: {
-									type: "variables_get",
-									fields: {
-										VAR: "text",
-									},
+				},
+				{
+					kind: "block",
+					type: "text_changeCase",
+					keyword: "case",
+					inputs: {
+						TEXT: {
+							shadow: {
+								type: "text",
+								fields: {
+									TEXT: "abc",
 								},
 							},
 						},
 					},
-					{
-						kind: "block",
-						type: "text_changeCase",
-						keyword: "case",
-						inputs: {
-							TEXT: {
-								shadow: {
-									type: "text",
-									fields: {
-										TEXT: "abc",
-									},
+				},
+				{
+					kind: "block",
+					type: "text_trim",
+					keyword: "trim",
+					inputs: {
+						TEXT: {
+							shadow: {
+								type: "text",
+								fields: {
+									TEXT: "abc",
 								},
 							},
 						},
 					},
-					{
-						kind: "block",
-						type: "text_trim",
-						keyword: "trim",
-						inputs: {
-							TEXT: {
-								shadow: {
-									type: "text",
-									fields: {
-										TEXT: "abc",
-									},
-								},
+				},
+				{
+					kind: "block",
+					type: "text_count",
+					keyword: "count",
+					inputs: {
+						SUB: {
+							shadow: {
+								type: "text",
+							},
+						},
+						TEXT: {
+							shadow: {
+								type: "text",
 							},
 						},
 					},
-					{
-						kind: "block",
-						type: "text_count",
-						keyword: "count",
-						inputs: {
-							SUB: {
-								shadow: {
-									type: "text",
-								},
+				},
+				{
+					kind: "block",
+					type: "text_replace",
+					keyword: "replace",
+					inputs: {
+						FROM: {
+							shadow: {
+								type: "text",
 							},
-							TEXT: {
-								shadow: {
-									type: "text",
-								},
+						},
+						TO: {
+							shadow: {
+								type: "text",
+							},
+						},
+						TEXT: {
+							shadow: {
+								type: "text",
 							},
 						},
 					},
-					{
-						kind: "block",
-						type: "text_replace",
-						keyword: "replace",
-						inputs: {
-							FROM: {
-								shadow: {
-									type: "text",
-								},
-							},
-							TO: {
-								shadow: {
-									type: "text",
-								},
-							},
-							TEXT: {
-								shadow: {
-									type: "text",
-								},
+				},
+				{
+					kind: "block",
+					type: "text_reverse",
+					keyword: "reverse",
+					inputs: {
+						TEXT: {
+							shadow: {
+								type: "text",
 							},
 						},
 					},
-					{
-						kind: "block",
-						type: "text_reverse",
-						keyword: "reverse",
-						inputs: {
-							TEXT: {
-								shadow: {
-									type: "text",
-								},
-							},
-						},
-					},
-					/*{
+				},
+				/*{
 				kind: "label",
 				text: "Input/Output:",
 				"web-class": "ioLabel",
 			},*/
-					{
-						kind: "block",
-						type: "text_prompt_ext",
-						keyword: "prompt",
-						tooltip: "Ask the user for input.\nKeyword: prompt",
+				{
+					kind: "block",
+					type: "text_prompt_ext",
+					keyword: "prompt",
+					tooltip: "Ask the user for input.\nKeyword: prompt",
+					inputs: {
+						TEXT: {
+							shadow: {
+								type: "text",
+								fields: {
+									TEXT: "abc",
+								},
+							},
+						},
+					},
+				},
+			],
+		},
+	],
+};
+
+const toolboxMaterials = {
+	kind: "category",
+	name: "Materials",
+	icon: "./images/looks.svg",
+	colour: categoryColours["Materials"],
+	contents: [
+		{
+			kind: "block",
+			type: "change_color",
+			keyword: "colour",
+			inputs: {
+				COLOR: {
+					shadow: {
+						type: "colour",
+						fields: {
+							COLOR: "#008080",
+						},
+					},
+				},
+			},
+		},
+		{
+			kind: "block",
+			type: "set_alpha",
+			keyword: "alpha",
+			inputs: {
+				ALPHA: {
+					shadow: {
+						type: "math_number",
+						fields: {
+							NUM: 0.5,
+						},
+					},
+				},
+			},
+		},
+		{
+			kind: "block",
+			type: "tint",
+			keyword: "tint",
+			inputs: {
+				COLOR: {
+					shadow: {
+						type: "colour",
+						fields: {
+							COLOR: "#AA336A",
+						},
+					},
+				},
+			},
+		},
+		{
+			kind: "block",
+			type: "highlight",
+			keyword: "highlight",
+			inputs: {
+				COLOR: {
+					shadow: {
+						type: "colour",
+						fields: {
+							COLOR: "#FFD700",
+						},
+					},
+				},
+			},
+		},
+		{
+			kind: "block",
+			type: "glow",
+			keyword: "glow",
+		},
+		{
+			kind: "block",
+			type: "clear_effects",
+			keyword: "clear",
+		},
+		{
+			kind: "block",
+			type: "colour",
+			keyword: "setcol",
+		},
+		{
+			kind: "block",
+			type: "lists_create_with",
+			extraState: { itemCount: 2 },
+			inline: true,
+			inputs: {
+				ADD0: {
+					shadow: {
+						type: "colour",
+						fields: {
+							COLOR: "#FF5733",
+						},
+					},
+				},
+				ADD1: {
+					shadow: {
+						type: "colour",
+						fields: {
+							COLOR: "#FDFD96",
+						},
+					},
+				},
+			},
+		},
+		{
+			kind: "block",
+			type: "random_colour",
+			keyword: "randcol",
+		},
+		{
+			kind: "block",
+			type: "colour_from_string",
+			keyword: "colstr",
+		},
+		{
+			kind: "block",
+			type: "set_material",
+			inputs: {
+				MATERIAL: {
+					shadow: {
+						type: "material",
 						inputs: {
-							TEXT: {
+							BASE_COLOR: {
 								shadow: {
-									type: "text",
+									type: "colour",
 									fields: {
-										TEXT: "abc",
+										COLOR: "#FF7F50",
 									},
 								},
 							},
-						},
-					},
-				],
-			},
-		],
-	};
 
-const toolboxMaterials = 	{
-		kind: "category",
-		name: "Materials",
-		icon: "./images/looks.svg",
-		colour: categoryColours["Materials"],
-		contents: [
-			{
-				kind: "block",
-				type: "change_color",
-				keyword: "colour",
-				inputs: {
-					COLOR: {
-						shadow: {
-							type: "colour",
-							fields: {
-								COLOR: "#008080",
-							},
-						},
-					},
-				},
-			},
-			{
-				kind: "block",
-				type: "set_alpha",
-				keyword: "alpha",
-				inputs: {
-					ALPHA: {
-						shadow: {
-							type: "math_number",
-							fields: {
-								NUM: 0.5,
-							},
-						},
-					},
-				},
-			},
-			{
-				kind: "block",
-				type: "tint",
-				keyword: "tint",
-				inputs: {
-					COLOR: {
-						shadow: {
-							type: "colour",
-							fields: {
-								COLOR: "#AA336A",
-							},
-						},
-					},
-				},
-			},
-			{
-				kind: "block",
-				type: "highlight",
-				keyword: "highlight",
-				inputs: {
-					COLOR: {
-						shadow: {
-							type: "colour",
-							fields: {
-								COLOR: "#FFD700",
-							},
-						},
-					},
-				},
-			},
-			{
-				kind: "block",
-				type: "glow",
-				keyword: "glow",
-			},
-			{
-				kind: "block",
-				type: "clear_effects",
-				keyword: "clear",
-			},
-			{
-				kind: "block",
-				type: "colour",
-				keyword: "setcol",
-			},
-			{
-				kind: "block",
-				type: "random_colour",
-				keyword: "randcol",
-			},
-			{
-				kind: "block",
-				type: "colour_from_string",
-				keyword: "colstr",
-			},
-			{
-				kind: "block",
-				type: "set_material",
-				inputs: {
-					MATERIAL: {
-						shadow: {
-							type: "material",
-							inputs: {
-								BASE_COLOR: {
-									shadow: {
-										type: "colour",
-										fields: {
-											COLOR: "#FF7F50", 
-										},
-									},
-								},
-
-								ALPHA: {
-									shadow: {
-										type: "math_number",
-										fields: {
-											NUM: 1.0, // Default alpha value: 1 (fully opaque)
-										},
+							ALPHA: {
+								shadow: {
+									type: "math_number",
+									fields: {
+										NUM: 1.0, // Default alpha value: 1 (fully opaque)
 									},
 								},
 							},
@@ -2591,7 +2615,8 @@ const toolboxMaterials = 	{
 					},
 				},
 			},
-			/*{
+		},
+		/*{
 				kind: "block",
 				type: "change_material",
 				keyword: "material",
@@ -2606,18 +2631,18 @@ const toolboxMaterials = 	{
 					},
 				},
 			},*/
-			{
-				kind: "block",
-				type: "material",
-				inputs: {
-					BASE_COLOR: {
-						shadow: {
-							type: "colour",
-							fields: {
-								COLOR: "#FFFFFF",
-							},
+		{
+			kind: "block",
+			type: "material",
+			inputs: {
+				BASE_COLOR: {
+					shadow: {
+						type: "colour",
+						fields: {
+							COLOR: "#FFFFFF",
 						},
 					},
+				},
 				ALPHA: {
 					shadow: {
 						type: "math_number",
@@ -2626,9 +2651,9 @@ const toolboxMaterials = 	{
 						},
 					},
 				},
-				}
 			},
-			/*{
+		},
+		/*{
 				kind: "block",
 				type: "material",
 				inputs: {
@@ -2674,62 +2699,62 @@ const toolboxMaterials = 	{
 					},
 				},
 			},*/
-			{
-				kind: "block",
-				type: "text_material",
-				inputs: {
-					TEXT: {
-						shadow: {
-							type: "text",
-							fields: {
-								TEXT: "😊",
-							},
+		{
+			kind: "block",
+			type: "text_material",
+			inputs: {
+				TEXT: {
+					shadow: {
+						type: "text",
+						fields: {
+							TEXT: "😊",
 						},
 					},
-					COLOR: {
-						shadow: {
-							type: "colour",
-							fields: {
-								COLOR: "#FF5733",
-							},
+				},
+				COLOR: {
+					shadow: {
+						type: "colour",
+						fields: {
+							COLOR: "#FF5733",
 						},
 					},
-					BACKGROUND_COLOR: {
-						shadow: {
-							type: "colour",
-							fields: {
-								COLOR: "#FF5733",
-							},
+				},
+				BACKGROUND_COLOR: {
+					shadow: {
+						type: "colour",
+						fields: {
+							COLOR: "#FF5733",
 						},
 					},
-					WIDTH: {
-						shadow: {
-							type: "math_number",
-							fields: {
-								NUM: 50,
-							},
+				},
+				WIDTH: {
+					shadow: {
+						type: "math_number",
+						fields: {
+							NUM: 50,
 						},
 					},
-					HEIGHT: {
-						shadow: {
-							type: "math_number",
-							fields: {
-								NUM: 50,
-							},
+				},
+				HEIGHT: {
+					shadow: {
+						type: "math_number",
+						fields: {
+							NUM: 50,
 						},
 					},
-					TEXT_SIZE: {
-						shadow: {
-							type: "math_number",
-							fields: {
-								NUM: 30,
-							},
+				},
+				TEXT_SIZE: {
+					shadow: {
+						type: "math_number",
+						fields: {
+							NUM: 30,
 						},
 					},
 				},
 			},
-			
-			/*{
+		},
+
+		/*{
 				kind: "block",
 				type: "set_material",
 				inputs: {
@@ -2782,7 +2807,7 @@ const toolboxMaterials = 	{
 					},
 				},
 			},*/
-			/*{
+		/*{
 				kind: "block",
 				type: "decal",
 				inputs: {
@@ -2879,495 +2904,604 @@ const toolboxMaterials = 	{
 				type: "colour",
 				keyword: "color",
 			},*/
-		],
-	};
+	],
+};
 
 const toolboxSound = {
-		kind: "category",
-		name: "Sound",
-		icon: "./images/sound.svg",
-		colour: categoryColours["Sound"],
-		contents: [
-			{
-				kind: "block",
-				type: "play_sound",
-				keyword: "sound",
-				inputs: {
-					SPEED: {
-						shadow: {
-							type: "math_number",
-							fields: {
-								NUM: 1,
-							},
+	kind: "category",
+	name: "Sound",
+	icon: "./images/sound.svg",
+	colour: categoryColours["Sound"],
+	contents: [
+		{
+			kind: "block",
+			type: "play_sound",
+			keyword: "sound",
+			inputs: {
+				SPEED: {
+					shadow: {
+						type: "math_number",
+						fields: {
+							NUM: 1,
 						},
 					},
-					VOLUME: {
-						shadow: {
-							type: "math_number",
-							fields: {
-								NUM: 1,
-							},
+				},
+				VOLUME: {
+					shadow: {
+						type: "math_number",
+						fields: {
+							NUM: 1,
 						},
 					},
 				},
 			},
-			{
-				kind: "block",
-				type: "stop_all_sounds",
+		},
+		{
+			kind: "block",
+			type: "stop_all_sounds",
+		},
+		{
+			kind: "block",
+			type: "midi_note",
+			fields: {
+				NOTE: 60,
 			},
-			{
-				kind: "block",
-				type: "midi_note",
-				fields: {
-					NOTE: 60,
-				},
-			},
-			{
-				kind: "block",
-				type: "rest",
-			},
-			{
-				kind: "block",
-				type: "play_notes",
-				inputsInline: true,
-				inputs: {
-					NOTES: {
-						block: {
-							// Real block initially
-							type: "lists_create_with",
-							extraState: { itemCount: 1 },
-							inputs: {
-								ADD0: {
-									block: {
-										type: "midi_note",
-										fields: { NOTE: 60 },
-									},
+		},
+		{
+			kind: "block",
+			type: "rest",
+		},
+		{
+			kind: "block",
+			type: "play_notes",
+			inputsInline: true,
+			inputs: {
+				NOTES: {
+					block: {
+						// Real block initially
+						type: "lists_create_with",
+						extraState: { itemCount: 1 },
+						inputs: {
+							ADD0: {
+								block: {
+									type: "midi_note",
+									fields: { NOTE: 60 },
 								},
 							},
 						},
 					},
-					DURATIONS: {
-						block: {
-							// Real block initially
-							type: "lists_create_with",
-							extraState: { itemCount: 1 },
-							inputs: {
-								ADD0: {
-									block: {
-										type: "math_number",
-										fields: { NUM: 1 },
-									},
+				},
+				DURATIONS: {
+					block: {
+						// Real block initially
+						type: "lists_create_with",
+						extraState: { itemCount: 1 },
+						inputs: {
+							ADD0: {
+								block: {
+									type: "math_number",
+									fields: { NUM: 1 },
 								},
 							},
 						},
 					},
-					INSTRUMENT: {
-						block: {
-							// Real block initially
-							type: "instrument",
-							fields: { INSTRUMENT_TYPE: "default" },
+				},
+				INSTRUMENT: {
+					block: {
+						// Real block initially
+						type: "instrument",
+						fields: { INSTRUMENT_TYPE: "default" },
+					},
+				},
+			},
+		},
+		{
+			kind: "block",
+			type: "set_mesh_bpm",
+			inputs: {
+				BPM: {
+					shadow: {
+						type: "math_number",
+						fields: {
+							NUM: 60,
 						},
 					},
 				},
 			},
-			{
-				kind: "block",
-				type: "set_mesh_bpm",
-				inputs: {
-					BPM: {
-						shadow: {
-							type: "math_number",
-							fields: {
-								NUM: 60,
-							},
-						},
-					},
-				},
-			},
-			{
-				kind: "block",
-				type: "instrument",
-			},
-			{
-				kind: "block",
-				type: "create_instrument",
-			},
-		],
-	};
+		},
+		{
+			kind: "block",
+			type: "instrument",
+		},
+		{
+			kind: "block",
+			type: "create_instrument",
+		},
+	],
+};
 
 const toolboxVariables = {
-		kind: "category",
-		name: "Variables",
-		icon: "./images/variables.svg",
-		colour: categoryColours["Variables"],
-		custom: "VARIABLE",
-		contents: [],
-	};
+	kind: "category",
+	name: "Variables",
+	icon: "./images/variables.svg",
+	colour: categoryColours["Variables"],
+	custom: "VARIABLE",
+	contents: [],
+};
 
 const toolboxLists = {
-		kind: "category",
-		name: "Lists",
-		icon: "./images/lists.svg",
-		colour: categoryColours["Lists"],
-		contents: [
-			{
-				kind: "block",
-				type: "lists_create_empty",
-				keyword: "list",
-			},
-			{
-				kind: "block",
-				type: "lists_create_with",
-				keyword: "these",
-			},
-			{
-				kind: "block",
-				type: "lists_repeat",
-				keyword: "item*",
-			},
-			{
-				kind: "block",
-				type: "lists_length",
-				keyword: "items",
-			},
-			{
-				kind: "block",
-				type: "lists_isEmpty",
-				keyword: "noitems",
-			},
-			{
-				kind: "block",
-				type: "lists_indexOf",
-				keyword: "find",
-			},
-			{
-				kind: "block",
-				type: "lists_getIndex",
-				keyword: "lget",
-			},
-			{
-				kind: "block",
-				type: "lists_setIndex",
-				keyword: "lset",
-			},
-			{
-				kind: "block",
-				type: "lists_getSublist",
-				keyword: "sublist",
-			},
-			{
-				kind: "block",
-				type: "lists_split",
-				keyword: "split",
-			},
-			{
-				kind: "block",
-				type: "lists_sort",
-				keyword: "sort",
-			},
-		],
-	};
+	kind: "category",
+	name: "Lists",
+	icon: "./images/lists.svg",
+	colour: categoryColours["Lists"],
+	contents: [
+		{
+			kind: "block",
+			type: "lists_create_empty",
+			keyword: "list",
+		},
+		{
+			kind: "block",
+			type: "lists_create_with",
+			keyword: "these",
+		},
+		{
+			kind: "block",
+			type: "lists_repeat",
+			keyword: "item*",
+		},
+		{
+			kind: "block",
+			type: "lists_length",
+			keyword: "items",
+		},
+		{
+			kind: "block",
+			type: "lists_isEmpty",
+			keyword: "noitems",
+		},
+		{
+			kind: "block",
+			type: "lists_indexOf",
+			keyword: "find",
+		},
+		{
+			kind: "block",
+			type: "lists_getIndex",
+			keyword: "lget",
+		},
+		{
+			kind: "block",
+			type: "lists_setIndex",
+			keyword: "lset",
+		},
+		{
+			kind: "block",
+			type: "lists_getSublist",
+			keyword: "sublist",
+		},
+		{
+			kind: "block",
+			type: "lists_split",
+			keyword: "split",
+		},
+		{
+			kind: "block",
+			type: "lists_sort",
+			keyword: "sort",
+		},
+	],
+};
 
+const toolboxMath = {
+	kind: "category",
+	name: "Math",
+	icon: "./images/math.svg",
+	colour: categoryColours["Math"],
+	contents: [
+		{
+			kind: "block",
+			type: "math_arithmetic",
+			keyword: "math",
+			fields: {
+				OP: "ADD",
+			},
+			inputs: {
+				A: {
+					shadow: {
+						type: "math_number",
+						fields: {
+							NUM: 1,
+						},
+					},
+				},
+				B: {
+					shadow: {
+						type: "math_number",
+						fields: {
+							NUM: 1,
+						},
+					},
+				},
+			},
+		},
+		{
+			kind: "block",
+			type: "math_random_int",
+			keyword: "randint",
+			inputs: {
+				FROM: {
+					shadow: {
+						type: "math_number",
+						fields: {
+							NUM: 1,
+						},
+					},
+				},
+				TO: {
+					shadow: {
+						type: "math_number",
+						fields: {
+							NUM: 100,
+						},
+					},
+				},
+			},
+		},
+		{
+			kind: "block",
+			type: "random_seeded_int",
+			inputs: {
+				FROM: {
+					shadow: {
+						type: "math_number",
+						fields: {
+							NUM: 1,
+						},
+					},
+				},
+				TO: {
+					shadow: {
+						type: "math_number",
+						fields: {
+							NUM: 100,
+						},
+					},
+				},
+				SEED: {
+					shadow: {
+						type: "math_number",
+						fields: {
+							NUM: 123456, // Default seed value
+						},
+					},
+				},
+			},
+		},
+		{
+			kind: "block",
+			type: "math_number",
+			keyword: "num",
+			fields: {
+				NUM: 0,
+			},
+		},
+		{
+			kind: "block",
+			type: "to_number",
+			keyword: "ton",
+		},
+		{
+			kind: "block",
+			type: "math_constant",
+			keyword: "pi",
+		},
+		{
+			kind: "block",
+			type: "math_number_property",
+			keyword: "even",
+		},
+		{
+			kind: "block",
+			type: "math_round",
+			keyword: "round",
+		},
+		{
+			kind: "block",
+			type: "math_single",
+			keyword: "abs",
+			fields: {
+				OP: "ABS",
+			},
+		},
+		{
+			kind: "block",
+			type: "math_trig",
+			keyword: "trig",
+		},
+		{
+			kind: "block",
+			type: "math_on_list",
+			keyword: "lmath",
+		},
+		{
+			kind: "block",
+			type: "math_modulo",
+			keyword: "mod",
+		},
+		{
+			kind: "block",
+			type: "math_constrain",
+			keyword: "constrain",
+			inputs: {
+				LOW: {
+					shadow: {
+						type: "math_number",
+						fields: {
+							NUM: 1,
+						},
+					},
+				},
+				HIGH: {
+					shadow: {
+						type: "math_number",
+						fields: {
+							NUM: 100,
+						},
+					},
+				},
+			},
+		},
+		{
+			kind: "block",
+			type: "math_random_float",
+			keyword: "randf",
+		},
+	],
+};
 
-const toolboxMath = 	{
-		kind: "category",
-		name: "Math",
-		icon: "./images/math.svg",
-		colour: categoryColours["Math"],
-		contents: [
-			{
-				kind: "block",
-				type: "math_arithmetic",
-				keyword: "math",
-				fields: {
-					OP: "ADD",
-				},
-				inputs: {
-					A: {
-						shadow: {
-							type: "math_number",
-							fields: {
-								NUM: 1,
+const toolboxSnippets = {
+	kind: "category",
+	icon: "./images/snippets.svg",
+	colour: categoryColours["Snippets"],
+	name: "Snippets",
+	contents: [
+		{
+			kind: "block",
+			type: "start",
+			inputs: {
+				DO: {
+					block: {
+						type: "load_character",
+						fields: {
+							MODELS: "Character1.glb",
+							ID_VAR: {
+								name: "player",
+								type: "",
 							},
 						},
-					},
-					B: {
-						shadow: {
-							type: "math_number",
-							fields: {
-								NUM: 1,
-							},
-						},
-					},
-				},
-			},
-			{
-				kind: "block",
-				type: "math_random_int",
-				keyword: "randint",
-				inputs: {
-					FROM: {
-						shadow: {
-							type: "math_number",
-							fields: {
-								NUM: 1,
-							},
-						},
-					},
-					TO: {
-						shadow: {
-							type: "math_number",
-							fields: {
-								NUM: 100,
-							},
-						},
-					},
-				},
-			},
-			{
-				kind: "block",
-				type: "random_seeded_int",
-				inputs: {
-					FROM: {
-						shadow: {
-							type: "math_number",
-							fields: {
-								NUM: 1,
-							},
-						},
-					},
-					TO: {
-						shadow: {
-							type: "math_number",
-							fields: {
-								NUM: 100,
-							},
-						},
-					},
-					SEED: {
-						shadow: {
-							type: "math_number",
-							fields: {
-								NUM: 123456, // Default seed value
-							},
-						},
-					},
-				},
-			},
-			{
-				kind: "block",
-				type: "math_number",
-				keyword: "num",
-				fields: {
-					NUM: 0,
-				},
-			},
-			{
-				kind: "block",
-				type: "to_number",
-				keyword: "ton",
-			},
-			{
-				kind: "block",
-				type: "math_constant",
-				keyword: "pi",
-			},
-			{
-				kind: "block",
-				type: "math_number_property",
-				keyword: "even",
-			},
-			{
-				kind: "block",
-				type: "math_round",
-				keyword: "round",
-			},
-			{
-				kind: "block",
-				type: "math_single",
-				keyword: "abs",
-				fields: {
-					OP: "ABS",
-				},
-			},
-			{
-				kind: "block",
-				type: "math_trig",
-				keyword: "trig",
-			},
-			{
-				kind: "block",
-				type: "math_on_list",
-				keyword: "lmath",
-			},
-			{
-				kind: "block",
-				type: "math_modulo",
-				keyword: "mod",
-			},
-			{
-				kind: "block",
-				type: "math_constrain",
-				keyword: "constrain",
-				inputs: {
-					LOW: {
-						shadow: {
-							type: "math_number",
-							fields: {
-								NUM: 1,
-							},
-						},
-					},
-					HIGH: {
-						shadow: {
-							type: "math_number",
-							fields: {
-								NUM: 100,
-							},
-						},
-					},
-				},
-			},
-			{
-				kind: "block",
-				type: "math_random_float",
-				keyword: "randf",
-			},
-		],
-	};
-
-const toolboxSnippets = 		{
-		kind: "category",
-		icon: "./images/snippets.svg",
-		colour: categoryColours["Snippets"],
-		name: "Snippets",
-		contents: [
-			{
-				kind: "block",
-				type: "start",
-				inputs: {
-					DO: {
-						block: {
-							type: "load_character",
-							fields: {
-								MODELS: "Character1.glb",
-								ID_VAR: {
-									name: "player",
-									type: "",
-								},
-							},
-							inputs: {
-								SCALE: {
-									shadow: {
-										type: "math_number",
-										fields: {
-											NUM: 1,
-										},
-									},
-								},
-								X: {
-									shadow: {
-										type: "math_number",
-										fields: {
-											NUM: 0,
-										},
-									},
-								},
-								Y: {
-									shadow: {
-										type: "math_number",
-										fields: {
-											NUM: 0,
-										},
-									},
-								},
-								Z: {
-									shadow: {
-										type: "math_number",
-										fields: {
-											NUM: 0,
-										},
-									},
-								},
-								HAIR_COLOR: {
-									shadow: {
-										type: "colour",
-										fields: {
-											COLOR: "#000000",
-										},
-									},
-								},
-								SKIN_COLOR: {
-									shadow: {
-										type: "skin_colour",
-										fields: {
-											COLOR: "#a15c33",
-										},
-									},
-								},
-								EYES_COLOR: {
-									shadow: {
-										type: "colour",
-										fields: {
-											COLOR: "#000000",
-										},
-									},
-								},
-								SLEEVES_COLOR: {
-									shadow: {
-										type: "colour",
-										fields: {
-											COLOR: "#008b8b",
-										},
-									},
-								},
-								SHORTS_COLOR: {
-									shadow: {
-										type: "colour",
-										fields: {
-											COLOR: "#00008b",
-										},
-									},
-								},
-								TSHIRT_COLOR: {
-									shadow: {
-										type: "colour",
-										fields: {
-											COLOR: "#ff8f60",
-										},
-									},
-								},
-							},
-							next: {
-								block: {
-									type: "add_physics",
+						inputs: {
+							SCALE: {
+								shadow: {
+									type: "math_number",
 									fields: {
-										MODEL_VAR: {
+										NUM: 1,
+									},
+								},
+							},
+							X: {
+								shadow: {
+									type: "math_number",
+									fields: {
+										NUM: 0,
+									},
+								},
+							},
+							Y: {
+								shadow: {
+									type: "math_number",
+									fields: {
+										NUM: 0,
+									},
+								},
+							},
+							Z: {
+								shadow: {
+									type: "math_number",
+									fields: {
+										NUM: 0,
+									},
+								},
+							},
+							HAIR_COLOR: {
+								shadow: {
+									type: "colour",
+									fields: {
+										COLOR: "#000000",
+									},
+								},
+							},
+							SKIN_COLOR: {
+								shadow: {
+									type: "skin_colour",
+									fields: {
+										COLOR: "#a15c33",
+									},
+								},
+							},
+							EYES_COLOR: {
+								shadow: {
+									type: "colour",
+									fields: {
+										COLOR: "#000000",
+									},
+								},
+							},
+							SLEEVES_COLOR: {
+								shadow: {
+									type: "colour",
+									fields: {
+										COLOR: "#008b8b",
+									},
+								},
+							},
+							SHORTS_COLOR: {
+								shadow: {
+									type: "colour",
+									fields: {
+										COLOR: "#00008b",
+									},
+								},
+							},
+							TSHIRT_COLOR: {
+								shadow: {
+									type: "colour",
+									fields: {
+										COLOR: "#ff8f60",
+									},
+								},
+							},
+						},
+						next: {
+							block: {
+								type: "add_physics",
+								fields: {
+									MODEL_VAR: {
+										name: "player",
+										type: "",
+									},
+									PHYSICS_TYPE: "DYNAMIC",
+								},
+								next: {
+									block: {
+										type: "camera_follow",
+										fields: {
+											MESH_VAR: {
+												name: "player",
+												type: "",
+											},
+										},
+										inputs: {
+											RADIUS: {
+												block: {
+													type: "math_number",
+													fields: {
+														NUM: 7,
+													},
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		{
+			kind: "block",
+			type: "forever",
+			inputs: {
+				DO: {
+					block: {
+						type: "controls_if",
+						extraState: {
+							elseIfCount: 1,
+							hasElse: true,
+						},
+						inputs: {
+							IF0: {
+								block: {
+									type: "key_pressed",
+									fields: {
+										KEY: "w",
+									},
+								},
+							},
+							DO0: {
+								block: {
+									type: "move_forward",
+									fields: {
+										MODEL: {
 											name: "player",
 											type: "",
 										},
-										PHYSICS_TYPE: "DYNAMIC",
+									},
+									inputs: {
+										SPEED: {
+											shadow: {
+												type: "math_number",
+												fields: {
+													NUM: 3,
+												},
+											},
+										},
 									},
 									next: {
 										block: {
-											type: "camera_follow",
+											type: "switch_animation",
 											fields: {
-												MESH_VAR: {
+												MODEL: {
 													name: "player",
 													type: "",
 												},
+												ANIMATION_NAME: "Walk",
 											},
-											inputs: {
-												RADIUS: {
-													block: {
-														type: "math_number",
-														fields: {
-															NUM: 7,
-														},
-													},
+										},
+									},
+								},
+							},
+							IF1: {
+								block: {
+									type: "key_pressed",
+									fields: {
+										KEY: "s",
+									},
+								},
+							},
+							DO1: {
+								block: {
+									type: "move_forward",
+									fields: {
+										MODEL: {
+											name: "player",
+											type: "",
+										},
+									},
+									inputs: {
+										SPEED: {
+											shadow: {
+												type: "math_number",
+												fields: {
+													NUM: -3,
 												},
 											},
 										},
+									},
+									next: {
+										block: {
+											type: "switch_animation",
+											fields: {
+												MODEL: {
+													name: "player",
+													type: "",
+												},
+												ANIMATION_NAME: "Walk",
+											},
+										},
+									},
+								},
+							},
+							ELSE: {
+								block: {
+									type: "switch_animation",
+									fields: {
+										MODEL: {
+											name: "player",
+											type: "",
+										},
+										ANIMATION_NAME: "Idle",
 									},
 								},
 							},
@@ -3375,133 +3509,36 @@ const toolboxSnippets = 		{
 					},
 				},
 			},
-			{
-				kind: "block",
-				type: "forever",
-				inputs: {
-					DO: {
-						block: {
-							type: "controls_if",
-							extraState: {
-								elseIfCount: 1,
-								hasElse: true,
-							},
-							inputs: {
-								IF0: {
-									block: {
-										type: "key_pressed",
-										fields: {
-											KEY: "w",
-										},
-									},
-								},
-								DO0: {
-									block: {
-										type: "move_forward",
-										fields: {
-											MODEL: {
-												name: "player",
-												type: "",
-											},
-										},
-										inputs: {
-											SPEED: {
-												shadow: {
-													type: "math_number",
-													fields: {
-														NUM: 3,
-													},
-												},
-											},
-										},
-										next: {
-											block: {
-												type: "switch_animation",
-												fields: {
-													MODEL: {
-														name: "player",
-														type: "",
-													},
-													ANIMATION_NAME: "Walk",
-												},
-											},
-										},
-									},
-								},
-								IF1: {
-									block: {
-										type: "key_pressed",
-										fields: {
-											KEY: "s",
-										},
-									},
-								},
-								DO1: {
-									block: {
-										type: "move_forward",
-										fields: {
-											MODEL: {
-												name: "player",
-												type: "",
-											},
-										},
-										inputs: {
-											SPEED: {
-												shadow: {
-													type: "math_number",
-													fields: {
-														NUM: -3,
-													},
-												},
-											},
-										},
-										next: {
-											block: {
-												type: "switch_animation",
-												fields: {
-													MODEL: {
-														name: "player",
-														type: "",
-													},
-													ANIMATION_NAME: "Walk",
-												},
-											},
-										},
-									},
-								},
-								ELSE: {
-									block: {
-										type: "switch_animation",
-										fields: {
-											MODEL: {
-												name: "player",
-												type: "",
-											},
-											ANIMATION_NAME: "Idle",
-										},
-									},
-								},
-							},
-						},
-					},
-				},
-			},
-		],
-	};
+		},
+	],
+};
 const toolboxFunctions = {
-		kind: "category",
-		name: "Functions",
-		icon: "./images/functions.svg",
-		custom: "PROCEDURE",
-		colour: "%{BKY_PROCEDURES_HUE}",
-	};
+	kind: "category",
+	name: "Functions",
+	icon: "./images/functions.svg",
+	custom: "PROCEDURE",
+	colour: "%{BKY_PROCEDURES_HUE}",
+};
 
 export const toolbox = {
 	kind: "categoryToolbox",
 	contents: [
-		
-toolboxSearch, toolboxScene, toolboxEvents, toolboxTransform, toolboxAnimate, toolboxControl, toolboxCondition, toolboxSensing, toolboxText, toolboxMaterials, toolboxSound, toolboxVariables, toolboxLists, toolboxMath, toolboxFunctions, toolboxSnippets,
-		
+		toolboxSearch,
+		toolboxScene,
+		toolboxEvents,
+		toolboxTransform,
+		toolboxAnimate,
+		toolboxControl,
+		toolboxCondition,
+		toolboxSensing,
+		toolboxText,
+		toolboxMaterials,
+		toolboxSound,
+		toolboxVariables,
+		toolboxLists,
+		toolboxMath,
+		toolboxFunctions,
+		toolboxSnippets,
 	],
 };
 
