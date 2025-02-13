@@ -1541,7 +1541,7 @@ const toolboxAnimateKeyframe = {
 		icon: "./images/keyframe.svg",
 		colour: categoryColours["Animate"],
 		contents: [
-			/*{
+			{
 				kind: "block",
 				type: "animate_keyframes",
 				keyword: "animate_keyframes",
@@ -1581,7 +1581,7 @@ const toolboxAnimateKeyframe = {
 						},
 					},
 				},
-			},*/
+			},
 			{
 				kind: "block",
 				type: "control_animation_group",
