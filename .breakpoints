@@ -4,7 +4,7 @@
       {
         "id": "5307f21c-6ef3-4d13-9722-1991214beb67",
         "line": 1,
-        "version": 1702,
+        "version": 1704,
         "index": 0
       }
     ],
@@ -20,16 +20,16 @@
       {
         "id": "dea8d238-bec9-4dda-85e7-fca6b2284732",
         "line": 33,
-        "version": 14609,
+        "version": 14656,
         "index": 1178
       }
     ],
     "main.js": [
       {
         "id": "31f0468e-83ae-40f6-ab34-65125d137737",
-        "line": 10,
+        "line": 2194,
         "version": 51772,
-        "index": 432
+        "index": 62845
       }
     ],
     "models/tree_fat.glb": [

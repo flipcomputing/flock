@@ -731,7 +731,7 @@
                     "type": "math_number",
                     "id": "t_vqA)5Byoj9Z)49|rf#",
                     "fields": {
-                      "NUM": 0.1
+                      "NUM": 0
                     }
                   }
                 },
@@ -815,7 +815,7 @@
                         "type": "math_number",
                         "id": "N#6Wtn=ctTit[N%`Z)=N",
                         "fields": {
-                          "NUM": 1.5
+                          "NUM": 0
                         }
                       }
                     },
@@ -899,7 +899,7 @@
                             "type": "math_number",
                             "id": ".c`b@]FN|.k$!)UF`K5g",
                             "fields": {
-                              "NUM": 3
+                              "NUM": 2
                             }
                           }
                         },
@@ -1081,7 +1081,7 @@
                         "type": "math_number",
                         "id": "eJj@hYOiRb|2rErJ5xvn",
                         "fields": {
-                          "NUM": 0.1
+                          "NUM": 0
                         }
                       }
                     },
@@ -1165,7 +1165,7 @@
                             "type": "math_number",
                             "id": "~fR@[^(g;@8V4.G?=DtR",
                             "fields": {
-                              "NUM": 0.5
+                              "NUM": 0
                             }
                           }
                         },
@@ -2423,7 +2423,7 @@
                             "type": "math_number",
                             "id": "[[Tkmcz%iFCL=AnVJb?_",
                             "fields": {
-                              "NUM": 1
+                              "NUM": 0
                             }
                           }
                         },
@@ -2507,7 +2507,7 @@
                                 "type": "math_number",
                                 "id": "-]SFQ3ti%TO%de?C~F=]",
                                 "fields": {
-                                  "NUM": 1
+                                  "NUM": 0
                                 }
                               }
                             },

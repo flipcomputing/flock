@@ -126,6 +126,10 @@ export function findCreateBlock(block) {
   let parent = block;
 
   while (parent) {
+    
+    if (parent.type === "scale") {
+      return null;
+    }
     if (parent.type.startsWith("create_") || parent.type.startsWith("load_")) {
       return parent;
     }
@@ -1315,16 +1319,21 @@ export function defineBlocks() {
           changeEvent.type === Blockly.Events.BLOCK_CREATE ||
           changeEvent.type === Blockly.Events.BLOCK_CHANGE
         ) {
-          const blockInWorkspace = Blockly.getMainWorkspace().getBlockById(
-            this.id,
-          ); // Check if block is in the main workspace
+          const parent = findCreateBlock(
+            Blockly.getMainWorkspace().getBlockById(changeEvent.blockId),
+          );
 
-          if (blockInWorkspace) {
-            updateOrCreateMeshFromBlock(this, changeEvent);
-            window.updateCurrentMeshName(this, "ID_VAR"); // Call the function to update window.currentMesh
+          if (parent === this) {
+            const blockInWorkspace = Blockly.getMainWorkspace().getBlockById(
+              this.id,
+            ); // Check if block is in the main workspace
+
+            if (blockInWorkspace) {
+              updateOrCreateMeshFromBlock(this, changeEvent);
+              window.updateCurrentMeshName(this, "ID_VAR"); // Call the function to update window.currentMesh
+            }
           }
         }
-
         handleBlockCreateEvent(
           this,
           changeEvent,
@@ -1593,7 +1602,6 @@ export function defineBlocks() {
         colour,
         colourIndex,
       ) {
-
         //console.log("Update colour", colour, colourIndex);
         const colorsInput = this.getInput("COLORS");
         if (!colorsInput || !colorsInput.connection) {
@@ -1628,21 +1636,28 @@ export function defineBlocks() {
       };
 
       this.setOnChange((changeEvent) => {
-
         if (
           changeEvent.type === Blockly.Events.BLOCK_CREATE ||
           changeEvent.type === Blockly.Events.BLOCK_CHANGE
         ) {
-          const blockInWorkspace = Blockly.getMainWorkspace().getBlockById(
-            this.id,
-          ); // Check if block is in the main workspace
+          const parent = findCreateBlock(
+            Blockly.getMainWorkspace().getBlockById(changeEvent.blockId),
+          );
 
-          if (blockInWorkspace) {
-            if (window.loadingCode) return;
-            updateOrCreateMeshFromBlock(this, changeEvent);
+          if (parent === this) {
+
+            console.log("Change", parent, changeEvent.blockId, this.id,)
+            const blockInWorkspace = Blockly.getMainWorkspace().getBlockById(
+              this.id,
+            ); // Check if block is in the main workspace
+
+            if (blockInWorkspace) {
+              if (window.loadingCode) return;
+              updateOrCreateMeshFromBlock(this, changeEvent);
+            }
           }
         }
-       
+
         if (
           changeEvent.type === Blockly.Events.BLOCK_CHANGE &&
           changeEvent.element === "field" &&
@@ -2788,8 +2803,8 @@ export function defineBlocks() {
             type: "field_dropdown",
             name: "Y_ORIGIN",
             options: [
-              ["centre", "CENTRE"],
               ["base", "BASE"],
+              ["centre", "CENTRE"],
               ["top", "TOP"],
             ],
           },

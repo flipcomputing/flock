@@ -3283,8 +3283,16 @@ export const flock = {
 			diameterBottom,
 		); // Adjust texturePhysicalSize as needed
 
+		newCylinder.bakeCurrentTransformIntoVertices();
+
+		// Reset scaling to (1,1,1) since the transformation is now baked
+		newCylinder.scaling.set(1, 1, 1);
+
 		// Initialise the mesh with position, color, and other properties
 		flock.initializeMesh(newCylinder, position, color, "Cylinder", alpha);
+		newCylinder.position.y += height / 2;
+		// Initialise the mesh with position, color, and other properties
+
 		newCylinder.blockKey = blockKey;
 
 		// Create and apply physics shape
@@ -3373,13 +3381,18 @@ export const flock = {
 		// Create a new mesh and apply the cached VertexData
 		const newCapsule = new BABYLON.Mesh(capsuleId, flock.scene);
 		vertexData.applyToMesh(newCapsule);
+		newCapsule.bakeCurrentTransformIntoVertices();
+
+		// Reset scaling to (1,1,1) since the transformation is now baked
+		newCapsule.scaling.set(1, 1, 1);
 
 		// Initialise the mesh with position, color, and other properties
 		flock.initializeMesh(newCapsule, position, color, "Capsule", alpha);
-		newCapsule.blockKey = blockKey;
+		newCapsule.position.y += height / 2;
 
 		flock.setCapsuleUVs(newCapsule, radius, height, 1); // Adjust texturePhysicalSize as needed
 
+		newCapsule.blockKey = blockKey;
 		// Define central point for the capsule
 		const center = new flock.BABYLON.Vector3(0, 0, 0);
 
@@ -3484,7 +3497,6 @@ export const flock = {
 		});
 
 		newPlane.physics = planeBody;
-
 		//flock.setSizeBasedPlaneUVs(newPlane, width, height);
 
 		const material = new flock.BABYLON.StandardMaterial(
@@ -3495,6 +3507,13 @@ export const flock = {
 			flock.getColorFromString(color),
 		);
 		newPlane.material = material;
+
+		newPlane.bakeCurrentTransformIntoVertices();
+
+		// Reset scaling to (1,1,1) since the transformation is now baked
+		newPlane.scaling.set(1, 1, 1);
+
+		newPlane.position.y += height / 2;
 		newPlane.blockKey = blockKey;
 
 		return newPlane.name;
@@ -4153,6 +4172,7 @@ export const flock = {
 	},
 	positionAt(meshName, x, y, z, useY = true) {
 		return flock.whenModelReady(meshName, (mesh) => {
+			
 			if (mesh.physics) {
 				if (
 					mesh.physics.getMotionType() !==
@@ -4164,7 +4184,11 @@ export const flock = {
 				}
 			}
 
-			let targetY = useY ? y : mesh.position.y;
+			const addY = meshName === '__active_camera__' ? 0 : mesh.getBoundingInfo().boundingBox.extendSize.y * mesh.scaling.y;
+
+			let targetY = useY
+				? y + addY
+				: mesh.position.y;
 			mesh.position.set(x, targetY, z);
 
 			if (mesh.physics) {
@@ -4176,6 +4200,7 @@ export const flock = {
 			}
 
 			mesh.computeWorldMatrix(true);
+			//console.log("Position at", x, y, z, targetY, mesh);
 		});
 	},
 	distanceTo(meshName1, meshName2) {
