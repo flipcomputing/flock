@@ -1649,7 +1649,6 @@ export function defineBlocks() {
           );
 
           if (parent === this) {
-            console.log("Change", parent, changeEvent.blockId, this.id);
             const blockInWorkspace = Blockly.getMainWorkspace().getBlockById(
               this.id,
             ); // Check if block is in the main workspace

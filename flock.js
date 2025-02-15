@@ -415,7 +415,7 @@ export const flock = {
 		camera.angularSensibilityY = 2000;
 		camera.speed = 0.25;
 		flock.scene.activeCamera = camera;
-
+		camera.attachControl(flock.canvas, false);
 		// Set up lighting
 		const hemisphericLight = new flock.BABYLON.HemisphericLight(
 			"hemisphericLight",
@@ -1421,7 +1421,6 @@ export const flock = {
 		callback = null,
 	} = {}) {
 
-		console.log("Creating object", modelName, modelId);
 		try {
 			// Basic parameter validation with warnings
 			if (!modelName) {
@@ -6672,8 +6671,7 @@ export const flock = {
 	canvasControls(setting) {
 		if (setting) {
 			flock.scene.activeCamera.attachControl(flock.canvas, false);
-		} else {
-			flock.scene.activeCamera.detachControl();
+		} else {			flock.scene.activeCamera.detachControl();
 		}
 	},
 	checkMeshesTouching(mesh1VarName, mesh2VarName) {

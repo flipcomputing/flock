@@ -190,7 +190,6 @@ export function updateMeshFromBlock(mesh, block) {
     z: block.getInput("Z").connection.targetBlock().getFieldValue("NUM"),
   };
 
-  console.log(mesh.name, position);
   let colors,
     width,
     height,
@@ -393,10 +392,9 @@ export function updateMeshFromBlock(mesh, block) {
     mesh = ultimateParent(mesh);
     flock.changeColor(mesh.name, color);
   }
-
-  console.log(mesh.name, position);
+  
   flock.positionAt(mesh.name, position.x, position.y, position.z, true);
-  console.log(mesh.name, position);
+ 
 }
 
 function createMeshOnCanvas(block) {

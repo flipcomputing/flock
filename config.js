@@ -71,7 +71,6 @@ export const audioNames = [
 ];
 
 export const characterNames = [
-	
 	"Character1.glb",
 	"Character2.glb",
 	"Character3.glb",
@@ -83,6 +82,7 @@ export const characterNames = [
 
 export const multiObjectNames = [
 	"tree.glb",
+	"rock.glb",
 	"hut.glb",
 	"hut2.glb",
 	"hut3.glb",
@@ -107,8 +107,23 @@ export const objectColours = {
 	"Gem2.glb": ["#8A2BE2"], // Blue Violet
 	"Gem3.glb": ["#FF4500"], // Orange Red
 	"tree.glb": ["#66CDAA", "#CD853F"],
-	"hut.glb": ["#814C22", "#231E1D", "#FFF4EC", "#E7AF3A", "#E72243", "#878787"],
-	"hut2.glb": ["#00BFFF", "#FFD700", "#FF4500", "#8A2BE2", "#2C28E7", "#878787"],
+	"rock.glb": ["#CD853F", "#66CDAA"],
+	"hut.glb": [
+		"#814C22",
+		"#231E1D",
+		"#FFF4EC",
+		"#E7AF3A",
+		"#E72243",
+		"#878787",
+	],
+	"hut2.glb": [
+		"#00BFFF",
+		"#FFD700",
+		"#FF4500",
+		"#8A2BE2",
+		"#2C28E7",
+		"#878787",
+	],
 	"hut3.glb": ["#50C878", "#FFBF00", "#FE5A1D", "#B09B6B", "#878787"],
 	"hut4.glb": ["#FFFCF0", "#FF89DB", "#E7223B", "#3AE744", "#878787"],
 	"boat.glb": ["#FFFCF0", "#FF89DB", "#E7223B", "#3AE744", "#878787"],
@@ -172,7 +187,7 @@ export const materialNames = [
 	"fruit.png",
 	"grass.png",
 	"leaves.png",
-	"mushroom.png", 
+	"mushroom.png",
 	"rough.png",
 	"shapes.png",
 	"stars.png",
