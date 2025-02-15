@@ -2091,9 +2091,8 @@ window.onload = function () {
 		}
 
 		try {
-			if (event.type === Blockly.Events.BLOCK_MOVE) {
-				const block = workspace.getBlockById(event.blockId);
-				if (!block) return;
+		
+			if (event.type === Blockly.Events.BLOCK_MOVE || event.type === Blockly.Events.BLOCK_DELETE) {
 
 				// Clear any existing cleanup timeout to avoid multiple calls
 				clearTimeout(cleanupTimeout);
