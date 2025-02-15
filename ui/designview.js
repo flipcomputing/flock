@@ -392,9 +392,8 @@ export function updateMeshFromBlock(mesh, block) {
     mesh = ultimateParent(mesh);
     flock.changeColor(mesh.name, color);
   }
-  
+
   flock.positionAt(mesh.name, position.x, position.y, position.z, true);
- 
 }
 
 function createMeshOnCanvas(block) {
@@ -1364,6 +1363,7 @@ export function enableGizmos() {
   const hideButton = document.getElementById("hideButton");
   const duplicateButton = document.getElementById("duplicateButton");
   const deleteButton = document.getElementById("deleteButton");
+  const cameraButton = document.getElementById("cameraButton");
   const showShapesButton = document.getElementById("showShapesButton");
   const colorPickerButton = document.getElementById("colorPickerButton");
   const aboutButton = document.getElementById("logo");
@@ -1396,6 +1396,7 @@ export function enableGizmos() {
   hideButton.removeAttribute("disabled");
   duplicateButton.removeAttribute("disabled");
   deleteButton.removeAttribute("disabled");
+  cameraButton.removeAttribute("disabled");
   showShapesButton.removeAttribute("disabled");
   colorPickerButton.removeAttribute("disabled");
   aboutButton.removeAttribute("disabled");
@@ -1414,6 +1415,7 @@ export function enableGizmos() {
   boundsButton.addEventListener("click", () => toggleGizmo("bounds"));
   focusButton.addEventListener("click", () => toggleGizmo("focus"));
   hideButton.addEventListener("click", () => toggleGizmo("select"));
+  cameraButton.addEventListener("click", () => toggleGizmo("camera"));
   duplicateButton.addEventListener("click", () => toggleGizmo("duplicate"));
   deleteButton.addEventListener("click", () => toggleGizmo("delete"));
   showShapesButton.addEventListener("click", showShapes);
@@ -1608,6 +1610,8 @@ function deleteBlockWithUndo(blockId) {
   }
 }
 
+let cameraMode = "play";
+
 function toggleGizmo(gizmoType) {
   // Disable all gizmos
   gizmoManager.positionGizmoEnabled = false;
@@ -1629,6 +1633,23 @@ function toggleGizmo(gizmoType) {
 
   // Enable the selected gizmo
   switch (gizmoType) {
+    case "camera":
+      if (cameraMode === "play") {
+        cameraMode = "fly";
+        flock.printText(
+          "Fly camera, use arrow keys and page up/down",
+          15,
+          "white",
+        );
+      } else {
+        cameraMode = "play";
+      }
+
+      let currentCamera = flock.scene.activeCamera;
+      console.log("Camera", flock.savedCamera);
+      flock.scene.activeCamera = flock.savedCamera;
+      flock.savedCamera = currentCamera;
+      break;
     case "delete":
       blockKey = findParentWithBlockId(gizmoManager.attachedMesh).blockKey;
       blockId = meshBlockIdMap[blockKey];
@@ -1956,7 +1977,6 @@ function toggleGizmo(gizmoType) {
         }
       });
 
-      
       break;
     case "rotation":
       gizmoManager.rotationGizmoEnabled = true;

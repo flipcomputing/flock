@@ -48,6 +48,7 @@ export const flock = {
 	materialCache: {},
 	flockNotReady: true,
 	lastFrameTime: 0,
+	savedCamera: null,
 	async runCode(code) {
 		let iframe = document.getElementById("flock-iframe");
 
@@ -408,6 +409,7 @@ export const flock = {
 			new flock.BABYLON.Vector3(0, 3, -10),
 			flock.scene,
 		);
+		flock.savedCamera = camera;
 		camera.minZ = 1;
 		camera.setTarget(flock.BABYLON.Vector3.Zero());
 		camera.rotation.x = flock.BABYLON.Tools.ToRadians(0);
@@ -6151,7 +6153,7 @@ export const flock = {
 				flock.updateDynamicMeshPositions(flock.scene, [mesh]);
 				let camera = flock.scene.activeCamera;
 
-				flock.ensureVerticalConstraint(mesh);
+			flock.savedCamera = camera;	flock.ensureVerticalConstraint(mesh);
 
 				camera = new flock.BABYLON.ArcRotateCamera(
 					"camera",
