@@ -3091,7 +3091,7 @@ export function defineBlocks() {
             type: "field_dropdown",
             name: "KEY",
             options: [
-              ["A", "65"], // A key
+              ["A ◁", "65"], // A key
               ["D", "68"], // D key
               ["W", "87"], // W key
               ["S", "83"], // S key
@@ -4406,14 +4406,14 @@ export function defineBlocks() {
             options: [
               ["any", "ANY"],
               ["none", "NONE"],
-              ["space", " "],
               ["W", "w"],
               ["A", "a"],
               ["S", "s"],
               ["D", "d"],
-              ["Q", "q"],
-              ["E", "e"],
-              ["F", "f"],
+              ["space ∞", " "],
+              ["Q ■", "q"],
+              ["E ✿", "e"],
+              ["F ✱", "f"],
             ],
           },
         ],
