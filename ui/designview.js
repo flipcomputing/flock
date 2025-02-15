@@ -16,14 +16,12 @@ const greenColor = flock.BABYLON.Color3.FromHexString("#009E73"); // Colour for 
 const orangeColor = flock.BABYLON.Color3.FromHexString("#D55E00"); // Colour for Z-axis
 
 export function updateOrCreateMeshFromBlock(block, changeEvent) {
-  
   if (window.loadingCode || block.disposed) return;
 
   if (
     changeEvent.type === Blockly.Events.BLOCK_CREATE &&
     block.id === changeEvent.blockId
   ) {
-   
     createMeshOnCanvas(block);
   } else if (changeEvent.type === Blockly.Events.BLOCK_CHANGE) {
     const mesh = getMeshFromBlock(block);
@@ -140,7 +138,6 @@ export function getMeshFromBlock(block) {
 }
 
 export function updateMeshFromBlock(mesh, block) {
-
   const shapeType = block.type;
 
   if (mesh && mesh.physics) mesh.physics.disablePreStep = true;
@@ -193,6 +190,7 @@ export function updateMeshFromBlock(mesh, block) {
     z: block.getInput("Z").connection.targetBlock().getFieldValue("NUM"),
   };
 
+  console.log(mesh.name, position);
   let colors,
     width,
     height,
@@ -396,7 +394,9 @@ export function updateMeshFromBlock(mesh, block) {
     flock.changeColor(mesh.name, color);
   }
 
+  console.log(mesh.name, position);
   flock.positionAt(mesh.name, position.x, position.y, position.z, true);
+  console.log(mesh.name, position);
 }
 
 function createMeshOnCanvas(block) {
@@ -890,7 +890,6 @@ function addShadowBlock(block, inputName, blockType, defaultValue) {
 }
 
 function setPositionValues(block, position, shapeType) {
- 
   // Set X, Y, Z values
   setNumberInput(block, "X", position.x);
   setNumberInput(block, "Y", position.y);
@@ -1937,6 +1936,7 @@ function toggleGizmo(gizmoType) {
               case "create_cylinder":
               case "create_capsule":
               case "create_plane":
+              case "load_object":
                 meshY -= mesh.getBoundingInfo().boundingBox.extendSize.y;
                 break;
             }
@@ -1958,6 +1958,7 @@ function toggleGizmo(gizmoType) {
         }
       });
 
+      
       break;
     case "rotation":
       gizmoManager.rotationGizmoEnabled = true;

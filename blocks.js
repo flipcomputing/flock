@@ -126,7 +126,6 @@ export function findCreateBlock(block) {
   let parent = block;
 
   while (parent) {
-    
     if (parent.type === "scale") {
       return null;
     }
@@ -1432,13 +1431,18 @@ export function defineBlocks() {
           changeEvent.type === Blockly.Events.BLOCK_CREATE ||
           changeEvent.type === Blockly.Events.BLOCK_CHANGE
         ) {
-          const blockInWorkspace = Blockly.getMainWorkspace().getBlockById(
-            this.id,
-          ); // Check if block is in the main workspace
+          const parent = findCreateBlock(
+            Blockly.getMainWorkspace().getBlockById(changeEvent.blockId),
+          );
+          if (parent === this) {
+            const blockInWorkspace = Blockly.getMainWorkspace().getBlockById(
+              this.id,
+            ); // Check if block is in the main workspace
 
-          if (blockInWorkspace) {
-            if (window.loadingCode) return;
-            updateOrCreateMeshFromBlock(this, changeEvent);
+            if (blockInWorkspace) {
+              if (window.loadingCode) return;
+              updateOrCreateMeshFromBlock(this, changeEvent);
+            }
           }
         }
 
@@ -1645,8 +1649,7 @@ export function defineBlocks() {
           );
 
           if (parent === this) {
-
-            console.log("Change", parent, changeEvent.blockId, this.id,)
+            console.log("Change", parent, changeEvent.blockId, this.id);
             const blockInWorkspace = Blockly.getMainWorkspace().getBlockById(
               this.id,
             ); // Check if block is in the main workspace

@@ -1229,6 +1229,24 @@ export const flock = {
 			mesh.metadata.sharedGeometry = true;
 		};
 
+
+		const objectNames = [
+			"Star.glb",
+			"Heart.glb",
+			"Coin.glb",
+			"Gem1.glb",
+			"Gem2.glb",
+			"Gem3.glb",
+		];
+		
+		if (objectNames.includes(modelName)) {
+			const boundingInfo = bb.getBoundingInfo();
+			const halfHeight = boundingInfo.boundingBox.extendSizeWorld.y;
+
+		bb.position.y += halfHeight;
+
+		}
+
 		// Set metadata on the root mesh
 		setMetadata(bb);
 
@@ -1402,6 +1420,8 @@ export const flock = {
 		position = { x: 0, y: 0, z: 0 },
 		callback = null,
 	} = {}) {
+
+		console.log("Creating object", modelName, modelId);
 		try {
 			// Basic parameter validation with warnings
 			if (!modelName) {
@@ -4191,7 +4211,7 @@ export const flock = {
 			}
 
 			const addY =
-				meshName === "__active_camera__"
+				(meshName === "__active_camera__")
 					? 0
 					: mesh.getBoundingInfo().boundingBox.extendSize.y *
 						mesh.scaling.y;
