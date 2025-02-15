@@ -149,7 +149,7 @@
                     "type": "math_number",
                     "id": "fFX7u[3LI`C+-/V:`WA(",
                     "fields": {
-                      "NUM": -1
+                      "NUM": -3.1
                     }
                   }
                 },
@@ -207,7 +207,7 @@
                         "type": "math_number",
                         "id": "u^uI=REtG`n*+$.S6+Y4",
                         "fields": {
-                          "NUM": 1
+                          "NUM": 0.3
                         }
                       }
                     },
@@ -265,7 +265,7 @@
                             "type": "math_number",
                             "id": "7yLivN#%D.gK.R:7,?Fr",
                             "fields": {
-                              "NUM": 0.3
+                              "NUM": -0.2
                             }
                           }
                         },
@@ -544,7 +544,7 @@
         "type": "forever",
         "id": "j;%Vhy+4ZM=HnYJqav!Y",
         "x": 10,
-        "y": 1029,
+        "y": 1034,
         "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" inline=\"false\"></mutation>",
         "inputs": {
           "DO": {
@@ -667,7 +667,7 @@
         "type": "forever",
         "id": "8-FcIKa/C!SLF)bxWzHA",
         "x": 10,
-        "y": 1343,
+        "y": 1350,
         "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" inline=\"false\"></mutation>",
         "inputs": {
           "DO": {
@@ -698,7 +698,7 @@
                     "type": "math_number",
                     "id": "}K1b@~[`u,6ZSk1R*o+C",
                     "fields": {
-                      "NUM": 0.5
+                      "NUM": 0.6
                     }
                   }
                 },
@@ -729,7 +729,7 @@
         "type": "start",
         "id": "_d[cC.983K1[l~;hvKs|",
         "x": 10,
-        "y": 1553,
+        "y": 1562,
         "inputs": {
           "DO": {
             "block": {
@@ -862,7 +862,7 @@
         "type": "start",
         "id": "r=-vQWq`69v1bD!EPDPo",
         "x": 10,
-        "y": 1926,
+        "y": 1936,
         "inputs": {
           "DO": {
             "block": {
