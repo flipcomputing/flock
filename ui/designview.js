@@ -16,21 +16,19 @@ const greenColor = flock.BABYLON.Color3.FromHexString("#009E73"); // Colour for 
 const orangeColor = flock.BABYLON.Color3.FromHexString("#D55E00"); // Colour for Z-axis
 
 export function updateOrCreateMeshFromBlock(block, changeEvent) {
-  console.log("Update or create");
+  
   if (window.loadingCode || block.disposed) return;
 
   if (
     changeEvent.type === Blockly.Events.BLOCK_CREATE &&
     block.id === changeEvent.blockId
   ) {
+   
     createMeshOnCanvas(block);
   } else if (changeEvent.type === Blockly.Events.BLOCK_CHANGE) {
     const mesh = getMeshFromBlock(block);
 
-    console.log("Update", block.id, meshMap);
-
     if (mesh) {
-      console.log("Update");
       updateMeshFromBlock(mesh, block, changeEvent);
     }
   }
@@ -138,12 +136,10 @@ export function getMeshFromBlock(block) {
 
   const found = flock.scene?.meshes?.find((mesh) => mesh.blockKey === blockKey);
 
-  console.log("getMeshFromBlock", blockKey, meshMap, found);
   return found;
 }
 
 export function updateMeshFromBlock(mesh, block) {
-  console.log("updateMeshFromBlock", mesh.name, block.type);
 
   const shapeType = block.type;
 
@@ -257,7 +253,7 @@ export function updateMeshFromBlock(mesh, block) {
       //console.log("Need to handle update of model");
       break;
     case "load_multi_object":
-      console.log("Need to handle update of multi model");
+      //console.log("Need to handle update of multi model");
       break;
     case "load_character":
       modelName = block.getFieldValue("MODELS");
@@ -384,7 +380,7 @@ export function updateMeshFromBlock(mesh, block) {
         .getFieldValue("NUM");
 
       // Set the absolute size of the plane
-      setAbsoluteSize(mesh, planeWidth, planeHeight, 1); // Planes are usually flat in the Z dimension
+      setAbsoluteSize(mesh, planeWidth, planeHeight, 0); // Planes are usually flat in the Z dimension
       break;
 
     default:
@@ -400,7 +396,6 @@ export function updateMeshFromBlock(mesh, block) {
     flock.changeColor(mesh.name, color);
   }
 
-  console.log(mesh.name, position.x, position.y, position.z);
   flock.positionAt(mesh.name, position.x, position.y, position.z, true);
 }
 
@@ -816,8 +811,6 @@ function updateCylinderGeometry(
   height,
   sides,
 ) {
-  console.log("Update cylinder", height);
-
   // Store the current world matrix and decompose it
   const worldMatrix = mesh.computeWorldMatrix(true);
   const currentScale = new flock.BABYLON.Vector3();

@@ -3452,68 +3452,71 @@ export const flock = {
 		mesh.setVerticesData(BABYLON.VertexBuffer.UVKind, uvs, true);
 	},
 	createPlane(planeId, color, width, height, position) {
+		// Create plane with specified dimensions
 		const newPlane = flock.BABYLON.MeshBuilder.CreatePlane(
 			planeId,
-			{ width, height, sideOrientation: flock.BABYLON.Mesh.DOUBLESIDE },
+			{ 
+				width, 
+				height, 
+				sideOrientation: flock.BABYLON.Mesh.DOUBLESIDE 
+			},
 			flock.scene,
 		);
 
+		// Handle block key
 		let blockKey = planeId;
-
 		if (planeId.includes("__")) {
 			[planeId, blockKey] = planeId.split("__");
 		}
 
-		newPlane.metadata = newPlane.metadata || {}; //
-		newPlane.metadata.shape = "plane"; // Add or update the type property
-		newPlane.blockKey = newPlane.name;
+		// Set metadata and name
+		newPlane.metadata = newPlane.metadata || {};
+		newPlane.metadata.shape = "plane";
 		newPlane.name = newPlane.name + "_" + newPlane.uniqueId;
+
+
+		// Set final position including the height offset all at once
 		newPlane.position = new flock.BABYLON.Vector3(
 			position[0],
-			position[1],
-			position[2],
+			position[1] + height/2,
+			position[2]
 		);
 
-		// Physics for the plane
+		// Create physics body
 		const planeBody = new flock.BABYLON.PhysicsBody(
 			newPlane,
-			flock.BABYLON.PhysicsMotionType.STATIC, // Planes are typically static as they represent surfaces
+			flock.BABYLON.PhysicsMotionType.STATIC,
 			false,
 			flock.scene,
 		);
 
+		// Create physics shape - matching the mesh position
 		const planeShape = new flock.BABYLON.PhysicsShapeBox(
-			new flock.BABYLON.Vector3(0, 0, 0),
+			new flock.BABYLON.Vector3(0, 0, 0), // Center offset
 			new flock.BABYLON.Quaternion(0, 0, 0, 1),
-			new flock.BABYLON.Vector3(width, height, 0.001), // Width and height divided by 2, minimal depth
+			new flock.BABYLON.Vector3(width, height, 0.001),
 			flock.scene,
 		);
 
+		// Set up physics properties
 		planeBody.shape = planeShape;
 		planeBody.setMassProperties({
-			mass: 0, // No mass as it is static
+			mass: 0,
 			restitution: 0.5,
-			inertia: flock.BABYLON.Vector3.ZeroReadOnly, // No inertia as it does not move
+			inertia: flock.BABYLON.Vector3.ZeroReadOnly,
 		});
-
 		newPlane.physics = planeBody;
-		//flock.setSizeBasedPlaneUVs(newPlane, width, height);
 
+		// Set up material
 		const material = new flock.BABYLON.StandardMaterial(
 			"planeMaterial",
 			flock.scene,
 		);
 		material.diffuseColor = flock.BABYLON.Color3.FromHexString(
-			flock.getColorFromString(color),
+			flock.getColorFromString(color)
 		);
 		newPlane.material = material;
-
-		newPlane.bakeCurrentTransformIntoVertices();
-
-		// Reset scaling to (1,1,1) since the transformation is now baked
-		newPlane.scaling.set(1, 1, 1);
-
-		newPlane.position.y += height / 2;
+		
 		newPlane.blockKey = blockKey;
 
 		return newPlane.name;
@@ -3751,6 +3754,75 @@ export const flock = {
 			);
 		});
 	},
+	
+	lookAt(meshName1, meshName2, useY = false) {
+		return flock.whenModelReady(meshName1, (mesh1) => {
+			return flock.whenModelReady(meshName2, (mesh2) => {
+				if (mesh1.physics) {
+					if (
+						mesh1.physics.getMotionType() !==
+						flock.BABYLON.PhysicsMotionType.DYNAMIC
+					) {
+						mesh1.physics.setMotionType(
+							flock.BABYLON.PhysicsMotionType.ANIMATED,
+						);
+					}
+				}
+
+				let targetPosition = mesh2.absolutePosition.clone();
+				if (!useY) {
+					targetPosition.y = mesh1.absolutePosition.y;
+				}
+
+				if (meshName1 === "__active_camera__") {
+					//mesh1.setTarget(mesh2);
+				} else {
+					mesh1.lookAt(targetPosition);
+				}
+
+				if (mesh1.physics) {
+					mesh1.physics.disablePreStep = false;
+					mesh1.physics.setTargetTransform(
+						mesh1.absolutePosition,
+						mesh1.rotationQuaternion,
+					);
+				}
+
+				mesh1.computeWorldMatrix(true);
+			});
+		});
+	},
+	moveTo(meshName1, meshName2, useY = false) {
+		return flock.whenModelReady(meshName1, (mesh1) => {
+			return flock.whenModelReady(meshName2, (mesh2) => {
+				if (mesh1.physics) {
+					if (
+						mesh1.physics.getMotionType() !==
+						flock.BABYLON.PhysicsMotionType.DYNAMIC
+					) {
+						mesh1.physics.setMotionType(
+							flock.BABYLON.PhysicsMotionType.ANIMATED,
+						);
+					}
+				}
+				const targetPosition = mesh2.absolutePosition.clone();
+				if (!useY) {
+					targetPosition.y = mesh1.absolutePosition.y;
+				}
+				mesh1.position.copyFrom(targetPosition);
+
+				if (mesh1.physics) {
+					mesh1.physics.disablePreStep = false;
+					mesh1.physics.setTargetTransform(
+						mesh1.position,
+						mesh1.rotationQuaternion,
+					);
+				}
+
+				mesh1.computeWorldMatrix(true);
+			});
+		});
+	},
 	rotate(meshName, x, y, z) {
 		// Handle mesh rotation
 		return flock.whenModelReady(meshName, (mesh) => {
@@ -3826,134 +3898,69 @@ export const flock = {
 			mesh.computeWorldMatrix(true);
 		});
 	},
-	/*rotateCamera(yawAngle) {
-		const camera = flock.scene.activeCamera;
-		if (!camera || yawAngle === 0) return;
-
-		if (camera.alpha !== undefined) {
-			// ArcRotateCamera: Adjust the 'alpha' to rotate left or right
-			camera.alpha += flock.BABYLON.Tools.ToRadians(yawAngle);
-		}
-		// Otherwise, assume it's a FreeCamera or similar
-		else if (camera.rotation !== undefined) {
-			// FreeCamera: Adjust the 'rotation.y' for yaw rotation (left/right)
-			camera.rotation.y += flock.BABYLON.Tools.ToRadians(yawAngle);
-		}
-	},*/
-	lookAt(meshName1, meshName2, useY = false) {
-		return flock.whenModelReady(meshName1, (mesh1) => {
-			return flock.whenModelReady(meshName2, (mesh2) => {
-				if (mesh1.physics) {
-					if (
-						mesh1.physics.getMotionType() !==
-						flock.BABYLON.PhysicsMotionType.DYNAMIC
-					) {
-						mesh1.physics.setMotionType(
-							flock.BABYLON.PhysicsMotionType.ANIMATED,
-						);
-					}
-				}
-
-				let targetPosition = mesh2.absolutePosition.clone();
-				if (!useY) {
-					targetPosition.y = mesh1.absolutePosition.y;
-				}
-
-				if (meshName1 === "__active_camera__") {
-					//mesh1.setTarget(mesh2);
-				} else {
-					mesh1.lookAt(targetPosition);
-				}
-
-				if (mesh1.physics) {
-					mesh1.physics.disablePreStep = false;
-					mesh1.physics.setTargetTransform(
-						mesh1.absolutePosition,
-						mesh1.rotationQuaternion,
-					);
-				}
-
-				mesh1.computeWorldMatrix(true);
-			});
-		});
-	},
-	moveTo(meshName1, meshName2, useY = false) {
-		return flock.whenModelReady(meshName1, (mesh1) => {
-			return flock.whenModelReady(meshName2, (mesh2) => {
-				if (mesh1.physics) {
-					if (
-						mesh1.physics.getMotionType() !==
-						flock.BABYLON.PhysicsMotionType.DYNAMIC
-					) {
-						mesh1.physics.setMotionType(
-							flock.BABYLON.PhysicsMotionType.ANIMATED,
-						);
-					}
-				}
-				const targetPosition = mesh2.absolutePosition.clone();
-				if (!useY) {
-					targetPosition.y = mesh1.absolutePosition.y;
-				}
-				mesh1.position.copyFrom(targetPosition);
-
-				if (mesh1.physics) {
-					mesh1.physics.disablePreStep = false;
-					mesh1.physics.setTargetTransform(
-						mesh1.position,
-						mesh1.rotationQuaternion,
-					);
-				}
-
-				mesh1.computeWorldMatrix(true);
-			});
-		});
-	},
-	rotateTo(meshName, x, y, z) {
+	rotateTo(meshName, targetX, targetY, targetZ) {
 		return flock.whenModelReady(meshName, (mesh) => {
-			if (!mesh.physics) {
-				// Fallback: Apply directly if no physics body
-				const radX = flock.BABYLON.Tools.ToRadians(x);
-				const radY = flock.BABYLON.Tools.ToRadians(y);
-				const radZ = flock.BABYLON.Tools.ToRadians(z);
 
-				mesh.rotationQuaternion =
-					flock.BABYLON.Quaternion.RotationYawPitchRoll(
-						radY,
-						radX,
-						radZ,
-					);
-				mesh.computeWorldMatrix(true);
+			if (meshName === "__active_camera__") {
+				const camera = flock.scene.activeCamera;
+				if (!camera) return;
+
+				// For an ArcRotateCamera, set the absolute alpha (horizontal) and beta (vertical) angles.
+				if (camera.alpha !== undefined) {
+					camera.alpha = flock.BABYLON.Tools.ToRadians(targetY); // horizontal
+					camera.beta  = flock.BABYLON.Tools.ToRadians(targetX); // vertical
+				}
+				// For a FreeCamera or any camera using a rotationQuaternion:
+				else if (camera.rotation !== undefined) {
+					// Ensure a rotationQuaternion exists.
+					if (!camera.rotationQuaternion) {
+						camera.rotationQuaternion =
+							flock.BABYLON.Quaternion.RotationYawPitchRoll(
+								flock.BABYLON.Tools.ToRadians(camera.rotation.y),
+								flock.BABYLON.Tools.ToRadians(camera.rotation.x),
+								flock.BABYLON.Tools.ToRadians(camera.rotation.z)
+							).normalize();
+					}
+					// Create the target quaternion using the absolute Euler angles.
+					// Here we assume targetY is yaw, targetX is pitch, and targetZ is roll.
+					const targetQuat = flock.BABYLON.Quaternion.RotationYawPitchRoll(
+						flock.BABYLON.Tools.ToRadians(targetY),
+						flock.BABYLON.Tools.ToRadians(targetX),
+						flock.BABYLON.Tools.ToRadians(targetZ)
+					).normalize();
+
+					// Set the camera's rotationQuaternion directly to the target.
+					camera.rotationQuaternion = targetQuat;
+				}
 				return;
 			}
 
-			// Set motion type to animated if needed
-			if (
-				mesh.physics.getMotionType() !==
-				flock.BABYLON.PhysicsMotionType.ANIMATED
-			) {
-				mesh.physics.setMotionType(
-					flock.BABYLON.PhysicsMotionType.ANIMATED,
-				);
-			}
+			// Create the target rotation quaternion from absolute Euler angles (degrees)
+			const radX = flock.BABYLON.Tools.ToRadians(targetX);
+			const radY = flock.BABYLON.Tools.ToRadians(targetY);
+			const radZ = flock.BABYLON.Tools.ToRadians(targetZ);
+			const targetQuat = flock.BABYLON.Quaternion
+			  .RotationYawPitchRoll(radY, radX, radZ)
+			  .normalize();
 
-			// Convert degrees to radians
-			const radX = flock.BABYLON.Tools.ToRadians(x);
-			const radY = flock.BABYLON.Tools.ToRadians(y);
-			const radZ = flock.BABYLON.Tools.ToRadians(z);
+			// Get the current rotation quaternion of the mesh
+			const currentQuat = mesh.rotationQuaternion.clone();
 
-			// Target rotation as quaternion
-			const targetRotation =
-				flock.BABYLON.Quaternion.RotationYawPitchRoll(radY, radX, radZ);
+			// Calculate the incremental rotation needed:
+			// q_increment = targetQuat * inverse(currentQuat)
+			const diffQuat = targetQuat.multiply(currentQuat.conjugate()).normalize();
 
-			// Set rotation using the physics body
-			mesh.physics.setTargetTransform(mesh.position, targetRotation);
+			// Convert the incremental rotation quaternion to Euler angles (in radians)
+			const diffEuler = diffQuat.toEulerAngles();
 
-			// Synchronise graphics with physics
-			mesh.rotationQuaternion = targetRotation;
-			mesh.computeWorldMatrix(true);
+			// Convert the incremental angles to degrees
+			const incX = flock.BABYLON.Tools.ToDegrees(diffEuler.x);
+			const incY = flock.BABYLON.Tools.ToDegrees(diffEuler.y);
+			const incZ = flock.BABYLON.Tools.ToDegrees(diffEuler.z);
+
+			flock.rotate(meshName, incX, incY, incZ);
 		});
 	},
-
 	async rotateAnim(
 		meshName,
 		rotX,
@@ -4172,7 +4179,6 @@ export const flock = {
 	},
 	positionAt(meshName, x, y, z, useY = true) {
 		return flock.whenModelReady(meshName, (mesh) => {
-			
 			if (mesh.physics) {
 				if (
 					mesh.physics.getMotionType() !==
@@ -4184,11 +4190,13 @@ export const flock = {
 				}
 			}
 
-			const addY = meshName === '__active_camera__' ? 0 : mesh.getBoundingInfo().boundingBox.extendSize.y * mesh.scaling.y;
+			const addY =
+				meshName === "__active_camera__"
+					? 0
+					: mesh.getBoundingInfo().boundingBox.extendSize.y *
+						mesh.scaling.y;
 
-			let targetY = useY
-				? y + addY
-				: mesh.position.y;
+			let targetY = useY ? y + addY : mesh.position.y;
 			mesh.position.set(x, targetY, z);
 
 			if (mesh.physics) {
@@ -4531,7 +4539,20 @@ export const flock = {
 			await flock.whenModelReady(meshName, async function (mesh) {
 				if (mesh) {
 					const startPosition = mesh.position.clone(); // Capture start position
-					const endPosition = new flock.BABYLON.Vector3(x, y, z);
+
+					const addY =
+						meshName === "__active_camera__"
+							? 0
+							: mesh.getBoundingInfo().boundingBox.extendSize.y *
+								mesh.scaling.y;
+
+					let targetY = y + addY;
+
+					const endPosition = new flock.BABYLON.Vector3(
+						x,
+						targetY,
+						z,
+					);
 					const fps = 30;
 					const frames = fps * (duration / 1000);
 

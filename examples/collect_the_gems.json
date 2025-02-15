@@ -1783,7 +1783,7 @@
 										"type": "math_number",
 										"id": "!IO|([H4!r5w)y1U^D]7",
 										"fields": {
-											"NUM": 9
+											"NUM": 9.5
 										}
 									}
 								},
@@ -1834,7 +1834,7 @@
 												"type": "math_number",
 												"id": "FB=)d*h~y49LyY./Q,%?",
 												"fields": {
-													"NUM": 0.25
+													"NUM": 0
 												}
 											}
 										},
