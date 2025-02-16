@@ -3898,7 +3898,10 @@ export const flock = {
 				if (meshName1 === "__active_camera__") {
 					//mesh1.setTarget(mesh2);
 				} else {
-					mesh1.lookAt(targetPosition);
+					// Calculate the direction vector and its opposite
+					const direction = targetPosition.subtract(mesh1.absolutePosition);
+					const oppositeTarget = mesh1.absolutePosition.subtract(direction);
+					mesh1.lookAt(oppositeTarget);
 				}
 
 				if (mesh1.physics) {
