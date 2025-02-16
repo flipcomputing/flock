@@ -1112,10 +1112,12 @@ export const flock = {
 				const firstMesh = container.meshes[0].clone(
 					`${modelName}_first`,
 				);
+
 				firstMesh.setEnabled(false); // Disable the first copy
 				flock.modelCache[modelName] = firstMesh;
 
 				container.addAllToScene();
+
 				flock.setupMesh(
 					container.meshes[0],
 					modelName,
@@ -1209,7 +1211,27 @@ export const flock = {
 
 		//console.log("Model setup", bb.name, bb.blockKey);
 		bb.isPickable = false;
-		bb.position.addInPlace(new flock.BABYLON.Vector3(x, y, z));
+
+		const objectNames = [
+			"Star.glb",
+			"Heart.glb",
+			"Coin.glb",
+			"Gem1.glb",
+			"Gem2.glb",
+			"Gem3.glb",
+		];
+
+		if (!objectNames.includes(modelName)) {
+			const boundingInfo = bb.getBoundingInfo();
+			const halfHeight = boundingInfo.boundingBox.extendSizeWorld.y;
+
+			bb.position.y -= halfHeight;
+		}	
+		bb.bakeCurrentTransformIntoVertices();
+		bb.scaling.set(1, 1, 1);
+
+		console.log("Position", x, y, z);
+		bb.position = new flock.BABYLON.Vector3(x, y, z);
 
 		mesh.computeWorldMatrix(true);
 		mesh.refreshBoundingInfo();
@@ -1233,22 +1255,6 @@ export const flock = {
 		};
 
 
-		const objectNames = [
-			"Star.glb",
-			"Heart.glb",
-			"Coin.glb",
-			"Gem1.glb",
-			"Gem2.glb",
-			"Gem3.glb",
-		];
-		
-		if (objectNames.includes(modelName)) {
-			const boundingInfo = bb.getBoundingInfo();
-			const halfHeight = boundingInfo.boundingBox.extendSizeWorld.y;
-
-		bb.position.y += halfHeight;
-
-		}
 
 		// Set metadata on the root mesh
 		setMetadata(bb);
@@ -1257,6 +1263,8 @@ export const flock = {
 		bb.getDescendants().forEach((descendant) => {
 			setMetadata(descendant);
 		});
+
+		bb.position.y += bb.getBoundingInfo().boundingBox.extendSizeWorld.y;
 
 		const boxBody = new flock.BABYLON.PhysicsBody(
 			bb,
@@ -1423,7 +1431,6 @@ export const flock = {
 		position = { x: 0, y: 0, z: 0 },
 		callback = null,
 	} = {}) {
-
 		try {
 			// Basic parameter validation with warnings
 			if (!modelName) {
@@ -3477,10 +3484,10 @@ export const flock = {
 		// Create plane with specified dimensions
 		const newPlane = flock.BABYLON.MeshBuilder.CreatePlane(
 			planeId,
-			{ 
-				width, 
-				height, 
-				sideOrientation: flock.BABYLON.Mesh.DOUBLESIDE 
+			{
+				width,
+				height,
+				sideOrientation: flock.BABYLON.Mesh.DOUBLESIDE,
 			},
 			flock.scene,
 		);
@@ -3496,12 +3503,11 @@ export const flock = {
 		newPlane.metadata.shape = "plane";
 		newPlane.name = newPlane.name + "_" + newPlane.uniqueId;
 
-
 		// Set final position including the height offset all at once
 		newPlane.position = new flock.BABYLON.Vector3(
 			position[0],
-			position[1] + height/2,
-			position[2]
+			position[1] + height / 2,
+			position[2],
 		);
 
 		// Create physics body
@@ -3535,10 +3541,10 @@ export const flock = {
 			flock.scene,
 		);
 		material.diffuseColor = flock.BABYLON.Color3.FromHexString(
-			flock.getColorFromString(color)
+			flock.getColorFromString(color),
 		);
 		newPlane.material = material;
-		
+
 		newPlane.blockKey = blockKey;
 
 		return newPlane.name;
@@ -3675,85 +3681,97 @@ export const flock = {
 		});
 	},
 	resizeMesh(
-	  modelName,
-	  newWidth,
-	  newHeight,
-	  newDepth,
-	  xOrigin = "CENTRE",
-	  yOrigin = "BASE",  // Default is BASE
-	  zOrigin = "CENTRE"
+		modelName,
+		newWidth,
+		newHeight,
+		newDepth,
+		xOrigin = "CENTRE",
+		yOrigin = "BASE", // Default is BASE
+		zOrigin = "CENTRE",
 	) {
-	  return flock.whenModelReady(modelName, (mesh) => {
-		mesh.metadata = mesh.metadata || {};
+		return flock.whenModelReady(modelName, (mesh) => {
+			mesh.metadata = mesh.metadata || {};
 
-		// Save the original local bounding box once.
-		if (!mesh.metadata.originalMin || !mesh.metadata.originalMax) {
-		  const bi = mesh.getBoundingInfo();
-		  mesh.metadata.originalMin = bi.boundingBox.minimum.clone();
-		  mesh.metadata.originalMax = bi.boundingBox.maximum.clone();
-		}
-		const origMin = mesh.metadata.originalMin;
-		const origMax = mesh.metadata.originalMax;
+			// Save the original local bounding box once.
+			if (!mesh.metadata.originalMin || !mesh.metadata.originalMax) {
+				const bi = mesh.getBoundingInfo();
+				mesh.metadata.originalMin = bi.boundingBox.minimum.clone();
+				mesh.metadata.originalMax = bi.boundingBox.maximum.clone();
+			}
+			const origMin = mesh.metadata.originalMin;
+			const origMax = mesh.metadata.originalMax;
 
-		// Compute the original dimensions.
-		const origWidth  = origMax.x - origMin.x;
-		const origHeight = origMax.y - origMin.y;
-		const origDepth  = origMax.z - origMin.z;
+			// Compute the original dimensions.
+			const origWidth = origMax.x - origMin.x;
+			const origHeight = origMax.y - origMin.y;
+			const origDepth = origMax.z - origMin.z;
 
-		// Compute new scaling factors based on the original dimensions.
-		const scaleX = origWidth  ? newWidth  / origWidth  : 1;
-		const scaleY = origHeight ? newHeight / origHeight : 1;
-		const scaleZ = origDepth  ? newDepth  / origDepth  : 1;
+			// Compute new scaling factors based on the original dimensions.
+			const scaleX = origWidth ? newWidth / origWidth : 1;
+			const scaleY = origHeight ? newHeight / origHeight : 1;
+			const scaleZ = origDepth ? newDepth / origDepth : 1;
 
-		// Refresh current bounding info and compute the old anchor (world space)
-		mesh.refreshBoundingInfo();
-		const oldBI = mesh.getBoundingInfo();
-		const oldMinWorld = oldBI.boundingBox.minimumWorld;
-		const oldMaxWorld = oldBI.boundingBox.maximumWorld;
+			// Refresh current bounding info and compute the old anchor (world space)
+			mesh.refreshBoundingInfo();
+			const oldBI = mesh.getBoundingInfo();
+			const oldMinWorld = oldBI.boundingBox.minimumWorld;
+			const oldMaxWorld = oldBI.boundingBox.maximumWorld;
 
-		const oldAnchor = new flock.BABYLON.Vector3(
-		  (xOrigin === "LEFT"  ? oldMinWorld.x :
-		   xOrigin === "RIGHT" ? oldMaxWorld.x :
-		   (oldMinWorld.x + oldMaxWorld.x) / 2),
-		  (yOrigin === "BASE" ? oldMinWorld.y :
-		   yOrigin === "TOP"   ? oldMaxWorld.y :
-		   (oldMinWorld.y + oldMaxWorld.y) / 2),
-		  (zOrigin === "FRONT" ? oldMinWorld.z :
-		   zOrigin === "BACK"  ? oldMaxWorld.z :
-		   (oldMinWorld.z + oldMaxWorld.z) / 2)
-		);
+			const oldAnchor = new flock.BABYLON.Vector3(
+				xOrigin === "LEFT"
+					? oldMinWorld.x
+					: xOrigin === "RIGHT"
+						? oldMaxWorld.x
+						: (oldMinWorld.x + oldMaxWorld.x) / 2,
+				yOrigin === "BASE"
+					? oldMinWorld.y
+					: yOrigin === "TOP"
+						? oldMaxWorld.y
+						: (oldMinWorld.y + oldMaxWorld.y) / 2,
+				zOrigin === "FRONT"
+					? oldMinWorld.z
+					: zOrigin === "BACK"
+						? oldMaxWorld.z
+						: (oldMinWorld.z + oldMaxWorld.z) / 2,
+			);
 
-		// Apply the new scaling.
-		mesh.scaling = new flock.BABYLON.Vector3(scaleX, scaleY, scaleZ);
-		mesh.refreshBoundingInfo();
-		mesh.computeWorldMatrix(true);
+			// Apply the new scaling.
+			mesh.scaling = new flock.BABYLON.Vector3(scaleX, scaleY, scaleZ);
+			mesh.refreshBoundingInfo();
+			mesh.computeWorldMatrix(true);
 
-		// Now compute the new anchor (world space) after scaling.
-		const newBI = mesh.getBoundingInfo();
-		const newMinWorld = newBI.boundingBox.minimumWorld;
-		const newMaxWorld = newBI.boundingBox.maximumWorld;
+			// Now compute the new anchor (world space) after scaling.
+			const newBI = mesh.getBoundingInfo();
+			const newMinWorld = newBI.boundingBox.minimumWorld;
+			const newMaxWorld = newBI.boundingBox.maximumWorld;
 
-		const newAnchor = new flock.BABYLON.Vector3(
-		  (xOrigin === "LEFT"  ? newMinWorld.x :
-		   xOrigin === "RIGHT" ? newMaxWorld.x :
-		   (newMinWorld.x + newMaxWorld.x) / 2),
-		  (yOrigin === "BASE" ? newMinWorld.y :
-		   yOrigin === "TOP"   ? newMaxWorld.y :
-		   (newMinWorld.y + newMaxWorld.y) / 2),
-		  (zOrigin === "FRONT" ? newMinWorld.z :
-		   zOrigin === "BACK"  ? newMaxWorld.z :
-		   (newMinWorld.z + newMaxWorld.z) / 2)
-		);
+			const newAnchor = new flock.BABYLON.Vector3(
+				xOrigin === "LEFT"
+					? newMinWorld.x
+					: xOrigin === "RIGHT"
+						? newMaxWorld.x
+						: (newMinWorld.x + newMaxWorld.x) / 2,
+				yOrigin === "BASE"
+					? newMinWorld.y
+					: yOrigin === "TOP"
+						? newMaxWorld.y
+						: (newMinWorld.y + newMaxWorld.y) / 2,
+				zOrigin === "FRONT"
+					? newMinWorld.z
+					: zOrigin === "BACK"
+						? newMaxWorld.z
+						: (newMinWorld.z + newMaxWorld.z) / 2,
+			);
 
-		// Compute the difference and adjust the mesh's position so the anchor stays fixed.
-		const diff = newAnchor.subtract(oldAnchor);
-		mesh.position.subtractInPlace(diff);
+			// Compute the difference and adjust the mesh's position so the anchor stays fixed.
+			const diff = newAnchor.subtract(oldAnchor);
+			mesh.position.subtractInPlace(diff);
 
-		// Final updates.
-		mesh.refreshBoundingInfo();
-		mesh.computeWorldMatrix(true);
-		flock.updatePhysics(mesh);
-	  });
+			// Final updates.
+			mesh.refreshBoundingInfo();
+			mesh.computeWorldMatrix(true);
+			flock.updatePhysics(mesh);
+		});
 	},
 	updatePhysics(mesh, parent = null) {
 		if (!parent) parent = mesh;
@@ -3857,7 +3875,7 @@ export const flock = {
 			);
 		});
 	},
-	
+
 	lookAt(meshName1, meshName2, useY = false) {
 		return flock.whenModelReady(meshName1, (mesh1) => {
 			return flock.whenModelReady(meshName2, (mesh2) => {
@@ -4003,7 +4021,6 @@ export const flock = {
 	},
 	rotateTo(meshName, targetX, targetY, targetZ) {
 		return flock.whenModelReady(meshName, (mesh) => {
-
 			if (meshName === "__active_camera__") {
 				const camera = flock.scene.activeCamera;
 				if (!camera) return;
@@ -4011,7 +4028,7 @@ export const flock = {
 				// For an ArcRotateCamera, set the absolute alpha (horizontal) and beta (vertical) angles.
 				if (camera.alpha !== undefined) {
 					camera.alpha = flock.BABYLON.Tools.ToRadians(targetY); // horizontal
-					camera.beta  = flock.BABYLON.Tools.ToRadians(targetX); // vertical
+					camera.beta = flock.BABYLON.Tools.ToRadians(targetX); // vertical
 				}
 				// For a FreeCamera or any camera using a rotationQuaternion:
 				else if (camera.rotation !== undefined) {
@@ -4019,18 +4036,25 @@ export const flock = {
 					if (!camera.rotationQuaternion) {
 						camera.rotationQuaternion =
 							flock.BABYLON.Quaternion.RotationYawPitchRoll(
-								flock.BABYLON.Tools.ToRadians(camera.rotation.y),
-								flock.BABYLON.Tools.ToRadians(camera.rotation.x),
-								flock.BABYLON.Tools.ToRadians(camera.rotation.z)
+								flock.BABYLON.Tools.ToRadians(
+									camera.rotation.y,
+								),
+								flock.BABYLON.Tools.ToRadians(
+									camera.rotation.x,
+								),
+								flock.BABYLON.Tools.ToRadians(
+									camera.rotation.z,
+								),
 							).normalize();
 					}
 					// Create the target quaternion using the absolute Euler angles.
 					// Here we assume targetY is yaw, targetX is pitch, and targetZ is roll.
-					const targetQuat = flock.BABYLON.Quaternion.RotationYawPitchRoll(
-						flock.BABYLON.Tools.ToRadians(targetY),
-						flock.BABYLON.Tools.ToRadians(targetX),
-						flock.BABYLON.Tools.ToRadians(targetZ)
-					).normalize();
+					const targetQuat =
+						flock.BABYLON.Quaternion.RotationYawPitchRoll(
+							flock.BABYLON.Tools.ToRadians(targetY),
+							flock.BABYLON.Tools.ToRadians(targetX),
+							flock.BABYLON.Tools.ToRadians(targetZ),
+						).normalize();
 
 					// Set the camera's rotationQuaternion directly to the target.
 					camera.rotationQuaternion = targetQuat;
@@ -4042,16 +4066,20 @@ export const flock = {
 			const radX = flock.BABYLON.Tools.ToRadians(targetX);
 			const radY = flock.BABYLON.Tools.ToRadians(targetY);
 			const radZ = flock.BABYLON.Tools.ToRadians(targetZ);
-			const targetQuat = flock.BABYLON.Quaternion
-			  .RotationYawPitchRoll(radY, radX, radZ)
-			  .normalize();
+			const targetQuat = flock.BABYLON.Quaternion.RotationYawPitchRoll(
+				radY,
+				radX,
+				radZ,
+			).normalize();
 
 			// Get the current rotation quaternion of the mesh
 			const currentQuat = mesh.rotationQuaternion.clone();
 
 			// Calculate the incremental rotation needed:
 			// q_increment = targetQuat * inverse(currentQuat)
-			const diffQuat = targetQuat.multiply(currentQuat.conjugate()).normalize();
+			const diffQuat = targetQuat
+				.multiply(currentQuat.conjugate())
+				.normalize();
 
 			// Convert the incremental rotation quaternion to Euler angles (in radians)
 			const diffEuler = diffQuat.toEulerAngles();
@@ -4294,7 +4322,7 @@ export const flock = {
 			}
 
 			const addY =
-				(meshName === "__active_camera__")
+				meshName === "__active_camera__"
 					? 0
 					: mesh.getBoundingInfo().boundingBox.extendSize.y *
 						mesh.scaling.y;
@@ -4387,21 +4415,36 @@ export const flock = {
 			case "SCALE_Z":
 				propertyValue = parseFloat(mesh.scaling.z.toFixed(2));
 				break;
-				case "SIZE_X": {
-					const bi = mesh.getBoundingInfo();
-					propertyValue = parseFloat((bi.boundingBox.maximumWorld.x - bi.boundingBox.minimumWorld.x).toFixed(2));
-					break;
-				  }
-				  case "SIZE_Y": {
-					const bi = mesh.getBoundingInfo();
-					propertyValue = parseFloat((bi.boundingBox.maximumWorld.y - bi.boundingBox.minimumWorld.y).toFixed(2));
-					break;
-				  }
-				  case "SIZE_Z": {
-					const bi = mesh.getBoundingInfo();
-					propertyValue = parseFloat((bi.boundingBox.maximumWorld.z - bi.boundingBox.minimumWorld.z).toFixed(2));
-					break;
-				  }
+			case "SIZE_X": {
+				const bi = mesh.getBoundingInfo();
+				propertyValue = parseFloat(
+					(
+						bi.boundingBox.maximumWorld.x -
+						bi.boundingBox.minimumWorld.x
+					).toFixed(2),
+				);
+				break;
+			}
+			case "SIZE_Y": {
+				const bi = mesh.getBoundingInfo();
+				propertyValue = parseFloat(
+					(
+						bi.boundingBox.maximumWorld.y -
+						bi.boundingBox.minimumWorld.y
+					).toFixed(2),
+				);
+				break;
+			}
+			case "SIZE_Z": {
+				const bi = mesh.getBoundingInfo();
+				propertyValue = parseFloat(
+					(
+						bi.boundingBox.maximumWorld.z -
+						bi.boundingBox.minimumWorld.z
+					).toFixed(2),
+				);
+				break;
+			}
 			case "MIN_X":
 				if (mesh.metadata?.origin?.xOrigin === "LEFT") {
 					// Adjust based on LEFT origin
@@ -6103,7 +6146,7 @@ export const flock = {
 		);
 
 		const facingDirection =
-			speed >= 0
+			speed <= 0
 				? new flock.BABYLON.Vector3(
 						-cameraForward.x,
 						0,
@@ -6158,7 +6201,7 @@ export const flock = {
 
 		// Rotate the model to face the direction of movement
 		const facingDirection =
-			sidewaysSpeed >= 0
+			sidewaysSpeed <= 0
 				? new flock.BABYLON.Vector3(
 						-cameraRight.x,
 						0,
@@ -6195,7 +6238,7 @@ export const flock = {
 		const model = flock.scene.getMeshByName(modelName);
 		if (!model || speed === 0) return;
 
-		const sidewaysSpeed = -speed;
+		const sidewaysSpeed = speed;
 
 		// Get the camera's right direction vector (perpendicular to the forward direction)
 		const cameraRight = flock.scene.activeCamera
@@ -6250,7 +6293,8 @@ export const flock = {
 				flock.updateDynamicMeshPositions(flock.scene, [mesh]);
 				let camera = flock.scene.activeCamera;
 
-			flock.savedCamera = camera;	flock.ensureVerticalConstraint(mesh);
+				flock.savedCamera = camera;
+				flock.ensureVerticalConstraint(mesh);
 
 				camera = new flock.BABYLON.ArcRotateCamera(
 					"camera",
@@ -6770,7 +6814,8 @@ export const flock = {
 	canvasControls(setting) {
 		if (setting) {
 			flock.scene.activeCamera.attachControl(flock.canvas, false);
-		} else {			flock.scene.activeCamera.detachControl();
+		} else {
+			flock.scene.activeCamera.detachControl();
 		}
 	},
 	checkMeshesTouching(mesh1VarName, mesh2VarName) {
@@ -6842,7 +6887,7 @@ export const flock = {
 				if (!plane) {
 					plane = flock.BABYLON.MeshBuilder.CreatePlane(
 						"textPlane",
-						{ width: 1.5, height: 1.5 },
+						{ width: 4, height: 4 },
 						flock.scene,
 					);
 					plane.name = "textPlane";
@@ -6852,7 +6897,7 @@ export const flock = {
 					plane.isPickable = false;
 					const boundingInfo = targetMesh.getBoundingInfo();
 					plane.position.y =
-						boundingInfo.boundingBox.maximum.y + 0.85;
+						boundingInfo.boundingBox.maximum.y + 2.1;
 					plane.scalingDeterminant = 1;
 					plane.computeWorldMatrix();
 					plane.billboardMode = flock.BABYLON.Mesh.BILLBOARDMODE_ALL;
@@ -6934,7 +6979,7 @@ export const flock = {
 					bg.isPickable = false;
 					stackPanel.addControl(bg);
 
-					const scale = 6;
+					const scale = 8;
 					//console.log(window.devicePixelRatio);//(window.devicePixelRatio || 1) * 6;
 					const textBlock = new flock.GUI.TextBlock();
 					textBlock.text = text;

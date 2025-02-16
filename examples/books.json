@@ -6,7 +6,7 @@
         "type": "start",
         "id": "UKP8Kpt$DPwqqmsusk#y",
         "x": 10,
-        "y": 360,
+        "y": 362,
         "inputs": {
           "DO": {
             "block": {
@@ -369,7 +369,7 @@
         "type": "start",
         "id": "D1_a0U#.l-FO0k%r]?om",
         "x": 10,
-        "y": 1087,
+        "y": 1092,
         "inputs": {
           "DO": {
             "block": {
@@ -649,7 +649,7 @@
                             "type": "math_number",
                             "id": "sn:EA[YV$hiJ{`4Reo3Q",
                             "fields": {
-                              "NUM": 1.7
+                              "NUM": 1.5
                             }
                           }
                         },
@@ -675,7 +675,7 @@
         "type": "start",
         "id": "|OWix$,35D{ovkt|;%Wg",
         "x": 10,
-        "y": 1693,
+        "y": 1700,
         "inputs": {
           "DO": {
             "block": {
@@ -1354,7 +1354,7 @@
             "block": {
               "type": "load_object",
               "id": "qe]=fC2ffT[Qf/8b[,2k",
-              "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" has_do=\"true\"></mutation>",
+              "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" has_do=\"false\"></mutation>",
               "fields": {
                 "ID_VAR": {
                   "id": "C(Ae#^0MJgR6qXcoiY*c"
@@ -1480,7 +1480,7 @@
                         "type": "math_number",
                         "id": "4#y.*pR_7z@d(e.D+*o!",
                         "fields": {
-                          "NUM": 40
+                          "NUM": 20
                         }
                       }
                     }
@@ -1495,7 +1495,7 @@
         "type": "start",
         "id": "YIIZW|V3E#Sl!`W,_n1p",
         "x": 10,
-        "y": 2552,
+        "y": 2566,
         "inputs": {
           "DO": {
             "block": {
@@ -2168,7 +2168,7 @@
         "type": "when_clicked",
         "id": "2W8LZmoO8+si`w)sv84r",
         "x": 10,
-        "y": 3411,
+        "y": 3432,
         "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" inline=\"false\"></mutation>",
         "fields": {
           "MODEL_VAR": {

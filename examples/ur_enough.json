@@ -134,7 +134,7 @@
 																		"type": "math_number",
 																		"id": "a:!Occf1;Uw)($NwBdj(",
 																		"fields": {
-																			"NUM": 0
+																			"NUM": -1
 																		}
 																	}
 																},
@@ -200,7 +200,7 @@
 																				"type": "math_number",
 																				"id": "MGGyqC{rbsu6g5b#XW`.",
 																				"fields": {
-																					"NUM": 0
+																					"NUM": -1
 																				}
 																			}
 																		},
@@ -499,7 +499,7 @@
 																														"type": "math_number",
 																														"id": "jqv,q?X,tCnfq~+cuk^h",
 																														"fields": {
-																															"NUM": 10
+																															"NUM": 6
 																														}
 																													}
 																												}
@@ -566,7 +566,7 @@
 																																"type": "math_number",
 																																"id": "#V@Kqj!X]eVL$6plo)Y[",
 																																"fields": {
-																																	"NUM": 12
+																																	"NUM": 4
 																																}
 																															}
 																														}
@@ -633,7 +633,7 @@
 																																		"type": "math_number",
 																																		"id": "p;m;}35OG/pLH4HCoTqD",
 																																		"fields": {
-																																			"NUM": 18
+																																			"NUM": 14
 																																		}
 																																	}
 																																}
@@ -700,7 +700,7 @@
 																																				"type": "math_number",
 																																				"id": "vIe?z8!`|1ZwLvVubIha",
 																																				"fields": {
-																																					"NUM": 28
+																																					"NUM": 24
 																																				}
 																																			}
 																																		}
@@ -834,7 +834,7 @@
 																																								"type": "math_number",
 																																								"id": ";WM|r-OmQ@)`v=TSy~tT",
 																																								"fields": {
-																																									"NUM": 10
+																																									"NUM": 6
 																																								}
 																																							}
 																																						}
@@ -1028,7 +1028,7 @@
 																																																						"type": "math_number",
 																																																						"id": "qREc^vPbe)-1?MzdlBNS",
 																																																						"fields": {
-																																																							"NUM": 18
+																																																							"NUM": 14
 																																																						}
 																																																					}
 																																																				}
@@ -1095,7 +1095,7 @@
 																																																								"type": "math_number",
 																																																								"id": "P*o~~*-FD^p}={g=LG9w",
 																																																								"fields": {
-																																																									"NUM": 24
+																																																									"NUM": 20
 																																																								}
 																																																							}
 																																																						}
@@ -1162,7 +1162,7 @@
 																																																										"type": "math_number",
 																																																										"id": "u3kc!ntn~:m+Xt4Z0KzR",
 																																																										"fields": {
-																																																											"NUM": 18
+																																																											"NUM": 14
 																																																										}
 																																																									}
 																																																								}
@@ -1229,7 +1229,7 @@
 																																																												"type": "math_number",
 																																																												"id": "EVP%wp?EG)YI48YA4ai+",
 																																																												"fields": {
-																																																													"NUM": 24
+																																																													"NUM": 20
 																																																												}
 																																																											}
 																																																										}
@@ -1296,7 +1296,7 @@
 																																																														"type": "math_number",
 																																																														"id": "NL`JFz|TITp$)Y!*LL2Z",
 																																																														"fields": {
-																																																															"NUM": 18
+																																																															"NUM": 14
 																																																														}
 																																																													}
 																																																												}

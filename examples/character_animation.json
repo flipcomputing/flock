@@ -247,7 +247,7 @@
 				"id": "tv0kQXkBjXbRtxDuMuby",
 				"x": 10,
 				"y": 928,
-				"extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" inline=\"false\"></mutation>",
+				"extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" inline=\"undefined\"></mutation>",
 				"inputs": {
 					"EVENT_NAME": {
 						"block": {
@@ -320,7 +320,7 @@
 										"type": "math_number",
 										"id": "+Z--Bla0|Q.69/,Mbd(=",
 										"fields": {
-											"NUM": 16
+											"NUM": 20
 										}
 									}
 								}
@@ -351,7 +351,7 @@
 				"id": ")wF0AtOEx:.4$vXI6,@L",
 				"x": 10,
 				"y": 2196,
-				"extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" inline=\"false\"></mutation>",
+				"extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" inline=\"undefined\"></mutation>",
 				"inputs": {
 					"EVENT_NAME": {
 						"block": {
@@ -462,7 +462,7 @@
 												"type": "math_number",
 												"id": "+zJ_V+gl!{+[e_@*]DeJ",
 												"fields": {
-													"NUM": 16
+													"NUM": 20
 												}
 											}
 										}
@@ -524,7 +524,7 @@
 				"id": "HP%^Pyd|3[1rV{m4`tku",
 				"x": 10,
 				"y": 2624,
-				"extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" inline=\"false\"></mutation>",
+				"extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" inline=\"undefined\"></mutation>",
 				"inputs": {
 					"EVENT_NAME": {
 						"block": {
@@ -597,7 +597,7 @@
 										"type": "math_number",
 										"id": "nlE#ap]U,s/u?X!bOR[n",
 										"fields": {
-											"NUM": 16
+											"NUM": 20
 										}
 									}
 								}
@@ -657,7 +657,7 @@
 				"id": "$Wt3QbQ.|9h@`cs)QkxA",
 				"x": 10,
 				"y": 1208,
-				"extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" inline=\"false\"></mutation>",
+				"extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" inline=\"undefined\"></mutation>",
 				"inputs": {
 					"EVENT_NAME": {
 						"block": {
@@ -730,7 +730,7 @@
 										"type": "math_number",
 										"id": "[(UQ{sd3$q^W?X~?f:9|",
 										"fields": {
-											"NUM": 16
+											"NUM": 20
 										}
 									}
 								}
@@ -887,7 +887,7 @@
 																		"type": "math_number",
 																		"id": "Pl2)aa6RG0by;y|j1V{}",
 																		"fields": {
-																			"NUM": 0
+																			"NUM": 2.7
 																		}
 																	}
 																},
@@ -939,7 +939,7 @@
 				"id": "S|MQzx%Vd@U/z6*@2x7p",
 				"x": 10,
 				"y": 3002,
-				"extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" inline=\"false\"></mutation>",
+				"extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" inline=\"undefined\"></mutation>",
 				"inputs": {
 					"EVENT_NAME": {
 						"block": {
@@ -1142,7 +1142,7 @@
 																		"type": "math_number",
 																		"id": "h$XS?kQM9tX6U`cLMrHv",
 																		"fields": {
-																			"NUM": 0
+																			"NUM": 2.7
 																		}
 																	}
 																},
@@ -1229,7 +1229,7 @@
 				"id": "V?7An,.kz6bC$;9WM1!~",
 				"x": 10,
 				"y": 334,
-				"extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" inline=\"false\"></mutation>",
+				"extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" inline=\"undefined\"></mutation>",
 				"inputs": {
 					"EVENT_NAME": {
 						"block": {
@@ -1468,7 +1468,7 @@
 																		"type": "math_number",
 																		"id": "TiT!6li7653O)0GbAF%_",
 																		"fields": {
-																			"NUM": 16
+																			"NUM": 20
 																		}
 																	}
 																}
