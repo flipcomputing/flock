@@ -4379,6 +4379,21 @@ export const flock = {
 			case "SCALE_Z":
 				propertyValue = parseFloat(mesh.scaling.z.toFixed(2));
 				break;
+				case "SIZE_X": {
+					const bi = mesh.getBoundingInfo();
+					propertyValue = parseFloat((bi.boundingBox.maximumWorld.x - bi.boundingBox.minimumWorld.x).toFixed(2));
+					break;
+				  }
+				  case "SIZE_Y": {
+					const bi = mesh.getBoundingInfo();
+					propertyValue = parseFloat((bi.boundingBox.maximumWorld.y - bi.boundingBox.minimumWorld.y).toFixed(2));
+					break;
+				  }
+				  case "SIZE_Z": {
+					const bi = mesh.getBoundingInfo();
+					propertyValue = parseFloat((bi.boundingBox.maximumWorld.z - bi.boundingBox.minimumWorld.z).toFixed(2));
+					break;
+				  }
 			case "MIN_X":
 				if (mesh.metadata?.origin?.xOrigin === "LEFT") {
 					// Adjust based on LEFT origin
