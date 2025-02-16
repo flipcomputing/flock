@@ -1331,6 +1331,13 @@ function scrollCharacters(direction) {
 
 // Call this function to initialize the characters when the menu is opened
 function showShapes() {
+  if (gizmoManager.attachedMesh) {
+    gizmoManager.attachedMesh.showBoundingBox = false;
+    gizmoManager.attachedMesh
+      .getChildMeshes()
+      .forEach((child) => (child.showBoundingBox = false));
+  }
+
   const dropdown = document.getElementById("shapes-dropdown");
   dropdown.style.display = dropdown.style.display === "none" ? "block" : "none";
   //loadModelImages(); // Load the models into the menu
@@ -1340,11 +1347,12 @@ function showShapes() {
 }
 
 // Close the shapes menu if the user clicks outside of it
-document.addEventListener("click", function(event) {
+document.addEventListener("click", function (event) {
   const dropdown = document.getElementById("shapes-dropdown");
   const isClickInside = dropdown.contains(event.target);
 
-  const isClickOnToggle = showShapesButton && showShapesButton.contains(event.target);
+  const isClickOnToggle =
+    showShapesButton && showShapesButton.contains(event.target);
 
   if (!isClickInside && !isClickOnToggle) {
     dropdown.style.display = "none";
@@ -1482,78 +1490,68 @@ function highlightBlockById(workspace, block) {
 
 function focusCameraOnMesh() {
   let mesh = gizmoManager.attachedMesh;
-  if (mesh.name === "ground") mesh = null;
-
+  if (mesh && mesh.name === "ground") mesh = null;
   if (!mesh && window.currentMesh) {
     const blockKey = Object.keys(meshMap).find(
       (key) => meshMap[key] === window.currentBlock,
     );
-
     mesh = flock.scene?.meshes?.find((mesh) => mesh.blockKey === blockKey);
   }
-
   if (!mesh) return;
 
   mesh.computeWorldMatrix(true);
   const boundingInfo = mesh.getBoundingInfo();
   const newTarget = boundingInfo.boundingBox.centerWorld; // Center of the new mesh
   const camera = flock.scene.activeCamera;
+
   if (camera.metadata && camera.metadata.following) {
     const player = camera.metadata.following; // The player (mesh) the camera is following
+    const playerDistance = 5; // Fixed distance between player and target
 
-    // Maintain the player's Y position (on the ground)
+    // Keep the player's original Y position
     const originalPlayerY = player.position.y;
 
-    // Set the player's position directly in front of the new target
-    const playerDistance = camera.radius; // Distance the camera keeps from the player (preserve this)
-
-    // Calculate the player's forward direction (based on rotation)
-    const forward = new flock.BABYLON.Vector3(0, 0, -1); // Default forward direction (Z axis)
-    const playerRotationMatrix = flock.BABYLON.Matrix.RotationY(
-      player.rotation.y,
-    );
-    const playerForward = flock.BABYLON.Vector3.TransformCoordinates(
-      forward,
-      playerRotationMatrix,
-    );
-
-    // Update the player's position (in front of the target)
-    player.position.set(
+    // Position the player further away from camera than the target
+    player.position = new flock.BABYLON.Vector3(
       newTarget.x,
       originalPlayerY,
-      newTarget.z + playerDistance,
+      newTarget.z + playerDistance // Higher Z value to be further from camera
     );
 
-    player.lookAt(newTarget);
+    // Calculate direction to target
+    const directionToTarget = newTarget.subtract(player.position);
+    directionToTarget.normalize();
 
-    const cameraPosition = player.position.subtract(
-      playerForward.scale(playerDistance),
+    // Calculate the angle to face the target
+    let angle = Math.atan2(directionToTarget.x, directionToTarget.z);
+
+    // Set player rotation directly
+    player.rotation.y = angle;
+
+    // Calculate camera position behind the player
+    const cameraDistance = camera.radius;
+    const cameraPosition = new flock.BABYLON.Vector3(
+      player.position.x,
+      player.position.y + (camera.radius * 0.3), // Slight elevation for better view
+      player.position.z + cameraDistance // Camera is now behind player (higher Z)
     );
 
-    // Set the camera position behind the player
+    // Update camera position and target
     camera.setPosition(cameraPosition);
-
-    // Ensure the camera is still looking at the player
     camera.setTarget(player.position);
   } else {
-    // For other types of cameras, retain the existing logic
-    const currentPosition = camera.position;
-    const currentTarget = camera.getTarget();
-    const currentDistance = flock.BABYLON.Vector3.Distance(
-      currentPosition,
-      currentTarget,
-    );
+    // For other types of cameras
+    const currentDistance = camera.radius || 10;
     const currentYPosition = camera.position.y;
 
-    // Move the camera in front of the mesh, keeping the current distance and Y position
-    const frontDirection = new flock.BABYLON.Vector3(0, 0, -1);
-    const newCameraPositionXZ = new flock.BABYLON.Vector3(
-      newTarget.x + frontDirection.x * currentDistance,
+    // Position camera in front of the mesh
+    const newCameraPosition = new flock.BABYLON.Vector3(
+      newTarget.x,
       currentYPosition,
-      newTarget.z + frontDirection.z * currentDistance,
+      newTarget.z - currentDistance // Camera closer to screen than target
     );
 
-    camera.position = newCameraPositionXZ;
+    camera.position = newCameraPosition;
     camera.setTarget(newTarget);
   }
 }
@@ -1633,6 +1631,9 @@ function toggleGizmo(gizmoType) {
 
   if (gizmoManager.attachedMesh) {
     gizmoManager.attachedMesh.showBoundingBox = false;
+    gizmoManager.attachedMesh
+      .getChildMeshes()
+      .forEach((child) => (child.showBoundingBox = false));
   }
 
   document.body.style.cursor = "default";
@@ -1778,6 +1779,9 @@ function toggleGizmo(gizmoType) {
         if (event.type === flock.BABYLON.PointerEventTypes.POINTERPICK) {
           if (gizmoManager.attachedMesh) {
             gizmoManager.attachedMesh.showBoundingBox = false;
+            gizmoManager.attachedMesh
+              .getChildMeshes()
+              .forEach((child) => (child.showBoundingBox = false));
             blockKey = findParentWithBlockId(
               gizmoManager.attachedMesh,
             ).blockKey;
@@ -1816,7 +1820,9 @@ function toggleGizmo(gizmoType) {
 
             // Deselect if no mesh is picked
             if (gizmoManager.attachedMesh) {
-              gizmoManager.attachedMesh.showBoundingBox = false;
+              gizmoManager.attachedMesh
+                .getChildMeshes()
+                .forEach((child) => (child.showBoundingBox = false));
               gizmoManager.attachToMesh(null); // Detach the gizmo
             }
           }
@@ -2472,6 +2478,12 @@ function toggleGizmo(gizmoType) {
 window.toggleGizmo = toggleGizmo;
 
 function turnOffAllGizmos() {
+  if (gizmoManager.attachedMesh) {
+    gizmoManager.attachedMesh.showBoundingBox = false;
+    gizmoManager.attachedMesh
+      .getChildMeshes()
+      .forEach((child) => (child.showBoundingBox = false));
+  }
   gizmoManager.attachToMesh(null);
   gizmoManager.positionGizmoEnabled = false;
   gizmoManager.rotationGizmoEnabled = false;
@@ -2560,28 +2572,32 @@ export function setGizmoManager(value) {
 
   const originalAttach = gizmoManager.attachToMesh.bind(gizmoManager);
   gizmoManager.attachToMesh = (mesh) => {
-    if (gizmoManager.attachedMesh)
+    if (gizmoManager.attachedMesh) {
+      gizmoManager.attachedMesh.showBoundingBox = false;
       gizmoManager.attachedMesh
         .getChildMeshes()
         .forEach((child) => (child.showBoundingBox = false));
 
-    while (mesh && mesh.parent && !mesh.parent.physicsImpostor) {
-      mesh = mesh.parent;
-    }
+      if (mesh) {
+        while (mesh && mesh.parent && !mesh.parent.physicsImpostor) {
+          mesh = mesh.parent;
+        }
 
-    const block = Blockly.getMainWorkspace().getBlockById(mesh.blockKey);
+        const block = Blockly.getMainWorkspace().getBlockById(mesh.blockKey);
 
-    if (gizmoManager.scaleGizmoEnabled) {
-      switch (block.type) {
-        case "create_plane":
-        case "create_capsule":
-        case "create_cylinder":
-          gizmoManager.gizmos.scaleGizmo.zGizmo.isEnabled = false;
+        if (block && gizmoManager.scaleGizmoEnabled) {
+          switch (block.type) {
+            case "create_plane":
+            case "create_capsule":
+            case "create_cylinder":
+              gizmoManager.gizmos.scaleGizmo.zGizmo.isEnabled = false;
 
-          break;
+              break;
 
-        default:
-          gizmoManager.gizmos.scaleGizmo.zGizmo.isEnabled = true;
+            default:
+              gizmoManager.gizmos.scaleGizmo.zGizmo.isEnabled = true;
+          }
+        }
       }
     }
     originalAttach(mesh);
