@@ -119,7 +119,7 @@ export function handleBlockDelete(event) {
 
 export function findCreateBlock(block) {
   if (!block || typeof block.getParent !== "function") {
-    console.log("no id");
+    //console.log("no id");
     return null;
   }
 

@@ -1339,6 +1339,18 @@ function showShapes() {
   loadCharacterImages(); // Load the characters into the menu
 }
 
+// Close the shapes menu if the user clicks outside of it
+document.addEventListener("click", function(event) {
+  const dropdown = document.getElementById("shapes-dropdown");
+  const isClickInside = dropdown.contains(event.target);
+
+  const isClickOnToggle = showShapesButton && showShapesButton.contains(event.target);
+
+  if (!isClickInside && !isClickOnToggle) {
+    dropdown.style.display = "none";
+  }
+});
+
 function scrollModels(direction) {
   const modelRow = document.getElementById("model-row");
   const scrollAmount = 100; // Adjust as needed
