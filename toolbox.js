@@ -1457,6 +1457,37 @@ const toolboxTransform = {
 		},
 		{
 			kind: "block",
+			type: "resize",
+			keyword: "resize",
+			inputs: {
+				X: {
+					shadow: {
+						type: "math_number",
+						fields: {
+							NUM: 1,
+						},
+					},
+				},
+				Y: {
+					shadow: {
+						type: "math_number",
+						fields: {
+							NUM: 1,
+						},
+					},
+				},
+				Z: {
+					shadow: {
+						type: "math_number",
+						fields: {
+							NUM: 1,
+						},
+					},
+				},
+			},
+		},
+		{
+			kind: "block",
 			type: "move_forward",
 			keyword: "forward",
 			inputs: {

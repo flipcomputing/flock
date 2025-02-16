@@ -2830,6 +2830,69 @@ export function defineBlocks() {
     },
   };
 
+  Blockly.Blocks["resize"] = {
+    init: function () {
+      this.jsonInit({
+        type: "resize",
+        message0: "resize %1 x: %2 y: %3 z: %4\norigin x: %5 y: %6 z: %7",
+        args0: [
+          {
+            type: "field_variable",
+            name: "BLOCK_NAME",
+            variable: window.currentMesh,
+          },
+          {
+            type: "input_value",
+            name: "X",
+            check: "Number",
+          },
+          {
+            type: "input_value",
+            name: "Y",
+            check: "Number",
+          },
+          {
+            type: "input_value",
+            name: "Z",
+            check: "Number",
+          },
+          {
+            type: "field_dropdown",
+            name: "X_ORIGIN",
+            options: [
+              ["centre", "CENTRE"],
+              ["left", "LEFT"],
+              ["right", "RIGHT"],
+            ],
+          },
+          {
+            type: "field_dropdown",
+            name: "Y_ORIGIN",
+            options: [
+              ["base", "BASE"],
+              ["centre", "CENTRE"],
+              ["top", "TOP"],
+            ],
+          },
+          {
+            type: "field_dropdown",
+            name: "Z_ORIGIN",
+            options: [
+              ["centre", "CENTRE"],
+              ["front", "FRONT"],
+              ["back", "BACK"],
+            ],
+          },
+        ],
+        previousStatement: null,
+        nextStatement: null,
+        colour: categoryColours["Transform"],
+        inputsInline: true,
+        tooltip:
+          "Resizes a mesh to the given x, y, and z and controls the origin of scaling.",
+      });
+    },
+  };
   Blockly.Blocks["rotate_model_xyz"] = {
     init: function () {
       this.jsonInit({

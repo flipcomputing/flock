@@ -167,6 +167,7 @@ export const flock = {
 				randomColour,
 				scaleMesh,
 				scaleMeshProportional,
+				resizeMesh,
 				changeColor,
 				changeColorMesh,
 				changeMaterial,
@@ -3608,7 +3609,7 @@ export const flock = {
 		y,
 		z,
 		xOrigin = "CENTRE",
-		yOrigin = "CENTRE",
+		yOrigin = "BOTTOM",
 		zOrigin = "CENTRE",
 	) {
 		return flock.whenModelReady(modelName, (mesh) => {
@@ -3672,6 +3673,79 @@ export const flock = {
 			mesh.computeWorldMatrix(true);
 			flock.updatePhysics(mesh);
 		});
+	},
+	resizeMesh(
+	  modelName,
+	  newWidth,
+	  newHeight,
+	  newDepth,
+	  xOrigin = "CENTRE",
+	  yOrigin = "BOTTOM",
+	  zOrigin = "CENTRE"
+	) {
+	  return flock.whenModelReady(modelName, (mesh) => {
+		mesh.metadata = mesh.metadata || {};
+
+		// Save the original local bounding box once.
+		if (!mesh.metadata.originalMin || !mesh.metadata.originalMax) {
+		  const bi = mesh.getBoundingInfo();
+		  mesh.metadata.originalMin = bi.boundingBox.minimum.clone();
+		  mesh.metadata.originalMax = bi.boundingBox.maximum.clone();
+		}
+		const origMin = mesh.metadata.originalMin;
+		const origMax = mesh.metadata.originalMax;
+
+		// Compute the original dimensions.
+		const origWidth  = origMax.x - origMin.x;
+		const origHeight = origMax.y - origMin.y;
+		const origDepth  = origMax.z - origMin.z;
+
+		// Compute new scaling factors based on the original dimensions.
+		const scaleX = origWidth  ? newWidth  / origWidth  : 1;
+		const scaleY = origHeight ? newHeight / origHeight : 1;
+		const scaleZ = origDepth  ? newDepth  / origDepth  : 1;
+
+		// Determine the anchor point in local space.
+		// (Assumes mesh pivot is at mesh.position and there’s no rotation.)
+		const anchorLocal = new flock.BABYLON.Vector3(
+		  xOrigin === "LEFT"  ? origMin.x 
+		  : xOrigin === "RIGHT" ? origMax.x 
+		  : (origMin.x + origMax.x) / 2,
+
+		  (yOrigin === "BOTTOM" || yOrigin === "BASE") ? origMin.y 
+		  : yOrigin === "TOP" ? origMax.y 
+		  : (origMin.y + origMax.y) / 2,
+
+		  zOrigin === "FRONT" ? origMin.z 
+		  : zOrigin === "BACK"  ? origMax.z 
+		  : (origMin.z + origMax.z) / 2
+		);
+
+		// Compute the old world location of the anchor.
+		// (Since we assume the original scaling is 1, the world offset equals the local offset.)
+		const anchorWorldOld = mesh.position.add(anchorLocal);
+
+		// Apply the new scaling.
+		mesh.scaling = new flock.BABYLON.Vector3(scaleX, scaleY, scaleZ);
+		mesh.refreshBoundingInfo();
+		mesh.computeWorldMatrix(true);
+
+		// After scaling, the offset of the anchor from mesh.position is the local offset multiplied by the new scale.
+		const newAnchorOffset = new flock.BABYLON.Vector3(
+		  anchorLocal.x * scaleX,
+		  anchorLocal.y * scaleY,
+		  anchorLocal.z * scaleZ
+		);
+		const anchorWorldNew = mesh.position.add(newAnchorOffset);
+
+		// Adjust the mesh position so the anchor stays in the same world location.
+		const diff = anchorWorldNew.subtract(anchorWorldOld);
+		mesh.position.subtractInPlace(diff);
+
+		mesh.refreshBoundingInfo();
+		mesh.computeWorldMatrix(true);
+		flock.updatePhysics(mesh);
+	  });
 	},
 	updatePhysics(mesh, parent = null) {
 		if (!parent) parent = mesh;
