@@ -1226,7 +1226,7 @@ export const flock = {
 			const halfHeight = boundingInfo.boundingBox.extendSizeWorld.y;
 
 			bb.position.y -= halfHeight;
-		}	
+		}
 		bb.bakeCurrentTransformIntoVertices();
 		bb.scaling.set(1, 1, 1);
 
@@ -1253,8 +1253,6 @@ export const flock = {
 			mesh.metadata.sharedMaterial = true;
 			mesh.metadata.sharedGeometry = true;
 		};
-
-
 
 		// Set metadata on the root mesh
 		setMetadata(bb);
@@ -3899,8 +3897,11 @@ export const flock = {
 					//mesh1.setTarget(mesh2);
 				} else {
 					// Calculate the direction vector and its opposite
-					const direction = targetPosition.subtract(mesh1.absolutePosition);
-					const oppositeTarget = mesh1.absolutePosition.subtract(direction);
+					const direction = targetPosition.subtract(
+						mesh1.absolutePosition,
+					);
+					const oppositeTarget =
+						mesh1.absolutePosition.subtract(direction);
 					mesh1.lookAt(oppositeTarget);
 				}
 
@@ -6891,10 +6892,10 @@ export const flock = {
 					plane = flock.BABYLON.MeshBuilder.CreatePlane(
 						"textPlane",
 						{ width: 4, height: 4 },
-						flock.scene
+						flock.scene,
 					);
 					plane.name = "textPlane";
-					plane.parent = targetMesh;  // Remains parented to inherit rotation/position.
+					plane.parent = targetMesh; // Remains parented to inherit rotation/position.
 
 					plane.alpha = 1;
 					plane.checkCollisions = false;
@@ -6903,7 +6904,9 @@ export const flock = {
 					// Get initial bounding info.
 					let boundingInfo = targetMesh.getBoundingInfo();
 					// Set initial local position:
-					plane.position.y = boundingInfo.boundingBox.maximum.y + (2.1 / targetMesh.scaling.y);
+					plane.position.y =
+						boundingInfo.boundingBox.maximum.y +
+						2.2 / targetMesh.scaling.y;
 
 					plane.billboardMode = flock.BABYLON.Mesh.BILLBOARDMODE_ALL;
 
@@ -6919,7 +6922,9 @@ export const flock = {
 						plane.scaling.z = 1 / parentScale.z;
 
 						// Adjust the local Y offset so the world-space distance remains constant.
-						plane.position.y = boundingInfo.boundingBox.maximum.y + (2.1 / parentScale.y);
+						plane.position.y =
+							boundingInfo.boundingBox.maximum.y +
+							2.2 / parentScale.y;
 					});
 				}
 
