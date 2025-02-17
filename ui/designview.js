@@ -1515,7 +1515,7 @@ function focusCameraOnMesh() {
     player.position = new flock.BABYLON.Vector3(
       newTarget.x,
       originalPlayerY,
-      newTarget.z + playerDistance // Higher Z value to be further from camera
+      newTarget.z + playerDistance, // Higher Z value to be further from camera
     );
 
     // Calculate direction to target
@@ -1532,8 +1532,8 @@ function focusCameraOnMesh() {
     const cameraDistance = camera.radius;
     const cameraPosition = new flock.BABYLON.Vector3(
       player.position.x,
-      player.position.y + (camera.radius * 0.3), // Slight elevation for better view
-      player.position.z + cameraDistance // Camera is now behind player (higher Z)
+      player.position.y + camera.radius * 0.3, // Slight elevation for better view
+      player.position.z + cameraDistance, // Camera is now behind player (higher Z)
     );
 
     // Update camera position and target
@@ -1548,7 +1548,7 @@ function focusCameraOnMesh() {
     const newCameraPosition = new flock.BABYLON.Vector3(
       newTarget.x,
       currentYPosition,
-      newTarget.z - currentDistance // Camera closer to screen than target
+      newTarget.z - currentDistance, // Camera closer to screen than target
     );
 
     camera.position = newCameraPosition;
@@ -1974,6 +1974,7 @@ function toggleGizmo(gizmoType) {
               case "create_capsule":
               case "create_plane":
               case "load_object":
+              case "load_multi_object":
                 meshY -= mesh.getBoundingInfo().boundingBox.extendSize.y;
                 break;
             }
