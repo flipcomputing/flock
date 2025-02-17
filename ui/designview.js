@@ -1975,6 +1975,7 @@ function toggleGizmo(gizmoType) {
               case "create_plane":
               case "load_object":
               case "load_multi_object":
+              case "load_character":
                 meshY -= mesh.getBoundingInfo().boundingBox.extendSize.y;
                 break;
             }
