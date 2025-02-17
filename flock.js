@@ -6891,19 +6891,36 @@ export const flock = {
 					plane = flock.BABYLON.MeshBuilder.CreatePlane(
 						"textPlane",
 						{ width: 4, height: 4 },
-						flock.scene,
+						flock.scene
 					);
 					plane.name = "textPlane";
-					plane.parent = targetMesh;
+					plane.parent = targetMesh;  // Remains parented to inherit rotation/position.
+
 					plane.alpha = 1;
 					plane.checkCollisions = false;
 					plane.isPickable = false;
-					const boundingInfo = targetMesh.getBoundingInfo();
-					plane.position.y =
-						boundingInfo.boundingBox.maximum.y + 2.1;
-					plane.scalingDeterminant = 1;
-					plane.computeWorldMatrix();
+
+					// Get initial bounding info.
+					let boundingInfo = targetMesh.getBoundingInfo();
+					// Set initial local position:
+					plane.position.y = boundingInfo.boundingBox.maximum.y + (2.1 / targetMesh.scaling.y);
+
 					plane.billboardMode = flock.BABYLON.Mesh.BILLBOARDMODE_ALL;
+
+					// On each frame, update the plane’s scale and local Y offset.
+					flock.scene.onBeforeRenderObservable.add(() => {
+						// Update bounding info in case the mesh has been resized.
+						boundingInfo = targetMesh.getBoundingInfo();
+						const parentScale = targetMesh.scaling;
+
+						// Cancel out parent's scaling for the plane's size.
+						plane.scaling.x = 1 / parentScale.x;
+						plane.scaling.y = 1 / parentScale.y;
+						plane.scaling.z = 1 / parentScale.z;
+
+						// Adjust the local Y offset so the world-space distance remains constant.
+						plane.position.y = boundingInfo.boundingBox.maximum.y + (2.1 / parentScale.y);
+					});
 				}
 
 				if (!plane.advancedTexture) {
