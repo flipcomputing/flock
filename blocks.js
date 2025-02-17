@@ -1661,6 +1661,15 @@ export function defineBlocks() {
               updateOrCreateMeshFromBlock(this, changeEvent);
             }
           }
+
+          if (changeEvent.type === Blockly.Events.BLOCK_CREATE) {
+            handleBlockCreateEvent(
+              this,
+              changeEvent,
+              variableNamePrefix,
+              nextVariableIndexes,
+            );
+          }
         }
 
         if (
