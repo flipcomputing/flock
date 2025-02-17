@@ -280,6 +280,97 @@ const toolboxScene = {
 	contents: [
 		{
 			kind: "block",
+			type: "set_sky_color",
+			keyword: "sky",
+			inputs: {
+				COLOR: {
+					shadow: {
+						type: "colour",
+						fields: {
+							COLOR: "#6495ED",
+						},
+					},
+				},
+			},
+		},
+		{
+			kind: "block",
+			type: "create_ground",
+			keyword: "ground",
+			inputs: {
+				COLOR: {
+					shadow: {
+						type: "colour",
+						fields: {
+							COLOR: "#71BC78",
+						},
+					},
+				},
+			},
+		},
+		{
+			kind: "block",
+			type: "set_background_color",
+			keyword: "background",
+			inputs: {
+				COLOR: {
+					shadow: {
+						type: "colour",
+						fields: {
+							COLOR: "#6495ED",
+						},
+					},
+				},
+			},
+		},
+		/*{
+			kind: "block",
+			type: "create_map",
+			keyword: "map",
+			inputs: {
+				COLOR: {
+					shadow: {
+						type: "colour",
+						fields: {
+							COLOR: "#71BC78",
+						},
+					},
+				},
+			},
+		},*/
+		{
+			kind: "block",
+			type: "create_map",
+			keyword: "map",
+			inputs: {
+				MATERIAL: {
+					shadow: {
+						type: "material",
+						inputs: {
+							BASE_COLOR: {
+								shadow: {
+									type: "colour",
+									fields: {
+										COLOR: "#71BC78",
+									},
+								},
+							},
+
+							ALPHA: {
+								shadow: {
+									type: "math_number",
+									fields: {
+										NUM: 1.0, // Default alpha value: 1 (fully opaque)
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		{
+			kind: "block",
 			type: "load_model",
 			keyword: "model",
 			inputs: {
@@ -846,97 +937,6 @@ const toolboxScene = {
 		toolboxSceneLights,
 		toolboxSceneCamera,
 		toolboxSceneXR,
-		{
-			kind: "block",
-			type: "set_sky_color",
-			keyword: "sky",
-			inputs: {
-				COLOR: {
-					shadow: {
-						type: "colour",
-						fields: {
-							COLOR: "#6495ED",
-						},
-					},
-				},
-			},
-		},
-		{
-			kind: "block",
-			type: "create_ground",
-			keyword: "ground",
-			inputs: {
-				COLOR: {
-					shadow: {
-						type: "colour",
-						fields: {
-							COLOR: "#71BC78",
-						},
-					},
-				},
-			},
-		},
-		{
-			kind: "block",
-			type: "set_background_color",
-			keyword: "background",
-			inputs: {
-				COLOR: {
-					shadow: {
-						type: "colour",
-						fields: {
-							COLOR: "#6495ED",
-						},
-					},
-				},
-			},
-		},
-		/*{
-			kind: "block",
-			type: "create_map",
-			keyword: "map",
-			inputs: {
-				COLOR: {
-					shadow: {
-						type: "colour",
-						fields: {
-							COLOR: "#71BC78",
-						},
-					},
-				},
-			},
-		},*/
-		{
-			kind: "block",
-			type: "create_map",
-			keyword: "map",
-			inputs: {
-				MATERIAL: {
-					shadow: {
-						type: "material",
-						inputs: {
-							BASE_COLOR: {
-								shadow: {
-									type: "colour",
-									fields: {
-										COLOR: "#71BC78",
-									},
-								},
-							},
-
-							ALPHA: {
-								shadow: {
-									type: "math_number",
-									fields: {
-										NUM: 1.0, // Default alpha value: 1 (fully opaque)
-									},
-								},
-							},
-						},
-					},
-				},
-			},
-		},
 	],
 };
 
