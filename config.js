@@ -122,14 +122,14 @@ export const objectColours = {
 	"rocks4.glb": ["#898D86", "#99a83d","#6BC6EF", "#f9f9f9"],
 	"hut.glb": [
 		"#814C22",
-		"#231E1D",
-		"#FFF4EC",
+		"#563232",
+		"#84240c",
 		"#E7AF3A",
-		"#E72243",
+		"#9bc4e2",
 		"#878787",
 	],
 	"hut2.glb": [
-		"#00BFFF",
+		"#da6d42",
 		"#FFD700",
 		"#FF4500",
 		"#8A2BE2",
