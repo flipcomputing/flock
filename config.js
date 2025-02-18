@@ -82,6 +82,9 @@ export const characterNames = [
 
 export const multiObjectNames = [
 	"tree.glb",
+	"tree2.glb",
+	"tree3.glb",
+	"tree4.glb",
 	"hut.glb",
 	"hut2.glb",
 	"hut3.glb",
@@ -109,6 +112,9 @@ export const objectColours = {
 	"Gem2.glb": ["#8A2BE2"], // Blue Violet
 	"Gem3.glb": ["#FF4500"], // Orange Red
 	"tree.glb": ["#66CDAA", "#CD853F"],
+	"tree2.glb": ["#66CDAA", "#CD853F"],
+	"tree3.glb": ["#66CDAA", "#CD853F"],
+	"tree4.glb": ["#66CDAA", "#CD853F"],
 	"rocks.glb": ["#CD853F", "#66CDAA"],
 	"rocks2.glb": ["#CD853F", "#66CDAA"],
 	"rocks3.glb": ["#CD853F", "#66CDAA"],
