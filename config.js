@@ -89,10 +89,11 @@ export const multiObjectNames = [
 	"hut2.glb",
 	"hut3.glb",
 	"hut4.glb",
-	"boat.glb",
 	"rocks.glb",
 	"rocks2.glb",
 	"rocks3.glb",
+	"rocks4.glb",
+	"boat.glb",
 ];
 
 export const objectNames = [
@@ -118,6 +119,7 @@ export const objectColours = {
 	"rocks.glb": ["#898D86", "#99a83d"],
 	"rocks2.glb": ["#898D86", "#99a83d"],
 	"rocks3.glb": ["#898D86", "#99a83d"],
+	"rocks4.glb": ["#898D86", "#99a83d","#6BC6EF", "#f9f9f9"],
 	"hut.glb": [
 		"#814C22",
 		"#231E1D",
