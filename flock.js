@@ -1230,7 +1230,6 @@ export const flock = {
 		bb.bakeCurrentTransformIntoVertices();
 		bb.scaling.set(1, 1, 1);
 
-		console.log("Position", x, y, z);
 		bb.position = new flock.BABYLON.Vector3(x, y, z);
 
 		mesh.computeWorldMatrix(true);
@@ -2380,7 +2379,7 @@ export const flock = {
 							);
 						heightMapGroundShape.material = {
 							friction: 0.3,
-							restitution: 0.3,
+							restitution: 0,
 						};
 						heightMapGroundBody.shape = heightMapGroundShape;
 						heightMapGroundBody.setMassProperties({ mass: 0 });
@@ -2480,7 +2479,7 @@ export const flock = {
 							);
 						heightMapGroundShape.material = {
 							friction: 0.3,
-							restitution: 0.3,
+							restitution: 0,
 						};
 						heightMapGroundBody.shape = heightMapGroundShape;
 						heightMapGroundBody.setMassProperties({ mass: 0 });
@@ -3430,12 +3429,12 @@ export const flock = {
 		// Define the start and end points of the cylindrical segment
 		const segmentStart = new flock.BABYLON.Vector3(
 			center.x,
-			center.y - cylinderHeight / 2,
+			center.y - cylinderHeight / 2 + 0.1,
 			center.z,
 		);
 		const segmentEnd = new flock.BABYLON.Vector3(
 			center.x,
-			center.y + cylinderHeight / 2,
+			center.y + cylinderHeight / 2 + 0.1,
 			center.z,
 		);
 
@@ -6128,51 +6127,167 @@ export const flock = {
 			material.disableDepthWrite;
 			decal.setParent(mesh);
 		}
-	},
+	},	
 	moveForward(modelName, speed) {
 		const model = flock.scene.getMeshByName(modelName);
-		flock.ensureVerticalConstraint(model);
 		if (!model || speed === 0) return;
 
-		const forwardSpeed = speed;
-		const cameraForward = flock.scene.activeCamera
-			.getForwardRay()
-			.direction.normalize();
-		const moveDirection = cameraForward.scale(forwardSpeed);
-		const currentVelocity = model.physics.getLinearVelocity();
+		// --- CONFIGURATION ---
+		const capsuleHeightBottomOffset = 1.0;
+		const capsuleRadius = 0.5;
+		const deltaTime = 0.016;
+		const maxSlopeAngle = 45;
+		const groundCheckDistance = 0.3; // Increased ground check distance
+		const DEBUG = true;
 
-		model.physics.setLinearVelocity(
-			new flock.BABYLON.Vector3(
-				moveDirection.x,
-				currentVelocity.y,
-				moveDirection.z,
+		// --- MOVEMENT CALCULATION ---
+		const camForward = flock.scene.activeCamera.getForwardRay().direction;
+		const horizontalForward = new flock.BABYLON.Vector3(
+			camForward.x,
+			0,
+			camForward.z,
+		).normalize();
+		let desiredMovement = horizontalForward.scale(speed);
+
+		// --- GROUND CHECK ---
+		const groundCheckStart = model.position.clone();
+		const groundCheckEnd = groundCheckStart.add(
+			new flock.BABYLON.Vector3(0, -groundCheckDistance, 0),
+		);
+
+		const groundQuery = {
+			shape: new BABYLON.PhysicsShapeCapsule(
+				new flock.BABYLON.Vector3(0, -capsuleHeightBottomOffset, 0),
+				new flock.BABYLON.Vector3(0, capsuleHeightBottomOffset, 0),
+				capsuleRadius,
+				flock.scene,
 			),
+			rotation:
+				model.rotationQuaternion || flock.BABYLON.Quaternion.Identity(),
+			startPosition: groundCheckStart,
+			endPosition: groundCheckEnd,
+			shouldHitTriggers: false,
+		};
+
+		const groundResult = new BABYLON.ShapeCastResult();
+		const groundHitResult = new BABYLON.ShapeCastResult();
+
+		const physicsEngine = flock.scene.getPhysicsEngine();
+		if (!physicsEngine) {
+			console.warn("No physics engine available.");
+			return;
+		}
+		const havokPlugin = physicsEngine.getPhysicsPlugin();
+
+		havokPlugin.shapeCast(groundQuery, groundResult, groundHitResult);
+
+		// --- STATE TRACKING ---
+		const currentVelocity = model.physics.getLinearVelocity();
+		let grounded = false;
+		let previouslyGrounded = model.isGrounded || false; // Store previous state
+		let stateChanged = false;
+
+		// --- SLOPE AND GROUND HANDLING ---
+		/*
+		if (groundHitResult.hit) {
+		console.log("Ground hit");
+			const upVector = new flock.BABYLON.Vector3(0, 1, 0);
+			const slopeAngle = Math.acos(
+				flock.BABYLON.Vector3.Dot(groundHitResult.hitNormal, upVector),
+			);
+			const slopeAngleDegrees = flock.BABYLON.Tools.ToDegrees(slopeAngle);
+
+			grounded = slopeAngleDegrees <= maxSlopeAngle;
+			stateChanged = grounded !== previouslyGrounded;
+
+			if (DEBUG && (stateChanged || Math.abs(currentVelocity.y) > 5)) {
+				console.log("=== Significant State Change ===");
+				console.log("Ground hit detected!");
+				console.log(`Slope angle: ${slopeAngleDegrees.toFixed(1)}°`);
+				console.log("Grounded:", grounded);
+				console.log("Current Y velocity:", currentVelocity.y);
+				console.log(
+					"Ground normal:",
+					groundHitResult.hitNormal.toString(),
+				);
+			}
+
+			if (grounded) {
+				console.log("Grounded!");
+				// Project movement along the slope
+				const slopeRight = flock.BABYLON.Vector3.Cross(
+					groundHitResult.hitNormal,
+					upVector,
+				).normalize();
+				const slopeForward = flock.BABYLON.Vector3.Cross(
+					slopeRight,
+					groundHitResult.hitNormal,
+				).normalize();
+				const dot = flock.BABYLON.Vector3.Dot(
+					desiredMovement,
+					slopeForward,
+				);
+				desiredMovement = slopeForward.scale(dot);
+			}
+		} else {
+			grounded = false;
+			stateChanged = previouslyGrounded !== false;
+
+			if (DEBUG && stateChanged) {
+				console.log("=== Lost Ground Contact ===");
+				console.log("Current Y velocity:", currentVelocity.y);
+				console.log("Position Y:", model.position.y);
+			}
+		}*/
+
+		// Store grounded state for next frame
+		model.isGrounded = grounded;
+		// --- APPLY MOVEMENT ---
+		const maxVerticalVelocity = 3.0; // Reduced max vertical velocity
+		let newVertical = grounded ? 0 : currentVelocity.y;
+		newVertical = Math.min(
+			Math.max(newVertical, -maxVerticalVelocity),
+			maxVerticalVelocity,
 		);
 
-		const facingDirection =
-			speed <= 0
-				? new flock.BABYLON.Vector3(
-						-cameraForward.x,
-						0,
-						-cameraForward.z,
-					).normalize()
-				: new flock.BABYLON.Vector3(
-						cameraForward.x,
-						0,
-						cameraForward.z,
-					).normalize();
+		const finalVelocity = new flock.BABYLON.Vector3(
+			desiredMovement.x,
+			newVertical,
+			desiredMovement.z,
+		);
+
+		/*
+		if (DEBUG && Math.abs(newVertical) > 3) {
+			console.log("=== High Vertical Velocity ===");
+			console.log("Vertical velocity:", newVertical);
+			console.log("Grounded state:", grounded);
+			console.log("-------------------");
+		}*/
+
+		model.physics.setLinearVelocity(finalVelocity);
+
+		// If your mesh is coming out backwards, flip the vector:
+		const facingDirection = speed >= 0 ? horizontalForward : horizontalForward.scale(-1);
+
+		// Compute the target rotation based on the facing direction.
 		const targetRotation = flock.BABYLON.Quaternion.FromLookDirectionLH(
-			facingDirection,
-			flock.BABYLON.Vector3.Up(),
+		  facingDirection,
+		  flock.BABYLON.Vector3.Up()
 		);
-		const currentRotation = model.rotationQuaternion;
-		const deltaRotation = targetRotation.multiply(
-			currentRotation.conjugate(),
-		);
+
+		// Use the current rotation (defaulting to identity if missing).
+		const currentRotation = model.rotationQuaternion || flock.BABYLON.Quaternion.Identity();
+
+		// Compute the difference between the current and target rotations.
+		const deltaRotation = targetRotation.multiply(currentRotation.conjugate());
 		const deltaEuler = deltaRotation.toEulerAngles();
+
+		// Apply angular velocity (adjust multiplier as needed for smoothness).
 		model.physics.setAngularVelocity(
-			new flock.BABYLON.Vector3(0, deltaEuler.y * 5, 0),
+		  new flock.BABYLON.Vector3(0, deltaEuler.y * 5, 0)
 		);
+
+		// Keep the mesh’s rotation constrained to the Y axis.
 		model.rotationQuaternion.x = 0;
 		model.rotationQuaternion.z = 0;
 		model.rotationQuaternion.normalize();
@@ -6294,7 +6409,8 @@ export const flock = {
 	attachCamera(modelName, radius) {
 		return flock.whenModelReady(modelName, function (mesh) {
 			if (mesh) {
-				flock.updateDynamicMeshPositions(flock.scene, [mesh]);
+				console.log("Attaching camera to model");
+				//flock.updateDynamicMeshPositions(flock.scene, [mesh]);
 				let camera = flock.scene.activeCamera;
 
 				flock.savedCamera = camera;
@@ -6518,151 +6634,186 @@ export const flock = {
 		flock.printText("XR Mode!", 5, "white");
 	},
 	updateDynamicMeshPositions(scene, dynamicMeshes) {
-		const maxSlopeAngle = Math.PI / 4; // 45 degrees maximum slope
-		const jumpThreshold = 0.2; // Small distance to detect ground proximity
-		scene.onBeforeRenderObservable.add(() => {
-			dynamicMeshes.forEach((mesh) => {
-				if (!mesh.physics) {
-					//console.log(`Mesh ${mesh.name} has no physics object.`);
-					return;
-				}
+		const capsuleHalfHeight = 1;
+		// When the capsule’s bottom is within this distance of the ground, we treat it as contact.
+		const groundContactThreshold = 0.05;
+		// If the gap is larger than this, assume the capsule is airborne and skip correction.
+		const maxGroundContactGap = 0.1;
+		// Maximum lerp factor per frame for ground correction.
+		const lerpFactor = 0.1;
+		// Only apply correction on nearly flat surfaces.
+		const flatThreshold = 0.98; // dot product of surface normal with up
 
-				const physics = mesh.physics;
-				const velocity = physics.getLinearVelocity();
+		dynamicMeshes.forEach((mesh) => {
+			mesh.physics.setCollisionCallbackEnabled(true);
+			const observable = mesh.physics.getCollisionObservable();
+			const observer = observable.add((collisionEvent) => {
+				//console.log("Collision event", collisionEvent);
 
-				// Ground detection using raycast
-				const boundingInfo = mesh.getBoundingInfo();
-				const rayOrigin = new flock.BABYLON.Vector3(
-					boundingInfo.boundingBox.centerWorld.x,
-					boundingInfo.boundingBox.minimumWorld.y - 0.1,
-					boundingInfo.boundingBox.centerWorld.z,
-				);
-
-				const ray = new flock.BABYLON.Ray(
-					rayOrigin,
-					flock.BABYLON.Vector3.Down(),
-					2,
-				);
-				const hit = scene.pickWithRay(ray);
-
-				const isGrounded =
-					hit.pickedMesh && hit.distance < jumpThreshold;
-
-				if (isGrounded) {
-					mesh.isJumping = false; // Reset jumping state
-					//console.log(`[${mesh.name}] Grounded. Resetting jumping state.`);
-				} else if (velocity.y > 0) {
-					mesh.isJumping = true; // Only set jumping if moving upward
-					//console.log(`[${mesh.name}] Jumping.`);
-				}
-
-				// Skip corrections while jumping
-				if (mesh.isJumping) {
-					return;
-				}
-
-				if (isGrounded && hit.getNormal(true)) {
-					const groundNormal = hit.getNormal(true);
-					const slopeAngle = Math.acos(
-						flock.BABYLON.Vector3.Dot(
-							groundNormal,
-							flock.BABYLON.Vector3.Up(),
-						),
-					);
-
-					//console.log(`[${mesh.name}] Slope Angle: ${(slopeAngle * 180) / Math.PI} degrees`);
-
-					if (slopeAngle <= maxSlopeAngle) {
-						flock.handleSlopeMovement(
-							mesh,
-							physics,
-							velocity,
-							groundNormal,
-						);
-					} else {
-						//console.log(`[${mesh.name}] Slope too steep. Stopping upward motion.`);
-						physics.setLinearVelocity(
+				const penetration = Math.abs(collisionEvent.distance);
+				// If the penetration is extremely small (indicating minor clipping)
+				if (penetration < 0.001) {
+					// Read the current vertical velocity.
+					const currentVel = mesh.physics.getLinearVelocity();
+					// If there is an upward impulse being applied by the solver,
+					// override it by setting the vertical velocity to zero.
+					if (currentVel.y > 0) {
+						mesh.physics.setLinearVelocity(
 							new flock.BABYLON.Vector3(
-								velocity.x,
-								Math.min(0, velocity.y),
-								velocity.z,
+								currentVel.x,
+								0,
+								currentVel.z,
 							),
 						);
+						console.log(
+							"Collision callback: small penetration detected. Overriding upward velocity.",
+						);
 					}
-				} else {
-					//console.log(`[${mesh.name}] No ground detected.`);
+
+					dynamicMeshes.forEach((mesh) => {
+						// Use a downward ray to determine the gap to the ground.
+						const capsuleHalfHeight = 1; // adjust as needed
+						const rayOrigin = mesh.position
+							.clone()
+							.add(new BABYLON.Vector3(0, -capsuleHalfHeight, 0));
+						const downRay = new BABYLON.Ray(
+							rayOrigin,
+							new BABYLON.Vector3(0, -1, 0),
+							3,
+						);
+						const hit = scene.pickWithRay(downRay, (m) =>
+							m.name.toLowerCase().includes("ground"),
+						);
+						if (hit && hit.pickedMesh) {
+							const groundY = hit.pickedPoint.y;
+							const capsuleBottomY =
+								mesh.position.y - capsuleHalfHeight;
+							const gap = capsuleBottomY - groundY;
+							// If the gap is very small (i.e. the capsule is on or nearly on the ground)
+							// and the vertical velocity is upward, override it.
+							const currentVel = mesh.physics.getLinearVelocity();
+							if (Math.abs(gap) < 0.1 && currentVel.y > 0) {
+								mesh.physics.setLinearVelocity(
+									new BABYLON.Vector3(
+										currentVel.x,
+										0,
+										currentVel.z,
+									),
+								);
+								console.log(
+									"After-render: resetting upward velocity",
+								);
+							}
+						}
+					});
 				}
 			});
 		});
-	},
-	handleSlopeMovement(mesh, physics, velocity, groundNormal) {
-		// Adjust velocity to follow the slope
-		const slopeDirection = new flock.BABYLON.Vector3(
-			velocity.x,
-			0,
-			velocity.z,
-		).normalize();
-		const adjustedDirection = slopeDirection.add(groundNormal).normalize();
-		const adjustedVelocity = adjustedDirection.scale(velocity.length());
-
-		//console.log(`[${mesh.name}] Adjusted Velocity:`, adjustedVelocity);
-
-		// Apply adjusted velocity
-		physics.setLinearVelocity(
-			new flock.BABYLON.Vector3(
-				adjustedVelocity.x,
-				Math.min(5, velocity.y), // Clamp upward force
-				adjustedVelocity.z,
-			),
-		);
-	},
-	updateDynamicMeshPositions2(scene, dynamicMeshes) {
+		/*
 		scene.onBeforeRenderObservable.add(() => {
 			dynamicMeshes.forEach((mesh) => {
-				// Compute the world matrix for accurate raycasting
-				mesh.computeWorldMatrix(true);
-				const boundingInfo = mesh.getBoundingInfo();
-				const minY = boundingInfo.boundingBox.minimumWorld.y;
+				if (mesh.physics) {
+					console.log("----- Frame Debug Info -----");
+					console.log("Capsule Position:", mesh.position);
+					const velocity = mesh.physics.getLinearVelocity();
+					console.log("Capsule Velocity:", velocity);
 
-				const rayOrigin = new flock.BABYLON.Vector3(
-					boundingInfo.boundingBox.centerWorld.x,
-					minY,
-					boundingInfo.boundingBox.centerWorld.z,
-				);
+					// Set up the ray starting near the bottom of the capsule.
+					const rayOrigin = mesh.position
+						.clone()
+						.add(new BABYLON.Vector3(0, -capsuleHalfHeight, 0));
+					const downDirection = new BABYLON.Vector3(0, -1, 0);
+					const rayLength = 3;
+					const downRay = new BABYLON.Ray(
+						rayOrigin,
+						downDirection,
+						rayLength,
+					);
 
-				const ray = new flock.BABYLON.Ray(
-					rayOrigin,
-					new flock.BABYLON.Vector3(0, 1, 0),
-					2, // Ray length
-				);
+					// Pick a ground mesh.
+					const hit = scene.pickWithRay(
+						downRay,
+						(m) =>
+							m !== mesh &&
+							(m.isGround ||
+								m.name.toLowerCase().includes("ground") ||
+								m.name.toLowerCase().includes("slope")),
+					);
 
-				// Temporarily disable mesh picking to avoid self-collision
-				const descendants = mesh.getChildMeshes(false);
-				const originalPickableState = [];
-				descendants.forEach((childMesh) => {
-					originalPickableState.push(childMesh.isPickable);
-					childMesh.isPickable = false;
-				});
+					if (hit && hit.pickedMesh) {
+						console.log("Ground detected:", hit.pickedMesh.name);
+						console.log("Hit Point:", hit.pickedPoint);
+						const surfaceNormal = hit.getNormal();
+						console.log("Surface Normal:", surfaceNormal);
 
-				const hit = scene.pickWithRay(ray);
+						const groundY = hit.pickedPoint.y;
+						const capsuleBottomY =
+							mesh.position.y - capsuleHalfHeight;
+						const gap = capsuleBottomY - groundY;
+						console.log("Gap (capsule bottom - ground):", gap);
 
-				// Restore the original pickable state
-				descendants.forEach((childMesh, index) => {
-					childMesh.isPickable = originalPickableState[index];
-				});
+						const up = new BABYLON.Vector3(0, 1, 0);
+						const slopeFactor = BABYLON.Scalar.Clamp(
+							surfaceNormal.dot(up),
+							0,
+							1,
+						);
+						console.log("Slope factor:", slopeFactor);
 
-				if (hit.pickedMesh && hit.pickedPoint) {
-					const distance = hit.distance;
-
-					// Only adjust position if the hit is below the mesh
-					const upwardMovementThreshold = 0.1; // Avoid excessive upward movement
-					if (distance > 0 && distance < upwardMovementThreshold) {
-						mesh.position.y += distance;
-						mesh.computeWorldMatrix(true);
+						// Only apply ground correction if:
+						// - The capsule is falling (velocity.y < -0.1), and
+						// - The capsule’s bottom is very near the ground (gap < maxGroundContactGap)
+						// - And the surface is nearly flat.
+						if (
+							velocity.y < -0.1 &&
+							Math.abs(gap) < maxGroundContactGap &&
+							slopeFactor >= flatThreshold
+						) {
+							const desiredY = groundY + capsuleHalfHeight;
+							// Gradually move the capsule toward the desired Y.
+							mesh.position.y = BABYLON.Scalar.Lerp(
+								mesh.position.y,
+								desiredY,
+								lerpFactor,
+							);
+							console.log(
+								"Correcting capsule position. Ground Y:",
+								groundY,
+								"New Y:",
+								mesh.position.y,
+							);
+							// Optionally damp vertical velocity.
+							const currentVel = mesh.physics.getLinearVelocity();
+							mesh.physics.setLinearVelocity(
+								new BABYLON.Vector3(
+									currentVel.x,
+									currentVel.y * 0.5,
+									currentVel.z,
+								),
+							);
+						} else {
+							if (Math.abs(gap) >= maxGroundContactGap) {
+								console.log(
+									"Skipping ground correction: capsule gap =",
+									gap,
+									" (assumed airborne).",
+								);
+							} else {
+								console.log(
+									"Skipping ground correction: vertical velocity =",
+									velocity.y,
+								);
+							}
+						}
+					} else {
+						console.log(
+							"No ground detected at adjusted ray origin.",
+						);
 					}
+					console.log("----- End Frame Debug Info -----");
 				}
 			});
-		});
+		});*/
 	},
 	setPhysics(modelName, physicsType) {
 		return flock.whenModelReady(modelName, (mesh) => {
@@ -6906,7 +7057,7 @@ export const flock = {
 					// Set initial local position:
 					plane.position.y =
 						boundingInfo.boundingBox.maximum.y +
-						2.2 / targetMesh.scaling.y;
+						2.5 / targetMesh.scaling.y;
 
 					plane.billboardMode = flock.BABYLON.Mesh.BILLBOARDMODE_ALL;
 
@@ -6924,7 +7075,7 @@ export const flock = {
 						// Adjust the local Y offset so the world-space distance remains constant.
 						plane.position.y =
 							boundingInfo.boundingBox.maximum.y +
-							2.2 / parentScale.y;
+							2.1 / parentScale.y;
 					});
 				}
 
