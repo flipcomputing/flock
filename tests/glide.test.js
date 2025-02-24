@@ -28,7 +28,7 @@ export function runGlideToTests(flock) {
 
 				// Assert the box has moved to the correct position
 				expect(box.position.x).to.equal(6);
-				expect(box.position.y).to.equal(0);
+				expect(box.position.y).to.equal(0.5);
 				expect(box.position.z).to.equal(0);
 				done();
 			});
@@ -43,7 +43,7 @@ export function runGlideToTests(flock) {
 
 				// Assert the box has moved to the reverse position
 				expect(box.position.x).to.equal(0);
-				expect(box.position.y).to.equal(0);
+				expect(box.position.y).to.equal(0.5);
 				expect(box.position.z).to.equal(0);
 				done();
 			});
@@ -92,7 +92,7 @@ export function runGlideToTests(flock) {
 
 					// Check if the position matches expected easing behavior
 					expect(box.position.x).to.be.closeTo(6, 0.1); // Within some tolerance
-					expect(box.position.y).to.be.closeTo(0, 0.1);
+					expect(box.position.y).to.be.closeTo(0.5, 0.1);
 					expect(box.position.z).to.be.closeTo(0, 0.1);
 					done();
 				});
