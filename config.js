@@ -100,6 +100,7 @@ export const objectNames = [
 	"Star.glb",
 	"Heart.glb",
 	"Coin.glb",
+	"egg.glb",
 	"Gem1.glb",
 	"Gem2.glb",
 	"Gem3.glb",
@@ -109,6 +110,7 @@ export const objectColours = {
 	"Star.glb": ["#FFD700"], // Gold
 	"Heart.glb": ["#FF69B4"], // Hot Pink
 	"Coin.glb": ["#F4C542"], // Light Gold
+	"egg.glb": ["#fffcec"], // Yellow White
 	"Gem1.glb": ["#00BFFF"], // Deep Sky Blue
 	"Gem2.glb": ["#8A2BE2"], // Blue Violet
 	"Gem3.glb": ["#FF4500"], // Orange Red
