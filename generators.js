@@ -1157,7 +1157,9 @@ export function defineGenerators() {
 			Blockly.Names.NameType.VARIABLE,
 		);
 
-		const meshId = `${variableName}`;
+		const meshId = `${variableName}__${block.id}`;
+
+		console.log("Creating mesh:", meshId)
 		meshMap[block.id] = block;
 		meshBlockIdMap[block.id] = block.id;
 

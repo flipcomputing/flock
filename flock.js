@@ -3478,6 +3478,19 @@ export const flock = {
 		mesh.setVerticesData(BABYLON.VertexBuffer.UVKind, uvs, true);
 	},
 	createPlane(planeId, color, width, height, position) {
+		// Handle block key
+		let blockKey = planeId;
+		if (planeId.includes("__")) {
+			[planeId, blockKey] = planeId.split("__");
+		}
+
+		if (flock.scene.getMeshByName(planeId)) {
+			
+			planeId = planeId + "_" + flock.scene.getUniqueId();
+		}
+
+		console.log("Creating plane with id: " + planeId, flock.scene.getMeshByName(planeId));
+
 		// Create plane with specified dimensions
 		const newPlane = flock.BABYLON.MeshBuilder.CreatePlane(
 			planeId,
@@ -3488,17 +3501,9 @@ export const flock = {
 			},
 			flock.scene,
 		);
-
-		// Handle block key
-		let blockKey = planeId;
-		if (planeId.includes("__")) {
-			[planeId, blockKey] = planeId.split("__");
-		}
-
 		// Set metadata and name
 		newPlane.metadata = newPlane.metadata || {};
 		newPlane.metadata.shape = "plane";
-		newPlane.name = newPlane.name + "_" + newPlane.uniqueId;
 
 		// Set final position including the height offset all at once
 		newPlane.position = new flock.BABYLON.Vector3(
