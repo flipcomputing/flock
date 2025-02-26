@@ -3906,7 +3906,6 @@ export const flock = {
 
 				if (mesh1.physics) {
 					mesh1.physics.disablePreStep = false;
-					//mesh1.physics.quaternion.copy(mesh1.rotationQuaternion);
 				}
 				mesh1.computeWorldMatrix(true);
 			});
