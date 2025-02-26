@@ -3906,12 +3906,8 @@ export const flock = {
 
 				if (mesh1.physics) {
 					mesh1.physics.disablePreStep = false;
-					mesh1.physics.setTargetTransform(
-						mesh1.absolutePosition,
-						mesh1.rotationQuaternion,
-					);
+					mesh1.physics.quaternion.copy(mesh1.rotationQuaternion);
 				}
-
 				mesh1.computeWorldMatrix(true);
 			});
 		});
@@ -6127,7 +6123,7 @@ export const flock = {
 			material.disableDepthWrite;
 			decal.setParent(mesh);
 		}
-	},	
+	},
 	moveForward(modelName, speed) {
 		const model = flock.scene.getMeshByName(modelName);
 		if (!model || speed === 0) return;
@@ -6267,24 +6263,28 @@ export const flock = {
 		model.physics.setLinearVelocity(finalVelocity);
 
 		// If your mesh is coming out backwards, flip the vector:
-		const facingDirection = speed >= 0 ? horizontalForward : horizontalForward.scale(-1);
+		const facingDirection =
+			speed >= 0 ? horizontalForward : horizontalForward.scale(-1);
 
 		// Compute the target rotation based on the facing direction.
 		const targetRotation = flock.BABYLON.Quaternion.FromLookDirectionLH(
-		  facingDirection,
-		  flock.BABYLON.Vector3.Up()
+			facingDirection,
+			flock.BABYLON.Vector3.Up(),
 		);
 
 		// Use the current rotation (defaulting to identity if missing).
-		const currentRotation = model.rotationQuaternion || flock.BABYLON.Quaternion.Identity();
+		const currentRotation =
+			model.rotationQuaternion || flock.BABYLON.Quaternion.Identity();
 
 		// Compute the difference between the current and target rotations.
-		const deltaRotation = targetRotation.multiply(currentRotation.conjugate());
+		const deltaRotation = targetRotation.multiply(
+			currentRotation.conjugate(),
+		);
 		const deltaEuler = deltaRotation.toEulerAngles();
 
 		// Apply angular velocity (adjust multiplier as needed for smoothness).
 		model.physics.setAngularVelocity(
-		  new flock.BABYLON.Vector3(0, deltaEuler.y * 5, 0)
+			new flock.BABYLON.Vector3(0, deltaEuler.y * 5, 0),
 		);
 
 		// Keep the mesh’s rotation constrained to the Y axis.
