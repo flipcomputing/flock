@@ -178,7 +178,7 @@ export function updateMeshFromBlock(mesh, block) {
       .connection.targetBlock()
       .getFieldValue("NUM");
 
-    flock.scaleMeshProportional(mesh.name, scale, scale, scale);
+    flock.scaleMesh(mesh.name, scale, scale, scale);
   } else {
     flock.updatePhysics(mesh);
   }

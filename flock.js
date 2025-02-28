@@ -166,7 +166,6 @@ export const flock = {
 				seededRandom,
 				randomColour,
 				scaleMesh,
-				scaleMeshProportional,
 				resizeMesh,
 				changeColor,
 				changeColorMesh,
@@ -3840,7 +3839,7 @@ export const flock = {
 			parent.physics.setMassProperties({ mass: 1, restitution: 0.5 });
 		}
 	},
-	scaleMeshProportional(modelName, x, y, z) {
+	/*scaleMeshProportional(modelName, x, y, z) {
 		return flock.whenModelReady(modelName, (mesh) => {
 			// Get the first actual mesh inside the bounding box
 			let targetMesh = mesh.getChildMeshes()[0] || mesh;
@@ -3876,8 +3875,7 @@ export const flock = {
 				mesh,
 			);
 		});
-	},
-
+	},*/
 	lookAt(meshName1, meshName2, useY = false) {
 		return flock.whenModelReady(meshName1, (mesh1) => {
 			return flock.whenModelReady(meshName2, (mesh2) => {
