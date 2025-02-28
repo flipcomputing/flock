@@ -126,7 +126,8 @@ export function findCreateBlock(block) {
   let parent = block;
 
   while (parent) {
-    if (parent.type === "scale") {
+    if (parent.type === "scale" || parent.type === "rotate_to") {
+      // Don't update parent if we're modifying a nested scale or rotate
       return null;
     }
     if (parent.type.startsWith("create_") || parent.type.startsWith("load_")) {
