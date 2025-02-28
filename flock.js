@@ -3989,7 +3989,7 @@ export const flock = {
 				return;
 			}
 
-			if (mesh.physics) {
+			/*if (mesh.physics) {
 				if (
 					mesh.physics.getMotionType() !==
 					flock.BABYLON.PhysicsMotionType.DYNAMIC
@@ -3998,7 +3998,7 @@ export const flock = {
 						flock.BABYLON.PhysicsMotionType.ANIMATED,
 					);
 				}
-			}
+			}*
 
 			const incrementalRotation =
 				flock.BABYLON.Quaternion.RotationYawPitchRoll(
