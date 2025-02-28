@@ -1431,32 +1431,47 @@ export function defineBlocks() {
       updateColorField();
 
       this.setOnChange((changeEvent) => {
-        if (
-          changeEvent.type === Blockly.Events.BLOCK_CREATE ||
-          changeEvent.type === Blockly.Events.BLOCK_CHANGE
-        ) {
-          const parent = findCreateBlock(
-            Blockly.getMainWorkspace().getBlockById(changeEvent.blockId),
-          );
-          if (parent === this) {
-            const blockInWorkspace = Blockly.getMainWorkspace().getBlockById(
-              this.id,
-            ); // Check if block is in the main workspace
-
+        // Handle BLOCK_CREATE events on the container.
+        if (changeEvent.type === Blockly.Events.BLOCK_CREATE) {
+          if (changeEvent.blockId === this.id) {
+            const blockInWorkspace = Blockly.getMainWorkspace().getBlockById(this.id);
             if (blockInWorkspace) {
               if (window.loadingCode) return;
               updateOrCreateMeshFromBlock(this, changeEvent);
             }
           }
         }
+        // Handle field changes.
+        else if (changeEvent.type === Blockly.Events.BLOCK_CHANGE && changeEvent.element === 'field') {
+          const changedBlock = Blockly.getMainWorkspace().getBlockById(changeEvent.blockId);
+          if (!changedBlock) return;
 
-        handleBlockCreateEvent(
-          this,
-          changeEvent,
-          variableNamePrefix,
-          nextVariableIndexes,
-        );
+          // If the event originates on the container itself, update.
+          if (changedBlock.id === this.id) {
+            updateOrCreateMeshFromBlock(this, changeEvent);
+            return;
+          }
+
+          // Otherwise, if the changed block is directly attached to the container,
+          // check its block definition.
+          const parent = changedBlock.getParent();
+          if (parent && parent.id === this.id) {
+            // If the block has a next or previous connection defined, ignore its change events.
+            // Note: Many blocks have these defined even if they aren’t connected, so this test
+            // simply means “this block is chainable.”
+            if (changedBlock.nextConnection || changedBlock.previousConnection) {
+              console.log("Ignoring change from chainable block", changedBlock.type);
+              return;
+            }
+            // Otherwise, update.
+            updateOrCreateMeshFromBlock(this, changeEvent);
+            return;
+          }
+        }
+
+        handleBlockCreateEvent(this, changeEvent, variableNamePrefix, nextVariableIndexes);
       });
+
 
       addDoMutatorWithToggleBehavior(this);
     },
