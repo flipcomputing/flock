@@ -3989,17 +3989,6 @@ export const flock = {
 				return;
 			}
 
-			/*if (mesh.physics) {
-				if (
-					mesh.physics.getMotionType() !==
-					flock.BABYLON.PhysicsMotionType.DYNAMIC
-				) {
-					mesh.physics.setMotionType(
-						flock.BABYLON.PhysicsMotionType.ANIMATED,
-					);
-				}
-			}*
-
 			const incrementalRotation =
 				flock.BABYLON.Quaternion.RotationYawPitchRoll(
 					flock.BABYLON.Tools.ToRadians(y),
