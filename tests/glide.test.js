@@ -70,7 +70,7 @@ export function runGlideToTests(flock) {
 					hasReachedTarget = true;
 				}
 
-				// Stop checking after 3 seconds
+				// Stop checking after 5 seconds
 				if (Date.now() - startTime > 5000) {
 					clearInterval(intervalId);
 
@@ -78,7 +78,7 @@ export function runGlideToTests(flock) {
 					expect(hasReachedTarget).to.be.true;
 					done();
 				}
-			}, 50); // Check every 100ms
+			}, 50); // Check every 50ms
 		});
 
 		it("should follow the correct easing function", function (done) {
