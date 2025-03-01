@@ -3620,9 +3620,13 @@ export const flock = {
 		zOrigin = "CENTRE",
 	) {
 		return flock.whenModelReady(modelName, (mesh) => {
+			
 			mesh.metadata = mesh.metadata || {};
 			mesh.metadata.origin = { xOrigin, yOrigin, zOrigin };
 
+			if (mesh.physics) {
+				mesh.physics.disablePreStep = false;
+			}
 			// Get the original bounding box dimensions and positions
 			const boundingInfo = mesh.getBoundingInfo();
 			const originalMinY = boundingInfo.boundingBox.minimumWorld.y;
@@ -7951,7 +7955,7 @@ export const flock = {
 			}
 		});
 	},
-};
+}
 
 export function initializeFlock() {
 	const scriptElement = flock.document.getElementById("flock");

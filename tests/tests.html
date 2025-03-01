@@ -32,6 +32,8 @@
     <!-- Import the test suite -->
     <script type="module">
       import * as flockmodule from "../flock.js";
+      import "@babylonjs/core/Debug/debugLayer";
+      import "@babylonjs/inspector";
       import { runTests } from './babylon.test.js';  // Import the test suite
       import { runGlideToTests } from './glide.test.js'; 
       import { runUITests } from './uitextbutton.test.js'; 
@@ -42,6 +44,7 @@
       flock.modelPath = "../models/";
 
       await flock.initialize();
+      
       mocha.setup('bdd'); 
 
       try {
@@ -82,7 +85,17 @@
       //runStressTests(flock);
       //runCreateObjectTests(flock);
 
+      try {
+        await flock.scene.debugLayer.show({
+          embedMode: true,
+          enableClose: true,
+          enablePopup: true,
+        });
+      } catch (error) {
+        console.error("Error showing debug layer:", error);
+      }
       mocha.run();
+
     </script>
   </body>
 </html>

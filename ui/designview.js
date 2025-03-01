@@ -394,6 +394,9 @@ export function updateMeshFromBlock(mesh, block) {
   }
 
   flock.positionAt(mesh.name, position.x, position.y, position.z, true);
+
+//console.log("Update physics");
+  //flock.updatePhysics(mesh);
 }
 
 function createMeshOnCanvas(block) {
@@ -2149,25 +2152,7 @@ function toggleGizmo(gizmoType) {
 
     case "scale":
       gizmoManager.scaleGizmoEnabled = true;
-
-      const mesh = gizmoManager.attachedMesh;
-
-      /*if(mesh){
-        
-      const block = Blockly.getMainWorkspace().getBlockById(mesh.blockKey);
-   
-      switch (block.type) {
-        case "create_plane":
-        case "create_capsule":
-        case "create_cylinder":
-          gizmoManager.gizmos.scaleGizmo.zGizmo.isEnabled = false;
-          break;
-
-        default:
-          gizmoManager.gizmos.scaleGizmo.zGizmo.isEnabled = true;
-      }
-  }*/
-      gizmoManager.gizmos.scaleGizmo.PreserveScaling = true;
+       gizmoManager.gizmos.scaleGizmo.PreserveScaling = true;
       gizmoManager.gizmos.scaleGizmo.xGizmo._coloredMaterial.diffuseColor =
         blueColor;
       gizmoManager.gizmos.scaleGizmo.yGizmo._coloredMaterial.diffuseColor =
@@ -2581,7 +2566,8 @@ export function setGizmoManager(value) {
         .forEach((child) => (child.showBoundingBox = false));
 
       if (mesh) {
-        while (mesh && mesh.parent && !mesh.parent.physicsImpostor) {
+        while (mesh && mesh.parent && !mesh.parent.physics) {
+           console.log("Gizmo", mesh.name);        
           mesh = mesh.parent;
         }
 
@@ -2601,6 +2587,10 @@ export function setGizmoManager(value) {
           }
         }
       }
+    }
+
+    if (mesh.physics) {
+      mesh.physics.disablePreStep = false;
     }
     originalAttach(mesh);
   };
