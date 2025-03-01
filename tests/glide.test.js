@@ -35,18 +35,51 @@ export function runGlideToTests(flock) {
 		});
 
 		it("should handle reverse movement", function (done) {
-			this.timeout(15000); // Increase the timeout for this test
-			// Move the box to a position and then reverse it
+			this.timeout(10000); // Increase the timeout for this test
 
-			flock.glideTo(box1, 6, 0, 0, 200, true).then(() => {
+			// Move the box with loop enabled
+			flock.glideTo(box1, 6, 0, 0, 2000, true); // Start the glide with return enabled
+
+			let count = 0;
+			let passed = true
+
+			// Check the box's position periodically
+			const intervalId = setInterval(() => {
 				const box = flock.scene.getMeshByName(box1);
 
-				// Assert the box has moved to the reverse position
-				expect(box.position.x).to.equal(0);
-				expect(box.position.y).to.equal(0.5);
-				expect(box.position.z).to.equal(0);
-				done();
-			});
+				console.log(count, box.position.x)
+				switch (count) {
+					case 3:
+						if (Math.abs(box.position.x - 0) > 0.1) {
+							passed = false;
+							console.log("failed start");
+						}
+					  break;
+					case 0:
+					case 2:
+						if (Math.abs(box.position.x - 3) > 0.1) {
+							passed = false;
+							console.log("failed middle")
+						} 
+						break;
+					case 1:
+						if (Math.abs(box.position.x - 6) > 0.1) {
+							passed = false;
+							console.log("failed end")
+						}
+						break;
+				}
+
+				count++;
+				
+				// Stop checking after 4 seconds
+				if (count > 3) {
+					clearInterval(intervalId);
+
+					expect(passed).to.be.true;
+					done();
+				}
+			}, 1000); // Check every 1000ms
 		});
 
 		it("should handle looping", function (done) {
