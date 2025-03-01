@@ -2,6 +2,10 @@
 
 import { expect } from "chai";
 
+function checkXPosition(box, pos) {
+	return Math.abs(box.position.x - pos) <= 0.1
+}
+
 // Test suite for glideTo function
 export function runGlideToTests(flock) {
 	describe("glideTo function tests", function () {
@@ -47,25 +51,21 @@ export function runGlideToTests(flock) {
 			const intervalId = setInterval(() => {
 				const box = flock.scene.getMeshByName(box1);
 
-				console.log(count, box.position.x)
 				switch (count) {
 					case 3:
-						if (Math.abs(box.position.x - 0) > 0.1) {
+						if (!checkXPosition(box, 0)) {
 							passed = false;
-							console.log("failed start");
 						}
 					  break;
 					case 0:
 					case 2:
-						if (Math.abs(box.position.x - 3) > 0.1) {
+						if (!checkXPosition(box, 3)) {
 							passed = false;
-							console.log("failed middle")
 						} 
 						break;
 					case 1:
-						if (Math.abs(box.position.x - 6) > 0.1) {
+						if (!checkXPosition(box, 6)) {
 							passed = false;
-							console.log("failed end")
 						}
 						break;
 				}
@@ -89,7 +89,7 @@ export function runGlideToTests(flock) {
 			const startTime = Date.now();
 
 			// Move the box with loop enabled
-			flock.glideTo(box1, 6, 0, 0, 5000, false, true); // Start the glide with looping enabled
+			flock.glideTo(box1, 6, 0, 0, 1000, false, true); // Start the glide with looping enabled
 
 			// Track whether the box has reached the target position
 			let hasReachedTarget = false;
@@ -99,7 +99,7 @@ export function runGlideToTests(flock) {
 				const box = flock.scene.getMeshByName(box1);
 
 				// Check if the box has reached the target position (with some tolerance)
-				if (Math.abs(box.position.x - 6) <= 0.1) {
+				if (checkXPosition(box, 6)) {
 					hasReachedTarget = true;
 				}
 
