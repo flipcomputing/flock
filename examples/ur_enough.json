@@ -61,7 +61,7 @@
 											"type": "canvas_controls",
 											"id": "d,~@TGzN;5,zaSOUkj%R",
 											"fields": {
-												"CONTROLS": true
+												"CONTROLS": false
 											},
 											"next": {
 												"block": {
