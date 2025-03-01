@@ -92,26 +92,33 @@ export function runGlideToTests(flock) {
 			flock.glideTo(box1, 6, 0, 0, 1000, false, true); // Start the glide with looping enabled
 
 			// Track whether the box has reached the target position
-			let hasReachedTarget = false;
+			let passed = true;
 
 			// Check the box's position periodically
-			const intervalId = setInterval(() => {
+			setTimeout(() => {
 				const box = flock.scene.getMeshByName(box1);
-
-				// Check if the box has reached the target position (with some tolerance)
-				if (checkXPosition(box, 6)) {
-					hasReachedTarget = true;
-				}
-
-				// Stop checking after 5 seconds
-				if (Date.now() - startTime > 5000) {
-					clearInterval(intervalId);
-
-					// Assert that the box reached the target position at least once
-					expect(hasReachedTarget).to.be.true;
-					done();
-				}
-			}, 50); // Check every 50ms
+				console.log(box.position.x);
+				if (!checkXPosition(box, 6)) passed = false;
+			}, 990); 
+			setTimeout(() => {
+				const box = flock.scene.getMeshByName(box1);
+				console.log(box.position.x)
+				if (!checkXPosition(box, 0)) passed = false;
+			}, 1010);
+			setTimeout(() => {
+				const box = flock.scene.getMeshByName(box1);
+				console.log(box.position.x);
+				if (!checkXPosition(box, 6)) passed = false;
+			}, 1990); 
+			setTimeout(() => {
+				const box = flock.scene.getMeshByName(box1);
+				console.log(box.position.x)
+				if (!checkXPosition(box, 0)) passed = false;
+			}, 2010);
+			setTimeout(() => {
+				expect(passed).to.be.true;
+				done();
+			}, 2500);
 		});
 
 		it("should follow the correct easing function", function (done) {
