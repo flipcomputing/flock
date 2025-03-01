@@ -1159,7 +1159,6 @@ export function defineGenerators() {
 
 		const meshId = `${variableName}__${block.id}`;
 
-		console.log("Creating mesh:", meshId)
 		meshMap[block.id] = block;
 		meshBlockIdMap[block.id] = block.id;
 
@@ -1447,7 +1446,7 @@ export function defineGenerators() {
 		return `await positionAt(${meshName}, ${x}, ${y}, ${z}, ${useY});\n`;
 	};
 
-	javascriptGenerator.forBlock["distance_to"] = function (block) {
+	javascriptGenerator.forBlock["distance_to"] = function (block) {c
 		const meshName1 = javascriptGenerator.nameDB_.getName(
 			block.getFieldValue("MODEL1"),
 			Blockly.Names.NameType.VARIABLE,

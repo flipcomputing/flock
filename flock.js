@@ -3484,11 +3484,13 @@ export const flock = {
 		}
 
 		if (flock.scene.getMeshByName(planeId)) {
-			
 			planeId = planeId + "_" + flock.scene.getUniqueId();
 		}
 
-		console.log("Creating plane with id: " + planeId, flock.scene.getMeshByName(planeId));
+		console.log(
+			"Creating plane with id: " + planeId,
+			flock.scene.getMeshByName(planeId),
+		);
 
 		// Create plane with specified dimensions
 		const newPlane = flock.BABYLON.MeshBuilder.CreatePlane(
@@ -3620,7 +3622,6 @@ export const flock = {
 		zOrigin = "CENTRE",
 	) {
 		return flock.whenModelReady(modelName, (mesh) => {
-			
 			mesh.metadata = mesh.metadata || {};
 			mesh.metadata.origin = { xOrigin, yOrigin, zOrigin };
 
@@ -5720,6 +5721,13 @@ export const flock = {
 		});
 	},
 	changeColorMesh(mesh, color, unique = true) {
+		if (!mesh) {
+			flock.scene.clearColor = flock.BABYLON.Color3.FromHexString(
+				flock.getColorFromString(color),
+			);
+			return;
+		}
+
 		if (unique) flock.ensureUniqueMaterial(mesh);
 
 		// Ensure color is an array
@@ -7955,7 +7963,7 @@ export const flock = {
 			}
 		});
 	},
-}
+};
 
 export function initializeFlock() {
 	const scriptElement = flock.document.getElementById("flock");

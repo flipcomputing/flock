@@ -2490,12 +2490,26 @@ const characterMaterials = [
 ];
 
 function updateBlockColorAndHighlight(mesh, selectedColor) {
-  let block;
+  let block = null;
+  let materialName = null;
+  let colorIndex, ultimateParent;
 
-  const materialName = mesh?.material?.name?.replace(/_clone$/, "");
-  const colorIndex = mesh.metadata.materialIndex;
-  const ultimateParent = (mesh) =>
-    mesh.parent ? ultimateParent(mesh.parent) : mesh;
+  if (!mesh) {
+    console.log("Sky", meshMap);
+    block = meshMap["sky"];
+
+    block
+      .getInput("COLOR")
+      .connection.targetBlock()
+      .setFieldValue(selectedColor, "COLOR");
+
+    return;
+  } else {
+    materialName = mesh?.material?.name?.replace(/_clone$/, "");
+    colorIndex = mesh.metadata.materialIndex;
+    ultimateParent = (mesh) =>
+      mesh.parent ? ultimateParent(mesh.parent) : mesh;
+  }
 
   if (mesh && materialName) {
     block = meshMap[ultimateParent(mesh).blockKey];
@@ -2528,24 +2542,23 @@ function updateBlockColorAndHighlight(mesh, selectedColor) {
 
       if (fieldName) {
         // Update the corresponding character color field in the block
+         Blockly.Events.setGroup(true);
         block
           .getInput(fieldName)
           .connection.targetBlock()
           .setFieldValue(selectedColor, "COLOR");
+         Blockly.Events.setGroup(false);
       } else {
         console.error("No matching field for material:", materialName);
       }
-    } else if (block.type === "load_multi_object") {
+    } else if (block.type === "load_multi_object") {   
       block.updateColorAtIndex(selectedColor, colorIndex);
-    } else {
-      if (!mesh) {
-        block = meshMap["sky"];
-      }
-
+    } else {     
       block
         .getInput("COLOR")
         .connection.targetBlock()
         .setFieldValue(selectedColor, "COLOR");
+      
     }
   }
 
