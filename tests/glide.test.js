@@ -56,7 +56,7 @@ export function runGlideToTests(flock) {
 			const startTime = Date.now();
 
 			// Move the box with loop enabled
-			flock.glideTo(box1, 6, 0, 0, 1000, false, true); // Start the glide with looping enabled
+			flock.glideTo(box1, 6, 0, 0, 5000, false, true); // Start the glide with looping enabled
 
 			// Track whether the box has reached the target position
 			let hasReachedTarget = false;
@@ -71,14 +71,14 @@ export function runGlideToTests(flock) {
 				}
 
 				// Stop checking after 3 seconds
-				if (Date.now() - startTime > 3000) {
+				if (Date.now() - startTime > 5000) {
 					clearInterval(intervalId);
 
 					// Assert that the box reached the target position at least once
 					expect(hasReachedTarget).to.be.true;
 					done();
 				}
-			}, 100); // Check every 100ms
+			}, 50); // Check every 100ms
 		});
 
 		it("should follow the correct easing function", function (done) {
