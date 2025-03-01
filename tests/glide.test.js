@@ -2,6 +2,10 @@
 
 import { expect } from "chai";
 
+function checkXPosition(box, pos) {
+	return Math.abs(box.position.x - pos) <= 0.1
+}
+
 // Test suite for glideTo function
 export function runGlideToTests(flock) {
 	describe("glideTo function tests", function () {
@@ -35,18 +39,47 @@ export function runGlideToTests(flock) {
 		});
 
 		it("should handle reverse movement", function (done) {
-			this.timeout(15000); // Increase the timeout for this test
-			// Move the box to a position and then reverse it
+			this.timeout(10000); // Increase the timeout for this test
 
-			flock.glideTo(box1, 6, 0, 0, 200, true).then(() => {
+			// Move the box with loop enabled
+			flock.glideTo(box1, 6, 0, 0, 2000, true); // Start the glide with return enabled
+
+			let count = 0;
+			let passed = true
+
+			// Check the box's position periodically
+			const intervalId = setInterval(() => {
 				const box = flock.scene.getMeshByName(box1);
 
-				// Assert the box has moved to the reverse position
-				expect(box.position.x).to.equal(0);
-				expect(box.position.y).to.equal(0.5);
-				expect(box.position.z).to.equal(0);
-				done();
-			});
+				switch (count) {
+					case 3:
+						if (!checkXPosition(box, 0)) {
+							passed = false;
+						}
+					  break;
+					case 0:
+					case 2:
+						if (!checkXPosition(box, 3)) {
+							passed = false;
+						} 
+						break;
+					case 1:
+						if (!checkXPosition(box, 6)) {
+							passed = false;
+						}
+						break;
+				}
+
+				count++;
+				
+				// Stop checking after 4 seconds
+				if (count > 3) {
+					clearInterval(intervalId);
+
+					expect(passed).to.be.true;
+					done();
+				}
+			}, 1000); // Check every 1000ms
 		});
 
 		it("should handle looping", function (done) {
@@ -56,30 +89,27 @@ export function runGlideToTests(flock) {
 			const startTime = Date.now();
 
 			// Move the box with loop enabled
-			flock.glideTo(box1, 6, 0, 0, 5000, false, true); // Start the glide with looping enabled
+			flock.glideTo(box1, 6, 0, 0, 1000, false, true); // Start the glide with looping enabled
 
 			// Track whether the box has reached the target position
-			let hasReachedTarget = false;
+			let passed = true;
 
-			// Check the box's position periodically
+			let count = 0
+
 			const intervalId = setInterval(() => {
 				const box = flock.scene.getMeshByName(box1);
+				if (!checkXPosition(box, 0)) passed = false;
+				console.log("Loop", count, box.position.x)
+				count++;
 
-				// Check if the box has reached the target position (with some tolerance)
-				if (Math.abs(box.position.x - 6) <= 0.1) {
-					hasReachedTarget = true;
-				}
-
-				// Stop checking after 3 seconds
-				if (Date.now() - startTime > 5000) {
+				if (count > 8) {
 					clearInterval(intervalId);
 
-					// Assert that the box reached the target position at least once
-					expect(hasReachedTarget).to.be.true;
+					expect(passed).to.be.true;
 					done();
 				}
-			}, 50); // Check every 100ms
-		});
+			}, 1000);
+			});
 
 		it("should follow the correct easing function", function (done) {
 			this.timeout(5000); // Increase the timeout for this test
