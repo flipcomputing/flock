@@ -395,7 +395,7 @@ export function updateMeshFromBlock(mesh, block) {
 
   flock.positionAt(mesh.name, position.x, position.y, position.z, true);
 
-//console.log("Update physics");
+  //console.log("Update physics");
   //flock.updatePhysics(mesh);
 }
 
@@ -1009,7 +1009,6 @@ function addShapeToWorkspace(shapeType, position) {
   // Initialize and render the shape block
   block.initSvg();
   block.render();
-  //highlightBlockById(Blockly.getMainWorkspace(), block);
 
   // Create a new 'start' block and connect the shape block to it
   const startBlock = Blockly.getMainWorkspace().newBlock("start");
@@ -1022,6 +1021,8 @@ function addShapeToWorkspace(shapeType, position) {
   }
 
   Blockly.Events.setGroup(false);
+
+  highlightBlockById(Blockly.getMainWorkspace(), block);
 }
 
 function selectCharacter(characterName) {
@@ -1074,7 +1075,7 @@ function selectCharacter(characterName) {
 
           block.initSvg();
           block.render();
-          //highlightBlockById(Blockly.getMainWorkspace(), block);
+          highlightBlockById(Blockly.getMainWorkspace(), block);
 
           // Create a new start block and connect the character block to it
           const startBlock = Blockly.getMainWorkspace().newBlock("start");
@@ -1161,7 +1162,7 @@ function selectModel(modelName) {
 
           block.initSvg();
           block.render();
-          //highlightBlockById(Blockly.getMainWorkspace(), block);
+          highlightBlockById(Blockly.getMainWorkspace(), block);
 
           // Create a new start block and connect the model block to it
           const startBlock = Blockly.getMainWorkspace().newBlock("start");
@@ -1249,7 +1250,7 @@ function selectObjectWithCommand(objectName, menu, command) {
           const block = Blockly.getMainWorkspace().newBlock(command);
           block.initSvg();
 
-          //highlightBlockById(Blockly.getMainWorkspace(), block);
+          highlightBlockById(Blockly.getMainWorkspace(), block);
 
           // Set object name
           block.setFieldValue(objectName, "MODELS");
@@ -1480,14 +1481,14 @@ function loadObjectImages() {
 
 function highlightBlockById(workspace, block) {
   if (block) {
-    // Unselect all other blocks
-    workspace.getAllBlocks().forEach((b) => b.unselect());
-
     // Select the new block
-    if (window.codeMode === "both") block.select();
+    if (window.codeMode === "both") {
+      workspace.getAllBlocks().forEach((b) => b.unselect());
+      block.select();
 
-    // Center the block within the viewport
-    workspace.centerOnBlock(block.id);
+      // Center the block within the viewport
+      //workspace.centerOnBlock(block.id);
+    }
   }
 }
 
@@ -1618,6 +1619,9 @@ function deleteBlockWithUndo(blockId) {
     } finally {
       Blockly.Events.setGroup(false);
     }
+
+    gizmoManager.attachToMesh(null);
+    turnOffAllGizmos();
   } else {
     console.log(`Block with ID ${blockId} not found.`);
   }
@@ -1672,7 +1676,6 @@ function toggleGizmo(gizmoType) {
 
       //console.log("Delete", blockKey, meshMap);
       deleteBlockWithUndo(blockId);
-      gizmoManager.attachToMesh(null);
       break;
     case "duplicate":
       blockKey = findParentWithBlockId(gizmoManager.attachedMesh).blockKey;
@@ -1853,8 +1856,8 @@ function toggleGizmo(gizmoType) {
             mesh.physics.disablePreStep = false;
           }
 
-          //const block = meshMap[mesh.blockKey];
-          //highlightBlockById(Blockly.getMainWorkspace(), block);
+          const block = meshMap[mesh.blockKey];
+          highlightBlockById(Blockly.getMainWorkspace(), block);
         },
       );
 
@@ -1933,7 +1936,8 @@ function toggleGizmo(gizmoType) {
           mesh.physics.disablePreStep = false;
         }
 
-        //const block = meshMap[mesh.blockKey];					//highlightBlockById(Blockly.getMainWorkspace(), block);
+        const block = meshMap[mesh.blockKey];
+        highlightBlockById(Blockly.getMainWorkspace(), block);
       });
       gizmoManager.gizmos.positionGizmo.onDragEndObservable.add(function () {
         // Retrieve the mesh associated with the position gizmo
@@ -2031,8 +2035,8 @@ function toggleGizmo(gizmoType) {
           mesh.physics.disablePreStep = false;
         }
 
-        //const block = meshMap[mesh.blockKey];
-        //highlightBlockById(Blockly.getMainWorkspace(), block);
+        const block = meshMap[mesh.blockKey];
+        highlightBlockById(Blockly.getMainWorkspace(), block);
       });
 
       gizmoManager.gizmos.rotationGizmo.onDragEndObservable.add(function () {
@@ -2152,7 +2156,7 @@ function toggleGizmo(gizmoType) {
 
     case "scale":
       gizmoManager.scaleGizmoEnabled = true;
-       gizmoManager.gizmos.scaleGizmo.PreserveScaling = true;
+      gizmoManager.gizmos.scaleGizmo.PreserveScaling = true;
       gizmoManager.gizmos.scaleGizmo.xGizmo._coloredMaterial.diffuseColor =
         blueColor;
       gizmoManager.gizmos.scaleGizmo.yGizmo._coloredMaterial.diffuseColor =
@@ -2214,8 +2218,8 @@ function toggleGizmo(gizmoType) {
           mesh.physics.disablePreStep = false;
         }
 
-        //const block = meshMap[mesh.blockKey];
-        //highlightBlockById(Blockly.getMainWorkspace(), block);
+        const block = meshMap[mesh.blockKey];
+        highlightBlockById(Blockly.getMainWorkspace(), block);
       });
       gizmoManager.gizmos.scaleGizmo.onDragEndObservable.add(function () {
         const mesh = gizmoManager.attachedMesh;
@@ -2551,7 +2555,7 @@ function updateBlockColorAndHighlight(mesh, selectedColor) {
 
   block?.initSvg();
 
-  //highlightBlockById(Blockly.getMainWorkspace(), block);
+  highlightBlockById(Blockly.getMainWorkspace(), block);
 }
 
 export function setGizmoManager(value) {
@@ -2559,6 +2563,7 @@ export function setGizmoManager(value) {
 
   const originalAttach = gizmoManager.attachToMesh.bind(gizmoManager);
   gizmoManager.attachToMesh = (mesh) => {
+    if (mesh && mesh.name === "ground") return;
     if (gizmoManager.attachedMesh) {
       gizmoManager.attachedMesh.showBoundingBox = false;
       gizmoManager.attachedMesh
@@ -2567,7 +2572,7 @@ export function setGizmoManager(value) {
 
       if (mesh) {
         while (mesh && mesh.parent && !mesh.parent.physics) {
-           console.log("Gizmo", mesh.name);        
+          console.log("Gizmo", mesh.name);
           mesh = mesh.parent;
         }
 
@@ -2589,11 +2594,35 @@ export function setGizmoManager(value) {
       }
     }
 
-    if (mesh.physics) {
+    if (mesh && mesh.physics) {
       mesh.physics.disablePreStep = false;
+    }
+
+    if (mesh) {
+      const block = meshMap[mesh.blockKey];
+      highlightBlockById(Blockly.getMainWorkspace(), block);
     }
     originalAttach(mesh);
   };
+
+  const canvas = flock.scene.getEngine().getRenderingCanvas();
+
+  // Add event listener for keydown events on the canvas
+  canvas.addEventListener("keydown", function (event) {
+    if (event.keyCode === 46) {
+      // KeyCode for 'Delete' key is 46
+      // Handle delete action
+      console.log("Delete key pressed", gizmoManager.attachedMesh.name);
+
+      const blockKey = findParentWithBlockId(
+        gizmoManager.attachedMesh,
+      ).blockKey;
+      const blockId = meshBlockIdMap[blockKey];
+
+      //console.log("Delete", blockKey, meshMap);
+      deleteBlockWithUndo(blockId);
+    }
+  });
 }
 
 export function disposeGizmoManager() {
