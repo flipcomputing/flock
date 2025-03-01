@@ -1645,10 +1645,6 @@ function toggleGizmo(gizmoType) {
 
   document.body.style.cursor = "default";
 
-  gizmoManager.attachableMeshes = flock.scene?.meshes?.filter(
-    (s) => s.name !== "ground",
-  );
-
   let blockKey, blockId, canvas, onPickMesh;
 
   // Enable the selected gizmo
@@ -2563,7 +2559,11 @@ export function setGizmoManager(value) {
 
   const originalAttach = gizmoManager.attachToMesh.bind(gizmoManager);
   gizmoManager.attachToMesh = (mesh) => {
-    if (mesh && mesh.name === "ground") return;
+    if (mesh && mesh.name === "ground") {
+      turnOffAllGizmos();
+      mesh = null;
+    }
+
     if (gizmoManager.attachedMesh) {
       gizmoManager.attachedMesh.showBoundingBox = false;
       gizmoManager.attachedMesh
@@ -2572,7 +2572,6 @@ export function setGizmoManager(value) {
 
       if (mesh) {
         while (mesh && mesh.parent && !mesh.parent.physics) {
-          console.log("Gizmo", mesh.name);
           mesh = mesh.parent;
         }
 
