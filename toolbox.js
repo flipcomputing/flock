@@ -2730,7 +2730,7 @@ const toolboxMaterials = {
 					},
 				},
 			},*/
-		{
+		/*{
 			kind: "block",
 			type: "text_material",
 			inputs: {
@@ -2783,8 +2783,7 @@ const toolboxMaterials = {
 					},
 				},
 			},
-		},
-
+		},*/
 		/*{
 				kind: "block",
 				type: "set_material",
