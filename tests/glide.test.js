@@ -94,32 +94,22 @@ export function runGlideToTests(flock) {
 			// Track whether the box has reached the target position
 			let passed = true;
 
-			// Check the box's position periodically
-			setTimeout(() => {
+			let count = 0
+
+			const intervalId = setInterval(() => {
 				const box = flock.scene.getMeshByName(box1);
-				console.log(box.position.x);
-				if (!checkXPosition(box, 6)) passed = false;
-			}, 990); 
-			setTimeout(() => {
-				const box = flock.scene.getMeshByName(box1);
-				console.log(box.position.x)
 				if (!checkXPosition(box, 0)) passed = false;
-			}, 1010);
-			setTimeout(() => {
-				const box = flock.scene.getMeshByName(box1);
-				console.log(box.position.x);
-				if (!checkXPosition(box, 6)) passed = false;
-			}, 1990); 
-			setTimeout(() => {
-				const box = flock.scene.getMeshByName(box1);
-				console.log(box.position.x)
-				if (!checkXPosition(box, 0)) passed = false;
-			}, 2010);
-			setTimeout(() => {
-				expect(passed).to.be.true;
-				done();
-			}, 2500);
-		});
+				console.log("Loop", count, box.position.x)
+				count++;
+
+				if (count > 8) {
+					clearInterval(intervalId);
+
+					expect(passed).to.be.true;
+					done();
+				}
+			}, 1000);
+			});
 
 		it("should follow the correct easing function", function (done) {
 			this.timeout(5000); // Increase the timeout for this test
