@@ -3298,6 +3298,42 @@ const toolboxSnippets = {
 	name: "Snippets",
 	contents: [
 		{
+		  type: "start",
+		  kind: "block",
+		  inputs: {
+			DO: {
+			  block: {
+				type: "set_sky_color",
+				inputs: {
+				  COLOR: {
+					shadow: {
+					  type: "colour",
+					  fields: {
+						COLOR: "#6495ed"
+					  }
+					}
+				  }
+				},
+				next: {
+				  block: {
+					type: "create_ground",
+					inputs: {
+					  COLOR: {
+						shadow: {
+						  type: "colour",
+						  fields: {
+							COLOR: "#71bc78"
+						  }
+						}
+					  }
+					}
+				  }
+				}
+			  }
+			}
+		  }
+		},
+		{
 			kind: "block",
 			type: "start",
 			inputs: {
