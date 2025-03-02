@@ -1619,7 +1619,7 @@ const toolboxAnimateKeyframe = {
 				},
 			},
 		},
-		{
+		/*{
 			kind: "block",
 			type: "control_animation_group",
 			keyword: "group",
@@ -1638,7 +1638,7 @@ const toolboxAnimateKeyframe = {
 					},
 				},
 			},
-		},
+		},*/
 		{
 			kind: "block",
 			type: "colour_keyframe",
