@@ -1691,7 +1691,7 @@ const toolboxAnimateKeyframe = {
 					shadow: {
 						type: "math_number",
 						fields: {
-							NUM: 1,
+							NUM: 0,
 						},
 					},
 				},
@@ -1699,7 +1699,7 @@ const toolboxAnimateKeyframe = {
 					shadow: {
 						type: "math_number",
 						fields: {
-							NUM: 1,
+							NUM: 0,
 						},
 					},
 				},
@@ -1707,7 +1707,7 @@ const toolboxAnimateKeyframe = {
 					shadow: {
 						type: "math_number",
 						fields: {
-							NUM: 1,
+							NUM: 0,
 						},
 					},
 				},
