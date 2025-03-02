@@ -2593,6 +2593,33 @@ export function defineBlocks() {
     },
   };
 
+  Blockly.Blocks["parent"] = {
+    init: function () {
+      this.jsonInit({
+        type: "parent",
+        message0: "parent %1 child %2",
+        args0: [
+          {
+            type: "field_variable",
+            name: "PARENT_MESH",
+            variable: "parent",
+          },
+          {
+            type: "field_variable",
+            name: "CHILD_MESH",
+            variable: window.currentMesh,
+          },
+        ],
+        previousStatement: null,
+        nextStatement: null,
+        colour: categoryColours["Transform"],
+        inputsInline: true,
+        tooltip:
+          "Sets a parent-child relationship between two meshes and keeps the child in its world position",
+      });
+    },
+  };
+
   Blockly.Blocks["parent_child"] = {
     init: function () {
       this.jsonInit({

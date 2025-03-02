@@ -2131,6 +2131,20 @@ export function defineGenerators() {
 		return `${resultVar} = await createHull("${meshId}", ${meshList});\n`;
 	};
 
+	javascriptGenerator.forBlock["parent"] = function (block) {
+		const parentMesh = javascriptGenerator.nameDB_.getName(
+			block.getFieldValue("PARENT_MESH"),
+			Blockly.Names.NameType.VARIABLE,
+		);
+		const childMesh = javascriptGenerator.nameDB_.getName(
+			block.getFieldValue("CHILD_MESH"),
+			Blockly.Names.NameType.VARIABLE,
+		);
+
+		// Establish the parent-child relationship with offset
+		return `setParent(${parentMesh}, ${childMesh});\n`;
+	};
+
 	javascriptGenerator.forBlock["parent_child"] = function (block) {
 		const parentMesh = javascriptGenerator.nameDB_.getName(
 			block.getFieldValue("PARENT_MESH"),

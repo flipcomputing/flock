@@ -1062,8 +1062,13 @@ const toolboxTransformConnect = {
 	contents: [
 		{
 			kind: "block",
-			type: "parent_child",
+			type: "parent",
 			keyword: "parent",
+		},
+		{
+			kind: "block",
+			type: "parent_child",
+			keyword: "parch",
 			inputs: {
 				X_OFFSET: {
 					shadow: {

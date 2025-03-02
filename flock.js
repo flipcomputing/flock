@@ -108,6 +108,7 @@ export const flock = {
 				createPlane,
 				cloneMesh,
 				parentChild,
+				setParent,
 				mergeMeshes,
 				subtractMeshes,
 				intersectMeshes,
@@ -2199,6 +2200,14 @@ export const flock = {
 				resultMesh.material.backFaceCulling = false;
 			}
 		}
+	},
+	setParent(parentModelName, childModelName) {
+		return flock.whenModelReady(parentModelName, (parentMesh) => {
+			flock.whenModelReady(childModelName, (childMesh) => {
+				// Set the parent-child relationship
+				childMesh.setParent(parentMesh);
+			});
+		});
 	},
 	parentChild(
 		parentModelName,
