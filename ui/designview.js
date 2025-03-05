@@ -2085,7 +2085,7 @@ function toggleGizmo(gizmoType) {
               case "load_object":
               case "load_multi_object":
               case "load_character":
-                meshY -= mesh.getBoundingInfo().boundingBox.extendSize.y;
+                meshY -= mesh.getBoundingInfo().boundingBox.extendSizeWorld.y;
                 break;
             }
 
@@ -2093,6 +2093,8 @@ function toggleGizmo(gizmoType) {
               .getInput("Y")
               .connection.targetBlock()
               .setFieldValue(String(Math.round(meshY * 10) / 10), "NUM");
+
+            console.log("Setting y", meshY);
           } catch (e) {}
           try {
             block
