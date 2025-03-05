@@ -15,6 +15,15 @@ const blueColor = flock.BABYLON.Color3.FromHexString("#0072B2"); // Colour for X
 const greenColor = flock.BABYLON.Color3.FromHexString("#009E73"); // Colour for Y-axis
 const orangeColor = flock.BABYLON.Color3.FromHexString("#D55E00"); // Colour for Z-axis
 
+const colorFields = {
+  HAIR_COLOR: "#000000", // Hair: black
+  SKIN_COLOR: "#A15C33", // Skin: custom skin tone
+  EYES_COLOR: "#000000", // Eyes: black
+  SLEEVES_COLOR: "#008B8B", // Sleeves: dark cyan
+  SHORTS_COLOR: "#00008B", // Shorts: dark blue
+  TSHIRT_COLOR: "#FF8F60", // T-Shirt: light orange
+};
+
 export function updateOrCreateMeshFromBlock(block, changeEvent) {
   if (window.loadingCode || block.disposed) return;
 
@@ -137,7 +146,51 @@ export function getMeshFromBlock(block) {
   return found;
 }
 
-export function updateMeshFromBlock(mesh, block) {
+function rescaleBoundingBox(bb, newScale) {
+  // Get the current world matrix before any transformation
+  const originalWorldMatrix = bb.getWorldMatrix().clone();
+
+  // Extract the original world position
+  const originalPosition = originalWorldMatrix.getTranslation();
+
+  // Bake current transform into vertices
+  bb.bakeCurrentTransformIntoVertices();
+
+  // Reset scaling to 1,1,1 first
+  bb.scaling.set(1, 1, 1);
+
+  // Set the new scale and bake it
+  bb.scaling.set(newScale, newScale, newScale);
+  bb.bakeCurrentTransformIntoVertices();
+
+  // Reset scaling to 1,1,1 again
+  bb.scaling.set(1, 1, 1);
+
+  // Restore the original world position
+  bb.position.copyFrom(originalPosition);
+}
+
+export function updateMeshFromBlock(mesh, block, changeEvent) {
+  if (!mesh) return;
+
+  const changedBlock = Blockly.getMainWorkspace().getBlockById(
+    changeEvent.blockId,
+  );
+
+  const parent = changedBlock.getParent();
+  let changed;
+
+  parent.inputList.forEach((input) => {
+    let value =
+      input?.connection?.shadowState?.id ||
+      input?.connection?.targetConnection?.sourceBlock_?.id;
+    if (value === changedBlock.id) changed = input.name;
+  });
+
+  if (!changed) return;
+
+  console.log("Changed", changed);
+
   const shapeType = block.type;
 
   if (mesh && mesh.physics) mesh.physics.disablePreStep = true;
@@ -178,7 +231,47 @@ export function updateMeshFromBlock(mesh, block) {
       .connection.targetBlock()
       .getFieldValue("NUM");
 
-    flock.scaleMesh(mesh.name, scale, scale, scale);
+    if (changed === "SCALE") {
+      const relativeScale = changeEvent.oldValue
+        ? scale / changeEvent.oldValue
+        : scale;
+      console.log("Computed relative scale:", relativeScale);
+
+      if (relativeScale !== 1) {
+        const x = mesh.position.x;
+        const y = mesh.position.y;
+        const z = mesh.position.z;
+
+        let ydiff;
+        // Find the child that actually has geometry (i.e. the visual mesh)
+
+        const relativeScale = changeEvent.oldValue
+          ? scale / changeEvent.oldValue
+          : scale;
+      
+          mesh.computeWorldMatrix(true);
+          mesh.refreshBoundingInfo();
+          ydiff = mesh.getBoundingInfo().boundingBox.extendSizeWorld.y;
+        
+        rescaleBoundingBox(mesh, relativeScale);
+        mesh.computeWorldMatrix(true);
+        mesh.refreshBoundingInfo();     
+       
+          flock.positionAt(
+            mesh.name,
+            mesh.position.x,
+            mesh.position.y - ydiff,
+            mesh.position.z,
+          );
+          const ydiffAfter =
+            mesh.getBoundingInfo().boundingBox.extendSizeWorld.y;
+          //mesh.position.y -= ydiffAfter;
+
+          console.log("Ydiff", ydiff, ydiffAfter);
+          mesh.computeWorldMatrix(true);
+          mesh.refreshBoundingInfo();
+      }
+    }
   } else {
     flock.updatePhysics(mesh);
   }
@@ -254,34 +347,37 @@ export function updateMeshFromBlock(mesh, block) {
       break;
     case "load_character":
       modelName = block.getFieldValue("MODELS");
-      // Retrieve colours
-      colors = {
-        hair: block
-          .getInput("HAIR_COLOR")
-          .connection.targetBlock()
-          .getFieldValue("COLOR"),
-        skin: block
-          .getInput("SKIN_COLOR")
-          .connection.targetBlock()
-          .getFieldValue("COLOR"),
-        eyes: block
-          .getInput("EYES_COLOR")
-          .connection.targetBlock()
-          .getFieldValue("COLOR"),
-        tshirt: block
-          .getInput("TSHIRT_COLOR")
-          .connection.targetBlock()
-          .getFieldValue("COLOR"),
-        shorts: block
-          .getInput("SHORTS_COLOR")
-          .connection.targetBlock()
-          .getFieldValue("COLOR"),
-        sleeves: block
-          .getInput("SLEEVES_COLOR")
-          .connection.targetBlock()
-          .getFieldValue("COLOR"),
-      };
-      flock.applyColorsToCharacter(getMeshFromBlock(block), colors);
+
+      if (changed in colorFields) {
+        // Retrieve colours
+        colors = {
+          hair: block
+            .getInput("HAIR_COLOR")
+            .connection.targetBlock()
+            .getFieldValue("COLOR"),
+          skin: block
+            .getInput("SKIN_COLOR")
+            .connection.targetBlock()
+            .getFieldValue("COLOR"),
+          eyes: block
+            .getInput("EYES_COLOR")
+            .connection.targetBlock()
+            .getFieldValue("COLOR"),
+          tshirt: block
+            .getInput("TSHIRT_COLOR")
+            .connection.targetBlock()
+            .getFieldValue("COLOR"),
+          shorts: block
+            .getInput("SHORTS_COLOR")
+            .connection.targetBlock()
+            .getFieldValue("COLOR"),
+          sleeves: block
+            .getInput("SLEEVES_COLOR")
+            .connection.targetBlock()
+            .getFieldValue("COLOR"),
+        };
+        flock.applyColorsToCharacter(getMeshFromBlock(block), colors);
+      }
       break;
     case "create_box":
       // Retrieve width, height, and depth from connected blocks
@@ -323,61 +419,70 @@ export function updateMeshFromBlock(mesh, block) {
 
     case "create_cylinder":
       // Retrieve height, diameterTop, and diameterBottom from connected blocks
-      cylinderHeight = block
-        .getInput("HEIGHT")
-        .connection.targetBlock()
-        .getFieldValue("NUM");
-      diameterTop = block
-        .getInput("DIAMETER_TOP")
-        .connection.targetBlock()
-        .getFieldValue("NUM");
-      diameterBottom = block
-        .getInput("DIAMETER_BOTTOM")
-        .connection.targetBlock()
-        .getFieldValue("NUM");
-      sides = block
-        .getInput("TESSELLATIONS")
-        .connection.targetBlock()
-        .getFieldValue("NUM");
+      if (
+        ["HEIGHT", "DIAMETER_TOP", "DIAMETER_BOTTOM", "TESSELATIONS"].includes(
+          changed,
+        )
+      ) {
+        cylinderHeight = block
+          .getInput("HEIGHT")
+          .connection.targetBlock()
+          .getFieldValue("NUM");
+        diameterTop = block
+          .getInput("DIAMETER_TOP")
+          .connection.targetBlock()
+          .getFieldValue("NUM");
+        diameterBottom = block
+          .getInput("DIAMETER_BOTTOM")
+          .connection.targetBlock()
+          .getFieldValue("NUM");
+        sides = block
+          .getInput("TESSELLATIONS")
+          .connection.targetBlock()
+          .getFieldValue("NUM");
 
-      updateCylinderGeometry(
-        mesh,
-        diameterTop,
-        diameterBottom,
-        cylinderHeight,
-        sides,
-      );
-
+        updateCylinderGeometry(
+          mesh,
+          diameterTop,
+          diameterBottom,
+          cylinderHeight,
+          sides,
+        );
+      }
       break;
 
     case "create_capsule":
       // Retrieve diameter and height from connected blocks
-      diameter = block
-        .getInput("DIAMETER")
-        .connection.targetBlock()
-        .getFieldValue("NUM");
-      capsuleHeight = block
-        .getInput("HEIGHT")
-        .connection.targetBlock()
-        .getFieldValue("NUM");
+      if (["HEIGHT", "DIAMETER"].includes(changed)) {
+        diameter = block
+          .getInput("DIAMETER")
+          .connection.targetBlock()
+          .getFieldValue("NUM");
+        capsuleHeight = block
+          .getInput("HEIGHT")
+          .connection.targetBlock()
+          .getFieldValue("NUM");
 
-      // Set the absolute size of the capsule
-      setAbsoluteSize(mesh, diameter, capsuleHeight, diameter);
+        // Set the absolute size of the capsule
+        setAbsoluteSize(mesh, diameter, capsuleHeight, diameter);
+      }
       break;
 
     case "create_plane":
       // Retrieve width and height from connected blocks
-      planeWidth = block
-        .getInput("WIDTH")
-        .connection.targetBlock()
-        .getFieldValue("NUM");
-      planeHeight = block
-        .getInput("HEIGHT")
-        .connection.targetBlock()
-        .getFieldValue("NUM");
+      if (["HEIGHT", "WIDTH"].includes(changed)) {
+        planeWidth = block
+          .getInput("WIDTH")
+          .connection.targetBlock()
+          .getFieldValue("NUM");
+        planeHeight = block
+          .getInput("HEIGHT")
+          .connection.targetBlock()
+          .getFieldValue("NUM");
 
-      // Set the absolute size of the plane
-      setAbsoluteSize(mesh, planeWidth, planeHeight, 0); // Planes are usually flat in the Z dimension
+        // Set the absolute size of the plane
+        setAbsoluteSize(mesh, planeWidth, planeHeight, 0); // Planes are usually flat in the Z dimension
+      }
       break;
 
     default:
@@ -385,22 +490,25 @@ export function updateMeshFromBlock(mesh, block) {
   }
 
   // Use flock API to change the color and position of the mesh
-  if (color) {
-    const ultimateParent = (mesh) =>
-      mesh.parent ? ultimateParent(mesh.parent) : mesh;
-    //color = flock.getColorFromString(color);
-    mesh = ultimateParent(mesh);
-    flock.changeColor(mesh.name, color);
+  if (["COLOR", "COLORS"].includes(changed) || changed.startsWith("ADD")) {
+    if (color) {
+      const ultimateParent = (mesh) =>
+        mesh.parent ? ultimateParent(mesh.parent) : mesh;
+      //color = flock.getColorFromString(color);
+      mesh = ultimateParent(mesh);
+      flock.changeColor(mesh.name, color);
+    }
   }
 
-  flock.positionAt(mesh.name, position.x, position.y, position.z, true);
-
+  if (["X", "Y", "Z"].includes(changed)) {
+    flock.positionAt(mesh.name, position.x, position.y, position.z, true);
+  }
   //console.log("Update physics");
   //flock.updatePhysics(mesh);
 }
 
 function createMeshOnCanvas(block) {
-  //console.log("Create mesh on canvas", block.id);
+  console.log("Create mesh on canvas", block.id);
 
   Blockly.Events.setGroup(true);
 
@@ -710,6 +818,8 @@ function createMeshOnCanvas(block) {
   }
 
   Blockly.Events.setGroup(false);
+
+  console.log("Created mesh on canvas", block.id);
 }
 
 function setAbsoluteSize(mesh, width, height, depth) {
@@ -927,10 +1037,13 @@ function getMeshFromBlockId(blockId) {
 
 function addShapeToWorkspace(shapeType, position) {
   //console.log("Adding shape to workspace", shapeType, position);
-  Blockly.Events.setGroup(true);
+  Blockly.Events.setGroup("workspace-add");
+
   // Create the shape block in the Blockly workspace
+
   const block = Blockly.getMainWorkspace().newBlock(shapeType);
 
+  Blockly.Events.disable();
   let color,
     width,
     height,
@@ -1005,10 +1118,11 @@ function addShapeToWorkspace(shapeType, position) {
 
   // Set position values (X, Y, Z) from the picked position
   setPositionValues(block, position, shapeType);
-
   // Initialize and render the shape block
   block.initSvg();
   block.render();
+  Blockly.Events.enable();
+  Blockly.Events.setGroup("workspace-add");
 
   // Create a new 'start' block and connect the shape block to it
   const startBlock = Blockly.getMainWorkspace().newBlock("start");
@@ -1055,14 +1169,6 @@ function selectCharacter(characterName) {
           addShadowBlock(block, "SCALE", "math_number", scale);
 
           // Add shadow blocks for colour inputs with default values
-          const colorFields = {
-            HAIR_COLOR: "#000000", // Hair: black
-            SKIN_COLOR: "#A15C33", // Skin: custom skin tone
-            EYES_COLOR: "#000000", // Eyes: black
-            SLEEVES_COLOR: "#008B8B", // Sleeves: dark cyan
-            SHORTS_COLOR: "#00008B", // Shorts: dark blue
-            TSHIRT_COLOR: "#FF8F60", // T-Shirt: light orange
-          };
 
           Object.keys(colorFields).forEach((colorInputName) => {
             addShadowBlock(
@@ -2542,23 +2648,22 @@ function updateBlockColorAndHighlight(mesh, selectedColor) {
 
       if (fieldName) {
         // Update the corresponding character color field in the block
-         Blockly.Events.setGroup(true);
+        Blockly.Events.setGroup(true);
         block
           .getInput(fieldName)
           .connection.targetBlock()
           .setFieldValue(selectedColor, "COLOR");
-         Blockly.Events.setGroup(false);
+        Blockly.Events.setGroup(false);
       } else {
         console.error("No matching field for material:", materialName);
       }
-    } else if (block.type === "load_multi_object") {   
+    } else if (block.type === "load_multi_object") {
       block.updateColorAtIndex(selectedColor, colorIndex);
-    } else {     
+    } else {
       block
         .getInput("COLOR")
         .connection.targetBlock()
         .setFieldValue(selectedColor, "COLOR");
-      
     }
   }
 

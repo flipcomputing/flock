@@ -1551,7 +1551,7 @@ export function defineGenerators() {
 
 	javascriptGenerator.forBlock["stop_all_sounds"] = function (block) {
 		// JavaScript code to stop all sounds in a Babylon.js scene
-		return "flock.scene.sounds.forEach(function(sound) { sound.stop(); });\n";
+		return "stopAllSounds();\n";
 	};
 
 	javascriptGenerator.forBlock["midi_note"] = function (block) {

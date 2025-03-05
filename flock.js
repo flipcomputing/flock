@@ -42,6 +42,7 @@ export const flock = {
 	disposed: null,
 	events: {},
 	modelCache: {},
+	globalSounds: [],
 	originalModelTransformations: {},
 	modelsBeingLoaded: {},
 	geometryCache: {},
@@ -90,6 +91,7 @@ export const flock = {
 				createScene,
 				playAnimation,
 				playSound,
+				stopAllSounds,
 				playNotes,
 				setBPM,
 				createInstrument,
@@ -322,6 +324,7 @@ export const flock = {
 			flock.scene.activeCamera?.inputs?.clear();
 			flock.events = null;
 			flock.modelCache = null;
+			flock.globalSounds = [];
 			flock.modelsBeingLoaded = null;
 			flock.originalModelTransformations = null;
 			flock.geometryCache = null;
@@ -374,6 +377,7 @@ export const flock = {
 		// Reset scene-wide state
 		flock.events = {};
 		flock.modelCache = {};
+		flock.globalSounds = [];
 		flock.modelsBeingLoaded = {};
 		flock.originalModelTransformations = {};
 		flock.geometryCache = {};
@@ -2802,6 +2806,14 @@ export const flock = {
 			}
 		});
 
+		// Break parent-child relationships
+		meshesToDispose.forEach((currentMesh) => {
+			console.log("Stopping sound", currentMesh);
+			if(currentMesh?.metadata?.currentSound){
+				console.log("Stopping sound", currentMesh.metadata.currentSound);
+				currentMesh.metadata.currentSound.stop();
+			}
+		});
 		// Break parent-child relationships
 		meshesToDispose.forEach((currentMesh) => {
 			currentMesh.parent = null;
@@ -7647,12 +7659,19 @@ export const flock = {
 
 			sound.attachToMesh(mesh);
 			mesh.metadata.currentSound = sound;
+			flock.globalSounds.push(sound);
+
+			console.log("Current sound", mesh.metadata.currentSound);
 
 			sound.onEndedObservable.add(() => {
 				console.log(
 					`Sound "${soundName}" finished playing on mesh "${meshName}".`,
 				);
-				if (mesh.metadata.currentSound === sound) {
+				const index = flock.globalSounds.indexOf(sound);
+				if (index !== -1) {
+					flock.globalSounds.splice(index, 1);
+				}
+				if (mesh?.metadata?.currentSound === sound) {
 					delete mesh.metadata.currentSound;
 				}
 			});
@@ -7671,19 +7690,33 @@ export const flock = {
 				},
 			);
 
+			// Add the sound to the globalSounds array for global tracking
+			flock.globalSounds.push(sound);
+
 			return new Promise((resolve) => {
 				sound.onEndedObservable.add(() => {
-					console.log(
-						`Global sound "${soundName}" finished playing.`,
-					);
+					const index = flock.globalSounds.indexOf(sound);
+					if (index !== -1) {
+						flock.globalSounds.splice(index, 1);
+					}
+					console.log(`Global sound "${soundName}" finished playing.`);
 					resolve();
 				});
 			});
 		}
 
+
 		return flock.whenModelReady(meshName, (mesh) => {
 			handleMeshSound(mesh);
 		});
+	},
+	stopAllSounds() {
+		
+		flock.globalSounds.forEach((sound) => {
+			sound.stop();
+		});
+		// Clear the globalSounds array after stopping all sounds
+		flock.globalSounds = [];
 	},
 	getAudioContext() {
 		if (!flock.audioContext) {
