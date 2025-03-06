@@ -2743,6 +2743,16 @@ export const flock = {
 	disposeMesh(mesh) {
 		let meshesToDispose = [mesh];
 
+		const particleSystem = flock.scene.particleSystems.find(
+			(system) => system.name === mesh.name,
+		);
+
+		if(particleSystem)
+		{
+			particleSystem.dispose();
+			return;
+		}
+
 		if (mesh.getChildMeshes) {
 			meshesToDispose = mesh.getChildMeshes().concat(mesh);
 		}
