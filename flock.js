@@ -5049,7 +5049,6 @@ export const flock = {
 			console.warn(`Particle system '${systemName}' not found.`);
 		}
 	},
-
 	resetParticleSystem(systemName) {
 		const particleSystem = flock.scene.particleSystems.find(
 			(system) => system.name === systemName,

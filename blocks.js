@@ -5267,9 +5267,10 @@ export function handleBlockCreateEvent(
   fieldName = "ID_VAR", // Default field name to handle
 ) {
   if (window.loadingCode) return; // Don't rename variables during code loading
-
+  
   if (blockInstance.id !== changeEvent.blockId) return;
-
+  console.log("Create event", changeEvent, changeEvent.recordUndo);
+  
   // Check if this is an undo/redo operation
   const isUndo = !changeEvent.recordUndo;
 
@@ -5278,9 +5279,12 @@ export function handleBlockCreateEvent(
     changeEvent.type === Blockly.Events.BLOCK_CREATE &&
     changeEvent.ids.includes(blockInstance.id)
   ) {
+    console.log("Create event - update variable");
     // Skip renaming variables if this is an undo
-    if (isUndo) return;
+    if (isUndo /*&& !handleBlockCreateEvent.group === "duplicate"*/) return;
+    // Add this back in when have 'this' support or can rename the variables in the constructor
 
+    console.log("Create event - update variable");
     // Check if the specified field already has a value
     const variableField = blockInstance.getField(fieldName);
     if (variableField) {

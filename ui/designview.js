@@ -1826,7 +1826,7 @@ function toggleGizmo(gizmoType) {
           if (originalBlock) {
             // Serialize the block and its children, including shadows
 
-            Blockly.Events.setGroup(true);
+            Blockly.Events.setGroup('duplicate');
             const blockJson = Blockly.serialization.blocks.save(originalBlock, {
               includeShadows: true, // Include shadow blocks in the duplication
             });
