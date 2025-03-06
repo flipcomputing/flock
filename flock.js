@@ -2818,9 +2818,7 @@ export const flock = {
 
 		// Break parent-child relationships
 		meshesToDispose.forEach((currentMesh) => {
-			console.log("Stopping sound", currentMesh);
 			if(currentMesh?.metadata?.currentSound){
-				console.log("Stopping sound", currentMesh.metadata.currentSound);
 				currentMesh.metadata.currentSound.stop();
 			}
 		});
