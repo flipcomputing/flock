@@ -1166,7 +1166,7 @@ export function defineGenerators() {
 			? javascriptGenerator.statementToCode(block, "DO") || ""
 			: "";
 
-		return `${variableName} = create${meshType}("${meshId}__${block.id}", ${params.join(", ")}, ${position});\n${doCode}\n`;
+		return `${variableName} = create${meshType}("${meshId}", ${params.join(", ")}, ${position});\n${doCode}\n`;
 	}
 
 	function getPositionTuple(block) {

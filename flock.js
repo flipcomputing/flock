@@ -3045,6 +3045,8 @@ export const flock = {
 		mesh.setVerticesData(BABYLON.VertexBuffer.UVKind, uvs, true);
 	},
 	createBox(boxId, color, width, height, depth, position, alpha = 1) {
+
+		console.log("Creating box", boxId);
 		let blockKey = boxId;
 
 		if (boxId.includes("__")) {
