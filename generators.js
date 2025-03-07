@@ -1325,7 +1325,6 @@ export function defineGenerators() {
 		return `await scaleMesh(${modelName}, ${x}, ${y}, ${z}, '${xOrigin}', '${yOrigin}', '${zOrigin}');\n`;
 	};
 
-
 	javascriptGenerator.forBlock["resize"] = function (block) {
 		const modelName = javascriptGenerator.nameDB_.getName(
 			block.getFieldValue("BLOCK_NAME"),
@@ -1446,7 +1445,8 @@ export function defineGenerators() {
 		return `await positionAt(${meshName}, ${x}, ${y}, ${z}, ${useY});\n`;
 	};
 
-	javascriptGenerator.forBlock["distance_to"] = function (block) {c
+	javascriptGenerator.forBlock["distance_to"] = function (block) {
+		c;
 		const meshName1 = javascriptGenerator.nameDB_.getName(
 			block.getFieldValue("MODEL1"),
 			Blockly.Names.NameType.VARIABLE,
@@ -2956,6 +2956,23 @@ javascriptGenerator.forBlock["microbit_input"] = function (block) {
 	const statements_do = javascriptGenerator.statementToCode(block, "DO");
 
 	return `whenKeyEvent("${event}", async () => {${statements_do}});\n`;
+};
+
+javascriptGenerator.forBlock["math_random_int"] = function (block) {
+	const from =
+		javascriptGenerator.valueToCode(
+			block,
+			"FROM",
+			javascriptGenerator.ORDER_NONE,
+		) || "0";
+	const to =
+		javascriptGenerator.valueToCode(
+			block,
+			"TO",
+			javascriptGenerator.ORDER_NONE,
+		) || "0";
+	const code = "randomInteger(" + from + ", " + to + ")";
+	return [code, javascriptGenerator.ORDER_FUNCTION_CALL];
 };
 
 /*javascriptGenerator.forBlock["text_join"] = function (

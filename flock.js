@@ -193,6 +193,7 @@ export const flock = {
 				Mesh,
 				forever,
 				whenKeyEvent,
+				randomInteger,
 				printText,
 				UIText,
 				UIButton,
@@ -480,6 +481,15 @@ export const flock = {
 
 		// Reset XR helper
 		flock.xrHelper = null;
+	},
+	randomInteger(a, b) {
+	  if (a > b) {
+		// Swap a and b to ensure a is smaller.
+		var c = a;
+		a = b;
+		b = c;
+	  }
+	  return Math.floor(Math.random() * (b - a + 1) + a);
 	},
 	printText(text, duration = 30, color = "white") {
 		if (!text || !flock.scene || !flock.stackPanel) return;
