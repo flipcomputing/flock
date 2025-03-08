@@ -1923,6 +1923,32 @@ const toolboxControl = {
 			kind: "block",
 			type: "controls_for",
 			keyword: "for",
+			inputs: {
+				FROM: {
+					shadow: {
+						type: "math_number",
+						fields: {
+							NUM: 0
+						}
+					}
+				},
+				TO: {
+					shadow: {
+						type: "math_number",
+						fields: {
+							NUM: 9
+						}
+					}
+				},
+				BY: {
+					shadow: {
+						type: "math_number",
+						fields: {
+							NUM: 1
+						}
+					}
+				}
+			}
 		},
 		{
 			kind: "block",

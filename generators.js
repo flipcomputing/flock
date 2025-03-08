@@ -2848,6 +2848,7 @@ javascriptGenerator.forBlock["controls_repeat_ext"] = function (
 	return code;
 };
 
+Blockly.Msg.CONTROLS_FOR_TITLE = "for each %1 from %2 to %3 by %4";
 javascriptGenerator.forBlock["controls_for"] = function (block, generator) {
 	const variable0 = generator.getVariableName(block.getFieldValue("VAR"));
 
