@@ -985,11 +985,14 @@ function updateCylinderGeometry(
 
 // Helper function to create and attach shadow blocks
 function addShadowBlock(block, inputName, blockType, defaultValue) {
+
+  console.log("Adding shadow block for input", inputName, blockType, defaultValue);
   const shadowBlock = Blockly.getMainWorkspace().newBlock(blockType);
 
   // Determine the correct field based on block type
-  const fieldName = blockType === "colour" ? "COLOR" : "NUM";
+  const fieldName = ["colour", "skin_colour"].includes(blockType) ? "COLOR" : "NUM";  
 
+  console.log("Adding shadow block", shadowBlock.id);
   shadowBlock.setFieldValue(String(defaultValue), fieldName);
   shadowBlock.setShadow(true); // Ensure it's treated as a shadow block
   shadowBlock.setMovable(false); // Prevent dragging
@@ -1171,10 +1174,11 @@ function selectCharacter(characterName) {
           // Add shadow blocks for colour inputs with default values
 
           Object.keys(colorFields).forEach((colorInputName) => {
+            console.log
             addShadowBlock(
               block,
               colorInputName,
-              "colour",
+              colorInputName === "SKIN_COLOR" ? "skin_colour" : "colour",
               colorFields[colorInputName],
             );
           });

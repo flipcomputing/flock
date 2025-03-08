@@ -4742,7 +4742,7 @@ export function defineBlocks() {
           {
             type: "field_colour",
             name: "COLOR",
-            colour: "#FFE0BD", // A neutral starting color
+            colour: "#FFE0BD",
             colourOptions: [
               "#3F2A1D",
               "#5C4033",
