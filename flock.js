@@ -5111,6 +5111,187 @@ export const flock = {
 		reverse = false,
 		mode = "START", // Default to starting the animation
 	) {
+
+		return new Promise(async (resolve) => {
+			// Ensure animationGroupName is not null; generate a unique name if it is
+			animationGroupName =
+				animationGroupName || `animation_${flock.scene.getUniqueId()}`;
+
+			// Ensure the animation group exists or create a new one
+			let animationGroup =
+				flock.scene.getAnimationGroupByName(animationGroupName);
+			if (!animationGroup) {
+				animationGroup = new flock.BABYLON.AnimationGroup(
+					animationGroupName,
+					flock.scene,
+				);
+				//console.log(`Created new animation group: ${animationGroupName}`);
+			}
+
+			await flock.whenModelReady(meshName, async (mesh) => {
+				if (!mesh) {
+					console.warn(`Mesh ${meshName} not found.`);
+					resolve(animationGroupName);
+					return;
+				}
+				/*mesh.physics.disablePreStep = false;
+				mesh.physics.setPrestepType(
+					flock.BABYLON.PhysicsPrestepType.ACTION,
+				);*/
+
+				if (property === "alpha") {
+					flock.ensureUniqueMaterial(mesh);
+				}
+
+				// Determine the meshes to animate
+				const meshesToAnimate =
+					property === "alpha"
+						? [mesh, ...mesh.getDescendants()].filter(
+								(m) => m.material,
+						  ) // Include descendants for alpha
+						: [mesh]; // Only the root mesh for other properties
+
+				for (const targetMesh of meshesToAnimate) {
+					const propertyToAnimate = flock.resolvePropertyToAnimate(
+							property,
+							targetMesh,
+						),
+						fps = 30, // Frames per second
+						animationType = flock.determineAnimationType(property),
+						loopMode = BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE; // Always use cycle mode for looping
+
+					const keyframeAnimation = new flock.BABYLON.Animation(
+						`${animationGroupName}_${property}`,
+						propertyToAnimate,
+						fps,
+						animationType,
+						loopMode,
+					);
+
+					// Convert keyframes (with absolute time in seconds) to Babylon.js frames
+					const forwardKeyframes = keyframes.map((keyframe) => ({
+						frame: Math.round((keyframe.duration || 0) * fps), // Convert seconds to frames
+						value: flock.parseKeyframeValue(
+							property,
+							keyframe.value,
+							targetMesh,
+						),
+					}));
+
+					// Add a keyframe at frame 0 if one doesn't exist already.
+					if (!forwardKeyframes.some((k) => k.frame === 0)) {
+					  let currentValue;
+					  if (property === "alpha") {
+						// For alpha, get the current alpha from the mesh's material.
+						if (targetMesh.material && typeof targetMesh.material.alpha !== "undefined") {
+						  currentValue = targetMesh.material.alpha;
+						} else {
+						  currentValue = 1; // Default alpha value.
+						}
+					  } else if (["color", "colour", "diffuseColor", "colour_keyframe"].includes(property)) {
+						// For colors, get and clone the diffuseColor.
+						if (targetMesh.material && targetMesh.material.diffuseColor) {
+						  currentValue = targetMesh.material.diffuseColor.clone();
+						} else {
+						  currentValue = BABYLON.Color3.FromHexString("#ffffff");
+						}
+					  } else {
+						// For other properties, read the value directly.
+						currentValue = targetMesh[propertyToAnimate];
+						if (currentValue && typeof currentValue.clone === "function") {
+						  currentValue = currentValue.clone();
+						}
+					  }
+					  forwardKeyframes.unshift({ frame: 0, value: currentValue });
+					}
+
+					// Generate reverse keyframes by mirroring forward frames
+					const reverseKeyframes = reverse
+						? forwardKeyframes
+								.slice(0, -1) // Exclude the last frame to avoid duplication
+								.reverse()
+								.map((keyframe, index) => ({
+									frame:
+										forwardKeyframes[
+											forwardKeyframes.length - 1
+										].frame +
+										(forwardKeyframes[index + 1]?.frame -
+											keyframe.frame),
+									value: keyframe.value,
+								}))
+						: [];
+
+					// Combine forward and reverse keyframes
+					const allKeyframes = [
+						...forwardKeyframes,
+						...reverseKeyframes,
+					];
+
+					// Ensure sufficient keyframes
+					if (allKeyframes.length > 1) {
+						keyframeAnimation.setKeys(allKeyframes);
+					} else {
+						console.warn("Insufficient keyframes for animation.");
+						continue; // Skip this mesh
+					}
+
+					// Apply easing function
+					flock.applyEasing(keyframeAnimation, easing);
+
+					// Add the animation to the group
+					flock.addAnimationToGroup(
+						animationGroup,
+						keyframeAnimation,
+						targetMesh,
+					);
+
+					//console.log(`Added animation to group "${animationGroupName}" for property "${property}" on mesh "${targetMesh.name}".`);
+				}
+
+				if (animationGroup.targetedAnimations.length === 0) {
+					console.warn("No animations added to the group.");
+					resolve(animationGroupName);
+					return;
+				}
+
+				if (mode === "START" || mode === "AWAIT") {
+					// Start the animation group
+					animationGroup.play(loop);
+
+					if (mode === "AWAIT") {
+						animationGroup.onAnimationEndObservable.add(() => {
+							resolve(animationGroupName);
+						});
+					} else {
+						resolve(animationGroupName);
+					}
+				} else if (mode === "CREATE") {
+					// Do not start the animation group and prevent automatic playback
+					animationGroup.stop(); // Explicitly ensure animations do not play
+					animationGroup.onAnimationGroupPlayObservable.clear(); // Clear any unintended triggers
+					//console.log("Animation group created but not started.");
+					resolve(animationGroupName);
+				} else {
+					console.warn(`Unknown mode: ${mode}`);
+					resolve(animationGroup);
+				}
+			});
+		});
+	},
+	createAnimation2(
+		animationGroupName,
+		meshName,
+		property,
+		keyframes,
+		easing = "Linear",
+		loop = false,
+		reverse = false,
+		mode = "START", // Default to starting the animation
+	) {
+
+		console.log("Keyframe animation with", keyframes);
+
+		
 		return new Promise(async (resolve) => {
 			// Ensure animationGroupName is not null; generate a unique name if it is
 			animationGroupName =
