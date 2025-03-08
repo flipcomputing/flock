@@ -513,11 +513,16 @@ export function defineGenerators() {
 		return `await setPivotPoint(${meshVar}, ${xPivot}, ${yPivot}, ${zPivot});\n`;
 	};
 
-	javascriptGenerator.forBlock["start"] = function (block) {
+	javascriptGenerator.forBlock["start2"] = function (block) {
 		const branch = javascriptGenerator.statementToCode(block, "DO");
 		return `(async () => {\n${branch}})();\n`;
 	};
 
+	javascriptGenerator.forBlock["start"] = function (block) {
+		const branch = javascriptGenerator.statementToCode(block, "DO");
+		return `start(async function() {\n${branch}});\n`;
+	};
+	
 	javascriptGenerator.forBlock["create_ground"] = function (block) {
 		const meshId = "ground";
 		meshMap[meshId] = block;
@@ -1493,7 +1498,7 @@ export function defineGenerators() {
 	javascriptGenerator.forBlock["forever"] = function (block) {
 		const branch = javascriptGenerator.statementToCode(block, "DO");
 
-		const code = `forever(async () => {\n${branch}});\n`;
+		const code = `forever(async function(){\n${branch}});\n`;
 		return code;
 	};
 

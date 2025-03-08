@@ -191,6 +191,7 @@ export const flock = {
 				onEvent,
 				broadcastEvent,
 				Mesh,
+				start,
 				forever,
 				whenKeyEvent,
 				randomInteger,
@@ -7581,6 +7582,9 @@ export const flock = {
 				},
 			);
 		});
+	},
+	start(action) {
+		flock.scene.onBeforeRenderObservable.addOnce(action);
 	},
 	async forever(action) {
 		let isDisposed = false;
