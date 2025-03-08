@@ -6,7 +6,7 @@
         "type": "procedures_defnoreturn",
         "id": "!CWwCs8xhg+Cnrjv{d(_",
         "x": 10,
-        "y": 1434,
+        "y": 1242,
         "extraState": {
           "params": [
             {
@@ -826,13 +826,16 @@
                                                                       "inputs": {
                                                                         "DO": {
                                                                           "block": {
-                                                                            "type": "animate_keyframes",
-                                                                            "id": "xV+#P)n)g8Vh)1qosta-",
+                                                                            "type": "animation",
+                                                                            "id": "cNhw}C:S0#rkM7qwvfkv",
                                                                             "fields": {
                                                                               "MESH": {
                                                                                 "id": "WtlVyAUDQ,Suq##wpcr:"
                                                                               },
                                                                               "PROPERTY": "rotation",
+                                                                              "ANIMATION_GROUP": {
+                                                                                "id": "nhK%DXs!!9-htKmu1+=f"
+                                                                              },
                                                                               "EASING": "LINEAR",
                                                                               "LOOP": false,
                                                                               "REVERSE": false,
@@ -941,13 +944,16 @@
                                                                             },
                                                                             "next": {
                                                                               "block": {
-                                                                                "type": "animate_keyframes",
-                                                                                "id": "hJ+V=WeNK)M.k{VDU~(O",
+                                                                                "type": "animation",
+                                                                                "id": "/`^2#]ULl2hN03BTQ]h+",
                                                                                 "fields": {
                                                                                   "MESH": {
                                                                                     "id": "1t}B4(yQIV0oAPv!xGz@"
                                                                                   },
                                                                                   "PROPERTY": "rotation",
+                                                                                  "ANIMATION_GROUP": {
+                                                                                    "id": "nhK%DXs!!9-htKmu1+=f"
+                                                                                  },
                                                                                   "EASING": "LINEAR",
                                                                                   "LOOP": false,
                                                                                   "REVERSE": false,
@@ -1085,13 +1091,16 @@
                                                                                     },
                                                                                     "next": {
                                                                                       "block": {
-                                                                                        "type": "animate_keyframes",
-                                                                                        "id": "mSVV/QE@uPdVj.RFP!~U",
+                                                                                        "type": "animation",
+                                                                                        "id": ",.@|@Y%O!HDMH9;Hdtq^",
                                                                                         "fields": {
                                                                                           "MESH": {
                                                                                             "id": "WtlVyAUDQ,Suq##wpcr:"
                                                                                           },
                                                                                           "PROPERTY": "rotation",
+                                                                                          "ANIMATION_GROUP": {
+                                                                                            "id": "N1~)Of/UsjPx|]p@ZFGn"
+                                                                                          },
                                                                                           "EASING": "LINEAR",
                                                                                           "LOOP": false,
                                                                                           "REVERSE": false,
@@ -1200,13 +1209,16 @@
                                                                                         },
                                                                                         "next": {
                                                                                           "block": {
-                                                                                            "type": "animate_keyframes",
-                                                                                            "id": "3$cZbZ.Y9jJ}A_K=/2^q",
+                                                                                            "type": "animation",
+                                                                                            "id": "sJ!+=nKrh;G%a2%j3b|Y",
                                                                                             "fields": {
                                                                                               "MESH": {
                                                                                                 "id": "1t}B4(yQIV0oAPv!xGz@"
                                                                                               },
                                                                                               "PROPERTY": "rotation",
+                                                                                              "ANIMATION_GROUP": {
+                                                                                                "id": "N1~)Of/UsjPx|]p@ZFGn"
+                                                                                              },
                                                                                               "EASING": "LINEAR",
                                                                                               "LOOP": false,
                                                                                               "REVERSE": false,
@@ -1397,6 +1409,7 @@
             "block": {
               "type": "procedures_callnoreturn",
               "id": "Y,lABKTC8vrT^-AxIFF0",
+              "inline": true,
               "extraState": {
                 "name": "Construct finger",
                 "params": ["x"]
@@ -1420,12 +1433,13 @@
         "type": "start",
         "id": "_:y;j@CnbXH!CH-B1V@W",
         "x": 10,
-        "y": 1002,
+        "y": 906,
         "inputs": {
           "DO": {
             "block": {
               "type": "procedures_callnoreturn",
               "id": "B+uF7K#gWl`X~#33).aH",
+              "inline": true,
               "extraState": {
                 "name": "Construct finger",
                 "params": ["x"]
@@ -1449,12 +1463,13 @@
         "type": "start",
         "id": "lsQAS--/~?lEAv=}z.5q",
         "x": 10,
-        "y": 786,
+        "y": 738,
         "inputs": {
           "DO": {
             "block": {
               "type": "procedures_callnoreturn",
               "id": "5S#vOnCV`$;3[V|#3srR",
+              "inline": true,
               "extraState": {
                 "name": "Construct finger",
                 "params": ["x"]
@@ -1478,12 +1493,13 @@
         "type": "start",
         "id": "d(V-hw^U)u3*($G1k1I#",
         "x": 10,
-        "y": 1218,
+        "y": 1074,
         "inputs": {
           "DO": {
             "block": {
               "type": "procedures_callnoreturn",
               "id": ")8L}d;$[f+Wk?srOdBif",
+              "inline": true,
               "extraState": {
                 "name": "Construct finger",
                 "params": ["x"]
@@ -1793,11 +1809,11 @@
         "type": "when_key_event",
         "id": "doV$C)zmn$d;5-GW{o|6",
         "x": 10,
-        "y": 4406,
+        "y": 4214,
         "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" inline=\"false\"></mutation>",
         "fields": {
           "KEY": "v",
-          "EVENT": "pressed"
+          "EVENT": "released"
         },
         "inputs": {
           "DO": {
@@ -1828,7 +1844,7 @@
         "type": "procedures_defnoreturn",
         "id": ".^u_{N)cOXd7Y;hUA7[a",
         "x": 10,
-        "y": 4088,
+        "y": 3896,
         "fields": {
           "NAME": "drop ball"
         },
@@ -1966,7 +1982,7 @@
         "type": "when_key_event",
         "id": "-AgZ[(iG[6j?DmJy:L/c",
         "x": 10,
-        "y": 4578,
+        "y": 4386,
         "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" inline=\"false\"></mutation>",
         "fields": {
           "KEY": "b",
@@ -2030,6 +2046,14 @@
     {
       "name": "sphere2",
       "id": "-di*kFuoS?y,PFU2~F:6"
+    },
+    {
+      "name": "animation1",
+      "id": "nhK%DXs!!9-htKmu1+=f"
+    },
+    {
+      "name": "animation2",
+      "id": "N1~)Of/UsjPx|]p@ZFGn"
     }
   ]
 }
