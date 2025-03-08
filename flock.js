@@ -3046,7 +3046,6 @@ export const flock = {
 	},
 	createBox(boxId, color, width, height, depth, position, alpha = 1) {
 
-		console.log("Creating box", boxId);
 		let blockKey = boxId;
 
 		if (boxId.includes("__")) {

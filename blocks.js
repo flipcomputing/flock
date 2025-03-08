@@ -1460,7 +1460,6 @@ export function defineBlocks() {
             // Note: Many blocks have these defined even if they aren’t connected, so this test
             // simply means “this block is chainable.”
             if (changedBlock.nextConnection || changedBlock.previousConnection) {
-              console.log("Ignoring change from chainable block", changedBlock.type);
               return;
             }
             // Otherwise, update.
@@ -1628,8 +1627,7 @@ export function defineBlocks() {
         //console.log("Update colour", colour, colourIndex);
         const colorsInput = this.getInput("COLORS");
         if (!colorsInput || !colorsInput.connection) {
-          console.log("COLORS input is not available.");
-          return;
+           return;
         }
         const listBlock = colorsInput.connection.targetBlock();
         if (!listBlock || listBlock.type !== "lists_create_with") {
@@ -5269,8 +5267,6 @@ export function handleBlockCreateEvent(
   if (window.loadingCode) return; // Don't rename variables during code loading
   
   if (blockInstance.id !== changeEvent.blockId) return;
-  console.log("Create event", changeEvent, changeEvent.recordUndo);
-  
   // Check if this is an undo/redo operation
   const isUndo = !changeEvent.recordUndo;
 
@@ -5279,12 +5275,10 @@ export function handleBlockCreateEvent(
     changeEvent.type === Blockly.Events.BLOCK_CREATE &&
     changeEvent.ids.includes(blockInstance.id)
   ) {
-    console.log("Create event - update variable");
     // Skip renaming variables if this is an undo
     if (isUndo /*&& !handleBlockCreateEvent.group === "duplicate"*/) return;
     // Add this back in when have 'this' support or can rename the variables in the constructor
 
-    console.log("Create event - update variable");
     // Check if the specified field already has a value
     const variableField = blockInstance.getField(fieldName);
     if (variableField) {

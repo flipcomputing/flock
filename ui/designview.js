@@ -508,7 +508,6 @@ export function updateMeshFromBlock(mesh, block, changeEvent) {
 }
 
 function createMeshOnCanvas(block) {
-  console.log("Create mesh on canvas", block.id);
 
   Blockly.Events.setGroup(true);
 
@@ -818,8 +817,6 @@ function createMeshOnCanvas(block) {
   }
 
   Blockly.Events.setGroup(false);
-
-  console.log("Created mesh on canvas", block.id);
 }
 
 function setAbsoluteSize(mesh, width, height, depth) {
@@ -986,7 +983,6 @@ function updateCylinderGeometry(
 // Helper function to create and attach shadow blocks
 function addShadowBlock(block, inputName, blockType, defaultValue) {
 
-  console.log("Adding shadow block for input", inputName, blockType, defaultValue);
   const shadowBlock = Blockly.getMainWorkspace().newBlock(blockType);
 
   // Determine the correct field based on block type
