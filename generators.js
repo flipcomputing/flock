@@ -517,12 +517,12 @@ export function defineGenerators() {
 		return `await setPivotPoint(${meshVar}, ${xPivot}, ${yPivot}, ${zPivot});\n`;
 	};
 
-	javascriptGenerator.forBlock["start2"] = function (block) {
+	javascriptGenerator.forBlock["start"] = function (block) {
 		const branch = javascriptGenerator.statementToCode(block, "DO");
 		return `(async () => {\n${branch}})();\n`;
 	};
 
-	javascriptGenerator.forBlock["start"] = function (block) {
+	javascriptGenerator.forBlock["start2"] = function (block) {
 		const branch = javascriptGenerator.statementToCode(block, "DO");
 		return `start(async function() {\n${branch}});\n`;
 	};
