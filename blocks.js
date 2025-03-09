@@ -1638,7 +1638,7 @@ export function defineBlocks() {
         const inputName = "ADD" + colourIndex;
         let input = listBlock.getInput(inputName);
         if (!input) {
-          console.log("Input", inputName, "not found. Creating new input.");
+         
           //input = listBlock.appendValueInput(inputName).setCheck("Colour");
           return;
         }
@@ -5275,15 +5275,13 @@ class FieldLexicalVariable extends Blockly.FieldDropdown {
   }
 
   setValue(value) {
-    console.log("Option selected:", value);
     if (value === '__RENAME__') {
       setTimeout(() => {
         const currentName = String(super.getValue());
-        console.log("Rename triggered. Current name:", currentName);
+      
         const newName = window.prompt("Rename variable", currentName);
         if (newName && newName !== currentName) {
-          console.log("Renaming to:", newName);
-          // Update the block’s internal variable (if implemented).
+          
           if (this.sourceBlock_ &&
               typeof this.sourceBlock_.setLexicalVariable === 'function') {
             this.sourceBlock_.setLexicalVariable(String(newName));
@@ -5317,13 +5315,13 @@ class FieldLexicalVariable extends Blockly.FieldDropdown {
             this.sourceBlock_.render();
           }
         } else {
-          console.log("Rename cancelled or no change.");
+
         }
       }, 0);
       return null;
     } else if (value === '__GET__') {
       setTimeout(() => {
-        console.log("Get triggered. Variable name:", String(super.getValue()));
+        
         const variableName = String(super.getValue());
         const workspace = this.sourceBlock_.workspace;
         const newBlock = workspace.newBlock('get_lexical_variable');
@@ -5331,13 +5329,12 @@ class FieldLexicalVariable extends Blockly.FieldDropdown {
         newBlock.render();
         newBlock.setFieldValue(String(variableName), 'VAR');
         newBlock.variableSourceId = this.variableId_;
-        console.log("Created getter block with source ID:", this.variableId_);
+       
         const xy = this.sourceBlock_.getRelativeToSurfaceXY();
         newBlock.moveBy(xy.x + 20, xy.y + 20);
       }, 0);
       return null;
     } else {
-      console.log("Normal selection, setting value:", value);
       return super.setValue(String(value));
     }
   }
@@ -5363,8 +5360,6 @@ class FieldLexicalVariable extends Blockly.FieldDropdown {
     ];
     this.menuGenerator_ = () => this.cachedOptions_;
   }
-
-
 }
 
 
@@ -5543,7 +5538,6 @@ Blockly.Blocks["for_loop"] = {
   }
 };
 
-
 Blockly.Blocks['get_lexical_variable'] = {
   init: function() {
     this.jsonInit({
@@ -5587,7 +5581,45 @@ Blockly.Blocks['get_lexical_variable'] = {
   }
 };
 
+Blockly.Blocks['get_lexical_variable'].onchange = function(event) {
+  // Only process if this is a move, create, or similar event that might affect scoping
+  if (event.type === Blockly.Events.BLOCK_MOVE || 
+      event.type === Blockly.Events.BLOCK_CREATE ||
+      event.type === Blockly.Events.BLOCK_CHANGE) {
 
+    if (!this.workspace) return; // Skip if no workspace
+
+    const variableName = this.getFieldValue('VAR');
+    let currentBlock = this;
+    let found = false;
+
+    // Traverse up the block hierarchy to find the closest for_loop with matching variable
+    while (currentBlock = currentBlock.getParent()) {
+      if (currentBlock.type === 'for_loop') {
+        const loopVarName = currentBlock.getFieldValue('VAR');
+        const field = currentBlock.getField('VAR');
+
+        if (loopVarName === variableName && field) {
+          // Found a matching for_loop parent
+          const variableId = field.variableId_ || ''; 
+
+          // Update this getter's source ID
+          this.variableSourceId = variableId;
+          found = true;
+          break;
+        }
+      }
+    }
+
+    if (!found) {
+      // No matching for_loop found, disconnect if connected to anything
+      const parentConnection = this.outputConnection.targetConnection;
+      if (parentConnection) {
+        parentConnection.disconnect();
+      }
+    }
+  }
+};
 
 export function addDoMutatorWithToggleBehavior(block) {
   // Custom function to toggle the "do" block mutation
