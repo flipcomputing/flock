@@ -2848,7 +2848,7 @@ javascriptGenerator.forBlock["controls_repeat_ext"] = function (
 	return code;
 };
 
-Blockly.Msg.CONTROLS_FOR_TITLE = "for each %1 from %2 to %3 by %4";
+
 javascriptGenerator.forBlock["controls_for"] = function (block, generator) {
 	const variable0 = generator.getVariableName(block.getFieldValue("VAR"));
 
@@ -2884,6 +2884,48 @@ javascriptGenerator.forBlock["controls_for"] = function (block, generator) {
 			}
 		}
 	`;
+};
+
+javascriptGenerator.forBlock["for_loop"] = function (block, generator) {
+	const variable0 = generator.getVariableName(block.getFieldValue("VAR"));
+
+	const argument0 =
+		generator.valueToCode(block, "FROM", generator.ORDER_ASSIGNMENT) || "0";
+	const argument1 =
+		generator.valueToCode(block, "TO", generator.ORDER_ASSIGNMENT) || "0";
+	const increment =
+		generator.valueToCode(block, "BY", generator.ORDER_ASSIGNMENT) || "1";
+
+	const branch = generator.statementToCode(block, "DO");
+
+	// Timing and iteration counter variables
+	const timingVar = generator.nameDB_.getDistinctName(
+		`${variable0}_timing`,
+		Blockly.Names.DEVELOPER_VARIABLE_TYPE,
+	);
+
+	const counterVar = generator.nameDB_.getDistinctName(
+		`${variable0}_counter`,
+		Blockly.Names.DEVELOPER_VARIABLE_TYPE,
+	);
+
+	return `
+		let ${timingVar} = performance.now();
+		let ${counterVar} = 0;
+		for (let ${variable0} = ${argument0}; (${increment} > 0 ? ${variable0} <= ${argument1} : ${variable0} >= ${argument1}); ${variable0} += ${increment}) {
+			${branch}
+			${counterVar}++;
+			if (${counterVar} % 10 === 0 && performance.now() - ${timingVar} > 16) {
+				await new Promise(resolve => requestAnimationFrame(resolve));
+				${timingVar} = performance.now();
+			}
+		}
+	`;
+};
+javascriptGenerator.forBlock['get_lexical_variable'] = function(block) {
+  const variableName = block.getFieldValue('VAR');
+  const code = variableName;
+  return [code, javascriptGenerator.ORDER_ATOMIC];
 };
 
 javascriptGenerator.forBlock["controls_forEach"] = function (block, generator) {

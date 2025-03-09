@@ -1952,6 +1952,37 @@ const toolboxControl = {
 		},
 		{
 			kind: "block",
+			type: "for_loop",
+			keyword: "for",
+			inputs: {
+				FROM: {
+					shadow: {
+						type: "math_number",
+						fields: {
+							NUM: 0
+						}
+					}
+				},
+				TO: {
+					shadow: {
+						type: "math_number",
+						fields: {
+							NUM: 9
+						}
+					}
+				},
+				BY: {
+					shadow: {
+						type: "math_number",
+						fields: {
+							NUM: 1
+						}
+					}
+				}
+			}
+		},
+		{
+			kind: "block",
 			type: "controls_forEach",
 			keyword: "each",
 		},

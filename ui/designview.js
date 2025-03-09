@@ -988,7 +988,6 @@ function addShadowBlock(block, inputName, blockType, defaultValue) {
   // Determine the correct field based on block type
   const fieldName = ["colour", "skin_colour"].includes(blockType) ? "COLOR" : "NUM";  
 
-  console.log("Adding shadow block", shadowBlock.id);
   shadowBlock.setFieldValue(String(defaultValue), fieldName);
   shadowBlock.setShadow(true); // Ensure it's treated as a shadow block
   shadowBlock.setMovable(false); // Prevent dragging

@@ -5215,6 +5215,380 @@ Blockly.Msg["CONTROLS_FOR_INPUT_DO"] = "";
 Blockly.Msg["CONTROLS_FOREACH_INPUT_DO"] = "";
 Blockly.Msg["CONTROLS_IF_MSG_THEN"] = "";
 Blockly.Msg["CONTROLS_IF_MSG_ELSE"] = "else\n";
+
+Blockly.Msg["CONTROLS_FOR_TITLE"] = "for each %1 from %2 to %3 by %4";
+
+class FieldLexicalVariable extends Blockly.FieldDropdown {
+  constructor(opt_value, opt_validator) {
+    // Force a default value of "count" if none is provided.
+    if (opt_value === null || opt_value === undefined || opt_value === "") {
+      opt_value = "count";
+    }
+    super(opt_value, opt_validator);
+    // Always use our custom options generator.
+    this.menuGenerator_ = this.generateOptions.bind(this);
+    this.variableId_ = Blockly.utils.genUid
+      ? Blockly.utils.genUid()
+      : Math.random().toString(36).substring(2, 15);
+    this.cachedOptions_ = null;
+
+    // Ensure that the value is set (if somehow still null).
+    if (!this.getValue()) {
+      super.setValue("count");
+    }
+  }
+
+  // Always show the current variable (only one) plus the extra options.
+  computeOptions() {
+    // If the field's value is null-ish, force it to "count".
+    let current = super.getValue();
+    if (current === null || current === undefined || current === "") {
+      current = "count";
+      super.setValue(current);
+    } else {
+      current = String(current);
+    }
+    return [
+      [current, current],
+      ['Rename variable…', '__RENAME__'],
+      ['Get variable', '__GET__']
+    ];
+  }
+
+  // Return our cached options if available.
+  generateOptions() {
+    if (this.cachedOptions_) {
+      return this.cachedOptions_;
+    }
+    this.cachedOptions_ = this.computeOptions();
+    return this.cachedOptions_;
+  }
+
+  // Ensure that any caller asking for options gets our cached copy.
+  getOptions() {
+    return this.cachedOptions_ || this.computeOptions();
+  }
+
+  // Bypass default class validation so our new value is always accepted.
+  doClassValidation_(newValue) {
+    return newValue;
+  }
+
+  setValue(value) {
+    console.log("Option selected:", value);
+    if (value === '__RENAME__') {
+      setTimeout(() => {
+        const currentName = String(super.getValue());
+        console.log("Rename triggered. Current name:", currentName);
+        const newName = window.prompt("Rename variable", currentName);
+        if (newName && newName !== currentName) {
+          console.log("Renaming to:", newName);
+          // Update the block’s internal variable (if implemented).
+          if (this.sourceBlock_ &&
+              typeof this.sourceBlock_.setLexicalVariable === 'function') {
+            this.sourceBlock_.setLexicalVariable(String(newName));
+          }
+          // Recompute and "lock in" our options with the new variable.
+          this.cachedOptions_ = [
+            [String(newName), String(newName)],
+            ['Rename variable…', '__RENAME__'],
+            ['Get variable', '__GET__']
+          ];
+          // Force our generator to return the updated options.
+          this.menuGenerator_ = () => this.cachedOptions_;
+          // Update any getter blocks that reference this variable.
+          if (this.sourceBlock_ && this.sourceBlock_.workspace) {
+            const workspace = this.sourceBlock_.workspace;
+            const allBlocks = workspace.getAllBlocks(false);
+            allBlocks.forEach(block => {
+              if (block.type === 'get_lexical_variable' &&
+                  block.variableSourceId === this.variableId_) {
+                if (typeof block.updateVariable === 'function') {
+                  block.updateVariable(newName);
+                } else {
+                  block.setFieldValue(String(newName), 'VAR');
+                }
+              }
+            });
+          }
+          // Finally, update the field's value.
+          super.setValue(String(newName));
+          if (this.sourceBlock_) {
+            this.sourceBlock_.render();
+          }
+        } else {
+          console.log("Rename cancelled or no change.");
+        }
+      }, 0);
+      return null;
+    } else if (value === '__GET__') {
+      setTimeout(() => {
+        console.log("Get triggered. Variable name:", String(super.getValue()));
+        const variableName = String(super.getValue());
+        const workspace = this.sourceBlock_.workspace;
+        const newBlock = workspace.newBlock('get_lexical_variable');
+        newBlock.initSvg();
+        newBlock.render();
+        newBlock.setFieldValue(String(variableName), 'VAR');
+        newBlock.variableSourceId = this.variableId_;
+        console.log("Created getter block with source ID:", this.variableId_);
+        const xy = this.sourceBlock_.getRelativeToSurfaceXY();
+        newBlock.moveBy(xy.x + 20, xy.y + 20);
+      }, 0);
+      return null;
+    } else {
+      console.log("Normal selection, setting value:", value);
+      return super.setValue(String(value));
+    }
+  }
+
+  doValueValidation_(newValue) {
+    return newValue;
+  }
+
+  saveExtraState() {
+    return {
+      variableId: this.variableId_,
+      value: this.getValue()
+    };
+  }
+
+  loadExtraState(state) {
+    this.variableId_ = state.variableId;
+    super.setValue(state.value);
+    this.cachedOptions_ = [
+      [state.value, state.value],
+      ['Rename variable…', '__RENAME__'],
+      ['Get variable', '__GET__']
+    ];
+    this.menuGenerator_ = () => this.cachedOptions_;
+  }
+
+
+}
+
+
+Blockly.fieldRegistry.register('field_lexical_variable', FieldLexicalVariable);
+
+Blockly.Blocks["for_loop2"] = {
+  init: function () {
+    this.jsonInit({
+      type: "for_loop",
+      message0: "for each %1 from %2 to %3 by %4 do %5",
+      args0: [
+        {
+          type: "field_lexical_variable",
+          name: "VAR",
+          text: "count", // Default variable name is "count"
+          options: [["count", "count"]]
+        },
+        {
+          type: "input_value",
+          name: "FROM",
+          check: "Number"
+        },
+        {
+          type: "input_value",
+          name: "TO",
+          check: "Number"
+        },
+        {
+          type: "input_value",
+          name: "BY",
+          check: "Number"
+        },
+        {
+          type: "input_statement",
+          name: "DO"
+        }
+      ],
+      previousStatement: null,
+      nextStatement: null,
+      colour: categoryColours["Control"],
+      inputsInline: true,
+      tooltip: "Loop from a starting number to an ending number by a given step.",
+      helpUrl: ""
+    });
+  },
+
+  // Returns an array of local variable names.
+  getLexicalVariables: function() {
+    return [this.getFieldValue("VAR")];
+  },
+
+  // Update the variable name on this block.
+  setLexicalVariable: function(newName) {
+    this.setFieldValue(String(newName), "VAR");
+  },
+
+  // Save the current variable name in a mutation.
+  mutationToDom: function() {
+    const container = document.createElement('mutation');
+    container.setAttribute('var', this.getFieldValue('VAR'));
+    return container;
+  },
+
+  // Restore the variable name from a mutation.
+  domToMutation: function(xmlElement) {
+    const variableName = xmlElement.getAttribute('var');
+    this.setFieldValue(variableName, 'VAR');
+  }
+};
+
+Blockly.Blocks["for_loop"] = {
+  init: function () {
+    this.jsonInit({
+      type: "for_loop",
+      message0: "for each %1 from %2 to %3 by %4 do %5",
+      args0: [
+        {
+          type: "field_lexical_variable",
+          name: "VAR",
+          text: "count", // Default variable name is "count"
+          options: [["count", "count"]]
+        },
+        {
+          type: "input_value",
+          name: "FROM",
+          check: "Number"
+        },
+        {
+          type: "input_value",
+          name: "TO",
+          check: "Number"
+        },
+        {
+          type: "input_value",
+          name: "BY",
+          check: "Number"
+        },
+        {
+          type: "input_statement",
+          name: "DO"
+        }
+      ],
+      previousStatement: null,
+      nextStatement: null,
+      colour: categoryColours["Control"],
+      inputsInline: true,
+      tooltip: "Loop from a starting number to an ending number by a given step. Click on the dropdown to get the loop variable to use in your code.",
+      helpUrl: ""
+    });
+  },
+
+  // Returns an array of local variable names.
+  getLexicalVariables: function() {
+    return [this.getFieldValue("VAR")];
+  },
+
+  // Update the variable name on this block.
+  setLexicalVariable: function(newName) {
+    this.setFieldValue(String(newName), "VAR");
+  },
+
+  onchange: function(event) {
+    if (event.type === Blockly.Events.BLOCK_CREATE && event.ids.includes(this.id)) {
+      const field = this.getField("VAR");
+      if (field && field.variableId_) {
+        const oldId = field.variableId_;
+        const newId = Blockly.utils.idGenerator.genUid();
+        field.variableId_ = newId;
+
+        // Recursively update nested getter blocks.
+        const updateNestedBlocks = (block) => {
+          if (block.type === 'get_lexical_variable' && block.variableSourceId === oldId) {
+            block.variableSourceId = newId;
+          }
+          block.getChildren(false).forEach(updateNestedBlocks);
+        };
+
+        // Update getter blocks inside the DO input.
+        const doConnection = this.getInput('DO')?.connection;
+        if (doConnection && doConnection.targetBlock()) {
+          updateNestedBlocks(doConnection.targetBlock());
+        }
+      }
+    }
+  },
+
+  // Save the current variable name and its unique id in a mutation.
+  mutationToDom: function() {
+    const container = document.createElement('mutation');
+    const field = this.getField("VAR");
+  
+    if (field && field.saveExtraState) {
+      const extraState = field.saveExtraState();
+      container.setAttribute('var', extraState.value);
+      container.setAttribute('variableid', extraState.variableId);
+    } else {
+      container.setAttribute('var', this.getFieldValue('VAR'));
+    }
+    return container;
+  },
+
+
+  // Restore the variable name and unique id from the mutation.
+  domToMutation: function(xmlElement) {
+    const varName = xmlElement.getAttribute('var');
+    const variableId = xmlElement.getAttribute('variableid');
+    const field = this.getField("VAR");
+    if (field && field.loadExtraState) {
+      field.loadExtraState({
+        value: varName,
+        variableId: variableId
+      });
+    } else {
+      this.setFieldValue(varName, 'VAR');
+    }
+  }
+};
+
+
+Blockly.Blocks['get_lexical_variable'] = {
+  init: function() {
+    this.jsonInit({
+      message0: '%1',
+      args0: [
+        {
+          type: 'field_label',
+          name: 'VAR',
+          text: 'count'
+        }
+      ],
+      output: null,
+      colour: categoryColours["Variables"],
+      tooltip: 'Get the value of a lexical variable',
+      helpUrl: ''
+    });
+
+    // Initialize with a null variable source ID.
+    this.variableSourceId = null;
+  },
+  updateVariable: function(newName) {
+    this.setFieldValue(String(newName), 'VAR');
+  },
+  // Save the current variable name and source ID to the XML mutation.
+  mutationToDom: function() {
+    const container = document.createElement('mutation');
+    container.setAttribute('var', this.getFieldValue('VAR'));
+    if (this.variableSourceId) {
+      container.setAttribute('sourceid', this.variableSourceId);
+    }
+    return container;
+  },
+  // Restore the variable name and source ID from the XML mutation.
+  domToMutation: function(xmlElement) {
+    const variableName = xmlElement.getAttribute('var');
+    this.setFieldValue(variableName, 'VAR');
+    const sourceId = xmlElement.getAttribute('sourceid');
+    if (sourceId) {
+      this.variableSourceId = sourceId;
+    }
+  }
+};
+
+
+
 export function addDoMutatorWithToggleBehavior(block) {
   // Custom function to toggle the "do" block mutation
   block.toggleDoBlock = function () {
