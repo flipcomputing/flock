@@ -493,7 +493,7 @@ export const flock = {
 	  return Math.floor(Math.random() * (b - a + 1) + a);
 	},
 	printText(text, duration = 30, color = "white") {
-		if (!text || !flock.scene || !flock.stackPanel) return;
+		if (!flock.scene || !flock.stackPanel) return;
 
 		console.log(text);
 		try {
