@@ -248,28 +248,27 @@ export function updateMeshFromBlock(mesh, block, changeEvent) {
         const relativeScale = changeEvent.oldValue
           ? scale / changeEvent.oldValue
           : scale;
-      
-          mesh.computeWorldMatrix(true);
-          mesh.refreshBoundingInfo();
-          ydiff = mesh.getBoundingInfo().boundingBox.extendSizeWorld.y;
-        
+
+        mesh.computeWorldMatrix(true);
+        mesh.refreshBoundingInfo();
+        ydiff = mesh.getBoundingInfo().boundingBox.extendSizeWorld.y;
+
         rescaleBoundingBox(mesh, relativeScale);
         mesh.computeWorldMatrix(true);
-        mesh.refreshBoundingInfo();     
-       
-          flock.positionAt(
-            mesh.name,
-            mesh.position.x,
-            mesh.position.y - ydiff,
-            mesh.position.z,
-          );
-          const ydiffAfter =
-            mesh.getBoundingInfo().boundingBox.extendSizeWorld.y;
-          //mesh.position.y -= ydiffAfter;
+        mesh.refreshBoundingInfo();
 
-          console.log("Ydiff", ydiff, ydiffAfter);
-          mesh.computeWorldMatrix(true);
-          mesh.refreshBoundingInfo();
+        flock.positionAt(
+          mesh.name,
+          mesh.position.x,
+          mesh.position.y - ydiff,
+          mesh.position.z,
+        );
+        const ydiffAfter = mesh.getBoundingInfo().boundingBox.extendSizeWorld.y;
+        //mesh.position.y -= ydiffAfter;
+
+        console.log("Ydiff", ydiff, ydiffAfter);
+        mesh.computeWorldMatrix(true);
+        mesh.refreshBoundingInfo();
       }
     }
   } else {
@@ -508,7 +507,6 @@ export function updateMeshFromBlock(mesh, block, changeEvent) {
 }
 
 function createMeshOnCanvas(block) {
-
   Blockly.Events.setGroup(true);
 
   let shapeType = block.type;
@@ -982,11 +980,12 @@ function updateCylinderGeometry(
 
 // Helper function to create and attach shadow blocks
 function addShadowBlock(block, inputName, blockType, defaultValue) {
-
   const shadowBlock = Blockly.getMainWorkspace().newBlock(blockType);
 
   // Determine the correct field based on block type
-  const fieldName = ["colour", "skin_colour"].includes(blockType) ? "COLOR" : "NUM";  
+  const fieldName = ["colour", "skin_colour"].includes(blockType)
+    ? "COLOR"
+    : "NUM";
 
   shadowBlock.setFieldValue(String(defaultValue), fieldName);
   shadowBlock.setShadow(true); // Ensure it's treated as a shadow block
@@ -1169,7 +1168,7 @@ function selectCharacter(characterName) {
           // Add shadow blocks for colour inputs with default values
 
           Object.keys(colorFields).forEach((colorInputName) => {
-            console.log
+            console.log;
             addShadowBlock(
               block,
               colorInputName,
@@ -1825,7 +1824,7 @@ function toggleGizmo(gizmoType) {
           if (originalBlock) {
             // Serialize the block and its children, including shadows
 
-            Blockly.Events.setGroup('duplicate');
+            Blockly.Events.setGroup("duplicate");
             const blockJson = Blockly.serialization.blocks.save(originalBlock, {
               includeShadows: true, // Include shadow blocks in the duplication
             });
@@ -2075,25 +2074,12 @@ function toggleGizmo(gizmoType) {
               );
           } catch (e) {}
           try {
-            switch (block.type) {
-              case "create_box":
-              case "create_sphere":
-              case "create_cylinder":
-              case "create_capsule":
-              case "create_plane":
-              case "load_object":
-              case "load_multi_object":
-              case "load_character":
-                meshY -= mesh.getBoundingInfo().boundingBox.extendSizeWorld.y;
-                break;
-            }
-
+            meshY -=
+              mesh.getBoundingInfo().boundingBox.extendSize.y * mesh.scaling.y;
             block
               .getInput("Y")
               .connection.targetBlock()
               .setFieldValue(String(Math.round(meshY * 10) / 10), "NUM");
-
-            console.log("Setting y", meshY);
           } catch (e) {}
           try {
             block
@@ -2123,7 +2109,7 @@ function toggleGizmo(gizmoType) {
         while (mesh.parent && !mesh.parent.physicsImpostor) {
           mesh = mesh.parent;
         }
-        //console.log("Mesh rotated", mesh.name, mesh.blockKey, mesh.physics);
+
         const motionType =
           mesh.physics.getMotionType() ||
           flock.BABYLON.PhysicsMotionType.STATIC;
