@@ -1928,27 +1928,27 @@ const toolboxControl = {
 					shadow: {
 						type: "math_number",
 						fields: {
-							NUM: 0
-						}
-					}
+							NUM: 0,
+						},
+					},
 				},
 				TO: {
 					shadow: {
 						type: "math_number",
 						fields: {
-							NUM: 9
-						}
-					}
+							NUM: 9,
+						},
+					},
 				},
 				BY: {
 					shadow: {
 						type: "math_number",
 						fields: {
-							NUM: 1
-						}
-					}
-				}
-			}
+							NUM: 1,
+						},
+					},
+				},
+			},
 		},
 		/*{
 			kind: "block",
@@ -3400,24 +3400,24 @@ const toolboxSnippets = {
 	name: "Snippets",
 	contents: [
 		{
-		  type: "start",
-		  kind: "block",
-		  inputs: {
-			DO: {
-			  block: {
-				type: "set_sky_color",
-				inputs: {
-				  COLOR: {
-					shadow: {
-					  type: "colour",
-					  fields: {
-						COLOR: "#6495ed"
-					  }
-					}
-				  }
-				},
-				next: {
-				  block: {
+			type: "start",
+			kind: "block",
+			inputs: {
+				DO: {
+					block: {
+						type: "set_sky_color",
+						inputs: {
+							COLOR: {
+								shadow: {
+									type: "colour",
+									fields: {
+										COLOR: "#6495ed",
+									},
+								},
+							},
+						},
+						next: {
+							/*block: {
 					type: "create_ground",
 					inputs: {
 					  COLOR: {
@@ -3429,11 +3429,48 @@ const toolboxSnippets = {
 						}
 					  }
 					}
-				  }
-				}
-			  }
-			}
-		  }
+				  }*/
+							block: {
+								type: "create_map",
+								fields: {
+									MAP_NAME: "NONE",
+								},
+								inputs: {
+									MATERIAL: {
+										shadow: {
+											type: "material",
+
+											fields: {
+												TEXTURE_SET: "none.png",
+											},
+											inputs: {
+												BASE_COLOR: {
+													shadow: {
+														type: "colour",
+
+														fields: {
+															COLOR: "#71bc78",
+														},
+													},
+												},
+												ALPHA: {
+													shadow: {
+														type: "math_number",
+
+														fields: {
+															NUM: 1,
+														},
+													},
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
 		},
 		{
 			kind: "block",
