@@ -1950,7 +1950,7 @@ const toolboxControl = {
 				}
 			}
 		},
-		{
+		/*{
 			kind: "block",
 			type: "for_loop",
 			keyword: "for",
@@ -1980,7 +1980,7 @@ const toolboxControl = {
 					}
 				}
 			}
-		},
+		},*/
 		{
 			kind: "block",
 			type: "controls_forEach",
