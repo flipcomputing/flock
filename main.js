@@ -2149,6 +2149,60 @@ window.onload = function () {
 		}
 	});
 
+	/*
+		document.addEventListener("keydown", function (event){
+	  
+	  if (event.key === "Enter") {
+
+		let selectedBlock = Blockly.getSelected();
+
+		  console.log("Selected block:", selectedBlock.id);
+
+		if (selectedBlock && selectedBlock.nextConnection) {
+		  // Create a new keyword block
+		  const keywordBlock = workspace.newBlock("keyword");
+		  keywordBlock.initSvg();
+		  keywordBlock.render();
+
+		  // Save a reference to the block currently connected to selectedBlock's next
+		  const currentNextBlock = selectedBlock.getNextBlock();
+
+		  // Disconnect any currently connected block
+		  if (currentNextBlock) {
+			selectedBlock.nextConnection.disconnect();
+		  }
+
+		  // Connect the new keyword block to the selected block
+		  selectedBlock.nextConnection.connect(keywordBlock.previousConnection);
+
+		  // If there was a block after the selected block, connect it after the keyword block
+		  if (currentNextBlock && keywordBlock.nextConnection) {
+			keywordBlock.nextConnection.connect(currentNextBlock.previousConnection);
+		  }
+
+			 const workspaceSvg = workspace.getParentSvg();
+
+			 // Simulate a click on the workspace background to clear selection.
+			 const clickEvent = new MouseEvent('mousedown', {
+			   bubbles: true,
+			   cancelable: true,
+			   view: window
+			 });
+			 workspaceSvg.dispatchEvent(clickEvent);
+			keywordBlock.select();
+		
+			selectedBlock = Blockly.getSelected();
+
+			  console.log("Selected block:", selectedBlock.id);
+
+			const textInputField = keywordBlock.getField("KEYWORD");
+			if (textInputField) {
+				textInputField.showEditor_();
+			}
+		}
+	  }
+	});*/
+
 	initializeApp();
 };
 

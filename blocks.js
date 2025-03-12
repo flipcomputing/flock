@@ -5066,67 +5066,92 @@ export function defineBlocks() {
       });
     },
   };
-  // Define the placeholder block
+
   Blockly.Blocks["keyword_block"] = {
     init: function () {
-      // Add a dummy input field with a text input where users can type a keyword
       this.appendDummyInput().appendField(
         new Blockly.FieldTextInput("type a keyword to add a block"),
-        "KEYWORD",
+        "KEYWORD"
       );
       this.setTooltip("Type a keyword to change this block.");
       this.setHelpUrl("");
 
-      // Add the onchange event handler
       this.setOnChange(function (changeEvent) {
-        // Prevent infinite loop by checking if block is already replaced
+        // Prevent infinite loops or multiple replacements.
         if (this.isDisposed() || this.isReplaced) {
           return;
         }
-
-        // Get the keyword entered by the user
+        // Get the entered keyword.
         const keyword = this.getFieldValue("KEYWORD").trim();
-
-        // Look up the block type based on the keyword
+        // Lookup the new block type based on the keyword.
         const blockType = findBlockTypeByKeyword(keyword);
-
         if (blockType) {
-          // Mark the block as replaced to prevent further changes
+          // Mark the block as replaced.
           this.isReplaced = true;
-
-          // Replace with the corresponding block
           const workspace = this.workspace;
+          // Create the new block.
           const newBlock = workspace.newBlock(blockType);
 
-          // Find the block definition in the toolbox and apply shadow blocks
+          // If you have toolbox settings, apply them.
           const blockDefinition = findBlockDefinitionInToolbox(blockType);
-
           if (blockDefinition && blockDefinition.inputs) {
             applyToolboxSettings(newBlock, blockDefinition.inputs);
           }
 
-          // Initialize and render the new block
           newBlock.initSvg();
           newBlock.render();
 
-          // Safeguard against NaN values
-          const posX = this.getRelativeToSurfaceXY().x || 0;
-          const posY = this.getRelativeToSurfaceXY().y || 0;
+          // Get current block position.
+          const pos = this.getRelativeToSurfaceXY();
+          newBlock.moveBy(pos.x, pos.y);
 
-          // Move the new block to the original block's position
-          newBlock.moveBy(posX, posY);
+          // If the keyword block has a previous connection and is connected,
+          // replace it in the chain.
+          if (this.previousConnection && this.previousConnection.isConnected()) {
+            const parentBlock = this.previousConnection.targetBlock();
+            // Disconnect this block from its parent.
+            parentBlock.nextConnection.disconnect();
+            // Connect the new block in place.
+            parentBlock.nextConnection.connect(newBlock.previousConnection);
+          }
 
-          // Select the new block for immediate editing
+          // If there is a block connected to the keyword block's next connection,
+          // reattach it to the new block's next connection.
+          const nextBlock = this.getNextBlock();
+          if (nextBlock && newBlock.nextConnection) {
+            newBlock.nextConnection.connect(nextBlock.previousConnection);
+          }
+
+          // Select the new block for immediate editing.
+          
+
+          const selectedBlock = Blockly.getSelected();
+
+          if (selectedBlock) {
+            selectedBlock.unselect();
+          }
           newBlock.select();
 
-          // Dispose of the original placeholder block
+          console.log("Selected", Blockly.getSelected().id);
+          // Remove the keyword block.
+
+          // Dispose of the original keyword block.
           this.dispose();
         }
       });
     },
   };
 
-  // Function to find the block type based on the keyword
+  Blockly.Blocks["keyword"] = {
+    init: function () {
+      // Call the original keyword_block init method.
+      Blockly.Blocks["keyword_block"].init.call(this);
+      // Add chaining connections.
+      this.setPreviousStatement(true);
+      this.setNextStatement(true);
+    }
+  };
+
   function findBlockTypeByKeyword(keyword) {
     for (const category of toolbox.contents) {
       if (Array.isArray(category.contents)) {

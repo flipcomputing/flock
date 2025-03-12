@@ -209,7 +209,7 @@ const toolboxSceneLights = {
 		{
 			kind: "block",
 			type: "control_particle_system",
-			keyword: "group",
+			keyword: "cps",
 			inputsInline: true,
 		},
 		{
