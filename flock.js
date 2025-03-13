@@ -13,6 +13,7 @@ import "@fontsource/asap";
 import "@fontsource/asap/500.css";
 import "@fontsource/asap/600.css";
 import earcut from "earcut";
+import {characterNames} from "./config";
 
 // Helper functions to make flock.BABYLON js easier to use in Flock
 console.log("Flock helpers loading");
@@ -22,6 +23,7 @@ export const flock = {
 	modelPath: "./models/",
 	engine: null,
 	engineReady: false,
+	characterNames: characterNames,
 	alert: alert,
 	BABYLON: BABYLON,
 	GradientMaterial: GradientMaterial,
@@ -484,13 +486,13 @@ export const flock = {
 		flock.xrHelper = null;
 	},
 	randomInteger(a, b) {
-	  if (a > b) {
-		// Swap a and b to ensure a is smaller.
-		var c = a;
-		a = b;
-		b = c;
-	  }
-	  return Math.floor(Math.random() * (b - a + 1) + a);
+		if (a > b) {
+			// Swap a and b to ensure a is smaller.
+			var c = a;
+			a = b;
+			b = c;
+		}
+		return Math.floor(Math.random() * (b - a + 1) + a);
 	},
 	printText(text, duration = 30, color = "white") {
 		if (!flock.scene || !flock.stackPanel) return;
@@ -691,9 +693,7 @@ export const flock = {
 		if (duration > 0) {
 			setTimeout(() => {
 				if (flock.scene.UITexture.controls.includes(textBlock)) {
-					console.log(
-						`Hiding TextBlock "${textBlockId}" after ${duration} seconds.`,
-					);
+					
 					textBlock.isVisible = false; // Hide the text block
 				} else {
 					console.warn(
@@ -1163,7 +1163,7 @@ export const flock = {
 	ensureUniqueMaterial(mesh) {
 		// Helper function to clone material for a mesh
 		const cloneMaterial = (originalMaterial) => {
-			return originalMaterial.clone(`${originalMaterial.name}_clone`);
+			return originalMaterial.clone(`${originalMaterial.name}`);
 		};
 
 		// Recursive function to collect all meshes in the hierarchy
@@ -1293,7 +1293,9 @@ export const flock = {
 		bb.physics = boxBody;
 	},
 	applyColorToMaterial(part, materialName, color) {
+	
 		if (part.material && part.material.name === materialName) {
+			
 			part.material.diffuseColor = flock.BABYLON.Color3.FromHexString(
 				flock.getColorFromString(color),
 			);
@@ -2758,8 +2760,7 @@ export const flock = {
 			(system) => system.name === mesh.name,
 		);
 
-		if(particleSystem)
-		{
+		if (particleSystem) {
 			particleSystem.dispose();
 			return;
 		}
@@ -2829,7 +2830,7 @@ export const flock = {
 
 		// Break parent-child relationships
 		meshesToDispose.forEach((currentMesh) => {
-			if(currentMesh?.metadata?.currentSound){
+			if (currentMesh?.metadata?.currentSound) {
 				currentMesh.metadata.currentSound.stop();
 			}
 		});
@@ -3046,7 +3047,6 @@ export const flock = {
 		mesh.setVerticesData(BABYLON.VertexBuffer.UVKind, uvs, true);
 	},
 	createBox(boxId, color, width, height, depth, position, alpha = 1) {
-
 		let blockKey = boxId;
 
 		if (boxId.includes("__")) {
@@ -5111,7 +5111,6 @@ export const flock = {
 		reverse = false,
 		mode = "START", // Default to starting the animation
 	) {
-
 		return new Promise(async (resolve) => {
 			// Ensure animationGroupName is not null; generate a unique name if it is
 			animationGroupName =
@@ -5148,7 +5147,7 @@ export const flock = {
 					property === "alpha"
 						? [mesh, ...mesh.getDescendants()].filter(
 								(m) => m.material,
-						  ) // Include descendants for alpha
+							) // Include descendants for alpha
 						: [mesh]; // Only the root mesh for other properties
 
 				for (const targetMesh of meshesToAnimate) {
@@ -5180,29 +5179,50 @@ export const flock = {
 
 					// Add a keyframe at frame 0 if one doesn't exist already.
 					if (!forwardKeyframes.some((k) => k.frame === 0)) {
-					  let currentValue;
-					  if (property === "alpha") {
-						// For alpha, get the current alpha from the mesh's material.
-						if (targetMesh.material && typeof targetMesh.material.alpha !== "undefined") {
-						  currentValue = targetMesh.material.alpha;
+						let currentValue;
+						if (property === "alpha") {
+							// For alpha, get the current alpha from the mesh's material.
+							if (
+								targetMesh.material &&
+								typeof targetMesh.material.alpha !== "undefined"
+							) {
+								currentValue = targetMesh.material.alpha;
+							} else {
+								currentValue = 1; // Default alpha value.
+							}
+						} else if (
+							[
+								"color",
+								"colour",
+								"diffuseColor",
+								"colour_keyframe",
+							].includes(property)
+						) {
+							// For colors, get and clone the diffuseColor.
+							if (
+								targetMesh.material &&
+								targetMesh.material.diffuseColor
+							) {
+								currentValue =
+									targetMesh.material.diffuseColor.clone();
+							} else {
+								currentValue =
+									BABYLON.Color3.FromHexString("#ffffff");
+							}
 						} else {
-						  currentValue = 1; // Default alpha value.
+							// For other properties, read the value directly.
+							currentValue = targetMesh[propertyToAnimate];
+							if (
+								currentValue &&
+								typeof currentValue.clone === "function"
+							) {
+								currentValue = currentValue.clone();
+							}
 						}
-					  } else if (["color", "colour", "diffuseColor", "colour_keyframe"].includes(property)) {
-						// For colors, get and clone the diffuseColor.
-						if (targetMesh.material && targetMesh.material.diffuseColor) {
-						  currentValue = targetMesh.material.diffuseColor.clone();
-						} else {
-						  currentValue = BABYLON.Color3.FromHexString("#ffffff");
-						}
-					  } else {
-						// For other properties, read the value directly.
-						currentValue = targetMesh[propertyToAnimate];
-						if (currentValue && typeof currentValue.clone === "function") {
-						  currentValue = currentValue.clone();
-						}
-					  }
-					  forwardKeyframes.unshift({ frame: 0, value: currentValue });
+						forwardKeyframes.unshift({
+							frame: 0,
+							value: currentValue,
+						});
 					}
 
 					// Generate reverse keyframes by mirroring forward frames
@@ -5288,10 +5308,8 @@ export const flock = {
 		reverse = false,
 		mode = "START", // Default to starting the animation
 	) {
-
 		console.log("Keyframe animation with", keyframes);
 
-		
 		return new Promise(async (resolve) => {
 			// Ensure animationGroupName is not null; generate a unique name if it is
 			animationGroupName =
@@ -6015,7 +6033,22 @@ export const flock = {
 		}
 
 		// Start applying colours to the main mesh and its hierarchy
-		applyColorInOrder(mesh);
+		
+		if (!flock.characterNames.includes(mesh.metadata?.modelName)) {
+			applyColorInOrder(mesh);
+		} else {
+			
+			const characterColors = {
+				hair: colors[0],
+				skin: colors[1],
+				eyes: colors[2],
+				tshirt:  colors[3],
+				shorts:  colors[4],		
+				sleeves: colors[5],						
+			};
+			flock.applyColorsToCharacter(mesh, characterColors);
+			return;
+		}
 
 		// If no material was found, create a new one and set metadata
 		if (materialToColorMap.size === 0) {
@@ -7902,19 +7935,19 @@ export const flock = {
 					if (index !== -1) {
 						flock.globalSounds.splice(index, 1);
 					}
-					console.log(`Global sound "${soundName}" finished playing.`);
+					console.log(
+						`Global sound "${soundName}" finished playing.`,
+					);
 					resolve();
 				});
 			});
 		}
-
 
 		return flock.whenModelReady(meshName, (mesh) => {
 			handleMeshSound(mesh);
 		});
 	},
 	stopAllSounds() {
-		
 		flock.globalSounds.forEach((sound) => {
 			sound.stop();
 		});
