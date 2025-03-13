@@ -5657,6 +5657,7 @@ export function addDoMutatorWithToggleBehavior(block) {
     }
   };
 
+
   // Add the toggle button to the block
   const toggleButton = new Blockly.FieldImage(
     "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAiIGhlaWdodD0iMzAiIHZpZXdCb3g9IjAgMCAzMCAzMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4gPHBhdGggZmlsbD0id2hpdGUiIGQ9Ik0xNSA2djloLTl2M2g5djloM3YtOWg5di0zaC05di05eiIvPjwvc3ZnPg==", // Custom icon
@@ -5963,3 +5964,8 @@ Blockly.Blocks["microbit_input"] = {
     Blockly.Events.fire(mutationEvent);
   };
 })();
+
+
+// Listen for changes to blocks in the workspace
+
+

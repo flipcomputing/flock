@@ -1655,6 +1655,7 @@ window.onload = function () {
 	// Resize Blockly workspace and Babylon.js canvas when the window is resized
 	window.addEventListener("resize", onResize);
 
+	setupAutoValueBehavior(workspace);
 	workspace.addChangeListener(handleBlockSelect);
 	workspace.addChangeListener(handleBlockDelete);
 
@@ -2244,3 +2245,120 @@ const adjustViewport = () => {
 // Adjust viewport on page load and resize
 window.addEventListener("load", adjustViewport);
 window.addEventListener("resize", adjustViewport);
+
+function setupAutoValueBehavior2(workspace) {
+  workspace.addChangeListener(function(event) {
+	// Only handle events that change block structure (like adding a new input)
+	if (event.type === Blockly.Events.BLOCK_CHANGE || 
+		event.type === Blockly.Events.BLOCK_CREATE) {
+
+	  // Get the block that was changed
+	  var block = workspace.getBlockById(event.blockId);
+
+	  // Check if it's a lists_create_with block
+	  if (block && block.type === 'lists_create_with') {
+		// Count the number of inputs
+		var inputCount = 0;
+		while (block.getInput('ADD' + inputCount)) {
+		  inputCount++;
+		}
+
+		// Only proceed if there are at least 2 inputs (to have a previous item)
+		if (inputCount >= 2) {
+		  // Get the second-to-last input
+		  var previousInput = block.getInput('ADD' + (inputCount - 2));
+		  // Get the last input
+		  var lastInput = block.getInput('ADD' + (inputCount - 1));
+
+		  // If the previous input has a connection and the last one doesn't
+		  if (previousInput && previousInput.connection.targetConnection &&
+			  lastInput && !lastInput.connection.targetConnection) {
+
+			// Get the block connected to the previous input
+			var sourceBlock = previousInput.connection.targetConnection.sourceBlock_;
+
+			// Clone the block
+			var newBlock = workspace.newBlock(sourceBlock.type);
+			newBlock.initSvg();
+			newBlock.render();
+
+			// Copy field values based on block type
+			if (sourceBlock.type === 'math_number') {
+			  newBlock.setFieldValue(sourceBlock.getFieldValue('NUM'), 'NUM');
+			} else if (sourceBlock.type === 'text') {
+			  newBlock.setFieldValue(sourceBlock.getFieldValue('TEXT'), 'TEXT');
+			} else if (sourceBlock.type === 'logic_boolean') {
+			  newBlock.setFieldValue(sourceBlock.getFieldValue('BOOL'), 'BOOL');
+			} else if (sourceBlock.type === 'variables_get') {
+			  newBlock.setFieldValue(sourceBlock.getFieldValue('VAR'), 'VAR');
+			}
+
+			// Connect the new block to the last input
+			lastInput.connection.connect(newBlock.outputConnection);
+		  }
+		}
+	  }
+	}
+  });
+}
+
+function setupAutoValueBehavior(workspace) {
+  workspace.addChangeListener(function(event) {
+	// Only handle events that change block structure (like adding a new input)
+	if (event.type === Blockly.Events.BLOCK_CHANGE || 
+		event.type === Blockly.Events.BLOCK_CREATE) {
+
+	  // Get the block that was changed
+	  var block = workspace.getBlockById(event.blockId);
+
+	  // Check if it's a lists_create_with block
+	  if (block && block.type === 'lists_create_with') {
+		// Count the number of inputs
+		var inputCount = 0;
+		while (block.getInput('ADD' + inputCount)) {
+		  inputCount++;
+		}
+
+		// Only proceed if there are at least 2 inputs (to have a previous item)
+		if (inputCount >= 2) {
+		  // Get the second-to-last input
+		  var previousInput = block.getInput('ADD' + (inputCount - 2));
+		  // Get the last input
+		  var lastInput = block.getInput('ADD' + (inputCount - 1));
+
+		  // If the previous input has a connection and the last one doesn't
+		  if (previousInput && previousInput.connection.targetConnection &&
+			  lastInput && !lastInput.connection.targetConnection) {
+
+			// Get the block connected to the previous input
+			var sourceBlock = previousInput.connection.targetConnection.sourceBlock_;
+			var isShadow = sourceBlock.isShadow();
+
+			// Create a new block (shadow or regular based on the source)
+			  newBlock = workspace.newBlock(sourceBlock.type);
+			var newBlock;
+			if (isShadow) {
+				 newBlock.setShadow(true);
+			}
+			newBlock.initSvg();
+			newBlock.render();
+
+			// Copy field values based on block type
+			if (sourceBlock.type === 'math_number') {
+			  newBlock.setFieldValue(sourceBlock.getFieldValue('NUM'), 'NUM');
+			} else if (sourceBlock.type === 'text') {
+			  newBlock.setFieldValue(sourceBlock.getFieldValue('TEXT'), 'TEXT');
+			} else if (sourceBlock.type === 'logic_boolean') {
+			  newBlock.setFieldValue(sourceBlock.getFieldValue('BOOL'), 'BOOL');
+			} else if (sourceBlock.type === 'variables_get') {
+			  newBlock.setFieldValue(sourceBlock.getFieldValue('VAR'), 'VAR');
+			}
+
+			// Connect the new block to the last input
+			lastInput.connection.connect(newBlock.outputConnection);
+		  }
+		}
+	  }
+	}
+  });
+}
