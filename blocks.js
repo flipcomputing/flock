@@ -1249,7 +1249,7 @@ export function defineBlocks() {
               const baseName = name.replace(/\.[^/.]+$/, "");
               return [
                 {
-                  src: `./images/${baseName}.png`,
+                  src: `${flock.imagePath}${baseName}.png`,
                   width: 50,
                   height: 50,
                   alt: baseName,
@@ -1374,7 +1374,7 @@ export function defineBlocks() {
               const baseName = name.replace(/\.[^/.]+$/, "");
               return [
                 {
-                  src: `./images/${baseName}.png`,
+                  src: `${flock.imagePath}${baseName}.png`,
                   width: 50,
                   height: 50,
                   alt: baseName,
@@ -1498,7 +1498,7 @@ export function defineBlocks() {
               const baseName = name.replace(/\.[^/.]+$/, "");
               return [
                 {
-                  src: `./images/${baseName}.png`,
+                  src: `${flock.imagePath}/${baseName}.png`,
                   width: 50,
                   height: 50,
                   alt: baseName,
@@ -1727,7 +1727,7 @@ export function defineBlocks() {
               const baseName = name.replace(/\.[^/.]+$/, "");
               return [
                 {
-                  src: `./images/${baseName}.png`,
+                  src: `${flock.imagePath}${baseName}.png`,
                   width: 50,
                   height: 50,
                   alt: baseName,

@@ -22,6 +22,7 @@ export const flock = {
 	console: console,
 	modelPath: "./models/",
 	soundPath: "./sounds/",
+	imagePath: "./images/",
 	engine: null,
 	engineReady: false,
 	characterNames: characterNames,
@@ -8244,6 +8245,8 @@ export function initializeFlock() {
 					"https://flipcomputing.github.io/flock/models/";
 				flock.soundPath =
 					"https://flipcomputing.github.io/flock/sounds/";
+				flock.imagePath =
+					"https://flipcomputing.github.io/flock/images/";
 				const userCode = scriptElement.textContent;
 				flock.runCode(userCode);
 			})
