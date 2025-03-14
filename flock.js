@@ -7843,10 +7843,6 @@ export const flock = {
 		flock.scene.onDisposeObservable.add(disposeHandler);
 	},
 	playSound(meshName = "__everywhere__", soundName, options = {}) {
-		console.log(
-			`playSound called with meshName: ${meshName}, soundName: ${soundName}, options:`,
-			options,
-		);
 
 		const handleMeshSound = (mesh) => {
 			if (!mesh) {
@@ -7932,9 +7928,7 @@ export const flock = {
 					if (index !== -1) {
 						flock.globalSounds.splice(index, 1);
 					}
-					console.log(
-						`Global sound "${soundName}" finished playing.`,
-					);
+					
 					resolve();
 				});
 			});
