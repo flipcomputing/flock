@@ -8248,7 +8248,7 @@ export function initializeFlock() {
 					"https://flipcomputing.github.io/flock/sounds/";
 				flock.imagePath =
 					"https://flipcomputing.github.io/flock/images/";
-				flock.textturePath =
+				flock.texturePath =
 					"https://flipcomputing.github.io/flock/textures/";
 				const userCode = scriptElement.textContent;
 				flock.runCode(userCode);
