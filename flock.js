@@ -13,7 +13,7 @@ import "@fontsource/asap";
 import "@fontsource/asap/500.css";
 import "@fontsource/asap/600.css";
 import earcut from "earcut";
-import {characterNames} from "./config";
+import { characterNames } from "./config";
 
 // Helper functions to make flock.BABYLON js easier to use in Flock
 console.log("Flock helpers loading");
@@ -693,7 +693,6 @@ export const flock = {
 		if (duration > 0) {
 			setTimeout(() => {
 				if (flock.scene.UITexture.controls.includes(textBlock)) {
-					
 					textBlock.isVisible = false; // Hide the text block
 				} else {
 					console.warn(
@@ -1293,9 +1292,7 @@ export const flock = {
 		bb.physics = boxBody;
 	},
 	applyColorToMaterial(part, materialName, color) {
-	
 		if (part.material && part.material.name === materialName) {
-			
 			part.material.diffuseColor = flock.BABYLON.Color3.FromHexString(
 				flock.getColorFromString(color),
 			);
@@ -6033,18 +6030,17 @@ export const flock = {
 		}
 
 		// Start applying colours to the main mesh and its hierarchy
-		
+
 		if (!flock.characterNames.includes(mesh.metadata?.modelName)) {
 			applyColorInOrder(mesh);
 		} else {
-			
 			const characterColors = {
 				hair: colors[0],
 				skin: colors[1],
 				eyes: colors[2],
-				tshirt:  colors[3],
-				shorts:  colors[4],		
-				sleeves: colors[5],						
+				tshirt: colors[3],
+				shorts: colors[4],
+				sleeves: colors[5],
 			};
 			flock.applyColorsToCharacter(mesh, characterColors);
 			return;
@@ -8249,6 +8245,8 @@ export function initializeFlock() {
 		flock
 			.initialize()
 			.then(() => {
+				flock.modelPath =
+					"https://flipcomputing.github.io/flock/models/";
 				const userCode = scriptElement.textContent;
 				flock.runCode(userCode);
 			})
