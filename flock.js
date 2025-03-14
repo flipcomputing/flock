@@ -23,6 +23,7 @@ export const flock = {
 	modelPath: "./models/",
 	soundPath: "./sounds/",
 	imagePath: "./images/",
+	texturePath: "./textures/",
 	engine: null,
 	engineReady: false,
 	characterNames: characterNames,
@@ -1666,7 +1667,7 @@ export const flock = {
 			);
 
 			// Texture of each particle
-			const texturePath = `./textures/${shape}`;
+			const texturePath = flock.texturePath + shape;
 			particleSystem.particleTexture = new flock.BABYLON.Texture(
 				texturePath,
 				flock.scene,
@@ -2361,7 +2362,7 @@ export const flock = {
 
 			ground = flock.BABYLON.MeshBuilder.CreateGroundFromHeightMap(
 				"heightmap",
-				"./textures/" + image,
+				flock.texturePath + image,
 				{
 					width: 100,
 					height: 100,
@@ -2425,7 +2426,7 @@ export const flock = {
 
 		if (texture && texture !== "NONE") {
 			const tex = new flock.BABYLON.Texture(
-				`./textures/${texture}`,
+							  flock.texturePath + texture,
 				flock.scene,
 			);
 			tex.uScale = 10;
@@ -2464,7 +2465,7 @@ export const flock = {
 			const maxHeight = 10;
 			ground = flock.BABYLON.MeshBuilder.CreateGroundFromHeightMap(
 				"heightmap",
-				"./textures/" + image,
+				flock.texturePath + image,
 				{
 					width: 100,
 					height: 100,
@@ -6076,7 +6077,7 @@ export const flock = {
 	},
 	changeMaterial(modelName, materialName, color) {
 		return flock.whenModelReady(modelName, (mesh) => {
-			const texturePath = `./textures/${materialName}`;
+			const texturePath = flock.texturePath + materialName;
 			flock.changeMaterialMesh(mesh, materialName, texturePath, color);
 		});
 	},
@@ -6166,7 +6167,7 @@ export const flock = {
 	createMaterial(color, materialName, alpha) {
 		let material;
 
-		const texturePath = `./textures/${materialName}`;
+		const texturePath = flock.texturePath + materialName;
 
 		material = new flock.BABYLON.StandardMaterial(
 			materialName,
@@ -6218,13 +6219,13 @@ export const flock = {
 
 			// Apply texture to the albedoTexture for PBR materials
 			if (textureSet !== "none.png") {
-				const baseTexturePath = `./textures/${textureSet}`;
+				const baseTexturePath = flock.texturePath + textureSet;
 				material.baseTexture = new flock.BABYLON.Texture(
 					baseTexturePath,
 					flock.scene,
 				);
 
-				const normalTexturePath = `./textures/normal/${textureSet}`;
+				const normalTexturePath = `${flock.texturePath}normal/${textureSet}`;
 				material.normalTexture = new flock.BABYLON.Texture(
 					normalTexturePath,
 					flock.scene,
@@ -6252,13 +6253,13 @@ export const flock = {
 				flock.BABYLON.Color3.FromHexString(albedoColor);
 
 			if (textureSet !== "none.png") {
-				const baseTexturePath = `./textures/${textureSet}`;
+				const baseTexturePath = flock.texturePath + textureSet;
 				material.diffuseTexture = new flock.BABYLON.Texture(
 					baseTexturePath,
 					flock.scene,
 				);
 
-				const normalTexturePath = `./textures/normal/${textureSet}`;
+				const normalTexturePath = flock.texturePath + textureSet;
 				material.bumpTexture = new flock.BABYLON.Texture(
 					normalTexturePath,
 					flock.scene,
@@ -8247,6 +8248,8 @@ export function initializeFlock() {
 					"https://flipcomputing.github.io/flock/sounds/";
 				flock.imagePath =
 					"https://flipcomputing.github.io/flock/images/";
+				flock.textturePath =
+					"https://flipcomputing.github.io/flock/textures/";
 				const userCode = scriptElement.textContent;
 				flock.runCode(userCode);
 			})
