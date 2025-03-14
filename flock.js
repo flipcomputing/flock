@@ -21,6 +21,7 @@ console.log("Flock helpers loading");
 export const flock = {
 	console: console,
 	modelPath: "./models/",
+	soundPath: "./sounds/",
 	engine: null,
 	engineReady: false,
 	characterNames: characterNames,
@@ -7876,7 +7877,7 @@ export const flock = {
 
 			const sound = new flock.BABYLON.Sound(
 				soundName,
-				`sounds/${soundName}`,
+				flock.soundPath + soundName,
 				flock.scene,
 				null,
 				{
@@ -7912,7 +7913,7 @@ export const flock = {
 		if (meshName === "__everywhere__") {
 			const sound = new flock.BABYLON.Sound(
 				soundName,
-				`sounds/${soundName}`,
+				flock.soundPath + soundName,
 				flock.scene,
 				null,
 				{
@@ -8247,6 +8248,8 @@ export function initializeFlock() {
 			.then(() => {
 				flock.modelPath =
 					"https://flipcomputing.github.io/flock/models/";
+				flock.soundPath =
+					"https://flipcomputing.github.io/flock/sounds/";
 				const userCode = scriptElement.textContent;
 				flock.runCode(userCode);
 			})
