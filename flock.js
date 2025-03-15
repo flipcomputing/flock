@@ -1879,6 +1879,196 @@ export const flock = {
 	subtractMeshes(modelId, baseMeshName, meshNames) {
 		const blockId = modelId;
 		modelId += "_" + flock.scene.getUniqueId();
+		return new Promise((resolve) => {
+			flock.whenModelReady(baseMeshName, (baseMesh) => {
+				if (!baseMesh) {
+					console.warn(
+						`Base mesh ${baseMeshName} could not be resolved.`,
+					);
+					resolve(null);
+					return;
+				}
+
+				// Find the first mesh with material in the hierarchy if needed
+				let actualMesh = baseMesh;
+				if (baseMesh.metadata?.modelName) {
+					const findFirstMeshWithMaterial = (mesh) => {
+						if (mesh.material) return mesh;
+
+						const children = mesh.getChildren();
+						for (let i = 0; i < children.length; i++) {
+							const result = findFirstMeshWithMaterial(
+								children[i],
+							);
+							if (result) return result;
+						}
+						return null;
+					};
+
+					const meshWithMaterial =
+						findFirstMeshWithMaterial(baseMesh);
+					if (meshWithMaterial) {
+						actualMesh = meshWithMaterial;
+					}
+				}
+
+				// Store the original parent for later use
+				const originalParent = baseMesh.parent;
+				const originalScaling = baseMesh.scaling.clone();
+
+				// Ensure world matrices are computed
+				baseMesh.computeWorldMatrix(true);
+				actualMesh.computeWorldMatrix(true);
+
+				// Store original bounding information
+				const origBoundingInfo = baseMesh.getBoundingInfo();
+				const origMin =
+					origBoundingInfo.boundingBox.minimumWorld.clone();
+				const origMax =
+					origBoundingInfo.boundingBox.maximumWorld.clone();
+
+				flock
+					.prepareMeshes(modelId, meshNames, blockId)
+					.then((validMeshes) => {
+						if (validMeshes.length) {
+							// Create standalone duplicates for CSG operations
+							const scene = baseMesh.getScene();
+
+							// Create a duplicate of the base mesh
+							const baseDuplicate =
+								actualMesh.clone("baseDuplicate");
+							baseDuplicate.setParent(null);
+							baseDuplicate.position = actualMesh
+								.getAbsolutePosition()
+								.clone();
+							baseDuplicate.rotationQuaternion = null;
+							baseDuplicate.rotation =
+								actualMesh.absoluteRotationQuaternion
+									? actualMesh.absoluteRotationQuaternion.toEulerAngles()
+									: actualMesh.rotation.clone();
+							baseDuplicate.scaling = new flock.BABYLON.Vector3(
+								1,
+								1,
+								1,
+							); // Reset scaling for CSG
+							baseDuplicate.computeWorldMatrix(true);
+
+							// Process each mesh to subtract
+							const meshDuplicates = validMeshes.map((mesh) => {
+								mesh.computeWorldMatrix(true);
+								const duplicate = mesh.clone("meshDuplicate");
+								duplicate.setParent(null);
+								duplicate.position = mesh
+									.getAbsolutePosition()
+									.clone();
+								duplicate.rotationQuaternion = null;
+								duplicate.rotation =
+									mesh.absoluteRotationQuaternion
+										? mesh.absoluteRotationQuaternion.toEulerAngles()
+										: mesh.rotation.clone();
+								duplicate.scaling = new flock.BABYLON.Vector3(
+									1,
+									1,
+									1,
+								); // Reset scaling for CSG
+								duplicate.computeWorldMatrix(true);
+								return duplicate;
+							});
+
+							// Perform CSG operations
+							let outerCSG = flock.BABYLON.CSG2.FromMesh(
+								baseDuplicate,
+								false,
+							);
+
+							meshDuplicates.forEach((mesh) => {
+								const meshCSG = flock.BABYLON.CSG2.FromMesh(
+									mesh,
+									false,
+								);
+								outerCSG = outerCSG.subtract(meshCSG);
+							});
+
+							// Create the result mesh
+							const resultMesh = outerCSG.toMesh(
+								"resultMesh",
+								scene,
+							);
+							resultMesh.setParent(null);
+							resultMesh.computeWorldMatrix(true);
+							resultMesh.refreshBoundingInfo();
+
+							// Calculate the alignment based on the bottom of the bounding box
+							const resultBoundingInfo =
+								resultMesh.getBoundingInfo();
+							const resultMin =
+								resultBoundingInfo.boundingBox.minimumWorld.clone();
+							const resultMax =
+								resultBoundingInfo.boundingBox.maximumWorld.clone();
+
+							// Calculate offset to align the bottoms (y-min values)
+							const offsetY = origMin.y - resultMin.y;
+
+							// Keep x and z positions aligned with the original center
+							const origCenter = new flock.BABYLON.Vector3(
+								(origMin.x + origMax.x) / 2,
+								0, // Not using y component
+								(origMin.z + origMax.z) / 2,
+							);
+
+							const resultCenter = new flock.BABYLON.Vector3(
+								(resultMin.x + resultMax.x) / 2,
+								0, // Not using y component
+								(resultMin.z + resultMax.z) / 2,
+							);
+
+							// Final position adjustment
+							resultMesh.position.x +=
+								origCenter.x - resultCenter.x;
+							resultMesh.position.y += offsetY; // Align bottoms
+							resultMesh.position.z +=
+								origCenter.z - resultCenter.z;
+
+							// Apply the original scaling
+							resultMesh.scaling = originalScaling.clone();
+
+							// Re-parent the result mesh to maintain hierarchy
+							if (originalParent) {
+								resultMesh.setParent(originalParent);
+							}
+
+							resultMesh.computeWorldMatrix(true);
+
+							// Apply properties and clean up
+							flock.applyResultMeshProperties(
+								resultMesh,
+								actualMesh,
+								modelId,
+								blockId,
+							);
+
+							// Clean up duplicates
+							baseDuplicate.dispose();
+							meshDuplicates.forEach((mesh) => mesh.dispose());
+
+							// Clean up original meshes
+							baseMesh.dispose();
+							validMeshes.forEach((mesh) => mesh.dispose());
+
+							resolve(modelId);
+						} else {
+							console.warn(
+								"No valid meshes to subtract from the base mesh.",
+							);
+							resolve(null);
+						}
+					});
+			});
+		});
+	},
+	subtractMeshes2(modelId, baseMeshName, meshNames) {
+		const blockId = modelId;
+		modelId += "_" + flock.scene.getUniqueId();
 
 		return new Promise((resolve) => {
 			flock.whenModelReady(baseMeshName, (baseMesh) => {
@@ -2426,7 +2616,7 @@ export const flock = {
 
 		if (texture && texture !== "NONE") {
 			const tex = new flock.BABYLON.Texture(
-							  flock.texturePath + texture,
+				flock.texturePath + texture,
 				flock.scene,
 			);
 			tex.uScale = 10;
@@ -7845,7 +8035,6 @@ export const flock = {
 		flock.scene.onDisposeObservable.add(disposeHandler);
 	},
 	playSound(meshName = "__everywhere__", soundName, options = {}) {
-
 		const handleMeshSound = (mesh) => {
 			if (!mesh) {
 				console.warn(
@@ -7930,7 +8119,7 @@ export const flock = {
 					if (index !== -1) {
 						flock.globalSounds.splice(index, 1);
 					}
-					
+
 					resolve();
 				});
 			});
