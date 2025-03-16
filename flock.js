@@ -1876,7 +1876,7 @@ export const flock = {
 				}
 			});
 	},
-	subtractMeshes(modelId, baseMeshName, meshNames) {
+	subtractMeshes2(modelId, baseMeshName, meshNames) {
 		const blockId = modelId;
 		modelId += "_" + flock.scene.getUniqueId();
 
@@ -1995,7 +1995,7 @@ export const flock = {
 			});
 		});
 	},
-	subtractMeshes2(modelId, baseMeshName, meshNames) {
+	subtractMeshes(modelId, baseMeshName, meshNames) {
 		const blockId = modelId;
 		modelId += "_" + flock.scene.getUniqueId();
 		return new Promise((resolve) => {			
@@ -2060,110 +2060,45 @@ export const flock = {
 
 							// Duplicate the meshes to subtract.
 							const meshDuplicates = validMeshes.map((mesh) => {
-							  let originalParent = mesh.parent;
-							  if (originalParent) {
-								mesh.setParent(null);
-								mesh.computeWorldMatrix(true);
-							  }
-
+							
 							  // If metadata exists, use the mesh with material.
 							  if (mesh.metadata?.modelName) {
 								const meshWithMaterial = findFirstMeshWithMaterial(mesh);
 								if (meshWithMaterial) {
-								  mesh = meshWithMaterial;							  
+								  mesh = meshWithMaterial;					
+									mesh.refreshBoundingInfo();
+									mesh.flipFaces();
 								}
 							  }
 
-								function createWorldSpaceMeshFrom(mesh, name, scene) {
-								  // Clone the mesh so as not to alter the original.
-								  var clone = mesh.clone(name + "_temp", null, true);
-								  clone.setParent(null);
-								  clone.computeWorldMatrix(true);
-
-								  // Get the world matrix.
-								  var worldMatrix = clone.getWorldMatrix();
-
-								  // Get the vertex positions.
-								  var positions = clone.getVerticesData(BABYLON.VertexBuffer.PositionKind);
-								  if (!positions) {
-									clone.dispose();
-									return null;
-								  }
-								  var transformedPositions = [];
-								  for (var i = 0; i < positions.length; i += 3) {
-									var point = new BABYLON.Vector3(positions[i], positions[i + 1], positions[i + 2]);
-									var transformedPoint = BABYLON.Vector3.TransformCoordinates(point, worldMatrix);
-									transformedPositions.push(transformedPoint.x, transformedPoint.y, transformedPoint.z);
-								  }
-
-								  // Prepare vertex data for the new mesh.
-								  var vertexData = new BABYLON.VertexData();
-								  vertexData.positions = transformedPositions;
-
-								  // Copy indices if available.
-								  var indices = clone.getIndices();
-								  if (indices) {
-									vertexData.indices = indices.slice();
-								  }
-
-								  // Copy normals if available.
-								  var normals = clone.getVerticesData(BABYLON.VertexBuffer.NormalKind);
-								  if (normals) {
-									vertexData.normals = normals.slice();
-								  }
-
-								  // Copy UVs if available.
-								  var uvs = clone.getVerticesData(BABYLON.VertexBuffer.UVKind);
-								  if (uvs) {
-									vertexData.uvs = uvs.slice();
-								  }
-
-								  // Copy colors if available.
-								  var colors = clone.getVerticesData(BABYLON.VertexBuffer.ColorKind);
-								  if (colors) {
-									vertexData.colors = colors.slice();
-								  }
-
-								  // Create a new mesh and apply the vertex data.
-								  var worldSpaceMesh = new BABYLON.Mesh(name, scene);
-								  vertexData.applyToMesh(worldSpaceMesh, true);
-								  worldSpaceMesh.refreshBoundingInfo();
-
-								  // Dispose of the temporary clone.
-								  clone.dispose();
-
-								  return worldSpaceMesh;
-								}
-
-
-							  // Instead of cloning normally, create a fully world-space mesh.
-							  const duplicate = createWorldSpaceMeshFrom(mesh, "meshDuplicate", baseMesh.getScene());
-
-							  if (originalParent) {
-								mesh.setParent(originalParent);
-							  }
-
+								const duplicate = mesh.clone("meshDuplicate", null, true);
 							  duplicate.computeWorldMatrix(true);
 							  duplicate.refreshBoundingInfo();
 							  
 							  return duplicate;
 							});
-
-
-							// Perform the CSG subtraction in world space.
+							baseDuplicate.refreshBoundingInfo();
 							let outerCSG = flock.BABYLON.CSG2.FromMesh(
 								baseDuplicate,
 								false,
 							);
 							
 							meshDuplicates.forEach((mesh) => {
+
+								
 								const meshCSG = flock.BABYLON.CSG2.FromMesh(
 									mesh,
 									false,
 								);
+
 								
+								try {
 								outerCSG = outerCSG.subtract(meshCSG);
-							});
+						
+						} catch (e){
+							console.log("CSG error", e);
+						}
+								});
 
 							// Create the result mesh.
 							const resultMesh = outerCSG.toMesh(
@@ -2185,7 +2120,7 @@ export const flock = {
 							);
 
 							resultMesh.position.subtractInPlace(localCenter);
-							resultMesh.setParent(null);
+							//resultMesh.setParent(null);
 							resultMesh.computeWorldMatrix(true);
 							resultMesh.refreshBoundingInfo();
 							
