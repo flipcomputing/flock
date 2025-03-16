@@ -4777,10 +4777,11 @@ flock.applyResultMeshProperties(
 						mesh.getBoundingInfo().boundingBox.maximumWorld.y -
 						diffY;
 				} else {
-					propertyValue =
-						mesh.getBoundingInfo().boundingBox.minimum.y *
-						mesh.scaling.y;
+					propertyValue = mesh.getBoundingInfo().boundingBox.minimumWorld.y
+						//mesh.getBoundingInfo().boundingBox.minimum.y *
+//						mesh.scaling.y;
 				}
+				
 				break;
 
 			case "MAX_Y":
@@ -4797,8 +4798,9 @@ flock.applyResultMeshProperties(
 						diffY;
 				} else {
 					propertyValue =
-						mesh.getBoundingInfo().boundingBox.maximum.y *
-						mesh.scaling.y;
+						propertyValue = mesh.getBoundingInfo().boundingBox.maximumWorld.y;
+					//mesh.getBoundingInfo().boundingBox.maximum.y *
+//						mesh.scaling.y;
 				}
 				break;
 
