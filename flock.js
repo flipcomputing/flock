@@ -2006,25 +2006,11 @@ export const flock = {
 					return;
 				}			
 
-				const findFirstMeshWithMaterial = (mesh) => {
-					if (mesh.material) {					
-						return mesh;
-					}
-					const children = mesh.getChildren();
-					for (let i = 0; i < children.length; i++) {
-						const result = findFirstMeshWithMaterial(
-							children[i],
-						);
-						if (result) return result;
-					}
-					return null;
-				};
-
 				let actualMesh = baseMesh;
 				if (baseMesh.metadata?.modelName) {
 					
 					const meshWithMaterial =
-						findFirstMeshWithMaterial(baseMesh);
+						flock.findFirstDescendantWithMaterial(baseMesh);
 					if (meshWithMaterial) {
 						actualMesh = meshWithMaterial;
 						//actualMesh.parent = null;
@@ -2063,7 +2049,7 @@ export const flock = {
 							
 							  // If metadata exists, use the mesh with material.
 							  if (mesh.metadata?.modelName) {
-								const meshWithMaterial = findFirstMeshWithMaterial(mesh);
+								const meshWithMaterial = flock.findFirstDescendantWithMaterial(mesh)
 								if (meshWithMaterial) {
 								  mesh = meshWithMaterial;					
 									mesh.refreshBoundingInfo();
@@ -2183,14 +2169,35 @@ flock.applyResultMeshProperties(
 
 					const combinedCentre = min.add(max).scale(0.5);
 
+					let firstMesh = validMeshes[0];
+					// If metadata exists, use the mesh with material.
+					  if (firstMesh.metadata?.modelName) {
+
+						const meshWithMaterial = flock.findFirstDescendantWithMaterial(firstMesh)
+						if (meshWithMaterial) {
+						  firstMesh = meshWithMaterial;	
+								firstMesh.refreshBoundingInfo();
+								firstMesh.flipFaces();
+						}
+					  }
 					// Create the base CSG
 					let baseCSG = flock.BABYLON.CSG2.FromMesh(
-						validMeshes[0],
+						firstMesh,
 						false,
 					);
 
 					// Intersect each subsequent mesh
 					validMeshes.slice(1).forEach((mesh) => {
+
+						if (mesh.metadata?.modelName) {
+
+							const meshWithMaterial = flock.findFirstDescendantWithMaterial(mesh)
+							if (meshWithMaterial) {
+							  mesh = meshWithMaterial;	
+									mesh.refreshBoundingInfo();
+									mesh.flipFaces();
+							}
+						  }
 						const meshCSG = flock.BABYLON.CSG2.FromMesh(
 							mesh,
 							false,
@@ -2210,14 +2217,12 @@ flock.applyResultMeshProperties(
 					// Apply properties to the resulting mesh
 					flock.applyResultMeshProperties(
 						intersectedMesh,
-						validMeshes[0],
+						firstMesh,
 						modelId,
 						blockId,
 					);
 
-					validMeshes.forEach((mesh) => mesh.dispose());
-					// Dispose of the original meshes
-					//validMeshes.forEach((mesh) => flock.disposeMesh(mesh));
+					validMeshes.forEach((mesh) => mesh.dispose());				
 
 					return modelId; // Return the modelId as per original functionality
 				} else {
