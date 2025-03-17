@@ -1886,10 +1886,6 @@ export const flock = {
 					mergedMesh1.dispose();
 					validMeshes.forEach((mesh) => mesh.dispose());
 
-					//flock.disposeMesh(mergedMesh1);
-					// Dispose of the original meshes
-					//validMeshes.forEach((mesh) => flock.disposeMesh(mesh));
-
 					return modelId; // Return the modelId as per original functionality
 				} else {
 					console.warn("No valid meshes to merge.");
@@ -2161,10 +2157,23 @@ flock.applyResultMeshProperties(
 					const combinedCentre = min.add(max).scale(0.5);
 
 					// Merge the valid meshes into a single mesh
+					const updatedValidMeshes = validMeshes.map(mesh => {
+					  if (mesh.metadata?.modelName) {
+						const meshWithMaterial = flock.findFirstDescendantWithMaterial(mesh);
+						if (meshWithMaterial) {
+						  meshWithMaterial.refreshBoundingInfo();
+						  meshWithMaterial.flipFaces();
+						  return meshWithMaterial;
+						}
+					  }
+					  return mesh;
+					});
+
 					const mergedMesh = BABYLON.Mesh.MergeMeshes(
-						validMeshes,
-						true,
+					  updatedValidMeshes,
+					  true,
 					);
+
 
 					if (!mergedMesh) {
 						console.warn(
@@ -2183,7 +2192,7 @@ flock.applyResultMeshProperties(
 					);
 
 					// Apply the material of the first mesh to the merged mesh
-					mergedMesh.material = validMeshes[0].material;
+					mergedMesh.material = updatedValidMeshes[0].material;
 
 					// Create the convex hull physics aggregate
 					const hullAggregate = new BABYLON.PhysicsAggregate(
@@ -2199,12 +2208,12 @@ flock.applyResultMeshProperties(
 					// Offset the debug mesh to the original world position
 					hullMesh.position = combinedCentre;
 
-					hullMesh.material = validMeshes[0].material;
+					hullMesh.material = updatedValidMeshes[0].material;
 
 					// Apply properties to the resulting mesh
 					flock.applyResultMeshProperties(
 						hullMesh,
-						validMeshes[0],
+						updatedValidMeshes[0],
 						modelId,
 						blockId,
 					);
