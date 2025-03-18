@@ -3,6 +3,7 @@
 // Flip Computing Limited - flipcomputing.com
 
 import * as Blockly from "blockly";
+import {Multiselect} from '@mit-app-inventor/blockly-plugin-workspace-multiselect';
 import { javascriptGenerator } from "blockly/javascript";
 //import { registerFieldColour } from "@blockly/field-colour";
 import { FieldGridDropdown } from "@blockly/field-grid-dropdown";
@@ -1625,6 +1626,9 @@ window.onload = function () {
 
 	workspace = Blockly.inject("blocklyDiv", options);
 
+	const multiselectPlugin = new Multiselect(workspace);
+	multiselectPlugin.init(options);
+
 	// Add this debug listener right after workspace injection
 	workspace.addChangeListener(function (event) {
 		// Only log events that are recorded in the undo stack
@@ -1946,7 +1950,7 @@ window.onload = function () {
 		}
 	}
 
-	Blockly.ContextMenuItems.registerCommentOptions();
+	//Blockly.ContextMenuItems.registerCommentOptions();
 	const navigationController = new NavigationController();
 	navigationController.init();
 	navigationController.addWorkspace(workspace);

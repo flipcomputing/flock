@@ -222,12 +222,40 @@ export const options = {
       vertical: true,
     },
     drag: true,
+    //dragSurface: false,
     wheel: true,
   },
   toolbox: toolbox,
   searchAllBlocks: false,
   plugins: {
     connectionPreviewer: BlockDynamicConnection.decoratePreviewer(),
+    },
+  // Double click the blocks to collapse/expand
+  // them (A feature from MIT App Inventor).
+  useDoubleClick: true,
+  // Bump neighbours after dragging to avoid overlapping.
+  bumpNeighbours: false,
+
+  // Keep the fields of multiple selected same-type blocks with the same value
+  // See note below.  
+  multiFieldUpdate: true,
+
+  // Auto focus the workspace when the mouse enters.
+  workspaceAutoFocus: true,
+
+  // Use custom icon for the multi select controls.
+  multiselectIcon: {
+    hideIcon: true,
+    weight: 3,
+    enabledIcon: 'https://github.com/mit-cml/workspace-multiselect/raw/main/test/media/select.svg',
+    disabledIcon: 'https://github.com/mit-cml/workspace-multiselect/raw/main/test/media/unselect.svg',
+  },
+
+  multiSelectKeys: ['Shift'],
+
+  multiselectCopyPaste: {
+    crossTab: true,
+    menu: true,
   },
 };
 
