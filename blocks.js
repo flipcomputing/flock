@@ -229,7 +229,7 @@ export const options = {
   searchAllBlocks: false,
   plugins: {
     connectionPreviewer: BlockDynamicConnection.decoratePreviewer(),
-    },
+  },
   // Double click the blocks to collapse/expand
   // them (A feature from MIT App Inventor).
   useDoubleClick: true,
@@ -237,7 +237,7 @@ export const options = {
   bumpNeighbours: false,
 
   // Keep the fields of multiple selected same-type blocks with the same value
-  // See note below.  
+  // See note below.
   multiFieldUpdate: true,
 
   // Auto focus the workspace when the mouse enters.
@@ -247,11 +247,13 @@ export const options = {
   multiselectIcon: {
     hideIcon: true,
     weight: 3,
-    enabledIcon: 'https://github.com/mit-cml/workspace-multiselect/raw/main/test/media/select.svg',
-    disabledIcon: 'https://github.com/mit-cml/workspace-multiselect/raw/main/test/media/unselect.svg',
+    enabledIcon:
+      "https://github.com/mit-cml/workspace-multiselect/raw/main/test/media/select.svg",
+    disabledIcon:
+      "https://github.com/mit-cml/workspace-multiselect/raw/main/test/media/unselect.svg",
   },
 
-  multiSelectKeys: ['Shift'],
+  multiSelectKeys: ["Shift"],
 
   multiselectCopyPaste: {
     crossTab: true,
@@ -1462,7 +1464,9 @@ export function defineBlocks() {
         // Handle BLOCK_CREATE events on the container.
         if (changeEvent.type === Blockly.Events.BLOCK_CREATE) {
           if (changeEvent.blockId === this.id) {
-            const blockInWorkspace = Blockly.getMainWorkspace().getBlockById(this.id);
+            const blockInWorkspace = Blockly.getMainWorkspace().getBlockById(
+              this.id,
+            );
             if (blockInWorkspace) {
               if (window.loadingCode) return;
               updateOrCreateMeshFromBlock(this, changeEvent);
@@ -1470,8 +1474,13 @@ export function defineBlocks() {
           }
         }
         // Handle field changes.
-        else if (changeEvent.type === Blockly.Events.BLOCK_CHANGE && changeEvent.element === 'field') {
-          const changedBlock = Blockly.getMainWorkspace().getBlockById(changeEvent.blockId);
+        else if (
+          changeEvent.type === Blockly.Events.BLOCK_CHANGE &&
+          changeEvent.element === "field"
+        ) {
+          const changedBlock = Blockly.getMainWorkspace().getBlockById(
+            changeEvent.blockId,
+          );
           if (!changedBlock) return;
 
           // If the event originates on the container itself, update.
@@ -1487,7 +1496,10 @@ export function defineBlocks() {
             // If the block has a next or previous connection defined, ignore its change events.
             // Note: Many blocks have these defined even if they aren’t connected, so this test
             // simply means “this block is chainable.”
-            if (changedBlock.nextConnection || changedBlock.previousConnection) {
+            if (
+              changedBlock.nextConnection ||
+              changedBlock.previousConnection
+            ) {
               return;
             }
             // Otherwise, update.
@@ -1496,9 +1508,13 @@ export function defineBlocks() {
           }
         }
 
-        handleBlockCreateEvent(this, changeEvent, variableNamePrefix, nextVariableIndexes);
+        handleBlockCreateEvent(
+          this,
+          changeEvent,
+          variableNamePrefix,
+          nextVariableIndexes,
+        );
       });
-
 
       addDoMutatorWithToggleBehavior(this);
     },
@@ -1655,7 +1671,7 @@ export function defineBlocks() {
         //console.log("Update colour", colour, colourIndex);
         const colorsInput = this.getInput("COLORS");
         if (!colorsInput || !colorsInput.connection) {
-           return;
+          return;
         }
         const listBlock = colorsInput.connection.targetBlock();
         if (!listBlock || listBlock.type !== "lists_create_with") {
@@ -1666,7 +1682,6 @@ export function defineBlocks() {
         const inputName = "ADD" + colourIndex;
         let input = listBlock.getInput(inputName);
         if (!input) {
-         
           //input = listBlock.appendValueInput(inputName).setCheck("Colour");
           return;
         }
@@ -5099,7 +5114,7 @@ export function defineBlocks() {
     init: function () {
       this.appendDummyInput().appendField(
         new Blockly.FieldTextInput("type a keyword to add a block"),
-        "KEYWORD"
+        "KEYWORD",
       );
       this.setTooltip("Type a keyword to change this block.");
       this.setHelpUrl("");
@@ -5120,7 +5135,7 @@ export function defineBlocks() {
           // Create the new block.
           const newBlock = workspace.newBlock(blockType);
 
-          // If you have toolbox settings, apply them.
+          // Apply toolbox settings if defined.
           const blockDefinition = findBlockDefinitionInToolbox(blockType);
           if (blockDefinition && blockDefinition.inputs) {
             applyToolboxSettings(newBlock, blockDefinition.inputs);
@@ -5129,44 +5144,38 @@ export function defineBlocks() {
           newBlock.initSvg();
           newBlock.render();
 
-          // Get current block position.
+          // Position the new block where the old keyword block is.
           const pos = this.getRelativeToSurfaceXY();
           newBlock.moveBy(pos.x, pos.y);
 
-          // If the keyword block has a previous connection and is connected,
-          // replace it in the chain.
+
           if (this.previousConnection && this.previousConnection.isConnected()) {
-            const parentBlock = this.previousConnection.targetBlock();
-            // Disconnect this block from its parent.
-            parentBlock.nextConnection.disconnect();
-            // Connect the new block in place.
-            parentBlock.nextConnection.connect(newBlock.previousConnection);
+            const parentConnection = this.previousConnection.targetConnection;
+            if (parentConnection) {
+              parentConnection.disconnect();
+              parentConnection.connect(newBlock.previousConnection);
+            }
           }
 
-          // If there is a block connected to the keyword block's next connection,
-          // reattach it to the new block's next connection.
+          // Reattach any block that was connected to the keyword block's next connection.
           const nextBlock = this.getNextBlock();
           if (nextBlock && newBlock.nextConnection) {
             newBlock.nextConnection.connect(nextBlock.previousConnection);
           }
 
           // Select the new block for immediate editing.
-          
-
           const selectedBlock = Blockly.getSelected();
-
           if (selectedBlock) {
             selectedBlock.unselect();
           }
           newBlock.select();
+          window.currentBlock = newBlock;
 
-          console.log("Selected", Blockly.getSelected().id);
-          // Remove the keyword block.
-
-          // Dispose of the original keyword block.
+          // Dispose of the old keyword block.
           this.dispose();
         }
       });
+
     },
   };
 
@@ -5177,32 +5186,56 @@ export function defineBlocks() {
       // Add chaining connections.
       this.setPreviousStatement(true);
       this.setNextStatement(true);
-    }
+    },
   };
 
   function findBlockTypeByKeyword(keyword) {
-    for (const category of toolbox.contents) {
-      if (Array.isArray(category.contents)) {
-        for (const item of category.contents) {
-          if (item.kind === "block" && item.keyword === keyword) {
-            return item.type; // Return the block type if the keyword matches
+    // Recursive helper to search through a contents array.
+    function searchContents(contents) {
+      if (!Array.isArray(contents)) {
+        return null;
+      }
+      for (const item of contents) {
+        // If this item is a block with the matching keyword, return its type.
+        if (item.kind === "block" && item.keyword === keyword) {
+          return item.type;
+        }
+        // If the item is a category with its own contents, search recursively.
+        if (item.kind === "category" && Array.isArray(item.contents)) {
+          const result = searchContents(item.contents);
+          if (result !== null) {
+            return result;
           }
         }
       }
+      return null;
     }
-    return null; // Return null if not found
+    return searchContents(toolbox.contents);
   }
 
   // Function to find block definition in the toolbox by block type
   function findBlockDefinitionInToolbox(blockType) {
-    for (const category of toolbox.contents) {
-      for (const item of category.contents) {
+    // Recursive helper to search through a contents array.
+    function searchContents(contents) {
+      if (!Array.isArray(contents)) {
+        return null;
+      }
+      for (const item of contents) {
+        // If this item is a block with the matching type, return its definition.
         if (item.kind === "block" && item.type === blockType) {
-          return item; // Return the block definition
+          return item;
+        }
+        // If the item is a category with its own contents, search recursively.
+        if (item.kind === "category" && Array.isArray(item.contents)) {
+          const result = searchContents(item.contents);
+          if (result !== null) {
+            return result;
+          }
         }
       }
+      return null;
     }
-    return null; // Return null if not found
+    return searchContents(toolbox.contents);
   }
 
   // Function to apply settings from the toolbox definition to the new block
@@ -5303,8 +5336,8 @@ class FieldLexicalVariable extends Blockly.FieldDropdown {
     }
     return [
       [current, current],
-      ['Rename variable…', '__RENAME__'],
-      ['Get variable', '__GET__']
+      ["Rename variable…", "__RENAME__"],
+      ["Get variable", "__GET__"],
     ];
   }
 
@@ -5328,22 +5361,23 @@ class FieldLexicalVariable extends Blockly.FieldDropdown {
   }
 
   setValue(value) {
-    if (value === '__RENAME__') {
+    if (value === "__RENAME__") {
       setTimeout(() => {
         const currentName = String(super.getValue());
-      
+
         const newName = window.prompt("Rename variable", currentName);
         if (newName && newName !== currentName) {
-          
-          if (this.sourceBlock_ &&
-              typeof this.sourceBlock_.setLexicalVariable === 'function') {
+          if (
+            this.sourceBlock_ &&
+            typeof this.sourceBlock_.setLexicalVariable === "function"
+          ) {
             this.sourceBlock_.setLexicalVariable(String(newName));
           }
           // Recompute and "lock in" our options with the new variable.
           this.cachedOptions_ = [
             [String(newName), String(newName)],
-            ['Rename variable…', '__RENAME__'],
-            ['Get variable', '__GET__']
+            ["Rename variable…", "__RENAME__"],
+            ["Get variable", "__GET__"],
           ];
           // Force our generator to return the updated options.
           this.menuGenerator_ = () => this.cachedOptions_;
@@ -5351,13 +5385,15 @@ class FieldLexicalVariable extends Blockly.FieldDropdown {
           if (this.sourceBlock_ && this.sourceBlock_.workspace) {
             const workspace = this.sourceBlock_.workspace;
             const allBlocks = workspace.getAllBlocks(false);
-            allBlocks.forEach(block => {
-              if (block.type === 'get_lexical_variable' &&
-                  block.variableSourceId === this.variableId_) {
-                if (typeof block.updateVariable === 'function') {
+            allBlocks.forEach((block) => {
+              if (
+                block.type === "get_lexical_variable" &&
+                block.variableSourceId === this.variableId_
+              ) {
+                if (typeof block.updateVariable === "function") {
                   block.updateVariable(newName);
                 } else {
-                  block.setFieldValue(String(newName), 'VAR');
+                  block.setFieldValue(String(newName), "VAR");
                 }
               }
             });
@@ -5368,21 +5404,19 @@ class FieldLexicalVariable extends Blockly.FieldDropdown {
             this.sourceBlock_.render();
           }
         } else {
-
         }
       }, 0);
       return null;
-    } else if (value === '__GET__') {
+    } else if (value === "__GET__") {
       setTimeout(() => {
-        
         const variableName = String(super.getValue());
         const workspace = this.sourceBlock_.workspace;
-        const newBlock = workspace.newBlock('get_lexical_variable');
+        const newBlock = workspace.newBlock("get_lexical_variable");
         newBlock.initSvg();
         newBlock.render();
-        newBlock.setFieldValue(String(variableName), 'VAR');
+        newBlock.setFieldValue(String(variableName), "VAR");
         newBlock.variableSourceId = this.variableId_;
-       
+
         const xy = this.sourceBlock_.getRelativeToSurfaceXY();
         newBlock.moveBy(xy.x + 20, xy.y + 20);
       }, 0);
@@ -5399,7 +5433,7 @@ class FieldLexicalVariable extends Blockly.FieldDropdown {
   saveExtraState() {
     return {
       variableId: this.variableId_,
-      value: this.getValue()
+      value: this.getValue(),
     };
   }
 
@@ -5408,15 +5442,14 @@ class FieldLexicalVariable extends Blockly.FieldDropdown {
     super.setValue(state.value);
     this.cachedOptions_ = [
       [state.value, state.value],
-      ['Rename variable…', '__RENAME__'],
-      ['Get variable', '__GET__']
+      ["Rename variable…", "__RENAME__"],
+      ["Get variable", "__GET__"],
     ];
     this.menuGenerator_ = () => this.cachedOptions_;
   }
 }
 
-
-Blockly.fieldRegistry.register('field_lexical_variable', FieldLexicalVariable);
+Blockly.fieldRegistry.register("field_lexical_variable", FieldLexicalVariable);
 
 Blockly.Blocks["for_loop2"] = {
   init: function () {
@@ -5428,59 +5461,60 @@ Blockly.Blocks["for_loop2"] = {
           type: "field_lexical_variable",
           name: "VAR",
           text: "count", // Default variable name is "count"
-          options: [["count", "count"]]
+          options: [["count", "count"]],
         },
         {
           type: "input_value",
           name: "FROM",
-          check: "Number"
+          check: "Number",
         },
         {
           type: "input_value",
           name: "TO",
-          check: "Number"
+          check: "Number",
         },
         {
           type: "input_value",
           name: "BY",
-          check: "Number"
+          check: "Number",
         },
         {
           type: "input_statement",
-          name: "DO"
-        }
+          name: "DO",
+        },
       ],
       previousStatement: null,
       nextStatement: null,
       colour: categoryColours["Control"],
       inputsInline: true,
-      tooltip: "Loop from a starting number to an ending number by a given step.",
-      helpUrl: ""
+      tooltip:
+        "Loop from a starting number to an ending number by a given step.",
+      helpUrl: "",
     });
   },
 
   // Returns an array of local variable names.
-  getLexicalVariables: function() {
+  getLexicalVariables: function () {
     return [this.getFieldValue("VAR")];
   },
 
   // Update the variable name on this block.
-  setLexicalVariable: function(newName) {
+  setLexicalVariable: function (newName) {
     this.setFieldValue(String(newName), "VAR");
   },
 
   // Save the current variable name in a mutation.
-  mutationToDom: function() {
-    const container = document.createElement('mutation');
-    container.setAttribute('var', this.getFieldValue('VAR'));
+  mutationToDom: function () {
+    const container = document.createElement("mutation");
+    container.setAttribute("var", this.getFieldValue("VAR"));
     return container;
   },
 
   // Restore the variable name from a mutation.
-  domToMutation: function(xmlElement) {
-    const variableName = xmlElement.getAttribute('var');
-    this.setFieldValue(variableName, 'VAR');
-  }
+  domToMutation: function (xmlElement) {
+    const variableName = xmlElement.getAttribute("var");
+    this.setFieldValue(variableName, "VAR");
+  },
 };
 
 Blockly.Blocks["for_loop"] = {
@@ -5493,49 +5527,53 @@ Blockly.Blocks["for_loop"] = {
           type: "field_lexical_variable",
           name: "VAR",
           text: "count", // Default variable name is "count"
-          options: [["count", "count"]]
+          options: [["count", "count"]],
         },
         {
           type: "input_value",
           name: "FROM",
-          check: "Number"
+          check: "Number",
         },
         {
           type: "input_value",
           name: "TO",
-          check: "Number"
+          check: "Number",
         },
         {
           type: "input_value",
           name: "BY",
-          check: "Number"
+          check: "Number",
         },
         {
           type: "input_statement",
-          name: "DO"
-        }
+          name: "DO",
+        },
       ],
       previousStatement: null,
       nextStatement: null,
       colour: categoryColours["Control"],
       inputsInline: true,
-      tooltip: "Loop from a starting number to an ending number by a given step. Click on the dropdown to get the loop variable to use in your code.",
-      helpUrl: ""
+      tooltip:
+        "Loop from a starting number to an ending number by a given step. Click on the dropdown to get the loop variable to use in your code.",
+      helpUrl: "",
     });
   },
 
   // Returns an array of local variable names.
-  getLexicalVariables: function() {
+  getLexicalVariables: function () {
     return [this.getFieldValue("VAR")];
   },
 
   // Update the variable name on this block.
-  setLexicalVariable: function(newName) {
+  setLexicalVariable: function (newName) {
     this.setFieldValue(String(newName), "VAR");
   },
 
-  onchange: function(event) {
-    if (event.type === Blockly.Events.BLOCK_CREATE && event.ids.includes(this.id)) {
+  onchange: function (event) {
+    if (
+      event.type === Blockly.Events.BLOCK_CREATE &&
+      event.ids.includes(this.id)
+    ) {
       const field = this.getField("VAR");
       if (field && field.variableId_) {
         const oldId = field.variableId_;
@@ -5544,14 +5582,17 @@ Blockly.Blocks["for_loop"] = {
 
         // Recursively update nested getter blocks.
         const updateNestedBlocks = (block) => {
-          if (block.type === 'get_lexical_variable' && block.variableSourceId === oldId) {
+          if (
+            block.type === "get_lexical_variable" &&
+            block.variableSourceId === oldId
+          ) {
             block.variableSourceId = newId;
           }
           block.getChildren(false).forEach(updateNestedBlocks);
         };
 
         // Update getter blocks inside the DO input.
-        const doConnection = this.getInput('DO')?.connection;
+        const doConnection = this.getInput("DO")?.connection;
         if (doConnection && doConnection.targetBlock()) {
           updateNestedBlocks(doConnection.targetBlock());
         }
@@ -5560,101 +5601,101 @@ Blockly.Blocks["for_loop"] = {
   },
 
   // Save the current variable name and its unique id in a mutation.
-  mutationToDom: function() {
-    const container = document.createElement('mutation');
+  mutationToDom: function () {
+    const container = document.createElement("mutation");
     const field = this.getField("VAR");
-  
+
     if (field && field.saveExtraState) {
       const extraState = field.saveExtraState();
-      container.setAttribute('var', extraState.value);
-      container.setAttribute('variableid', extraState.variableId);
+      container.setAttribute("var", extraState.value);
+      container.setAttribute("variableid", extraState.variableId);
     } else {
-      container.setAttribute('var', this.getFieldValue('VAR'));
+      container.setAttribute("var", this.getFieldValue("VAR"));
     }
     return container;
   },
 
-
   // Restore the variable name and unique id from the mutation.
-  domToMutation: function(xmlElement) {
-    const varName = xmlElement.getAttribute('var');
-    const variableId = xmlElement.getAttribute('variableid');
+  domToMutation: function (xmlElement) {
+    const varName = xmlElement.getAttribute("var");
+    const variableId = xmlElement.getAttribute("variableid");
     const field = this.getField("VAR");
     if (field && field.loadExtraState) {
       field.loadExtraState({
         value: varName,
-        variableId: variableId
+        variableId: variableId,
       });
     } else {
-      this.setFieldValue(varName, 'VAR');
+      this.setFieldValue(varName, "VAR");
     }
-  }
+  },
 };
 
-Blockly.Blocks['get_lexical_variable'] = {
-  init: function() {
+Blockly.Blocks["get_lexical_variable"] = {
+  init: function () {
     this.jsonInit({
-      message0: '%1',
+      message0: "%1",
       args0: [
         {
-          type: 'field_label',
-          name: 'VAR',
-          text: 'count'
-        }
+          type: "field_label",
+          name: "VAR",
+          text: "count",
+        },
       ],
       output: null,
       colour: categoryColours["Variables"],
-      tooltip: 'Get the value of a lexical variable',
-      helpUrl: ''
+      tooltip: "Get the value of a lexical variable",
+      helpUrl: "",
     });
 
     // Initialize with a null variable source ID.
     this.variableSourceId = null;
   },
-  updateVariable: function(newName) {
-    this.setFieldValue(String(newName), 'VAR');
+  updateVariable: function (newName) {
+    this.setFieldValue(String(newName), "VAR");
   },
   // Save the current variable name and source ID to the XML mutation.
-  mutationToDom: function() {
-    const container = document.createElement('mutation');
-    container.setAttribute('var', this.getFieldValue('VAR'));
+  mutationToDom: function () {
+    const container = document.createElement("mutation");
+    container.setAttribute("var", this.getFieldValue("VAR"));
     if (this.variableSourceId) {
-      container.setAttribute('sourceid', this.variableSourceId);
+      container.setAttribute("sourceid", this.variableSourceId);
     }
     return container;
   },
   // Restore the variable name and source ID from the XML mutation.
-  domToMutation: function(xmlElement) {
-    const variableName = xmlElement.getAttribute('var');
-    this.setFieldValue(variableName, 'VAR');
-    const sourceId = xmlElement.getAttribute('sourceid');
+  domToMutation: function (xmlElement) {
+    const variableName = xmlElement.getAttribute("var");
+    this.setFieldValue(variableName, "VAR");
+    const sourceId = xmlElement.getAttribute("sourceid");
     if (sourceId) {
       this.variableSourceId = sourceId;
     }
-  }
+  },
 };
 
-Blockly.Blocks['get_lexical_variable'].onchange = function(event) {
+Blockly.Blocks["get_lexical_variable"].onchange = function (event) {
   // Only process if this is a move, create, or similar event that might affect scoping
-  if (event.type === Blockly.Events.BLOCK_MOVE || 
-      event.type === Blockly.Events.BLOCK_CREATE ||
-      event.type === Blockly.Events.BLOCK_CHANGE) {
-
+  if (
+    event.type === Blockly.Events.BLOCK_MOVE ||
+    event.type === Blockly.Events.BLOCK_CREATE ||
+    event.type === Blockly.Events.BLOCK_CHANGE
+  ) {
     if (!this.workspace) return; // Skip if no workspace
 
-    const variableName = this.getFieldValue('VAR');
+    const variableName = this.getFieldValue("VAR");
     let currentBlock = this;
     let found = false;
 
     // Traverse up the block hierarchy to find the closest for_loop with matching variable
-    while (currentBlock = currentBlock.getParent()) {
-      if (currentBlock.type === 'for_loop') {
-        const loopVarName = currentBlock.getFieldValue('VAR');
-        const field = currentBlock.getField('VAR');
+    while ((currentBlock = currentBlock.getParent())) {
+      if (currentBlock.type === "for_loop") {
+        const loopVarName = currentBlock.getFieldValue("VAR");
+        const field = currentBlock.getField("VAR");
 
         if (loopVarName === variableName && field) {
           // Found a matching for_loop parent
-          const variableId = field.variableId_ || ''; 
+          const variableId = field.variableId_ || "";
 
           // Update this getter's source ID
           this.variableSourceId = variableId;
@@ -5684,7 +5725,6 @@ export function addDoMutatorWithToggleBehavior(block) {
       this.appendStatementInput("DO").setCheck(null).appendField("");
     }
   };
-
 
   // Add the toggle button to the block
   const toggleButton = new Blockly.FieldImage(
@@ -5725,7 +5765,7 @@ export function handleBlockCreateEvent(
   fieldName = "ID_VAR", // Default field name to handle
 ) {
   if (window.loadingCode) return; // Don't rename variables during code loading
-  
+
   if (blockInstance.id !== changeEvent.blockId) return;
   // Check if this is an undo/redo operation
   const isUndo = !changeEvent.recordUndo;
@@ -5993,7 +6033,4 @@ Blockly.Blocks["microbit_input"] = {
   };
 })();
 
-
 // Listen for changes to blocks in the workspace
-
-

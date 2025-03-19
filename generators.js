@@ -3072,3 +3072,7 @@ javascriptGenerator.forBlock["lists_create_with"] = function (
   const code = "[" + elements.join(", ") + "]";
   return [code, javascriptGenerator.ORDER_ATOMIC];
 };*/
+
+javascriptGenerator.forBlock["keyword"] = function (block) {
+	return "";
+};

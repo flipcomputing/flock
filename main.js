@@ -3,7 +3,7 @@
 // Flip Computing Limited - flipcomputing.com
 
 import * as Blockly from "blockly";
-import {Multiselect} from '@mit-app-inventor/blockly-plugin-workspace-multiselect';
+import { Multiselect } from "@mit-app-inventor/blockly-plugin-workspace-multiselect";
 import { javascriptGenerator } from "blockly/javascript";
 //import { registerFieldColour } from "@blockly/field-colour";
 import { FieldGridDropdown } from "@blockly/field-grid-dropdown";
@@ -109,7 +109,6 @@ function loadWorkspaceAndExecute(json, workspace, executeCallback) {
 
 		Blockly.serialization.workspaces.load(json, workspace);
 		executeCallback(); // Runs only if loading succeeds
-
 	} catch (error) {
 		console.error("Failed to load workspace:", error);
 
@@ -117,12 +116,11 @@ function loadWorkspaceAndExecute(json, workspace, executeCallback) {
 		if (error.message.includes("isDeadOrDying")) {
 			// Try to reset workspace or handle specific cleanup for the isDeadOrDying error
 			console.warn("Workspace might be corrupted, attempting reset.");
-			workspace.clear();  // Clear the workspace if needed
-			localStorage.removeItem("flock_autosave.json") 
+			workspace.clear(); // Clear the workspace if needed
+			localStorage.removeItem("flock_autosave.json");
 		}
 	}
 }
-
 
 function loadWorkspace() {
 	const urlParams = new URLSearchParams(window.location.search);
@@ -146,8 +144,8 @@ function loadWorkspace() {
 	// Reset logic if 'reset' URL parameter is present
 	if (reset) {
 		console.warn("Resetting workspace and clearing local storage.");
-		workspace.clear();  // Clear the workspace
-		localStorage.removeItem("flock_autosave.json");  // Clear the saved state in localStorage
+		workspace.clear(); // Clear the workspace
+		localStorage.removeItem("flock_autosave.json"); // Clear the saved state in localStorage
 		// Optionally reload the starter project after reset
 		loadStarter();
 		return; // Exit the function after reset
@@ -2096,9 +2094,10 @@ window.onload = function () {
 		}
 
 		try {
-		
-			if (event.type === Blockly.Events.BLOCK_MOVE || event.type === Blockly.Events.BLOCK_DELETE) {
-
+			if (
+				event.type === Blockly.Events.BLOCK_MOVE ||
+				event.type === Blockly.Events.BLOCK_DELETE
+			) {
 				// Clear any existing cleanup timeout to avoid multiple calls
 				clearTimeout(cleanupTimeout);
 
@@ -2154,59 +2153,154 @@ window.onload = function () {
 		}
 	});
 
-	/*
-		document.addEventListener("keydown", function (event){
-	  
-	  if (event.key === "Enter") {
-
-		let selectedBlock = Blockly.getSelected();
-
-		  console.log("Selected block:", selectedBlock.id);
-
-		if (selectedBlock && selectedBlock.nextConnection) {
-		  // Create a new keyword block
-		  const keywordBlock = workspace.newBlock("keyword");
-		  keywordBlock.initSvg();
-		  keywordBlock.render();
-
-		  // Save a reference to the block currently connected to selectedBlock's next
-		  const currentNextBlock = selectedBlock.getNextBlock();
-
-		  // Disconnect any currently connected block
-		  if (currentNextBlock) {
-			selectedBlock.nextConnection.disconnect();
-		  }
-
-		  // Connect the new keyword block to the selected block
-		  selectedBlock.nextConnection.connect(keywordBlock.previousConnection);
-
-		  // If there was a block after the selected block, connect it after the keyword block
-		  if (currentNextBlock && keywordBlock.nextConnection) {
-			keywordBlock.nextConnection.connect(currentNextBlock.previousConnection);
-		  }
-
-			 const workspaceSvg = workspace.getParentSvg();
-
-			 // Simulate a click on the workspace background to clear selection.
-			 const clickEvent = new MouseEvent('mousedown', {
-			   bubbles: true,
-			   cancelable: true,
-			   view: window
-			 });
-			 workspaceSvg.dispatchEvent(clickEvent);
-			keywordBlock.select();
-		
-			selectedBlock = Blockly.getSelected();
-
-			  console.log("Selected block:", selectedBlock.id);
-
-			const textInputField = keywordBlock.getField("KEYWORD");
-			if (textInputField) {
-				textInputField.showEditor_();
+	// Add a click handler to track block selection
+	workspace.addChangeListener(function (event) {
+		if (event.type === Blockly.Events.SELECTED) {
+			if (event.newElementId) {
+				// A block was selected
+				window.currentBlock = workspace.getBlockById(
+					event.newElementId,
+				);
+				
+			} else {
+				// Selection was cleared
+				window.currentBlock = null;
 			}
 		}
-	  }
-	});*/
+	});
+	// Handle Enter key for adding new blocks
+	document.addEventListener("keydown", function (event) {
+		if (event.key === "Enter") {
+			let selectedBlock = null;
+
+			const cursor = workspace.getCursor();
+
+			if (cursor?.getCurNode()) {
+				
+				const currentNode = cursor.getCurNode();
+				if (currentNode) {
+					const block = currentNode.getSourceBlock();
+					if (block) {
+						selectedBlock = block;
+					}
+				}
+			} else {
+				selectedBlock = window.currentBlock;
+			}
+
+			if (!selectedBlock) {
+				return;
+			}
+
+			selectedBlock.unselect();
+			
+			if (!selectedBlock.nextConnection) {
+				
+				return;
+			}
+
+			// Create a new keyword block
+			const keywordBlock = workspace.newBlock("keyword");
+			window.currentBlock = keywordBlock;
+			keywordBlock.initSvg();
+			keywordBlock.render();
+
+			// Connect blocks (same as before)
+			const currentNextBlock = selectedBlock.getNextBlock();
+			if (currentNextBlock) {
+				selectedBlock.nextConnection.disconnect();
+			}
+			selectedBlock.nextConnection.connect(
+				keywordBlock.previousConnection,
+			);
+			if (currentNextBlock && keywordBlock.nextConnection) {
+				keywordBlock.nextConnection.connect(
+					currentNextBlock.previousConnection,
+				);
+			}
+
+			// Update our tracking variable to the new block
+			window.currentBlock = keywordBlock;
+
+			// Try to select it in Blockly too
+			keywordBlock.select();
+
+			// Open the editor with a delay
+			setTimeout(() => {
+				const textInputField = keywordBlock.getField("KEYWORD");
+				if (textInputField) {
+					textInputField.showEditor_();
+				}
+			}, 100);
+		}
+		// Handle Tab key for adding a block inside a block that accepts nested blocks
+		else if (event.key === "Tab") {
+			// Prevent the default Tab behavior (like moving focus)
+			event.preventDefault();
+
+			let selectedBlock = null;
+			const cursor = workspace.getCursor();
+			if (cursor?.getCurNode()) {
+				const currentNode = cursor.getCurNode();
+				if (currentNode) {
+					const block = currentNode.getSourceBlock();
+					if (block) {
+						selectedBlock = block;
+					}
+				}
+			} else {
+				selectedBlock = window.currentBlock;
+			}
+
+			if (!selectedBlock) {
+				return;
+			}
+
+			let inputName = "DO";
+			if (selectedBlock.type === "controls_if") {
+				inputName = "DO0";
+			}
+			const statementInput = selectedBlock.getInput(inputName);
+			if (!statementInput) {
+				return;
+			}
+
+			const inputConnection = statementInput.connection;
+			if (!inputConnection) {
+				return;
+			}
+
+			// Create a new block to be added inside (change type if necessary)
+			const insideBlock = workspace.newBlock("keyword");
+			insideBlock.initSvg();
+			insideBlock.render();
+
+			// If the input already has a block connected, append to the end of the chain.
+			if (inputConnection.targetBlock()) {
+				let lastBlock = inputConnection.targetBlock();
+				while (lastBlock.getNextBlock()) {
+					lastBlock = lastBlock.getNextBlock();
+				}
+				lastBlock.nextConnection.connect(
+					insideBlock.previousConnection,
+				);
+			} else {
+				// Connect directly if there is no block inside yet.
+				inputConnection.connect(insideBlock.previousConnection);
+			}
+
+			window.currentBlock = insideBlock;
+			insideBlock.select();
+
+			// Open the editor after a short delay if the new block has a text field
+			setTimeout(() => {
+				const textInputField = insideBlock.getField("KEYWORD");
+				if (textInputField) {
+					textInputField.showEditor_();
+				}
+			}, 100);
+		}
+	});
 
 	initializeApp();
 };
@@ -2250,119 +2344,83 @@ const adjustViewport = () => {
 window.addEventListener("load", adjustViewport);
 window.addEventListener("resize", adjustViewport);
 
-function setupAutoValueBehavior2(workspace) {
-  workspace.addChangeListener(function(event) {
-	// Only handle events that change block structure (like adding a new input)
-	if (event.type === Blockly.Events.BLOCK_CHANGE || 
-		event.type === Blockly.Events.BLOCK_CREATE) {
-
-	  // Get the block that was changed
-	  var block = workspace.getBlockById(event.blockId);
-
-	  // Check if it's a lists_create_with block
-	  if (block && block.type === 'lists_create_with') {
-		// Count the number of inputs
-		var inputCount = 0;
-		while (block.getInput('ADD' + inputCount)) {
-		  inputCount++;
-		}
-
-		// Only proceed if there are at least 2 inputs (to have a previous item)
-		if (inputCount >= 2) {
-		  // Get the second-to-last input
-		  var previousInput = block.getInput('ADD' + (inputCount - 2));
-		  // Get the last input
-		  var lastInput = block.getInput('ADD' + (inputCount - 1));
-
-		  // If the previous input has a connection and the last one doesn't
-		  if (previousInput && previousInput.connection.targetConnection &&
-			  lastInput && !lastInput.connection.targetConnection) {
-
-			// Get the block connected to the previous input
-			var sourceBlock = previousInput.connection.targetConnection.sourceBlock_;
-
-			// Clone the block
-			var newBlock = workspace.newBlock(sourceBlock.type);
-			newBlock.initSvg();
-			newBlock.render();
-
-			// Copy field values based on block type
-			if (sourceBlock.type === 'math_number') {
-			  newBlock.setFieldValue(sourceBlock.getFieldValue('NUM'), 'NUM');
-			} else if (sourceBlock.type === 'text') {
-			  newBlock.setFieldValue(sourceBlock.getFieldValue('TEXT'), 'TEXT');
-			} else if (sourceBlock.type === 'logic_boolean') {
-			  newBlock.setFieldValue(sourceBlock.getFieldValue('BOOL'), 'BOOL');
-			} else if (sourceBlock.type === 'variables_get') {
-			  newBlock.setFieldValue(sourceBlock.getFieldValue('VAR'), 'VAR');
-			}
-
-			// Connect the new block to the last input
-			lastInput.connection.connect(newBlock.outputConnection);
-		  }
-		}
-	  }
-	}
-  });
-}
-
 function setupAutoValueBehavior(workspace) {
-  workspace.addChangeListener(function(event) {
-	// Only handle events that change block structure (like adding a new input)
-	if (event.type === Blockly.Events.BLOCK_CHANGE || 
-		event.type === Blockly.Events.BLOCK_CREATE) {
+	workspace.addChangeListener(function (event) {
+		// Only handle events that change block structure (like adding a new input)
+		if (
+			event.type === Blockly.Events.BLOCK_CHANGE ||
+			event.type === Blockly.Events.BLOCK_CREATE
+		) {
+			// Get the block that was changed
+			var block = workspace.getBlockById(event.blockId);
 
-	  // Get the block that was changed
-	  var block = workspace.getBlockById(event.blockId);
+			// Check if it's a lists_create_with block
+			if (block && block.type === "lists_create_with") {
+				// Count the number of inputs
+				var inputCount = 0;
+				while (block.getInput("ADD" + inputCount)) {
+					inputCount++;
+				}
 
-	  // Check if it's a lists_create_with block
-	  if (block && block.type === 'lists_create_with') {
-		// Count the number of inputs
-		var inputCount = 0;
-		while (block.getInput('ADD' + inputCount)) {
-		  inputCount++;
-		}
+				// Only proceed if there are at least 2 inputs (to have a previous item)
+				if (inputCount >= 2) {
+					// Get the second-to-last input
+					var previousInput = block.getInput(
+						"ADD" + (inputCount - 2),
+					);
+					// Get the last input
+					var lastInput = block.getInput("ADD" + (inputCount - 1));
 
-		// Only proceed if there are at least 2 inputs (to have a previous item)
-		if (inputCount >= 2) {
-		  // Get the second-to-last input
-		  var previousInput = block.getInput('ADD' + (inputCount - 2));
-		  // Get the last input
-		  var lastInput = block.getInput('ADD' + (inputCount - 1));
+					// If the previous input has a connection and the last one doesn't
+					if (
+						previousInput &&
+						previousInput.connection.targetConnection &&
+						lastInput &&
+						!lastInput.connection.targetConnection
+					) {
+						// Get the block connected to the previous input
+						var sourceBlock =
+							previousInput.connection.targetConnection
+								.sourceBlock_;
+						var isShadow = sourceBlock.isShadow();
 
-		  // If the previous input has a connection and the last one doesn't
-		  if (previousInput && previousInput.connection.targetConnection &&
-			  lastInput && !lastInput.connection.targetConnection) {
+						// Create a new block (shadow or regular based on the source)
+						newBlock = workspace.newBlock(sourceBlock.type);
+						var newBlock;
+						if (isShadow) {
+							newBlock.setShadow(true);
+						}
+						newBlock.initSvg();
+						newBlock.render();
 
-			// Get the block connected to the previous input
-			var sourceBlock = previousInput.connection.targetConnection.sourceBlock_;
-			var isShadow = sourceBlock.isShadow();
+						// Copy field values based on block type
+						if (sourceBlock.type === "math_number") {
+							newBlock.setFieldValue(
+								sourceBlock.getFieldValue("NUM"),
+								"NUM",
+							);
+						} else if (sourceBlock.type === "text") {
+							newBlock.setFieldValue(
+								sourceBlock.getFieldValue("TEXT"),
+								"TEXT",
+							);
+						} else if (sourceBlock.type === "logic_boolean") {
+							newBlock.setFieldValue(
+								sourceBlock.getFieldValue("BOOL"),
+								"BOOL",
+							);
+						} else if (sourceBlock.type === "variables_get") {
+							newBlock.setFieldValue(
+								sourceBlock.getFieldValue("VAR"),
+								"VAR",
+							);
+						}
 
-			// Create a new block (shadow or regular based on the source)
-			  newBlock = workspace.newBlock(sourceBlock.type);
-			var newBlock;
-			if (isShadow) {
-				 newBlock.setShadow(true);
+						// Connect the new block to the last input
+						lastInput.connection.connect(newBlock.outputConnection);
+					}
+				}
 			}
-			newBlock.initSvg();
-			newBlock.render();
-
-			// Copy field values based on block type
-			if (sourceBlock.type === 'math_number') {
-			  newBlock.setFieldValue(sourceBlock.getFieldValue('NUM'), 'NUM');
-			} else if (sourceBlock.type === 'text') {
-			  newBlock.setFieldValue(sourceBlock.getFieldValue('TEXT'), 'TEXT');
-			} else if (sourceBlock.type === 'logic_boolean') {
-			  newBlock.setFieldValue(sourceBlock.getFieldValue('BOOL'), 'BOOL');
-			} else if (sourceBlock.type === 'variables_get') {
-			  newBlock.setFieldValue(sourceBlock.getFieldValue('VAR'), 'VAR');
-			}
-
-			// Connect the new block to the last input
-			lastInput.connection.connect(newBlock.outputConnection);
-		  }
 		}
-	  }
-	}
-  });
+	});
 }
