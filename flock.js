@@ -2627,39 +2627,50 @@ flock.applyResultMeshProperties(
 		console.log("Creating map", colors);
 	},
 	setSky(color) {
-		if (Array.isArray(color) && color.length === 2) {
-			// Handle gradient case
-			const skySphere = flock.BABYLON.MeshBuilder.CreateSphere(
-				"skySphere",
-				{ segments: 32, diameter: 1000 },
-				flock.scene,
-			);
-			const gradientMaterial = new flock.GradientMaterial(
-				"skyGradient",
-				flock.scene,
-			);
+	  // If color is a Babylon.js material, apply it directly
+	  if (color && color instanceof flock.BABYLON.Material) {
+		const skySphere = flock.BABYLON.MeshBuilder.CreateSphere(
+		  "skySphere",
+		  { segments: 32, diameter: 1000 },
+		  flock.scene,
+		);
 
-			gradientMaterial.bottomColor = flock.BABYLON.Color3.FromHexString(
-				flock.getColorFromString(color[0]),
-			);
-			gradientMaterial.topColor = flock.BABYLON.Color3.FromHexString(
-				flock.getColorFromString(color[1]),
-			);
-			gradientMaterial.offset = 0.8; // Push the gradient midpoint towards the top
-			gradientMaterial.smoothness = 0.5; // Sharper gradient transition
-			gradientMaterial.scale = 0.01;
+		  color.diffuseTexture.uScale = 10.0;
+		  color.diffuseTexture.vScale = 10.0;
+		skySphere.material = color;
+		skySphere.isPickable = false; // Make non-interactive
+	  } else if (Array.isArray(color) && color.length === 2) {
+		// Handle gradient case
+		const skySphere = flock.BABYLON.MeshBuilder.CreateSphere(
+		  "skySphere",
+		  { segments: 32, diameter: 1000 },
+		  flock.scene,
+		);
+		const gradientMaterial = new flock.GradientMaterial(
+		  "skyGradient",
+		  flock.scene,
+		);
 
-			gradientMaterial.backFaceCulling = false; // Render on the inside of the sphere
-			skySphere.material = gradientMaterial;
-			skySphere.isPickable = false; // Make non-interactive
-		} else {
-			// Handle single colour case
-			flock.scene.clearColor = flock.BABYLON.Color3.FromHexString(
-				flock.getColorFromString(color),
-			);
-		}
+		gradientMaterial.bottomColor = flock.BABYLON.Color3.FromHexString(
+		  flock.getColorFromString(color[0]),
+		);
+		gradientMaterial.topColor = flock.BABYLON.Color3.FromHexString(
+		  flock.getColorFromString(color[1]),
+		);
+		gradientMaterial.offset = 0.8;    // Push the gradient midpoint towards the top
+		gradientMaterial.smoothness = 0.5; // Sharper gradient transition
+		gradientMaterial.scale = 0.01;
+		gradientMaterial.backFaceCulling = false; // Render on the inside of the sphere
+
+		skySphere.material = gradientMaterial;
+		skySphere.isPickable = false; // Make non-interactive
+	  } else {
+		// Handle single color case
+		flock.scene.clearColor = flock.BABYLON.Color3.FromHexString(
+		  flock.getColorFromString(color),
+		);
+	  }
 	},
-
 	lightIntensity(intensity) {
 		if (flock.mainLight) {
 			flock.mainLight.intensity = intensity;

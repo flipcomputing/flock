@@ -1185,7 +1185,7 @@ export function defineBlocks() {
             type: "input_value",
             name: "COLOR",
             colour: "#6495ED",
-            check: ["Colour", "Array"],
+            check: ["Colour", "Array", "Material"],
           },
         ],
         previousStatement: null,
