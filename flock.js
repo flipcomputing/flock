@@ -36,6 +36,7 @@ export const flock = {
 	mainLight: null,
 	hk: null,
 	havokInstance: null,
+	ground: null,
 	GUI: null,
 	EXPORT: null,
 	controlsTexture: null,
@@ -313,7 +314,7 @@ export const flock = {
 		flock.engine = new flock.BABYLON.Engine(flock.canvas, true, {
 			stencil: true,
 			deterministicLockstep: true,
-			audioEngine: true
+			audioEngine: true,
 		});
 
 		flock.engine.enableOfflineSupport = false;
@@ -1817,31 +1818,28 @@ export const flock = {
 
 					let firstMesh = validMeshes[0];
 					// If metadata exists, use the mesh with material.
-					  if (firstMesh.metadata?.modelName) {
-
-						const meshWithMaterial = flock.findFirstDescendantWithMaterial(firstMesh)
+					if (firstMesh.metadata?.modelName) {
+						const meshWithMaterial =
+							flock.findFirstDescendantWithMaterial(firstMesh);
 						if (meshWithMaterial) {
-						  firstMesh = meshWithMaterial;	
-								firstMesh.refreshBoundingInfo();
-								firstMesh.flipFaces();
+							firstMesh = meshWithMaterial;
+							firstMesh.refreshBoundingInfo();
+							firstMesh.flipFaces();
 						}
-					  }
-					let baseCSG = flock.BABYLON.CSG2.FromMesh(
-						firstMesh,
-						false,
-					);
+					}
+					let baseCSG = flock.BABYLON.CSG2.FromMesh(firstMesh, false);
 
 					// Merge subsequent meshes
 					validMeshes.slice(1).forEach((mesh) => {
 						if (mesh.metadata?.modelName) {
-
-							const meshWithMaterial = flock.findFirstDescendantWithMaterial(mesh)
+							const meshWithMaterial =
+								flock.findFirstDescendantWithMaterial(mesh);
 							if (meshWithMaterial) {
-							  mesh = meshWithMaterial;	
-									mesh.refreshBoundingInfo();
-									mesh.flipFaces();
+								mesh = meshWithMaterial;
+								mesh.refreshBoundingInfo();
+								mesh.flipFaces();
 							}
-						  }
+						}
 						const meshCSG = flock.BABYLON.CSG2.FromMesh(
 							mesh,
 							false,
@@ -1897,17 +1895,15 @@ export const flock = {
 	subtractMeshes(modelId, baseMeshName, meshNames) {
 		const blockId = modelId;
 		modelId += "_" + flock.scene.getUniqueId();
-		return new Promise((resolve) => {			
+		return new Promise((resolve) => {
 			flock.whenModelReady(baseMeshName, (baseMesh) => {
 				if (!baseMesh) {
-					
 					resolve(null);
 					return;
-				}			
+				}
 
 				let actualMesh = baseMesh;
 				if (baseMesh.metadata?.modelName) {
-					
 					const meshWithMaterial =
 						flock.findFirstDescendantWithMaterial(baseMesh);
 					if (meshWithMaterial) {
@@ -1924,7 +1920,6 @@ export const flock = {
 				flock
 					.prepareMeshes(modelId, meshNames, blockId)
 					.then((validMeshes) => {
-						
 						if (validMeshes.length) {
 							const scene = baseMesh.getScene();
 
@@ -1940,50 +1935,51 @@ export const flock = {
 								actualMesh.absoluteRotationQuaternion
 									? actualMesh.absoluteRotationQuaternion.toEulerAngles()
 									: actualMesh.rotation.clone();
-													baseDuplicate.computeWorldMatrix(true);
-							
+							baseDuplicate.computeWorldMatrix(true);
 
 							// Duplicate the meshes to subtract.
 							const meshDuplicates = validMeshes.map((mesh) => {
-							
-							  // If metadata exists, use the mesh with material.
-							  if (mesh.metadata?.modelName) {
-								const meshWithMaterial = flock.findFirstDescendantWithMaterial(mesh)
-								if (meshWithMaterial) {
-								  mesh = meshWithMaterial;					
-									mesh.refreshBoundingInfo();
-									mesh.flipFaces();
+								// If metadata exists, use the mesh with material.
+								if (mesh.metadata?.modelName) {
+									const meshWithMaterial =
+										flock.findFirstDescendantWithMaterial(
+											mesh,
+										);
+									if (meshWithMaterial) {
+										mesh = meshWithMaterial;
+										mesh.refreshBoundingInfo();
+										mesh.flipFaces();
+									}
 								}
-							  }
 
-								const duplicate = mesh.clone("meshDuplicate", null, true);
-							  duplicate.computeWorldMatrix(true);
-							  duplicate.refreshBoundingInfo();
-							  
-							  return duplicate;
+								const duplicate = mesh.clone(
+									"meshDuplicate",
+									null,
+									true,
+								);
+								duplicate.computeWorldMatrix(true);
+								duplicate.refreshBoundingInfo();
+
+								return duplicate;
 							});
 							baseDuplicate.refreshBoundingInfo();
 							let outerCSG = flock.BABYLON.CSG2.FromMesh(
 								baseDuplicate,
 								false,
 							);
-							
-							meshDuplicates.forEach((mesh) => {
 
-								
+							meshDuplicates.forEach((mesh) => {
 								const meshCSG = flock.BABYLON.CSG2.FromMesh(
 									mesh,
 									false,
 								);
 
-								
 								try {
-								outerCSG = outerCSG.subtract(meshCSG);
-						
-						} catch (e){
-							console.log("CSG error", e);
-						}
-								});
+									outerCSG = outerCSG.subtract(meshCSG);
+								} catch (e) {
+									console.log("CSG error", e);
+								}
+							});
 
 							// Create the result mesh.
 							const resultMesh = outerCSG.toMesh(
@@ -2008,24 +2004,24 @@ export const flock = {
 							//resultMesh.setParent(null);
 							resultMesh.computeWorldMatrix(true);
 							resultMesh.refreshBoundingInfo();
-							
+
 							resultMesh.computeWorldMatrix(true);
 
-flock.applyResultMeshProperties(
+							flock.applyResultMeshProperties(
 								resultMesh,
 								actualMesh,
 								modelId,
 								blockId,
 							);
-							
+
 							// Clean up duplicates.
 							baseDuplicate.dispose();
 							meshDuplicates.forEach((mesh) => mesh.dispose());
-							
+
 							// Clean up the original meshes used in the CSG operation.
 							baseMesh.dispose();
 							validMeshes.forEach((mesh) => mesh.dispose());
-							
+
 							resolve(modelId);
 						} else {
 							console.warn(
@@ -2070,33 +2066,29 @@ flock.applyResultMeshProperties(
 
 					let firstMesh = validMeshes[0];
 					// If metadata exists, use the mesh with material.
-					  if (firstMesh.metadata?.modelName) {
-
-						const meshWithMaterial = flock.findFirstDescendantWithMaterial(firstMesh)
+					if (firstMesh.metadata?.modelName) {
+						const meshWithMaterial =
+							flock.findFirstDescendantWithMaterial(firstMesh);
 						if (meshWithMaterial) {
-						  firstMesh = meshWithMaterial;	
-								firstMesh.refreshBoundingInfo();
-								firstMesh.flipFaces();
+							firstMesh = meshWithMaterial;
+							firstMesh.refreshBoundingInfo();
+							firstMesh.flipFaces();
 						}
-					  }
+					}
 					// Create the base CSG
-					let baseCSG = flock.BABYLON.CSG2.FromMesh(
-						firstMesh,
-						false,
-					);
+					let baseCSG = flock.BABYLON.CSG2.FromMesh(firstMesh, false);
 
 					// Intersect each subsequent mesh
 					validMeshes.slice(1).forEach((mesh) => {
-
 						if (mesh.metadata?.modelName) {
-
-							const meshWithMaterial = flock.findFirstDescendantWithMaterial(mesh)
+							const meshWithMaterial =
+								flock.findFirstDescendantWithMaterial(mesh);
 							if (meshWithMaterial) {
-							  mesh = meshWithMaterial;	
-									mesh.refreshBoundingInfo();
-									mesh.flipFaces();
+								mesh = meshWithMaterial;
+								mesh.refreshBoundingInfo();
+								mesh.flipFaces();
 							}
-						  }
+						}
 						const meshCSG = flock.BABYLON.CSG2.FromMesh(
 							mesh,
 							false,
@@ -2121,7 +2113,7 @@ flock.applyResultMeshProperties(
 						blockId,
 					);
 
-					validMeshes.forEach((mesh) => mesh.dispose());				
+					validMeshes.forEach((mesh) => mesh.dispose());
 
 					return modelId; // Return the modelId as per original functionality
 				} else {
@@ -2158,23 +2150,23 @@ flock.applyResultMeshProperties(
 					const combinedCentre = min.add(max).scale(0.5);
 
 					// Merge the valid meshes into a single mesh
-					const updatedValidMeshes = validMeshes.map(mesh => {
-					  if (mesh.metadata?.modelName) {
-						const meshWithMaterial = flock.findFirstDescendantWithMaterial(mesh);
-						if (meshWithMaterial) {
-						  meshWithMaterial.refreshBoundingInfo();
-						  meshWithMaterial.flipFaces();
-						  return meshWithMaterial;
+					const updatedValidMeshes = validMeshes.map((mesh) => {
+						if (mesh.metadata?.modelName) {
+							const meshWithMaterial =
+								flock.findFirstDescendantWithMaterial(mesh);
+							if (meshWithMaterial) {
+								meshWithMaterial.refreshBoundingInfo();
+								meshWithMaterial.flipFaces();
+								return meshWithMaterial;
+							}
 						}
-					  }
-					  return mesh;
+						return mesh;
 					});
 
 					const mergedMesh = BABYLON.Mesh.MergeMeshes(
-					  updatedValidMeshes,
-					  true,
+						updatedValidMeshes,
+						true,
 					);
-
 
 					if (!mergedMesh) {
 						console.warn(
@@ -2402,6 +2394,9 @@ flock.applyResultMeshProperties(
 		});
 	},
 	createGround(color, modelId) {
+		if (flock.ground) {
+			flock.ground.dispose();
+		}
 		const ground = flock.BABYLON.MeshBuilder.CreateGround(
 			modelId,
 			{ width: 100, height: 100, subdivisions: 2 },
@@ -2428,6 +2423,7 @@ flock.applyResultMeshProperties(
 			flock.getColorFromString(color),
 		);
 		ground.material = groundMaterial;
+		flock.ground = ground;
 	},
 	createMap1(image, color, texture) {
 		console.log("Creating map from image", image);
@@ -2536,6 +2532,9 @@ flock.applyResultMeshProperties(
 	},
 	createMap(image, material) {
 		console.log("Creating map from image", image);
+		if (flock.ground) {
+			flock.ground.dispose();
+		}
 		let ground;
 		if (image === "NONE") {
 			const modelId = "flatGround";
@@ -2621,56 +2620,56 @@ flock.applyResultMeshProperties(
 			material.diffuseTexture.vScale = 25;
 		}
 		ground.material = material;
-
+		flock.ground = ground;
 		return ground;
 	},
 	createCustomMap(colors) {
 		console.log("Creating map", colors);
 	},
 	setSky(color) {
-	  // If color is a Babylon.js material, apply it directly
-	  if (color && color instanceof flock.BABYLON.Material) {
-		const skySphere = flock.BABYLON.MeshBuilder.CreateSphere(
-		  "skySphere",
-		  { segments: 32, diameter: 1000 },
-		  flock.scene,
-		);
+		// If color is a Babylon.js material, apply it directly
+		if (color && color instanceof flock.BABYLON.Material) {
+			const skySphere = flock.BABYLON.MeshBuilder.CreateSphere(
+				"skySphere",
+				{ segments: 32, diameter: 1000 },
+				flock.scene,
+			);
 
-		  color.diffuseTexture.uScale = 10.0;
-		  color.diffuseTexture.vScale = 10.0;
-		skySphere.material = color;
-		skySphere.isPickable = false; // Make non-interactive
-	  } else if (Array.isArray(color) && color.length === 2) {
-		// Handle gradient case
-		const skySphere = flock.BABYLON.MeshBuilder.CreateSphere(
-		  "skySphere",
-		  { segments: 32, diameter: 1000 },
-		  flock.scene,
-		);
-		const gradientMaterial = new flock.GradientMaterial(
-		  "skyGradient",
-		  flock.scene,
-		);
+			color.diffuseTexture.uScale = 10.0;
+			color.diffuseTexture.vScale = 10.0;
+			skySphere.material = color;
+			skySphere.isPickable = false; // Make non-interactive
+		} else if (Array.isArray(color) && color.length === 2) {
+			// Handle gradient case
+			const skySphere = flock.BABYLON.MeshBuilder.CreateSphere(
+				"skySphere",
+				{ segments: 32, diameter: 1000 },
+				flock.scene,
+			);
+			const gradientMaterial = new flock.GradientMaterial(
+				"skyGradient",
+				flock.scene,
+			);
 
-		gradientMaterial.bottomColor = flock.BABYLON.Color3.FromHexString(
-		  flock.getColorFromString(color[0]),
-		);
-		gradientMaterial.topColor = flock.BABYLON.Color3.FromHexString(
-		  flock.getColorFromString(color[1]),
-		);
-		gradientMaterial.offset = 0.8;    // Push the gradient midpoint towards the top
-		gradientMaterial.smoothness = 0.5; // Sharper gradient transition
-		gradientMaterial.scale = 0.01;
-		gradientMaterial.backFaceCulling = false; // Render on the inside of the sphere
+			gradientMaterial.bottomColor = flock.BABYLON.Color3.FromHexString(
+				flock.getColorFromString(color[0]),
+			);
+			gradientMaterial.topColor = flock.BABYLON.Color3.FromHexString(
+				flock.getColorFromString(color[1]),
+			);
+			gradientMaterial.offset = 0.8; // Push the gradient midpoint towards the top
+			gradientMaterial.smoothness = 0.5; // Sharper gradient transition
+			gradientMaterial.scale = 0.01;
+			gradientMaterial.backFaceCulling = false; // Render on the inside of the sphere
 
-		skySphere.material = gradientMaterial;
-		skySphere.isPickable = false; // Make non-interactive
-	  } else {
-		// Handle single color case
-		flock.scene.clearColor = flock.BABYLON.Color3.FromHexString(
-		  flock.getColorFromString(color),
-		);
-	  }
+			skySphere.material = gradientMaterial;
+			skySphere.isPickable = false; // Make non-interactive
+		} else {
+			// Handle single color case
+			flock.scene.clearColor = flock.BABYLON.Color3.FromHexString(
+				flock.getColorFromString(color),
+			);
+		}
 	},
 	lightIntensity(intensity) {
 		if (flock.mainLight) {
@@ -4640,11 +4639,12 @@ flock.applyResultMeshProperties(
 						mesh.getBoundingInfo().boundingBox.maximumWorld.y -
 						diffY;
 				} else {
-					propertyValue = mesh.getBoundingInfo().boundingBox.minimumWorld.y
-						//mesh.getBoundingInfo().boundingBox.minimum.y *
-//						mesh.scaling.y;
+					propertyValue =
+						mesh.getBoundingInfo().boundingBox.minimumWorld.y;
+					//mesh.getBoundingInfo().boundingBox.minimum.y *
+					//						mesh.scaling.y;
 				}
-				
+
 				break;
 
 			case "MAX_Y":
@@ -4660,10 +4660,10 @@ flock.applyResultMeshProperties(
 						mesh.getBoundingInfo().boundingBox.minimumWorld.y +
 						diffY;
 				} else {
-					propertyValue =
-						propertyValue = mesh.getBoundingInfo().boundingBox.maximumWorld.y;
+					propertyValue = propertyValue =
+						mesh.getBoundingInfo().boundingBox.maximumWorld.y;
 					//mesh.getBoundingInfo().boundingBox.maximum.y *
-//						mesh.scaling.y;
+					//						mesh.scaling.y;
 				}
 				break;
 
