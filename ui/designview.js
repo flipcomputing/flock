@@ -233,8 +233,7 @@ export function updateMeshFromBlock(mesh, block, changeEvent) {
       const relativeScale = changeEvent.oldValue
         ? scale / changeEvent.oldValue
         : scale;
-      console.log("Computed relative scale:", relativeScale);
-
+ 
       if (relativeScale !== 1) {
         const x = mesh.position.x;
         const y = mesh.position.y;
@@ -1581,6 +1580,57 @@ function loadObjectImages() {
   loadImages("object-row", objectNames, "selectObject");
 }
 
+function scrollToBlockTopParentLeft(workspace, blockId) {
+  if (!workspace.isMovable()) {
+    console.warn(
+      'Tried to move a non-movable workspace. This could result' +
+      ' in blocks becoming inaccessible.'
+    );
+    return;
+  }
+
+  const block = blockId ? workspace.getBlockById(blockId) : null;
+  if (!block) {
+    return;
+  }
+
+  // Find the ultimate parent block
+  let ultimateParent = block;
+  while (ultimateParent.getParent()) {
+    ultimateParent = ultimateParent.getParent();
+  }
+
+  // Get the position of the target block (for top positioning)
+  const blockXY = block.getRelativeToSurfaceXY();
+
+  // Get the position of the ultimate parent (for left positioning)
+  const parentXY = ultimateParent.getRelativeToSurfaceXY();
+
+  // Workspace scale, used to convert from workspace coordinates to pixels
+  const scale = workspace.scale;
+
+  // Convert block positions to pixels
+  const pixelBlockY = blockXY.y * scale;
+  const pixelParentX = parentXY.x * scale;
+
+  // Get metrics to determine padding
+  const metrics = workspace.getMetrics();
+
+  // Calculate desired scroll position
+  // For Y: position block at top with some padding (20px)
+  // For X: position parent at left with some padding (20px)
+  const padding = 20;
+  const scrollToY = pixelBlockY - padding;
+  const scrollToX = pixelParentX - padding;
+
+  // Convert to canvas directions (negative values)
+  const x = -scrollToX;
+  const y = -scrollToY;
+
+  // Scroll the workspace
+  workspace.scroll(x, y);
+}
+
 function highlightBlockById(workspace, block) {
   if (block) {
     // Select the new block
@@ -1588,8 +1638,8 @@ function highlightBlockById(workspace, block) {
       workspace.getAllBlocks().forEach((b) => b.unselect());
       block.select();
 
-      // Center the block within the viewport
-      //workspace.centerOnBlock(block.id);
+      // Scroll to position the block at the top and its parent at the left
+      scrollToBlockTopParentLeft(workspace, block.id);
     }
   }
 }
@@ -2603,11 +2653,14 @@ function updateBlockColorAndHighlight(mesh, selectedColor) {
   }
 
   if (mesh && materialName) {
+
+    /*console.log("Looking up block", mesh.name, ultimateParent(mesh).blockKey);*/
     block = meshMap[ultimateParent(mesh).blockKey];
 
     if (!block) {
       console.error(
         "Block not found for mesh:",
+        mesh.name,
         ultimateParent(mesh).blockKey,
         mesh.name,
         ultimateParent(mesh).name,

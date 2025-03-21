@@ -1479,7 +1479,6 @@ export const flock = {
 				meshName = meshName + "_" + flock.scene.getUniqueId();
 			}
 
-			// Rest of the original function remains unchanged
 			if (flock.modelCache[modelName]) {
 				const firstMesh = flock.modelCache[modelName];
 				const mesh = firstMesh.clone(blockKey);
