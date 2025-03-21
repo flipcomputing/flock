@@ -2011,9 +2011,19 @@ const toolboxCondition = {
 			keyword: "if",
 		},
 		{
-			kind: "block",
-			type: "logic_compare",
-			keyword: "compare",
+		  kind: "block",
+		  type: "logic_compare",
+		  keyword: "compare",
+		  inputs: {
+			B: {
+			  shadow: {
+				type: "math_number",
+				fields: {
+				  NUM: "0"
+				}
+			  }
+			}
+		  }
 		},
 		{
 			kind: "block",

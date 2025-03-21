@@ -1625,32 +1625,64 @@ window.onload = function () {
 	workspace = Blockly.inject("blocklyDiv", options);
 
 	workspace.registerToolboxCategoryCallback('VARIABLE', function(ws) {
-	  // Use the default generation as a starting point.
+
+		console.log("Adding variable shadows");
+	  // Get the default XML list for the Variables category.
 	  const xmlList = Blockly.Variables.flyoutCategory(ws);
 
-	  // Modify the generated XML for each variables_set block.
+	  // For each dynamically generated variables_set block, add a math_number shadow.
 	  xmlList.forEach((xmlBlock) => {
 		if (xmlBlock.getAttribute('type') === 'variables_set') {
-		  // Create a new value element.
 		  const valueElement = document.createElement('value');
 		  valueElement.setAttribute('name', 'VALUE');
 
-		  // Create the shadow block for a math_number.
 		  const shadowElement = document.createElement('shadow');
 		  shadowElement.setAttribute('type', 'math_number');
 
-		  // Set the default number value.
 		  const fieldElement = document.createElement('field');
 		  fieldElement.setAttribute('name', 'NUM');
 		  fieldElement.textContent = '0';
 
 		  shadowElement.appendChild(fieldElement);
 		  valueElement.appendChild(shadowElement);
-
-		  // Append the value element to the block.
 		  xmlBlock.appendChild(valueElement);
 		}
 	  });
+
+	  // Find an existing variables_set block to clone.
+	  const defaultBlock = xmlList.find(xmlBlock => xmlBlock.getAttribute('type') === 'variables_set');
+	  if (defaultBlock) {
+		// Clone the default block so it retains the dynamic variable field.
+		const xmlBlockText = defaultBlock.cloneNode(true);
+
+		// Locate the VALUE input in the cloned block.
+		const valueElements = xmlBlockText.getElementsByTagName('value');
+		for (let i = 0; i < valueElements.length; i++) {
+		  if (valueElements[i].getAttribute('name') === 'VALUE') {
+			// Remove any existing shadow (the math_number one).
+			while (valueElements[i].firstChild) {
+			  valueElements[i].removeChild(valueElements[i].firstChild);
+			}
+			// Create a new shadow block of type "text".
+			const shadowText = document.createElement('shadow');
+			shadowText.setAttribute('type', 'text');
+
+			// Add the default text field.
+			const fieldText = document.createElement('field');
+			fieldText.setAttribute('name', 'TEXT');
+			fieldText.textContent = '';
+			shadowText.appendChild(fieldText);
+			valueElements[i].appendChild(shadowText);
+			break;
+		  }
+		}
+
+		// Insert the new text-shadow block immediately after the default block.
+		const defaultIndex = xmlList.indexOf(defaultBlock);
+		if (defaultIndex !== -1) {
+		  xmlList.splice(defaultIndex + 1, 0, xmlBlockText);
+		}
+	  }
 	  return xmlList;
 	});
 
