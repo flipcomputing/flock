@@ -2171,6 +2171,7 @@ window.onload = function () {
 	// Handle Enter key for adding new blocks
 	document.addEventListener("keydown", function (event) {
 		if (!event.ctrlKey && event.key === "Enter") {
+			console.log("Enter key pressed");
 			let selectedBlock = null;
 
 			const cursor = workspace.getCursor();

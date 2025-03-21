@@ -76,6 +76,7 @@ export function handleBlockSelect(event) {
     if (
       block &&
       block.type !== "create_ground" &&
+      block.type !== "create_map" &&
       (block.type.startsWith("create_") || block.type.startsWith("load_"))
     ) {
       // If the block is a create block, update the window.currentMesh variable
@@ -2491,50 +2492,6 @@ export function defineBlocks() {
         colour: categoryColours["Text"],
         tooltip:
           "Add a button to the UI screen with a preset size, and store control in a variable for later use or disposal.",
-        helpUrl: "",
-      });
-    },
-  };
-
-  Blockly.Blocks["create_map1"] = {
-    init: function () {
-      this.jsonInit({
-        type: "create_map",
-        message0: "map %1 %2 texture %3",
-        args0: [
-          {
-            type: "field_dropdown",
-            name: "MAP_NAME",
-            options: [["Flat", "NONE"]].concat(mapNames),
-          },
-          {
-            type: "input_value",
-            name: "COLOR",
-            colour: "#71BC78",
-            check: "Colour",
-          },
-          {
-            type: "field_grid_dropdown",
-            name: "TEXTURE",
-            columns: 4,
-            options: materialNames.map((name) => {
-              const baseName = name.replace(/\.[^/.]+$/, "");
-              return [
-                {
-                  src: `./textures/${baseName}.png`,
-                  width: 50,
-                  height: 50,
-                  alt: baseName,
-                },
-                name,
-              ];
-            }),
-          },
-        ],
-        previousStatement: null,
-        nextStatement: null,
-        colour: categoryColours["Scene"],
-        tooltip: "Creates a map with an optional texture and colour.",
         helpUrl: "",
       });
     },
@@ -5148,8 +5105,10 @@ export function defineBlocks() {
           const pos = this.getRelativeToSurfaceXY();
           newBlock.moveBy(pos.x, pos.y);
 
-
-          if (this.previousConnection && this.previousConnection.isConnected()) {
+          if (
+            this.previousConnection &&
+            this.previousConnection.isConnected()
+          ) {
             const parentConnection = this.previousConnection.targetConnection;
             if (parentConnection) {
               parentConnection.disconnect();
@@ -5175,7 +5134,6 @@ export function defineBlocks() {
           this.dispose();
         }
       });
-
     },
   };
 
