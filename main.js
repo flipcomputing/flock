@@ -1624,6 +1624,37 @@ window.onload = function () {
 
 	workspace = Blockly.inject("blocklyDiv", options);
 
+	workspace.registerToolboxCategoryCallback('VARIABLE', function(ws) {
+	  // Use the default generation as a starting point.
+	  const xmlList = Blockly.Variables.flyoutCategory(ws);
+
+	  // Modify the generated XML for each variables_set block.
+	  xmlList.forEach((xmlBlock) => {
+		if (xmlBlock.getAttribute('type') === 'variables_set') {
+		  // Create a new value element.
+		  const valueElement = document.createElement('value');
+		  valueElement.setAttribute('name', 'VALUE');
+
+		  // Create the shadow block for a math_number.
+		  const shadowElement = document.createElement('shadow');
+		  shadowElement.setAttribute('type', 'math_number');
+
+		  // Set the default number value.
+		  const fieldElement = document.createElement('field');
+		  fieldElement.setAttribute('name', 'NUM');
+		  fieldElement.textContent = '0';
+
+		  shadowElement.appendChild(fieldElement);
+		  valueElement.appendChild(shadowElement);
+
+		  // Append the value element to the block.
+		  xmlBlock.appendChild(valueElement);
+		}
+	  });
+	  return xmlList;
+	});
+
+	
 	const multiselectPlugin = new Multiselect(workspace);
 	multiselectPlugin.init(options);
 
