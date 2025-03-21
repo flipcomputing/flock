@@ -1500,7 +1500,13 @@ export const flock = {
 				mesh.computeWorldMatrix(true);
 				mesh.refreshBoundingInfo();
 				mesh.setEnabled(true);
-				mesh.visibility = 1;
+				const allDescendantMeshes = [mesh, ...mesh.getDescendants(false).filter(node => node instanceof BABYLON.AbstractMesh)];
+
+
+				allDescendantMeshes.forEach(mesh => {
+				  mesh.isPickable = true;
+				  mesh.setEnabled(true);
+				});
 				if (callback) {
 					requestAnimationFrame(callback);
 				}
@@ -1529,8 +1535,11 @@ export const flock = {
 						flock.changeColorMesh(mesh, color);
 						mesh.computeWorldMatrix(true);
 						mesh.refreshBoundingInfo();
-						mesh.setEnabled(true);
-						mesh.visibility = 1;
+						const allDescendantMeshes = [mesh, ...mesh.getDescendants(false).filter(node => node instanceof BABYLON.AbstractMesh)];
+						allDescendantMeshes.forEach(mesh => {
+						  mesh.isPickable = true;
+						  mesh.setEnabled(true);
+						});
 						if (callback) {
 							requestAnimationFrame(callback);
 						}
@@ -1547,12 +1556,33 @@ export const flock = {
 				)
 					.then((container) => {
 						flock.ensureStandardMaterial(container.meshes[0]);
-						const firstMesh = container.meshes[0].clone(
-							`${modelName}_first`,
-						);
-						firstMesh.setEnabled(false);
-						flock.modelCache[modelName] = firstMesh;
+
+						// First, add everything to the scene
 						container.addAllToScene();
+
+						// Create the template mesh AFTER adding to scene
+						const firstMesh = container.meshes[0].clone(`${modelName}_first`);
+						firstMesh.setEnabled(false);
+						firstMesh.isPickable = false;
+
+						// Make sure all children of the template are also not pickable
+						firstMesh.getChildMeshes().forEach(child => {
+							child.isPickable = false;
+							child.setEnabled(false);
+						});
+
+						// Store in cache
+						flock.modelCache[modelName] = firstMesh;
+
+						// Make sure the original mesh and its children ARE pickable and enabled
+						container.meshes[0].isPickable = true;
+						container.meshes[0].setEnabled(true);
+						container.meshes[0].getChildMeshes().forEach(child => {
+							child.isPickable = true;
+							child.setEnabled(true);  // Fixed the missing closing parenthesis
+						});
+
+						// Setup and color the active mesh
 						flock.setupMesh(
 							container.meshes[0],
 							modelName,
@@ -1562,9 +1592,10 @@ export const flock = {
 							x,
 							y,
 							z,
-							color,
+							color
 						);
 						flock.changeColorMesh(container.meshes[0], color);
+
 						if (callback) {
 							requestAnimationFrame(callback);
 						}
