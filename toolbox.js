@@ -2303,11 +2303,6 @@ const toolboxText = {
 					},
 				},
 			},
-			fields: {
-				WIDTH: {
-					value: "SMALL",
-				},
-			},
 		},
 		{
 			kind: "block",
