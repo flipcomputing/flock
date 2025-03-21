@@ -189,8 +189,6 @@ export function updateMeshFromBlock(mesh, block, changeEvent) {
 
   if (!changed) return;
 
-  console.log("Changed", changed);
-
   const shapeType = block.type;
 
   if (mesh && mesh.physics) mesh.physics.disablePreStep = true;
