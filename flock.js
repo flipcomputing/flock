@@ -6053,6 +6053,7 @@ export const flock = {
 				// Check if the material is already processed
 				if (!materialToColorMap.has(part.material)) {
 					const currentIndex = colorIndex % colors.length;
+					
 					const hexColor = flock.getColorFromString(
 						colors[currentIndex],
 					);
@@ -6211,6 +6212,16 @@ export const flock = {
 					? materials[index % materials.length]
 					: materials;
 
+				console.log("Material:", material, flock.GradientMaterial)
+				if (material instanceof flock.GradientMaterial) {
+					mesh.computeWorldMatrix(true);
+
+					const boundingInfo = mesh.getBoundingInfo();
+
+					const yDimension = boundingInfo.boundingBox.extendSizeWorld.y
+
+					material.scale = yDimension > 0 ? 1 / yDimension : 1;
+				}
 				if (!(material instanceof flock.BABYLON.Material)) {
 					console.error(
 						`Invalid material provided for mesh ${part.name}:`,
@@ -6253,26 +6264,45 @@ export const flock = {
 
 		const texturePath = flock.texturePath + materialName;
 
-		material = new flock.BABYLON.StandardMaterial(
-			materialName,
-			flock.scene,
-		);
+		// Handle gradient color case
+		if (Array.isArray(color) && color.length === 2) {
+			material = new flock.GradientMaterial(materialName, flock.scene);
 
-		// Load the texture if provided
-		if (texturePath) {
-			const texture = new flock.BABYLON.Texture(texturePath, flock.scene);
-			material.diffuseTexture = texture;
-		}
+			material.bottomColor = flock.BABYLON.Color3.FromHexString(
+				flock.getColorFromString(color[0])
+			);
+			material.topColor = flock.BABYLON.Color3.FromHexString(
+				flock.getColorFromString(color[1])
+			);
+			material.offset = 0.5;
+			material.smoothness = 0.5;
+			material.scale = 1.0;
+			material.backFaceCulling = false;
 
-		// Set colour if provided
-		if (color) {
-			const hexColor = flock.getColorFromString(color);
-			const babylonColor = flock.BABYLON.Color3.FromHexString(hexColor);
-			material.diffuseColor = babylonColor;
+		} else {
+			// Default to StandardMaterial
+			material = new flock.BABYLON.StandardMaterial(
+				materialName,
+				flock.scene
+			);
+
+			// Load texture if provided
+			if (texturePath) {
+				const texture = new flock.BABYLON.Texture(texturePath, flock.scene);
+				material.diffuseTexture = texture;
+			}
+
+			// Set single color if provided
+			if (color) {
+				const hexColor = flock.getColorFromString(color);
+				const babylonColor = flock.BABYLON.Color3.FromHexString(hexColor);
+				material.diffuseColor = babylonColor;
+			}
+
+			material.backFaceCulling = false;
 		}
 
 		material.alpha = alpha;
-		material.backFaceCulling = false;
 
 		return material;
 	},

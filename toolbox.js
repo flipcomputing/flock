@@ -2792,6 +2792,45 @@ const toolboxMaterials = {
 				},
 			},
 		},
+		{
+		  kind: "block",
+		  type: "gradient_material",
+		  inputs: {
+			COLOR: {
+			  block: {
+				type: "lists_create_with",
+				extraState: { itemCount: 2 },
+				inline: true,
+				inputs: {
+				  ADD0: {
+					shadow: {
+					  type: "colour",
+					  fields: {
+						COLOR: "#FF5733"
+					  }
+					}
+				  },
+				  ADD1: {
+					shadow: {
+					  type: "colour",
+					  fields: {
+						COLOR: "#FDFD96"
+					  }
+					}
+				  }
+				}
+			  }
+			},
+			ALPHA: {
+			  shadow: {
+				type: "math_number",
+				fields: {
+				  NUM: 1
+				}
+			  }
+			}
+		  }
+		},
 		/*{
 				kind: "block",
 				type: "material",

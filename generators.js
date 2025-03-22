@@ -1282,7 +1282,7 @@ export function defineGenerators() {
 		const meshId = "sky";
 		meshMap[meshId] = block;
 		meshBlockIdMap[meshId] = block.id;
-		return `flock.scene.clearColor = flock.BABYLON.Color4.FromHexString(${color} + "FF");\n`;
+		return `setSky(${color});\n`;
 	};
 
 	javascriptGenerator.forBlock["create_wall"] = function (block) {
@@ -2397,6 +2397,25 @@ export function defineGenerators() {
 
 		// Generate the code to call the createMaterial helper function
 		const code = `createMaterial(${baseColor},  "${textureSet}", ${alpha})`;
+		return [code, javascriptGenerator.ORDER_FUNCTION_CALL];
+	};
+
+	javascriptGenerator.forBlock["gradient_material"] = function (block) {
+		const color =
+			javascriptGenerator.valueToCode(
+				block,
+				"COLOR",
+				javascriptGenerator.ORDER_ATOMIC,
+			) || "1";
+
+		const alpha =
+			javascriptGenerator.valueToCode(
+				block,
+				"ALPHA",
+				javascriptGenerator.ORDER_ATOMIC,
+			) || "1";
+
+		const code = `createMaterial(${color}, null, ${alpha})`;
 		return [code, javascriptGenerator.ORDER_FUNCTION_CALL];
 	};
 

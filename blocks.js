@@ -2206,7 +2206,7 @@ export function defineBlocks() {
             type: "input_value",
             name: "COLOR",
             colour: "#6495ED",
-            check: "Colour",
+            check: ["Colour", "Array", "Material"],
           },
         ],
         previousStatement: null,
@@ -4978,6 +4978,36 @@ export function defineBlocks() {
             type: "input_value",
             name: "BASE_COLOR",
             colour: "#ffffff", // Default to white
+          },
+          {
+            type: "input_value",
+            name: "ALPHA",
+            value: 1,
+            min: 0,
+            max: 1,
+            precision: 0.01,
+          },
+        ],
+        output: "Material",
+        inputsInline: true,
+        colour: categoryColours["Materials"],
+        tooltip: "Define material properties",
+        helpUrl: "",
+      });
+    },
+  };
+
+  Blockly.Blocks["gradient_material"] = {
+    init: function () {
+      this.jsonInit({
+        type: "material",
+        message0: "material %1 alpha %2",
+        args0: [
+          {
+            type: "input_value",
+            name: "COLOR",
+            colour: "#6495ED",
+            check: ["Colour", "Array"],
           },
           {
             type: "input_value",
