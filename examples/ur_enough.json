@@ -305,7 +305,7 @@
 																								"type": "math_number",
 																								"id": "w6.V@iv:9=c2C_=Ymbu]",
 																								"fields": {
-																									"NUM": 1
+																									"NUM": 0.01
 																								}
 																							}
 																						},
@@ -314,7 +314,7 @@
 																								"type": "math_number",
 																								"id": "/(Hw;#1ISSF5k|^%Zm@Q",
 																								"fields": {
-																									"NUM": 1
+																									"NUM": 0.01
 																								}
 																							}
 																						},
@@ -323,7 +323,7 @@
 																								"type": "math_number",
 																								"id": "8aNJ1_*#/a5$.m|EsT*[",
 																								"fields": {
-																									"NUM": 1
+																									"NUM": 0.01
 																								}
 																							}
 																						},
@@ -341,7 +341,7 @@
 																								"type": "math_number",
 																								"id": "}c=kM`~`dPp+:m#R7taW",
 																								"fields": {
-																									"NUM": 2.5
+																									"NUM": 3
 																								}
 																							}
 																						},
@@ -1467,7 +1467,7 @@
 										"type": "math_number",
 										"id": ";m?(v~c]lNI~m-@`Y;40",
 										"fields": {
-											"NUM": 2.5
+											"NUM": 3
 										}
 									}
 								},
@@ -1662,7 +1662,7 @@
 										"type": "math_number",
 										"id": "0{OHT?Y3AM(YaKb7`8=,",
 										"fields": {
-											"NUM": 2.5
+											"NUM": 3
 										}
 									}
 								},
@@ -1857,7 +1857,7 @@
 										"type": "math_number",
 										"id": "kDwY(!M=PRzauT+MA!?d",
 										"fields": {
-											"NUM": 2.5
+											"NUM": 3
 										}
 									}
 								},
