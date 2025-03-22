@@ -35,7 +35,12 @@ export function updateOrCreateMeshFromBlock(block, changeEvent) {
   } else if (changeEvent.type === Blockly.Events.BLOCK_CHANGE) {
     const mesh = getMeshFromBlock(block);
 
-    if (mesh) {
+    if (
+      mesh ||
+      ["set_sky_color", "set_background_color", "create_ground"].includes(
+        block.type,
+      )
+    ) {
       updateMeshFromBlock(mesh, block, changeEvent);
     }
   }
@@ -171,7 +176,13 @@ function rescaleBoundingBox(bb, newScale) {
 }
 
 export function updateMeshFromBlock(mesh, block, changeEvent) {
-  if (!mesh) return;
+  if (
+    !mesh &&
+    !["set_sky_color", "set_background_color", "create_ground"].includes(
+      block.type,
+    )
+  )
+    return;
 
   const changedBlock = Blockly.getMainWorkspace().getBlockById(
     changeEvent.blockId,
@@ -193,7 +204,7 @@ export function updateMeshFromBlock(mesh, block, changeEvent) {
 
   if (mesh && mesh.physics) mesh.physics.disablePreStep = true;
 
-  let color, modelName;
+  let color;
 
   if (
     !["load_model", "load_multi_object", "load_character"].includes(block.type)
@@ -223,6 +234,19 @@ export function updateMeshFromBlock(mesh, block, changeEvent) {
     color = colorsArray;
   }
 
+  if (block.type === "set_sky_color") {
+    flock.setSky(color);
+    return;
+  }
+  if (block.type === "set_background_color") {
+    flock.setSky(color);
+    return;
+  }
+  if (block.type === "create_ground") {
+    flock.createGround(color, "ground");
+    return;
+  }
+
   if (block.type.startsWith("load_")) {
     let scale = block
       .getInput("SCALE")
@@ -233,7 +257,7 @@ export function updateMeshFromBlock(mesh, block, changeEvent) {
       const relativeScale = changeEvent.oldValue
         ? scale / changeEvent.oldValue
         : scale;
- 
+
       if (relativeScale !== 1) {
         const x = mesh.position.x;
         const y = mesh.position.y;
@@ -263,7 +287,6 @@ export function updateMeshFromBlock(mesh, block, changeEvent) {
         const ydiffAfter = mesh.getBoundingInfo().boundingBox.extendSizeWorld.y;
         //mesh.position.y -= ydiffAfter;
 
-        console.log("Ydiff", ydiff, ydiffAfter);
         mesh.computeWorldMatrix(true);
         mesh.refreshBoundingInfo();
       }
@@ -273,7 +296,9 @@ export function updateMeshFromBlock(mesh, block, changeEvent) {
   }
 
   // Retrieve the position values (X, Y, Z) from the connected blocks
-  const position = {
+  let position;
+
+  position = {
     x: block.getInput("X").connection.targetBlock().getFieldValue("NUM"),
     y: block.getInput("Y").connection.targetBlock().getFieldValue("NUM"),
     z: block.getInput("Z").connection.targetBlock().getFieldValue("NUM"),
@@ -507,15 +532,20 @@ function createMeshOnCanvas(block) {
   Blockly.Events.setGroup(true);
 
   let shapeType = block.type;
+
   let position, scale, color, modelName, newMesh;
 
-  // Retrieve position for all block types
-  position = {
-    x: block.getInput("X").connection.targetBlock().getFieldValue("NUM"),
-    y: block.getInput("Y").connection.targetBlock().getFieldValue("NUM"),
-    z: block.getInput("Z").connection.targetBlock().getFieldValue("NUM"),
-  };
-
+  if (
+    !["set_sky_color", "set_background_color", "create_ground"].includes(
+      block.type,
+    )
+  ) {
+    position = {
+      x: block.getInput("X").connection.targetBlock().getFieldValue("NUM"),
+      y: block.getInput("Y").connection.targetBlock().getFieldValue("NUM"),
+      z: block.getInput("Z").connection.targetBlock().getFieldValue("NUM"),
+    };
+  }
   let meshId,
     colors,
     width,
@@ -533,7 +563,37 @@ function createMeshOnCanvas(block) {
     planeHeight;
   // Handle block types
   switch (shapeType) {
-    // --- Model Loading Blocks ---
+    case "set_sky_color":
+      meshId = "sky";
+      meshMap[meshId] = block;
+      meshBlockIdMap[meshId] = block.id;
+      color = block
+        .getInput("COLOR")
+        .connection.targetBlock()
+        .getFieldValue("COLOR");
+      flock.setSky(color);
+      break;
+    case "set_background_color":
+      meshId = "sky";
+      meshMap[meshId] = block;
+      meshBlockIdMap[meshId] = block.id;
+      color = block
+        .getInput("COLOR")
+        .connection.targetBlock()
+        .getFieldValue("COLOR");
+      flock.setSky(color);
+      break;
+    case "create_ground":
+      meshId = "ground";
+      meshMap[meshId] = block;
+      meshBlockIdMap[meshId] = block.id;
+      color = block
+        .getInput("COLOR")
+        .connection.targetBlock()
+        .getFieldValue("COLOR");
+      flock.createGround(color, "ground");
+      break;
+    // --- Model Loading Blocks --
     case "load_model":
       modelName = block.getFieldValue("MODELS");
       scale = block
@@ -1165,7 +1225,7 @@ function selectCharacter(characterName) {
           // Add shadow blocks for colour inputs with default values
 
           Object.keys(colorFields).forEach((colorInputName) => {
-            console.log;
+           
             addShadowBlock(
               block,
               colorInputName,
@@ -1583,8 +1643,8 @@ function loadObjectImages() {
 function scrollToBlockTopParentLeft(workspace, blockId) {
   if (!workspace.isMovable()) {
     console.warn(
-      'Tried to move a non-movable workspace. This could result' +
-      ' in blocks becoming inaccessible.'
+      "Tried to move a non-movable workspace. This could result" +
+        " in blocks becoming inaccessible.",
     );
     return;
   }
@@ -2636,7 +2696,6 @@ function updateBlockColorAndHighlight(mesh, selectedColor) {
   let colorIndex, ultimateParent;
 
   if (!mesh) {
-    console.log("Sky", meshMap);
     block = meshMap["sky"];
 
     block
@@ -2653,7 +2712,6 @@ function updateBlockColorAndHighlight(mesh, selectedColor) {
   }
 
   if (mesh && materialName) {
-
     /*console.log("Looking up block", mesh.name, ultimateParent(mesh).blockKey);*/
     block = meshMap[ultimateParent(mesh).blockKey];
 
@@ -2767,7 +2825,6 @@ export function setGizmoManager(value) {
     if (event.keyCode === 46) {
       // KeyCode for 'Delete' key is 46
       // Handle delete action
-      console.log("Delete key pressed", gizmoManager.attachedMesh.name);
 
       const blockKey = findParentWithBlockId(
         gizmoManager.attachedMesh,

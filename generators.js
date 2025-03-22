@@ -1279,6 +1279,9 @@ export function defineGenerators() {
 
 	javascriptGenerator.forBlock["set_background_color"] = function (block) {
 		const color = getFieldValue(block, "COLOR", "#6495ED");
+		const meshId = "sky";
+		meshMap[meshId] = block;
+		meshBlockIdMap[meshId] = block.id;
 		return `flock.scene.clearColor = flock.BABYLON.Color4.FromHexString(${color} + "FF");\n`;
 	};
 

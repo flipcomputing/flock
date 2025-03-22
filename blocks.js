@@ -73,8 +73,7 @@ export function handleBlockSelect(event) {
   if (event.type === Blockly.Events.SELECTED) {
     const block = Blockly.getMainWorkspace().getBlockById(event.newElementId); // Get the selected block
 
-    if (
-      block &&
+    if (block &&
       block.type !== "create_ground" &&
       block.type !== "create_map" &&
       (block.type.startsWith("create_") || block.type.startsWith("load_"))
@@ -131,7 +130,8 @@ export function findCreateBlock(block) {
       // Don't update parent if we're modifying a nested scale or rotate
       return null;
     }
-    if (parent.type.startsWith("create_") || parent.type.startsWith("load_")) {
+
+    if (parent.type.startsWith("create_") || parent.type.startsWith("load_") || parent.type==="set_sky_color" || parent.type==="set_background_color") {
       return parent;
     }
 
@@ -352,6 +352,28 @@ export function defineBlocks() {
         tooltip:
           "Adds a ground plane with collisions enabled to the scene, with specified color.\nKeyword: ground",
         helpUrl: "",
+      });
+
+      this.setOnChange((changeEvent) => {
+        if (
+          changeEvent.type === Blockly.Events.BLOCK_CREATE ||
+          changeEvent.type === Blockly.Events.BLOCK_CHANGE
+        ) {
+          const parent = findCreateBlock(
+            Blockly.getMainWorkspace().getBlockById(changeEvent.blockId),
+          );
+
+          if (parent === this) {
+            const blockInWorkspace = Blockly.getMainWorkspace().getBlockById(
+              this.id,
+            ); 
+
+            if (blockInWorkspace) {
+              updateOrCreateMeshFromBlock(this, changeEvent);
+              //window.updateCurrentMeshName(this, "ID_VAR"); 
+            }
+          }
+        }
       });
     },
   };
@@ -1195,7 +1217,29 @@ export function defineBlocks() {
         tooltip: "Sets the sky color of the scene.\nKeyword: sky",
         helpUrl: "",
       });
-    },
+
+      this.setOnChange((changeEvent) => {
+
+        if (
+          changeEvent.type === Blockly.Events.BLOCK_CREATE ||
+          changeEvent.type === Blockly.Events.BLOCK_CHANGE
+        ) {
+          const parent = findCreateBlock(
+            Blockly.getMainWorkspace().getBlockById(changeEvent.blockId),
+          );
+          if (parent === this) {
+            const blockInWorkspace = Blockly.getMainWorkspace().getBlockById(
+              this.id,
+            ); 
+
+            if (blockInWorkspace) {
+              updateOrCreateMeshFromBlock(this, changeEvent);
+              //window.updateCurrentMeshName(this, "ID_VAR"); 
+            }
+          }
+        }
+      });
+    },  
   };
 
   Blockly.Blocks["light_intensity"] = {
@@ -2170,6 +2214,28 @@ export function defineBlocks() {
         colour: categoryColours["Scene"],
         tooltip: "Set the scene's background color.\nKeyword: background",
         helpUrl: "",
+      });
+
+      this.setOnChange((changeEvent) => {
+        if (
+          changeEvent.type === Blockly.Events.BLOCK_CREATE ||
+          changeEvent.type === Blockly.Events.BLOCK_CHANGE
+        ) {
+          const parent = findCreateBlock(
+            Blockly.getMainWorkspace().getBlockById(changeEvent.blockId),
+          );
+
+          if (parent === this) {
+            const blockInWorkspace = Blockly.getMainWorkspace().getBlockById(
+              this.id,
+            ); 
+
+            if (blockInWorkspace) {
+              updateOrCreateMeshFromBlock(this, changeEvent);
+              //window.updateCurrentMeshName(this, "ID_VAR"); 
+            }
+          }
+        }
       });
     },
   };
