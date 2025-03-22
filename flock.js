@@ -1045,30 +1045,32 @@ export const flock = {
 				"glowLayer",
 				flock.scene,
 			);
-			flock.glowLayer.intensity = 0.5; // Adjust glow intensity as needed
+			flock.glowLayer.intensity = 0.5;
 		}
-		const applyGlow = (mesh, glowColor) => {
-			if (mesh.material) {
-				// Use diffuse color if glowColor is not specified
-				const emissiveColor =
-					glowColor ||
-					mesh.material.diffuseColor ||
-					mesh.material.albedoColor ||
-					flock.BABYLON.Color3.Black();
-				mesh.material.emissiveColor = emissiveColor;
-				mesh.material.emissiveIntensity = 1.0;
-			}
-
-			// Add the mesh to the glow layer
-			//flock.glowLayer.addIncludedOnlyMesh(mesh);
-		};
 
 		return flock.whenModelReady(modelName, (mesh) => {
-			applyGlow(mesh, glowColor);
-			mesh.getChildMeshes().forEach((childMesh) =>
-				applyGlow(childMesh, glowColor),
-			);
+			flock.glowMesh(mesh, glowColor);
 		});
+	},
+
+	glowMesh(mesh, glowColor = null) {
+		const applyGlow = (m) => {
+			m.metadata = m.metadata || {};
+			m.metadata.glow = true;
+
+			if (m.material) {
+				const emissiveColor =
+					glowColor ||
+					m.material.diffuseColor ||
+					m.material.albedoColor ||
+					flock.BABYLON.Color3.Black();
+				m.material.emissiveColor = emissiveColor;
+				m.material.emissiveIntensity = 1.0;
+			}
+		};
+
+		applyGlow(mesh);
+		mesh.getChildMeshes().forEach(applyGlow);
 	},
 	createModel({
 		modelName,
@@ -1504,12 +1506,16 @@ export const flock = {
 				mesh.computeWorldMatrix(true);
 				mesh.refreshBoundingInfo();
 				mesh.setEnabled(true);
-				const allDescendantMeshes = [mesh, ...mesh.getDescendants(false).filter(node => node instanceof BABYLON.AbstractMesh)];
+				const allDescendantMeshes = [
+					mesh,
+					...mesh
+						.getDescendants(false)
+						.filter((node) => node instanceof BABYLON.AbstractMesh),
+				];
 
-
-				allDescendantMeshes.forEach(mesh => {
-				  mesh.isPickable = true;
-				  mesh.setEnabled(true);
+				allDescendantMeshes.forEach((mesh) => {
+					mesh.isPickable = true;
+					mesh.setEnabled(true);
 				});
 				if (callback) {
 					requestAnimationFrame(callback);
@@ -1539,10 +1545,18 @@ export const flock = {
 						flock.changeColorMesh(mesh, color);
 						mesh.computeWorldMatrix(true);
 						mesh.refreshBoundingInfo();
-						const allDescendantMeshes = [mesh, ...mesh.getDescendants(false).filter(node => node instanceof BABYLON.AbstractMesh)];
-						allDescendantMeshes.forEach(mesh => {
-						  mesh.isPickable = true;
-						  mesh.setEnabled(true);
+						const allDescendantMeshes = [
+							mesh,
+							...mesh
+								.getDescendants(false)
+								.filter(
+									(node) =>
+										node instanceof BABYLON.AbstractMesh,
+								),
+						];
+						allDescendantMeshes.forEach((mesh) => {
+							mesh.isPickable = true;
+							mesh.setEnabled(true);
 						});
 						if (callback) {
 							requestAnimationFrame(callback);
@@ -1565,12 +1579,14 @@ export const flock = {
 						container.addAllToScene();
 
 						// Create the template mesh AFTER adding to scene
-						const firstMesh = container.meshes[0].clone(`${modelName}_first`);
+						const firstMesh = container.meshes[0].clone(
+							`${modelName}_first`,
+						);
 						firstMesh.setEnabled(false);
 						firstMesh.isPickable = false;
 
 						// Make sure all children of the template are also not pickable
-						firstMesh.getChildMeshes().forEach(child => {
+						firstMesh.getChildMeshes().forEach((child) => {
 							child.isPickable = false;
 							child.setEnabled(false);
 						});
@@ -1581,10 +1597,12 @@ export const flock = {
 						// Make sure the original mesh and its children ARE pickable and enabled
 						container.meshes[0].isPickable = true;
 						container.meshes[0].setEnabled(true);
-						container.meshes[0].getChildMeshes().forEach(child => {
-							child.isPickable = true;
-							child.setEnabled(true);  // Fixed the missing closing parenthesis
-						});
+						container.meshes[0]
+							.getChildMeshes()
+							.forEach((child) => {
+								child.isPickable = true;
+								child.setEnabled(true); // Fixed the missing closing parenthesis
+							});
 
 						// Setup and color the active mesh
 						flock.setupMesh(
@@ -1596,7 +1614,7 @@ export const flock = {
 							x,
 							y,
 							z,
-							color
+							color,
 						);
 						flock.changeColorMesh(container.meshes[0], color);
 
@@ -2556,7 +2574,7 @@ export const flock = {
 	},
 	setSky(color) {
 		// If color is a Babylon.js material, apply it directly
-		if(flock.sky){
+		if (flock.sky) {
 			flock.disposeMesh(flock.sky);
 		}
 		if (color && color instanceof flock.BABYLON.Material) {
@@ -2696,6 +2714,7 @@ export const flock = {
 
 				// Remove mesh from glow layer
 				if (flock.glowLayer) {
+					mesh.metadata.glow = false;
 					flock.glowLayer.removeIncludedOnlyMesh(targetMesh);
 				}
 
@@ -2791,18 +2810,17 @@ export const flock = {
 		});
 	},
 	disposeMesh(mesh) {
+		if (mesh.name === "ground") {
+			mesh.material.dispose();
+			mesh.dispose();
+			return;
+		}
+		if (mesh.name === "sky") {
+			mesh.material.dispose();
+			mesh.dispose();
+			return;
+		}
 
-		if(mesh.name === "ground"){
-			mesh.material.dispose();
-			mesh.dispose();
-			return;
-		}
-		if(mesh.name === "sky"){
-			mesh.material.dispose();
-			mesh.dispose();
-			return;
-		}
-		
 		let meshesToDispose = [mesh];
 
 		const particleSystem = flock.scene.particleSystems.find(
@@ -6126,6 +6144,10 @@ export const flock = {
 		} catch (e) {
 			console.log("Error converting mesh to flat shaded:", e);
 		}
+
+		if (mesh.metadata?.glow) {
+			flock.glowMesh(mesh);
+		}
 	},
 	changeMaterial(modelName, materialName, color) {
 		return flock.whenModelReady(modelName, (mesh) => {
@@ -6164,6 +6186,10 @@ export const flock = {
 			part.material = material;
 		});
 
+		if (mesh.metadata?.glow) {
+			flock.glowMesh(mesh);
+		}
+
 		return material;
 	},
 	setMaterial(modelName, materials) {
@@ -6194,6 +6220,10 @@ export const flock = {
 				// Apply the material to the mesh
 				part.material = material;
 			});
+
+			if (mesh.metadata?.glow) {
+				flock.glowMesh(mesh);
+			}
 		});
 	},
 	createTriplanarMaterial(scene, texturePath, scale = 1) {
