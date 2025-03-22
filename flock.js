@@ -428,7 +428,7 @@ export const flock = {
 			flock.scene,
 		);
 		flock.savedCamera = camera;
-		camera.minZ = 1;
+		camera.minZ = 0;
 		camera.setTarget(flock.BABYLON.Vector3.Zero());
 		camera.rotation.x = flock.BABYLON.Tools.ToRadians(0);
 		camera.angularSensibilityX = 2000;
@@ -3029,6 +3029,7 @@ export const flock = {
 		// Enable and make the mesh visible
 		mesh.isVisible = true;
 		mesh.setEnabled(true);
+		mesh.material.needDepthPrePass = true;
 	},
 	createPhysicsBody(
 		mesh,
@@ -6802,8 +6803,7 @@ export const flock = {
 				camera.angularSensibilityX = 2000;
 				camera.angularSensibilityY = 2000;
 				camera.panningSensibility = 0;
-
-				camera.inputs.removeByType("ArcRotateCameraMouseWheelInput");
+							camera.inputs.removeByType("ArcRotateCameraMouseWheelInput");
 
 				camera.inputs.attached.pointers.multiTouchPanAndZoom = false;
 				camera.inputs.attached.pointers.multiTouchPanning = false;
