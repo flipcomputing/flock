@@ -2587,6 +2587,28 @@ export function defineBlocks() {
         tooltip: "Creates a map with the specified material.",
         helpUrl: "",
       });
+
+      this.setOnChange((changeEvent) => {
+        if (
+          changeEvent.type === Blockly.Events.BLOCK_CREATE ||
+          changeEvent.type === Blockly.Events.BLOCK_CHANGE
+        ) {
+          const parent = findCreateBlock(
+            Blockly.getMainWorkspace().getBlockById(changeEvent.blockId),
+          );
+
+          if (parent === this) {
+            const blockInWorkspace = Blockly.getMainWorkspace().getBlockById(
+              this.id,
+            ); 
+
+            if (blockInWorkspace) {
+              updateOrCreateMeshFromBlock(this, changeEvent);
+              //window.updateCurrentMeshName(this, "ID_VAR"); 
+            }
+          }
+        }
+      });
     },
   };
 

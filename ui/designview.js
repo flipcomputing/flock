@@ -126,7 +126,7 @@ function pickMeshFromCanvas() {
 export function deleteMeshFromBlock(blockId) {
   const mesh = getMeshFromBlockId(blockId);
 
-  const blockKey = Object.keys(meshBlockIdMap).find(
+   const blockKey = Object.keys(meshBlockIdMap).find(
     (key) => meshBlockIdMap[key] === blockId,
   );
 
@@ -175,6 +175,42 @@ function rescaleBoundingBox(bb, newScale) {
   bb.position.copyFrom(originalPosition);
 }
 
+function getBlockValue(block) {
+  if (!block) return null;
+
+  const fieldNames = block.inputList
+    .flatMap(input => input.fieldRow)
+    .map(field => field.name);
+
+  for (const name of fieldNames) {
+    const field = block.getField(name);
+    if (field) {
+      return field.getValue(); // returns number, text, or colour depending on the field
+    }
+  }
+
+  return null;
+}
+
+function extractMaterialInfo(materialBlock) {
+  const textureSet = materialBlock.getFieldValue("TEXTURE_SET");
+
+  let baseColor = null;
+  const baseColorBlock = materialBlock.getInputTargetBlock("BASE_COLOR");
+  if (baseColorBlock) {
+    baseColor = getBlockValue(baseColorBlock);
+  }
+
+  let alpha = 1;
+  const alphaBlock = materialBlock.getInputTargetBlock("ALPHA");
+  if (alphaBlock) {
+    const alphaVal = getBlockValue(alphaBlock);
+    if (alphaVal !== null) alpha = parseFloat(alphaVal);
+  }
+
+  return { textureSet, baseColor, alpha };
+}
+
 export function updateMeshFromBlock(mesh, block, changeEvent) {
   if (
     !mesh &&
@@ -207,7 +243,7 @@ export function updateMeshFromBlock(mesh, block, changeEvent) {
   let color;
 
   if (
-    !["load_model", "load_multi_object", "load_character"].includes(block.type)
+    !["load_model", "load_multi_object", "load_character", "create_map"].includes(block.type)
   ) {
     color = block
       .getInput("COLOR")
@@ -244,6 +280,14 @@ export function updateMeshFromBlock(mesh, block, changeEvent) {
   }
   if (block.type === "create_ground") {
     flock.createGround(color, "ground");
+    return;
+  }
+  if(block.type === "create_map"){
+    let map = block.getFieldValue("MAP_NAME");
+    const materialBlock = block.getInputTargetBlock("MATERIAL");
+     const { textureSet, baseColor, alpha } = extractMaterialInfo(materialBlock); 
+    const material = flock.createMaterial(baseColor, textureSet, alpha);
+    flock.createMap(map, material);
     return;
   }
 
@@ -536,7 +580,7 @@ function createMeshOnCanvas(block) {
   let position, scale, color, modelName, newMesh;
 
   if (
-    !["set_sky_color", "set_background_color", "create_ground"].includes(
+    !["set_sky_color", "set_background_color", "create_ground", "create_map"].includes(
       block.type,
     )
   ) {
@@ -592,6 +636,17 @@ function createMeshOnCanvas(block) {
         .connection.targetBlock()
         .getFieldValue("COLOR");
       flock.createGround(color, "ground");
+      break;
+    case "create_map":
+      meshId = "ground";
+      meshMap[meshId] = block;
+      meshBlockIdMap[meshId] = block.id;
+      let map = block.getFieldValue("MAP_NAME");
+      const materialBlock = block.getInputTargetBlock("MATERIAL");
+       const { textureSet, baseColor, alpha } = extractMaterialInfo(materialBlock); 
+      const material = flock.createMaterial(baseColor, textureSet, alpha);
+      console.log("Create map", map);
+      flock.createMap(map, material);
       break;
     // --- Model Loading Blocks --
     case "load_model":
