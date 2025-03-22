@@ -37,6 +37,7 @@ export const flock = {
 	hk: null,
 	havokInstance: null,
 	ground: null,
+	sky: null,
 	GUI: null,
 	EXPORT: null,
 	controlsTexture: null,
@@ -128,7 +129,6 @@ export const flock = {
 				removeParent,
 				createGround,
 				createMap,
-				createMap2,
 				createCustomMap,
 				setSky,
 				lightIntensity,
@@ -242,6 +242,8 @@ export const flock = {
 		flock.canvas = flock.document.getElementById("renderCanvas");
 		flock.scene = null;
 		flock.havokInstance = null;
+		flock.ground = null;
+		flock.sky = null;
 		flock.engineReady = false;
 		flock.meshLoaders = new Map();
 		flock.audioContext = flock.getAudioContext();
@@ -338,6 +340,8 @@ export const flock = {
 			flock.originalModelTransformations = null;
 			flock.geometryCache = null;
 			flock.materialCache = null;
+			flock.ground = null;
+			flock.sky = null;
 			// Abort any ongoing operations if applicable
 			if (flock.abortController) {
 				flock.abortController.abort(); // Abort any pending operations
@@ -2425,7 +2429,7 @@ export const flock = {
 	},
 	createGround(color, modelId) {
 		if (flock.ground) {
-			flock.ground.dispose();
+			flock.disposeMesh(flock.ground);
 		}
 		const ground = flock.BABYLON.MeshBuilder.CreateGround(
 			modelId,
@@ -2455,115 +2459,9 @@ export const flock = {
 		ground.material = groundMaterial;
 		flock.ground = ground;
 	},
-	createMap1(image, color, texture) {
-		console.log("Creating map from image", image);
-
-		let ground;
-		if (image === "NONE") {
-			const modelId = "flatGround";
-			ground = flock.BABYLON.MeshBuilder.CreateGround(
-				modelId,
-				{ width: 100, height: 100, subdivisions: 2 },
-				flock.scene,
-			);
-			const groundAggregate = new flock.BABYLON.PhysicsAggregate(
-				ground,
-				flock.BABYLON.PhysicsShapeType.BOX,
-				{ mass: 0, friction: 0.5 },
-				flock.scene,
-			);
-			ground.physics = groundAggregate;
-			ground.name = modelId;
-			ground.blockKey = modelId;
-			ground.receiveShadows = true;
-		} else {
-			const minHeight = 0;
-			const maxHeight = 10;
-
-			ground = flock.BABYLON.MeshBuilder.CreateGroundFromHeightMap(
-				"heightmap",
-				flock.texturePath + image,
-				{
-					width: 100,
-					height: 100,
-					minHeight: minHeight,
-					maxHeight: maxHeight,
-					subdivisions: 64,
-					onReady: (groundMesh) => {
-						// Retrieve height at (0, 0) by sampling the vertex data
-						const vertexData = groundMesh.getVerticesData(
-							flock.BABYLON.VertexBuffer.PositionKind,
-						);
-						let minDistance = Infinity;
-						let closestY = 0;
-						for (let i = 0; i < vertexData.length; i += 3) {
-							const x = vertexData[i];
-							const z = vertexData[i + 2];
-							const y = vertexData[i + 1];
-							const distance = Math.sqrt(x * x + z * z);
-							if (distance < minDistance) {
-								minDistance = distance;
-								closestY = y;
-							}
-						}
-
-						// Adjust the ground position so that (0, 0) is at y=0
-						groundMesh.position.y -= closestY;
-
-						const heightMapGroundShape =
-							new flock.BABYLON.PhysicsShapeMesh(
-								ground, // mesh from which to calculate the collisions
-								flock.scene, // scene of the shape
-							);
-						const heightMapGroundBody =
-							new flock.BABYLON.PhysicsBody(
-								ground,
-								flock.BABYLON.PhysicsMotionType.STATIC,
-								false,
-								flock.scene,
-							);
-						heightMapGroundShape.material = {
-							friction: 0.3,
-							restitution: 0,
-						};
-						heightMapGroundBody.shape = heightMapGroundShape;
-						heightMapGroundBody.setMassProperties({ mass: 0 });
-					},
-				},
-				flock.scene,
-			);
-		}
-
-		ground.name = "ground";
-		ground.blockKey = "ground";
-		const material = new flock.BABYLON.StandardMaterial(
-			"ground",
-			flock.scene,
-		);
-
-		material.specularColor = new flock.BABYLON.Color3(0, 0, 0); // Reduces shininess
-		material.specularPower = 50; // Controls sharpness of specular highlights
-
-		if (texture && texture !== "NONE") {
-			const tex = new flock.BABYLON.Texture(
-				flock.texturePath + texture,
-				flock.scene,
-			);
-			tex.uScale = 10;
-			tex.vScale = 10;
-			material.diffuseTexture = tex;
-		}
-
-		material.diffuseColor = flock.BABYLON.Color3.FromHexString(
-			flock.getColorFromString(color),
-		);
-		material.name = "ground";
-		ground.material = material;
-	},
 	createMap(image, material) {
-		console.log("Creating map from image", image);
 		if (flock.ground) {
-			flock.ground.dispose();
+			flock.disposeMesh(flock.ground);
 		}
 		let ground;
 		if (image === "NONE") {
@@ -2658,13 +2556,17 @@ export const flock = {
 	},
 	setSky(color) {
 		// If color is a Babylon.js material, apply it directly
+		if(flock.sky){
+			flock.disposeMesh(flock.sky);
+		}
 		if (color && color instanceof flock.BABYLON.Material) {
 			const skySphere = flock.BABYLON.MeshBuilder.CreateSphere(
-				"skySphere",
+				"sky",
 				{ segments: 32, diameter: 1000 },
 				flock.scene,
 			);
 
+			flock.sky = skySphere;
 			color.diffuseTexture.uScale = 10.0;
 			color.diffuseTexture.vScale = 10.0;
 			skySphere.material = color;
@@ -2672,10 +2574,11 @@ export const flock = {
 		} else if (Array.isArray(color) && color.length === 2) {
 			// Handle gradient case
 			const skySphere = flock.BABYLON.MeshBuilder.CreateSphere(
-				"skySphere",
+				"sky",
 				{ segments: 32, diameter: 1000 },
 				flock.scene,
 			);
+			flock.sky = skySphere;
 			const gradientMaterial = new flock.GradientMaterial(
 				"skyGradient",
 				flock.scene,
@@ -2888,6 +2791,18 @@ export const flock = {
 		});
 	},
 	disposeMesh(mesh) {
+
+		if(mesh.name === "ground"){
+			mesh.material.dispose();
+			mesh.dispose();
+			return;
+		}
+		if(mesh.name === "sky"){
+			mesh.material.dispose();
+			mesh.dispose();
+			return;
+		}
+		
 		let meshesToDispose = [mesh];
 
 		const particleSystem = flock.scene.particleSystems.find(
