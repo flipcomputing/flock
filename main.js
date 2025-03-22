@@ -694,7 +694,7 @@ async function loadExample() {
 		fetch(exampleFile)
 			.then((response) => response.json())
 			.then((json) => {
-				console.error("Loading:", selectedOption);
+				console.log("Loading:", selectedOption);
 				loadWorkspaceAndExecute(json, workspace, executeCode);
 			})
 			.catch((error) => {
