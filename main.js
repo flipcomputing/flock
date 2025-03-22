@@ -2233,7 +2233,7 @@ window.onload = function () {
 	});
 	// Handle Enter key for adding new blocks
 	document.addEventListener("keydown", function (event) {
-		if (!event.ctrlKey && event.key === "Enter") {
+		if (event.shiftKey && event.key === "Enter") {
 			let selectedBlock = null;
 
 			const cursor = workspace.getCursor();
