@@ -3670,6 +3670,7 @@ export const flock = {
 			const clone = sourceMesh.clone(uniqueCloneId);
 
 			if (clone) {
+				
 				sourceMesh.computeWorldMatrix(true);
 
 				const worldPosition = new BABYLON.Vector3();
@@ -3698,9 +3699,10 @@ export const flock = {
 					mesh.metadata.sharedGeometry = true;
 				};
 
+				clone.metadata = { ...(sourceMesh.metadata || {}) };
 				setMetadata(clone);
 				clone.getDescendants().forEach(setMetadata);
-
+				
 				if (callback) {
 					requestAnimationFrame(() => callback());
 				}
@@ -6032,7 +6034,7 @@ export const flock = {
 			flock.changeColorMesh(mesh, color);
 		});
 	},
-	changeColorMesh(mesh, color, unique = true) {
+	changeColorMesh(mesh, color) {
 		if (!mesh) {
 			flock.scene.clearColor = flock.BABYLON.Color3.FromHexString(
 				flock.getColorFromString(color),
@@ -6040,7 +6042,7 @@ export const flock = {
 			return;
 		}
 
-		if (unique) flock.ensureUniqueMaterial(mesh);
+		if (mesh.metadata?.sharedMaterial) flock.ensureUniqueMaterial(mesh);
 
 		// Ensure color is an array
 		const colors = Array.isArray(color) ? color : [color];
