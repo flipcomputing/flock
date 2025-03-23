@@ -668,3 +668,10 @@ path.blocklyPath.blockly-ws-search-highlight.blockly-ws-search-current {
   display: none !important;
 }*/
 
+.blocklyTreeSelected {
+  border-left: 4px solid #fc3  !important;
+}
+
+.blocklyToolboxDiv {
+  overflow: hidden !important;
+}
