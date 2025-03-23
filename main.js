@@ -8,7 +8,7 @@ import { javascriptGenerator } from "blockly/javascript";
 //import { registerFieldColour } from "@blockly/field-colour";
 import { FieldGridDropdown } from "@blockly/field-grid-dropdown";
 import { WorkspaceSearch } from "@blockly/plugin-workspace-search";
-//import {KeyboardNavigation} from '@blockly/keyboard-experiment';
+import { KeyboardNavigation } from '@blockly/keyboard-experiment/dist/index.js';
 //import { NavigationController } from "@blockly/keyboard-navigation";
 import * as BlockDynamicConnection from "@blockly/block-dynamic-connection";
 //import {CrossTabCopyPaste} from '@blockly/plugin-cross-tab-copy-paste';

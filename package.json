@@ -20,6 +20,7 @@
     "@blockly/block-shareable-procedures": "^5.0.6",
     "@blockly/field-colour": "^5.0.0",
     "@blockly/field-grid-dropdown": "^5.0.4",
+    "@blockly/keyboard-experiment": "^0.0.5",
     "@blockly/keyboard-navigation": "^0.6.7",
     "@blockly/plugin-cross-tab-copy-paste": "^6.0.12",
     "@blockly/plugin-scroll-options": "^6.0.7",
