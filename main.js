@@ -8,6 +8,7 @@ import { javascriptGenerator } from "blockly/javascript";
 //import { registerFieldColour } from "@blockly/field-colour";
 import { FieldGridDropdown } from "@blockly/field-grid-dropdown";
 import { WorkspaceSearch } from "@blockly/plugin-workspace-search";
+//import {KeyboardNavigation} from '@blockly/keyboard-experiment';
 //import { NavigationController } from "@blockly/keyboard-navigation";
 import * as BlockDynamicConnection from "@blockly/block-dynamic-connection";
 //import {CrossTabCopyPaste} from '@blockly/plugin-cross-tab-copy-paste';
@@ -1624,6 +1625,37 @@ window.onload = function () {
 
 	workspace = Blockly.inject("blocklyDiv", options);
 
+	//const keyboardNav = new KeyboardNavigation(workspace);
+	
+	const flockTheme = Blockly.Theme.defineTheme('classic', {
+	  base: Blockly.Themes.Modern,
+	  blockStyles: {
+		'logic_blocks': { 
+		  colourPrimary: Blockly.Msg['LOGIC_HUE']
+		},
+		'loop_blocks': { 
+		  colourPrimary: Blockly.Msg['LOOPS_HUE']
+		},
+		'math_blocks': { 
+		  colourPrimary: Blockly.Msg['MATH_HUE']
+		},
+		'text_blocks': { 
+		  colourPrimary: Blockly.Msg['TEXTS_HUE']
+		},
+		'list_blocks': { 
+		  colourPrimary: Blockly.Msg['LISTS_HUE']
+		},
+		'variable_blocks': { 
+		  colourPrimary: Blockly.Msg['VARIABLES_HUE']
+		},
+		'procedure_blocks': { 
+		  colourPrimary: Blockly.Msg['PROCEDURES_HUE']
+		}
+		// Your custom categories can be added here too
+	  }
+	});
+
+	workspace.setTheme(flockTheme);
 	workspace.registerToolboxCategoryCallback('VARIABLE', function(ws) {
 
 		console.log("Adding variable shadows");
