@@ -2266,7 +2266,7 @@ window.onload = function () {
 	});
 	// Handle Enter key for adding new blocks
 	document.addEventListener("keydown", function (event) {
-		if (event.ctrlKey && event.key === "Enter") {
+		if (event.ctrlKey && event.key === "]") {
 			let selectedBlock = null;
 
 			const cursor = workspace.getCursor();
@@ -2328,10 +2328,8 @@ window.onload = function () {
 					textInputField.showEditor_();
 				}
 			}, 100);
-		}
-		// Handle Tab key for adding a block inside a block that accepts nested blocks
-		else if (event.altKey && event.key === "Enter") {
-			// Prevent the default Tab behavior (like moving focus)
+		}	
+		else if (event.ctrlKey && event.key === "[") {
 			event.preventDefault();
 
 			let selectedBlock = null;
