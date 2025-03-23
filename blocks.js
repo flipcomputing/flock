@@ -233,7 +233,7 @@ export const options = {
   },
   // Double click the blocks to collapse/expand
   // them (A feature from MIT App Inventor).
-  useDoubleClick: true,
+  useDoubleClick: false,
   // Bump neighbours after dragging to avoid overlapping.
   bumpNeighbours: false,
 
