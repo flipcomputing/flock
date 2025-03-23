@@ -8,7 +8,7 @@ import { javascriptGenerator } from "blockly/javascript";
 //import { registerFieldColour } from "@blockly/field-colour";
 import { FieldGridDropdown } from "@blockly/field-grid-dropdown";
 import { WorkspaceSearch } from "@blockly/plugin-workspace-search";
-import { KeyboardNavigation } from '@blockly/keyboard-experiment/dist/index.js';
+//import { KeyboardNavigation } from '@blockly/keyboard-experiment/dist/index.js';
 //import { NavigationController } from "@blockly/keyboard-navigation";
 import * as BlockDynamicConnection from "@blockly/block-dynamic-connection";
 //import {CrossTabCopyPaste} from '@blockly/plugin-cross-tab-copy-paste';
@@ -1625,37 +1625,7 @@ window.onload = function () {
 
 	workspace = Blockly.inject("blocklyDiv", options);
 
-	//const keyboardNav = new KeyboardNavigation(workspace);
-	
-	const flockTheme = Blockly.Theme.defineTheme('classic', {
-	  base: Blockly.Themes.Modern,
-	  blockStyles: {
-		'logic_blocks': { 
-		  colourPrimary: Blockly.Msg['LOGIC_HUE']
-		},
-		'loop_blocks': { 
-		  colourPrimary: Blockly.Msg['LOOPS_HUE']
-		},
-		'math_blocks': { 
-		  colourPrimary: Blockly.Msg['MATH_HUE']
-		},
-		'text_blocks': { 
-		  colourPrimary: Blockly.Msg['TEXTS_HUE']
-		},
-		'list_blocks': { 
-		  colourPrimary: Blockly.Msg['LISTS_HUE']
-		},
-		'variable_blocks': { 
-		  colourPrimary: Blockly.Msg['VARIABLES_HUE']
-		},
-		'procedure_blocks': { 
-		  colourPrimary: Blockly.Msg['PROCEDURES_HUE']
-		}
-		// Your custom categories can be added here too
-	  }
-	});
-
-	workspace.setTheme(flockTheme);
+	let keyboardNav = null;
 	workspace.registerToolboxCategoryCallback('VARIABLE', function(ws) {
 
 		console.log("Adding variable shadows");
@@ -2329,7 +2299,7 @@ window.onload = function () {
 				}
 			}, 100);
 		}	
-		else if (event.ctrlKey && event.key === "[") {
+		/*else if (event.ctrlKey && event.key === "[") {
 			event.preventDefault();
 
 			let selectedBlock = null;
@@ -2393,13 +2363,50 @@ window.onload = function () {
 					textInputField.showEditor_();
 				}
 			}, 100);
-		}
+		}*/
 	});
 
 	document.addEventListener("keydown", (e) => {
-		if (e.key.toLowerCase() === "b") {
+		if (e.key.toLowerCase() === "k") {
 			e.preventDefault(); // stop the default T key behavior
-			const workspace = Blockly.getMainWorkspace(); // or use your reference
+			const workspace = Blockly.getMainWorkspace(); 
+			if(!keyboardNav){
+				keyboardNav = new KeyboardNavigation(workspace);
+				const flockTheme = Blockly.Theme.defineTheme('classic', {
+					  base: Blockly.Themes.Modern,
+					  blockStyles: {
+						'logic_blocks': { 
+						  colourPrimary: Blockly.Msg['LOGIC_HUE']
+						},
+						'loop_blocks': { 
+						  colourPrimary: Blockly.Msg['LOOPS_HUE']
+						},
+						'math_blocks': { 
+						  colourPrimary: Blockly.Msg['MATH_HUE']
+						},
+						'text_blocks': { 
+						  colourPrimary: Blockly.Msg['TEXTS_HUE']
+						},
+						'list_blocks': { 
+						  colourPrimary: Blockly.Msg['LISTS_HUE']
+						},
+						'variable_blocks': { 
+						  colourPrimary: Blockly.Msg['VARIABLES_HUE']
+						},
+						'procedure_blocks': { 
+						  colourPrimary: Blockly.Msg['PROCEDURES_HUE']
+						}
+						// Your custom categories can be added here too
+					  }
+					});
+
+				workspace.setTheme(flockTheme);
+			}
+		}
+		else if (e.key.toLowerCase() === "b") {
+			e.preventDefault(); // stop the default T key behavior
+			const workspace = Blockly.getMainWorkspace(); 
+
 			const toolbox = workspace.getToolbox();
 			if (!toolbox) return;
 
