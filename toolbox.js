@@ -2121,7 +2121,7 @@ const toolboxText = {
 	kind: "category",
 	name: "Text",
 	icon: "./images/text.svg",
-	categorystyle: "text_category",
+	colour: categoryColours["Text"],
 	contents: [
 		{
 			kind: "block",
@@ -2401,7 +2401,7 @@ const toolboxText = {
 			kind: "category",
 			name: "Strings",
 			icon: "./images/text.svg",
-			categorystyle: "text_category",
+			colour: categoryColours["Text"],
 			contents: [
 				{
 					kind: "block",
