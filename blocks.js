@@ -1130,14 +1130,14 @@ export function defineBlocks() {
             name: "PIVOT_OPTION",
             options: [
               ["min", "Number.MIN_SAFE_INTEGER"],
-              ["centre", "0"],
+              ["center", "0"],
               ["max", "Number.MAX_SAFE_INTEGER"],
             ],
           },
         ],
         output: "Number", // Returns a numeric value
         colour: categoryColours["Transform"],
-        tooltip: "Choose min, centre, or max for the pivot point",
+        tooltip: "Choose min, center, or max for the pivot point",
         helpUrl: "",
       });
     },
@@ -2937,7 +2937,7 @@ export function defineBlocks() {
             type: "field_dropdown",
             name: "X_ORIGIN",
             options: [
-              ["centre", "CENTRE"],
+              ["center", "CENTRE"],
               ["left", "LEFT"],
               ["right", "RIGHT"],
             ],
@@ -2947,7 +2947,7 @@ export function defineBlocks() {
             name: "Y_ORIGIN",
             options: [
               ["base", "BASE"],
-              ["centre", "CENTRE"],
+              ["center", "CENTRE"],
               ["top", "TOP"],
             ],
           },
@@ -2955,7 +2955,7 @@ export function defineBlocks() {
             type: "field_dropdown",
             name: "Z_ORIGIN",
             options: [
-              ["centre", "CENTRE"],
+              ["center", "CENTRE"],
               ["front", "FRONT"],
               ["back", "BACK"],
             ],
@@ -3001,7 +3001,7 @@ export function defineBlocks() {
             type: "field_dropdown",
             name: "X_ORIGIN",
             options: [
-              ["centre", "CENTRE"],
+              ["center", "CENTRE"],
               ["left", "LEFT"],
               ["right", "RIGHT"],
             ],
@@ -3011,7 +3011,7 @@ export function defineBlocks() {
             name: "Y_ORIGIN",
             options: [
               ["base", "BASE"],
-              ["centre", "CENTRE"],
+              ["center", "CENTRE"],
               ["top", "TOP"],
             ],
           },
@@ -3019,7 +3019,7 @@ export function defineBlocks() {
             type: "field_dropdown",
             name: "Z_ORIGIN",
             options: [
-              ["centre", "CENTRE"],
+              ["center", "CENTRE"],
               ["front", "FRONT"],
               ["back", "BACK"],
             ],
