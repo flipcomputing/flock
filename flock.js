@@ -306,6 +306,12 @@ export const flock = {
 		flock.canvas.addEventListener("keyup", function (event) {
 			flock.canvas.pressedKeys.delete(event.key);
 		});
+		
+		flock.canvas.addEventListener("blur", () => {
+			// Clear all pressed keys when window loses focus
+			flock.canvas.pressedKeys.clear();
+			flock.canvas.pressedButtons.clear();
+		});
 
 		flock.engineReady = true;
 	},
