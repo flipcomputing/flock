@@ -2396,6 +2396,30 @@ window.onload = function () {
 		}
 	});
 
+	document.addEventListener("keydown", (e) => {
+		if (e.key.toLowerCase() === "b") {
+			e.preventDefault(); // stop the default T key behavior
+			const workspace = Blockly.getMainWorkspace(); // or use your reference
+			const toolbox = workspace.getToolbox();
+			if (!toolbox) return;
+
+			const items = toolbox.getToolboxItems();
+			for (let i = 0; i < items.length; i++) {
+				const item = items[i];
+				if (
+					item.getName &&
+					item.getName().toLowerCase() === "scene" &&
+					item.isSelectable &&
+					item.isSelectable()
+				) {
+					toolbox.selectItemByPosition(i);
+					return;
+				}
+			}
+
+			console.warn("Scene category not found in toolbox");
+		}
+	});
 	initializeApp();
 };
 
