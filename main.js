@@ -2367,7 +2367,7 @@ window.onload = function () {
 	});
 
 	/*document.addEventListener("keydown", (e) => {
-		if (e.key.toLowerCase() === "k") {
+		if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === "k") {
 			e.preventDefault(); // stop the default T key behavior
 			const workspace = Blockly.getMainWorkspace(); 
 			if(!keyboardNav){
@@ -2402,8 +2402,8 @@ window.onload = function () {
 
 				workspace.setTheme(flockTheme);
 			}
-		}*/
-		/*else if (e.key.toLowerCase() === "b") {
+		}
+		else if (e.ctrlKey && e.shiftKey &&  e.key.toLowerCase() === "l") {
 			e.preventDefault(); // stop the default T key behavior
 			const workspace = Blockly.getMainWorkspace(); 
 
