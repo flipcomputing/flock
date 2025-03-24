@@ -2366,7 +2366,7 @@ window.onload = function () {
 		}*/
 	});
 
-	document.addEventListener("keydown", (e) => {
+	/*document.addEventListener("keydown", (e) => {
 		if (e.key.toLowerCase() === "k") {
 			e.preventDefault(); // stop the default T key behavior
 			const workspace = Blockly.getMainWorkspace(); 
@@ -2402,8 +2402,8 @@ window.onload = function () {
 
 				workspace.setTheme(flockTheme);
 			}
-		}
-		else if (e.key.toLowerCase() === "b") {
+		}*/
+		/*else if (e.key.toLowerCase() === "b") {
 			e.preventDefault(); // stop the default T key behavior
 			const workspace = Blockly.getMainWorkspace(); 
 
@@ -2426,7 +2426,8 @@ window.onload = function () {
 
 			console.warn("Scene category not found in toolbox");
 		}
-	});
+	});*/
+	
 	initializeApp();
 };
 
@@ -2469,7 +2470,7 @@ const adjustViewport = () => {
 window.addEventListener("load", adjustViewport);
 window.addEventListener("resize", adjustViewport);
 
-function setupAutoValueBehavior(workspace) {
+function setupAutoValueBehavior2(workspace) {
 	workspace.addChangeListener(function (event) {
 		// Only handle events that change block structure (like adding a new input)
 		if (
@@ -2540,6 +2541,109 @@ function setupAutoValueBehavior(workspace) {
 								"VAR",
 							);
 						}
+
+						// Connect the new block to the last input
+						lastInput.connection.connect(newBlock.outputConnection);
+					}
+				}
+			}
+		}
+	});
+}
+
+function setupAutoValueBehavior(workspace) {
+	workspace.addChangeListener(function (event) {
+		// Only handle events that change block structure (like adding a new input)
+		if (
+			event.type === Blockly.Events.BLOCK_CHANGE ||
+			event.type === Blockly.Events.BLOCK_CREATE
+		) {
+			// Get the block that was changed
+			var block = workspace.getBlockById(event.blockId);
+			// Check if it's a lists_create_with block
+			if (block && block.type === "lists_create_with") {
+				// Count the number of inputs
+				var inputCount = 0;
+				while (block.getInput("ADD" + inputCount)) {
+					inputCount++;
+				}
+				// Only proceed if there are at least 2 inputs (to have a previous item)
+				if (inputCount >= 2) {
+					// Get the second-to-last input
+					var previousInput = block.getInput(
+						"ADD" + (inputCount - 2),
+					);
+					// Get the last input
+					var lastInput = block.getInput("ADD" + (inputCount - 1));
+					// If the previous input has a connection and the last one doesn't
+					if (
+						previousInput &&
+						previousInput.connection.targetConnection &&
+						lastInput &&
+						!lastInput.connection.targetConnection
+					) {
+						// Get the block connected to the previous input
+						var sourceBlock =
+							previousInput.connection.targetConnection
+								.sourceBlock_;
+
+						// Deep copy function for handling nested blocks
+						function deepCopyBlock(originalBlock) {
+							// Create a new block of the same type
+							var newBlock = workspace.newBlock(originalBlock.type);
+
+							// Handle shadow blocks
+							if (originalBlock.isShadow()) {
+								newBlock.setShadow(true);
+							}
+
+							// Copy field values for known block types
+							var fieldMap = {
+								"math_number": "NUM",
+								"text": "TEXT",
+								"logic_boolean": "BOOL",
+								"variables_get": "VAR"
+							};
+
+							// Handle simple field values
+							if (fieldMap[originalBlock.type]) {
+								var fieldName = fieldMap[originalBlock.type];
+								newBlock.setFieldValue(
+									originalBlock.getFieldValue(fieldName),
+									fieldName
+								);
+							}
+
+							// Recursively copy input connections (nested blocks)
+							for (var i = 0; i < originalBlock.inputList.length; i++) {
+								var originalInput = originalBlock.inputList[i];
+								var newInput = newBlock.getInput(originalInput.name);
+
+								// Check if the input has a connected block
+								if (originalInput.connection && 
+									originalInput.connection.targetConnection) {
+									var originalNestedBlock = 
+										originalInput.connection.targetConnection.sourceBlock_;
+
+									// Recursively create a deep copy of the nested block
+									var newNestedBlock = deepCopyBlock(originalNestedBlock);
+
+									// Connect the new nested block to the corresponding input
+									if (newInput && newNestedBlock.outputConnection) {
+										newInput.connection.connect(newNestedBlock.outputConnection);
+									}
+								}
+							}
+
+							// Initialize and render the new block
+							newBlock.initSvg();
+							newBlock.render();
+
+							return newBlock;
+						}
+
+						// Create a deep copy of the source block
+						var newBlock = deepCopyBlock(sourceBlock);
 
 						// Connect the new block to the last input
 						lastInput.connection.connect(newBlock.outputConnection);
