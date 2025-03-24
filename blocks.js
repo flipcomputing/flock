@@ -73,7 +73,8 @@ export function handleBlockSelect(event) {
   if (event.type === Blockly.Events.SELECTED) {
     const block = Blockly.getMainWorkspace().getBlockById(event.newElementId); // Get the selected block
 
-    if (block &&
+    if (
+      block &&
       block.type !== "create_ground" &&
       block.type !== "create_map" &&
       (block.type.startsWith("create_") || block.type.startsWith("load_"))
@@ -131,7 +132,12 @@ export function findCreateBlock(block) {
       return null;
     }
 
-    if (parent.type.startsWith("create_") || parent.type.startsWith("load_") || parent.type==="set_sky_color" || parent.type==="set_background_color") {
+    if (
+      parent.type.startsWith("create_") ||
+      parent.type.startsWith("load_") ||
+      parent.type === "set_sky_color" ||
+      parent.type === "set_background_color"
+    ) {
       return parent;
     }
 
@@ -366,11 +372,11 @@ export function defineBlocks() {
           if (parent === this) {
             const blockInWorkspace = Blockly.getMainWorkspace().getBlockById(
               this.id,
-            ); 
+            );
 
             if (blockInWorkspace) {
               updateOrCreateMeshFromBlock(this, changeEvent);
-              //window.updateCurrentMeshName(this, "ID_VAR"); 
+              //window.updateCurrentMeshName(this, "ID_VAR");
             }
           }
         }
@@ -1219,7 +1225,6 @@ export function defineBlocks() {
       });
 
       this.setOnChange((changeEvent) => {
-
         if (
           changeEvent.type === Blockly.Events.BLOCK_CREATE ||
           changeEvent.type === Blockly.Events.BLOCK_CHANGE
@@ -1230,16 +1235,16 @@ export function defineBlocks() {
           if (parent === this) {
             const blockInWorkspace = Blockly.getMainWorkspace().getBlockById(
               this.id,
-            ); 
+            );
 
             if (blockInWorkspace) {
               updateOrCreateMeshFromBlock(this, changeEvent);
-              //window.updateCurrentMeshName(this, "ID_VAR"); 
+              //window.updateCurrentMeshName(this, "ID_VAR");
             }
           }
         }
       });
-    },  
+    },
   };
 
   Blockly.Blocks["light_intensity"] = {
@@ -2228,11 +2233,11 @@ export function defineBlocks() {
           if (parent === this) {
             const blockInWorkspace = Blockly.getMainWorkspace().getBlockById(
               this.id,
-            ); 
+            );
 
             if (blockInWorkspace) {
               updateOrCreateMeshFromBlock(this, changeEvent);
-              //window.updateCurrentMeshName(this, "ID_VAR"); 
+              //window.updateCurrentMeshName(this, "ID_VAR");
             }
           }
         }
@@ -2600,11 +2605,11 @@ export function defineBlocks() {
           if (parent === this) {
             const blockInWorkspace = Blockly.getMainWorkspace().getBlockById(
               this.id,
-            ); 
+            );
 
             if (blockInWorkspace) {
               updateOrCreateMeshFromBlock(this, changeEvent);
-              //window.updateCurrentMeshName(this, "ID_VAR"); 
+              //window.updateCurrentMeshName(this, "ID_VAR");
             }
           }
         }
@@ -3838,7 +3843,7 @@ export function defineBlocks() {
     init: function () {
       this.jsonInit({
         type: "when_touches",
-        message0: "when %1 intersect %2 %3",
+        message0: "on %1 collision %2 %3",
         args0: [
           {
             type: "field_variable",
