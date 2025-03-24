@@ -5994,7 +5994,7 @@ export const flock = {
 				!vrPressed
 			);
 		} else {
-			return pressedKeys.has(key) || pressedButtons.has(key) || vrPressed;
+			return pressedKeys.has(key) || pressedKeys.has(key.toLowerCase()) || pressedKeys.has(key.toUpperCase()) || pressedButtons.has(key) || vrPressed;
 		}
 	},
 	seededRandom(from, to, seed) {
@@ -7817,7 +7817,7 @@ export const flock = {
 			: flock.BABYLON.KeyboardEventTypes.KEYDOWN;
 
 		flock.scene.onKeyboardObservable.add((kbInfo) => {
-			if (kbInfo.type === eventType && kbInfo.event.key === key) {
+			if (kbInfo.type === eventType && kbInfo.event.key.toLowerCase() === key) {
 				callback();
 			}
 		});
