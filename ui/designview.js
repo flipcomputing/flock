@@ -1378,7 +1378,8 @@ function selectModel(modelName) {
 
           block.initSvg();
           block.render();
-          highlightBlockById(Blockly.getMainWorkspace(), block);
+          
+ highlightBlockById(Blockly.getMainWorkspace(), block);
 
           // Create a new start block and connect the model block to it
           const startBlock = Blockly.getMainWorkspace().newBlock("start");
@@ -1465,7 +1466,6 @@ function selectObjectWithCommand(objectName, menu, command) {
           // Create the load_object block
           const block = Blockly.getMainWorkspace().newBlock(command);
           block.initSvg();
-
           highlightBlockById(Blockly.getMainWorkspace(), block);
 
           // Set object name
@@ -2069,6 +2069,9 @@ function toggleGizmo(gizmoType) {
             );
             flock.printText("Position: " + roundedPosition, 30, "black");
 
+             const block = meshMap[blockKey];
+            highlightBlockById(Blockly.getMainWorkspace(), block);
+
             // Attach the gizmo to the selected mesh
             gizmoManager.attachToMesh(pickedMesh);
 
@@ -2120,7 +2123,8 @@ function toggleGizmo(gizmoType) {
           }
 
           const block = meshMap[mesh.blockKey];
-          highlightBlockById(Blockly.getMainWorkspace(), block);
+          
+highlightBlockById(Blockly.getMainWorkspace(), block);
         },
       );
 
@@ -2200,7 +2204,8 @@ function toggleGizmo(gizmoType) {
         }
 
         const block = meshMap[mesh.blockKey];
-        highlightBlockById(Blockly.getMainWorkspace(), block);
+        
+highlightBlockById(Blockly.getMainWorkspace(), block);
       });
       gizmoManager.gizmos.positionGizmo.onDragEndObservable.add(function () {
         // Retrieve the mesh associated with the position gizmo
@@ -2288,7 +2293,8 @@ function toggleGizmo(gizmoType) {
         }
 
         const block = meshMap[mesh.blockKey];
-        highlightBlockById(Blockly.getMainWorkspace(), block);
+        
+highlightBlockById(Blockly.getMainWorkspace(), block);
       });
 
       gizmoManager.gizmos.rotationGizmo.onDragEndObservable.add(function () {
@@ -2746,6 +2752,7 @@ const characterMaterials = [
 ];
 
 function updateBlockColorAndHighlight(mesh, selectedColor) {
+
   let block = null;
   let materialName = null;
   let colorIndex, ultimateParent;
@@ -2868,7 +2875,7 @@ export function setGizmoManager(value) {
 
     if (mesh) {
       const block = meshMap[mesh.blockKey];
-      highlightBlockById(Blockly.getMainWorkspace(), block);
+      //highlightBlockById(Blockly.getMainWorkspace(), block);
     }
     originalAttach(mesh);
   };

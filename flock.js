@@ -7816,7 +7816,7 @@ export const flock = {
 			? flock.BABYLON.KeyboardEventTypes.KEYUP
 			: flock.BABYLON.KeyboardEventTypes.KEYDOWN;
 
-		flock.scene.onKeyboardObservable.add((kbInfo) => {
+	flock.scene.onKeyboardObservable.add((kbInfo) => {
 			if (kbInfo.type === eventType && kbInfo.event.key.toLowerCase() === key) {
 				callback();
 			}
