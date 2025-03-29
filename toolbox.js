@@ -1506,7 +1506,7 @@ const toolboxTransform = {
 				},
 			},
 		},
-		{
+		/*{
 			kind: "block",
 			type: "xyz", // Use the block's actual type name defined when you created it
 			inputs: {
@@ -1535,7 +1535,7 @@ const toolboxTransform = {
 					},
 				},
 			},
-		},
+		},*/
 		{
 		  kind: "block",
 		  type: "set_pivot",
