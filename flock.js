@@ -4801,6 +4801,9 @@ setPivotPoint(meshName, xPivot, yPivot, zPivot) {
 		return propertyValue;
 	},
 	createSmallButton(text, key, color) {
+
+		if (!flock.controlsTexture) return;
+
 		const button = flock.GUI.Button.CreateSimpleButton("but", text);
 		button.width = `${70 * flock.displayScale}px`; // Scale size
 		button.height = `${70 * flock.displayScale}px`;
@@ -4821,6 +4824,9 @@ setPivotPoint(meshName, xPivot, yPivot, zPivot) {
 		return button;
 	},
 	createArrowControls(color) {
+		// Add a safety check at the beginning of the function
+		if (!flock.controlsTexture) return;
+
 		// Create a grid
 		const grid = new flock.GUI.Grid();
 		grid.width = `${240 * flock.displayScale}px`;
@@ -4833,12 +4839,10 @@ setPivotPoint(meshName, xPivot, yPivot, zPivot) {
 		grid.addColumnDefinition(1);
 		grid.addColumnDefinition(1);
 		flock.controlsTexture.addControl(grid);
-
 		const upButton = flock.createSmallButton("△", "w", color);
 		const downButton = flock.createSmallButton("▽", "s", color);
 		const leftButton = flock.createSmallButton("◁", "a", color);
 		const rightButton = flock.createSmallButton("▷", "d", color);
-
 		// Add buttons to the grid
 		grid.addControl(upButton, 0, 1); // Add to row 0, column 1
 		grid.addControl(leftButton, 1, 0); // Add to row 1, column 0
@@ -4846,6 +4850,7 @@ setPivotPoint(meshName, xPivot, yPivot, zPivot) {
 		grid.addControl(rightButton, 1, 2); // Add to row 1, column 2
 	},
 	createButtonControls(color) {
+		if (!flock.controlsTexture) return;
 		// Create another grid for the buttons on the right
 		const rightGrid = new flock.GUI.Grid();
 		rightGrid.width = `${160 * flock.displayScale}px`; // Scale width
@@ -4873,14 +4878,15 @@ setPivotPoint(meshName, xPivot, yPivot, zPivot) {
 		rightGrid.addControl(button4, 1, 1); // Row 1, Column 1
 	},
 	buttonControls(control, enabled, color) {
-		if (flock.controlsTexture) {
-			flock.controlsTexture.dispose();
+		if (!flock.controlsTexture) {
+			flock.controlsTexture = flock.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
 		}
 
-		if (enabled) {
-			flock.controlsTexture =
-				flock.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
+		// Set all controls to be non-interactive if disabled
+		flock.controlsTexture.rootContainer.isEnabled = enabled;
 
+		// Only create/update controls if they don't exist yet
+		if (enabled && flock.controlsTexture.rootContainer.children.length === 0) {
 			if (control == "ARROWS" || control == "BOTH")
 				flock.createArrowControls(color);
 			if (control == "ACTIONS" || control == "BOTH")
