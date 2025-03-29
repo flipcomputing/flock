@@ -2406,7 +2406,7 @@ export function defineBlocks() {
           {
             type: "input_value",
             name: "TEXT",
-            check: "String",
+            check: ["String", "Number", "Array"],
           },
           {
             type: "input_value",
