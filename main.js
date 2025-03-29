@@ -1413,10 +1413,9 @@ window.onload = function () {
 	//observeFlyoutVisibility(workspace);
 	window.toolboxVisible = toolboxVisible;
 
+
 	function getBlocksFromToolbox(workspace) {
 		const toolboxBlocks = [];
-
-		const seenBlocks = new Set();
 
 		function processItem(item, categoryName = "") {
 			const currentCategory = item.getName
@@ -1432,8 +1431,7 @@ window.onload = function () {
 				const blocks = Array.isArray(contents) ? contents : [contents];
 
 				blocks.forEach((block) => {
-					if (block.kind === "block" && !seenBlocks.has(block.type)) {
-						seenBlocks.add(block.type); // Track processed block types
+					if (block.kind === "block") {
 						toolboxBlocks.push({
 							type: block.type,
 							text: block.type,
@@ -1450,14 +1448,11 @@ window.onload = function () {
 			}
 		}
 
-		// Process all toolbox items
-		workspace
-			.getToolbox()
-			.getToolboxItems()
-			.forEach((item) => processItem(item));
+		workspace.getToolbox().getToolboxItems().forEach(processItem);
 
 		return toolboxBlocks;
 	}
+
 
 	function overrideSearchPlugin(workspace) {
 		// Get the registered search category
@@ -1509,38 +1504,39 @@ window.onload = function () {
 		/**
 		 * Recursively builds XML from block JSON, preserving all shadows.
 		 */
-		function createXmlFromJson(blockJson, isShadow = false) {
-			// Create a block or shadow element
+		function createXmlFromJson(blockJson, isShadow = false, isTopLevel = true) {
 			const blockXml = Blockly.utils.xml.createElement(
-				isShadow ? "shadow" : "block",
+				isShadow ? "shadow" : "block"
 			);
 			blockXml.setAttribute("type", blockJson.type);
 
-			// Add mutation directly for blocks like 'lists_create_with'
+			// 🆕 Add inline inputs for top-level lists_create_with
+			if (isTopLevel && blockJson.type === "lists_create_with") {
+				blockXml.setAttribute("inline", "true");
+			}
+
 			if (
 				blockJson.type === "lists_create_with" &&
 				blockJson.extraState
 			) {
 				const mutation = Blockly.utils.xml.createElement("mutation");
-				mutation.setAttribute("items", blockJson.extraState.itemCount); // Add itemCount
-				blockXml.appendChild(mutation); // Attach mutation inside the block
+				mutation.setAttribute("items", blockJson.extraState.itemCount);
+				blockXml.appendChild(mutation);
 			}
 
-			// Process inputs and shadows
+			// Inputs
 			if (blockJson.inputs) {
 				Object.entries(blockJson.inputs).forEach(([name, input]) => {
 					const valueXml = Blockly.utils.xml.createElement("value");
 					valueXml.setAttribute("name", name);
 
 					if (input.block) {
-						// Add nested blocks
-						const nestedXml = createXmlFromJson(input.block, false);
+						const nestedXml = createXmlFromJson(input.block, false, false); // 👈 not top-level
 						valueXml.appendChild(nestedXml);
 					}
 
 					if (input.shadow) {
-						// Add shadow blocks
-						const shadowXml = createXmlFromJson(input.shadow, true);
+						const shadowXml = createXmlFromJson(input.shadow, true, false);
 						valueXml.appendChild(shadowXml);
 					}
 
@@ -1548,7 +1544,6 @@ window.onload = function () {
 				});
 			}
 
-			// Preserve fields (e.g., values like numbers or text)
 			if (blockJson.fields) {
 				Object.entries(blockJson.fields).forEach(([name, value]) => {
 					const fieldXml = Blockly.utils.xml.createElement("field");
@@ -1560,6 +1555,7 @@ window.onload = function () {
 
 			return blockXml;
 		}
+
 
 		SearchCategory.prototype.showMatchingBlocks = function (matches) {
 			const flyout = this.workspace_.getToolbox().getFlyout();
