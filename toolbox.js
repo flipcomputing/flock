@@ -1537,34 +1537,34 @@ const toolboxTransform = {
 			},
 		},*/
 		{
-		  kind: "block",
-		  type: "set_pivot",
-		  inputs: {
-			X_PIVOT: {
-			  shadow: {
-				type: "min_centre_max",
-				fields: {
-				  PIVOT_OPTION: "CENTER", 
+			kind: "block",
+			type: "set_pivot",
+			inputs: {
+				X_PIVOT: {
+					shadow: {
+						type: "min_centre_max",
+						fields: {
+							PIVOT_OPTION: "CENTER",
+						},
+					},
 				},
-			  },
-			},
-			Y_PIVOT: {
-			  shadow: {
-				type: "min_centre_max",
-				fields: {
-				  PIVOT_OPTION: "CENTER",
+				Y_PIVOT: {
+					shadow: {
+						type: "min_centre_max",
+						fields: {
+							PIVOT_OPTION: "CENTER",
+						},
+					},
 				},
-			  },
-			},
-			Z_PIVOT: {
-			  shadow: {
-				type: "min_centre_max",
-				fields: {
-				  PIVOT_OPTION: "CENTER", 
+				Z_PIVOT: {
+					shadow: {
+						type: "min_centre_max",
+						fields: {
+							PIVOT_OPTION: "CENTER",
+						},
+					},
 				},
-			  },
 			},
-		  },
 		},
 		toolboxTransformPhysics,
 		toolboxTransformConnect,
@@ -2011,19 +2011,19 @@ const toolboxCondition = {
 			keyword: "if",
 		},
 		{
-		  kind: "block",
-		  type: "logic_compare",
-		  keyword: "compare",
-		  inputs: {
-			B: {
-			  shadow: {
-				type: "math_number",
-				fields: {
-				  NUM: "0"
-				}
-			  }
-			}
-		  }
+			kind: "block",
+			type: "logic_compare",
+			keyword: "compare",
+			inputs: {
+				B: {
+					shadow: {
+						type: "math_number",
+						fields: {
+							NUM: "0",
+						},
+					},
+				},
+			},
 		},
 		{
 			kind: "block",
@@ -2793,43 +2793,43 @@ const toolboxMaterials = {
 			},
 		},
 		{
-		  kind: "block",
-		  type: "gradient_material",
-		  inputs: {
-			COLOR: {
-			  block: {
-				type: "lists_create_with",
-				extraState: { itemCount: 2 },
-				inline: true,
-				inputs: {
-				  ADD0: {
+			kind: "block",
+			type: "gradient_material",
+			inputs: {
+				COLOR: {
+					block: {
+						type: "lists_create_with",
+						extraState: { itemCount: 2 },
+						inline: true,
+						inputs: {
+							ADD0: {
+								shadow: {
+									type: "colour",
+									fields: {
+										COLOR: "#FF5733",
+									},
+								},
+							},
+							ADD1: {
+								shadow: {
+									type: "colour",
+									fields: {
+										COLOR: "#FDFD96",
+									},
+								},
+							},
+						},
+					},
+				},
+				ALPHA: {
 					shadow: {
-					  type: "colour",
-					  fields: {
-						COLOR: "#FF5733"
-					  }
-					}
-				  },
-				  ADD1: {
-					shadow: {
-					  type: "colour",
-					  fields: {
-						COLOR: "#FDFD96"
-					  }
-					}
-				  }
-				}
-			  }
+						type: "math_number",
+						fields: {
+							NUM: 1,
+						},
+					},
+				},
 			},
-			ALPHA: {
-			  shadow: {
-				type: "math_number",
-				fields: {
-				  NUM: 1
-				}
-			  }
-			}
-		  }
 		},
 		/*{
 				kind: "block",
@@ -3220,6 +3220,8 @@ const toolboxLists = {
 		{
 			kind: "block",
 			type: "lists_create_with",
+			inline: true,
+			inputs: {},
 			keyword: "these",
 		},
 		{
