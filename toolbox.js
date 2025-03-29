@@ -1537,34 +1537,34 @@ const toolboxTransform = {
 			},
 		},
 		{
-			kind: "block",
-			type: "set_pivot",
-			inputs: {
-				X_PIVOT: {
-					shadow: {
-						type: "min_centre_max",
-						fields: {
-							PIVOT_OPTION: "0", // Use the value "0" for "centre"
-						},
-					},
+		  kind: "block",
+		  type: "set_pivot",
+		  inputs: {
+			X_PIVOT: {
+			  shadow: {
+				type: "min_centre_max",
+				fields: {
+				  PIVOT_OPTION: "CENTER", 
 				},
-				Y_PIVOT: {
-					shadow: {
-						type: "min_centre_max",
-						fields: {
-							PIVOT_OPTION: "Number.MIN_SAFE_INTEGER", // Use the actual value for "min"
-						},
-					},
-				},
-				Z_PIVOT: {
-					shadow: {
-						type: "min_centre_max",
-						fields: {
-							PIVOT_OPTION: "0", // Use the value "0" for "centre"
-						},
-					},
-				},
+			  },
 			},
+			Y_PIVOT: {
+			  shadow: {
+				type: "min_centre_max",
+				fields: {
+				  PIVOT_OPTION: "CENTER",
+				},
+			  },
+			},
+			Z_PIVOT: {
+			  shadow: {
+				type: "min_centre_max",
+				fields: {
+				  PIVOT_OPTION: "CENTER", 
+				},
+			  },
+			},
+		  },
 		},
 		toolboxTransformPhysics,
 		toolboxTransformConnect,

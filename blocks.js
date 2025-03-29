@@ -1125,29 +1125,7 @@ export function defineBlocks() {
     },
   };
 
-  Blockly.Blocks["min_centre_max"] = {
-    init: function () {
-      this.jsonInit({
-        type: "min_centre_max",
-        message0: "%1",
-        args0: [
-          {
-            type: "field_dropdown",
-            name: "PIVOT_OPTION",
-            options: [
-              ["min", "Number.MIN_SAFE_INTEGER"],
-              ["center", "0"],
-              ["max", "Number.MAX_SAFE_INTEGER"],
-            ],
-          },
-        ],
-        output: "Number", // Returns a numeric value
-        colour: categoryColours["Transform"],
-        tooltip: "Choose min, center, or max for the pivot point",
-        helpUrl: "",
-      });
-    },
-  };
+ 
 
   Blockly.Blocks["set_pivot"] = {
     init: function () {
@@ -1163,17 +1141,17 @@ export function defineBlocks() {
           {
             type: "input_value",
             name: "X_PIVOT",
-            check: "Number", // Accepts numeric input for X
+            check: ["Number", "String"],
           },
           {
             type: "input_value",
             name: "Y_PIVOT",
-            check: "Number", // Accepts numeric input for Y
+            check: ["Number", "String"],
           },
           {
             type: "input_value",
             name: "Z_PIVOT",
-            check: "Number", // Accepts numeric input for Z
+            check: ["Number", "String"], 
           },
         ],
         inputsInline: true,
@@ -1181,6 +1159,30 @@ export function defineBlocks() {
         nextStatement: null,
         colour: categoryColours["Transform"],
         tooltip: "Sets the pivot point for a mesh on the X, Y, and Z axes",
+        helpUrl: "",
+      });
+    },
+  };
+
+  Blockly.Blocks["min_centre_max"] = {
+    init: function () {
+      this.jsonInit({
+        type: "min_centre_max",
+        message0: "%1",
+        args0: [
+          {
+            type: "field_dropdown",
+            name: "PIVOT_OPTION",
+            options: [
+              ["min", "MIN"],
+              ["center", "CENTER"],
+              ["max", "MAX"],
+            ],
+          },
+        ],
+        output: "String", // Now returns a symbolic string
+        colour: categoryColours["Transform"],
+        tooltip: "Choose min, center, or max for the pivot point",
         helpUrl: "",
       });
     },

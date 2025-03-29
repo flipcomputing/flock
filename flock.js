@@ -4423,38 +4423,122 @@ export const flock = {
 		});
 	},
 	positionAt(meshName, x, y, z, useY = true) {
-		return flock.whenModelReady(meshName, (mesh) => {
-			if (mesh.physics) {
-				if (
-					mesh.physics.getMotionType() !==
-					flock.BABYLON.PhysicsMotionType.DYNAMIC
-				) {
-					mesh.physics.setMotionType(
-						flock.BABYLON.PhysicsMotionType.ANIMATED,
-					);
-				}
+	  return flock.whenModelReady(meshName, (mesh) => {
+		if (mesh.physics) {
+		  if (
+			mesh.physics.getMotionType() !==
+			flock.BABYLON.PhysicsMotionType.DYNAMIC
+		  ) {
+			mesh.physics.setMotionType(
+			  flock.BABYLON.PhysicsMotionType.ANIMATED,
+			);
+		  }
+		}
+
+		// Check if we have pivot settings in metadata
+		if (mesh.metadata && mesh.metadata.pivotSettings) {
+		  const pivotSettings = mesh.metadata.pivotSettings;
+		  const boundingBox = mesh.getBoundingInfo().boundingBox.extendSize;
+
+		  // Helper to resolve pivot values
+		  function resolvePivotValue(value, axis) {
+			if (typeof value === "string") {
+			  switch (value) {
+				case "MIN":
+				  return -boundingBox[axis];
+				case "MAX":
+				  return boundingBox[axis];
+				case "CENTER":
+				default:
+				  return 0;
+			  }
+			} else if (typeof value === "number") {
+			  return value;
+			} else {
+			  return 0;
 			}
+		  }
 
-			const addY =
-				meshName === "__active_camera__"
-					? 0
-					: mesh.getBoundingInfo().boundingBox.extendSize.y *
-						mesh.scaling.y;
+		  // Calculate offset based on pivot settings
+		  const pivotOffsetX = resolvePivotValue(pivotSettings.x, "x");
+		  const pivotOffsetY = resolvePivotValue(pivotSettings.y, "y");
+		  const pivotOffsetZ = resolvePivotValue(pivotSettings.z, "z");
 
-			let targetY = useY ? y + addY : mesh.position.y;
-			mesh.position.set(x, targetY, z);
+		  // Apply position with pivot offset
+		  mesh.position.set(
+			x - pivotOffsetX, 
+			useY ? y - pivotOffsetY : mesh.position.y, 
+			z - pivotOffsetZ
+		  );
+		} else {
+		  // Original behavior if no pivot settings
+		  const addY =
+			meshName === "__active_camera__"
+			  ? 0
+			  : mesh.getBoundingInfo().boundingBox.extendSize.y *
+				mesh.scaling.y;
+		  let targetY = useY ? y + addY : mesh.position.y;
+		  mesh.position.set(x, targetY, z);
+		}
 
-			if (mesh.physics) {
-				mesh.physics.disablePreStep = false;
-				mesh.physics.setTargetTransform(
-					mesh.position,
-					mesh.rotationQuaternion,
-				);
+		// Update physics and world matrix
+		if (mesh.physics) {
+		  mesh.physics.disablePreStep = false;
+		  mesh.physics.setTargetTransform(
+			mesh.position,
+			mesh.rotationQuaternion,
+		  );
+		}
+		mesh.computeWorldMatrix(true);
+		//console.log("Position at", x, y, z, mesh.position.y, mesh);
+	  });
+	},
+setPivotPoint(meshName, xPivot, yPivot, zPivot) {
+	  return flock.whenModelReady(meshName, (mesh) => {
+		if (mesh) {
+		  const boundingBox = mesh.getBoundingInfo().boundingBox.extendSize;
+
+		  // Helper to resolve "MIN", "CENTER", "MAX", or numbers
+		  function resolvePivotValue(value, axis) {
+			if (typeof value === "string") {
+			  switch (value) {
+				case "MIN":
+				  return -boundingBox[axis];
+				case "MAX":
+				  return boundingBox[axis];
+				case "CENTER":
+				default:
+				  return 0;
+			  }
+			} else if (typeof value === "number") {
+			  return value;
+			} else {
+			  return 0;
 			}
+		  }
 
-			mesh.computeWorldMatrix(true);
-			//console.log("Position at", x, y, z, targetY, mesh);
-		});
+		  // Resolve pivot values for each axis
+		  const resolvedX = resolvePivotValue(xPivot, "x");
+		  const resolvedY = resolvePivotValue(yPivot, "y");
+		  const resolvedZ = resolvePivotValue(zPivot, "z");
+
+		  const pivotPoint = new flock.BABYLON.Vector3(resolvedX, resolvedY, resolvedZ);
+		  mesh.setPivotPoint(pivotPoint);
+
+		  // Set pivot point on child meshes
+		  mesh.getChildMeshes().forEach((child) => {
+			child.setPivotPoint(pivotPoint);
+		  });
+
+		  // Store original pivot settings in metadata
+		  mesh.metadata = mesh.metadata || {};
+		  mesh.metadata.pivotSettings = {
+			x: xPivot,
+			y: yPivot,
+			z: zPivot,
+		  };
+		}
+	  });
 	},
 	distanceTo(meshName1, meshName2) {
 		const mesh1 = flock.scene.getMeshByName(meshName1);
@@ -5781,47 +5865,7 @@ export const flock = {
 				});
 			}
 		});
-	},
-	setPivotPoint(meshName, xPivot, yPivot, zPivot) {
-		return flock.whenModelReady(meshName, (mesh) => {
-			if (mesh) {
-				// Get the bounding box of the mesh
-				const boundingBox =
-					mesh.getBoundingInfo().boundingBox.extendSize;
-
-				// Helper function to resolve 'min', 'centre', or 'max' into numeric values
-				function resolvePivotValue(axisValue, axis) {
-					switch (axisValue) {
-						case Number.MIN_SAFE_INTEGER:
-							return -boundingBox[axis]; // Min: Negative extent along the axis
-						case Number.MAX_SAFE_INTEGER:
-							return boundingBox[axis]; // Max: Positive extent along the axis
-						case 0:
-						default:
-							return 0; // Centre: Return 0 for the axis
-					}
-				}
-
-				// Resolve each pivot point for X, Y, and Z axes
-				const resolvedX = resolvePivotValue(xPivot, "x");
-				const resolvedY = resolvePivotValue(yPivot, "y");
-				const resolvedZ = resolvePivotValue(zPivot, "z");
-
-				// Set the pivot point for the main mesh
-				const pivotPoint = new flock.BABYLON.Vector3(
-					resolvedX,
-					resolvedY,
-					resolvedZ,
-				);
-				mesh.setPivotPoint(pivotPoint);
-
-				// Optionally apply the pivot to child meshes
-				mesh.getChildMeshes().forEach((child) => {
-					child.setPivotPoint(pivotPoint);
-				});
-			}
-		});
-	},
+	},	
 	addBeforePhysicsObservable(scene, ...meshes) {
 		const beforePhysicsObserver = scene.onBeforePhysicsObservable.add(
 			() => {

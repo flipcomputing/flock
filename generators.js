@@ -482,11 +482,12 @@ export function defineGenerators() {
 	};
 
 	javascriptGenerator.forBlock["min_centre_max"] = function (block) {
-		const pivotOption = block.getFieldValue("PIVOT_OPTION");
+	  const pivotOption = block.getFieldValue("PIVOT_OPTION");
 
-		// Return the value for the selected pivot option
-		return [`${pivotOption}`, javascriptGenerator.ORDER_ATOMIC];
+	  // Return the string value as a quoted literal
+	  return [`"${pivotOption}"`, javascriptGenerator.ORDER_ATOMIC];
 	};
+
 
 	javascriptGenerator.forBlock["set_pivot"] = function (block) {
 		const meshVar = javascriptGenerator.nameDB_.getName(
