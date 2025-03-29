@@ -84,6 +84,25 @@ export function defineGenerators() {
 		return `${asyncWrapper}glideTo(${meshName}, ${x}, ${y}, ${z}, ${duration}, ${reverse}, ${loop}, "${easing}");\n`;
 	};
 
+	javascriptGenerator.forBlock["glide_to_seconds"] = function (block) {
+		const meshName = javascriptGenerator.nameDB_.getName(
+			block.getFieldValue("MESH_VAR"),
+			Blockly.Names.NameType.VARIABLE,
+		);
+		const x = getFieldValue(block, "X", "0");
+		const y = getFieldValue(block, "Y", "0");
+		const z = getFieldValue(block, "Z", "0");
+		const duration = getFieldValue(block, "DURATION", "0") * 1000;
+		const mode = block.getFieldValue("MODE");
+		const reverse = block.getFieldValue("REVERSE") === "TRUE";
+		const loop = block.getFieldValue("LOOP") === "TRUE";
+		const easing = block.getFieldValue("EASING");
+
+		const asyncWrapper = mode === "AWAIT" ? "await " : "";
+
+		return `${asyncWrapper}glideTo(${meshName}, ${x}, ${y}, ${z}, ${duration}, ${reverse}, ${loop}, "${easing}");\n`;
+	};
+
 	javascriptGenerator.forBlock["rotate_anim"] = function (block) {
 		const meshName = javascriptGenerator.nameDB_.getName(
 			block.getFieldValue("MESH_VAR"),

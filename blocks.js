@@ -649,6 +649,83 @@ export function defineBlocks() {
     },
   };
 
+  Blockly.Blocks["glide_to_seconds"] = {
+    init: function () {
+      this.jsonInit({
+        type: "glide_to",
+        message0:
+          "glide %1 to x %2 y %3 z %4 in %5 seconds \n%6 return? %7 loop? %8 %9",
+        args0: [
+          {
+            type: "field_variable",
+            name: "MESH_VAR",
+            variable: window.currentMesh,
+          },
+          {
+            type: "input_value",
+            name: "X",
+            check: "Number",
+          },
+          {
+            type: "input_value",
+            name: "Y",
+            check: "Number",
+          },
+          {
+            type: "input_value",
+            name: "Z",
+            check: "Number",
+          },
+          {
+            type: "input_value",
+            name: "DURATION",
+            check: "Number",
+          },
+          {
+            type: "field_dropdown",
+            name: "MODE",
+            options: [
+              ["await", "AWAIT"],
+              ["start", "START"],
+            ],
+          },
+          {
+            type: "field_checkbox",
+            name: "REVERSE",
+            checked: false,
+            text: "reverse",
+          },
+          {
+            type: "field_checkbox",
+            name: "LOOP",
+            checked: false,
+            text: "loop",
+          },
+          {
+            type: "field_dropdown",
+            name: "EASING",
+            options: [
+              ["Linear", "Linear"],
+              ["SineEase", "SineEase"],
+              ["CubicEase", "CubicEase"],
+              ["QuadraticEase", "QuadraticEase"],
+              ["ExponentialEase", "ExponentialEase"],
+              ["BounceEase", "BounceEase"],
+              ["ElasticEase", "ElasticEase"],
+              ["BackEase", "BackEase"],
+            ],
+          },
+        ],
+        previousStatement: null,
+        nextStatement: null,
+        colour: categoryColours["Animate"],
+        tooltip:
+          "Glide to a specified position over a duration with options for reversing, looping, and easing.",
+        helpUrl: "",
+      });
+    },
+  };
+
   Blockly.Blocks["rotate_anim"] = {
     init: function () {
       this.jsonInit({

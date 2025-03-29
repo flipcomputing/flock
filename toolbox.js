@@ -1788,7 +1788,7 @@ const toolboxAnimate = {
 		},
 		{
 			kind: "block",
-			type: "glide_to",
+			type: "glide_to_seconds",
 			keyword: "glide",
 			inputs: {
 				X: {
@@ -1819,7 +1819,7 @@ const toolboxAnimate = {
 					shadow: {
 						type: "math_number",
 						fields: {
-							NUM: 1000,
+							NUM: 1,
 						},
 					},
 				},
