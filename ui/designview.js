@@ -224,7 +224,7 @@ export function updateMeshFromBlock(mesh, block, changeEvent) {
     changeEvent.blockId,
   );
 
-  const parent = changedBlock.getParent();
+  const parent = changedBlock.getParent() || changedBlock;
   let changed;
 
   parent.inputList.forEach((input) => {
