@@ -888,6 +888,7 @@ function showCodeView() {
 	currentView = "code";
 	container.style.transform = `translateX(-${panelWidth}px)`; // Move to Canvas view
 	switchViewsBtn.textContent = "<< Canvas"; // Update button text
+	onResize();
 }
 
 function togglePanels() {
