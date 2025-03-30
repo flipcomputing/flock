@@ -1556,7 +1556,6 @@ window.onload = function () {
 			return blockXml;
 		}
 
-
 		SearchCategory.prototype.showMatchingBlocks = function (matches) {
 			const flyout = this.workspace_.getToolbox().getFlyout();
 			if (!flyout) {

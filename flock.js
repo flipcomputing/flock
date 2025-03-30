@@ -274,15 +274,9 @@ export const flock = {
 				//logTouchDetails(event);
 
 				if (event.touches.length === 0) {
-					const input =
-						flock.scene.activeCamera.inputs.attached.pointers;
-
-					// Check if cleanup is incomplete
-					if (
-						input._pointA !== null ||
-						input._pointB !== null ||
-						input._isMultiTouch === true
-					) {
+					const input = flock.scene.activeCamera.inputs?.attached?.pointers;
+					// Add null check for input itself
+					if (input && (input._pointA !== null || input._pointB !== null || input._isMultiTouch === true)) {
 						//flock.printText("Stuck state detected!");
 						flock.scene.activeCamera.detachControl(flock.canvas);
 						setTimeout(() => {
