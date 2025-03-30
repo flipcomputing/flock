@@ -2321,7 +2321,7 @@ highlightBlockById(Blockly.getMainWorkspace(), block);
           block
             .appendStatementInput("DO")
             .setCheck(null)
-            .appendField("then do");
+            .appendField("");
         }
 
         // Check if the 'rotate_to' block already exists in the 'DO' section
@@ -2482,12 +2482,10 @@ highlightBlockById(Blockly.getMainWorkspace(), block);
           mesh.computeWorldMatrix(true);
           mesh.refreshBoundingInfo();
 
-          // ✅ Adjust position to maintain original bottom alignment
           const newBottomY = mesh.getBoundingInfo().boundingBox.minimumWorld.y;
           const deltaY = originalBottomY - newBottomY;
           mesh.position.y += deltaY;
 
-          // 🔁 Everything below is from your original code — unchanged
           const originalSize = mesh.getBoundingInfo().boundingBox.extendSize.scale(2);
 
           const newWidth = Math.round(originalSize.x * mesh.scaling.x * 10) / 10;
@@ -2558,7 +2556,7 @@ highlightBlockById(Blockly.getMainWorkspace(), block);
             case "load_object":
             case "load_character":
               if (!block.getInput("DO")) {
-                block.appendStatementInput("DO").setCheck(null).appendField("then do");
+                block.appendStatementInput("DO").setCheck(null).appendField("");
               }
 
               let scaleBlock = null;
