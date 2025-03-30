@@ -652,7 +652,7 @@ export function defineBlocks() {
   Blockly.Blocks["glide_to_seconds"] = {
     init: function () {
       this.jsonInit({
-        type: "glide_to",
+        type: "glide_to_seconds",
         message0:
           "glide %1 to x %2 y %3 z %4 in %5 seconds \n%6 return? %7 loop? %8 %9",
         args0: [
@@ -732,6 +732,83 @@ export function defineBlocks() {
         type: "rotate_anim",
         message0:
           "rotate %1 to x %2 y %3 z %4 in %5 ms\n%6 reverse? %7 loop? %8  %9",
+        args0: [
+          {
+            type: "field_variable",
+            name: "MESH_VAR",
+            variable: window.currentMesh,
+          },
+          {
+            type: "input_value",
+            name: "ROT_X",
+            check: "Number",
+          },
+          {
+            type: "input_value",
+            name: "ROT_Y",
+            check: "Number",
+          },
+          {
+            type: "input_value",
+            name: "ROT_Z",
+            check: "Number",
+          },
+          {
+            type: "input_value",
+            name: "DURATION",
+            check: "Number",
+          },
+          {
+            type: "field_dropdown",
+            name: "MODE",
+            options: [
+              ["await", "AWAIT"],
+              ["start", "START"],
+            ],
+          },
+          {
+            type: "field_checkbox",
+            name: "REVERSE",
+            checked: false,
+            text: "reverse",
+          },
+          {
+            type: "field_checkbox",
+            name: "LOOP",
+            checked: false,
+            text: "loop",
+          },
+          {
+            type: "field_dropdown",
+            name: "EASING",
+            options: [
+              ["Linear", "Linear"],
+              ["SineEase", "SineEase"],
+              ["CubicEase", "CubicEase"],
+              ["QuadraticEase", "QuadraticEase"],
+              ["ExponentialEase", "ExponentialEase"],
+              ["BounceEase", "BounceEase"],
+              ["ElasticEase", "ElasticEase"],
+              ["BackEase", "BackEase"],
+            ],
+          },
+        ],
+        previousStatement: null,
+        nextStatement: null,
+        colour: categoryColours["Animate"],
+        tooltip:
+          "Rotate a mesh to specified angles over a duration with options for reverse, looping, and easing.",
+        helpUrl: "",
+      });
+    },
+  };
+
+  Blockly.Blocks["rotate_anim_seconds"] = {
+    init: function () {
+      this.jsonInit({
+        type: "rotate_anim_seconds",
+        message0:
+          "rotate %1 to x %2 y %3 z %4 in %5 seconds\n%6 reverse? %7 loop? %8  %9",
         args0: [
           {
             type: "field_variable",
@@ -1202,8 +1279,6 @@ export function defineBlocks() {
     },
   };
 
- 
-
   Blockly.Blocks["set_pivot"] = {
     init: function () {
       this.jsonInit({
@@ -1228,7 +1303,7 @@ export function defineBlocks() {
           {
             type: "input_value",
             name: "Z_PIVOT",
-            check: ["Number", "String"], 
+            check: ["Number", "String"],
           },
         ],
         inputsInline: true,

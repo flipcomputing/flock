@@ -1827,7 +1827,7 @@ const toolboxAnimate = {
 		},
 		{
 			kind: "block",
-			type: "rotate_anim",
+			type: "rotate_anim_seconds",
 			keyword: "rotate",
 			inputs: {
 				ROT_X: {
@@ -1858,7 +1858,7 @@ const toolboxAnimate = {
 					shadow: {
 						type: "math_number",
 						fields: {
-							NUM: 1000, // Default duration in milliseconds
+							NUM: 1, 
 						},
 					},
 				},

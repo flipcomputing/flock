@@ -4219,7 +4219,8 @@ export const flock = {
 		return new Promise(async (resolve) => {
 			await flock.whenModelReady(meshName, async function (mesh) {
 				if (mesh) {
-					const startRotation = mesh.rotation.clone(); // Store the original rotation
+					// Store the original rotation
+					const startRotation = mesh.rotation.clone();
 
 					// Convert degrees to radians
 					const targetRotation = new flock.BABYLON.Vector3(
@@ -4234,17 +4235,14 @@ export const flock = {
 					// Determine the loop mode based on reverse and loop
 					let loopMode;
 					if (reverse) {
-						loopMode =
-							flock.BABYLON.Animation.ANIMATIONLOOPMODE_YOYO; // Reverse and loop
+						loopMode = flock.BABYLON.Animation.ANIMATIONLOOPMODE_YOYO;
 					} else if (loop) {
-						loopMode =
-							flock.BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE; // Loop and reset to start
+						loopMode = flock.BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE;
 					} else {
-						loopMode =
-							flock.BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT; // No loop
+						loopMode = flock.BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT;
 					}
 
-					// Create the rotation animation
+					// Create animation for rotation only
 					const rotateAnimation = new flock.BABYLON.Animation(
 						"rotateTo",
 						"rotation",
@@ -4272,19 +4270,16 @@ export const flock = {
 								easingFunction = new flock.BABYLON.CubicEase();
 								break;
 							case "QuadraticEase":
-								easingFunction =
-									new flock.BABYLON.QuadraticEase();
+								easingFunction = new flock.BABYLON.QuadraticEase();
 								break;
 							case "ExponentialEase":
-								easingFunction =
-									new flock.BABYLON.ExponentialEase();
+								easingFunction = new flock.BABYLON.ExponentialEase();
 								break;
 							case "BounceEase":
 								easingFunction = new flock.BABYLON.BounceEase();
 								break;
 							case "ElasticEase":
-								easingFunction =
-									new flock.BABYLON.ElasticEase();
+								easingFunction = new flock.BABYLON.ElasticEase();
 								break;
 							case "BackEase":
 								easingFunction = new flock.BABYLON.BackEase();
@@ -4298,18 +4293,18 @@ export const flock = {
 						rotateAnimation.setEasingFunction(easingFunction);
 					}
 
-					// Append the rotation animation to the mesh
-					mesh.animations.push(rotateAnimation); // Append, don't overwrite existing animations
-
-					// Start the rotation animation
-					const animatable = flock.scene.beginAnimation(
+					// Use beginDirectAnimation to apply ONLY the rotation animation
+					// This ensures we don't interfere with any other properties
+					const animatable = flock.scene.beginDirectAnimation(
 						mesh,
+						[rotateAnimation],
 						0,
 						frames,
-						loop,
+						loop
 					);
+
 					animatable.onAnimationEndObservable.add(() => {
-						resolve(); // Resolve after rotation completes
+						resolve();
 					});
 				} else {
 					resolve(); // Resolve immediately if the mesh is not available
