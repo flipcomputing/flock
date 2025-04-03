@@ -6712,8 +6712,9 @@ setPivotPoint(meshName, xPivot, yPivot, zPivot) {
 	},
 	moveSideways(modelName, speed) {
 		const model = flock.scene.getMeshByName(modelName);
+		if (!model || speed === 0) return; 
+		
 		flock.ensureVerticalConstraint(model);
-		if (!model || speed === 0) return;
 
 		const sidewaysSpeed = speed;
 
