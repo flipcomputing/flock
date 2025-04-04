@@ -126,7 +126,7 @@ function pickMeshFromCanvas() {
 export function deleteMeshFromBlock(blockId) {
   const mesh = getMeshFromBlockId(blockId);
 
-   const blockKey = Object.keys(meshBlockIdMap).find(
+  const blockKey = Object.keys(meshBlockIdMap).find(
     (key) => meshBlockIdMap[key] === blockId,
   );
 
@@ -179,8 +179,8 @@ function getBlockValue(block) {
   if (!block) return null;
 
   const fieldNames = block.inputList
-    .flatMap(input => input.fieldRow)
-    .map(field => field.name);
+    .flatMap((input) => input.fieldRow)
+    .map((field) => field.name);
 
   for (const name of fieldNames) {
     const field = block.getField(name);
@@ -212,7 +212,6 @@ function extractMaterialInfo(materialBlock) {
 }
 
 export function updateMeshFromBlock(mesh, block, changeEvent) {
-  
   if (
     !mesh &&
     !["set_sky_color", "set_background_color", "create_ground"].includes(
@@ -244,7 +243,12 @@ export function updateMeshFromBlock(mesh, block, changeEvent) {
   let color;
 
   if (
-    !["load_model", "load_multi_object", "load_character", "create_map"].includes(block.type)
+    ![
+      "load_model",
+      "load_multi_object",
+      "load_character",
+      "create_map",
+    ].includes(block.type)
   ) {
     color = block
       .getInput("COLOR")
@@ -283,10 +287,10 @@ export function updateMeshFromBlock(mesh, block, changeEvent) {
     flock.createGround(color, "ground");
     return;
   }
-  if(block.type === "create_map"){
+  if (block.type === "create_map") {
     let map = block.getFieldValue("MAP_NAME");
     const materialBlock = block.getInputTargetBlock("MATERIAL");
-     const { textureSet, baseColor, alpha } = extractMaterialInfo(materialBlock); 
+    const { textureSet, baseColor, alpha } = extractMaterialInfo(materialBlock);
     const material = flock.createMaterial(baseColor, textureSet, alpha);
     flock.createMap(map, material);
     return;
@@ -566,8 +570,8 @@ export function updateMeshFromBlock(mesh, block, changeEvent) {
     }
   }
 
- // if (["X", "Y", "Z"].includes(changed)) {
-    flock.positionAt(mesh.name, position.x, position.y, position.z, true);
+  // if (["X", "Y", "Z"].includes(changed)) {
+  flock.positionAt(mesh.name, position.x, position.y, position.z, true);
   //}
   //console.log("Update physics");
   flock.updatePhysics(mesh);
@@ -581,9 +585,12 @@ function createMeshOnCanvas(block) {
   let position, scale, color, modelName, newMesh;
 
   if (
-    !["set_sky_color", "set_background_color", "create_ground", "create_map"].includes(
-      block.type,
-    )
+    ![
+      "set_sky_color",
+      "set_background_color",
+      "create_ground",
+      "create_map",
+    ].includes(block.type)
   ) {
     position = {
       x: block.getInput("X").connection.targetBlock().getFieldValue("NUM"),
@@ -644,7 +651,8 @@ function createMeshOnCanvas(block) {
       meshBlockIdMap[meshId] = block.id;
       let map = block.getFieldValue("MAP_NAME");
       const materialBlock = block.getInputTargetBlock("MATERIAL");
-       const { textureSet, baseColor, alpha } = extractMaterialInfo(materialBlock); 
+      const { textureSet, baseColor, alpha } =
+        extractMaterialInfo(materialBlock);
       const material = flock.createMaterial(baseColor, textureSet, alpha);
       console.log("Create map", map);
       flock.createMap(map, material);
@@ -931,7 +939,7 @@ function createMeshOnCanvas(block) {
 }
 
 function setAbsoluteSize(mesh, width, height, depth) {
-
+  flock.ensureUniqueGeometry(mesh);
   const boundingInfo = mesh.getBoundingInfo();
   const originalSize = boundingInfo.boundingBox.extendSize;
 
@@ -1282,7 +1290,6 @@ function selectCharacter(characterName) {
           // Add shadow blocks for colour inputs with default values
 
           Object.keys(colorFields).forEach((colorInputName) => {
-           
             addShadowBlock(
               block,
               colorInputName,
@@ -1380,8 +1387,8 @@ function selectModel(modelName) {
 
           block.initSvg();
           block.render();
-          
- highlightBlockById(Blockly.getMainWorkspace(), block);
+
+          highlightBlockById(Blockly.getMainWorkspace(), block);
 
           // Create a new start block and connect the model block to it
           const startBlock = Blockly.getMainWorkspace().newBlock("start");
@@ -2071,7 +2078,7 @@ function toggleGizmo(gizmoType) {
             );
             flock.printText("Position: " + roundedPosition, 30, "black");
 
-             const block = meshMap[blockKey];
+            const block = meshMap[blockKey];
             highlightBlockById(Blockly.getMainWorkspace(), block);
 
             // Attach the gizmo to the selected mesh
@@ -2125,8 +2132,8 @@ function toggleGizmo(gizmoType) {
           }
 
           const block = meshMap[mesh.blockKey];
-          
-highlightBlockById(Blockly.getMainWorkspace(), block);
+
+          highlightBlockById(Blockly.getMainWorkspace(), block);
         },
       );
 
@@ -2206,8 +2213,8 @@ highlightBlockById(Blockly.getMainWorkspace(), block);
         }
 
         const block = meshMap[mesh.blockKey];
-        
-highlightBlockById(Blockly.getMainWorkspace(), block);
+
+        highlightBlockById(Blockly.getMainWorkspace(), block);
       });
       gizmoManager.gizmos.positionGizmo.onDragEndObservable.add(function () {
         // Retrieve the mesh associated with the position gizmo
@@ -2295,8 +2302,8 @@ highlightBlockById(Blockly.getMainWorkspace(), block);
         }
 
         const block = meshMap[mesh.blockKey];
-        
-highlightBlockById(Blockly.getMainWorkspace(), block);
+
+        highlightBlockById(Blockly.getMainWorkspace(), block);
       });
 
       gizmoManager.gizmos.rotationGizmo.onDragEndObservable.add(function () {
@@ -2318,10 +2325,7 @@ highlightBlockById(Blockly.getMainWorkspace(), block);
 
         //console.log("Rotating", block);
         if (!block.getInput("DO")) {
-          block
-            .appendStatementInput("DO")
-            .setCheck(null)
-            .appendField("");
+          block.appendStatementInput("DO").setCheck(null).appendField("");
         }
 
         // Check if the 'rotate_to' block already exists in the 'DO' section
@@ -2414,12 +2418,15 @@ highlightBlockById(Blockly.getMainWorkspace(), block);
 
       break;
 
-      case "scale":
+    case "scale":
       gizmoManager.scaleGizmoEnabled = true;
       gizmoManager.gizmos.scaleGizmo.PreserveScaling = true;
-  gizmoManager.gizmos.scaleGizmo.xGizmo._coloredMaterial.diffuseColor = blueColor;
-      gizmoManager.gizmos.scaleGizmo.yGizmo._coloredMaterial.diffuseColor = greenColor;
-      gizmoManager.gizmos.scaleGizmo.zGizmo._coloredMaterial.diffuseColor = orangeColor;
+      gizmoManager.gizmos.scaleGizmo.xGizmo._coloredMaterial.diffuseColor =
+        blueColor;
+      gizmoManager.gizmos.scaleGizmo.yGizmo._coloredMaterial.diffuseColor =
+        greenColor;
+      gizmoManager.gizmos.scaleGizmo.zGizmo._coloredMaterial.diffuseColor =
+        orangeColor;
 
       gizmoManager.gizmos.scaleGizmo.sensitivity = 4;
 
@@ -2428,7 +2435,7 @@ highlightBlockById(Blockly.getMainWorkspace(), block);
 
       gizmoManager.gizmos.scaleGizmo.onDragStartObservable.add(() => {
         const mesh = gizmoManager.attachedMesh;
-
+        flock.ensureUniqueGeometry(mesh);
         mesh.computeWorldMatrix(true);
         mesh.refreshBoundingInfo();
         originalBottomY = mesh.getBoundingInfo().boundingBox.minimumWorld.y;
@@ -2438,7 +2445,8 @@ highlightBlockById(Blockly.getMainWorkspace(), block);
 
         if (
           mesh.physics &&
-          mesh.physics.getMotionType() !== flock.BABYLON.PhysicsMotionType.ANIMATED
+          mesh.physics.getMotionType() !==
+            flock.BABYLON.PhysicsMotionType.ANIMATED
         ) {
           mesh.physics.setMotionType(flock.BABYLON.PhysicsMotionType.ANIMATED);
           mesh.physics.disablePreStep = false;
@@ -2486,27 +2494,53 @@ highlightBlockById(Blockly.getMainWorkspace(), block);
           const deltaY = originalBottomY - newBottomY;
           mesh.position.y += deltaY;
 
-          const originalSize = mesh.getBoundingInfo().boundingBox.extendSize.scale(2);
+          const originalSize = mesh
+            .getBoundingInfo()
+            .boundingBox.extendSize.scale(2);
 
-          const newWidth = Math.round(originalSize.x * mesh.scaling.x * 10) / 10;
-          const newHeight = Math.round(originalSize.y * mesh.scaling.y * 10) / 10;
-          const newDepth = Math.round(originalSize.z * mesh.scaling.z * 10) / 10;
+          const newWidth =
+            Math.round(originalSize.x * mesh.scaling.x * 10) / 10;
+          const newHeight =
+            Math.round(originalSize.y * mesh.scaling.y * 10) / 10;
+          const newDepth =
+            Math.round(originalSize.z * mesh.scaling.z * 10) / 10;
 
           switch (block.type) {
             case "create_plane":
-              block.getInput("WIDTH").connection.targetBlock().setFieldValue(String(newWidth), "NUM");
-              block.getInput("HEIGHT").connection.targetBlock().setFieldValue(String(newHeight), "NUM");
+              block
+                .getInput("WIDTH")
+                .connection.targetBlock()
+                .setFieldValue(String(newWidth), "NUM");
+              block
+                .getInput("HEIGHT")
+                .connection.targetBlock()
+                .setFieldValue(String(newHeight), "NUM");
               break;
 
             case "create_box":
-              block.getInput("WIDTH").connection.targetBlock().setFieldValue(String(newWidth), "NUM");
-              block.getInput("HEIGHT").connection.targetBlock().setFieldValue(String(newHeight), "NUM");
-              block.getInput("DEPTH").connection.targetBlock().setFieldValue(String(newDepth), "NUM");
+              block
+                .getInput("WIDTH")
+                .connection.targetBlock()
+                .setFieldValue(String(newWidth), "NUM");
+              block
+                .getInput("HEIGHT")
+                .connection.targetBlock()
+                .setFieldValue(String(newHeight), "NUM");
+              block
+                .getInput("DEPTH")
+                .connection.targetBlock()
+                .setFieldValue(String(newDepth), "NUM");
               break;
 
             case "create_capsule":
-              block.getInput("HEIGHT").connection.targetBlock().setFieldValue(String(newHeight), "NUM");
-              block.getInput("DIAMETER").connection.targetBlock().setFieldValue(String(newWidth), "NUM");
+              block
+                .getInput("HEIGHT")
+                .connection.targetBlock()
+                .setFieldValue(String(newHeight), "NUM");
+              block
+                .getInput("DIAMETER")
+                .connection.targetBlock()
+                .setFieldValue(String(newWidth), "NUM");
               break;
 
             case "create_cylinder": {
@@ -2515,41 +2549,71 @@ highlightBlockById(Blockly.getMainWorkspace(), block);
               mesh.computeWorldMatrix(true);
 
               let newCylinderHeight = mesh.scaling.y * originalSize.y;
-              block.getInput("HEIGHT").connection.targetBlock().setFieldValue(
-                String(Math.round(newCylinderHeight * 10) / 10),
-                "NUM"
-              );
+              block
+                .getInput("HEIGHT")
+                .connection.targetBlock()
+                .setFieldValue(
+                  String(Math.round(newCylinderHeight * 10) / 10),
+                  "NUM",
+                );
 
               let newScaledDiameter =
                 Math.round(originalSize.x * mesh.scaling.x * 10) / 10;
 
               let currentTop = parseFloat(
-                block.getInput("DIAMETER_TOP").connection.targetBlock().getFieldValue("NUM")
+                block
+                  .getInput("DIAMETER_TOP")
+                  .connection.targetBlock()
+                  .getFieldValue("NUM"),
               );
               let currentBottom = parseFloat(
-                block.getInput("DIAMETER_BOTTOM").connection.targetBlock().getFieldValue("NUM")
+                block
+                  .getInput("DIAMETER_BOTTOM")
+                  .connection.targetBlock()
+                  .getFieldValue("NUM"),
               );
 
               if (currentTop >= currentBottom) {
                 let newTop = newScaledDiameter;
                 let ratio = currentBottom / currentTop;
                 let newBottom = Math.round(newTop * ratio * 10) / 10;
-                block.getInput("DIAMETER_TOP").connection.targetBlock().setFieldValue(String(newTop), "NUM");
-                block.getInput("DIAMETER_BOTTOM").connection.targetBlock().setFieldValue(String(newBottom), "NUM");
+                block
+                  .getInput("DIAMETER_TOP")
+                  .connection.targetBlock()
+                  .setFieldValue(String(newTop), "NUM");
+                block
+                  .getInput("DIAMETER_BOTTOM")
+                  .connection.targetBlock()
+                  .setFieldValue(String(newBottom), "NUM");
               } else {
                 let newBottom = newScaledDiameter;
                 let ratio = currentTop / currentBottom;
                 let newTop = Math.round(newBottom * ratio * 10) / 10;
-                block.getInput("DIAMETER_BOTTOM").connection.targetBlock().setFieldValue(String(newBottom), "NUM");
-                block.getInput("DIAMETER_TOP").connection.targetBlock().setFieldValue(String(newTop), "NUM");
+                block
+                  .getInput("DIAMETER_BOTTOM")
+                  .connection.targetBlock()
+                  .setFieldValue(String(newBottom), "NUM");
+                block
+                  .getInput("DIAMETER_TOP")
+                  .connection.targetBlock()
+                  .setFieldValue(String(newTop), "NUM");
               }
               break;
             }
 
             case "create_sphere":
-              block.getInput("DIAMETER_X").connection.targetBlock().setFieldValue(String(newWidth), "NUM");
-              block.getInput("DIAMETER_Y").connection.targetBlock().setFieldValue(String(newHeight), "NUM");
-              block.getInput("DIAMETER_Z").connection.targetBlock().setFieldValue(String(newDepth), "NUM");
+              block
+                .getInput("DIAMETER_X")
+                .connection.targetBlock()
+                .setFieldValue(String(newWidth), "NUM");
+              block
+                .getInput("DIAMETER_Y")
+                .connection.targetBlock()
+                .setFieldValue(String(newHeight), "NUM");
+              block
+                .getInput("DIAMETER_Z")
+                .connection.targetBlock()
+                .setFieldValue(String(newDepth), "NUM");
               break;
 
             case "load_multi_object":
@@ -2584,7 +2648,8 @@ highlightBlockById(Blockly.getMainWorkspace(), block);
 
                 ["X", "Y", "Z"].forEach((axis) => {
                   const input = scaleBlock.getInput(axis);
-                  const shadowBlock = Blockly.getMainWorkspace().newBlock("math_number");
+                  const shadowBlock =
+                    Blockly.getMainWorkspace().newBlock("math_number");
                   shadowBlock.setFieldValue("1", "NUM");
                   shadowBlock.setShadow(true);
                   shadowBlock.initSvg();
@@ -2593,7 +2658,9 @@ highlightBlockById(Blockly.getMainWorkspace(), block);
                 });
 
                 scaleBlock.render();
-                block.getInput("DO").connection.connect(scaleBlock.previousConnection);
+                block
+                  .getInput("DO")
+                  .connection.connect(scaleBlock.previousConnection);
               }
 
               function setScaleValue(inputName, value) {
@@ -2619,9 +2686,7 @@ highlightBlockById(Blockly.getMainWorkspace(), block);
         }
       });
 
-
       break;
-
 
     case "boundingBox":
       gizmoManager.boundingBoxGizmoEnabled = true;
@@ -2663,7 +2728,6 @@ const characterMaterials = [
 ];
 
 function updateBlockColorAndHighlight(mesh, selectedColor) {
-
   let block = null;
   let materialName = null;
   let colorIndex, ultimateParent;

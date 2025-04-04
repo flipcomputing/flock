@@ -208,6 +208,7 @@ export const flock = {
 				getProperty,
 				exportMesh,
 				abortSceneExecution,
+				ensureUniqueGeometry,
 			} = flock;
 
 			${code}
@@ -1220,13 +1221,22 @@ export const flock = {
 		});
 	},
 	ensureUniqueGeometry(mesh) {
+		console.log("Cloning geometry");
+
 		if (mesh.metadata?.sharedGeometry) {
-			// Clone the geometry
-			const newGeometry = mesh.geometry.clone();
-			mesh.geometry = newGeometry;
+			// Extract vertex data from mesh
+			const vertexData = BABYLON.VertexData.ExtractFromMesh(mesh);
+
+			// Remove shared geometry by clearing existing bindings
+			mesh.setVerticesData("position", null); // Remove reference to old data
+
+			// Apply cloned vertex data (creates a new internal geometry)
+			vertexData.applyToMesh(mesh, true); // `true` = updatable
 
 			// Mark the geometry as no longer shared
 			mesh.metadata.sharedGeometry = false;
+
+			console.log("Geometry cloned and applied.");
 		}
 	},
 	setupMesh(mesh, modelName, modelId, blockId, scale, x, y, z, color = null) {
@@ -3036,6 +3046,7 @@ export const flock = {
 		mesh.isVisible = true;
 		mesh.setEnabled(true);
 		mesh.material.needDepthPrePass = true;
+		mesh.metadata.sharedGeometry = true;
 	},
 	createPhysicsBody(
 		mesh,
@@ -3157,6 +3168,7 @@ export const flock = {
 
 		// Initialise the mesh with position, color, and other properties
 		flock.initializeMesh(newBox, position, color, "Box", alpha);
+		
 		newBox.position.y += height / 2; // Middle of the box
 		newBox.blockKey = blockKey;
 
