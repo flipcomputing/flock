@@ -274,9 +274,15 @@ export const flock = {
 				//logTouchDetails(event);
 
 				if (event.touches.length === 0) {
-					const input = flock.scene.activeCamera.inputs?.attached?.pointers;
+					const input =
+						flock.scene.activeCamera.inputs?.attached?.pointers;
 					// Add null check for input itself
-					if (input && (input._pointA !== null || input._pointB !== null || input._isMultiTouch === true)) {
+					if (
+						input &&
+						(input._pointA !== null ||
+							input._pointB !== null ||
+							input._isMultiTouch === true)
+					) {
 						//flock.printText("Stuck state detected!");
 						flock.scene.activeCamera.detachControl(flock.canvas);
 						setTimeout(() => {
@@ -300,7 +306,7 @@ export const flock = {
 		flock.canvas.addEventListener("keyup", function (event) {
 			flock.canvas.pressedKeys.delete(event.key);
 		});
-		
+
 		flock.canvas.addEventListener("blur", () => {
 			// Clear all pressed keys when window loses focus
 			flock.canvas.pressedKeys.clear();
@@ -808,9 +814,9 @@ export const flock = {
 	},
 	async *modelReadyGenerator(
 		meshId,
-		maxAttempts = 10,
+		maxAttempts = 100,
 		initialInterval = 100,
-		maxInterval = 1000,
+		maxInterval = 2000,
 	) {
 		let attempt = 1;
 		let interval = initialInterval;
@@ -3670,7 +3676,6 @@ export const flock = {
 			const clone = sourceMesh.clone(uniqueCloneId);
 
 			if (clone) {
-				
 				sourceMesh.computeWorldMatrix(true);
 
 				const worldPosition = new BABYLON.Vector3();
@@ -3702,7 +3707,7 @@ export const flock = {
 				clone.metadata = { ...(sourceMesh.metadata || {}) };
 				setMetadata(clone);
 				clone.getDescendants().forEach(setMetadata);
-				
+
 				if (callback) {
 					requestAnimationFrame(() => callback());
 				}
@@ -4229,11 +4234,14 @@ export const flock = {
 					// Determine the loop mode based on reverse and loop
 					let loopMode;
 					if (reverse) {
-						loopMode = flock.BABYLON.Animation.ANIMATIONLOOPMODE_YOYO;
+						loopMode =
+							flock.BABYLON.Animation.ANIMATIONLOOPMODE_YOYO;
 					} else if (loop) {
-						loopMode = flock.BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE;
+						loopMode =
+							flock.BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE;
 					} else {
-						loopMode = flock.BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT;
+						loopMode =
+							flock.BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT;
 					}
 
 					// Create animation for rotation only
@@ -4264,16 +4272,19 @@ export const flock = {
 								easingFunction = new flock.BABYLON.CubicEase();
 								break;
 							case "QuadraticEase":
-								easingFunction = new flock.BABYLON.QuadraticEase();
+								easingFunction =
+									new flock.BABYLON.QuadraticEase();
 								break;
 							case "ExponentialEase":
-								easingFunction = new flock.BABYLON.ExponentialEase();
+								easingFunction =
+									new flock.BABYLON.ExponentialEase();
 								break;
 							case "BounceEase":
 								easingFunction = new flock.BABYLON.BounceEase();
 								break;
 							case "ElasticEase":
-								easingFunction = new flock.BABYLON.ElasticEase();
+								easingFunction =
+									new flock.BABYLON.ElasticEase();
 								break;
 							case "BackEase":
 								easingFunction = new flock.BABYLON.BackEase();
@@ -4294,7 +4305,7 @@ export const flock = {
 						[rotateAnimation],
 						0,
 						frames,
-						loop
+						loop,
 					);
 
 					animatable.onAnimationEndObservable.add(() => {
@@ -4412,122 +4423,128 @@ export const flock = {
 		});
 	},
 	positionAt(meshName, x, y, z, useY = true) {
-	  return flock.whenModelReady(meshName, (mesh) => {
-		if (mesh.physics) {
-		  if (
-			mesh.physics.getMotionType() !==
-			flock.BABYLON.PhysicsMotionType.DYNAMIC
-		  ) {
-			mesh.physics.setMotionType(
-			  flock.BABYLON.PhysicsMotionType.ANIMATED,
-			);
-		  }
-		}
-
-		// Check if we have pivot settings in metadata
-		if (mesh.metadata && mesh.metadata.pivotSettings) {
-		  const pivotSettings = mesh.metadata.pivotSettings;
-		  const boundingBox = mesh.getBoundingInfo().boundingBox.extendSize;
-
-		  // Helper to resolve pivot values
-		  function resolvePivotValue(value, axis) {
-			if (typeof value === "string") {
-			  switch (value) {
-				case "MIN":
-				  return -boundingBox[axis];
-				case "MAX":
-				  return boundingBox[axis];
-				case "CENTER":
-				default:
-				  return 0;
-			  }
-			} else if (typeof value === "number") {
-			  return value;
-			} else {
-			  return 0;
+		return flock.whenModelReady(meshName, (mesh) => {
+			if (mesh.physics) {
+				if (
+					mesh.physics.getMotionType() !==
+					flock.BABYLON.PhysicsMotionType.DYNAMIC
+				) {
+					mesh.physics.setMotionType(
+						flock.BABYLON.PhysicsMotionType.ANIMATED,
+					);
+				}
 			}
-		  }
 
-		  // Calculate offset based on pivot settings
-		  const pivotOffsetX = resolvePivotValue(pivotSettings.x, "x");
-		  const pivotOffsetY = resolvePivotValue(pivotSettings.y, "y");
-		  const pivotOffsetZ = resolvePivotValue(pivotSettings.z, "z");
+			// Check if we have pivot settings in metadata
+			if (mesh.metadata && mesh.metadata.pivotSettings) {
+				const pivotSettings = mesh.metadata.pivotSettings;
+				const boundingBox =
+					mesh.getBoundingInfo().boundingBox.extendSize;
 
-		  // Apply position with pivot offset
-		  mesh.position.set(
-			x - pivotOffsetX, 
-			useY ? y - pivotOffsetY : mesh.position.y, 
-			z - pivotOffsetZ
-		  );
-		} else {
-		  // Original behavior if no pivot settings
-		  const addY =
-			meshName === "__active_camera__"
-			  ? 0
-			  : mesh.getBoundingInfo().boundingBox.extendSize.y *
-				mesh.scaling.y;
-		  let targetY = useY ? y + addY : mesh.position.y;
-		  mesh.position.set(x, targetY, z);
-		}
+				// Helper to resolve pivot values
+				function resolvePivotValue(value, axis) {
+					if (typeof value === "string") {
+						switch (value) {
+							case "MIN":
+								return -boundingBox[axis];
+							case "MAX":
+								return boundingBox[axis];
+							case "CENTER":
+							default:
+								return 0;
+						}
+					} else if (typeof value === "number") {
+						return value;
+					} else {
+						return 0;
+					}
+				}
 
-		// Update physics and world matrix
-		if (mesh.physics) {
-		  mesh.physics.disablePreStep = false;
-		  mesh.physics.setTargetTransform(
-			mesh.position,
-			mesh.rotationQuaternion,
-		  );
-		}
-		mesh.computeWorldMatrix(true);
-		//console.log("Position at", x, y, z, mesh.position.y, mesh);
-	  });
+				// Calculate offset based on pivot settings
+				const pivotOffsetX = resolvePivotValue(pivotSettings.x, "x");
+				const pivotOffsetY = resolvePivotValue(pivotSettings.y, "y");
+				const pivotOffsetZ = resolvePivotValue(pivotSettings.z, "z");
+
+				// Apply position with pivot offset
+				mesh.position.set(
+					x - pivotOffsetX,
+					useY ? y - pivotOffsetY : mesh.position.y,
+					z - pivotOffsetZ,
+				);
+			} else {
+				// Original behavior if no pivot settings
+				const addY =
+					meshName === "__active_camera__"
+						? 0
+						: mesh.getBoundingInfo().boundingBox.extendSize.y *
+							mesh.scaling.y;
+				let targetY = useY ? y + addY : mesh.position.y;
+				mesh.position.set(x, targetY, z);
+			}
+
+			// Update physics and world matrix
+			if (mesh.physics) {
+				mesh.physics.disablePreStep = false;
+				mesh.physics.setTargetTransform(
+					mesh.position,
+					mesh.rotationQuaternion,
+				);
+			}
+			mesh.computeWorldMatrix(true);
+			//console.log("Position at", x, y, z, mesh.position.y, mesh);
+		});
 	},
-setPivotPoint(meshName, xPivot, yPivot, zPivot) {
-	  return flock.whenModelReady(meshName, (mesh) => {
-		if (mesh) {
-		  const boundingBox = mesh.getBoundingInfo().boundingBox.extendSize;
+	setPivotPoint(meshName, xPivot, yPivot, zPivot) {
+		return flock.whenModelReady(meshName, (mesh) => {
+			if (mesh) {
+				const boundingBox =
+					mesh.getBoundingInfo().boundingBox.extendSize;
 
-		  // Helper to resolve "MIN", "CENTER", "MAX", or numbers
-		  function resolvePivotValue(value, axis) {
-			if (typeof value === "string") {
-			  switch (value) {
-				case "MIN":
-				  return -boundingBox[axis];
-				case "MAX":
-				  return boundingBox[axis];
-				case "CENTER":
-				default:
-				  return 0;
-			  }
-			} else if (typeof value === "number") {
-			  return value;
-			} else {
-			  return 0;
+				// Helper to resolve "MIN", "CENTER", "MAX", or numbers
+				function resolvePivotValue(value, axis) {
+					if (typeof value === "string") {
+						switch (value) {
+							case "MIN":
+								return -boundingBox[axis];
+							case "MAX":
+								return boundingBox[axis];
+							case "CENTER":
+							default:
+								return 0;
+						}
+					} else if (typeof value === "number") {
+						return value;
+					} else {
+						return 0;
+					}
+				}
+
+				// Resolve pivot values for each axis
+				const resolvedX = resolvePivotValue(xPivot, "x");
+				const resolvedY = resolvePivotValue(yPivot, "y");
+				const resolvedZ = resolvePivotValue(zPivot, "z");
+
+				const pivotPoint = new flock.BABYLON.Vector3(
+					resolvedX,
+					resolvedY,
+					resolvedZ,
+				);
+				mesh.setPivotPoint(pivotPoint);
+
+				// Set pivot point on child meshes
+				mesh.getChildMeshes().forEach((child) => {
+					child.setPivotPoint(pivotPoint);
+				});
+
+				// Store original pivot settings in metadata
+				mesh.metadata = mesh.metadata || {};
+				mesh.metadata.pivotSettings = {
+					x: xPivot,
+					y: yPivot,
+					z: zPivot,
+				};
 			}
-		  }
-
-		  // Resolve pivot values for each axis
-		  const resolvedX = resolvePivotValue(xPivot, "x");
-		  const resolvedY = resolvePivotValue(yPivot, "y");
-		  const resolvedZ = resolvePivotValue(zPivot, "z");
-
-		  const pivotPoint = new flock.BABYLON.Vector3(resolvedX, resolvedY, resolvedZ);
-		  mesh.setPivotPoint(pivotPoint);
-
-		  // Set pivot point on child meshes
-		  mesh.getChildMeshes().forEach((child) => {
-			child.setPivotPoint(pivotPoint);
-		  });
-
-		  // Store original pivot settings in metadata
-		  mesh.metadata = mesh.metadata || {};
-		  mesh.metadata.pivotSettings = {
-			x: xPivot,
-			y: yPivot,
-			z: zPivot,
-		  };
-		}
-	  });
+		});
 	},
 	distanceTo(meshName1, meshName2) {
 		const mesh1 = flock.scene.getMeshByName(meshName1);
@@ -4790,7 +4807,6 @@ setPivotPoint(meshName, xPivot, yPivot, zPivot) {
 		return propertyValue;
 	},
 	createSmallButton(text, key, color) {
-
 		if (!flock.controlsTexture) return;
 
 		const button = flock.GUI.Button.CreateSimpleButton("but", text);
@@ -4868,14 +4884,18 @@ setPivotPoint(meshName, xPivot, yPivot, zPivot) {
 	},
 	buttonControls(control, enabled, color) {
 		if (!flock.controlsTexture) {
-			flock.controlsTexture = flock.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
+			flock.controlsTexture =
+				flock.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
 		}
 
 		// Set all controls to be non-interactive if disabled
 		flock.controlsTexture.rootContainer.isEnabled = enabled;
 
 		// Only create/update controls if they don't exist yet
-		if (enabled && flock.controlsTexture.rootContainer.children.length === 0) {
+		if (
+			enabled &&
+			flock.controlsTexture.rootContainer.children.length === 0
+		) {
 			if (control == "ARROWS" || control == "BOTH")
 				flock.createArrowControls(color);
 			if (control == "ACTIONS" || control == "BOTH")
@@ -5860,7 +5880,7 @@ setPivotPoint(meshName, xPivot, yPivot, zPivot) {
 				});
 			}
 		});
-	},	
+	},
 	addBeforePhysicsObservable(scene, ...meshes) {
 		const beforePhysicsObserver = scene.onBeforePhysicsObservable.add(
 			() => {
@@ -6033,7 +6053,13 @@ setPivotPoint(meshName, xPivot, yPivot, zPivot) {
 				!vrPressed
 			);
 		} else {
-			return pressedKeys.has(key) || pressedKeys.has(key.toLowerCase()) || pressedKeys.has(key.toUpperCase()) || pressedButtons.has(key) || vrPressed;
+			return (
+				pressedKeys.has(key) ||
+				pressedKeys.has(key.toLowerCase()) ||
+				pressedKeys.has(key.toUpperCase()) ||
+				pressedButtons.has(key) ||
+				vrPressed
+			);
 		}
 	},
 	seededRandom(from, to, seed) {
@@ -6101,7 +6127,7 @@ setPivotPoint(meshName, xPivot, yPivot, zPivot) {
 				// Check if the material is already processed
 				if (!materialToColorMap.has(part.material)) {
 					const currentIndex = colorIndex % colors.length;
-					
+
 					const hexColor = flock.getColorFromString(
 						colors[currentIndex],
 					);
@@ -6260,13 +6286,14 @@ setPivotPoint(meshName, xPivot, yPivot, zPivot) {
 					? materials[index % materials.length]
 					: materials;
 
-				console.log("Material:", material, flock.GradientMaterial)
+				console.log("Material:", material, flock.GradientMaterial);
 				if (material instanceof flock.GradientMaterial) {
 					mesh.computeWorldMatrix(true);
 
 					const boundingInfo = mesh.getBoundingInfo();
 
-					const yDimension = boundingInfo.boundingBox.extendSizeWorld.y
+					const yDimension =
+						boundingInfo.boundingBox.extendSizeWorld.y;
 
 					material.scale = yDimension > 0 ? 1 / yDimension : 1;
 				}
@@ -6317,33 +6344,36 @@ setPivotPoint(meshName, xPivot, yPivot, zPivot) {
 			material = new flock.GradientMaterial(materialName, flock.scene);
 
 			material.bottomColor = flock.BABYLON.Color3.FromHexString(
-				flock.getColorFromString(color[0])
+				flock.getColorFromString(color[0]),
 			);
 			material.topColor = flock.BABYLON.Color3.FromHexString(
-				flock.getColorFromString(color[1])
+				flock.getColorFromString(color[1]),
 			);
 			material.offset = 0.5;
 			material.smoothness = 0.5;
 			material.scale = 1.0;
 			material.backFaceCulling = false;
-
 		} else {
 			// Default to StandardMaterial
 			material = new flock.BABYLON.StandardMaterial(
 				materialName,
-				flock.scene
+				flock.scene,
 			);
 
 			// Load texture if provided
 			if (texturePath) {
-				const texture = new flock.BABYLON.Texture(texturePath, flock.scene);
+				const texture = new flock.BABYLON.Texture(
+					texturePath,
+					flock.scene,
+				);
 				material.diffuseTexture = texture;
 			}
 
 			// Set single color if provided
 			if (color) {
 				const hexColor = flock.getColorFromString(color);
-				const babylonColor = flock.BABYLON.Color3.FromHexString(hexColor);
+				const babylonColor =
+					flock.BABYLON.Color3.FromHexString(hexColor);
 				material.diffuseColor = babylonColor;
 			}
 
@@ -6712,8 +6742,8 @@ setPivotPoint(meshName, xPivot, yPivot, zPivot) {
 	},
 	moveSideways(modelName, speed) {
 		const model = flock.scene.getMeshByName(modelName);
-		if (!model || speed === 0) return; 
-		
+		if (!model || speed === 0) return;
+
 		flock.ensureVerticalConstraint(model);
 
 		const sidewaysSpeed = speed;
@@ -6851,7 +6881,7 @@ setPivotPoint(meshName, xPivot, yPivot, zPivot) {
 				camera.angularSensibilityX = 2000;
 				camera.angularSensibilityY = 2000;
 				camera.panningSensibility = 0;
-							camera.inputs.removeByType("ArcRotateCameraMouseWheelInput");
+				camera.inputs.removeByType("ArcRotateCameraMouseWheelInput");
 
 				camera.inputs.attached.pointers.multiTouchPanAndZoom = false;
 				camera.inputs.attached.pointers.multiTouchPanning = false;
@@ -7856,8 +7886,11 @@ setPivotPoint(meshName, xPivot, yPivot, zPivot) {
 			? flock.BABYLON.KeyboardEventTypes.KEYUP
 			: flock.BABYLON.KeyboardEventTypes.KEYDOWN;
 
-	flock.scene.onKeyboardObservable.add((kbInfo) => {
-			if (kbInfo.type === eventType && kbInfo.event.key.toLowerCase() === key) {
+		flock.scene.onKeyboardObservable.add((kbInfo) => {
+			if (
+				kbInfo.type === eventType &&
+				kbInfo.event.key.toLowerCase() === key
+			) {
 				callback();
 			}
 		});
