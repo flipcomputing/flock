@@ -3031,15 +3031,8 @@ export const flock = {
 		mesh.blockKey = mesh.name;
 		//mesh.name = `${mesh.name}_${mesh.uniqueId}`;
 
-		const material = new BABYLON.StandardMaterial(
-			`${shapeType.toLowerCase()}Material`,
-			mesh.getScene(),
-		);
-		material.diffuseColor = flock.BABYLON.Color3.FromHexString(
-			flock.getColorFromString(color),
-		);
-		material.alpha = alpha;
-		mesh.material = material;
+		flock.applyMaterialToMesh(mesh, shapeType, color, alpha)
+		
 		mesh.metadata.sharedMaterial = false;
 
 		// Enable and make the mesh visible
@@ -3047,6 +3040,291 @@ export const flock = {
 		mesh.setEnabled(true);
 		mesh.material.needDepthPrePass = true;
 		mesh.metadata.sharedGeometry = true;
+	},
+	applyMaterialToMesh(mesh, shapeType, color, alpha = 1.0) {
+		const scene = mesh.getScene();
+
+		const makeColor4 = (c) => {
+			if (typeof c === "string") {
+				const col = BABYLON.Color3.FromHexString(c);
+				return new BABYLON.Color4(col.r, col.g, col.b, alpha);
+			} else if (c instanceof BABYLON.Color3) {
+				return new BABYLON.Color4(c.r, c.g, c.b, alpha);
+			} else if (c instanceof BABYLON.Color4) {
+				return new BABYLON.Color4(c.r, c.g, c.b, alpha);
+			} else {
+				return new BABYLON.Color4(1, 1, 1, alpha); // default to white
+			}
+		};
+
+		if (!Array.isArray(color) || color.length === 1) {
+			const material = new BABYLON.StandardMaterial(
+				`${shapeType.toLowerCase()}Material`,
+				mesh.getScene(),
+			);
+			material.diffuseColor = flock.BABYLON.Color3.FromHexString(
+				flock.getColorFromString(color),
+			);
+			material.alpha = alpha;
+			mesh.material = material;
+			return;
+		}
+		
+		if (shapeType === "Box") {
+			const positions = mesh.getVerticesData(
+				BABYLON.VertexBuffer.PositionKind,
+			);
+			const indices = mesh.getIndices();
+			const normals = mesh.getVerticesData(
+				BABYLON.VertexBuffer.NormalKind,
+			);
+
+			if (!positions || !indices || indices.length !== 36) {
+				console.warn(
+					"Mesh is not a standard box; falling back to uniform color.",
+				);
+				return this.applyMaterialToMesh(
+					mesh,
+					shapeType,
+					color[0],
+					alpha,
+				);
+			}
+
+			// Face order: front, back, right, left, top, bottom
+			const faceToSide = [
+				"front", // face 0
+				"back", // face 1
+				"right", // face 2
+				"left", // face 3
+				"top", // face 4
+				"bottom", // face 5
+			];
+
+			const sideColorMap = {
+				front: makeColor4(color[0]),
+				back: makeColor4(color[0]),
+				left: makeColor4(color[0]),
+				right: makeColor4(color[0]),
+				top: makeColor4(color[0]),
+				bottom: makeColor4(color[0]),
+			};
+
+			switch (color.length) {
+				case 2:
+					sideColorMap.top = sideColorMap.bottom = makeColor4(
+						color[0],
+					);
+					sideColorMap.left =
+						sideColorMap.right =
+						sideColorMap.front =
+						sideColorMap.back =
+							makeColor4(color[1]);
+					break;
+				case 3:
+					sideColorMap.top = sideColorMap.bottom = makeColor4(
+						color[0],
+					);
+					sideColorMap.left = sideColorMap.right = makeColor4(
+						color[1],
+					);
+					sideColorMap.front = sideColorMap.back = makeColor4(
+						color[2],
+					);
+					break;
+				case 4:
+					sideColorMap.top = makeColor4(color[0]);
+					sideColorMap.bottom = makeColor4(color[1]);
+					sideColorMap.left = sideColorMap.right = makeColor4(
+						color[2],
+					);
+					sideColorMap.front = sideColorMap.back = makeColor4(
+						color[3],
+					);
+					break;
+				case 5:
+					sideColorMap.top = sideColorMap.bottom = makeColor4(
+						color[0],
+					);
+					sideColorMap.left = makeColor4(color[1]);
+					sideColorMap.right = makeColor4(color[2]);
+					sideColorMap.front = makeColor4(color[3]);
+					sideColorMap.back = makeColor4(color[4]);
+					break;
+				case 6:
+				default:
+					[
+						sideColorMap.top,
+						sideColorMap.bottom,
+						sideColorMap.left,
+						sideColorMap.right,
+						sideColorMap.front,
+						sideColorMap.back,
+					] = color.slice(0, 6).map(makeColor4);
+					break;
+			}
+
+			const colors = [];
+			const newPositions = [];
+			const newNormals = [];
+			const newIndices = [];
+
+			let baseIndex = 0;
+
+			for (let i = 0; i < indices.length; i += 6) {
+				const faceIndex = i / 6;
+				const side = faceToSide[faceIndex];
+				const faceColor = sideColorMap[side];
+
+				for (let j = 0; j < 6; j++) {
+					const vi = indices[i + j];
+
+					newPositions.push(
+						positions[vi * 3],
+						positions[vi * 3 + 1],
+						positions[vi * 3 + 2],
+					);
+
+					if (normals) {
+						newNormals.push(
+							normals[vi * 3],
+							normals[vi * 3 + 1],
+							normals[vi * 3 + 2],
+						);
+					}
+
+					colors.push(
+						faceColor.r,
+						faceColor.g,
+						faceColor.b,
+						faceColor.a,
+					);
+					newIndices.push(baseIndex++);
+				}
+			}
+
+			mesh.setVerticesData(
+				BABYLON.VertexBuffer.PositionKind,
+				newPositions,
+			);
+			mesh.setVerticesData(BABYLON.VertexBuffer.NormalKind, newNormals);
+			mesh.setVerticesData(BABYLON.VertexBuffer.ColorKind, colors);
+			mesh.setIndices(newIndices);
+
+			mesh.hasVertexAlpha = true;
+
+			const mat = new BABYLON.StandardMaterial("faceColorMat", scene);
+			mat.diffuseColor = BABYLON.Color3.White();
+			mat.backFaceCulling = false;
+			mat.vertexColors = true;
+			mesh.material = mat;
+			return;
+		}
+		if (shapeType === "Cylinder") {
+		  const positions = mesh.getVerticesData(BABYLON.VertexBuffer.PositionKind);
+		  const indices = mesh.getIndices();
+		  const normals = mesh.getVerticesData(BABYLON.VertexBuffer.NormalKind);
+
+		  if (!positions || !indices) {
+			console.warn("Missing geometry for cylinder; falling back to uniform color.");
+			return this.applyMaterialToMesh(mesh, shapeType, color[0], alpha);
+		  }
+
+		  const colors = [];
+		  const newPositions = [];
+		  const newNormals = [];
+		  const newIndices = [];
+
+		  const yVals = [];
+		  for (let i = 0; i < positions.length; i += 3) {
+			yVals.push(positions[i + 1]);
+		  }
+
+		  const minY = Math.min(...yVals);
+		  const maxY = Math.max(...yVals);
+
+		  const makeColorFromIndex = (i) => makeColor4(color[i % color.length]);
+
+		  let baseIndex = 0;
+		  let sideFaceIndex = 0;
+
+		  for (let i = 0; i < indices.length; i += 3) {
+			const vi0 = indices[i];
+			const vi1 = indices[i + 1];
+			const vi2 = indices[i + 2];
+
+			const y0 = positions[vi0 * 3 + 1];
+			const y1 = positions[vi1 * 3 + 1];
+			const y2 = positions[vi2 * 3 + 1];
+
+			const isTop = y0 === maxY && y1 === maxY && y2 === maxY;
+			const isBottom = y0 === minY && y1 === minY && y2 === minY;
+
+			let faceColor;
+
+			if (isTop) {
+			  faceColor = makeColor4(color[0]); // always color[0]
+			} else if (isBottom) {
+			  faceColor = makeColor4(color.length > 1 ? color[1] : color[0]); // fallback to top if only 1 color
+			} else {
+			  if (color.length === 2) {
+				faceColor = makeColor4(color[1]);
+			  } else if (color.length === 3) {
+				faceColor = makeColor4(color[2]);
+			  } else {
+				// Use color[2+] for alternating side face colors, one color per 2 triangles
+				const sideColorIndex = 2 + Math.floor(sideFaceIndex / 2);
+				faceColor = makeColor4(color[sideColorIndex % (color.length - 2) + 2]);
+				sideFaceIndex++;
+			  }
+			}
+
+			for (let j = 0; j < 3; j++) {
+			  const vi = indices[i + j];
+
+			  newPositions.push(
+				positions[vi * 3],
+				positions[vi * 3 + 1],
+				positions[vi * 3 + 2]
+			  );
+
+			  if (normals) {
+				newNormals.push(
+				  normals[vi * 3],
+				  normals[vi * 3 + 1],
+				  normals[vi * 3 + 2]
+				);
+			  }
+
+			  colors.push(faceColor.r, faceColor.g, faceColor.b, faceColor.a);
+			  newIndices.push(baseIndex++);
+			}
+		  }
+
+		  mesh.setVerticesData(BABYLON.VertexBuffer.PositionKind, newPositions);
+		  if (normals) mesh.setVerticesData(BABYLON.VertexBuffer.NormalKind, newNormals);
+		  mesh.setVerticesData(BABYLON.VertexBuffer.ColorKind, colors);
+		  mesh.setIndices(newIndices);
+
+		  mesh.hasVertexAlpha = true;
+
+		  const mat = new BABYLON.StandardMaterial("cylColorMat", scene);
+		  mat.diffuseColor = BABYLON.Color3.White();
+		  mat.backFaceCulling = false;
+		  mat.vertexColors = true;
+		  mesh.material = mat;
+		  return;
+		}
+
+		const material = new BABYLON.StandardMaterial(
+			`${shapeType.toLowerCase()}Material`,
+			mesh.getScene(),
+		);
+		material.diffuseColor = flock.BABYLON.Color3.FromHexString(
+			flock.getColorFromString(color[0]),
+		);
+		material.alpha = alpha;
+		mesh.material = material;
 	},
 	createPhysicsBody(
 		mesh,
@@ -3667,15 +3945,7 @@ export const flock = {
 		});
 		newPlane.physics = planeBody;
 
-		// Set up material
-		const material = new flock.BABYLON.StandardMaterial(
-			"planeMaterial",
-			flock.scene,
-		);
-		material.diffuseColor = flock.BABYLON.Color3.FromHexString(
-			flock.getColorFromString(color),
-		);
-		newPlane.material = material;
+		flock.applyMaterialToMesh(newPlane, "Plane", color);
 
 		newPlane.blockKey = blockKey;
 
