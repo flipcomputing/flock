@@ -367,7 +367,7 @@ export function updateMeshFromBlock(mesh, block, changeEvent) {
     capsuleHeight,
     diameter,
     planeWidth,
-    planeHeight;
+    planeHeight, modelName;
   // Shape-specific updates based on the block type
   switch (shapeType) {
     case "load_object":
