@@ -3989,8 +3989,22 @@ export function defineBlocks() {
       updateShape(this, isInline);
     },
     toggleDoBlock: function () {
-      this.updateShape_(!this.isInline);
-    },
+      const isInline = !this.isInline;
+
+      if (!isInline) {
+        this.unplug(true); // Ensures the block is disconnected when toggled to top-level
+      }
+
+      this.updateShape_(isInline);
+
+      // Optional: Re-enable the block if it was disabled
+      if (this.hasDisabledReason && this.hasDisabledReason("ORPHANED_BLOCK")) {
+        this.setDisabledReason(false, "ORPHANED_BLOCK");
+      }
+
+      Blockly.Events.fire(new Blockly.Events.BlockChange(this, "mutation", null, "", ""));
+      Blockly.Events.fire(new Blockly.Events.BlockMove(this));
+    }
   };
 
   Blockly.Blocks["when_touches"] = {
@@ -4070,8 +4084,22 @@ export function defineBlocks() {
       }
     },
     toggleDoBlock: function () {
-      this.updateShape_(!this.isInline);
-    },
+      const isInline = !this.isInline;
+
+      if (!isInline) {
+        this.unplug(true); // Ensures the block is disconnected when toggled to top-level
+      }
+
+      this.updateShape_(isInline);
+
+      // Optional: Re-enable the block if it was disabled
+      if (this.hasDisabledReason && this.hasDisabledReason("ORPHANED_BLOCK")) {
+        this.setDisabledReason(false, "ORPHANED_BLOCK");
+      }
+
+      Blockly.Events.fire(new Blockly.Events.BlockChange(this, "mutation", null, "", ""));
+      Blockly.Events.fire(new Blockly.Events.BlockMove(this));
+    }
   };
 
   Blockly.Blocks["local_variable"] = {
@@ -4186,8 +4214,22 @@ export function defineBlocks() {
       updateShape(this, isInline);
     },
     toggleDoBlock: function () {
-      this.updateShape_(!this.isInline);
-    },
+      const isInline = !this.isInline;
+
+      if (!isInline) {
+        this.unplug(true); // Ensures the block is disconnected when toggled to top-level
+      }
+
+      this.updateShape_(isInline);
+
+      // Optional: Re-enable the block if it was disabled
+      if (this.hasDisabledReason && this.hasDisabledReason("ORPHANED_BLOCK")) {
+        this.setDisabledReason(false, "ORPHANED_BLOCK");
+      }
+
+      Blockly.Events.fire(new Blockly.Events.BlockChange(this, "mutation", null, "", ""));
+      Blockly.Events.fire(new Blockly.Events.BlockMove(this));
+    }
   };
 
   Blockly.Blocks["broadcast_event"] = {
@@ -4247,8 +4289,22 @@ export function defineBlocks() {
       updateShape(this, isInline);
     },
     toggleDoBlock: function () {
-      this.updateShape_(!this.isInline);
-    },
+      const isInline = !this.isInline;
+
+      if (!isInline) {
+        this.unplug(true); // Ensures the block is disconnected when toggled to top-level
+      }
+
+      this.updateShape_(isInline);
+
+      // Optional: Re-enable the block if it was disabled
+      if (this.hasDisabledReason && this.hasDisabledReason("ORPHANED_BLOCK")) {
+        this.setDisabledReason(false, "ORPHANED_BLOCK");
+      }
+
+      Blockly.Events.fire(new Blockly.Events.BlockChange(this, "mutation", null, "", ""));
+      Blockly.Events.fire(new Blockly.Events.BlockMove(this));
+    }
   };
 
   Blockly.Blocks["show"] = {
@@ -6064,10 +6120,25 @@ Blockly.Blocks["procedures_defreturn"].init = (function (originalInit) {
 
 // Create an extension that adds extra UI logic without modifying the core mutator methods
 Blockly.Extensions.register("custom_procedure_ui_extension", function () {
-  // Add the toggle behaviour method using your helper
   this.toggleDoBlock = function () {
-    // Update the shape when toggled without interfering with mutator methods
-    updateShape(this, !this.isInline);
+    const isInline = !this.isInline;
+
+    // Disconnect block from parent if switching to top-level mode
+    if (!isInline) {
+      this.unplug(true);
+    }
+
+    // Update block shape (delegated to your helper)
+    updateShape(this, isInline);
+
+    // Optionally re-enable if previously disabled (for orphaned block UX)
+    if (this.hasDisabledReason && this.hasDisabledReason("ORPHANED_BLOCK")) {
+      this.setDisabledReason(false, "ORPHANED_BLOCK");
+    }
+
+    // Fire Blockly events so undo/redo and UI updates are tracked
+    Blockly.Events.fire(new Blockly.Events.BlockChange(this, "mutation", null, "", ""));
+    Blockly.Events.fire(new Blockly.Events.BlockMove(this));
   };
 });
 
@@ -6269,3 +6340,6 @@ Blockly.Blocks["microbit_input"] = {
 })();
 
 // Listen for changes to blocks in the workspace
+
+
+  
