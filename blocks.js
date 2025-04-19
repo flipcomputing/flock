@@ -204,7 +204,7 @@ export class CustomZelosRenderer extends Blockly.zelos.Renderer {
   }
 }
 
-const mediaPath = window.location.pathname.includes("/flock/")
+const mediaPath = window.location.pathname.includes("/flock")
   ? "/flock/blockly/media/" // For GitHub Pages
   : "/blockly/media/"; // For local dev
 
