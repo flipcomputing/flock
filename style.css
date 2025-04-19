@@ -3,6 +3,10 @@
   margin-left: 10px;
   margin-right: 10px;
 } 
+
+#rightArea {
+  position: relative;
+}
 		
 .blocklyText {
 			fill: black !important;
@@ -426,7 +430,7 @@ path.blocklyPath.blockly-ws-search-highlight.blockly-ws-search-current {
   margin: 0;
   font-size: 18px;
   font-weight: bold;
-  background-color: #511d91;
+  background-color: #f0f0f0;
   border:none;
   cursor: pointer;
   margin-top: auto; 
@@ -436,12 +440,16 @@ path.blocklyPath.blockly-ws-search-highlight.blockly-ws-search-current {
 }
 
 .flocklink a {
-  color: white;
+  color: #511d91;
   text-decoration: none;
 }
 
+
 @media only screen and (orientation: landscape) and (max-width: 768px) {
   #info-panel {
+      display: none;
+  }
+  .flocklink {
       display: none;
   }
 }
@@ -496,7 +504,6 @@ path.blocklyPath.blockly-ws-search-highlight.blockly-ws-search-current {
   }
 
   #rightArea {
-    position: relative;
 	flex: 1 1 0;
 	height: calc(100vh - 40px);
 	box-sizing: border-box;
