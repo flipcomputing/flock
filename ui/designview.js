@@ -1668,7 +1668,7 @@ export function enableGizmos() {
   duplicateButton.addEventListener("click", () => toggleGizmo("duplicate"));
   deleteButton.addEventListener("click", () => toggleGizmo("delete"));
   showShapesButton.addEventListener("click", showShapes);
-  aboutButton.addEventListener("click", openAboutPage);
+  //aboutButton.addEventListener("click", openAboutPage);
   scrollModelsLeftButton.addEventListener("click", () => scrollModels(-1));
   scrollModelsRightButton.addEventListener("click", () => scrollModels(1));
   scrollObjectsLeftButton.addEventListener("click", () => scrollObjects(-1));
