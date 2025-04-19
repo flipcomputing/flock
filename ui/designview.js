@@ -1607,8 +1607,8 @@ export function enableGizmos() {
   const positionButton = document.getElementById("positionButton");
   const rotationButton = document.getElementById("rotationButton");
   const scaleButton = document.getElementById("scaleButton");
-  const boundsButton = document.getElementById("boundsButton");
-  const focusButton = document.getElementById("focusButton");
+  //const boundsButton = document.getElementById("boundsButton");
+  //const focusButton = document.getElementById("focusButton");
   const hideButton = document.getElementById("hideButton");
   const duplicateButton = document.getElementById("duplicateButton");
   const deleteButton = document.getElementById("deleteButton");
@@ -1640,8 +1640,8 @@ export function enableGizmos() {
   positionButton.removeAttribute("disabled");
   rotationButton.removeAttribute("disabled");
   scaleButton.removeAttribute("disabled");
-  boundsButton.removeAttribute("disabled");
-  focusButton.removeAttribute("disabled");
+  //boundsButton.removeAttribute("disabled");
+  //focusButton.removeAttribute("disabled");
   hideButton.removeAttribute("disabled");
   duplicateButton.removeAttribute("disabled");
   deleteButton.removeAttribute("disabled");
@@ -1661,8 +1661,8 @@ export function enableGizmos() {
   positionButton.addEventListener("click", () => toggleGizmo("position"));
   rotationButton.addEventListener("click", () => toggleGizmo("rotation"));
   scaleButton.addEventListener("click", () => toggleGizmo("scale"));
-  boundsButton.addEventListener("click", () => toggleGizmo("bounds"));
-  focusButton.addEventListener("click", () => toggleGizmo("focus"));
+  //boundsButton.addEventListener("click", () => toggleGizmo("bounds"));
+  //focusButton.addEventListener("click", () => toggleGizmo("focus"));
   hideButton.addEventListener("click", () => toggleGizmo("select"));
   cameraButton.addEventListener("click", () => toggleGizmo("camera"));
   duplicateButton.addEventListener("click", () => toggleGizmo("duplicate"));
