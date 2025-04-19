@@ -7,6 +7,7 @@ import { writeFileSync } from 'fs';
 
 // Determine if we are in production mode
 const isProduction = process.env.NODE_ENV === 'production';
+const BASE_URL = process.env.VITE_BASE_URL || '/';
 
 export default {
   plugins: [
@@ -52,7 +53,7 @@ export default {
       ]
     }),
     VitePWA({
-      base: isProduction ? '/flock/' : '/',
+      base: BASE_URL,
       registerType: 'autoUpdate',
       devOptions: {
         enabled: true
@@ -65,10 +66,9 @@ export default {
         description: 'Create 3D apps with blocks',
         theme_color: '#511d91',
         display: 'fullscreen',
-        start_url: isProduction ? '/flock/?fullscreen=true' : '/',
-        id: isProduction ? '/flock/?fullscreen=true' : '/',
-        scope: isProduction ? '/flock/' : '/',
-
+        start_url: isProduction ? BASE_URL + '?fullscreen=true' : '/',
+        id: isProduction ?  BASE_URL + '?fullscreen=true' : '/',
+        scope: BASE_URL,
         icons: [
           {
             src: 'images/icon_192x192.png',
@@ -88,7 +88,7 @@ export default {
           '**/*.{js,css,html,ico,png,svg,glb,gltf,ogg,mp3,aac,wasm,json,woff,woff2}', // Precache all assets
         ],
         modifyURLPrefix: isProduction ? {
-          '': '/flock/', // Prepend the base URL to all cached assets in production
+          '': BASE_URL, // Prepend the base URL to all cached assets in production
         } : {},
         runtimeCaching: [
           {
@@ -105,7 +105,7 @@ export default {
           },
           {
             // Cache assets from GitHub Pages
-            urlPattern: new RegExp('^https://flipcomputing\\.github\\.io/flock/'),
+            urlPattern: ({ url }) => url.origin === self.location.origin,
             handler: 'CacheFirst', // Cache GitHub-hosted assets
             options: {
               cacheName: 'github-pages-cache',
