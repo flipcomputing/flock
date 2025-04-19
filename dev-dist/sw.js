@@ -91,7 +91,7 @@ define(['./workbox-d9a5ed57'], (function (workbox) { 'use strict';
     "revision": "3ca0b8505b4bec776b69afdba2768812"
   }, {
     "url": "index.html",
-    "revision": "0.5a9d8nr1umo"
+    "revision": "0.a6i01puevho"
   }], {});
   workbox.cleanupOutdatedCaches();
   workbox.registerRoute(new workbox.NavigationRoute(workbox.createHandlerBoundToURL("index.html"), {
@@ -104,7 +104,9 @@ define(['./workbox-d9a5ed57'], (function (workbox) { 'use strict';
       maxAgeSeconds: 2592000
     })]
   }), 'GET');
-  workbox.registerRoute(/^https:\/\/flipcomputing\.github\.io\/flock\//, new workbox.CacheFirst({
+  workbox.registerRoute(({
+    url
+  }) => url.origin === self.location.origin, new workbox.CacheFirst({
     "cacheName": "github-pages-cache",
     plugins: [new workbox.ExpirationPlugin({
       maxEntries: 50,
