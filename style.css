@@ -706,3 +706,12 @@ path.blocklyPath.blockly-ws-search-highlight.blockly-ws-search-current {
 .blocklyToolboxDiv {
   overflow: hidden !important;
 }*/
+
+.blocklyZoomReset {
+  display: none;
+}
+
+.blocklyTrash, .blocklyZoomIn > image,
+.blocklyZoomOut > image{
+  opacity: 1 !important;
+}
