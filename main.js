@@ -18,7 +18,7 @@ import { flock, initializeFlock } from "./flock.js";
 import {
 	options,
 	defineBlocks,
-	initializeVariableIndexes,
+	initializeVariableIndexes, 
 	handleBlockSelect,
 	handleBlockDelete,
 	CustomZelosRenderer,
@@ -34,7 +34,7 @@ import {
 
 if ("serviceWorker" in navigator) {
 	navigator.serviceWorker
-		.register("/flock/sw.js")
+		.register("./sw.js")
 		.then((registration) => {
 			console.log("Service Worker registered:", registration);
 
