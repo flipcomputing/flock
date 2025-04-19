@@ -5165,18 +5165,19 @@ export const flock = {
 		rightGrid.addControl(button4, 1, 1); // Row 1, Column 1
 	},
 	buttonControls(control, enabled, color) {
-		if (!flock.controlsTexture) {
-			flock.controlsTexture =
-				flock.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
+		if (flock.controlsTexture) {
+			flock.controlsTexture.dispose();
 		}
+
+		flock.controlsTexture =
+			flock.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
 
 		// Set all controls to be non-interactive if disabled
 		flock.controlsTexture.rootContainer.isEnabled = enabled;
 
 		// Only create/update controls if they don't exist yet
 		if (
-			enabled &&
-			flock.controlsTexture.rootContainer.children.length === 0
+			enabled 
 		) {
 			if (control == "ARROWS" || control == "BOTH")
 				flock.createArrowControls(color);
