@@ -1215,10 +1215,10 @@
 																				  "ADD0": {
 																					"block": {
 																					  "type": "variables_get",
-																					  "id": "X`Q#KsbJi}kp!#EWTLAV",
+																					  "id": "RYtN~^xW032/DhVJA+QF",
 																					  "fields": {
 																						"VAR": {
-																						  "id": "0YS!90p/4si#mc-q+]Dn"
+																						  "id": "mME9,@t$Z=Y({O3-bFYQ"
 																						}
 																					  }
 																					}
@@ -1226,10 +1226,10 @@
 																				  "ADD1": {
 																					"block": {
 																					  "type": "variables_get",
-																					  "id": "RYtN~^xW032/DhVJA+QF",
+																					  "id": "X`Q#KsbJi}kp!#EWTLAV",
 																					  "fields": {
 																						"VAR": {
-																						  "id": "mME9,@t$Z=Y({O3-bFYQ"
+																						  "id": "0YS!90p/4si#mc-q+]Dn"
 																						}
 																					  }
 																					}
@@ -1246,7 +1246,8 @@
 																				"BUTTON_VAR": {
 																				  "id": "^.-ft+4A]2+X^}]TdEMp"
 																				},
-																				"SIZE": "SMALL"
+																				"SIZE": "SMALL",
+																				"TEXT_SIZE": "14px"
 																			  },
 																			  "inputs": {
 																				"TEXT": {
@@ -1397,36 +1398,8 @@
   },
   "variables": [
 	{
-	  "name": "box1",
-	  "id": "]rZ2HS-s2jW0UI6toDk)"
-	},
-	{
-	  "name": "box2",
-	  "id": "kr@[i,bK1By1MV1y,#U~"
-	},
-	{
 	  "name": "hoop",
 	  "id": "mME9,@t$Z=Y({O3-bFYQ"
-	},
-	{
-	  "name": "i",
-	  "id": "7@%z.$xsYOen=bXrgT-S"
-	},
-	{
-	  "name": "j",
-	  "id": "V|U/80}v[^5acO7]*gC_"
-	},
-	{
-	  "name": "k",
-	  "id": "0_;4P8W@ul@.RXgcMR}3"
-	},
-	{
-	  "name": "Mesh",
-	  "id": "-[j73G%-9BI29$G+[xby"
-	},
-	{
-	  "name": "m",
-	  "id": "2@?~ewF`=Cq3f%dLm}z8"
 	},
 	{
 	  "name": "cylinder1",
@@ -1437,16 +1410,8 @@
 	  "id": "K}6yTx+E(f7/U*58+C[F"
 	},
 	{
-	  "name": "mesh2",
-	  "id": "SqL~Y01G+`WGWo%hp;N+"
-	},
-	{
 	  "name": "cylinder2",
 	  "id": ":8`ev}O/$(XMQJ#E5;]*"
-	},
-	{
-	  "name": "character1",
-	  "id": "0oowwuc7A;tErWVF~I!A"
 	},
 	{
 	  "name": "n",
@@ -1455,10 +1420,6 @@
 	{
 	  "name": "pivot",
 	  "id": "X6fmW`I1)yOP+sC]9_Fl"
-	},
-	{
-	  "name": "parent",
-	  "id": "fwd;Z/irEJA$@l3PA1xu"
 	},
 	{
 	  "name": "cylinder3",
@@ -1481,20 +1442,8 @@
 	  "id": "|^w0wB7Ptnc4!+$Nxg3h"
 	},
 	{
-	  "name": "result",
-	  "id": ")g|Zrz{rT!yi),#c2/]$"
-	},
-	{
-	  "name": "o",
-	  "id": "W.`)Zx$sct5bz|7WVHXj"
-	},
-	{
 	  "name": "p",
 	  "id": "^.-ft+4A]2+X^}]TdEMp"
-	},
-	{
-	  "name": "player",
-	  "id": "pqnekew***AaxLc?vhk$"
 	}
   ]
 }
