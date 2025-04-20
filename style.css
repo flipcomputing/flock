@@ -422,7 +422,7 @@ path.blocklyPath.blockly-ws-search-highlight.blockly-ws-search-current {
   }
 }
 
-.flocklink {
+#flocklink {
    box-sizing: border-box;
   position: absolute;
   bottom: 0;
@@ -439,7 +439,7 @@ path.blocklyPath.blockly-ws-search-highlight.blockly-ws-search-current {
   padding-right: 10px;
 }
 
-.flocklink a {
+#flocklink a {
   color: #511d91;
   text-decoration: none;
 }
