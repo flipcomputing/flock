@@ -18,7 +18,7 @@ import { flock, initializeFlock } from "./flock.js";
 import {
 	options,
 	defineBlocks,
-	initializeVariableIndexes, 
+	initializeVariableIndexes,
 	handleBlockSelect,
 	handleBlockDelete,
 	CustomZelosRenderer,
@@ -744,15 +744,18 @@ window.viewMode = viewMode;
 window.codeMode = codeMode;
 
 function switchView(view) {
+	console.log("View");
 	if (flock.scene) flock.scene.debugLayer.hide();
 	const blocklyArea = document.getElementById("codePanel");
 	const canvasArea = document.getElementById("rightArea");
+	const flockLink = document.getElementById("flocklink");
 
 	if (view === "both") {
 		viewMode = "both";
 		codeMode = "both";
 		blocklyArea.style.display = "block";
 		canvasArea.style.display = "block";
+		flockLink.style.display = "block";
 		blocklyArea.style.width = "0";
 		canvasArea.style.width = "0";
 		blocklyArea.style.flex = "2 1 0"; // 2/3 of the space
@@ -762,6 +765,9 @@ function switchView(view) {
 		viewMode = "canvas";
 		blocklyArea.style.display = "none";
 		canvasArea.style.display = "block";
+		flockLink.style.display = "block";
+	} else {
+		flockLink.style.display = "none";
 	}
 
 	onResize(); // Ensure both Blockly and Babylon.js canvas resize correctly
@@ -873,8 +879,11 @@ const swipeThreshold = 50; // Minimum swipe distance
 
 function showCanvasView() {
 	const gizmoButtons = document.getElementById("gizmoButtons");
+	const flockLink = document.getElementById("flocklink");
 
 	gizmoButtons.style.display = "block";
+	flockLink.style.display = "block";
+
 	currentView = "canvas";
 	container.style.transform = `translateX(0px)`; // Move to Code view
 	switchViewsBtn.textContent = "Code >>"; // Update button text
@@ -954,6 +963,7 @@ function togglePlayMode() {
 	const canvasArea = document.getElementById("rightArea");
 	const gizmoButtons = document.getElementById("gizmoButtons");
 	const bottomBar = document.getElementById("bottomBar");
+	const flockLink = document.getElementById("flocklink");
 
 	const gizmosVisible =
 		gizmoButtons &&
@@ -967,6 +977,7 @@ function togglePlayMode() {
 		blocklyArea.style.display = "none";
 		gizmoButtons.style.display = "none";
 		bottomBar.style.display = "none";
+		flockLink.style.display = "none";
 		document.documentElement.style.setProperty("--dynamic-offset", "40px");
 	} else {
 		flock.scene.debugLayer.hide();
@@ -974,6 +985,7 @@ function togglePlayMode() {
 		canvasArea.style.display = "block";
 		gizmoButtons.style.display = "block";
 		bottomBar.style.display = "block";
+		flockLink.style.display = "block";
 		switchView("both");
 		document.documentElement.style.setProperty("--dynamic-offset", "65px");
 
@@ -995,16 +1007,22 @@ function toggleDesignMode() {
 	const blocklyArea = document.getElementById("codePanel");
 	const canvasArea = document.getElementById("rightArea");
 	const gizmoButtons = document.getElementById("gizmoButtons");
+	const flockLink = document.getElementById("flocklink");
+	const infoPanel = document.getElementById("info-panel");
 
 	if (flock.scene.debugLayer.isVisible()) {
 		switchView("both");
 		flock.scene.debugLayer.hide();
+		flockLink.style.display = "block";
+		infoPanel.style.display = "block";
 	} else {
 		blocklyArea.style.display = "none";
 		codeMode = "none";
 		canvasArea.style.display = "block";
 		canvasArea.style.width = "0";
 		gizmoButtons.style.display = "block";
+		flockLink.style.display = "none";
+		infoPanel.style.display = "none";
 
 		flock.scene.debugLayer.show({
 			embedMode: true,
@@ -1414,7 +1432,6 @@ window.onload = function () {
 	//observeFlyoutVisibility(workspace);
 	window.toolboxVisible = toolboxVisible;
 
-
 	function getBlocksFromToolbox(workspace) {
 		const toolboxBlocks = [];
 
@@ -1453,7 +1470,6 @@ window.onload = function () {
 
 		return toolboxBlocks;
 	}
-
 
 	function overrideSearchPlugin(workspace) {
 		// Get the registered search category
@@ -1505,9 +1521,13 @@ window.onload = function () {
 		/**
 		 * Recursively builds XML from block JSON, preserving all shadows.
 		 */
-		function createXmlFromJson(blockJson, isShadow = false, isTopLevel = true) {
+		function createXmlFromJson(
+			blockJson,
+			isShadow = false,
+			isTopLevel = true,
+		) {
 			const blockXml = Blockly.utils.xml.createElement(
-				isShadow ? "shadow" : "block"
+				isShadow ? "shadow" : "block",
 			);
 			blockXml.setAttribute("type", blockJson.type);
 
@@ -1532,12 +1552,20 @@ window.onload = function () {
 					valueXml.setAttribute("name", name);
 
 					if (input.block) {
-						const nestedXml = createXmlFromJson(input.block, false, false); // 👈 not top-level
+						const nestedXml = createXmlFromJson(
+							input.block,
+							false,
+							false,
+						); // 👈 not top-level
 						valueXml.appendChild(nestedXml);
 					}
 
 					if (input.shadow) {
-						const shadowXml = createXmlFromJson(input.shadow, true, false);
+						const shadowXml = createXmlFromJson(
+							input.shadow,
+							true,
+							false,
+						);
 						valueXml.appendChild(shadowXml);
 					}
 
@@ -1622,69 +1650,71 @@ window.onload = function () {
 	workspace = Blockly.inject("blocklyDiv", options);
 
 	let keyboardNav = null;
-	workspace.registerToolboxCategoryCallback('VARIABLE', function(ws) {
-
+	workspace.registerToolboxCategoryCallback("VARIABLE", function (ws) {
 		console.log("Adding variable shadows");
-	  // Get the default XML list for the Variables category.
-	  const xmlList = Blockly.Variables.flyoutCategory(ws);
+		// Get the default XML list for the Variables category.
+		const xmlList = Blockly.Variables.flyoutCategory(ws);
 
-	  // For each dynamically generated variables_set block, add a math_number shadow.
-	  xmlList.forEach((xmlBlock) => {
-		if (xmlBlock.getAttribute('type') === 'variables_set') {
-		  const valueElement = document.createElement('value');
-		  valueElement.setAttribute('name', 'VALUE');
+		// For each dynamically generated variables_set block, add a math_number shadow.
+		xmlList.forEach((xmlBlock) => {
+			if (xmlBlock.getAttribute("type") === "variables_set") {
+				const valueElement = document.createElement("value");
+				valueElement.setAttribute("name", "VALUE");
 
-		  const shadowElement = document.createElement('shadow');
-		  shadowElement.setAttribute('type', 'math_number');
+				const shadowElement = document.createElement("shadow");
+				shadowElement.setAttribute("type", "math_number");
 
-		  const fieldElement = document.createElement('field');
-		  fieldElement.setAttribute('name', 'NUM');
-		  fieldElement.textContent = '0';
+				const fieldElement = document.createElement("field");
+				fieldElement.setAttribute("name", "NUM");
+				fieldElement.textContent = "0";
 
-		  shadowElement.appendChild(fieldElement);
-		  valueElement.appendChild(shadowElement);
-		  xmlBlock.appendChild(valueElement);
-		}
-	  });
-
-	  // Find an existing variables_set block to clone.
-	  const defaultBlock = xmlList.find(xmlBlock => xmlBlock.getAttribute('type') === 'variables_set');
-	  if (defaultBlock) {
-		// Clone the default block so it retains the dynamic variable field.
-		const xmlBlockText = defaultBlock.cloneNode(true);
-
-		// Locate the VALUE input in the cloned block.
-		const valueElements = xmlBlockText.getElementsByTagName('value');
-		for (let i = 0; i < valueElements.length; i++) {
-		  if (valueElements[i].getAttribute('name') === 'VALUE') {
-			// Remove any existing shadow (the math_number one).
-			while (valueElements[i].firstChild) {
-			  valueElements[i].removeChild(valueElements[i].firstChild);
+				shadowElement.appendChild(fieldElement);
+				valueElement.appendChild(shadowElement);
+				xmlBlock.appendChild(valueElement);
 			}
-			// Create a new shadow block of type "text".
-			const shadowText = document.createElement('shadow');
-			shadowText.setAttribute('type', 'text');
+		});
 
-			// Add the default text field.
-			const fieldText = document.createElement('field');
-			fieldText.setAttribute('name', 'TEXT');
-			fieldText.textContent = '';
-			shadowText.appendChild(fieldText);
-			valueElements[i].appendChild(shadowText);
-			break;
-		  }
-		}
+		// Find an existing variables_set block to clone.
+		const defaultBlock = xmlList.find(
+			(xmlBlock) => xmlBlock.getAttribute("type") === "variables_set",
+		);
+		if (defaultBlock) {
+			// Clone the default block so it retains the dynamic variable field.
+			const xmlBlockText = defaultBlock.cloneNode(true);
 
-		// Insert the new text-shadow block immediately after the default block.
-		const defaultIndex = xmlList.indexOf(defaultBlock);
-		if (defaultIndex !== -1) {
-		  xmlList.splice(defaultIndex + 1, 0, xmlBlockText);
+			// Locate the VALUE input in the cloned block.
+			const valueElements = xmlBlockText.getElementsByTagName("value");
+			for (let i = 0; i < valueElements.length; i++) {
+				if (valueElements[i].getAttribute("name") === "VALUE") {
+					// Remove any existing shadow (the math_number one).
+					while (valueElements[i].firstChild) {
+						valueElements[i].removeChild(
+							valueElements[i].firstChild,
+						);
+					}
+					// Create a new shadow block of type "text".
+					const shadowText = document.createElement("shadow");
+					shadowText.setAttribute("type", "text");
+
+					// Add the default text field.
+					const fieldText = document.createElement("field");
+					fieldText.setAttribute("name", "TEXT");
+					fieldText.textContent = "";
+					shadowText.appendChild(fieldText);
+					valueElements[i].appendChild(shadowText);
+					break;
+				}
+			}
+
+			// Insert the new text-shadow block immediately after the default block.
+			const defaultIndex = xmlList.indexOf(defaultBlock);
+			if (defaultIndex !== -1) {
+				xmlList.splice(defaultIndex + 1, 0, xmlBlockText);
+			}
 		}
-	  }
-	  return xmlList;
+		return xmlList;
 	});
 
-	
 	const multiselectPlugin = new Multiselect(workspace);
 	multiselectPlugin.init(options);
 
@@ -2010,7 +2040,7 @@ window.onload = function () {
 	}
 
 	//Blockly.ContextMenuItems.registerCommentOptions();
-	
+
 	/*const navigationController = new NavigationController();
 	navigationController.init();
 	navigationController.addWorkspace(workspace);*/
@@ -2223,7 +2253,6 @@ window.onload = function () {
 				window.currentBlock = workspace.getBlockById(
 					event.newElementId,
 				);
-				
 			} else {
 				// Selection was cleared
 				window.currentBlock = null;
@@ -2238,7 +2267,6 @@ window.onload = function () {
 			const cursor = workspace.getCursor();
 
 			if (cursor?.getCurNode()) {
-				
 				const currentNode = cursor.getCurNode();
 				if (currentNode) {
 					const block = currentNode.getSourceBlock();
@@ -2255,9 +2283,8 @@ window.onload = function () {
 			}
 
 			selectedBlock.unselect();
-			
+
 			if (!selectedBlock.nextConnection) {
-				
 				return;
 			}
 
@@ -2294,7 +2321,7 @@ window.onload = function () {
 					textInputField.showEditor_();
 				}
 			}, 100);
-		}	
+		}
 		/*else if (event.ctrlKey && event.key === "[") {
 			event.preventDefault();
 
@@ -2423,7 +2450,7 @@ window.onload = function () {
 			console.warn("Scene category not found in toolbox");
 		}
 	});*/
-	
+
 	initializeApp();
 };
 
@@ -2586,7 +2613,9 @@ function setupAutoValueBehavior(workspace) {
 						// Deep copy function for handling nested blocks
 						function deepCopyBlock(originalBlock) {
 							// Create a new block of the same type
-							var newBlock = workspace.newBlock(originalBlock.type);
+							var newBlock = workspace.newBlock(
+								originalBlock.type,
+							);
 
 							// Handle shadow blocks
 							if (originalBlock.isShadow()) {
@@ -2595,10 +2624,10 @@ function setupAutoValueBehavior(workspace) {
 
 							// Copy field values for known block types
 							var fieldMap = {
-								"math_number": "NUM",
-								"text": "TEXT",
-								"logic_boolean": "BOOL",
-								"variables_get": "VAR"
+								math_number: "NUM",
+								text: "TEXT",
+								logic_boolean: "BOOL",
+								variables_get: "VAR",
 							};
 
 							// Handle simple field values
@@ -2606,27 +2635,42 @@ function setupAutoValueBehavior(workspace) {
 								var fieldName = fieldMap[originalBlock.type];
 								newBlock.setFieldValue(
 									originalBlock.getFieldValue(fieldName),
-									fieldName
+									fieldName,
 								);
 							}
 
 							// Recursively copy input connections (nested blocks)
-							for (var i = 0; i < originalBlock.inputList.length; i++) {
+							for (
+								var i = 0;
+								i < originalBlock.inputList.length;
+								i++
+							) {
 								var originalInput = originalBlock.inputList[i];
-								var newInput = newBlock.getInput(originalInput.name);
+								var newInput = newBlock.getInput(
+									originalInput.name,
+								);
 
 								// Check if the input has a connected block
-								if (originalInput.connection && 
-									originalInput.connection.targetConnection) {
-									var originalNestedBlock = 
-										originalInput.connection.targetConnection.sourceBlock_;
+								if (
+									originalInput.connection &&
+									originalInput.connection.targetConnection
+								) {
+									var originalNestedBlock =
+										originalInput.connection
+											.targetConnection.sourceBlock_;
 
 									// Recursively create a deep copy of the nested block
-									var newNestedBlock = deepCopyBlock(originalNestedBlock);
+									var newNestedBlock =
+										deepCopyBlock(originalNestedBlock);
 
 									// Connect the new nested block to the corresponding input
-									if (newInput && newNestedBlock.outputConnection) {
-										newInput.connection.connect(newNestedBlock.outputConnection);
+									if (
+										newInput &&
+										newNestedBlock.outputConnection
+									) {
+										newInput.connection.connect(
+											newNestedBlock.outputConnection,
+										);
 									}
 								}
 							}
