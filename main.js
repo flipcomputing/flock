@@ -744,7 +744,6 @@ window.viewMode = viewMode;
 window.codeMode = codeMode;
 
 function switchView(view) {
-	console.log("View");
 	if (flock.scene) flock.scene.debugLayer.hide();
 	const blocklyArea = document.getElementById("codePanel");
 	const canvasArea = document.getElementById("rightArea");

@@ -6569,7 +6569,6 @@ export const flock = {
 					? materials[index % materials.length]
 					: materials;
 
-				console.log("Material:", material, flock.GradientMaterial);
 				if (material instanceof flock.GradientMaterial) {
 					mesh.computeWorldMatrix(true);
 
