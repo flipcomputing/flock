@@ -1,10 +1,11 @@
 run = "npm run dev"
+entrypoint = "main.js"
 
 hidden = [".config", ".gitignore"]
-modules = ["nodejs-20", "web", "nix"]
+modules = ["nodejs-20:v8-20230920-bd784b9"]
 
 [nix]
-channel = "stable-24_05"
+channel = "stable-22_11"
 
 [env]
 PATH = "/home/runner/$REPL_SLUG/.config/npm/node_global/bin:/home/runner/$REPL_SLUG/node_modules/.bin"
@@ -29,8 +30,8 @@ start = "typescript-language-server --stdio"
 
 [deployment]
 deploymentTarget = "static"
+build = ["npm", "run", "build"]
 publicDir = "dist"
-run = ["sh", "-c", "npm run dev"]
 
 [[ports]]
 localPort = 4173
