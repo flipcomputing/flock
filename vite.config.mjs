@@ -58,8 +58,8 @@ export default {
       devOptions: {
         enabled: true
       },
-      assetsInclude: ['**/*.glb', '**/*.gltf', '**/*.ogg', '**/*.aac', '**/*.mp3','**/*.json', '**/*.png', '**/*.woff', '**/*.woff2', '**/*.css', '**/*.svg',],
-      includeAssets: ['**/*.glb', '**/*.gltf', '**/*.ogg', '**/*.acc', '**/*.mp3','**/*.json', '**/*.png', '**/*.woff', '**/*.woff2', '**/*.css', '**/*.svg',],
+      assetsInclude: ['**/*.glb', '**/*.gltf', '**/*.ogg', '**/*.aac', '**/*.mp3', '**/*.json', '**/*.png', '**/*.woff', '**/*.woff2', '**/*.css', '**/*.svg',],
+      includeAssets: ['**/*.glb', '**/*.gltf', '**/*.ogg', '**/*.acc', '**/*.mp3', '**/*.json', '**/*.png', '**/*.woff', '**/*.woff2', '**/*.css', '**/*.svg',],
       manifest: {
         name: 'Flock XR - Creative coding in 3D',
         short_name: 'Flock XR',
@@ -67,7 +67,7 @@ export default {
         theme_color: '#511d91',
         display: 'fullscreen',
         start_url: isProduction ? BASE_URL + '?fullscreen=true' : '/',
-        id: isProduction ?  BASE_URL + '?fullscreen=true' : '/',
+        id: isProduction ? BASE_URL + '?fullscreen=true' : '/',
         scope: BASE_URL,
         icons: [
           {
@@ -190,7 +190,7 @@ export default {
       name: 'copy-library-files',
       writeBundle() {
         copyFileSync('example.html', 'dist/example.html');
-         copyFileSync('flockdemo.html', 'dist/flockdemo.html');
+        copyFileSync('flockdemo.html', 'dist/flockdemo.html');
       },
     },
   ],
@@ -202,7 +202,7 @@ export default {
         "../.."
       ]
     },
-    allowedHosts: ['1099a351-df60-40b5-bf61-4999bad0d153-00-4np7mg24c4rr.janeway.replit.dev'] //added this
+    allowedHosts: ['27c4c3b0-9860-47aa-a95d-03ca8acd6af0-00-2qj22wjmgrujn.picard.replit.dev'] //added this
   },
   optimizeDeps: { exclude: ["@babylonjs/havok"] },
   build: {

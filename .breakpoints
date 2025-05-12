@@ -4,7 +4,7 @@
       {
         "id": "5307f21c-6ef3-4d13-9722-1991214beb67",
         "line": 1,
-        "version": 1811,
+        "version": 1,
         "index": 0
       }
     ],
@@ -12,15 +12,15 @@
       {
         "id": "d4be80b7-85d7-4476-a5f6-19324c2f17f0",
         "line": 110,
-        "version": 6394,
-        "index": 3495
+        "version": 1,
+        "index": 3497
       }
     ],
     "index.html": [
       {
         "id": "dea8d238-bec9-4dda-85e7-fca6b2284732",
         "line": 1,
-        "version": 14926,
+        "version": 1,
         "index": 0
       }
     ],
@@ -28,8 +28,8 @@
       {
         "id": "31f0468e-83ae-40f6-ab34-65125d137737",
         "line": 2695,
-        "version": 54762,
-        "index": 77254
+        "version": 1,
+        "index": 77008
       }
     ],
     "models/tree_fat.glb": [
