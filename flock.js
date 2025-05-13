@@ -323,7 +323,7 @@ export const flock = {
 		flock.engine = new flock.BABYLON.Engine(flock.canvas, true, {
 			stencil: true,
 			deterministicLockstep: true,
-			audioEngine: true,
+			//audioEngine: true,
 		});
 
 		flock.engine.enableOfflineSupport = false;
