@@ -34,7 +34,7 @@
                           "type": "colour",
                           "id": "vkeor#!P3^sU%W_!wk?(",
                           "fields": {
-                            "COLOR": "#ffff99"
+                            "COLOR": "#ffffff"
                           }
                         }
                       },
@@ -43,7 +43,7 @@
                           "type": "colour",
                           "id": "bMG+/^SW_1Z+iE]Tm(]J",
                           "fields": {
-                            "COLOR": "#ffff00"
+                            "COLOR": "#ffffff"
                           }
                         }
                       }
@@ -64,7 +64,7 @@
                         "type": "material",
                         "id": "a=-bTFm[e9t4^h=Wsyv)",
                         "fields": {
-                          "TEXTURE_SET": "eyeball.png"
+                          "TEXTURE_SET": "none.png"
                         },
                         "inputs": {
                           "BASE_COLOR": {
@@ -72,7 +72,7 @@
                               "type": "colour",
                               "id": "Y)^/9vo?LV[`VO+eQng:",
                               "fields": {
-                                "COLOR": "#71bc78"
+                                "COLOR": "#ffffff"
                               }
                             }
                           },
@@ -154,7 +154,7 @@
                     "type": "colour",
                     "id": "=-hd3OOXY)pheR4/L,sT",
                     "fields": {
-                      "COLOR": "#cc66cc"
+                      "COLOR": "#ffffff"
                     }
                   }
                 },
@@ -163,7 +163,7 @@
                     "type": "skin_colour",
                     "id": "xVbSZS%*!]@eQ|hPZ#|;",
                     "fields": {
-                      "COLOR": "#3f2a1d"
+                      "COLOR": "#fff5e1"
                     }
                   }
                 },
@@ -172,7 +172,7 @@
                     "type": "colour",
                     "id": "q?Ag$RTlR%R5e|Gc3kw5",
                     "fields": {
-                      "COLOR": "#006600"
+                      "COLOR": "#ffffff"
                     }
                   }
                 },
@@ -190,7 +190,7 @@
                     "type": "colour",
                     "id": "mt5SSPafKY0z0tO_|%wZ",
                     "fields": {
-                      "COLOR": "#000000"
+                      "COLOR": "#ffffff"
                     }
                   }
                 },
@@ -199,7 +199,7 @@
                     "type": "colour",
                     "id": "#KYWgbs!r4;.fMpVE_c*",
                     "fields": {
-                      "COLOR": "#008b8b"
+                      "COLOR": "#ffffff"
                     }
                   }
                 }
@@ -386,7 +386,7 @@
                     "type": "colour",
                     "id": "gIi_t}4V`L/p7%::Kw[*",
                     "fields": {
-                      "COLOR": "#ff6600"
+                      "COLOR": "#ffffff"
                     }
                   }
                 },
