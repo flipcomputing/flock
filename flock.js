@@ -455,6 +455,24 @@ export const flock = {
 
 		flock.mainLight = hemisphericLight;
 
+		let audioEnginePromise = flock.BABYLON.CreateAudioEngineAsync({
+			volume: 1,
+			listenerAutoUpdate: true,
+			listenerEnabled: true,
+			resumeOnInteraction: true,
+		});
+
+		audioEnginePromise.then((audioEngine) => {
+			if (flock.scene.activeCamera) {
+				audioEngine.listener.attach(flock.scene.activeCamera);
+			}
+
+			// Reattach listener if the active camera ever changes
+			flock.scene.onActiveCameraChanged.add(() => {
+				audioEngine.listener.attach(flock.scene.activeCamera);
+			});
+		});
+
 		// Enable collisions
 		flock.scene.collisionsEnabled = true;
 
@@ -2915,6 +2933,7 @@ export const flock = {
 
 		// Break parent-child relationships
 		meshesToDispose.forEach((currentMesh) => {
+			console.log("Stopping current sound");
 			if (currentMesh?.metadata?.currentSound) {
 				currentMesh.metadata.currentSound.stop();
 			}
@@ -3031,8 +3050,8 @@ export const flock = {
 		mesh.blockKey = mesh.name;
 		//mesh.name = `${mesh.name}_${mesh.uniqueId}`;
 
-		flock.applyMaterialToMesh(mesh, shapeType, color, alpha)
-		
+		flock.applyMaterialToMesh(mesh, shapeType, color, alpha);
+
 		mesh.metadata.sharedMaterial = false;
 
 		// Enable and make the mesh visible
@@ -3069,7 +3088,7 @@ export const flock = {
 			mesh.material = material;
 			return;
 		}
-		
+
 		if (shapeType === "Box") {
 			const positions = mesh.getVerticesData(
 				BABYLON.VertexBuffer.PositionKind,
@@ -3221,99 +3240,128 @@ export const flock = {
 			return;
 		}
 		if (shapeType === "Cylinder") {
-		  const positions = mesh.getVerticesData(BABYLON.VertexBuffer.PositionKind);
-		  const indices = mesh.getIndices();
-		  const normals = mesh.getVerticesData(BABYLON.VertexBuffer.NormalKind);
+			const positions = mesh.getVerticesData(
+				BABYLON.VertexBuffer.PositionKind,
+			);
+			const indices = mesh.getIndices();
+			const normals = mesh.getVerticesData(
+				BABYLON.VertexBuffer.NormalKind,
+			);
 
-		  if (!positions || !indices) {
-			console.warn("Missing geometry for cylinder; falling back to uniform color.");
-			return this.applyMaterialToMesh(mesh, shapeType, color[0], alpha);
-		  }
-
-		  const colors = [];
-		  const newPositions = [];
-		  const newNormals = [];
-		  const newIndices = [];
-
-		  const yVals = [];
-		  for (let i = 0; i < positions.length; i += 3) {
-			yVals.push(positions[i + 1]);
-		  }
-
-		  const minY = Math.min(...yVals);
-		  const maxY = Math.max(...yVals);
-
-		  const makeColorFromIndex = (i) => makeColor4(color[i % color.length]);
-
-		  let baseIndex = 0;
-		  let sideFaceIndex = 0;
-
-		  for (let i = 0; i < indices.length; i += 3) {
-			const vi0 = indices[i];
-			const vi1 = indices[i + 1];
-			const vi2 = indices[i + 2];
-
-			const y0 = positions[vi0 * 3 + 1];
-			const y1 = positions[vi1 * 3 + 1];
-			const y2 = positions[vi2 * 3 + 1];
-
-			const isTop = y0 === maxY && y1 === maxY && y2 === maxY;
-			const isBottom = y0 === minY && y1 === minY && y2 === minY;
-
-			let faceColor;
-
-			if (isTop) {
-			  faceColor = makeColor4(color[0]); // always color[0]
-			} else if (isBottom) {
-			  faceColor = makeColor4(color.length > 1 ? color[1] : color[0]); // fallback to top if only 1 color
-			} else {
-			  if (color.length === 2) {
-				faceColor = makeColor4(color[1]);
-			  } else if (color.length === 3) {
-				faceColor = makeColor4(color[2]);
-			  } else {
-				// Use color[2+] for alternating side face colors, one color per 2 triangles
-				const sideColorIndex = 2 + Math.floor(sideFaceIndex / 2);
-				faceColor = makeColor4(color[sideColorIndex % (color.length - 2) + 2]);
-				sideFaceIndex++;
-			  }
-			}
-
-			for (let j = 0; j < 3; j++) {
-			  const vi = indices[i + j];
-
-			  newPositions.push(
-				positions[vi * 3],
-				positions[vi * 3 + 1],
-				positions[vi * 3 + 2]
-			  );
-
-			  if (normals) {
-				newNormals.push(
-				  normals[vi * 3],
-				  normals[vi * 3 + 1],
-				  normals[vi * 3 + 2]
+			if (!positions || !indices) {
+				console.warn(
+					"Missing geometry for cylinder; falling back to uniform color.",
 				);
-			  }
-
-			  colors.push(faceColor.r, faceColor.g, faceColor.b, faceColor.a);
-			  newIndices.push(baseIndex++);
+				return this.applyMaterialToMesh(
+					mesh,
+					shapeType,
+					color[0],
+					alpha,
+				);
 			}
-		  }
 
-		  mesh.setVerticesData(BABYLON.VertexBuffer.PositionKind, newPositions);
-		  if (normals) mesh.setVerticesData(BABYLON.VertexBuffer.NormalKind, newNormals);
-		  mesh.setVerticesData(BABYLON.VertexBuffer.ColorKind, colors);
-		  mesh.setIndices(newIndices);
+			const colors = [];
+			const newPositions = [];
+			const newNormals = [];
+			const newIndices = [];
 
-		  mesh.hasVertexAlpha = true;
+			const yVals = [];
+			for (let i = 0; i < positions.length; i += 3) {
+				yVals.push(positions[i + 1]);
+			}
 
-		  const mat = new BABYLON.StandardMaterial("cylColorMat", scene);
-		  mat.diffuseColor = BABYLON.Color3.White();
-		  mat.backFaceCulling = false;
-		  mat.vertexColors = true;
-		  mesh.material = mat;
-		  return;
+			const minY = Math.min(...yVals);
+			const maxY = Math.max(...yVals);
+
+			const makeColorFromIndex = (i) =>
+				makeColor4(color[i % color.length]);
+
+			let baseIndex = 0;
+			let sideFaceIndex = 0;
+
+			for (let i = 0; i < indices.length; i += 3) {
+				const vi0 = indices[i];
+				const vi1 = indices[i + 1];
+				const vi2 = indices[i + 2];
+
+				const y0 = positions[vi0 * 3 + 1];
+				const y1 = positions[vi1 * 3 + 1];
+				const y2 = positions[vi2 * 3 + 1];
+
+				const isTop = y0 === maxY && y1 === maxY && y2 === maxY;
+				const isBottom = y0 === minY && y1 === minY && y2 === minY;
+
+				let faceColor;
+
+				if (isTop) {
+					faceColor = makeColor4(color[0]); // always color[0]
+				} else if (isBottom) {
+					faceColor = makeColor4(
+						color.length > 1 ? color[1] : color[0],
+					); // fallback to top if only 1 color
+				} else {
+					if (color.length === 2) {
+						faceColor = makeColor4(color[1]);
+					} else if (color.length === 3) {
+						faceColor = makeColor4(color[2]);
+					} else {
+						// Use color[2+] for alternating side face colors, one color per 2 triangles
+						const sideColorIndex =
+							2 + Math.floor(sideFaceIndex / 2);
+						faceColor = makeColor4(
+							color[(sideColorIndex % (color.length - 2)) + 2],
+						);
+						sideFaceIndex++;
+					}
+				}
+
+				for (let j = 0; j < 3; j++) {
+					const vi = indices[i + j];
+
+					newPositions.push(
+						positions[vi * 3],
+						positions[vi * 3 + 1],
+						positions[vi * 3 + 2],
+					);
+
+					if (normals) {
+						newNormals.push(
+							normals[vi * 3],
+							normals[vi * 3 + 1],
+							normals[vi * 3 + 2],
+						);
+					}
+
+					colors.push(
+						faceColor.r,
+						faceColor.g,
+						faceColor.b,
+						faceColor.a,
+					);
+					newIndices.push(baseIndex++);
+				}
+			}
+
+			mesh.setVerticesData(
+				BABYLON.VertexBuffer.PositionKind,
+				newPositions,
+			);
+			if (normals)
+				mesh.setVerticesData(
+					BABYLON.VertexBuffer.NormalKind,
+					newNormals,
+				);
+			mesh.setVerticesData(BABYLON.VertexBuffer.ColorKind, colors);
+			mesh.setIndices(newIndices);
+
+			mesh.hasVertexAlpha = true;
+
+			const mat = new BABYLON.StandardMaterial("cylColorMat", scene);
+			mat.diffuseColor = BABYLON.Color3.White();
+			mat.backFaceCulling = false;
+			mat.vertexColors = true;
+			mesh.material = mat;
+			return;
 		}
 
 		const material = new BABYLON.StandardMaterial(
@@ -3446,7 +3494,7 @@ export const flock = {
 
 		// Initialise the mesh with position, color, and other properties
 		flock.initializeMesh(newBox, position, color, "Box", alpha);
-		
+
 		newBox.position.y += height / 2; // Middle of the box
 		newBox.blockKey = blockKey;
 
@@ -5176,9 +5224,7 @@ export const flock = {
 		flock.controlsTexture.rootContainer.isEnabled = enabled;
 
 		// Only create/update controls if they don't exist yet
-		if (
-			enabled 
-		) {
+		if (enabled) {
 			if (control == "ARROWS" || control == "BOTH")
 				flock.createArrowControls(color);
 			if (control == "ACTIONS" || control == "BOTH")
@@ -8321,8 +8367,54 @@ export const flock = {
 		};
 		flock.scene.onDisposeObservable.add(disposeHandler);
 	},
-	playSound(meshName = "__everywhere__", soundName, options = {}) {
-		const handleMeshSound = (mesh) => {
+	async playSound(meshName = "__everywhere__", soundName, options = {}) {
+		const audioEngine = await flock.audioEnginePromise;
+
+		const createSpatialSound = async () => {
+			return BABYLON.CreateSoundAsync(
+				soundName,
+				flock.soundPath + soundName,
+				{
+					spatialEnabled: true,
+					spatialDistanceModel: "linear",
+					spatialMaxDistance: 20,
+					autoplay: true,
+					loop: false,
+					volume: options.volume ?? 1,
+					playbackRate: options.playbackRate ?? 1,
+				},
+			);
+		};
+
+		if (meshName === "__everywhere__") {
+			const sound = await BABYLON.CreateSoundAsync(
+				soundName,
+				flock.soundPath + soundName,
+				{
+					spatialEnabled: false,
+					autoplay: false,
+					loop: false,
+					volume: options.volume ?? 1,
+					playbackRate: options.playbackRate ?? 1,
+				},
+			);
+
+			flock.globalSounds.push(sound);
+
+			sound.play({ loop: false });
+
+			return new Promise((resolve) => {
+				sound.onEndedObservable.add(() => {
+					const index = flock.globalSounds.indexOf(sound);
+					if (index !== -1) {
+						flock.globalSounds.splice(index, 1);
+					}
+					resolve();
+				});
+			});
+		}
+
+		return flock.whenModelReady(meshName, async (mesh) => {
 			if (!mesh) {
 				console.warn(
 					`Mesh "${meshName}" not found. Cannot play sound "${soundName}".`,
@@ -8330,50 +8422,31 @@ export const flock = {
 				return;
 			}
 
-			if (!mesh.metadata) {
-				mesh.metadata = {};
-			}
+			mesh.metadata ??= {};
 
 			const currentSound = mesh.metadata.currentSound;
 			if (currentSound) {
 				if (currentSound.name === soundName) {
 					console.log(
-						`Sound "${soundName}" is already playing on mesh "${meshName}". Ignoring.`,
+						`Sound "${soundName}" is already playing on mesh "${meshName}".`,
 					);
 					return;
 				} else {
-					console.log(
-						`Stopping currently playing sound on mesh "${meshName}".`,
-					);
 					currentSound.stop();
+					currentSound.dispose?.();
 				}
 			}
 
-			const sound = new flock.BABYLON.Sound(
-				soundName,
-				flock.soundPath + soundName,
-				flock.scene,
-				null,
-				{
-					autoplay: true,
-					playbackRate: options.playbackRate || 1,
-					volume: options.volume || 1,
-					spatialSound: true,
-					maxDistance: 20,
-					distanceModel: "linear",
-				},
-			);
+			const sound = await createSpatialSound();
 
-			sound.attachToMesh(mesh);
+			if (sound.spatial) {
+				await sound.spatial.attach(mesh);
+			}
+
 			mesh.metadata.currentSound = sound;
 			flock.globalSounds.push(sound);
 
-			console.log("Current sound", mesh.metadata.currentSound);
-
 			sound.onEndedObservable.add(() => {
-				console.log(
-					`Sound "${soundName}" finished playing on mesh "${meshName}".`,
-				);
 				const index = flock.globalSounds.indexOf(sound);
 				if (index !== -1) {
 					flock.globalSounds.splice(index, 1);
@@ -8382,45 +8455,21 @@ export const flock = {
 					delete mesh.metadata.currentSound;
 				}
 			});
-		};
-
-		if (meshName === "__everywhere__") {
-			const sound = new flock.BABYLON.Sound(
-				soundName,
-				flock.soundPath + soundName,
-				flock.scene,
-				null,
-				{
-					autoplay: true,
-					playbackRate: options.playbackRate || 1,
-					volume: options.volume || 1,
-				},
-			);
-
-			// Add the sound to the globalSounds array for global tracking
-			flock.globalSounds.push(sound);
-
-			return new Promise((resolve) => {
-				sound.onEndedObservable.add(() => {
-					const index = flock.globalSounds.indexOf(sound);
-					if (index !== -1) {
-						flock.globalSounds.splice(index, 1);
-					}
-
-					resolve();
-				});
-			});
-		}
-
-		return flock.whenModelReady(meshName, (mesh) => {
-			handleMeshSound(mesh);
 		});
 	},
 	stopAllSounds() {
 		flock.globalSounds.forEach((sound) => {
-			sound.stop();
+			try {
+				sound.stop();
+			} catch (e) {
+				console.warn(
+					"Error stopping sound:",
+					sound.name,
+					e,
+				);
+			}
 		});
-		// Clear the globalSounds array after stopping all sounds
+
 		flock.globalSounds = [];
 	},
 	getAudioContext() {
