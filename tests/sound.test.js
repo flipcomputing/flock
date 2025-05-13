@@ -18,7 +18,7 @@ export function runSoundTests(flock) {
 		});
 
 		it("should play and stop a spatial sound", async () => {
-			const result = await flock.playSound(boxId, "test.mp3");
+			const result = await flock.playSound(boxId, "test.ogg");
 
 			const box = flock.scene.getMeshByName(boxId);
 			expect(box).to.exist;
@@ -31,27 +31,39 @@ export function runSoundTests(flock) {
 			}
 
 			expect(box.metadata.currentSound).to.exist;
-			expect(box.metadata.currentSound.name).to.equal("test.mp3");
+			expect(box.metadata.currentSound.name).to.equal("test.ogg");
 
 			flock.stopAllSounds();
 
+			await new Promise((resolve) => setTimeout(resolve, 1000));
+
+			console.log("After", box.metadata);
 			expect(box.metadata.currentSound).to.not.exist;
 		});
 
+		function promiseWithTimeout(promise, timeout = 2000) {
+			return new Promise((resolve, reject) => {
+				const timer = setTimeout(
+					() => reject(new Error("Sound did not finish in time")),
+					timeout,
+				);
+				promise.then((value) => {
+					clearTimeout(timer);
+					resolve(value);
+				}, reject);
+			});
+		}
 
 		it("should play and stop a global (everywhere) sound", async () => {
 			let ended = false;
 
-			const result = await flock.playSound("__everywhere__", "test.wav", {
+			const result = flock.playSound("__everywhere__", "test.ogg", {
 				volume: 0.5,
 			});
 
-			// We only get a promise when playing "__everywhere__"
-			if (result instanceof Promise) {
-				await result.then(() => {
-					ended = true;
-				});
-			}
+			await promiseWithTimeout(result, 2000).then(() => {
+				ended = true;
+			});
 
 			expect(ended).to.be.true;
 		});

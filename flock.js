@@ -8400,7 +8400,6 @@ export const flock = {
 			);
 
 			flock.globalSounds.push(sound);
-
 			sound.play({ loop: false });
 
 			return new Promise((resolve) => {
@@ -8428,7 +8427,7 @@ export const flock = {
 			if (currentSound) {
 				if (currentSound.name === soundName) {
 					console.log(
-						`Sound "${soundName}" is already playing on mesh "${meshName}".`,
+						`Sound "${soundName}" is already playing on mesh "${meshName}". Ignoring.`,
 					);
 					return;
 				} else {
@@ -8444,15 +8443,23 @@ export const flock = {
 			}
 
 			mesh.metadata.currentSound = sound;
+			sound._attachedMesh = mesh; // <- track mesh for cleanup
 			flock.globalSounds.push(sound);
 
 			sound.onEndedObservable.add(() => {
+				console.log("Sound ended");
 				const index = flock.globalSounds.indexOf(sound);
 				if (index !== -1) {
 					flock.globalSounds.splice(index, 1);
 				}
-				if (mesh?.metadata?.currentSound === sound) {
-					delete mesh.metadata.currentSound;
+
+				const attached = sound._attachedMesh;
+				if (attached?.metadata?.currentSound === sound) {
+					delete attached.metadata.currentSound;
+					console.log(
+						"Removed currentSound from mesh:",
+						attached.name,
+					);
 				}
 			});
 		});
@@ -8460,13 +8467,17 @@ export const flock = {
 	stopAllSounds() {
 		flock.globalSounds.forEach((sound) => {
 			try {
-				sound.stop();
+				const channel = sound.spatial || sound.stereo || sound.simple;
+				if (channel?.stop) {
+					channel.stop();
+				}
+
+				const mesh = sound._attachedMesh;
+				if (mesh?.metadata?.currentSound === sound) {
+					delete mesh.metadata.currentSound;
+				}
 			} catch (e) {
-				console.warn(
-					"Error stopping sound:",
-					sound.name,
-					e,
-				);
+				console.warn("Error stopping sound:", sound.name, e);
 			}
 		});
 
