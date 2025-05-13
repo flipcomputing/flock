@@ -34,18 +34,19 @@
       import * as flockmodule from "../flock.js";
       import "@babylonjs/core/Debug/debugLayer";
       import "@babylonjs/inspector";
-      import { runTests } from './babylon.test.js';  // Import the test suite
-      import { runGlideToTests } from './glide.test.js'; 
-      import { runUITests } from './uitextbutton.test.js'; 
-      import { runStressTests } from './boxes.test.js';
-      import { runCreateObjectTests } from './objects.test.js';
-    
+      import { runTests } from "./babylon.test.js"; // Import the test suite
+      import { runGlideToTests } from "./glide.test.js";
+      import { runUITests } from "./uitextbutton.test.js";
+      import { runStressTests } from "./boxes.test.js";
+      import { runCreateObjectTests } from "./objects.test.js";
+      import { runSoundTests } from "./sound.test.js";
+
       const flock = flockmodule.flock;
       flock.modelPath = "../models/";
 
       await flock.initialize();
-      
-      mocha.setup('bdd'); 
+
+      mocha.setup("bdd");
 
       try {
         let iframe = document.getElementById("flock-iframe");
@@ -71,9 +72,7 @@
         iframeWindow.flock = flock;
 
         await iframeWindow.flock.initializeNewScene();
-
-      }
-      catch(e){
+      } catch (e) {
         console.log(e);
       }
 
@@ -81,9 +80,10 @@
       //runTests(flock, chai.expect); // Run tests from the imported file
       // Run the glideTo tests
       //runUITests(flock);
-     runGlideToTests(flock);
+      //runGlideToTests(flock);
       //runStressTests(flock);
       //runCreateObjectTests(flock);
+      runSoundTests(flock);
 
       try {
         await flock.scene.debugLayer.show({
@@ -95,7 +95,6 @@
         console.error("Error showing debug layer:", error);
       }
       mocha.run();
-
     </script>
   </body>
 </html>
