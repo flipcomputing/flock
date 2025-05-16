@@ -367,7 +367,8 @@ export function updateMeshFromBlock(mesh, block, changeEvent) {
     capsuleHeight,
     diameter,
     planeWidth,
-    planeHeight, modelName;
+    planeHeight,
+    modelName;
   // Shape-specific updates based on the block type
   switch (shapeType) {
     case "load_object":
@@ -1538,12 +1539,20 @@ function scrollObjects(direction) {
 // Function to load characters into the menu
 function loadCharacterImages() {
   const characterRow = document.getElementById("character-row");
-  characterRow.innerHTML = ""; // Clear existing characters
+  characterRow.replaceChildren();
+  // Clear existing characters
 
   characterNames.forEach((name) => {
     const baseName = name.replace(/\.[^/.]+$/, ""); // Remove extension
+
+    const img = document.createElement("img");
+    img.src = `./images/${baseName}.png`;
+    img.alt = baseName;
+    img.addEventListener("click", () => selectCharacter(name));
+
     const li = document.createElement("li");
-    li.innerHTML = `<img src="./images/${baseName}.png" alt="${baseName}" onclick="selectCharacter('${name}')">`;
+    li.appendChild(img);
+
     characterRow.appendChild(li);
   });
 }
@@ -1684,12 +1693,22 @@ export function enableGizmos() {
 // Shared function to load images into the menu
 function loadImages(rowId, namesArray, selectCallback) {
   const row = document.getElementById(rowId);
-  row.innerHTML = ""; // Clear existing items
+  row.replaceChildren(); // Clear existing items
 
   namesArray.forEach((name) => {
     const baseName = name.replace(/\.[^/.]+$/, ""); // Remove extension
+
+    const img = document.createElement("img");
+    img.src = `./images/${baseName}.png`;
+    img.alt = baseName;
+    img.addEventListener("click", () => {
+      // Use a global function or bind properly if needed
+      window[selectCallback](name);
+    });
+
     const li = document.createElement("li");
-    li.innerHTML = `<img src="./images/${baseName}.png" alt="${baseName}" onclick="${selectCallback}('${name}')">`;
+    li.appendChild(img);
+
     row.appendChild(li);
   });
 }
