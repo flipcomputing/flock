@@ -8369,49 +8369,41 @@ export const flock = {
 		flock.scene.onDisposeObservable.add(disposeHandler);
 	},
 	async playSound(meshName = "__everywhere__", soundName, options = {}) {
+		console.log("play sound", options);
 		const audioEngine = await flock.audioEnginePromise;
+		const loop = !!options.loop;
+		const soundUrl = flock.soundPath + soundName;
 
-		const createSpatialSound = async () => {
-			return BABYLON.CreateSoundAsync(
-				soundName,
-				flock.soundPath + soundName,
-				{
-					spatialEnabled: true,
-					spatialDistanceModel: "linear",
-					spatialMaxDistance: 20,
-					autoplay: true,
-					loop: false,
-					volume: options.volume ?? 1,
-					playbackRate: options.playbackRate ?? 1,
-				},
-			);
+		const createSound = async (spatialEnabled) => {
+			return BABYLON.CreateSoundAsync(soundName, soundUrl, {
+				spatialEnabled,
+				spatialDistanceModel: "linear",
+				spatialMaxDistance: 20,
+				autoplay: false,
+				loop: loop,
+				volume: options.volume ?? 1,
+				playbackRate: options.playbackRate ?? 1,
+			});
 		};
 
 		if (meshName === "__everywhere__") {
-			const sound = await BABYLON.CreateSoundAsync(
-				soundName,
-				flock.soundPath + soundName,
-				{
-					spatialEnabled: false,
-					autoplay: false,
-					loop: false,
-					volume: options.volume ?? 1,
-					playbackRate: options.playbackRate ?? 1,
-				},
-			);
-
+			const sound = await createSound(false);
 			flock.globalSounds.push(sound);
-			sound.play({ loop: false });
+			sound.play();
 
-			return new Promise((resolve) => {
-				sound.onEndedObservable.add(() => {
-					const index = flock.globalSounds.indexOf(sound);
-					if (index !== -1) {
-						flock.globalSounds.splice(index, 1);
-					}
-					resolve();
+			if (!loop) {
+				return new Promise((resolve) => {
+					sound.onEndedObservable.add(() => {
+						const index = flock.globalSounds.indexOf(sound);
+						if (index !== -1) {
+							flock.globalSounds.splice(index, 1);
+						}
+						resolve();
+					});
 				});
-			});
+			}
+
+			return;
 		}
 
 		return flock.whenModelReady(meshName, async (mesh) => {
@@ -8437,32 +8429,28 @@ export const flock = {
 				}
 			}
 
-			const sound = await createSpatialSound();
+			const sound = await createSound(true);
 
 			if (sound.spatial) {
 				await sound.spatial.attach(mesh);
 			}
 
 			mesh.metadata.currentSound = sound;
-			sound._attachedMesh = mesh; // <- track mesh for cleanup
+			sound._attachedMesh = mesh;
 			flock.globalSounds.push(sound);
+			sound.play();
 
-			sound.onEndedObservable.add(() => {
-				console.log("Sound ended");
-				const index = flock.globalSounds.indexOf(sound);
-				if (index !== -1) {
-					flock.globalSounds.splice(index, 1);
-				}
-
-				const attached = sound._attachedMesh;
-				if (attached?.metadata?.currentSound === sound) {
-					delete attached.metadata.currentSound;
-					console.log(
-						"Removed currentSound from mesh:",
-						attached.name,
-					);
-				}
-			});
+			if (!loop) {
+				sound.onEndedObservable.add(() => {
+					const index = flock.globalSounds.indexOf(sound);
+					if (index !== -1) {
+						flock.globalSounds.splice(index, 1);
+					}
+					if (mesh.metadata.currentSound === sound) {
+						delete mesh.metadata.currentSound;
+					}
+				});
+			}
 		});
 	},
 	stopAllSounds() {
