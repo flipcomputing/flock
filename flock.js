@@ -333,6 +333,7 @@ export const flock = {
 		console.log("Disposing old scene");
 		flock.flockNotReady = true;
 		if (flock.scene) {
+			flock.stopAllSounds();
 			flock.engine.stopRenderLoop();
 			flock.scene.meshes.forEach((mesh) => {
 				if (mesh.actionManager) {
@@ -8465,10 +8466,8 @@ export const flock = {
 		});
 	},
 	stopAllSounds() {
-		
 		flock.globalSounds.forEach((sound) => {
 			try {
-				
 				const mesh = sound._attachedMesh;
 				if (mesh?.metadata?.currentSound === sound) {
 					delete mesh.metadata.currentSound;
