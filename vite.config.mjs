@@ -56,7 +56,7 @@ export default {
       base: BASE_URL,
       registerType: 'autoUpdate',
       devOptions: {
-        enabled: true
+        enabled: false
       },
       assetsInclude: ['**/*.glb', '**/*.gltf', '**/*.ogg', '**/*.aac', '**/*.mp3', '**/*.json', '**/*.png', '**/*.woff', '**/*.woff2', '**/*.css', '**/*.svg',],
       includeAssets: ['**/*.glb', '**/*.gltf', '**/*.ogg', '**/*.acc', '**/*.mp3', '**/*.json', '**/*.png', '**/*.woff', '**/*.woff2', '**/*.css', '**/*.svg',],

@@ -8369,7 +8369,7 @@ export const flock = {
 		flock.scene.onDisposeObservable.add(disposeHandler);
 	},
 	async playSound(meshName = "__everywhere__", soundName, options = {}) {
-		console.log("play sound", options);
+	
 		const audioEngine = await flock.audioEnginePromise;
 		const loop = !!options.loop;
 		const soundUrl = flock.soundPath + soundName;
