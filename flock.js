@@ -248,6 +248,12 @@ export const flock = {
 		flock.engineReady = false;
 		flock.meshLoaders = new Map();
 		flock.audioContext = flock.getAudioContext();
+		flock.BABYLON.AudioEngine.DefaultAudioContext = flock.getAudioContext(
+			"Audio engine",
+			flock.BABYLON.AudioEngine,
+		);
+		console.log();
+
 		const gridKeyPressObservable = new flock.BABYLON.Observable();
 		const gridKeyReleaseObservable = new flock.BABYLON.Observable();
 		flock.gridKeyPressObservable = gridKeyPressObservable;
@@ -8369,7 +8375,6 @@ export const flock = {
 		flock.scene.onDisposeObservable.add(disposeHandler);
 	},
 	async playSound(meshName = "__everywhere__", soundName, options = {}) {
-	
 		const audioEngine = await flock.audioEnginePromise;
 		const loop = !!options.loop;
 		const soundUrl = flock.soundPath + soundName;
@@ -8468,6 +8473,22 @@ export const flock = {
 		});
 
 		flock.globalSounds = [];
+
+		if (!flock.audioContext || flock.audioContext.state === 'closed') return;
+		
+		// Close the audio context
+		if (flock.audioContext) {
+			flock.audioContext
+				.close()
+				.then(() => {
+					console.log("Audio context closed.");
+				})
+				.catch((error) => {
+					console.error("Error closing audio context:", error);
+				});
+		}
+
+		console.log("Stopped sounds");
 	},
 	getAudioContext() {
 		if (!flock.audioContext) {
@@ -8488,7 +8509,8 @@ export const flock = {
 				const bpm = getBPMFromMeshOrScene(mesh, flock.scene);
 
 				const context = flock.audioContext; // Ensure a global audio context
-
+				if (!context || context.state === 'closed') return;
+				
 				if (mesh && mesh.position) {
 					// Create the panner node only once if it doesn't exist
 					if (!mesh.metadata.panner) {
@@ -8607,6 +8629,8 @@ export const flock = {
 		playTime,
 		instrument = null,
 	) {
+		if (!context || context.state === "closed") return;
+
 		// Create a new oscillator for each note
 		const osc = context.createOscillator();
 		const panner = mesh.metadata.panner;
@@ -8668,6 +8692,9 @@ export const flock = {
 	},
 	createInstrument(type, frequency, attack, decay, sustain, release) {
 		const audioCtx = flock.audioContext;
+
+		if (!audioCtx || audioCtx.state === 'closed') return;
+
 		const oscillator = audioCtx.createOscillator();
 		const gainNode = audioCtx.createGain();
 
@@ -8685,8 +8712,7 @@ export const flock = {
 			0,
 			audioCtx.currentTime + attack + decay + release,
 		);
-
-		oscillator.connect(gainNode).connect(audioCtx.destination);
+	oscillator.connect(gainNode).connect(audioCtx.destination);
 
 		return { oscillator, gainNode, audioCtx };
 	},

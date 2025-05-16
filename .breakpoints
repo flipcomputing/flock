@@ -27,9 +27,9 @@
     "main.js": [
       {
         "id": "31f0468e-83ae-40f6-ab34-65125d137737",
-        "line": 2698,
-        "version": 66,
-        "index": 77074
+        "line": 2676,
+        "version": 80,
+        "index": 76538
       }
     ],
     "models/tree_fat.glb": [

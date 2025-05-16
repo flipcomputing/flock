@@ -337,31 +337,9 @@ async function executeCode() {
 }
 
 function stopCode() {
-	// Stop all playing sounds
-	/*if (flock.scene && flock.scene.mainSoundTrack) {
-		flock.scene.mainSoundTrack.soundCollection.forEach((sound) => {
-			if (sound.isPlaying) {
-				sound.stop();
-				console.log(`Stopped sound: ${sound.name}`);
-			}
-		});
-	}*/
 
 	flock.stopAllSounds();
 	
-	// Close the audio context
-	/*if (flock.audioContext) {
-		flock.audioContext
-			.close()
-			.then(() => {
-				console.log("Audio context closed.");
-			})
-			.catch((error) => {
-				console.error("Error closing audio context:", error);
-			});
-	}*/
-
-	console.log("Stopped sounds");
 	// Stop rendering
 	flock.engine.stopRenderLoop();
 	console.log("Render loop stopped.");
