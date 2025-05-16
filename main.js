@@ -2069,25 +2069,45 @@ window.onload = function () {
 	});
 
 	document
-		.getElementById("fileInput")
-		.addEventListener("change", function (event) {
-			const reader = new FileReader();
-			reader.onload = function () {
-				window.loadingCode = true;
-				const text = reader.result;
-				const json = JSON.parse(text);
+	  .getElementById("fileInput")
+	  .addEventListener("change", function (event) {
+		const file = event.target.files[0];
+		if (!file) return;
 
-				// Set the project name as the value of the projectName input field
-				document.getElementById("projectName").value = stripFilename(
-					document
-						.getElementById("fileInput")
-						.value.replace(".json", ""),
-				);
+		const reader = new FileReader();
+		reader.onload = function () {
+		  window.loadingCode = true;
 
-				loadWorkspaceAndExecute(json, workspace, executeCode);
-			};
-			reader.readAsText(event.target.files[0]);
-		});
+		  try {
+			const text = reader.result;
+			const json = JSON.parse(text);
+
+			// Minimal validation for Blockly workspace structure
+			if (!json || typeof json !== "object" || !json.blocks) {
+			  throw new Error("Invalid Blockly project file");
+			}
+
+			// Set project name from filename
+			const rawName = file.name || "untitled";
+			document.getElementById("projectName").value = stripFilename(
+			  rawName.replace(".json", "")
+			);
+
+			loadWorkspaceAndExecute(json, workspace, executeCode);
+		  } catch (e) {
+			console.error("Error loading Blockly project:", e);
+			alert("This file isn't a valid Blockly project.");
+			window.loadingCode = false;
+		  }
+		};
+
+		reader.onerror = function () {
+		  alert("Failed to read file.");
+		};
+
+		reader.readAsText(file);
+	  });
+
 
 	const blockTypesToCleanUp = [
 		"start",
