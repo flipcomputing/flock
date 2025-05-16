@@ -8465,17 +8465,16 @@ export const flock = {
 		});
 	},
 	stopAllSounds() {
+		
 		flock.globalSounds.forEach((sound) => {
 			try {
-				const channel = sound.spatial || sound.stereo || sound.simple;
-				if (channel?.stop) {
-					channel.stop();
-				}
-
+				
 				const mesh = sound._attachedMesh;
 				if (mesh?.metadata?.currentSound === sound) {
 					delete mesh.metadata.currentSound;
 				}
+
+				sound.stop();
 			} catch (e) {
 				console.warn("Error stopping sound:", sound.name, e);
 			}
