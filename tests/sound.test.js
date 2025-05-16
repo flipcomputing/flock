@@ -18,7 +18,7 @@ export function runSoundTests(flock) {
 		});
 
 		it("should play and stop a spatial sound", async () => {
-			const result = await flock.playSound(boxId, "test.ogg");
+			const result = await flock.playSound(boxId, "test.mp3");
 
 			const box = flock.scene.getMeshByName(boxId);
 			expect(box).to.exist;
@@ -31,7 +31,7 @@ export function runSoundTests(flock) {
 			}
 
 			expect(box.metadata.currentSound).to.exist;
-			expect(box.metadata.currentSound.name).to.equal("test.ogg");
+			expect(box.metadata.currentSound.name).to.equal("test.mp3");
 
 			flock.stopAllSounds();
 
@@ -57,7 +57,7 @@ export function runSoundTests(flock) {
 		it("should play and stop a global (everywhere) sound", async () => {
 			let ended = false;
 
-			const result = flock.playSound("__everywhere__", "test.ogg", {
+			const result = flock.playSound("__everywhere__", "test.mp3", {
 				volume: 0.5,
 			});
 

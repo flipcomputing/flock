@@ -2151,7 +2151,7 @@
 										"ID_VAR": {
 											"id": "7%2@gAi7usWU~;*c?C:("
 										},
-										"SOUND_NAME": "powerUp1.ogg",
+										"SOUND_NAME": "powerUp1.mp3",
 										"MESH_NAME": "__everywhere__",
 										"MODE": "ONCE",
 										"ASYNC": "START"
@@ -2235,7 +2235,7 @@
 												"ID_VAR": {
 													"id": "CqSx#cn%5x}`oZ-WT]@0"
 												},
-												"SOUND_NAME": "highUp.ogg",
+												"SOUND_NAME": "highUp.mp3",
 												"MESH_NAME": "__everywhere__",
 												"MODE": "ONCE",
 												"ASYNC": "START"
@@ -2454,7 +2454,7 @@
 												"ID_VAR": {
 													"id": "T::@`ueon1+ACy!]lN/)"
 												},
-												"SOUND_NAME": "highUp.ogg",
+												"SOUND_NAME": "highUp.mp3",
 												"MESH_NAME": "__everywhere__",
 												"MODE": "ONCE",
 												"ASYNC": "START"
@@ -2673,7 +2673,7 @@
 												"ID_VAR": {
 													"id": "e=RSpmfHoVyE1XP+u`}U"
 												},
-												"SOUND_NAME": "highUp.ogg",
+												"SOUND_NAME": "highUp.mp3",
 												"MESH_NAME": "__everywhere__",
 												"MODE": "ONCE",
 												"ASYNC": "START"
