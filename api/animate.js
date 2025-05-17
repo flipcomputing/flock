@@ -832,4 +832,141 @@ export const flockAnimate = {
       }
     });
   },
+  stopAnimationsTargetingMesh(scene, mesh) {
+    scene.animationGroups.forEach(function (animationGroup) {
+      let targets = animationGroup.targetedAnimations.map(
+        function (targetedAnimation) {
+          return targetedAnimation.target;
+        },
+      );
+
+      if (
+        targets.includes(mesh) ||
+        flock.animationGroupTargetsDescendant(animationGroup, mesh)
+      ) {
+        animationGroup.stop();
+      }
+    });
+  },
+  animationGroupTargetsDescendant(animationGroup, parentMesh) {
+    let descendants = parentMesh.getDescendants();
+    for (let targetedAnimation of animationGroup.targetedAnimations) {
+      let target = targetedAnimation.target;
+      if (descendants.includes(target)) {
+        return true;
+      }
+    }
+    return false;
+  },
+  switchToAnimation(
+    scene,
+    mesh,
+    animationName,
+    loop = true,
+    restart = false,
+  ) {
+    const newAnimationName = animationName;
+
+    if (!mesh) {
+      console.error(`Mesh ${mesh.name} not found.`);
+      return null;
+    }
+
+    if (flock.flockNotReady) return null;
+
+    let targetAnimationGroup = flock.scene?.animationGroups?.find(
+      (group) =>
+        group.name === newAnimationName &&
+        flock.animationGroupTargetsDescendant(group, mesh),
+    );
+
+    if (!targetAnimationGroup) {
+      console.error(`Animation "${newAnimationName}" not found.`);
+      return null;
+    }
+
+    if (!mesh.animationGroups) {
+      mesh.animationGroups = [];
+      flock.stopAnimationsTargetingMesh(scene, mesh);
+    }
+
+    if (
+      mesh.animationGroups[0] &&
+      mesh.animationGroups[0].name !== newAnimationName
+    ) {
+      flock.stopAnimationsTargetingMesh(scene, mesh);
+      mesh.animationGroups[0].stop();
+      mesh.animationGroups = [];
+    }
+
+    if (
+      !mesh.animationGroups[0] ||
+      (mesh.animationGroups[0].name == newAnimationName && restart)
+    ) {
+      flock.stopAnimationsTargetingMesh(scene, mesh);
+      mesh.animationGroups[0] = targetAnimationGroup;
+      mesh.animationGroups[0].reset();
+      mesh.animationGroups[0].stop();
+      mesh.animationGroups[0].start(
+        loop,
+        1.0,
+        targetAnimationGroup.from,
+        targetAnimationGroup.to,
+        false,
+      );
+    }
+
+    return targetAnimationGroup;
+  },
+  switchAnimation(modelName, animationName) {
+    return flock.whenModelReady(modelName, (mesh) => {
+      flock.switchToAnimation(
+        flock.scene,
+        mesh,
+        animationName,
+        true,
+        false,
+      );
+    });
+  },
+  async playAnimation(
+    modelName,
+    animationName,
+    loop = false,
+    restart = true,
+  ) {
+    const maxAttempts = 100;
+    const attemptInterval = 10;
+
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      const mesh = flock.scene.getMeshByName(modelName);
+      if (mesh) {
+        const animGroup = flock.switchToAnimation(
+          flock.scene,
+          mesh,
+          animationName,
+          loop,
+          restart,
+        );
+
+        return new Promise((resolve) => {
+          animGroup.onAnimationEndObservable.addOnce(() => {
+            resolve();
+          });
+        });
+      }
+      await new Promise((resolve, reject) => {
+        const timeoutId = setTimeout(resolve, attemptInterval);
+
+        // Listen for the abort signal to cancel the timeout
+        flock.abortController.signal.addEventListener("abort", () => {
+          clearTimeout(timeoutId); // Clear the timeout if aborted
+          reject(new Error("Timeout aborted")); // Reject the promise if aborted
+        });
+      });
+    }
+    console.error(
+      `Failed to find mesh "${modelName}" after ${maxAttempts} attempts.`,
+    );
+  },
 };

@@ -15,7 +15,11 @@ import "@fontsource/asap/600.css";
 import earcut from "earcut";
 import { characterNames } from "./config";
 import { flockCSG, setFlockReference as setFlockCSG } from "./api/csg";
-import { flockAnimate, setFlockReference as setFlockAnimate } from "./api/animate";
+import {
+	flockAnimate,
+	setFlockReference as setFlockAnimate,
+} from "./api/animate";
+import { flockSound, setFlockReference as setFlockSound } from "./api/sound";
 
 // Helper functions to make flock.BABYLON js easier to use in Flock
 console.log("Flock helpers loading");
@@ -61,6 +65,7 @@ export const flock = {
 	savedCamera: null,
 	...flockCSG,
 	...flockAnimate,
+	...flockSound,
 	async runCode(code) {
 		let iframe = document.getElementById("flock-iframe");
 
@@ -251,12 +256,6 @@ export const flock = {
 		flock.sky = null;
 		flock.engineReady = false;
 		flock.meshLoaders = new Map();
-		flock.audioContext = flock.getAudioContext();
-		flock.BABYLON.AudioEngine.DefaultAudioContext = flock.getAudioContext(
-			"Audio engine",
-			flock.BABYLON.AudioEngine,
-		);
-		console.log();
 
 		const gridKeyPressObservable = new flock.BABYLON.Observable();
 		const gridKeyReleaseObservable = new flock.BABYLON.Observable();
@@ -434,7 +433,8 @@ export const flock = {
 		);
 		setFlockCSG(flock);
 		setFlockAnimate(flock);
-		
+		setFlockSound(flock);
+
 		// Add highlight layer
 		flock.highlighter = new flock.BABYLON.HighlightLayer(
 			"highlighter",
@@ -468,14 +468,16 @@ export const flock = {
 
 		flock.mainLight = hemisphericLight;
 
-		let audioEnginePromise = flock.BABYLON.CreateAudioEngineAsync({
+		flock.audioEnginePromise = flock.BABYLON.CreateAudioEngineAsync({
 			volume: 1,
 			listenerAutoUpdate: true,
 			listenerEnabled: true,
 			resumeOnInteraction: true,
 		});
 
-		audioEnginePromise.then((audioEngine) => {
+		flock.audioEnginePromise.then((audioEngine) => {
+			flock.audioEngine = audioEngine;
+			flock.globalStartTime = flock.getAudioContext().currentTime;
 			if (flock.scene.activeCamera) {
 				audioEngine.listener.attach(flock.scene.activeCamera);
 			}
@@ -517,7 +519,7 @@ export const flock = {
 		flock.advancedTexture.addControl(flock.stackPanel);
 
 		// Observable for audio updates
-		flock.globalStartTime = flock.getAudioContext().currentTime;
+		
 		flock.scene.onBeforeRenderObservable.add(() => {
 			const context = flock.getAudioContext();
 			flock.updateListenerPositionAndOrientation(
@@ -2242,7 +2244,7 @@ export const flock = {
 	/* 
 		Category: Scene>XR
 	*/
-	
+
 	setCameraBackground(cameraType) {
 		if (!flock.scene) {
 			console.error(
@@ -2478,103 +2480,7 @@ export const flock = {
 		// Return the buttonId for future reference
 		return buttonId;
 	},
-	stopAnimationsTargetingMesh(scene, mesh) {
-		scene.animationGroups.forEach(function (animationGroup) {
-			let targets = animationGroup.targetedAnimations.map(
-				function (targetedAnimation) {
-					return targetedAnimation.target;
-				},
-			);
 
-			if (
-				targets.includes(mesh) ||
-				flock.animationGroupTargetsDescendant(animationGroup, mesh)
-			) {
-				animationGroup.stop();
-			}
-		});
-	},
-	animationGroupTargetsDescendant(animationGroup, parentMesh) {
-		let descendants = parentMesh.getDescendants();
-		for (let targetedAnimation of animationGroup.targetedAnimations) {
-			let target = targetedAnimation.target;
-			if (descendants.includes(target)) {
-				return true;
-			}
-		}
-		return false;
-	},
-	switchToAnimation(
-		scene,
-		mesh,
-		animationName,
-		loop = true,
-		restart = false,
-	) {
-		const newAnimationName = animationName;
-
-		if (!mesh) {
-			console.error(`Mesh ${mesh.name} not found.`);
-			return null;
-		}
-
-		if (flock.flockNotReady) return null;
-
-		let targetAnimationGroup = flock.scene?.animationGroups?.find(
-			(group) =>
-				group.name === newAnimationName &&
-				flock.animationGroupTargetsDescendant(group, mesh),
-		);
-
-		if (!targetAnimationGroup) {
-			console.error(`Animation "${newAnimationName}" not found.`);
-			return null;
-		}
-
-		if (!mesh.animationGroups) {
-			mesh.animationGroups = [];
-			flock.stopAnimationsTargetingMesh(scene, mesh);
-		}
-
-		if (
-			mesh.animationGroups[0] &&
-			mesh.animationGroups[0].name !== newAnimationName
-		) {
-			flock.stopAnimationsTargetingMesh(scene, mesh);
-			mesh.animationGroups[0].stop();
-			mesh.animationGroups = [];
-		}
-
-		if (
-			!mesh.animationGroups[0] ||
-			(mesh.animationGroups[0].name == newAnimationName && restart)
-		) {
-			flock.stopAnimationsTargetingMesh(scene, mesh);
-			mesh.animationGroups[0] = targetAnimationGroup;
-			mesh.animationGroups[0].reset();
-			mesh.animationGroups[0].stop();
-			mesh.animationGroups[0].start(
-				loop,
-				1.0,
-				targetAnimationGroup.from,
-				targetAnimationGroup.to,
-				false,
-			);
-		}
-
-		return targetAnimationGroup;
-	},
-	switchAnimation(modelName, animationName) {
-		return flock.whenModelReady(modelName, (mesh) => {
-			flock.switchToAnimation(
-				flock.scene,
-				mesh,
-				animationName,
-				true,
-				false,
-			);
-		});
-	},
 	highlight(modelName, color) {
 		const applyHighlight = (mesh) => {
 			if (mesh.material) {
@@ -2897,7 +2803,7 @@ export const flock = {
 		flock.applyColorToMaterial(mesh, "Sleeves", sleevesColor);
 		flock.applyColorToMaterial(mesh, "Shoes", sleevesColor);
 	},
-	
+
 	ensureStandardMaterial(mesh) {
 		if (!mesh) return;
 
@@ -2938,7 +2844,7 @@ export const flock = {
 			oldMaterial.dispose();
 		});
 	},
-	
+
 	create3DText({
 		text,
 		font,
@@ -2955,7 +2861,7 @@ export const flock = {
 		setTimeout(async () => {
 			const fontData = await (await fetch(font)).json();
 
-			const mesh = BABYLON.MeshBuilder.CreateText(
+			const mesh = flock.BABYLON.MeshBuilder.CreateText(
 				modelId,
 				text,
 				fontData,
@@ -2968,7 +2874,7 @@ export const flock = {
 			);
 
 			mesh.position.set(x, y, z);
-			const material = new BABYLON.StandardMaterial(
+			const material = new flock.BABYLON.StandardMaterial(
 				"textMaterial",
 				flock.scene,
 			);
@@ -3036,7 +2942,7 @@ export const flock = {
 			meshToDetachInstance.position = worldPosition;
 		});
 	},
-	
+
 	setParent(parentModelName, childModelName) {
 		return flock.whenModelReady(parentModelName, (parentMesh) => {
 			flock.whenModelReady(childModelName, (childMesh) => {
@@ -3126,7 +3032,7 @@ export const flock = {
 			}
 		});
 	},
-	
+
 	createCustomMap(colors) {
 		console.log("Creating map", colors);
 	},
@@ -3307,47 +3213,6 @@ export const flock = {
 				}
 			});
 		});
-	},
-
-	async playAnimation(
-		modelName,
-		animationName,
-		loop = false,
-		restart = true,
-	) {
-		const maxAttempts = 100;
-		const attemptInterval = 10;
-
-		for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-			const mesh = flock.scene.getMeshByName(modelName);
-			if (mesh) {
-				const animGroup = flock.switchToAnimation(
-					flock.scene,
-					mesh,
-					animationName,
-					loop,
-					restart,
-				);
-
-				return new Promise((resolve) => {
-					animGroup.onAnimationEndObservable.addOnce(() => {
-						resolve();
-					});
-				});
-			}
-			await new Promise((resolve, reject) => {
-				const timeoutId = setTimeout(resolve, attemptInterval);
-
-				// Listen for the abort signal to cancel the timeout
-				flock.abortController.signal.addEventListener("abort", () => {
-					clearTimeout(timeoutId); // Clear the timeout if aborted
-					reject(new Error("Timeout aborted")); // Reject the promise if aborted
-				});
-			});
-		}
-		console.error(
-			`Failed to find mesh "${modelName}" after ${maxAttempts} attempts.`,
-		);
 	},
 	initializeMesh(mesh, position, color, shapeType, alpha = 1) {
 		// Set position
@@ -3771,7 +3636,7 @@ export const flock = {
 		// Apply updated UV mapping
 		mesh.setVerticesData(BABYLON.VertexBuffer.UVKind, uvs, true);
 	},
-	
+
 	setSphereUVs(mesh, diameter, texturePhysicalSize = 1) {
 		const positions = mesh.getVerticesData(
 			BABYLON.VertexBuffer.PositionKind,
@@ -3970,7 +3835,7 @@ export const flock = {
 		}
 		mesh.setVerticesData(BABYLON.VertexBuffer.UVKind, uvs, true);
 	},
-	
+
 	setSizeBasedPlaneUVs(mesh, width, height, texturePhysicalSize = 4) {
 		const positions = mesh.getVerticesData(
 			BABYLON.VertexBuffer.PositionKind,
@@ -3999,7 +3864,7 @@ export const flock = {
 		// Apply updated UV mapping
 		mesh.setVerticesData(BABYLON.VertexBuffer.UVKind, uvs, true);
 	},
-	
+
 	moveByVector(modelName, x, y, z) {
 		return flock.whenModelReady(modelName, (mesh) => {
 			mesh.position.addInPlace(new flock.BABYLON.Vector3(x, y, z));
@@ -5504,96 +5369,6 @@ export const flock = {
 
 		return material;
 	},
-	createMaterial2(
-		albedoColor,
-		emissiveColor,
-		textureSet,
-		metallic,
-		roughness,
-		alpha,
-		texturePhysicalSize = 1, // Default physical size in meters
-	) {
-		let material;
-
-		// Check if PBR is needed
-		if (metallic > 0 || roughness < 1) {
-			material = new flock.BABYLON.PBRMetallicRoughnessMaterial(
-				"material",
-				flock.scene,
-			);
-
-			// Set albedoColor correctly for PBRMaterial
-			material.baseColor =
-				flock.BABYLON.Color3.FromHexString(albedoColor);
-
-			material.metallic = metallic;
-			material.roughness = roughness;
-
-			// Apply texture to the albedoTexture for PBR materials
-			if (textureSet !== "none.png") {
-				const baseTexturePath = flock.texturePath + textureSet;
-				material.baseTexture = new flock.BABYLON.Texture(
-					baseTexturePath,
-					flock.scene,
-				);
-
-				const normalTexturePath = `${flock.texturePath}normal/${textureSet}`;
-				material.normalTexture = new flock.BABYLON.Texture(
-					normalTexturePath,
-					flock.scene,
-				);
-
-				// Apply consistent texture scaling
-				material.baseTexture.uScale = 1 / texturePhysicalSize;
-				material.baseTexture.vScale = 1 / texturePhysicalSize;
-				material.normalTexture.uScale = 1 / texturePhysicalSize;
-				material.normalTexture.vScale = 1 / texturePhysicalSize;
-			}
-
-			if (flock.scene.environmentTexture) {
-				material.environmentTexture = flock.scene.environmentTexture;
-			} else {
-				console.warn("No environmentTexture found for the scene.");
-			}
-		} else {
-			material = new flock.BABYLON.StandardMaterial(
-				"material",
-				flock.scene,
-			);
-
-			material.diffuseColor =
-				flock.BABYLON.Color3.FromHexString(albedoColor);
-
-			if (textureSet !== "none.png") {
-				const baseTexturePath = flock.texturePath + textureSet;
-				material.diffuseTexture = new flock.BABYLON.Texture(
-					baseTexturePath,
-					flock.scene,
-				);
-
-				const normalTexturePath = flock.texturePath + textureSet;
-				material.bumpTexture = new flock.BABYLON.Texture(
-					normalTexturePath,
-					flock.scene,
-				);
-
-				// Apply consistent texture scaling
-				material.diffuseTexture.uScale = 1 / texturePhysicalSize;
-				material.diffuseTexture.vScale = 1 / texturePhysicalSize;
-				material.bumpTexture.uScale = 1 / texturePhysicalSize;
-				material.bumpTexture.vScale = 1 / texturePhysicalSize;
-				material.backFaceCulling = false;
-			}
-		}
-
-		material.emissiveColor =
-			flock.BABYLON.Color3.FromHexString(emissiveColor);
-
-		material.alpha = alpha;
-
-		material.backFaceCulling = false;
-		return material;
-	},
 	textMaterial(text, color, backgroundColor, width, height, textSize) {
 		const dynamicTexture = new flock.BABYLON.DynamicTexture(
 			"text texture",
@@ -5975,7 +5750,6 @@ export const flock = {
 		model.rotationQuaternion.normalize();
 		*/
 	},
-
 	setPhysics(modelName, physicsType) {
 		return flock.whenModelReady(modelName, (mesh) => {
 			switch (physicsType) {
@@ -6752,380 +6526,6 @@ export const flock = {
 		};
 		flock.scene.onDisposeObservable.add(disposeHandler);
 	},
-	async playSound(meshName = "__everywhere__", soundName, options = {}) {
-		
-		const loop = !!options.loop;
-		const volume = options.volume ?? 1;
-		const playbackRate = options.playbackRate ?? 1;
-		const soundUrl = flock.soundPath + soundName;
-
-		// Global (non-spatial) sound
-		if (meshName === "__everywhere__") {
-			const sound = await BABYLON.CreateSoundAsync(soundName, soundUrl, {
-				spatialEnabled: false,
-				autoplay: false,
-				loop,
-				volume,
-				playbackRate,
-			});
-
-			sound.play();
-			flock.globalSounds.push(sound);
-
-			if (!loop) {
-				return new Promise((resolve) => {
-					sound.onEndedObservable.addOnce(() => {
-						const index = flock.globalSounds.indexOf(sound);
-						if (index !== -1) {
-							flock.globalSounds.splice(index, 1);
-						}
-						resolve();
-					});
-				});
-			}
-
-			return sound;
-		}
-
-		// Spatial sound for a mesh
-		const mesh = flock.scene.getMeshByName(meshName);
-		if (mesh && !mesh.isDisposed?.()) {
-			return await attachSoundToMesh(mesh);
-		}
-
-		// Mesh not ready yet — wait for it
-		return flock.whenModelReady(meshName, async (resolvedMesh) => {
-			return await attachSoundToMesh(resolvedMesh);
-		});
-
-		// Main sound logic for mesh-attached sounds
-		async function attachSoundToMesh(mesh) {
-			if (!mesh.metadata || typeof mesh.metadata !== "object") {
-				mesh.metadata = {};
-			}
-
-			const currentSound = mesh.metadata.currentSound;
-
-			if (currentSound) {
-
-				try {
-					currentSound.stop();
-				} catch (e) {
-					console.warn("Failed to stop sound:", e);
-				}
-
-				const index = flock.globalSounds.indexOf(currentSound);
-				if (index !== -1) {
-					flock.globalSounds.splice(index, 1);
-				}
-
-				if (mesh.metadata?.currentSound === currentSound) {
-					delete mesh.metadata.currentSound;
-				}
-			}
-
-			const sound = await BABYLON.CreateSoundAsync(soundName, soundUrl, {
-				spatialEnabled: true,
-				spatialDistanceModel: "linear",
-				spatialMaxDistance: 20,
-				autoplay: false,
-				loop,
-				volume,
-				playbackRate,
-			});
-
-			if (sound.spatial && !mesh.isDisposed()) {
-				await sound.spatial.attach(mesh);
-			}
-
-			sound.play();
-
-			if (!mesh.metadata || typeof mesh.metadata !== "object") {
-				mesh.metadata = {};
-			}
-
-			mesh.metadata.currentSound = sound;
-			sound._attachedMesh = mesh;
-
-			if (!flock.globalSounds.includes(sound)) {
-				flock.globalSounds.push(sound);
-			}
-
-			if (!loop) {
-				return new Promise((resolve) => {
-					sound.onEndedObservable.addOnce(() => {
-						if (mesh.metadata?.currentSound === sound) {
-							delete mesh.metadata.currentSound;
-						}
-						const index = flock.globalSounds.indexOf(sound);
-						if (index !== -1) {
-							flock.globalSounds.splice(index, 1);
-						}
-						resolve();
-					});
-				});
-			}
-
-			return sound;
-		}
-	},
-	stopAllSounds() {
-		flock.globalSounds.forEach((sound) => {
-			try {
-				const mesh = sound._attachedMesh;
-				if (mesh?.metadata?.currentSound === sound) {
-					delete mesh.metadata.currentSound;
-				}
-
-				sound.stop();
-			} catch (e) {
-				console.warn("Error stopping sound:", sound.name, e);
-			}
-		});
-
-		flock.globalSounds = [];
-
-		if (!flock.audioContext || flock.audioContext.state === "closed")
-			return;
-
-		// Close the audio context
-		if (flock.audioContext) {
-			flock.audioContext
-				.close()
-				.then(() => {
-					console.log("Audio context closed.");
-				})
-				.catch((error) => {
-					console.error("Error closing audio context:", error);
-				});
-		}
-	},
-	getAudioContext() {
-		if (!flock.audioContext) {
-			flock.audioContext = new (window.AudioContext ||
-				window.webkitAudioContext)();
-		}
-		return flock.audioContext;
-	},
-	playNotes(meshName, notes, durations, instrument = null) {
-		return new Promise((resolve) => {
-			flock.whenModelReady(meshName, async function (mesh) {
-				notes = notes.map((note) => (note === "_" ? null : note));
-				durations = durations.map(Number);
-
-				const getBPM = (obj) => obj?.metadata?.bpm || null;
-				const getBPMFromMeshOrScene = (mesh, scene) =>
-					getBPM(mesh) || getBPM(mesh?.parent) || getBPM(scene) || 60;
-				const bpm = getBPMFromMeshOrScene(mesh, flock.scene);
-
-				const context = flock.audioContext; // Ensure a global audio context
-				if (!context || context.state === "closed") return;
-
-				if (mesh && mesh.position) {
-					// Create the panner node only once if it doesn't exist
-					if (!mesh.metadata.panner) {
-						const panner = context.createPanner();
-						mesh.metadata.panner = panner;
-
-						// Configure the panner for spatial effects
-						panner.panningModel = "HRTF";
-						panner.distanceModel = "inverse";
-						panner.refDistance = 0.5;
-						panner.maxDistance = 50;
-						panner.rolloffFactor = 2;
-						panner.connect(context.destination);
-					}
-
-					const panner = mesh.metadata.panner; // Reuse the same panner node
-
-					// Continuously update the panner position while notes are playing
-					const observer = flock.scene.onBeforeRenderObservable.add(
-						() => {
-							const { x, y, z } = mesh.position;
-							panner.positionX.value = -x;
-							panner.positionY.value = y;
-							panner.positionZ.value = z;
-						},
-					);
-
-					// Iterate over the notes and schedule playback
-					let offsetTime = 0;
-					for (let i = 0; i < notes.length; i++) {
-						const note = notes[i];
-						const duration = Number(durations[i]);
-
-						if (note !== null) {
-							flock.playMidiNote(
-								context,
-								mesh,
-								note,
-								duration,
-								bpm,
-								context.currentTime + offsetTime, // Schedule the note
-								instrument,
-							);
-						}
-
-						offsetTime += flock.durationInSeconds(duration, bpm);
-					}
-
-					// Resolve the promise after the last note has played
-					setTimeout(
-						() => {
-							flock.scene.onBeforeRenderObservable.remove(
-								observer,
-							);
-							resolve();
-						},
-						(offsetTime + 1) * 1000,
-					); // Add a small buffer after the last note finishes
-				} else {
-					console.error(
-						"Mesh does not have a position property:",
-						mesh,
-					);
-					resolve();
-				}
-			});
-		});
-	},
-	updateListenerPositionAndOrientation(context, camera) {
-		const { x: cx, y: cy, z: cz } = camera.position;
-		const forwardVector = camera.getForwardRay().direction;
-
-		if (context.listener.positionX) {
-			// Update listener's position
-			context.listener.positionX.setValueAtTime(cx, context.currentTime);
-			context.listener.positionY.setValueAtTime(cy, context.currentTime);
-			context.listener.positionZ.setValueAtTime(cz, context.currentTime);
-
-			// Update listener's forward direction
-			context.listener.forwardX.setValueAtTime(
-				-forwardVector.x,
-				context.currentTime,
-			);
-			context.listener.forwardY.setValueAtTime(
-				forwardVector.y,
-				context.currentTime,
-			);
-			context.listener.forwardZ.setValueAtTime(
-				forwardVector.z,
-				context.currentTime,
-			);
-
-			// Set the listener's up vector (typically pointing upwards in the Y direction)
-			context.listener.upX.setValueAtTime(0, context.currentTime);
-			context.listener.upY.setValueAtTime(1, context.currentTime);
-			context.listener.upZ.setValueAtTime(0, context.currentTime);
-		} else {
-			// Firefox
-			context.listener.setPosition(cx, cy, cz);
-			context.listener.setOrientation(
-				-forwardVector.x,
-				forwardVector.y,
-				forwardVector.z,
-				0,
-				1,
-				0,
-			);
-		}
-	},
-	playMidiNote(
-		context,
-		mesh,
-		note,
-		duration,
-		bpm,
-		playTime,
-		instrument = null,
-	) {
-		if (!context || context.state === "closed") return;
-
-		// Create a new oscillator for each note
-		const osc = context.createOscillator();
-		const panner = mesh.metadata.panner;
-		// If an instrument is provided, reuse its gainNode but create a new oscillator each time
-		const gainNode = instrument
-			? instrument.gainNode
-			: context.createGain();
-
-		// Set oscillator type based on the instrument or default to 'sine'
-		osc.type = instrument ? instrument.oscillator.type : "sine";
-		osc.frequency.value = flock.midiToFrequency(note); // Convert MIDI note to frequency
-
-		// Connect the oscillator to the gain node and panner
-		osc.connect(gainNode);
-		gainNode.connect(panner);
-		panner.connect(context.destination);
-
-		const gap = Math.min(0.05, (60 / bpm) * 0.05); // Slightly larger gap
-
-		gainNode.gain.setValueAtTime(
-			1,
-			Math.max(playTime, context.currentTime + 0.01),
-		);
-
-		const fadeOutDuration = Math.min(0.2, duration * 0.2); // Longer fade-out for clarity
-
-		gainNode.gain.linearRampToValueAtTime(
-			0,
-			playTime + duration - gap - fadeOutDuration,
-		); // Gradual fade-out
-
-		osc.start(playTime); // Start the note at playTime
-		osc.stop(playTime + duration - gap); // Stop slightly earlier to add a gap
-
-		// Clean up: disconnect the oscillator after it's done
-		osc.onended = () => {
-			osc.disconnect();
-		};
-
-		// Fallback clean-up in case osc.onended is not triggered
-		setTimeout(
-			() => {
-				if (osc) {
-					osc.disconnect();
-				}
-			},
-			(playTime + duration) * 1000,
-		);
-	},
-	midiToFrequency(note) {
-		return 440 * Math.pow(2, (note - 69) / 12); // Convert MIDI note to frequency
-	},
-	durationInSeconds(duration, bpm) {
-		return (60 / bpm) * duration; // Convert beats to seconds
-	},
-	setPanning(panner, mesh) {
-		const position = mesh.position;
-		panner.setPosition(position.x, position.y, position.z); // Pan based on mesh position
-	},
-	createInstrument(type, frequency, attack, decay, sustain, release) {
-		const audioCtx = flock.audioContext;
-
-		if (!audioCtx || audioCtx.state === "closed") return;
-
-		const oscillator = audioCtx.createOscillator();
-		const gainNode = audioCtx.createGain();
-
-		oscillator.type = type;
-		oscillator.frequency.setValueAtTime(frequency, audioCtx.currentTime);
-
-		// Create ADSR envelope
-		gainNode.gain.setValueAtTime(0, audioCtx.currentTime);
-		gainNode.gain.linearRampToValueAtTime(1, audioCtx.currentTime + attack);
-		gainNode.gain.linearRampToValueAtTime(
-			sustain,
-			audioCtx.currentTime + attack + decay,
-		);
-		gainNode.gain.linearRampToValueAtTime(
-			0,
-			audioCtx.currentTime + attack + decay + release,
-		);
-		oscillator.connect(gainNode).connect(audioCtx.destination);
-
-		return { oscillator, gainNode, audioCtx };
-	},
 	download(filename, data, mimeType) {
 		const blob = new Blob([data], { type: mimeType });
 		const url = URL.createObjectURL(blob);
@@ -7137,20 +6537,6 @@ export const flock = {
 		flock.document.body.removeChild(a);
 		URL.revokeObjectURL(url);
 	},
-	setBPM(bpm, meshName = null) {
-		if (meshName) {
-			return flock.whenModelReady(meshName, async function (mesh) {
-				if (mesh) {
-					if (!mesh.metadata) mesh.metadata = {};
-					mesh.metadata.bpm = bpm;
-				}
-			});
-		} else {
-			if (!flock.scene.metadata) flock.scene.metadata = {};
-			flock.scene.metadata.bpm = bpm;
-		}
-	},
-	
 };
 
 export function initializeFlock() {
