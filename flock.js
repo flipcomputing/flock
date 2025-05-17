@@ -8375,28 +8375,24 @@ export const flock = {
 		flock.scene.onDisposeObservable.add(disposeHandler);
 	},
 	async playSound(meshName = "__everywhere__", soundName, options = {}) {
-		const audioEngine = await flock.audioEnginePromise;
+		
 		const loop = !!options.loop;
+		const volume = options.volume ?? 1;
+		const playbackRate = options.playbackRate ?? 1;
 		const soundUrl = flock.soundPath + soundName;
 
-		const createSound = async (spatialEnabled) => {
-			return BABYLON.CreateSoundAsync(soundName, soundUrl, {
-				spatialEnabled,
-				spatialDistanceModel: "linear",
-				spatialMaxDistance: 20,
+		// Global (non-spatial) sound
+		if (meshName === "__everywhere__") {
+			const sound = await BABYLON.CreateSoundAsync(soundName, soundUrl, {
+				spatialEnabled: false,
 				autoplay: false,
 				loop,
-				volume: options.volume ?? 1,
-				playbackRate: options.playbackRate ?? 1,
+				volume,
+				playbackRate,
 			});
-		};
 
-		if (meshName === "__everywhere__") {
-			const sound = await createSound(false);
-			if (!flock.globalSounds.includes(sound)) {
-				flock.globalSounds.push(sound);
-			}
 			sound.play();
+			flock.globalSounds.push(sound);
 
 			if (!loop) {
 				return new Promise((resolve) => {
@@ -8405,7 +8401,7 @@ export const flock = {
 						if (index !== -1) {
 							flock.globalSounds.splice(index, 1);
 						}
-						resolve(sound);
+						resolve();
 					});
 				});
 			}
@@ -8413,59 +8409,87 @@ export const flock = {
 			return sound;
 		}
 
-		return flock.whenModelReady(meshName, async (mesh) => {
-			if (!mesh) {
-				console.warn(
-					`Mesh "${meshName}" not found. Cannot play sound "${soundName}".`,
-				);
-				return;
+		// Spatial sound for a mesh
+		const mesh = flock.scene.getMeshByName(meshName);
+		if (mesh && !mesh.isDisposed?.()) {
+			return await attachSoundToMesh(mesh);
+		}
+
+		// Mesh not ready yet — wait for it
+		return flock.whenModelReady(meshName, async (resolvedMesh) => {
+			return await attachSoundToMesh(resolvedMesh);
+		});
+
+		// Main sound logic for mesh-attached sounds
+		async function attachSoundToMesh(mesh) {
+			if (!mesh.metadata || typeof mesh.metadata !== "object") {
+				mesh.metadata = {};
 			}
 
-			mesh.metadata ??= {};
-
 			const currentSound = mesh.metadata.currentSound;
+
 			if (currentSound) {
-				if (currentSound.name === soundName) {
-					console.log(
-						`Sound "${soundName}" is already playing on mesh "${meshName}". Ignoring.`,
-					);
-					return;
-				} else {
+
+				try {
 					currentSound.stop();
-					currentSound.dispose?.();
+				} catch (e) {
+					console.warn("Failed to stop sound:", e);
+				}
+
+				const index = flock.globalSounds.indexOf(currentSound);
+				if (index !== -1) {
+					flock.globalSounds.splice(index, 1);
+				}
+
+				if (mesh.metadata?.currentSound === currentSound) {
+					delete mesh.metadata.currentSound;
 				}
 			}
 
-			const sound = await createSound(true);
+			const sound = await BABYLON.CreateSoundAsync(soundName, soundUrl, {
+				spatialEnabled: true,
+				spatialDistanceModel: "linear",
+				spatialMaxDistance: 20,
+				autoplay: false,
+				loop,
+				volume,
+				playbackRate,
+			});
 
 			if (sound.spatial && !mesh.isDisposed()) {
 				await sound.spatial.attach(mesh);
 			}
 
+			sound.play();
+
+			if (!mesh.metadata || typeof mesh.metadata !== "object") {
+				mesh.metadata = {};
+			}
+
 			mesh.metadata.currentSound = sound;
 			sound._attachedMesh = mesh;
+
 			if (!flock.globalSounds.includes(sound)) {
 				flock.globalSounds.push(sound);
 			}
-			sound.play();
 
 			if (!loop) {
 				return new Promise((resolve) => {
 					sound.onEndedObservable.addOnce(() => {
+						if (mesh.metadata?.currentSound === sound) {
+							delete mesh.metadata.currentSound;
+						}
 						const index = flock.globalSounds.indexOf(sound);
 						if (index !== -1) {
 							flock.globalSounds.splice(index, 1);
 						}
-						if (mesh.metadata.currentSound === sound) {
-							delete mesh.metadata.currentSound;
-						}
-						resolve(sound);
+						resolve();
 					});
 				});
 			}
 
 			return sound;
-		});
+		}
 	},
 	stopAllSounds() {
 		flock.globalSounds.forEach((sound) => {
@@ -8483,8 +8507,9 @@ export const flock = {
 
 		flock.globalSounds = [];
 
-		if (!flock.audioContext || flock.audioContext.state === 'closed') return;
-		
+		if (!flock.audioContext || flock.audioContext.state === "closed")
+			return;
+
 		// Close the audio context
 		if (flock.audioContext) {
 			flock.audioContext
@@ -8496,8 +8521,6 @@ export const flock = {
 					console.error("Error closing audio context:", error);
 				});
 		}
-
-		console.log("Stopped sounds");
 	},
 	getAudioContext() {
 		if (!flock.audioContext) {
@@ -8518,8 +8541,8 @@ export const flock = {
 				const bpm = getBPMFromMeshOrScene(mesh, flock.scene);
 
 				const context = flock.audioContext; // Ensure a global audio context
-				if (!context || context.state === 'closed') return;
-				
+				if (!context || context.state === "closed") return;
+
 				if (mesh && mesh.position) {
 					// Create the panner node only once if it doesn't exist
 					if (!mesh.metadata.panner) {
@@ -8702,7 +8725,7 @@ export const flock = {
 	createInstrument(type, frequency, attack, decay, sustain, release) {
 		const audioCtx = flock.audioContext;
 
-		if (!audioCtx || audioCtx.state === 'closed') return;
+		if (!audioCtx || audioCtx.state === "closed") return;
 
 		const oscillator = audioCtx.createOscillator();
 		const gainNode = audioCtx.createGain();
@@ -8721,7 +8744,7 @@ export const flock = {
 			0,
 			audioCtx.currentTime + attack + decay + release,
 		);
-	oscillator.connect(gainNode).connect(audioCtx.destination);
+		oscillator.connect(gainNode).connect(audioCtx.destination);
 
 		return { oscillator, gainNode, audioCtx };
 	},
