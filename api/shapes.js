@@ -1,0 +1,346 @@
+let flock;
+
+export function setFlockReference(ref) {
+  flock = ref;
+}
+
+export const flockShapes = {
+  createBox(boxId, color, width, height, depth, position, alpha = 1) {
+    let blockKey = boxId;
+
+    if (boxId.includes("__")) {
+      [boxId, blockKey] = boxId.split("__");
+    }
+
+    if (flock.scene.getMeshByName(boxId)) {
+      boxId = boxId + "_" + flock.scene.getUniqueId();
+    }
+
+    const dimensions = { width, height, depth };
+
+    // Retrieve cached VertexData or create it if this is the first instance
+    const vertexData = flock.getOrCreateGeometry(
+      "Box",
+      dimensions,
+      flock.scene,
+    );
+
+    // Create a new mesh and apply the cached VertexData
+    const newBox = new flock.BABYLON.Mesh(boxId, flock.scene);
+    vertexData.applyToMesh(newBox);
+
+    // Apply size-based UV mapping
+    flock.setSizeBasedBoxUVs(newBox, width, height, depth);
+
+    // Bake the scaling into the mesh
+    newBox.bakeCurrentTransformIntoVertices();
+
+    // Reset scaling to (1,1,1) since the transformation is now baked
+    newBox.scaling.set(1, 1, 1);
+
+    // Initialise the mesh with position, color, and other properties
+    flock.initializeMesh(newBox, position, color, "Box", alpha);
+
+    newBox.position.y += height / 2; // Middle of the box
+    newBox.blockKey = blockKey;
+
+    // Define and apply the physics shape
+    const boxShape = new flock.BABYLON.PhysicsShapeBox(
+      new flock.BABYLON.Vector3(0, 0, 0),
+      new flock.BABYLON.Quaternion(0, 0, 0, 1),
+      new flock.BABYLON.Vector3(width, height, depth),
+      flock.scene,
+    );
+    flock.applyPhysics(newBox, boxShape);
+
+    return newBox.name;
+  },
+  createSphere(
+    sphereId,
+    color,
+    diameterX,
+    diameterY,
+    diameterZ,
+    position,
+    alpha = 1,
+  ) {
+    let blockKey = sphereId;
+
+    if (sphereId.includes("__")) {
+      [sphereId, blockKey] = sphereId.split("__");
+    }
+
+    if (flock.scene.getMeshByName(sphereId)) {
+      sphereId = sphereId + "_" + flock.scene.getUniqueId();
+    }
+
+    const dimensions = { diameterX, diameterY, diameterZ };
+
+    // Retrieve cached VertexData or create it if this is the first instance
+    const vertexData = flock.getOrCreateGeometry(
+      "Sphere",
+      dimensions,
+      flock.scene,
+    );
+
+    if (!vertexData) return;
+
+    // Create a new mesh and apply the cached VertexData
+    const newSphere = new flock.BABYLON.Mesh(sphereId, flock.scene);
+    vertexData.applyToMesh(newSphere);
+
+    flock.setSphereUVs(newSphere, diameterX, diameterY, diameterZ, 1);
+    newSphere.bakeCurrentTransformIntoVertices();
+
+    // Reset scaling to (1,1,1) since the transformation is now baked
+    newSphere.scaling.set(1, 1, 1);
+
+    // Initialise the mesh with position, color, and other properties
+    flock.initializeMesh(newSphere, position, color, "Sphere", alpha);
+    newSphere.position.y += diameterY / 2;
+
+    newSphere.blockKey = blockKey;
+
+    // Define and apply the physics shape
+    const sphereShape = new flock.BABYLON.PhysicsShapeSphere(
+      new flock.BABYLON.Vector3(0, 0, 0),
+      Math.max(diameterX, diameterY, diameterZ) / 2,
+      flock.scene,
+    );
+    flock.applyPhysics(newSphere, sphereShape);
+
+    return newSphere.name;
+  },
+  createCylinder(
+    cylinderId,
+    color,
+    height,
+    diameterTop,
+    diameterBottom,
+    tessellation = 24, // Default tessellation to 12
+    position,
+    alpha = 1,
+  ) {
+    const dimensions = {
+      height,
+      diameterTop,
+      diameterBottom,
+      tessellation, // Include tessellation in dimensions
+      updatable: true,
+    };
+
+    let blockKey = cylinderId;
+
+    if (cylinderId.includes("__")) {
+      [cylinderId, blockKey] = cylinderId.split("__");
+    }
+
+    if (flock.scene.getMeshByName(cylinderId)) {
+      cylinderId = cylinderId + "_" + flock.scene.getUniqueId();
+    }
+
+    // Get or create cached VertexData
+    const vertexData = flock.getOrCreateGeometry(
+      "Cylinder",
+      dimensions,
+      flock.scene,
+    );
+
+    // Create a new mesh and apply the cached VertexData
+    const newCylinder = new flock.BABYLON.Mesh(cylinderId, flock.scene);
+    vertexData.applyToMesh(newCylinder);
+
+    flock.setSizeBasedCylinderUVs(
+      newCylinder,
+      height,
+      diameterTop,
+      diameterBottom,
+    ); // Adjust texturePhysicalSize as needed
+
+    newCylinder.bakeCurrentTransformIntoVertices();
+
+    // Reset scaling to (1,1,1) since the transformation is now baked
+    newCylinder.scaling.set(1, 1, 1);
+
+    // Initialise the mesh with position, color, and other properties
+    flock.initializeMesh(newCylinder, position, color, "Cylinder", alpha);
+    newCylinder.position.y += height / 2;
+    // Initialise the mesh with position, color, and other properties
+
+    newCylinder.blockKey = blockKey;
+
+    // Create and apply physics shape
+    const startPoint = new flock.BABYLON.Vector3(0, -height / 2, 0);
+    const endPoint = new flock.BABYLON.Vector3(0, height / 2, 0);
+    const cylinderShape = new flock.BABYLON.PhysicsShapeCylinder(
+      startPoint,
+      endPoint,
+      diameterBottom / 2,
+      flock.scene,
+    );
+    flock.applyPhysics(newCylinder, cylinderShape);
+
+    return newCylinder.name;
+  },
+  createCapsule(capsuleId, color, diameter, height, position, alpha = 1) {
+    let radius = diameter / 2;
+    let blockKey = capsuleId;
+
+    if (capsuleId.includes("__")) {
+      [capsuleId, blockKey] = capsuleId.split("__");
+    }
+
+    const dimensions = {
+      radius,
+      height,
+      tessellation: 24,
+      updatable: false,
+    };
+
+    if (flock.scene.getMeshByName(capsuleId)) {
+      capsuleId = capsuleId + "_" + flock.scene.getUniqueId();
+    }
+
+    // Get or create cached VertexData
+    const vertexData = flock.getOrCreateGeometry(
+      "Capsule",
+      dimensions,
+      flock.scene,
+    );
+
+    // Create a new mesh and apply the cached VertexData
+    const newCapsule = new flock.BABYLON.Mesh(capsuleId, flock.scene);
+    vertexData.applyToMesh(newCapsule);
+    newCapsule.bakeCurrentTransformIntoVertices();
+
+    // Reset scaling to (1,1,1) since the transformation is now baked
+    newCapsule.scaling.set(1, 1, 1);
+
+    // Initialise the mesh with position, color, and other properties
+    flock.initializeMesh(newCapsule, position, color, "Capsule", alpha);
+    newCapsule.position.y += height / 2;
+
+    flock.setCapsuleUVs(newCapsule, radius, height, 1); // Adjust texturePhysicalSize as needed
+
+    newCapsule.blockKey = blockKey;
+    // Define central point for the capsule
+    const center = new flock.BABYLON.Vector3(0, 0, 0);
+
+    // Calculate physics shape parameters
+    const capsuleRadius = radius;
+    const cylinderHeight = Math.max(0, height - 2 * capsuleRadius);
+
+    // Define the start and end points of the cylindrical segment
+    const segmentStart = new flock.BABYLON.Vector3(
+      center.x,
+      center.y - cylinderHeight / 2 + 0.1,
+      center.z,
+    );
+    const segmentEnd = new flock.BABYLON.Vector3(
+      center.x,
+      center.y + cylinderHeight / 2 + 0.1,
+      center.z,
+    );
+
+    // Create and apply the physics shape using the central reference
+    const capsuleShape = new flock.BABYLON.PhysicsShapeCapsule(
+      segmentStart,
+      segmentEnd,
+      capsuleRadius,
+      flock.scene,
+    );
+    flock.applyPhysics(newCapsule, capsuleShape);
+
+    return newCapsule.name;
+  },
+  createPlane(planeId, color, width, height, position) {
+    // Handle block key
+    let blockKey = planeId;
+    if (planeId.includes("__")) {
+      [planeId, blockKey] = planeId.split("__");
+    }
+
+    if (flock.scene.getMeshByName(planeId)) {
+      planeId = planeId + "_" + flock.scene.getUniqueId();
+    }
+
+    console.log(
+      "Creating plane with id: " + planeId,
+      flock.scene.getMeshByName(planeId),
+    );
+
+    // Create plane with specified dimensions
+    const newPlane = flock.BABYLON.MeshBuilder.CreatePlane(
+      planeId,
+      {
+        width,
+        height,
+        sideOrientation: flock.BABYLON.Mesh.DOUBLESIDE,
+      },
+      flock.scene,
+    );
+    // Set metadata and name
+    newPlane.metadata = newPlane.metadata || {};
+    newPlane.metadata.shape = "plane";
+
+    // Set final position including the height offset all at once
+    newPlane.position = new flock.BABYLON.Vector3(
+      position[0],
+      position[1] + height / 2,
+      position[2],
+    );
+
+    // Create physics body
+    const planeBody = new flock.BABYLON.PhysicsBody(
+      newPlane,
+      flock.BABYLON.PhysicsMotionType.STATIC,
+      false,
+      flock.scene,
+    );
+
+    // Create physics shape - matching the mesh position
+    const planeShape = new flock.BABYLON.PhysicsShapeBox(
+      new flock.BABYLON.Vector3(0, 0, 0), // Center offset
+      new flock.BABYLON.Quaternion(0, 0, 0, 1),
+      new flock.BABYLON.Vector3(width, height, 0.001),
+      flock.scene,
+    );
+
+    // Set up physics properties
+    planeBody.shape = planeShape;
+    planeBody.setMassProperties({
+      mass: 0,
+      restitution: 0.5,
+      inertia: flock.BABYLON.Vector3.ZeroReadOnly,
+    });
+    newPlane.physics = planeBody;
+
+    flock.applyMaterialToMesh(newPlane, "Plane", color);
+
+    newPlane.blockKey = blockKey;
+
+    return newPlane.name;
+  },
+  show(modelName) {
+    // Check if the ID refers to a UI button
+    const uiButton = flock.scene.UITexture?.getControlByName(modelName);
+
+    if (uiButton) {
+      // Handle UI button case
+      uiButton.isVisible = true; // Hide the button
+      return;
+    }
+    return flock.whenModelReady(modelName, function (mesh) {
+      if (mesh) {
+        mesh.setEnabled(true);
+        flock.hk._hknp.HP_World_AddBody(
+          flock.hk.world,
+          mesh.physics._pluginData.hpBodyId,
+          mesh.physics.startAsleep,
+        );
+      } else {
+        console.log("Model not loaded:", modelName);
+      }
+    });
+  },
+};
