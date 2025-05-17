@@ -670,13 +670,6 @@ export const flock = {
 			}
 		});
 	},
-	async resetScene() {
-		// Dispose of the old scene
-		await flock.disposeOldScene();
-
-		// Initialize the new scene
-		await flock.initializeNewScene();
-	},
 	UIText(text, x, y, fontSize, color, duration, id = null) {
 		// Ensure flock.scene and flock.GUI are initialized
 		if (!flock.scene || !flock.GUI) {
