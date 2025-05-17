@@ -609,7 +609,7 @@ export const flockMaterial = {
           flock.ensureUniqueMaterial(nextMesh);
           nextMesh.material.alpha = alphaValue;
           nextMesh.material.transparencyMode =
-            BABYLON.Material.MATERIAL_ALPHABLEND;
+            flock.BABYLON.Material.MATERIAL_ALPHABLEND;
         }
       });
     });

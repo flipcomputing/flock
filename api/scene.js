@@ -1,5 +1,5 @@
 let flock;
-
+f
 export function setFlockReference(ref) {
   flock = ref;
 }
@@ -340,8 +340,8 @@ export const flockScene = {
       if (clone) {
         sourceMesh.computeWorldMatrix(true);
 
-        const worldPosition = new BABYLON.Vector3();
-        const worldRotation = new BABYLON.Quaternion();
+        const worldPosition = new flock.BABYLON.Vector3();
+        const worldRotation = new flock.BABYLON.Quaternion();
         sourceMesh
           .getWorldMatrix()
           .decompose(undefined, worldRotation, worldPosition);

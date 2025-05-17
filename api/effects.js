@@ -75,7 +75,7 @@ export const flockEffects = {
       );
 
       /*			particleSystem.blendMode =
-        BABYLON.ParticleSystem.BLENDMODE_STANDARD;
+        flock.BABYLON.ParticleSystem.BLENDMODE_STANDARD;
       particleSystem.particleTexture.hasAlpha = true;
       particleSystem.particleTexture.getAlphaFromRGB = false;*/
 

@@ -311,7 +311,7 @@ export const flockAnimate = {
     // Handle full Vector3 rotations
     if (property.startsWith("rotation")) {
       if (value instanceof flock.BABYLON.Vector3) {
-        return new BABYLON.Vector3(
+        return new flock.BABYLON.Vector3(
           flock.BABYLON.Tools.ToRadians(value.x || 0),
           flock.BABYLON.Tools.ToRadians(value.y || 0),
           flock.BABYLON.Tools.ToRadians(value.z || 0),

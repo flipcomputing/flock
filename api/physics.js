@@ -408,7 +408,7 @@ export const flockPhysics = {
                     executeAction(); // Discard extra triggers in 'wait' mode
                   }
                 };
-              } else if (state === BABYLON.WebXRState.NOT_IN_XR) {
+              } else if (state === flock.BABYLON.WebXRState.NOT_IN_XR) {
                 flock.scene.onPointerDown = null;
               }
             },

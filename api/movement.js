@@ -235,8 +235,8 @@ export const flockMovement = {
             const capsuleHalfHeight = 1; // adjust as needed
             const rayOrigin = mesh.position
               .clone()
-              .add(new BABYLON.Vector3(0, -capsuleHalfHeight, 0));
-            const downRay = new BABYLON.Ray(
+              .add(new flock.BABYLON.Vector3(0, -capsuleHalfHeight, 0));
+            const downRay = new flock.BABYLON.Ray(
               rayOrigin,
               new flock.BABYLON.Vector3(0, -1, 0),
               3,
