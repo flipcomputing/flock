@@ -969,4 +969,116 @@ export const flockAnimate = {
       `Failed to find mesh "${modelName}" after ${maxAttempts} attempts.`,
     );
   },
+  async rotateAnim(
+    meshName,
+    rotX,
+    rotY,
+    rotZ,
+    duration,
+    reverse = false,
+    loop = false,
+    easing = "Linear",
+  ) {
+    return new Promise(async (resolve) => {
+      await flock.whenModelReady(meshName, async function (mesh) {
+        if (mesh) {
+          // Store the original rotation
+          const startRotation = mesh.rotation.clone();
+
+          // Convert degrees to radians
+          const targetRotation = new flock.BABYLON.Vector3(
+            rotX * (Math.PI / 180), // X-axis in radians
+            rotY * (Math.PI / 180), // Y-axis in radians
+            rotZ * (Math.PI / 180), // Z-axis in radians
+          );
+
+          const fps = 30;
+          const frames = fps * (duration / 1000);
+
+          // Determine the loop mode based on reverse and loop
+          let loopMode;
+          if (reverse) {
+            loopMode =
+              flock.BABYLON.Animation.ANIMATIONLOOPMODE_YOYO;
+          } else if (loop) {
+            loopMode =
+              flock.BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE;
+          } else {
+            loopMode =
+              flock.BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT;
+          }
+
+          // Create animation for rotation only
+          const rotateAnimation = new flock.BABYLON.Animation(
+            "rotateTo",
+            "rotation",
+            fps,
+            flock.BABYLON.Animation.ANIMATIONTYPE_VECTOR3,
+            loopMode,
+          );
+
+          // Define keyframes for rotation
+          const rotateKeys = [
+            { frame: 0, value: startRotation },
+            { frame: frames, value: targetRotation },
+          ];
+
+          rotateAnimation.setKeys(rotateKeys);
+
+          // Apply easing if needed
+          if (easing !== "Linear") {
+            let easingFunction;
+            switch (easing) {
+              case "SineEase":
+                easingFunction = new flock.BABYLON.SineEase();
+                break;
+              case "CubicEase":
+                easingFunction = new flock.BABYLON.CubicEase();
+                break;
+              case "QuadraticEase":
+                easingFunction =
+                  new flock.BABYLON.QuadraticEase();
+                break;
+              case "ExponentialEase":
+                easingFunction =
+                  new flock.BABYLON.ExponentialEase();
+                break;
+              case "BounceEase":
+                easingFunction = new flock.BABYLON.BounceEase();
+                break;
+              case "ElasticEase":
+                easingFunction =
+                  new flock.BABYLON.ElasticEase();
+                break;
+              case "BackEase":
+                easingFunction = new flock.BABYLON.BackEase();
+                break;
+              default:
+                easingFunction = new flock.BABYLON.SineEase();
+            }
+            easingFunction.setEasingMode(
+              flock.BABYLON.EasingFunction.EASINGMODE_EASEINOUT,
+            );
+            rotateAnimation.setEasingFunction(easingFunction);
+          }
+
+          // Use beginDirectAnimation to apply ONLY the rotation animation
+          // This ensures we don't interfere with any other properties
+          const animatable = flock.scene.beginDirectAnimation(
+            mesh,
+            [rotateAnimation],
+            0,
+            frames,
+            loop,
+          );
+
+          animatable.onAnimationEndObservable.add(() => {
+            resolve();
+          });
+        } else {
+          resolve(); // Resolve immediately if the mesh is not available
+        }
+      });
+    });
+  },
 };
