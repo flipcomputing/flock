@@ -1774,6 +1774,551 @@ export const flock = {
 	/* 
 		Category: Scene>Effects
 	*/
+	lightIntensity(intensity) {
+		if (flock.mainLight) {
+			flock.mainLight.intensity = intensity;
+		} else {
+			console.warn(
+				"Main light is not defined. Please ensure flock.mainLight exists.",
+			);
+		}
+	},
+	createParticleEffect({
+		name,
+		emitterMesh,
+		emitRate,
+		colors,
+		alphas,
+		sizes,
+		lifetime,
+		shape,
+		gravity,
+		direction,
+		rotation,
+	}) {
+		let resultName = name + "_" + flock.scene.getUniqueId(); // Placeholder for the synchronous return value
+
+		flock.whenModelReady(emitterMesh, (meshInstance) => {
+			// Create the particle system
+			const particleSystem = new flock.BABYLON.ParticleSystem(
+				resultName,
+				500,
+				flock.scene,
+			);
+
+			// Texture of each particle
+			const texturePath = flock.texturePath + shape;
+			particleSystem.particleTexture = new flock.BABYLON.Texture(
+				texturePath,
+				flock.scene,
+			);
+
+			// Set the emitter mesh
+			particleSystem.emitter = meshInstance;
+
+			// Use a MeshParticleEmitter to emit particles from the mesh's surface
+			const meshEmitter = new flock.BABYLON.MeshParticleEmitter(
+				meshInstance,
+			);
+			particleSystem.particleEmitterType = meshEmitter;
+			particleSystem.blendMode = 4;
+
+			const startColor = flock.BABYLON.Color4.FromHexString(colors.start);
+			const endColor = flock.BABYLON.Color4.FromHexString(colors.end);
+
+			// Combine colors with alpha values
+			const startColorWithAlpha = new flock.BABYLON.Color4(
+				startColor.r,
+				startColor.g,
+				startColor.b,
+				alphas.start,
+			);
+			const endColorWithAlpha = new flock.BABYLON.Color4(
+				endColor.r,
+				endColor.g,
+				endColor.b,
+				alphas.end,
+			);
+
+			/*			particleSystem.blendMode =
+				BABYLON.ParticleSystem.BLENDMODE_STANDARD;
+			particleSystem.particleTexture.hasAlpha = true;
+			particleSystem.particleTexture.getAlphaFromRGB = false;*/
+
+			// Set colors with alpha
+			// Add color gradients with alpha values
+			particleSystem.addColorGradient(0, startColorWithAlpha);
+			particleSystem.addColorGradient(1, endColorWithAlpha);
+
+			// Add size gradients
+			particleSystem.addSizeGradient(0, sizes.start);
+			particleSystem.addSizeGradient(1, sizes.end);
+
+			// Apply lifetime values
+			particleSystem.minLifeTime = lifetime.min;
+			particleSystem.maxLifeTime = lifetime.max;
+
+			// Set the emit rate with a maximum limit
+			const MAX_EMIT_RATE = 500;
+			particleSystem.emitRate = Math.min(emitRate, MAX_EMIT_RATE);
+
+			// Apply gravity if enabled
+			particleSystem.gravity = gravity
+				? new flock.BABYLON.Vector3(0, -9.81, 0)
+				: new flock.BABYLON.Vector3(0, 0, 0);
+
+			if (direction) {
+				const { x, y, z } = direction;
+
+				if (x != 0 || y != 0 || z != 0) {
+					particleSystem.minEmitPower = 1;
+					particleSystem.maxEmitPower = 3;
+					meshEmitter.useMeshNormalsForDirection = false;
+
+					meshEmitter.direction1 = new flock.BABYLON.Vector3(x, y, z);
+					meshEmitter.direction2 = new flock.BABYLON.Vector3(x, y, z);
+				}
+			}
+
+			if (rotation) {
+				// Convert angular speeds from degrees per second to radians per second
+				if (rotation.angularSpeed) {
+					particleSystem.minAngularSpeed =
+						(rotation.angularSpeed.min * Math.PI) / 180;
+					particleSystem.maxAngularSpeed =
+						(rotation.angularSpeed.max * Math.PI) / 180;
+				}
+				// Convert initial rotations from degrees to radians
+				if (rotation.initialRotation) {
+					particleSystem.minInitialRotation =
+						(rotation.initialRotation.min * Math.PI) / 180;
+					particleSystem.maxInitialRotation =
+						(rotation.initialRotation.max * Math.PI) / 180;
+				}
+			}
+
+			// Start the particle system
+			particleSystem.start();
+
+			return particleSystem;
+		});
+
+		return resultName; // Return the name immediately
+	},
+	startParticleSystem(systemName) {
+		const particleSystem = flock.scene.particleSystems.find(
+			(system) => system.name === systemName,
+		);
+		if (particleSystem) {
+			particleSystem.start();
+		} else {
+			console.warn(`Particle system '${systemName}' not found.`);
+		}
+	},
+	stopParticleSystem(systemName) {
+		const particleSystem = flock.scene.particleSystems.find(
+			(system) => system.name === systemName,
+		);
+
+		if (particleSystem) {
+			particleSystem.stop();
+		} else {
+			console.warn(`Particle system '${systemName}' not found.`);
+		}
+	},
+	resetParticleSystem(systemName) {
+		const particleSystem = flock.scene.particleSystems.find(
+			(system) => system.name === systemName,
+		);
+		if (particleSystem) {
+			particleSystem.reset();
+		} else {
+			console.warn(`Particle system '${systemName}' not found.`);
+		}
+	},
+	setFog(fogColorHex, fogMode, fogDensity = 0.1) {
+		const fogColorRgb = flock.BABYLON.Color3.FromHexString(
+			flock.getColorFromString(fogColorHex),
+		);
+
+		switch (fogMode) {
+			case "NONE":
+				flock.scene.fogMode = flock.BABYLON.Scene.FOGMODE_NONE;
+				break;
+			case "EXP":
+				flock.scene.fogMode = flock.BABYLON.Scene.FOGMODE_EXP;
+				break;
+			case "EXP2":
+				flock.scene.fogMode = flock.BABYLON.Scene.FOGMODE_EXP2;
+				break;
+			case "LINEAR":
+				flock.scene.fogMode = flock.BABYLON.Scene.FOGMODE_LINEAR;
+				break;
+		}
+
+		flock.scene.fogColor = fogColorRgb;
+		flock.scene.fogDensity = fogDensity;
+		flock.scene.fogStart = 50;
+		flock.scene.fogEnd = 100;
+	},
+
+	/* 
+		Category: Scene>Camera
+	*/
+	attachCamera(modelName, radius) {
+		return flock.whenModelReady(modelName, function (mesh) {
+			if (mesh) {
+				console.log("Attaching camera to model");
+				//flock.updateDynamicMeshPositions(flock.scene, [mesh]);
+				let camera = flock.scene.activeCamera;
+
+				flock.savedCamera = camera;
+				flock.ensureVerticalConstraint(mesh);
+
+				camera = new flock.BABYLON.ArcRotateCamera(
+					"camera",
+					Math.PI / 2,
+					Math.PI,
+					radius,
+					mesh.position,
+					flock.scene,
+				);
+				camera.checkCollisions = true;
+				camera.lowerBetaLimit = Math.PI / 3;
+				camera.upperBetaLimit = Math.PI / 2;
+				camera.lowerRadiusLimit = radius * 0.6;
+				camera.upperRadiusLimit = radius * 1.6;
+				camera.angularSensibilityX = 2000;
+				camera.angularSensibilityY = 2000;
+				camera.panningSensibility = 0;
+				camera.inputs.removeByType("ArcRotateCameraMouseWheelInput");
+
+				camera.inputs.attached.pointers.multiTouchPanAndZoom = false;
+				camera.inputs.attached.pointers.multiTouchPanning = false;
+				camera.inputs.attached.pointers.pinchZoom = false;
+				camera.inputs.attached.pointers.pinchInwards = false;
+				camera.inputs.attached.pointers.useNaturalPinchZoom = false;
+				camera.lockedTarget = mesh;
+				camera.metadata = camera.metadata || {};
+				camera.metadata.following = mesh;
+				camera.attachControl(flock.canvas, false);
+				flock.scene.activeCamera = camera;
+			} else {
+				console.log("Model not loaded:", modelName);
+			}
+		});
+	},
+	ensureVerticalConstraint(mesh) {
+		if (mesh.metadata.constraint) return;
+
+		const newBox = flock.BABYLON.MeshBuilder.CreateBox("Constraint", {
+			height: 1,
+			width: 1,
+			depth: 1,
+		});
+		newBox.position = new flock.BABYLON.Vector3(0, -4, 0);
+		newBox.blockKey = newBox.name;
+		newBox.name = newBox.name + "_" + newBox.uniqueId;
+		const boxBody = new flock.BABYLON.PhysicsBody(
+			newBox,
+			flock.BABYLON.PhysicsMotionType.STATIC,
+			false,
+			flock.scene,
+		);
+
+		const boxShape = new flock.BABYLON.PhysicsShapeBox(
+			new flock.BABYLON.Vector3(0, 0, 0),
+			new flock.BABYLON.Quaternion(0, 0, 0, 1),
+			new flock.BABYLON.Vector3(1, 1, 1),
+			flock.scene,
+		);
+
+		boxBody.shape = boxShape;
+		boxBody.setMassProperties({ mass: 1, restitution: 0.5 });
+		newBox.isVisible = false;
+
+		newBox.physics = boxBody;
+
+		const material = new flock.BABYLON.StandardMaterial(
+			"staticMaterial",
+			flock.scene,
+		);
+
+		newBox.material = material;
+
+		function createVerticalConstraint(mesh, referenceBody, scene) {
+			let constraint = new flock.BABYLON.Physics6DoFConstraint(
+				{
+					axisA: new flock.BABYLON.Vector3(1, 0, 0), // trying to turn the car
+					axisB: new flock.BABYLON.Vector3(1, 0, 0),
+					perpAxisA: new flock.BABYLON.Vector3(0, 1, 0),
+					perpAxisB: new flock.BABYLON.Vector3(0, 1, 0),
+				},
+				[
+					{
+						axis: flock.BABYLON.PhysicsConstraintAxis.ANGULAR_X,
+						minLimit: 0,
+						maxLimit: 0,
+					},
+					{
+						axis: flock.BABYLON.PhysicsConstraintAxis.ANGULAR_Z,
+						minLimit: 0,
+						maxLimit: 0,
+					},
+				],
+				scene,
+			);
+
+			// Ensure both bodies are defined before adding constraint
+			if (mesh && referenceBody) {
+				mesh.physics.addConstraint(referenceBody, constraint);
+
+				mesh.metadata.constraint = true;
+			} else {
+				console.error("Mesh body or reference body is not defined");
+			}
+		}
+		// Create the constraint for the platform
+		createVerticalConstraint(mesh, boxBody, flock.scene);
+
+		flock.scene.onAfterPhysicsObservable.add(() => {
+			const currentVelocity = mesh.physics.getLinearVelocity();
+			const newVelocity = new flock.BABYLON.Vector3(
+				0,
+				currentVelocity.y,
+				0,
+			);
+			mesh.physics.setLinearVelocity(newVelocity);
+			mesh.physics.setAngularVelocity(flock.BABYLON.Vector3.Zero());
+		});
+	},
+	getCamera() {
+		return "__active_camera__";
+	},
+	cameraControl(key, action) {
+		// Define a local function to handle the camera actions
+		function handleCameraAction() {
+			if (flock.scene.activeCamera.keysRotateLeft) {
+				// FreeCamera specific controls
+				switch (action) {
+					case "moveUp":
+						flock.scene.activeCamera.keysUp.push(key);
+						break;
+					case "moveDown":
+						flock.scene.activeCamera.keysDown.push(key);
+						break;
+					case "moveLeft":
+						flock.scene.activeCamera.keysLeft.push(key);
+						break;
+					case "moveRight":
+						flock.scene.activeCamera.keysRight.push(key);
+						break;
+					case "rotateUp":
+						flock.scene.activeCamera.keysRotateUp.push(key);
+						break;
+					case "rotateDown":
+						flock.scene.activeCamera.keysRotateDown.push(key);
+						break;
+					case "rotateLeft":
+						flock.scene.activeCamera.keysRotateLeft.push(key);
+						break;
+					case "rotateRight":
+						flock.scene.activeCamera.keysRotateRight.push(key);
+						break;
+				}
+			} else {
+				// ArcRotateCamera specific controls
+				switch (action) {
+					case "rotateLeft":
+					case "moveLeft":
+						flock.scene.activeCamera.keysLeft.push(key);
+						break;
+					case "rotateRight":
+					case "moveRight":
+						flock.scene.activeCamera.keysRight.push(key);
+						break;
+					case "moveUp":
+					case "rotateUp":
+						flock.scene.activeCamera.keysUp.push(key);
+						break;
+					case "moveDown":
+					case "rotateDown":
+						flock.scene.activeCamera.keysDown.push(key);
+						break;
+				}
+			}
+		}
+
+		if (flock.scene.activeCamera) {
+			handleCameraAction();
+		} else {
+			console.error("No active camera found in the scene.");
+		}
+	},
+	updateDynamicMeshPositions(scene, dynamicMeshes) {
+		const capsuleHalfHeight = 1;
+		// When the capsule’s bottom is within this distance of the ground, we treat it as contact.
+		const groundContactThreshold = 0.05;
+		// If the gap is larger than this, assume the capsule is airborne and skip correction.
+		const maxGroundContactGap = 0.1;
+		// Maximum lerp factor per frame for ground correction.
+		const lerpFactor = 0.1;
+		// Only apply correction on nearly flat surfaces.
+		const flatThreshold = 0.98; // dot product of surface normal with up
+
+		dynamicMeshes.forEach((mesh) => {
+			mesh.physics.setCollisionCallbackEnabled(true);
+			const observable = mesh.physics.getCollisionObservable();
+			const observer = observable.add((collisionEvent) => {
+				//console.log("Collision event", collisionEvent);
+
+				const penetration = Math.abs(collisionEvent.distance);
+				// If the penetration is extremely small (indicating minor clipping)
+				if (penetration < 0.001) {
+					// Read the current vertical velocity.
+					const currentVel = mesh.physics.getLinearVelocity();
+					// If there is an upward impulse being applied by the solver,
+					// override it by setting the vertical velocity to zero.
+					if (currentVel.y > 0) {
+						mesh.physics.setLinearVelocity(
+							new flock.BABYLON.Vector3(
+								currentVel.x,
+								0,
+								currentVel.z,
+							),
+						);
+						console.log(
+							"Collision callback: small penetration detected. Overriding upward velocity.",
+						);
+					}
+
+					dynamicMeshes.forEach((mesh) => {
+						// Use a downward ray to determine the gap to the ground.
+						const capsuleHalfHeight = 1; // adjust as needed
+						const rayOrigin = mesh.position
+							.clone()
+							.add(new BABYLON.Vector3(0, -capsuleHalfHeight, 0));
+						const downRay = new BABYLON.Ray(
+							rayOrigin,
+							new BABYLON.Vector3(0, -1, 0),
+							3,
+						);
+						const hit = scene.pickWithRay(downRay, (m) =>
+							m.name.toLowerCase().includes("ground"),
+						);
+						if (hit && hit.pickedMesh) {
+							const groundY = hit.pickedPoint.y;
+							const capsuleBottomY =
+								mesh.position.y - capsuleHalfHeight;
+							const gap = capsuleBottomY - groundY;
+							// If the gap is very small (i.e. the capsule is on or nearly on the ground)
+							// and the vertical velocity is upward, override it.
+							const currentVel = mesh.physics.getLinearVelocity();
+							if (Math.abs(gap) < 0.1 && currentVel.y > 0) {
+								mesh.physics.setLinearVelocity(
+									new BABYLON.Vector3(
+										currentVel.x,
+										0,
+										currentVel.z,
+									),
+								);
+								console.log(
+									"After-render: resetting upward velocity",
+								);
+							}
+						}
+					});
+				}
+			});
+		});
+	},
+
+	/* 
+		Category: Scene>XR
+	*/
+	
+	setCameraBackground(cameraType) {
+		if (!flock.scene) {
+			console.error(
+				"Scene not available. Ensure the scene is initialised before setting the camera background.",
+			);
+			return;
+		}
+
+		const videoLayer = new flock.BABYLON.Layer(
+			"videoLayer",
+			null,
+			flock.scene,
+			true,
+		);
+
+		flock.BABYLON.VideoTexture.CreateFromWebCam(
+			flock.scene,
+			(videoTexture) => {
+				videoTexture._invertY = false; // Correct orientation
+				videoTexture.uScale = -1; // Flip horizontally for mirror effect
+				videoLayer.texture = videoTexture; // Assign the video feed to the layer
+			},
+			{
+				facingMode: cameraType, // "user" for front, "environment" for back
+				minWidth: 640,
+				minHeight: 480,
+				maxWidth: 1920,
+				maxHeight: 1080,
+				deviceId: "",
+			},
+		);
+	},
+	async setXRMode(mode) {
+		await flock.initializeXR(mode);
+		flock.printText("XR Mode!", 5, "white");
+	},
+	exportMesh(meshName, format) {
+		return flock.whenModelReady(meshName, async function (mesh) {
+			const rootChild = mesh
+				.getChildMeshes()
+				.find((child) => child.name === "__root__");
+			if (rootChild) {
+				mesh = rootChild;
+			}
+
+			const childMeshes = mesh.getChildMeshes(false);
+
+			// Combine the parent mesh with its children
+			const meshList = [mesh, ...childMeshes];
+
+			if (format === "STL") {
+				const stlData = flock.EXPORT.STLExport.CreateSTL(
+					meshList,
+					true,
+					mesh.name,
+					false,
+					false,
+				);
+			} else if (format === "OBJ") {
+				const objData = flock.EXPORT.OBJExport.OBJ(mesh);
+				//download(mesh.name + ".obj", objData, "text/plain");
+			} else if (format === "GLB") {
+				mesh.flipFaces();
+				flock.EXPORT.GLTF2Export.GLBAsync(
+					flock.scene,
+					mesh.name + ".glb",
+					{
+						shouldExportNode: (node) =>
+							node === mesh ||
+							mesh.getChildMeshes().includes(node),
+					},
+				).then((glb) => {
+					mesh.flipFaces();
+					glb.downloadFiles();
+				});
+			}
+		});
+	},
+
+	/*
+
+	*/
 	UIText(text, x, y, fontSize, color, duration, id = null) {
 		// Ensure flock.scene and flock.GUI are initialized
 		if (!flock.scene || !flock.GUI) {
@@ -2446,128 +2991,6 @@ export const flock = {
 
 		return modelId;
 	},
-	createParticleEffect({
-		name,
-		emitterMesh,
-		emitRate,
-		colors,
-		alphas,
-		sizes,
-		lifetime,
-		shape,
-		gravity,
-		direction,
-		rotation,
-	}) {
-		let resultName = name + "_" + flock.scene.getUniqueId(); // Placeholder for the synchronous return value
-
-		flock.whenModelReady(emitterMesh, (meshInstance) => {
-			// Create the particle system
-			const particleSystem = new flock.BABYLON.ParticleSystem(
-				resultName,
-				500,
-				flock.scene,
-			);
-
-			// Texture of each particle
-			const texturePath = flock.texturePath + shape;
-			particleSystem.particleTexture = new flock.BABYLON.Texture(
-				texturePath,
-				flock.scene,
-			);
-
-			// Set the emitter mesh
-			particleSystem.emitter = meshInstance;
-
-			// Use a MeshParticleEmitter to emit particles from the mesh's surface
-			const meshEmitter = new flock.BABYLON.MeshParticleEmitter(
-				meshInstance,
-			);
-			particleSystem.particleEmitterType = meshEmitter;
-			particleSystem.blendMode = 4;
-
-			const startColor = flock.BABYLON.Color4.FromHexString(colors.start);
-			const endColor = flock.BABYLON.Color4.FromHexString(colors.end);
-
-			// Combine colors with alpha values
-			const startColorWithAlpha = new flock.BABYLON.Color4(
-				startColor.r,
-				startColor.g,
-				startColor.b,
-				alphas.start,
-			);
-			const endColorWithAlpha = new flock.BABYLON.Color4(
-				endColor.r,
-				endColor.g,
-				endColor.b,
-				alphas.end,
-			);
-
-			/*			particleSystem.blendMode =
-				BABYLON.ParticleSystem.BLENDMODE_STANDARD;
-			particleSystem.particleTexture.hasAlpha = true;
-			particleSystem.particleTexture.getAlphaFromRGB = false;*/
-
-			// Set colors with alpha
-			// Add color gradients with alpha values
-			particleSystem.addColorGradient(0, startColorWithAlpha);
-			particleSystem.addColorGradient(1, endColorWithAlpha);
-
-			// Add size gradients
-			particleSystem.addSizeGradient(0, sizes.start);
-			particleSystem.addSizeGradient(1, sizes.end);
-
-			// Apply lifetime values
-			particleSystem.minLifeTime = lifetime.min;
-			particleSystem.maxLifeTime = lifetime.max;
-
-			// Set the emit rate with a maximum limit
-			const MAX_EMIT_RATE = 500;
-			particleSystem.emitRate = Math.min(emitRate, MAX_EMIT_RATE);
-
-			// Apply gravity if enabled
-			particleSystem.gravity = gravity
-				? new flock.BABYLON.Vector3(0, -9.81, 0)
-				: new flock.BABYLON.Vector3(0, 0, 0);
-
-			if (direction) {
-				const { x, y, z } = direction;
-
-				if (x != 0 || y != 0 || z != 0) {
-					particleSystem.minEmitPower = 1;
-					particleSystem.maxEmitPower = 3;
-					meshEmitter.useMeshNormalsForDirection = false;
-
-					meshEmitter.direction1 = new flock.BABYLON.Vector3(x, y, z);
-					meshEmitter.direction2 = new flock.BABYLON.Vector3(x, y, z);
-				}
-			}
-
-			if (rotation) {
-				// Convert angular speeds from degrees per second to radians per second
-				if (rotation.angularSpeed) {
-					particleSystem.minAngularSpeed =
-						(rotation.angularSpeed.min * Math.PI) / 180;
-					particleSystem.maxAngularSpeed =
-						(rotation.angularSpeed.max * Math.PI) / 180;
-				}
-				// Convert initial rotations from degrees to radians
-				if (rotation.initialRotation) {
-					particleSystem.minInitialRotation =
-						(rotation.initialRotation.min * Math.PI) / 180;
-					particleSystem.maxInitialRotation =
-						(rotation.initialRotation.max * Math.PI) / 180;
-				}
-			}
-
-			// Start the particle system
-			particleSystem.start();
-
-			return particleSystem;
-		});
-
-		return resultName; // Return the name immediately
-	},
 	hold(meshToAttach, targetMesh, xOffset = 0, yOffset = 0, zOffset = 0) {
 		return flock.whenModelReady(targetMesh, (targetMeshInstance) => {
 			flock.whenModelReady(meshToAttach, (meshToAttachInstance) => {
@@ -3198,15 +3621,6 @@ export const flock = {
 	createCustomMap(colors) {
 		console.log("Creating map", colors);
 	},
-	lightIntensity(intensity) {
-		if (flock.mainLight) {
-			flock.mainLight.intensity = intensity;
-		} else {
-			console.warn(
-				"Main light is not defined. Please ensure flock.mainLight exists.",
-			);
-		}
-	},
 	wait(duration) {
 		return new Promise((resolve, reject) => {
 			const timeoutId = setTimeout(() => {
@@ -3425,31 +3839,6 @@ export const flock = {
 		console.error(
 			`Failed to find mesh "${modelName}" after ${maxAttempts} attempts.`,
 		);
-	},
-	setFog(fogColorHex, fogMode, fogDensity = 0.1) {
-		const fogColorRgb = flock.BABYLON.Color3.FromHexString(
-			flock.getColorFromString(fogColorHex),
-		);
-
-		switch (fogMode) {
-			case "NONE":
-				flock.scene.fogMode = flock.BABYLON.Scene.FOGMODE_NONE;
-				break;
-			case "EXP":
-				flock.scene.fogMode = flock.BABYLON.Scene.FOGMODE_EXP;
-				break;
-			case "EXP2":
-				flock.scene.fogMode = flock.BABYLON.Scene.FOGMODE_EXP2;
-				break;
-			case "LINEAR":
-				flock.scene.fogMode = flock.BABYLON.Scene.FOGMODE_LINEAR;
-				break;
-		}
-
-		flock.scene.fogColor = fogColorRgb;
-		flock.scene.fogDensity = fogDensity;
-		flock.scene.fogStart = 50;
-		flock.scene.fogEnd = 100;
 	},
 	initializeMesh(mesh, position, color, shapeType, alpha = 1) {
 		// Set position
@@ -5575,37 +5964,6 @@ export const flock = {
 			console.warn(`Animation group '${groupName}' not found.`);
 		}
 	},
-	startParticleSystem(systemName) {
-		const particleSystem = flock.scene.particleSystems.find(
-			(system) => system.name === systemName,
-		);
-		if (particleSystem) {
-			particleSystem.start();
-		} else {
-			console.warn(`Particle system '${systemName}' not found.`);
-		}
-	},
-	stopParticleSystem(systemName) {
-		const particleSystem = flock.scene.particleSystems.find(
-			(system) => system.name === systemName,
-		);
-
-		if (particleSystem) {
-			particleSystem.stop();
-		} else {
-			console.warn(`Particle system '${systemName}' not found.`);
-		}
-	},
-	resetParticleSystem(systemName) {
-		const particleSystem = flock.scene.particleSystems.find(
-			(system) => system.name === systemName,
-		);
-		if (particleSystem) {
-			particleSystem.reset();
-		} else {
-			console.warn(`Particle system '${systemName}' not found.`);
-		}
-	},
 	animateFrom(groupName, timeInSeconds) {
 		const animationGroup = flock.scene.animationGroups.find(
 			(group) => group.name === groupName,
@@ -6998,414 +7356,7 @@ export const flock = {
 		model.rotationQuaternion.normalize();
 		*/
 	},
-	attachCamera(modelName, radius) {
-		return flock.whenModelReady(modelName, function (mesh) {
-			if (mesh) {
-				console.log("Attaching camera to model");
-				//flock.updateDynamicMeshPositions(flock.scene, [mesh]);
-				let camera = flock.scene.activeCamera;
 
-				flock.savedCamera = camera;
-				flock.ensureVerticalConstraint(mesh);
-
-				camera = new flock.BABYLON.ArcRotateCamera(
-					"camera",
-					Math.PI / 2,
-					Math.PI,
-					radius,
-					mesh.position,
-					flock.scene,
-				);
-				camera.checkCollisions = true;
-				camera.lowerBetaLimit = Math.PI / 3;
-				camera.upperBetaLimit = Math.PI / 2;
-				camera.lowerRadiusLimit = radius * 0.6;
-				camera.upperRadiusLimit = radius * 1.6;
-				camera.angularSensibilityX = 2000;
-				camera.angularSensibilityY = 2000;
-				camera.panningSensibility = 0;
-				camera.inputs.removeByType("ArcRotateCameraMouseWheelInput");
-
-				camera.inputs.attached.pointers.multiTouchPanAndZoom = false;
-				camera.inputs.attached.pointers.multiTouchPanning = false;
-				camera.inputs.attached.pointers.pinchZoom = false;
-				camera.inputs.attached.pointers.pinchInwards = false;
-				camera.inputs.attached.pointers.useNaturalPinchZoom = false;
-				camera.lockedTarget = mesh;
-				camera.metadata = camera.metadata || {};
-				camera.metadata.following = mesh;
-				camera.attachControl(flock.canvas, false);
-				flock.scene.activeCamera = camera;
-			} else {
-				console.log("Model not loaded:", modelName);
-			}
-		});
-	},
-	ensureVerticalConstraint(mesh) {
-		if (mesh.metadata.constraint) return;
-
-		const newBox = flock.BABYLON.MeshBuilder.CreateBox("Constraint", {
-			height: 1,
-			width: 1,
-			depth: 1,
-		});
-		newBox.position = new flock.BABYLON.Vector3(0, -4, 0);
-		newBox.blockKey = newBox.name;
-		newBox.name = newBox.name + "_" + newBox.uniqueId;
-		const boxBody = new flock.BABYLON.PhysicsBody(
-			newBox,
-			flock.BABYLON.PhysicsMotionType.STATIC,
-			false,
-			flock.scene,
-		);
-
-		const boxShape = new flock.BABYLON.PhysicsShapeBox(
-			new flock.BABYLON.Vector3(0, 0, 0),
-			new flock.BABYLON.Quaternion(0, 0, 0, 1),
-			new flock.BABYLON.Vector3(1, 1, 1),
-			flock.scene,
-		);
-
-		boxBody.shape = boxShape;
-		boxBody.setMassProperties({ mass: 1, restitution: 0.5 });
-		newBox.isVisible = false;
-
-		newBox.physics = boxBody;
-
-		const material = new flock.BABYLON.StandardMaterial(
-			"staticMaterial",
-			flock.scene,
-		);
-
-		newBox.material = material;
-
-		function createVerticalConstraint(mesh, referenceBody, scene) {
-			let constraint = new flock.BABYLON.Physics6DoFConstraint(
-				{
-					axisA: new flock.BABYLON.Vector3(1, 0, 0), // trying to turn the car
-					axisB: new flock.BABYLON.Vector3(1, 0, 0),
-					perpAxisA: new flock.BABYLON.Vector3(0, 1, 0),
-					perpAxisB: new flock.BABYLON.Vector3(0, 1, 0),
-				},
-				[
-					{
-						axis: flock.BABYLON.PhysicsConstraintAxis.ANGULAR_X,
-						minLimit: 0,
-						maxLimit: 0,
-					},
-					{
-						axis: flock.BABYLON.PhysicsConstraintAxis.ANGULAR_Z,
-						minLimit: 0,
-						maxLimit: 0,
-					},
-				],
-				scene,
-			);
-
-			// Ensure both bodies are defined before adding constraint
-			if (mesh && referenceBody) {
-				mesh.physics.addConstraint(referenceBody, constraint);
-
-				mesh.metadata.constraint = true;
-			} else {
-				console.error("Mesh body or reference body is not defined");
-			}
-		}
-		// Create the constraint for the platform
-		createVerticalConstraint(mesh, boxBody, flock.scene);
-
-		flock.scene.onAfterPhysicsObservable.add(() => {
-			const currentVelocity = mesh.physics.getLinearVelocity();
-			const newVelocity = new flock.BABYLON.Vector3(
-				0,
-				currentVelocity.y,
-				0,
-			);
-			mesh.physics.setLinearVelocity(newVelocity);
-			mesh.physics.setAngularVelocity(flock.BABYLON.Vector3.Zero());
-		});
-	},
-	getCamera() {
-		return "__active_camera__";
-	},
-	cameraControl(key, action) {
-		// Define a local function to handle the camera actions
-		function handleCameraAction() {
-			if (flock.scene.activeCamera.keysRotateLeft) {
-				// FreeCamera specific controls
-				switch (action) {
-					case "moveUp":
-						flock.scene.activeCamera.keysUp.push(key);
-						break;
-					case "moveDown":
-						flock.scene.activeCamera.keysDown.push(key);
-						break;
-					case "moveLeft":
-						flock.scene.activeCamera.keysLeft.push(key);
-						break;
-					case "moveRight":
-						flock.scene.activeCamera.keysRight.push(key);
-						break;
-					case "rotateUp":
-						flock.scene.activeCamera.keysRotateUp.push(key);
-						break;
-					case "rotateDown":
-						flock.scene.activeCamera.keysRotateDown.push(key);
-						break;
-					case "rotateLeft":
-						flock.scene.activeCamera.keysRotateLeft.push(key);
-						break;
-					case "rotateRight":
-						flock.scene.activeCamera.keysRotateRight.push(key);
-						break;
-				}
-			} else {
-				// ArcRotateCamera specific controls
-				switch (action) {
-					case "rotateLeft":
-					case "moveLeft":
-						flock.scene.activeCamera.keysLeft.push(key);
-						break;
-					case "rotateRight":
-					case "moveRight":
-						flock.scene.activeCamera.keysRight.push(key);
-						break;
-					case "moveUp":
-					case "rotateUp":
-						flock.scene.activeCamera.keysUp.push(key);
-						break;
-					case "moveDown":
-					case "rotateDown":
-						flock.scene.activeCamera.keysDown.push(key);
-						break;
-				}
-			}
-		}
-
-		if (flock.scene.activeCamera) {
-			handleCameraAction();
-		} else {
-			console.error("No active camera found in the scene.");
-		}
-	},
-	setCameraBackground(cameraType) {
-		if (!flock.scene) {
-			console.error(
-				"Scene not available. Ensure the scene is initialised before setting the camera background.",
-			);
-			return;
-		}
-
-		const videoLayer = new flock.BABYLON.Layer(
-			"videoLayer",
-			null,
-			flock.scene,
-			true,
-		);
-
-		flock.BABYLON.VideoTexture.CreateFromWebCam(
-			flock.scene,
-			(videoTexture) => {
-				videoTexture._invertY = false; // Correct orientation
-				videoTexture.uScale = -1; // Flip horizontally for mirror effect
-				videoLayer.texture = videoTexture; // Assign the video feed to the layer
-			},
-			{
-				facingMode: cameraType, // "user" for front, "environment" for back
-				minWidth: 640,
-				minHeight: 480,
-				maxWidth: 1920,
-				maxHeight: 1080,
-				deviceId: "",
-			},
-		);
-	},
-	async setXRMode(mode) {
-		await flock.initializeXR(mode);
-		flock.printText("XR Mode!", 5, "white");
-	},
-	updateDynamicMeshPositions(scene, dynamicMeshes) {
-		const capsuleHalfHeight = 1;
-		// When the capsule’s bottom is within this distance of the ground, we treat it as contact.
-		const groundContactThreshold = 0.05;
-		// If the gap is larger than this, assume the capsule is airborne and skip correction.
-		const maxGroundContactGap = 0.1;
-		// Maximum lerp factor per frame for ground correction.
-		const lerpFactor = 0.1;
-		// Only apply correction on nearly flat surfaces.
-		const flatThreshold = 0.98; // dot product of surface normal with up
-
-		dynamicMeshes.forEach((mesh) => {
-			mesh.physics.setCollisionCallbackEnabled(true);
-			const observable = mesh.physics.getCollisionObservable();
-			const observer = observable.add((collisionEvent) => {
-				//console.log("Collision event", collisionEvent);
-
-				const penetration = Math.abs(collisionEvent.distance);
-				// If the penetration is extremely small (indicating minor clipping)
-				if (penetration < 0.001) {
-					// Read the current vertical velocity.
-					const currentVel = mesh.physics.getLinearVelocity();
-					// If there is an upward impulse being applied by the solver,
-					// override it by setting the vertical velocity to zero.
-					if (currentVel.y > 0) {
-						mesh.physics.setLinearVelocity(
-							new flock.BABYLON.Vector3(
-								currentVel.x,
-								0,
-								currentVel.z,
-							),
-						);
-						console.log(
-							"Collision callback: small penetration detected. Overriding upward velocity.",
-						);
-					}
-
-					dynamicMeshes.forEach((mesh) => {
-						// Use a downward ray to determine the gap to the ground.
-						const capsuleHalfHeight = 1; // adjust as needed
-						const rayOrigin = mesh.position
-							.clone()
-							.add(new BABYLON.Vector3(0, -capsuleHalfHeight, 0));
-						const downRay = new BABYLON.Ray(
-							rayOrigin,
-							new BABYLON.Vector3(0, -1, 0),
-							3,
-						);
-						const hit = scene.pickWithRay(downRay, (m) =>
-							m.name.toLowerCase().includes("ground"),
-						);
-						if (hit && hit.pickedMesh) {
-							const groundY = hit.pickedPoint.y;
-							const capsuleBottomY =
-								mesh.position.y - capsuleHalfHeight;
-							const gap = capsuleBottomY - groundY;
-							// If the gap is very small (i.e. the capsule is on or nearly on the ground)
-							// and the vertical velocity is upward, override it.
-							const currentVel = mesh.physics.getLinearVelocity();
-							if (Math.abs(gap) < 0.1 && currentVel.y > 0) {
-								mesh.physics.setLinearVelocity(
-									new BABYLON.Vector3(
-										currentVel.x,
-										0,
-										currentVel.z,
-									),
-								);
-								console.log(
-									"After-render: resetting upward velocity",
-								);
-							}
-						}
-					});
-				}
-			});
-		});
-		/*
-		scene.onBeforeRenderObservable.add(() => {
-			dynamicMeshes.forEach((mesh) => {
-				if (mesh.physics) {
-					console.log("----- Frame Debug Info -----");
-					console.log("Capsule Position:", mesh.position);
-					const velocity = mesh.physics.getLinearVelocity();
-					console.log("Capsule Velocity:", velocity);
-
-					// Set up the ray starting near the bottom of the capsule.
-					const rayOrigin = mesh.position
-						.clone()
-						.add(new BABYLON.Vector3(0, -capsuleHalfHeight, 0));
-					const downDirection = new BABYLON.Vector3(0, -1, 0);
-					const rayLength = 3;
-					const downRay = new BABYLON.Ray(
-						rayOrigin,
-						downDirection,
-						rayLength,
-					);
-
-					// Pick a ground mesh.
-					const hit = scene.pickWithRay(
-						downRay,
-						(m) =>
-							m !== mesh &&
-							(m.isGround ||
-								m.name.toLowerCase().includes("ground") ||
-								m.name.toLowerCase().includes("slope")),
-					);
-
-					if (hit && hit.pickedMesh) {
-						console.log("Ground detected:", hit.pickedMesh.name);
-						console.log("Hit Point:", hit.pickedPoint);
-						const surfaceNormal = hit.getNormal();
-						console.log("Surface Normal:", surfaceNormal);
-
-						const groundY = hit.pickedPoint.y;
-						const capsuleBottomY =
-							mesh.position.y - capsuleHalfHeight;
-						const gap = capsuleBottomY - groundY;
-						console.log("Gap (capsule bottom - ground):", gap);
-
-						const up = new BABYLON.Vector3(0, 1, 0);
-						const slopeFactor = BABYLON.Scalar.Clamp(
-							surfaceNormal.dot(up),
-							0,
-							1,
-						);
-						console.log("Slope factor:", slopeFactor);
-
-						// Only apply ground correction if:
-						// - The capsule is falling (velocity.y < -0.1), and
-						// - The capsule’s bottom is very near the ground (gap < maxGroundContactGap)
-						// - And the surface is nearly flat.
-						if (
-							velocity.y < -0.1 &&
-							Math.abs(gap) < maxGroundContactGap &&
-							slopeFactor >= flatThreshold
-						) {
-							const desiredY = groundY + capsuleHalfHeight;
-							// Gradually move the capsule toward the desired Y.
-							mesh.position.y = BABYLON.Scalar.Lerp(
-								mesh.position.y,
-								desiredY,
-								lerpFactor,
-							);
-							console.log(
-								"Correcting capsule position. Ground Y:",
-								groundY,
-								"New Y:",
-								mesh.position.y,
-							);
-							// Optionally damp vertical velocity.
-							const currentVel = mesh.physics.getLinearVelocity();
-							mesh.physics.setLinearVelocity(
-								new BABYLON.Vector3(
-									currentVel.x,
-									currentVel.y * 0.5,
-									currentVel.z,
-								),
-							);
-						} else {
-							if (Math.abs(gap) >= maxGroundContactGap) {
-								console.log(
-									"Skipping ground correction: capsule gap =",
-									gap,
-									" (assumed airborne).",
-								);
-							} else {
-								console.log(
-									"Skipping ground correction: vertical velocity =",
-									velocity.y,
-								);
-							}
-						}
-					} else {
-						console.log(
-							"No ground detected at adjusted ray origin.",
-						);
-					}
-					console.log("----- End Frame Debug Info -----");
-				}
-			});
-		});*/
-	},
 	setPhysics(modelName, physicsType) {
 		return flock.whenModelReady(modelName, (mesh) => {
 			switch (physicsType) {
@@ -8580,48 +8531,7 @@ export const flock = {
 			flock.scene.metadata.bpm = bpm;
 		}
 	},
-	exportMesh(meshName, format) {
-		return flock.whenModelReady(meshName, async function (mesh) {
-			const rootChild = mesh
-				.getChildMeshes()
-				.find((child) => child.name === "__root__");
-			if (rootChild) {
-				mesh = rootChild;
-			}
-
-			const childMeshes = mesh.getChildMeshes(false);
-
-			// Combine the parent mesh with its children
-			const meshList = [mesh, ...childMeshes];
-
-			if (format === "STL") {
-				const stlData = flock.EXPORT.STLExport.CreateSTL(
-					meshList,
-					true,
-					mesh.name,
-					false,
-					false,
-				);
-			} else if (format === "OBJ") {
-				const objData = flock.EXPORT.OBJExport.OBJ(mesh);
-				//download(mesh.name + ".obj", objData, "text/plain");
-			} else if (format === "GLB") {
-				mesh.flipFaces();
-				flock.EXPORT.GLTF2Export.GLBAsync(
-					flock.scene,
-					mesh.name + ".glb",
-					{
-						shouldExportNode: (node) =>
-							node === mesh ||
-							mesh.getChildMeshes().includes(node),
-					},
-				).then((glb) => {
-					mesh.flipFaces();
-					glb.downloadFiles();
-				});
-			}
-		});
-	},
+	
 };
 
 export function initializeFlock() {
