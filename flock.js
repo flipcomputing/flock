@@ -51,6 +51,10 @@ import {
 	flockMesh,
 	setFlockReference as setFlockMesh,
 } from "./api/mesh";
+import {
+	flockCamera,
+	setFlockReference as setFlockCamera,
+} from "./api/camera";
 // Helper functions to make flock.BABYLON js easier to use in Flock
 console.log("Flock helpers loading");
 
@@ -106,6 +110,7 @@ export const flock = {
 	...flockPhysics,
 	...flockScene,
 	...flockMesh,
+	...flockCamera,
 	async runCode(code) {
 		let iframe = document.getElementById("flock-iframe");
 
@@ -484,6 +489,7 @@ export const flock = {
 		setFlockPhysics(flock);
 		setFlockScene(flock);
 		setFlockMesh(flock);
+		setFlockCamera(flock);
 		
 		// Add highlight layer
 		flock.highlighter = new flock.BABYLON.HighlightLayer(
@@ -797,200 +803,6 @@ export const flock = {
 		})();
 	},
 	
-	/* 
-		Category: Scene>Camera
-	*/
-	attachCamera(modelName, radius) {
-		return flock.whenModelReady(modelName, function (mesh) {
-			if (mesh) {
-				console.log("Attaching camera to model");
-				//flock.updateDynamicMeshPositions(flock.scene, [mesh]);
-				let camera = flock.scene.activeCamera;
-
-				flock.savedCamera = camera;
-				flock.ensureVerticalConstraint(mesh);
-
-				camera = new flock.BABYLON.ArcRotateCamera(
-					"camera",
-					Math.PI / 2,
-					Math.PI,
-					radius,
-					mesh.position,
-					flock.scene,
-				);
-				camera.checkCollisions = true;
-				camera.lowerBetaLimit = Math.PI / 3;
-				camera.upperBetaLimit = Math.PI / 2;
-				camera.lowerRadiusLimit = radius * 0.6;
-				camera.upperRadiusLimit = radius * 1.6;
-				camera.angularSensibilityX = 2000;
-				camera.angularSensibilityY = 2000;
-				camera.panningSensibility = 0;
-				camera.inputs.removeByType("ArcRotateCameraMouseWheelInput");
-
-				camera.inputs.attached.pointers.multiTouchPanAndZoom = false;
-				camera.inputs.attached.pointers.multiTouchPanning = false;
-				camera.inputs.attached.pointers.pinchZoom = false;
-				camera.inputs.attached.pointers.pinchInwards = false;
-				camera.inputs.attached.pointers.useNaturalPinchZoom = false;
-				camera.lockedTarget = mesh;
-				camera.metadata = camera.metadata || {};
-				camera.metadata.following = mesh;
-				camera.attachControl(flock.canvas, false);
-				flock.scene.activeCamera = camera;
-			} else {
-				console.log("Model not loaded:", modelName);
-			}
-		});
-	},
-	ensureVerticalConstraint(mesh) {
-		if (mesh.metadata.constraint) return;
-
-		const newBox = flock.BABYLON.MeshBuilder.CreateBox("Constraint", {
-			height: 1,
-			width: 1,
-			depth: 1,
-		});
-		newBox.position = new flock.BABYLON.Vector3(0, -4, 0);
-		newBox.blockKey = newBox.name;
-		newBox.name = newBox.name + "_" + newBox.uniqueId;
-		const boxBody = new flock.BABYLON.PhysicsBody(
-			newBox,
-			flock.BABYLON.PhysicsMotionType.STATIC,
-			false,
-			flock.scene,
-		);
-
-		const boxShape = new flock.BABYLON.PhysicsShapeBox(
-			new flock.BABYLON.Vector3(0, 0, 0),
-			new flock.BABYLON.Quaternion(0, 0, 0, 1),
-			new flock.BABYLON.Vector3(1, 1, 1),
-			flock.scene,
-		);
-
-		boxBody.shape = boxShape;
-		boxBody.setMassProperties({ mass: 1, restitution: 0.5 });
-		newBox.isVisible = false;
-
-		newBox.physics = boxBody;
-
-		const material = new flock.BABYLON.StandardMaterial(
-			"staticMaterial",
-			flock.scene,
-		);
-
-		newBox.material = material;
-
-		function createVerticalConstraint(mesh, referenceBody, scene) {
-			let constraint = new flock.BABYLON.Physics6DoFConstraint(
-				{
-					axisA: new flock.BABYLON.Vector3(1, 0, 0), // trying to turn the car
-					axisB: new flock.BABYLON.Vector3(1, 0, 0),
-					perpAxisA: new flock.BABYLON.Vector3(0, 1, 0),
-					perpAxisB: new flock.BABYLON.Vector3(0, 1, 0),
-				},
-				[
-					{
-						axis: flock.BABYLON.PhysicsConstraintAxis.ANGULAR_X,
-						minLimit: 0,
-						maxLimit: 0,
-					},
-					{
-						axis: flock.BABYLON.PhysicsConstraintAxis.ANGULAR_Z,
-						minLimit: 0,
-						maxLimit: 0,
-					},
-				],
-				scene,
-			);
-
-			// Ensure both bodies are defined before adding constraint
-			if (mesh && referenceBody) {
-				mesh.physics.addConstraint(referenceBody, constraint);
-
-				mesh.metadata.constraint = true;
-			} else {
-				console.error("Mesh body or reference body is not defined");
-			}
-		}
-		// Create the constraint for the platform
-		createVerticalConstraint(mesh, boxBody, flock.scene);
-
-		flock.scene.onAfterPhysicsObservable.add(() => {
-			const currentVelocity = mesh.physics.getLinearVelocity();
-			const newVelocity = new flock.BABYLON.Vector3(
-				0,
-				currentVelocity.y,
-				0,
-			);
-			mesh.physics.setLinearVelocity(newVelocity);
-			mesh.physics.setAngularVelocity(flock.BABYLON.Vector3.Zero());
-		});
-	},
-	getCamera() {
-		return "__active_camera__";
-	},
-	cameraControl(key, action) {
-		// Define a local function to handle the camera actions
-		function handleCameraAction() {
-			if (flock.scene.activeCamera.keysRotateLeft) {
-				// FreeCamera specific controls
-				switch (action) {
-					case "moveUp":
-						flock.scene.activeCamera.keysUp.push(key);
-						break;
-					case "moveDown":
-						flock.scene.activeCamera.keysDown.push(key);
-						break;
-					case "moveLeft":
-						flock.scene.activeCamera.keysLeft.push(key);
-						break;
-					case "moveRight":
-						flock.scene.activeCamera.keysRight.push(key);
-						break;
-					case "rotateUp":
-						flock.scene.activeCamera.keysRotateUp.push(key);
-						break;
-					case "rotateDown":
-						flock.scene.activeCamera.keysRotateDown.push(key);
-						break;
-					case "rotateLeft":
-						flock.scene.activeCamera.keysRotateLeft.push(key);
-						break;
-					case "rotateRight":
-						flock.scene.activeCamera.keysRotateRight.push(key);
-						break;
-				}
-			} else {
-				// ArcRotateCamera specific controls
-				switch (action) {
-					case "rotateLeft":
-					case "moveLeft":
-						flock.scene.activeCamera.keysLeft.push(key);
-						break;
-					case "rotateRight":
-					case "moveRight":
-						flock.scene.activeCamera.keysRight.push(key);
-						break;
-					case "moveUp":
-					case "rotateUp":
-						flock.scene.activeCamera.keysUp.push(key);
-						break;
-					case "moveDown":
-					case "rotateDown":
-						flock.scene.activeCamera.keysDown.push(key);
-						break;
-				}
-			}
-		}
-
-		if (flock.scene.activeCamera) {
-			handleCameraAction();
-		} else {
-			console.error("No active camera found in the scene.");
-		}
-	},
-	
 
 	/* 
 		Category: Scene>XR
@@ -1079,7 +891,6 @@ export const flock = {
 
 	*/
 	
-	
 	wait(duration) {
 		return new Promise((resolve, reject) => {
 			const timeoutId = setTimeout(() => {
@@ -1152,7 +963,6 @@ export const flock = {
 			flock.scene.onBeforeRenderObservable.add(checkCondition);
 		});
 	},
-	
 	getProperty(modelName, propertyName) {
 		const mesh =
 			modelName === "__active_camera__"
@@ -1400,56 +1210,6 @@ export const flock = {
 		}
 		return propertyValue;
 	},
-	isTouchingSurface(modelName) {
-		const mesh = flock.scene.getMeshByName(modelName);
-		if (mesh) {
-			return flock.checkIfOnSurface(mesh);
-		} else {
-			console.log("Model not loaded (isTouchingSurface):", modelName);
-			return false;
-		}
-	},
-	checkIfOnSurface(mesh) {
-		mesh.computeWorldMatrix(true);
-		const boundingInfo = mesh.getBoundingInfo();
-
-		const minY = boundingInfo.boundingBox.minimumWorld.y;
-		const rayOrigin = new flock.BABYLON.Vector3(
-			boundingInfo.boundingBox.centerWorld.x,
-			minY + 0.01,
-			boundingInfo.boundingBox.centerWorld.z,
-		);
-
-		const ray = new flock.BABYLON.Ray(
-			rayOrigin,
-			new flock.BABYLON.Vector3(0, -1, 0),
-			2,
-		);
-
-		let parentPickable = false;
-		if (mesh.isPickable) {
-			parentPickable = true;
-			mesh.isPickable = false;
-		}
-
-		const descendants = mesh.getChildMeshes(false);
-		descendants.forEach((childMesh) => {
-			if (childMesh.getTotalVertices() > 0) {
-				childMesh.isPickable = false;
-			}
-		});
-		const hit = flock.scene.pickWithRay(ray);
-		descendants.forEach((childMesh) => {
-			if (childMesh.getTotalVertices() > 0) {
-				childMesh.isPickable = true;
-			}
-		});
-
-		if (parentPickable) mesh.ispickable = true;
-
-		//if(hit.hit) {console.log(hit.pickedMesh.name, hit.distance);}
-		return hit.hit && hit.pickedMesh !== null && hit.distance <= 0.06;
-	},
 	keyPressed(key) {
 		// Combine all input sources: keys, buttons, and controllers
 		const pressedKeys = flock.canvas.pressedKeys;
@@ -1514,197 +1274,6 @@ export const flock = {
 		const result = Math.floor(random * (to - from + 1)) + from;
 		return result;
 	},	
-	checkMeshesTouching(mesh1VarName, mesh2VarName) {
-		const mesh1 = flock.scene.getMeshByName(mesh1VarName);
-		const mesh2 = flock.scene.getMeshByName(mesh2VarName);
-		if (mesh1 && mesh2 && mesh2.isEnabled()) {
-			return mesh1.intersectsMesh(mesh2, false);
-		}
-		return false;
-	},
-	onTrigger(modelName, trigger, doCode, options = { mode: "wait" }) {
-		return flock.whenModelReady(modelName, async function (target) {
-			if (!target) {
-				console.log("Model or GUI Button not loaded:", modelName);
-				return;
-			}
-
-			let { mode } = options;
-			let isExecuting = false; // Tracks whether action is currently executing
-			let hasExecuted = false; // Tracks whether action has executed in 'once' mode
-			let doCodes = Array.isArray(doCode) ? doCode : [doCode];
-			let currentIndex = 0;
-
-			// Helper to handle action registration for meshes
-			function registerMeshAction(mesh, trigger, action) {
-				mesh.isPickable = true;
-				if (!mesh.actionManager) {
-					mesh.actionManager = new flock.BABYLON.ActionManager(
-						flock.scene,
-					);
-					mesh.actionManager.isRecursive = true;
-				}
-
-				let actionSequence = new flock.BABYLON.ExecuteCodeAction(
-					flock.BABYLON.ActionManager[trigger],
-					action,
-				);
-
-				for (let i = 1; i < doCodes.length; i++) {
-					actionSequence = actionSequence.then(
-						new flock.BABYLON.ExecuteCodeAction(
-							flock.BABYLON.ActionManager[trigger],
-							async () => await doCodes[i](),
-						),
-					);
-				}
-
-				mesh.actionManager.registerAction(actionSequence);
-			}
-
-			// Helper to handle GUI button registration
-			function registerButtonAction(button, trigger, action) {
-				if (trigger === "OnPointerUpTrigger") {
-					button.onPointerUpObservable.add(action);
-				} else {
-					button.onPointerClickObservable.add(action);
-				}
-			}
-
-			// Execute the next code in sequence
-			async function executeAction() {
-				// Handle 'once' mode - execute only once
-				if (mode === "once") {
-					if (hasExecuted) return; // Skip if already executed
-					hasExecuted = true; // Mark as executed
-				}
-
-				// Handle 'wait' mode - discard if already executing
-				if (mode === "wait") {
-					if (isExecuting) return; // Skip if still processing
-					isExecuting = true;
-				}
-
-				try {
-					await doCodes[currentIndex]();
-					currentIndex = (currentIndex + 1) % doCodes.length;
-				} catch (e) {
-					console.error("Action execution failed:", e);
-				} finally {
-					// Reset execution flag only for 'wait' mode
-					if (mode === "wait") isExecuting = false;
-				}
-			}
-
-			// Handle meshes
-			if (target instanceof flock.BABYLON.AbstractMesh) {
-				registerMeshAction(target, trigger, async () => {
-					await executeAction(); // Always execute immediately
-				});
-
-				// Handle AR/VR-specific interactions
-				if (flock.xrHelper && flock.xrHelper.baseExperience) {
-					flock.xrHelper.baseExperience.onStateChangedObservable.add(
-						(state) => {
-							if (
-								state === flock.BABYLON.WebXRState.IN_XR &&
-								flock.xrHelper.baseExperience.sessionManager
-									.sessionMode === "immersive-ar"
-							) {
-								flock.xrHelper.baseExperience.featuresManager.enableFeature(
-									BABYLON.WebXRHitTest.Name,
-									"latest",
-									{
-										onHitTestResultObservable: (
-											results,
-										) => {
-											if (results.length > 0) {
-												const hitTest = results[0];
-												const position =
-													hitTest.transformationMatrix.getTranslation();
-												target.position.copyFrom(
-													position,
-												);
-												target.isVisible = true;
-											}
-										},
-									},
-								);
-
-								flock.scene.onPointerDown = function (
-									evt,
-									pickResult,
-								) {
-									if (
-										pickResult.hit &&
-										pickResult.pickedMesh === target
-									) {
-										executeAction(); // Discard extra triggers in 'wait' mode
-									}
-								};
-							} else if (state === BABYLON.WebXRState.NOT_IN_XR) {
-								flock.scene.onPointerDown = null;
-							}
-						},
-					);
-				}
-			}
-			// Handle GUI buttons
-			else if (target instanceof flock.GUI.Button) {
-				registerButtonAction(target, trigger, async () => {
-					await executeAction(); // Execute immediately
-				});
-			}
-		});
-	},
-
-	onIntersect(modelName, otherModelName, trigger, doCode) {
-		return flock.whenModelReady(modelName, async function (mesh) {
-			if (!mesh) {
-				console.error("Model not loaded:", modelName);
-				return;
-			}
-
-			// Load the second model
-			return flock.whenModelReady(
-				otherModelName,
-				async function (otherMesh) {
-					if (!otherMesh) {
-						console.error("Model not loaded:", otherModelName);
-						return;
-					}
-
-					// Initialize actionManager if not present
-					if (!mesh.actionManager) {
-						mesh.actionManager = new flock.BABYLON.ActionManager(
-							flock.scene,
-						);
-						mesh.actionManager.isRecursive = true;
-					}
-
-					const action = new flock.BABYLON.ExecuteCodeAction(
-						{
-							trigger: flock.BABYLON.ActionManager[trigger],
-							parameter: {
-								mesh: otherMesh,
-								usePreciseIntersection: true,
-							},
-						},
-						async function () {
-							await doCode(); // Execute the provided callback function
-						},
-						new flock.BABYLON.PredicateCondition(
-							flock.BABYLON.ActionManager,
-							() => {
-								return otherMesh.isEnabled();
-							},
-						),
-					);
-					mesh.actionManager.registerAction(action); // Register the ExecuteCodeAction
-				},
-			);
-		});
-	},
 	sanitizeEventName(eventName) {
 		return eventName.replace(/[^a-zA-Z0-9_-]/g, "");
 	},
