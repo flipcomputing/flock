@@ -8385,7 +8385,7 @@ export const flock = {
 				spatialDistanceModel: "linear",
 				spatialMaxDistance: 20,
 				autoplay: false,
-				loop: loop,
+				loop,
 				volume: options.volume ?? 1,
 				playbackRate: options.playbackRate ?? 1,
 			});
@@ -8393,22 +8393,24 @@ export const flock = {
 
 		if (meshName === "__everywhere__") {
 			const sound = await createSound(false);
-			flock.globalSounds.push(sound);
+			if (!flock.globalSounds.includes(sound)) {
+				flock.globalSounds.push(sound);
+			}
 			sound.play();
 
 			if (!loop) {
 				return new Promise((resolve) => {
-					sound.onEndedObservable.add(() => {
+					sound.onEndedObservable.addOnce(() => {
 						const index = flock.globalSounds.indexOf(sound);
 						if (index !== -1) {
 							flock.globalSounds.splice(index, 1);
 						}
-						resolve(sound); // ✅ return the sound
+						resolve(sound);
 					});
 				});
 			}
 
-			return sound; // ✅ also return for looped sounds
+			return sound;
 		}
 
 		return flock.whenModelReady(meshName, async (mesh) => {
@@ -8436,18 +8438,20 @@ export const flock = {
 
 			const sound = await createSound(true);
 
-			if (sound.spatial) {
+			if (sound.spatial && !mesh.isDisposed()) {
 				await sound.spatial.attach(mesh);
 			}
 
 			mesh.metadata.currentSound = sound;
 			sound._attachedMesh = mesh;
-			flock.globalSounds.push(sound);
+			if (!flock.globalSounds.includes(sound)) {
+				flock.globalSounds.push(sound);
+			}
 			sound.play();
 
 			if (!loop) {
 				return new Promise((resolve) => {
-					sound.onEndedObservable.add(() => {
+					sound.onEndedObservable.addOnce(() => {
 						const index = flock.globalSounds.indexOf(sound);
 						if (index !== -1) {
 							flock.globalSounds.splice(index, 1);
@@ -8455,12 +8459,12 @@ export const flock = {
 						if (mesh.metadata.currentSound === sound) {
 							delete mesh.metadata.currentSound;
 						}
-						resolve(sound); // ✅ resolve to sound
+						resolve(sound);
 					});
 				});
 			}
 
-			return sound; // ✅ for looped spatial sound
+			return sound;
 		});
 	},
 	stopAllSounds() {
