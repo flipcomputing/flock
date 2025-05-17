@@ -8403,12 +8403,12 @@ export const flock = {
 						if (index !== -1) {
 							flock.globalSounds.splice(index, 1);
 						}
-						resolve();
+						resolve(sound); // ✅ return the sound
 					});
 				});
 			}
 
-			return;
+			return sound; // ✅ also return for looped sounds
 		}
 
 		return flock.whenModelReady(meshName, async (mesh) => {
@@ -8446,16 +8446,21 @@ export const flock = {
 			sound.play();
 
 			if (!loop) {
-				sound.onEndedObservable.add(() => {
-					const index = flock.globalSounds.indexOf(sound);
-					if (index !== -1) {
-						flock.globalSounds.splice(index, 1);
-					}
-					if (mesh.metadata.currentSound === sound) {
-						delete mesh.metadata.currentSound;
-					}
+				return new Promise((resolve) => {
+					sound.onEndedObservable.add(() => {
+						const index = flock.globalSounds.indexOf(sound);
+						if (index !== -1) {
+							flock.globalSounds.splice(index, 1);
+						}
+						if (mesh.metadata.currentSound === sound) {
+							delete mesh.metadata.currentSound;
+						}
+						resolve(sound); // ✅ resolve to sound
+					});
 				});
 			}
+
+			return sound; // ✅ for looped spatial sound
 		});
 	},
 	stopAllSounds() {
