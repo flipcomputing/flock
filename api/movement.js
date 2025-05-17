@@ -193,4 +193,81 @@ export const flockMovement = {
       ),
     );
   },
+  updateDynamicMeshPositions(scene, dynamicMeshes) {
+    const capsuleHalfHeight = 1;
+    // When the capsule’s bottom is within this distance of the ground, we treat it as contact.
+    const groundContactThreshold = 0.05;
+    // If the gap is larger than this, assume the capsule is airborne and skip correction.
+    const maxGroundContactGap = 0.1;
+    // Maximum lerp factor per frame for ground correction.
+    const lerpFactor = 0.1;
+    // Only apply correction on nearly flat surfaces.
+    const flatThreshold = 0.98; // dot product of surface normal with up
+
+    dynamicMeshes.forEach((mesh) => {
+      mesh.physics.setCollisionCallbackEnabled(true);
+      const observable = mesh.physics.getCollisionObservable();
+      const observer = observable.add((collisionEvent) => {
+        //console.log("Collision event", collisionEvent);
+
+        const penetration = Math.abs(collisionEvent.distance);
+        // If the penetration is extremely small (indicating minor clipping)
+        if (penetration < 0.001) {
+          // Read the current vertical velocity.
+          const currentVel = mesh.physics.getLinearVelocity();
+          // If there is an upward impulse being applied by the solver,
+          // override it by setting the vertical velocity to zero.
+          if (currentVel.y > 0) {
+            mesh.physics.setLinearVelocity(
+              new flock.BABYLON.Vector3(
+                currentVel.x,
+                0,
+                currentVel.z,
+              ),
+            );
+            console.log(
+              "Collision callback: small penetration detected. Overriding upward velocity.",
+            );
+          }
+
+          dynamicMeshes.forEach((mesh) => {
+            // Use a downward ray to determine the gap to the ground.
+            const capsuleHalfHeight = 1; // adjust as needed
+            const rayOrigin = mesh.position
+              .clone()
+              .add(new BABYLON.Vector3(0, -capsuleHalfHeight, 0));
+            const downRay = new BABYLON.Ray(
+              rayOrigin,
+              new flock.BABYLON.Vector3(0, -1, 0),
+              3,
+            );
+            const hit = scene.pickWithRay(downRay, (m) =>
+              m.name.toLowerCase().includes("ground"),
+            );
+            if (hit && hit.pickedMesh) {
+              const groundY = hit.pickedPoint.y;
+              const capsuleBottomY =
+                mesh.position.y - capsuleHalfHeight;
+              const gap = capsuleBottomY - groundY;
+              // If the gap is very small (i.e. the capsule is on or nearly on the ground)
+              // and the vertical velocity is upward, override it.
+              const currentVel = mesh.physics.getLinearVelocity();
+              if (Math.abs(gap) < 0.1 && currentVel.y > 0) {
+                mesh.physics.setLinearVelocity(
+                  new flock.BABYLON.Vector3(
+                    currentVel.x,
+                    0,
+                    currentVel.z,
+                  ),
+                );
+                console.log(
+                  "After-render: resetting upward velocity",
+                );
+              }
+            }
+          });
+        }
+      });
+    });
+  },
 };

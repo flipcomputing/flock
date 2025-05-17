@@ -43,6 +43,10 @@ import {
 	flockPhysics,
 	setFlockReference as setFlockPhysics,
 } from "./api/physics";
+import {
+	flockScene,
+	setFlockReference as setFlockScene,
+} from "./api/scene";
 // Helper functions to make flock.BABYLON js easier to use in Flock
 console.log("Flock helpers loading");
 
@@ -96,6 +100,7 @@ export const flock = {
 	...flockMaterial,
 	...flockEffects,
 	...flockPhysics,
+	...flockScene,
 	async runCode(code) {
 		let iframe = document.getElementById("flock-iframe");
 
@@ -472,6 +477,7 @@ export const flock = {
 		setFlockMaterial(flock);
 		setFlockEffects(flock);
 		setFlockPhysics(flock);
+		setFlockScene(flock);
 		
 		// Add highlight layer
 		flock.highlighter = new flock.BABYLON.HighlightLayer(
@@ -580,64 +586,6 @@ export const flock = {
 			b = c;
 		}
 		return Math.floor(Math.random() * (b - a + 1) + a);
-	},
-	printText(text, duration = 30, color = "white") {
-		if (!flock.scene || !flock.stackPanel) return;
-
-		console.log(text);
-		try {
-			// Create a rectangle container for the text
-			const bg = new flock.GUI.Rectangle("textBackground");
-			bg.background = "rgba(255, 255, 255, 0.5)";
-			bg.adaptWidthToChildren = true; // Adjust width to fit the text
-			bg.adaptHeightToChildren = true; // Adjust height to fit the text
-			bg.cornerRadius = 2; // Match the original corner rounding
-			bg.thickness = 0; // No border
-			bg.horizontalAlignment =
-				flock.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT; // Align the container to the left
-			bg.verticalAlignment = flock.GUI.Control.VERTICAL_ALIGNMENT_TOP; // Align to the top
-			bg.left = "5px"; // Preserve original spacing
-			bg.top = "5px";
-
-			// Create the text block inside the rectangle
-			const textBlock = new flock.GUI.TextBlock("textBlock", text);
-			textBlock.color = color;
-			textBlock.fontSize = "20"; // Match the original font size
-			textBlock.fontFamily = "Asap"; // Retain original font
-			textBlock.height = "25px"; // Match the original height
-			textBlock.paddingLeft = "10px"; // Padding for left alignment
-			textBlock.paddingRight = "10px";
-			textBlock.paddingTop = "2px";
-			textBlock.paddingBottom = "2px";
-			textBlock.textHorizontalAlignment =
-				flock.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT; // Left align the text
-			textBlock.textVerticalAlignment =
-				flock.GUI.Control.VERTICAL_ALIGNMENT_CENTER; // Center vertically within the rectangle
-			textBlock.textWrapping = flock.GUI.TextWrapping.WordWrap; // Enable word wrap
-			textBlock.resizeToFit = true; // Allow resizing
-			textBlock.forceResizeWidth = true;
-
-			// Add the text block to the rectangle
-			bg.addControl(textBlock);
-
-			// Add the rectangle to the stack panel
-			flock.stackPanel.addControl(bg);
-
-			// Remove the text after the specified duration
-			const timeoutId = setTimeout(() => {
-				if (flock.scene) {
-					// Ensure the scene is still valid
-					flock.stackPanel.removeControl(bg);
-				}
-			}, duration * 1000);
-
-			// Handle cleanup in case of scene disposal
-			flock.abortController.signal.addEventListener("abort", () => {
-				clearTimeout(timeoutId);
-			});
-		} catch (error) {
-			console.warn("Unable to print text:", error);
-		}
 	},
 	async initializeXR(mode) {
 		if (flock.xrHelper) return; // Avoid reinitializing
@@ -842,381 +790,7 @@ export const flock = {
 			}
 		})();
 	},
-	/*
-	 Category: Scene
-	*/
-	setSky(color) {
-		// If color is a Babylon.js material, apply it directly
-		if (flock.sky) {
-			flock.disposeMesh(flock.sky);
-		}
-		if (color && color instanceof flock.BABYLON.Material) {
-			const skySphere = flock.BABYLON.MeshBuilder.CreateSphere(
-				"sky",
-				{ segments: 32, diameter: 1000 },
-				flock.scene,
-			);
-
-			flock.sky = skySphere;
-			color.diffuseTexture.uScale = 10.0;
-			color.diffuseTexture.vScale = 10.0;
-			skySphere.material = color;
-			skySphere.isPickable = false; // Make non-interactive
-		} else if (Array.isArray(color) && color.length === 2) {
-			// Handle gradient case
-			const skySphere = flock.BABYLON.MeshBuilder.CreateSphere(
-				"sky",
-				{ segments: 32, diameter: 1000 },
-				flock.scene,
-			);
-			flock.sky = skySphere;
-			const gradientMaterial = new flock.GradientMaterial(
-				"skyGradient",
-				flock.scene,
-			);
-
-			gradientMaterial.bottomColor = flock.BABYLON.Color3.FromHexString(
-				flock.getColorFromString(color[0]),
-			);
-			gradientMaterial.topColor = flock.BABYLON.Color3.FromHexString(
-				flock.getColorFromString(color[1]),
-			);
-			gradientMaterial.offset = 0.8; // Push the gradient midpoint towards the top
-			gradientMaterial.smoothness = 0.5; // Sharper gradient transition
-			gradientMaterial.scale = 0.01;
-			gradientMaterial.backFaceCulling = false; // Render on the inside of the sphere
-
-			skySphere.material = gradientMaterial;
-			skySphere.isPickable = false; // Make non-interactive
-		} else {
-			// Handle single color case
-			flock.scene.clearColor = flock.BABYLON.Color3.FromHexString(
-				flock.getColorFromString(color),
-			);
-		}
-	},
-	createGround(color, modelId) {
-		if (flock.ground) {
-			flock.disposeMesh(flock.ground);
-		}
-		const ground = flock.BABYLON.MeshBuilder.CreateGround(
-			modelId,
-			{ width: 100, height: 100, subdivisions: 2 },
-			flock.scene,
-		);
-		const blockId = modelId;
-		const groundAggregate = new flock.BABYLON.PhysicsAggregate(
-			ground,
-			flock.BABYLON.PhysicsShapeType.BOX,
-			{ mass: 0, friction: 0.5 },
-			flock.scene,
-		);
-
-		ground.name = modelId;
-		ground.blockKey = blockId;
-		ground.receiveShadows = true;
-		const groundMaterial = new flock.BABYLON.StandardMaterial(
-			"groundMaterial",
-			flock.scene,
-		);
-		ground.physics = groundAggregate;
-
-		groundMaterial.diffuseColor = flock.BABYLON.Color3.FromHexString(
-			flock.getColorFromString(color),
-		);
-		ground.material = groundMaterial;
-		flock.ground = ground;
-	},
-	createMap(image, material) {
-		if (flock.ground) {
-			flock.disposeMesh(flock.ground);
-		}
-		let ground;
-		if (image === "NONE") {
-			const modelId = "flatGround";
-			ground = flock.BABYLON.MeshBuilder.CreateGround(
-				modelId,
-				{ width: 100, height: 100, subdivisions: 2 },
-				flock.scene,
-			);
-			const groundAggregate = new flock.BABYLON.PhysicsAggregate(
-				ground,
-				flock.BABYLON.PhysicsShapeType.BOX,
-				{ mass: 0, friction: 0.5 },
-				flock.scene,
-			);
-			ground.physics = groundAggregate;
-			ground.name = modelId;
-			ground.blockKey = modelId;
-			ground.receiveShadows = true;
-		} else {
-			const minHeight = 0;
-			const maxHeight = 10;
-			ground = flock.BABYLON.MeshBuilder.CreateGroundFromHeightMap(
-				"heightmap",
-				flock.texturePath + image,
-				{
-					width: 100,
-					height: 100,
-					minHeight: minHeight,
-					maxHeight: maxHeight,
-					subdivisions: 64,
-					onReady: (groundMesh) => {
-						const vertexData = groundMesh.getVerticesData(
-							flock.BABYLON.VertexBuffer.PositionKind,
-						);
-						let minDistance = Infinity;
-						let closestY = 0;
-						for (let i = 0; i < vertexData.length; i += 3) {
-							const x = vertexData[i];
-							const z = vertexData[i + 2];
-							const y = vertexData[i + 1];
-							const distance = Math.sqrt(x * x + z * z);
-							if (distance < minDistance) {
-								minDistance = distance;
-								closestY = y;
-							}
-						}
-
-						groundMesh.position.y -= closestY;
-						const heightMapGroundShape =
-							new flock.BABYLON.PhysicsShapeMesh(
-								ground,
-								flock.scene,
-							);
-						const heightMapGroundBody =
-							new flock.BABYLON.PhysicsBody(
-								ground,
-								flock.BABYLON.PhysicsMotionType.STATIC,
-								false,
-								flock.scene,
-							);
-						heightMapGroundShape.material = {
-							friction: 0.3,
-							restitution: 0,
-						};
-						heightMapGroundBody.shape = heightMapGroundShape;
-						heightMapGroundBody.setMassProperties({ mass: 0 });
-					},
-				},
-				flock.scene,
-			);
-		}
-		ground.name = "ground";
-		ground.blockKey = "ground";
-
-		//console.log("Scaling material");
-		// Simply assign the passed-through material:
-		if (material.diffuseTexture) {
-			material.diffuseTexture.wrapU =
-				flock.BABYLON.Texture.WRAP_ADDRESSMODE;
-			material.diffuseTexture.wrapV =
-				flock.BABYLON.Texture.WRAP_ADDRESSMODE;
-			material.diffuseTexture.uScale = 25;
-			material.diffuseTexture.vScale = 25;
-		}
-		ground.material = material;
-		flock.ground = ground;
-		return ground;
-	},
-	hide(modelName) {
-		const uiButton = flock.scene.UITexture?.getControlByName(modelName);
-
-		if (uiButton) {
-			// Handle UI button case
-			uiButton.isVisible = false; // Hide the button
-			return;
-		}
-		return flock.whenModelReady(modelName, async function (mesh) {
-			if (mesh) {
-				mesh.setEnabled(false);
-				flock.hk._hknp.HP_World_RemoveBody(
-					flock.hk.world,
-					mesh.physics._pluginData.hpBodyId,
-				);
-			} else {
-				console.log("Mesh not loaded:", modelName);
-			}
-		});
-	},
-	disposeMesh(mesh) {
-		if (mesh.name === "ground") {
-			mesh.material.dispose();
-			mesh.dispose();
-			flock.ground = null;
-			return;
-		}
-		if (mesh.name === "sky") {
-			mesh.material.dispose();
-			mesh.dispose();
-			flock.sky = null;
-			return;
-		}
-
-		let meshesToDispose = [mesh];
-
-		const particleSystem = flock.scene.particleSystems.find(
-			(system) => system.name === mesh.name,
-		);
-
-		if (particleSystem) {
-			particleSystem.dispose();
-			return;
-		}
-
-		if (mesh.getChildMeshes) {
-			meshesToDispose = mesh.getChildMeshes().concat(mesh);
-		}
-
-		const disposedMaterials = new Set();
-
-		// Process AnimationGroups
-		flock.scene.animationGroups.slice().forEach((animationGroup) => {
-			const targets = animationGroup.targetedAnimations.map(
-				(anim) => anim.target,
-			);
-
-			if (
-				targets.some((target) => meshesToDispose.includes(target)) ||
-				targets.some((target) =>
-					mesh.getDescendants().includes(target),
-				) ||
-				targets.length === 0 // Orphaned group
-			) {
-				animationGroup.targetedAnimations.forEach((anim) => {
-					anim.target = null; // Detach references
-				});
-				animationGroup.stop();
-				animationGroup.dispose();
-			}
-		});
-
-		// Dispose standalone animations
-		meshesToDispose.forEach((currentMesh) => {
-			if (currentMesh.animations) {
-				currentMesh.animations.forEach((animation) => {
-					animation.dispose?.();
-				});
-				currentMesh.animations.length = 0;
-			}
-		});
-
-		// Detach and Dispose Materials
-		meshesToDispose.forEach((currentMesh) => {
-			if (currentMesh.material) {
-				const material = currentMesh.material;
-
-				// Detach material from the mesh
-				currentMesh.material = null;
-
-				// Dispose material if not already disposed
-				if (!disposedMaterials.has(material)) {
-					const sharedMaterial = currentMesh.metadata?.sharedMaterial;
-
-					if (sharedMaterial === false) {
-						disposedMaterials.add(material);
-
-						// Remove from scene.materials
-						flock.scene.materials = flock.scene.materials.filter(
-							(mat) => mat !== material,
-						);
-
-						material.dispose();
-					}
-				}
-			}
-		});
-
-		// Break parent-child relationships
-		meshesToDispose.forEach((currentMesh) => {
-			console.log("Stopping current sound");
-			if (currentMesh?.metadata?.currentSound) {
-				currentMesh.metadata.currentSound.stop();
-			}
-		});
-		// Break parent-child relationships
-		meshesToDispose.forEach((currentMesh) => {
-			currentMesh.parent = null;
-		});
-
-		// Dispose meshes in reverse order
-		meshesToDispose.reverse().forEach((currentMesh) => {
-			if (!currentMesh.isDisposed()) {
-				// Remove physics body
-				if (currentMesh.physics) {
-					currentMesh.physics.dispose();
-				}
-
-				// Remove from scene
-				flock.scene.removeMesh(currentMesh);
-				currentMesh.setEnabled(false);
-
-				// Dispose the mesh
-				currentMesh.dispose();
-			}
-		});
-	},
-	dispose(modelName) {
-		const uiButton = flock.scene.UITexture?.getControlByName(modelName);
-
-		if (uiButton) {
-			// Handle UI button case
-			uiButton.dispose();
-			return;
-		}
-		return flock.whenModelReady(modelName, (mesh) => {
-			flock.disposeMesh(mesh);
-		});
-	},
-	cloneMesh({ sourceMeshName, cloneId, callback = null }) {
-		const uniqueCloneId = cloneId + "_" + flock.scene.getUniqueId();
-
-		flock.whenModelReady(sourceMeshName, (sourceMesh) => {
-			const clone = sourceMesh.clone(uniqueCloneId);
-
-			if (clone) {
-				sourceMesh.computeWorldMatrix(true);
-
-				const worldPosition = new BABYLON.Vector3();
-				const worldRotation = new BABYLON.Quaternion();
-				sourceMesh
-					.getWorldMatrix()
-					.decompose(undefined, worldRotation, worldPosition);
-
-				clone.parent = null;
-				clone.position.copyFrom(worldPosition);
-				clone.rotationQuaternion = worldRotation.clone();
-				clone.scaling.copyFrom(sourceMesh.scaling);
-
-				// Clone and synchronise the physics body
-				if (sourceMesh.physics) {
-					const cloneBody = sourceMesh.physics.clone(clone);
-					clone.physics = cloneBody;
-				}
-
-				const setMetadata = (mesh) => {
-					// Ensure metadata exists
-					mesh.metadata = mesh.metadata || {};
-
-					// Add or update specific properties without overwriting existing metadata
-					mesh.metadata.sharedMaterial = true;
-					mesh.metadata.sharedGeometry = true;
-				};
-
-				clone.metadata = { ...(sourceMesh.metadata || {}) };
-				setMetadata(clone);
-				clone.getDescendants().forEach(setMetadata);
-
-				if (callback) {
-					requestAnimationFrame(() => callback());
-				}
-			}
-		});
-
-		return uniqueCloneId;
-	},
-
-
+	
 	/* 
 		Category: Scene>Camera
 	*/
@@ -1410,83 +984,7 @@ export const flock = {
 			console.error("No active camera found in the scene.");
 		}
 	},
-	updateDynamicMeshPositions(scene, dynamicMeshes) {
-		const capsuleHalfHeight = 1;
-		// When the capsule’s bottom is within this distance of the ground, we treat it as contact.
-		const groundContactThreshold = 0.05;
-		// If the gap is larger than this, assume the capsule is airborne and skip correction.
-		const maxGroundContactGap = 0.1;
-		// Maximum lerp factor per frame for ground correction.
-		const lerpFactor = 0.1;
-		// Only apply correction on nearly flat surfaces.
-		const flatThreshold = 0.98; // dot product of surface normal with up
-
-		dynamicMeshes.forEach((mesh) => {
-			mesh.physics.setCollisionCallbackEnabled(true);
-			const observable = mesh.physics.getCollisionObservable();
-			const observer = observable.add((collisionEvent) => {
-				//console.log("Collision event", collisionEvent);
-
-				const penetration = Math.abs(collisionEvent.distance);
-				// If the penetration is extremely small (indicating minor clipping)
-				if (penetration < 0.001) {
-					// Read the current vertical velocity.
-					const currentVel = mesh.physics.getLinearVelocity();
-					// If there is an upward impulse being applied by the solver,
-					// override it by setting the vertical velocity to zero.
-					if (currentVel.y > 0) {
-						mesh.physics.setLinearVelocity(
-							new flock.BABYLON.Vector3(
-								currentVel.x,
-								0,
-								currentVel.z,
-							),
-						);
-						console.log(
-							"Collision callback: small penetration detected. Overriding upward velocity.",
-						);
-					}
-
-					dynamicMeshes.forEach((mesh) => {
-						// Use a downward ray to determine the gap to the ground.
-						const capsuleHalfHeight = 1; // adjust as needed
-						const rayOrigin = mesh.position
-							.clone()
-							.add(new BABYLON.Vector3(0, -capsuleHalfHeight, 0));
-						const downRay = new BABYLON.Ray(
-							rayOrigin,
-							new BABYLON.Vector3(0, -1, 0),
-							3,
-						);
-						const hit = scene.pickWithRay(downRay, (m) =>
-							m.name.toLowerCase().includes("ground"),
-						);
-						if (hit && hit.pickedMesh) {
-							const groundY = hit.pickedPoint.y;
-							const capsuleBottomY =
-								mesh.position.y - capsuleHalfHeight;
-							const gap = capsuleBottomY - groundY;
-							// If the gap is very small (i.e. the capsule is on or nearly on the ground)
-							// and the vertical velocity is upward, override it.
-							const currentVel = mesh.physics.getLinearVelocity();
-							if (Math.abs(gap) < 0.1 && currentVel.y > 0) {
-								mesh.physics.setLinearVelocity(
-									new BABYLON.Vector3(
-										currentVel.x,
-										0,
-										currentVel.z,
-									),
-								);
-								console.log(
-									"After-render: resetting upward velocity",
-								);
-							}
-						}
-					});
-				}
-			});
-		});
-	},
+	
 
 	/* 
 		Category: Scene>XR
@@ -1575,7 +1073,6 @@ export const flock = {
 
 	*/
 
-	
 	ensureUniqueGeometry(mesh) {
 		console.log("Cloning geometry");
 
@@ -1802,9 +1299,6 @@ export const flock = {
 				followerMesh._followObserver = null;
 			}
 		});
-	},
-	createCustomMap(colors) {
-		console.log("Creating map", colors);
 	},
 	wait(duration) {
 		return new Promise((resolve, reject) => {

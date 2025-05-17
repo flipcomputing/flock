@@ -482,4 +482,62 @@ export const flockUI = {
       });
     }
   },
+  printText(text, duration = 30, color = "white") {
+    if (!flock.scene || !flock.stackPanel) return;
+
+    console.log(text);
+    try {
+      // Create a rectangle container for the text
+      const bg = new flock.GUI.Rectangle("textBackground");
+      bg.background = "rgba(255, 255, 255, 0.5)";
+      bg.adaptWidthToChildren = true; // Adjust width to fit the text
+      bg.adaptHeightToChildren = true; // Adjust height to fit the text
+      bg.cornerRadius = 2; // Match the original corner rounding
+      bg.thickness = 0; // No border
+      bg.horizontalAlignment =
+        flock.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT; // Align the container to the left
+      bg.verticalAlignment = flock.GUI.Control.VERTICAL_ALIGNMENT_TOP; // Align to the top
+      bg.left = "5px"; // Preserve original spacing
+      bg.top = "5px";
+
+      // Create the text block inside the rectangle
+      const textBlock = new flock.GUI.TextBlock("textBlock", text);
+      textBlock.color = color;
+      textBlock.fontSize = "20"; // Match the original font size
+      textBlock.fontFamily = "Asap"; // Retain original font
+      textBlock.height = "25px"; // Match the original height
+      textBlock.paddingLeft = "10px"; // Padding for left alignment
+      textBlock.paddingRight = "10px";
+      textBlock.paddingTop = "2px";
+      textBlock.paddingBottom = "2px";
+      textBlock.textHorizontalAlignment =
+        flock.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT; // Left align the text
+      textBlock.textVerticalAlignment =
+        flock.GUI.Control.VERTICAL_ALIGNMENT_CENTER; // Center vertically within the rectangle
+      textBlock.textWrapping = flock.GUI.TextWrapping.WordWrap; // Enable word wrap
+      textBlock.resizeToFit = true; // Allow resizing
+      textBlock.forceResizeWidth = true;
+
+      // Add the text block to the rectangle
+      bg.addControl(textBlock);
+
+      // Add the rectangle to the stack panel
+      flock.stackPanel.addControl(bg);
+
+      // Remove the text after the specified duration
+      const timeoutId = setTimeout(() => {
+        if (flock.scene) {
+          // Ensure the scene is still valid
+          flock.stackPanel.removeControl(bg);
+        }
+      }, duration * 1000);
+
+      // Handle cleanup in case of scene disposal
+      flock.abortController.signal.addEventListener("abort", () => {
+        clearTimeout(timeoutId);
+      });
+    } catch (error) {
+      console.warn("Unable to print text:", error);
+    }
+  },
 }
