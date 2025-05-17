@@ -430,6 +430,7 @@ export const flock = {
 			new flock.BABYLON.Vector3(0, -9.81, 0),
 			flock.hk,
 		);
+		setFlockCSG(flock);
 
 		// Add highlight layer
 		flock.highlighter = new flock.BABYLON.HighlightLayer(
@@ -8038,8 +8039,6 @@ export const flock = {
 	},
 	
 };
-
-setFlockCSG(flock);
 
 export function initializeFlock() {
 	const scriptElement = flock.document.getElementById("flock");

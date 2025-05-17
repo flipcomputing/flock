@@ -6,7 +6,7 @@ export function setFlockReference(ref) {
 
 export const flockCSG = {
 	
-	mergeMeshes(modelId, meshList) {
+mergeMeshes(modelId, meshList) {
 	const blockId = modelId;
 	modelId += "_" + flock.scene.getUniqueId();
 
@@ -192,7 +192,7 @@ subtractMeshes(modelId, baseMeshName, meshNames) {
 							.boundingBox.center.clone();
 
 						resultMesh.setPivotMatrix(
-							BABYLON.Matrix.Translation(
+							flock.BABYLON.Matrix.Translation(
 								localCenter.x,
 								localCenter.y,
 								localCenter.z,
@@ -363,7 +363,7 @@ createHull(modelId, meshList) {
 					return mesh;
 				});
 
-				const mergedMesh = BABYLON.Mesh.MergeMeshes(
+				const mergedMesh = flock.BABYLON.Mesh.MergeMeshes(
 					updatedValidMeshes,
 					true,
 				);
@@ -377,7 +377,7 @@ createHull(modelId, meshList) {
 
 				// Offset the merged mesh to be locally centred
 				mergedMesh.bakeTransformIntoVertices(
-					BABYLON.Matrix.Translation(
+					flock.BABYLON.Matrix.Translation(
 						-combinedCentre.x,
 						-combinedCentre.y,
 						-combinedCentre.z,
@@ -388,9 +388,9 @@ createHull(modelId, meshList) {
 				mergedMesh.material = updatedValidMeshes[0].material;
 
 				// Create the convex hull physics aggregate
-				const hullAggregate = new BABYLON.PhysicsAggregate(
+				const hullAggregate = new flock.BABYLON.PhysicsAggregate(
 					mergedMesh,
-					BABYLON.PhysicsShapeType.CONVEX_HULL,
+					flock.BABYLON.PhysicsShapeType.CONVEX_HULL,
 					{ mass: 0 }, // Adjust mass based on use case
 					flock.scene,
 				);
