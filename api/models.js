@@ -269,4 +269,102 @@ export const flockModels = {
       return "error_" + flock.scene.getUniqueId();
     }
   },
+  createModel({
+    modelName,
+    modelId,
+    scale = 1,
+    position = { x: 0, y: 0, z: 0 },
+    callback = null,
+  }) {
+    const { x, y, z } = position;
+    const blockId = modelId;
+    modelId += "_" + flock.scene.getUniqueId();
+
+    // Check if a first copy is already cached
+    if (flock.modelCache[modelName]) {
+      //console.log(`Using cached first model: ${modelName}`);
+
+      // Clone from the cached first copy
+      const firstMesh = flock.modelCache[modelName];
+      const mesh = firstMesh.clone(blockId);
+
+      // Reset transformations
+      mesh.scaling.copyFrom(flock.BABYLON.Vector3.One());
+      mesh.position.copyFrom(flock.BABYLON.Vector3.Zero());
+      mesh.rotationQuaternion = null;
+      mesh.rotation.copyFrom(flock.BABYLON.Vector3.Zero());
+
+      flock.setupMesh(mesh, modelName, modelId, blockId, scale, x, y, z); // Neutral setup
+
+      mesh.computeWorldMatrix(true);
+      mesh.refreshBoundingInfo();
+      mesh.setEnabled(true);
+      mesh.visibility = 1;
+
+      if (callback) {
+        requestAnimationFrame(callback);
+      }
+
+      return modelId;
+    }
+
+    // Check if model is already being loaded
+    if (flock.modelsBeingLoaded[modelName]) {
+      //console.log(`Waiting for model to load: ${modelName}`);
+      return flock.modelsBeingLoaded[modelName].then(() => {
+        return flock.createModel({
+          modelName,
+          modelId,
+          scale,
+          position,
+          callback,
+        });
+      });
+    }
+
+    // Start loading the model
+    //console.log(`Loading model: ${modelName}`);
+    const loadPromise = flock.BABYLON.SceneLoader.LoadAssetContainerAsync(
+      flock.modelPath,
+      modelName,
+      flock.scene,
+    )
+      .then((container) => {
+        // Clone a first copy from the first mesh
+        const firstMesh = container.meshes[0].clone(
+          `${modelName}_first`,
+        );
+
+        firstMesh.setEnabled(false); // Disable the first copy
+        flock.modelCache[modelName] = firstMesh;
+
+        container.addAllToScene();
+
+        flock.setupMesh(
+          container.meshes[0],
+          modelName,
+          modelId,
+          blockId,
+          scale,
+          x,
+          y,
+          z,
+        );
+
+        if (callback) {
+          requestAnimationFrame(callback);
+        }
+      })
+      .catch((error) => {
+        console.error(`Error loading model: ${modelName}`, error);
+      })
+      .finally(() => {
+        delete flock.modelsBeingLoaded[modelName]; // Remove from loading map
+      });
+
+    // Track the ongoing load
+    flock.modelsBeingLoaded[modelName] = loadPromise;
+
+    return modelId;
+  },
 }
