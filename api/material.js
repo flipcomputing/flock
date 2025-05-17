@@ -972,4 +972,21 @@ export const flockMaterial = {
 
     return flock.materialCache[materialKey];
   },
+  highlight(modelName, color) {
+    const applyHighlight = (mesh) => {
+      if (mesh.material) {
+        flock.highlighter.addMesh(
+          mesh,
+          flock.BABYLON.Color3.FromHexString(
+            flock.getColorFromString(color),
+          ),
+        );
+      }
+    };
+
+    return flock.whenModelReady(modelName, (mesh) => {
+      applyHighlight(mesh);
+      mesh.getChildMeshes().forEach(applyHighlight);
+    });
+  },
 }

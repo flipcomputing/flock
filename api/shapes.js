@@ -343,4 +343,62 @@ export const flockShapes = {
       }
     });
   },
+  create3DText({
+    text,
+    font,
+    color = "#FFFFFF",
+    size = 50,
+    depth = 1.0,
+    position = { x: 0, y: 0, z: 0 },
+    modelId,
+    callback = null,
+  }) {
+    const { x, y, z } = position;
+
+    // Return modelId immediately
+    setTimeout(async () => {
+      const fontData = await (await fetch(font)).json();
+
+      const mesh = flock.BABYLON.MeshBuilder.CreateText(
+        modelId,
+        text,
+        fontData,
+        {
+          size: size,
+          depth: depth,
+        },
+        flock.scene,
+        earcut,
+      );
+
+      mesh.position.set(x, y, z);
+      const material = new flock.BABYLON.StandardMaterial(
+        "textMaterial",
+        flock.scene,
+      );
+
+      material.diffuseColor = flock.BABYLON.Color3.FromHexString(
+        flock.getColorFromString(color),
+      );
+
+      mesh.material = material;
+
+      mesh.computeWorldMatrix(true);
+      mesh.refreshBoundingInfo();
+      mesh.setEnabled(true);
+      mesh.visibility = 1;
+
+      const textShape = new flock.BABYLON.PhysicsShapeMesh(
+        mesh,
+        flock.scene,
+      );
+      flock.applyPhysics(mesh, textShape);
+
+      if (callback) {
+        requestAnimationFrame(callback);
+      }
+    }, 0);
+
+    return modelId;
+  },
 };
