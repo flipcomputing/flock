@@ -670,6 +670,1110 @@ export const flock = {
 			}
 		});
 	},
+	removeEventListeners() {
+		flock.scene.eventListeners?.forEach(({ event, handler }) => {
+			flock.document.removeEventListener(event, handler);
+		});
+
+		if (flock.scene && flock.scene.eventListeners)
+			flock.scene.eventListeners.length = 0; // Clear the array
+	},
+	async *modelReadyGenerator(
+		meshId,
+		maxAttempts = 100,
+		initialInterval = 100,
+		maxInterval = 2000,
+	) {
+		let attempt = 1;
+		let interval = initialInterval;
+		const { signal } = flock.abortController;
+
+		while (attempt <= maxAttempts) {
+			if (flock.disposed || !flock.scene || flock.scene.isDisposed) {
+				console.warn(
+					"Scene has been disposed or generator invalidated.",
+				);
+				return;
+			}
+
+			if (flock.scene) {
+				if (meshId === "__active_camera__") {
+					yield flock.scene.activeCamera;
+					return;
+				} else {
+					const mesh = flock.scene.getMeshByName(meshId);
+					if (mesh) {
+						yield mesh;
+						return;
+					}
+				}
+			}
+
+			try {
+				await new Promise((resolve, reject) => {
+					const timeoutId = setTimeout(resolve, interval);
+
+					// Reject the promise if the abort signal is triggered
+					const onAbort = () => {
+						clearTimeout(timeoutId);
+						reject(new Error("Wait aborted"));
+					};
+
+					signal.addEventListener("abort", onAbort, { once: true });
+
+					// Ensure the event listener is cleaned up after resolving
+					signal.addEventListener(
+						"abort",
+						() => signal.removeEventListener("abort", onAbort),
+						{ once: true },
+					);
+				});
+			} catch (error) {
+				console.log("Timeout aborted:", error);
+				// Properly exit if the wait was aborted to prevent further processing
+				return;
+			}
+
+			interval = Math.min(interval * 2, maxInterval);
+			attempt++;
+			//console.log(`Attempt ${attempt}: Retrying in ${interval}ms...`);
+		}
+
+		console.warn(
+			`Mesh with ID '${meshId}' not found after ${maxAttempts} attempts.`,
+		);
+	},
+	whenModelReady(targetId, callback) {
+		// Check if the target (mesh or GUI button) is immediately available
+		if (flock.scene) {
+			let target = flock.scene.getMeshByName(targetId);
+
+			if (!target && flock.scene.UITexture) {
+				target = flock.scene.UITexture.getControlByName(targetId);
+			}
+
+			// Check animation groups if still not found
+			if (!target) {
+				target = flock.scene.animationGroups.find(
+					(group) => group.name === targetId,
+				);
+			}
+
+			// Check particle systems if still not found
+			if (!target) {
+				target = flock.scene.particleSystems.find(
+					(system) => system.name === targetId,
+				);
+			}
+
+			if (target) {
+				if (flock.abortController.signal.aborted) {
+					return; // If already aborted, stop here
+				}
+				// Target is available immediately, invoke the callback synchronously
+				callback(target);
+				return; // Return immediately, no Promise needed
+			}
+		}
+
+		// If the target is not immediately available, fall back to the generator and return a Promise
+		return (async () => {
+			const generator = flock.modelReadyGenerator(targetId);
+			try {
+				for await (const target of generator) {
+					if (flock.abortController.signal.aborted) {
+						console.log(`Aborted waiting for target: ${targetId}`);
+						return; // Exit the loop if the operation was aborted
+					}
+					await callback(target);
+				}
+			} catch (err) {
+				if (flock.abortController.signal.aborted) {
+					console.log(`Operation was aborted: ${targetId}`);
+				} else {
+					console.error(`Error in whenModelReady: ${err}`);
+				}
+			}
+		})();
+	},
+	/*
+	 Category: Scene
+	*/
+	setSky(color) {
+		// If color is a Babylon.js material, apply it directly
+		if (flock.sky) {
+			flock.disposeMesh(flock.sky);
+		}
+		if (color && color instanceof flock.BABYLON.Material) {
+			const skySphere = flock.BABYLON.MeshBuilder.CreateSphere(
+				"sky",
+				{ segments: 32, diameter: 1000 },
+				flock.scene,
+			);
+
+			flock.sky = skySphere;
+			color.diffuseTexture.uScale = 10.0;
+			color.diffuseTexture.vScale = 10.0;
+			skySphere.material = color;
+			skySphere.isPickable = false; // Make non-interactive
+		} else if (Array.isArray(color) && color.length === 2) {
+			// Handle gradient case
+			const skySphere = flock.BABYLON.MeshBuilder.CreateSphere(
+				"sky",
+				{ segments: 32, diameter: 1000 },
+				flock.scene,
+			);
+			flock.sky = skySphere;
+			const gradientMaterial = new flock.GradientMaterial(
+				"skyGradient",
+				flock.scene,
+			);
+
+			gradientMaterial.bottomColor = flock.BABYLON.Color3.FromHexString(
+				flock.getColorFromString(color[0]),
+			);
+			gradientMaterial.topColor = flock.BABYLON.Color3.FromHexString(
+				flock.getColorFromString(color[1]),
+			);
+			gradientMaterial.offset = 0.8; // Push the gradient midpoint towards the top
+			gradientMaterial.smoothness = 0.5; // Sharper gradient transition
+			gradientMaterial.scale = 0.01;
+			gradientMaterial.backFaceCulling = false; // Render on the inside of the sphere
+
+			skySphere.material = gradientMaterial;
+			skySphere.isPickable = false; // Make non-interactive
+		} else {
+			// Handle single color case
+			flock.scene.clearColor = flock.BABYLON.Color3.FromHexString(
+				flock.getColorFromString(color),
+			);
+		}
+	},
+	createGround(color, modelId) {
+		if (flock.ground) {
+			flock.disposeMesh(flock.ground);
+		}
+		const ground = flock.BABYLON.MeshBuilder.CreateGround(
+			modelId,
+			{ width: 100, height: 100, subdivisions: 2 },
+			flock.scene,
+		);
+		const blockId = modelId;
+		const groundAggregate = new flock.BABYLON.PhysicsAggregate(
+			ground,
+			flock.BABYLON.PhysicsShapeType.BOX,
+			{ mass: 0, friction: 0.5 },
+			flock.scene,
+		);
+
+		ground.name = modelId;
+		ground.blockKey = blockId;
+		ground.receiveShadows = true;
+		const groundMaterial = new flock.BABYLON.StandardMaterial(
+			"groundMaterial",
+			flock.scene,
+		);
+		ground.physics = groundAggregate;
+
+		groundMaterial.diffuseColor = flock.BABYLON.Color3.FromHexString(
+			flock.getColorFromString(color),
+		);
+		ground.material = groundMaterial;
+		flock.ground = ground;
+	},
+	createMap(image, material) {
+		if (flock.ground) {
+			flock.disposeMesh(flock.ground);
+		}
+		let ground;
+		if (image === "NONE") {
+			const modelId = "flatGround";
+			ground = flock.BABYLON.MeshBuilder.CreateGround(
+				modelId,
+				{ width: 100, height: 100, subdivisions: 2 },
+				flock.scene,
+			);
+			const groundAggregate = new flock.BABYLON.PhysicsAggregate(
+				ground,
+				flock.BABYLON.PhysicsShapeType.BOX,
+				{ mass: 0, friction: 0.5 },
+				flock.scene,
+			);
+			ground.physics = groundAggregate;
+			ground.name = modelId;
+			ground.blockKey = modelId;
+			ground.receiveShadows = true;
+		} else {
+			const minHeight = 0;
+			const maxHeight = 10;
+			ground = flock.BABYLON.MeshBuilder.CreateGroundFromHeightMap(
+				"heightmap",
+				flock.texturePath + image,
+				{
+					width: 100,
+					height: 100,
+					minHeight: minHeight,
+					maxHeight: maxHeight,
+					subdivisions: 64,
+					onReady: (groundMesh) => {
+						const vertexData = groundMesh.getVerticesData(
+							flock.BABYLON.VertexBuffer.PositionKind,
+						);
+						let minDistance = Infinity;
+						let closestY = 0;
+						for (let i = 0; i < vertexData.length; i += 3) {
+							const x = vertexData[i];
+							const z = vertexData[i + 2];
+							const y = vertexData[i + 1];
+							const distance = Math.sqrt(x * x + z * z);
+							if (distance < minDistance) {
+								minDistance = distance;
+								closestY = y;
+							}
+						}
+
+						groundMesh.position.y -= closestY;
+						const heightMapGroundShape =
+							new flock.BABYLON.PhysicsShapeMesh(
+								ground,
+								flock.scene,
+							);
+						const heightMapGroundBody =
+							new flock.BABYLON.PhysicsBody(
+								ground,
+								flock.BABYLON.PhysicsMotionType.STATIC,
+								false,
+								flock.scene,
+							);
+						heightMapGroundShape.material = {
+							friction: 0.3,
+							restitution: 0,
+						};
+						heightMapGroundBody.shape = heightMapGroundShape;
+						heightMapGroundBody.setMassProperties({ mass: 0 });
+					},
+				},
+				flock.scene,
+			);
+		}
+		ground.name = "ground";
+		ground.blockKey = "ground";
+
+		//console.log("Scaling material");
+		// Simply assign the passed-through material:
+		if (material.diffuseTexture) {
+			material.diffuseTexture.wrapU =
+				flock.BABYLON.Texture.WRAP_ADDRESSMODE;
+			material.diffuseTexture.wrapV =
+				flock.BABYLON.Texture.WRAP_ADDRESSMODE;
+			material.diffuseTexture.uScale = 25;
+			material.diffuseTexture.vScale = 25;
+		}
+		ground.material = material;
+		flock.ground = ground;
+		return ground;
+	},
+	createCharacter({
+		modelName,
+		modelId,
+		scale = 1,
+		position = { x: 0, y: 0, z: 0 },
+		colors = {
+			hair: "#000000",
+			skin: "#a15c33",
+			eyes: "#0000ff",
+			sleeves: "#ff0000",
+			shorts: "#00ff00",
+			tshirt: "#0000ff",
+		},
+		callback = () => {},
+	}) {
+		const { x, y, z } = position;
+
+		let blockKey;
+		if (modelId.includes("__")) {
+			[modelId, blockKey] = modelId.split("__");
+		}
+
+		if (flock.scene.getMeshByName(modelId)) {
+			modelId = modelId + "_" + flock.scene.getUniqueId();
+		}
+		flock.BABYLON.SceneLoader.LoadAssetContainerAsync(
+			flock.modelPath,
+			modelName,
+			flock.scene,
+			null,
+			null,
+			{ signal: flock.abortController.signal },
+		)
+			.then((container) => {
+				container.addAllToScene();
+				const mesh = container.meshes[0];
+				flock.setupMesh(
+					mesh,
+					modelName,
+					modelId,
+					blockKey,
+					scale,
+					x,
+					y,
+					z,
+				);
+
+				if (modelName.startsWith("Character"))
+					flock.ensureStandardMaterial(mesh);
+				flock.applyColorsToCharacter(mesh, colors);
+
+				const descendants = mesh.getChildMeshes(false);
+				descendants.forEach((childMesh) => {
+					if (childMesh.getTotalVertices() > 0) {
+						// Ensure it has geometry
+						childMesh.isPickable = true;
+						childMesh.flipFaces(true);
+					}
+				});
+
+				if (callback) {
+					requestAnimationFrame(() => callback());
+				}
+			})
+			.catch((error) => {
+				console.log("Error loading", error);
+			});
+
+		return modelId;
+	},
+	createObject({
+		modelName,
+		modelId,
+		color = ["#FFFFFF", "#FFFFFF"],
+		scale = 1,
+		position = { x: 0, y: 0, z: 0 },
+		callback = null,
+	} = {}) {
+		try {
+			// Basic parameter validation with warnings
+			if (!modelName) {
+				console.warn("createObject: Missing modelName parameter");
+				return "error_" + flock.scene.getUniqueId();
+			}
+
+			if (!modelId) {
+				console.warn("createObject: Missing modelId parameter");
+				return "error_" + flock.scene.getUniqueId();
+			}
+
+			if (!position || typeof position !== "object") {
+				console.warn("createObject: Invalid position parameter");
+				position = { x: 0, y: 0, z: 0 };
+			}
+
+			const { x, y, z } = position;
+
+			let blockKey = modelId;
+			let meshName;
+			if (modelId.includes("__")) {
+				[meshName, blockKey] = modelId.split("__");
+			}
+
+			if (
+				flock.scene.getMeshByName(meshName) ||
+				flock.modelsBeingLoaded[modelName]
+			) {
+				meshName = meshName + "_" + flock.scene.getUniqueId();
+			}
+
+			if (flock.modelCache[modelName]) {
+				const firstMesh = flock.modelCache[modelName];
+				const mesh = firstMesh.clone(blockKey);
+				mesh.scaling.copyFrom(BABYLON.Vector3.One());
+				mesh.position.copyFrom(BABYLON.Vector3.Zero());
+
+				flock.setupMesh(
+					mesh,
+					modelName,
+					meshName,
+					blockKey,
+					scale,
+					x,
+					y,
+					z,
+					color,
+				);
+				flock.changeColorMesh(mesh, color);
+				mesh.computeWorldMatrix(true);
+				mesh.refreshBoundingInfo();
+				mesh.setEnabled(true);
+				const allDescendantMeshes = [
+					mesh,
+					...mesh
+						.getDescendants(false)
+						.filter((node) => node instanceof BABYLON.AbstractMesh),
+				];
+
+				allDescendantMeshes.forEach((mesh) => {
+					mesh.isPickable = true;
+					mesh.setEnabled(true);
+				});
+				if (callback) {
+					requestAnimationFrame(callback);
+				}
+				return meshName;
+			}
+
+			if (flock.modelsBeingLoaded[modelName]) {
+				//console.log(`Waiting for model to load: ${modelName}`);
+				flock.modelsBeingLoaded[modelName].then(() => {
+					if (flock.modelCache[modelName]) {
+						const firstMesh = flock.modelCache[modelName];
+						const mesh = firstMesh.clone(blockKey);
+						mesh.scaling.copyFrom(BABYLON.Vector3.One());
+						mesh.position.copyFrom(BABYLON.Vector3.Zero());
+						flock.setupMesh(
+							mesh,
+							modelName,
+							meshName,
+							blockKey,
+							scale,
+							x,
+							y,
+							z,
+							color,
+						);
+						flock.changeColorMesh(mesh, color);
+						mesh.computeWorldMatrix(true);
+						mesh.refreshBoundingInfo();
+						const allDescendantMeshes = [
+							mesh,
+							...mesh
+								.getDescendants(false)
+								.filter(
+									(node) =>
+										node instanceof BABYLON.AbstractMesh,
+								),
+						];
+						allDescendantMeshes.forEach((mesh) => {
+							mesh.isPickable = true;
+							mesh.setEnabled(true);
+						});
+						if (callback) {
+							requestAnimationFrame(callback);
+						}
+					}
+				});
+				return meshName;
+			}
+
+			const loadPromise =
+				flock.BABYLON.SceneLoader.LoadAssetContainerAsync(
+					flock.modelPath,
+					modelName,
+					flock.scene,
+				)
+					.then((container) => {
+						flock.ensureStandardMaterial(container.meshes[0]);
+
+						// First, add everything to the scene
+						container.addAllToScene();
+
+						// Create the template mesh AFTER adding to scene
+						const firstMesh = container.meshes[0].clone(
+							`${modelName}_first`,
+						);
+						firstMesh.setEnabled(false);
+						firstMesh.isPickable = false;
+
+						// Make sure all children of the template are also not pickable
+						firstMesh.getChildMeshes().forEach((child) => {
+							child.isPickable = false;
+							child.setEnabled(false);
+						});
+
+						// Store in cache
+						flock.modelCache[modelName] = firstMesh;
+
+						// Make sure the original mesh and its children ARE pickable and enabled
+						container.meshes[0].isPickable = true;
+						container.meshes[0].setEnabled(true);
+						container.meshes[0]
+							.getChildMeshes()
+							.forEach((child) => {
+								child.isPickable = true;
+								child.setEnabled(true); // Fixed the missing closing parenthesis
+							});
+
+						// Setup and color the active mesh
+						flock.setupMesh(
+							container.meshes[0],
+							modelName,
+							meshName,
+							blockKey,
+							scale,
+							x,
+							y,
+							z,
+							color,
+						);
+						flock.changeColorMesh(container.meshes[0], color);
+
+						if (callback) {
+							requestAnimationFrame(callback);
+						}
+					})
+					.catch((error) => {
+						console.error(
+							`Error loading model: ${modelName}`,
+							error,
+						);
+					})
+					.finally(() => {
+						delete flock.modelsBeingLoaded[modelName];
+					});
+
+			flock.modelsBeingLoaded[modelName] = loadPromise;
+			return meshName;
+		} catch (error) {
+			console.warn("createObject: Error creating object:", error);
+			return "error_" + flock.scene.getUniqueId();
+		}
+	},
+	createBox(boxId, color, width, height, depth, position, alpha = 1) {
+		let blockKey = boxId;
+
+		if (boxId.includes("__")) {
+			[boxId, blockKey] = boxId.split("__");
+		}
+
+		if (flock.scene.getMeshByName(boxId)) {
+			boxId = boxId + "_" + flock.scene.getUniqueId();
+		}
+
+		const dimensions = { width, height, depth };
+
+		// Retrieve cached VertexData or create it if this is the first instance
+		const vertexData = flock.getOrCreateGeometry(
+			"Box",
+			dimensions,
+			flock.scene,
+		);
+
+		// Create a new mesh and apply the cached VertexData
+		const newBox = new BABYLON.Mesh(boxId, flock.scene);
+		vertexData.applyToMesh(newBox);
+
+		// Apply size-based UV mapping
+		flock.setSizeBasedBoxUVs(newBox, width, height, depth);
+
+		// Bake the scaling into the mesh
+		newBox.bakeCurrentTransformIntoVertices();
+
+		// Reset scaling to (1,1,1) since the transformation is now baked
+		newBox.scaling.set(1, 1, 1);
+
+		// Initialise the mesh with position, color, and other properties
+		flock.initializeMesh(newBox, position, color, "Box", alpha);
+
+		newBox.position.y += height / 2; // Middle of the box
+		newBox.blockKey = blockKey;
+
+		// Define and apply the physics shape
+		const boxShape = new flock.BABYLON.PhysicsShapeBox(
+			new BABYLON.Vector3(0, 0, 0),
+			new BABYLON.Quaternion(0, 0, 0, 1),
+			new BABYLON.Vector3(width, height, depth),
+			flock.scene,
+		);
+		flock.applyPhysics(newBox, boxShape);
+
+		return newBox.name;
+	},
+	createSphere(
+		sphereId,
+		color,
+		diameterX,
+		diameterY,
+		diameterZ,
+		position,
+		alpha = 1,
+	) {
+		let blockKey = sphereId;
+
+		if (sphereId.includes("__")) {
+			[sphereId, blockKey] = sphereId.split("__");
+		}
+
+		if (flock.scene.getMeshByName(sphereId)) {
+			sphereId = sphereId + "_" + flock.scene.getUniqueId();
+		}
+
+		const dimensions = { diameterX, diameterY, diameterZ };
+
+		// Retrieve cached VertexData or create it if this is the first instance
+		const vertexData = flock.getOrCreateGeometry(
+			"Sphere",
+			dimensions,
+			flock.scene,
+		);
+
+		if (!vertexData) return;
+
+		// Create a new mesh and apply the cached VertexData
+		const newSphere = new BABYLON.Mesh(sphereId, flock.scene);
+		vertexData.applyToMesh(newSphere);
+
+		flock.setSphereUVs(newSphere, diameterX, diameterY, diameterZ, 1);
+		newSphere.bakeCurrentTransformIntoVertices();
+
+		// Reset scaling to (1,1,1) since the transformation is now baked
+		newSphere.scaling.set(1, 1, 1);
+
+		// Initialise the mesh with position, color, and other properties
+		flock.initializeMesh(newSphere, position, color, "Sphere", alpha);
+		newSphere.position.y += diameterY / 2;
+
+		newSphere.blockKey = blockKey;
+
+		// Define and apply the physics shape
+		const sphereShape = new flock.BABYLON.PhysicsShapeSphere(
+			new BABYLON.Vector3(0, 0, 0),
+			Math.max(diameterX, diameterY, diameterZ) / 2,
+			flock.scene,
+		);
+		flock.applyPhysics(newSphere, sphereShape);
+
+		return newSphere.name;
+	},
+	createCylinder(
+		cylinderId,
+		color,
+		height,
+		diameterTop,
+		diameterBottom,
+		tessellation = 24, // Default tessellation to 12
+		position,
+		alpha = 1,
+	) {
+		const dimensions = {
+			height,
+			diameterTop,
+			diameterBottom,
+			tessellation, // Include tessellation in dimensions
+			updatable: true,
+		};
+
+		let blockKey = cylinderId;
+
+		if (cylinderId.includes("__")) {
+			[cylinderId, blockKey] = cylinderId.split("__");
+		}
+
+		if (flock.scene.getMeshByName(cylinderId)) {
+			cylinderId = cylinderId + "_" + flock.scene.getUniqueId();
+		}
+
+		// Get or create cached VertexData
+		const vertexData = flock.getOrCreateGeometry(
+			"Cylinder",
+			dimensions,
+			flock.scene,
+		);
+
+		// Create a new mesh and apply the cached VertexData
+		const newCylinder = new BABYLON.Mesh(cylinderId, flock.scene);
+		vertexData.applyToMesh(newCylinder);
+
+		flock.setSizeBasedCylinderUVs(
+			newCylinder,
+			height,
+			diameterTop,
+			diameterBottom,
+		); // Adjust texturePhysicalSize as needed
+
+		newCylinder.bakeCurrentTransformIntoVertices();
+
+		// Reset scaling to (1,1,1) since the transformation is now baked
+		newCylinder.scaling.set(1, 1, 1);
+
+		// Initialise the mesh with position, color, and other properties
+		flock.initializeMesh(newCylinder, position, color, "Cylinder", alpha);
+		newCylinder.position.y += height / 2;
+		// Initialise the mesh with position, color, and other properties
+
+		newCylinder.blockKey = blockKey;
+
+		// Create and apply physics shape
+		const startPoint = new flock.BABYLON.Vector3(0, -height / 2, 0);
+		const endPoint = new flock.BABYLON.Vector3(0, height / 2, 0);
+		const cylinderShape = new flock.BABYLON.PhysicsShapeCylinder(
+			startPoint,
+			endPoint,
+			diameterBottom / 2,
+			flock.scene,
+		);
+		flock.applyPhysics(newCylinder, cylinderShape);
+
+		return newCylinder.name;
+	},
+	createCapsule(capsuleId, color, diameter, height, position, alpha = 1) {
+		let radius = diameter / 2;
+		let blockKey = capsuleId;
+
+		if (capsuleId.includes("__")) {
+			[capsuleId, blockKey] = capsuleId.split("__");
+		}
+
+		const dimensions = {
+			radius,
+			height,
+			tessellation: 24,
+			updatable: false,
+		};
+
+		if (flock.scene.getMeshByName(capsuleId)) {
+			capsuleId = capsuleId + "_" + flock.scene.getUniqueId();
+		}
+
+		// Get or create cached VertexData
+		const vertexData = flock.getOrCreateGeometry(
+			"Capsule",
+			dimensions,
+			flock.scene,
+		);
+
+		// Create a new mesh and apply the cached VertexData
+		const newCapsule = new BABYLON.Mesh(capsuleId, flock.scene);
+		vertexData.applyToMesh(newCapsule);
+		newCapsule.bakeCurrentTransformIntoVertices();
+
+		// Reset scaling to (1,1,1) since the transformation is now baked
+		newCapsule.scaling.set(1, 1, 1);
+
+		// Initialise the mesh with position, color, and other properties
+		flock.initializeMesh(newCapsule, position, color, "Capsule", alpha);
+		newCapsule.position.y += height / 2;
+
+		flock.setCapsuleUVs(newCapsule, radius, height, 1); // Adjust texturePhysicalSize as needed
+
+		newCapsule.blockKey = blockKey;
+		// Define central point for the capsule
+		const center = new flock.BABYLON.Vector3(0, 0, 0);
+
+		// Calculate physics shape parameters
+		const capsuleRadius = radius;
+		const cylinderHeight = Math.max(0, height - 2 * capsuleRadius);
+
+		// Define the start and end points of the cylindrical segment
+		const segmentStart = new flock.BABYLON.Vector3(
+			center.x,
+			center.y - cylinderHeight / 2 + 0.1,
+			center.z,
+		);
+		const segmentEnd = new flock.BABYLON.Vector3(
+			center.x,
+			center.y + cylinderHeight / 2 + 0.1,
+			center.z,
+		);
+
+		// Create and apply the physics shape using the central reference
+		const capsuleShape = new flock.BABYLON.PhysicsShapeCapsule(
+			segmentStart,
+			segmentEnd,
+			capsuleRadius,
+			flock.scene,
+		);
+		flock.applyPhysics(newCapsule, capsuleShape);
+
+		return newCapsule.name;
+	},
+	createPlane(planeId, color, width, height, position) {
+		// Handle block key
+		let blockKey = planeId;
+		if (planeId.includes("__")) {
+			[planeId, blockKey] = planeId.split("__");
+		}
+
+		if (flock.scene.getMeshByName(planeId)) {
+			planeId = planeId + "_" + flock.scene.getUniqueId();
+		}
+
+		console.log(
+			"Creating plane with id: " + planeId,
+			flock.scene.getMeshByName(planeId),
+		);
+
+		// Create plane with specified dimensions
+		const newPlane = flock.BABYLON.MeshBuilder.CreatePlane(
+			planeId,
+			{
+				width,
+				height,
+				sideOrientation: flock.BABYLON.Mesh.DOUBLESIDE,
+			},
+			flock.scene,
+		);
+		// Set metadata and name
+		newPlane.metadata = newPlane.metadata || {};
+		newPlane.metadata.shape = "plane";
+
+		// Set final position including the height offset all at once
+		newPlane.position = new flock.BABYLON.Vector3(
+			position[0],
+			position[1] + height / 2,
+			position[2],
+		);
+
+		// Create physics body
+		const planeBody = new flock.BABYLON.PhysicsBody(
+			newPlane,
+			flock.BABYLON.PhysicsMotionType.STATIC,
+			false,
+			flock.scene,
+		);
+
+		// Create physics shape - matching the mesh position
+		const planeShape = new flock.BABYLON.PhysicsShapeBox(
+			new flock.BABYLON.Vector3(0, 0, 0), // Center offset
+			new flock.BABYLON.Quaternion(0, 0, 0, 1),
+			new flock.BABYLON.Vector3(width, height, 0.001),
+			flock.scene,
+		);
+
+		// Set up physics properties
+		planeBody.shape = planeShape;
+		planeBody.setMassProperties({
+			mass: 0,
+			restitution: 0.5,
+			inertia: flock.BABYLON.Vector3.ZeroReadOnly,
+		});
+		newPlane.physics = planeBody;
+
+		flock.applyMaterialToMesh(newPlane, "Plane", color);
+
+		newPlane.blockKey = blockKey;
+
+		return newPlane.name;
+	},
+	show(modelName) {
+		// Check if the ID refers to a UI button
+		const uiButton = flock.scene.UITexture?.getControlByName(modelName);
+
+		if (uiButton) {
+			// Handle UI button case
+			uiButton.isVisible = true; // Hide the button
+			return;
+		}
+		return flock.whenModelReady(modelName, function (mesh) {
+			if (mesh) {
+				mesh.setEnabled(true);
+				flock.hk._hknp.HP_World_AddBody(
+					flock.hk.world,
+					mesh.physics._pluginData.hpBodyId,
+					mesh.physics.startAsleep,
+				);
+			} else {
+				console.log("Model not loaded:", modelName);
+			}
+		});
+	},
+	hide(modelName) {
+		const uiButton = flock.scene.UITexture?.getControlByName(modelName);
+
+		if (uiButton) {
+			// Handle UI button case
+			uiButton.isVisible = false; // Hide the button
+			return;
+		}
+		return flock.whenModelReady(modelName, async function (mesh) {
+			if (mesh) {
+				mesh.setEnabled(false);
+				flock.hk._hknp.HP_World_RemoveBody(
+					flock.hk.world,
+					mesh.physics._pluginData.hpBodyId,
+				);
+			} else {
+				console.log("Mesh not loaded:", modelName);
+			}
+		});
+	},
+	disposeMesh(mesh) {
+		if (mesh.name === "ground") {
+			mesh.material.dispose();
+			mesh.dispose();
+			flock.ground = null;
+			return;
+		}
+		if (mesh.name === "sky") {
+			mesh.material.dispose();
+			mesh.dispose();
+			flock.sky = null;
+			return;
+		}
+
+		let meshesToDispose = [mesh];
+
+		const particleSystem = flock.scene.particleSystems.find(
+			(system) => system.name === mesh.name,
+		);
+
+		if (particleSystem) {
+			particleSystem.dispose();
+			return;
+		}
+
+		if (mesh.getChildMeshes) {
+			meshesToDispose = mesh.getChildMeshes().concat(mesh);
+		}
+
+		const disposedMaterials = new Set();
+
+		// Process AnimationGroups
+		flock.scene.animationGroups.slice().forEach((animationGroup) => {
+			const targets = animationGroup.targetedAnimations.map(
+				(anim) => anim.target,
+			);
+
+			if (
+				targets.some((target) => meshesToDispose.includes(target)) ||
+				targets.some((target) =>
+					mesh.getDescendants().includes(target),
+				) ||
+				targets.length === 0 // Orphaned group
+			) {
+				animationGroup.targetedAnimations.forEach((anim) => {
+					anim.target = null; // Detach references
+				});
+				animationGroup.stop();
+				animationGroup.dispose();
+			}
+		});
+
+		// Dispose standalone animations
+		meshesToDispose.forEach((currentMesh) => {
+			if (currentMesh.animations) {
+				currentMesh.animations.forEach((animation) => {
+					animation.dispose?.();
+				});
+				currentMesh.animations.length = 0;
+			}
+		});
+
+		// Detach and Dispose Materials
+		meshesToDispose.forEach((currentMesh) => {
+			if (currentMesh.material) {
+				const material = currentMesh.material;
+
+				// Detach material from the mesh
+				currentMesh.material = null;
+
+				// Dispose material if not already disposed
+				if (!disposedMaterials.has(material)) {
+					const sharedMaterial = currentMesh.metadata?.sharedMaterial;
+
+					if (sharedMaterial === false) {
+						disposedMaterials.add(material);
+
+						// Remove from scene.materials
+						flock.scene.materials = flock.scene.materials.filter(
+							(mat) => mat !== material,
+						);
+
+						material.dispose();
+					}
+				}
+			}
+		});
+
+		// Break parent-child relationships
+		meshesToDispose.forEach((currentMesh) => {
+			console.log("Stopping current sound");
+			if (currentMesh?.metadata?.currentSound) {
+				currentMesh.metadata.currentSound.stop();
+			}
+		});
+		// Break parent-child relationships
+		meshesToDispose.forEach((currentMesh) => {
+			currentMesh.parent = null;
+		});
+
+		// Dispose meshes in reverse order
+		meshesToDispose.reverse().forEach((currentMesh) => {
+			if (!currentMesh.isDisposed()) {
+				// Remove physics body
+				if (currentMesh.physics) {
+					currentMesh.physics.dispose();
+				}
+
+				// Remove from scene
+				flock.scene.removeMesh(currentMesh);
+				currentMesh.setEnabled(false);
+
+				// Dispose the mesh
+				currentMesh.dispose();
+			}
+		});
+	},
+	dispose(modelName) {
+		const uiButton = flock.scene.UITexture?.getControlByName(modelName);
+
+		if (uiButton) {
+			// Handle UI button case
+			uiButton.dispose();
+			return;
+		}
+		return flock.whenModelReady(modelName, (mesh) => {
+			flock.disposeMesh(mesh);
+		});
+	},
+	cloneMesh({ sourceMeshName, cloneId, callback = null }) {
+		const uniqueCloneId = cloneId + "_" + flock.scene.getUniqueId();
+
+		flock.whenModelReady(sourceMeshName, (sourceMesh) => {
+			const clone = sourceMesh.clone(uniqueCloneId);
+
+			if (clone) {
+				sourceMesh.computeWorldMatrix(true);
+
+				const worldPosition = new BABYLON.Vector3();
+				const worldRotation = new BABYLON.Quaternion();
+				sourceMesh
+					.getWorldMatrix()
+					.decompose(undefined, worldRotation, worldPosition);
+
+				clone.parent = null;
+				clone.position.copyFrom(worldPosition);
+				clone.rotationQuaternion = worldRotation.clone();
+				clone.scaling.copyFrom(sourceMesh.scaling);
+
+				// Clone and synchronise the physics body
+				if (sourceMesh.physics) {
+					const cloneBody = sourceMesh.physics.clone(clone);
+					clone.physics = cloneBody;
+				}
+
+				const setMetadata = (mesh) => {
+					// Ensure metadata exists
+					mesh.metadata = mesh.metadata || {};
+
+					// Add or update specific properties without overwriting existing metadata
+					mesh.metadata.sharedMaterial = true;
+					mesh.metadata.sharedGeometry = true;
+				};
+
+				clone.metadata = { ...(sourceMesh.metadata || {}) };
+				setMetadata(clone);
+				clone.getDescendants().forEach(setMetadata);
+
+				if (callback) {
+					requestAnimationFrame(() => callback());
+				}
+			}
+		});
+
+		return uniqueCloneId;
+	},
+	/* 
+		Category: Scene>Effects
+	*/
 	UIText(text, x, y, fontSize, color, duration, id = null) {
 		// Ensure flock.scene and flock.GUI are initialized
 		if (!flock.scene || !flock.GUI) {
@@ -823,132 +1927,6 @@ export const flock = {
 		// Return the buttonId for future reference
 		return buttonId;
 	},
-	removeEventListeners() {
-		flock.scene.eventListeners?.forEach(({ event, handler }) => {
-			flock.document.removeEventListener(event, handler);
-		});
-
-		if (flock.scene && flock.scene.eventListeners)
-			flock.scene.eventListeners.length = 0; // Clear the array
-	},
-	async *modelReadyGenerator(
-		meshId,
-		maxAttempts = 100,
-		initialInterval = 100,
-		maxInterval = 2000,
-	) {
-		let attempt = 1;
-		let interval = initialInterval;
-		const { signal } = flock.abortController;
-
-		while (attempt <= maxAttempts) {
-			if (flock.disposed || !flock.scene || flock.scene.isDisposed) {
-				console.warn(
-					"Scene has been disposed or generator invalidated.",
-				);
-				return;
-			}
-
-			if (flock.scene) {
-				if (meshId === "__active_camera__") {
-					yield flock.scene.activeCamera;
-					return;
-				} else {
-					const mesh = flock.scene.getMeshByName(meshId);
-					if (mesh) {
-						yield mesh;
-						return;
-					}
-				}
-			}
-
-			try {
-				await new Promise((resolve, reject) => {
-					const timeoutId = setTimeout(resolve, interval);
-
-					// Reject the promise if the abort signal is triggered
-					const onAbort = () => {
-						clearTimeout(timeoutId);
-						reject(new Error("Wait aborted"));
-					};
-
-					signal.addEventListener("abort", onAbort, { once: true });
-
-					// Ensure the event listener is cleaned up after resolving
-					signal.addEventListener(
-						"abort",
-						() => signal.removeEventListener("abort", onAbort),
-						{ once: true },
-					);
-				});
-			} catch (error) {
-				console.log("Timeout aborted:", error);
-				// Properly exit if the wait was aborted to prevent further processing
-				return;
-			}
-
-			interval = Math.min(interval * 2, maxInterval);
-			attempt++;
-			//console.log(`Attempt ${attempt}: Retrying in ${interval}ms...`);
-		}
-
-		console.warn(
-			`Mesh with ID '${meshId}' not found after ${maxAttempts} attempts.`,
-		);
-	},
-	whenModelReady(targetId, callback) {
-		// Check if the target (mesh or GUI button) is immediately available
-		if (flock.scene) {
-			let target = flock.scene.getMeshByName(targetId);
-
-			if (!target && flock.scene.UITexture) {
-				target = flock.scene.UITexture.getControlByName(targetId);
-			}
-
-			// Check animation groups if still not found
-			if (!target) {
-				target = flock.scene.animationGroups.find(
-					(group) => group.name === targetId,
-				);
-			}
-
-			// Check particle systems if still not found
-			if (!target) {
-				target = flock.scene.particleSystems.find(
-					(system) => system.name === targetId,
-				);
-			}
-
-			if (target) {
-				if (flock.abortController.signal.aborted) {
-					return; // If already aborted, stop here
-				}
-				// Target is available immediately, invoke the callback synchronously
-				callback(target);
-				return; // Return immediately, no Promise needed
-			}
-		}
-
-		// If the target is not immediately available, fall back to the generator and return a Promise
-		return (async () => {
-			const generator = flock.modelReadyGenerator(targetId);
-			try {
-				for await (const target of generator) {
-					if (flock.abortController.signal.aborted) {
-						console.log(`Aborted waiting for target: ${targetId}`);
-						return; // Exit the loop if the operation was aborted
-					}
-					await callback(target);
-				}
-			} catch (err) {
-				if (flock.abortController.signal.aborted) {
-					console.log(`Operation was aborted: ${targetId}`);
-				} else {
-					console.error(`Error in whenModelReady: ${err}`);
-				}
-			}
-		})();
-	},
 	stopAnimationsTargetingMesh(scene, mesh) {
 		scene.animationGroups.forEach(function (animationGroup) {
 			let targets = animationGroup.targetedAnimations.map(
@@ -1077,7 +2055,6 @@ export const flock = {
 			flock.glowMesh(mesh, glowColor);
 		});
 	},
-
 	glowMesh(mesh, glowColor = null) {
 		const applyGlow = (m) => {
 			m.metadata = m.metadata || {};
@@ -1369,76 +2346,7 @@ export const flock = {
 		flock.applyColorToMaterial(mesh, "Sleeves", sleevesColor);
 		flock.applyColorToMaterial(mesh, "Shoes", sleevesColor);
 	},
-	createCharacter({
-		modelName,
-		modelId,
-		scale = 1,
-		position = { x: 0, y: 0, z: 0 },
-		colors = {
-			hair: "#000000",
-			skin: "#a15c33",
-			eyes: "#0000ff",
-			sleeves: "#ff0000",
-			shorts: "#00ff00",
-			tshirt: "#0000ff",
-		},
-		callback = () => {},
-	}) {
-		const { x, y, z } = position;
-
-		let blockKey;
-		if (modelId.includes("__")) {
-			[modelId, blockKey] = modelId.split("__");
-		}
-
-		if (flock.scene.getMeshByName(modelId)) {
-			modelId = modelId + "_" + flock.scene.getUniqueId();
-		}
-		flock.BABYLON.SceneLoader.LoadAssetContainerAsync(
-			flock.modelPath,
-			modelName,
-			flock.scene,
-			null,
-			null,
-			{ signal: flock.abortController.signal },
-		)
-			.then((container) => {
-				container.addAllToScene();
-				const mesh = container.meshes[0];
-				flock.setupMesh(
-					mesh,
-					modelName,
-					modelId,
-					blockKey,
-					scale,
-					x,
-					y,
-					z,
-				);
-
-				if (modelName.startsWith("Character"))
-					flock.ensureStandardMaterial(mesh);
-				flock.applyColorsToCharacter(mesh, colors);
-
-				const descendants = mesh.getChildMeshes(false);
-				descendants.forEach((childMesh) => {
-					if (childMesh.getTotalVertices() > 0) {
-						// Ensure it has geometry
-						childMesh.isPickable = true;
-						childMesh.flipFaces(true);
-					}
-				});
-
-				if (callback) {
-					requestAnimationFrame(() => callback());
-				}
-			})
-			.catch((error) => {
-				console.log("Error loading", error);
-			});
-
-		return modelId;
-	},
+	
 	ensureStandardMaterial(mesh) {
 		if (!mesh) return;
 
@@ -1479,200 +2387,7 @@ export const flock = {
 			oldMaterial.dispose();
 		});
 	},
-	createObject({
-		modelName,
-		modelId,
-		color = ["#FFFFFF", "#FFFFFF"],
-		scale = 1,
-		position = { x: 0, y: 0, z: 0 },
-		callback = null,
-	} = {}) {
-		try {
-			// Basic parameter validation with warnings
-			if (!modelName) {
-				console.warn("createObject: Missing modelName parameter");
-				return "error_" + flock.scene.getUniqueId();
-			}
-
-			if (!modelId) {
-				console.warn("createObject: Missing modelId parameter");
-				return "error_" + flock.scene.getUniqueId();
-			}
-
-			if (!position || typeof position !== "object") {
-				console.warn("createObject: Invalid position parameter");
-				position = { x: 0, y: 0, z: 0 };
-			}
-
-			const { x, y, z } = position;
-
-			let blockKey = modelId;
-			let meshName;
-			if (modelId.includes("__")) {
-				[meshName, blockKey] = modelId.split("__");
-			}
-
-			if (
-				flock.scene.getMeshByName(meshName) ||
-				flock.modelsBeingLoaded[modelName]
-			) {
-				meshName = meshName + "_" + flock.scene.getUniqueId();
-			}
-
-			if (flock.modelCache[modelName]) {
-				const firstMesh = flock.modelCache[modelName];
-				const mesh = firstMesh.clone(blockKey);
-				mesh.scaling.copyFrom(BABYLON.Vector3.One());
-				mesh.position.copyFrom(BABYLON.Vector3.Zero());
-
-				flock.setupMesh(
-					mesh,
-					modelName,
-					meshName,
-					blockKey,
-					scale,
-					x,
-					y,
-					z,
-					color,
-				);
-				flock.changeColorMesh(mesh, color);
-				mesh.computeWorldMatrix(true);
-				mesh.refreshBoundingInfo();
-				mesh.setEnabled(true);
-				const allDescendantMeshes = [
-					mesh,
-					...mesh
-						.getDescendants(false)
-						.filter((node) => node instanceof BABYLON.AbstractMesh),
-				];
-
-				allDescendantMeshes.forEach((mesh) => {
-					mesh.isPickable = true;
-					mesh.setEnabled(true);
-				});
-				if (callback) {
-					requestAnimationFrame(callback);
-				}
-				return meshName;
-			}
-
-			if (flock.modelsBeingLoaded[modelName]) {
-				//console.log(`Waiting for model to load: ${modelName}`);
-				flock.modelsBeingLoaded[modelName].then(() => {
-					if (flock.modelCache[modelName]) {
-						const firstMesh = flock.modelCache[modelName];
-						const mesh = firstMesh.clone(blockKey);
-						mesh.scaling.copyFrom(BABYLON.Vector3.One());
-						mesh.position.copyFrom(BABYLON.Vector3.Zero());
-						flock.setupMesh(
-							mesh,
-							modelName,
-							meshName,
-							blockKey,
-							scale,
-							x,
-							y,
-							z,
-							color,
-						);
-						flock.changeColorMesh(mesh, color);
-						mesh.computeWorldMatrix(true);
-						mesh.refreshBoundingInfo();
-						const allDescendantMeshes = [
-							mesh,
-							...mesh
-								.getDescendants(false)
-								.filter(
-									(node) =>
-										node instanceof BABYLON.AbstractMesh,
-								),
-						];
-						allDescendantMeshes.forEach((mesh) => {
-							mesh.isPickable = true;
-							mesh.setEnabled(true);
-						});
-						if (callback) {
-							requestAnimationFrame(callback);
-						}
-					}
-				});
-				return meshName;
-			}
-
-			const loadPromise =
-				flock.BABYLON.SceneLoader.LoadAssetContainerAsync(
-					flock.modelPath,
-					modelName,
-					flock.scene,
-				)
-					.then((container) => {
-						flock.ensureStandardMaterial(container.meshes[0]);
-
-						// First, add everything to the scene
-						container.addAllToScene();
-
-						// Create the template mesh AFTER adding to scene
-						const firstMesh = container.meshes[0].clone(
-							`${modelName}_first`,
-						);
-						firstMesh.setEnabled(false);
-						firstMesh.isPickable = false;
-
-						// Make sure all children of the template are also not pickable
-						firstMesh.getChildMeshes().forEach((child) => {
-							child.isPickable = false;
-							child.setEnabled(false);
-						});
-
-						// Store in cache
-						flock.modelCache[modelName] = firstMesh;
-
-						// Make sure the original mesh and its children ARE pickable and enabled
-						container.meshes[0].isPickable = true;
-						container.meshes[0].setEnabled(true);
-						container.meshes[0]
-							.getChildMeshes()
-							.forEach((child) => {
-								child.isPickable = true;
-								child.setEnabled(true); // Fixed the missing closing parenthesis
-							});
-
-						// Setup and color the active mesh
-						flock.setupMesh(
-							container.meshes[0],
-							modelName,
-							meshName,
-							blockKey,
-							scale,
-							x,
-							y,
-							z,
-							color,
-						);
-						flock.changeColorMesh(container.meshes[0], color);
-
-						if (callback) {
-							requestAnimationFrame(callback);
-						}
-					})
-					.catch((error) => {
-						console.error(
-							`Error loading model: ${modelName}`,
-							error,
-						);
-					})
-					.finally(() => {
-						delete flock.modelsBeingLoaded[modelName];
-					});
-
-			flock.modelsBeingLoaded[modelName] = loadPromise;
-			return meshName;
-		} catch (error) {
-			console.warn("createObject: Error creating object:", error);
-			return "error_" + flock.scene.getUniqueId();
-		}
-	},
+	
 	create3DText({
 		text,
 		font,
@@ -2479,182 +3194,9 @@ export const flock = {
 			}
 		});
 	},
-	createGround(color, modelId) {
-		if (flock.ground) {
-			flock.disposeMesh(flock.ground);
-		}
-		const ground = flock.BABYLON.MeshBuilder.CreateGround(
-			modelId,
-			{ width: 100, height: 100, subdivisions: 2 },
-			flock.scene,
-		);
-		const blockId = modelId;
-		const groundAggregate = new flock.BABYLON.PhysicsAggregate(
-			ground,
-			flock.BABYLON.PhysicsShapeType.BOX,
-			{ mass: 0, friction: 0.5 },
-			flock.scene,
-		);
-
-		ground.name = modelId;
-		ground.blockKey = blockId;
-		ground.receiveShadows = true;
-		const groundMaterial = new flock.BABYLON.StandardMaterial(
-			"groundMaterial",
-			flock.scene,
-		);
-		ground.physics = groundAggregate;
-
-		groundMaterial.diffuseColor = flock.BABYLON.Color3.FromHexString(
-			flock.getColorFromString(color),
-		);
-		ground.material = groundMaterial;
-		flock.ground = ground;
-	},
-	createMap(image, material) {
-		if (flock.ground) {
-			flock.disposeMesh(flock.ground);
-		}
-		let ground;
-		if (image === "NONE") {
-			const modelId = "flatGround";
-			ground = flock.BABYLON.MeshBuilder.CreateGround(
-				modelId,
-				{ width: 100, height: 100, subdivisions: 2 },
-				flock.scene,
-			);
-			const groundAggregate = new flock.BABYLON.PhysicsAggregate(
-				ground,
-				flock.BABYLON.PhysicsShapeType.BOX,
-				{ mass: 0, friction: 0.5 },
-				flock.scene,
-			);
-			ground.physics = groundAggregate;
-			ground.name = modelId;
-			ground.blockKey = modelId;
-			ground.receiveShadows = true;
-		} else {
-			const minHeight = 0;
-			const maxHeight = 10;
-			ground = flock.BABYLON.MeshBuilder.CreateGroundFromHeightMap(
-				"heightmap",
-				flock.texturePath + image,
-				{
-					width: 100,
-					height: 100,
-					minHeight: minHeight,
-					maxHeight: maxHeight,
-					subdivisions: 64,
-					onReady: (groundMesh) => {
-						const vertexData = groundMesh.getVerticesData(
-							flock.BABYLON.VertexBuffer.PositionKind,
-						);
-						let minDistance = Infinity;
-						let closestY = 0;
-						for (let i = 0; i < vertexData.length; i += 3) {
-							const x = vertexData[i];
-							const z = vertexData[i + 2];
-							const y = vertexData[i + 1];
-							const distance = Math.sqrt(x * x + z * z);
-							if (distance < minDistance) {
-								minDistance = distance;
-								closestY = y;
-							}
-						}
-
-						groundMesh.position.y -= closestY;
-						const heightMapGroundShape =
-							new flock.BABYLON.PhysicsShapeMesh(
-								ground,
-								flock.scene,
-							);
-						const heightMapGroundBody =
-							new flock.BABYLON.PhysicsBody(
-								ground,
-								flock.BABYLON.PhysicsMotionType.STATIC,
-								false,
-								flock.scene,
-							);
-						heightMapGroundShape.material = {
-							friction: 0.3,
-							restitution: 0,
-						};
-						heightMapGroundBody.shape = heightMapGroundShape;
-						heightMapGroundBody.setMassProperties({ mass: 0 });
-					},
-				},
-				flock.scene,
-			);
-		}
-		ground.name = "ground";
-		ground.blockKey = "ground";
-
-		//console.log("Scaling material");
-		// Simply assign the passed-through material:
-		if (material.diffuseTexture) {
-			material.diffuseTexture.wrapU =
-				flock.BABYLON.Texture.WRAP_ADDRESSMODE;
-			material.diffuseTexture.wrapV =
-				flock.BABYLON.Texture.WRAP_ADDRESSMODE;
-			material.diffuseTexture.uScale = 25;
-			material.diffuseTexture.vScale = 25;
-		}
-		ground.material = material;
-		flock.ground = ground;
-		return ground;
-	},
+	
 	createCustomMap(colors) {
 		console.log("Creating map", colors);
-	},
-	setSky(color) {
-		// If color is a Babylon.js material, apply it directly
-		if (flock.sky) {
-			flock.disposeMesh(flock.sky);
-		}
-		if (color && color instanceof flock.BABYLON.Material) {
-			const skySphere = flock.BABYLON.MeshBuilder.CreateSphere(
-				"sky",
-				{ segments: 32, diameter: 1000 },
-				flock.scene,
-			);
-
-			flock.sky = skySphere;
-			color.diffuseTexture.uScale = 10.0;
-			color.diffuseTexture.vScale = 10.0;
-			skySphere.material = color;
-			skySphere.isPickable = false; // Make non-interactive
-		} else if (Array.isArray(color) && color.length === 2) {
-			// Handle gradient case
-			const skySphere = flock.BABYLON.MeshBuilder.CreateSphere(
-				"sky",
-				{ segments: 32, diameter: 1000 },
-				flock.scene,
-			);
-			flock.sky = skySphere;
-			const gradientMaterial = new flock.GradientMaterial(
-				"skyGradient",
-				flock.scene,
-			);
-
-			gradientMaterial.bottomColor = flock.BABYLON.Color3.FromHexString(
-				flock.getColorFromString(color[0]),
-			);
-			gradientMaterial.topColor = flock.BABYLON.Color3.FromHexString(
-				flock.getColorFromString(color[1]),
-			);
-			gradientMaterial.offset = 0.8; // Push the gradient midpoint towards the top
-			gradientMaterial.smoothness = 0.5; // Sharper gradient transition
-			gradientMaterial.scale = 0.01;
-			gradientMaterial.backFaceCulling = false; // Render on the inside of the sphere
-
-			skySphere.material = gradientMaterial;
-			skySphere.isPickable = false; // Make non-interactive
-		} else {
-			// Handle single color case
-			flock.scene.clearColor = flock.BABYLON.Color3.FromHexString(
-				flock.getColorFromString(color),
-			);
-		}
 	},
 	lightIntensity(intensity) {
 		if (flock.mainLight) {
@@ -2843,135 +3385,7 @@ export const flock = {
 			});
 		});
 	},
-	disposeMesh(mesh) {
-		if (mesh.name === "ground") {
-			mesh.material.dispose();
-			mesh.dispose();
-			flock.ground = null;
-			return;
-		}
-		if (mesh.name === "sky") {
-			mesh.material.dispose();
-			mesh.dispose();
-			flock.sky = null;
-			return;
-		}
 
-		let meshesToDispose = [mesh];
-
-		const particleSystem = flock.scene.particleSystems.find(
-			(system) => system.name === mesh.name,
-		);
-
-		if (particleSystem) {
-			particleSystem.dispose();
-			return;
-		}
-
-		if (mesh.getChildMeshes) {
-			meshesToDispose = mesh.getChildMeshes().concat(mesh);
-		}
-
-		const disposedMaterials = new Set();
-
-		// Process AnimationGroups
-		flock.scene.animationGroups.slice().forEach((animationGroup) => {
-			const targets = animationGroup.targetedAnimations.map(
-				(anim) => anim.target,
-			);
-
-			if (
-				targets.some((target) => meshesToDispose.includes(target)) ||
-				targets.some((target) =>
-					mesh.getDescendants().includes(target),
-				) ||
-				targets.length === 0 // Orphaned group
-			) {
-				animationGroup.targetedAnimations.forEach((anim) => {
-					anim.target = null; // Detach references
-				});
-				animationGroup.stop();
-				animationGroup.dispose();
-			}
-		});
-
-		// Dispose standalone animations
-		meshesToDispose.forEach((currentMesh) => {
-			if (currentMesh.animations) {
-				currentMesh.animations.forEach((animation) => {
-					animation.dispose?.();
-				});
-				currentMesh.animations.length = 0;
-			}
-		});
-
-		// Detach and Dispose Materials
-		meshesToDispose.forEach((currentMesh) => {
-			if (currentMesh.material) {
-				const material = currentMesh.material;
-
-				// Detach material from the mesh
-				currentMesh.material = null;
-
-				// Dispose material if not already disposed
-				if (!disposedMaterials.has(material)) {
-					const sharedMaterial = currentMesh.metadata?.sharedMaterial;
-
-					if (sharedMaterial === false) {
-						disposedMaterials.add(material);
-
-						// Remove from scene.materials
-						flock.scene.materials = flock.scene.materials.filter(
-							(mat) => mat !== material,
-						);
-
-						material.dispose();
-					}
-				}
-			}
-		});
-
-		// Break parent-child relationships
-		meshesToDispose.forEach((currentMesh) => {
-			console.log("Stopping current sound");
-			if (currentMesh?.metadata?.currentSound) {
-				currentMesh.metadata.currentSound.stop();
-			}
-		});
-		// Break parent-child relationships
-		meshesToDispose.forEach((currentMesh) => {
-			currentMesh.parent = null;
-		});
-
-		// Dispose meshes in reverse order
-		meshesToDispose.reverse().forEach((currentMesh) => {
-			if (!currentMesh.isDisposed()) {
-				// Remove physics body
-				if (currentMesh.physics) {
-					currentMesh.physics.dispose();
-				}
-
-				// Remove from scene
-				flock.scene.removeMesh(currentMesh);
-				currentMesh.setEnabled(false);
-
-				// Dispose the mesh
-				currentMesh.dispose();
-			}
-		});
-	},
-	dispose(modelName) {
-		const uiButton = flock.scene.UITexture?.getControlByName(modelName);
-
-		if (uiButton) {
-			// Handle UI button case
-			uiButton.dispose();
-			return;
-		}
-		return flock.whenModelReady(modelName, (mesh) => {
-			flock.disposeMesh(mesh);
-		});
-	},
 	async playAnimation(
 		modelName,
 		animationName,
@@ -3459,56 +3873,7 @@ export const flock = {
 		// Apply updated UV mapping
 		mesh.setVerticesData(BABYLON.VertexBuffer.UVKind, uvs, true);
 	},
-	createBox(boxId, color, width, height, depth, position, alpha = 1) {
-		let blockKey = boxId;
-
-		if (boxId.includes("__")) {
-			[boxId, blockKey] = boxId.split("__");
-		}
-
-		if (flock.scene.getMeshByName(boxId)) {
-			boxId = boxId + "_" + flock.scene.getUniqueId();
-		}
-
-		const dimensions = { width, height, depth };
-
-		// Retrieve cached VertexData or create it if this is the first instance
-		const vertexData = flock.getOrCreateGeometry(
-			"Box",
-			dimensions,
-			flock.scene,
-		);
-
-		// Create a new mesh and apply the cached VertexData
-		const newBox = new BABYLON.Mesh(boxId, flock.scene);
-		vertexData.applyToMesh(newBox);
-
-		// Apply size-based UV mapping
-		flock.setSizeBasedBoxUVs(newBox, width, height, depth);
-
-		// Bake the scaling into the mesh
-		newBox.bakeCurrentTransformIntoVertices();
-
-		// Reset scaling to (1,1,1) since the transformation is now baked
-		newBox.scaling.set(1, 1, 1);
-
-		// Initialise the mesh with position, color, and other properties
-		flock.initializeMesh(newBox, position, color, "Box", alpha);
-
-		newBox.position.y += height / 2; // Middle of the box
-		newBox.blockKey = blockKey;
-
-		// Define and apply the physics shape
-		const boxShape = new flock.BABYLON.PhysicsShapeBox(
-			new BABYLON.Vector3(0, 0, 0),
-			new BABYLON.Quaternion(0, 0, 0, 1),
-			new BABYLON.Vector3(width, height, depth),
-			flock.scene,
-		);
-		flock.applyPhysics(newBox, boxShape);
-
-		return newBox.name;
-	},
+	
 	setSphereUVs(mesh, diameter, texturePhysicalSize = 1) {
 		const positions = mesh.getVerticesData(
 			BABYLON.VertexBuffer.PositionKind,
@@ -3533,62 +3898,7 @@ export const flock = {
 
 		mesh.setVerticesData(BABYLON.VertexBuffer.UVKind, uvs, true);
 	},
-	createSphere(
-		sphereId,
-		color,
-		diameterX,
-		diameterY,
-		diameterZ,
-		position,
-		alpha = 1,
-	) {
-		let blockKey = sphereId;
 
-		if (sphereId.includes("__")) {
-			[sphereId, blockKey] = sphereId.split("__");
-		}
-
-		if (flock.scene.getMeshByName(sphereId)) {
-			sphereId = sphereId + "_" + flock.scene.getUniqueId();
-		}
-
-		const dimensions = { diameterX, diameterY, diameterZ };
-
-		// Retrieve cached VertexData or create it if this is the first instance
-		const vertexData = flock.getOrCreateGeometry(
-			"Sphere",
-			dimensions,
-			flock.scene,
-		);
-
-		if (!vertexData) return;
-
-		// Create a new mesh and apply the cached VertexData
-		const newSphere = new BABYLON.Mesh(sphereId, flock.scene);
-		vertexData.applyToMesh(newSphere);
-
-		flock.setSphereUVs(newSphere, diameterX, diameterY, diameterZ, 1);
-		newSphere.bakeCurrentTransformIntoVertices();
-
-		// Reset scaling to (1,1,1) since the transformation is now baked
-		newSphere.scaling.set(1, 1, 1);
-
-		// Initialise the mesh with position, color, and other properties
-		flock.initializeMesh(newSphere, position, color, "Sphere", alpha);
-		newSphere.position.y += diameterY / 2;
-
-		newSphere.blockKey = blockKey;
-
-		// Define and apply the physics shape
-		const sphereShape = new flock.BABYLON.PhysicsShapeSphere(
-			new BABYLON.Vector3(0, 0, 0),
-			Math.max(diameterX, diameterY, diameterZ) / 2,
-			flock.scene,
-		);
-		flock.applyPhysics(newSphere, sphereShape);
-
-		return newSphere.name;
-	},
 	getOrCreateGeometry(shapeType, dimensions, scene) {
 		const geometryKey = `${shapeType}_${Object.values(dimensions).join("_")}`;
 
@@ -3717,77 +4027,7 @@ export const flock = {
 		// Apply updated UV mapping
 		mesh.setVerticesData(BABYLON.VertexBuffer.UVKind, uvs, true);
 	},
-	createCylinder(
-		cylinderId,
-		color,
-		height,
-		diameterTop,
-		diameterBottom,
-		tessellation = 24, // Default tessellation to 12
-		position,
-		alpha = 1,
-	) {
-		const dimensions = {
-			height,
-			diameterTop,
-			diameterBottom,
-			tessellation, // Include tessellation in dimensions
-			updatable: true,
-		};
 
-		let blockKey = cylinderId;
-
-		if (cylinderId.includes("__")) {
-			[cylinderId, blockKey] = cylinderId.split("__");
-		}
-
-		if (flock.scene.getMeshByName(cylinderId)) {
-			cylinderId = cylinderId + "_" + flock.scene.getUniqueId();
-		}
-
-		// Get or create cached VertexData
-		const vertexData = flock.getOrCreateGeometry(
-			"Cylinder",
-			dimensions,
-			flock.scene,
-		);
-
-		// Create a new mesh and apply the cached VertexData
-		const newCylinder = new BABYLON.Mesh(cylinderId, flock.scene);
-		vertexData.applyToMesh(newCylinder);
-
-		flock.setSizeBasedCylinderUVs(
-			newCylinder,
-			height,
-			diameterTop,
-			diameterBottom,
-		); // Adjust texturePhysicalSize as needed
-
-		newCylinder.bakeCurrentTransformIntoVertices();
-
-		// Reset scaling to (1,1,1) since the transformation is now baked
-		newCylinder.scaling.set(1, 1, 1);
-
-		// Initialise the mesh with position, color, and other properties
-		flock.initializeMesh(newCylinder, position, color, "Cylinder", alpha);
-		newCylinder.position.y += height / 2;
-		// Initialise the mesh with position, color, and other properties
-
-		newCylinder.blockKey = blockKey;
-
-		// Create and apply physics shape
-		const startPoint = new flock.BABYLON.Vector3(0, -height / 2, 0);
-		const endPoint = new flock.BABYLON.Vector3(0, height / 2, 0);
-		const cylinderShape = new flock.BABYLON.PhysicsShapeCylinder(
-			startPoint,
-			endPoint,
-			diameterBottom / 2,
-			flock.scene,
-		);
-		flock.applyPhysics(newCylinder, cylinderShape);
-
-		return newCylinder.name;
-	},
 	setCapsuleUVs(mesh, radius, height, texturePhysicalSize = 4) {
 		const positions = mesh.getVerticesData(
 			BABYLON.VertexBuffer.PositionKind,
@@ -3832,77 +4072,7 @@ export const flock = {
 		}
 		mesh.setVerticesData(BABYLON.VertexBuffer.UVKind, uvs, true);
 	},
-	createCapsule(capsuleId, color, diameter, height, position, alpha = 1) {
-		let radius = diameter / 2;
-		let blockKey = capsuleId;
-
-		if (capsuleId.includes("__")) {
-			[capsuleId, blockKey] = capsuleId.split("__");
-		}
-
-		const dimensions = {
-			radius,
-			height,
-			tessellation: 24,
-			updatable: false,
-		};
-
-		if (flock.scene.getMeshByName(capsuleId)) {
-			capsuleId = capsuleId + "_" + flock.scene.getUniqueId();
-		}
-
-		// Get or create cached VertexData
-		const vertexData = flock.getOrCreateGeometry(
-			"Capsule",
-			dimensions,
-			flock.scene,
-		);
-
-		// Create a new mesh and apply the cached VertexData
-		const newCapsule = new BABYLON.Mesh(capsuleId, flock.scene);
-		vertexData.applyToMesh(newCapsule);
-		newCapsule.bakeCurrentTransformIntoVertices();
-
-		// Reset scaling to (1,1,1) since the transformation is now baked
-		newCapsule.scaling.set(1, 1, 1);
-
-		// Initialise the mesh with position, color, and other properties
-		flock.initializeMesh(newCapsule, position, color, "Capsule", alpha);
-		newCapsule.position.y += height / 2;
-
-		flock.setCapsuleUVs(newCapsule, radius, height, 1); // Adjust texturePhysicalSize as needed
-
-		newCapsule.blockKey = blockKey;
-		// Define central point for the capsule
-		const center = new flock.BABYLON.Vector3(0, 0, 0);
-
-		// Calculate physics shape parameters
-		const capsuleRadius = radius;
-		const cylinderHeight = Math.max(0, height - 2 * capsuleRadius);
-
-		// Define the start and end points of the cylindrical segment
-		const segmentStart = new flock.BABYLON.Vector3(
-			center.x,
-			center.y - cylinderHeight / 2 + 0.1,
-			center.z,
-		);
-		const segmentEnd = new flock.BABYLON.Vector3(
-			center.x,
-			center.y + cylinderHeight / 2 + 0.1,
-			center.z,
-		);
-
-		// Create and apply the physics shape using the central reference
-		const capsuleShape = new flock.BABYLON.PhysicsShapeCapsule(
-			segmentStart,
-			segmentEnd,
-			capsuleRadius,
-			flock.scene,
-		);
-		flock.applyPhysics(newCapsule, capsuleShape);
-
-		return newCapsule.name;
-	},
+	
 	setSizeBasedPlaneUVs(mesh, width, height, texturePhysicalSize = 4) {
 		const positions = mesh.getVerticesData(
 			BABYLON.VertexBuffer.PositionKind,
@@ -3931,121 +4101,7 @@ export const flock = {
 		// Apply updated UV mapping
 		mesh.setVerticesData(BABYLON.VertexBuffer.UVKind, uvs, true);
 	},
-	createPlane(planeId, color, width, height, position) {
-		// Handle block key
-		let blockKey = planeId;
-		if (planeId.includes("__")) {
-			[planeId, blockKey] = planeId.split("__");
-		}
-
-		if (flock.scene.getMeshByName(planeId)) {
-			planeId = planeId + "_" + flock.scene.getUniqueId();
-		}
-
-		console.log(
-			"Creating plane with id: " + planeId,
-			flock.scene.getMeshByName(planeId),
-		);
-
-		// Create plane with specified dimensions
-		const newPlane = flock.BABYLON.MeshBuilder.CreatePlane(
-			planeId,
-			{
-				width,
-				height,
-				sideOrientation: flock.BABYLON.Mesh.DOUBLESIDE,
-			},
-			flock.scene,
-		);
-		// Set metadata and name
-		newPlane.metadata = newPlane.metadata || {};
-		newPlane.metadata.shape = "plane";
-
-		// Set final position including the height offset all at once
-		newPlane.position = new flock.BABYLON.Vector3(
-			position[0],
-			position[1] + height / 2,
-			position[2],
-		);
-
-		// Create physics body
-		const planeBody = new flock.BABYLON.PhysicsBody(
-			newPlane,
-			flock.BABYLON.PhysicsMotionType.STATIC,
-			false,
-			flock.scene,
-		);
-
-		// Create physics shape - matching the mesh position
-		const planeShape = new flock.BABYLON.PhysicsShapeBox(
-			new flock.BABYLON.Vector3(0, 0, 0), // Center offset
-			new flock.BABYLON.Quaternion(0, 0, 0, 1),
-			new flock.BABYLON.Vector3(width, height, 0.001),
-			flock.scene,
-		);
-
-		// Set up physics properties
-		planeBody.shape = planeShape;
-		planeBody.setMassProperties({
-			mass: 0,
-			restitution: 0.5,
-			inertia: flock.BABYLON.Vector3.ZeroReadOnly,
-		});
-		newPlane.physics = planeBody;
-
-		flock.applyMaterialToMesh(newPlane, "Plane", color);
-
-		newPlane.blockKey = blockKey;
-
-		return newPlane.name;
-	},
-	cloneMesh({ sourceMeshName, cloneId, callback = null }) {
-		const uniqueCloneId = cloneId + "_" + flock.scene.getUniqueId();
-
-		flock.whenModelReady(sourceMeshName, (sourceMesh) => {
-			const clone = sourceMesh.clone(uniqueCloneId);
-
-			if (clone) {
-				sourceMesh.computeWorldMatrix(true);
-
-				const worldPosition = new BABYLON.Vector3();
-				const worldRotation = new BABYLON.Quaternion();
-				sourceMesh
-					.getWorldMatrix()
-					.decompose(undefined, worldRotation, worldPosition);
-
-				clone.parent = null;
-				clone.position.copyFrom(worldPosition);
-				clone.rotationQuaternion = worldRotation.clone();
-				clone.scaling.copyFrom(sourceMesh.scaling);
-
-				// Clone and synchronise the physics body
-				if (sourceMesh.physics) {
-					const cloneBody = sourceMesh.physics.clone(clone);
-					clone.physics = cloneBody;
-				}
-
-				const setMetadata = (mesh) => {
-					// Ensure metadata exists
-					mesh.metadata = mesh.metadata || {};
-
-					// Add or update specific properties without overwriting existing metadata
-					mesh.metadata.sharedMaterial = true;
-					mesh.metadata.sharedGeometry = true;
-				};
-
-				clone.metadata = { ...(sourceMesh.metadata || {}) };
-				setMetadata(clone);
-				clone.getDescendants().forEach(setMetadata);
-
-				if (callback) {
-					requestAnimationFrame(() => callback());
-				}
-			}
-		});
-
-		return uniqueCloneId;
-	},
+	
 	moveByVector(modelName, x, y, z) {
 		return flock.whenModelReady(modelName, (mesh) => {
 			mesh.position.addInPlace(new flock.BABYLON.Vector3(x, y, z));
@@ -4292,43 +4348,6 @@ export const flock = {
 			parent.physics.setMassProperties({ mass: 1, restitution: 0.5 });
 		}
 	},
-	/*scaleMeshProportional(modelName, x, y, z) {
-		return flock.whenModelReady(modelName, (mesh) => {
-			// Get the first actual mesh inside the bounding box
-			let targetMesh = mesh.getChildMeshes()[0] || mesh;
-
-			// Ensure the world matrix is up-to-date
-			targetMesh.computeWorldMatrix(true);
-			targetMesh.refreshBoundingInfo();
-
-			// Get the bounding box's scaling (it may not be 1,1,1)
-			const boundingBoxScale = mesh.scaling.clone(); // This is the wrapper’s scale
-
-			// Compensate for the bounding box’s transformation
-			const correctedScale = new flock.BABYLON.Vector3(
-				x / boundingBoxScale.x,
-				y / boundingBoxScale.y,
-				z / boundingBoxScale.z,
-			);
-
-			targetMesh.scaling = correctedScale;
-
-			targetMesh.getChildMeshes()[0].refreshBoundingInfo();
-			targetMesh.getChildMeshes()[0].computeWorldMatrix(true);
-			// Refresh bounding info and world matrix
-			targetMesh.refreshBoundingInfo();
-			targetMesh.computeWorldMatrix(true);
-
-			mesh.refreshBoundingInfo();
-			mesh.computeWorldMatrix(true);
-
-			// Update the physics shape based on the new scale
-			flock.updatePhysics(
-				targetMesh.getChildMeshes()[0] || targetMesh,
-				mesh,
-			);
-		});
-	},*/
 	lookAt(meshName1, meshName2, useY = false) {
 		return flock.whenModelReady(meshName1, (mesh1) => {
 			return flock.whenModelReady(meshName2, (mesh2) => {
@@ -5566,7 +5585,6 @@ export const flock = {
 			console.warn(`Particle system '${systemName}' not found.`);
 		}
 	},
-
 	stopParticleSystem(systemName) {
 		const particleSystem = flock.scene.particleSystems.find(
 			(system) => system.name === systemName,
@@ -5755,167 +5773,6 @@ export const flock = {
 						...forwardKeyframes,
 						...reverseKeyframes,
 					];
-
-					// Ensure sufficient keyframes
-					if (allKeyframes.length > 1) {
-						keyframeAnimation.setKeys(allKeyframes);
-					} else {
-						console.warn("Insufficient keyframes for animation.");
-						continue; // Skip this mesh
-					}
-
-					// Apply easing function
-					flock.applyEasing(keyframeAnimation, easing);
-
-					// Add the animation to the group
-					flock.addAnimationToGroup(
-						animationGroup,
-						keyframeAnimation,
-						targetMesh,
-					);
-
-					//console.log(`Added animation to group "${animationGroupName}" for property "${property}" on mesh "${targetMesh.name}".`);
-				}
-
-				if (animationGroup.targetedAnimations.length === 0) {
-					console.warn("No animations added to the group.");
-					resolve(animationGroupName);
-					return;
-				}
-
-				if (mode === "START" || mode === "AWAIT") {
-					// Start the animation group
-					animationGroup.play(loop);
-
-					if (mode === "AWAIT") {
-						animationGroup.onAnimationEndObservable.add(() => {
-							resolve(animationGroupName);
-						});
-					} else {
-						resolve(animationGroupName);
-					}
-				} else if (mode === "CREATE") {
-					// Do not start the animation group and prevent automatic playback
-					animationGroup.stop(); // Explicitly ensure animations do not play
-					animationGroup.onAnimationGroupPlayObservable.clear(); // Clear any unintended triggers
-					//console.log("Animation group created but not started.");
-					resolve(animationGroupName);
-				} else {
-					console.warn(`Unknown mode: ${mode}`);
-					resolve(animationGroup);
-				}
-			});
-		});
-	},
-	createAnimation2(
-		animationGroupName,
-		meshName,
-		property,
-		keyframes,
-		easing = "Linear",
-		loop = false,
-		reverse = false,
-		mode = "START", // Default to starting the animation
-	) {
-		console.log("Keyframe animation with", keyframes);
-
-		return new Promise(async (resolve) => {
-			// Ensure animationGroupName is not null; generate a unique name if it is
-			animationGroupName =
-				animationGroupName || `animation_${flock.scene.getUniqueId()}`;
-
-			// Ensure the animation group exists or create a new one
-			let animationGroup =
-				flock.scene.getAnimationGroupByName(animationGroupName);
-			if (!animationGroup) {
-				animationGroup = new flock.BABYLON.AnimationGroup(
-					animationGroupName,
-					flock.scene,
-				);
-				//console.log(`Created new animation group: ${animationGroupName}`);
-			}
-
-			await flock.whenModelReady(meshName, async (mesh) => {
-				if (!mesh) {
-					console.warn(`Mesh ${meshName} not found.`);
-					resolve(animationGroupName);
-					return;
-				}
-				/*mesh.physics.disablePreStep = false;
-				mesh.physics.setPrestepType(
-					flock.BABYLON.PhysicsPrestepType.ACTION,
-				);*/
-
-				if (property === "alpha") {
-					flock.ensureUniqueMaterial(mesh);
-				}
-
-				// Determine the meshes to animate
-				const meshesToAnimate =
-					property === "alpha"
-						? [mesh, ...mesh.getDescendants()].filter(
-								(m) => m.material,
-							) // Include descendants for alpha
-						: [mesh]; // Only the root mesh for other properties
-
-				for (const targetMesh of meshesToAnimate) {
-					const propertyToAnimate = flock.resolvePropertyToAnimate(
-							property,
-							targetMesh,
-						),
-						fps = 30, // Frames per second
-						animationType = flock.determineAnimationType(property),
-						loopMode = BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE; // Always use cycle mode for looping
-
-					const keyframeAnimation = new flock.BABYLON.Animation(
-						`${animationGroupName}_${property}`,
-						propertyToAnimate,
-						fps,
-						animationType,
-						loopMode,
-					);
-
-					// Convert keyframes (with absolute time in seconds) to Babylon.js frames
-					const forwardKeyframes = keyframes.map((keyframe) => ({
-						frame: Math.round((keyframe.duration || 0) * fps), // Convert seconds to frames
-						value: flock.parseKeyframeValue(
-							property,
-							keyframe.value,
-							mesh,
-						),
-					}));
-
-					// Generate reverse keyframes by mirroring forward frames
-					const reverseKeyframes = reverse
-						? forwardKeyframes
-								.slice(0, -1) // Exclude the last frame to avoid duplication
-								.reverse()
-								.map((keyframe, index) => ({
-									frame:
-										forwardKeyframes[
-											forwardKeyframes.length - 1
-										].frame +
-										(forwardKeyframes[index + 1]?.frame -
-											keyframe.frame),
-									value: keyframe.value,
-								}))
-						: [];
-
-					// Combine forward and reverse keyframes
-					const allKeyframes = [
-						...forwardKeyframes,
-						...reverseKeyframes,
-					];
-
-					// Debugging: Log keyframes
-					/*console.log(
-						"Generated Keyframes (with frames):",
-						allKeyframes,
-						propertyToAnimate,
-						animationType,
-						"quaternion",
-						mesh.rotationQuaternion,
-					);*/
 
 					// Ensure sufficient keyframes
 					if (allKeyframes.length > 1) {
@@ -6218,48 +6075,6 @@ export const flock = {
 				});
 			},
 		);
-	},
-	show(modelName) {
-		// Check if the ID refers to a UI button
-		const uiButton = flock.scene.UITexture?.getControlByName(modelName);
-
-		if (uiButton) {
-			// Handle UI button case
-			uiButton.isVisible = true; // Hide the button
-			return;
-		}
-		return flock.whenModelReady(modelName, function (mesh) {
-			if (mesh) {
-				mesh.setEnabled(true);
-				flock.hk._hknp.HP_World_AddBody(
-					flock.hk.world,
-					mesh.physics._pluginData.hpBodyId,
-					mesh.physics.startAsleep,
-				);
-			} else {
-				console.log("Model not loaded:", modelName);
-			}
-		});
-	},
-	hide(modelName) {
-		const uiButton = flock.scene.UITexture?.getControlByName(modelName);
-
-		if (uiButton) {
-			// Handle UI button case
-			uiButton.isVisible = false; // Hide the button
-			return;
-		}
-		return flock.whenModelReady(modelName, async function (mesh) {
-			if (mesh) {
-				mesh.setEnabled(false);
-				flock.hk._hknp.HP_World_RemoveBody(
-					flock.hk.world,
-					mesh.physics._pluginData.hpBodyId,
-				);
-			} else {
-				console.log("Mesh not loaded:", modelName);
-			}
-		});
 	},
 	up(modelName, upForce = 10) {
 		const mesh = flock.scene.getMeshByName(modelName);
