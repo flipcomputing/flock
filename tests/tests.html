@@ -77,13 +77,13 @@
       }
 
       // Run the Mocha tests
-      //runTests(flock, chai.expect); // Run tests from the imported file
+      runTests(flock, chai.expect); // Run tests from the imported file
       // Run the glideTo tests
       //runUITests(flock);
       //runGlideToTests(flock);
       //runStressTests(flock);
       //runCreateObjectTests(flock);
-      runSoundTests(flock);
+      //runSoundTests(flock);
 
       try {
         await flock.scene.debugLayer.show({

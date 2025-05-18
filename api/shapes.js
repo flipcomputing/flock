@@ -5,7 +5,14 @@ export function setFlockReference(ref) {
 }
 
 export const flockShapes = {
-  createBox(boxId, color, width, height, depth, position, alpha = 1) {
+  createBox(boxId,  {
+             width = 1,
+             height = 1,
+             depth = 1,
+             color = "#9932CC",
+             position = new BABYLON.Vector3(0, 0, 0),
+             alpha = 1,
+           }) {
     let blockKey = boxId;
 
     if (boxId.includes("__")) {
@@ -55,15 +62,14 @@ export const flockShapes = {
 
     return newBox.name;
   },
-  createSphere(
-    sphereId,
-    color,
-    diameterX,
-    diameterY,
-    diameterZ,
-    position,
+  createSphere(sphereId, {
+    color = "#9932CC",
+    diameterX = 1,
+    diameterY = 1,
+    diameterZ = 1,
+    position = new BABYLON.Vector3(0, 0, 0),
     alpha = 1,
-  ) {
+  }) {
     let blockKey = sphereId;
 
     if (sphereId.includes("__")) {
@@ -112,15 +118,18 @@ export const flockShapes = {
     return newSphere.name;
   },
   createCylinder(
-    cylinderId,
-    color,
-    height,
-    diameterTop,
-    diameterBottom,
-    tessellation = 24, // Default tessellation to 12
-    position,
-    alpha = 1,
-  ) {
+      cylinderId,
+      {
+        color,
+        height,
+        diameterTop,
+        diameterBottom,
+        tessellation = 24,
+        position,
+        alpha = 1,
+      }
+    ) 
+  {
     const dimensions = {
       height,
       diameterTop,
@@ -181,8 +190,18 @@ export const flockShapes = {
     flock.applyPhysics(newCylinder, cylinderShape);
 
     return newCylinder.name;
-  },
-  createCapsule(capsuleId, color, diameter, height, position, alpha = 1) {
+  },  
+  createCapsule(
+    capsuleId,
+    {
+      color,
+      diameter,
+      height,
+      position,
+      alpha = 1,
+    })
+  {
+
     let radius = diameter / 2;
     let blockKey = capsuleId;
 
@@ -253,7 +272,17 @@ export const flockShapes = {
 
     return newCapsule.name;
   },
-  createPlane(planeId, color, width, height, position) {
+
+  createPlane(
+    planeId,
+    {
+      color,
+      width,
+      height,
+      position,
+    }
+  )
+  {
     // Handle block key
     let blockKey = planeId;
     if (planeId.includes("__")) {
@@ -343,6 +372,7 @@ export const flockShapes = {
       }
     });
   },
+    
   create3DText({
     text,
     font,

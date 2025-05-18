@@ -28,7 +28,14 @@
 			  buttonControls("ARROWS", true, "#cc33cc");
 			  camera = getCamera();
 			  for (let count = 0; count < 100; count++) {
-				box1 = createBox("box1__)C}CoPM~GwY.o.DvG%Ec__)C}CoPM~GwY.o.DvG%Ec", randomColour(), (randomInteger(1, 5)), (randomInteger(1, 5)), (randomInteger(1, 5)), [(randomInteger(-20, 20)), (randomInteger(0, 10)), (randomInteger(-20, 20))]);
+				box1 = createBox(
+				  "box1__)C}CoPM~GwY.o.DvG%Ec__)C}CoPM~GwY.o.DvG%Ec",
+				  randomColour(),
+				  randomInteger(1, 5),
+				  randomInteger(1, 5),
+				  randomInteger(1, 5),
+				  [randomInteger(-20, 20), randomInteger(0, 10), randomInteger(-20, 20)]
+				);
 
 				await setAlpha(box1, 0.75);
 			  await wait(0);

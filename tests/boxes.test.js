@@ -45,7 +45,14 @@ export function runStressTests(flock) {
 				];
 
 				// Create the box and store its ID
-				const returnedId = flock.createBox(boxId, color, size, size, size, position);
+				const returnedId = flock.createBox(boxId, {
+				  color,
+				  width: size,
+				  height: size,
+				  depth: size,
+				  position,
+				});
+
 
 				// Validate that createBox returns a string ID
 				if (typeof returnedId !== "string") {

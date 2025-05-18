@@ -14,7 +14,13 @@ export function runGlideToTests(flock) {
 		// Set up the box before each test
 		beforeEach(async function () {
 			// Create a box before each test
-			box1 = flock.createBox("box1", "#996633", 1, 1, 1, [0, 0, 0]);
+			box1 = flock.createBox("box1", {
+			  color: "#996633",
+			  width: 1,
+			  height: 1,
+			  depth: 1,
+			  position: [0, 0, 0],
+			});
 		});
 
 		// Clean up after each test

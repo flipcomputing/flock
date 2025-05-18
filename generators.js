@@ -1198,9 +1198,8 @@ export function defineGenerators() {
 		return `${action}ParticleSystem(${systemName});\n`;
 	};
 
-	// Function to create a mesh, taking mesh type, parameters, and position as arguments
-	function createMesh(block, meshType, params, position) {
-		let variableName = javascriptGenerator.nameDB_.getName(
+	function createMesh(block, meshType, params) {
+		const variableName = javascriptGenerator.nameDB_.getName(
 			block.getFieldValue("ID_VAR"),
 			Blockly.Names.NameType.VARIABLE,
 		);
@@ -1214,16 +1213,12 @@ export function defineGenerators() {
 			? javascriptGenerator.statementToCode(block, "DO") || ""
 			: "";
 
-		return `${variableName} = create${meshType}("${meshId}", ${params.join(", ")}, ${position});\n${doCode}\n`;
+		const options = [...params,];
+
+		return `${variableName} = create${meshType}("${meshId}", { ${options.join(", ")} });\n${doCode}`;
 	}
 
 	function getPositionTuple(block) {
-		/*const vector = getFieldValue(block, "VECTOR", null);
-		if (vector) {
-			return vector; // Return the vector directly if provided
-		}*/
-
-		// Fallback to individual XYZ coordinates
 		const posX = getFieldValue(block, "X", "0");
 		const posY = getFieldValue(block, "Y", "0");
 		const posZ = getFieldValue(block, "Z", "0");
@@ -1231,7 +1226,6 @@ export function defineGenerators() {
 		return `[${posX}, ${posY}, ${posZ}]`;
 	}
 
-	// Updated generators for each shape type using the helper
 	javascriptGenerator.forBlock["create_box"] = function (block) {
 		const color = getFieldValue(block, "COLOR", "#9932CC");
 		const width = getFieldValue(block, "WIDTH", "1");
@@ -1240,13 +1234,16 @@ export function defineGenerators() {
 
 		const positionSource = getPositionTuple(block);
 
-		return createMesh(
-			block,
-			"Box",
-			[color, width, height, depth],
-			positionSource,
-			"box",
-		);
+		const params = [
+			`color: ${color}`,
+			`width: ${width}`,
+			`height: ${height}`,
+			`depth: ${depth}`,
+			`position: ${positionSource}`,
+
+		];
+
+		return createMesh(block, "Box", params,  "box");
 	};
 
 	javascriptGenerator.forBlock["create_sphere"] = function (block) {
@@ -1257,13 +1254,16 @@ export function defineGenerators() {
 
 		const positionSource = getPositionTuple(block);
 
-		return createMesh(
-			block,
-			"Sphere",
-			[color, diameterX, diameterY, diameterZ],
-			positionSource,
-			"sphere",
-		);
+		const params = [
+			`color: ${color}`,
+			`diameterX: ${diameterX}`,
+			`diameterY: ${diameterY}`,
+			`diameterZ: ${diameterZ}`,
+			`position: ${positionSource}`,
+
+		];
+
+		return createMesh(block, "Sphere", params, "sphere");
 	};
 
 	javascriptGenerator.forBlock["create_cylinder"] = function (block) {
@@ -1271,17 +1271,21 @@ export function defineGenerators() {
 		const height = getFieldValue(block, "HEIGHT", "2");
 		const diameterTop = getFieldValue(block, "DIAMETER_TOP", "1");
 		const diameterBottom = getFieldValue(block, "DIAMETER_BOTTOM", "1");
-		const tessellations = getFieldValue(block, "TESSELLATIONS", "12"); // Default to 12 if not provided
+		const tessellations = getFieldValue(block, "TESSELLATIONS", "12");
 
 		const positionSource = getPositionTuple(block);
 
-		return createMesh(
-			block,
-			"Cylinder",
-			[color, height, diameterTop, diameterBottom, tessellations],
-			positionSource,
-			"cylinder",
-		);
+		const params = [
+			`color: ${color}`,
+			`height: ${height}`,
+			`diameterTop: ${diameterTop}`,
+			`diameterBottom: ${diameterBottom}`,
+			`tessellation: ${tessellations}`,
+			`position: ${positionSource}`,
+
+		];
+
+		return createMesh(block, "Cylinder", params, "cylinder");
 	};
 
 	javascriptGenerator.forBlock["create_capsule"] = function (block) {
@@ -1291,13 +1295,14 @@ export function defineGenerators() {
 
 		const positionSource = getPositionTuple(block);
 
-		return createMesh(
-			block,
-			"Capsule",
-			[color, diameter, height],
-			positionSource,
-			"capsule",
-		);
+		const params = [
+			`color: ${color}`,
+			`diameter: ${diameter}`,
+			`height: ${height}`,
+			`position: ${positionSource}`,
+		];
+
+		return createMesh(block, "Capsule", params, "capsule");
 	};
 
 	javascriptGenerator.forBlock["create_plane"] = function (block) {
@@ -1307,13 +1312,14 @@ export function defineGenerators() {
 
 		const positionSource = getPositionTuple(block);
 
-		return createMesh(
-			block,
-			"Plane",
-			[color, width, height],
-			positionSource,
-			"plane",
-		);
+		const params = [
+			`color: ${color}`,
+			`width: ${width}`,
+			`height: ${height}`,
+			`position: ${positionSource}`,
+		];
+
+		return createMesh(block, "Plane", params, "plane");
 	};
 
 	javascriptGenerator.forBlock["set_background_color"] = function (block) {

@@ -814,12 +814,15 @@ function createMeshOnCanvas(block) {
 
       newMesh = flock.createBox(
         `box__${block.id}`,
-        color,
-        width,
-        height,
-        depth,
-        [position.x, position.y, position.z],
+        {
+          color,
+          width,
+          height,
+          depth,
+          position: [position.x, position.y, position.z],
+        }
       );
+
 
       break;
 
@@ -843,12 +846,15 @@ function createMeshOnCanvas(block) {
 
       newMesh = flock.createSphere(
         `sphere__${block.id}`,
-        color,
-        diameterX,
-        diameterY,
-        diameterZ,
-        [position.x, position.y, position.z],
+        {
+          color,
+          diameterX,
+          diameterY,
+          diameterZ,
+          position: [position.x, position.y, position.z],
+        }
       );
+
       break;
 
     case "create_cylinder":
@@ -871,13 +877,16 @@ function createMeshOnCanvas(block) {
 
       newMesh = flock.createCylinder(
         `cylinder__${block.id}`,
-        color,
-        cylinderHeight,
-        diameterTop,
-        diameterBottom,
-        24,
-        [position.x, position.y, position.z],
+        {
+          color,
+          height: cylinderHeight,
+          diameterTop,
+          diameterBottom,
+          tessellation: 24,
+          position: [position.x, position.y, position.z],
+        }
       );
+
       break;
 
     case "create_capsule":
@@ -896,11 +905,14 @@ function createMeshOnCanvas(block) {
 
       newMesh = flock.createCapsule(
         `capsule__${block.id}`,
-        color,
-        capsuleDiameter,
-        capsuleHeight,
-        [position.x, position.y, position.z],
+        {
+          color,
+          diameter: capsuleDiameter,
+          height: capsuleHeight,
+          position: [position.x, position.y, position.z],
+        }
       );
+
       break;
 
     case "create_plane":
@@ -919,11 +931,14 @@ function createMeshOnCanvas(block) {
 
       newMesh = flock.createPlane(
         `plane__${block.id}`,
-        color,
-        planeWidth,
-        planeHeight,
-        [position.x, position.y, position.z],
+        {
+          color,
+          width: planeWidth,
+          height: planeHeight,
+          position: [position.x, position.y, position.z],
+        }
       );
+
       break;
 
     default:
