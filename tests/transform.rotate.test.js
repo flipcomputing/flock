@@ -297,4 +297,122 @@ export function runRotationTests(flock) {
 		expect(quaternionsEqual(finalRotation, expectedQuat)).to.be.true;
 	  });
 	});
+
+	describe("lookAt API Tests", function () {
+	  let mesh1Id, mesh2Id;
+
+	  beforeEach(function () {
+		mesh1Id = `mesh1_${Date.now()}`;
+		mesh2Id = `mesh2_${Date.now()}`;
+
+		// Create first mesh (the one that will look)
+		flock.createBox(mesh1Id, {
+		  color: "#FF0000",
+		  width: 1,
+		  height: 1,
+		  depth: 1,
+		  position: [0, 0, 0],
+		});
+
+		// Create second mesh (the target)
+		flock.createBox(mesh2Id, {
+		  color: "#00FF00",
+		  width: 1,
+		  height: 1,
+		  depth: 1,
+		  position: [5, 2, 3],
+		});
+	  });
+
+	  afterEach(function () {
+		if (mesh1Id) flock.dispose(mesh1Id);
+		if (mesh2Id) flock.dispose(mesh2Id);
+	  });
+
+	  it("should make mesh1 look at mesh2", async function () {
+		const mesh1 = flock.scene.getMeshByName(mesh1Id);
+		const initialRotation = mesh1.rotationQuaternion ? mesh1.rotationQuaternion.clone() : mesh1.rotation.clone();
+
+		await flock.lookAt(mesh1Id, { target: mesh2Id });
+
+		const finalRotation = mesh1.rotationQuaternion ? mesh1.rotationQuaternion : mesh1.rotation;
+		expect(finalRotation.equals(initialRotation)).to.be.false;
+		expect(mesh1.absolutePosition).to.be.ok;
+	  });
+
+	  it("should handle useY parameter correctly", async function () {
+		const mesh1 = flock.scene.getMeshByName(mesh1Id);
+
+		await flock.lookAt(mesh1Id, { target: mesh2Id, useY: true });
+		const finalRotation1 = mesh1.rotationQuaternion ? mesh1.rotationQuaternion.clone() : mesh1.rotation.clone();
+
+		mesh1.position.set(0, 0, 0);
+
+		await flock.lookAt(mesh1Id, { target: mesh2Id, useY: false });
+		const finalRotation2 = mesh1.rotationQuaternion ? mesh1.rotationQuaternion : mesh1.rotation;
+
+		expect(finalRotation1.equals(finalRotation2)).to.be.false;
+	  });
+
+	  it("should work with physics-enabled objects", async function () {
+		await flock.setPhysics(mesh1Id, "DYNAMIC");
+		const mesh1 = flock.scene.getMeshByName(mesh1Id);
+		const initialRotation = mesh1.rotationQuaternion ? mesh1.rotationQuaternion.clone() : mesh1.rotation.clone();
+
+		await flock.lookAt(mesh1Id, { target: mesh2Id });
+
+		const finalRotation = mesh1.rotationQuaternion ? mesh1.rotationQuaternion : mesh1.rotation;
+
+		expect(finalRotation.equals(initialRotation)).to.be.false;
+		expect(mesh1.physics).to.be.ok;
+	  });
+
+	  it("should handle default useY parameter", async function () {
+		const mesh1 = flock.scene.getMeshByName(mesh1Id);
+		await flock.lookAt(mesh1Id, { target: mesh2Id });
+		expect(mesh1.absolutePosition).to.be.ok;
+	  });
+
+	  it("should handle objects at different heights", async function () {
+		const mesh2 = flock.scene.getMeshByName(mesh2Id);
+		mesh2.position.y = 10;
+
+		const mesh1 = flock.scene.getMeshByName(mesh1Id);
+		const initialRotation = mesh1.rotationQuaternion ? mesh1.rotationQuaternion.clone() : mesh1.rotation.clone();
+
+		await flock.lookAt(mesh1Id, { target: mesh2Id, useY: true });
+		const finalRotation = mesh1.rotationQuaternion ? mesh1.rotationQuaternion : mesh1.rotation;
+
+		expect(finalRotation.equals(initialRotation)).to.be.false;
+	  });
+
+	  it("should work with same Y level when useY is false", async function () {
+		const mesh2 = flock.scene.getMeshByName(mesh2Id);
+		mesh2.position.y = 10;
+
+		const mesh1 = flock.scene.getMeshByName(mesh1Id);
+		const initialRotation = mesh1.rotationQuaternion ? mesh1.rotationQuaternion.clone() : mesh1.rotation.clone();
+
+		await flock.lookAt(mesh1Id, { target: mesh2Id, useY: false });
+		const finalRotation = mesh1.rotationQuaternion ? mesh1.rotationQuaternion : mesh1.rotation;
+
+		expect(finalRotation.equals(initialRotation)).to.be.false;
+	  });
+
+		it("should handle meshes at the same position", async function () {
+		  const mesh2 = flock.scene.getMeshByName(mesh2Id);
+		  mesh2.position.set(0, 0, 0);
+
+		  let error = null;
+		  try {
+			await flock.lookAt(mesh1Id, { target: mesh2Id });
+		  } catch (e) {
+			error = e;
+		  }
+
+		  expect(error).to.be.null;
+		});
+
+	});
+
 }

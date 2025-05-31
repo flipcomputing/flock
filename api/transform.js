@@ -380,9 +380,9 @@ export const flockTransform = {
       mesh.computeWorldMatrix(true);
     });
   },
-  lookAt(meshName1, meshName2, useY = false) {
-    return flock.whenModelReady(meshName1, (mesh1) => {
-      return flock.whenModelReady(meshName2, (mesh2) => {
+  lookAt(meshName, { target, useY = false } = {}) {
+    return flock.whenModelReady(meshName, (mesh1) => {
+        return flock.whenModelReady(target, (mesh2) => {
         if (mesh1.physics) {
           if (
             mesh1.physics.getMotionType() !==
@@ -393,13 +393,11 @@ export const flockTransform = {
             );
           }
         }
-
         let targetPosition = mesh2.absolutePosition.clone();
         if (!useY) {
           targetPosition.y = mesh1.absolutePosition.y;
         }
-
-        if (meshName1 === "__active_camera__") {
+        if (meshName === "__active_camera__") {
           //mesh1.setTarget(mesh2);
         } else {
           // Calculate the direction vector and its opposite
@@ -410,7 +408,6 @@ export const flockTransform = {
             mesh1.absolutePosition.subtract(direction);
           mesh1.lookAt(oppositeTarget);
         }
-
         if (mesh1.physics) {
           mesh1.physics.disablePreStep = false;
         }

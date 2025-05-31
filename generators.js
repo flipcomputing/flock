@@ -1413,7 +1413,9 @@ export function defineGenerators() {
 
 		const useY = block.getFieldValue("USE_Y") === "TRUE";
 
-		return `await lookAt(${meshName1}, ${meshName2}, ${useY});\n`;
+		//return `await lookAt(${meshName1}, ${meshName2}, ${useY});\n`;
+
+		return `await lookAt(${meshName1}, { target: ${meshName2}, useY: ${useY} });\n`;
 	};
 
 	javascriptGenerator.forBlock["move_to"] = function (block) {
