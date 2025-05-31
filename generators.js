@@ -1441,7 +1441,8 @@ export function defineGenerators() {
 
 		const useY = block.getFieldValue("USE_Y") === "TRUE";
 
-		return `await moveTo(${meshName1}, ${meshName2}, ${useY});\n`;
+		return `await moveTo(${meshName1}, { target: ${meshName2}, useY: ${useY} });\n`;
+
 	};
 
 	javascriptGenerator.forBlock["rotate_to"] = function (block) {
@@ -1499,7 +1500,8 @@ export function defineGenerators() {
 
 		const useY = block.getFieldValue("USE_Y") === "TRUE";
 
-		return `await positionAt(${meshName}, ${x}, ${y}, ${z}, ${useY});\n`;
+		return `await positionAt(${meshName}, { x: ${x}, y: ${y}, z: ${z}, useY: ${useY} });\n`;
+
 	};
 
 	javascriptGenerator.forBlock["distance_to"] = function (block) {

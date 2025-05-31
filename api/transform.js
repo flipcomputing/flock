@@ -5,74 +5,198 @@ export function setFlockReference(ref) {
 }
 
 export const flockTransform = {
-  lookAt(meshName1, meshName2, useY = false) {
-    return flock.whenModelReady(meshName1, (mesh1) => {
-      return flock.whenModelReady(meshName2, (mesh2) => {
-        if (mesh1.physics) {
-          if (
-            mesh1.physics.getMotionType() !==
-            flock.BABYLON.PhysicsMotionType.DYNAMIC
-          ) {
-            mesh1.physics.setMotionType(
-              flock.BABYLON.PhysicsMotionType.ANIMATED,
-            );
+  positionAt(meshName, {
+    x = 0,
+    y = 0,
+    z = 0,
+    useY = true,
+    yReference = "BASE",
+  } = {}) {
+    return new Promise((resolve, reject) => {
+      flock.whenModelReady(meshName, (mesh) => {
+        if (!mesh) {
+          reject(new Error(`Mesh '${meshName}' not found`));
+          return;
+        }
+
+        try {
+          let originalMotionType = null;
+
+          // Store original physics state if physics object
+          if (mesh.physics) {
+            originalMotionType = mesh.physics.getMotionType();
+
+            // Only change motion type if it's not already DYNAMIC or ANIMATED
+            if (originalMotionType !== flock.BABYLON.PhysicsMotionType.DYNAMIC &&
+                originalMotionType !== flock.BABYLON.PhysicsMotionType.ANIMATED) {
+              mesh.physics.setMotionType(flock.BABYLON.PhysicsMotionType.ANIMATED);
+            }
           }
-        }
 
-        let targetPosition = mesh2.absolutePosition.clone();
-        if (!useY) {
-          targetPosition.y = mesh1.absolutePosition.y;
-        }
+          // Position calculation logic (unchanged)
+          if (mesh.metadata && mesh.metadata.pivotSettings) {
+            const pivotSettings = mesh.metadata.pivotSettings;
+            const boundingBox = mesh.getBoundingInfo().boundingBox.extendSize;
 
-        if (meshName1 === "__active_camera__") {
-          //mesh1.setTarget(mesh2);
-        } else {
-          // Calculate the direction vector and its opposite
-          const direction = targetPosition.subtract(
-            mesh1.absolutePosition,
-          );
-          const oppositeTarget =
-            mesh1.absolutePosition.subtract(direction);
-          mesh1.lookAt(oppositeTarget);
-        }
+            const resolvePivotValue = (value, axis) => {
+              if (typeof value === "string") {
+                switch (value) {
+                  case "MIN": return -boundingBox[axis];
+                  case "MAX": return boundingBox[axis];
+                  case "CENTER": default: return 0;
+                }
+              } else if (typeof value === "number") {
+                return value;
+              } else {
+                return 0;
+              }
+            };
 
-        if (mesh1.physics) {
-          mesh1.physics.disablePreStep = false;
+            const pivotOffsetX = resolvePivotValue(pivotSettings.x, "x");
+            const pivotOffsetY = resolvePivotValue(pivotSettings.y, "y");
+            const pivotOffsetZ = resolvePivotValue(pivotSettings.z, "z");
+
+            mesh.position.set(
+              x - pivotOffsetX,
+              useY ? y - pivotOffsetY : mesh.position.y,
+              z - pivotOffsetZ,
+            );
+          } else {
+            const boundingInfo = mesh.getBoundingInfo();
+            const minY = boundingInfo.boundingBox.minimum.y * mesh.scaling.y;
+            const maxY = boundingInfo.boundingBox.maximum.y * mesh.scaling.y;
+            const centerY = (minY + maxY) / 2;
+
+            let yOffset;
+            if (yReference === "TOP") {
+              yOffset = maxY;
+            } else if (yReference === "CENTER") {
+              yOffset = centerY;
+            } else {
+              yOffset = minY; // Default/fallback to BASE
+            }
+
+            const targetY = useY ? y - yOffset : mesh.position.y;
+            mesh.position.set(x, targetY, z);
+          }
+
+          // Update physics and world matrix
+          if (mesh.physics) {
+            mesh.physics.disablePreStep = false;
+            mesh.physics.setTargetTransform(mesh.position, mesh.rotationQuaternion);
+
+            // Restore original motion type if it was changed and different from ANIMATED
+            if (originalMotionType && 
+                originalMotionType !== flock.BABYLON.PhysicsMotionType.ANIMATED &&
+                originalMotionType !== flock.BABYLON.PhysicsMotionType.DYNAMIC) {
+              // Use setTimeout to allow physics update to complete first
+              setTimeout(() => {
+                mesh.physics.setMotionType(originalMotionType);
+              }, 0);
+            }
+          }
+
+          mesh.computeWorldMatrix(true);
+          resolve();
+
+        } catch (error) {
+          reject(new Error(`Failed to position mesh '${meshName}': ${error.message}`));
         }
-        mesh1.computeWorldMatrix(true);
       });
     });
   },
-  moveTo(meshName1, meshName2, useY = false) {
-    return flock.whenModelReady(meshName1, (mesh1) => {
-      return flock.whenModelReady(meshName2, (mesh2) => {
-        if (mesh1.physics) {
-          if (
-            mesh1.physics.getMotionType() !==
-            flock.BABYLON.PhysicsMotionType.DYNAMIC
-          ) {
-            mesh1.physics.setMotionType(
-              flock.BABYLON.PhysicsMotionType.ANIMATED,
-            );
+  moveTo(meshName, { target, useY = true } = {}) {
+    return new Promise((resolve, reject) => {
+      flock.whenModelReady(meshName, (mesh1) => {
+        if (!mesh1) {
+          reject(new Error(`Source mesh '${meshName}' not found`));
+          return;
+        }
+
+        flock.whenModelReady(target, (mesh2) => {
+          if (!mesh2) {
+            reject(new Error(`Target mesh '${target}' not found`));
+            return;
           }
-        }
-        const targetPosition = mesh2.absolutePosition.clone();
-        if (!useY) {
-          targetPosition.y = mesh1.absolutePosition.y;
-        }
-        mesh1.position.copyFrom(targetPosition);
 
-        if (mesh1.physics) {
-          mesh1.physics.disablePreStep = false;
-          mesh1.physics.setTargetTransform(
-            mesh1.position,
-            mesh1.rotationQuaternion,
-          );
-        }
+          try {
+            let originalMotionType = null;
 
-        mesh1.computeWorldMatrix(true);
+            // Store original physics state if physics object
+            if (mesh1.physics) {
+              originalMotionType = mesh1.physics.getMotionType();
+
+              // Only change motion type if it's not already DYNAMIC or ANIMATED
+              if (originalMotionType !== flock.BABYLON.PhysicsMotionType.DYNAMIC &&
+                  originalMotionType !== flock.BABYLON.PhysicsMotionType.ANIMATED) {
+                mesh1.physics.setMotionType(flock.BABYLON.PhysicsMotionType.ANIMATED);
+              }
+            }
+
+            // Calculate target position
+            const targetAbsPosition = mesh2.getAbsolutePosition().clone();
+            if (!useY) {
+              targetAbsPosition.y = mesh1.getAbsolutePosition().y;
+            }
+
+            // Perform immediate movement
+            mesh1.setAbsolutePosition(targetAbsPosition);
+            mesh1.computeWorldMatrix(true);
+
+            // Update physics if present
+            if (mesh1.physics) {
+              mesh1.physics.disablePreStep = false;
+              mesh1.physics.setTargetTransform(
+                mesh1.position,
+                mesh1.rotationQuaternion,
+              );
+
+              // Restore original motion type if it was changed and different from ANIMATED
+              if (originalMotionType && 
+                  originalMotionType !== flock.BABYLON.PhysicsMotionType.ANIMATED &&
+                  originalMotionType !== flock.BABYLON.PhysicsMotionType.DYNAMIC) {
+                // Use setTimeout to allow physics update to complete first
+                setTimeout(() => {
+                  mesh1.physics.setMotionType(originalMotionType);
+                }, 0);
+              }
+            }
+
+            resolve();
+
+          } catch (error) {
+            reject(new Error(`Failed to move mesh '${meshName}' to '${target}': ${error.message}`));
+          }
+        });
       });
     });
+  },
+  moveByVector(modelName, x, y, z) {
+    return flock.whenModelReady(modelName, (mesh) => {
+      mesh.position.addInPlace(new flock.BABYLON.Vector3(x, y, z));
+      if (mesh.physics) {
+        mesh.physics.disablePreStep = false;
+        mesh.physics.setTargetTransform(
+          mesh.position,
+          mesh.rotationQuaternion,
+        );
+      }
+
+      mesh.computeWorldMatrix(true);
+    });
+  },
+  distanceTo(meshName1, meshName2) {
+    const mesh1 = flock.scene.getMeshByName(meshName1);
+    const mesh2 = flock.scene.getMeshByName(meshName2);
+    if (mesh1 && mesh2) {
+      const distance = flock.BABYLON.Vector3.Distance(
+        mesh1.position,
+        mesh2.position,
+      );
+      return distance;
+    } else {
+      return null;
+    }
   },
   rotate(meshName, x, y, z) {
     // Handle mesh rotation
@@ -211,142 +335,42 @@ export const flockTransform = {
       flock.rotate(meshName, incX, incY, incZ);
     });
   },
-  positionAt(meshName, x, y, z, useY = true) {
-    return flock.whenModelReady(meshName, (mesh) => {
-      if (mesh.physics) {
-        if (
-          mesh.physics.getMotionType() !==
-          flock.BABYLON.PhysicsMotionType.DYNAMIC
-        ) {
-          mesh.physics.setMotionType(
-            flock.BABYLON.PhysicsMotionType.ANIMATED,
+  lookAt(meshName1, meshName2, useY = false) {
+    return flock.whenModelReady(meshName1, (mesh1) => {
+      return flock.whenModelReady(meshName2, (mesh2) => {
+        if (mesh1.physics) {
+          if (
+            mesh1.physics.getMotionType() !==
+            flock.BABYLON.PhysicsMotionType.DYNAMIC
+          ) {
+            mesh1.physics.setMotionType(
+              flock.BABYLON.PhysicsMotionType.ANIMATED,
+            );
+          }
+        }
+
+        let targetPosition = mesh2.absolutePosition.clone();
+        if (!useY) {
+          targetPosition.y = mesh1.absolutePosition.y;
+        }
+
+        if (meshName1 === "__active_camera__") {
+          //mesh1.setTarget(mesh2);
+        } else {
+          // Calculate the direction vector and its opposite
+          const direction = targetPosition.subtract(
+            mesh1.absolutePosition,
           );
-        }
-      }
-
-      // Check if we have pivot settings in metadata
-      if (mesh.metadata && mesh.metadata.pivotSettings) {
-        const pivotSettings = mesh.metadata.pivotSettings;
-        const boundingBox =
-          mesh.getBoundingInfo().boundingBox.extendSize;
-
-        // Helper to resolve pivot values
-        function resolvePivotValue(value, axis) {
-          if (typeof value === "string") {
-            switch (value) {
-              case "MIN":
-                return -boundingBox[axis];
-              case "MAX":
-                return boundingBox[axis];
-              case "CENTER":
-              default:
-                return 0;
-            }
-          } else if (typeof value === "number") {
-            return value;
-          } else {
-            return 0;
-          }
+          const oppositeTarget =
+            mesh1.absolutePosition.subtract(direction);
+          mesh1.lookAt(oppositeTarget);
         }
 
-        // Calculate offset based on pivot settings
-        const pivotOffsetX = resolvePivotValue(pivotSettings.x, "x");
-        const pivotOffsetY = resolvePivotValue(pivotSettings.y, "y");
-        const pivotOffsetZ = resolvePivotValue(pivotSettings.z, "z");
-
-        // Apply position with pivot offset
-        mesh.position.set(
-          x - pivotOffsetX,
-          useY ? y - pivotOffsetY : mesh.position.y,
-          z - pivotOffsetZ,
-        );
-      } else {
-        // Original behavior if no pivot settings
-        const addY =
-          meshName === "__active_camera__"
-            ? 0
-            : mesh.getBoundingInfo().boundingBox.extendSize.y *
-              mesh.scaling.y;
-        let targetY = useY ? y + addY : mesh.position.y;
-        mesh.position.set(x, targetY, z);
-      }
-
-      // Update physics and world matrix
-      if (mesh.physics) {
-        mesh.physics.disablePreStep = false;
-        mesh.physics.setTargetTransform(
-          mesh.position,
-          mesh.rotationQuaternion,
-        );
-      }
-      mesh.computeWorldMatrix(true);
-      //console.log("Position at", x, y, z, mesh.position.y, mesh);
-    });
-  },
-  setPivotPoint(meshName, xPivot, yPivot, zPivot) {
-    return flock.whenModelReady(meshName, (mesh) => {
-      if (mesh) {
-        const boundingBox =
-          mesh.getBoundingInfo().boundingBox.extendSize;
-
-        // Helper to resolve "MIN", "CENTER", "MAX", or numbers
-        function resolvePivotValue(value, axis) {
-          if (typeof value === "string") {
-            switch (value) {
-              case "MIN":
-                return -boundingBox[axis];
-              case "MAX":
-                return boundingBox[axis];
-              case "CENTER":
-              default:
-                return 0;
-            }
-          } else if (typeof value === "number") {
-            return value;
-          } else {
-            return 0;
-          }
+        if (mesh1.physics) {
+          mesh1.physics.disablePreStep = false;
         }
-
-        // Resolve pivot values for each axis
-        const resolvedX = resolvePivotValue(xPivot, "x");
-        const resolvedY = resolvePivotValue(yPivot, "y");
-        const resolvedZ = resolvePivotValue(zPivot, "z");
-
-        const pivotPoint = new flock.BABYLON.Vector3(
-          resolvedX,
-          resolvedY,
-          resolvedZ,
-        );
-        mesh.setPivotPoint(pivotPoint);
-
-        // Set pivot point on child meshes
-        mesh.getChildMeshes().forEach((child) => {
-          child.setPivotPoint(pivotPoint);
-        });
-
-        // Store original pivot settings in metadata
-        mesh.metadata = mesh.metadata || {};
-        mesh.metadata.pivotSettings = {
-          x: xPivot,
-          y: yPivot,
-          z: zPivot,
-        };
-      }
-    });
-  },
-  moveByVector(modelName, x, y, z) {
-    return flock.whenModelReady(modelName, (mesh) => {
-      mesh.position.addInPlace(new flock.BABYLON.Vector3(x, y, z));
-      if (mesh.physics) {
-        mesh.physics.disablePreStep = false;
-        mesh.physics.setTargetTransform(
-          mesh.position,
-          mesh.rotationQuaternion,
-        );
-      }
-
-      mesh.computeWorldMatrix(true);
+        mesh1.computeWorldMatrix(true);
+      });
     });
   },
   scaleMesh(
@@ -516,17 +540,56 @@ export const flockTransform = {
       flock.updatePhysics(mesh);
     });
   },
-  distanceTo(meshName1, meshName2) {
-    const mesh1 = flock.scene.getMeshByName(meshName1);
-    const mesh2 = flock.scene.getMeshByName(meshName2);
-    if (mesh1 && mesh2) {
-      const distance = flock.BABYLON.Vector3.Distance(
-        mesh1.position,
-        mesh2.position,
-      );
-      return distance;
-    } else {
-      return null;
-    }
+  setPivotPoint(meshName, xPivot, yPivot, zPivot) {
+    return flock.whenModelReady(meshName, (mesh) => {
+      if (mesh) {
+        const boundingBox =
+          mesh.getBoundingInfo().boundingBox.extendSize;
+
+        // Helper to resolve "MIN", "CENTER", "MAX", or numbers
+        function resolvePivotValue(value, axis) {
+          if (typeof value === "string") {
+            switch (value) {
+              case "MIN":
+                return -boundingBox[axis];
+              case "MAX":
+                return boundingBox[axis];
+              case "CENTER":
+              default:
+                return 0;
+            }
+          } else if (typeof value === "number") {
+            return value;
+          } else {
+            return 0;
+          }
+        }
+
+        // Resolve pivot values for each axis
+        const resolvedX = resolvePivotValue(xPivot, "x");
+        const resolvedY = resolvePivotValue(yPivot, "y");
+        const resolvedZ = resolvePivotValue(zPivot, "z");
+
+        const pivotPoint = new flock.BABYLON.Vector3(
+          resolvedX,
+          resolvedY,
+          resolvedZ,
+        );
+        mesh.setPivotPoint(pivotPoint);
+
+        // Set pivot point on child meshes
+        mesh.getChildMeshes().forEach((child) => {
+          child.setPivotPoint(pivotPoint);
+        });
+
+        // Store original pivot settings in metadata
+        mesh.metadata = mesh.metadata || {};
+        mesh.metadata.pivotSettings = {
+          x: xPivot,
+          y: yPivot,
+          z: zPivot,
+        };
+      }
+    });
   },
 }

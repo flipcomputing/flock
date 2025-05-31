@@ -40,6 +40,7 @@
       import { runStressTests } from "./boxes.test.js";
       import { runCreateObjectTests } from "./objects.test.js";
       import { runSoundTests } from "./sound.test.js";
+       import { runTranslationTests } from "./transform.translate.test.js";
 
       const flock = flockmodule.flock;
       flock.modelPath = "../models/";
@@ -77,13 +78,14 @@
       }
 
       // Run the Mocha tests
-      runTests(flock, chai.expect); // Run tests from the imported file
+      //runTests(flock, chai.expect); // Run tests from the imported file
       // Run the glideTo tests
       //runUITests(flock);
       //runGlideToTests(flock);
       //runStressTests(flock);
       //runCreateObjectTests(flock);
       //runSoundTests(flock);
+      runTranslationTests(flock);
 
       try {
         await flock.scene.debugLayer.show({

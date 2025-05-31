@@ -1,6 +1,6 @@
 // Flock - Creative coding in 3D
 // Dr Tracy Gardner - https://github.com/tracygardner
-// Flip Computing Limited - flipcomputing.com
+// Flip whnComputing Limited - flipcomputing.com
 
 import HavokPhysics from "@babylonjs/havok";
 import * as BABYLON from "@babylonjs/core";
