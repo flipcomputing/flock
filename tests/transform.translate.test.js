@@ -90,6 +90,19 @@ export function runTranslationTests(flock) {
 		done();
 	  }, 100);
 	});
+
+	  it("should position a camera at specified coordinates", function (done) {
+		flock.positionAt("__active_camera__", { x: 10, y: 5, z: -3 });
+		setTimeout(() => {
+		  const camera = flock.scene.activeCamera;
+		  expect(camera.position.x).to.be.closeTo(10, 0.01);
+		  expect(camera.position.y).to.be.closeTo(5, 0.01);
+		  expect(camera.position.z).to.be.closeTo(-3, 0.01);
+		  done();
+		}, 100);
+	  });
+
+
   });
 
 	describe("moveTo API Tests", function () {

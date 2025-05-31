@@ -1409,7 +1409,7 @@ export function defineGenerators() {
 		const y = getFieldValue(block, "Y", "0");
 		const z = getFieldValue(block, "Z", "0");
 
-		return `await rotate(${meshName}, { x: ${x}, y: ${y}, z: ${z} });\n`;
+		return `await rotate(${meshName}, ${x}, ${y}, ${z});\n`;
 	};
 
 	javascriptGenerator.forBlock["look_at"] = function (block) {
