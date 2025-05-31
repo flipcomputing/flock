@@ -1361,7 +1361,7 @@ export function defineGenerators() {
 		const y = getFieldValue(block, "Y", "0");
 		const z = getFieldValue(block, "Z", "0");
 
-		return `await moveByVector(${modelName}, ${x}, ${y}, ${z});\n`;
+		return `await moveByVector(${modelName}, { x: ${x}, y: ${y}, z: ${z} });\n`;
 	};
 
 	javascriptGenerator.forBlock["scale"] = function (block) {

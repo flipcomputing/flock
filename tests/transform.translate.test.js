@@ -154,5 +154,76 @@ export function runTranslationTests(flock) {
 	  });
 	});
 
-	
+	describe("moveByVector API Tests", function () {
+	  let boxId;
+	  beforeEach(function () {
+		boxId = `box_${Date.now()}`;
+		flock.createBox(boxId, {
+		  color: "#00FF00",
+		  width: 1,
+		  height: 2,
+		  depth: 1,
+		  position: [5, 10, 15],
+		});
+	  });
+	  afterEach(function () {
+		if (boxId) flock.dispose(boxId);
+	  });
+
+	  it("should move a box by the specified vector", async function () {
+		const box = flock.scene.getMeshByName(boxId);
+		const initialPosition = box.position.clone();
+
+		await flock.moveByVector(boxId, { x: 2, y: 3, z: 4 });
+
+		expect(box.position.x).to.be.closeTo(initialPosition.x + 2, 0.01);
+		expect(box.position.y).to.be.closeTo(initialPosition.y + 3, 0.01);
+		expect(box.position.z).to.be.closeTo(initialPosition.z + 4, 0.01);
+	  });
+
+	  it("should move a box by negative vector values", async function () {
+		const box = flock.scene.getMeshByName(boxId);
+		const initialPosition = box.position.clone();
+
+		await flock.moveByVector(boxId, { x: -1, y: -2, z: -3 });
+
+		expect(box.position.x).to.be.closeTo(initialPosition.x - 1, 0.01);
+		expect(box.position.y).to.be.closeTo(initialPosition.y - 2, 0.01);
+		expect(box.position.z).to.be.closeTo(initialPosition.z - 3, 0.01);
+	  });
+
+	  it("should move a box with partial vector (only x and z)", async function () {
+		const box = flock.scene.getMeshByName(boxId);
+		const initialPosition = box.position.clone();
+
+		await flock.moveByVector(boxId, { x: 5, z: 7 }); // y defaults to 0
+
+		expect(box.position.x).to.be.closeTo(initialPosition.x + 5, 0.01);
+		expect(box.position.y).to.be.closeTo(initialPosition.y, 0.01); // Unchanged
+		expect(box.position.z).to.be.closeTo(initialPosition.z + 7, 0.01);
+	  });
+
+	  it("should handle zero movement (all defaults)", async function () {
+		const box = flock.scene.getMeshByName(boxId);
+		const initialPosition = box.position.clone();
+
+		await flock.moveByVector(boxId); // All default to 0
+
+		expect(box.position.x).to.be.closeTo(initialPosition.x, 0.01);
+		expect(box.position.y).to.be.closeTo(initialPosition.y, 0.01);
+		expect(box.position.z).to.be.closeTo(initialPosition.z, 0.01);
+	  });
+
+	  it("should move a box multiple times cumulatively", async function () {
+		const box = flock.scene.getMeshByName(boxId);
+		const initialPosition = box.position.clone();
+
+		await flock.moveByVector(boxId, { x: 1, y: 1, z: 1 });
+		await flock.moveByVector(boxId, { x: 2, y: 2, z: 2 });
+
+		expect(box.position.x).to.be.closeTo(initialPosition.x + 3, 0.01);
+		expect(box.position.y).to.be.closeTo(initialPosition.y + 3, 0.01);
+		expect(box.position.z).to.be.closeTo(initialPosition.z + 3, 0.01);
+	  });
+	});
 }

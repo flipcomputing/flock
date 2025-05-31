@@ -171,18 +171,58 @@ export const flockTransform = {
       });
     });
   },
-  moveByVector(modelName, x, y, z) {
-    return flock.whenModelReady(modelName, (mesh) => {
-      mesh.position.addInPlace(new flock.BABYLON.Vector3(x, y, z));
-      if (mesh.physics) {
-        mesh.physics.disablePreStep = false;
-        mesh.physics.setTargetTransform(
-          mesh.position,
-          mesh.rotationQuaternion,
-        );
-      }
+  moveByVector(meshName, { x = 0, y = 0, z = 0 } = {}) {
+    return new Promise((resolve, reject) => {
+      flock.whenModelReady(meshName, (mesh) => {
+        if (!mesh) {
+          reject(new Error(`Mesh '${meshName}' not found`));
+          return;
+        }
 
-      mesh.computeWorldMatrix(true);
+        try {
+          let originalMotionType = null;
+
+          // Store original physics state if physics object
+          if (mesh.physics) {
+            originalMotionType = mesh.physics.getMotionType();
+
+            // Only change motion type if it's not already DYNAMIC or ANIMATED
+            if (originalMotionType !== flock.BABYLON.PhysicsMotionType.DYNAMIC &&
+                originalMotionType !== flock.BABYLON.PhysicsMotionType.ANIMATED) {
+              mesh.physics.setMotionType(flock.BABYLON.PhysicsMotionType.ANIMATED);
+            }
+          }
+
+          // Perform the vector movement
+          mesh.position.addInPlace(new flock.BABYLON.Vector3(x, y, z));
+
+          // Update physics and world matrix
+          if (mesh.physics) {
+            mesh.physics.disablePreStep = false;
+            mesh.physics.setTargetTransform(
+              mesh.position,
+              mesh.rotationQuaternion,
+            );
+
+            // Restore original motion type if it was changed and different from ANIMATED
+            if (originalMotionType && 
+                originalMotionType !== flock.BABYLON.PhysicsMotionType.ANIMATED &&
+                originalMotionType !== flock.BABYLON.PhysicsMotionType.DYNAMIC) {
+              // Use setTimeout to allow physics update to complete first
+              setTimeout(() => {
+                mesh.physics.setTargetTransform(mesh.position, mesh.rotationQuaternion);
+                mesh.physics.setMotionType(originalMotionType);
+              }, 0);
+            }
+          }
+
+          mesh.computeWorldMatrix(true);
+          resolve();
+
+        } catch (error) {
+          reject(new Error(`Failed to move mesh '${meshName}' by vector: ${error.message}`));
+        }
+      });
     });
   },
   distanceTo(meshName1, meshName2) {
