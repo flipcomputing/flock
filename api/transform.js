@@ -247,112 +247,67 @@ export const flockTransform = {
     }
   },
   rotate(meshName, { x = 0, y = 0, z = 0 } = {}) {
-    return new Promise((resolve, reject) => {
-      // Handle special camera case
+    // Handle mesh rotation
+    return flock.whenModelReady(meshName, (mesh) => {
       if (meshName === "__active_camera__") {
-        try {
-          const camera = flock.scene.activeCamera;
-          if (!camera) {
-            reject(new Error("No active camera found"));
-            return;
-          }
+        // Handle camera rotation
+        const camera = flock.scene.activeCamera;
+        if (!camera) return;
 
-          const incrementalRotation = flock.BABYLON.Quaternion.RotationYawPitchRoll(
+        const incrementalRotation =
+          flock.BABYLON.Quaternion.RotationYawPitchRoll(
             flock.BABYLON.Tools.ToRadians(y),
             flock.BABYLON.Tools.ToRadians(x),
             flock.BABYLON.Tools.ToRadians(z),
           );
 
-          // Check if the camera is ArcRotateCamera or FreeCamera, and rotate accordingly
-          if (camera.alpha !== undefined) {
-            // ArcRotateCamera: Adjust the 'alpha' (horizontal) and 'beta' (vertical)
-            camera.alpha += flock.BABYLON.Tools.ToRadians(y);
-            camera.beta += flock.BABYLON.Tools.ToRadians(x);
-          } else if (camera.rotation !== undefined) {
-            // FreeCamera: Adjust the camera's rotationQuaternion or Euler rotation
-            if (!camera.rotationQuaternion) {
-              camera.rotationQuaternion = flock.BABYLON.Quaternion.RotationYawPitchRoll(
-                flock.BABYLON.Tools.ToRadians(camera.rotation.y),
-                flock.BABYLON.Tools.ToRadians(camera.rotation.x),
-                flock.BABYLON.Tools.ToRadians(camera.rotation.z),
+        // Check if the camera is ArcRotateCamera or FreeCamera, and rotate accordingly
+        if (camera.alpha !== undefined) {
+          // ArcRotateCamera: Adjust the 'alpha' (horizontal) and 'beta' (vertical)
+          camera.alpha += flock.BABYLON.Tools.ToRadians(y);
+          camera.beta += flock.BABYLON.Tools.ToRadians(x);
+        } else if (camera.rotation !== undefined) {
+          // FreeCamera: Adjust the camera's rotationQuaternion or Euler rotation
+          if (!camera.rotationQuaternion) {
+            camera.rotationQuaternion =
+              flock.BABYLON.Quaternion.RotationYawPitchRoll(
+                flock.BABYLON.Tools.ToRadians(
+                  camera.rotation.y,
+                ),
+                flock.BABYLON.Tools.ToRadians(
+                  camera.rotation.x,
+                ),
+                flock.BABYLON.Tools.ToRadians(
+                  camera.rotation.z,
+                ),
               );
-            }
-            camera.rotationQuaternion.multiplyInPlace(incrementalRotation).normalize();
           }
 
-          resolve();
-          return;
-        } catch (error) {
-          reject(new Error(`Failed to rotate camera: ${error.message}`));
-          return;
+          camera.rotationQuaternion
+            .multiplyInPlace(incrementalRotation)
+            .normalize();
         }
+        return;
       }
 
-      // Handle mesh rotation
-      flock.whenModelReady(meshName, (mesh) => {
-        if (!mesh) {
-          reject(new Error(`Mesh '${meshName}' not found`));
-          return;
-        }
+      const incrementalRotation =
+        flock.BABYLON.Quaternion.RotationYawPitchRoll(
+          flock.BABYLON.Tools.ToRadians(y),
+          flock.BABYLON.Tools.ToRadians(x),
+          flock.BABYLON.Tools.ToRadians(z),
+        );
+      mesh.rotationQuaternion
+        .multiplyInPlace(incrementalRotation)
+        .normalize();
 
-        try {
-          let originalMotionType = null;
-
-          // Store original physics state if physics object
-          if (mesh.physics) {
-            originalMotionType = mesh.physics.getMotionType();
-
-            // Only change motion type if it's not already DYNAMIC or ANIMATED
-            if (originalMotionType !== flock.BABYLON.PhysicsMotionType.DYNAMIC &&
-                originalMotionType !== flock.BABYLON.PhysicsMotionType.ANIMATED) {
-              mesh.physics.setMotionType(flock.BABYLON.PhysicsMotionType.ANIMATED);
-            }
-          }
-
-          // Ensure mesh has a rotation quaternion
-          if (!mesh.rotationQuaternion) {
-            mesh.rotationQuaternion = flock.BABYLON.Quaternion.RotationYawPitchRoll(
-              mesh.rotation.y,
-              mesh.rotation.x,
-              mesh.rotation.z,
-            );
-          }
-
-          const incrementalRotation = flock.BABYLON.Quaternion.RotationYawPitchRoll(
-            flock.BABYLON.Tools.ToRadians(y),
-            flock.BABYLON.Tools.ToRadians(x),
-            flock.BABYLON.Tools.ToRadians(z),
-          );
-
-          mesh.rotationQuaternion.multiplyInPlace(incrementalRotation).normalize();
-
-          // Update physics and world matrix
-          if (mesh.physics) {
-            mesh.physics.disablePreStep = false;
-            mesh.physics.setTargetTransform(
-              mesh.absolutePosition,
-              mesh.rotationQuaternion,
-            );
-
-            // Restore original motion type if it was changed and different from ANIMATED
-            if (originalMotionType && 
-                originalMotionType !== flock.BABYLON.PhysicsMotionType.ANIMATED &&
-                originalMotionType !== flock.BABYLON.PhysicsMotionType.DYNAMIC) {
-              // Use setTimeout to allow physics update to complete first
-              setTimeout(() => {
-                mesh.physics.setTargetTransform(mesh.absolutePosition, mesh.rotationQuaternion);
-                mesh.physics.setMotionType(originalMotionType);
-              }, 0);
-            }
-          }
-
-          mesh.computeWorldMatrix(true);
-          resolve();
-
-        } catch (error) {
-          reject(new Error(`Failed to rotate mesh '${meshName}': ${error.message}`));
-        }
-      });
+      if (mesh.physics) {
+        mesh.physics.disablePreStep = false;
+        mesh.physics.setTargetTransform(
+          mesh.absolutePosition,
+          mesh.rotationQuaternion,
+        );
+      }
+      mesh.computeWorldMatrix(true);
     });
   },
   rotateTo(meshName, targetX, targetY, targetZ) {

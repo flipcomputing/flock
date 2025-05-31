@@ -1399,18 +1399,6 @@ export function defineGenerators() {
 		// Return the generated code with origin parameters
 		return `await resizeMesh(${modelName}, ${x}, ${y}, ${z}, '${xOrigin}', '${yOrigin}', '${zOrigin}');\n`;
 	};
-	javascriptGenerator.forBlock["rotate_model_xyz"] = function (block) {
-		const meshName = javascriptGenerator.nameDB_.getName(
-			block.getFieldValue("MODEL"),
-			Blockly.Names.NameType.VARIABLE,
-		);
-
-		const x = getFieldValue(block, "X", "0");
-		const y = getFieldValue(block, "Y", "0");
-		const z = getFieldValue(block, "Z", "0");
-
-		return `await rotate(${meshName}, { x: ${x}, y: ${y}, z: ${z} });\n`;
-	};
 
 	javascriptGenerator.forBlock["look_at"] = function (block) {
 		const meshName1 = javascriptGenerator.nameDB_.getName(
@@ -1546,7 +1534,7 @@ export function defineGenerators() {
 		const y = getFieldValue(block, "Y", "0");
 		const z = getFieldValue(block, "Z", "0");
 
-		return `await rotate(${meshName}, ${x}, ${y}, ${z});\n`;
+		return `await rotate(${meshName}, { x: ${x}, y: ${y}, z: ${z} });\n`;
 	};
 
 	javascriptGenerator.forBlock["forever"] = function (block) {
