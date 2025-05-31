@@ -226,16 +226,27 @@ export const flockTransform = {
     });
   },
   distanceTo(meshName1, meshName2) {
-    const mesh1 = flock.scene.getMeshByName(meshName1);
-    const mesh2 = flock.scene.getMeshByName(meshName2);
-    if (mesh1 && mesh2) {
+    try {
+      const mesh1 = flock.scene.getMeshByName(meshName1);
+      const mesh2 = flock.scene.getMeshByName(meshName2);
+
+      if (!mesh1) {
+        throw new Error(`First mesh '${meshName1}' not found`);
+      }
+
+      if (!mesh2) {
+        throw new Error(`Second mesh '${meshName2}' not found`);
+      }
+
       const distance = flock.BABYLON.Vector3.Distance(
         mesh1.position,
         mesh2.position,
       );
+
       return distance;
-    } else {
-      return null;
+
+    } catch (error) {
+      throw new Error(`Failed to calculate distance between '${meshName1}' and '${meshName2}': ${error.message}`);
     }
   },
   rotate(meshName, x, y, z) {
