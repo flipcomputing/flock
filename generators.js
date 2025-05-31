@@ -1458,7 +1458,7 @@ export function defineGenerators() {
 				javascriptGenerator.ORDER_ATOMIC,
 			) || "0";
 
-		return `await rotateTo(${meshName}, ${x}, ${y}, ${z});\n`;
+		return `await rotateTo(${meshName}, { x: ${x}, y: ${y}, z: ${z} });\n`;
 	};
 
 	javascriptGenerator.forBlock["move_to_xyz"] = function (block) {

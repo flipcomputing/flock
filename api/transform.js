@@ -310,16 +310,15 @@ export const flockTransform = {
       mesh.computeWorldMatrix(true);
     });
   },
-  rotateTo(meshName, targetX, targetY, targetZ) {
+  rotateTo(meshName, { x = 0, y = 0, z = 0 } = {}) {
     return flock.whenModelReady(meshName, (mesh) => {
       if (meshName === "__active_camera__") {
         const camera = flock.scene.activeCamera;
         if (!camera) return;
-
         // For an ArcRotateCamera, set the absolute alpha (horizontal) and beta (vertical) angles.
         if (camera.alpha !== undefined) {
-          camera.alpha = flock.BABYLON.Tools.ToRadians(targetY); // horizontal
-          camera.beta = flock.BABYLON.Tools.ToRadians(targetX); // vertical
+          camera.alpha = flock.BABYLON.Tools.ToRadians(y); // horizontal
+          camera.beta = flock.BABYLON.Tools.ToRadians(x); // vertical
         }
         // For a FreeCamera or any camera using a rotationQuaternion:
         else if (camera.rotation !== undefined) {
@@ -339,48 +338,46 @@ export const flockTransform = {
               ).normalize();
           }
           // Create the target quaternion using the absolute Euler angles.
-          // Here we assume targetY is yaw, targetX is pitch, and targetZ is roll.
+          // Here we assume y is yaw, x is pitch, and z is roll.
           const targetQuat =
             flock.BABYLON.Quaternion.RotationYawPitchRoll(
-              flock.BABYLON.Tools.ToRadians(targetY),
-              flock.BABYLON.Tools.ToRadians(targetX),
-              flock.BABYLON.Tools.ToRadians(targetZ),
+              flock.BABYLON.Tools.ToRadians(y),
+              flock.BABYLON.Tools.ToRadians(x),
+              flock.BABYLON.Tools.ToRadians(z),
             ).normalize();
-
           // Set the camera's rotationQuaternion directly to the target.
           camera.rotationQuaternion = targetQuat;
         }
         return;
       }
+      // Ensure mesh has a rotation quaternion
+      if (!mesh.rotationQuaternion) {
+        mesh.rotationQuaternion = flock.BABYLON.Quaternion.RotationYawPitchRoll(
+          mesh.rotation.y,
+          mesh.rotation.x,
+          mesh.rotation.z,
+        );
+      }
 
       // Create the target rotation quaternion from absolute Euler angles (degrees)
-      const radX = flock.BABYLON.Tools.ToRadians(targetX);
-      const radY = flock.BABYLON.Tools.ToRadians(targetY);
-      const radZ = flock.BABYLON.Tools.ToRadians(targetZ);
       const targetQuat = flock.BABYLON.Quaternion.RotationYawPitchRoll(
-        radY,
-        radX,
-        radZ,
+        flock.BABYLON.Tools.ToRadians(y), // yaw
+        flock.BABYLON.Tools.ToRadians(x), // pitch
+        flock.BABYLON.Tools.ToRadians(z)  // roll
       ).normalize();
 
-      // Get the current rotation quaternion of the mesh
-      const currentQuat = mesh.rotationQuaternion.clone();
+      // Set the mesh's rotation directly to the target
+      mesh.rotationQuaternion = targetQuat;
 
-      // Calculate the incremental rotation needed:
-      // q_increment = targetQuat * inverse(currentQuat)
-      const diffQuat = targetQuat
-        .multiply(currentQuat.conjugate())
-        .normalize();
-
-      // Convert the incremental rotation quaternion to Euler angles (in radians)
-      const diffEuler = diffQuat.toEulerAngles();
-
-      // Convert the incremental angles to degrees
-      const incX = flock.BABYLON.Tools.ToDegrees(diffEuler.x);
-      const incY = flock.BABYLON.Tools.ToDegrees(diffEuler.y);
-      const incZ = flock.BABYLON.Tools.ToDegrees(diffEuler.z);
-
-      flock.rotate(meshName, incX, incY, incZ);
+      // Update physics if present
+      if (mesh.physics) {
+        mesh.physics.disablePreStep = false;
+        mesh.physics.setTargetTransform(
+          mesh.absolutePosition,
+          mesh.rotationQuaternion,
+        );
+      }
+      mesh.computeWorldMatrix(true);
     });
   },
   lookAt(meshName1, meshName2, useY = false) {
