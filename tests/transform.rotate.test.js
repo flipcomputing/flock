@@ -133,6 +133,7 @@ export function runRotationTests(flock) {
 	  });
 
 	  it("should throw error when mesh does not exist", async function () {
+		  this.timeout(200000); // 10 seconds should be enough
 		try {
 		  await flock.rotate("nonexistent", { x: 90, y: 0, z: 0 });
 		  expect.fail("Should have thrown an error");

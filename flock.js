@@ -748,30 +748,29 @@ export const flock = {
 		console.warn(
 			`Mesh with ID '${meshId}' not found after ${maxAttempts} attempts.`,
 		);
+
+		// Yield null to indicate the mesh was not found
+		yield null;
 	},
 	whenModelReady(targetId, callback) {
 		// Check if the target (mesh or GUI button) is immediately available
 		if (flock.scene) {
 			let target = flock.scene.getMeshByName(targetId);
-
 			if (!target && flock.scene.UITexture) {
 				target = flock.scene.UITexture.getControlByName(targetId);
 			}
-
 			// Check animation groups if still not found
 			if (!target) {
 				target = flock.scene.animationGroups.find(
 					(group) => group.name === targetId,
 				);
 			}
-
 			// Check particle systems if still not found
 			if (!target) {
 				target = flock.scene.particleSystems.find(
 					(system) => system.name === targetId,
 				);
 			}
-
 			if (target) {
 				if (flock.abortController.signal.aborted) {
 					return; // If already aborted, stop here
@@ -781,7 +780,6 @@ export const flock = {
 				return; // Return immediately, no Promise needed
 			}
 		}
-
 		// If the target is not immediately available, fall back to the generator and return a Promise
 		return (async () => {
 			const generator = flock.modelReadyGenerator(targetId);
@@ -791,7 +789,9 @@ export const flock = {
 						console.log(`Aborted waiting for target: ${targetId}`);
 						return; // Exit the loop if the operation was aborted
 					}
-					await callback(target);
+					// Call the callback - don't await it since it's not async
+					callback(target);
+					return; // Exit after first yield (whether it's the mesh or null)
 				}
 			} catch (err) {
 				if (flock.abortController.signal.aborted) {
