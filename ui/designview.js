@@ -327,12 +327,12 @@ export function updateMeshFromBlock(mesh, block, changeEvent) {
         mesh.computeWorldMatrix(true);
         mesh.refreshBoundingInfo();
 
-        flock.positionAt(
-          mesh.name,
-          mesh.position.x,
-          mesh.position.y - ydiff,
-          mesh.position.z,
-        );
+        flock.positionAt(mesh.name, {
+          x: mesh.position.x,
+          y: mesh.position.y - ydiff,
+          z: mesh.position.z,
+        });
+
         const ydiffAfter = mesh.getBoundingInfo().boundingBox.extendSizeWorld.y;
         //mesh.position.y -= ydiffAfter;
 
@@ -572,7 +572,13 @@ export function updateMeshFromBlock(mesh, block, changeEvent) {
   }
 
   // if (["X", "Y", "Z"].includes(changed)) {
-  flock.positionAt(mesh.name, position.x, position.y, position.z, true);
+  flock.positionAt(mesh.name, {
+    x: position.x,
+    y: position.y,
+    z: position.z,
+    useY: true,
+  });
+
   //}
   //console.log("Update physics");
   flock.updatePhysics(mesh);
@@ -929,7 +935,7 @@ function createMeshOnCanvas(block) {
         .connection.targetBlock()
         .getFieldValue("NUM");
 
-      newMesh = flock.createPlane(
+      newMesh = flpock.createPlane(
         `plane__${block.id}`,
         {
           color,
