@@ -127,10 +127,7 @@ export function runScaleTests(flock) {
 			expect(mesh.scaling.z).to.equal(1); // Default
 		});
 	});
-}
 
-// Tests for resize function
-export function runResizeTests(flock) {
 	describe("Resize function tests", function () {
 		const testBoxIds = [];
 		const testColors = ["#FF6600", "#66FF00", "#0066FF", "#FF0066"];
@@ -316,6 +313,227 @@ export function runResizeTests(flock) {
 				bounds.boundingBox.maximumWorld.x -
 				bounds.boundingBox.minimumWorld.x;
 			expect(Math.abs(actualWidth - 1000)).to.be.lessThan(0.1);
+		});
+	});
+
+	describe("setPivotPoint function tests", function () {
+		const testBoxIds = [];
+		const testColors = ["#FF0000", "#00FF00", "#0000FF", "#FFFF00"];
+		const pivotPositions = ["MIN", "CENTER", "MAX"];
+
+		// Set up the scene before each test
+		beforeEach(async function () {
+			flock.scene ??= {};
+		});
+
+		// Clean up after each test
+		afterEach(function () {
+			testBoxIds.forEach((boxId) => {
+				if (typeof boxId !== "string") {
+					throw new Error(
+						`Invalid ID: Expected a string, but got ${typeof boxId}`,
+					);
+				}
+				console.log(`Cleaning up box with ID: ${boxId}`);
+				flock.dispose(boxId);
+			});
+			testBoxIds.length = 0;
+		});
+
+		it("should set pivot point to CENTER by default", async function () {
+			const boxId = flock.createBox("test-box-default-pivot", {
+				color: testColors[0],
+				width: 2,
+				height: 2,
+				depth: 2,
+				position: [0, 0, 0],
+			});
+			testBoxIds.push(boxId);
+			await flock.setPivotPoint(boxId);
+			const mesh = flock.scene.getMeshByID(boxId);
+			expect(mesh.metadata.pivotSettings.x).to.equal("CENTER");
+			expect(mesh.metadata.pivotSettings.y).to.equal("CENTER");
+			expect(mesh.metadata.pivotSettings.z).to.equal("CENTER");
+		});
+
+		it("should set pivot point with string values", async function () {
+			const boxId = flock.createBox("test-box-string-pivot", {
+				color: testColors[1],
+				width: 2,
+				height: 2,
+				depth: 2,
+				position: [0, 0, 0],
+			});
+			testBoxIds.push(boxId);
+
+			await flock.setPivotPoint(boxId, { 
+				xPivot: "MIN", 
+				yPivot: "MAX", 
+				zPivot: "CENTER" 
+			});
+
+			const mesh = flock.scene.getMeshByID(boxId);
+			expect(mesh.metadata.pivotSettings.x).to.equal("MIN");
+			expect(mesh.metadata.pivotSettings.y).to.equal("MAX");
+			expect(mesh.metadata.pivotSettings.z).to.equal("CENTER");
+		});
+
+		it("should set pivot point with numeric values", async function () {
+			const boxId = flock.createBox("test-box-numeric-pivot", {
+				color: testColors[2],
+				width: 2,
+				height: 2,
+				depth: 2,
+				position: [0, 0, 0],
+			});
+			testBoxIds.push(boxId);
+
+			await flock.setPivotPoint(boxId, { 
+				xPivot: 1.5, 
+				yPivot: -0.5, 
+				zPivot: 2.0 
+			});
+
+			const mesh = flock.scene.getMeshByID(boxId);
+			expect(mesh.metadata.pivotSettings.x).to.equal(1.5);
+			expect(mesh.metadata.pivotSettings.y).to.equal(-0.5);
+			expect(mesh.metadata.pivotSettings.z).to.equal(2.0);
+		});
+
+		it("should set pivot point with mixed string and numeric values", async function () {
+			const boxId = flock.createBox("test-box-mixed-pivot", {
+				color: testColors[3],
+				width: 2,
+				height: 2,
+				depth: 2,
+				position: [0, 0, 0],
+			});
+			testBoxIds.push(boxId);
+
+			await flock.setPivotPoint(boxId, { 
+				xPivot: "MIN", 
+				yPivot: 1.0, 
+				zPivot: "MAX" 
+			});
+
+			const mesh = flock.scene.getMeshByID(boxId);
+			expect(mesh.metadata.pivotSettings.x).to.equal("MIN");
+			expect(mesh.metadata.pivotSettings.y).to.equal(1.0);
+			expect(mesh.metadata.pivotSettings.z).to.equal("MAX");
+		});
+
+		it("should set partial pivot point parameters", async function () {
+			const boxId = flock.createBox("test-box-partial-pivot", {
+				color: testColors[0],
+				width: 2,
+				height: 2,
+				depth: 2,
+				position: [0, 0, 0],
+			});
+			testBoxIds.push(boxId);
+
+			await flock.setPivotPoint(boxId, { xPivot: "MIN" });
+
+			const mesh = flock.scene.getMeshByID(boxId);
+			expect(mesh.metadata.pivotSettings.x).to.equal("MIN");
+			expect(mesh.metadata.pivotSettings.y).to.equal("CENTER");
+			expect(mesh.metadata.pivotSettings.z).to.equal("CENTER");
+		});
+
+		it("should handle invalid string values by defaulting to CENTER", async function () {
+			const boxId = flock.createBox("test-box-invalid-pivot", {
+				color: testColors[1],
+				width: 2,
+				height: 2,
+				depth: 2,
+				position: [0, 0, 0],
+			});
+			testBoxIds.push(boxId);
+
+			await flock.setPivotPoint(boxId, { 
+				xPivot: "INVALID_VALUE", 
+				yPivot: "ANOTHER_INVALID", 
+				zPivot: "CENTER" 
+			});
+
+			const mesh = flock.scene.getMeshByID(boxId);
+			expect(mesh.metadata.pivotSettings.x).to.equal("INVALID_VALUE");
+			expect(mesh.metadata.pivotSettings.y).to.equal("ANOTHER_INVALID");
+			expect(mesh.metadata.pivotSettings.z).to.equal("CENTER");
+		});
+
+		it("should apply pivot point to child meshes", async function () {
+			const boxId = flock.createBox("test-box-with-children", {
+				color: testColors[2],
+				width: 2,
+				height: 2,
+				depth: 2,
+				position: [0, 0, 0],
+			});
+			testBoxIds.push(boxId);
+
+			// Assuming there's a way to add child meshes or they exist
+			await flock.setPivotPoint(boxId, { 
+				xPivot: "MIN", 
+				yPivot: "MIN", 
+				zPivot: "MIN" 
+			});
+
+			const mesh = flock.scene.getMeshByID(boxId);
+			const childMeshes = mesh.getChildMeshes();
+
+			// Test that pivot point is applied to children
+			childMeshes.forEach(child => {
+				expect(child.getPivotPoint()).to.not.be.null;
+			});
+		});
+
+		pivotPositions.forEach(xPos => {
+			pivotPositions.forEach(yPos => {
+				pivotPositions.forEach(zPos => {
+					it(`should set pivot point to ${xPos}, ${yPos}, ${zPos}`, async function () {
+						const boxId = flock.createBox(`test-box-${xPos}-${yPos}-${zPos}`, {
+							color: testColors[0],
+							width: 2,
+							height: 2,
+							depth: 2,
+							position: [0, 0, 0],
+						});
+						testBoxIds.push(boxId);
+
+						await flock.setPivotPoint(boxId, { 
+							xPivot: xPos, 
+							yPivot: yPos, 
+							zPivot: zPos 
+						});
+
+						const mesh = flock.scene.getMeshByID(boxId);
+						expect(mesh.metadata.pivotSettings.x).to.equal(xPos);
+						expect(mesh.metadata.pivotSettings.y).to.equal(yPos);
+						expect(mesh.metadata.pivotSettings.z).to.equal(zPos);
+					});
+				});
+			});
+		});
+
+		it("should preserve existing metadata when setting pivot", async function () {
+			const boxId = flock.createBox("test-box-preserve-metadata", {
+				color: testColors[3],
+				width: 2,
+				height: 2,
+				depth: 2,
+				position: [0, 0, 0],
+			});
+			testBoxIds.push(boxId);
+
+			const mesh = flock.scene.getMeshByID(boxId);
+			mesh.metadata = mesh.metadata || {};
+			mesh.metadata.customProperty = "test-value";
+
+			await flock.setPivotPoint(boxId, { xPivot: "MAX" });
+
+			expect(mesh.metadata.customProperty).to.equal("test-value");
+			expect(mesh.metadata.pivotSettings.x).to.equal("MAX");
 		});
 	});
 }

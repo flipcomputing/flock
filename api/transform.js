@@ -615,6 +615,7 @@ export const flockTransform = {
           resolvedY,
           resolvedZ,
         );
+
         mesh.setPivotPoint(pivotPoint);
 
         // Set pivot point on child meshes
@@ -625,7 +626,7 @@ export const flockTransform = {
         // Store original pivot settings in metadata
         mesh.metadata = mesh.metadata || {};
         mesh.metadata.pivotSettings = {
-          x: xPivot,
+          x: xPivot,  // These should now have the correct values
           y: yPivot,
           z: zPivot,
         };
