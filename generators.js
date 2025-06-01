@@ -1892,7 +1892,8 @@ export function defineGenerators() {
 			javascriptGenerator.ORDER_ATOMIC,
 		);
 
-		return `await setAlpha(${modelName}, ${alphaValue});\n`;
+		return `await setAlpha(${modelName}, { value: ${alphaValue} });\n`;
+
 	};
 
 	javascriptGenerator.forBlock["clear_effects"] = function (block) {
