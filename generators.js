@@ -1837,7 +1837,8 @@ export function defineGenerators() {
 			Blockly.Names.NameType.VARIABLE,
 		);
 		const color = getFieldValue(block, "COLOR", "#FFD700");
-		return `await highlight(${modelName}, ${color});\n`;
+		return `await highlight(${modelName}, { color: ${color} });\n`;
+
 	};
 
 	javascriptGenerator.forBlock["glow"] = function (block) {
@@ -1855,7 +1856,7 @@ export function defineGenerators() {
 		);
 		const color = getFieldValue(block, "COLOR", "#AA336A");
 
-		return `await tint(${modelName}, ${color});\n`;
+		return `await tint(${modelName}, { color: ${color} });\n`;
 	};
 
 	javascriptGenerator.forBlock["change_color"] = function (block) {

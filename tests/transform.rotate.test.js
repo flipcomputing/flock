@@ -403,7 +403,7 @@ export function runRotationTests(flock) {
 		  const mesh2 = flock.scene.getMeshByName(mesh2Id);
 		  mesh2.position.set(0, 0, 0);
 
-		  let error = null;
+		  let error = null;	
 		  try {
 			await flock.lookAt(mesh1Id, { target: mesh2Id });
 		  } catch (e) {

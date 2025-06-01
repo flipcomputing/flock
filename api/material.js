@@ -20,6 +20,13 @@ export const flockMaterial = {
     });
     return "#" + result.join("");
   },
+  hexToRgba(hex, alpha) {
+    hex = hex.replace(/^#/, "");
+    let r = parseInt(hex.substring(0, 2), 16);
+    let g = parseInt(hex.substring(2, 4), 16);
+    let b = parseInt(hex.substring(4, 6), 16);
+    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+  },
   getColorFromString(colourString) {
     if (/^#([0-9A-F]{3}){1,2}$/i.test(colourString)) {
       return colourString;
@@ -37,8 +44,210 @@ export const flockMaterial = {
       return "#000000";
     }
   },
-  changeColor(modelName, color) {
-    return flock.whenModelReady(modelName, (mesh) => {
+
+  tint(meshName, { color } = {}) {
+    return flock.whenModelReady(meshName, (mesh) => {
+      if (mesh.material) {
+        mesh.renderOverlay = true;
+        mesh.overlayAlpha = 0.5;
+        mesh.overlayColor = flock.BABYLON.Color3.FromHexString(
+          flock.getColorFromString(color),
+        );
+      }
+
+      mesh.getChildMeshes().forEach(function (childMesh) {
+        if (childMesh.material) {
+          childMesh.renderOverlay = true;
+          childMesh.overlayAlpha = 0.5;
+          childMesh.overlayColor = flock.BABYLON.Color3.FromHexString(
+            flock.getColorFromString(
+              flock.getColorFromString(color),
+            ),
+          );
+        }
+      });
+    });
+  },
+  highlight(meshName,  { color } = {}) {
+    const applyHighlight = (mesh) => {
+      if (mesh.material) {
+        flock.highlighter.addMesh(
+          mesh,
+          flock.BABYLON.Color3.FromHexString(
+            flock.getColorFromString(color),
+          ),
+        );
+      }
+    };
+
+    return flock.whenModelReady(meshName, (mesh) => {
+      applyHighlight(mesh);
+      mesh.getChildMeshes().forEach(applyHighlight);
+    });
+  },
+  glow(meshName, { color } = {}) {
+    // Ensure the glow layer is initialised
+    if (!flock.glowLayer) {
+      flock.glowLayer = new flock.BABYLON.GlowLayer(
+        "glowLayer",
+        flock.scene,
+      );
+      flock.glowLayer.intensity = 0.5;
+    }
+
+    return flock.whenModelReady(meshName, (mesh) => {
+      flock.glowMesh(mesh, color);
+    });
+  },
+  glowMesh(mesh, glowColor = null) {
+    const applyGlow = (m) => {
+      m.metadata = m.metadata || {};
+      m.metadata.glow = true;
+
+      if (m.material) {
+        const emissiveColor = glowColor
+          ? flock.BABYLON.Color3.FromHexString(
+              flock.getColorFromString(glowColor)
+            )
+          : m.material.diffuseColor || m.material.albedoColor || flock.BABYLON.Color3.Black();
+
+        m.material.emissiveColor = emissiveColor;
+        m.material.emissiveIntensity = 1.0;
+      }
+    };
+
+    applyGlow(mesh);
+    mesh.getChildMeshes().forEach(applyGlow);
+  },
+  setAlpha(meshName, { value = 1 } = {}) {
+    // Clamp value between 0 and 1
+    value = Math.max(0, Math.min(1, value));
+
+    return flock.whenModelReady(meshName, (mesh) => {
+      const allMeshes = [mesh, ...mesh.getDescendants()];
+
+      allMeshes.forEach((nextMesh) => {
+        if (nextMesh.material) {
+          flock.ensureUniqueMaterial(nextMesh);
+          nextMesh.material.alpha = value;
+          nextMesh.material.transparencyMode =
+            flock.BABYLON.Material.MATERIAL_ALPHABLEND;
+        }
+      });
+    });
+  },
+  clearEffects(meshName) {
+    return flock.whenModelReady(meshName, (mesh) => {
+      const removeEffects = (targetMesh) => {
+        if (targetMesh.material) {
+          // Reset emissive color to black
+          targetMesh.material.emissiveColor =
+            flock.BABYLON.Color3.Black();
+        }
+
+        // Remove mesh from glow layer
+        if (flock.glowLayer) {
+          mesh.metadata.glow = false;
+          flock.glowLayer.removeIncludedOnlyMesh(targetMesh);
+        }
+
+        flock.highlighter.removeMesh(targetMesh);
+        // Disable any render overlay
+        targetMesh.renderOverlay = false;
+      };
+
+      // Apply to the main mesh
+      removeEffects(mesh);
+
+      // Apply to child meshes
+      mesh.getChildMeshes().forEach(removeEffects);
+    });
+  },
+  ensureUniqueMaterial(mesh) {
+    // Helper function to clone material for a mesh
+    const cloneMaterial = (originalMaterial) => {
+      return originalMaterial.clone(`${originalMaterial.name}`);
+    };
+
+    // Recursive function to collect all meshes in the hierarchy
+    const collectMeshes = (node, meshes = []) => {
+      if (node instanceof flock.BABYLON.Mesh) {
+        meshes.push(node);
+      }
+      if (node.getChildren) {
+        node.getChildren().forEach((child) =>
+          collectMeshes(child, meshes),
+        );
+      }
+      return meshes;
+    };
+
+    // Collect all meshes in the hierarchy (root + descendants)
+    const allMeshes = collectMeshes(mesh);
+
+    // Create a mapping of original materials to their clones
+    const materialMapping = new Map();
+
+    // Iterate through all collected meshes
+    allMeshes.forEach((currentMesh) => {
+      if (currentMesh.material && currentMesh.metadata?.sharedMaterial) {
+        // Check if the material has already been cloned
+        if (!materialMapping.has(currentMesh.material)) {
+          // Clone the material and store it in the mapping
+          const clonedMaterial = cloneMaterial(currentMesh.material);
+          materialMapping.set(currentMesh.material, clonedMaterial);
+        }
+
+        // Assign the cloned material to the current mesh
+        currentMesh.material = materialMapping.get(
+          currentMesh.material,
+        );
+        currentMesh.metadata.sharedMaterial = false; // Material is now unique to this hierarchy
+      }
+    });
+  },
+  ensureStandardMaterial(mesh) {
+    if (!mesh) return;
+
+    // Set to track replaced materials and their corresponding replacements
+    const replacedMaterialsMap = new Map();
+
+    // Default material to use as the replacement base
+    const defaultMaterial =
+      flock.scene.defaultMaterial ||
+      new flock.BABYLON.StandardMaterial("defaultMaterial", flock.scene);
+    defaultMaterial.backFaceCulling = false;
+
+    const replaceIfPBRMaterial = (targetMesh) => {
+      const material = targetMesh.material;
+
+      if (material && material.getClassName() === "PBRMaterial") {
+        if (!replacedMaterialsMap.has(material)) {
+          // Replace with a cloned default material, preserving the name
+          const originalName = material.name;
+          const newMaterial = defaultMaterial.clone(originalName);
+          replacedMaterialsMap.set(material, newMaterial);
+        }
+
+        // Assign the replaced material to the mesh
+        targetMesh.material = replacedMaterialsMap.get(material);
+        targetMesh.backFaceCulling = false;
+      }
+    };
+
+    // Replace material on the main mesh
+    replaceIfPBRMaterial(mesh);
+
+    // Replace materials on all child meshes
+    mesh.getChildMeshes().forEach(replaceIfPBRMaterial);
+
+    // Dispose of all replaced materials
+    replacedMaterialsMap.forEach((newMaterial, oldMaterial) => {
+      oldMaterial.dispose();
+    });
+  },
+  changeColor(meshName, color) {
+    return flock.whenModelReady(meshName, (mesh) => {
       flock.changeColorMesh(mesh, color);
     });
   },
@@ -118,7 +327,7 @@ export const flockMaterial = {
 
     // Start applying colours to the main mesh and its hierarchy
 
-    if (!flock.characterNames.includes(mesh.metadata?.modelName)) {
+    if (!flock.characterNames.includes(mesh.metadata?.meshName)) {
       applyColorInOrder(mesh);
     } else {
       const characterColors = {
@@ -163,8 +372,41 @@ export const flockMaterial = {
       flock.glowMesh(mesh);
     }
   },
-  changeMaterial(modelName, materialName, color) {
-    return flock.whenModelReady(modelName, (mesh) => {
+  applyColorToMaterial(part, materialName, color) {
+    if (part.material && part.material.name === materialName) {
+      part.material.diffuseColor = flock.BABYLON.Color3.FromHexString(
+        flock.getColorFromString(color),
+      );
+      part.material.albedoColor = flock.BABYLON.Color3.FromHexString(
+        flock.getColorFromString(color),
+      );
+    }
+    part.getChildMeshes().forEach((child) => {
+      flock.applyColorToMaterial(child, materialName, color);
+    });
+  },
+  applyColorsToCharacter(mesh, colors) {
+    const {
+      hair: hairColor,
+      skin: skinColor,
+      eyes: eyesColor,
+      sleeves: sleevesColor,
+      shorts: shortsColor,
+      tshirt: tshirtColor,
+    } = colors;
+
+    flock.applyColorToMaterial(mesh, "Hair", hairColor);
+    flock.applyColorToMaterial(mesh, "Skin", skinColor);
+    flock.applyColorToMaterial(mesh, "Eyes", eyesColor);
+    flock.applyColorToMaterial(mesh, "Detail", sleevesColor);
+    flock.applyColorToMaterial(mesh, "Shorts", shortsColor);
+    flock.applyColorToMaterial(mesh, "TShirt", tshirtColor);
+    flock.applyColorToMaterial(mesh, "Tshirt", tshirtColor);
+    flock.applyColorToMaterial(mesh, "Sleeves", sleevesColor);
+    flock.applyColorToMaterial(mesh, "Shoes", sleevesColor);
+  },
+  changeMaterial(meshName, materialName, color) {
+    return flock.whenModelReady(meshName, (mesh) => {
       const texturePath = flock.texturePath + materialName;
       flock.changeMaterialMesh(mesh, materialName, texturePath, color);
     });
@@ -206,8 +448,8 @@ export const flockMaterial = {
 
     return material;
   },
-  setMaterial(modelName, materials) {
-    return flock.whenModelReady(modelName, (mesh) => {
+  setMaterial(meshName, materials) {
+    return flock.whenModelReady(meshName, (mesh) => {
       const allMeshes = [mesh].concat(mesh.getDescendants());
       const validMeshes = allMeshes.filter(
         (part) => part instanceof flock.BABYLON.Mesh,
@@ -249,26 +491,6 @@ export const flockMaterial = {
         flock.glowMesh(mesh);
       }
     });
-  },
-  createTriplanarMaterial(scene, texturePath, scale = 1) {
-    const shaderMaterial = new flock.BABYLON.ShaderMaterial(
-      "triplanar",
-      scene,
-      {
-        vertex: "default",
-        fragment: "triplanar",
-      },
-      {
-        attributes: ["position", "normal", "uv"],
-        uniforms: ["worldViewProjection", "world", "scale"],
-      },
-    );
-
-    const texture = new flock.BABYLON.Texture(texturePath, scene);
-    shaderMaterial.setTexture("textureSampler", texture);
-    shaderMaterial.setFloat("scale", scale);
-
-    return shaderMaterial;
   },
   createMaterial(color, materialName, alpha) {
     let material;
@@ -345,301 +567,6 @@ export const flockMaterial = {
     material.backFaceCulling = false;
 
     return material;
-  },
-  createDecal(
-    modelName,
-    posX = 0,
-    posY = 0,
-    posZ = 0.5, // Front face of the wall at z = 0.5
-    normalX = 0,
-    normalY = 0,
-    normalZ = -1, // Normal facing the negative z-axis (toward the camera)
-    sizeX = 3,
-    sizeY = 3,
-    sizeZ = 1,
-    material, // Material passed as a parameter
-  ) {
-    return flock.whenModelReady(modelName, (mesh) => {
-      if (!material || !material.diffuseTexture) {
-        console.error(
-          "Material does not have a diffuse texture. Cannot apply decal.",
-        );
-        return;
-      }
-
-      // Ensure the material properties are correct
-      material.diffuseTexture.hasAlpha = true;
-      material.zOffset = -2;
-
-      // Define the position and normal for the decal
-      const position = new flock.BABYLON.Vector3(posX, posY, posZ);
-      const normal = new flock.BABYLON.Vector3(normalX, normalY, normalZ);
-
-      // Define the decal size
-      const decalSize = new flock.BABYLON.Vector3(sizeX, sizeY, sizeZ);
-
-      const decal = flock.BABYLON.MeshBuilder.CreateDecal("decal", mesh, {
-        position: position,
-        normal: normal,
-        size: decalSize,
-      });
-
-      // Apply the passed material to the decal
-      decal.material = material;
-      decal.setParent(mesh);
-    });
-  },
-  placeDecal(material, angle = 0) {
-    const pickResult = flock.scene.pick(
-      flock.scene.pointerX,
-      flock.scene.pointerY,
-    );
-    if (pickResult.hit) {
-      const normal = flock.scene.activeCamera
-        .getForwardRay()
-        .direction.negateInPlace()
-        .normalize();
-      const position = pickResult.pickedPoint;
-      const mesh = pickResult.pickedMesh;
-      const decalSize = new flock.BABYLON.Vector3(1, 1, 1);
-      material.diffuseTexture.hasAlpha = true;
-      material.zOffset = -2;
-
-      const decal = flock.BABYLON.MeshBuilder.CreateDecal("decal", mesh, {
-        position: position,
-        normal: normal,
-        size: decalSize,
-        angle: angle,
-      });
-
-      // Apply the passed material to the decal
-      decal.material = material;
-      material.disableDepthWrite;
-      decal.setParent(mesh);
-    }
-  },
-  hexToRgba(hex, alpha) {
-    hex = hex.replace(/^#/, "");
-    let r = parseInt(hex.substring(0, 2), 16);
-    let g = parseInt(hex.substring(2, 4), 16);
-    let b = parseInt(hex.substring(4, 6), 16);
-    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-  },
-  glow(modelName, glowColor) {
-    // Ensure the glow layer is initialised
-    if (!flock.glowLayer) {
-      flock.glowLayer = new flock.BABYLON.GlowLayer(
-        "glowLayer",
-        flock.scene,
-      );
-      flock.glowLayer.intensity = 0.5;
-    }
-
-    return flock.whenModelReady(modelName, (mesh) => {
-      flock.glowMesh(mesh, glowColor);
-    });
-  },
-  glowMesh(mesh, glowColor = null) {
-    const applyGlow = (m) => {
-      m.metadata = m.metadata || {};
-      m.metadata.glow = true;
-
-      if (m.material) {
-        const emissiveColor =
-          glowColor ||
-          m.material.diffuseColor ||
-          m.material.albedoColor ||
-          flock.BABYLON.Color3.Black();
-        m.material.emissiveColor = emissiveColor;
-        m.material.emissiveIntensity = 1.0;
-      }
-    };
-
-    applyGlow(mesh);
-    mesh.getChildMeshes().forEach(applyGlow);
-  },
-  ensureUniqueMaterial(mesh) {
-    // Helper function to clone material for a mesh
-    const cloneMaterial = (originalMaterial) => {
-      return originalMaterial.clone(`${originalMaterial.name}`);
-    };
-
-    // Recursive function to collect all meshes in the hierarchy
-    const collectMeshes = (node, meshes = []) => {
-      if (node instanceof flock.BABYLON.Mesh) {
-        meshes.push(node);
-      }
-      if (node.getChildren) {
-        node.getChildren().forEach((child) =>
-          collectMeshes(child, meshes),
-        );
-      }
-      return meshes;
-    };
-
-    // Collect all meshes in the hierarchy (root + descendants)
-    const allMeshes = collectMeshes(mesh);
-
-    // Create a mapping of original materials to their clones
-    const materialMapping = new Map();
-
-    // Iterate through all collected meshes
-    allMeshes.forEach((currentMesh) => {
-      if (currentMesh.material && currentMesh.metadata?.sharedMaterial) {
-        // Check if the material has already been cloned
-        if (!materialMapping.has(currentMesh.material)) {
-          // Clone the material and store it in the mapping
-          const clonedMaterial = cloneMaterial(currentMesh.material);
-          materialMapping.set(currentMesh.material, clonedMaterial);
-        }
-
-        // Assign the cloned material to the current mesh
-        currentMesh.material = materialMapping.get(
-          currentMesh.material,
-        );
-        currentMesh.metadata.sharedMaterial = false; // Material is now unique to this hierarchy
-      }
-    });
-  },
-  applyColorToMaterial(part, materialName, color) {
-    if (part.material && part.material.name === materialName) {
-      part.material.diffuseColor = flock.BABYLON.Color3.FromHexString(
-        flock.getColorFromString(color),
-      );
-      part.material.albedoColor = flock.BABYLON.Color3.FromHexString(
-        flock.getColorFromString(color),
-      );
-    }
-    part.getChildMeshes().forEach((child) => {
-      flock.applyColorToMaterial(child, materialName, color);
-    });
-  },
-  applyColorsToCharacter(mesh, colors) {
-    const {
-      hair: hairColor,
-      skin: skinColor,
-      eyes: eyesColor,
-      sleeves: sleevesColor,
-      shorts: shortsColor,
-      tshirt: tshirtColor,
-    } = colors;
-
-    flock.applyColorToMaterial(mesh, "Hair", hairColor);
-    flock.applyColorToMaterial(mesh, "Skin", skinColor);
-    flock.applyColorToMaterial(mesh, "Eyes", eyesColor);
-    flock.applyColorToMaterial(mesh, "Detail", sleevesColor);
-    flock.applyColorToMaterial(mesh, "Shorts", shortsColor);
-    flock.applyColorToMaterial(mesh, "TShirt", tshirtColor);
-    flock.applyColorToMaterial(mesh, "Tshirt", tshirtColor);
-    flock.applyColorToMaterial(mesh, "Sleeves", sleevesColor);
-    flock.applyColorToMaterial(mesh, "Shoes", sleevesColor);
-  },
-
-  ensureStandardMaterial(mesh) {
-    if (!mesh) return;
-
-    // Set to track replaced materials and their corresponding replacements
-    const replacedMaterialsMap = new Map();
-
-    // Default material to use as the replacement base
-    const defaultMaterial =
-      flock.scene.defaultMaterial ||
-      new flock.BABYLON.StandardMaterial("defaultMaterial", flock.scene);
-    defaultMaterial.backFaceCulling = false;
-
-    const replaceIfPBRMaterial = (targetMesh) => {
-      const material = targetMesh.material;
-
-      if (material && material.getClassName() === "PBRMaterial") {
-        if (!replacedMaterialsMap.has(material)) {
-          // Replace with a cloned default material, preserving the name
-          const originalName = material.name;
-          const newMaterial = defaultMaterial.clone(originalName);
-          replacedMaterialsMap.set(material, newMaterial);
-        }
-
-        // Assign the replaced material to the mesh
-        targetMesh.material = replacedMaterialsMap.get(material);
-        targetMesh.backFaceCulling = false;
-      }
-    };
-
-    // Replace material on the main mesh
-    replaceIfPBRMaterial(mesh);
-
-    // Replace materials on all child meshes
-    mesh.getChildMeshes().forEach(replaceIfPBRMaterial);
-
-    // Dispose of all replaced materials
-    replacedMaterialsMap.forEach((newMaterial, oldMaterial) => {
-      oldMaterial.dispose();
-    });
-  },
-  tint(modelName, color) {
-    return flock.whenModelReady(modelName, (mesh) => {
-      if (mesh.material) {
-        mesh.renderOverlay = true;
-        mesh.overlayAlpha = 0.5;
-        mesh.overlayColor = flock.BABYLON.Color3.FromHexString(
-          flock.getColorFromString(color),
-        );
-      }
-
-      mesh.getChildMeshes().forEach(function (childMesh) {
-        if (childMesh.material) {
-          childMesh.renderOverlay = true;
-          childMesh.overlayAlpha = 0.5;
-          childMesh.overlayColor = flock.BABYLON.Color3.FromHexString(
-            flock.getColorFromString(
-              flock.getColorFromString(color),
-            ),
-          );
-        }
-      });
-    });
-  },
-  setAlpha(modelName, alphaValue) {
-    return flock.whenModelReady(modelName, (mesh) => {
-      // Get the mesh and all its descendants
-      let allMeshes = [mesh, ...mesh.getDescendants()];
-
-      // Set alpha for each mesh's material if it exists
-      allMeshes.forEach((nextMesh) => {
-        if (nextMesh.material) {
-          flock.ensureUniqueMaterial(nextMesh);
-          nextMesh.material.alpha = alphaValue;
-          nextMesh.material.transparencyMode =
-            flock.BABYLON.Material.MATERIAL_ALPHABLEND;
-        }
-      });
-    });
-  },
-  clearEffects(modelName) {
-    return flock.whenModelReady(modelName, (mesh) => {
-      const removeEffects = (targetMesh) => {
-        if (targetMesh.material) {
-          // Reset emissive color to black
-          targetMesh.material.emissiveColor =
-            flock.BABYLON.Color3.Black();
-        }
-
-        // Remove mesh from glow layer
-        if (flock.glowLayer) {
-          mesh.metadata.glow = false;
-          flock.glowLayer.removeIncludedOnlyMesh(targetMesh);
-        }
-
-        flock.highlighter.removeMesh(targetMesh);
-        // Disable any render overlay
-        targetMesh.renderOverlay = false;
-      };
-
-      // Apply to the main mesh
-      removeEffects(mesh);
-
-      // Apply to child meshes
-      mesh.getChildMeshes().forEach(removeEffects);
-    });
   },
   applyMaterialToMesh(mesh, shapeType, color, alpha = 1.0) {
     const scene = mesh.getScene();
@@ -972,21 +899,82 @@ export const flockMaterial = {
 
     return flock.materialCache[materialKey];
   },
-  highlight(modelName, color) {
-    const applyHighlight = (mesh) => {
-      if (mesh.material) {
-        flock.highlighter.addMesh(
-          mesh,
-          flock.BABYLON.Color3.FromHexString(
-            flock.getColorFromString(color),
-          ),
+  
+  createDecal(
+    meshName,
+    posX = 0,
+    posY = 0,
+    posZ = 0.5, // Front face of the wall at z = 0.5
+    normalX = 0,
+    normalY = 0,
+    normalZ = -1, // Normal facing the negative z-axis (toward the camera)
+    sizeX = 3,
+    sizeY = 3,
+    sizeZ = 1,
+    material, // Material passed as a parameter
+  ) {
+    return flock.whenModelReady(meshName, (mesh) => {
+      if (!material || !material.diffuseTexture) {
+        console.error(
+          "Material does not have a diffuse texture. Cannot apply decal.",
         );
+        return;
       }
-    };
 
-    return flock.whenModelReady(modelName, (mesh) => {
-      applyHighlight(mesh);
-      mesh.getChildMeshes().forEach(applyHighlight);
+      // Ensure the material properties are correct
+      material.diffuseTexture.hasAlpha = true;
+      material.zOffset = -2;
+
+      // Define the position and normal for the decal
+      const position = new flock.BABYLON.Vector3(posX, posY, posZ);
+      const normal = new flock.BABYLON.Vector3(normalX, normalY, normalZ);
+
+      // Define the decal size
+      const decalSize = new flock.BABYLON.Vector3(sizeX, sizeY, sizeZ);
+
+      const decal = flock.BABYLON.MeshBuilder.CreateDecal("decal", mesh, {
+        position: position,
+        normal: normal,
+        size: decalSize,
+      });
+
+      // Apply the passed material to the decal
+      decal.material = material;
+      decal.setParent(mesh);
     });
   },
+  placeDecal(material, angle = 0) {
+    const pickResult = flock.scene.pick(
+      flock.scene.pointerX,
+      flock.scene.pointerY,
+    );
+    if (pickResult.hit) {
+      const normal = flock.scene.activeCamera
+        .getForwardRay()
+        .direction.negateInPlace()
+        .normalize();
+      const position = pickResult.pickedPoint;
+      const mesh = pickResult.pickedMesh;
+      const decalSize = new flock.BABYLON.Vector3(1, 1, 1);
+      material.diffuseTexture.hasAlpha = true;
+      material.zOffset = -2;
+
+      const decal = flock.BABYLON.MeshBuilder.CreateDecal("decal", mesh, {
+        position: position,
+        normal: normal,
+        size: decalSize,
+        angle: angle,
+      });
+
+      // Apply the passed material to the decal
+      decal.material = material;
+      material.disableDepthWrite;
+      decal.setParent(mesh);
+    }
+  },
+ 
+  
+ 
+
+  
 }
