@@ -182,6 +182,28 @@ export const flockScene = {
     flock.ground = ground;
     return ground;
   },
+  show(modelName) {
+    // Check if the ID refers to a UI button
+    const uiButton = flock.scene.UITexture?.getControlByName(modelName);
+
+    if (uiButton) {
+      // Handle UI button case
+      uiButton.isVisible = true; // Hide the button
+      return;
+    }
+    return flock.whenModelReady(modelName, function (mesh) {
+      if (mesh) {
+        mesh.setEnabled(true);
+        flock.hk._hknp.HP_World_AddBody(
+          flock.hk.world,
+          mesh.physics._pluginData.hpBodyId,
+          mesh.physics.startAsleep,
+        );
+      } else {
+        console.log("Model not loaded:", modelName);
+      }
+    });
+  },
   hide(modelName) {
     const uiButton = flock.scene.UITexture?.getControlByName(modelName);
 
