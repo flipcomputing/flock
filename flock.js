@@ -66,6 +66,7 @@ export const flock = {
 	texturePath: "./textures/",
 	engine: null,
 	engineReady: false,
+	modelReadyPromises: new Map(),
 	characterNames: characterNames,
 	alert: alert,
 	BABYLON: BABYLON,
@@ -802,6 +803,25 @@ export const flock = {
 			}
 		})();
 	},
+	whenModelReady2(id, callback) {
+	  const promise = flock.modelReadyPromises.get(id);
+	  if (!promise) {
+		console.warn(`No load started for object with id '${id}'`);
+		return;
+	  }
+
+	  promise.then(() => {
+		const mesh = flock.scene.getMeshByName(id);
+		if (!mesh) {
+		  console.error(`Mesh with id '${id}' not found in scene.`);
+		  return;
+		}
+		callback(mesh);
+	  }).catch((err) => {
+		console.error(`Error in whenModelReady for '${id}':`, err);
+	  });
+	},
+
 	/* 
 		Category: Scene>XR
 	*/
