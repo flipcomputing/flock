@@ -1637,9 +1637,9 @@ export function defineGenerators() {
 
 		// Use the appropriate function based on the async mode
 		if (asyncMode === "AWAIT") {
-			return `await playNotes(${meshVar}, ${notes}, ${durations}, ${instrument});\n`;
+			return `await playNotes(${meshVar}, { notes: ${notes}, durations: ${durations}, instrument: ${instrument} });\n`;
 		} else {
-			return `playNotes(${meshVar}, ${notes}, ${durations}, ${instrument});\n`;
+			return `playNotes(${meshVar}, { notes: ${notes}, durations: ${durations}, instrument: ${instrument} });\n`;
 		}
 	};
 

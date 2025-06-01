@@ -157,7 +157,14 @@ export const flockSound = {
     }
     return flock.audioContext;
   },
-  playNotes(meshName, notes, durations, instrument = null) {
+  playNotes(
+    meshName,
+    {
+      notes = [],
+      durations = [],
+      instrument = flock.createInstrument("square", 440, 0.1, 0.3, 0.7, 1.0),
+    } = {},
+  ) {
     return new Promise((resolve) => {
       flock.whenModelReady(meshName, async function (mesh) {
         notes = notes.map((note) => (note === "_" ? null : note));
@@ -168,9 +175,32 @@ export const flockSound = {
           getBPM(mesh) || getBPM(mesh?.parent) || getBPM(scene) || 60;
         const bpm = getBPMFromMeshOrScene(mesh, flock.scene);
 
-        const context = flock.audioContext; // Ensure a global audio context
-        if (!context || context.state === "closed") return;
+       
+        let context = flock.audioContext; // Ensure a global audio context
+        if (!context || context.state === "closed") {
+          try {
+            flock.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            context = flock.audioContext;
+            console.log("Created new audio context (previous was closed)");
+          } catch (error) {
+            console.error("Could not create audio context:", error);
+            resolve();
+            return;
+          }
+        }
+        if (!context || context.state === "closed") {
+          console.log("Audio context is closed or not available.");
+          return;
+        }
 
+        if (context.state === "suspended") {
+          try {
+            await context.resume();
+          } catch (error) {
+            console.warn("Could not resume audio context:", error);
+            return;
+          }
+        }
         if (mesh && mesh.position) {
           // Create the panner node only once if it doesn't exist
           if (!mesh.metadata.panner) {
@@ -231,47 +261,6 @@ export const flockSound = {
         }
       });
     });
-  },
-  updateListenerPositionAndOrientation(context, camera) {
-    const { x: cx, y: cy, z: cz } = camera.position;
-    const forwardVector = camera.getForwardRay().direction;
-
-    if (context.listener.positionX) {
-      // Update listener's position
-      context.listener.positionX.setValueAtTime(cx, context.currentTime);
-      context.listener.positionY.setValueAtTime(cy, context.currentTime);
-      context.listener.positionZ.setValueAtTime(cz, context.currentTime);
-
-      // Update listener's forward direction
-      context.listener.forwardX.setValueAtTime(
-        -forwardVector.x,
-        context.currentTime,
-      );
-      context.listener.forwardY.setValueAtTime(
-        forwardVector.y,
-        context.currentTime,
-      );
-      context.listener.forwardZ.setValueAtTime(
-        forwardVector.z,
-        context.currentTime,
-      );
-
-      // Set the listener's up vector (typically pointing upwards in the Y direction)
-      context.listener.upX.setValueAtTime(0, context.currentTime);
-      context.listener.upY.setValueAtTime(1, context.currentTime);
-      context.listener.upZ.setValueAtTime(0, context.currentTime);
-    } else {
-      // Firefox
-      context.listener.setPosition(cx, cy, cz);
-      context.listener.setOrientation(
-        -forwardVector.x,
-        forwardVector.y,
-        forwardVector.z,
-        0,
-        1,
-        0,
-      );
-    }
   },
   playMidiNote(
     context,
@@ -337,10 +326,6 @@ export const flockSound = {
   durationInSeconds(duration, bpm) {
     return (60 / bpm) * duration; // Convert beats to seconds
   },
-  setPanning(panner, mesh) {
-    const position = mesh.position;
-    panner.setPosition(position.x, position.y, position.z); // Pan based on mesh position
-  },
   createInstrument(type, frequency, attack, decay, sustain, release) {
     const audioCtx = flock.audioContext;
 
@@ -378,6 +363,47 @@ export const flockSound = {
     } else {
       if (!flock.scene.metadata) flock.scene.metadata = {};
       flock.scene.metadata.bpm = bpm;
+    }
+  },
+  updateListenerPositionAndOrientation(context, camera) {
+    const { x: cx, y: cy, z: cz } = camera.position;
+    const forwardVector = camera.getForwardRay().direction;
+
+    if (context.listener.positionX) {
+      // Update listener's position
+      context.listener.positionX.setValueAtTime(cx, context.currentTime);
+      context.listener.positionY.setValueAtTime(cy, context.currentTime);
+      context.listener.positionZ.setValueAtTime(cz, context.currentTime);
+
+      // Update listener's forward direction
+      context.listener.forwardX.setValueAtTime(
+        -forwardVector.x,
+        context.currentTime,
+      );
+      context.listener.forwardY.setValueAtTime(
+        forwardVector.y,
+        context.currentTime,
+      );
+      context.listener.forwardZ.setValueAtTime(
+        forwardVector.z,
+        context.currentTime,
+      );
+
+      // Set the listener's up vector (typically pointing upwards in the Y direction)
+      context.listener.upX.setValueAtTime(0, context.currentTime);
+      context.listener.upY.setValueAtTime(1, context.currentTime);
+      context.listener.upZ.setValueAtTime(0, context.currentTime);
+    } else {
+      // Firefox
+      context.listener.setPosition(cx, cy, cz);
+      context.listener.setOrientation(
+        -forwardVector.x,
+        forwardVector.y,
+        forwardVector.z,
+        0,
+        1,
+        0,
+      );
     }
   },
 };
