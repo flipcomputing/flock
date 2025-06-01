@@ -134,4 +134,89 @@ export function runMaterialsTests(flock) {
 			});
 		});
 	});
+
+	describe("changeColor method", function () {
+	  const boxIds = [];
+	  const colors = ["#FF0000", "#00FF00", "#0000FF", "#FFFF00"];
+
+	  // Utility: Create a box with a random position
+	  async function createBoxWithRandomPosition(id) {
+		const position = new flock.BABYLON.Vector3(
+		  Math.random() * 10,
+		  Math.random() * 10,
+		  Math.random() * 10
+		);
+
+		await flock.createBox(id, {
+		  width: 1,
+		  height: 1,
+		  depth: 1,
+		  position,
+		});
+
+		return id;
+	  }
+
+	  beforeEach(async function () {
+		flock.scene ??= {};
+	  });
+
+	  afterEach(function () {
+		boxIds.forEach((boxId) => {
+		  flock.dispose(boxId);
+		});
+		boxIds.length = 0;
+	  });
+
+	  it("should apply a single color to a mesh", async function () {
+		const id = "boxChangeColorSingle";
+		await createBoxWithRandomPosition(id);
+		boxIds.push(id);
+
+		const color = colors[Math.floor(Math.random() * colors.length)];
+		await flock.changeColor(id, { color });
+
+		const mesh = flock.scene.getMeshByName(id);
+		expect(mesh).to.exist;
+
+		const material = mesh.material;
+		expect(material).to.exist;
+
+		const expectedColor = flock.BABYLON.Color3.FromHexString(
+		  flock.getColorFromString(color)
+		);
+
+		const actualColor = material.diffuseColor ?? material.albedoColor;
+
+		expect(actualColor).to.exist;
+		["r", "g", "b"].forEach((component) => {
+		  expect(actualColor[component]).to.be.closeTo(
+			expectedColor[component],
+			0.01
+		  );
+		});
+	  });
+
+	  it("should apply multiple colors to different parts of a mesh", async function () {
+		const id = "boxChangeColorMultiple";
+		await createBoxWithRandomPosition(id);
+		boxIds.push(id);
+
+		const colorList = ["#FF0000", "#00FF00", "#0000FF"];
+		await flock.changeColor(id, { color: colorList });
+
+		const mesh = flock.scene.getMeshByName(id);
+		expect(mesh).to.exist;
+
+		const allMeshes = [mesh, ...mesh.getChildMeshes()];
+		allMeshes.forEach((part) => {
+		  expect(part.material).to.exist;
+
+		  const partColor = part.material.diffuseColor ?? part.material.albedoColor;
+		  expect(partColor).to.exist;
+		  expect(part.metadata).to.exist;
+		  expect(part.metadata.materialIndex).to.be.within(0, colorList.length - 1);
+		});
+	  });
+	});
 }

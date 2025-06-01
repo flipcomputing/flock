@@ -246,9 +246,16 @@ export const flockMaterial = {
       oldMaterial.dispose();
     });
   },
-  changeColor(meshName, color) {
+  changeColor(meshName, { color } = {}) {
     return flock.whenModelReady(meshName, (mesh) => {
-      flock.changeColorMesh(mesh, color);
+      if (!mesh) {
+        flock.scene.clearColor = flock.BABYLON.Color3.FromHexString(
+          flock.getColorFromString(color)
+        );
+        return Promise.resolve(); // or just let it resolve naturally
+      }
+
+      return flock.changeColorMesh(mesh, color);
     });
   },
   changeColorMesh(mesh, color) {

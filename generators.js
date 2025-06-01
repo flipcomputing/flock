@@ -1866,7 +1866,8 @@ export function defineGenerators() {
 		);
 		const color = getFieldValue(block, "COLOR", "#ffffff");
 
-		return `await changeColor(${modelName}, ${color});\n`;
+		return `await changeColor(${modelName}, { color: ${color} });\n`;
+
 	};
 
 	javascriptGenerator.forBlock["change_material"] = function (block) {
@@ -1896,7 +1897,7 @@ export function defineGenerators() {
 
 	};
 
-	javascriptGenerator.forBlock["clear_effects"] = function (block) {
+javascriptGenerator.forBlock["clear_effects"] = function (block) {
 		const modelName = javascriptGenerator.nameDB_.getName(
 			block.getFieldValue("MODEL_VAR"),
 			Blockly.Names.NameType.VARIABLE,
