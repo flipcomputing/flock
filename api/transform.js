@@ -415,7 +415,7 @@ export const flockTransform = {
       });
     });
   },
-  scaleMesh(
+  scale(
     meshName,
     {
       x = 1,
@@ -491,7 +491,7 @@ export const flockTransform = {
       flock.updatePhysics(mesh);
     });
   },
-  resizeMesh(
+  resize(
     meshName,
     {
       width = null,     

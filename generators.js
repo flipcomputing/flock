@@ -1378,7 +1378,7 @@ export function defineGenerators() {
 		const yOrigin = block.getFieldValue("Y_ORIGIN") || "'CENTRE'";
 		const zOrigin = block.getFieldValue("Z_ORIGIN") || "'CENTRE'";
 
-		return `await scaleMesh(${modelName}, { x: ${x}, y: ${y}, z: ${z}, xOrigin: '${xOrigin}', yOrigin: '${yOrigin}', zOrigin: '${zOrigin}' });\n`;
+		return `await scale(${modelName}, { x: ${x}, y: ${y}, z: ${z}, xOrigin: '${xOrigin}', yOrigin: '${yOrigin}', zOrigin: '${zOrigin}' });\n`;
 
 	};
 
@@ -1396,7 +1396,7 @@ export function defineGenerators() {
 		const yOrigin = block.getFieldValue("Y_ORIGIN") || "'CENTRE'";
 		const zOrigin = block.getFieldValue("Z_ORIGIN") || "'CENTRE'";
 
-		return `await resizeMesh(${modelName}, { width: ${x}, height: ${y}, depth: ${z}, xOrigin: '${xOrigin}', yOrigin: '${yOrigin}', zOrigin: '${zOrigin}' });\n`;
+		return `await resize(${modelName}, { width: ${x}, height: ${y}, depth: ${z}, xOrigin: '${xOrigin}', yOrigin: '${yOrigin}', zOrigin: '${zOrigin}' });\n`;
 	};
 
 	javascriptGenerator.forBlock["look_at"] = function (block) {

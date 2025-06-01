@@ -42,6 +42,7 @@
       import { runSoundTests } from "./sound.test.js";
        import { runTranslationTests } from "./transform.translate.test.js";
       import { runRotationTests } from "./transform.rotate.test.js";
+       import { runScaleTests } from "./transform.scale.test.js";
       import { runMaterialsTests } from "./materials.test.js";
 
       const flock = flockmodule.flock;
@@ -89,7 +90,8 @@
       //runSoundTests(flock);
       //runTranslationTests(flock);
       //runRotationTests(flock);
-      runMaterialsTests(flock);
+      //runMaterialsTests(flock);
+      runScaleTests(flock);
 
       try {
         await flock.scene.debugLayer.show({
