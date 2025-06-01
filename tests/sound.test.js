@@ -193,93 +193,72 @@ export function runSoundTests(flock) {
 	describe("Play notes", function () {
 		this.timeout(10000); // Allow time for async sound to start/stop
 		let boxId;
-
 		beforeEach(() => {
 			// Create a box to attach spatial sound to
 			boxId = "soundBox";
 			flock.createBox(boxId, "#FF0000", 1, 1, 1, [0, 0, 0]);
 		});
-
 		afterEach(() => {
 			flock.stopAllSounds(); // Stop any sounds still playing
 			flock.dispose(boxId); // Clean up box
 		});
-
 		it("should play notes with default parameters", async function () {
 			   this.timeout(3000);
 			   const box = flock.scene.getMeshByName(boxId);
 			   expect(box).to.exist;
-
 			   expect(() => {
 				   flock.playNotes(boxId, {});
 			   }).to.not.throw();
 		   });
-
 		   it("should play notes with specified notes and durations", async function () {
 			   this.timeout(3000);
 			   const box = flock.scene.getMeshByName(boxId);
 			   expect(box).to.exist;
-
 			   const notes = [60, 62, 64]; // C4, D4, E4 as MIDI numbers
 			   const durations = [0.5, 0.5, 1.0];
-
 			   expect(() => {
 				   flock.playNotes(boxId, { notes, durations });
 			   }).to.not.throw();
-
 			   // Allow time for notes to play
 			   await new Promise((r) => setTimeout(r, 2500));
 		   });
-
 		   it("should play notes with custom instrument", async function () {
 			   this.timeout(3000);
 			   const box = flock.scene.getMeshByName(boxId);
 			   expect(box).to.exist;
-
 			   const notes = [57, 59]; // A3, B3 as MIDI numbers
 			   const durations = [0.25, 0.25];
-			   const instrument = flock.createInstrument('sawtooth', 220, 0.2, 0.4, 0.6, 0.8);
-
+			   const instrument = flock.createInstrument('sawtooth', { frequency: 220, attack: 0.2, decay: 0.4, sustain: 0.6, release: 0.8 });
 			   expect(() => {
 				   flock.playNotes(boxId, { notes, durations, instrument });
 			   }).to.not.throw();
-
 			   await new Promise((r) => setTimeout(r, 1000));
 		   });
-
 		   it("should handle empty notes array", async function () {
 			   const box = flock.scene.getMeshByName(boxId);
 			   expect(box).to.exist;
-
 			   expect(() => {
 				   flock.playNotes(boxId, { notes: [], durations: [] });
 			   }).to.not.throw();
 		   });
-
 		   it("should handle mismatched notes and durations arrays", async function () {
 			   const box = flock.scene.getMeshByName(boxId);
 			   expect(box).to.exist;
-
 			   const notes = [60, 62, 64]; // C4, D4, E4
 			   const durations = [0.5, 0.5]; // One less duration than notes
-
 			   expect(() => {
 				   flock.playNotes(boxId, { notes, durations });
 			   }).to.not.throw();
 		   });
-
 		   it("should work with await syntax", async function () {
 			   this.timeout(3000);
 			   const box = flock.scene.getMeshByName(boxId);
 			   expect(box).to.exist;
-
 			   const notes = [67, 69]; // G4, A4 as MIDI numbers
 			   const durations = [0.3, 0.3];
-
 			   // Should support async/await pattern
 			   await flock.playNotes(boxId, { notes, durations });
 		   });
-
 		   it("should handle invalid mesh name gracefully", function () {
 			   expect(() => {
 				   flock.playNotes("nonexistentMesh", { notes: [60], durations: [0.5] });

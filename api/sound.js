@@ -162,7 +162,7 @@ export const flockSound = {
     {
       notes = [],
       durations = [],
-      instrument = flock.createInstrument("square", 440, 0.1, 0.3, 0.7, 1.0),
+      instrument = flock.createInstrument("square", { frequency: 440, attack: 0.1, decay: 0.3, sustain: 0.7, release: 1.0 })
     } = {},
   ) {
     return new Promise((resolve) => {
@@ -326,7 +326,16 @@ export const flockSound = {
   durationInSeconds(duration, bpm) {
     return (60 / bpm) * duration; // Convert beats to seconds
   },
-  createInstrument(type, frequency, attack, decay, sustain, release) {
+  createInstrument(
+    type,
+    {
+      frequency = 440,
+      attack = 0.1,
+      decay = 0.3,
+      sustain = 0.7,
+      release = 1.0
+    } = {}
+  ) {
     const audioCtx = flock.audioContext;
 
     if (!audioCtx || audioCtx.state === "closed") return;

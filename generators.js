@@ -1656,7 +1656,7 @@ export function defineGenerators() {
 		const release = block.getFieldValue("RELEASE");
 
 		// Assign the instrument to a variable
-		return `${instrumentVar} = createInstrument('${type}', ${frequency}, ${attack}, ${decay}, ${sustain}, ${release});\n`;
+		return `${instrumentVar} = createInstrument('${type}', { frequency: ${frequency}, attack: ${attack}, decay: ${decay}, sustain: ${sustain}, release: ${release} });\n`;
 	};
 
 	javascriptGenerator.forBlock["instrument"] = function (block) {
