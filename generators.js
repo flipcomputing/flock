@@ -1660,28 +1660,25 @@ export function defineGenerators() {
 	};
 
 	javascriptGenerator.forBlock["instrument"] = function (block) {
-		const instrumentType = block.getFieldValue("INSTRUMENT_TYPE");
+	  const instrumentType = block.getFieldValue("INSTRUMENT_TYPE");
 
-		let instrumentCode;
-		switch (instrumentType) {
-			case "piano":
-				instrumentCode = `createInstrument('square', 440, 0.1, 0.3, 0.7, 1.0)`; // Example settings for piano
-				break;
-			case "guitar":
-				instrumentCode = `createInstrument('sawtooth', 440, 0.1, 0.2, 0.6, 0.9)`; // Example settings for guitar
-				break;
-			case "violin":
-				instrumentCode = `createInstrument('triangle', 440, 0.15, 0.5, 0.8, 1.2)`; // Example settings for violin
-				break;
-			default:
-				instrumentCode = null; // Default instrument
-		}
+	  let instrumentCode;
+	  switch (instrumentType) {
+		case "piano":
+		  instrumentCode = `createInstrument("square", { frequency: 440, attack: 0.1, decay: 0.3, sustain: 0.7, release: 1.0 })`; // Example settings for piano
+		  break;
+		case "guitar":
+		  instrumentCode = `createInstrument("sawtooth", { frequency: 440, attack: 0.1, decay: 0.2, sustain: 0.6, release: 0.9 })`; // Example settings for guitar
+		  break;
+		case "violin":
+		  instrumentCode = `createInstrument("triangle", { frequency: 440, attack: 0.15, decay: 0.5, sustain: 0.8, release: 1.2 })`; // Example settings for violin
+		  break;
+		default:
+		  instrumentCode = `null`; // Default instrument (or could throw an error)
+	  }
 
-		const code = instrumentCode;
-
-		return [code, javascriptGenerator.ORDER_ATOMIC];
+	  return [instrumentCode, javascriptGenerator.ORDER_ATOMIC];
 	};
-
 	javascriptGenerator.forBlock["set_scene_bpm"] = function (block) {
 		const bpm = javascriptGenerator.valueToCode(
 			block,
