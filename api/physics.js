@@ -107,30 +107,30 @@ export const flockPhysics = {
       },
     );
   },
-  up(modelName, upForce = 10) {
-    const mesh = flock.scene.getMeshByName(modelName);
+  up(meshName, upForce = 10) {
+    const mesh = flock.scene.getMeshByName(meshName);
     if (mesh) {
       mesh.physics.applyImpulse(
         new flock.BABYLON.Vector3(0, upForce, 0),
         mesh.getAbsolutePosition(),
       );
     } else {
-      console.log("Model not loaded (up):", modelName);
+      console.log("Model not loaded (up):", meshName);
     }
   },
-  applyForce(modelName, forceX = 0, forceY = 0, forceZ = 0) {
-    const mesh = flock.scene.getMeshByName(modelName);
+  applyForce(meshName, forceX = 0, forceY = 0, forceZ = 0) {
+    const mesh = flock.scene.getMeshByName(meshName);
     if (mesh) {
       mesh.physics.applyImpulse(
         new flock.BABYLON.Vector3(forceX, forceY, forceZ),
         mesh.getAbsolutePosition(),
       );
     } else {
-      console.log("Model not loaded (applyForce):", modelName);
+      console.log("Model not loaded (applyForce):", meshName);
     }
   },
-  setPhysics(modelName, physicsType) {
-    return flock.whenModelReady(modelName, (mesh) => {
+  setPhysics(meshName, physicsType) {
+    return flock.whenModelReady(meshName, (mesh) => {
       switch (physicsType) {
         case "STATIC":
           mesh.physics.setMotionType(
@@ -188,8 +188,8 @@ export const flockPhysics = {
       }
     });
   },
-  setPhysicsShape(modelName, shapeType) {
-    return flock.whenModelReady(modelName, (mesh) => {
+  setPhysicsShape(meshName, shapeType) {
+    return flock.whenModelReady(meshName, (mesh) => {
       const disposePhysics = (targetMesh) => {
         if (targetMesh.physics) {
           const body = targetMesh.physics;
@@ -288,17 +288,16 @@ export const flockPhysics = {
     }
     return false;
   },
-  onTrigger(modelName, trigger, doCode, options = { mode: "wait" }) {
-    return flock.whenModelReady(modelName, async function (target) {
+  onTrigger(meshName, { trigger, callback, mode = "wait" }){
+    return flock.whenModelReady(meshName, async function (target) {
       if (!target) {
-        console.log("Model or GUI Button not loaded:", modelName);
+        console.log("Model or GUI Button not loaded:", meshName);
         return;
       }
 
-      let { mode } = options;
       let isExecuting = false; // Tracks whether action is currently executing
       let hasExecuted = false; // Tracks whether action has executed in 'once' mode
-      let doCodes = Array.isArray(doCode) ? doCode : [doCode];
+      let callbacks = Array.isArray(callback) ? callback : [callback];
       let currentIndex = 0;
 
       // Helper to handle action registration for meshes
@@ -316,11 +315,11 @@ export const flockPhysics = {
           action,
         );
 
-        for (let i = 1; i < doCodes.length; i++) {
+        for (let i = 1; i < callbacks.length; i++) {
           actionSequence = actionSequence.then(
             new flock.BABYLON.ExecuteCodeAction(
               flock.BABYLON.ActionManager[trigger],
-              async () => await doCodes[i](),
+              async () => await callbacks[i](),
             ),
           );
         }
@@ -352,8 +351,8 @@ export const flockPhysics = {
         }
 
         try {
-          await doCodes[currentIndex]();
-          currentIndex = (currentIndex + 1) % doCodes.length;
+          await callbacks[currentIndex]();
+          currentIndex = (currentIndex + 1) % callbacks.length;
         } catch (e) {
           console.error("Action execution failed:", e);
         } finally {
@@ -423,20 +422,20 @@ export const flockPhysics = {
       }
     });
   },
-
-  onIntersect(modelName, otherModelName, trigger, doCode) {
-    return flock.whenModelReady(modelName, async function (mesh) {
+  onIntersect(meshName, otherMesh, { trigger, callback})
+{
+    return flock.whenModelReady(meshName, async function (mesh) {
       if (!mesh) {
-        console.error("Model not loaded:", modelName);
+        console.error("Model not loaded:", meshName);
         return;
       }
 
       // Load the second model
       return flock.whenModelReady(
-        otherModelName,
+        otherMesh,
         async function (otherMesh) {
           if (!otherMesh) {
-            console.error("Model not loaded:", otherModelName);
+            console.error("Model not loaded:", otherMesh);
             return;
           }
 
@@ -457,7 +456,7 @@ export const flockPhysics = {
               },
             },
             async function () {
-              await doCode(); // Execute the provided callback function
+              await callback(); // Execute the provided callback function
             },
             new flock.BABYLON.PredicateCondition(
               flock.BABYLON.ActionManager,
@@ -471,12 +470,12 @@ export const flockPhysics = {
       );
     });
   },
-  isTouchingSurface(modelName) {
-    const mesh = flock.scene.getMeshByName(modelName);
+  isTouchingSurface(meshName) {
+    const mesh = flock.scene.getMeshByName(meshName);
     if (mesh) {
       return flock.checkIfOnSurface(mesh);
     } else {
-      console.log("Model not loaded (isTouchingSurface):", modelName);
+      console.log("Model not loaded (isTouchingSurface):", meshName);
       return false;
     }
   },
