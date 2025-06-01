@@ -182,16 +182,16 @@ export const flockScene = {
     flock.ground = ground;
     return ground;
   },
-  show(modelName) {
+  show(meshName) {
     // Check if the ID refers to a UI button
-    const uiButton = flock.scene.UITexture?.getControlByName(modelName);
+    const uiButton = flock.scene.UITexture?.getControlByName(meshName);
 
     if (uiButton) {
       // Handle UI button case
       uiButton.isVisible = true; // Hide the button
       return;
     }
-    return flock.whenModelReady(modelName, function (mesh) {
+    return flock.whenModelReady(meshName, function (mesh) {
       if (mesh) {
         mesh.setEnabled(true);
         flock.hk._hknp.HP_World_AddBody(
@@ -200,19 +200,19 @@ export const flockScene = {
           mesh.physics.startAsleep,
         );
       } else {
-        console.log("Model not loaded:", modelName);
+        console.log("Model not loaded:", meshName);
       }
     });
   },
-  hide(modelName) {
-    const uiButton = flock.scene.UITexture?.getControlByName(modelName);
+  hide(meshName) {
+    const uiButton = flock.scene.UITexture?.getControlByName(meshName);
 
     if (uiButton) {
       // Handle UI button case
       uiButton.isVisible = false; // Hide the button
       return;
     }
-    return flock.whenModelReady(modelName, async function (mesh) {
+    return flock.whenModelReady(meshName, async function (mesh) {
       if (mesh) {
         mesh.setEnabled(false);
         flock.hk._hknp.HP_World_RemoveBody(
@@ -220,7 +220,7 @@ export const flockScene = {
           mesh.physics._pluginData.hpBodyId,
         );
       } else {
-        console.log("Mesh not loaded:", modelName);
+        console.log("Mesh not loaded:", meshName);
       }
     });
   },
@@ -341,15 +341,15 @@ export const flockScene = {
       }
     });
   },
-  dispose(modelName) {
-    const uiButton = flock.scene.UITexture?.getControlByName(modelName);
+  dispose(meshName) {
+    const uiButton = flock.scene.UITexture?.getControlByName(meshName);
 
     if (uiButton) {
       // Handle UI button case
       uiButton.dispose();
       return;
     }
-    return flock.whenModelReady(modelName, (mesh) => {
+    return flock.whenModelReady(meshName, (mesh) => {
       flock.disposeMesh(mesh);
     });
   },
