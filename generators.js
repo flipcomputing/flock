@@ -2436,7 +2436,7 @@ javascriptGenerator.forBlock["clear_effects"] = function (block) {
 			) || "1";
 
 		// Generate the code to call the createMaterial helper function
-		const code = `createMaterial(${baseColor},  "${textureSet}", ${alpha})`;
+		const code = `createMaterial({ color: ${baseColor}, materialName: "${textureSet}", alpha: ${alpha} })`;
 		return [code, javascriptGenerator.ORDER_FUNCTION_CALL];
 	};
 

@@ -219,4 +219,89 @@ export function runMaterialsTests(flock) {
 		});
 	  });
 	});
+
+	describe("createMaterial method", function () {
+	  const boxIds = [];
+
+	  async function createTestBox(id) {
+		const position = new flock.BABYLON.Vector3(
+		  Math.random() * 10,
+		  Math.random() * 10,
+		  Math.random() * 10
+		);
+
+		await flock.createBox(id, {
+		  width: 1,
+		  height: 1,
+		  depth: 1,
+		  position,
+		});
+
+		return id;
+	  }
+
+	  beforeEach(async function () {
+		flock.scene ??= {};
+	  });
+
+	  afterEach(function () {
+		boxIds.forEach((boxId) => {
+		  flock.dispose(boxId);
+		});
+		boxIds.length = 0;
+	  });
+
+	  it("should create a standard material with color and alpha", async function () {
+		const id = "boxCreateMaterialColor";
+		await createTestBox(id);
+		boxIds.push(id);
+
+		const color = "#FF00FF";
+		const material = flock.createMaterial({
+		  color,
+		  materialName: "testMaterial",
+		  alpha: 0.5,
+		});
+
+		expect(material).to.exist;
+		expect(material.diffuseColor).to.exist;
+		expect(material.diffuseColor.equals(flock.BABYLON.Color3.FromHexString(flock.getColorFromString(color)))).to.be.true;
+		expect(material.alpha).to.be.closeTo(0.5, 0.01);
+	  });
+
+	  it("should create a material with a texture", async function () {
+		const id = "boxCreateMaterialTexture";
+		await createTestBox(id);
+		boxIds.push(id);
+
+		const material = flock.createMaterial({
+		  color: "#FFFFFF",
+		  materialName: "test.png",
+		  alpha: 1,
+		});
+
+		expect(material).to.exist;
+		expect(material.diffuseTexture).to.exist;
+		expect(material.diffuseTexture.name).to.include("test.png");
+	  });
+
+	  it("should create a gradient material when color is an array", async function () {
+		const id = "boxCreateMaterialGradient";
+		await createTestBox(id);
+		boxIds.push(id);
+
+		const gradientColors = ["#FF0000", "#00FF00"];
+		const material = flock.createMaterial({
+		  color: gradientColors,
+		  materialName: "gradientMaterial",
+		  alpha: 1,
+		});
+
+		expect(material).to.exist;
+		expect(material.getClassName()).to.equal("GradientMaterial");
+		expect(material.bottomColor).to.exist;
+		expect(material.topColor).to.exist;
+	  });
+	});
+
 }

@@ -499,7 +499,7 @@ export const flockMaterial = {
       }
     });
   },
-  createMaterial(color, materialName, alpha) {
+    createMaterial({ color, materialName, alpha } = {}) {
     let material;
 
     const texturePath = flock.texturePath + materialName;
@@ -546,32 +546,6 @@ export const flockMaterial = {
     }
 
     material.alpha = alpha;
-
-    return material;
-  },
-  textMaterial(text, color, backgroundColor, width, height, textSize) {
-    const dynamicTexture = new flock.BABYLON.DynamicTexture(
-      "text texture",
-      { width: width, height: height },
-      flock.scene,
-    );
-    dynamicTexture.drawText(
-      text,
-      null,
-      null,
-      `bold ${textSize}px Asap`,
-      color,
-      backgroundColor,
-      true,
-    );
-
-    const material = new flock.BABYLON.StandardMaterial(
-      "textMaterial",
-      flock.scene,
-    );
-
-    material.diffuseTexture = dynamicTexture;
-    material.backFaceCulling = false;
 
     return material;
   },
@@ -906,82 +880,5 @@ export const flockMaterial = {
 
     return flock.materialCache[materialKey];
   },
-  
-  createDecal(
-    meshName,
-    posX = 0,
-    posY = 0,
-    posZ = 0.5, // Front face of the wall at z = 0.5
-    normalX = 0,
-    normalY = 0,
-    normalZ = -1, // Normal facing the negative z-axis (toward the camera)
-    sizeX = 3,
-    sizeY = 3,
-    sizeZ = 1,
-    material, // Material passed as a parameter
-  ) {
-    return flock.whenModelReady(meshName, (mesh) => {
-      if (!material || !material.diffuseTexture) {
-        console.error(
-          "Material does not have a diffuse texture. Cannot apply decal.",
-        );
-        return;
-      }
 
-      // Ensure the material properties are correct
-      material.diffuseTexture.hasAlpha = true;
-      material.zOffset = -2;
-
-      // Define the position and normal for the decal
-      const position = new flock.BABYLON.Vector3(posX, posY, posZ);
-      const normal = new flock.BABYLON.Vector3(normalX, normalY, normalZ);
-
-      // Define the decal size
-      const decalSize = new flock.BABYLON.Vector3(sizeX, sizeY, sizeZ);
-
-      const decal = flock.BABYLON.MeshBuilder.CreateDecal("decal", mesh, {
-        position: position,
-        normal: normal,
-        size: decalSize,
-      });
-
-      // Apply the passed material to the decal
-      decal.material = material;
-      decal.setParent(mesh);
-    });
-  },
-  placeDecal(material, angle = 0) {
-    const pickResult = flock.scene.pick(
-      flock.scene.pointerX,
-      flock.scene.pointerY,
-    );
-    if (pickResult.hit) {
-      const normal = flock.scene.activeCamera
-        .getForwardRay()
-        .direction.negateInPlace()
-        .normalize();
-      const position = pickResult.pickedPoint;
-      const mesh = pickResult.pickedMesh;
-      const decalSize = new flock.BABYLON.Vector3(1, 1, 1);
-      material.diffuseTexture.hasAlpha = true;
-      material.zOffset = -2;
-
-      const decal = flock.BABYLON.MeshBuilder.CreateDecal("decal", mesh, {
-        position: position,
-        normal: normal,
-        size: decalSize,
-        angle: angle,
-      });
-
-      // Apply the passed material to the decal
-      decal.material = material;
-      material.disableDepthWrite;
-      decal.setParent(mesh);
-    }
-  },
- 
-  
- 
-
-  
 }

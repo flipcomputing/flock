@@ -657,21 +657,40 @@
 																																	},
 																																	"next": {
 																																		"block": {
-																																			"type": "change_material",
-																																			"id": "dk`Cw#LJy~CUqZT_Z`6t",
+																																			"type": "set_material",
+																																			"id": "${y1JjnI*-G*fda/x*wt",
 																																			"fields": {
-																																				"MATERIALS": "rough.png",
-																																				"ID_VAR": {
+																																				"MESH": {
 																																					"id": "DqZYo*$EU#Kj$mBdQkWR"
 																																				}
 																																			},
 																																			"inputs": {
-																																				"COLOR": {
+																																				"MATERIAL": {
 																																					"shadow": {
-																																						"type": "colour",
-																																						"id": "VxDgTs!Kfr/oajd]wM;d",
+																																						"type": "material",
+																																						"id": "`70+X:DVhauS{s;PXX5*",
 																																						"fields": {
-																																							"COLOR": "#ffffff"
+																																							"TEXTURE_SET": "rough.png"
+																																						},
+																																						"inputs": {
+																																							"BASE_COLOR": {
+																																								"shadow": {
+																																									"type": "colour",
+																																									"id": ":=g=v7*UHMF8(O]zqQ{%",
+																																									"fields": {
+																																										"COLOR": "#ffffff"
+																																									}
+																																								}
+																																							},
+																																							"ALPHA": {
+																																								"shadow": {
+																																									"type": "math_number",
+																																									"id": "YC8^Jd~b2[YoJ9bKnDUl",
+																																									"fields": {
+																																										"NUM": 1
+																																									}
+																																								}
+																																							}
 																																						}
 																																					}
 																																				}
@@ -712,7 +731,7 @@
 				"type": "start",
 				"id": "rYSM[9*$cgU?cfx}y-dk",
 				"x": 10,
-				"y": 2114,
+				"y": 2122,
 				"inputs": {
 					"DO": {
 						"block": {
@@ -890,7 +909,7 @@
 				"type": "on_event",
 				"id": "z(*s03cGJ=4OqgQOaeQJ",
 				"x": 10,
-				"y": 3864,
+				"y": 3872,
 				"collapsed": true,
 				"extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" inline=\"false\"></mutation>",
 				"inputs": {
@@ -933,7 +952,7 @@
 				"type": "on_event",
 				"id": "cWUxspp/*vx]T$1YYX;j",
 				"x": 10,
-				"y": 3952,
+				"y": 3960,
 				"collapsed": true,
 				"extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" inline=\"false\"></mutation>",
 				"inputs": {
@@ -964,7 +983,7 @@
 				"type": "start",
 				"id": "4@hdbe$H*WItm3W$N[~4",
 				"x": 10,
-				"y": 1158,
+				"y": 1166,
 				"inputs": {
 					"DO": {
 						"block": {
@@ -1536,7 +1555,7 @@
 				"type": "forever",
 				"id": "LuC=_k}C7R`et0L.w?xB",
 				"x": 10,
-				"y": 2550,
+				"y": 2558,
 				"extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" inline=\"false\"></mutation>",
 				"inputs": {
 					"DO": {
