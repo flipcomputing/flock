@@ -576,7 +576,11 @@ export const flockTransform = {
       flock.updatePhysics(mesh);
     });
   },
-  setPivotPoint(meshName, xPivot, yPivot, zPivot) {
+  setPivotPoint(meshName, {
+    xPivot = "CENTER",
+    yPivot = "CENTER", 
+    zPivot = "CENTER"
+  } = {}) {
     return flock.whenModelReady(meshName, (mesh) => {
       if (mesh) {
         const boundingBox =

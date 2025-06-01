@@ -552,8 +552,7 @@ export function defineGenerators() {
 				javascriptGenerator.ORDER_ATOMIC,
 			) || 0;
 
-		// Return the final code for setting the pivot on the mesh
-		return `await setPivotPoint(${meshVar}, ${xPivot}, ${yPivot}, ${zPivot});\n`;
+		return `await setPivotPoint(${meshVar}, { xPivot: ${xPivot}, yPivot: ${yPivot}, zPivot: ${zPivot} });\n`;
 	};
 
 	javascriptGenerator.forBlock["start"] = function (block) {
