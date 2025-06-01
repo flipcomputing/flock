@@ -118,15 +118,15 @@ export const flockPhysics = {
       console.log("Model not loaded (up):", meshName);
     }
   },
-  applyForce(meshName, forceX = 0, forceY = 0, forceZ = 0) {
+  applyForce(meshName, { forceX = 0, forceY = 0, forceZ = 0 } = {}) {
     const mesh = flock.scene.getMeshByName(meshName);
-    if (mesh) {
+    if (mesh && mesh.physics) {
       mesh.physics.applyImpulse(
         new flock.BABYLON.Vector3(forceX, forceY, forceZ),
-        mesh.getAbsolutePosition(),
+        mesh.getAbsolutePosition()
       );
     } else {
-      console.log("Model not loaded (applyForce):", meshName);
+      console.error(`Model '${meshName}' not loaded or missing physics (applyForce)`);
     }
   },
   setPhysics(meshName, physicsType) {

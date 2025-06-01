@@ -2004,7 +2004,8 @@ export function defineGenerators() {
 			) || "0";
 
 		// Generate the code
-		return `applyForce(${mesh}, ${forceX}, ${forceY}, ${forceZ});\n`;
+		return `applyForce(${mesh}, { forceX: ${forceX}, forceY: ${forceY}, forceZ: ${forceZ} });\n`;
+
 	};
 
 	javascriptGenerator.forBlock["touching_surface"] = function (block) {
