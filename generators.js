@@ -1524,6 +1524,38 @@ export function defineGenerators() {
 		return [code, javascriptGenerator.ORDER_NONE];
 	};
 
+	javascriptGenerator.forBlock["play_sound"] = function (block) {
+	  const idVar = javascriptGenerator.nameDB_.getName(
+		block.getFieldValue("ID_VAR"),
+		Blockly.Names.NameType.VARIABLE,
+	  );
+
+	  const meshNameField = block.getFieldValue("MESH_NAME");
+	  const meshName = `"${meshNameField}"`; // Always quoted
+
+	  const soundName = block.getFieldValue("SOUND_NAME");
+
+	  const speedCode = javascriptGenerator.valueToCode(
+		block,
+		"SPEED",
+		javascriptGenerator.ORDER_ATOMIC
+	  ) || "1";
+
+	  const volumeCode = javascriptGenerator.valueToCode(
+		block,
+		"VOLUME",
+		javascriptGenerator.ORDER_ATOMIC
+	  ) || "1";
+
+	  const loop = block.getFieldValue("MODE") === "LOOP";
+	  const asyncMode = block.getFieldValue("ASYNC");
+
+	  // Build the final code line
+	  const code = `${idVar} = ${asyncMode === "AWAIT" ? "await " : ""}flock.playSound(${meshName}, { soundName: "${soundName}", loop: ${loop}, volume: ${volumeCode}, playbackRate: ${speedCode} });\n`;
+
+	  return code;
+	};
+
 	javascriptGenerator.forBlock["rotate_model_xyz"] = function (block) {
 		const meshName = javascriptGenerator.nameDB_.getName(
 			block.getFieldValue("MODEL"),
@@ -1554,47 +1586,6 @@ export function defineGenerators() {
 		return `await playAnimation(${modelVar}, "${animationName}");\n`;
 	};
 
-	javascriptGenerator.forBlock["play_sound"] = function (block) {
-		const idVar = javascriptGenerator.nameDB_.getName(
-			block.getFieldValue("ID_VAR"),
-			Blockly.Names.NameType.VARIABLE,
-		);
-		const soundName = block.getFieldValue("SOUND_NAME");
-		const meshNameField = block.getFieldValue("MESH_NAME");
-		const meshName =
-			meshNameField === "__everywhere__"
-				? `"${meshNameField}"`
-				: meshNameField; // Handle "__everywhere__" as a string
-		const speed = parseFloat(
-			javascriptGenerator.valueToCode(
-				block,
-				"SPEED",
-				javascriptGenerator.ORDER_ATOMIC,
-			) || 1,
-		);
-		const volume = parseFloat(
-			javascriptGenerator.valueToCode(
-				block,
-				"VOLUME",
-				javascriptGenerator.ORDER_ATOMIC,
-			) || 1,
-		);
-		const mode = block.getFieldValue("MODE") === "LOOP";
-		const async = block.getFieldValue("ASYNC");
-
-		// Create options object
-		const options = {
-			playbackRate: speed,
-			volume: volume,
-			loop: mode,
-		};
-		const optionsString = JSON.stringify(options);
-
-		// Use flock.playSound helper function
-		return async === "AWAIT"
-			? `${idVar} = await flock.playSound(${meshName}, "${soundName}", ${optionsString});\n`
-			: `${idVar} = flock.playSound(${meshName}, "${soundName}", ${optionsString});\n`;
-	};
 
 	javascriptGenerator.forBlock["stop_all_sounds"] = function (block) {
 		// JavaScript code to stop all sounds in a Babylon.js scene
@@ -1679,28 +1670,28 @@ export function defineGenerators() {
 
 	  return [instrumentCode, javascriptGenerator.ORDER_ATOMIC];
 	};
+
 	javascriptGenerator.forBlock["set_scene_bpm"] = function (block) {
 		const bpm = javascriptGenerator.valueToCode(
 			block,
 			"BPM",
 			javascriptGenerator.ORDER_ATOMIC,
 		);
-		return `setBPM(${bpm});\n`;
+		return `setBPM("__everywhere__", ${bpm});\n`;
 	};
 
 	javascriptGenerator.forBlock["set_mesh_bpm"] = function (block) {
-		const meshVar = javascriptGenerator.nameDB_.getName(
-			block.getFieldValue("MESH"),
-			Blockly.Names.NameType.VARIABLE,
-		);
-		const bpm = javascriptGenerator.valueToCode(
-			block,
-			"BPM",
-			javascriptGenerator.ORDER_ATOMIC,
-		);
-		return `await setBPM(${bpm}, ${meshVar});\n`;
-	};
+	  const meshNameField = block.getFieldValue("MESH") || "__everywhere__";
+	  const meshName = `"${meshNameField}"`; // Always quoted
 
+	  const bpm = javascriptGenerator.valueToCode(
+		block,
+		"BPM",
+		javascriptGenerator.ORDER_ATOMIC,
+	  ) || "120"; // Default BPM if not connected
+
+	  return `await setBPM(${meshName}, ${bpm});\n`;
+	};
 	javascriptGenerator.forBlock["when_touches"] = function (block) {
 		const modelName = javascriptGenerator.nameDB_.getName(
 			block.getFieldValue("MODEL_VAR"),

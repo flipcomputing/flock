@@ -5,10 +5,15 @@ export function setFlockReference(ref) {
 }
 
 export const flockSound = {
-  async playSound(meshName = "__everywhere__", soundName, options = {}) {
-    const loop = !!options.loop;
-    const volume = options.volume ?? 1;
-    const playbackRate = options.playbackRate ?? 1;
+  async playSound(
+    meshName,
+    {
+      soundName,
+      loop = false,
+      volume = 1,
+      playbackRate = 1
+    } = {}
+  ) {
     const soundUrl = flock.soundPath + soundName;
 
     // Global (non-spatial) sound
@@ -90,10 +95,6 @@ export const flockSound = {
       }
 
       sound.play();
-
-      if (!mesh.metadata || typeof mesh.metadata !== "object") {
-        mesh.metadata = {};
-      }
 
       mesh.metadata.currentSound = sound;
       sound._attachedMesh = mesh;
@@ -361,18 +362,26 @@ export const flockSound = {
 
     return { oscillator, gainNode, audioCtx };
   },
-  setBPM(bpm, meshName = null) {
-    if (meshName) {
-      return flock.whenModelReady(meshName, async function (mesh) {
-        if (mesh) {
-          if (!mesh.metadata) mesh.metadata = {};
-          mesh.metadata.bpm = bpm;
-        }
-      });
-    } else {
-      if (!flock.scene.metadata) flock.scene.metadata = {};
+  setBPM(meshName, bpm) {
+    if (meshName === "__everywhere__") {
+      if (!flock.scene.metadata || typeof flock.scene.metadata !== "object") {
+        flock.scene.metadata = {};
+      }
       flock.scene.metadata.bpm = bpm;
+      return;
     }
+
+    return flock.whenModelReady(meshName, async function (mesh) {
+      if (!mesh) {
+        throw new Error(`Mesh '${meshName}' not found`);
+      }
+
+      if (!mesh.metadata || typeof mesh.metadata !== "object") {
+        mesh.metadata = {};
+      }
+
+      mesh.metadata.bpm = bpm;
+    });
   },
   updateListenerPositionAndOrientation(context, camera) {
     const { x: cx, y: cy, z: cz } = camera.position;

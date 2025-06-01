@@ -2907,7 +2907,7 @@ const toolboxSound = {
 				},
 			},
 		},
-		{
+		/*{
 			kind: "block",
 			type: "set_mesh_bpm",
 			inputs: {
@@ -2920,7 +2920,7 @@ const toolboxSound = {
 					},
 				},
 			},
-		},
+		},*/
 		{
 			kind: "block",
 			type: "instrument",

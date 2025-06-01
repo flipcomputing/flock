@@ -2,192 +2,160 @@ import { expect } from "chai";
 
 export function runSoundTests(flock) {
 	describe("Sound playback", function () {
-		this.timeout(10000); // Allow time for async sound to start/stop
+	  this.timeout(10000); // Allow time for async sound to start/stop
 
-		let boxId;
+	  let boxId;
 
-		beforeEach(() => {
-			// Create a box to attach spatial sound to
-			boxId = "soundBox";
-			flock.createBox(boxId, "#FF0000", 1, 1, 1, [0, 0, 0]);
+	  beforeEach(() => {
+		// Create a box to attach spatial sound to
+		boxId = "soundBox";
+		flock.createBox(boxId, "#FF0000", 1, 1, 1, [0, 0, 0]);
+	  });
+
+	  afterEach(() => {
+		flock.stopAllSounds(); // Stop any sounds still playing
+		flock.dispose(boxId); // Clean up box
+	  });
+
+	  it("should allow replacing a sound", async function () {
+		this.timeout(5000);
+
+		const box = flock.scene.getMeshByName(boxId);
+		expect(box).to.exist;
+
+		// Play first sound and ignore any late errors
+		flock.playSound(boxId, { soundName: "test.mp3", loop: true }).catch(() => {});
+
+		await new Promise((r) => setTimeout(r, 500));
+		expect(box.metadata?.currentSound?.name).to.equal("test.mp3");
+
+		// Replace with a second sound (also fire-and-forget)
+		flock.playSound(boxId, { soundName: "test2.mp3", loop: true }).catch(() => {});
+
+		await new Promise((r) => setTimeout(r, 500));
+		expect(box.metadata?.currentSound?.name).to.equal("test2.mp3");
+	  });
+
+	  it("should allow replacing the sound on a mesh", async function () {
+		this.timeout(5000);
+
+		const box = flock.scene.getMeshByName(boxId);
+		expect(box).to.exist;
+
+		await flock.playSound(boxId, { soundName: "test.mp3", loop: false });
+		expect(box.metadata.currentSound).to.not.exist;
+
+		expect(box).to.exist;
+
+		await flock.playSound(boxId, { soundName: "test2.mp3", loop: false });
+		expect(box.metadata.currentSound).to.not.exist;
+	  });
+
+	  it("should play and stop a spatial sound", async () => {
+		const box = flock.scene.getMeshByName(boxId);
+		expect(box).to.exist;
+
+		await flock.playSound(boxId, { soundName: "test.mp3", loop: false });
+
+		expect(box.metadata?.currentSound).to.not.exist;
+		expect(flock.globalSounds.includes("test.mp3")).to.be.false;
+	  });
+
+	  function promiseWithTimeout(promise, timeout = 2000) {
+		return new Promise((resolve, reject) => {
+		  const timer = setTimeout(() => reject(new Error("Sound did not finish in time")), timeout);
+		  promise.then((value) => {
+			clearTimeout(timer);
+			resolve(value);
+		  }, reject);
+		});
+	  }
+
+	  it("should play and stop a global (everywhere) sound", async () => {
+		let ended = false;
+
+		const result = flock.playSound("__everywhere__", { soundName: "test.mp3", volume: 0.5 });
+
+		await promiseWithTimeout(result, 2000).then(() => {
+		  ended = true;
 		});
 
-		afterEach(() => {
-			flock.stopAllSounds(); // Stop any sounds still playing
-			flock.dispose(boxId); // Clean up box
-		});
+		expect(ended).to.be.true;
+	  });
 
-		
-		it("should allow replacing a sound", async function () {
-			this.timeout(5000);
+	  it("should loop a sound until manually stopped", async () => {
+		const box = flock.scene.getMeshByName(boxId);
+		expect(box).to.exist;
 
-			const box = flock.scene.getMeshByName(boxId);
-			expect(box).to.exist;
+		await flock.playSound(boxId, { soundName: "test.mp3", loop: true });
 
-			// Play first sound and ignore any late errors
-			flock.playSound(boxId, "test.mp3", { loop: true }).catch(() => {});
-
-			await new Promise((r) => setTimeout(r, 500));
-			expect(box.metadata?.currentSound?.name).to.equal("test.mp3");
-
-			// Replace with a second sound (also fire-and-forget)
-			flock.playSound(boxId, "test2.mp3", { loop: true }).catch(() => {});
-
-			await new Promise((r) => setTimeout(r, 500));
-			expect(box.metadata?.currentSound?.name).to.equal("test2.mp3");
-		});
-
-		it("should allow replacing the sound on a mesh", async function () {
-			this.timeout(5000);
-
-			const box = flock.scene.getMeshByName(boxId);
-			expect(box).to.exist;
-
-			await flock.playSound(boxId, "test.mp3", { loop: false });
-			expect(box.metadata.currentSound).to.not.exist;
-
-			expect(box).to.exist;
-
-			await flock.playSound(boxId, "test2.mp3", { loop: false });
-			expect(box.metadata.currentSound).to.not.exist;
-		});
-
-		it("should play and stop a spatial sound", async () => {
-			const box = flock.scene.getMeshByName(boxId);
-			expect(box).to.exist;
-
-			// Play a short sound and wait for it to end
-			await flock.playSound(boxId, "test.mp3", { loop: false });
-
-			// After await, the sound has ended and metadata should be cleared
-			expect(box.metadata?.currentSound).to.not.exist;
-
-			// Just in case any global tracking is left
-			expect(flock.globalSounds.includes("test.mp3")).to.be.false;
-		});
-
-		function promiseWithTimeout(promise, timeout = 2000) {
-			return new Promise((resolve, reject) => {
-				const timer = setTimeout(
-					() => reject(new Error("Sound did not finish in time")),
-					timeout,
-				);
-				promise.then((value) => {
-					clearTimeout(timer);
-					resolve(value);
-				}, reject);
-			});
+		let attempts = 0;
+		while (!box.metadata.currentSound && attempts < 10) {
+		  await new Promise((r) => setTimeout(r, 50));
+		  attempts++;
 		}
 
-		it("should play and stop a global (everywhere) sound", async () => {
-			let ended = false;
+		const initialSound = box.metadata.currentSound;
+		expect(initialSound).to.exist;
 
-			const result = flock.playSound("__everywhere__", "test.mp3", {
-				volume: 0.5,
-			});
+		await new Promise((resolve) => setTimeout(resolve, 2500));
 
-			await promiseWithTimeout(result, 2000).then(() => {
-				ended = true;
-			});
+		expect(box.metadata.currentSound).to.equal(initialSound);
 
-			expect(ended).to.be.true;
-		});
+		flock.stopAllSounds();
+		await new Promise((resolve) => setTimeout(resolve, 200));
 
-		it("should loop a sound until manually stopped", async () => {
-			const box = flock.scene.getMeshByName(boxId);
-			expect(box).to.exist;
+		expect(box.metadata.currentSound).to.not.exist;
+	  });
 
-			await flock.playSound(boxId, "test.mp3", { loop: true });
+	  it("should loop a sound at least once", async function () {
+		this.timeout(10000);
 
-			// Wait up to 500ms for sound to attach
-			let attempts = 0;
-			while (!box.metadata.currentSound && attempts < 10) {
-				await new Promise((r) => setTimeout(r, 50));
-				attempts++;
-			}
+		const boxId = "soundBox";
+		flock.createBox(boxId, "#FF0000", 1, 1, 1, [0, 0, 0]);
 
-			const initialSound = box.metadata.currentSound;
-			expect(initialSound).to.exist;
+		await flock.playSound(boxId, { soundName: "test.mp3", loop: true });
 
-			// Wait past the duration of the sound to check if it's still playing (looped)
-			await new Promise((resolve) => setTimeout(resolve, 2500));
+		let attempts = 0;
+		while (!flock.scene.getMeshByName(boxId)?.metadata?.currentSound && attempts < 10) {
+		  await new Promise((r) => setTimeout(r, 50));
+		  attempts++;
+		}
 
-			// If the sound had not looped, it would have been removed
-			expect(box.metadata.currentSound).to.equal(initialSound);
+		const sound = flock.scene.getMeshByName(boxId)?.metadata?.currentSound;
+		expect(sound).to.exist;
 
-			// Stop and confirm it's gone
-			flock.stopAllSounds();
-			await new Promise((resolve) => setTimeout(resolve, 200));
+		await new Promise((resolve) => setTimeout(resolve, 2500));
 
-			expect(box.metadata.currentSound).to.not.exist;
-		});
+		expect(sound.currentTime).to.be.a("number");
+		expect(sound.currentTime).to.be.greaterThan(2);
 
-		it("should loop a sound at least once", async function () {
-			this.timeout(10000);
+		flock.stopAllSounds();
+		flock.dispose(boxId);
+	  });
 
-			const boxId = "soundBox";
-			flock.createBox(boxId, "#FF0000", 1, 1, 1, [0, 0, 0]);
+	  it("should wait for sound to finish if using await", async function () {
+		this.timeout(5000);
 
-			await flock.playSound(boxId, "test.mp3", { loop: true });
+		const start = performance.now();
+		await flock.playSound("__everywhere__", { soundName: "test.mp3", loop: false, volume: 1 });
+		const elapsed = performance.now() - start;
 
-			let attempts = 0;
-			while (
-				!flock.scene.getMeshByName(boxId)?.metadata?.currentSound &&
-				attempts < 10
-			) {
-				await new Promise((r) => setTimeout(r, 50));
-				attempts++;
-			}
+		expect(elapsed).to.be.greaterThan(1000);
+	  });
 
-			const sound =
-				flock.scene.getMeshByName(boxId)?.metadata?.currentSound;
-			expect(sound).to.exist;
+	  it("should return a Promise immediately if not using await", async function () {
+		this.timeout(5000);
 
-			await new Promise((resolve) => setTimeout(resolve, 2500));
+		const start = performance.now();
+		const promise = flock.playSound("__everywhere__", { soundName: "test.mp3", loop: false, volume: 1 });
+		const elapsed = performance.now() - start;
 
-			expect(sound.currentTime).to.be.a("number");
-			expect(sound.currentTime).to.be.greaterThan(2); // Confirm looping occurred
+		expect(elapsed).to.be.lessThan(50);
+		expect(promise).to.have.property("then");
 
-			flock.stopAllSounds();
-			flock.dispose(boxId);
-		});
-
-		it("should wait for sound to finish if using await", async function () {
-			this.timeout(5000);
-
-			const start = performance.now();
-			await flock.playSound("__everywhere__", "test.mp3", {
-				loop: false,
-				volume: 1,
-			});
-			const elapsed = performance.now() - start;
-
-			// Should take around the duration of the sound (>=1s)
-			expect(elapsed).to.be.greaterThan(1000);
-		});
-
-		it("should return a Promise immediately if not using await", async function () {
-			this.timeout(5000);
-
-			const start = performance.now();
-
-			// Trigger sound playback but don't await yet
-			const promise = flock.playSound("__everywhere__", "test.mp3", {
-				loop: false,
-				volume: 1,
-			});
-
-			const elapsed = performance.now() - start;
-
-			// The function call itself should be fast — not blocked by sound ending
-			expect(elapsed).to.be.lessThan(50);
-
-			// Confirm the returned value is a Promise
-			expect(promise).to.have.property("then");
-
-			// Await it to ensure it resolves after sound finishes
-			await promise;
-		});
+		await promise;
+	  });
 	});
 
 	describe("Play notes", function () {
