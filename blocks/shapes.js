@@ -149,7 +149,7 @@ export function defineShapeBlocks() {
 									height: 32,
 									alt: "Splat",
 								},
-								"heart_texture.png",
+								"splat_texture.png",
 							],
 							[
 								{
