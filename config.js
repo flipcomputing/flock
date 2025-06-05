@@ -107,21 +107,24 @@ export const objectNames = [
 ];
 
 export const objectColours = {
-	"Star.glb": ["#FFD700"], // Gold
-	"Heart.glb": ["#FF69B4"], // Hot Pink
-	"Coin.glb": ["#F4C542"], // Light Gold
-	"egg.glb": ["#fffcec"], // Yellow White
-	"Gem1.glb": ["#00BFFF"], // Deep Sky Blue
-	"Gem2.glb": ["#8A2BE2"], // Blue Violet
-	"Gem3.glb": ["#FF4500"], // Orange Red
+	"Star.glb": ["#FFD700", "#FFD700", "#FFD700"], // Gold
+	"Heart.glb": ["#FF69B4", "#FF69B4", "#FF69B4"], // Hot Pink
+	"Coin.glb": ["#A47E1B", "#C9A227","#76520E"], // Gold
+	"egg.glb": ["#fffcec", "#fffcec", "#fffcec"], // Yellow White
+	"Gem1.glb": ["#00BFFF", "#00BFFF", "#00BFFF"], // Deep Sky Blue
+	"Gem2.glb": ["#8A2BE2", "#8A2BE2", "#8A2BE2"], // Blue Violet
+	"Gem3.glb": ["#FF4500", "#FF4500", "#FF4500"], // Orange Red
+	
 	"tree.glb": ["#66CDAA", "#CD853F"],
 	"tree2.glb": ["#7F9F7F", "#A1623B"],
 	"tree3.glb": ["#403C3C", "#312616"],
 	"tree4.glb": ["#0D5B28", "#6D6C51"],
+	
 	"rocks.glb": ["#898D86", "#99a83d"],
 	"rocks2.glb": ["#898D86", "#99a83d"],
 	"rocks3.glb": ["#898D86", "#99a83d"],
 	"rocks4.glb": ["#898D86", "#99a83d","#6BC6EF", "#f9f9f9"],
+	
 	"hut.glb": ["#B66946", "#5F2524", "#C25A5C", "#E1B46E", "#3BACBA", "#878787"],
 	"hut2.glb": ["#814C22", "#231E1D", "#FFF6A6", "#E7AF3A", "#E73627", "#878787"],
 	"hut3.glb": ["#F6DAB6", "#6CC3C1", "#9DC45C", "#EEB975", "#F3B4BE", "#878787"],
