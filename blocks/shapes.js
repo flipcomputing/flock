@@ -180,6 +180,60 @@ export function defineShapeBlocks() {
 							],
 							[
 								{
+									src: "./textures/music_texture.png",
+									width: 32,
+									height: 32,
+									alt: "Music",
+								},
+								"music_texture.png",
+							],
+							[
+								{
+									src: "./textures/flame_texture.png",
+									width: 32,
+									height: 32,
+									alt: "Flame",
+								},
+								"flame_texture.png",
+							],
+							[
+								{
+									src: "./textures/ripple_texture.png",
+									width: 32,
+									height: 32,
+									alt: "Ripple",
+								},
+								"ripple_texture.png",
+							],
+							[
+								{
+									src: "./textures/smoke_texture.png",
+									width: 32,
+									height: 32,
+									alt: "Smoke",
+								},
+								"smoke_texture.png",
+							],
+							[
+								{
+									src: "./textures/snowflake_texture.png",
+									width: 32,
+									height: 32,
+									alt: "Snowflake",
+								},
+								"snowflake_texture.png",
+							],
+							[
+								{
+									src: "./textures/wind_texture.png",
+									width: 32,
+									height: 32,
+									alt: "Wind",
+								},
+								"wind_texture.png",
+							],
+							[
+								{
 									src: "./textures/strip_texture.png",
 									width: 32,
 									height: 32,
