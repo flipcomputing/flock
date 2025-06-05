@@ -77,6 +77,7 @@ export const characterNames = [
 	"Person.glb",
 	"Cat.glb",
 	"Monkey.glb",
+	"scaletest.glb",
 ];
 
 export const multiObjectNames = [
