@@ -116,7 +116,7 @@ export const objectColours = {
 	"Gem3.glb": ["#FF4500"], // Orange Red
 	"tree.glb": ["#66CDAA", "#CD853F"],
 	"tree2.glb": ["#7F9F7F", "#A1623B"],
-	"tree3.glb": ["#150B09", "#D8D8D8"],
+	"tree3.glb": ["#403C3C", "#312616"],
 	"tree4.glb": ["#0D5B28", "#6D6C51"],
 	"rocks.glb": ["#898D86", "#99a83d"],
 	"rocks2.glb": ["#898D86", "#99a83d"],
