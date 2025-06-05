@@ -144,6 +144,15 @@ export function defineShapeBlocks() {
 							],
 							[
 								{
+									src: "./textures/splat_texture.png",
+									width: 32,
+									height: 32,
+									alt: "Splat",
+								},
+								"heart_texture.png",
+							],
+							[
+								{
 									src: "./textures/star_texture.png",
 									width: 32,
 									height: 32,
