@@ -127,7 +127,7 @@ export const objectColours = {
 	"hut3.glb": ["#F6DAB6", "#6CC3C1", "#9DC45C", "#EEB975", "#F3B4BE", "#878787"],
 	"hut4.glb": ["#F2E8CF", "#BC4749", "#EEB975", "#AF1B3F", "#6A994E", "#878787"],
 	
-	"boat.glb": ["#FFFCF0", "#FF89DB", "#E7223B", "#3AE744", "#878787"],
+	"boat.glb": ["#4F8A46", "#E7D48E", "#E76635", "#E76C69", "#5E64E7", "#4A4A4A", "#AAAAAA", "#E711CD"],
 };
 
 export const modelNames = [
