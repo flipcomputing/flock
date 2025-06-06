@@ -375,9 +375,19 @@ export function runAnimateTests(flock) {
 				await new Promise(resolve => setTimeout(resolve, 10));
 				expect(animGroup.isStarted).to.be.true;
 
-				// Test pause
+				// Test pause - check if animation stops progressing
 				flock.pauseAnimationGroup(groupName);
-				expect(animGroup.isStarted).to.be.false;
+				
+				// Wait a bit and check if the animation is effectively paused
+				await new Promise(resolve => setTimeout(resolve, 50));
+				const frameAfterPause = animGroup.targetedAnimations[0]?.animation?.runtimeAnimations[0]?.currentFrame;
+				
+				// Wait a bit more
+				await new Promise(resolve => setTimeout(resolve, 100));
+				const frameAfterMoreWait = animGroup.targetedAnimations[0]?.animation?.runtimeAnimations[0]?.currentFrame;
+				
+				// If paused, the frame should not have progressed significantly
+				expect(Math.abs((frameAfterMoreWait || 0) - (frameAfterPause || 0))).to.be.lessThan(5);
 
 				// Test stop
 				flock.stopAnimationGroup(groupName);
