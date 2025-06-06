@@ -373,7 +373,7 @@ export function runAnimateTests(flock) {
 				
 				// Give a small delay for the animation to start
 				await new Promise(resolve => setTimeout(resolve, 10));
-				expect(animGroup.isPlaying).to.be.true;
+				expect(animGroup.isStarted).to.be.true;
 
 				// Test pause
 				flock.pauseAnimationGroup(groupName);
@@ -381,7 +381,7 @@ export function runAnimateTests(flock) {
 
 				// Test stop
 				flock.stopAnimationGroup(groupName);
-				expect(animGroup.isPlaying).to.be.false;
+				expect(animGroup.isStarted).to.be.false;
 			});
 
 			it("should handle non-existent animation groups gracefully", function () {
