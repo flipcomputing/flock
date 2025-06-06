@@ -17,89 +17,93 @@ export const flockAnimate = {
     const fps = 30;
     const frames = fps * (duration / 1000);
 
-    // Await mesh to be ready
-    await flock.whenModelReady(meshName, async function (mesh) {
-      if (!mesh) {
-        console.error(`Mesh with name ${meshName} not found.`);
-        return;
-      }
-
-      // If the property is a color, convert the hex string to Color3
-      if (
-        property === "diffuseColor" ||
-        property === "emissiveColor" ||
-        property === "ambientColor" ||
-        property === "specularColor"
-      ) {
-        targetValue = flock.BABYLON.Color3.FromHexString(targetValue);
-      }
-
-      // Helper function to animate a material property
-      function animateProperty(material, property, targetValue) {
-        const startValue = material[property];
-
-        // Determine the animation type
-        const animationType =
-          property === "alpha"
-            ? flock.BABYLON.Animation.ANIMATIONTYPE_FLOAT
-            : flock.BABYLON.Animation.ANIMATIONTYPE_COLOR3;
-
-        // Create the animation
-        const animation = new flock.BABYLON.Animation(
-          `animate_${property}`,
-          property,
-          fps,
-          animationType,
-          reverse
-            ? flock.BABYLON.Animation.ANIMATIONLOOPMODE_YOYO
-            : flock.BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT,
-        );
-
-        // Define keyframes
-        const keys = [
-          { frame: 0, value: startValue },
-          { frame: frames, value: targetValue },
-        ];
-        animation.setKeys(keys);
-
-        material.animations = material.animations || [];
-        material.animations.push(animation);
-
-        // Start the animation
-        const animatable = flock.scene.beginAnimation(
-          material,
-          0,
-          frames,
-          loop,
-        );
-        material.markAsDirty(flock.BABYLON.Material.MiscDirtyFlag); // Force material update
-
-        return animatable;
-      }
-
-      // Function to animate material and its children recursively
-      function animateMeshAndChildren(mesh) {
-        if (mesh.material) {
-          return animateProperty(mesh.material, property, targetValue);
+    return new Promise(async (resolve) => {
+      // Await mesh to be ready
+      await flock.whenModelReady(meshName, async function (mesh) {
+        if (!mesh) {
+          console.error(`Mesh with name ${meshName} not found.`);
+          resolve();
+          return;
         }
-        if (mesh.getChildren) {
-          mesh.getChildren().forEach((child) => animateMeshAndChildren(child));
-        }
-      }
 
-      // Start the animation based on the mode (await or start)
-      if (mode === "AWAIT") {
-        const animatable = animateMeshAndChildren(mesh);
-        if (animatable) {
-          return new Promise((resolve) => {
+        // If the property is a color, convert the hex string to Color3
+        if (
+          property === "diffuseColor" ||
+          property === "emissiveColor" ||
+          property === "ambientColor" ||
+          property === "specularColor"
+        ) {
+          targetValue = flock.BABYLON.Color3.FromHexString(targetValue);
+        }
+
+        // Helper function to animate a material property
+        function animateProperty(material, property, targetValue) {
+          const startValue = material[property];
+
+          // Determine the animation type
+          const animationType =
+            property === "alpha"
+              ? flock.BABYLON.Animation.ANIMATIONTYPE_FLOAT
+              : flock.BABYLON.Animation.ANIMATIONTYPE_COLOR3;
+
+          // Create the animation
+          const animation = new flock.BABYLON.Animation(
+            `animate_${property}`,
+            property,
+            fps,
+            animationType,
+            reverse
+              ? flock.BABYLON.Animation.ANIMATIONLOOPMODE_YOYO
+              : flock.BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT,
+          );
+
+          // Define keyframes
+          const keys = [
+            { frame: 0, value: startValue },
+            { frame: frames, value: targetValue },
+          ];
+          animation.setKeys(keys);
+
+          material.animations = material.animations || [];
+          material.animations.push(animation);
+
+          // Start the animation
+          const animatable = flock.scene.beginAnimation(
+            material,
+            0,
+            frames,
+            loop,
+          );
+          material.markAsDirty(flock.BABYLON.Material.MiscDirtyFlag); // Force material update
+
+          return animatable;
+        }
+
+        // Function to animate material and its children recursively
+        function animateMeshAndChildren(mesh) {
+          if (mesh.material) {
+            return animateProperty(mesh.material, property, targetValue);
+          }
+          if (mesh.getChildren) {
+            mesh.getChildren().forEach((child) => animateMeshAndChildren(child));
+          }
+        }
+
+        // Start the animation based on the mode (await or start)
+        if (mode === "AWAIT") {
+          const animatable = animateMeshAndChildren(mesh);
+          if (animatable) {
             animatable.onAnimationEndObservable.add(() => {
               resolve();
             });
-          });
+          } else {
+            resolve();
+          }
+        } else {
+          animateMeshAndChildren(mesh);
+          resolve();
         }
-      } else {
-        animateMeshAndChildren(mesh);
-      }
+      });
     });
   },
   async glideTo(
