@@ -364,9 +364,12 @@ export function runAnimateTests(flock) {
 					"CREATE"
 				);
 
+				// Get the animation group
+				const animGroup = flock.scene.getAnimationGroupByName(groupName);
+				expect(animGroup).to.exist;
+
 				// Test play
 				flock.playAnimationGroup(groupName);
-				const animGroup = flock.scene.getAnimationGroupByName(groupName);
 				expect(animGroup.isPlaying).to.be.true;
 
 				// Test pause
