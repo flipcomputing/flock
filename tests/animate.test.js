@@ -389,6 +389,11 @@ export function runAnimateTests(flock) {
 				// If paused, the frame should not have progressed significantly
 				expect(Math.abs((frameAfterMoreWait || 0) - (frameAfterPause || 0))).to.be.lessThan(5);
 
+				// Test resume after pause
+				flock.playAnimationGroup(groupName);
+				await new Promise(resolve => setTimeout(resolve, 10));
+				expect(animGroup.isStarted).to.be.true;
+
 				// Test stop
 				flock.stopAnimationGroup(groupName);
 				expect(animGroup.isStarted).to.be.false;
