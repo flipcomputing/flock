@@ -370,6 +370,9 @@ export function runAnimateTests(flock) {
 
 				// Test play
 				flock.playAnimationGroup(groupName);
+				
+				// Give a small delay for the animation to start
+				await new Promise(resolve => setTimeout(resolve, 10));
 				expect(animGroup.isPlaying).to.be.true;
 
 				// Test pause
