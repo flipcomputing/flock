@@ -45,6 +45,7 @@
        import { runScaleTests } from "./transform.scale.test.js";
       import { runMaterialsTests } from "./materials.test.js";
        import { runPhysicsTests } from "./physics.test.js";
+      import { runEffectsTests } from "./effects.test.js";
 
       const flock = flockmodule.flock;
       flock.modelPath = "../models/";
@@ -93,7 +94,8 @@
       //runRotationTests(flock);
       //runMaterialsTests(flock);
       //runScaleTests(flock);
-      runPhysicsTests(flock);
+      //runPhysicsTests(flock);
+      runEffectsTests(flock);
 
       try {
         await flock.scene.debugLayer.show({

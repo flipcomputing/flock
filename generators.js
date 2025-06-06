@@ -643,19 +643,20 @@ export function defineGenerators() {
 		const color = getFieldValue(block, "COLOR", "#9932CC");
 		return `printText(${text}, ${duration}, ${color});\n`;
 	};
-
+		
 	javascriptGenerator.forBlock["set_fog"] = function (block) {
-		const fogColorHex = getFieldValue(block, "FOG_COLOR", "#9932CC");
-		const fogMode = block.getFieldValue("FOG_MODE");
-		const fogDensity =
-			javascriptGenerator.valueToCode(
-				block,
-				"DENSITY",
-				javascriptGenerator.ORDER_ATOMIC,
-			) || "0.1"; // Default density
+	  const fogColorHex = getFieldValue(block, "FOG_COLOR", "#9932CC");
+	  const fogMode = block.getFieldValue("FOG_MODE");
+	  const fogDensity =
+		javascriptGenerator.valueToCode(
+		  block,
+		  "DENSITY",
+		  javascriptGenerator.ORDER_ATOMIC,
+		) || "0.1"; // Default density
 
-		return `setFog(${fogColorHex}, "${fogMode}", ${fogDensity});\n`;
+	  return `setFog({ fogColorHex: ${fogColorHex}, fogMode: "${fogMode}", fogDensity: ${fogDensity} });\n`;
 	};
+
 
 	javascriptGenerator.forBlock["ui_text"] = function (block) {
 		const text = javascriptGenerator.valueToCode(
@@ -1036,156 +1037,146 @@ export function defineGenerators() {
 	};
 
 	javascriptGenerator.forBlock["create_particle_effect"] = function (block) {
-		const emitRate = parseFloat(
-			javascriptGenerator.valueToCode(
-				block,
-				"RATE",
-				javascriptGenerator.ORDER_ATOMIC,
-			) || "10",
-		);
-		const startColor =
-			javascriptGenerator.valueToCode(
-				block,
-				"START_COLOR",
-				javascriptGenerator.ORDER_ATOMIC,
-			) || '"#FFFFFF"';
-		const endColor =
-			javascriptGenerator.valueToCode(
-				block,
-				"END_COLOR",
-				javascriptGenerator.ORDER_ATOMIC,
-			) || '"#000000"';
-		const startAlpha = parseFloat(
-			javascriptGenerator.valueToCode(
-				block,
-				"START_ALPHA",
-				javascriptGenerator.ORDER_ATOMIC,
-			) || "1.0",
-		);
-		const endAlpha = parseFloat(
-			javascriptGenerator.valueToCode(
-				block,
-				"END_ALPHA",
-				javascriptGenerator.ORDER_ATOMIC,
-			) || "1.0",
-		);
-		const minSize =
-			javascriptGenerator.valueToCode(
-				block,
-				"MIN_SIZE",
-				javascriptGenerator.ORDER_ATOMIC,
-			) || "0.1";
-		const maxSize =
-			javascriptGenerator.valueToCode(
-				block,
-				"MAX_SIZE",
-				javascriptGenerator.ORDER_ATOMIC,
-			) || "1.0";
-		const minLifetime =
-			javascriptGenerator.valueToCode(
-				block,
-				"MIN_LIFETIME",
-				javascriptGenerator.ORDER_ATOMIC,
-			) || "1.0";
-		const maxLifetime =
-			javascriptGenerator.valueToCode(
-				block,
-				"MAX_LIFETIME",
-				javascriptGenerator.ORDER_ATOMIC,
-			) || "5.0";
-		const x =
-			javascriptGenerator.valueToCode(
-				block,
-				"X",
-				javascriptGenerator.ORDER_ATOMIC,
-			) || "0";
-		const y =
-			javascriptGenerator.valueToCode(
-				block,
-				"Y",
-				javascriptGenerator.ORDER_ATOMIC,
-			) || "0";
-		const z =
-			javascriptGenerator.valueToCode(
-				block,
-				"Z",
-				javascriptGenerator.ORDER_ATOMIC,
-			) || "0";
-		const minAngularSpeed =
-			javascriptGenerator.valueToCode(
-				block,
-				"MIN_ANGULAR_SPEED",
-				javascriptGenerator.ORDER_ATOMIC,
-			) || 0;
-		const maxAngularSpeed =
-			javascriptGenerator.valueToCode(
-				block,
-				"MAX_ANGULAR_SPEED",
-				javascriptGenerator.ORDER_ATOMIC,
-			) || 0;
-		const minInitialRotation =
-			javascriptGenerator.valueToCode(
-				block,
-				"MIN_INITIAL_ROTATION",
-				javascriptGenerator.ORDER_ATOMIC,
-			) || 0;
-		const maxInitialRotation =
-			javascriptGenerator.valueToCode(
-				block,
-				"MAX_INITIAL_ROTATION",
-				javascriptGenerator.ORDER_ATOMIC,
-			) || 0;
+	  const emitRate = parseFloat(
+		javascriptGenerator.valueToCode(
+		  block,
+		  "RATE",
+		  javascriptGenerator.ORDER_ATOMIC,
+		) || "10",
+	  );
+	  const startColor =
+		javascriptGenerator.valueToCode(
+		  block,
+		  "START_COLOR",
+		  javascriptGenerator.ORDER_ATOMIC,
+		) || '"#FFFFFF"';
+	  const endColor =
+		javascriptGenerator.valueToCode(
+		  block,
+		  "END_COLOR",
+		  javascriptGenerator.ORDER_ATOMIC,
+		) || '"#000000"';
+	  const startAlpha = parseFloat(
+		javascriptGenerator.valueToCode(
+		  block,
+		  "START_ALPHA",
+		  javascriptGenerator.ORDER_ATOMIC,
+		) || "1.0",
+	  );
+	  const endAlpha = parseFloat(
+		javascriptGenerator.valueToCode(
+		  block,
+		  "END_ALPHA",
+		  javascriptGenerator.ORDER_ATOMIC,
+		) || "1.0",
+	  );
+	  const minSize =
+		javascriptGenerator.valueToCode(
+		  block,
+		  "MIN_SIZE",
+		  javascriptGenerator.ORDER_ATOMIC,
+		) || "0.1";
+	  const maxSize =
+		javascriptGenerator.valueToCode(
+		  block,
+		  "MAX_SIZE",
+		  javascriptGenerator.ORDER_ATOMIC,
+		) || "1.0";
+	  const minLifetime =
+		javascriptGenerator.valueToCode(
+		  block,
+		  "MIN_LIFETIME",
+		  javascriptGenerator.ORDER_ATOMIC,
+		) || "1.0";
+	  const maxLifetime =
+		javascriptGenerator.valueToCode(
+		  block,
+		  "MAX_LIFETIME",
+		  javascriptGenerator.ORDER_ATOMIC,
+		) || "5.0";
+	  const x =
+		javascriptGenerator.valueToCode(block, "X", javascriptGenerator.ORDER_ATOMIC) ||
+		"0";
+	  const y =
+		javascriptGenerator.valueToCode(block, "Y", javascriptGenerator.ORDER_ATOMIC) ||
+		"0";
+	  const z =
+		javascriptGenerator.valueToCode(block, "Z", javascriptGenerator.ORDER_ATOMIC) ||
+		"0";
+	  const minAngularSpeed =
+		javascriptGenerator.valueToCode(
+		  block,
+		  "MIN_ANGULAR_SPEED",
+		  javascriptGenerator.ORDER_ATOMIC,
+		) || 0;
+	  const maxAngularSpeed =
+		javascriptGenerator.valueToCode(
+		  block,
+		  "MAX_ANGULAR_SPEED",
+		  javascriptGenerator.ORDER_ATOMIC,
+		) || 0;
+	  const minInitialRotation =
+		javascriptGenerator.valueToCode(
+		  block,
+		  "MIN_INITIAL_ROTATION",
+		  javascriptGenerator.ORDER_ATOMIC,
+		) || 0;
+	  const maxInitialRotation =
+		javascriptGenerator.valueToCode(
+		  block,
+		  "MAX_INITIAL_ROTATION",
+		  javascriptGenerator.ORDER_ATOMIC,
+		) || 0;
 
-		const variableName = javascriptGenerator.nameDB_.getName(
-			block.getFieldValue("ID_VAR"),
-			Blockly.Names.NameType.VARIABLE,
-		);
+	  const variableName = javascriptGenerator.nameDB_.getName(
+		block.getFieldValue("ID_VAR"),
+		Blockly.Names.NameType.VARIABLE,
+	  );
 
-		const emitterMesh = javascriptGenerator.nameDB_.getName(
-			block.getFieldValue("EMITTER_MESH"),
-			Blockly.Names.NameType.VARIABLE,
-		);
+	  const emitterMesh = javascriptGenerator.nameDB_.getName(
+		block.getFieldValue("EMITTER_MESH"),
+		Blockly.Names.NameType.VARIABLE,
+	  );
 
-		const shape = block.getFieldValue("SHAPE");
-		const gravity = block.getFieldValue("GRAVITY") === "TRUE";
+	  const shape = block.getFieldValue("SHAPE");
+	  const gravity = block.getFieldValue("GRAVITY") === "TRUE";
 
-		const options = `
-		{
-			name: "${variableName}",
-			emitterMesh: ${emitterMesh},
-			emitRate: ${emitRate},
-			colors: {
-				start: ${startColor},
-				end: ${endColor}
-			},
-			alphas: {
-				start: ${startAlpha},
-				end: ${endAlpha}
-			},
-			sizes: {
-				start: ${minSize},
-				end: ${maxSize}
-			},
-			lifetime: {
-				min: ${minLifetime},
-				max: ${maxLifetime}
-			},
-			shape: "${shape}",
-			gravity: ${gravity},
-			direction: { x: ${x}, y: ${y}, z: ${z} },
-			rotation: {
-				angularSpeed: {
-					min: ${minAngularSpeed},
-					max: ${maxAngularSpeed}
-				},
-				initialRotation: {
-					min: ${minInitialRotation},
-					max: ${maxInitialRotation}
-				}
-			}
-		}`;
+	  const options = `
+	  {
+		emitterMesh: ${emitterMesh},
+		emitRate: ${emitRate},
+		colors: {
+		  start: ${startColor},
+		  end: ${endColor}
+		},
+		alphas: {
+		  start: ${startAlpha},
+		  end: ${endAlpha}
+		},
+		sizes: {
+		  start: ${minSize},
+		  end: ${maxSize}
+		},
+		lifetime: {
+		  min: ${minLifetime},
+		  max: ${maxLifetime}
+		},
+		shape: "${shape}",
+		gravity: ${gravity},
+		direction: { x: ${x}, y: ${y}, z: ${z} },
+		rotation: {
+		  angularSpeed: {
+			min: ${minAngularSpeed},
+			max: ${maxAngularSpeed}
+		  },
+		  initialRotation: {
+			min: ${minInitialRotation},
+			max: ${maxInitialRotation}
+		  }
+		}
+	  }`;
 
-		return `${variableName} = createParticleEffect(${options.trim()});\n`;
+	  return `${variableName} = createParticleEffect("${variableName}", ${options.trim()});\n`;
 	};
 
 	javascriptGenerator.forBlock["control_particle_system"] = function (block) {

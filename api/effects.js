@@ -5,9 +5,7 @@ export function setFlockReference(ref) {
 }
 
 export const flockEffects = {
-  /* 
-    Category: Scene>Effects
-  */
+  /*    Category: Scene>Effects  */
   lightIntensity(intensity) {
     if (flock.mainLight) {
       flock.mainLight.intensity = intensity;
@@ -17,19 +15,21 @@ export const flockEffects = {
       );
     }
   },
-  createParticleEffect({
+  createParticleEffect(
     name,
-    emitterMesh,
-    emitRate,
-    colors,
-    alphas,
-    sizes,
-    lifetime,
-    shape,
-    gravity,
-    direction,
-    rotation,
-  }) {
+    {
+      emitterMesh,
+      emitRate,
+      colors,
+      alphas,
+      sizes,
+      lifetime,
+      shape,
+      gravity,
+      direction,
+      rotation,
+    } = {},
+  ) {
     let resultName = name + "_" + flock.scene.getUniqueId(); // Placeholder for the synchronous return value
 
     flock.whenModelReady(emitterMesh, (meshInstance) => {
@@ -74,13 +74,12 @@ export const flockEffects = {
         alphas.end,
       );
 
-      /*			particleSystem.blendMode =
-        flock.BABYLON.ParticleSystem.BLENDMODE_STANDARD;
+      /* particleSystem.blendMode =
+          flock.BABYLON.ParticleSystem.BLENDMODE_STANDARD;
       particleSystem.particleTexture.hasAlpha = true;
       particleSystem.particleTexture.getAlphaFromRGB = false;*/
 
       // Set colors with alpha
-      // Add color gradients with alpha values
       particleSystem.addColorGradient(0, startColorWithAlpha);
       particleSystem.addColorGradient(1, endColorWithAlpha);
 
@@ -170,7 +169,7 @@ export const flockEffects = {
       console.warn(`Particle system '${systemName}' not found.`);
     }
   },
-  setFog(fogColorHex, fogMode, fogDensity = 0.1) {
+  setFog({ fogColorHex, fogMode, fogDensity = 0.1 } = {}) {
     const fogColorRgb = flock.BABYLON.Color3.FromHexString(
       flock.getColorFromString(fogColorHex),
     );
