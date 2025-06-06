@@ -377,7 +377,7 @@ export function runAnimateTests(flock) {
 
 				// Test pause
 				flock.pauseAnimationGroup(groupName);
-				expect(animGroup.isPaused).to.be.true;
+				expect(animGroup.isStarted).to.be.false;
 
 				// Test stop
 				flock.stopAnimationGroup(groupName);
