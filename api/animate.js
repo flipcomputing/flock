@@ -387,9 +387,7 @@ export const flockAnimate = {
     }
   },
   playAnimationGroup(groupName) {
-    const animationGroup = flock.scene.animationGroups.find(
-      (group) => group.name === groupName,
-    );
+    const animationGroup = flock.scene.getAnimationGroupByName(groupName);
     if (animationGroup) {
       animationGroup.play();
     } else {
@@ -397,9 +395,7 @@ export const flockAnimate = {
     }
   },
   pauseAnimationGroup(groupName) {
-    const animationGroup = flock.scene.animationGroups.find(
-      (group) => group.name === groupName,
-    );
+    const animationGroup = flock.scene.getAnimationGroupByName(groupName);
     if (animationGroup) {
       animationGroup.pause();
     } else {
@@ -407,9 +403,7 @@ export const flockAnimate = {
     }
   },
   stopAnimationGroup(groupName) {
-    const animationGroup = flock.scene.animationGroups.find(
-      (group) => group.name === groupName,
-    );
+    const animationGroup = flock.scene.getAnimationGroupByName(groupName);
     if (animationGroup) {
       animationGroup.stop();
     } else {
@@ -417,9 +411,7 @@ export const flockAnimate = {
     }
   },
   animateFrom(groupName, timeInSeconds) {
-    const animationGroup = flock.scene.animationGroups.find(
-      (group) => group.name === groupName,
-    );
+    const animationGroup = flock.scene.getAnimationGroupByName(groupName);
     if (animationGroup) {
       const animation = animationGroup.targetedAnimations[0]?.animation;
       if (!animation) {
