@@ -8,4 +8,41 @@ Flock XR has been designed as a bridge between Scratch and professional 3D tools
 
 Flock XR is based on Blockly, the Babylon JS library and the Havok physics engine. It uses CC0 3D assets from [Quaternius](https://quaternius.com/) and [Kenney.nl](https://kenney.nl/) as well as our own assets created in Blender.
 
+## Development info
 
+### Prerequisites
+- Node.js (version 18 or higher)
+- Git
+
+### Dev set up
+- Fork the repo on GitHub
+- Clone your fork to your local machine: `git clone git@github.com:YOUR_USERNAME/flockupdate.git`
+- Navigate to the project: `cd flockupdate`
+- Install dependencies: `npm install`
+
+### Contributing
+- Create a feature branch: `git checkout -b your-feature-name`
+- Make your changes
+- Push to your fork: `git push origin your-feature-name`
+- Create a Pull Request on GitHub
+
+### Run locally
+`npm run dev`
+
+You should see it here: http://localhost:5173/
+
+### Run tests
+You can find the tests in the codebase here: `tests/tests.html`
+Towards the bottom of the file you will find a list of commented out tests.
+Uncomment the one(s) that you want to run.
+
+With your npm server running go to: http://localhost:5173/tests/tests.html
+
+You should see the tests run.
+
+### Project Structure
+This is a Vite-based project using:
+- Blockly for visual programming blocks
+- Babylon.js for 3D rendering
+- Havok physics engine
+- Mocha & Chai for testing
