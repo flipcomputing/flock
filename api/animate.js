@@ -405,7 +405,14 @@ export const flockAnimate = {
   playAnimationGroup(groupName) {
     const animationGroup = flock.scene.getAnimationGroupByName(groupName);
     if (animationGroup) {
-      animationGroup.start();
+      // If the animation group was previously paused, resume it
+      if (animationGroup._isPausedByFlock) {
+        animationGroup.start(false, 1.0, animationGroup._pausedFrom, animationGroup._pausedTo);
+        animationGroup._isPausedByFlock = false;
+      } else {
+        // Start normally
+        animationGroup.start();
+      }
     } else {
       console.warn(`Animation group '${groupName}' not found.`);
     }
@@ -413,6 +420,19 @@ export const flockAnimate = {
   pauseAnimationGroup(groupName) {
     const animationGroup = flock.scene.getAnimationGroupByName(groupName);
     if (animationGroup) {
+      // Store pause state and current position
+      animationGroup._isPausedByFlock = true;
+      animationGroup._pausedFrom = animationGroup.from;
+      animationGroup._pausedTo = animationGroup.to;
+      
+      // Get current frame to resume from later
+      if (animationGroup.targetedAnimations.length > 0) {
+        const currentFrame = animationGroup.targetedAnimations[0]?.animation?.runtimeAnimations[0]?.currentFrame;
+        if (currentFrame !== undefined) {
+          animationGroup._pausedFrom = currentFrame;
+        }
+      }
+      
       animationGroup.pause();
     } else {
       console.warn(`Animation group '${groupName}' not found.`);
