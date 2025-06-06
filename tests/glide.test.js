@@ -33,7 +33,7 @@ export function runGlideToTests(flock) {
 			this.timeout(15000); // Increase the timeout forthis test
 			// Call glideTo to move the
 
-			flock.glideTo(box1, 6, 0, 0, 500).then(() => {
+			flock.glideTo(box1, { x: 6, y: 0, z: 0, duration: 500 }).then(() => {
 				const box = flock.scene.getMeshByName(box1);
 
 				// Assert the box has moved to the correct position
@@ -48,7 +48,7 @@ export function runGlideToTests(flock) {
 			this.timeout(10000); // Increase the timeout for this test
 
 			// Move the box with loop enabled
-			flock.glideTo(box1, 6, 0, 0, 2000, true); // Start the glide with return enabled
+			flock.glideTo(box1, { x: 6, y: 0, z: 0, duration: 2000, reverse: true }); // Start the glide with return enabled
 
 			let count = 0;
 			let passed = true
@@ -95,7 +95,7 @@ export function runGlideToTests(flock) {
 			const startTime = Date.now();
 
 			// Move the box with loop enabled
-			flock.glideTo(box1, 6, 0, 0, 1000, false, true); // Start the glide with looping enabled
+			flock.glideTo(box1, { x: 6, y: 0, z: 0, duration: 1000, reverse: false, loop: true }); // Start the glide with looping enabled
 
 			// Track whether the box has reached the target position
 			let passed = true;
@@ -122,7 +122,7 @@ export function runGlideToTests(flock) {
 			// Test with different easing options (Linear by default)
 		
 			flock
-				.glideTo(box1, 6, 0, 0, 1000, false, false, "SineEase")
+				.glideTo(box1, { x: 6, y: 0, z: 0, duration: 1000, reverse: false, loop: false, easing: "SineEase" })
 				.then(() => {
 					const box = flock.scene.getMeshByName(box1);
 
@@ -138,7 +138,7 @@ export function runGlideToTests(flock) {
 			this.timeout(10000); // Increase the timeout for this test
 			const startTime = Date.now();
 
-			flock.glideTo(box1,  6, 0, 0, 2000).then(() => {
+			flock.glideTo(box1, { x: 6, y: 0, z: 0, duration: 2000 }).then(() => {
 				const endTime = Date.now();
 				const duration = (endTime - startTime) / 1000; // Convert to seconds
 

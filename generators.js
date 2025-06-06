@@ -81,7 +81,7 @@ export function defineGenerators() {
 
 		const asyncWrapper = mode === "AWAIT" ? "await " : "";
 
-		return `${asyncWrapper}glideTo(${meshName}, ${x}, ${y}, ${z}, ${duration}, ${reverse}, ${loop}, "${easing}");\n`;
+		return `${asyncWrapper}glideTo(${meshName}, { x: ${x}, y: ${y}, z: ${z}, duration: ${duration}, reverse: ${reverse}, loop: ${loop}, easing: "${easing}" });\n`;
 	};
 
 	javascriptGenerator.forBlock["glide_to_seconds"] = function (block) {
@@ -100,7 +100,7 @@ export function defineGenerators() {
 
 		const asyncWrapper = mode === "AWAIT" ? "await " : "";
 
-		return `${asyncWrapper}glideTo(${meshName}, ${x}, ${y}, ${z}, ${duration}, ${reverse}, ${loop}, "${easing}");\n`;
+		return `${asyncWrapper}glideTo(${meshName}, { x: ${x}, y: ${y}, z: ${z}, duration: ${duration}, reverse: ${reverse}, loop: ${loop}, easing: "${easing}" });\n`;
 	};
 
 	javascriptGenerator.forBlock["rotate_anim"] = function (block) {
@@ -119,7 +119,7 @@ export function defineGenerators() {
 
 		const asyncWrapper = mode === "AWAIT" ? "await " : "";
 
-		return `${asyncWrapper}rotateAnim(${meshName}, ${rotX}, ${rotY}, ${rotZ}, ${duration}, ${reverse}, ${loop}, "${easing}");\n`;
+		return `${asyncWrapper}rotateAnim(${meshName}, { x: ${rotX}, y: ${rotY}, z: ${rotZ}, duration: ${duration}, reverse: ${reverse}, loop: ${loop}, easing: "${easing}" });\n`;
 	};
 
 	javascriptGenerator.forBlock["rotate_anim_seconds"] = function (block) {
@@ -138,7 +138,7 @@ export function defineGenerators() {
 
 		const asyncWrapper = mode === "AWAIT" ? "await " : "";
 
-		return `${asyncWrapper}rotateAnim(${meshName}, ${rotX}, ${rotY}, ${rotZ}, ${duration}, ${reverse}, ${loop}, "${easing}");\n`;
+		return `${asyncWrapper}rotateAnim(${meshName}, { x: ${rotX}, y: ${rotY}, z: ${rotZ}, duration: ${duration}, reverse: ${reverse}, loop: ${loop}, easing: "${easing}" });\n`;
 	};
 
 	javascriptGenerator.forBlock["animation"] = function (block) {
@@ -251,12 +251,14 @@ export function defineGenerators() {
 		${animationGroupVar} = await createAnimation(
 		  ${animationGroupVar},
 		  ${meshVariable},
-		  "${property}",
-		  [${keyframesCode}],
-		  "${easing}",
-		  ${loop},
-		  ${reverse},
-		  "${mode}"
+		  {
+		    property: "${property}",
+		    keyframes: [${keyframesCode}],
+		    easing: "${easing}",
+		    loop: ${loop},
+		    reverse: ${reverse},
+		    mode: "${mode}"
+		  }
 		);
 	  `;
 	};
@@ -643,7 +645,7 @@ export function defineGenerators() {
 		const color = getFieldValue(block, "COLOR", "#9932CC");
 		return `printText(${text}, ${duration}, ${color});\n`;
 	};
-		
+
 	javascriptGenerator.forBlock["set_fog"] = function (block) {
 	  const fogColorHex = getFieldValue(block, "FOG_COLOR", "#9932CC");
 	  const fogMode = block.getFieldValue("FOG_MODE");
@@ -3100,3 +3102,20 @@ javascriptGenerator.forBlock["lists_create_with"] = function (
 javascriptGenerator.forBlock["keyword"] = function (block) {
 	return "";
 };
+
+javascriptGenerator.forBlock["animate_property"] = function (block) {
+		const meshName = javascriptGenerator.nameDB_.getName(
+			block.getFieldValue("MESH_VAR"),
+			Blockly.Names.NameType.VARIABLE,
+		);
+		const property = block.getFieldValue("PROPERTY");
+		const targetValue = getFieldValue(block, "TARGET_VALUE", "0.5");
+		const duration = getFieldValue(block, "DURATION", "1000");
+		const mode = block.getFieldValue("MODE");
+		const reverse = block.getFieldValue("REVERSE") === "TRUE";
+		const loop = block.getFieldValue("LOOP") === "TRUE";
+
+		const asyncWrapper = mode === "AWAIT" ? "await " : "";
+
+		return `${asyncWrapper}animateProperty(${meshName}, { property: "${property}", targetValue: ${targetValue}, duration: ${duration}, reverse: ${reverse}, loop: ${loop}, mode: "${mode}" });\n`;
+	};

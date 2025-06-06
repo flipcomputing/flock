@@ -7,12 +7,14 @@ export function setFlockReference(ref) {
 export const flockAnimate = {
   async animateProperty(
     meshName,
-    property,
-    targetValue,
-    duration,
-    reverse = false,
-    loop = false,
-    mode = "AWAIT",
+    {
+      property,
+      targetValue,
+      duration = 1000,
+      reverse = false,
+      loop = false,
+      mode = "AWAIT"
+    } = {}
   ) {
     const fps = 30;
     const frames = fps * (duration / 1000);
@@ -25,7 +27,7 @@ export const flockAnimate = {
         resolve();
         return;
       }
-      
+
       // Await mesh to be ready
       await flock.whenModelReady(meshName, async function (mesh) {
         if (!mesh) {
@@ -116,13 +118,15 @@ export const flockAnimate = {
   },
   async glideTo(
     meshName,
-    x,
-    y,
-    z,
-    duration,
-    reverse = false,
-    loop = false,
-    easing = "Linear",
+    {
+      x = 0,
+      y = 0,
+      z = 0,
+      duration = 1000,
+      reverse = false,
+      loop = false,
+      easing = "Linear"
+    } = {}
   ) {
     return new Promise(async (resolve) => {
       // Check if mesh exists immediately first
@@ -132,7 +136,7 @@ export const flockAnimate = {
         resolve();
         return;
       }
-      
+
       await flock.whenModelReady(meshName, async function (mesh) {
         if (mesh) {
           const startPosition = mesh.position.clone(); // Capture start position
@@ -447,12 +451,14 @@ export const flockAnimate = {
   createAnimation(
     animationGroupName,
     meshName,
-    property,
-    keyframes,
-    easing = "Linear",
-    loop = false,
-    reverse = false,
-    mode = "START", // Default to starting the animation
+    {
+      property,
+      keyframes,
+      easing = "Linear",
+      loop = false,
+      reverse = false,
+      mode = "START"
+    } = {}
   ) {
     return new Promise(async (resolve) => {
       // Ensure animationGroupName is not null; generate a unique name if it is
@@ -979,10 +985,15 @@ export const flockAnimate = {
       `Failed to find mesh "${modelName}" after ${maxAttempts} attempts.`,
     );
   },
-  async rotateAnim(
-    meshName,
-    { rotX = 0, rotY = 0, rotZ = 0, duration = 1000, reverse = false, loop = false, easing = "Linear" } = {},
-  ) {
+  async rotateAnim(meshName, {
+    x = 0,
+    y = 0, 
+    z = 0,
+    duration = 1000,
+    reverse = false,
+    loop = false,
+    easing = "Linear"
+  } = {}) {
     return new Promise(async (resolve) => {
       // Check if mesh exists immediately first
       const existingMesh = flock.scene?.getMeshByName(meshName);
@@ -991,7 +1002,7 @@ export const flockAnimate = {
         resolve();
         return;
       }
-      
+
       await flock.whenModelReady(meshName, async function (mesh) {
         if (mesh) {
           // Store the original rotation
@@ -999,9 +1010,9 @@ export const flockAnimate = {
 
           // Convert degrees to radians
           const targetRotation = new flock.BABYLON.Vector3(
-            rotX * (Math.PI / 180), // X-axis in radians
-            rotY * (Math.PI / 180), // Y-axis in radians
-            rotZ * (Math.PI / 180), // Z-axis in radians
+            x * (Math.PI / 180), // X-axis in radians
+            y * (Math.PI / 180), // Y-axis in radians
+            z * (Math.PI / 180), // Z-axis in radians
           );
 
           const fps = 30;

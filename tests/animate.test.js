@@ -53,7 +53,7 @@ export function runAnimateTests(flock) {
 				const mesh = flock.scene.getMeshByName(boxId);
 				expect(mesh).to.exist;
 
-				await flock.rotateAnim(boxId, { rotX: 90, duration: 100 });
+				await flock.rotateAnim(boxId, { x: 90, duration: 100 });
 
 				// Check that X rotation was applied (90 degrees = π/2 radians)
 				expect(Math.abs(mesh.rotation.x)).to.be.closeTo(Math.PI / 2, 0.1);
@@ -74,7 +74,7 @@ export function runAnimateTests(flock) {
 				const mesh = flock.scene.getMeshByName(boxId);
 				expect(mesh).to.exist;
 
-				await flock.rotateAnim(boxId, { rotY: 180, duration: 100 });
+				await flock.rotateAnim(boxId, { y: 180, duration: 100 });
 
 				// Check that Y rotation was applied (180 degrees = π radians)
 				expect(Math.abs(mesh.rotation.y)).to.be.closeTo(Math.PI, 0.1);
@@ -95,7 +95,7 @@ export function runAnimateTests(flock) {
 				const mesh = flock.scene.getMeshByName(boxId);
 				expect(mesh).to.exist;
 
-				await flock.rotateAnim(boxId, { rotZ: 45, duration: 100 });
+				await flock.rotateAnim(boxId, { z: 45, duration: 100 });
 
 				// Check that Z rotation was applied (45 degrees = π/4 radians)
 				expect(Math.abs(mesh.rotation.z)).to.be.closeTo(Math.PI / 4, 0.1);
@@ -117,9 +117,9 @@ export function runAnimateTests(flock) {
 				expect(mesh).to.exist;
 
 				await flock.rotateAnim(boxId, { 
-					rotX: 30, 
-					rotY: 60, 
-					rotZ: 90, 
+					x: 30, 
+					y: 60, 
+					z: 90, 
 					duration: 100 
 				});
 
@@ -142,7 +142,7 @@ export function runAnimateTests(flock) {
 				const mesh = flock.scene.getMeshByName(boxId);
 				expect(mesh).to.exist;
 
-				await flock.rotateAnim(boxId, { rotY: 90, duration: 100 });
+				await flock.rotateAnim(boxId, { y: 90, duration: 100 });
 
 				// Only Y should be rotated, X and Z should remain close to 0
 				expect(Math.abs(mesh.rotation.y)).to.be.closeTo(Math.PI / 2, 0.1);
@@ -163,7 +163,7 @@ export function runAnimateTests(flock) {
 				const mesh = flock.scene.getMeshByName(boxId);
 				expect(mesh).to.exist;
 
-				await flock.rotateAnim(boxId, { rotX: -90, duration: 100 });
+				await flock.rotateAnim(boxId, { x: -90, duration: 100 });
 
 				// Check that negative rotation was applied
 				expect(Math.abs(mesh.rotation.x)).to.be.closeTo(Math.PI / 2, 0.1);
@@ -181,7 +181,7 @@ export function runAnimateTests(flock) {
 
 				const startTime = Date.now();
 				await flock.rotateAnim(boxId, { 
-					rotX: 90, 
+					x: 90, 
 					duration: 200 
 				});
 				const endTime = Date.now();
@@ -207,7 +207,7 @@ export function runAnimateTests(flock) {
 				const mesh = flock.scene.getMeshByName(boxId);
 				expect(mesh).to.exist;
 
-				await flock.glideTo(boxId, 5, 3, 2, 100);
+				await flock.glideTo(boxId, { x: 5, y: 3, z: 2, duration: 100 });
 
 				// Check final position (accounting for mesh height adjustment)
 				expect(mesh.position.x).to.be.closeTo(5, 0.1);
@@ -219,7 +219,7 @@ export function runAnimateTests(flock) {
 			it("should handle camera movement", async function () {
 				// Test camera movement (if active camera exists)
 				try {
-					await flock.glideTo("__active_camera__", 1, 1, 1, 100);
+					await flock.glideTo("__active_camera__", { x: 1, y: 1, z: 1, duration: 100 });
 					// If we get here without throwing, the test passes
 					expect(true).to.be.true;
 				} catch (error) {
@@ -243,7 +243,7 @@ export function runAnimateTests(flock) {
 				const mesh = flock.scene.getMeshByName(boxId);
 				expect(mesh).to.exist;
 
-				await flock.animateProperty(boxId, "alpha", 0.5, 100);
+				await flock.animateProperty(boxId, { property: "alpha", targetValue: 0.5, duration: 100 });
 
 				// Check that alpha was changed
 				expect(mesh.material.alpha).to.be.closeTo(0.5, 0.1);
@@ -262,7 +262,7 @@ export function runAnimateTests(flock) {
 				const mesh = flock.scene.getMeshByName(boxId);
 				expect(mesh).to.exist;
 
-				await flock.animateProperty(boxId, "diffuseColor", "#FF0000", 100);
+				await flock.animateProperty(boxId, { property: "diffuseColor", targetValue: "#FF0000", duration: 100 });
 
 				// Check that color was changed
 				const material = mesh.material;
@@ -291,12 +291,14 @@ export function runAnimateTests(flock) {
 				const groupName = await flock.createAnimation(
 					"testGroup",
 					boxId,
-					"rotation.x",
-					keyframes,
-					"Linear",
-					false,
-					false,
-					"AWAIT"
+					{
+						property: "rotation.x",
+						keyframes: keyframes,
+						easing: "Linear",
+						loop: false,
+						reverse: false,
+						mode: "AWAIT"
+					}
 				);
 
 				expect(groupName).to.equal("testGroup");
@@ -324,12 +326,14 @@ export function runAnimateTests(flock) {
 				const groupName = await flock.createAnimation(
 					null, // No group name provided
 					boxId,
-					"color",
-					keyframes,
-					"Linear",
-					false,
-					false,
-					"CREATE"
+					{
+						property: "color",
+						keyframes: keyframes,
+						easing: "Linear",
+						loop: false,
+						reverse: false,
+						mode: "CREATE"
+					}
 				);
 
 				expect(groupName).to.be.a("string");
@@ -356,12 +360,14 @@ export function runAnimateTests(flock) {
 				const groupName = await flock.createAnimation(
 					"controlTestGroup",
 					boxId,
-					"rotation.y",
-					keyframes,
-					"Linear",
-					false,
-					false,
-					"CREATE"
+					{
+						property: "rotation.y",
+						keyframes: keyframes,
+						easing: "Linear",
+						loop: false,
+						reverse: false,
+						mode: "CREATE"
+					}
 				);
 
 				// Get the animation group
@@ -423,7 +429,7 @@ export function runAnimateTests(flock) {
 				boxIds.push(boxId);
 
 				// Start an animation
-				flock.rotateAnim(boxId, { rotX: 90, duration: 1000 }); // Long duration
+				flock.rotateAnim(boxId, { x: 90, duration: 1000 }); // Long duration
 
 				// Stop animations
 				await flock.stopAnimations(boxId);
@@ -437,7 +443,7 @@ export function runAnimateTests(flock) {
 		describe("edge cases and error handling", function () {
 			it("should handle missing mesh gracefully in rotateAnim", async function () {
 				// This should not throw an error
-				await flock.rotateAnim("nonExistentMesh", { rotX: 90 });
+				await flock.rotateAnim("nonExistentMesh", { x: 90 });
 				
 				// If we get here without throwing, the test passes
 				expect(true).to.be.true;
@@ -453,7 +459,7 @@ export function runAnimateTests(flock) {
 
 			it("should handle missing mesh gracefully in animateProperty", async function () {
 				// This should not throw an error
-				await flock.animateProperty("nonExistentMesh", "alpha", 0.5, 100);
+				await flock.animateProperty("nonExistentMesh", { property: "alpha", targetValue: 0.5, duration: 100 });
 				
 				// If we get here without throwing, the test passes
 				expect(true).to.be.true;
@@ -471,7 +477,7 @@ export function runAnimateTests(flock) {
 
 				// This should complete very quickly
 				const startTime = Date.now();
-				await flock.rotateAnim(boxId, { rotX: 90, duration: 0 });
+				await flock.rotateAnim(boxId, { x: 90, duration: 0 });
 				const endTime = Date.now();
 
 				expect(endTime - startTime).to.be.lessThan(100);
