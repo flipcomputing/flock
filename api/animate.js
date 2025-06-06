@@ -12,96 +12,106 @@ export const flockAnimate = {
     duration,
     reverse = false,
     loop = false,
-    mode = "START",
+    mode = "AWAIT",
   ) {
     const fps = 30;
     const frames = fps * (duration / 1000);
 
-    // Await mesh to be ready
-    await flock.whenModelReady(meshName, async function (mesh) {
-      if (!mesh) {
-        console.error(`Mesh with name ${meshName} not found.`);
+    return new Promise(async (resolve) => {
+      // Check if mesh exists immediately first
+      const existingMesh = flock.scene?.getMeshByName(meshName);
+      if (!existingMesh) {
+        console.warn(`Mesh '${meshName}' not found for animateProperty.`);
+        resolve();
         return;
       }
-
-      // If the property is a color, convert the hex string to Color3
-      if (
-        property === "diffuseColor" ||
-        property === "emissiveColor" ||
-        property === "ambientColor" ||
-        property === "specularColor"
-      ) {
-        targetValue = flock.BABYLON.Color3.FromHexString(targetValue);
-      }
-
-      // Helper function to animate a material property
-      function animateProperty(material, property, targetValue) {
-        const startValue = material[property];
-
-        // Determine the animation type
-        const animationType =
-          property === "alpha"
-            ? flock.BABYLON.Animation.ANIMATIONTYPE_FLOAT
-            : flock.BABYLON.Animation.ANIMATIONTYPE_COLOR3;
-
-        // Create the animation
-        const animation = new flock.BABYLON.Animation(
-          `animate_${property}`,
-          property,
-          fps,
-          animationType,
-          reverse
-            ? flock.BABYLON.Animation.ANIMATIONLOOPMODE_YOYO
-            : flock.BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT,
-        );
-
-        // Define keyframes
-        const keys = [
-          { frame: 0, value: startValue },
-          { frame: frames, value: targetValue },
-        ];
-        animation.setKeys(keys);
-
-        material.animations = material.animations || [];
-        material.animations.push(animation);
-
-        // Start the animation
-        const animatable = flock.scene.beginAnimation(
-          material,
-          0,
-          frames,
-          loop,
-        );
-        material.markAsDirty(flock.BABYLON.Material.MiscDirtyFlag); // Force material update
-
-        return animatable;
-      }
-
-      // Function to animate material and its children recursively
-      function animateMeshAndChildren(mesh) {
-        if (mesh.material) {
-          return animateProperty(mesh.material, property, targetValue);
+      
+      // Await mesh to be ready
+      await flock.whenModelReady(meshName, async function (mesh) {
+        if (!mesh) {
+          console.error(`Mesh with name ${meshName} not found.`);
+          resolve();
+          return;
         }
-        if (mesh.getChildren) {
-          mesh.getChildren().forEach((child) => animateMeshAndChildren(child));
-        }
-      }
 
-      // Start the animation based on the mode (await or start)
-      if (mode === "AWAIT") {
-        return new Promise((resolve) => {
+        // If the property is a color, convert the hex string to Color3
+        if (
+          property === "diffuseColor" ||
+          property === "emissiveColor" ||
+          property === "ambientColor" ||
+          property === "specularColor"
+        ) {
+          targetValue = flock.BABYLON.Color3.FromHexString(targetValue);
+        }
+
+        // Helper function to animate a material property
+        function animateProperty(material, property, targetValue) {
+          const startValue = material[property];
+
+          // Determine the animation type
+          const animationType =
+            property === "alpha"
+              ? flock.BABYLON.Animation.ANIMATIONTYPE_FLOAT
+              : flock.BABYLON.Animation.ANIMATIONTYPE_COLOR3;
+
+          // Create the animation
+          const animation = new flock.BABYLON.Animation(
+            `animate_${property}`,
+            property,
+            fps,
+            animationType,
+            reverse
+              ? flock.BABYLON.Animation.ANIMATIONLOOPMODE_YOYO
+              : flock.BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT,
+          );
+
+          // Define keyframes
+          const keys = [
+            { frame: 0, value: startValue },
+            { frame: frames, value: targetValue },
+          ];
+          animation.setKeys(keys);
+
+          material.animations = material.animations || [];
+          material.animations.push(animation);
+
+          // Start the animation
+          const animatable = flock.scene.beginAnimation(
+            material,
+            0,
+            frames,
+            loop,
+          );
+          material.markAsDirty(flock.BABYLON.Material.MiscDirtyFlag); // Force material update
+
+          return animatable;
+        }
+
+        // Function to animate material and its children recursively
+        function animateMeshAndChildren(mesh) {
+          if (mesh.material) {
+            return animateProperty(mesh.material, property, targetValue);
+          }
+          if (mesh.getChildren) {
+            mesh.getChildren().forEach((child) => animateMeshAndChildren(child));
+          }
+        }
+
+        // Start the animation based on the mode (await or start)
+        if (mode === "AWAIT") {
           const animatable = animateMeshAndChildren(mesh);
           if (animatable) {
             animatable.onAnimationEndObservable.add(() => {
               resolve();
             });
           } else {
-            resolve(); // Resolve immediately if no animation
+            resolve();
           }
-        });
-      } else {
-        animateMeshAndChildren(mesh);
-      }
+        } else {
+          animateMeshAndChildren(mesh);
+          resolve();
+        }
+      });
     });
   },
   async glideTo(
@@ -115,6 +125,14 @@ export const flockAnimate = {
     easing = "Linear",
   ) {
     return new Promise(async (resolve) => {
+      // Check if mesh exists immediately first
+      const existingMesh = flock.scene?.getMeshByName(meshName);
+      if (!existingMesh && meshName !== "__active_camera__") {
+        console.warn(`Mesh '${meshName}' not found for glideTo.`);
+        resolve();
+        return;
+      }
+      
       await flock.whenModelReady(meshName, async function (mesh) {
         if (mesh) {
           const startPosition = mesh.position.clone(); // Capture start position
@@ -385,19 +403,15 @@ export const flockAnimate = {
     }
   },
   playAnimationGroup(groupName) {
-    const animationGroup = flock.scene.animationGroups.find(
-      (group) => group.name === groupName,
-    );
+    const animationGroup = flock.scene.getAnimationGroupByName(groupName);
     if (animationGroup) {
-      animationGroup.play();
+      animationGroup.start();
     } else {
       console.warn(`Animation group '${groupName}' not found.`);
     }
   },
   pauseAnimationGroup(groupName) {
-    const animationGroup = flock.scene.animationGroups.find(
-      (group) => group.name === groupName,
-    );
+    const animationGroup = flock.scene.getAnimationGroupByName(groupName);
     if (animationGroup) {
       animationGroup.pause();
     } else {
@@ -405,9 +419,7 @@ export const flockAnimate = {
     }
   },
   stopAnimationGroup(groupName) {
-    const animationGroup = flock.scene.animationGroups.find(
-      (group) => group.name === groupName,
-    );
+    const animationGroup = flock.scene.getAnimationGroupByName(groupName);
     if (animationGroup) {
       animationGroup.stop();
     } else {
@@ -415,9 +427,7 @@ export const flockAnimate = {
     }
   },
   animateFrom(groupName, timeInSeconds) {
-    const animationGroup = flock.scene.animationGroups.find(
-      (group) => group.name === groupName,
-    );
+    const animationGroup = flock.scene.getAnimationGroupByName(groupName);
     if (animationGroup) {
       const animation = animationGroup.targetedAnimations[0]?.animation;
       if (!animation) {
@@ -971,15 +981,17 @@ export const flockAnimate = {
   },
   async rotateAnim(
     meshName,
-    rotX,
-    rotY,
-    rotZ,
-    duration,
-    reverse = false,
-    loop = false,
-    easing = "Linear",
+    { rotX = 0, rotY = 0, rotZ = 0, duration = 1000, reverse = false, loop = false, easing = "Linear" } = {},
   ) {
     return new Promise(async (resolve) => {
+      // Check if mesh exists immediately first
+      const existingMesh = flock.scene?.getMeshByName(meshName);
+      if (!existingMesh) {
+        console.warn(`Mesh '${meshName}' not found for rotateAnim.`);
+        resolve();
+        return;
+      }
+      
       await flock.whenModelReady(meshName, async function (mesh) {
         if (mesh) {
           // Store the original rotation
