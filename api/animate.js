@@ -18,6 +18,14 @@ export const flockAnimate = {
     const frames = fps * (duration / 1000);
 
     return new Promise(async (resolve) => {
+      // Check if mesh exists immediately first
+      const existingMesh = flock.scene?.getMeshByName(meshName);
+      if (!existingMesh) {
+        console.warn(`Mesh '${meshName}' not found for animateProperty.`);
+        resolve();
+        return;
+      }
+      
       // Await mesh to be ready
       await flock.whenModelReady(meshName, async function (mesh) {
         if (!mesh) {
@@ -117,6 +125,14 @@ export const flockAnimate = {
     easing = "Linear",
   ) {
     return new Promise(async (resolve) => {
+      // Check if mesh exists immediately first
+      const existingMesh = flock.scene?.getMeshByName(meshName);
+      if (!existingMesh && meshName !== "__active_camera__") {
+        console.warn(`Mesh '${meshName}' not found for glideTo.`);
+        resolve();
+        return;
+      }
+      
       await flock.whenModelReady(meshName, async function (mesh) {
         if (mesh) {
           const startPosition = mesh.position.clone(); // Capture start position
@@ -968,6 +984,14 @@ export const flockAnimate = {
     { rotX = 0, rotY = 0, rotZ = 0, duration = 1000, reverse = false, loop = false, easing = "Linear" } = {},
   ) {
     return new Promise(async (resolve) => {
+      // Check if mesh exists immediately first
+      const existingMesh = flock.scene?.getMeshByName(meshName);
+      if (!existingMesh) {
+        console.warn(`Mesh '${meshName}' not found for rotateAnim.`);
+        resolve();
+        return;
+      }
+      
       await flock.whenModelReady(meshName, async function (mesh) {
         if (mesh) {
           // Store the original rotation
