@@ -12,7 +12,7 @@ export const flockAnimate = {
     duration,
     reverse = false,
     loop = false,
-    mode = "START",
+    mode = "AWAIT",
   ) {
     const fps = 30;
     const frames = fps * (duration / 1000);
