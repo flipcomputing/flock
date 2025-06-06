@@ -89,16 +89,14 @@ export const flockAnimate = {
 
       // Start the animation based on the mode (await or start)
       if (mode === "AWAIT") {
-        return new Promise((resolve) => {
-          const animatable = animateMeshAndChildren(mesh);
-          if (animatable) {
+        const animatable = animateMeshAndChildren(mesh);
+        if (animatable) {
+          return new Promise((resolve) => {
             animatable.onAnimationEndObservable.add(() => {
               resolve();
             });
-          } else {
-            resolve(); // Resolve immediately if no animation
-          }
-        });
+          });
+        }
       } else {
         animateMeshAndChildren(mesh);
       }
