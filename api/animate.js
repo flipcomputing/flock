@@ -971,13 +971,7 @@ export const flockAnimate = {
   },
   async rotateAnim(
     meshName,
-    rotX,
-    rotY,
-    rotZ,
-    duration,
-    reverse = false,
-    loop = false,
-    easing = "Linear",
+    { rotX = 0, rotY = 0, rotZ = 0, duration = 1000, reverse = false, loop = false, easing = "Linear" } = {},
   ) {
     return new Promise(async (resolve) => {
       await flock.whenModelReady(meshName, async function (mesh) {
