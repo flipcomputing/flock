@@ -389,7 +389,7 @@ export const flockAnimate = {
   playAnimationGroup(groupName) {
     const animationGroup = flock.scene.getAnimationGroupByName(groupName);
     if (animationGroup) {
-      animationGroup.play();
+      animationGroup.start();
     } else {
       console.warn(`Animation group '${groupName}' not found.`);
     }
