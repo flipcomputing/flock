@@ -981,6 +981,14 @@ function addButtonListener() {
 	switchViewsBtn.addEventListener("click", togglePanels);
 }
 
+function prepareCanvasForRecording() {
+	// Force a render and resize to ensure canvas is ready for capture
+	if (flock.engine && flock.scene) {
+		flock.engine.resize();
+		flock.scene.render();
+	}
+}
+
 function toggleDesignMode() {
 	if (!flock.scene) return;
 
@@ -1011,6 +1019,9 @@ function toggleDesignMode() {
 		});
 
 		canvasArea.style.flex = "1 1 0";
+		
+		// Prepare canvas for potential recording
+		setTimeout(prepareCanvasForRecording, 100);
 	}
 
 	onResize();

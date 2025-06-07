@@ -376,9 +376,8 @@ export const flock = {
 		flock.engine = null;
 
 		flock.engine = new flock.BABYLON.Engine(flock.canvas, true, {
-			stencil: true,
-			deterministicLockstep: true,
-			//audioEngine: true,
+			preserveDrawingBuffer: true,
+			stencil: true
 		});
 
 		flock.engine.enableOfflineSupport = false;
@@ -491,7 +490,7 @@ export const flock = {
 		setFlockScene(flock);
 		setFlockMesh(flock);
 		setFlockCamera(flock);
-		
+
 		// Add highlight layer
 		flock.highlighter = new flock.BABYLON.HighlightLayer(
 			"highlighter",
@@ -908,7 +907,7 @@ export const flock = {
 	/*
 
 	*/
-	
+
 	wait(duration) {
 		return new Promise((resolve, reject) => {
 			const timeoutId = setTimeout(() => {
