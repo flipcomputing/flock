@@ -59,7 +59,7 @@ import {
 console.log("Flock helpers loading");
 
 export const flock = {
-	callbackMode: true,
+	callbackMode: false,
 	console: console,
 	modelPath: "./models/",
 	soundPath: "./sounds/",
