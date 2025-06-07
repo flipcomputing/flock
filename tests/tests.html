@@ -26,6 +26,30 @@
     ></script>
     <script type="module" src="https://unpkg.com/chai@4.3.7/chai.js"></script>
 
+    <!-- Test selection interface -->
+    <div style="margin: 20px 0;">
+      <label for="testSelect" style="font-weight: bold; margin-right: 10px;">Select Test Suite:</label>
+      <select id="testSelect" style="padding: 5px; margin-right: 10px;">
+        <option value="">-- Choose a test suite --</option>
+        <option value="babylon">Basic Babylon Tests</option>
+        <option value="glide">Glide Animation Tests</option>
+        <option value="ui">UI Text/Button Tests</option>
+        <option value="stress">Stress Tests (Boxes)</option>
+        <option value="objects">Object Creation Tests</option>
+        <option value="sound">Sound Tests</option>
+        <option value="translation">Translation/Movement Tests</option>
+        <option value="rotation">Rotation Tests</option>
+        <option value="scale">Scale Tests</option>
+        <option value="materials">Materials Tests</option>
+        <option value="physics">Physics Tests</option>
+        <option value="effects">Effects Tests</option>
+        <option value="animate">Animation API Tests</option>
+        <option value="all">Run All Tests</option>
+      </select>
+      <button id="runTestBtn" style="padding: 5px 15px;">Run Tests</button>
+      <button id="clearTestBtn" style="padding: 5px 15px; margin-left: 5px;">Clear Results</button>
+    </div>
+
     <!-- Mocha test results will be displayed here -->
     <div id="mocha"></div>
 
@@ -53,7 +77,10 @@
 
       await flock.initialize();
 
-      mocha.setup("bdd");
+      mocha.setup({
+        ui: "bdd",
+        cleanReferencesAfterRun: false
+      });
 
       try {
         let iframe = document.getElementById("flock-iframe");
@@ -83,22 +110,65 @@
         console.log(e);
       }
 
-      // Run the Mocha tests
-      //runTests(flock, chai.expect); // Run tests from the imported file
-      // Run the glideTo tests
-      //runUITests(flock);
-      //runGlideToTests(flock);
-      //runStressTests(flock);
-      //runCreateObjectTests(flock);
-     // runSoundTests(flock);
-      //runTranslationTests(flock);
-      //runRotationTests(flock);
-      //runMaterialsTests(flock);
-      //runScaleTests(flock);
-      //runPhysicsTests(flock);
-      //runEffectsTests(flock);
-      runAnimateTests(flock);
+      // Test suite mapping
+      const testSuites = {
+        babylon: () => runTests(flock, chai.expect),
+        glide: () => runGlideToTests(flock),
+        ui: () => runUITests(flock),
+        stress: () => runStressTests(flock),
+        objects: () => runCreateObjectTests(flock),
+        sound: () => runSoundTests(flock),
+        translation: () => runTranslationTests(flock),
+        rotation: () => runRotationTests(flock),
+        scale: () => runScaleTests(flock),
+        materials: () => runMaterialsTests(flock),
+        physics: () => runPhysicsTests(flock),
+        effects: () => runEffectsTests(flock),
+        animate: () => runAnimateTests(flock),
+        all: () => {
+          runTests(flock, chai.expect);
+          runGlideToTests(flock);
+          runUITests(flock);
+          runStressTests(flock);
+          runCreateObjectTests(flock);
+          runSoundTests(flock);
+          runTranslationTests(flock);
+          runRotationTests(flock);
+          runScaleTests(flock);
+          runMaterialsTests(flock);
+          runPhysicsTests(flock);
+          runEffectsTests(flock);
+          runAnimateTests(flock);
+        }
+      };
 
+      // Setup test selection interface
+      const testSelect = document.getElementById('testSelect');
+      const runTestBtn = document.getElementById('runTestBtn');
+      const clearTestBtn = document.getElementById('clearTestBtn');
+
+      runTestBtn.addEventListener('click', () => {
+        const selectedTest = testSelect.value;
+        if (!selectedTest) {
+          alert('Please select a test suite to run');
+          return;
+        }
+
+        // Clear previous results
+        document.getElementById('mocha').innerHTML = '';
+        
+        // Run selected test suite
+        if (testSuites[selectedTest]) {
+          testSuites[selectedTest]();
+          mocha.run();
+        }
+      });
+
+      clearTestBtn.addEventListener('click', () => {
+        document.getElementById('mocha').innerHTML = '';
+      });
+
+      // Show debug layer
       try {
         await flock.scene.debugLayer.show({
           embedMode: true,
@@ -108,7 +178,8 @@
       } catch (error) {
         console.error("Error showing debug layer:", error);
       }
-      mocha.run();
+
+      // Don't run any tests by default - wait for user selection
     </script>
   </body>
 </html>
