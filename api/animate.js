@@ -970,37 +970,24 @@ export const flockAnimate = {
       restart = true
     } = {}
   ) {
-    const maxAttempts = 100;
-    const attemptInterval = 10;
-
-    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-      const mesh = flock.scene.getMeshByName(meshName);
-      if (mesh) {
-        const animGroup = flock.switchToAnimation(
-          mesh,
-          animationName,
-          { scene: flock.scene, loop, restart }
-        );
-
-        return new Promise((resolve) => {
-          animGroup.onAnimationEndObservable.addOnce(() => {
+    return new Promise(async (resolve) => {
+      await flock.switchAnimation(meshName, { animationName, loop, restart });
+      
+      // Wait for the animation to complete if not looping
+      if (!loop) {
+        await flock.whenModelReady(meshName, (mesh) => {
+          if (mesh && mesh.animationGroups && mesh.animationGroups[0]) {
+            mesh.animationGroups[0].onAnimationEndObservable.addOnce(() => {
+              resolve();
+            });
+          } else {
             resolve();
-          });
+          }
         });
+      } else {
+        resolve();
       }
-      await new Promise((resolve, reject) => {
-        const timeoutId = setTimeout(resolve, attemptInterval);
-
-        // Listen for the abort signal to cancel the timeout
-        flock.abortController.signal.addEventListener("abort", () => {
-          clearTimeout(timeoutId); // Clear the timeout if aborted
-          reject(new Error("Timeout aborted")); // Reject the promise if aborted
-        });
-      });
-    }
-    console.error(
-      `Failed to find mesh "${meshName}" after ${maxAttempts} attempts.`,
-    );
+    });
   },
   async rotateAnim(meshName, {
     x = 0,
