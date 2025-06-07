@@ -12,6 +12,7 @@ export const flockShapes = {
              color = "#9932CC",
              position = new BABYLON.Vector3(0, 0, 0),
              alpha = 1,
+             callback = null,
            }) {
     let blockKey = boxId;
 
@@ -60,6 +61,15 @@ export const flockShapes = {
     );
     flock.applyPhysics(newBox, boxShape);
 
+    if (callback) {
+      requestAnimationFrame(() => callback());
+    }
+    
+    if (!flock.callbackMode) {
+      const readyPromise = Promise.resolve();
+      flock.modelReadyPromises.set(boxId, readyPromise);
+    }
+
     return newBox.name;
   },
   createSphere(sphereId, {
@@ -69,6 +79,7 @@ export const flockShapes = {
     diameterZ = 1,
     position = new BABYLON.Vector3(0, 0, 0),
     alpha = 1,
+    callback = null,
   }) {
     let blockKey = sphereId;
 
@@ -115,6 +126,15 @@ export const flockShapes = {
     );
     flock.applyPhysics(newSphere, sphereShape);
 
+    if (callback) {
+      requestAnimationFrame(() => callback());
+    }
+    
+    if (!flock.callbackMode) {
+      const readyPromise = Promise.resolve();
+      flock.modelReadyPromises.set(sphereId, readyPromise);
+    }
+
     return newSphere.name;
   },
   createCylinder(
@@ -127,6 +147,7 @@ export const flockShapes = {
         tessellation = 24,
         position,
         alpha = 1,
+        callback = null,
       }
     ) 
   {
@@ -189,6 +210,15 @@ export const flockShapes = {
     );
     flock.applyPhysics(newCylinder, cylinderShape);
 
+    if (callback) {
+      requestAnimationFrame(() => callback());
+    }
+    
+    if (!flock.callbackMode) {
+      const readyPromise = Promise.resolve();
+      flock.modelReadyPromises.set(cylinderId, readyPromise);
+    }
+
     return newCylinder.name;
   },  
   createCapsule(
@@ -199,6 +229,7 @@ export const flockShapes = {
       height,
       position,
       alpha = 1,
+      callback = null,
     })
   {
 
@@ -270,6 +301,15 @@ export const flockShapes = {
     );
     flock.applyPhysics(newCapsule, capsuleShape);
 
+    if (callback) {
+      requestAnimationFrame(() => callback());
+    }
+    
+    if (!flock.callbackMode) {
+      const readyPromise = Promise.resolve();
+      flock.modelReadyPromises.set(capsuleId, readyPromise);
+    }
+
     return newCapsule.name;
   },
 
@@ -280,6 +320,7 @@ export const flockShapes = {
       width,
       height,
       position,
+      callback = null,
     }
   )
   {
@@ -347,6 +388,15 @@ export const flockShapes = {
     flock.applyMaterialToMesh(newPlane, "Plane", color);
 
     newPlane.blockKey = blockKey;
+
+    if (callback) {
+      requestAnimationFrame(() => callback());
+    }
+    
+    if (!flock.callbackMode) {
+      const readyPromise = Promise.resolve();
+      flock.modelReadyPromises.set(planeId, readyPromise);
+    }
 
     return newPlane.name;
   },

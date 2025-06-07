@@ -952,30 +952,14 @@ export const flockAnimate = {
       restart = false
     } = {}
   ) {
-    return new Promise(async (resolve) => {
-      // Check if mesh exists immediately first
-      const existingMesh = flock.scene?.getMeshByName(meshName);
-      if (!existingMesh) {
-       // console.warn(`Mesh '${meshName}' not found for switchAnimation.`);
-        resolve();
-        return;
-      }
-
-      await flock.whenModelReady(meshName, (mesh) => {
-        if (!mesh) {
-          resolve();
-          return;
-        }
-
-        flock.switchToAnimation(
-          flock.scene,
-          mesh,
-          animationName,
-          loop,
-          restart,
-        );
-        resolve();
-      });
+    return flock.whenModelReady(meshName, (mesh) => {
+      flock.switchToAnimation(
+        flock.scene,
+        mesh,
+        animationName,
+        loop,
+        restart,
+      );
     });
   },
   async playAnimation(
@@ -988,6 +972,12 @@ export const flockAnimate = {
   ) {
     const maxAttempts = 100;
     const attemptInterval = 10;
+
+    // Ensure animationName is provided
+    if (!animationName) {
+      console.warn(`No animationName provided for playAnimation on mesh '${meshName}'.`);
+      return;
+    }
 
     for (let attempt = 1; attempt <= maxAttempts; attempt++) {
       const mesh = flock.scene.getMeshByName(meshName);

@@ -15,6 +15,10 @@ export function generateUniqueId(prefix = "") {
 }
 
 export function defineGenerators() {
+	// Force re-initialization of animation generators
+	delete javascriptGenerator.forBlock["play_animation"];
+	delete javascriptGenerator.forBlock["switch_animation"];
+	
 	javascriptGenerator.forBlock["show"] = function (block) {
 		const modelName = javascriptGenerator.nameDB_.getName(
 			block.getFieldValue("MODEL_VAR"),

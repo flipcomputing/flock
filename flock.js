@@ -59,6 +59,7 @@ import {
 console.log("Flock helpers loading");
 
 export const flock = {
+	callbackMode: false,
 	console: console,
 	modelPath: "./models/",
 	soundPath: "./sounds/",
@@ -752,7 +753,7 @@ export const flock = {
 		// Yield null to indicate the mesh was not found
 		yield null;
 	},
-	whenModelReady(targetId, callback) {
+	whenModelReady2(targetId, callback) {
 		// Check if the target (mesh or GUI button) is immediately available
 		if (flock.scene) {
 			let target = flock.scene.getMeshByName(targetId);
@@ -802,23 +803,63 @@ export const flock = {
 			}
 		})();
 	},
-	whenModelReady2(id, callback) {
-	  const promise = flock.modelReadyPromises.get(id);
-	  if (!promise) {
-		console.warn(`No load started for object with id '${id}'`);
-		return;
-	  }
-
-	  promise.then(() => {
-		const mesh = flock.scene.getMeshByName(id);
-		if (!mesh) {
-		  console.error(`Mesh with id '${id}' not found in scene.`);
-		  return;
+	whenModelReady(id, callback) {
+		// Always check for immediate availability first
+		if (flock.scene) {
+			let target = flock.scene.getMeshByName(id);
+			if (!target && flock.scene.UITexture) {
+				target = flock.scene.UITexture.getControlByName(id);
+			}
+			if (!target) {
+				target = flock.scene.animationGroups.find(
+					(group) => group.name === id,
+				);
+			}
+			if (!target) {
+				target = flock.scene.particleSystems.find(
+					(system) => system.name === id,
+				);
+			}
+			if (target) {
+				if (flock.abortController.signal.aborted) {
+					return;
+				}
+				callback(target);
+				return;
+			}
 		}
-		callback(mesh);
-	  }).catch((err) => {
-		console.error(`Error in whenModelReady for '${id}':`, err);
-	  });
+
+		// For non-immediate targets, always check promises first (optimization)
+		const promise = flock.modelReadyPromises.get(id);
+		if (promise) {
+			promise.then(() => {
+				const mesh = flock.scene.getMeshByName(id);
+				if (mesh) {
+					callback(mesh);
+				}
+			}).catch((err) => {
+				console.error(`Error in whenModelReady for '${id}':`, err);
+			});
+			return;
+		}
+
+		// Fall back to generator approach if no promise exists
+		(async () => {
+			const generator = flock.modelReadyGenerator(id);
+			try {
+				for await (const target of generator) {
+					if (flock.abortController.signal.aborted) {
+						return;
+					}
+					callback(target);
+					return;
+				}
+			} catch (err) {
+				if (!flock.abortController.signal.aborted) {
+					console.error(`Error in whenModelReady: ${err}`);
+				}
+			}
+		})();
 	},
 
 	/* 
@@ -1326,7 +1367,7 @@ export const flock = {
 			);
 			return;
 		}
-		if (flock.events[eventName]) {
+		if (flock.events && flock.events[eventName]) {
 			flock.events[eventName].notifyObservers(data);
 		}
 	},

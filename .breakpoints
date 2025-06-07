@@ -11,9 +11,9 @@
     "generators.js": [
       {
         "id": "d4be80b7-85d7-4476-a5f6-19324c2f17f0",
-        "line": 84,
-        "version": 279,
-        "index": 2437
+        "line": 1,
+        "version": 323,
+        "index": 0
       }
     ],
     "index.html": [
@@ -27,9 +27,9 @@
     "main.js": [
       {
         "id": "31f0468e-83ae-40f6-ab34-65125d137737",
-        "line": 2696,
-        "version": 82,
-        "index": 76962
+        "line": 2707,
+        "version": 83,
+        "index": 77253
       }
     ],
     "models/tree_fat.glb": [

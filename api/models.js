@@ -5,7 +5,7 @@ export function setFlockReference(ref) {
 }
 
 export const flockModels = {
-  createCharacter({
+  createCharacter2({
     modelName,
     modelId,
     scale = 1,
@@ -75,7 +75,7 @@ export const flockModels = {
 
     return modelId;
   },
-  createCharacter2({
+  createCharacter({
     modelName,
     modelId,
     scale = 1,
@@ -101,49 +101,98 @@ export const flockModels = {
       modelId = modelId + "_" + flock.scene.getUniqueId();
     }
 
-    const loadPromise = flock.BABYLON.SceneLoader.LoadAssetContainerAsync(
-      flock.modelPath,
-      modelName,
-      flock.scene,
-      null,
-      null,
-      { signal: flock.abortController.signal },
-    )
-      .then((container) => {
-        container.addAllToScene();
-        const mesh = container.meshes[0];
+    if (flock.callbackMode) {
+      // Use callback-based approach (createCharacter2 style)
+      flock.BABYLON.SceneLoader.LoadAssetContainerAsync(
+        flock.modelPath,
+        modelName,
+        flock.scene,
+        null,
+        null,
+        { signal: flock.abortController.signal },
+      )
+        .then((container) => {
+          container.addAllToScene();
+          const mesh = container.meshes[0];
+          flock.setupMesh(
+            mesh,
+            modelName,
+            modelId,
+            blockKey,
+            scale,
+            x,
+            y,
+            z,
+          );
 
-        flock.setupMesh(mesh, modelName, modelId, blockKey, scale, x, y, z);
+          if (modelName.startsWith("Character"))
+            flock.ensureStandardMaterial(mesh);
+          flock.applyColorsToCharacter(mesh, colors);
 
-        if (modelName.startsWith("Character")) {
-          flock.ensureStandardMaterial(mesh);
-        }
+          const descendants = mesh.getChildMeshes(false);
+          descendants.forEach((childMesh) => {
+            if (childMesh.getTotalVertices() > 0) {
+              // Ensure it has geometry
+              childMesh.isPickable = true;
+              childMesh.flipFaces(true);
+            }
+          });
 
-        flock.applyColorsToCharacter(mesh, colors);
-
-        const descendants = mesh.getChildMeshes(false);
-        descendants.forEach((childMesh) => {
-          if (childMesh.getTotalVertices() > 0) {
-            childMesh.isPickable = true;
-            childMesh.flipFaces(true);
+          if (callback) {
+            requestAnimationFrame(() => callback());
           }
+        })
+        .catch((error) => {
+          console.log("Error loading", error);
         });
 
-        if (callback) {
-          requestAnimationFrame(() => callback());
-        }
+      return modelId;
+    } else {
+      // Use promise-based approach (original createCharacter style)
+      const loadPromise = flock.BABYLON.SceneLoader.LoadAssetContainerAsync(
+        flock.modelPath,
+        modelName,
+        flock.scene,
+        null,
+        null,
+        { signal: flock.abortController.signal },
+      )
+        .then((container) => {
+          container.addAllToScene();
+          const mesh = container.meshes[0];
 
-        // Return nothing! Setup already handled it.
-        return;
-      })
-      .catch((error) => {
-        console.log("Error loading", error);
-        throw error;
-      });
+          flock.setupMesh(mesh, modelName, modelId, blockKey, scale, x, y, z);
 
-   flock.modelReadyPromises.set(modelId, loadPromise);
+          if (modelName.startsWith("Character")) {
+            flock.ensureStandardMaterial(mesh);
+          }
 
-    return modelId;
+          flock.applyColorsToCharacter(mesh, colors);
+
+          const descendants = mesh.getChildMeshes(false);
+          descendants.forEach((childMesh) => {
+            if (childMesh.getTotalVertices() > 0) {
+              childMesh.isPickable = true;
+              childMesh.flipFaces(true);
+            }
+          });
+
+          if (callback) {
+            requestAnimationFrame(() => callback());
+          }
+
+          // Return nothing! Setup already handled it.
+          return;
+        })
+        .catch((error) => {
+          console.log("Error loading", error);
+          throw error;
+        });
+
+      flock.modelReadyPromises.set(modelId, loadPromise);
+
+      return modelId;
+    }
   },
   createObject({
     modelName,
@@ -266,73 +315,79 @@ export const flockModels = {
         return meshName;
       }
 
-      const loadPromise =
-        flock.BABYLON.SceneLoader.LoadAssetContainerAsync(
-          flock.modelPath,
-          modelName,
-          flock.scene,
-        )
-          .then((container) => {
-            flock.ensureStandardMaterial(container.meshes[0]);
+      // Use unified approach with optimization systems for both modes
+      const loadPromise = flock.BABYLON.SceneLoader.LoadAssetContainerAsync(
+        flock.modelPath,
+        modelName,
+        flock.scene,
+      )
+        .then((container) => {
+          flock.ensureStandardMaterial(container.meshes[0]);
 
-            // First, add everything to the scene
-            container.addAllToScene();
+          // First, add everything to the scene
+          container.addAllToScene();
 
-            // Create the template mesh AFTER adding to scene
-            const firstMesh = container.meshes[0].clone(
-              `${modelName}_first`,
-            );
-            firstMesh.setEnabled(false);
-            firstMesh.isPickable = false;
+          // Create the template mesh AFTER adding to scene
+          const firstMesh = container.meshes[0].clone(
+            `${modelName}_first`,
+          );
+          firstMesh.setEnabled(false);
+          firstMesh.isPickable = false;
 
-            // Make sure all children of the template are also not pickable
-            firstMesh.getChildMeshes().forEach((child) => {
-              child.isPickable = false;
-              child.setEnabled(false);
-            });
-
-            // Store in cache
-            flock.modelCache[modelName] = firstMesh;
-
-            // Make sure the original mesh and its children ARE pickable and enabled
-            container.meshes[0].isPickable = true;
-            container.meshes[0].setEnabled(true);
-            container.meshes[0]
-              .getChildMeshes()
-              .forEach((child) => {
-                child.isPickable = true;
-                child.setEnabled(true); // Fixed the missing closing parenthesis
-              });
-
-            // Setup and color the active mesh
-            flock.setupMesh(
-              container.meshes[0],
-              modelName,
-              meshName,
-              blockKey,
-              scale,
-              x,
-              y,
-              z,
-              color,
-            );
-            flock.changeColorMesh(container.meshes[0], color);
-
-            if (callback) {
-              requestAnimationFrame(callback);
-            }
-          })
-          .catch((error) => {
-            console.error(
-              `Error loading model: ${modelName}`,
-              error,
-            );
-          })
-          .finally(() => {
-            delete flock.modelsBeingLoaded[modelName];
+          // Make sure all children of the template are also not pickable
+          firstMesh.getChildMeshes().forEach((child) => {
+            child.isPickable = false;
+            child.setEnabled(false);
           });
 
+          // Store in cache
+          flock.modelCache[modelName] = firstMesh;
+
+          // Make sure the original mesh and its children ARE pickable and enabled
+          container.meshes[0].isPickable = true;
+          container.meshes[0].setEnabled(true);
+          container.meshes[0]
+            .getChildMeshes()
+            .forEach((child) => {
+              child.isPickable = true;
+              child.setEnabled(true);
+            });
+
+          // Setup and color the active mesh
+          flock.setupMesh(
+            container.meshes[0],
+            modelName,
+            meshName,
+            blockKey,
+            scale,
+            x,
+            y,
+            z,
+            color,
+          );
+          flock.changeColorMesh(container.meshes[0], color);
+
+          if (callback) {
+            requestAnimationFrame(callback);
+          }
+        })
+        .catch((error) => {
+          console.error(
+            `Error loading model: ${modelName}`,
+            error,
+          );
+        })
+        .finally(() => {
+          delete flock.modelsBeingLoaded[modelName];
+        });
+
+      // Always track the loading promise for optimization
       flock.modelsBeingLoaded[modelName] = loadPromise;
+      
+      // Store promise for whenModelReady coordination if not in callback mode
+      if (!flock.callbackMode) {
+        flock.modelReadyPromises.set(meshName, loadPromise);
+      }
       return meshName;
     } catch (error) {
       console.warn("createObject: Error creating object:", error);
@@ -392,7 +447,7 @@ export const flockModels = {
       });
     }
 
-    // Start loading the model
+    // Start loading the model using unified approach
     //console.log(`Loading model: ${modelName}`);
     const loadPromise = flock.BABYLON.SceneLoader.LoadAssetContainerAsync(
       flock.modelPath,
@@ -432,8 +487,13 @@ export const flockModels = {
         delete flock.modelsBeingLoaded[modelName]; // Remove from loading map
       });
 
-    // Track the ongoing load
+    // Always track the ongoing load for optimization
     flock.modelsBeingLoaded[modelName] = loadPromise;
+    
+    // Store promise for whenModelReady coordination if not in callback mode
+    if (!flock.callbackMode) {
+      flock.modelReadyPromises.set(modelId, loadPromise);
+    }
 
     return modelId;
   },
