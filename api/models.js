@@ -103,7 +103,7 @@ export const flockModels = {
 
     if (flock.callbackMode) {
       // Use callback-based approach (createCharacter2 style)
-      flock.BABYLON.SceneLoader.LoadAssetContainerAsync(
+      const loadPromise = flock.BABYLON.SceneLoader.LoadAssetContainerAsync(
         flock.modelPath,
         modelName,
         flock.scene,
@@ -141,10 +141,16 @@ export const flockModels = {
           if (callback) {
             requestAnimationFrame(() => callback());
           }
+
+          // Return nothing! Setup already handled it.
+          return;
         })
         .catch((error) => {
           console.log("Error loading", error);
+          throw error;
         });
+
+      flock.modelReadyPromises.set(modelId, loadPromise);
 
       return modelId;
     } else {
@@ -189,7 +195,7 @@ export const flockModels = {
           throw error;
         });
 
-      flock.modelReadyPromises.set(modelId, loadPromise);
+      // Don't store promise in this mode - use generator approach instead
 
       return modelId;
     }
@@ -388,6 +394,7 @@ export const flockModels = {
       if (!flock.callbackMode) {
         flock.modelReadyPromises.set(meshName, loadPromise);
       }
+      
       return meshName;
     } catch (error) {
       console.warn("createObject: Error creating object:", error);

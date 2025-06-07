@@ -59,7 +59,7 @@ import {
 console.log("Flock helpers loading");
 
 export const flock = {
-	callbackMode: false,
+	callbackMode: true,
 	console: console,
 	modelPath: "./models/",
 	soundPath: "./sounds/",
@@ -829,33 +829,57 @@ export const flock = {
 			}
 		}
 
-		// For non-immediate targets, always check promises first (optimization)
-		const promise = flock.modelReadyPromises.get(id);
-		if (promise) {
+		// Use promise-based approach when callbackMode is true
+		if (flock.callbackMode) {
+			const promise = flock.modelReadyPromises.get(id);
+			if (!promise) {
+				console.warn(`No load started for object with id '${id}'`);
+				return;
+			}
+
 			promise.then(() => {
-				const mesh = flock.scene.getMeshByName(id);
-				if (mesh) {
-					callback(mesh);
+				// Check again for the target after promise resolves
+				let target = flock.scene.getMeshByName(id);
+				if (!target && flock.scene.UITexture) {
+					target = flock.scene.UITexture.getControlByName(id);
 				}
+				if (!target) {
+					target = flock.scene.animationGroups.find(
+						(group) => group.name === id,
+					);
+				}
+				if (!target) {
+					target = flock.scene.particleSystems.find(
+						(system) => system.name === id,
+					);
+				}
+				if (!target) {
+					console.error(`Target with id '${id}' not found in scene after loading.`);
+					return;
+				}
+				callback(target);
 			}).catch((err) => {
 				console.error(`Error in whenModelReady for '${id}':`, err);
 			});
 			return;
 		}
 
-		// Fall back to generator approach if no promise exists
+		// Use generator approach when callbackMode is false
 		(async () => {
 			const generator = flock.modelReadyGenerator(id);
 			try {
 				for await (const target of generator) {
 					if (flock.abortController.signal.aborted) {
+						console.log(`Aborted waiting for target: ${id}`);
 						return;
 					}
 					callback(target);
 					return;
 				}
 			} catch (err) {
-				if (!flock.abortController.signal.aborted) {
+				if (flock.abortController.signal.aborted) {
+					console.log(`Operation was aborted: ${id}`);
+				} else {
 					console.error(`Error in whenModelReady: ${err}`);
 				}
 			}
