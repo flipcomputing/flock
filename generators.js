@@ -365,7 +365,13 @@ export function defineGenerators() {
 			.join(", ");
 
 		// Return the final code, passing keyframes with durations and properties
-		return `${asyncWrapper}animateKeyFrames(${meshVar}, [${keyframesCode}], "${property}", "${easing}", ${loop}, ${reverse});\n`;
+		return `${asyncWrapper}animateKeyFrames(${meshVar}, {
+		  keyframes: [${keyframesCode}],
+		  property: "${property}",
+		  easing: "${easing}",
+		  loop: ${loop},
+		  reverse: ${reverse}
+		});\n`;
 	};
 
 	javascriptGenerator.forBlock["stop_animations"] = function (block) {
@@ -416,111 +422,6 @@ export function defineGenerators() {
 		);
 		const code = `{ value: new flock.BABYLON.Vector3(${x}, ${y}, ${z}), duration: ${duration} }`;
 		return [code, javascriptGenerator.ORDER_ATOMIC];
-	};
-
-	javascriptGenerator.forBlock["animate_keyframes"] = function (block) {
-		const meshVar = javascriptGenerator.nameDB_.getName(
-			block.getFieldValue("MESH"),
-			Blockly.Names.NameType.VARIABLE,
-		);
-		const keyframesBlock = block.getInputTargetBlock("KEYFRAMES");
-		const keyframesArray = [];
-
-		if (keyframesBlock) {
-			// Loop through keyframe blocks to gather data
-			for (let i = 0; i < keyframesBlock.inputList.length; i++) {
-				const keyframeInput = keyframesBlock.inputList[i];
-
-				const valueBlock = keyframeInput.connection
-					? keyframeInput.connection.targetBlock()
-					: null;
-				const durationBlock = keyframeInput.connection
-					? keyframeInput.connection.targetBlock()
-					: null;
-
-				let value;
-				const property = block.getFieldValue("PROPERTY");
-
-				if (valueBlock) {
-					if (property === "color") {
-						// Handle color keyframe (as a string)
-						value = javascriptGenerator.valueToCode(
-							valueBlock,
-							"VALUE",
-							javascriptGenerator.ORDER_NONE,
-						);
-					} else if (
-						["position", "rotation", "scaling"].includes(property)
-					) {
-						// Handle XYZ (Vector3) keyframe for position, rotation, or scaling
-						const x =
-							javascriptGenerator.valueToCode(
-								valueBlock,
-								"X",
-								javascriptGenerator.ORDER_ATOMIC,
-							) || 0;
-						const y =
-							javascriptGenerator.valueToCode(
-								valueBlock,
-								"Y",
-								javascriptGenerator.ORDER_ATOMIC,
-							) || 0;
-						const z =
-							javascriptGenerator.valueToCode(
-								valueBlock,
-								"Z",
-								javascriptGenerator.ORDER_ATOMIC,
-							) || 0;
-						value = `new flock.BABYLON.Vector3(${x}, ${y}, ${z})`; // Generate the text for Vector3, not the object itself
-					} else {
-						// Handle alpha or other properties
-						value = javascriptGenerator.valueToCode(
-							valueBlock,
-							"VALUE",
-							javascriptGenerator.ORDER_ATOMIC,
-						);
-					}
-				} else {
-					// Default values for missing blocks
-					value =
-						property === "color"
-							? '"#ffffff"'
-							: `new flock.BABYLON.Vector3(0, 0, 0)`; // Correct color string for colours
-				}
-
-				const duration = durationBlock
-					? javascriptGenerator.valueToCode(
-							durationBlock,
-							"DURATION",
-							javascriptGenerator.ORDER_ATOMIC,
-						)
-					: "1"; // Default duration of 1 second if not specified
-
-				keyframesArray.push({ value, duration });
-			}
-		}
-
-		const easing = block.getFieldValue("EASING") || "Linear";
-		const property = block.getFieldValue("PROPERTY") || "color"; // Default to "color" if no property is set
-
-		const loop = block.getFieldValue("LOOP") === "TRUE";
-		const reverse = block.getFieldValue("REVERSE") === "TRUE";
-		const mode = block.getFieldValue("MODE");
-
-		const asyncWrapper = mode === "AWAIT" ? "await " : "";
-
-		// Generate the keyframes text for both colors and Vector3
-		const keyframesCode = keyframesArray
-			.map(
-				(kf) => `{
-		value: ${kf.value}, 
-		duration: ${kf.duration}
-	  }`,
-			)
-			.join(", ");
-
-		// Return the final code, passing keyframes with durations and properties
-		return `${asyncWrapper}animateKeyFrames(${meshVar}, [${keyframesCode}], "${property}", "${easing}", ${loop}, ${reverse});\n`;
 	};
 
 	javascriptGenerator.forBlock["min_centre_max"] = function (block) {
@@ -1572,8 +1473,10 @@ export function defineGenerators() {
 			block.getFieldValue("MODEL"),
 			Blockly.Names.NameType.VARIABLE,
 		);
+		const loop = block.getFieldValue("LOOP") === "TRUE";
+		const restart = block.getFieldValue("RESTART") === "TRUE";
 
-		return `await playAnimation(${modelVar}, "${animationName}");\n`;
+		return `await playAnimation(${modelVar}, { loop: ${loop}, restart: ${restart} });\n`;
 	};
 
 	javascriptGenerator.forBlock["stop_all_sounds"] = function (block) {
@@ -1889,7 +1792,7 @@ export function defineGenerators() {
 		);
 		const animationName = block.getFieldValue("ANIMATION_NAME");
 
-		return `await switchAnimation(${modelName}, "${animationName}");\n`;
+		return `await switchAnimation(${modelName}, "${animationName}", {});\n`;
 	};
 
 	javascriptGenerator.forBlock["create_map"] = function (block) {
@@ -2788,7 +2691,7 @@ export function defineGenerators() {
 
 	javascriptGenerator.forBlock["keyword_block"] = function (block) {
 		// Since this block is replaced with another block, we return an empty string.
-		return "";
+				return "";
 	};
 }
 

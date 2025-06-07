@@ -661,11 +661,13 @@ export const flockAnimate = {
   },
   animateKeyFrames(
     meshName,
-    keyframes,
-    property,
-    easing = "Linear",
-    loop = false,
-    reverse = false,
+    {
+      keyframes,
+      property,
+      easing = "Linear",
+      loop = false,
+      reverse = false
+    } = {}
   ) {
     return new Promise(async (resolve) => {
       await flock.whenModelReady(meshName, async (mesh) => {
@@ -878,8 +880,10 @@ export const flockAnimate = {
     scene,
     mesh,
     animationName,
-    loop = true,
-    restart = false,
+    {
+      loop = true,
+      restart = false
+    } = {}
   ) {
     const newAnimationName = animationName;
 
@@ -934,35 +938,35 @@ export const flockAnimate = {
 
     return targetAnimationGroup;
   },
-  switchAnimation(modelName, animationName) {
-    return flock.whenModelReady(modelName, (mesh) => {
+  switchAnimation(meshName, { animationName, loop = true, restart = false } = {}) {
+    return flock.whenModelReady(meshName, (mesh) => {
       flock.switchToAnimation(
         flock.scene,
         mesh,
         animationName,
-        true,
-        false,
+        { loop, restart }
       );
     });
   },
   async playAnimation(
-    modelName,
-    animationName,
-    loop = false,
-    restart = true,
+    meshName,
+    {
+      animationName,
+      loop = false,
+      restart = true
+    } = {}
   ) {
     const maxAttempts = 100;
     const attemptInterval = 10;
 
     for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-      const mesh = flock.scene.getMeshByName(modelName);
+      const mesh = flock.scene.getMeshByName(meshName);
       if (mesh) {
         const animGroup = flock.switchToAnimation(
           flock.scene,
           mesh,
           animationName,
-          loop,
-          restart,
+          { loop, restart }
         );
 
         return new Promise((resolve) => {
@@ -982,7 +986,7 @@ export const flockAnimate = {
       });
     }
     console.error(
-      `Failed to find mesh "${modelName}" after ${maxAttempts} attempts.`,
+      `Failed to find mesh "${meshName}" after ${maxAttempts} attempts.`,
     );
   },
   async rotateAnim(meshName, {
