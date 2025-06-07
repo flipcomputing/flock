@@ -956,7 +956,7 @@ export const flockAnimate = {
       // Check if mesh exists immediately first
       const existingMesh = flock.scene?.getMeshByName(meshName);
       if (!existingMesh) {
-        console.warn(`Mesh '${meshName}' not found for switchAnimation.`);
+       // console.warn(`Mesh '${meshName}' not found for switchAnimation.`);
         resolve();
         return;
       }
