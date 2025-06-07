@@ -2,6 +2,38 @@ import { expect } from "chai";
 
 export function runEffectsTests(flock) {
   describe("Effects API", function () {
+	const createdEffects = [];
+	const createdMeshes = [];
+
+	afterEach(function () {
+	  // Clean up particle systems
+	  createdEffects.forEach(effectName => {
+		const system = flock.scene.particleSystems.find(s => s.name === effectName);
+		if (system) {
+		  system.dispose();
+		}
+	  });
+	  createdEffects.length = 0;
+
+	  // Clean up meshes
+	  createdMeshes.forEach(meshId => {
+		flock.dispose(meshId);
+	  });
+	  createdMeshes.length = 0;
+
+	  // Reset fog
+	  flock.scene.fogMode = flock.BABYLON.Scene.FOGMODE_NONE;
+	  flock.scene.fogColor = null;
+	  flock.scene.fogDensity = 0;
+	  flock.scene.fogStart = 0;
+	  flock.scene.fogEnd = 1000;
+
+	  // Reset light intensity
+	  if (flock.mainLight) {
+		flock.mainLight.intensity = 1;
+	  }
+	});
+
 	it("should set light intensity", function () {
 	  const light = { intensity: 0 };
 	  flock.mainLight = light;
@@ -18,6 +50,7 @@ export function runEffectsTests(flock) {
 		depth: 1,
 		position: [0, 0, 0],
 	  });
+	  createdMeshes.push(emitterId);
 
 	  const effectName = flock.createParticleEffect("test", {
 		emitterMesh: emitterId,
@@ -28,6 +61,7 @@ export function runEffectsTests(flock) {
 		lifetime: { min: 0.1, max: 0.2 },
 		shape: "flare.png",
 	  });
+	  createdEffects.push(effectName);
 
 	  expect(effectName).to.be.a("string");
 
