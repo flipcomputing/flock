@@ -1,3 +1,5 @@
+import earcut from "earcut";
+
 let flock;
 
 export function setFlockReference(ref) {
@@ -412,49 +414,59 @@ export const flockShapes = {
   }) {
     const { x, y, z } = position;
 
-    // Return modelId immediately
-    setTimeout(async () => {
-      const fontData = await (await fetch(font)).json();
+    // Create the loading promise
+    const loadPromise = new Promise(async (resolve, reject) => {
+      try {
+        const fontData = await (await fetch(font)).json();
 
-      const mesh = flock.BABYLON.MeshBuilder.CreateText(
-        modelId,
-        text,
-        fontData,
-        {
-          size: size,
-          depth: depth,
-        },
-        flock.scene,
-        earcut,
-      );
+        const mesh = flock.BABYLON.MeshBuilder.CreateText(
+          modelId,
+          text,
+          fontData,
+          {
+            size: size,
+            depth: depth,
+          },
+          flock.scene,
+          earcut,
+        );
 
-      mesh.position.set(x, y, z);
-      const material = new flock.BABYLON.StandardMaterial(
-        "textMaterial",
-        flock.scene,
-      );
+        mesh.position.set(x, y, z);
+        const material = new flock.BABYLON.StandardMaterial(
+          "textMaterial",
+          flock.scene,
+        );
 
-      material.diffuseColor = flock.BABYLON.Color3.FromHexString(
-        flock.getColorFromString(color),
-      );
+        material.diffuseColor = flock.BABYLON.Color3.FromHexString(
+          flock.getColorFromString(color),
+        );
 
-      mesh.material = material;
+        mesh.material = material;
 
-      mesh.computeWorldMatrix(true);
-      mesh.refreshBoundingInfo();
-      mesh.setEnabled(true);
-      mesh.visibility = 1;
+        mesh.computeWorldMatrix(true);
+        mesh.refreshBoundingInfo();
+        mesh.setEnabled(true);
+        mesh.visibility = 1;
 
-      const textShape = new flock.BABYLON.PhysicsShapeMesh(
-        mesh,
-        flock.scene,
-      );
-      flock.applyPhysics(mesh, textShape);
+        const textShape = new flock.BABYLON.PhysicsShapeMesh(
+          mesh,
+          flock.scene,
+        );
+        flock.applyPhysics(mesh, textShape);
 
-      if (callback) {
-        requestAnimationFrame(callback);
+        if (callback) {
+          requestAnimationFrame(callback);
+        }
+
+        resolve();
+      } catch (error) {
+        console.error(`Error creating 3D text '${modelId}':`, error);
+        reject(error);
       }
-    }, 0);
+    });
+
+    // Store promise for whenModelReady coordination
+    flock.modelReadyPromises.set(modelId, loadPromise);
 
     return modelId;
   },

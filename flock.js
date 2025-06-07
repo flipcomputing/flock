@@ -59,7 +59,7 @@ import {
 console.log("Flock helpers loading");
 
 export const flock = {
-	callbackMode: false,
+	callbackMode: true,
 	console: console,
 	modelPath: "./models/",
 	soundPath: "./sounds/",
@@ -832,6 +832,7 @@ export const flock = {
 		// Use promise-based approach when callbackMode is true
 		if (flock.callbackMode) {
 			const promise = flock.modelReadyPromises.get(id);
+			
 			if (!promise) {
 				console.warn(`No load started for object with id '${id}'`);
 				return;
