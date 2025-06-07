@@ -1473,17 +1473,10 @@ export function defineGenerators() {
 			block.getFieldValue("MODEL"),
 			Blockly.Names.NameType.VARIABLE,
 		);
-		const loop = block.getFieldValue("LOOP") === "TRUE";
-		const restart = block.getFieldValue("RESTART") === "TRUE";
 
-		const animGroup = flock.switchToAnimation(
-		  modelVar,
-		  animationName,
-		  { loop, restart }
-		);
-
-		return `await playAnimationGroup(${animGroup});\n`;
+		return `await playAnimation(${modelVar}, {animationName: "${animationName}"});\n`;
 	};
+
 
 	javascriptGenerator.forBlock["stop_all_sounds"] = function (block) {
 		// JavaScript code to stop all sounds in a Babylon.js scene
