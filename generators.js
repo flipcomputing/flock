@@ -1792,7 +1792,7 @@ export function defineGenerators() {
 		);
 		const animationName = block.getFieldValue("ANIMATION_NAME");
 
-		return `await switchAnimation(${modelName}, "${animationName}", {});\n`;
+		return `await switchAnimation(${modelName}, { animationName: "${animationName}" });\n`;
 	};
 
 	javascriptGenerator.forBlock["create_map"] = function (block) {

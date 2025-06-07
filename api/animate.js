@@ -670,6 +670,14 @@ export const flockAnimate = {
     } = {}
   ) {
     return new Promise(async (resolve) => {
+      // Check if mesh exists immediately first
+      const existingMesh = flock.scene?.getMeshByName(meshName);
+      if (!existingMesh) {
+        console.warn(`Mesh '${meshName}' not found for animateKeyFrames.`);
+        resolve();
+        return;
+      }
+
       await flock.whenModelReady(meshName, async (mesh) => {
         if (!mesh) {
           resolve();
@@ -877,10 +885,10 @@ export const flockAnimate = {
     return false;
   },
   switchToAnimation(
-    scene,
     mesh,
     animationName,
     {
+      scene = flock.scene,
       loop = true,
       restart = false
     } = {}
@@ -939,12 +947,18 @@ export const flockAnimate = {
     return targetAnimationGroup;
   },
   switchAnimation(meshName, { animationName, loop = true, restart = false } = {}) {
+    // Check if mesh exists immediately first
+    const existingMesh = flock.scene?.getMeshByName(meshName);
+    if (!existingMesh) {
+      console.warn(`Mesh '${meshName}' not found for switchAnimation.`);
+      return Promise.resolve();
+    }
+
     return flock.whenModelReady(meshName, (mesh) => {
       flock.switchToAnimation(
-        flock.scene,
         mesh,
         animationName,
-        { loop, restart }
+        { scene: flock.scene, loop, restart }
       );
     });
   },
@@ -963,10 +977,9 @@ export const flockAnimate = {
       const mesh = flock.scene.getMeshByName(meshName);
       if (mesh) {
         const animGroup = flock.switchToAnimation(
-          flock.scene,
           mesh,
           animationName,
-          { loop, restart }
+          { scene: flock.scene, loop, restart }
         );
 
         return new Promise((resolve) => {
