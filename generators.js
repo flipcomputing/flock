@@ -1476,7 +1476,13 @@ export function defineGenerators() {
 		const loop = block.getFieldValue("LOOP") === "TRUE";
 		const restart = block.getFieldValue("RESTART") === "TRUE";
 
-		return `await playAnimation(${modelVar}, { loop: ${loop}, restart: ${restart} });\n`;
+		const animGroup = flock.switchToAnimation(
+		  modelVar,
+		  animationName,
+		  { loop, restart }
+		);
+
+		return `await playAnimationGroup(${animGroup});\n`;
 	};
 
 	javascriptGenerator.forBlock["stop_all_sounds"] = function (block) {
@@ -1719,7 +1725,7 @@ export function defineGenerators() {
 			Blockly.Names.NameType.VARIABLE,
 		);
 		const color = getFieldValue(block, "COLOR", "#FFD700");
-		return `await highlight(${modelName}, { color: ${color} });\n`;
+		return`await highlight(${modelName}, { color: ${color} });\n`;
 	};
 
 	javascriptGenerator.forBlock["glow"] = function (block) {
