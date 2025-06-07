@@ -1,4 +1,3 @@
-
 import { expect } from "chai";
 
 export function runAnimateTests(flock) {
@@ -376,22 +375,22 @@ export function runAnimateTests(flock) {
 
 				// Test play
 				flock.playAnimationGroup(groupName);
-				
+
 				// Give a small delay for the animation to start
 				await new Promise(resolve => setTimeout(resolve, 10));
 				expect(animGroup.isStarted).to.be.true;
 
 				// Test pause - check if animation stops progressing
 				flock.pauseAnimationGroup(groupName);
-				
+
 				// Wait a bit and check if the animation is effectively paused
 				await new Promise(resolve => setTimeout(resolve, 50));
 				const frameAfterPause = animGroup.targetedAnimations[0]?.animation?.runtimeAnimations[0]?.currentFrame;
-				
+
 				// Wait a bit more
 				await new Promise(resolve => setTimeout(resolve, 100));
 				const frameAfterMoreWait = animGroup.targetedAnimations[0]?.animation?.runtimeAnimations[0]?.currentFrame;
-				
+
 				// If paused, the frame should not have progressed significantly
 				expect(Math.abs((frameAfterMoreWait || 0) - (frameAfterPause || 0))).to.be.lessThan(5);
 
@@ -458,8 +457,8 @@ export function runAnimateTests(flock) {
 				];
 
 				await flock.animateKeyFrames(boxId, {
-					property: "color",
-					keyframes: keyframes
+					keyframes: keyframes,
+					property: "color"
 				});
 
 				const mesh = flock.scene.getMeshByName(boxId);
@@ -484,8 +483,8 @@ export function runAnimateTests(flock) {
 				];
 
 				await flock.animateKeyFrames(boxId, {
-					property: "alpha",
-					keyframes: keyframes
+					keyframes: keyframes,
+					property: "alpha"
 				});
 
 				const mesh = flock.scene.getMeshByName(boxId);
@@ -510,8 +509,8 @@ export function runAnimateTests(flock) {
 				];
 
 				await flock.animateKeyFrames(boxId, {
-					property: "position",
-					keyframes: keyframes
+					keyframes: keyframes,
+					property: "position"
 				});
 
 				const mesh = flock.scene.getMeshByName(boxId);
@@ -535,8 +534,8 @@ export function runAnimateTests(flock) {
 				];
 
 				await flock.animateKeyFrames(boxId, {
-					property: "rotation",
-					keyframes: keyframes
+					keyframes: keyframes,
+					property: "rotation"
 				});
 
 				const mesh = flock.scene.getMeshByName(boxId);
@@ -560,8 +559,8 @@ export function runAnimateTests(flock) {
 				];
 
 				await flock.animateKeyFrames(boxId, {
-					property: "scaling",
-					keyframes: keyframes
+					keyframes: keyframes,
+					property: "scaling"
 				});
 
 				const mesh = flock.scene.getMeshByName(boxId);
@@ -584,8 +583,8 @@ export function runAnimateTests(flock) {
 				];
 
 				await flock.animateKeyFrames(boxId, {
-					property: "color",
 					keyframes: keyframes,
+					property: "color",
 					easing: "ease-in",
 					loop: false,
 					reverse: false
@@ -603,10 +602,10 @@ export function runAnimateTests(flock) {
 
 				// This should not throw an error
 				await flock.animateKeyFrames("nonExistentMesh", {
-					property: "color",
-					keyframes: keyframes
+					keyframes: keyframes,
+					property: "color"
 				});
-				
+
 				// If we get here without throwing, the test passes
 				expect(true).to.be.true;
 			});
@@ -623,8 +622,8 @@ export function runAnimateTests(flock) {
 
 				// This should complete without error
 				await flock.animateKeyFrames(boxId, {
-					property: "color",
-					keyframes: []
+					keyframes: [],
+					property: "color"
 				});
 
 				const mesh = flock.scene.getMeshByName(boxId);
@@ -646,8 +645,8 @@ export function runAnimateTests(flock) {
 				];
 
 				await flock.animateKeyFrames(boxId, {
-					property: "color",
-					keyframes: keyframes
+					keyframes: keyframes,
+					property: "color"
 				});
 
 				const mesh = flock.scene.getMeshByName(boxId);
@@ -752,7 +751,7 @@ export function runAnimateTests(flock) {
 				const startTime = Date.now();
 				await flock.switchAnimation("nonExistentMesh", { animationName: "TestAnimation" });
 				const endTime = Date.now();
-				
+
 				// Should complete quickly since mesh doesn't exist
 				expect(endTime - startTime).to.be.lessThan(100);
 				expect(true).to.be.true;
@@ -869,7 +868,7 @@ export function runAnimateTests(flock) {
 			it("should handle missing mesh gracefully", async function () {
 				// This test accounts for the retry mechanism in whenModelReady
 				this.timeout(5000);
-				
+
 				const startTime = Date.now();
 				try {
 					await flock.playAnimation("nonExistentMesh", { animationName: "TestAnimation" });
@@ -927,7 +926,7 @@ export function runAnimateTests(flock) {
 			it("should handle missing mesh gracefully in rotateAnim", async function () {
 				// This should not throw an error
 				await flock.rotateAnim("nonExistentMesh", { x: 90 });
-				
+
 				// If we get here without throwing, the test passes
 				expect(true).to.be.true;
 			});
@@ -935,7 +934,7 @@ export function runAnimateTests(flock) {
 			it("should handle missing mesh gracefully in glideTo", async function () {
 				// This should not throw an error
 				await flock.glideTo("nonExistentMesh", 1, 1, 1, 100);
-				
+
 				// If we get here without throwing, the test passes
 				expect(true).to.be.true;
 			});
@@ -943,7 +942,7 @@ export function runAnimateTests(flock) {
 			it("should handle missing mesh gracefully in animateProperty", async function () {
 				// This should not throw an error
 				await flock.animateProperty("nonExistentMesh", { property: "alpha", targetValue: 0.5, duration: 100 });
-				
+
 				// If we get here without throwing, the test passes
 				expect(true).to.be.true;
 			});
