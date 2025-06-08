@@ -2085,23 +2085,44 @@ window.onload = function () {
 		const file = event.target.files[0];
 		if (!file) return;
 
+		// Validate file size (max 5MB)
+		const maxSize = 5 * 1024 * 1024;
+		if (file.size > maxSize) {
+			alert("File too large. Maximum size is 5MB.");
+			return;
+		}
+
+		// Validate file type
+		if (!file.name.toLowerCase().endsWith('.json')) {
+			alert("Only JSON files are allowed.");
+			return;
+		}
+
 		const reader = new FileReader();
 		reader.onload = function () {
 		  window.loadingCode = true;
 
 		  try {
 			const text = reader.result;
+			
+			// Validate JSON structure before parsing
+			if (typeof text !== 'string' || text.length > 1024 * 1024) {
+				throw new Error("File content is invalid or too large");
+			}
+			
 			const json = JSON.parse(text);
 
-			// Minimal validation for Blockly workspace structure
-			if (!json || typeof json !== "object" || !json.blocks) {
-			  throw new Error("Invalid Blockly project file");
+			// Enhanced validation for Blockly workspace structure
+			if (!json || typeof json !== "object" || !json.blocks || 
+				typeof json.blocks !== "object" || !json.blocks.blocks) {
+			  throw new Error("Invalid Blockly project file structure");
 			}
 
-			// Set project name from filename
+			// Validate project name to prevent XSS
 			const rawName = file.name || "untitled";
+			const sanitizedName = rawName.replace(/[^a-zA-Z0-9_-]/g, '').substring(0, 50) || "untitled";
 			document.getElementById("projectName").value = stripFilename(
-			  rawName.replace(".json", "")
+			  sanitizedName.replace(".json", "")
 			);
 
 			loadWorkspaceAndExecute(json, workspace, executeCode);
@@ -2114,6 +2135,7 @@ window.onload = function () {
 
 		reader.onerror = function () {
 		  alert("Failed to read file.");
+		  window.loadingCode = false;
 		};
 
 		reader.readAsText(file);

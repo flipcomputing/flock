@@ -219,21 +219,39 @@ export const flockModels = {
     callback = null,
   } = {}) {
     try {
-      // Basic parameter validation with warnings
-      if (!modelName) {
-        console.warn("createObject: Missing modelName parameter");
+      // Enhanced parameter validation
+      if (!modelName || typeof modelName !== 'string' || modelName.length > 100) {
+        console.warn("createObject: Invalid modelName parameter");
         return "error_" + flock.scene.getUniqueId();
       }
 
-      if (!modelId) {
-        console.warn("createObject: Missing modelId parameter");
+      if (!modelId || typeof modelId !== 'string' || modelId.length > 100) {
+        console.warn("createObject: Invalid modelId parameter");
         return "error_" + flock.scene.getUniqueId();
       }
+
+      // Sanitize modelName and modelId to prevent path traversal
+      const sanitizedModelName = modelName.replace(/[^a-zA-Z0-9._-]/g, '');
+      const sanitizedModelId = modelId.replace(/[^a-zA-Z0-9._-]/g, '');
 
       if (!position || typeof position !== "object") {
         console.warn("createObject: Invalid position parameter");
         position = { x: 0, y: 0, z: 0 };
       }
+
+      // Validate numeric parameters
+      if (typeof scale !== 'number' || scale < 0.01 || scale > 100) {
+        scale = 1;
+      }
+
+      // Validate position values
+      ['x', 'y', 'z'].forEach(axis => {
+        if (typeof position[axis] !== 'number' || !isFinite(position[axis])) {
+          position[axis] = 0;
+        }
+        // Clamp position values to reasonable bounds
+        position[axis] = Math.max(-1000, Math.min(1000, position[axis]));
+      });
 
       const { x, y, z } = position;
 

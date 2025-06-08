@@ -144,6 +144,40 @@ export const flock = {
 
 			await iframeWindow.flock.initializeNewScene();
 
+			// Step 6: Validate and sanitize code input
+			if (typeof code !== 'string') {
+				throw new Error('Code must be a string');
+			}
+			
+			// Basic validation to prevent obvious malicious patterns
+			const forbiddenPatterns = [
+				/eval\s*\(/,
+				/Function\s*\(/,
+				/setTimeout\s*\(/,
+				/setInterval\s*\(/,
+				/XMLHttpRequest/,
+				/fetch\s*\(/,
+				/import\s*\(/,
+				/require\s*\(/,
+				/process\./,
+				/global\./,
+				/window\./,
+				/document\./,
+				/location\./,
+				/navigator\./
+			];
+			
+			for (const pattern of forbiddenPatterns) {
+				if (pattern.test(code)) {
+					throw new Error('Code contains forbidden patterns');
+				}
+			}
+			
+			// Limit code length
+			if (code.length > 50000) {
+				throw new Error('Code too long');
+			}
+
 			// Step 6: Create sandboxed function
 			const sandboxFunction = new iframeWindow.Function(`
 			"use strict";
@@ -1366,10 +1400,19 @@ export const flock = {
 		return result;
 	},	
 	sanitizeEventName(eventName) {
-		return eventName.replace(/[^a-zA-Z0-9_-]/g, "");
+		if (typeof eventName !== 'string') {
+			return '';
+		}
+		// Only allow alphanumeric characters and underscores
+		return eventName.replace(/[^a-zA-Z0-9_]/g, "").substring(0, 50);
 	},
 	isAllowedEventName(eventName) {
-		return !eventName.startsWith("_");
+		if (!eventName || typeof eventName !== 'string') {
+			return false;
+		}
+		// Prevent reserved names and system events
+		const reservedPrefixes = ['_', 'on', 'system', 'internal', 'babylon', 'flock'];
+		return !reservedPrefixes.some(prefix => eventName.toLowerCase().startsWith(prefix));
 	},
 	onEvent(eventName, handler, once = false) {
 		eventName = flock.sanitizeEventName(eventName);
