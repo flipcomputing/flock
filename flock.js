@@ -43,18 +43,9 @@ import {
 	flockPhysics,
 	setFlockReference as setFlockPhysics,
 } from "./api/physics";
-import {
-	flockScene,
-	setFlockReference as setFlockScene,
-} from "./api/scene";
-import {
-	flockMesh,
-	setFlockReference as setFlockMesh,
-} from "./api/mesh";
-import {
-	flockCamera,
-	setFlockReference as setFlockCamera,
-} from "./api/camera";
+import { flockScene, setFlockReference as setFlockScene } from "./api/scene";
+import { flockMesh, setFlockReference as setFlockMesh } from "./api/mesh";
+import { flockCamera, setFlockReference as setFlockCamera } from "./api/camera";
 // Helper functions to make flock.BABYLON js easier to use in Flock
 console.log("Flock helpers loading");
 
@@ -119,41 +110,86 @@ export const flock = {
 
 	// Enhanced security validation
 	validateCode(code) {
-		if (typeof code !== 'string') {
-			throw new Error('Code must be a string');
+		if (typeof code !== "string") {
+			throw new Error("Code must be a string");
 		}
-		
+
 		// Enhanced forbidden patterns with more specific detection
 		const forbiddenPatterns = [
-			{ pattern: /eval\s*\(/, message: 'eval() is not allowed' },
-			{ pattern: /Function\s*\(/, message: 'Function constructor is not allowed' },
-			{ pattern: /setTimeout\s*\(/, message: 'setTimeout is not allowed' },
-			{ pattern: /setInterval\s*\(/, message: 'setInterval is not allowed' },
-			{ pattern: /XMLHttpRequest/, message: 'XMLHttpRequest is not allowed' },
-			{ pattern: /fetch\s*\(/, message: 'fetch is not allowed' },
-			{ pattern: /import\s*\(/, message: 'dynamic imports are not allowed' },
-			{ pattern: /require\s*\(/, message: 'require is not allowed' },
-			{ pattern: /process\./, message: 'process object access is not allowed' },
-			{ pattern: /global\./, message: 'global object access is not allowed' },
-			{ pattern: /window\.(?!flock)/, message: 'direct window access is not allowed' },
-			{ pattern: /document\.(?!getElementById|createElement|fonts)/, message: 'unsafe document access is not allowed' },
-			{ pattern: /location\./, message: 'location object access is not allowed' },
-			{ pattern: /navigator\./, message: 'navigator object access is not allowed' },
-			{ pattern: /localStorage\./, message: 'localStorage access is not allowed' },
-			{ pattern: /sessionStorage\./, message: 'sessionStorage access is not allowed' },
-			{ pattern: /indexedDB\./, message: 'indexedDB access is not allowed' },
-			{ pattern: /postMessage\s*\(/, message: 'postMessage is not allowed' },
+			{ pattern: /eval\s*\(/, message: "eval() is not allowed" },
+			{
+				pattern: /Function\s*\(/,
+				message: "Function constructor is not allowed",
+			},
+			{
+				pattern: /setTimeout\s*\(/,
+				message: "setTimeout is not allowed",
+			},
+			{
+				pattern: /setInterval\s*\(/,
+				message: "setInterval is not allowed",
+			},
+			{
+				pattern: /XMLHttpRequest/,
+				message: "XMLHttpRequest is not allowed",
+			},
+			{ pattern: /fetch\s*\(/, message: "fetch is not allowed" },
+			{
+				pattern: /import\s*\(/,
+				message: "dynamic imports are not allowed",
+			},
+			{ pattern: /require\s*\(/, message: "require is not allowed" },
+			{
+				pattern: /process\./,
+				message: "process object access is not allowed",
+			},
+			{
+				pattern: /global\./,
+				message: "global object access is not allowed",
+			},
+			{
+				pattern: /window\.(?!flock)/,
+				message: "direct window access is not allowed",
+			},
+			{
+				pattern: /document\.(?!getElementById|createElement|fonts)/,
+				message: "unsafe document access is not allowed",
+			},
+			{
+				pattern: /location\./,
+				message: "location object access is not allowed",
+			},
+			{
+				pattern: /navigator\./,
+				message: "navigator object access is not allowed",
+			},
+			{
+				pattern: /localStorage\./,
+				message: "localStorage access is not allowed",
+			},
+			{
+				pattern: /sessionStorage\./,
+				message: "sessionStorage access is not allowed",
+			},
+			{
+				pattern: /indexedDB\./,
+				message: "indexedDB access is not allowed",
+			},
+			{
+				pattern: /postMessage\s*\(/,
+				message: "postMessage is not allowed",
+			},
 		];
-		
+
 		for (const { pattern, message } of forbiddenPatterns) {
 			if (pattern.test(code)) {
 				throw new Error(`Security violation: ${message}`);
 			}
 		}
-		
+
 		// Limit code length
 		if (code.length > 100000) {
-			throw new Error('Code too long (max 100KB)');
+			throw new Error("Code too long (max 100KB)");
 		}
 
 		return true;
@@ -164,7 +200,7 @@ export const flock = {
 		let hash = 0;
 		for (let i = 0; i < code.length; i++) {
 			const char = code.charCodeAt(i);
-			hash = ((hash << 5) - hash) + char;
+			hash = (hash << 5) - hash + char;
 			hash = hash & hash; // Convert to 32-bit integer
 		}
 		return hash.toString(36);
@@ -172,12 +208,12 @@ export const flock = {
 
 	// Enhanced error reporting with block context
 	createEnhancedError(error, code) {
-		const lines = code.split('\n');
+		const lines = code.split("\n");
 		const errorContext = {
 			message: error.message,
 			stack: error.stack,
 			codeSnippet: null,
-			suggestion: null
+			suggestion: null,
 		};
 
 		// Try to extract line number from error
@@ -187,83 +223,209 @@ export const flock = {
 			if (lineNum >= 0 && lineNum < lines.length) {
 				const start = Math.max(0, lineNum - 2);
 				const end = Math.min(lines.length, lineNum + 3);
-				errorContext.codeSnippet = lines.slice(start, end).map((line, idx) => {
-					const actualLine = start + idx;
-					const marker = actualLine === lineNum ? '>>> ' : '    ';
-					return `${marker}${actualLine + 1}: ${line}`;
-				}).join('\n');
+				errorContext.codeSnippet = lines
+					.slice(start, end)
+					.map((line, idx) => {
+						const actualLine = start + idx;
+						const marker = actualLine === lineNum ? ">>> " : "    ";
+						return `${marker}${actualLine + 1}: ${line}`;
+					})
+					.join("\n");
 			}
 		}
 
 		// Add common error suggestions
-		if (error.message.includes('is not defined')) {
-			errorContext.suggestion = 'Check if the variable or function name is spelled correctly and has been declared.';
-		} else if (error.message.includes('Cannot read property')) {
-			errorContext.suggestion = 'Check if the object exists before accessing its properties.';
+		if (error.message.includes("is not defined")) {
+			errorContext.suggestion =
+				"Check if the variable or function name is spelled correctly and has been declared.";
+		} else if (error.message.includes("Cannot read property")) {
+			errorContext.suggestion =
+				"Check if the object exists before accessing its properties.";
 		}
 
 		return errorContext;
 	},
-
+	createVector3(x, y, z) {
+		return new flock.BABYLON.Vector3(x, y, z);
+	},
 	async runCode(code) {
+		let iframe = document.getElementById("flock-iframe");
+
 		try {
 			// Validate code first
 			this.validateCode(code);
 
-			// Always dispose old scene and create new one (no caching)
-			await this.disposeOldScene();
+			// Step 1: Dispose old scene if iframe exists
+			if (iframe) {
+				try {
+					await iframe.contentWindow?.flock?.disposeOldScene();
+				} catch (error) {
+					console.warn("Error disposing old scene in iframe:", error);
+				}
+			} else {
+				// Step 2: Create a new iframe if not found
+				iframe = document.createElement("iframe");
+				iframe.id = "flock-iframe";
+				iframe.style.display = "none";
+				document.body.appendChild(iframe);
+			}
 
-			// Initialize new scene
-			this.createEngine();
+			// Step 3: Wait for iframe to load
+			await new Promise((resolve, reject) => {
+				iframe.onload = () => resolve();
+				iframe.onerror = () =>
+					reject(new Error("Failed to load iframe"));
+				iframe.src = "about:blank";
+			});
+
+			// Step 4: Access iframe window and set up flock
+			const iframeWindow = iframe.contentWindow;
+			if (!iframeWindow) throw new Error("Iframe window is unavailable");
+
+			// Copy flock reference to iframe
+			iframeWindow.flock = this;
+
+			// Initialize new scene in iframe context
 			await this.initializeNewScene();
 
-			// Create execution context with better error handling
-			const executionContext = {
-				// Expose only safe flock API functions
-				...Object.fromEntries(
-					Object.entries(this).filter(([key, value]) => 
-						typeof value === 'function' && 
-						!key.startsWith('_') && 
-						!['runCode', 'validateCode'].includes(key)
-					)
-				),
-				// Add utility functions
-				console: {
-					log: (...args) => console.log('[Flock]', ...args),
-					warn: (...args) => console.warn('[Flock]', ...args),
-					error: (...args) => console.error('[Flock]', ...args)
-				},
-				// Helper function for creating Vector3 objects
-				createVector3: (x, y, z) => new this.BABYLON.Vector3(x, y, z)
-			};
-
-			// Wrap code in async function with better error boundaries
-			const wrappedCode = `
+			// Step 5: Create sandboxed function with all flock API methods
+			const sandboxFunction = new iframeWindow.Function(`
 				"use strict";
-				return (async function flockUserCode() {
-					try {
-						${code}
-					} catch (userError) {
-						console.error('Error in user code:', userError);
-						throw userError;
-					}
-				})();
-			`;
 
-			// Create and execute function
-			const userFunction = new Function(...Object.keys(executionContext), wrappedCode);
-			
-			// Execute with timeout protection
-			const executionPromise = userFunction(...Object.values(executionContext));
-			const timeoutPromise = new Promise((_, reject) => 
-				setTimeout(() => reject(new Error('Code execution timeout (30s)')), 30000)
-			);
+				const {
+					initialize,
+						createEngine,
+						createScene,
+						playAnimation,
+						playSound,
+						stopAllSounds,
+						playNotes,
+						setBPM,
+						createInstrument,
+						switchAnimation,
+						highlight,
+						glow,
+						createCharacter,
+						createObject,
+						createParticleEffect,
+						create3DText,
+						createModel,
+						createBox,
+						createSphere,
+						createCylinder,
+						createCapsule,
+						createPlane,
+						cloneMesh,
+						parentChild,
+						setParent,
+						mergeMeshes,
+						subtractMeshes,
+						intersectMeshes,
+						createHull,
+						hold, 
+						drop,
+						makeFollow,
+						stopFollow,
+						removeParent,
+						createGround,
+						createMap,
+						createCustomMap,
+						setSky,
+						lightIntensity,
+						buttonControls,
+						getCamera,
+						cameraControl,
+						setCameraBackground,
+						setXRMode,
+						applyForce,
+						moveByVector,
+						glideTo,
+						createAnimation,
+						animateFrom,
+						playAnimationGroup, 
+						pauseAnimationGroup, 
+						stopAnimationGroup,
+						startParticleSystem,
+						stopParticleSystem,
+						resetParticleSystem,
+						animateKeyFrames,
+						setPivotPoint,
+						rotate,
+						lookAt,
+						moveTo,
+						rotateTo,
+						rotateCamera,
+						rotateAnim,
+						animateProperty,
+						positionAt,
+						distanceTo,
+						wait,
+						safeLoop,
+						waitUntil,
+						show,
+						hide,
+						clearEffects,
+						stopAnimations,
+						tint,
+						setAlpha,
+						dispose,
+						setFog,
+						keyPressed,
+						isTouchingSurface,
+						seededRandom,
+						randomColour,
+						scale,
+						resize,
+						changeColor,
+						changeColorMesh,
+						changeMaterial,
+						setMaterial,
+						createMaterial,
+						textMaterial,
+						createDecal,
+						placeDecal,
+						moveForward,
+						moveSideways,
+						strafe,
+						attachCamera,
+						canvasControls,
+						setPhysics,
+						setPhysicsShape,
+						checkMeshesTouching,
+						say,
+						onTrigger,
+						onEvent,
+						broadcastEvent,
+						Mesh,
+						start,
+						forever,
+						whenKeyEvent,
+						randomInteger,
+						printText,
+						UIText,
+						UIButton,
+						onIntersect,
+						getProperty,
+						exportMesh,
+						abortSceneExecution,
+						ensureUniqueGeometry,
+						createVector3,
+				} = flock;
 
-			await Promise.race([executionPromise, timeoutPromise]);
+				${code}
+			`);
+
+			// Execute sandboxed code
+			try {
+				await sandboxFunction();
+			} catch (sandboxError) {
+				throw new Error(
+					`Sandbox execution failed: ${sandboxError.message}`,
+				);
+			}
 
 			// Focus render canvas
 			document.getElementById("renderCanvas")?.focus();
-
 		} catch (error) {
 			// Enhanced error reporting
 			const enhancedError = this.createEnhancedError(error, code);
@@ -271,7 +433,7 @@ export const flock = {
 
 			// Show user-friendly error
 			this.printText(`Error: ${error.message}`, 5, "#ff0000");
-			
+
 			// Clean up on error
 			try {
 				this.audioContext?.close();
@@ -371,7 +533,7 @@ export const flock = {
 
 		flock.engine = new flock.BABYLON.Engine(flock.canvas, true, {
 			preserveDrawingBuffer: true,
-			stencil: true
+			stencil: true,
 		});
 
 		flock.engine.enableOfflineSupport = false;
@@ -380,66 +542,207 @@ export const flock = {
 	async disposeOldScene() {
 		console.log("Disposing old scene");
 		flock.flockNotReady = true;
+
 		if (flock.scene) {
+			// Stop all sounds and animations first
 			flock.stopAllSounds();
 			flock.engine.stopRenderLoop();
-			flock.scene.meshes.forEach((mesh) => {
-				if (mesh.actionManager) {
-					mesh.actionManager.dispose(); // Dispose the action manager to remove all actions
-				}
-			});
-			flock.scene.activeCamera?.inputs?.clear();
-			flock.events = null;
-			flock.modelCache = null;
-			flock.globalSounds = [];
-			flock.modelsBeingLoaded = null;
-			flock.originalModelTransformations = null;
-			flock.geometryCache = null;
-			flock.materialCache = null;
-			flock.ground = null;
-			flock.sky = null;
-			// Abort any ongoing operations if applicable
-			if (flock.abortController) {
-				flock.abortController.abort(); // Abort any pending operations
-				flock.scene.stopAllAnimations();
 
-				// Wait briefly to ensure all asynchronous tasks complete
-				await new Promise((resolve) => setTimeout(resolve, 50));
+			// Abort any ongoing operations
+			if (flock.abortController) {
+				flock.abortController.abort();
 			}
 
-			// Remove event listeners before disposing of the scene
+			// Stop all animations and dispose animation groups
+			flock.scene.stopAllAnimations();
+			if (flock.scene.animationGroups) {
+				flock.scene.animationGroups.forEach((group) => {
+					if (group) {
+						try {
+							group.stop();
+							group.dispose();
+						} catch (error) {
+							console.warn(
+								"Error disposing animation group:",
+								error,
+							);
+						}
+					}
+				});
+			}
+
+			// Clear all observables and event listeners
 			flock.removeEventListeners();
 
+			// Dispose UI elements
 			flock.controlsTexture?.dispose();
 			flock.controlsTexture = null;
+
+			// Clear main UI texture and all its controls
+			if (flock.scene.UITexture) {
+				flock.scene.UITexture.dispose();
+				flock.scene.UITexture = null;
+			}
+
+			// Clear advanced texture and stack panel
+			if (flock.advancedTexture) {
+				flock.advancedTexture.dispose();
+				flock.advancedTexture = null;
+			}
+
+			if (flock.stackPanel) {
+				flock.stackPanel.dispose();
+				flock.stackPanel = null;
+			}
 
 			flock.gridKeyPressObservable?.clear();
 			flock.gridKeyReleaseObservable?.clear();
 
+			// Dispose effects
 			flock.highlighter?.dispose();
 			flock.highlighter = null;
 			flock.glowLayer?.dispose();
 			flock.glowLayer = null;
+
+			// Dispose lighting
 			flock.mainLight?.dispose();
 			flock.mainLight = null;
 
-			// Dispose of the scene directly
-			flock.scene.activeCamera?.inputs?.clear();
+			// Dispose all meshes and their action managers
+			const meshesToDispose = flock.scene.meshes
+				? [...flock.scene.meshes]
+				: [];
+			meshesToDispose.forEach((mesh) => {
+				if (mesh && mesh.actionManager) {
+					mesh.actionManager.dispose();
+				}
+				if (
+					mesh &&
+					mesh.material &&
+					mesh.material.dispose &&
+					typeof mesh.material.dispose === "function"
+				) {
+					try {
+						mesh.material.dispose();
+					} catch (error) {
+						console.warn("Error disposing material:", error);
+					}
+				}
+				if (
+					mesh &&
+					mesh.dispose &&
+					typeof mesh.dispose === "function"
+				) {
+					try {
+						mesh.dispose();
+					} catch (error) {
+						console.warn("Error disposing mesh:", error);
+					}
+				}
+			});
 
+			// Clear camera
+			flock.scene.activeCamera?.inputs?.clear();
+			flock.scene.activeCamera?.dispose();
+
+			// Wait for async operations to complete
+			await new Promise((resolve) => setTimeout(resolve, 100));
+
+			// Clear all references
+			flock.events = {};
+			flock.modelCache = {};
+			flock.globalSounds = [];
+			flock.modelsBeingLoaded = {};
+			flock.originalModelTransformations = {};
+			flock.geometryCache = {};
+			flock.materialCache = {};
+			flock.ground = null;
+			flock.sky = null;
+
+			// Dispose particle systems
+			const particleSystems = flock.scene.particleSystems
+				? [...flock.scene.particleSystems]
+				: [];
+			particleSystems.forEach((system) => {
+				if (system && system.dispose) {
+					system.dispose();
+				}
+			});
+
+			// Dispose textures
+			const textures = flock.scene.textures
+				? [...flock.scene.textures]
+				: [];
+			textures.forEach((texture) => {
+				if (
+					texture &&
+					texture.dispose &&
+					typeof texture.dispose === "function"
+				) {
+					try {
+						texture.dispose();
+					} catch (error) {
+						console.warn("Error disposing texture:", error);
+					}
+				}
+			});
+
+			// Dispose materials that weren't caught earlier
+			const materials = flock.scene.materials
+				? [...flock.scene.materials]
+				: [];
+			materials.forEach((material) => {
+				if (
+					material &&
+					material.dispose &&
+					typeof material.dispose === "function"
+				) {
+					try {
+						material.dispose();
+					} catch (error) {
+						console.warn("Error disposing material:", error);
+					}
+				}
+			});
+
+			// Clear all observables
+			flock.scene.onBeforeRenderObservable?.clear();
+			flock.scene.onAfterRenderObservable?.clear();
+			flock.scene.onBeforeAnimationsObservable?.clear();
+			flock.scene.onAfterAnimationsObservable?.clear();
+			flock.scene.onReadyObservable?.clear();
+			flock.scene.onDataLoadedObservable?.clear();
+			flock.scene.onDisposedObservable?.clear();
+
+			// Dispose of the scene
 			flock.scene.dispose();
 			flock.scene = null;
 
+			// Dispose physics
 			flock.hk?.dispose();
 			flock.hk = null;
 
-			if (flock.audioContext?.state !== "closed") {
-				flock.audioContext?.close();
+			// Close audio context
+			if (flock.audioContext && flock.audioContext.state !== "closed") {
+				try {
+					await flock.audioContext.close();
+				} catch (error) {
+					console.warn(
+						"AudioContext was already closed or closing:",
+						error,
+					);
+				}
 			}
-
 			flock.audioContext = null;
+
+			// Clear abort controller
+			flock.abortController = null;
 		}
 	},
 	async initializeNewScene() {
+		// Wait a bit more to ensure all disposal operations are complete
+		await new Promise((resolve) => setTimeout(resolve, 200));
+
 		// Stop existing render loop or create a new engine
 		flock.engine ? flock.engine.stopRenderLoop() : flock.createEngine();
 
@@ -686,7 +989,7 @@ export const flock = {
 	) {
 		let attempt = 1;
 		let interval = initialInterval;
-		const { signal } = flock.abortController;
+		const signal = flock.abortController?.signal;
 
 		while (attempt <= maxAttempts) {
 			if (flock.disposed || !flock.scene || flock.scene.isDisposed) {
@@ -719,14 +1022,18 @@ export const flock = {
 						reject(new Error("Wait aborted"));
 					};
 
-					signal.addEventListener("abort", onAbort, { once: true });
+					if (signal) {
+						signal.addEventListener("abort", onAbort, {
+							once: true,
+						});
 
-					// Ensure the event listener is cleaned up after resolving
-					signal.addEventListener(
-						"abort",
-						() => signal.removeEventListener("abort", onAbort),
-						{ once: true },
-					);
+						// Ensure the event listener is cleaned up after resolving
+						signal.addEventListener(
+							"abort",
+							() => signal.removeEventListener("abort", onAbort),
+							{ once: true },
+						);
+					}
 				});
 			} catch (error) {
 				console.log("Timeout aborted:", error);
@@ -766,7 +1073,7 @@ export const flock = {
 				);
 			}
 			if (target) {
-				if (flock.abortController.signal.aborted) {
+				if (flock.abortController?.signal?.aborted) {
 					return; // If already aborted, stop here
 				}
 				// Target is available immediately, invoke the callback synchronously
@@ -779,7 +1086,7 @@ export const flock = {
 			const generator = flock.modelReadyGenerator(targetId);
 			try {
 				for await (const target of generator) {
-					if (flock.abortController.signal.aborted) {
+					if (flock.abortController?.signal?.aborted) {
 						console.log(`Aborted waiting for target: ${targetId}`);
 						return; // Exit the loop if the operation was aborted
 					}
@@ -788,7 +1095,7 @@ export const flock = {
 					return; // Exit after first yield (whether it's the mesh or null)
 				}
 			} catch (err) {
-				if (flock.abortController.signal.aborted) {
+				if (flock.abortController?.signal?.aborted) {
 					console.log(`Operation was aborted: ${targetId}`);
 				} else {
 					console.error(`Error in whenModelReady: ${err}`);
@@ -800,7 +1107,7 @@ export const flock = {
 		// Always check for immediate availability first
 		if (flock.scene) {
 			let target = null;
-			
+
 			// Handle special camera identifier
 			if (id === "__active_camera__") {
 				target = flock.scene.activeCamera;
@@ -820,9 +1127,9 @@ export const flock = {
 					);
 				}
 			}
-			
+
 			if (target) {
-				if (flock.abortController.signal.aborted) {
+				if (flock.abortController?.signal?.aborted) {
 					return;
 				}
 				callback(target);
@@ -833,36 +1140,40 @@ export const flock = {
 		// Use promise-based approach when callbackMode is true
 		if (flock.callbackMode) {
 			const promise = flock.modelReadyPromises.get(id);
-			
+
 			if (!promise) {
 				console.warn(`No load started for object with id '${id}'`);
 				return;
 			}
 
-			promise.then(() => {
-				// Check again for the target after promise resolves
-				let target = flock.scene.getMeshByName(id);
-				if (!target && flock.scene.UITexture) {
-					target = flock.scene.UITexture.getControlByName(id);
-				}
-				if (!target) {
-					target = flock.scene.animationGroups.find(
-						(group) => group.name === id,
-					);
-				}
-				if (!target) {
-					target = flock.scene.particleSystems.find(
-						(system) => system.name === id,
-					);
-				}
-				if (!target) {
-					console.error(`Target with id '${id}' not found in scene after loading.`);
-					return;
-				}
-				callback(target);
-			}).catch((err) => {
-				console.error(`Error in whenModelReady for '${id}':`, err);
-			});
+			promise
+				.then(() => {
+					// Check again for the target after promise resolves
+					let target = flock.scene.getMeshByName(id);
+					if (!target && flock.scene.UITexture) {
+						target = flock.scene.UITexture.getControlByName(id);
+					}
+					if (!target) {
+						target = flock.scene.animationGroups.find(
+							(group) => group.name === id,
+						);
+					}
+					if (!target) {
+						target = flock.scene.particleSystems.find(
+							(system) => system.name === id,
+						);
+					}
+					if (!target) {
+						console.error(
+							`Target with id '${id}' not found in scene after loading.`,
+						);
+						return;
+					}
+					callback(target);
+				})
+				.catch((err) => {
+					console.error(`Error in whenModelReady for '${id}':`, err);
+				});
 			return;
 		}
 
@@ -871,7 +1182,7 @@ export const flock = {
 			const generator = flock.modelReadyGenerator(id);
 			try {
 				for await (const target of generator) {
-					if (flock.abortController.signal.aborted) {
+					if (flock.abortController?.signal?.aborted) {
 						console.log(`Aborted waiting for target: ${id}`);
 						return;
 					}
@@ -879,7 +1190,7 @@ export const flock = {
 					return;
 				}
 			} catch (err) {
-				if (flock.abortController.signal.aborted) {
+				if (flock.abortController?.signal?.aborted) {
 					console.log(`Operation was aborted: ${id}`);
 				} else {
 					console.error(`Error in whenModelReady: ${err}`);
@@ -978,24 +1289,30 @@ export const flock = {
 	wait(duration) {
 		return new Promise((resolve, reject) => {
 			const timeoutId = setTimeout(() => {
-				flock.abortController.signal.removeEventListener(
-					"abort",
-					onAbort,
-				);
+				if (flock.abortController?.signal) {
+					flock.abortController.signal.removeEventListener(
+						"abort",
+						onAbort,
+					);
+				}
 				resolve();
 			}, duration);
 
 			const onAbort = () => {
 				clearTimeout(timeoutId); // Clear the timeout if aborted
-				flock.abortController.signal.removeEventListener(
-					"abort",
-					onAbort,
-				);
+				if (flock.abortController?.signal) {
+					flock.abortController.signal.removeEventListener(
+						"abort",
+						onAbort,
+					);
+				}
 				// Instead of throwing an error, resolve gracefully here
 				reject(new Error("Wait aborted"));
 			};
 
-			flock.abortController.signal.addEventListener("abort", onAbort);
+			if (flock.abortController?.signal) {
+				flock.abortController.signal.addEventListener("abort", onAbort);
+			}
 		}).catch((error) => {
 			// Check if the error is the expected "Wait aborted" error and handle it
 			if (error.message === "Wait aborted") {
@@ -1357,21 +1674,62 @@ export const flock = {
 		const random = x - Math.floor(x);
 		const result = Math.floor(random * (to - from + 1)) + from;
 		return result;
-	},	
+	},
+	randomColour() {
+		const colors = [
+			"#FF6B6B",
+			"#4ECDC4",
+			"#45B7D1",
+			"#96CEB4",
+			"#FFEAA7",
+			"#DDA0DD",
+			"#98D8C8",
+			"#F7DC6F",
+			"#BB8FCE",
+			"#85C1E9",
+			"#F8C471",
+			"#82E0AA",
+			"#F1948A",
+			"#85C1E9",
+			"#D7BDE2",
+		];
+		return colors[Math.floor(Math.random() * colors.length)];
+	},
+	hexToRgba(hex, alpha = 1) {
+		// Remove the hash if present
+		hex = hex.replace(/^#/, "");
+
+		// Parse the hex values
+		const bigint = parseInt(hex, 16);
+		const r = (bigint >> 16) & 255;
+		const g = (bigint >> 8) & 255;
+		const b = bigint & 255;
+
+		return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+	},
 	sanitizeEventName(eventName) {
-		if (typeof eventName !== 'string') {
-			return '';
+		if (typeof eventName !== "string") {
+			return "";
 		}
 		// Only allow alphanumeric characters and underscores
 		return eventName.replace(/[^a-zA-Z0-9_]/g, "").substring(0, 50);
 	},
 	isAllowedEventName(eventName) {
-		if (!eventName || typeof eventName !== 'string') {
+		if (!eventName || typeof eventName !== "string") {
 			return false;
 		}
 		// Prevent reserved names and system events
-		const reservedPrefixes = ['_', 'on', 'system', 'internal', 'babylon', 'flock'];
-		return !reservedPrefixes.some(prefix => eventName.toLowerCase().startsWith(prefix));
+		const reservedPrefixes = [
+			"_",
+			"on",
+			"system",
+			"internal",
+			"babylon",
+			"flock",
+		];
+		return !reservedPrefixes.some((prefix) =>
+			eventName.toLowerCase().startsWith(prefix),
+		);
 	},
 	onEvent(eventName, handler, once = false) {
 		eventName = flock.sanitizeEventName(eventName);
