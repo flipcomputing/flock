@@ -684,7 +684,7 @@ export function defineGenerators() {
 
 		const asyncWrapper = asyncMode === "AWAIT" ? "await " : "";
 
-		return `${asyncWrapper}say(${meshVariable}, ${text}, ${duration}, ${textColor}, ${backgroundColor}, ${alpha}, ${size}, "${mode}");\n`;
+		return `${asyncWrapper}say(${meshVariable}, { text: ${text}, duration: ${duration}, textColor: ${textColor}, backgroundColor: ${backgroundColor}, alpha: ${alpha}, size: ${size}, mode: "${mode}" });\n`;
 	};
 
 	javascriptGenerator.forBlock["load_model"] = function (block) {

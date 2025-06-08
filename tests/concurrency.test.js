@@ -74,7 +74,7 @@ export function runConcurrencyTests(flock) {
 				if (flock.say) {
 					console.log(`Starting say operation on ${result}`);
 					// Just call say directly - it will wait for the model to be ready internally
-					await flock.say(result, "Hello World", 1);
+					await flock.say(result, { text: "Hello World", duration: 1 });
 					console.log(`Say operation completed`);
 				} else {
 					console.log(`Skipping say operation - say function not available`);
@@ -106,7 +106,7 @@ export function runConcurrencyTests(flock) {
 				const sayPromises = objectIds.map((objectId, index) => {
 					if (flock.say && objectId) {
 						console.log(`Starting say operation on ${objectId}`);
-						return flock.say(objectId, `Message ${index}`, 2);
+						return flock.say(objectId, { text: `Message ${index}`, duration: 2 });
 					} else {
 						// If say doesn't exist or objectId is undefined, simulate with a delay
 						console.log(`Skipping say operation for ${objectId}`);

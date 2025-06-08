@@ -260,16 +260,16 @@ export const flockUI = {
       flock.scene.activeCamera.detachControl();
     }
   },
-  say(
-    meshName,
-    text,
-    duration,
-    textColor = "white",
-    backgroundColor = "#000000",
-    alpha = 0.7,
-    size = 16,
-    mode = "APPEND",
-  ) {
+  say(meshName, options = {}) {
+    const {
+      text,
+      duration,
+      textColor = "white",
+      backgroundColor = "#000000",
+      alpha = 0.7,
+      size = 16,
+      mode = "APPEND",
+    } = options;
     if (flock.scene) {
       const mesh = flock.scene.getMeshByName(meshName);
 
