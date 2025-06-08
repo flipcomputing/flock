@@ -113,216 +113,185 @@ export const flock = {
 	...flockScene,
 	...flockMesh,
 	...flockCamera,
+	// Code execution cache
+	codeCache: new Map(),
+	lastCodeHash: null,
+
+	// Enhanced security validation
+	validateCode(code) {
+		if (typeof code !== 'string') {
+			throw new Error('Code must be a string');
+		}
+		
+		// Enhanced forbidden patterns with more specific detection
+		const forbiddenPatterns = [
+			{ pattern: /eval\s*\(/, message: 'eval() is not allowed' },
+			{ pattern: /Function\s*\(/, message: 'Function constructor is not allowed' },
+			{ pattern: /setTimeout\s*\(/, message: 'setTimeout is not allowed' },
+			{ pattern: /setInterval\s*\(/, message: 'setInterval is not allowed' },
+			{ pattern: /XMLHttpRequest/, message: 'XMLHttpRequest is not allowed' },
+			{ pattern: /fetch\s*\(/, message: 'fetch is not allowed' },
+			{ pattern: /import\s*\(/, message: 'dynamic imports are not allowed' },
+			{ pattern: /require\s*\(/, message: 'require is not allowed' },
+			{ pattern: /process\./, message: 'process object access is not allowed' },
+			{ pattern: /global\./, message: 'global object access is not allowed' },
+			{ pattern: /window\.(?!flock)/, message: 'direct window access is not allowed' },
+			{ pattern: /document\.(?!getElementById|createElement|fonts)/, message: 'unsafe document access is not allowed' },
+			{ pattern: /location\./, message: 'location object access is not allowed' },
+			{ pattern: /navigator\./, message: 'navigator object access is not allowed' },
+			{ pattern: /localStorage\./, message: 'localStorage access is not allowed' },
+			{ pattern: /sessionStorage\./, message: 'sessionStorage access is not allowed' },
+			{ pattern: /indexedDB\./, message: 'indexedDB access is not allowed' },
+			{ pattern: /postMessage\s*\(/, message: 'postMessage is not allowed' },
+		];
+		
+		for (const { pattern, message } of forbiddenPatterns) {
+			if (pattern.test(code)) {
+				throw new Error(`Security violation: ${message}`);
+			}
+		}
+		
+		// Limit code length
+		if (code.length > 100000) {
+			throw new Error('Code too long (max 100KB)');
+		}
+
+		return true;
+	},
+
+	// Generate hash for code caching
+	generateCodeHash(code) {
+		let hash = 0;
+		for (let i = 0; i < code.length; i++) {
+			const char = code.charCodeAt(i);
+			hash = ((hash << 5) - hash) + char;
+			hash = hash & hash; // Convert to 32-bit integer
+		}
+		return hash.toString(36);
+	},
+
+	// Enhanced error reporting with block context
+	createEnhancedError(error, code) {
+		const lines = code.split('\n');
+		const errorContext = {
+			message: error.message,
+			stack: error.stack,
+			codeSnippet: null,
+			suggestion: null
+		};
+
+		// Try to extract line number from error
+		const lineMatch = error.stack?.match(/at .*:(\d+):\d+/);
+		if (lineMatch) {
+			const lineNum = parseInt(lineMatch[1]) - 1;
+			if (lineNum >= 0 && lineNum < lines.length) {
+				const start = Math.max(0, lineNum - 2);
+				const end = Math.min(lines.length, lineNum + 3);
+				errorContext.codeSnippet = lines.slice(start, end).map((line, idx) => {
+					const actualLine = start + idx;
+					const marker = actualLine === lineNum ? '>>> ' : '    ';
+					return `${marker}${actualLine + 1}: ${line}`;
+				}).join('\n');
+			}
+		}
+
+		// Add common error suggestions
+		if (error.message.includes('is not defined')) {
+			errorContext.suggestion = 'Check if the variable or function name is spelled correctly and has been declared.';
+		} else if (error.message.includes('Cannot read property')) {
+			errorContext.suggestion = 'Check if the object exists before accessing its properties.';
+		}
+
+		return errorContext;
+	},
+
 	async runCode(code) {
-		let iframe = document.getElementById("flock-iframe");
-
 		try {
-			// Step 1: Dispose old scene if iframe exists
-			if (iframe) {
-				await iframe.contentWindow?.flock?.disposeOldScene();
-			} else {
-				// Step 2: Create a new iframe if not found
-				iframe = document.createElement("iframe");
-				iframe.id = "flock-iframe";
-				iframe.style.display = "none";
-				document.body.appendChild(iframe);
+			// Validate code first
+			this.validateCode(code);
+
+			// Check if we can use cached execution
+			const codeHash = this.generateCodeHash(code);
+			if (codeHash === this.lastCodeHash && this.scene && !this.scene.isDisposed) {
+				console.log('Using cached scene state');
+				return;
 			}
 
-			// Step 3: Wait for iframe to load
-			await new Promise((resolve, reject) => {
-				iframe.onload = () => resolve();
-				iframe.onerror = () =>
-					reject(new Error("Failed to load iframe"));
-				iframe.src = "about:blank";
-			});
+			// Dispose old scene
+			await this.disposeOldScene();
 
-			// Step 4: Access iframe window and set up flock
-			const iframeWindow = iframe.contentWindow;
-			if (!iframeWindow) throw new Error("Iframe window is unavailable");
+			// Initialize new scene
+			this.createEngine();
+			await this.initializeNewScene();
 
-			iframeWindow.flock = flock;
+			// Store hash for caching
+			this.lastCodeHash = codeHash;
 
-			await iframeWindow.flock.initializeNewScene();
+			// Create execution context with better error handling
+			const executionContext = {
+				// Expose only safe flock API functions
+				...Object.fromEntries(
+					Object.entries(this).filter(([key, value]) => 
+						typeof value === 'function' && 
+						!key.startsWith('_') && 
+						!['runCode', 'validateCode'].includes(key)
+					)
+				),
+				// Add utility functions
+				console: {
+					log: (...args) => console.log('[Flock]', ...args),
+					warn: (...args) => console.warn('[Flock]', ...args),
+					error: (...args) => console.error('[Flock]', ...args)
+				},
+				// Helper function for creating Vector3 objects
+				createVector3: (x, y, z) => new this.BABYLON.Vector3(x, y, z)
+			};
 
-			// Step 6: Validate and sanitize code input
-			if (typeof code !== 'string') {
-				throw new Error('Code must be a string');
-			}
+			// Wrap code in async function with better error boundaries
+			const wrappedCode = `
+				"use strict";
+				return (async function flockUserCode() {
+					try {
+						${code}
+					} catch (userError) {
+						console.error('Error in user code:', userError);
+						throw userError;
+					}
+				})();
+			`;
+
+			// Create and execute function
+			const userFunction = new Function(...Object.keys(executionContext), wrappedCode);
 			
-			// Basic validation to prevent obvious malicious patterns
-			const forbiddenPatterns = [
-				/eval\s*\(/,
-				/Function\s*\(/,
-				/setTimeout\s*\(/,
-				/setInterval\s*\(/,
-				/XMLHttpRequest/,
-				/fetch\s*\(/,
-				/import\s*\(/,
-				/require\s*\(/,
-				/process\./,
-				/global\./,
-				/window\./,
-				/document\./,
-				/location\./,
-				/navigator\./
-			];
-			
-			for (const pattern of forbiddenPatterns) {
-				if (pattern.test(code)) {
-					throw new Error('Code contains forbidden patterns');
-				}
-			}
-			
-			// Limit code length
-			if (code.length > 50000) {
-				throw new Error('Code too long');
-			}
+			// Execute with timeout protection
+			const executionPromise = userFunction(...Object.values(executionContext));
+			const timeoutPromise = new Promise((_, reject) => 
+				setTimeout(() => reject(new Error('Code execution timeout (30s)')), 30000)
+			);
 
-			// Step 6: Create sandboxed function
-			const sandboxFunction = new iframeWindow.Function(`
-			"use strict";
+			await Promise.race([executionPromise, timeoutPromise]);
 
-			const {
-				initialize,
-				createEngine,
-				createScene,
-				playAnimation,
-				playSound,
-				stopAllSounds,
-				playNotes,
-				setBPM,
-				createInstrument,
-				switchAnimation,
-				highlight,
-				glow,
-				createCharacter,
-				createObject,
-				createParticleEffect,
-				create3DText,
-				createModel,
-				createBox,
-				createSphere,
-				createCylinder,
-				createCapsule,
-				createPlane,
-				cloneMesh,
-				parentChild,
-				setParent,
-				mergeMeshes,
-				subtractMeshes,
-				intersectMeshes,
-				createHull,
-				hold, 
-				drop,
-				makeFollow,
-				stopFollow,
-				removeParent,
-				createGround,
-				createMap,
-				createCustomMap,
-				setSky,
-				lightIntensity,
-				buttonControls,
-				getCamera,
-				cameraControl,
-				setCameraBackground,
-				setXRMode,
-				applyForce,
-				moveByVector,
-				glideTo,
-				createAnimation,
-				animateFrom,
-				playAnimationGroup, 
-				pauseAnimationGroup, 
-				stopAnimationGroup,
-				startParticleSystem,
-				stopParticleSystem,
-				resetParticleSystem,
-				animateKeyFrames,
-				setPivotPoint,
-				rotate,
-				lookAt,
-				moveTo,
-				rotateTo,
-				rotateCamera,
-				rotateAnim,
-				animateProperty,
-				positionAt,
-				distanceTo,
-				wait,
-				safeLoop,
-				waitUntil,
-				show,
-				hide,
-				clearEffects,
-				stopAnimations,
-				tint,
-				setAlpha,
-				dispose,
-				setFog,
-				keyPressed,
-				isTouchingSurface,
-				seededRandom,
-				randomColour,
-				scale,
-				resize,
-				changeColor,
-				changeColorMesh,
-				changeMaterial,
-				setMaterial,
-				createMaterial,
-				textMaterial,
-				createDecal,
-				placeDecal,
-				moveForward,
-				moveSideways,
-				strafe,
-				attachCamera,
-				canvasControls,
-				setPhysics,
-				setPhysicsShape,
-				checkMeshesTouching,
-				say,
-				onTrigger,
-				onEvent,
-				broadcastEvent,
-				Mesh,
-				start,
-				forever,
-				whenKeyEvent,
-				randomInteger,
-				printText,
-				UIText,
-				UIButton,
-				onIntersect,
-				getProperty,
-				exportMesh,
-				abortSceneExecution,
-				ensureUniqueGeometry,
-			} = flock;
+			// Focus render canvas
+			document.getElementById("renderCanvas")?.focus();
 
-			${code}
-			`);
-
-			try {
-				sandboxFunction();
-			} catch (sandboxError) {
-				throw new Error(
-					`Sandbox execution failed: ${sandboxError.message}`,
-				);
-			}
 		} catch (error) {
-			// General Error Handling
-			console.error("Error during scene setup or code execution:", error);
+			// Enhanced error reporting
+			const enhancedError = this.createEnhancedError(error, code);
+			console.error("Enhanced error details:", enhancedError);
 
-			// Clean up resources and stop execution
+			// Show user-friendly error
+			this.printText(`Error: ${error.message}`, 5, "#ff0000");
+			
+			// Clean up on error
 			try {
-				flock.audioContext.close();
-				flock.engine.stopRenderLoop();
-				flock.removeEventListeners();
+				this.audioContext?.close();
+				this.engine?.stopRenderLoop();
+				this.removeEventListeners();
 			} catch (cleanupError) {
 				console.error("Error during cleanup:", cleanupError);
 			}
+
+			throw error;
 		}
 	},
 	async initialize() {

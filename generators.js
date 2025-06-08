@@ -204,7 +204,7 @@ export function defineGenerators() {
 								"Z",
 								javascriptGenerator.ORDER_ATOMIC,
 							) || 0;
-						value = `new flock.BABYLON.Vector3(${x}, ${y}, ${z})`;
+						value = `createVector3(${x}, ${y}, ${z})`;
 					} else {
 						// Handle alpha or other scalar properties.
 						value = javascriptGenerator.valueToCode(
@@ -218,7 +218,7 @@ export function defineGenerators() {
 					value =
 						property === "color" || property === "colour_keyframe"
 							? '"#ffffff"'
-							: `new flock.BABYLON.Vector3(0, 0, 0)`;
+							: `createVector3(0, 0, 0)`;
 				}
 
 				// Retrieve the duration (using the same connection as value).
@@ -320,7 +320,7 @@ export function defineGenerators() {
 								"Z",
 								javascriptGenerator.ORDER_ATOMIC,
 							) || 0;
-						value = `new flock.BABYLON.Vector3(${x}, ${y}, ${z})`; // Generate the text for Vector3, not the object itself
+						value = `createVector3(${x}, ${y}, ${z})`; // Generate the text for Vector3, not the object itself
 					} else {
 						// Handle alpha or other properties
 						value = javascriptGenerator.valueToCode(
@@ -334,7 +334,7 @@ export function defineGenerators() {
 					value =
 						property === "color"
 							? '"#ffffff"'
-							: `new flock.BABYLON.Vector3(0, 0, 0)`; // Correct color string for colours
+							: `createVector3(0, 0, 0)`; // Correct color string for colours
 				}
 
 				const duration = durationBlock
@@ -418,7 +418,7 @@ export function defineGenerators() {
 			"DURATION",
 			javascriptGenerator.ORDER_ATOMIC,
 		);
-		const code = `{ value: new flock.BABYLON.Vector3(${x}, ${y}, ${z}), duration: ${duration} }`;
+		const code = `{ value: createVector3(${x}, ${y}, ${z}), duration: ${duration} }`;
 		return [code, javascriptGenerator.ORDER_ATOMIC];
 	};
 
@@ -1441,7 +1441,7 @@ export function defineGenerators() {
 		const asyncMode = block.getFieldValue("ASYNC");
 
 		// Build the final code line
-		const code = `${idVar} = ${asyncMode === "AWAIT" ? "await " : ""}flock.playSound(${meshName}, { soundName: "${soundName}", loop: ${loop}, volume: ${volumeCode}, playbackRate: ${speedCode} });\n`;
+		const code = `${idVar} = ${asyncMode === "AWAIT" ? "await " : ""}playSound(${meshName}, { soundName: "${soundName}", loop: ${loop}, volume: ${volumeCode}, playbackRate: ${speedCode} });\n`;
 
 		return code;
 	};
