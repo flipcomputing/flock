@@ -103,6 +103,7 @@ export const flockModels = {
 
     if (flock.callbackMode) {
       // Use callback-based approach (createCharacter2 style)
+      // Store promise immediately to prevent race conditions
       const loadPromise = flock.BABYLON.SceneLoader.LoadAssetContainerAsync(
         flock.modelPath,
         modelName,
@@ -147,9 +148,18 @@ export const flockModels = {
         })
         .catch((error) => {
           console.log("Error loading", error);
+          // Clean up promise on error
+          flock.modelReadyPromises.delete(modelId);
           throw error;
+        })
+        .finally(() => {
+          // Clean up promise after a delay to allow other operations to complete
+          setTimeout(() => {
+            flock.modelReadyPromises.delete(modelId);
+          }, 5000);
         });
 
+      // Store promise BEFORE starting async work to prevent race conditions
       flock.modelReadyPromises.set(modelId, loadPromise);
 
       return modelId;
@@ -401,15 +411,21 @@ export const flockModels = {
             `Error loading model: ${modelName}`,
             error,
           );
+          // Clean up promise on error
+          flock.modelReadyPromises.delete(meshName);
         })
         .finally(() => {
           delete flock.modelsBeingLoaded[modelName];
+          // Clean up promise after a delay to allow other operations to complete
+          setTimeout(() => {
+            flock.modelReadyPromises.delete(meshName);
+          }, 5000);
         });
 
       // Always track the loading promise for optimization
       flock.modelsBeingLoaded[modelName] = loadPromise;
 
-      // Always store promise for whenModelReady coordination for createObject
+      // Store promise BEFORE starting async work to prevent race conditions
       flock.modelReadyPromises.set(meshName, loadPromise);
 
       return meshName;
@@ -506,15 +522,21 @@ export const flockModels = {
       })
       .catch((error) => {
         console.error(`Error loading model: ${modelName}`, error);
+        // Clean up promise on error
+        flock.modelReadyPromises.delete(modelId);
       })
       .finally(() => {
         delete flock.modelsBeingLoaded[modelName]; // Remove from loading map
+        // Clean up promise after a delay to allow other operations to complete
+        setTimeout(() => {
+          flock.modelReadyPromises.delete(modelId);
+        }, 5000);
       });
 
     // Always track the ongoing load for optimization
     flock.modelsBeingLoaded[modelName] = loadPromise;
 
-    // Always store promise for whenModelReady coordination
+    // Store promise BEFORE starting async work to prevent race conditions
     flock.modelReadyPromises.set(modelId, loadPromise);
 
     return modelId;
