@@ -102,7 +102,7 @@ export const flockModels = {
     }
 
     if (flock.callbackMode) {
-      // Create and store promise immediately to prevent race conditions
+      // Create promise with proper error handling and cleanup
       const loadPromise = flock.BABYLON.SceneLoader.LoadAssetContainerAsync(
         flock.modelPath,
         modelName,
@@ -147,18 +147,20 @@ export const flockModels = {
         })
         .catch((error) => {
           console.log("Error loading", error);
+          // Clean up on error to prevent memory leaks
+          flock.modelReadyPromises.delete(modelId);
           throw error;
-        })
-        .finally(() => {
-          // Clean up promise immediately after completion
-          // Use nextTick to ensure all synchronous operations complete first
-          requestAnimationFrame(() => {
-            flock.modelReadyPromises.delete(modelId);
-          });
         });
 
-      // Store promise BEFORE any async work begins
+      // Store promise immediately to prevent race conditions
       flock.modelReadyPromises.set(modelId, loadPromise);
+
+      // Clean up promise after a reasonable delay to allow dependent operations
+      loadPromise.finally(() => {
+        setTimeout(() => {
+          flock.modelReadyPromises.delete(modelId);
+        }, 1000); // Reduced from 5000ms for faster cleanup
+      });
 
       return modelId;
     } else {
