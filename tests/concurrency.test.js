@@ -466,14 +466,14 @@ export function runConcurrencyTests(flock) {
 						}
 
 						if (flock.say) {
-							ops.push(flock.say(objectId, `Loading ${i}`, 1000));
+							ops.push(flock.say(objectId, `Loading ${i}`, 1));
 						}
 
 						ops.push(flock.glideTo(objectId, { 
 							x: i % 5 + 1, 
 							y: 1, 
 							z: Math.floor(i / 5),
-							duration: 1000 
+							duration: 1
 						}));
 
 						if (flock.scale) {

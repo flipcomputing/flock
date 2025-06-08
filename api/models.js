@@ -2,7 +2,7 @@ let flock;
 
 export function setFlockReference(ref) {
   flock = ref;
-}co
+}
 
 export const flockModels = {
   createCharacter2({

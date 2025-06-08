@@ -3,7 +3,7 @@ let flock;
 export function setFlockReference(ref) {
   flock = ref;
 }
-s
+
 export const flockScene = {
   /*
    Category: Scene
