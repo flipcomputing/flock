@@ -210,22 +210,12 @@ export const flock = {
 			// Validate code first
 			this.validateCode(code);
 
-			// Check if we can use cached execution
-			const codeHash = this.generateCodeHash(code);
-			if (codeHash === this.lastCodeHash && this.scene && !this.scene.isDisposed) {
-				console.log('Using cached scene state');
-				return;
-			}
-
-			// Dispose old scene
+			// Always dispose old scene and create new one (no caching)
 			await this.disposeOldScene();
 
 			// Initialize new scene
 			this.createEngine();
 			await this.initializeNewScene();
-
-			// Store hash for caching
-			this.lastCodeHash = codeHash;
 
 			// Create execution context with better error handling
 			const executionContext = {
