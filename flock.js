@@ -806,20 +806,28 @@ export const flock = {
 	whenModelReady(id, callback) {
 		// Always check for immediate availability first
 		if (flock.scene) {
-			let target = flock.scene.getMeshByName(id);
-			if (!target && flock.scene.UITexture) {
-				target = flock.scene.UITexture.getControlByName(id);
+			let target = null;
+			
+			// Handle special camera identifier
+			if (id === "__active_camera__") {
+				target = flock.scene.activeCamera;
+			} else {
+				target = flock.scene.getMeshByName(id);
+				if (!target && flock.scene.UITexture) {
+					target = flock.scene.UITexture.getControlByName(id);
+				}
+				if (!target) {
+					target = flock.scene.animationGroups.find(
+						(group) => group.name === id,
+					);
+				}
+				if (!target) {
+					target = flock.scene.particleSystems.find(
+						(system) => system.name === id,
+					);
+				}
 			}
-			if (!target) {
-				target = flock.scene.animationGroups.find(
-					(group) => group.name === id,
-				);
-			}
-			if (!target) {
-				target = flock.scene.particleSystems.find(
-					(system) => system.name === id,
-				);
-			}
+			
 			if (target) {
 				if (flock.abortController.signal.aborted) {
 					return;

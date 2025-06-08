@@ -142,8 +142,8 @@ export const flockModels = {
             requestAnimationFrame(() => callback());
           }
 
-          // Return nothing! Setup already handled it.
-          return;
+          // Return the mesh for whenModelReady to use
+          return mesh;
         })
         .catch((error) => {
           console.log("Error loading", error);
@@ -388,11 +388,11 @@ export const flockModels = {
               } else {
                 //console.warn(`Physics missing for ${meshName} after setup`);
               }
-              
+
               if (callback) {
                 callback();
               }
-              resolve();
+              resolve(mesh);
             });
           });
         })
@@ -408,10 +408,10 @@ export const flockModels = {
 
       // Always track the loading promise for optimization
       flock.modelsBeingLoaded[modelName] = loadPromise;
-      
+
       // Always store promise for whenModelReady coordination for createObject
       flock.modelReadyPromises.set(meshName, loadPromise);
-      
+
       return meshName;
     } catch (error) {
       console.warn("createObject: Error creating object:", error);
@@ -513,7 +513,7 @@ export const flockModels = {
 
     // Always track the ongoing load for optimization
     flock.modelsBeingLoaded[modelName] = loadPromise;
-    
+
     // Always store promise for whenModelReady coordination
     flock.modelReadyPromises.set(modelId, loadPromise);
 
