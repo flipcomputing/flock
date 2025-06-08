@@ -264,11 +264,11 @@ export const flockUI = {
     meshName,
     text,
     duration,
-    textColor,
-    backgroundColor,
-    alpha,
-    size,
-    mode,
+    textColor = "white",
+    backgroundColor = "#000000",
+    alpha = 0.7,
+    size = 16,
+    mode = "APPEND",
   ) {
     if (flock.scene) {
       const mesh = flock.scene.getMeshByName(meshName);

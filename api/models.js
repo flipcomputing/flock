@@ -2,7 +2,7 @@ let flock;
 
 export function setFlockReference(ref) {
   flock = ref;
-}
+}co
 
 export const flockModels = {
   createCharacter2({
@@ -228,16 +228,20 @@ export const flockModels = {
       const { x, y, z } = position;
 
       let blockKey = modelId;
-      let meshName;
+      let meshName = modelId;  // Default meshName to modelId
       if (modelId.includes("__")) {
         [meshName, blockKey] = modelId.split("__");
       }
+
+      // Debug output for concurrency test
+      //console.log(`createObject: modelName=${modelName}, modelId=${modelId}, meshName=${meshName}, blockKey=${blockKey}`);
 
       if (
         flock.scene.getMeshByName(meshName) ||
         flock.modelsBeingLoaded[modelName]
       ) {
         meshName = meshName + "_" + flock.scene.getUniqueId();
+        console.log(`createObject: Updated meshName to avoid collision: ${meshName}`);
       }
 
       if (flock.modelCache[modelName]) {
@@ -373,9 +377,24 @@ export const flockModels = {
           );
           flock.changeColorMesh(container.meshes[0], color);
 
-          if (callback) {
-            requestAnimationFrame(callback);
-          }
+          // Ensure physics setup is complete before resolving
+          // Use requestAnimationFrame to ensure all synchronous setup is done
+          return new Promise((resolve) => {
+            requestAnimationFrame(() => {
+              // Verify physics was created
+              const mesh = flock.scene.getMeshByName(meshName);
+              if (mesh && mesh.physics) {
+                //console.log(`Physics setup verified for ${meshName}`);
+              } else {
+                //console.warn(`Physics missing for ${meshName} after setup`);
+              }
+              
+              if (callback) {
+                callback();
+              }
+              resolve();
+            });
+          });
         })
         .catch((error) => {
           console.error(
@@ -390,10 +409,8 @@ export const flockModels = {
       // Always track the loading promise for optimization
       flock.modelsBeingLoaded[modelName] = loadPromise;
       
-      // Store promise for whenModelReady coordination if not in callback mode
-      if (!flock.callbackMode) {
-        flock.modelReadyPromises.set(meshName, loadPromise);
-      }
+      // Always store promise for whenModelReady coordination for createObject
+      flock.modelReadyPromises.set(meshName, loadPromise);
       
       return meshName;
     } catch (error) {

@@ -3,7 +3,7 @@ let flock;
 export function setFlockReference(ref) {
   flock = ref;
 }
-
+s
 export const flockScene = {
   /*
    Category: Scene
@@ -194,11 +194,14 @@ export const flockScene = {
     return flock.whenModelReady(meshName, function (mesh) {
       if (mesh) {
         mesh.setEnabled(true);
-        flock.hk._hknp.HP_World_AddBody(
-          flock.hk.world,
-          mesh.physics._pluginData.hpBodyId,
-          mesh.physics.startAsleep,
-        );
+        // Only try to add physics body if mesh has physics
+        if (mesh.physics && mesh.physics._pluginData) {
+          flock.hk._hknp.HP_World_AddBody(
+            flock.hk.world,
+            mesh.physics._pluginData.hpBodyId,
+            mesh.physics.startAsleep,
+          );
+        }
       } else {
         console.log("Model not loaded:", meshName);
       }
@@ -215,10 +218,13 @@ export const flockScene = {
     return flock.whenModelReady(meshName, async function (mesh) {
       if (mesh) {
         mesh.setEnabled(false);
-        flock.hk._hknp.HP_World_RemoveBody(
-          flock.hk.world,
-          mesh.physics._pluginData.hpBodyId,
-        );
+        // Only try to remove physics body if mesh has physics
+        if (mesh.physics && mesh.physics._pluginData) {
+          flock.hk._hknp.HP_World_RemoveBody(
+            flock.hk.world,
+            mesh.physics._pluginData.hpBodyId,
+          );
+        }
       } else {
         console.log("Mesh not loaded:", meshName);
       }
@@ -314,7 +320,7 @@ export const flockScene = {
 
     // Break parent-child relationships
     meshesToDispose.forEach((currentMesh) => {
-      console.log("Stopping current sound");
+      //console.log("Stopping current sound");
       if (currentMesh?.metadata?.currentSound) {
         currentMesh.metadata.currentSound.stop();
       }
