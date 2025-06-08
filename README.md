@@ -33,10 +33,10 @@ You should see it here: http://localhost:5173/
 
 ### Run tests
 You can find the tests in the codebase here: `tests/tests.html`
-Towards the bottom of the file you will find a list of commented out tests.
-Uncomment the one(s) that you want to run.
 
 With your npm server running go to: http://localhost:5173/tests/tests.html
+
+Select the tests you want to run from the dropdown and 'Run Tests'.
 
 You should see the tests run.
 
