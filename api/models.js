@@ -251,7 +251,7 @@ export const flockModels = {
         flock.modelsBeingLoaded[modelName]
       ) {
         meshName = meshName + "_" + flock.scene.getUniqueId();
-        console.log(`createObject: Updated meshName to avoid collision: ${meshName}`);
+        //console.log(`createObject: Updated meshName to avoid collision: ${meshName}`);
       }
 
       if (flock.modelCache[modelName]) {
