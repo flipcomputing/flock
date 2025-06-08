@@ -514,10 +514,8 @@ export const flockModels = {
     // Always track the ongoing load for optimization
     flock.modelsBeingLoaded[modelName] = loadPromise;
     
-    // Store promise for whenModelReady coordination if not in callback mode
-    if (!flock.callbackMode) {
-      flock.modelReadyPromises.set(modelId, loadPromise);
-    }
+    // Always store promise for whenModelReady coordination
+    flock.modelReadyPromises.set(modelId, loadPromise);
 
     return modelId;
   },
