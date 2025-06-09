@@ -4724,7 +4724,7 @@ export function defineBlocks() {
     init: function () {
       this.jsonInit({
         type: "camera_follow",
-        message0: "camera follow %1 with radius %2",
+        message0: "camera follow %1 with radius %2 front %3",
         args0: [
           {
             type: "field_variable",
@@ -4735,6 +4735,11 @@ export function defineBlocks() {
             type: "input_value",
             name: "RADIUS",
             check: "Number",
+          },
+          {
+            type: "field_checkbox",
+            name: "FRONT",
+            checked: false,
           },
         ],
         previousStatement: null,

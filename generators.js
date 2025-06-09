@@ -1957,7 +1957,9 @@ export function defineGenerators() {
 				javascriptGenerator.ORDER_ATOMIC,
 			) || 7;
 
-		return `await attachCamera(${modelName}, ${radius});\n`;
+		const front = block.getFieldValue("FRONT") === "TRUE";
+
+		return `await attachCamera(${modelName}, { radius: ${radius}, front: ${front} });\n`;
 	};
 
 	javascriptGenerator.forBlock["get_camera"] = function (block) {

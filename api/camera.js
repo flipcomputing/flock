@@ -8,15 +8,69 @@ export const flockCamera = {
 	/* 
 		Category: Scene>Camera
 	*/
-	attachCamera(modelName, radius) {
-		return flock.whenModelReady(modelName, function (mesh) {
-			if (mesh) {
-				console.log("Attaching camera to model");
-				//flock.updateDynamicMeshPositions(flock.scene, [mesh]);
-				let camera = flock.scene.activeCamera;
+	attachCamera(meshName, options = {}) {
+		const { radius = 7, front = true } = options;
+		
+		return flock.whenModelReady(meshName, async function (mesh) {
+			if (!mesh) {
+				console.log("Model not loaded:", meshName);
+				return;
+			}
 
-				flock.savedCamera = camera;
-				flock.ensureVerticalConstraint(mesh);
+			console.log("Attaching camera to model");
+			flock.ensureVerticalConstraint(mesh);
+
+			let camera;
+
+			if (front) {
+				// Original attachCamera behavior - start in front then move behind
+				// Calculate direction character is facing
+				const forward = new flock.BABYLON.Vector3(
+					Math.sin(mesh.rotation.y),
+					0,
+					Math.cos(mesh.rotation.y)
+				);
+
+				// STEP 1: Place camera IN FRONT of character (facing them)
+				camera = new flock.BABYLON.ArcRotateCamera(
+					"camera",
+					Math.PI / 2,
+					Math.PI,
+					radius,
+					mesh.position.add(forward.scale(3)), // in front
+					flock.scene
+				);
+
+				camera.lockedTarget = mesh;
+				camera.attachControl(flock.canvas, false);
+				flock.scene.activeCamera = camera;
+
+				// Set camera controls and limits
+				camera.lowerBetaLimit = Math.PI / 3;
+				camera.upperBetaLimit = Math.PI / 2;
+				camera.lowerRadiusLimit = radius * 0.6;
+				camera.upperRadiusLimit = radius * 1.6;
+				camera.angularSensibilityX = 2000;
+				camera.angularSensibilityY = 2000;
+				camera.panningSensibility = 0;
+				camera.inputs.removeByType("ArcRotateCameraMouseWheelInput");
+
+				camera.inputs.attached.pointers.multiTouchPanAndZoom = false;
+				camera.inputs.attached.pointers.multiTouchPanning = false;
+				camera.inputs.attached.pointers.pinchZoom = false;
+				camera.inputs.attached.pointers.pinchInwards = false;
+				camera.inputs.attached.pointers.useNaturalPinchZoom = false;
+
+				// Move camera behind the character
+				const behind = forward.scale(-radius);
+				camera.setPosition(mesh.position.add(behind));
+
+				camera.metadata = camera.metadata || {};
+				camera.metadata.following = mesh;
+			} else {
+				// Original attachCamera2 behavior - position directly behind
+				let savedCamera = flock.scene.activeCamera;
+				flock.savedCamera = savedCamera;
 
 				camera = new flock.BABYLON.ArcRotateCamera(
 					"camera",
@@ -26,6 +80,7 @@ export const flockCamera = {
 					mesh.position,
 					flock.scene,
 				);
+				
 				camera.checkCollisions = true;
 				camera.lowerBetaLimit = Math.PI / 3;
 				camera.upperBetaLimit = Math.PI / 2;
@@ -41,13 +96,12 @@ export const flockCamera = {
 				camera.inputs.attached.pointers.pinchZoom = false;
 				camera.inputs.attached.pointers.pinchInwards = false;
 				camera.inputs.attached.pointers.useNaturalPinchZoom = false;
+				
 				camera.lockedTarget = mesh;
 				camera.metadata = camera.metadata || {};
 				camera.metadata.following = mesh;
 				camera.attachControl(flock.canvas, false);
 				flock.scene.activeCamera = camera;
-			} else {
-				console.log("Model not loaded:", modelName);
 			}
 		});
 	},
