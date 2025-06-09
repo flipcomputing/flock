@@ -160,7 +160,7 @@
                                   },
                                   "inputs": {
                                     "SCALE": {
-                                      "shadow": {                     
+                                      "shadow": {
                                         "type": "math_number",
                                         "id": "zv9FFhATyh!~sT.6R#Br",
                                         "fields": {
@@ -367,7 +367,7 @@
                                                         "type": "math_number",
                                                         "id": "N^PL*0PG4pA@/2e:J.WT",
                                                         "fields": {
-                                                          "NUM": -4
+                                                          "NUM": 8
                                                         }
                                                       }
                                                     },
@@ -376,7 +376,7 @@
                                                         "type": "math_number",
                                                         "id": "$1oZwd[RoEGbJYE~[${p",
                                                         "fields": {
-                                                          "NUM": 16
+                                                          "NUM": 28
                                                         }
                                                       }
                                                     },
@@ -738,7 +738,7 @@
                         "type": "math_number",
                         "id": "hVAmw*CPYbb;hR^sk3yn",
                         "fields": {
-                          "NUM": 10
+                          "NUM": -10
                         }
                       }
                     },
@@ -814,7 +814,8 @@
                           "fields": {
                             "MESH_VAR": {
                               "id": "f=8($HYZoE:IjT|U8x8J"
-                            }
+                            },
+                            "FRONT": true
                           },
                           "inputs": {
                             "RADIUS": {
@@ -1435,7 +1436,7 @@
                     "deletable": false,
                     "movable": false,
                     "fields": {
-                      "COLOR": "#ffcc00"
+                      "COLOR": "#ff9900"
                     }
                   }
                 },
@@ -1501,7 +1502,7 @@
                     "deletable": false,
                     "movable": false,
                     "fields": {
-                      "NUM": 1.9
+                      "NUM": -1.5
                     }
                   }
                 }
@@ -1568,7 +1569,7 @@
                         "deletable": false,
                         "movable": false,
                         "fields": {
-                          "NUM": 0.4
+                          "NUM": -2.5
                         }
                       }
                     },
@@ -1590,7 +1591,7 @@
                         "deletable": false,
                         "movable": false,
                         "fields": {
-                          "NUM": 1.9
+                          "NUM": -1.5
                         }
                       }
                     }
@@ -1637,7 +1638,7 @@
                     "deletable": false,
                     "movable": false,
                     "fields": {
-                      "NUM": -1.2
+                      "NUM": 3.1
                     }
                   }
                 },
@@ -1659,7 +1660,7 @@
                     "deletable": false,
                     "movable": false,
                     "fields": {
-                      "NUM": -2.4
+                      "NUM": -0.1
                     }
                   }
                 }
