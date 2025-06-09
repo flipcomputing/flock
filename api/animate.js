@@ -10,14 +10,14 @@ export const flockAnimate = {
     {
       property,
       targetValue,
-      duration = 1000,
+      duration = 1,
       reverse = false,
       loop = false,
       mode = "AWAIT"
     } = {}
   ) {
     const fps = 30;
-    const frames = fps * (duration / 1000);
+    const frames = fps * duration;
 
     return new Promise(async (resolve) => {
       // Check if mesh exists immediately first
@@ -122,7 +122,7 @@ export const flockAnimate = {
       x = 0,
       y = 0,
       z = 0,
-      duration = 1000,
+      duration = 1,
       reverse = false,
       loop = false,
       easing = "Linear"
@@ -143,7 +143,7 @@ export const flockAnimate = {
 
           const endPosition = new flock.BABYLON.Vector3(x, targetY, z);
           const fps = 30;
-          const frames = fps * (duration / 1000);
+          const frames = fps * duration;
 
           const glideAnimation = new flock.BABYLON.Animation(
             "glideTo",
@@ -1011,7 +1011,7 @@ export const flockAnimate = {
     x = 0,
     y = 0, 
     z = 0,
-    duration = 1000,
+    duration = 1,
     reverse = false,
     loop = false,
     easing = "Linear"
@@ -1038,7 +1038,7 @@ export const flockAnimate = {
           );
 
           const fps = 30;
-          const frames = fps * (duration / 1000);
+          const frames = fps * duration;
 
           // Determine the loop mode based on reverse and loop
           let loopMode;

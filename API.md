@@ -1,4 +1,3 @@
-
 # Flock XR API Documentation
 
 ## Overview
@@ -91,7 +90,7 @@ Smoothly moves a mesh to a new position.
 - `meshName` (string): Name of the mesh to move
 - `options` (object): Movement configuration
   - `x`, `y`, `z` (number, default: 0): Target position coordinates
-  - `duration` (number, default: 1000): Duration in milliseconds
+  - `duration` (number, default: 1): Duration in seconds
   - `easing` (string, default: "Linear"): Easing function
   - `reverse` (boolean, default: false): Whether to reverse
   - `loop` (boolean, default: false): Whether to loop
@@ -100,7 +99,7 @@ Smoothly moves a mesh to a new position.
 ```javascript
 await glideTo("player", {
   x: 5, y: 0, z: 3,
-  duration: 2000,
+  duration: 2,
   easing: "SineEase"
 });
 ```
@@ -112,7 +111,7 @@ Rotates a mesh with animation.
 - `meshName` (string): Name of the mesh to rotate
 - `options` (object): Rotation configuration
   - `x`, `y`, `z` (number, default: 0): Rotation angles in degrees
-  - `duration` (number, default: 1000): Duration in milliseconds
+  - `duration` (number, default: 1): Duration in seconds
   - `easing` (string, default: "Linear"): Easing function
   - `reverse` (boolean, default: false): Whether to reverse
   - `loop` (boolean, default: false): Whether to loop
@@ -121,7 +120,7 @@ Rotates a mesh with animation.
 ```javascript
 await rotateAnim("box1", {
   x: 90, y: 180, z: 0,
-  duration: 1500
+  duration: 1.5
 });
 ```
 
@@ -133,7 +132,7 @@ Animates a specific property of a mesh.
 - `options` (object): Animation configuration
   - `property` (string): Property to animate
   - `targetValue` (any): Target value for the property
-  - `duration` (number, default: 1000): Duration in milliseconds
+  - `duration` (number, default: 1): Duration in seconds
   - `reverse` (boolean, default: false): Whether to reverse
   - `loop` (boolean, default: false): Whether to loop
   - `mode` (string, default: "AWAIT"): Animation mode
@@ -503,7 +502,7 @@ await animateKeyFrames("box1", {
 // Smooth movement
 await glideTo("player", {
   x: 10, y: 0, z: 5,
-  duration: 3000,
+  duration: 3,
   easing: "SineEase"
 });
 ```

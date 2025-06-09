@@ -53,7 +53,7 @@ export function defineGenerators() {
 				block,
 				"DURATION",
 				javascriptGenerator.ORDER_ATOMIC,
-			) || "1000";
+			) || "1";
 
 		return `await wait(${duration} / 1000);\n`;
 	};
@@ -81,22 +81,42 @@ export function defineGenerators() {
 	};
 
 	javascriptGenerator.forBlock["glide_to"] = function (block) {
-		const meshName = javascriptGenerator.nameDB_.getName(
+		const meshVar = javascriptGenerator.nameDB_.getName(
 			block.getFieldValue("MESH_VAR"),
 			Blockly.Names.NameType.VARIABLE,
 		);
-		const x = getFieldValue(block, "X", "0");
-		const y = getFieldValue(block, "Y", "0");
-		const z = getFieldValue(block, "Z", "0");
-		const duration = getFieldValue(block, "DURATION", "0");
+		const x =
+			javascriptGenerator.valueToCode(
+				block,
+				"X",
+				javascriptGenerator.ORDER_ATOMIC,
+			) || "0";
+		const y =
+			javascriptGenerator.valueToCode(
+				block,
+				"Y",
+				javascriptGenerator.ORDER_ATOMIC,
+			) || "0";
+		const z =
+			javascriptGenerator.valueToCode(
+				block,
+				"Z",
+				javascriptGenerator.ORDER_ATOMIC,
+			) || "0";
+		const duration =
+			javascriptGenerator.valueToCode(
+				block,
+				"DURATION",
+				javascriptGenerator.ORDER_ATOMIC,
+			) || "1000";
 		const mode = block.getFieldValue("MODE");
 		const reverse = block.getFieldValue("REVERSE") === "TRUE";
 		const loop = block.getFieldValue("LOOP") === "TRUE";
 		const easing = block.getFieldValue("EASING");
 
-		const asyncWrapper = mode === "AWAIT" ? "await " : "";
+		const code = `${mode === "AWAIT" ? "await " : ""}glideTo(${meshVar}, { x: ${x}, y: ${y}, z: ${z}, duration: ${duration} / 1000, reverse: ${reverse}, loop: ${loop}, easing: "${easing}" });\n`;
 
-		return `${asyncWrapper}glideTo(${meshName}, { x: ${x}, y: ${y}, z: ${z}, duration: ${duration}, reverse: ${reverse}, loop: ${loop}, easing: "${easing}" });\n`;
+		return code;
 	};
 
 	javascriptGenerator.forBlock["glide_to_seconds"] = function (block) {
@@ -107,7 +127,7 @@ export function defineGenerators() {
 		const x = getFieldValue(block, "X", "0");
 		const y = getFieldValue(block, "Y", "0");
 		const z = getFieldValue(block, "Z", "0");
-		const duration = getFieldValue(block, "DURATION", "0") * 1000;
+		const duration = getFieldValue(block, "DURATION", "0");
 		const mode = block.getFieldValue("MODE");
 		const reverse = block.getFieldValue("REVERSE") === "TRUE";
 		const loop = block.getFieldValue("LOOP") === "TRUE";
@@ -145,7 +165,7 @@ export function defineGenerators() {
 		const rotX = getFieldValue(block, "ROT_X", "0");
 		const rotY = getFieldValue(block, "ROT_Y", "0");
 		const rotZ = getFieldValue(block, "ROT_Z", "0");
-		const duration = getFieldValue(block, "DURATION", "0") * 1000;
+		const duration = getFieldValue(block, "DURATION", "0");
 		const mode = block.getFieldValue("MODE");
 		const reverse = block.getFieldValue("REVERSE") === "TRUE";
 		const loop = block.getFieldValue("LOOP") === "TRUE";
@@ -3020,7 +3040,7 @@ javascriptGenerator.forBlock["animate_property"] = function (block) {
 		);
 		const property = block.getFieldValue("PROPERTY");
 		const targetValue = getFieldValue(block, "TARGET_VALUE", "0.5");
-		const duration = getFieldValue(block, "DURATION", "1000");
+		const duration = getFieldValue(block, "DURATION", "1");
 		const mode = block.getFieldValue("MODE");
 		const reverse = block.getFieldValue("REVERSE") === "TRUE";
 		const loop = block.getFieldValue("LOOP") === "TRUE";

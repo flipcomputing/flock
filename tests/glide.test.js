@@ -33,7 +33,7 @@ export function runGlideToTests(flock) {
 			this.timeout(15000); // Increase the timeout forthis test
 			// Call glideTo to move the
 
-			flock.glideTo(box1, { x: 6, y: 0, z: 0, duration: 500 }).then(() => {
+			flock.glideTo(box1, { x: 6, y: 0, z: 0, duration: 0.5 }).then(() => {
 				const box = flock.scene.getMeshByName(box1);
 
 				// Assert the box has moved to the correct position
@@ -48,7 +48,7 @@ export function runGlideToTests(flock) {
 			this.timeout(10000); // Increase the timeout for this test
 
 			// Move the box with loop enabled
-			flock.glideTo(box1, { x: 6, y: 0, z: 0, duration: 2000, reverse: true }); // Start the glide with return enabled
+			flock.glideTo(box1, { x: 6, y: 0, z: 0, duration: 2, reverse: true }); // Start the glide with return enabled
 
 			let count = 0;
 			let passed = true
@@ -77,7 +77,7 @@ export function runGlideToTests(flock) {
 				}
 
 				count++;
-				
+
 				// Stop checking after 4 seconds
 				if (count > 3) {
 					clearInterval(intervalId);
@@ -92,7 +92,7 @@ export function runGlideToTests(flock) {
 			this.timeout(10000); // Increase the timeout for this test
 
 			// Move the box with loop enabled
-			flock.glideTo(box1, { x: 6, y: 0, z: 0, duration: 1000, reverse: false, loop: true }); // Start the glide with looping enabled
+			flock.glideTo(box1, { x: 6, y: 0, z: 0, duration: 1, reverse: false, loop: true }); // Start the glide with looping enabled
 
 			// Track position changes to detect looping
 			let maxPosition = 0;
@@ -103,32 +103,32 @@ export function runGlideToTests(flock) {
 			const intervalId = setInterval(() => {
 				const box = flock.scene.getMeshByName(box1);
 				const currentX = box.position.x;
-				
+
 				console.log("Loop check", count, "Position:", currentX);
-				
+
 				// Track the maximum position reached
 				if (currentX > maxPosition) {
 					maxPosition = currentX;
 				}
-				
+
 				// Check if we've reached near the target (x=6)
 				if (currentX > 5 && !hasReachedTarget) {
 					hasReachedTarget = true;
 					console.log("Reached target position");
 				}
-				
+
 				// Check if we've returned to near start after reaching target
 				if (hasReachedTarget && currentX < 1 && !hasReturnedToStart) {
 					hasReturnedToStart = true;
 					console.log("Returned to start - loop cycle detected");
 				}
-				
+
 				count++;
 
 				// After enough time, check if we detected loop behavior
 				if (count > 8) {
 					clearInterval(intervalId);
-					
+
 					// We should have seen the box reach the target and return (indicating a loop)
 					// OR the maximum position should be significantly greater than 0 (indicating movement)
 					const loopDetected = hasReturnedToStart || maxPosition > 3;
@@ -138,7 +138,7 @@ export function runGlideToTests(flock) {
 						maxPosition,
 						loopDetected
 					});
-					
+
 					expect(loopDetected).to.be.true;
 					done();
 				}
@@ -148,10 +148,10 @@ export function runGlideToTests(flock) {
 		it("should follow the correct easing function", function (done) {
 			this.timeout(5000); // Increase the timeout for this test
 			// Test with different easing options (Linear by default)
-		
+
 			flock
-				.glideTo(box1, { x: 6, y: 0, z: 0, duration: 1000, reverse: false, loop: false, easing: "SineEase" })
-				.then(() => {
+			.glideTo(box1, { x: 6, y: 0, z: 0, duration: 1, reverse: false, loop: false, easing: "SineEase" })
+			.then(() => {
 					const box = flock.scene.getMeshByName(box1);
 
 					// Check if the position matches expected easing behavior
@@ -166,7 +166,7 @@ export function runGlideToTests(flock) {
 			this.timeout(10000); // Increase the timeout for this test
 			const startTime = Date.now();
 
-			flock.glideTo(box1, { x: 6, y: 0, z: 0, duration: 2000 }).then(() => {
+			flock.glideTo(box1, { x: 6, y: 0, z: 0, duration: 2 }).then(() => {
 				const endTime = Date.now();
 				const duration = (endTime - startTime) / 1000; // Convert to seconds
 

@@ -37,7 +37,7 @@ export function runCreateObjectTests(flock) {
 
 			try {
 				await flock.hide(tree);
-				await flock.wait(500);
+				await flock.wait(0.5);
 				await flock.show(tree);
 			} catch (error) {
 				throw new Error(`Show/hide operation failed: ${error.message}`);
@@ -64,7 +64,7 @@ export function runCreateObjectTests(flock) {
 					await flock.hide(tree);
 				}
 
-				await flock.wait(500);
+				await flock.wait(0.5);
 
 				// Show all objects
 				for (const tree of trees) {
@@ -186,7 +186,7 @@ export function runCreateObjectTests(flock) {
 			// Test scaling operations if available
 			if (flock.scale) {
 				await flock.scale(tree, 2);
-				await flock.wait(500);
+				await flock.wait(0.5);
 				await flock.scale(tree, 0.5);
 			}
 		});
@@ -203,7 +203,7 @@ export function runCreateObjectTests(flock) {
 			// Test rotation operations if available
 			if (flock.rotate) {
 				await flock.rotate(tree, { x: 0, y: 90, z: 0 });
-				await flock.wait(500);
+				await flock.wait(0.5);
 				await flock.rotate(tree, { x: 45, y: 90, z: 45 });
 			}
 		});
@@ -219,7 +219,7 @@ export function runCreateObjectTests(flock) {
 			// Test position updates if available
 			if (flock.setPosition) {
 				await flock.setPosition(tree, { x: 5, y: 0, z: 5 });
-				await flock.wait(500);
+				await flock.wait(0.5);
 				await flock.setPosition(tree, { x: -5, y: 2, z: -5 });
 			}
 		});
@@ -234,9 +234,9 @@ export function runCreateObjectTests(flock) {
 
 			for (let i = 0; i < 3; i++) {
 				await flock.hide(tree);
-				await flock.wait(200);
+				await flock.wait(0.2);
 				await flock.show(tree);
-				await flock.wait(200);
+				await flock.wait(0.2);
 			}
 		});
 
@@ -252,7 +252,7 @@ export function runCreateObjectTests(flock) {
 			// Test color updates if available
 			if (flock.setColor) {
 				await flock.setColor(tree, ["#0000ff", "#ff00ff"]);
-				await flock.wait(500);
+				await flock.wait(0.5);
 				await flock.setColor(tree, ["#ffffff", "#000000"]);
 			}
 		});
