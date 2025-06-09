@@ -129,14 +129,6 @@ export const flockAnimate = {
     } = {}
   ) {
     return new Promise(async (resolve) => {
-      // Check if mesh exists immediately first
-      const existingMesh = flock.scene?.getMeshByName(meshName);
-      if (!existingMesh && meshName !== "__active_camera__") {
-        console.warn(`Mesh '${meshName}' not found for glideTo.`);
-        resolve();
-        return;
-      }
-
       await flock.whenModelReady(meshName, async function (mesh) {
         if (mesh) {
           const startPosition = mesh.position.clone(); // Capture start position
