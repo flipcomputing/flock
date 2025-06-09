@@ -567,7 +567,7 @@ export function updateMeshFromBlock(mesh, block, changeEvent) {
         mesh.parent ? ultimateParent(mesh.parent) : mesh;
       //color = flock.getColorFromString(color);
       mesh = ultimateParent(mesh);
-      flock.changeColor(mesh.name, color);
+      flock.changeColor(mesh.name, { color });
     }
   }
 
