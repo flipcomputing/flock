@@ -58,7 +58,7 @@ export function defineGenerators() {
 		return `await wait(${duration} / 1000);\n`;
 	};
 
-	javascriptGenerator.forBlock["wait_s"] = function (block) {
+	javascriptGenerator.forBlock["wait_seconds"] = function (block) {
 		const duration =
 			javascriptGenerator.valueToCode(
 				block,
@@ -1727,7 +1727,7 @@ export function defineGenerators() {
 			Blockly.Names.NameType.VARIABLE,
 		);
 		const color = getFieldValue(block, "COLOR", "#FFD700");
-		return `await highlight(${modelName}, { color: ${color} });n`;
+		return `await highlight(${modelName}, { color: ${color} });\n`;
 	};
 
 	javascriptGenerator.forBlock["glow"] = function (block) {
