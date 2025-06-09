@@ -1296,7 +1296,7 @@ export const flock = {
 					);
 				}
 				resolve();
-			}, duration);
+			}, duration * 1000);
 
 			const onAbort = () => {
 				clearTimeout(timeoutId); // Clear the timeout if aborted

@@ -406,5 +406,9 @@ export const flockScene = {
 
     return uniqueCloneId;
   },
-
+  wait(duration) {
+    return new Promise((resolve) => {
+      setTimeout(resolve, duration);
+    });
+  },
 };

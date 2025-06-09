@@ -551,6 +551,26 @@ export function defineBlocks() {
     },
   };
 
+  Blockly.Blocks["wait_s"] = {
+    init: function () {
+      this.jsonInit({
+        type: "wait",
+        message0: "wait %1 seconds",
+        args0: [
+          {
+            type: "input_value",
+            name: "DURATION",
+            check: "Number",
+          },
+        ],
+        previousStatement: null,
+        nextStatement: null,
+        colour: categoryColours["Control"],
+        tooltip: "Wait for a specified time in seconds.\nKeyword: wait",
+        helpUrl: "",
+      });
+    },
+  };
   Blockly.Blocks["wait_until"] = {
     init: function () {
       this.jsonInit({
@@ -6340,6 +6360,3 @@ Blockly.Blocks["microbit_input"] = {
 })();
 
 // Listen for changes to blocks in the workspace
-
-
-  

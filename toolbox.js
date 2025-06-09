@@ -1881,14 +1881,14 @@ const toolboxControl = {
 	contents: [
 		{
 			kind: "block",
-			type: "wait",
-			keyword: "wait",
+			type: "wait_s",
+			keyword: "waits",
 			inputs: {
 				DURATION: {
 					shadow: {
 						type: "math_number",
 						fields: {
-							NUM: 1000,
+							NUM: 1,
 						},
 					},
 				},
@@ -1950,6 +1950,7 @@ const toolboxControl = {
 				},
 			},
 		},
+		
 		/*{
 			kind: "block",
 			type: "for_loop",
@@ -1995,6 +1996,21 @@ const toolboxControl = {
 			kind: "block",
 			type: "local_variable",
 			keyword: "local",
+		},
+		{
+			kind: "block",
+			type: "wait",
+			keyword: "wait",
+			inputs: {
+				DURATION: {
+					shadow: {
+						type: "math_number",
+						fields: {
+							NUM: 1000,
+						},
+					},
+				},
+			},
 		},
 	],
 };

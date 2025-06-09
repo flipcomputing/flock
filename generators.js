@@ -18,7 +18,7 @@ export function defineGenerators() {
 	// Force re-initialization of animation generators
 	delete javascriptGenerator.forBlock["play_animation"];
 	delete javascriptGenerator.forBlock["switch_animation"];
-	
+
 	javascriptGenerator.forBlock["show"] = function (block) {
 		const modelName = javascriptGenerator.nameDB_.getName(
 			block.getFieldValue("MODEL_VAR"),
@@ -54,6 +54,17 @@ export function defineGenerators() {
 				"DURATION",
 				javascriptGenerator.ORDER_ATOMIC,
 			) || "1000";
+
+		return `await wait(${duration} / 1000);\n`;
+	};
+
+	javascriptGenerator.forBlock["wait_s"] = function (block) {
+		const duration =
+			javascriptGenerator.valueToCode(
+				block,
+				"DURATION",
+				javascriptGenerator.ORDER_ATOMIC,
+			) || "1";
 
 		return `await wait(${duration});\n`;
 	};
@@ -1716,7 +1727,7 @@ export function defineGenerators() {
 			Blockly.Names.NameType.VARIABLE,
 		);
 		const color = getFieldValue(block, "COLOR", "#FFD700");
-		return `await highlight(${modelName}, { color: ${color} });\n`;
+		return `await highlight(${modelName}, { color: ${color} });n`;
 	};
 
 	javascriptGenerator.forBlock["glow"] = function (block) {

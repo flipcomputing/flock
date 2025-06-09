@@ -382,11 +382,11 @@ Creates interactive UI buttons.
 Pauses execution for a specified time.
 
 **Parameters:**
-- `duration` (number): Wait time in milliseconds
+- `duration` (number): Wait time in seconds
 
 **Example:**
 ```javascript
-await wait(100);
+await wait(0.1);
 ```
 
 #### `randomInteger(min, max)`
