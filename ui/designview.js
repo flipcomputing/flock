@@ -652,7 +652,7 @@ function createMeshOnCanvas(block) {
         .getFieldValue("COLOR");
       flock.createGround(color, "ground");
       break;
-    case "create_map":
+    case "create_map":{
       meshId = "ground";
       meshMap[meshId] = block;
       meshBlockIdMap[meshId] = block.id;
@@ -664,6 +664,7 @@ function createMeshOnCanvas(block) {
       console.log("Create map", map);
       flock.createMap(map, material);
       break;
+    }
     // --- Model Loading Blocks --
     case "load_model":
       modelName = block.getFieldValue("MODELS");
@@ -760,7 +761,7 @@ function createMeshOnCanvas(block) {
 
       break;
 
-    case "load_multi_object":
+    case "load_multi_object":{
       modelName = block.getFieldValue("MODELS");
       scale = block
         .getInput("SCALE")
@@ -798,7 +799,7 @@ function createMeshOnCanvas(block) {
       });
 
       break;
-
+    }
     // --- Shape Creation Blocks ---
     case "create_box":
       color = block
@@ -2090,7 +2091,7 @@ function toggleGizmo(gizmoType) {
       }, 50);
 
       break;
-    case "select":
+    case "select": {
       gizmoManager.selectGizmoEnabled = true;
 
       // Store the pointer observable
@@ -2157,6 +2158,7 @@ function toggleGizmo(gizmoType) {
       });
 
       break;
+    }
     case "bounds":
       gizmoManager.boundingBoxGizmoEnabled = true;
       gizmoManager.boundingBoxDragBehavior.onDragStartObservable.add(
@@ -2662,7 +2664,7 @@ function toggleGizmo(gizmoType) {
 
             case "load_multi_object":
             case "load_object":
-            case "load_character":
+            case "load_character":{
               if (!block.getInput("DO")) {
                 block.appendStatementInput("DO").setCheck(null).appendField("");
               }
@@ -2725,13 +2727,13 @@ function toggleGizmo(gizmoType) {
               setScaleValue("Z", scaleZ);
               break;
           }
+        }
         } catch (e) {
           console.error("Error updating block values:", e);
         }
       });
 
       break;
-
     case "boundingBox":
       gizmoManager.boundingBoxGizmoEnabled = true;
 
