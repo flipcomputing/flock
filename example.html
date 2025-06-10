@@ -19,8 +19,6 @@
 			// Made with Flock XR
 			let player = 'player'; let camera = 'camera'; let box1 = 'box1';
 
-
-
 			(async () => {
 			  setSky("#ffffff");
 			  createGround("#ffffff", "ground");
@@ -28,15 +26,7 @@
 			  buttonControls("ARROWS", true, "#cc33cc");
 			  camera = getCamera();
 			  for (let count = 0; count < 100; count++) {
-				box1 = createBox(
-				  "box1__)C}CoPM~GwY.o.DvG%Ec__)C}CoPM~GwY.o.DvG%Ec",
-				  randomColour(),
-				  randomInteger(1, 5),
-				  randomInteger(1, 5),
-				  randomInteger(1, 5),
-				  [randomInteger(-20, 20), randomInteger(0, 10), randomInteger(-20, 20)]
-				);
-
+				box1 = createBox("box1__)C}CoPM~GwY.o.DvG%Ec", { color: randomColour(), width: (randomInteger(1, 5)), height: (randomInteger(1, 5)), depth: (randomInteger(1, 5)), position: [(randomInteger(-20, 20)), (randomInteger(0, 10)), (randomInteger(-20, 20))] });
 				await setAlpha(box1, 0.75);
 			  await wait(0);
 			  }
@@ -58,28 +48,28 @@
 					  }
 					});
 			  await setPhysics(player, "DYNAMIC");
-			  await attachCamera(player, 7);
+			  await attachCamera(player, { radius: 7, front: false });
 			})();
 
-			forever(async () => {
+			forever(async function(){
 			  if (keyPressed("w")) {
 				moveForward(player, 3);
-				await switchAnimation(player, "Walk");
+				await switchAnimation(player, { animationName: "Walk" });
 			  } else if (keyPressed("s")) {
 				moveForward(player, (-3));
-				await switchAnimation(player, "Walk");
+				await switchAnimation(player, { animationName: "Walk" });
 			  } else if (keyPressed("a")) {
-				await rotate(camera, 0, 1, 0);
+				await rotate(camera, { x: 0, y: 1, z: 0 });
 			  } else if (keyPressed("d")) {
-				await rotate(camera, 0, (-1), 0);
+				await rotate(camera, { x: 0, y: (-1), z: 0 });
 			  } else {
-				await switchAnimation(player, "Idle");
+				await switchAnimation(player, { animationName: "Idle" });
 			  }
 			});
 		</script>
 
 		<script type="module">
-			import "https://flipcomputing.github.io/flock/flock.js";
+			import "https://flipcomputing.github.io/flockupdate/flock.js";
 		</script>
 	</body>
 </html>

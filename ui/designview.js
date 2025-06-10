@@ -1608,6 +1608,10 @@ function showShapes() {
 // Close the shapes menu if the user clicks outside of it
 document.addEventListener("click", function (event) {
   const dropdown = document.getElementById("shapes-dropdown");
+  
+  // Guard against null dropdown in standalone environment
+  if (!dropdown) return;
+  
   const isClickInside = dropdown.contains(event.target);
 
   const isClickOnToggle =
