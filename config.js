@@ -104,6 +104,7 @@ export const objectNames = [
 	"Gem1.glb",
 	"Gem2.glb",
 	"Gem3.glb",
+	"Wand.glb",
 ];
 
 export const objectColours = {
@@ -114,6 +115,7 @@ export const objectColours = {
 	"Gem1.glb": ["#00BFFF", "#00BFFF", "#00BFFF"], // Deep Sky Blue
 	"Gem2.glb": ["#8A2BE2", "#8A2BE2", "#8A2BE2"], // Blue Violet
 	"Gem3.glb": ["#FF4500", "#FF4500", "#FF4500"], // Orange Red
+	"Wand.glb": ["#FF4500", "#8A2BE2", "#92614A"], // Mixed
 	
 	"tree.glb": ["#66CDAA", "#CD853F"],
 	"tree2.glb": ["#7F9F7F", "#A1623B"],
