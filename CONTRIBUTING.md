@@ -1,32 +1,179 @@
+
 # Contributing to Flock XR
+
 Hey there! We welcome community contributions to Flock XR. This could be **code**, **documentation**, **reporting bugs**, **suggesting accessibility features**, **adding translations**, or something else!
 
-## Current priorities
-- Stability
-- Adding tests
-- Accessibility features
-- UX improvements
+## 🚀 Quick Start for First-Time Contributors
 
-## Code of conduct
-In future, we'll add our own code of conduct, for now we follow: [p5.js Web Editor Code of Conduct](https://github.com/processing/p5.js-web-editor/blob/develop/.github/CODE_OF_CONDUCT.md).
+### What is Flock XR?
+Flock XR is a creative coding platform for 3D development using Blockly and Babylon.js. It's designed as a bridge between Scratch and professional 3D tools, making 3D programming accessible to young people and beginners.
 
-## Getting started
-We welcome contributors with lots of experience through to those considering their first open source contribution. 
+### Ways to Contribute
+- 🐛 **Report bugs** - Found something broken? Let us know!
+- 📝 **Improve documentation** - Help make our docs clearer
+- ✨ **Add features** - Implement new blocks, effects, or tools
+- 🧪 **Write tests** - Help us improve stability
+- ♿ **Accessibility improvements** - Make Flock more inclusive
+- 🌍 **Translations** - Help us reach more users worldwide
+- 🎨 **UI/UX improvements** - Make the interface better
 
-Contact us via [Get in touch](https://flipcomputing.com/contact/) and we'll invite you to our Discord to chat about how you could help. Thank you!
+## 🛠️ Development Setup
 
-## Tech stack
+### Prerequisites
+- Node.js (version 18 or higher)
+- Git
+- A modern web browser
 
-- JavaScript (probably moving to TypeScript at some point)
-- Babylon.js
-- Google Blockly
-- Vite
-- Node.js (clientside)
-- Progressive Web App
-- Mocha and Chai
-- Future: Playwright
+### Getting Started
+1. **Fork the repo** on GitHub
+2. **Clone your fork** to your local machine:
+   ```bash
+   git clone git@github.com:YOUR_USERNAME/flockupdate.git
+   ```
+3. **Navigate to the project**:
+   ```bash
+   cd flockupdate
+   ```
+4. **Install dependencies**:
+   ```bash
+   npm install
+   ```
+5. **Start the development server**:
+   ```bash
+   npm run dev
+   ```
+6. **Open your browser** to http://localhost:5173/
 
-## Contribution guides
+### Making Changes
+1. **Create a feature branch**:
+   ```bash
+   git checkout -b your-feature-name
+   ```
+2. **Make your changes** (see project structure below)
+3. **Test your changes** by visiting http://localhost:5173/tests/tests.html
+4. **Commit your changes**:
+   ```bash
+   git add .
+   git commit -m "Add your descriptive commit message"
+   ```
+5. **Push to your fork**:
+   ```bash
+   git push origin your-feature-name
+   ```
+6. **Create a Pull Request** on GitHub
 
-- [https://guides.github.com/activities/hello-world/](https://guides.github.com/activities/hello-world/)
-- [https://guides.github.com/activities/forking/](https://guides.github.com/activities/forking/)
+## 📁 Project Structure
+
+Understanding the codebase:
+- **`index.html`** - Main HTML file that defines the application structure, UI layout (menu, canvas, code panel), and loads all necessary scripts and stylesheets
+- **`main.js`** - Main application entry point that initializes Blockly workspace, handles code execution, manages UI views (canvas/blocks/split), and controls file operations
+- **`ui/designview.js`** - Visual design interface enabling direct 3D object manipulation with gizmos, synchronizing 3D changes with Blockly blocks
+- **`flock.js`** - Main Flock engine
+- **`api/`** - Core Flock XR API functions (scene, animation, physics, etc.)
+- **`blocks.js`** - Block definitions
+- **`blocks/`** - Additional Blockly block definitions
+- **`generators.js`** - Blockly JavaSode generators for blocks
+- **`toolbox.js`** - Blockly toolbox configuration
+- **`examples/`** - Sample projects and demos
+- **`models/`** - 3D models (.glb files)
+- **`images/`** - Images used in UI
+- **`textures/`** - Texture files for materials
+- **`sounds/`** - Audio files
+- **`fonts/`** - Fonts used in UI and 3D text generation
+- **`examples/`** - Example project JSON files including those featured in the Demo dropdown
+- **`tests/`** - Test files (please add tests for new features!)
+
+## 🧪 Testing
+
+We use Mocha and Chai for testing. Always test your changes:
+
+1. **Run the development server**: `npm run dev`
+2. **Visit the test page**: http://localhost:5173/tests/tests.html
+3. **Select tests** from the dropdown and click "Run Tests"
+4. **Add new tests** for any features you create
+
+## 📋 Current Priorities
+
+1. **Stability** - Bug fixes and reliability improvements
+2. **Testing** - More comprehensive test coverage
+3. **Accessibility** - Making Flock usable for everyone
+4. **UX improvements** - Better user experience
+5. **Documentation** - Clearer guides and API docs
+
+## 🐛 Reporting Issues
+
+When reporting bugs, please include:
+- Steps to reproduce the issue
+- Expected vs actual behavior
+- Browser and operating system
+- Screenshots or screen recordings if helpful
+- Any console errors
+
+## 💡 Suggesting Features
+
+Before suggesting new features:
+1. Check existing issues to avoid duplicates
+2. Think about how beginners would use it
+3. Consider performance
+4. Provide use cases and examples
+
+## 📝 Documentation
+
+Help us improve documentation by:
+- Fixing typos or unclear explanations
+- Adding examples to the [API documentation](API.md)
+- Creating tutorials for new features
+- Improving code comments
+
+## 🎨 Design Guidelines
+
+When contributing UI/UX improvements:
+- Keep accessibility in mind
+- Maintain consistency with existing design
+- Consider the target audience (young people and beginners)
+- Test on different screen sizes
+
+## 🌍 Accessibility
+
+We're committed to making Flock accessible. We'll be working on:
+- WCAG guidelines
+- Color contrast
+- Language translations
+- Clear, simple language
+- Keyboard navigation
+- Screen reader compatibility
+
+## 💬 Getting Help
+
+- **Discord**: Contact us via [Get in touch](https://flockxr.com/flock-xr-community/) for Discord invite
+- **Issues**: Use GitHub issues for bugs and feature requests
+- **Discussions**: Use GitHub discussions for questions
+
+## 📜 Code of Conduct
+
+We follow the [p5.js Web Editor Code of Conduct](https://github.com/processing/p5.js-web-editor/blob/develop/.github/CODE_OF_CONDUCT.md). Please be respectful and inclusive.
+
+## 🏷️ Tech Stack
+
+- **JavaScript** (considering TypeScript migration)
+- **Babylon.js** - 3D rendering engine
+- **Google Blockly** - Visual programming blocks
+- **Vite** - Build tool
+- **Node.js** - Development environment
+- **Progressive Web App** features
+- **Mocha & Chai** - Testing framework
+
+## 📄 License
+
+Flock XR is licensed under the MIT License. By contributing, you agree that your contributions will be licensed under the same license.
+
+## 🙏 Thank You!
+
+Every contribution helps make 3D programming more accessible to young people worldwide. Thank you for being part of the Flock XR community!
+
+---
+
+**New to open source?** Check out these guides:
+- [GitHub's Hello World tutorial](https://guides.github.com/activities/hello-world/)
+- [How to fork a repository](https://guides.github.com/activities/forking/)
+- [How to create a pull request](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request)
