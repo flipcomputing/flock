@@ -251,6 +251,7 @@ path.blocklyPath.blockly-ws-search-highlight.blockly-ws-search-current {
 #shape-menu {
   position: relative;
   display: inline-block;
+  z-index: 80;
 }
 
 #shapes-dropdown {
