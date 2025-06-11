@@ -2692,3 +2692,31 @@ function setupAutoValueBehavior(workspace) {
 		}
 	});
 }
+
+function applyTheme(theme) {
+  document.body.classList.remove('theme-light', 'theme-dark', 'theme-high-contrast');
+  document.body.classList.add('theme-' + theme);
+  localStorage.setItem('theme', theme);
+  // Update Blockly theme if available
+  if (window.Blockly && window.workspace) {
+    if (theme === 'dark') {
+      window.workspace.setTheme(Blockly.Themes.Dark);
+    } else if (theme === 'high-contrast') {
+      window.workspace.setTheme(Blockly.Themes.HighContrast);
+    } else {
+      window.workspace.setTheme(Blockly.Themes.Classic);
+    }
+  }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  const themeSwitcher = document.getElementById('themeSwitcher');
+  if (themeSwitcher) {
+    const savedTheme = localStorage.getItem('theme') || 'light';
+    themeSwitcher.value = savedTheme;
+    applyTheme(savedTheme);
+    themeSwitcher.addEventListener('change', function(e) {
+      applyTheme(e.target.value);
+    });
+  }
+});
