@@ -716,3 +716,90 @@ path.blocklyPath.blockly-ws-search-highlight.blockly-ws-search-current {
 .blocklyZoomOut > image{
   opacity: 1 !important;
 }
+/* menu and project name styling for mobile screens */
+#menuBtn{
+  display: none;
+}
+.mobile-only {
+  display: none;
+}
+
+
+/* Dropdown menu styling */
+/* menu wrapper styling */
+#about-menu-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
+.dropdown {
+  position: absolute;
+  top: 100%; /* Below the button */
+  right: 10;
+  background-color: white;
+  border: 1px solid #ddd;
+  padding: 0.5em;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  z-index: 1000;
+}
+
+.dropdown a {
+  display: block;
+  color: #511D91;
+  text-decoration: none;
+  padding: 0.5em 1em;
+}
+
+.dropdown a:hover {
+  background-color: #f0f0f0;
+}
+
+/* Modal styles */
+.modal {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: fixed;
+  z-index: 1000;
+  left: 0; top: 0;
+  width: 100%; height: 100%;
+  background-color: rgba(0, 0, 0, 0.4);
+}
+
+.modal-content {
+  background-color: #fff;
+  padding: 1.5em;
+  border-radius: 10px;
+  max-width: 600px;
+  width: 90%;
+  max-height: 80%;
+  overflow-y: auto;
+}
+
+.hidden {
+  display: none;
+}
+
+.close-button {
+  float: right;
+  font-size: 1.25em;
+  cursor: pointer;
+}
+@media (max-width: 768px) {
+  #projectName {
+    display: none; /* hid the project name input box for mobile screens*/
+  }
+    #menuBtn {
+    display: inline-flex; 
+    align-items: center;
+    justify-content: center;
+  }
+    .mobile-only {
+    display: inline-block;
+  }
+
+  #info-panel-toggle {
+    display: none; /* Hide the inline Show Info button */
+  }
+
+}
