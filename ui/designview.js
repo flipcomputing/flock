@@ -276,6 +276,22 @@ export function updateMeshFromBlock(mesh, block, changeEvent) {
   }
 
   if (block.type === "set_sky_color") {
+    let isColorList = false;
+    let colorList = [];
+
+    for (let child of block.childBlocks_) {
+      if (child.type === "lists_create_with") {
+        isColorList = true;
+        for (let input of child.inputList) {
+          colorList.push(input.connection.targetBlock().getFieldValue("COLOR"));
+        };
+      };
+    };
+
+    if (isColorList) {
+      color = colorList;
+    };
+
     flock.setSky(color);
     return;
   }
