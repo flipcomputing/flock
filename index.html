@@ -44,6 +44,107 @@
       <div id="menu">
         <div id="menuleft">
           <img src="images/flockxr-bird.png" alt="Flock bird logo" id="logo" />
+          <!-- Menu Button -->
+          <!-- Added the menu wrapper for mobile screens and put about option when clicked shows the popup modal for the screen of the button show info inherently disabled the showinfo button on mobile screens-->
+        <div id = 'about-menu-wrapper'>
+          <button
+            class="bigbutton"
+            id="menuBtn"
+            title="Open menu for more options"
+          >
+            <div class="icon" style="width: 1.25em; height: 1.25em">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" fill="#511D91">
+                <path
+                fill = "#511D91"
+                 d="M0 96C0 78.3 14.3 64 32 64h384c17.7 0 32 14.3 32 32s-14.3 32-32 32H32C14.3 128 0 113.7 0 96zm0 160c0-17.7 14.3-32 32-32h384c17.7 0 32 14.3 32 32s-14.3 32-32 32H32c-17.7 0-32-14.3-32-32zm448 160c0 17.7-14.3 32-32 32H32c-17.7 0-32-14.3-32-32s14.3-32 32-32h384c17.7 0 32 14.3 32 32z"/>
+              </svg>
+            </div>
+          </button>
+          <div id="menuDropdown" class="dropdown hidden">
+            <a href="#" id="openAbout">About</a>
+            <!--space for the future options-->
+          </div>
+                      <!-- Modal Popup for Info Panel -->
+          </div>
+          <div id="infoModal" class="modal hidden">
+            <div class="modal-content">
+              <span class="close-button" id="closeInfoModal">&times;</span>
+
+              <div id="model-panel-content">
+              <p>
+                Flock XR is a <strong>prototype</strong> made by
+                <a target="_blank" href="https://flipcomputing.com/flockxr/"
+                  >Flip Computing</a
+                >. Please try it out but be aware that things may change and
+                some features aren't finished yet. We're currently looking for
+                support to develop Flock so that you can rely on it.
+              </p>
+              <div>
+                Take a look at the demos above to see what you can do.
+                Make some changes and click
+                <div
+                  style="
+                    display: inline-block;
+                    margin-left: 2px;
+                    margin-right: 2px;
+                  "
+                >
+                  <div
+                    class="icon"
+                    style="height: 1em; width: 1em; padding: 0px"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 512 512"
+                    >
+                      <path
+                        fill="#511D91"
+                        d="M0 256a256 256 0 1 1 512 0A256 256 0 1 1 0 256zM188.3 147.1c-7.6 4.2-12.3 12.3-12.3 20.9l0 176c0 8.7 4.7 16.7 12.3 20.9s16.8 4.1 24.3-.5l144-88c7.1-4.4 11.5-12.1 11.5-20.5s-4.4-16.1-11.5-20.5l-144-88c-7.4-4.5-16.7-4.7-24.3-.5z"
+                      />
+                    </svg>
+                  </div>
+                </div>
+                run.
+              </div>
+              <p>      
+              </p>
+              <p>View the <a target="_blank" href="https://flockxr.com/privacy-policy/">privacy policy</a> for Flock XR. <a href="https://flipcomputing.com/contact/" target="_blank"
+                >Get in touch</a
+              ></p>
+              </div>
+            </div>
+          </div>
+          <script>
+            const menuBtn = document.getElementById("menuBtn");
+            const menuDropdown = document.getElementById("menuDropdown");
+            const openAbout = document.getElementById("openAbout");
+            const infoModal = document.getElementById("infoModal");
+            const closeInfoModal = document.getElementById("closeInfoModal");
+
+            // Toggle menu dropdown
+            menuBtn.addEventListener("click", () => {
+              menuDropdown.classList.toggle("hidden");
+            });
+
+            // Open modal when About is clicked
+            openAbout.addEventListener("click", (e) => {
+              e.preventDefault();
+              infoModal.classList.remove("hidden");
+              menuDropdown.classList.add("hidden"); // close the menu
+            });
+
+            // Close modal on close button
+            closeInfoModal.addEventListener("click", () => {
+              infoModal.classList.add("hidden");
+            });
+
+            // Optional: Close on outside click
+            window.addEventListener("click", (e) => {
+              if (e.target === infoModal) {
+                infoModal.classList.add("hidden");
+              }
+            });
+          </script>
           <button class="bigbutton" id="runCodeButton" title="Run your code">
             <div class="icon">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
