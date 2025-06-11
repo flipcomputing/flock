@@ -717,12 +717,14 @@ path.blocklyPath.blockly-ws-search-highlight.blockly-ws-search-current {
   opacity: 1 !important;
 }
 /* menu and project name styling for mobile screens */
-#menuBtn{
-  display: none;
-}
-.mobile-only {
-  display: none;
-}
+#menuBtn {
+    display: inline-flex; 
+    align-items: center;
+    justify-content: center;
+  }
+    .mobile-only {
+    display: inline-block;
+  }
 
 
 /* Dropdown menu styling */
@@ -789,17 +791,8 @@ path.blocklyPath.blockly-ws-search-highlight.blockly-ws-search-current {
   #projectName {
     display: none; /* hid the project name input box for mobile screens*/
   }
-    #menuBtn {
-    display: inline-flex; 
-    align-items: center;
-    justify-content: center;
-  }
-    .mobile-only {
-    display: inline-block;
-  }
 
+}
   #info-panel-toggle {
     display: none; /* Hide the inline Show Info button */
   }
-
-}
