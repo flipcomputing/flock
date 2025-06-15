@@ -213,12 +213,21 @@ export const flockModels = {
   createObject({
     modelName,
     modelId,
-    color = ["#FFFFFF", "#FFFFFF"],
+    color = null,
     scale = 1,
     position = { x: 0, y: 0, z: 0 },
     callback = null,
   } = {}) {
     try {
+      // Use default colors from config if no color provided
+      if (!color && flock.objectColours && flock.objectColours[modelName]) {
+        color = flock.objectColours[modelName];
+      } else if (!color) {
+        color = ["#FFFFFF", "#FFFFFF"];
+      }
+
+      
+
       // Enhanced parameter validation
       if (!modelName || typeof modelName !== 'string' || modelName.length > 100) {
         console.warn("createObject: Invalid modelName parameter");

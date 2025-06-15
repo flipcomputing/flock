@@ -579,6 +579,12 @@ export function updateMeshFromBlock(mesh, block, changeEvent) {
   // Use flock API to change the color and position of the mesh
   if (["COLOR", "COLORS"].includes(changed) || changed.startsWith("ADD")) {
     if (color) {
+      // Check if color is the hardcoded purple and replace with config default
+      if (color === "#9932cc" && block.type === "load_object") {
+        const modelName = block.getFieldValue("MODELS");
+        color = objectColours[modelName] || "#FFD700";
+      }
+      
       const ultimateParent = (mesh) =>
         mesh.parent ? ultimateParent(mesh.parent) : mesh;
       //color = flock.getColorFromString(color);
@@ -677,7 +683,6 @@ function createMeshOnCanvas(block) {
       const { textureSet, baseColor, alpha } =
         extractMaterialInfo(materialBlock);
       const material = flock.createMaterial(baseColor, textureSet, alpha);
-      console.log("Create map", map);
       flock.createMap(map, material);
       break;
     }
@@ -757,10 +762,9 @@ function createMeshOnCanvas(block) {
         .getInput("SCALE")
         .connection.targetBlock()
         .getFieldValue("NUM");
-      color = block
-        .getInput("COLOR")
-        .connection.targetBlock()
-        .getFieldValue("COLOR");
+      
+      // Always use the config default color for load_object blocks
+      color = objectColours[modelName] || "#FFD700";
 
       meshId = `${modelName}__${block.id}`;
       meshMap[block.id] = block;
@@ -1527,8 +1531,9 @@ function selectObjectWithCommand(objectName, menu, command) {
           addShadowBlock(block, "SCALE", "math_number", scale);
 
           if (command === "load_object") {
-            // Add shadow block for COLOR
-            const color = objectColours[objectName];
+            // Add shadow block for COLOR using the first color from config array
+            const configColors = objectColours[objectName];
+            const color = Array.isArray(configColors) ? configColors[0] : (configColors || "#FFD700");
             addShadowBlock(block, "COLOR", "colour", color);
           } else if (command === "load_multi_object") {
             if (Blockly.Blocks["load_multi_object"].updateColorsField) {
@@ -2855,10 +2860,20 @@ function updateBlockColorAndHighlight(mesh, selectedColor) {
     } else if (block.type === "load_multi_object") {
       block.updateColorAtIndex(selectedColor, colorIndex);
     } else {
-      block
-        .getInput("COLOR")
-        .connection.targetBlock()
-        .setFieldValue(selectedColor, "COLOR");
+      // For load_object blocks, check if we should use config default instead of purple
+      if (block.type === "load_object" && selectedColor === "#9932cc") {
+        const modelName = block.getFieldValue("MODELS");
+        const configColor = objectColours[modelName] || "#FFD700";
+        block
+          .getInput("COLOR")
+          .connection.targetBlock()
+          .setFieldValue(configColor, "COLOR");
+      } else {
+        block
+          .getInput("COLOR")
+          .connection.targetBlock()
+          .setFieldValue(selectedColor, "COLOR");
+      }
     }
   }
 
