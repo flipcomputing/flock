@@ -4,3 +4,8 @@ dist/
 .replit
 replit.nix
 .breakpoints
+
+# Playwright test artifacts
+test-results/
+playwright-report/
+.last-run.json

@@ -1,4 +1,3 @@
-
 # Contributing to Flock XR
 
 Hey there! We welcome community contributions to Flock XR. This could be **code**, **documentation**, **reporting bugs**, **suggesting accessibility features**, **adding translations**, or something else!
@@ -85,12 +84,31 @@ Understanding the codebase:
 
 ## 🧪 Testing
 
-We use Mocha and Chai for testing. Always test your changes:
+We use Mocha and Chai for testing, plus Playwright for end-to-end testing. Always test your changes:
 
+### Unit/Integration Tests (Mocha & Chai)
 1. **Run the development server**: `npm run dev`
 2. **Visit the test page**: http://localhost:5173/tests/tests.html
 3. **Select tests** from the dropdown and click "Run Tests"
 4. **Add new tests** for any features you create
+
+### End-to-End Tests (Playwright)
+1. **Run all Playwright tests**: `npx playwright test`
+2. **Run specific test file**: `npx playwright test tests/playwright/flock.spec.js`
+3. **Run visual regression tests**: `npx playwright test tests/playwright/visual.spec.js`
+4. **View test report**: `npx playwright show-report`
+
+Playwright tests verify that the UI loads correctly, blocks function properly, and the overall user experience works as expected.
+
+### Test Artifacts
+
+Several files and directories are generated during testing and should **not** be checked into git:
+
+- `test-results/` - Playwright test results
+- `playwright-report/` - Generated test reports  
+- `.last-run.json` - Runtime state from last test execution
+
+These are already included in `.gitignore`. If you create new test artifacts, make sure to add them to `.gitignore` as well.
 
 ## 📋 Current Priorities
 
@@ -161,7 +179,8 @@ We follow the [p5.js Web Editor Code of Conduct](https://github.com/processing/p
 - **Vite** - Build tool
 - **Node.js** - Development environment
 - **Progressive Web App** features
-- **Mocha & Chai** - Testing framework
+- **Mocha & Chai** - Unit testing framework
+- **Playwright** - End-to-end testing framework
 
 ## 📄 License
 
