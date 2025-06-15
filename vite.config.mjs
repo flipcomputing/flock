@@ -58,72 +58,132 @@ export default {
       devOptions: {
         enabled: false
       },
-      assetsInclude: ['**/*.glb', '**/*.gltf', '**/*.ogg', '**/*.aac', '**/*.mp3', '**/*.json', '**/*.png', '**/*.woff', '**/*.woff2', '**/*.css', '**/*.svg',],
-      includeAssets: ['**/*.glb', '**/*.gltf', '**/*.ogg', '**/*.acc', '**/*.mp3', '**/*.json', '**/*.png', '**/*.woff', '**/*.woff2', '**/*.css', '**/*.svg',],
+      assetsInclude: ['**/*.glb', '**/*.gltf', '**/*.ogg', '**/*.aac', '**/*.mp3', '**/*.json', '**/*.png', '**/*.woff', '**/*.woff2', '**/*.css', '**/*.svg', '**/*.wasm'],
+      includeAssets: ['**/*.glb', '**/*.gltf', '**/*.ogg', '**/*.aac', '**/*.mp3', '**/*.json', '**/*.png', '**/*.woff', '**/*.woff2', '**/*.css', '**/*.svg', '**/*.wasm'],
       manifest: {
         name: 'Flock XR - Creative coding in 3D',
         short_name: 'Flock XR',
         description: 'Create 3D apps with code blocks',
         theme_color: '#511d91',
+        background_color: '#ffffff',
         display: 'fullscreen',
         start_url: isProduction ? BASE_URL + '?fullscreen=true' : '/',
         id: isProduction ? BASE_URL + '?fullscreen=true' : '/',
         scope: BASE_URL,
+        orientation: 'any',
+        categories: ['education', 'games'],
         icons: [
           {
             src: 'images/icon_192x192.png',
             sizes: '192x192',
-            type: 'image/png'
+            type: 'image/png',
+            purpose: 'any maskable'
           },
           {
             src: 'images/icon_512x512.png',
             sizes: '512x512',
-            type: 'image/png'
+            type: 'image/png',
+            purpose: 'any maskable'
           }
         ]
       },
       workbox: {
         maximumFileSizeToCacheInBytes: 20971520,
         globPatterns: [
-          '**/*.{js,css,html,ico,png,svg,glb,gltf,ogg,mp3,aac,wasm,json,woff,woff2}', // Precache all assets
+          '**/*.{js,css,html,ico,png,svg,glb,gltf,ogg,mp3,aac,wasm,json,woff,woff2}',
+          'models/**/*',
+          'sounds/**/*',
+          'images/**/*',
+          'examples/**/*',
+          'textures/**/*',
+          'fonts/**/*',
+          'blockly/media/**/*'
         ],
         modifyURLPrefix: isProduction ? {
           '': BASE_URL, // Prepend the base URL to all cached assets in production
         } : {},
         runtimeCaching: [
           {
-            // Cache dynamically requested assets (models, images, sounds)
-            urlPattern: /.*\.(glb|gltf|ogg|mp3|aac|png|json|svg)$/,
-            handler: 'CacheFirst', // Prioritise cache for faster offline availability
+            // Cache all static assets
+            urlPattern: /.*\.(glb|gltf|ogg|mp3|aac|png|jpg|jpeg|svg|wasm|json|woff|woff2|css|js|html)$/,
+            handler: 'CacheFirst',
             options: {
-              cacheName: 'dynamic-assets',
+              cacheName: 'static-assets',
               expiration: {
-                maxEntries: 500, // Store up to 500 assets
-                maxAgeSeconds: 30 * 24 * 60 * 60, // Cache for 30 days
+                maxEntries: 1000,
+                maxAgeSeconds: 365 * 24 * 60 * 60, // Cache for 1 year
               },
             },
           },
           {
-            // Cache assets from GitHub Pages
-            urlPattern: ({ url }) => url.origin === self.location.origin,
-            handler: 'CacheFirst', // Cache GitHub-hosted assets
+            // Cache models directory
+            urlPattern: /\/models\/.*/,
+            handler: 'CacheFirst',
             options: {
-              cacheName: 'github-pages-cache',
+              cacheName: 'models-cache',
               expiration: {
-                maxEntries: 50, // Store up to 50 assets
-                maxAgeSeconds: 30 * 24 * 60 * 60, // Cache for 30 days
+                maxEntries: 100,
+                maxAgeSeconds: 365 * 24 * 60 * 60,
+              },
+            },
+          },
+          {
+            // Cache sounds directory
+            urlPattern: /\/sounds\/.*/,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'sounds-cache',
+              expiration: {
+                maxEntries: 100,
+                maxAgeSeconds: 365 * 24 * 60 * 60,
+              },
+            },
+          },
+          {
+            // Cache textures directory
+            urlPattern: /\/textures\/.*/,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'textures-cache',
+              expiration: {
+                maxEntries: 100,
+                maxAgeSeconds: 365 * 24 * 60 * 60,
+              },
+            },
+          },
+          {
+            // Cache examples directory
+            urlPattern: /\/examples\/.*/,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'examples-cache',
+              expiration: {
+                maxEntries: 50,
+                maxAgeSeconds: 365 * 24 * 60 * 60,
               },
             },
           },
           {
             // Cache Blockly media files
-            urlPattern: /blockly\/media\/.*/,
-            handler: 'CacheFirst', // Serve Blockly media files from cache
+            urlPattern: /\/blockly\/media\/.*/,
+            handler: 'CacheFirst',
             options: {
               cacheName: 'blockly-media',
               expiration: {
-                maxEntries: 20,
-                maxAgeSeconds: 30 * 24 * 60 * 60, // Cache for 30 days
+                maxEntries: 50,
+                maxAgeSeconds: 365 * 24 * 60 * 60,
+              },
+            },
+          },
+          {
+            // Cache same-origin requests
+            urlPattern: ({ url }) => url.origin === self.location.origin,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'same-origin-cache',
+              expiration: {
+                maxEntries: 200,
+                maxAgeSeconds: 365 * 24 * 60 * 60,
               },
             },
           },
