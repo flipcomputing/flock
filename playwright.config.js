@@ -12,6 +12,7 @@ export default defineConfig({
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',
+    headless: false, // Change to run headless
   },
   projects: [
     {
@@ -24,27 +25,8 @@ export default defineConfig({
             '--no-sandbox',
             '--disable-setuid-sandbox',
             '--disable-dev-shm-usage',
-            '--disable-extensions',
-            '--disable-gpu',
-            '--disable-background-timer-throttling',
-            '--disable-backgrounding-occluded-windows',
-            '--disable-renderer-backgrounding',
-            '--disable-features=TranslateUI',
-            '--disable-ipc-flooding-protection',
-            '--disable-hang-monitor',
-            '--disable-popup-blocking',
-            '--disable-prompt-on-repost',
-            '--disable-sync',
-            '--metrics-recording-only',
-            '--no-default-browser-check',
-            '--safebrowsing-disable-auto-update',
             '--enable-automation',
-            '--password-store=basic',
-            '--use-mock-keychain',
-            '--disable-component-extensions-with-background-pages',
-            '--disable-default-apps',
-            '--mute-audio',
-            '--autoplay-policy=user-gesture-required'
+            '--disable-web-security'
           ]
         }
       },
