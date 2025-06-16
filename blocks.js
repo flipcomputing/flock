@@ -1708,14 +1708,18 @@ export function defineBlocks() {
           changeEvent.element === "disabled"
         ) {
           if (this.isEnabled()) {
-            // Recreate mesh when re-enabled
-            updateOrCreateMeshFromBlock(this, changeEvent);
+            // Only recreate mesh if block is connected
+            setTimeout(() => {
+              if (this.getParent()) {
+                updateOrCreateMeshFromBlock(this, changeEvent);
+              }
+            }, 0);
           } else {
-            // Remove mesh when disabled
             deleteMeshFromBlock(this.id);
           }
           return;
         }
+
 
         // Handle BLOCK_CREATE events on the container.
         if (changeEvent.type === Blockly.Events.BLOCK_CREATE) {
