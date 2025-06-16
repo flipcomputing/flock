@@ -25,7 +25,7 @@ const colorFields = {
 };
 
 export function updateOrCreateMeshFromBlock(block, changeEvent) {
-  if (window.loadingCode || block.disposed) return;
+  if (window.loadingCode || block.disposed || !block.isEnabled()) return;
 
   if (
     changeEvent.type === Blockly.Events.BLOCK_CREATE &&
@@ -35,16 +35,19 @@ export function updateOrCreateMeshFromBlock(block, changeEvent) {
   } else if (changeEvent.type === Blockly.Events.BLOCK_CHANGE) {
     const mesh = getMeshFromBlock(block);
 
-    if (
-      mesh ||
+    if (!mesh) {
+      // If no mesh exists, create it now (e.g. on re-enable)
+      createMeshOnCanvas(block);
+    } else if (
       ["set_sky_color", "set_background_color", "create_ground"].includes(
         block.type,
-      )
+      ) || mesh
     ) {
       updateMeshFromBlock(mesh, block, changeEvent);
     }
   }
 }
+
 
 window.selectedColor = "#ffffff"; // Default color
 
@@ -284,13 +287,13 @@ export function updateMeshFromBlock(mesh, block, changeEvent) {
         isColorList = true;
         for (let input of child.inputList) {
           colorList.push(input.connection.targetBlock().getFieldValue("COLOR"));
-        };
-      };
-    };
+        }
+      }
+    }
 
     if (isColorList) {
       color = colorList;
-    };
+    }
 
     flock.setSky(color);
     return;
@@ -584,7 +587,7 @@ export function updateMeshFromBlock(mesh, block, changeEvent) {
         const modelName = block.getFieldValue("MODELS");
         color = objectColours[modelName] || "#FFD700";
       }
-      
+
       const ultimateParent = (mesh) =>
         mesh.parent ? ultimateParent(mesh.parent) : mesh;
       //color = flock.getColorFromString(color);
@@ -674,7 +677,7 @@ function createMeshOnCanvas(block) {
         .getFieldValue("COLOR");
       flock.createGround(color, "ground");
       break;
-    case "create_map":{
+    case "create_map": {
       meshId = "ground";
       meshMap[meshId] = block;
       meshBlockIdMap[meshId] = block.id;
@@ -762,7 +765,7 @@ function createMeshOnCanvas(block) {
         .getInput("SCALE")
         .connection.targetBlock()
         .getFieldValue("NUM");
-      
+
       // Always use the config default color for load_object blocks
       color = objectColours[modelName] || "#FFD700";
 
@@ -781,7 +784,7 @@ function createMeshOnCanvas(block) {
 
       break;
 
-    case "load_multi_object":{
+    case "load_multi_object": {
       modelName = block.getFieldValue("MODELS");
       scale = block
         .getInput("SCALE")
@@ -839,17 +842,13 @@ function createMeshOnCanvas(block) {
         .connection.targetBlock()
         .getFieldValue("NUM");
 
-      newMesh = flock.createBox(
-        `box__${block.id}`,
-        {
-          color,
-          width,
-          height,
-          depth,
-          position: [position.x, position.y, position.z],
-        }
-      );
-
+      newMesh = flock.createBox(`box__${block.id}`, {
+        color,
+        width,
+        height,
+        depth,
+        position: [position.x, position.y, position.z],
+      });
 
       break;
 
@@ -871,16 +870,13 @@ function createMeshOnCanvas(block) {
         .connection.targetBlock()
         .getFieldValue("NUM");
 
-      newMesh = flock.createSphere(
-        `sphere__${block.id}`,
-        {
-          color,
-          diameterX,
-          diameterY,
-          diameterZ,
-          position: [position.x, position.y, position.z],
-        }
-      );
+      newMesh = flock.createSphere(`sphere__${block.id}`, {
+        color,
+        diameterX,
+        diameterY,
+        diameterZ,
+        position: [position.x, position.y, position.z],
+      });
 
       break;
 
@@ -902,17 +898,14 @@ function createMeshOnCanvas(block) {
         .connection.targetBlock()
         .getFieldValue("NUM");
 
-      newMesh = flock.createCylinder(
-        `cylinder__${block.id}`,
-        {
-          color,
-          height: cylinderHeight,
-          diameterTop,
-          diameterBottom,
-          tessellation: 24,
-          position: [position.x, position.y, position.z],
-        }
-      );
+      newMesh = flock.createCylinder(`cylinder__${block.id}`, {
+        color,
+        height: cylinderHeight,
+        diameterTop,
+        diameterBottom,
+        tessellation: 24,
+        position: [position.x, position.y, position.z],
+      });
 
       break;
 
@@ -930,15 +923,12 @@ function createMeshOnCanvas(block) {
         .connection.targetBlock()
         .getFieldValue("NUM");
 
-      newMesh = flock.createCapsule(
-        `capsule__${block.id}`,
-        {
-          color,
-          diameter: capsuleDiameter,
-          height: capsuleHeight,
-          position: [position.x, position.y, position.z],
-        }
-      );
+      newMesh = flock.createCapsule(`capsule__${block.id}`, {
+        color,
+        diameter: capsuleDiameter,
+        height: capsuleHeight,
+        position: [position.x, position.y, position.z],
+      });
 
       break;
 
@@ -956,15 +946,12 @@ function createMeshOnCanvas(block) {
         .connection.targetBlock()
         .getFieldValue("NUM");
 
-      newMesh = flpock.createPlane(
-        `plane__${block.id}`,
-        {
-          color,
-          width: planeWidth,
-          height: planeHeight,
-          position: [position.x, position.y, position.z],
-        }
-      );
+      newMesh = flpock.createPlane(`plane__${block.id}`, {
+        color,
+        width: planeWidth,
+        height: planeHeight,
+        position: [position.x, position.y, position.z],
+      });
 
       break;
 
@@ -1533,7 +1520,9 @@ function selectObjectWithCommand(objectName, menu, command) {
           if (command === "load_object") {
             // Add shadow block for COLOR using the first color from config array
             const configColors = objectColours[objectName];
-            const color = Array.isArray(configColors) ? configColors[0] : (configColors || "#FFD700");
+            const color = Array.isArray(configColors)
+              ? configColors[0]
+              : configColors || "#FFD700";
             addShadowBlock(block, "COLOR", "colour", color);
           } else if (command === "load_multi_object") {
             if (Blockly.Blocks["load_multi_object"].updateColorsField) {
@@ -1630,10 +1619,10 @@ function showShapes() {
 // Close the shapes menu if the user clicks outside of it
 document.addEventListener("click", function (event) {
   const dropdown = document.getElementById("shapes-dropdown");
-  
+
   // Guard against null dropdown in standalone environment
   if (!dropdown) return;
-  
+
   const isClickInside = dropdown.contains(event.target);
 
   const isClickOnToggle =
@@ -2685,7 +2674,7 @@ function toggleGizmo(gizmoType) {
 
             case "load_multi_object":
             case "load_object":
-            case "load_character":{
+            case "load_character": {
               if (!block.getInput("DO")) {
                 block.appendStatementInput("DO").setCheck(null).appendField("");
               }
@@ -2747,8 +2736,8 @@ function toggleGizmo(gizmoType) {
               setScaleValue("Y", scaleY);
               setScaleValue("Z", scaleZ);
               break;
+            }
           }
-        }
         } catch (e) {
           console.error("Error updating block values:", e);
         }

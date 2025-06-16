@@ -1687,6 +1687,22 @@ export function defineBlocks() {
       updateColorField();
 
       this.setOnChange((changeEvent) => {
+
+        if (
+          changeEvent.type === Blockly.Events.BLOCK_CHANGE &&
+          changeEvent.blockId === this.id &&
+          changeEvent.element === "disabled"
+        ) {
+          if (this.isEnabled()) {
+            // Recreate mesh when re-enabled
+            updateOrCreateMeshFromBlock(this, changeEvent);
+          } else {
+            // Remove mesh when disabled
+            deleteMeshFromBlock(this.id);
+          }
+          return;
+        }
+
         // Handle BLOCK_CREATE events on the container.
         if (changeEvent.type === Blockly.Events.BLOCK_CREATE) {
           if (changeEvent.blockId === this.id) {
