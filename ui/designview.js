@@ -617,6 +617,12 @@ export function updateMeshFromBlock(mesh, block, changeEvent) {
 }
 
 function createMeshOnCanvas(block) {
+  const mesh = getMeshFromBlock(block);
+  if (mesh) {
+    console.warn("Mesh already exists for block", block.id);
+    return;
+  }
+
   //console.log("createMeshOnCanvas for block", block.id);
   Blockly.Events.setGroup(true);
 
