@@ -5,7 +5,7 @@
 import * as Blockly from "blockly";
 import { Multiselect } from "@mit-app-inventor/blockly-plugin-workspace-multiselect";
 import { javascriptGenerator } from "blockly/javascript";
-//import { registerFieldColour } from "@blockly/field-colour";
+//import { rewgisterFieldColour } from "@blockly/field-colour";
 import { FieldGridDropdown } from "@blockly/field-grid-dropdown";
 import { WorkspaceSearch } from "@blockly/plugin-workspace-search";
 //import { KeyboardNavigation } from '@blockly/keyboard-experiment/dist/index.js';
@@ -1639,6 +1639,8 @@ window.onload = function () {
 	);
 
 	workspace = Blockly.inject("blocklyDiv", options);
+
+	window.mainWorkspace = workspace;
 
 	let keyboardNav = null;
 	workspace.registerToolboxCategoryCallback("VARIABLE", function (ws) {
