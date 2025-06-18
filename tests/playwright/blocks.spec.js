@@ -1,16 +1,15 @@
 import { test, expect } from '@playwright/test';
 
-test.describe('Create Basic Blockly Program', () => {
-  test('starts new project and confirms empty workspace', async ({ page }) => {
+test.describe('Create Blockly project and open Events flyout', () => {
+  test('starts new project and opens Events category', async ({ page }) => {
 	await page.goto('/');
 	await page.waitForLoadState('networkidle');
 
-	// Step 1: Wait for the project menu and select "New" by #project-new
+	// Step 1: Start a new project
 	const projectMenu = page.locator('#exampleSelect');
 	await expect(projectMenu).toBeVisible();
 	await expect(projectMenu).toBeEnabled();
 
-	// Step 2: Select the "New" option using its ID
 	const newOption = await page.locator('#project-new');
 	const newValue = await newOption.getAttribute('value');
 	if (newValue) {
@@ -19,11 +18,31 @@ test.describe('Create Basic Blockly Program', () => {
 	  throw new Error('Could not find value for #project-new');
 	}
 
-	
-	  // ✅ Step 3: Wait until the Blockly workspace exists and has 0 blocks
-	  await page.waitForFunction(() => {
-		const ws = window.mainWorkspace;
-		return ws && ws.getAllBlocks().length === 0;
-	  });
+	// Step 2: Confirm empty workspace
+	await page.waitForFunction(() =>
+	  window.mainWorkspace?.getAllBlocks?.().length === 0
+	);
+
+	// Step 3: Click the "Events" category
+	await page.locator('.blocklyTreeRow.custom-category:has-text("Events")').click();
+
+	// Step 4: Wait for the flyout to contain at least one block
+	await page.waitForFunction(() => {
+	  const flyout = window.mainWorkspace?.getFlyout?.();
+	  return flyout?.getWorkspace?.().getTopBlocks(false).length > 0;
+	});
+
+	  const target = await page.locator('.blocklyFlyout .blocklyBlockCanvas g.blocklyDraggable:has-text("start")').boundingBox();
+
+	  if (target) {
+		await page.mouse.click(target.x + target.width / 2, target.y + target.height / 2);
+	  } else {
+		throw new Error('Could not find the "start" block to click.');
+	  }
+
+	  await page.waitForFunction(() =>
+		window.mainWorkspace?.getAllBlocks?.().length === 1
+	  );
+
   });
 });
