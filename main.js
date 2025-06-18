@@ -715,8 +715,16 @@ function resizeCanvas() {
 		newHeight = newWidth / aspectRatio;
 	}
 
-	canvas.style.width = `${newWidth}px`;
-	canvas.style.height = `${newHeight}px`;
+	
+	canvas.style.width = `${Math.round(newWidth)}px`;
+	canvas.style.height = `${Math.round(newHeight)}px`;
+
+	const width = canvas.clientWidth;
+	  const height = canvas.clientHeight;
+	  if (canvas.width !== width || canvas.height !== height) {
+		canvas.width = width;
+		canvas.height = height;
+	  }
 }
 
 let viewMode = "both";

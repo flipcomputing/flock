@@ -20,16 +20,16 @@
       {
         "id": "dea8d238-bec9-4dda-85e7-fca6b2284732",
         "line": 1,
-        "version": 1,
+        "version": 27,
         "index": 0
       }
     ],
     "main.js": [
       {
         "id": "31f0468e-83ae-40f6-ab34-65125d137737",
-        "line": 2707,
-        "version": 83,
-        "index": 77253
+        "line": 342,
+        "version": 104,
+        "index": 10356
       }
     ],
     "models/tree_fat.glb": [
