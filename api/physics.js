@@ -136,36 +136,18 @@ export const flockPhysics = {
           mesh.physics.setMotionType(
             flock.BABYLON.PhysicsMotionType.STATIC,
           );
-          /*flock.hk._hknp.HP_World_AddBody(
-            flock.hk.world,
-            mesh.physics._pluginData.hpBodyId,
-            mesh.physics.startAsleep,
-          );*/
           mesh.physics.disablePreStep = true;
           break;
         case "DYNAMIC":
           mesh.physics.setMotionType(
             flock.BABYLON.PhysicsMotionType.DYNAMIC,
           );
-          // Stops falling through platforms
-          /*flock.hk._hknp.HP_World_AddBody(
-            flock.hk.world,
-            mesh.physics._pluginData.hpBodyId,
-            mesh.physics.startAsleep,
-          );*/
           mesh.physics.disablePreStep = false;
-          //mesh.physics.disableSync = false;
-          //mesh.physics.setPrestepType(flock.BABYLON.PhysicsPrestepType.TELEPORT);
           break;
         case "ANIMATED":
           mesh.physics.setMotionType(
             flock.BABYLON.PhysicsMotionType.ANIMATED,
           );
-          /*flock.hk._hknp.HP_World_AddBody(
-            flock.hk.world,
-            mesh.physics._pluginData.hpBodyId,
-            mesh.physics.startAsleep,
-          );*/
           mesh.physics.disablePreStep = false;
           break;
         case "NONE":
