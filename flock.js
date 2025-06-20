@@ -50,8 +50,8 @@ import { flockCamera, setFlockReference as setFlockCamera } from "./api/camera";
 console.log("Flock helpers loading");
 
 export const flock = {
-	callbackMode: true,
-	memoryDebug: true,
+	callbackMode: false,
+	memoryDebug: false,
 	maxMeshes: 5000,
 	console: console,
 	modelPath: "./models/",
