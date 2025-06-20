@@ -258,7 +258,8 @@ export const flock = {
 			// Dispose old scene if iframe exists
 			if (iframe) {
 				try {
-					await iframe.contentWindow?.flock?.disposeOldScene();
+					 delete iframe.contentWindow.flock;
+					//await iframe.contentWindow?.flock?.disposeOldScene();
 				} catch (error) {
 					console.warn("Error disposing old scene in iframe:", error);
 				}
@@ -435,8 +436,6 @@ export const flock = {
 				abortSceneExecution: (...args) => this.abortSceneExecution(...args),
 				ensureUniqueGeometry: (...args) => this.ensureUniqueGeometry(...args),
 				createVector3: (...args) => this.createVector3(...args),
-				disposeOldScene: (...args) => this.disposeOldScene(...args),
-
 			};
 
 			// Initialize new scene in iframe context
