@@ -25,36 +25,26 @@ const colorFields = {
 };
 
 export function updateOrCreateMeshFromBlock(block, changeEvent) {
- /* console.log("updateOrCreateMeshFromBlock", {
-    id: block.id,
-    isEnabled: block.isEnabled(),
-    hasMesh: !!getMeshFromBlock(block),
-  });*/
+  if (window.loadingCode || block.disposed) return;
 
-  if (window.loadingCode || block.disposed || !block.isEnabled()) return;
-
-  const mesh = getMeshFromBlock(block);
-
-  // Create a mesh if it doesn't exist
-  if (!mesh) {
-    createMeshOnCanvas(block);
-    return;
-  }
-
-  // Handle update events (if there's a valid mesh already)
   if (
-    changeEvent.type === Blockly.Events.BLOCK_CHANGE &&
-    (
-      ["set_sky_color", "set_background_color", "create_ground"].includes(
-        block.type
-      ) || mesh
-    )
+    changeEvent.type === Blockly.Events.BLOCK_CREATE &&
+    block.id === changeEvent.blockId
   ) {
-    updateMeshFromBlock(mesh, block, changeEvent);
+    createMeshOnCanvas(block);
+  } else if (changeEvent.type === Blockly.Events.BLOCK_CHANGE) {
+    const mesh = getMeshFromBlock(block);
+
+    if (
+      mesh ||
+      ["set_sky_color", "set_background_color", "create_ground"].includes(
+        block.type,
+      )
+    ) {
+      updateMeshFromBlock(mesh, block, changeEvent);
+    }
   }
 }
-
-
 
 window.selectedColor = "#ffffff"; // Default color
 
@@ -294,13 +284,13 @@ export function updateMeshFromBlock(mesh, block, changeEvent) {
         isColorList = true;
         for (let input of child.inputList) {
           colorList.push(input.connection.targetBlock().getFieldValue("COLOR"));
-        }
-      }
-    }
+        };
+      };
+    };
 
     if (isColorList) {
       color = colorList;
-    }
+    };
 
     flock.setSky(color);
     return;
@@ -399,44 +389,44 @@ export function updateMeshFromBlock(mesh, block, changeEvent) {
   switch (shapeType) {
     case "load_object":
       /*
-			modelName = block.getFieldValue("MODELS");
+      modelName = block.getFieldValue("MODELS");
 
-			if (modelName !== mesh.metadata.modelName) {
-				modelId = "tempid";
+      if (modelName !== mesh.metadata.modelName) {
+        modelId = "tempid";
 
-				let tempMesh = flock.newObject({
-					modelName: modelName,
-					modelId: modelId,
-					color: color,
-					scale: scale,
-					position: { x: position.x, y: position.y, z: position.z },
-					callback: () => {
-						changeModel(tempMesh, mesh, modelName);
-						
-					},
-				});
-			}
-			*/
+        let tempMesh = flock.newObject({
+          modelName: modelName,
+          modelId: modelId,
+          color: color,
+          scale: scale,
+          position: { x: position.x, y: position.y, z: position.z },
+          callback: () => {
+            changeModel(tempMesh, mesh, modelName);
+
+          },
+        });
+      }
+      */
 
       break;
     case "load_model":
       /*
-			modelName = block.getFieldValue("MODELS");
+      modelName = block.getFieldValue("MODELS");
 
-			if (modelName !== mesh.metadata.modelName) {
-				modelId = "tempid";
+      if (modelName !== mesh.metadata.modelName) {
+        modelId = "tempid";
 
-				let tempMesh = flock.newModel({
-					modelName: modelName,
-					modelId: modelId,
-					scale: scale,
-					position: { x: position.x, y: position.y, z: position.z },
-					callback: () => {
-						changeModel(tempMesh, mesh, modelName);
+        let tempMesh = flock.newModel({
+          modelName: modelName,
+          modelId: modelId,
+          scale: scale,
+          position: { x: position.x, y: position.y, z: position.z },
+          callback: () => {
+            changeModel(tempMesh, mesh, modelName);
 
-					},
-				});
-			}*/
+          },
+        });
+      }*/
       //console.log("Need to handle update of model");
       break;
     case "load_multi_object":
@@ -617,13 +607,6 @@ export function updateMeshFromBlock(mesh, block, changeEvent) {
 }
 
 function createMeshOnCanvas(block) {
-  const mesh = getMeshFromBlock(block);
-  if (mesh) {
-    console.warn("Mesh already exists for block", block.id);
-    return;
-  }
-
-  //console.log("createMeshOnCanvas for block", block.id);
   Blockly.Events.setGroup(true);
 
   let shapeType = block.type;
@@ -691,7 +674,7 @@ function createMeshOnCanvas(block) {
         .getFieldValue("COLOR");
       flock.createGround(color, "ground");
       break;
-    case "create_map": {
+    case "create_map":{
       meshId = "ground";
       meshMap[meshId] = block;
       meshBlockIdMap[meshId] = block.id;
@@ -798,7 +781,7 @@ function createMeshOnCanvas(block) {
 
       break;
 
-    case "load_multi_object": {
+    case "load_multi_object":{
       modelName = block.getFieldValue("MODELS");
       scale = block
         .getInput("SCALE")
@@ -856,13 +839,17 @@ function createMeshOnCanvas(block) {
         .connection.targetBlock()
         .getFieldValue("NUM");
 
-      newMesh = flock.createBox(`box__${block.id}`, {
-        color,
-        width,
-        height,
-        depth,
-        position: [position.x, position.y, position.z],
-      });
+      newMesh = flock.createBox(
+        `box__${block.id}`,
+        {
+          color,
+          width,
+          height,
+          depth,
+          position: [position.x, position.y, position.z],
+        }
+      );
+
 
       break;
 
@@ -884,13 +871,16 @@ function createMeshOnCanvas(block) {
         .connection.targetBlock()
         .getFieldValue("NUM");
 
-      newMesh = flock.createSphere(`sphere__${block.id}`, {
-        color,
-        diameterX,
-        diameterY,
-        diameterZ,
-        position: [position.x, position.y, position.z],
-      });
+      newMesh = flock.createSphere(
+        `sphere__${block.id}`,
+        {
+          color,
+          diameterX,
+          diameterY,
+          diameterZ,
+          position: [position.x, position.y, position.z],
+        }
+      );
 
       break;
 
@@ -912,14 +902,17 @@ function createMeshOnCanvas(block) {
         .connection.targetBlock()
         .getFieldValue("NUM");
 
-      newMesh = flock.createCylinder(`cylinder__${block.id}`, {
-        color,
-        height: cylinderHeight,
-        diameterTop,
-        diameterBottom,
-        tessellation: 24,
-        position: [position.x, position.y, position.z],
-      });
+      newMesh = flock.createCylinder(
+        `cylinder__${block.id}`,
+        {
+          color,
+          height: cylinderHeight,
+          diameterTop,
+          diameterBottom,
+          tessellation: 24,
+          position: [position.x, position.y, position.z],
+        }
+      );
 
       break;
 
@@ -937,12 +930,15 @@ function createMeshOnCanvas(block) {
         .connection.targetBlock()
         .getFieldValue("NUM");
 
-      newMesh = flock.createCapsule(`capsule__${block.id}`, {
-        color,
-        diameter: capsuleDiameter,
-        height: capsuleHeight,
-        position: [position.x, position.y, position.z],
-      });
+      newMesh = flock.createCapsule(
+        `capsule__${block.id}`,
+        {
+          color,
+          diameter: capsuleDiameter,
+          height: capsuleHeight,
+          position: [position.x, position.y, position.z],
+        }
+      );
 
       break;
 
@@ -960,12 +956,15 @@ function createMeshOnCanvas(block) {
         .connection.targetBlock()
         .getFieldValue("NUM");
 
-      newMesh = flpock.createPlane(`plane__${block.id}`, {
-        color,
-        width: planeWidth,
-        height: planeHeight,
-        position: [position.x, position.y, position.z],
-      });
+      newMesh = flpock.createPlane(
+        `plane__${block.id}`,
+        {
+          color,
+          width: planeWidth,
+          height: planeHeight,
+          position: [position.x, position.y, position.z],
+        }
+      );
 
       break;
 
@@ -1534,9 +1533,7 @@ function selectObjectWithCommand(objectName, menu, command) {
           if (command === "load_object") {
             // Add shadow block for COLOR using the first color from config array
             const configColors = objectColours[objectName];
-            const color = Array.isArray(configColors)
-              ? configColors[0]
-              : configColors || "#FFD700";
+            const color = Array.isArray(configColors) ? configColors[0] : (configColors || "#FFD700");
             addShadowBlock(block, "COLOR", "colour", color);
           } else if (command === "load_multi_object") {
             if (Blockly.Blocks["load_multi_object"].updateColorsField) {
@@ -2688,7 +2685,7 @@ function toggleGizmo(gizmoType) {
 
             case "load_multi_object":
             case "load_object":
-            case "load_character": {
+            case "load_character":{
               if (!block.getInput("DO")) {
                 block.appendStatementInput("DO").setCheck(null).appendField("");
               }
@@ -2750,8 +2747,8 @@ function toggleGizmo(gizmoType) {
               setScaleValue("Y", scaleY);
               setScaleValue("Z", scaleZ);
               break;
-            }
           }
+        }
         } catch (e) {
           console.error("Error updating block values:", e);
         }

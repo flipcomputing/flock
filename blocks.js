@@ -16,7 +16,6 @@ import {
 import {
   deleteMeshFromBlock,
   updateOrCreateMeshFromBlock,
-  getMeshFromBlock
 } from "./ui/designview.js";
 import { flock } from "./flock.js";
 import { registerFieldColour } from "@blockly/field-colour";
@@ -1688,39 +1687,6 @@ export function defineBlocks() {
       updateColorField();
 
       this.setOnChange((changeEvent) => {
-
-        if (
-          changeEvent.type === Blockly.Events.BLOCK_MOVE &&
-          changeEvent.blockId === this.id
-        ) {
-          const block = Blockly.getMainWorkspace().getBlockById(this.id);
-
-          // Only trigger creation if the block is now connected
-          if (block && block.getParent() && !getMeshFromBlock(block)) {
-            updateOrCreateMeshFromBlock(block, changeEvent);
-          }
-          return;
-        }
-
-        if (
-          changeEvent.type === Blockly.Events.BLOCK_CHANGE &&
-          changeEvent.blockId === this.id &&
-          changeEvent.element === "disabled"
-        ) {
-          if (this.isEnabled()) {
-            // Only recreate mesh if block is connected
-            setTimeout(() => {
-              if (this.getParent()) {
-                updateOrCreateMeshFromBlock(this, changeEvent);
-              }
-            }, 0);
-          } else {
-            deleteMeshFromBlock(this.id);
-          }
-          return;
-        }
-
-
         // Handle BLOCK_CREATE events on the container.
         if (changeEvent.type === Blockly.Events.BLOCK_CREATE) {
           if (changeEvent.blockId === this.id) {
