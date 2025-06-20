@@ -258,7 +258,7 @@ export const flock = {
 			// Dispose old scene if iframe exists
 			if (iframe) {
 				try {
-					 delete iframe.contentWindow.flock;
+					delete iframe.contentWindow.flock;
 					//await iframe.contentWindow?.flock?.disposeOldScene();
 				} catch (error) {
 					console.warn("Error disposing old scene in iframe:", error);
@@ -284,10 +284,8 @@ export const flock = {
 				  </head>
 				  <body></body>
 				</html>`;
-
 			});
 
-			
 			const iframeWindow = iframe.contentWindow;
 			if (!iframeWindow) throw new Error("Iframe window is unavailable");
 
@@ -304,9 +302,12 @@ export const flock = {
 				glideTo: (...args) => this.glideTo(...args),
 				createAnimation: (...args) => this.createAnimation(...args),
 				animateFrom: (...args) => this.animateFrom(...args),
-				playAnimationGroup: (...args) => this.playAnimationGroup(...args),
-				pauseAnimationGroup: (...args) => this.pauseAnimationGroup(...args),
-				stopAnimationGroup: (...args) => this.stopAnimationGroup(...args),
+				playAnimationGroup: (...args) =>
+					this.playAnimationGroup(...args),
+				pauseAnimationGroup: (...args) =>
+					this.pauseAnimationGroup(...args),
+				stopAnimationGroup: (...args) =>
+					this.stopAnimationGroup(...args),
 				animateKeyFrames: (...args) => this.animateKeyFrames(...args),
 				setPivotPoint: (...args) => this.setPivotPoint(...args),
 				rotate: (...args) => this.rotate(...args),
@@ -339,7 +340,8 @@ export const flock = {
 				// 3D Objects
 				createCharacter: (...args) => this.createCharacter(...args),
 				createObject: (...args) => this.createObject(...args),
-				createParticleEffect: (...args) => this.createParticleEffect(...args),
+				createParticleEffect: (...args) =>
+					this.createParticleEffect(...args),
 				create3DText: (...args) => this.create3DText(...args),
 				createModel: (...args) => this.createModel(...args),
 				createBox: (...args) => this.createBox(...args),
@@ -374,7 +376,8 @@ export const flock = {
 				buttonControls: (...args) => this.buttonControls(...args),
 				getCamera: (...args) => this.getCamera(...args),
 				cameraControl: (...args) => this.cameraControl(...args),
-				setCameraBackground: (...args) => this.setCameraBackground(...args),
+				setCameraBackground: (...args) =>
+					this.setCameraBackground(...args),
 				setXRMode: (...args) => this.setXRMode(...args),
 				attachCamera: (...args) => this.attachCamera(...args),
 				canvasControls: (...args) => this.canvasControls(...args),
@@ -384,12 +387,16 @@ export const flock = {
 				moveByVector: (...args) => this.moveByVector(...args),
 				setPhysics: (...args) => this.setPhysics(...args),
 				setPhysicsShape: (...args) => this.setPhysicsShape(...args),
-				checkMeshesTouching: (...args) => this.checkMeshesTouching(...args),
+				checkMeshesTouching: (...args) =>
+					this.checkMeshesTouching(...args),
 
 				// Particles
-				startParticleSystem: (...args) => this.startParticleSystem(...args),
-				stopParticleSystem: (...args) => this.stopParticleSystem(...args),
-				resetParticleSystem: (...args) => this.resetParticleSystem(...args),
+				startParticleSystem: (...args) =>
+					this.startParticleSystem(...args),
+				stopParticleSystem: (...args) =>
+					this.stopParticleSystem(...args),
+				resetParticleSystem: (...args) =>
+					this.resetParticleSystem(...args),
 
 				// Utilities
 				distanceTo: (...args) => this.distanceTo(...args),
@@ -433,14 +440,16 @@ export const flock = {
 				randomInteger: (...args) => this.randomInteger(...args),
 				getProperty: (...args) => this.getProperty(...args),
 				exportMesh: (...args) => this.exportMesh(...args),
-				abortSceneExecution: (...args) => this.abortSceneExecution(...args),
-				ensureUniqueGeometry: (...args) => this.ensureUniqueGeometry(...args),
+				abortSceneExecution: (...args) =>
+					this.abortSceneExecution(...args),
+				ensureUniqueGeometry: (...args) =>
+					this.ensureUniqueGeometry(...args),
 				createVector3: (...args) => this.createVector3(...args),
 			};
 
 			// Initialize new scene in iframe context
 			await this.initializeNewScene();
-			
+
 			const sandboxFunction = new iframeWindow.Function(`
 				"use strict";
 
@@ -563,7 +572,12 @@ export const flock = {
 
 				// Wrap user code in an async function to support await
 				return (async function() {
-					${code}
+	  				try {
+	    				${code}
+	  				} catch (e) {
+	    				console.error("User code error:", e);
+	    				throw e;
+	  				}
 				})();
 			`);
 
