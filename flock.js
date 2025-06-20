@@ -605,6 +605,7 @@ export const flock = {
 		flock.engine = new flock.BABYLON.Engine(flock.canvas, true, {
 			preserveDrawingBuffer: true,
 			stencil: true,
+			powerPreference: 'default',
 		});
 
 		flock.engine.enableOfflineSupport = false;
