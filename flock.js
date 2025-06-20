@@ -50,8 +50,9 @@ import { flockCamera, setFlockReference as setFlockCamera } from "./api/camera";
 console.log("Flock helpers loading");
 
 export const flock = {
-	callbackMode: false,
-	memoryDebug: false,
+	callbackMode: true,
+	memoryDebug: true,
+	maxMeshes: 5000,
 	console: console,
 	modelPath: "./models/",
 	soundPath: "./sounds/",
@@ -60,6 +61,7 @@ export const flock = {
 	engine: null,
 	engineReady: false,
 	modelReadyPromises: new Map(),
+	pendingMeshCreations: 0,
 	characterNames: characterNames,
 	alert: alert,
 	BABYLON: BABYLON,
@@ -146,6 +148,24 @@ export const flock = {
 	},
 	createVector3(x, y, z) {
 		return new flock.BABYLON.Vector3(x, y, z);
+	},
+	maxMeshesReached() {
+		const scene = flock?.scene;
+		if (!scene || typeof flock.maxMeshes !== "number") return false;
+
+		const meshCount = scene.meshes.length;
+		const max = flock.maxMeshes;
+
+		if (meshCount >= max) {
+			flock.printText?.(
+				`⚠️ Limit reached: You can only have ${max} meshes in your world.`,
+				30,
+				"#ff0000",
+			);
+			return true;
+		}
+
+		return false;
 	},
 	getTotalSceneVertices() {
 		return flock.scene.meshes.reduce((total, mesh) => {
@@ -611,7 +631,7 @@ export const flock = {
 		flock.engine = new flock.BABYLON.Engine(flock.canvas, true, {
 			preserveDrawingBuffer: true,
 			stencil: true,
-			powerPreference: 'default',
+			powerPreference: "default",
 		});
 
 		flock.engine.enableOfflineSupport = false;
