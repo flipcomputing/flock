@@ -51,6 +51,7 @@ console.log("Flock helpers loading");
 
 export const flock = {
 	callbackMode: false,
+	memoryDebug: false,
 	console: console,
 	modelPath: "./models/",
 	soundPath: "./sounds/",
@@ -145,6 +146,70 @@ export const flock = {
 	},
 	createVector3(x, y, z) {
 		return new flock.BABYLON.Vector3(x, y, z);
+	},
+	checkMemoryUsage() {
+		if (!performance.memory) {
+			return; // Not available in all browsers
+		}
+
+		const used = performance.memory.usedJSHeapSize / 1024 / 1024;
+		const total = performance.memory.totalJSHeapSize / 1024 / 1024;
+		const limit = performance.memory.jsHeapSizeLimit / 1024 / 1024;
+
+		// Log to console (you might want to display in UI instead)
+		console.log(`Memory: ${used.toFixed(1)}MB used / ${total.toFixed(1)}MB allocated / ${limit.toFixed(1)}MB limit`);
+
+		// Warn if approaching limits
+		const usagePercent = (used / limit) * 100;
+		if (usagePercent > 80) {
+			console.warn(`High memory usage: ${usagePercent.toFixed(1)}% of limit`);
+			// Maybe show user warning in your UI
+			this.printText(`Warning: High memory usage (${usagePercent.toFixed(1)}%)`, 3, "#ff9900");
+		}
+
+		// Count Babylon.js objects for more specific monitoring
+		if (flock.scene) {
+			const counts = {
+				meshes: flock.scene.meshes.length,
+				materials: flock.scene.materials.length,
+				textures: flock.scene.textures.length,
+				animationGroups: flock.scene.animationGroups.length
+			};
+			console.log('Scene objects:', counts);
+		}
+	},
+	startMemoryMonitoring() {
+		// Clear any existing monitoring
+		if (this.memoryMonitorInterval) {
+			clearInterval(flock.memoryMonitorInterval);
+		}
+
+		// Get the abort signal
+		const signal = flock.abortController?.signal;
+
+		if (signal?.aborted) {
+			return; // Don't start if already aborted
+		}
+
+		// Monitor every 5 seconds
+		flock.memoryMonitorInterval = setInterval(() => {
+			// Check if aborted before each check
+			if (signal?.aborted) {
+				clearInterval(flock.memoryMonitorInterval);
+				this.memoryMonitorInterval = null;
+				return;
+			}
+
+			flock.checkMemoryUsage();
+		}, 5000);
+
+		// Clean up when aborted
+		signal?.addEventListener('abort', () => {
+			if (flock.memoryMonitorInterval) {
+				clearInterval(flock.memoryMonitorInterval);
+				flock.memoryMonitorInterval = null;
+			}
+		});
 	},
 	validateCode(code) {
 		if (typeof code !== "string") {
@@ -286,7 +351,8 @@ export const flock = {
 
 			// Initialize new scene in iframe context
 			await this.initializeNewScene();
-
+			if(flock.memoryDebug)
+				this.startMemoryMonitoring();
 			// Create and execute sandboxed function more directly
 			const sandboxFunction = new iframeWindow.Function('flock', `
 				"use strict";
