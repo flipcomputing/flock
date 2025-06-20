@@ -16,9 +16,6 @@ export const flockShapes = {
              alpha = 1,
              callback = null,
            }) {
-    if(flock.maxMeshesReached())
-      return;
-    
     let blockKey = boxId;
 
     if (boxId.includes("__")) {
@@ -69,7 +66,7 @@ export const flockShapes = {
     if (callback) {
       requestAnimationFrame(() => callback());
     }
-    
+
     if (!flock.callbackMode) {
       const readyPromise = Promise.resolve();
       flock.modelReadyPromises.set(boxId, readyPromise);
@@ -86,9 +83,6 @@ export const flockShapes = {
     alpha = 1,
     callback = null,
   }) {
-    if(flock.maxMeshesReached())
-      return;
-    
     let blockKey = sphereId;
 
     if (sphereId.includes("__")) {
@@ -137,7 +131,7 @@ export const flockShapes = {
     if (callback) {
       requestAnimationFrame(() => callback());
     }
-    
+
     if (!flock.callbackMode) {
       const readyPromise = Promise.resolve();
       flock.modelReadyPromises.set(sphereId, readyPromise);
@@ -159,8 +153,6 @@ export const flockShapes = {
       }
     ) 
   {
-    if(flock.maxMeshesReached())
-      return;
     const dimensions = {
       height,
       diameterTop,
@@ -223,7 +215,7 @@ export const flockShapes = {
     if (callback) {
       requestAnimationFrame(() => callback());
     }
-    
+
     if (!flock.callbackMode) {
       const readyPromise = Promise.resolve();
       flock.modelReadyPromises.set(cylinderId, readyPromise);
@@ -242,8 +234,7 @@ export const flockShapes = {
       callback = null,
     })
   {
-    if(flock.maxMeshesReached())
-      return;
+
     let radius = diameter / 2;
     let blockKey = capsuleId;
 
@@ -315,7 +306,7 @@ export const flockShapes = {
     if (callback) {
       requestAnimationFrame(() => callback());
     }
-    
+
     if (!flock.callbackMode) {
       const readyPromise = Promise.resolve();
       flock.modelReadyPromises.set(capsuleId, readyPromise);
@@ -323,6 +314,7 @@ export const flockShapes = {
 
     return newCapsule.name;
   },
+
   createPlane(
     planeId,
     {
@@ -334,8 +326,6 @@ export const flockShapes = {
     }
   )
   {
-    if(flock.maxMeshesReached())
-      return;
     // Handle block key
     let blockKey = planeId;
     if (planeId.includes("__")) {
@@ -404,7 +394,7 @@ export const flockShapes = {
     if (callback) {
       requestAnimationFrame(() => callback());
     }
-    
+
     if (!flock.callbackMode) {
       const readyPromise = Promise.resolve();
       flock.modelReadyPromises.set(planeId, readyPromise);
@@ -422,8 +412,6 @@ export const flockShapes = {
     modelId,
     callback = null,
   }) {
-    if(flock.maxMeshesReached())
-      return;
     const { x, y, z } = position;
 
     // Create the loading promise
