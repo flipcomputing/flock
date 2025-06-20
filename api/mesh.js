@@ -339,7 +339,7 @@ export const flockMesh = {
     mesh.setVerticesData(flock.BABYLON.VertexBuffer.UVKind, uvs, true);
   },
   ensureUniqueGeometry(mesh) {
-    console.log("Cloning geometry");
+    //console.log("Cloning geometry");
 
     if (mesh.metadata?.sharedGeometry) {
       // Extract vertex data from mesh
@@ -354,7 +354,7 @@ export const flockMesh = {
       // Mark the geometry as no longer shared
       mesh.metadata.sharedGeometry = false;
 
-      console.log("Geometry cloned and applied.");
+      //console.log("Geometry cloned and applied.");
     }
   },
   setupMesh(mesh, modelName, modelId, blockId, scale, x, y, z, color = null) {

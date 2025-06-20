@@ -278,7 +278,7 @@ export const flock = {
 
 		return true;
 	},
-	async runCode(code) {
+	async runCode2(code) {
 		let iframe = document.getElementById("flock-iframe");
 
 		try {
@@ -518,6 +518,204 @@ export const flock = {
 			} catch (sandboxError) {
 				throw new Error(
 					`Code execution failed: ${sandboxError.message}`,
+				);
+			}
+
+			// Focus render canvas
+			document.getElementById("renderCanvas")?.focus();
+		} catch (error) {
+			// Enhanced error reporting
+			const enhancedError = this.createEnhancedError(error, code);
+			console.error("Enhanced error details:", enhancedError);
+
+			// Show user-friendly error
+			this.printText(`Error: ${error.message}`, 5, "#ff0000");
+
+			// Clean up on error
+			try {
+				this.audioContext?.close();
+				this.engine?.stopRenderLoop();
+				this.removeEventListeners();
+			} catch (cleanupError) {
+				console.error("Error during cleanup:", cleanupError);
+			}
+
+			throw error;
+		}
+	},
+	async runCode(code) {
+		let iframe = document.getElementById("flock-iframe");
+
+		try {
+			// Validate code first
+			this.validateCode(code);
+
+			// Step 1: Dispose old scene if iframe exists
+			if (iframe) {
+				try {
+					await iframe.contentWindow?.flock?.disposeOldScene();
+				} catch (error) {
+					console.warn("Error disposing old scene in iframe:", error);
+				}
+			} else {
+				// Step 2: Create a new iframe if not found
+				iframe = document.createElement("iframe");
+				iframe.id = "flock-iframe";
+				iframe.style.display = "none";
+				document.body.appendChild(iframe);
+			}
+
+			// Step 3: Wait for iframe to load
+			await new Promise((resolve, reject) => {
+				iframe.onload = () => resolve();
+				iframe.onerror = () =>
+					reject(new Error("Failed to load iframe"));
+				iframe.src = "about:blank";
+			});
+
+			// Step 4: Access iframe window and set up flock
+			const iframeWindow = iframe.contentWindow;
+			if (!iframeWindow) throw new Error("Iframe window is unavailable");
+
+			// Copy flock reference to iframe
+			iframeWindow.flock = this;
+
+			// Initialize new scene in iframe context
+			await this.initializeNewScene();
+
+			// Step 5: Create sandboxed function with all flock API methods
+			const sandboxFunction = new iframeWindow.Function(`
+				"use strict";
+
+				const {
+					initialize,
+						createEngine,
+						createScene,
+						playAnimation,
+						playSound,
+						stopAllSounds,
+						playNotes,
+						setBPM,
+						createInstrument,
+						switchAnimation,
+						highlight,
+						glow,
+						createCharacter,
+						createObject,
+						createParticleEffect,
+						create3DText,
+						createModel,
+						createBox,
+						createSphere,
+						createCylinder,
+						createCapsule,
+						createPlane,
+						cloneMesh,
+						parentChild,
+						setParent,
+						mergeMeshes,
+						subtractMeshes,
+						intersectMeshes,
+						createHull,
+						hold, 
+						drop,
+						makeFollow,
+						stopFollow,
+						removeParent,
+						createGround,
+						createMap,
+						createCustomMap,
+						setSky,
+						lightIntensity,
+						buttonControls,
+						getCamera,
+						cameraControl,
+						setCameraBackground,
+						setXRMode,
+						applyForce,
+						moveByVector,
+						glideTo,
+						createAnimation,
+						animateFrom,
+						playAnimationGroup, 
+						pauseAnimationGroup, 
+						stopAnimationGroup,
+						startParticleSystem,
+						stopParticleSystem,
+						resetParticleSystem,
+						animateKeyFrames,
+						setPivotPoint,
+						rotate,
+						lookAt,
+						moveTo,
+						rotateTo,
+						rotateCamera,
+						rotateAnim,
+						animateProperty,
+						positionAt,
+						distanceTo,
+						wait,
+						safeLoop,
+						waitUntil,
+						show,
+						hide,
+						clearEffects,
+						stopAnimations,
+						tint,
+						setAlpha,
+						dispose,
+						setFog,
+						keyPressed,
+						isTouchingSurface,
+						seededRandom,
+						randomColour,
+						scale,
+						resize,
+						changeColor,
+						changeColorMesh,
+						changeMaterial,
+						setMaterial,
+						createMaterial,
+						textMaterial,
+						createDecal,
+						placeDecal,
+						moveForward,
+						moveSideways,
+						strafe,
+						attachCamera,
+						canvasControls,
+						setPhysics,
+						setPhysicsShape,
+						checkMeshesTouching,
+						say,
+						onTrigger,
+						onEvent,
+						broadcastEvent,
+						Mesh,
+						start,
+						forever,
+						whenKeyEvent,
+						randomInteger,
+						printText,
+						UIText,
+						UIButton,
+						onIntersect,
+						getProperty,
+						exportMesh,
+						abortSceneExecution,
+						ensureUniqueGeometry,
+						createVector3,
+				} = flock;
+
+				${code}
+			`);
+
+			// Execute sandboxed code
+			try {
+				await sandboxFunction();
+			} catch (sandboxError) {
+				throw new Error(
+					`Sandbox execution failed: ${sandboxError.message}`,
 				);
 			}
 
