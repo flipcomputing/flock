@@ -275,7 +275,15 @@ export const flock = {
 				iframe.onload = () => resolve();
 				iframe.onerror = () =>
 					reject(new Error("Failed to load iframe"));
-				iframe.src = "about:blank";
+				iframe.srcdoc = `
+				<!DOCTYPE html>
+				<html>
+				  <head>
+					<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-eval';">
+				  </head>
+				  <body></body>
+				</html>`;
+
 			});
 
 			
