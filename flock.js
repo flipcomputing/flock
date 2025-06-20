@@ -427,6 +427,7 @@ export const flock = {
 				abortSceneExecution: (...args) => this.abortSceneExecution(...args),
 				ensureUniqueGeometry: (...args) => this.ensureUniqueGeometry(...args),
 				createVector3: (...args) => this.createVector3(...args),
+				disposeOldScene: (...args) => this.disposeOldScene(...args),
 
 			};
 
