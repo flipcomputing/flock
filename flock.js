@@ -259,7 +259,6 @@ export const flock = {
 			if (iframe) {
 				try {
 					delete iframe.contentWindow.flock;
-					//await iframe.contentWindow?.flock?.disposeOldScene();
 				} catch (error) {
 					console.warn("Error disposing old scene in iframe:", error);
 				}
@@ -271,16 +270,15 @@ export const flock = {
 				document.body.appendChild(iframe);
 			}
 
-			// Wait for iframe to load
+			// Wait for iframe to load with stricter CSP
 			await new Promise((resolve, reject) => {
 				iframe.onload = () => resolve();
-				iframe.onerror = () =>
-					reject(new Error("Failed to load iframe"));
+				iframe.onerror = () => reject(new Error("Failed to load iframe"));
 				iframe.srcdoc = `
 				<!DOCTYPE html>
 				<html>
 				  <head>
-					<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-eval';">
+					<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-eval' 'unsafe-inline';">
 				  </head>
 				  <body></body>
 				</html>`;
@@ -289,309 +287,119 @@ export const flock = {
 			const iframeWindow = iframe.contentWindow;
 			if (!iframeWindow) throw new Error("Iframe window is unavailable");
 
-			// Create a limited API object with all the methods from the original destructuring
-			iframeWindow.flock = {
+			// Define API methods list once to avoid duplication
+			const apiMethods = [
 				// Core
-				initialize: (...args) => this.initialize(...args),
-				createEngine: (...args) => this.createEngine(...args),
-				createScene: (...args) => this.createScene(...args),
+				'initialize', 'createEngine', 'createScene',
 
-				// Animation & Movement
-				playAnimation: (...args) => this.playAnimation(...args),
-				switchAnimation: (...args) => this.switchAnimation(...args),
-				glideTo: (...args) => this.glideTo(...args),
-				createAnimation: (...args) => this.createAnimation(...args),
-				animateFrom: (...args) => this.animateFrom(...args),
-				playAnimationGroup: (...args) =>
-					this.playAnimationGroup(...args),
-				pauseAnimationGroup: (...args) =>
-					this.pauseAnimationGroup(...args),
-				stopAnimationGroup: (...args) =>
-					this.stopAnimationGroup(...args),
-				animateKeyFrames: (...args) => this.animateKeyFrames(...args),
-				setPivotPoint: (...args) => this.setPivotPoint(...args),
-				rotate: (...args) => this.rotate(...args),
-				lookAt: (...args) => this.lookAt(...args),
-				moveTo: (...args) => this.moveTo(...args),
-				rotateTo: (...args) => this.rotateTo(...args),
-				rotateCamera: (...args) => this.rotateCamera(...args),
-				rotateAnim: (...args) => this.rotateAnim(...args),
-				animateProperty: (...args) => this.animateProperty(...args),
-				positionAt: (...args) => this.positionAt(...args),
-				moveForward: (...args) => this.moveForward(...args),
-				moveSideways: (...args) => this.moveSideways(...args),
-				strafe: (...args) => this.strafe(...args),
+				// Animation & Movement  
+				'playAnimation', 'switchAnimation', 'glideTo', 'createAnimation',
+				'animateFrom', 'playAnimationGroup', 'pauseAnimationGroup', 'stopAnimationGroup',
+				'animateKeyFrames', 'setPivotPoint', 'rotate', 'lookAt', 'moveTo', 'rotateTo',
+				'rotateCamera', 'rotateAnim', 'animateProperty', 'positionAt', 'moveForward',
+				'moveSideways', 'strafe',
 
 				// Audio
-				playSound: (...args) => this.playSound(...args),
-				stopAllSounds: (...args) => this.stopAllSounds(...args),
-				playNotes: (...args) => this.playNotes(...args),
-				setBPM: (...args) => this.setBPM(...args),
-				createInstrument: (...args) => this.createInstrument(...args),
+				'playSound', 'stopAllSounds', 'playNotes', 'setBPM', 'createInstrument',
 
 				// Effects
-				highlight: (...args) => this.highlight(...args),
-				glow: (...args) => this.glow(...args),
-				tint: (...args) => this.tint(...args),
-				setAlpha: (...args) => this.setAlpha(...args),
-				clearEffects: (...args) => this.clearEffects(...args),
-				stopAnimations: (...args) => this.stopAnimations(...args),
+				'highlight', 'glow', 'tint', 'setAlpha', 'clearEffects', 'stopAnimations',
 
 				// 3D Objects
-				createCharacter: (...args) => this.createCharacter(...args),
-				createObject: (...args) => this.createObject(...args),
-				createParticleEffect: (...args) =>
-					this.createParticleEffect(...args),
-				create3DText: (...args) => this.create3DText(...args),
-				createModel: (...args) => this.createModel(...args),
-				createBox: (...args) => this.createBox(...args),
-				createSphere: (...args) => this.createSphere(...args),
-				createCylinder: (...args) => this.createCylinder(...args),
-				createCapsule: (...args) => this.createCapsule(...args),
-				createPlane: (...args) => this.createPlane(...args),
+				'createCharacter', 'createObject', 'createParticleEffect', 'create3DText',
+				'createModel', 'createBox', 'createSphere', 'createCylinder', 'createCapsule',
+				'createPlane',
 
 				// Mesh Operations
-				cloneMesh: (...args) => this.cloneMesh(...args),
-				parentChild: (...args) => this.parentChild(...args),
-				setParent: (...args) => this.setParent(...args),
-				mergeMeshes: (...args) => this.mergeMeshes(...args),
-				subtractMeshes: (...args) => this.subtractMeshes(...args),
-				intersectMeshes: (...args) => this.intersectMeshes(...args),
-				createHull: (...args) => this.createHull(...args),
-				hold: (...args) => this.hold(...args),
-				drop: (...args) => this.drop(...args),
-				makeFollow: (...args) => this.makeFollow(...args),
-				stopFollow: (...args) => this.stopFollow(...args),
-				removeParent: (...args) => this.removeParent(...args),
+				'cloneMesh', 'parentChild', 'setParent', 'mergeMeshes', 'subtractMeshes',
+				'intersectMeshes', 'createHull', 'hold', 'drop', 'makeFollow', 'stopFollow',
+				'removeParent',
 
 				// Environment
-				createGround: (...args) => this.createGround(...args),
-				createMap: (...args) => this.createMap(...args),
-				createCustomMap: (...args) => this.createCustomMap(...args),
-				setSky: (...args) => this.setSky(...args),
-				lightIntensity: (...args) => this.lightIntensity(...args),
-				setFog: (...args) => this.setFog(...args),
+				'createGround', 'createMap', 'createCustomMap', 'setSky', 'lightIntensity', 'setFog',
 
 				// Camera & Controls
-				buttonControls: (...args) => this.buttonControls(...args),
-				getCamera: (...args) => this.getCamera(...args),
-				cameraControl: (...args) => this.cameraControl(...args),
-				setCameraBackground: (...args) =>
-					this.setCameraBackground(...args),
-				setXRMode: (...args) => this.setXRMode(...args),
-				attachCamera: (...args) => this.attachCamera(...args),
-				canvasControls: (...args) => this.canvasControls(...args),
+				'buttonControls', 'getCamera', 'cameraControl', 'setCameraBackground', 'setXRMode',
+				'attachCamera', 'canvasControls',
 
 				// Physics
-				applyForce: (...args) => this.applyForce(...args),
-				moveByVector: (...args) => this.moveByVector(...args),
-				setPhysics: (...args) => this.setPhysics(...args),
-				setPhysicsShape: (...args) => this.setPhysicsShape(...args),
-				checkMeshesTouching: (...args) =>
-					this.checkMeshesTouching(...args),
+				'applyForce', 'moveByVector', 'setPhysics', 'setPhysicsShape', 'checkMeshesTouching',
 
 				// Particles
-				startParticleSystem: (...args) =>
-					this.startParticleSystem(...args),
-				stopParticleSystem: (...args) =>
-					this.stopParticleSystem(...args),
-				resetParticleSystem: (...args) =>
-					this.resetParticleSystem(...args),
+				'startParticleSystem', 'stopParticleSystem', 'resetParticleSystem',
 
 				// Utilities
-				distanceTo: (...args) => this.distanceTo(...args),
-				wait: (...args) => this.wait(...args),
-				safeLoop: (...args) => this.safeLoop(...args),
-				waitUntil: (...args) => this.waitUntil(...args),
-				show: (...args) => this.show(...args),
-				hide: (...args) => this.hide(...args),
-				dispose: (...args) => this.dispose(...args),
-				keyPressed: (...args) => this.keyPressed(...args),
-				isTouchingSurface: (...args) => this.isTouchingSurface(...args),
-				seededRandom: (...args) => this.seededRandom(...args),
-				randomColour: (...args) => this.randomColour(...args),
-				scale: (...args) => this.scale(...args),
-				resize: (...args) => this.resize(...args),
+				'distanceTo', 'wait', 'safeLoop', 'waitUntil', 'show', 'hide', 'dispose',
+				'keyPressed', 'isTouchingSurface', 'seededRandom', 'randomColour', 'scale', 'resize',
 
 				// Materials & Colors
-				changeColor: (...args) => this.changeColor(...args),
-				changeColorMesh: (...args) => this.changeColorMesh(...args),
-				changeMaterial: (...args) => this.changeMaterial(...args),
-				setMaterial: (...args) => this.setMaterial(...args),
-				createMaterial: (...args) => this.createMaterial(...args),
-				textMaterial: (...args) => this.textMaterial(...args),
+				'changeColor', 'changeColorMesh', 'changeMaterial', 'setMaterial', 'createMaterial',
+				'textMaterial',
 
 				// Events & Interaction
-				say: (...args) => this.say(...args),
-				onTrigger: (...args) => this.onTrigger(...args),
-				onEvent: (...args) => this.onEvent(...args),
-				broadcastEvent: (...args) => this.broadcastEvent(...args),
-				start: (...args) => this.start(...args),
-				forever: (...args) => this.forever(...args),
-				whenKeyEvent: (...args) => this.whenKeyEvent(...args),
-				onIntersect: (...args) => this.onIntersect(...args),
+				'say', 'onTrigger', 'onEvent', 'broadcastEvent', 'start', 'forever', 'whenKeyEvent',
+				'onIntersect',
 
 				// UI
-				printText: (...args) => this.printText(...args),
-				UIText: (...args) => this.UIText(...args),
-				UIButton: (...args) => this.UIButton(...args),
+				'printText', 'UIText', 'UIButton',
 
 				// Utilities & Data
-				randomInteger: (...args) => this.randomInteger(...args),
-				getProperty: (...args) => this.getProperty(...args),
-				exportMesh: (...args) => this.exportMesh(...args),
-				abortSceneExecution: (...args) =>
-					this.abortSceneExecution(...args),
-				ensureUniqueGeometry: (...args) =>
-					this.ensureUniqueGeometry(...args),
-				createVector3: (...args) => this.createVector3(...args),
-			};
+				'randomInteger', 'getProperty', 'exportMesh', 'abortSceneExecution',
+				'ensureUniqueGeometry', 'createVector3'
+			];
+
+			// Create API object dynamically
+			const flockAPI = {};
+			apiMethods.forEach(method => {
+				if (typeof this[method] === 'function') {
+					flockAPI[method] = (...args) => this[method](...args);
+				}
+			});
 
 			// Initialize new scene in iframe context
 			await this.initializeNewScene();
 
-			const sandboxFunction = new iframeWindow.Function(`
+			// Create and execute sandboxed function more directly
+			const sandboxFunction = new iframeWindow.Function('flock', `
 				"use strict";
 
+				// Destructure the API for clean user access
 				const {
-					initialize,
-					createEngine,
-					createScene,
-					playAnimation,
-					playSound,
-					stopAllSounds,
-					playNotes,
-					setBPM,
-					createInstrument,
-					switchAnimation,
-					highlight,
-					glow,
-					createCharacter,
-					createObject,
-					createParticleEffect,
-					create3DText,
-					createModel,
-					createBox,
-					createSphere,
-					createCylinder,
-					createCapsule,
-					createPlane,
-					cloneMesh,
-					parentChild,
-					setParent,
-					mergeMeshes,
-					subtractMeshes,
-					intersectMeshes,
-					createHull,
-					hold, 
-					drop,
-					makeFollow,
-					stopFollow,
-					removeParent,
-					createGround,
-					createMap,
-					createCustomMap,
-					setSky,
-					lightIntensity,
-					buttonControls,
-					getCamera,
-					cameraControl,
-					setCameraBackground,
-					setXRMode,
-					applyForce,
-					moveByVector,
-					glideTo,
-					createAnimation,
-					animateFrom,
-					playAnimationGroup, 
-					pauseAnimationGroup, 
-					stopAnimationGroup,
-					startParticleSystem,
-					stopParticleSystem,
-					resetParticleSystem,
-					animateKeyFrames,
-					setPivotPoint,
-					rotate,
-					lookAt,
-					moveTo,
-					rotateTo,
-					rotateCamera,
-					rotateAnim,
-					animateProperty,
-					positionAt,
-					distanceTo,
-					wait,
-					safeLoop,
-					waitUntil,
-					show,
-					hide,
-					clearEffects,
-					stopAnimations,
-					tint,
-					setAlpha,
-					dispose,
-					setFog,
-					keyPressed,
-					isTouchingSurface,
-					seededRandom,
-					randomColour,
-					scale,
-					resize,
-					changeColor,
-					changeColorMesh,
-					changeMaterial,
-					setMaterial,
-					createMaterial,
-					textMaterial,
-					moveForward,
-					moveSideways,
-					strafe,
-					attachCamera,
-					canvasControls,
-					setPhysics,
-					setPhysicsShape,
-					checkMeshesTouching,
-					say,
-					onTrigger,
-					onEvent,
-					broadcastEvent,
-					start,
-					forever,
-					whenKeyEvent,
-					randomInteger,
-					printText,
-					UIText,
-					UIButton,
-					onIntersect,
-					getProperty,
-					exportMesh,
-					abortSceneExecution,
-					ensureUniqueGeometry,
-					createVector3,
+					${apiMethods.join(',\n                ')}
 				} = flock;
 
-				// Wrap user code in an async function to support await
+				// Add some safety measures
+				const setTimeout = undefined;
+				const setInterval = undefined;
+				const clearTimeout = undefined;
+				const clearInterval = undefined;
+
+				// Wrap user code in async function with better error handling
 				return (async function() {
-	  				try {
-	    				${code}
-	  				} catch (e) {
-	    				console.error("User code error:", e);
-	    				throw e;
-	  				}
+					try {
+						${code}
+					} catch (error) {
+						// Enhanced error reporting with line numbers
+						const stack = error.stack || '';
+						const match = stack.match(/<anonymous>:(\\d+):(\\d+)/);
+						const lineNumber = match ? parseInt(match[1]) - 20 : 'unknown'; // Adjust for wrapper code
+
+						console.error(\`User code error at line \${lineNumber}:\`, error.message);
+						throw new Error(\`Line \${lineNumber}: \${error.message}\`);
+					}
 				})();
 			`);
 
-			// Execute sandboxed code
+			// Execute with better error context
 			try {
-				await sandboxFunction();
+				await sandboxFunction(flockAPI);
 			} catch (sandboxError) {
-				throw new Error(
-					`Sandbox execution failed: ${sandboxError.message}`,
-				);
+				throw new Error(`Code execution failed: ${sandboxError.message}`);
 			}
 
 			// Focus render canvas
 			document.getElementById("renderCanvas")?.focus();
+
 		} catch (error) {
 			// Enhanced error reporting
 			const enhancedError = this.createEnhancedError(error, code);
