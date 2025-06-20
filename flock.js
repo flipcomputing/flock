@@ -104,108 +104,6 @@ export const flock = {
 	...flockScene,
 	...flockMesh,
 	...flockCamera,
-	// Code execution cache
-	codeCache: new Map(),
-	lastCodeHash: null,
-
-	// Enhanced security validation
-	validateCode(code) {
-		if (typeof code !== "string") {
-			throw new Error("Code must be a string");
-		}
-
-		// Enhanced forbidden patterns with more specific detection
-		const forbiddenPatterns = [
-			{ pattern: /eval\s*\(/, message: "eval() is not allowed" },
-			{
-				pattern: /Function\s*\(/,
-				message: "Function constructor is not allowed",
-			},
-			{
-				pattern: /setTimeout\s*\(/,
-				message: "setTimeout is not allowed",
-			},
-			{
-				pattern: /setInterval\s*\(/,
-				message: "setInterval is not allowed",
-			},
-			{
-				pattern: /XMLHttpRequest/,
-				message: "XMLHttpRequest is not allowed",
-			},
-			{ pattern: /fetch\s*\(/, message: "fetch is not allowed" },
-			{
-				pattern: /import\s*\(/,
-				message: "dynamic imports are not allowed",
-			},
-			{ pattern: /require\s*\(/, message: "require is not allowed" },
-			{
-				pattern: /process\./,
-				message: "process object access is not allowed",
-			},
-			{
-				pattern: /global\./,
-				message: "global object access is not allowed",
-			},
-			{
-				pattern: /window\.(?!flock)/,
-				message: "direct window access is not allowed",
-			},
-			{
-				pattern: /document\.(?!getElementById|createElement|fonts)/,
-				message: "unsafe document access is not allowed",
-			},
-			{
-				pattern: /location\./,
-				message: "location object access is not allowed",
-			},
-			{
-				pattern: /navigator\./,
-				message: "navigator object access is not allowed",
-			},
-			{
-				pattern: /localStorage\./,
-				message: "localStorage access is not allowed",
-			},
-			{
-				pattern: /sessionStorage\./,
-				message: "sessionStorage access is not allowed",
-			},
-			{
-				pattern: /indexedDB\./,
-				message: "indexedDB access is not allowed",
-			},
-			{
-				pattern: /postMessage\s*\(/,
-				message: "postMessage is not allowed",
-			},
-		];
-
-		for (const { pattern, message } of forbiddenPatterns) {
-			if (pattern.test(code)) {
-				throw new Error(`Security violation: ${message}`);
-			}
-		}
-
-		// Limit code length
-		if (code.length > 100000) {
-			throw new Error("Code too long (max 100KB)");
-		}
-
-		return true;
-	},
-
-	// Generate hash for code caching
-	generateCodeHash(code) {
-		let hash = 0;
-		for (let i = 0; i < code.length; i++) {
-			const char = code.charCodeAt(i);
-			hash = (hash << 5) - hash + char;
-			hash = hash & hash; // Convert to 32-bit integer
-		}
-		return hash.toString(36);
-	},
-
 	// Enhanced error reporting with block context
 	createEnhancedError(error, code) {
 		const lines = code.split("\n");
@@ -247,6 +145,35 @@ export const flock = {
 	},
 	createVector3(x, y, z) {
 		return new flock.BABYLON.Vector3(x, y, z);
+	},
+	validateCode(code) {
+		if (typeof code !== "string") {
+			throw new Error("Code must be a string");
+		}
+
+		// Length check (reasonable)
+		if (code.length > 100000) {
+			throw new Error("Code too long (max 100KB)");
+		}
+
+		// Basic syntax check
+		try {
+			new Function(code); // Just check if it parses
+		} catch (e) {
+			throw new Error(`Syntax error: ${e.message}`);
+		}
+
+		// Optional: Warn about patterns (don't block)
+		const warnings = [];
+		if (/eval\s*\(/.test(code)) {
+			warnings.push("Warning: eval() detected - this won't work in the sandbox");
+		}
+
+		if (warnings.length > 0) {
+			console.warn(warnings.join('\n'));
+		}
+
+		return true;
 	},
 	async runCode(code) {
 		let iframe = document.getElementById("flock-iframe");
