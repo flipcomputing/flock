@@ -157,25 +157,35 @@ export const flock = {
 		const limit = performance.memory.jsHeapSizeLimit / 1024 / 1024;
 
 		// Log to console (you might want to display in UI instead)
-		console.log(`Memory: ${used.toFixed(1)}MB used / ${total.toFixed(1)}MB allocated / ${limit.toFixed(1)}MB limit`);
+		console.log(
+			`Memory: ${used.toFixed(1)}MB used / ${total.toFixed(1)}MB allocated / ${limit.toFixed(1)}MB limit`,
+		);
 
 		// Warn if approaching limits
 		const usagePercent = (used / limit) * 100;
 		if (usagePercent > 80) {
-			console.warn(`High memory usage: ${usagePercent.toFixed(1)}% of limit`);
+			console.warn(
+				`High memory usage: ${usagePercent.toFixed(1)}% of limit`,
+			);
 			// Maybe show user warning in your UI
-			this.printText(`Warning: High memory usage (${usagePercent.toFixed(1)}%)`, 3, "#ff9900");
+			this.printText(
+				`Warning: High memory usage (${usagePercent.toFixed(1)}%)`,
+				3,
+				"#ff9900",
+			);
 		}
 
 		// Count Babylon.js objects for more specific monitoring
 		if (flock.scene) {
 			const counts = {
 				meshes: flock.scene.meshes.length,
+				geometries: Object.keys(flock.geometryCache).length,
 				materials: flock.scene.materials.length,
+				cachedMaterials: Object.keys(flock.materialCache).length,
 				textures: flock.scene.textures.length,
-				animationGroups: flock.scene.animationGroups.length
+				animationGroups: flock.scene.animationGroups.length,
 			};
-			console.log('Scene objects:', counts);
+			console.log("Scene objects:", counts);
 		}
 	},
 	startMemoryMonitoring() {
@@ -204,7 +214,7 @@ export const flock = {
 		}, 5000);
 
 		// Clean up when aborted
-		signal?.addEventListener('abort', () => {
+		signal?.addEventListener("abort", () => {
 			if (flock.memoryMonitorInterval) {
 				clearInterval(flock.memoryMonitorInterval);
 				flock.memoryMonitorInterval = null;
@@ -231,11 +241,13 @@ export const flock = {
 		// Optional: Warn about patterns (don't block)
 		const warnings = [];
 		if (/eval\s*\(/.test(code)) {
-			warnings.push("Warning: eval() detected - this won't work in the sandbox");
+			warnings.push(
+				"Warning: eval() detected - this won't work in the sandbox",
+			);
 		}
 
 		if (warnings.length > 0) {
-			console.warn(warnings.join('\n'));
+			console.warn(warnings.join("\n"));
 		}
 
 		return true;
@@ -266,7 +278,8 @@ export const flock = {
 			// Wait for iframe to load with stricter CSP
 			await new Promise((resolve, reject) => {
 				iframe.onload = () => resolve();
-				iframe.onerror = () => reject(new Error("Failed to load iframe"));
+				iframe.onerror = () =>
+					reject(new Error("Failed to load iframe"));
 				iframe.srcdoc = `
 				<!DOCTYPE html>
 				<html>
@@ -283,83 +296,171 @@ export const flock = {
 			// Define API methods list once to avoid duplication
 			const apiMethods = [
 				// Core
-				'initialize', 'createEngine', 'createScene',
+				"initialize",
+				"createEngine",
+				"createScene",
 
-				// Animation & Movement  
-				'playAnimation', 'switchAnimation', 'glideTo', 'createAnimation',
-				'animateFrom', 'playAnimationGroup', 'pauseAnimationGroup', 'stopAnimationGroup',
-				'animateKeyFrames', 'setPivotPoint', 'rotate', 'lookAt', 'moveTo', 'rotateTo',
-				'rotateCamera', 'rotateAnim', 'animateProperty', 'positionAt', 'moveForward',
-				'moveSideways', 'strafe',
+				// Animation & Movement
+				"playAnimation",
+				"switchAnimation",
+				"glideTo",
+				"createAnimation",
+				"animateFrom",
+				"playAnimationGroup",
+				"pauseAnimationGroup",
+				"stopAnimationGroup",
+				"animateKeyFrames",
+				"setPivotPoint",
+				"rotate",
+				"lookAt",
+				"moveTo",
+				"rotateTo",
+				"rotateCamera",
+				"rotateAnim",
+				"animateProperty",
+				"positionAt",
+				"moveForward",
+				"moveSideways",
+				"strafe",
 
 				// Audio
-				'playSound', 'stopAllSounds', 'playNotes', 'setBPM', 'createInstrument',
+				"playSound",
+				"stopAllSounds",
+				"playNotes",
+				"setBPM",
+				"createInstrument",
 
 				// Effects
-				'highlight', 'glow', 'tint', 'setAlpha', 'clearEffects', 'stopAnimations',
+				"highlight",
+				"glow",
+				"tint",
+				"setAlpha",
+				"clearEffects",
+				"stopAnimations",
 
 				// 3D Objects
-				'createCharacter', 'createObject', 'createParticleEffect', 'create3DText',
-				'createModel', 'createBox', 'createSphere', 'createCylinder', 'createCapsule',
-				'createPlane',
+				"createCharacter",
+				"createObject",
+				"createParticleEffect",
+				"create3DText",
+				"createModel",
+				"createBox",
+				"createSphere",
+				"createCylinder",
+				"createCapsule",
+				"createPlane",
 
 				// Mesh Operations
-				'cloneMesh', 'parentChild', 'setParent', 'mergeMeshes', 'subtractMeshes',
-				'intersectMeshes', 'createHull', 'hold', 'drop', 'makeFollow', 'stopFollow',
-				'removeParent',
+				"cloneMesh",
+				"parentChild",
+				"setParent",
+				"mergeMeshes",
+				"subtractMeshes",
+				"intersectMeshes",
+				"createHull",
+				"hold",
+				"drop",
+				"makeFollow",
+				"stopFollow",
+				"removeParent",
 
 				// Environment
-				'createGround', 'createMap', 'createCustomMap', 'setSky', 'lightIntensity', 'setFog',
+				"createGround",
+				"createMap",
+				"createCustomMap",
+				"setSky",
+				"lightIntensity",
+				"setFog",
 
 				// Camera & Controls
-				'buttonControls', 'getCamera', 'cameraControl', 'setCameraBackground', 'setXRMode',
-				'attachCamera', 'canvasControls',
+				"buttonControls",
+				"getCamera",
+				"cameraControl",
+				"setCameraBackground",
+				"setXRMode",
+				"attachCamera",
+				"canvasControls",
 
 				// Physics
-				'applyForce', 'moveByVector', 'setPhysics', 'setPhysicsShape', 'checkMeshesTouching',
+				"applyForce",
+				"moveByVector",
+				"setPhysics",
+				"setPhysicsShape",
+				"checkMeshesTouching",
 
 				// Particles
-				'startParticleSystem', 'stopParticleSystem', 'resetParticleSystem',
+				"startParticleSystem",
+				"stopParticleSystem",
+				"resetParticleSystem",
 
 				// Utilities
-				'distanceTo', 'wait', 'safeLoop', 'waitUntil', 'show', 'hide', 'dispose',
-				'keyPressed', 'isTouchingSurface', 'seededRandom', 'randomColour', 'scale', 'resize',
+				"distanceTo",
+				"wait",
+				"safeLoop",
+				"waitUntil",
+				"show",
+				"hide",
+				"dispose",
+				"keyPressed",
+				"isTouchingSurface",
+				"seededRandom",
+				"randomColour",
+				"scale",
+				"resize",
 
 				// Materials & Colors
-				'changeColor', 'changeColorMesh', 'changeMaterial', 'setMaterial', 'createMaterial',
-				'textMaterial',
+				"changeColor",
+				"changeColorMesh",
+				"changeMaterial",
+				"setMaterial",
+				"createMaterial",
+				"textMaterial",
 
 				// Events & Interaction
-				'say', 'onTrigger', 'onEvent', 'broadcastEvent', 'start', 'forever', 'whenKeyEvent',
-				'onIntersect',
+				"say",
+				"onTrigger",
+				"onEvent",
+				"broadcastEvent",
+				"start",
+				"forever",
+				"whenKeyEvent",
+				"onIntersect",
 
 				// UI
-				'printText', 'UIText', 'UIButton',
+				"printText",
+				"UIText",
+				"UIButton",
 
 				// Utilities & Data
-				'randomInteger', 'getProperty', 'exportMesh', 'abortSceneExecution',
-				'ensureUniqueGeometry', 'createVector3', 'disposeOldScene'
+				"randomInteger",
+				"getProperty",
+				"exportMesh",
+				"abortSceneExecution",
+				"ensureUniqueGeometry",
+				"createVector3",
+				"disposeOldScene",
 			];
 
 			// Create API object dynamically
 			const flockAPI = {};
-			apiMethods.forEach(method => {
-				if (typeof this[method] === 'function') {
+			apiMethods.forEach((method) => {
+				if (typeof this[method] === "function") {
 					flockAPI[method] = (...args) => this[method](...args);
 				}
 			});
 
 			// Initialize new scene in iframe context
 			await this.initializeNewScene();
-			if(flock.memoryDebug)
-				this.startMemoryMonitoring();
+			if (flock.memoryDebug) this.startMemoryMonitoring();
 			// Create and execute sandboxed function more directly
-			const sandboxFunction = new iframeWindow.Function('flock', `
+			const sandboxFunction = new iframeWindow.Function(
+				"flock",
+				`
 				"use strict";
 
 				// Destructure the API for clean user access
 				const {
-					${apiMethods.join(',\n                ')}
+					${apiMethods.join(",\n                ")}
 				} = flock;
 
 				// Add some safety measures
@@ -382,18 +483,20 @@ export const flock = {
 						throw new Error(\`Line \${lineNumber}: \${error.message}\`);
 					}
 				})();
-			`);
+			`,
+			);
 
 			// Execute with better error context
 			try {
 				await sandboxFunction(flockAPI);
 			} catch (sandboxError) {
-				throw new Error(`Code execution failed: ${sandboxError.message}`);
+				throw new Error(
+					`Code execution failed: ${sandboxError.message}`,
+				);
 			}
 
 			// Focus render canvas
 			document.getElementById("renderCanvas")?.focus();
-
 		} catch (error) {
 			// Enhanced error reporting
 			const enhancedError = this.createEnhancedError(error, code);
