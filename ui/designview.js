@@ -27,10 +27,13 @@ const colorFields = {
 export function updateOrCreateMeshFromBlock(block, changeEvent) {
   if (window.loadingCode || block.disposed) return;
 
+  //console.log("Update or create", block.id, changeEvent.ids);
+  
   if (
     changeEvent.type === Blockly.Events.BLOCK_CREATE &&
-    block.id === changeEvent.blockId
+    changeEvent.ids.includes(block.id)
   ) {
+    //console.log("Creating mesh on canvas");
     createMeshOnCanvas(block);
   } else if (changeEvent.type === Blockly.Events.BLOCK_CHANGE) {
     const mesh = getMeshFromBlock(block);
@@ -41,6 +44,7 @@ export function updateOrCreateMeshFromBlock(block, changeEvent) {
         block.type,
       )
     ) {
+       //console.log("Updating mesh on canvas");
       updateMeshFromBlock(mesh, block, changeEvent);
     }
   }
@@ -850,7 +854,6 @@ function createMeshOnCanvas(block) {
         }
       );
 
-
       break;
 
     case "create_sphere":
@@ -1190,11 +1193,8 @@ function setNumberInput(block, inputName, value) {
 }
 
 function getMeshFromBlockId(blockId) {
-  const blockKey = Object.keys(meshMap).find(
-    (key) => meshBlockIdMap[key] === blockId,
-  );
-
-  return flock.scene?.meshes?.find((mesh) => mesh.blockKey === blockKey);
+ 
+  return flock.scene?.meshes?.find((mesh) => mesh.blockKey === blockId);
 }
 
 function addShapeToWorkspace(shapeType, position) {
