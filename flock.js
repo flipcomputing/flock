@@ -147,6 +147,11 @@ export const flock = {
 	createVector3(x, y, z) {
 		return new flock.BABYLON.Vector3(x, y, z);
 	},
+	getTotalSceneVertices() {
+		return flock.scene.meshes.reduce((total, mesh) => {
+			return total + mesh.getTotalVertices();
+		}, 0);
+	},
 	checkMemoryUsage() {
 		if (!performance.memory) {
 			return; // Not available in all browsers
@@ -180,6 +185,7 @@ export const flock = {
 			const counts = {
 				meshes: flock.scene.meshes.length,
 				geometries: Object.keys(flock.geometryCache).length,
+				vertices: flock.getTotalSceneVertices(),
 				materials: flock.scene.materials.length,
 				cachedMaterials: Object.keys(flock.materialCache).length,
 				textures: flock.scene.textures.length,
