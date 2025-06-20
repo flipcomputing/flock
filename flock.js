@@ -258,6 +258,7 @@ export const flock = {
 			// Dispose old scene if iframe exists
 			if (iframe) {
 				try {
+					iframe.contentWindow.flock?.disposeOldScene();
 					delete iframe.contentWindow.flock;
 				} catch (error) {
 					console.warn("Error disposing old scene in iframe:", error);
@@ -345,7 +346,7 @@ export const flock = {
 
 				// Utilities & Data
 				'randomInteger', 'getProperty', 'exportMesh', 'abortSceneExecution',
-				'ensureUniqueGeometry', 'createVector3'
+				'ensureUniqueGeometry', 'createVector3', 'disposeOldScene'
 			];
 
 			// Create API object dynamically
