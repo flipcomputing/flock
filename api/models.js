@@ -5,6 +5,76 @@ export function setFlockReference(ref) {
 }
 
 export const flockModels = {
+  createCharacter2({
+    modelName,
+    modelId,
+    scale = 1,
+    position = { x: 0, y: 0, z: 0 },
+    colors = {
+      hair: "#000000",
+      skin: "#a15c33",
+      eyes: "#0000ff",
+      sleeves: "#ff0000",
+      shorts: "#00ff00",
+      tshirt: "#0000ff",
+    },
+    callback = () => {},
+  }) {
+    const { x, y, z } = position;
+
+    let blockKey;
+    if (modelId.includes("__")) {
+      [modelId, blockKey] = modelId.split("__");
+    }
+
+    if (flock.scene.getMeshByName(modelId)) {
+      modelId = modelId + "_" + flock.scene.getUniqueId();
+    }
+    flock.BABYLON.SceneLoader.LoadAssetContainerAsync(
+      flock.modelPath,
+      modelName,
+      flock.scene,
+      null,
+      null,
+      { signal: flock.abortController.signal },
+    )
+      .then((container) => {
+        container.addAllToScene();
+        const mesh = container.meshes[0];
+        flock.setupMesh(
+          mesh,
+          modelName,
+          modelId,
+          blockKey,
+          scale,
+          x,
+          y,
+          z,
+        );
+
+        if (modelName.startsWith("Character"))
+          flock.ensureStandardMaterial(mesh);
+        flock.applyColorsToCharacter(mesh, colors);
+
+        const descendants = mesh.getChildMeshes(false);
+        descendants.forEach((childMesh) => {
+          if (childMesh.getTotalVertices() > 0) {
+            // Ensure it has geometry
+            childMesh.isPickable = true;
+            childMesh.flipFaces(true);
+          }
+        });
+
+        if (callback) {
+          requestAnimationFrame(() => callback());
+        }
+      })
+      .catch((error) => {
+        console.log("Error loading", error);
+      });
+
+    return modelId;
+  },
   createCharacter({
     modelName,
     modelId,
@@ -154,7 +224,9 @@ export const flockModels = {
         color = flock.objectColours[modelName];
       } else if (!color) {
         color = ["#FFFFFF", "#FFFFFF"];
-      }     
+      }
+
+
 
       // Enhanced parameter validation
       if (!modelName || typeof modelName !== 'string' || modelName.length > 100) {
