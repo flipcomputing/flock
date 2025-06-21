@@ -25,28 +25,32 @@ const colorFields = {
 };
 
 export function updateOrCreateMeshFromBlock(block, changeEvent) {
-  if (window.loadingCode || block.disposed) return;
+  console.log("updateOrCreateMeshFromBlock", {
+    id: block.id,
+    isEnabled: block.isEnabled(),
+    hasMesh: !!getMeshFromBlock(block),
+  });
 
-  //console.log("Update or create", block.id, changeEvent.ids);
-  
-  if (
-    changeEvent.type === Blockly.Events.BLOCK_CREATE &&
-    changeEvent.ids.includes(block.id)
-  ) {
-    //console.log("Creating mesh on canvas");
+  if (window.loadingCode || block.disposed || !block.isEnabled()) return;
+
+  const mesh = getMeshFromBlock(block);
+
+  // Create a mesh if it doesn't exist
+  if (!mesh) {
     createMeshOnCanvas(block);
-  } else if (changeEvent.type === Blockly.Events.BLOCK_CHANGE) {
-    const mesh = getMeshFromBlock(block);
+    return;
+  }
 
-    if (
-      mesh ||
+  // Handle update events (if there's a valid mesh already)
+  if (
+    changeEvent.type === Blockly.Events.BLOCK_CHANGE &&
+    (
       ["set_sky_color", "set_background_color", "create_ground"].includes(
-        block.type,
-      )
-    ) {
-       //console.log("Updating mesh on canvas");
-      updateMeshFromBlock(mesh, block, changeEvent);
-    }
+        block.type
+      ) || mesh
+    )
+  ) {
+    updateMeshFromBlock(mesh, block, changeEvent);
   }
 }
 
@@ -611,6 +615,13 @@ export function updateMeshFromBlock(mesh, block, changeEvent) {
 }
 
 function createMeshOnCanvas(block) {
+  const mesh = getMeshFromBlock(block);
+  if (mesh) {
+    console.warn("Mesh already exists for block", block.id);
+    return;
+  }
+
+  //console.log("createMeshOnCanvas for block", block.id);
   Blockly.Events.setGroup(true);
 
   let shapeType = block.type;
@@ -678,7 +689,7 @@ function createMeshOnCanvas(block) {
         .getFieldValue("COLOR");
       flock.createGround(color, "ground");
       break;
-    case "create_map":{
+    case "create_map": {
       meshId = "ground";
       meshMap[meshId] = block;
       meshBlockIdMap[meshId] = block.id;
@@ -785,7 +796,7 @@ function createMeshOnCanvas(block) {
 
       break;
 
-    case "load_multi_object":{
+    case "load_multi_object": {
       modelName = block.getFieldValue("MODELS");
       scale = block
         .getInput("SCALE")
@@ -843,16 +854,13 @@ function createMeshOnCanvas(block) {
         .connection.targetBlock()
         .getFieldValue("NUM");
 
-      newMesh = flock.createBox(
-        `box__${block.id}`,
-        {
-          color,
-          width,
-          height,
-          depth,
-          position: [position.x, position.y, position.z],
-        }
-      );
+      newMesh = flock.createBox(`box__${block.id}`, {
+        color,
+        width,
+        height,
+        depth,
+        position: [position.x, position.y, position.z],
+      });
 
       break;
 
@@ -874,16 +882,13 @@ function createMeshOnCanvas(block) {
         .connection.targetBlock()
         .getFieldValue("NUM");
 
-      newMesh = flock.createSphere(
-        `sphere__${block.id}`,
-        {
-          color,
-          diameterX,
-          diameterY,
-          diameterZ,
-          position: [position.x, position.y, position.z],
-        }
-      );
+      newMesh = flock.createSphere(`sphere__${block.id}`, {
+        color,
+        diameterX,
+        diameterY,
+        diameterZ,
+        position: [position.x, position.y, position.z],
+      });
 
       break;
 
@@ -905,17 +910,14 @@ function createMeshOnCanvas(block) {
         .connection.targetBlock()
         .getFieldValue("NUM");
 
-      newMesh = flock.createCylinder(
-        `cylinder__${block.id}`,
-        {
-          color,
-          height: cylinderHeight,
-          diameterTop,
-          diameterBottom,
-          tessellation: 24,
-          position: [position.x, position.y, position.z],
-        }
-      );
+      newMesh = flock.createCylinder(`cylinder__${block.id}`, {
+        color,
+        height: cylinderHeight,
+        diameterTop,
+        diameterBottom,
+        tessellation: 24,
+        position: [position.x, position.y, position.z],
+      });
 
       break;
 
@@ -933,15 +935,12 @@ function createMeshOnCanvas(block) {
         .connection.targetBlock()
         .getFieldValue("NUM");
 
-      newMesh = flock.createCapsule(
-        `capsule__${block.id}`,
-        {
-          color,
-          diameter: capsuleDiameter,
-          height: capsuleHeight,
-          position: [position.x, position.y, position.z],
-        }
-      );
+      newMesh = flock.createCapsule(`capsule__${block.id}`, {
+        color,
+        diameter: capsuleDiameter,
+        height: capsuleHeight,
+        position: [position.x, position.y, position.z],
+      });
 
       break;
 
@@ -959,15 +958,12 @@ function createMeshOnCanvas(block) {
         .connection.targetBlock()
         .getFieldValue("NUM");
 
-      newMesh = flpock.createPlane(
-        `plane__${block.id}`,
-        {
-          color,
-          width: planeWidth,
-          height: planeHeight,
-          position: [position.x, position.y, position.z],
-        }
-      );
+      newMesh = flpock.createPlane(`plane__${block.id}`, {
+        color,
+        width: planeWidth,
+        height: planeHeight,
+        position: [position.x, position.y, position.z],
+      });
 
       break;
 

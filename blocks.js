@@ -1607,7 +1607,8 @@ export function defineBlocks() {
   Blockly.Blocks["load_object"] = {
     init: function () {
       const defaultObject = "Star.glb";
-      const defaultColour = objectColours[defaultObject] || "#000000";
+      const defaultColours = objectColours[defaultObject];
+      const defaultColour = Array.isArray(defaultColours) ? defaultColours[0] : (defaultColours || "#FFD700");
       const variableNamePrefix = "object";
       let nextVariableName =
         variableNamePrefix + nextVariableIndexes[variableNamePrefix];
@@ -1675,7 +1676,8 @@ export function defineBlocks() {
       // Function to update the COLOR field based on the selected model
       const updateColorField = () => {
         const selectedObject = this.getFieldValue("MODELS");
-        const colour = objectColours[selectedObject] || defaultColour;
+        const configColors = objectColours[selectedObject];
+        const colour = Array.isArray(configColors) ? configColors[0] : (configColors || defaultColour);
         const colorInput = this.getInput("COLOR");
         const colorField = colorInput.connection.targetBlock();
         if (colorField) {
@@ -1686,6 +1688,39 @@ export function defineBlocks() {
       updateColorField();
 
       this.setOnChange((changeEvent) => {
+
+        if (
+          changeEvent.type === Blockly.Events.BLOCK_MOVE &&
+          changeEvent.blockId === this.id
+        ) {
+          const block = Blockly.getMainWorkspace().getBlockById(this.id);
+
+          // Only trigger creation if the block is now connected
+          if (block && block.getParent() && !getMeshFromBlock(block)) {
+            updateOrCreateMeshFromBlock(block, changeEvent);
+          }
+          return;
+        }
+
+        if (
+          changeEvent.type === Blockly.Events.BLOCK_CHANGE &&
+          changeEvent.blockId === this.id &&
+          changeEvent.element === "disabled"
+        ) {
+          if (this.isEnabled()) {
+            // Only recreate mesh if block is connected
+            setTimeout(() => {
+              if (this.getParent()) {
+                updateOrCreateMeshFromBlock(this, changeEvent);
+              }
+            }, 0);
+          } else {
+            deleteMeshFromBlock(this.id);
+          }
+          return;
+        }
+
+
         // Handle BLOCK_CREATE events on the container.
         if (changeEvent.type === Blockly.Events.BLOCK_CREATE) {
           if (changeEvent.blockId === this.id) {
