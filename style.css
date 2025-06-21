@@ -7,27 +7,27 @@
 #rightArea {
   position: relative;
 }
-		
+
 .blocklyText {
-			fill: black !important;
+      fill: black !important;
 }
 
 .blocklyDropdownField, .blocklyDropdownDiv, .blocklyDropdownContent {
 fill: black !important;
 }
 
-		.custom_zelos_renderer-renderer.classic-theme .blocklyDropDownText, .custom_zelos_renderer-renderer.classic-theme .blocklyMenuItemContent {
-			fill: black !important;
+    .custom_zelos_renderer-renderer.classic-theme .blocklyDropDownText, .custom_zelos_renderer-renderer.classic-theme .blocklyMenuItemContent {
+      fill: black !important;
 
-		}
+    }
 
-		.custom_zelos_renderer-renderer.classic-theme .blocklyDropdownText {
-			fill: black !important;
+    .custom_zelos_renderer-renderer.classic-theme .blocklyDropdownText {
+      fill: black !important;
 
-		}
+    }
 
 .custom_zelos_renderer-renderer.classic-theme.blocklyDropDownDiv .goog-menuitem-content {
-	color: #000  !important;
+  color: #000  !important;
 }
 
 /* Global Styles */
@@ -346,28 +346,28 @@ path.blocklyPath.blockly-ws-search-highlight.blockly-ws-search-current {
 /* Responsive Styles */
 @media (max-width: 768px) {
   :root {
-	--dynamic-offset: 65px;
+  --dynamic-offset: 65px;
   }
 
   .blocklyTreeRowContentContainer {
-	flex-direction: column !important;
-	background-color: var(--category-color) !important;
-	color: white;
-	font-size: 10px;
-	display: flex !important;
-	align-items: center !important;
-	justify-content: center !important;
+  flex-direction: column !important;
+  background-color: var(--category-color) !important;
+  color: white;
+  font-size: 10px;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
   }
 
   .blocklyTreeRow {
-	flex-direction: column;
-	height: unset;
-	line-height: unset;
-	margin-bottom: 3px;
-	margin-top: 0;
-	padding: 3px;
-	padding-top: 0px;
-	white-space: nowrap;
+  flex-direction: column;
+  height: unset;
+  line-height: unset;
+  margin-bottom: 3px;
+  margin-top: 0;
+  padding: 3px;
+  padding-top: 0px;
+  white-space: nowrap;
   }
 
   .blocklyTreeRowContentContainer {
@@ -375,51 +375,51 @@ path.blocklyPath.blockly-ws-search-highlight.blockly-ws-search-current {
   }
 
   #maincontent {
-	width: 200vw;
-	height: calc(100vh - var(--dynamic-offset));
-	overflow-x: auto;
+  width: 200vw;
+  height: calc(100vh - var(--dynamic-offset));
+  overflow-x: auto;
   }
 
   #scene-explorer-host,
   #inspector-host,
   #toggleDesign {
-	display: none !important;
+  display: none !important;
   }
 
   #codePanel,
   #rightArea {
-	flex-basis: 100vw;
-	max-width: 100vw;
-	height: calc(100vh - var(--dynamic-offset));
-	flex-grow: 1;
+  flex-basis: 100vw;
+  max-width: 100vw;
+  height: calc(100vh - var(--dynamic-offset));
+  flex-grow: 1;
   }
 
   #bottomBar {
-	position: fixed;
-	bottom: 0;
-	left: 0;
-	width: 100vw;
-	height: 25px;
-	background-color: #511D91;
-	color: white;
-	text-align: center;
-	line-height: 16px;
-	display: flex;
-	justify-content: center;
-	align-items: center;
-	box-sizing: border-box;
-	padding: 0 2px;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100vw;
+  height: 25px;
+  background-color: #511D91;
+  color: white;
+  text-align: center;
+  line-height: 16px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  box-sizing: border-box;
+  padding: 0 2px;
   }
 
   #switchViews {
-	background-color: transparent;
-	border: none;
-	color: white;
-	padding: 5px 10px;
-	margin: 0;
-	font-size: 16px;
-	cursor: pointer;
-	border-radius: 5px;
+  background-color: transparent;
+  border: none;
+  color: white;
+  padding: 5px 10px;
+  margin: 0;
+  font-size: 16px;
+  cursor: pointer;
+  border-radius: 5px;
   }
 }
 
@@ -464,54 +464,54 @@ path.blocklyPath.blockly-ws-search-highlight.blockly-ws-search-current {
 
 @media (min-width: 769px) {
   .blocklyTreeRow {
-	flex-direction: row;
-	justify-content: start;
-	height: 25px;
-	line-height: 25px;
-	margin-bottom: 2px;
-	margin-top: 0;
-	padding: 2px;
-	white-space: nowrap;
-	padding-left: 5px;
+  flex-direction: row;
+  justify-content: start;
+  height: 25px;
+  line-height: 25px;
+  margin-bottom: 2px;
+  margin-top: 0;
+  padding: 2px;
+  white-space: nowrap;
+  padding-left: 5px;
   }
 
   .blocklyTreeRowContentContainer {
-	flex-direction: row !important;
-	justify-content: start;
-	gap: 4px;
-	color: white;
-	font-size: 10px;
-	display: flex !important;
-	align-items: flex-start !important;
+  flex-direction: row !important;
+  justify-content: start;
+  gap: 4px;
+  color: white;
+  font-size: 10px;
+  display: flex !important;
+  align-items: flex-start !important;
   }
 
   .blocklyTreeRowContentContainer img {
-	height: 18px;
-	width: 18px;
-	padding: 4px;
-	padding-left: 8px;
+  height: 18px;
+  width: 18px;
+  padding: 4px;
+  padding-left: 8px;
   }
 
   #maincontent {
-	display: flex;
-	width: 100vw;
-	height: calc(100vh - 40px);
+  display: flex;
+  width: 100vw;
+  height: calc(100vh - 40px);
   }
 
   #codePanel {
-	flex: 2 1 0;
-	height: calc(100vh - 40px);
-	box-sizing: border-box;
+  flex: 2 1 0;
+  height: calc(100vh - 40px);
+  box-sizing: border-box;
   }
 
   #rightArea {
-	flex: 1 1 0;
-	height: calc(100vh - 40px);
-	box-sizing: border-box;
+  flex: 1 1 0;
+  height: calc(100vh - 40px);
+  box-sizing: border-box;
   }
 
   #bottomBar {
-	display: none;
+  display: none;
   }
 }
 
@@ -703,6 +703,37 @@ path.blocklyPath.blockly-ws-search-highlight.blockly-ws-search-current {
   border-left: 4px solid #fc3  !important;
 }
 
+.blocklyToolboxCategory {
+  border-left: 0 !important; /* Reset default */
+}
+
+.blocklyToolboxCategoryContainer[aria-selected="true"] > .blocklyToolboxCategory {
+  border-left: 4px solid #fc3 !important;
+}
+
+/* Remove the weird full-container outline */
+.blocklyToolboxCategoryContainer:focus {
+  outline: none !important;
+}
+
+
+
+/* Apply custom selection highlight only to selected top-level categories */
+.blocklyToolboxCategoryContainer[aria-selected="true"][aria-level="1"]
+  > .blocklyToolboxCategory {
+  outline: 2px solid #fc3;
+  outline-offset: -2px;
+  border-radius: 4px;
+}
+
+/* Add custom selection outline for both level 1 and 2 categories */
+.blocklyToolboxCategoryContainer[aria-selected="true"][aria-level="1"] > .blocklyToolboxCategory,
+.blocklyToolboxCategoryContainer[aria-selected="true"][aria-level="2"] > .blocklyToolboxCategory {
+  outline: 2px solid #fc3;
+  outline-offset: -2px;
+  border-radius: 4px;
+}
+
 /*
 .blocklyToolboxDiv {
   overflow: hidden !important;
@@ -796,3 +827,15 @@ path.blocklyPath.blockly-ws-search-highlight.blockly-ws-search-current {
   #info-panel-toggle {
     display: none; /* Hide the inline Show Info button */
   }
+
+.blocklyToolboxCategoryLabel {
+  color: black !important; 
+}
+
+.blocklyToolboxCategoryIconClosed, .blocklyToolboxCategoryIconOpen {
+  margin-left: 4px !important;
+  padding-left: 4px !important;
+  background: none !important;
+}
+
+
