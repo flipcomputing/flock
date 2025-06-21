@@ -19,7 +19,7 @@ const colorFields = {
   HAIR_COLOR: "#000000", // Hair: black
   SKIN_COLOR: "#A15C33", // Skin: custom skin tone
   EYES_COLOR: "#000000", // Eyes: black
-  SLEEVES_COLOR: "#008B8B", // Sleeves: dark cyan
+  SLEEVES_COLOR: "#fpo008B8B", // Sleeves: dark cyan
   SHORTS_COLOR: "#00008B", // Shorts: dark blue
   TSHIRT_COLOR: "#FF8F60", // T-Shirt: light orange
 };
@@ -960,7 +960,7 @@ function createMeshOnCanvas(block) {
         .connection.targetBlock()
         .getFieldValue("NUM");
 
-      newMesh = flpock.createPlane(`plane__${block.id}`, {
+      newMesh = flock.createPlane(`plane__${block.id}`, {
         color,
         width: planeWidth,
         height: planeHeight,
