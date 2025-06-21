@@ -25,11 +25,11 @@ const colorFields = {
 };
 
 export function updateOrCreateMeshFromBlock(block, changeEvent) {
-  console.log("updateOrCreateMeshFromBlock", {
+ /* console.log("updateOrCreateMeshFromBlock", {
     id: block.id,
     isEnabled: block.isEnabled(),
     hasMesh: !!getMeshFromBlock(block),
-  });
+  });*/
 
   if (window.loadingCode || block.disposed || !block.isEnabled()) return;
 
@@ -778,8 +778,10 @@ function createMeshOnCanvas(block) {
         .connection.targetBlock()
         .getFieldValue("NUM");
 
-      // Always use the config default color for load_object blocks
-      color = objectColours[modelName] || "#FFD700";
+      color = block
+      .getInput("COLOR")
+      .connection.targetBlock()
+      .getFieldValue("COLOR");
 
       meshId = `${modelName}__${block.id}`;
       meshMap[block.id] = block;
