@@ -16,7 +16,7 @@ import {
 import {
   deleteMeshFromBlock,
   updateOrCreateMeshFromBlock,
-  getMeshFromBlock
+  getMeshFromBlock,
 } from "./ui/designview.js";
 import { flock } from "./flock.js";
 import { registerFieldColour } from "@blockly/field-colour";
@@ -118,6 +118,99 @@ export function handleBlockDelete(event) {
     deleteMeshesRecursively(event.oldJson);
   }
 }
+
+function handleMeshLifecycleChange(block, changeEvent) {
+  const mesh = getMeshFromBlock(block);
+
+  if (
+    changeEvent.type === Blockly.Events.BLOCK_MOVE &&
+    changeEvent.blockId === block.id
+  ) {
+    if (block.getParent() && !mesh) {
+      updateOrCreateMeshFromBlock(block, changeEvent);
+    }
+    return true;
+  }
+
+  if (
+    changeEvent.type === Blockly.Events.BLOCK_CHANGE &&
+    changeEvent.blockId === block.id &&
+    changeEvent.element === "disabled"
+  ) {
+    if (block.isEnabled()) {
+      setTimeout(() => {
+        if (block.getParent()) {
+          updateOrCreateMeshFromBlock(block, changeEvent);
+        }
+      }, 0);
+    } else {
+      deleteMeshFromBlock(block.id);
+    }
+    return true;
+  }
+
+  if (
+    changeEvent.type === Blockly.Events.BLOCK_CREATE &&
+    changeEvent.blockId === block.id &&
+    Blockly.getMainWorkspace().getBlockById(block.id)
+  ) {
+    if (window.loadingCode) return true;
+    updateOrCreateMeshFromBlock(block, changeEvent);
+    return true;
+  }
+
+  return false;
+}
+
+function handleFieldOrChildChange(containerBlock, changeEvent) {
+  if (
+    changeEvent.type !== Blockly.Events.BLOCK_CHANGE ||
+    changeEvent.element !== "field"
+  )
+    return false;
+
+  const changedBlock = Blockly.getMainWorkspace().getBlockById(
+    changeEvent.blockId,
+  );
+  if (!changedBlock) return false;
+
+  // Direct change on container block
+  if (changedBlock.id === containerBlock.id) {
+    updateOrCreateMeshFromBlock(containerBlock, changeEvent);
+    return true;
+  }
+
+  // Change on an unchainable child block
+  const parent = changedBlock.getParent();
+  if (parent && parent.id === containerBlock.id) {
+    if (changedBlock.nextConnection || changedBlock.previousConnection)
+      return false;
+    updateOrCreateMeshFromBlock(containerBlock, changeEvent);
+    return true;
+  }
+
+  return false;
+}
+
+function handleParentLinkedUpdate(containerBlock, changeEvent) {
+  if (
+    changeEvent.type !== Blockly.Events.BLOCK_CREATE &&
+    changeEvent.type !== Blockly.Events.BLOCK_CHANGE
+  ) return false;
+
+  const changed = Blockly.getMainWorkspace().getBlockById(changeEvent.blockId);
+  const parent = findCreateBlock(changed);
+
+  if (parent === containerBlock && changed) {
+    if (!window.loadingCode) {
+      updateOrCreateMeshFromBlock(containerBlock, changeEvent);
+    }
+    return true;
+  }
+
+  return false;
+}
+
 
 export function findCreateBlock(block) {
   if (!block || typeof block.getParent !== "function") {
@@ -1608,7 +1701,9 @@ export function defineBlocks() {
     init: function () {
       const defaultObject = "Star.glb";
       const defaultColours = objectColours[defaultObject];
-      const defaultColour = Array.isArray(defaultColours) ? defaultColours[0] : (defaultColours || "#FFD700");
+      const defaultColour = Array.isArray(defaultColours)
+        ? defaultColours[0]
+        : defaultColours || "#FFD700";
       const variableNamePrefix = "object";
       let nextVariableName =
         variableNamePrefix + nextVariableIndexes[variableNamePrefix];
@@ -1677,7 +1772,9 @@ export function defineBlocks() {
       const updateColorField = () => {
         const selectedObject = this.getFieldValue("MODELS");
         const configColors = objectColours[selectedObject];
-        const colour = Array.isArray(configColors) ? configColors[0] : (configColors || defaultColour);
+        const colour = Array.isArray(configColors)
+          ? configColors[0]
+          : configColors || defaultColour;
         const colorInput = this.getInput("COLOR");
         const colorField = colorInput.connection.targetBlock();
         if (colorField) {
@@ -1688,85 +1785,14 @@ export function defineBlocks() {
       updateColorField();
 
       this.setOnChange((changeEvent) => {
-
         if (
-          changeEvent.type === Blockly.Events.BLOCK_MOVE &&
-          changeEvent.blockId === this.id
-        ) {
-          const block = Blockly.getMainWorkspace().getBlockById(this.id);
-
-          // Only trigger creation if the block is now connected
-          if (block && block.getParent() && !getMeshFromBlock(block)) {
-            updateOrCreateMeshFromBlock(block, changeEvent);
-          }
+          this.id !== changeEvent.blockId &&
+          changeEvent.type !== Blockly.Events.BLOCK_CHANGE
+        )
           return;
-        }
 
-        if (
-          changeEvent.type === Blockly.Events.BLOCK_CHANGE &&
-          changeEvent.blockId === this.id &&
-          changeEvent.element === "disabled"
-        ) {
-          if (this.isEnabled()) {
-            // Only recreate mesh if block is connected
-            setTimeout(() => {
-              if (this.getParent()) {
-                updateOrCreateMeshFromBlock(this, changeEvent);
-              }
-            }, 0);
-          } else {
-            deleteMeshFromBlock(this.id);
-          }
-          return;
-        }
-
-
-        // Handle BLOCK_CREATE events on the container.
-        if (changeEvent.type === Blockly.Events.BLOCK_CREATE) {
-          if (changeEvent.blockId === this.id) {
-            const blockInWorkspace = Blockly.getMainWorkspace().getBlockById(
-              this.id,
-            );
-            if (blockInWorkspace) {
-              if (window.loadingCode) return;
-              updateOrCreateMeshFromBlock(this, changeEvent);
-            }
-          }
-        }
-        // Handle field changes.
-        else if (
-          changeEvent.type === Blockly.Events.BLOCK_CHANGE &&
-          changeEvent.element === "field"
-        ) {
-          const changedBlock = Blockly.getMainWorkspace().getBlockById(
-            changeEvent.blockId,
-          );
-          if (!changedBlock) return;
-
-          // If the event originates on the container itself, update.
-          if (changedBlock.id === this.id) {
-            updateOrCreateMeshFromBlock(this, changeEvent);
-            return;
-          }
-
-          // Otherwise, if the changed block is directly attached to the container,
-          // check its block definition.
-          const parent = changedBlock.getParent();
-          if (parent && parent.id === this.id) {
-            // If the block has a next or previous connection defined, ignore its change events.
-            // Note: Many blocks have these defined even if they aren’t connected, so this test
-            // simply means “this block is chainable.”
-            if (
-              changedBlock.nextConnection ||
-              changedBlock.previousConnection
-            ) {
-              return;
-            }
-            // Otherwise, update.
-            updateOrCreateMeshFromBlock(this, changeEvent);
-            return;
-          }
-        }
+        if (handleMeshLifecycleChange(this, changeEvent)) return;
+        if (handleFieldOrChildChange(this, changeEvent)) return;
 
         handleBlockCreateEvent(
           this,
@@ -2069,20 +2095,14 @@ export function defineBlocks() {
       });
 
       this.setOnChange((changeEvent) => {
-        if (this.id != changeEvent.blockId) return;
-
         if (
-          changeEvent.type === Blockly.Events.BLOCK_CREATE ||
-          changeEvent.type === Blockly.Events.BLOCK_CHANGE
-        ) {
-          const blockInWorkspace = Blockly.getMainWorkspace().getBlockById(
-            this.id,
-          ); // Check if block is in the main workspace
+          this.id !== changeEvent.blockId &&
+          changeEvent.type !== Blockly.Events.BLOCK_CHANGE
+        )
+          return;
 
-          if (blockInWorkspace) {
-            updateOrCreateMeshFromBlock(this, changeEvent);
-          }
-        }
+        if (handleMeshLifecycleChange(this, changeEvent)) return;
+        if (handleFieldOrChildChange(this, changeEvent)) return;
 
         handleBlockCreateEvent(
           this,
@@ -4058,9 +4078,11 @@ export function defineBlocks() {
         this.setDisabledReason(false, "ORPHANED_BLOCK");
       }
 
-      Blockly.Events.fire(new Blockly.Events.BlockChange(this, "mutation", null, "", ""));
+      Blockly.Events.fire(
+        new Blockly.Events.BlockChange(this, "mutation", null, "", ""),
+      );
       Blockly.Events.fire(new Blockly.Events.BlockMove(this));
-    }
+    },
   };
 
   Blockly.Blocks["when_touches"] = {
@@ -4153,9 +4175,11 @@ export function defineBlocks() {
         this.setDisabledReason(false, "ORPHANED_BLOCK");
       }
 
-      Blockly.Events.fire(new Blockly.Events.BlockChange(this, "mutation", null, "", ""));
+      Blockly.Events.fire(
+        new Blockly.Events.BlockChange(this, "mutation", null, "", ""),
+      );
       Blockly.Events.fire(new Blockly.Events.BlockMove(this));
-    }
+    },
   };
 
   Blockly.Blocks["local_variable"] = {
@@ -4283,9 +4307,11 @@ export function defineBlocks() {
         this.setDisabledReason(false, "ORPHANED_BLOCK");
       }
 
-      Blockly.Events.fire(new Blockly.Events.BlockChange(this, "mutation", null, "", ""));
+      Blockly.Events.fire(
+        new Blockly.Events.BlockChange(this, "mutation", null, "", ""),
+      );
       Blockly.Events.fire(new Blockly.Events.BlockMove(this));
-    }
+    },
   };
 
   Blockly.Blocks["broadcast_event"] = {
@@ -4358,9 +4384,11 @@ export function defineBlocks() {
         this.setDisabledReason(false, "ORPHANED_BLOCK");
       }
 
-      Blockly.Events.fire(new Blockly.Events.BlockChange(this, "mutation", null, "", ""));
+      Blockly.Events.fire(
+        new Blockly.Events.BlockChange(this, "mutation", null, "", ""),
+      );
       Blockly.Events.fire(new Blockly.Events.BlockMove(this));
-    }
+    },
   };
 
   Blockly.Blocks["show"] = {
@@ -6198,7 +6226,9 @@ Blockly.Extensions.register("custom_procedure_ui_extension", function () {
     }
 
     // Fire Blockly events so undo/redo and UI updates are tracked
-    Blockly.Events.fire(new Blockly.Events.BlockChange(this, "mutation", null, "", ""));
+    Blockly.Events.fire(
+      new Blockly.Events.BlockChange(this, "mutation", null, "", ""),
+    );
     Blockly.Events.fire(new Blockly.Events.BlockMove(this));
   };
 });
