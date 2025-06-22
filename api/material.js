@@ -550,7 +550,7 @@ export const flockMaterial = {
     material.alpha = alpha;
     return material;
   },
-   createMaterial({ color, materialName, alpha } = {}) {
+   createMaterial3({ color, materialName, alpha } = {}) {
      let material;
      const texturePath = flock.texturePath + materialName;
 
@@ -677,6 +677,169 @@ export const flockMaterial = {
      material.alpha = alpha;
      return material;
    },
+  createMaterial({ color, materialName, alpha } = {}) {
+    let material;
+    const texturePath = flock.texturePath + materialName;
+
+    // Handle two-color case
+    if (Array.isArray(color) && color.length === 2) {
+      // Use gradient for Flat material
+      if (materialName === 'Flat') {
+        material = new flock.GradientMaterial(materialName, flock.scene);
+        material.bottomColor = flock.BABYLON.Color3.FromHexString(
+          flock.getColorFromString(color[0]),
+        );
+        material.topColor = flock.BABYLON.Color3.FromHexString(
+          flock.getColorFromString(color[1]),
+        );
+        material.offset = 0.5;
+        material.smoothness = 0.5;
+        material.scale = 1.0;
+        material.backFaceCulling = false;
+      } else {
+        // Use shader-based color replacement for patterned materials
+        material = flock.createColorReplaceShaderMaterial(materialName, texturePath, color);
+        material.backFaceCulling = false;
+      }
+    } else {
+      // Default to StandardMaterial for single color or no color
+      material = new flock.BABYLON.StandardMaterial(materialName, flock.scene);
+
+      // Load texture if provided
+      if (texturePath) {
+        const texture = new flock.BABYLON.Texture(texturePath, flock.scene);
+        material.diffuseTexture = texture;
+      }
+
+      // Set single color if provided
+      if (color) {
+        const hexColor = flock.getColorFromString(color);
+        const babylonColor = flock.BABYLON.Color3.FromHexString(hexColor);
+        material.diffuseColor = babylonColor;
+      }
+
+      material.backFaceCulling = false;
+    }
+
+    material.alpha = alpha;
+
+    // Update alpha for shader materials
+    if (material.setFloat && alpha !== undefined) {
+      material.setFloat('alpha', alpha);
+    }
+
+    return material;
+  },
+
+  // Helper function to convert hex to RGB
+  hexToRgb(hex) {
+    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+    return result ? {
+      r: parseInt(result[1], 16),
+      g: parseInt(result[2], 16),
+      b: parseInt(result[3], 16)
+    } : null;
+  },
+
+  // Create shader material for color replacement
+  createColorReplaceShaderMaterial(materialName, texturePath, colors) {
+    // Define vertex shader
+    const vertexShader = `
+      precision highp float;
+      attribute vec3 position;
+      attribute vec2 uv;
+
+      uniform mat4 worldViewProjection;
+
+      varying vec2 vUV;
+
+      void main(void) {
+        gl_Position = worldViewProjection * vec4(position, 1.0);
+        vUV = uv;
+      }
+    `;
+
+    // Define fragment shader
+    const fragmentShader = `
+      precision highp float;
+
+      varying vec2 vUV;
+
+      uniform sampler2D textureSampler;
+      uniform vec3 darkColor;
+      uniform vec3 lightColor;
+      uniform float brightnessThreshold;
+      uniform float alpha;
+
+      void main(void) {
+        vec4 texColor = texture2D(textureSampler, vUV);
+
+        // Skip if transparent
+        if (texColor.a < 0.5) {
+          discard;
+        }
+
+        // Calculate brightness
+        float brightness = (texColor.r + texColor.g + texColor.b) / 3.0;
+
+        // Replace colors based on brightness
+        vec3 finalColor;
+        if (brightness < brightnessThreshold) {
+          finalColor = darkColor;
+        } else {
+          finalColor = lightColor;
+        }
+
+        gl_FragColor = vec4(finalColor, texColor.a * alpha);
+      }
+    `;
+
+    // Create shader material
+    const shaderMaterial = new flock.BABYLON.ShaderMaterial(
+      materialName + '_shader',
+      flock.scene,
+      {
+        vertex: 'colorReplace',
+        fragment: 'colorReplace'
+      },
+      {
+        attributes: ['position', 'uv'],
+        uniforms: ['worldViewProjection', 'textureSampler', 'darkColor', 'lightColor', 'brightnessThreshold', 'alpha'],
+        needAlphaBlending: true
+      }
+    );
+
+    // Register shaders
+    flock.BABYLON.Effect.ShadersStore['colorReplaceVertexShader'] = vertexShader;
+    flock.BABYLON.Effect.ShadersStore['colorReplaceFragmentShader'] = fragmentShader;
+
+    // Set texture
+    if (texturePath) {
+      const texture = new flock.BABYLON.Texture(texturePath, flock.scene);
+      shaderMaterial.setTexture('textureSampler', texture);
+    }
+
+    // Convert colors and set uniforms
+    const color1RGB = flock.hexToRgb(flock.getColorFromString(colors[0]));
+    const color2RGB = flock.hexToRgb(flock.getColorFromString(colors[1]));
+
+    shaderMaterial.setVector3('darkColor', new flock.BABYLON.Vector3(
+      color1RGB.r / 255.0,
+      color1RGB.g / 255.0,
+      color1RGB.b / 255.0
+    ));
+
+    shaderMaterial.setVector3('lightColor', new flock.BABYLON.Vector3(
+      color2RGB.r / 255.0,
+      color2RGB.g / 255.0,
+      color2RGB.b / 255.0
+    ));
+
+    shaderMaterial.setFloat('brightnessThreshold', 0.5);
+    shaderMaterial.setFloat('alpha', 1.0);
+
+    return shaderMaterial;
+  },
 
    // Helper function to convert hex to RGB
    hexToRgb(hex) {
