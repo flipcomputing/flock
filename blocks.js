@@ -119,7 +119,7 @@ export function handleBlockDelete(event) {
   }
 }
 
-function handleMeshLifecycleChange(block, changeEvent) {
+export function handleMeshLifecycleChange(block, changeEvent) {
   const mesh = getMeshFromBlock(block);
 
   if (
@@ -162,7 +162,7 @@ function handleMeshLifecycleChange(block, changeEvent) {
   return false;
 }
 
-function handleFieldOrChildChange(containerBlock, changeEvent) {
+export function handleFieldOrChildChange(containerBlock, changeEvent) {
   if (
     changeEvent.type !== Blockly.Events.BLOCK_CHANGE ||
     changeEvent.element !== "field"
