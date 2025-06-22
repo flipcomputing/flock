@@ -203,7 +203,8 @@ function handleParentLinkedUpdate(containerBlock, changeEvent) {
   if (
     changeEvent.type !== Blockly.Events.BLOCK_CREATE &&
     changeEvent.type !== Blockly.Events.BLOCK_CHANGE
-  ) return false;
+  )
+    return false;
 
   const changed = Blockly.getMainWorkspace().getBlockById(changeEvent.blockId);
   const parent = findCreateBlock(changed);
@@ -217,7 +218,6 @@ function handleParentLinkedUpdate(containerBlock, changeEvent) {
 
   return false;
 }
-
 
 export function findCreateBlock(block) {
   if (!block || typeof block.getParent !== "function") {
@@ -435,7 +435,7 @@ export function defineBlocks() {
           },
         ],
         colour: categoryColours["Events"],
-        inputsInline: false,
+        inputsInline: true,
         tooltip:
           "Run the blocks inside when the project starts. You can have multiple start blocks. \nKeyword: start",
       });
@@ -447,8 +447,9 @@ export function defineBlocks() {
     init: function () {
       this.jsonInit({
         type: "create_ground",
-        message0: "ground %1",
-        args0: [
+        message0: "ground",
+        message1: "color: %1",
+        args1: [
           {
             type: "input_value",
             name: "COLOR",
@@ -456,13 +457,63 @@ export function defineBlocks() {
             check: "Colour",
           },
         ],
+        inputsInline: true,
         previousStatement: null,
         nextStatement: null,
         colour: categoryColours["Scene"],
         tooltip:
-          "Adds a ground plane with collisions enabled to the scene, with specified color.\nKeyword: ground",
-        helpUrl: "",
+          "Adds a ground plane with collisions enabled to the scene. \nKeyword: ground",
       });
+      this.setHelpUrl(getHelpUrlFor(this.type));
+
+      this.setOnChange((changeEvent) => {
+        if (
+          changeEvent.type === Blockly.Events.BLOCK_CREATE ||
+          changeEvent.type === Blockly.Events.BLOCK_CHANGE
+        ) {
+          const parent = findCreateBlock(
+            Blockly.getMainWorkspace().getBlockById(changeEvent.blockId),
+          );
+
+          if (parent === this) {
+            const blockInWorkspace = Blockly.getMainWorkspace().getBlockById(
+              this.id,
+            );
+
+            if (blockInWorkspace) {
+              updateOrCreateMeshFromBlock(this, changeEvent);
+            }
+          }
+        }
+      });
+    },
+  };
+
+  Blockly.Blocks["create_map"] = {
+    init: function () {
+      this.jsonInit({
+        type: "create_map",
+        message0: "map %1 with material %2",
+        args0: [
+          {
+            type: "field_dropdown",
+            name: "MAP_NAME",
+            options: [["Flat", "NONE"]].concat(mapNames),
+          },
+          {
+            type: "input_value",
+            name: "MATERIAL",
+            check: ["Material", "Array"],
+          },
+        ],
+        previousStatement: null,
+        nextStatement: null,
+        inputsInline: true,
+        colour: categoryColours["Scene"],
+        tooltip:
+          "Creates a map with the selected name and material.\nKeyword: map",
+      });
+      this.setHelpUrl(getHelpUrlFor(this.type));
 
       this.setOnChange((changeEvent) => {
         if (
@@ -1799,7 +1850,7 @@ export function defineBlocks() {
           variableNamePrefix,
           nextVariableIndexes,
         );
-        
+
         if (
           this.id !== changeEvent.blockId &&
           changeEvent.type !== Blockly.Events.BLOCK_CHANGE
@@ -1808,7 +1859,6 @@ export function defineBlocks() {
 
         if (handleMeshLifecycleChange(this, changeEvent)) return;
         if (handleFieldOrChildChange(this, changeEvent)) return;
-
       });
 
       addDoMutatorWithToggleBehavior(this);
@@ -1995,14 +2045,13 @@ export function defineBlocks() {
       };
 
       this.setOnChange((changeEvent) => {
-
         handleBlockCreateEvent(
           this,
           changeEvent,
           variableNamePrefix,
           nextVariableIndexes,
         );
-        
+
         // Always handle mesh lifecycle if the event targets this block
         if (changeEvent.blockId === this.id) {
           if (handleMeshLifecycleChange(this, changeEvent)) return;
@@ -2023,7 +2072,9 @@ export function defineBlocks() {
           changeEvent.name === "MODELS" &&
           changeEvent.blockId === this.id
         ) {
-          const blockInWorkspace = Blockly.getMainWorkspace().getBlockById(this.id);
+          const blockInWorkspace = Blockly.getMainWorkspace().getBlockById(
+            this.id,
+          );
           if (blockInWorkspace) {
             this.updateColorsField();
           }
@@ -2095,14 +2146,13 @@ export function defineBlocks() {
       });
 
       this.setOnChange((changeEvent) => {
-
         handleBlockCreateEvent(
           this,
           changeEvent,
           variableNamePrefix,
           nextVariableIndexes,
         );
-        
+
         if (
           this.id !== changeEvent.blockId &&
           changeEvent.type !== Blockly.Events.BLOCK_CHANGE
@@ -2111,7 +2161,6 @@ export function defineBlocks() {
 
         if (handleMeshLifecycleChange(this, changeEvent)) return;
         if (handleFieldOrChildChange(this, changeEvent)) return;
-
       });
 
       addDoMutatorWithToggleBehavior(this);
@@ -2796,55 +2845,6 @@ export function defineBlocks() {
         tooltip:
           "Add a button to the UI screen with a preset size, and store control in a variable for later use or disposal.",
         helpUrl: "",
-      });
-    },
-  };
-
-  Blockly.Blocks["create_map"] = {
-    init: function () {
-      this.jsonInit({
-        type: "create_map",
-        message0: "map %1 with material %2",
-        args0: [
-          {
-            type: "field_dropdown",
-            name: "MAP_NAME",
-            options: [["Flat", "NONE"]].concat(mapNames),
-          },
-          {
-            type: "input_value",
-            name: "MATERIAL",
-            check: ["Material", "Array"],
-          },
-        ],
-        previousStatement: null,
-        nextStatement: null,
-        inputsInline: true,
-        colour: categoryColours["Scene"],
-        tooltip: "Creates a map with the specified material.",
-        helpUrl: "",
-      });
-
-      this.setOnChange((changeEvent) => {
-        if (
-          changeEvent.type === Blockly.Events.BLOCK_CREATE ||
-          changeEvent.type === Blockly.Events.BLOCK_CHANGE
-        ) {
-          const parent = findCreateBlock(
-            Blockly.getMainWorkspace().getBlockById(changeEvent.blockId),
-          );
-
-          if (parent === this) {
-            const blockInWorkspace = Blockly.getMainWorkspace().getBlockById(
-              this.id,
-            );
-
-            if (blockInWorkspace) {
-              updateOrCreateMeshFromBlock(this, changeEvent);
-              //window.updateCurrentMeshName(this, "ID_VAR");
-            }
-          }
-        }
       });
     },
   };
