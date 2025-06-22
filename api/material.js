@@ -731,16 +731,6 @@ export const flockMaterial = {
     return material;
   },
 
-  // Helper function to convert hex to RGB
-  hexToRgb(hex) {
-    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-    return result ? {
-      r: parseInt(result[1], 16),
-      g: parseInt(result[2], 16),
-      b: parseInt(result[3], 16)
-    } : null;
-  },
-
   // Create shader material for color replacement
   createColorReplaceShaderMaterial(materialName, texturePath, colors) {
     // Define vertex shader
@@ -759,35 +749,40 @@ export const flockMaterial = {
       }
     `;
 
-    // Define fragment shader
+    // Define updated fragment shader
     const fragmentShader = `
       precision highp float;
 
       varying vec2 vUV;
 
       uniform sampler2D textureSampler;
-      uniform vec3 darkColor;
-      uniform vec3 lightColor;
-      uniform float brightnessThreshold;
+      uniform vec3 lightColor;      // Replaces white
+      uniform vec3 greyTintColor;   // Tints greys in proportion
       uniform float alpha;
 
       void main(void) {
         vec4 texColor = texture2D(textureSampler, vUV);
 
-        // Skip if transparent
         if (texColor.a < 0.5) {
           discard;
         }
 
-        // Calculate brightness
         float brightness = (texColor.r + texColor.g + texColor.b) / 3.0;
+        float colorDiff = max(
+          max(abs(texColor.r - texColor.g), abs(texColor.r - texColor.b)),
+          abs(texColor.g - texColor.b)
+        );
 
-        // Replace colors based on brightness
         vec3 finalColor;
-        if (brightness < brightnessThreshold) {
-          finalColor = darkColor;
-        } else {
+        if (brightness > 0.95 && colorDiff < 0.05) {
+          // Replace near-white
           finalColor = lightColor;
+        } else if (colorDiff < 0.05) {
+          // Tint greys
+          finalColor = brightness * greyTintColor;
+        } else {
+          // Leave as is
+          finalColor = texColor.rgb;
         }
 
         gl_FragColor = vec4(finalColor, texColor.a * alpha);
@@ -804,7 +799,7 @@ export const flockMaterial = {
       },
       {
         attributes: ['position', 'uv'],
-        uniforms: ['worldViewProjection', 'textureSampler', 'darkColor', 'lightColor', 'brightnessThreshold', 'alpha'],
+        uniforms: ['worldViewProjection', 'textureSampler', 'lightColor', 'greyTintColor', 'alpha'],
         needAlphaBlending: true
       }
     );
@@ -820,22 +815,21 @@ export const flockMaterial = {
     }
 
     // Convert colors and set uniforms
-    const color1RGB = flock.hexToRgb(flock.getColorFromString(colors[0]));
-    const color2RGB = flock.hexToRgb(flock.getColorFromString(colors[1]));
-
-    shaderMaterial.setVector3('darkColor', new flock.BABYLON.Vector3(
-      color1RGB.r / 255.0,
-      color1RGB.g / 255.0,
-      color1RGB.b / 255.0
-    ));
+    const colorLight = flock.hexToRgb(flock.getColorFromString(colors[0])); // replaces white
+    const colorGrey = flock.hexToRgb(flock.getColorFromString(colors[1]));  // tints greys
 
     shaderMaterial.setVector3('lightColor', new flock.BABYLON.Vector3(
-      color2RGB.r / 255.0,
-      color2RGB.g / 255.0,
-      color2RGB.b / 255.0
+      colorLight.r / 255.0,
+      colorLight.g / 255.0,
+      colorLight.b / 255.0
     ));
 
-    shaderMaterial.setFloat('brightnessThreshold', 0.5);
+    shaderMaterial.setVector3('greyTintColor', new flock.BABYLON.Vector3(
+      colorGrey.r / 255.0,
+      colorGrey.g / 255.0,
+      colorGrey.b / 255.0
+    ));
+
     shaderMaterial.setFloat('alpha', 1.0);
 
     return shaderMaterial;
