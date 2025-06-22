@@ -1666,31 +1666,29 @@ export function defineBlocks() {
       });
 
       this.setOnChange((changeEvent) => {
-        if (
-          changeEvent.type === Blockly.Events.BLOCK_CREATE ||
-          changeEvent.type === Blockly.Events.BLOCK_CHANGE
-        ) {
-          const parent = findCreateBlock(
-            Blockly.getMainWorkspace().getBlockById(changeEvent.blockId),
-          );
-
-          if (parent === this) {
-            const blockInWorkspace = Blockly.getMainWorkspace().getBlockById(
-              this.id,
-            ); // Check if block is in the main workspace
-
-            if (blockInWorkspace) {
-              updateOrCreateMeshFromBlock(this, changeEvent);
-              window.updateCurrentMeshName(this, "ID_VAR"); // Call the function to update window.currentMesh
-            }
-          }
-        }
+        // Always handle variable naming first (even if mesh is skipped)
         handleBlockCreateEvent(
           this,
           changeEvent,
           variableNamePrefix,
           nextVariableIndexes,
         );
+
+        // Mesh lifecycle events on this block directly (e.g. enable/disable, move)
+        if (changeEvent.blockId === this.id) {
+          if (handleMeshLifecycleChange(this, changeEvent)) return;
+        }
+
+        // Linked children like MODELS or color inputs
+        if (handleParentLinkedUpdate(this, changeEvent)) {
+          // 🔹 Additional side-effect unique to this block type
+          window.updateCurrentMeshName(this, "ID_VAR");
+          return;
+        }
+
+        if (handleFieldOrChildChange(this, changeEvent)) {
+          return;
+        }
       });
 
       addDoMutatorWithToggleBehavior(this);
