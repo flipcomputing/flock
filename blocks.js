@@ -583,7 +583,71 @@ export function defineBlocks() {
     },
   };
 
-  
+  Blockly.Blocks["dispose"] = {
+    init: function () {
+      this.jsonInit({
+        type: "dispose",
+        message0: "dispose %1",
+        args0: [
+          {
+            type: "field_variable",
+            name: "MODEL_VAR",
+            variable: window.currentMesh,
+          },
+        ],
+        inputsInline: true,
+        previousStatement: null,
+        nextStatement: null,
+        colour: categoryColours["Scene"],
+        tooltip: "Remove the specified mesh from the scene.\nKeyword: dispose",
+      });
+      this.setHelpUrl(getHelpUrlFor(this.type));
+    },
+  };
+
+  Blockly.Blocks["clone_mesh"] = {
+    init: function () {
+      const variableNamePrefix = "clone";
+      let nextVariableName =
+        variableNamePrefix + nextVariableIndexes[variableNamePrefix]; // Start with "clone1"
+
+      this.jsonInit({
+        message0: "set %1 to clone of %2",
+        args0: [
+          {
+            type: "field_variable",
+            name: "CLONE_VAR",
+            variable: nextVariableName, // Dynamic variable name
+          },
+          {
+            type: "field_variable",
+            name: "SOURCE_MESH",
+            variable: "mesh1", // Default mesh reference
+          },
+        ],
+        inputsInline: true,
+        colour: categoryColours["Scene"],
+        tooltip: "Clone a mesh and assign it to a variable.\nKeyword: clone",
+        helpUrl: "",
+        previousStatement: null,
+        nextStatement: null,
+      });
+
+      // Set dynamic variable name handling
+      this.setOnChange((changeEvent) => {
+        handleBlockCreateEvent(
+          this,
+          changeEvent,
+          variableNamePrefix,
+          nextVariableIndexes,
+        );
+      });
+
+       this.setHelpUrl(getHelpUrlFor(this.type));
+      // Add mutator for "constructor-like" initialisation
+      addDoMutatorWithToggleBehavior(this);
+    },
+  };
   /*Blockly.Blocks["create_custom_map"] = {
     init: function () {
       this.jsonInit({
@@ -2208,49 +2272,6 @@ export function defineBlocks() {
         if (handleFieldOrChildChange(this, changeEvent)) return;
       });
 
-      addDoMutatorWithToggleBehavior(this);
-    },
-  };
-
-  Blockly.Blocks["clone_mesh"] = {
-    init: function () {
-      const variableNamePrefix = "clone";
-      let nextVariableName =
-        variableNamePrefix + nextVariableIndexes[variableNamePrefix]; // Start with "clone1"
-
-      this.jsonInit({
-        message0: "set %1 to clone of %2",
-        args0: [
-          {
-            type: "field_variable",
-            name: "CLONE_VAR",
-            variable: nextVariableName, // Dynamic variable name
-          },
-          {
-            type: "field_variable",
-            name: "SOURCE_MESH",
-            variable: "mesh1", // Default mesh reference
-          },
-        ],
-        inputsInline: true,
-        colour: categoryColours["Scene"],
-        tooltip: "Clone a mesh and assign it to a variable.\nKeyword: clone",
-        helpUrl: "",
-        previousStatement: null,
-        nextStatement: null,
-      });
-
-      // Set dynamic variable name handling
-      this.setOnChange((changeEvent) => {
-        handleBlockCreateEvent(
-          this,
-          changeEvent,
-          variableNamePrefix,
-          nextVariableIndexes,
-        );
-      });
-
-      // Add mutator for "constructor-like" initialisation
       addDoMutatorWithToggleBehavior(this);
     },
   };
@@ -4886,27 +4907,7 @@ export function defineBlocks() {
     },
   };
 
-  Blockly.Blocks["dispose"] = {
-    init: function () {
-      this.jsonInit({
-        type: "dispose",
-        message0: "dispose %1",
-        args0: [
-          {
-            type: "field_variable",
-            name: "MODEL_VAR",
-            variable: window.currentMesh,
-          },
-        ],
-        inputsInline: true,
-        previousStatement: null,
-        nextStatement: null,
-        colour: categoryColours["Scene"], // Use appropriate category color
-        tooltip: "Removes the specified mesh from the scene.\nKeyword: dispose",
-        helpUrl: "",
-      });
-    },
-  };
+ 
 
   Blockly.Blocks["key_pressed"] = {
     init: function () {
