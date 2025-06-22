@@ -27,6 +27,15 @@ export const flockMaterial = {
     let b = parseInt(hex.substring(4, 6), 16);
     return `rgba(${r}, ${g}, ${b}, ${alpha})`;
   },
+  // Helper function to convert hex to RGB
+   hexToRgb(hex) {
+     const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+     return result ? {
+       r: parseInt(result[1], 16),
+       g: parseInt(result[2], 16),
+       b: parseInt(result[3], 16)
+     } : null;
+   },
   getColorFromString(colourString) {
     if (/^#([0-9A-F]{3}){1,2}$/i.test(colourString)) {
       return colourString;
@@ -730,7 +739,6 @@ export const flockMaterial = {
 
     return material;
   },
-
   // Create shader material for color replacement
   createColorReplaceShaderMaterial(materialName, texturePath, colors) {
     // Define vertex shader
@@ -834,16 +842,128 @@ export const flockMaterial = {
 
     return shaderMaterial;
   },
+  createMultiGradientShaderMaterial(materialName, colors) {
+    // Vertex Shader
+    const vertexShader = `
+      precision highp float;
+      attribute vec3 position;
+      attribute vec2 uv;
 
-   // Helper function to convert hex to RGB
-   hexToRgb(hex) {
-     const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-     return result ? {
-       r: parseInt(result[1], 16),
-       g: parseInt(result[2], 16),
-       b: parseInt(result[3], 16)
-     } : null;
-   },
+      uniform mat4 worldViewProjection;
+      varying vec2 vUV;
+
+      void main(void) {
+        gl_Position = worldViewProjection * vec4(position, 1.0);
+        vUV = uv;
+      }
+    `;
+
+    // Fixed Fragment Shader with unrolled blending logic
+    const fragmentShader = `
+      precision highp float;
+
+      varying vec2 vUV;
+      uniform vec3 color[6];
+      uniform int colorCount;
+      uniform float alpha;
+
+      void main(void) {
+        float y = clamp(vUV.y, 0.0, 1.0);
+        float step = 1.0 / float(colorCount - 1);
+        vec3 finalColor = color[colorCount - 1];
+
+        if (colorCount >= 2) {
+          float lower = 0.0 * step;
+          float upper = 1.0 * step;
+          if (y >= lower && y <= upper) {
+            float t = (y - lower) / step;
+            finalColor = mix(color[0], color[1], t);
+          }
+        }
+
+        if (colorCount >= 3) {
+          float lower = 1.0 * step;
+          float upper = 2.0 * step;
+          if (y >= lower && y <= upper) {
+            float t = (y - lower) / step;
+            finalColor = mix(color[1], color[2], t);
+          }
+        }
+
+        if (colorCount >= 4) {
+          float lower = 2.0 * step;
+          float upper = 3.0 * step;
+          if (y >= lower && y <= upper) {
+            float t = (y - lower) / step;
+            finalColor = mix(color[2], color[3], t);
+          }
+        }
+
+        if (colorCount >= 5) {
+          float lower = 3.0 * step;
+          float upper = 4.0 * step;
+          if (y >= lower && y <= upper) {
+            float t = (y - lower) / step;
+            finalColor = mix(color[3], color[4], t);
+          }
+        }
+
+        if (colorCount >= 6) {
+          float lower = 4.0 * step;
+          float upper = 5.0 * step;
+          if (y >= lower && y <= upper) {
+            float t = (y - lower) / step;
+            finalColor = mix(color[4], color[5], t);
+          }
+        }
+
+        gl_FragColor = vec4(finalColor, alpha);
+      }
+    `;
+
+    // Register shaders once
+    if (!flock.BABYLON.Effect.ShadersStore['multiGradientVertexShader']) {
+      flock.BABYLON.Effect.ShadersStore['multiGradientVertexShader'] = vertexShader;
+    }
+    if (!flock.BABYLON.Effect.ShadersStore['multiGradientFragmentShader']) {
+      flock.BABYLON.Effect.ShadersStore['multiGradientFragmentShader'] = fragmentShader;
+    }
+
+    // Create shader material
+    const shaderMaterial = new flock.BABYLON.ShaderMaterial(
+      materialName + '_multiGradient',
+      flock.scene,
+      {
+        vertex: 'multiGradient',
+        fragment: 'multiGradient'
+      },
+      {
+        attributes: ['position', 'uv'],
+        uniforms: ['worldViewProjection', 'color', 'colorCount', 'alpha'],
+        needAlphaBlending: true
+      }
+    );
+
+    // Clamp to max 6 colors
+    const clampedColors = colors.slice(0, 6);
+    const count = clampedColors.length;
+
+    for (let i = 0; i < 6; i++) {
+      const hex = flock.getColorFromString(clampedColors[i] || clampedColors[count - 1]);
+      const rgb = flock.hexToRgb(hex);
+      shaderMaterial.setVector3(`color[${i}]`, new flock.BABYLON.Vector3(
+        rgb.r / 255.0,
+        rgb.g / 255.0,
+        rgb.b / 255.0
+      ));
+    }
+
+    shaderMaterial.setInt('colorCount', count);
+    shaderMaterial.setFloat('alpha', 1.0);
+
+    return shaderMaterial;
+  },
+  
   applyMaterialToMesh(mesh, shapeType, color, alpha = 1.0) {
     const scene = mesh.getScene();
 
