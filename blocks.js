@@ -1785,6 +1785,13 @@ export function defineBlocks() {
       updateColorField();
 
       this.setOnChange((changeEvent) => {
+        handleBlockCreateEvent(
+          this,
+          changeEvent,
+          variableNamePrefix,
+          nextVariableIndexes,
+        );
+        
         if (
           this.id !== changeEvent.blockId &&
           changeEvent.type !== Blockly.Events.BLOCK_CHANGE
@@ -1794,12 +1801,6 @@ export function defineBlocks() {
         if (handleMeshLifecycleChange(this, changeEvent)) return;
         if (handleFieldOrChildChange(this, changeEvent)) return;
 
-        handleBlockCreateEvent(
-          this,
-          changeEvent,
-          variableNamePrefix,
-          nextVariableIndexes,
-        );
       });
 
       addDoMutatorWithToggleBehavior(this);
@@ -1986,44 +1987,35 @@ export function defineBlocks() {
       };
 
       this.setOnChange((changeEvent) => {
-        if (
-          changeEvent.type === Blockly.Events.BLOCK_CREATE ||
-          changeEvent.type === Blockly.Events.BLOCK_CHANGE
-        ) {
-          const parent = findCreateBlock(
-            Blockly.getMainWorkspace().getBlockById(changeEvent.blockId),
-          );
 
-          if (parent === this) {
-            const blockInWorkspace = Blockly.getMainWorkspace().getBlockById(
-              this.id,
-            ); // Check if block is in the main workspace
-
-            if (blockInWorkspace) {
-              if (window.loadingCode) return;
-              updateOrCreateMeshFromBlock(this, changeEvent);
-            }
-          }
-
-          if (changeEvent.type === Blockly.Events.BLOCK_CREATE) {
-            handleBlockCreateEvent(
-              this,
-              changeEvent,
-              variableNamePrefix,
-              nextVariableIndexes,
-            );
-          }
+        handleBlockCreateEvent(
+          this,
+          changeEvent,
+          variableNamePrefix,
+          nextVariableIndexes,
+        );
+        
+        // Always handle mesh lifecycle if the event targets this block
+        if (changeEvent.blockId === this.id) {
+          if (handleMeshLifecycleChange(this, changeEvent)) return;
         }
 
+        // For attached children or value inputs
+        if (
+          handleParentLinkedUpdate(this, changeEvent) ||
+          handleFieldOrChildChange(this, changeEvent)
+        ) {
+          return;
+        }
+
+        // Special case: refresh color options when model field changes
         if (
           changeEvent.type === Blockly.Events.BLOCK_CHANGE &&
           changeEvent.element === "field" &&
           changeEvent.name === "MODELS" &&
           changeEvent.blockId === this.id
         ) {
-          const blockInWorkspace = Blockly.getMainWorkspace().getBlockById(
-            this.id,
-          );
+          const blockInWorkspace = Blockly.getMainWorkspace().getBlockById(this.id);
           if (blockInWorkspace) {
             this.updateColorsField();
           }
@@ -2095,6 +2087,14 @@ export function defineBlocks() {
       });
 
       this.setOnChange((changeEvent) => {
+
+        handleBlockCreateEvent(
+          this,
+          changeEvent,
+          variableNamePrefix,
+          nextVariableIndexes,
+        );
+        
         if (
           this.id !== changeEvent.blockId &&
           changeEvent.type !== Blockly.Events.BLOCK_CHANGE
@@ -2104,12 +2104,6 @@ export function defineBlocks() {
         if (handleMeshLifecycleChange(this, changeEvent)) return;
         if (handleFieldOrChildChange(this, changeEvent)) return;
 
-        handleBlockCreateEvent(
-          this,
-          changeEvent,
-          variableNamePrefix,
-          nextVariableIndexes,
-        );
       });
 
       addDoMutatorWithToggleBehavior(this);

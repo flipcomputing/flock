@@ -52,11 +52,13 @@ export function updateOrCreateMeshFromBlock(block, changeEvent) {
 
   if (window.loadingCode || block.disposed) return;
 
-  if (!mesh && (isEnabledEvent || isImmediateEnabledCreate)) {
-    //console.warn("🆕 Creating mesh", block.id);
+  const alreadyCreatingMesh = meshMap[block.id] !== undefined;
+
+  if (!alreadyCreatingMesh && (isEnabledEvent || isImmediateEnabledCreate)) {
     createMeshOnCanvas(block);
     return;
   }
+
 
   if (
     changeEvent?.type === Blockly.Events.BLOCK_CHANGE &&
@@ -68,37 +70,6 @@ export function updateOrCreateMeshFromBlock(block, changeEvent) {
     updateMeshFromBlock(mesh, block, changeEvent);
   }
 
-}
-
-
-export function updateOrCreateMeshFromBlock2(block, changeEvent) {
-  console.log("updateOrCreateMeshFromBlock", {
-    id: block.id,
-    isEnabled: block.isEnabled(),
-    hasMesh: !!getMeshFromBlock(block),
-  });
-
-  if (window.loadingCode || block.disposed || !block.isEnabled()) return;
-
-  const mesh = getMeshFromBlock(block);
-
-  // Create a mesh if it doesn't exist
-  if (!mesh) {
-    createMeshOnCanvas(block);
-    return;
-  }
-
-  // Handle update events (if there's a valid mesh already)
-  if (
-    changeEvent.type === Blockly.Events.BLOCK_CHANGE &&
-    (
-      ["set_sky_color", "set_background_color", "create_ground"].includes(
-        block.type
-      ) || mesh
-    )
-  ) {
-    updateMeshFromBlock(mesh, block, changeEvent);
-  }
 }
 
 window.selectedColor = "#ffffff"; // Default color
