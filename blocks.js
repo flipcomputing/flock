@@ -448,7 +448,7 @@ export function defineBlocks() {
       this.jsonInit({
         type: "create_ground",
         message0: "ground",
-        message1: "color: %1",
+        message1: "%1",
         args1: [
           {
             type: "input_value",
@@ -706,7 +706,7 @@ export function defineBlocks() {
     },
   };
 
-  Blockly.Blocks["wait_s"] = {
+  Blockly.Blocks["wait_seconds"] = {
     init: function () {
       this.jsonInit({
         type: "wait",

@@ -1881,7 +1881,7 @@ const toolboxControl = {
 	contents: [
 		{
 			kind: "block",
-			type: "wait_s",
+			type: "wait_seconds",
 			keyword: "waits",
 			inputs: {
 				DURATION: {
