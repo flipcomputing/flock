@@ -462,7 +462,7 @@ export function defineBlocks() {
         nextStatement: null,
         colour: categoryColours["Scene"],
         tooltip:
-          "Adds a ground plane with collisions enabled to the scene. \nKeyword: ground",
+          "Add a ground plane with collisions enabled to the scene. \nKeyword: ground",
       });
       this.setHelpUrl(getHelpUrlFor(this.type));
 
@@ -511,7 +511,7 @@ export function defineBlocks() {
         inputsInline: true,
         colour: categoryColours["Scene"],
         tooltip:
-          "Creates a map with the selected name and material.\nKeyword: map",
+          "Create a map with the selected name and material.\nKeyword: map",
       });
       this.setHelpUrl(getHelpUrlFor(this.type));
 
@@ -539,6 +539,51 @@ export function defineBlocks() {
     },
   };
 
+  Blockly.Blocks["show"] = {
+    init: function () {
+      this.jsonInit({
+        type: "show",
+        message0: "show %1",
+        args0: [
+          {
+            type: "field_variable",
+            name: "MODEL_VAR",
+            variable: window.currentMesh,
+          },
+        ],
+        previousStatement: null,
+        nextStatement: null,
+        colour: categoryColours["Scene"],
+        tooltip: "Show the selected mesh.\nKeyword: show",
+      });
+
+      this.setHelpUrl(getHelpUrlFor(this.type));
+    },
+  };
+
+  Blockly.Blocks["hide"] = {
+    init: function () {
+      this.jsonInit({
+        type: "hide",
+        message0: "hide %1",
+        args0: [
+          {
+            type: "field_variable",
+            name: "MODEL_VAR",
+            variable: window.currentMesh,
+          },
+        ],
+        previousStatement: null,
+        nextStatement: null,
+        colour: categoryColours["Scene"],
+        tooltip: "Hide the selected mesh.\nKeyword: hide",
+      });
+
+      this.setHelpUrl(getHelpUrlFor(this.type));
+    },
+  };
+
+  
   /*Blockly.Blocks["create_custom_map"] = {
     init: function () {
       this.jsonInit({
@@ -4393,47 +4438,6 @@ export function defineBlocks() {
     },
   };
 
-  Blockly.Blocks["show"] = {
-    init: function () {
-      this.jsonInit({
-        type: "show",
-        message0: "show %1",
-        args0: [
-          {
-            type: "field_variable",
-            name: "MODEL_VAR",
-            variable: window.currentMesh,
-          },
-        ],
-        previousStatement: null,
-        nextStatement: null,
-        colour: categoryColours["Scene"],
-        tooltip: "Shows the selected model.\nKeyword: show",
-        helpUrl: "",
-      });
-    },
-  };
-
-  Blockly.Blocks["hide"] = {
-    init: function () {
-      this.jsonInit({
-        type: "hide",
-        message0: "hide %1",
-        args0: [
-          {
-            type: "field_variable",
-            name: "MODEL_VAR",
-            variable: window.currentMesh,
-          },
-        ],
-        previousStatement: null,
-        nextStatement: null,
-        colour: categoryColours["Scene"],
-        tooltip: "Hides the selected model.\nKeyword: hide",
-        helpUrl: "",
-      });
-    },
-  };
 
   Blockly.Blocks["change_color"] = {
     init: function () {
