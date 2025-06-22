@@ -3,7 +3,7 @@
 // Flip Computing Limited - flipcomputing.com
 
 import * as Blockly from "blockly";
-import { Multiselect } from "@mit-app-inventor/blockly-plugin-workspace-multiselect";
+//import { Multiselect } from "@mit-app-inventor/blockly-plugin-workspace-multiselect";
 import { javascriptGenerator } from "blockly/javascript";
 //import { rewgisterFieldColour } from "@blockly/field-colour";
 import { FieldGridDropdown } from "@blockly/field-grid-dropdown";
@@ -75,6 +75,8 @@ function showUpdateNotification() {
 		window.location.reload();
 	});
 }
+
+console.log("Blockly version:", Blockly.VERSION);
 
 let workspace = null;
 
@@ -337,9 +339,8 @@ async function executeCode() {
 }
 
 function stopCode() {
-
 	flock.stopAllSounds();
-	
+
 	// Stop rendering
 	flock.engine.stopRenderLoop();
 	console.log("Render loop stopped.");
@@ -715,16 +716,15 @@ function resizeCanvas() {
 		newHeight = newWidth / aspectRatio;
 	}
 
-	
 	canvas.style.width = `${Math.round(newWidth)}px`;
 	canvas.style.height = `${Math.round(newHeight)}px`;
 
 	const width = canvas.clientWidth;
-	  const height = canvas.clientHeight;
-	  if (canvas.width !== width || canvas.height !== height) {
+	const height = canvas.clientHeight;
+	if (canvas.width !== width || canvas.height !== height) {
 		canvas.width = width;
 		canvas.height = height;
-	  }
+	}
 }
 
 let viewMode = "both";
@@ -1027,7 +1027,7 @@ function toggleDesignMode() {
 		});
 
 		canvasArea.style.flex = "1 1 0";
-		
+
 		// Prepare canvas for potential recording
 		setTimeout(prepareCanvasForRecording, 100);
 	}
@@ -1716,8 +1716,8 @@ window.onload = function () {
 		return xmlList;
 	});
 
-	const multiselectPlugin = new Multiselect(workspace);
-	multiselectPlugin.init(options);
+	/*const multiselectPlugin = new Multiselect(workspace);
+	multiselectPlugin.init(options);*/
 
 	// Add this debug listener right after workspace injection
 	workspace.addChangeListener(function (event) {
@@ -2012,21 +2012,8 @@ window.onload = function () {
 		return true;
 	}
 
-	workspace.addChangeListener(function (event) {
-		if (
-			event.type === Blockly.Events.BLOCK_MOVE ||
-			event.type === Blockly.Events.BLOCK_CREATE ||
-			event.type === Blockly.Events.SELECTED
-		) {
-			requestAnimationFrame(() => {
-				enforceOrphanZOrder();
-			});
-		}
-	});
-
 	function enforceOrphanZOrder() {
 		workspace.getAllBlocks().forEach((block) => {
-			// Check if the block is orphaned
 			if (!block.getParent() && !block.isInFlyout) {
 				bringToTop(block);
 			}
@@ -2034,12 +2021,10 @@ window.onload = function () {
 	}
 
 	function bringToTop(block) {
-		const svgGroup = block.getSvgRoot();
-		if (svgGroup && svgGroup.parentNode) {
-			svgGroup.parentNode.appendChild(svgGroup);
+		if (block.rendered && block.bringToFront) {
+			block.bringToFront();
 		}
 	}
-
 	//Blockly.ContextMenuItems.registerCommentOptions();
 
 	/*const navigationController = new NavigationController();
@@ -2090,67 +2075,75 @@ window.onload = function () {
 	});
 
 	document
-	  .getElementById("fileInput")
-	  .addEventListener("change", function (event) {
-		const file = event.target.files[0];
-		if (!file) return;
+		.getElementById("fileInput")
+		.addEventListener("change", function (event) {
+			const file = event.target.files[0];
+			if (!file) return;
 
-		// Validate file size (max 5MB)
-		const maxSize = 5 * 1024 * 1024;
-		if (file.size > maxSize) {
-			alert("File too large. Maximum size is 5MB.");
-			return;
-		}
-
-		// Validate file type
-		if (!file.name.toLowerCase().endsWith('.json')) {
-			alert("Only JSON files are allowed.");
-			return;
-		}
-
-		const reader = new FileReader();
-		reader.onload = function () {
-		  window.loadingCode = true;
-
-		  try {
-			const text = reader.result;
-			
-			// Validate JSON structure before parsing
-			if (typeof text !== 'string' || text.length > 1024 * 1024) {
-				throw new Error("File content is invalid or too large");
-			}
-			
-			const json = JSON.parse(text);
-
-			// Enhanced validation for Blockly workspace structure
-			if (!json || typeof json !== "object" || !json.blocks || 
-				typeof json.blocks !== "object" || !json.blocks.blocks) {
-			  throw new Error("Invalid Blockly project file structure");
+			// Validate file size (max 5MB)
+			const maxSize = 5 * 1024 * 1024;
+			if (file.size > maxSize) {
+				alert("File too large. Maximum size is 5MB.");
+				return;
 			}
 
-			// Validate project name to prevent XSS
-			const rawName = file.name || "untitled";
-			const sanitizedName = rawName.replace(/[^a-zA-Z0-9_-]/g, '').substring(0, 50) || "untitled";
-			document.getElementById("projectName").value = stripFilename(
-			  sanitizedName.replace(".json", "")
-			);
+			// Validate file type
+			if (!file.name.toLowerCase().endsWith(".json")) {
+				alert("Only JSON files are allowed.");
+				return;
+			}
 
-			loadWorkspaceAndExecute(json, workspace, executeCode);
-		  } catch (e) {
-			console.error("Error loading Blockly project:", e);
-			alert("This file isn't a valid Blockly project.");
-			window.loadingCode = false;
-		  }
-		};
+			const reader = new FileReader();
+			reader.onload = function () {
+				window.loadingCode = true;
 
-		reader.onerror = function () {
-		  alert("Failed to read file.");
-		  window.loadingCode = false;
-		};
+				try {
+					const text = reader.result;
 
-		reader.readAsText(file);
-	  });
+					// Validate JSON structure before parsing
+					if (typeof text !== "string" || text.length > 1024 * 1024) {
+						throw new Error("File content is invalid or too large");
+					}
 
+					const json = JSON.parse(text);
+
+					// Enhanced validation for Blockly workspace structure
+					if (
+						!json ||
+						typeof json !== "object" ||
+						!json.blocks ||
+						typeof json.blocks !== "object" ||
+						!json.blocks.blocks
+					) {
+						throw new Error(
+							"Invalid Blockly project file structure",
+						);
+					}
+
+					// Validate project name to prevent XSS
+					const rawName = file.name || "untitled";
+					const sanitizedName =
+						rawName
+							.replace(/[^a-zA-Z0-9_-]/g, "")
+							.substring(0, 50) || "untitled";
+					document.getElementById("projectName").value =
+						stripFilename(sanitizedName.replace(".json", ""));
+
+					loadWorkspaceAndExecute(json, workspace, executeCode);
+				} catch (e) {
+					console.error("Error loading Blockly project:", e);
+					alert("This file isn't a valid Blockly project.");
+					window.loadingCode = false;
+				}
+			};
+
+			reader.onerror = function () {
+				alert("Failed to read file.");
+				window.loadingCode = false;
+			};
+
+			reader.readAsText(file);
+		});
 
 	const blockTypesToCleanUp = [
 		"start",
@@ -2186,6 +2179,7 @@ window.onload = function () {
 			}
 		});
 
+		enforceOrphanZOrder();
 		Blockly.Events.setGroup(false); // End the group
 		//console.log('Finished workspace cleanup');
 	};
@@ -2496,33 +2490,38 @@ window.onload = function () {
 	window.flockDebug = {
 		info() {
 			console.log("=== FLOCK DEBUG INFO ===");
-			
+
 			const blocks = workspace.getAllBlocks();
 			const allMeshes = flock.scene.meshes;
-			const relevantMeshes = allMeshes.filter(m => 
-				m.name !== "__root__" && 
-				!m.name.includes("_primitive") && 
-				!m.name.includes(".glb_first") &&
-				!m.name.includes("Constraint_")
+			const relevantMeshes = allMeshes.filter(
+				(m) =>
+					m.name !== "__root__" &&
+					!m.name.includes("_primitive") &&
+					!m.name.includes(".glb_first") &&
+					!m.name.includes("Constraint_"),
 			);
-			
-			console.log(`📦 Blocks: ${blocks.length}, 🎮 Meshes: ${relevantMeshes.length}, 🔗 Tracked: ${Object.keys(meshMap).length}`);
-			
+
+			console.log(
+				`📦 Blocks: ${blocks.length}, 🎮 Meshes: ${relevantMeshes.length}, 🔗 Tracked: ${Object.keys(meshMap).length}`,
+			);
+
 			// Camera info
 			const camera = flock.scene.activeCamera;
 			if (camera) {
 				const pos = camera.position;
-				console.log(`📷 Camera at (${pos.x.toFixed(1)}, ${pos.y.toFixed(1)}, ${pos.z.toFixed(1)})`);
+				console.log(
+					`📷 Camera at (${pos.x.toFixed(1)}, ${pos.y.toFixed(1)}, ${pos.z.toFixed(1)})`,
+				);
 			}
-			
+
 			let workingConnections = 0;
 			let missingMeshes = 0;
 			const trackedMeshNames = new Set();
-			
+
 			Object.entries(meshMap).forEach(([meshId, block]) => {
 				trackedMeshNames.add(meshId);
-				const meshExists = allMeshes.some(m => m.name === meshId);
-				
+				const meshExists = allMeshes.some((m) => m.name === meshId);
+
 				if (meshExists) {
 					workingConnections++;
 					console.log(`  ✅ ${meshId} → ${block.type}`);
@@ -2531,23 +2530,32 @@ window.onload = function () {
 					console.log(`  ❌ ${meshId} → ${block.type} (MISSING)`);
 				}
 			});
-			
+
 			// Find orphaned meshes
-			const orphanedMeshes = relevantMeshes.filter(mesh => 
-				!trackedMeshNames.has(mesh.name) &&
-				!Array.from(trackedMeshNames).some(id => mesh.name.includes(id.split("__")[0]))
+			const orphanedMeshes = relevantMeshes.filter(
+				(mesh) =>
+					!trackedMeshNames.has(mesh.name) &&
+					!Array.from(trackedMeshNames).some((id) =>
+						mesh.name.includes(id.split("__")[0]),
+					),
 			);
-			
-			console.log(`\n📊 SUMMARY: ✅ ${workingConnections} working, ❌ ${missingMeshes} missing, 🚨 ${orphanedMeshes.length} orphaned`);
-			
+
+			console.log(
+				`\n📊 SUMMARY: ✅ ${workingConnections} working, ❌ ${missingMeshes} missing, 🚨 ${orphanedMeshes.length} orphaned`,
+			);
+
 			if (orphanedMeshes.length > 0 && orphanedMeshes.length <= 10) {
 				console.log("🚨 ORPHANED MESHES:");
-				orphanedMeshes.forEach(mesh => {
+				orphanedMeshes.forEach((mesh) => {
 					const pos = mesh.position;
-					console.log(`  - ${mesh.name} at (${pos.x.toFixed(1)}, ${pos.y.toFixed(1)}, ${pos.z.toFixed(1)})`);
+					console.log(
+						`  - ${mesh.name} at (${pos.x.toFixed(1)}, ${pos.y.toFixed(1)}, ${pos.z.toFixed(1)})`,
+					);
 				});
 			} else if (orphanedMeshes.length > 10) {
-				console.log(`🚨 ${orphanedMeshes.length} orphaned meshes (too many to list)`);
+				console.log(
+					`🚨 ${orphanedMeshes.length} orphaned meshes (too many to list)`,
+				);
 			}
 		},
 
@@ -2555,48 +2563,71 @@ window.onload = function () {
 			const mesh = flock.scene.getMeshByName(objectName);
 			if (!mesh) {
 				console.log(`❌ Object "${objectName}" not found`);
-				
-				if (!this._cachedAvailable || this._cacheTime < Date.now() - 5000) {
+
+				if (
+					!this._cachedAvailable ||
+					this._cacheTime < Date.now() - 5000
+				) {
 					this._cachedAvailable = flock.scene.meshes
-						.filter(m => m.name !== "__root__" && !m.name.includes("_primitive") && !m.name.includes(".glb_first"))
-						.map(m => m.name);
+						.filter(
+							(m) =>
+								m.name !== "__root__" &&
+								!m.name.includes("_primitive") &&
+								!m.name.includes(".glb_first"),
+						)
+						.map((m) => m.name);
 					this._cacheTime = Date.now();
 				}
-				
-				console.log("Available objects:", this._cachedAvailable.slice(0, 10).join(", ") + 
-					(this._cachedAvailable.length > 10 ? `... and ${this._cachedAvailable.length - 10} more` : ""));
+
+				console.log(
+					"Available objects:",
+					this._cachedAvailable.slice(0, 10).join(", ") +
+						(this._cachedAvailable.length > 10
+							? `... and ${this._cachedAvailable.length - 10} more`
+							: ""),
+				);
 				return;
 			}
-			
+
 			const camera = flock.scene.activeCamera;
 			if (camera) {
 				const meshPos = mesh.position;
 				const offset = new flock.BABYLON.Vector3(5, 5, 5);
 				camera.position = meshPos.add(offset);
 				camera.setTarget(meshPos);
-				console.log(`📷 Moved to ${objectName} at (${meshPos.x.toFixed(1)}, ${meshPos.y.toFixed(1)}, ${meshPos.z.toFixed(1)})`);
+				console.log(
+					`📷 Moved to ${objectName} at (${meshPos.x.toFixed(1)}, ${meshPos.y.toFixed(1)}, ${meshPos.z.toFixed(1)})`,
+				);
 			}
 		},
 
 		health() {
 			const blockCount = workspace.getAllBlocks().length;
-			const meshCount = flock.scene.meshes.filter(m => m.name !== "__root__").length;
-			const trackedCount = Object.keys(meshMap).length;
-			
-			const workingCount = Object.keys(meshMap).filter(meshId => 
-				flock.scene.getMeshByName(meshId)
+			const meshCount = flock.scene.meshes.filter(
+				(m) => m.name !== "__root__",
 			).length;
-			
+			const trackedCount = Object.keys(meshMap).length;
+
+			const workingCount = Object.keys(meshMap).filter((meshId) =>
+				flock.scene.getMeshByName(meshId),
+			).length;
+
 			console.log("=== QUICK HEALTH CHECK ===");
-			console.log(`📊 ${blockCount} blocks, ${meshCount} meshes, ${trackedCount} tracked`);
-			console.log(`${workingCount === trackedCount ? "✅" : "⚠️"} ${workingCount}/${trackedCount} connections working`);
-			
+			console.log(
+				`📊 ${blockCount} blocks, ${meshCount} meshes, ${trackedCount} tracked`,
+			);
+			console.log(
+				`${workingCount === trackedCount ? "✅" : "⚠️"} ${workingCount}/${trackedCount} connections working`,
+			);
+
 			if (workingCount === trackedCount && trackedCount > 0) {
 				console.log("✅ System is healthy!");
 			} else {
-				console.log("⚠️ Issues detected. Run flockDebug.info() for details");
+				console.log(
+					"⚠️ Issues detected. Run flockDebug.info() for details",
+				);
 			}
-		}
+		},
 	};
 
 	console.log("🛠️ Flock Debug loaded! Commands:");
