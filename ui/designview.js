@@ -25,11 +25,58 @@ const colorFields = {
 };
 
 export function updateOrCreateMeshFromBlock(block, changeEvent) {
- /* console.log("updateOrCreateMeshFromBlock", {
+  const mesh = getMeshFromBlock(block);
+
+  const isEnabledEvent =
+    changeEvent?.type === Blockly.Events.BLOCK_CHANGE &&
+    changeEvent.element === "disabled" &&
+    changeEvent.oldValue &&
+    !changeEvent.newValue;
+
+  const isImmediateEnabledCreate =
+    changeEvent?.type === Blockly.Events.BLOCK_CREATE &&
+    block.isEnabled() &&
+    !mesh;
+
+  /*console.log("updateOrCreateMeshFromBlock", {
+    id: block.id,
+    isEnabled: block.isEnabled(),
+    hasMesh: !!mesh,
+    eventType: changeEvent?.type,
+    element: changeEvent?.element,
+    oldValue: changeEvent?.oldValue,
+    newValue: changeEvent?.newValue,
+    isEnabledEvent,
+    isImmediateEnabledCreate,
+  });*/
+
+  if (window.loadingCode || block.disposed) return;
+
+  if (!mesh && (isEnabledEvent || isImmediateEnabledCreate)) {
+    //console.warn("🆕 Creating mesh", block.id);
+    createMeshOnCanvas(block);
+    return;
+  }
+
+  if (
+    changeEvent?.type === Blockly.Events.BLOCK_CHANGE &&
+    (
+      mesh ||
+      ["set_sky_color", "set_background_color", "create_ground"].includes(block.type)
+    )
+  ) {
+    updateMeshFromBlock(mesh, block, changeEvent);
+  }
+
+}
+
+
+export function updateOrCreateMeshFromBlock2(block, changeEvent) {
+  console.log("updateOrCreateMeshFromBlock", {
     id: block.id,
     isEnabled: block.isEnabled(),
     hasMesh: !!getMeshFromBlock(block),
-  });*/
+  });
 
   if (window.loadingCode || block.disposed || !block.isEnabled()) return;
 
@@ -620,6 +667,9 @@ function createMeshOnCanvas(block) {
     console.warn("Mesh already exists for block", block.id);
     return;
   }
+  else {
+    //console.log("Creating mesh for block", block.id, block.type);
+  }
 
   //console.log("createMeshOnCanvas for block", block.id);
   Blockly.Events.setGroup(true);
@@ -1191,8 +1241,16 @@ function setNumberInput(block, inputName, value) {
 }
 
 function getMeshFromBlockId(blockId) {
+
+   //console.log("Get mesh from block id", blockId, meshBlockIdMap, meshMap, flock.scene?.meshes?.map((mesh) => mesh.blockKey));
  
-  return flock.scene?.meshes?.find((mesh) => mesh.blockKey === blockId);
+  const blockKey = Object.keys(meshMap).find(
+    (key) => meshBlockIdMap[key] === blockId,
+  );
+
+
+    return flock.scene?.meshes?.find((mesh) => mesh.blockKey === blockKey);
+
 }
 
 function addShapeToWorkspace(shapeType, position) {
