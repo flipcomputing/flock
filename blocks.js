@@ -6162,9 +6162,7 @@ export function handleBlockCreateEvent(
     changeEvent.type === Blockly.Events.BLOCK_CREATE &&
     changeEvent.ids.includes(blockInstance.id)
   ) {
-    // Skip renaming variables if this is an undo
-    if (isUndo /*&& !handleBlockCreateEvent.group === "duplicate"*/) return;
-    // Add this back in when have 'this' support or can rename the variables in the constructor
+    if (isUndo) return;
 
     // Check if the specified field already has a value
     const variableField = blockInstance.getField(fieldName);
@@ -6172,29 +6170,39 @@ export function handleBlockCreateEvent(
       const variableId = variableField.getValue();
       const variable = blockInstance.workspace.getVariableById(variableId);
 
+
       // Check if the variable name matches the pattern "prefixn"
       const variableNamePattern = new RegExp(`^${variableNamePrefix}\\d+$`);
       const variableName = variable ? variable.name : "";
 
       if (!variableNamePattern.test(variableName)) {
-        // Don't change if the variable name doesn't match the expected pattern
-      } else {
-        // Create and set a new variable if necessary
-        if (!nextVariableIndexes[variableNamePrefix]) {
-          nextVariableIndexes[variableNamePrefix] = 1; // Initialise if not already present
+        // Handle custom variables
+        if (variableName) {
+          const numberMatch = variableName.match(/^(.+?)(\d+)$/);
+          let newVariableName;
+          if (numberMatch) {
+            newVariableName = numberMatch[1] + (parseInt(numberMatch[2]) + 1);
+          } else {
+            newVariableName = variableName + "1";
+          }
+          
+          let newVariable = blockInstance.workspace.getVariable(newVariableName);
+          if (!newVariable) {
+            newVariable = blockInstance.workspace.createVariable(newVariableName, null);
+          }
+          variableField.setValue(newVariable.getId());
         }
-        let newVariableName =
-          variableNamePrefix + nextVariableIndexes[variableNamePrefix];
+      } else {
+        // Handle prefix-numbered variables (existing logic)
+        if (!nextVariableIndexes[variableNamePrefix]) {
+          nextVariableIndexes[variableNamePrefix] = 1;
+        }
+        let newVariableName = variableNamePrefix + nextVariableIndexes[variableNamePrefix];
         let newVariable = blockInstance.workspace.getVariable(newVariableName);
         if (!newVariable) {
-          newVariable = blockInstance.workspace.createVariable(
-            newVariableName,
-            null,
-          );
+          newVariable = blockInstance.workspace.createVariable(newVariableName, null);
         }
         variableField.setValue(newVariable.getId());
-
-        // Increment the variable index for the next variable name
         nextVariableIndexes[variableNamePrefix] += 1;
       }
     }

@@ -45,6 +45,7 @@
         <option value="effects">Effects Tests</option>
         <option value="animate">Animation API Tests</option>
         <option value="concurrency">Concurrency Tests</option>
+        <option value="blocks">Block Tests</option>
         <option value="all">Run All Tests</option>
       </select>
       <button id="runTestBtn" style="padding: 5px 15px;">Run Tests</button>
@@ -73,6 +74,7 @@
       import { runEffectsTests } from "./effects.test.js";
       import { runAnimateTests } from "./animate.test.js";
 	    import { runConcurrencyTests } from "./concurrency.test.js";
+	    import { runBlocksTests } from "./blocks.test.js";
 
       const flock = flockmodule.flock;
       flock.modelPath = "../models/";
@@ -128,6 +130,7 @@
         effects: () => runEffectsTests(flock),
         animate: () => runAnimateTests(flock),
 		    concurrency: () => runConcurrencyTests(flock),
+        blocks: () => runBlocksTests(),
         all: () => {
           runTests(flock, chai.expect);
           runGlideToTests(flock);
@@ -143,6 +146,7 @@
           runEffectsTests(flock);
           runAnimateTests(flock);
 		      runConcurrencyTests(flock);
+          runBlocksTests();
         }
       };
 
