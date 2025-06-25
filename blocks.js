@@ -388,7 +388,7 @@ export function initializeVariableIndexes() {
     clone: 1,
   };
 
-  const allVariables = Blockly.getMainWorkspace().getAllVariables(); // Retrieve all variables in the workspace
+  const allVariables = Blockly.getMainWorkspace().getVariableMap().getAllVariables(); // Retrieve all variables in the workspace
 
   // Process each type of variable
   Object.keys(nextVariableIndexes).forEach(function (type) {
@@ -3713,7 +3713,7 @@ export function defineBlocks() {
       const options = [["everywhere", "__everywhere__"]];
       const workspace = this.sourceBlock_ && this.sourceBlock_.workspace;
       if (workspace) {
-        const variables = workspace.getAllVariables();
+        const variables = workspace.getVariableMap().getAllVariables();
         variables.forEach((v) => {
           options.push([v.name, v.name]);
         });
@@ -6092,8 +6092,7 @@ export function handleBlockCreateEvent(
     const variableField = blockInstance.getField(fieldName);
     if (variableField) {
       const variableId = variableField.getValue();
-      const variable = blockInstance.workspace.getVariableById(variableId);
-
+      const variable = blockInstance.workspace.getVariableMap().getVariableById(variableId);
 
       // Check if the variable name matches the pattern "prefixn"
       const variableNamePattern = new RegExp(`^${variableNamePrefix}\\d+$`);
@@ -6110,7 +6109,7 @@ export function handleBlockCreateEvent(
             newVariableName = variableName + "1";
           }
           
-          let newVariable = blockInstance.workspace.getVariable(newVariableName);
+          let newVariable = blockInstance.workspace.getVariableMap().getVariable(newVariableName);
           if (!newVariable) {
             newVariable = blockInstance.workspace.createVariable(newVariableName, null);
           }
@@ -6122,7 +6121,7 @@ export function handleBlockCreateEvent(
           nextVariableIndexes[variableNamePrefix] = 1;
         }
         let newVariableName = variableNamePrefix + nextVariableIndexes[variableNamePrefix];
-        let newVariable = blockInstance.workspace.getVariable(newVariableName);
+        let newVariable = blockInstance.workspace.getVariableMap().getVariable(newVariableName);
         if (!newVariable) {
           newVariable = blockInstance.workspace.createVariable(newVariableName, null);
         }
@@ -6227,7 +6226,7 @@ Blockly.FieldVariable.prototype.onItemSelected_ = function (menu, menuItem) {
         if (newVariableName) {
           // Find the variable by its name to get the full variable object
           const newVariable =
-            this.sourceBlock_.workspace.getVariable(newVariableName);
+            this.sourceBlock_.workspace.getVariableMap().getVariable(newVariableName);
 
           if (newVariable) {
             // Set the new variable as selected

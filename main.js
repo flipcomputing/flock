@@ -204,7 +204,7 @@ async function exportCode() {
 
 		let ws = Blockly.getMainWorkspace();
 		let usedModels = Blockly.Variables.allUsedVarModels(ws);
-		let allModels = ws.getAllVariables();
+		let allModels = ws.getVariableMap().getAllVariables();
 		for (const model of allModels) {
 			if (
 				!usedModels.find((element) => element.getId() === model.getId())

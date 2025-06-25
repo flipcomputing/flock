@@ -31,7 +31,7 @@
     "babylonjs": "^8.13.0",
     "babylonjs-gui": "^8.7.0",
     "babylonjs-serializers": "^8.7.0",
-    "blockly": "^11.2.2",
+    "blockly": "12.0.0",
     "config.js": "^0.1.0",
     "earcut": "^3.0.1",
     "Flock": "file:",
