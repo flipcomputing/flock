@@ -622,7 +622,7 @@ export function defineBlocks() {
           {
             type: "field_variable",
             name: "SOURCE_MESH",
-            variable: "mesh1", // Default mesh reference
+            variable: window.currentMesh,
           },
         ],
         inputsInline: true,
@@ -2391,7 +2391,7 @@ export function defineBlocks() {
           {
             type: "field_variable",
             name: "BASE_MESH",
-            variable: "Mesh",
+            variable: "mesh",
           },
           {
             type: "input_value",
@@ -3994,7 +3994,7 @@ export function defineBlocks() {
           {
             type: "field_variable",
             name: "MODEL_VAR",
-            variable: "model",
+            variable: window.currentMesh,
           },
           {
             type: "field_dropdown",

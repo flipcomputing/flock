@@ -131,7 +131,7 @@ export function defineShapeBlocks() {
 					{
 						type: "field_variable",
 						name: "EMITTER_MESH",
-						variable: "meshEmitter",
+						variable: window.currentMesh,
 					},
 					{
 						type: "field_grid_dropdown",
