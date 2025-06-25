@@ -30,7 +30,7 @@ const inlineIcon =
 
 const baseHelpUrl = "https://docs.flockxr.com/blocks/";
 
-function getHelpUrlFor(blockType) {
+export function getHelpUrlFor(blockType) {
   //return baseHelpUrl + blockType;
   return "https://flockxr.com";
 }
@@ -732,9 +732,9 @@ export function defineBlocks() {
         output: null,
         colour: categoryColours["Sensing"],
         tooltip:
-          "Gets the value of the selected property of a mesh.\nKeyword: get",
-        helpUrl: "",
+          "Get the value of the selected property of a mesh.\nKeyword: get",
       });
+      this.setHelpUrl(getHelpUrlFor(this.type));
     },
   };
 
@@ -753,9 +753,9 @@ export function defineBlocks() {
         previousStatement: null,
         nextStatement: null,
         colour: categoryColours["Sensing"],
-        tooltip: "Add or removes canvas motion controls.\nKeyword: canvas",
-        helpUrl: "",
+        tooltip: "Add or remove canvas motion controls.\nKeyword: canvas",
       });
+      this.setHelpUrl(getHelpUrlFor(this.type));
     },
   };
 
@@ -789,8 +789,8 @@ export function defineBlocks() {
         nextStatement: null,
         colour: categoryColours["Sensing"],
         tooltip: "Configure button controls.\nKeyword: button",
-        helpUrl: "",
       });
+      this.setHelpUrl(getHelpUrlFor(this.type));
     },
   };
 
@@ -810,8 +810,8 @@ export function defineBlocks() {
         nextStatement: null,
         colour: categoryColours["Control"],
         tooltip: "Wait for a specified time in milliseconds.\nKeyword: wait",
-        helpUrl: "",
       });
+      this.setHelpUrl(getHelpUrlFor(this.type));
     },
   };
 
@@ -831,8 +831,8 @@ export function defineBlocks() {
         nextStatement: null,
         colour: categoryColours["Control"],
         tooltip: "Wait for a specified time in seconds.\nKeyword: wait",
-        helpUrl: "",
       });
+      this.setHelpUrl(getHelpUrlFor(this.type));
     },
   };
   Blockly.Blocks["wait_until"] = {
@@ -851,8 +851,8 @@ export function defineBlocks() {
         nextStatement: null,
         colour: categoryColours["Control"],
         tooltip: "Wait until the condition is true.",
-        helpUrl: "",
       });
+      this.setHelpUrl(getHelpUrlFor(this.type));
     },
   };
 
@@ -928,8 +928,8 @@ export function defineBlocks() {
         colour: categoryColours["Animate"],
         tooltip:
           "Glide to a specified position over a duration with options for reversing, looping, and easing.",
-        helpUrl: "",
       });
+      this.setHelpUrl(getHelpUrlFor(this.type));
     },
   };
 
@@ -1005,8 +1005,8 @@ export function defineBlocks() {
         colour: categoryColours["Animate"],
         tooltip:
           "Glide to a specified position over a duration with options for reversing, looping, and easing.",
-        helpUrl: "",
       });
+      this.setHelpUrl(getHelpUrlFor(this.type));
     },
   };
 
@@ -1082,8 +1082,8 @@ export function defineBlocks() {
         colour: categoryColours["Animate"],
         tooltip:
           "Rotate a mesh to specified angles over a duration with options for reverse, looping, and easing.",
-        helpUrl: "",
       });
+      this.setHelpUrl(getHelpUrlFor(this.type));
     },
   };
 
@@ -1159,8 +1159,8 @@ export function defineBlocks() {
         colour: categoryColours["Animate"],
         tooltip:
           "Rotate a mesh to specified angles over a duration with options for reverse, looping, and easing.",
-        helpUrl: "",
       });
+      this.setHelpUrl(getHelpUrlFor(this.type));
     },
   };
 
@@ -1219,9 +1219,9 @@ export function defineBlocks() {
         previousStatement: null,
         nextStatement: null,
         colour: categoryColours["Animate"],
-        tooltip: "Animates a material property of the mesh and its children.",
-        helpUrl: "",
+        tooltip: "Animate a material property of the mesh and its children.",
       });
+      this.setHelpUrl(getHelpUrlFor(this.type));
     },
   };
 
@@ -1246,8 +1246,8 @@ export function defineBlocks() {
         inputsInline: true,
         output: "Keyframe",
         tooltip: "Set a colour and duration for a keyframe.",
-        helpUrl: "",
       });
+      this.setHelpUrl(getHelpUrlFor(this.type));
     },
   };
 
@@ -1272,8 +1272,8 @@ export function defineBlocks() {
         inputsInline: true,
         output: "Keyframe",
         tooltip: "Set a number and duration for a keyframe.",
-        helpUrl: "",
       });
+      this.setHelpUrl(getHelpUrlFor(this.type));
     },
   };
 
@@ -1308,8 +1308,8 @@ export function defineBlocks() {
         inputsInline: true,
         output: "Keyframe",
         tooltip: "Set an XYZ keyframe with duration.",
-        helpUrl: "",
       });
+      this.setHelpUrl(getHelpUrlFor(this.type));
     },
   };
 
@@ -1375,9 +1375,9 @@ export function defineBlocks() {
         nextStatement: null,
         colour: categoryColours["Animate"],
         tooltip:
-          "Animates an array of keyframes on the selected mesh, with easing, optional looping, and reversing.",
-        helpUrl: "",
+          "Animate an array of keyframes on the selected mesh, with easing, optional looping, and reversing.",
       });
+      this.setHelpUrl(getHelpUrlFor(this.type));
     },
   };
 
@@ -1462,10 +1462,9 @@ export function defineBlocks() {
         nextStatement: null,
         colour: categoryColours["Animate"],
         tooltip:
-          "Creates an animation group for the selected mesh and property, with keyframes, easing, optional looping, and reversing. Choose create, start, or await to control behaviour.",
-        helpUrl: "",
+          "Create an animation group for the selected mesh and property, with keyframes, easing, optional looping, and reversing. Choose create, start, or await to control behaviour.",
       });
-
+      this.setHelpUrl(getHelpUrlFor(this.type));
       this.setOnChange((changeEvent) => {
         handleBlockCreateEvent(
           this,
@@ -1506,9 +1505,9 @@ export function defineBlocks() {
         nextStatement: null,
         colour: categoryColours["Animate"],
         tooltip:
-          "Controls the animation group by playing, pausing, or stopping it.",
-        helpUrl: "",
+          "Control the animation group by playing, pausing, or stopping it.",
       });
+      this.setHelpUrl(getHelpUrlFor(this.type));
     },
   };
 
@@ -1534,9 +1533,9 @@ export function defineBlocks() {
         nextStatement: null,
         colour: categoryColours["Animate"],
         tooltip:
-          "Starts animating the group from the specified time (in seconds).",
-        helpUrl: "",
+          "Start animating the group from the specified time (in seconds).",
       });
+      this.setHelpUrl(getHelpUrlFor(this.type));
     },
   };
 
@@ -1557,9 +1556,9 @@ export function defineBlocks() {
         nextStatement: null,
         colour: categoryColours["Animate"],
         tooltip:
-          "Stop all keyframe animations on the selected model.\nKeyword: stop",
-        helpUrl: "",
+          "Stop all keyframe animations on the selected mesh.\nKeyword: stop",
       });
+      this.setHelpUrl(getHelpUrlFor(this.type));
     },
   };
 
@@ -1594,9 +1593,9 @@ export function defineBlocks() {
         previousStatement: null,
         nextStatement: null,
         colour: categoryColours["Transform"],
-        tooltip: "Sets the pivot point for a mesh on the X, Y, and Z axes",
-        helpUrl: "",
+        tooltip: "Set the pivot point for a mesh on the X, Y, and Z axes",
       });
+      this.setHelpUrl(getHelpUrlFor(this.type));
     },
   };
 
@@ -1619,20 +1618,21 @@ export function defineBlocks() {
         output: "String", // Now returns a symbolic string
         colour: categoryColours["Transform"],
         tooltip: "Choose min, center, or max for the pivot point",
-        helpUrl: "",
       });
+      this.setHelpUrl(getHelpUrlFor(this.type));
     },
   };
 
   const oldInit = Blockly.Blocks["controls_if"].init;
 
   Blockly.Blocks["controls_if"].init = function () {
+    this.setHelpUrl(getHelpUrlFor(this.type));
     // Call the original init function
     oldInit.call(this);
 
     // Override the tooltip after the original init
     this.setTooltip(() => {
-      let tooltip = "Executes actions if a condition is true.";
+      let tooltip = "Execute actions if a condition is true.";
 
       tooltip += ` Drag additional conditions to create else if branches.`;
 
@@ -1658,9 +1658,9 @@ export function defineBlocks() {
         previousStatement: null,
         nextStatement: null,
         colour: categoryColours["Scene"],
-        tooltip: "Sets the sky color of the scene.\nKeyword: sky",
-        helpUrl: "",
+        tooltip: "Set the sky color of the scene.\nKeyword: sky",
       });
+      this.setHelpUrl(getHelpUrlFor(this.type));
 
       this.setOnChange((changeEvent) => {
         if (
@@ -1702,8 +1702,8 @@ export function defineBlocks() {
         colour: categoryColours["Scene"],
         tooltip:
           "Set the intensity of the main light.\nKeyword: light intensity",
-        helpUrl: "",
       });
+      this.setHelpUrl(getHelpUrlFor(this.type));
     },
   };
 
@@ -1739,9 +1739,9 @@ export function defineBlocks() {
         previousStatement: null,
         nextStatement: null,
         colour: categoryColours["Scene"],
-        tooltip: "Configures the scene's fog.\nKeyword: fog",
-        helpUrl: "",
+        tooltip: "Configure the scene's fog.\nKeyword: fog",
       });
+      this.setHelpUrl(getHelpUrlFor(this.type));
     },
   };
 
@@ -1830,10 +1830,10 @@ export function defineBlocks() {
         inputsInline: true,
         colour: categoryColours["Scene"],
         tooltip: "Create a configurable character.\nKeyword: character",
-        helpUrl: "",
         previousStatement: null,
         nextStatement: null,
       });
+      this.setHelpUrl(getHelpUrlFor(this.type));
 
       this.setOnChange((changeEvent) => {
         // Always handle variable naming first (even if mesh is skipped)
@@ -1931,11 +1931,10 @@ export function defineBlocks() {
         inputsInline: true,
         colour: categoryColours["Scene"],
         tooltip: "Create an object.\nKeyword: object",
-        helpUrl: "",
         previousStatement: null,
         nextStatement: null,
       });
-
+      this.setHelpUrl(getHelpUrlFor(this.type));
       // Function to update the COLOR field based on the selected model
       const updateColorField = () => {
         const selectedObject = this.getFieldValue("MODELS");
@@ -2034,11 +2033,10 @@ export function defineBlocks() {
         inputsInline: true,
         colour: categoryColours["Scene"],
         tooltip: "Create an object with colours.\nKeyword: object",
-        helpUrl: "",
         previousStatement: null,
         nextStatement: null,
       });
-
+      this.setHelpUrl(getHelpUrlFor(this.type));
       // Change from a local constant to a method on the block prototype
       Blockly.Blocks["load_multi_object"].updateColorsField = function () {
         const selectedObject = this.getFieldValue("MODELS");
@@ -2249,11 +2247,11 @@ export function defineBlocks() {
         inputsInline: true,
         colour: categoryColours["Scene"],
         tooltip: "Load a model.\nKeyword: model",
-        helpUrl: "",
         previousStatement: null,
         nextStatement: null,
       });
 
+      this.setHelpUrl(getHelpUrlFor(this.type));
       this.setOnChange((changeEvent) => {
         handleBlockCreateEvent(
           this,
@@ -2334,11 +2332,11 @@ export function defineBlocks() {
         ],
         inputsInline: true,
         colour: categoryColours["Text"],
-        tooltip: "Creates 3D text in the scene.",
-        helpUrl: "",
+        tooltip: "Create 3D text in the scene.",
         previousStatement: null,
         nextStatement: null,
       });
+      this.setHelpUrl(getHelpUrlFor(this.type));
     },
   };
 
@@ -2371,10 +2369,10 @@ export function defineBlocks() {
         ],
         colour: categoryColours["Transform"],
         tooltip: "Merge a list of meshes into one and store the result.",
-        helpUrl: "",
         previousStatement: null,
         nextStatement: null,
       });
+      this.setHelpUrl(getHelpUrlFor(this.type));
     },
   };
 
@@ -2402,10 +2400,10 @@ export function defineBlocks() {
         colour: categoryColours["Transform"],
         tooltip:
           "Subtract a list of meshes from a base mesh and store the result.",
-        helpUrl: "",
         previousStatement: null,
         nextStatement: null,
       });
+      this.setHelpUrl(getHelpUrlFor(this.type));
     },
   };
   Blockly.Blocks["intersection_meshes"] = {
@@ -2426,10 +2424,10 @@ export function defineBlocks() {
         ],
         colour: categoryColours["Transform"],
         tooltip: "Intersect a list of meshes and store the resulting geometry.",
-        helpUrl: "",
         previousStatement: null,
         nextStatement: null,
       });
+      this.setHelpUrl(getHelpUrlFor(this.type));
     },
   };
 
@@ -2452,10 +2450,10 @@ export function defineBlocks() {
         colour: categoryColours["Transform"],
         tooltip:
           "Create a convex hull from a list of meshes and store the result.",
-        helpUrl: "",
         previousStatement: null,
         nextStatement: null,
       });
+      this.setHelpUrl(getHelpUrlFor(this.type));
     },
   };
 
@@ -2520,10 +2518,9 @@ export function defineBlocks() {
         nextStatement: null,
         colour: categoryColours["Scene"],
         tooltip:
-          "Creates a wall with the selected type and color between specified start and end positions.\nKeyword: wall",
-        helpUrl: "",
+          "Create a wall with the selected type and color between specified start and end positions.\nKeyword: wall",
       });
-
+      this.setHelpUrl(getHelpUrlFor(this.type));
       this.setOnChange((changeEvent) => {
         if (
           changeEvent.type === Blockly.Events.BLOCK_CREATE ||
@@ -2565,9 +2562,8 @@ export function defineBlocks() {
         nextStatement: null,
         colour: categoryColours["Scene"],
         tooltip: "Set the scene's background color.\nKeyword: background",
-        helpUrl: "",
       });
-
+      this.setHelpUrl(getHelpUrlFor(this.type));
       this.setOnChange((changeEvent) => {
         if (
           changeEvent.type === Blockly.Events.BLOCK_CREATE ||
@@ -2612,8 +2608,8 @@ export function defineBlocks() {
         colour: categoryColours["Scene"],
         tooltip:
           "Use the device camera as the background for the scene. Works on both mobile and desktop.",
-        helpUrl: "",
       });
+      this.setHelpUrl(getHelpUrlFor(this.type));
     },
   };
 
@@ -2638,8 +2634,8 @@ export function defineBlocks() {
         colour: categoryColours["Scene"],
         tooltip:
           "Set the XR mode for the scene.\nOptions: VR, AR, Magic Window.",
-        helpUrl: "",
       });
+      this.setHelpUrl(getHelpUrlFor(this.type));
     },
   };
 
@@ -2659,9 +2655,9 @@ export function defineBlocks() {
         previousStatement: null,
         nextStatement: null,
         colour: "#d3d3d3",
-        tooltip: "A comment line.",
-        helpUrl: "",
+        tooltip: "A comment line to help people understand your code.",
       });
+      this.setHelpUrl(getHelpUrlFor(this.type));
     },
   };
 
@@ -2693,8 +2689,8 @@ export function defineBlocks() {
         nextStatement: null,
         colour: 160,
         tooltip: "A text to the output panel.\nKeyword: print",
-        helpUrl: "",
       });
+      this.setHelpUrl(getHelpUrlFor(this.type));
     },
   };
 
@@ -2763,9 +2759,9 @@ export function defineBlocks() {
         nextStatement: null,
         colour: 160,
         tooltip:
-          "Displays a piece of text as a billboard on a mesh.\nKeyword: say",
-        helpUrl: "",
+          "Display a piece of text as a speech bubble on a mesh.\nKeyword: say",
       });
+      this.setHelpUrl(getHelpUrlFor(this.type));
     },
   };
 
@@ -2790,9 +2786,9 @@ export function defineBlocks() {
         nextStatement: null,
         colour: categoryColours["Animate"],
         tooltip:
-          "Changes the animation of the specified model to the given animation.\nKeyword: switch",
-        helpUrl: "",
+          "Changes the animation of the specified mesh to the given animation.\nKeyword: switch",
       });
+      this.setHelpUrl(getHelpUrlFor(this.type));
     },
   };
 
@@ -2844,8 +2840,8 @@ export function defineBlocks() {
         colour: categoryColours["Text"],
         tooltip:
           "Add text to the UI screen, and store control in a variable for later use or disposal.",
-        helpUrl: "",
       });
+      this.setHelpUrl(getHelpUrlFor(this.type));
     },
   };
 
@@ -2909,9 +2905,9 @@ export function defineBlocks() {
         nextStatement: null,
         colour: categoryColours["Text"],
         tooltip:
-          "Add a button to the UI screen with a preset size, and store control in a variable for later use or disposal.",
-        helpUrl: "",
+          "Add a 2D button to the UI screen with a preset size, and store control in a variable for later use or disposal.",
       });
+      this.setHelpUrl(getHelpUrlFor(this.type));
     },
   };
 
@@ -2936,9 +2932,9 @@ export function defineBlocks() {
         nextStatement: null,
         colour: categoryColours["Animate"],
         tooltip:
-          "Plays a selected animation once on the specified model.\nKeyword: play",
-        helpUrl: "",
+          "Play the selected animation once on the specified mesh.\nKeyword: play",
       });
+      this.setHelpUrl(getHelpUrlFor(this.type));
     },
   };
 
@@ -2977,7 +2973,7 @@ export function defineBlocks() {
         colour: categoryColours["Transform"],
         inputsInline: true,
         tooltip:
-          "Moves a mesh a given amount in x y and z directions.\nKeyword: move",
+          "Move a mesh a given amount in x y and z directions.\nKeyword: move",
       });
     },
   };
@@ -3004,7 +3000,7 @@ export function defineBlocks() {
         colour: categoryColours["Transform"],
         inputsInline: true,
         tooltip:
-          "Sets a parent-child relationship between two meshes and keeps the child in its world position",
+          "Set a parent-child relationship between two meshes and keeps the child in its world position",
       });
     },
   };
@@ -3046,7 +3042,7 @@ export function defineBlocks() {
         colour: categoryColours["Transform"],
         inputsInline: true,
         tooltip:
-          "Sets a parent-child relationship between two meshes with a specified offset in x, y, and z directions.\nKeyword: parent, child, offset, remove",
+          "Set a parent-child relationship between two meshes with a specified offset in x, y, and z directions.\nKeyword: parent, child, offset, remove",
       });
     },
   };
@@ -3067,7 +3063,7 @@ export function defineBlocks() {
         nextStatement: null,
         colour: categoryColours["Transform"],
         tooltip:
-          "Removes the parent relationship from the specified mesh.\nKeyword: remove, parent, child",
+          "Remove the parent relationship from the specified mesh.\nKeyword: remove, parent, child",
       });
     },
   };
@@ -3087,7 +3083,7 @@ export function defineBlocks() {
         previousStatement: null,
         nextStatement: null,
         colour: categoryColours["Transform"],
-        tooltip: "Stops the specified mesh from following another.\nKeyword: ",
+        tooltip: "Stop the specified mesh from following another.\nKeyword: ",
       });
     },
   };
@@ -3132,7 +3128,7 @@ export function defineBlocks() {
         colour: categoryColours["Transform"],
         inputsInline: true,
         tooltip:
-          "Attaches a mesh to the specified bone of another mesh with a specified offset in x, y, and z directions.\nKeyword: attach, bone, mesh, offset",
+          "Attach a mesh to the specified bone of another mesh with a specified offset in x, y, and z directions.\nKeyword: attach, bone, mesh, offset",
       });
     },
   };
@@ -3154,7 +3150,7 @@ export function defineBlocks() {
         colour: categoryColours["Transform"],
         inputsInline: true,
         tooltip:
-          "Detaches a mesh from its currently attached bone.\nKeyword: detach, bone, mesh",
+          "Detach a mesh from its currently attached bone.\nKeyword: detach, bone, mesh",
       });
     },
   };
@@ -3205,7 +3201,7 @@ export function defineBlocks() {
         colour: categoryColours["Transform"],
         inputsInline: true,
         tooltip:
-          "Makes one mesh follow another at a specified position (top, center, or bottom) with offset in x, y, and z directions.",
+          "Make one mesh follow another at a specified position (top, center, or bottom) with offset in x, y, and z directions.",
       });
     },
   };
@@ -3269,7 +3265,7 @@ export function defineBlocks() {
         colour: categoryColours["Transform"],
         inputsInline: true,
         tooltip:
-          "Resizes a mesh to the given x, y, and z and controls the origin of scaling.",
+          "Resize a mesh to the given x, y, and z and controls the origin of scaling.",
       });
     },
   };
@@ -3333,7 +3329,7 @@ export function defineBlocks() {
         colour: categoryColours["Transform"],
         inputsInline: true,
         tooltip:
-          "Resizes a mesh to the given x, y, and z and controls the origin of scaling.",
+          "Resize a mesh to the given x, y, and z and controls the origin of scaling.",
       });
     },
   };
@@ -3372,9 +3368,9 @@ export function defineBlocks() {
         colour: categoryColours["Transform"],
         inputsInline: true,
         tooltip:
-          "Rotates the model based on its current rotation plus additional x, y, z values.\nKeyword: rotate",
-        helpUrl: "",
+          "Rotate the mesh based on its current rotation plus additional x, y, z values.\nKeyword: rotate",
       });
+      this.setHelpUrl(getHelpUrlFor(this.type));
     },
   };
 
@@ -3406,9 +3402,9 @@ export function defineBlocks() {
         colour: categoryColours["Transform"],
         inputsInline: true,
         tooltip:
-          "Rotates the first model towards the position of the second model.\nKeyword: look",
-        helpUrl: "",
+          "Rotate the first mesh towards the position of the second mesh.\nKeyword: look",
       });
+      this.setHelpUrl(getHelpUrlFor(this.type));
     },
   };
 
@@ -3440,9 +3436,9 @@ export function defineBlocks() {
         colour: categoryColours["Transform"],
         inputsInline: true,
         tooltip:
-          "Teleports the first model to the location of the second model.",
-        helpUrl: "",
+          "Teleport the first mesh to the location of the second mesh.",
       });
+      this.setHelpUrl(getHelpUrlFor(this.type));
     },
   };
 
@@ -3480,9 +3476,9 @@ export function defineBlocks() {
         nextStatement: null,
         colour: categoryColours["Transform"],
         inputsInline: true,
-        tooltip: "Rotates the model to face the specified coordinates.",
-        helpUrl: "",
+        tooltip: "Rotate the mesh to face the specified coordinates.",
       });
+      this.setHelpUrl(getHelpUrlFor(this.type));
     },
   };
 
@@ -3527,9 +3523,9 @@ export function defineBlocks() {
         colour: categoryColours["Transform"],
         inputsInline: true,
         tooltip:
-          "Positions the model at the specified coordinates. Optionally, use the Y axis.",
-        helpUrl: "",
+          "Position the mesh at the specified coordinates. Optionally, use the Y axis.",
       });
+      this.setHelpUrl(getHelpUrlFor(this.type));
     },
   };
 
@@ -3542,9 +3538,9 @@ export function defineBlocks() {
         output: "Number",
         colour: categoryColours["Sensing"], // Adjust the colour category as necessary
         inputsInline: true,
-        tooltip: "Returns the current time in seconds.",
-        helpUrl: "",
+        tooltip: "Return the current time in seconds.",
       });
+      this.setHelpUrl(getHelpUrlFor(this.type));
     },
   };
 
@@ -3568,9 +3564,9 @@ export function defineBlocks() {
         output: "Number",
         colour: categoryColours["Sensing"],
         inputsInline: true,
-        tooltip: "Calculates the distance between two meshes.",
-        helpUrl: "",
+        tooltip: "Calculate the distance between two meshes.",
       });
+      this.setHelpUrl(getHelpUrlFor(this.type));
     },
   };
 
@@ -3615,10 +3611,10 @@ export function defineBlocks() {
         ],
         previousStatement: null,
         nextStatement: null,
-        colour: categoryColours["Transform"],
+        colour: categoryColours["Scene"],
         tooltip: "Bind a specific key to a camera control action.",
-        helpUrl: "",
       });
+      this.setHelpUrl(getHelpUrlFor(this.type));
     },
   };
 
@@ -3636,10 +3632,10 @@ export function defineBlocks() {
         ],
         previousStatement: null,
         nextStatement: null,
-        colour: categoryColours["Transform"],
-        tooltip: "Gets the current scene camera",
-        helpUrl: "",
+        colour: categoryColours["Scene"],
+        tooltip: "Get the current scene camera",
       });
+      this.setHelpUrl(getHelpUrlFor(this.type));
     },
   };
 
@@ -3705,10 +3701,10 @@ export function defineBlocks() {
         nextStatement: null,
         colour: categoryColours["Sound"],
         tooltip:
-          "Plays the selected sound on a mesh with adjustable speed, volume, and mode.\nKeyword: sound",
-        helpUrl: "",
+          "Play the selected sound on a mesh with adjustable speed, volume, and mode.\nKeyword: sound",
         extensions: ["dynamic_mesh_dropdown"], // Attach the extension
       });
+      this.setHelpUrl(getHelpUrlFor(this.type));
     },
   };
 
@@ -3737,9 +3733,9 @@ export function defineBlocks() {
         nextStatement: null,
         colour: categoryColours["Sound"],
         tooltip:
-          "Stops all sounds currently playing in the scene.\nKeyword:nosound",
-        helpUrl: "",
+          "Stop all sounds currently playing in the scene.\nKeyword:nosound",
       });
+      this.setHelpUrl(getHelpUrlFor(this.type));
     },
   };
 
@@ -3760,9 +3756,9 @@ export function defineBlocks() {
         ],
         output: "Number",
         colour: categoryColours["Sound"],
-        tooltip: "Represents a MIDI note value between 0 and 127.",
-        helpUrl: "",
+        tooltip: "A MIDI note value between 0 and 127.",
       });
+      this.setHelpUrl(getHelpUrlFor(this.type));
     },
   };
 
@@ -3773,9 +3769,9 @@ export function defineBlocks() {
         message0: "rest",
         output: "Null",
         colour: categoryColours["Sound"],
-        tooltip: "Represents a rest (silence) in a musical sequence.",
-        helpUrl: "",
+        tooltip: "A rest (silence) in a musical sequence.",
       });
+      this.setHelpUrl(getHelpUrlFor(this.type));
     },
   };
 
@@ -3820,9 +3816,9 @@ export function defineBlocks() {
         nextStatement: null,
         colour: categoryColours["Sound"],
         tooltip:
-          "Plays a sequence of MIDI notes and rests with corresponding durations, using mesh for panning. Can return immediately or after the notes have finished playing.",
-        helpUrl: "",
+          "Play a sequence of MIDI notes and rests with corresponding durations, using mesh for panning. Can return immediately or after the notes have finished playing.",
       });
+      this.setHelpUrl(getHelpUrlFor(this.type));
     },
   };
 
@@ -3842,9 +3838,9 @@ export function defineBlocks() {
         previousStatement: null,
         nextStatement: null,
         colour: categoryColours["Sound"], // Assuming "Sound" category
-        tooltip: "Sets the BPM for the entire scene",
-        helpUrl: "",
+        tooltip: "Set the BPM for the entire scene",
       });
+      this.setHelpUrl(getHelpUrlFor(this.type));
     },
   };
 
@@ -3869,9 +3865,9 @@ export function defineBlocks() {
         previousStatement: null,
         nextStatement: null,
         colour: categoryColours["Sound"], // Assuming "Sound" category
-        tooltip: "Sets the BPM for a selected mesh",
-        helpUrl: "",
+        tooltip: "Set the BPM for a selected mesh",
       });
+      this.setHelpUrl(getHelpUrlFor(this.type));
     },
   };
 
@@ -3945,10 +3941,9 @@ export function defineBlocks() {
         nextStatement: null,
         colour: categoryColours["Sound"],
         tooltip:
-          "Creates an instrument and assigns it to the selected variable.",
-        helpUrl: "",
+          "Create an instrument and assigns it to the selected variable.",
       });
-
+      this.setHelpUrl(getHelpUrlFor(this.type));
       this.setOnChange((changeEvent) => {
         handleBlockCreateEvent(
           this,
@@ -3980,8 +3975,8 @@ export function defineBlocks() {
         output: "Instrument",
         colour: categoryColours["Sound"],
         tooltip: "Select an instrument to use for playing notes.",
-        helpUrl: "",
       });
+      this.setHelpUrl(getHelpUrlFor(this.type));
     },
   };
 
@@ -4031,9 +4026,10 @@ export function defineBlocks() {
         ],
         colour: categoryColours["Events"],
         tooltip:
-          "Executes the blocks inside when the specified model trigger occurs.\nKeyword: click",
-        helpUrl: "",
+          "Execute the blocks inside when the specified mesh trigger occurs.\nKeyword: click",
+        
       });
+      this.setHelpUrl(getHelpUrlFor(this.type));
 
       // Default to top-level mode
       this.isInline = false;
@@ -4116,10 +4112,9 @@ export function defineBlocks() {
         ],
         colour: categoryColours["Events"],
         tooltip:
-          "Executes the enclosed blocks each frame in the render loop.\nKeyword: ever",
-        helpUrl: "",
+          "Execute the enclosed blocks each frame in the render loop.\nKeyword: ever",
       });
-
+      this.setHelpUrl(getHelpUrlFor(this.type));
       this.isInline = false;
       addToggleButton(this);
     },
@@ -4187,10 +4182,10 @@ export function defineBlocks() {
         ],
         colour: categoryColours["Events"],
         tooltip:
-          "Executes the blocks inside when the mesh intersects or no longer intersects with another mesh.\nKeyword: touches",
-        helpUrl: "",
+          "Execute the blocks inside when the mesh intersects or no longer intersects with another mesh.\nKeyword: collide",
+       
       });
-
+      this.setHelpUrl(getHelpUrlFor(this.type));
       // Set default state to top-level block
       this.isInline = false;
 
@@ -4266,8 +4261,8 @@ export function defineBlocks() {
         nextStatement: null,
         colour: categoryColours["Control"],
         tooltip: "Declare a local version of a selected variable",
-        helpUrl: "",
       });
+      this.setHelpUrl(getHelpUrlFor(this.type));
     },
   };
 
@@ -4346,10 +4341,9 @@ export function defineBlocks() {
         ],
         colour: categoryColours["Events"],
         tooltip:
-          "Executes the blocks inside when the specified key is pressed or released.",
-        helpUrl: "",
+          "Execute the blocks inside when the specified key is pressed or released.",
       });
-
+      this.setHelpUrl(getHelpUrlFor(this.type));
       addToggleButton(this);
     },
     mutationToDom: function () {
@@ -4399,8 +4393,8 @@ export function defineBlocks() {
         colour: categoryColours["Events"],
         tooltip:
           "Broadcast an event that can be handled with on event.\nKeyword: broadcast",
-        helpUrl: "",
       });
+      this.setHelpUrl(getHelpUrlFor(this.type));
     },
   };
   // Block definition for on_event
@@ -4425,8 +4419,8 @@ export function defineBlocks() {
         ],
         colour: categoryColours["Events"],
         tooltip: "Handle a broadcast event.\nKeyword: on",
-        helpUrl: "",
       });
+      this.setHelpUrl(getHelpUrlFor(this.type));
       addToggleButton(this);
     },
     mutationToDom: function () {
@@ -4481,9 +4475,9 @@ export function defineBlocks() {
         previousStatement: null,
         nextStatement: null,
         colour: categoryColours["Materials"],
-        tooltip: "Changes the color of the selected model.\nKeyword: colour",
-        helpUrl: "",
+        tooltip: "Change the color of the selected mesh.\nKeyword: colour",
       });
+      this.setHelpUrl(getHelpUrlFor(this.type));
     },
   };
 
@@ -4523,11 +4517,11 @@ export function defineBlocks() {
         inputsInline: true,
         colour: categoryColours["Materials"],
         tooltip:
-          "Apply a selected material with a colour tint to the specified object.\nKeyword: material",
-        helpUrl: "",
+          "Apply a selected material with a colour tint to the specified mesh.\nKeyword: material",
         previousStatement: null,
         nextStatement: null,
       });
+      this.setHelpUrl(getHelpUrlFor(this.type));
     },
   };
 
@@ -4580,8 +4574,8 @@ export function defineBlocks() {
         colour: categoryColours["Materials"],
         tooltip:
           "Create a material with text or emoji, specifying width, height, background color, and text size.",
-        helpUrl: "",
       });
+      this.setHelpUrl(getHelpUrlFor(this.type));
     },
   };
 
@@ -4605,8 +4599,8 @@ export function defineBlocks() {
         nextStatement: null,
         colour: categoryColours["Materials"],
         tooltip: "Place a decal on a mesh using the selected material.",
-        helpUrl: "",
       });
+      this.setHelpUrl(getHelpUrlFor(this.type));
     },
   };
 
@@ -4678,8 +4672,8 @@ export function defineBlocks() {
         colour: categoryColours["Materials"],
         tooltip:
           "Create a decal on a mesh with position, normal, size, and material.",
-        helpUrl: "",
       });
+      this.setHelpUrl(getHelpUrlFor(this.type));
     },
   };
 
@@ -4705,9 +4699,9 @@ export function defineBlocks() {
         previousStatement: null,
         nextStatement: null,
         colour: categoryColours["Materials"],
-        tooltip: "Highlights the selected model.\nKeyword: highlight",
-        helpUrl: "",
+        tooltip: "Highlight the selected mesh.\nKeyword: highlight",
       });
+      this.setHelpUrl(getHelpUrlFor(this.type));
     },
   };
 
@@ -4727,9 +4721,9 @@ export function defineBlocks() {
         previousStatement: null,
         nextStatement: null,
         colour: categoryColours["Materials"],
-        tooltip: "Adds a glow effect to the selected model.\nKeyword: glow",
-        helpUrl: "",
+        tooltip: "Adds a glow effect to the selected mesh.\nKeyword: glow",
       });
+      this.setHelpUrl(getHelpUrlFor(this.type));
     },
   };
 
@@ -4756,8 +4750,8 @@ export function defineBlocks() {
         nextStatement: null,
         colour: categoryColours["Materials"],
         tooltip: "Add colour tint effect.\nKeyword: tint",
-        helpUrl: "",
       });
+      this.setHelpUrl(getHelpUrlFor(this.type));
     },
   };
 
@@ -4783,9 +4777,9 @@ export function defineBlocks() {
         nextStatement: null,
         colour: categoryColours["Materials"],
         tooltip:
-          "Sets the alpha (transparency) of the material(s) on a specified mesh. Values should be 0 to 1.\nKeyword:alpha",
-        helpUrl: "",
+          "Set the alpha (transparency) of the material(s) on a specified mesh. Values should be 0 to 1.\nKeyword:alpha",
       });
+      this.setHelpUrl(getHelpUrlFor(this.type));
     },
   };
 
@@ -4805,9 +4799,9 @@ export function defineBlocks() {
         previousStatement: null,
         nextStatement: null,
         colour: categoryColours["Materials"],
-        tooltip: "Clear visual effects from selected model.\nKeyword: clear",
-        helpUrl: "",
+        tooltip: "Clear visual effects from selected mesh.\nKeyword: clear",
       });
+      this.setHelpUrl(getHelpUrlFor(this.type));
     },
   };
 
@@ -4835,11 +4829,11 @@ export function defineBlocks() {
         ],
         previousStatement: null,
         nextStatement: null,
-        colour: categoryColours["Transform"],
+        colour: categoryColours["Scene"],
         tooltip:
-          "Makes the camera follow a model with a customizable distance (radius) from the target.\nKeyword: follow",
-        helpUrl: "",
+          "Make the camera follow a mesh with a customizable distance (radius) from the target.\nKeyword: follow",
       });
+      this.setHelpUrl(getHelpUrlFor(this.type));
     },
   };
 
@@ -4870,9 +4864,9 @@ export function defineBlocks() {
         nextStatement: null,
         colour: categoryColours["Transform"],
         tooltip:
-          "Adds physics to the mesh. Choose between static, dynamic, and animated.\nKeyword:physics",
-        helpUrl: "",
+          "Add physics to the mesh. Choose between static, dynamic, and animated.\nKeyword:physics",
       });
+      this.setHelpUrl(getHelpUrlFor(this.type));
     },
   };
 
@@ -4902,12 +4896,10 @@ export function defineBlocks() {
         colour: categoryColours["Transform"],
         tooltip:
           "Add a physics shape to the mesh. Options are capsule or mesh.\nKeyword:physics",
-        helpUrl: "",
       });
+      this.setHelpUrl(getHelpUrlFor(this.type));
     },
   };
-
- 
 
   Blockly.Blocks["key_pressed"] = {
     init: function () {
@@ -4935,9 +4927,9 @@ export function defineBlocks() {
         output: "Boolean",
         colour: categoryColours["Sensing"],
         tooltip:
-          "Returns true if the specified key is pressed.\nKeyword:ispressed",
-        helpUrl: "",
+          "Return true if the specified key is pressed.\nKeyword:ispressed",
       });
+      this.setHelpUrl(getHelpUrlFor(this.type));
     },
   };
 
@@ -4961,9 +4953,9 @@ export function defineBlocks() {
         output: "Boolean",
         colour: categoryColours["Sensing"],
         tooltip:
-          "Returns true if the two selected meshes are touching, with retries for loading.\nKeyword: istouching",
-        helpUrl: "",
+          "Return true if the two selected meshes are touching.\nKeyword: istouching",
       });
+      this.setHelpUrl(getHelpUrlFor(this.type));
     },
   };
 
@@ -4998,9 +4990,9 @@ export function defineBlocks() {
         nextStatement: null,
         colour: categoryColours["Transform"],
         tooltip:
-          "Moves the model in the specified direction. 'Forward' moves it in the direction it's pointing, 'sideways' moves it relative to the camera's direction, and 'strafe' moves it sideways relative to the camera's direction.",
-        helpUrl: "",
+          "Move the mesh in the specified direction. 'Forward' moves it in the direction it's pointing, 'sideways' moves it relative to the camera's direction, and 'strafe' moves it sideways relative to the camera's direction.",
       });
+      this.setHelpUrl(getHelpUrlFor(this.type));
     },
   };
 
@@ -5021,9 +5013,9 @@ export function defineBlocks() {
         nextStatement: null,
         colour: categoryColours["Transform"],
         tooltip:
-          "Rotates the camera left or right by the given degrees.\nKeyword: rotate",
-        helpUrl: "",
+          "Rotate the camera left or right by the given degrees.\nKeyword: rotate",
       });
+      this.setHelpUrl(getHelpUrlFor(this.type));
     },
   };
 
@@ -5059,8 +5051,8 @@ export function defineBlocks() {
         nextStatement: null,
         colour: categoryColours["Transform"],
         tooltip: "Apply a force to a mesh in XYZ directions.\nKeyword: force",
-        helpUrl: "",
       });
+      this.setHelpUrl(getHelpUrlFor(this.type));
     },
   };
 
@@ -5085,8 +5077,8 @@ export function defineBlocks() {
         nextStatement: null,
         colour: categoryColours["Transform"],
         tooltip: "Apply the specified upwards force.\nKeyword: up",
-        helpUrl: "",
       });
+      this.setHelpUrl(getHelpUrlFor(this.type));
     },
   };
 
@@ -5104,9 +5096,9 @@ export function defineBlocks() {
         ],
         output: "Boolean",
         colour: categoryColours["Sensing"],
-        tooltip: "Check if the model is touching a surface.\nKeyword: surface",
-        helpUrl: "",
+        tooltip: "Check if the mesh is touching a surface.\nKeyword: surface",
       });
+      this.setHelpUrl(getHelpUrlFor(this.type));
     },
   };
 
@@ -5125,8 +5117,8 @@ export function defineBlocks() {
         output: "Colour",
         colour: categoryColours["Materials"],
         tooltip: "Pick a colour.\nKeyword: color",
-        helpUrl: "",
       });
+      this.setHelpUrl(getHelpUrlFor(this.type));
     },
   };
 
@@ -5174,8 +5166,8 @@ export function defineBlocks() {
         output: "Colour",
         colour: categoryColours["Materials"],
         tooltip: "Pick a skin colour.\nKeyword: skin",
-        helpUrl: "",
       });
+      this.setHelpUrl(getHelpUrlFor(this.type));
     },
   };
 
@@ -5221,8 +5213,8 @@ export function defineBlocks() {
         output: "Colour",
         colour: categoryColours["Materials"], // You can set this to any colour category you prefer
         tooltip: "Pick a greyscale colour for elevation.\nKeyword: grey",
-        helpUrl: "",
       });
+      this.setHelpUrl(getHelpUrlFor(this.type));
     },
   };
 
@@ -5256,8 +5248,8 @@ export function defineBlocks() {
         output: "Colour",
         colour: categoryColours["Materials"],
         tooltip: "Generate a random colour.\nKeyword: randcol",
-        helpUrl: "",
       });
+      this.setHelpUrl(getHelpUrlFor(this.type));
     },
   };
 
@@ -5303,8 +5295,8 @@ export function defineBlocks() {
         inputsInline: true,
         colour: categoryColours["Materials"],
         tooltip: "Define material properties",
-        helpUrl: "",
       });
+      this.setHelpUrl(getHelpUrlFor(this.type));
     },
   };
 
@@ -5333,76 +5325,8 @@ export function defineBlocks() {
         inputsInline: true,
         colour: categoryColours["Materials"],
         tooltip: "Define material properties",
-        helpUrl: "",
       });
-    },
-  };
-
-  Blockly.Blocks["material2"] = {
-    init: function () {
-      this.jsonInit({
-        type: "material",
-        message0:
-          "material %1 emissive %2 texture %3 \nmetallic %4 roughness %5 alpha %6",
-        args0: [
-          {
-            type: "input_value",
-            name: "BASE_COLOR",
-            colour: "#ffffff", // Default to white
-          },
-          {
-            type: "input_value",
-            name: "EMISSIVE_COLOR",
-            colour: "#000000", // Default to black (no emission)
-          },
-          {
-            type: "field_grid_dropdown",
-            name: "TEXTURE_SET",
-            columns: 4,
-            options: materialNames.map((name) => {
-              const baseName = name.replace(/\.[^/.]+$/, "");
-              return [
-                {
-                  src: `./textures/${baseName}.png`,
-                  width: 50,
-                  height: 50,
-                  alt: baseName,
-                },
-                name,
-              ];
-            }),
-          },
-          {
-            type: "input_value",
-            name: "METALLIC",
-            value: 0,
-            min: 0,
-            max: 1,
-            precision: 0.01,
-          },
-          {
-            type: "input_value",
-            name: "ROUGHNESS",
-            value: 1,
-            min: 0,
-            max: 1,
-            precision: 0.01,
-          },
-          {
-            type: "input_value",
-            name: "ALPHA",
-            value: 1,
-            min: 0,
-            max: 1,
-            precision: 0.01,
-          },
-        ],
-        output: "Material",
-        inputsInline: true,
-        colour: categoryColours["Materials"],
-        tooltip: "Define material properties",
-        helpUrl: "",
-      });
+      this.setHelpUrl(getHelpUrlFor(this.type));
     },
   };
 
@@ -5428,8 +5352,8 @@ export function defineBlocks() {
         inputsInline: true,
         colour: categoryColours["Materials"],
         tooltip: "Set the specified material on the given mesh.",
-        helpUrl: "",
       });
+      this.setHelpUrl(getHelpUrlFor(this.type));
     },
   };
 
@@ -5462,8 +5386,8 @@ export function defineBlocks() {
         output: "Number",
         colour: 230,
         tooltip: "Generate a random integer with a seed.\n Keyword: seed",
-        helpUrl: "",
       });
+      this.setHelpUrl(getHelpUrlFor(this.type));
     },
   };
 
@@ -5490,9 +5414,9 @@ export function defineBlocks() {
         inputsInline: true,
         output: "Number",
         colour: 230,
-        tooltip: "Converts a string to an integer or float.",
-        helpUrl: "",
+        tooltip: "Convert a string to an integer or float.",
       });
+      this.setHelpUrl(getHelpUrlFor(this.type));
     },
   };
 
@@ -5503,7 +5427,7 @@ export function defineBlocks() {
         "KEYWORD",
       );
       this.setTooltip("Type a keyword to change this block.");
-      this.setHelpUrl("");
+      this.setHelpUrl(getHelpUrlFor(this.type));
 
       this.setOnChange(function (changeEvent) {
         // Prevent infinite loops or multiple replacements.
@@ -5674,9 +5598,9 @@ Blockly.Blocks["export_mesh"] = {
       previousStatement: null,
       nextStatement: null,
       colour: categoryColours["Scene"],
-      tooltip: "Exports a mesh as STL, OBJ, or GLB.",
-      helpUrl: "",
+      tooltip: "Export a mesh as STL, OBJ, or GLB.",
     });
+    this.setHelpUrl(getHelpUrlFor(this.type));
   },
 };
 
@@ -5876,8 +5800,8 @@ Blockly.Blocks["for_loop2"] = {
       inputsInline: true,
       tooltip:
         "Loop from a starting number to an ending number by a given step.",
-      helpUrl: "",
     });
+    this.setHelpUrl(getHelpUrlFor(this.type));
   },
 
   // Returns an array of local variable names.
@@ -5942,8 +5866,8 @@ Blockly.Blocks["for_loop"] = {
       inputsInline: true,
       tooltip:
         "Loop from a starting number to an ending number by a given step. Click on the dropdown to get the loop variable to use in your code.",
-      helpUrl: "",
     });
+    this.setHelpUrl(getHelpUrlFor(this.type));
   },
 
   // Returns an array of local variable names.
@@ -6032,8 +5956,8 @@ Blockly.Blocks["get_lexical_variable"] = {
       output: null,
       colour: categoryColours["Variables"],
       tooltip: "Get the value of a lexical variable",
-      helpUrl: "",
     });
+    this.setHelpUrl(getHelpUrlFor(this.type));
 
     // Initialize with a null variable source ID.
     this.variableSourceId = null;
@@ -6366,9 +6290,8 @@ Blockly.Blocks["microbit_input"] = {
       colour: categoryColours["Sensing"],
       tooltip:
         "Executes the blocks inside when a specified micro:bit event is triggered.",
-      helpUrl: "",
     });
-
+    this.setHelpUrl(getHelpUrlFor(this.type));
     addToggleButton(this);
   },
   mutationToDom: function () {

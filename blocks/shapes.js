@@ -7,6 +7,7 @@ import {
   handleMeshLifecycleChange,
   handleFieldOrChildChange,
   addDoMutatorWithToggleBehavior,
+  getHelpUrlFor,
 } from "../blocks.js";
 import { updateOrCreateMeshFromBlock } from "../ui/designview.js";
 
@@ -58,8 +59,8 @@ export function defineShapeBlocks() {
 						inputsInline: true,
 						colour: categoryColours["Scene"],
 						tooltip: tooltip,
-						helpUrl: "",
 					});
+					this.setHelpUrl(getHelpUrlFor(this.type));
 					// Set up the change handler.
 					this.setOnChange((changeEvent) =>
 						handleBlockChange(
@@ -117,9 +118,9 @@ export function defineShapeBlocks() {
 	Blockly.Blocks["create_particle_effect"] = {
 		init: function () {
 			this.jsonInit({
-				message0: `set %1 to particle effect with emitter mesh: %2 
-		  shape: %3 colors: start %4 end %5 alpha: %6 to %7 
-		  with rate: %8 size: %9 to %10 lifetime: %11 to %12 
+				message0: `set %1 to particle effect from: %2 
+		  shape: %3 start %4 end %5 alpha: %6 to %7 
+		  rate: %8 size: %9 to %10 lifetime: %11 to %12 
 		  gravity: %13 force x: %14 y: %15 z: %16 
 		  angular speed: %17 to %18 initial angle: %19 to %20`,
 				args0: [
@@ -400,10 +401,10 @@ export function defineShapeBlocks() {
 				colour: categoryColours["Scene"],
 				tooltip:
 					"Create a particle effect attached to a mesh with configurable shape, gravity, size, colour, transparency, lifetime, force, and rotation.",
-				helpUrl: "",
 				previousStatement: null,
 				nextStatement: null,
 			});
+			this.setHelpUrl(getHelpUrlFor(this.type));
 		},
 	};
 
@@ -416,7 +417,7 @@ export function defineShapeBlocks() {
 					{
 						type: "field_variable",
 						name: "SYSTEM_NAME",
-						variable: "particles1",
+						variable: window.currentMesh,
 					},
 					{
 						type: "field_dropdown",
@@ -433,9 +434,10 @@ export function defineShapeBlocks() {
 				nextStatement: null,
 				colour: categoryColours["Scene"],
 				tooltip:
-					"Controls the particle system by starting, stopping, or resetting it.",
+					"Control the particle system by starting, stopping, or resetting it.",
 				helpUrl: "",
 			});
+		this.setHelpUrl(getHelpUrlFor(this.type));
 		},
 	};
 
@@ -451,7 +453,7 @@ export function defineShapeBlocks() {
 				{ type: "input_value", name: "DEPTH", check: "Number" },
 			],
 			tooltip:
-				"Creates a colored box with specified dimensions and position.\nKeyword: box",
+				"Create a colored box with specified dimensions and position.\nKeyword: box",
 		},
 		{
 			type: "create_sphere",
@@ -464,7 +466,7 @@ export function defineShapeBlocks() {
 				{ type: "input_value", name: "DIAMETER_Z", check: "Number" },
 			],
 			tooltip:
-				"Creates a colored sphere with specified dimensions and position.\nKeyword: sphere",
+				"Create a colored sphere with specified dimensions and position.\nKeyword: sphere",
 		},
 		{
 			type: "create_cylinder",
@@ -482,7 +484,7 @@ export function defineShapeBlocks() {
 				{ type: "input_value", name: "TESSELLATIONS", check: "Number" },
 			],
 			tooltip:
-				"Creates a colored cylinder with specified dimensions and position.\nKeyword: cylinder",
+				"Create a colored cylinder with specified dimensions and position.\nKeyword: cylinder",
 		},
 		{
 			type: "create_capsule",
@@ -494,7 +496,7 @@ export function defineShapeBlocks() {
 				{ type: "input_value", name: "HEIGHT", check: "Number" },
 			],
 			tooltip:
-				"Creates a colored capsule with specified dimensions and position.\nKeyword: capsule",
+				"Create a colored capsule with specified dimensions and position.\nKeyword: capsule",
 		},
 		{
 			type: "create_plane",
@@ -506,7 +508,7 @@ export function defineShapeBlocks() {
 				{ type: "input_value", name: "HEIGHT", check: "Number" },
 			],
 			tooltip:
-				"Creates a colored 2D plane with specified width, height, and position.\nKeyword: plane",
+				"Create a colored 2D plane with specified width, height, and position.\nKeyword: plane",
 		},
 	];
 
