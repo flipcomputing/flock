@@ -1,6 +1,6 @@
 // Flock - Creative coding in 3D
 // Dr Tracy Gardner - https://github.com/tracygardner
-// Flip whnComputing Limited - flipcomputing.com
+// Flip Computing Limited - flipcomputing.com
 
 import HavokPhysics from "@babylonjs/havok";
 import * as BABYLON from "@babylonjs/core";
@@ -50,7 +50,7 @@ import { flockCamera, setFlockReference as setFlockCamera } from "./api/camera";
 console.log("Flock helpers loading");
 
 export const flock = {
-	callbackMode: false,
+	callbackMode: true,
 	memoryDebug: false,
 	maxMeshes: 5000,
 	console: console,
