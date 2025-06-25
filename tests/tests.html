@@ -45,6 +45,7 @@
         <option value="effects">Effects Tests</option>
         <option value="animate">Animation API Tests</option>
         <option value="concurrency">Concurrency Tests</option>
+        <option value="blocks">Block Tests</option>
         <option value="all">Run All Tests</option>
       </select>
       <button id="runTestBtn" style="padding: 5px 15px;">Run Tests</button>
@@ -65,14 +66,15 @@
       import { runStressTests } from "./boxes.test.js";
       import { runCreateObjectTests } from "./objects.test.js";
       import { runSoundTests } from "./sound.test.js";
-       import { runTranslationTests } from "./transform.translate.test.js";
+      import { runTranslationTests } from "./transform.translate.test.js";
       import { runRotationTests } from "./transform.rotate.test.js";
-       import { runScaleTests } from "./transform.scale.test.js";
+      import { runScaleTests } from "./transform.scale.test.js";
       import { runMaterialsTests } from "./materials.test.js";
-       import { runPhysicsTests } from "./physics.test.js";
+      import { runPhysicsTests } from "./physics.test.js";
       import { runEffectsTests } from "./effects.test.js";
       import { runAnimateTests } from "./animate.test.js";
-	  import { runConcurrencyTests } from "./concurrency.test.js";
+	    import { runConcurrencyTests } from "./concurrency.test.js";
+	    import { runBlocksTests } from "./blocks.test.js";
 
       const flock = flockmodule.flock;
       flock.modelPath = "../models/";
@@ -127,7 +129,8 @@
         physics: () => runPhysicsTests(flock),
         effects: () => runEffectsTests(flock),
         animate: () => runAnimateTests(flock),
-		concurrency: () => runConcurrencyTests(flock),
+		    concurrency: () => runConcurrencyTests(flock),
+        blocks: () => runBlocksTests(),
         all: () => {
           runTests(flock, chai.expect);
           runGlideToTests(flock);
@@ -142,7 +145,8 @@
           runPhysicsTests(flock);
           runEffectsTests(flock);
           runAnimateTests(flock);
-		  runConcurrencyTests(flock);
+		      runConcurrencyTests(flock);
+          runBlocksTests();
         }
       };
 
