@@ -328,6 +328,7 @@ export const options = {
     wheel: true,
   },
   toolbox: toolbox,
+  oneBasedIndex: false,
   searchAllBlocks: false,
   plugins: {
     connectionPreviewer: BlockDynamicConnection.decoratePreviewer(),
