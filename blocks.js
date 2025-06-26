@@ -4,12 +4,6 @@ import * as BlockDynamicConnection from "@blockly/block-dynamic-connection";
 import { categoryColours, toolbox } from "./toolbox.js";
 import {
   audioNames,
-  characterNames,
-  objectNames,
-  multiObjectNames,
-  objectColours,
-  mapNames,
-  modelNames,
   animationNames,
   materialNames,
 } from "./config.js";
