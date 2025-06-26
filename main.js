@@ -25,6 +25,11 @@ import {
 } from "./blocks";
 import { defineBaseBlocks } from "./blocks/base";
 import { defineShapeBlocks } from "./blocks/shapes";
+import { defineSceneBlocks } from "./blocks/scene.js";
+import { defineModelBlocks } from "./blocks/models.js";
+import { defineEffectsBlocks } from "./blocks/effects.js";
+import { defineCameraBlocks } from "./blocks/camera.js";
+import { defineXRBlocks } from "./blocks/xr.js";
 import { defineGenerators, meshMap, meshBlockIdMap } from "./generators";
 import {
 	enableGizmos,
@@ -1421,7 +1426,12 @@ window.onload = function () {
 
 	defineBaseBlocks();
 	defineBlocks();
+	defineSceneBlocks();
+	defineModelBlocks();
 	defineShapeBlocks();
+	defineEffectsBlocks();
+	defineCameraBlocks();
+	defineXRBlocks();
 	defineGenerators();
 	// Initialize Blockly and add custom context menu options
 	addExportContextMenuOption();
