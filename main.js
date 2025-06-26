@@ -3,13 +3,11 @@
 // Flip Computing Limited - flipcomputing.com
 
 import * as Blockly from "blockly";
-//import { Multiselect } from "@mit-app-inventor/blockly-plugin-workspace-multiselect";
 import { javascriptGenerator } from "blockly/javascript";
+import {KeyboardNavigation} from '@blockly/keyboard-experiment';
 //import { rewgisterFieldColour } from "@blockly/field-colour";
 import { FieldGridDropdown } from "@blockly/field-grid-dropdown";
 import { WorkspaceSearch } from "@blockly/plugin-workspace-search";
-//import { KeyboardNavigation } from '@blockly/keyboard-experiment/dist/index.js';
-//import { NavigationController } from "@blockly/keyboard-navigation";
 import * as BlockDynamicConnection from "@blockly/block-dynamic-connection";
 //import {CrossTabCopyPaste} from '@blockly/plugin-cross-tab-copy-paste';
 import "@babylonjs/core/Debug/debugLayer";
@@ -202,6 +200,7 @@ function stripFilename(inputString) {
 
 	return removeEnd.substring(lastIndex + 1).trim();
 }
+
 async function exportCode() {
 	try {
 		const projectName =
@@ -1660,7 +1659,8 @@ window.onload = function () {
 
 	window.mainWorkspace = workspace;
 
-	let keyboardNav = null;
+	let keyboardNav = null
+	
 	workspace.registerToolboxCategoryCallback("VARIABLE", function (ws) {
 		console.log("Adding variable shadows");
 		// Get the default XML list for the Variables category.
@@ -2022,26 +2022,13 @@ window.onload = function () {
 		return true;
 	}
 
-	function enforceOrphanZOrder() {
-		workspace.getAllBlocks().forEach((block) => {
-			if (!block.getParent() && !block.isInFlyout) {
-				bringToTop(block);
-			}
-		});
-	}
-
-	function bringToTop(block) {
-		if (block.rendered && block.bringToFront) {
-			block.bringToFront();
-		}
-	}
 	//Blockly.ContextMenuItems.registerCommentOptions();
 
 	/*const navigationController = new NavigationController();
 	navigationController.init();
 	navigationController.addWorkspace(workspace);*/
 	// Turns on keyboard navigation.
-	//navigationController.enable(workspace);
+	keyboardNav = new KeyboardNavigation(workspace);
 
 	console.log("Welcome to Flock 🐑🐑🐑");
 
@@ -2166,7 +2153,13 @@ window.onload = function () {
 		"procedures_defreturn",
 	];
 
+	
+	// Flag to track keyboard move mode
+	let isKeyboardMoving = false;
+
 	workspace.cleanUp = function () {
+
+		
 		//console.log('Starting workspace cleanup');
 		Blockly.Events.setGroup(true); // Start a new group for cleanup events
 
@@ -2195,6 +2188,21 @@ window.onload = function () {
 	};
 
 	let cleanupTimeout;
+
+	function enforceOrphanZOrder() {
+		console.log("Enforcing orphan Z-order");
+		workspace.getAllBlocks().forEach((block) => {
+			if (!block.getParent() && !block.isInFlyout) {	
+				bringToTop(block);
+			}
+		});
+	}
+
+	function bringToTop(block) {
+		if (block.rendered && block.bringToFront) {
+			block.bringToFront();
+		}
+	}
 
 	// Get the canvas element
 	const canvas = document.getElementById("renderCanvas");
@@ -2237,6 +2245,19 @@ window.onload = function () {
 				event.type === Blockly.Events.BLOCK_MOVE ||
 				event.type === Blockly.Events.BLOCK_DELETE
 			) {
+
+				const block = workspace.getBlockById(event.blockId);
+
+					if (!block) return;
+
+					const isMouseDragging = !!block.dragging_;
+					const isFromFlyout = block.isInFlyout;
+					
+					const isProbablyKeyboardMove = !isMouseDragging && !isFromFlyout && !event.isFromUndo;
+
+					if (isProbablyKeyboardMove)
+							return;
+				console.log("Event", event);
 				// Clear any existing cleanup timeout to avoid multiple calls
 				clearTimeout(cleanupTimeout);
 

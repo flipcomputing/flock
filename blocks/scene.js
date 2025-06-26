@@ -10,6 +10,9 @@ import {
 import {
   mapNames,
 } from "../config.js";
+import {
+  updateOrCreateMeshFromBlock,
+} from "../ui/designview.js";
 
 export function defineSceneBlocks() {
 
