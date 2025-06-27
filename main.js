@@ -30,6 +30,7 @@ import { defineCameraBlocks } from "./blocks/camera.js";
 import { defineXRBlocks } from "./blocks/xr.js";
 import { defineEventsBlocks } from "./blocks/events.js";
 import { definePhysicsBlocks } from "./blocks/physics.js";
+import { defineConnectBlocks } from "./blocks/connect.js";
 import { defineGenerators, meshMap, meshBlockIdMap } from "./generators";
 import {
 	enableGizmos,
@@ -1431,6 +1432,7 @@ window.onload = function () {
 	defineModelBlocks();
 	defineShapeBlocks();
 	defineEffectsBlocks();
+	defineConnectBlocks();
 	defineCameraBlocks();
 	defineXRBlocks();
 	defineEventsBlocks();
