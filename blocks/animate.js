@@ -5,6 +5,9 @@ import {
   handleBlockCreateEvent,
   getHelpUrlFor,
 } from "../blocks.js";
+import {
+  animationNames,
+} from "../config.js";
 
 export function defineAnimateBlocks() {
 	Blockly.Blocks["glide_to"] = {
@@ -708,6 +711,60 @@ export function defineAnimateBlocks() {
 			colour: categoryColours["Animate"],
 			tooltip:
 			  "Stop all keyframe animations on the selected mesh.\nKeyword: stop",
+		  });
+		  this.setHelpUrl(getHelpUrlFor(this.type));
+		},
+	  };
+
+	Blockly.Blocks["switch_animation"] = {
+		init: function () {
+		  this.jsonInit({
+			type: "switch_model_animation",
+			message0: "switch animation of %1 to %2",
+			args0: [
+			  {
+				type: "field_variable",
+				name: "MODEL",
+				variable: window.currentMesh,
+			  },
+			  {
+				type: "field_dropdown",
+				name: "ANIMATION_NAME",
+				options: animationNames,
+			  },
+			],
+			previousStatement: null,
+			nextStatement: null,
+			colour: categoryColours["Animate"],
+			tooltip:
+			  "Changes the animation of the specified mesh to the given animation.\nKeyword: switch",
+		  });
+		  this.setHelpUrl(getHelpUrlFor(this.type));
+		},
+	  };
+
+	  Blockly.Blocks["play_animation"] = {
+		init: function () {
+		  this.jsonInit({
+			type: "play_model_animation_once",
+			message0: "play animation %1 on %2",
+			args0: [
+			  {
+				type: "field_dropdown",
+				name: "ANIMATION_NAME",
+				options: animationNames,
+			  },
+			  {
+				type: "field_variable",
+				name: "MODEL",
+				variable: window.currentMesh,
+			  },
+			],
+			previousStatement: null,
+			nextStatement: null,
+			colour: categoryColours["Animate"],
+			tooltip:
+			  "Play the selected animation once on the specified mesh.\nKeyword: play",
 		  });
 		  this.setHelpUrl(getHelpUrlFor(this.type));
 		},
