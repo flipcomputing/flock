@@ -39,6 +39,7 @@ import { defineAnimateBlocks } from "./blocks/animate.js";
 import { defineSoundBlocks } from "./blocks/sound.js";
 import { defineMaterialsBlocks } from "./blocks/materials.js";
 import { defineSensingBlocks } from "./blocks/sensing.js";
+import { defineTextBlocks } from "./blocks/text.js";
 import { defineGenerators, meshMap, meshBlockIdMap } from "./generators";
 import {
 	enableGizmos,
@@ -1453,6 +1454,7 @@ window.onload = function () {
 	defineSoundBlocks();
 	defineMaterialsBlocks();
 	defineSensingBlocks();
+	defineTextBlocks();
 	defineGenerators();
 	// Initialize Blockly and add custom context menu options
 	addExportContextMenuOption();
