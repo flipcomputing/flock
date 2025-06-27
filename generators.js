@@ -2059,7 +2059,6 @@ export function defineGenerators() {
 		// Use helper function to intersect the meshes
 		return `${resultVar} = await intersectMeshes("${meshId}", ${meshList});\n`;
 	};
-
 	javascriptGenerator.forBlock["hull_meshes"] = function (block) {
 		const resultVar = javascriptGenerator.nameDB_.getName(
 			block.getFieldValue("RESULT_VAR"),
@@ -2251,7 +2250,6 @@ export function defineGenerators() {
 		// Note: Ensure that the execution environment supports async/await at this level
 		return `await setPhysicsShape(${modelName}, "${shapeType}");\n`;
 	};
-
 	javascriptGenerator.forBlock["canvas_controls"] = function (block) {
 		const controls = block.getFieldValue("CONTROLS") == "TRUE";
 		return `canvasControls(${controls});\n`;
@@ -2608,7 +2606,6 @@ export function defineGenerators() {
 		const code = `await ${functionName}` + "(" + args.join(", ") + ");\n";
 		return code;
 	};
-
 	javascriptGenerator.forBlock["procedures_defreturn"] = function (block) {
 		const functionName = block.getFieldValue("NAME").replace(/[^\w]/g, "_");
 		const args = block.argData_.map((elem) => elem.model.name);
@@ -2630,7 +2627,6 @@ export function defineGenerators() {
 		const code = `async function ${functionName}(${params}) {\n${branch}return ${returnValue}\n;}`;
 		return code;
 	};
-
 	javascriptGenerator.forBlock["procedures_callreturn"] = function (block) {
 		const functionName = block.getFieldValue("NAME").replace(/[^\w]/g, "_");
 		const args = [];
@@ -2697,6 +2693,96 @@ export function defineGenerators() {
 		}
 
 		javascriptGenerator.isInitialized = true;
+	};
+
+	javascriptGenerator.init2 = function (workspace) {
+		meshMap = {};
+		meshBlockIdMap = {};
+		console.log("Initializing JavaScript generator...");
+
+		if (!javascriptGenerator.nameDB_) {
+			javascriptGenerator.nameDB_ = new Blockly.Names(
+				javascriptGenerator.RESERVED_WORDS_,
+			);
+		} else {
+			javascriptGenerator.nameDB_.reset();
+		}
+		javascriptGenerator.nameDB_.setVariableMap(workspace.getVariableMap());
+		javascriptGenerator.nameDB_.populateVariables(workspace);
+		javascriptGenerator.nameDB_.populateProcedures(workspace);
+
+		const defvars = [];
+
+		// Add developer variables
+		const devVarList = Blockly.Variables.allDeveloperVariables(workspace);
+		for (let i = 0; i < devVarList.length; i++) {
+			defvars.push(
+				javascriptGenerator.nameDB_.getName(
+					devVarList[i],
+					Blockly.Names.NameType.DEVELOPER_VARIABLE,
+				),
+			);
+		}
+
+		// Add user variables (used only)
+		const variables = Blockly.Variables.allUsedVarModels(workspace);
+		for (let i = 0; i < variables.length; i++) {
+			defvars.push(
+				javascriptGenerator.nameDB_.getName(
+					variables[i].getId(),
+					Blockly.Names.NameType.VARIABLE,
+				),
+			);
+		}
+
+		// Declare all of the variables.
+		if (defvars.length) {
+			let defvarsmesh = defvars.map(function (name) {
+				return `let ${name} = '${name}';`;
+			});
+			javascriptGenerator.definitions_["variables"] =
+				`// Made with Flock XR\n` + defvarsmesh.join(" ") + "\n";
+		}
+
+		// Order blocks: triggers first
+		const topBlocks = workspace.getTopBlocks(true);
+		const triggerBlockTypes = new Set([
+			"on_event",
+			"on_collision",
+			"when_clicked",
+			"when_key_pressed",
+		]);
+
+		const triggerBlocks = [];
+		const nonTriggerBlocks = [];
+
+		for (const block of topBlocks) {
+			if (triggerBlockTypes.has(block.type)) {
+				triggerBlocks.push(block);
+			} else {
+				nonTriggerBlocks.push(block);
+			}
+		}
+
+		javascriptGenerator._orderedBlocks = [...triggerBlocks, ...nonTriggerBlocks];
+		javascriptGenerator.isInitialized = true;
+	};
+
+	javascriptGenerator.workspaceToCode2 = function(workspace) {
+		javascriptGenerator.init(workspace);
+
+		let code = javascriptGenerator.definitions_["variables"] || "";
+
+		const blocks = javascriptGenerator._orderedBlocks || workspace.getTopBlocks(true);
+		for (const block of blocks) {
+			const blockCode = javascriptGenerator.blockToCode(block);
+			if (typeof blockCode === "string") {
+				code += blockCode;
+			} else if (Array.isArray(blockCode)) {
+				code += blockCode.join("\n");
+			}
+		}
+		return code;
 	};
 	javascriptGenerator.forBlock["device_camera_background"] = function (
 		block,
