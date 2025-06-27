@@ -31,6 +31,7 @@ import { defineXRBlocks } from "./blocks/xr.js";
 import { defineEventsBlocks } from "./blocks/events.js";
 import { definePhysicsBlocks } from "./blocks/physics.js";
 import { defineConnectBlocks } from "./blocks/connect.js";
+import { defineCombineBlocks } from "./blocks/combine.js";
 import { defineGenerators, meshMap, meshBlockIdMap } from "./generators";
 import {
 	enableGizmos,
@@ -1431,12 +1432,13 @@ window.onload = function () {
 	defineSceneBlocks();
 	defineModelBlocks();
 	defineShapeBlocks();
-	defineEffectsBlocks();
-	defineConnectBlocks();
+	defineEffectsBlocks();	
 	defineCameraBlocks();
 	defineXRBlocks();
 	defineEventsBlocks();
 	definePhysicsBlocks();
+	defineConnectBlocks();
+	defineCombineBlocks();
 	defineGenerators();
 	// Initialize Blockly and add custom context menu options
 	addExportContextMenuOption();
