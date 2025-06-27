@@ -32,6 +32,7 @@ import { defineEventsBlocks } from "./blocks/events.js";
 import { definePhysicsBlocks } from "./blocks/physics.js";
 import { defineConnectBlocks } from "./blocks/connect.js";
 import { defineCombineBlocks } from "./blocks/combine.js";
+import { defineTransformBlocks } from "./blocks/transform.js";
 import { defineGenerators, meshMap, meshBlockIdMap } from "./generators";
 import {
 	enableGizmos,
@@ -1439,6 +1440,7 @@ window.onload = function () {
 	definePhysicsBlocks();
 	defineConnectBlocks();
 	defineCombineBlocks();
+	defineTransformBlocks();
 	defineGenerators();
 	// Initialize Blockly and add custom context menu options
 	addExportContextMenuOption();
