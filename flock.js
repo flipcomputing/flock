@@ -2007,14 +2007,24 @@ export const flock = {
 		if (typeof eventName !== "string") {
 			return "";
 		}
-		// Only allow alphanumeric characters and underscores
-		return eventName.replace(/[^a-zA-Z0-9_]/g, "").substring(0, 50);
+		// Remove disallowed characters (symbols, control chars), allow emoji, spaces, letters, numbers
+		// This allows everything except common punctuation and control characters
+		const clean = eventName.replace(
+			/[!@#\$%\^&\*\(\)\+=\[\]\{\};:'"\\|,<>\?\/\n\r\t]/g,
+			""
+		);
+		return clean.substring(0, 50);
 	},
 	isAllowedEventName(eventName) {
 		if (!eventName || typeof eventName !== "string") {
 			return false;
 		}
-		// Prevent reserved names and system events
+
+		if (eventName.length > 30) {
+			return false;
+		}
+
+		const lower = eventName.toLowerCase();
 		const reservedPrefixes = [
 			"_",
 			"on",
@@ -2023,9 +2033,16 @@ export const flock = {
 			"babylon",
 			"flock",
 		];
-		return !reservedPrefixes.some((prefix) =>
-			eventName.toLowerCase().startsWith(prefix),
-		);
+		if (reservedPrefixes.some((prefix) => lower.startsWith(prefix))) {
+			return false;
+		}
+
+		const disallowedChars = /[!@#\$%\^&\*\(\)\+=\[\]\{\};:'"\\|,<>\?\/\n\r\t]/;
+		if (disallowedChars.test(eventName)) {
+			return false;
+		}
+
+		return true;
 	},
 	onEvent(eventName, handler, once = false) {
 		eventName = flock.sanitizeEventName(eventName);

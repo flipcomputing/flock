@@ -59,6 +59,52 @@ export function defineSceneBlocks() {
 		},
 	  };
 
+	  Blockly.Blocks["create_ground"] = {
+		init: function () {
+		  this.jsonInit({
+			type: "create_ground",
+			message0: "ground",
+			message1: "%1",
+			args1: [
+			  {
+				type: "input_value",
+				name: "COLOR",
+				colour: "#71BC78",
+				check: "Colour",
+			  },
+			],
+			inputsInline: true,
+			previousStatement: null,
+			nextStatement: null,
+			colour: categoryColours["Scene"],
+			tooltip:
+			  "Add a ground plane with collisions enabled to the scene. \nKeyword: ground",
+		  });
+		  this.setHelpUrl(getHelpUrlFor(this.type));
+
+		  this.setOnChange((changeEvent) => {
+			if (
+			  changeEvent.type === Blockly.Events.BLOCK_CREATE ||
+			  changeEvent.type === Blockly.Events.BLOCK_CHANGE
+			) {
+			  const parent = findCreateBlock(
+				Blockly.getMainWorkspace().getBlockById(changeEvent.blockId),
+			  );
+
+			  if (parent === this) {
+				const blockInWorkspace = Blockly.getMainWorkspace().getBlockById(
+				  this.id,
+				);
+
+				if (blockInWorkspace) {
+				  updateOrCreateMeshFromBlock(this, changeEvent);
+				}
+			  }
+			}
+		  });
+		},
+	  };
+
 	 Blockly.Blocks["set_background_color"] = {
 		init: function () {
 		  this.jsonInit({

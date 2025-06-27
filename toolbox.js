@@ -963,8 +963,8 @@ const toolboxEvents = {
 		},
 		{
 			kind: "block",
-			type: "when_touches",
-			keyword: "touches",
+			type: "on_collision",
+			keyword: "collision",
 		},
 		{
 			kind: "block",

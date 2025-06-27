@@ -28,6 +28,7 @@ import { defineModelBlocks } from "./blocks/models.js";
 import { defineEffectsBlocks } from "./blocks/effects.js";
 import { defineCameraBlocks } from "./blocks/camera.js";
 import { defineXRBlocks } from "./blocks/xr.js";
+import { defineEventsBlocks } from "./blocks/events.js";
 import { defineGenerators, meshMap, meshBlockIdMap } from "./generators";
 import {
 	enableGizmos,
@@ -1431,6 +1432,7 @@ window.onload = function () {
 	defineEffectsBlocks();
 	defineCameraBlocks();
 	defineXRBlocks();
+	defineEventsBlocks();
 	defineGenerators();
 	// Initialize Blockly and add custom context menu options
 	addExportContextMenuOption();
@@ -2146,6 +2148,7 @@ window.onload = function () {
 		"forever",
 		"when_clicked",
 		"when_touches",
+		"on_collision",
 		"when_key_event",
 		"on_event",
 		"procedures_defnoreturn",
