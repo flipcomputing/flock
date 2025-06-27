@@ -238,4 +238,34 @@ export function defineConnectBlocks() {
 			this.setHelpUrl(getHelpUrlFor(this.type));
 		},
 	};
+
+	Blockly.Blocks["export_mesh"] = {
+	  init: function () {
+		this.jsonInit({
+		  type: "export_mesh",
+		  message0: "export %1 as %2",
+		  args0: [
+			{
+			  type: "field_variable",
+			  name: "MESH_VAR",
+			  variable: window.currentMesh,
+			},
+			{
+			  type: "field_dropdown",
+			  name: "FORMAT",
+			  options: [
+				["STL", "STL"],
+				["OBJ", "OBJ"],
+				["GLB", "GLB"],
+			  ],
+			},
+		  ],
+		  previousStatement: null,
+		  nextStatement: null,
+		  colour: categoryColours["Scene"],
+		  tooltip: "Export a mesh as STL, OBJ, or GLB.\nKeyword: export",
+		});
+		this.setHelpUrl(getHelpUrlFor(this.type));
+	  },
+	};
 }
