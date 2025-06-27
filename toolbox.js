@@ -25,350 +25,12 @@ const toolboxSearch = {
 	contents: [],
 };
 
-const toolboxSceneXR = {
+const toolboxSceneMeshes = {
 	kind: "category",
-	name: "XR",
-	icon: "./images/xr.svg",
+	name: "Meshes",
+	icon: "./images/meshes.svg",
 	colour: categoryColours["Scene"],
 	contents: [
-		{
-			kind: "block",
-			type: "device_camera_background",
-			keyword: "devcam",
-		},
-		{
-			kind: "block",
-			type: "set_xr_mode",
-			keyword: "xr",
-		},
-		{
-			kind: "block",
-			type: "export_mesh",
-			keyword: "export",
-		},
-	],
-};
-
-const toolboxSceneLights = {
-	kind: "category",
-	name: "Effects",
-	icon: "./images/lights.svg",
-	colour: categoryColours["Scene"],
-	contents: [
-		{
-			kind: "block",
-			type: "light_intensity",
-			keyword: "intensity",
-			inputs: {
-				INTENSITY: {
-					shadow: {
-						type: "math_number",
-						fields: {
-							NUM: 1,
-						},
-					},
-				},
-			},
-		},
-		{
-			kind: "block",
-			type: "create_particle_effect",
-			keyword: "particle",
-			inputs: {
-				RATE: {
-					shadow: {
-						type: "math_number",
-						fields: {
-							NUM: 20,
-						},
-					},
-				},
-				MIN_SIZE: {
-					shadow: {
-						type: "math_number",
-						fields: {
-							NUM: 0.1,
-						},
-					},
-				},
-				MAX_SIZE: {
-					shadow: {
-						type: "math_number",
-						fields: {
-							NUM: 1,
-						},
-					},
-				},
-				START_COLOR: {
-					shadow: {
-						type: "colour",
-						fields: {
-							COLOR: "#FFFFFF",
-						},
-					},
-				},
-				END_COLOR: {
-					shadow: {
-						type: "colour",
-						fields: {
-							COLOR: "#00ffff",
-						},
-					},
-				},
-				START_ALPHA: {
-					shadow: {
-						type: "math_number",
-						fields: {
-							NUM: 1,
-						},
-					},
-				},
-				END_ALPHA: {
-					shadow: {
-						type: "math_number",
-						fields: {
-							NUM: 0,
-						},
-					},
-				},
-
-				X: {
-					shadow: {
-						type: "math_number",
-						fields: {
-							NUM: 0,
-						},
-					},
-				},
-				Y: {
-					shadow: {
-						type: "math_number",
-						fields: {
-							NUM: 2,
-						},
-					},
-				},
-				Z: {
-					shadow: {
-						type: "math_number",
-						fields: {
-							NUM: 0,
-						},
-					},
-				},
-				MIN_LIFETIME: {
-					shadow: {
-						type: "math_number",
-						fields: {
-							NUM: 1,
-						},
-					},
-				},
-				MAX_LIFETIME: {
-					shadow: {
-						type: "math_number",
-						fields: {
-							NUM: 3,
-						},
-					},
-				},
-				MIN_ANGULAR_SPEED: {
-					shadow: {
-						type: "math_number",
-						fields: {
-							NUM: 0,
-						},
-					},
-				},
-				MAX_ANGULAR_SPEED: {
-					shadow: {
-						type: "math_number",
-						fields: {
-							NUM: 0,
-						},
-					},
-				},
-				MIN_INITIAL_ROTATION: {
-					shadow: {
-						type: "math_number",
-						fields: {
-							NUM: 0,
-						},
-					},
-				},
-				MAX_INITIAL_ROTATION: {
-					shadow: {
-						type: "math_number",
-						fields: {
-							NUM: 0,
-						},
-					},
-				},
-			},
-		},
-		{
-			kind: "block",
-			type: "control_particle_system",
-			keyword: "cps",
-			inputsInline: true,
-		},
-		{
-			kind: "block",
-			type: "set_fog",
-			keyword: "fog",
-			inputs: {
-				FOG_COLOR: {
-					shadow: {
-						type: "colour",
-						fields: {
-							COLOR: "#ffffff",
-						},
-					},
-				},
-				DENSITY: {
-					shadow: {
-						type: "math_number",
-						fields: {
-							NUM: 0.1,
-						},
-					},
-				},
-			},
-		},
-	],
-};
-
-const toolboxSceneCamera = {
-	kind: "category",
-	name: "Camera",
-	icon: "./images/camera.svg",
-	colour: categoryColours["Scene"],
-	contents: [
-		{
-			kind: "block",
-			type: "get_camera",
-			keyword: "cam",
-		},
-		{
-			kind: "block",
-			type: "camera_follow",
-			keyword: "follow",
-			inputs: {
-				RADIUS: {
-					shadow: {
-						type: "math_number",
-						fields: {
-							NUM: 7,
-						},
-					},
-				},
-			},
-		},
-		{
-			kind: "block",
-			type: "camera_control",
-			keyword: "cc",
-		},
-	],
-};
-
-const toolboxScene = {
-	kind: "category",
-	name: "Scene",
-	icon: "./images/scene.svg",
-	colour: categoryColours["Scene"],
-	contents: [
-		{
-			kind: "block",
-			type: "set_sky_color",
-			keyword: "sky",
-			inputs: {
-				COLOR: {
-					shadow: {
-						type: "colour",
-						fields: {
-							COLOR: "#6495ED",
-						},
-					},
-				},
-			},
-		},
-		{
-			kind: "block",
-			type: "create_ground",
-			keyword: "ground",
-			inputs: {
-				COLOR: {
-					shadow: {
-						type: "colour",
-						fields: {
-							COLOR: "#71BC78",
-						},
-					},
-				},
-			},
-		},
-		{
-			kind: "block",
-			type: "set_background_color",
-			keyword: "background",
-			inputs: {
-				COLOR: {
-					shadow: {
-						type: "colour",
-						fields: {
-							COLOR: "#6495ED",
-						},
-					},
-				},
-			},
-		},
-		/*{
-			kind: "block",
-			type: "create_map",
-			keyword: "map",
-			inputs: {
-				COLOR: {
-					shadow: {
-						type: "colour",
-						fields: {
-							COLOR: "#71BC78",
-						},
-					},
-				},
-			},
-		},*/
-		{
-			kind: "block",
-			type: "create_map",
-			keyword: "map",
-			inputs: {
-				MATERIAL: {
-					shadow: {
-						type: "material",
-						inputs: {
-							BASE_COLOR: {
-								shadow: {
-									type: "colour",
-									fields: {
-										COLOR: "#71BC78",
-									},
-								},
-							},
-
-							ALPHA: {
-								shadow: {
-									type: "math_number",
-									fields: {
-										NUM: 1.0, // Default alpha value: 1 (fully opaque)
-									},
-								},
-							},
-						},
-					},
-				},
-			},
-		},
 		{
 			kind: "block",
 			type: "load_model",
@@ -914,6 +576,353 @@ const toolboxScene = {
 				},
 			},
 		},
+	],
+};
+
+const toolboxSceneXR = {
+	kind: "category",
+	name: "XR",
+	icon: "./images/xr.svg",
+	colour: categoryColours["Scene"],
+	contents: [
+		{
+			kind: "block",
+			type: "device_camera_background",
+			keyword: "devcam",
+		},
+		{
+			kind: "block",
+			type: "set_xr_mode",
+			keyword: "xr",
+		},
+		{
+			kind: "block",
+			type: "export_mesh",
+			keyword: "export",
+		},
+	],
+};
+
+const toolboxSceneLights = {
+	kind: "category",
+	name: "Effects",
+	icon: "./images/lights.svg",
+	colour: categoryColours["Scene"],
+	contents: [
+		{
+			kind: "block",
+			type: "light_intensity",
+			keyword: "intensity",
+			inputs: {
+				INTENSITY: {
+					shadow: {
+						type: "math_number",
+						fields: {
+							NUM: 1,
+						},
+					},
+				},
+			},
+		},
+		{
+			kind: "block",
+			type: "create_particle_effect",
+			keyword: "particle",
+			inputs: {
+				RATE: {
+					shadow: {
+						type: "math_number",
+						fields: {
+							NUM: 20,
+						},
+					},
+				},
+				MIN_SIZE: {
+					shadow: {
+						type: "math_number",
+						fields: {
+							NUM: 0.1,
+						},
+					},
+				},
+				MAX_SIZE: {
+					shadow: {
+						type: "math_number",
+						fields: {
+							NUM: 1,
+						},
+					},
+				},
+				START_COLOR: {
+					shadow: {
+						type: "colour",
+						fields: {
+							COLOR: "#FFFFFF",
+						},
+					},
+				},
+				END_COLOR: {
+					shadow: {
+						type: "colour",
+						fields: {
+							COLOR: "#00ffff",
+						},
+					},
+				},
+				START_ALPHA: {
+					shadow: {
+						type: "math_number",
+						fields: {
+							NUM: 1,
+						},
+					},
+				},
+				END_ALPHA: {
+					shadow: {
+						type: "math_number",
+						fields: {
+							NUM: 0,
+						},
+					},
+				},
+
+				X: {
+					shadow: {
+						type: "math_number",
+						fields: {
+							NUM: 0,
+						},
+					},
+				},
+				Y: {
+					shadow: {
+						type: "math_number",
+						fields: {
+							NUM: 2,
+						},
+					},
+				},
+				Z: {
+					shadow: {
+						type: "math_number",
+						fields: {
+							NUM: 0,
+						},
+					},
+				},
+				MIN_LIFETIME: {
+					shadow: {
+						type: "math_number",
+						fields: {
+							NUM: 1,
+						},
+					},
+				},
+				MAX_LIFETIME: {
+					shadow: {
+						type: "math_number",
+						fields: {
+							NUM: 3,
+						},
+					},
+				},
+				MIN_ANGULAR_SPEED: {
+					shadow: {
+						type: "math_number",
+						fields: {
+							NUM: 0,
+						},
+					},
+				},
+				MAX_ANGULAR_SPEED: {
+					shadow: {
+						type: "math_number",
+						fields: {
+							NUM: 0,
+						},
+					},
+				},
+				MIN_INITIAL_ROTATION: {
+					shadow: {
+						type: "math_number",
+						fields: {
+							NUM: 0,
+						},
+					},
+				},
+				MAX_INITIAL_ROTATION: {
+					shadow: {
+						type: "math_number",
+						fields: {
+							NUM: 0,
+						},
+					},
+				},
+			},
+		},
+		{
+			kind: "block",
+			type: "control_particle_system",
+			keyword: "cps",
+			inputsInline: true,
+		},
+		{
+			kind: "block",
+			type: "set_fog",
+			keyword: "fog",
+			inputs: {
+				FOG_COLOR: {
+					shadow: {
+						type: "colour",
+						fields: {
+							COLOR: "#ffffff",
+						},
+					},
+				},
+				DENSITY: {
+					shadow: {
+						type: "math_number",
+						fields: {
+							NUM: 0.1,
+						},
+					},
+				},
+			},
+		},
+	],
+};
+
+const toolboxSceneCamera = {
+	kind: "category",
+	name: "Camera",
+	icon: "./images/camera.svg",
+	colour: categoryColours["Scene"],
+	contents: [
+		{
+			kind: "block",
+			type: "get_camera",
+			keyword: "cam",
+		},
+		{
+			kind: "block",
+			type: "camera_follow",
+			keyword: "follow",
+			inputs: {
+				RADIUS: {
+					shadow: {
+						type: "math_number",
+						fields: {
+							NUM: 7,
+						},
+					},
+				},
+			},
+		},
+		{
+			kind: "block",
+			type: "camera_control",
+			keyword: "cc",
+		},
+	],
+};
+
+const toolboxScene = {
+	kind: "category",
+	name: "Scene",
+	icon: "./images/scene.svg",
+	colour: categoryColours["Scene"],
+	contents: [
+		{
+			kind: "block",
+			type: "set_sky_color",
+			keyword: "sky",
+			inputs: {
+				COLOR: {
+					shadow: {
+						type: "colour",
+						fields: {
+							COLOR: "#6495ED",
+						},
+					},
+				},
+			},
+		},
+		{
+			kind: "block",
+			type: "create_ground",
+			keyword: "ground",
+			inputs: {
+				COLOR: {
+					shadow: {
+						type: "colour",
+						fields: {
+							COLOR: "#71BC78",
+						},
+					},
+				},
+			},
+		},
+		{
+			kind: "block",
+			type: "set_background_color",
+			keyword: "background",
+			inputs: {
+				COLOR: {
+					shadow: {
+						type: "colour",
+						fields: {
+							COLOR: "#6495ED",
+						},
+					},
+				},
+			},
+		},
+		/*{
+			kind: "block",
+			type: "create_map",
+			keyword: "map",
+			inputs: {
+				COLOR: {
+					shadow: {
+						type: "colour",
+						fields: {
+							COLOR: "#71BC78",
+						},
+					},
+				},
+			},
+		},*/
+		{
+			kind: "block",
+			type: "create_map",
+			keyword: "map",
+			inputs: {
+				MATERIAL: {
+					shadow: {
+						type: "material",
+						inputs: {
+							BASE_COLOR: {
+								shadow: {
+									type: "colour",
+									fields: {
+										COLOR: "#71BC78",
+									},
+								},
+							},
+
+							ALPHA: {
+								shadow: {
+									type: "math_number",
+									fields: {
+										NUM: 1.0, // Default alpha value: 1 (fully opaque)
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
 		{
 			kind: "block",
 			type: "show",
@@ -934,6 +943,7 @@ const toolboxScene = {
 			type: "clone_mesh",
 			keyword: "clone",
 		},
+		toolboxSceneMeshes,
 		toolboxSceneLights,
 		toolboxSceneCamera,
 		toolboxSceneXR,
@@ -1858,7 +1868,7 @@ const toolboxAnimate = {
 					shadow: {
 						type: "math_number",
 						fields: {
-							NUM: 1, 
+							NUM: 1,
 						},
 					},
 				},
@@ -1950,7 +1960,7 @@ const toolboxControl = {
 				},
 			},
 		},
-		
+
 		/*{
 			kind: "block",
 			type: "for_loop",
