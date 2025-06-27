@@ -192,7 +192,7 @@ export function defineControlBlocks() {
 				colour: categoryColours["Control"],
 				inputsInline: true,
 				tooltip:
-					"Loop from a starting number to an ending number by a given step. Click on the dropdown to get the loop variable to use in your code.",
+					"Loop from a starting number to an ending number by a given step. Click on the dropdown to get the loop variable to use in your code.\nKeyword: for",
 			});
 			this.setHelpUrl(getHelpUrlFor(this.type));
 		},

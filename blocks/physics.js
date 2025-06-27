@@ -105,5 +105,4 @@ export function definePhysicsBlocks() {
 		  this.setHelpUrl(getHelpUrlFor(this.type));
 		},
 	  };
-
 }

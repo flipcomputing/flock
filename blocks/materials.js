@@ -31,7 +31,7 @@ export function defineMaterialsBlocks() {
 			previousStatement: null,
 			nextStatement: null,
 			colour: categoryColours["Materials"],
-			tooltip: "Change the color of the selected mesh.\nKeyword: colour",
+			tooltip: "Change the color of the selected mesh.\nKeyword: color",
 		  });
 		  this.setHelpUrl(getHelpUrlFor(this.type));
 		},
