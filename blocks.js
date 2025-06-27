@@ -415,7 +415,6 @@ export function defineBlocks() {
   //	 Blockly.Blocks['lists_create_with'] = Blockly.Blocks['dynamic_list_create'];
 
   //	 Blockly.Blocks['text_join'] = Blockly.Blocks['dynamic_text_join'];
-  Blockly.Blocks["controls_if"] = Blockly.Blocks["dynamic_if"];
 
   Blockly.Blocks["get_property"] = {
     init: function () {
@@ -1227,24 +1226,6 @@ export function defineBlocks() {
     },
   };
 
-  const oldInit = Blockly.Blocks["controls_if"].init;
-
-  Blockly.Blocks["controls_if"].init = function () {
-    this.setHelpUrl(getHelpUrlFor(this.type));
-    // Call the original init function
-    oldInit.call(this);
-
-    // Override the tooltip after the original init
-    this.setTooltip(() => {
-      let tooltip = "Execute actions if a condition is true.";
-
-      tooltip += ` Drag additional conditions to create else if branches.`;
-
-      tooltip += " Drag a statement at the end to create an else branch.";
-
-      return tooltip;
-    });
-  };
   
   Blockly.Blocks["create_3d_text"] = {
     init: function () {
@@ -1322,7 +1303,6 @@ export function defineBlocks() {
   }
 
   window.updateCurrentMeshName = updateCurrentMeshName;
-
 
   Blockly.Blocks["create_wall"] = {
     init: function () {
