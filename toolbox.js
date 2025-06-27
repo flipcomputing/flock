@@ -576,6 +576,11 @@ const toolboxSceneMeshes = {
 				},
 			},
 		},
+		{
+			kind: "block",
+			type: "clone_mesh",
+			keyword: "clone",
+		},
 	],
 };
 
@@ -937,11 +942,6 @@ const toolboxScene = {
 			kind: "block",
 			type: "dispose",
 			keyword: "dispose",
-		},
-		{
-			kind: "block",
-			type: "clone_mesh",
-			keyword: "clone",
 		},
 		toolboxSceneMeshes,
 		toolboxSceneLights,
