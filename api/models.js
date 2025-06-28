@@ -226,8 +226,6 @@ export const flockModels = {
         color = ["#FFFFFF", "#FFFFFF"];
       }
 
-
-
       // Enhanced parameter validation
       if (!modelName || typeof modelName !== 'string' || modelName.length > 100) {
         console.warn("createObject: Invalid modelName parameter");
@@ -269,6 +267,8 @@ export const flockModels = {
       if (modelId.includes("__")) {
         [meshName, blockKey] = modelId.split("__");
       }
+
+      let groupName = meshName;
 
       // Debug output for concurrency test
       //console.log(`createObject: modelName=${modelName}, modelId=${modelId}, meshName=${meshName}, blockKey=${blockKey}`);

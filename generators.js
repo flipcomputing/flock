@@ -1613,6 +1613,7 @@ export function defineGenerators() {
 
 		return `await setBPM(${meshName}, ${bpm});\n`;
 	};
+	
 	javascriptGenerator.forBlock["when_touches"] = function (block) {
 		const modelName = javascriptGenerator.nameDB_.getName(
 			block.getFieldValue("MODEL_VAR"),
@@ -1629,14 +1630,13 @@ export function defineGenerators() {
 		const trigger = block.getFieldValue("TRIGGER");
 		const doCode = javascriptGenerator.statementToCode(block, "DO");
 
-		// Ensure the trigger is an intersection trigger
 		if (
 			trigger === "OnIntersectionEnterTrigger" ||
 			trigger === "OnIntersectionExitTrigger"
 		) {
 			return `onIntersect(${modelName}, ${otherModelName}, {
 	  trigger: "${trigger}",
-	  callback: async function() {
+	  callback: async function(${modelName}, ${otherModelName}) {
 	${doCode}
 	  }
 	});\n`;

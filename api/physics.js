@@ -415,52 +415,43 @@ export const flockPhysics = {
       }
     });
   },
-  onIntersect(meshName, otherMesh, { trigger, callback})
-{
+  onIntersect(meshName, otherMeshName, { trigger, callback }) {
     return flock.whenModelReady(meshName, async function (mesh) {
       if (!mesh) {
         console.error("Model not loaded:", meshName);
         return;
       }
 
-      // Load the second model
-      return flock.whenModelReady(
-        otherMesh,
-        async function (otherMesh) {
-          if (!otherMesh) {
-            console.error("Model not loaded:", otherMesh);
-            return;
-          }
+      return flock.whenModelReady(otherMeshName, async function (otherMesh) {
+        if (!otherMesh) {
+          console.error("Model not loaded:", otherMeshName);
+          return;
+        }
 
-          // Initialize actionManager if not present
-          if (!mesh.actionManager) {
-            mesh.actionManager = new flock.BABYLON.ActionManager(
-              flock.scene,
-            );
-            mesh.actionManager.isRecursive = true;
-          }
+        if (!mesh.actionManager) {
+          mesh.actionManager = new flock.BABYLON.ActionManager(flock.scene);
+          mesh.actionManager.isRecursive = true;
+        }
 
-          const action = new flock.BABYLON.ExecuteCodeAction(
-            {
-              trigger: flock.BABYLON.ActionManager[trigger],
-              parameter: {
-                mesh: otherMesh,
-                usePreciseIntersection: true,
-              },
+        const action = new flock.BABYLON.ExecuteCodeAction(
+          {
+            trigger: flock.BABYLON.ActionManager[trigger],
+            parameter: {
+              mesh: otherMesh,
+              usePreciseIntersection: true,
             },
-            async function () {
-              await callback(); // Execute the provided callback function
-            },
-            new flock.BABYLON.PredicateCondition(
-              flock.BABYLON.ActionManager,
-              () => {
-                return otherMesh.isEnabled();
-              },
-            ),
-          );
-          mesh.actionManager.registerAction(action); // Register the ExecuteCodeAction
-        },
-      );
+          },
+          async function () {
+            await callback(mesh.name, otherMesh.name); // Pass mesh names
+          },
+          new flock.BABYLON.PredicateCondition(
+            flock.BABYLON.ActionManager,
+            () => otherMesh.isEnabled()
+          )
+        );
+
+        mesh.actionManager.registerAction(action);
+      });
     });
   },
   isTouchingSurface(meshName) {
