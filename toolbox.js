@@ -2341,6 +2341,64 @@ const toolboxText = {
 			},
 		},
 		{
+		  kind: "block",
+		  type: "ui_input",
+		  keyword: "ui",
+		  inputs: {
+			TEXT: {
+			  shadow: {
+				type: "text",
+				fields: {
+				  TEXT: "What's your name?",
+				},
+			  }
+			},
+			X: {
+			  shadow: {
+				type: "math_number",
+				fields: {
+				  NUM: 100,
+				},
+			  }
+			},
+			Y: {
+			  shadow: {
+				type: "math_number",
+				fields: {
+				  NUM: 50,
+				},
+			  }
+			},
+			TEXT_SIZE: {
+			  shadow: {
+				type: "math_number",
+				fields: {
+				  NUM: 24,
+				},
+			  }
+			},
+			TEXT_COLOR: {
+			  shadow: {
+				type: "colour",
+				fields: {
+				  COLOR: "#ffffff",
+				},
+			  }
+			},
+			BACKGROUND_COLOR: {
+			  shadow: {
+				type: "colour",
+				fields: {
+				  COLOR: "#000080",
+				},
+			  }
+			}
+		  },
+		  fields: {
+			SIZE: "MEDIUM"
+		  }
+		},
+		{
 			kind: "block",
 			type: "text",
 			keyword: "text",

@@ -149,6 +149,103 @@ export const flockUI = {
     // Return the buttonId for future reference
     return buttonId;
   },
+  async UIInput(
+    text,
+    x,
+    y,
+    size,
+    fontSize,
+    textColor,
+    backgroundColor,
+    id = null,
+    mode = "AWAIT" // "START" or "AWAIT"
+  ) {
+    if (!flock.scene || !flock.GUI) {
+      throw new Error("flock.scene or flock.GUI is not initialized.");
+    }
+
+    flock.scene.UITexture ??=
+      flock.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
+    flock.scene.UITexture.controls ??= [];
+
+    const inputId =
+      id || `input_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+
+    const sizeMap = {
+      SMALL: { width: "200px", height: "40px" },
+      MEDIUM: { width: "300px", height: "50px" },
+      LARGE: { width: "400px", height: "60px" },
+    };
+
+    const resolvedSize = sizeMap[(size || "").toUpperCase()] || sizeMap["MEDIUM"];
+    const inputWidth = resolvedSize.width;
+    const inputHeight = resolvedSize.height;
+    const buttonWidth = "50px";
+    const buttonHeight = resolvedSize.height;
+    const spacing = 10;
+
+    // Create input box
+    const input = new flock.GUI.InputText(inputId);
+    input.placeholderText = text;
+    input.width = inputWidth;
+    input.height = inputHeight;
+    input.color = textColor || "black";
+    input.background = backgroundColor || "white";
+    input.focusedBackground = backgroundColor || "white";
+    input.fontSize = fontSize || 24;
+    input.text = "";
+
+    input.left = `${x}px`;
+    input.top = `${y}px`;
+    input.horizontalAlignment =
+      x < 0
+        ? flock.GUI.Control.HORIZONTAL_ALIGNMENT_RIGHT
+        : flock.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
+    input.verticalAlignment =
+      y < 0
+        ? flock.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM
+        : flock.GUI.Control.VERTICAL_ALIGNMENT_TOP;
+
+    // Create submit button
+    const button = flock.GUI.Button.CreateSimpleButton(`submit_${inputId}`, "✓");
+    button.width = buttonWidth;
+    button.height = buttonHeight;
+    button.color = backgroundColor || "gray";
+    button.background = textColor || "white";
+    button.fontSize = fontSize || 24;
+
+    button.left = `${x + parseInt(inputWidth) + spacing}px`;
+    button.top = `${y}px`;
+    button.horizontalAlignment = input.horizontalAlignment;
+    button.verticalAlignment = input.verticalAlignment;
+
+    flock.scene.UITexture.addControl(input);
+    flock.scene.UITexture.addControl(button);
+    flock.scene.UITexture.controls.push(input, button);
+
+    if (mode === "START") {
+      // Start mode: return the ID immediately (no internal listener)
+      return inputId;
+    }
+
+    // Await mode: return a Promise that resolves once
+    return new Promise((resolve) => {
+      const submit = () => {
+        const value = input.text;
+        input.isVisible = false;
+        button.isVisible = false;
+        resolve(value);
+      };
+
+      button.onPointerUpObservable.add(submit);
+
+      input.onKeyboardEventProcessedObservable.add((event) => {
+        if (event.type === "keydown" && event.key === "Enter") {
+          submit();
+        }
+      });
+    });
+  },
   createSmallButton(text, key, color) {
     if (!flock.controlsTexture) return;
 

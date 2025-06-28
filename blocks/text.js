@@ -249,6 +249,69 @@ export function defineTextBlocks() {
 		},
 	};
 
+	Blockly.Blocks["ui_input"] = {
+	  init: function () {
+		this.jsonInit({
+		  type: "ui_input",
+		  message0:
+			"ui input %1 %2 at x: %3 y: %4\nsize: %5 text size: %6 text: %7 background: %8",
+		  args0: [
+			{
+			  type: "field_variable",
+			  name: "INPUT_VAR",
+			},
+			{
+			  type: "input_value",
+			  name: "TEXT",
+			  check: "String",
+			},
+			{
+			  type: "input_value",
+			  name: "X",
+			  check: "Number",
+			},
+			{
+			  type: "input_value",
+			  name: "Y",
+			  check: "Number",
+			},
+			{
+			  type: "field_dropdown",
+			  name: "SIZE",
+			  options: [
+				["small", "SMALL"],
+				["medium", "MEDIUM"],
+				["large", "LARGE"],
+			  ],
+			},
+			{
+			  type: "input_value",
+			  name: "TEXT_SIZE",
+			  check: "Number",
+			},
+			{
+			  type: "input_value",
+			  name: "TEXT_COLOR",
+			  check: "Colour",
+			},
+			{
+			  type: "input_value",
+			  name: "BACKGROUND_COLOR",
+			  check: "Colour",
+			},
+		  ],
+		  inputsInline: true,
+		  previousStatement: null,
+		  nextStatement: null,
+		  colour: categoryColours["Text"],
+		  tooltip: "Ask the user a question and wait for input. Stores the result in a variable.",
+		});
+
+		this.setHelpUrl(getHelpUrlFor(this.type));
+	  },
+	};
+
+
 	Blockly.Blocks["create_3d_text"] = {
 		init: function () {
 			const variableNamePrefix = "text";

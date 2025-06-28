@@ -456,6 +456,7 @@ export const flock = {
 				"printText",
 				"UIText",
 				"UIButton",
+				"UIInput",
 
 				// Utilities & Data
 				"randomInteger",
@@ -699,6 +700,7 @@ export const flock = {
 						printText,
 						UIText,
 						UIButton,
+						UIInput,
 						onIntersect,
 						getProperty,
 						exportMesh,
@@ -1458,7 +1460,7 @@ export const flock = {
 						target = flock.scene.particleSystems.find(
 							(system) => system.name === id,
 						);
-					}
+					}uite
 					if (!target) {
 						console.error(
 							`Target with id '${id}' not found in scene after loading.`,

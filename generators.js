@@ -632,6 +632,54 @@ export function defineGenerators() {
 		return code;
 	};
 
+	javascriptGenerator.forBlock["ui_input"] = function (block) {
+	  const varName = javascriptGenerator.nameDB_.getName(
+		block.getFieldValue("INPUT_VAR"),
+		Blockly.VARIABLE_CATEGORY_NAME,
+	  );
+
+	  const text = javascriptGenerator.valueToCode(
+		block,
+		"TEXT",
+		javascriptGenerator.ORDER_ATOMIC,
+	  );
+
+	  const x = javascriptGenerator.valueToCode(
+		block,
+		"X",
+		javascriptGenerator.ORDER_ATOMIC,
+	  );
+
+	  const y = javascriptGenerator.valueToCode(
+		block,
+		"Y",
+		javascriptGenerator.ORDER_ATOMIC,
+	  );
+
+	  const fontSize = javascriptGenerator.valueToCode(
+		block,
+		"TEXT_SIZE",
+		javascriptGenerator.ORDER_ATOMIC,
+	  );
+
+	  const textColor = javascriptGenerator.valueToCode(
+		block,
+		"TEXT_COLOR",
+		javascriptGenerator.ORDER_ATOMIC,
+	  );
+
+	  const backgroundColor = javascriptGenerator.valueToCode(
+		block,
+		"BACKGROUND_COLOR",
+		javascriptGenerator.ORDER_ATOMIC,
+	  );
+
+	  const size = block.getFieldValue("SIZE");
+
+	  return `${varName} = await UIInput(${text}, ${x}, ${y}, "${size}", ${fontSize}, ${textColor}, ${backgroundColor}, ${varName});\n`;
+	}
+
+
 	javascriptGenerator.forBlock["ui_button"] = function (block) {
 		// Retrieve values from the block
 		const text = javascriptGenerator.valueToCode(
