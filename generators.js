@@ -1683,8 +1683,7 @@ export function defineGenerators() {
 
 		// Map each action code to an asynchronous function string
 		const actionFunctions = allActions
-			.map((code) => `async function() {\n${code}\n}`)
-			.join(",\n");
+			.map((code) => `async function(${modelName}) {\n${code}\n}`);
 
 		// Construct the final JavaScript code string
 		const code = `onTrigger(${modelName}, {\n  trigger: "${trigger}",\n  callback: [\n${actionFunctions}\n],\n  mode: "${mode}"\n});\n`;

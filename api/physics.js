@@ -294,7 +294,18 @@ export const flockPhysics = {
 
         let actionSequence = new flock.BABYLON.ExecuteCodeAction(
           flock.BABYLON.ActionManager[trigger],
-          action,
+          async (evt) => {
+            const clickedMesh = evt.meshUnderPointer || evt.source;
+            const meshId = clickedMesh.name;
+
+            // Pass meshId to the first callback (assumes it expects the variable)
+            await callbacks[0](meshId);
+
+            // If additional callbacks exist, just call them normally
+            for (let i = 1; i < callbacks.length; i++) {
+              await callbacks[i]();
+            }
+          }
         );
 
         for (let i = 1; i < callbacks.length; i++) {
