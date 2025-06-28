@@ -142,18 +142,16 @@ export const flockScene = {
             }
 
             groundMesh.position.y -= closestY;
-            const heightMapGroundShape =
-              new flock.BABYLON.PhysicsShapeMesh(
-                ground,
-                flock.scene,
-              );
-            const heightMapGroundBody =
-              new flock.BABYLON.PhysicsBody(
-                ground,
-                flock.BABYLON.PhysicsMotionType.STATIC,
-                false,
-                flock.scene,
-              );
+            const heightMapGroundShape = new flock.BABYLON.PhysicsShapeMesh(
+              ground,
+              flock.scene,
+            );
+            const heightMapGroundBody = new flock.BABYLON.PhysicsBody(
+              ground,
+              flock.BABYLON.PhysicsMotionType.STATIC,
+              false,
+              flock.scene,
+            );
             heightMapGroundShape.material = {
               friction: 0.3,
               restitution: 0,
@@ -171,10 +169,8 @@ export const flockScene = {
     //console.log("Scaling material");
     // Simply assign the passed-through material:
     if (material.diffuseTexture) {
-      material.diffuseTexture.wrapU =
-        flock.BABYLON.Texture.WRAP_ADDRESSMODE;
-      material.diffuseTexture.wrapV =
-        flock.BABYLON.Texture.WRAP_ADDRESSMODE;
+      material.diffuseTexture.wrapU = flock.BABYLON.Texture.WRAP_ADDRESSMODE;
+      material.diffuseTexture.wrapV = flock.BABYLON.Texture.WRAP_ADDRESSMODE;
       material.diffuseTexture.uScale = 25;
       material.diffuseTexture.vScale = 25;
     }
@@ -269,9 +265,7 @@ export const flockScene = {
 
       if (
         targets.some((target) => meshesToDispose.includes(target)) ||
-        targets.some((target) =>
-          mesh.getDescendants().includes(target),
-        ) ||
+        targets.some((target) => mesh.getDescendants().includes(target)) ||
         targets.length === 0 // Orphaned group
       ) {
         animationGroup.targetedAnimations.forEach((anim) => {
@@ -355,9 +349,10 @@ export const flockScene = {
       uiButton.dispose();
       return;
     }
-    return flock.whenModelReady(meshName, (mesh) => {
-      flock.disposeMesh(mesh);
-    });
+    //return flock.whenModelReady(meshName, (mesh) => {
+    let mesh = flock.scene.getMeshByName(meshName);
+    if (mesh) flock.disposeMesh(mesh);
+    // });
   },
   cloneMesh({ sourceMeshName, cloneId, callback = null }) {
     const uniqueCloneId = cloneId + "_" + flock.scene.getUniqueId();
