@@ -679,6 +679,31 @@ export function defineGenerators() {
 	  return `${varName} = await UIInput(${text}, ${x}, ${y}, "${size}", ${fontSize}, ${textColor}, ${backgroundColor}, ${varName});\n`;
 	}
 
+	javascriptGenerator.forBlock["ui_slider"] = function (block) {
+	  const varName = javascriptGenerator.nameDB_.getName(
+		block.getFieldValue("SLIDER_VAR"),
+		Blockly.Names.NameType.VARIABLE
+	  );
+
+	  const min = javascriptGenerator.valueToCode(block, "MIN", javascriptGenerator.ORDER_NONE) || 0;
+	  const max = javascriptGenerator.valueToCode(block, "MAX", javascriptGenerator.ORDER_NONE) || 100;
+	  const value = javascriptGenerator.valueToCode(block, "VALUE", javascriptGenerator.ORDER_NONE) || 50;
+	  const x = javascriptGenerator.valueToCode(block, "X", javascriptGenerator.ORDER_NONE) || 100;
+	  const y = javascriptGenerator.valueToCode(block, "Y", javascriptGenerator.ORDER_NONE) || 50;
+	  const color = javascriptGenerator.valueToCode(block, "COLOR", javascriptGenerator.ORDER_NONE) || '"#000000"';
+	  const background = javascriptGenerator.valueToCode(block, "BACKGROUND", javascriptGenerator.ORDER_NONE) || '"#ffffff"';
+	  const size = `"${block.getFieldValue("SIZE") || "MEDIUM"}"`;
+
+	  const id = `"${varName}_slider"`;
+	  const code = `
+	${varName} = ${value};
+	const ${varName}_slider = UISlider(${id}, ${min}, ${max}, ${value}, ${x}, ${y}, ${size}, ${color}, ${background});
+	${varName}_slider.onValueChangedObservable.add(value => {
+	  try { ${varName} = Math.round(value * 100) / 100; } catch (e) { console.warn('Variable not declared:', '${varName}'); }
+	});
+	`;
+	  return code;
+	};
 
 	javascriptGenerator.forBlock["ui_button"] = function (block) {
 		// Retrieve values from the block

@@ -2399,6 +2399,69 @@ const toolboxText = {
 		  }
 		},
 		{
+		  kind: "block",
+		  type: "ui_slider",
+		  keyword: "ui",
+		  inputs: {
+			MIN: {
+			  shadow: {
+				type: "math_number",
+				fields: {
+				  NUM: 0,
+				},
+			  },
+			},
+			MAX: {
+			  shadow: {
+				type: "math_number",
+				fields: {
+				  NUM: 100,
+				},
+			  },
+			},
+			VALUE: {
+			  shadow: {
+				type: "math_number",
+				fields: {
+				  NUM: 50,
+				},
+			  },
+			},
+			X: {
+			  shadow: {
+				type: "math_number",
+				fields: {
+				  NUM: 100,
+				},
+			  },
+			},
+			Y: {
+			  shadow: {
+				type: "math_number",
+				fields: {
+				  NUM: 50,
+				},
+			  },
+			},
+			COLOR: {
+			  shadow: {
+				type: "colour",
+				fields: {
+				  COLOR: "#ffffff",
+				},
+			  },
+			},
+			BACKGROUND: {
+			  shadow: {
+				type: "colour",
+				fields: {
+				  COLOR: "#000080",
+				},
+			  },
+			},
+		  }
+		},
+		{
 			kind: "block",
 			type: "text",
 			keyword: "text",

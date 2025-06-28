@@ -293,4 +293,71 @@ export function defineSensingBlocks() {
 			this.updateShape_(!this.isInline);
 		},
 	};
+	Blockly.Blocks["ui_slider"] = {
+		init: function () {
+			this.jsonInit({
+				type: "ui_slider",
+				message0:
+					"ui slider %1 from %2 to %3 default %4 at x: %5 y: %6\ncolor: %7 background: %8 %9",
+				args0: [
+					{
+						type: "field_variable",
+						name: "SLIDER_VAR",
+					},
+					{
+						type: "input_value",
+						name: "MIN",
+						check: "Number",
+					},
+					{
+						type: "input_value",
+						name: "MAX",
+						check: "Number",
+					},
+					{
+						type: "input_value",
+						name: "VALUE",
+						check: "Number",
+					},
+					{
+						type: "input_value",
+						name: "X",
+						check: "Number",
+					},
+					{
+						type: "input_value",
+						name: "Y",
+						check: "Number",
+					},
+					{
+						type: "input_value",
+						name: "COLOR",
+						check: "Colour",
+					},
+					{
+						type: "input_value",
+						name: "BACKGROUND",
+						check: "Colour",
+					},
+					{
+						type: "field_dropdown",
+						name: "SIZE",
+						options: [
+							["small", "SMALL"],
+							["medium", "MEDIUM"],
+							["large", "LARGE"],
+						],
+					},
+				],
+				inputsInline: true,
+				previousStatement: null,
+				nextStatement: null,
+				colour: categoryColours["Text"],
+				tooltip:
+					"Add a 2D slider UI control and store its reference in a variable.",
+			});
+
+			this.setHelpUrl(getHelpUrlFor(this.type));
+		},
+	};
 }

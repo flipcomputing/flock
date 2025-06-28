@@ -457,6 +457,7 @@ export const flock = {
 				"UIText",
 				"UIButton",
 				"UIInput",
+				"UISlider",
 
 				// Utilities & Data
 				"randomInteger",
@@ -701,6 +702,7 @@ export const flock = {
 						UIText,
 						UIButton,
 						UIInput,
+						UISlider,
 						onIntersect,
 						getProperty,
 						exportMesh,
@@ -1460,7 +1462,8 @@ export const flock = {
 						target = flock.scene.particleSystems.find(
 							(system) => system.name === id,
 						);
-					}uite
+					}
+					uite;
 					if (!target) {
 						console.error(
 							`Target with id '${id}' not found in scene after loading.`,
@@ -2013,7 +2016,7 @@ export const flock = {
 		// This allows everything except common punctuation and control characters
 		const clean = eventName.replace(
 			/[!@#\$%\^&\*\(\)\+=\[\]\{\};:'"\\|,<>\?\/\n\r\t]/g,
-			""
+			"",
 		);
 		return clean.substring(0, 50);
 	},
@@ -2039,7 +2042,8 @@ export const flock = {
 			return false;
 		}
 
-		const disallowedChars = /[!@#\$%\^&\*\(\)\+=\[\]\{\};:'"\\|,<>\?\/\n\r\t]/;
+		const disallowedChars =
+			/[!@#\$%\^&\*\(\)\+=\[\]\{\};:'"\\|,<>\?\/\n\r\t]/;
 		if (disallowedChars.test(eventName)) {
 			return false;
 		}
