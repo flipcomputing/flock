@@ -319,7 +319,7 @@ export function defineTextBlocks() {
 				variableNamePrefix + nextVariableIndexes[variableNamePrefix];
 
 			this.jsonInit({
-				message0: `set %1 to 3D text: %2 font: %3 size: %4 color: %5
+				message0: `add %1 3D text: %2 font: %3 size: %4 color: %5
 					depth: %6 x: %7 y: %8 z: %9 `,
 				args0: [
 					{

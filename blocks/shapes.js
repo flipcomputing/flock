@@ -118,7 +118,7 @@ export function defineShapeBlocks() {
 	Blockly.Blocks["create_particle_effect"] = {
 		init: function () {
 			this.jsonInit({
-				message0: `set %1 to particle effect from: %2 
+				message0: `add %1 particle effect on: %2 
 		  shape: %3 start %4 end %5 alpha: %6 to %7 
 		  rate: %8 size: %9 to %10 lifetime: %11 to %12 
 		  gravity: %13 force x: %14 y: %15 z: %16 
@@ -446,7 +446,7 @@ export function defineShapeBlocks() {
 			type: "create_box",
 			variableNamePrefix: "box",
 			message0:
-				"set %1 to box %2 width %3 height %4 depth %5 \nat x %6 y %7 z %8",
+				"add box %1 %2 width %3 height %4 depth %5 \nat x %6 y %7 z %8",
 			additionalArgs0: [
 				{ type: "input_value", name: "WIDTH", check: "Number" },
 				{ type: "input_value", name: "HEIGHT", check: "Number" },
@@ -459,7 +459,7 @@ export function defineShapeBlocks() {
 			type: "create_sphere",
 			variableNamePrefix: "sphere",
 			message0:
-				"set %1 to sphere %2 diameter x %3 diameter y %4 diameter z %5\nat x %6 y %7 z %8",
+				"add sphere %1 %2 diameter x %3 diameter y %4 diameter z %5\nat x %6 y %7 z %8",
 			additionalArgs0: [
 				{ type: "input_value", name: "DIAMETER_X", check: "Number" },
 				{ type: "input_value", name: "DIAMETER_Y", check: "Number" },
@@ -472,7 +472,7 @@ export function defineShapeBlocks() {
 			type: "create_cylinder",
 			variableNamePrefix: "cylinder",
 			message0:
-				"set %1 to cylinder %2 height %3 top %4 bottom %5 sides %6\nat x %7 y %8 z %9",
+				"add cylinder %1 %2 height %3 top %4 bottom %5 sides %6\nat x %7 y %8 z %9",
 			additionalArgs0: [
 				{ type: "input_value", name: "HEIGHT", check: "Number" },
 				{ type: "input_value", name: "DIAMETER_TOP", check: "Number" },
@@ -490,7 +490,7 @@ export function defineShapeBlocks() {
 			type: "create_capsule",
 			variableNamePrefix: "capsule",
 			message0:
-				"set %1 to capsule %2 diameter %3 height %4 \nat x %5 y %6 z %7",
+				"add capsule %1 %2 diameter %3 height %4 \nat x %5 y %6 z %7",
 			additionalArgs0: [
 				{ type: "input_value", name: "DIAMETER", check: "Number" },
 				{ type: "input_value", name: "HEIGHT", check: "Number" },
@@ -502,7 +502,7 @@ export function defineShapeBlocks() {
 			type: "create_plane",
 			variableNamePrefix: "plane",
 			message0:
-				"set %1 to plane %2 width %3 height %4 \nat x %5 y %6 z %7",
+				"add plane %1 %2 width %3 height %4 \nat x %5 y %6 z %7",
 			additionalArgs0: [
 				{ type: "input_value", name: "WIDTH", check: "Number" },
 				{ type: "input_value", name: "HEIGHT", check: "Number" },

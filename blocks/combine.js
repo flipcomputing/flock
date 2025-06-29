@@ -6,7 +6,7 @@ export function defineCombineBlocks() {
 	Blockly.Blocks["merge_meshes"] = {
 		init: function () {
 			this.jsonInit({
-				message0: "set %1 to merge %2",
+				message0: "add %1 as merge %2",
 				args0: [
 					{
 						type: "field_variable",
@@ -32,7 +32,7 @@ export function defineCombineBlocks() {
 	Blockly.Blocks["subtract_meshes"] = {
 		init: function () {
 			this.jsonInit({
-				message0: "set %1 to %2 subtract %3",
+				message0: "add %1 as %2 subtract %3",
 				args0: [
 					{
 						type: "field_variable",
@@ -62,7 +62,7 @@ export function defineCombineBlocks() {
 	Blockly.Blocks["intersection_meshes"] = {
 		init: function () {
 			this.jsonInit({
-				message0: "set %1 to intersect %2",
+				message0: "add %1 as intersect %2",
 				args0: [
 					{
 						type: "field_variable",
@@ -88,7 +88,7 @@ export function defineCombineBlocks() {
 	Blockly.Blocks["hull_meshes"] = {
 		init: function () {
 			this.jsonInit({
-				message0: "set %1 to hull of %2",
+				message0: "add %1 as hull of %2",
 				args0: [
 					{
 						type: "field_variable",

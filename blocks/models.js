@@ -26,7 +26,7 @@ export function defineModelBlocks() {
 			let nextVariableName =
 				variableNamePrefix + nextVariableIndexes[variableNamePrefix];
 			this.jsonInit({
-				message0: `set %1 to %2 scale: %3 x: %4 y: %5 z: %6
+				message0: `add %1 %2 scale: %3 x: %4 y: %5 z: %6
 					Hair: %7 |  Skin: %8 |  Eyes: %9 |  T-Shirt: %10 |  Shorts: %11 |  Detail: %12`,
 				args0: [
 					{
@@ -153,7 +153,7 @@ export function defineModelBlocks() {
 
 			// Add the main inputs of the block
 			this.jsonInit({
-				message0: `set %1 to %2 %3 scale: %4 x: %5 y: %6 z: %7`,
+				message0: `add %1 %2 %3 scale: %4 x: %5 y: %6 z: %7`,
 				args0: [
 					{
 						type: "field_variable",
@@ -256,7 +256,7 @@ export function defineModelBlocks() {
 
 			this.jsonInit({
 				message0:
-					"set %1 to %2 scale: %3 x: %4 y: %5 z: %6\ncolors: %7",
+					"add %1 %2 scale: %3 x: %4 y: %5 z: %6\ncolors: %7",
 				args0: [
 					{
 						type: "field_variable",
@@ -500,7 +500,7 @@ export function defineModelBlocks() {
 				variableNamePrefix + nextVariableIndexes[variableNamePrefix]; // Start with "model1"
 
 			this.jsonInit({
-				message0: "set %1 to %2 scale: %3 x: %4 y: %5 z: %6",
+				message0: "add %1 %2 scale: %3 x: %4 y: %5 z: %6",
 				args0: [
 					{
 						type: "field_variable",

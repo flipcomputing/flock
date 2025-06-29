@@ -271,7 +271,7 @@ export function defineSceneBlocks() {
 			variableNamePrefix + nextVariableIndexes[variableNamePrefix]; // Start with "clone1"
 
 		  this.jsonInit({
-			message0: "set %1 to clone of %2",
+			message0: "add %1 clone of %2",
 			args0: [
 			  {
 				type: "field_variable",
