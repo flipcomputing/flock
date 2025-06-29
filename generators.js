@@ -802,24 +802,22 @@ export function defineGenerators() {
 			Blockly.Names.NameType.VARIABLE,
 		);
 
-		const meshId = modelName + "_" + generateUniqueId();
-		meshMap[meshId] = block;
-		meshBlockIdMap[meshId] = block.id;
-		// Generate the code for the "do" part (if present)
-		let doCode = "";
+		const meshId = `${variableName}__${block.id}`;
+		meshMap[block.id] = block;
+		meshBlockIdMap[block.id] = block.id;
 
+		let doCode = "";
 		if (block.getInput("DO")) {
 			doCode = javascriptGenerator.statementToCode(block, "DO") || "";
 		}
-
 		doCode = doCode ? `async function() {\n${doCode}\n}` : "";
 
 		return `${variableName} = createModel({
-				modelName: '${modelName}',
-				modelId: '${meshId}',
-				scale: ${scale},
-				position: { x: ${x}, y: ${y}, z: ${z} }${doCode ? `,\ncallback: ${doCode}` : ""}
-			});\n`;
+			modelName: '${modelName}',
+			modelId: '${meshId}',
+			scale: ${scale},
+			position: { x: ${x}, y: ${y}, z: ${z} }${doCode ? `,\ncallback: ${doCode}` : ""}
+		});\n`;
 	};
 
 	javascriptGenerator.forBlock["load_character"] = function (block) {
