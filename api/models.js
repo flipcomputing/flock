@@ -5,76 +5,6 @@ export function setFlockReference(ref) {
 }
 
 export const flockModels = {
-  createCharacter2({
-    modelName,
-    modelId,
-    scale = 1,
-    position = { x: 0, y: 0, z: 0 },
-    colors = {
-      hair: "#000000",
-      skin: "#a15c33",
-      eyes: "#0000ff",
-      sleeves: "#ff0000",
-      shorts: "#00ff00",
-      tshirt: "#0000ff",
-    },
-    callback = () => {},
-  }) {
-    const { x, y, z } = position;
-
-    let blockKey;
-    if (modelId.includes("__")) {
-      [modelId, blockKey] = modelId.split("__");
-    }
-
-    if (flock.scene.getMeshByName(modelId)) {
-      modelId = modelId + "_" + flock.scene.getUniqueId();
-    }
-    flock.BABYLON.SceneLoader.LoadAssetContainerAsync(
-      flock.modelPath,
-      modelName,
-      flock.scene,
-      null,
-      null,
-      { signal: flock.abortController.signal },
-    )
-      .then((container) => {
-        container.addAllToScene();
-        const mesh = container.meshes[0];
-        flock.setupMesh(
-          mesh,
-          modelName,
-          modelId,
-          blockKey,
-          scale,
-          x,
-          y,
-          z,
-        );
-
-        if (modelName.startsWith("Character"))
-          flock.ensureStandardMaterial(mesh);
-        flock.applyColorsToCharacter(mesh, colors);
-
-        const descendants = mesh.getChildMeshes(false);
-        descendants.forEach((childMesh) => {
-          if (childMesh.getTotalVertices() > 0) {
-            // Ensure it has geometry
-            childMesh.isPickable = true;
-            childMesh.flipFaces(true);
-          }
-        });
-
-        if (callback) {
-          requestAnimationFrame(() => callback());
-        }
-      })
-      .catch((error) => {
-        console.log("Error loading", error);
-      });
-
-    return modelId;
-  },
   createCharacter({
     modelName,
     modelId,
@@ -97,6 +27,7 @@ export const flockModels = {
       [modelId, blockKey] = modelId.split("__");
     }
 
+    let groupName = modelId;
     if (flock.scene.getMeshByName(modelId)) {
       modelId = modelId + "_" + flock.scene.getUniqueId();
     }
@@ -114,16 +45,7 @@ export const flockModels = {
         .then((container) => {
           container.addAllToScene();
           const mesh = container.meshes[0];
-          flock.setupMesh(
-            mesh,
-            modelName,
-            modelId,
-            blockKey,
-            scale,
-            x,
-            y,
-            z,
-          );
+          flock.setupMesh(mesh, modelName, modelId, blockKey, scale, x, y, z);
 
           if (modelName.startsWith("Character"))
             flock.ensureStandardMaterial(mesh);
@@ -137,6 +59,8 @@ export const flockModels = {
               childMesh.flipFaces(true);
             }
           });
+
+          flock.announceMeshReady(modelId, groupName);
 
           if (callback) {
             requestAnimationFrame(() => callback());
@@ -193,6 +117,8 @@ export const flockModels = {
             }
           });
 
+          flock.announceMeshReady(modelId, groupName);
+
           if (callback) {
             requestAnimationFrame(() => callback());
           }
@@ -227,19 +153,23 @@ export const flockModels = {
       }
 
       // Enhanced parameter validation
-      if (!modelName || typeof modelName !== 'string' || modelName.length > 100) {
+      if (
+        !modelName ||
+        typeof modelName !== "string" ||
+        modelName.length > 100
+      ) {
         console.warn("createObject: Invalid modelName parameter");
         return "error_" + flock.scene.getUniqueId();
       }
 
-      if (!modelId || typeof modelId !== 'string' || modelId.length > 100) {
+      if (!modelId || typeof modelId !== "string" || modelId.length > 100) {
         console.warn("createObject: Invalid modelId parameter");
         return "error_" + flock.scene.getUniqueId();
       }
 
       // Sanitize modelName and modelId to prevent path traversal
-      const sanitizedModelName = modelName.replace(/[^a-zA-Z0-9._-]/g, '');
-      const sanitizedModelId = modelId.replace(/[^a-zA-Z0-9._-]/g, '');
+      modelName.replace(/[^a-zA-Z0-9._-]/g, "");
+      modelId.replace(/[^a-zA-Z0-9._-]/g, "");
 
       if (!position || typeof position !== "object") {
         console.warn("createObject: Invalid position parameter");
@@ -247,13 +177,13 @@ export const flockModels = {
       }
 
       // Validate numeric parameters
-      if (typeof scale !== 'number' || scale < 0.01 || scale > 100) {
+      if (typeof scale !== "number" || scale < 0.01 || scale > 100) {
         scale = 1;
       }
 
       // Validate position values
-      ['x', 'y', 'z'].forEach(axis => {
-        if (typeof position[axis] !== 'number' || !isFinite(position[axis])) {
+      ["x", "y", "z"].forEach((axis) => {
+        if (typeof position[axis] !== "number" || !isFinite(position[axis])) {
           position[axis] = 0;
         }
         // Clamp position values to reasonable bounds
@@ -263,7 +193,7 @@ export const flockModels = {
       const { x, y, z } = position;
 
       let blockKey = modelId;
-      let meshName = modelId;  // Default meshName to modelId
+      let meshName = modelId; // Default meshName to modelId
       if (modelId.includes("__")) {
         [meshName, blockKey] = modelId.split("__");
       }
@@ -313,6 +243,9 @@ export const flockModels = {
           mesh.isPickable = true;
           mesh.setEnabled(true);
         });
+
+        flock.announceMeshReady(meshName, groupName);
+
         if (callback) {
           requestAnimationFrame(callback);
         }
@@ -345,15 +278,15 @@ export const flockModels = {
               mesh,
               ...mesh
                 .getDescendants(false)
-                .filter(
-                  (node) =>
-                    node instanceof flock.BABYLON.AbstractMesh,
-                ),
+                .filter((node) => node instanceof flock.BABYLON.AbstractMesh),
             ];
             allDescendantMeshes.forEach((mesh) => {
               mesh.isPickable = true;
               mesh.setEnabled(true);
             });
+
+            flock.announceMeshReady(meshName, groupName);
+
             if (callback) {
               requestAnimationFrame(callback);
             }
@@ -375,9 +308,7 @@ export const flockModels = {
           container.addAllToScene();
 
           // Create the template mesh AFTER adding to scene
-          const firstMesh = container.meshes[0].clone(
-            `${modelName}_first`,
-          );
+          const firstMesh = container.meshes[0].clone(`${modelName}_first`);
           firstMesh.setEnabled(false);
           firstMesh.isPickable = false;
 
@@ -393,12 +324,10 @@ export const flockModels = {
           // Make sure the original mesh and its children ARE pickable and enabled
           container.meshes[0].isPickable = true;
           container.meshes[0].setEnabled(true);
-          container.meshes[0]
-            .getChildMeshes()
-            .forEach((child) => {
-              child.isPickable = true;
-              child.setEnabled(true);
-            });
+          container.meshes[0].getChildMeshes().forEach((child) => {
+            child.isPickable = true;
+            child.setEnabled(true);
+          });
 
           // Setup and color the active mesh
           flock.setupMesh(
@@ -426,6 +355,8 @@ export const flockModels = {
                 //console.warn(`Physics missing for ${meshName} after setup`);
               }
 
+              flock.announceMeshReady(meshName, groupName);
+
               if (callback) {
                 callback();
               }
@@ -434,10 +365,7 @@ export const flockModels = {
           });
         })
         .catch((error) => {
-          console.error(
-            `Error loading model: ${modelName}`,
-            error,
-          );
+          console.error(`Error loading model: ${modelName}`, error);
           // Clean up promise on error
           flock.modelReadyPromises.delete(meshName);
         })
@@ -470,6 +398,9 @@ export const flockModels = {
   }) {
     const { x, y, z } = position;
     const blockId = modelId;
+
+    let groupName = modelId;
+    
     modelId += "_" + flock.scene.getUniqueId();
 
     // Check if a first copy is already cached
@@ -492,6 +423,8 @@ export const flockModels = {
       mesh.refreshBoundingInfo();
       mesh.setEnabled(true);
       mesh.visibility = 1;
+
+       flock.announceMeshReady(modelId, groupName);
 
       if (callback) {
         requestAnimationFrame(callback);
@@ -523,9 +456,7 @@ export const flockModels = {
     )
       .then((container) => {
         // Clone a first copy from the first mesh
-        const firstMesh = container.meshes[0].clone(
-          `${modelName}_first`,
-        );
+        const firstMesh = container.meshes[0].clone(`${modelName}_first`);
 
         firstMesh.setEnabled(false); // Disable the first copy
         flock.modelCache[modelName] = firstMesh;
@@ -543,6 +474,8 @@ export const flockModels = {
           z,
         );
 
+         flock.announceMeshReady(modelId, groupName);
+        
         if (callback) {
           requestAnimationFrame(callback);
         }
@@ -568,4 +501,4 @@ export const flockModels = {
 
     return modelId;
   },
-}
+};

@@ -7,20 +7,25 @@ export function setFlockReference(ref) {
 }
 
 export const flockShapes = {
-  createBox(boxId,  {
-             width = 1,
-             height = 1,
-             depth = 1,
-             color = "#9932CC",
-             position = new BABYLON.Vector3(0, 0, 0),
-             alpha = 1,
-             callback = null,
-           }) {
+  createBox(
+    boxId,
+    {
+      width = 1,
+      height = 1,
+      depth = 1,
+      color = "#9932CC",
+      position = new BABYLON.Vector3(0, 0, 0),
+      alpha = 1,
+      callback = null,
+    },
+  ) {
     let blockKey = boxId;
 
     if (boxId.includes("__")) {
       [boxId, blockKey] = boxId.split("__");
     }
+
+    let groupName = boxId;
 
     if (flock.scene.getMeshByName(boxId)) {
       boxId = boxId + "_" + flock.scene.getUniqueId();
@@ -63,6 +68,8 @@ export const flockShapes = {
     );
     flock.applyPhysics(newBox, boxShape);
 
+    flock.announceMeshReady(newBox.name, groupName);
+
     if (callback) {
       requestAnimationFrame(() => callback());
     }
@@ -74,20 +81,25 @@ export const flockShapes = {
 
     return newBox.name;
   },
-  createSphere(sphereId, {
-    color = "#9932CC",
-    diameterX = 1,
-    diameterY = 1,
-    diameterZ = 1,
-    position = new BABYLON.Vector3(0, 0, 0),
-    alpha = 1,
-    callback = null,
-  }) {
+  createSphere(
+    sphereId,
+    {
+      color = "#9932CC",
+      diameterX = 1,
+      diameterY = 1,
+      diameterZ = 1,
+      position = new BABYLON.Vector3(0, 0, 0),
+      alpha = 1,
+      callback = null,
+    },
+  ) {
     let blockKey = sphereId;
 
     if (sphereId.includes("__")) {
       [sphereId, blockKey] = sphereId.split("__");
     }
+
+    let groupName = sphereId;
 
     if (flock.scene.getMeshByName(sphereId)) {
       sphereId = sphereId + "_" + flock.scene.getUniqueId();
@@ -128,6 +140,8 @@ export const flockShapes = {
     );
     flock.applyPhysics(newSphere, sphereShape);
 
+    flock.announceMeshReady(newSphere.name, groupName);
+
     if (callback) {
       requestAnimationFrame(() => callback());
     }
@@ -140,19 +154,18 @@ export const flockShapes = {
     return newSphere.name;
   },
   createCylinder(
-      cylinderId,
-      {
-        color,
-        height,
-        diameterTop,
-        diameterBottom,
-        tessellation = 24,
-        position,
-        alpha = 1,
-        callback = null,
-      }
-    ) 
-  {
+    cylinderId,
+    {
+      color,
+      height,
+      diameterTop,
+      diameterBottom,
+      tessellation = 24,
+      position,
+      alpha = 1,
+      callback = null,
+    },
+  ) {
     const dimensions = {
       height,
       diameterTop,
@@ -166,6 +179,8 @@ export const flockShapes = {
     if (cylinderId.includes("__")) {
       [cylinderId, blockKey] = cylinderId.split("__");
     }
+
+    let groupName = cylinderId;
 
     if (flock.scene.getMeshByName(cylinderId)) {
       cylinderId = cylinderId + "_" + flock.scene.getUniqueId();
@@ -212,6 +227,8 @@ export const flockShapes = {
     );
     flock.applyPhysics(newCylinder, cylinderShape);
 
+    flock.announceMeshReady(newCylinder.name, groupName);
+
     if (callback) {
       requestAnimationFrame(() => callback());
     }
@@ -222,25 +239,19 @@ export const flockShapes = {
     }
 
     return newCylinder.name;
-  },  
+  },
   createCapsule(
     capsuleId,
-    {
-      color,
-      diameter,
-      height,
-      position,
-      alpha = 1,
-      callback = null,
-    })
-  {
-
+    { color, diameter, height, position, alpha = 1, callback = null },
+  ) {
     let radius = diameter / 2;
     let blockKey = capsuleId;
 
     if (capsuleId.includes("__")) {
       [capsuleId, blockKey] = capsuleId.split("__");
     }
+
+    let groupName = capsuleId;
 
     const dimensions = {
       radius,
@@ -303,6 +314,8 @@ export const flockShapes = {
     );
     flock.applyPhysics(newCapsule, capsuleShape);
 
+    flock.announceMeshReady(newCapsule.name, groupName);
+
     if (callback) {
       requestAnimationFrame(() => callback());
     }
@@ -315,23 +328,14 @@ export const flockShapes = {
     return newCapsule.name;
   },
 
-  createPlane(
-    planeId,
-    {
-      color,
-      width,
-      height,
-      position,
-      callback = null,
-    }
-  )
-  {
+  createPlane(planeId, { color, width, height, position, callback = null }) {
     // Handle block key
     let blockKey = planeId;
     if (planeId.includes("__")) {
       [planeId, blockKey] = planeId.split("__");
     }
 
+    let groupName = planeId;
     if (flock.scene.getMeshByName(planeId)) {
       planeId = planeId + "_" + flock.scene.getUniqueId();
     }
@@ -391,6 +395,8 @@ export const flockShapes = {
 
     newPlane.blockKey = blockKey;
 
+    flock.announceMeshReady(newPlane.name, groupName);
+
     if (callback) {
       requestAnimationFrame(() => callback());
     }
@@ -448,10 +454,7 @@ export const flockShapes = {
         mesh.setEnabled(true);
         mesh.visibility = 1;
 
-        const textShape = new flock.BABYLON.PhysicsShapeMesh(
-          mesh,
-          flock.scene,
-        );
+        const textShape = new flock.BABYLON.PhysicsShapeMesh(mesh, flock.scene);
         flock.applyPhysics(mesh, textShape);
 
         if (callback) {

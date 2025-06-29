@@ -50,7 +50,7 @@ import { flockCamera, setFlockReference as setFlockCamera } from "./api/camera";
 console.log("Flock helpers loading");
 
 export const flock = {
-	callbackMode: false,
+	callbackMode: true,
 	memoryDebug: false,
 	maxMeshes: 5000,
 	console: console,
@@ -62,6 +62,7 @@ export const flock = {
 	engineReady: false,
 	modelReadyPromises: new Map(),
 	pendingMeshCreations: 0,
+	pendingTriggers: new Map(),
 	characterNames: characterNames,
 	alert: alert,
 	BABYLON: BABYLON,
@@ -956,6 +957,7 @@ export const flock = {
 			flock.originalModelTransformations = {};
 			flock.geometryCache = {};
 			flock.materialCache = {};
+			flock.pendingTriggers = new Map();
 			flock.ground = null;
 			flock.sky = null;
 
@@ -1053,6 +1055,7 @@ export const flock = {
 		flock.modelsBeingLoaded = {};
 		flock.originalModelTransformations = {};
 		flock.geometryCache = {};
+		flock.pendingTriggers = new Map();
 		flock.materialCache = {};
 		flock.disposed = false;
 
@@ -1463,7 +1466,7 @@ export const flock = {
 							(system) => system.name === id,
 						);
 					}
-					uite;
+					
 					if (!target) {
 						console.error(
 							`Target with id '${id}' not found in scene after loading.`,
@@ -1498,6 +1501,37 @@ export const flock = {
 				}
 			}
 		})();
+	},
+	announceMeshReady(meshName, groupName) {
+	  //console.log(`[flock] Mesh ready: ${meshName} (group: ${groupName})`);
+
+	  if (!flock.pendingTriggers.has(groupName)) return;
+
+	  //console.log(`[flock] Registering pending triggers for group: '${groupName}'`);
+	  const triggers = flock.pendingTriggers.get(groupName);
+
+	  for (const { trigger, callback, mode, applyToGroup } of triggers) {
+		if (applyToGroup) {
+		  // 🔁 Reapply trigger across all matching meshes
+		  const matching = flock.scene.meshes.filter(m => m.name.startsWith(groupName));
+		  for (const m of matching) {
+			flock.onTrigger(m.name, {
+			  trigger,
+			  callback,
+			  mode,
+			  applyToGroup: false, // prevent recursion
+			});
+		  }
+		} else {
+		  // ✅ Apply to just this specific mesh
+		  flock.onTrigger(meshName, {
+			trigger,
+			callback,
+			mode,
+			applyToGroup: false,
+		  });
+		}
+	  }
 	},
 
 	/* 

@@ -1723,46 +1723,41 @@ export function defineGenerators() {
 	};
 
 	javascriptGenerator.forBlock["when_clicked"] = function (block) {
-		// Retrieve the model variable name
-		const modelName = javascriptGenerator.nameDB_.getName(
-			block.getFieldValue("MODEL_VAR"),
-			Blockly.Names.NameType.VARIABLE,
-		);
+	  const modelName = javascriptGenerator.nameDB_.getName(
+		block.getFieldValue("MODEL_VAR"),
+		Blockly.Names.NameType.VARIABLE,
+	  );
+	  const trigger = block.getFieldValue("TRIGGER");
+	  const mode = block.getFieldValue("MODE") || "wait";
 
-		// Retrieve the trigger type
-		const trigger = block.getFieldValue("TRIGGER");
+	  const doCode = javascriptGenerator.statementToCode(block, "DO").trim();
+	  const thenCodes = [];
 
-		// Retrieve the execution mode
-		const mode = block.getFieldValue("MODE") || "wait";
-
-		// Generate code for the 'DO' input section
-		const doCode = javascriptGenerator.statementToCode(block, "DO").trim();
-
-		// Initialize an array to hold code for 'THEN' sections
-		const thenCodes = [];
-
-		// Iterate over possible 'THEN' inputs and collect their code
-		for (let i = 0; i < block.thenCount_; i++) {
-			const thenCode = javascriptGenerator
-				.statementToCode(block, "THEN" + i)
-				.trim();
-			if (thenCode) {
-				thenCodes.push(thenCode);
-			}
+	  for (let i = 0; i < block.thenCount_; i++) {
+		const thenCode = javascriptGenerator
+		  .statementToCode(block, "THEN" + i)
+		  .trim();
+		if (thenCode) {
+		  thenCodes.push(thenCode);
 		}
+	  }
 
-		// Combine 'DO' and 'THEN' codes into a single array, filtering out any empty entries
-		const allActions = [doCode, ...thenCodes].filter((code) => code);
+	  const allActions = [doCode, ...thenCodes].filter((code) => code);
+	  const actionFunctions = allActions.map(
+		(code) => `async function(${modelName}) {\n${code}\n}`,
+	  );
 
-		// Map each action code to an asynchronous function string
-		const actionFunctions = allActions
-			.map((code) => `async function(${modelName}) {\n${code}\n}`);
+	  // Determine if this is a top-level block (not nested)
+	  const isTopLevel = !block.getSurroundParent();
 
-		// Construct the final JavaScript code string
-		const code = `onTrigger(${modelName}, {\n  trigger: "${trigger}",\n  callback: [\n${actionFunctions}\n],\n  mode: "${mode}"\n});\n`;
+	  const code = `onTrigger(${modelName}, {\n` +
+		`  trigger: "${trigger}",\n` +
+		`  callback: [\n${actionFunctions.join(",\n")}\n],\n` +
+		`  mode: "${mode}"` +
+		(isTopLevel ? `,\n  applyToGroup: true` : "") +
+		`\n});\n`;
 
-		// Return the constructed code
-		return code;
+	  return code;
 	};
 
 	javascriptGenerator.forBlock["local_variable"] = function (

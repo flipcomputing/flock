@@ -44,29 +44,19 @@ export const flockPhysics = {
       //console.log(parent.physics.shape.constructor.name);
 
       // Handling Capsule shape
-      if (
-        parent.physics.shape.constructor.name === "_PhysicsShapeCapsule"
-      ) {
-        const newShape = flock.createCapsuleFromBoundingBox(
-          mesh,
-          flock.scene,
-        );
+      if (parent.physics.shape.constructor.name === "_PhysicsShapeCapsule") {
+        const newShape = flock.createCapsuleFromBoundingBox(mesh, flock.scene);
         parent.physics.shape = newShape;
         parent.physics.setMassProperties({ mass: 1, restitution: 0.5 }); // Adjust properties as needed
       }
 
       // Handling Box shape
-      else if (
-        parent.physics.shape.constructor.name === "_PhysicsShapeBox"
-      ) {
+      else if (parent.physics.shape.constructor.name === "_PhysicsShapeBox") {
         // Extract bounding box dimensions in world space (after scaling)
         const boundingBox = mesh.getBoundingInfo().boundingBox;
-        const width =
-          boundingBox.maximumWorld.x - boundingBox.minimumWorld.x;
-        const height =
-          boundingBox.maximumWorld.y - boundingBox.minimumWorld.y;
-        const depth =
-          boundingBox.maximumWorld.z - boundingBox.minimumWorld.z;
+        const width = boundingBox.maximumWorld.x - boundingBox.minimumWorld.x;
+        const height = boundingBox.maximumWorld.y - boundingBox.minimumWorld.y;
+        const depth = boundingBox.maximumWorld.z - boundingBox.minimumWorld.z;
 
         const boxShape = new flock.BABYLON.PhysicsShapeBox(
           new flock.BABYLON.Vector3(0, 0, 0),
@@ -80,9 +70,7 @@ export const flockPhysics = {
       }
 
       // Handling Mesh shape
-      else if (
-        parent.physics.shape.constructor.name === "_PhysicsShapeMesh"
-      ) {
+      else if (parent.physics.shape.constructor.name === "_PhysicsShapeMesh") {
         // Create a new mesh shape based on the updated geometry of the mesh
         const newMeshShape = new flock.BABYLON.PhysicsShapeMesh(
           mesh,
@@ -99,13 +87,11 @@ export const flockPhysics = {
     }
   },
   addBeforePhysicsObservable(scene, ...meshes) {
-    const beforePhysicsObserver = scene.onBeforePhysicsObservable.add(
-      () => {
-        meshes.forEach((mesh) => {
-          mesh.computeWorldMatrix(true);
-        });
-      },
-    );
+    const beforePhysicsObserver = scene.onBeforePhysicsObservable.add(() => {
+      meshes.forEach((mesh) => {
+        mesh.computeWorldMatrix(true);
+      });
+    });
   },
   up(meshName, upForce = 10) {
     const mesh = flock.scene.getMeshByName(meshName);
@@ -123,37 +109,31 @@ export const flockPhysics = {
     if (mesh && mesh.physics) {
       mesh.physics.applyImpulse(
         new flock.BABYLON.Vector3(forceX, forceY, forceZ),
-        mesh.getAbsolutePosition()
+        mesh.getAbsolutePosition(),
       );
     } else {
-      console.error(`Model '${meshName}' not loaded or missing physics (applyForce)`);
+      console.error(
+        `Model '${meshName}' not loaded or missing physics (applyForce)`,
+      );
     }
   },
   setPhysics(meshName, physicsType) {
     return flock.whenModelReady(meshName, (mesh) => {
       switch (physicsType) {
         case "STATIC":
-          mesh.physics.setMotionType(
-            flock.BABYLON.PhysicsMotionType.STATIC,
-          );
+          mesh.physics.setMotionType(flock.BABYLON.PhysicsMotionType.STATIC);
           mesh.physics.disablePreStep = true;
           break;
         case "DYNAMIC":
-          mesh.physics.setMotionType(
-            flock.BABYLON.PhysicsMotionType.DYNAMIC,
-          );
+          mesh.physics.setMotionType(flock.BABYLON.PhysicsMotionType.DYNAMIC);
           mesh.physics.disablePreStep = false;
           break;
         case "ANIMATED":
-          mesh.physics.setMotionType(
-            flock.BABYLON.PhysicsMotionType.ANIMATED,
-          );
+          mesh.physics.setMotionType(flock.BABYLON.PhysicsMotionType.ANIMATED);
           mesh.physics.disablePreStep = false;
           break;
         case "NONE":
-          mesh.physics.setMotionType(
-            flock.BABYLON.PhysicsMotionType.STATIC,
-          );
+          mesh.physics.setMotionType(flock.BABYLON.PhysicsMotionType.STATIC);
           mesh.isPickable = false;
           flock.hk._hknp.HP_World_RemoveBody(
             flock.hk.world,
@@ -162,10 +142,7 @@ export const flockPhysics = {
           mesh.physics.disablePreStep = true;
           break;
         default:
-          console.error(
-            "Invalid physics type provided:",
-            physicsType,
-          );
+          console.error("Invalid physics type provided:", physicsType);
           break;
       }
     });
@@ -231,10 +208,7 @@ export const flockPhysics = {
             );
             break;
           default:
-            console.error(
-              "Invalid shape type provided:",
-              shapeType,
-            );
+            console.error("Invalid shape type provided:", shapeType);
             return;
         }
 
@@ -270,7 +244,180 @@ export const flockPhysics = {
     }
     return false;
   },
-  onTrigger(meshName, { trigger, callback, mode = "wait" }){
+  onTrigger(meshName, { trigger, callback, mode = "wait", applyToGroup = false }) {
+    const groupName = meshName.includes("__")
+      ? meshName.split("__")[0]
+      : meshName.split("_")[0];
+
+    // 🛡 Scene not ready yet – queue for later
+    if (!flock.scene) {
+      console.log(`[flock] Scene not ready, queuing group '${groupName}' trigger`);
+      if (!flock.pendingTriggers.has(groupName)) {
+        flock.pendingTriggers.set(groupName, []);
+      }
+      flock.pendingTriggers.get(groupName).push({ trigger, callback, mode });
+      return;
+    }
+
+    // 🧠 Handle group-wide registration
+    if (applyToGroup) {
+      const matching = flock.scene.meshes.filter((m) =>
+        m.name.startsWith(groupName)
+      );
+      if (matching.length > 0) {
+        console.log(
+          `[flock] Applying trigger to ${matching.length} existing mesh(es) in group '${groupName}'`
+        );
+        for (const m of matching) {
+          // ✅ No longer skipping the group anchor (e.g., "box1")
+          flock.onTrigger(m.name, {
+            trigger,
+            callback,
+            mode,
+            applyToGroup: false, // 🧯 Prevent recursion
+          });
+        }
+      }
+
+      // Register for future meshes in this group
+      if (!flock.pendingTriggers.has(groupName)) {
+        flock.pendingTriggers.set(groupName, []);
+      }
+      flock.pendingTriggers.get(groupName).push({ trigger, callback, mode });
+      return;
+    }
+
+    // 🧪 If the mesh doesn't exist yet, queue trigger
+    const tryNow =
+      flock.scene?.getMeshByName(meshName) ||
+      flock.modelReadyPromises.has(meshName);
+
+    if (!tryNow) {
+      if (!flock.pendingTriggers.has(groupName)) {
+        flock.pendingTriggers.set(groupName, []);
+      }
+      flock.pendingTriggers.get(groupName).push({ trigger, callback, mode });
+
+      console.log(`[flock] Trigger for '${meshName}' stored for group '${groupName}'`);
+      return;
+    }
+
+    // 🎯 Register actual trigger
+    return flock.whenModelReady(meshName, async function (target) {
+      if (!target) {
+        console.log("Model or GUI Button not loaded:", meshName);
+        return;
+      }
+
+      let isExecuting = false;
+      let hasExecuted = false;
+      let callbacks = Array.isArray(callback) ? callback : [callback];
+      let currentIndex = 0;
+
+      function registerMeshAction(mesh, trigger, action) {
+        mesh.isPickable = true;
+        if (!mesh.actionManager) {
+          mesh.actionManager = new flock.BABYLON.ActionManager(flock.scene);
+          mesh.actionManager.isRecursive = true;
+        }
+
+        let actionSequence = new flock.BABYLON.ExecuteCodeAction(
+          flock.BABYLON.ActionManager[trigger],
+          async (evt) => {
+            const clickedMesh = evt.meshUnderPointer || evt.source;
+            const meshId = clickedMesh.name;
+            await callbacks[0](meshId);
+            for (let i = 1; i < callbacks.length; i++) {
+              await callbacks[i]();
+            }
+          }
+        );
+
+        for (let i = 1; i < callbacks.length; i++) {
+          actionSequence = actionSequence.then(
+            new flock.BABYLON.ExecuteCodeAction(
+              flock.BABYLON.ActionManager[trigger],
+              async () => await callbacks[i]()
+            )
+          );
+        }
+
+        mesh.actionManager.registerAction(actionSequence);
+      }
+
+      function registerButtonAction(button, trigger, action) {
+        if (trigger === "OnPointerUpTrigger") {
+          button.onPointerUpObservable.add(action);
+        } else {
+          button.onPointerClickObservable.add(action);
+        }
+      }
+
+      async function executeAction() {
+        if (mode === "once") {
+          if (hasExecuted) return;
+          hasExecuted = true;
+        }
+
+        if (mode === "wait") {
+          if (isExecuting) return;
+          isExecuting = true;
+        }
+
+        try {
+          await callbacks[currentIndex]();
+          currentIndex = (currentIndex + 1) % callbacks.length;
+        } catch (e) {
+          console.error("Action execution failed:", e);
+        } finally {
+          if (mode === "wait") isExecuting = false;
+        }
+      }
+
+      if (target instanceof flock.BABYLON.AbstractMesh) {
+        registerMeshAction(target, trigger, async () => {
+          await executeAction();
+        });
+
+        if (flock.xrHelper && flock.xrHelper.baseExperience) {
+          flock.xrHelper.baseExperience.onStateChangedObservable.add((state) => {
+            if (
+              state === flock.BABYLON.WebXRState.IN_XR &&
+              flock.xrHelper.baseExperience.sessionManager.sessionMode === "immersive-ar"
+            ) {
+              flock.xrHelper.baseExperience.featuresManager.enableFeature(
+                flock.BABYLON.WebXRHitTest.Name,
+                "latest",
+                {
+                  onHitTestResultObservable: (results) => {
+                    if (results.length > 0) {
+                      const hitTest = results[0];
+                      const position = hitTest.transformationMatrix.getTranslation();
+                      target.position.copyFrom(position);
+                      target.isVisible = true;
+                    }
+                  }
+                }
+              );
+
+              flock.scene.onPointerDown = function (evt, pickResult) {
+                if (pickResult.hit && pickResult.pickedMesh === target) {
+                  executeAction();
+                }
+              };
+            } else if (state === flock.BABYLON.WebXRState.NOT_IN_XR) {
+              flock.scene.onPointerDown = null;
+            }
+          });
+        }
+      } else if (target instanceof flock.GUI.Button) {
+        registerButtonAction(target, trigger, async () => {
+          await executeAction();
+        });
+      }
+    });
+  },
+  onTrigger2(meshName, { trigger, callback, mode = "wait" }) {
     return flock.whenModelReady(meshName, async function (target) {
       if (!target) {
         console.log("Model or GUI Button not loaded:", meshName);
@@ -286,9 +433,7 @@ export const flockPhysics = {
       function registerMeshAction(mesh, trigger, action) {
         mesh.isPickable = true;
         if (!mesh.actionManager) {
-          mesh.actionManager = new flock.BABYLON.ActionManager(
-            flock.scene,
-          );
+          mesh.actionManager = new flock.BABYLON.ActionManager(flock.scene);
           mesh.actionManager.isRecursive = true;
         }
 
@@ -305,7 +450,7 @@ export const flockPhysics = {
             for (let i = 1; i < callbacks.length; i++) {
               await callbacks[i]();
             }
-          }
+          },
         );
 
         for (let i = 1; i < callbacks.length; i++) {
@@ -366,37 +511,27 @@ export const flockPhysics = {
             (state) => {
               if (
                 state === flock.BABYLON.WebXRState.IN_XR &&
-                flock.xrHelper.baseExperience.sessionManager
-                  .sessionMode === "immersive-ar"
+                flock.xrHelper.baseExperience.sessionManager.sessionMode ===
+                  "immersive-ar"
               ) {
                 flock.xrHelper.baseExperience.featuresManager.enableFeature(
                   flock.BABYLON.WebXRHitTest.Name,
                   "latest",
                   {
-                    onHitTestResultObservable: (
-                      results,
-                    ) => {
+                    onHitTestResultObservable: (results) => {
                       if (results.length > 0) {
                         const hitTest = results[0];
                         const position =
                           hitTest.transformationMatrix.getTranslation();
-                        target.position.copyFrom(
-                          position,
-                        );
+                        target.position.copyFrom(position);
                         target.isVisible = true;
                       }
                     },
                   },
                 );
 
-                flock.scene.onPointerDown = function (
-                  evt,
-                  pickResult,
-                ) {
-                  if (
-                    pickResult.hit &&
-                    pickResult.pickedMesh === target
-                  ) {
+                flock.scene.onPointerDown = function (evt, pickResult) {
+                  if (pickResult.hit && pickResult.pickedMesh === target) {
                     executeAction(); // Discard extra triggers in 'wait' mode
                   }
                 };
@@ -446,8 +581,8 @@ export const flockPhysics = {
           },
           new flock.BABYLON.PredicateCondition(
             flock.BABYLON.ActionManager,
-            () => otherMesh.isEnabled()
-          )
+            () => otherMesh.isEnabled(),
+          ),
         );
 
         mesh.actionManager.registerAction(action);
@@ -504,4 +639,4 @@ export const flockPhysics = {
     //if(hit.hit) {console.log(hit.pickedMesh.name, hit.distance);}
     return hit.hit && hit.pickedMesh !== null && hit.distance <= 0.06;
   },
-}
+};
