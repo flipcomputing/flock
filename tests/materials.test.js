@@ -293,7 +293,7 @@ export function runMaterialsTests(flock) {
 		const gradientColors = ["#FF0000", "#00FF00"];
 		const material = flock.createMaterial({
 		  color: gradientColors,
-		  materialName: "gradientMaterial",
+		  materialName: "none.png",
 		  alpha: 1,
 		});
 

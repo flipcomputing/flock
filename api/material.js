@@ -693,7 +693,7 @@ export const flockMaterial = {
     // Handle two-color case
     if (Array.isArray(color) && color.length === 2) {
       // Use gradient for Flat material
-      if (materialName === 'Flat') {
+      if (materialName === 'none.png') {
         material = new flock.GradientMaterial(materialName, flock.scene);
         material.bottomColor = flock.BABYLON.Color3.FromHexString(
           flock.getColorFromString(color[0]),
