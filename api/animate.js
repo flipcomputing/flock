@@ -917,7 +917,7 @@ export const flockAnimate = {
     loop = true,
     restart = false,
   ) {
-    console.log("switchToAnimationLoad");
+    //console.log("switchToAnimationLoad");
 
     function findMeshWithSkeleton(rootMesh) {
       if (rootMesh.skeleton) return rootMesh;
