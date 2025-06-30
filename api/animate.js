@@ -896,7 +896,13 @@ export const flockAnimate = {
       );
     }
   },
-  async switchToAnimationLoad(scene, meshOrGroup, animationName, loop = true) {
+  async switchToAnimationLoad(
+    scene,
+    meshOrGroup,
+    animationName,
+    loop = true,
+    restart = false
+  ) {
     function findMeshWithSkeleton(rootMesh) {
       if (rootMesh.skeleton) return rootMesh;
       if (rootMesh.getChildMeshes) {
@@ -909,17 +915,29 @@ export const flockAnimate = {
 
     const mesh = findMeshWithSkeleton(meshOrGroup);
     if (!mesh || !mesh.skeleton) {
-      //console.error("[switchToAnimation] Mesh or skeleton not found.", meshOrGroup?.name || meshOrGroup);
+      console.error(`[switchToAnimation] Mesh or skeleton not found for "${meshOrGroup?.name || meshOrGroup}".`);
       return null;
     }
 
-    if (mesh._currentAnimGroup) {
-      mesh._currentAnimGroup.stop();
-      mesh._currentAnimGroup.dispose();
-      mesh._currentAnimGroup = null;
+    mesh.metadata = mesh.metadata || {};
+    mesh.metadata._remappedAnims = mesh.metadata._remappedAnims || {};
+
+    // Look for a cached retargeted AnimationGroup
+    let retargetedGroup = mesh.metadata._remappedAnims[animationName];
+
+    if (retargetedGroup) {
+      // Stop any previous play
+      retargetedGroup.stop();
+      // Optionally restart from the beginning (if requested)
+      if (restart) {
+        retargetedGroup.reset();
+      }
+      retargetedGroup.start(loop);
+      mesh._currentAnimGroup = retargetedGroup;
+      return retargetedGroup;
     }
 
-    // --- Debug: Measure loading time ---
+    // Otherwise, load and retarget for the first time
     const t0 = performance.now();
     const animImport = await flock.BABYLON.SceneLoader.LoadAssetContainerAsync(
       "./animations/", animationName + ".glb", scene
@@ -946,9 +964,9 @@ export const flockAnimate = {
       }
     });
 
-    // --- Debug: Measure deep copy/retarget time ---
+    // Retarget
     const t2 = performance.now();
-    const retargetedGroup = new flock.BABYLON.AnimationGroup(mesh.name + "." + animationName, scene);
+    retargetedGroup = new flock.BABYLON.AnimationGroup(mesh.name + "." + animationName, scene);
     let addedCount = 0;
 
     for (const ta of animGroup.targetedAnimations) {
@@ -962,8 +980,6 @@ export const flockAnimate = {
         const animCopy = ta.animation.clone(ta.animation.name + "_" + mesh.name);
         retargetedGroup.addTargetedAnimation(animCopy, mappedTarget);
         addedCount++;
-      } else {
-        //console.warn(`[switchToAnimation] Could not map animation target:`, ta.target, ta.target.name);
       }
     }
     const t3 = performance.now();
@@ -972,6 +988,8 @@ export const flockAnimate = {
 
     animImport.dispose();
 
+    // Cache on mesh for next time
+    mesh.metadata._remappedAnims[animationName] = retargetedGroup;
     mesh._currentAnimGroup = retargetedGroup;
     retargetedGroup.start(loop);
 
@@ -1056,6 +1074,66 @@ export const flockAnimate = {
     });
   },
   async playAnimation(
+    meshName,
+    {
+      animationName,
+      loop = false,
+      restart = true
+    } = {}
+  ) {
+    const maxAttempts = 100;
+    const attemptInterval = 10;
+
+    if (!animationName) {
+      console.warn(`No animationName provided for playAnimation on mesh '${meshName}'.`);
+      return;
+    }
+
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      const mesh = flock.scene.getMeshByName(meshName);
+      if (mesh) {
+        // Await the AnimationGroup from switchToAnimationLoad, which handles caching and remap
+        const animGroup = await flock.switchToAnimationLoad(
+          flock.scene,
+          mesh,
+          animationName,
+          loop,
+          restart
+        );
+
+        if (!animGroup) {
+          console.warn(`Animation '${animationName}' not found or failed for mesh '${meshName}'.`);
+          return;
+        }
+
+        // Wait for animation to complete
+        return new Promise((resolve) => {
+          if (animGroup.onAnimationGroupEndObservable) {
+            const observer = animGroup.onAnimationGroupEndObservable.add(() => {
+              animGroup.onAnimationGroupEndObservable.remove(observer);
+              resolve();
+            });
+          } else {
+            resolve();
+          }
+        });
+      }
+      // Mesh not found yet, wait and try again
+      await new Promise((resolve, reject) => {
+        const timeoutId = setTimeout(resolve, attemptInterval);
+        if (flock.abortController && flock.abortController.signal) {
+          flock.abortController.signal.addEventListener("abort", () => {
+            clearTimeout(timeoutId);
+            reject(new Error("Timeout aborted"));
+          });
+        }
+      });
+    }
+    console.error(
+      `Failed to find mesh "${meshName}" after ${maxAttempts} attempts.`,
+    );
+  },
+  async playAnimation2(
     meshName,
     {
       animationName,

@@ -64,6 +64,7 @@ export const flock = {
 	modelReadyPromises: new Map(),
 	pendingMeshCreations: 0,
 	pendingTriggers: new Map(),
+	_animationFileCache: {},
 	characterNames: characterNames,
 	alert: alert,
 	BABYLON: BABYLON,
@@ -959,6 +960,7 @@ export const flock = {
 			flock.geometryCache = {};
 			flock.materialCache = {};
 			flock.pendingTriggers = new Map();
+			flock._animationFileCache = {};
 			flock.ground = null;
 			flock.sky = null;
 
@@ -1057,6 +1059,7 @@ export const flock = {
 		flock.originalModelTransformations = {};
 		flock.geometryCache = {};
 		flock.pendingTriggers = new Map();
+		flock._animationFileCache = {};
 		flock.materialCache = {};
 		flock.disposed = false;
 
