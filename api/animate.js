@@ -892,7 +892,7 @@ export const flockAnimate = {
     loop = true,
     restart,
   ) {
-    if (flock.separateAnimations) {
+    if (flock.separateAnimations || meshOrGroup.name.includes('ANIMTEST')) {
       return flock.switchToAnimationLoad(
         scene,
         meshOrGroup,
@@ -1119,7 +1119,7 @@ export const flockAnimate = {
     meshName,
     { animationName, loop = false, restart = true } = {}
   ) {
-    if (flock.separateAnimations) {
+    if (flock.separateAnimations  || meshName.includes('ANIMTEST')) {
       return flock.playAnimationLoad(
         meshName,
         { animationName, loop, restart }
