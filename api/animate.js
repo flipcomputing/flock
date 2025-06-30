@@ -908,18 +908,162 @@ export const flockAnimate = {
     }
 
     const mesh = findMeshWithSkeleton(meshOrGroup);
-    if (!mesh || !mesh.skeleton) {
-      //console.error("[switchToAnimation] Mesh or skeleton not found.", meshOrGroup?.name || meshOrGroup);
-      return null;
+    if (!mesh || !mesh.skeleton) return null;
+
+    if (!mesh.metadata) mesh.metadata = {};
+    if (!mesh.metadata.animationGroups) mesh.metadata.animationGroups = {};
+
+    let cache = mesh.metadata.animationGroups;
+    let retargetedGroup;
+
+    // --- PROMISE-BASED CACHING ---
+    if (cache[animationName]) {
+      if (typeof cache[animationName].then === "function") {
+        // In-progress Promise: await and use
+        //console.log(`[switchToAnimation] Awaiting in-progress retarget for "${animationName}"`);
+        retargetedGroup = await cache[animationName];
+      } else {
+        // Already cached AnimationGroup
+        retargetedGroup = cache[animationName];
+      }
+    } else {
+      // First request: start the load/retarget process and cache the Promise immediately!
+      cache[animationName] = (async () => {
+        const t0 = performance.now();
+        const animImport = await flock.BABYLON.SceneLoader.LoadAssetContainerAsync(
+          "./animations/", animationName + ".glb", scene
+        );
+        const t1 = performance.now();
+        console.log(`[switchToAnimation] File load time: ${(t1 - t0).toFixed(2)} ms`);
+        const groupNames = animImport.animationGroups.map(ag => ag.name);
+        console.log(`[switchToAnimation] Animation groups in file:`, groupNames);
+
+        const animGroup = animImport.animationGroups.find(
+          ag => ag.name === animationName && ag.targetedAnimations.length > 0
+        );
+        if (!animGroup) {
+          animImport.dispose();
+          console.error(
+            `[switchToAnimation] Animation group "${animationName}" not found in animation file. Available: [${groupNames.join(", ")}]`
+          );
+          return null;
+        }
+
+        const boneMap = {};
+        const transformNodeMap = {};
+        mesh.skeleton.bones.forEach(bone => {
+          boneMap[bone.name] = bone;
+          if (bone._linkedTransformNode) {
+            transformNodeMap[bone._linkedTransformNode.name] = bone._linkedTransformNode;
+          }
+        });
+
+        const t2 = performance.now();
+        let retargetedGroup = new flock.BABYLON.AnimationGroup(mesh.name + "." + animationName, scene);
+        let addedCount = 0;
+
+        for (const ta of animGroup.targetedAnimations) {
+          let mappedTarget = null;
+          if (ta.target instanceof flock.BABYLON.Bone) {
+            mappedTarget = boneMap[ta.target.name];
+          } else if (ta.target instanceof flock.BABYLON.TransformNode) {
+            mappedTarget = transformNodeMap[ta.target.name];
+          }
+          if (mappedTarget) {
+            const animCopy = ta.animation.clone(ta.animation.name + "_" + mesh.name);
+            retargetedGroup.addTargetedAnimation(animCopy, mappedTarget);
+            addedCount++;
+          }
+        }
+        const t3 = performance.now();
+        console.log(`[switchToAnimation] Deep copy: Added ${addedCount} animations to retargeted group.`);
+        console.log(`[switchToAnimation] Deep copy/retarget time: ${(t3 - t2).toFixed(2)} ms`);
+
+        animImport.dispose();
+        return retargetedGroup;
+      })();
+
+      retargetedGroup = await cache[animationName];
+      // Now replace the Promise with the result (for future quick access)
+      cache[animationName] = retargetedGroup;
     }
 
-    if (mesh._currentAnimGroup) {
+    // --- GROUP SWITCHING/PLAYBACK ---
+    // Only stop if switching to a different group
+    if (
+      mesh._currentAnimGroup &&
+      mesh._currentAnimGroup !== retargetedGroup &&
+      mesh._currentAnimGroup.isPlaying
+    ) {
       mesh._currentAnimGroup.stop();
-      mesh._currentAnimGroup.dispose();
+      //console.log(`[switchToAnimation] Stopped previous animation group "${mesh._currentAnimGroup.name}"`);
       mesh._currentAnimGroup = null;
     }
 
-    // --- Debug: Measure loading time ---
+    mesh._currentAnimGroup = retargetedGroup;
+    mesh.metadata.currentAnimationName = animationName;
+
+    if (retargetedGroup && !retargetedGroup.isPlaying) {
+      retargetedGroup.start(loop);
+      //console.log(`[switchToAnimation] Started retargeted group "${animationName}"`);
+    } else if (retargetedGroup) {
+      //console.log(`[switchToAnimation] "${animationName}" is already playing on ${mesh.name}. Not restarting.`);
+    }
+
+    return retargetedGroup;
+  },
+  async switchToAnimationLoad2(scene, meshOrGroup, animationName, loop = true) {
+    function findMeshWithSkeleton(rootMesh) {
+      if (rootMesh.skeleton) return rootMesh;
+      if (rootMesh.getChildMeshes) {
+        for (const child of rootMesh.getChildMeshes()) {
+          if (child.skeleton) return child;
+        }
+      }
+      return null;
+    }
+
+    const mesh = findMeshWithSkeleton(meshOrGroup);
+    if (!mesh || !mesh.skeleton) return null;
+
+    if (!mesh.metadata) mesh.metadata = {};
+    if (!mesh.metadata.animationGroups) mesh.metadata.animationGroups = {};
+
+    let retargetedGroup = mesh.metadata.animationGroups[animationName];
+
+    // Check if already playing this group and it's actually running
+    if (
+      mesh._currentAnimGroup === retargetedGroup &&
+      retargetedGroup &&
+      retargetedGroup.isPlaying
+    ) {
+      console.log(`[switchToAnimation] "${animationName}" is already playing on ${mesh.name}. Not restarting.`);
+      return retargetedGroup;
+    }
+
+    // If switching, stop previous
+    if (
+      mesh._currentAnimGroup &&
+      mesh._currentAnimGroup !== retargetedGroup &&
+      mesh._currentAnimGroup.isPlaying
+    ) {
+      mesh._currentAnimGroup.stop();
+      //console.log(`[switchToAnimation] Stopped previous animation group "${mesh._currentAnimGroup.name}"`);
+      mesh._currentAnimGroup = null;
+    }
+
+    // Use cached if available
+    if (retargetedGroup) {
+      mesh._currentAnimGroup = retargetedGroup;
+      mesh.metadata.currentAnimationName = animationName;
+      if (!retargetedGroup.isPlaying) {
+        retargetedGroup.start(loop);
+        console.log(`[switchToAnimation] Started cached retargeted group "${animationName}"`);
+      }
+      return retargetedGroup;
+    }
+
+    // If not cached, load and retarget
     const t0 = performance.now();
     const animImport = await flock.BABYLON.SceneLoader.LoadAssetContainerAsync(
       "./animations/", animationName + ".glb", scene
@@ -927,16 +1071,20 @@ export const flockAnimate = {
     const t1 = performance.now();
     console.log(`[switchToAnimation] File load time: ${(t1 - t0).toFixed(2)} ms`);
 
+    const groupNames = animImport.animationGroups.map(ag => ag.name);
+    console.log(`[switchToAnimation] Animation groups in file:`, groupNames);
+
     const animGroup = animImport.animationGroups.find(
       ag => ag.name === animationName && ag.targetedAnimations.length > 0
     );
     if (!animGroup) {
       animImport.dispose();
-      console.error(`[switchToAnimation] Animation group "${animationName}" not found in animation file.`);
+      console.error(
+        `[switchToAnimation] Animation group "${animationName}" not found in animation file. Available: [${groupNames.join(", ")}]`
+      );
       return null;
     }
 
-    // Build lookup for bones and transform nodes by name
     const boneMap = {};
     const transformNodeMap = {};
     mesh.skeleton.bones.forEach(bone => {
@@ -946,9 +1094,8 @@ export const flockAnimate = {
       }
     });
 
-    // --- Debug: Measure deep copy/retarget time ---
     const t2 = performance.now();
-    const retargetedGroup = new flock.BABYLON.AnimationGroup(mesh.name + "." + animationName, scene);
+    retargetedGroup = new flock.BABYLON.AnimationGroup(mesh.name + "." + animationName, scene);
     let addedCount = 0;
 
     for (const ta of animGroup.targetedAnimations) {
@@ -962,8 +1109,6 @@ export const flockAnimate = {
         const animCopy = ta.animation.clone(ta.animation.name + "_" + mesh.name);
         retargetedGroup.addTargetedAnimation(animCopy, mappedTarget);
         addedCount++;
-      } else {
-        //console.warn(`[switchToAnimation] Could not map animation target:`, ta.target, ta.target.name);
       }
     }
     const t3 = performance.now();
@@ -972,8 +1117,12 @@ export const flockAnimate = {
 
     animImport.dispose();
 
+    // Cache and start
+    mesh.metadata.animationGroups[animationName] = retargetedGroup;
     mesh._currentAnimGroup = retargetedGroup;
+    mesh.metadata.currentAnimationName = animationName;
     retargetedGroup.start(loop);
+    console.log(`[switchToAnimation] Started and cached new retargeted group "${animationName}"`);
 
     return retargetedGroup;
   },
