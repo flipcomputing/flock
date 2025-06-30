@@ -51,7 +51,7 @@ console.log("Flock helpers loading");
 
 export const flock = {
 	callbackMode: true,
-	separateAnimations: true,
+	separateAnimations: false,
 	memoryDebug: false,
 	maxMeshes: 5000,
 	console: console,
