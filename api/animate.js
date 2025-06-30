@@ -926,31 +926,45 @@ export const flockAnimate = {
     let retargetedGroup = mesh.metadata._remappedAnims[animationName];
 
     if (retargetedGroup) {
-      // Stop any previous play
       retargetedGroup.stop();
-      // Optionally restart from the beginning (if requested)
-      if (restart) {
-        retargetedGroup.reset();
-      }
+      if (restart) retargetedGroup.reset();
       retargetedGroup.start(loop);
       mesh._currentAnimGroup = retargetedGroup;
       return retargetedGroup;
     }
 
-    // Otherwise, load and retarget for the first time
+    // Try loading <animationName>.glb first
+    let animImport, animGroup, triedFallback = false;
     const t0 = performance.now();
-    const animImport = await flock.BABYLON.SceneLoader.LoadAssetContainerAsync(
+    animImport = await flock.BABYLON.SceneLoader.LoadAssetContainerAsync(
       "./animations/", animationName + ".glb", scene
     );
     const t1 = performance.now();
     console.log(`[switchToAnimation] File load time: ${(t1 - t0).toFixed(2)} ms`);
 
-    const animGroup = animImport.animationGroups.find(
+    animGroup = animImport.animationGroups.find(
       ag => ag.name === animationName && ag.targetedAnimations.length > 0
     );
+
+    // Fallback: Try animations.glb if not found
     if (!animGroup) {
       animImport.dispose();
-      console.error(`[switchToAnimation] Animation group "${animationName}" not found in animation file.`);
+      triedFallback = true;
+      const t2 = performance.now();
+      console.warn(`[switchToAnimation] Animation group "${animationName}" not found in ${animationName}.glb, trying animations.glb...`);
+      animImport = await flock.BABYLON.SceneLoader.LoadAssetContainerAsync(
+        "./animations/", "animations.glb", scene
+      );
+      const t3 = performance.now();
+      console.log(`[switchToAnimation] Fallback file load time: ${(t3 - t2).toFixed(2)} ms`);
+      animGroup = animImport.animationGroups.find(
+        ag => ag.name === animationName && ag.targetedAnimations.length > 0
+      );
+    }
+
+    if (!animGroup) {
+      animImport.dispose();
+      console.error(`[switchToAnimation] Animation group "${animationName}" not found in ${triedFallback ? "animations.glb" : animationName + ".glb"}.`);
       return null;
     }
 
@@ -965,7 +979,7 @@ export const flockAnimate = {
     });
 
     // Retarget
-    const t2 = performance.now();
+    const tRetarget0 = performance.now();
     retargetedGroup = new flock.BABYLON.AnimationGroup(mesh.name + "." + animationName, scene);
     let addedCount = 0;
 
@@ -982,9 +996,9 @@ export const flockAnimate = {
         addedCount++;
       }
     }
-    const t3 = performance.now();
+    const tRetarget1 = performance.now();
     console.log(`[switchToAnimation] Deep copy: Added ${addedCount} animations to retargeted group.`);
-    console.log(`[switchToAnimation] Deep copy/retarget time: ${(t3 - t2).toFixed(2)} ms`);
+    console.log(`[switchToAnimation] Deep copy/retarget time: ${(tRetarget1 - tRetarget0).toFixed(2)} ms`);
 
     animImport.dispose();
 
