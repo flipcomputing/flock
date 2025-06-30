@@ -917,6 +917,8 @@ export const flockAnimate = {
     loop = true,
     restart = false,
   ) {
+    console.log("switchToAnimationLoad");
+
     function findMeshWithSkeleton(rootMesh) {
       if (rootMesh.skeleton) return rootMesh;
       if (rootMesh.getChildMeshes) {
@@ -1050,13 +1052,7 @@ export const flockAnimate = {
 
     return retargetedGroup;
   },
-  switchToAnimationModel(
-    scene,
-    mesh,
-    animationName,
-    loop = true,
-    restart = false,
-  ) {
+  switchToAnimation(scene, mesh, animationName, loop = true, restart = false) {
     const newAnimationName = animationName;
 
     if (!mesh) {
@@ -1110,7 +1106,7 @@ export const flockAnimate = {
 
     return targetAnimationGroup;
   },
-  switchAnimation(
+  switchAnimationModel(
     meshName,
     { animationName, loop = true, restart = false } = {},
   ) {
@@ -1119,6 +1115,67 @@ export const flockAnimate = {
     });
   },
   async playAnimation(
+    meshName,
+    { animationName, loop = false, restart = true } = {},
+  ) {
+    const maxAttempts = 100;
+    const attemptInterval = 10;
+
+    // Ensure animationName is provided
+    if (!animationName) {
+      console.warn(
+        `No animationName provided for playAnimation on mesh '${meshName}'.`,
+      );
+      return;
+    }
+
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      const mesh = flock.scene.getMeshByName(meshName);
+      if (mesh) {
+        const animGroup = flock.switchToAnimation(
+          flock.scene,
+          mesh,
+          animationName,
+          loop,
+          restart,
+        );
+
+        if (!animGroup) {
+          console.warn(
+            `Animation '${animationName}' not found for mesh '${meshName}'.`,
+          );
+          return;
+        }
+
+        return new Promise((resolve) => {
+          animGroup.onAnimationEndObservable.addOnce(() => {
+            resolve();
+          });
+        });
+      }
+      await new Promise((resolve, reject) => {
+        const timeoutId = setTimeout(resolve, attemptInterval);
+
+        // Listen for the abort signal to cancel the timeout
+        flock.abortController.signal.addEventListener("abort", () => {
+          clearTimeout(timeoutId); // Clear the timeout if aborted
+          reject(new Error("Timeout aborted")); // Reject the promise if aborted
+        });
+      });
+    }
+    console.error(
+      `Failed to find mesh "${meshName}" after ${maxAttempts} attempts.`,
+    );
+  },
+  switchAnimation(
+    meshName,
+    { animationName, loop = true, restart = false } = {},
+  ) {
+    return flock.whenModelReady(meshName, (mesh) => {
+      flock.switchToAnimation(flock.scene, mesh, animationName, loop, restart);
+    });
+  },
+  async playAnimation2(
     meshName,
     { animationName, loop = false, restart = true } = {},
   ) {
@@ -1178,7 +1235,7 @@ export const flockAnimate = {
       `Failed to find mesh "${meshName}" after ${maxAttempts} attempts.`,
     );
   },
-  async playAnimation2(
+  async playAnimation3(
     meshName,
     { animationName, loop = false, restart = true } = {},
   ) {
