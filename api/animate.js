@@ -13,8 +13,8 @@ export const flockAnimate = {
       duration = 1,
       reverse = false,
       loop = false,
-      mode = "AWAIT"
-    } = {}
+      mode = "AWAIT",
+    } = {},
   ) {
     const fps = 30;
     const frames = fps * duration;
@@ -95,7 +95,9 @@ export const flockAnimate = {
             return animateProperty(mesh.material, property, targetValue);
           }
           if (mesh.getChildren) {
-            mesh.getChildren().forEach((child) => animateMeshAndChildren(child));
+            mesh
+              .getChildren()
+              .forEach((child) => animateMeshAndChildren(child));
           }
         }
 
@@ -125,8 +127,8 @@ export const flockAnimate = {
       duration = 1,
       reverse = false,
       loop = false,
-      easing = "Linear"
-    } = {}
+      easing = "Linear",
+    } = {},
   ) {
     return new Promise(async (resolve) => {
       await flock.whenModelReady(meshName, async function (mesh) {
@@ -252,7 +254,8 @@ export const flockAnimate = {
 
       case "alpha":
         if (mesh.material) {
-          mesh.material.transparencyMode = flock.BABYLON.Material.MATERIAL_ALPHABLEND;
+          mesh.material.transparencyMode =
+            flock.BABYLON.Material.MATERIAL_ALPHABLEND;
         }
         return "material.alpha";
 
@@ -319,7 +322,11 @@ export const flockAnimate = {
       }
 
       // Return the updated quaternion
-      return flock.BABYLON.Quaternion.RotationYawPitchRoll(euler.y, euler.x, euler.z);
+      return flock.BABYLON.Quaternion.RotationYawPitchRoll(
+        euler.y,
+        euler.x,
+        euler.z,
+      );
     }
 
     // Handle full Vector3 rotations
@@ -449,8 +456,8 @@ export const flockAnimate = {
       easing = "Linear",
       loop = false,
       reverse = false,
-      mode = "START"
-    } = {}
+      mode = "START",
+    } = {},
   ) {
     return new Promise(async (resolve) => {
       // Ensure animationGroupName is not null; generate a unique name if it is
@@ -632,7 +639,9 @@ export const flockAnimate = {
         break;
       case "ease-out":
         easingFunction = new flock.BABYLON.QuadraticEase();
-        easingFunction.setEasingMode(flock.BABYLON.EasingFunction.EASINGMODE_EASEOUT);
+        easingFunction.setEasingMode(
+          flock.BABYLON.EasingFunction.EASINGMODE_EASEOUT,
+        );
         break;
       case "ease-in-out":
         easingFunction = new flock.BABYLON.QuadraticEase();
@@ -658,8 +667,8 @@ export const flockAnimate = {
       property,
       easing = "Linear",
       loop = false,
-      reverse = false
-    } = {}
+      reverse = false,
+    } = {},
   ) {
     return new Promise(async (resolve) => {
       // Check if mesh exists immediately first
@@ -876,26 +885,38 @@ export const flockAnimate = {
     }
     return false;
   },
-  async switchToAnimation(scene, meshOrGroup, animationName, loop = true, restart) {
-    if(flock.separateAnimations){
+  async switchToAnimation(
+    scene,
+    meshOrGroup,
+    animationName,
+    loop = true,
+    restart,
+  ) {
+    if (flock.separateAnimations) {
       flock.switchToAnimationLoad(
         scene,
         meshOrGroup,
         animationName,
         loop,
+        restart,
       );
-    }
-    else {
+    } else {
       flock.switchToAnimationModel(
         scene,
         meshOrGroup,
         animationName,
         loop,
-        restart
+        restart,
       );
     }
   },
-  async switchToAnimationLoad(scene, meshOrGroup, animationName, loop = true) {
+  async switchToAnimationLoad(
+    scene,
+    meshOrGroup,
+    animationName,
+    loop = true,
+    restart = false,
+  ) {
     function findMeshWithSkeleton(rootMesh) {
       if (rootMesh.skeleton) return rootMesh;
       if (rootMesh.getChildMeshes) {
@@ -919,7 +940,6 @@ export const flockAnimate = {
     if (cache[animationName]) {
       if (typeof cache[animationName].then === "function") {
         // In-progress Promise: await and use
-        //console.log(`[switchToAnimation] Awaiting in-progress retarget for "${animationName}"`);
         retargetedGroup = await cache[animationName];
       } else {
         // Already cached AnimationGroup
@@ -929,36 +949,48 @@ export const flockAnimate = {
       // First request: start the load/retarget process and cache the Promise immediately!
       cache[animationName] = (async () => {
         const t0 = performance.now();
-        const animImport = await flock.BABYLON.SceneLoader.LoadAssetContainerAsync(
-          "./animations/", animationName + ".glb", scene
-        );
+        const animImport =
+          await flock.BABYLON.SceneLoader.LoadAssetContainerAsync(
+            "./animations/",
+            animationName + ".glb",
+            scene,
+          );
         const t1 = performance.now();
-        console.log(`[switchToAnimation] File load time: ${(t1 - t0).toFixed(2)} ms`);
-        const groupNames = animImport.animationGroups.map(ag => ag.name);
-        console.log(`[switchToAnimation] Animation groups in file:`, groupNames);
+        console.log(
+          `[switchToAnimation] File load time: ${(t1 - t0).toFixed(2)} ms`,
+        );
+        const groupNames = animImport.animationGroups.map((ag) => ag.name);
+        console.log(
+          `[switchToAnimation] Animation groups in file:`,
+          groupNames,
+        );
 
         const animGroup = animImport.animationGroups.find(
-          ag => ag.name === animationName && ag.targetedAnimations.length > 0
+          (ag) => ag.name === animationName && ag.targetedAnimations.length > 0,
         );
         if (!animGroup) {
           animImport.dispose();
           console.error(
-            `[switchToAnimation] Animation group "${animationName}" not found in animation file. Available: [${groupNames.join(", ")}]`
+            `[switchToAnimation] Animation group "${animationName}" not found in animation file. Available: [${groupNames.join(", ")}]`,
           );
           return null;
         }
 
         const boneMap = {};
         const transformNodeMap = {};
-        mesh.skeleton.bones.forEach(bone => {
+        mesh.skeleton.bones.forEach((bone) => {
           boneMap[bone.name] = bone;
           if (bone._linkedTransformNode) {
-            transformNodeMap[bone._linkedTransformNode.name] = bone._linkedTransformNode;
+            transformNodeMap[bone._linkedTransformNode.name] =
+              bone._linkedTransformNode;
           }
         });
 
         const t2 = performance.now();
-        let retargetedGroup = new flock.BABYLON.AnimationGroup(mesh.name + "." + animationName, scene);
+        let retargetedGroup = new flock.BABYLON.AnimationGroup(
+          mesh.name + "." + animationName,
+          scene,
+        );
         let addedCount = 0;
 
         for (const ta of animGroup.targetedAnimations) {
@@ -969,14 +1001,20 @@ export const flockAnimate = {
             mappedTarget = transformNodeMap[ta.target.name];
           }
           if (mappedTarget) {
-            const animCopy = ta.animation.clone(ta.animation.name + "_" + mesh.name);
+            const animCopy = ta.animation.clone(
+              ta.animation.name + "_" + mesh.name,
+            );
             retargetedGroup.addTargetedAnimation(animCopy, mappedTarget);
             addedCount++;
           }
         }
         const t3 = performance.now();
-        console.log(`[switchToAnimation] Deep copy: Added ${addedCount} animations to retargeted group.`);
-        console.log(`[switchToAnimation] Deep copy/retarget time: ${(t3 - t2).toFixed(2)} ms`);
+        console.log(
+          `[switchToAnimation] Deep copy: Added ${addedCount} animations to retargeted group.`,
+        );
+        console.log(
+          `[switchToAnimation] Deep copy/retarget time: ${(t3 - t2).toFixed(2)} ms`,
+        );
 
         animImport.dispose();
         return retargetedGroup;
@@ -995,16 +1033,17 @@ export const flockAnimate = {
       mesh._currentAnimGroup.isPlaying
     ) {
       mesh._currentAnimGroup.stop();
-      //console.log(`[switchToAnimation] Stopped previous animation group "${mesh._currentAnimGroup.name}"`);
       mesh._currentAnimGroup = null;
     }
 
     mesh._currentAnimGroup = retargetedGroup;
     mesh.metadata.currentAnimationName = animationName;
 
-    if (retargetedGroup && !retargetedGroup.isPlaying) {
+    // -- restart logic --
+    if (retargetedGroup && (!retargetedGroup.isPlaying || restart)) {
+      retargetedGroup.reset();
+      retargetedGroup.stop();
       retargetedGroup.start(loop);
-      //console.log(`[switchToAnimation] Started retargeted group "${animationName}"`);
     } else if (retargetedGroup) {
       //console.log(`[switchToAnimation] "${animationName}" is already playing on ${mesh.name}. Not restarting.`);
     }
@@ -1073,35 +1112,23 @@ export const flockAnimate = {
   },
   switchAnimation(
     meshName,
-    {
-      animationName,
-      loop = true,
-      restart = false
-    } = {}
+    { animationName, loop = true, restart = false } = {},
   ) {
     return flock.whenModelReady(meshName, (mesh) => {
-      flock.switchToAnimation(
-        flock.scene,
-        mesh,
-        animationName,
-        loop,
-        restart,
-      );
+      flock.switchToAnimation(flock.scene, mesh, animationName, loop, restart);
     });
   },
   async playAnimation(
     meshName,
-    {
-      animationName,
-      loop = false,
-      restart = true
-    } = {}
+    { animationName, loop = false, restart = true } = {},
   ) {
     const maxAttempts = 100;
     const attemptInterval = 10;
 
     if (!animationName) {
-      console.warn(`No animationName provided for playAnimation on mesh '${meshName}'.`);
+      console.warn(
+        `No animationName provided for playAnimation on mesh '${meshName}'.`,
+      );
       return;
     }
 
@@ -1114,11 +1141,13 @@ export const flockAnimate = {
           mesh,
           animationName,
           loop,
-          restart
+          restart,
         );
 
         if (!animGroup) {
-          console.warn(`Animation '${animationName}' not found or failed for mesh '${meshName}'.`);
+          console.warn(
+            `Animation '${animationName}' not found or failed for mesh '${meshName}'.`,
+          );
           return;
         }
 
@@ -1151,18 +1180,16 @@ export const flockAnimate = {
   },
   async playAnimation2(
     meshName,
-    {
-      animationName,
-      loop = false,
-      restart = true
-    } = {}
+    { animationName, loop = false, restart = true } = {},
   ) {
     const maxAttempts = 100;
     const attemptInterval = 10;
 
     // Ensure animationName is provided
     if (!animationName) {
-      console.warn(`No animationName provided for playAnimation on mesh '${meshName}'.`);
+      console.warn(
+        `No animationName provided for playAnimation on mesh '${meshName}'.`,
+      );
       return;
     }
 
@@ -1178,7 +1205,9 @@ export const flockAnimate = {
         );
 
         if (!animGroup) {
-          console.warn(`Animation '${animationName}' not found for mesh '${meshName}'.`);
+          console.warn(
+            `Animation '${animationName}' not found for mesh '${meshName}'.`,
+          );
           return;
         }
 
@@ -1202,15 +1231,18 @@ export const flockAnimate = {
       `Failed to find mesh "${meshName}" after ${maxAttempts} attempts.`,
     );
   },
-  async rotateAnim(meshName, {
-    x = 0,
-    y = 0, 
-    z = 0,
-    duration = 1,
-    reverse = false,
-    loop = false,
-    easing = "Linear"
-  } = {}) {
+  async rotateAnim(
+    meshName,
+    {
+      x = 0,
+      y = 0,
+      z = 0,
+      duration = 1,
+      reverse = false,
+      loop = false,
+      easing = "Linear",
+    } = {},
+  ) {
     return new Promise(async (resolve) => {
       // Check if mesh exists immediately first
       const existingMesh = flock.scene?.getMeshByName(meshName);
@@ -1238,14 +1270,11 @@ export const flockAnimate = {
           // Determine the loop mode based on reverse and loop
           let loopMode;
           if (reverse) {
-            loopMode =
-              flock.BABYLON.Animation.ANIMATIONLOOPMODE_YOYO;
+            loopMode = flock.BABYLON.Animation.ANIMATIONLOOPMODE_YOYO;
           } else if (loop) {
-            loopMode =
-              flock.BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE;
+            loopMode = flock.BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE;
           } else {
-            loopMode =
-              flock.BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT;
+            loopMode = flock.BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT;
           }
 
           // Create animation for rotation only
@@ -1276,19 +1305,16 @@ export const flockAnimate = {
                 easingFunction = new flock.BABYLON.CubicEase();
                 break;
               case "QuadraticEase":
-                easingFunction =
-                  new flock.BABYLON.QuadraticEase();
+                easingFunction = new flock.BABYLON.QuadraticEase();
                 break;
               case "ExponentialEase":
-                easingFunction =
-                  new flock.BABYLON.ExponentialEase();
+                easingFunction = new flock.BABYLON.ExponentialEase();
                 break;
               case "BounceEase":
                 easingFunction = new flock.BABYLON.BounceEase();
                 break;
               case "ElasticEase":
-                easingFunction =
-                  new flock.BABYLON.ElasticEase();
+                easingFunction = new flock.BABYLON.ElasticEase();
                 break;
               case "BackEase":
                 easingFunction = new flock.BABYLON.BackEase();
