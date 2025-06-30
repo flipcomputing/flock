@@ -2175,8 +2175,8 @@ window.onload = function () {
 		"on_event",
 		"procedures_defnoreturn",
 		"procedures_defreturn",
+		"microbit_input",
 	];
-
 
 	workspace.cleanUp = function () {
 
