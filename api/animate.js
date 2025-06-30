@@ -885,7 +885,7 @@ export const flockAnimate = {
     }
     return false;
   },
-  async switchToAnimation(
+  switchToAnimation(
     scene,
     meshOrGroup,
     animationName,
@@ -893,7 +893,7 @@ export const flockAnimate = {
     restart,
   ) {
     if (flock.separateAnimations) {
-      flock.switchToAnimationLoad(
+      return flock.switchToAnimationLoad(
         scene,
         meshOrGroup,
         animationName,
@@ -901,7 +901,7 @@ export const flockAnimate = {
         restart,
       );
     } else {
-      flock.switchToAnimationModel(
+      return flock.switchToAnimationModel(
         scene,
         meshOrGroup,
         animationName,
@@ -1051,8 +1051,9 @@ export const flockAnimate = {
     }
 
     return retargetedGroup;
+    
   },
-  switchToAnimation(scene, mesh, animationName, loop = true, restart = false) {
+  switchToAnimationModel(scene, mesh, animationName, loop = true, restart = false) {
     const newAnimationName = animationName;
 
     if (!mesh) {
@@ -1116,6 +1117,22 @@ export const flockAnimate = {
   },
   async playAnimation(
     meshName,
+    { animationName, loop = false, restart = true } = {}
+  ) {
+    if (flock.separateAnimations) {
+      return flock.playAnimationLoad(
+        meshName,
+        { animationName, loop, restart }
+      );
+    } else {
+      return flock.playAnimationModel(
+        meshName,
+        { animationName, loop, restart }
+      );
+    }
+  },
+  async playAnimationModel(
+    meshName,
     { animationName, loop = false, restart = true } = {},
   ) {
     const maxAttempts = 100;
@@ -1175,7 +1192,7 @@ export const flockAnimate = {
       flock.switchToAnimation(flock.scene, mesh, animationName, loop, restart);
     });
   },
-  async playAnimation2(
+  async playAnimationLoad(
     meshName,
     { animationName, loop = false, restart = true } = {},
   ) {
