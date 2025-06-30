@@ -19,6 +19,10 @@ export default {
           dest: 'models'
         },
         {
+          src: 'animations/*.{glb,gltf}',
+          dest: 'animations'
+        },
+        {
           src: 'sounds/*.{ogg,mp3,aac,wav}',
           dest: 'sounds'
         },

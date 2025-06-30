@@ -876,6 +876,87 @@ export const flockAnimate = {
     }
     return false;
   },
+  async switchToAnimationNew(scene, meshOrGroup, animationName, loop = true) {
+    function findMeshWithSkeleton(rootMesh) {
+      if (rootMesh.skeleton) return rootMesh;
+      if (rootMesh.getChildMeshes) {
+        for (const child of rootMesh.getChildMeshes()) {
+          if (child.skeleton) return child;
+        }
+      }
+      return null;
+    }
+
+    const mesh = findMeshWithSkeleton(meshOrGroup);
+    if (!mesh || !mesh.skeleton) {
+      //console.error("[switchToAnimation] Mesh or skeleton not found.", meshOrGroup?.name || meshOrGroup);
+      return null;
+    }
+
+    if (mesh._currentAnimGroup) {
+      mesh._currentAnimGroup.stop();
+      mesh._currentAnimGroup.dispose();
+      mesh._currentAnimGroup = null;
+    }
+
+    // --- Debug: Measure loading time ---
+    const t0 = performance.now();
+    const animImport = await flock.BABYLON.SceneLoader.LoadAssetContainerAsync(
+      "./animations/", animationName + ".glb", scene
+    );
+    const t1 = performance.now();
+    console.log(`[switchToAnimation] File load time: ${(t1 - t0).toFixed(2)} ms`);
+
+    const animGroup = animImport.animationGroups.find(
+      ag => ag.name === animationName && ag.targetedAnimations.length > 0
+    );
+    if (!animGroup) {
+      animImport.dispose();
+      console.error(`[switchToAnimation] Animation group "${animationName}" not found in animation file.`);
+      return null;
+    }
+
+    // Build lookup for bones and transform nodes by name
+    const boneMap = {};
+    const transformNodeMap = {};
+    mesh.skeleton.bones.forEach(bone => {
+      boneMap[bone.name] = bone;
+      if (bone._linkedTransformNode) {
+        transformNodeMap[bone._linkedTransformNode.name] = bone._linkedTransformNode;
+      }
+    });
+
+    // --- Debug: Measure deep copy/retarget time ---
+    const t2 = performance.now();
+    const retargetedGroup = new flock.BABYLON.AnimationGroup(mesh.name + "." + animationName, scene);
+    let addedCount = 0;
+
+    for (const ta of animGroup.targetedAnimations) {
+      let mappedTarget = null;
+      if (ta.target instanceof flock.BABYLON.Bone) {
+        mappedTarget = boneMap[ta.target.name];
+      } else if (ta.target instanceof flock.BABYLON.TransformNode) {
+        mappedTarget = transformNodeMap[ta.target.name];
+      }
+      if (mappedTarget) {
+        const animCopy = ta.animation.clone(ta.animation.name + "_" + mesh.name);
+        retargetedGroup.addTargetedAnimation(animCopy, mappedTarget);
+        addedCount++;
+      } else {
+        //console.warn(`[switchToAnimation] Could not map animation target:`, ta.target, ta.target.name);
+      }
+    }
+    const t3 = performance.now();
+    console.log(`[switchToAnimation] Deep copy: Added ${addedCount} animations to retargeted group.`);
+    console.log(`[switchToAnimation] Deep copy/retarget time: ${(t3 - t2).toFixed(2)} ms`);
+
+    animImport.dispose();
+
+    mesh._currentAnimGroup = retargetedGroup;
+    retargetedGroup.start(loop);
+
+    return retargetedGroup;
+  },
   switchToAnimation(
     scene,
     mesh,
