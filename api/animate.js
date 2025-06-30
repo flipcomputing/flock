@@ -876,7 +876,27 @@ export const flockAnimate = {
     }
     return false;
   },
-  async switchToAnimationNew(scene, meshOrGroup, animationName, loop = true) {
+  async switchToAnimation(scene, meshOrGroup, animationName, loop = true) {
+    if(flock.separateAnimations){
+      flock.switchToAnimationLoad(
+        scene,
+        meshOrGroup,
+        animationName,
+        loop,
+        true,
+      );
+    }
+    else {
+      flock.switchToAnimationModel(
+        scene,
+        meshOrGroup,
+        animationName,
+        loop,
+        true,
+      );
+    }
+  },
+  async switchToAnimationLoad(scene, meshOrGroup, animationName, loop = true) {
     function findMeshWithSkeleton(rootMesh) {
       if (rootMesh.skeleton) return rootMesh;
       if (rootMesh.getChildMeshes) {
@@ -957,7 +977,7 @@ export const flockAnimate = {
 
     return retargetedGroup;
   },
-  switchToAnimation(
+  switchToAnimationModel(
     scene,
     mesh,
     animationName,

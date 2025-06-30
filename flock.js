@@ -51,6 +51,7 @@ console.log("Flock helpers loading");
 
 export const flock = {
 	callbackMode: true,
+	separateAnimations: false,
 	memoryDebug: false,
 	maxMeshes: 5000,
 	console: console,
@@ -1466,7 +1467,7 @@ export const flock = {
 							(system) => system.name === id,
 						);
 					}
-					
+
 					if (!target) {
 						console.error(
 							`Target with id '${id}' not found in scene after loading.`,
@@ -1503,35 +1504,37 @@ export const flock = {
 		})();
 	},
 	announceMeshReady(meshName, groupName) {
-	  //console.log(`[flock] Mesh ready: ${meshName} (group: ${groupName})`);
+		//console.log(`[flock] Mesh ready: ${meshName} (group: ${groupName})`);
 
-	  if (!flock.pendingTriggers.has(groupName)) return;
+		if (!flock.pendingTriggers.has(groupName)) return;
 
-	  //console.log(`[flock] Registering pending triggers for group: '${groupName}'`);
-	  const triggers = flock.pendingTriggers.get(groupName);
+		//console.log(`[flock] Registering pending triggers for group: '${groupName}'`);
+		const triggers = flock.pendingTriggers.get(groupName);
 
-	  for (const { trigger, callback, mode, applyToGroup } of triggers) {
-		if (applyToGroup) {
-		  // 🔁 Reapply trigger across all matching meshes
-		  const matching = flock.scene.meshes.filter(m => m.name.startsWith(groupName));
-		  for (const m of matching) {
-			flock.onTrigger(m.name, {
-			  trigger,
-			  callback,
-			  mode,
-			  applyToGroup: false, // prevent recursion
-			});
-		  }
-		} else {
-		  // ✅ Apply to just this specific mesh
-		  flock.onTrigger(meshName, {
-			trigger,
-			callback,
-			mode,
-			applyToGroup: false,
-		  });
+		for (const { trigger, callback, mode, applyToGroup } of triggers) {
+			if (applyToGroup) {
+				// 🔁 Reapply trigger across all matching meshes
+				const matching = flock.scene.meshes.filter((m) =>
+					m.name.startsWith(groupName),
+				);
+				for (const m of matching) {
+					flock.onTrigger(m.name, {
+						trigger,
+						callback,
+						mode,
+						applyToGroup: false, // prevent recursion
+					});
+				}
+			} else {
+				// ✅ Apply to just this specific mesh
+				flock.onTrigger(meshName, {
+					trigger,
+					callback,
+					mode,
+					applyToGroup: false,
+				});
+			}
 		}
-	  }
 	},
 
 	/* 
