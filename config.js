@@ -172,12 +172,13 @@ export const animationNames = [
 	["Jump Idle", "Jump_Idle"],
 	["Jump Land", "Jump_Land"],
 	["Punch", "Punch"],
-	["Run Attack", "Run_Attack"],
-	["Run Hold", "Run_Hold"],
-	["Walk Hold", "Walk_Hold"],
-	["Idle_Hold", "Idle_Hold"],
 	["Hit React", "HitReact"],
+	["Idle Hold", "Idle_Hold"],
+	["Walk Hold", "Walk_Hold"],
+	["Run Hold", "Run_Hold"],
 	["Idle Attack", "Idle_Attack"],
+	["Walk Attack", "Walk_Attack"],
+	["Run Attack", "Run_Attack"],
 ];
 
 export const materialNames = [
