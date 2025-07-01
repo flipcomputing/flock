@@ -179,6 +179,9 @@ export const animationNames = [
 	["Idle Attack", "Idle_Attack"],
 	["Walk Attack", "Walk_Attack"],
 	["Run Attack", "Run_Attack"],
+	["Sit Down", "Sit_Down"],
+	["Sitting", "Sitting"],
+	["Stand Up", "Stand_Up"],
 ];
 
 export const materialNames = [
