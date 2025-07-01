@@ -182,6 +182,8 @@ export const animationNames = [
 	["Sit Down", "Sit_Down"],
 	["Sitting", "Sitting"],
 	["Stand Up", "Stand_Up"],
+	["Wobble", "Wobble"],
+	["Clap", "Clap"],
 ];
 
 export const materialNames = [
