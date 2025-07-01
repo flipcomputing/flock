@@ -78,7 +78,6 @@ export const characterNames = [
 	"Cat.glb",
 	"Monkey.glb",
 	"BasicTest.glb",
-	"Monkey_ANIMTEST.glb",
 ];
 
 export const multiObjectNames = [
