@@ -2257,6 +2257,176 @@
             }
           }
         }
+      },
+      {
+        "type": "forever",
+        "id": "h}CBVOJRt6P6L2vKgeW@",
+        "x": 10,
+        "y": 3981,
+        "collapsed": true,
+        "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" inline=\"false\"></mutation>",
+        "inputs": {
+          "DO": {
+            "block": {
+              "type": "controls_if",
+              "id": "T(JHtM?SoW6E]%=2J#KY",
+              "extraState": {
+                "elseIfCount": 1,
+                "hasElse": true
+              },
+              "inputs": {
+                "IF0": {
+                  "block": {
+                    "type": "key_pressed",
+                    "id": "$$t2Iw`~W~{auYMQ$2Il",
+                    "fields": {
+                      "KEY": "w"
+                    }
+                  }
+                },
+                "DO0": {
+                  "block": {
+                    "type": "move_forward",
+                    "id": "ci9BSok6d~}eAI;6CNY(",
+                    "fields": {
+                      "MODEL": {
+                        "id": "f=8($HYZoE:IjT|U8x8J"
+                      },
+                      "DIRECTION": "forward"
+                    },
+                    "inputs": {
+                      "SPEED": {
+                        "shadow": {
+                          "type": "math_number",
+                          "id": "[sE}NhFe^TPaY[8*X,/v",
+                          "fields": {
+                            "NUM": 3
+                          }
+                        }
+                      }
+                    },
+                    "next": {
+                      "block": {
+                        "type": "switch_animation",
+                        "id": "yG_d0_c|l7N/wvDqDu{.",
+                        "fields": {
+                          "MODEL": {
+                            "id": "f=8($HYZoE:IjT|U8x8J"
+                          },
+                          "ANIMATION_NAME": "Walk"
+                        }
+                      }
+                    }
+                  }
+                },
+                "IF1": {
+                  "block": {
+                    "type": "key_pressed",
+                    "id": "hBO!JJjT=E_~)vuvlD`M",
+                    "fields": {
+                      "KEY": "s"
+                    }
+                  }
+                },
+                "DO1": {
+                  "block": {
+                    "type": "move_forward",
+                    "id": ")o%kH8@`Xi^Zw(M^pKtR",
+                    "fields": {
+                      "MODEL": {
+                        "id": "f=8($HYZoE:IjT|U8x8J"
+                      },
+                      "DIRECTION": "forward"
+                    },
+                    "inputs": {
+                      "SPEED": {
+                        "shadow": {
+                          "type": "math_number",
+                          "id": "%,.Qs6h48).{Z|mhH{,-",
+                          "fields": {
+                            "NUM": -3
+                          }
+                        }
+                      }
+                    },
+                    "next": {
+                      "block": {
+                        "type": "switch_animation",
+                        "id": "oUAj22p.[@Ni:oj35uuH",
+                        "fields": {
+                          "MODEL": {
+                            "id": "f=8($HYZoE:IjT|U8x8J"
+                          },
+                          "ANIMATION_NAME": "Walk"
+                        }
+                      }
+                    }
+                  }
+                },
+                "ELSE": {
+                  "block": {
+                    "type": "switch_animation",
+                    "id": "TeRw$4+0#t3dkZmv?@lP",
+                    "fields": {
+                      "MODEL": {
+                        "id": "f=8($HYZoE:IjT|U8x8J"
+                      },
+                      "ANIMATION_NAME": "Idle"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        "type": "when_key_event",
+        "id": "Z$1yda*c7S:RG(.+.vsj",
+        "x": 10,
+        "y": 3893,
+        "collapsed": true,
+        "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" inline=\"false\"></mutation>",
+        "fields": {
+          "KEY": " ",
+          "EVENT": "pressed"
+        },
+        "inputs": {
+          "DO": {
+            "block": {
+              "type": "add_physics",
+              "id": "rM|QI!^d5jQXbX1*U.d|",
+              "fields": {
+                "MODEL_VAR": {
+                  "id": "f=8($HYZoE:IjT|U8x8J"
+                },
+                "PHYSICS_TYPE": "DYNAMIC"
+              },
+              "next": {
+                "block": {
+                  "type": "camera_follow",
+                  "id": "hQxBxx:soBY)`9L{utHC",
+                  "fields": {
+                    "MESH_VAR": {
+                      "id": "f=8($HYZoE:IjT|U8x8J"
+                    }
+                  },
+                  "inputs": {
+                    "RADIUS": {
+                      "block": {
+                        "type": "math_number",
+                        "id": "7gG!)gs5lRk3X[PcJIli",
+                        "fields": {
+                          "NUM": 7
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
       }
     ]
   },

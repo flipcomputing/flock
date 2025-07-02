@@ -464,6 +464,188 @@
             }
           }
         }
+      },
+      {
+        "type": "forever",
+        "id": "HFPO3|L~og9#/(/(G2.A",
+        "x": 10,
+        "y": 1204,
+        "collapsed": true,
+        "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" inline=\"false\"></mutation>",
+        "inputs": {
+          "DO": {
+            "block": {
+              "type": "controls_if",
+              "id": "a}HXwpJ@jBy7BDbZu85-",
+              "extraState": {
+                "elseIfCount": 1,
+                "hasElse": true
+              },
+              "inputs": {
+                "IF0": {
+                  "block": {
+                    "type": "key_pressed",
+                    "id": "D#R`qL]fjiShy8ncm@!x",
+                    "fields": {
+                      "KEY": "w"
+                    }
+                  }
+                },
+                "DO0": {
+                  "block": {
+                    "type": "move_forward",
+                    "id": "=Fg+=k;uO#,KmXzO`R}6",
+                    "fields": {
+                      "MODEL": {
+                        "id": "^0L`zG1Y7fMDRpW*H(l("
+                      },
+                      "DIRECTION": "forward"
+                    },
+                    "inputs": {
+                      "SPEED": {
+                        "shadow": {
+                          "type": "math_number",
+                          "id": "]oR9ZyGg6,!pfOp,xtOQ",
+                          "fields": {
+                            "NUM": 3
+                          }
+                        }
+                      }
+                    },
+                    "next": {
+                      "block": {
+                        "type": "switch_animation",
+                        "id": "~{cGbEUDhq-UqjwK;*qc",
+                        "fields": {
+                          "MODEL": {
+                            "id": "^0L`zG1Y7fMDRpW*H(l("
+                          },
+                          "ANIMATION_NAME": "Walk"
+                        }
+                      }
+                    }
+                  }
+                },
+                "IF1": {
+                  "block": {
+                    "type": "key_pressed",
+                    "id": "nMjAgG`%XNU/hM]MHJQF",
+                    "fields": {
+                      "KEY": "s"
+                    }
+                  }
+                },
+                "DO1": {
+                  "block": {
+                    "type": "move_forward",
+                    "id": "M2ee2n^[Hf=OtUOBVA7X",
+                    "fields": {
+                      "MODEL": {
+                        "id": "^0L`zG1Y7fMDRpW*H(l("
+                      },
+                      "DIRECTION": "forward"
+                    },
+                    "inputs": {
+                      "SPEED": {
+                        "shadow": {
+                          "type": "math_number",
+                          "id": "6~C%R)Ucd}HP=d*GZy9#",
+                          "fields": {
+                            "NUM": -3
+                          }
+                        }
+                      }
+                    },
+                    "next": {
+                      "block": {
+                        "type": "switch_animation",
+                        "id": "e4S..y;IOG3Mp8G}+-ml",
+                        "fields": {
+                          "MODEL": {
+                            "id": "^0L`zG1Y7fMDRpW*H(l("
+                          },
+                          "ANIMATION_NAME": "Walk"
+                        }
+                      }
+                    }
+                  }
+                },
+                "ELSE": {
+                  "block": {
+                    "type": "switch_animation",
+                    "id": "W8$uy?Yi(2j0fJg1N6w}",
+                    "fields": {
+                      "MODEL": {
+                        "id": "^0L`zG1Y7fMDRpW*H(l("
+                      },
+                      "ANIMATION_NAME": "Idle"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        "type": "when_key_event",
+        "id": "%b]Ml3co7kPn3j}cv8e0",
+        "x": 10,
+        "y": 1116,
+        "collapsed": true,
+        "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" inline=\"false\"></mutation>",
+        "fields": {
+          "KEY": " ",
+          "EVENT": "pressed"
+        },
+        "inputs": {
+          "DO": {
+            "block": {
+              "type": "add_physics",
+              "id": "E9+~7:qh=^PH2G}@!w!+",
+              "fields": {
+                "MODEL_VAR": {
+                  "id": "^0L`zG1Y7fMDRpW*H(l("
+                },
+                "PHYSICS_TYPE": "DYNAMIC"
+              },
+              "next": {
+                "block": {
+                  "type": "add_physics_shape",
+                  "id": "^iXvk5RPZYOs~3(gCTAg",
+                  "fields": {
+                    "MODEL_VAR": {
+                      "id": "@|;1cvH!m;m^D)H@IOkn"
+                    },
+                    "SHAPE_TYPE": "MESH"
+                  },
+                  "next": {
+                    "block": {
+                      "type": "camera_follow",
+                      "id": "Ph/7FviukYA{R5Eq+PJB",
+                      "fields": {
+                        "MESH_VAR": {
+                          "id": "^0L`zG1Y7fMDRpW*H(l("
+                        }
+                      },
+                      "inputs": {
+                        "RADIUS": {
+                          "block": {
+                            "type": "math_number",
+                            "id": "/jFB)NO1EnUy-l%|ZowE",
+                            "fields": {
+                              "NUM": 10
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
       }
     ]
   },
