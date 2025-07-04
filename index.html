@@ -38,13 +38,14 @@
       id="importFile"
       style="display: none"
       accept=".json,.svg,.png"
+      aria-label="Import project file"
     />
 
     <div id="flockeditor">
-      <header>
-        <nav id="menu">
+      <header role="banner">
+        <nav id="menu" role="navigation" aria-label="Main navigation">
         <div id="menuleft">
-          <img src="images/flockxr-bird.png" alt="Flock bird logo" id="logo" />
+          <img src="images/flockxr-bird.png" alt="Flock XR logo" id="logo" />
           <!-- Menu Button -->
           <!-- Added the menu wrapper for mobile screens and put about option when clicked shows the popup modal for the screen of the button show info inherently disabled the showinfo button on mobile screens-->
         <div id = 'about-menu-wrapper'>
@@ -52,8 +53,11 @@
             class="bigbutton"
             id="menuBtn"
             title="Open menu for more options"
+            aria-label="Open additional menu options"
+            aria-expanded="false"
+            aria-haspopup="true"
           >
-            <div class="icon" style="width: 1.25em; height: 1.25em">
+            <div class="icon" style="width: 1.25em; height: 1.25em" aria-hidden="true">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" fill="#511D91">
                 <path
                 fill = "#511D91"
@@ -61,15 +65,16 @@
               </svg>
             </div>
           </button>
-          <div id="menuDropdown" class="dropdown hidden">
-            <a href="#" id="openAbout">About</a>
+          <div id="menuDropdown" class="dropdown hidden" role="menu" aria-labelledby="menuBtn">
+            <a href="#" id="openAbout" role="menuitem">About</a>
             <!--space for the future options-->
           </div>
                       <!-- Modal Popup for Info Panel -->
           </div>
-          <div id="infoModal" class="modal hidden">
+          <div id="infoModal" class="modal hidden" role="dialog" aria-labelledby="modal-title" aria-modal="true">
             <div class="modal-content">
-              <span class="close-button" id="closeInfoModal">&times;</span>
+              <span class="close-button" id="closeInfoModal" aria-label="Close information modal">&times;</span>
+              <h2 id="modal-title" style="margin-top: 0;">About Flock XR</h2>
 
               <div id="model-panel-content">
               <p>
@@ -124,7 +129,8 @@
 
             // Toggle menu dropdown
             menuBtn.addEventListener("click", () => {
-              menuDropdown.classList.toggle("hidden");
+              const isHidden = menuDropdown.classList.toggle("hidden");
+              menuBtn.setAttribute("aria-expanded", !isHidden);
             });
 
             // Open modal when About is clicked
@@ -146,8 +152,8 @@
               }
             });
           </script>
-          <button class="bigbutton" id="runCodeButton" title="Run your code">
-            <div class="icon">
+          <button class="bigbutton" id="runCodeButton" title="Run your code" aria-label="Run your code">
+            <div class="icon" aria-hidden="true">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
                 <!--!Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.-->
                 <path
@@ -157,8 +163,8 @@
               </svg>
             </div>
           </button>
-          <button class="bigbutton" id="stopCodeButton" title="Stop your code">
-            <div class="icon">
+          <button class="bigbutton" id="stopCodeButton" title="Stop your code" aria-label="Stop your code">
+            <div class="icon" aria-hidden="true">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
                 <!--!Font Awesome Free 6.7.2  by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.-->
                 <path
@@ -171,10 +177,11 @@
           <button
             class="bigbutton"
             title="Open a project from a file on your computer"
+            aria-label="Open a project from a file on your computer"
           >
-            <input type="file" id="fileInput" style="display: none" disabled />
+            <input type="file" id="fileInput" style="display: none" disabled aria-label="Select project file to open" />
             <label for="fileInput"
-              ><div class="icon" style="width: 1.25em; height: 1.25em">
+              ><div class="icon" style="width: 1.25em; height: 1.25em" aria-hidden="true">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
 
                   <!--!Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.-->
@@ -195,13 +202,15 @@
             "
             id="projectName"
             placeholder="Project name"
+            aria-label="Project name"
           />
           <button
             class="bigbutton"
             id="exportCodeButton"
             title="Save this project to a file on your computer."
+            aria-label="Save this project to a file on your computer"
           >
-            <div class="icon" style="width: 1.25em; height: 1.25em">
+            <div class="icon" style="width: 1.25em; height: 1.25em" aria-hidden="true">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
                 <!--!Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.-->
                 <path
@@ -217,6 +226,7 @@
             title="Choose an example project to load."
             style="font-size: 14px"
             disabled
+            aria-label="Choose an example project to load"
           >
             <option value="" style="color: #511d91">Demo</option>
              <option id="project-new" value="examples/new.json">New</option>
@@ -260,8 +270,9 @@
             class="bigbutton"
             id="toggleDesign"
             title="Design your project"
+            aria-label="Design your project"
           >
-            <div class="icon">
+            <div class="icon" aria-hidden="true">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
                 <!--!Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.-->
                 <path
@@ -271,8 +282,8 @@
               </svg>
             </div>
           </button>
-          <button class="bigbutton" id="togglePlay" title="Use your project">
-            <div class="icon" style="width: 2em">
+          <button class="bigbutton" id="togglePlay" title="Use your project" aria-label="Use your project">
+            <div class="icon" style="width: 2em" aria-hidden="true">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512">
                 <!--!Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.-->
                 <path
@@ -286,8 +297,9 @@
             class="bigbutton"
             title="Switch between fullscreen and normal views."
             id="fullscreenToggle"
+            aria-label="Switch between fullscreen and normal views"
           >
-            <div class="icon">
+            <div class="icon" aria-hidden="true">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
                 <!--!Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.-->
                 <path
@@ -300,11 +312,11 @@
         </div>
       </nav>
       </header>
-      <main>
-        <section id="maincontent">
+      <main role="main">
+        <section id="maincontent" aria-label="Main content area">
         <div id="rightArea">
-          <canvas id="renderCanvas" touch-action="none" tabindex="0"></canvas>
-          <aside class="gizmo-buttons" id="gizmoButtons">
+          <canvas id="renderCanvas" touch-action="none" tabindex="0" aria-label="3D scene canvas" role="img"></canvas>
+          <aside class="gizmo-buttons" id="gizmoButtons" aria-label="Design tools">
             <div id="shape-menu">
               <!-- Gizmo button to toggle the shape menu -->
               <button
@@ -312,12 +324,14 @@
                 id="showShapesButton"
                 style="margin-left: 5px"
                 disabled
+                aria-label="Add shapes and models"
+                title="Add shapes and models"
               >
                 <img
                   src="images/add.svg"
                   width="20px"
                   height="20px"
-                  alt="position"
+                  alt="Add"
                 />
               </button>
 
@@ -406,29 +420,29 @@
                 </div>
               </span>
             </div>
-            <input type="color" id="colorPickerButton" disabled />
-            <button class="gizmo-button" id="positionButton" disabled>
+            <input type="color" id="colorPickerButton" disabled aria-label="Change object color" title="Change object color" />
+            <button class="gizmo-button" id="positionButton" disabled aria-label="Move object position" title="Move object position">
               <img
                 src="images/position.svg"
                 width="20px"
                 height="20px"
-                alt="position"
+                alt="Position"
               />
             </button>
-            <button class="gizmo-button" id="rotationButton" disabled>
+            <button class="gizmo-button" id="rotationButton" disabled aria-label="Rotate object" title="Rotate object">
               <img
                 src="images/rotate.svg"
                 width="20px"
                 height="20px"
-                alt="rotate"
+                alt="Rotate"
               />
             </button>
-            <button class="gizmo-button" id="scaleButton" disabled>
+            <button class="gizmo-button" id="scaleButton" disabled aria-label="Scale object size" title="Scale object size">
               <img
                 src="images/scale.svg"
                 width="20px"
                 height="20px"
-                alt="scale"
+                alt="Scale"
               />
             </button>
             <!--button class="gizmo-button" id="boundsButton" disabled>
@@ -447,36 +461,36 @@
                 alt="focus"
               /-->
             </button>
-            <button class="gizmo-button" id="hideButton" disabled>
+            <button class="gizmo-button" id="hideButton" disabled aria-label="Select object" title="Select object">
               <img
                 src="images/pointer.svg"
                 width="20px"
                 height="20px"
-                alt="select"
+                alt="Select"
               />
             </button>
-            <button class="gizmo-button" id="duplicateButton" disabled>
+            <button class="gizmo-button" id="duplicateButton" disabled aria-label="Duplicate object" title="Duplicate object">
               <img
                 src="images/duplicate.svg"
                 width="20px"
                 height="20px"
-                alt="duplicate"
+                alt="Duplicate"
               />
             </button>
-            <button class="gizmo-button" id="deleteButton" disabled>
+            <button class="gizmo-button" id="deleteButton" disabled aria-label="Delete object" title="Delete object">
               <img
                 src="images/delete.svg"
                 width="20px"
                 height="20px"
-                alt="delete"
+                alt="Delete"
               />
             </button>
-            <button class="gizmo-button" id="cameraButton" disabled>
+            <button class="gizmo-button" id="cameraButton" disabled aria-label="Camera controls" title="Camera controls">
               <img
                 src="images/camera2.svg"
                 width="20px"
                 height="20px"
-                alt="camera"
+                alt="Camera"
               />
             </button>
           </aside>
@@ -511,8 +525,8 @@
 
           <!-- Info panel collapse starts -->
 
-          <aside id="info-panel">
-            <button id="info-panel-toggle" style="cursor: pointer">
+          <aside id="info-panel" role="complementary" aria-label="Information panel">
+            <button id="info-panel-toggle" style="cursor: pointer" aria-expanded="false" aria-controls="info-panel-content">
               Show Info
             </button>
             <div id="info-panel-content" style="display: none">
@@ -567,9 +581,11 @@
               if (infoContent.style.display === "none") {
                 infoContent.style.display = "block";
                 toggleButton.textContent = "Hide Info";
+                toggleButton.setAttribute("aria-expanded", "true");
               } else {
                 infoContent.style.display = "none";
                 toggleButton.textContent = "Show Info";
+                toggleButton.setAttribute("aria-expanded", "false");
               }
             });
           </script>
@@ -583,7 +599,7 @@
 </div>
 
         </div>
-        <div id="codePanel">
+        <div id="codePanel" aria-label="Code editor panel">
           <!--button
             value="Toolbox"
             id="toolboxControl"
@@ -598,11 +614,11 @@
           >
             <strong>+ Code</strong>
         </button-->
-          <div id="blocklyDiv"></div>
+          <div id="blocklyDiv" role="application" aria-label="Visual programming workspace"></div>
         </div>
       </section>
       </main>
-      <div id="bottomBar"><button id="switchViews">Code >></button></div>
+      <div id="bottomBar" role="toolbar" aria-label="View switching controls"><button id="switchViews" aria-label="Switch between code and canvas views">Code >></button></div>
     </div>
     <script type="module" src="/main.js"></script>
   </body>
