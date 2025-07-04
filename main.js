@@ -1066,10 +1066,23 @@ function initializeApp() {
 	const stopCodeButton = document.getElementById("stopCodeButton");
 	const fileInput = document.getElementById("fileInput");
 	const exportCodeButton = document.getElementById("exportCodeButton");
+	const openButton = document.getElementById("openButton");
 
 	runCodeButton.addEventListener("click", executeCode);
 	stopCodeButton.addEventListener("click", stopCode);
 	exportCodeButton.addEventListener("click", exportCode);
+
+	// Make open button work with keyboard
+	openButton.addEventListener("click", () => {
+		fileInput.click();
+	});
+
+	openButton.addEventListener("keydown", (event) => {
+		if (event.key === "Enter" || event.key === " ") {
+			event.preventDefault();
+			fileInput.click();
+		}
+	});
 
 	// Enable the file input after initialization
 	fileInput.removeAttribute("disabled");
