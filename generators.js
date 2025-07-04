@@ -1684,6 +1684,61 @@ export function defineGenerators() {
 
 		return `await setBPM(${meshName}, ${bpm});\n`;
 	};
+
+	javascriptGenerator.forBlock["speak"] = function (block) {
+		const text =
+			javascriptGenerator.valueToCode(
+				block,
+				"TEXT",
+				javascriptGenerator.ORDER_ATOMIC,
+			) || '""';
+		
+		const voice = block.getFieldValue("VOICE") || "default";
+		
+		const rate =
+			javascriptGenerator.valueToCode(
+				block,
+				"RATE",
+				javascriptGenerator.ORDER_ATOMIC,
+			) || "1";
+		
+		const pitch =
+			javascriptGenerator.valueToCode(
+				block,
+				"PITCH",
+				javascriptGenerator.ORDER_ATOMIC,
+			) || "1";
+		
+		const volume =
+			javascriptGenerator.valueToCode(
+				block,
+				"VOLUME",
+				javascriptGenerator.ORDER_ATOMIC,
+			) || "1";
+		
+		const language = block.getFieldValue("LANGUAGE") || "en-US";
+		const asyncMode = block.getFieldValue("ASYNC") || "START";
+
+		// Get the mesh variable name from the dynamic dropdown - same approach as play_sound block
+		const meshInput = block.getInput("MESH_INPUT");
+		console.log(`[SPEAK GENERATOR DEBUG] meshInput:`, meshInput);
+		console.log(`[SPEAK GENERATOR DEBUG] meshInput.fieldRow:`, meshInput ? meshInput.fieldRow : 'null');
+		
+		const meshDropdownField = meshInput ? meshInput.fieldRow.find(field => field.name === "MESH_NAME") : null;
+		console.log(`[SPEAK GENERATOR DEBUG] meshDropdownField:`, meshDropdownField);
+		
+		const meshValue = meshDropdownField ? meshDropdownField.getValue() : "__everywhere__";
+		console.log(`[SPEAK GENERATOR DEBUG] meshValue:`, meshValue);
+		
+		const meshVariable = `"${meshValue}"`;
+		console.log(`[SPEAK GENERATOR DEBUG] Final meshVariable:`, meshVariable);
+
+		// Safely handle asyncMode - ensure it's not null
+		const safeAsyncMode = asyncMode || "START";
+		const asyncWrapper = safeAsyncMode === "AWAIT" ? "await " : "";
+
+		return `${asyncWrapper}speak(${meshVariable}, ${text}, { voice: "${voice}", rate: ${rate}, pitch: ${pitch}, volume: ${volume}, language: "${language}", mode: "${safeAsyncMode.toLowerCase()}" });\n`;
+	};
 	
 	javascriptGenerator.forBlock["when_touches"] = function (block) {
 		const modelName = javascriptGenerator.nameDB_.getName(

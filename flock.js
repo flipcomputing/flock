@@ -358,6 +358,7 @@ export const flock = {
 				"playNotes",
 				"setBPM",
 				"createInstrument",
+				"speak",
 
 				// Effects
 				"highlight",
@@ -602,6 +603,7 @@ export const flock = {
 						playNotes,
 						setBPM,
 						createInstrument,
+						speak,
 						switchAnimation,
 						highlight,
 						glow,
@@ -2047,7 +2049,7 @@ export const flock = {
 		const b = bigint & 255;
 
 		return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-	},
+		},
 	sanitizeEventName(eventName) {
 		if (typeof eventName !== "string") {
 			return "";
@@ -2317,3 +2319,7 @@ export function initializeFlock() {
 			});
 	}
 }
+
+window.setBPM = flockSound.setBPM;
+window.updateListenerPositionAndOrientation = flockSound.updateListenerPositionAndOrientation;
+window.speak = flockSound.speak;

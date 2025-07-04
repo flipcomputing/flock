@@ -1,4 +1,3 @@
-
 let flock;
 
 export function setFlockReference(ref) {
@@ -177,7 +176,7 @@ export const flockSound = {
           getBPM(mesh) || getBPM(mesh?.parent) || getBPM(scene) || 60;
         const bpm = getBPMFromMeshOrScene(mesh, flock.scene);
 
-       
+
         let context = flock.audioContext; // Ensure a global audio context
         if (!context || context.state === "closed") {
           try {
@@ -209,12 +208,12 @@ export const flockSound = {
             const panner = context.createPanner();
             mesh.metadata.panner = panner;
 
-            // Configure the panner for spatial effects
+            // Configure the panner for aggressive spatial effects to match playSound behavior
             panner.panningModel = "HRTF";
-            panner.distanceModel = "inverse";
-            panner.refDistance = 0.5;
-            panner.maxDistance = 50;
-            panner.rolloffFactor = 2;
+            panner.distanceModel = "exponential";  // More aggressive than linear
+            panner.refDistance = 1.0;
+            panner.maxDistance = 15;   // Shorter max distance for faster falloff
+            panner.rolloffFactor = 4;  // Much higher rolloff for dramatic distance effect
             panner.connect(context.destination);
           }
 
@@ -424,5 +423,393 @@ export const flockSound = {
         0,
       );
     }
+  },
+  async speak(meshName, text, {
+    voice = 'female',
+    language = 'en-US',
+    rate = 1,
+    pitch = 1,
+    volume = 1,
+    mode = 'start'
+  } = {}) {
+    // Debug logging to check parameters
+    console.log(`[SPEAK DEBUG] Called with:`, {
+      meshName: meshName,
+      text: text,
+      voice: voice,
+      language: language,
+      rate: rate,
+      pitch: pitch,
+      volume: volume,
+      mode: mode
+    });
+
+    // Check for Web Speech API support
+    if (!('speechSynthesis' in window)) {
+      console.warn('Text-to-speech not supported in this browser');
+      return mode === 'await' ? Promise.resolve() : undefined;
+    }
+
+    // Stop any current speech
+    window.speechSynthesis.cancel();
+
+    // Create utterance
+    const utterance = new SpeechSynthesisUtterance(text);
+
+    // Set basic properties
+    utterance.rate = Math.max(0.1, Math.min(10, rate));
+    utterance.pitch = Math.max(0, Math.min(2, pitch));
+    utterance.volume = Math.max(0, Math.min(1, volume));
+    utterance.lang = 'en-US';
+
+    // Handle spatial audio if meshName is provided and not "__everywhere__"
+    let spatialAudioSetup = null;
+    console.log(`[SPEAK DEBUG] Checking spatial audio setup for meshName: "${meshName}"`);
+    if (meshName && meshName !== "__everywhere__") {
+      console.log(`[SPEAK DEBUG] Setting up spatial audio for mesh: "${meshName}"`);
+      spatialAudioSetup = await flockSound.setupSpatialSpeech(utterance, meshName);
+    } else {
+      console.log(`[SPEAK DEBUG] Using non-spatial audio (everywhere mode)`);
+    }
+
+    // Set voice if available - handle voice loading timing
+    let voices = window.speechSynthesis.getVoices();
+
+    // If no voices available, wait for them to load
+    if (voices.length === 0) {
+      await new Promise((resolve) => {
+        // Some browsers need time to load voices
+        if (window.speechSynthesis.onvoiceschanged !== undefined) {
+          window.speechSynthesis.onvoiceschanged = () => {
+            voices = window.speechSynthesis.getVoices();
+            resolve();
+          };
+        } else {
+          // Fallback for browsers that don't support onvoiceschanged
+          setTimeout(() => {
+            voices = window.speechSynthesis.getVoices();
+            resolve();
+          }, 100);
+        }
+      });
+    }
+
+    if (voices.length > 0) {
+      let selectedVoice = null;
+
+      // Debug: Log available voices for troubleshooting
+      console.log('Available voices:', voices.map(v => ({
+        name: v.name,
+        lang: v.lang,
+        localService: v.localService,
+        default: v.default
+      })));
+
+      console.log('Requested voice type:', voice, 'language:', language);
+
+      // Common voice names by platform and gender
+      const commonVoices = {
+        'en-US': {
+          male: [
+            // Windows
+            'david', 'mark', 'zira', 'james',
+            // macOS/iOS
+            'alex', 'daniel', 'fred', 'jorge', 'tom',
+            // Android/Chrome
+            'male', 'man'
+          ],
+          female: [
+            // Windows  
+            'zira', 'hazel', 'helen',
+            // macOS/iOS
+            'samantha', 'susan', 'allison', 'ava', 'karen', 'moira', 'tessa', 'veera', 'victoria',
+            // Android/Chrome
+            'female', 'woman'
+          ]
+        },
+        'en-GB': {
+          male: [
+            // Windows
+            'george', 'hazel',
+            // macOS/iOS  
+            'daniel', 'oliver', 'serena',
+            // Android/Chrome
+            'male', 'man'
+          ],
+          female: [
+            // Windows
+            'hazel', 'susan',
+            // macOS/iOS
+            'kate', 'serena', 'stephanie',
+            // Android/Chrome
+            'female', 'woman'
+          ]
+        }
+      };
+
+      // Filter voices by requested language
+      const languageVoices = voices.filter(v => v.lang.startsWith(language));
+
+      if (languageVoices.length === 0) {
+        console.warn(`No voices found for language ${language}, falling back to any English voice`);
+        // Fallback to any English voice
+        const englishVoices = voices.filter(v => v.lang.startsWith('en'));
+        if (englishVoices.length > 0) {
+          selectedVoice = englishVoices[0];
+        }
+      } else {
+        const voiceNames = commonVoices[language]?.[voice] || [];
+
+        // 1. Try common voice names for the platform/language
+        for (const voiceName of voiceNames) {
+          selectedVoice = languageVoices.find(v => 
+            v.name.toLowerCase().includes(voiceName.toLowerCase())
+          );
+          if (selectedVoice) break;
+        }
+
+        // 2. Look for explicit "Male" or "Female" in name
+        if (!selectedVoice) {
+          selectedVoice = languageVoices.find(v => 
+            v.name.toLowerCase().includes(voice.toLowerCase())
+          );
+        }
+
+        // 3. For male voices, avoid known female names
+        if (!selectedVoice && voice === 'male') {
+          const femaleTerms = ['female', 'woman', 'lady', 'girl', 'samantha', 'susan', 'kate', 'zira', 'hazel', 'helen', 'karen', 'moira', 'tessa', 'fiona', 'allison', 'ava', 'veera', 'victoria', 'stephanie', 'serena'];
+          selectedVoice = languageVoices.find(v => 
+            !femaleTerms.some(term => v.name.toLowerCase().includes(term.toLowerCase()))
+          );
+        }
+
+        // 4. For female voices, avoid known male names  
+        if (!selectedVoice && voice === 'female') {
+          const maleTerms = ['male', 'man', 'david', 'alex', 'daniel', 'mark', 'tom', 'george', 'peter', 'john', 'michael', 'robert', 'fred', 'jorge', 'james', 'oliver'];
+          selectedVoice = languageVoices.find(v => 
+            !maleTerms.some(term => v.name.toLowerCase().includes(term.toLowerCase()))
+          );
+        }
+
+        // 5. Fallback to first voice in the language
+        if (!selectedVoice) {
+          selectedVoice = languageVoices[0];
+        }
+      }
+
+      // Final fallback to first available voice
+      if (!selectedVoice) {
+        selectedVoice = voices[0];
+      }
+
+      if (selectedVoice) {
+        utterance.voice = selectedVoice;
+        console.log('Selected voice:', {
+          name: selectedVoice.name,
+          requestedType: voice,
+          lang: selectedVoice.lang,
+          localService: selectedVoice.localService
+        });
+      } else {
+        console.warn('No voice found for type:', voice, 'using default');
+      }
+    }
+
+    if (mode === 'await') {
+      return new Promise((resolve, reject) => {
+        utterance.onend = () => {
+          if (spatialAudioSetup) {
+            spatialAudioSetup.cleanup();
+          }
+          resolve();
+        };
+        utterance.onerror = (event) => {
+          console.warn('Speech synthesis error:', event.error);
+          if (spatialAudioSetup) {
+            spatialAudioSetup.cleanup();
+          }
+          resolve(); // Resolve instead of reject to prevent blocking
+        };
+
+        window.speechSynthesis.speak(utterance);
+      });
+    } else {
+      // Fire and forget mode
+      utterance.onend = () => {
+        if (spatialAudioSetup) {
+          spatialAudioSetup.cleanup();
+        }
+      };
+      utterance.onerror = (event) => {
+        console.warn('Speech synthesis error:', event.error);
+        if (spatialAudioSetup) {
+          spatialAudioSetup.cleanup();
+        }
+      };
+
+      window.speechSynthesis.speak(utterance);
+      return undefined;
+    }
+  },
+
+  async setupSpatialSpeech(utterance, meshName) {
+    console.log(`[SPATIAL AUDIO DEBUG] Setting up spatial speech for mesh: ${meshName}`);
+    
+    const mesh = flock.scene.getMeshByName(meshName);
+    if (!mesh) {
+      console.warn(`[SPATIAL AUDIO DEBUG] Mesh '${meshName}' not found for spatial speech`);
+      return null;
+    }
+    
+    console.log(`[SPATIAL AUDIO DEBUG] Found mesh '${meshName}' at position:`, mesh.position);
+
+    // Get or create audio context
+    const audioContext = flockSound.getAudioContext();
+    if (!audioContext || audioContext.state === 'closed') {
+      console.warn("[SPATIAL AUDIO DEBUG] Audio context not available");
+      return null;
+    }
+
+    if (audioContext.state === 'suspended') {
+      await audioContext.resume();
+    }
+
+    // Create a MediaStreamDestination to capture speech
+    const destination = audioContext.createMediaStreamDestination();
+    const mediaRecorder = new MediaRecorder(destination.stream);
+    const audioChunks = [];
+    
+    // Create spatial audio nodes
+    const panner = audioContext.createPanner();
+    panner.panningModel = 'HRTF';
+    panner.distanceModel = 'exponential';
+    panner.refDistance = 1.0;
+    panner.maxDistance = 15;
+    panner.rolloffFactor = 4;
+    
+    // Connect panner to audio context destination
+    panner.connect(audioContext.destination);
+
+    // Set up position updating
+    const updateSpatialPosition = () => {
+      if (!mesh || mesh.isDisposed?.() || !flock.scene.activeCamera) {
+        return;
+      }
+
+      const cameraPosition = flock.scene.activeCamera.position;
+      const meshPosition = mesh.position;
+      
+      // Update panner position (note: Babylon.js uses right-handed coordinates)
+      panner.positionX.setValueAtTime(-meshPosition.x, audioContext.currentTime);
+      panner.positionY.setValueAtTime(meshPosition.y, audioContext.currentTime);
+      panner.positionZ.setValueAtTime(meshPosition.z, audioContext.currentTime);
+
+      // Update listener position and orientation
+      flockSound.updateListenerPositionAndOrientation(audioContext, flock.scene.activeCamera);
+      
+      // Debug info (throttled)
+      if (Math.random() < 0.01) { // ~1% chance per frame
+        const distance = flock.BABYLON.Vector3.Distance(cameraPosition, meshPosition);
+        console.log(`[SPATIAL AUDIO DEBUG] Position update:`, {
+          meshPosition: { x: meshPosition.x.toFixed(2), y: meshPosition.y.toFixed(2), z: meshPosition.z.toFixed(2) },
+          cameraPosition: { x: cameraPosition.x.toFixed(2), y: cameraPosition.y.toFixed(2), z: cameraPosition.z.toFixed(2) },
+          distance: distance.toFixed(2)
+        });
+      }
+    };
+
+    // Start position updates
+    const renderObserver = flock.scene.onBeforeRenderObservable.add(updateSpatialPosition);
+    
+    // Initial position update
+    updateSpatialPosition();
+
+    // Try to use the more advanced approach with MediaStream
+    let spatialAudioSource = null;
+    let isPlayingThroughSpatialAudio = false;
+
+    // Fallback: Use the original utterance but with enhanced volume calculation
+    const originalVolume = utterance.volume;
+    
+    const updateVolumeBasedOnDistance = () => {
+      if (!mesh || mesh.isDisposed?.() || !flock.scene.activeCamera) {
+        return;
+      }
+
+      const cameraPosition = flock.scene.activeCamera.position;
+      const meshPosition = mesh.position;
+      const distance = flock.BABYLON.Vector3.Distance(cameraPosition, meshPosition);
+
+      // Calculate volume based on exponential distance model
+      // Account for camera's minimum distance constraint (camera can't get closer than ~7-8 units)
+      const cameraMinDistance = 7;  // Camera's minimum radius limit
+      const adjustedDistance = Math.max(0, distance - cameraMinDistance); // Effective distance for audio
+      
+      const refDistance = 0.5;  // Small reference distance for adjusted calculation
+      const rolloffFactor = 1.5;  // Moderate rolloff
+      const maxDistance = 15;   // Max effective distance
+      
+      let volumeGain = 1;
+      
+      // When within camera's minimum range, use full volume
+      if (adjustedDistance <= refDistance) {
+        volumeGain = 1;  // Full volume when effectively "close"
+      } else if (adjustedDistance < maxDistance) {
+        // Gradual falloff after reference distance
+        volumeGain = refDistance / (refDistance + rolloffFactor * (adjustedDistance - refDistance));
+        // Ensure minimum audible volume even at distance
+        volumeGain = Math.max(0.15, volumeGain);
+      } else {
+        volumeGain = 0.1; // Quiet but audible beyond max distance
+      }
+
+      // Apply volume (note: this only works if speech hasn't started yet in most browsers)
+      const newVolume = Math.max(0, Math.min(1, originalVolume * volumeGain));
+      if (utterance.volume !== newVolume) {
+        utterance.volume = newVolume;
+      }
+    };
+
+    // Set initial volume and log the result
+    updateVolumeBasedOnDistance();
+    
+    console.log(`[SPATIAL AUDIO DEBUG] Initial spatial setup:`, {
+      originalVolume: originalVolume,
+      currentVolume: utterance.volume,
+      meshName: meshName,
+      meshPosition: mesh.position
+    });
+
+    console.log(`[SPATIAL AUDIO DEBUG] Spatial audio setup complete for '${meshName}'`);
+
+    return {
+      cleanup: () => {
+        console.log("[SPATIAL AUDIO DEBUG] Cleaning up spatial speech");
+        
+        // Remove render observer
+        if (renderObserver && flock.scene?.onBeforeRenderObservable) {
+          flock.scene.onBeforeRenderObservable.remove(renderObserver);
+        }
+
+        // Clean up audio nodes
+        if (spatialAudioSource) {
+          try {
+            spatialAudioSource.disconnect();
+          } catch (e) {
+            console.warn("Error disconnecting spatial audio source:", e);
+          }
+        }
+
+        if (panner) {
+          try {
+            panner.disconnect();
+          } catch (e) {
+            console.warn("Error disconnecting panner:", e);
+          }
+        }
+
+        console.log("[SPATIAL AUDIO DEBUG] Spatial speech cleanup complete");
+      }
+    };
   },
 };

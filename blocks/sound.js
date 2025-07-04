@@ -334,4 +334,70 @@ export function defineSoundBlocks() {
 		},
 	  };
 
+	  Blockly.Blocks["speak"] = {
+		init: function () {
+		  this.jsonInit({
+			type: "speak",
+			message0: "speak %1 from %2\nlanguage %3 voice %4 rate %5 pitch %6 volume %7 mode %8",
+			args0: [
+			  {
+				type: "input_value",
+				name: "TEXT",
+				check: "String",
+			  },
+			  {
+				type: "input_dummy",
+				name: "MESH_INPUT", // Dummy input for the dropdown
+			  },
+			  {
+				type: "field_dropdown",
+				name: "LANGUAGE",
+				options: [
+				  ["English (UK)", "en-GB"],
+				  ["English (US)", "en-US"],
+				],
+			  },
+			  {
+				type: "field_dropdown",
+				name: "VOICE",
+				options: [
+				  ["female", "female"],
+				  ["male", "male"],
+				],
+			  },
+			  {
+				type: "input_value",
+				name: "RATE",
+				check: "Number",
+			  },
+			  {
+				type: "input_value",
+				name: "PITCH",
+				check: "Number",
+			  },
+			  {
+				type: "input_value",
+				name: "VOLUME",
+				check: "Number",
+			  },
+			  {
+				type: "field_dropdown",
+				name: "ASYNC",
+				options: [
+				  ["start", "START"],
+				  ["await", "AWAIT"],
+				],
+			  },
+			],
+			inputsInline: true,
+			previousStatement: null,
+			nextStatement: null,
+			colour: categoryColours["Sound"],
+			tooltip: "Convert text to speech using the Web Speech API with optional 3D positioning.\nKeyword: speak",
+			extensions: ["dynamic_mesh_dropdown"], // Attach the extension
+		  });
+		  this.setHelpUrl(getHelpUrlFor(this.type));
+		},
+	  };
+
 }

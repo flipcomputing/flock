@@ -3076,6 +3076,45 @@ const toolboxSound = {
 			kind: "block",
 			type: "create_instrument",
 		},
+		{
+			kind: "block",
+			type: "speak",
+			keyword: "speak",
+			inputs: {
+				TEXT: {
+					shadow: {
+						type: "text",
+						fields: {
+							TEXT: "Hello world",
+						},
+					},
+				},
+				RATE: {
+					shadow: {
+						type: "math_number",
+						fields: {
+							NUM: 1,
+						},
+					},
+				},
+				PITCH: {
+					shadow: {
+						type: "math_number",
+						fields: {
+							NUM: 1,
+						},
+					},
+				},
+				VOLUME: {
+					shadow: {
+						type: "math_number",
+						fields: {
+							NUM: 1,
+						},
+					},
+				},
+			},
+		},
 	],
 };
 
