@@ -46,12 +46,12 @@
   </head>
 
   <body>
+    <label for="importFile" class="sr-only">Import project file</label>
     <input
       type="file"
       id="importFile"
       style="display: none"
       accept=".json,.svg,.png"
-      aria-label="Import project file"
     />
 
     <div id="flockeditor">
@@ -70,6 +70,7 @@
             aria-expanded="false"
             aria-haspopup="true"
           >
+            <span class="sr-only">Menu</span>
             <div class="icon" style="width: 1.25em; height: 1.25em" aria-hidden="true">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" fill="#511D91">
                 <path
@@ -285,6 +286,7 @@
               </svg>
             </div>
           </button>
+          <label for="projectName" class="sr-only">Project name</label>
           <input
             type="text"
             style="
@@ -295,7 +297,6 @@
             "
             id="projectName"
             placeholder="Project name"
-            aria-label="Project name"
             aria-describedby="project-name-desc"
           />
           <div id="project-name-desc" class="sr-only">Enter a name for your project to use when saving or exporting</div>
@@ -529,7 +530,8 @@
                 </div>
               </span>
             </div>
-            <input type="color" id="colorPickerButton" disabled aria-label="Change object color" title="Change object color" />
+            <label for="colorPickerButton" class="sr-only">Change object color</label>
+            <input type="color" id="colorPickerButton" disabled title="Change object color" />
             <button class="gizmo-button" id="positionButton" disabled aria-label="Move object position" title="Move object position">
               <img
                 src="images/position.svg"
