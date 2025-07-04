@@ -30,6 +30,19 @@
     </script>
 
     <link rel="stylesheet" href="style.css" />
+    <style>
+      .sr-only {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border: 0;
+      }
+    </style>
   </head>
 
   <body>
@@ -203,12 +216,15 @@
             id="projectName"
             placeholder="Project name"
             aria-label="Project name"
+            aria-describedby="project-name-desc"
           />
+          <div id="project-name-desc" class="sr-only">Enter a name for your project to use when saving or exporting</div>
           <button
             class="bigbutton"
             id="exportCodeButton"
             title="Save this project to a file on your computer."
             aria-label="Save this project to a file on your computer"
+            aria-describedby="export-desc"
           >
             <div class="icon" style="width: 1.25em; height: 1.25em" aria-hidden="true">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
@@ -220,6 +236,7 @@
               </svg>
             </div>
           </button>
+          <div id="export-desc" class="sr-only">Downloads your project as a JSON file to your computer</div>
           <select
             id="exampleSelect"
             class="bigbutton"
@@ -227,6 +244,7 @@
             style="font-size: 14px"
             disabled
             aria-label="Choose an example project to load"
+            aria-describedby="demo-desc"
           >
             <option value="" style="color: #511d91">Demo</option>
              <option id="project-new" value="examples/new.json">New</option>
@@ -264,13 +282,16 @@
               🐵 micro:bit monkey
             </option>
           </select>
+          <div id="demo-desc" class="sr-only">Select from pre-built example projects to explore different features and capabilities</div>
         </div>
         <div id="menuright">
           <button
             class="bigbutton"
             id="toggleDesign"
             title="Design your project"
-            aria-label="Design your project"
+            aria-label="Switch to design mode"
+            aria-describedby="design-desc"
+            aria-pressed="false"
           >
             <div class="icon" aria-hidden="true">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
@@ -282,7 +303,8 @@
               </svg>
             </div>
           </button>
-          <button class="bigbutton" id="togglePlay" title="Use your project" aria-label="Use your project">
+          <div id="design-desc" class="sr-only">Toggle design mode to visually create and modify 3D objects in your scene</div>
+          <button class="bigbutton" id="togglePlay" title="Use your project" aria-label="Switch to play mode" aria-describedby="play-desc" aria-pressed="false">
             <div class="icon" style="width: 2em" aria-hidden="true">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512">
                 <!--!Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.-->
@@ -293,11 +315,13 @@
               </svg>
             </div>
           </button>
+          <div id="play-desc" class="sr-only">Toggle play mode to interact with and test your 3D project</div>
           <button
             class="bigbutton"
             title="Switch between fullscreen and normal views."
             id="fullscreenToggle"
-            aria-label="Switch between fullscreen and normal views"
+            aria-label="Toggle fullscreen mode"
+            aria-describedby="fullscreen-desc"
           >
             <div class="icon" aria-hidden="true">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
@@ -315,7 +339,9 @@
       <main role="main">
         <section id="maincontent" aria-label="Main content area">
         <div id="rightArea">
-          <canvas id="renderCanvas" touch-action="none" tabindex="0" aria-label="3D scene canvas" role="img"></canvas>
+          <canvas id="renderCanvas" touch-action="none" tabindex="0" aria-label="3D scene canvas" role="img" aria-describedby="canvas-desc"></canvas>
+          <div id="canvas-desc" class="sr-only">Interactive 3D scene where your project runs. Use keyboard controls to navigate and interact with objects.</div>
+          <div id="fullscreen-desc" class="sr-only">Toggle between fullscreen and windowed view of the application</div>
           <aside class="gizmo-buttons" id="gizmoButtons" aria-label="Design tools">
             <div id="shape-menu">
               <!-- Gizmo button to toggle the shape menu -->
@@ -614,11 +640,18 @@
           >
             <strong>+ Code</strong>
         </button-->
-          <div id="blocklyDiv" role="application" aria-label="Visual programming workspace"></div>
+          <div id="blocklyDiv" role="application" aria-label="Visual programming workspace" aria-describedby="blockly-desc"></div>
+          <div id="blockly-desc" class="sr-only">Drag and drop code blocks to create your program. Use arrow keys and Enter to navigate and interact with blocks.</div>
         </div>
       </section>
       </main>
-      <div id="bottomBar" role="toolbar" aria-label="View switching controls"><button id="switchViews" aria-label="Switch between code and canvas views">Code >></button></div>
+      <div id="bottomBar" role="toolbar" aria-label="View switching controls">
+        <button id="switchViews" aria-label="Switch between code and canvas views" aria-describedby="switch-desc">Code >></button>
+        <div id="switch-desc" class="sr-only">Toggle between coding view and 3D scene view</div>
+      </div>
+      
+      <!-- Live region for dynamic announcements -->
+      <div id="announcements" aria-live="polite" aria-atomic="true" class="sr-only"></div>
     </div>
     <script type="module" src="/main.js"></script>
   </body>
