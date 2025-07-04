@@ -673,11 +673,6 @@ export const flockSound = {
     if (audioContext.state === 'suspended') {
       await audioContext.resume();
     }
-
-    // Create a MediaStreamDestination to capture speech
-    const destination = audioContext.createMediaStreamDestination();
-    const mediaRecorder = new MediaRecorder(destination.stream);
-    const audioChunks = [];
     
     // Create spatial audio nodes
     const panner = audioContext.createPanner();
@@ -685,7 +680,7 @@ export const flockSound = {
     panner.distanceModel = 'exponential';
     panner.refDistance = 1.0;
     panner.maxDistance = 15;
-    panner.rolloffFactor = 4;
+    panner.rolloffFactor = 2;
     
     // Connect panner to audio context destination
     panner.connect(audioContext.destination);

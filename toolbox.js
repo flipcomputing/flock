@@ -3085,7 +3085,7 @@ const toolboxSound = {
 					shadow: {
 						type: "text",
 						fields: {
-							TEXT: "Hello world",
+							TEXT: "Hello",
 						},
 					},
 				},
