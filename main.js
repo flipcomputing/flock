@@ -1999,7 +1999,7 @@ window.onload = function () {
 			if (
 				cursorX >= blockBounds.left &&
 				cursorX <= blockBounds.right &&
-				cursorY >= blockounds.top &&
+				cursorY >= blockBounds.top &&
 				cursorY <= blockBounds.bottom
 						) {
 				if (isBlockDraggable(block)) {					block.addSelect();
