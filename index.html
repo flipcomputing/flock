@@ -275,7 +275,8 @@
             aria-label="Open a project from a file on your computer"
             tabindex="0"
           >
-            <input type="file" id="fileInput" style="display: none" disabled aria-label="Select project file to open" />
+            <label for="fileInput" class="sr-only">Select project file to open</label>
+            <input type="file" id="fileInput" style="display: none" disabled />
             <div class="icon" style="width: 1.25em; height: 1.25em" aria-hidden="true">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
                 <!--!Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.-->
@@ -472,6 +473,7 @@
                     class="scroll-button left"
                     id="scrollModelsLeftButton"
                     disabled
+                    aria-label="Scroll models left"
                   >
                     &Lang;
                   </button>
@@ -482,6 +484,7 @@
                     class="scroll-button right"
                     id="scrollModelsRightButton"
                     disabled
+                    aria-label="Scroll models right"
                   >
                     &Rang;
                   </button>
@@ -493,6 +496,7 @@
                     class="scroll-button left"
                     id="scrollObjectsLeftButton"
                     disabled
+                    aria-label="Scroll objects left"
                   >
                     &Lang;
                   </button>
@@ -503,6 +507,7 @@
                     class="scroll-button right"
                     id="scrollObjectsRightButton"
                     disabled
+                    aria-label="Scroll objects right"
                   >
                     &Rang;
                   </button>
@@ -514,6 +519,7 @@
                     class="scroll-button left"
                     id="scrollCharactersLeftButton"
                     disabled
+                    aria-label="Scroll characters left"
                   >
                     &Lang;
                   </button>
@@ -524,6 +530,7 @@
                     class="scroll-button right"
                     id="scrollCharactersRightButton"
                     disabled
+                    aria-label="Scroll characters right"
                   >
                     &Rang;
                   </button>

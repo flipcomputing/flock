@@ -3053,9 +3053,9 @@ function setupAutoValueBehavior2(workspace) {
 								sourceBlock.getFieldValue("BOOL"),
 								"BOOL",
 							);
-						} else if (sourceBlock.type === "variables_get") {
-							newBlock.setFieldValue(
-								sourceBlock.getFieldValue("VAR"),
+				} else if (sourceBlock.type === "variables_get") {
+					newBlock.setFieldValue(
+						sourceBlock.getFieldValue("VAR"),
 								"VAR",
 							);
 						}
