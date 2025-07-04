@@ -2933,24 +2933,7 @@ function setupTabOrder() {
 	initializeFocusManagement();
 	initializeApp();
 
-	// Update existing modal handlers to use new focus management
-	const openAbout = document.getElementById("openAbout");
-	const closeInfoModal = document.getElementById("closeInfoModal");
-
-	if (openAbout) {
-		openAbout.addEventListener("click", (e) => {
-			e.preventDefault();
-			openModal('infoModal');
-			const menuDropdown = document.getElementById("menuDropdown");
-			if (menuDropdown) menuDropdown.classList.add("hidden");
-		});
-	}
-
-	if (closeInfoModal) {
-		closeInfoModal.addEventListener("click", () => {
-			closeModal('infoModal');
-		});
-	}
+	// Modal handlers are now in index.html to avoid duplication
 };
 
 /*

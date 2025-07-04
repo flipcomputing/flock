@@ -139,29 +139,109 @@
             const openAbout = document.getElementById("openAbout");
             const infoModal = document.getElementById("infoModal");
             const closeInfoModal = document.getElementById("closeInfoModal");
+            let previouslyFocused = null;
 
             // Toggle menu dropdown
             menuBtn.addEventListener("click", () => {
               const isHidden = menuDropdown.classList.toggle("hidden");
               menuBtn.setAttribute("aria-expanded", !isHidden);
+              
+              if (!isHidden) {
+                // Focus first menu item when opened
+                setTimeout(() => openAbout.focus(), 0);
+              }
+            });
+
+            // Handle keyboard navigation for menu
+            menuBtn.addEventListener("keydown", (e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                menuBtn.click();
+              } else if (e.key === "ArrowDown") {
+                e.preventDefault();
+                if (menuDropdown.classList.contains("hidden")) {
+                  menuBtn.click();
+                } else {
+                  openAbout.focus();
+                }
+              }
+            });
+
+            // Handle keyboard navigation within dropdown
+            openAbout.addEventListener("keydown", (e) => {
+              if (e.key === "Escape") {
+                e.preventDefault();
+                menuDropdown.classList.add("hidden");
+                menuBtn.setAttribute("aria-expanded", "false");
+                menuBtn.focus();
+              } else if (e.key === "ArrowUp") {
+                e.preventDefault();
+                menuBtn.focus();
+              }
             });
 
             // Open modal when About is clicked
             openAbout.addEventListener("click", (e) => {
               e.preventDefault();
+              previouslyFocused = document.activeElement;
               infoModal.classList.remove("hidden");
-              menuDropdown.classList.add("hidden"); // close the menu
+              menuDropdown.classList.add("hidden");
+              menuBtn.setAttribute("aria-expanded", "false");
+              
+              // Focus the close button in the modal
+              setTimeout(() => closeInfoModal.focus(), 0);
             });
 
             // Close modal on close button
             closeInfoModal.addEventListener("click", () => {
               infoModal.classList.add("hidden");
+              if (previouslyFocused) {
+                previouslyFocused.focus();
+                previouslyFocused = null;
+              }
             });
 
-            // Optional: Close on outside click
+            // Handle keyboard events for modal
+            infoModal.addEventListener("keydown", (e) => {
+              if (e.key === "Escape") {
+                e.preventDefault();
+                closeInfoModal.click();
+              } else if (e.key === "Tab") {
+                // Trap focus within modal
+                const focusableElements = infoModal.querySelectorAll(
+                  'button, input, select, textarea, [href], [tabindex]:not([tabindex="-1"])'
+                );
+                const firstElement = focusableElements[0];
+                const lastElement = focusableElements[focusableElements.length - 1];
+
+                if (e.shiftKey && document.activeElement === firstElement) {
+                  e.preventDefault();
+                  lastElement.focus();
+                } else if (!e.shiftKey && document.activeElement === lastElement) {
+                  e.preventDefault();
+                  firstElement.focus();
+                }
+              }
+            });
+
+            // Close menu when clicking outside
             window.addEventListener("click", (e) => {
+              if (!menuBtn.contains(e.target) && !menuDropdown.contains(e.target)) {
+                menuDropdown.classList.add("hidden");
+                menuBtn.setAttribute("aria-expanded", "false");
+              }
+              
               if (e.target === infoModal) {
-                infoModal.classList.add("hidden");
+                closeInfoModal.click();
+              }
+            });
+
+            // Close menu on Escape key
+            document.addEventListener("keydown", (e) => {
+              if (e.key === "Escape" && !menuDropdown.classList.contains("hidden")) {
+                menuDropdown.classList.add("hidden");
+                menuBtn.setAttribute("aria-expanded", "false");
+                menuBtn.focus();
               }
             });
           </script>
