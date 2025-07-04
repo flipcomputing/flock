@@ -682,8 +682,12 @@ export const flockSound = {
     panner.maxDistance = 15;
     panner.rolloffFactor = 2;
     
-    // Connect panner to audio context destination
-    panner.connect(audioContext.destination);
+    // Create stereo panner for enhanced left/right positioning
+    const stereoPanner = audioContext.createStereoPanner();
+    
+    // Connect panner -> stereo panner -> destination
+    panner.connect(stereoPanner);
+    stereoPanner.connect(audioContext.destination);
 
     // Set up position updating
     const updateSpatialPosition = () => {
@@ -691,13 +695,25 @@ export const flockSound = {
         return;
       }
 
-      const cameraPosition = flock.scene.activeCamera.position;
+      const camera = flock.scene.activeCamera;
+      const cameraPosition = camera.position;
       const meshPosition = mesh.position;
       
       // Update panner position (note: Babylon.js uses right-handed coordinates)
       panner.positionX.setValueAtTime(-meshPosition.x, audioContext.currentTime);
       panner.positionY.setValueAtTime(meshPosition.y, audioContext.currentTime);
       panner.positionZ.setValueAtTime(meshPosition.z, audioContext.currentTime);
+
+      // Calculate stereo panning based on relative position
+      const cameraToMesh = meshPosition.subtract(cameraPosition);
+      const cameraRight = camera.getForwardRay().direction.cross(flock.BABYLON.Vector3.Up()).normalize();
+      
+      // Project the relative position onto the camera's right vector for left/right positioning
+      const rightDot = flock.BABYLON.Vector3.Dot(cameraToMesh.normalize(), cameraRight);
+      
+      // Convert to stereo pan value (-1 = full left, 1 = full right)
+      const panValue = Math.max(-1, Math.min(1, rightDot * 2)); // Amplify the effect
+      stereoPanner.pan.setValueAtTime(panValue, audioContext.currentTime);
 
       // Update listener position and orientation
       flockSound.updateListenerPositionAndOrientation(audioContext, flock.scene.activeCamera);
@@ -708,7 +724,8 @@ export const flockSound = {
         console.log(`[SPATIAL AUDIO DEBUG] Position update:`, {
           meshPosition: { x: meshPosition.x.toFixed(2), y: meshPosition.y.toFixed(2), z: meshPosition.z.toFixed(2) },
           cameraPosition: { x: cameraPosition.x.toFixed(2), y: cameraPosition.y.toFixed(2), z: cameraPosition.z.toFixed(2) },
-          distance: distance.toFixed(2)
+          distance: distance.toFixed(2),
+          panValue: panValue.toFixed(2)
         });
       }
     };
@@ -792,6 +809,14 @@ export const flockSound = {
             spatialAudioSource.disconnect();
           } catch (e) {
             console.warn("Error disconnecting spatial audio source:", e);
+          }
+        }
+
+        if (stereoPanner) {
+          try {
+            stereoPanner.disconnect();
+          } catch (e) {
+            console.warn("Error disconnecting stereo panner:", e);
           }
         }
 
