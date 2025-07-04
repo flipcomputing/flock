@@ -85,7 +85,7 @@
                       <!-- Modal Popup for Info Panel -->
           </div>
           <div id="infoModal" class="modal hidden" role="dialog" aria-labelledby="modal-title" aria-modal="true">
-            <div class="modal-content">
+            <div class="modal-content" tabindex="-1">
               <span class="close-button" id="closeInfoModal" aria-label="Close information modal">&times;</span>
               <h2 id="modal-title" style="margin-top: 0;">About Flock XR</h2>
 
@@ -189,6 +189,7 @@
           </button>
           <button
             class="bigbutton"
+            id="openButton"
             title="Open a project from a file on your computer"
             aria-label="Open a project from a file on your computer"
           >
@@ -337,10 +338,11 @@
       </nav>
       </header>
       <main role="main">
-        <section id="maincontent" aria-label="Main content area">
+        <section id="maincontent" aria-label="Main content area" tabindex="0">
         <div id="rightArea">
-          <canvas id="renderCanvas" touch-action="none" tabindex="0" aria-label="3D scene canvas" role="img" aria-describedby="canvas-desc"></canvas>
+          <canvas id="renderCanvas" touch-action="none" tabindex="0" aria-label="3D scene canvas" role="img" aria-describedby="canvas-desc canvas-controls-desc"></canvas>
           <div id="canvas-desc" class="sr-only">Interactive 3D scene where your project runs. Use keyboard controls to navigate and interact with objects.</div>
+          <div id="canvas-controls-desc" class="sr-only">Canvas keyboard controls: Arrow keys or WASD to move camera, Mouse to look around, Space for actions, Tab to navigate to other interface elements.</div>
           <div id="fullscreen-desc" class="sr-only">Toggle between fullscreen and windowed view of the application</div>
           <aside class="gizmo-buttons" id="gizmoButtons" aria-label="Design tools">
             <div id="shape-menu">
@@ -352,6 +354,8 @@
                 disabled
                 aria-label="Add shapes and models"
                 title="Add shapes and models"
+                aria-expanded="false"
+                aria-haspopup="true"
               >
                 <img
                   src="images/add.svg"
@@ -640,7 +644,7 @@
           >
             <strong>+ Code</strong>
         </button-->
-          <div id="blocklyDiv" role="application" aria-label="Visual programming workspace" aria-describedby="blockly-desc"></div>
+          <div id="blocklyDiv" role="application" aria-label="Visual programming workspace" aria-describedby="blockly-desc" tabindex="0"></div>
           <div id="blockly-desc" class="sr-only">Drag and drop code blocks to create your program. Use arrow keys and Enter to navigate and interact with blocks.</div>
         </div>
       </section>
@@ -649,7 +653,7 @@
         <button id="switchViews" aria-label="Switch between code and canvas views" aria-describedby="switch-desc">Code >></button>
         <div id="switch-desc" class="sr-only">Toggle between coding view and 3D scene view</div>
       </div>
-      
+
       <!-- Live region for dynamic announcements -->
       <div id="announcements" aria-live="polite" aria-atomic="true" class="sr-only"></div>
     </div>

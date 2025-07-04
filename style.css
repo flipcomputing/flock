@@ -556,6 +556,30 @@ path.blocklyPath.blockly-ws-search-highlight.blockly-ws-search-current {
   margin: 0 !important;
   font-size: 14px;        /* Optional font size */
   min-width: 0;           /* Allow shrinking */
+  z-index: 10;            /* Ensure it's above other elements */
+}
+
+/* Ensure search box is focusable and visible */
+.blocklyTreeRowContentContainer input[type="search"]:focus {
+  outline: 3px solid #fc3;
+  outline-offset: 2px;
+  background-color: #fff;
+}
+
+/* Make sure blockly div is focusable */
+#blocklyDiv {
+  outline: none;
+}
+
+#blocklyDiv:focus {
+  outline: 3px solid #fc3;
+  outline-offset: -3px;
+}
+
+/* Ensure proper tab order visibility */
+.blocklyToolboxDiv:focus-within {
+  outline: 2px solid #fc3;
+  outline-offset: -2px;
 }
 
 /* Hide the 'Statistics' and 'Settings' tabs inside the #bottomPart container */
@@ -838,4 +862,52 @@ path.blocklyPath.blockly-ws-search-highlight.blockly-ws-search-current {
   background: none !important;
 }
 
+      .sr-only {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border: 0;
+      }
 
+      /* Enhanced focus indicators */
+      button:focus,
+      input:focus,
+      select:focus,
+      .gizmo-button:focus,
+      #renderCanvas:focus,
+      #maincontent:focus,
+      #blocklyDiv:focus {
+        outline: 3px solid #fc3;
+        outline-offset: 2px;
+        box-shadow: 0 0 0 2px #fff, 0 0 0 5px #fc3;
+      }
+
+      /* High contrast focus for better visibility */
+      .bigbutton:focus {
+        outline: 3px solid #fc3;
+        outline-offset: 2px;
+        background-color: #d0d0d0;
+      }
+
+      /* Focus management for modal */
+      .modal:focus-within .modal-content {
+        outline: 2px solid #511D91;
+        outline-offset: -2px;
+      }
+
+      /* Ensure interactive elements have proper focus order */
+      [tabindex="-1"] {
+        outline: none;
+      }
+
+      /* Canvas focus indicator - more visible for 3D context */
+      #renderCanvas:focus {
+        outline: 4px solid #fc3;
+        outline-offset: 0px;
+        box-shadow: inset 0 0 0 4px #fff, inset 0 0 0 8px #fc3;
+      }
