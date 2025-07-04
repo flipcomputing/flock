@@ -28,7 +28,7 @@
         'anonymize_ip': true  // Hides IP addresses for privacy
       });
     </script>
-    
+
     <link rel="stylesheet" href="style.css" />
   </head>
 
@@ -41,7 +41,8 @@
     />
 
     <div id="flockeditor">
-      <div id="menu">
+      <header>
+        <nav id="menu">
         <div id="menuleft">
           <img src="images/flockxr-bird.png" alt="Flock bird logo" id="logo" />
           <!-- Menu Button -->
@@ -297,11 +298,13 @@
             </div>
           </button>
         </div>
-      </div>
-      <div id="maincontent">
+      </nav>
+      </header>
+      <main>
+        <section id="maincontent">
         <div id="rightArea">
           <canvas id="renderCanvas" touch-action="none" tabindex="0"></canvas>
-          <div class="gizmo-buttons" id="gizmoButtons">
+          <aside class="gizmo-buttons" id="gizmoButtons">
             <div id="shape-menu">
               <!-- Gizmo button to toggle the shape menu -->
               <button
@@ -476,10 +479,10 @@
                 alt="camera"
               />
             </button>
-          </div>
+          </aside>
 
           <!---
-          
+
             <button class="gizmo-button" id="cutButton" disabled>
               <img
                 src="images/cut.svg"
@@ -508,7 +511,7 @@
 
           <!-- Info panel collapse starts -->
 
-          <div id="info-panel">
+          <aside id="info-panel">
             <button id="info-panel-toggle" style="cursor: pointer">
               Show Info
             </button>
@@ -541,7 +544,7 @@
                     >
                       <path
                         fill="#511D91"
-                        d="M0 256a256 256 0 1 1 512 0A256 256 0 1 1 0 256zM188.3 147.1c-7.6 4.2-12.3 12.3-12.3 20.9l0 176c0 8.7 4.7 16.7 12.3 20.9s16.8 4.1 24.3-.5l144-88c7.1-4.4 11.5-12.1 11.5-20.5s-4.4-16.1-11.5-20.5l-144-88c-7.4-4.5-16.7-4.7-24.3-.5z"
+                        d="M0 256a256 256 0 1 1 512 0A256 256 0 1 1 0 256zM188.3 147.1c-7.6 4.2-12.3 12.3-12.3 20.9l0 176c0 8.7 4.7 16.7 12.3 20.9s16.8 4.1 24.3-.5l144-88c7.1-4.4 11.5-12.1 11.5-20.5s-4.4-16.1-11.5-20.5l-144-88c-7.4-4.5-16.7-4.7-4.7-24.3-.5z"
                       />
                     </svg>
                   </div>
@@ -554,7 +557,7 @@
                 >Get in touch</a
               ></p>
             </div>
-          </div>
+          </aside>
 
           <script>
             const toggleButton = document.getElementById("info-panel-toggle");
@@ -597,7 +600,8 @@
         </button-->
           <div id="blocklyDiv"></div>
         </div>
-      </div>
+      </section>
+      </main>
       <div id="bottomBar"><button id="switchViews">Code >></button></div>
     </div>
     <script type="module" src="/main.js"></script>
