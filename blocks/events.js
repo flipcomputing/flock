@@ -100,12 +100,12 @@ export function defineEventsBlocks() {
 						type: "field_dropdown",
 						name: "TRIGGER",
 						options: [
-							["clicked", "OnPickTrigger"],
-							["double-clicked", "OnDoublePickTrigger"],
-							["mouse down", "OnPickDownTrigger"],
-							["mouse up", "OnPickUpTrigger"],
-							["mouse out", "OnPickOutTrigger"],
-							["left-clicked", "OnLeftPickTrigger"],
+							["interact", "OnLeftPickTrigger"],
+							["double interact", "OnDoublePickTrigger"],
+							["interact start", "OnPickDownTrigger"],
+							["interact end", "OnPickUpTrigger"],
+							
+							["interact out", "OnPickOutTrigger"],
 							[
 								"right-clicked / long pressed",
 								"OnRightOrLongPressTrigger",
