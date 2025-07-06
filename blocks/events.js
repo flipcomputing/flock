@@ -104,14 +104,6 @@ export function defineEventsBlocks() {
 							["double interact", "OnDoublePickTrigger"],
 							["interact start", "OnPickDownTrigger"],
 							["interact end", "OnPickUpTrigger"],
-							
-							["interact out", "OnPickOutTrigger"],
-							[
-								"right-clicked / long pressed",
-								"OnRightOrLongPressTrigger",
-							],
-							["pointer over", "OnPointerOverTrigger"],
-							["pointer out", "OnPointerOutTrigger"],
 						],
 					},
 					/*{
