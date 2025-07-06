@@ -438,6 +438,7 @@
                 title="Add shapes and models"
                 aria-expanded="false"
                 aria-haspopup="true"
+                tabindex="10"
               >
                 <img
                   src="images/add.svg"
@@ -539,8 +540,8 @@
               </span>
             </div>
             <label for="colorPickerButton" class="sr-only">Change object color</label>
-            <input type="color" id="colorPickerButton" disabled title="Change object color" />
-            <button class="gizmo-button" id="positionButton" disabled aria-label="Move object position" title="Move object position">
+            <input type="color" id="colorPickerButton" disabled title="Change object color" tabindex="11" />
+            <button class="gizmo-button" id="positionButton" disabled aria-label="Move object position" title="Move object position" tabindex="12">
               <img
                 src="images/position.svg"
                 width="20px"
@@ -548,7 +549,7 @@
                 alt="Position"
               />
             </button>
-            <button class="gizmo-button" id="rotationButton" disabled aria-label="Rotate object" title="Rotate object">
+            <button class="gizmo-button" id="rotationButton" disabled aria-label="Rotate object" title="Rotate object" tabindex="13">
               <img
                 src="images/rotate.svg"
                 width="20px"
@@ -556,7 +557,7 @@
                 alt="Rotate"
               />
             </button>
-            <button class="gizmo-button" id="scaleButton" disabled aria-label="Scale object size" title="Scale object size">
+            <button class="gizmo-button" id="scaleButton" disabled aria-label="Scale object size" title="Scale object size" tabindex="14">
               <img
                 src="images/scale.svg"
                 width="20px"
@@ -580,7 +581,7 @@
                 alt="focus"
               /-->
             </button>
-            <button class="gizmo-button" id="hideButton" disabled aria-label="Select object" title="Select object">
+            <button class="gizmo-button" id="hideButton" disabled aria-label="Select object" title="Select object" tabindex="15">
               <img
                 src="images/pointer.svg"
                 width="20px"
@@ -588,7 +589,7 @@
                 alt="Select"
               />
             </button>
-            <button class="gizmo-button" id="duplicateButton" disabled aria-label="Duplicate object" title="Duplicate object">
+            <button class="gizmo-button" id="duplicateButton" disabled aria-label="Duplicate object" title="Duplicate object" tabindex="16">
               <img
                 src="images/duplicate.svg"
                 width="20px"
@@ -596,7 +597,7 @@
                 alt="Duplicate"
               />
             </button>
-            <button class="gizmo-button" id="deleteButton" disabled aria-label="Delete object" title="Delete object">
+            <button class="gizmo-button" id="deleteButton" disabled aria-label="Delete object" title="Delete object" tabindex="17">
               <img
                 src="images/delete.svg"
                 width="20px"
@@ -604,7 +605,7 @@
                 alt="Delete"
               />
             </button>
-            <button class="gizmo-button" id="cameraButton" disabled aria-label="Camera controls" title="Camera controls">
+            <button class="gizmo-button" id="cameraButton" disabled aria-label="Camera controls" title="Camera controls" tabindex="18">
               <img
                 src="images/camera2.svg"
                 width="20px"
@@ -712,8 +713,8 @@
           <!-- Info panel collapse ends -->
 
            <div id="flocklink">
-  <a href="https://flockxr.com/" target="_blank" id="info-panel-link">
-    <img src="images/inline-flock-xr.png" alt="Flock XR" style="width: 100px;">
+  <a href="https://flockxr.com/" target="_blank" id="info-panel-link" tabindex="20" aria-label="Visit Flock XR website - opens in new tab" title="Visit Flock XR website">
+    <img src="images/inline-flock-xr.png" alt="Flock XR logo" style="width: 100px;">
   </a>
 </div>
 

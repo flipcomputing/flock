@@ -2334,6 +2334,12 @@ function setupTabOrder() {
 				}
 			});
 
+			// Add Flock XR logo link after gizmos if visible
+			const logoLink = document.querySelector('#info-panel-link');
+			if (logoLink && isElementVisible(logoLink) && !elements.includes(logoLink)) {
+				elements.push(logoLink);
+			}
+
 			// Add search inputs if visible  
 			const searchInputs = document.querySelectorAll('.blocklySearchInput, .blocklyTreeSearch input, input[placeholder*="Search"]');
 			searchInputs.forEach(input => {
