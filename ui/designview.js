@@ -1802,7 +1802,41 @@ function handleShapeMenuKeydown(event) {
     case " ":
       event.preventDefault();
       if (currentFocusedElement) {
-        currentFocusedElement.click();
+        // Get the image element within the li
+        const img = currentFocusedElement.querySelector('img');
+        if (img) {
+          const altText = img.alt;
+          const parentRow = currentFocusedElement.closest('#shape-row, #object-row, #model-row, #character-row');
+          
+          if (parentRow) {
+            const rowId = parentRow.id;
+            
+            // Determine which type of item this is and call the appropriate function
+            if (rowId === 'shape-row') {
+              // Handle shape selection - determine shape type from alt text
+              const shapeTypeMap = {
+                'box': 'create_box',
+                'sphere': 'create_sphere', 
+                'cylinder': 'create_cylinder',
+                'capsule': 'create_capsule',
+                'plane': 'create_plane'
+              };
+              const shapeType = shapeTypeMap[altText.toLowerCase()];
+              if (shapeType) {
+                selectShape(shapeType);
+              }
+            } else if (rowId === 'object-row') {
+              // Handle object selection
+              selectObject(altText + '.glb');
+            } else if (rowId === 'model-row') {
+              // Handle multi-object selection
+              selectMultiObject(altText + '.glb');
+            } else if (rowId === 'character-row') {
+              // Handle character selection
+              selectCharacter(altText + '.glb');
+            }
+          }
+        }
       }
       break;
       
