@@ -1647,11 +1647,19 @@ function showShapes() {
   }
 
   const dropdown = document.getElementById("shapes-dropdown");
-  dropdown.style.display = dropdown.style.display === "none" ? "block" : "none";
-  //loadModelImages(); // Load the models into the menu
-  loadObjectImages(); // Load the objects into the menu
-  loadMultiImages(); // Load the objects into the menu
-  loadCharacterImages(); // Load the characters into the menu
+  const isVisible = dropdown.style.display !== "none";
+  
+  if (isVisible) {
+    dropdown.style.display = "none";
+    removeKeyboardNavigation();
+  } else {
+    dropdown.style.display = "block";
+    //loadModelImages(); // Load the models into the menu
+    loadObjectImages(); // Load the objects into the menu
+    loadMultiImages(); // Load the objects into the menu
+    loadCharacterImages(); // Load the characters into the menu
+    setupKeyboardNavigation();
+  }
 }
 
 // Close the shapes menu if the user clicks outside of it
@@ -1668,8 +1676,241 @@ document.addEventListener("click", function (event) {
 
   if (!isClickInside && !isClickOnToggle) {
     dropdown.style.display = "none";
+    removeKeyboardNavigation();
   }
 });
+
+// Keyboard navigation variables
+let currentFocusedElement = null;
+let keyboardNavigationActive = false;
+
+function setupKeyboardNavigation() {
+  keyboardNavigationActive = true;
+  currentFocusedElement = null;
+  
+  // Add keyboard event listener
+  document.addEventListener("keydown", handleShapeMenuKeydown);
+  
+  // Make all clickable items focusable and add visual focus indicator
+  const allItems = getAllNavigableItems();
+  allItems.forEach((item, index) => {
+    item.setAttribute("tabindex", index === 0 ? "0" : "-1");
+    item.classList.add("keyboard-navigable");
+  });
+  
+  // Focus the first item
+  if (allItems.length > 0) {
+    focusItem(allItems[0]);
+  }
+}
+
+function removeKeyboardNavigation() {
+  keyboardNavigationActive = false;
+  currentFocusedElement = null;
+  
+  // Remove keyboard event listener
+  document.removeEventListener("keydown", handleShapeMenuKeydown);
+  
+  // Clean up focus indicators
+  const allItems = getAllNavigableItems();
+  allItems.forEach(item => {
+    item.removeAttribute("tabindex");
+    item.classList.remove("keyboard-navigable", "keyboard-focused");
+  });
+}
+
+function getAllNavigableItems() {
+  const dropdown = document.getElementById("shapes-dropdown");
+  if (!dropdown) return [];
+  
+  // Get all clickable items from all rows
+  const items = [];
+  
+  // Shape row items
+  const shapeRow = dropdown.querySelector("#shape-row");
+  if (shapeRow) {
+    items.push(...Array.from(shapeRow.querySelectorAll("li")));
+  }
+  
+  // Object row items
+  const objectRow = dropdown.querySelector("#object-row");
+  if (objectRow) {
+    items.push(...Array.from(objectRow.querySelectorAll("li")));
+  }
+  
+  // Model row items
+  const modelRow = dropdown.querySelector("#model-row");
+  if (modelRow) {
+    items.push(...Array.from(modelRow.querySelectorAll("li")));
+  }
+  
+  // Character row items
+  const characterRow = dropdown.querySelector("#character-row");
+  if (characterRow) {
+    items.push(...Array.from(characterRow.querySelectorAll("li")));
+  }
+  
+  return items;
+}
+
+function focusItem(item) {
+  if (currentFocusedElement) {
+    currentFocusedElement.classList.remove("keyboard-focused");
+    currentFocusedElement.setAttribute("tabindex", "-1");
+  }
+  
+  currentFocusedElement = item;
+  item.classList.add("keyboard-focused");
+  item.setAttribute("tabindex", "0");
+  item.focus();
+  
+  // Scroll item into view if needed
+  item.scrollIntoView({ block: "nearest", inline: "nearest" });
+}
+
+function handleShapeMenuKeydown(event) {
+  if (!keyboardNavigationActive) return;
+  
+  const allItems = getAllNavigableItems();
+  if (allItems.length === 0) return;
+  
+  const currentIndex = currentFocusedElement ? 
+    allItems.indexOf(currentFocusedElement) : -1;
+  
+  switch (event.key) {
+    case "ArrowRight":
+      event.preventDefault();
+      navigateHorizontal(allItems, currentIndex, 1);
+      break;
+      
+    case "ArrowLeft":
+      event.preventDefault();
+      navigateHorizontal(allItems, currentIndex, -1);
+      break;
+      
+    case "ArrowDown":
+      event.preventDefault();
+      navigateVertical(allItems, currentIndex, 1);
+      break;
+      
+    case "ArrowUp":
+      event.preventDefault();
+      navigateVertical(allItems, currentIndex, -1);
+      break;
+      
+    case "Enter":
+    case " ":
+      event.preventDefault();
+      if (currentFocusedElement) {
+        currentFocusedElement.click();
+      }
+      break;
+      
+    case "Escape":
+      event.preventDefault();
+      document.getElementById("shapes-dropdown").style.display = "none";
+      removeKeyboardNavigation();
+      // Return focus to the shapes button
+      const shapesButton = document.getElementById("showShapesButton");
+      if (shapesButton) {
+        shapesButton.focus();
+      }
+      break;
+  }
+}
+
+function navigateHorizontal(allItems, currentIndex, direction) {
+  if (currentIndex === -1) {
+    focusItem(allItems[0]);
+    return;
+  }
+  
+  const currentItem = allItems[currentIndex];
+  const currentRect = currentItem.getBoundingClientRect();
+  const currentY = Math.round(currentRect.top);
+  
+  // Find all items in the same row (same Y position)
+  const rowItems = allItems.filter(item => {
+    const rect = item.getBoundingClientRect();
+    return Math.abs(Math.round(rect.top) - currentY) < 5; // 5px tolerance
+  });
+  
+  if (rowItems.length <= 1) return; // No other items in this row
+  
+  // Sort row items by X position
+  rowItems.sort((a, b) => a.getBoundingClientRect().left - b.getBoundingClientRect().left);
+  
+  const currentRowIndex = rowItems.indexOf(currentItem);
+  let nextRowIndex;
+  
+  if (direction > 0) {
+    // Moving right
+    nextRowIndex = currentRowIndex < rowItems.length - 1 ? currentRowIndex + 1 : 0;
+  } else {
+    // Moving left
+    nextRowIndex = currentRowIndex > 0 ? currentRowIndex - 1 : rowItems.length - 1;
+  }
+  
+  focusItem(rowItems[nextRowIndex]);
+}
+
+function navigateVertical(allItems, currentIndex, direction) {
+  if (currentIndex === -1) {
+    focusItem(allItems[0]);
+    return;
+  }
+  
+  const currentItem = allItems[currentIndex];
+  const currentRect = currentItem.getBoundingClientRect();
+  const currentX = currentRect.left + currentRect.width / 2; // Use center X
+  const currentY = Math.round(currentRect.top);
+  
+  // Group all items by their Y position (rows)
+  const itemsByRow = new Map();
+  allItems.forEach(item => {
+    const rect = item.getBoundingClientRect();
+    const y = Math.round(rect.top);
+    
+    if (!itemsByRow.has(y)) {
+      itemsByRow.set(y, []);
+    }
+    itemsByRow.get(y).push(item);
+  });
+  
+  // Sort rows by Y position
+  const sortedRows = Array.from(itemsByRow.entries()).sort(([y1], [y2]) => y1 - y2);
+  
+  // Find current row index
+  const currentRowIndex = sortedRows.findIndex(([y]) => y === currentY);
+  if (currentRowIndex === -1) return;
+  
+  // Calculate target row
+  let targetRowIndex;
+  if (direction > 0) {
+    // Moving down
+    targetRowIndex = currentRowIndex < sortedRows.length - 1 ? currentRowIndex + 1 : 0;
+  } else {
+    // Moving up
+    targetRowIndex = currentRowIndex > 0 ? currentRowIndex - 1 : sortedRows.length - 1;
+  }
+  
+  const targetRowItems = sortedRows[targetRowIndex][1];
+  
+  // Find the item in target row closest to current X position
+  let closestItem = targetRowItems[0];
+  let closestDistance = Math.abs(closestItem.getBoundingClientRect().left + closestItem.getBoundingClientRect().width / 2 - currentX);
+  
+  targetRowItems.forEach(item => {
+    const itemX = item.getBoundingClientRect().left + item.getBoundingClientRect().width / 2;
+    const distance = Math.abs(itemX - currentX);
+    if (distance < closestDistance) {
+      closestDistance = distance;
+      closestItem = item;
+    }
+  });
+  
+  focusItem(closestItem);
+}
 
 function scrollModels(direction) {
   const modelRow = document.getElementById("model-row");

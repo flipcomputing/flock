@@ -304,6 +304,21 @@ path.blocklyPath.blockly-ws-search-highlight.blockly-ws-search-current {
   transform: scale(1.2);
 }
 
+/* Keyboard navigation styles */
+#shapes-dropdown ul li.keyboard-navigable {
+  outline: none;
+}
+
+#shapes-dropdown ul li.keyboard-focused {
+  background-color: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 0 0 2px #007acc;
+  border-radius: 5px;
+}
+
+#shapes-dropdown ul li.keyboard-focused img {
+  transform: scale(1.2);
+}
+
 /* Scrollable Container with Arrows */
 .scrollable-container {
   position: relative;
