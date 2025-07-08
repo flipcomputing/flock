@@ -100,6 +100,7 @@ export function defineEventsBlocks() {
 						type: "field_dropdown",
 						name: "TRIGGER",
 						options: [
+							["clicked", "OnPickTrigger"],
 							["interact", "OnLeftPickTrigger"],
 							["double interact", "OnDoublePickTrigger"],
 							["interact start", "OnPickDownTrigger"],
@@ -434,14 +435,15 @@ export function defineEventsBlocks() {
 			return "Event name must not start with reserved words like 'on', 'system', or 'flock'.";
 		}
 
-		const disallowedChars = /[!@#\$%\^&\*\(\)\+=\[\]\{\};:'"\\|,<>\?\/\n\r\t]/;
+		const disallowedChars =
+			/[!@#\$%\^&\*\(\)\+=\[\]\{\};:'"\\|,<>\?\/\n\r\t]/;
 		if (disallowedChars.test(name)) {
 			return "Event name must not include punctuation or special characters.";
 		}
 
 		return null; // valid
 	}
-	
+
 	Blockly.Blocks["broadcast_event"] = {
 		init: function () {
 			this.jsonInit({
@@ -504,7 +506,8 @@ export function defineEventsBlocks() {
 					},
 				],
 				colour: categoryColours["Events"],
-				tooltip: "Run code when a broadcast event is received.\nKeyword: on",
+				tooltip:
+					"Run code when a broadcast event is received.\nKeyword: on",
 			});
 			this.setHelpUrl(getHelpUrlFor(this.type));
 			addToggleButton(this);
