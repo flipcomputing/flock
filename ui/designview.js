@@ -1758,14 +1758,13 @@ function startKeyboardPlacementMode(callback) {
   placementCirclePosition.x = canvasRect.width / 2;
   placementCirclePosition.y = canvasRect.height * 0.7; // Position at 70% down the canvas
 
-  // Create placement circle
-  createPlacementCircle();
+  // Don't create placement circle immediately - only when keyboard is used
 
   // Add keyboard event listener
   document.addEventListener("keydown", handlePlacementKeydown);
 
   // Set cursor to indicate placement mode
-  document.body.style.cursor = "none";
+  document.body.style.cursor = "crosshair";
 }
 
 function endKeyboardPlacementMode() {
@@ -1829,24 +1828,44 @@ function handlePlacementKeydown(event) {
   switch (event.key) {
     case "ArrowRight":
       event.preventDefault();
+      // Create circle on first keyboard use
+      if (!placementCircle) {
+        createPlacementCircle();
+        document.body.style.cursor = "none";
+      }
       placementCirclePosition.x += moveDistance;
       updatePlacementCirclePosition();
       break;
 
     case "ArrowLeft":
       event.preventDefault();
+      // Create circle on first keyboard use
+      if (!placementCircle) {
+        createPlacementCircle();
+        document.body.style.cursor = "none";
+      }
       placementCirclePosition.x -= moveDistance;
       updatePlacementCirclePosition();
       break;
 
     case "ArrowDown":
       event.preventDefault();
+      // Create circle on first keyboard use
+      if (!placementCircle) {
+        createPlacementCircle();
+        document.body.style.cursor = "none";
+      }
       placementCirclePosition.y += moveDistance;
       updatePlacementCirclePosition();
       break;
 
     case "ArrowUp":
       event.preventDefault();
+      // Create circle on first keyboard use
+      if (!placementCircle) {
+        createPlacementCircle();
+        document.body.style.cursor = "none";
+      }
       placementCirclePosition.y -= moveDistance;
       updatePlacementCirclePosition();
       break;
@@ -1854,6 +1873,11 @@ function handlePlacementKeydown(event) {
     case "Enter":
     case " ":
       event.preventDefault();
+      // Create circle on first keyboard use
+      if (!placementCircle) {
+        createPlacementCircle();
+        document.body.style.cursor = "none";
+      }
       console.log("DEBUG: Focus circle position on Enter/Return:", {
         x: placementCirclePosition.x,
         y: placementCirclePosition.y,
