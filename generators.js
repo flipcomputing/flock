@@ -2692,8 +2692,10 @@ export function defineGenerators() {
 	};
 
 	javascriptGenerator.forBlock["procedures_defnoreturn"] = function (block) {
-		const functionName = block.getFieldValue("NAME").replace(/[^\w]/g, "_");
-		// Retrieve the parameters as a comma-separated list
+		const functionName = javascriptGenerator.nameDB_.getName(
+			block.getFieldValue("NAME"),
+			Blockly.PROCEDURE_CATEGORY_NAME
+		);
 		const args = block.argData_.map((elem) => elem.model.name);
 		const params = args.join(", ");
 
@@ -2704,15 +2706,15 @@ export function defineGenerators() {
 				javascriptGenerator.ORDER_NONE,
 			) || "";
 
-		// Generate the function code with async and parameters
 		const code = `async function ${functionName}(${params}) {\n${branch}\n}`;
 		return code;
 	};
 
-	// Generator for asynchronous function call with arguments
 	javascriptGenerator.forBlock["procedures_callnoreturn"] = function (block) {
-		const functionName = block.getFieldValue("NAME").replace(/[^\w]/g, "_");
-		// Retrieve the arguments as a comma-separated list that should match the parameters
+		const functionName = javascriptGenerator.nameDB_.getName(
+			block.getFieldValue("NAME"),
+			Blockly.PROCEDURE_CATEGORY_NAME
+		);
 		const args = [];
 		const variables = block.arguments_;
 		for (let i = 0; i < variables.length; i++) {
@@ -2723,11 +2725,15 @@ export function defineGenerators() {
 					javascriptGenerator.ORDER_NONE,
 				) || "null";
 		}
-		const code = `await ${functionName}` + "(" + args.join(", ") + ");\n";
+		const code = `await ${functionName}(${args.join(", ")});\n`;
 		return code;
 	};
+
 	javascriptGenerator.forBlock["procedures_defreturn"] = function (block) {
-		const functionName = block.getFieldValue("NAME").replace(/[^\w]/g, "_");
+		const functionName = javascriptGenerator.nameDB_.getName(
+			block.getFieldValue("NAME"),
+			Blockly.PROCEDURE_CATEGORY_NAME
+		);
 		const args = block.argData_.map((elem) => elem.model.name);
 		const params = args.join(", ");
 		const branch =
@@ -2743,14 +2749,17 @@ export function defineGenerators() {
 				javascriptGenerator.ORDER_NONE,
 			) || "";
 
-		// Generate the function code with async, parameters, and return statement
-		const code = `async function ${functionName}(${params}) {\n${branch}return ${returnValue}\n;}`;
+		const code = `async function ${functionName}(${params}) {\n${branch}return ${returnValue};\n}`;
 		return code;
 	};
+
 	javascriptGenerator.forBlock["procedures_callreturn"] = function (block) {
-		const functionName = block.getFieldValue("NAME").replace(/[^\w]/g, "_");
+		const functionName = javascriptGenerator.nameDB_.getName(
+			block.getFieldValue("NAME"),
+			Blockly.PROCEDURE_CATEGORY_NAME
+		);
 		const args = [];
-		const variables = block.arguments_ || []; // Ensure 'arguments_' is populated with the argument names
+		const variables = block.arguments_ || [];
 		for (let i = 0; i < variables.length; i++) {
 			args[i] =
 				javascriptGenerator.valueToCode(
@@ -2760,8 +2769,7 @@ export function defineGenerators() {
 				) || "null";
 		}
 
-		const code = `await ${functionName}\n(${args.join(", ")})\n`;
-
+		const code = `await ${functionName}(${args.join(", ")})`;
 		return [code, javascriptGenerator.ORDER_ATOMIC];
 	};
 
