@@ -1043,7 +1043,6 @@ function setAbsoluteSize(mesh, width, height, depth) {
 
   let shapeType = null;
   if (mesh.metadata) shapeType = mesh.metadata.shapeType;
-
   if (mesh.physics && shapeType) {
     const shape = mesh.physics.shape;
     let newShape, diameterBottom, startPoint, endPoint, diameter;
@@ -1214,7 +1213,7 @@ function setNumberInput(block, inputName, value) {
 function getMeshFromBlockId(blockId) {
 
    //console.log("Get mesh from block id", blockId, meshBlockIdMap, meshMap, flock.scene?.meshes?.map((mesh) => mesh.blockKey));
- 
+
   const blockKey = Object.keys(meshMap).find(
     (key) => meshBlockIdMap[key] === blockId,
   );
@@ -1330,7 +1329,7 @@ function addShapeToWorkspace(shapeType, position) {
 
 function selectCharacter(characterName) {
   document.getElementById("shapes-dropdown").style.display = "none";
-  
+
   const onPick = function (event) {
     const canvasRect = flock.canvas.getBoundingClientRect();
     const canvasX = event.clientX - canvasRect.left;
@@ -1390,7 +1389,7 @@ function selectCharacter(characterName) {
 
   // Start keyboard placement mode
   startKeyboardPlacementMode(onPick);
-  
+
   // Also set up mouse click as fallback
   document.body.style.cursor = "crosshair";
   setTimeout(() => {
@@ -1401,16 +1400,31 @@ window.selectCharacter = selectCharacter;
 
 function selectShape(shapeType) {
   document.getElementById("shapes-dropdown").style.display = "none";
-  
+
   const onPick = function (event) {
     const canvasRect = flock.canvas.getBoundingClientRect();
     const canvasX = event.clientX - canvasRect.left;
     const canvasY = event.clientY - canvasRect.top;
+    
+    console.log("DEBUG: Mouse click position:", {
+      x: canvasX,
+      y: canvasY,
+      canvasWidth: canvasRect.width,
+      canvasHeight: canvasRect.height
+    });
+    
     const pickResult = flock.scene.pick(canvasX, canvasY);
+
+    console.log("DEBUG: Mouse pick result:", {
+      hit: pickResult.hit,
+      pickedPoint: pickResult.pickedPoint,
+      pickedMesh: pickResult.pickedMesh?.name
+    });
 
     if (pickResult.hit) {
       const pickedPosition = pickResult.pickedPoint; // Get picked position
 
+      console.log("DEBUG: Adding shape at position:", pickedPosition);
       addShapeToWorkspace(shapeType, pickedPosition); // Add the selected shape at this position
       document.body.style.cursor = "default"; // Reset cursor after picking
       window.removeEventListener("click", onPick); // Remove the click listener after pick
@@ -1421,7 +1435,7 @@ function selectShape(shapeType) {
 
   // Start keyboard placement mode
   startKeyboardPlacementMode(onPick);
-  
+
   // Also set up mouse click as fallback
   document.body.style.cursor = "crosshair";
   setTimeout(() => {
@@ -1482,7 +1496,7 @@ function selectModel(modelName) {
 
   // Start keyboard placement mode
   startKeyboardPlacementMode(onPick);
-  
+
   // Also set up mouse click as fallback
   document.body.style.cursor = "crosshair";
   setTimeout(() => {
@@ -1596,7 +1610,7 @@ function selectObjectWithCommand(objectName, menu, command) {
 
   // Start keyboard placement mode
   startKeyboardPlacementMode(onPickMesh);
-  
+
   // Also set up mouse click as fallback
   document.body.style.cursor = "crosshair";
   setTimeout(() => {
@@ -1657,7 +1671,7 @@ function showShapes() {
 
   const dropdown = document.getElementById("shapes-dropdown");
   const isVisible = dropdown.style.display !== "none";
-  
+
   if (isVisible) {
     dropdown.style.display = "none";
     removeKeyboardNavigation();
@@ -1702,17 +1716,17 @@ let placementCirclePosition = { x: 0, y: 0 };
 function setupKeyboardNavigation() {
   keyboardNavigationActive = true;
   currentFocusedElement = null;
-  
+
   // Add keyboard event listener
   document.addEventListener("keydown", handleShapeMenuKeydown);
-  
+
   // Make all clickable items focusable and add visual focus indicator
   const allItems = getAllNavigableItems();
   allItems.forEach((item, index) => {
     item.setAttribute("tabindex", index === 0 ? "0" : "-1");
     item.classList.add("keyboard-navigable");
   });
-  
+
   // Focus the first item
   if (allItems.length > 0) {
     focusItem(allItems[0]);
@@ -1722,10 +1736,10 @@ function setupKeyboardNavigation() {
 function removeKeyboardNavigation() {
   keyboardNavigationActive = false;
   currentFocusedElement = null;
-  
+
   // Remove keyboard event listener
   document.removeEventListener("keydown", handleShapeMenuKeydown);
-  
+
   // Clean up focus indicators
   const allItems = getAllNavigableItems();
   allItems.forEach(item => {
@@ -1737,19 +1751,19 @@ function removeKeyboardNavigation() {
 function startKeyboardPlacementMode(callback) {
   keyboardPlacementMode = true;
   placementCallback = callback;
-  
-  // Get canvas center as starting position
+
+  // Get canvas center as starting position, but offset Y towards bottom where ground is more likely visible
   const canvas = flock.scene.getEngine().getRenderingCanvas();
   const canvasRect = canvas.getBoundingClientRect();
   placementCirclePosition.x = canvasRect.width / 2;
-  placementCirclePosition.y = canvasRect.height / 2;
-  
+  placementCirclePosition.y = canvasRect.height * 0.7; // Position at 70% down the canvas
+
   // Create placement circle
   createPlacementCircle();
-  
+
   // Add keyboard event listener
   document.addEventListener("keydown", handlePlacementKeydown);
-  
+
   // Set cursor to indicate placement mode
   document.body.style.cursor = "none";
 }
@@ -1757,16 +1771,16 @@ function startKeyboardPlacementMode(callback) {
 function endKeyboardPlacementMode() {
   keyboardPlacementMode = false;
   placementCallback = null;
-  
+
   // Remove placement circle
   if (placementCircle) {
     placementCircle.remove();
     placementCircle = null;
   }
-  
+
   // Remove keyboard event listener
   document.removeEventListener("keydown", handlePlacementKeydown);
-  
+
   // Reset cursor
   document.body.style.cursor = "default";
 }
@@ -1775,7 +1789,7 @@ function createPlacementCircle() {
   if (placementCircle) {
     placementCircle.remove();
   }
-  
+
   placementCircle = document.createElement("div");
   placementCircle.style.position = "fixed";
   placementCircle.style.width = "20px";
@@ -1786,62 +1800,69 @@ function createPlacementCircle() {
   placementCircle.style.pointerEvents = "none";
   placementCircle.style.zIndex = "9999";
   placementCircle.style.transform = "translate(-50%, -50%)";
-  
+
   updatePlacementCirclePosition();
   document.body.appendChild(placementCircle);
 }
 
 function updatePlacementCirclePosition() {
   if (!placementCircle) return;
-  
+
   const canvas = flock.scene.getEngine().getRenderingCanvas();
   const canvasRect = canvas.getBoundingClientRect();
-  
+
   // Constrain position to canvas bounds
   placementCirclePosition.x = Math.max(10, Math.min(canvasRect.width - 10, placementCirclePosition.x));
   placementCirclePosition.y = Math.max(10, Math.min(canvasRect.height - 10, placementCirclePosition.y));
-  
+
   // Position relative to canvas
   placementCircle.style.left = (canvasRect.left + placementCirclePosition.x) + "px";
   placementCircle.style.top = (canvasRect.top + placementCirclePosition.y) + "px";
 }
 
+// Added debug logging to record the focus circle position when Enter/Return is pressed.
 function handlePlacementKeydown(event) {
   if (!keyboardPlacementMode) return;
-  
+
   const moveDistance = event.shiftKey ? 10 : 2; // Shift for faster movement
-  
+
   switch (event.key) {
     case "ArrowRight":
       event.preventDefault();
       placementCirclePosition.x += moveDistance;
       updatePlacementCirclePosition();
       break;
-      
+
     case "ArrowLeft":
       event.preventDefault();
       placementCirclePosition.x -= moveDistance;
       updatePlacementCirclePosition();
       break;
-      
+
     case "ArrowDown":
       event.preventDefault();
       placementCirclePosition.y += moveDistance;
       updatePlacementCirclePosition();
       break;
-      
+
     case "ArrowUp":
       event.preventDefault();
       placementCirclePosition.y -= moveDistance;
       updatePlacementCirclePosition();
       break;
-      
+
     case "Enter":
     case " ":
       event.preventDefault();
+      console.log("DEBUG: Focus circle position on Enter/Return:", {
+        x: placementCirclePosition.x,
+        y: placementCirclePosition.y,
+        canvasWidth: flock.scene.getEngine().getRenderingCanvas().getBoundingClientRect().width,
+        canvasHeight: flock.scene.getEngine().getRenderingCanvas().getBoundingClientRect().height
+      });
       triggerPlacement();
       break;
-      
+
     case "Escape":
       event.preventDefault();
       endKeyboardPlacementMode();
@@ -1851,62 +1872,124 @@ function handlePlacementKeydown(event) {
 
 function triggerPlacement() {
   if (!placementCallback || !keyboardPlacementMode) return;
-  
+
   const canvas = flock.scene.getEngine().getRenderingCanvas();
   const canvasRect = canvas.getBoundingClientRect();
-  
-  // Use the circle position for picking
-  const pickResult = flock.scene.pick(placementCirclePosition.x, placementCirclePosition.y);
+
+  console.log("DEBUG: Attempting placement at circle position:", {
+    x: placementCirclePosition.x,
+    y: placementCirclePosition.y,
+    canvasWidth: canvasRect.width,
+    canvasHeight: canvasRect.height
+  });
+
+  // Create a picking ray using the current focus circle position
+  const pickRay = flock.scene.createPickingRay(
+    placementCirclePosition.x,
+    placementCirclePosition.y,
+    flock.BABYLON.Matrix.Identity(),
+    flock.scene.activeCamera
+  );
+
+  console.log("DEBUG: Created picking ray for keyboard placement at:", {
+    x: placementCirclePosition.x,
+    y: placementCirclePosition.y
+  });
+
+  // Use pickWithRay with the same filter as mouse clicks
+  const pickResult = flock.scene.pickWithRay(
+    pickRay,
+    (mesh) => mesh.isPickable
+  );
+
+  console.log("DEBUG: Pick result:", {
+    hit: pickResult.hit,
+    pickedPoint: pickResult.pickedPoint,
+    pickedMesh: pickResult.pickedMesh?.name,
+    distance: pickResult.distance
+  });
+
+  // List all pickable meshes in scene for debugging
+  const pickableMeshes = flock.scene.meshes.filter(mesh => mesh.isPickable);
+  console.log("DEBUG: Available pickable meshes:", pickableMeshes.map(m => m.name));
+
+  // Store the callback before clearing it
+  const callback = placementCallback;
   
   if (pickResult.hit) {
-    // Create synthetic event with the right structure
+    // Create synthetic event with the current focus circle position
     const syntheticEvent = {
       clientX: canvasRect.left + placementCirclePosition.x,
       clientY: canvasRect.top + placementCirclePosition.y
     };
-    
+
+    console.log("DEBUG: Triggering placement callback with synthetic event at current position");
+
     // End placement mode first
     endKeyboardPlacementMode();
-    
+
     // Trigger the placement callback
-    placementCallback(syntheticEvent);
+    if (callback) {
+      callback(syntheticEvent);
+    }
   } else {
-    // If no hit, still end placement mode but don't place anything
+    console.log("DEBUG: No hit detected, not placing shape");
+    
+    // If there's no ground or pickable surface, create a default position
+    // Place at a reasonable default position in 3D space
+    const defaultPosition = new flock.BABYLON.Vector3(0, 0, 0);
+    
+    console.log("DEBUG: Using default position for placement:", defaultPosition);
+    
+    // Create synthetic event with current focus circle position
+    const syntheticEvent = {
+      clientX: canvasRect.left + placementCirclePosition.x,
+      clientY: canvasRect.top + placementCirclePosition.y,
+      // Add the default 3D position as additional data
+      defaultPosition: defaultPosition
+    };
+
+    // End placement mode first
     endKeyboardPlacementMode();
+
+    // Trigger the placement callback with default position
+    if (callback) {
+      callback(syntheticEvent);
+    }
   }
 }
 
 function getAllNavigableItems() {
   const dropdown = document.getElementById("shapes-dropdown");
   if (!dropdown) return [];
-  
+
   // Get all clickable items from all rows
   const items = [];
-  
+
   // Shape row items
   const shapeRow = dropdown.querySelector("#shape-row");
   if (shapeRow) {
     items.push(...Array.from(shapeRow.querySelectorAll("li")));
   }
-  
+
   // Object row items
   const objectRow = dropdown.querySelector("#object-row");
   if (objectRow) {
     items.push(...Array.from(objectRow.querySelectorAll("li")));
   }
-  
+
   // Model row items
   const modelRow = dropdown.querySelector("#model-row");
   if (modelRow) {
     items.push(...Array.from(modelRow.querySelectorAll("li")));
   }
-  
+
   // Character row items
   const characterRow = dropdown.querySelector("#character-row");
   if (characterRow) {
     items.push(...Array.from(characterRow.querySelectorAll("li")));
   }
-  
+
   return items;
 }
 
@@ -1915,46 +1998,46 @@ function focusItem(item) {
     currentFocusedElement.classList.remove("keyboard-focused");
     currentFocusedElement.setAttribute("tabindex", "-1");
   }
-  
+
   currentFocusedElement = item;
   item.classList.add("keyboard-focused");
   item.setAttribute("tabindex", "0");
   item.focus();
-  
+
   // Scroll item into view if needed
   item.scrollIntoView({ block: "nearest", inline: "nearest" });
 }
 
 function handleShapeMenuKeydown(event) {
   if (!keyboardNavigationActive) return;
-  
+
   const allItems = getAllNavigableItems();
   if (allItems.length === 0) return;
-  
+
   const currentIndex = currentFocusedElement ? 
     allItems.indexOf(currentFocusedElement) : -1;
-  
+
   switch (event.key) {
     case "ArrowRight":
       event.preventDefault();
       navigateHorizontal(allItems, currentIndex, 1);
       break;
-      
+
     case "ArrowLeft":
       event.preventDefault();
       navigateHorizontal(allItems, currentIndex, -1);
       break;
-      
+
     case "ArrowDown":
       event.preventDefault();
       navigateVertical(allItems, currentIndex, 1);
       break;
-      
+
     case "ArrowUp":
       event.preventDefault();
       navigateVertical(allItems, currentIndex, -1);
       break;
-      
+
     case "Enter":
     case " ":
       event.preventDefault();
@@ -1964,10 +2047,10 @@ function handleShapeMenuKeydown(event) {
         if (img) {
           const altText = img.alt;
           const parentRow = currentFocusedElement.closest('#shape-row, #object-row, #model-row, #character-row');
-          
+
           if (parentRow) {
             const rowId = parentRow.id;
-            
+
             // Determine which type of item this is and call the appropriate function
             if (rowId === 'shape-row') {
               // Handle shape selection - determine shape type from alt text
@@ -1996,7 +2079,7 @@ function handleShapeMenuKeydown(event) {
         }
       }
       break;
-      
+
     case "Escape":
       event.preventDefault();
       document.getElementById("shapes-dropdown").style.display = "none";
@@ -2015,25 +2098,25 @@ function navigateHorizontal(allItems, currentIndex, direction) {
     focusItem(allItems[0]);
     return;
   }
-  
+
   const currentItem = allItems[currentIndex];
   const currentRect = currentItem.getBoundingClientRect();
   const currentY = Math.round(currentRect.top);
-  
+
   // Find all items in the same row (same Y position)
   const rowItems = allItems.filter(item => {
     const rect = item.getBoundingClientRect();
     return Math.abs(Math.round(rect.top) - currentY) < 5; // 5px tolerance
   });
-  
+
   if (rowItems.length <= 1) return; // No other items in this row
-  
+
   // Sort row items by X position
   rowItems.sort((a, b) => a.getBoundingClientRect().left - b.getBoundingClientRect().left);
-  
+
   const currentRowIndex = rowItems.indexOf(currentItem);
   let nextRowIndex;
-  
+
   if (direction > 0) {
     // Moving right
     nextRowIndex = currentRowIndex < rowItems.length - 1 ? currentRowIndex + 1 : 0;
@@ -2041,7 +2124,7 @@ function navigateHorizontal(allItems, currentIndex, direction) {
     // Moving left
     nextRowIndex = currentRowIndex > 0 ? currentRowIndex - 1 : rowItems.length - 1;
   }
-  
+
   focusItem(rowItems[nextRowIndex]);
 }
 
@@ -2050,31 +2133,31 @@ function navigateVertical(allItems, currentIndex, direction) {
     focusItem(allItems[0]);
     return;
   }
-  
+
   const currentItem = allItems[currentIndex];
   const currentRect = currentItem.getBoundingClientRect();
   const currentX = currentRect.left + currentRect.width / 2; // Use center X
   const currentY = Math.round(currentRect.top);
-  
+
   // Group all items by their Y position (rows)
   const itemsByRow = new Map();
   allItems.forEach(item => {
     const rect = item.getBoundingClientRect();
     const y = Math.round(rect.top);
-    
+
     if (!itemsByRow.has(y)) {
       itemsByRow.set(y, []);
     }
     itemsByRow.get(y).push(item);
   });
-  
+
   // Sort rows by Y position
   const sortedRows = Array.from(itemsByRow.entries()).sort(([y1], [y2]) => y1 - y2);
-  
+
   // Find current row index
   const currentRowIndex = sortedRows.findIndex(([y]) => y === currentY);
   if (currentRowIndex === -1) return;
-  
+
   // Calculate target row
   let targetRowIndex;
   if (direction > 0) {
@@ -2084,13 +2167,13 @@ function navigateVertical(allItems, currentIndex, direction) {
     // Moving up
     targetRowIndex = currentRowIndex > 0 ? currentRowIndex - 1 : sortedRows.length - 1;
   }
-  
+
   const targetRowItems = sortedRows[targetRowIndex][1];
-  
+
   // Find the item in target row closest to current X position
   let closestItem = targetRowItems[0];
   let closestDistance = Math.abs(closestItem.getBoundingClientRect().left + closestItem.getBoundingClientRect().width / 2 - currentX);
-  
+
   targetRowItems.forEach(item => {
     const itemX = item.getBoundingClientRect().left + item.getBoundingClientRect().width / 2;
     const distance = Math.abs(itemX - currentX);
@@ -2099,7 +2182,7 @@ function navigateVertical(allItems, currentIndex, direction) {
       closestItem = item;
     }
   });
-  
+
   focusItem(closestItem);
 }
 
@@ -2885,6 +2968,7 @@ function toggleGizmo(gizmoType) {
             const input = rotateBlock.getInput(axis);
             const shadowBlock =
               Blockly.getMainWorkspace().newBlock("math_number");
+            shadowBlock.setFieldValue("1", "NUM");
             shadowBlock.setShadow(true);
             shadowBlock.initSvg();
             shadowBlock.render();
