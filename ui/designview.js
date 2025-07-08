@@ -1758,13 +1758,14 @@ function startKeyboardPlacementMode(callback) {
   placementCirclePosition.x = canvasRect.width / 2;
   placementCirclePosition.y = canvasRect.height * 0.7; // Position at 70% down the canvas
 
-  // Don't create placement circle immediately - only when keyboard is used
+  // Create placement circle immediately when keyboard placement mode starts
+  createPlacementCircle();
 
   // Add keyboard event listener
   document.addEventListener("keydown", handlePlacementKeydown);
 
   // Set cursor to indicate placement mode
-  document.body.style.cursor = "crosshair";
+  document.body.style.cursor = "none";
 }
 
 function endKeyboardPlacementMode() {
@@ -1873,7 +1874,7 @@ function handlePlacementKeydown(event) {
     case "Enter":
     case " ":
       event.preventDefault();
-      // Create circle on first keyboard use
+      // Create circle immediately on placement attempt
       if (!placementCircle) {
         createPlacementCircle();
         document.body.style.cursor = "none";
@@ -1949,13 +1950,13 @@ function triggerPlacement() {
 
     console.log("DEBUG: Triggering placement callback with synthetic event at current position");
 
-    // End placement mode first
-    endKeyboardPlacementMode();
-
-    // Trigger the placement callback
+    // Trigger the placement callback first, then end placement mode
     if (callback) {
       callback(syntheticEvent);
     }
+
+    // End placement mode after callback
+    endKeyboardPlacementMode();
   } else {
     console.log("DEBUG: No hit detected, not placing shape");
     
@@ -1973,13 +1974,13 @@ function triggerPlacement() {
       defaultPosition: defaultPosition
     };
 
-    // End placement mode first
-    endKeyboardPlacementMode();
-
-    // Trigger the placement callback with default position
+    // Trigger the placement callback first, then end placement mode
     if (callback) {
       callback(syntheticEvent);
     }
+
+    // End placement mode after callback
+    endKeyboardPlacementMode();
   }
 }
 
