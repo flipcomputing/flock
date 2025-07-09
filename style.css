@@ -60,9 +60,12 @@ fill: black !important;
 }
 
 .loading-bird {
-  width: 120px;
-  height: 120px;
+  width: 120px !important;
+  height: 120px !important;
+  max-width: 120px;
+  max-height: 120px;
   animation: float 2s ease-in-out infinite;
+  display: block;
 }
 
 .loading-logo {
