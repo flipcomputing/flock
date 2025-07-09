@@ -76,6 +76,85 @@
         opacity: 0;
         pointer-events: none;
       }
+      
+      /* Inline critical bird styles for immediate loading */
+      .loading-bird {
+        width: 120px !important;
+        height: 120px !important;
+        max-width: 120px;
+        max-height: 120px;
+        animation: float 2s ease-in-out infinite;
+        display: block;
+        order: 1;
+      }
+      
+      .loading-content {
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 20px;
+      }
+      
+      .loading-brand {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 15px;
+        margin-bottom: 10px;
+      }
+      
+      @keyframes float {
+        0%, 100% {
+          transform: translateY(0px);
+        }
+        50% {
+          transform: translateY(-10px);
+        }
+      }
+      
+      /* Inline critical loading text styles */
+      .loading-text {
+        color: #511D91 !important;
+        font-size: 18px;
+        font-weight: 500;
+        margin: 0;
+        font-family: "Asap", Helvetica, Arial, Lucida, sans-serif;
+        order: 4;
+      }
+      
+      .loading-logo {
+        width: 200px;
+        height: auto;
+        margin: 10px 0;
+        order: 2;
+        opacity: 0;
+        animation: fadeInLogo 0.5s ease-in 0.3s forwards;
+      }
+      
+      @keyframes fadeInLogo {
+        from {
+          opacity: 0;
+        }
+        to {
+          opacity: 1;
+        }
+      }
+      
+      .loading-spinner {
+        width: 40px;
+        height: 40px;
+        border: 4px solid #e3e3e3;
+        border-top: 4px solid #511D91;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        order: 3;
+      }
+      
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
     </style>
   </head>
 
