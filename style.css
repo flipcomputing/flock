@@ -66,12 +66,25 @@ fill: black !important;
   max-height: 120px;
   animation: float 2s ease-in-out infinite;
   display: block;
+  order: 1;
 }
 
 .loading-logo {
   width: 200px;
   height: auto;
   margin: 10px 0;
+  order: 2;
+  opacity: 0;
+  animation: fadeInLogo 0.5s ease-in 0.3s forwards;
+}
+
+@keyframes fadeInLogo {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 .loading-spinner {
@@ -81,6 +94,7 @@ fill: black !important;
   border-top: 4px solid #511D91;
   border-radius: 50%;
   animation: spin 1s linear infinite;
+  order: 3;
 }
 
 .loading-text {
@@ -89,6 +103,7 @@ fill: black !important;
   font-weight: 500;
   margin: 0;
   font-family: "Asap", Helvetica, Arial, Lucida, sans-serif;
+  order: 4;
 }
 
 @keyframes float {
@@ -687,166 +702,6 @@ path.blocklyPath.blockly-ws-search-highlight.blockly-ws-search-current {
   outline-offset: -2px;
 }
 
-/* Hide the 'Statistics' and 'Settings' tabs inside the #bottomPart container */
-#actionTabs .tabsMenu .label[title="Statistics"],
-#actionTabs .tabsMenu .label[title="Settings"] {
-    display: none !important;
-}
-
-#actionTabs .tabsMenu:has(.labels .label[title="Debug"].active) .panes .pane .paneContainer:nth-of-type(2),
-#actionTabs .tabsMenu:has(.labels .label[title="Debug"].active) .panes .pane .paneContainer:nth-of-type(3) {
-    display: none !important;
-}
-
-#actionTabs .tabsMenu:has(.labels .label[title="Tools"].active) 
-  .panes .pane .paneContainer:nth-child(n):not(:nth-of-type(1)):not(:nth-of-type(3)) {
-    display: none !important;
-}
-
-#actionTabs .tabsMenu:has(.labels .label[title="Tools"].active) 
-  .panes .pane  div > .paneContainer {
-    display: none !important;
-}
-
-#actionTabs .tabsMenu:has(.labels .label[title="Tools"].active) 
-  .panes .pane .paneContainer .buttonLine:nth-of-type(2) {
-    display: none !important;
-}
-
-.svg {
-  display: inline-block;
-  white-space: nowrap;
-}
-
-.icon {
-  width: 1.5em;
-  height: 1.5em;
-}
-
-.iconbutton {
-  cursor: pointer;
-  margin: 0;
-  padding: 4px;
-  border-radius: 5px;
-  background: #511D91;
-  border: none;
-  margin: 2px;
-}
-
-/* Hide the Advanced section based on its title */
-.paneContainer:has(.header .collapse img[title="ADVANCED"]) {
-  display: none !important;
-}
-/*
-.paneContainer:has(.header .collapse img[title="DISPLAY"]) {
-  display: none !important;
-}
-*/
-
-.paneContainer:has(.header .collapse img[title="OCCLUSIONS"]) {
-  display: none !important;
-}
-
-/*
-.paneContainer:has(.header .collapse img[title="DEBUG"]) {
-  display: none !important;
-}*/
-
-.paneContainer:has(.header .collapse img[title="METADATA"]) {
-  display: none !important;
-}
-
-.paneContainer:has(.header .collapse img[title="EDGE RENDERING"]) {
-  display: none !important;
-}
-
-.paneContainer:has(.header .collapse img[title="COLLISIONS"]) {
-  display: none !important;
-}
-
-.paneContainer:has(.header .collapse img[title="CONTROLS"]) {
-  display: none !important;
-}
-
-.paneContainer:has(.header .collapse img[title="SETUP"]) {
-  display: none !important;
-}
-
-.paneContainer:has(.header .collapse img[title="FILE"]) {
-  display: none !important;
-}
-
-.paneContainer:has(.header .collapse img[title="SNIPPET"]) {
-  display: none !important;
-}
-
-.paneContainer:has(.header .collapse img[title="SPRITESHEET"]) {
-  display: none !important;
-}
-
-.paneContainer:has(.header .collapse img[title="FONT"]) {
-  display: none !important;
-}
-
-.paneContainer:has(.header .collapse img[title="SHADOWS"]) {
-  display: none !important;
-}
-
-.paneContainer:has(.header .collapse img[title="PREVIEW"]) {
-  display: none !important;
-}
-
-.paneContainer:has(.header .collapse img[title="ADVANCED TEXTURE PROPERTIES"]) {
-    display: none !important;
-  }
-
-.paneContainer:has(.header .collapse img[title="TRANSPARENCY"]) {
-  display: none !important;
-}
-
-.paneContainer:has(.header .collapse img[title="STENCIL"]) {
-  display: none !important;
-}
-
-.paneContainer:has(.header .collapse img[title="TEXTURES"]) {
-  display: none !important;
-}
-
-.paneContainer:has(.header .collapse img[title="LEVELS"]) {
-  display: none !important;
-}
-
-.paneContainer:has(.header .collapse img[title="NORMAL MAP"]) {
-  display: none !important;
-}
-
-.paneContainer:has(.header .collapse img[title="LIGHTING & COLORS"]) .checkBoxLine {
-  display: none !important;
-}
-/*
-.copy, .expand, .listLine, .sliderLine, .coordinates {
-  display: none !important;
-}*/
-
-.blocklyTreeSelected {
-  border-left: 4px solid #fc3  !important;
-}
-
-.blocklyToolboxCategory {
-  border-left: 0 !important; /* Reset default */
-}
-
-.blocklyToolboxCategoryContainer[aria-selected="true"] > .blocklyToolboxCategory {
-  border-left: 4px solid #fc3 !important;
-}
-
-/* Remove the weird full-container outline */
-.blocklyToolboxCategoryContainer:focus {
-  outline: none !important;
-}
-
-
-
 /* Apply custom selection highlight only to selected top-level categories */
 .blocklyToolboxCategoryContainer[aria-selected="true"][aria-level="1"]
   > .blocklyToolboxCategory {
@@ -1024,3 +879,11 @@ path.blocklyPath.blockly-ws-search-highlight.blockly-ws-search-current {
         box-shadow: 0 0 0 2px #fff, 0 0 0 5px #fc3;
         border-radius: 4px;
       }
+
+.loading-brand {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 10px;
+}
