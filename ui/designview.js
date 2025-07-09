@@ -59,17 +59,15 @@ export function updateOrCreateMeshFromBlock(block, changeEvent) {
     return;
   }
 
-
   if (
     changeEvent?.type === Blockly.Events.BLOCK_CHANGE &&
-    (
-      mesh ||
-      ["set_sky_color", "set_background_color", "create_ground"].includes(block.type)
-    )
+    (mesh ||
+      ["set_sky_color", "set_background_color", "create_ground"].includes(
+        block.type,
+      ))
   ) {
     updateMeshFromBlock(mesh, block, changeEvent);
   }
-
 }
 
 window.selectedColor = "#ffffff"; // Default color
@@ -310,13 +308,13 @@ export function updateMeshFromBlock(mesh, block, changeEvent) {
         isColorList = true;
         for (let input of child.inputList) {
           colorList.push(input.connection.targetBlock().getFieldValue("COLOR"));
-        };
-      };
-    };
+        }
+      }
+    }
 
     if (isColorList) {
       color = colorList;
-    };
+    }
 
     flock.setSky(color);
     return;
@@ -637,8 +635,7 @@ function createMeshOnCanvas(block) {
   if (mesh) {
     console.warn("Mesh already exists for block", block.id);
     return;
-  }
-  else {
+  } else {
     //console.log("Creating mesh for block", block.id, block.type);
   }
 
@@ -800,9 +797,9 @@ function createMeshOnCanvas(block) {
         .getFieldValue("NUM");
 
       color = block
-      .getInput("COLOR")
-      .connection.targetBlock()
-      .getFieldValue("COLOR");
+        .getInput("COLOR")
+        .connection.targetBlock()
+        .getFieldValue("COLOR");
 
       meshId = `${modelName}__${block.id}`;
       meshMap[block.id] = block;
@@ -1211,16 +1208,13 @@ function setNumberInput(block, inputName, value) {
 }
 
 function getMeshFromBlockId(blockId) {
-
-   //console.log("Get mesh from block id", blockId, meshBlockIdMap, meshMap, flock.scene?.meshes?.map((mesh) => mesh.blockKey));
+  //console.log("Get mesh from block id", blockId, meshBlockIdMap, meshMap, flock.scene?.meshes?.map((mesh) => mesh.blockKey));
 
   const blockKey = Object.keys(meshMap).find(
     (key) => meshBlockIdMap[key] === blockId,
   );
 
-
-    return flock.scene?.meshes?.find((mesh) => mesh.blockKey === blockKey);
-
+  return flock.scene?.meshes?.find((mesh) => mesh.blockKey === blockKey);
 }
 
 function addShapeToWorkspace(shapeType, position) {
@@ -1327,7 +1321,6 @@ function addShapeToWorkspace(shapeType, position) {
   highlightBlockById(Blockly.getMainWorkspace(), block);
 }
 
-
 function selectCharacter(characterName) {
   document.getElementById("shapes-dropdown").style.display = "none";
 
@@ -1407,7 +1400,7 @@ function selectShape(shapeType) {
   cancelPlacement(); // Always clean up first
 
   // --- Single handler for both mouse and keyboard placement ---
-  flock.activeMousePickHandler = function(event) {
+  flock.activeMousePickHandler = function (event) {
     // End keyboard mode if this was a mouse click
     endKeyboardPlacementMode();
 
@@ -1419,13 +1412,11 @@ function selectShape(shapeType) {
 
     let placed = false;
     if (pickResult && pickResult.hit) {
-      console.log("[selectShape] Placing shape (pick):", shapeType, pickResult.pickedPoint);
       addShapeToWorkspace(shapeType, pickResult.pickedPoint);
       placed = true;
     }
     // Fallback for keyboard (optional)
     if (!placed && event.defaultPosition) {
-      console.log("[selectShape] Placing shape (fallback):", shapeType, event.defaultPosition);
       addShapeToWorkspace(shapeType, event.defaultPosition);
       placed = true;
     }
@@ -1442,14 +1433,11 @@ function selectShape(shapeType) {
   document.body.style.cursor = "crosshair";
   setTimeout(() => {
     window.addEventListener("click", flock.activeMousePickHandler);
-    console.log("[selectShape] Mouse handler added:", flock.activeMousePickHandler);
   }, 300);
 
   // Keyboard: set up keyboard placement mode with the SAME handler
   startKeyboardPlacementMode(flock.activeMousePickHandler);
 }
-
-
 
 window.selectShape = selectShape;
 
@@ -1582,7 +1570,9 @@ function selectObjectWithCommand(objectName, menu, command) {
 
         if (command === "load_object") {
           const configColors = objectColours[objectName];
-          const color = Array.isArray(configColors) ? configColors[0] : (configColors || "#FFD700");
+          const color = Array.isArray(configColors)
+            ? configColors[0]
+            : configColors || "#FFD700";
           addShadowBlock(block, "COLOR", "colour", color);
         } else if (command === "load_multi_object") {
           if (Blockly.Blocks["load_multi_object"].updateColorsField) {
@@ -1663,7 +1653,6 @@ function scrollCharacters(direction) {
   });
 }
 
-
 function getAllNavigableItems() {
   const dropdown = document.getElementById("shapes-dropdown");
   if (!dropdown) return [];
@@ -1713,7 +1702,6 @@ function focusItem(item) {
   item.scrollIntoView({ block: "nearest", inline: "nearest" });
 }
 
-
 function navigateHorizontal(allItems, currentIndex, direction) {
   if (currentIndex === -1) {
     focusItem(allItems[0]);
@@ -1725,7 +1713,7 @@ function navigateHorizontal(allItems, currentIndex, direction) {
   const currentY = Math.round(currentRect.top);
 
   // Find all items in the same row (same Y position)
-  const rowItems = allItems.filter(item => {
+  const rowItems = allItems.filter((item) => {
     const rect = item.getBoundingClientRect();
     return Math.abs(Math.round(rect.top) - currentY) < 5; // 5px tolerance
   });
@@ -1733,17 +1721,21 @@ function navigateHorizontal(allItems, currentIndex, direction) {
   if (rowItems.length <= 1) return; // No other items in this row
 
   // Sort row items by X position
-  rowItems.sort((a, b) => a.getBoundingClientRect().left - b.getBoundingClientRect().left);
+  rowItems.sort(
+    (a, b) => a.getBoundingClientRect().left - b.getBoundingClientRect().left,
+  );
 
   const currentRowIndex = rowItems.indexOf(currentItem);
   let nextRowIndex;
 
   if (direction > 0) {
     // Moving right
-    nextRowIndex = currentRowIndex < rowItems.length - 1 ? currentRowIndex + 1 : 0;
+    nextRowIndex =
+      currentRowIndex < rowItems.length - 1 ? currentRowIndex + 1 : 0;
   } else {
     // Moving left
-    nextRowIndex = currentRowIndex > 0 ? currentRowIndex - 1 : rowItems.length - 1;
+    nextRowIndex =
+      currentRowIndex > 0 ? currentRowIndex - 1 : rowItems.length - 1;
   }
 
   focusItem(rowItems[nextRowIndex]);
@@ -1762,7 +1754,7 @@ function navigateVertical(allItems, currentIndex, direction) {
 
   // Group all items by their Y position (rows)
   const itemsByRow = new Map();
-  allItems.forEach(item => {
+  allItems.forEach((item) => {
     const rect = item.getBoundingClientRect();
     const y = Math.round(rect.top);
 
@@ -1773,7 +1765,9 @@ function navigateVertical(allItems, currentIndex, direction) {
   });
 
   // Sort rows by Y position
-  const sortedRows = Array.from(itemsByRow.entries()).sort(([y1], [y2]) => y1 - y2);
+  const sortedRows = Array.from(itemsByRow.entries()).sort(
+    ([y1], [y2]) => y1 - y2,
+  );
 
   // Find current row index
   const currentRowIndex = sortedRows.findIndex(([y]) => y === currentY);
@@ -1783,20 +1777,28 @@ function navigateVertical(allItems, currentIndex, direction) {
   let targetRowIndex;
   if (direction > 0) {
     // Moving down
-    targetRowIndex = currentRowIndex < sortedRows.length - 1 ? currentRowIndex + 1 : 0;
+    targetRowIndex =
+      currentRowIndex < sortedRows.length - 1 ? currentRowIndex + 1 : 0;
   } else {
     // Moving up
-    targetRowIndex = currentRowIndex > 0 ? currentRowIndex - 1 : sortedRows.length - 1;
+    targetRowIndex =
+      currentRowIndex > 0 ? currentRowIndex - 1 : sortedRows.length - 1;
   }
 
   const targetRowItems = sortedRows[targetRowIndex][1];
 
   // Find the item in target row closest to current X position
   let closestItem = targetRowItems[0];
-  let closestDistance = Math.abs(closestItem.getBoundingClientRect().left + closestItem.getBoundingClientRect().width / 2 - currentX);
+  let closestDistance = Math.abs(
+    closestItem.getBoundingClientRect().left +
+      closestItem.getBoundingClientRect().width / 2 -
+      currentX,
+  );
 
-  targetRowItems.forEach(item => {
-    const itemX = item.getBoundingClientRect().left + item.getBoundingClientRect().width / 2;
+  targetRowItems.forEach((item) => {
+    const itemX =
+      item.getBoundingClientRect().left +
+      item.getBoundingClientRect().width / 2;
     const distance = Math.abs(itemX - currentX);
     if (distance < closestDistance) {
       closestDistance = distance;
@@ -2849,7 +2851,7 @@ function toggleGizmo(gizmoType) {
 
             case "load_multi_object":
             case "load_object":
-            case "load_character":{
+            case "load_character": {
               if (!block.getInput("DO")) {
                 block.appendStatementInput("DO").setCheck(null).appendField("");
               }
@@ -2911,8 +2913,8 @@ function toggleGizmo(gizmoType) {
               setScaleValue("Y", scaleY);
               setScaleValue("Z", scaleZ);
               break;
+            }
           }
-        }
         } catch (e) {
           console.error("Error updating block values:", e);
         }
@@ -3122,17 +3124,14 @@ export function disposeGizmoManager() {
   }
 }
 
-
-
 // --- Placement & Navigation State (Globals) ---
 if (!window.flock) window.flock = {};
 flock.activePickHandler = null; // Mouse handler singleton
 
-let placementCallback = null;    // Keyboard placement callback singleton
+let placementCallback = null; // Keyboard placement callback singleton
 let keyboardPlacementMode = false;
 let placementCircle = null;
 let placementCirclePosition = { x: 0, y: 0 };
-
 
 // --- Menu Show/Hide ---
 
@@ -3141,7 +3140,9 @@ function showShapes() {
 
   if (gizmoManager.attachedMesh) {
     gizmoManager.attachedMesh.showBoundingBox = false;
-    gizmoManager.attachedMesh.getChildMeshes().forEach(child => child.showBoundingBox = false);
+    gizmoManager.attachedMesh
+      .getChildMeshes()
+      .forEach((child) => (child.showBoundingBox = false));
   }
 
   const dropdown = document.getElementById("shapes-dropdown");
@@ -3165,7 +3166,8 @@ document.addEventListener("click", function (event) {
   if (!dropdown) return;
 
   const isClickInside = dropdown.contains(event.target);
-  const isClickOnToggle = showShapesButton && showShapesButton.contains(event.target);
+  const isClickOnToggle =
+    showShapesButton && showShapesButton.contains(event.target);
 
   if (!isClickInside && !isClickOnToggle) {
     dropdown.style.display = "none";
@@ -3184,7 +3186,6 @@ function cancelPlacement() {
   endKeyboardPlacementMode();
   document.body.style.cursor = "default";
 }
-
 
 // --- Keyboard Navigation ---
 
@@ -3215,7 +3216,7 @@ function removeKeyboardNavigation() {
   document.removeEventListener("keydown", handleShapeMenuKeydown);
 
   const allItems = getAllNavigableItems();
-  allItems.forEach(item => {
+  allItems.forEach((item) => {
     item.removeAttribute("tabindex");
     item.classList.remove("keyboard-navigable", "keyboard-focused");
   });
@@ -3231,7 +3232,7 @@ function endKeyboardPlacementMode() {
   }
 
   document.removeEventListener("keydown", handlePlacementKeydown);
-  console.log("[endKeyboardPlacementMode] Keydown listener removed.");
+ 
   document.body.style.cursor = "default";
 }
 
@@ -3265,59 +3266,78 @@ function updatePlacementCirclePosition() {
   const canvasRect = canvas.getBoundingClientRect();
 
   // Constrain position to canvas bounds
-  placementCirclePosition.x = Math.max(10, Math.min(canvasRect.width - 10, placementCirclePosition.x));
-  placementCirclePosition.y = Math.max(10, Math.min(canvasRect.height - 10, placementCirclePosition.y));
+  placementCirclePosition.x = Math.max(
+    10,
+    Math.min(canvasRect.width - 10, placementCirclePosition.x),
+  );
+  placementCirclePosition.y = Math.max(
+    10,
+    Math.min(canvasRect.height - 10, placementCirclePosition.y),
+  );
 
   // Position relative to canvas
-  placementCircle.style.left = (canvasRect.left + placementCirclePosition.x) + "px";
-  placementCircle.style.top = (canvasRect.top + placementCirclePosition.y) + "px";
+  placementCircle.style.left =
+    canvasRect.left + placementCirclePosition.x + "px";
+  placementCircle.style.top = canvasRect.top + placementCirclePosition.y + "px";
 }
 
 // --- Menu Keyboard Navigation Handling ---
 
 function handleShapeMenuKeydown(event) {
   if (!keyboardNavigationActive) return;
-   if (keyboardPlacementMode) return; 
+  if (keyboardPlacementMode) return;
   const allItems = getAllNavigableItems();
   if (allItems.length === 0) return;
 
-  const currentIndex = currentFocusedElement ? allItems.indexOf(currentFocusedElement) : -1;
+  const currentIndex = currentFocusedElement
+    ? allItems.indexOf(currentFocusedElement)
+    : -1;
 
   switch (event.key) {
     case "ArrowRight":
-      event.preventDefault(); navigateHorizontal(allItems, currentIndex, 1); break;
+      event.preventDefault();
+      navigateHorizontal(allItems, currentIndex, 1);
+      break;
     case "ArrowLeft":
-      event.preventDefault(); navigateHorizontal(allItems, currentIndex, -1); break;
+      event.preventDefault();
+      navigateHorizontal(allItems, currentIndex, -1);
+      break;
     case "ArrowDown":
-      event.preventDefault(); navigateVertical(allItems, currentIndex, 1); break;
+      event.preventDefault();
+      navigateVertical(allItems, currentIndex, 1);
+      break;
     case "ArrowUp":
-      event.preventDefault(); navigateVertical(allItems, currentIndex, -1); break;
+      event.preventDefault();
+      navigateVertical(allItems, currentIndex, -1);
+      break;
     case "Enter":
     case " ":
       event.preventDefault();
       if (currentFocusedElement) {
-        const img = currentFocusedElement.querySelector('img');
+        const img = currentFocusedElement.querySelector("img");
         if (img) {
           const altText = img.alt;
-          const parentRow = currentFocusedElement.closest('#shape-row, #object-row, #model-row, #character-row');
+          const parentRow = currentFocusedElement.closest(
+            "#shape-row, #object-row, #model-row, #character-row",
+          );
           if (parentRow) {
             const rowId = parentRow.id;
-            if (rowId === 'shape-row') {
+            if (rowId === "shape-row") {
               const shapeTypeMap = {
-                'box': 'create_box',
-                'sphere': 'create_sphere',
-                'cylinder': 'create_cylinder',
-                'capsule': 'create_capsule',
-                'plane': 'create_plane'
+                box: "create_box",
+                sphere: "create_sphere",
+                cylinder: "create_cylinder",
+                capsule: "create_capsule",
+                plane: "create_plane",
               };
               const shapeType = shapeTypeMap[altText.toLowerCase()];
               if (shapeType) selectShape(shapeType);
-            } else if (rowId === 'object-row') {
-              selectObject(altText + '.glb');
-            } else if (rowId === 'model-row') {
-              selectMultiObject(altText + '.glb');
-            } else if (rowId === 'character-row') {
-              selectCharacter(altText + '.glb');
+            } else if (rowId === "object-row") {
+              selectObject(altText + ".glb");
+            } else if (rowId === "model-row") {
+              selectMultiObject(altText + ".glb");
+            } else if (rowId === "character-row") {
+              selectCharacter(altText + ".glb");
             }
           }
         }
@@ -3343,7 +3363,6 @@ function startKeyboardPlacementMode(callback) {
 }
 
 function handlePlacementKeydown(event) {
-  console.log("[handlePlacementKeydown] Key:", event.key, "Mode:", keyboardPlacementMode);
   if (!keyboardPlacementMode) return;
 
   const moveDistance = event.shiftKey ? 10 : 2;
@@ -3393,7 +3412,6 @@ function handlePlacementKeydown(event) {
     case "Spacebar":
     case "Space":
       event.preventDefault();
-      console.log("[handlePlacementKeydown] Enter/Space pressed, calling triggerPlacement()");
       triggerPlacement();
       break;
 
@@ -3403,17 +3421,11 @@ function handlePlacementKeydown(event) {
       break;
 
     default:
-      console.log("[handlePlacementKeydown] Unhandled key:", event.key);
       break;
   }
 }
 
-
-
 function triggerPlacement() {
-  console.log("[triggerPlacement] Called. placementCallback:", placementCallback, "keyboardPlacementMode:", keyboardPlacementMode);
-
-  console.log("[triggerPlacement] Running...");
   if (!placementCallback || !keyboardPlacementMode) return;
   // Use placementCirclePosition as the "click" location for keyboard placement
   const canvas = flock.scene.getEngine().getRenderingCanvas();
@@ -3421,10 +3433,9 @@ function triggerPlacement() {
   const syntheticEvent = {
     clientX: canvasRect.left + placementCirclePosition.x,
     clientY: canvasRect.top + placementCirclePosition.y,
-    defaultPosition: new flock.BABYLON.Vector3(0, 0, 0)
+    defaultPosition: new flock.BABYLON.Vector3(0, 0, 0),
   };
-  console.log("[triggerPlacement] placementCallback:", placementCallback);
+ 
   placementCallback(syntheticEvent);
   cancelPlacement();
 }
-
