@@ -1438,9 +1438,6 @@ function observeBlocklyInputs() {
 	observer.observe(document.body, { childList: true, subtree: true });
 }
 
-// Show loading screen initially
-document.body.classList.add('loading');
-
 // Function to hide loading screen
 function hideLoadingScreen() {
 	const loadingScreen = document.getElementById('loadingScreen');
