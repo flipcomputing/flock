@@ -1402,82 +1402,54 @@ window.selectCharacter = selectCharacter;
 if (!flock.activeMousePickHandler) flock.activeMousePickHandler = null;
 
 function selectShape(shapeType) {
+  console.trace("[selectShape] Called for", shapeType);
   document.getElementById("shapes-dropdown").style.display = "none";
+  cancelPlacement(); // Always clean up first
 
-  // Always remove previous handler if active
-  if (flock.activeMousePickHandler) {
-    window.removeEventListener("click", flock.activeMousePickHandler);
-    flock.activeMousePickHandler = null;
-  }
-
-  // Mouse handler
-  flock.activeMousePickHandler = function onMousePick(event) {
+  // --- Single handler for both mouse and keyboard placement ---
+  flock.activeMousePickHandler = function(event) {
+    // End keyboard mode if this was a mouse click
     endKeyboardPlacementMode();
 
+    // Determine pick position from event
     const canvasRect = flock.canvas.getBoundingClientRect();
     const canvasX = event.clientX - canvasRect.left;
     const canvasY = event.clientY - canvasRect.top;
-
-    console.log("DEBUG: Mouse click position:", {
-      x: canvasX,
-      y: canvasY,
-      canvasWidth: canvasRect.width,
-      canvasHeight: canvasRect.height
-    });
-
     const pickResult = flock.scene.pick(canvasX, canvasY);
 
-    console.log("DEBUG: Mouse pick result:", {
-      hit: pickResult.hit,
-      pickedPoint: pickResult.pickedPoint,
-      pickedMesh: pickResult.pickedMesh?.name
-    });
+    let placed = false;
+    if (pickResult && pickResult.hit) {
+      console.log("[selectShape] Placing shape (pick):", shapeType, pickResult.pickedPoint);
+      addShapeToWorkspace(shapeType, pickResult.pickedPoint);
+      placed = true;
+    }
+    // Fallback for keyboard (optional)
+    if (!placed && event.defaultPosition) {
+      console.log("[selectShape] Placing shape (fallback):", shapeType, event.defaultPosition);
+      addShapeToWorkspace(shapeType, event.defaultPosition);
+      placed = true;
+    }
 
-    if (pickResult.hit) {
-      const pickedPosition = pickResult.pickedPoint;
-
-      console.log("DEBUG: Adding shape at position:", pickedPosition);
-      addShapeToWorkspace(shapeType, pickedPosition);
+    if (placed) {
       document.body.style.cursor = "default";
       window.removeEventListener("click", flock.activeMousePickHandler);
       flock.activeMousePickHandler = null;
-    } else {
-      console.log("No object was picked, please try again.");
+      endKeyboardPlacementMode();
     }
   };
 
-  // Keyboard handler, inline so it removes mouse handler as well
-  const onKeyboardPick = function (event) {
-    const canvasRect = flock.canvas.getBoundingClientRect();
-    const canvasX = event.clientX - canvasRect.left;
-    const canvasY = event.clientY - canvasRect.top;
-
-    const pickResult = flock.scene.pick(canvasX, canvasY);
-
-    if (pickResult.hit) {
-      const pickedPosition = pickResult.pickedPoint;
-      addShapeToWorkspace(shapeType, pickedPosition);
-    } else {
-      const defaultPosition = new flock.BABYLON.Vector3(0, 0, 0);
-      addShapeToWorkspace(shapeType, defaultPosition);
-    }
-    // Always remove the mouse handler as well
-    if (flock.activeMousePickHandler) {
-      window.removeEventListener("click", flock.activeMousePickHandler);
-      flock.activeMousePickHandler = null;
-      document.body.style.cursor = "default";
-    }
-  };
-
-  // Start keyboard placement mode with keyboard-specific callback
-  startKeyboardPlacementMode(onKeyboardPick);
-
-  // Also set up mouse click as fallback
+  // Mouse: set up click handler
   document.body.style.cursor = "crosshair";
   setTimeout(() => {
     window.addEventListener("click", flock.activeMousePickHandler);
+    console.log("[selectShape] Mouse handler added:", flock.activeMousePickHandler);
   }, 300);
+
+  // Keyboard: set up keyboard placement mode with the SAME handler
+  startKeyboardPlacementMode(flock.activeMousePickHandler);
 }
+
+
 
 window.selectShape = selectShape;
 
@@ -1691,334 +1663,6 @@ function scrollCharacters(direction) {
   });
 }
 
-// Call this function to initialize the characters when the menu is opened
-function showShapes() {
-  // Always remove previous handler if active
-  if (flock.activeMousePickHandler) {
-    window.removeEventListener("click", flock.activeMousePickHandler);
-    flock.activeMousePickHandler = null;
-  }
-
-  if (gizmoManager.attachedMesh) {
-    gizmoManager.attachedMesh.showBoundingBox = false;
-    gizmoManager.attachedMesh
-      .getChildMeshes()
-      .forEach((child) => (child.showBoundingBox = false));
-  }
-
-  const dropdown = document.getElementById("shapes-dropdown");
-  const isVisible = dropdown.style.display !== "none";
-
-  if (isVisible) {
-    dropdown.style.display = "none";
-    removeKeyboardNavigation();
-  } else {
-    dropdown.style.display = "block";
-    //loadModelImages(); // Load the models into the menu
-    loadObjectImages(); // Load the objects into the menu
-    loadMultiImages(); // Load the objects into the menu
-    loadCharacterImages(); // Load the characters into the menu
-    setupKeyboardNavigation();
-  }
-}
-
-// Close the shapes menu if the user clicks outside of it
-document.addEventListener("click", function (event) {
-  const dropdown = document.getElementById("shapes-dropdown");
-
-  // Guard against null dropdown in standalone environment
-  if (!dropdown) return;
-
-  const isClickInside = dropdown.contains(event.target);
-
-  const isClickOnToggle =
-    showShapesButton && showShapesButton.contains(event.target);
-
-  if (!isClickInside && !isClickOnToggle) {
-    dropdown.style.display = "none";
-    removeKeyboardNavigation();
-  }
-});
-
-// Keyboard navigation variables
-let currentFocusedElement = null;
-let keyboardNavigationActive = false;
-
-// Keyboard placement variables
-let keyboardPlacementMode = false;
-let placementCircle = null;
-let placementCallback = null;
-let placementCirclePosition = { x: 0, y: 0 };
-
-function setupKeyboardNavigation() {
-  keyboardNavigationActive = true;
-  currentFocusedElement = null;
-
-  // Add keyboard event listener
-  document.addEventListener("keydown", handleShapeMenuKeydown);
-
-  // Make all clickable items focusable and add visual focus indicator
-  const allItems = getAllNavigableItems();
-  allItems.forEach((item, index) => {
-    item.setAttribute("tabindex", index === 0 ? "0" : "-1");
-    item.classList.add("keyboard-navigable");
-  });
-
-  // Focus the first item
-  if (allItems.length > 0) {
-    focusItem(allItems[0]);
-  }
-}
-
-function removeKeyboardNavigation() {
-  keyboardNavigationActive = false;
-  currentFocusedElement = null;
-
-  // Remove keyboard event listener
-  document.removeEventListener("keydown", handleShapeMenuKeydown);
-
-  // Clean up focus indicators
-  const allItems = getAllNavigableItems();
-  allItems.forEach(item => {
-    item.removeAttribute("tabindex");
-    item.classList.remove("keyboard-navigable", "keyboard-focused");
-  });
-}
-
-function startKeyboardPlacementMode(callback) {
-  keyboardPlacementMode = true;
-  placementCallback = callback;
-
-  // Get canvas center as starting position, but offset Y towards bottom where ground is more likely visible
-  const canvas = flock.scene.getEngine().getRenderingCanvas();
-  const canvasRect = canvas.getBoundingClientRect();
-  placementCirclePosition.x = canvasRect.width / 2;
-  placementCirclePosition.y = canvasRect.height * 0.7; // Position at 70% down the canvas
-
-  // Don't create placement circle immediately - wait for first keyboard input
-
-  // Add keyboard event listener
-  document.addEventListener("keydown", handlePlacementKeydown);
-
-  // Set cursor to indicate placement mode
-  document.body.style.cursor = "crosshair";
-}
-
-function endKeyboardPlacementMode() {
-  keyboardPlacementMode = false;
-  placementCallback = null;
-
-  // Remove placement circle
-  if (placementCircle) {
-    placementCircle.remove();
-    placementCircle = null;
-  }
-
-  // Remove keyboard event listener
-  document.removeEventListener("keydown", handlePlacementKeydown);
-
-  // Reset cursor
-  document.body.style.cursor = "default";
-}
-
-function createPlacementCircle() {
-  if (placementCircle) {
-    placementCircle.remove();
-  }
-
-  placementCircle = document.createElement("div");
-  placementCircle.style.position = "fixed";
-  placementCircle.style.width = "20px";
-  placementCircle.style.height = "20px";
-  placementCircle.style.borderRadius = "50%";
-  placementCircle.style.border = "2px solid #FFD700"; // Yellow focus color
-  placementCircle.style.backgroundColor = "rgba(255, 215, 0, 0.3)";
-  placementCircle.style.pointerEvents = "none";
-  placementCircle.style.zIndex = "9999";
-  placementCircle.style.transform = "translate(-50%, -50%)";
-
-  updatePlacementCirclePosition();
-  document.body.appendChild(placementCircle);
-}
-
-function updatePlacementCirclePosition() {
-  if (!placementCircle) return;
-
-  const canvas = flock.scene.getEngine().getRenderingCanvas();
-  const canvasRect = canvas.getBoundingClientRect();
-
-  // Constrain position to canvas bounds
-  placementCirclePosition.x = Math.max(10, Math.min(canvasRect.width - 10, placementCirclePosition.x));
-  placementCirclePosition.y = Math.max(10, Math.min(canvasRect.height - 10, placementCirclePosition.y));
-
-  // Position relative to canvas
-  placementCircle.style.left = (canvasRect.left + placementCirclePosition.x) + "px";
-  placementCircle.style.top = (canvasRect.top + placementCirclePosition.y) + "px";
-}
-
-// Added debug logging to record the focus circle position when Enter/Return is pressed.
-function handlePlacementKeydown(event) {
-  if (!keyboardPlacementMode) return;
-
-  const moveDistance = event.shiftKey ? 10 : 2; // Shift for faster movement
-
-  switch (event.key) {
-    case "ArrowRight":
-      event.preventDefault();
-      // Create circle on first keyboard use
-      if (!placementCircle) {
-        createPlacementCircle();
-        document.body.style.cursor = "none";
-      }
-      placementCirclePosition.x += moveDistance;
-      updatePlacementCirclePosition();
-      break;
-
-    case "ArrowLeft":
-      event.preventDefault();
-      // Create circle on first keyboard use
-      if (!placementCircle) {
-        createPlacementCircle();
-        document.body.style.cursor = "none";
-      }
-      placementCirclePosition.x -= moveDistance;
-      updatePlacementCirclePosition();
-      break;
-
-    case "ArrowDown":
-      event.preventDefault();
-      // Create circle on first keyboard use
-      if (!placementCircle) {
-        createPlacementCircle();
-        document.body.style.cursor = "none";
-      }
-      placementCirclePosition.y += moveDistance;
-      updatePlacementCirclePosition();
-      break;
-
-    case "ArrowUp":
-      event.preventDefault();
-      // Create circle on first keyboard use
-      if (!placementCircle) {
-        createPlacementCircle();
-        document.body.style.cursor = "none";
-      }
-      placementCirclePosition.y -= moveDistance;
-      updatePlacementCirclePosition();
-      break;
-
-    case "Enter":
-    case " ":
-      event.preventDefault();
-      // Create circle immediately on placement attempt
-      if (!placementCircle) {
-        createPlacementCircle();
-        document.body.style.cursor = "none";
-      }
-      console.log("DEBUG: Focus circle position on Enter/Return:", {
-        x: placementCirclePosition.x,
-        y: placementCirclePosition.y,
-        canvasWidth: flock.scene.getEngine().getRenderingCanvas().getBoundingClientRect().width,
-        canvasHeight: flock.scene.getEngine().getRenderingCanvas().getBoundingClientRect().height
-      });
-      triggerPlacement();
-      break;
-
-    case "Escape":
-      event.preventDefault();
-      endKeyboardPlacementMode();
-      break;
-  }
-}
-
-function triggerPlacement() {
-  if (!placementCallback || !keyboardPlacementMode) return;
-
-  const canvas = flock.scene.getEngine().getRenderingCanvas();
-  const canvasRect = canvas.getBoundingClientRect();
-
-  console.log("DEBUG: Attempting placement at circle position:", {
-    x: placementCirclePosition.x,
-    y: placementCirclePosition.y,
-    canvasWidth: canvasRect.width,
-    canvasHeight: canvasRect.height
-  });
-
-  // Create a picking ray using the current focus circle position
-  const pickRay = flock.scene.createPickingRay(
-    placementCirclePosition.x,
-    placementCirclePosition.y,
-    flock.BABYLON.Matrix.Identity(),
-    flock.scene.activeCamera
-  );
-
-  console.log("DEBUG: Created picking ray for keyboard placement at:", {
-    x: placementCirclePosition.x,
-    y: placementCirclePosition.y
-  });
-
-  // Use pickWithRay with the same filter as mouse clicks
-  const pickResult = flock.scene.pickWithRay(
-    pickRay,
-    (mesh) => mesh.isPickable
-  );
-
-  console.log("DEBUG: Pick result:", {
-    hit: pickResult.hit,
-    pickedPoint: pickResult.pickedPoint,
-    pickedMesh: pickResult.pickedMesh?.name,
-    distance: pickResult.distance
-  });
-
-  // List all pickable meshes in scene for debugging
-  const pickableMeshes = flock.scene.meshes.filter(mesh => mesh.isPickable);
-  console.log("DEBUG: Available pickable meshes:", pickableMeshes.map(m => m.name));
-
-  // Store the callback before clearing it
-  const callback = placementCallback;
-  
-  if (pickResult.hit) {
-    // Create synthetic event with the current focus circle position
-    const syntheticEvent = {
-      clientX: canvasRect.left + placementCirclePosition.x,
-      clientY: canvasRect.top + placementCirclePosition.y
-    };
-
-    console.log("DEBUG: Triggering placement callback with synthetic event at current position");
-
-    // Trigger the placement callback first, then end placement mode
-    if (callback) {
-      callback(syntheticEvent);
-    }
-
-    // End placement mode after callback
-    endKeyboardPlacementMode();
-  } else {
-    console.log("DEBUG: No hit detected, not placing shape");
-    
-    // If there's no ground or pickable surface, create a default position
-    // Place at a reasonable default position in 3D space
-    const defaultPosition = new flock.BABYLON.Vector3(0, 0, 0);
-    
-    console.log("DEBUG: Using default position for placement:", defaultPosition);
-    
-    // Create synthetic event with current focus circle position
-    const syntheticEvent = {
-      clientX: canvasRect.left + placementCirclePosition.x,
-      clientY: canvasRect.top + placementCirclePosition.y,
-      // Add the default 3D position as additional data
-      defaultPosition: defaultPosition
-    };
-
-    // Trigger the placement callback first, then end placement mode
-    if (callback) {
-      callback(syntheticEvent);
-    }
-
-    // End placement mode after callback
-    endKeyboardPlacementMode();
-  }
-}
 
 function getAllNavigableItems() {
   const dropdown = document.getElementById("shapes-dropdown");
@@ -2069,90 +1713,6 @@ function focusItem(item) {
   item.scrollIntoView({ block: "nearest", inline: "nearest" });
 }
 
-function handleShapeMenuKeydown(event) {
-  if (!keyboardNavigationActive) return;
-
-  const allItems = getAllNavigableItems();
-  if (allItems.length === 0) return;
-
-  const currentIndex = currentFocusedElement ? 
-    allItems.indexOf(currentFocusedElement) : -1;
-
-  switch (event.key) {
-    case "ArrowRight":
-      event.preventDefault();
-      navigateHorizontal(allItems, currentIndex, 1);
-      break;
-
-    case "ArrowLeft":
-      event.preventDefault();
-      navigateHorizontal(allItems, currentIndex, -1);
-      break;
-
-    case "ArrowDown":
-      event.preventDefault();
-      navigateVertical(allItems, currentIndex, 1);
-      break;
-
-    case "ArrowUp":
-      event.preventDefault();
-      navigateVertical(allItems, currentIndex, -1);
-      break;
-
-    case "Enter":
-    case " ":
-      event.preventDefault();
-      if (currentFocusedElement) {
-        // Get the image element within the li
-        const img = currentFocusedElement.querySelector('img');
-        if (img) {
-          const altText = img.alt;
-          const parentRow = currentFocusedElement.closest('#shape-row, #object-row, #model-row, #character-row');
-
-          if (parentRow) {
-            const rowId = parentRow.id;
-
-            // Determine which type of item this is and call the appropriate function
-            if (rowId === 'shape-row') {
-              // Handle shape selection - determine shape type from alt text
-              const shapeTypeMap = {
-                'box': 'create_box',
-                'sphere': 'create_sphere', 
-                'cylinder': 'create_cylinder',
-                'capsule': 'create_capsule',
-                'plane': 'create_plane'
-              };
-              const shapeType = shapeTypeMap[altText.toLowerCase()];
-              if (shapeType) {
-                selectShape(shapeType);
-              }
-            } else if (rowId === 'object-row') {
-              // Handle object selection
-              selectObject(altText + '.glb');
-            } else if (rowId === 'model-row') {
-              // Handle multi-object selection
-              selectMultiObject(altText + '.glb');
-            } else if (rowId === 'character-row') {
-              // Handle character selection
-              selectCharacter(altText + '.glb');
-            }
-          }
-        }
-      }
-      break;
-
-    case "Escape":
-      event.preventDefault();
-      document.getElementById("shapes-dropdown").style.display = "none";
-      removeKeyboardNavigation();
-      // Return focus to the shapes button
-      const shapesButton = document.getElementById("showShapesButton");
-      if (shapesButton) {
-        shapesButton.focus();
-      }
-      break;
-  }
-}
 
 function navigateHorizontal(allItems, currentIndex, direction) {
   if (currentIndex === -1) {
@@ -3561,3 +3121,299 @@ export function disposeGizmoManager() {
     gizmoManager = null; // Clear the global reference for garbage collection
   }
 }
+
+
+
+// --- Placement & Navigation State (Globals) ---
+if (!window.flock) window.flock = {};
+flock.activePickHandler = null; // Mouse handler singleton
+
+let placementCallback = null;    // Keyboard placement callback singleton
+let keyboardPlacementMode = false;
+let placementCircle = null;
+let placementCirclePosition = { x: 0, y: 0 };
+
+
+// --- Menu Show/Hide ---
+
+function showShapes() {
+  cancelPlacement(); // Always remove all placement modes when menu is opened/closed
+
+  if (gizmoManager.attachedMesh) {
+    gizmoManager.attachedMesh.showBoundingBox = false;
+    gizmoManager.attachedMesh.getChildMeshes().forEach(child => child.showBoundingBox = false);
+  }
+
+  const dropdown = document.getElementById("shapes-dropdown");
+  const isVisible = dropdown.style.display !== "none";
+
+  if (isVisible) {
+    dropdown.style.display = "none";
+    removeKeyboardNavigation();
+  } else {
+    dropdown.style.display = "block";
+    loadObjectImages();
+    loadMultiImages();
+    loadCharacterImages();
+    setupKeyboardNavigation();
+  }
+}
+
+// Close the shapes menu if the user clicks outside of it
+document.addEventListener("click", function (event) {
+  const dropdown = document.getElementById("shapes-dropdown");
+  if (!dropdown) return;
+
+  const isClickInside = dropdown.contains(event.target);
+  const isClickOnToggle = showShapesButton && showShapesButton.contains(event.target);
+
+  if (!isClickInside && !isClickOnToggle) {
+    dropdown.style.display = "none";
+    removeKeyboardNavigation();
+    cancelPlacement(); // Clean up any pending placements
+  }
+});
+
+// --- Singleton Placement Cancellation ---
+function cancelPlacement() {
+  if (flock.activeMousePickHandler) {
+    window.removeEventListener("click", flock.activeMousePickHandler);
+    flock.activeMousePickHandler = null;
+    console.log("[cancelPlacement] Mouse handler removed.");
+  }
+  endKeyboardPlacementMode();
+  document.body.style.cursor = "default";
+}
+
+
+// --- Keyboard Navigation ---
+
+let currentFocusedElement = null;
+let keyboardNavigationActive = false;
+
+function setupKeyboardNavigation() {
+  keyboardNavigationActive = true;
+  currentFocusedElement = null;
+
+  document.addEventListener("keydown", handleShapeMenuKeydown);
+
+  const allItems = getAllNavigableItems();
+  allItems.forEach((item, index) => {
+    item.setAttribute("tabindex", index === 0 ? "0" : "-1");
+    item.classList.add("keyboard-navigable");
+  });
+
+  if (allItems.length > 0) {
+    focusItem(allItems[0]);
+  }
+}
+
+function removeKeyboardNavigation() {
+  keyboardNavigationActive = false;
+  currentFocusedElement = null;
+
+  document.removeEventListener("keydown", handleShapeMenuKeydown);
+
+  const allItems = getAllNavigableItems();
+  allItems.forEach(item => {
+    item.removeAttribute("tabindex");
+    item.classList.remove("keyboard-navigable", "keyboard-focused");
+  });
+}
+
+function endKeyboardPlacementMode() {
+  keyboardPlacementMode = false;
+  placementCallback = null;
+
+  if (placementCircle) {
+    placementCircle.remove();
+    placementCircle = null;
+  }
+
+  document.removeEventListener("keydown", handlePlacementKeydown);
+  console.log("[endKeyboardPlacementMode] Keydown listener removed.");
+  document.body.style.cursor = "default";
+}
+
+function createPlacementCircle() {
+  if (placementCircle) placementCircle.remove();
+  placementCircle = document.createElement("div");
+  placementCircle.style.position = "fixed";
+  placementCircle.style.width = "20px";
+  placementCircle.style.height = "20px";
+  placementCircle.style.borderRadius = "50%";
+  placementCircle.style.border = "2px solid #FFD700";
+  placementCircle.style.backgroundColor = "rgba(255, 215, 0, 0.3)";
+  placementCircle.style.pointerEvents = "none";
+  placementCircle.style.zIndex = "9999";
+  placementCircle.style.transform = "translate(-50%, -50%)";
+  updatePlacementCirclePosition();
+  document.body.appendChild(placementCircle);
+}
+
+function updatePlacementCirclePosition() {
+  if (!placementCircle) return;
+  const canvas = flock.scene.getEngine().getRenderingCanvas();
+  const canvasRect = canvas.getBoundingClientRect();
+  placementCirclePosition.x = canvasRect.width / 2;
+  placementCirclePosition.y = canvasRect.height * 0.7; // Position at 70% down the canvas
+  placementCircle.style.left = (canvasRect.left + placementCirclePosition.x) + "px";
+  placementCircle.style.top = (canvasRect.top + placementCirclePosition.y) + "px";
+}
+
+
+// --- Menu Keyboard Navigation Handling ---
+
+function handleShapeMenuKeydown(event) {
+  if (!keyboardNavigationActive) return;
+   if (keyboardPlacementMode) return; 
+  const allItems = getAllNavigableItems();
+  if (allItems.length === 0) return;
+
+  const currentIndex = currentFocusedElement ? allItems.indexOf(currentFocusedElement) : -1;
+
+  switch (event.key) {
+    case "ArrowRight":
+      event.preventDefault(); navigateHorizontal(allItems, currentIndex, 1); break;
+    case "ArrowLeft":
+      event.preventDefault(); navigateHorizontal(allItems, currentIndex, -1); break;
+    case "ArrowDown":
+      event.preventDefault(); navigateVertical(allItems, currentIndex, 1); break;
+    case "ArrowUp":
+      event.preventDefault(); navigateVertical(allItems, currentIndex, -1); break;
+    case "Enter":
+    case " ":
+      event.preventDefault();
+      if (currentFocusedElement) {
+        const img = currentFocusedElement.querySelector('img');
+        if (img) {
+          const altText = img.alt;
+          const parentRow = currentFocusedElement.closest('#shape-row, #object-row, #model-row, #character-row');
+          if (parentRow) {
+            const rowId = parentRow.id;
+            if (rowId === 'shape-row') {
+              const shapeTypeMap = {
+                'box': 'create_box',
+                'sphere': 'create_sphere',
+                'cylinder': 'create_cylinder',
+                'capsule': 'create_capsule',
+                'plane': 'create_plane'
+              };
+              const shapeType = shapeTypeMap[altText.toLowerCase()];
+              if (shapeType) selectShape(shapeType);
+            } else if (rowId === 'object-row') {
+              selectObject(altText + '.glb');
+            } else if (rowId === 'model-row') {
+              selectMultiObject(altText + '.glb');
+            } else if (rowId === 'character-row') {
+              selectCharacter(altText + '.glb');
+            }
+          }
+        }
+      }
+      break;
+    case "Escape":
+      event.preventDefault();
+      document.getElementById("shapes-dropdown").style.display = "none";
+      removeKeyboardNavigation();
+      cancelPlacement();
+      const shapesButton = document.getElementById("showShapesButton");
+      if (shapesButton) shapesButton.focus();
+      break;
+  }
+}
+
+function startKeyboardPlacementMode(callback) {
+  endKeyboardPlacementMode();
+  keyboardPlacementMode = true;
+  placementCallback = callback;
+  document.addEventListener("keydown", handlePlacementKeydown);
+  document.body.style.cursor = "crosshair";
+}
+
+function handlePlacementKeydown(event) {
+  console.log("[handlePlacementKeydown] Key:", event.key, "Mode:", keyboardPlacementMode);
+  if (!keyboardPlacementMode) return;
+
+  const moveDistance = event.shiftKey ? 10 : 2;
+  switch (event.key) {
+    case "ArrowRight":
+      event.preventDefault();
+      if (!placementCircle) {
+        createPlacementCircle();
+        document.body.style.cursor = "none";
+      }
+      placementCirclePosition.x += moveDistance;
+      updatePlacementCirclePosition();
+      break;
+
+    case "ArrowLeft":
+      event.preventDefault();
+      if (!placementCircle) {
+        createPlacementCircle();
+        document.body.style.cursor = "none";
+      }
+      placementCirclePosition.x -= moveDistance;
+      updatePlacementCirclePosition();
+      break;
+
+    case "ArrowDown":
+      event.preventDefault();
+      if (!placementCircle) {
+        createPlacementCircle();
+        document.body.style.cursor = "none";
+      }
+      placementCirclePosition.y += moveDistance;
+      updatePlacementCirclePosition();
+      break;
+
+    case "ArrowUp":
+      event.preventDefault();
+      if (!placementCircle) {
+        createPlacementCircle();
+        document.body.style.cursor = "none";
+      }
+      placementCirclePosition.y -= moveDistance;
+      updatePlacementCirclePosition();
+      break;
+
+    case "Enter":
+    case " ":
+    case "Spacebar":
+    case "Space":
+      event.preventDefault();
+      console.log("[handlePlacementKeydown] Enter/Space pressed, calling triggerPlacement()");
+      triggerPlacement();
+      break;
+
+    case "Escape":
+      event.preventDefault();
+      cancelPlacement();
+      break;
+
+    default:
+      console.log("[handlePlacementKeydown] Unhandled key:", event.key);
+      break;
+  }
+}
+
+
+
+function triggerPlacement() {
+  console.log("[triggerPlacement] Called. placementCallback:", placementCallback, "keyboardPlacementMode:", keyboardPlacementMode);
+
+  console.log("[triggerPlacement] Running...");
+  if (!placementCallback || !keyboardPlacementMode) return;
+  // Use placementCirclePosition as the "click" location for keyboard placement
+  const canvas = flock.scene.getEngine().getRenderingCanvas();
+  const canvasRect = canvas.getBoundingClientRect();
+  const syntheticEvent = {
+    clientX: canvasRect.left + placementCirclePosition.x,
+    clientY: canvasRect.top + placementCirclePosition.y,
+    defaultPosition: new flock.BABYLON.Vector3(0, 0, 0)
+  };
+  console.log("[triggerPlacement] placementCallback:", placementCallback);
+  placementCallback(syntheticEvent);
+  cancelPlacement();
+}
+
