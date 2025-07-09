@@ -42,6 +42,40 @@
         white-space: nowrap;
         border: 0;
       }
+      
+      /* Critical loading styles - inline to prevent flash */
+      #flockeditor {
+        opacity: 0 !important;
+        pointer-events: none;
+        visibility: hidden;
+      }
+      
+      body:not(.loading) #flockeditor {
+        opacity: 1 !important;
+        pointer-events: auto;
+        visibility: visible;
+        transition: opacity 0.3s ease-in;
+      }
+      
+      .loading-screen {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 10000;
+        opacity: 1;
+        transition: opacity 0.5s ease-out;
+      }
+      
+      .loading-screen.fade-out {
+        opacity: 0;
+        pointer-events: none;
+      }
     </style>
   </head>
 
