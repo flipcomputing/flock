@@ -1441,9 +1441,15 @@ function observeBlocklyInputs() {
 // Function to hide loading screen
 function hideLoadingScreen() {
 	const loadingScreen = document.getElementById('loadingScreen');
+	const loadingText = document.getElementById('loading-description');
 	const body = document.body;
 	
 	if (loadingScreen) {
+		// Announce completion to screen readers
+		if (loadingText) {
+			loadingText.textContent = 'Flock XR loaded successfully';
+		}
+		
 		// First fade out loading screen
 		loadingScreen.classList.add('fade-out');
 		
