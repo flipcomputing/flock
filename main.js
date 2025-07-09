@@ -1438,11 +1438,34 @@ function observeBlocklyInputs() {
 	observer.observe(document.body, { childList: true, subtree: true });
 }
 
+// Show loading screen initially
+document.body.classList.add('loading');
+
+// Function to hide loading screen
+function hideLoadingScreen() {
+	const loadingScreen = document.getElementById('loadingScreen');
+	const body = document.body;
+	
+	if (loadingScreen) {
+		loadingScreen.classList.add('fade-out');
+		body.classList.remove('loading');
+		
+		// Remove loading screen from DOM after transition
+		setTimeout(() => {
+			if (loadingScreen.parentNode) {
+				loadingScreen.parentNode.removeChild(loadingScreen);
+			}
+		}, 500);
+	}
+}
+
 window.onload = function () {
 	const scriptElement = document.getElementById("flock");
 	if (scriptElement) {
 		initializeFlock();
 		console.log("Standalone Flock");
+		// Hide loading screen after a short delay for standalone flock
+		setTimeout(hideLoadingScreen, 1000);
 		return; // standalone flock
 	}
 
@@ -2072,6 +2095,9 @@ window.onload = function () {
 
 	(async () => {
 		await flock.initialize();
+		
+		// Hide loading screen once Flock is fully initialized
+		setTimeout(hideLoadingScreen, 500);
 	})();
 
 	//workspace.getToolbox().setVisible(false);
