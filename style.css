@@ -102,10 +102,17 @@ fill: black !important;
   100% { transform: rotate(360deg); }
 }
 
-/* Hide main content initially */
-body.loading #flockeditor {
+/* Hide main content by default */
+#flockeditor {
   opacity: 0;
   pointer-events: none;
+  transition: opacity 0.3s ease-in;
+}
+
+/* Show main content when loading is complete */
+body:not(.loading) #flockeditor {
+  opacity: 1;
+  pointer-events: auto;
 }
 
 /* Global Styles */

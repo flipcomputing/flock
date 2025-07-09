@@ -1447,8 +1447,13 @@ function hideLoadingScreen() {
 	const body = document.body;
 	
 	if (loadingScreen) {
+		// First fade out loading screen
 		loadingScreen.classList.add('fade-out');
-		body.classList.remove('loading');
+		
+		// Then show main content after a brief delay
+		setTimeout(() => {
+			body.classList.remove('loading');
+		}, 250);
 		
 		// Remove loading screen from DOM after transition
 		setTimeout(() => {
