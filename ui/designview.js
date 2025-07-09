@@ -1401,7 +1401,10 @@ window.selectCharacter = selectCharacter;
 function selectShape(shapeType) {
   document.getElementById("shapes-dropdown").style.display = "none";
 
-  const onPick = function (event) {
+  const onMousePick = function (event) {
+    // Hide focus circle immediately when mouse is used
+    endKeyboardPlacementMode();
+    
     const canvasRect = flock.canvas.getBoundingClientRect();
     const canvasX = event.clientX - canvasRect.left;
     const canvasY = event.clientY - canvasRect.top;
@@ -1422,24 +1425,44 @@ function selectShape(shapeType) {
     });
 
     if (pickResult.hit) {
-      const pickedPosition = pickResult.pickedPoint; // Get picked position
+      const pickedPosition = pickResult.pickedPoint;
 
       console.log("DEBUG: Adding shape at position:", pickedPosition);
-      addShapeToWorkspace(shapeType, pickedPosition); // Add the selected shape at this position
-      document.body.style.cursor = "default"; // Reset cursor after picking
-      window.removeEventListener("click", onPick); // Remove the click listener after pick
+      addShapeToWorkspace(shapeType, pickedPosition);
+      document.body.style.cursor = "default";
+      window.removeEventListener("click", onMousePick);
     } else {
       console.log("No object was picked, please try again.");
     }
   };
 
-  // Start keyboard placement mode
-  startKeyboardPlacementMode(onPick);
+  const onKeyboardPick = function (event) {
+    const canvasRect = flock.canvas.getBoundingClientRect();
+    const canvasX = event.clientX - canvasRect.left;
+    const canvasY = event.clientY - canvasRect.top;
+    
+    const pickResult = flock.scene.pick(canvasX, canvasY);
+
+    if (pickResult.hit) {
+      const pickedPosition = pickResult.pickedPoint;
+      addShapeToWorkspace(shapeType, pickedPosition);
+      // Remove mouse listener when keyboard placement succeeds
+      window.removeEventListener("click", onMousePick);
+    } else {
+      // For keyboard, also handle case where no surface is hit
+      const defaultPosition = new flock.BABYLON.Vector3(0, 0, 0);
+      addShapeToWorkspace(shapeType, defaultPosition);
+      window.removeEventListener("click", onMousePick);
+    }
+  };
+
+  // Start keyboard placement mode with keyboard-specific callback
+  startKeyboardPlacementMode(onKeyboardPick);
 
   // Also set up mouse click as fallback
   document.body.style.cursor = "crosshair";
   setTimeout(() => {
-    window.addEventListener("click", onPick);
+    window.addEventListener("click", onMousePick);
   }, 300);
 }
 window.selectShape = selectShape;
@@ -1758,14 +1781,13 @@ function startKeyboardPlacementMode(callback) {
   placementCirclePosition.x = canvasRect.width / 2;
   placementCirclePosition.y = canvasRect.height * 0.7; // Position at 70% down the canvas
 
-  // Create placement circle immediately when keyboard placement mode starts
-  createPlacementCircle();
+  // Don't create placement circle immediately - wait for first keyboard input
 
   // Add keyboard event listener
   document.addEventListener("keydown", handlePlacementKeydown);
 
   // Set cursor to indicate placement mode
-  document.body.style.cursor = "none";
+  document.body.style.cursor = "crosshair";
 }
 
 function endKeyboardPlacementMode() {
