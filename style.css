@@ -102,17 +102,19 @@ fill: black !important;
   100% { transform: rotate(360deg); }
 }
 
-/* Hide main content by default */
+/* Hide main content by default - more aggressive for deployment */
 #flockeditor {
-  opacity: 0;
+  opacity: 0 !important;
   pointer-events: none;
   transition: opacity 0.3s ease-in;
+  visibility: hidden;
 }
 
 /* Show main content when loading is complete */
 body:not(.loading) #flockeditor {
-  opacity: 1;
+  opacity: 1 !important;
   pointer-events: auto;
+  visibility: visible;
 }
 
 /* Global Styles */
