@@ -3247,20 +3247,31 @@ function createPlacementCircle() {
   placementCircle.style.pointerEvents = "none";
   placementCircle.style.zIndex = "9999";
   placementCircle.style.transform = "translate(-50%, -50%)";
+
+  // Initialize position here:
+  const canvas = flock.scene.getEngine().getRenderingCanvas();
+  const canvasRect = canvas.getBoundingClientRect();
+  placementCirclePosition.x = canvasRect.width / 2;
+  placementCirclePosition.y = canvasRect.height * 0.7;
+
   updatePlacementCirclePosition();
   document.body.appendChild(placementCircle);
 }
 
 function updatePlacementCirclePosition() {
   if (!placementCircle) return;
+
   const canvas = flock.scene.getEngine().getRenderingCanvas();
   const canvasRect = canvas.getBoundingClientRect();
-  placementCirclePosition.x = canvasRect.width / 2;
-  placementCirclePosition.y = canvasRect.height * 0.7; // Position at 70% down the canvas
+
+  // Constrain position to canvas bounds
+  placementCirclePosition.x = Math.max(10, Math.min(canvasRect.width - 10, placementCirclePosition.x));
+  placementCirclePosition.y = Math.max(10, Math.min(canvasRect.height - 10, placementCirclePosition.y));
+
+  // Position relative to canvas
   placementCircle.style.left = (canvasRect.left + placementCirclePosition.x) + "px";
   placementCircle.style.top = (canvasRect.top + placementCirclePosition.y) + "px";
 }
-
 
 // --- Menu Keyboard Navigation Handling ---
 
