@@ -1327,10 +1327,17 @@ function addShapeToWorkspace(shapeType, position) {
   highlightBlockById(Blockly.getMainWorkspace(), block);
 }
 
+
 function selectCharacter(characterName) {
   document.getElementById("shapes-dropdown").style.display = "none";
 
-  const onPick = function (event) {
+  // Remove any previous handler before adding a new one!
+  if (flock.activePickHandler) {
+    window.removeEventListener("click", flock.activePickHandler);
+    flock.activePickHandler = null;
+  }
+
+  flock.activePickHandler = function onPick(event) {
     const canvasRect = flock.canvas.getBoundingClientRect();
     const canvasX = event.clientX - canvasRect.left;
     const canvasY = event.clientY - canvasRect.top;
@@ -1339,22 +1346,15 @@ function selectCharacter(characterName) {
     if (pickResult.hit) {
       const pickedPosition = pickResult.pickedPoint;
 
-      // Start a Blockly event group to ensure undo/redo tracks all changes
       Blockly.Events.setGroup(true);
-
       try {
-        // Add the load_character block to the workspace at the picked location
         const block = Blockly.getMainWorkspace().newBlock("load_character");
-        block.setFieldValue(characterName, "MODELS"); // Set the selected character
+        block.setFieldValue(characterName, "MODELS");
 
-        // Set position values (X, Y, Z) from the picked position
         setPositionValues(block, pickedPosition, "load_character");
 
-        // Add shadow block for SCALE using the addShadowBlock helper function
-        const scale = 1; // Default scale value
+        const scale = 1;
         addShadowBlock(block, "SCALE", "math_number", scale);
-
-        // Add shadow blocks for colour inputs with default values
 
         Object.keys(colorFields).forEach((colorInputName) => {
           addShadowBlock(
@@ -1369,7 +1369,6 @@ function selectCharacter(characterName) {
         block.render();
         highlightBlockById(Blockly.getMainWorkspace(), block);
 
-        // Create a new start block and connect the character block to it
         const startBlock = Blockly.getMainWorkspace().newBlock("start");
         startBlock.initSvg();
         startBlock.render();
@@ -1378,44 +1377,54 @@ function selectCharacter(characterName) {
           connection.connect(block.previousConnection);
         }
       } finally {
-        // End the event group to ensure everything can be undone/redone as a group
         Blockly.Events.setGroup(false);
       }
     }
 
     document.body.style.cursor = "default";
-    window.removeEventListener("click", onPick);
+    window.removeEventListener("click", flock.activePickHandler);
+    flock.activePickHandler = null;
   };
 
-  // Start keyboard placement mode
-  startKeyboardPlacementMode(onPick);
+  // Start keyboard placement mode with singleton handler
+  startKeyboardPlacementMode(flock.activePickHandler);
 
   // Also set up mouse click as fallback
   document.body.style.cursor = "crosshair";
   setTimeout(() => {
-    window.addEventListener("click", onPick);
+    window.addEventListener("click", flock.activePickHandler);
   }, 300);
 }
+
 window.selectCharacter = selectCharacter;
+
+// At global scope, once:
+if (!flock.activeMousePickHandler) flock.activeMousePickHandler = null;
 
 function selectShape(shapeType) {
   document.getElementById("shapes-dropdown").style.display = "none";
 
-  const onMousePick = function (event) {
-    // Hide focus circle immediately when mouse is used
+  // Always remove previous handler if active
+  if (flock.activeMousePickHandler) {
+    window.removeEventListener("click", flock.activeMousePickHandler);
+    flock.activeMousePickHandler = null;
+  }
+
+  // Mouse handler
+  flock.activeMousePickHandler = function onMousePick(event) {
     endKeyboardPlacementMode();
-    
+
     const canvasRect = flock.canvas.getBoundingClientRect();
     const canvasX = event.clientX - canvasRect.left;
     const canvasY = event.clientY - canvasRect.top;
-    
+
     console.log("DEBUG: Mouse click position:", {
       x: canvasX,
       y: canvasY,
       canvasWidth: canvasRect.width,
       canvasHeight: canvasRect.height
     });
-    
+
     const pickResult = flock.scene.pick(canvasX, canvasY);
 
     console.log("DEBUG: Mouse pick result:", {
@@ -1430,29 +1439,33 @@ function selectShape(shapeType) {
       console.log("DEBUG: Adding shape at position:", pickedPosition);
       addShapeToWorkspace(shapeType, pickedPosition);
       document.body.style.cursor = "default";
-      window.removeEventListener("click", onMousePick);
+      window.removeEventListener("click", flock.activeMousePickHandler);
+      flock.activeMousePickHandler = null;
     } else {
       console.log("No object was picked, please try again.");
     }
   };
 
+  // Keyboard handler, inline so it removes mouse handler as well
   const onKeyboardPick = function (event) {
     const canvasRect = flock.canvas.getBoundingClientRect();
     const canvasX = event.clientX - canvasRect.left;
     const canvasY = event.clientY - canvasRect.top;
-    
+
     const pickResult = flock.scene.pick(canvasX, canvasY);
 
     if (pickResult.hit) {
       const pickedPosition = pickResult.pickedPoint;
       addShapeToWorkspace(shapeType, pickedPosition);
-      // Remove mouse listener when keyboard placement succeeds
-      window.removeEventListener("click", onMousePick);
     } else {
-      // For keyboard, also handle case where no surface is hit
       const defaultPosition = new flock.BABYLON.Vector3(0, 0, 0);
       addShapeToWorkspace(shapeType, defaultPosition);
-      window.removeEventListener("click", onMousePick);
+    }
+    // Always remove the mouse handler as well
+    if (flock.activeMousePickHandler) {
+      window.removeEventListener("click", flock.activeMousePickHandler);
+      flock.activeMousePickHandler = null;
+      document.body.style.cursor = "default";
     }
   };
 
@@ -1462,9 +1475,10 @@ function selectShape(shapeType) {
   // Also set up mouse click as fallback
   document.body.style.cursor = "crosshair";
   setTimeout(() => {
-    window.addEventListener("click", onMousePick);
+    window.addEventListener("click", flock.activeMousePickHandler);
   }, 300);
 }
+
 window.selectShape = selectShape;
 
 function selectModel(modelName) {
@@ -1541,8 +1555,13 @@ function selectObjectWithCommand(objectName, menu, command) {
   document.getElementById(menu).style.display = "none";
   const canvas = flock.scene.getEngine().getRenderingCanvas();
 
-  const onPickMesh = function (event) {
-    // Get the canvas bounds relative to the window
+  // Remove any previous handler!
+  if (flock.activePickHandler) {
+    window.removeEventListener("click", flock.activePickHandler);
+    flock.activePickHandler = null;
+  }
+
+  flock.activePickHandler = function onPickMesh(event) {
     const canvasRect = canvas.getBoundingClientRect();
 
     // Check if the click happened outside the canvas
@@ -1552,12 +1571,12 @@ function selectObjectWithCommand(objectName, menu, command) {
       event.clientY < canvasRect.top ||
       event.clientY > canvasRect.bottom
     ) {
-      window.removeEventListener("click", onPickMesh);
+      window.removeEventListener("click", flock.activePickHandler);
+      flock.activePickHandler = null;
       document.body.style.cursor = "default";
       return;
     }
 
-    // Calculate the click position relative to the canvas, not the window
     const canvasX = event.clientX - canvasRect.left;
     const canvasY = event.clientY - canvasRect.top;
 
@@ -1578,28 +1597,18 @@ function selectObjectWithCommand(objectName, menu, command) {
     if (pickResult.hit) {
       const pickedPosition = pickResult.pickedPoint;
 
-      // Start a Blockly event group to ensure undo/redo tracks all changes
       Blockly.Events.setGroup(true);
 
       try {
-        //console.log("Create new block", command);
-        // Create the load_object block
         const block = Blockly.getMainWorkspace().newBlock(command);
         block.initSvg();
         highlightBlockById(Blockly.getMainWorkspace(), block);
 
-        // Set object name
         block.setFieldValue(objectName, "MODELS");
-
-        // Set position values (X, Y, Z) from the picked position
         setPositionValues(block, pickedPosition, command);
-
-        // Add shadow block for SCALE
-        const scale = 1; // Default scale
-        addShadowBlock(block, "SCALE", "math_number", scale);
+        addShadowBlock(block, "SCALE", "math_number", 1);
 
         if (command === "load_object") {
-          // Add shadow block for COLOR using the first color from config array
           const configColors = objectColours[objectName];
           const color = Array.isArray(configColors) ? configColors[0] : (configColors || "#FFD700");
           addShadowBlock(block, "COLOR", "colour", color);
@@ -1611,35 +1620,34 @@ function selectObjectWithCommand(objectName, menu, command) {
 
         block.render();
 
-        // Create a new 'start' block and connect the load_object block to it
         const startBlock = Blockly.getMainWorkspace().newBlock("start");
         startBlock.initSvg();
         startBlock.render();
 
-        // Connect the load_object block to the start block
         const connection = startBlock.getInput("DO").connection;
         if (connection) {
           connection.connect(block.previousConnection);
         }
       } finally {
-        // End the event group to ensure everything can be undone/redone as a group
         Blockly.Events.setGroup(false);
       }
     }
 
-    document.body.style.cursor = "default"; // Reset the cursor
-    window.removeEventListener("click", onPickMesh); // Remove the event listener after picking
+    document.body.style.cursor = "default";
+    window.removeEventListener("click", flock.activePickHandler);
+    flock.activePickHandler = null;
   };
 
-  // Start keyboard placement mode
-  startKeyboardPlacementMode(onPickMesh);
+  // Start keyboard placement mode (reuses the same handler, so also cancels click)
+  startKeyboardPlacementMode(flock.activePickHandler);
 
-  // Also set up mouse click as fallback
+  // Set up mouse click as fallback
   document.body.style.cursor = "crosshair";
   setTimeout(() => {
-    window.addEventListener("click", onPickMesh);
+    window.addEventListener("click", flock.activePickHandler);
   }, 200);
 }
+
 window.selectObject = selectObject;
 
 // Scroll function to move the object row left or right
@@ -1685,6 +1693,12 @@ function scrollCharacters(direction) {
 
 // Call this function to initialize the characters when the menu is opened
 function showShapes() {
+  // Always remove previous handler if active
+  if (flock.activeMousePickHandler) {
+    window.removeEventListener("click", flock.activeMousePickHandler);
+    flock.activeMousePickHandler = null;
+  }
+
   if (gizmoManager.attachedMesh) {
     gizmoManager.attachedMesh.showBoundingBox = false;
     gizmoManager.attachedMesh
