@@ -111,7 +111,7 @@ function scrollToBlockTopParentLeft(workspace, blockId) {
   workspace.scroll(x, y);
 }
 
-function highlightBlockById(workspace, block) {
+export function highlightBlockById(workspace, block) {
   if (block) {
     // Select the new block
     if (window.codeMode === "both") {

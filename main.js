@@ -45,7 +45,7 @@ import {
 	enableGizmos,
 	setGizmoManager,
 	disposeGizmoManager,
-} from "./ui/designview";
+} from "./ui/gizmos.js";
 import "./ui/addmeshes.js";
 
 if ("serviceWorker" in navigator) {
