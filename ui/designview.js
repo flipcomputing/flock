@@ -59,17 +59,15 @@ export function updateOrCreateMeshFromBlock(block, changeEvent) {
     return;
   }
 
-
   if (
     changeEvent?.type === Blockly.Events.BLOCK_CHANGE &&
-    (
-      mesh ||
-      ["set_sky_color", "set_background_color", "create_ground"].includes(block.type)
-    )
+    (mesh ||
+      ["set_sky_color", "set_background_color", "create_ground"].includes(
+        block.type,
+      ))
   ) {
     updateMeshFromBlock(mesh, block, changeEvent);
   }
-
 }
 
 window.selectedColor = "#ffffff"; // Default color
@@ -310,13 +308,13 @@ export function updateMeshFromBlock(mesh, block, changeEvent) {
         isColorList = true;
         for (let input of child.inputList) {
           colorList.push(input.connection.targetBlock().getFieldValue("COLOR"));
-        };
-      };
-    };
+        }
+      }
+    }
 
     if (isColorList) {
       color = colorList;
-    };
+    }
 
     flock.setSky(color);
     return;
@@ -637,8 +635,7 @@ function createMeshOnCanvas(block) {
   if (mesh) {
     console.warn("Mesh already exists for block", block.id);
     return;
-  }
-  else {
+  } else {
     //console.log("Creating mesh for block", block.id, block.type);
   }
 
@@ -800,9 +797,9 @@ function createMeshOnCanvas(block) {
         .getFieldValue("NUM");
 
       color = block
-      .getInput("COLOR")
-      .connection.targetBlock()
-      .getFieldValue("COLOR");
+        .getInput("COLOR")
+        .connection.targetBlock()
+        .getFieldValue("COLOR");
 
       meshId = `${modelName}__${block.id}`;
       meshMap[block.id] = block;
@@ -1043,7 +1040,6 @@ function setAbsoluteSize(mesh, width, height, depth) {
 
   let shapeType = null;
   if (mesh.metadata) shapeType = mesh.metadata.shapeType;
-
   if (mesh.physics && shapeType) {
     const shape = mesh.physics.shape;
     let newShape, diameterBottom, startPoint, endPoint, diameter;
@@ -1212,16 +1208,13 @@ function setNumberInput(block, inputName, value) {
 }
 
 function getMeshFromBlockId(blockId) {
-
-   //console.log("Get mesh from block id", blockId, meshBlockIdMap, meshMap, flock.scene?.meshes?.map((mesh) => mesh.blockKey));
+  //console.log("Get mesh from block id", blockId, meshBlockIdMap, meshMap, flock.scene?.meshes?.map((mesh) => mesh.blockKey));
 
   const blockKey = Object.keys(meshMap).find(
     (key) => meshBlockIdMap[key] === blockId,
   );
 
-
-    return flock.scene?.meshes?.find((mesh) => mesh.blockKey === blockKey);
-
+  return flock.scene?.meshes?.find((mesh) => mesh.blockKey === blockKey);
 }
 
 function addShapeToWorkspace(shapeType, position) {
@@ -1330,157 +1323,171 @@ function addShapeToWorkspace(shapeType, position) {
 
 function selectCharacter(characterName) {
   document.getElementById("shapes-dropdown").style.display = "none";
-  document.body.style.cursor = "crosshair"; // Change cursor to indicate picking mode
 
-  setTimeout(() => {
-    const onPick = function (event) {
-      const canvasRect = flock.canvas.getBoundingClientRect();
-      const canvasX = event.clientX - canvasRect.left;
-      const canvasY = event.clientY - canvasRect.top;
+  // Remove any previous handler before adding a new one!
+  if (flock.activePickHandler) {
+    window.removeEventListener("click", flock.activePickHandler);
+    flock.activePickHandler = null;
+  }
 
-      const pickResult = flock.scene.pick(canvasX, canvasY);
-      if (pickResult.hit) {
-        const pickedPosition = pickResult.pickedPoint;
+  flock.activePickHandler = function onPick(event) {
+    const canvasRect = flock.canvas.getBoundingClientRect();
+    const canvasX = event.clientX - canvasRect.left;
+    const canvasY = event.clientY - canvasRect.top;
 
-        // Start a Blockly event group to ensure undo/redo tracks all changes
-        Blockly.Events.setGroup(true);
+    const pickResult = flock.scene.pick(canvasX, canvasY);
+    if (pickResult.hit) {
+      const pickedPosition = pickResult.pickedPoint;
 
-        try {
-          // Add the load_character block to the workspace at the picked location
-          const block = Blockly.getMainWorkspace().newBlock("load_character");
-          block.setFieldValue(characterName, "MODELS"); // Set the selected character
+      Blockly.Events.setGroup(true);
+      try {
+        const block = Blockly.getMainWorkspace().newBlock("load_character");
+        block.setFieldValue(characterName, "MODELS");
 
-          // Set position values (X, Y, Z) from the picked position
-          setPositionValues(block, pickedPosition, "load_character");
+        setPositionValues(block, pickedPosition, "load_character");
 
-          // Add shadow block for SCALE using the addShadowBlock helper function
-          const scale = 1; // Default scale value
-          addShadowBlock(block, "SCALE", "math_number", scale);
+        const scale = 1;
+        addShadowBlock(block, "SCALE", "math_number", scale);
 
-          // Add shadow blocks for colour inputs with default values
+        Object.keys(colorFields).forEach((colorInputName) => {
+          addShadowBlock(
+            block,
+            colorInputName,
+            colorInputName === "SKIN_COLOR" ? "skin_colour" : "colour",
+            colorFields[colorInputName],
+          );
+        });
 
-          Object.keys(colorFields).forEach((colorInputName) => {
-            addShadowBlock(
-              block,
-              colorInputName,
-              colorInputName === "SKIN_COLOR" ? "skin_colour" : "colour",
-              colorFields[colorInputName],
-            );
-          });
+        block.initSvg();
+        block.render();
+        highlightBlockById(Blockly.getMainWorkspace(), block);
 
-          block.initSvg();
-          block.render();
-          highlightBlockById(Blockly.getMainWorkspace(), block);
-
-          // Create a new start block and connect the character block to it
-          const startBlock = Blockly.getMainWorkspace().newBlock("start");
-          startBlock.initSvg();
-          startBlock.render();
-          const connection = startBlock.getInput("DO").connection;
-          if (connection) {
-            connection.connect(block.previousConnection);
-          }
-        } finally {
-          // End the event group to ensure everything can be undone/redone as a group
-          Blockly.Events.setGroup(false);
+        const startBlock = Blockly.getMainWorkspace().newBlock("start");
+        startBlock.initSvg();
+        startBlock.render();
+        const connection = startBlock.getInput("DO").connection;
+        if (connection) {
+          connection.connect(block.previousConnection);
         }
+      } finally {
+        Blockly.Events.setGroup(false);
       }
+    }
 
-      document.body.style.cursor = "default";
-      window.removeEventListener("click", onPick);
-    };
+    document.body.style.cursor = "default";
+    window.removeEventListener("click", flock.activePickHandler);
+    flock.activePickHandler = null;
+  };
 
-    window.addEventListener("click", onPick);
-  }, 300); // Small delay to avoid firing immediately from the menu click
+  // Start keyboard placement mode with singleton handler
+  startKeyboardPlacementMode(flock.activePickHandler);
+
+  // Also set up mouse click as fallback
+  document.body.style.cursor = "crosshair";
+  setTimeout(() => {
+    window.addEventListener("click", flock.activePickHandler);
+  }, 300);
 }
+
 window.selectCharacter = selectCharacter;
+
+// At global scope, once:
+if (!flock.activeMousePickHandler) flock.activeMousePickHandler = null;
 
 function selectShape(shapeType) {
   document.getElementById("shapes-dropdown").style.display = "none";
-  document.body.style.cursor = "crosshair"; // Change cursor to indicate picking mode
 
-  // Delay adding the click listener to avoid the immediate menu click issue
+  // Remove any previous handler before adding a new one!
+  if (flock.activePickHandler) {
+    window.removeEventListener("click", flock.activePickHandler);
+    flock.activePickHandler = null;
+  }
+
+  flock.activePickHandler = function onPick(event) {
+    const canvasRect = flock.canvas.getBoundingClientRect();
+    const canvasX = event.clientX - canvasRect.left;
+    const canvasY = event.clientY - canvasRect.top;
+
+    const pickResult = flock.scene.pick(canvasX, canvasY);
+    if (pickResult && pickResult.hit) {
+      addShapeToWorkspace(shapeType, pickResult.pickedPoint);
+    }
+
+    document.body.style.cursor = "default";
+    window.removeEventListener("click", flock.activePickHandler);
+    flock.activePickHandler = null;
+  };
+
+  // Start keyboard placement mode with singleton handler
+  startKeyboardPlacementMode(flock.activePickHandler);
+
+  // Also set up mouse click as fallback
+  document.body.style.cursor = "crosshair";
   setTimeout(() => {
-    const onPick = function (event) {
-      const canvasRect = flock.canvas.getBoundingClientRect();
-      const canvasX = event.clientX - canvasRect.left;
-      const canvasY = event.clientY - canvasRect.top;
-      const pickResult = flock.scene.pick(canvasX, canvasY);
-
-      if (pickResult.hit) {
-        const pickedPosition = pickResult.pickedPoint; // Get picked position
-
-        addShapeToWorkspace(shapeType, pickedPosition); // Add the selected shape at this position
-        document.body.style.cursor = "default"; // Reset cursor after picking
-        window.removeEventListener("click", onPick); // Remove the click listener after pick
-      } else {
-        console.log("No object was picked, please try again.");
-      }
-    };
-
-    // Attach the event listener to wait for the next click on the scene
-    window.addEventListener("click", onPick);
-  }, 300); // Small delay (300ms) to avoid firing immediately
+    window.addEventListener("click", flock.activePickHandler);
+  }, 300);
 }
+
 window.selectShape = selectShape;
 
 function selectModel(modelName) {
   // Close the shapes menu after selecting a model
   document.getElementById("shapes-dropdown").style.display = "none";
 
-  document.body.style.cursor = "crosshair"; // Change cursor to indicate picking mode
+  const onPick = function (event) {
+    const canvasRect = flock.canvas.getBoundingClientRect();
+    const canvasX = event.clientX - canvasRect.left;
+    const canvasY = event.clientY - canvasRect.top;
 
-  // Add a delay to avoid immediate firing
-  setTimeout(() => {
-    const onPick = function (event) {
-      const canvasRect = flock.canvas.getBoundingClientRect();
-      const canvasX = event.clientX - canvasRect.left;
-      const canvasY = event.clientY - canvasRect.top;
+    const pickResult = flock.scene.pick(canvasX, canvasY);
+    if (pickResult.hit) {
+      const pickedPosition = pickResult.pickedPoint;
 
-      const pickResult = flock.scene.pick(canvasX, canvasY);
-      if (pickResult.hit) {
-        const pickedPosition = pickResult.pickedPoint;
+      // Start a Blockly event group to ensure undo/redo tracks all changes
+      Blockly.Events.setGroup(true);
 
-        // Start a Blockly event group to ensure undo/redo tracks all changes
-        Blockly.Events.setGroup(true);
+      try {
+        // Add the load_model block to the workspace at the picked location
+        const block = Blockly.getMainWorkspace().newBlock("load_model");
+        block.setFieldValue(modelName, "MODELS"); // Set the selected model
 
-        try {
-          // Add the load_model block to the workspace at the picked location
-          const block = Blockly.getMainWorkspace().newBlock("load_model");
-          block.setFieldValue(modelName, "MODELS"); // Set the selected model
+        setPositionValues(block, pickedPosition, "load_model"); // Set X, Y, Z
 
-          setPositionValues(block, pickedPosition, "load_model"); // Set X, Y, Z
+        // Create shadow block for SCALE using the addShadowBlock helper function
+        const scale = 1; // Default scale value
+        addShadowBlock(block, "SCALE", "math_number", scale);
 
-          // Create shadow block for SCALE using the addShadowBlock helper function
-          const scale = 1; // Default scale value
-          addShadowBlock(block, "SCALE", "math_number", scale);
+        block.initSvg();
+        block.render();
 
-          block.initSvg();
-          block.render();
+        highlightBlockById(Blockly.getMainWorkspace(), block);
 
-          highlightBlockById(Blockly.getMainWorkspace(), block);
-
-          // Create a new start block and connect the model block to it
-          const startBlock = Blockly.getMainWorkspace().newBlock("start");
-          startBlock.initSvg();
-          startBlock.render();
-          const connection = startBlock.getInput("DO").connection;
-          if (connection) {
-            connection.connect(block.previousConnection);
-          }
-        } finally {
-          // End the event group to ensure undo/redo works properly
-          Blockly.Events.setGroup(false);
+        // Create a new start block and connect the model block to it
+        const startBlock = Blockly.getMainWorkspace().newBlock("start");
+        startBlock.initSvg();
+        startBlock.render();
+        const connection = startBlock.getInput("DO").connection;
+        if (connection) {
+          connection.connect(block.previousConnection);
         }
+      } finally {
+        // End the event group to ensure undo/redo works properly
+        Blockly.Events.setGroup(false);
       }
+    }
 
-      document.body.style.cursor = "default"; // Reset cursor after picking
-      window.removeEventListener("click", onPick); // Remove the click listener after pick
-    };
+    document.body.style.cursor = "default"; // Reset cursor after picking
+    window.removeEventListener("click", onPick); // Remove the click listener after pick
+  };
 
-    // Attach the event listener to wait for the next click on the scene
+  // Start keyboard placement mode
+  startKeyboardPlacementMode(onPick);
+
+  // Also set up mouse click as fallback
+  document.body.style.cursor = "crosshair";
+  setTimeout(() => {
     window.addEventListener("click", onPick);
-  }, 300); // Delay to avoid firing from the menu click
+  }, 300);
 }
 window.selectModel = selectModel;
 
@@ -1495,105 +1502,103 @@ window.selectMultiObject = selectMultiObject;
 
 function selectObjectWithCommand(objectName, menu, command) {
   document.getElementById(menu).style.display = "none";
-  const canvas = flock.scene.getEngine().getRenderingCanvas(); // Get the flock.BABYLON.js canvas
+  const canvas = flock.scene.getEngine().getRenderingCanvas();
 
-  document.body.style.cursor = "crosshair"; // Change cursor to indicate picking mode
+  // Remove any previous handler!
+  if (flock.activePickHandler) {
+    window.removeEventListener("click", flock.activePickHandler);
+    flock.activePickHandler = null;
+  }
 
-  setTimeout(() => {
-    const onPickMesh = function (event) {
-      // Get the canvas bounds relative to the window
-      const canvasRect = canvas.getBoundingClientRect();
+  flock.activePickHandler = function onPickMesh(event) {
+    const canvasRect = canvas.getBoundingClientRect();
 
-      // Check if the click happened outside the canvas
-      if (
-        event.clientX < canvasRect.left ||
-        event.clientX > canvasRect.right ||
-        event.clientY < canvasRect.top ||
-        event.clientY > canvasRect.bottom
-      ) {
-        window.removeEventListener("click", onPickMesh);
-        document.body.style.cursor = "default";
-        return;
-      }
+    // Check if the click happened outside the canvas
+    if (
+      event.clientX < canvasRect.left ||
+      event.clientX > canvasRect.right ||
+      event.clientY < canvasRect.top ||
+      event.clientY > canvasRect.bottom
+    ) {
+      window.removeEventListener("click", flock.activePickHandler);
+      flock.activePickHandler = null;
+      document.body.style.cursor = "default";
+      return;
+    }
 
-      // Calculate the click position relative to the canvas, not the window
-      const canvasX = event.clientX - canvasRect.left;
-      const canvasY = event.clientY - canvasRect.top;
+    const canvasX = event.clientX - canvasRect.left;
+    const canvasY = event.clientY - canvasRect.top;
 
-      // Create a picking ray using the adjusted canvas coordinates
-      const pickRay = flock.scene.createPickingRay(
-        canvasX,
-        canvasY,
-        flock.BABYLON.Matrix.Identity(),
-        flock.scene.activeCamera,
-      );
+    // Create a picking ray using the adjusted canvas coordinates
+    const pickRay = flock.scene.createPickingRay(
+      canvasX,
+      canvasY,
+      flock.BABYLON.Matrix.Identity(),
+      flock.scene.activeCamera,
+    );
 
-      // Perform the picking
-      const pickResult = flock.scene.pickWithRay(
-        pickRay,
-        (mesh) => mesh.isPickable,
-      );
+    // Perform the picking
+    const pickResult = flock.scene.pickWithRay(
+      pickRay,
+      (mesh) => mesh.isPickable,
+    );
 
-      if (pickResult.hit) {
-        const pickedPosition = pickResult.pickedPoint;
+    if (pickResult.hit) {
+      const pickedPosition = pickResult.pickedPoint;
 
-        // Start a Blockly event group to ensure undo/redo tracks all changes
-        Blockly.Events.setGroup(true);
+      Blockly.Events.setGroup(true);
 
-        try {
-          //console.log("Create new block", command);
-          // Create the load_object block
-          const block = Blockly.getMainWorkspace().newBlock(command);
-          block.initSvg();
-          highlightBlockById(Blockly.getMainWorkspace(), block);
+      try {
+        const block = Blockly.getMainWorkspace().newBlock(command);
+        block.initSvg();
+        highlightBlockById(Blockly.getMainWorkspace(), block);
 
-          // Set object name
-          block.setFieldValue(objectName, "MODELS");
+        block.setFieldValue(objectName, "MODELS");
+        setPositionValues(block, pickedPosition, command);
+        addShadowBlock(block, "SCALE", "math_number", 1);
 
-          // Set position values (X, Y, Z) from the picked position
-          setPositionValues(block, pickedPosition, command);
-
-          // Add shadow block for SCALE
-          const scale = 1; // Default scale
-          addShadowBlock(block, "SCALE", "math_number", scale);
-
-          if (command === "load_object") {
-            // Add shadow block for COLOR using the first color from config array
-            const configColors = objectColours[objectName];
-            const color = Array.isArray(configColors) ? configColors[0] : (configColors || "#FFD700");
-            addShadowBlock(block, "COLOR", "colour", color);
-          } else if (command === "load_multi_object") {
-            if (Blockly.Blocks["load_multi_object"].updateColorsField) {
-              Blockly.Blocks["load_multi_object"].updateColorsField.call(block);
-            }
+        if (command === "load_object") {
+          const configColors = objectColours[objectName];
+          const color = Array.isArray(configColors)
+            ? configColors[0]
+            : configColors || "#FFD700";
+          addShadowBlock(block, "COLOR", "colour", color);
+        } else if (command === "load_multi_object") {
+          if (Blockly.Blocks["load_multi_object"].updateColorsField) {
+            Blockly.Blocks["load_multi_object"].updateColorsField.call(block);
           }
-
-          block.render();
-
-          // Create a new 'start' block and connect the load_object block to it
-          const startBlock = Blockly.getMainWorkspace().newBlock("start");
-          startBlock.initSvg();
-          startBlock.render();
-
-          // Connect the load_object block to the start block
-          const connection = startBlock.getInput("DO").connection;
-          if (connection) {
-            connection.connect(block.previousConnection);
-          }
-        } finally {
-          // End the event group to ensure everything can be undone/redone as a group
-          Blockly.Events.setGroup(false);
         }
+
+        block.render();
+
+        const startBlock = Blockly.getMainWorkspace().newBlock("start");
+        startBlock.initSvg();
+        startBlock.render();
+
+        const connection = startBlock.getInput("DO").connection;
+        if (connection) {
+          connection.connect(block.previousConnection);
+        }
+      } finally {
+        Blockly.Events.setGroup(false);
       }
+    }
 
-      document.body.style.cursor = "default"; // Reset the cursor
-      window.removeEventListener("click", onPickMesh); // Remove the event listener after picking
-    };
+    document.body.style.cursor = "default";
+    window.removeEventListener("click", flock.activePickHandler);
+    flock.activePickHandler = null;
+  };
 
-    // Add event listener to pick the mesh on the next click
-    window.addEventListener("click", onPickMesh);
+  // Start keyboard placement mode (reuses the same handler, so also cancels click)
+  startKeyboardPlacementMode(flock.activePickHandler);
+
+  // Set up mouse click as fallback
+  document.body.style.cursor = "crosshair";
+  setTimeout(() => {
+    window.addEventListener("click", flock.activePickHandler);
   }, 200);
 }
+
 window.selectObject = selectObject;
 
 // Scroll function to move the object row left or right
@@ -1637,39 +1642,161 @@ function scrollCharacters(direction) {
   });
 }
 
-// Call this function to initialize the characters when the menu is opened
-function showShapes() {
-  if (gizmoManager.attachedMesh) {
-    gizmoManager.attachedMesh.showBoundingBox = false;
-    gizmoManager.attachedMesh
-      .getChildMeshes()
-      .forEach((child) => (child.showBoundingBox = false));
+function getAllNavigableItems() {
+  const dropdown = document.getElementById("shapes-dropdown");
+  if (!dropdown) return [];
+
+  // Get all clickable items from all rows
+  const items = [];
+
+  // Shape row items
+  const shapeRow = dropdown.querySelector("#shape-row");
+  if (shapeRow) {
+    items.push(...Array.from(shapeRow.querySelectorAll("li")));
   }
 
-  const dropdown = document.getElementById("shapes-dropdown");
-  dropdown.style.display = dropdown.style.display === "none" ? "block" : "none";
-  //loadModelImages(); // Load the models into the menu
-  loadObjectImages(); // Load the objects into the menu
-  loadMultiImages(); // Load the objects into the menu
-  loadCharacterImages(); // Load the characters into the menu
+  // Object row items
+  const objectRow = dropdown.querySelector("#object-row");
+  if (objectRow) {
+    items.push(...Array.from(objectRow.querySelectorAll("li")));
+  }
+
+  // Model row items
+  const modelRow = dropdown.querySelector("#model-row");
+  if (modelRow) {
+    items.push(...Array.from(modelRow.querySelectorAll("li")));
+  }
+
+  // Character row items
+  const characterRow = dropdown.querySelector("#character-row");
+  if (characterRow) {
+    items.push(...Array.from(characterRow.querySelectorAll("li")));
+  }
+
+  return items;
 }
 
-// Close the shapes menu if the user clicks outside of it
-document.addEventListener("click", function (event) {
-  const dropdown = document.getElementById("shapes-dropdown");
-
-  // Guard against null dropdown in standalone environment
-  if (!dropdown) return;
-
-  const isClickInside = dropdown.contains(event.target);
-
-  const isClickOnToggle =
-    showShapesButton && showShapesButton.contains(event.target);
-
-  if (!isClickInside && !isClickOnToggle) {
-    dropdown.style.display = "none";
+function focusItem(item) {
+  if (currentFocusedElement) {
+    currentFocusedElement.classList.remove("keyboard-focused");
+    currentFocusedElement.setAttribute("tabindex", "-1");
   }
-});
+
+  currentFocusedElement = item;
+  item.classList.add("keyboard-focused");
+  item.setAttribute("tabindex", "0");
+  item.focus();
+
+  // Scroll item into view if needed
+  item.scrollIntoView({ block: "nearest", inline: "nearest" });
+}
+
+function navigateHorizontal(allItems, currentIndex, direction) {
+  if (currentIndex === -1) {
+    focusItem(allItems[0]);
+    return;
+  }
+
+  const currentItem = allItems[currentIndex];
+  const currentRect = currentItem.getBoundingClientRect();
+  const currentY = Math.round(currentRect.top);
+
+  // Find all items in the same row (same Y position)
+  const rowItems = allItems.filter((item) => {
+    const rect = item.getBoundingClientRect();
+    return Math.abs(Math.round(rect.top) - currentY) < 5; // 5px tolerance
+  });
+
+  if (rowItems.length <= 1) return; // No other items in this row
+
+  // Sort row items by X position
+  rowItems.sort(
+    (a, b) => a.getBoundingClientRect().left - b.getBoundingClientRect().left,
+  );
+
+  const currentRowIndex = rowItems.indexOf(currentItem);
+  let nextRowIndex;
+
+  if (direction > 0) {
+    // Moving right
+    nextRowIndex =
+      currentRowIndex < rowItems.length - 1 ? currentRowIndex + 1 : 0;
+  } else {
+    // Moving left
+    nextRowIndex =
+      currentRowIndex > 0 ? currentRowIndex - 1 : rowItems.length - 1;
+  }
+
+  focusItem(rowItems[nextRowIndex]);
+}
+
+function navigateVertical(allItems, currentIndex, direction) {
+  if (currentIndex === -1) {
+    focusItem(allItems[0]);
+    return;
+  }
+
+  const currentItem = allItems[currentIndex];
+  const currentRect = currentItem.getBoundingClientRect();
+  const currentX = currentRect.left + currentRect.width / 2; // Use center X
+  const currentY = Math.round(currentRect.top);
+
+  // Group all items by their Y position (rows)
+  const itemsByRow = new Map();
+  allItems.forEach((item) => {
+    const rect = item.getBoundingClientRect();
+    const y = Math.round(rect.top);
+
+    if (!itemsByRow.has(y)) {
+      itemsByRow.set(y, []);
+    }
+    itemsByRow.get(y).push(item);
+  });
+
+  // Sort rows by Y position
+  const sortedRows = Array.from(itemsByRow.entries()).sort(
+    ([y1], [y2]) => y1 - y2,
+  );
+
+  // Find current row index
+  const currentRowIndex = sortedRows.findIndex(([y]) => y === currentY);
+  if (currentRowIndex === -1) return;
+
+  // Calculate target row
+  let targetRowIndex;
+  if (direction > 0) {
+    // Moving down
+    targetRowIndex =
+      currentRowIndex < sortedRows.length - 1 ? currentRowIndex + 1 : 0;
+  } else {
+    // Moving up
+    targetRowIndex =
+      currentRowIndex > 0 ? currentRowIndex - 1 : sortedRows.length - 1;
+  }
+
+  const targetRowItems = sortedRows[targetRowIndex][1];
+
+  // Find the item in target row closest to current X position
+  let closestItem = targetRowItems[0];
+  let closestDistance = Math.abs(
+    closestItem.getBoundingClientRect().left +
+      closestItem.getBoundingClientRect().width / 2 -
+      currentX,
+  );
+
+  targetRowItems.forEach((item) => {
+    const itemX =
+      item.getBoundingClientRect().left +
+      item.getBoundingClientRect().width / 2;
+    const distance = Math.abs(itemX - currentX);
+    if (distance < closestDistance) {
+      closestDistance = distance;
+      closestItem = item;
+    }
+  });
+
+  focusItem(closestItem);
+}
 
 function scrollModels(direction) {
   const modelRow = document.getElementById("model-row");
@@ -2453,6 +2580,7 @@ function toggleGizmo(gizmoType) {
             const input = rotateBlock.getInput(axis);
             const shadowBlock =
               Blockly.getMainWorkspace().newBlock("math_number");
+            shadowBlock.setFieldValue("1", "NUM");
             shadowBlock.setShadow(true);
             shadowBlock.initSvg();
             shadowBlock.render();
@@ -2712,7 +2840,7 @@ function toggleGizmo(gizmoType) {
 
             case "load_multi_object":
             case "load_object":
-            case "load_character":{
+            case "load_character": {
               if (!block.getInput("DO")) {
                 block.appendStatementInput("DO").setCheck(null).appendField("");
               }
@@ -2774,8 +2902,8 @@ function toggleGizmo(gizmoType) {
               setScaleValue("Y", scaleY);
               setScaleValue("Z", scaleZ);
               break;
+            }
           }
-        }
         } catch (e) {
           console.error("Error updating block values:", e);
         }
@@ -2983,4 +3111,320 @@ export function disposeGizmoManager() {
     gizmoManager.dispose();
     gizmoManager = null; // Clear the global reference for garbage collection
   }
+}
+
+// --- Placement & Navigation State (Globals) ---
+if (!window.flock) window.flock = {};
+flock.activePickHandler = null; // Mouse handler singleton
+
+let placementCallback = null; // Keyboard placement callback singleton
+let keyboardPlacementMode = false;
+let placementCircle = null;
+let placementCirclePosition = { x: 0, y: 0 };
+
+// --- Menu Show/Hide ---
+
+function showShapes() {
+  cancelPlacement(); // Always remove all placement modes when menu is opened/closed
+
+  if (gizmoManager.attachedMesh) {
+    gizmoManager.attachedMesh.showBoundingBox = false;
+    gizmoManager.attachedMesh
+      .getChildMeshes()
+      .forEach((child) => (child.showBoundingBox = false));
+  }
+
+  const dropdown = document.getElementById("shapes-dropdown");
+  const isVisible = dropdown.style.display !== "none";
+
+  if (isVisible) {
+    dropdown.style.display = "none";
+    removeKeyboardNavigation();
+  } else {
+    dropdown.style.display = "block";
+    loadObjectImages();
+    loadMultiImages();
+    loadCharacterImages();
+    setupKeyboardNavigation();
+  }
+}
+
+// Close the shapes menu if the user clicks outside of it
+document.addEventListener("click", function (event) {
+  const dropdown = document.getElementById("shapes-dropdown");
+  if (!dropdown) return;
+
+  const isClickInside = dropdown.contains(event.target);
+  const isClickOnToggle =
+    showShapesButton && showShapesButton.contains(event.target);
+
+  if (!isClickInside && !isClickOnToggle) {
+    dropdown.style.display = "none";
+    removeKeyboardNavigation();
+    cancelPlacement(); // Clean up any pending placements
+  }
+});
+
+// --- Singleton Placement Cancellation ---
+function cancelPlacement() {
+  if (flock.activeMousePickHandler) {
+    window.removeEventListener("click", flock.activeMousePickHandler);
+    flock.activeMousePickHandler = null;
+    console.log("[cancelPlacement] Mouse handler removed.");
+  }
+  endKeyboardPlacementMode();
+  document.body.style.cursor = "default";
+}
+
+// --- Keyboard Navigation ---
+
+let currentFocusedElement = null;
+let keyboardNavigationActive = false;
+
+function setupKeyboardNavigation() {
+  keyboardNavigationActive = true;
+  currentFocusedElement = null;
+
+  document.addEventListener("keydown", handleShapeMenuKeydown);
+
+  const allItems = getAllNavigableItems();
+  allItems.forEach((item, index) => {
+    item.setAttribute("tabindex", index === 0 ? "0" : "-1");
+    item.classList.add("keyboard-navigable");
+  });
+
+  if (allItems.length > 0) {
+    focusItem(allItems[0]);
+  }
+}
+
+function removeKeyboardNavigation() {
+  keyboardNavigationActive = false;
+  currentFocusedElement = null;
+
+  document.removeEventListener("keydown", handleShapeMenuKeydown);
+
+  const allItems = getAllNavigableItems();
+  allItems.forEach((item) => {
+    item.removeAttribute("tabindex");
+    item.classList.remove("keyboard-navigable", "keyboard-focused");
+  });
+}
+
+function endKeyboardPlacementMode() {
+  keyboardPlacementMode = false;
+  placementCallback = null;
+
+  if (placementCircle) {
+    placementCircle.remove();
+    placementCircle = null;
+  }
+
+  document.removeEventListener("keydown", handlePlacementKeydown);
+
+  document.body.style.cursor = "default";
+}
+
+function createPlacementCircle() {
+  if (placementCircle) placementCircle.remove();
+  placementCircle = document.createElement("div");
+  placementCircle.style.position = "fixed";
+  placementCircle.style.width = "20px";
+  placementCircle.style.height = "20px";
+  placementCircle.style.borderRadius = "50%";
+  placementCircle.style.border = "2px solid #FFD700";
+  placementCircle.style.backgroundColor = "rgba(255, 215, 0, 0.3)";
+  placementCircle.style.pointerEvents = "none";
+  placementCircle.style.zIndex = "9999";
+  placementCircle.style.transform = "translate(-50%, -50%)";
+
+  // Initialize position here:
+  const canvas = flock.scene.getEngine().getRenderingCanvas();
+  const canvasRect = canvas.getBoundingClientRect();
+  placementCirclePosition.x = canvasRect.width / 2;
+  placementCirclePosition.y = canvasRect.height * 0.7;
+
+  updatePlacementCirclePosition();
+  document.body.appendChild(placementCircle);
+}
+
+function updatePlacementCirclePosition() {
+  if (!placementCircle) return;
+
+  const canvas = flock.scene.getEngine().getRenderingCanvas();
+  const canvasRect = canvas.getBoundingClientRect();
+
+  // Constrain position to canvas bounds
+  placementCirclePosition.x = Math.max(
+    10,
+    Math.min(canvasRect.width - 10, placementCirclePosition.x),
+  );
+  placementCirclePosition.y = Math.max(
+    10,
+    Math.min(canvasRect.height - 10, placementCirclePosition.y),
+  );
+
+  // Position relative to canvas
+  placementCircle.style.left =
+    canvasRect.left + placementCirclePosition.x + "px";
+  placementCircle.style.top = canvasRect.top + placementCirclePosition.y + "px";
+}
+
+// --- Menu Keyboard Navigation Handling ---
+
+function handleShapeMenuKeydown(event) {
+  if (!keyboardNavigationActive) return;
+  if (keyboardPlacementMode) return;
+  const allItems = getAllNavigableItems();
+  if (allItems.length === 0) return;
+
+  const currentIndex = currentFocusedElement
+    ? allItems.indexOf(currentFocusedElement)
+    : -1;
+
+  switch (event.key) {
+    case "ArrowRight":
+      event.preventDefault();
+      navigateHorizontal(allItems, currentIndex, 1);
+      break;
+    case "ArrowLeft":
+      event.preventDefault();
+      navigateHorizontal(allItems, currentIndex, -1);
+      break;
+    case "ArrowDown":
+      event.preventDefault();
+      navigateVertical(allItems, currentIndex, 1);
+      break;
+    case "ArrowUp":
+      event.preventDefault();
+      navigateVertical(allItems, currentIndex, -1);
+      break;
+    case "Enter":
+    case " ":
+      event.preventDefault();
+      if (currentFocusedElement) {
+        const img = currentFocusedElement.querySelector("img");
+        if (img) {
+          const altText = img.alt;
+          const parentRow = currentFocusedElement.closest(
+            "#shape-row, #object-row, #model-row, #character-row",
+          );
+          if (parentRow) {
+            const rowId = parentRow.id;
+            if (rowId === "shape-row") {
+              const shapeTypeMap = {
+                box: "create_box",
+                sphere: "create_sphere",
+                cylinder: "create_cylinder",
+                capsule: "create_capsule",
+                plane: "create_plane",
+              };
+              const shapeType = shapeTypeMap[altText.toLowerCase()];
+              if (shapeType) selectShape(shapeType);
+            } else if (rowId === "object-row") {
+              selectObject(altText + ".glb");
+            } else if (rowId === "model-row") {
+              selectMultiObject(altText + ".glb");
+            } else if (rowId === "character-row") {
+              selectCharacter(altText + ".glb");
+            }
+          }
+        }
+      }
+      break;
+    case "Escape":
+      event.preventDefault();
+      document.getElementById("shapes-dropdown").style.display = "none";
+      removeKeyboardNavigation();
+      cancelPlacement();
+      const shapesButton = document.getElementById("showShapesButton");
+      if (shapesButton) shapesButton.focus();
+      break;
+  }
+}
+
+function startKeyboardPlacementMode(callback) {
+  endKeyboardPlacementMode();
+  keyboardPlacementMode = true;
+  placementCallback = callback;
+  document.addEventListener("keydown", handlePlacementKeydown);
+  document.body.style.cursor = "crosshair";
+}
+
+function handlePlacementKeydown(event) {
+  if (!keyboardPlacementMode) return;
+
+  const moveDistance = event.shiftKey ? 10 : 2;
+  switch (event.key) {
+    case "ArrowRight":
+      event.preventDefault();
+      if (!placementCircle) {
+        createPlacementCircle();
+        document.body.style.cursor = "none";
+      }
+      placementCirclePosition.x += moveDistance;
+      updatePlacementCirclePosition();
+      break;
+
+    case "ArrowLeft":
+      event.preventDefault();
+      if (!placementCircle) {
+        createPlacementCircle();
+        document.body.style.cursor = "none";
+      }
+      placementCirclePosition.x -= moveDistance;
+      updatePlacementCirclePosition();
+      break;
+
+    case "ArrowDown":
+      event.preventDefault();
+      if (!placementCircle) {
+        createPlacementCircle();
+        document.body.style.cursor = "none";
+      }
+      placementCirclePosition.y += moveDistance;
+      updatePlacementCirclePosition();
+      break;
+
+    case "ArrowUp":
+      event.preventDefault();
+      if (!placementCircle) {
+        createPlacementCircle();
+        document.body.style.cursor = "none";
+      }
+      placementCirclePosition.y -= moveDistance;
+      updatePlacementCirclePosition();
+      break;
+
+    case "Enter":
+    case " ":
+    case "Spacebar":
+    case "Space":
+      event.preventDefault();
+      triggerPlacement();
+      break;
+
+    case "Escape":
+      event.preventDefault();
+      cancelPlacement();
+      break;
+
+    default:
+      break;
+  }
+}
+
+function triggerPlacement() {
+  if (!placementCallback || !keyboardPlacementMode) return;
+  // Use placementCirclePosition as the "click" location for keyboard placement
+  const canvas = flock.scene.getEngine().getRenderingCanvas();
+  const canvasRect = canvas.getBoundingClientRect();
+  const syntheticEvent = {
+    clientX: canvasRect.left + placementCirclePosition.x,
+    clientY: canvasRect.top + placementCirclePosition.y,
+    defaultPosition: new flock.BABYLON.Vector3(0, 0, 0),
+  };
+
+  placementCallback(syntheticEvent);
+  cancelPlacement();
 }
