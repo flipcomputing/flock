@@ -37,12 +37,7 @@ function addShadowBlock(block, inputName, blockType, defaultValue) {
   block.getInput(inputName).connection.connect(shadowBlock.outputConnection);
 }
 
-function setPositionValues(block, position, shapeType) {
-  // Set X, Y, Z values
-  setNumberInput(block, "X", position.x);
-  setNumberInput(block, "Y", position.y);
-  setNumberInput(block, "Z", position.z);
-}
+
 
 // Helper function to set a numeric input value or create a shadow block if missing
 function setNumberInput(block, inputName, value) {
@@ -128,6 +123,8 @@ function highlightBlockById(workspace, block) {
     }
   }
 }
+
+import { setPositionValues } from "./addmeshes.js";
 
 function addShapeToWorkspace(shapeType, position) {
   //console.log("Adding shape to workspace", shapeType, position);
