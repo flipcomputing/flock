@@ -142,6 +142,13 @@ export const modelNames = [
 	"boat.glb",
 ];
 
+export const blockNames = [
+	"Character1.glb",
+	"Character2.glb",
+	"Character3.glb",
+	"Character4.glb",
+];
+
 export const mapNames = [
 	["Circular Depression", "circular_depression.png"],
 	["Checkerboard", "checkerboard.png"],
