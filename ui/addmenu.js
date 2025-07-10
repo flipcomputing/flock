@@ -1,9 +1,7 @@
 
 import * as Blockly from "blockly";
-import { meshMap, meshBlockIdMap, generateUniqueId } from "../generators";
 import { flock } from "../flock.js";
 import {
-  modelNames,
   multiObjectNames,
   objectNames,
   characterNames,
@@ -257,7 +255,6 @@ function selectCharacter(characterName) {
 
         const scale = 1;
         addShadowBlock(block, "SCALE", "math_number", scale);
-
         Object.keys(colorFields).forEach((colorInputName) => {
           addShadowBlock(
             block,
