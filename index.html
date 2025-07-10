@@ -373,7 +373,7 @@
           </script>
           <button class="bigbutton" id="runCodeButton" title="Run your code" aria-label="Run your code">
             <div class="icon" aria-hidden="true">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="24" height="24">
                 <!--!Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.-->
                 <path
                   fill="#511D91"
@@ -384,7 +384,7 @@
           </button>
           <button class="bigbutton" id="stopCodeButton" title="Stop your code" aria-label="Stop your code">
             <div class="icon" aria-hidden="true">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="24" height="24">
                 <!--!Font Awesome Free 6.7.2  by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.-->
                 <path
                   fill="#511D91"
@@ -565,10 +565,11 @@
                 tabindex="10"
               >
                 <img
-                  src="images/add.svg"
+                  src="./images/add.svg"
                   width="20px"
                   height="20px"
                   alt="Add"
+                  onerror="this.style.display='none'; this.parentNode.textContent='+';"
                 />
               </button>
 
@@ -667,26 +668,29 @@
             <input type="color" id="colorPickerButton" disabled title="Change object color" tabindex="11" />
             <button class="gizmo-button" id="positionButton" disabled aria-label="Move object position" title="Move object position" tabindex="12">
               <img
-                src="images/position.svg"
+                src="./images/position.svg"
                 width="20px"
                 height="20px"
                 alt="Position"
+                onerror="this.style.display='none'; this.parentNode.textContent='⌖';"
               />
             </button>
             <button class="gizmo-button" id="rotationButton" disabled aria-label="Rotate object" title="Rotate object" tabindex="13">
               <img
-                src="images/rotate.svg"
+                src="./images/rotate.svg"
                 width="20px"
                 height="20px"
                 alt="Rotate"
+                onerror="this.style.display='none'; this.parentNode.textContent='↻';"
               />
             </button>
             <button class="gizmo-button" id="scaleButton" disabled aria-label="Scale object size" title="Scale object size" tabindex="14">
               <img
-                src="images/scale.svg"
+                src="./images/scale.svg"
                 width="20px"
                 height="20px"
                 alt="Scale"
+                onerror="this.style.display='none'; this.parentNode.textContent='⚏';"
               />
             </button>
             <!--button class="gizmo-button" id="boundsButton" disabled>
@@ -707,34 +711,38 @@
             </button>
             <button class="gizmo-button" id="hideButton" disabled aria-label="Select object" title="Select object" tabindex="15">
               <img
-                src="images/pointer.svg"
+                src="./images/pointer.svg"
                 width="20px"
                 height="20px"
                 alt="Select"
+                onerror="this.style.display='none'; this.parentNode.textContent='👆';"
               />
             </button>
             <button class="gizmo-button" id="duplicateButton" disabled aria-label="Duplicate object" title="Duplicate object" tabindex="16">
               <img
-                src="images/duplicate.svg"
+                src="./images/duplicate.svg"
                 width="20px"
                 height="20px"
                 alt="Duplicate"
+                onerror="this.style.display='none'; this.parentNode.textContent='⧉';"
               />
             </button>
             <button class="gizmo-button" id="deleteButton" disabled aria-label="Delete object" title="Delete object" tabindex="17">
               <img
-                src="images/delete.svg"
+                src="./images/delete.svg"
                 width="20px"
                 height="20px"
                 alt="Delete"
+                onerror="this.style.display='none'; this.parentNode.textContent='🗑';"
               />
             </button>
             <button class="gizmo-button" id="cameraButton" disabled aria-label="Camera controls" title="Camera controls" tabindex="18">
               <img
-                src="images/camera2.svg"
+                src="./images/camera2.svg"
                 width="20px"
                 height="20px"
                 alt="Camera"
+                onerror="this.style.display='none'; this.parentNode.textContent='📷';"
               />
             </button>
           </aside>
