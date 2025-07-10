@@ -21,7 +21,7 @@ import {
 	createBlocklyWorkspace,
 	getWorkspace,
 	overrideSearchPlugin,
-} from "../blocklyinit.js";
+} from "./blocklyinit.js";
 
 if ("serviceWorker" in navigator) {
 	navigator.serviceWorker
