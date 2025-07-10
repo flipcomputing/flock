@@ -9,7 +9,11 @@ import {
   addDoMutatorWithToggleBehavior,
   getHelpUrlFor,
 } from "../blocks.js";
-import { updateOrCreateMeshFromBlock } from "../ui/designview.js";
+import {
+  deleteMeshFromBlock,
+  updateOrCreateMeshFromBlock,
+  getMeshFromBlock,
+} from "../ui/blockmesh.js";
 
 export function defineShapeBlocks() {
 	function createShapeBlockDefinition({

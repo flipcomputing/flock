@@ -12,7 +12,7 @@ import {
 } from "../config.js";
 import {
   updateOrCreateMeshFromBlock,
-} from "../ui/designview.js";
+} from "../ui/blockmesh.js";
 
 export function defineSceneBlocks() {
 

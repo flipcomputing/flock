@@ -7,7 +7,7 @@ import {
   deleteMeshFromBlock,
   updateOrCreateMeshFromBlock,
   getMeshFromBlock,
-} from "./ui/designview.js";
+} from "./ui/blockmesh.js";
 import { registerFieldColour } from "@blockly/field-colour";
 
 registerFieldColour();

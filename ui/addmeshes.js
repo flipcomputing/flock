@@ -1,8 +1,7 @@
-
 import * as Blockly from "blockly";
 import { meshMap, meshBlockIdMap, generateUniqueId } from "../generators";
 import { flock } from "../flock.js";
-import { extractMaterialInfo } from "./designview.js";
+import { extractMaterialInfo } from "./blockmesh.js";
 
 export function createMeshOnCanvas(block) {
   const mesh = getMeshFromBlock(block);
@@ -28,21 +27,21 @@ export function createMeshOnCanvas(block) {
     function getPositionValue(inputName, defaultValue = 0) {
       const input = block.getInput(inputName);
       if (!input || !input.connection) return defaultValue;
-      
+
       const targetBlock = input.connection.targetBlock();
       if (!targetBlock) return defaultValue;
-      
+
       const value = targetBlock.getFieldValue("NUM");
       return value !== null ? parseFloat(value) : defaultValue;
     }
-    
+
     position = {
       x: getPositionValue("X", 0),
       y: getPositionValue("Y", 0),
       z: getPositionValue("Z", 0),
     };
   }
-  
+
   let meshId,
     colors,
     width,
@@ -374,12 +373,12 @@ export function createMeshOnCanvas(block) {
     default:
       Blockly.Events.setGroup(false);
       return;
-  }
+    }
 
-  if (newMesh) {
-    meshMap[block.id] = block;
-    meshBlockIdMap[block.id] = block.id;
-  }
+    if (newMesh) {
+      meshMap[block.id] = block;
+      meshBlockIdMap[block.id] = block.id;
+    }
 
   Blockly.Events.setGroup(false);
 }
@@ -402,9 +401,9 @@ export function setPositionValues(block, position, blockType) {
       function setOrCreatePositionInput(inputName, value) {
         const input = block.getInput(inputName);
         if (!input) return;
-        
+
         let targetBlock = input.connection.targetBlock();
-        
+
         if (!targetBlock) {
           // Create a shadow block if none exists
           const shadowBlock = Blockly.getMainWorkspace().newBlock("math_number");
@@ -420,7 +419,7 @@ export function setPositionValues(block, position, blockType) {
           targetBlock.setFieldValue(String(Math.round(value * 10) / 10), "NUM");
         }
       }
-      
+
       setOrCreatePositionInput("X", position.x);
       setOrCreatePositionInput("Y", position.y);
       setOrCreatePositionInput("Z", position.z);
