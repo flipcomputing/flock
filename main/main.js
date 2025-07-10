@@ -12,7 +12,7 @@ import * as BlockDynamicConnection from "@blockly/block-dynamic-connection";
 //import {CrossTabCopyPaste} from '@blockly/plugin-cross-tab-copy-paste';
 import "@babylonjs/core/Debug/debugLayer";
 import "@babylonjs/inspector";
-import { flock, initializeFlock } from "./flock.js";
+import { flock, initializeFlock } from "../flock.js";
 import {
 	options,
 	defineBlocks,
@@ -20,37 +20,37 @@ import {
 	handleBlockSelect,
 	handleBlockDelete,
 	CustomZelosRenderer,
-} from "./blocks";
-import { defineBaseBlocks } from "./blocks/base";
-import { defineShapeBlocks } from "./blocks/shapes";
-import { defineSceneBlocks } from "./blocks/scene.js";
-import { defineModelBlocks } from "./blocks/models.js";
-import { defineEffectsBlocks } from "./blocks/effects.js";
-import { defineCameraBlocks } from "./blocks/camera.js";
-import { defineXRBlocks } from "./blocks/xr.js";
-import { defineEventsBlocks } from "./blocks/events.js";
-import { definePhysicsBlocks } from "./blocks/physics.js";
-import { defineConnectBlocks } from "./blocks/connect.js";
-import { defineCombineBlocks } from "./blocks/combine.js";
-import { defineTransformBlocks } from "./blocks/transform.js";
-import { defineControlBlocks } from "./blocks/control.js";
-import { defineConditionBlocks } from "./blocks/condition.js";
-import { defineAnimateBlocks } from "./blocks/animate.js";
-import { defineSoundBlocks } from "./blocks/sound.js";
-import { defineMaterialsBlocks } from "./blocks/materials.js";
-import { defineSensingBlocks } from "./blocks/sensing.js";
-import { defineTextBlocks } from "./blocks/text.js";
-import { defineGenerators, meshMap, meshBlockIdMap } from "./generators";
+} from "../blocks";
+import { defineBaseBlocks } from "../blocks/base";
+import { defineShapeBlocks } from "../blocks/shapes";
+import { defineSceneBlocks } from "../blocks/scene.js";
+import { defineModelBlocks } from "../blocks/models.js";
+import { defineEffectsBlocks } from "../blocks/effects.js";
+import { defineCameraBlocks } from "../blocks/camera.js";
+import { defineXRBlocks } from "../blocks/xr.js";
+import { defineEventsBlocks } from "../blocks/events.js";
+import { definePhysicsBlocks } from "../blocks/physics.js";
+import { defineConnectBlocks } from "../blocks/connect.js";
+import { defineCombineBlocks } from "../blocks/combine.js";
+import { defineTransformBlocks } from "../blocks/transform.js";
+import { defineControlBlocks } from "../blocks/control.js";
+import { defineConditionBlocks } from "../blocks/condition.js";
+import { defineAnimateBlocks } from "../blocks/animate.js";
+import { defineSoundBlocks } from "../blocks/sound.js";
+import { defineMaterialsBlocks } from "../blocks/materials.js";
+import { defineSensingBlocks } from "../blocks/sensing.js";
+import { defineTextBlocks } from "../blocks/text.js";
+import { defineGenerators, meshMap, meshBlockIdMap } from "../generators";
 import {
 	enableGizmos,
 	setGizmoManager,
 	disposeGizmoManager,
-} from "./ui/gizmos.js";
-import "./ui/addmeshes.js";
+} from "../ui/gizmos.js";
+import "../ui/addmeshes.js";
 
 if ("serviceWorker" in navigator) {
 	navigator.serviceWorker
-		.register("./sw.js")
+		.register("../sw.js")
 		.then((registration) => {
 			console.log("Service Worker registered:", registration);
 
