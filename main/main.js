@@ -40,7 +40,7 @@ import { setupInput } from "./input.js";
 import {
 	addExportContextMenuOptions,
 } from "./export.js";
-import { setLanguage } from "./translation.js";
+import { setLanguage, initializeLanguageMenu, initializeSavedLanguage } from "./translation.js";
 
 if ("serviceWorker" in navigator) {
 	navigator.serviceWorker
@@ -182,10 +182,13 @@ function initializeApp() {
 	exampleSelect.addEventListener("change", loadExampleWrapper);
 
 	// Make setLanguage available globally for the menu
-	window.setLanguage = setLanguage;
+	window.setLanguage = async (lang) => await setLanguage(lang);
+	
+	// Initialize language menu
+	initializeLanguageMenu();
 }
 
-window.onload = function () {
+window.onload = async function () {
 	const scriptElement = document.getElementById("flock");
 	if (scriptElement) {
 		initializeFlock();
@@ -239,6 +242,19 @@ window.onload = function () {
 	// Initial view setup
 	window.loadingCode = true;
 
+	// Initialize saved language before loading workspace
+	await initializeSavedLanguage();
+	
+	// Refresh toolbox to ensure categories are translated after language initialization
+	const toolboxElement = document.getElementById('toolbox');
+	if (toolboxElement) {
+		workspace.updateToolbox(toolboxElement);
+	} else {
+		// If no toolbox element, import the toolbox configuration
+		const { toolbox } = await import('../toolbox.js');
+		workspace.updateToolbox(toolbox);
+	}
+	
 	loadWorkspace(workspace, executeCode);
 	switchView("both");
 

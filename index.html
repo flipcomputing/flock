@@ -313,62 +313,7 @@
               }
             });
 
-            // Language menu interactions
-            const languageMenuItem = document.getElementById("language-menu-item");
-            const languageSubmenu = document.getElementById("language-submenu");
-            const languageOptions = languageSubmenu.querySelectorAll("a[data-lang]");
-
-            // Show/hide language submenu
-            languageMenuItem.addEventListener("mouseenter", () => {
-              languageSubmenu.classList.remove("hidden");
-            });
-
-            languageMenuItem.addEventListener("mouseleave", () => {
-              setTimeout(() => {
-                if (!languageSubmenu.matches(':hover')) {
-                  languageSubmenu.classList.add("hidden");
-                }
-              }, 100);
-            });
-
-            languageSubmenu.addEventListener("mouseleave", () => {
-              languageSubmenu.classList.add("hidden");
-            });
-
-            // Handle language selection
-            languageOptions.forEach(option => {
-              option.addEventListener("click", (e) => {
-                e.preventDefault();
-                const selectedLang = e.target.getAttribute("data-lang");
-                
-                // Import setLanguage function and call it
-                if (window.setLanguage) {
-                  window.setLanguage(selectedLang);
-                } else {
-                  console.log(`Language changed to: ${selectedLang}`);
-                }
-
-                // Close menus
-                languageSubmenu.classList.add("hidden");
-                menuDropdown.classList.add("hidden");
-                menuBtn.setAttribute("aria-expanded", "false");
-              });
-            });
-
-            // Handle keyboard navigation for language menu
-            languageMenuItem.addEventListener("keydown", (e) => {
-              if (e.key === "Enter" || e.key === " " || e.key === "ArrowRight") {
-                e.preventDefault();
-                languageSubmenu.classList.remove("hidden");
-                languageOptions[0].focus();
-              } else if (e.key === "ArrowDown") {
-                e.preventDefault();
-                openAbout.focus();
-              } else if (e.key === "ArrowUp") {
-                e.preventDefault();
-                menuBtn.focus();
-              }
-            });
+            // Language menu interactions are now handled in main/translation.js
 
             // Open modal when About is clicked
             openAbout.addEventListener("click", (e) => {
