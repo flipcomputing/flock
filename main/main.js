@@ -22,9 +22,9 @@ import {
 	saveWorkspace,
 	loadWorkspace,
 	exportCode,
-	importSnippet,
 	setupFileInput,
 	loadExampleWrapper,
+	importSnippet
 } from "./files.js";
 import {
 	onResize,
@@ -118,6 +118,23 @@ function initializeApp() {
 
 	// Enable the file input after initialization
 	fileInput.removeAttribute("disabled");
+
+	document.addEventListener("keydown", function (e) {
+		// Avoid in inputs/textareas
+		const tag = (e.target.tagName || "").toLowerCase();
+		if (tag === "input" || tag === "textarea" || e.target.isContentEditable) return;
+
+		// Ctrl+O
+		if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "o") {
+			e.preventDefault();
+			document.getElementById("fileInput").click();
+		}
+		// Ctrl+S (optional)
+		if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "s") {
+			e.preventDefault();
+			exportCode(workspace); // Or saveWorkspace(workspace) for autosave
+		}
+	});
 
 	toggleDesignButton.addEventListener("click", toggleDesignMode);
 
