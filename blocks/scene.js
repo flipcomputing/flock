@@ -21,7 +21,7 @@ export function defineSceneBlocks() {
 		init: function () {
 		  this.jsonInit({
 			type: "set_sky_color",
-			message0: translate("setSky"),
+			message0: translate("set_sky_color"),
 			args0: [
 			  {
 				type: "input_value",
@@ -64,9 +64,8 @@ export function defineSceneBlocks() {
 		init: function () {
 		  this.jsonInit({
 			type: "create_ground",
-			message0: "ground",
-			message1: "%1",
-			args1: [
+			message0: translate("create_ground"),
+			args0: [
 			  {
 				type: "input_value",
 				name: "COLOR",
@@ -110,7 +109,7 @@ export function defineSceneBlocks() {
 		init: function () {
 		  this.jsonInit({
 			type: "set_background_color",
-			message0: "set background color %1",
+			message0: translate("set_background_color"),
 			args0: [
 			  {
 				type: "input_value",
@@ -153,7 +152,7 @@ export function defineSceneBlocks() {
 		init: function () {
 		  this.jsonInit({
 			type: "create_map",
-			message0: "map %1 with material %2",
+			message0: translate("create_map"),
 			args0: [
 			  {
 				type: "field_dropdown",
@@ -203,7 +202,7 @@ export function defineSceneBlocks() {
 		init: function () {
 		  this.jsonInit({
 			type: "show",
-			message0: "show %1",
+			message0: translate("show"),
 			args0: [
 			  {
 				type: "field_variable",
@@ -225,7 +224,7 @@ export function defineSceneBlocks() {
 		init: function () {
 		  this.jsonInit({
 			type: "hide",
-			message0: "hide %1",
+			message0: translate("hide"),
 			args0: [
 			  {
 				type: "field_variable",
@@ -247,7 +246,7 @@ export function defineSceneBlocks() {
 		init: function () {
 		  this.jsonInit({
 			type: "dispose",
-			message0: "dispose %1",
+			message0: translate("dispose"),
 			args0: [
 			  {
 				type: "field_variable",
@@ -272,7 +271,7 @@ export function defineSceneBlocks() {
 			variableNamePrefix + nextVariableIndexes[variableNamePrefix]; // Start with "clone1"
 
 		  this.jsonInit({
-			message0: "add %1 clone of %2",
+			message0: translate("clone_mesh"),
 			args0: [
 			  {
 				type: "field_variable",

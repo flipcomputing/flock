@@ -63,11 +63,21 @@ export function setLanguage(language) {
     console.log('English selected - Original English messages restored!');
   }
 
-  // Refresh the toolbox to show updated language
+  // Refresh the workspace to show updated language
   const workspace = Blockly.getMainWorkspace();
-  if (workspace && workspace.getToolbox()) {
-    workspace.getToolbox().refreshSelection();
-    workspace.refreshToolboxSelection();
+  if (workspace) {
+    // Refresh all blocks to pick up new translations
+    workspace.getAllBlocks(false).forEach(block => {
+      if (block.rendered) {
+        block.render();
+      }
+    });
+    
+    // Refresh the toolbox
+    if (workspace.getToolbox()) {
+      workspace.getToolbox().refreshSelection();
+      workspace.refreshToolboxSelection();
+    }
   }
 }
 

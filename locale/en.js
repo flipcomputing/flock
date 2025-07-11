@@ -1,7 +1,15 @@
 
+
 export default {
-  // Custom block translations
-  setSky: "sky %1",
+  // Custom block translations - Scene blocks
+  set_sky_color: "sky %1",
+  create_ground: "ground %1",
+  set_background_color: "set background color %1",
+  create_map: "map %1 with material %2",
+  show: "show %1",
+  hide: "hide %1",
+  dispose: "dispose %1",
+  clone_mesh: "add %1 clone of %2",
   
   // Blockly message overrides for English
   LISTS_CREATE_WITH_INPUT_WITH: "list",
@@ -16,3 +24,4 @@ export default {
   
   // Add more custom block translations as needed
 };
+
