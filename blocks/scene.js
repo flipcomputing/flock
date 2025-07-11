@@ -13,6 +13,7 @@ import {
 import {
   updateOrCreateMeshFromBlock,
 } from "../ui/blockmesh.js";
+import { translate } from "../main/translation.js";
 
 export function defineSceneBlocks() {
 
@@ -20,7 +21,7 @@ export function defineSceneBlocks() {
 		init: function () {
 		  this.jsonInit({
 			type: "set_sky_color",
-			message0: "sky %1",
+			message0: translate("setSky") + " %1",
 			args0: [
 			  {
 				type: "input_value",

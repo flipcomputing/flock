@@ -1,5 +1,7 @@
 
 export default {
+  // Custom block translations
+  setSky: "sky",
   
   // Blockly message overrides for English
   LISTS_CREATE_WITH_INPUT_WITH: "list",

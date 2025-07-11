@@ -1,5 +1,8 @@
 
-export default {  
+export default {
+  // Custom block translations
+  setSky: "ciel",
+  
   // Blockly message overrides for French
   LISTS_CREATE_WITH_INPUT_WITH: "liste",
   TEXT_JOIN_TITLE_CREATEWITH: "texte",
