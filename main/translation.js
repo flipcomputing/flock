@@ -1,29 +1,18 @@
-
 // Translation module for Flock XR
 // Currently supports English and French
 import * as Blockly from 'blockly';
 import * as fr from 'blockly/msg/fr';
+import enLocale from '../locale/en.js';
+import frLocale from '../locale/fr.js';
 
 // Store original English messages when first loaded
 let originalEnglishMessages = {};
 let isOriginalMessagesCached = false;
 
-// Custom translations for Flock-specific blocks
+// Load locale files
 const translations = {
-  en: {
-    // Add English translations for custom blocks here
-    createBox: "create box",
-    setSky: "set sky color",
-    wait: "wait",
-    // Add more custom block translations as needed
-  },
-  fr: {
-    // Add French translations for custom blocks here
-    createBox: "créer boîte",
-    setSky: "définir couleur du ciel", 
-    wait: "attendre",
-    // Add more custom block translations as needed
-  }
+  en: enLocale,
+  fr: frLocale
 };
 
 let currentLanguage = 'en';
@@ -42,15 +31,21 @@ function cacheOriginalMessages() {
 export function setLanguage(language) {
   // Cache original messages on first use
   cacheOriginalMessages();
-  
+
   currentLanguage = language;
   console.log(`Language changed to: ${language}`);
-  
+
   if (language === 'fr') {
     // Apply Blockly's French translations
     Object.keys(fr).forEach(key => {
       if (typeof fr[key] === 'string') {
         Blockly.Msg[key] = fr[key];
+      }
+    });
+    // Apply custom French message overrides
+    Object.keys(translations.fr).forEach(key => {
+      if (key.startsWith('CONTROLS_') || key.startsWith('LISTS_') || key.startsWith('TEXT_')) {
+        Blockly.Msg[key] = translations.fr[key];
       }
     });
     console.log('Français sélectionné - Blockly French translations applied!');
@@ -59,9 +54,15 @@ export function setLanguage(language) {
     Object.keys(originalEnglishMessages).forEach(key => {
       Blockly.Msg[key] = originalEnglishMessages[key];
     });
+    // Apply custom English message overrides
+    Object.keys(translations.en).forEach(key => {
+      if (key.startsWith('CONTROLS_') || key.startsWith('LISTS_') || key.startsWith('TEXT_')) {
+        Blockly.Msg[key] = translations.en[key];
+      }
+    });
     console.log('English selected - Original English messages restored!');
   }
-  
+
   // Refresh the toolbox to show updated language
   const workspace = Blockly.getMainWorkspace();
   if (workspace && workspace.getToolbox()) {

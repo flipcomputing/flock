@@ -1077,14 +1077,4 @@ Blockly.FieldVariable.prototype.onItemSelected_ = function (menu, menuItem) {
   };
 })();
 
-Blockly.Msg["LISTS_CREATE_WITH_INPUT_WITH"] = "list";
-// Remove 'do' text to save space
-Blockly.Msg["TEXT_JOIN_TITLE_CREATEWITH"] = "text";
-Blockly.Msg["CONTROLS_REPEAT_INPUT_DO"] = "";
-Blockly.Msg["CONTROLS_WHILEUNTIL_INPUT_DO"] = "";
-Blockly.Msg["CONTROLS_FOR_INPUT_DO"] = "";
-Blockly.Msg["CONTROLS_FOREACH_INPUT_DO"] = "";
-Blockly.Msg["CONTROLS_IF_MSG_THEN"] = "";
-Blockly.Msg["CONTROLS_IF_MSG_ELSE"] = "else\n";
-
-Blockly.Msg["CONTROLS_FOR_TITLE"] = "for each %1 from %2 to %3 by %4";
+// Message overrides are now handled by the translation system in main/translation.js
