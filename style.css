@@ -919,3 +919,48 @@ path.blocklyPath.blockly-ws-search-highlight.blockly-ws-search-current {
   display: block;
   fill: #511D91;
 }
+
+#examples {
+	min-width: 100px;
+	flex-grow: 1;
+	margin-right: 10px;
+}
+
+#language-menu-item {
+	padding: 8px 12px;
+	display: block;
+	border-bottom: 1px solid #eee;
+	position: relative;
+	cursor: pointer;
+}
+
+#language-menu-item:hover {
+	background-color: #f0f0f0;
+}
+
+.submenu {
+	position: absolute;
+	left: 100%;
+	top: 0;
+	background-color: white;
+	border: 1px solid #ddd;
+	box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+	min-width: 120px;
+	z-index: 1001;
+}
+
+.submenu a {
+	display: block;
+	padding: 8px 12px;
+	color: #511D91;
+	text-decoration: none;
+	border-bottom: 1px solid #eee;
+}
+
+.submenu a:hover {
+	background-color: #f0f0f0;
+}
+
+.submenu a:last-child {
+	border-bottom: none;
+}

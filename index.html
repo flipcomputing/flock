@@ -42,21 +42,21 @@
         white-space: nowrap;
         border: 0;
       }
-      
+
       /* Critical loading styles - inline to prevent flash */
       #flockeditor {
         opacity: 0 !important;
         pointer-events: none;
         visibility: hidden;
       }
-      
+
       body:not(.loading) #flockeditor {
         opacity: 1 !important;
         pointer-events: auto;
         visibility: visible;
         transition: opacity 0.3s ease-in;
       }
-      
+
       .loading-screen {
         position: fixed;
         top: 0;
@@ -71,12 +71,12 @@
         opacity: 1;
         transition: opacity 0.5s ease-out;
       }
-      
+
       .loading-screen.fade-out {
         opacity: 0;
         pointer-events: none;
       }
-      
+
       /* Inline critical bird styles for immediate loading */
       .loading-bird {
         width: 120px !important;
@@ -87,7 +87,7 @@
         display: block;
         order: 1;
       }
-      
+
       .loading-content {
         text-align: center;
         display: flex;
@@ -95,7 +95,7 @@
         align-items: center;
         gap: 20px;
       }
-      
+
       .loading-brand {
         display: flex;
         flex-direction: column;
@@ -103,7 +103,7 @@
         gap: 15px;
         margin-bottom: 10px;
       }
-      
+
       @keyframes float {
         0%, 100% {
           transform: translateY(0px);
@@ -112,7 +112,7 @@
           transform: translateY(-10px);
         }
       }
-      
+
       /* Inline critical loading text styles */
       .loading-text {
         color: #511D91 !important;
@@ -122,7 +122,7 @@
         font-family: "Asap", Helvetica, Arial, Lucida, sans-serif;
         order: 4;
       }
-      
+
       .loading-logo {
         width: 200px;
         height: auto;
@@ -131,7 +131,7 @@
         opacity: 0;
         animation: fadeInLogo 0.5s ease-in 0.3s forwards;
       }
-      
+
       @keyframes fadeInLogo {
         from {
           opacity: 0;
@@ -140,7 +140,7 @@
           opacity: 1;
         }
       }
-      
+
       .loading-spinner {
         width: 40px;
         height: 40px;
@@ -150,7 +150,7 @@
         animation: spin 1s linear infinite;
         order: 3;
       }
-      
+
       @keyframes spin {
         0% { transform: rotate(0deg); }
         100% { transform: rotate(360deg); }
@@ -205,6 +205,13 @@
             </div>
           </button>
           <div id="menuDropdown" class="dropdown hidden" role="menu" aria-labelledby="menuBtn">
+            <div id="language-menu-item" role="menuitem" tabindex="0">
+              Language
+              <div id="language-submenu" class="submenu hidden" role="menu">
+                <a href="#" data-lang="en" role="menuitem">English</a>
+                <a href="#" data-lang="fr" role="menuitem">Français</a>
+              </div>
+            </div>
             <a href="#" id="openAbout" role="menuitem">About</a>
             <!--space for the future options-->
           </div>
@@ -271,7 +278,7 @@
             menuBtn.addEventListener("click", () => {
               const isHidden = menuDropdown.classList.toggle("hidden");
               menuBtn.setAttribute("aria-expanded", !isHidden);
-              
+
               if (!isHidden) {
                 // Focus first menu item when opened
                 setTimeout(() => openAbout.focus(), 0);
@@ -306,6 +313,63 @@
               }
             });
 
+            // Language menu interactions
+            const languageMenuItem = document.getElementById("language-menu-item");
+            const languageSubmenu = document.getElementById("language-submenu");
+            const languageOptions = languageSubmenu.querySelectorAll("a[data-lang]");
+
+            // Show/hide language submenu
+            languageMenuItem.addEventListener("mouseenter", () => {
+              languageSubmenu.classList.remove("hidden");
+            });
+
+            languageMenuItem.addEventListener("mouseleave", () => {
+              setTimeout(() => {
+                if (!languageSubmenu.matches(':hover')) {
+                  languageSubmenu.classList.add("hidden");
+                }
+              }, 100);
+            });
+
+            languageSubmenu.addEventListener("mouseleave", () => {
+              languageSubmenu.classList.add("hidden");
+            });
+
+            // Handle language selection
+            languageOptions.forEach(option => {
+              option.addEventListener("click", (e) => {
+                e.preventDefault();
+                const selectedLang = e.target.getAttribute("data-lang");
+                
+                // Import setLanguage function and call it
+                if (window.setLanguage) {
+                  window.setLanguage(selectedLang);
+                } else {
+                  console.log(`Language changed to: ${selectedLang}`);
+                }
+
+                // Close menus
+                languageSubmenu.classList.add("hidden");
+                menuDropdown.classList.add("hidden");
+                menuBtn.setAttribute("aria-expanded", "false");
+              });
+            });
+
+            // Handle keyboard navigation for language menu
+            languageMenuItem.addEventListener("keydown", (e) => {
+              if (e.key === "Enter" || e.key === " " || e.key === "ArrowRight") {
+                e.preventDefault();
+                languageSubmenu.classList.remove("hidden");
+                languageOptions[0].focus();
+              } else if (e.key === "ArrowDown") {
+                e.preventDefault();
+                openAbout.focus();
+              } else if (e.key === "ArrowUp") {
+                e.preventDefault();
+                menuBtn.focus();
+              }
+            });
+
             // Open modal when About is clicked
             openAbout.addEventListener("click", (e) => {
               e.preventDefault();
@@ -313,7 +377,7 @@
               infoModal.classList.remove("hidden");
               menuDropdown.classList.add("hidden");
               menuBtn.setAttribute("aria-expanded", "false");
-              
+
               // Focus the close button in the modal
               setTimeout(() => closeInfoModal.focus(), 0);
             });
@@ -356,7 +420,7 @@
                 menuDropdown.classList.add("hidden");
                 menuBtn.setAttribute("aria-expanded", "false");
               }
-              
+
               if (e.target === infoModal) {
                 closeInfoModal.click();
               }
@@ -491,6 +555,7 @@
           </select>
           <div id="demo-desc" class="sr-only">Select from pre-built example projects to explore different features and capabilities</div>
         </div>
+        
         <div id="menuright">
           <button
             class="bigbutton"
@@ -535,7 +600,7 @@
                 <!--!Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.-->
                 <path
                   fill="#511D91"
-                  d="M200 32L56 32C42.7 32 32 42.7 32 56l0 144c0 9.7 5.8 18.5 14.8 22.2s19.3 1.7 26.2-5.2l40-40 79 79-79 79L73 295c-6.9-6.9-17.2-8.9-26.2-5.2S32 302.3 32 312l0 144c0 13.3 10.7 24 24 24l144 0c9.7 0 18.5-5.8 22.2-14.8s1.7-19.3-5.2-26.2l-40-40 79-79 79 79-40 40c-6.9 6.9-8.9 17.2-5.2 26.2s12.5 14.8 22.2 14.8l144 0c13.3 0 24-10.7 24-24l0-144c0-9.7-5.8-18.5-14.8-22.2s-19.3-1.7-26.2 5.2l-40 40-79-79 79-79 40 40c6.9 6.9 17.2 8.9 26.2 5.2s14.8-12.5 14.8-22.2l0-144c0-13.3-10.7-24-24-24L312 32c-9.7 0-18.5 5.8-22.2 14.8s-1.7 19.3 5.2 26.2l40 40-79 79-79-79 40-40c6.9-6.9 8.9-17.2 5.2-26.2S209.7 32 200 32z"
+                  d="M200 32L56 32C42.7 32 32 42.7 32 56l0 144c0 9.7 5.8 18.5 14.8 22.2s19.3 1.7 26.2-5.2l40-40 79 79-79 79L73 295c-6.9-6.9-17.2-8.9-26.2-5.2S32 302.3 32 312l0 144c0 13.3 10.7 24 24 24l144 0c9.7 0 18.5-5.8 22-14.8s1.7-19.3-5.2-26.2l-40-40 79-79 79 79-40 40c-6.9 6.9-8.9 17.2-5.2 26.2s12.5 14.8 22.2 14.8l144 0c13.3 0 24-10.7 24-24l0-144c0-9.7-5.8-18.5-14.8-22.2s-19.3-1.7-26.2 5.2l-40 40-79 79-79-79 40-40c6.9-6.9 8.9-17.2 5.2-26.2S209.7 32 200 32z"
                 />
               </svg>
             </div>

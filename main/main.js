@@ -40,6 +40,7 @@ import { setupInput } from "./input.js";
 import {
 	addExportContextMenuOptions,
 } from "./export.js";
+import { setLanguage } from "./translation.js";
 
 if ("serviceWorker" in navigator) {
 	navigator.serviceWorker
@@ -180,7 +181,8 @@ function initializeApp() {
 
 	exampleSelect.addEventListener("change", loadExampleWrapper);
 
-	onResize();
+	// Make setLanguage available globally for the menu
+	window.setLanguage = setLanguage;
 }
 
 window.onload = function () {
