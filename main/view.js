@@ -176,7 +176,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 let currentView = "start"; // Start with the code view
 // Function to be called once the app has fully loaded
-export {currentView,switchView, codeMode};
+export {currentView,switchView, codeMode, showCodeView};
 
 const container = document.getElementById("maincontent");
 const bottomBar = document.getElementById("bottomBar");

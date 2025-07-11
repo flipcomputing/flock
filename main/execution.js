@@ -36,9 +36,8 @@ export async function executeCode() {
 
 	// Switch to code view if currently in canvas view
 	if (currentView === "canvas") {
-		currentView = "code";
-		container.style.transform = `translateX(0px)`; // Move to Code view
-		switchViewsBtn.textContent = "Canvas >>"; // Update button text
+		const { showCodeView } = await import("./view.js");
+		showCodeView();
 	}
 
 	disposeGizmoManager();

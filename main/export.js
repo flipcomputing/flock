@@ -1,4 +1,7 @@
 import * as Blockly from "blockly";
+import {
+	importSnippet,
+} from "./files.js";
 
 async function exportBlockSnippet(block) {
 	try {
