@@ -74,6 +74,13 @@ export default {
   CONTROLS_IF_MSG_ELSE: "sinon\n",
   CONTROLS_FOR_TITLE: "pour chaque %1 de %2 à %3 par %4",
   
+  // Block message translations
+  BLOCK_PRINT_TEXT_MESSAGE: "afficher %1 pendant %2 secondes %3",
+  BLOCK_WAIT_SECONDS_MESSAGE: "attendre %1 secondes",
+  BLOCK_KEY_PRESSED_MESSAGE: "touche %1 pressée?",
+  BLOCK_MOVE_FORWARD_MESSAGE: "déplacer %1 vers l'avant de %2",
+  BLOCK_CREATE_BOX_MESSAGE: "créer boîte %1 couleur %2 taille %3 × %4 × %5 à %6, %7, %8",
+  
   // Add more custom block translations as needed
   
   // Tooltip translations
