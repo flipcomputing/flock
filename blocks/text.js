@@ -29,7 +29,7 @@ export function defineTextBlocks() {
 		init: function () {
 			this.jsonInit({
 				type: "print_text",
-				message0: "%{BKY_BLOCK_PRINT_TEXT_MESSAGE}",
+				message0: "print %1 for %2 seconds %3",
 				args0: [
 					{
 						type: "input_value",
