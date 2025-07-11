@@ -1,9 +1,5 @@
 
 export default {
-  // Custom block translations
-  createBox: "create box",
-  setSky: "set sky color",
-  wait: "wait",
   
   // Blockly message overrides for English
   LISTS_CREATE_WITH_INPUT_WITH: "list",

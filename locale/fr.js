@@ -1,10 +1,5 @@
 
-export default {
-  // Custom block translations
-  createBox: "créer boîte",
-  setSky: "définir couleur du ciel", 
-  wait: "attendre",
-  
+export default {  
   // Blockly message overrides for French
   LISTS_CREATE_WITH_INPUT_WITH: "liste",
   TEXT_JOIN_TITLE_CREATEWITH: "texte",
