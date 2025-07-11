@@ -920,6 +920,10 @@ path.blocklyPath.blockly-ws-search-highlight.blockly-ws-search-current {
   fill: #511D91;
 }
 
+.menu-icon svg {
+  fill: #511D91;
+}
+
 #examples {
 	min-width: 100px;
 	flex-grow: 1;
@@ -927,40 +931,100 @@ path.blocklyPath.blockly-ws-search-highlight.blockly-ws-search-current {
 }
 
 #language-menu-item {
-	padding: 8px 12px;
-	display: block;
-	border-bottom: 1px solid #eee;
-	position: relative;
-	cursor: pointer;
+  padding: 8px 12px;
+  display: flex;           /* <-- this is the change */
+  align-items: center;     /* <-- vertically center icon and text */
+   justify-content: flex-start;
+  border-bottom: 1px solid #eee;
+  position: relative;
+  cursor: pointer;
+  color: #511D91;
+}
+
+#menuDropdown {
+  text-align: left;      /* makes sure text starts at the left */
+  padding: 0;
+}
+
+#menuDropdown [role="menuitem"] {
+  display: flex;
+  align-items: center;
+  padding: 8px 12px;
+  border-bottom: 1px solid #eee;
+  color: #511D91;
+  text-decoration: none;
+  background: none;
+  cursor: pointer;
+}
+
+#menuDropdown [role="menuitem"]:last-child {
+  border-bottom: none;
+}
+
+.menu-icon {
+  width: 2em;           /* same gutter for every icon */
+  min-width: 2em;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;   /* <--- key! icon hugs left edge */
+  margin-right: 8px;
+  flex-shrink: 0;
+}
+
+.menu-icon svg {
+  width: 1.2em;
+  height: 1.2em;
+  display: block;
+  fill: #511D91;        /* makes all icons purple */
+}
+
+.menu-label {
+  flex: 1 1 auto;
+  text-align: left;
+  white-space: nowrap;
+}
+
+/* Optional: hover style */
+#menuDropdown [role="menuitem"]:hover {
+  background: #f0f0f0;
+}
+
+
+#language-menu-item {
+  padding: 8px 12px;
+  display: block;
+  border-bottom: 1px solid #eee;
+  position: relative;
+  cursor: pointer;
 }
 
 #language-menu-item:hover {
-	background-color: #f0f0f0;
+  background-color: #f0f0f0;
 }
 
 .submenu {
-	position: absolute;
-	left: 100%;
-	top: 0;
-	background-color: white;
-	border: 1px solid #ddd;
-	box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-	min-width: 120px;
-	z-index: 1001;
+  position: absolute;
+  left: 100%;
+  top: 0;
+  background-color: white;
+  border: 1px solid #ddd;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  min-width: 120px;
+  z-index: 1001;
 }
 
 .submenu a {
-	display: block;
-	padding: 8px 12px;
-	color: #511D91;
-	text-decoration: none;
-	border-bottom: 1px solid #eee;
+  display: block;
+  padding: 8px 12px;
+  color: #511D91;
+  text-decoration: none;
+  border-bottom: 1px solid #eee;
 }
 
 .submenu a:hover {
-	background-color: #f0f0f0;
+  background-color: #f0f0f0;
 }
 
 .submenu a:last-child {
-	border-bottom: none;
+  border-bottom: none;
 }
