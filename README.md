@@ -2,6 +2,8 @@
 **[Flock XR](https://flockxr.com/) - Creative coding in 3D**\
 A project from: [Flip Computing](https://flipcomputing.com/).
 
+Current version: [app.flockxr.com](https://app.flockxr.com/)
+
 Our prototype 3D block-based programming language is currently a proof of concept and is under development. Lots of features need more work and may change! We're looking for funding to continue with the work - let us know if you can help or have suggestions. 
 
 Flock XR has been designed as a bridge between Scratch and professional 3D tools, such as Babylon JS, UEFN, Unity and Godot. Flock XR builds on our experience working in schools and clubs to create engaging resources for young people to use and personalise. We are looking for funding to take Flock XR further so please [get in touch](https://flipcomputing.com/contact/) if you can help. 
@@ -10,14 +12,16 @@ Flock XR is based on Blockly, the Babylon JS library and the Havok physics engin
 
 ## Development info
 
+View the current development version at [https://flipcomputing.github.io/flock/]([https://flockxr.com/](https://flipcomputing.github.io/flock/))
+
 ### Prerequisites
 - Node.js (version 18 or higher)
 - Git
 
 ### Dev set up
 - Fork the repo on GitHub
-- Clone your fork to your local machine: `git clone git@github.com:YOUR_USERNAME/flockupdate.git`
-- Navigate to the project: `cd flockupdate`
+- Clone your fork to your local machine: `git clone git@github.com:YOUR_USERNAME/flock.git`
+- Navigate to the project: `cd flock`
 - Install dependencies: `npm install`
 
 ### Contributing
@@ -46,3 +50,8 @@ This is a Vite-based project using:
 - Babylon.js for 3D rendering
 - Havok physics engine
 - Mocha & Chai for testing
+
+
+### Supporters
+
+The development of Flock XR is supported by grants from [Nlnet Foundation](https://nlnet.nl/project/FlockXR/) and [UK Games Fund](https://www.ukgamesfund.com/funded-project/flock-xr/). 
