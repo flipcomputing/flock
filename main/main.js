@@ -134,6 +134,15 @@ function initializeApp() {
 			e.preventDefault();
 			exportCode(workspace); // Or saveWorkspace(workspace) for autosave
 		}
+
+		if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "p") {
+			e.preventDefault();
+			if (typeof executeCode === "function") {
+				executeCode();
+			} else {
+				console.warn("executeCode is not defined.");
+			}
+		}
 	});
 
 	toggleDesignButton.addEventListener("click", toggleDesignMode);
