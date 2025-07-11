@@ -28,12 +28,151 @@
         'anonymize_ip': true  // Hides IP addresses for privacy
       });
     </script>
-    
-    <script type="module" crossorigin src="/assets/index-_DplbYv1.js"></script>
+
+    <style>
+      .sr-only {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border: 0;
+      }
+
+      /* Critical loading styles - inline to prevent flash */
+      #flockeditor {
+        opacity: 0 !important;
+        pointer-events: none;
+        visibility: hidden;
+      }
+
+      body:not(.loading) #flockeditor {
+        opacity: 1 !important;
+        pointer-events: auto;
+        visibility: visible;
+        transition: opacity 0.3s ease-in;
+      }
+
+      .loading-screen {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 10000;
+        opacity: 1;
+        transition: opacity 0.5s ease-out;
+      }
+
+      .loading-screen.fade-out {
+        opacity: 0;
+        pointer-events: none;
+      }
+
+      /* Inline critical bird styles for immediate loading */
+      .loading-bird {
+        width: 120px !important;
+        height: 120px !important;
+        max-width: 120px;
+        max-height: 120px;
+        animation: float 2s ease-in-out infinite;
+        display: block;
+        order: 1;
+      }
+
+      .loading-content {
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 20px;
+      }
+
+      .loading-brand {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 15px;
+        margin-bottom: 10px;
+      }
+
+      @keyframes float {
+        0%, 100% {
+          transform: translateY(0px);
+        }
+        50% {
+          transform: translateY(-10px);
+        }
+      }
+
+      /* Inline critical loading text styles */
+      .loading-text {
+        color: #511D91 !important;
+        font-size: 18px;
+        font-weight: 500;
+        margin: 0;
+        font-family: "Asap", Helvetica, Arial, Lucida, sans-serif;
+        order: 4;
+      }
+
+      .loading-logo {
+        width: 200px;
+        height: auto;
+        margin: 10px 0;
+        order: 2;
+        opacity: 0;
+        animation: fadeInLogo 0.5s ease-in 0.3s forwards;
+      }
+
+      @keyframes fadeInLogo {
+        from {
+          opacity: 0;
+        }
+        to {
+          opacity: 1;
+        }
+      }
+
+      .loading-spinner {
+        width: 40px;
+        height: 40px;
+        border: 4px solid #e3e3e3;
+        border-top: 4px solid #511D91;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        order: 3;
+      }
+
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+    </style>
+    <script type="module" crossorigin src="/assets/index-D1NZWwE_.js"></script>
     
   <link rel="manifest" href="/manifest.webmanifest"><script id="vite-plugin-pwa:register-sw" src="/registerSW.js"></script></head>
 
-  <body>
+  <body class="loading">
+    <!-- Loading Screen -->
+    <div id="loadingScreen" class="loading-screen" role="dialog" aria-modal="true" aria-labelledby="loading-title" aria-describedby="loading-description">
+      <div class="loading-content">
+        <img src="data:image/svg+xml,%3c?xml%20version='1.0'%20encoding='UTF-8'?%3e%3csvg%20id='Layer_1'%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20586.69%20505.55'%3e%3cdefs%3e%3cstyle%3e%20.cls-1%20{%20fill:%20%23fff;%20}%20.cls-2%20{%20fill:%20%23231f20;%20}%20.cls-3%20{%20fill:%20%23ecac79;%20}%20.cls-4%20{%20fill:%20%23511d91;%20}%20%3c/style%3e%3c/defs%3e%3cg%3e%3cpath%20class='cls-4'%20d='M583.69,242.81c0,10.63-43.39,33.53-96.91,33.53-2.21,0-4.41-.03-6.59-.08.88-8.06,1.33-16.38,1.33-24.94,0-14.89-1.15-28.86-3.34-41.92,2.83-.09,5.7-.13,8.6-.13,53.52,0,96.91,18.26,96.91,33.54Z'/%3e%3cpath%20class='cls-2'%20d='M486.78,279.34c-2.1,0-4.28-.03-6.66-.08l-3.27-.07.35-3.25c.87-7.98,1.31-16.26,1.31-24.62,0-14.44-1.11-28.37-3.3-41.42l-.57-3.39,3.43-.11c2.75-.09,5.67-.13,8.69-.13,25.25,0,49.96,3.99,69.56,11.23,19.29,7.12,30.35,16.35,30.35,25.31,0,13.76-46.7,36.53-99.91,36.53ZM483.5,273.32c1.12.01,2.21.02,3.28.02,31.47,0,55.74-7.87,67.41-12.56,18.08-7.27,26.5-15.02,26.5-17.97,0-12.01-40.33-30.54-93.91-30.54-1.74,0-3.44.01-5.1.04,1.88,12.38,2.84,25.49,2.84,39.01,0,7.44-.34,14.82-1.02,22Z'/%3e%3c/g%3e%3cg%3e%3cpath%20class='cls-4'%20d='M106.13,251.32c-.22,9.43.24,18.66,1.36,27.64-2.5.06-5.02.1-7.57.1-53.53,0-96.92-21.62-96.92-35.26,0-9.46,43.39-35.26,96.92-35.26,3.69,0,7.33.08,10.91.22-2.74,13.37-4.35,27.57-4.7,42.56Z'/%3e%3cpath%20class='cls-2'%20d='M99.92,282.06c-52.88,0-99.92-21.4-99.92-38.26,0-12.6,46.25-38.26,99.92-38.26,3.54,0,7.25.07,11.03.22l3.53.14-.71,3.46c-2.74,13.37-4.3,27.51-4.64,42.03h0c-.21,9.21.24,18.36,1.34,27.2l.41,3.29-3.32.08c-2.84.07-5.34.1-7.64.1ZM99.92,211.54c-30.93,0-55.47,8.67-67.34,13.83-18.56,8.08-26.58,16.11-26.58,18.43,0,10.76,40.6,32.26,93.92,32.26,1.33,0,2.72-.01,4.21-.03-.86-8.1-1.2-16.42-1-24.78.32-13.62,1.69-26.93,4.08-39.61-2.48-.07-4.92-.1-7.29-.1Z'/%3e%3c/g%3e%3cg%3e%3cpath%20class='cls-3'%20d='M276.42,438.24v34.19h-56.28v-47.8c.99.4,1.98.8,2.98,1.19,15.86,6.18,32.76,10.32,50.32,12.14.99.1,1.98.2,2.98.28Z'/%3e%3cpath%20class='cls-2'%20d='M255.38,469.44c.16.31.31.63.45.96.1-.33.2-.65.3-.96h-.75ZM276.42,438.24c-1-.08-1.99-.18-2.98-.28v31.48h-50.32v-43.62c-1-.39-1.99-.79-2.98-1.19-1-.41-2-.83-2.99-1.26v52.05h62.26v-36.93c-1-.08-2-.16-2.99-.25Z'/%3e%3c/g%3e%3cg%3e%3cpath%20class='cls-3'%20d='M374.24,423.13v49.3h-59.77v-34.38c1-.09,1.99-.19,2.98-.3,18.96-2.04,37.04-6.55,53.8-13.36,1-.42,2-.83,2.99-1.26Z'/%3e%3cpath%20class='cls-2'%20d='M352.53,469.44c.16.31.31.63.45.96.1-.33.2-.65.3-.96h-.75ZM374.24,423.13c-.99.43-1.99.84-2.99,1.26v45.05h-53.8v-31.69c-.99.11-1.98.21-2.98.3-.99.1-1.99.18-2.99.26v37.11h65.74v-53.59c-.99.45-1.98.88-2.98,1.3Z'/%3e%3c/g%3e%3cg%3e%3cpath%20class='cls-4'%20d='M448.1,134.06c-8.64-12.12-18.77-22.65-30.12-31.6-2.72-2.14-5.51-4.2-8.37-6.16,2.06-.58,4.1-1.13,6.11-1.64.04-.01.08-.02.12-.02,3.15-.63,6.22-1.16,9.19-1.58,22.92-3.3,39.8-.53,43.47,8.71,3.31,8.34-4.84,20.24-20.4,32.29Z'/%3e%3cpath%20class='cls-2'%20d='M447.47,138.35l-1.81-2.54c-8.31-11.66-18.25-22.09-29.53-30.99-2.71-2.14-5.48-4.17-8.21-6.04l-5.29-3.62,6.17-1.74c2.2-.62,4.23-1.16,6.19-1.66.1-.03.24-.06.4-.08,3.19-.64,6.29-1.17,9.22-1.58,25.53-3.68,42.55.18,46.68,10.57,3.77,9.49-3.82,22.19-21.35,35.77l-2.47,1.91ZM416.52,97.57c1.11.83,2.21,1.68,3.31,2.54,10.9,8.6,20.6,18.57,28.85,29.66,13.16-10.73,19.5-20.67,17.03-26.89-2.93-7.38-18.35-10-40.25-6.85-2.84.4-5.84.92-8.93,1.53Z'/%3e%3c/g%3e%3cg%3e%3cpath%20class='cls-4'%20d='M415.72,94.66c-2.01.51-4.05,1.06-6.11,1.64-.12-.08-.23-.16-.35-.24,2.19-.51,4.34-.98,6.46-1.4Z'/%3e%3cpath%20class='cls-2'%20d='M409.09,99.56l-7.27-4.85,6.75-1.57c2.36-.55,4.51-1.02,6.56-1.42l1.32,5.85c-1.91.48-3.88,1.01-6.04,1.62l-1.33.37Z'/%3e%3c/g%3e%3cg%3e%3cpath%20class='cls-4'%20d='M412.51,49.08c-14.05,2.06-29.78,5.98-45.25,12.12-6.69,2.66-13.09,5.5-19.13,8.47-17.19-4.05-35.42-6.05-54.3-6.05-7.61,0-15.1.37-22.45,1.11,12.01-14.78,33-30.88,58.94-43.91C377.06-2.65,426.84.41,431.11,10.49c.89,10.32-5.4,24.26-18.6,38.59Z'/%3e%3cpath%20class='cls-2'%20d='M348.49,72.84l-1.05-.25c-16.82-3.96-34.85-5.97-53.61-5.97-7.48,0-14.93.37-22.15,1.09l-7.18.72,4.55-5.6c12.74-15.68,34.58-31.97,59.92-44.7C368.72-1.82,410.26-2.65,425.81,3.07c4.25,1.56,6.96,3.67,8.06,6.25l.19.44.04.47c.99,11.53-6.07,26.43-19.38,40.88l-.72.78-1.05.15c-15.04,2.21-30.45,6.33-44.58,11.94-6.52,2.59-12.89,5.41-18.91,8.37l-.96.47ZM293.83,60.62c18.83,0,36.98,1.98,53.94,5.89,5.88-2.86,12.06-5.58,18.38-8.09,14.22-5.64,29.71-9.83,44.86-12.14,11.48-12.69,17.68-25.34,17.15-34.93-.52-.72-1.89-1.71-4.42-2.64-14.57-5.36-53.91-4.36-92.08,14.8-21.62,10.86-40.56,24.31-53.12,37.62,5.04-.33,10.16-.5,15.29-.5Z'/%3e%3c/g%3e%3cg%3e%3cpath%20class='cls-4'%20d='M461.36,55.84c0,8.34-9.16,21.65-26.14,34.91-6.08.87-12.58,2.16-19.38,3.89-.04,0-.08.01-.12.02-2.01.51-4.05,1.06-6.11,1.64-.12-.08-.23-.16-.35-.24-10.44-7.15-21.76-13.09-33.81-17.86-8.75-3.47-17.88-6.31-27.32-8.53,6.04-2.97,12.44-5.81,19.13-8.47,15.47-6.14,31.2-10.06,45.25-12.12,27.67-4.06,48.86-.9,48.85,6.76Z'/%3e%3cpath%20class='cls-2'%20d='M409.09,99.56l-1.5-1.01c-10.12-6.93-21.3-12.84-33.25-17.57-8.52-3.38-17.57-6.2-26.9-8.4l-8.15-1.92,7.52-3.7c6.17-3.03,12.67-5.91,19.34-8.56,14.55-5.78,30.43-10.03,45.92-12.3,23.33-3.42,42.72-1.9,49.39,3.87,2.39,2.07,2.89,4.33,2.89,5.86,0,9.84-10.46,24.12-27.29,37.27l-.63.49-.79.11c-6.1.87-12.51,2.16-19.07,3.83l-.41.09c-1.82.47-3.71.97-5.75,1.55l-1.33.37ZM416.47,97.57s0,0,0,0c0,0,0,0,0,0ZM356.94,68.84c6.75,1.88,13.32,4.08,19.62,6.58,12.04,4.77,23.34,10.69,33.59,17.62,1.69-.47,3.28-.89,4.83-1.28.08-.02.17-.04.29-.06,6.42-1.63,12.71-2.9,18.73-3.79,16.82-13.29,24.36-25.65,24.36-32.06h0c0-.15,0-.61-.82-1.32-4.43-3.83-21.17-5.91-44.6-2.48-15.04,2.21-30.45,6.33-44.58,11.94-3.88,1.54-7.7,3.16-11.43,4.85Z'/%3e%3c/g%3e%3cg%3e%3cpath%20class='cls-4'%20d='M480.79,251.72c0,8.56-.45,16.88-1.33,24.94-7.65,70.05-47.53,120.76-102.97,145.57-.99.45-1.98.88-2.98,1.3-.99.43-1.99.84-2.99,1.26-16.76,6.81-34.84,11.32-53.8,13.36-.99.11-1.98.21-2.98.3-.99.1-1.99.18-2.99.26-5.81.47-11.7.7-17.65.7-4.85,0-9.66-.18-14.42-.52-1-.08-2-.16-2.99-.25-1-.08-1.99-.18-2.98-.28-17.56-1.82-34.46-5.96-50.32-12.14-1-.39-1.99-.79-2.98-1.19-1-.41-2-.83-2.99-1.26-58.33-25.03-101.48-78.12-109.66-144.41-1.12-8.98-1.58-18.21-1.36-27.64.35-14.99,1.96-29.19,4.7-42.56,17.37-84.79,80.45-136.02,160.55-144.03,7.35-.74,14.84-1.11,22.45-1.11,18.88,0,37.11,2,54.3,6.05,9.44,2.22,18.57,5.06,27.32,8.53,12.05,4.77,23.37,10.71,33.81,17.86.12.08.23.16.35.24,2.86,1.96,5.65,4.02,8.37,6.16,11.35,8.95,21.48,19.48,30.12,31.6.8,1.11,1.58,2.23,2.35,3.36,13.41,19.86,23,43.82,27.73,71.98,2.19,13.06,3.34,27.03,3.34,41.92Z'/%3e%3cpath%20class='cls-2'%20d='M293.1,442.41c-4.82,0-9.74-.18-14.63-.53-1.03-.08-2.05-.16-3.05-.25-.94-.07-1.92-.17-2.89-.27h-.12c-17.6-1.84-34.8-5.99-51.11-12.34-.94-.37-1.87-.74-2.8-1.11l-.22-.09c-1.04-.42-2.05-.85-3.06-1.29-29.58-12.69-55.46-32.63-74.81-57.65-19.95-25.78-32.61-56.61-36.63-89.15-1.14-9.13-1.6-18.58-1.38-28.08.35-14.88,1.95-29.37,4.76-43.09,8.5-41.48,28.46-76.92,57.72-102.47,28.26-24.68,64.73-39.87,105.47-43.95,7.41-.75,15.07-1.12,22.75-1.12,19.22,0,37.72,2.06,54.99,6.13,9.62,2.26,18.95,5.18,27.74,8.66,12.36,4.89,23.94,11.01,34.4,18.17l.32.22c2.87,1.96,5.74,4.08,8.56,6.3,11.73,9.25,22.06,20.09,30.71,32.22.81,1.12,1.6,2.26,2.39,3.41,14.06,20.83,23.55,45.44,28.21,73.17,2.24,13.38,3.38,27.65,3.38,42.42,0,8.57-.45,17.07-1.35,25.27-7.38,67.56-45.55,121.5-104.73,147.98-1,.46-2.02.9-3.04,1.33-.68.3-1.4.6-2.13.9l-.86.36c-17.11,6.95-35.48,11.52-54.64,13.58-1,.11-2.01.21-3.03.31-.98.1-2,.18-3.02.26-5.82.47-11.84.71-17.89.71ZM293.1,67.02c-7.48,0-14.93.37-22.15,1.09-82.4,8.24-141.43,61.19-157.91,141.65-2.74,13.37-4.3,27.51-4.64,42.03-.21,9.21.24,18.36,1.34,27.2,7.81,63.3,48.13,116.39,107.87,142.02.98.43,1.96.84,2.94,1.24l.2.08c.91.37,1.81.73,2.73,1.09,15.81,6.16,32.48,10.18,49.54,11.95h.11c.93.1,1.86.2,2.8.27,1.02.09,2,.17,2.99.25,10.69.76,21.42.64,31.59-.18.98-.08,1.96-.16,2.93-.25,1.01-.09,1.98-.19,2.95-.3,18.61-2,36.44-6.43,53-13.16l.84-.35c.7-.29,1.39-.58,2.08-.88,1.01-.42,1.97-.84,2.94-1.28,57.2-25.6,94.09-77.77,101.23-143.16.87-7.98,1.31-16.26,1.31-24.61,0-14.44-1.11-28.37-3.3-41.42-4.51-26.88-13.68-50.7-27.26-70.8-.75-1.1-1.51-2.2-2.3-3.29-8.32-11.68-18.26-22.1-29.54-31-2.72-2.14-5.48-4.17-8.21-6.04l-.32-.22c-10.12-6.93-21.3-12.84-33.25-17.57-8.52-3.38-17.57-6.2-26.9-8.4-16.81-3.96-34.85-5.97-53.61-5.97Z'/%3e%3c/g%3e%3cg%3e%3cellipse%20class='cls-1'%20cx='216.92'%20cy='205.54'%20rx='63.03'%20ry='77.91'%20transform='translate(-60.55%2094.59)%20rotate(-21.66)'/%3e%3cpath%20class='cls-2'%20d='M226.45,284.59c-28.51,0-57.64-21.28-70.9-54.68-7.93-19.98-9.09-41.29-3.25-60.01,5.91-18.95,18.25-33,34.76-39.55,16.51-6.56,35.12-4.81,52.42,4.93,17.09,9.62,30.88,25.91,38.81,45.89,16.47,41.46,2.33,86.13-31.5,99.57-6.58,2.62-13.44,3.86-20.33,3.86ZM207.52,132.46c-6.27,0-12.42,1.15-18.25,3.47-14.79,5.87-25.89,18.58-31.24,35.76-5.43,17.42-4.33,37.31,3.1,56.01,12.33,31.04,39.17,50.9,65.26,50.9,6.17,0,12.3-1.11,18.19-3.45,30.76-12.22,43.39-53.39,28.14-91.78-7.43-18.7-20.28-33.93-36.18-42.88-9.5-5.34-19.4-8.05-29.01-8.05Z'/%3e%3c/g%3e%3cg%3e%3cpath%20class='cls-4'%20d='M275.33,168.83c-11.81-1.37-41.54-3.21-73.69,12.9-27.92,13.99-43.49,34.43-50.14,44.4-40.01-98.54,74.63-157.09,123.83-57.3Z'/%3e%3cpath%20class='cls-2'%20d='M150.86,232.51l-2.13-5.25c-9.75-24.02-11.2-47.42-4.17-67.65,6.34-18.28,19.08-32.49,35.85-40.02,16.27-7.3,34.5-7.35,51.33-.12,18.76,8.05,34.77,24.66,46.29,48.04l2.44,4.94-5.47-.63c-14.21-1.65-42.46-2.2-72,12.6-24.92,12.49-40.39,30.48-48.99,43.38l-3.14,4.72ZM206.06,120.09c-8.17,0-16.05,1.76-23.2,4.97-28.01,12.57-46.81,48.79-30.57,94.7,9.45-12.93,24.82-29.09,48.01-40.71,26.54-13.3,51.81-15.06,69.84-13.73-17.5-32.22-41.86-45.23-64.08-45.23Z'/%3e%3c/g%3e%3cpolygon%20class='cls-2'%20points='200.73%20195.81%20190.68%20202.27%20196.61%20210.05%20179.5%20224.59%20172.77%20212.01%20166.74%20217.81%20187.51%20252.85%20194.38%20247.32%20201.63%20256.45%20219.7%20248.61%20214.81%20238.63%20223.31%20233.14%20200.73%20195.81'/%3e%3cg%3e%3cpath%20class='cls-3'%20d='M227.96,498.11c.78-.33,1.88-.86,3.59-1.21,1.64-.34,3.04-.34,3.97-.29,2.81-4.49,4.55-10.51,4.55-17.15,0-13.86-7.5-25.09-16.76-25.09s-16.76,11.24-16.76,25.09c0,6.73,1.78,12.83,4.66,17.34,3.6,2.24,6.71,2.63,8.33,2.71,4.55.21,8.43-1.4,8.43-1.4Z'/%3e%3cpath%20class='cls-2'%20d='M220.34,502.53c-.31,0-.63,0-.95-.02-3.31-.15-6.69-1.24-9.76-3.15l-.58-.36-.37-.57c-3.31-5.18-5.13-11.91-5.13-18.95,0-15.75,8.67-28.08,19.75-28.08s19.75,12.33,19.75,28.08c0,6.93-1.78,13.58-5,18.73l-.94,1.5-1.76-.1c-1.08-.07-2.16.01-3.2.23-1.18.24-1.98.58-2.68.89l-.36.15c-.17.07-4.03,1.65-8.77,1.65ZM213.36,494.62c2.05,1.16,4.21,1.82,6.31,1.92,3.72.17,7-1.12,7.15-1.18l.3-.13c.82-.35,2.06-.88,3.84-1.25.94-.19,1.89-.31,2.85-.35,2.12-4,3.28-8.96,3.28-14.15,0-11.98-6.31-22.11-13.77-22.11s-13.77,10.12-13.77,22.11c0,5.65,1.36,10.99,3.83,15.14Z'/%3e%3c/g%3e%3cg%3e%3cpath%20class='cls-3'%20d='M272.21,498.58c1.39.01,2.82-.07,4.45-.47,1.7-.41,3.02-1.02,3.9-1.49,2.81-4.49,4.55-10.51,4.55-17.15,0-13.86-7.5-25.09-16.76-25.09s-16.76,11.24-16.76,25.09c0,6.73,1.78,12.83,4.66,17.34.53.09,10.46,1.72,15.97,1.77Z'/%3e%3cpath%20class='cls-2'%20d='M272.5,501.57c-.11,0-.21,0-.31,0h0c-5.46-.06-14.64-1.52-16.42-1.81l-1.31-.22-.72-1.12c-3.31-5.18-5.13-11.9-5.13-18.95,0-15.75,8.67-28.08,19.75-28.08s19.75,12.33,19.75,28.08c0,6.93-1.78,13.58-5,18.73l-.42.68-.7.37c-1.46.78-3.01,1.37-4.59,1.76-1.94.48-3.6.56-4.87.56ZM272.24,495.6c1.03.03,2.26-.03,3.71-.38.85-.21,1.69-.5,2.49-.87,2.37-4.11,3.67-9.36,3.67-14.86,0-11.98-6.31-22.11-13.77-22.11s-13.77,10.12-13.77,22.11c0,5.41,1.24,10.54,3.52,14.61,3.01.47,9.98,1.47,14.15,1.52h0Z'/%3e%3c/g%3e%3cg%3e%3cpath%20class='cls-3'%20d='M249.03,502.33c1.55-.13,2.81-.31,4.21-.7,1.55-.43,2.78-.97,3.61-1.38,2.81-4.49,4.55-10.51,4.55-17.15,0-13.86-7.5-25.09-16.76-25.09s-16.76,11.24-16.76,25.09c0,6.73,1.78,12.83,4.66,17.34.81.31,2.15.78,3.84,1.19,5.34,1.31,9.65.95,12.64.7Z'/%3e%3cpath%20class='cls-2'%20d='M244.34,505.55c-2.48,0-5.39-.23-8.66-1.03-1.43-.35-2.84-.79-4.19-1.3l-.92-.35-.53-.83c-3.31-5.18-5.13-11.9-5.13-18.95,0-15.75,8.67-28.08,19.75-28.08s19.75,12.33,19.75,28.08c0,6.93-1.78,13.59-5,18.73l-.45.72-.76.37c-1.33.66-2.72,1.19-4.14,1.58-1.49.41-2.87.64-4.77.8l-.25-2.98.25,2.98-.25-2.98.24,2.98c-1.36.11-3.02.25-4.94.25ZM234.55,497.98c.83.28,1.69.53,2.55.75,4.86,1.19,8.81.87,11.68.63h0c1.52-.13,2.55-.29,3.66-.6.79-.22,1.57-.5,2.32-.82,2.36-4.11,3.65-9.34,3.65-14.83,0-11.98-6.31-22.11-13.77-22.11s-13.77,10.12-13.77,22.11c0,5.53,1.3,10.77,3.68,14.88Z'/%3e%3c/g%3e%3cg%3e%3cpath%20class='cls-3'%20d='M325.11,498.11c.78-.33,1.88-.86,3.59-1.21,1.64-.34,3.04-.34,3.97-.29,2.81-4.49,4.55-10.51,4.55-17.15,0-13.86-7.5-25.09-16.76-25.09s-16.76,11.24-16.76,25.09c0,6.73,1.78,12.83,4.66,17.34,3.6,2.24,6.71,2.63,8.33,2.71,4.55.21,8.43-1.4,8.43-1.4Z'/%3e%3cpath%20class='cls-2'%20d='M317.49,502.53c-.31,0-.63,0-.95-.02-3.31-.15-6.69-1.24-9.76-3.15l-.58-.36-.37-.57c-3.31-5.18-5.13-11.9-5.13-18.95,0-15.75,8.67-28.08,19.75-28.08s19.75,12.33,19.75,28.08c0,6.93-1.78,13.58-5,18.73l-.94,1.5-1.76-.1c-1.08-.07-2.16.01-3.2.23-1.18.24-1.98.58-2.68.89l-.36.15c-.17.07-4.03,1.65-8.77,1.65ZM310.51,494.62c2.05,1.16,4.21,1.82,6.31,1.92,3.72.16,6.99-1.12,7.15-1.18l.3-.13c.82-.35,2.06-.88,3.84-1.25.94-.19,1.89-.31,2.85-.35,2.12-4,3.28-8.96,3.28-14.15,0-11.98-6.31-22.11-13.77-22.11s-13.77,10.12-13.77,22.11c0,5.65,1.36,10.99,3.83,15.14Z'/%3e%3c/g%3e%3cg%3e%3cpath%20class='cls-3'%20d='M369.36,498.58c1.39.01,2.82-.07,4.45-.47,1.7-.41,3.02-1.02,3.9-1.49,2.81-4.49,4.55-10.51,4.55-17.15,0-13.86-7.5-25.09-16.76-25.09s-16.76,11.24-16.76,25.09c0,6.73,1.78,12.83,4.66,17.34.53.09,10.46,1.72,15.97,1.77Z'/%3e%3cpath%20class='cls-2'%20d='M369.65,501.57c-.11,0-.21,0-.31,0h0c-5.46-.06-14.64-1.52-16.42-1.81l-1.31-.22-.72-1.12c-3.31-5.18-5.13-11.91-5.13-18.95,0-15.75,8.67-28.08,19.75-28.08s19.75,12.33,19.75,28.08c0,6.93-1.78,13.59-5,18.73l-.42.68-.7.37c-1.46.78-3.01,1.37-4.59,1.76-1.95.48-3.6.56-4.87.56ZM369.39,495.6c1,.02,2.25-.03,3.71-.38.85-.21,1.69-.5,2.49-.87,2.37-4.11,3.67-9.36,3.67-14.86,0-11.98-6.31-22.11-13.77-22.11s-13.77,10.12-13.77,22.11c0,5.41,1.24,10.54,3.52,14.61,3.01.47,9.98,1.47,14.15,1.52h0Z'/%3e%3c/g%3e%3cg%3e%3cpath%20class='cls-3'%20d='M346.18,502.33c1.55-.13,2.81-.31,4.21-.7,1.55-.43,2.78-.97,3.61-1.38,2.81-4.49,4.55-10.51,4.55-17.15,0-13.86-7.5-25.09-16.76-25.09s-16.76,11.24-16.76,25.09c0,6.73,1.78,12.83,4.66,17.34.81.31,2.15.78,3.84,1.19,5.34,1.31,9.65.95,12.64.7Z'/%3e%3cpath%20class='cls-2'%20d='M341.49,505.55c-2.48,0-5.39-.23-8.66-1.03-1.43-.35-2.84-.79-4.19-1.3l-.92-.35-.53-.83c-3.31-5.18-5.13-11.9-5.13-18.95,0-15.75,8.67-28.08,19.75-28.08s19.75,12.33,19.75,28.08c0,6.93-1.78,13.59-5,18.73l-.45.72-.76.37c-1.32.66-2.72,1.19-4.14,1.58-1.49.41-2.87.64-4.77.8l-.25-2.98.25,2.98-.25-2.98.24,2.98c-1.36.11-3.02.25-4.94.25ZM331.7,497.98c.83.28,1.69.53,2.55.75,4.86,1.19,8.8.87,11.68.63h0c1.52-.13,2.55-.29,3.66-.6.79-.22,1.57-.5,2.32-.82,2.36-4.11,3.65-9.34,3.65-14.83,0-11.98-6.31-22.11-13.77-22.11s-13.77,10.12-13.77,22.11c0,5.53,1.3,10.77,3.68,14.88Z'/%3e%3c/g%3e%3cg%3e%3cpath%20class='cls-3'%20d='M370.17,305.54c-14.6,40.85-86.58,46.21-112.91,25.79-50.31-39.02-.16-62.03,46.49-61.88,36.68,0,73.13,17.32,66.42,36.1Z'/%3e%3cpath%20class='cls-2'%20d='M299.92,345.97c-17.67,0-34.18-4.27-44.5-12.27-18.08-14.03-25.15-27.24-21.01-39.27,6.63-19.25,40.26-27.98,68.9-27.98.15,0,.3,0,.45,0,28.8,0,56.79,10.06,66.56,23.93,3.67,5.21,4.6,10.8,2.68,16.18h0c-5.84,16.34-20.97,28.82-42.61,35.13-9.9,2.89-20.37,4.28-30.47,4.28ZM303.29,272.45c-31.38,0-58.5,10.25-63.21,23.93-4,11.63,7.49,25.05,19.02,32.58,21.36,13.96,44.5,14.3,69.61,6.97,19.74-5.76,33.46-16.91,38.64-31.39,1.27-3.55.64-7.05-1.93-10.7-8.45-11.99-35.54-21.38-61.67-21.38-.15,0-.31,0-.46,0Z'/%3e%3c/g%3e%3cg%3e%3cpath%20class='cls-3'%20d='M370.06,296.39c-3.77,14.98-29.67,23.24-43.7,27.17-7.26,1.88-14.61,3.3-22,3.29-12.24-.17-24.2-3.19-36.37-7.3-37.94-13.16-43.7-35.8.91-45.46,24.59-5.2,56.19-4.7,79.35,2.47,12.36,4.25,22.78,9.41,21.83,19.71l-.02.13Z'/%3e%3cpath%20class='cls-2'%20d='M304.41,329.85h-.05c-11.01-.15-22.51-2.45-37.33-7.46-21.33-7.4-33.19-17.76-32.54-28.44.43-7.16,6.64-16.92,33.78-22.79,26.24-5.55,57.98-4.55,80.88,2.53,13.15,4.52,25.08,10.39,23.94,22.85l-.1.58c-4,15.91-28.05,24.35-45.8,29.32-9.08,2.36-16.09,3.4-22.77,3.4ZM303.93,273.64c-11.8,0-23.7,1.11-34.42,3.38-18.02,3.9-28.61,10.21-29.04,17.29-.46,7.56,10.46,16.14,28.5,22.4,14.18,4.79,25.12,7,35.43,7.14h.04c6.11,0,12.66-.99,21.17-3.19,25-7,38.98-15.36,41.5-24.83.52-6.73-5.06-11.35-19.84-16.43-12.28-3.8-27.72-5.75-43.34-5.75Z'/%3e%3c/g%3e%3cg%3e%3cellipse%20class='cls-1'%20cx='371.68'%20cy='199.91'%20rx='63.03'%20ry='77.91'%20transform='translate(-47.54%20151.32)%20rotate(-21.66)'/%3e%3cpath%20class='cls-2'%20d='M381.06,279c-10.63,0-21.52-2.97-31.94-8.83-17.09-9.62-30.88-25.91-38.81-45.89s-9.09-41.29-3.25-60.01c5.91-18.95,18.25-33,34.76-39.55,33.84-13.44,74.77,9.36,91.23,50.82h0c16.47,41.46,2.33,86.13-31.5,99.57-6.56,2.61-13.46,3.9-20.48,3.9ZM362.21,126.84c-6.17,0-12.3,1.11-18.19,3.45-14.79,5.87-25.89,18.58-31.24,35.76-5.43,17.42-4.33,37.31,3.1,56.01,7.43,18.7,20.28,33.93,36.18,42.88,15.69,8.83,32.48,10.45,47.27,4.58,30.76-12.22,43.39-53.39,28.14-91.78-12.33-31.04-39.17-50.9-65.26-50.9Z'/%3e%3c/g%3e%3cg%3e%3cpath%20class='cls-4'%20d='M430.1,163.19c-12.49-1.4-50.29-3.97-86.63,19.74-18.92,12.34-30.6,27.35-37.2,37.56-40.01-98.54,74.63-157.09,123.83-57.3Z'/%3e%3cpath%20class='cls-2'%20d='M305.66,226.96l-2.17-5.34c-9.75-24.02-11.2-47.42-4.17-67.65,6.34-18.28,19.08-32.49,35.85-40.02,16.27-7.3,34.5-7.35,51.33-.12,18.76,8.05,34.77,24.66,46.29,48.04l2.42,4.92-5.45-.61c-17.57-1.97-51.93-2.08-84.65,19.27-14.48,9.44-26.7,21.78-36.32,36.68l-3.13,4.84ZM360.82,114.46c-8.17,0-16.05,1.76-23.2,4.97-27.99,12.56-46.78,48.74-30.6,94.6,9.53-13.46,21.22-24.74,34.81-33.61,31.13-20.31,63.62-22.09,83.09-20.71-17.5-32.24-41.87-45.25-64.09-45.25Z'/%3e%3c/g%3e%3cpolygon%20class='cls-2'%20points='356.44%20190.17%20346.4%20196.64%20352.33%20204.42%20335.22%20218.95%20328.49%20206.37%20322.46%20212.18%20343.23%20247.21%20350.09%20241.68%20357.35%20250.81%20375.42%20242.98%20370.53%20233%20379.03%20227.51%20356.44%20190.17'/%3e%3c/svg%3e" alt="Flock XR Bird mascot" class="loading-bird" width="120" height="120" />
+        <img src="data:image/png;base64,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" alt="Flock XR Logo" class="loading-logo" />
+        <div class="loading-spinner" role="img" aria-label="Loading animation"></div>
+        <h1 id="loading-title" class="sr-only">Loading Flock XR</h1>
+        <p id="loading-description" class="loading-text" aria-live="polite">Loading Flock XR...</p>
+      </div>
+    </div>
+
+    <h1 class="sr-only">FlockXR</h1>
+    <label for="importFile" class="sr-only">Import project file</label>
     <input
       type="file"
       id="importFile"
@@ -42,34 +181,65 @@
     />
 
     <div id="flockeditor">
-      <div id="menu">
+      <header role="banner">
+        <nav id="menu" role="navigation" aria-label="Main navigation">
         <div id="menuleft">
-          <img src="data:image/png;base64,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" alt="Flock bird logo" id="logo" />
+          <img src="data:image/png;base64,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" alt="Flock XR logo" id="logo" />
           <!-- Menu Button -->
           <!-- Added the menu wrapper for mobile screens and put about option when clicked shows the popup modal for the screen of the button show info inherently disabled the showinfo button on mobile screens-->
-        <div id = 'about-menu-wrapper'>
-          <button
-            class="bigbutton"
-            id="menuBtn"
-            title="Open menu for more options"
-          >
-            <div class="icon" style="width: 1.25em; height: 1.25em">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" fill="#511D91">
-                <path
-                fill = "#511D91"
-                 d="M0 96C0 78.3 14.3 64 32 64h384c17.7 0 32 14.3 32 32s-14.3 32-32 32H32C14.3 128 0 113.7 0 96zm0 160c0-17.7 14.3-32 32-32h384c17.7 0 32 14.3 32 32s-14.3 32-32 32H32c-17.7 0-32-14.3-32-32zm448 160c0 17.7-14.3 32-32 32H32c-17.7 0-32-14.3-32-32s14.3-32 32-32h384c17.7 0 32 14.3 32 32z"/>
-              </svg>
+          <div id="about-menu-wrapper">
+            <button
+              class="bigbutton"
+              id="menuBtn"
+              title="Open menu for more options"
+              aria-label="Open additional menu options"
+              aria-expanded="false"
+              aria-haspopup="true"
+            >
+              <span class="sr-only">Menu</span>
+              <div class="icon" style="width: 1.25em; height: 1.25em" aria-hidden="true">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" fill="#511D91">
+                  <path
+                    fill="#511D91"
+                    d="M0 96C0 78.3 14.3 64 32 64h384c17.7 0 32 14.3 32 32s-14.3 32-32 32H32C14.3 128 0 113.7 0 96zm0 160c0-17.7 14.3-32 32-32h384c17.7 0 32 14.3 32 32s-14.3 32-32 32H32c-17.7 0-32-14.3-32-32zm448 160c0 17.7-14.3 32-32 32H32c-17.7 0-32-14.3-32-32s14.3-32 32-32h384c17.7 0 32 14.3 32 32z"/>
+                </svg>
+              </div>
+            </button>
+
+            <div id="menuDropdown" class="dropdown hidden" role="menu" aria-labelledby="menuBtn">
+              <!-- Language menu item -->
+              <div id="language-menu-item" role="menuitem" tabindex="0">
+                <span class="menu-icon">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" style="width: 1.2em; height: 1.2em;" aria-hidden="true">
+                    <path d="M352 256c0 22.2-1.2 43.6-3.3 64l-185.3 0c-2.2-20.4-3.3-41.8-3.3-64s1.2-43.6 3.3-64l185.3 0c2.2 20.4 3.3 41.8 3.3 64zm28.8-64l123.1 0c5.3 20.5 8.1 41.9 8.1 64s-2.8 43.5-8.1 64l-123.1 0c2.1-20.6 3.2-42 3.2-64s-1.1-43.4-3.2-64zm112.6-32l-116.7 0c-10-63.9-29.8-117.4-55.3-151.6c78.3 20.7 142 77.5 171.9 151.6zm-149.1 0l-176.6 0c6.1-36.4 15.5-68.6 27-94.7c10.5-23.6 22.2-40.7 33.5-51.5C239.4 3.2 248.7 0 256 0s16.6 3.2 27.8 13.8c11.3 10.8 23 27.9 33.5 51.5c11.6 26 20.9 58.2 27 94.7zm-209 0L18.6 160C48.6 85.9 112.2 29.1 190.6 8.4C165.1 42.6 145.3 96.1 135.3 160zM8.1 192l123.1 0c-2.1 20.6-3.2 42-3.2 64s1.1 43.4 3.2 64L8.1 320C2.8 299.5 0 278.1 0 256s2.8-43.5 8.1-64zM194.7 446.6c-11.6-26-20.9-58.2-27-94.6l176.6 0c-6.1 36.4-15.5 68.6-27 94.6c-10.5 23.6-22.2 40.7-33.5 51.5C272.6 508.8 263.3 512 256 512s-16.6-3.2-27.8-13.8c-11.3-10.8-23-27.9-33.5-51.5zM135.3 352c10 63.9 29.8 117.4 55.3 151.6C112.2 482.9 48.6 426.1 18.6 352l116.7 0zm358.1 0c-30 74.1-93.6 130.9-171.9 151.6c25.5-34.2 45.2-87.7 55.3-151.6l116.7 0z"/>
+                  </svg>
+                </span>
+                <span class="menu-label">Language</span>
+                <div id="language-submenu" class="submenu hidden" role="menu">
+                  <a href="#" data-lang="en" role="menuitem">English</a>
+                  <a href="#" data-lang="fr" role="menuitem">Français</a>
+                </div>
+              </div>
+
+              <!-- About menu item -->
+              <a href="#" id="openAbout" role="menuitem">
+                
+                <span class="menu-icon">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" style="width: 1.2em; height: 1.2em;" aria-hidden="true">
+                    <path d="M256 512A256 256 0 1 0 256 0a256 256 0 1 0 0 512zM216 336l24 0 0-64-24 0c-13.3 0-24-10.7-24-24s10.7-24 24-24l48 0c13.3 0 24 10.7 24 24l0 88 8 0c13.3 0 24 10.7 24 24s-10.7 24-24 24l-80 0c-13.3 0-24-10.7-24-24s10.7-24 24-24zm40-208a32 32 0 1 1 0 64 32 32 0 1 1 0-64z"/>
+                  </svg>
+                </span>
+                <span class="menu-label">About</span>
+              </a>
+
+              <!-- More menu items can go here, using the same structure -->
             </div>
-          </button>
-          <div id="menuDropdown" class="dropdown hidden">
-            <a href="#" id="openAbout">About</a>
-            <!--space for the future options-->
+            <!-- Modal Popup for Info Panel -->
           </div>
-                      <!-- Modal Popup for Info Panel -->
-          </div>
-          <div id="infoModal" class="modal hidden">
-            <div class="modal-content">
-              <span class="close-button" id="closeInfoModal">&times;</span>
+          <div id="infoModal" class="modal hidden" role="dialog" aria-labelledby="modal-title" aria-modal="true">
+            <div class="modal-content" tabindex="-1">
+              <span class="close-button" id="closeInfoModal" aria-label="Close information modal">&times;</span>
+              <h2 id="modal-title" style="margin-top: 0;">About Flock XR</h2>
 
               <div id="model-panel-content">
               <p>
@@ -121,34 +291,117 @@
             const openAbout = document.getElementById("openAbout");
             const infoModal = document.getElementById("infoModal");
             const closeInfoModal = document.getElementById("closeInfoModal");
+            let previouslyFocused = null;
 
             // Toggle menu dropdown
             menuBtn.addEventListener("click", () => {
-              menuDropdown.classList.toggle("hidden");
+              const isHidden = menuDropdown.classList.toggle("hidden");
+              menuBtn.setAttribute("aria-expanded", !isHidden);
+
+              if (!isHidden) {
+                // Focus first menu item when opened
+                setTimeout(() => openAbout.focus(), 0);
+              }
             });
+
+            // Handle keyboard navigation for menu
+            menuBtn.addEventListener("keydown", (e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                menuBtn.click();
+              } else if (e.key === "ArrowDown") {
+                e.preventDefault();
+                if (menuDropdown.classList.contains("hidden")) {
+                  menuBtn.click();
+                } else {
+                  openAbout.focus();
+                }
+              }
+            });
+
+            // Handle keyboard navigation within dropdown
+            openAbout.addEventListener("keydown", (e) => {
+              if (e.key === "Escape") {
+                e.preventDefault();
+                menuDropdown.classList.add("hidden");
+                menuBtn.setAttribute("aria-expanded", "false");
+                menuBtn.focus();
+              } else if (e.key === "ArrowUp") {
+                e.preventDefault();
+                menuBtn.focus();
+              }
+            });
+
+            // Language menu interactions are now handled in main/translation.js
 
             // Open modal when About is clicked
             openAbout.addEventListener("click", (e) => {
               e.preventDefault();
+              previouslyFocused = document.activeElement;
               infoModal.classList.remove("hidden");
-              menuDropdown.classList.add("hidden"); // close the menu
+              menuDropdown.classList.add("hidden");
+              menuBtn.setAttribute("aria-expanded", "false");
+
+              // Focus the close button in the modal
+              setTimeout(() => closeInfoModal.focus(), 0);
             });
 
             // Close modal on close button
             closeInfoModal.addEventListener("click", () => {
               infoModal.classList.add("hidden");
+              if (previouslyFocused) {
+                previouslyFocused.focus();
+                previouslyFocused = null;
+              }
             });
 
-            // Optional: Close on outside click
+            // Handle keyboard events for modal
+            infoModal.addEventListener("keydown", (e) => {
+              if (e.key === "Escape") {
+                e.preventDefault();
+                closeInfoModal.click();
+              } else if (e.key === "Tab") {
+                // Trap focus within modal
+                const focusableElements = infoModal.querySelectorAll(
+                  'button, input, select, textarea, [href], [tabindex]:not([tabindex="-1"])'
+                );
+                const firstElement = focusableElements[0];
+                const lastElement = focusableElements[focusableElements.length - 1];
+
+                if (e.shiftKey && document.activeElement === firstElement) {
+                  e.preventDefault();
+                  lastElement.focus();
+                } else if (!e.shiftKey && document.activeElement === lastElement) {
+                  e.preventDefault();
+                  firstElement.focus();
+                }
+              }
+            });
+
+            // Close menu when clicking outside
             window.addEventListener("click", (e) => {
+              if (!menuBtn.contains(e.target) && !menuDropdown.contains(e.target)) {
+                menuDropdown.classList.add("hidden");
+                menuBtn.setAttribute("aria-expanded", "false");
+              }
+
               if (e.target === infoModal) {
-                infoModal.classList.add("hidden");
+                closeInfoModal.click();
+              }
+            });
+
+            // Close menu on Escape key
+            document.addEventListener("keydown", (e) => {
+              if (e.key === "Escape" && !menuDropdown.classList.contains("hidden")) {
+                menuDropdown.classList.add("hidden");
+                menuBtn.setAttribute("aria-expanded", "false");
+                menuBtn.focus();
               }
             });
           </script>
-          <button class="bigbutton" id="runCodeButton" title="Run your code">
-            <div class="icon">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+          <button class="bigbutton" id="runCodeButton" title="Run your code" aria-label="Run your code">
+            <div class="icon" aria-hidden="true">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="24" height="24">
                 <!--!Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.-->
                 <path
                   fill="#511D91"
@@ -157,9 +410,9 @@
               </svg>
             </div>
           </button>
-          <button class="bigbutton" id="stopCodeButton" title="Stop your code">
-            <div class="icon">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+          <button class="bigbutton" id="stopCodeButton" title="Stop your code" aria-label="Stop your code">
+            <div class="icon" aria-hidden="true">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="24" height="24">
                 <!--!Font Awesome Free 6.7.2  by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.-->
                 <path
                   fill="#511D91"
@@ -170,21 +423,24 @@
           </button>
           <button
             class="bigbutton"
+            id="openButton"
             title="Open a project from a file on your computer"
+            aria-label="Open a project from a file on your computer"
+            tabindex="0"
           >
+            <label for="fileInput" class="sr-only">Select project file to open</label>
             <input type="file" id="fileInput" style="display: none" disabled />
-            <label for="fileInput"
-              ><div class="icon" style="width: 1.25em; height: 1.25em">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-
-                  <!--!Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.-->
-                  <path
-                    fill="#511D91"
-                    d="M64 480H448c35.3 0 64-28.7 64-64V160c0-35.3-28.7-64-64-64H288c-10.1 0-19.6-4.7-25.6-12.8L243.2 57.6C231.1 41.5 212.1 32 192 32H64C28.7 32 0 60.7 0 96V416c0 35.3 28.7 64 64 64z"
-                  />
-                </svg></div
-            ></label>
+            <div class="icon" style="width: 1.25em; height: 1.25em" aria-hidden="true">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+                <!--!Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.-->
+                <path
+                  fill="#511D91"
+                  d="M64 480H448c35.3 0 64-28.7 64-64V160c0-35.3-28.7-64-64-64H288c-10.1 0-19.6-4.7-25.6-12.8L243.2 57.6C231.1 41.5 212.1 32 192 32H64C28.7 32 0 60.7 0 96V416c0 35.3 28.7 64 64 64z"
+                />
+              </svg>
+            </div>
           </button>
+          <label for="projectName" class="sr-only">Project name</label>
           <input
             type="text"
             style="
@@ -195,13 +451,17 @@
             "
             id="projectName"
             placeholder="Project name"
+            aria-describedby="project-name-desc"
           />
+          <div id="project-name-desc" class="sr-only">Enter a name for your project to use when saving or exporting</div>
           <button
             class="bigbutton"
             id="exportCodeButton"
             title="Save this project to a file on your computer."
+            aria-label="Save this project to a file on your computer"
+            aria-describedby="export-desc"
           >
-            <div class="icon" style="width: 1.25em; height: 1.25em">
+            <div class="icon" style="width: 1.25em; height: 1.25em" aria-hidden="true">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
                 <!--!Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.-->
                 <path
@@ -211,12 +471,15 @@
               </svg>
             </div>
           </button>
+          <div id="export-desc" class="sr-only">Downloads your project as a JSON file to your computer</div>
           <select
             id="exampleSelect"
             class="bigbutton"
             title="Choose an example project to load."
             style="font-size: 14px"
             disabled
+            aria-label="Choose an example project to load"
+            aria-describedby="demo-desc"
           >
             <option value="" style="color: #511d91">Demo</option>
              <option id="project-new" value="examples/new.json">New</option>
@@ -254,14 +517,19 @@
               🐵 micro:bit monkey
             </option>
           </select>
+          <div id="demo-desc" class="sr-only">Select from pre-built example projects to explore different features and capabilities</div>
         </div>
+        
         <div id="menuright">
           <button
             class="bigbutton"
             id="toggleDesign"
             title="Design your project"
+            aria-label="Switch to design mode"
+            aria-describedby="design-desc"
+            aria-pressed="false"
           >
-            <div class="icon">
+            <div class="icon" aria-hidden="true">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
                 <!--!Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.-->
                 <path
@@ -271,8 +539,9 @@
               </svg>
             </div>
           </button>
-          <button class="bigbutton" id="togglePlay" title="Use your project">
-            <div class="icon" style="width: 2em">
+          <div id="design-desc" class="sr-only">Toggle design mode to visually create and modify 3D objects in your scene</div>
+          <button class="bigbutton" id="togglePlay" title="Use your project" aria-label="Switch to play mode" aria-describedby="play-desc" aria-pressed="false">
+            <div class="icon" style="width: 2em" aria-hidden="true">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512">
                 <!--!Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.-->
                 <path
@@ -282,27 +551,35 @@
               </svg>
             </div>
           </button>
+          <div id="play-desc" class="sr-only">Toggle play mode to interact with and test your 3D project</div>
           <button
             class="bigbutton"
             title="Switch between fullscreen and normal views."
             id="fullscreenToggle"
+            aria-label="Toggle fullscreen mode"
+            aria-describedby="fullscreen-desc"
           >
-            <div class="icon">
+            <div class="icon" aria-hidden="true">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
                 <!--!Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.-->
                 <path
                   fill="#511D91"
-                  d="M200 32L56 32C42.7 32 32 42.7 32 56l0 144c0 9.7 5.8 18.5 14.8 22.2s19.3 1.7 26.2-5.2l40-40 79 79-79 79L73 295c-6.9-6.9-17.2-8.9-26.2-5.2S32 302.3 32 312l0 144c0 13.3 10.7 24 24 24l144 0c9.7 0 18.5-5.8 22.2-14.8s1.7-19.3-5.2-26.2l-40-40 79-79 79 79-40 40c-6.9 6.9-8.9 17.2-5.2 26.2s12.5 14.8 22.2 14.8l144 0c13.3 0 24-10.7 24-24l0-144c0-9.7-5.8-18.5-14.8-22.2s-19.3-1.7-26.2 5.2l-40 40-79-79 79-79 40 40c6.9 6.9 17.2 8.9 26.2 5.2s14.8-12.5 14.8-22.2l0-144c0-13.3-10.7-24-24-24L312 32c-9.7 0-18.5 5.8-22.2 14.8s-1.7 19.3 5.2 26.2l40 40-79 79-79-79 40-40c6.9-6.9 8.9-17.2 5.2-26.2S209.7 32 200 32z"
+                  d="M200 32L56 32C42.7 32 32 42.7 32 56l0 144c0 9.7 5.8 18.5 14.8 22.2s19.3 1.7 26.2-5.2l40-40 79 79-79 79L73 295c-6.9-6.9-17.2-8.9-26.2-5.2S32 302.3 32 312l0 144c0 13.3 10.7 24 24 24l144 0c9.7 0 18.5-5.8 22-14.8s1.7-19.3-5.2-26.2l-40-40 79-79 79 79-40 40c-6.9 6.9-8.9 17.2-5.2 26.2s12.5 14.8 22.2 14.8l144 0c13.3 0 24-10.7 24-24l0-144c0-9.7-5.8-18.5-14.8-22.2s-19.3-1.7-26.2 5.2l-40 40-79 79-79-79 40-40c6.9-6.9 8.9-17.2 5.2-26.2S209.7 32 200 32z"
                 />
               </svg>
             </div>
           </button>
         </div>
-      </div>
-      <div id="maincontent">
+      </nav>
+      </header>
+      <main role="main">
+        <section id="maincontent" aria-label="Main content area" tabindex="0">
         <div id="rightArea">
-          <canvas id="renderCanvas" touch-action="none" tabindex="0"></canvas>
-          <div class="gizmo-buttons" id="gizmoButtons">
+          <canvas id="renderCanvas" touch-action="none" tabindex="0" aria-label="3D scene canvas" role="img" aria-describedby="canvas-desc canvas-controls-desc"></canvas>
+          <div id="canvas-desc" class="sr-only">Interactive 3D scene where your project runs. Use keyboard controls to navigate and interact with objects.</div>
+          <div id="canvas-controls-desc" class="sr-only">Canvas keyboard controls: Arrow keys or WASD to move camera, Mouse to look around, Space for actions, Tab to navigate to other interface elements.</div>
+          <div id="fullscreen-desc" class="sr-only">Toggle between fullscreen and windowed view of the application</div>
+          <aside class="gizmo-buttons" id="gizmoButtons" aria-label="Design tools">
             <div id="shape-menu">
               <!-- Gizmo button to toggle the shape menu -->
               <button
@@ -310,12 +587,18 @@
                 id="showShapesButton"
                 style="margin-left: 5px"
                 disabled
+                aria-label="Add shapes and models"
+                title="Add shapes and models"
+                aria-expanded="false"
+                aria-haspopup="true"
+                tabindex="10"
               >
                 <img
                   src="data:image/svg+xml,%3c?xml%20version='1.0'%20encoding='utf-8'?%3e%3csvg%20version='1.1'%20id='Layer_1'%20xmlns='http://www.w3.org/2000/svg'%20xmlns:xlink='http://www.w3.org/1999/xlink'%20x='0px'%20y='0px'%20width='122.875px'%20height='122.648px'%20viewBox='0%200%20122.875%20122.648'%20enable-background='new%200%200%20122.875%20122.648'%20xml:space='preserve'%3e%3cg%3e%3cpath%20fill='%23fff'%20fill-rule='evenodd'%20clip-rule='evenodd'%20d='M108.993,47.079c7.683-0.059,13.898,6.12,13.882,13.805%20c-0.018,7.683-6.26,13.959-13.942,14.019L75.24,75.138l-0.235,33.73c-0.063,7.619-6.338,13.789-14.014,13.78%20c-7.678-0.01-13.848-6.197-13.785-13.818l0.233-33.497l-33.558,0.235C6.2,75.628-0.016,69.448,0,61.764%20c0.018-7.683,6.261-13.959,13.943-14.018l33.692-0.236l0.236-33.73C47.935,6.161,54.209-0.009,61.885,0%20c7.678,0.009,13.848,6.197,13.784,13.818l-0.233,33.497L108.993,47.079L108.993,47.079z'/%3e%3c/g%3e%3c/svg%3e"
                   width="20px"
                   height="20px"
-                  alt="position"
+                  alt="Add"
+                  onerror="this.style.display='none'; this.parentNode.textContent='+';"
                 />
               </button>
 
@@ -346,6 +629,7 @@
                     class="scroll-button left"
                     id="scrollModelsLeftButton"
                     disabled
+                    aria-label="Scroll models left"
                   >
                     &Lang;
                   </button>
@@ -356,6 +640,7 @@
                     class="scroll-button right"
                     id="scrollModelsRightButton"
                     disabled
+                    aria-label="Scroll models right"
                   >
                     &Rang;
                   </button>
@@ -367,6 +652,7 @@
                     class="scroll-button left"
                     id="scrollObjectsLeftButton"
                     disabled
+                    aria-label="Scroll objects left"
                   >
                     &Lang;
                   </button>
@@ -377,6 +663,7 @@
                     class="scroll-button right"
                     id="scrollObjectsRightButton"
                     disabled
+                    aria-label="Scroll objects right"
                   >
                     &Rang;
                   </button>
@@ -388,6 +675,7 @@
                     class="scroll-button left"
                     id="scrollCharactersLeftButton"
                     disabled
+                    aria-label="Scroll characters left"
                   >
                     &Lang;
                   </button>
@@ -398,35 +686,40 @@
                     class="scroll-button right"
                     id="scrollCharactersRightButton"
                     disabled
+                    aria-label="Scroll characters right"
                   >
                     &Rang;
                   </button>
                 </div>
               </span>
             </div>
-            <input type="color" id="colorPickerButton" disabled />
-            <button class="gizmo-button" id="positionButton" disabled>
+            <label for="colorPickerButton" class="sr-only">Change object color</label>
+            <input type="color" id="colorPickerButton" disabled title="Change object color" tabindex="11" />
+            <button class="gizmo-button" id="positionButton" disabled aria-label="Move object position" title="Move object position" tabindex="12">
               <img
                 src="data:image/svg+xml,%3csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20512%20512'%3e%3c!--!Font%20Awesome%20Free%206.7.2%20by%20@fontawesome%20-%20https://fontawesome.com%20License%20-%20https://fontawesome.com/license/free%20Copyright%202025%20Fonticons,%20Inc.--%3e%3cpath%20fill='white'%20d='M278.6%209.4c-12.5-12.5-32.8-12.5-45.3%200l-64%2064c-9.2%209.2-11.9%2022.9-6.9%2034.9s16.6%2019.8%2029.6%2019.8l32%200%200%2096-96%200%200-32c0-12.9-7.8-24.6-19.8-29.6s-25.7-2.2-34.9%206.9l-64%2064c-12.5%2012.5-12.5%2032.8%200%2045.3l64%2064c9.2%209.2%2022.9%2011.9%2034.9%206.9s19.8-16.6%2019.8-29.6l0-32%2096%200%200%2096-32%200c-12.9%200-24.6%207.8-29.6%2019.8s-2.2%2025.7%206.9%2034.9l64%2064c12.5%2012.5%2032.8%2012.5%2045.3%200l64-64c9.2-9.2%2011.9-22.9%206.9-34.9s-16.6-19.8-29.6-19.8l-32%200%200-96%2096%200%200%2032c0%2012.9%207.8%2024.6%2019.8%2029.6s25.7%202.2%2034.9-6.9l64-64c12.5-12.5%2012.5-32.8%200-45.3l-64-64c-9.2-9.2-22.9-11.9-34.9-6.9s-19.8%2016.6-19.8%2029.6l0%2032-96%200%200-96%2032%200c12.9%200%2024.6-7.8%2029.6-19.8s2.2-25.7-6.9-34.9l-64-64z'/%3e%3c/svg%3e"
                 width="20px"
                 height="20px"
-                alt="position"
+                alt="Position"
+                onerror="this.style.display='none'; this.parentNode.textContent='⌖';"
               />
             </button>
-            <button class="gizmo-button" id="rotationButton" disabled>
+            <button class="gizmo-button" id="rotationButton" disabled aria-label="Rotate object" title="Rotate object" tabindex="13">
               <img
                 src="data:image/svg+xml,%3csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20512%20512'%3e%3c!--!Font%20Awesome%20Free%206.7.2%20by%20@fontawesome%20-%20https://fontawesome.com%20License%20-%20https://fontawesome.com/license/free%20Copyright%202025%20Fonticons,%20Inc.--%3e%3cpath%20fill='white'%20d='M142.9%20142.9c-17.5%2017.5-30.1%2038-37.8%2059.8c-5.9%2016.7-24.2%2025.4-40.8%2019.5s-25.4-24.2-19.5-40.8C55.6%20150.7%2073.2%20122%2097.6%2097.6c87.2-87.2%20228.3-87.5%20315.8-1L455%2055c6.9-6.9%2017.2-8.9%2026.2-5.2s14.8%2012.5%2014.8%2022.2l0%20128c0%2013.3-10.7%2024-24%2024l-8.4%200c0%200%200%200%200%200L344%20224c-9.7%200-18.5-5.8-22.2-14.8s-1.7-19.3%205.2-26.2l41.1-41.1c-62.6-61.5-163.1-61.2-225.3%201zM16%20312c0-13.3%2010.7-24%2024-24l7.6%200%20.7%200L168%20288c9.7%200%2018.5%205.8%2022.2%2014.8s1.7%2019.3-5.2%2026.2l-41.1%2041.1c62.6%2061.5%20163.1%2061.2%20225.3-1c17.5-17.5%2030.1-38%2037.8-59.8c5.9-16.7%2024.2-25.4%2040.8-19.5s25.4%2024.2%2019.5%2040.8c-10.8%2030.6-28.4%2059.3-52.9%2083.8c-87.2%2087.2-228.3%2087.5-315.8%201L57%20457c-6.9%206.9-17.2%208.9-26.2%205.2S16%20449.7%2016%20440l0-119.6%200-.7%200-7.6z'/%3e%3c/svg%3e"
                 width="20px"
                 height="20px"
-                alt="rotate"
+                alt="Rotate"
+                onerror="this.style.display='none'; this.parentNode.textContent='↻';"
               />
             </button>
-            <button class="gizmo-button" id="scaleButton" disabled>
+            <button class="gizmo-button" id="scaleButton" disabled aria-label="Scale object size" title="Scale object size" tabindex="14">
               <img
                 src="data:image/svg+xml,%3csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20512%20512'%3e%3c!--!Font%20Awesome%20Free%206.7.2%20by%20@fontawesome%20-%20https://fontawesome.com%20License%20-%20https://fontawesome.com/license/free%20Copyright%202025%20Fonticons,%20Inc.--%3e%3cpath%20fill='white'%20d='M320%200c-17.7%200-32%2014.3-32%2032s14.3%2032%2032%2032l82.7%200L201.4%20265.4c-12.5%2012.5-12.5%2032.8%200%2045.3s32.8%2012.5%2045.3%200L448%20109.3l0%2082.7c0%2017.7%2014.3%2032%2032%2032s32-14.3%2032-32l0-160c0-17.7-14.3-32-32-32L320%200zM80%2032C35.8%2032%200%2067.8%200%20112L0%20432c0%2044.2%2035.8%2080%2080%2080l320%200c44.2%200%2080-35.8%2080-80l0-112c0-17.7-14.3-32-32-32s-32%2014.3-32%2032l0%20112c0%208.8-7.2%2016-16%2016L80%20448c-8.8%200-16-7.2-16-16l0-320c0-8.8%207.2-16%2016-16l112%200c17.7%200%2032-14.3%2032-32s-14.3-32-32-32L80%2032z'/%3e%3c/svg%3e"
                 width="20px"
                 height="20px"
-                alt="scale"
+                alt="Scale"
+                onerror="this.style.display='none'; this.parentNode.textContent='⚏';"
               />
             </button>
             <!--button class="gizmo-button" id="boundsButton" disabled>
@@ -445,42 +738,46 @@
                 alt="focus"
               /-->
             </button>
-            <button class="gizmo-button" id="hideButton" disabled>
+            <button class="gizmo-button" id="hideButton" disabled aria-label="Select object" title="Select object" tabindex="15">
               <img
                 src="data:image/svg+xml,%3csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20320%20512'%3e%3c!--!Font%20Awesome%20Free%206.7.2%20by%20@fontawesome%20-%20https://fontawesome.com%20License%20-%20https://fontawesome.com/license/free%20Copyright%202025%20Fonticons,%20Inc.--%3e%3cpath%20fill='white'%20d='M0%2055.2L0%20426c0%2012.2%209.9%2022%2022%2022c6.3%200%2012.4-2.7%2016.6-7.5L121.2%20346l58.1%20116.3c7.9%2015.8%2027.1%2022.2%2042.9%2014.3s22.2-27.1%2014.3-42.9L179.8%20320l118.1%200c12.2%200%2022.1-9.9%2022.1-22.1c0-6.3-2.7-12.3-7.4-16.5L38.6%2037.9C34.3%2034.1%2028.9%2032%2023.2%2032C10.4%2032%200%2042.4%200%2055.2z'/%3e%3c/svg%3e"
                 width="20px"
                 height="20px"
-                alt="select"
+                alt="Select"
+                onerror="this.style.display='none'; this.parentNode.textContent='👆';"
               />
             </button>
-            <button class="gizmo-button" id="duplicateButton" disabled>
+            <button class="gizmo-button" id="duplicateButton" disabled aria-label="Duplicate object" title="Duplicate object" tabindex="16">
               <img
                 src="data:image/svg+xml,%3csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20448%20512'%3e%3c!--!Font%20Awesome%20Free%206.7.2%20by%20@fontawesome%20-%20https://fontawesome.com%20License%20-%20https://fontawesome.com/license/free%20Copyright%202025%20Fonticons,%20Inc.--%3e%3cpath%20fill='white'%20d='M208%200L332.1%200c12.7%200%2024.9%205.1%2033.9%2014.1l67.9%2067.9c9%209%2014.1%2021.2%2014.1%2033.9L448%20336c0%2026.5-21.5%2048-48%2048l-192%200c-26.5%200-48-21.5-48-48l0-288c0-26.5%2021.5-48%2048-48zM48%20128l80%200%200%2064-64%200%200%20256%20192%200%200-32%2064%200%200%2048c0%2026.5-21.5%2048-48%2048L48%20512c-26.5%200-48-21.5-48-48L0%20176c0-26.5%2021.5-48%2048-48z'/%3e%3c/svg%3e"
                 width="20px"
                 height="20px"
-                alt="duplicate"
+                alt="Duplicate"
+                onerror="this.style.display='none'; this.parentNode.textContent='⧉';"
               />
             </button>
-            <button class="gizmo-button" id="deleteButton" disabled>
+            <button class="gizmo-button" id="deleteButton" disabled aria-label="Delete object" title="Delete object" tabindex="17">
               <img
                 src="data:image/svg+xml,%3csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20448%20512'%3e%3c!--!Font%20Awesome%20Free%206.7.2%20by%20@fontawesome%20-%20https://fontawesome.com%20License%20-%20https://fontawesome.com/license/free%20Copyright%202025%20Fonticons,%20Inc.--%3e%3cpath%20fill='white'%20d='M135.2%2017.7L128%2032%2032%2032C14.3%2032%200%2046.3%200%2064S14.3%2096%2032%2096l384%200c17.7%200%2032-14.3%2032-32s-14.3-32-32-32l-96%200-7.2-14.3C307.4%206.8%20296.3%200%20284.2%200L163.8%200c-12.1%200-23.2%206.8-28.6%2017.7zM416%20128L32%20128%2053.2%20467c1.6%2025.3%2022.6%2045%2047.9%2045l245.8%200c25.3%200%2046.3-19.7%2047.9-45L416%20128z'/%3e%3c/svg%3e"
                 width="20px"
                 height="20px"
-                alt="delete"
+                alt="Delete"
+                onerror="this.style.display='none'; this.parentNode.textContent='🗑';"
               />
             </button>
-            <button class="gizmo-button" id="cameraButton" disabled>
+            <button class="gizmo-button" id="cameraButton" disabled aria-label="Camera controls" title="Camera controls" tabindex="18">
               <img
                 src="data:image/svg+xml,%3csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20576%20512'%3e%3c!--!Font%20Awesome%20Free%206.7.2%20by%20@fontawesome%20-%20https://fontawesome.com%20License%20-%20https://fontawesome.com/license/free%20Copyright%202025%20Fonticons,%20Inc.--%3e%3cpath%20fill='white'%20d='M0%20128C0%2092.7%2028.7%2064%2064%2064l256%200c35.3%200%2064%2028.7%2064%2064l0%20256c0%2035.3-28.7%2064-64%2064L64%20448c-35.3%200-64-28.7-64-64L0%20128zM559.1%2099.8c10.4%205.6%2016.9%2016.4%2016.9%2028.2l0%20256c0%2011.8-6.5%2022.6-16.9%2028.2s-23%205-32.9-1.6l-96-64L416%20337.1l0-17.1%200-128%200-17.1%2014.2-9.5%2096-64c9.8-6.5%2022.4-7.2%2032.9-1.6z'/%3e%3c/svg%3e"
                 width="20px"
                 height="20px"
-                alt="camera"
+                alt="Camera"
+                onerror="this.style.display='none'; this.parentNode.textContent='📷';"
               />
             </button>
-          </div>
+          </aside>
 
           <!---
-          
+
             <button class="gizmo-button" id="cutButton" disabled>
               <img
                 src="images/cut.svg"
@@ -509,8 +806,8 @@
 
           <!-- Info panel collapse starts -->
 
-          <div id="info-panel">
-            <button id="info-panel-toggle" style="cursor: pointer">
+          <aside id="info-panel" role="complementary" aria-label="Information panel">
+            <button id="info-panel-toggle" style="cursor: pointer" aria-expanded="false" aria-controls="info-panel-content">
               Show Info
             </button>
             <div id="info-panel-content" style="display: none">
@@ -542,7 +839,7 @@
                     >
                       <path
                         fill="#511D91"
-                        d="M0 256a256 256 0 1 1 512 0A256 256 0 1 1 0 256zM188.3 147.1c-7.6 4.2-12.3 12.3-12.3 20.9l0 176c0 8.7 4.7 16.7 12.3 20.9s16.8 4.1 24.3-.5l144-88c7.1-4.4 11.5-12.1 11.5-20.5s-4.4-16.1-11.5-20.5l-144-88c-7.4-4.5-16.7-4.7-24.3-.5z"
+                        d="M0 256a256 256 0 1 1 512 0 A256 256 0 1 1 0 256zM188.3 147.1c-7.6 4.2-12.3 12.3-12.3 20.9l0 176c0 8.7 4.7 16.7 12.3 20.9s16.8 4.1 24.3-0.5l144-88c7.1-4.4 11.5-12.1 11.5-20.5s-4.4-16.1-11.5-20.5l-144-88c-7.4-4.5-16.7-4.7-24.3-0.5z"
                       />
                     </svg>
                   </div>
@@ -555,7 +852,7 @@
                 >Get in touch</a
               ></p>
             </div>
-          </div>
+          </aside>
 
           <script>
             const toggleButton = document.getElementById("info-panel-toggle");
@@ -565,9 +862,11 @@
               if (infoContent.style.display === "none") {
                 infoContent.style.display = "block";
                 toggleButton.textContent = "Hide Info";
+                toggleButton.setAttribute("aria-expanded", "true");
               } else {
                 infoContent.style.display = "none";
                 toggleButton.textContent = "Show Info";
+                toggleButton.setAttribute("aria-expanded", "false");
               }
             });
           </script>
@@ -575,13 +874,13 @@
           <!-- Info panel collapse ends -->
 
            <div id="flocklink">
-  <a href="https://flockxr.com/" target="_blank" id="info-panel-link">
-    <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMgAAAAnCAYAAABKSgfJAAAACXBIWXMAAAF7AAABewHg/ioYAAAJXUlEQVR4nO2d7XXbOBaGn8yZ//I2QHMrsLYCMRXEwwbMbYB2KohSQWQ2sHQDtFLBUhWMVEEkNjBSBdkfuFRoih8ACMqyd95zdGxJIABe4H5fUB9+/vzJuRF6yRSYAn7tq3VWxMszjX8F7LMiXo89ni5CLwlQNPFrX52FLq4QeskVcAsEqHW+aWi2AW6zIt729HULPKBoct3S7ACU67iv/L+VF1kR51qTr+HDuRhEFj9CEW7S0fR7VsS3I43/AHyqfXUA/KyI967H1IEBXR6zIn44x5xsUbmXO81LvmZFPO/pc0s7Y9hgg2KiHMVI6y4m/d3hwK0IvWQB3Gs2v3I89hWwBGYtTdavyBxLThm2DdMx5wIvNHv5KrFH0XDZRCuh8QJ9xiiho71dMgf80mbH/RB6yQpYNGnpFwwiN+pyIcrNN/rilgi9JEJJY92N54deMkcR6NyMojvH0SBMEaFo1rUZPwGL0EuatO0Uc+YAJcUvATNgFnrJDnioMsrvsjke6FbvtviMkiyjQxY6pdne7cI16v5TlKT8v4DY9nPM6DVBMVJa+9y3mMKmTyDJmp4T18Bz6CVH0+834AvjMAc4NpfaIITMMWeOEos+Z/E9QSyFFDt6RQ2f+Rb95BptzrJ/GvBFLBF+e6UJOIMsds4wJv/yCtLq1SCS21azz0Iv8R1M49KjcovQS67ePIOgFnqoBvx8SeHec0BMiI3l5UOjjAfNsGtg0fcqK+IPwL+Aj8CjRR+g9tTDWaJYriDaIuCl02/jHP4NhQj40/K6Ib7l6NqjIvDy0EvWwH8surl9MxpEnMq/gGeU31S+XMBJ3iX0kkBevov+NMa7GjKWbKKvFpfeDLzHMRnkxBLIijgFniz6uhlbg2xH7t8VjP2PSnh0SkOOJfSS6tsVihZLxxnxCPgmY+1QmyOXcbY6HWRFPBfhY+qwR6goGJg50wcDGgQG/ZZoi4zlWFgbY2uQrauOhKh/oDaCa0xCL0lDL4n6JKNoiBxlmtzTnoCsYoZanOfQS9KBc60iqvx/jcpVfAN+hF6yDr3kQcxSk35sxjYRMK/lnG9tLhqbQZw6vlkRL7Mi9lEO2GfcMssdyk79IZn/FxBzZgn8Fz2m6BpnMISRu6T+DYpZtlIC0gpLU+vaMvJnwiA2Yd7c4ppWGJtYEiE4ooX4AbAdKzMtC7oW08B1KQLAfegllLVPshGWI41li0Cz3QRlCnW2tzS1llIrpcsoJuYVhnPpg29z0WAfpCVc1/TZGBgr871DVLKjPMsYCAzapprtIszu9RozoXEO86ptT9hou8ObiWK1wBXBH1Ex84/AP7Mi9rMiLs2sFLfMYZt7qCPQbHdAk06imeeW89FBqtvQNkrWkc+yiVSu31QepAFL3CQK5y1VqgHuCwrzoR3I5tGV3I331oasiBdiag3xs5qwMzyT4bsaWMpGbMzjfDCDtPggZzmIlBXxXootvw3o5mvHBjI9f7FCScktaoEDTs95uNB6gWa7XUUTmiBCBVhcas5zmFcnQRvZn7ZJzaUxg4ReonPCaoVdDNsYIvFsy603tBBPfA8T7dF00CuVviIUo1zZnmyrQdeejmw6z4p4K3N+trm+Balhexuf4UpC8Mf32Dv6u6yIRzOxXKvnTmRFHEmyzIRJNkDQoT1MbdZWbSOZ3NSwvy4EGm0ehzBjVsTL0Eu+48bE3FlYFDYh3gnu9t4c3kE1b4msiCP0CtMOKLNq2mOb+wbDb85cLt8nFTe4cbZdmUXXfbmYC8NKhNr7YRBBVS1vOK2/eUKdP59r9BUYjHuOSuBZ6CU/NUzcAxA5ykHNHfRRYmkYmQocjm2CAxXrYSwTazVGp0Jgn2bi1Wui9qiNWzW7Gs9UO8B2hD5tcECZjYMZViS+y8ToBMUkXWbta2NDTbi8iTCv5fHQGaf26G3oJfkFL9BQ5A6jh6YRPB3coIIikUbbc54mPKDmdfJcgrFMrNxVR1Lc94ybsoM74K/QS3Ip5PMd9HlJ+NRUR2YKoctYD5S4C71Eh/ls1vtJXqbJ2HVWxI35IhsGWaE4rgtOnDsJNZqGb3eoOXYVMs74VfWavjNGuS/PUw/A3ME8uvBtpCPOCwnWBIbXzdqCCDbFip2Dh14yfUU1/yJ0Kxul7yTZHUqq/THgrEZged1YWIResrZZh8pTEcdG3vIIocFlJpJA3mHmQy1oyL04N7EcZ9BN1extleCGJ8nqmiQ3GNfvbXFelA6xjR0fYZZBX6Fq2L4bjjOh3dLwDftqguk+vGnSIu8pzLtryUU0fdaE+oLpXgcacX45jOVKMveZuKCkp41GNNXauSQkbZz6mQufSVA3qXOLPub1D94Tg2xbPjeRotWz1rnh+Mu6XR16iR96yTz0kj3K1EstpXoVj+hn5WdSq6YFy9BuadZssQvv3zcIDhv/ZFt7b2PJnPgil84gJicG85bPTYntw3HBTaIhE+BPiZCVT9L4wcsH802wrI8SPMkhrtzgGpNnftlogaoPkVpcD6fm7eAQ74Aym3n1zaUzyNygbRtRh9Tm2Kj/Mv/S5j/Zmlk7ZANbBBN62w8I7W7Lf8Tn0zH/6ujyR3TRpDFsNNqLB+NdNIMYOtlR3XyxtPmrhF7i7oBTCVuGrR9hNnGKrzVMrch4Rhw1bRW2PsVNZY42JlZT8tc2YFTO47IZBI5FiJ/pl0wTlKq+Fdv/FnOV/1SLgu1RG8dGKo6N3LB9n9kSWcyhiS6pRT8lvoj0dpVFzy2vOwrWi2cQUGc+UL7BV7r9kk+orPsP+WsSrjzQYNJJ2DrAHZO46sfEJOn88Z0BdVcnElo0imnIt8TjgKroJm1hq0Emb+7h1VkR76UcwEc99ucRd+bPCpi2LY4wyRQ3RZhOapw0N+IK+Kjxy1SRizlVMKd/bhvU/B6BfwP/qMxzjfnanphYQiPbR0MFoDLpB7olbfmEjz3jPq2k3HxpX0PZsMdFFwk4RanmAL2TZCvUQqQ6yU0hdiCS5UGj/zq+o0oh8spnfbQv5wnNdElpdqyfUPeVN3zXBNvAQaO/IfQ89llG0XSTyFWGDjV/1KnjXtfYaUcfzvgbha+FSok8ODwrX1m4kjGbsJYxcxdjtswjRzn+GxTDaD92VK6fYvYA6/IpKSYM+GqQdXrg1zrpBEkOKGE2f/cM8jf60XPOBoTRUZG07VkmdQaEv37tuIoXv1n5P9rmoMjSNlSdAAAAAElFTkSuQmCC" alt="Flock XR" style="width: 100px;">
+  <a href="https://flockxr.com/" target="_blank" id="info-panel-link" tabindex="20" aria-label="Visit Flock XR website - opens in new tab" title="Visit Flock XR website">
+    <img src="data:image/png;base64,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" alt="Flock XR logo" style="width: 100px;">
   </a>
 </div>
 
         </div>
-        <div id="codePanel">
+        <div id="codePanel" aria-label="Code editor panel">
           <!--button
             value="Toolbox"
             id="toolboxControl"
@@ -596,10 +895,18 @@
           >
             <strong>+ Code</strong>
         </button-->
-          <div id="blocklyDiv"></div>
+          <div id="blocklyDiv" role="application" aria-label="Visual programming workspace" aria-describedby="blockly-desc" tabindex="0"></div>
+          <div id="blockly-desc" class="sr-only">Drag and drop code blocks to create your program. Use arrow keys and Enter to navigate and interact with blocks.</div>
         </div>
+      </section>
+      </main>
+      <div id="bottomBar" role="toolbar" aria-label="View switching controls">
+        <button id="switchViews" aria-label="Switch between code and canvas views" aria-describedby="switch-desc">Code >></button>
+        <div id="switch-desc" class="sr-only">Toggle between coding view and 3D scene view</div>
       </div>
-      <div id="bottomBar"><button id="switchViews">Code >></button></div>
+
+      <!-- Live region for dynamic announcements -->
+      <div id="announcements" aria-live="polite" aria-atomic="true" class="sr-only"></div>
     </div>
   </body>
 </html>
