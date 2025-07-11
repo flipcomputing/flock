@@ -12,7 +12,7 @@ Flock XR is based on Blockly, the Babylon JS library and the Havok physics engin
 
 ## Development info
 
-View the current development version at [https://flipcomputing.github.io/flock/]([https://flockxr.com/](https://flipcomputing.github.io/flock/))
+View the current development version at [flipcomputing.github.io/flock/](https://flipcomputing.github.io/flock/)
 
 ### Prerequisites
 - Node.js (version 18 or higher)
