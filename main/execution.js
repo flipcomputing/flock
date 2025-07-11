@@ -108,6 +108,8 @@ export function stopCode() {
 
 	// Switch to code view
 	switchView(codeMode);
+
+	console.log("Switched view.");
 }
 
 window.stopCode = stopCode;

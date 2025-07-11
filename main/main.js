@@ -143,6 +143,27 @@ function initializeApp() {
 				console.warn("executeCode is not defined.");
 			}
 		}
+
+		/*if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") {
+			e.preventDefault();
+			// Force any focused element to blur, so pending changes are committed
+			if (document.activeElement && typeof document.activeElement.blur === "function") {
+				document.activeElement.blur();
+			}
+			// Give the browser a tick to finish handling blur before continuing
+			setTimeout(() => {
+				document.getElementById("stopCodeButton").click();
+			}, 0);
+		}*/
+
+		if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "g") {
+			e.preventDefault();
+			const btn = document.getElementById("showShapesButton");
+			if (btn && !btn.disabled && btn.offsetParent !== null) {
+				btn.focus();
+			}
+		}
+
 	});
 
 	toggleDesignButton.addEventListener("click", toggleDesignMode);
