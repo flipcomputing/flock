@@ -1,4 +1,3 @@
-
 import * as Blockly from "blockly";
 import { javascriptGenerator } from "blockly/javascript";
 import { FieldGridDropdown } from "@blockly/field-grid-dropdown";
@@ -35,6 +34,7 @@ import { defineTextBlocks } from "../blocks/text.js";
 import { defineGenerators } from "../generators";
 
 let workspace = null;
+export { workspace };
 
 export function initializeBlocks() {
 	defineBaseBlocks();
@@ -182,7 +182,9 @@ function setupAutoValueBehavior(workspace) {
 								.sourceBlock_;
 
 						function deepCopyBlock(originalBlock) {
-							var newBlock = workspace.newBlock(originalBlock.type);
+							var newBlock = workspace.newBlock(
+								originalBlock.type,
+							);
 
 							if (originalBlock.isShadow()) {
 								newBlock.setShadow(true);
@@ -229,7 +231,7 @@ function setupAutoValueBehavior(workspace) {
 										newNestedBlock.outputConnection
 									) {
 										newInput.connection.connect(
-											newNestedBlock.outputConnection
+											newNestedBlock.outputConnection,
 										);
 									}
 								}
@@ -315,23 +317,17 @@ export function overrideSearchPlugin(workspace) {
 
 		const query = this.searchField?.value.toLowerCase().trim() || "";
 
-		const matches = this.blockSearcher.indexedBlocks_.filter(
-			(block) => {
-				if (block.text) {
-					return block.text.toLowerCase().includes(query);
-				}
-				return false;
-			},
-		);
+		const matches = this.blockSearcher.indexedBlocks_.filter((block) => {
+			if (block.text) {
+				return block.text.toLowerCase().includes(query);
+			}
+			return false;
+		});
 
 		this.showMatchingBlocks(matches);
 	};
 
-	function createXmlFromJson(
-		blockJson,
-		isShadow = false,
-		isTopLevel = true,
-	) {
+	function createXmlFromJson(blockJson, isShadow = false, isTopLevel = true) {
 		const blockXml = Blockly.utils.xml.createElement(
 			isShadow ? "shadow" : "block",
 		);
@@ -341,10 +337,7 @@ export function overrideSearchPlugin(workspace) {
 			blockXml.setAttribute("inline", "true");
 		}
 
-		if (
-			blockJson.type === "lists_create_with" &&
-			blockJson.extraState
-		) {
+		if (blockJson.type === "lists_create_with" && blockJson.extraState) {
 			const mutation = Blockly.utils.xml.createElement("mutation");
 			mutation.setAttribute("items", blockJson.extraState.itemCount);
 			blockXml.appendChild(mutation);
@@ -412,12 +405,8 @@ export function overrideSearchPlugin(workspace) {
 				blockJson.type === "lists_create_with" &&
 				blockJson.extraState
 			) {
-				const mutation =
-					Blockly.utils.xml.createElement("mutation");
-				mutation.setAttribute(
-					"items",
-					blockJson.extraState.itemCount,
-				);
+				const mutation = Blockly.utils.xml.createElement("mutation");
+				mutation.setAttribute("items", blockJson.extraState.itemCount);
 				mutations.push(mutation);
 			} else {
 				mutations.push(null);
