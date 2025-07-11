@@ -1,5 +1,6 @@
 import * as Blockly from "blockly";
 import "@blockly/toolbox-search";
+import { translate } from './main/translation.js';
 
 export const categoryColours = {
 	Events: 5,
@@ -27,7 +28,7 @@ const toolboxSearch = {
 
 const toolboxSceneMeshes = {
 	kind: "category",
-	name: "Meshes",
+	name: "%{BKY_CATEGORY_MESHES}",
 	icon: "./images/meshes.svg",
 	colour: categoryColours["Scene"],
 	contents: [
@@ -586,7 +587,7 @@ const toolboxSceneMeshes = {
 
 const toolboxSceneXR = {
 	kind: "category",
-	name: "XR",
+	name: "%{BKY_CATEGORY_XR}",
 	icon: "./images/xr.svg",
 	colour: categoryColours["Scene"],
 	contents: [
@@ -610,7 +611,7 @@ const toolboxSceneXR = {
 
 const toolboxSceneLights = {
 	kind: "category",
-	name: "Effects",
+	name: "%{BKY_CATEGORY_EFFECTS}",
 	icon: "./images/lights.svg",
 	colour: categoryColours["Scene"],
 	contents: [
@@ -799,7 +800,7 @@ const toolboxSceneLights = {
 
 const toolboxSceneCamera = {
 	kind: "category",
-	name: "Camera",
+	name: "%{BKY_CATEGORY_CAMERA}",
 	icon: "./images/camera.svg",
 	colour: categoryColours["Scene"],
 	contents: [
@@ -833,7 +834,7 @@ const toolboxSceneCamera = {
 
 const toolboxScene = {
 	kind: "category",
-	name: "Scene",
+	name: "%{BKY_CATEGORY_SCENE}",
 	icon: "./images/scene.svg",
 	colour: categoryColours["Scene"],
 	contents: [
@@ -952,7 +953,7 @@ const toolboxScene = {
 
 const toolboxEvents = {
 	kind: "category",
-	name: "Events",
+	name: "%{BKY_CATEGORY_EVENTS}",
 	icon: "./images/events.svg",
 	colour: categoryColours["Events"],
 	contents: [
@@ -1016,7 +1017,7 @@ const toolboxEvents = {
 
 const toolboxTransformPhysics = {
 	kind: "category",
-	name: "Physics",
+	name: "%{BKY_CATEGORY_PHYSICS}",
 	icon: "./images/physics.svg",
 	colour: categoryColours["Transform"],
 	contents: [
@@ -1066,7 +1067,7 @@ const toolboxTransformPhysics = {
 
 const toolboxTransformConnect = {
 	kind: "category",
-	name: "Connect",
+	name: "%{BKY_CATEGORY_CONNECT}",
 	icon: "./images/connect.svg",
 	colour: categoryColours["Transform"],
 	contents: [
@@ -1188,7 +1189,7 @@ const toolboxTransformConnect = {
 
 const toolboxTransformCombine = {
 	kind: "category",
-	name: "Combine",
+	name: "%{BKY_CATEGORY_COMBINE}",
 	icon: "./images/combine.svg",
 	colour: categoryColours["Transform"],
 	contents: [
@@ -1301,7 +1302,7 @@ const toolboxTransformCombine = {
 
 const toolboxTransform = {
 	kind: "category",
-	name: "Transform",
+	name: "%{BKY_CATEGORY_TRANSFORM}",
 	icon: "./images/motion.svg",
 	colour: categoryColours["Transform"],
 	contents: [
@@ -1584,7 +1585,7 @@ const toolboxTransform = {
 
 const toolboxAnimateKeyframe = {
 	kind: "category",
-	name: "Keyframe",
+	name: "%{BKY_CATEGORY_KEYFRAME}",
 	icon: "./images/keyframe.svg",
 	colour: categoryColours["Animate"],
 	contents: [
@@ -1782,7 +1783,7 @@ const toolboxAnimateKeyframe = {
 
 const toolboxAnimate = {
 	kind: "category",
-	name: "Animate",
+	name: "%{BKY_CATEGORY_ANIMATE}",
 	icon: "./images/animate.svg",
 	colour: categoryColours["Animate"],
 	contents: [
@@ -1885,7 +1886,7 @@ const toolboxAnimate = {
 
 const toolboxControl = {
 	kind: "category",
-	name: "Control",
+	name: "%{BKY_CATEGORY_CONTROL}",
 	icon: "./images/control.svg",
 	colour: categoryColours["Control"],
 	contents: [
@@ -2027,7 +2028,7 @@ const toolboxControl = {
 
 const toolboxCondition = {
 	kind: "category",
-	name: "Condition",
+	name: "%{BKY_CATEGORY_CONDITION}",
 	icon: "./images/conditions.svg",
 	colour: categoryColours["Logic"],
 	contents: [
@@ -2081,7 +2082,7 @@ const toolboxCondition = {
 
 const toolboxSensing = {
 	kind: "category",
-	name: "Sensing",
+	name: "%{BKY_CATEGORY_SENSING}",
 	icon: "./images/sensing.svg",
 	colour: categoryColours["Sensing"],
 	contents: [
@@ -2145,7 +2146,7 @@ const toolboxSensing = {
 
 const toolboxText = {
 	kind: "category",
-	name: "Text",
+	name: "%{BKY_CATEGORY_TEXT}",
 	icon: "./images/text.svg",
 	colour: categoryColours["Text"],
 	contents: [
@@ -2546,7 +2547,7 @@ const toolboxText = {
 		},
 		{
 			kind: "category",
-			name: "Strings",
+			name: "%{BKY_CATEGORY_STRINGS}",
 			icon: "./images/text.svg",
 			colour: categoryColours["Text"],
 			contents: [
@@ -2759,7 +2760,7 @@ const toolboxText = {
 
 const toolboxMaterials = {
 	kind: "category",
-	name: "Materials",
+	name: "%{BKY_CATEGORY_MATERIALS}",
 	icon: "./images/looks.svg",
 	colour: categoryColours["Materials"],
 	contents: [
@@ -2968,7 +2969,7 @@ const toolboxMaterials = {
 
 const toolboxSound = {
 	kind: "category",
-	name: "Sound",
+	name: "%{BKY_CATEGORY_SOUND}",
 	icon: "./images/sound.svg",
 	colour: categoryColours["Sound"],
 	contents: [
@@ -3120,7 +3121,7 @@ const toolboxSound = {
 
 const toolboxVariables = {
 	kind: "category",
-	name: "Variables",
+	name: "%{BKY_CATEGORY_VARIABLES}",
 	icon: "./images/variables.svg",
 	colour: categoryColours["Variables"],
 	custom: "VARIABLE",
@@ -3129,7 +3130,7 @@ const toolboxVariables = {
 
 const toolboxLists = {
 	kind: "category",
-	name: "Lists",
+	name: "%{BKY_CATEGORY_LISTS}",
 	icon: "./images/lists.svg",
 	colour: categoryColours["Lists"],
 	contents: [
@@ -3195,7 +3196,7 @@ const toolboxLists = {
 
 const toolboxMath = {
 	kind: "category",
-	name: "Math",
+	name: "%{BKY_CATEGORY_MATH}",
 	icon: "./images/math.svg",
 	colour: categoryColours["Math"],
 	contents: [
@@ -3364,7 +3365,7 @@ const toolboxSnippets = {
 	kind: "category",
 	icon: "./images/snippets.svg",
 	colour: categoryColours["Snippets"],
-	name: "Snippets",
+	name: "%{BKY_CATEGORY_SNIPPETS}",
 	contents: [
 		{
 			type: "start",
@@ -3687,7 +3688,7 @@ const toolboxSnippets = {
 };
 const toolboxFunctions = {
 	kind: "category",
-	name: "Functions",
+	name: "%{BKY_CATEGORY_FUNCTIONS}",
 	icon: "./images/functions.svg",
 	custom: "PROCEDURE",
 	colour: "%{BKY_PROCEDURES_HUE}",

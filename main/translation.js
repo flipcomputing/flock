@@ -17,6 +17,18 @@ const translations = {
 
 let currentLanguage = 'en';
 
+// Initialize English translations immediately
+function initializeEnglishTranslations() {
+  Object.keys(translations.en).forEach(key => {
+    if (key.startsWith('CATEGORY_')) {
+      Blockly.Msg[key] = translations.en[key];
+    }
+  });
+}
+
+// Call this immediately when module loads
+initializeEnglishTranslations();
+
 function cacheOriginalMessages() {
   if (!isOriginalMessagesCached) {
     // Cache all current Blockly messages (which are English by default)
@@ -44,7 +56,7 @@ export function setLanguage(language) {
     });
     // Apply custom French message overrides
     Object.keys(translations.fr).forEach(key => {
-      if (key.startsWith('CONTROLS_') || key.startsWith('LISTS_') || key.startsWith('TEXT_')) {
+      if (key.startsWith('CONTROLS_') || key.startsWith('LISTS_') || key.startsWith('TEXT_') || key.startsWith('CATEGORY_')) {
         Blockly.Msg[key] = translations.fr[key];
       }
     });
@@ -56,7 +68,7 @@ export function setLanguage(language) {
     });
     // Apply custom English message overrides
     Object.keys(translations.en).forEach(key => {
-      if (key.startsWith('CONTROLS_') || key.startsWith('LISTS_') || key.startsWith('TEXT_')) {
+      if (key.startsWith('CONTROLS_') || key.startsWith('LISTS_') || key.startsWith('TEXT_') || key.startsWith('CATEGORY_')) {
         Blockly.Msg[key] = translations.en[key];
       }
     });
@@ -73,10 +85,15 @@ export function setLanguage(language) {
       }
     });
     
-    // Refresh the toolbox
-    if (workspace.getToolbox()) {
-      workspace.getToolbox().refreshSelection();
-      workspace.refreshToolboxSelection();
+    // Refresh the toolbox by updating it with the original toolbox configuration
+    const toolboxElement = document.getElementById('toolbox');
+    if (toolboxElement) {
+      workspace.updateToolbox(toolboxElement);
+    } else {
+      // If no toolbox element, try importing the toolbox configuration
+      import('../toolbox.js').then(({ toolbox }) => {
+        workspace.updateToolbox(toolbox);
+      });
     }
   }
 }
@@ -113,5 +130,23 @@ export function updateCustomBlockTranslations() {
         block.render();
       }
     });
+  }
+}
+
+// Function to update toolbox translations (no longer needed with BKY format)
+export function updateToolboxTranslations() {
+  // No longer needed - Blockly handles BKY translations automatically
+  // But we need to refresh the toolbox to pick up new translations
+  const workspace = Blockly.getMainWorkspace();
+  if (workspace && workspace.getToolbox()) {
+    const toolboxElement = document.getElementById('toolbox');
+    if (toolboxElement) {
+      workspace.updateToolbox(toolboxElement);
+    } else {
+      // If no toolbox element, try importing the toolbox configuration
+      import('../toolbox.js').then(({ toolbox }) => {
+        workspace.updateToolbox(toolbox);
+      });
+    }
   }
 }
