@@ -112,3 +112,6 @@ export function stopCode() {
 }
 
 window.stopCode = stopCode;
+
+window.executeCode = executeCode;
+window.exportCode = () => exportCode(workspace);

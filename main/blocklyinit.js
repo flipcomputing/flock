@@ -60,6 +60,21 @@ export function initializeBlocks() {
 	defineGenerators();
 }
 
+
+Blockly.utils.colour.setHsvSaturation(0.3); // 0 (inclusive) to 1 (exclusive), defaulting to 0.45
+Blockly.utils.colour.setHsvValue(0.85); // 0 (inclusive) to 1 (exclusive), defaulting to 0.65
+
+/*
+function Mesh(id = "UNDEFINED") {
+	this.id = id;
+}
+flock.Mesh = Mesh;
+Mesh.prototype.toString = function MeshToString() {
+	console.log("Mesh.toString", `${this.id}`);
+	return `${this.id}`;
+};
+*/
+
 export function initializeWorkspace() {
 	// Set Blockly color configuration
 	Blockly.utils.colour.setHsvSaturation(0.3);

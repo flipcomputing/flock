@@ -1,6 +1,6 @@
 
 import * as Blockly from "blockly";
-import { getMetadata } from "meta-png";
+import { workspace } from "./blocklyinit.js";
 
 // Function to save the current workspace state
 export function saveWorkspace(workspace) {
@@ -331,3 +331,8 @@ export function loadExample(workspace, executeCallback) {
 
 	exampleSelect.value = "";
 }
+
+export function loadExampleWrapper() {
+	loadExample(workspace, executeCode);
+}
+window.loadExample = loadExampleWrapper;
