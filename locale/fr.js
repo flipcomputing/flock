@@ -23,5 +23,15 @@ export default {
   CONTROLS_FOR_TITLE: "pour chaque %1 de %2 à %3 par %4",
   
   // Add more custom block translations as needed
+  
+  // Tooltip translations
+  set_sky_color_tooltip: "Définir la couleur du ciel de la scène.\nMot-clé: sky",
+  create_ground_tooltip: "Ajouter un plan de sol avec collisions activées à la scène.\nMot-clé: ground",
+  set_background_color_tooltip: "Définir la couleur d'arrière-plan de la scène.\nMot-clé: background",
+  create_map_tooltip: "Créer une carte avec le nom et le matériau sélectionnés.\nMot-clé: map",
+  show_tooltip: "Afficher le maillage sélectionné.\nMot-clé: show",
+  hide_tooltip: "Cacher le maillage sélectionné.\nMot-clé: hide",
+  dispose_tooltip: "Supprimer le maillage spécifié de la scène.\nMot-clé: dispose",
+  clone_mesh_tooltip: "Cloner un maillage et l'assigner à une variable.\nMot-clé: clone",
 };
 

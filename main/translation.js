@@ -95,6 +95,12 @@ export function getBlocklyMessage(key) {
   return Blockly.Msg[key] || key;
 }
 
+// Helper function to get translated tooltips
+export function getTooltip(blockType) {
+  const tooltipKey = blockType + '_tooltip';
+  return translations[currentLanguage]?.[tooltipKey] || translations['en']?.[tooltipKey] || '';
+}
+
 // Function to update custom block translations
 export function updateCustomBlockTranslations() {
   // This function can be called after language change to update any custom blocks

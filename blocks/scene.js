@@ -13,7 +13,7 @@ import {
 import {
   updateOrCreateMeshFromBlock,
 } from "../ui/blockmesh.js";
-import { translate } from "../main/translation.js";
+import { translate, getTooltip } from "../main/translation.js";
 
 export function defineSceneBlocks() {
 
@@ -33,7 +33,7 @@ export function defineSceneBlocks() {
 			previousStatement: null,
 			nextStatement: null,
 			colour: categoryColours["Scene"],
-			tooltip: "Set the sky color of the scene.\nKeyword: sky",
+			tooltip: getTooltip("set_sky_color"),
 		  });
 		  this.setHelpUrl(getHelpUrlFor(this.type));
 
@@ -77,8 +77,7 @@ export function defineSceneBlocks() {
 			previousStatement: null,
 			nextStatement: null,
 			colour: categoryColours["Scene"],
-			tooltip:
-			  "Add a ground plane with collisions enabled to the scene. \nKeyword: ground",
+			tooltip: getTooltip("create_ground"),
 		  });
 		  this.setHelpUrl(getHelpUrlFor(this.type));
 
@@ -121,7 +120,7 @@ export function defineSceneBlocks() {
 			previousStatement: null,
 			nextStatement: null,
 			colour: categoryColours["Scene"],
-			tooltip: "Set the scene's background color.\nKeyword: background",
+			tooltip: getTooltip("set_background_color"),
 		  });
 		  this.setHelpUrl(getHelpUrlFor(this.type));
 		  this.setOnChange((changeEvent) => {
@@ -169,8 +168,7 @@ export function defineSceneBlocks() {
 			nextStatement: null,
 			inputsInline: true,
 			colour: categoryColours["Scene"],
-			tooltip:
-			  "Create a map with the selected name and material.\nKeyword: map",
+			tooltip: getTooltip("create_map"),
 		  });
 		  this.setHelpUrl(getHelpUrlFor(this.type));
 
@@ -213,7 +211,7 @@ export function defineSceneBlocks() {
 			previousStatement: null,
 			nextStatement: null,
 			colour: categoryColours["Scene"],
-			tooltip: "Show the selected mesh.\nKeyword: show",
+			tooltip: getTooltip("show"),
 		  });
 
 		  this.setHelpUrl(getHelpUrlFor(this.type));
@@ -235,7 +233,7 @@ export function defineSceneBlocks() {
 			previousStatement: null,
 			nextStatement: null,
 			colour: categoryColours["Scene"],
-			tooltip: "Hide the selected mesh.\nKeyword: hide",
+			tooltip: getTooltip("hide"),
 		  });
 
 		  this.setHelpUrl(getHelpUrlFor(this.type));
@@ -258,7 +256,7 @@ export function defineSceneBlocks() {
 			previousStatement: null,
 			nextStatement: null,
 			colour: categoryColours["Scene"],
-			tooltip: "Remove the specified mesh from the scene.\nKeyword: dispose",
+			tooltip: getTooltip("dispose"),
 		  });
 		  this.setHelpUrl(getHelpUrlFor(this.type));
 		},
@@ -286,7 +284,7 @@ export function defineSceneBlocks() {
 			],
 			inputsInline: true,
 			colour: categoryColours["Scene"],
-			tooltip: "Clone a mesh and assign it to a variable.\nKeyword: clone",
+			tooltip: getTooltip("clone_mesh"),
 			helpUrl: "",
 			previousStatement: null,
 			nextStatement: null,
