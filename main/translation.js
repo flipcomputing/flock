@@ -4,7 +4,7 @@ import * as Blockly from 'blockly';
 import * as fr from 'blockly/msg/fr';
 import enLocale from '../locale/en.js';
 import frLocale from '../locale/fr.js';
- 
+
 // Store original English messages when first loaded
 let originalEnglishMessages = {};
 let isOriginalMessagesCached = false;
@@ -40,7 +40,7 @@ async function applySavedLanguageTranslations() {
       }
     });
   }
-  
+
   // Apply custom translations for both languages
   Object.keys(translations[currentLanguage]).forEach(key => {
     Blockly.Msg[key] = translations[currentLanguage][key];
@@ -99,13 +99,11 @@ export async function setLanguage(language) {
   // Refresh the workspace to show updated language
   const workspace = Blockly.getMainWorkspace();
   if (workspace) {
-    // Refresh all blocks to pick up new translations
-    workspace.getAllBlocks(false).forEach(block => {
-      if (block.rendered) {
-        block.render();
-      }
-    });
-    
+    // Blockly's recommended approach: serialize and reload the workspace
+    const state = Blockly.serialization.workspaces.save(workspace);
+    workspace.clear();
+    Blockly.serialization.workspaces.load(state, workspace);
+
     // Refresh the toolbox by updating it with the original toolbox configuration
     const toolboxElement = document.getElementById('toolbox');
     if (toolboxElement) {
@@ -205,7 +203,7 @@ export function initializeLanguageMenu() {
     option.addEventListener("click", (e) => {
       e.preventDefault();
       const selectedLang = e.target.getAttribute("data-lang");
-      
+
       // Call the setLanguage function
       setLanguage(selectedLang);
 
