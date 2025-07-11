@@ -99,12 +99,7 @@ export async function setLanguage(language) {
   // Refresh the workspace to show updated language
   const workspace = Blockly.getMainWorkspace();
   if (workspace) {
-    // Blockly's recommended approach: serialize and reload the workspace
-    const state = Blockly.serialization.workspaces.save(workspace);
-    workspace.clear();
-    Blockly.serialization.workspaces.load(state, workspace);
-
-    // Refresh the toolbox by updating it with the original toolbox configuration
+    // Update toolbox first to get new category translations
     const toolboxElement = document.getElementById('toolbox');
     if (toolboxElement) {
       workspace.updateToolbox(toolboxElement);
@@ -113,6 +108,23 @@ export async function setLanguage(language) {
       import('../toolbox.js').then(({ toolbox }) => {
         workspace.updateToolbox(toolbox);
       });
+    }
+
+    // Force blocks to update their text by serializing and reloading the workspace
+    const hasBlocks = workspace.getAllBlocks(false).length > 0;
+    if (hasBlocks) {
+      // Serialize the current workspace
+      const workspaceXml = Blockly.Xml.workspaceToDom(workspace);
+      
+      // Disable events to prevent code execution during reload
+      Blockly.Events.disable();
+      try {
+        // Clear and reload the workspace with new translations
+        workspace.clear();
+        Blockly.Xml.domToWorkspace(workspaceXml, workspace);
+      } finally {
+        Blockly.Events.enable();
+      }
     }
   }
 }
