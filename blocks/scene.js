@@ -21,7 +21,7 @@ export function defineSceneBlocks() {
 		init: function () {
 		  this.jsonInit({
 			type: "set_sky_color",
-			message0: translate("setSky") + " %1",
+			message0: translate("setSky"),
 			args0: [
 			  {
 				type: "input_value",

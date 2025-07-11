@@ -1,7 +1,7 @@
 
 export default {
   // Custom block translations
-  setSky: "ciel",
+  setSky: "ciel %1",
   
   // Blockly message overrides for French
   LISTS_CREATE_WITH_INPUT_WITH: "liste",
