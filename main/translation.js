@@ -1,9 +1,10 @@
 // Translation module for Flock XR
 // Currently supports English and French
-import * as Blockly from 'blockly';
-import * as fr from 'blockly/msg/fr';
-import enLocale from '../locale/en.js';
-import frLocale from '../locale/fr.js';
+import * as Blockly from "blockly";
+import * as fr from "blockly/msg/fr";
+import * as en from "blockly/msg/en";
+import enLocale from "../locale/en.js";
+import frLocale from "../locale/fr.js";
 
 // Store original English messages when first loaded
 let originalEnglishMessages = {};
@@ -12,14 +13,14 @@ let isOriginalMessagesCached = false;
 // Load locale files
 const translations = {
   en: enLocale,
-  fr: frLocale
+  fr: frLocale,
 };
 
-let currentLanguage = 'en';
+let currentLanguage = "en";
 
 // Load saved language preference from localStorage
 async function loadSavedLanguage() {
-  const savedLanguage = localStorage.getItem('flock-language');
+  const savedLanguage = localStorage.getItem("flock-language");
   if (savedLanguage && translations[savedLanguage]) {
     currentLanguage = savedLanguage;
     console.log(`Loaded saved language: ${savedLanguage}`);
@@ -30,26 +31,26 @@ async function loadSavedLanguage() {
 
 // Apply saved language translations (used during initialization)
 async function applySavedLanguageTranslations() {
-  if (currentLanguage === 'fr') {
+  if (currentLanguage === "fr") {
     // Apply Blockly's French translations
-    const frModule = await import('blockly/msg/fr');
+    const frModule = await import("blockly/msg/fr");
     const frMessages = frModule.default || frModule;
-    Object.keys(frMessages).forEach(key => {
-      if (typeof frMessages[key] === 'string') {
+    Object.keys(frMessages).forEach((key) => {
+      if (typeof frMessages[key] === "string") {
         Blockly.Msg[key] = frMessages[key];
       }
     });
   }
 
   // Apply custom translations for both languages
-  Object.keys(translations[currentLanguage]).forEach(key => {
+  Object.keys(translations[currentLanguage]).forEach((key) => {
     Blockly.Msg[key] = translations[currentLanguage][key];
   });
 }
 
 // Save language preference to localStorage
 function saveLanguagePreference(language) {
-  localStorage.setItem('flock-language', language);
+  localStorage.setItem("flock-language", language);
   console.log(`Saved language preference: ${language}`);
 }
 
@@ -59,11 +60,11 @@ loadSavedLanguage();
 function cacheOriginalMessages() {
   if (!isOriginalMessagesCached) {
     // Cache all current Blockly messages (which are English by default)
-    Object.keys(Blockly.Msg).forEach(key => {
+    Object.keys(Blockly.Msg).forEach((key) => {
       originalEnglishMessages[key] = Blockly.Msg[key];
     });
     isOriginalMessagesCached = true;
-    console.log('Original English messages cached');
+    console.log("Original English messages cached");
   }
 }
 
@@ -75,24 +76,30 @@ export async function setLanguage(language) {
   saveLanguagePreference(language);
   console.log(`Language changed to: ${language}`);
 
-  if (language === 'fr') {
+  if (language === "fr") {
     // Apply Blockly's French translations
-    Object.keys(fr).forEach(key => {
-      if (typeof fr[key] === 'string') {
+    Object.keys(fr).forEach((key) => {
+      if (typeof fr[key] === "string") {
         Blockly.Msg[key] = fr[key];
       }
     });
-    console.log('Français sélectionné - Blockly French translations applied!');
+    console.log("Français sélectionné - Blockly French translations applied!");
   } else {
-    // Restore original English messages
-    Object.keys(originalEnglishMessages).forEach(key => {
-      Blockly.Msg[key] = originalEnglishMessages[key];
+    // Official Blockly English first
+    Object.keys(en).forEach((key) => {
+      Blockly.Msg[key] = en[key];
     });
-    console.log('English selected - Original English messages restored!');
+    // Custom keys (overrides built-in if keys overlap)
+    Object.keys(enLocale).forEach((key) => {
+      Blockly.Msg[key] = enLocale[key];
+    });
+    console.log(
+      "English selected - Blockly English and custom translations applied!",
+    );
   }
 
   // Apply custom translations for the selected language
-  Object.keys(translations[currentLanguage]).forEach(key => {
+  Object.keys(translations[currentLanguage]).forEach((key) => {
     Blockly.Msg[key] = translations[currentLanguage][key];
   });
 
@@ -100,12 +107,12 @@ export async function setLanguage(language) {
   const workspace = Blockly.getMainWorkspace();
   if (workspace) {
     // Update toolbox first to get new category translations
-    const toolboxElement = document.getElementById('toolbox');
+    const toolboxElement = document.getElementById("toolbox");
     if (toolboxElement) {
       workspace.updateToolbox(toolboxElement);
     } else {
       // If no toolbox element, try importing the toolbox configuration
-      import('../toolbox.js').then(({ toolbox }) => {
+      import("../toolbox.js").then(({ toolbox }) => {
         workspace.updateToolbox(toolbox);
       });
     }
@@ -115,7 +122,7 @@ export async function setLanguage(language) {
     if (hasBlocks) {
       // Serialize the current workspace
       const workspaceXml = Blockly.Xml.workspaceToDom(workspace);
-      
+
       // Disable events to prevent code execution during reload
       Blockly.Events.disable();
       try {
@@ -135,7 +142,9 @@ export function getCurrentLanguage() {
 
 export function translate(key) {
   // Return translated text for the current language, fallback to key if not found
-  return translations[currentLanguage]?.[key] || translations['en']?.[key] || key;
+  return (
+    translations[currentLanguage]?.[key] || translations["en"]?.[key] || key
+  );
 }
 
 // Helper function to get a Blockly message with fallback
@@ -145,8 +154,12 @@ export function getBlocklyMessage(key) {
 
 // Helper function to get translated tooltips
 export function getTooltip(blockType) {
-  const tooltipKey = blockType + '_tooltip';
-  return translations[currentLanguage]?.[tooltipKey] || translations['en']?.[tooltipKey] || '';
+  const tooltipKey = blockType + "_tooltip";
+  return (
+    translations[currentLanguage]?.[tooltipKey] ||
+    translations["en"]?.[tooltipKey] ||
+    ""
+  );
 }
 
 // Function to update custom block translations
@@ -156,7 +169,7 @@ export function updateCustomBlockTranslations() {
   const workspace = Blockly.getMainWorkspace();
   if (workspace) {
     // Trigger a re-render of all blocks to pick up new translations
-    workspace.getAllBlocks(false).forEach(block => {
+    workspace.getAllBlocks(false).forEach((block) => {
       if (block.rendered) {
         block.render();
       }
@@ -170,12 +183,12 @@ export function updateToolboxTranslations() {
   // But we need to refresh the toolbox to pick up new translations
   const workspace = Blockly.getMainWorkspace();
   if (workspace && workspace.getToolbox()) {
-    const toolboxElement = document.getElementById('toolbox');
+    const toolboxElement = document.getElementById("toolbox");
     if (toolboxElement) {
       workspace.updateToolbox(toolboxElement);
     } else {
       // If no toolbox element, try importing the toolbox configuration
-      import('../toolbox.js').then(({ toolbox }) => {
+      import("../toolbox.js").then(({ toolbox }) => {
         workspace.updateToolbox(toolbox);
       });
     }
@@ -189,7 +202,7 @@ export function initializeLanguageMenu() {
   const languageOptions = languageSubmenu.querySelectorAll("a[data-lang]");
 
   if (!languageMenuItem || !languageSubmenu || !languageOptions.length) {
-    console.warn('Language menu elements not found');
+    console.warn("Language menu elements not found");
     return;
   }
 
@@ -200,7 +213,7 @@ export function initializeLanguageMenu() {
 
   languageMenuItem.addEventListener("mouseleave", () => {
     setTimeout(() => {
-      if (!languageSubmenu.matches(':hover')) {
+      if (!languageSubmenu.matches(":hover")) {
         languageSubmenu.classList.add("hidden");
       }
     }, 100);
@@ -211,7 +224,7 @@ export function initializeLanguageMenu() {
   });
 
   // Handle language selection
-  languageOptions.forEach(option => {
+  languageOptions.forEach((option) => {
     option.addEventListener("click", (e) => {
       e.preventDefault();
       const selectedLang = e.target.getAttribute("data-lang");
@@ -249,17 +262,17 @@ export function initializeLanguageMenu() {
     }
   });
 
-  console.log('Language menu initialized');
+  console.log("Language menu initialized");
 }
 
 // Initialize saved language on startup
 export async function initializeSavedLanguage() {
-  const savedLanguage = localStorage.getItem('flock-language');
+  const savedLanguage = localStorage.getItem("flock-language");
   if (savedLanguage && translations[savedLanguage]) {
     await setLanguage(savedLanguage);
   } else {
     // Apply default English translations
-    Object.keys(translations.en).forEach(key => {
+    Object.keys(translations.en).forEach((key) => {
       Blockly.Msg[key] = translations.en[key];
     });
   }
