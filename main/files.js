@@ -17,6 +17,9 @@ export function loadWorkspaceAndExecute(json, workspace, executeCallback) {
 		}
 
 		Blockly.serialization.workspaces.load(json, workspace);
+
+		workspace.scroll(0, 0);
+
 		executeCallback();
 	} catch (error) {
 		console.error("Failed to load workspace:", error);
