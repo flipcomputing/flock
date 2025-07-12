@@ -176,7 +176,9 @@ export const flockScene = {
     }
     ground.material = material;
     flock.ground = ground;
+
     return ground;
+
   },
   show(meshName) {
     // Check if the ID refers to a UI button
