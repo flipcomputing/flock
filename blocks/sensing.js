@@ -130,6 +130,27 @@ export function defineSensingBlocks() {
 		},
 	};
 
+	Blockly.Blocks["mesh_exists"] = {
+	  init: function () {
+		this.jsonInit({
+		  type: "mesh_exists",
+		  message0: "%1 exists",
+		  args0: [
+			{
+			  type: "field_variable",
+			  name: "MODEL_VAR",
+			  variable: window.currentMesh,
+			},
+		  ],
+		  output: "Boolean",
+		  colour: categoryColours["Sensing"],
+		  tooltip: "Returns true if the mesh with this name is present in the scene.",
+		});
+		this.setHelpUrl(getHelpUrlFor(this.type));
+	  },
+	};
+
+
 	Blockly.Blocks["get_property"] = {
 		init: function () {
 			this.jsonInit({

@@ -2064,6 +2064,19 @@ export function defineGenerators() {
 		];
 	};
 
+	javascriptGenerator.forBlock["mesh_exists"] = function (block) {
+	  const modelName = javascriptGenerator.nameDB_.getName(
+		block.getFieldValue("MODEL_VAR"),
+		Blockly.Names.NameType.VARIABLE,
+	  );
+
+	  return [
+		`meshExists(${modelName})`,
+		javascriptGenerator.ORDER_NONE,
+	  ];
+	};
+
+
 	javascriptGenerator.forBlock["camera_follow"] = function (block) {
 		const modelName = javascriptGenerator.nameDB_.getName(
 			block.getFieldValue("MESH_VAR"),

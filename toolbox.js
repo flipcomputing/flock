@@ -2093,6 +2093,11 @@ const toolboxSensing = {
 		},
 		{
 			kind: "block",
+			type: "mesh_exists",
+			keyword: "exists",
+		},
+		{
+			kind: "block",
 			type: "touching_surface",
 			keyword: "surface",
 		},

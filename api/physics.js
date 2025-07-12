@@ -417,139 +417,6 @@ export const flockPhysics = {
       }
     });
   },
-  onTrigger2(meshName, { trigger, callback, mode = "wait" }) {
-    return flock.whenModelReady(meshName, async function (target) {
-      if (!target) {
-        console.log("Model or GUI Button not loaded:", meshName);
-        return;
-      }
-
-      let isExecuting = false; // Tracks whether action is currently executing
-      let hasExecuted = false; // Tracks whether action has executed in 'once' mode
-      let callbacks = Array.isArray(callback) ? callback : [callback];
-      let currentIndex = 0;
-
-      // Helper to handle action registration for meshes
-      function registerMeshAction(mesh, trigger, action) {
-        mesh.isPickable = true;
-        if (!mesh.actionManager) {
-          mesh.actionManager = new flock.BABYLON.ActionManager(flock.scene);
-          mesh.actionManager.isRecursive = true;
-        }
-
-        let actionSequence = new flock.BABYLON.ExecuteCodeAction(
-          flock.BABYLON.ActionManager[trigger],
-          async (evt) => {
-            const clickedMesh = evt.meshUnderPointer || evt.source;
-            const meshId = clickedMesh.name;
-
-            // Pass meshId to the first callback (assumes it expects the variable)
-            await callbacks[0](meshId);
-
-            // If additional callbacks exist, just call them normally
-            for (let i = 1; i < callbacks.length; i++) {
-              await callbacks[i]();
-            }
-          },
-        );
-
-        for (let i = 1; i < callbacks.length; i++) {
-          actionSequence = actionSequence.then(
-            new flock.BABYLON.ExecuteCodeAction(
-              flock.BABYLON.ActionManager[trigger],
-              async () => await callbacks[i](),
-            ),
-          );
-        }
-
-        mesh.actionManager.registerAction(actionSequence);
-      }
-
-      // Helper to handle GUI button registration
-      function registerButtonAction(button, trigger, action) {
-        if (trigger === "OnPointerUpTrigger") {
-          button.onPointerUpObservable.add(action);
-        } else {
-          button.onPointerClickObservable.add(action);
-        }
-      }
-
-      // Execute the next code in sequence
-      async function executeAction() {
-        // Handle 'once' mode - execute only once
-        if (mode === "once") {
-          if (hasExecuted) return; // Skip if already executed
-          hasExecuted = true; // Mark as executed
-        }
-
-        // Handle 'wait' mode - discard if already executing
-        if (mode === "wait") {
-          if (isExecuting) return; // Skip if still processing
-          isExecuting = true;
-        }
-
-        try {
-          await callbacks[currentIndex]();
-          currentIndex = (currentIndex + 1) % callbacks.length;
-        } catch (e) {
-          console.error("Action execution failed:", e);
-        } finally {
-          // Reset execution flag only for 'wait' mode
-          if (mode === "wait") isExecuting = false;
-        }
-      }
-
-      // Handle meshes
-      if (target instanceof flock.BABYLON.AbstractMesh) {
-        registerMeshAction(target, trigger, async () => {
-          await executeAction(); // Always execute immediately
-        });
-
-        // Handle AR/VR-specific interactions
-        if (flock.xrHelper && flock.xrHelper.baseExperience) {
-          flock.xrHelper.baseExperience.onStateChangedObservable.add(
-            (state) => {
-              if (
-                state === flock.BABYLON.WebXRState.IN_XR &&
-                flock.xrHelper.baseExperience.sessionManager.sessionMode ===
-                  "immersive-ar"
-              ) {
-                flock.xrHelper.baseExperience.featuresManager.enableFeature(
-                  flock.BABYLON.WebXRHitTest.Name,
-                  "latest",
-                  {
-                    onHitTestResultObservable: (results) => {
-                      if (results.length > 0) {
-                        const hitTest = results[0];
-                        const position =
-                          hitTest.transformationMatrix.getTranslation();
-                        target.position.copyFrom(position);
-                        target.isVisible = true;
-                      }
-                    },
-                  },
-                );
-
-                flock.scene.onPointerDown = function (evt, pickResult) {
-                  if (pickResult.hit && pickResult.pickedMesh === target) {
-                    executeAction(); // Discard extra triggers in 'wait' mode
-                  }
-                };
-              } else if (state === flock.BABYLON.WebXRState.NOT_IN_XR) {
-                flock.scene.onPointerDown = null;
-              }
-            },
-          );
-        }
-      }
-      // Handle GUI buttons
-      else if (target instanceof flock.GUI.Button) {
-        registerButtonAction(target, trigger, async () => {
-          await executeAction(); // Execute immediately
-        });
-      }
-    });
-  },
   onIntersect(meshName, otherMeshName, { trigger, callback }) {
     return flock.whenModelReady(meshName, async function (mesh) {
       if (!mesh) {
@@ -639,4 +506,7 @@ export const flockPhysics = {
     //if(hit.hit) {console.log(hit.pickedMesh.name, hit.distance);}
     return hit.hit && hit.pickedMesh !== null && hit.distance <= 0.06;
   },
+  meshExists(name) {
+    return !!(flock.scene && flock.scene.getMeshByName(name));
+  }
 };

@@ -433,6 +433,7 @@ export const flock = {
 				"dispose",
 				"keyPressed",
 				"isTouchingSurface",
+				"meshExists",
 				"seededRandom",
 				"randomColour",
 				"scale",
@@ -674,6 +675,7 @@ export const flock = {
 						setFog,
 						keyPressed,
 						isTouchingSurface,
+						meshExists,
 						seededRandom,
 						randomColour,
 						scale,
@@ -1362,56 +1364,6 @@ export const flock = {
 		// Yield null to indicate the mesh was not found
 		yield null;
 	},
-	whenModelReady2(targetId, callback) {
-		// Check if the target (mesh or GUI button) is immediately available
-		if (flock.scene) {
-			let target = flock.scene.getMeshByName(targetId);
-			if (!target && flock.scene.UITexture) {
-				target = flock.scene.UITexture.getControlByName(targetId);
-			}
-			// Check animation groups if still not found
-			if (!target) {
-				target = flock.scene.animationGroups.find(
-					(group) => group.name === targetId,
-				);
-			}
-			// Check particle systems if still not found
-			if (!target) {
-				target = flock.scene.particleSystems.find(
-					(system) => system.name === targetId,
-				);
-			}
-			if (target) {
-				if (flock.abortController?.signal?.aborted) {
-					return; // If already aborted, stop here
-				}
-				// Target is available immediately, invoke the callback synchronously
-				callback(target);
-				return; // Return immediately, no Promise needed
-			}
-		}
-		// If the target is not immediately available, fall back to the generator and return a Promise
-		return (async () => {
-			const generator = flock.modelReadyGenerator(targetId);
-			try {
-				for await (const target of generator) {
-					if (flock.abortController?.signal?.aborted) {
-						console.log(`Aborted waiting for target: ${targetId}`);
-						return; // Exit the loop if the operation was aborted
-					}
-					// Call the callback - don't await it since it's not async
-					callback(target);
-					return; // Exit after first yield (whether it's the mesh or null)
-				}
-			} catch (err) {
-				if (flock.abortController?.signal?.aborted) {
-					console.log(`Operation was aborted: ${targetId}`);
-				} else {
-					console.error(`Error in whenModelReady: ${err}`);
-				}
-			}
-		})();
-	},
 	whenModelReady(id, callback) {
 		// Always check for immediate availability first
 		if (flock.scene) {
@@ -2049,7 +2001,7 @@ export const flock = {
 		const b = bigint & 255;
 
 		return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-		},
+	},
 	sanitizeEventName(eventName) {
 		if (typeof eventName !== "string") {
 			return "";
@@ -2321,5 +2273,6 @@ export function initializeFlock() {
 }
 
 window.setBPM = flockSound.setBPM;
-window.updateListenerPositionAndOrientation = flockSound.updateListenerPositionAndOrientation;
+window.updateListenerPositionAndOrientation =
+	flockSound.updateListenerPositionAndOrientation;
 window.speak = flockSound.speak;
