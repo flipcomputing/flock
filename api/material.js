@@ -229,7 +229,7 @@ export const flockMaterial = {
 
     const replaceIfPBRMaterial = (targetMesh) => {
       const material = targetMesh.material;
-
+      
       if (material && material.getClassName() === "PBRMaterial") {
         if (!replacedMaterialsMap.has(material)) {
           // Replace with a cloned default material, preserving the name
@@ -240,7 +240,16 @@ export const flockMaterial = {
 
         // Assign the replaced material to the mesh
         targetMesh.material = replacedMaterialsMap.get(material);
+
+        targetMesh.material = replacedMaterialsMap.get(material);
         targetMesh.backFaceCulling = false;
+        targetMesh.material.alpha = 1;
+        targetMesh.material.transparencyMode = flock.BABYLON.Material.MATERIAL_OPAQUE;
+       // targetMesh.material.alphaMode = undefined;
+        //targetMesh.material.reflectionTexture = null;
+        targetMesh.material.needDepthPrePass = false;
+        targetMesh.material.specularColor = new flock.BABYLON.Color3(0, 0, 0);
+     
       }
     };
 
