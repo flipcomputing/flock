@@ -147,6 +147,8 @@ export const blockNames = [
 	"Character2.glb",
 	"Character3.glb",
 	"Character4.glb",
+	"Flock.glb",
+	"Character.glb",
 ];
 
 export const mapNames = [
