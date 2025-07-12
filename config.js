@@ -152,7 +152,7 @@ export const blockNames = [
 ];
 
 export const mapNames = [
-	["Circular Depression", "circular_depression.png"],
+	["Circular Dip", "circular_depression.png"],
 	["Checkerboard", "checkerboard.png"],
 	["Sloped Plane", "sloped_plane.png"],
 	["Cove Plateau", "cove_plateau.png"],
