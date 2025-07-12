@@ -1,4 +1,3 @@
-
 import * as Blockly from "blockly";
 import { meshMap, meshBlockIdMap } from "../generators";
 import { flock } from "../flock.js";
@@ -25,6 +24,12 @@ const colorFields = {
 };
 
 export function updateOrCreateMeshFromBlock(block, changeEvent) {
+  
+  if (["set_sky_color", "set_background_color", "create_ground"].includes(block.type)) {
+    // These blocks don't create a mesh, always proceed to update
+    updateMeshFromBlock(null, block, changeEvent);
+    return;
+  }
 
   const mesh = getMeshFromBlock(block);
 
@@ -49,7 +54,8 @@ export function updateOrCreateMeshFromBlock(block, changeEvent) {
   }
 
   if (
-    changeEvent?.type === Blockly.Events.BLOCK_CHANGE &&
+    (changeEvent?.type === Blockly.Events.BLOCK_CHANGE ||
+      changeEvent?.type === Blockly.Events.BLOCK_CREATE) &&
     (mesh ||
       ["set_sky_color", "set_background_color", "create_ground"].includes(
         block.type,
@@ -156,7 +162,7 @@ export function extractMaterialInfo(materialBlock) {
 }
 
 export function updateMeshFromBlock(mesh, block, changeEvent) {
-
+ 
   if (
     !mesh &&
     !["set_sky_color", "set_background_color", "create_ground"].includes(
@@ -179,15 +185,19 @@ export function updateMeshFromBlock(mesh, block, changeEvent) {
     if (value === changedBlock.id) changed = input.name;
   });
 
-  if (!changed &&
+  if (
+    !changed &&
     block.type === "create_map" &&
     block.getInputTargetBlock("MATERIAL")
   ) {
     // If the field that changed belongs to the material block, treat as change
     const materialBlock = block.getInputTargetBlock("MATERIAL");
-    if (changeEvent.blockId === materialBlock.id ||
-        (changeEvent.type === Blockly.Events.BLOCK_CHANGE && materialBlock.getField(changeEvent.name))) {
-        changed = "MATERIAL";
+    if (
+      changeEvent.blockId === materialBlock.id ||
+      (changeEvent.type === Blockly.Events.BLOCK_CHANGE &&
+        materialBlock.getField(changeEvent.name))
+    ) {
+      changed = "MATERIAL";
     }
   }
 
@@ -201,7 +211,13 @@ export function updateMeshFromBlock(mesh, block, changeEvent) {
     }
   }
 
-  if (!changed) return;
+  if (!changed) {
+    if (block.type === "set_sky_color") {
+      changed = "COLOR"; // or any value to keep going
+    } else {
+      return;
+    }
+  }
 
   if (!changed) return;
 
@@ -273,25 +289,28 @@ export function updateMeshFromBlock(mesh, block, changeEvent) {
     return;
   }
   if (block.type === "create_map") {
-      let map = block.getFieldValue("MAP_NAME");
-      const materialBlock = block.getInputTargetBlock("MATERIAL");
+    let map = block.getFieldValue("MAP_NAME");
+    const materialBlock = block.getInputTargetBlock("MATERIAL");
 
-      if (materialBlock) {
-          const { textureSet, baseColor, alpha } = extractMaterialInfo(materialBlock);
-         
-          const materialOptions = {
-            color: baseColor,          // baseColor → color
-            materialName: textureSet,  // textureSet → materialName
-            alpha                     // unchanged
-          };
+    if (materialBlock) {
+      const { textureSet, baseColor, alpha } =
+        extractMaterialInfo(materialBlock);
 
-          const material = flock.createMaterial(materialOptions);
-          
-          flock.createMap(map, material);
-      } else {
-          console.warn("[create_map] No materialBlock connected! Not updating map material.");
-      }
-      return;
+      const materialOptions = {
+        color: baseColor, // baseColor → color
+        materialName: textureSet, // textureSet → materialName
+        alpha, // unchanged
+      };
+
+      const material = flock.createMaterial(materialOptions);
+
+      flock.createMap(map, material);
+    } else {
+      console.warn(
+        "[create_map] No materialBlock connected! Not updating map material.",
+      );
+    }
+    return;
   }
 
   if (block.type.startsWith("load_")) {
