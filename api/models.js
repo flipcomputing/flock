@@ -59,7 +59,7 @@ export const flockModels = {
           const mesh = container.meshes[0];
           flock.setupMesh(mesh, modelName, modelId, blockKey, scale, x, y, z);
 
-          if (modelName.startsWith("Character"))
+          //if (modelName.startsWith("Character"))
             flock.ensureStandardMaterial(mesh);
           flock.applyColorsToCharacter(mesh, colors);
 
@@ -108,9 +108,9 @@ export const flockModels = {
 
           flock.setupMesh(mesh, modelName, modelId, blockKey, scale, x, y, z);
 
-          if (modelName.startsWith("Character")) {
+          //if (modelName.startsWith("Character")) {
             flock.ensureStandardMaterial(mesh);
-          }
+         // }
 
           flock.applyColorsToCharacter(mesh, colors);
 
