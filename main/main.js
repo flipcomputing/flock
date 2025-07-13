@@ -100,6 +100,7 @@ function initializeApp() {
 	const fileInput = document.getElementById("fileInput");
 	const exportCodeButton = document.getElementById("exportCodeButton");
 	const openButton = document.getElementById("openButton");
+	const menuButton = document.getElementById("menuBtn");
 
 	runCodeButton.addEventListener("click", executeCode);
 	stopCodeButton.addEventListener("click", stopCode);
@@ -143,6 +144,11 @@ function initializeApp() {
 			} else {
 				console.warn("executeCode is not defined.");
 			}
+		}
+
+		if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "m") {
+			e.preventDefault();
+			menuButton.click();
 		}
 
 		/*if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") {
