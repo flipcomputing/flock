@@ -1,257 +1,258 @@
 import * as Blockly from "blockly";
 import { workspace } from "./blocklyinit.js";
 
-export function initializeBlockHandling (){
-
+export function initializeBlockHandling() {
 	observeBlocklyInputs();
 
-workspace.addChangeListener(function (event) {
-	if (
-		event.type === Blockly.Events.TOOLBOX_ITEM_SELECT ||
-		event.type === Blockly.Events.FLYOUT_SHOW
-	) {
-		const toolbox = workspace.getToolbox();
-		const selectedItem = toolbox.getSelectedItem();
+	workspace.addChangeListener(function (event) {
+		if (
+			event.type === Blockly.Events.TOOLBOX_ITEM_SELECT ||
+			event.type === Blockly.Events.FLYOUT_SHOW
+		) {
+			const toolbox = workspace.getToolbox();
+			const selectedItem = toolbox.getSelectedItem();
 
-		if (selectedItem && selectedItem.getName() === "Snippets") {
-			window.loadingCode = true;
-		} else {
-			window.loadingCode = false;
-		}
-	}
-});
-
-const blockTypesToCleanUp = [
-	"start",
-	"forever",
-	"when_clicked",
-	"when_touches",
-	"on_collision",
-	"when_key_event",
-	"on_event",
-	"procedures_defnoreturn",
-	"procedures_defreturn",
-	"microbit_input",
-];
-
-workspace.cleanUp = function () {
-	Blockly.Events.setGroup(true); // Start a new group for cleanup events
-
-	const topBlocks = workspace.getTopBlocks(false);
-	const spacing = 40;
-	let cursorY = 10;
-	let cursorX = 10;
-
-	topBlocks.sort(
-		(a, b) =>
-			a.getRelativeToSurfaceXY().y - b.getRelativeToSurfaceXY().y,
-	);
-
-	topBlocks.forEach((block) => {
-		if (blockTypesToCleanUp.includes(block.type)) {
-			const blockXY = block.getRelativeToSurfaceXY();
-			//console.log(`Moving block ${block.type} during cleanup`);
-			block.moveBy(cursorX - blockXY.x, cursorY - blockXY.y);
-			cursorY += block.getHeightWidth().height + spacing;
+			if (selectedItem && selectedItem.getName() === "Snippets") {
+				window.loadingCode = true;
+			} else {
+				window.loadingCode = false;
+			}
 		}
 	});
 
-	enforceOrphanZOrder();
-	Blockly.Events.setGroup(false); // End the group
-	//console.log('Finished workspace cleanup');
-};
+	const blockTypesToCleanUp = [
+		"start",
+		"forever",
+		"when_clicked",
+		"when_touches",
+		"on_collision",
+		"when_key_event",
+		"on_event",
+		"procedures_defnoreturn",
+		"procedures_defreturn",
+		"microbit_input",
+	];
 
-let cleanupTimeout;
+	workspace.cleanUp = function () {
+		Blockly.Events.setGroup(true); // Start a new group for cleanup events
 
-function enforceOrphanZOrder() {
-	workspace.getAllBlocks().forEach((block) => {
-		if (!block.getParent() && !block.isInFlyout) {
-			bringToTop(block);
-		}
-	});
-}
+		const topBlocks = workspace.getTopBlocks(false);
+		const spacing = 40;
+		let cursorY = 10;
+		let cursorX = 10;
 
-function bringToTop(block) {
-	if (block.rendered && block.bringToFront) {
-		block.bringToFront();
+		topBlocks.sort(
+			(a, b) =>
+				a.getRelativeToSurfaceXY().y - b.getRelativeToSurfaceXY().y,
+		);
+
+		topBlocks.forEach((block) => {
+			if (blockTypesToCleanUp.includes(block.type)) {
+				const blockXY = block.getRelativeToSurfaceXY();
+				//console.log(`Moving block ${block.type} during cleanup`);
+				block.moveBy(cursorX - blockXY.x, cursorY - blockXY.y);
+				cursorY += block.getHeightWidth().height + spacing;
+			}
+		});
+
+		enforceOrphanZOrder();
+		Blockly.Events.setGroup(false); // End the group
+		//console.log('Finished workspace cleanup');
+	};
+
+	let cleanupTimeout;
+
+	function enforceOrphanZOrder() {
+		workspace.getAllBlocks().forEach((block) => {
+			if (!block.getParent() && !block.isInFlyout) {
+				bringToTop(block);
+			}
+		});
 	}
-}
 
-workspace.addChangeListener(Blockly.Events.disableOrphans);
+	function bringToTop(block) {
+		if (block.rendered && block.bringToFront) {
+			block.bringToFront();
+		}
+	}
 
-workspace.addChangeListener(function (event) {
-	// Log all events during cleanup
-	if (window.cleanupInProgress) {
-		/*console.log('Event during cleanup:', {
+	workspace.addChangeListener(Blockly.Events.disableOrphans);
+
+	workspace.addChangeListener(function (event) {
+		// Log all events during cleanup
+		if (window.cleanupInProgress) {
+			/*console.log('Event during cleanup:', {
 			type: event.type,
 			blockId: event.blockId,
 			group: event.group,
 			recordUndo: event.recordUndo,
 			trace: new Error().stack
 		});*/
-	}
-
-	try {
-		const block = workspace.getBlockById(event.blockId);
-
-		if (
-			event.type === Blockly.Events.BLOCK_MOVE ||
-			event.type === Blockly.Events.BLOCK_DELETE
-		) {
-			clearTimeout(cleanupTimeout);
-
-			// Set a new timeout to call cleanUp after block movement settles
-			cleanupTimeout = setTimeout(() => {
-				window.cleanupInProgress = true;
-				Blockly.Events.disable(); // Temporarily disable events
-				workspace.cleanUp(); // Clean up the workspace
-				Blockly.Events.enable(); // Re-enable events
-				window.cleanupInProgress = false;
-			}, 500); // Delay cleanup by 500ms to ensure block moves have settled
 		}
-	} catch (error) {
-		console.error(
-			"An error occurred during the Blockly workspace cleanup process:",
-			error,
-		);
-	}
-});
 
-// Global keyboard shortcuts
-document.addEventListener("keydown", function (event) {
-	// Skip to main content (Alt+M)
-	if (event.altKey && event.key.toLowerCase() === "m") {
-		event.preventDefault();
-		const mainContent = document.getElementById("maincontent");
-		if (mainContent) {
-			mainContent.focus();
-			announceToScreenReader("Focused main content");
-		}
-		return;
-	}
+		try {
+			const block = workspace.getBlockById(event.blockId);
 
-	// Close modal with Escape
-	if (event.key === "Escape") {
-		const openModals = document.querySelectorAll(".modal:not(.hidden)");
-		openModals.forEach((modal) => {
-			closeModal(modal.id);
-		});
-		return;
-	}
+			if (
+				event.type === Blockly.Events.BLOCK_MOVE ||
+				event.type === Blockly.Events.BLOCK_DELETE
+			) {
+				clearTimeout(cleanupTimeout);
 
-	if (event.ctrlKey && event.key === ".") {
-		event.preventDefault();
-
-		const workspace = Blockly.getMainWorkspace();
-
-		// Create the placeholder block at the computed position
-		const placeholderBlock = workspace.newBlock("keyword_block");
-		placeholderBlock.initSvg();
-		placeholderBlock.render();
-
-		let workspaceCoordinates = workspace
-			.getMetricsManager()
-			.getViewMetrics(true);
-		let posx =
-			workspaceCoordinates.left + workspaceCoordinates.width / 2;
-		let posy =
-			workspaceCoordinates.top + workspaceCoordinates.height / 2;
-		let blockCoordinates = new Blockly.utils.Coordinate(posx, posy);
-
-		placeholderBlock.initSvg();
-		placeholderBlock.render();
-		placeholderBlock.moveTo(blockCoordinates);
-
-		// Select the block for immediate editing
-		placeholderBlock.select();
-
-		// Automatically focus on the text input field
-		const textInputField = placeholderBlock.getField("KEYWORD");
-		if (textInputField) {
-			textInputField.showEditor_();
-		}
-	}
-});
-
-// Add a click handler to track block selection
-workspace.addChangeListener(function (event) {
-	if (event.type === Blockly.Events.SELECTED) {
-		if (event.newElementId) {
-			// A block was selected
-			window.currentBlock = workspace.getBlockById(
-				event.newElementId,
-			);
-		} else {
-			// Selection was cleared
-			window.currentBlock = null;
-		}
-	}
-});
-// Handle Enter key for adding new blocks
-document.addEventListener("keydown", function (event) {
-	if (event.ctrlKey && event.key === "]") {
-		let selectedBlock = null;
-
-		const cursor = workspace.getCursor();
-
-		if (cursor?.getCurNode()) {
-			const currentNode = cursor.getCurNode();
-			if (currentNode) {
-				const block = currentNode.getSourceBlock();
-				if (block) {
-					selectedBlock = block;
-				}
+				// Set a new timeout to call cleanUp after block movement settles
+				cleanupTimeout = setTimeout(() => {
+					window.cleanupInProgress = true;
+					Blockly.Events.disable(); // Temporarily disable events
+					workspace.cleanUp(); // Clean up the workspace
+					Blockly.Events.enable(); // Re-enable events
+					window.cleanupInProgress = false;
+				}, 500); // Delay cleanup by 500ms to ensure block moves have settled
 			}
-		} else {
-			selectedBlock = window.currentBlock;
-		}
-
-		if (!selectedBlock) {
-			return;
-		}
-
-		selectedBlock.unselect();
-
-		if (!selectedBlock.nextConnection) {
-			return;
-		}
-
-		// Create a new keyword block
-		const keywordBlock = workspace.newBlock("keyword");
-		window.currentBlock = keywordBlock;
-		keywordBlock.initSvg();
-		keywordBlock.render();
-
-		// Connect blocks (same as before)
-		const currentNextBlock = selectedBlock.getNextBlock();
-		if (currentNextBlock) {
-			selectedBlock.nextConnection.disconnect();
-		}
-		selectedBlock.nextConnection.connect(
-			keywordBlock.previousConnection,
-		);
-		if (currentNextBlock && keywordBlock.nextConnection) {
-			keywordBlock.nextConnection.connect(
-				currentNextBlock.previousConnection,
+		} catch (error) {
+			console.error(
+				"An error occurred during the Blockly workspace cleanup process:",
+				error,
 			);
 		}
+	});
 
-		// Update our tracking variable to the new block
-		window.currentBlock = keywordBlock;
+	// Global keyboard shortcuts
+	document.addEventListener("keydown", function (event) {
+		// Skip to main content (Alt+M)
+		if (event.altKey && event.key.toLowerCase() === "m") {
+			event.preventDefault();
+			const mainContent = document.getElementById("maincontent");
+			if (mainContent) {
+				mainContent.focus();
+				announceToScreenReader("Focused main content");
+			}
+			return;
+		}
 
-		// Try to select it in Blockly too
-		keywordBlock.select();
+		// Close modal with Escape
+		if (event.key === "Escape") {
+			const openModals = document.querySelectorAll(".modal:not(.hidden)");
+			openModals.forEach((modal) => {
+				modal.classList.add("hidden");
+				modal.setAttribute("aria-hidden", "true");
+				modal.removeAttribute("aria-modal");
+			});
+			return;
+		}
 
-		// Open the editor with a delay
-		setTimeout(() => {
-			const textInputField = keywordBlock.getField("KEYWORD");
+		if (event.ctrlKey && event.key === ".") {
+			event.preventDefault();
+
+			const workspace = Blockly.getMainWorkspace();
+
+			// Create the placeholder block at the computed position
+			const placeholderBlock = workspace.newBlock("keyword_block");
+			placeholderBlock.initSvg();
+			placeholderBlock.render();
+
+			let workspaceCoordinates = workspace
+				.getMetricsManager()
+				.getViewMetrics(true);
+			let posx =
+				workspaceCoordinates.left + workspaceCoordinates.width / 2;
+			let posy =
+				workspaceCoordinates.top + workspaceCoordinates.height / 2;
+			let blockCoordinates = new Blockly.utils.Coordinate(posx, posy);
+
+			placeholderBlock.initSvg();
+			placeholderBlock.render();
+			placeholderBlock.moveTo(blockCoordinates);
+
+			// Select the block for immediate editing
+			placeholderBlock.select();
+
+			// Automatically focus on the text input field
+			const textInputField = placeholderBlock.getField("KEYWORD");
 			if (textInputField) {
 				textInputField.showEditor_();
 			}
-		}, 100);
-	}
+		}
+	});
 
-	/*else if (event.ctrlKey && event.key === "[") {
+	// Add a click handler to track block selection
+	workspace.addChangeListener(function (event) {
+		if (event.type === Blockly.Events.SELECTED) {
+			if (event.newElementId) {
+				// A block was selected
+				window.currentBlock = workspace.getBlockById(
+					event.newElementId,
+				);
+			} else {
+				// Selection was cleared
+				window.currentBlock = null;
+			}
+		}
+	});
+	// Handle Enter key for adding new blocks
+	document.addEventListener("keydown", function (event) {
+		if (event.ctrlKey && event.key === "]") {
+			let selectedBlock = null;
+
+			const cursor = workspace.getCursor();
+
+			if (cursor?.getCurNode()) {
+				const currentNode = cursor.getCurNode();
+				if (currentNode) {
+					const block = currentNode.getSourceBlock();
+					if (block) {
+						selectedBlock = block;
+					}
+				}
+			} else {
+				selectedBlock = window.currentBlock;
+			}
+
+			if (!selectedBlock) {
+				return;
+			}
+
+			selectedBlock.unselect();
+
+			if (!selectedBlock.nextConnection) {
+				return;
+			}
+
+			// Create a new keyword block
+			const keywordBlock = workspace.newBlock("keyword");
+			window.currentBlock = keywordBlock;
+			keywordBlock.initSvg();
+			keywordBlock.render();
+
+			// Connect blocks (same as before)
+			const currentNextBlock = selectedBlock.getNextBlock();
+			if (currentNextBlock) {
+				selectedBlock.nextConnection.disconnect();
+			}
+			selectedBlock.nextConnection.connect(
+				keywordBlock.previousConnection,
+			);
+			if (currentNextBlock && keywordBlock.nextConnection) {
+				keywordBlock.nextConnection.connect(
+					currentNextBlock.previousConnection,
+				);
+			}
+
+			// Update our tracking variable to the new block
+			window.currentBlock = keywordBlock;
+
+			// Try to select it in Blockly too
+			keywordBlock.select();
+
+			// Open the editor with a delay
+			setTimeout(() => {
+				const textInputField = keywordBlock.getField("KEYWORD");
+				if (textInputField) {
+					textInputField.showEditor_();
+				}
+			}, 100);
+		}
+
+		/*else if (event.ctrlKey && event.key === "[") {
 		event.preventDefault();
 
 		let selectedBlock = null;
@@ -316,9 +317,9 @@ document.addEventListener("keydown", function (event) {
 			}
 		}, 100);
 	}*/
-});
+	});
 
-/*document.addEventListener("keydown", (e) => {
+	/*document.addEventListener("keydown", (e) => {
 	if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === "k") {
 		e.preventDefault(); // stop the default T key behavior
 		const workspace = Blockly.getMainWorkspace(); 
@@ -638,8 +639,6 @@ document.addEventListener("keydown", function (event) {
 
 		return true;
 	}
-
-	
 }
 
 // Function to enforce minimum font size and delay the focus to prevent zoom
@@ -686,4 +685,3 @@ function observeBlocklyInputs() {
 	// Start observing the entire document for added nodes (input fields may appear anywhere)
 	observer.observe(document.body, { childList: true, subtree: true });
 }
-
