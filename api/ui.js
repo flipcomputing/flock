@@ -5,7 +5,8 @@ export function setFlockReference(ref) {
 }
 
 export const flockUI = {
-  UIText(text, x, y, fontSize, color, duration, id = null) {
+  
+  UIText({ text, x, y, fontSize, color, duration, id = null } = {}) {
     // Ensure flock.scene and flock.GUI are initialized
     if (!flock.scene || !flock.GUI) {
       throw new Error("flock.scene or flock.GUI is not initialized.");
@@ -74,7 +75,16 @@ export const flockUI = {
     // Return the ID for future reference
     return textBlockId;
   },
-  UIButton(text, x, y, width, textSize, textColor, backgroundColor, buttonId) {
+  UIButton({
+    text,
+    x,
+    y,
+    width,
+    textSize,
+    textColor,
+    backgroundColor,
+    buttonId,
+  } = {}) {
     // Ensure flock.scene and flock.GUI are initialized
     if (!flock.scene || !flock.GUI) {
       throw new Error("flock.scene or flock.GUI is not initialized.");
@@ -149,7 +159,7 @@ export const flockUI = {
     // Return the buttonId for future reference
     return buttonId;
   },
-  async UIInput(
+  async UIInput({
     text,
     x,
     y,
@@ -159,7 +169,7 @@ export const flockUI = {
     backgroundColor,
     id = null,
     mode = "AWAIT", // "START" or "AWAIT"
-  ) {
+  } = {}) {
     if (!flock.scene || !flock.GUI) {
       throw new Error("flock.scene or flock.GUI is not initialized.");
     }
@@ -250,12 +260,23 @@ export const flockUI = {
       });
     });
   },
-  UISlider(id, min, max, value, x, y, size, textColor, backgroundColor) {
+  UISlider({
+    id,
+    min,
+    max,
+    value,
+    x,
+    y,
+    size,
+    textColor,
+    backgroundColor,
+  } = {}) {
     if (!flock.scene || !flock.GUI) {
       throw new Error("flock.scene or flock.GUI is not initialized.");
     }
 
-    flock.scene.UITexture ??= flock.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
+    flock.scene.UITexture ??=
+      flock.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
 
     const sliderSizes = {
       SMALL: { width: "100px", height: "20px" },
@@ -263,7 +284,8 @@ export const flockUI = {
       LARGE: { width: "300px", height: "40px" },
     };
 
-    const resolvedSize = sliderSizes[(size || "MEDIUM").toUpperCase()] || sliderSizes.MEDIUM;
+    const resolvedSize =
+      sliderSizes[(size || "MEDIUM").toUpperCase()] || sliderSizes.MEDIUM;
 
     const slider = new flock.GUI.Slider();
     slider.name = id;
@@ -277,8 +299,14 @@ export const flockUI = {
 
     slider.left = `${x}px`;
     slider.top = `${y}px`;
-    slider.horizontalAlignment = x < 0 ? flock.GUI.Control.HORIZONTAL_ALIGNMENT_RIGHT : flock.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
-    slider.verticalAlignment = y < 0 ? flock.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM : flock.GUI.Control.VERTICAL_ALIGNMENT_TOP;
+    slider.horizontalAlignment =
+      x < 0
+        ? flock.GUI.Control.HORIZONTAL_ALIGNMENT_RIGHT
+        : flock.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
+    slider.verticalAlignment =
+      y < 0
+        ? flock.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM
+        : flock.GUI.Control.VERTICAL_ALIGNMENT_TOP;
 
     flock.scene.UITexture.addControl(slider);
     return slider;
@@ -429,7 +457,9 @@ export const flockUI = {
           background = plane.material.diffuseColor.toHexString();
           plane.material.needDepthPrePass = true;
         } else {
-          plane = mesh.getDescendants().find((child) => child.name === "textPlane");
+          plane = mesh
+            .getDescendants()
+            .find((child) => child.name === "textPlane");
         }
         let advancedTexture;
         if (!plane) {
@@ -446,7 +476,8 @@ export const flockUI = {
 
           // Get initial bounding info.
           let boundingInfo = targetMesh.getBoundingInfo();
-          plane.position.y = boundingInfo.boundingBox.maximum.y + 2.5 / targetMesh.scaling.y;
+          plane.position.y =
+            boundingInfo.boundingBox.maximum.y + 2.5 / targetMesh.scaling.y;
           plane.billboardMode = flock.BABYLON.Mesh.BILLBOARDMODE_ALL;
 
           flock.scene.onBeforeRenderObservable.add(() => {
@@ -455,7 +486,8 @@ export const flockUI = {
             plane.scaling.x = 1 / parentScale.x;
             plane.scaling.y = 1 / parentScale.y;
             plane.scaling.z = 1 / parentScale.z;
-            plane.position.y = boundingInfo.boundingBox.maximum.y + 2.1 / parentScale.y;
+            plane.position.y =
+              boundingInfo.boundingBox.maximum.y + 2.1 / parentScale.y;
           });
         }
 
@@ -465,8 +497,10 @@ export const flockUI = {
           const planeHeight = planeBoundingInfo.boundingBox.extendSize.y * 2;
           const aspectRatio = planeWidth / planeHeight;
           const baseResolution = 1024;
-          const textureWidth = baseResolution * (aspectRatio > 1 ? 1 : aspectRatio);
-          const textureHeight = baseResolution * (aspectRatio > 1 ? 1 / aspectRatio : 1);
+          const textureWidth =
+            baseResolution * (aspectRatio > 1 ? 1 : aspectRatio);
+          const textureHeight =
+            baseResolution * (aspectRatio > 1 ? 1 / aspectRatio : 1);
 
           advancedTexture = flock.GUI.AdvancedDynamicTexture.CreateForMesh(
             plane,
@@ -486,8 +520,10 @@ export const flockUI = {
           }
           const stackPanel = new flock.GUI.StackPanel();
           stackPanel.name = "stackPanel";
-          stackPanel.horizontalAlignment = flock.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
-          stackPanel.verticalAlignment = flock.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM;
+          stackPanel.horizontalAlignment =
+            flock.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
+          stackPanel.verticalAlignment =
+            flock.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM;
           stackPanel.isVertical = true;
           stackPanel.width = "100%";
           stackPanel.adaptHeightToChildren = true;
@@ -532,8 +568,10 @@ export const flockUI = {
           textBlock.paddingRight = 50;
           textBlock.paddingTop = 20;
           textBlock.paddingBottom = 20;
-          textBlock.textVerticalAlignment = flock.GUI.Control.VERTICAL_ALIGNMENT_TOP;
-          textBlock.textHorizontalAlignment = flock.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
+          textBlock.textVerticalAlignment =
+            flock.GUI.Control.VERTICAL_ALIGNMENT_TOP;
+          textBlock.textHorizontalAlignment =
+            flock.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
           bg.addControl(textBlock);
 
           if (duration > 0) {

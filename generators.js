@@ -628,7 +628,16 @@ export function defineGenerators() {
 		);
 
 		// Generate the code using the helper function
-		const code = `${textBlockVar} = UIText(${text}, ${x}, ${y}, ${fontSize}, ${color}, ${duration}, ${textBlockVar});\n`;
+		const code = `${textBlockVar} = UIText({
+		  text: ${text},
+		  x: ${x},
+		  y: ${y},
+		  fontSize: ${fontSize},
+		  color: ${color},
+		  duration: ${duration},
+		  id: ${textBlockVar}
+		});\n`;
+
 		return code;
 	};
 
@@ -676,7 +685,17 @@ export function defineGenerators() {
 
 	  const size = block.getFieldValue("SIZE");
 
-	  return `${varName} = await UIInput(${text}, ${x}, ${y}, "${size}", ${fontSize}, ${textColor}, ${backgroundColor}, ${varName});\n`;
+		return `${varName} = await UIInput({
+		  text: ${text},
+		  x: ${x},
+		  y: ${y},
+		  size: "${size}",
+		  fontSize: ${fontSize},
+		  textColor: ${textColor},
+		  backgroundColor: ${backgroundColor},
+		  id: ${varName}
+		});\n`;
+
 	}
 
 	javascriptGenerator.forBlock["ui_slider"] = function (block) {
@@ -695,13 +714,24 @@ export function defineGenerators() {
 	  const size = `"${block.getFieldValue("SIZE") || "MEDIUM"}"`;
 
 	  const id = `"${varName}_slider"`;
-	  const code = `
-	${varName} = ${value};
-	const ${varName}_slider = UISlider(${id}, ${min}, ${max}, ${value}, ${x}, ${y}, ${size}, ${color}, ${background});
-	${varName}_slider.onValueChangedObservable.add(value => {
-	  try { ${varName} = Math.round(value * 100) / 100; } catch (e) { console.warn('Variable not declared:', '${varName}'); }
-	});
-	`;
+		const code = `
+		${varName} = ${value};
+		const ${varName}_slider = UISlider({
+		  id: ${id},
+		  min: ${min},
+		  max: ${max},
+		  value: ${value},
+		  x: ${x},
+		  y: ${y},
+		  size: ${size},
+		  textColor: ${color},
+		  backgroundColor: ${background}
+		});
+		${varName}_slider.onValueChangedObservable.add(value => {
+		  try { ${varName} = Math.round(value * 100) / 100; } catch (e) { console.warn('Variable not declared:', '${varName}'); }
+		});
+		`;
+
 	  return code;
 	};
 
@@ -743,9 +773,18 @@ export function defineGenerators() {
 
 		const buttonId = `Button_${generateUniqueId()}`;
 
-		// Generate the UIButton call with text size support
-		const code = `${buttonVar} = UIButton(${text}, ${x}, ${y}, ${width}, ${textSize}, ${textColor}, ${backgroundColor}, "${buttonId}");\n`;
+		const code = `${buttonVar} = UIButton({
+		  text: ${text},
+		  x: ${x},
+		  y: ${y},
+		  width: ${width},
+		  textSize: ${textSize},
+		  textColor: ${textColor},
+		  backgroundColor: ${backgroundColor},
+		  buttonId: "${buttonId}"
+		});\n`;
 		return code;
+
 	};
 
 	javascriptGenerator.forBlock["say"] = function (block) {
