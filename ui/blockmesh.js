@@ -2,7 +2,7 @@ import * as Blockly from "blockly";
 import { meshMap, meshBlockIdMap } from "../generators";
 import { flock } from "../flock.js";
 import { objectColours } from "../config.js";
-import { createMeshOnCanvas, setPositionValues } from "./addmeshes.js";
+import { createMeshOnCanvas } from "./addmeshes.js";
 import { highlightBlockById } from "./addmenu.js";
 
 const characterMaterials = [
@@ -24,9 +24,14 @@ const colorFields = {
 };
 
 export function updateOrCreateMeshFromBlock(block, changeEvent) {
-  
-  if (["set_sky_color", "set_background_color", "create_ground"].includes(block.type)) {
-    // These blocks don't create a mesh, always proceed to update
+  console.log("Update or create mesh from block", block.type, changeEvent.type);
+
+  if (
+    ["set_sky_color", "set_background_color", "create_ground"].includes(
+      block.type,
+    )
+  ) {
+    // Always proceed to update
     updateMeshFromBlock(null, block, changeEvent);
     return;
   }
@@ -162,7 +167,8 @@ export function extractMaterialInfo(materialBlock) {
 }
 
 export function updateMeshFromBlock(mesh, block, changeEvent) {
- 
+
+  console.log("Update", block.type, changeEvent.type);
   if (
     !mesh &&
     !["set_sky_color", "set_background_color", "create_ground"].includes(
@@ -212,7 +218,7 @@ export function updateMeshFromBlock(mesh, block, changeEvent) {
   }
 
   if (!changed) {
-    if (block.type === "set_sky_color") {
+    if (block.type === "set_sky_color" || block.type === "create_ground") {
       changed = "COLOR"; // or any value to keep going
     } else {
       return;

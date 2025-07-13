@@ -4,6 +4,7 @@ import { flock } from "../flock.js";
 import { extractMaterialInfo } from "./blockmesh.js";
 
 export function createMeshOnCanvas(block) {
+  
   const mesh = getMeshFromBlock(block);
   if (mesh) {
     console.warn("Mesh already exists for block", block.id);
