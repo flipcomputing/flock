@@ -307,10 +307,6 @@
               const isHidden = menuDropdown.classList.toggle("hidden");
               menuBtn.setAttribute("aria-expanded", !isHidden);
 
-              if (!isHidden) {
-                // Focus first menu item when opened
-                setTimeout(() => openAbout.focus(), 0);
-              }
             });
 
             // Handle keyboard navigation for menu
@@ -322,8 +318,6 @@
                 e.preventDefault();
                 if (menuDropdown.classList.contains("hidden")) {
                   menuBtn.click();
-                } else {
-                  openAbout.focus();
                 }
               }
             });
@@ -335,10 +329,7 @@
                 menuDropdown.classList.add("hidden");
                 menuBtn.setAttribute("aria-expanded", "false");
                 menuBtn.focus();
-              } else if (e.key === "ArrowUp") {
-                e.preventDefault();
-                menuBtn.focus();
-              }
+              } 
             });
 
             // Language menu interactions are now handled in main/translation.js
