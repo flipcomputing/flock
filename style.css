@@ -334,6 +334,7 @@ path.blocklyPath.blockly-ws-search-highlight.blockly-ws-search-current {
 /* Dropdown Styles */
 .dropdown {
   position: relative;
+   min-width: 200px;
 }
 
 .dropdown-content {
@@ -341,7 +342,7 @@ path.blocklyPath.blockly-ws-search-highlight.blockly-ws-search-current {
   position: absolute;
   background-color: #f9f9f9;
   min-width: 160px;
-  max-width: 200px;
+  max-width: 250px;
   box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.2);
   z-index: 1;
   border-radius: 5px;
@@ -929,6 +930,13 @@ path.blocklyPath.blockly-ws-search-highlight.blockly-ws-search-current {
 
 .menu-icon svg {
   fill: #511D91;
+}
+
+.menu-item[aria-haspopup="true"]::after {
+    content: "▶";
+    color:#511D91;
+    font-size: 14px;
+    margin-left: auto;
 }
 
 #examples {
