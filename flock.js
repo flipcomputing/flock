@@ -160,11 +160,12 @@ export const flock = {
 		const max = flock.maxMeshes;
 
 		if (meshCount >= max) {
-			flock.printText?.(
-				`⚠️ Limit reached: You can only have ${max} meshes in your world.`,
-				30,
-				"#ff0000",
-			);
+			flock.printText?.({
+				text: `⚠️ Limit reached: You can only have ${max} meshes in your world.`,
+				duration: 30,
+				color: "#ff0000",
+			});
+
 			return true;
 		}
 
@@ -195,12 +196,12 @@ export const flock = {
 			console.warn(
 				`High memory usage: ${usagePercent.toFixed(1)}% of limit`,
 			);
-			// Maybe show user warning in your UI
-			this.printText(
-				`Warning: High memory usage (${usagePercent.toFixed(1)}%)`,
-				3,
-				"#ff9900",
-			);
+			// Show user warning in your UI
+			this.printText({
+				text: `Warning: High memory usage (${usagePercent.toFixed(1)}%)`,
+				duration: 3,
+				color: "#ff9900",
+			});
 		}
 
 		// Count Babylon.js objects for more specific monitoring
@@ -536,7 +537,11 @@ export const flock = {
 			console.error("Enhanced error details:", enhancedError);
 
 			// Show user-friendly error
-			this.printText(`Error: ${error.message}`, 5, "#ff0000");
+			this.printText({
+			  text: `Error: ${error.message}`,
+			  duration: 5,
+			  color: "#ff0000"
+			});
 
 			// Clean up on error
 			try {
@@ -738,7 +743,11 @@ export const flock = {
 			console.error("Enhanced error details:", enhancedError);
 
 			// Show user-friendly error
-			this.printText(`Error: ${error.message}`, 5, "#ff0000");
+			this.printText({
+			  text: `Error: ${error.message}`,
+			  duration: 5,
+			  color: "#ff0000"
+			});
 
 			// Clean up on error
 			try {
@@ -788,8 +797,6 @@ export const flock = {
 		flock.canvas.addEventListener(
 			"touchend",
 			(event) => {
-				//flock.printText(`Canvas: Touch End ${event.touches.length}`, 5);
-				//logTouchDetails(event);
 
 				if (event.touches.length === 0) {
 					const input =
@@ -801,7 +808,6 @@ export const flock = {
 							input._pointB !== null ||
 							input._isMultiTouch === true)
 					) {
-						//flock.printText("Stuck state detected!");
 						flock.scene.activeCamera.detachControl(flock.canvas);
 						setTimeout(() => {
 							flock.scene.activeCamera.attachControl(
@@ -1532,7 +1538,11 @@ export const flock = {
 	},
 	async setXRMode(mode) {
 		await flock.initializeXR(mode);
-		flock.printText("XR Mode!", 5, "white");
+		flock.printText({
+		  text: "XR Mode!",
+		  duration: 5,
+		  color: "white"
+		});
 	},
 	exportMesh(meshName, format) {
 		return flock.whenModelReady(meshName, async function (mesh) {

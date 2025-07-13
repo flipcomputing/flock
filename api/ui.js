@@ -597,7 +597,11 @@ export const flockUI = {
       });
     }
   },
-  printText(text, duration = 30, color = "white") {
+  printText({
+    text,
+    duration = 30,
+    color = "white"
+  } = {}) {
     if (!flock.scene || !flock.stackPanel) return;
 
     console.log(text);

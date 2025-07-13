@@ -253,11 +253,12 @@ export function toggleGizmo(gizmoType) {
     case "camera":
       if (cameraMode === "play") {
         cameraMode = "fly";
-        flock.printText(
-          "Fly camera, use arrow keys and page up/down",
-          15,
-          "white",
-        );
+        flock.printText({
+          text: "ℹ️ Fly camera, use arrow keys and page up/down",
+          duration: 15,
+          color: "white"
+        });
+
       } else {
         cameraMode = "play";
       }
@@ -269,7 +270,11 @@ export function toggleGizmo(gizmoType) {
       break;
       case "delete":
       if (!gizmoManager.attachedMesh) {
-        flock.printText("⚠️ Select an mesh then click delete.", 30, "black");
+        flock.printText({
+          text: "⚠️ Select a mesh then click delete.",
+          duration: 30,
+          color: "black"
+        });
         return;
       }
       blockKey = findParentWithBlockId(gizmoManager.attachedMesh).blockKey;
@@ -279,7 +284,11 @@ export function toggleGizmo(gizmoType) {
 
     case "duplicate":
       if (!gizmoManager.attachedMesh) {
-        flock.printText("⚠️ Select a mesh then click duplicate, then click to place copies.", 30, "black");
+        flock.printText({
+          text: "⚠️ Select a mesh then click duplicate, then click to place copies.",
+          duration: 30,
+          color: "black"
+        });
         return;
       }
       blockKey = findParentWithBlockId(gizmoManager.attachedMesh).blockKey;
@@ -408,7 +417,12 @@ export function toggleGizmo(gizmoType) {
               parseFloat(position.y.toFixed(2)),
               parseFloat(position.z.toFixed(2)),
             );
-            flock.printText("Position: " + roundedPosition, 30, "black");
+            flock.printText({
+              text: "Position: " + roundedPosition,
+              duration: 30,
+              color: "black"
+            });
+
 
             const block = meshMap[blockKey];
             highlightBlockById(Blockly.getMainWorkspace(), block);
@@ -428,7 +442,11 @@ export function toggleGizmo(gizmoType) {
                 parseFloat(position.y.toFixed(2)),
                 parseFloat(position.z.toFixed(2)),
               );
-              flock.printText("Position: " + roundedPosition, 30, "black");
+              flock.printText({
+                text: "Position: " + roundedPosition,
+                duration: 30,
+                color: "black"
+              });
             }
 
             // Deselect if no mesh is picked

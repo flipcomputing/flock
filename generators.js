@@ -573,7 +573,7 @@ export function defineGenerators() {
 				javascriptGenerator.ORDER_ATOMIC,
 			) || "0";
 		const color = getFieldValue(block, "COLOR", "#9932CC");
-		return `printText(${text}, ${duration}, ${color});\n`;
+		return `printText({ text: ${text}, duration: ${duration}, color: ${color} });\n`;
 	};
 
 	javascriptGenerator.forBlock["set_fog"] = function (block) {
