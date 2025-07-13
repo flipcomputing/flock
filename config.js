@@ -77,7 +77,7 @@ export const characterNames = [
 	"Ponytail.glb",
 	"Cat.glb",
 	"Monkey.glb",
-	"BasicTest.glb",
+	"Mohican.glb",
 ];
 
 export const multiObjectNames = [
