@@ -232,6 +232,7 @@ path.blocklyPath.blockly-ws-search-highlight.blockly-ws-search-current {
   width: 100%;
   height: auto;
   touch-action: none;
+  box-sizing: border-box; 
   -webkit-touch-callout: none;
   -webkit-user-select: none;
   -khtml-user-select: none;
@@ -702,15 +703,16 @@ path.blocklyPath.blockly-ws-search-highlight.blockly-ws-search-current {
   outline: none;
 }
 
-#blocklyDiv:focus {
+#renderCanvas:focus-within {
   outline: 3px solid #fc3;
   outline-offset: -3px;
+  z-index: 20;
 }
 
 /* Ensure proper tab order visibility */
 .blocklyToolboxDiv:focus-within {
-  outline: 2px solid #fc3;
-  outline-offset: -2px;
+  outline: 3px solid #fc3;
+  outline-offset: -3px;
 }
 
 /* Apply custom selection highlight only to selected top-level categories */
@@ -850,12 +852,9 @@ path.blocklyPath.blockly-ws-search-highlight.blockly-ws-search-current {
       input:focus,
       select:focus,
       .gizmo-button:focus,
-      #renderCanvas:focus,
-      #maincontent:focus,
-      #blocklyDiv:focus {
+      {
         outline: 3px solid #fc3;
         outline-offset: 2px;
-        box-shadow: 0 0 0 2px #fff, 0 0 0 5px #fc3;
         z-index: 20;
       }
 
@@ -875,13 +874,6 @@ path.blocklyPath.blockly-ws-search-highlight.blockly-ws-search-current {
       /* Ensure interactive elements have proper focus order */
       [tabindex="-1"] {
         outline: none;
-      }
-
-      /* Canvas focus indicator - more visible for 3D context */
-      #renderCanvas:focus {
-        outline: 4px solid #fc3;
-        outline-offset: 0px;
-        box-shadow: inset 0 0 0 4px #fff, inset 0 0 0 8px #fc3;
       }
 
       /* Flock XR logo link focus styling */
