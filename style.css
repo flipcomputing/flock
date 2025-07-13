@@ -925,79 +925,45 @@ path.blocklyPath.blockly-ws-search-highlight.blockly-ws-search-current {
 	margin-right: 10px;
 }
 
-#language-menu-item {
+.menu-item, #menuDropdown [role="menuitem"] {
+  display: flex !important;
+  align-items: center;
   padding: 8px 12px;
-  display: flex;           /* <-- this is the change */
-  align-items: center;     /* <-- vertically center icon and text */
-   justify-content: flex-start;
+  display: flex;           
+  align-items: center;     
+  justify-content: flex-start;
   border-bottom: 1px solid #eee;
   position: relative;
   cursor: pointer;
   color: #511D91;
 }
 
-#menuDropdown {
-  text-align: left;      /* makes sure text starts at the left */
-  padding: 0;
-}
-
-#menuDropdown [role="menuitem"] {
-  display: flex;
-  align-items: center;
-  padding: 8px 12px;
-  border-bottom: 1px solid #eee;
-  color: #511D91;
-  text-decoration: none;
-  background: none;
-  cursor: pointer;
-}
-
-#menuDropdown [role="menuitem"]:last-child {
-  border-bottom: none;
+.menu-item:hover {
+  background-color: #f0f0f0;
 }
 
 .menu-icon {
-  width: 2em;           /* same gutter for every icon */
+  width: 2em;
   min-width: 2em;
   display: flex;
   align-items: center;
-  justify-content: flex-start;   /* <--- key! icon hugs left edge */
+  justify-content: flex-start;
   margin-right: 8px;
   flex-shrink: 0;
 }
-
 .menu-icon svg {
   width: 1.2em;
   height: 1.2em;
   display: block;
-  fill: #511D91;        /* makes all icons purple */
+  fill: #511D91;
 }
-
 .menu-label {
   flex: 1 1 auto;
   text-align: left;
   white-space: nowrap;
 }
-
-/* Optional: hover style */
-#menuDropdown [role="menuitem"]:hover {
-  background: #f0f0f0;
-}
-
-
-#language-menu-item {
-  padding: 8px 12px;
-  display: block;
-  border-bottom: 1px solid #eee;
-  position: relative;
-  cursor: pointer;
-}
-
-#language-menu-item:hover {
-  background-color: #f0f0f0;
-}
-
 .submenu {
+  display: none;
   position: absolute;
   left: 100%;
   top: 0;
@@ -1007,7 +973,10 @@ path.blocklyPath.blockly-ws-search-highlight.blockly-ws-search-current {
   min-width: 120px;
   z-index: 1001;
 }
-
+.menu-item:hover > .submenu,
+.menu-item:focus-within > .submenu {
+  display: block;
+}
 .submenu a {
   display: block;
   padding: 8px 12px;
@@ -1015,11 +984,9 @@ path.blocklyPath.blockly-ws-search-highlight.blockly-ws-search-current {
   text-decoration: none;
   border-bottom: 1px solid #eee;
 }
-
 .submenu a:hover {
   background-color: #f0f0f0;
 }
-
 .submenu a:last-child {
   border-bottom: none;
 }

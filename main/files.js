@@ -339,3 +339,23 @@ export function loadExampleWrapper() {
 	loadExample(workspace, executeCode);
 }
 window.loadExample = loadExampleWrapper;
+
+export function newProject() {
+  // Set project name
+  const projectNameElement = document.getElementById("projectName");
+  if (projectNameElement) {
+	projectNameElement.value = "New";
+  }
+
+  // Load the empty project template
+  fetch("examples/new.json")
+	.then((response) => response.json())
+	.then((json) => {
+	  loadWorkspaceAndExecute(json, workspace, executeCode);
+	})
+	.catch((error) => {
+	  console.error("Error loading new project:", error);
+	});
+}
+
+window.newProject = newProject;

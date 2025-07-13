@@ -24,6 +24,7 @@ import {
 	exportCode,
 	setupFileInput,
 	loadExampleWrapper,
+	newProject,
 	importSnippet
 } from "./files.js";
 import {
@@ -203,6 +204,22 @@ function initializeApp() {
 				}
 			}
 		});
+
+	document.getElementById('project-new').addEventListener('click', function(e) {
+	  e.preventDefault();
+	  newProject();
+	  document.getElementById('menuDropdown').classList.add('hidden');
+	});
+	document.getElementById('project-open').addEventListener('click', function(e) {
+	  e.preventDefault();
+	  fileInput.click();
+	  document.getElementById('menuDropdown').classList.add('hidden');
+	});
+	document.getElementById('project-save').addEventListener('click', function(e) {
+	  e.preventDefault();
+	  exportCode();
+	  document.getElementById('menuDropdown').classList.add('hidden');
+	});
 
 	initializeUI();
 
