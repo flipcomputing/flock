@@ -862,7 +862,7 @@ path.blocklyPath.blockly-ws-search-highlight.blockly-ws-search-current {
       button:focus,
       input:focus,
       select:focus,
-      .gizmo-button:focus,
+      .gizmo-button:focus
       {
         outline: 3px solid #fc3;
         outline-offset: 2px;
