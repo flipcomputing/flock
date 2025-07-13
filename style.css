@@ -762,6 +762,17 @@ path.blocklyPath.blockly-ws-search-highlight.blockly-ws-search-current {
   display: inline-block;
 }
 
+#main-menu li {
+  list-style-type: none; /* Remove bullets */
+  padding: 0; 
+  margin: 0; 
+}
+
+  #main-menu ul {
+    padding: 0; 
+    margin: 0; 
+  }
+
 .dropdown {
   position: absolute;
   top: 100%; /* Below the button */
