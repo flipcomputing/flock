@@ -267,14 +267,21 @@ export function toggleGizmo(gizmoType) {
       flock.scene.activeCamera = flock.savedCamera;
       flock.savedCamera = currentCamera;
       break;
-    case "delete":
+      case "delete":
+      if (!gizmoManager.attachedMesh) {
+        flock.printText("⚠️ Select an mesh then click delete.", 30, "black");
+        return;
+      }
       blockKey = findParentWithBlockId(gizmoManager.attachedMesh).blockKey;
       blockId = meshBlockIdMap[blockKey];
-
-      //console.log("Delete", blockKey, meshMap);
       deleteBlockWithUndo(blockId);
       break;
+
     case "duplicate":
+      if (!gizmoManager.attachedMesh) {
+        flock.printText("⚠️ Select a mesh then click duplicate, then click to place copies.", 30, "black");
+        return;
+      }
       blockKey = findParentWithBlockId(gizmoManager.attachedMesh).blockKey;
       blockId = meshBlockIdMap[blockKey];
 
