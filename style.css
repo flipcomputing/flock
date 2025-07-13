@@ -863,7 +863,7 @@ path.blocklyPath.blockly-ws-search-highlight.blockly-ws-search-current {
       input:focus,
       select:focus,
       .gizmo-button:focus,
-#menuDropdown [role="menuitem"]:focus,
+#menuDropdown [role="menuitem"]:focus
       {
         outline: 3px solid #fc3;
         outline-offset: 2px;
