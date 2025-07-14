@@ -36,6 +36,13 @@ export default {
   hide: "cacher %1",
   dispose: "supprimer %1",
   clone_mesh: "ajouter %1 clone de %2",
+
+  // Custom block translations - Models blocks
+  load_character: `ajouter %1 %2 échelle: %3 x: %4 y: %5 z: %6
+					Cheveux: %7 |  Peau: %8 |  Yeux: %9 |  T-Shirt: %10 |  Shorts: %11 |  Détail: %12`,
+  load_object: "ajouter %1 %2 %3 échelle: %4 x: %5 y: %6 z: %7",
+  load_multi_object: "ajouter %1 %2 échelle: %3 x: %4 y: %5 z: %6\ncouleurs: %7",
+  load_model: "ajouter %1 %2 échelle:: %3 x: %4 y: %5 z: %6",
    
   // Blockly message overrides for French
   LISTS_CREATE_WITH_INPUT_WITH: "liste",
@@ -57,7 +64,7 @@ export default {
   
   // Add more custom block translations as needed
   
-  // Tooltip translations
+  // Tooltip translations - Scene blocks
   set_sky_color_tooltip: "Définir la couleur du ciel de la scène.\nMot-clé: sky",
   create_ground_tooltip: "Ajouter un plan de sol avec collisions activées à la scène.\nMot-clé: ground",
   set_background_color_tooltip: "Définir la couleur d'arrière-plan de la scène.\nMot-clé: background",
@@ -66,5 +73,11 @@ export default {
   hide_tooltip: "Cacher le maillage sélectionné.\nMot-clé: hide",
   dispose_tooltip: "Supprimer le maillage spécifié de la scène.\nMot-clé: dispose",
   clone_mesh_tooltip: "Cloner un maillage et l'assigner à une variable.\nMot-clé: clone",
+  
+  // Tooltip translations - Models blocks
+  load_character_tooltip: "Créer un personnage configurable.\nMot-clé: character",
+  load_object_tooltip: "Créer un objet.\nMot-clé: object",
+  load_multi_object_tooltip: "Créer un objet avec des couleurs.\nMot-clé: object",
+  load_model_tooltip: "Charger un modèle.\nMot-clé: model",
 };
 

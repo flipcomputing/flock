@@ -36,6 +36,12 @@ export default {
   hide: "hide %1",
   dispose: "dispose %1",
   clone_mesh: "add %1 clone of %2",
+
+  // Custom block translations - Models blocks
+  load_character: "add %1 %2 scale: %3 x: %4 y: %5 z: %6\nHair: %7 |  Skin: %8 |  Eyes: %9 |  T-Shirt: %10 |  Shorts: %11 |  Detail: %12",
+  load_object: "add %1 %2 %3 scale: %4 x: %5 y: %6 z: %7",
+  load_multi_object: "add %1 %2 scale: %3 x: %4 y: %5 z: %6\ncolors: %7",
+  load_model: "add %1 %2 scale: %3 x: %4 y: %5 z: %6",
   
   // Blockly message overrides for English
   LISTS_CREATE_WITH_INPUT_WITH: "list",
@@ -57,7 +63,7 @@ export default {
   
   // Add more custom block translations as needed
   
-  // Tooltip translations
+  // Tooltip translations - Scene Blocks
   set_sky_color_tooltip: "Set the sky color of the scene.\nKeyword: sky",
   create_ground_tooltip: "Add a ground plane with collisions enabled to the scene.\nKeyword: ground",
   set_background_color_tooltip: "Set the scene's background color.\nKeyword: background",
@@ -66,5 +72,11 @@ export default {
   hide_tooltip: "Hide the selected mesh.\nKeyword: hide",
   dispose_tooltip: "Remove the specified mesh from the scene.\nKeyword: dispose",
   clone_mesh_tooltip: "Clone a mesh and assign it to a variable.\nKeyword: clone",
+
+  // Tooltip translations - Models blocks
+  load_character_tooltip: "Create a configurable character.\nKeyword: character",
+  load_object_tooltip: "Create an object.\nKeyword: object",
+  load_multi_object_tooltip: "Create an object with colours.\nKeyword: object",
+  load_model_tooltip: "Load a model.\nKeyword: model",
 };
 
