@@ -8,13 +8,14 @@ import {
 	inlineIcon,
 	updateShape,
 } from "../blocks.js";
+import { translate, getTooltip } from "../main/translation.js";
 
 export function defineEventsBlocks() {
 	Blockly.Blocks["start"] = {
 		init: function () {
 			this.jsonInit({
 				type: "start",
-				message0: "start",
+				message0: translate("start"),
 				message1: "%1",
 				args1: [
 					{
@@ -24,8 +25,7 @@ export function defineEventsBlocks() {
 				],
 				colour: categoryColours["Events"],
 				inputsInline: true,
-				tooltip:
-					"Run the blocks inside when the project starts. You can have multiple start blocks. \nKeyword: start",
+				tooltip: getTooltip("start"),
 			});
 			this.setHelpUrl(getHelpUrlFor(this.type));
 		},
@@ -36,7 +36,7 @@ export function defineEventsBlocks() {
 		init: function () {
 			this.jsonInit({
 				type: "forever",
-				message0: "forever\n%1",
+				message0: translate("forever"),
 				args0: [
 					{
 						type: "input_statement",
@@ -45,8 +45,7 @@ export function defineEventsBlocks() {
 					},
 				],
 				colour: categoryColours["Events"],
-				tooltip:
-					"Run the blocks inside every frame or when the previous iteration finishes. \nKeyword: forever",
+				tooltip: getTooltip("forever"),
 			});
 			this.setHelpUrl(getHelpUrlFor(this.type));
 			this.isInline = false;
@@ -89,7 +88,7 @@ export function defineEventsBlocks() {
 		init: function () {
 			this.jsonInit({
 				type: "when_clicked",
-				message0: "when %1 %2",
+				message0: translate("when_clicked"),
 				args0: [
 					{
 						type: "field_variable",
@@ -126,8 +125,7 @@ export function defineEventsBlocks() {
 					},
 				],
 				colour: categoryColours["Events"],
-				tooltip:
-					"Run the blocks inside when the mesh trigger occurs.\nKeyword: click",
+				tooltip: getTooltip("when_clicked"),
 			});
 			this.setHelpUrl(getHelpUrlFor(this.type));
 
@@ -202,7 +200,7 @@ export function defineEventsBlocks() {
 		init: function () {
 			this.jsonInit({
 				type: "when_touches",
-				message0: "on %1 collision %2 %3",
+				message0: translate("on_collision"),
 				args0: [
 					{
 						type: "field_variable",
@@ -231,8 +229,7 @@ export function defineEventsBlocks() {
 					},
 				],
 				colour: categoryColours["Events"],
-				tooltip:
-					"Execute the blocks inside when the mesh intersects or no longer intersects with another mesh.\nKeyword: collide",
+				tooltip: getTooltip("on_collision"),
 			});
 			this.setHelpUrl(getHelpUrlFor(this.type));
 			// Set default state to top-level block
@@ -304,7 +301,7 @@ export function defineEventsBlocks() {
 		init: function () {
 			this.jsonInit({
 				type: "when_key_event",
-				message0: "when key %1 %2",
+				message0: translate("when_key_event"),
 				args0: [
 					{
 						type: "field_grid_dropdown",
@@ -374,8 +371,7 @@ export function defineEventsBlocks() {
 					},
 				],
 				colour: categoryColours["Events"],
-				tooltip:
-					"Execute the blocks inside when the specified key is pressed or released.",
+				tooltip: getTooltip("when_key_event"),
 			});
 			this.setHelpUrl(getHelpUrlFor(this.type));
 			addToggleButton(this);
@@ -448,7 +444,7 @@ export function defineEventsBlocks() {
 		init: function () {
 			this.jsonInit({
 				type: "broadcast_event",
-				message0: "broadcast event %1",
+				message0: translate("broadcast_event"),
 				args0: [
 					{
 						type: "input_value",
@@ -459,8 +455,7 @@ export function defineEventsBlocks() {
 				previousStatement: null,
 				nextStatement: null,
 				colour: categoryColours["Events"],
-				tooltip:
-					"Broadcast an event that is received by on event.\nKeyword: broadcast",
+				tooltip: getTooltip("broadcast_event"),
 			});
 			this.setHelpUrl(getHelpUrlFor(this.type));
 		},
@@ -490,7 +485,7 @@ export function defineEventsBlocks() {
 		init: function () {
 			this.jsonInit({
 				type: "on_event",
-				message0: "on event %1",
+				message0: translate("on_event"),
 				args0: [
 					{
 						type: "input_value",
@@ -506,8 +501,7 @@ export function defineEventsBlocks() {
 					},
 				],
 				colour: categoryColours["Events"],
-				tooltip:
-					"Run code when a broadcast event is received.\nKeyword: on",
+				tooltip: getTooltip("on_event"),
 			});
 			this.setHelpUrl(getHelpUrlFor(this.type));
 			addToggleButton(this);
@@ -563,3 +557,4 @@ export function defineEventsBlocks() {
 		},
 	};
 }
+

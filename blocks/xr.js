@@ -3,13 +3,14 @@ import { categoryColours } from "../toolbox.js";
 import {
 	getHelpUrlFor,
 } from "../blocks.js";
+import { translate, getTooltip } from "../main/translation.js";
 
 export function defineXRBlocks() {
 	  Blockly.Blocks["device_camera_background"] = {
 		init: function () {
 		  this.jsonInit({
 			type: "device_camera_background",
-			message0: "use %1 camera as background",
+			message0: translate("device_camera_background"),
 			args0: [
 			  {
 				type: "field_dropdown",
@@ -23,8 +24,7 @@ export function defineXRBlocks() {
 			previousStatement: null,
 			nextStatement: null,
 			colour: categoryColours["Scene"],
-			tooltip:
-			  "Use the device camera as the background for the scene. Works on both mobile and desktop.",
+			tooltip: getTooltip("device_camera_background"),
 		  });
 		  this.setHelpUrl(getHelpUrlFor(this.type));
 		},
@@ -34,7 +34,7 @@ export function defineXRBlocks() {
 		init: function () {
 		  this.jsonInit({
 			type: "set_xr_mode",
-			message0: "set XR mode to %1",
+			message0: translate("set_xr_mode"),
 			args0: [
 			  {
 				type: "field_dropdown",
@@ -49,10 +49,10 @@ export function defineXRBlocks() {
 			previousStatement: null,
 			nextStatement: null,
 			colour: categoryColours["Scene"],
-			tooltip:
-			  "Set the XR mode for the scene.\nOptions: VR, AR, Magic Window.",
+			tooltip: getTooltip("set_xr_mode"),
 		  });
 		  this.setHelpUrl(getHelpUrlFor(this.type));
 		},
 	  };
 }
+

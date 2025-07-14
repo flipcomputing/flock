@@ -3,13 +3,14 @@ import { categoryColours } from "../toolbox.js";
 import {
 	getHelpUrlFor,
 } from "../blocks.js";
+import { translate, getTooltip } from "../main/translation.js";
 
 export function definePhysicsBlocks() {
 	  Blockly.Blocks["add_physics"] = {
 		init: function () {
 		  this.jsonInit({
 			type: "add_physics",
-			message0: "add physics %1 type %2",
+			message0: translate("add_physics"),
 			args0: [
 			  {
 				type: "field_variable",
@@ -31,8 +32,7 @@ export function definePhysicsBlocks() {
 			previousStatement: null,
 			nextStatement: null,
 			colour: categoryColours["Transform"],
-			tooltip:
-			  "Add physics to the mesh. Options are dynamic, static, animated and none.\nKeyword:physics",
+			tooltip: getTooltip("add_physics"),
 		  });
 		  this.setHelpUrl(getHelpUrlFor(this.type));
 		},
@@ -42,7 +42,7 @@ export function definePhysicsBlocks() {
 		init: function () {
 		  this.jsonInit({
 			type: "add_physics_shape",
-			message0: "add physics shape %1 type %2",
+			message0: translate("add_physics_shape"),
 			args0: [
 			  {
 				type: "field_variable",
@@ -62,8 +62,7 @@ export function definePhysicsBlocks() {
 			previousStatement: null,
 			nextStatement: null,
 			colour: categoryColours["Transform"],
-			tooltip:
-			  "Add a physics shape to the mesh. Options are mesh or capsule.\nKeyword:physics",
+			tooltip: getTooltip("add_physics_shape"),
 		  });
 		  this.setHelpUrl(getHelpUrlFor(this.type));
 		},
@@ -73,7 +72,7 @@ export function definePhysicsBlocks() {
 		init: function () {
 		  this.jsonInit({
 			type: "apply_force",
-			message0: "apply force to %1 x: %2 y: %3 z: %4",
+			message0: translate("apply_force"),
 			args0: [
 			  {
 				type: "field_variable",
@@ -100,9 +99,10 @@ export function definePhysicsBlocks() {
 			previousStatement: null,
 			nextStatement: null,
 			colour: categoryColours["Transform"],
-			tooltip: "Apply a force to a mesh in XYZ directions.\nKeyword: force",
+			tooltip: getTooltip("apply_force"),
 		  });
 		  this.setHelpUrl(getHelpUrlFor(this.type));
 		},
 	  };
 }
+

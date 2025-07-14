@@ -1,5 +1,6 @@
 import * as Blockly from "blockly";
 import { categoryColours} from "../toolbox.js";
+import { translate, getTooltip } from "../main/translation.js";
 
 window.currentMesh = "mesh";
 window.currentBlock = null;
@@ -9,7 +10,7 @@ export function defineBaseBlocks() {
 		init: function () {
 			this.jsonInit({
 				type: "xyz",
-				message0: "x: %1 y: %2 z: %3",
+				message0: translate("xyz"),
 				args0: [
 					{ type: "input_value", name: "X", check: "Number" },
 					{ type: "input_value", name: "Y", check: "Number" },
@@ -18,7 +19,7 @@ export function defineBaseBlocks() {
 				inputsInline: true,
 				output: "Vector",
 				colour: categoryColours["Transform"],
-				tooltip: "Creates a vector with X, Y, Z coordinates",
+				tooltip: getTooltip("xyz"),
 				helpUrl: "",
 			});
 		},

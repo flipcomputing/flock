@@ -18,6 +18,7 @@ import {
 	modelNames,
 } from "../config.js";
 import { flock } from "../flock.js";
+import { translate, getTooltip } from "../main/translation.js";
 
 export function defineModelBlocks() {
 	Blockly.Blocks["load_character"] = {
@@ -26,8 +27,7 @@ export function defineModelBlocks() {
 			let nextVariableName =
 				variableNamePrefix + nextVariableIndexes[variableNamePrefix];
 			this.jsonInit({
-				message0: `add %1 %2 scale: %3 x: %4 y: %5 z: %6
-					Hair: %7 |  Skin: %8 |  Eyes: %9 |  T-Shirt: %10 |  Shorts: %11 |  Detail: %12`,
+				message0: translate("load_character"),
 				args0: [
 					{
 						type: "field_variable",
@@ -104,7 +104,7 @@ export function defineModelBlocks() {
 				],
 				inputsInline: true,
 				colour: categoryColours["Scene"],
-				tooltip: "Create a configurable character.\nKeyword: character",
+				tooltip: getTooltip("load_character"),
 				previousStatement: null,
 				nextStatement: null,
 			});
@@ -153,7 +153,7 @@ export function defineModelBlocks() {
 
 			// Add the main inputs of the block
 			this.jsonInit({
-				message0: `add %1 %2 %3 scale: %4 x: %5 y: %6 z: %7`,
+				message0: translate("load_object"),
 				args0: [
 					{
 						type: "field_variable",
@@ -205,7 +205,7 @@ export function defineModelBlocks() {
 				],
 				inputsInline: true,
 				colour: categoryColours["Scene"],
-				tooltip: "Create an object.\nKeyword: object",
+				tooltip: getTooltip("load_object"),
 				previousStatement: null,
 				nextStatement: null,
 			});
@@ -255,8 +255,7 @@ export function defineModelBlocks() {
 				variableNamePrefix + nextVariableIndexes[variableNamePrefix];
 
 			this.jsonInit({
-				message0:
-					"add %1 %2 scale: %3 x: %4 y: %5 z: %6\ncolors: %7",
+				message0: translate("load_multi_object"),
 				args0: [
 					{
 						type: "field_variable",
@@ -308,7 +307,7 @@ export function defineModelBlocks() {
 				],
 				inputsInline: true,
 				colour: categoryColours["Scene"],
-				tooltip: "Create an object with colours.\nKeyword: object",
+				tooltip: getTooltip("load_multi_object"),
 				previousStatement: null,
 				nextStatement: null,
 			});
@@ -500,7 +499,7 @@ export function defineModelBlocks() {
 				variableNamePrefix + nextVariableIndexes[variableNamePrefix]; // Start with "model1"
 
 			this.jsonInit({
-				message0: "add %1 %2 scale: %3 x: %4 y: %5 z: %6",
+				message0: translate("load_model"),
 				args0: [
 					{
 						type: "field_variable",
@@ -547,7 +546,7 @@ export function defineModelBlocks() {
 				],
 				inputsInline: true,
 				colour: categoryColours["Scene"],
-				tooltip: "Load a model.\nKeyword: model",
+				tooltip: getTooltip("load_model"),
 				previousStatement: null,
 				nextStatement: null,
 			});

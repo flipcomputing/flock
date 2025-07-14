@@ -14,6 +14,7 @@ import {
   updateOrCreateMeshFromBlock,
   getMeshFromBlock,
 } from "../ui/blockmesh.js";
+import { translate, getTooltip } from "../main/translation.js";
 
 export function defineShapeBlocks() {
 	function createShapeBlockDefinition({
@@ -122,11 +123,7 @@ export function defineShapeBlocks() {
 	Blockly.Blocks["create_particle_effect"] = {
 		init: function () {
 			this.jsonInit({
-				message0: `add %1 particle effect on: %2 
-		  shape: %3 start %4 end %5 alpha: %6 to %7 
-		  rate: %8 size: %9 to %10 lifetime: %11 to %12 
-		  gravity: %13 force x: %14 y: %15 z: %16 
-		  angular speed: %17 to %18 initial angle: %19 to %20`,
+				message0: translate("create_particle_effect"),
 				args0: [
 					{
 						type: "field_variable",
@@ -403,8 +400,7 @@ export function defineShapeBlocks() {
 				],
 				inputsInline: true,
 				colour: categoryColours["Scene"],
-				tooltip:
-					"Create a particle effect attached to a mesh with configurable shape, gravity, size, colour, transparency, lifetime, force, and rotation.",
+				tooltip: getTooltip("create_particle_effect"),
 				previousStatement: null,
 				nextStatement: null,
 			});
@@ -416,7 +412,7 @@ export function defineShapeBlocks() {
 		init: function () {
 			this.jsonInit({
 				type: "particle_system_control",
-				message0: "particle system %1 %2",
+				message0: translate("control_particle_system"),
 				args0: [
 					{
 						type: "field_variable",
@@ -437,8 +433,7 @@ export function defineShapeBlocks() {
 				previousStatement: null,
 				nextStatement: null,
 				colour: categoryColours["Scene"],
-				tooltip:
-					"Control the particle system by starting, stopping, or resetting it.",
+				tooltip: getTooltip("control_particle_system"),
 				helpUrl: "",
 			});
 		this.setHelpUrl(getHelpUrlFor(this.type));
@@ -449,34 +444,29 @@ export function defineShapeBlocks() {
 		{
 			type: "create_box",
 			variableNamePrefix: "box",
-			message0:
-				"add box %1 %2 width %3 height %4 depth %5 \nat x %6 y %7 z %8",
+			message0: translate("create_box"),
 			additionalArgs0: [
 				{ type: "input_value", name: "WIDTH", check: "Number" },
 				{ type: "input_value", name: "HEIGHT", check: "Number" },
 				{ type: "input_value", name: "DEPTH", check: "Number" },
 			],
-			tooltip:
-				"Create a colored box with specified dimensions and position.\nKeyword: box",
+			tooltip: getTooltip("create_box"),
 		},
 		{
 			type: "create_sphere",
 			variableNamePrefix: "sphere",
-			message0:
-				"add sphere %1 %2 diameter x %3 diameter y %4 diameter z %5\nat x %6 y %7 z %8",
+			message0: translate("create_sphere"),
 			additionalArgs0: [
 				{ type: "input_value", name: "DIAMETER_X", check: "Number" },
 				{ type: "input_value", name: "DIAMETER_Y", check: "Number" },
 				{ type: "input_value", name: "DIAMETER_Z", check: "Number" },
 			],
-			tooltip:
-				"Create a colored sphere with specified dimensions and position.\nKeyword: sphere",
+			tooltip: getTooltip("create_sphere"),
 		},
 		{
 			type: "create_cylinder",
 			variableNamePrefix: "cylinder",
-			message0:
-				"add cylinder %1 %2 height %3 top %4 bottom %5 sides %6\nat x %7 y %8 z %9",
+			message0: translate("create_cylinder"),
 			additionalArgs0: [
 				{ type: "input_value", name: "HEIGHT", check: "Number" },
 				{ type: "input_value", name: "DIAMETER_TOP", check: "Number" },
@@ -487,34 +477,30 @@ export function defineShapeBlocks() {
 				},
 				{ type: "input_value", name: "TESSELLATIONS", check: "Number" },
 			],
-			tooltip:
-				"Create a colored cylinder with specified dimensions and position.\nKeyword: cylinder",
+			tooltip: getTooltip("create_cylinder"),
 		},
 		{
 			type: "create_capsule",
 			variableNamePrefix: "capsule",
-			message0:
-				"add capsule %1 %2 diameter %3 height %4 \nat x %5 y %6 z %7",
+			message0: translate("create_capsule"),
 			additionalArgs0: [
 				{ type: "input_value", name: "DIAMETER", check: "Number" },
 				{ type: "input_value", name: "HEIGHT", check: "Number" },
 			],
-			tooltip:
-				"Create a colored capsule with specified dimensions and position.\nKeyword: capsule",
+			tooltip: getTooltip("create_capsule"),
 		},
 		{
 			type: "create_plane",
 			variableNamePrefix: "plane",
-			message0:
-				"add plane %1 %2 width %3 height %4 \nat x %5 y %6 z %7",
+			message0: translate("create_plane"),
 			additionalArgs0: [
 				{ type: "input_value", name: "WIDTH", check: "Number" },
 				{ type: "input_value", name: "HEIGHT", check: "Number" },
 			],
-			tooltip:
-				"Create a colored 2D plane with specified width, height, and position.\nKeyword: plane",
+			tooltip: getTooltip("create_plane"),
 		},
 	];
 
 	shapes.forEach((shape) => createShapeBlockDefinition(shape));
 }
+

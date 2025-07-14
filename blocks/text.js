@@ -1,13 +1,14 @@
 import * as Blockly from "blockly";
 import { categoryColours } from "../toolbox.js";
 import { getHelpUrlFor, nextVariableIndexes } from "../blocks.js";
+import { translate, getTooltip } from "../main/translation.js";
 
 export function defineTextBlocks() {
 	Blockly.Blocks["comment"] = {
 		init: function () {
 			this.jsonInit({
 				type: "comment",
-				message0: "// %1",
+				message0: translate("comment"),
 				args0: [
 					{
 						type: "input_value",
@@ -19,7 +20,7 @@ export function defineTextBlocks() {
 				previousStatement: null,
 				nextStatement: null,
 				colour: "#d3d3d3",
-				tooltip: "A comment line to help people understand your code.",
+				tooltip: getTooltip("comment"),
 			});
 			this.setHelpUrl(getHelpUrlFor(this.type));
 		},
@@ -29,7 +30,7 @@ export function defineTextBlocks() {
 		init: function () {
 			this.jsonInit({
 				type: "print_text",
-				message0: "print %1 for %2 seconds %3",
+				message0: translate("print_text"),
 				args0: [
 					{
 						type: "input_value",
@@ -52,7 +53,7 @@ export function defineTextBlocks() {
 				previousStatement: null,
 				nextStatement: null,
 				colour: 160,
-				tooltip: "A text to the output panel.\nKeyword: print",
+				tooltip: getTooltip("print_text"),
 			});
 			this.setHelpUrl(getHelpUrlFor(this.type));
 		},
@@ -62,8 +63,7 @@ export function defineTextBlocks() {
 		init: function () {
 			this.jsonInit({
 				type: "say",
-				message0:
-					"say %1 for %2 s %3 \ntext %4 on %5 alpha %6 size %7 %8 %9",
+				message0: translate("say"),
 				args0: [
 					{
 						type: "input_value",
@@ -123,8 +123,7 @@ export function defineTextBlocks() {
 				previousStatement: null,
 				nextStatement: null,
 				colour: 160,
-				tooltip:
-					"Display a piece of text as a speech bubble on a mesh.\nKeyword: say",
+				tooltip: getTooltip("say"),
 			});
 			this.setHelpUrl(getHelpUrlFor(this.type));
 		},
@@ -134,8 +133,7 @@ export function defineTextBlocks() {
 		init: function () {
 			this.jsonInit({
 				type: "ui_text",
-				message0:
-					"ui text %1 %2 at x: %3 y: %4\nsize: %5 for %6 seconds color: %7",
+				message0: translate("ui_text"),
 				args0: [
 					{
 						type: "input_value",
@@ -156,7 +154,7 @@ export function defineTextBlocks() {
 						name: "Y",
 						check: "Number",
 					},
-					{
+ 					{
 						type: "input_value",
 						name: "FONT_SIZE",
 						check: "Number",
@@ -176,8 +174,7 @@ export function defineTextBlocks() {
 				previousStatement: null,
 				nextStatement: null,
 				colour: categoryColours["Text"],
-				tooltip:
-					"Add text to the UI screen, and store control in a variable for later use or disposal.",
+				tooltip: getTooltip("ui_text"),
 			});
 			this.setHelpUrl(getHelpUrlFor(this.type));
 		},
@@ -187,8 +184,7 @@ export function defineTextBlocks() {
 		init: function () {
 			this.jsonInit({
 				type: "ui_button",
-				message0:
-					"ui button %1 %2 at x: %3 y: %4\nsize: %5 text size: %6 text color: %7 background color: %8",
+				message0: translate("ui_button"),
 				args0: [
 					{
 						type: "input_value",
@@ -242,8 +238,7 @@ export function defineTextBlocks() {
 				previousStatement: null,
 				nextStatement: null,
 				colour: categoryColours["Text"],
-				tooltip:
-					"Add a 2D button to the UI screen with a preset size, and store control in a variable for later use or disposal.",
+				tooltip: getTooltip("ui_button"),
 			});
 			this.setHelpUrl(getHelpUrlFor(this.type));
 		},
@@ -253,8 +248,7 @@ export function defineTextBlocks() {
 	  init: function () {
 		this.jsonInit({
 		  type: "ui_input",
-		  message0:
-			"ui input %1 %2 at x: %3 y: %4\nsize: %5 text size: %6 text: %7 background: %8",
+		  message0: translate("ui_input"),
 		  args0: [
 			{
 			  type: "field_variable",
@@ -304,7 +298,7 @@ export function defineTextBlocks() {
 		  previousStatement: null,
 		  nextStatement: null,
 		  colour: categoryColours["Text"],
-		  tooltip: "Ask the user a question and wait for input. Stores the result in a variable.",
+		  tooltip: getTooltip("ui_input"),
 		});
 
 		this.setHelpUrl(getHelpUrlFor(this.type));
@@ -319,8 +313,7 @@ export function defineTextBlocks() {
 				variableNamePrefix + nextVariableIndexes[variableNamePrefix];
 
 			this.jsonInit({
-				message0: `add %1 3D text: %2 font: %3 size: %4 color: %5
-					depth: %6 x: %7 y: %8 z: %9 `,
+				message0: translate("create_3d_text"),
 				args0: [
 					{
 						type: "field_variable",
@@ -370,7 +363,7 @@ export function defineTextBlocks() {
 				],
 				inputsInline: true,
 				colour: categoryColours["Text"],
-				tooltip: "Create 3D text in the scene.",
+				tooltip: getTooltip("create_3d_text"),
 				previousStatement: null,
 				nextStatement: null,
 			});

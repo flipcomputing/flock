@@ -1,13 +1,14 @@
 import * as Blockly from "blockly";
 import { categoryColours } from "../toolbox.js";
 import { getHelpUrlFor } from "../blocks.js";
+import { translate, getTooltip } from "../main/translation.js";
 
 export function defineTransformBlocks() {
 	Blockly.Blocks["move_by_xyz"] = {
 		init: function () {
 			this.jsonInit({
 				type: "move_by_xyz",
-				message0: "move %1 by x: %2 y: %3 z: %4",
+				message0: translate("move_by_xyz"),
 				args0: [
 					{
 						type: "field_variable",
@@ -37,8 +38,7 @@ export function defineTransformBlocks() {
 				nextStatement: null,
 				colour: categoryColours["Transform"],
 				inputsInline: true,
-				tooltip:
-					"Move a mesh a given amount in x y and z directions.\nKeyword: move",
+				tooltip: getTooltip("move_by_xyz"),
 			});
 			this.setHelpUrl(getHelpUrlFor(this.type));
 		},
@@ -48,7 +48,7 @@ export function defineTransformBlocks() {
 		init: function () {
 			this.jsonInit({
 				type: "move_to_xyz",
-				message0: "move %1 to x: %2 y: %3 z: %4 y? %5",
+				message0: translate("move_to_xyz"),
 				args0: [
 					{
 						type: "field_variable",
@@ -84,8 +84,7 @@ export function defineTransformBlocks() {
 				nextStatement: null,
 				colour: categoryColours["Transform"],
 				inputsInline: true,
-				tooltip:
-					"Teleport the mesh to the coordinates. Optionally, use the Y axis.\nKeyword: moveby",
+				tooltip: getTooltip("move_to_xyz"),
 			});
 			this.setHelpUrl(getHelpUrlFor(this.type));
 		},
@@ -95,7 +94,7 @@ export function defineTransformBlocks() {
 		init: function () {
 			this.jsonInit({
 				type: "move_to",
-				message0: "move %1 to %2 y? %3",
+				message0: translate("move_to"),
 				args0: [
 					{
 						type: "field_variable",
@@ -118,8 +117,7 @@ export function defineTransformBlocks() {
 				nextStatement: null,
 				colour: categoryColours["Transform"],
 				inputsInline: true,
-				tooltip:
-					"Teleport the first mesh to the location of the second mesh.\nKeyword: moveto",
+				tooltip: getTooltip("move_to"),
 			});
 			this.setHelpUrl(getHelpUrlFor(this.type));
 		},
@@ -129,8 +127,7 @@ export function defineTransformBlocks() {
 		init: function () {
 			this.jsonInit({
 				type: "scale",
-				message0:
-					"scale %1 x: %2 y: %3 z: %4\norigin x: %5 y: %6 z: %7",
+				message0: translate("scale"),
 				args0: [
 					{
 						type: "field_variable",
@@ -184,8 +181,7 @@ export function defineTransformBlocks() {
 				nextStatement: null,
 				colour: categoryColours["Transform"],
 				inputsInline: true,
-				tooltip:
-					"Resize a mesh to the given x, y, and z and controls the origin of scaling. \nKeyword: scale",
+				tooltip: getTooltip("scale"),
 			});
 			this.setHelpUrl(getHelpUrlFor(this.type));
 		},
@@ -195,8 +191,7 @@ export function defineTransformBlocks() {
 		init: function () {
 			this.jsonInit({
 				type: "resize",
-				message0:
-					"resize %1 x: %2 y: %3 z: %4\norigin x: %5 y: %6 z: %7",
+				message0: translate("resize"),
 				args0: [
 					{
 						type: "field_variable",
@@ -250,8 +245,7 @@ export function defineTransformBlocks() {
 				nextStatement: null,
 				colour: categoryColours["Transform"],
 				inputsInline: true,
-				tooltip:
-					"Resize a mesh to the given x, y, and z and controls the origin of scaling.\nKeyword: resize",
+				tooltip: getTooltip("resize"),
 			});
 			this.setHelpUrl(getHelpUrlFor(this.type));
 		},
@@ -261,7 +255,7 @@ export function defineTransformBlocks() {
 		init: function () {
 			this.jsonInit({
 				type: "rotate_model_xyz",
-				message0: "rotate %1 by x: %2 y: %3 z: %4",
+				message0: translate("rotate_model_xyz"),
 				args0: [
 					{
 						type: "field_variable",
@@ -291,8 +285,7 @@ export function defineTransformBlocks() {
 				nextStatement: null,
 				colour: categoryColours["Transform"],
 				inputsInline: true,
-				tooltip:
-					"Rotate the mesh by the given x, y, z values.\nKeyword: rotate\nKeyword: rotateby",
+				tooltip: getTooltip("rotate_model_xyz"),
 			});
 			this.setHelpUrl(getHelpUrlFor(this.type));
 		},
@@ -302,7 +295,7 @@ export function defineTransformBlocks() {
 		init: function () {
 			this.jsonInit({
 				type: "rotate_to",
-				message0: "rotate %1 to x: %2 y: %3 z: %4",
+				message0: translate("rotate_to"),
 				args0: [
 					{
 						type: "field_variable",
@@ -332,8 +325,7 @@ export function defineTransformBlocks() {
 				nextStatement: null,
 				colour: categoryColours["Transform"],
 				inputsInline: true,
-				tooltip:
-					"Rotate the mesh to point towards the  coordinates.\nKeyword: rotateto",
+				tooltip: getTooltip("rotate_to"),
 			});
 			this.setHelpUrl(getHelpUrlFor(this.type));
 		},
@@ -343,7 +335,7 @@ export function defineTransformBlocks() {
 		init: function () {
 			this.jsonInit({
 				type: "look_at",
-				message0: "look %1 at %2 y? %3",
+				message0: translate("look_at"),
 				args0: [
 					{
 						type: "field_variable",
@@ -366,8 +358,7 @@ export function defineTransformBlocks() {
 				nextStatement: null,
 				colour: categoryColours["Transform"],
 				inputsInline: true,
-				tooltip:
-					"Rotate the first mesh towards the position of the second mesh.\nKeyword: look",
+				tooltip: getTooltip("look_at"),
 			});
 			this.setHelpUrl(getHelpUrlFor(this.type));
 		},
@@ -377,7 +368,7 @@ export function defineTransformBlocks() {
 		init: function () {
 			this.jsonInit({
 				type: "move",
-				message0: "move %1 %2 speed %3",
+				message0: translate("move_forward"),
 				args0: [
 					{
 						type: "field_variable",
@@ -403,8 +394,7 @@ export function defineTransformBlocks() {
 				previousStatement: null,
 				nextStatement: null,
 				colour: categoryColours["Transform"],
-				tooltip:
-					"Move the mesh in the specified direction. 'Forward' moves it in the direction it's pointing, 'sideways' moves it relative to the camera's direction, and 'strafe' moves it sideways relative to the camera's direction.\nKeyword: push",
+				tooltip: getTooltip("move_forward"),
 			});
 			this.setHelpUrl(getHelpUrlFor(this.type));
 		},
@@ -414,7 +404,7 @@ export function defineTransformBlocks() {
 		init: function () {
 			this.jsonInit({
 				type: "set_pivot",
-				message0: "set pivot of %1 x: %2 y: %3 z: %4",
+				message0: translate("set_pivot"),
 				args0: [
 					{
 						type: "field_variable",
@@ -441,8 +431,7 @@ export function defineTransformBlocks() {
 				previousStatement: null,
 				nextStatement: null,
 				colour: categoryColours["Transform"],
-				tooltip:
-					"Set the pivot point for a mesh on the X, Y, and Z axes\nKeyword: pivot",
+				tooltip: getTooltip("set_pivot"),
 			});
 			this.setHelpUrl(getHelpUrlFor(this.type));
 		},
@@ -452,7 +441,7 @@ export function defineTransformBlocks() {
 		init: function () {
 			this.jsonInit({
 				type: "min_centre_max",
-				message0: "%1",
+				message0: translate("min_centre_max"),
 				args0: [
 					{
 						type: "field_dropdown",
@@ -466,10 +455,10 @@ export function defineTransformBlocks() {
 				],
 				output: "String", // Now returns a symbolic string
 				colour: categoryColours["Transform"],
-				tooltip:
-					"Choose min, center, or max for the pivot point\nKeyword: minmax",
+				tooltip: getTooltip("min_centre_max"),
 			});
 			this.setHelpUrl(getHelpUrlFor(this.type));
 		},
 	};
 }
+

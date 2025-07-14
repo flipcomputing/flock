@@ -1,12 +1,13 @@
 import * as Blockly from "blockly";
 import { categoryColours } from "../toolbox.js";
 import { getHelpUrlFor } from "../blocks.js";
+import { translate, getTooltip } from "../main/translation.js";
 
 export function defineCombineBlocks() {
 	Blockly.Blocks["merge_meshes"] = {
 		init: function () {
 			this.jsonInit({
-				message0: "add %1 as merge %2",
+				message0: translate("merge_meshes"),
 				args0: [
 					{
 						type: "field_variable",
@@ -20,8 +21,7 @@ export function defineCombineBlocks() {
 					},
 				],
 				colour: categoryColours["Transform"],
-				tooltip:
-					"Merge a list of meshes into one and store the result.\nKeyword: merge",
+				tooltip: getTooltip("merge_meshes"),
 				previousStatement: null,
 				nextStatement: null,
 			});
@@ -32,7 +32,7 @@ export function defineCombineBlocks() {
 	Blockly.Blocks["subtract_meshes"] = {
 		init: function () {
 			this.jsonInit({
-				message0: "add %1 as %2 subtract %3",
+				message0: translate("subtract_meshes"),
 				args0: [
 					{
 						type: "field_variable",
@@ -51,8 +51,7 @@ export function defineCombineBlocks() {
 					},
 				],
 				colour: categoryColours["Transform"],
-				tooltip:
-					"Subtract a list of meshes from a base mesh and store the result.\nKeyword: subtract",
+				tooltip: getTooltip("subtract_meshes"),
 				previousStatement: null,
 				nextStatement: null,
 			});
@@ -62,7 +61,7 @@ export function defineCombineBlocks() {
 	Blockly.Blocks["intersection_meshes"] = {
 		init: function () {
 			this.jsonInit({
-				message0: "add %1 as intersect %2",
+				message0: translate("intersection_meshes"),
 				args0: [
 					{
 						type: "field_variable",
@@ -76,8 +75,7 @@ export function defineCombineBlocks() {
 					},
 				],
 				colour: categoryColours["Transform"],
-				tooltip:
-					"Intersect a list of meshes and store the resulting geometry.\nKeyword: intersect",
+				tooltip: getTooltip("intersection_meshes"),
 				previousStatement: null,
 				nextStatement: null,
 			});
@@ -88,7 +86,7 @@ export function defineCombineBlocks() {
 	Blockly.Blocks["hull_meshes"] = {
 		init: function () {
 			this.jsonInit({
-				message0: "add %1 as hull of %2",
+				message0: translate("hull_meshes"),
 				args0: [
 					{
 						type: "field_variable",
@@ -102,8 +100,7 @@ export function defineCombineBlocks() {
 					},
 				],
 				colour: categoryColours["Transform"],
-				tooltip:
-					"Create a convex hull from a list of meshes and store the result.\nKeyword: hull",
+				tooltip: getTooltip("hull_meshes"),
 				previousStatement: null,
 				nextStatement: null,
 			});
@@ -111,3 +108,4 @@ export function defineCombineBlocks() {
 		},
 	};
 }
+

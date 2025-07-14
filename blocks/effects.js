@@ -3,13 +3,14 @@ import { categoryColours } from "../toolbox.js";
 import {
 	getHelpUrlFor,
 } from "../blocks.js";
+import { translate, getTooltip } from "../main/translation.js";
 
 export function defineEffectsBlocks() {
 	Blockly.Blocks["light_intensity"] = {
 		init: function () {
 			this.jsonInit({
 				type: "light_intensity",
-				message0: "set light intensity to %1",
+				message0: translate("light_intensity"),
 				args0: [
 					{
 						type: "input_value",
@@ -20,8 +21,7 @@ export function defineEffectsBlocks() {
 				previousStatement: null,
 				nextStatement: null,
 				colour: categoryColours["Scene"],
-				tooltip:
-					"Set the intensity of the main light.\nKeyword: light intensity",
+				tooltip: getTooltip("light_intensity"),
 			});
 			this.setHelpUrl(getHelpUrlFor(this.type));
 		},
@@ -31,7 +31,7 @@ export function defineEffectsBlocks() {
 		init: function () {
 			this.jsonInit({
 				type: "set_fog",
-				message0: "set fog color %1 mode %2 density %3",
+				message0: translate("set_fog"),
 				args0: [
 					{
 						type: "input_value",
@@ -59,9 +59,10 @@ export function defineEffectsBlocks() {
 				previousStatement: null,
 				nextStatement: null,
 				colour: categoryColours["Scene"],
-				tooltip: "Configure the scene's fog.\nKeyword: fog",
+				tooltip: getTooltip("set_fog"),
 			});
 			this.setHelpUrl(getHelpUrlFor(this.type));
 		},
 	};
 }
+

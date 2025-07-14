@@ -8,13 +8,14 @@ import {
 	inlineIcon,
 	updateShape,
 } from "../blocks.js";
+import { translate, getTooltip } from "../main/translation.js";
 
 export function defineSensingBlocks() {
 	Blockly.Blocks["key_pressed"] = {
 		init: function () {
 			this.jsonInit({
 				type: "key_pressed",
-				message0: "key pressed is %1",
+				message0: translate("key_pressed"),
 				args0: [
 					{
 						type: "field_dropdown",
@@ -35,8 +36,7 @@ export function defineSensingBlocks() {
 				],
 				output: "Boolean",
 				colour: categoryColours["Sensing"],
-				tooltip:
-					"Return true if the specified key is pressed.\nKeyword:ispressed",
+				tooltip: getTooltip("key_pressed"),
 			});
 			this.setHelpUrl(getHelpUrlFor(this.type));
 		},
@@ -46,7 +46,7 @@ export function defineSensingBlocks() {
 		init: function () {
 			this.jsonInit({
 				type: "meshes_are_touching",
-				message0: "%1 touching %2",
+				message0: translate("meshes_touching"),
 				args0: [
 					{
 						type: "field_variable",
@@ -61,8 +61,7 @@ export function defineSensingBlocks() {
 				],
 				output: "Boolean",
 				colour: categoryColours["Sensing"],
-				tooltip:
-					"Return true if the two selected meshes are touching.\nKeyword: istouching",
+				tooltip: getTooltip("meshes_touching"),
 			});
 			this.setHelpUrl(getHelpUrlFor(this.type));
 		},
@@ -72,12 +71,12 @@ export function defineSensingBlocks() {
 		init: function () {
 			this.jsonInit({
 				type: "time",
-				message0: "time in s",
+				message0: translate("time"),
 				args0: [],
 				output: "Number",
 				colour: categoryColours["Sensing"], // Adjust the colour category as necessary
 				inputsInline: true,
-				tooltip: "Return the current time in seconds.",
+				tooltip: getTooltip("time"),
 			});
 			this.setHelpUrl(getHelpUrlFor(this.type));
 		},
@@ -87,7 +86,7 @@ export function defineSensingBlocks() {
 		init: function () {
 			this.jsonInit({
 				type: "distance_to",
-				message0: "distance from %1 to %2",
+				message0: translate("distance_to"),
 				args0: [
 					{
 						type: "field_variable",
@@ -103,7 +102,7 @@ export function defineSensingBlocks() {
 				output: "Number",
 				colour: categoryColours["Sensing"],
 				inputsInline: true,
-				tooltip: "Calculate the distance between two meshes.",
+				tooltip: getTooltip("distance_to"),
 			});
 			this.setHelpUrl(getHelpUrlFor(this.type));
 		},
@@ -113,7 +112,7 @@ export function defineSensingBlocks() {
 		init: function () {
 			this.jsonInit({
 				type: "touching_surface",
-				message0: "is %1 touching surface",
+				message0: translate("touching_surface"),
 				args0: [
 					{
 						type: "field_variable",
@@ -123,8 +122,7 @@ export function defineSensingBlocks() {
 				],
 				output: "Boolean",
 				colour: categoryColours["Sensing"],
-				tooltip:
-					"Check if the mesh is touching a surface.\nKeyword: surface",
+				tooltip: getTooltip("touching_surface"),
 			});
 			this.setHelpUrl(getHelpUrlFor(this.type));
 		},
@@ -155,7 +153,7 @@ export function defineSensingBlocks() {
 		init: function () {
 			this.jsonInit({
 				type: "get_property",
-				message0: "get %1 of %2",
+				message0: translate("get_property"),
 				args0: [
 					{
 						type: "field_dropdown",
@@ -192,8 +190,7 @@ export function defineSensingBlocks() {
 				],
 				output: null,
 				colour: categoryColours["Sensing"],
-				tooltip:
-					"Get the value of the selected property of a mesh.\nKeyword: get",
+				tooltip: getTooltip("get_property"),
 			});
 			this.setHelpUrl(getHelpUrlFor(this.type));
 		},
@@ -203,7 +200,7 @@ export function defineSensingBlocks() {
 		init: function () {
 			this.jsonInit({
 				type: "canvas_controls",
-				message0: "canvas controls %1",
+				message0: translate("canvas_controls"),
 				args0: [
 					{
 						type: "field_checkbox",
@@ -214,8 +211,7 @@ export function defineSensingBlocks() {
 				previousStatement: null,
 				nextStatement: null,
 				colour: categoryColours["Sensing"],
-				tooltip:
-					"Add or remove canvas motion controls.\nKeyword: canvas",
+				tooltip: getTooltip("canvas_controls"),
 			});
 			this.setHelpUrl(getHelpUrlFor(this.type));
 		},
@@ -225,7 +221,7 @@ export function defineSensingBlocks() {
 		init: function () {
 			this.jsonInit({
 				type: "button_controls",
-				message0: "button controls %1 enabled %2 color %3",
+				message0: translate("button_controls"),
 				args0: [
 					{
 						type: "field_dropdown",
@@ -250,7 +246,7 @@ export function defineSensingBlocks() {
 				previousStatement: null,
 				nextStatement: null,
 				colour: categoryColours["Sensing"],
-				tooltip: "Configure button controls.\nKeyword: button",
+				tooltip: getTooltip("button_controls"),
 			});
 			this.setHelpUrl(getHelpUrlFor(this.type));
 		},
@@ -260,7 +256,7 @@ export function defineSensingBlocks() {
 		init: function () {
 			this.jsonInit({
 				type: "microbit_input",
-				message0: "when micro:bit event %1",
+				message0: translate("microbit_input"),
 				args0: [
 					{
 						type: "field_dropdown",
@@ -295,8 +291,7 @@ export function defineSensingBlocks() {
 					},
 				],
 				colour: categoryColours["Sensing"],
-				tooltip:
-					"Executes the blocks inside when a specified micro:bit event is triggered.",
+				tooltip: getTooltip("microbit_input"),
 			});
 			this.setHelpUrl(getHelpUrlFor(this.type));
 			addToggleButton(this);
@@ -318,8 +313,7 @@ export function defineSensingBlocks() {
 		init: function () {
 			this.jsonInit({
 				type: "ui_slider",
-				message0:
-					"ui slider %1 from %2 to %3 default %4 at x: %5 y: %6\ncolor: %7 background: %8 %9",
+				message0: translate("ui_slider"),
 				args0: [
 					{
 						type: "field_variable",
@@ -374,11 +368,11 @@ export function defineSensingBlocks() {
 				previousStatement: null,
 				nextStatement: null,
 				colour: categoryColours["Text"],
-				tooltip:
-					"Add a 2D slider UI control and store its reference in a variable.",
+				tooltip: getTooltip("ui_slider"),
 			});
 
 			this.setHelpUrl(getHelpUrlFor(this.type));
 		},
 	};
 }
+
