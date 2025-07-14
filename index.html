@@ -864,9 +864,9 @@
       </nav>
       </header>
       <main role="main">
-        <section id="maincontent" aria-label="Main content area" tabindex="0">
-        <div id="rightArea">
-          <canvas id="renderCanvas" touch-action="none" tabindex="0" aria-label="3D scene canvas" role="img" aria-describedby="canvas-desc canvas-controls-desc"></canvas>
+        <div id="maincontent" aria-label="Main content area" tabindex="0">
+        <section id="rightArea" aria-label="Canvas and design tools" >
+          <canvas id="renderCanvas" touch-action="none" tabindex="0" aria-label="3D scene canvas" role="application" aria-describedby="canvas-desc canvas-controls-desc"></canvas>
           <div id="canvas-desc" class="sr-only">Interactive 3D scene where your project runs. Use keyboard controls to navigate and interact with objects.</div>
           <div id="canvas-controls-desc" class="sr-only">Canvas keyboard controls: Arrow keys or WASD to move camera, Mouse to look around, Space for actions, Tab to navigate to other interface elements.</div>
           <div id="fullscreen-desc" class="sr-only">Toggle between fullscreen and windowed view of the application</div>
@@ -1164,14 +1164,33 @@
 
           <!-- Info panel collapse ends -->
 
-           <div id="flocklink">
-  <a href="https://flockxr.com/" target="_blank" id="info-panel-link" tabindex="20" aria-label="Visit Flock XR website - opens in new tab" title="Visit Flock XR website">
-    <img src="images/inline-flock-xr.png" alt="Flock XR logo" style="width: 100px;">
-  </a>
-</div>
+          <footer id="site-footer">
+            <nav aria-label="Footer navigation">
+              <div id="flocklink">
+                <a
+                  href="https://flockxr.com/"
+                  target="_blank"
+                  id="info-panel-link"
+                  tabindex="20"
+                  aria-label="Visit Flock XR website (opens in new tab)"
+                  title="Visit Flock XR website"
+                >
+                  <img
+                    src="images/inline-flock-xr.png"
+                    alt="Flock XR logo"
+                    style="width: 100px;"
+                  >
+                  <span class="sr-only">
+                    Visit Flock XR website (opens in new tab)
+                  </span>
+                </a>
+              </div>
+            </nav>
+          </footer>
 
-        </div>
-        <div id="codePanel" aria-label="Code editor panel">
+
+        </section>
+        <section id="codePanel" aria-label="Code editor panel">
           <!--button
             value="Toolbox"
             id="toolboxControl"
@@ -1188,8 +1207,8 @@
         </button-->
           <div id="blocklyDiv" role="application" aria-label="Visual programming workspace" aria-describedby="blockly-desc" tabindex="0"></div>
           <div id="blockly-desc" class="sr-only">Drag and drop code blocks to create your program. Use arrow keys and Enter to navigate and interact with blocks.</div>
-        </div>
-      </section>
+        </section>
+      </div>
       </main>
       <div id="bottomBar" role="toolbar" aria-label="View switching controls">
         <button id="switchViews" aria-label="Switch between code and canvas views" aria-describedby="switch-desc">Code >></button>
