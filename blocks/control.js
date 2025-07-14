@@ -1,13 +1,14 @@
 import * as Blockly from "blockly";
 import { categoryColours } from "../toolbox.js";
 import { getHelpUrlFor } from "../blocks.js";
+import { translate, getTooltip } from "../main/translation.js";
 
 export function defineControlBlocks() {
 	Blockly.Blocks["wait"] = {
 		init: function () {
 			this.jsonInit({
 				type: "wait",
-				message0: "wait %1 ms",
+				message0: translate("wait"),
 				args0: [
 					{
 						type: "input_value",
@@ -18,8 +19,7 @@ export function defineControlBlocks() {
 				previousStatement: null,
 				nextStatement: null,
 				colour: categoryColours["Control"],
-				tooltip:
-					"Wait for a specified time in milliseconds.\nKeyword: milli",
+				tooltip: getTooltip("wait"),
 			});
 			this.setHelpUrl(getHelpUrlFor(this.type));
 		},
@@ -29,7 +29,7 @@ export function defineControlBlocks() {
 		init: function () {
 			this.jsonInit({
 				type: "wait",
-				message0: "wait %1 seconds",
+				message0: translate("wait_seconds"),
 				args0: [
 					{
 						type: "input_value",
@@ -40,7 +40,7 @@ export function defineControlBlocks() {
 				previousStatement: null,
 				nextStatement: null,
 				colour: categoryColours["Control"],
-				tooltip: "Wait for a specified time in seconds.\nKeyword: wait",
+				tooltip: getTooltip("wait_seconds"),
 			});
 			this.setHelpUrl(getHelpUrlFor(this.type));
 		},
@@ -50,7 +50,7 @@ export function defineControlBlocks() {
 		init: function () {
 			this.jsonInit({
 				type: "wait_until",
-				message0: "wait until %1",
+				message0: translate("wait_until"),
 				args0: [
 					{
 						type: "input_value",
@@ -61,7 +61,7 @@ export function defineControlBlocks() {
 				previousStatement: null,
 				nextStatement: null,
 				colour: categoryColours["Control"],
-				tooltip: "Wait until the condition is true.\nKeyword:until",
+				tooltip: getTooltip("wait_until"),
 			});
 			this.setHelpUrl(getHelpUrlFor(this.type));
 		},
@@ -71,7 +71,7 @@ export function defineControlBlocks() {
 		init: function () {
 			this.jsonInit({
 				type: "local_variable",
-				message0: "local %1",
+				message0: translate("local_variable"),
 				args0: [
 					{
 						type: "field_variable",
@@ -82,8 +82,7 @@ export function defineControlBlocks() {
 				previousStatement: null,
 				nextStatement: null,
 				colour: categoryColours["Control"],
-				tooltip:
-					"Create a local version of a selected variable. This hides the global variable and can have a different value. \nKeyword: local",
+				tooltip: getTooltip("local_variable"),
 			});
 			this.setHelpUrl(getHelpUrlFor(this.type));
 		},
@@ -93,7 +92,7 @@ export function defineControlBlocks() {
 		init: function () {
 			this.jsonInit({
 				type: "for_loop",
-				message0: "for each %1 from %2 to %3 by %4 do %5",
+				message0: translate("for_loop2"),
 				args0: [
 					{
 						type: "field_lexical_variable",
@@ -125,8 +124,7 @@ export function defineControlBlocks() {
 				nextStatement: null,
 				colour: categoryColours["Control"],
 				inputsInline: true,
-				tooltip:
-					"Loop from a starting number to an ending number by a given step.",
+				tooltip: getTooltip("for_loop2"),
 			});
 			this.setHelpUrl(getHelpUrlFor(this.type));
 		},
@@ -159,7 +157,7 @@ export function defineControlBlocks() {
 		init: function () {
 			this.jsonInit({
 				type: "for_loop",
-				message0: "for each %1 from %2 to %3 by %4 do %5",
+				message0: translate("for_loop"),
 				args0: [
 					{
 						type: "field_lexical_variable",
@@ -191,8 +189,7 @@ export function defineControlBlocks() {
 				nextStatement: null,
 				colour: categoryColours["Control"],
 				inputsInline: true,
-				tooltip:
-					"Loop from a starting number to an ending number by a given step. Click on the dropdown to get the loop variable to use in your code.\nKeyword: for",
+				tooltip: getTooltip("for_loop"),
 			});
 			this.setHelpUrl(getHelpUrlFor(this.type));
 		},
@@ -419,7 +416,7 @@ export function defineControlBlocks() {
 	Blockly.Blocks["get_lexical_variable"] = {
 	  init: function () {
 		this.jsonInit({
-		  message0: "%1",
+		  message0: translate("get_lexical_variable"),
 		  args0: [
 			{
 			  type: "field_label",
@@ -429,7 +426,7 @@ export function defineControlBlocks() {
 		  ],
 		  output: null,
 		  colour: categoryColours["Variables"],
-		  tooltip: "Get the value of a lexical variable",
+		  tooltip: getTooltip("get_lexical_variable"),
 		});
 		this.setHelpUrl(getHelpUrlFor(this.type));
 
@@ -500,3 +497,4 @@ export function defineControlBlocks() {
 	  }
 	};
 }
+

@@ -8,14 +8,14 @@ import {
 import {
   animationNames,
 } from "../config.js";
+import { translate, getTooltip } from "../main/translation.js";
 
 export function defineAnimateBlocks() {
 	Blockly.Blocks["glide_to"] = {
 		init: function () {
 		  this.jsonInit({
 			type: "glide_to",
-			message0:
-			  "glide %1 to x %2 y %3 z %4 in %5 ms\n%6 return? %7 loop? %8 %9",
+			message0: translate("glide_to"),
 			args0: [
 			  {
 				type: "field_variable",
@@ -80,8 +80,7 @@ export function defineAnimateBlocks() {
 			previousStatement: null,
 			nextStatement: null,
 			colour: categoryColours["Animate"],
-			tooltip:
-			  "Glide to a specified position over a duration with options for reversing, looping, and easing.",
+			tooltip: getTooltip("glide_to"),
 		  });
 		  this.setHelpUrl(getHelpUrlFor(this.type));
 		},
@@ -91,8 +90,7 @@ export function defineAnimateBlocks() {
 		init: function () {
 		  this.jsonInit({
 			type: "glide_to_seconds",
-			message0:
-			  "glide %1 to x %2 y %3 z %4 in %5 seconds \n%6 return? %7 loop? %8 %9",
+			message0: translate("glide_to_seconds"),
 			args0: [
 			  {
 				type: "field_variable",
@@ -157,8 +155,7 @@ export function defineAnimateBlocks() {
 			previousStatement: null,
 			nextStatement: null,
 			colour: categoryColours["Animate"],
-			tooltip:
-			  "Glide to a specified position over a duration with options for reversing, looping, and easing.",
+			tooltip: getTooltip("glide_to_seconds"),
 		  });
 		  this.setHelpUrl(getHelpUrlFor(this.type));
 		},
@@ -168,8 +165,7 @@ export function defineAnimateBlocks() {
 		init: function () {
 		  this.jsonInit({
 			type: "rotate_anim",
-			message0:
-			  "rotate %1 to x %2 y %3 z %4 in %5 ms\n%6 reverse? %7 loop? %8  %9",
+			message0: translate("rotate_anim"),
 			args0: [
 			  {
 				type: "field_variable",
@@ -234,8 +230,7 @@ export function defineAnimateBlocks() {
 			previousStatement: null,
 			nextStatement: null,
 			colour: categoryColours["Animate"],
-			tooltip:
-			  "Rotate a mesh to specified angles over a duration with options for reverse, looping, and easing.",
+			tooltip: getTooltip("rotate_anim"),
 		  });
 		  this.setHelpUrl(getHelpUrlFor(this.type));
 		},
@@ -245,8 +240,7 @@ export function defineAnimateBlocks() {
 		init: function () {
 		  this.jsonInit({
 			type: "rotate_anim_seconds",
-			message0:
-			  "rotate %1 to x %2 y %3 z %4 in %5 seconds\n%6 reverse? %7 loop? %8  %9",
+			message0: translate("rotate_anim_seconds"),
 			args0: [
 			  {
 				type: "field_variable",
@@ -311,8 +305,7 @@ export function defineAnimateBlocks() {
 			previousStatement: null,
 			nextStatement: null,
 			colour: categoryColours["Animate"],
-			tooltip:
-			  "Rotate a mesh to specified angles over a duration with options for reverse, looping, and easing.",
+			tooltip: getTooltip("rotate_anim_seconds"),
 		  });
 		  this.setHelpUrl(getHelpUrlFor(this.type));
 		},
@@ -322,7 +315,7 @@ export function defineAnimateBlocks() {
 		init: function () {
 		  this.jsonInit({
 			type: "animate_property",
-			message0: "animate %1 %2 to %3 in %4 ms reverse? %5 loop? %6 %7",
+			message0: translate("animate_property"),
 			args0: [
 			  {
 				type: "field_variable",
@@ -373,7 +366,7 @@ export function defineAnimateBlocks() {
 			previousStatement: null,
 			nextStatement: null,
 			colour: categoryColours["Animate"],
-			tooltip: "Animate a material property of the mesh and its children.",
+			tooltip: getTooltip("animate_property"),
 		  });
 		  this.setHelpUrl(getHelpUrlFor(this.type));
 		},
@@ -383,7 +376,7 @@ export function defineAnimateBlocks() {
 		init: function () {
 		  this.jsonInit({
 			type: "colour_keyframe",
-			message0: "at %1 color: %2",
+			message0: translate("colour_keyframe"),
 			args0: [
 			  {
 				type: "input_value",
@@ -399,7 +392,7 @@ export function defineAnimateBlocks() {
 			colour: categoryColours["Animate"],
 			inputsInline: true,
 			output: "Keyframe",
-			tooltip: "Set a colour and duration for a keyframe.",
+			tooltip: getTooltip("colour_keyframe"),
 		  });
 		  this.setHelpUrl(getHelpUrlFor(this.type));
 		},
@@ -409,7 +402,7 @@ export function defineAnimateBlocks() {
 		init: function () {
 		  this.jsonInit({
 			type: "number_keyframe",
-			message0: "at: %1 value: %2",
+			message0: translate("number_keyframe"),
 			args0: [
 			  {
 				type: "input_value",
@@ -425,7 +418,7 @@ export function defineAnimateBlocks() {
 			colour: categoryColours["Animate"],
 			inputsInline: true,
 			output: "Keyframe",
-			tooltip: "Set a number and duration for a keyframe.",
+			tooltip: getTooltip("number_keyframe"),
 		  });
 		  this.setHelpUrl(getHelpUrlFor(this.type));
 		},
@@ -435,7 +428,7 @@ export function defineAnimateBlocks() {
 		init: function () {
 		  this.jsonInit({
 			type: "xyz_keyframe",
-			message0: "at: %1 x: %2 y: %3 z: %4",
+			message0: translate("xyz_keyframe"),
 			args0: [
 			  {
 				type: "input_value",
@@ -461,7 +454,7 @@ export function defineAnimateBlocks() {
 			colour: categoryColours["Animate"],
 			inputsInline: true,
 			output: "Keyframe",
-			tooltip: "Set an XYZ keyframe with duration.",
+			tooltip: getTooltip("xyz_keyframe"),
 		  });
 		  this.setHelpUrl(getHelpUrlFor(this.type));
 		},
@@ -471,8 +464,7 @@ export function defineAnimateBlocks() {
 		init: function () {
 		  this.jsonInit({
 			type: "animate_keyframes",
-			message0:
-			  "animate keyframes on %1 property %2\nkeyframes %3\neasing %4 loop %5 reverse %6 %7",
+			message0: translate("animate_keyframes"),
 			args0: [
 			  {
 				type: "field_variable",
@@ -528,8 +520,7 @@ export function defineAnimateBlocks() {
 			previousStatement: null,
 			nextStatement: null,
 			colour: categoryColours["Animate"],
-			tooltip:
-			  "Animate an array of keyframes on the selected mesh, with easing, optional looping, and reversing.",
+			tooltip: getTooltip("animate_keyframes"),
 		  });
 		  this.setHelpUrl(getHelpUrlFor(this.type));
 		},
@@ -543,8 +534,7 @@ export function defineAnimateBlocks() {
 
 		  this.jsonInit({
 			type: "animation",
-			message0:
-			  "animate keyframes on %1 property %2 group %3\nkeyframes %4\neasing %5 loop %6 reverse %7 mode %8",
+			message0: translate("animation"),
 			args0: [
 			  {
 				type: "field_variable",
@@ -615,8 +605,7 @@ export function defineAnimateBlocks() {
 			previousStatement: null,
 			nextStatement: null,
 			colour: categoryColours["Animate"],
-			tooltip:
-			  "Create an animation group for the selected mesh and property, with keyframes, easing, optional looping, and reversing. Choose create, start, or await to control behaviour.",
+			tooltip: getTooltip("animation"),
 		  });
 		  this.setHelpUrl(getHelpUrlFor(this.type));
 		  this.setOnChange((changeEvent) => {
@@ -637,7 +626,7 @@ export function defineAnimateBlocks() {
 		init: function () {
 		  this.jsonInit({
 			type: "animation_group_control",
-			message0: "animation group %1 %2",
+			message0: translate("control_animation_group"),
 			args0: [
 			  {
 				type: "field_variable",
@@ -658,8 +647,7 @@ export function defineAnimateBlocks() {
 			previousStatement: null,
 			nextStatement: null,
 			colour: categoryColours["Animate"],
-			tooltip:
-			  "Control the animation group by playing, pausing, or stopping it.",
+			tooltip: getTooltip("control_animation_group"),
 		  });
 		  this.setHelpUrl(getHelpUrlFor(this.type));
 		},
@@ -669,7 +657,7 @@ export function defineAnimateBlocks() {
 		init: function () {
 		  this.jsonInit({
 			type: "animate_from",
-			message0: "animate group %1 from %2 seconds",
+			message0: translate("animate_from"),
 			args0: [
 			  {
 				type: "field_variable",
@@ -686,8 +674,7 @@ export function defineAnimateBlocks() {
 			previousStatement: null,
 			nextStatement: null,
 			colour: categoryColours["Animate"],
-			tooltip:
-			  "Start animating the group from the specified time (in seconds).",
+			tooltip: getTooltip("animate_from"),
 		  });
 		  this.setHelpUrl(getHelpUrlFor(this.type));
 		},
@@ -697,7 +684,7 @@ export function defineAnimateBlocks() {
 		init: function () {
 		  this.jsonInit({
 			type: "stop_animations",
-			message0: "stop animations %1",
+			message0: translate("stop_animations"),
 			args0: [
 			  {
 				type: "field_variable",
@@ -709,8 +696,7 @@ export function defineAnimateBlocks() {
 			previousStatement: null,
 			nextStatement: null,
 			colour: categoryColours["Animate"],
-			tooltip:
-			  "Stop all keyframe animations on the selected mesh.\nKeyword: stop",
+			tooltip: getTooltip("stop_animations"),
 		  });
 		  this.setHelpUrl(getHelpUrlFor(this.type));
 		},
@@ -720,7 +706,7 @@ export function defineAnimateBlocks() {
 		init: function () {
 		  this.jsonInit({
 			type: "switch_model_animation",
-			message0: "switch animation of %1 to %2",
+			message0: translate("switch_animation"),
 			args0: [
 			  {
 				type: "field_variable",
@@ -736,8 +722,7 @@ export function defineAnimateBlocks() {
 			previousStatement: null,
 			nextStatement: null,
 			colour: categoryColours["Animate"],
-			tooltip:
-			  "Changes the animation of the specified mesh to the given animation.\nKeyword: switch",
+			tooltip: getTooltip("switch_animation"),
 		  });
 		  this.setHelpUrl(getHelpUrlFor(this.type));
 		},
@@ -747,7 +732,7 @@ export function defineAnimateBlocks() {
 		init: function () {
 		  this.jsonInit({
 			type: "play_model_animation_once",
-			message0: "play animation %1 on %2",
+			message0: translate("play_animation"),
 			args0: [
 			  {
 				type: "field_dropdown",
@@ -763,10 +748,10 @@ export function defineAnimateBlocks() {
 			previousStatement: null,
 			nextStatement: null,
 			colour: categoryColours["Animate"],
-			tooltip:
-			  "Play the selected animation once on the specified mesh.\nKeyword: play",
+			tooltip: getTooltip("play_animation"),
 		  });
 		  this.setHelpUrl(getHelpUrlFor(this.type));
 		},
 	  };
 }
+

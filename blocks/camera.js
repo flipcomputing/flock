@@ -3,13 +3,14 @@ import { categoryColours } from "../toolbox.js";
 import {
 	getHelpUrlFor,
 } from "../blocks.js";
+import { translate, getTooltip } from "../main/translation.js";
 
 export function defineCameraBlocks() {
 	Blockly.Blocks["camera_control"] = {
 		init: function () {
 			this.jsonInit({
 				type: "camera_control",
-				message0: "camera %1 %2",
+				message0: translate("camera_control"),
 				args0: [
 					{
 						type: "field_dropdown",
@@ -47,7 +48,7 @@ export function defineCameraBlocks() {
 				previousStatement: null,
 				nextStatement: null,
 				colour: categoryColours["Scene"],
-				tooltip: "Bind a specific key to a camera control action.",
+				tooltip: getTooltip("camera_control"),
 			});
 			this.setHelpUrl(getHelpUrlFor(this.type));
 		},
@@ -57,7 +58,7 @@ export function defineCameraBlocks() {
 		init: function () {
 			this.jsonInit({
 				type: "camera_follow",
-				message0: "camera follow %1 with radius %2 front %3",
+				message0: translate("camera_follow"),
 				args0: [
 					{
 						type: "field_variable",
@@ -78,8 +79,7 @@ export function defineCameraBlocks() {
 				previousStatement: null,
 				nextStatement: null,
 				colour: categoryColours["Scene"],
-				tooltip:
-					"Make the camera follow a mesh with a customizable distance (radius) from the target.\nKeyword: follow",
+				tooltip: getTooltip("camera_follow"),
 			});
 			this.setHelpUrl(getHelpUrlFor(this.type));
 		},
@@ -89,7 +89,7 @@ export function defineCameraBlocks() {
 		init: function () {
 			this.jsonInit({
 				type: "get_camera",
-				message0: "get camera as %1",
+				message0: translate("get_camera"),
 				args0: [
 					{
 						type: "field_variable",
@@ -100,9 +100,10 @@ export function defineCameraBlocks() {
 				previousStatement: null,
 				nextStatement: null,
 				colour: categoryColours["Scene"],
-				tooltip: "Get the current scene camera",
+				tooltip: getTooltip("get_camera"),
 			});
 			this.setHelpUrl(getHelpUrlFor(this.type));
 		},
 	};
 }
+

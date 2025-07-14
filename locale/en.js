@@ -43,6 +43,153 @@ export default {
   load_multi_object: "add %1 %2 scale: %3 x: %4 y: %5 z: %6\ncolors: %7",
   load_model: "add %1 %2 scale: %3 x: %4 y: %5 z: %6",
   
+  // Custom block translations - Animate blocks
+  glide_to: "glide %1 to x %2 y %3 z %4 in %5 ms\n%6 return? %7 loop? %8 %9",
+  glide_to_seconds: "glide %1 to x %2 y %3 z %4 in %5 seconds \n%6 return? %7 loop? %8 %9",
+  rotate_anim: "rotate %1 to x %2 y %3 z %4 in %5 ms\n%6 reverse? %7 loop? %8  %9",
+  rotate_anim_seconds: "rotate %1 to x %2 y %3 z %4 in %5 seconds\n%6 reverse? %7 loop? %8  %9",
+  animate_property: "animate %1 %2 to %3 in %4 ms reverse? %5 loop? %6 %7",
+  colour_keyframe: "at %1 color: %2",
+  number_keyframe: "at: %1 value: %2",
+  xyz_keyframe: "at: %1 x: %2 y: %3 z: %4",
+  animate_keyframes: "animate keyframes on %1 property %2\nkeyframes %3\neasing %4 loop %5 reverse %6 %7",
+  animation: "animate keyframes on %1 property %2 group %3\nkeyframes %4\neasing %5 loop %6 reverse %7 mode %8",
+  control_animation_group: "animation group %1 %2",
+  animate_from: "animate group %1 from %2 seconds",
+  stop_animations: "stop animations %1",
+  switch_animation: "switch animation of %1 to %2",
+  play_animation: "play animation %1 on %2",
+
+  // Custom block translations - Base blocks
+  xyz: "x: %1 y: %2 z: %3",
+
+  // Custom block translations - Camera blocks
+  camera_control: "camera %1 %2",
+  camera_follow: "camera follow %1 with radius %2 front %3",
+  get_camera: "get camera as %1",
+
+  // Custom block translations - Combine blocks
+  merge_meshes: "add %1 as merge %2",
+  subtract_meshes: "add %1 as %2 subtract %3",
+  intersection_meshes: "add %1 as intersect %2",
+  hull_meshes: "add %1 as hull of %2",
+  
+  // Custom block translations - Connect blocks
+  parent: "parent %1 child %2",
+  parent_child: "parent %1 child %2\noffset x: %3 y: %4 z: %5",
+  remove_parent: "remove parent from %1",
+  stop_follow: "stop following %1",
+  hold: "make %1 hold %2\noffset x: %3 y: %4 z: %5",
+  drop: "drop %1",
+  follow: "make %1 follow %2 at %3\noffset x: %4 y: %5 z: %6",
+  export_mesh: "export %1 as %2",
+  
+  // Custom block translations - Control blocks
+  wait: "wait %1 ms",
+  wait_seconds: "wait %1 seconds",
+  wait_until: "wait until %1",
+  local_variable: "local %1",
+  for_loop2: "for each %1 from %2 to %3 by %4 do %5",
+  for_loop: "for each %1 from %2 to %3 by %4 do %5",
+  get_lexical_variable: "%1",
+
+  // Custom block translations - Effects blocks
+  light_intensity: "set light intensity to %1",
+  set_fog: "set fog color %1 mode %2 density %3",
+  
+  // Custom block translation - Events blocks
+  start: "start",
+  forever: "forever\n%1",
+  when_clicked: "when %1 %2",
+  on_collision: "on %1 collision %2 %3",
+  when_key_event: "when key %1 %2",
+  broadcast_event: "broadcast event %1",
+  on_event: "on event %1",
+
+  // Custom block translations - Materials blocks
+  change_color: "color %1 to %2",
+  change_material: "apply material %1 to %2 with colour %3",
+  text_material: "material %1 text %2 color %3 background %4\nwidth %5 height %6 size %7",
+  place_decal: "decal %1 angle %2",
+  decal: "decal on %1 from x %2 y %3 z %4 \nangle x %5 y %6 z %7\nsize x %8 y %9 z %10 material %11",
+  highlight: "highlight %1 %2",
+  glow: "glow %1",
+  tint: "tint %1 %2",
+  set_alpha: "set alpha of %1 to %2",
+  clear_effects: "clear effects %1",
+  colour: "%1",
+  skin_colour: "%1",
+  greyscale_colour: "%1",
+  colour_from_string: "- %1 -",
+  random_colour: "random color",
+  material: "material %1 %2 alpha %3",
+  gradient_material: "material %1 alpha %2",
+  set_material: "set material of %1 to %2",
+
+  // Custom block translations - Physics blocks
+  add_physics: "add physics %1 type %2",
+  add_physics_shape: "add physics shape %1 type %2",
+  apply_force: "apply force to %1 x: %2 y: %3 z: %4",
+  
+  // Custom block translations - Sensing blocks
+  key_pressed: "key pressed is %1",
+  meshes_touching: "%1 touching %2",
+  time: "time in s",
+  distance_to: "distance from %1 to %2",
+  touching_surface: "is %1 touching surface",
+  get_property: "get %1 of %2",
+  canvas_controls: "canvas controls %1",
+  button_controls: "button controls %1 enabled %2 color %3",
+  microbit_input: "when micro:bit event %1",
+  ui_slider: "ui slider %1 from %2 to %3 default %4 at x: %5 y: %6\ncolor: %7 background: %8 %9",
+
+  // Custom block translations - Shapes blocks
+  create_particle_effect: "add %1 particle effect on: %2\nshape: %3 start %4 end %5 alpha: %6 to %7\nrate: %8 size: %9 to %10 lifetime: %11 to %12\ngravity: %13 force x: %14 y: %15 z: %16\nangular speed: %17 to %18 initial angle: %19 to %20",
+  control_particle_system: "particle system %1 %2",
+  create_box: "add box %1 %2 width %3 height %4 depth %5 \nat x %6 y %7 z %8",
+  create_sphere: "add sphere %1 %2 diameter x %3 diameter y %4 diameter z %5\nat x %6 y %7 z %8",
+  create_cylinder: "add cylinder %1 %2 height %3 top %4 bottom %5 sides %6\nat x %7 y %8 z %9",
+  create_capsule: "add capsule %1 %2 diameter %3 height %4 \nat x %5 y %6 z %7",
+  create_plane: "add plane %1 %2 width %3 height %4 \nat x %5 y %6 z %7",
+  
+  // Custom block translations - Sound blocks
+  play_sound: "play sound %1 %2 from %3 \nspeed %4 volume %5 mode %6 async %7",
+  stop_all_sounds: "stop all sounds",
+  midi_note: "MIDI note %1",
+  rest: "rest",
+  play_notes: "play notes on %1\nnotes %2 durations %3\ninstrument %4 mode %5",
+  set_scene_bpm: "set scene BPM to %1",
+  set_mesh_bpm: "set BPM of %1 to %2",
+  create_instrument: "instrument %1 wave %2 frequency %3 attack %4 decay %5 sustain %6 release %7",
+  instrument: "instrument %1",
+  speak: "speak %1 %2 voice %3 language %4\nrate %5 pitch %6 volume %7 mode %8",
+  
+  // Custom block translations - Text blocks
+  comment: "// %1",
+  print_text: "print %1 for %2 seconds %3",
+  say: "say %1 for %2 s %3 \ntext %4 on %5 alpha %6 size %7 %8 %9",
+  ui_text: "ui text %1 %2 at x: %3 y: %4\nsize: %5 for %6 seconds color: %7",
+  ui_button: "ui button %1 %2 at x: %3 y: %4\nsize: %5 text size: %6 text color: %7 background color: %8",
+  ui_input: "ui input %1 %2 at x: %3 y: %4\nsize: %5 text size: %6 text: %7 background: %8",
+  create_3d_text: "add %1 3D text: %2 font: %3 size: %4 color: %5\ndepth: %6 x: %7 y: %8 z: %9 ",
+  
+  // Custom block translations - Transform blocks
+  move_by_xyz: "move %1 by x: %2 y: %3 z: %4",
+  move_to_xyz: "move %1 to x: %2 y: %3 z: %4 y? %5",
+  move_to: "move %1 to %2 y? %3",
+  scale: "scale %1 x: %2 y: %3 z: %4\norigin x: %5 y: %6 z: %7",
+  resize: "resize %1 x: %2 y: %3 z: %4\norigin x: %5 y: %6 z: %7",
+  rotate_model_xyz: "rotate %1 by x: %2 y: %3 z: %4",
+  rotate_to: "rotate %1 to x: %2 y: %3 z: %4",
+  look_at: "look %1 at %2 y? %3",
+  move_forward: "move %1 %2 speed %3",
+  set_pivot: "set pivot of %1 x: %2 y: %3 z: %4",
+  min_centre_max: "%1",
+  
+  // Custom block translations - XR blocks
+  device_camera_background: "use %1 camera as background",
+  set_xr_mode: "set XR mode to %1",
+
   // Blockly message overrides for English
   LISTS_CREATE_WITH_INPUT_WITH: "list",
   TEXT_JOIN_TITLE_CREATEWITH: "text",
@@ -78,5 +225,150 @@ export default {
   load_object_tooltip: "Create an object.\nKeyword: object",
   load_multi_object_tooltip: "Create an object with colours.\nKeyword: object",
   load_model_tooltip: "Load a model.\nKeyword: model",
-};
 
+  // Tooltip translations - Animate blocks
+  glide_to_tooltip: "Glide to a specified position over a duration with options for reversing, looping, and easing.",
+  glide_to_seconds_tooltip: "Glide to a specified position over a duration with options for reversing, looping, and easing.",
+  rotate_anim_tooltip: "Rotate a mesh to specified angles over a duration with options for reverse, looping, and easing.",
+  rotate_anim_seconds_tooltip: "Rotate a mesh to specified angles over a duration with options for reverse, looping, and easing.",
+  animate_property_tooltip: "Animate a material property of the mesh and its children.",
+  colour_keyframe_tooltip: "Set a colour and duration for a keyframe.",
+  number_keyframe_tooltip: "Set a number and duration for a keyframe.",
+  xyz_keyframe_tooltip: "Set an XYZ keyframe with duration.",
+  animate_keyframes_tooltip: "Animate an array of keyframes on the selected mesh, with easing, optional looping, and reversing.",
+  animation_tooltip: "Create an animation group for the selected mesh and property, with keyframes, easing, optional looping, and reversing. Choose create, start, or await to control behaviour.",
+  control_animation_group_tooltip: "Control the animation group by playing, pausing, or stopping it.",
+  animate_from_tooltip: "Start animating the group from the specified time (in seconds).",
+  stop_animations_tooltip: "Stop all keyframe animations on the selected mesh.\nKeyword: stop",
+  switch_animation_tooltip: "Changes the animation of the specified mesh to the given animation.\nKeyword: switch",
+  play_animation_tooltip: "Play the selected animation once on the specified mesh.\nKeyword: play",
+
+  // Tooltip translations - Base blocks
+  xyz_tooltip: "Creates a vector with X, Y, Z coordinates",
+
+  // Tooltip translations - Camera blocks
+  camera_control_tooltip: "Bind a specific key to a camera control action.",
+  camera_follow_tooltip: "Make the camera follow a mesh with a customizable distance (radius) from the target.\nKeyword: follow",
+  get_camera_tooltip: "Get the current scene camera",
+
+  // Tooltip translations - Combine blocks
+  merge_meshes_tooltip: "Merge a list of meshes into one and store the result.\nKeyword: merge",
+  subtract_meshes_tooltip: "Subtract a list of meshes from a base mesh and store the result.\nKeyword: subtract",
+  intersection_meshes_tooltip: "Intersect a list of meshes and store the resulting geometry.\nKeyword: intersect",
+  hull_meshes_tooltip: "Create a convex hull from a list of meshes and store the result.\nKeyword: hull",
+
+  // Tooltip translations - Connect blocks
+  parent_tooltip: "Set a parent-child relationship between two meshes and keeps the child in its world position\nKeyword:parent",
+  parent_child_tooltip: "Set a parent-child relationship between two meshes with a specified offset in x, y, and z directions.\nKeyword: child",
+  remove_parent_tooltip: "Remove the parent relationship from the specified mesh.\nKeyword: unparent",
+  stop_follow_tooltip: "Stop the specified mesh from following another.\nKeyword: stopfollow",
+  hold_tooltip: "Attach a mesh to the specified bone of another mesh with a specified offset in x, y, and z directions.\nKeyword: hold",
+  drop_tooltip: "Detach a mesh from its currently attached bone.\nKeyword: drop",
+  follow_tooltip: "Make one mesh follow another at a specified position (top, center, or bottom) with offset in x, y, and z directions. \nKeyword: follow",
+  export_mesh_tooltip: "Export a mesh as STL, OBJ, or GLB.\nKeyword: export",
+
+  // Tooltip translations - Control blocks
+  wait_tooltip: "Wait for a specified time in milliseconds.\nKeyword: milli",
+  wait_seconds_tooltip: "Wait for a specified time in seconds.\nKeyword: wait",
+  wait_until_tooltip: "Wait until the condition is true.\nKeyword:until",
+  local_variable_tooltip: "Create a local version of a selected variable. This hides the global variable and can have a different value. \nKeyword: local",
+  for_loop2_tooltip: "Loop from a starting number to an ending number by a given step.",
+  for_loop_tooltip: "Loop from a starting number to an ending number by a given step. Click on the dropdown to get the loop variable to use in your code.\nKeyword: for",
+  get_lexical_variable_tooltip: "Get the value of a lexical variable",
+  
+  // Tooltip translations - Effects blocks
+  light_intensity_tooltip: "Set the intensity of the main light.\nKeyword: light intensity",
+  set_fog_tooltip: "Configure the scene's fog.\nKeyword: fog",
+
+  // Tooltip translations - Events blocks
+  start_tooltip: "Run the blocks inside when the project starts. You can have multiple start blocks. \nKeyword: start",
+  forever_tooltip: "Run the blocks inside every frame or when the previous iteration finishes. \nKeyword: forever",
+  when_clicked_tooltip: "Run the blocks inside when the mesh trigger occurs.\nKeyword: click",
+  on_collision_tooltip: "Execute the blocks inside when the mesh intersects or no longer intersects with another mesh.\nKeyword: collide",
+  when_key_event_tooltip: "Execute the blocks inside when the specified key is pressed or released.",
+  broadcast_event_tooltip: "Broadcast an event that is received by on event.\nKeyword: broadcast",
+  on_event_tooltip: "Run code when a broadcast event is received.\nKeyword: on",
+
+  // Tooltip translations - Materials blocks
+  change_color_tooltip: "Change the color of the selected mesh.\nKeyword: color",
+  change_material_tooltip: "Apply a selected material with a colour tint to the specified mesh.\nKeyword: material",
+  text_material_tooltip: "Create a material with text or emoji, specifying width, height, background color, and text size.",
+  place_decal_tooltip: "Place a decal on a mesh using the selected material.",
+  decal_tooltip: "Create a decal on a mesh with position, normal, size, and material.",
+  highlight_tooltip: "Highlight the selected mesh.\nKeyword: highlight",
+  glow_tooltip: "Adds a glow effect to the selected mesh.\nKeyword: glow",
+  tint_tooltip: "Add colour tint effect.\nKeyword: tint",
+  set_alpha_tooltip: "Set the alpha (transparency) of the material(s) on a specified mesh. Values should be 0 to 1.\nKeyword:alpha",
+  clear_effects_tooltip: "Clear visual effects from selected mesh.\nKeyword: clear",
+  colour_tooltip: "Pick a colour.\nKeyword: color",
+  skin_colour_tooltip: "Pick a skin colour.\nKeyword: skin",
+  greyscale_colour_tooltip: "Pick a greyscale colour for elevation.\nKeyword: grey",
+  random_colour_tooltip: "Generate a random colour.\nKeyword: randcol",
+  material_tooltip: "Define material properties",
+  gradient_material_tooltip: "Define material properties",
+  set_material_tooltip: "Set the specified material on the given mesh.",
+
+  // Tooltip translations - Physics blocks
+  add_physics_tooltip: "Add physics to the mesh. Options are dynamic, static, animated and none.\nKeyword:physics",
+  add_physics_shape_tooltip: "Add a physics shape to the mesh. Options are mesh or capsule.\nKeyword:physics",
+  apply_force_tooltip: "Apply a force to a mesh in XYZ directions.\nKeyword: force",
+  
+  // Tooltip translations - Sensing blocks
+  key_pressed_tooltip: "Return true if the specified key is pressed.\nKeyword:ispressed",
+  meshes_touching_tooltip: "Return true if the two selected meshes are touching.\nKeyword: istouching",
+  time_tooltip: "Return the current time in seconds.",
+  distance_to_tooltip: "Calculate the distance between two meshes.",
+  touching_surface_tooltip: "Check if the mesh is touching a surface.\nKeyword: surface",
+  get_property_tooltip: "Get the value of the selected property of a mesh.\nKeyword: get",
+  canvas_controls_tooltip: "Add or remove canvas motion controls.\nKeyword: canvas",
+  button_controls_tooltip: "Configure button controls.\nKeyword: button",
+  microbit_input_tooltip: "Executes the blocks inside when a specified micro:bit event is triggered.",
+  ui_slider_tooltip: "Add a 2D slider UI control and store its reference in a variable.",
+
+  // Tooltip translations - Shapes blocks
+  create_particle_effect_tooltip: "Create a particle effect attached to a mesh with configurable shape, gravity, size, colour, transparency, lifetime, force, and rotation.",
+  control_particle_system_tooltip: "Control the particle system by starting, stopping, or resetting it.",
+  create_box_tooltip: "Create a colored box with specified dimensions and position.\nKeyword: box",
+  create_sphere_tooltip: "Create a colored sphere with specified dimensions and position.\nKeyword: sphere",
+  create_cylinder_tooltip: "Create a colored cylinder with specified dimensions and position.\nKeyword: cylinder",
+  create_capsule_tooltip: "Create a colored capsule with specified dimensions and position.\nKeyword: capsule",
+  create_plane_tooltip: "Create a colored 2D plane with specified width, height, and position.\nKeyword: plane",
+  
+  // Tooltip translations - Sound blocks
+  play_sound_tooltip: "Play the selected sound on a mesh with adjustable speed, volume, and mode.\nKeyword: sound",
+  stop_all_sounds_tooltip: "Stop all sounds currently playing in the scene.\nKeyword:nosound",
+  midi_note_tooltip: "A MIDI note value between 0 and 127.",
+  rest_tooltip: "A rest (silence) in a musical sequence.",
+  play_notes_tooltip: "Play a sequence of MIDI notes and rests with corresponding durations, using mesh for panning. Can return immediately or after the notes have finished playing.",
+  set_scene_bpm_tooltip: "Set the BPM for the entire scene",
+  set_mesh_bpm_tooltip: "Set the BPM for a selected mesh",
+  create_instrument_tooltip:"Create an instrument and assigns it to the selected variable.",
+  instrument_tooltip: "Select an instrument to use for playing notes.",
+  speak_tooltip: "Convert text to speech using the Web Speech API with optional 3D positioning.\nKeyword: speak",
+  
+  // Tooltip translations - Text blocks
+  comment_tooltip: "A comment line to help people understand your code.",
+  print_text_tooltip: "A text to the output panel.\nKeyword: print",
+  say_tooltip: "Display a piece of text as a speech bubble on a mesh.\nKeyword: say",
+  ui_text_tooltip: "Add text to the UI screen, and store control in a variable for later use or disposal.",
+  ui_button_tooltip: "Add a 2D button to the UI screen with a preset size, and store control in a variable for later use or disposal.",
+  ui_input_tooltip: "Ask the user a question and wait for input. Stores the result in a variable.",
+  create_3d_text_tooltip: "Create 3D text in the scene.",
+  
+  // Tooltip translations - Transform blocks
+  move_by_xyz_tooltip: "Move a mesh a given amount in x y and z directions.\nKeyword: move",
+  move_to_xyz_tooltip: "Teleport the mesh to the coordinates. Optionally, use the Y axis.\nKeyword: moveby",
+  move_to_tooltip: "Teleport the first mesh to the location of the second mesh.\nKeyword: moveto",
+  scale_tooltip: "Resize a mesh to the given x, y, and z and controls the origin of scaling. \nKeyword: scale",
+  resize_tooltip: "Resize a mesh to the given x, y, and z and controls the origin of scaling.\nKeyword: resize",
+  rotate_model_xyz_tooltip: "Rotate the mesh by the given x, y, z values.\nKeyword: rotate\nKeyword: rotateby",
+  rotate_to_tooltip: "Rotate the mesh to point towards the  coordinates.\nKeyword: rotateto",
+  look_at_tooltip: "Rotate the first mesh towards the position of the second mesh.\nKeyword: look",
+  move_forward_tooltip: "Move the mesh in the specified direction. 'Forward' moves it in the direction it's pointing, 'sideways' moves it relative to the camera's direction, and 'strafe' moves it sideways relative to the camera's direction.\nKeyword: push",
+  set_pivot_tooltip: "Set the pivot point for a mesh on the X, Y, and Z axes\nKeyword: pivot",
+  min_centre_max_tooltip: "Choose min, center, or max for the pivot point\nKeyword: minmax",
+  
+  // Tooltip translations - XR blocks
+  device_camera_background_tooltip: "Use the device camera as the background for the scene. Works on both mobile and desktop.",
+  set_xr_mode_tooltip: "Set the XR mode for the scene.\nOptions: VR, AR, Magic Window.",
+};

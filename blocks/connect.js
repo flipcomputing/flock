@@ -1,13 +1,14 @@
 import * as Blockly from "blockly";
 import { categoryColours } from "../toolbox.js";
 import { getHelpUrlFor } from "../blocks.js";
+import { translate, getTooltip } from "../main/translation.js";
 
 export function defineConnectBlocks() {
 	Blockly.Blocks["parent"] = {
 		init: function () {
 			this.jsonInit({
 				type: "parent",
-				message0: "parent %1 child %2",
+				message0: translate("parent"),
 				args0: [
 					{
 						type: "field_variable",
@@ -24,8 +25,7 @@ export function defineConnectBlocks() {
 				nextStatement: null,
 				colour: categoryColours["Transform"],
 				inputsInline: true,
-				tooltip:
-					"Set a parent-child relationship between two meshes and keeps the child in its world position\nKeyword:parent",
+				tooltip: getTooltip("parent"),
 			});
 			this.setHelpUrl(getHelpUrlFor(this.type));
 		},
@@ -35,7 +35,7 @@ export function defineConnectBlocks() {
 		init: function () {
 			this.jsonInit({
 				type: "parent_child",
-				message0: "parent %1 child %2\noffset x: %3 y: %4 z: %5",
+				message0: translate("parent_child"),
 				args0: [
 					{
 						type: "field_variable",
@@ -67,8 +67,7 @@ export function defineConnectBlocks() {
 				nextStatement: null,
 				colour: categoryColours["Transform"],
 				inputsInline: true,
-				tooltip:
-					"Set a parent-child relationship between two meshes with a specified offset in x, y, and z directions.\nKeyword: child",
+				tooltip: getTooltip("parent_child"),
 			});
 			this.setHelpUrl(getHelpUrlFor(this.type));
 		},
@@ -78,7 +77,7 @@ export function defineConnectBlocks() {
 		init: function () {
 			this.jsonInit({
 				type: "remove_parent",
-				message0: "remove parent from %1",
+				message0: translate("remove_parent"),
 				args0: [
 					{
 						type: "field_variable",
@@ -89,8 +88,7 @@ export function defineConnectBlocks() {
 				previousStatement: null,
 				nextStatement: null,
 				colour: categoryColours["Transform"],
-				tooltip:
-					"Remove the parent relationship from the specified mesh.\nKeyword: unparent",
+				tooltip: getTooltip("remove_parent"),
 			});
 			this.setHelpUrl(getHelpUrlFor(this.type));
 		},
@@ -100,7 +98,7 @@ export function defineConnectBlocks() {
 		init: function () {
 			this.jsonInit({
 				type: "stop_follow",
-				message0: "stop following %1",
+				message0: translate("stop_follow"),
 				args0: [
 					{
 						type: "field_variable",
@@ -111,8 +109,7 @@ export function defineConnectBlocks() {
 				previousStatement: null,
 				nextStatement: null,
 				colour: categoryColours["Transform"],
-				tooltip:
-					"Stop the specified mesh from following another.\nKeyword: stopfollow",
+				tooltip: getTooltip("stop_follow"),
 			});
 			this.setHelpUrl(getHelpUrlFor(this.type));
 		},
@@ -122,7 +119,7 @@ export function defineConnectBlocks() {
 		init: function () {
 			this.jsonInit({
 				type: "hold",
-				message0: "make %1 hold %2\noffset x: %3 y: %4 z: %5",
+				message0: translate("hold"),
 				args0: [
 					{
 						type: "field_variable",
@@ -157,8 +154,7 @@ export function defineConnectBlocks() {
 				nextStatement: null,
 				colour: categoryColours["Transform"],
 				inputsInline: true,
-				tooltip:
-					"Attach a mesh to the specified bone of another mesh with a specified offset in x, y, and z directions.\nKeyword: hold",
+				tooltip: getTooltip("hold"),
 			});
 			this.setHelpUrl(getHelpUrlFor(this.type));
 		},
@@ -168,7 +164,7 @@ export function defineConnectBlocks() {
 		init: function () {
 			this.jsonInit({
 				type: "drop",
-				message0: "drop %1",
+				message0: translate("drop"),
 				args0: [
 					{
 						type: "field_variable",
@@ -180,8 +176,7 @@ export function defineConnectBlocks() {
 				nextStatement: null,
 				colour: categoryColours["Transform"],
 				inputsInline: true,
-				tooltip:
-					"Detach a mesh from its currently attached bone.\nKeyword: drop",
+				tooltip: getTooltip("drop"),
 			});
 			this.setHelpUrl(getHelpUrlFor(this.type));
 		},
@@ -191,7 +186,7 @@ export function defineConnectBlocks() {
 		init: function () {
 			this.jsonInit({
 				type: "follow",
-				message0: "make %1 follow %2 at %3\noffset x: %4 y: %5 z: %6",
+				message0: translate("follow"),
 				args0: [
 					{
 						type: "field_variable",
@@ -232,8 +227,7 @@ export function defineConnectBlocks() {
 				nextStatement: null,
 				colour: categoryColours["Transform"],
 				inputsInline: true,
-				tooltip:
-					"Make one mesh follow another at a specified position (top, center, or bottom) with offset in x, y, and z directions. \nKeyword: follow",
+				tooltip: getTooltip("follow"),
 			});
 			this.setHelpUrl(getHelpUrlFor(this.type));
 		},
@@ -243,7 +237,7 @@ export function defineConnectBlocks() {
 	  init: function () {
 		this.jsonInit({
 		  type: "export_mesh",
-		  message0: "export %1 as %2",
+		  message0: translate("export_mesh"),
 		  args0: [
 			{
 			  type: "field_variable",
@@ -263,9 +257,10 @@ export function defineConnectBlocks() {
 		  previousStatement: null,
 		  nextStatement: null,
 		  colour: categoryColours["Scene"],
-		  tooltip: "Export a mesh as STL, OBJ, or GLB.\nKeyword: export",
+		  tooltip: getTooltip("export_mesh"),
 		});
 		this.setHelpUrl(getHelpUrlFor(this.type));
 	  },
 	};
 }
+

@@ -6,6 +6,7 @@ import {
 	getHelpUrlFor,
 } from "../blocks.js";
 import { audioNames } from "../config.js";
+import { translate, getTooltip } from "../main/translation.js";
 
 export function defineSoundBlocks() {
 	Blockly.Blocks["play_sound"] = {
@@ -13,8 +14,7 @@ export function defineSoundBlocks() {
 			let nextVariableName = "sound" + nextVariableIndexes["sound"];
 			this.jsonInit({
 				type: "play_sound",
-				message0:
-					"play sound %1 %2 from %3 \nspeed %4 volume %5 mode %6 async %7",
+				message0: translate("play_sound"),
 				args0: [
 					{
 						type: "field_variable",
@@ -69,8 +69,7 @@ export function defineSoundBlocks() {
 				previousStatement: null,
 				nextStatement: null,
 				colour: categoryColours["Sound"],
-				tooltip:
-					"Play the selected sound on a mesh with adjustable speed, volume, and mode.\nKeyword: sound",
+				tooltip: getTooltip("play_sound"),
 				extensions: ["dynamic_mesh_dropdown"], // Attach the extension
 			});
 			this.setHelpUrl(getHelpUrlFor(this.type));
@@ -80,12 +79,11 @@ export function defineSoundBlocks() {
 	Blockly.Blocks["stop_all_sounds"] = {
 		init: function () {
 			this.jsonInit({
-				message0: "stop all sounds",
+				message0: translate("stop_all_sounds"),
 				previousStatement: null,
 				nextStatement: null,
 				colour: categoryColours["Sound"],
-				tooltip:
-					"Stop all sounds currently playing in the scene.\nKeyword:nosound",
+				tooltip: getTooltip("stop_all_sounds"),
 			});
 			this.setHelpUrl(getHelpUrlFor(this.type));
 		},
@@ -95,7 +93,7 @@ export function defineSoundBlocks() {
 		init: function () {
 			this.jsonInit({
 				type: "midi_note",
-				message0: "MIDI note %1",
+				message0: translate("midi_note"),
 				args0: [
 					{
 						type: "field_number",
@@ -108,7 +106,7 @@ export function defineSoundBlocks() {
 				],
 				output: "Number",
 				colour: categoryColours["Sound"],
-				tooltip: "A MIDI note value between 0 and 127.",
+				tooltip: getTooltip("midi_note"),
 			});
 			this.setHelpUrl(getHelpUrlFor(this.type));
 		},
@@ -118,10 +116,10 @@ export function defineSoundBlocks() {
 		init: function () {
 			this.jsonInit({
 				type: "rest",
-				message0: "rest",
+				message0: translate("rest"),
 				output: "Null",
 				colour: categoryColours["Sound"],
-				tooltip: "A rest (silence) in a musical sequence.",
+				tooltip: getTooltip("rest"),
 			});
 			this.setHelpUrl(getHelpUrlFor(this.type));
 		},
@@ -131,8 +129,7 @@ export function defineSoundBlocks() {
 		init: function () {
 			this.jsonInit({
 				type: "play_notes",
-				message0:
-					"play notes on %1\nnotes %2 durations %3\ninstrument %4 mode %5",
+				message0: translate("play_notes"),
 				args0: [
 					{
 						type: "field_variable",
@@ -167,8 +164,7 @@ export function defineSoundBlocks() {
 				previousStatement: null,
 				nextStatement: null,
 				colour: categoryColours["Sound"],
-				tooltip:
-					"Play a sequence of MIDI notes and rests with corresponding durations, using mesh for panning. Can return immediately or after the notes have finished playing.",
+				tooltip: getTooltip("play_notes"),
 			});
 			this.setHelpUrl(getHelpUrlFor(this.type));
 		},
@@ -178,7 +174,7 @@ export function defineSoundBlocks() {
 		init: function () {
 			this.jsonInit({
 				type: "set_scene_bpm",
-				message0: "set scene BPM to %1",
+				message0: translate("set_scene_bpm"),
 				args0: [
 					{
 						type: "input_value",
@@ -190,7 +186,7 @@ export function defineSoundBlocks() {
 				previousStatement: null,
 				nextStatement: null,
 				colour: categoryColours["Sound"], // Assuming "Sound" category
-				tooltip: "Set the BPM for the entire scene",
+				tooltip: getTooltip("set_scene_bpm"),
 			});
 			this.setHelpUrl(getHelpUrlFor(this.type));
 		},
@@ -200,7 +196,7 @@ export function defineSoundBlocks() {
 		init: function () {
 			this.jsonInit({
 				type: "set_mesh_bpm",
-				message0: "set BPM of %1 to %2",
+				message0: translate("set_mesh_bpm"),
 				args0: [
 					{
 						type: "field_variable",
@@ -217,7 +213,7 @@ export function defineSoundBlocks() {
 				previousStatement: null,
 				nextStatement: null,
 				colour: categoryColours["Sound"], // Assuming "Sound" category
-				tooltip: "Set the BPM for a selected mesh",
+				tooltip: getTooltip("set_mesh_bpm"),
 			});
 			this.setHelpUrl(getHelpUrlFor(this.type));
 		},
@@ -230,8 +226,7 @@ export function defineSoundBlocks() {
 				variableNamePrefix + nextVariableIndexes[variableNamePrefix];
 			this.jsonInit({
 				type: "create_instrument",
-				message0:
-					"instrument %1 wave %2 frequency %3 attack %4 decay %5 sustain %6 release %7",
+				message0: translate("create_instrument"),
 				args0: [
 					{
 						type: "field_variable",
@@ -292,8 +287,7 @@ export function defineSoundBlocks() {
 				previousStatement: null,
 				nextStatement: null,
 				colour: categoryColours["Sound"],
-				tooltip:
-					"Create an instrument and assigns it to the selected variable.",
+				tooltip: getTooltip("create_instrument"),
 			});
 			this.setHelpUrl(getHelpUrlFor(this.type));
 			this.setOnChange((changeEvent) => {
@@ -311,7 +305,7 @@ export function defineSoundBlocks() {
 		init: function () {
 			this.jsonInit({
 				type: "instrument",
-				message0: "instrument %1",
+				message0: translate("instrument"),
 				args0: [
 					{
 						type: "field_dropdown",
@@ -326,7 +320,7 @@ export function defineSoundBlocks() {
 				],
 				output: "Instrument",
 				colour: categoryColours["Sound"],
-				tooltip: "Select an instrument to use for playing notes.",
+				tooltip: getTooltip("instrument"),
 			});
 			this.setHelpUrl(getHelpUrlFor(this.type));
 		},
@@ -336,8 +330,7 @@ export function defineSoundBlocks() {
 		init: function () {
 			this.jsonInit({
 				type: "speak",
-				message0:
-					"speak %1 %2 voice %3 language %4\nrate %5 pitch %6 volume %7 mode %8",
+				message0: translate("speak"),
 				args0: [
 					{
 						type: "input_value",
@@ -393,11 +386,11 @@ export function defineSoundBlocks() {
 				previousStatement: null,
 				nextStatement: null,
 				colour: categoryColours["Sound"],
-				tooltip:
-					"Convert text to speech using the Web Speech API with optional 3D positioning.\nKeyword: speak",
+				tooltip: getTooltip("speak"),
 				extensions: ["dynamic_mesh_dropdown"], // Attach the extension
 			});
 			this.setHelpUrl(getHelpUrlFor(this.type));
 		},
 	};
 }
+

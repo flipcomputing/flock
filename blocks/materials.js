@@ -7,6 +7,7 @@ import {
   materialNames,
 } from "../config.js";
 import { flock } from "../flock.js";
+import { translate, getTooltip } from "../main/translation.js";
 
 export function defineMaterialsBlocks() {
 
@@ -14,7 +15,7 @@ export function defineMaterialsBlocks() {
 		init: function () {
 		  this.jsonInit({
 			type: "change_color",
-			message0: "color %1 to %2",
+			message0: translate("change_color"),
 			args0: [
 			  {
 				type: "field_variable",
@@ -31,7 +32,7 @@ export function defineMaterialsBlocks() {
 			previousStatement: null,
 			nextStatement: null,
 			colour: categoryColours["Materials"],
-			tooltip: "Change the color of the selected mesh.\nKeyword: color",
+			tooltip: getTooltip("change_color"),
 		  });
 		  this.setHelpUrl(getHelpUrlFor(this.type));
 		},
@@ -40,7 +41,7 @@ export function defineMaterialsBlocks() {
 	  Blockly.Blocks["change_material"] = {
 		init: function () {
 		  this.jsonInit({
-			message0: "apply material %1 to %2 with colour %3",
+			message0: translate("change_material"),
 			args0: [
 			  {
 				type: "field_grid_dropdown",
@@ -72,8 +73,7 @@ export function defineMaterialsBlocks() {
 			],
 			inputsInline: true,
 			colour: categoryColours["Materials"],
-			tooltip:
-			  "Apply a selected material with a colour tint to the specified mesh.\nKeyword: material",
+			tooltip: getTooltip("change_material"),
 			previousStatement: null,
 			nextStatement: null,
 		  });
@@ -85,8 +85,7 @@ export function defineMaterialsBlocks() {
 		init: function () {
 		  this.jsonInit({
 			type: "text_material",
-			message0:
-			  "material %1 text %2 color %3 background %4\nwidth %5 height %6 size %7",
+			message0: translate("text_material"),
 			args0: [
 			  {
 				type: "field_variable",
@@ -128,8 +127,7 @@ export function defineMaterialsBlocks() {
 			previousStatement: null,
 			nextStatement: null,
 			colour: categoryColours["Materials"],
-			tooltip:
-			  "Create a material with text or emoji, specifying width, height, background color, and text size.",
+			tooltip: getTooltip("text_material"),
 		  });
 		  this.setHelpUrl(getHelpUrlFor(this.type));
 		},
@@ -138,7 +136,7 @@ export function defineMaterialsBlocks() {
 	  Blockly.Blocks["place_decal"] = {
 		init: function () {
 		  this.jsonInit({
-			message0: "decal %1 angle %2",
+			message0: translate("place_decal"),
 			args0: [
 			  {
 				type: "field_variable",
@@ -154,7 +152,7 @@ export function defineMaterialsBlocks() {
 			previousStatement: null,
 			nextStatement: null,
 			colour: categoryColours["Materials"],
-			tooltip: "Place a decal on a mesh using the selected material.",
+			tooltip: getTooltip("place_decal"),
 		  });
 		  this.setHelpUrl(getHelpUrlFor(this.type));
 		},
@@ -164,8 +162,7 @@ export function defineMaterialsBlocks() {
 		init: function () {
 		  this.jsonInit({
 			type: "decal",
-			message0:
-			  "decal on %1 from x %2 y %3 z %4 \nangle x %5 y %6 z %7\nsize x %8 y %9 z %10 material %11",
+			message0: translate("decal"),
 			args0: [
 			  {
 				type: "field_variable",
@@ -226,8 +223,7 @@ export function defineMaterialsBlocks() {
 			previousStatement: null,
 			nextStatement: null,
 			colour: categoryColours["Materials"],
-			tooltip:
-			  "Create a decal on a mesh with position, normal, size, and material.",
+			tooltip: getTooltip("decal"),
 		  });
 		  this.setHelpUrl(getHelpUrlFor(this.type));
 		},
@@ -237,7 +233,7 @@ export function defineMaterialsBlocks() {
 		init: function () {
 		  this.jsonInit({
 			type: "highlight",
-			message0: "highlight %1 %2",
+			message0: translate("highlight"),
 			args0: [
 			  {
 				type: "field_variable",
@@ -255,7 +251,7 @@ export function defineMaterialsBlocks() {
 			previousStatement: null,
 			nextStatement: null,
 			colour: categoryColours["Materials"],
-			tooltip: "Highlight the selected mesh.\nKeyword: highlight",
+			tooltip: getTooltip("highlight"),
 		  });
 		  this.setHelpUrl(getHelpUrlFor(this.type));
 		},
@@ -265,7 +261,7 @@ export function defineMaterialsBlocks() {
 		init: function () {
 		  this.jsonInit({
 			type: "glow",
-			message0: "glow %1",
+			message0: translate("glow"),
 			args0: [
 			  {
 				type: "field_variable",
@@ -277,7 +273,7 @@ export function defineMaterialsBlocks() {
 			previousStatement: null,
 			nextStatement: null,
 			colour: categoryColours["Materials"],
-			tooltip: "Adds a glow effect to the selected mesh.\nKeyword: glow",
+			tooltip: getTooltip("glow"),
 		  });
 		  this.setHelpUrl(getHelpUrlFor(this.type));
 		},
@@ -287,7 +283,7 @@ export function defineMaterialsBlocks() {
 		init: function () {
 		  this.jsonInit({
 			type: "tint",
-			message0: "tint %1 %2",
+			message0: translate("tint"),
 			args0: [
 			  {
 				type: "field_variable",
@@ -305,7 +301,7 @@ export function defineMaterialsBlocks() {
 			previousStatement: null,
 			nextStatement: null,
 			colour: categoryColours["Materials"],
-			tooltip: "Add colour tint effect.\nKeyword: tint",
+			tooltip: getTooltip("tint"),
 		  });
 		  this.setHelpUrl(getHelpUrlFor(this.type));
 		},
@@ -315,7 +311,7 @@ export function defineMaterialsBlocks() {
 		init: function () {
 		  this.jsonInit({
 			type: "set_mesh_material_alpha",
-			message0: "set alpha of %1 to %2",
+			message0: translate("set_alpha"),
 			args0: [
 			  {
 				type: "field_variable",
@@ -332,8 +328,7 @@ export function defineMaterialsBlocks() {
 			previousStatement: null,
 			nextStatement: null,
 			colour: categoryColours["Materials"],
-			tooltip:
-			  "Set the alpha (transparency) of the material(s) on a specified mesh. Values should be 0 to 1.\nKeyword:alpha",
+			tooltip: getTooltip("set_alpha"),
 		  });
 		  this.setHelpUrl(getHelpUrlFor(this.type));
 		},
@@ -343,7 +338,7 @@ export function defineMaterialsBlocks() {
 		init: function () {
 		  this.jsonInit({
 			type: "clear_effects",
-			message0: "clear effects %1",
+			message0: translate("clear_effects"),
 			args0: [
 			  {
 				type: "field_variable",
@@ -355,7 +350,7 @@ export function defineMaterialsBlocks() {
 			previousStatement: null,
 			nextStatement: null,
 			colour: categoryColours["Materials"],
-			tooltip: "Clear visual effects from selected mesh.\nKeyword: clear",
+			tooltip: getTooltip("clear_effects"),
 		  });
 		  this.setHelpUrl(getHelpUrlFor(this.type));
 		},
@@ -365,7 +360,7 @@ export function defineMaterialsBlocks() {
 		init: function () {
 		  this.jsonInit({
 			type: "colour",
-			message0: "%1",
+			message0: translate("colour"),
 			args0: [
 			  {
 				type: "field_colour",
@@ -375,7 +370,7 @@ export function defineMaterialsBlocks() {
 			],
 			output: "Colour",
 			colour: categoryColours["Materials"],
-			tooltip: "Pick a colour.\nKeyword: color",
+			tooltip: getTooltip("colour"),
 		  });
 		  this.setHelpUrl(getHelpUrlFor(this.type));
 		},
@@ -385,7 +380,7 @@ export function defineMaterialsBlocks() {
 		init: function () {
 		  this.jsonInit({
 			type: "skin_colour",
-			message0: "%1",
+			message0: translate("skin_colour"),
 			args0: [
 			  {
 				type: "field_colour",
@@ -424,7 +419,7 @@ export function defineMaterialsBlocks() {
 			],
 			output: "Colour",
 			colour: categoryColours["Materials"],
-			tooltip: "Pick a skin colour.\nKeyword: skin",
+			tooltip: getTooltip("skin_colour"),
 		  });
 		  this.setHelpUrl(getHelpUrlFor(this.type));
 		},
@@ -434,7 +429,7 @@ export function defineMaterialsBlocks() {
 		init: function () {
 		  this.jsonInit({
 			type: "greyscale_colour",
-			message0: "%1",
+			message0: translate("greyscale_colour"),
 			args0: [
 			  {
 				type: "field_colour",
@@ -471,7 +466,7 @@ export function defineMaterialsBlocks() {
 			],
 			output: "Colour",
 			colour: categoryColours["Materials"], // You can set this to any colour category you prefer
-			tooltip: "Pick a greyscale colour for elevation.\nKeyword: grey",
+			tooltip: getTooltip("greyscale_colour"),
 		  });
 		  this.setHelpUrl(getHelpUrlFor(this.type));
 		},
@@ -480,7 +475,7 @@ export function defineMaterialsBlocks() {
 	  Blockly.Blocks["colour_from_string"] = {
 		init: function () {
 		  this.jsonInit({
-			message0: "- %1 -",
+			message0: translate("colour_from_string"),
 			args0: [
 			  {
 				type: "field_input",
@@ -503,10 +498,10 @@ export function defineMaterialsBlocks() {
 		init: function () {
 		  this.jsonInit({
 			type: "random_colour_block",
-			message0: "random color",
+			message0: translate("random_colour"),
 			output: "Colour",
 			colour: categoryColours["Materials"],
-			tooltip: "Generate a random colour.\nKeyword: randcol",
+			tooltip: getTooltip("random_colour"),
 		  });
 		  this.setHelpUrl(getHelpUrlFor(this.type));
 		},
@@ -516,7 +511,7 @@ export function defineMaterialsBlocks() {
 		init: function () {
 		  this.jsonInit({
 			type: "material",
-			message0: "material %1 %2 alpha %3",
+			message0: translate("material"),
 
 			args0: [
 			  {
@@ -553,7 +548,7 @@ export function defineMaterialsBlocks() {
 			output: "Material",
 			inputsInline: true,
 			colour: categoryColours["Materials"],
-			tooltip: "Define material properties",
+			tooltip: getTooltip("material"),
 		  });
 		  this.setHelpUrl(getHelpUrlFor(this.type));
 		},
@@ -563,7 +558,7 @@ export function defineMaterialsBlocks() {
 		init: function () {
 		  this.jsonInit({
 			type: "material",
-			message0: "material %1 alpha %2",
+			message0: translate("gradient_material"),
 			args0: [
 			  {
 				type: "input_value",
@@ -583,7 +578,7 @@ export function defineMaterialsBlocks() {
 			output: "Material",
 			inputsInline: true,
 			colour: categoryColours["Materials"],
-			tooltip: "Define material properties",
+			tooltip: getTooltip("gradient_material"),
 		  });
 		  this.setHelpUrl(getHelpUrlFor(this.type));
 		},
@@ -593,7 +588,7 @@ export function defineMaterialsBlocks() {
 		init: function () {
 		  this.jsonInit({
 			type: "set_material",
-			message0: "set material of %1 to %2",
+			message0: translate("set_material"),
 			args0: [
 			  {
 				type: "field_variable",
@@ -610,9 +605,10 @@ export function defineMaterialsBlocks() {
 			nextStatement: null,
 			inputsInline: true,
 			colour: categoryColours["Materials"],
-			tooltip: "Set the specified material on the given mesh.",
+			tooltip: getTooltip("set_material"),
 		  });
 		  this.setHelpUrl(getHelpUrlFor(this.type));
 		},
 	  };
 }
+
