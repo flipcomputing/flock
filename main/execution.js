@@ -1,5 +1,5 @@
 import { flock } from "../flock.js";
-import {currentView, switchView, codeMode} from "./view.js";
+import {currentView, switchView, codeMode, isNarrowScreen, showCanvasView} from "./view.js";
 import {
 	setGizmoManager,
 	disposeGizmoManager,
@@ -34,11 +34,13 @@ export async function executeCode() {
 	const switchViewsBtn = document.getElementById("switchViews");
 	const renderCanvas = document.getElementById("renderCanvas");
 
-	// Switch to code view if currently in canvas view
-	if (currentView === "canvas") {
-		const { showCodeView } = await import("./view.js");
-		showCodeView();
+	// If on a narrow screen and currently showing code, switch to canvas
+	if (isNarrowScreen() && currentView === "code") {
+	  const { showCanvasView } = await import("./view.js");
+	  showCanvasView();
 	}
+
+
 
 	disposeGizmoManager();
 

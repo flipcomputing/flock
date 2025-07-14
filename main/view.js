@@ -2,6 +2,15 @@ import * as Blockly from "blockly";
 import { workspace } from "./blocklyinit.js";
 import { flock } from "../flock.js";
 
+// Add this helper function at the top
+export const isNarrowScreen = () => {
+	return window.innerWidth <= 768;
+};
+
+const isMobile = () => {
+	return /Mobi|Android/i.test(navigator.userAgent);
+};
+
 export function onResize() {
 	Blockly.svgResize(workspace);
 	//document.body.style.zoom = "reset";
@@ -10,7 +19,6 @@ export function onResize() {
 }
 
 window.onresize = onResize;
-
 
 // Function to maintain a 16:9 aspect ratio for the canvas
 function resizeCanvas() {
@@ -68,7 +76,15 @@ function switchView(view) {
 		blocklyArea.style.width = "0";
 		canvasArea.style.width = "0";
 		blocklyArea.style.flex = "2 1 0"; // 2/3 of the space
-		canvasArea.style.flex = "1 1 0"; // 1/3 of the space		gizmoButtons.style.display = "flex";
+		canvasArea.style.flex = "1 1 0"; // 1/3 of the space
+
+		// Reset any transforms on desktop
+		if (!isNarrowScreen()) {
+			const container = document.getElementById("maincontent");
+			if (container) {
+				container.style.transform = "translateX(0px)";
+			}
+		}
 	} else if (view === "canvas") {
 		console.log("canvas");
 		viewMode = "canvas";
@@ -128,10 +144,6 @@ document.addEventListener("DOMContentLoaded", () => {
 		}
 	};
 
-	const isMobile = () => {
-		return /Mobi|Android/i.test(navigator.userAgent);
-	};
-
 	const isFullscreen = window.matchMedia(
 		"(display-mode: fullscreen)",
 	).matches;
@@ -187,7 +199,7 @@ let previousTranslate = 0;
 let isDragging = false;
 const swipeThreshold = 50; // Minimum swipe distance
 
-function showCanvasView() {
+export function showCanvasView() {
 	const gizmoButtons = document.getElementById("gizmoButtons");
 	const flockLink = document.getElementById("flocklink");
 
@@ -195,22 +207,38 @@ function showCanvasView() {
 	flockLink.style.display = "block";
 
 	currentView = "canvas";
-	container.style.transform = `translateX(0px)`; // Move to Code view
-	switchViewsBtn.textContent = "Code >>"; // Update button text
+
+	// Only apply transforms on narrow screens
+	if (isNarrowScreen()) {
+		container.style.transform = `translateX(0px)`; // Move to Canvas view
+		switchViewsBtn.textContent = "Code >>"; // Update button text
+	}
+
 	onResize();
 }
 
 function showCodeView() {
 	const blocklyArea = document.getElementById("codePanel");
 	blocklyArea.style.display = "block";
-	const panelWidth = window.innerWidth;
+
 	currentView = "code";
-	container.style.transform = `translateX(-${panelWidth}px)`; // Move to Canvas view
-	switchViewsBtn.textContent = "<< Canvas"; // Update button text
+
+	// Only apply transforms on narrow screens
+	if (isNarrowScreen()) {
+		const panelWidth = window.innerWidth;
+		container.style.transform = `translateX(-${panelWidth}px)`; // Move to Code view
+		switchViewsBtn.textContent = "<< Canvas"; // Update button text
+	}
+
 	onResize();
 }
 
 function togglePanels() {
+	// Only allow panel toggling on narrow screens
+	if (!isNarrowScreen()) {
+		return;
+	}
+
 	if (switchViewsBtn.textContent === "Code >>") {
 		showCodeView();
 	} else {
@@ -219,11 +247,19 @@ function togglePanels() {
 }
 
 function setTranslateX(value) {
-	container.style.transform = `translateX(${value}px)`;
+	// Only apply transforms on narrow screens
+	if (isNarrowScreen()) {
+		container.style.transform = `translateX(${value}px)`;
+	}
 }
 
-// Function to add the swipe event listeners
+// Function to add the swipe event listeners (narrow screens only)
 function addSwipeListeners() {
+	// Only add swipe listeners on narrow screens
+	if (!isNarrowScreen()) {
+		return;
+	}
+
 	// Handle touch start (drag begins)
 	bottomBar.addEventListener("touchstart", (e) => {
 		startX = e.touches[0].clientX;
@@ -255,9 +291,9 @@ function addSwipeListeners() {
 
 		// Snap to the next or previous panel based on swipe distance and direction
 		if (deltaX < -swipeThreshold) {
-			showCodeView(); // Swipe left to switch to the Canvas view
+			showCanvasView(); // Swipe left to go back to canvas view
 		} else if (deltaX > swipeThreshold) {
-			showCanvasView(); // Swipe right to switch to the Code view
+			showCodeView(); // Swipe right to go to code view
 		}
 
 		previousTranslate = currentTranslate; // Update the last translate value
@@ -265,6 +301,7 @@ function addSwipeListeners() {
 }
 
 let savedView = "canvas";
+let savedViewMode = "both"; // Track the actual view mode for wide screens
 
 export function togglePlayMode() {
 	if (!flock.scene) return;
@@ -296,18 +333,29 @@ export function togglePlayMode() {
 		gizmoButtons.style.display = "block";
 		bottomBar.style.display = "block";
 		flockLink.style.display = "block";
-		switchView("both");
 		document.documentElement.style.setProperty("--dynamic-offset", "65px");
 
-		if (savedView === "code") showCodeView();
-		else showCanvasView();
+		// On narrow screens, use the mobile view switching logic
+		if (isNarrowScreen()) {
+			switchView("both");
+			if (savedView === "code") showCodeView();
+			else showCanvasView();
+		} else {
+			// On wide screens, restore the appropriate view
+			switchView("both"); // This sets up the flex layout properly
+		}
 	}
 
 	onResize();
 }
 
-// Function to add the button event listener
+// Function to add the button event listener (narrow screens only)
 function addButtonListener() {
+	// Only add button listener on narrow screens
+	if (!isNarrowScreen()) {
+		return;
+	}
+
 	switchViewsBtn.addEventListener("click", togglePanels);
 }
 
@@ -359,8 +407,8 @@ export function toggleDesignMode(){
 
 // Initialization function to set up everything
 export function initializeUI() {
-	addSwipeListeners(); // Add swipe event listeners
-	addButtonListener(); // Add button click listener
+	addSwipeListeners(); // Add swipe event listeners (narrow screens only)
+	addButtonListener(); // Add button click listener (narrow screens only)
 }
 
 const adjustViewport = () => {
