@@ -371,4 +371,45 @@ export default {
   // Tooltip translations - XR blocks
   device_camera_background_tooltip: "Use the device camera as the background for the scene. Works on both mobile and desktop.",
   set_xr_mode_tooltip: "Set the XR mode for the scene.\nOptions: VR, AR, Magic Window.",
+
+  // Dropdown option translations
+  AWAIT_option: "await",
+  START_option: "start",
+  CREATE_option: "create",
+
+  Linear_option: "Linear",
+  SineEase_option: "Sine Ease",
+  CubicEase_option: "Cubic Ease",
+  QuadraticEase_option: "Quadratic Ease",
+  ExponentialEase_option: "Exponential Ease",
+  BounceEase_option: "Bounce Ease",
+  ElasticEase_option: "Elastic Ease",
+  BackEase_option: "Back Ease",
+
+  EASEIN_option: "ease-in",
+  EASEOUT_option: "ease-out",
+  EASEINOUT_option: "ease-in-out",
+
+  play_option: "▶️ Play",
+  pause_option: "⏸️ Pause",
+  stop_option: "⏹️ Stop",
+
+  diffuseColor_option: "diffuse color",
+  emissiveColor_option: "emissive color",
+  ambientColor_option: "ambient color",
+  specularColor_option: "specular color",
+  alpha_option: "alpha",
+  color_option: "color",
+  position_option: "position",
+  rotation_option: "rotation",
+  scaling_option: "scaling",
+  position_x_option: "position.x",
+  position_y_option: "position.y",
+  position_z_option: "position.z",
+  rotation_x_option: "rotation.x",
+  rotation_y_option: "rotation.y",
+  rotation_z_option: "rotation.z",
+  scaling_x_option: "scaling.x",
+  scaling_y_option: "scaling.y",
+  scaling_z_option: "scaling.z",
 };

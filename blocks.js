@@ -2,6 +2,7 @@ import * as Blockly from "blockly";
 //import "@blockly/block-plus-minus";
 import * as BlockDynamicConnection from "@blockly/block-dynamic-connection";
 import { categoryColours, toolbox } from "./toolbox.js";
+import { getOption } from "/main/translation.js";
 
 import {
   deleteMeshFromBlock,
@@ -16,6 +17,10 @@ export let nextVariableIndexes = {};
 
 export const inlineIcon =
   "data:image/svg+xml,%3C%3Fxml%20version%3D%221.0%22%20encoding%3D%22utf-8%22%3F%3E%3Csvg%20version%3D%221.1%22%20id%3D%22Layer_1%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20x%3D%220px%22%20y%3D%220px%22%20width%3D%22122.88px%22%20height%3D%2280.593px%22%20viewBox%3D%220%200%20122.88%2080.593%22%20enable-background%3D%22new%200%200%20122.88%2080.593%22%20xml%3Aspace%3D%22preserve%22%3E%3Cg%3E%3Cpolygon%20fill%3D%22white%22%20points%3D%22122.88%2C80.593%20122.88%2C49.772%2061.44%2C0%200%2C49.772%200%2C80.593%2061.44%2C30.82%20122.88%2C80.593%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E";
+
+export function getDropdownOption(key) {
+  return [getOption(key), key]
+}
 
 const baseHelpUrl = "https://docs.flockxr.com/blocks/";
 

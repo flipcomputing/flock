@@ -162,6 +162,15 @@ export function getTooltip(blockType) {
   );
 }
 
+export function getOption(key) {
+  const optionKey = key.replace(".", "_") + "_option";
+  return (
+    translations[currentLanguage]?.[optionKey] ||
+    translations["en"]?.[optionKey] ||
+    key
+  );
+}
+
 // Function to update custom block translations
 export function updateCustomBlockTranslations() {
   // This function can be called after language change to update any custom blocks
