@@ -105,17 +105,19 @@ export const objectNames = [
 	"Gem2.glb",
 	"Gem3.glb",
 	"Wand.glb",
+	"Hat.glb",
 ];
 
 export const objectColours = {
-	"Star.glb": ["#FFD700", "#FFD700", "#FFD700"], // Gold
-	"Heart.glb": ["#FF69B4", "#FF69B4", "#FF69B4"], // Hot Pink
-	"Coin.glb": ["#A47E1B", "#C9A227","#76520E"], // Gold
-	"egg.glb": ["#fffcec", "#fffcec", "#fffcec"], // Yellow White
-	"Gem1.glb": ["#00BFFF", "#00BFFF", "#00BFFF"], // Deep Sky Blue
-	"Gem2.glb": ["#8A2BE2", "#8A2BE2", "#8A2BE2"], // Blue Violet
-	"Gem3.glb": ["#FF4500", "#FF4500", "#FF4500"], // Orange Red
-	"Wand.glb": ["#FF4500", "#8A2BE2", "#92614A"], // Mixed
+	"Star.glb": ["#FFD700", "#FFD700", "#FFD700"], 
+	"Heart.glb": ["#FF69B4", "#FF69B4", "#FF69B4"], 
+	"Coin.glb": ["#A47E1B", "#C9A227","#76520E"], 
+	"egg.glb": ["#fffcec", "#fffcec", "#fffcec"], 
+	"Gem1.glb": ["#00BFFF", "#00BFFF", "#00BFFF"], 
+	"Gem2.glb": ["#8A2BE2", "#8A2BE2", "#8A2BE2"], 
+	"Gem3.glb": ["#FF4500", "#FF4500", "#FF4500"], 
+	"Wand.glb": ["#FF4500", "#8A2BE2", "#92614A"],
+	"Hat.glb": ["#9D3F72", "#B5FDFD", "#3D0073"], 
 	
 	"tree.glb": ["#66CDAA", "#CD853F"],
 	"tree2.glb": ["#7F9F7F", "#A1623B"],
