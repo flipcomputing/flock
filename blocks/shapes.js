@@ -8,6 +8,7 @@ import {
   handleFieldOrChildChange,
   addDoMutatorWithToggleBehavior,
   getHelpUrlFor,
+  getDropdownOption,
 } from "../blocks.js";
 import {
   deleteMeshFromBlock,
@@ -423,9 +424,9 @@ export function defineShapeBlocks() {
 						type: "field_dropdown",
 						name: "ACTION",
 						options: [
-							["▶️ Start", "start"],
-							["⏹️ Stop", "stop"],
-							["🔄 Reset", "reset"],
+							getDropdownOption("start"),
+							getDropdownOption("stop"),
+							getDropdownOption("reset"),
 						],
 					},
 				],

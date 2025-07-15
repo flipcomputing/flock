@@ -2,6 +2,7 @@ import * as Blockly from "blockly";
 import { categoryColours } from "../toolbox.js";
 import {
 	getHelpUrlFor,
+  getDropdownOption,
 } from "../blocks.js";
 import { translate, getTooltip } from "../main/translation.js";
 
@@ -16,32 +17,32 @@ export function defineCameraBlocks() {
 						type: "field_dropdown",
 						name: "ACTION",
 						options: [
-							["Rotate Left", "rotateLeft"],
-							["Rotate Right", "rotateRight"],
-							["Look Up", "rotateUp"],
-							["Look Down", "rotateDown"],
-							["Move Up", "moveUp"],
-							["Move Down", "moveDown"],
-							["Move Left", "moveLeft"],
-							["Move Right", "moveRight"],
+							getDropdownOption("rotateLeft"),
+							getDropdownOption("rotateRight"),
+							getDropdownOption("rotateUp"),
+							getDropdownOption("rotateDown"),
+							getDropdownOption("moveUp"),
+							getDropdownOption("moveDown"),
+							getDropdownOption("moveLeft"),
+							getDropdownOption("moveRight"),
 						],
 					},
 					{
 						type: "field_dropdown",
 						name: "KEY",
 						options: [
-							["A ◁", "65"], // A key
-							["D", "68"], // D key
-							["W", "87"], // W key
-							["S", "83"], // S key
-							["Q", "81"], // Q key
-							["E", "69"], // E key
-							["F", "70"], // F key
-							["Space", "32"], // Space key
-							["Up Arrow", "38"], // Up arrow key
-							["Down Arrow", "40"], // Down arrow key
-							["Left Arrow", "37"], // Left arrow key
-							["Right Arrow", "39"], // Right arrow key
+							getDropdownOption("65"), // A key
+							getDropdownOption("68"), // D key
+							getDropdownOption("87"), // W key
+							getDropdownOption("83"), // S key
+							getDropdownOption("81"), // Q key
+							getDropdownOption("69"), // E key
+							getDropdownOption("70"), // F key
+							getDropdownOption("32"), // Space key
+							getDropdownOption("38"), // Up arrow key
+							getDropdownOption("40"), // Down arrow key
+							getDropdownOption("37"), // Left arrow key
+							getDropdownOption("39"), // Right arrow key
 						],
 					},
 				],

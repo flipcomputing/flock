@@ -2,6 +2,7 @@ import * as Blockly from "blockly";
 import { categoryColours } from "../toolbox.js";
 import {
 	getHelpUrlFor,
+  getDropdownOption,
 } from "../blocks.js";
 import { translate, getTooltip } from "../main/translation.js";
 
@@ -43,10 +44,10 @@ export function defineEffectsBlocks() {
 						type: "field_dropdown",
 						name: "FOG_MODE",
 						options: [
-							["Linear", "LINEAR"],
-							["None", "NONE"],
-							["Exp", "EXP"],
-							["Exp2", "EXP2"],
+							getDropdownOption("LINEAR"),
+							getDropdownOption("NONE"),
+							getDropdownOption("EXP"),
+							getDropdownOption("EXP2"),
 						],
 					},
 					{

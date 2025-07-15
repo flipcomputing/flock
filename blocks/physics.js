@@ -2,6 +2,7 @@ import * as Blockly from "blockly";
 import { categoryColours } from "../toolbox.js";
 import {
 	getHelpUrlFor,
+  getDropdownOption,
 } from "../blocks.js";
 import { translate, getTooltip } from "../main/translation.js";
 
@@ -21,10 +22,10 @@ export function definePhysicsBlocks() {
 				type: "field_dropdown",
 				name: "PHYSICS_TYPE",
 				options: [
-				  ["dynamic", "DYNAMIC"],
-				  ["animated", "ANIMATED"],
-				  ["static", "STATIC"],
-				  ["none", "NONE"],
+				  getDropdownOption("DYNAMIC"),
+				  getDropdownOption("ANIMATED"),
+				  getDropdownOption("STATIC"),
+				  getDropdownOption("NONE"),
 				],
 				default: "DYNAMIC",
 			  },
@@ -53,8 +54,8 @@ export function definePhysicsBlocks() {
 				type: "field_dropdown",
 				name: "SHAPE_TYPE",
 				options: [
-				  ["mesh", "MESH"],
-				  ["capsule", "CAPSULE"],
+				  getDropdownOption("MESH"),
+				  getDropdownOption("CAPSULE"),
 				],
 				default: "MESH",
 			  },

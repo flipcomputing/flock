@@ -1,6 +1,9 @@
 import * as Blockly from "blockly";
 import { categoryColours } from "../toolbox.js";
-import { getHelpUrlFor } from "../blocks.js";
+import { 
+  getHelpUrlFor,
+  getDropdownOption,
+} from "../blocks.js";
 import { translate, getTooltip } from "../main/translation.js";
 
 export function defineTransformBlocks() {
@@ -153,27 +156,27 @@ export function defineTransformBlocks() {
 						type: "field_dropdown",
 						name: "X_ORIGIN",
 						options: [
-							["center", "CENTRE"],
-							["left", "LEFT"],
-							["right", "RIGHT"],
+							getDropdownOption("CENTRE"),
+							getDropdownOption("LEFT"),
+							getDropdownOption("RIGHT"),
 						],
 					},
 					{
 						type: "field_dropdown",
 						name: "Y_ORIGIN",
 						options: [
-							["base", "BASE"],
-							["center", "CENTRE"],
-							["top", "TOP"],
+							getDropdownOption("BASE"),
+							getDropdownOption("CENTRE"),
+							getDropdownOption("TOP"),
 						],
 					},
 					{
 						type: "field_dropdown",
 						name: "Z_ORIGIN",
 						options: [
-							["center", "CENTRE"],
-							["front", "FRONT"],
-							["back", "BACK"],
+							getDropdownOption("CENTRE"),
+							getDropdownOption("FRONT"),
+							getDropdownOption("BACK"),
 						],
 					},
 				],
@@ -217,27 +220,27 @@ export function defineTransformBlocks() {
 						type: "field_dropdown",
 						name: "X_ORIGIN",
 						options: [
-							["center", "CENTRE"],
-							["left", "LEFT"],
-							["right", "RIGHT"],
+							getDropdownOption("CENTRE"),
+							getDropdownOption("LEFT"),
+							getDropdownOption("RIGHT"),
 						],
 					},
 					{
 						type: "field_dropdown",
 						name: "Y_ORIGIN",
 						options: [
-							["base", "BASE"],
-							["center", "CENTRE"],
-							["top", "TOP"],
+							getDropdownOption("BASE"),
+							getDropdownOption("CENTRE"),
+							getDropdownOption("TOP"),
 						],
 					},
 					{
 						type: "field_dropdown",
 						name: "Z_ORIGIN",
 						options: [
-							["center", "CENTRE"],
-							["front", "FRONT"],
-							["back", "BACK"],
+							getDropdownOption("CENTRE"),
+							getDropdownOption("FRONT"),
+							getDropdownOption("BACK"),
 						],
 					},
 				],
@@ -379,9 +382,9 @@ export function defineTransformBlocks() {
 						type: "field_dropdown",
 						name: "DIRECTION",
 						options: [
-							["forward", "forward"],
-							["sideways", "sideways"],
-							["strafe", "strafe"],
+							getDropdownOption("forward"),
+							getDropdownOption("sideways"),
+							getDropdownOption("strafe"),
 						],
 					},
 					{
@@ -447,9 +450,9 @@ export function defineTransformBlocks() {
 						type: "field_dropdown",
 						name: "PIVOT_OPTION",
 						options: [
-							["min", "MIN"],
-							["center", "CENTER"],
-							["max", "MAX"],
+							getDropdownOption("MIN"),
+							getDropdownOption("CENTER"),
+							getDropdownOption("MAX"),
 						],
 					},
 				],

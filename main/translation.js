@@ -166,7 +166,12 @@ export function getTooltip(blockType) {
 }
 
 export function getOption(key) {
-  const optionKey = (/^\d$/.test(key[0]) ? "_" : "") + key.replace(".", "_") + "_option";
+  const optionKey 
+    = key == " " ? "space_option"
+    : key == "," ? "comma_option"
+    : key == "." ? "dot_option"
+    : key == "/" ? "slash_option"
+    : (/^\d$/.test(key[0]) ? "_" : "") + key.replace(".", "_").replace("-", "_").replace("/", "_") + "_option";
   return (
     translations[currentLanguage]?.[optionKey] ||
     translations["en"]?.[optionKey] ||

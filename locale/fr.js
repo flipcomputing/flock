@@ -414,6 +414,32 @@ export default {
   scaling_y_option: "échelle.y",
   scaling_z_option: "échelle.z",
 
+  rotateLeft_option: "Tourner à gauche",
+  rotateRight_option: "Tourner à droite",
+  rotateUp_option: "Regarder en haut",
+  rotateDown_option: "Regarder en bas",
+  moveUp_option: "Se déplacer vers le haut",
+  moveDown_option: "Se déplacer vers le bas",
+  moveLeft_option: "Se déplacer à gauche",
+  moveRight_option: "Se déplacer à droite",
+
+  _65_option: "A ◁",
+  _68_option: "D",
+  _87_option: "W",
+  _83_option: "S",
+  _81_option: "Q",
+  _69_option: "E",
+  _70_option: "F",
+  _32_option: "Espace",
+  _38_option: "Flèche haut",
+  _40_option: "Flèche bas",
+  _37_option: "Flèche gauche",
+  _39_option: "Flèche droite",
+
+  TOP_option: "haut",
+  CENTER_option: "centre",
+  BOTTOM_option: "bas",
+
   // HTML translations
   loading_ui: "French",
   demo_ui: "French Demo",

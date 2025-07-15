@@ -2,6 +2,7 @@ import * as Blockly from "blockly";
 import { categoryColours } from "../toolbox.js";
 import {
 	getHelpUrlFor,
+  getDropdownOption,
 } from "../blocks.js";
 import { translate, getTooltip } from "../main/translation.js";
 
@@ -16,8 +17,8 @@ export function defineXRBlocks() {
 				type: "field_dropdown",
 				name: "CAMERA",
 				options: [
-				  ["front", "user"],
-				  ["back", "environment"],
+				  getDropdownOption("user"),
+				  getDropdownOption("environment"),
 				],
 			  },
 			],
@@ -40,9 +41,9 @@ export function defineXRBlocks() {
 				type: "field_dropdown",
 				name: "MODE",
 				options: [
-				  ["VR (Oculus Quest or phone viewer)", "VR"],
-				  ["AR (Augmented Reality)", "AR"],
-				  ["Magic Window (look-around)", "MAGIC_WINDOW"],
+				  getDropdownOption("VR"),
+				  getDropdownOption("AR"),
+				  getDropdownOption("MAGIC_WINDOW"),
 				],
 			  },
 			],
