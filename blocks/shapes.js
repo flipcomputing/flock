@@ -8,14 +8,13 @@ import {
   handleFieldOrChildChange,
   addDoMutatorWithToggleBehavior,
   getHelpUrlFor,
-  getDropdownOption,
 } from "../blocks.js";
 import {
   deleteMeshFromBlock,
   updateOrCreateMeshFromBlock,
   getMeshFromBlock,
 } from "../ui/blockmesh.js";
-import { translate, getTooltip } from "../main/translation.js";
+import { translate, getTooltip, getDropdownOption } from "../main/translation.js";
 
 export function defineShapeBlocks() {
 	function createShapeBlockDefinition({

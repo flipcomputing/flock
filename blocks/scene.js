@@ -6,7 +6,6 @@ import {
   handleBlockCreateEvent,
   addDoMutatorWithToggleBehavior,
   getHelpUrlFor,
-  getDropdownOption,
 } from "../blocks.js";
 import {
   mapNames,
@@ -14,7 +13,7 @@ import {
 import {
   updateOrCreateMeshFromBlock,
 } from "../ui/blockmesh.js";
-import { translate, getTooltip, getOption } from "../main/translation.js";
+import { translate, getTooltip, getOption, getDropdownOption } from "../main/translation.js";
 
 export function defineSceneBlocks() {
 

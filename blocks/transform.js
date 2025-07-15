@@ -2,9 +2,8 @@ import * as Blockly from "blockly";
 import { categoryColours } from "../toolbox.js";
 import { 
   getHelpUrlFor,
-  getDropdownOption,
 } from "../blocks.js";
-import { translate, getTooltip } from "../main/translation.js";
+import { translate, getTooltip, getDropdownOption } from "../main/translation.js";
 
 export function defineTransformBlocks() {
 	Blockly.Blocks["move_by_xyz"] = {

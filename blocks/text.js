@@ -3,9 +3,8 @@ import { categoryColours } from "../toolbox.js";
 import { 
   getHelpUrlFor, 
   nextVariableIndexes,
-  getDropdownOption,
 } from "../blocks.js";
-import { translate, getTooltip } from "../main/translation.js";
+import { translate, getTooltip, getDropdownOption } from "../main/translation.js";
 
 export function defineTextBlocks() {
 	Blockly.Blocks["comment"] = {

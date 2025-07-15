@@ -7,9 +7,8 @@ import {
 	domToMutation,
 	inlineIcon,
 	updateShape,
-  getDropdownOption,
 } from "../blocks.js";
-import { translate, getTooltip, getOption } from "../main/translation.js";
+import { translate, getTooltip, getOption, getDropdownOption } from "../main/translation.js";
 
 export function defineSensingBlocks() {
 	Blockly.Blocks["key_pressed"] = {

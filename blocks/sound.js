@@ -4,10 +4,9 @@ import {
 	nextVariableIndexes,
 	handleBlockCreateEvent,
 	getHelpUrlFor,
-  getDropdownOption,
 } from "../blocks.js";
 import { audioNames } from "../config.js";
-import { translate, getTooltip } from "../main/translation.js";
+import { translate, getTooltip, getDropdownOption } from "../main/translation.js";
 
 export function defineSoundBlocks() {
 	Blockly.Blocks["play_sound"] = {

@@ -16,6 +16,10 @@ const translations = {
   fr: frLocale,
 };
 
+export function getDropdownOption(key) {
+  return [getOption(key), key]
+}
+
 let currentLanguage = "en";
 
 // Load saved language preference from localStorage

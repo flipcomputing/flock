@@ -7,9 +7,8 @@ import {
 	domToMutation,
 	inlineIcon,
 	updateShape,
-  getDropdownOption,
 } from "../blocks.js";
-import { translate, getTooltip } from "../main/translation.js";
+import { translate, getTooltip, getDropdownOption } from "../main/translation.js";
 
 export function defineEventsBlocks() {
 	Blockly.Blocks["start"] = {

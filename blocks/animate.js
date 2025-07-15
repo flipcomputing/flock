@@ -4,12 +4,11 @@ import {
   nextVariableIndexes,
   handleBlockCreateEvent,
   getHelpUrlFor,
-  getDropdownOption,
 } from "../blocks.js";
 import {
   animationNames,
 } from "../config.js";
-import { translate, getTooltip, getOption } from "../main/translation.js";
+import { translate, getTooltip, getOption, getDropdownOption } from "../main/translation.js";
 
 export function defineAnimateBlocks() {
 	Blockly.Blocks["glide_to"] = {
