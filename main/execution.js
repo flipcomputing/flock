@@ -36,11 +36,8 @@ export async function executeCode() {
 
 	// If on a narrow screen and currently showing code, switch to canvas
 	if (isNarrowScreen() && currentView === "code") {
-	  const { showCanvasView } = await import("./view.js");
 	  showCanvasView();
 	}
-
-
 
 	disposeGizmoManager();
 
@@ -108,8 +105,10 @@ export function stopCode() {
 	// Remove event listeners
 	flock.removeEventListeners();
 
-	// Switch to code view
-	switchView(codeMode);
+	// If on a narrow screen and currently showing code, switch to canvas
+	if (isNarrowScreen() && currentView === "code") {
+	  showCanvasView();
+	}
 
 	console.log("Switched view.");
 }
