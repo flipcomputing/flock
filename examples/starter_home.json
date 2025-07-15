@@ -2350,9 +2350,7 @@
                                             "inline": true,
                                             "extraState": {
                                               "name": "makeBuilding",
-                                              "params": [
-                                                "mesh"
-                                              ]
+                                              "params": ["mesh"]
                                             },
                                             "inputs": {
                                               "ARG0": {
@@ -3078,11 +3076,7 @@
                                           "inline": true,
                                           "extraState": {
                                             "name": "makestairs",
-                                            "params": [
-                                              "x",
-                                              "y",
-                                              "z"
-                                            ]
+                                            "params": ["x", "y", "z"]
                                           },
                                           "inputs": {
                                             "ARG0": {
@@ -5018,7 +5012,7 @@
                                   "type": "math_number",
                                   "id": "(;./-{|/{H4m8u4)(L]L",
                                   "fields": {
-                                    "NUM": 5
+                                    "NUM": -5
                                   }
                                 }
                               }
@@ -5050,7 +5044,7 @@
                                   "type": "math_number",
                                   "id": "B$TD!!lMHLj2+%)W}m5:",
                                   "fields": {
-                                    "NUM": -5
+                                    "NUM": 5
                                   }
                                 }
                               }

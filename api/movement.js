@@ -119,9 +119,7 @@ export const flockMovement = {
 
     // Get the camera's right direction vector (perpendicular to the forward direction)
     const cameraRight = flock.scene.activeCamera
-      .getDirection(
-        flock.BABYLON.Vector3.Left(), //Yes, we're the wrong side of the player! Need to fix
-      )
+      .getDirection(flock.BABYLON.Vector3.Right())
       .normalize();
 
     const moveDirection = cameraRight.scale(sidewaysSpeed);
@@ -219,11 +217,7 @@ export const flockMovement = {
           // override it by setting the vertical velocity to zero.
           if (currentVel.y > 0) {
             mesh.physics.setLinearVelocity(
-              new flock.BABYLON.Vector3(
-                currentVel.x,
-                0,
-                currentVel.z,
-              ),
+              new flock.BABYLON.Vector3(currentVel.x, 0, currentVel.z),
             );
             console.log(
               "Collision callback: small penetration detected. Overriding upward velocity.",
@@ -246,23 +240,16 @@ export const flockMovement = {
             );
             if (hit && hit.pickedMesh) {
               const groundY = hit.pickedPoint.y;
-              const capsuleBottomY =
-                mesh.position.y - capsuleHalfHeight;
+              const capsuleBottomY = mesh.position.y - capsuleHalfHeight;
               const gap = capsuleBottomY - groundY;
               // If the gap is very small (i.e. the capsule is on or nearly on the ground)
               // and the vertical velocity is upward, override it.
               const currentVel = mesh.physics.getLinearVelocity();
               if (Math.abs(gap) < 0.1 && currentVel.y > 0) {
                 mesh.physics.setLinearVelocity(
-                  new flock.BABYLON.Vector3(
-                    currentVel.x,
-                    0,
-                    currentVel.z,
-                  ),
+                  new flock.BABYLON.Vector3(currentVel.x, 0, currentVel.z),
                 );
-                console.log(
-                  "After-render: resetting upward velocity",
-                );
+                console.log("After-render: resetting upward velocity");
               }
             }
           });
