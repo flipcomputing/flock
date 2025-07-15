@@ -577,18 +577,17 @@ export function defineGenerators() {
 	};
 
 	javascriptGenerator.forBlock["set_fog"] = function (block) {
-	  const fogColorHex = getFieldValue(block, "FOG_COLOR", "#9932CC");
-	  const fogMode = block.getFieldValue("FOG_MODE");
-	  const fogDensity =
-		javascriptGenerator.valueToCode(
-		  block,
-		  "DENSITY",
-		  javascriptGenerator.ORDER_ATOMIC,
-		) || "0.1"; // Default density
+		const fogColorHex = getFieldValue(block, "FOG_COLOR", "#9932CC");
+		const fogMode = block.getFieldValue("FOG_MODE");
+		const fogDensity =
+			javascriptGenerator.valueToCode(
+				block,
+				"DENSITY",
+				javascriptGenerator.ORDER_ATOMIC,
+			) || "0.1"; // Default density
 
-	  return `setFog({ fogColorHex: ${fogColorHex}, fogMode: "${fogMode}", fogDensity: ${fogDensity} });\n`;
+		return `setFog({ fogColorHex: ${fogColorHex}, fogMode: "${fogMode}", fogDensity: ${fogDensity} });\n`;
 	};
-
 
 	javascriptGenerator.forBlock["ui_text"] = function (block) {
 		const text = javascriptGenerator.valueToCode(
@@ -642,48 +641,48 @@ export function defineGenerators() {
 	};
 
 	javascriptGenerator.forBlock["ui_input"] = function (block) {
-	  const varName = javascriptGenerator.nameDB_.getName(
-		block.getFieldValue("INPUT_VAR"),
-		Blockly.VARIABLE_CATEGORY_NAME,
-	  );
+		const varName = javascriptGenerator.nameDB_.getName(
+			block.getFieldValue("INPUT_VAR"),
+			Blockly.VARIABLE_CATEGORY_NAME,
+		);
 
-	  const text = javascriptGenerator.valueToCode(
-		block,
-		"TEXT",
-		javascriptGenerator.ORDER_ATOMIC,
-	  );
+		const text = javascriptGenerator.valueToCode(
+			block,
+			"TEXT",
+			javascriptGenerator.ORDER_ATOMIC,
+		);
 
-	  const x = javascriptGenerator.valueToCode(
-		block,
-		"X",
-		javascriptGenerator.ORDER_ATOMIC,
-	  );
+		const x = javascriptGenerator.valueToCode(
+			block,
+			"X",
+			javascriptGenerator.ORDER_ATOMIC,
+		);
 
-	  const y = javascriptGenerator.valueToCode(
-		block,
-		"Y",
-		javascriptGenerator.ORDER_ATOMIC,
-	  );
+		const y = javascriptGenerator.valueToCode(
+			block,
+			"Y",
+			javascriptGenerator.ORDER_ATOMIC,
+		);
 
-	  const fontSize = javascriptGenerator.valueToCode(
-		block,
-		"TEXT_SIZE",
-		javascriptGenerator.ORDER_ATOMIC,
-	  );
+		const fontSize = javascriptGenerator.valueToCode(
+			block,
+			"TEXT_SIZE",
+			javascriptGenerator.ORDER_ATOMIC,
+		);
 
-	  const textColor = javascriptGenerator.valueToCode(
-		block,
-		"TEXT_COLOR",
-		javascriptGenerator.ORDER_ATOMIC,
-	  );
+		const textColor = javascriptGenerator.valueToCode(
+			block,
+			"TEXT_COLOR",
+			javascriptGenerator.ORDER_ATOMIC,
+		);
 
-	  const backgroundColor = javascriptGenerator.valueToCode(
-		block,
-		"BACKGROUND_COLOR",
-		javascriptGenerator.ORDER_ATOMIC,
-	  );
+		const backgroundColor = javascriptGenerator.valueToCode(
+			block,
+			"BACKGROUND_COLOR",
+			javascriptGenerator.ORDER_ATOMIC,
+		);
 
-	  const size = block.getFieldValue("SIZE");
+		const size = block.getFieldValue("SIZE");
 
 		return `${varName} = await UIInput({
 		  text: ${text},
@@ -695,25 +694,59 @@ export function defineGenerators() {
 		  backgroundColor: ${backgroundColor},
 		  id: ${varName}
 		});\n`;
-
-	}
+	};
 
 	javascriptGenerator.forBlock["ui_slider"] = function (block) {
-	  const varName = javascriptGenerator.nameDB_.getName(
-		block.getFieldValue("SLIDER_VAR"),
-		Blockly.Names.NameType.VARIABLE
-	  );
+		const varName = javascriptGenerator.nameDB_.getName(
+			block.getFieldValue("SLIDER_VAR"),
+			Blockly.Names.NameType.VARIABLE,
+		);
 
-	  const min = javascriptGenerator.valueToCode(block, "MIN", javascriptGenerator.ORDER_NONE) || 0;
-	  const max = javascriptGenerator.valueToCode(block, "MAX", javascriptGenerator.ORDER_NONE) || 100;
-	  const value = javascriptGenerator.valueToCode(block, "VALUE", javascriptGenerator.ORDER_NONE) || 50;
-	  const x = javascriptGenerator.valueToCode(block, "X", javascriptGenerator.ORDER_NONE) || 100;
-	  const y = javascriptGenerator.valueToCode(block, "Y", javascriptGenerator.ORDER_NONE) || 50;
-	  const color = javascriptGenerator.valueToCode(block, "COLOR", javascriptGenerator.ORDER_NONE) || '"#000000"';
-	  const background = javascriptGenerator.valueToCode(block, "BACKGROUND", javascriptGenerator.ORDER_NONE) || '"#ffffff"';
-	  const size = `"${block.getFieldValue("SIZE") || "MEDIUM"}"`;
+		const min =
+			javascriptGenerator.valueToCode(
+				block,
+				"MIN",
+				javascriptGenerator.ORDER_NONE,
+			) || 0;
+		const max =
+			javascriptGenerator.valueToCode(
+				block,
+				"MAX",
+				javascriptGenerator.ORDER_NONE,
+			) || 100;
+		const value =
+			javascriptGenerator.valueToCode(
+				block,
+				"VALUE",
+				javascriptGenerator.ORDER_NONE,
+			) || 50;
+		const x =
+			javascriptGenerator.valueToCode(
+				block,
+				"X",
+				javascriptGenerator.ORDER_NONE,
+			) || 100;
+		const y =
+			javascriptGenerator.valueToCode(
+				block,
+				"Y",
+				javascriptGenerator.ORDER_NONE,
+			) || 50;
+		const color =
+			javascriptGenerator.valueToCode(
+				block,
+				"COLOR",
+				javascriptGenerator.ORDER_NONE,
+			) || '"#000000"';
+		const background =
+			javascriptGenerator.valueToCode(
+				block,
+				"BACKGROUND",
+				javascriptGenerator.ORDER_NONE,
+			) || '"#ffffff"';
+		const size = `"${block.getFieldValue("SIZE") || "MEDIUM"}"`;
 
-	  const id = `"${varName}_slider"`;
+		const id = `"${varName}_slider"`;
 		const code = `
 		${varName} = ${value};
 		const ${varName}_slider = UISlider({
@@ -732,7 +765,7 @@ export function defineGenerators() {
 		});
 		`;
 
-	  return code;
+		return code;
 	};
 
 	javascriptGenerator.forBlock["ui_button"] = function (block) {
@@ -784,7 +817,6 @@ export function defineGenerators() {
 		  buttonId: "${buttonId}"
 		});\n`;
 		return code;
-
 	};
 
 	javascriptGenerator.forBlock["say"] = function (block) {
@@ -920,7 +952,7 @@ export function defineGenerators() {
 		meshMap[block.id] = block;
 		meshBlockIdMap[block.id] = block.id;
 		//```text
-// Generate the code for the "do" part (if present)
+		// Generate the code for the "do" part (if present)
 		let doCode = "";
 
 		if (block.getInput("DO")) {
@@ -1080,111 +1112,120 @@ export function defineGenerators() {
 	};
 
 	javascriptGenerator.forBlock["create_particle_effect"] = function (block) {
-	  const emitRate = parseFloat(
-		javascriptGenerator.valueToCode(
-		  block,
-		  "RATE",
-		  javascriptGenerator.ORDER_ATOMIC,
-		) || "10",
-	  );
-	  const startColor =
-		javascriptGenerator.valueToCode(
-		  block,
-		  "START_COLOR",
-		  javascriptGenerator.ORDER_ATOMIC,
-		) || '"#FFFFFF"';
-	  const endColor =
-		javascriptGenerator.valueToCode(
-		  block,
-		  "END_COLOR",
-		  javascriptGenerator.ORDER_ATOMIC,
-		) || '"#000000"';
-	  const startAlpha = parseFloat(
-		javascriptGenerator.valueToCode(
-		  block,
-		  "START_ALPHA",
-		  javascriptGenerator.ORDER_ATOMIC,
-		) || "1.0",
-	  );
-	  const endAlpha = parseFloat(
-		javascriptGenerator.valueToCode(
-		  block,
-		  "END_ALPHA",
-		  javascriptGenerator.ORDER_ATOMIC,
-		) || "1.0",
-	  );
-	  const minSize =
-		javascriptGenerator.valueToCode(
-		  block,
-		  "MIN_SIZE",
-		  javascriptGenerator.ORDER_ATOMIC,
-		) || "0.1";
-	  const maxSize =
-		javascriptGenerator.valueToCode(
-		  block,
-		  "MAX_SIZE",
-		  javascriptGenerator.ORDER_ATOMIC,
-		) || "1.0";
-	  const minLifetime =
-		javascriptGenerator.valueToCode(
-		  block,
-		  "MIN_LIFETIME",
-		  javascriptGenerator.ORDER_ATOMIC,
-		) || "1.0";
-	  const maxLifetime =
-		javascriptGenerator.valueToCode(
-		  block,
-		  "MAX_LIFETIME",
-		  javascriptGenerator.ORDER_ATOMIC,
-		) || "5.0";
-	  const x =
-		javascriptGenerator.valueToCode(block, "X", javascriptGenerator.ORDER_ATOMIC) ||
-		"0";
-	  const y =
-		javascriptGenerator.valueToCode(block, "Y", javascriptGenerator.ORDER_ATOMIC) ||
-		"0";
-	  const z =
-		javascriptGenerator.valueToCode(block, "Z", javascriptGenerator.ORDER_ATOMIC) ||
-		"0";
-	  const minAngularSpeed =
-		javascriptGenerator.valueToCode(
-		  block,
-		  "MIN_ANGULAR_SPEED",
-		  javascriptGenerator.ORDER_ATOMIC,
-		) || 0;
-	  const maxAngularSpeed =
-		javascriptGenerator.valueToCode(
-		  block,
-		  "MAX_ANGULAR_SPEED",
-		  javascriptGenerator.ORDER_ATOMIC,
-		) || 0;
-	  const minInitialRotation =
-		javascriptGenerator.valueToCode(
-		  block,
-		  "MIN_INITIAL_ROTATION",
-		  javascriptGenerator.ORDER_ATOMIC,
-		) || 0;
-	  const maxInitialRotation =
-		javascriptGenerator.valueToCode(
-		  block,
-		  "MAX_INITIAL_ROTATION",
-		  javascriptGenerator.ORDER_ATOMIC,
-		) || 0;
+		const emitRate = parseFloat(
+			javascriptGenerator.valueToCode(
+				block,
+				"RATE",
+				javascriptGenerator.ORDER_ATOMIC,
+			) || "10",
+		);
+		const startColor =
+			javascriptGenerator.valueToCode(
+				block,
+				"START_COLOR",
+				javascriptGenerator.ORDER_ATOMIC,
+			) || '"#FFFFFF"';
+		const endColor =
+			javascriptGenerator.valueToCode(
+				block,
+				"END_COLOR",
+				javascriptGenerator.ORDER_ATOMIC,
+			) || '"#000000"';
+		const startAlpha = parseFloat(
+			javascriptGenerator.valueToCode(
+				block,
+				"START_ALPHA",
+				javascriptGenerator.ORDER_ATOMIC,
+			) || "1.0",
+		);
+		const endAlpha = parseFloat(
+			javascriptGenerator.valueToCode(
+				block,
+				"END_ALPHA",
+				javascriptGenerator.ORDER_ATOMIC,
+			) || "1.0",
+		);
+		const minSize =
+			javascriptGenerator.valueToCode(
+				block,
+				"MIN_SIZE",
+				javascriptGenerator.ORDER_ATOMIC,
+			) || "0.1";
+		const maxSize =
+			javascriptGenerator.valueToCode(
+				block,
+				"MAX_SIZE",
+				javascriptGenerator.ORDER_ATOMIC,
+			) || "1.0";
+		const minLifetime =
+			javascriptGenerator.valueToCode(
+				block,
+				"MIN_LIFETIME",
+				javascriptGenerator.ORDER_ATOMIC,
+			) || "1.0";
+		const maxLifetime =
+			javascriptGenerator.valueToCode(
+				block,
+				"MAX_LIFETIME",
+				javascriptGenerator.ORDER_ATOMIC,
+			) || "5.0";
+		const x =
+			javascriptGenerator.valueToCode(
+				block,
+				"X",
+				javascriptGenerator.ORDER_ATOMIC,
+			) || "0";
+		const y =
+			javascriptGenerator.valueToCode(
+				block,
+				"Y",
+				javascriptGenerator.ORDER_ATOMIC,
+			) || "0";
+		const z =
+			javascriptGenerator.valueToCode(
+				block,
+				"Z",
+				javascriptGenerator.ORDER_ATOMIC,
+			) || "0";
+		const minAngularSpeed =
+			javascriptGenerator.valueToCode(
+				block,
+				"MIN_ANGULAR_SPEED",
+				javascriptGenerator.ORDER_ATOMIC,
+			) || 0;
+		const maxAngularSpeed =
+			javascriptGenerator.valueToCode(
+				block,
+				"MAX_ANGULAR_SPEED",
+				javascriptGenerator.ORDER_ATOMIC,
+			) || 0;
+		const minInitialRotation =
+			javascriptGenerator.valueToCode(
+				block,
+				"MIN_INITIAL_ROTATION",
+				javascriptGenerator.ORDER_ATOMIC,
+			) || 0;
+		const maxInitialRotation =
+			javascriptGenerator.valueToCode(
+				block,
+				"MAX_INITIAL_ROTATION",
+				javascriptGenerator.ORDER_ATOMIC,
+			) || 0;
 
-	  const variableName = javascriptGenerator.nameDB_.getName(
-		block.getFieldValue("ID_VAR"),
-		Blockly.Names.NameType.VARIABLE,
-	  );
+		const variableName = javascriptGenerator.nameDB_.getName(
+			block.getFieldValue("ID_VAR"),
+			Blockly.Names.NameType.VARIABLE,
+		);
 
-	  const emitterMesh = javascriptGenerator.nameDB_.getName(
-		block.getFieldValue("EMITTER_MESH"),
-		Blockly.Names.NameType.VARIABLE,
-	  );
+		const emitterMesh = javascriptGenerator.nameDB_.getName(
+			block.getFieldValue("EMITTER_MESH"),
+			Blockly.Names.NameType.VARIABLE,
+		);
 
-	  const shape = block.getFieldValue("SHAPE");
-	  const gravity = block.getFieldValue("GRAVITY") === "TRUE";
+		const shape = block.getFieldValue("SHAPE");
+		const gravity = block.getFieldValue("GRAVITY") === "TRUE";
 
-	  const options = `
+		const options = `
 	  {
 		emitterMesh: ${emitterMesh},
 		emitRate: ${emitRate},
@@ -1219,7 +1260,7 @@ export function defineGenerators() {
 		}
 	  }`;
 
-	  return `${variableName} = createParticleEffect("${variableName}", ${options.trim()});\n`;
+		return `${variableName} = createParticleEffect("${variableName}", ${options.trim()});\n`;
 	};
 
 	javascriptGenerator.forBlock["control_particle_system"] = function (block) {
@@ -1731,46 +1772,59 @@ export function defineGenerators() {
 				"TEXT",
 				javascriptGenerator.ORDER_ATOMIC,
 			) || '""';
-		
+
 		const voice = block.getFieldValue("VOICE") || "default";
-		
+
 		const rate =
 			javascriptGenerator.valueToCode(
 				block,
 				"RATE",
 				javascriptGenerator.ORDER_ATOMIC,
 			) || "1";
-		
+
 		const pitch =
 			javascriptGenerator.valueToCode(
 				block,
 				"PITCH",
 				javascriptGenerator.ORDER_ATOMIC,
 			) || "1";
-		
+
 		const volume =
 			javascriptGenerator.valueToCode(
 				block,
 				"VOLUME",
 				javascriptGenerator.ORDER_ATOMIC,
 			) || "1";
-		
+
 		const language = block.getFieldValue("LANGUAGE") || "en-US";
 		const asyncMode = block.getFieldValue("ASYNC") || "START";
 
 		// Get the mesh variable name from the dynamic dropdown - same approach as play_sound block
 		const meshInput = block.getInput("MESH_INPUT");
 		console.log(`[SPEAK GENERATOR DEBUG] meshInput:`, meshInput);
-		console.log(`[SPEAK GENERATOR DEBUG] meshInput.fieldRow:`, meshInput ? meshInput.fieldRow : 'null');
-		
-		const meshDropdownField = meshInput ? meshInput.fieldRow.find(field => field.name === "MESH_NAME") : null;
-		console.log(`[SPEAK GENERATOR DEBUG] meshDropdownField:`, meshDropdownField);
-		
-		const meshValue = meshDropdownField ? meshDropdownField.getValue() : "__everywhere__";
+		console.log(
+			`[SPEAK GENERATOR DEBUG] meshInput.fieldRow:`,
+			meshInput ? meshInput.fieldRow : "null",
+		);
+
+		const meshDropdownField = meshInput
+			? meshInput.fieldRow.find((field) => field.name === "MESH_NAME")
+			: null;
+		console.log(
+			`[SPEAK GENERATOR DEBUG] meshDropdownField:`,
+			meshDropdownField,
+		);
+
+		const meshValue = meshDropdownField
+			? meshDropdownField.getValue()
+			: "__everywhere__";
 		console.log(`[SPEAK GENERATOR DEBUG] meshValue:`, meshValue);
-		
+
 		const meshVariable = `"${meshValue}"`;
-		console.log(`[SPEAK GENERATOR DEBUG] Final meshVariable:`, meshVariable);
+		console.log(
+			`[SPEAK GENERATOR DEBUG] Final meshVariable:`,
+			meshVariable,
+		);
 
 		// Safely handle asyncMode - ensure it's not null
 		const safeAsyncMode = asyncMode || "START";
@@ -1778,7 +1832,7 @@ export function defineGenerators() {
 
 		return `${asyncWrapper}speak(${meshVariable}, ${text}, { voice: "${voice}", rate: ${rate}, pitch: ${pitch}, volume: ${volume}, language: "${language}", mode: "${safeAsyncMode.toLowerCase()}" });\n`;
 	};
-	
+
 	javascriptGenerator.forBlock["when_touches"] = function (block) {
 		const modelName = javascriptGenerator.nameDB_.getName(
 			block.getFieldValue("MODEL_VAR"),
@@ -1814,42 +1868,78 @@ export function defineGenerators() {
 		}
 	};
 
-	javascriptGenerator.forBlock["when_clicked"] = function (block) {
-	  const modelName = javascriptGenerator.nameDB_.getName(
-		block.getFieldValue("MODEL_VAR"),
-		Blockly.Names.NameType.VARIABLE,
-	  );
-	  const trigger = block.getFieldValue("TRIGGER");
-	  const mode = block.getFieldValue("MODE") || "wait";
+	javascriptGenerator.forBlock["on_collision"] = function (block) {
+		const modelName = javascriptGenerator.nameDB_.getName(
+			block.getFieldValue("MODEL_VAR"),
+			Blockly.Names.NameType.VARIABLE,
+			true,
+		);
 
-	  const doCode = javascriptGenerator.statementToCode(block, "DO").trim();
-	  const thenCodes = [];
+		const otherModelName = javascriptGenerator.nameDB_.getName(
+			block.getFieldValue("OTHER_MODEL_VAR"),
+			Blockly.Names.NameType.VARIABLE,
+			true,
+		);
 
-	  for (let i = 0; i < block.thenCount_; i++) {
-		const thenCode = javascriptGenerator
-		  .statementToCode(block, "THEN" + i)
-		  .trim();
-		if (thenCode) {
-		  thenCodes.push(thenCode);
-		}
+		const trigger = block.getFieldValue("TRIGGER");
+		const doCode = javascriptGenerator.statementToCode(block, "DO");
+
+		if (
+			trigger === "OnIntersectionEnterTrigger" ||
+			trigger === "OnIntersectionExitTrigger"
+		) {
+			return `onIntersect(${modelName}, ${otherModelName}, {
+	  trigger: "${trigger}",
+	  callback: async function(${modelName}, ${otherModelName}) {
+	${doCode}
 	  }
+	});\n`;
+		} else {
+			console.error(
+				"Invalid trigger type for 'on_collision' block:",
+				trigger,
+			);
+			return "";
+		}
+	};
 
-	  const allActions = [doCode, ...thenCodes].filter((code) => code);
-	  const actionFunctions = allActions.map(
-		(code) => `async function(${modelName}) {\n${code}\n}`,
-	  );
+	javascriptGenerator.forBlock["when_clicked"] = function (block) {
+		const modelName = javascriptGenerator.nameDB_.getName(
+			block.getFieldValue("MODEL_VAR"),
+			Blockly.Names.NameType.VARIABLE,
+		);
+		const trigger = block.getFieldValue("TRIGGER");
+		const mode = block.getFieldValue("MODE") || "wait";
 
-	  // Determine if this is a top-level block (not nested)
-	  const isTopLevel = !block.getSurroundParent();
+		const doCode = javascriptGenerator.statementToCode(block, "DO").trim();
+		const thenCodes = [];
 
-	  const code = `onTrigger(${modelName}, {\n` +
-		`  trigger: "${trigger}",\n` +
-		`  callback: [\n${actionFunctions.join(",\n")}\n],\n` +
-		`  mode: "${mode}"` +
-		(isTopLevel ? `,\n  applyToGroup: true` : "") +
-		`\n});\n`;
+		for (let i = 0; i < block.thenCount_; i++) {
+			const thenCode = javascriptGenerator
+				.statementToCode(block, "THEN" + i)
+				.trim();
+			if (thenCode) {
+				thenCodes.push(thenCode);
+			}
+		}
 
-	  return code;
+		const allActions = [doCode, ...thenCodes].filter((code) => code);
+		const actionFunctions = allActions.map(
+			(code) => `async function(${modelName}) {\n${code}\n}`,
+		);
+
+		// Determine if this is a top-level block (not nested)
+		const isTopLevel = !block.getSurroundParent();
+
+		const code =
+			`onTrigger(${modelName}, {\n` +
+			`  trigger: "${trigger}",\n` +
+			`  callback: [\n${actionFunctions.join(",\n")}\n],\n` +
+			`  mode: "${mode}"` +
+			(isTopLevel ? `,\n  applyToGroup: true` : "") +
+			`\n});\n`;
+
+		return code;
 	};
 
 	javascriptGenerator.forBlock["local_variable"] = function (
@@ -2088,7 +2178,6 @@ export function defineGenerators() {
 
 		// Generate the code
 		return `applyForce(${mesh}, { forceX: ${forceX}, forceY: ${forceY}, forceZ: ${forceZ} });\n`;
-
 	};
 
 	javascriptGenerator.forBlock["touching_surface"] = function (block) {
@@ -2104,17 +2193,13 @@ export function defineGenerators() {
 	};
 
 	javascriptGenerator.forBlock["mesh_exists"] = function (block) {
-	  const modelName = javascriptGenerator.nameDB_.getName(
-		block.getFieldValue("MODEL_VAR"),
-		Blockly.Names.NameType.VARIABLE,
-	  );
+		const modelName = javascriptGenerator.nameDB_.getName(
+			block.getFieldValue("MODEL_VAR"),
+			Blockly.Names.NameType.VARIABLE,
+		);
 
-	  return [
-		`meshExists(${modelName})`,
-		javascriptGenerator.ORDER_NONE,
-	  ];
+		return [`meshExists(${modelName})`, javascriptGenerator.ORDER_NONE];
 	};
-
 
 	javascriptGenerator.forBlock["camera_follow"] = function (block) {
 		const modelName = javascriptGenerator.nameDB_.getName(
@@ -2746,7 +2831,7 @@ export function defineGenerators() {
 	javascriptGenerator.forBlock["procedures_defnoreturn"] = function (block) {
 		const functionName = javascriptGenerator.nameDB_.getName(
 			block.getFieldValue("NAME"),
-			Blockly.PROCEDURE_CATEGORY_NAME
+			Blockly.PROCEDURE_CATEGORY_NAME,
 		);
 		const args = block.argData_.map((elem) => elem.model.name);
 		const params = args.join(", ");
@@ -2765,7 +2850,7 @@ export function defineGenerators() {
 	javascriptGenerator.forBlock["procedures_callnoreturn"] = function (block) {
 		const functionName = javascriptGenerator.nameDB_.getName(
 			block.getFieldValue("NAME"),
-			Blockly.PROCEDURE_CATEGORY_NAME
+			Blockly.PROCEDURE_CATEGORY_NAME,
 		);
 		const args = [];
 		const variables = block.arguments_;
@@ -2784,7 +2869,7 @@ export function defineGenerators() {
 	javascriptGenerator.forBlock["procedures_defreturn"] = function (block) {
 		const functionName = javascriptGenerator.nameDB_.getName(
 			block.getFieldValue("NAME"),
-			Blockly.PROCEDURE_CATEGORY_NAME
+			Blockly.PROCEDURE_CATEGORY_NAME,
 		);
 		const args = block.argData_.map((elem) => elem.model.name);
 		const params = args.join(", ");
@@ -2808,7 +2893,7 @@ export function defineGenerators() {
 	javascriptGenerator.forBlock["procedures_callreturn"] = function (block) {
 		const functionName = javascriptGenerator.nameDB_.getName(
 			block.getFieldValue("NAME"),
-			Blockly.PROCEDURE_CATEGORY_NAME
+			Blockly.PROCEDURE_CATEGORY_NAME,
 		);
 		const args = [];
 		const variables = block.arguments_ || [];
@@ -2929,6 +3014,7 @@ export function defineGenerators() {
 		const triggerBlockTypes = new Set([
 			"on_event",
 			"on_collision",
+			"when_touching",
 			"when_clicked",
 			"when_key_pressed",
 		]);
@@ -2944,16 +3030,20 @@ export function defineGenerators() {
 			}
 		}
 
-		javascriptGenerator._orderedBlocks = [...triggerBlocks, ...nonTriggerBlocks];
+		javascriptGenerator._orderedBlocks = [
+			...triggerBlocks,
+			...nonTriggerBlocks,
+		];
 		javascriptGenerator.isInitialized = true;
 	};
 
-	javascriptGenerator.workspaceToCode2 = function(workspace) {
+	javascriptGenerator.workspaceToCode2 = function (workspace) {
 		javascriptGenerator.init(workspace);
 
 		let code = javascriptGenerator.definitions_["variables"] || "";
 
-		const blocks = javascriptGenerator._orderedBlocks || workspace.getTopBlocks(true);
+		const blocks =
+			javascriptGenerator._orderedBlocks || workspace.getTopBlocks(true);
 		for (const block of blocks) {
 			const blockCode = javascriptGenerator.blockToCode(block);
 			if (typeof blockCode === "string") {
@@ -2992,7 +3082,8 @@ export function defineGenerators() {
 }
 
 javascriptGenerator.forBlock["controls_whileUntil"] = function (block) {
-	const until = block.getFieldValue("MODE") === "UNTIL";	let argument0 =
+	const until = block.getFieldValue("MODE") === "UNTIL";
+	let argument0 =
 		javascriptGenerator.valueToCode(
 			block,
 			"BOOL",
@@ -3302,18 +3393,18 @@ javascriptGenerator.forBlock["keyword"] = function (block) {
 };
 
 javascriptGenerator.forBlock["animate_property"] = function (block) {
-		const meshName = javascriptGenerator.nameDB_.getName(
-			block.getFieldValue("MESH_VAR"),
-			Blockly.Names.NameType.VARIABLE,
-		);
-		const property = block.getFieldValue("PROPERTY");
-		const targetValue = getFieldValue(block, "TARGET_VALUE", "0.5");
-		const duration = getFieldValue(block, "DURATION", "1");
-		const mode = block.getFieldValue("MODE");
-		const reverse = block.getFieldValue("REVERSE") === "TRUE";
-		const loop = block.getFieldValue("LOOP") === "TRUE";
+	const meshName = javascriptGenerator.nameDB_.getName(
+		block.getFieldValue("MESH_VAR"),
+		Blockly.Names.NameType.VARIABLE,
+	);
+	const property = block.getFieldValue("PROPERTY");
+	const targetValue = getFieldValue(block, "TARGET_VALUE", "0.5");
+	const duration = getFieldValue(block, "DURATION", "1");
+	const mode = block.getFieldValue("MODE");
+	const reverse = block.getFieldValue("REVERSE") === "TRUE";
+	const loop = block.getFieldValue("LOOP") === "TRUE";
 
-		const asyncWrapper = mode === "AWAIT" ? "await " : "";
+	const asyncWrapper = mode === "AWAIT" ? "await " : "";
 
-		return `${asyncWrapper}animateProperty(${meshName}, { property: "${property}", targetValue: ${targetValue}, duration: ${duration}, reverse: ${reverse}, loop: ${loop}, mode: "${mode}" });\n`;
-	};
+	return `${asyncWrapper}animateProperty(${meshName}, { property: "${property}", targetValue: ${targetValue}, duration: ${duration}, reverse: ${reverse}, loop: ${loop}, mode: "${mode}" });\n`;
+};
