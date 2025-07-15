@@ -1,7 +1,9 @@
 import * as Blockly from "blockly";
 import { categoryColours } from "../toolbox.js";
-import { getHelpUrlFor } from "../blocks.js";
-import { translate, getTooltip } from "../main/translation.js";
+import { 
+  getHelpUrlFor,
+} from "../blocks.js";
+import { translate, getTooltip, getDropdownOption } from "../main/translation.js";
 
 export function defineConnectBlocks() {
 	Blockly.Blocks["parent"] = {
@@ -202,9 +204,9 @@ export function defineConnectBlocks() {
 						type: "field_dropdown",
 						name: "FOLLOW_POSITION",
 						options: [
-							["top", "TOP"],
-							["center", "CENTER"],
-							["bottom", "BOTTOM"],
+							getDropdownOption("TOP"),
+							getDropdownOption("CENTER"),
+							getDropdownOption("BOTTOM"),
 						],
 					},
 					{

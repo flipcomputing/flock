@@ -16,6 +16,10 @@ const translations = {
   fr: frLocale,
 };
 
+export function getDropdownOption(key) {
+  return [getOption(key), key]
+}
+
 let currentLanguage = "en";
 
 // Load saved language preference from localStorage
@@ -96,7 +100,10 @@ export async function setLanguage(language) {
     console.log(
       "English selected - Blockly English and custom translations applied!",
     );
+
   }
+
+  applyTranslations()
 
   // Apply custom translations for the selected language
   Object.keys(translations[currentLanguage]).forEach((key) => {
@@ -161,6 +168,31 @@ export function getTooltip(blockType) {
     ""
   );
 }
+
+export function getOption(key) {
+  const optionKey 
+    = key == " " ? "space_option"
+    : key == "," ? "comma_option"
+    : key == "." ? "dot_option"
+    : key == "/" ? "slash_option"
+    : (/^\d$/.test(key[0]) ? "_" : "") + key.replace(".", "_").replace("-", "_").replace("/", "_") + "_option";
+  return (
+    translations[currentLanguage]?.[optionKey] ||
+    translations["en"]?.[optionKey] ||
+    key
+  );
+}
+
+export function applyTranslations() {
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.dataset.i18n + "_ui";
+    el.textContent = translate(key) || key;
+    console.log("translate", key)
+  });
+}
+document.addEventListener('DOMContentLoaded', () =>
+  applyTranslations()
+);
 
 // Function to update custom block translations
 export function updateCustomBlockTranslations() {

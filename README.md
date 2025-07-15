@@ -20,7 +20,7 @@ View the current development version at [flipcomputing.github.io/flock/](https:/
 
 ### Dev set up
 - Fork the repo on GitHub
-- Clone your fork to your local machine: `https://github.com/USERNAME/flock.git`
+- Clone your fork to your local machine: `https://github.com/USERNAME/flock.git` or `git@github.com:USERNAME/flock.git`
 - Navigate to the project: `cd flock`
 - Install dependencies: `npm install`
 

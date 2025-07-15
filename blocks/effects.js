@@ -3,7 +3,7 @@ import { categoryColours } from "../toolbox.js";
 import {
 	getHelpUrlFor,
 } from "../blocks.js";
-import { translate, getTooltip } from "../main/translation.js";
+import { translate, getTooltip, getDropdownOption } from "../main/translation.js";
 
 export function defineEffectsBlocks() {
 	Blockly.Blocks["light_intensity"] = {
@@ -43,10 +43,10 @@ export function defineEffectsBlocks() {
 						type: "field_dropdown",
 						name: "FOG_MODE",
 						options: [
-							["Linear", "LINEAR"],
-							["None", "NONE"],
-							["Exp", "EXP"],
-							["Exp2", "EXP2"],
+							getDropdownOption("LINEAR"),
+							getDropdownOption("NONE"),
+							getDropdownOption("EXP"),
+							getDropdownOption("EXP2"),
 						],
 					},
 					{

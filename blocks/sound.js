@@ -6,7 +6,7 @@ import {
 	getHelpUrlFor,
 } from "../blocks.js";
 import { audioNames } from "../config.js";
-import { translate, getTooltip } from "../main/translation.js";
+import { translate, getTooltip, getDropdownOption } from "../main/translation.js";
 
 export function defineSoundBlocks() {
 	Blockly.Blocks["play_sound"] = {
@@ -52,16 +52,16 @@ export function defineSoundBlocks() {
 						type: "field_dropdown",
 						name: "MODE",
 						options: [
-							["once", "ONCE"],
-							["loop", "LOOP"],
+							getDropdownOption("ONCE"),
+							getDropdownOption("LOOP"),
 						],
 					},
 					{
 						type: "field_dropdown",
 						name: "ASYNC",
 						options: [
-							["start", "START"],
-							["await", "AWAIT"],
+							getDropdownOption("START"),
+							getDropdownOption("AWAIT"),
 						],
 					},
 				],
@@ -155,8 +155,8 @@ export function defineSoundBlocks() {
 						type: "field_dropdown",
 						name: "ASYNC",
 						options: [
-							["start", "START"],
-							["await", "AWAIT"],
+							getDropdownOption("START"),
+							getDropdownOption("AWAIT"),
 						],
 					},
 				],
@@ -237,10 +237,10 @@ export function defineSoundBlocks() {
 						type: "field_dropdown",
 						name: "TYPE",
 						options: [
-							["sine", "sine"],
-							["square", "square"],
-							["sawtooth", "sawtooth"],
-							["triangle", "triangle"],
+							getDropdownOption("sine"),
+							getDropdownOption("square"),
+							getDropdownOption("sawtooth"),
+							getDropdownOption("triangle"),
 						],
 					},
 					{
@@ -311,10 +311,10 @@ export function defineSoundBlocks() {
 						type: "field_dropdown",
 						name: "INSTRUMENT_TYPE",
 						options: [
-							["Default Instrument (Sine)", "default"],
-							["Piano (Square)", "piano"],
-							["Guitar (Sawtooth)", "guitar"],
-							["Violin (Triangle)", "violin"],
+							getDropdownOption("default"),
+							getDropdownOption("piano"),
+							getDropdownOption("guitar"),
+							getDropdownOption("violin"),
 						],
 					},
 				],
@@ -346,16 +346,16 @@ export function defineSoundBlocks() {
 						type: "field_dropdown",
 						name: "VOICE",
 						options: [
-							["female", "female"],
-							["male", "male"],
+							getDropdownOption("female"),
+							getDropdownOption("male"),
 						],
 					},
 					{
 						type: "field_dropdown",
 						name: "LANGUAGE",
 						options: [
-							["English (UK)", "en-GB"],
-							["English (US)", "en-US"],
+							getDropdownOption("en-GB"),
+							getDropdownOption("en-US"),
 						],
 					},
 					{
@@ -377,8 +377,8 @@ export function defineSoundBlocks() {
 						type: "field_dropdown",
 						name: "ASYNC",
 						options: [
-							["start", "START"],
-							["await", "AWAIT"],
+							getDropdownOption("START"),
+							getDropdownOption("AWAIT"),
 						],
 					},
 				],

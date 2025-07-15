@@ -1,7 +1,10 @@
 import * as Blockly from "blockly";
 import { categoryColours } from "../toolbox.js";
-import { getHelpUrlFor, nextVariableIndexes } from "../blocks.js";
-import { translate, getTooltip } from "../main/translation.js";
+import { 
+  getHelpUrlFor, 
+  nextVariableIndexes,
+} from "../blocks.js";
+import { translate, getTooltip, getDropdownOption } from "../main/translation.js";
 
 export function defineTextBlocks() {
 	Blockly.Blocks["comment"] = {
@@ -106,16 +109,16 @@ export function defineTextBlocks() {
 						type: "field_dropdown",
 						name: "MODE",
 						options: [
-							["add", "ADD"],
-							["replace", "REPLACE"],
+							getDropdownOption("ADD"),
+							getDropdownOption("REPLACE"),
 						],
 					},
 					{
 						type: "field_dropdown",
 						name: "ASYNC",
 						options: [
-							["start", "START"],
-							["await", "AWAIT"],
+							getDropdownOption("START"),
+							getDropdownOption("AWAIT"),
 						],
 					},
 				],
@@ -209,18 +212,18 @@ export function defineTextBlocks() {
 						type: "field_dropdown",
 						name: "SIZE",
 						options: [
-							["small", "SMALL"],
-							["medium", "MEDIUM"],
-							["large", "LARGE"],
+							getDropdownOption("SMALL"),
+							getDropdownOption("MEDIUM"),
+							getDropdownOption("LARGE"),
 						],
 					},
 					{
 						type: "field_dropdown",
 						name: "TEXT_SIZE",
 						options: [
-							["small", "14px"],
-							["medium", "18px"],
-							["large", "24px"],
+							getDropdownOption("14px"),
+							getDropdownOption("18px"),
+							getDropdownOption("24px"),
 						],
 					},
 					{
@@ -273,9 +276,9 @@ export function defineTextBlocks() {
 			  type: "field_dropdown",
 			  name: "SIZE",
 			  options: [
-				["small", "SMALL"],
-				["medium", "MEDIUM"],
-				["large", "LARGE"],
+				getDropdownOption("SMALL"),
+				getDropdownOption("MEDIUM"),
+				getDropdownOption("LARGE"),
 			  ],
 			},
 			{
@@ -328,7 +331,9 @@ export function defineTextBlocks() {
 					{
 						type: "field_dropdown",
 						name: "FONT",
-						options: [["Sans Bold", "./fonts/FreeSans_Bold.json"]],
+						options: [
+              getDropdownOption("./fonts/FreeSans_Bold.json"),
+            ],
 					},
 					{
 						type: "input_value",

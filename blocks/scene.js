@@ -13,7 +13,7 @@ import {
 import {
   updateOrCreateMeshFromBlock,
 } from "../ui/blockmesh.js";
-import { translate, getTooltip } from "../main/translation.js";
+import { translate, getTooltip, getOption, getDropdownOption } from "../main/translation.js";
 
 export function defineSceneBlocks() {
 
@@ -156,7 +156,9 @@ export function defineSceneBlocks() {
 			  {
 				type: "field_dropdown",
 				name: "MAP_NAME",
-				options: [["Flat", "NONE"]].concat(mapNames),
+				options: [ 
+              [getOption("FLAT"), "NONE"],
+            ].concat(mapNames),
 			  },
 			  {
 				type: "input_value",

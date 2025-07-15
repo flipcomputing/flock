@@ -14,7 +14,7 @@ import {
   updateOrCreateMeshFromBlock,
   getMeshFromBlock,
 } from "../ui/blockmesh.js";
-import { translate, getTooltip } from "../main/translation.js";
+import { translate, getTooltip, getDropdownOption } from "../main/translation.js";
 
 export function defineShapeBlocks() {
 	function createShapeBlockDefinition({
@@ -423,9 +423,9 @@ export function defineShapeBlocks() {
 						type: "field_dropdown",
 						name: "ACTION",
 						options: [
-							["▶️ Start", "start"],
-							["⏹️ Stop", "stop"],
-							["🔄 Reset", "reset"],
+							getDropdownOption("start"),
+							getDropdownOption("stop"),
+							getDropdownOption("reset"),
 						],
 					},
 				],
