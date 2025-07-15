@@ -412,4 +412,8 @@ export default {
   scaling_x_option: "scaling.x",
   scaling_y_option: "scaling.y",
   scaling_z_option: "scaling.z",
+
+  // HTML translations
+  loading_ui: "Loading Flock XR...",
+  demo_ui: "Demo",
 };

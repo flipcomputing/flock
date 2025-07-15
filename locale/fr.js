@@ -412,5 +412,9 @@ export default {
   rotation_z_option: "rotation.z",
   scaling_x_option: "échelle.x",
   scaling_y_option: "échelle.y",
-  scaling_z_option: "échelle.z"
+  scaling_z_option: "échelle.z",
+
+  // HTML translations
+  loading_ui: "French",
+  demo_ui: "French Demo",
 };
