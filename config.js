@@ -193,6 +193,7 @@ export const animationNames = [
 	["Stand Up", "Stand_Up"],
 	["Wobble", "Wobble"],
 	["Clap", "Clap"],
+	["Fly Block", "Fly_Block"],
 ];
 
 export const materialNames = [
