@@ -194,7 +194,7 @@ export function applyTranslations() {
       }
     }
     contents = contents.trim()
-    if (contents != "") { el.textContent = translate(key) || key }
+    if (contents != "") { el.innerHTML = translate(key) || key }
     else if (el.hasAttribute("title")) { el.title = translate(key) || key }
     else if (el.hasAttribute("placeholder")) {el.setAttribute("placeholder", translate(key) || key) }
   });

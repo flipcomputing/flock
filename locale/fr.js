@@ -687,5 +687,12 @@ export default {
 
   info_panel_link_ui: "Visiter le site web de Flock XR (ouvre dans un nouvel onglet)",
 
-  project_name_ui: "Nom du projet"
+  project_name_ui: "Nom du projet",
+
+  about_description_ui: `Flock XR est un <strong>prototype</strong> créé par
+  <a target="_blank" href="https://flipcomputing.com/flockxr/">Flip Computing</a>.
+  Veuillez l’essayer, mais sachez que certaines choses peuvent changer et que certaines fonctionnalités ne sont pas encore terminées.
+  Nous cherchons actuellement du soutien pour développer Flock afin que vous puissiez compter sur lui.`,
+
+about_links_ui: `Consultez la <a target="_blank" href="https://flockxr.com/privacy-policy/">politique de confidentialité</a> de Flock XR. <a href="https://flipcomputing.com/contact/" target="_blank">Contactez-nous</a>`
 };
