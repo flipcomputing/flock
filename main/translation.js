@@ -9,7 +9,6 @@ import frLocale from "../locale/fr.js";
 // Store original English messages when first loaded
 let originalEnglishMessages = {};
 let isOriginalMessagesCached = false;
-
 // Load locale files
 const translations = {
   en: enLocale,
