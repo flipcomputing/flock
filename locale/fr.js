@@ -654,6 +654,38 @@ export default {
   Clap_option: "Applaudir",
 
   // HTML translations
-  loading_ui: "French",
-  demo_ui: "French Demo",
+  loading_ui: "Chargement de Flock XR...",
+  demo_ui: "Démo",
+  
+  main_menu_ui: "Ouvrir le menu pour plus d'options",
+  project_submenu_ui: "Projet",
+  project_new_ui: "Nouveau",
+  project_open_ui: "Ouvrir",
+  project_save_ui: "Enregistrer",
+  language_submenu_ui: "Langue",
+  about_submenu_ui: "À propos",
+
+  run_code_button_ui: "Exécuter votre code",
+  stop_code_button_ui: "Arrêter votre code",
+  open_button_ui: "Ouvrir un projet depuis un fichier sur votre ordinateur",
+  export_code_button_ui: "Enregistrer ce projet dans un fichier sur votre ordinateur.",
+  example_select_ui: "Choisir un projet exemple à charger",
+
+  toggle_design_ui: "Concevez votre projet",
+  toggle_play_ui: "Utilisez votre projet",
+  fullscreen_toggle_ui: "Basculer entre les vues plein écran et normale.",
+
+  show_shapes_button_ui: "Ajouter des formes et des modèles",
+  color_picker_button_ui: "Changer la couleur de l'objet",
+  position_button_ui: "Positionner le maillage",
+  rotation_button_ui: "Faire pivoter le maillage",
+  scale_button_ui: "Redimensionner le maillage",
+  hide_button_ui: "Sélectionner l'objet",
+  duplicate_button_ui: "Dupliquer le maillage sélectionné",
+  delete_button_ui: "Supprimer le maillage sélectionné",
+  camera_button_ui: "Contrôles de la caméra",
+
+  info_panel_link_ui: "Visiter le site web de Flock XR (ouvre dans un nouvel onglet)",
+
+  project_name_ui: "Nom du projet"
 };

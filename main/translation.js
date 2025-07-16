@@ -186,8 +186,16 @@ export function getOption(key) {
 export function applyTranslations() {
   document.querySelectorAll('[data-i18n]').forEach(el => {
     const key = el.dataset.i18n + "_ui";
-    el.textContent = translate(key) || key;
-    console.log("translate", key)
+
+    let contents = ""
+    for (const element of el.childNodes) {
+      if (element.nodeType == Node.TEXT_NODE) {
+        contents += element.textContent
+      }
+    }
+    contents = contents.trim()
+    if (contents != "") { el.textContent = translate(key) || key; }
+    if (el.hasAttribute("title")) { el.title = translate(key) || key; }
   });
 }
 document.addEventListener('DOMContentLoaded', () =>

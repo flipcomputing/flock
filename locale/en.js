@@ -655,4 +655,36 @@ export default {
   // HTML translations
   loading_ui: "Loading Flock XR...",
   demo_ui: "Demo",
+  
+  main_menu_ui: "Open menu for more options",
+  project_submenu_ui: "Project",
+  project_new_ui: "New",
+  project_open_ui: "Open",
+  project_save_ui: "Save",
+  language_submenu_ui: "Language",
+  about_submenu_ui: "About",
+
+  run_code_button_ui: "Run your code",
+  stop_code_button_ui: "Stop your code",
+  open_button_ui: "Open a project from a file on your computer",
+  export_code_button_ui: "Save this project to a file on your computer.",
+  example_select_ui: "Choose an example project to load",
+
+  toggle_design_ui: "Design your project",
+  toggle_play_ui: "Use your project",
+  fullscreen_toggle_ui: "Switch between fullscreen and normal views.",
+
+  show_shapes_button_ui: "Add shapes and models",
+  color_picker_button_ui: "Change object color",
+  position_button_ui: "Position mesh",
+  rotation_button_ui: "Rotate mesh",
+  scale_button_ui: "Scale mesh size",
+  hide_button_ui: "Select object",
+  duplicate_button_ui: "Duplicate selected mesh",
+  delete_button_ui: "Delete selected mesh",
+  camera_button_ui: "Camera controls",
+
+  info_panel_link_ui: "Visit Flock XR website (opens in new tab)",
+
+  project_name_ui: "Project name",
 };
