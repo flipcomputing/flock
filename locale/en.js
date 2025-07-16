@@ -108,7 +108,7 @@ export default {
 
   // Custom block translations - Materials blocks
   change_color: "color %1 to %2",
-  change_material: "apply material %1 to %2 with colour %3",
+  change_material: "apply material %1 to %2 with color %3",
   text_material: "material %1 text %2 color %3 background %4\nwidth %5 height %6 size %7",
   place_decal: "decal %1 angle %2",
   decal: "decal on %1 from x %2 y %3 z %4 \nangle x %5 y %6 z %7\nsize x %8 y %9 z %10 material %11",
@@ -223,7 +223,7 @@ export default {
   // Tooltip translations - Models blocks
   load_character_tooltip: "Create a configurable character.\nKeyword: character",
   load_object_tooltip: "Create an object.\nKeyword: object",
-  load_multi_object_tooltip: "Create an object with colours.\nKeyword: object",
+  load_multi_object_tooltip: "Create an object with colors.\nKeyword: object",
   load_model_tooltip: "Load a model.\nKeyword: model",
 
   // Tooltip translations - Animate blocks
@@ -232,7 +232,7 @@ export default {
   rotate_anim_tooltip: "Rotate a mesh to specified angles over a duration with options for reverse, looping, and easing.",
   rotate_anim_seconds_tooltip: "Rotate a mesh to specified angles over a duration with options for reverse, looping, and easing.",
   animate_property_tooltip: "Animate a material property of the mesh and its children.",
-  colour_keyframe_tooltip: "Set a colour and duration for a keyframe.",
+  colour_keyframe_tooltip: "Set a color and duration for a keyframe.",
   number_keyframe_tooltip: "Set a number and duration for a keyframe.",
   xyz_keyframe_tooltip: "Set an XYZ keyframe with duration.",
   animate_keyframes_tooltip: "Animate an array of keyframes on the selected mesh, with easing, optional looping, and reversing.",
@@ -291,19 +291,19 @@ export default {
 
   // Tooltip translations - Materials blocks
   change_color_tooltip: "Change the color of the selected mesh.\nKeyword: color",
-  change_material_tooltip: "Apply a selected material with a colour tint to the specified mesh.\nKeyword: material",
+  change_material_tooltip: "Apply a selected material with a color tint to the specified mesh.\nKeyword: material",
   text_material_tooltip: "Create a material with text or emoji, specifying width, height, background color, and text size.",
   place_decal_tooltip: "Place a decal on a mesh using the selected material.",
   decal_tooltip: "Create a decal on a mesh with position, normal, size, and material.",
   highlight_tooltip: "Highlight the selected mesh.\nKeyword: highlight",
   glow_tooltip: "Adds a glow effect to the selected mesh.\nKeyword: glow",
-  tint_tooltip: "Add colour tint effect.\nKeyword: tint",
+  tint_tooltip: "Add color tint effect.\nKeyword: tint",
   set_alpha_tooltip: "Set the alpha (transparency) of the material(s) on a specified mesh. Values should be 0 to 1.\nKeyword:alpha",
   clear_effects_tooltip: "Clear visual effects from selected mesh.\nKeyword: clear",
-  colour_tooltip: "Pick a colour.\nKeyword: color",
-  skin_colour_tooltip: "Pick a skin colour.\nKeyword: skin",
-  greyscale_colour_tooltip: "Pick a greyscale colour for elevation.\nKeyword: grey",
-  random_colour_tooltip: "Generate a random colour.\nKeyword: randcol",
+  colour_tooltip: "Pick a color.\nKeyword: color",
+  skin_colour_tooltip: "Pick a skin color.\nKeyword: skin",
+  greyscale_colour_tooltip: "Pick a greyscale color for elevation.\nKeyword: grey",
+  random_colour_tooltip: "Generate a random color.\nKeyword: randcol",
   material_tooltip: "Define material properties",
   gradient_material_tooltip: "Define material properties",
   set_material_tooltip: "Set the specified material on the given mesh.",
@@ -326,7 +326,7 @@ export default {
   ui_slider_tooltip: "Add a 2D slider UI control and store its reference in a variable.",
 
   // Tooltip translations - Shapes blocks
-  create_particle_effect_tooltip: "Create a particle effect attached to a mesh with configurable shape, gravity, size, colour, transparency, lifetime, force, and rotation.",
+  create_particle_effect_tooltip: "Create a particle effect attached to a mesh with configurable shape, gravity, size, color, transparency, lifetime, force, and rotation.",
   control_particle_system_tooltip: "Control the particle system by starting, stopping, or resetting it.",
   create_box_tooltip: "Create a colored box with specified dimensions and position.\nKeyword: box",
   create_sphere_tooltip: "Create a colored sphere with specified dimensions and position.\nKeyword: sphere",
@@ -551,7 +551,7 @@ export default {
   SIZE_Z_option: "size z",
   VISIBLE_option: "visible",
   ALPHA_option: "alpha",
-  COLOUR_option: "colour",
+  COLOUR_option: "color",
 
   BOTH_option: "both",
   ARROWS_option: "arrows",
@@ -654,7 +654,30 @@ export default {
 
   // HTML translations
   loading_ui: "Loading Flock XR...",
+
   demo_ui: "Demo",
+  new_ui: "New",
+  starter_ui: "👋🏽 Starter",
+  controller_starter_ui: "🎮 Controller Starter",
+  snow_globe_ui: "❄️ Snow globe",
+  forest_base_ui: "🌲 Forest Base",
+  character_animation_ui: "🎥 Character Animation",
+  cube_art_ui: "🎨 Cube Art",
+  physics_fun_ui: "👆🏾 Physics Fun",
+  collect_the_gems_ui: "💎 Collect the Gems",
+  water_map_ui: "💧 Water Map",
+  skittles_ui: "🎳 Skittles",
+  beetle_ui: "🪲 Beetle",
+  roominator_ui: "🛋️ Roominator",
+  ball_pit_ui: "🟠 Ball Pit",
+  ur_enough_ui: "💗 UR Enough!",
+  tallest_buildings_ui: "📊 Tallest buildings",
+  candy_dash_ui: "🎃 Candy dash",
+  flockenspiel_ui: "🎵 Flockenspiel",
+  pendant_ui: "📿 3D-printable pendant",
+  tent_lights_ui: "⛺ Festival tent",
+  my_place_ui: "🏠 My place",
+  microbit_monkey_ui: "🐵 micro:bit monkey",
   
   main_menu_ui: "Open menu for more options",
   project_submenu_ui: "Project",
