@@ -717,4 +717,10 @@ export default {
   Actualmente estamos buscando apoyo para desarrollar Flock para que puedas confiar en él.`,
   about_run_ui: "Echa un vistazo a las demos arriba para ver lo que puedes hacer. Haz algunos cambios y haz clic en " + common["run_icon"] + " ejecutar.",
   about_links_ui: `Consulta la <a target="_blank" href="https://flockxr.com/privacy-policy/">política de privacidad</a> de Flock XR. <a href="https://flipcomputing.com/contact/" target="_blank">Contacta con nosotros</a>`,
+
+  // Context menu option translations
+  export_JSON_snippet: "Exportar bloque como fragmento JSON",
+  import_snippet: "Importar fragmento",
+  export_PNG_snippet: "Exportar como PNG",
+  export_SVG_snippet: "Exportar como SVG",
 };

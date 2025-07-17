@@ -2,6 +2,7 @@ import * as Blockly from "blockly";
 import {
 	importSnippet,
 } from "./files.js";
+import { getSnippetOption } from "./translation.js"
 
 async function exportBlockSnippet(block) {
 	try {
@@ -67,7 +68,7 @@ function addExportContextMenuOption() {
 		id: "exportBlock",
 		weight: 200,
 		displayText: function () {
-			return "Export block as JSON snippet";
+			return getSnippetOption("export_JSON");
 		},
 		preconditionFn: function (scope) {
 			return scope.block ? "enabled" : "hidden";
@@ -86,7 +87,7 @@ function addImportContextMenuOption() {
 		id: "importSnippet",
 		weight: 100,
 		displayText: function () {
-			return "Import snippet";
+			return getSnippetOption("import");
 		},
 		preconditionFn: function (scope) {
 			return "enabled";
@@ -104,7 +105,7 @@ function addExportPNGContextMenuOption() {
 		id: "exportPNG",
 		weight: 100,
 		displayText: function () {
-			return "Export as PNG";
+			return getSnippetOption("export_PNG");
 		},
 		preconditionFn: function (scope) {
 			return "enabled";
@@ -127,7 +128,7 @@ function addExportSVGContextMenuOption() {
 		id: "exportSVG",
 		weight: 101,
 		displayText: function () {
-			return "Export as SVG";
+			return getSnippetOption("export_SVG");
 		},
 		preconditionFn: function (scope) {
 			return "enabled";

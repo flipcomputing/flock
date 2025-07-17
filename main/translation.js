@@ -188,6 +188,17 @@ export function getTooltip(blockType) {
   );
 }
 
+// Helper function to get translated snippet options
+export function getSnippetOption(blockType) {
+  const snippetKey = blockType + "_snippet";
+  return (
+    translations[currentLanguage]?.[snippetKey] ||
+    translations["en"]?.[snippetKey] ||
+    ""
+  );
+}
+
+// Helper function to get translated dropdown options
 export function getOption(key) {
   const optionKey 
     = key == " " ? "space_option"

@@ -719,4 +719,9 @@ export default {
   about_run_ui: "Take a look at the demos above to see what you can do. Make some changes and click " + common["run_icon"] + "run.",
   about_links_ui: `View the <a target="_blank" href="https://flockxr.com/privacy-policy/">privacy policy</a> for Flock XR. <a href="https://flipcomputing.com/contact/" target="_blank">Get in touch</a>`,
 
+  // Context menu option translations
+  export_JSON_snippet: "Export block as JSON snippet",
+  import_snippet: "Import snippet",
+  export_PNG_snippet: "Export as PNG",
+  export_SVG_snippet: "Export as SVG",
 };
