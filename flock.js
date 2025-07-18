@@ -53,6 +53,7 @@ export const flock = {
 	callbackMode: true,
 	separateAnimations: true,
 	memoryDebug: false,
+	memoryMonitorInterval: 5000,
 	maxMeshes: 5000,
 	console: console,
 	modelPath: "./models/",
@@ -219,8 +220,9 @@ export const flock = {
 		}
 	},
 	startMemoryMonitoring() {
+		console.log("Starting memory monitoring...");
 		// Clear any existing monitoring
-		if (this.memoryMonitorInterval) {
+		if (flock.memoryMonitorInterval) {
 			clearInterval(flock.memoryMonitorInterval);
 		}
 
@@ -236,7 +238,7 @@ export const flock = {
 			// Check if aborted before each check
 			if (signal?.aborted) {
 				clearInterval(flock.memoryMonitorInterval);
-				this.memoryMonitorInterval = null;
+				flock.memoryMonitorInterval = null;
 				return;
 			}
 
@@ -485,7 +487,7 @@ export const flock = {
 
 			// Initialize new scene in iframe context
 			await this.initializeNewScene();
-			if (flock.memoryDebug) this.startMemoryMonitoring();
+			if (flock.memoryDebug) flock.startMemoryMonitoring();
 			// Create and execute sandboxed function more directly
 			const sandboxFunction = new iframeWindow.Function(
 				"flock",
@@ -538,9 +540,9 @@ export const flock = {
 
 			// Show user-friendly error
 			this.printText({
-			  text: `Error: ${error.message}`,
-			  duration: 5,
-			  color: "#ff0000"
+				text: `Error: ${error.message}`,
+				duration: 5,
+				color: "#ff0000",
 			});
 
 			// Clean up on error
@@ -595,6 +597,8 @@ export const flock = {
 			// Initialize new scene in iframe context
 			await this.initializeNewScene();
 
+			if (flock.memoryDebug) flock.startMemoryMonitoring();
+			
 			// Step 5: Create sandboxed function with all flock API methods
 			const sandboxFunction = new iframeWindow.Function(`
 				"use strict";
@@ -744,9 +748,9 @@ export const flock = {
 
 			// Show user-friendly error
 			this.printText({
-			  text: `Error: ${error.message}`,
-			  duration: 5,
-			  color: "#ff0000"
+				text: `Error: ${error.message}`,
+				duration: 5,
+				color: "#ff0000",
 			});
 
 			// Clean up on error
@@ -797,7 +801,6 @@ export const flock = {
 		flock.canvas.addEventListener(
 			"touchend",
 			(event) => {
-
 				if (event.touches.length === 0) {
 					const input =
 						flock.scene.activeCamera.inputs?.attached?.pointers;
@@ -1539,9 +1542,9 @@ export const flock = {
 	async setXRMode(mode) {
 		await flock.initializeXR(mode);
 		flock.printText({
-		  text: "XR Mode!",
-		  duration: 5,
-		  color: "white"
+			text: "XR Mode!",
+			duration: 5,
+			color: "white",
 		});
 	},
 	exportMesh(meshName, format) {
