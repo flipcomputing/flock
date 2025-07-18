@@ -1,4 +1,4 @@
-
+import common from "./commmonHTML.js"
 
 export default {
   // Blockly category message keys for custom categories
@@ -654,6 +654,73 @@ export default {
   Clap_option: "Applaudir",
 
   // HTML translations
-  loading_ui: "French",
-  demo_ui: "French Demo",
+  loading_ui: "Chargement de Flock XR...",
+  demo_ui: "Démo",
+  new_ui: "Nouveau",
+  starter_ui: "👋🏽 Débutant",
+  controller_starter_ui: "🎮 Départ avec manette",
+  snow_globe_ui: "❄️ Boule à neige",
+  forest_base_ui: "🌲 Base forestière",
+  character_animation_ui: "🎥 Animation de personnage",
+  cube_art_ui: "🎨 Art en cubes",
+  physics_fun_ui: "👆🏾 Physique amusante",
+  collect_the_gems_ui: "💎 Ramasse les gemmes",
+  water_map_ui: "💧 Carte aquatique",
+  skittles_ui: "🎳 Quilles",
+  beetle_ui: "🪲 Scarabée",
+  roominator_ui: "🛋️ Roominator",
+  ball_pit_ui: "🟠 Piscine à balles",
+  ur_enough_ui: "💗 Tu es suffisant·e !",
+  tallest_buildings_ui: "📊 Plus hauts bâtiments",
+  candy_dash_ui: "🎃 Course aux bonbons",
+  flockenspiel_ui: "🎵 Flockenspiel",
+  pendant_ui: "📿 Pendentif imprimable en 3D",
+  tent_lights_ui: "⛺ Tente de festival",
+  my_place_ui: "🏠 Mon endroit",
+  microbit_monkey_ui: "🐵 Singe micro:bit",
+  
+  main_menu_ui: "Ouvrir le menu pour plus d'options",
+  project_submenu_ui: "Projet",
+  project_new_ui: "Nouveau",
+  project_open_ui: "Ouvrir",
+  project_save_ui: "Enregistrer",
+  language_submenu_ui: "Langue",
+  about_submenu_ui: "À propos",
+
+  run_code_button_ui: "Exécuter votre code",
+  stop_code_button_ui: "Arrêter votre code",
+  open_button_ui: "Ouvrir un projet depuis un fichier sur votre ordinateur",
+  export_code_button_ui: "Enregistrer ce projet dans un fichier sur votre ordinateur.",
+  example_select_ui: "Choisir un projet exemple à charger",
+
+  toggle_design_ui: "Concevez votre projet",
+  toggle_play_ui: "Utilisez votre projet",
+  fullscreen_toggle_ui: "Basculer entre les vues plein écran et normale.",
+
+  show_shapes_button_ui: "Ajouter des formes et des modèles",
+  color_picker_button_ui: "Changer la couleur de l'objet",
+  position_button_ui: "Positionner le maillage",
+  rotation_button_ui: "Faire pivoter le maillage",
+  scale_button_ui: "Redimensionner le maillage",
+  hide_button_ui: "Sélectionner l'objet",
+  duplicate_button_ui: "Dupliquer le maillage sélectionné",
+  delete_button_ui: "Supprimer le maillage sélectionné",
+  camera_button_ui: "Contrôles de la caméra",
+
+  info_panel_link_ui: "Visiter le site web de Flock XR (ouvre dans un nouvel onglet)",
+
+  project_name_ui: "Nom du projet",
+
+  about_description_ui: `Flock XR est un <strong>prototype</strong> créé par
+  <a target="_blank" href="https://flipcomputing.com/flockxr/">Flip Computing</a>.
+  Veuillez l’essayer, mais sachez que certaines choses peuvent changer et que certaines fonctionnalités ne sont pas encore terminées.
+  Nous cherchons actuellement du soutien pour développer Flock afin que vous puissiez compter sur lui.`,
+about_run_ui: "Regardez les démos ci-dessus pour voir ce que vous pouvez faire. Apportez quelques modifications, puis cliquez sur " + common["run_icon"] + " exécuter.",
+about_links_ui: `Consultez la <a target="_blank" href="https://flockxr.com/privacy-policy/">politique de confidentialité</a> de Flock XR. <a href="https://flipcomputing.com/contact/" target="_blank">Contactez-nous</a>`,
+
+  // Context menu option translations
+  export_JSON_snippet: "Exporter le bloc en extrait JSON",
+  import_snippet: "Importer un extrait",
+  export_PNG_snippet: "Exporter en PNG",
+  export_SVG_snippet: "Exporter en SVG",
 };
