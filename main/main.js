@@ -25,7 +25,7 @@ import {
 	setupFileInput,
 	loadExampleWrapper,
 	newProject,
-	importSnippet
+	importSnippet,
 } from "./files.js";
 import {
 	onResize,
@@ -38,10 +38,12 @@ import { hideLoadingScreen } from "./loading.js";
 import "./debug.js";
 import { initializeBlockHandling } from "./blockhandling.js";
 import { setupInput } from "./input.js";
+import { addExportContextMenuOptions } from "./export.js";
 import {
-	addExportContextMenuOptions,
-} from "./export.js";
-import { setLanguage, initializeLanguageMenu, initializeSavedLanguage } from "./translation.js";
+	setLanguage,
+	initializeLanguageMenu,
+	initializeSavedLanguage,
+} from "./translation.js";
 
 if ("serviceWorker" in navigator) {
 	navigator.serviceWorker
@@ -124,7 +126,8 @@ function initializeApp() {
 	document.addEventListener("keydown", function (e) {
 		// Avoid in inputs/textareas
 		const tag = (e.target.tagName || "").toLowerCase();
-		if (tag === "input" || tag === "textarea" || e.target.isContentEditable) return;
+		if (tag === "input" || tag === "textarea" || e.target.isContentEditable)
+			return;
 
 		// Ctrl+O
 		if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "o") {
@@ -147,22 +150,40 @@ function initializeApp() {
 		}
 
 		document.addEventListener("keydown", function (e) {
-		  // Avoid in inputs/textareas
-		  const tag = (e.target.tagName || "").toLowerCase();
-		  if (tag === "input" || tag === "textarea" || e.target.isContentEditable) return;
+			// Avoid in inputs/textareas
+			const tag = (e.target.tagName || "").toLowerCase();
+			if (
+				tag === "input" ||
+				tag === "textarea" ||
+				e.target.isContentEditable
+			)
+				return;
 
-		  // Ctrl+M
-		  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "m") {
-			e.preventDefault();
-			menuButton.click(); // Simulate click to open the menu
-
-			// Focus the first menu item
-			const menuDropdown = document.getElementById("menuDropdown"); // Change ID as per your actual dropdown ID
-			const firstMenuItem = menuDropdown ? menuDropdown.querySelector("li") : null; // Select the first item
-			if (firstMenuItem) {
-			  firstMenuItem.focus(); // Set focus on the first item
+			if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "/") {
+				e.preventDefault();
+				const infoSummary = document.querySelector(
+					"#info-details summary",
+				);
+				if (infoSummary) {
+					infoSummary.click(); // Simulate a click to toggle details
+					infoSummary.focus(); // Move focus to the summary
+				}
 			}
-		  }
+
+			// Ctrl+M
+			if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "m") {
+				e.preventDefault();
+				menuButton.click(); // Simulate click to open the menu
+
+				// Focus the first menu item
+				const menuDropdown = document.getElementById("menuDropdown"); // Change ID as per your actual dropdown ID
+				const firstMenuItem = menuDropdown
+					? menuDropdown.querySelector("li")
+					: null; // Select the first item
+				if (firstMenuItem) {
+					firstMenuItem.focus(); // Set focus on the first item
+				}
+			}
 		});
 
 		/*if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") {
@@ -184,7 +205,6 @@ function initializeApp() {
 				btn.focus();
 			}
 		}
-
 	});
 
 	toggleDesignButton.addEventListener("click", toggleDesignMode);
@@ -225,21 +245,27 @@ function initializeApp() {
 			}
 		});
 
-	document.getElementById('project-new').addEventListener('click', function(e) {
-	  e.preventDefault();
-	  newProject();
-	  document.getElementById('menuDropdown').classList.add('hidden');
-	});
-	document.getElementById('project-open').addEventListener('click', function(e) {
-	  e.preventDefault();
-	  fileInput.click();
-	  document.getElementById('menuDropdown').classList.add('hidden');
-	});
-	document.getElementById('project-save').addEventListener('click', function(e) {
-	  e.preventDefault();
-	  exportCode();
-	  document.getElementById('menuDropdown').classList.add('hidden');
-	});
+	document
+		.getElementById("project-new")
+		.addEventListener("click", function (e) {
+			e.preventDefault();
+			newProject();
+			document.getElementById("menuDropdown").classList.add("hidden");
+		});
+	document
+		.getElementById("project-open")
+		.addEventListener("click", function (e) {
+			e.preventDefault();
+			fileInput.click();
+			document.getElementById("menuDropdown").classList.add("hidden");
+		});
+	document
+		.getElementById("project-save")
+		.addEventListener("click", function (e) {
+			e.preventDefault();
+			exportCode();
+			document.getElementById("menuDropdown").classList.add("hidden");
+		});
 
 	initializeUI();
 
@@ -267,7 +293,7 @@ function initializeApp() {
 
 	// Make setLanguage available globally for the menu
 	window.setLanguage = async (lang) => await setLanguage(lang);
-	
+
 	// Initialize language menu
 	initializeLanguageMenu();
 }
@@ -328,17 +354,17 @@ window.onload = async function () {
 
 	// Initialize saved language before loading workspace
 	await initializeSavedLanguage();
-	
+
 	// Refresh toolbox to ensure categories are translated after language initialization
-	const toolboxElement = document.getElementById('toolbox');
+	const toolboxElement = document.getElementById("toolbox");
 	if (toolboxElement) {
 		workspace.updateToolbox(toolboxElement);
 	} else {
 		// If no toolbox element, import the toolbox configuration
-		const { toolbox } = await import('../toolbox.js');
+		const { toolbox } = await import("../toolbox.js");
 		workspace.updateToolbox(toolbox);
 	}
-	
+
 	loadWorkspace(workspace, executeCode);
 	switchView("both");
 

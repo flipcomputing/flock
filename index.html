@@ -1098,7 +1098,7 @@
 
           <aside id="info-panel" role="complementary" aria-label="Information panel">
             <details id="info-details">
-              <summary>Keyboard controls info</summary>
+              <summary><strong>Keyboard controls info [&nbsp;Ctrl + /&nbsp;]</strong></summary>
 
                <div class="content">
               <table>
@@ -1124,28 +1124,7 @@
                   </div>
             </details>
          
-
-            <!-- Existing or other content for your info panel -->
           </aside>
-
-          <script>
-            const toggleButton = document.getElementById("info-panel-toggle");
-            const infoContent = document.getElementById("info-panel-content");
-
-            toggleButton.addEventListener("click", () => {
-              if (infoContent.style.display === "none") {
-                infoContent.style.display = "block";
-                toggleButton.textContent = "Hide Info";
-                toggleButton.setAttribute("aria-expanded", "true");
-              } else {
-                infoContent.style.display = "none";
-                toggleButton.textContent = "Show Info";
-                toggleButton.setAttribute("aria-expanded", "false");
-              }
-            });
-          </script>
-
-          <!-- Info panel collapse ends -->
 
           <footer id="site-footer">
             <nav aria-label="Footer navigation">
