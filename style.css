@@ -864,12 +864,18 @@ path.blocklyPath.blockly-ws-search-highlight.blockly-ws-search-current {
       input:focus,
       select:focus,
       .gizmo-button:focus,
+details summary:focus,
 #menuDropdown [role="menuitem"]:focus
       {
         outline: 3px solid #fc3;
         outline-offset: 2px;
         z-index: 20;
       }
+
+#info-details table td:first-child {
+  min-width: 100px;
+  white-space: nowrap;
+}
 
       /* High contrast focus for better visibility */
       .bigbutton:focus {

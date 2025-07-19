@@ -62,6 +62,12 @@ export function setupInput(){
 				}
 			});
 
+			// Add info panel summary
+			const infoSummary = document.querySelector("#info-details summary");
+			if (infoSummary && isElementVisible(infoSummary)) {
+				elements.push(infoSummary);
+			}
+
 			// Add Flock XR logo link after gizmos if visible
 			const logoLink = document.querySelector("#info-panel-link");
 			if (
@@ -190,6 +196,8 @@ export function setupInput(){
 						announceToScreenReader("Search toolbox focused");
 					} else if (nextElement.id === "blocklyDiv") {
 						announceToScreenReader("Code workspace focused");
+					} else if (nextElement.tagName === "SUMMARY") {
+						announceToScreenReader("Keyboard controls info. Press Enter to expand or collapse.");
 					} else if (
 						nextElement.tagName === "BUTTON" ||
 						nextElement.tagName === "LABEL"

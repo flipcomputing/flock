@@ -1097,51 +1097,35 @@
           <!-- Info panel collapse starts -->
 
           <aside id="info-panel" role="complementary" aria-label="Information panel">
-            <button id="info-panel-toggle" style="cursor: pointer" aria-expanded="false" aria-controls="info-panel-content">
-              Show Info
-            </button>
-            <div id="info-panel-content" style="display: none">
-              <p>
-                Flock XR is a <strong>prototype</strong> made by
-                <a target="_blank" href="https://flipcomputing.com/flockxr/"
-                  >Flip Computing</a
-                >. Please try it out but be aware that things may change and
-                some features aren't finished yet. We're currently looking for
-                support to develop Flock so that you can rely on it.
-              </p>
-              <div>
-                Take a look at the demos above to see what you can do.
-                Make some changes and click
-                <div
-                  style="
-                    display: inline-block;
-                    margin-left: 2px;
-                    margin-right: 2px;
-                  "
-                >
-                  <div
-                    class="icon"
-                    style="height: 1em; width: 1em; padding: 0px"
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      viewBox="0 0 512 512"
-                    >
-                      <path
-                        fill="#511D91"
-                        d="M0 256a256 256 0 1 1 512 0 A256 256 0 1 1 0 256zM188.3 147.1c-7.6 4.2-12.3 12.3-12.3 20.9l0 176c0 8.7 4.7 16.7 12.3 20.9s16.8 4.1 24.3-0.5l144-88c7.1-4.4 11.5-12.1 11.5-20.5s-4.4-16.1-11.5-20.5l-144-88c-7.4-4.5-16.7-4.7-24.3-0.5z"
-                      />
-                    </svg>
+            <details id="info-details">
+              <summary>Keyboard controls info</summary>
+
+               <div class="content">
+              <table>
+                <tbody>
+                  <tr>
+                    <td>Ctrl + M</td>
+                    <td>Open the main menu</td>
+                  </tr>
+                  <tr>
+                    <td>Ctrl + P</td>
+                    <td>Play</td>
+                  </tr>
+                  <tr>
+                    <td>Ctrl + G</td>
+                    <td>Go to gizmos</td>
+                  </tr>               
+                  <tr>
+                    <td>Ctrl + L</td>
+                    <td>Go to browser navigation bar (overridden shortcuts work from here)</td>
+                  </tr>
+                </tbody>
+              </table>
                   </div>
-                </div>
-                run.
-              </div>
-              <p>      
-              </p>
-              <p>View the <a target="_blank" href="https://flockxr.com/privacy-policy/">privacy policy</a> for Flock XR. <a href="https://flipcomputing.com/contact/" target="_blank"
-                >Get in touch</a
-              ></p>
-            </div>
+            </details>
+         
+
+            <!-- Existing or other content for your info panel -->
           </aside>
 
           <script>
