@@ -146,10 +146,24 @@ function initializeApp() {
 			}
 		}
 
-		if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "m") {
+		document.addEventListener("keydown", function (e) {
+		  // Avoid in inputs/textareas
+		  const tag = (e.target.tagName || "").toLowerCase();
+		  if (tag === "input" || tag === "textarea" || e.target.isContentEditable) return;
+
+		  // Ctrl+M
+		  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "m") {
 			e.preventDefault();
-			menuButton.click();
-		}
+			menuButton.click(); // Simulate click to open the menu
+
+			// Focus the first menu item
+			const menuDropdown = document.getElementById("menuDropdown"); // Change ID as per your actual dropdown ID
+			const firstMenuItem = menuDropdown ? menuDropdown.querySelector("li") : null; // Select the first item
+			if (firstMenuItem) {
+			  firstMenuItem.focus(); // Set focus on the first item
+			}
+		  }
+		});
 
 		/*if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") {
 			e.preventDefault();
