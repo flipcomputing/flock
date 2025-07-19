@@ -123,90 +123,81 @@ function initializeApp() {
 	// Enable the file input after initialization
 	fileInput.removeAttribute("disabled");
 
+	// keydown event listener
 	document.addEventListener("keydown", function (e) {
 		// Avoid in inputs/textareas
 		const tag = (e.target.tagName || "").toLowerCase();
 		if (tag === "input" || tag === "textarea" || e.target.isContentEditable)
 			return;
 
-		// Ctrl+O
-		if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "o") {
-			e.preventDefault();
-			document.getElementById("fileInput").click();
-		}
-		// Ctrl+S (optional)
-		if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "s") {
-			e.preventDefault();
-			exportCode(workspace); // Or saveWorkspace(workspace) for autosave
-		}
+		// Check for modifier key (Ctrl on Windows/Linux, Cmd on Mac)
+		if (!(e.ctrlKey || e.metaKey)) return;
 
-		if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "p") {
-			e.preventDefault();
-			if (typeof executeCode === "function") {
-				executeCode();
-			} else {
-				console.warn("executeCode is not defined.");
-			}
-		}
+		const key = e.key.toLowerCase();
 
-		document.addEventListener("keydown", function (e) {
-			// Avoid in inputs/textareas
-			const tag = (e.target.tagName || "").toLowerCase();
-			if (
-				tag === "input" ||
-				tag === "textarea" ||
-				e.target.isContentEditable
-			)
-				return;
-
-			if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "/") {
+		switch (key) {
+			case "o": // Ctrl+O - Open file
 				e.preventDefault();
-				const infoSummary = document.querySelector(
-					"#info-details summary",
-				);
+				document.getElementById("fileInput").click();
+				break;
+
+			case "s": // Ctrl+S - Save/Export
+				e.preventDefault();
+				exportCode(workspace); // Or saveWorkspace(workspace) for autosave
+				break;
+
+			case "p": // Ctrl+P - Execute code
+				e.preventDefault();
+				if (typeof executeCode === "function") {
+					executeCode();
+				} else {
+					console.warn("executeCode is not defined.");
+				}
+				break;
+
+			case "/": // Ctrl+/ - Toggle info details
+				e.preventDefault();
+				const infoSummary = document.querySelector("#info-details summary");
 				if (infoSummary) {
 					infoSummary.click(); // Simulate a click to toggle details
 					infoSummary.focus(); // Move focus to the summary
 				}
-			}
+				break;
 
-			// Ctrl+M
-			if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "m") {
+			case "m": // Ctrl+M - Open menu
 				e.preventDefault();
 				menuButton.click(); // Simulate click to open the menu
-
 				// Focus the first menu item
-				const menuDropdown = document.getElementById("menuDropdown"); // Change ID as per your actual dropdown ID
-				const firstMenuItem = menuDropdown
-					? menuDropdown.querySelector("li")
-					: null; // Select the first item
+				const menuDropdown = document.getElementById("menuDropdown");
+				const firstMenuItem = menuDropdown ? menuDropdown.querySelector("li") : null;
 				if (firstMenuItem) {
 					firstMenuItem.focus(); // Set focus on the first item
 				}
-			}
-		});
+				break;
 
-		/*if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") {
-			e.preventDefault();
-			// Force any focused element to blur, so pending changes are committed
-			if (document.activeElement && typeof document.activeElement.blur === "function") {
-				document.activeElement.blur();
-			}
-			// Give the browser a tick to finish handling blur before continuing
-			setTimeout(() => {
-				document.getElementById("stopCodeButton").click();
-			}, 0);
-		}*/
+			case "g": // Ctrl+G - Focus shapes button
+				e.preventDefault();
+				const btn = document.getElementById("showShapesButton");
+				if (btn && !btn.disabled && btn.offsetParent !== null) {
+					btn.focus();
+				}
+				break;
 
-		if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "g") {
-			e.preventDefault();
-			const btn = document.getElementById("showShapesButton");
-			if (btn && !btn.disabled && btn.offsetParent !== null) {
-				btn.focus();
-			}
+			/* Uncomment if needed:
+			case "k": // Ctrl+K - Stop code
+				e.preventDefault();
+				// Force any focused element to blur, so pending changes are committed
+				if (document.activeElement && typeof document.activeElement.blur === "function") {
+					document.activeElement.blur();
+				}
+				// Give the browser a tick to finish handling blur before continuing
+				setTimeout(() => {
+					document.getElementById("stopCodeButton").click();
+				}, 0);
+				break;
+			*/
 		}
 	});
-
 	toggleDesignButton.addEventListener("click", toggleDesignMode);
 
 	togglePlayButton.addEventListener("click", togglePlayMode);
