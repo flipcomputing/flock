@@ -183,12 +183,12 @@ export function createBlocklyWorkspace() {
 			const computedStyle = window.getComputedStyle(toolbox);
 			const isVisible = computedStyle.display !== 'none' && computedStyle.visibility !== 'hidden';
 
-			console.log(`Toolbox found with ${selector}:`, {
+			/*console.log(`Toolbox found with ${selector}:`, {
 			 width: rect.width,
 			 display: computedStyle.display,
 			 visibility: computedStyle.visibility,
 			 isVisible
-			});
+			});*/
 
 			if (rect.width > 0 && isVisible) {
 			 return rect.width;
