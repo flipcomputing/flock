@@ -71,11 +71,22 @@ export function initializeBlockHandling() {
 	}
 
 	function bringToTop(block) {
-		if (block.rendered && block.bringToFront) {
-			block.bringToFront();
+		if (block.rendered) {
+			try {
+				// Use Blockly's workspace method instead
+				const workspace = block.workspace;
+				if (workspace && workspace.getBlockCanvas) {
+					const canvas = workspace.getBlockCanvas();
+					const blockSvg = block.getSvgRoot();
+					if (canvas && blockSvg && blockSvg.parentNode === canvas) {
+						canvas.appendChild(blockSvg);
+					}
+				}
+			} catch (error) {
+				console.warn("Could not reorder block:", error);
+			}
 		}
 	}
-
 	workspace.addChangeListener(Blockly.Events.disableOrphans);
 
 	workspace.addChangeListener(function (event) {
