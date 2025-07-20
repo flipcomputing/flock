@@ -1,3 +1,7 @@
+:root {
+  --neutral:  white; 
+}
+
 #info-panel {
   margin-top: 15px;
   margin-left: 10px;
@@ -159,6 +163,7 @@ body {
   gap: 0;
   box-sizing: border-box;
   font-family: "Asap", Helvetica, Arial, Lucida, sans-serif !important;
+  background: var(--neutral);
 }
 
 /* Form Elements */
@@ -209,7 +214,7 @@ button {
 
 /* Search Highlight Styles */
 .blockly-ws-search {
-  background: white;
+  background: var(--neutral);
   margin-top: 5px;
   border: solid #ee5d6c 4px;
   box-shadow: 0px 10px 20px grey;
@@ -328,7 +333,7 @@ path.blocklyPath.blockly-ws-search-highlight.blockly-ws-search-current {
   background-color: #004d4d;
  /*background-color: #317873;*/
   /*background-color: #511D91;*/
-  color: white;
+  color: var(--neutral);
 }
 
 /* Dropdown Styles */
@@ -449,7 +454,7 @@ path.blocklyPath.blockly-ws-search-highlight.blockly-ws-search-current {
 
 .scroll-button {
   background-color: rgba(0, 0, 0, 0.5);
-  color: white;
+  color: var(--neutral);
   border: none;
   cursor: pointer;
   font-size: 18px;
@@ -536,7 +541,7 @@ path.blocklyPath.blockly-ws-search-highlight.blockly-ws-search-current {
   .blocklyTreeRowContentContainer {
   flex-direction: column !important;
   background-color: var(--category-color) !important;
-  color: white;
+  color: var(--neutral);
   font-size: 10px;
   display: flex !important;
   align-items: center !important;
@@ -612,7 +617,7 @@ path.blocklyPath.blockly-ws-search-highlight.blockly-ws-search-current {
   width: 100vw;
   height: 25px;
   background-color: #511D91;
-  color: white;
+  color: var(--neutral);
   text-align: center;
   line-height: 16px;
   display: flex;
@@ -625,7 +630,7 @@ path.blocklyPath.blockly-ws-search-highlight.blockly-ws-search-current {
   #switchViews {
   background-color: transparent;
   border: none;
-  color: white;
+  color: var(--neutral);
   padding: 5px 10px;
   margin: 0;
   font-size: 16px;
@@ -690,7 +695,7 @@ path.blocklyPath.blockly-ws-search-highlight.blockly-ws-search-current {
   flex-direction: row !important;
   justify-content: start;
   gap: 4px;
-  color: white;
+  color: var(--neutral);
   font-size: 10px;
   display: flex !important;
   align-items: flex-start !important;
@@ -862,7 +867,7 @@ path.blocklyPath.blockly-ws-search-highlight.blockly-ws-search-current {
   position: absolute;
   top: 100%; /* Below the button */
   right: 10;
-  background-color: white;
+  background-color: var(--neutral);
   border: 1px solid #ddd;
   padding: 0.5em;
   box-shadow: 0 4px 6px rgba(0,0,0,0.1);
