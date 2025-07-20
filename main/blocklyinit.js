@@ -160,6 +160,49 @@ export function createBlocklyWorkspace() {
 	);
 
 	workspace = Blockly.inject("blocklyDiv", options);
+
+	// Use a MutationObserver to prevent unwanted transform changes to blocklyBlockCanvas only
+	const blockCanvas = document.querySelector('.blocklyBlockCanvas');
+	if (blockCanvas) {
+	  // Function to get current toolbox width
+	  function getToolboxWidth() {
+		const toolbox = document.querySelector('.blocklyToolboxDiv');
+		if (toolbox) {
+		  const rect = toolbox.getBoundingClientRect();
+		  return rect.width;
+		}
+		return 150; // fallback to 150 if toolbox not found
+	  }
+
+	  const observer = new MutationObserver((mutations) => {
+		mutations.forEach((mutation) => {
+		  if (mutation.type === 'attributes' && mutation.attributeName === 'transform') {
+			const currentTransform = blockCanvas.getAttribute('transform');
+			const toolboxWidth = getToolboxWidth();
+
+			// Only fix if it's the blocklyBlockCanvas and the translate X is not the current toolbox width
+			if (currentTransform && !currentTransform.startsWith(`translate(${toolboxWidth},`)) {
+			  // Immediately restore the correct transform
+			  blockCanvas.setAttribute('transform', currentTransform.replace(
+				/translate\(([^,]+),/,
+				`translate(${toolboxWidth},`
+			  ));
+			}
+		  }
+		});
+	  });
+
+	  // Only observe the specific blocklyBlockCanvas element
+	  observer.observe(blockCanvas, { attributes: true, attributeFilter: ['transform'] });
+	}
+
+	workspace.addChangeListener((e) => {
+	  if (e.type === 'toolbox_item_select') {
+		// The MutationObserver will handle any needed corrections automatically
+		console.log('Toolbox item selected - MutationObserver will handle transform corrections');
+	  }
+	});
+	
 	window.mainWorkspace = workspace;
 
 	return workspace;
