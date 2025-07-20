@@ -5,6 +5,7 @@ import { FieldGridDropdown } from "@blockly/field-grid-dropdown";
 import { WorkspaceSearch } from "@blockly/plugin-workspace-search";
 import * as BlockDynamicConnection from "@blockly/block-dynamic-connection";
 import { CrossTabCopyPaste } from "@blockly/plugin-cross-tab-copy-paste";
+import {initializeTheme} from "./themes.js";
 import {
 	options,
 	defineBlocks,
@@ -160,10 +161,11 @@ export function createBlocklyWorkspace() {
 	);
 
 	//KeyboardNavigation.registerKeyboardNavigationStyles();
+
 	workspace = Blockly.inject("blocklyDiv", options);
 	//const keyboardNav = new KeyboardNavigation(workspace);
 
-
+	// initializeTheme();
 	const mainWorkspace = document.querySelector('.blocklyMainWorkspaceDiv .blocklyBlockCanvas');
 	const fallbackCanvas = document.querySelector('.blocklyBlockCanvas:not(.blocklyFlyout .blocklyBlockCanvas)');
 	const blockCanvas = mainWorkspace || fallbackCanvas;
