@@ -28,6 +28,7 @@ export function defineEventsBlocks() {
 				tooltip: getTooltip("start"),
 			});
 			this.setHelpUrl(getHelpUrlFor(this.type));
+			//this.setStyle('events_blocks');
 		},
 	};
 

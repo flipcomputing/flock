@@ -178,9 +178,27 @@ function updateActiveTheme(themeName) {
 
 // Initialize theme on page load
 export function initializeTheme() {
+
+	const themeLinks = document.querySelectorAll('[data-theme]');
+	let currentTheme = 'default';
+
+	themeLinks.forEach(link => {
+		link.addEventListener('click', (e) => {
+			e.preventDefault();
+			const newTheme = link.dataset.theme;
+
+			if (newTheme !== currentTheme) {
+				switchTheme(newTheme);
+				updateActiveTheme(newTheme);
+				currentTheme = newTheme;
+			}
+
+		});
+	});
+
 	const savedTheme = localStorage.getItem('blocklyTheme') || 'light';
-	switchTheme(savedTheme);
-	updateActiveTheme(savedTheme);
+	//switchTheme(savedTheme);
+	//updateActiveTheme(savedTheme);
 	//currentTheme = savedTheme;
 }
 

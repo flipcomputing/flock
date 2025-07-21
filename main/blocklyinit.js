@@ -5,7 +5,7 @@ import { FieldGridDropdown } from "@blockly/field-grid-dropdown";
 import { WorkspaceSearch } from "@blockly/plugin-workspace-search";
 import * as BlockDynamicConnection from "@blockly/block-dynamic-connection";
 import { CrossTabCopyPaste } from "@blockly/plugin-cross-tab-copy-paste";
-import {initializeTheme} from "./themes.js";
+import { initializeTheme } from "./themes.js";
 import {
 	options,
 	defineBlocks,
@@ -165,84 +165,105 @@ export function createBlocklyWorkspace() {
 	workspace = Blockly.inject("blocklyDiv", options);
 	//const keyboardNav = new KeyboardNavigation(workspace);
 
-	// initializeTheme();
-	const mainWorkspace = document.querySelector('.blocklyMainWorkspaceDiv .blocklyBlockCanvas');
-	const fallbackCanvas = document.querySelector('.blocklyBlockCanvas:not(.blocklyFlyout .blocklyBlockCanvas)');
+	initializeTheme();
+	const mainWorkspace = document.querySelector(
+		".blocklyMainWorkspaceDiv .blocklyBlockCanvas",
+	);
+	const fallbackCanvas = document.querySelector(
+		".blocklyBlockCanvas:not(.blocklyFlyout .blocklyBlockCanvas)",
+	);
 	const blockCanvas = mainWorkspace || fallbackCanvas;
 
 	if (blockCanvas) {
-	 // Function to get current toolbox width with better debugging
-	 function getToolboxWidth() {
-		// Try multiple selectors for different Blockly versions/configurations
-		const selectors = ['.blocklyToolboxDiv', '.blocklyTreeRoot', '.blocklyToolbox'];
+		// Function to get current toolbox width with better debugging
+		function getToolboxWidth() {
+			// Try multiple selectors for different Blockly versions/configurations
+			const selectors = [
+				".blocklyToolboxDiv",
+				".blocklyTreeRoot",
+				".blocklyToolbox",
+			];
 
-		for (const selector of selectors) {
-		 const toolbox = document.querySelector(selector);
-		 if (toolbox) {
-			const rect = toolbox.getBoundingClientRect();
-			const computedStyle = window.getComputedStyle(toolbox);
-			const isVisible = computedStyle.display !== 'none' && computedStyle.visibility !== 'hidden';
+			for (const selector of selectors) {
+				const toolbox = document.querySelector(selector);
+				if (toolbox) {
+					const rect = toolbox.getBoundingClientRect();
+					const computedStyle = window.getComputedStyle(toolbox);
+					const isVisible =
+						computedStyle.display !== "none" &&
+						computedStyle.visibility !== "hidden";
 
-			/*console.log(`Toolbox found with ${selector}:`, {
+					/*console.log(`Toolbox found with ${selector}:`, {
 			 width: rect.width,
 			 display: computedStyle.display,
 			 visibility: computedStyle.visibility,
 			 isVisible
 			});*/
 
-			if (rect.width > 0 && isVisible) {
-			 return rect.width;
+					if (rect.width > 0 && isVisible) {
+						return rect.width;
+					}
+				}
 			}
-		 }
+
+			// Check if we're in a flyout context by checking if this canvas is inside a flyout
+			const flyout = blockCanvas.closest(".blocklyFlyout");
+			if (flyout) {
+				//console.log('Canvas is inside flyout - skipping transform fix');
+				return null; // Signal that we shouldn't apply fixes in flyout
+			}
+
+			//console.log('No toolbox found, using fallback width of 150');
+			return 150;
 		}
 
-		// Check if we're in a flyout context by checking if this canvas is inside a flyout
-		const flyout = blockCanvas.closest('.blocklyFlyout');
-		if (flyout) {
-		 //console.log('Canvas is inside flyout - skipping transform fix');
-		 return null; // Signal that we shouldn't apply fixes in flyout
-		}
+		const observer = new MutationObserver((mutations) => {
+			mutations.forEach((mutation) => {
+				if (
+					mutation.type === "attributes" &&
+					mutation.attributeName === "transform"
+				) {
+					const currentTransform =
+						blockCanvas.getAttribute("transform");
+					const toolboxWidth = getToolboxWidth();
 
-		//console.log('No toolbox found, using fallback width of 150');
-		return 150;
-	 }
+					// Skip if we're in flyout context or no valid toolbox width
+					if (toolboxWidth === null) {
+						// console.log('Skipping transform fix - in flyout or no valid toolbox');
+						return;
+					}
 
-	 const observer = new MutationObserver((mutations) => {
-		mutations.forEach((mutation) => {
-		 if (mutation.type === 'attributes' && mutation.attributeName === 'transform') {
-			const currentTransform = blockCanvas.getAttribute('transform');
-			const toolboxWidth = getToolboxWidth();
-
-			// Skip if we're in flyout context or no valid toolbox width
-			if (toolboxWidth === null) {
-			// console.log('Skipping transform fix - in flyout or no valid toolbox');
-			 return;
-			}
-			
-			// Only fix if it's the blocklyBlockCanvas and the translate X is not the current toolbox width
-			if (currentTransform && !currentTransform.startsWith(`translate(${toolboxWidth},`)) {
-			 // Immediately restore the correct transform
-			 const newTransform = currentTransform.replace(
-				/translate\(([^,]+),/,
-				`translate(${toolboxWidth},`
-			 );
-			 //console.log(`Fixing transform: ${currentTransform} → ${newTransform}`);
-			 blockCanvas.setAttribute('transform', newTransform);
-			}
-		 }
+					// Only fix if it's the blocklyBlockCanvas and the translate X is not the current toolbox width
+					if (
+						currentTransform &&
+						!currentTransform.startsWith(
+							`translate(${toolboxWidth},`,
+						)
+					) {
+						// Immediately restore the correct transform
+						const newTransform = currentTransform.replace(
+							/translate\(([^,]+),/,
+							`translate(${toolboxWidth},`,
+						);
+						//console.log(`Fixing transform: ${currentTransform} → ${newTransform}`);
+						blockCanvas.setAttribute("transform", newTransform);
+					}
+				}
+			});
 		});
-	 });
 
-	 // Only observe the specific blocklyBlockCanvas element
-	 observer.observe(blockCanvas, { attributes: true, attributeFilter: ['transform'] });
+		// Only observe the specific blocklyBlockCanvas element
+		observer.observe(blockCanvas, {
+			attributes: true,
+			attributeFilter: ["transform"],
+		});
 	}
 
 	workspace.addChangeListener((e) => {
-	 if (e.type === 'toolbox_item_select') {
-		//console.log('Toolbox item selected - MutationObserver will handle transform corrections');
-	 }
+		if (e.type === "toolbox_item_select") {
+			//console.log('Toolbox item selected - MutationObserver will handle transform corrections');
+		}
 	});
-
 
 	window.mainWorkspace = workspace;
 
