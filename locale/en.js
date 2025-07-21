@@ -281,7 +281,7 @@ export default {
   set_fog_tooltip: "Configure the scene's fog.\nKeyword: fog",
 
   // Tooltip translations - Events blocks
-  start_tooltip: "Run the blocks inside when the project starts. You can have multiple start blocks. \nKeyword: start",
+  start_tooltip: "Run the blocks inside whenthe project starts. You can have multiple start blocks. \nKeyword: start",
   forever_tooltip: "Run the blocks inside every frame or when the previous iteration finishes. \nKeyword: forever",
   when_clicked_tooltip: "Run the blocks inside when the mesh trigger occurs.\nKeyword: click",
   on_collision_tooltip: "Execute the blocks inside when the mesh intersects or no longer intersects with another mesh.\nKeyword: collide",
@@ -687,6 +687,11 @@ export default {
   project_save_ui: "Save",
   language_submenu_ui: "Language",
   about_submenu_ui: "About",
+
+  theme_submenu_ui: "Theme",
+  light_theme_ui: "Light",
+  dark_theme_ui: "Dark",
+  contrast_theme_ui: "Contrast",
 
   run_code_button_ui: "Run your code",
   stop_code_button_ui: "Stop your code",

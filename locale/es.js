@@ -688,6 +688,11 @@ export default {
   language_submenu_ui: "Idioma",
   about_submenu_ui: "Acerca de",
 
+  theme_submenu_ui: "Tema",
+  light_theme_ui: "Claro",
+  dark_theme_ui: "Oscuro",
+  contrast_theme_ui: "Alto contraste",
+
   run_code_button_ui: "Ejecutar tu código",
   stop_code_button_ui: "Detener tu código",
   open_button_ui: "Abrir un proyecto desde un archivo en tu computadora",
