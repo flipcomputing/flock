@@ -117,7 +117,7 @@ export default {
   tint: "tinte %1 %2",
   set_alpha: "establecer alfa de %1 a %2",
   clear_effects: "limpiar efectos de %1",
-  colour: "color %1",
+  colour: "%1",
   skin_colour: "color de piel %1",
   greyscale_colour: "color en escala de grises %1",
   colour_from_string: "- %1 -",
