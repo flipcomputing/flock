@@ -8,6 +8,8 @@ function switchTheme(themeName) {
 	const themeConfig = createThemeConfig(themeName);
 	let currentTheme;
 
+	document.body.setAttribute('data-theme', themeName);
+
 	const workspace = Blockly.getMainWorkspace();
 
 	// Create a proper Blockly Theme instance

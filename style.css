@@ -1184,3 +1184,81 @@ border-radius: 4px !important;
 }
 
 */
+
+/* Force black text for light theme dropdowns - add this after your existing CSS */
+body[data-theme="light"] .blocklyText,
+body[data-theme="light"] .blocklyDropdownText,
+body[data-theme="light"] .blocklyDropdownField,
+body[data-theme="light"] .blocklyDropdownDiv,
+body[data-theme="light"] .blocklyDropdownContent,
+body[data-theme="light"] .custom_zelos_renderer-renderer.classic-theme .blocklyDropDownText,
+body[data-theme="light"] .custom_zelos_renderer-renderer.classic-theme .blocklyMenuItemContent,
+body[data-theme="light"] .custom_zelos_renderer-renderer.classic-theme .blocklyDropdownText {
+    fill: black !important;
+}
+
+/* Light theme dropdown text */
+body[data-theme="light"]  .custom_zelos_renderer-renderer.classic-theme .blocklyDropDownText, .custom_zelos_renderer-renderer.classic-theme .blocklyMenuItemContent {
+    fill: #333 !important; /* Dark text for light theme */
+}
+
+/* Dark theme dropdown text */  
+body[data-theme="dark"] .blocklyDropdownText {
+    fill: #fff !important; /* White text for dark theme */
+}
+
+/* High contrast theme dropdown text */
+body[data-theme="high-contrast"] .blocklyDropdownText {
+    fill: #000 !important; /* Black text for high contrast */
+}
+
+/* Also style the dropdown menu items */
+body[data-theme="dark"] .blocklyDropdownMenu .blocklyMenuItem {
+    color: #fff !important;
+    background-color: #333 !important;
+}
+
+body[data-theme="dark"] .blocklyDropdownMenu .blocklyMenuItem:hover {
+    background-color: #555 !important;
+}
+
+body[data-theme="high-contrast"] .blocklyDropdownMenu .blocklyMenuItem {
+    color: #000 !important;
+    background-color: #fff !important;
+    border: 2px solid #000 !important;
+}
+
+/* Target SVG text elements specifically */
+svg .blocklyText.blocklyDropdownText,
+.blocklyEditableText .blocklyText.blocklyDropdownText,
+g.blocklyEditableText text.blocklyDropdownText {
+    fill: #000000 !important;
+}
+
+/* Light theme - black text */
+body[data-theme="light"] svg .blocklyText.blocklyDropdownText,
+body[data-theme="light"] .blocklyEditableText .blocklyText.blocklyDropdownText,
+body[data-theme="light"] g.blocklyEditableText text.blocklyDropdownText {
+    fill: #000000 !important;
+}
+
+/* Dark theme - white text */
+body[data-theme="dark"] svg .blocklyText.blocklyDropdownText,
+body[data-theme="dark"] .blocklyEditableText .blocklyText.blocklyDropdownText,
+body[data-theme="dark"] g.blocklyEditableText text.blocklyDropdownText {
+    fill: #ffffff !important;
+}
+
+/* High contrast theme - black text */
+body[data-theme="high-contrast"] svg .blocklyText.blocklyDropdownText,
+body[data-theme="high-contrast"] .blocklyEditableText .blocklyText.blocklyDropdownText,
+body[data-theme="high-contrast"] g.blocklyEditableText text.blocklyDropdownText {
+    fill: #000000 !important;
+}
+
+/* Default/no theme - black text */
+body:not([data-theme]) svg .blocklyText.blocklyDropdownText,
+body:not([data-theme]) .blocklyEditableText .blocklyText.blocklyDropdownText,
+body:not([data-theme]) g.blocklyEditableText text.blocklyDropdownText {
+    fill: #000000 !important;
+}
