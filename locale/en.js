@@ -711,6 +711,7 @@ export default {
 
   project_name_ui: "Project name",
 
+  about_heading_ui: "About Flock XR",
   about_description_ui: `Flock XR is a <strong>prototype</strong> made by
   <a target="_blank" href="https://flipcomputing.com/flockxr/">Flip Computing</a
   >. Please try it out but be aware that things may change and
