@@ -41,3 +41,20 @@ import esLocale esom "../locale/es.js"
 ```
 
 5. Copy the "en.js" file in the "locale" directory and translate each message. Leave the keywords in English. This can be done either by a native speaker, or using AI, provided the translations are checked by a native speaker.
+
+6. Add the language option to "index.html"
+```html
+  <li><a href="#" data-lang="es" role="menuitem" tabindex="-1">Español</a></li>
+```
+
+## Configuring new text to use the translation system
+
+1. Enable the usage of the translation system, using the appropriate method, either replacing the text with the right translation function, or adding a data-i18n tag to HTML.
+
+2. Add the English versions to "en.js", remembering to add the right suffix to the key.
+
+3. Use AI to translate them into other languages, and add the translations to the other locale files.
+
+
+
+

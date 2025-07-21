@@ -655,6 +655,8 @@ export default {
 
   // HTML translations
   loading_ui: "Chargement de Flock XR...",
+  loading_success_ui : "Flock XR chargé avec succès",
+
   demo_ui: "Démo",
   new_ui: "Nouveau",
   starter_ui: "👋🏽 Débutant",
@@ -687,6 +689,11 @@ export default {
   language_submenu_ui: "Langue",
   about_submenu_ui: "À propos",
 
+  theme_submenu_ui: "Thème",
+  light_theme_ui: "Clair",
+  dark_theme_ui: "Sombre",
+  contrast_theme_ui: "Contraste",
+
   run_code_button_ui: "Exécuter votre code",
   stop_code_button_ui: "Arrêter votre code",
   open_button_ui: "Ouvrir un projet depuis un fichier sur votre ordinateur",
@@ -711,12 +718,19 @@ export default {
 
   project_name_ui: "Nom du projet",
 
+  about_heading_ui : "À propos de Flock XR",
   about_description_ui: `Flock XR est un <strong>prototype</strong> créé par
   <a target="_blank" href="https://flipcomputing.com/flockxr/">Flip Computing</a>.
   Veuillez l’essayer, mais sachez que certaines choses peuvent changer et que certaines fonctionnalités ne sont pas encore terminées.
   Nous cherchons actuellement du soutien pour développer Flock afin que vous puissiez compter sur lui.`,
-about_run_ui: "Regardez les démos ci-dessus pour voir ce que vous pouvez faire. Apportez quelques modifications, puis cliquez sur " + common["run_icon"] + " exécuter.",
-about_links_ui: `Consultez la <a target="_blank" href="https://flockxr.com/privacy-policy/">politique de confidentialité</a> de Flock XR. <a href="https://flipcomputing.com/contact/" target="_blank">Contactez-nous</a>`,
+  about_run_ui: "Regardez les démos ci-dessus pour voir ce que vous pouvez faire. Apportez quelques modifications, puis cliquez sur " + common["run_icon"] + " exécuter.",
+  about_links_ui: `Consultez la <a target="_blank" href="https://flockxr.com/privacy-policy/">politique de confidentialité</a> de Flock XR. <a href="https://flipcomputing.com/contact/" target="_blank">Contactez-nous</a>`,
+
+  keyboard_controls_ui: "<strong>Infos sur les raccourcis clavier [&nbsp;Ctrl + /&nbsp;]</strong>",
+  keyboard_menu_ui: "Ouvrir le menu principal",
+  keyboard_play_ui: "Lire",
+  keyboard_gizmos_ui: "Aller aux gadgets",
+  keyboard_navigation_ui: "Aller à la barre de navigation du navigateur (les raccourcis remplacés fonctionnent à partir d'ici)",
 
   // Context menu option translations
   export_JSON_snippet: "Exporter le bloc en extrait JSON",

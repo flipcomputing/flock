@@ -117,7 +117,7 @@ export default {
   tint: "tinte %1 %2",
   set_alpha: "establecer alfa de %1 a %2",
   clear_effects: "limpiar efectos de %1",
-  colour: "color %1",
+  colour: "%1",
   skin_colour: "color de piel %1",
   greyscale_colour: "color en escala de grises %1",
   colour_from_string: "- %1 -",
@@ -654,6 +654,7 @@ export default {
 
   // HTML translations
   loading_ui: "Cargando Flock XR...",
+  loading_success_ui: "Flock XR se cargó correctamente",
 
   demo_ui: "Demostración",
   new_ui: "Nuevo",
@@ -687,6 +688,11 @@ export default {
   language_submenu_ui: "Idioma",
   about_submenu_ui: "Acerca de",
 
+  theme_submenu_ui: "Tema",
+  light_theme_ui: "Claro",
+  dark_theme_ui: "Oscuro",
+  contrast_theme_ui: "Alto contraste",
+
   run_code_button_ui: "Ejecutar tu código",
   stop_code_button_ui: "Detener tu código",
   open_button_ui: "Abrir un proyecto desde un archivo en tu computadora",
@@ -711,12 +717,19 @@ export default {
 
   project_name_ui: "Nombre del proyecto",
 
+  about_heading_ui: "Acerca de Flock XR",
   about_description_ui: `Flock XR es un <strong>prototipo</strong> hecho por
   <a target="_blank" href="https://flipcomputing.com/flockxr/">Flip Computing</a>.
   Por favor pruébalo, pero ten en cuenta que las cosas pueden cambiar y algunas funciones aún no están terminadas.
   Actualmente estamos buscando apoyo para desarrollar Flock para que puedas confiar en él.`,
   about_run_ui: "Echa un vistazo a las demos arriba para ver lo que puedes hacer. Haz algunos cambios y haz clic en " + common["run_icon"] + " ejecutar.",
   about_links_ui: `Consulta la <a target="_blank" href="https://flockxr.com/privacy-policy/">política de privacidad</a> de Flock XR. <a href="https://flipcomputing.com/contact/" target="_blank">Contacta con nosotros</a>`,
+
+  keyboard_controls_ui: "<strong>Información de controles del teclado [&nbsp;Ctrl + /&nbsp;]</strong>",
+  keyboard_menu_ui: "Abrir el menú principal",
+  keyboard_play_ui: "Reproducir",
+  keyboard_gizmos_ui: "Ir a los artilugios",
+  keyboard_navigation_ui: "Ir a la barra de navegación del navegador (los atajos sobrescritos funcionan desde aquí)",
 
   // Context menu option translations
   export_JSON_snippet: "Exportar bloque como fragmento JSON",

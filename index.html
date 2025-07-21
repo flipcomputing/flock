@@ -281,7 +281,7 @@
                   <span class="menu-icon">
                      <svg  xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512" aria-hidden="true" ><!--!Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.--><path d="M339.3 367.1c27.3-3.9 51.9-19.4 67.2-42.9L568.2 74.1c12.6-19.5 9.4-45.3-7.6-61.2S517.7-4.4 499.1 9.6L262.4 187.2c-24 18-38.2 46.1-38.4 76.1L339.3 367.1zm-19.6 25.4l-116-104.4C143.9 290.3 96 339.6 96 400c0 3.9 .2 7.8 .6 11.6C98.4 429.1 86.4 448 68.8 448L64 448c-17.7 0-32 14.3-32 32s14.3 32 32 32l144 0c61.9 0 112-50.1 112-112c0-2.5-.1-5-.2-7.5z"/></svg>
                   </span>
-                  <span class="menu-label" >Theme</span>
+                  <span class="menu-label" data-i18n="theme_submenu" >Theme</span>
                   <ul
                       id="theme-submenu"
                       class="submenu"
@@ -289,9 +289,9 @@
                       aria-label="Theme"
                       hidden
                   >
-                      <li><a href="#" data-theme="light" role="menuitem" tabindex="-1" class="active-theme">Light</a></li>
-                      <li><a href="#" data-theme="dark" role="menuitem" tabindex="-1">Dark</a></li>
-                      <li><a href="#" data-theme="contrast" role="menuitem" tabindex="-1">Contrast</a></li>
+                      <li><a href="#" data-theme="light" data-i18n="light_theme" role="menuitem" tabindex="-1" class="active-theme">Light</a></li>
+                      <li><a href="#" data-theme="dark" data-i18n="dark_theme" role="menuitem" tabindex="-1">Dark</a></li>
+                      <li><a href="#" data-theme="contrast" data-i18n="contrast_theme" role="menuitem" tabindex="-1">Contrast</a></li>
                   </ul>
                 </li>
                   <!-- About menu item -->
@@ -313,7 +313,7 @@
           <div id="infoModal" class="modal hidden" role="dialog" aria-labelledby="modal-title" aria-modal="true">
             <div class="modal-content" tabindex="-1">
               <span class="close-button" id="closeInfoModal" aria-label="Close information modal">&times;</span>
-              <h2 id="modal-title" style="margin-top: 0;">About Flock XR</h2>
+              <h2 id="modal-title" data-i18n="about_heading" style="margin-top: 0;">About Flock XR</h2>
 
               <div id="model-panel-content">
               <p data-i18n="about_description">
@@ -1122,26 +1122,26 @@
 
           <aside id="info-panel" role="complementary" aria-label="Information panel">
             <details id="info-details">
-              <summary><strong>Keyboard controls info [&nbsp;Ctrl + /&nbsp;]</strong></summary>
+              <summary data-i18n="keyboard_controls"><strong>Keyboard controls info [&nbsp;Ctrl + /&nbsp;]</strong></summary>
 
                <div class="content">
               <table>
                 <tbody>
                   <tr>
                     <td>Ctrl + M</td>
-                    <td>Open the main menu</td>
+                    <td data-i18n="keyboard_menu">Open the main menu</td>
                   </tr>
                   <tr>
                     <td>Ctrl + P</td>
-                    <td>Play</td>
+                    <td data-i18n="keyboard_play">Play</td>
                   </tr>
                   <tr>
                     <td>Ctrl + G</td>
-                    <td>Go to gizmos</td>
+                    <td data-i18n="keyboard_gizmos">Go to gizmos</td>
                   </tr>               
                   <tr>
                     <td>Ctrl + L</td>
-                    <td>Go to browser navigation bar (overridden shortcuts work from here)</td>
+                    <td data-i18n="keyboard_navigation">Go to browser navigation bar (overridden shortcuts work from here)</td>
                   </tr>
                 </tbody>
               </table>

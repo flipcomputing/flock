@@ -281,7 +281,7 @@ export default {
   set_fog_tooltip: "Configure the scene's fog.\nKeyword: fog",
 
   // Tooltip translations - Events blocks
-  start_tooltip: "Run the blocks inside when the project starts. You can have multiple start blocks. \nKeyword: start",
+  start_tooltip: "Run the blocks inside whenthe project starts. You can have multiple start blocks. \nKeyword: start",
   forever_tooltip: "Run the blocks inside every frame or when the previous iteration finishes. \nKeyword: forever",
   when_clicked_tooltip: "Run the blocks inside when the mesh trigger occurs.\nKeyword: click",
   on_collision_tooltip: "Execute the blocks inside when the mesh intersects or no longer intersects with another mesh.\nKeyword: collide",
@@ -654,6 +654,7 @@ export default {
 
   // HTML translations
   loading_ui: "Loading Flock XR...",
+  loading_success_ui: "Flock XR loaded successfully",
 
   demo_ui: "Demo",
   new_ui: "New",
@@ -687,6 +688,11 @@ export default {
   language_submenu_ui: "Language",
   about_submenu_ui: "About",
 
+  theme_submenu_ui: "Theme",
+  light_theme_ui: "Light",
+  dark_theme_ui: "Dark",
+  contrast_theme_ui: "Contrast",
+
   run_code_button_ui: "Run your code",
   stop_code_button_ui: "Stop your code",
   open_button_ui: "Open a project from a file on your computer",
@@ -711,6 +717,7 @@ export default {
 
   project_name_ui: "Project name",
 
+  about_heading_ui: "About Flock XR",
   about_description_ui: `Flock XR is a <strong>prototype</strong> made by
   <a target="_blank" href="https://flipcomputing.com/flockxr/">Flip Computing</a
   >. Please try it out but be aware that things may change and
@@ -718,6 +725,12 @@ export default {
   support to develop Flock so that you can rely on it.`,
   about_run_ui: "Take a look at the demos above to see what you can do. Make some changes and click " + common["run_icon"] + "run.",
   about_links_ui: `View the <a target="_blank" href="https://flockxr.com/privacy-policy/">privacy policy</a> for Flock XR. <a href="https://flipcomputing.com/contact/" target="_blank">Get in touch</a>`,
+
+  keyboard_controls_ui: "<strong>Keyboard controls info [&nbsp;Ctrl + /&nbsp;]</strong>",
+  keyboard_menu_ui: "Open the main menu",
+  keyboard_play_ui: "Play",
+  keyboard_gizmos_ui: "Go to gizmos",
+  keyboard_navigation_ui: "Go to browser navigation bar (overridden shortcuts work from here)",
 
   // Context menu option translations
   export_JSON_snippet: "Export block as JSON snippet",
