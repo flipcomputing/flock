@@ -654,6 +654,7 @@ export default {
 
   // HTML translations
   loading_ui: "Loading Flock XR...",
+  loading_success_ui: "Flock XR loaded successfully",
 
   demo_ui: "Demo",
   new_ui: "New",

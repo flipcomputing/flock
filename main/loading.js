@@ -1,3 +1,5 @@
+import { translate } from "./translation.js"
+
 // Function to hide loading screen
 export function hideLoadingScreen() {
 	const loadingScreen = document.getElementById('loadingScreen');
@@ -7,7 +9,7 @@ export function hideLoadingScreen() {
 	if (loadingScreen) {
 		// Announce completion to screen readers
 		if (loadingText) {
-			loadingText.textContent = 'Flock XR loaded successfully';
+			loadingText.textContent = translate("loading_success_ui");
 		}
 
 		// First fade out loading screen
