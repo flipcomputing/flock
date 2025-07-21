@@ -726,6 +726,12 @@ export default {
   about_run_ui: "Regardez les démos ci-dessus pour voir ce que vous pouvez faire. Apportez quelques modifications, puis cliquez sur " + common["run_icon"] + " exécuter.",
   about_links_ui: `Consultez la <a target="_blank" href="https://flockxr.com/privacy-policy/">politique de confidentialité</a> de Flock XR. <a href="https://flipcomputing.com/contact/" target="_blank">Contactez-nous</a>`,
 
+  keyboard_controls_ui: "<strong>Infos sur les raccourcis clavier [&nbsp;Ctrl + /&nbsp;]</strong>",
+  keyboard_menu_ui: "Ouvrir le menu principal",
+  keyboard_play_ui: "Lire",
+  keyboard_gizmos_ui: "Aller aux gadgets",
+  keyboard_navigation_ui: "Aller à la barre de navigation du navigateur (les raccourcis remplacés fonctionnent à partir d'ici)",
+
   // Context menu option translations
   export_JSON_snippet: "Exporter le bloc en extrait JSON",
   import_snippet: "Importer un extrait",

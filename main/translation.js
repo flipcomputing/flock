@@ -219,7 +219,7 @@ export function applyTranslations() {
 
     let contents = ""
     for (const element of el.childNodes) {
-      if (element.nodeType == Node.TEXT_NODE) {
+      if (element.nodeType == Node.TEXT_NODE || element.nodeName == "STRONG") {
         contents += element.textContent
       }
     }
