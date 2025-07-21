@@ -139,7 +139,7 @@ body {
   gap: 0;
   box-sizing: border-box;
   font-family: "Asap", Helvetica, Arial, Lucida, sans-serif !important;
-  background: var(--neutral);
+  background: var(--color-bg);
 }
 
 /* Form Elements */
@@ -178,6 +178,7 @@ button {
   margin: 0;
   gap: 0;
 }
+
 
 #menu {
   display: flex;
@@ -250,7 +251,7 @@ button {
   background-color: #004d4d;
  /*background-color: #317873;*/
   /*background-color: #511D91;*/
-  color: var(--neutral);
+  color: var(--color-bg);
 }
 
 /* Dropdown Styles */
@@ -371,7 +372,7 @@ button {
 
 .scroll-button {
   background-color: rgba(0, 0, 0, 0.5);
-  color: var(--neutral);
+  color: var(--color-bg);
   border: none;
   cursor: pointer;
   font-size: 18px;
@@ -421,7 +422,7 @@ button {
   width: 100vw;
   height: 25px;
   background-color: #511D91;
-  color: var(--neutral);
+  color: var(--color-bg);
   text-align: center;
   line-height: 16px;
   display: flex;
@@ -434,7 +435,7 @@ button {
   #switchViews {
   background-color: transparent;
   border: none;
-  color: var(--neutral);
+  color: var(--color-bg);
   padding: 5px 10px;
   margin: 0;
   font-size: 16px;
@@ -564,7 +565,7 @@ button {
   position: absolute;
   top: 100%; /* Below the button */
   right: 10;
-  background-color: var(--neutral);
+  background-color: var(--color-bg);
   border: 1px solid #ddd;
   padding: 0.5em;
   box-shadow: 0 4px 6px rgba(0,0,0,0.1);
