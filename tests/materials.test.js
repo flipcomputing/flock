@@ -303,5 +303,97 @@ export function runMaterialsTests(flock) {
 		expect(material.topColor).to.exist;
 	  });
 	});
+  
+	describe("changeMaterial method", function () {
+	  const boxIds = [];
 
+	  async function createTestBox(id) {
+		const position = new flock.BABYLON.Vector3(
+		  Math.random() * 10,
+		  Math.random() * 10,
+		  Math.random() * 10
+		);
+
+		await flock.createBox(id, {
+		  width: 1,
+		  height: 1,
+		  depth: 1,
+		  position,
+		});
+
+		return id;
+	  }
+
+	  beforeEach(async function () {
+		flock.scene ??= {};
+	  });
+
+	  afterEach(function () {
+		boxIds.forEach((boxId) => {
+		  flock.dispose(boxId);
+		});
+		boxIds.length = 0;
+	  });
+
+	  it("should create one new materials", async function () {
+    console.log("1", flock.scene.materials);
+
+    console.log(flock.scene.materials.length);
+
+		const id = "boxCreateMaterialTexture";
+		await createTestBox(id);
+		boxIds.push(id);
+
+    console.log("2", flock.scene.materials);
+
+    const materialsBefore = flock.scene.materials.length;
+
+    console.log(materialsBefore);
+
+		const color = "#FF00FF";
+		const material = flock.createMaterial({
+		  color,
+		  materialName: "testMaterial",
+		  alpha: 0.5,
+		});
+
+    console.log("3", flock.scene.materials);
+  
+		expect(flock.scene.materials.length).to.equal(materialsBefore + 1);
+	  });
+
+	  it("should delete the old material", async function () {
+		const id = "boxCreateMaterialTexture";
+		await createTestBox(id);
+		boxIds.push(id);
+
+		const material = flock.createMaterial({
+		  color: "#FFFFFF",
+		  materialName: "test.png",
+		  alpha: 1,
+		});
+
+		expect(material).to.exist;
+		expect(material.diffuseTexture).to.exist;
+		expect(material.diffuseTexture.name).to.include("test.png");
+	  });
+
+	  it("should create a gradient material when color is an array", async function () {
+		const id = "boxCreateMaterialGradient";
+		await createTestBox(id);
+		boxIds.push(id);
+
+		const gradientColors = ["#FF0000", "#00FF00"];
+		const material = flock.createMaterial({
+		  color: gradientColors,
+		  materialName: "none.png",
+		  alpha: 1,
+		});
+
+		expect(material).to.exist;
+		expect(material.getClassName()).to.equal("GradientMaterial");
+		expect(material.bottomColor).to.exist;
+		expect(material.topColor).to.exist;
+	  });
+	});
 }

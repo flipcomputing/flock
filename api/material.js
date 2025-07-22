@@ -11,6 +11,7 @@ export const flockMaterial = {
     for (let i = 0; i < 6; i++) {
       colour += letters[Math.floor(Math.random() * 16)];
     }
+    if (flock.materialsDebug) console.log(`  Generated the random colour ${colour}`);
     return colour;
   },
   rgbToHex(rgb) {
@@ -18,6 +19,7 @@ export const flockMaterial = {
       const hex = parseInt(x).toString(16);
       return hex.length === 1 ? "0" + hex : hex;
     });
+    // if (flock.materialsDebug) console.log(`  Converted ${rgb} to ${"#" + result.join("")}`);
     return "#" + result.join("");
   },
   hexToRgba(hex, alpha) {
@@ -25,6 +27,7 @@ export const flockMaterial = {
     let r = parseInt(hex.substring(0, 2), 16);
     let g = parseInt(hex.substring(2, 4), 16);
     let b = parseInt(hex.substring(4, 6), 16);
+    // if (flock.materialsDebug) console.log(`  Converted ${hex} with alpha ${alpha} to rgba(${r}, ${g}, ${b}, ${alpha})`);
     return `rgba(${r}, ${g}, ${b}, ${alpha})`;
   },
   // Helper function to convert hex to RGB
@@ -37,6 +40,8 @@ export const flockMaterial = {
      } : null;
    },
   getColorFromString(colourString) {
+    // if (flock.materialsDebug) console.log(` Getting a colour from ${colourString}`);
+
     if (/^#([0-9A-F]{3}){1,2}$/i.test(colourString)) {
       return colourString;
     }
@@ -55,6 +60,7 @@ export const flockMaterial = {
   },
 
   tint(meshName, { color } = {}) {
+    if (flock.materialsDebug) console.log(`Changing tint of ${meshName} by ${color}`);
     return flock.whenModelReady(meshName, (mesh) => {
       if (mesh.material) {
         mesh.renderOverlay = true;
@@ -78,6 +84,7 @@ export const flockMaterial = {
     });
   },
   highlight(meshName,  { color } = {}) {
+    if (flock.materialsDebug) console.log(`Highlighting ${meshName} with ${color}`);
     const applyHighlight = (mesh) => {
       if (mesh.material) {
         flock.highlighter.addMesh(
@@ -95,6 +102,7 @@ export const flockMaterial = {
     });
   },
   glow(meshName, { color } = {}) {
+    if (flock.materialsDebug) console.log(`Making ${meshName} glow`);
     // Ensure the glow layer is initialised
     if (!flock.glowLayer) {
       flock.glowLayer = new flock.BABYLON.GlowLayer(
@@ -129,6 +137,8 @@ export const flockMaterial = {
     mesh.getChildMeshes().forEach(applyGlow);
   },
   setAlpha(meshName, { value = 1 } = {}) {
+    if (flock.materialsDebug) console.log(`Set alpha of ${meshName} to ${value}:`);
+
     // Clamp value between 0 and 1
     value = Math.max(0, Math.min(1, value));
 
@@ -147,6 +157,7 @@ export const flockMaterial = {
   },
   clearEffects(meshName) {
     return flock.whenModelReady(meshName, (mesh) => {
+      if (flock.materialsDebug) console.log(`Clear effects from ${meshName}:`);
       const removeEffects = (targetMesh) => {
         if (targetMesh.material) {
           // Reset emissive color to black
@@ -203,6 +214,7 @@ export const flockMaterial = {
         // Check if the material has already been cloned
         if (!materialMapping.has(currentMesh.material)) {
           // Clone the material and store it in the mapping
+          if (flock.materialsDebug) console.log(` Cloning material, ${currentMesh.material}, of ${currentMesh.name}`);
           const clonedMaterial = cloneMaterial(currentMesh.material);
           materialMapping.set(currentMesh.material, clonedMaterial);
         }
@@ -266,6 +278,7 @@ export const flockMaterial = {
   },
   changeColor(meshName, { color } = {}) {
     return flock.whenModelReady(meshName, (mesh) => {
+      if (flock.materialsDebug) console.log(`Change colour of ${meshName} to ${color}:`)
       if (!mesh) {
         flock.scene.clearColor = flock.BABYLON.Color3.FromHexString(
           flock.getColorFromString(color)
@@ -289,6 +302,8 @@ export const flockMaterial = {
     // Ensure color is an array
     const colors = Array.isArray(color) ? color : [color];
     let colorIndex = 0;
+
+    if (flock.materialsDebug) console.log(` Changing the colour of ${mesh.name} to ${colors}`)
 
     // Map to keep track of materials and their assigned colours and indices
     const materialToColorMap = new Map();
@@ -432,6 +447,7 @@ export const flockMaterial = {
   },
   changeMaterial(meshName, materialName, color) {
     return flock.whenModelReady(meshName, (mesh) => {
+      if (flock.materialsDebug) console.log(`Changing material of ${meshName} to ${materialName}`);
       const texturePath = flock.texturePath + materialName;
       flock.changeMaterialMesh(mesh, materialName, texturePath, color);
     });
@@ -484,6 +500,7 @@ export const flockMaterial = {
   },
   setMaterial(meshName, materials) {
     return flock.whenModelReady(meshName, (mesh) => {
+      if (flock.materialsDebug) console.log(`Setting material of ${meshName} to ${materials}:`);
       const allMeshes = [mesh].concat(mesh.getDescendants());
       const validMeshes = allMeshes.filter(
         (part) => part instanceof flock.BABYLON.Mesh,
@@ -493,7 +510,8 @@ export const flockMaterial = {
       const sortedMeshes = validMeshes.sort((a, b) =>
         a.name.localeCompare(b.name),
       );
-
+      
+      if (flock.materialsDebug) console.log(`Setting material of ${sortedMeshes.length} meshes`);
       sortedMeshes.forEach((part, index) => {
         const material = Array.isArray(materials)
           ? materials[index % materials.length]
@@ -517,6 +535,7 @@ export const flockMaterial = {
           return;
         }
 
+        if (flock.materialsDebug) console.log(`Setting material of ${part.name} to ${material.name}`);
         // Apply the material to the mesh
         part.material = material;
       });
@@ -696,6 +715,7 @@ export const flockMaterial = {
      return material;
    },
   createMaterial({ color, materialName, alpha } = {}) {
+    if (flock.materialsDebug) console.log(`Create material: ${materialName}`)
     let material;
     const texturePath = flock.texturePath + materialName;
 
@@ -746,6 +766,7 @@ export const flockMaterial = {
       material.setFloat('alpha', alpha);
     }
 
+    if (flock.materialsDebug) console.log(`Created the material: ${material.name}`);
     return material;
   },
   // Create shader material for color replacement
@@ -974,6 +995,7 @@ export const flockMaterial = {
   },
   
   applyMaterialToMesh(mesh, shapeType, color, alpha = 1.0) {
+    console.log(`Applying material to ${mesh.name}`);
     const scene = mesh.getScene();
 
     const makeColor4 = (c) => {

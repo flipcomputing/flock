@@ -1,9 +1,12 @@
 import { flock } from "../flock.js";
+import * as Blockly from "blockly";
+import { meshMap } from "../generators";
 
 window.flockDebug = {
 	info() {
 		console.log("=== FLOCK DEBUG INFO ===");
 
+    const workspace = Blockly.getMainWorkspace()
 		const blocks = workspace.getAllBlocks();
 		const allMeshes = flock.scene.meshes;
 		const relevantMeshes = allMeshes.filter(
@@ -115,6 +118,7 @@ window.flockDebug = {
 	},
 
 	health() {
+    const workspace = Blockly.getMainWorkspace()
 		const blockCount = workspace.getAllBlocks().length;
 		const meshCount = flock.scene.meshes.filter(
 			(m) => m.name !== "__root__",
@@ -141,6 +145,10 @@ window.flockDebug = {
 			);
 		}
 	},
+
+  materials() {
+		console.log("=== FLOCK MATERIALS INFO ===");
+  }
 };
 
 console.log("🛠️ Flock Debug loaded! Commands:");
