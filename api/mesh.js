@@ -62,6 +62,9 @@ export const flockMesh = {
 
     mesh.metadata.sharedMaterial = false;
 
+    mesh.material.metadata = mesh.material.metadata || {};
+    mesh.material.metadata.internal = true;
+
     // Enable and make the mesh visible
     mesh.isVisible = true;
     mesh.setEnabled(true);
@@ -235,15 +238,12 @@ export const flockMesh = {
 
       // Side faces (curved surface) - unchanged
       if (
-        Math.abs(normal.y) <
-        Math.max(Math.abs(normal.x), Math.abs(normal.z))
+        Math.abs(normal.y) < Math.max(Math.abs(normal.x), Math.abs(normal.z))
       ) {
         const angle = Math.atan2(position.z, position.x); // Angle around the Y-axis
         const averageRadius = (radiusTop + radiusBottom) / 2;
         const circumference = 2 * Math.PI * averageRadius;
-        u =
-          (angle / (2 * Math.PI)) *
-          (circumference / texturePhysicalSize); // Scale based on circumference
+        u = (angle / (2 * Math.PI)) * (circumference / texturePhysicalSize); // Scale based on circumference
         v = (position.y + height / 2) / texturePhysicalSize; // Scale along height
       }
       // Top cap
@@ -288,8 +288,7 @@ export const flockMesh = {
       if (Math.abs(y) > cylinderHeight / 2) {
         // Spherical cap (top or bottom)
         const theta = Math.atan2(z, x); // Longitude angle
-        const offsetY =
-          y > 0 ? y - cylinderHeight / 2 : y + cylinderHeight / 2; // Offset for cap position
+        const offsetY = y > 0 ? y - cylinderHeight / 2 : y + cylinderHeight / 2; // Offset for cap position
 
         u = theta / (2 * Math.PI) + 0.5; // Wrap U-axis around the cap
         v = (offsetY / radius + 1) / (2 * texturePhysicalSize); // Scale V-axis by the texture size
@@ -298,9 +297,7 @@ export const flockMesh = {
         const theta = Math.atan2(z, x); // Longitude angle
 
         u = theta / (2 * Math.PI) + 0.5; // Wrap U-axis around the cylinder
-        v =
-          (y + cylinderHeight / 2) /
-          (texturePhysicalSize * cylinderHeight); // V-axis based on height
+        v = (y + cylinderHeight / 2) / (texturePhysicalSize * cylinderHeight); // V-axis based on height
       }
 
       // Apply the calculated UV coordinates
@@ -326,10 +323,8 @@ export const flockMesh = {
       );
 
       // Calculate UV coordinates based on the physical size of the texture
-      const u =
-        (position.x / width) * (width / texturePhysicalSize) + 0.5; // Scale proportionally to width
-      const v =
-        (position.y / height) * (height / texturePhysicalSize) + 0.5; // Scale proportionally to height
+      const u = (position.x / width) * (width / texturePhysicalSize) + 0.5; // Scale proportionally to width
+      const v = (position.y / height) * (height / texturePhysicalSize) + 0.5; // Scale proportionally to height
 
       uvs[i * 2] = u;
       uvs[i * 2 + 1] = v;
@@ -361,9 +356,7 @@ export const flockMesh = {
     mesh.scaling = new flock.BABYLON.Vector3(scale, scale, scale);
 
     const bb =
-      flock.BABYLON.BoundingBoxGizmo.MakeNotPickableAndWrapInBoundingBox(
-        mesh,
-      );
+      flock.BABYLON.BoundingBoxGizmo.MakeNotPickableAndWrapInBoundingBox(mesh);
 
     bb.name = modelId;
     bb.blockKey = blockId;
@@ -442,25 +435,19 @@ export const flockMesh = {
         // Find the first mesh with a skeleton (including descendants)
         const targetWithSkeleton = targetMeshInstance.skeleton
           ? targetMeshInstance
-          : targetMeshInstance
-              .getChildMeshes()
-              .find((mesh) => mesh.skeleton);
+          : targetMeshInstance.getChildMeshes().find((mesh) => mesh.skeleton);
 
         if (targetWithSkeleton) {
           const bone = targetWithSkeleton.skeleton.bones.find(
             (b) => b.name === "Hold",
           );
           if (bone) {
-            meshToAttachInstance.attachToBone(
-              bone,
-              targetWithSkeleton,
+            meshToAttachInstance.attachToBone(bone, targetWithSkeleton);
+            meshToAttachInstance.position = new flock.BABYLON.Vector3(
+              xOffset,
+              yOffset,
+              zOffset,
             );
-            meshToAttachInstance.position =
-              new flock.BABYLON.Vector3(
-                xOffset,
-                yOffset,
-                zOffset,
-              );
           }
         }
       });
@@ -541,15 +528,15 @@ export const flockMesh = {
         };
 
         // Create a new observer to update the follower's position
-        followerMesh._followObserver =
-          flock.scene.onBeforeRenderObservable.add(() => {
+        followerMesh._followObserver = flock.scene.onBeforeRenderObservable.add(
+          () => {
             followerMesh.position.x =
               targetMesh.position.x + parseFloat(offsetX);
-            followerMesh.position.y =
-              getYPosition() + parseFloat(offsetY);
+            followerMesh.position.y = getYPosition() + parseFloat(offsetY);
             followerMesh.position.z =
               targetMesh.position.z + parseFloat(offsetZ);
-          });
+          },
+        );
       });
     });
   },
@@ -564,4 +551,4 @@ export const flockMesh = {
       }
     });
   },
-}
+};
