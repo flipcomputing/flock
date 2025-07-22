@@ -145,7 +145,7 @@ export const flockModels = {
     callback = null,
     applyColor = true,
   } = {}) {
-    console.log("📦 [model] Creating object", modelName, modelId);
+    //console.log("📦 [model] Creating object", modelName, modelId);
     try {
       if (applyColor) {
         if (!color && flock.objectColours && flock.objectColours[modelName]) {
