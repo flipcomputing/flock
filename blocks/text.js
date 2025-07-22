@@ -26,6 +26,7 @@ export function defineTextBlocks() {
 				tooltip: getTooltip("comment"),
 			});
 			this.setHelpUrl(getHelpUrlFor(this.type));
+			this.setStyle('text_blocks');
 		},
 	};
 
@@ -59,6 +60,7 @@ export function defineTextBlocks() {
 				tooltip: getTooltip("print_text"),
 			});
 			this.setHelpUrl(getHelpUrlFor(this.type));
+			this.setStyle('text_blocks');
 		},
 	};
 
@@ -129,6 +131,7 @@ export function defineTextBlocks() {
 				tooltip: getTooltip("say"),
 			});
 			this.setHelpUrl(getHelpUrlFor(this.type));
+			this.setStyle('text_blocks');
 		},
 	};
 
@@ -180,6 +183,7 @@ export function defineTextBlocks() {
 				tooltip: getTooltip("ui_text"),
 			});
 			this.setHelpUrl(getHelpUrlFor(this.type));
+			this.setStyle('text_blocks');
 		},
 	};
 
@@ -244,6 +248,7 @@ export function defineTextBlocks() {
 				tooltip: getTooltip("ui_button"),
 			});
 			this.setHelpUrl(getHelpUrlFor(this.type));
+			this.setStyle('text_blocks');
 		},
 	};
 
@@ -305,6 +310,7 @@ export function defineTextBlocks() {
 		});
 
 		this.setHelpUrl(getHelpUrlFor(this.type));
+		  this.setStyle('text_blocks');
 	  },
 	};
 
@@ -373,6 +379,7 @@ export function defineTextBlocks() {
 				nextStatement: null,
 			});
 			this.setHelpUrl(getHelpUrlFor(this.type));
+			this.setStyle('text_blocks');
 		},
 	};
 }

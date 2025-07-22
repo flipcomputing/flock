@@ -35,6 +35,8 @@ export function defineMaterialsBlocks() {
 			tooltip: getTooltip("change_color"),
 		  });
 		  this.setHelpUrl(getHelpUrlFor(this.type));
+			this.setStyle('materials_blocks');
+
 		},
 	  };
 
@@ -78,6 +80,8 @@ export function defineMaterialsBlocks() {
 			nextStatement: null,
 		  });
 		  this.setHelpUrl(getHelpUrlFor(this.type));
+			this.setStyle('materials_blocks');
+
 		},
 	  };
 
@@ -130,6 +134,7 @@ export function defineMaterialsBlocks() {
 			tooltip: getTooltip("text_material"),
 		  });
 		  this.setHelpUrl(getHelpUrlFor(this.type));
+			this.setStyle('materials_blocks');
 		},
 	  };
 
@@ -155,6 +160,7 @@ export function defineMaterialsBlocks() {
 			tooltip: getTooltip("place_decal"),
 		  });
 		  this.setHelpUrl(getHelpUrlFor(this.type));
+			this.setStyle('materials_blocks');
 		},
 	  };
 
@@ -226,6 +232,7 @@ export function defineMaterialsBlocks() {
 			tooltip: getTooltip("decal"),
 		  });
 		  this.setHelpUrl(getHelpUrlFor(this.type));
+			this.setStyle('materials_blocks');
 		},
 	  };
 
@@ -254,6 +261,7 @@ export function defineMaterialsBlocks() {
 			tooltip: getTooltip("highlight"),
 		  });
 		  this.setHelpUrl(getHelpUrlFor(this.type));
+			this.setStyle('materials_blocks');
 		},
 	  };
 
@@ -276,6 +284,7 @@ export function defineMaterialsBlocks() {
 			tooltip: getTooltip("glow"),
 		  });
 		  this.setHelpUrl(getHelpUrlFor(this.type));
+			this.setStyle('materials_blocks');
 		},
 	  };
 
@@ -304,6 +313,7 @@ export function defineMaterialsBlocks() {
 			tooltip: getTooltip("tint"),
 		  });
 		  this.setHelpUrl(getHelpUrlFor(this.type));
+			this.setStyle('materials_blocks');
 		},
 	  };
 
@@ -331,6 +341,7 @@ export function defineMaterialsBlocks() {
 			tooltip: getTooltip("set_alpha"),
 		  });
 		  this.setHelpUrl(getHelpUrlFor(this.type));
+			this.setStyle('materials_blocks');
 		},
 	  };
 
@@ -353,6 +364,7 @@ export function defineMaterialsBlocks() {
 			tooltip: getTooltip("clear_effects"),
 		  });
 		  this.setHelpUrl(getHelpUrlFor(this.type));
+			this.setStyle('materials_blocks');
 		},
 	  };
 
@@ -373,6 +385,7 @@ export function defineMaterialsBlocks() {
 			tooltip: getTooltip("colour"),
 		  });
 		  this.setHelpUrl(getHelpUrlFor(this.type));
+			this.setStyle('materials_blocks');
 		},
 	  };
 
@@ -422,6 +435,7 @@ export function defineMaterialsBlocks() {
 			tooltip: getTooltip("skin_colour"),
 		  });
 		  this.setHelpUrl(getHelpUrlFor(this.type));
+			this.setStyle('materials_blocks');
 		},
 	  };
 
@@ -469,6 +483,7 @@ export function defineMaterialsBlocks() {
 			tooltip: getTooltip("greyscale_colour"),
 		  });
 		  this.setHelpUrl(getHelpUrlFor(this.type));
+			this.setStyle('materials_blocks');
 		},
 	  };
 
@@ -504,6 +519,7 @@ export function defineMaterialsBlocks() {
 			tooltip: getTooltip("random_colour"),
 		  });
 		  this.setHelpUrl(getHelpUrlFor(this.type));
+			this.setStyle('materials_blocks');
 		},
 	  };
 
@@ -551,6 +567,7 @@ export function defineMaterialsBlocks() {
 			tooltip: getTooltip("material"),
 		  });
 		  this.setHelpUrl(getHelpUrlFor(this.type));
+			this.setStyle('materials_blocks');
 		},
 	  };
 
@@ -581,6 +598,7 @@ export function defineMaterialsBlocks() {
 			tooltip: getTooltip("gradient_material"),
 		  });
 		  this.setHelpUrl(getHelpUrlFor(this.type));
+			this.setStyle('materials_blocks');
 		},
 	  };
 
@@ -608,6 +626,7 @@ export function defineMaterialsBlocks() {
 			tooltip: getTooltip("set_material"),
 		  });
 		  this.setHelpUrl(getHelpUrlFor(this.type));
+			this.setStyle('materials_blocks');
 		},
 	  };
 }

@@ -39,6 +39,8 @@ export function defineSensingBlocks() {
 				tooltip: getTooltip("key_pressed"),
 			});
 			this.setHelpUrl(getHelpUrlFor(this.type));
+			this.setStyle('sensing_blocks');
+
 		},
 	};
 
@@ -64,6 +66,8 @@ export function defineSensingBlocks() {
 				tooltip: getTooltip("meshes_touching"),
 			});
 			this.setHelpUrl(getHelpUrlFor(this.type));
+			this.setStyle('sensing_blocks');
+
 		},
 	};
 
@@ -79,6 +83,8 @@ export function defineSensingBlocks() {
 				tooltip: getTooltip("time"),
 			});
 			this.setHelpUrl(getHelpUrlFor(this.type));
+			this.setStyle('sensing_blocks');
+
 		},
 	};
 
@@ -105,6 +111,8 @@ export function defineSensingBlocks() {
 				tooltip: getTooltip("distance_to"),
 			});
 			this.setHelpUrl(getHelpUrlFor(this.type));
+			this.setStyle('sensing_blocks');
+
 		},
 	};
 
@@ -125,6 +133,8 @@ export function defineSensingBlocks() {
 				tooltip: getTooltip("touching_surface"),
 			});
 			this.setHelpUrl(getHelpUrlFor(this.type));
+			this.setStyle('sensing_blocks');
+
 		},
 	};
 
@@ -145,6 +155,8 @@ export function defineSensingBlocks() {
 		  tooltip: "Returns true if the mesh with this name is present in the scene.",
 		});
 		this.setHelpUrl(getHelpUrlFor(this.type));
+		  this.setStyle('sensing_blocks');
+
 	  },
 	};
 
@@ -193,6 +205,8 @@ export function defineSensingBlocks() {
 				tooltip: getTooltip("get_property"),
 			});
 			this.setHelpUrl(getHelpUrlFor(this.type));
+			this.setStyle('sensing_blocks');
+
 		},
 	};
 
@@ -214,6 +228,8 @@ export function defineSensingBlocks() {
 				tooltip: getTooltip("canvas_controls"),
 			});
 			this.setHelpUrl(getHelpUrlFor(this.type));
+			this.setStyle('sensing_blocks');
+
 		},
 	};
 
@@ -249,6 +265,8 @@ export function defineSensingBlocks() {
 				tooltip: getTooltip("button_controls"),
 			});
 			this.setHelpUrl(getHelpUrlFor(this.type));
+			this.setStyle('sensing_blocks');
+
 		},
 	};
 
@@ -294,6 +312,8 @@ export function defineSensingBlocks() {
 				tooltip: getTooltip("microbit_input"),
 			});
 			this.setHelpUrl(getHelpUrlFor(this.type));
+			this.setStyle('sensing_blocks');
+
 			addToggleButton(this);
 		},
 		mutationToDom: function () {
@@ -372,6 +392,8 @@ export function defineSensingBlocks() {
 			});
 
 			this.setHelpUrl(getHelpUrlFor(this.type));
+			this.setStyle('text_blocks');
+
 		},
 	};
 }

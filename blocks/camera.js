@@ -51,6 +51,8 @@ export function defineCameraBlocks() {
 				tooltip: getTooltip("camera_control"),
 			});
 			this.setHelpUrl(getHelpUrlFor(this.type));
+			this.setStyle('scene_blocks');
+
 		},
 	};
 
@@ -82,6 +84,8 @@ export function defineCameraBlocks() {
 				tooltip: getTooltip("camera_follow"),
 			});
 			this.setHelpUrl(getHelpUrlFor(this.type));
+			this.setStyle('scene_blocks');
+
 		},
 	};
 
@@ -103,6 +107,8 @@ export function defineCameraBlocks() {
 				tooltip: getTooltip("get_camera"),
 			});
 			this.setHelpUrl(getHelpUrlFor(this.type));
+			this.setStyle('scene_blocks');
+
 		},
 	};
 }

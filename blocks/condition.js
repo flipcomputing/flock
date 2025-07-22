@@ -9,6 +9,8 @@ export function defineConditionBlocks() {
 
 	  Blockly.Blocks["controls_if"].init = function () {
 		this.setHelpUrl(getHelpUrlFor(this.type));
+		  this.setStyle('condition_blocks');
+
 		// Call the original init function
 		oldInit.call(this);
 

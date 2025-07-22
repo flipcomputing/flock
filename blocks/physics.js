@@ -35,6 +35,8 @@ export function definePhysicsBlocks() {
 			tooltip: getTooltip("add_physics"),
 		  });
 		  this.setHelpUrl(getHelpUrlFor(this.type));
+			this.setStyle('transform_blocks');
+
 		},
 	  };
 
@@ -65,6 +67,8 @@ export function definePhysicsBlocks() {
 			tooltip: getTooltip("add_physics_shape"),
 		  });
 		  this.setHelpUrl(getHelpUrlFor(this.type));
+			this.setStyle('transform_blocks');
+
 		},
 	  };
 
@@ -102,6 +106,8 @@ export function definePhysicsBlocks() {
 			tooltip: getTooltip("apply_force"),
 		  });
 		  this.setHelpUrl(getHelpUrlFor(this.type));
+			this.setStyle('transform_blocks');
+
 		},
 	  };
 }

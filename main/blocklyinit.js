@@ -73,7 +73,7 @@ flock.Mesh = Mesh;
 Mesh.prototype.toString = function MeshToString() {
 	console.log("Mesh.toString", `${this.id}`);
 	return `${this.id}`;
-};
+};injec
 */
 
 export function initializeWorkspace() {

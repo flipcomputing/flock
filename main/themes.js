@@ -1,33 +1,47 @@
 import * as Blockly from "blockly";
 import { categoryColours } from "../toolbox.js";
-// Function to call when switching themes - implement your Blockly theme logic here
+
+// Function to call when switching themes
 function switchTheme(themeName) {
 	console.log(`Switching to theme: ${themeName}`);
-
-	// Create theme object based on your categories
-	const themeConfig = createThemeConfig(themeName);
-	let currentTheme;
 
 	document.body.setAttribute('data-theme', themeName);
 
 	const workspace = Blockly.getMainWorkspace();
 
-	// Create a proper Blockly Theme instance
-	if (workspace && themeConfig) {
+	if (!workspace) return;
+
+	// Set HSV values based on theme
+	if (themeName === 'light') {
+		Blockly.utils.colour.setHsvSaturation(0.3);
+		Blockly.utils.colour.setHsvValue(0.85);
+	} else if (themeName === 'dark') {
+		// For dark theme, use slightly more saturated colors
+		Blockly.utils.colour.setHsvSaturation(0.45);
+		Blockly.utils.colour.setHsvValue(0.65);
+	} else if (themeName === 'high-contrast') {
+		// High contrast uses full saturation and value
+		Blockly.utils.colour.setHsvSaturation(0.99);
+		Blockly.utils.colour.setHsvValue(0.99);
+	}
+
+	// Create custom theme for all themes
+	const themeConfig = createThemeConfig(themeName);
+	if (themeConfig) {
 		const blocklyTheme = new Blockly.Theme(
 			themeConfig.name,
 			themeConfig.blockStyles,
 			themeConfig.categoryStyles,
 			themeConfig.componentStyles
 		);
-
 		workspace.setTheme(blocklyTheme);
 	}
 
 	// Optional: Save theme preference
 	localStorage.setItem('blocklyTheme', themeName);
 }
-// Create theme configuration for your specific categories
+
+// Create theme configuration for all themes
 function createThemeConfig(themeName) {
 	const baseStyles = getThemeBaseStyles(themeName);
 
@@ -52,45 +66,57 @@ function createThemeConfig(themeName) {
 			'procedure_blocks': baseStyles.procedures
 		},
 		'categoryStyles': {
-			'events_category': { 'colour': categoryColours.Events },
-			'scene_category': { 'colour': categoryColours.Scene },
-			'transform_category': { 'colour': categoryColours.Transform },
-			'animate_category': { 'colour': categoryColours.Animate },
-			'materials_category': { 'colour': categoryColours.Materials },
-			'sound_category': { 'colour': categoryColours.Sound },
-			'sensing_category': { 'colour': categoryColours.Sensing },
-			'snippets_category': { 'colour': categoryColours.Snippets },
-			'control_category': { 'colour': categoryColours.Control },
-			'logic_category': { 'colour': categoryColours.Logic },
-			'variables_category': { 'colour': categoryColours.Variables },
-			'text_category': { 'colour': categoryColours.Text },
-			'lists_category': { 'colour': categoryColours.Lists },
-			'math_category': { 'colour': categoryColours.Math },
-			'procedures_category': { 'colour': categoryColours.Procedures }
+			'events_category': { 'colour': getColourForTheme(themeName, 'Events') },
+			'scene_category': { 'colour': getColourForTheme(themeName, 'Scene') },
+			'transform_category': { 'colour': getColourForTheme(themeName, 'Transform') },
+			'animate_category': { 'colour': getColourForTheme(themeName, 'Animate') },
+			'materials_category': { 'colour': getColourForTheme(themeName, 'Materials') },
+			'sound_category': { 'colour': getColourForTheme(themeName, 'Sound') },
+			'sensing_category': { 'colour': getColourForTheme(themeName, 'Sensing') },
+			'snippets_category': { 'colour': getColourForTheme(themeName, 'Snippets') },
+			'control_category': { 'colour': getColourForTheme(themeName, 'Control') },
+			'logic_category': { 'colour': getColourForTheme(themeName, 'Logic') },
+			'variables_category': { 'colour': getColourForTheme(themeName, 'Variables') },
+			'text_category': { 'colour': getColourForTheme(themeName, 'Text') },
+			'lists_category': { 'colour': getColourForTheme(themeName, 'Lists') },
+			'math_category': { 'colour': getColourForTheme(themeName, 'Math') },
+			'procedures_category': { 'colour': getColourForTheme(themeName, 'Procedures') }
 		},
 		'componentStyles': baseStyles.components
 	};
 }
 
-// Get theme-specific styling
+// Helper function to get colors for categories based on theme
+function getColourForTheme(themeName, category) {
+	if (themeName === 'light') {
+		return categoryColours[category] || 20; // fallback hue
+	} else {
+		const styles = getThemeBaseStyles(themeName);
+		const blockStyle = styles[category.toLowerCase()];
+		return blockStyle?.colourPrimary || categoryColours[category] || 20;
+	}
+}
+
+// Get theme-specific styling 
 function getThemeBaseStyles(themeName) {
 	const themes = {
 		light: {
-			events: { colourPrimary: '#FF6B6B', colourSecondary: '#FFE0E0', colourTertiary: '#FF4757' },
-			scene: { colourPrimary: '#4ECDC4', colourSecondary: '#E0F9F7', colourTertiary: '#26D0CE' },
-			transform: { colourPrimary: '#45B7D1', colourSecondary: '#E0F4FF', colourTertiary: '#2E86AB' },
-			animate: { colourPrimary: '#F7DC6F', colourSecondary: '#FDF4D3', colourTertiary: '#F4D03F' },
-			materials: { colourPrimary: '#BB8FCE', colourSecondary: '#F0E6FF', colourTertiary: '#A569BD' },
-			sound: { colourPrimary: '#F8C471', colourSecondary: '#FFF2E0', colourTertiary: '#F5B041' },
-			sensing: { colourPrimary: '#85C1E9', colourSecondary: '#E8F4FD', colourTertiary: '#5DADE2' },
-			snippets: { colourPrimary: '#82E0AA', colourSecondary: '#E8F8F0', colourTertiary: '#58D68D' },
-			control: { colourPrimary: '#FFA726', colourSecondary: '#FFF3E0', colourTertiary: '#FF9800' },
-			logic: { colourPrimary: '#42A5F5', colourSecondary: '#E3F2FD', colourTertiary: '#2196F3' },
-			variables: { colourPrimary: '#EF5350', colourSecondary: '#FFEBEE', colourTertiary: '#F44336' },
-			text: { colourPrimary: '#66BB6A', colourSecondary: '#E8F5E8', colourTertiary: '#4CAF50' },
-			lists: { colourPrimary: '#AB47BC', colourSecondary: '#F3E5F5', colourTertiary: '#9C27B0' },
-			math: { colourPrimary: '#5C6BC0', colourSecondary: '#E8EAF6', colourTertiary: '#3F51B5' },
-			procedures: { colourPrimary: '#26A69A', colourSecondary: '#E0F2F1', colourTertiary: '#009688' },
+			// For light theme, use consistent structure with colourPrimary
+			events: { colourPrimary: categoryColours.Events || 20 },
+			scene: { colourPrimary: categoryColours.Scene || 160 },
+			transform: { colourPrimary: categoryColours.Transform || 210 },
+			animate: { colourPrimary: categoryColours.Animate || 60 },
+			materials: { colourPrimary: categoryColours.Materials || 290 },
+			sound: { colourPrimary: categoryColours.Sound || 30 },
+			sensing: { colourPrimary: categoryColours.Sensing || 200 },
+			snippets: { colourPrimary: categoryColours.Snippets || 120 },
+			control: { colourPrimary: categoryColours.Control || 25 },
+			logic: { colourPrimary: categoryColours.Logic || 210 },
+			variables: { colourPrimary: categoryColours.Variables || 330 },
+			text: { colourPrimary: categoryColours.Text || 160 },
+			lists: { colourPrimary: categoryColours.Lists || 260 },
+			math: { colourPrimary: categoryColours.Math || 230 },
+			procedures: { colourPrimary: categoryColours.Procedures || 290 },
 			components: {
 				workspaceBackgroundColour: '#f9f9f9',
 				toolboxBackgroundColour: '#fff',
@@ -165,24 +191,27 @@ function getThemeBaseStyles(themeName) {
 		}
 	};
 
-	return themes[themeName] || themes.light;
+	return themes[themeName];
 }
 
 // Update visual indicator of active theme
 function updateActiveTheme(themeName) {
-	/*themeLinks.forEach(link => {
+	const themeLinks = document.querySelectorAll('[data-theme]');
+	themeLinks.forEach(link => {
 		link.classList.remove('active-theme');
 		if (link.dataset.theme === themeName) {
 			link.classList.add('active-theme');
 		}
-	});*/
+	});
 }
 
 // Initialize theme on page load
 export function initializeTheme() {
-
 	const themeLinks = document.querySelectorAll('[data-theme]');
-	let currentTheme = 'default';
+	let currentTheme = 'light'; // Default to light
+
+	// Register block styles for all themes
+	registerBlockStyles();
 
 	themeLinks.forEach(link => {
 		link.addEventListener('click', (e) => {
@@ -194,13 +223,40 @@ export function initializeTheme() {
 				updateActiveTheme(newTheme);
 				currentTheme = newTheme;
 			}
-
 		});
 	});
 
+	// Load saved theme or default to light
 	const savedTheme = localStorage.getItem('blocklyTheme') || 'light';
-	//switchTheme(savedTheme);
-	//updateActiveTheme(savedTheme);
-	//currentTheme = savedTheme;
+	switchTheme(savedTheme);
+	updateActiveTheme(savedTheme);
+	currentTheme = savedTheme;
 }
 
+// Register all block styles with Blockly
+function registerBlockStyles() {
+	const blockStyleConfigs = {
+		'events_blocks': { 'hat': 'cap' },
+		'scene_blocks': {},
+		'transform_blocks': {},
+		'animate_blocks': {},
+		'materials_blocks': {},
+		'sound_blocks': {},
+		'sensing_blocks': {},
+		'snippets_blocks': {},
+		'control_blocks': {},
+		'logic_blocks': {},
+		'variable_blocks': {},
+		'text_blocks': {},
+		'list_blocks': {},
+		'math_blocks': {},
+		'procedure_blocks': { 'hat': 'cap' }
+	};
+
+	// Register each style - these will be overridden by theme colors
+	Object.entries(blockStyleConfigs).forEach(([styleName, styleConfig]) => {
+		if (!Blockly.registry.getObject('blockStyles', styleName)) {
+			Blockly.registry.register('blockStyles', styleName, styleConfig);
+		}
+	});
+}

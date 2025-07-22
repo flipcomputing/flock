@@ -6,7 +6,11 @@ import {
 	getHelpUrlFor,
 } from "../blocks.js";
 import { audioNames } from "../config.js";
-import { translate, getTooltip, getDropdownOption } from "../main/translation.js";
+import {
+	translate,
+	getTooltip,
+	getDropdownOption,
+} from "../main/translation.js";
 
 export function defineSoundBlocks() {
 	Blockly.Blocks["play_sound"] = {
@@ -73,6 +77,7 @@ export function defineSoundBlocks() {
 				extensions: ["dynamic_mesh_dropdown"], // Attach the extension
 			});
 			this.setHelpUrl(getHelpUrlFor(this.type));
+			this.setStyle('sound_blocks');
 		},
 	};
 
@@ -86,6 +91,8 @@ export function defineSoundBlocks() {
 				tooltip: getTooltip("stop_all_sounds"),
 			});
 			this.setHelpUrl(getHelpUrlFor(this.type));
+			this.setStyle('sound_blocks');
+
 		},
 	};
 
@@ -109,6 +116,8 @@ export function defineSoundBlocks() {
 				tooltip: getTooltip("midi_note"),
 			});
 			this.setHelpUrl(getHelpUrlFor(this.type));
+			this.setStyle('sound_blocks');
+
 		},
 	};
 
@@ -122,6 +131,8 @@ export function defineSoundBlocks() {
 				tooltip: getTooltip("rest"),
 			});
 			this.setHelpUrl(getHelpUrlFor(this.type));
+			this.setStyle('sound_blocks');
+
 		},
 	};
 
@@ -167,6 +178,8 @@ export function defineSoundBlocks() {
 				tooltip: getTooltip("play_notes"),
 			});
 			this.setHelpUrl(getHelpUrlFor(this.type));
+			this.setStyle('sound_blocks');
+
 		},
 	};
 
@@ -189,6 +202,8 @@ export function defineSoundBlocks() {
 				tooltip: getTooltip("set_scene_bpm"),
 			});
 			this.setHelpUrl(getHelpUrlFor(this.type));
+			this.setStyle('sound_blocks');
+
 		},
 	};
 
@@ -216,6 +231,8 @@ export function defineSoundBlocks() {
 				tooltip: getTooltip("set_mesh_bpm"),
 			});
 			this.setHelpUrl(getHelpUrlFor(this.type));
+			this.setStyle('sound_blocks');
+
 		},
 	};
 
@@ -290,6 +307,8 @@ export function defineSoundBlocks() {
 				tooltip: getTooltip("create_instrument"),
 			});
 			this.setHelpUrl(getHelpUrlFor(this.type));
+			this.setStyle('sound_blocks');
+
 			this.setOnChange((changeEvent) => {
 				handleBlockCreateEvent(
 					this,
@@ -323,6 +342,8 @@ export function defineSoundBlocks() {
 				tooltip: getTooltip("instrument"),
 			});
 			this.setHelpUrl(getHelpUrlFor(this.type));
+			this.setStyle('sound_blocks');
+
 		},
 	};
 
@@ -390,7 +411,8 @@ export function defineSoundBlocks() {
 				extensions: ["dynamic_mesh_dropdown"], // Attach the extension
 			});
 			this.setHelpUrl(getHelpUrlFor(this.type));
+			this.setStyle('sound_blocks');
+
 		},
 	};
 }
-
