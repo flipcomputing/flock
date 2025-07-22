@@ -565,7 +565,7 @@ button {
   position: absolute;
   top: 100%; /* Below the button */
   right: 10;
-  background-color: var(--color-bg);
+  background-color: white;
   border: 1px solid #ddd;
   padding: 0.5em;
   box-shadow: 0 4px 6px rgba(0,0,0,0.1);
