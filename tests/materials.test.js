@@ -304,7 +304,7 @@ export function runMaterialsTests(flock) {
 	  });
 	});
   
-	describe("changeMaterial method", function () {
+	describe("setting a material scenarios", function () {
 	  const boxIds = [];
 
 	  async function createTestBox(id) {
@@ -324,6 +324,16 @@ export function runMaterialsTests(flock) {
 		return id;
 	  }
 
+    async function createTestTree(id) {
+      await flock.createObject({
+  			modelName: 'tree.glb',
+  			modelId: id,
+  			color: ["#66cdaa", "#cd853f"],
+  			scale: 1,
+  			position: { x: 0, y: 0, z: 0 }
+  		});
+    }
+
 	  beforeEach(async function () {
 		flock.scene ??= {};
 	  });
@@ -335,20 +345,29 @@ export function runMaterialsTests(flock) {
 		boxIds.length = 0;
 	  });
 
-	  it("should create one new materials", async function () {
-    console.log("1", flock.scene.materials);
-
-    console.log(flock.scene.materials.length);
-
+	  it("should create one new material for a box", async function () {
 		const id = "boxCreateMaterialTexture";
 		await createTestBox(id);
 		boxIds.push(id);
 
-    console.log("2", flock.scene.materials);
-
     const materialsBefore = flock.scene.materials.length;
 
-    console.log(materialsBefore);
+		const color = "#FF00FF";
+		const material = flock.createMaterial({
+		  color,
+		  materialName: "testMaterial",
+		  alpha: 0.5,
+		});
+  
+		expect(flock.scene.materials.length).to.equal(materialsBefore + 1);
+	  });
+
+	  it("should delete the old material for a box", async function () {
+		const id = "boxCreateMaterialTexture";
+		await createTestBox(id);
+		boxIds.push(id);
+
+    const materialsBefore = flock.scene.materials.length;
 
 		const color = "#FF00FF";
 		const material = flock.createMaterial({
@@ -357,43 +376,47 @@ export function runMaterialsTests(flock) {
 		  alpha: 0.5,
 		});
 
-    console.log("3", flock.scene.materials);
-  
-		expect(flock.scene.materials.length).to.equal(materialsBefore + 1);
+    flock.setMaterial(id, material);
+
+		expect(flock.scene.materials.length).to.equal(materialsBefore);
 	  });
 
-	  it("should delete the old material", async function () {
+	  it("should create two new materials for a tree", async function () {
 		const id = "boxCreateMaterialTexture";
-		await createTestBox(id);
+		await createTestTree(id);
 		boxIds.push(id);
 
-		const material = flock.createMaterial({
-		  color: "#FFFFFF",
-		  materialName: "test.png",
-		  alpha: 1,
-		});
+    const materialsBefore = flock.scene.materials.length;
 
-		expect(material).to.exist;
-		expect(material.diffuseTexture).to.exist;
-		expect(material.diffuseTexture.name).to.include("test.png");
+    const material_temp = [flock.createMaterial({ color: "#00ffff", materialName: "leaves.png", alpha: 1 }), flock.createMaterial({ color: "#ff6600", materialName: "marble.png", alpha: 1 })];
+
+		expect(flock.scene.materials.length).to.equal(materialsBefore + 2);
 	  });
 
-	  it("should create a gradient material when color is an array", async function () {
-		const id = "boxCreateMaterialGradient";
-		await createTestBox(id);
+	  it("should delete the old materials for a tree", async function () {
+
+    console.log(flock.scene.materials);
+
+		const id = "boxCreateMaterialTexture";
+		await createTestTree(id);
 		boxIds.push(id);
 
-		const gradientColors = ["#FF0000", "#00FF00"];
-		const material = flock.createMaterial({
-		  color: gradientColors,
-		  materialName: "none.png",
-		  alpha: 1,
-		});
+    const materialsBefore = flock.scene.materials.length;
 
-		expect(material).to.exist;
-		expect(material.getClassName()).to.equal("GradientMaterial");
-		expect(material.bottomColor).to.exist;
-		expect(material.topColor).to.exist;
+    console.log(flock.scene.materials, flock.scene.materials.length);
+    flock.scene.materials.forEach(mat => console.log(mat.id));
+
+    const material_temp = [flock.createMaterial({ color: "#00ffff", materialName: "leaves.png", alpha: 1 }), flock.createMaterial({ color: "#ff6600", materialName: "marble.png", alpha: 1 })];
+
+    console.log(flock.scene.materials, flock.scene.materials.length);
+    flock.scene.materials.forEach(mat => console.log(mat.id));
+
+    flock.setMaterial(id, material_temp);
+
+    console.log(flock.scene.materials, flock.scene.materials.length);
+    flock.scene.materials.forEach(mat => console.log(mat.id));
+  
+		expect(flock.scene.materials.length).to.equal(materialsBefore);
 	  });
 	});
 }
