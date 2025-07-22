@@ -26,6 +26,8 @@ export function defineCombineBlocks() {
 				nextStatement: null,
 			});
 			this.setHelpUrl(getHelpUrlFor(this.type));
+			this.setStyle('transform_blocks');
+
 		},
 	};
 
@@ -56,6 +58,8 @@ export function defineCombineBlocks() {
 				nextStatement: null,
 			});
 			this.setHelpUrl(getHelpUrlFor(this.type));
+			this.setStyle('transform_blocks');
+
 		},
 	};
 	Blockly.Blocks["intersection_meshes"] = {
@@ -80,6 +84,8 @@ export function defineCombineBlocks() {
 				nextStatement: null,
 			});
 			this.setHelpUrl(getHelpUrlFor(this.type));
+			this.setStyle('transform_blocks');
+
 		},
 	};
 
@@ -105,6 +111,8 @@ export function defineCombineBlocks() {
 				nextStatement: null,
 			});
 			this.setHelpUrl(getHelpUrlFor(this.type));
+			this.setStyle('transform_blocks');
+
 		},
 	};
 }

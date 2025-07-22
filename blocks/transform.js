@@ -43,6 +43,8 @@ export function defineTransformBlocks() {
 				tooltip: getTooltip("move_by_xyz"),
 			});
 			this.setHelpUrl(getHelpUrlFor(this.type));
+			this.setStyle('transform_blocks');
+
 		},
 	};
 
@@ -89,6 +91,8 @@ export function defineTransformBlocks() {
 				tooltip: getTooltip("move_to_xyz"),
 			});
 			this.setHelpUrl(getHelpUrlFor(this.type));
+			this.setStyle('transform_blocks');
+
 		},
 	};
 
@@ -122,6 +126,8 @@ export function defineTransformBlocks() {
 				tooltip: getTooltip("move_to"),
 			});
 			this.setHelpUrl(getHelpUrlFor(this.type));
+			this.setStyle('transform_blocks');
+
 		},
 	};
 
@@ -186,6 +192,8 @@ export function defineTransformBlocks() {
 				tooltip: getTooltip("scale"),
 			});
 			this.setHelpUrl(getHelpUrlFor(this.type));
+			this.setStyle('transform_blocks');
+
 		},
 	};
 
@@ -250,6 +258,8 @@ export function defineTransformBlocks() {
 				tooltip: getTooltip("resize"),
 			});
 			this.setHelpUrl(getHelpUrlFor(this.type));
+			this.setStyle('transform_blocks');
+
 		},
 	};
 
@@ -290,6 +300,8 @@ export function defineTransformBlocks() {
 				tooltip: getTooltip("rotate_model_xyz"),
 			});
 			this.setHelpUrl(getHelpUrlFor(this.type));
+			this.setStyle('transform_blocks');
+
 		},
 	};
 
@@ -330,6 +342,8 @@ export function defineTransformBlocks() {
 				tooltip: getTooltip("rotate_to"),
 			});
 			this.setHelpUrl(getHelpUrlFor(this.type));
+			this.setStyle('transform_blocks');
+
 		},
 	};
 
@@ -363,6 +377,8 @@ export function defineTransformBlocks() {
 				tooltip: getTooltip("look_at"),
 			});
 			this.setHelpUrl(getHelpUrlFor(this.type));
+			this.setStyle('transform_blocks');
+
 		},
 	};
 
@@ -399,6 +415,8 @@ export function defineTransformBlocks() {
 				tooltip: getTooltip("move_forward"),
 			});
 			this.setHelpUrl(getHelpUrlFor(this.type));
+			this.setStyle('transform_blocks');
+
 		},
 	};
 
@@ -436,6 +454,8 @@ export function defineTransformBlocks() {
 				tooltip: getTooltip("set_pivot"),
 			});
 			this.setHelpUrl(getHelpUrlFor(this.type));
+			this.setStyle('transform_blocks');
+
 		},
 	};
 
@@ -460,6 +480,8 @@ export function defineTransformBlocks() {
 				tooltip: getTooltip("min_centre_max"),
 			});
 			this.setHelpUrl(getHelpUrlFor(this.type));
+			this.setStyle('transform_blocks');
+
 		},
 	};
 }

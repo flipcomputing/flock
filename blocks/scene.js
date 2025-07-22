@@ -36,7 +36,7 @@ export function defineSceneBlocks() {
 			tooltip: getTooltip("set_sky_color"),
 		  });
 		  this.setHelpUrl(getHelpUrlFor(this.type));
-
+			this.setStyle('scene_blocks');
 		  this.setOnChange((changeEvent) => {
 			if (
 			  changeEvent.type === Blockly.Events.BLOCK_CREATE ||
@@ -80,7 +80,7 @@ export function defineSceneBlocks() {
 			tooltip: getTooltip("create_ground"),
 		  });
 		  this.setHelpUrl(getHelpUrlFor(this.type));
-
+			this.setStyle('scene_blocks');
 		  this.setOnChange((changeEvent) => {
 			if (
 			  changeEvent.type === Blockly.Events.BLOCK_CREATE ||
@@ -123,6 +123,7 @@ export function defineSceneBlocks() {
 			tooltip: getTooltip("set_background_color"),
 		  });
 		  this.setHelpUrl(getHelpUrlFor(this.type));
+			this.setStyle('scene_blocks');
 		  this.setOnChange((changeEvent) => {
 			if (
 			  changeEvent.type === Blockly.Events.BLOCK_CREATE ||
@@ -173,7 +174,7 @@ export function defineSceneBlocks() {
 			tooltip: getTooltip("create_map"),
 		  });
 		  this.setHelpUrl(getHelpUrlFor(this.type));
-
+			this.setStyle('scene_blocks');
 		  this.setOnChange((changeEvent) => {
 			if (
 			  changeEvent.type === Blockly.Events.BLOCK_CREATE ||
@@ -217,6 +218,7 @@ export function defineSceneBlocks() {
 		  });
 
 		  this.setHelpUrl(getHelpUrlFor(this.type));
+			this.setStyle('scene_blocks');
 		},
 	  };
 
@@ -239,6 +241,7 @@ export function defineSceneBlocks() {
 		  });
 
 		  this.setHelpUrl(getHelpUrlFor(this.type));
+			this.setStyle('scene_blocks');
 		},
 	  };
 
@@ -261,6 +264,7 @@ export function defineSceneBlocks() {
 			tooltip: getTooltip("dispose"),
 		  });
 		  this.setHelpUrl(getHelpUrlFor(this.type));
+			this.setStyle('scene_blocks');
 		},
 	  };
 
@@ -303,6 +307,7 @@ export function defineSceneBlocks() {
 		  });
 
 		   this.setHelpUrl(getHelpUrlFor(this.type));
+			this.setStyle('scene_blocks');
 		  // Add mutator for "constructor-like" initialisation
 		  addDoMutatorWithToggleBehavior(this);
 		},

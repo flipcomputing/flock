@@ -27,6 +27,8 @@ export function defineXRBlocks() {
 			tooltip: getTooltip("device_camera_background"),
 		  });
 		  this.setHelpUrl(getHelpUrlFor(this.type));
+			this.setStyle('scene_blocks');
+
 		},
 	  };
 
@@ -52,6 +54,8 @@ export function defineXRBlocks() {
 			tooltip: getTooltip("set_xr_mode"),
 		  });
 		  this.setHelpUrl(getHelpUrlFor(this.type));
+			this.setStyle('scene_blocks');
+
 		},
 	  };
 }

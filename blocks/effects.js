@@ -1,9 +1,11 @@
 import * as Blockly from "blockly";
 import { categoryColours } from "../toolbox.js";
+import { getHelpUrlFor } from "../blocks.js";
 import {
-	getHelpUrlFor,
-} from "../blocks.js";
-import { translate, getTooltip, getDropdownOption } from "../main/translation.js";
+	translate,
+	getTooltip,
+	getDropdownOption,
+} from "../main/translation.js";
 
 export function defineEffectsBlocks() {
 	Blockly.Blocks["light_intensity"] = {
@@ -24,6 +26,7 @@ export function defineEffectsBlocks() {
 				tooltip: getTooltip("light_intensity"),
 			});
 			this.setHelpUrl(getHelpUrlFor(this.type));
+			this.setStyle("scene_blocks");
 		},
 	};
 
@@ -62,7 +65,7 @@ export function defineEffectsBlocks() {
 				tooltip: getTooltip("set_fog"),
 			});
 			this.setHelpUrl(getHelpUrlFor(this.type));
+			this.setStyle("scene_blocks");
 		},
 	};
 }
-

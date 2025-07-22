@@ -30,6 +30,7 @@ export function defineConnectBlocks() {
 				tooltip: getTooltip("parent"),
 			});
 			this.setHelpUrl(getHelpUrlFor(this.type));
+			this.setStyle('transform_blocks');
 		},
 	};
 
@@ -72,6 +73,8 @@ export function defineConnectBlocks() {
 				tooltip: getTooltip("parent_child"),
 			});
 			this.setHelpUrl(getHelpUrlFor(this.type));
+			this.setStyle('transform_blocks');
+
 		},
 	};
 
@@ -93,6 +96,8 @@ export function defineConnectBlocks() {
 				tooltip: getTooltip("remove_parent"),
 			});
 			this.setHelpUrl(getHelpUrlFor(this.type));
+			this.setStyle('transform_blocks');
+
 		},
 	};
 
@@ -114,6 +119,8 @@ export function defineConnectBlocks() {
 				tooltip: getTooltip("stop_follow"),
 			});
 			this.setHelpUrl(getHelpUrlFor(this.type));
+			this.setStyle('transform_blocks');
+
 		},
 	};
 
@@ -159,6 +166,8 @@ export function defineConnectBlocks() {
 				tooltip: getTooltip("hold"),
 			});
 			this.setHelpUrl(getHelpUrlFor(this.type));
+			this.setStyle('transform_blocks');
+
 		},
 	};
 
@@ -181,6 +190,8 @@ export function defineConnectBlocks() {
 				tooltip: getTooltip("drop"),
 			});
 			this.setHelpUrl(getHelpUrlFor(this.type));
+			this.setStyle('transform_blocks');
+
 		},
 	};
 
@@ -232,6 +243,8 @@ export function defineConnectBlocks() {
 				tooltip: getTooltip("follow"),
 			});
 			this.setHelpUrl(getHelpUrlFor(this.type));
+			this.setStyle('transform_blocks');
+
 		},
 	};
 
@@ -262,6 +275,8 @@ export function defineConnectBlocks() {
 		  tooltip: getTooltip("export_mesh"),
 		});
 		this.setHelpUrl(getHelpUrlFor(this.type));
+		  this.setStyle('transform_blocks');
+		  
 	  },
 	};
 }

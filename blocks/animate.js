@@ -83,6 +83,7 @@ export function defineAnimateBlocks() {
 			tooltip: getTooltip("glide_to"),
 		  });
 		  this.setHelpUrl(getHelpUrlFor(this.type));
+			this.setStyle("animate_blocks");
 		},
 	  };
 

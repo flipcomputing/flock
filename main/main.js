@@ -1,6 +1,6 @@
 // Flock - Creative coding in 3D
 // Dr Tracy Gardner - https://github.com/tracygardner
-// Flip Computing Limited - flipcomputing.com
+// Flip Computing Limithsed - flipcomputing.com
 
 import * as Blockly from "blockly";
 import "@babylonjs/core/Debug/debugLayer";

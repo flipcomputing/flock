@@ -1,20 +1,24 @@
 import * as Blockly from "blockly";
 import { categoryColours } from "../toolbox.js";
 import {
-  nextVariableIndexes,
-  findCreateBlock,
-  handleBlockCreateEvent,
-  handleMeshLifecycleChange,
-  handleFieldOrChildChange,
-  addDoMutatorWithToggleBehavior,
-  getHelpUrlFor,
+	nextVariableIndexes,
+	findCreateBlock,
+	handleBlockCreateEvent,
+	handleMeshLifecycleChange,
+	handleFieldOrChildChange,
+	addDoMutatorWithToggleBehavior,
+	getHelpUrlFor,
 } from "../blocks.js";
 import {
-  deleteMeshFromBlock,
-  updateOrCreateMeshFromBlock,
-  getMeshFromBlock,
+	deleteMeshFromBlock,
+	updateOrCreateMeshFromBlock,
+	getMeshFromBlock,
 } from "../ui/blockmesh.js";
-import { translate, getTooltip, getDropdownOption } from "../main/translation.js";
+import {
+	translate,
+	getTooltip,
+	getDropdownOption,
+} from "../main/translation.js";
 
 export function defineShapeBlocks() {
 	function createShapeBlockDefinition({
@@ -66,6 +70,7 @@ export function defineShapeBlocks() {
 						tooltip: tooltip,
 					});
 					this.setHelpUrl(getHelpUrlFor(this.type));
+					this.setStyle("scene_blocks");
 					// Set up the change handler.
 					this.setOnChange((changeEvent) =>
 						handleBlockChange(
@@ -84,40 +89,42 @@ export function defineShapeBlocks() {
 	}
 
 	function handleBlockChange(block, changeEvent, variableNamePrefix) {
-	  // Always run first to handle variable naming
-	  handleBlockCreateEvent(
-		block,
-		changeEvent,
-		variableNamePrefix,
-		nextVariableIndexes
-	  );
+		// Always run first to handle variable naming
+		handleBlockCreateEvent(
+			block,
+			changeEvent,
+			variableNamePrefix,
+			nextVariableIndexes,
+		);
 
-	  // Handle lifecycle events like enable/disable/move on the block directly
-	  if (changeEvent.blockId === block.id) {
-		if (handleMeshLifecycleChange(block, changeEvent)) return;
-	  }
-
-	  // Handle field changes on self or attached unchainable children
-	  if (handleFieldOrChildChange(block, changeEvent)) return;
-
-	  // Handle BLOCK_CREATE or BLOCK_CHANGE if a child is attached
-	  if (
-		(changeEvent.type === Blockly.Events.BLOCK_CREATE ||
-		  changeEvent.type === Blockly.Events.BLOCK_CHANGE) &&
-		changeEvent.workspaceId === Blockly.getMainWorkspace().id
-	  ) {
-		const changedBlock = Blockly.getMainWorkspace().getBlockById(changeEvent.blockId);
-		const parent = findCreateBlock(changedBlock);
-
-		if (parent === block) {
-		  const blockInWorkspace = Blockly.getMainWorkspace().getBlockById(block.id);
-		  if (blockInWorkspace) {
-			updateOrCreateMeshFromBlock(block, changeEvent);
-		  }
+		// Handle lifecycle events like enable/disable/move on the block directly
+		if (changeEvent.blockId === block.id) {
+			if (handleMeshLifecycleChange(block, changeEvent)) return;
 		}
-	  }
-	}
 
+		// Handle field changes on self or attached unchainable children
+		if (handleFieldOrChildChange(block, changeEvent)) return;
+
+		// Handle BLOCK_CREATE or BLOCK_CHANGE if a child is attached
+		if (
+			(changeEvent.type === Blockly.Events.BLOCK_CREATE ||
+				changeEvent.type === Blockly.Events.BLOCK_CHANGE) &&
+			changeEvent.workspaceId === Blockly.getMainWorkspace().id
+		) {
+			const changedBlock = Blockly.getMainWorkspace().getBlockById(
+				changeEvent.blockId,
+			);
+			const parent = findCreateBlock(changedBlock);
+
+			if (parent === block) {
+				const blockInWorkspace =
+					Blockly.getMainWorkspace().getBlockById(block.id);
+				if (blockInWorkspace) {
+					updateOrCreateMeshFromBlock(block, changeEvent);
+				}
+			}
+		}
+	}
 
 	// Define the particle effect block.
 	Blockly.Blocks["create_particle_effect"] = {
@@ -405,246 +412,257 @@ export function defineShapeBlocks() {
 				nextStatement: null,
 			});
 			this.setHelpUrl(getHelpUrlFor(this.type));
+			this.setStyle("scene_blocks");
 		},
 	};
 
-  Blockly.Blocks["create_box"] = {
-    init: function () {
-      const variableNamePrefix = "box"
-      let nextVariableName =
-        variableNamePrefix + nextVariableIndexes[variableNamePrefix];
-      this.jsonInit({
-        type: "create_box",
-        message0: translate("create_box"),
-        args0: [
-            {
-              type: "field_variable",
-              name: "ID_VAR",
-              variable: nextVariableName,
-            },
-            {
-              type: "input_value",
-              name: "COLOR",
-              check: "Colour",
-              //check: ["Colour", "Array"], // FUTURE
-            },
-            { type: "input_value", name: "WIDTH", check: "Number" },
-            { type: "input_value", name: "HEIGHT", check: "Number" },
-            { type: "input_value", name: "DEPTH", check: "Number" },
-            { type: "input_value", name: "X", check: "Number" },
-            { type: "input_value", name: "Y", check: "Number" },
-            { type: "input_value", name: "Z", check: "Number" },
-          ],
-        previousStatement: null,
-        nextStatement: null,
-        inputsInline: true,
-        colour: categoryColours["Scene"],
-        tooltip: getTooltip("create_box")
-      });
-      this.setHelpUrl(getHelpUrlFor(this.type));
-      // Set up the change handler.
-      this.setOnChange((changeEvent) =>
-        handleBlockChange(
-          this,
-          changeEvent,
-          variableNamePrefix,
-        ),
-      );
-      // Add the mutator with toggle behaviour.
-      addDoMutatorWithToggleBehavior(this);
-    }
-  };
+	Blockly.Blocks["create_box"] = {
+		init: function () {
+			const variableNamePrefix = "box";
+			let nextVariableName =
+				variableNamePrefix + nextVariableIndexes[variableNamePrefix];
+			this.jsonInit({
+				type: "create_box",
+				message0: translate("create_box"),
+				args0: [
+					{
+						type: "field_variable",
+						name: "ID_VAR",
+						variable: nextVariableName,
+					},
+					{
+						type: "input_value",
+						name: "COLOR",
+						check: "Colour",
+						//check: ["Colour", "Array"], // FUTURE
+					},
+					{ type: "input_value", name: "WIDTH", check: "Number" },
+					{ type: "input_value", name: "HEIGHT", check: "Number" },
+					{ type: "input_value", name: "DEPTH", check: "Number" },
+					{ type: "input_value", name: "X", check: "Number" },
+					{ type: "input_value", name: "Y", check: "Number" },
+					{ type: "input_value", name: "Z", check: "Number" },
+				],
+				previousStatement: null,
+				nextStatement: null,
+				inputsInline: true,
+				colour: categoryColours["Scene"],
+				tooltip: getTooltip("create_box"),
+			});
+			this.setHelpUrl(getHelpUrlFor(this.type));
+			this.setStyle("scene_blocks");
 
-  Blockly.Blocks["create_sphere"] = {
-    init: function () {
-      const variableNamePrefix = "sphere"
-      let nextVariableName =
-        variableNamePrefix + nextVariableIndexes[variableNamePrefix];
-      this.jsonInit({
-        type: "create_sphere",
-        message0: translate("create_sphere"),
-        args0: [
-            {
-              type: "field_variable",
-              name: "ID_VAR",
-              variable: nextVariableName,
-            },
-            {
-              type: "input_value",
-              name: "COLOR",
-              check: "Colour",
-              //check: ["Colour", "Array"], // FUTURE
-            },
-            { type: "input_value", name: "DIAMETER_X", check: "Number" },
-            { type: "input_value", name: "DIAMETER_Y", check: "Number" },
-            { type: "input_value", name: "DIAMETER_Z", check: "Number" },
-            { type: "input_value", name: "X", check: "Number" },
-            { type: "input_value", name: "Y", check: "Number" },
-            { type: "input_value", name: "Z", check: "Number" },
-          ],
-        previousStatement: null,
-        nextStatement: null,
-        inputsInline: true,
-        colour: categoryColours["Scene"],
-        tooltip: getTooltip("create_sphere")
-      });
-      this.setHelpUrl(getHelpUrlFor(this.type));
-      // Set up the change handler.
-      this.setOnChange((changeEvent) =>
-        handleBlockChange(
-          this,
-          changeEvent,
-          variableNamePrefix,
-        ),
-      );
-      // Add the mutator with toggle behaviour.
-      addDoMutatorWithToggleBehavior(this);
-    }
-  };
+			// Set up the change handler.
+			this.setOnChange((changeEvent) =>
+				handleBlockChange(this, changeEvent, variableNamePrefix),
+			);
+			// Add the mutator with toggle behaviour.
+			addDoMutatorWithToggleBehavior(this);
+		},
+	};
 
-  Blockly.Blocks["create_cylinder"] = {
-    init: function () {
-      const variableNamePrefix = "cylinder"
-      let nextVariableName =
-        variableNamePrefix + nextVariableIndexes[variableNamePrefix];
-      this.jsonInit({
-        type: "create_cylinder",
-        message0: translate("create_cylinder"),
-        args0: [
-            {
-              type: "field_variable",
-              name: "ID_VAR",
-              variable: nextVariableName,
-            },
-            {
-              type: "input_value",
-              name: "COLOR",
-              check: "Colour",
-              //check: ["Colour", "Array"], // FUTURE
-            },
-            { type: "input_value", name: "HEIGHT", check: "Number" },
-            { type: "input_value", name: "DIAMETER_TOP", check: "Number" },
-            {
-              type: "input_value",
-              name: "DIAMETER_BOTTOM",
-              check: "Number",
-            },
-            { type: "input_value", name: "TESSELLATIONS", check: "Number" },
-            { type: "input_value", name: "X", check: "Number" },
-            { type: "input_value", name: "Y", check: "Number" },
-            { type: "input_value", name: "Z", check: "Number" },
-          ],
-        previousStatement: null,
-        nextStatement: null,
-        inputsInline: true,
-        colour: categoryColours["Scene"],
-        tooltip: getTooltip("create_cylinder")
-      });
-      this.setHelpUrl(getHelpUrlFor(this.type));
-      // Set up the change handler.
-      this.setOnChange((changeEvent) =>
-        handleBlockChange(
-          this,
-          changeEvent,
-          variableNamePrefix,
-        ),
-      );
-      // Add the mutator with toggle behaviour.
-      addDoMutatorWithToggleBehavior(this);
-    }
-  };
+	Blockly.Blocks["create_sphere"] = {
+		init: function () {
+			const variableNamePrefix = "sphere";
+			let nextVariableName =
+				variableNamePrefix + nextVariableIndexes[variableNamePrefix];
+			this.jsonInit({
+				type: "create_sphere",
+				message0: translate("create_sphere"),
+				args0: [
+					{
+						type: "field_variable",
+						name: "ID_VAR",
+						variable: nextVariableName,
+					},
+					{
+						type: "input_value",
+						name: "COLOR",
+						check: "Colour",
+						//check: ["Colour", "Array"], // FUTURE
+					},
+					{
+						type: "input_value",
+						name: "DIAMETER_X",
+						check: "Number",
+					},
+					{
+						type: "input_value",
+						name: "DIAMETER_Y",
+						check: "Number",
+					},
+					{
+						type: "input_value",
+						name: "DIAMETER_Z",
+						check: "Number",
+					},
+					{ type: "input_value", name: "X", check: "Number" },
+					{ type: "input_value", name: "Y", check: "Number" },
+					{ type: "input_value", name: "Z", check: "Number" },
+				],
+				previousStatement: null,
+				nextStatement: null,
+				inputsInline: true,
+				colour: categoryColours["Scene"],
+				tooltip: getTooltip("create_sphere"),
+			});
+			this.setHelpUrl(getHelpUrlFor(this.type));
+			this.setStyle("scene_blocks");
 
-  Blockly.Blocks["create_capsule"] = {
-    init: function () {
-      const variableNamePrefix = "capsule"
-      let nextVariableName =
-        variableNamePrefix + nextVariableIndexes[variableNamePrefix];
-      this.jsonInit({
-        type: "create_capsule",
-        message0: translate("create_capsule"),
-        args0: [
-            {
-              type: "field_variable",
-              name: "ID_VAR",
-              variable: nextVariableName,
-            },
-            {
-              type: "input_value",
-              name: "COLOR",
-              check: "Colour",
-              //check: ["Colour", "Array"], // FUTURE
-            },
-            { type: "input_value", name: "DIAMETER", check: "Number" },
-            { type: "input_value", name: "HEIGHT", check: "Number" },
-            { type: "input_value", name: "X", check: "Number" },
-            { type: "input_value", name: "Y", check: "Number" },
-            { type: "input_value", name: "Z", check: "Number" },
-          ],
-        previousStatement: null,
-        nextStatement: null,
-        inputsInline: true,
-        colour: categoryColours["Scene"],
-        tooltip: getTooltip("create_capsule")
-      });
-      this.setHelpUrl(getHelpUrlFor(this.type));
-      // Set up the change handler.
-      this.setOnChange((changeEvent) =>
-        handleBlockChange(
-          this,
-          changeEvent,
-          variableNamePrefix,
-        ),
-      );
-      // Add the mutator with toggle behaviour.
-      addDoMutatorWithToggleBehavior(this);
-    }
-  };
+			// Set up the change handler.
+			this.setOnChange((changeEvent) =>
+				handleBlockChange(this, changeEvent, variableNamePrefix),
+			);
+			// Add the mutator with toggle behaviour.
+			addDoMutatorWithToggleBehavior(this);
+		},
+	};
 
-  Blockly.Blocks["create_plane"] = {
-    init: function () {
-      const variableNamePrefix = "plane"
-      let nextVariableName =
-        variableNamePrefix + nextVariableIndexes[variableNamePrefix];
-      this.jsonInit({
-        type: "create_plane",
-        message0: translate("create_plane"),
-        args0: [
-            {
-              type: "field_variable",
-              name: "ID_VAR",
-              variable: nextVariableName,
-            },
-            {
-              type: "input_value",
-              name: "COLOR",
-              check: "Colour",
-              //check: ["Colour", "Array"], // FUTURE
-            },
-            { type: "input_value", name: "WIDTH", check: "Number" },
-            { type: "input_value", name: "HEIGHT", check: "Number" },
-            { type: "input_value", name: "X", check: "Number" },
-            { type: "input_value", name: "Y", check: "Number" },
-            { type: "input_value", name: "Z", check: "Number" },
-          ],
-        previousStatement: null,
-        nextStatement: null,
-        inputsInline: true,
-        colour: categoryColours["Scene"],
-        tooltip: getTooltip("create_plane")
-      });
-      this.setHelpUrl(getHelpUrlFor(this.type));
-      // Set up the change handler.
-      this.setOnChange((changeEvent) =>
-        handleBlockChange(
-          this,
-          changeEvent,
-          variableNamePrefix,
-        ),
-      );
-      // Add the mutator with toggle behaviour.
-      addDoMutatorWithToggleBehavior(this);
-    }
-  };
+	Blockly.Blocks["create_cylinder"] = {
+		init: function () {
+			const variableNamePrefix = "cylinder";
+			let nextVariableName =
+				variableNamePrefix + nextVariableIndexes[variableNamePrefix];
+			this.jsonInit({
+				type: "create_cylinder",
+				message0: translate("create_cylinder"),
+				args0: [
+					{
+						type: "field_variable",
+						name: "ID_VAR",
+						variable: nextVariableName,
+					},
+					{
+						type: "input_value",
+						name: "COLOR",
+						check: "Colour",
+						//check: ["Colour", "Array"], // FUTURE
+					},
+					{ type: "input_value", name: "HEIGHT", check: "Number" },
+					{
+						type: "input_value",
+						name: "DIAMETER_TOP",
+						check: "Number",
+					},
+					{
+						type: "input_value",
+						name: "DIAMETER_BOTTOM",
+						check: "Number",
+					},
+					{
+						type: "input_value",
+						name: "TESSELLATIONS",
+						check: "Number",
+					},
+					{ type: "input_value", name: "X", check: "Number" },
+					{ type: "input_value", name: "Y", check: "Number" },
+					{ type: "input_value", name: "Z", check: "Number" },
+				],
+				previousStatement: null,
+				nextStatement: null,
+				inputsInline: true,
+				colour: categoryColours["Scene"],
+				tooltip: getTooltip("create_cylinder"),
+			});
+			this.setHelpUrl(getHelpUrlFor(this.type));
+			this.setStyle("scene_blocks");
+
+			// Set up the change handler.
+			this.setOnChange((changeEvent) =>
+				handleBlockChange(this, changeEvent, variableNamePrefix),
+			);
+			// Add the mutator with toggle behaviour.
+			addDoMutatorWithToggleBehavior(this);
+		},
+	};
+
+	Blockly.Blocks["create_capsule"] = {
+		init: function () {
+			const variableNamePrefix = "capsule";
+			let nextVariableName =
+				variableNamePrefix + nextVariableIndexes[variableNamePrefix];
+			this.jsonInit({
+				type: "create_capsule",
+				message0: translate("create_capsule"),
+				args0: [
+					{
+						type: "field_variable",
+						name: "ID_VAR",
+						variable: nextVariableName,
+					},
+					{
+						type: "input_value",
+						name: "COLOR",
+						check: "Colour",
+						//check: ["Colour", "Array"], // FUTURE
+					},
+					{ type: "input_value", name: "DIAMETER", check: "Number" },
+					{ type: "input_value", name: "HEIGHT", check: "Number" },
+					{ type: "input_value", name: "X", check: "Number" },
+					{ type: "input_value", name: "Y", check: "Number" },
+					{ type: "input_value", name: "Z", check: "Number" },
+				],
+				previousStatement: null,
+				nextStatement: null,
+				inputsInline: true,
+				colour: categoryColours["Scene"],
+				tooltip: getTooltip("create_capsule"),
+			});
+			this.setHelpUrl(getHelpUrlFor(this.type));
+			this.setStyle("scene_blocks");
+
+			// Set up the change handler.
+			this.setOnChange((changeEvent) =>
+				handleBlockChange(this, changeEvent, variableNamePrefix),
+			);
+			// Add the mutator with toggle behaviour.
+			addDoMutatorWithToggleBehavior(this);
+		},
+	};
+
+	Blockly.Blocks["create_plane"] = {
+		init: function () {
+			const variableNamePrefix = "plane";
+			let nextVariableName =
+				variableNamePrefix + nextVariableIndexes[variableNamePrefix];
+			this.jsonInit({
+				type: "create_plane",
+				message0: translate("create_plane"),
+				args0: [
+					{
+						type: "field_variable",
+						name: "ID_VAR",
+						variable: nextVariableName,
+					},
+					{
+						type: "input_value",
+						name: "COLOR",
+						check: "Colour",
+						//check: ["Colour", "Array"], // FUTURE
+					},
+					{ type: "input_value", name: "WIDTH", check: "Number" },
+					{ type: "input_value", name: "HEIGHT", check: "Number" },
+					{ type: "input_value", name: "X", check: "Number" },
+					{ type: "input_value", name: "Y", check: "Number" },
+					{ type: "input_value", name: "Z", check: "Number" },
+				],
+				previousStatement: null,
+				nextStatement: null,
+				inputsInline: true,
+				colour: categoryColours["Scene"],
+				tooltip: getTooltip("create_plane"),
+			});
+			this.setHelpUrl(getHelpUrlFor(this.type));
+			this.setStyle("scene_blocks");
+
+			// Set up the change handler.
+			this.setOnChange((changeEvent) =>
+				handleBlockChange(this, changeEvent, variableNamePrefix),
+			);
+			// Add the mutator with toggle behaviour.
+			addDoMutatorWithToggleBehavior(this);
+		},
+	};
 
 	Blockly.Blocks["control_particle_system"] = {
 		init: function () {
@@ -674,8 +692,8 @@ export function defineShapeBlocks() {
 				tooltip: getTooltip("control_particle_system"),
 				helpUrl: "",
 			});
-		this.setHelpUrl(getHelpUrlFor(this.type));
+			this.setHelpUrl(getHelpUrlFor(this.type));
+			this.setStyle("scene_blocks");
 		},
 	};
 }
-

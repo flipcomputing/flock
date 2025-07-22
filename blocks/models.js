@@ -109,6 +109,7 @@ export function defineModelBlocks() {
 				nextStatement: null,
 			});
 			this.setHelpUrl(getHelpUrlFor(this.type));
+			this.setStyle("scene_blocks");
 
 			this.setOnChange((changeEvent) => {
 				// Always handle variable naming first (even if mesh is skipped)
@@ -210,6 +211,8 @@ export function defineModelBlocks() {
 				nextStatement: null,
 			});
 			this.setHelpUrl(getHelpUrlFor(this.type));
+			this.setStyle("scene_blocks");
+
 			// Function to update the COLOR field based on the selected model
 			const updateColorField = () => {
 				const selectedObject = this.getFieldValue("MODELS");
@@ -312,6 +315,8 @@ export function defineModelBlocks() {
 				nextStatement: null,
 			});
 			this.setHelpUrl(getHelpUrlFor(this.type));
+			this.setStyle("scene_blocks");
+
 			// Change from a local constant to a method on the block prototype
 			Blockly.Blocks["load_multi_object"].updateColorsField =
 				function () {
@@ -409,6 +414,7 @@ export function defineModelBlocks() {
 						listBlock.setHelpUrl(
 							"https://developers.google.com/blockly/guides/create-custom-blocks/define-blocks",
 						);
+
 						listBlock.initSvg();
 						listBlock.render();
 						colorsInput.connection.connect(
@@ -552,6 +558,8 @@ export function defineModelBlocks() {
 			});
 
 			this.setHelpUrl(getHelpUrlFor(this.type));
+			this.setStyle("scene_blocks");
+
 			this.setOnChange((changeEvent) => {
 				handleBlockCreateEvent(
 					this,
