@@ -2787,18 +2787,21 @@ export function defineGenerators() {
 			block.getFieldValue("MESH"),
 			Blockly.Names.NameType.VARIABLE,
 		);
-
 		const material = javascriptGenerator.valueToCode(
 			block,
 			"MATERIAL",
 			javascriptGenerator.ORDER_ATOMIC,
 		);
 
-		// Ensure the MATERIAL input is wrapped in an array if not already one
-		const code = `setMaterial(${meshVar}, Array.isArray(${material}) ? ${material} : [${material}]);\n`;
+		// Generate a unique temporary variable name
+		const tempVar = javascriptGenerator.nameDB_.getDistinctName(
+			"material_temp",
+			Blockly.Names.NameType.VARIABLE,
+		);
+
+		const code = `const ${tempVar} = ${material};\nsetMaterial(${meshVar}, Array.isArray(${tempVar}) ? ${tempVar} : [${tempVar}]);\n`;
 		return code;
 	};
-
 	javascriptGenerator.forBlock["skin_colour"] = function (block) {
 		const colour = block.getFieldValue("COLOR");
 		const code = `"${colour}"`;
