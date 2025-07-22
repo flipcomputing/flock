@@ -2787,6 +2787,17 @@ export function defineGenerators() {
 			block.getFieldValue("MESH"),
 			Blockly.Names.NameType.VARIABLE,
 		);
+
+		// Get the connected block and log its type
+		const materialInput = block.getInput('MATERIAL');
+		const connectedBlock = materialInput?.connection?.targetBlock();
+
+		if (connectedBlock) {
+			console.log(`Block type: ${connectedBlock.type}`);
+		} else {
+			console.log('No block connected');
+		}
+
 		const material = javascriptGenerator.valueToCode(
 			block,
 			"MATERIAL",
@@ -2798,10 +2809,10 @@ export function defineGenerators() {
 			"material_temp",
 			Blockly.Names.NameType.VARIABLE,
 		);
-
 		const code = `const ${tempVar} = ${material};\nsetMaterial(${meshVar}, Array.isArray(${tempVar}) ? ${tempVar} : [${tempVar}]);\n`;
 		return code;
 	};
+	
 	javascriptGenerator.forBlock["skin_colour"] = function (block) {
 		const colour = block.getFieldValue("COLOR");
 		const code = `"${colour}"`;
