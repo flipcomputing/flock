@@ -304,7 +304,7 @@ export function runMaterialsTests(flock) {
 	  });
 	});
   
-	describe("changeMaterial method", function () {
+	describe("setting a material scenarios", function () {
 	  const boxIds = [];
 
 	  async function createTestBox(id) {
@@ -324,6 +324,16 @@ export function runMaterialsTests(flock) {
 		return id;
 	  }
 
+    async function createTestTree(id) {
+      await flock.createObject({
+  			modelName: 'tree.glb',
+  			modelId: id,
+  			color: ["#66cdaa", "#cd853f"],
+  			scale: 1,
+  			position: { x: 0, y: 0, z: 0 }
+  		});
+    }
+
 	  beforeEach(async function () {
 		flock.scene ??= {};
 	  });
@@ -335,7 +345,7 @@ export function runMaterialsTests(flock) {
 		boxIds.length = 0;
 	  });
 
-	  it("should create one new material", async function () {
+	  it("should create one new material for a box", async function () {
 		const id = "boxCreateMaterialTexture";
 		await createTestBox(id);
 		boxIds.push(id);
@@ -352,10 +362,12 @@ export function runMaterialsTests(flock) {
 		expect(flock.scene.materials.length).to.equal(materialsBefore + 1);
 	  });
 
-	  it("should delete the old material", async function () {
+	  it("should delete the old material for a box", async function () {
 		const id = "boxCreateMaterialTexture";
 		await createTestBox(id);
 		boxIds.push(id);
+
+    const materialsBefore = flock.scene.materials.length;
 
 		const color = "#FF00FF";
 		const material = flock.createMaterial({
@@ -364,11 +376,47 @@ export function runMaterialsTests(flock) {
 		  alpha: 0.5,
 		});
 
-    const materialsBefore = flock.scene.materials.length;
-
     flock.setMaterial(id, material);
 
-		expect(flock.scene.materials.length).to.equal(materialsBefore - 1);
+		expect(flock.scene.materials.length).to.equal(materialsBefore);
+	  });
+
+	  it("should create two new materials for a tree", async function () {
+		const id = "boxCreateMaterialTexture";
+		await createTestTree(id);
+		boxIds.push(id);
+
+    const materialsBefore = flock.scene.materials.length;
+
+    const material_temp = [flock.createMaterial({ color: "#00ffff", materialName: "leaves.png", alpha: 1 }), flock.createMaterial({ color: "#ff6600", materialName: "marble.png", alpha: 1 })];
+
+		expect(flock.scene.materials.length).to.equal(materialsBefore + 2);
+	  });
+
+	  it("should delete the old materials for a tree", async function () {
+
+    console.log(flock.scene.materials);
+
+		const id = "boxCreateMaterialTexture";
+		await createTestTree(id);
+		boxIds.push(id);
+
+    const materialsBefore = flock.scene.materials.length;
+
+    console.log(flock.scene.materials, flock.scene.materials.length);
+    flock.scene.materials.forEach(mat => console.log(mat.id));
+
+    const material_temp = [flock.createMaterial({ color: "#00ffff", materialName: "leaves.png", alpha: 1 }), flock.createMaterial({ color: "#ff6600", materialName: "marble.png", alpha: 1 })];
+
+    console.log(flock.scene.materials, flock.scene.materials.length);
+    flock.scene.materials.forEach(mat => console.log(mat.id));
+
+    flock.setMaterial(id, material_temp);
+
+    console.log(flock.scene.materials, flock.scene.materials.length);
+    flock.scene.materials.forEach(mat => console.log(mat.id));
+  
+		expect(flock.scene.materials.length).to.equal(materialsBefore);
 	  });
 	});
 }
