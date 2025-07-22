@@ -145,7 +145,7 @@ export const flockModels = {
     callback = null,
     applyColor = true,
   } = {}) {
-    //console.log("📦 [model] Creating object", modelName, modelId);
+    console.log("📦 [model] Creating object", modelName, modelId);
     try {
       if (applyColor) {
         if (!color && flock.objectColours && flock.objectColours[modelName]) {
@@ -233,7 +233,7 @@ export const flockModels = {
             .getDescendants(false)
             .filter((node) => node instanceof flock.BABYLON.AbstractMesh),
         ];
-
+  
         allDescendantMeshes.forEach((mesh) => {
           mesh.isPickable = true;
           mesh.setEnabled(true);
@@ -256,7 +256,7 @@ export const flockModels = {
 
         return meshName;
       }
-
+  
       if (flock.modelsBeingLoaded[modelName]) {
         // 👇 Create a deferred promise to resolve later
         let resolveLater;
@@ -319,7 +319,6 @@ export const flockModels = {
 
         return meshName;
       }
-
       // ✅ Create and immediately register the promise
       const loadPromise = flock.BABYLON.SceneLoader.LoadAssetContainerAsync(
         flock.modelPath,
@@ -344,6 +343,13 @@ export const flockModels = {
           firstMesh.getChildMeshes().forEach((child) => {
             child.isPickable = false;
             child.setEnabled(false);
+          });
+          
+          container.meshes.forEach(mesh => {
+            if (mesh.id != "__root__") {
+              mesh.material.metadata = mesh.material.metadata || {};
+              mesh.material.metadata.internal = true;
+            }
           });
 
           flock.modelCache[modelName] = firstMesh;

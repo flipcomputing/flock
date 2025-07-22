@@ -497,15 +497,15 @@ export const flockMaterial = {
   },
   setMaterial(meshName, materials) {
     return flock.whenModelReady(meshName, (mesh) => {
-      if (materials.length === 1) {
-        if (mesh.material.metadata?.internal) {
-          mesh.material.dispose();
+      const allMeshes = [mesh].concat(mesh.getDescendants());
+      allMeshes.forEach((part) => {
+        if (part.material?.metadata?.internal) {
+          part.material.dispose();
         }
-      }
+      });
 
       if (flock.materialsDebug)
         console.log(`Setting material of ${meshName} to ${materials}:`);
-      const allMeshes = [mesh].concat(mesh.getDescendants());
       const validMeshes = allMeshes.filter(
         (part) => part instanceof flock.BABYLON.Mesh,
       );
