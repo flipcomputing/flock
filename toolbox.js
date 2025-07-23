@@ -30,7 +30,8 @@ const toolboxSceneMeshes = {
 	kind: "category",
 	name: "%{BKY_CATEGORY_MESHES}",
 	icon: "./images/meshes.svg",
-	colour: categoryColours["Scene"],
+	//colour: categoryColours["Scene"],
+	categorystyle: "scene_category",
 	contents: [
 		{
 			kind: "block",
@@ -589,7 +590,8 @@ const toolboxSceneXR = {
 	kind: "category",
 	name: "%{BKY_CATEGORY_XR}",
 	icon: "./images/xr.svg",
-	colour: categoryColours["Scene"],
+	//colour: categoryColours["Scene"],
+	categorystyle: "scene_category",
 	contents: [
 		{
 			kind: "block",
@@ -613,7 +615,8 @@ const toolboxSceneLights = {
 	kind: "category",
 	name: "%{BKY_CATEGORY_EFFECTS}",
 	icon: "./images/lights.svg",
-	colour: categoryColours["Scene"],
+	//colour: categoryColours["Scene"],
+	categorystyle: "scene_category",
 	contents: [
 		{
 			kind: "block",
@@ -802,7 +805,8 @@ const toolboxSceneCamera = {
 	kind: "category",
 	name: "%{BKY_CATEGORY_CAMERA}",
 	icon: "./images/camera.svg",
-	colour: categoryColours["Scene"],
+	//colour: categoryColours["Scene"],
+	categorystyle: "scene_category",
 	contents: [
 		{
 			kind: "block",
@@ -836,7 +840,8 @@ const toolboxScene = {
 	kind: "category",
 	name: "%{BKY_CATEGORY_SCENE}",
 	icon: "./images/scene.svg",
-	colour: categoryColours["Scene"],
+	//colour: categoryColours["Scene"],
+	categorystyle: "scene_category",
 	contents: [
 		{
 			kind: "block",
@@ -955,7 +960,8 @@ const toolboxEvents = {
 	kind: "category",
 	name: "%{BKY_CATEGORY_EVENTS}",
 	icon: "./images/events.svg",
-	colour: categoryColours["Events"],
+	//colour: categoryColours["Events"],
+	categorystyle: "events_category",
 	contents: [
 		{
 			kind: "block",
@@ -1019,7 +1025,8 @@ const toolboxTransformPhysics = {
 	kind: "category",
 	name: "%{BKY_CATEGORY_PHYSICS}",
 	icon: "./images/physics.svg",
-	colour: categoryColours["Transform"],
+	//colour: categoryColours["Transform"],
+	categorystyle: "transform_category",
 	contents: [
 		{
 			kind: "block",
@@ -1069,7 +1076,8 @@ const toolboxTransformConnect = {
 	kind: "category",
 	name: "%{BKY_CATEGORY_CONNECT}",
 	icon: "./images/connect.svg",
-	colour: categoryColours["Transform"],
+	//colour: categoryColours["Transform"],
+	categorystyle: "transform_category",
 	contents: [
 		{
 			kind: "block",
@@ -1191,7 +1199,8 @@ const toolboxTransformCombine = {
 	kind: "category",
 	name: "%{BKY_CATEGORY_COMBINE}",
 	icon: "./images/combine.svg",
-	colour: categoryColours["Transform"],
+	//colour: categoryColours["Transform"],
+	categorystyle: "transform_category",
 	contents: [
 		{
 			kind: "block",
@@ -1304,7 +1313,8 @@ const toolboxTransform = {
 	kind: "category",
 	name: "%{BKY_CATEGORY_TRANSFORM}",
 	icon: "./images/motion.svg",
-	colour: categoryColours["Transform"],
+	//colour: categoryColours["Transform"],
+	categorystyle: "transform_category",
 	contents: [
 		{
 			kind: "block",
@@ -1587,7 +1597,8 @@ const toolboxAnimateKeyframe = {
 	kind: "category",
 	name: "%{BKY_CATEGORY_KEYFRAME}",
 	icon: "./images/keyframe.svg",
-	colour: categoryColours["Animate"],
+	//colour: categoryColours["Animate"],
+	categorystyle: "animate_category",
 	contents: [
 		{
 			kind: "block",
@@ -1785,7 +1796,8 @@ const toolboxAnimate = {
 	kind: "category",
 	name: "%{BKY_CATEGORY_ANIMATE}",
 	icon: "./images/animate.svg",
-	colour: categoryColours["Animate"],
+	//colour: categoryColours["Animate"],
+	categorystyle: "animate_category",
 	contents: [
 		{
 			kind: "block",
@@ -1888,7 +1900,8 @@ const toolboxControl = {
 	kind: "category",
 	name: "%{BKY_CATEGORY_CONTROL}",
 	icon: "./images/control.svg",
-	colour: categoryColours["Control"],
+	//colour: categoryColours["Control"],
+	categorystyle: "control_category",
 	contents: [
 		{
 			kind: "block",
@@ -2030,7 +2043,8 @@ const toolboxCondition = {
 	kind: "category",
 	name: "%{BKY_CATEGORY_CONDITION}",
 	icon: "./images/conditions.svg",
-	colour: categoryColours["Logic"],
+	//colour: categoryColours["Logic"],
+	categorystyle: "logic_category",
 	contents: [
 		{
 			kind: "block",
@@ -2084,7 +2098,8 @@ const toolboxSensing = {
 	kind: "category",
 	name: "%{BKY_CATEGORY_SENSING}",
 	icon: "./images/sensing.svg",
-	colour: categoryColours["Sensing"],
+	//colour: categoryColours["Sensing"],
+	categorystyle: "sensing_category",
 	contents: [
 		{
 			kind: "block",
@@ -2153,7 +2168,8 @@ const toolboxText = {
 	kind: "category",
 	name: "%{BKY_CATEGORY_TEXT}",
 	icon: "./images/text.svg",
-	colour: categoryColours["Text"],
+	//colour: categoryColours["Text"],
+	categorystyle: "text_category",
 	contents: [
 		{
 			kind: "block",
@@ -2554,7 +2570,8 @@ const toolboxText = {
 			kind: "category",
 			name: "%{BKY_CATEGORY_STRINGS}",
 			icon: "./images/text.svg",
-			colour: categoryColours["Text"],
+			//colour: categoryColours["Text"],
+			categorystyle: "text_category",
 			contents: [
 				{
 					kind: "block",
@@ -2767,7 +2784,8 @@ const toolboxMaterials = {
 	kind: "category",
 	name: "%{BKY_CATEGORY_MATERIALS}",
 	icon: "./images/looks.svg",
-	colour: categoryColours["Materials"],
+	//colour: categoryColours["Materials"],
+	categorystyle: "materials_category",
 	contents: [
 		{
 			kind: "block",
@@ -2976,7 +2994,8 @@ const toolboxSound = {
 	kind: "category",
 	name: "%{BKY_CATEGORY_SOUND}",
 	icon: "./images/sound.svg",
-	colour: categoryColours["Sound"],
+	//colour: categoryColours["Sound"],
+	categorystyle: "sound_category",
 	contents: [
 		{
 			kind: "block",
@@ -3128,7 +3147,8 @@ const toolboxVariables = {
 	kind: "category",
 	name: "%{BKY_CATEGORY_VARIABLES}",
 	icon: "./images/variables.svg",
-	colour: categoryColours["Variables"],
+	//colour: categoryColours["Variables"],
+	categorystyle: "variables_category",
 	custom: "VARIABLE",
 	contents: [],
 };
@@ -3137,7 +3157,8 @@ const toolboxLists = {
 	kind: "category",
 	name: "%{BKY_CATEGORY_LISTS}",
 	icon: "./images/lists.svg",
-	colour: categoryColours["Lists"],
+	//colour: categoryColours["Lists"],
+	categorystyle: "lists_category",
 	contents: [
 		{
 			kind: "block",
@@ -3203,7 +3224,8 @@ const toolboxMath = {
 	kind: "category",
 	name: "%{BKY_CATEGORY_MATH}",
 	icon: "./images/math.svg",
-	colour: categoryColours["Math"],
+	//colour: categoryColours["Math"],
+	categorystyle: "math_category",
 	contents: [
 		{
 			kind: "block",
@@ -3369,7 +3391,8 @@ const toolboxMath = {
 const toolboxSnippets = {
 	kind: "category",
 	icon: "./images/snippets.svg",
-	colour: categoryColours["Snippets"],
+	//colour: categoryColours["Snippets"],
+	categorystyle: "snippets_category",
 	name: "%{BKY_CATEGORY_SNIPPETS}",
 	contents: [
 		{

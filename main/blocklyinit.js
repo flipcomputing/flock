@@ -5,7 +5,7 @@ import { FieldGridDropdown } from "@blockly/field-grid-dropdown";
 import { WorkspaceSearch } from "@blockly/plugin-workspace-search";
 import * as BlockDynamicConnection from "@blockly/block-dynamic-connection";
 import { CrossTabCopyPaste } from "@blockly/plugin-cross-tab-copy-paste";
-import { initializeTheme } from "./themes.js";
+import { initializeTheme} from "./themes.js";
 import {
 	options,
 	defineBlocks,
