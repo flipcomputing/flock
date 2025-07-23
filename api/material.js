@@ -497,8 +497,8 @@ export const flockMaterial = {
   },
   setMaterial(meshName, materials) {
     return flock.whenModelReady(meshName, (mesh) => {
-      // Normalize inputs
-      materials = materials.flatMap(entry => {
+      // ————— Normalize inputs to an array of BABYLON.Material —————
+    /*  materials = materials.flatMap(entry => {
         // 1. If it’s an array, recurse into it:
         if (Array.isArray(entry)) {
           return entry.map(params => createMaterial(params));
@@ -513,7 +513,7 @@ export const flockMaterial = {
         }
 
         return [ entry ];
-      });
+      });*/
       
       const allMeshes = [mesh].concat(mesh.getDescendants());
       allMeshes.forEach((part) => {
