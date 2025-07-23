@@ -2789,13 +2789,37 @@ export function defineGenerators() {
 		);
 
 		// Get the connected block and log its type
-		const materialInput = block.getInput('MATERIAL');
+		const materialInput = block.getInput("MATERIAL");
 		const connectedBlock = materialInput?.connection?.targetBlock();
 
 		if (connectedBlock) {
 			console.log(`Block type: ${connectedBlock.type}`);
 		} else {
-			console.log('No block connected');
+			console.log("No block connected");
+		}
+
+		if (connectedBlock && connectedBlock.type === "material") {
+			console.log(">> material block:", connectedBlock);
+
+			console.log("Texture:", connectedBlock.getFieldValue("TEXTURE_SET"));
+			connectedBlock.inputList.forEach((input) => {
+				const target = input.connection?.targetBlock();
+				console.log(
+					`    Input "${input.name}":`,
+					target
+						? `connected to type "${target.type}" (id=${target.id})`
+						: "no connection",
+				);
+
+
+
+				const codeVal = javascriptGenerator.valueToCode(
+					connectedBlock,
+					input.name,
+					javascriptGenerator.ORDER_ATOMIC,
+				);
+				console.log(`        Value code for "${input.name}":`, codeVal);
+			});
 		}
 
 		const material = javascriptGenerator.valueToCode(
@@ -2812,7 +2836,7 @@ export function defineGenerators() {
 		const code = `const ${tempVar} = ${material};\nsetMaterial(${meshVar}, Array.isArray(${tempVar}) ? ${tempVar} : [${tempVar}]);\n`;
 		return code;
 	};
-	
+
 	javascriptGenerator.forBlock["skin_colour"] = function (block) {
 		const colour = block.getFieldValue("COLOR");
 		const code = `"${colour}"`;
