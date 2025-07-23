@@ -498,6 +498,8 @@ export const flockMaterial = {
 
   setMaterial(meshName, materials) {
 
+    console.log(materials);
+
     materials = materials.map(material => {
       if (material instanceof flock.BABYLON.Material) {
         console.log("Material passed in");

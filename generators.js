@@ -2798,52 +2798,66 @@ export function defineGenerators() {
 			console.log("No block connected");
 		}
 
-    let material;
+    function getMaterial(materialBlock) {
+      let material;
 
-		if (connectedBlock && connectedBlock.type === "material") {
-			console.log(">> material block:", connectedBlock);
+      if (materialBlock && materialBlock.type === "material") {
+        console.log(">> material block:", materialBlock);
 
-			console.log("Texture:", connectedBlock.getFieldValue("TEXTURE_SET"));
-      let inputs = {};
-			connectedBlock.inputList.forEach((input) => {
-				const target = input.connection?.targetBlock();
-				console.log(
-					`    Input "${input.name}":`,
-					target
-						? `connected to type "${target.type}" (id=${target.id})`
-						: "no connection",
-				);
+        console.log("Texture:", materialBlock.getFieldValue("TEXTURE_SET"));
+        let inputs = {};
+        materialBlock.inputList.forEach((input) => {
+          const target = input.connection?.targetBlock();
+          console.log(
+            `    Input "${input.name}":`,
+            target
+              ? `connected to type "${target.type}" (id=${target.id})`
+              : "no connection",
+          );
 
 
 
-				const codeVal = javascriptGenerator.valueToCode(
-					connectedBlock,
-					input.name,
-					javascriptGenerator.ORDER_ATOMIC,
-				);
-        inputs[input.name] = codeVal;
-				console.log(`        Value code for "${input.name}":`, codeVal);
-			});
-      const texture = connectedBlock.getFieldValue("TEXTURE_SET");
-      const colour  = inputs["BASE_COLOR"];
-      const alpha   = inputs["ALPHA"];
+          const codeVal = javascriptGenerator.valueToCode(
+            materialBlock,
+            input.name,
+            javascriptGenerator.ORDER_ATOMIC,
+          );
+          inputs[input.name] = codeVal;
+          console.log(`        Value code for "${input.name}":`, codeVal);
+        });
+        const texture = materialBlock.getFieldValue("TEXTURE_SET");
+        const colour  = inputs["BASE_COLOR"];
+        const alpha   = inputs["ALPHA"];
 
-      material = `{ materialName : "${texture}", color : ${colour}, alpha : ${alpha} }`;
-      console.log(material);
-	 	} else {
-        material = javascriptGenerator.valueToCode(
-          block,
-          "MATERIAL",
-          javascriptGenerator.ORDER_ATOMIC,
-        );
+        material = `{ materialName : "${texture}", color : ${colour}, alpha : ${alpha} }`;
+        console.log(material);
+      } else {
+        console.log(materialBlock);
+        material = materialBlock;
+      }
+      return material;
     }
+
+    let materials;
+
+    if (connectedBlock) {
+      if (connectedBlock.type === "lists_create_with") {
+        console.log("BLOCKS: " + connectedBlock.childBlocks_);
+        materials = connectedBlock.childBlocks_.map(childBlock => getMaterial(childBlock));
+      } else {
+        console.log("BLOCK: " + connectedBlock);
+        materials = getMaterial(connectedBlock);
+      }
+    }
+
+    console.log("MATERIALS: " + materials);
 
 		// Generate a unique temporary variable name
 		const tempVar = javascriptGenerator.nameDB_.getDistinctName(
 			"material_temp",
 			Blockly.Names.NameType.VARIABLE,
 		);
-		const code = `const ${tempVar} = ${material};\nsetMaterial(${meshVar}, Array.isArray(${tempVar}) ? ${tempVar} : [${tempVar}]);\n`;
+		const code = `const ${tempVar} = [${materials}];\nsetMaterial(${meshVar}, ${tempVar});\n`;
 		return code;
 	};
 
