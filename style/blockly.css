@@ -441,9 +441,6 @@ padding-left:4px !important;
 background:   none !important;
 }
 
-
-
-
 /* 2. Default item text color */
 .blocklyDropDownDiv .goog-menuitem-content,
 .blocklyWidgetDiv .goog-menuitem-content,
@@ -452,3 +449,34 @@ background:   none !important;
 color: var(--color-menu-item-text) !important;
 
 }
+
+body .blocklyText {
+  font-weight: 500 !important;
+  font-family: "Asap", Helvetica, Arial, Lucida, sans-serif !important;
+}
+
+body .blocklyTreeLabel {
+  font-weight: 500 !important;
+  font-family: "Asap", Helvetica, Arial, Lucida, sans-serif !important;
+}
+
+body[data-theme="contrast"] .blocklyText {
+  font-family: "Roboto Mono", monospace !important;
+
+}
+
+
+body[data-theme="contrast"] .blocklyTreeLabel {
+   font-family: "Roboto Mono", monospace !important;
+}
+
+body[data-theme="dark"] .blocklyText {
+  font-weight: 500 !important;
+  font-family: "Asap", Helvetica, Arial, Lucida, sans-serif !important;
+}
+
+body[data-theme="dark"] .blocklyTreeLabel {
+   font-family: "Asap", Helvetica, Arial, Lucida, sans-serif !important;
+}
+
+
