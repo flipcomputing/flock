@@ -148,6 +148,7 @@ export const modelNames = [
 	"Character.glb",
 	//"bird.glb",
 	"boat.glb",
+	"rhino.glb",
 ];
 
 export const blockNames = [
