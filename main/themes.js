@@ -196,7 +196,7 @@ function getThemeBaseStyles(themeName) {
 
 // Update visual indicator of active theme
 function updateActiveTheme(themeName) {
-	const themeLinks = document.querySelectorAll('[data-theme]');
+	const themeLinks = document.querySelectorAll('[data-theme-target]');
 	themeLinks.forEach(link => {
 		link.classList.remove('active-theme');
 		if (link.dataset.theme === themeName) {
@@ -207,7 +207,7 @@ function updateActiveTheme(themeName) {
 
 // Initialize theme on page load
 export function initializeTheme() {
-	const themeLinks = document.querySelectorAll('[data-theme]');
+	const themeLinks = document.querySelectorAll('[data-theme-target]');
 	let currentTheme = 'light'; // Default to light
 
 	// Register block styles for all themes
@@ -216,7 +216,7 @@ export function initializeTheme() {
 	themeLinks.forEach(link => {
 		link.addEventListener('click', (e) => {
 			e.preventDefault();
-			const newTheme = link.dataset.theme;
+			const newTheme = link.dataset.themeTarget;
 
 			if (newTheme !== currentTheme) {
 				switchTheme(newTheme);
@@ -232,6 +232,7 @@ export function initializeTheme() {
 	updateActiveTheme(savedTheme);
 	currentTheme = savedTheme;
 }
+
 
 // Register all block styles with Blockly
 function registerBlockStyles() {
