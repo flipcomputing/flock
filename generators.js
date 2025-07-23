@@ -2798,10 +2798,13 @@ export function defineGenerators() {
 			console.log("No block connected");
 		}
 
+    let material;
+
 		if (connectedBlock && connectedBlock.type === "material") {
 			console.log(">> material block:", connectedBlock);
 
 			console.log("Texture:", connectedBlock.getFieldValue("TEXTURE_SET"));
+      let inputs = {};
 			connectedBlock.inputList.forEach((input) => {
 				const target = input.connection?.targetBlock();
 				console.log(
@@ -2818,15 +2821,22 @@ export function defineGenerators() {
 					input.name,
 					javascriptGenerator.ORDER_ATOMIC,
 				);
+        inputs[input.name] = codeVal;
 				console.log(`        Value code for "${input.name}":`, codeVal);
 			});
-		}
+      const texture = connectedBlock.getFieldValue("TEXTURE_SET");
+      const colour  = inputs["BASE_COLOR"];
+      const alpha   = inputs["ALPHA"];
 
-		const material = javascriptGenerator.valueToCode(
-			block,
-			"MATERIAL",
-			javascriptGenerator.ORDER_ATOMIC,
-		);
+      material = `{ materialName : "${texture}", color : ${colour}, alpha : ${alpha} }`;
+      console.log(material);
+	 	} else {
+        material = javascriptGenerator.valueToCode(
+          block,
+          "MATERIAL",
+          javascriptGenerator.ORDER_ATOMIC,
+        );
+    }
 
 		// Generate a unique temporary variable name
 		const tempVar = javascriptGenerator.nameDB_.getDistinctName(
