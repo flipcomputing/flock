@@ -495,26 +495,30 @@ export const flockMaterial = {
 
     return material;
   },
+
   setMaterial(meshName, materials) {
+
+    console.log(materials);
+
+    materials = materials.map(material => {
+      if (material instanceof flock.BABYLON.Material) {
+        console.log("Material passed in");
+        return material;
+      } else {
+        console.log("Not a material");
+        material = flock.createMaterial(material);
+    		material.metadata = material.metadata || {};
+    		material.metadata.internal = true;
+        return material;
+      }
+    });
+
+    flock.setMaterialInternal(meshName, materials);
+  },
+
+  setMaterialInternal(meshName, materials) {
+
     return flock.whenModelReady(meshName, (mesh) => {
-      // ————— Normalize inputs to an array of BABYLON.Material —————
-    /*  materials = materials.flatMap(entry => {
-        // 1. If it’s an array, recurse into it:
-        if (Array.isArray(entry)) {
-          return entry.map(params => createMaterial(params));
-        }
-
-        if (
-          entry != null &&
-          typeof entry === 'object' &&
-          !(entry instanceof BABYLON.Material)
-        ) {
-          return [ flock.createMaterial(entry) ];
-        }
-
-        return [ entry ];
-      });*/
-      
       const allMeshes = [mesh].concat(mesh.getDescendants());
       allMeshes.forEach((part) => {
         if (part.material?.metadata?.internal) {

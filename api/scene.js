@@ -299,8 +299,12 @@ export const flockScene = {
         // Dispose material if not already disposed
         if (!disposedMaterials.has(material)) {
           const sharedMaterial = currentMesh.metadata?.sharedMaterial;
+          const internalMaterial = material.metadata?.internal;
 
-          if (sharedMaterial === false) {
+          console.log(sharedMaterial);
+          console.log(internalMaterial);
+
+          if (sharedMaterial === false && internalMaterial === true) {
             disposedMaterials.add(material);
 
             // Remove from scene.materials
