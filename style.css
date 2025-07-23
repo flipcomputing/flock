@@ -1,5 +1,161 @@
 @import url("./style/blockly.css");
 
+:root {
+  /* Primary Brand Colors */
+  --color-primary: #511D91;
+  --color-primary-light: #fc3;
+  --color-primary-dark: #004d4d;
+
+  /* Background Colors */
+  --color-bg: #ffffff;
+  --color-bg-secondary: #f8f9fa;
+  --color-bg-overlay: rgba(0, 0, 0, 0.4);
+  --color-bg-overlay-light: rgba(0, 0, 0, 0.1);
+  --color-bg-glass: rgba(1, 1, 1, 0.5);
+  --color-bg-glass-light: rgba(255, 255, 255, 0.5);
+  --color-bg-glass-hover: rgba(255, 255, 255, 0.7);
+  --color-bg-glass-focused: rgba(255, 255, 255, 0.9);
+
+  /* Button Colors */
+  --color-button-bg: #e0e0e0;
+  --color-button-bg-hover: #d0d0d0;
+  --color-button-primary: #004d4d;
+  --color-button-scroll: rgba(0, 0, 0, 0.5);
+
+  /* Text Colors */
+  --color-text-primary: #000000;
+  --color-text-on-primary: #ffffff;
+  --color-text-brand: #511D91;
+  --color-text-loading: #511D91;
+
+  /* Border Colors */
+  --color-border: #ddd;
+  --color-border-light: #eee;
+
+  /* Loading Screen Colors */
+  --color-loading-bg: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+  --color-loading-spinner: #e3e3e3;
+  --color-loading-spinner-active: #511D91;
+
+  /* Focus Colors */
+  --color-focus: #fc3;
+  --color-focus-ring: #511D91;
+
+  /* Menu Colors */
+  --color-menu-hover: #f0f0f0;
+  --color-menu-item: #511D91;
+  --color-menu:  #f9f9f9;
+  --color-button-bg:  #f0f0f0;
+
+  /* Shadow Colors */
+  --color-shadow: rgba(0, 0, 0, 0.1);
+  --color-shadow-medium: rgba(0, 0, 0, 0.2);
+}
+
+/* Dark theme */
+[data-theme="dark"] {
+  /* Core colours */
+  --color-bg:                        #1e1e1e;
+  --color-bg-alt:                    #2a2a2a;
+  --color-text:                      #ffffff;
+  --color-primary:                   #511d91;
+  --color-muted:                     #555555;
+  --color-border:                    #555555;
+  --color-border-light:              #333333;
+  --color-border-highlight:          #555555;
+  --color-search-highlight:          #777777;
+  --color-shadow:                    rgba(0, 0, 0, 0.7);
+  --color-shadow-light:              rgba(0, 0, 0, 0.5);
+  --color-shadow-medium:             rgba(0, 0, 0, 0.7);
+  --color-outline-focus:             #ffb700;
+  --color-focus-ring:                #ffb700;
+
+  /* Buttons */
+  --color-button-bg:                 var(--color-bg-alt);
+  --color-button-bg-hover:           #333333;
+  --color-button-bg-focus:           #444444;
+
+  /* Loading screen gradient */
+  --color-loading-gradient-start:    var(--color-bg);
+  --color-loading-gradient-end:      var(--color-bg-alt);
+
+  /* Spinner */
+  --color-spinner-border:            var(--color-muted);
+  --color-spinner-border-top:        var(--color-primary);
+
+  /* Dropdown & menus */
+  --color-dropdown-text:             #ffffff;
+  --color-menu-item-text:            #ffffff;
+  --color-dropdown-bg:               #333333;
+  --color-dropdown-hover:            #555555;
+  --color-dropdown-menu-bg:          var(--color-dropdown-bg);
+  --color-dropdown-menu-hover:       var(--color-dropdown-hover);
+  --color-dropdown-menu-border:      1px solid rgba(255, 255, 255, 0.1);
+  --color-menu-hover:                var(--color-dropdown-hover);
+  --color-menu-item-hover:           #444444;
+
+  /* Overlays */
+  --color-overlay:                   rgba(0, 0, 0, 0.7);
+  --color-overlay-light:             rgba(0, 0, 0, 0.5);
+  --color-overlay-modal:             rgba(0, 0, 0, 0.4);
+
+  /* Scroll buttons */
+  --color-scroll-button-bg:          rgba(0, 0, 0, 0.5);
+}
+
+/* High‑contrast theme */
+[data-theme="high-contrast"] {
+  /* Core colours */
+  --color-bg:                        black;
+  --color-bg-alt:                    white;
+  --color-text:                      yellow;
+  --color-primary:                   cyan;
+  --color-muted:                     white;
+  --color-border:                    white;
+  --color-border-light:              yellow;
+  --color-border-highlight:          white;
+  --color-search-highlight:          cyan;
+  --color-shadow:                    black;
+  --color-shadow-light:              black;
+  --color-shadow-medium:             black;
+  --color-outline-focus:             white;
+  --color-focus-ring:                white;
+
+  /* Buttons */
+  --color-button-bg:                 black;
+  --color-button-bg-hover:           yellow;
+  --color-button-bg-focus:           cyan;
+
+  /* Loading screen gradient */
+  --color-loading-gradient-start:    black;
+  --color-loading-gradient-end:      black;
+
+  /* Spinner */
+  --color-spinner-border:            white;
+  --color-spinner-border-top:        cyan;
+
+  /* Dropdown & menus */
+  --color-dropdown-text:             black;
+  --color-menu-item-text:            black;
+  --color-dropdown-bg:               white;
+  --color-dropdown-hover:            white;
+  --color-dropdown-menu-bg:          var(--color-dropdown-bg);
+  --color-dropdown-menu-hover:       var(--color-dropdown-hover);
+  --color-dropdown-menu-border:      2px solid black;
+  --color-menu-hover:                var(--color-dropdown-hover);
+  --color-menu-item-hover:           yellow;
+
+  /* Overlays */
+  --color-overlay:                   black;
+  --color-overlay-light:             black;
+  --color-overlay-modal:             rgba(0, 0, 0, 0.4);
+
+  /* Scroll buttons */
+  --color-scroll-button-bg:          white;
+}
+
+
+
 #info-panel {
   margin-top: 15px;
   margin-left: 10px;
@@ -17,7 +173,7 @@
   left: 0;
   width: 100%;
   height: 100%;
-  background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+  background: var(--color-loading-bg);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -70,15 +226,15 @@
 .loading-spinner {
   width: 40px;
   height: 40px;
-  border: 4px solid #e3e3e3;
-  border-top: 4px solid #511D91;
+  border: 4px solid var(--color-loading-spinner);
+  border-top: 4px solid var(--color-loading-spinner-active);
   border-radius: 50%;
   animation: spin 1s linear infinite;
   order: 3;
 }
 
 .loading-text {
-  color: #511D91;
+  color: var(--color-text-loading);
   font-size: 18px;
   font-weight: 500;
   margin: 0;
@@ -179,7 +335,6 @@ button {
   gap: 0;
 }
 
-
 #menu {
   display: flex;
   height: 50px;
@@ -190,10 +345,10 @@ button {
   max-width: 100vw;
   gap: 5px;
   z-index: 10;
-  background-color: rgba(255, 255, 255, 0.9);
+  background-color: var(--color-bg);
   padding: 0px 4px 2px 0;
   border-radius: 5px;
-  box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+  box-shadow: 0px 0px 10px var(--color-shadow);
   box-sizing: border-box;
 }
 
@@ -220,8 +375,8 @@ button {
   padding: 4px;
   font-size: 18px;
   mix-height:30px;
-  background-color: #f0f0f0;
-  color: black;
+  background-color: var(--color-button-bg);
+  color: var(--color-text-primary);
   border: none;
   border-radius: 15px;
   cursor: pointer;
@@ -229,7 +384,7 @@ button {
 }
 
 .bigbutton:hover {
-  background-color: #e0e0e0;
+  background-color: var(--color-button-bg-hover);
 }
 
 /* Gizmo Buttons */
@@ -248,38 +403,8 @@ button {
   cursor: pointer;
   border-radius: 5px;
   border: none;
-  background-color: #004d4d;
- /*background-color: #317873;*/
-  /*background-color: #511D91;*/
-  color: var(--color-bg);
-}
-
-/* Dropdown Styles */
-.dropdown {
-  position: relative;
-   min-width: 200px;
-}
-
-.dropdown-content {
-  display: none;
-  position: absolute;
-  background-color: #f9f9f9;
-  min-width: 160px;
-  max-width: 250px;
-  box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.2);
-  z-index: 1;
-  border-radius: 5px;
-  white-space: nowrap;
-  right: 0;
-  left: auto;
-}
-
-.dropdown:hover .dropdown-content {
-  display: block;
-}
-
-.dropdown-content button {
-  font-size: 1em;
+  background-color: var(--color-button-primary);
+  color: var(--color-text-on-primary);
 }
 
 /* Shape Menu */
@@ -294,9 +419,9 @@ button {
   bottom: -50px;
   left: 0;
   display: block;
-  background-color: rgba(1, 1, 1, 0.5);
+  background-color: var(--color-bg-glass);
   padding: 10px 10px 10px 5px;
-  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+  box-shadow: 0px 4px 8px var(--color-shadow-medium);
   border-radius: 5px;
   width: 320px;
   overflow: hidden;
@@ -319,7 +444,7 @@ button {
 }
 
 #shapes-dropdown ul li {
-  background-color: rgba(255, 255, 255, 0.5);
+  background-color: var(--color-bg-glass-light);
   border-radius: 5px;
   padding: 5px;
   display: inline-block;
@@ -332,7 +457,7 @@ button {
 }
 
 #shapes-dropdown ul li:hover {
-  background-color: rgba(255, 255, 255, 0.7);
+  background-color: var(--color-bg-glass-hover);
 }
 
 #shapes-dropdown ul li:hover img {
@@ -345,7 +470,7 @@ button {
 }
 
 #shapes-dropdown ul li.keyboard-focused {
-  background-color: rgba(255, 255, 255, 0.9);
+  background-color: var(--color-bg-glass-focused);
   box-shadow: 0 0 0 2px #007acc;
   border-radius: 5px;
 }
@@ -371,8 +496,8 @@ button {
 }
 
 .scroll-button {
-  background-color: rgba(0, 0, 0, 0.5);
-  color: var(--color-bg);
+  background-color: var(--color-button-scroll);
+  color: var(--color-text-on-primary);
   border: none;
   cursor: pointer;
   font-size: 18px;
@@ -421,8 +546,8 @@ button {
   left: 0;
   width: 100vw;
   height: 25px;
-  background-color: #511D91;
-  color: var(--color-bg);
+  background-color: var(--color-primary);
+  color: var(--color-text-on-primary);
   text-align: center;
   line-height: 16px;
   display: flex;
@@ -435,7 +560,7 @@ button {
   #switchViews {
   background-color: transparent;
   border: none;
-  color: var(--color-bg);
+  color: var(--color-text-on-primary);
   padding: 5px 10px;
   margin: 0;
   font-size: 16px;
@@ -452,7 +577,7 @@ button {
   margin: 0;
   font-size: 18px;
   font-weight: bold;
-  background-color: #ffffff;
+  background-color: var(--color-bg);
   border:none;
   cursor: pointer;
   margin-top: auto; 
@@ -462,10 +587,9 @@ button {
 }
 
 #flocklink a {
-  color: #511d91;
+  color: var(--color-text-brand);
   text-decoration: none;
 }
-
 
 @media only screen and (orientation: landscape) and (max-width: 768px) {
   #info-panel {
@@ -482,9 +606,8 @@ button {
   }
 }
 
-
 @media (min-width: 769px) {
- 
+
   #maincontent {
   display: flex;
   width: 100vw;
@@ -542,7 +665,6 @@ button {
     display: inline-block;
   }
 
-
 /* Dropdown menu styling */
 /* menu wrapper styling */
 #main-menu {
@@ -561,26 +683,41 @@ button {
     margin: 0; 
   }
 
+/* Dropdown Styles */
+
+.dropdown:hover .dropdown-content {
+  display: block;
+}
+
+.dropdown-content button {
+  font-size: 1em;
+}
+
 .dropdown {
   position: absolute;
+   min-width: 200px;
   top: 100%; /* Below the button */
   right: 10;
-  background-color: white;
-  border: 1px solid #ddd;
+  background-color: var(--color-bg);
+  border: 1px solid var(--color-border);
   padding: 0.5em;
-  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  box-shadow: 0 4px 6px var(--color-shadow);
   z-index: 1000;
 }
 
 .dropdown a {
   display: block;
-  color: #511D91;
+  color: var(--color-text-brand);
   text-decoration: none;
   padding: 0.5em 1em;
 }
 
 .dropdown a:hover {
-  background-color: #f0f0f0;
+  background-color: var(--color-menu-hover);
+}
+
+.dropdown:hover {
+  background-color: var(--color-menu-hover);
 }
 
 /* Modal styles */
@@ -592,11 +729,11 @@ button {
   z-index: 1000;
   left: 0; top: 0;
   width: 100%; height: 100%;
-  background-color: rgba(0, 0, 0, 0.4);
+  background-color: var(--color-bg-overlay);
 }
 
 .modal-content {
-  background-color: #fff;
+  background-color: var(--color-bg);
   padding: 1.5em;
   border-radius: 10px;
   max-width: 600px;
@@ -614,16 +751,16 @@ button {
   font-size: 1.25em;
   cursor: pointer;
 }
+
 @media (max-width: 768px) {
   #projectName {
     display: none; /* hid the project name input box for mobile screens*/
   }
-
 }
+
   #info-panel-toggle {
     display: none; /* Hide the inline Show Info button */
   }
-
 
       .sr-only {
         position: absolute;
@@ -645,7 +782,7 @@ button {
 details summary:focus,
 #menuDropdown [role="menuitem"]:focus
       {
-        outline: 3px solid #fc3;
+        outline: 3px solid var(--color-focus);
         outline-offset: 2px;
         z-index: 20;
       }
@@ -657,14 +794,14 @@ details summary:focus,
 
       /* High contrast focus for better visibility */
       .bigbutton:focus {
-        outline: 3px solid #fc3;
+        outline: 3px solid var(--color-focus);
         outline-offset: 2px;
-        background-color: #d0d0d0;
+        background-color: var(--color-button-bg-hover);
       }
 
       /* Focus management for modal */
       .modal:focus-within .modal-content {
-        outline: 2px solid #511D91;
+        outline: 2px solid var(--color-focus-ring);
         outline-offset: -2px;
       }
 
@@ -675,9 +812,9 @@ details summary:focus,
 
       /* Flock XR logo link focus styling */
       #info-panel-link:focus {
-        outline: 3px solid #fc3;
+        outline: 3px solid var(--color-focus);
         outline-offset: 2px;
-        box-shadow: 0 0 0 2px #fff, 0 0 0 5px #fc3;
+        box-shadow: 0 0 0 2px var(--color-bg), 0 0 0 5px var(--color-focus);
         border-radius: 4px;
       }
 
@@ -709,24 +846,24 @@ details summary:focus,
   width: 100%;
   height: 100%;
   display: block;
-  fill: #511D91;
+  fill: var(--color-text-brand);
 }
 
 .menu-icon svg {
-  fill: #511D91;
+  fill: var(--color-text-brand);
 }
 
 .menu-item[aria-haspopup="true"]::after {
     content: "▶";
-    color:#511D91;
+    color: var(--color-text-brand);
     font-size: 14px;
     margin-left: auto;
 }
 
 #examples {
-	min-width: 100px;
-	flex-grow: 1;
-	margin-right: 10px;
+  min-width: 100px;
+  flex-grow: 1;
+  margin-right: 10px;
 }
 
 .menu-item, #menuDropdown [role="menuitem"] {
@@ -736,14 +873,14 @@ details summary:focus,
   display: flex;           
   align-items: center;     
   justify-content: flex-start;
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid var(--color-border-light);
   position: relative;
   cursor: pointer;
-  color: #511D91;
+  color: var(--color-menu-item);
 }
 
 .menu-item:hover {
-  background-color: #f0f0f0;
+  background-color: var(--color-menu-hover);
 }
 
 .menu-icon {
@@ -759,7 +896,7 @@ details summary:focus,
   width: 1.2em;
   height: 1.2em;
   display: block;
-  fill: #511D91;
+  fill: var(--color-text-brand);
 }
 .menu-label {
   flex: 1 1 auto;
@@ -771,9 +908,9 @@ details summary:focus,
   position: absolute;
   left: 100%;
   top: 0;
-  background-color: white;
-  border: 1px solid #ddd;
-  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  background-color: var(--color-bg);
+  border: 1px solid var(--color-border);
+  box-shadow: 0 4px 6px var(--color-shadow);
   min-width: 120px;
   z-index: 1001;
 }
@@ -784,12 +921,12 @@ details summary:focus,
 .submenu a {
   display: block;
   padding: 8px 12px;
-  color: #511D91;
+  color: var(--color-text-brand);
   text-decoration: none;
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid var(--color-border-light);
 }
 .submenu a:hover {
-  background-color: #f0f0f0;
+  background-color: var(--color-menu-hover);
 }
 .submenu a:last-child {
   border-bottom: none;

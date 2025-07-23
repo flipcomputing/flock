@@ -9,63 +9,15 @@
   --color-outline-focus:        #fc3;
 
   /* Dropdown & menu semantics */
-  --color-dropdown-text:        var(--color-text);
-  --color-menu-item-text:       var(--color-text);
-  --color-dropdown-menu-bg: var(--color-bg);
-  --color-dropdown-menu-hover: rgba(0, 0, 0, 0.05);
+  --color-dropdown-text:        var(--color-text);
+  --color-menu-item-text:       var(--color-text);
+  --color-dropdown-menu-bg:     var(--color-bg);
+  --color-dropdown-menu-hover:  rgba(0, 0, 0, 0.05);
+  --color-dropdown-menu-border: var(--color-dropdown-menu-border, 1px solid rgba(0,0,0,0.1));
 
 }
-
-
-/* 1. Semantic colour tokens */
-:root {
-/* Core colours */
---color-bg:                   white;
---color-text:                 black;
---color-border-highlight:     #ee5d6c;
---color-search-highlight:     #ed808b;
---color-shadow:               grey;
---color-outline-focus:        #fc3;
-
-/* Dropdown & menu semantics */
---color-dropdown-text:        var(--color-text);
---color-menu-item-text:       var(--color-text);
---color-dropdown-menu-bg:     var(--color-bg);
---color-dropdown-menu-hover:  rgba(0, 0, 0, 0.05);
---color-dropdown-menu-border: var(--color-dropdown-menu-border, 1px solid rgba(0,0,0,0.1));
-}
-
 
 /* 2. Dark theme overrides */
-[data-theme="dark"] {
-  --color-bg:                   #1e1e1e;
-  --color-text:                 #ffffff;
-  --color-border-highlight:     #555;
-  --color-search-highlight:     #777;
-  --color-shadow:               rgba(0,0,0,0.7);
-  --color-outline-focus:        #ffb700;
-
-  --color-dropdown-text:        #ffffff;
-  --color-menu-item-text:       #ffffff;
-  --color-dropdown-menu-bg:     #333;
-  --color-dropdown-menu-hover:  #555;
-}
-
-/* 3. High‑contrast theme overrides */
-[data-theme="high-contrast"] {
-  --color-bg:                   black;
-  --color-text:                 yellow;
-  --color-border-highlight:     white;
-  --color-search-highlight:     cyan;
-  --color-shadow:               black;
-  --color-outline-focus:        white;
-
-  --color-dropdown-text:        black;
-  --color-menu-item-text:       black;
-  --color-dropdown-menu-bg:     white;
-  --color-dropdown-menu-hover:  white;
-  --color-dropdown-menu-border: 2px solid black;
-}
 
 
 /* Core Blockly text and dropdown fill */
