@@ -97,7 +97,6 @@ export const multiObjectNames = [
 	"rocks3.glb",
 	"rocks4.glb",
 	"boat.glb",
-	"rhino.glb",
 ];
 
 export const objectNames = [
@@ -148,6 +147,7 @@ export const modelNames = [
 	"Character.glb",
 	//"bird.glb",
 	"boat.glb",
+	"rhino.glb",
 ];
 
 export const blockNames = [
@@ -157,6 +157,7 @@ export const blockNames = [
 	"Character4.glb",
 	"Flock.glb",
 	"Character.glb",
+	"rhino.glb",
 ];
 
 export const mapNames = [
