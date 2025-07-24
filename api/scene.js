@@ -355,9 +355,12 @@ export const flockScene = {
       uiButton.dispose();
       return;
     }
+    
+    flock.whenModelReady(meshName, mesh => {
+      if (mesh) flock.disposeMesh(mesh);
+    });
+
     //return flock.whenModelReady(meshName, (mesh) => {
-    let mesh = flock.scene.getMeshByName(meshName);
-    if (mesh) flock.disposeMesh(mesh);
     // });
   },
   cloneMesh({ sourceMeshName, cloneId, callback = null }) {
