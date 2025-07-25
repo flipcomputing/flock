@@ -159,7 +159,7 @@ export function defineSceneBlocks() {
 				name: "MAP_NAME",
 				options: [ 
               [getOption("FLAT"), "NONE"],
-            ].concat(mapNames),
+            ].concat(mapNames()),
 			  },
 			  {
 				type: "input_value",

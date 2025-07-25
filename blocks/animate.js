@@ -717,7 +717,7 @@ export function defineAnimateBlocks() {
 			  {
 				type: "field_dropdown",
 				name: "ANIMATION_NAME",
-				options: animationNames,
+				options: animationNames(),
 			  },
 			],
 			previousStatement: null,
@@ -738,7 +738,7 @@ export function defineAnimateBlocks() {
 			  {
 				type: "field_dropdown",
 				name: "ANIMATION_NAME",
-				options: animationNames,
+				options: animationNames(),
 			  },
 			  {
 				type: "field_variable",

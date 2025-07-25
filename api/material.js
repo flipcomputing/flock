@@ -83,6 +83,7 @@ export const flockMaterial = {
           );
         }
       });
+      mesh.metadata.clones.forEach(cloneName => flock.tint(cloneName, { color : color }));
     });
   },
   highlight(meshName, { color } = {}) {
@@ -100,6 +101,7 @@ export const flockMaterial = {
     return flock.whenModelReady(meshName, (mesh) => {
       applyHighlight(mesh);
       mesh.getChildMeshes().forEach(applyHighlight);
+      mesh.metadata.clones.forEach(cloneName => flock.highlight(cloneName, { color : color }));
     });
   },
   glow(meshName, { color } = {}) {
@@ -112,6 +114,7 @@ export const flockMaterial = {
 
     return flock.whenModelReady(meshName, (mesh) => {
       flock.glowMesh(mesh, color);
+      mesh.metadata.clones.forEach(cloneName => flock.whenModelReady(cloneMesh => flock.glowMesh(cloneMesh, { color : color })));
     });
   },
   glowMesh(mesh, glowColor = null) {
@@ -146,12 +149,22 @@ export const flockMaterial = {
     return flock.whenModelReady(meshName, (mesh) => {
       const allMeshes = [mesh, ...mesh.getDescendants()];
 
+      console.log(allMeshes.map(x => x.name));
+
       allMeshes.forEach((nextMesh) => {
         if (nextMesh.material) {
-          flock.ensureUniqueMaterial(nextMesh);
+          console.log(mesh.name);
+          console.log(mesh.metadata.clones);
+          if (!(mesh?.metadata?.clones && mesh.metadata.clones.length >= 1)) {
+            console.log("1");
+            flock.ensureUniqueMaterial(nextMesh);
+          }
           if (nextMesh.material?.metadata?.internal === true) {
+            console.log("BEFORE:", nextMesh.material.alpha, nextMesh.material.name);
             nextMesh.material.alpha = value;
+            console.log("AFTER: ", nextMesh.material.alpha, nextMesh.material.name);
           } else {
+            console.log("2");
             let material = flock.createMaterial({color : "#ffffff", materialName : "arrows.png", alpha : 1})
             Object.keys(material).forEach(key => {
               if (key != "uniqueId") material[key] = nextMesh.material[key];
@@ -191,6 +204,7 @@ export const flockMaterial = {
 
       // Apply to child meshes
       mesh.getChildMeshes().forEach(removeEffects);
+      mesh.metadata.clones.forEach(cloneName => flock.clearEffects(cloneName));
     });
   },
   ensureUniqueMaterial(mesh) {
@@ -296,7 +310,7 @@ export const flockMaterial = {
         return Promise.resolve(); // or just let it resolve naturally
       }
 
-      return flock.changeColorMesh(mesh, color);
+      flock.changeColorMesh(mesh, color);
     });
   },
   changeColorMesh(mesh, color) {
@@ -307,7 +321,7 @@ export const flockMaterial = {
       return;
     }
 
-    if (mesh.metadata?.sharedMaterial) flock.ensureUniqueMaterial(mesh);
+    if (mesh.metadata?.sharedMaterial && !(mesh?.metadata?.clones && mesh.metadata.clones.length >= 1)) flock.ensureUniqueMaterial(mesh);
 
     // Ensure color is an array
     const colors = Array.isArray(color) ? color : [color];
@@ -519,10 +533,15 @@ export const flockMaterial = {
     });
 
     flock.setMaterialInternal(meshName, materials);
+    flock.whenModelReady(meshName, mesh => {
+      console.log(mesh.metadata.clones);
+        mesh.metadata.clones.forEach(cloneName => {
+        flock.setMaterialInternal(cloneName, materials)
+        });
+    });
   },
 
   setMaterialInternal(meshName, materials) {
-
     return flock.whenModelReady(meshName, (mesh) => {
       const allMeshes = [mesh].concat(mesh.getDescendants());
       allMeshes.forEach((part) => {
