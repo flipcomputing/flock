@@ -83,7 +83,7 @@ export const flockMaterial = {
           );
         }
       });
-      mesh.metadata.clones.forEach(cloneName => flock.tint(cloneName, { color : color }));
+      mesh.metadata?.clones?.forEach(cloneName => flock.tint(cloneName, { color : color }));
     });
   },
   highlight(meshName, { color } = {}) {
@@ -101,7 +101,7 @@ export const flockMaterial = {
     return flock.whenModelReady(meshName, (mesh) => {
       applyHighlight(mesh);
       mesh.getChildMeshes().forEach(applyHighlight);
-      mesh.metadata.clones.forEach(cloneName => flock.highlight(cloneName, { color : color }));
+      mesh.metadata?.clones?.forEach(cloneName => flock.highlight(cloneName, { color : color }));
     });
   },
   glow(meshName, { color } = {}) {
@@ -114,7 +114,7 @@ export const flockMaterial = {
 
     return flock.whenModelReady(meshName, (mesh) => {
       flock.glowMesh(mesh, color);
-      mesh.metadata.clones.forEach(cloneName => flock.whenModelReady(cloneMesh => flock.glowMesh(cloneMesh, { color : color })));
+      mesh.metadata?.clones?.forEach(cloneName => flock.whenModelReady(cloneMesh => flock.glowMesh(cloneMesh, { color : color })));
     });
   },
   glowMesh(mesh, glowColor = null) {
@@ -155,7 +155,7 @@ export const flockMaterial = {
         if (nextMesh.material) {
           console.log(mesh.name);
           console.log(mesh.metadata.clones);
-          if (!(mesh?.metadata?.clones && mesh.metadata.clones.length >= 1)) {
+          if (!(mesh?.metadata?.clones && mesh.metadata?.clones?.length >= 1)) {
             console.log("1");
             flock.ensureUniqueMaterial(nextMesh);
           }
@@ -204,7 +204,7 @@ export const flockMaterial = {
 
       // Apply to child meshes
       mesh.getChildMeshes().forEach(removeEffects);
-      mesh.metadata.clones.forEach(cloneName => flock.clearEffects(cloneName));
+      mesh?.metadata?.clones?.forEach(cloneName => flock.clearEffects(cloneName));
     });
   },
   ensureUniqueMaterial(mesh) {
@@ -321,7 +321,7 @@ export const flockMaterial = {
       return;
     }
 
-    if (mesh.metadata?.sharedMaterial && !(mesh?.metadata?.clones && mesh.metadata.clones.length >= 1)) flock.ensureUniqueMaterial(mesh);
+    if (mesh.metadata?.sharedMaterial && !(mesh?.metadata?.clones && mesh.metadata?.clones?.length >= 1)) flock.ensureUniqueMaterial(mesh);
 
     // Ensure color is an array
     const colors = Array.isArray(color) ? color : [color];
@@ -535,7 +535,7 @@ export const flockMaterial = {
     flock.setMaterialInternal(meshName, materials);
     flock.whenModelReady(meshName, mesh => {
       console.log(mesh.metadata.clones);
-        mesh.metadata.clones.forEach(cloneName => {
+        mesh.metadata?.clones?.forEach(cloneName => {
         flock.setMaterialInternal(cloneName, materials)
         });
     });
