@@ -306,7 +306,9 @@ export const flockMaterial = {
         return Promise.resolve(); // or just let it resolve naturally
       }
 
-      return flock.changeColorMesh(mesh, color);
+      flock.changeColorMesh(mesh, color);
+
+      mesh.metadata.clones.forEach(cloneName => flock.changeColor(cloneName, { color : color }));
     });
   },
   changeColorMesh(mesh, color) {
