@@ -59,9 +59,8 @@ export const flockModels = {
           const mesh = container.meshes[0];
           flock.setupMesh(mesh, modelName, modelId, blockKey, scale, x, y, z);
 
-          //if (modelName.startsWith("Character"))
             flock.ensureStandardMaterial(mesh);
-          flock.applyColorsToCharacter(mesh, colors);
+            flock.applyColorsToCharacter(mesh, colors);
 
           const descendants = mesh.getChildMeshes(false);
           descendants.forEach((childMesh) => {

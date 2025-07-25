@@ -252,6 +252,101 @@ export const flockMaterial = {
   },
   ensureStandardMaterial(mesh) {
     if (!mesh) return;
+    // Set to track replaced materials and their corresponding replacements
+    const replacedMaterialsMap = new Map();
+    // Default material to use as the replacement base
+    const defaultMaterial =
+      flock.scene.defaultMaterial ||
+      new flock.BABYLON.StandardMaterial("defaultMaterial", flock.scene);
+    defaultMaterial.backFaceCulling = false;
+
+    // Helper function to copy color properties from PBR to Standard material
+    const copyColorProperties = (pbrMaterial, standardMaterial) => {
+      // Check for albedoColor first (as seen in your debug output)
+      if (pbrMaterial.albedoColor) {
+        standardMaterial.diffuseColor = pbrMaterial.albedoColor.clone();
+      }
+      // Fallback to baseColor if albedoColor doesn't exist
+      else if (pbrMaterial.baseColor) {
+        standardMaterial.diffuseColor = pbrMaterial.baseColor.clone();
+      }
+
+      // Check for albedoTexture first
+      if (pbrMaterial.albedoTexture) {
+        standardMaterial.diffuseTexture = pbrMaterial.albedoTexture;
+      }
+      // Fallback to baseTexture
+      else if (pbrMaterial.baseTexture) {
+        standardMaterial.diffuseTexture = pbrMaterial.baseTexture;
+      }
+
+      if (pbrMaterial.emissiveColor) {
+        standardMaterial.emissiveColor = pbrMaterial.emissiveColor.clone();
+      }
+      if (pbrMaterial.emissiveTexture) {
+        standardMaterial.emissiveTexture = pbrMaterial.emissiveTexture;
+      }
+      // Copy metallicFactor as specular influence
+      if (pbrMaterial.metallicFactor !== undefined) {
+        standardMaterial.specularPower = (1 - pbrMaterial.metallicFactor) * 64;
+      }
+      // Copy roughnessFactor 
+      if (pbrMaterial.roughnessFactor !== undefined) {
+        standardMaterial.specularPower = (1 - pbrMaterial.roughnessFactor) * 64;
+      }
+    };
+
+    const replaceIfPBRMaterial = (targetMesh) => {
+      const material = targetMesh.material;
+      if (material && material.getClassName() === "PBRMaterial") {
+        if (!replacedMaterialsMap.has(material)) {
+          // Replace with a cloned default material, preserving the name
+          const originalName = material.name;
+          const newMaterial = defaultMaterial.clone(originalName);
+
+          // Check if this is a target material and copy colors
+          const materialNameLower = originalName.toLowerCase();
+          const targetMaterials = ['black', 'white', 'mouth', 'nose'];
+          const isTargetMaterial = targetMaterials.some(target => materialNameLower.includes(target));
+
+          if (isTargetMaterial) {
+            copyColorProperties(material, newMaterial);
+          }
+
+          replacedMaterialsMap.set(material, newMaterial);
+        }
+        // Assign the replaced material to the mesh
+        targetMesh.material = replacedMaterialsMap.get(material);
+        targetMesh.backFaceCulling = false;
+
+        // Only override alpha if this isn't a target material
+        const materialNameLower = targetMesh.material.name.toLowerCase();
+        const targetMaterials = ['black', 'white', 'mouth', 'nose'];
+        const isTargetMaterial = targetMaterials.some(target => materialNameLower.includes(target));
+
+        if (!isTargetMaterial) {
+          targetMesh.material.alpha = 1;
+        }
+
+        targetMesh.material.transparencyMode =
+          flock.BABYLON.Material.MATERIAL_OPAQUE;
+        // targetMesh.material.alphaMode = undefined;
+        //targetMesh.material.reflectionTexture = null;
+        targetMesh.material.needDepthPrePass = false;
+        targetMesh.material.specularColor = new flock.BABYLON.Color3(0, 0, 0);
+      }
+    };
+    // Replace material on the main mesh
+    replaceIfPBRMaterial(mesh);
+    // Replace materials on all child meshes
+    mesh.getChildMeshes().forEach(replaceIfPBRMaterial);
+    // Dispose of all replaced materials
+    replacedMaterialsMap.forEach((newMaterial, oldMaterial) => {
+      oldMaterial.dispose();
+    });
+  },
+  ensureStandardMaterial2(mesh) {
+    if (!mesh) return;
 
     // Set to track replaced materials and their corresponding replacements
     const replacedMaterialsMap = new Map();
