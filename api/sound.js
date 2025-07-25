@@ -212,8 +212,8 @@ export const flockSound = {
             panner.panningModel = "HRTF";
             panner.distanceModel = "exponential";  // More aggressive than linear
             panner.refDistance = 1.0;
-            panner.maxDistance = 15;   // Shorter max distance for faster falloff
-            panner.rolloffFactor = 4;  // Much higher rolloff for dramatic distance effect
+            panner.maxDistance = 15;  
+            panner.rolloffFactor = 1;  
             panner.connect(context.destination);
           }
 
