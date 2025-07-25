@@ -83,7 +83,9 @@ export const flockMaterial = {
           );
         }
       });
-      mesh.metadata?.clones?.forEach(cloneName => flock.tint(cloneName, { color : color }));
+      mesh.metadata?.clones?.forEach((cloneName) =>
+        flock.tint(cloneName, { color: color }),
+      );
     });
   },
   highlight(meshName, { color } = {}) {
@@ -101,7 +103,9 @@ export const flockMaterial = {
     return flock.whenModelReady(meshName, (mesh) => {
       applyHighlight(mesh);
       mesh.getChildMeshes().forEach(applyHighlight);
-      mesh.metadata?.clones?.forEach(cloneName => flock.highlight(cloneName, { color : color }));
+      mesh.metadata?.clones?.forEach((cloneName) =>
+        flock.highlight(cloneName, { color: color }),
+      );
     });
   },
   glow(meshName, { color } = {}) {
@@ -114,7 +118,11 @@ export const flockMaterial = {
 
     return flock.whenModelReady(meshName, (mesh) => {
       flock.glowMesh(mesh, color);
-      mesh.metadata?.clones?.forEach(cloneName => flock.whenModelReady(cloneMesh => flock.glowMesh(cloneMesh, { color : color })));
+      mesh.metadata?.clones?.forEach((cloneName) =>
+        flock.whenModelReady((cloneMesh) =>
+          flock.glowMesh(cloneMesh, { color: color }),
+        ),
+      );
     });
   },
   glowMesh(mesh, glowColor = null) {
@@ -149,7 +157,7 @@ export const flockMaterial = {
     return flock.whenModelReady(meshName, (mesh) => {
       const allMeshes = [mesh, ...mesh.getDescendants()];
 
-      console.log(allMeshes.map(x => x.name));
+      console.log(allMeshes.map((x) => x.name));
 
       allMeshes.forEach((nextMesh) => {
         if (nextMesh.material) {
@@ -160,13 +168,25 @@ export const flockMaterial = {
             flock.ensureUniqueMaterial(nextMesh);
           }
           if (nextMesh.material?.metadata?.internal === true) {
-            console.log("BEFORE:", nextMesh.material.alpha, nextMesh.material.name);
+            console.log(
+              "BEFORE:",
+              nextMesh.material.alpha,
+              nextMesh.material.name,
+            );
             nextMesh.material.alpha = value;
-            console.log("AFTER: ", nextMesh.material.alpha, nextMesh.material.name);
+            console.log(
+              "AFTER: ",
+              nextMesh.material.alpha,
+              nextMesh.material.name,
+            );
           } else {
             console.log("2");
-            let material = flock.createMaterial({color : "#ffffff", materialName : "arrows.png", alpha : 1})
-            Object.keys(material).forEach(key => {
+            let material = flock.createMaterial({
+              color: "#ffffff",
+              materialName: "arrows.png",
+              alpha: 1,
+            });
+            Object.keys(material).forEach((key) => {
               if (key != "uniqueId") material[key] = nextMesh.material[key];
             });
             material.alpha = value;
@@ -204,7 +224,9 @@ export const flockMaterial = {
 
       // Apply to child meshes
       mesh.getChildMeshes().forEach(removeEffects);
-      mesh?.metadata?.clones?.forEach(cloneName => flock.clearEffects(cloneName));
+      mesh?.metadata?.clones?.forEach((cloneName) =>
+        flock.clearEffects(cloneName),
+      );
     });
   },
   ensureUniqueMaterial(mesh) {
@@ -290,7 +312,7 @@ export const flockMaterial = {
       if (pbrMaterial.metallicFactor !== undefined) {
         standardMaterial.specularPower = (1 - pbrMaterial.metallicFactor) * 64;
       }
-      // Copy roughnessFactor 
+      // Copy roughnessFactor
       if (pbrMaterial.roughnessFactor !== undefined) {
         standardMaterial.specularPower = (1 - pbrMaterial.roughnessFactor) * 64;
       }
@@ -306,8 +328,10 @@ export const flockMaterial = {
 
           // Check if this is a target material and copy colors
           const materialNameLower = originalName.toLowerCase();
-          const targetMaterials = ['black', 'white', 'mouth', 'nose'];
-          const isTargetMaterial = targetMaterials.some(target => materialNameLower.includes(target));
+          const targetMaterials = ["black", "white", "mouth", "nose"];
+          const isTargetMaterial = targetMaterials.some((target) =>
+            materialNameLower.includes(target),
+          );
 
           if (isTargetMaterial) {
             copyColorProperties(material, newMaterial);
@@ -321,8 +345,10 @@ export const flockMaterial = {
 
         // Only override alpha if this isn't a target material
         const materialNameLower = targetMesh.material.name.toLowerCase();
-        const targetMaterials = ['black', 'white', 'mouth', 'nose'];
-        const isTargetMaterial = targetMaterials.some(target => materialNameLower.includes(target));
+        const targetMaterials = ["black", "white", "mouth", "nose"];
+        const isTargetMaterial = targetMaterials.some((target) =>
+          materialNameLower.includes(target),
+        );
 
         if (!isTargetMaterial) {
           targetMesh.material.alpha = 1;
@@ -416,7 +442,11 @@ export const flockMaterial = {
       return;
     }
 
-    if (mesh.metadata?.sharedMaterial && !(mesh?.metadata?.clones && mesh.metadata?.clones?.length >= 1)) flock.ensureUniqueMaterial(mesh);
+    if (
+      mesh.metadata?.sharedMaterial &&
+      !(mesh?.metadata?.clones && mesh.metadata?.clones?.length >= 1)
+    )
+      flock.ensureUniqueMaterial(mesh);
 
     // Ensure color is an array
     const colors = Array.isArray(color) ? color : [color];
@@ -577,7 +607,8 @@ export const flockMaterial = {
       : null;
   },
   changeMaterialMesh(mesh, materialName, texturePath, color, alpha = 1) {
-    console.log("Change material", materialName, color);
+    if (flock.materialsDebug)
+      console.log("Change material", materialName, color);
     flock.ensureUniqueMaterial(mesh);
 
     // Create a new material
@@ -616,23 +647,23 @@ export const flockMaterial = {
   },
 
   setMaterial(meshName, materials) {
-    materials = materials.map(material => {
+    materials = materials.map((material) => {
       if (material instanceof flock.BABYLON.Material) {
         return material;
       } else {
         material = flock.createMaterial(material);
-    		material.metadata = material.metadata || {};
-    		material.metadata.internal = true;
+        material.metadata = material.metadata || {};
+        material.metadata.internal = true;
         return material;
       }
     });
 
     flock.setMaterialInternal(meshName, materials);
-    flock.whenModelReady(meshName, mesh => {
-      console.log(mesh.metadata.clones);
-        mesh.metadata?.clones?.forEach(cloneName => {
-        flock.setMaterialInternal(cloneName, materials)
-        });
+    flock.whenModelReady(meshName, (mesh) => {
+      if (flock.materialsDebug) console.log(mesh.metadata.clones);
+      mesh.metadata?.clones?.forEach((cloneName) => {
+        flock.setMaterialInternal(cloneName, materials);
+      });
     });
   },
 
@@ -1174,7 +1205,7 @@ export const flockMaterial = {
   },
 
   applyMaterialToMesh(mesh, shapeType, color, alpha = 1.0) {
-    console.log(`Applying material to ${mesh.name}`);
+    if (flock.materialsDebug) console.log(`Applying material to ${mesh.name}`);
     const scene = mesh.getScene();
 
     const makeColor4 = (c) => {
