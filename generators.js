@@ -2600,8 +2600,16 @@ export function defineGenerators() {
 				javascriptGenerator.ORDER_ATOMIC,
 			) || "1";
 
+    function findSetMaterial(currentBlock) {
+      if (currentBlock.type === "set_material") return true;
+      if (currentBlock.parentBlock_ === null) return false;
+      return findSetMaterial(currentBlock.parentBlock_);
+    }
+
+    const isInSetMaterial = findSetMaterial(block);
+
 		// Generate the code to call the createMaterial helper function
-		const code = `createMaterial({ color: ${baseColor}, materialName: "${textureSet}", alpha: ${alpha} })`;
+		const code = isInSetMaterial ? `{ color: ${baseColor}, materialName: "${textureSet}", alpha: ${alpha} }` : `createMaterial({ color: ${baseColor}, materialName: "${textureSet}", alpha: ${alpha} })`;
 		return [code, javascriptGenerator.ORDER_FUNCTION_CALL];
 	};
 
@@ -2783,82 +2791,28 @@ export function defineGenerators() {
 	};
 
 	javascriptGenerator.forBlock["set_material"] = function (block) {
-		const meshVar = javascriptGenerator.nameDB_.getName(
-			block.getFieldValue("MESH"),
-			Blockly.Names.NameType.VARIABLE,
-		);
+    const meshVar = javascriptGenerator.nameDB_.getName(
+      block.getFieldValue("MESH"),
+      Blockly.Names.NameType.VARIABLE,
+    );
 
-		// Get the connected block and log its type
-		const materialInput = block.getInput("MATERIAL");
-		const connectedBlock = materialInput?.connection?.targetBlock();
+    const material = javascriptGenerator.valueToCode(
+      block,
+      "MATERIAL",
+      javascriptGenerator.ORDER_ATOMIC,
+    );
 
-		if (connectedBlock) {
-			console.log(`Block type: ${connectedBlock.type}`);
-		} else {
-			console.log("No block connected");
-		}
-
-    function getMaterial(materialBlock) {
-      let material;
-
-      if (materialBlock && materialBlock.type === "material") {
-        console.log(">> material block:", materialBlock);
-
-        console.log("Texture:", materialBlock.getFieldValue("TEXTURE_SET"));
-        let inputs = {};
-        materialBlock.inputList.forEach((input) => {
-          const target = input.connection?.targetBlock();
-          console.log(
-            `    Input "${input.name}":`,
-            target
-              ? `connected to type "${target.type}" (id=${target.id})`
-              : "no connection",
-          );
-
-
-
-          const codeVal = javascriptGenerator.valueToCode(
-            materialBlock,
-            input.name,
-            javascriptGenerator.ORDER_ATOMIC,
-          );
-          inputs[input.name] = codeVal;
-          console.log(`        Value code for "${input.name}":`, codeVal);
-        });
-        const texture = materialBlock.getFieldValue("TEXTURE_SET");
-        const colour  = inputs["BASE_COLOR"];
-        const alpha   = inputs["ALPHA"];
-
-        material = `{ materialName : "${texture}", color : ${colour}, alpha : ${alpha} }`;
-        console.log(material);
-      } else {
-        console.log(materialBlock);
-        material = materialBlock;
-      }
-      return material;
-    }
-
-    let materials;
-
-    if (connectedBlock) {
-      if (connectedBlock.type === "lists_create_with") {
-        console.log("BLOCKS: " + connectedBlock.childBlocks_);
-        materials = connectedBlock.childBlocks_.map(childBlock => getMaterial(childBlock));
-      } else {
-        console.log("BLOCK: " + connectedBlock);
-        materials = getMaterial(connectedBlock);
-      }
-    }
-
-    console.log("MATERIALS: " + materials);
-
+    // Ensure the MATERIAL input is wrapped in an array if not already one
+    const code = `setMaterial(${meshVar}, Array.isArray(${material}) ? ${material} : [${material}]);\n`;
+    return code;
+    /*
 		// Generate a unique temporary variable name
 		const tempVar = javascriptGenerator.nameDB_.getDistinctName(
 			"material_temp",
 			Blockly.Names.NameType.VARIABLE,
 		);
 		const code = `const ${tempVar} = [${materials}];\nsetMaterial(${meshVar}, ${tempVar});\n`;
-		return code;
+		return code;*/
 	};
 
 	javascriptGenerator.forBlock["skin_colour"] = function (block) {

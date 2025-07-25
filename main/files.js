@@ -290,7 +290,7 @@ export function setupFileInput(workspace, executeCallback) {
 						.replace(/[^a-zA-Z0-9_-]/g, "")
 						.substring(0, 50) || "untitled";
 				document.getElementById("projectName").value =
-					stripFilename(sanitizedName.replace(".json", ""));
+					stripFilename(sanitizedName.replace("json", ""));
 
 				loadWorkspaceAndExecute(json, workspace, executeCallback);
 			} catch (e) {

@@ -82,8 +82,8 @@ mergeMeshes(modelId, meshList) {
 					blockId,
 				);
 
-				mergedMesh1.dispose();
-				validMeshes.forEach((mesh) => mesh.dispose());
+				flock.dispose(mergedMesh1.name);
+				validMeshes.forEach((mesh) => flock.dispose(mesh.name));
 
 				return modelId; // Return the modelId as per original functionality
 			} else {
@@ -215,12 +215,12 @@ subtractMeshes(modelId, baseMeshName, meshNames) {
 						);
 
 						// Clean up duplicates.
-						baseDuplicate.dispose();
-						meshDuplicates.forEach((mesh) => mesh.dispose());
+						flock.dispose(baseDuplicate.name);
+						meshDuplicates.forEach((mesh) => flock.dispose(mesh.name));
 
 						// Clean up the original meshes used in the CSG operation.
-						baseMesh.dispose();
-						validMeshes.forEach((mesh) => mesh.dispose());
+						flock.dispose(baseMesh.name);
+						validMeshes.forEach((mesh) => flock.dispose(mesh.name));
 
 						resolve(modelId);
 					} else {
@@ -312,8 +312,8 @@ intersectMeshes(modelId, meshList) {
 					modelId,
 					blockId,
 				);
-
-				validMeshes.forEach((mesh) => mesh.dispose());
+        
+				validMeshes.forEach((mesh) => flock.dispose(mesh.name));
 
 				return modelId; // Return the modelId as per original functionality
 			} else {
@@ -411,8 +411,8 @@ createHull(modelId, meshList) {
 					blockId,
 				);
 				// Dispose of original meshes after creating the hull
-				validMeshes.forEach((mesh) => mesh.dispose());
-				mergedMesh.dispose();
+				validMeshes.forEach((mesh) => flock.dispose(mesh.name));
+				flock.dispose(mergedMesh.name);
 
 				return modelId; // Return the debug mesh for further use
 			} else {

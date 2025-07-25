@@ -149,7 +149,17 @@ export const flockMaterial = {
       allMeshes.forEach((nextMesh) => {
         if (nextMesh.material) {
           flock.ensureUniqueMaterial(nextMesh);
-          nextMesh.material.alpha = value;
+          if (nextMesh.material?.metadata?.internal === true) {
+            nextMesh.material.alpha = value;
+          } else {
+            let material = flock.createMaterial({color : "#ffffff", materialName : "arrows.png", alpha : 1})
+            Object.keys(material).forEach(key => {
+              if (key != "uniqueId") material[key] = nextMesh.material[key];
+            });
+            material.alpha = value;
+            material.internal = true;
+            nextMesh.material = material;
+          }
           nextMesh.material.transparencyMode =
             flock.BABYLON.Material.MATERIAL_ALPHABLEND;
         }
@@ -497,15 +507,10 @@ export const flockMaterial = {
   },
 
   setMaterial(meshName, materials) {
-
-    console.log(materials);
-
     materials = materials.map(material => {
       if (material instanceof flock.BABYLON.Material) {
-        console.log("Material passed in");
         return material;
       } else {
-        console.log("Not a material");
         material = flock.createMaterial(material);
     		material.metadata = material.metadata || {};
     		material.metadata.internal = true;
