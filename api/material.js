@@ -83,6 +83,7 @@ export const flockMaterial = {
           );
         }
       });
+      mesh.metadata.clones.forEach(cloneName => flock.tint(cloneName, { color : color }));
     });
   },
   highlight(meshName, { color } = {}) {
@@ -100,6 +101,7 @@ export const flockMaterial = {
     return flock.whenModelReady(meshName, (mesh) => {
       applyHighlight(mesh);
       mesh.getChildMeshes().forEach(applyHighlight);
+      mesh.metadata.clones.forEach(cloneName => flock.highlight(cloneName, { color : color }));
     });
   },
   glow(meshName, { color } = {}) {
@@ -112,6 +114,7 @@ export const flockMaterial = {
 
     return flock.whenModelReady(meshName, (mesh) => {
       flock.glowMesh(mesh, color);
+      mesh.metadata.clones.forEach(cloneName => flock.whenModelReady(cloneMesh => flock.glowMesh(cloneMesh, { color : color })));
     });
   },
   glowMesh(mesh, glowColor = null) {
@@ -201,6 +204,7 @@ export const flockMaterial = {
 
       // Apply to child meshes
       mesh.getChildMeshes().forEach(removeEffects);
+      mesh.metadata.clones.forEach(cloneName => flock.clearEffects(cloneName));
     });
   },
   ensureUniqueMaterial(mesh) {
@@ -307,8 +311,6 @@ export const flockMaterial = {
       }
 
       flock.changeColorMesh(mesh, color);
-
-      mesh.metadata.clones.forEach(cloneName => flock.changeColor(cloneName, { color : color }));
     });
   },
   changeColorMesh(mesh, color) {
@@ -319,7 +321,7 @@ export const flockMaterial = {
       return;
     }
 
-    if (mesh.metadata?.sharedMaterial) flock.ensureUniqueMaterial(mesh);
+    if (mesh.metadata?.sharedMaterial && !(mesh?.metadata?.clones && mesh.metadata.clones.length >= 1)) flock.ensureUniqueMaterial(mesh);
 
     // Ensure color is an array
     const colors = Array.isArray(color) ? color : [color];
