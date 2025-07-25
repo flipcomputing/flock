@@ -146,12 +146,22 @@ export const flockMaterial = {
     return flock.whenModelReady(meshName, (mesh) => {
       const allMeshes = [mesh, ...mesh.getDescendants()];
 
+      console.log(allMeshes.map(x => x.name));
+
       allMeshes.forEach((nextMesh) => {
         if (nextMesh.material) {
-          flock.ensureUniqueMaterial(nextMesh);
+          console.log(mesh.name);
+          console.log(mesh.metadata.clones);
+          if (!(mesh?.metadata?.clones && mesh.metadata.clones.length >= 1)) {
+            console.log("1");
+            flock.ensureUniqueMaterial(nextMesh);
+          }
           if (nextMesh.material?.metadata?.internal === true) {
+            console.log("BEFORE:", nextMesh.material.alpha, nextMesh.material.name);
             nextMesh.material.alpha = value;
+            console.log("AFTER: ", nextMesh.material.alpha, nextMesh.material.name);
           } else {
+            console.log("2");
             let material = flock.createMaterial({color : "#ffffff", materialName : "arrows.png", alpha : 1})
             Object.keys(material).forEach(key => {
               if (key != "uniqueId") material[key] = nextMesh.material[key];
@@ -519,10 +529,15 @@ export const flockMaterial = {
     });
 
     flock.setMaterialInternal(meshName, materials);
+    flock.whenModelReady(meshName, mesh => {
+      console.log(mesh.metadata.clones);
+        mesh.metadata.clones.forEach(cloneName => {
+        flock.setMaterialInternal(cloneName, materials)
+        });
+    });
   },
 
   setMaterialInternal(meshName, materials) {
-
     return flock.whenModelReady(meshName, (mesh) => {
       const allMeshes = [mesh].concat(mesh.getDescendants());
       allMeshes.forEach((part) => {

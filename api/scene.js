@@ -369,6 +369,10 @@ export const flockScene = {
     flock.whenModelReady(sourceMeshName, (sourceMesh) => {
       const clone = sourceMesh.clone(uniqueCloneId);
 
+      sourceMesh.metadata.clones = sourceMesh.metadata.clones || [];
+      sourceMesh.metadata.clones = sourceMesh.metadata.clones.concat(clone.name);
+      console.log("CLONES: " + sourceMesh.metadata.clones);
+
       if (clone) {
         sourceMesh.computeWorldMatrix(true);
 
@@ -399,6 +403,7 @@ export const flockScene = {
         };
 
         clone.metadata = { ...(sourceMesh.metadata || {}) };
+        clone.metadata.clones = [];
         setMetadata(clone);
         clone.getDescendants().forEach(setMetadata);
 
