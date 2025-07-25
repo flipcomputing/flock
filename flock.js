@@ -599,7 +599,7 @@ export const flock = {
 			await this.initializeNewScene();
 
 			if (flock.memoryDebug) flock.startMemoryMonitoring();
-			
+
 			// Step 5: Create sandboxed function with all flock API methods
 			const sandboxFunction = new iframeWindow.Function(`
 				"use strict";
@@ -1142,69 +1142,25 @@ export const flock = {
 
 		flock.mainLight = hemisphericLight;
 
-    const listener = flock.getAudioContext().listener;
+		flock.audioEnginePromise = flock.BABYLON.CreateAudioEngineAsync({
+			volume: 1,
+			listenerAutoUpdate: true,
+			listenerEnabled: true,
+			resumeOnInteraction: true,
+		});
 
-    // Patch missing AudioParams (no-ops)
-    ['positionX', 'positionY', 'positionZ', 'forwardX', 'forwardY', 'forwardZ', 'upX', 'upY', 'upZ'].forEach((prop) => {
-        if (typeof listener[prop] === 'undefined') {
-            listener[prop] = {
-                setValueAtTime: () => {},
-                linearRampToValueAtTime: () => {},
-                value: 0
-            };
-        }
-    });
+		flock.audioEnginePromise.then((audioEngine) => {
+			flock.audioEngine = audioEngine;
+			flock.globalStartTime = flock.getAudioContext().currentTime;
+			if (flock.scene.activeCamera) {
+				audioEngine.listener.attach(flock.scene.activeCamera);
+			}
 
-
-    // Ensure scene and camera are initialized before creating the audio engine
-    async function initAudioEngine() {
-        try {
-            // Wait until the active camera is set
-            await waitForActiveCamera(flock.scene);
-
-            // Now it's safe to create the audio engine
-            flock.audioEngine = await flock.BABYLON.CreateAudioEngineAsync({
-                volume: 1,
-                listenerAutoUpdate: false,
-                listenerEnabled: false,
-                resumeOnInteraction: true,
-                useCustomSpatialAudioListener: false,
-            });
-
-            // Attach the listener to the active camera
-            flock.audioEngine.listener.attach(flock.scene.activeCamera);
-
-            // Set global start time
-            flock.globalStartTime = flock.getAudioContext().currentTime;
-
-        } catch (error) {
-            console.error("Error initializing audio engine:", error);
-        }
-    }
-
-    // Helper to wait for camera to be set
-    function waitForActiveCamera(scene, timeout = 3000) {
-        return new Promise((resolve, reject) => {
-            const start = performance.now();
-            const check = () => {
-                if (scene.activeCamera) {
-                    return resolve();
-                }
-                if (performance.now() - start > timeout) {
-                    return reject(new Error("Timeout waiting for active camera"));
-                }
-                requestAnimationFrame(check);
-            };
-            check();
-        });
-    }
-
-    initAudioEngine();
-
-    // Reattach listener if the active camera ever changes
-    flock.scene.onActiveCameraChanged.add(() => {
-      flock.audioEngine.listener.attach(flock.scene.activeCamera);
-    });
+			// Reattach listener if the active camera ever changes
+			flock.scene.onActiveCameraChanged.add(() => {
+				audioEngine.listener.attach(flock.scene.activeCamera);
+			});
+		});
 
 		// Enable collisions
 		flock.scene.collisionsEnabled = true;
