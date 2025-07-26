@@ -5,6 +5,10 @@ import {
 } from "../blocks.js";
 import { translate, getTooltip, getDropdownOption } from "../main/translation.js";
 
+import {
+	getAttachNames,
+} from "../config.js";
+
 export function defineConnectBlocks() {
 	Blockly.Blocks["parent"] = {
 		init: function () {
@@ -171,6 +175,56 @@ export function defineConnectBlocks() {
 		},
 	};
 
+	Blockly.Blocks["attach"] = {
+		init: function () {
+			this.jsonInit({
+				type: "attach",
+				message0: translate("attach") + " %1 to %2 at %3 offset x: %4 y: %5 z: %6",
+				args0: [				
+					{
+						type: "field_variable",
+						name: "MESH_TO_ATTACH",
+						variable: "mesh",
+					},
+					{
+						type: "field_variable",
+						name: "TARGET_MESH",
+						variable: "target",
+					},
+					{
+						type: "field_dropdown",
+						name: "BONE_NAME",
+						options: getAttachNames(),
+					},
+					{
+						type: "input_value",
+						name: "X_OFFSET",
+						check: "Number",
+						align: "RIGHT",
+					},
+					{
+						type: "input_value",
+						name: "Y_OFFSET",
+						check: "Number",
+						align: "RIGHT",
+					},
+					{
+						type: "input_value",
+						name: "Z_OFFSET",
+						check: "Number",
+						align: "RIGHT",
+					},
+				],
+				previousStatement: null,
+				nextStatement: null,
+				colour: categoryColours["Transform"],
+				inputsInline: true,
+				tooltip: getTooltip("attach"),
+			});
+			this.setHelpUrl(getHelpUrlFor(this.type));
+			this.setStyle('transform_blocks');
+		},
+	};
 	Blockly.Blocks["drop"] = {
 		init: function () {
 			this.jsonInit({

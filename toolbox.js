@@ -1189,6 +1189,37 @@ const toolboxTransformConnect = {
 		},
 		{
 			kind: "block",
+			type: "attach",
+			keyword: "hold",
+			inputs: {
+				X_OFFSET: {
+					shadow: {
+						type: "math_number",
+						fields: {
+							NUM: 0,
+						},
+					},
+				},
+				Y_OFFSET: {
+					shadow: {
+						type: "math_number",
+						fields: {
+							NUM: 0,
+						},
+					},
+				},
+				Z_OFFSET: {
+					shadow: {
+						type: "math_number",
+						fields: {
+							NUM: 0,
+						},
+					},
+				},
+			},
+		},
+		{
+			kind: "block",
 			type: "drop",
 			keyword: "drop",
 		},

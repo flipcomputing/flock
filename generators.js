@@ -2426,6 +2426,39 @@ export function defineGenerators() {
 	`;
 	};
 
+	javascriptGenerator.forBlock["attach"] = function (block) {
+		const meshToAttach = javascriptGenerator.nameDB_.getName(
+			block.getFieldValue("MESH_TO_ATTACH"),
+			Blockly.Names.NameType.VARIABLE,
+		);
+		const targetMesh = javascriptGenerator.nameDB_.getName(
+			block.getFieldValue("TARGET_MESH"),
+			Blockly.Names.NameType.VARIABLE,
+		);
+		const boneName = block.getFieldValue("BONE_NAME");
+		const xOffset =
+			javascriptGenerator.valueToCode(
+				block,
+				"X_OFFSET",
+				javascriptGenerator.ORDER_ATOMIC,
+			) || "0";
+		const yOffset =
+			javascriptGenerator.valueToCode(
+				block,
+				"Y_OFFSET",
+				javascriptGenerator.ORDER_ATOMIC,
+			) || "0";
+		const zOffset =
+			javascriptGenerator.valueToCode(
+				block,
+				"Z_OFFSET",
+				javascriptGenerator.ORDER_ATOMIC,
+			) || "0";
+		// Establish the attach action with bone name and offset
+		return `await attach(${meshToAttach}, ${targetMesh}, { boneName: "${boneName}", x: ${xOffset}, y: ${yOffset}, z: ${zOffset} });
+	`;
+	};
+
 	javascriptGenerator.forBlock["drop"] = function (block) {
 		const meshToDetach = javascriptGenerator.nameDB_.getName(
 			block.getFieldValue("MESH_TO_DETACH"),

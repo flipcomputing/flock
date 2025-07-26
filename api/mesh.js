@@ -455,6 +455,27 @@ export const flockMesh = {
       });
     });
   },
+  attach(meshToAttach, targetMesh, { boneName = "Hold", x = 0, y = 0, z = 0 } = {}) {
+    return flock.whenModelReady(targetMesh, (targetMeshInstance) => {
+      flock.whenModelReady(meshToAttach, (meshToAttachInstance) => {
+        // Find the first mesh with a skeleton (including descendants)
+        const targetWithSkeleton = targetMeshInstance.skeleton
+          ? targetMeshInstance
+          : targetMeshInstance.getChildMeshes().find((mesh) => mesh.skeleton);
+
+        if (targetWithSkeleton) {
+          const bone = targetWithSkeleton.skeleton.bones.find(
+            (b) => b.name === boneName,
+          );
+
+          if (bone) {
+            meshToAttachInstance.attachToBone(bone, targetWithSkeleton);
+            meshToAttachInstance.position = new flock.BABYLON.Vector3(x, y, z);
+          }
+        }
+      });
+    });
+  },
   drop(meshToDetach) {
     return flock.whenModelReady(meshToDetach, (meshToDetachInstance) => {
       const worldPosition = meshToDetachInstance.getAbsolutePosition();

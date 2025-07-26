@@ -1,5 +1,4 @@
-
-import { getDropdownOption } from "./main/translation.js"
+import { getDropdownOption } from "./main/translation.js";
 
 export const audioNames = [
 	"theme-bright.mp3",
@@ -113,36 +112,73 @@ export const objectNames = [
 ];
 
 export const objectColours = {
-	"Star.glb": ["#FFD700", "#FFD700", "#FFD700"], 
-	"Heart.glb": ["#FF69B4", "#FF69B4", "#FF69B4"], 
-	"Coin.glb": ["#A47E1B", "#C9A227","#76520E"], 
-	"egg.glb": ["#fffcec", "#fffcec", "#fffcec"], 
-	"Gem1.glb": ["#00BFFF", "#00BFFF", "#00BFFF"], 
-	"Gem2.glb": ["#8A2BE2", "#8A2BE2", "#8A2BE2"], 
-	"Gem3.glb": ["#FF4500", "#FF4500", "#FF4500"], 
+	"Star.glb": ["#FFD700", "#FFD700", "#FFD700"],
+	"Heart.glb": ["#FF69B4", "#FF69B4", "#FF69B4"],
+	"Coin.glb": ["#A47E1B", "#C9A227", "#76520E"],
+	"egg.glb": ["#fffcec", "#fffcec", "#fffcec"],
+	"Gem1.glb": ["#00BFFF", "#00BFFF", "#00BFFF"],
+	"Gem2.glb": ["#8A2BE2", "#8A2BE2", "#8A2BE2"],
+	"Gem3.glb": ["#FF4500", "#FF4500", "#FF4500"],
 	"Wand.glb": ["#FF4500", "#8A2BE2", "#92614A"],
-	"Hat.glb": ["#9D3F72", "#B5FDFD", "#3D0073"], 
-	
+	"Hat.glb": ["#9D3F72", "#B5FDFD", "#3D0073"],
+
 	"tree.glb": ["#66CDAA", "#CD853F"],
 	"tree2.glb": ["#7F9F7F", "#A1623B"],
 	"tree3.glb": ["#403C3C", "#312616"],
 	"tree4.glb": ["#0D5B28", "#6D6C51"],
-	
+
 	"rocks.glb": ["#898D86", "#99a83d"],
 	"rocks2.glb": ["#898D86", "#99a83d"],
 	"rocks3.glb": ["#898D86", "#99a83d"],
-	"rocks4.glb": ["#898D86", "#99a83d","#6BC6EF", "#f9f9f9"],
-	
-	"hut.glb": ["#B66946", "#5F2524", "#C25A5C", "#E1B46E", "#3BACBA", "#878787"],
-	"hut2.glb": ["#814C22", "#231E1D", "#FFF6A6", "#E7AF3A", "#E73627", "#878787"],
-	"hut3.glb": ["#F6DAB6", "#6CC3C1", "#9DC45C", "#EEB975", "#F3B4BE", "#878787"],
-	"hut4.glb": ["#F2E8CF", "#BC4749", "#EEB975", "#AF1B3F", "#6A994E", "#878787"],
-	
-	"boat.glb": ["#4F8A46", "#E7D48E", "#E76635", "#E76C69", "#5E64E7", "#4A4A4A", "#AAAAAA", "#E711CD"],
+	"rocks4.glb": ["#898D86", "#99a83d", "#6BC6EF", "#f9f9f9"],
 
-	"rhino.glb": ["#6D6B6C", "#F6F6F6","#373737", "#230F0F"],
+	"hut.glb": [
+		"#B66946",
+		"#5F2524",
+		"#C25A5C",
+		"#E1B46E",
+		"#3BACBA",
+		"#878787",
+	],
+	"hut2.glb": [
+		"#814C22",
+		"#231E1D",
+		"#FFF6A6",
+		"#E7AF3A",
+		"#E73627",
+		"#878787",
+	],
+	"hut3.glb": [
+		"#F6DAB6",
+		"#6CC3C1",
+		"#9DC45C",
+		"#EEB975",
+		"#F3B4BE",
+		"#878787",
+	],
+	"hut4.glb": [
+		"#F2E8CF",
+		"#BC4749",
+		"#EEB975",
+		"#AF1B3F",
+		"#6A994E",
+		"#878787",
+	],
 
-	"humped.glb": ["#FFA869", "#7E5024","#E76F31"],
+	"boat.glb": [
+		"#4F8A46",
+		"#E7D48E",
+		"#E76635",
+		"#E76C69",
+		"#5E64E7",
+		"#4A4A4A",
+		"#AAAAAA",
+		"#E711CD",
+	],
+
+	"rhino.glb": ["#6D6B6C", "#F6F6F6", "#373737", "#230F0F"],
+
+	"humped.glb": ["#FFA869", "#7E5024", "#E76F31"],
 };
 
 export const modelNames = [
@@ -164,52 +200,52 @@ export const blockNames = [
 ];
 
 export function mapNames() {
-  return [
-    getDropdownOption("circular_depression.png"),
-    getDropdownOption("checkerboard.png"),
-    getDropdownOption("sloped_plane.png"),
-    getDropdownOption("cove_plateau.png"),
-    getDropdownOption("random_hills.png"),
-    getDropdownOption("diagonal_ridge.png"),
-    getDropdownOption("mixed_heights.png"),
-    getDropdownOption("uneven_terrain.png"),
-  ];
-  }
+	return [
+		getDropdownOption("circular_depression.png"),
+		getDropdownOption("checkerboard.png"),
+		getDropdownOption("sloped_plane.png"),
+		getDropdownOption("cove_plateau.png"),
+		getDropdownOption("random_hills.png"),
+		getDropdownOption("diagonal_ridge.png"),
+		getDropdownOption("mixed_heights.png"),
+		getDropdownOption("uneven_terrain.png"),
+	];
+}
 
 export function animationNames() {
-  return [
-    getDropdownOption("Idle"),
-    getDropdownOption("Walk"),
-    getDropdownOption("Run"),
-    getDropdownOption("Wave"),
-    getDropdownOption("Yes"),
-    getDropdownOption("No"),
-    getDropdownOption("Duck"),
-    getDropdownOption("Fall"),
-    getDropdownOption("Fly"),
-    getDropdownOption("Jump"),
-    getDropdownOption("Flip"),
-    getDropdownOption("Dance1"),
-    getDropdownOption("Dance2"),
-    getDropdownOption("Dance3"),
-    getDropdownOption("Dance4"),
-    getDropdownOption("Jump_Idle"),
-    getDropdownOption("Jump_Land"),
-    getDropdownOption("Punch"),
-    getDropdownOption("HitReact"),
-    getDropdownOption("Idle_Hold"),
-    getDropdownOption("Walk_Hold"),
-    getDropdownOption("Run_Hold"),
-    getDropdownOption("Idle_Attack"),
-    getDropdownOption("Walk_Attack"),
-    getDropdownOption("Run_Attack"),
-    getDropdownOption("Sit_Down"),
-    getDropdownOption("Sitting"),
-    getDropdownOption("Stand_Up"),
-    getDropdownOption("Wobble"),
-    getDropdownOption("Clap"),
-  ];
-  }
+	return [
+		getDropdownOption("Idle"),
+		getDropdownOption("Walk"),
+		getDropdownOption("Run"),
+		getDropdownOption("Wave"),
+		getDropdownOption("Yes"),
+		getDropdownOption("No"),
+		getDropdownOption("Duck"),
+		getDropdownOption("Fall"),
+		getDropdownOption("Fly"),
+		getDropdownOption("Jump"),
+		getDropdownOption("Flip"),
+		getDropdownOption("Dance1"),
+		getDropdownOption("Dance2"),
+		getDropdownOption("Dance3"),
+		getDropdownOption("Dance4"),
+		getDropdownOption("Jump_Idle"),
+		getDropdownOption("Jump_Land"),
+		getDropdownOption("Punch"),
+		getDropdownOption("HitReact"),
+		getDropdownOption("Idle_Hold"),
+		getDropdownOption("Walk_Hold"),
+		getDropdownOption("Run_Hold"),
+		getDropdownOption("Idle_Attack"),
+		getDropdownOption("Walk_Attack"),
+		getDropdownOption("Run_Attack"),
+		getDropdownOption("Sit_Down"),
+		getDropdownOption("Sitting"),
+		getDropdownOption("Stand_Up"),
+		getDropdownOption("Wobble"),
+		getDropdownOption("Clap"),
+	];
+}
 
 export const materialNames = [
 	"none.png",
@@ -236,3 +272,9 @@ export const materialNames = [
 	"windmill.png",
 	"wood.png",
 ];
+
+export const attachNames = ["Hold", "Head"];
+
+export function getAttachNames() {
+	return attachNames.map(name => getDropdownOption(name));
+}
