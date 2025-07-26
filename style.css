@@ -166,17 +166,12 @@
   --color-shadow-medium: rgba(0, 0, 0, 0.2);
 }
 
-
-
 #info-panel {
   margin-top: 15px;
   margin-left: 10px;
   margin-right: 10px;
 } 
 
-#canvasArea {
-  position: relative;
-}
 
 /* Loading Screen Styles */
 .loading-screen {
@@ -348,6 +343,12 @@ button {
   display: flex;
   margin: 0;
   gap: 0;
+  box-sizing: border-box; 
+  overflow-x: hidden; 
+}
+
+#canvasArea {
+  position: relative;
 }
 
 #menu {
@@ -632,6 +633,10 @@ button {
   padding-bottom: 18px;
       padding-right: 8px;
     }
+
+  .resizer {
+      display: none;
+  }
 }
 
 @media only screen and (orientation: portrait) and (max-width: 768px) {
@@ -643,28 +648,86 @@ button {
   padding-bottom: 18px;
       padding-right: 8px;
     }
+
+  .resizer {
+      display: none;
+  }
 }
 
 @media (min-width: 769px) {
 
   #maincontent {
-  display: flex;
-  width: 100vw;
-  height: calc(100vh - 50px);
+    display: flex;
   }
-
-  #codePanel {
-  flex: 2 1 0;
-  height: calc(100vh - 50px);
-  box-sizing: border-box;
+  
+  #canvasArea, #codePanel {
+      flex: 1 1 0;  /* grow, shrink, basis */
+      width: 0; /* Forces flex to calculate based on flex-grow */
   }
 
   #canvasArea {
-  flex: 1 1 0;
-  height: calc(100vh - 50px);
-  box-sizing: border-box;
+    min-width: 300px;
+  }
+
+  #blocklyDiv {
+    width: 100% !important;
+    height: 100% !important;
+    position: relative;
+  }
+
+  #codePanel {
+    overflow: hidden; /* Prevents content from spilling out */
   }
   
+  .resizer {
+      width: 8px;
+      background-color: #aaa;
+      cursor: col-resize;
+      position: relative;
+      transition: background-color 0.2s ease;
+      display: none; /* Hidden by default for mobile */
+    flex-shrink: 0;
+  }
+
+  .resizer:hover {
+      background-color: var(--color-focus);
+  }
+
+  .resizer:active {
+      background-color:var(--color-focus);
+  }
+
+  .resizer:focus{
+      background-color:var(--color-focus);
+    outline: 3px solid var(--color-focus);
+
+  }
+
+
+  .resizer:hover {
+    width: 20px; /* Hover expansion */
+  }
+
+  .resizer::before {
+    height: 60px; /* Taller grip indicator */
+    width: 6px;   /* Thicker grip */
+  }
+
+  .resizer::before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 3px;
+      height: 30px;
+      background-color: #999;
+      border-radius: 2px;
+  }
+
+  .resizer {
+      display: block;
+  }
 }
 
 /* Logo */
@@ -834,6 +897,12 @@ details summary:focus,
         outline-offset: 2px;
         background-color: var(--color-button-bg-hover);
       }
+
+#renderCanvas:focus {
+  outline: 3px solid var(--color-focus);
+  outline-offset: -3px;
+  background-color: var(--color-button-bg-hover);
+}
 
       /* Focus management for modal */
       .modal:focus-within .modal-content {

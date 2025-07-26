@@ -87,6 +87,15 @@ export function setupInput(){
 				elements.push(logoLink);
 			}
 
+			const resizer = document.querySelector("#resizer");
+			if (
+				resizer &&
+				isElementVisible(resizer) &&
+				!elements.includes(resizer)
+			) {
+				elements.push(resizer);
+			}
+
 			// Add search inputs if visible
 			const searchInputs = document.querySelectorAll(
 				'.blocklySearchInput, .blocklyTreeSearch input, input[placeholder*="Search"]',
@@ -156,6 +165,12 @@ export function setupInput(){
 		}
 
 		document.addEventListener("keydown", (e) => {
+			if (document.activeElement.id === "resizer" && 
+				["ArrowLeft", "ArrowRight", "Home"].includes(e.key)) {
+				
+				return; // Don't prevent default, let resizer handle it
+			}
+
 			if (e.key !== "Tab") return;
 			const activeElement = document.activeElement;
 
@@ -233,6 +248,10 @@ export function setupInput(){
 							"Interactive element";
 						announceToScreenReader(`${text} focused`);
 					}
+					else if (nextElement.id === "resizer") {
+						announceToScreenReader("Panel resizer focused. Use arrow keys to resize panels, Home to reset.");
+					}
+
 				}
 			}
 		});

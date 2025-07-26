@@ -12,7 +12,8 @@ const isMobile = () => {
 };
 
 export function onResize() {
-	Blockly.svgResize(workspace);
+	workspace.resize();
+	Blockly.svgResize(workspace);	
 	//document.body.style.zoom = "reset";
 	resizeCanvas();
 	if (flock.engine) flock.engine.resize();
@@ -86,7 +87,6 @@ function switchView(view) {
 			}
 		}
 	} else if (view === "canvas") {
-		console.log("canvas");
 		viewMode = "canvas";
 		blocklyArea.style.display = "none";
 		canvasArea.style.display = "block";
@@ -448,3 +448,161 @@ function toggleToolbox() {
 
 window.toggleToolbox = toggleToolbox;
 */
+
+class PanelResizer {
+	constructor() {
+		this.resizer = document.getElementById('resizer');
+		this.canvasArea = document.getElementById('canvasArea');
+		this.codePanel = document.getElementById('codePanel');
+		this.mainContent = document.getElementById('maincontent');
+
+		this.isResizing = false;
+		this.startX = 0;
+		this.startCanvasWidth = 0;
+		this.startCodeWidth = 0;
+
+		this.init();
+	}
+
+	init() {
+		// Mouse events
+		this.resizer.addEventListener('mousedown', this.startResize.bind(this));
+		document.addEventListener('mousemove', this.handleResize.bind(this));
+		document.addEventListener('mouseup', this.stopResize.bind(this));
+
+		// Touch events for mobile
+		this.resizer.addEventListener('touchstart', this.startResize.bind(this));
+		document.addEventListener('touchmove', this.handleResize.bind(this));
+		document.addEventListener('touchend', this.stopResize.bind(this));
+
+		// Keyboard accessibility
+		this.resizer.addEventListener('keydown', this.handleKeyboard.bind(this));
+
+		// Prevent text selection during resize
+		this.resizer.addEventListener('selectstart', (e) => e.preventDefault());
+
+	}
+
+	startResize(e) {
+		this.isResizing = true;
+
+		// Add resizing class to prevent hover effects
+		this.resizer.classList.add('resizing');
+
+		// Handle both mouse and touch events
+		const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+		this.startX = clientX;
+
+		const canvasRect = this.canvasArea.getBoundingClientRect();
+		const codeRect = this.codePanel.getBoundingClientRect();
+
+		this.startCanvasWidth = canvasRect.width;
+		this.startCodeWidth = codeRect.width;
+
+		// Add visual feedback
+		document.body.style.cursor = 'col-resize';
+
+		// Prevent default to avoid text selection
+		e.preventDefault();
+	}
+
+	handleResize(e) {
+		if (!this.isResizing) return;
+
+		const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+		const deltaX = clientX - this.startX;
+
+		const mainRect = this.mainContent.getBoundingClientRect();
+		
+		const minPanelWidth = 300;
+
+		const newCanvasWidth = this.startCanvasWidth + deltaX;
+		const newCodeWidth = this.startCodeWidth - deltaX;
+
+		// Ensure minimum widths
+		if (newCanvasWidth >= minPanelWidth && newCodeWidth >= minPanelWidth) {
+			const totalWidth = mainRect.width;
+			const canvasFlexBasis = (newCanvasWidth / totalWidth) * 100;
+			const codeFlexBasis = (newCodeWidth / totalWidth) * 100;
+
+			this.canvasArea.style.flex = `0 0 ${canvasFlexBasis}%`;
+			this.codePanel.style.flex = `0 0 ${codeFlexBasis}%`;
+
+			// Trigger resize for canvas and Blockly
+			this.triggerContentResize();
+		}
+
+		e.preventDefault();
+	}
+
+	stopResize() {
+		if (!this.isResizing) return;
+
+		this.isResizing = false;
+
+		// Remove resizing class to restore hover effects
+		this.resizer.classList.remove('resizing');
+
+		document.body.style.cursor = '';
+
+		// Final resize trigger after dragging stops
+		this.triggerContentResize();
+	}
+
+	handleKeyboard(e) {
+		
+		const step = 20; // pixels
+		let deltaX = 0;
+
+		switch(e.key) {
+			case 'ArrowLeft':
+				deltaX = -step;
+				break;
+			case 'ArrowRight':
+				deltaX = step;
+				break;
+			case 'Home':
+				this.resetPanels();
+				return;
+			default:
+				return;
+		}
+
+		// Get current widths
+		const currentCanvasWidth = this.canvasArea.offsetWidth;
+		const currentCodeWidth = this.codePanel.offsetWidth;
+		const mainRect = this.mainContent.getBoundingClientRect();
+		const resizerWidth = 0;
+		const minPanelWidth = 300;
+		const totalAvailableWidth = mainRect.width - resizerWidth;
+
+		// Calculate new widths
+		const newCanvasWidth = currentCanvasWidth + deltaX;
+		const newCodeWidth = currentCodeWidth - deltaX;
+
+		// Check minimum width constraint
+		if (newCanvasWidth < minPanelWidth || newCodeWidth < minPanelWidth) {
+			e.preventDefault();
+			return; // Just return without changing anything
+		}
+
+		// Use fixed pixel widths instead of percentages to be more explicit
+		this.canvasArea.style.flex = `0 0 ${newCanvasWidth}px`;
+		this.codePanel.style.flex = `0 0 ${newCodeWidth}px`;
+
+		// Trigger content resize
+		this.triggerContentResize();
+
+		e.preventDefault();
+	}
+
+	triggerContentResize() {
+		onResize();
+	}
+}
+
+// Initialize when DOM is loaded
+document.addEventListener('DOMContentLoaded', () => {
+	new PanelResizer();
+});
+
