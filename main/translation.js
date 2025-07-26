@@ -69,9 +69,6 @@ function saveLanguagePreference(language) {
   console.log(`Saved language preference: ${language}`);
 }
 
-// Load saved language and initialize translations
-loadSavedLanguage();
-
 function cacheOriginalMessages() {
   if (!isOriginalMessagesCached) {
     // Cache all current Blockly messages (which are English by default)

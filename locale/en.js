@@ -680,7 +680,7 @@ export default {
   my_place_ui: "🏠 My place",
   microbit_monkey_ui: "🐵 micro:bit monkey",
   
-  main_menu_ui: "Open menu for more options",
+  main_menu_ui: "Main menu",
   project_submenu_ui: "Project",
   project_new_ui: "New",
   project_open_ui: "Open",
