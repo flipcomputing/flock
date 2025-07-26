@@ -905,7 +905,6 @@
                 title="Add shapes and models"
                 aria-expanded="false"
                 aria-haspopup="true"
-                tabindex="10"
               >
                 <img
                   src="./images/add.svg"
@@ -1008,8 +1007,8 @@
               </span>
             </div>
             <label for="colorPickerButton" class="sr-only">Change object color</label>
-            <input type="color" id="colorPickerButton" data-i18n="color_picker_button" disabled title="Change object color" tabindex="11" />
-            <button class="gizmo-button" id="positionButton" data-i18n="position_button" disabled aria-label="Position mesh" title="Position mesh" tabindex="12">
+            <input type="color" id="colorPickerButton" data-i18n="color_picker_button" disabled title="Change object color"/>
+            <button class="gizmo-button" id="positionButton" data-i18n="position_button" disabled aria-label="Position mesh" title="Position mesh">
               <img
                 src="./images/position.svg"
                 width="20px"
@@ -1018,7 +1017,7 @@
                 onerror="this.style.display='none'; this.parentNode.textContent='⌖';"
               />
             </button>
-            <button class="gizmo-button" id="rotationButton" data-i18n="rotation_button" disabled aria-label="Rotate mesh" title="Rotate mesh" tabindex="13">
+            <button class="gizmo-button" id="rotationButton" data-i18n="rotation_button" disabled aria-label="Rotate mesh" title="Rotate mesh">
               <img
                 src="./images/rotate.svg"
                 width="20px"
@@ -1027,7 +1026,7 @@
                 onerror="this.style.display='none'; this.parentNode.textContent='↻';"
               />
             </button>
-            <button class="gizmo-button" id="scaleButton" data-i18n="scale_button" disabled aria-label="Scale mesh size" title="Scale mesh size" tabindex="14">
+            <button class="gizmo-button" id="scaleButton" data-i18n="scale_button" disabled aria-label="Scale mesh size" title="Scale mesh size">
               <img
                 src="./images/scale.svg"                              c
                 width="20px"
@@ -1052,7 +1051,7 @@
                 alt="focus"
               /-->
             </button>
-            <button class="gizmo-button" id="hideButton" data-i18n="hide_button" disabled aria-label="Select object" title="Select object" tabindex="15">
+            <button class="gizmo-button" id="hideButton" data-i18n="hide_button" disabled aria-label="Select object" title="Select object">
               <img
                 src="./images/pointer.svg"
                 width="20px"
@@ -1061,7 +1060,7 @@
                 onerror="this.style.display='none'; this.parentNode.textContent='👆';"
               />
             </button>
-            <button class="gizmo-button" id="duplicateButton" data-i18n="duplicate_button" disabled aria-label="Duplicate mesh" title="Duplicate selected mesh" tabindex="16">
+            <button class="gizmo-button" id="duplicateButton" data-i18n="duplicate_button" disabled aria-label="Duplicate mesh" title="Duplicate selected mesh">
               <img
                 src="./images/duplicate.svg"
                 width="20px"
@@ -1070,7 +1069,7 @@
                 onerror="this.style.display='none'; this.parentNode.textContent='⧉';"
               />
             </button>
-            <button class="gizmo-button" id="deleteButton" data-i18n="delete_button" disabled aria-label="Delete mesh" title="Delete selected mesh" tabindex="17">
+            <button class="gizmo-button" id="deleteButton" data-i18n="delete_button" disabled aria-label="Delete mesh" title="Delete selected mesh">
               <img
                 src="./images/delete.svg"
                 width="20px"
@@ -1079,7 +1078,7 @@
                 onerror="this.style.display='none'; this.parentNode.textContent='🗑';"
               />
             </button>
-            <button class="gizmo-button" id="cameraButton" data-i18n="camera_button" disabled aria-label="Camera controls" title="Camera controls" tabindex="18">
+            <button class="gizmo-button" id="cameraButton" data-i18n="camera_button" disabled aria-label="Camera controls" title="Camera controls">
               <img
                 src="./images/camera2.svg"
                 width="20px"
@@ -1158,7 +1157,7 @@
                   target="_blank"
                   id="info-panel-link"
                   data-i18n="info_panel_link"
-                  tabindex="20"
+                  
                   aria-label="Visit Flock XR website (opens in new tab)"
                   title="Visit Flock XR website"
                 >
