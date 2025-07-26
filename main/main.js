@@ -94,6 +94,19 @@ console.log("Blockly version:", Blockly.VERSION);
 function initializeApp() {
 	console.log("Initializing app...");
 
+	const observer = new MutationObserver((mutations) => {
+	  const unmuteButton = document.getElementById('babylonUnmuteButton');
+	  if (unmuteButton && !unmuteButton.getAttribute('aria-label')) {
+		unmuteButton.setAttribute('aria-label', 'Unmute audio');
+		unmuteButton.textContent = 'Unmute';
+		observer.disconnect(); // Stop observing once we've found it
+	  }
+	});
+
+	observer.observe(document.body, { 
+	  childList: true, 
+	  subtree: true 
+	});
 	// Add event listeners for menu buttons and controls
 	const runCodeButton = document.getElementById("runCodeButton");
 	const toggleDesignButton = document.getElementById("toggleDesign");
@@ -364,7 +377,4 @@ window.onload = async function () {
 
 	setupInput();
 	initializeApp();
-	const unmuteButton = document.getElementById('babylonUnmuteButton');
-	unmuteButton.setAttribute('aria-label', 'Unmute audio');
-	unmuteButton.textContent = 'Unmute'; // Or use an icon font/emoji
 };
