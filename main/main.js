@@ -290,6 +290,7 @@ function initializeApp() {
 }
 
 window.onload = async function () {
+
 	const scriptElement = document.getElementById("flock");
 	if (scriptElement) {
 		initializeFlock();
@@ -363,4 +364,7 @@ window.onload = async function () {
 
 	setupInput();
 	initializeApp();
+	const unmuteButton = document.getElementById('babylonUnmuteButton');
+	unmuteButton.setAttribute('aria-label', 'Unmute audio');
+	unmuteButton.textContent = 'Unmute'; // Or use an icon font/emoji
 };
