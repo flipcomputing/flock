@@ -10,6 +10,7 @@ import {
   getMeshFromBlock,
 } from "./ui/blockmesh.js";
 import { registerFieldColour } from "@blockly/field-colour";
+import { createThemeConfig } from "./main/themes.js";
 
 registerFieldColour();
 
@@ -300,7 +301,8 @@ const mediaPath = window.location.pathname.includes("/flock")
   : "/blockly/media/"; // For local dev
 
 export const options = {
-  theme: Blockly.Themes.Modern, // "flock"
+  //theme: Blockly.Themes.Modern, // "flock"
+  theme: createThemeConfig('light'),
   //theme: "flockTheme",
   //renderer: "zelos",
   renderer: "custom_zelos_renderer",

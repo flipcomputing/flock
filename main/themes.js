@@ -60,7 +60,7 @@ function switchTheme(themeName) {
 }
 
 // Create theme configuration for all themes
-function createThemeConfig(themeName) {
+export function createThemeConfig(themeName) {
 	const baseStyles = getThemeBaseStyles(themeName);
 
 	return {

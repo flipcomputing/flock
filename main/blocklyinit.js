@@ -162,10 +162,12 @@ export function createBlocklyWorkspace() {
 
 	//KeyboardNavigation.registerKeyboardNavigationStyles();
 
+	
 	workspace = Blockly.inject("blocklyDiv", options);
+	initializeTheme();
+	
 	//const keyboardNav = new KeyboardNavigation(workspace);
 
-	initializeTheme();
 	const mainWorkspace = document.querySelector(
 		".blocklyMainWorkspaceDiv .blocklyBlockCanvas",
 	);
