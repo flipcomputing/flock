@@ -179,7 +179,7 @@ export function defineConnectBlocks() {
 		init: function () {
 			this.jsonInit({
 				type: "attach",
-				message0: translate("attach") + " %1 to %2 at %3 offset x: %4 y: %5 z: %6",
+				message0: translate("attach") + " %1 to %2 at %3\noffset x: %4 y: %5 z: %6",
 				args0: [				
 					{
 						type: "field_variable",
