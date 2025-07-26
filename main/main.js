@@ -98,7 +98,6 @@ function initializeApp() {
 	  const unmuteButton = document.getElementById('babylonUnmuteButton');
 	  if (unmuteButton && !unmuteButton.getAttribute('aria-label')) {
 		unmuteButton.setAttribute('aria-label', 'Unmute audio');
-		unmuteButton.textContent = 'Unmute';
 		observer.disconnect(); // Stop observing once we've found it
 	  }
 	});
