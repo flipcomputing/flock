@@ -303,8 +303,7 @@ export function initializeTheme() {
 
 // Register category styles with Blockly before workspace creation
 function registerCategoryStyles() {
-	console.log("Registering category styles...");
-
+	
 	// Use light theme as default for initial registration
 	const lightStyles = getThemeBaseStyles("light");
 
@@ -331,7 +330,7 @@ function registerCategoryStyles() {
 		try {
 			// Just register directly without checking if it exists
 			Blockly.registry.register("categoryStyles", styleName, styleConfig);
-			console.log(`Registered category style: ${styleName}`);
+			
 		} catch (error) {
 			// Only warn if it's not an "already exists" error
 			if (!error.message.includes("already registered")) {
