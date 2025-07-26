@@ -551,6 +551,27 @@ button {
   right: -15px;
 }
 
+
+#site-footer {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  padding: 0.3em;
+  background: transparent;
+  width: auto;
+  z-index: 10;
+  display: flex;
+  justify-content: flex-end;
+  align-items: flex-end;
+}
+
+#flocklink {
+  background: transparent;
+}
+
+#flocklink img {
+   height: 15px;
+}
 @media (max-width: 768px) {
 
   #maincontent {
@@ -602,41 +623,26 @@ button {
   }
 }
 
-#flocklink {
-   box-sizing: border-box;
-  position: absolute;
-  bottom: 0;
-  width: 100%;
-  margin: 0;
-  font-size: 18px;
-  font-weight: bold;
-  background-color: var(--color-bg);
-  border:none;
-  cursor: pointer;
-  margin-top: auto; 
-  text-align: right;
-  padding: 5px;
-  padding-right: 10px;
-}
-
-#flocklink a {
-  color: var(--color-text-brand);
-  text-decoration: none;
-}
-
 @media only screen and (orientation: landscape) and (max-width: 768px) {
   #info-panel {
       display: none;
   }
-  .flocklink {
-      display: none;
-  }
+
+  #site-footer {
+  padding-bottom: 18px;
+      padding-right: 8px;
+    }
 }
 
 @media only screen and (orientation: portrait) and (max-width: 768px) {
   #info-panel {
       display: block;
   }
+
+  #site-footer {
+  padding-bottom: 18px;
+      padding-right: 8px;
+    }
 }
 
 @media (min-width: 769px) {
@@ -658,10 +664,7 @@ button {
   height: calc(100vh - 50px);
   box-sizing: border-box;
   }
-
-  #bottomBar {
-  display: none;
-  }
+  
 }
 
 /* Logo */
