@@ -57,10 +57,19 @@ export const flockModels = {
         .then((container) => {
           container.addAllToScene();
           const mesh = container.meshes[0];
-          flock.setupMesh(mesh, modelName, modelId, blockKey, scale, x, y, z);
+          const bb = flock.setupMesh(
+            mesh,
+            modelName,
+            modelId,
+            blockKey,
+            scale,
+            x,
+            y,
+            z,
+          );
 
-            flock.ensureStandardMaterial(mesh);
-            flock.applyColorsToCharacter(mesh, colors);
+          flock.ensureStandardMaterial(mesh);
+          flock.applyColorsToCharacter(mesh, colors);
 
           const descendants = mesh.getChildMeshes(false);
           descendants.forEach((childMesh) => {
@@ -69,6 +78,10 @@ export const flockModels = {
               childMesh.flipFaces(true);
             }
           });
+
+          ["Idle", "Walk", "Jump"].forEach(name =>
+            flock.switchToAnimation(flock.scene, bb, name, false, false, false)
+          );
 
           flock.announceMeshReady(modelId, groupName);
 
@@ -105,11 +118,20 @@ export const flockModels = {
           container.addAllToScene();
           const mesh = container.meshes[0];
 
-          flock.setupMesh(mesh, modelName, modelId, blockKey, scale, x, y, z);
+          const bb = flock.setupMesh(
+            mesh,
+            modelName,
+            modelId,
+            blockKey,
+            scale,
+            x,
+            y,
+            z,
+          );
 
           //if (modelName.startsWith("Character")) {
-            flock.ensureStandardMaterial(mesh);
-         // }
+          flock.ensureStandardMaterial(mesh);
+          // }
 
           flock.applyColorsToCharacter(mesh, colors);
 
@@ -120,6 +142,10 @@ export const flockModels = {
               childMesh.flipFaces(true);
             }
           });
+
+          ["Idle", "Walk", "Jump"].forEach(name =>
+            flock.switchToAnimation(flock.scene, bb, name, false, false, false)
+          );
 
           flock.announceMeshReady(modelId, groupName);
 
@@ -232,7 +258,7 @@ export const flockModels = {
             .getDescendants(false)
             .filter((node) => node instanceof flock.BABYLON.AbstractMesh),
         ];
-  
+
         allDescendantMeshes.forEach((mesh) => {
           mesh.isPickable = true;
           mesh.setEnabled(true);
@@ -255,7 +281,7 @@ export const flockModels = {
 
         return meshName;
       }
-  
+
       if (flock.modelsBeingLoaded[modelName]) {
         // 👇 Create a deferred promise to resolve later
         let resolveLater;
@@ -343,8 +369,8 @@ export const flockModels = {
             child.isPickable = false;
             child.setEnabled(false);
           });
-          
-          container.meshes.forEach(mesh => {
+
+          container.meshes.forEach((mesh) => {
             if (mesh.id != "__root__") {
               mesh.material.metadata = mesh.material.metadata || {};
               mesh.material.metadata.internal = true;

@@ -428,6 +428,8 @@ export const flockMesh = {
     boxBody.setMassProperties({ mass: 1, restitution: 0.5 });
     boxBody.disablePreStep = false;
     bb.physics = boxBody;
+
+    return bb;
   },
   hold(meshToAttach, targetMesh, xOffset = 0, yOffset = 0, zOffset = 0) {
     return flock.whenModelReady(targetMesh, (targetMeshInstance) => {

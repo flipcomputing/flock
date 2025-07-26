@@ -887,9 +887,16 @@ export const flockAnimate = {
     }
     return false;
   },
-  switchToAnimation(scene, meshOrGroup, animationName, loop = true, restart) {
+  switchToAnimation(
+    scene,
+    meshOrGroup,
+    animationName,
+    loop = true,
+    restart = false,
+    play = true,
+  ) {
     const modelName = meshOrGroup.metadata.modelName;
-    
+
     if (flock.separateAnimations) {
       // || meshOrGroup.name.includes('ANIMTEST'))
 
@@ -899,6 +906,7 @@ export const flockAnimate = {
         animationName,
         loop,
         restart,
+        play,
       );
     } else {
       return flock.switchToAnimationModel(
@@ -916,8 +924,9 @@ export const flockAnimate = {
     animationName,
     loop = true,
     restart = false,
+    play = true,
   ) {
-    //console.log("switchToAnimationLoad");
+    //console.log("switchToAnimationLoad", play);
 
     function findMeshWithSkeleton(rootMesh) {
       if (rootMesh.skeleton) return rootMesh;
@@ -951,21 +960,32 @@ export const flockAnimate = {
       // First request: start the load/retarget process and cache the Promise immediately!
       cache[animationName] = (async () => {
         const t0 = performance.now();
-         const modelName = meshOrGroup.metadata?.modelName;
-        const animationFile = blockNames.includes(modelName) ? animationName + "_Block": animationName;
+        const modelName = meshOrGroup.metadata?.modelName;
+        const animationFile = blockNames.includes(modelName)
+          ? animationName + "_Block"
+          : animationName;
         //console.log(`[switchToAnimation] Loading animation "${animationFile}" for "${modelName}".`, mesh.metadata);
         const animImport =
           await flock.BABYLON.SceneLoader.LoadAssetContainerAsync(
             "./animations/",
             animationFile + ".glb",
-            scene,
+            flock.scene,
+            undefined, // onProgress
+            undefined, // pluginExtension
+            {
+              gltf: {
+                animationStartMode:
+                  flock.BABYLON_LOADER.GLTFLoaderAnimationStartMode.NONE,
+              },
+            },
           );
+
         const t1 = performance.now();
         /*console.log(
           `[switchToAnimation] File load time: ${(t1 - t0).toFixed(2)} ms`,
         );*/
         const groupNames = animImport.animationGroups.map((ag) => ag.name);
-       /* console.log(
+        /* console.log(
           `[switchToAnimation] Animation groups in file:`,
           groupNames,
         );*/
@@ -996,6 +1016,9 @@ export const flockAnimate = {
           mesh.name + "." + animationName,
           scene,
         );
+
+        // Right before retargetedGroup.start(loop), add:
+       
         let addedCount = 0;
 
         for (const ta of animGroup.targetedAnimations) {
@@ -1005,7 +1028,7 @@ export const flockAnimate = {
           } else if (ta.target instanceof flock.BABYLON.TransformNode) {
             mappedTarget = transformNodeMap[ta.target.name];
           }
-          if (mappedTarget) {
+          if (mappedTarget && ta.animation.targetProperty !== "scaling") {
             const animCopy = ta.animation.clone(
               ta.animation.name + "_" + mesh.name,
             );
@@ -1027,8 +1050,11 @@ export const flockAnimate = {
 
       retargetedGroup = await cache[animationName];
       // Now replace the Promise with the result (for future quick access)
+
       cache[animationName] = retargetedGroup;
     }
+
+    if (!play) return;
 
     // --- GROUP SWITCHING/PLAYBACK ---
     // Only stop if switching to a different group
@@ -1046,9 +1072,10 @@ export const flockAnimate = {
 
     // -- restart logic --
     if (retargetedGroup && (!retargetedGroup.isPlaying || restart)) {
-      retargetedGroup.reset();
       retargetedGroup.stop();
+      retargetedGroup.reset();
       retargetedGroup.start(loop);
+
     } else if (retargetedGroup) {
       //console.log(`[switchToAnimation] "${animationName}" is already playing on ${mesh.name}. Not restarting.`);
     }
@@ -1175,7 +1202,9 @@ export const flockAnimate = {
     { animationName, loop = false, restart = true } = {},
   ) {
     if (!animationName) {
-      console.warn(`No animationName provided for playAnimation on mesh '${meshName}'.`);
+      console.warn(
+        `No animationName provided for playAnimation on mesh '${meshName}'.`,
+      );
       return;
     }
     const mesh = flock.scene.getMeshByName(meshName);
@@ -1191,7 +1220,9 @@ export const flockAnimate = {
       restart,
     );
     if (!animGroup) {
-      console.warn(`Animation '${animationName}' not found for mesh '${meshName}'.`);
+      console.warn(
+        `Animation '${animationName}' not found for mesh '${meshName}'.`,
+      );
       return;
     }
     return new Promise((resolve) => {
@@ -1204,7 +1235,9 @@ export const flockAnimate = {
     { animationName, loop = false, restart = true } = {},
   ) {
     if (!animationName) {
-      console.warn(`No animationName provided for playAnimation on mesh '${meshName}'.`);
+      console.warn(
+        `No animationName provided for playAnimation on mesh '${meshName}'.`,
+      );
       return;
     }
     const mesh = flock.scene.getMeshByName(meshName);
@@ -1221,7 +1254,9 @@ export const flockAnimate = {
       restart,
     );
     if (!animGroup) {
-      console.warn(`Animation '${animationName}' not found or failed for mesh '${meshName}'.`);
+      console.warn(
+        `Animation '${animationName}' not found or failed for mesh '${meshName}'.`,
+      );
       return;
     }
     return new Promise((resolve) => {

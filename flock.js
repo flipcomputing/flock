@@ -5,7 +5,7 @@
 import HavokPhysics from "@babylonjs/havok";
 import * as BABYLON from "@babylonjs/core";
 import * as BABYLON_GUI from "@babylonjs/gui";
-import "@babylonjs/loaders";
+import * as BABYLON_LOADER from "@babylonjs/loaders";
 import { GradientMaterial } from "@babylonjs/materials";
 import * as BABYLON_EXPORT from "@babylonjs/serializers";
 import { FlowGraphLog10Block, SetMaterialIDBlock } from "babylonjs";
@@ -70,6 +70,7 @@ export const flock = {
 	characterNames: characterNames,
 	alert: alert,
 	BABYLON: BABYLON,
+	BABYLON_LOADER: BABYLON_LOADER,
 	GradientMaterial: GradientMaterial,
 	scene: null,
 	highlighter: null,
