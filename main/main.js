@@ -138,7 +138,7 @@ function initializeApp() {
 
 	// keydown event listener
 	document.addEventListener("keydown", function (e) {
-		// Avoid in inputs/textareas
+		// Avoid in inputs
 		const tag = (e.target.tagName || "").toLowerCase();
 		if (tag === "input" || tag === "textarea" || e.target.isContentEditable)
 			return;
@@ -351,6 +351,23 @@ window.onload = async function () {
 		if (event.type === Blockly.Events.FINISHED_LOADING) {
 			initializeVariableIndexes();
 			window.loadingCode = false;
+		}
+	});
+
+	document.getElementById('info-details').addEventListener('toggle', function(e) {
+		if (this.open) {
+			setTimeout(() => {
+				const content = this.querySelector('.content');
+				if (content) {
+					content.setAttribute('tabindex', '0'); // Make it focusable
+					content.focus();
+				}
+			}, 10);
+		} else {
+			const content = this.querySelector('.content');
+			if (content) {
+				content.setAttribute('tabindex', '-1'); // Remove from tab order when closed
+			}
 		}
 	});
 

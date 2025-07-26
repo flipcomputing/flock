@@ -68,6 +68,15 @@ export function setupInput(){
 			elements.push(infoSummary);
 			}
 
+			// Add this in getFocusableElements(), after the info summary section:
+			const infoDetails = document.getElementById("info-details");
+			if (infoDetails && infoDetails.open) {
+				const detailsContent = infoDetails.querySelector(".content");
+				if (detailsContent && isElementVisible(detailsContent)) {
+					elements.push(detailsContent);
+				}
+			}
+
 			// Add Flock XR logo link after gizmos if visible
 			const logoLink = document.querySelector("#info-panel-link");
 			if (
@@ -148,6 +157,23 @@ export function setupInput(){
 
 		document.addEventListener("keydown", (e) => {
 			if (e.key !== "Tab") return;
+			const activeElement = document.activeElement;
+
+			// Special handling for details navigation
+			const detailsElement = document.getElementById("info-details");
+
+			// If we're on the summary and details is closed, use custom management
+			if (activeElement.matches("#info-details summary") && !detailsElement.open) {
+				// Let custom management handle this - will go to next UI element
+			}
+			// If we're on the summary and details is open, let browser handle the Tab into content
+			else if (activeElement.matches("#info-details summary") && detailsElement.open) {
+				return; // Let browser handle tab into details content
+			}
+			// If we're anywhere inside open details content, let browser handle it
+			else if (activeElement.closest("#info-details") && detailsElement.open) {
+				return; // Let browser handle navigation within details
+			}
 
 			const focusableElements = getFocusableElements();
 			if (focusableElements.length === 0) return;
@@ -156,7 +182,7 @@ export function setupInput(){
 			const currentIndex = focusableElements.indexOf(currentElement);
 
 			// Only manage tab navigation for our tracked elements
-			if (currentIndex === -1) return;
+			if (currentIndex === -1 || currentElement.closest("details[open]")) return;
 
 			e.preventDefault();
 
