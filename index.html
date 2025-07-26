@@ -919,23 +919,32 @@
               <span id="shapes-dropdown" style="display: none">
                 <!-- Shape Row -->
                 <ul id="shape-row">
-                  <li onclick="selectShape('create_box')">
-                    <img src="./images/box.png" alt="Box" />
+                  <li>
+                    <button onclick="selectShape('create_box')" aria-label="Create box shape">
+                      <img src="./images/box.png" alt="Box" />
+                    </button>
                   </li>
-                  <li onclick="selectShape('create_sphere')">
-                    <img src="./images/sphere.png" alt="Sphere" />
+                  <li>
+                    <button onclick="selectShape('create_sphere')" aria-label="Create sphere shape">
+                      <img src="./images/sphere.png" alt="Sphere" />
+                    </button>
                   </li>
-                  <li onclick="selectShape('create_cylinder')">
-                    <img src="./images/cylinder.png" alt="Cylinder" />
+                  <li>
+                    <button onclick="selectShape('create_cylinder')" aria-label="Create cylinder shape">
+                      <img src="./images/cylinder.png" alt="Cylinder" />
+                    </button>
                   </li>
-                  <li onclick="selectShape('create_capsule')">
-                    <img src="./images/capsule.png" alt="Capsule" />
+                  <li>
+                    <button onclick="selectShape('create_capsule')" aria-label="Create capsule shape">
+                      <img src="./images/capsule.png" alt="Capsule" />
+                    </button>
                   </li>
-                  <li onclick="selectShape('create_plane')">
-                    <img src="./images/plane.png" alt="Plane" />
+                  <li>
+                    <button onclick="selectShape('create_plane')" aria-label="Create plane shape">
+                      <img src="./images/plane.png" alt="Plane" />
+                    </button>
                   </li>
                 </ul>
-
                 <!-- Model Row with scroll buttons -->
                 <div class="scrollable-container">
                   <button
@@ -958,7 +967,6 @@
                     &Rang;
                   </button>
                 </div>
-
                 <!-- Object Row -->
                 <div class="scrollable-container">
                   <button
@@ -981,7 +989,6 @@
                     &Rang;
                   </button>
                 </div>
-
                 <!-- Character Row -->
                 <div class="scrollable-container">
                   <button

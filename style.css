@@ -965,3 +965,14 @@ details summary:focus,
   border-bottom: none;
 }
 
+#shape-row button {
+  border: none;
+  background: none;
+  padding: 0;
+  margin: 0;
+  cursor: pointer;
+}
+
+#shape-row button:focus {
+  outline: 2px solid #0066cc; /* Or your preferred focus color */
+}
