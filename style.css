@@ -174,7 +174,7 @@
   margin-right: 10px;
 } 
 
-#rightArea {
+#canvasArea {
   position: relative;
 }
 
@@ -587,7 +587,7 @@ button {
   }
 
   #codePanel,
-  #rightArea {
+  #canvasArea {
   flex-basis: 100vw;
   max-width: 100vw;
   height: calc(100vh - var(--dynamic-offset));
@@ -659,7 +659,7 @@ button {
   box-sizing: border-box;
   }
 
-  #rightArea {
+  #canvasArea {
   flex: 1 1 0;
   height: calc(100vh - 50px);
   box-sizing: border-box;

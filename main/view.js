@@ -22,7 +22,7 @@ window.onresize = onResize;
 
 // Function to maintain a 16:9 aspect ratio for the canvas
 function resizeCanvas() {
-	const canvasArea = document.getElementById("rightArea");
+	const canvasArea = document.getElementById("canvasArea");
 	const canvas = document.getElementById("renderCanvas");
 
 	const areaWidth = canvasArea.clientWidth;
@@ -64,7 +64,7 @@ window.codeMode = codeMode;
 function switchView(view) {
 	if (flock.scene) flock.scene.debugLayer.hide();
 	const blocklyArea = document.getElementById("codePanel");
-	const canvasArea = document.getElementById("rightArea");
+	const canvasArea = document.getElementById("canvasArea");
 	const flockLink = document.getElementById("flocklink");
 
 	if (view === "both") {
@@ -307,7 +307,7 @@ export function togglePlayMode() {
 	if (!flock.scene) return;
 
 	const blocklyArea = document.getElementById("codePanel");
-	const canvasArea = document.getElementById("rightArea");
+	const canvasArea = document.getElementById("canvasArea");
 	const gizmoButtons = document.getElementById("gizmoButtons");
 	const bottomBar = document.getElementById("bottomBar");
 	const flockLink = document.getElementById("flocklink");
@@ -371,7 +371,7 @@ export function toggleDesignMode(){
 	if (!flock.scene) return;
 
 	const blocklyArea = document.getElementById("codePanel");
-	const canvasArea = document.getElementById("rightArea");
+	const canvasArea = document.getElementById("canvasArea");
 	const gizmoButtons = document.getElementById("gizmoButtons");
 	const flockLink = document.getElementById("flocklink");
 	const infoPanel = document.getElementById("info-panel");
