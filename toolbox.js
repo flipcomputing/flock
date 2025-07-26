@@ -1156,7 +1156,7 @@ const toolboxTransformConnect = {
 			type: "stop_follow",
 			keyword: "fstop",
 		},
-		{
+		/*{
 			kind: "block",
 			type: "hold",
 			keyword: "hold",
@@ -1186,7 +1186,7 @@ const toolboxTransformConnect = {
 					},
 				},
 			},
-		},
+		},*/
 		{
 			kind: "block",
 			type: "attach",
