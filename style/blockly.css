@@ -461,13 +461,15 @@ body .blocklyTreeLabel {
 }
 
 body[data-theme="contrast"] .blocklyText {
-  font-family: "Roboto Mono", monospace !important;
+   font-weight: 600 !important;
+  font-family: "Asap", Helvetica, Arial, Lucida, sans-serif !important;
 
 }
 
 
 body[data-theme="contrast"] .blocklyTreeLabel {
-   font-family: "Roboto Mono", monospace !important;
+  font-weight: 500 !important;
+  font-family: "Asap", Helvetica, Arial, Lucida, sans-serif !important;
 }
 
 body[data-theme="dark"] .blocklyText {

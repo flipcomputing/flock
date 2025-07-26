@@ -57,8 +57,11 @@
   /* Core colours */
   --color-bg:                        #1e1e1e;
   --color-bg-alt:                    #2a2a2a;
-  --color-text:                      #ffffff;
-  --color-primary:                   #511d91;
+  --color-text:                      #000000;
+  --color-text-primary: #888888;
+  --color-primary:                   #888888;
+   --color-text-brand:  #888888;
+  --color-menu-item:  #888888;
   --color-muted:                     #555555;
   --color-border:                    #555555;
   --color-border-light:              #333333;
@@ -75,6 +78,9 @@
   --color-button-bg-hover:           #333333;
   --color-button-bg-focus:           #444444;
 
+  
+  --color-text-on-primary:  #444444;
+
   /* Loading screen gradient */
   --color-loading-gradient-start:    var(--color-bg);
   --color-loading-gradient-end:      var(--color-bg-alt);
@@ -84,13 +90,15 @@
   --color-spinner-border-top:        var(--color-primary);
 
   /* Dropdown & menus */
-  --color-dropdown-text:             #ffffff;
-  --color-menu-item-text:            #ffffff;
+  --color-dropdown-text:        var(--color-text);
+  --color-menu-item-text:       var(--color-text);
+  --color-dropdown-menu-bg:     var(--color-bg);
+  --color-dropdown-menu-hover:  rgba(0, 0, 0, 0.05);
+  --color-dropdown-menu-border: var(--color-dropdown-menu-border, 1px solid rgba(0,0,0,0.1));
+
   --color-dropdown-bg:               #333333;
   --color-dropdown-hover:            #555555;
-  --color-dropdown-menu-bg:          var(--color-dropdown-bg);
-  --color-dropdown-menu-hover:       var(--color-dropdown-hover);
-  --color-dropdown-menu-border:      1px solid rgba(255, 255, 255, 0.1);
+ 
   --color-menu-hover:                var(--color-dropdown-hover);
   --color-menu-item-hover:           #444444;
 
@@ -103,55 +111,59 @@
   --color-scroll-button-bg:          rgba(0, 0, 0, 0.5);
 }
 
+
 /* High‑contrast theme */
-[data-theme="high-contrast"] {
-  /* Core colours */
-  --color-bg:                        black;
-  --color-bg-alt:                    white;
-  --color-text:                      yellow;
-  --color-primary:                   cyan;
-  --color-muted:                     white;
-  --color-border:                    white;
-  --color-border-light:              yellow;
-  --color-border-highlight:          white;
-  --color-search-highlight:          cyan;
-  --color-shadow:                    black;
-  --color-shadow-light:              black;
-  --color-shadow-medium:             black;
-  --color-outline-focus:             white;
-  --color-focus-ring:                white;
+[data-theme="contrast"] {
+  /* Primary Brand Colors */
+  --color-primary: #511D91;
+  --color-primary-light: #fc3;
+  --color-primary-dark: #004d4d;
 
-  /* Buttons */
-  --color-button-bg:                 black;
-  --color-button-bg-hover:           yellow;
-  --color-button-bg-focus:           cyan;
+  /* Background Colors */
+  --color-bg: #ffffff;
+  --color-text: #ffffff;
+  --color-bg-secondary: #f8f9fa;
+  --color-bg-overlay: rgba(0, 0, 0, 0.4);
+  --color-bg-overlay-light: rgba(0, 0, 0, 0.1);
+  --color-bg-glass: rgba(1, 1, 1, 0.5);
+  --color-bg-glass-light: rgba(255, 255, 255, 0.5);
+  --color-bg-glass-hover: rgba(255, 255, 255, 0.7);
+  --color-bg-glass-focused: rgba(255, 255, 255, 0.9);
 
-  /* Loading screen gradient */
-  --color-loading-gradient-start:    black;
-  --color-loading-gradient-end:      black;
+  /* Button Colors */
+  --color-button-bg: #e0e0e0;
+  --color-button-bg-hover: #d0d0d0;
+  --color-button-primary: #004d4d;
+  --color-button-scroll: rgba(0, 0, 0, 0.5);
 
-  /* Spinner */
-  --color-spinner-border:            white;
-  --color-spinner-border-top:        cyan;
+  /* Text Colors */
+  --color-text-primary: #000000;
+  --color-text-on-primary: #ffffff;
+  --color-text-brand: #511D91;
+  --color-text-loading: #511D91;
 
-  /* Dropdown & menus */
-  --color-dropdown-text:             black;
-  --color-menu-item-text:            black;
-  --color-dropdown-bg:               white;
-  --color-dropdown-hover:            white;
-  --color-dropdown-menu-bg:          var(--color-dropdown-bg);
-  --color-dropdown-menu-hover:       var(--color-dropdown-hover);
-  --color-dropdown-menu-border:      2px solid black;
-  --color-menu-hover:                var(--color-dropdown-hover);
-  --color-menu-item-hover:           yellow;
+  /* Border Colors */
+  --color-border: #ddd;
+  --color-border-light: #eee;
 
-  /* Overlays */
-  --color-overlay:                   black;
-  --color-overlay-light:             black;
-  --color-overlay-modal:             rgba(0, 0, 0, 0.4);
+  /* Loading Screen Colors */
+  --color-loading-bg: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+  --color-loading-spinner: #e3e3e3;
+  --color-loading-spinner-active: #511D91;
 
-  /* Scroll buttons */
-  --color-scroll-button-bg:          white;
+  /* Focus Colors */
+  --color-focus: #fc3;
+  --color-focus-ring: #511D91;
+
+  /* Menu Colors */
+  --color-menu-hover: #f0f0f0;
+  --color-menu-item: #511D91;
+  --color-menu:  #f9f9f9;
+  --color-button-bg:  #f0f0f0;
+
+  /* Shadow Colors */
+  --color-shadow: rgba(0, 0, 0, 0.1);
+  --color-shadow-medium: rgba(0, 0, 0, 0.2);
 }
 
 
@@ -296,6 +308,7 @@ body {
   box-sizing: border-box;
   font-family: "Asap", Helvetica, Arial, Lucida, sans-serif !important;
   background: var(--color-bg);
+  color: var(--color-text-primary);
 }
 
 /* Form Elements */
@@ -309,6 +322,8 @@ button {
   user-select: none; /* Standard syntax */
   -webkit-touch-callout: none; /* Disable callout in mobile Safari */
   -webkit-tap-highlight-color: transparent; /* Remove tap highlight */
+  background: var(--color-bg);
+  color: var(--color-text-primary);
 }
 
 /* Canvas Styles */
@@ -404,8 +419,26 @@ button {
   border-radius: 5px;
   border: none;
   background-color: var(--color-button-primary);
-  color: var(--color-text-on-primary);
+ 
 }
+
+.gizmo-button img {
+  filter: none; /* light mode: normal */
+}
+
+.bigbutton svg {
+  filter: none; /* light mode: normal */
+}
+
+
+[data-theme="dark"] .gizmo-button img {
+  filter: invert(30%) sepia(2%) saturate(0%) hue-rotate(180deg) brightness(96%) contrast(85%);
+}
+
+[data-theme="dark"] .bigbutton svg {
+  filter: invert(30%) sepia(2%) saturate(0%) hue-rotate(180deg) brightness(96%) contrast(85%);
+}
+
 
 /* Shape Menu */
 #shape-menu {

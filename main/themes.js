@@ -33,13 +33,13 @@ function switchTheme(themeName) {
 		Blockly.utils.colour.setHsvSaturation(0.3);
 		Blockly.utils.colour.setHsvValue(0.85);
 	} else if (themeName === "dark") {
-		// For dark theme, use slightly more saturated colors
+		// For dark theme, use same saturation/value as light theme
+		Blockly.utils.colour.setHsvSaturation(0.3);
+		Blockly.utils.colour.setHsvValue(0.85);
+	} else if (themeName === "contrast") {
+		// Contrast theme now uses more saturated colors like the old dark theme
 		Blockly.utils.colour.setHsvSaturation(0.45);
 		Blockly.utils.colour.setHsvValue(0.65);
-	} else if (themeName === "contrast") {
-		// High contrast uses full saturation and value
-		Blockly.utils.colour.setHsvSaturation(0.99);
-		Blockly.utils.colour.setHsvValue(0.99);
 	}
 
 	// Create custom theme for all themes
@@ -139,6 +139,38 @@ function getThemeBaseStyles(themeName) {
 			},
 		},
 		dark: {
+			// Dark theme now uses the same block colors as light theme
+			events: { colourPrimary: categoryColours.Events || 20 },
+			scene: { colourPrimary: categoryColours.Scene || 160 },
+			transform: { colourPrimary: categoryColours.Transform || 210 },
+			animate: { colourPrimary: categoryColours.Animate || 60 },
+			materials: { colourPrimary: categoryColours.Materials || 290 },
+			sound: { colourPrimary: categoryColours.Sound || 30 },
+			sensing: { colourPrimary: categoryColours.Sensing || 200 },
+			snippets: { colourPrimary: categoryColours.Snippets || 120 },
+			control: { colourPrimary: categoryColours.Control || 25 },
+			logic: { colourPrimary: categoryColours.Logic || 210 },
+			variables: { colourPrimary: categoryColours.Variables || 330 },
+			text: { colourPrimary: categoryColours.Text || 160 },
+			lists: { colourPrimary: categoryColours.Lists || 260 },
+			math: { colourPrimary: categoryColours.Math || 230 },
+			procedures: { colourPrimary: categoryColours.Procedures || 290 },
+			components: {
+				workspaceBackgroundColour: "#1e1e1e",
+				toolboxBackgroundColour: "#333",
+				toolboxForegroundColour: "#fff",
+				flyoutBackgroundColour: "#252526",
+				flyoutForegroundColour: "#ccc",
+				flyoutOpacity: 0.95,
+				scrollbarColour: "#797979",
+				insertionMarkerColour: "#fff",
+				insertionMarkerOpacity: 0.3,
+				markerColour: "#fff",
+				cursorColour: "#d0d0d0",
+			},
+		},
+		contrast: {
+			// Contrast theme now uses the old dark theme colors
 			events: {
 				colourPrimary: "#E74C3C",
 				colourSecondary: "#C0392B",
@@ -213,96 +245,6 @@ function getThemeBaseStyles(themeName) {
 				colourPrimary: "#009688",
 				colourSecondary: "#00796B",
 				colourTertiary: "#00695C",
-			},
-			components: {
-				workspaceBackgroundColour: "#1e1e1e",
-				toolboxBackgroundColour: "#333",
-				toolboxForegroundColour: "#fff",
-				flyoutBackgroundColour: "#252526",
-				flyoutForegroundColour: "#ccc",
-				flyoutOpacity: 0.95,
-				scrollbarColour: "#797979",
-				insertionMarkerColour: "#fff",
-				insertionMarkerOpacity: 0.3,
-				markerColour: "#fff",
-				cursorColour: "#d0d0d0",
-			},
-		},
-		contrast: {
-			events: {
-				colourPrimary: "#FF0000",
-				colourSecondary: "#FFFFFF",
-				colourTertiary: "#CC0000",
-			},
-			scene: {
-				colourPrimary: "#00FFFF",
-				colourSecondary: "#FFFFFF",
-				colourTertiary: "#00CCCC",
-			},
-			transform: {
-				colourPrimary: "#0000FF",
-				colourSecondary: "#FFFFFF",
-				colourTertiary: "#0000CC",
-			},
-			animate: {
-				colourPrimary: "#FFFF00",
-				colourSecondary: "#000000",
-				colourTertiary: "#CCCC00",
-			},
-			materials: {
-				colourPrimary: "#FF00FF",
-				colourSecondary: "#FFFFFF",
-				colourTertiary: "#CC00CC",
-			},
-			sound: {
-				colourPrimary: "#FFA500",
-				colourSecondary: "#000000",
-				colourTertiary: "#CC8400",
-			},
-			sensing: {
-				colourPrimary: "#00BFFF",
-				colourSecondary: "#FFFFFF",
-				colourTertiary: "#0099CC",
-			},
-			snippets: {
-				colourPrimary: "#00FF00",
-				colourSecondary: "#000000",
-				colourTertiary: "#00CC00",
-			},
-			control: {
-				colourPrimary: "#FF8000",
-				colourSecondary: "#FFFFFF",
-				colourTertiary: "#CC6600",
-			},
-			logic: {
-				colourPrimary: "#4080FF",
-				colourSecondary: "#FFFFFF",
-				colourTertiary: "#3366CC",
-			},
-			variables: {
-				colourPrimary: "#FF4040",
-				colourSecondary: "#FFFFFF",
-				colourTertiary: "#CC3333",
-			},
-			text: {
-				colourPrimary: "#40FF40",
-				colourSecondary: "#000000",
-				colourTertiary: "#33CC33",
-			},
-			lists: {
-				colourPrimary: "#BF40BF",
-				colourSecondary: "#FFFFFF",
-				colourTertiary: "#993399",
-			},
-			math: {
-				colourPrimary: "#4040BF",
-				colourSecondary: "#FFFFFF",
-				colourTertiary: "#333399",
-			},
-			procedures: {
-				colourPrimary: "#40BFBF",
-				colourSecondary: "#FFFFFF",
-				colourTertiary: "#339999",
 			},
 			components: {
 				workspaceBackgroundColour: "#FFFFFF",
