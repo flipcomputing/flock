@@ -481,14 +481,8 @@ export const flockMesh = {
           );
 
           if (bone) {
-            const boneAbsolutePos = bone.getAbsolutePosition();
             meshToAttachInstance.attachToBone(bone, targetWithSkeleton);
             meshToAttachInstance.position = new flock.BABYLON.Vector3(x, y, z);
-            meshToAttachInstance.position = new flock.BABYLON.Vector3(
-              x,
-              boneAbsolutePos.y / 2 + y,
-              z,
-            );
           }
         }
       });
