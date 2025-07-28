@@ -75,6 +75,12 @@ mergeMeshes(modelId, meshList) {
 				mergedMesh1.metadata = mergedMesh1.metadata || {};
 				mergedMesh1.metadata.sharedMaterial = false;
 
+        mergedMesh1.material.metadata = mergedMesh1.material.metadata || {};
+        mergedMesh1.material.metadata.internal = true;
+
+        mergedMesh.material.metadata = mergedMesh.material.metadata || {};
+        mergedMesh.material.metadata.internal = true;
+
 				flock.applyResultMeshProperties(
 					mergedMesh,
 					firstMesh,
@@ -207,6 +213,9 @@ subtractMeshes(modelId, baseMeshName, meshNames) {
 
 						resultMesh.computeWorldMatrix(true);
 
+            resultMesh.material.metadata = resultMesh.material.metadata || {};
+            resultMesh.material.metadata.internal = true;
+
 						flock.applyResultMeshProperties(
 							resultMesh,
 							actualMesh,
@@ -305,6 +314,10 @@ intersectMeshes(modelId, meshList) {
 				// Align the resulting mesh to the combined centre
 				intersectedMesh.position = combinedCentre;
 
+
+        intersectedMesh.material.metadata = intersectedMesh.material.metadata || {};
+        intersectedMesh.material.metadata.internal = true;
+
 				// Apply properties to the resulting mesh
 				flock.applyResultMeshProperties(
 					intersectedMesh,
@@ -402,6 +415,10 @@ createHull(modelId, meshList) {
 				hullMesh.position = combinedCentre;
 
 				hullMesh.material = updatedValidMeshes[0].material;
+
+
+        hullMesh.material.metadata = hullMesh.material.metadata || {};
+        hullMesh.material.metadata.internal = true;
 
 				// Apply properties to the resulting mesh
 				flock.applyResultMeshProperties(
