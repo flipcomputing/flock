@@ -606,7 +606,31 @@ class PanelResizer {
 	}
 
 	triggerContentResize() {
-		onResize();
+		onResize()
+
+		// Resize Blockly with coordinate refresh
+		setTimeout(() => {
+			const workspace = Blockly.getMainWorkspace();
+			
+			if (workspace && workspace.resize) {
+				workspace.resize();
+
+				// Force coordinate system refresh
+				if (workspace.refreshToolboxSelection) {
+					workspace.refreshToolboxSelection();
+				}
+
+				// Clear any cached measurements
+				if (workspace.cachedParentSvgSize_) {
+					workspace.cachedParentSvgSize_ = null;
+				}
+
+				// Force a render cycle
+				if (workspace.render) {
+					workspace.render();
+				}
+			}
+		}, 100);
 	}
 }
 

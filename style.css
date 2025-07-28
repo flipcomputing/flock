@@ -705,7 +705,7 @@ button {
 
 
   .resizer:hover {
-    width: 20px; /* Hover expansion */
+     /*width: 20px; Hover expansion */
   }
 
   .resizer::before {

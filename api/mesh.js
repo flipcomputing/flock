@@ -1,3 +1,5 @@
+import { attachBlockMapping, attachMixamoMapping } from "../config.js";
+
 let flock;
 
 export function setFlockReference(ref) {
@@ -455,9 +457,19 @@ export const flockMesh = {
       });
     });
   },
-  attach(meshToAttach, targetMesh, { boneName = "Hold", x = 0, y = 0, z = 0 } = {}) {
+  attach(
+    meshToAttach,
+    targetMesh,
+    { boneName = "Hold", x = 0, y = 0, z = 0 } = {},
+  ) {
     return flock.whenModelReady(targetMesh, (targetMeshInstance) => {
       flock.whenModelReady(meshToAttach, (meshToAttachInstance) => {
+        if (targetMeshInstance?.metadata?.modelName?.startsWith("Character")) {
+          boneName = attachBlockMapping[boneName];
+        } else {
+          boneName = attachMixamoMapping[boneName];
+        }
+
         // Find the first mesh with a skeleton (including descendants)
         const targetWithSkeleton = targetMeshInstance.skeleton
           ? targetMeshInstance
@@ -576,6 +588,6 @@ export const flockMesh = {
   },
 
   getClones(mesh) {
-    return mesh.metadata.clones.map(name => flock.scene.getMeshByName(name));
+    return mesh.metadata.clones.map((name) => flock.scene.getMeshByName(name));
   },
 };
