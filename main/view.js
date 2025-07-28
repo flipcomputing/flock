@@ -67,6 +67,7 @@ function switchView(view) {
 	const blocklyArea = document.getElementById("codePanel");
 	const canvasArea = document.getElementById("canvasArea");
 	const flockLink = document.getElementById("flocklink");
+	const resizer = document.getElementById("resizer");
 
 	if (view === "both") {
 		viewMode = "both";
@@ -74,6 +75,7 @@ function switchView(view) {
 		blocklyArea.style.display = "block";
 		canvasArea.style.display = "block";
 		flockLink.style.display = "block";
+		if (resizer) resizer.style.display = "block";
 		blocklyArea.style.width = "0";
 		canvasArea.style.width = "0";
 		blocklyArea.style.flex = "2 1 0"; // 2/3 of the space
@@ -91,8 +93,10 @@ function switchView(view) {
 		blocklyArea.style.display = "none";
 		canvasArea.style.display = "block";
 		flockLink.style.display = "block";
+		if (resizer) resizer.style.display = "none";
 	} else {
 		flockLink.style.display = "none";
+		if (resizer) resizer.style.display = "none";
 	}
 
 	onResize(); // Ensure both Blockly and Babylon.js canvas resize correctly
@@ -311,6 +315,7 @@ export function togglePlayMode() {
 	const gizmoButtons = document.getElementById("gizmoButtons");
 	const bottomBar = document.getElementById("bottomBar");
 	const flockLink = document.getElementById("flocklink");
+	const resizer = document.getElementById("resizer");
 
 	const gizmosVisible =
 		gizmoButtons &&
@@ -325,6 +330,7 @@ export function togglePlayMode() {
 		gizmoButtons.style.display = "none";
 		bottomBar.style.display = "none";
 		flockLink.style.display = "none";
+		if (resizer) resizer.style.display = "none";
 		document.documentElement.style.setProperty("--dynamic-offset", "40px");
 	} else {
 		flock.scene.debugLayer.hide();
@@ -333,6 +339,7 @@ export function togglePlayMode() {
 		gizmoButtons.style.display = "block";
 		bottomBar.style.display = "block";
 		flockLink.style.display = "block";
+		if (resizer) resizer.style.display = "block";
 		document.documentElement.style.setProperty("--dynamic-offset", "65px");
 
 		// On narrow screens, use the mobile view switching logic
@@ -375,6 +382,7 @@ export function toggleDesignMode(){
 	const gizmoButtons = document.getElementById("gizmoButtons");
 	const flockLink = document.getElementById("flocklink");
 	const infoPanel = document.getElementById("info-panel");
+	const resizer = document.getElementById("resizer");
 
 	if (flock.scene.debugLayer.isVisible()) {
 		switchView("both");
@@ -389,6 +397,7 @@ export function toggleDesignMode(){
 		gizmoButtons.style.display = "block";
 		flockLink.style.display = "none";
 		infoPanel.style.display = "none";
+		if (resizer) resizer.style.display = "none";
 
 		flock.scene.debugLayer.show({
 			embedMode: true,
@@ -513,7 +522,7 @@ class PanelResizer {
 		const deltaX = clientX - this.startX;
 
 		const mainRect = this.mainContent.getBoundingClientRect();
-		
+
 		const minPanelWidth = 300;
 
 		const newCanvasWidth = this.startCanvasWidth + deltaX;
@@ -550,7 +559,7 @@ class PanelResizer {
 	}
 
 	handleKeyboard(e) {
-		
+
 		const step = 20; // pixels
 		let deltaX = 0;
 
@@ -605,4 +614,3 @@ class PanelResizer {
 document.addEventListener('DOMContentLoaded', () => {
 	new PanelResizer();
 });
-
