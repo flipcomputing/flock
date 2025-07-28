@@ -341,6 +341,7 @@ export function runMaterialsTests(flock) {
 	  afterEach(function () {
 		boxIds.forEach((boxId) => {
 		  flock.dispose(boxId);
+      flock.scene.materials = [];
 		});
 		boxIds.length = 0;
 	  });
@@ -376,7 +377,7 @@ export function runMaterialsTests(flock) {
 		  alpha: 0.5,
 		});
 
-    flock.setMaterial(id, material);
+    flock.setMaterial(id, [material]);
 
 		expect(flock.scene.materials.length).to.equal(materialsBefore);
 	  });
@@ -394,29 +395,24 @@ export function runMaterialsTests(flock) {
 	  });
 
 	  it("should delete the old materials for a tree", async function () {
-
-    console.log(flock.scene.materials);
-
 		const id = "boxCreateMaterialTexture";
 		await createTestTree(id);
+    flock.whenModelReady(id, mesh => {
 		boxIds.push(id);
+
+    flock.scene.materials.forEach(mat => console.log(mat.id));
+    console.log("");
 
     const materialsBefore = flock.scene.materials.length;
 
-    console.log(flock.scene.materials, flock.scene.materials.length);
-    flock.scene.materials.forEach(mat => console.log(mat.id));
+    const materials = [{ color: "#00ffff", materialName: "leaves.png", alpha: 1 }, { color: "#ff6600", materialName: "marble.png", alpha: 1 }]
 
-    const material_temp = [flock.createMaterial({ color: "#00ffff", materialName: "leaves.png", alpha: 1 }), flock.createMaterial({ color: "#ff6600", materialName: "marble.png", alpha: 1 })];
+    flock.setMaterial(id, materials);
 
-    console.log(flock.scene.materials, flock.scene.materials.length);
-    flock.scene.materials.forEach(mat => console.log(mat.id));
-
-    flock.setMaterial(id, material_temp);
-
-    console.log(flock.scene.materials, flock.scene.materials.length);
     flock.scene.materials.forEach(mat => console.log(mat.id));
   
 		expect(flock.scene.materials.length).to.equal(materialsBefore);
+    });
 	  });
 	});
 }

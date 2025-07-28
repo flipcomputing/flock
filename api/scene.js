@@ -301,9 +301,6 @@ export const flockScene = {
           const sharedMaterial = currentMesh.metadata?.sharedMaterial;
           const internalMaterial = material.metadata?.internal;
 
-          console.log(sharedMaterial);
-          console.log(internalMaterial);
-
           if (sharedMaterial === false && internalMaterial === true) {
             disposedMaterials.add(material);
 
@@ -371,7 +368,6 @@ export const flockScene = {
 
       sourceMesh.metadata.clones = sourceMesh.metadata.clones || [];
       sourceMesh.metadata.clones = sourceMesh.metadata.clones.concat(clone.name);
-      console.log("CLONES: " + sourceMesh.metadata.clones);
 
       if (clone) {
         sourceMesh.computeWorldMatrix(true);
