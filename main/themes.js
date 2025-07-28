@@ -167,6 +167,8 @@ function getThemeBaseStyles(themeName) {
 				insertionMarkerOpacity: 0.3,
 				markerColour: "#fff",
 				cursorColour: "#d0d0d0",
+				fieldColour: "#1e1e1e",
+				fieldTextColour: "#000000",
 			},
 		},
 		contrast: {
@@ -303,7 +305,6 @@ export function initializeTheme() {
 
 // Register category styles with Blockly before workspace creation
 function registerCategoryStyles() {
-	
 	// Use light theme as default for initial registration
 	const lightStyles = getThemeBaseStyles("light");
 
@@ -330,7 +331,6 @@ function registerCategoryStyles() {
 		try {
 			// Just register directly without checking if it exists
 			Blockly.registry.register("categoryStyles", styleName, styleConfig);
-			
 		} catch (error) {
 			// Only warn if it's not an "already exists" error
 			if (!error.message.includes("already registered")) {

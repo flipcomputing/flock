@@ -17,8 +17,15 @@
 
 }
 
-/* 2. Dark theme overrides */
 
+/* Only target text inputs with cursor: text */
+.blocklyEditableText[style*="cursor: text"] > rect {
+  fill: var(--color-bg) !important;
+}
+
+.blocklyEditableText[style*="cursor: text"] > text {
+  fill: var(--color-text-primary) !important;
+}
 
 /* Core Blockly text and dropdown fill */
 .blocklyText,
