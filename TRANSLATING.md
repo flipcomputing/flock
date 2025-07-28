@@ -55,6 +55,6 @@ import esLocale esom "../locale/es.js"
 
 3. Use AI to translate them into other languages, and add the translations to the other locale files.
 
-
+4. Create an issue on GitHub tagged with translation, and include in the description a request that people create sub-issues when they start translating/checking the new strings into a language.
 
 
