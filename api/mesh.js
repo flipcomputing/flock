@@ -467,7 +467,7 @@ export const flockMesh = {
         if (targetMeshInstance?.metadata?.modelName?.startsWith("Character")) {
           boneName = attachBlockMapping[boneName];
         } else {
-          boneName = attachMixamoMapping[boneName];    
+          boneName = attachMixamoMapping[boneName];
         }
 
         // Find the first mesh with a skeleton (including descendants)
@@ -481,8 +481,14 @@ export const flockMesh = {
           );
 
           if (bone) {
+            const boneAbsolutePos = bone.getAbsolutePosition();
             meshToAttachInstance.attachToBone(bone, targetWithSkeleton);
             meshToAttachInstance.position = new flock.BABYLON.Vector3(x, y, z);
+            meshToAttachInstance.position = new flock.BABYLON.Vector3(
+              x,
+              boneAbsolutePos.y / 2 + y,
+              z,
+            );
           }
         }
       });
