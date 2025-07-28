@@ -400,19 +400,190 @@ export function runMaterialsTests(flock) {
     flock.whenModelReady(id, mesh => {
 		boxIds.push(id);
 
-    flock.scene.materials.forEach(mat => console.log(mat.id));
-    console.log("");
-
     const materialsBefore = flock.scene.materials.length;
 
     const materials = [{ color: "#00ffff", materialName: "leaves.png", alpha: 1 }, { color: "#ff6600", materialName: "marble.png", alpha: 1 }]
 
     flock.setMaterial(id, materials);
 
-    flock.scene.materials.forEach(mat => console.log(mat.id));
-  
 		expect(flock.scene.materials.length).to.equal(materialsBefore);
     });
+	  });
+	});
+
+	describe("combine blocks dispose of old materials", function () {
+	  const boxIds = [];
+
+	  async function createTestBox(id, x, y, z) {
+		const position = new flock.BABYLON.Vector3(
+		  Math.random() * 10,
+		  Math.random() * 10,
+		  Math.random() * 10
+		);
+
+		await flock.createBox(id, {
+		  width: 1,
+		  height: 1,
+		  depth: 1,
+		  position,
+		});
+
+		return id;
+	  }
+
+    async function createTestTree(id) {
+      await flock.createObject({
+  			modelName: 'tree.glb',
+  			modelId: id,
+  			color: ["#66cdaa", "#cd853f"],
+  			scale: 1,
+  			position: { x: 0, y: 0, z: 0 }
+  		});
+    }
+
+	  beforeEach(async function () {
+		flock.scene ??= {};
+	  });
+
+	  afterEach(function () {
+		boxIds.forEach((boxId) => {
+		  flock.dispose(boxId);
+      flock.scene.materials = [];
+		});
+		boxIds.length = 0;
+	  });
+
+	  it("should remove old ojects' materials when merging them", async function () {
+      await flock.createBox("box1", { color: "#9932cc", width: 1, height: 1, depth: 1, position: [0, 0, 0] });
+      await flock.createBox("box2", { color: "#9932cc", width: 1, height: 1, depth: 1, position: [0.5, 0.5, 0] });
+      boxIds.push("box1");
+      boxIds.push("box2");
+      
+      flock.whenModelReady("box1", box1 => {
+        flock.whenModelReady("box2", box2 => {
+          const materialsBefore = flock.scene.materials.length;
+          flock.mergeMeshes("merged", [box1, box2]);
+          boxIds.push("merged");
+          flock.whenModelReady("merged", mesh => {
+            expect(flock.scene.materials.length).to.equal(materialsBefore - 1);
+            });
+        });
+      });
+	  });
+	  it("should remove old ojects' materials when subtracting them", async function () {
+      await flock.createBox("box1", { color: "#9932cc", width: 1, height: 1, depth: 1, position: [0, 0, 0] });
+      await flock.createBox("box2", { color: "#9932cc", width: 1, height: 1, depth: 1, position: [0.5, 0.5, 0] });
+      boxIds.push("box1");
+      boxIds.push("box2");
+      
+      flock.whenModelReady("box1", box1 => {
+        flock.whenModelReady("box2", box2 => {
+          const materialsBefore = flock.scene.materials.length;
+          flock.subtractMeshes("subtracted", box1, [box2]);
+          boxIds.push("subtracted");
+          flock.whenModelReady("subtracted", mesh => {
+            expect(flock.scene.materials.length).to.equal(materialsBefore - 1);
+            });
+        });
+      });
+    });
+	  it("should remove old ojects' materials when intersecting them", async function () {
+      await flock.createBox("box1", { color: "#9932cc", width: 1, height: 1, depth: 1, position: [0, 0, 0] });
+      await flock.createBox("box2", { color: "#9932cc", width: 1, height: 1, depth: 1, position: [0.5, 0.5, 0] });
+      boxIds.push("box1");
+      boxIds.push("box2");
+      
+      flock.whenModelReady("box1", box1 => {
+        flock.whenModelReady("box2", box2 => {
+          const materialsBefore = flock.scene.materials.length;
+          flock.intersectMeshes("intersected", [box1, box2]);
+          boxIds.push("intersected");
+          flock.whenModelReady("intersected", mesh => {
+            expect(flock.scene.materials.length).to.equal(materialsBefore - 1);
+            });
+        });
+      });
+	  });
+	  it("should remove old ojects' materials when creating their hull", async function () {
+      await flock.createBox("box1", { color: "#9932cc", width: 1, height: 1, depth: 1, position: [0, 0, 0] });
+      await flock.createBox("box2", { color: "#9932cc", width: 1, height: 1, depth: 1, position: [0.5, 0.5, 0] });
+      boxIds.push("box1");
+      boxIds.push("box2");
+      
+      flock.whenModelReady("box1", box1 => {
+        flock.whenModelReady("box2", box2 => {
+          const materialsBefore = flock.scene.materials.length;
+          flock.createHull("hull", [box1, box2]);
+          boxIds.push("hull");
+          flock.whenModelReady("hull", mesh => {
+            expect(flock.scene.materials.length).to.equal(materialsBefore - 1);
+            });
+        });
+      });
+	  });
+	  it("should mark resultant material as internal when merging", async function () {
+      await flock.createBox("box1", { color: "#9932cc", width: 1, height: 1, depth: 1, position: [0, 0, 0] });
+      await flock.createBox("box2", { color: "#9932cc", width: 1, height: 1, depth: 1, position: [0.5, 0.5, 0] });
+      boxIds.push("box1");
+      boxIds.push("box2");
+      
+      flock.whenModelReady("box1", box1 => {
+        flock.whenModelReady("box2", box2 => {
+          flock.mergeMeshes("merged", [box1, box2]);
+          boxIds.push("merged");
+          flock.whenModelReady("merged", mesh => {
+            expect(mesh.material.metadata.internal).to.equal(true);
+            });
+        });
+      });
+	  });
+	  it("should mark resultant material as internal when subtracting", async function () {
+      await flock.createBox("box1", { color: "#9932cc", width: 1, height: 1, depth: 1, position: [0, 0, 0] });
+      await flock.createBox("box2", { color: "#9932cc", width: 1, height: 1, depth: 1, position: [0.5, 0.5, 0] });
+      boxIds.push("box1");
+      boxIds.push("box2");
+      
+      flock.whenModelReady("box1", box1 => {
+        flock.whenModelReady("box2", box2 => {
+          flock.subtractMeshes("subtracted", box1, [box2]);
+          boxIds.push("subtracted");
+          flock.whenModelReady("subtracted", mesh => {
+            expect(mesh.material.metadata.internal).to.equal(true);
+            });
+        });
+      });
+    });
+	  it("should mark resultant material as internal when intersecting", async function () {
+      await flock.createBox("box1", { color: "#9932cc", width: 1, height: 1, depth: 1, position: [0, 0, 0] });
+      await flock.createBox("box2", { color: "#9932cc", width: 1, height: 1, depth: 1, position: [0.5, 0.5, 0] });
+      boxIds.push("box1");
+      boxIds.push("box2");
+      
+      flock.whenModelReady("box1", box1 => {
+        flock.whenModelReady("box2", box2 => {
+          flock.intersectMeshes("intersected", [box1, box2]);
+          boxIds.push("intersected");
+          flock.whenModelReady("intersected", mesh => {
+            expect(mesh.material.metadata.internal).to.equal(true);
+            });
+        });
+      });
+	  });
+	  it("should mark resultant material as internal when creating a hull", async function () {
+      await flock.createBox("box1", { color: "#9932cc", width: 1, height: 1, depth: 1, position: [0, 0, 0] });
+      await flock.createBox("box2", { color: "#9932cc", width: 1, height: 1, depth: 1, position: [0.5, 0.5, 0] });
+      boxIds.push("box1");
+      boxIds.push("box2");
+      
+      flock.whenModelReady("box1", box1 => {
+        flock.whenModelReady("box2", box2 => {
+          flock.createHull("hull", [box1, box2]);
+          boxIds.push("hull");
+          flock.whenModelReady("hull", mesh => {
+            expect(mesh.material.metadata.internal).to.equal(true);
+            });
+        });
+      });
 	  });
 	});
 }
