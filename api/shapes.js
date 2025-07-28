@@ -393,6 +393,9 @@ export const flockShapes = {
 
     flock.applyMaterialToMesh(newPlane, "Plane", color);
 
+    newPlane.material.metadata = newPlane.material.metadata || {};
+    newPlane.material.metadata.internal = true;
+
     newPlane.blockKey = blockKey;
 
     flock.announceMeshReady(newPlane.name, groupName);
