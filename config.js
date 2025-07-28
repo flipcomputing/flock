@@ -284,7 +284,7 @@ export const attachBlockMapping = {
 
 export const attachMixamoMapping = {
 	Hold: "mixamorig:LeftHand",
-	Head: "mixamorig:Head",
+	Head: "mixamorig:HeadTop_End",
 };
 
 export function getAttachNames() {
