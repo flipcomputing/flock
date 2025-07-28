@@ -4,9 +4,11 @@ import * as Blockly from "blockly";
 import * as fr from "blockly/msg/fr";
 import * as en from "blockly/msg/en";
 import * as es from "blockly/msg/es";
+import * as sv from "blockly/msg/sv";
 import enLocale from "../locale/en.js";
 import frLocale from "../locale/fr.js";
 import esLocale from "../locale/es.js";
+import svLocale from "../locale/sv.js";
 
 // Store original English messages when first loaded
 let originalEnglishMessages = {};
@@ -16,6 +18,7 @@ const translations = {
   en: enLocale,
   fr: frLocale,
   es: esLocale,
+  sv: svLocale,
 };
 
 export function getDropdownOption(key) {
@@ -53,6 +56,15 @@ async function applySavedLanguageTranslations() {
     Object.keys(esMessages).forEach((key) => {
       if (typeof esMessages[key] === "string") {
         Blockly.Msg[key] = esMessages[key];
+      }
+    });
+  } else if (currentLanguage === "sv") {
+    // Apply Blockly's Spanish translations
+    const svModule = await import("blockly/msg/sv");
+    const svMessages = svModule.default || svModule;
+    Object.keys(svMessages).forEach((key) => {
+      if (typeof svMessages[key] === "string") {
+        Blockly.Msg[key] = svMessages[key];
       }
     });
   }
@@ -104,6 +116,14 @@ export async function setLanguage(language) {
       }
     });
     console.log("Español seleccionado - Blockly Spanish translations applied!");
+  } else if (language === "sv") {
+    // Apply Blockly's Spanish translations
+    Object.keys(sv).forEach((key) => {
+      if (typeof sv[key] === "string") {
+        Blockly.Msg[key] = sv[key];
+      }
+    });
+    console.log("Svenskt utvalda - Blockly Swedish translations applied!");
   } else {
     // Official Blockly English first
     Object.keys(en).forEach((key) => {
