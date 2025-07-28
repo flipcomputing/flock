@@ -414,33 +414,6 @@ export function runMaterialsTests(flock) {
 	describe("combine blocks dispose of old materials", function () {
 	  const boxIds = [];
 
-	  async function createTestBox(id, x, y, z) {
-		const position = new flock.BABYLON.Vector3(
-		  Math.random() * 10,
-		  Math.random() * 10,
-		  Math.random() * 10
-		);
-
-		await flock.createBox(id, {
-		  width: 1,
-		  height: 1,
-		  depth: 1,
-		  position,
-		});
-
-		return id;
-	  }
-
-    async function createTestTree(id) {
-      await flock.createObject({
-  			modelName: 'tree.glb',
-  			modelId: id,
-  			color: ["#66cdaa", "#cd853f"],
-  			scale: 1,
-  			position: { x: 0, y: 0, z: 0 }
-  		});
-    }
-
 	  beforeEach(async function () {
 		flock.scene ??= {};
 	  });
@@ -466,7 +439,7 @@ export function runMaterialsTests(flock) {
           boxIds.push("merged");
           flock.whenModelReady("merged", mesh => {
             expect(flock.scene.materials.length).to.equal(materialsBefore - 1);
-            });
+          });
         });
       });
 	  });
@@ -483,7 +456,7 @@ export function runMaterialsTests(flock) {
           boxIds.push("subtracted");
           flock.whenModelReady("subtracted", mesh => {
             expect(flock.scene.materials.length).to.equal(materialsBefore - 1);
-            });
+          });
         });
       });
     });
@@ -500,7 +473,7 @@ export function runMaterialsTests(flock) {
           boxIds.push("intersected");
           flock.whenModelReady("intersected", mesh => {
             expect(flock.scene.materials.length).to.equal(materialsBefore - 1);
-            });
+          });
         });
       });
 	  });
@@ -517,7 +490,7 @@ export function runMaterialsTests(flock) {
           boxIds.push("hull");
           flock.whenModelReady("hull", mesh => {
             expect(flock.scene.materials.length).to.equal(materialsBefore - 1);
-            });
+          });
         });
       });
 	  });
@@ -533,7 +506,7 @@ export function runMaterialsTests(flock) {
           boxIds.push("merged");
           flock.whenModelReady("merged", mesh => {
             expect(mesh.material.metadata.internal).to.equal(true);
-            });
+          });
         });
       });
 	  });
@@ -549,7 +522,7 @@ export function runMaterialsTests(flock) {
           boxIds.push("subtracted");
           flock.whenModelReady("subtracted", mesh => {
             expect(mesh.material.metadata.internal).to.equal(true);
-            });
+          });
         });
       });
     });
@@ -565,7 +538,7 @@ export function runMaterialsTests(flock) {
           boxIds.push("intersected");
           flock.whenModelReady("intersected", mesh => {
             expect(mesh.material.metadata.internal).to.equal(true);
-            });
+          });
         });
       });
 	  });
@@ -581,7 +554,7 @@ export function runMaterialsTests(flock) {
           boxIds.push("hull");
           flock.whenModelReady("hull", mesh => {
             expect(mesh.material.metadata.internal).to.equal(true);
-            });
+          });
         });
       });
 	  });
