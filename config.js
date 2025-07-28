@@ -277,6 +277,16 @@ export const materialNames = [
 
 export const attachNames = ["Hold", "Head"];
 
+export const attachBlockMapping = {
+	Hold: "Hold",
+	Head: "Head",
+};
+
+export const attachMixamoMapping = {
+	Hold: "mixamorig:LeftHand",
+	Head: "mixamorig:Head",
+};
+
 export function getAttachNames() {
-	return attachNames.map(name => getDropdownOption(name));
+	return attachNames.map((name) => getDropdownOption(name));
 }
