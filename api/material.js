@@ -157,30 +157,14 @@ export const flockMaterial = {
     return flock.whenModelReady(meshName, (mesh) => {
       const allMeshes = [mesh, ...mesh.getDescendants()];
 
-      console.log(allMeshes.map((x) => x.name));
-
       allMeshes.forEach((nextMesh) => {
         if (nextMesh.material) {
-          console.log(mesh.name);
-          console.log(mesh.metadata.clones);
           if (!(mesh?.metadata?.clones && mesh.metadata?.clones?.length >= 1)) {
-            console.log("1");
             flock.ensureUniqueMaterial(nextMesh);
           }
           if (nextMesh.material?.metadata?.internal === true) {
-            console.log(
-              "BEFORE:",
-              nextMesh.material.alpha,
-              nextMesh.material.name,
-            );
             nextMesh.material.alpha = value;
-            console.log(
-              "AFTER: ",
-              nextMesh.material.alpha,
-              nextMesh.material.name,
-            );
           } else {
-            console.log("2");
             let material = flock.createMaterial({
               color: "#ffffff",
               materialName: "arrows.png",
