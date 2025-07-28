@@ -17,8 +17,7 @@ import esLocale esom "../locale/es.js"
 ```javascript
   else if (currentLanguage === "es") {
     // Apply Blockly's LANGUAGE translations
-    const esModule = await import("blockly/msg/es");
-    const esMessages = esModule.default || esModule;
+    const esMessages = es.default || es;
     Object.keys(esMessages).forEach((key) => {
       if (typeof esMessages[key] === "string") {
         Blockly.Msg[key] = esMessages[key];
