@@ -488,4 +488,7 @@ body[data-theme="dark"] .blocklyTreeLabel {
    font-family: "Asap", Helvetica, Arial, Lucida, sans-serif !important;
 }
 
-
+.blocklyFlyoutBackground {
+  opacity: 0.9;
+  stroke: #ccc;
+}
