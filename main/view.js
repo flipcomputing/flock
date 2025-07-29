@@ -12,12 +12,16 @@ const isMobile = () => {
 };
 
 export function onResize() {
-	workspace.resize();
-	Blockly.svgResize(workspace);	
-	//document.body.style.zoom = "reset";
+	// First handle canvas and engine
 	resizeCanvas();
 	if (flock.engine) flock.engine.resize();
+
+	// Defer Blockly resize to allow DOM layout to settle
+	requestAnimationFrame(() => {
+		Blockly.svgResize(workspace);
+	});
 }
+
 
 window.onresize = onResize;
 
