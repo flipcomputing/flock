@@ -71,32 +71,41 @@ export function updateOrCreateMeshFromBlock(block, changeEvent) {
 }
 
 export function deleteMeshFromBlock(blockId) {
-  const mesh = getMeshFromBlockId(blockId);
-
   const blockKey = Object.keys(meshBlockIdMap).find(
     (key) => meshBlockIdMap[key] === blockId,
   );
 
-  if (blockKey) {
-    // Remove mappings
-    delete meshMap[blockKey];
-    delete meshBlockIdMap[blockKey];
+  if (!blockKey) {
+    return;
   }
 
-  if (mesh && mesh.name !== "__root__") {
-    flock.dispose(mesh.name);
+  const mesh = flock.scene.meshes.find((m) => m.blockKey === blockKey);
+
+  if (!mesh || mesh.name === "__root__") {
+  } else {
+    flock.dispose(mesh);
   }
+
+  // Remove mappings
+  delete meshMap[blockKey];
+  delete meshBlockIdMap[blockKey];
 }
 
-export function getMeshFromBlock(block) {
-  const blockKey = Object.keys(meshMap).find((key) => meshMap[key] === block);
 
-  if (!blockKey) return null;
+export function getMeshFromBlock(block) {
+  const blockKey = Object.keys(meshMap).find(
+    (key) => meshMap[key] === block
+  );
+
+  if (!blockKey) {
+    return null;
+  }
 
   const found = flock.scene?.meshes?.find((mesh) => mesh.blockKey === blockKey);
 
   return found;
 }
+
 
 function getMeshFromBlockId(blockId) {
   const blockKey = Object.keys(meshMap).find(
@@ -312,9 +321,6 @@ export function updateMeshFromBlock(mesh, block, changeEvent) {
 
       flock.createMap(map, material);
     } else {
-      console.warn(
-        "[create_map] No materialBlock connected! Not updating map material.",
-      );
     }
     return;
   }
@@ -559,8 +565,7 @@ export function updateMeshFromBlock(mesh, block, changeEvent) {
       mesh = ultimateParent(mesh);
       flock.changeColor(mesh.name, { color });
     }
-  }
-
+  }u
   // if (["X", "Y", "Z"].includes(changed)) {
   flock.positionAt(mesh.name, {
     x: position.x,
