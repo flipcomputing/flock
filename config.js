@@ -184,7 +184,8 @@ export const objectColours = {
 	"humped.glb": ["#FFA869", "#7E5024", "#E76F31"],
 	"jetty.glb": ["#FFA869", "#7E5024", "#E76F31"],
 	"flower.glb": ["#E73F9F", "#4AB700", "#E7D535"],
-	"stones_straight.glb": ["#dce0d9", "#fbf6ef", "#ead7c3"],
+	"stones_straight.glb": ["#E73F9F", "#4AB700", "#E7D535","#dce0d9", "#fbf6ef", "#ead7c3"],
+	"stones_curve.glb": ["#E73F9F", "#4AB700", "#E7D535","#dce0d9", "#fbf6ef", "#ead7c3"],
 };
 
 export const modelNames = [
