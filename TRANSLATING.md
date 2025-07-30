@@ -17,8 +17,7 @@ import esLocale esom "../locale/es.js"
 ```javascript
   else if (currentLanguage === "es") {
     // Apply Blockly's LANGUAGE translations
-    const esModule = await import("blockly/msg/es");
-    const esMessages = esModule.default || esModule;
+    const esMessages = es.default || es;
     Object.keys(esMessages).forEach((key) => {
       if (typeof esMessages[key] === "string") {
         Blockly.Msg[key] = esMessages[key];
@@ -55,6 +54,6 @@ import esLocale esom "../locale/es.js"
 
 3. Use AI to translate them into other languages, and add the translations to the other locale files.
 
-
+4. Create an issue on GitHub tagged with translation, and include in the description a request that people create sub-issues when they start translating/checking the new strings into a language.
 
 
