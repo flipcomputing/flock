@@ -459,6 +459,21 @@ export function defineModelBlocks() {
 			};
 
 			this.setOnChange((changeEvent) => {
+				// PRIORITY: Handle MODELS field change first (before other handlers can return early)
+				if (
+					changeEvent.type === Blockly.Events.BLOCK_CHANGE &&
+					changeEvent.element === "field" &&
+					changeEvent.name === "MODELS" &&
+					changeEvent.blockId === this.id
+				) {
+					const blockInWorkspace =
+						Blockly.getMainWorkspace().getBlockById(this.id);
+					if (blockInWorkspace) {
+						this.updateColorsField();
+					}
+					// Don't return here - let other handlers process this event too
+				}
+
 				handleBlockCreateEvent(
 					this,
 					changeEvent,
@@ -477,20 +492,6 @@ export function defineModelBlocks() {
 					handleFieldOrChildChange(this, changeEvent)
 				) {
 					return;
-				}
-
-				// Special case: refresh color options when model field changes
-				if (
-					changeEvent.type === Blockly.Events.BLOCK_CHANGE &&
-					changeEvent.element === "field" &&
-					changeEvent.name === "MODELS" &&
-					changeEvent.blockId === this.id
-				) {
-					const blockInWorkspace =
-						Blockly.getMainWorkspace().getBlockById(this.id);
-					if (blockInWorkspace) {
-						this.updateColorsField();
-					}
 				}
 			});
 
