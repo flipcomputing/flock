@@ -565,7 +565,7 @@ export function updateMeshFromBlock(mesh, block, changeEvent) {
       mesh = ultimateParent(mesh);
       flock.changeColor(mesh.name, { color });
     }
-  }u
+  }
   // if (["X", "Y", "Z"].includes(changed)) {
   flock.positionAt(mesh.name, {
     x: position.x,
