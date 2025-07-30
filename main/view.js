@@ -12,12 +12,16 @@ const isMobile = () => {
 };
 
 export function onResize() {
-	workspace.resize();
-	Blockly.svgResize(workspace);	
-	//document.body.style.zoom = "reset";
+	// First handle canvas and engine
 	resizeCanvas();
 	if (flock.engine) flock.engine.resize();
+
+	// Defer Blockly resize to allow DOM layout to settle
+	requestAnimationFrame(() => {
+		Blockly.svgResize(workspace);
+	});
 }
+
 
 window.onresize = onResize;
 
@@ -606,7 +610,31 @@ class PanelResizer {
 	}
 
 	triggerContentResize() {
-		onResize();
+		onResize()
+
+		// Resize Blockly with coordinate refresh
+		setTimeout(() => {
+			const workspace = Blockly.getMainWorkspace();
+			
+			if (workspace && workspace.resize) {
+				workspace.resize();
+
+				// Force coordinate system refresh
+				if (workspace.refreshToolboxSelection) {
+					workspace.refreshToolboxSelection();
+				}
+
+				// Clear any cached measurements
+				if (workspace.cachedParentSvgSize_) {
+					workspace.cachedParentSvgSize_ = null;
+				}
+
+				// Force a render cycle
+				if (workspace.render) {
+					workspace.render();
+				}
+			}
+		}, 100);
 	}
 }
 
