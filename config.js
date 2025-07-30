@@ -100,6 +100,7 @@ export const multiObjectNames = [
 	"jetty.glb",
 	"flower.glb",
 	"stones_straight.glb",
+	"stones_curve.glb",
 ];
 
 export const objectNames = [
