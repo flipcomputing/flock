@@ -84,6 +84,7 @@ export default {
   drop: "lâcher %1",
   follow: "faire en sorte que %1 suive %2 à %3\ndécalage x : %4 y : %5 z : %6",
   export_mesh: "exporter %1 comme %2",
+  attach: "attacher %1 à %2 à %3\ndécalage x : %4 y : %5 z : %6",
 
   // Custom block translations - Control blocks
   wait: "attendre %1 ms",

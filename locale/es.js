@@ -83,6 +83,7 @@ export default {
   drop: "soltar %1",
   follow: "hacer que %1 siga a %2 a %3\ndesplazamiento x: %4 y: %5 z: %6",
   export_mesh: "exportar %1 como %2",
+  attach: "adjuntar %1 a %2 en %3\ndesplazamiento x: %4 y: %5 z: %6",
 
   // Custom block translations - Control blocks
   wait: "esperar %1 ms",
