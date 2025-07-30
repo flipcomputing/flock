@@ -18,87 +18,76 @@ export const flockTransform = {
           reject(new Error(`Mesh '${meshName}' not found`));
           return;
         }
-        try {
-          let originalMotionType = null;
-          // Store original physics state if physics object
-          if (mesh.physics) {
-            originalMotionType = mesh.physics.getMotionType();
-            // Only change motion type if it's not already DYNAMIC or ANIMATED
-            if (originalMotionType !== flock.BABYLON.PhysicsMotionType.DYNAMIC &&
-                originalMotionType !== flock.BABYLON.PhysicsMotionType.ANIMATED) {
-              mesh.physics.setMotionType(flock.BABYLON.PhysicsMotionType.ANIMATED);
-            }
-          }
 
-          // Handle cameras separately (they don't have getBoundingInfo)
-          if (meshName === "__active_camera__" || mesh.getClassName().includes("Camera")) {
-            mesh.position.set(
-              x,
-              useY ? y : mesh.position.y,
-              z
+        if (mesh.physics) {
+          if (
+            mesh.physics.getMotionType() !==
+            flock.BABYLON.PhysicsMotionType.DYNAMIC
+          ) {
+            mesh.physics.setMotionType(
+              flock.BABYLON.PhysicsMotionType.ANIMATED,
             );
           }
-          // Position calculation logic for meshes
-          else if (mesh.metadata && mesh.metadata.pivotSettings) {
-            const pivotSettings = mesh.metadata.pivotSettings;
-            const boundingBox = mesh.getBoundingInfo().boundingBox.extendSize;
-            const resolvePivotValue = (value, axis) => {
-              if (typeof value === "string") {
-                switch (value) {
-                  case "MIN": return -boundingBox[axis];
-                  case "MAX": return boundingBox[axis];
-                  case "CENTER": default: return 0;
-                }
-              } else if (typeof value === "number") {
-                return value;
-              } else {
-                return 0;
-              }
-            };
-            const pivotOffsetX = resolvePivotValue(pivotSettings.x, "x");
-            const pivotOffsetY = resolvePivotValue(pivotSettings.y, "y");
-            const pivotOffsetZ = resolvePivotValue(pivotSettings.z, "z");
-            mesh.position.set(
-              x - pivotOffsetX,
-              useY ? y - pivotOffsetY : mesh.position.y,
-              z - pivotOffsetZ,
-            );
-          } else {
-            const boundingInfo = mesh.getBoundingInfo();
-            const minY = boundingInfo.boundingBox.minimum.y * mesh.scaling.y;
-            const maxY = boundingInfo.boundingBox.maximum.y * mesh.scaling.y;
-            const centerY = (minY + maxY) / 2;
-            let yOffset;
-            if (yReference === "TOP") {
-              yOffset = maxY;
-            } else if (yReference === "CENTER") {
-              yOffset = centerY;
-            } else {
-              yOffset = minY; // Default/fallback to BASE
-            }
-            const targetY = useY ? y - yOffset : mesh.position.y;
-            mesh.position.set(x, targetY, z);
-          }
-
-          // Update physics and world matrix
-          if (mesh.physics) {
-            mesh.physics.disablePreStep = false;
-            mesh.physics.setTargetTransform(mesh.position, mesh.rotationQuaternion);
-            // Restore original motion type if it was changed and different from ANIMATED
-            if (originalMotionType && 
-                originalMotionType !== flock.BABYLON.PhysicsMotionType.ANIMATED &&
-                originalMotionType !== flock.BABYLON.PhysicsMotionType.DYNAMIC) {
-              // Use setTimeout to allow physics update to complete first
-              setTimeout(() => {
-                mesh.physics.setMotionType(originalMotionType);
-              }, 0);
-            }
-          }
-          mesh.computeWorldMatrix(true);
-          resolve();
-        } catch (error) {
-          reject(new Error(`Failed to position mesh '${meshName}': ${error.message}`));
         }
+
+        // Check if we have pivot settings in metadata
+        if (mesh.metadata && mesh.metadata.pivotSettings) {
+          const pivotSettings = mesh.metadata.pivotSettings;
+          const boundingBox =
+            mesh.getBoundingInfo().boundingBox.extendSize;
+
+          // Helper to resolve pivot values
+          function resolvePivotValue(value, axis) {
+            if (typeof value === "string") {
+              switch (value) {
+                case "MIN":
+                  return -boundingBox[axis];
+                case "MAX":
+                  return boundingBox[axis];
+                case "CENTER":
+                default:
+                  return 0;
+              }
+            } else if (typeof value === "number") {
+              return value;
+            } else {
+              return 0;
+            }
+          }
+
+          // Calculate offset based on pivot settings
+          const pivotOffsetX = resolvePivotValue(pivotSettings.x, "x");
+          const pivotOffsetY = resolvePivotValue(pivotSettings.y, "y");
+          const pivotOffsetZ = resolvePivotValue(pivotSettings.z, "z");
+
+          // Apply position with pivot offset
+          mesh.position.set(
+            x - pivotOffsetX,
+            useY ? y - pivotOffsetY : mesh.position.y,
+            z - pivotOffsetZ,
+          );
+        } else {
+          // Original behavior if no pivot settings
+          const addY =
+            meshName === "__active_camera__"
+              ? 0
+              : mesh.getBoundingInfo().boundingBox.extendSize.y *
+                mesh.scaling.y;
+          let targetY = useY ? y + addY : mesh.position.y;
+          mesh.position.set(x, targetY, z);
+        }
+
+        // Update physics and world matrix
+        if (mesh.physics) {
+          mesh.physics.disablePreStep = false;
+          mesh.physics.setTargetTransform(
+            mesh.position,
+            mesh.rotationQuaternion,
+          );
+        }
+        mesh.computeWorldMatrix(true);
+        //console.log("Position at", x, y, z, mesh.position.y, mesh);
+
       });
     });
   },
