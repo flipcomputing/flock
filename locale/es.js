@@ -736,4 +736,7 @@ export default {
   import_snippet: "Importar fragmento",
   export_PNG_snippet: "Exportar como PNG",
   export_SVG_snippet: "Exportar como SVG",
+
+  // New variable option
+  new_variable_decision: "Nueva variable...",
 };

@@ -680,4 +680,7 @@ export default {
   import_snippet: "Importera utdrag",
   export_PNG_snippet: "Exportera som PNG",
   export_SVG_snippet: "Exportera som SVG",
+
+  // New variable option
+  new_variable_decision: "Ny variabel...",
 }
