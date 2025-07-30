@@ -95,12 +95,13 @@ export const multiObjectNames = [
 	"rocks2.glb",
 	"rocks3.glb",
 	"rocks4.glb",
+	"pond.glb",
 	"boat.glb",
 	"humped.glb",
 	"jetty.glb",
 	"flower.glb",
-	"stones_straight.glb",
-	"stones_curve.glb",
+	//"stones_straight.glb",
+	//"stones_curve.glb",
 ];
 
 export const objectNames = [
@@ -135,6 +136,7 @@ export const objectColours = {
 	"rocks2.glb": ["#898D86", "#99a83d"],
 	"rocks3.glb": ["#898D86", "#99a83d"],
 	"rocks4.glb": ["#898D86", "#99a83d", "#6BC6EF", "#f9f9f9"],
+	"pond.glb": ["#00E704", "#5A91E7", "#9A9A9A"],
 
 	"hut.glb": [
 		"#B66946",
@@ -185,15 +187,15 @@ export const objectColours = {
 	"humped.glb": ["#FFA869", "#7E5024", "#E76F31"],
 	"jetty.glb": ["#FFA869", "#7E5024", "#E76F31"],
 	"flower.glb": ["#E73F9F", "#4AB700", "#E7D535"],
-	"stones_straight.glb": ["#E73F9F", "#4AB700", "#E7D535","#dce0d9", "#fbf6ef", "#ead7c3"],
-	"stones_curve.glb": ["#E73F9F", "#4AB700", "#E7D535","#dce0d9", "#fbf6ef", "#ead7c3"],
+	//"stones_straight.glb": ["#E73F9F", "#4AB700", "#E7D535","#dce0d9", "#fbf6ef", "#ead7c3"],
+	//"stones_curve.glb": ["#E73F9F", "#4AB700", "#E7D535","#dce0d9", "#fbf6ef", "#ead7c3"],
 };
 
 export const modelNames = [
 	"Flock.glb",
-	"Character.glb",
+	//"Character.glb",
 	//"bird.glb",
-	"boat.glb",
+	//"boat.glb",
 	"rhino.glb",
 ];
 
