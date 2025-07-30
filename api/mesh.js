@@ -464,13 +464,14 @@ export const flockMesh = {
   ) {
     return flock.whenModelReady(targetMesh, (targetMeshInstance) => {
       flock.whenModelReady(meshToAttach, (meshToAttachInstance) => {
+        const logicalBoneName = boneName;
+
         if (targetMeshInstance?.metadata?.modelName?.startsWith("Character")) {
           boneName = attachBlockMapping[boneName];
         } else {
           boneName = attachMixamoMapping[boneName];
         }
 
-        // Find the first mesh with a skeleton (including descendants)
         const targetWithSkeleton = targetMeshInstance.skeleton
           ? targetMeshInstance
           : targetMeshInstance.getChildMeshes().find((mesh) => mesh.skeleton);
@@ -482,7 +483,62 @@ export const flockMesh = {
 
           if (bone) {
             meshToAttachInstance.attachToBone(bone, targetWithSkeleton);
+            //console.log(`[Attach] Attached '${meshToAttachInstance.name}' to bone '${bone.name}'`);
+
+            if (logicalBoneName === "Head") {
+              let estimatedLength = 0.1;
+
+              if (bone.children.length > 0) {
+                const headWorld = BABYLON.Vector3.TransformCoordinates(
+                  BABYLON.Vector3.Zero(),
+                  bone.getWorldMatrix()
+                );
+
+                const childWorld = BABYLON.Vector3.TransformCoordinates(
+                  BABYLON.Vector3.Zero(),
+                  bone.children[0].getWorldMatrix()
+                );
+
+                estimatedLength = childWorld.subtract(headWorld).length();
+                //console.log("[Attach] Estimated head offset from child bone:", estimatedLength.toFixed(4));
+
+              } else {
+                // Fallback using bounding box height
+                const meshes = targetWithSkeleton.getChildMeshes?.() || [targetWithSkeleton];
+                const minYVals = [];
+                const maxYVals = [];
+
+                for (const mesh of meshes) {
+                  const info = mesh.getBoundingInfo?.();
+                  if (!info) continue;
+
+                  const minY = info.boundingBox.minimumWorld.y;
+                  const maxY = info.boundingBox.maximumWorld.y;
+
+                  if (isFinite(minY) && isFinite(maxY)) {
+                    minYVals.push(minY);
+                    maxYVals.push(maxY);
+                  }
+                }
+
+                let modelHeight = 1; // fallback
+                if (minYVals.length > 0 && maxYVals.length > 0) {
+                  const allMinY = Math.min(...minYVals);
+                  const allMaxY = Math.max(...maxYVals);
+                  modelHeight = allMaxY - allMinY;
+                }
+
+                const defaultHeadOffset = 1.3;
+                estimatedLength = defaultHeadOffset * Math.max(modelHeight, 1);
+                //console.log(`[Attach] Fallback scaled head offset: ${estimatedLength.toFixed(4)}`);
+              }
+
+              y += estimatedLength;
+              //console.log(`[Attach] Final Y offset applied: ${y.toFixed(4)}`);
+            }
+
             meshToAttachInstance.position = new flock.BABYLON.Vector3(x, y, z);
+            //console.log(`[Attach] Final local position: {X: ${x}, Y: ${y}, Z: ${z}}`);
           }
         }
       });
