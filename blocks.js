@@ -2,7 +2,7 @@ import * as Blockly from "blockly";
 //import "@blockly/block-plus-minus";
 import * as BlockDynamicConnection from "@blockly/block-dynamic-connection";
 import {  toolbox } from "./toolbox.js";
-import { getOption } from "/main/translation.js";
+import { getOption, translate } from "/main/translation.js";
 
 import {
   deleteMeshFromBlock,
@@ -982,7 +982,7 @@ Blockly.FieldVariable.prototype.getOptions = function () {
   const options = originalGetOptions.call(this);
 
   // Add the "New variable..." option at the beginning
-  options.unshift(["New variable...", Blockly.FieldVariable.ADD_VARIABLE_ID]);
+  options.unshift([translate("new_variable_decision"), Blockly.FieldVariable.ADD_VARIABLE_ID]);
 
   return options;
 };

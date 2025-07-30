@@ -83,6 +83,7 @@ export default {
   drop: "drop %1",
   follow: "make %1 follow %2 at %3\noffset x: %4 y: %5 z: %6",
   export_mesh: "export %1 as %2",
+  attach: "attach %1 to %2 at %3\noffset x: %4 y: %5 z: %6",
   
   // Custom block translations - Control blocks
   wait: "wait %1 ms",
@@ -737,4 +738,7 @@ export default {
   import_snippet: "Import snippet",
   export_PNG_snippet: "Export as PNG",
   export_SVG_snippet: "Export as SVG",
+
+  // New variable option
+  new_variable_decision: "New variable...",
 };
