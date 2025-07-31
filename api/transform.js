@@ -88,6 +88,8 @@ export const flockTransform = {
         mesh.computeWorldMatrix(true);
         //console.log("Position at", x, y, z, mesh.position.y, mesh);
 
+        resolve();
+
       });
     });
   },
