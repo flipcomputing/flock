@@ -187,6 +187,61 @@ export default {
   set_pivot: "ställ in pivot för %1 x: %2 y: %3 z: %4",
   min_centre_max: "%1",
 
+  // Custom block translations - XR blocks
+  device_camera_background: "använd %1 kamera som bakgrund",
+  set_xr_mode: "ställ in XR-läge till %1",
+
+  // Blockly message overrides for English
+  LISTS_CREATE_WITH_INPUT_WITH: "lista",
+  TEXT_JOIN_TITLE_CREATEWITH: "text",
+  CONTROLS_REPEAT_INPUT_DO: "",
+  CONTROLS_WHILEUNTIL_INPUT_DO: "",
+  CONTROLS_FOR_INPUT_DO: "",
+  CONTROLS_FOREACH_INPUT_DO: "",
+  CONTROLS_IF_MSG_THEN: "",
+  CONTROLS_IF_MSG_ELSE: "annars\n",
+  CONTROLS_FOR_TITLE: "för varje %1 från %2 till %3 med steg %4",
+
+  // Block message translations
+  BLOCK_PRINT_TEXT_MESSAGE: "skriv ut %1 i %2 sekunder %3",
+  BLOCK_WAIT_SECONDS_MESSAGE: "vänta %1 sekunder",
+  BLOCK_KEY_PRESSED_MESSAGE: "tangent %1 nedtryckt?",
+  BLOCK_MOVE_FORWARD_MESSAGE: "flytta %1 framåt med %2",
+  BLOCK_CREATE_BOX_MESSAGE: "skapa låda %1 färg %2 storlek %3 × %4 × %5 vid %6, %7, %8",
+
+  // Tooltip translations - Scene Blocks
+  set_sky_color_tooltip: "Ställ in scenens himmelfärg.\nNyckelord: himmel",
+  create_ground_tooltip: "Lägg till ett markplan med kollisioner aktiverade i scenen.\nNyckelord: mark",
+  set_background_color_tooltip: "Ställ in bakgrundsfärgen i scenen.\nNyckelord: bakgrund",
+  create_map_tooltip: "Skapa en karta med valt namn och material.\nNyckelord: karta",
+  show_tooltip: "Visa det valda objektet.\nNyckelord: visa",
+  hide_tooltip: "Dölj det valda objektet.\nNyckelord: dölj",
+  dispose_tooltip: "Ta bort det angivna objektet från scenen.\nNyckelord: ta bort",
+  clone_mesh_tooltip: "Kopiera ett objekt och tilldela det till en variabel.\nNyckelord: kopiera",
+
+  // Tooltip translations - Models blocks
+  load_character_tooltip: "Skapa en konfigurerbar karaktär.\nNyckelord: karaktär",
+  load_object_tooltip: "Skapa ett objekt.\nNyckelord: objekt",
+  load_multi_object_tooltip: "Skapa ett objekt med färger.\nNyckelord: objekt",
+  load_model_tooltip: "Ladda en modell.\nNyckelord: modell",
+
+  // Tooltip translations - Animate blocks
+  glide_to_tooltip: "Glid till en angiven position över en viss tid med alternativ för att reversera, loopa och mjuk övergång (easing).",
+  glide_to_seconds_tooltip: "Glid till en angiven position över en viss tid med alternativ för att reversera, loopa och mjuk övergång (easing).",
+  rotate_anim_tooltip: "Rotera ett objekt till angivna vinklar över en viss tid med alternativ för att reversera, loopa och easing.",
+  rotate_anim_seconds_tooltip: "Rotera ett objekt till angivna vinklar över en viss tid med alternativ för att reversera, loopa och easing.",
+  animate_property_tooltip: "Animera ett materialegenskap på objektet och dess barn.",
+  colour_keyframe_tooltip: "Ange en färg och varaktighet för en nyckelruta.",
+  number_keyframe_tooltip: "Ange ett tal och varaktighet för en nyckelruta.",
+  xyz_keyframe_tooltip: "Ange en XYZ-nyckelruta med varaktighet.",
+  animate_keyframes_tooltip: "Animera en array av nyckelrutor på det valda objektet, med easing, valfri looping och reversering.",
+  animation_tooltip: "Skapa en animationsgrupp för det valda objektet och egenskapen, med nyckelrutor, easing, valfri looping och reversering. Välj skapa, starta eller vänta för att styra beteendet.",
+  control_animation_group_tooltip: "Styr animationsgruppen genom att spela, pausa eller stoppa den.",
+  animate_from_tooltip: "Börja animera gruppen från angiven tid (i sekunder).",
+  stop_animations_tooltip: "Stoppa alla nyckelruteanimationer på det valda objektet.\nNyckelord: stoppa",
+  switch_animation_tooltip: "Byt animation på det angivna objektet till vald animation.\nNyckelord: byt",
+  play_animation_tooltip: "Spela vald animation en gång på det angivna objektet.\nNyckelord: spela",
+
   // Tooltip translations - Base blocks
   xyz_tooltip: "Skapar en vektor med X-, Y- och Z-koordinater",
 
