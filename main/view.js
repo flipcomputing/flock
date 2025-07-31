@@ -207,6 +207,54 @@ let previousTranslate = 0;
 let isDragging = false;
 const swipeThreshold = 50; // Minimum swipe distance
 
+
+
+
+
+let savedView = "canvas";
+let savedViewMode = "both"; // Track the actual view mode for wide screens
+
+// Function to add the button event listener (narrow screens only)
+function addButtonListener() {
+	// Only add button listener on narrow screens
+	if (!isNarrowScreen()) {
+		return;
+	}
+
+	switchViewsBtn.addEventListener("click", togglePanels);
+}
+
+// Alternative approach: Instead of CSS transforms, actually reposition elements in DOM
+// This ensures Blockly's coordinate system stays aligned
+
+function showCodeView() {
+	const blocklyArea = document.getElementById("codePanel");
+	blocklyArea.style.display = "block";
+
+	currentView = "code";
+
+	if (isNarrowScreen()) {
+		// Instead of CSS transform, change the layout directly
+		const canvasArea = document.getElementById("canvasArea");
+
+		// Hide canvas, show code full width
+		canvasArea.style.display = "none";
+		blocklyArea.style.width = "100%";
+		blocklyArea.style.flex = "1 1 100%";
+
+		switchViewsBtn.textContent = "<< Canvas";
+
+		// Blockly resize after DOM changes
+		requestAnimationFrame(() => {
+			if (workspace) {
+				Blockly.svgResize(workspace);
+			}
+		});
+	}
+
+	onResize();
+}
+
 export function showCanvasView() {
 	const gizmoButtons = document.getElementById("gizmoButtons");
 	const flockLink = document.getElementById("flocklink");
@@ -216,37 +264,142 @@ export function showCanvasView() {
 
 	currentView = "canvas";
 
-	// Only apply transforms on narrow screens
 	if (isNarrowScreen()) {
-		container.style.transform = `translateX(0px)`; // Move to Canvas view
-		switchViewsBtn.textContent = "Code >>"; // Update button text
+		// Instead of CSS transform, change the layout directly
+		const blocklyArea = document.getElementById("codePanel");
+		const canvasArea = document.getElementById("canvasArea");
+
+		// Hide code, show canvas full width
+		blocklyArea.style.display = "none";
+		canvasArea.style.display = "block";
+		canvasArea.style.width = "100%";
+		canvasArea.style.flex = "1 1 100%";
+
+		switchViewsBtn.textContent = "Code >>";
 	}
 
 	onResize();
 }
 
-function showCodeView() {
-	const blocklyArea = document.getElementById("codePanel");
-	blocklyArea.style.display = "block";
-
-	currentView = "code";
-
-	// Only apply transforms on narrow screens
+// Update the CSS transform function to work with the new approach
+function setTranslateX(value) {
+	// For narrow screens, we'll use a different approach
+	// This function can remain for any other uses, but we won't use transforms for view switching
 	if (isNarrowScreen()) {
-		const panelWidth = window.innerWidth;
-		container.style.transform = `translateX(-${panelWidth}px)`; // Move to Code view
-		switchViewsBtn.textContent = "<< Canvas"; // Update button text
+		// Calculate which view should be shown based on transform value
+		const threshold = -window.innerWidth / 2;
+		if (value < threshold) {
+			// Should show code view
+			if (currentView !== "code") {
+				showCodeView();
+			}
+		} else {
+			// Should show canvas view
+			if (currentView !== "canvas") {
+				showCanvasView();
+			}
+		}
 	}
-
-	onResize();
 }
 
-function togglePanels() {
-	// Only allow panel toggling on narrow screens
+// Updated swipe handling to work with DOM-based switching
+function addSwipeListeners() {
 	if (!isNarrowScreen()) {
 		return;
 	}
 
+	let startX = 0;
+	let startTime = 0;
+	const swipeThreshold = 50;
+	const maxSwipeTime = 300; // Max time for a valid swipe (ms)
+
+	bottomBar.addEventListener("touchstart", (e) => {
+		startX = e.touches[0].clientX;
+		startTime = Date.now();
+	});
+
+	bottomBar.addEventListener("touchend", (e) => {
+		const endX = e.changedTouches[0].clientX;
+		const endTime = Date.now();
+
+		const deltaX = endX - startX;
+		const deltaTime = endTime - startTime;
+
+		// Only process quick swipes
+		if (deltaTime > maxSwipeTime) return;
+
+		// Determine swipe direction
+		if (Math.abs(deltaX) > swipeThreshold) {
+			if (deltaX > 0 && currentView === "canvas") {
+				// Swipe right from canvas to code
+				showCodeView();
+			} else if (deltaX < 0 && currentView === "code") {
+				// Swipe left from code to canvas
+				showCanvasView();
+			}
+		}
+	});
+}
+
+// Alternative approach using intersection observer to detect view changes
+// This ensures Blockly always knows when it becomes visible
+function setupViewObserver() {
+	if (!window.IntersectionObserver || !isNarrowScreen()) return;
+
+	const blocklyArea = document.getElementById("codePanel");
+
+	const observer = new IntersectionObserver((entries) => {
+		entries.forEach(entry => {
+			if (entry.isIntersecting && entry.intersectionRatio > 0.5) {
+				// Blockly area is significantly visible, ensure it's properly sized
+				requestAnimationFrame(() => {
+					if (workspace) {
+						Blockly.svgResize(workspace);
+					}
+				});
+			}
+		});
+	}, {
+		threshold: [0.5] // Trigger when 50% visible
+	});
+
+	observer.observe(blocklyArea);
+}
+
+// Initialize the observer when DOM is ready
+document.addEventListener('DOMContentLoaded', () => {
+	setupViewObserver();
+});
+
+// Initialize currentView properly on narrow screens
+export function initializeUI() {
+	addSwipeListeners(); // Add swipe event listeners (narrow screens only)
+	addButtonListener(); // Add button click listener (narrow screens only)
+
+	// Initialize currentView based on actual DOM state on narrow screens
+	if (isNarrowScreen()) {
+		const blocklyArea = document.getElementById("codePanel");
+		const canvasArea = document.getElementById("canvasArea");
+
+		// Determine initial view based on which panel is visible
+		if (getComputedStyle(blocklyArea).display !== "none" && 
+			getComputedStyle(canvasArea).display === "none") {
+			currentView = "code";
+		} else {
+			currentView = "canvas";
+			// Ensure canvas view is properly set up
+			showCanvasView();
+		}
+	}
+}
+
+// Modified toggle function to work with new approach
+function togglePanels() {
+	if (!isNarrowScreen()) {
+		return;
+	}
+
+	// Check button text instead of currentView to avoid state mismatch
 	if (switchViewsBtn.textContent === "Code >>") {
 		showCodeView();
 	} else {
@@ -254,63 +407,7 @@ function togglePanels() {
 	}
 }
 
-function setTranslateX(value) {
-	// Only apply transforms on narrow screens
-	if (isNarrowScreen()) {
-		container.style.transform = `translateX(${value}px)`;
-	}
-}
-
-// Function to add the swipe event listeners (narrow screens only)
-function addSwipeListeners() {
-	// Only add swipe listeners on narrow screens
-	if (!isNarrowScreen()) {
-		return;
-	}
-
-	// Handle touch start (drag begins)
-	bottomBar.addEventListener("touchstart", (e) => {
-		startX = e.touches[0].clientX;
-		isDragging = true;
-	});
-
-	// Handle touch move (drag in progress)
-	bottomBar.addEventListener("touchmove", (e) => {
-		if (!isDragging) return;
-		const currentX = e.touches[0].clientX;
-		const deltaX = currentX - startX;
-
-		currentTranslate = previousTranslate + deltaX;
-
-		// Ensure the container doesn't drag too far
-		if (currentTranslate > 0) currentTranslate = 0;
-		if (currentTranslate < -window.innerWidth)
-			currentTranslate = -window.innerWidth;
-
-		setTranslateX(currentTranslate);
-	});
-
-	// Handle touch end (drag ends, snap to nearest panel)
-	bottomBar.addEventListener("touchend", () => {
-		isDragging = false;
-
-		// Calculate the total distance swiped
-		const deltaX = currentTranslate - previousTranslate;
-
-		// Snap to the next or previous panel based on swipe distance and direction
-		if (deltaX < -swipeThreshold) {
-			showCanvasView(); // Swipe left to go back to canvas view
-		} else if (deltaX > swipeThreshold) {
-			showCodeView(); // Swipe right to go to code view
-		}
-
-		previousTranslate = currentTranslate; // Update the last translate value
-	});
-}
-
-let savedView = "canvas";
-let savedViewMode = "both"; // Track the actual view mode for wide screens
-
+// Updated play mode to work with new approach
 export function togglePlayMode() {
 	if (!flock.scene) return;
 
@@ -328,6 +425,12 @@ export function togglePlayMode() {
 
 	if (gizmosVisible) {
 		savedView = currentView;
+
+		// Clear any transforms that might be applied
+		if (isNarrowScreen()) {
+			container.style.transform = "translateX(0px)";
+		}
+
 		showCanvasView();
 		flock.scene.debugLayer.hide();
 		blocklyArea.style.display = "none";
@@ -346,28 +449,20 @@ export function togglePlayMode() {
 		if (resizer) resizer.style.display = "block";
 		document.documentElement.style.setProperty("--dynamic-offset", "65px");
 
-		// On narrow screens, use the mobile view switching logic
+		// On narrow screens, restore the saved view
 		if (isNarrowScreen()) {
-			switchView("both");
-			if (savedView === "code") showCodeView();
-			else showCanvasView();
+			if (savedView === "code") {
+				showCodeView();
+			} else {
+				showCanvasView();
+			}
 		} else {
-			// On wide screens, restore the appropriate view
-			switchView("both"); // This sets up the flex layout properly
+			// On wide screens, restore the flex layout
+			switchView("both");
 		}
 	}
 
 	onResize();
-}
-
-// Function to add the button event listener (narrow screens only)
-function addButtonListener() {
-	// Only add button listener on narrow screens
-	if (!isNarrowScreen()) {
-		return;
-	}
-
-	switchViewsBtn.addEventListener("click", togglePanels);
 }
 
 function prepareCanvasForRecording() {
@@ -418,11 +513,6 @@ export function toggleDesignMode(){
 	onResize();
 }
 
-// Initialization function to set up everything
-export function initializeUI() {
-	addSwipeListeners(); // Add swipe event listeners (narrow screens only)
-	addButtonListener(); // Add button click listener (narrow screens only)
-}
 
 const adjustViewport = () => {
 	const vh = window.innerHeight * 0.01;
@@ -611,30 +701,6 @@ class PanelResizer {
 
 	triggerContentResize() {
 		onResize()
-
-		// Resize Blockly with coordinate refresh
-		setTimeout(() => {
-			const workspace = Blockly.getMainWorkspace();
-			
-			if (workspace && workspace.resize) {
-				workspace.resize();
-
-				// Force coordinate system refresh
-				if (workspace.refreshToolboxSelection) {
-					workspace.refreshToolboxSelection();
-				}
-
-				// Clear any cached measurements
-				if (workspace.cachedParentSvgSize_) {
-					workspace.cachedParentSvgSize_ = null;
-				}
-
-				// Force a render cycle
-				if (workspace.render) {
-					workspace.render();
-				}
-			}
-		}, 100);
 	}
 }
 

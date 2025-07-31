@@ -600,7 +600,7 @@ button {
   bottom: 0;
   left: 0;
   width: 100vw;
-  height: 25px;
+  height: 30px;
   background-color: var(--color-primary);
   color: var(--color-text-on-primary);
   text-align: center;
@@ -610,6 +610,7 @@ button {
   align-items: center;
   box-sizing: border-box;
   padding: 0 2px;
+     z-index: 1000;
   }
 
   #switchViews {
