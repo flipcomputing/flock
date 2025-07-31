@@ -92,7 +92,7 @@ export default {
         ]
       },
       workbox: {
-        maximumFileSizeToCacheInBytes: 20971520,
+        maximumFileSizeToCacheInBytes: 25000000,
         globPatterns: [
           '**/*.{js,css,html,ico,png,svg,glb,gltf,ogg,mp3,aac,wasm,json,woff,woff2}',
           'models/**/*',
