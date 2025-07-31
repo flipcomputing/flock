@@ -303,6 +303,11 @@ function initializeApp() {
 
 window.onload = async function () {
 
+	// Resize Blockly workspace and Babylon.js canvas when the window is resized
+	window.addEventListener("resize", onResize);
+
+	switchView("both");
+
 	const scriptElement = document.getElementById("flock");
 	if (scriptElement) {
 		initializeFlock();
@@ -320,10 +325,6 @@ window.onload = async function () {
 	initializeWorkspace();
 	overrideSearchPlugin(workspace);
 	initializeBlockHandling();
-
-	// Resize Blockly workspace and Babylon.js canvas when the window is resized
-	window.addEventListener("resize", onResize);
-
 	//Blockly.ContextMenuItems.registerCommentOptions();
 
 	/*const navigationController = new NavigationController();
@@ -386,11 +387,12 @@ window.onload = async function () {
 		workspace.updateToolbox(toolbox);
 	}
 
-	loadWorkspace(workspace, executeCode);
-	switchView("both");
+	initializeApp();
 
 	setupFileInput(workspace, executeCode);
 
 	setupInput();
-	initializeApp();
+	
+	loadWorkspace(workspace, executeCode);
+	
 };

@@ -16,9 +16,9 @@ export function onResize() {
 	resizeCanvas();
 	if (flock.engine) flock.engine.resize();
 
-	// Defer Blockly resize to allow DOM layout to settle
 	requestAnimationFrame(() => {
 		Blockly.svgResize(workspace);
+		workspace.scroll(0, 0);
 	});
 }
 
