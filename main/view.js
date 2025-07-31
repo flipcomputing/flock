@@ -251,8 +251,9 @@ function showCodeView() {
 		});
 	}
 
-	onResize();
-	workspace.scroll(0, 0);
+	onResize("reset");
+
+	console.log("Scrolling to top");	
 }
 
 export function showCanvasView() {
