@@ -209,6 +209,8 @@ export default {
   BLOCK_MOVE_FORWARD_MESSAGE: "przesuń %1 do przodu o %2",
   BLOCK_CREATE_BOX_MESSAGE: "stwórz pudełko %1 kolor: %2 rozmiar: %3 × %4 × %5 w %6, %7, %8",
 
+  // Add more custom block translations as needed
+
   // Tooltip translations - Scene Blocks
   set_sky_color_tooltip: "Ustaw kolor nieba w scenie.\nSłowo kluczowe: sky",
   create_ground_tooltip: "Dodaj ziemię z aktywną kolizją do sceny.\nSłowo kluczowe: ground",
@@ -287,6 +289,30 @@ export default {
   when_key_event_tooltip: "Wykonaj bloki, gdy określony klawisz zostanie wciśnięty lub zwolniony.",
   broadcast_event_tooltip: "Wyślij zdarzenie odbierane przez blok on_event.\nSłowo kluczowe: broadcast",
   on_event_tooltip: "Wykonaj kod, gdy otrzymano zdarzenie broadcast.\nSłowo kluczowe: on",
+
+  // Tooltip translations - Materials blocks
+  change_color_tooltip: "Zmień kolor wybranego obiektu.\nSłowo kluczowe: kolor",
+  change_material_tooltip: "Zastosuj wybrany materiał z odcieniem koloru do określonego obiektu.\nSłowo kluczowe: materiał",
+  text_material_tooltip: "Utwórz materiał z tekstem lub emotką, określając szerokość, wysokość, kolor tła i rozmiar tekstu.",
+  place_decal_tooltip: "Umieść naklejkę (decal) na obiekcie, używając wybranego materiału.",
+  decal_tooltip: "Utwórz naklejkę (decal) na obiekcie, określając pozycję, normalną, rozmiar i materiał.",
+  highlight_tooltip: "Podświetl wybrany obiekt.\nSłowo kluczowe: podświetlenie",
+  glow_tooltip: "Dodaj efekt poświaty do wybranego obiektu.\nSłowo kluczowe: poświata",
+  tint_tooltip: "Dodaj efekt zabarwienia kolorem.\nSłowo kluczowe: barwa",
+  set_alpha_tooltip: "Ustaw przezroczystość (alfa) materiałów na określonym obiekcie. Wartości od 0 do 1.\nSłowo kluczowe: alfa",
+  clear_effects_tooltip: "Usuń efekty wizualne z wybranego obiektu.\nSłowo kluczowe: wyczyść",
+  colour_tooltip: "Wybierz kolor.\nSłowo kluczowe: kolor",
+  skin_colour_tooltip: "Wybierz kolor skóry.\nSłowo kluczowe: skóra",
+  greyscale_colour_tooltip: "Wybierz odcień szarości dla wysokości.\nSłowo kluczowe: szary",
+  random_colour_tooltip: "Wygeneruj losowy kolor.\nSłowo kluczowe: losowy_kolor",
+  material_tooltip: "Zdefiniuj właściwości materiału",
+  gradient_material_tooltip: "Zdefiniuj właściwości materiału z gradientem",
+  set_material_tooltip: "Ustaw podany materiał na wybranym obiekcie.",
+
+  // Tooltip translations - Physics blocks
+  add_physics_tooltip: "Dodaj fizykę do obiektu. Opcje: dynamiczny, statyczny, animowany lub brak.\nSłowo kluczowe: fizyka",
+  add_physics_shape_tooltip: "Dodaj kształt fizyczny do obiektu. Opcje: siatka lub kapsuła.\nSłowo kluczowe: fizyka",
+  apply_force_tooltip: "Zastosuj siłę na obiekt w kierunkach XYZ.\nSłowo kluczowe: siła",
 
   // Tooltip translations - Sensing blocks
   key_pressed_tooltip: "Zwraca true, jeśli podany klawisz jest wciśnięty.\nSłowo kluczowe:ispressed",
