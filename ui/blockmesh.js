@@ -91,11 +91,8 @@ export function deleteMeshFromBlock(blockId) {
   delete meshBlockIdMap[blockKey];
 }
 
-
 export function getMeshFromBlock(block) {
-  const blockKey = Object.keys(meshMap).find(
-    (key) => meshMap[key] === block
-  );
+  const blockKey = Object.keys(meshMap).find((key) => meshMap[key] === block);
 
   if (!blockKey) {
     return null;
@@ -105,7 +102,6 @@ export function getMeshFromBlock(block) {
 
   return found;
 }
-
 
 function getMeshFromBlockId(blockId) {
   const blockKey = Object.keys(meshMap).find(
@@ -176,7 +172,6 @@ export function extractMaterialInfo(materialBlock) {
 }
 
 export function updateMeshFromBlock(mesh, block, changeEvent) {
-
   //console.log("Update", block.type, changeEvent.type);
   if (
     !mesh &&
@@ -566,15 +561,14 @@ export function updateMeshFromBlock(mesh, block, changeEvent) {
       flock.changeColor(mesh.name, { color });
     }
   }
-  // if (["X", "Y", "Z"].includes(changed)) {
-  flock.positionAt(mesh.name, {
-    x: position.x,
-    y: position.y,
-    z: position.z,
-    useY: true,
-  });
-
-  //}
+  if (["X", "Y", "Z"].includes(changed)) {
+    flock.positionAt(mesh.name, {
+      x: position.x,
+      y: position.y,
+      z: position.z,
+      useY: true,
+    });
+  }
   //console.log("Update physics");
   flock.updatePhysics(mesh);
 }
