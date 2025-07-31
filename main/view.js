@@ -11,14 +11,15 @@ const isMobile = () => {
 	return /Mobi|Android/i.test(navigator.userAgent);
 };
 
-export function onResize() {
+export function onResize(mode) {
 	// First handle canvas and engine
 	resizeCanvas();
 	if (flock.engine) flock.engine.resize();
 
 	requestAnimationFrame(() => {
 		Blockly.svgResize(workspace);
-		workspace.scroll(0, 0);
+		if(mode === "reset")
+			workspace?.scroll(0, 0);
 	});
 }
 
@@ -92,18 +93,20 @@ function switchView(view) {
 				container.style.transform = "translateX(0px)";
 			}
 		}
+		onResize(); 
 	} else if (view === "canvas") {
 		viewMode = "canvas";
 		blocklyArea.style.display = "none";
 		canvasArea.style.display = "block";
 		flockLink.style.display = "block";
 		if (resizer) resizer.style.display = "none";
+		onResize("reset"); 
 	} else {
 		flockLink.style.display = "none";
 		if (resizer) resizer.style.display = "none";
+		onResize("reset"); 
 	}
 
-	onResize(); // Ensure both Blockly and Babylon.js canvas resize correctly
 }
 
 window.switchView = switchView;
@@ -207,10 +210,6 @@ let previousTranslate = 0;
 let isDragging = false;
 const swipeThreshold = 50; // Minimum swipe distance
 
-
-
-
-
 let savedView = "canvas";
 let savedViewMode = "both"; // Track the actual view mode for wide screens
 
@@ -253,6 +252,7 @@ function showCodeView() {
 	}
 
 	onResize();
+	workspace.scroll(0, 0);
 }
 
 export function showCanvasView() {
@@ -279,27 +279,6 @@ export function showCanvasView() {
 	}
 
 	onResize();
-}
-
-// Update the CSS transform function to work with the new approach
-function setTranslateX(value) {
-	// For narrow screens, we'll use a different approach
-	// This function can remain for any other uses, but we won't use transforms for view switching
-	if (isNarrowScreen()) {
-		// Calculate which view should be shown based on transform value
-		const threshold = -window.innerWidth / 2;
-		if (value < threshold) {
-			// Should show code view
-			if (currentView !== "code") {
-				showCodeView();
-			}
-		} else {
-			// Should show canvas view
-			if (currentView !== "canvas") {
-				showCanvasView();
-			}
-		}
-	}
 }
 
 // Updated swipe handling to work with DOM-based switching
@@ -462,7 +441,8 @@ export function togglePlayMode() {
 		}
 	}
 
-	onResize();
+	onResize("reset");
+	
 }
 
 function prepareCanvasForRecording() {
@@ -510,7 +490,7 @@ export function toggleDesignMode(){
 		setTimeout(prepareCanvasForRecording, 100);
 	}
 
-	onResize();
+	onResize("reset");
 }
 
 
