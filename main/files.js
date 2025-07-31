@@ -268,8 +268,14 @@ export function setupFileInput(workspace, executeCallback) {
 			try {
 				const text = reader.result;
 
-				if (typeof text !== "string" || text.length > 1024 * 1024) {
-					throw new Error("File content is invalid or too large");
+				if (typeof text !== "string") {
+					console.log("Invalid file content: not a string");
+					throw new Error("File content is invalid (not a string)");
+				}
+
+				if (text.length > 4 * 1024 * 1024) {
+					console.log("Invalid file content: too large");
+					throw new Error("File content is too large");
 				}
 
 				const json = JSON.parse(text);
