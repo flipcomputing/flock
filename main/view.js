@@ -17,12 +17,21 @@ export function onResize(mode) {
 	if (flock.engine) flock.engine.resize();
 
 	requestAnimationFrame(() => {
+		let scrollX = workspace?.scrollX || 0;
+		let scrollY = workspace?.scrollY || 0;
+		
+		if (scrollX === -7) {
+			scrollX = 0;
+		}
+		if (scrollY === -7) {
+			scrollY = 0;
+		}
+		
 		Blockly.svgResize(workspace);
 		if(mode === "reset")
-			workspace?.scroll(0, 0);
+			workspace?.scroll(scrollX, scrollY);
 	});
 }
-
 
 window.onresize = onResize;
 
@@ -443,7 +452,6 @@ export function togglePlayMode() {
 	}
 
 	onResize("reset");
-	
 }
 
 function prepareCanvasForRecording() {
