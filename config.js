@@ -80,6 +80,7 @@ export const characterNames = [
 	"Liz2.glb",
 	"Liz3.glb",
 	"Liz4.glb",
+	"Liz5.glb",
 	"Block1.glb",
 	"Block2.glb",
 	"Block3.glb",
