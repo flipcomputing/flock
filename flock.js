@@ -865,201 +865,284 @@ export const flock = {
 		flock.flockNotReady = true;
 
 		if (flock.scene) {
-			// Stop all sounds and animations first
-			flock.stopAllSounds();
-			flock.engine.stopRenderLoop();
+			try {
+				// Check if WebGL context is lost before disposal operations
+				const canvas = flock.engine?.getRenderingCanvas();
+				const gl = canvas?.getContext('webgl') || canvas?.getContext('webgl2');
+				if (gl?.isContextLost?.()) {
+					console.warn("WebGL context already lost, skipping some disposal operations");
+					return;
+				}
 
-			// Abort any ongoing operations
-			if (flock.abortController) {
-				flock.abortController.abort();
-			}
+				// Stop all sounds and animations first
+				flock.stopAllSounds();
+				flock.engine?.stopRenderLoop();
 
-			// Stop all animations and dispose animation groups
-			flock.scene.stopAllAnimations();
-			if (flock.scene.animationGroups) {
-				flock.scene.animationGroups.forEach((group) => {
-					if (group) {
+				// Abort any ongoing operations
+				if (flock.abortController) {
+					flock.abortController.abort();
+				}
+
+				// Stop all animations and dispose animation groups
+				flock.scene.stopAllAnimations();
+
+				// Dispose animatables
+				if (flock.scene.animatables) {
+					[...flock.scene.animatables].forEach((animatable) => {
 						try {
-							group.stop();
-							group.dispose();
+							animatable.stop();
+							animatable.dispose?.();
 						} catch (error) {
-							console.warn(
-								"Error disposing animation group:",
-								error,
-							);
+							console.warn("Error disposing animatable:", error);
+						}
+					});
+				}
+
+				// Dispose animation groups
+				if (flock.scene.animationGroups) {
+					[...flock.scene.animationGroups].forEach((group) => {
+						if (group) {
+							try {
+								group.stop();
+								group.dispose();
+							} catch (error) {
+								console.warn("Error disposing animation group:", error);
+							}
+						}
+					});
+				}
+
+				// Clear all observables and event listeners
+				flock.removeEventListeners();
+
+				// Dispose UI elements
+				flock.controlsTexture?.dispose();
+				flock.controlsTexture = null;
+
+				// Clear main UI texture and all its controls
+				if (flock.scene.UITexture) {
+					flock.scene.UITexture.dispose();
+					flock.scene.UITexture = null;
+				}
+
+				// Clear advanced texture and stack panel
+				if (flock.advancedTexture) {
+					flock.advancedTexture.dispose();
+					flock.advancedTexture = null;
+				}
+
+				if (flock.stackPanel) {
+					flock.stackPanel.dispose();
+					flock.stackPanel = null;
+				}
+
+				// Clear observables
+				flock.gridKeyPressObservable?.clear();
+				flock.gridKeyReleaseObservable?.clear();
+
+				// Dispose sound tracks
+				if (flock.scene.mainSoundTrack) {
+					flock.scene.mainSoundTrack.dispose();
+				}
+				if (flock.scene.soundTracks) {
+					flock.scene.soundTracks.forEach(track => track?.dispose());
+				}
+
+				// Dispose post-processing effects
+				if (flock.scene.postProcesses) {
+					[...flock.scene.postProcesses].forEach(pp => pp?.dispose());
+				}
+				flock.scene.postProcessRenderPipelineManager?.dispose();
+
+				// Dispose effects
+				flock.highlighter?.dispose();
+				flock.highlighter = null;
+				flock.glowLayer?.dispose();
+				flock.glowLayer = null;
+
+				// Dispose lighting
+				flock.mainLight?.dispose();
+				flock.mainLight = null;
+
+				// Dispose particle systems first (before meshes they might be attached to)
+				const particleSystems = flock.scene.particleSystems
+					? [...flock.scene.particleSystems]
+					: [];
+				particleSystems.forEach((system) => {
+					if (system?.dispose) {
+						try {
+							system.dispose();
+						} catch (error) {
+							console.warn("Error disposing particle system:", error);
 						}
 					}
 				});
-			}
 
-			// Clear all observables and event listeners
-			flock.removeEventListeners();
+				// Dispose all meshes and their action managers
+				const meshesToDispose = flock.scene.meshes
+					? [...flock.scene.meshes]
+					: [];
+				meshesToDispose.forEach((mesh) => {
+					if (mesh?.actionManager) {
+						try {
+							mesh.actionManager.dispose();
+						} catch (error) {
+							console.warn("Error disposing action manager:", error);
+						}
+					}
+					if (mesh?.material?.dispose && typeof mesh.material.dispose === "function") {
+						try {
+							mesh.material.dispose();
+						} catch (error) {
+							console.warn("Error disposing mesh material:", error);
+						}
+					}
+					if (mesh?.dispose && typeof mesh.dispose === "function") {
+						try {
+							mesh.dispose();
+						} catch (error) {
+							console.warn("Error disposing mesh:", error);
+						}
+					}
+				});
 
-			// Dispose UI elements
-			flock.controlsTexture?.dispose();
-			flock.controlsTexture = null;
+				// Dispose transform nodes
+				const transformNodes = flock.scene.transformNodes 
+					? [...flock.scene.transformNodes] 
+					: [];
+				transformNodes.forEach((node) => {
+					if (node?.dispose) {
+						try {
+							node.dispose();
+						} catch (error) {
+							console.warn("Error disposing transform node:", error);
+						}
+					}
+				});
 
-			// Clear main UI texture and all its controls
-			if (flock.scene.UITexture) {
-				flock.scene.UITexture.dispose();
-				flock.scene.UITexture = null;
-			}
+				// Dispose geometries (after meshes)
+				const geometries = flock.scene.geometries 
+					? [...flock.scene.geometries] 
+					: [];
+				geometries.forEach((geometry) => {
+					if (geometry?.dispose) {
+						try {
+							geometry.dispose();
+						} catch (error) {
+							console.warn("Error disposing geometry:", error);
+						}
+					}
+				});
 
-			// Clear advanced texture and stack panel
-			if (flock.advancedTexture) {
-				flock.advancedTexture.dispose();
-				flock.advancedTexture = null;
-			}
-
-			if (flock.stackPanel) {
-				flock.stackPanel.dispose();
-				flock.stackPanel = null;
-			}
-
-			flock.gridKeyPressObservable?.clear();
-			flock.gridKeyReleaseObservable?.clear();
-
-			// Dispose effects
-			flock.highlighter?.dispose();
-			flock.highlighter = null;
-			flock.glowLayer?.dispose();
-			flock.glowLayer = null;
-
-			// Dispose lighting
-			flock.mainLight?.dispose();
-			flock.mainLight = null;
-
-			// Dispose all meshes and their action managers
-			const meshesToDispose = flock.scene.meshes
-				? [...flock.scene.meshes]
-				: [];
-			meshesToDispose.forEach((mesh) => {
-				if (mesh && mesh.actionManager) {
-					mesh.actionManager.dispose();
+				// Clear camera
+				if (flock.scene.activeCamera) {
+					flock.scene.activeCamera.inputs?.clear();
+					flock.scene.activeCamera.dispose();
 				}
-				if (
-					mesh &&
-					mesh.material &&
-					mesh.material.dispose &&
-					typeof mesh.material.dispose === "function"
-				) {
+
+				// Dispose textures
+				const textures = flock.scene.textures
+					? [...flock.scene.textures]
+					: [];
+				textures.forEach((texture) => {
+					if (texture?.dispose && typeof texture.dispose === "function") {
+						try {
+							texture.dispose();
+						} catch (error) {
+							console.warn("Error disposing texture:", error);
+						}
+					}
+				});
+
+				// Dispose materials that weren't caught earlier
+				const materials = flock.scene.materials
+					? [...flock.scene.materials]
+					: [];
+				materials.forEach((material) => {
+					if (material?.dispose && typeof material.dispose === "function") {
+						try {
+							material.dispose();
+						} catch (error) {
+							console.warn("Error disposing material:", error);
+						}
+					}
+				});
+
+				// Clear all scene observables
+				flock.scene.onBeforeRenderObservable?.clear();
+				flock.scene.onAfterRenderObservable?.clear();
+				flock.scene.onBeforeAnimationsObservable?.clear();
+				flock.scene.onAfterAnimationsObservable?.clear();
+				flock.scene.onReadyObservable?.clear();
+				flock.scene.onDataLoadedObservable?.clear();
+				flock.scene.onDisposedObservable?.clear();
+				flock.scene.onPointerObservable?.clear();
+				flock.scene.onKeyboardObservable?.clear();
+
+				// Wait for async operations to complete
+				await new Promise((resolve) => setTimeout(resolve, 100));
+
+				// Dispose of the scene
+				flock.scene.dispose();
+				flock.scene = null;
+
+				// Dispose physics engine
+				flock.hk?.dispose();
+				flock.hk = null;
+
+				// Dispose the Babylon.js engine
+				flock.engine?.dispose();
+				flock.engine = null;
+
+				// Close audio context
+				if (flock.audioContext && flock.audioContext.state !== "closed") {
 					try {
-						mesh.material.dispose();
+						await flock.audioContext.close();
 					} catch (error) {
-						console.warn("Error disposing material:", error);
+						console.warn("AudioContext was already closed or closing:", error);
 					}
 				}
-				if (
-					mesh &&
-					mesh.dispose &&
-					typeof mesh.dispose === "function"
-				) {
-					try {
-						mesh.dispose();
-					} catch (error) {
-						console.warn("Error disposing mesh:", error);
-					}
+				flock.audioContext = null;
+
+				// Clear all references
+				flock.events = {};
+				flock.modelCache = {};
+				flock.globalSounds = [];
+				flock.modelsBeingLoaded = {};
+				flock.originalModelTransformations = {};
+				flock.geometryCache = {};
+				flock.materialCache = {};
+				flock.pendingTriggers = new Map();
+				flock._animationFileCache = {};
+				flock.ground = null;
+				flock.sky = null;
+
+				// Clear abort controller
+				flock.abortController = null;
+
+				// Force garbage collection in development (if available)
+				if (typeof window !== 'undefined' && window.gc) {
+					setTimeout(() => {
+						try {
+							window.gc();
+							console.log("Forced garbage collection");
+						} catch (error) {
+							// Silently fail if gc is not available
+						}
+					}, 100);
 				}
-			});
 
-			// Clear camera
-			flock.scene.activeCamera?.inputs?.clear();
-			flock.scene.activeCamera?.dispose();
+				console.log("Scene disposal completed successfully");
 
-			// Wait for async operations to complete
-			await new Promise((resolve) => setTimeout(resolve, 100));
-
-			// Clear all references
-			flock.events = {};
-			flock.modelCache = {};
-			flock.globalSounds = [];
-			flock.modelsBeingLoaded = {};
-			flock.originalModelTransformations = {};
-			flock.geometryCache = {};
-			flock.materialCache = {};
-			flock.pendingTriggers = new Map();
-			flock._animationFileCache = {};
-			flock.ground = null;
-			flock.sky = null;
-
-			// Dispose particle systems
-			const particleSystems = flock.scene.particleSystems
-				? [...flock.scene.particleSystems]
-				: [];
-			particleSystems.forEach((system) => {
-				if (system && system.dispose) {
-					system.dispose();
-				}
-			});
-
-			// Dispose textures
-			const textures = flock.scene.textures
-				? [...flock.scene.textures]
-				: [];
-			textures.forEach((texture) => {
-				if (
-					texture &&
-					texture.dispose &&
-					typeof texture.dispose === "function"
-				) {
-					try {
-						texture.dispose();
-					} catch (error) {
-						console.warn("Error disposing texture:", error);
-					}
-				}
-			});
-
-			// Dispose materials that weren't caught earlier
-			const materials = flock.scene.materials
-				? [...flock.scene.materials]
-				: [];
-			materials.forEach((material) => {
-				if (
-					material &&
-					material.dispose &&
-					typeof material.dispose === "function"
-				) {
-					try {
-						material.dispose();
-					} catch (error) {
-						console.warn("Error disposing material:", error);
-					}
-				}
-			});
-
-			// Clear all observables
-			flock.scene.onBeforeRenderObservable?.clear();
-			flock.scene.onAfterRenderObservable?.clear();
-			flock.scene.onBeforeAnimationsObservable?.clear();
-			flock.scene.onAfterAnimationsObservable?.clear();
-			flock.scene.onReadyObservable?.clear();
-			flock.scene.onDataLoadedObservable?.clear();
-			flock.scene.onDisposedObservable?.clear();
-
-			// Dispose of the scene
-			flock.scene.dispose();
-			flock.scene = null;
-
-			// Dispose physics
-			flock.hk?.dispose();
-			flock.hk = null;
-
-			// Close audio context
-			if (flock.audioContext && flock.audioContext.state !== "closed") {
-				try {
-					await flock.audioContext.close();
-				} catch (error) {
-					console.warn(
-						"AudioContext was already closed or closing:",
-						error,
-					);
-				}
+			} catch (error) {
+				console.error("Error during scene disposal:", error);
+				// Even if disposal fails, clear critical references
+				flock.scene = null;
+				flock.engine = null;
+				flock.flockNotReady = true;
 			}
-			flock.audioContext = null;
-
-			// Clear abort controller
-			flock.abortController = null;
+		} else {
+			console.log("No scene to dispose");
 		}
 	},
 	async initializeNewScene() {
