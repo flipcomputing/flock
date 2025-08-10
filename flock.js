@@ -55,6 +55,7 @@ export const flock = {
 	memoryDebug: false,
 	memoryMonitorInterval: 5000,
 	materialsDebug: false,
+	performanceOverlay: false,
 	maxMeshes: 5000,
 	console: console,
 	modelPath: "./models/",

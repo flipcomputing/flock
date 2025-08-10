@@ -37,6 +37,7 @@ import { defineGenerators } from "../generators";
 
 let workspace = null;
 export { workspace };
+import { flock } from "../flock.js";
 
 export function initializeBlocks() {
 	defineBaseBlocks();
@@ -165,6 +166,8 @@ export function createBlocklyWorkspace() {
 	
 	workspace = Blockly.inject("blocklyDiv", options);
 	initializeTheme();
+	if(flock.performanceOverlay)
+		initBlocklyPerfOverlay(workspace);
 	
 	//const keyboardNav = new KeyboardNavigation(workspace);
 
@@ -449,4 +452,187 @@ export function overrideSearchPlugin(workspace) {
 
 	const toolboxDef = workspace.options.languageTree;
 	workspace.updateToolbox(toolboxDef);
+}
+
+
+// blockly-perf-overlay.js
+export function initBlocklyPerfOverlay(workspace, {
+  updateIntervalMs = 250,
+  patchRender = true,   // set false if you don't want to wrap render()
+  patchResize = true,   // set false if you don't want to wrap resize()
+} = {}) {
+  if (!workspace) throw new Error("initBlocklyPerfOverlay: workspace required");
+
+  // ----- DOM: overlay -------------------------------------------------------
+  const panel = document.createElement("div");
+  panel.id = "blockly-perf-overlay";
+  panel.setAttribute("aria-live", "polite");
+  panel.style.cssText = `
+	position: fixed; z-index: 99999; right: 10px; bottom: 10px;
+	font: 12px/1.35 system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+	background: rgba(0,0,0,.75); color: #fff; padding: 10px 12px; border-radius: 10px;
+	box-shadow: 0 6px 20px rgba(0,0,0,.35); max-width: 320px; pointer-events: none;
+  `;
+  panel.innerHTML = `
+	<div style="font-weight:600;margin-bottom:6px;">Blockly Perf</div>
+	<div style="display:grid;grid-template-columns:auto 1fr;gap:2px 8px;white-space:nowrap;">
+	  <div>Blocks (all/top):</div><div id="bp_blocks">–</div>
+	  <div>Rendered blocks:</div><div id="bp_rendered">–</div>
+	  <div>SVG nodes:</div><div id="bp_svg">–</div>
+	  <div>Events/sec:</div><div id="bp_eps">–</div>
+	  <div>Render time:</div><div id="bp_render">–</div>
+	  <div>Resize time:</div><div id="bp_resize">–</div>
+	  <div>Pan speed:</div><div id="bp_pan">–</div>
+	  <div>Pan FPS (~):</div><div id="bp_fps">–</div>
+	</div>
+	<div style="margin-top:6px;opacity:.8;">Press <kbd style="background:#222;border-radius:4px;padding:0 4px;">O</kbd> to hide/show</div>
+  `;
+  document.body.appendChild(panel);
+  let hidden = false;
+  const toggle = () => {
+	hidden = !hidden;
+	panel.style.display = hidden ? "none" : "block";
+  };
+  // Keyboard: O to toggle
+  const keyHandler = (e) => {
+	if (e.key.toLowerCase() === "o" && !e.metaKey && !e.ctrlKey && !e.altKey) toggle();
+  };
+  window.addEventListener("keydown", keyHandler, { passive: true });
+
+  // ----- Metrics state -------------------------------------------------------
+  const el = (id) => panel.querySelector(`#${id}`);
+  const fmtMs = (n) => (n ? `${n.toFixed(1)} ms` : "–");
+  const fmtInt = (n) => (Number.isFinite(n) ? n.toString() : "–");
+
+  let eventsThisSecond = 0;
+  let lastEPSFlush = performance.now();
+
+  // Track pan (workspace scroll) speed and rough FPS while panning
+  let lastScrollX = workspace.scrollX;
+  let lastScrollY = workspace.scrollY;
+  let lastPanT = performance.now();
+  let panSpeed = 0; // px/s (screen coords-ish)
+  let panFrameCount = 0;
+  let panLastFpsFlush = performance.now();
+  let panFPS = 0;
+
+  // Render/resize timings (rolling average of last N)
+  const rolling = (size = 10) => {
+	const arr = [];
+	return {
+	  push(v) { arr.push(v); if (arr.length > size) arr.shift(); },
+	  avg() { return arr.length ? arr.reduce((a,b)=>a+b,0)/arr.length : 0; }
+	};
+  };
+  const renderTimes = rolling(12);
+  const resizeTimes = rolling(12);
+
+  // ----- Instrument events ---------------------------------------------------
+  const changeListener = () => { eventsThisSecond++; };
+  workspace.addChangeListener(changeListener);
+
+  // Count rendered blocks quickly
+  const countRendered = () => {
+	let rendered = 0;
+	// getAllBlocks(true) excludes children? In Blockly, true = ordered; false = include children.
+	// We want all, so false:
+	const blocks = workspace.getAllBlocks(false);
+	for (let i = 0; i < blocks.length; i++) {
+	  if (blocks[i].rendered) rendered++;
+	}
+	return { total: blocks.length, rendered, top: workspace.getTopBlocks(false).length };
+  };
+
+  // SVG node count
+  const countSvgNodes = () => {
+	const svg = workspace.getParentSvg?.();
+	if (!svg) return NaN;
+	return svg.getElementsByTagName("*").length;
+  };
+
+  // ----- Monkey-patch (optional) render/resize to time calls -----------------
+  let origRender = null;
+  if (patchRender && typeof workspace.render === "function") {
+	origRender = workspace.render;
+	workspace.render = function(...args) {
+	  const t0 = performance.now();
+	  const res = origRender.apply(this, args);
+	  renderTimes.push(performance.now() - t0);
+	  return res;
+	};
+  }
+
+  let origResize = null;
+  if (patchResize && typeof workspace.resize === "function") {
+	origResize = workspace.resize;
+	workspace.resize = function(...args) {
+	  const t0 = performance.now();
+	  const res = origResize.apply(this, args);
+	  resizeTimes.push(performance.now() - t0);
+	  return res;
+	};
+  }
+
+  // ----- RAF loop: pan metrics ----------------------------------------------
+  let rafId = 0;
+  const rafLoop = () => {
+	const now = performance.now();
+	// Pan speed
+	if (workspace && (workspace.scrollX !== lastScrollX || workspace.scrollY !== lastScrollY)) {
+	  const dx = workspace.scrollX - lastScrollX;
+	  const dy = workspace.scrollY - lastScrollY;
+	  const dt = (now - lastPanT) / 1000; // s
+	  if (dt > 0) panSpeed = Math.hypot(dx, dy) / dt; // px/s-ish
+	  lastScrollX = workspace.scrollX;
+	  lastScrollY = workspace.scrollY;
+	  lastPanT = now;
+	  panFrameCount++;
+	}
+	// Rough FPS while panning: frames per second over last 500ms window
+	if (now - panLastFpsFlush >= 500) {
+	  panFPS = (panFrameCount / ((now - panLastFpsFlush) / 1000)) || 0;
+	  panFrameCount = 0;
+	  panLastFpsFlush = now;
+	}
+	rafId = requestAnimationFrame(rafLoop);
+  };
+  rafId = requestAnimationFrame(rafLoop);
+
+  // ----- Interval: update overlay text --------------------------------------
+  const intervalId = setInterval(() => {
+	// EPS flush every ~1s for stability
+	const now = performance.now();
+	let eps = null;
+	if (now - lastEPSFlush >= 1000) {
+	  eps = Math.round(eventsThisSecond / ((now - lastEPSFlush) / 1000));
+	  eventsThisSecond = 0;
+	  lastEPSFlush = now;
+	}
+
+	const { total, rendered, top } = countRendered();
+	const svgNodes = countSvgNodes();
+
+	el("bp_blocks").textContent = `${fmtInt(total)} / ${fmtInt(top)}`;
+	el("bp_rendered").textContent = fmtInt(rendered);
+	el("bp_svg").textContent = fmtInt(svgNodes);
+	if (eps !== null) el("bp_eps").textContent = fmtInt(eps);
+	el("bp_render").textContent = renderTimes.avg() ? fmtMs(renderTimes.avg()) : "–";
+	el("bp_resize").textContent = resizeTimes.avg() ? fmtMs(resizeTimes.avg()) : "–";
+	el("bp_pan").textContent = Number.isFinite(panSpeed) ? `${panSpeed.toFixed(0)} px/s` : "–";
+	el("bp_fps").textContent = panFPS ? panFPS.toFixed(0) : "–";
+  }, updateIntervalMs);
+
+  // ----- Cleanup API ---------------------------------------------------------
+  function destroy() {
+	workspace.removeChangeListener(changeListener);
+	if (origRender) workspace.render = origRender;
+	if (origResize) workspace.resize = origResize;
+	cancelAnimationFrame(rafId);
+	clearInterval(intervalId);
+	window.removeEventListener("keydown", keyHandler);
+	panel.remove();
+  }
+
+  // Return a tiny control API
+  return { destroy, toggle };
 }
