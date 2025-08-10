@@ -170,7 +170,18 @@ export const flockModels = {
     callback = null,
     applyColor = true,
   } = {}) {
-    //console.log("📦 [model] Creating object", modelName, modelId);
+    // Helper (scoped here to keep the patch self-contained)
+    const releaseContainer = (container) => {
+      try {
+        // Do NOT call container.dispose() after addAllToScene() — it would dispose scene assets.
+        container.meshes = [];
+        container.materials = [];
+        container.textures = [];
+        container.skeletons = [];
+        container.animationGroups = [];
+      } catch (_) {}
+    };
+
     try {
       if (applyColor) {
         if (!color && flock.objectColours && flock.objectColours[modelName]) {
@@ -180,11 +191,7 @@ export const flockModels = {
         }
       }
 
-      if (
-        !modelName ||
-        typeof modelName !== "string" ||
-        modelName.length > 100
-      ) {
+      if (!modelName || typeof modelName !== "string" || modelName.length > 100) {
         console.warn("createObject: Invalid modelName parameter");
         return "error_" + flock.scene.getUniqueId();
       }
@@ -230,6 +237,7 @@ export const flockModels = {
         meshName = meshName + "_" + flock.scene.getUniqueId();
       }
 
+      // --- Cache hit: clone from cached "first" mesh ---
       if (flock.modelCache[modelName]) {
         const firstMesh = flock.modelCache[modelName];
         const mesh = firstMesh.clone(blockKey);
@@ -252,50 +260,35 @@ export const flockModels = {
         mesh.refreshBoundingInfo();
         mesh.setEnabled(true);
 
+        // Keep existing behaviour: make descendants enabled & pickable
         const allDescendantMeshes = [
           mesh,
           ...mesh
             .getDescendants(false)
             .filter((node) => node instanceof flock.BABYLON.AbstractMesh),
         ];
-
-        allDescendantMeshes.forEach((mesh) => {
-          mesh.isPickable = true;
-          mesh.setEnabled(true);
+        allDescendantMeshes.forEach((m) => {
+          m.isPickable = true;
+          m.setEnabled(true);
         });
 
         flock.announceMeshReady(meshName, groupName);
 
-        // ✅ FIX: Store resolved promise for clones too
+        // Store a resolved promise for this clone (unchanged public contract)
         const resolved = Promise.resolve(mesh);
         flock.modelReadyPromises.set(meshName, resolved);
-        /*console.log(
-          "Storing resolved modelReadyPromise for clone",
-          meshName,
-          resolved,
-        );*/
 
-        if (callback) {
-          requestAnimationFrame(callback);
-        }
-
+        if (callback) requestAnimationFrame(callback);
         return meshName;
       }
 
+      // --- Cache miss but model currently loading: wait, then clone ---
       if (flock.modelsBeingLoaded[modelName]) {
-        // 👇 Create a deferred promise to resolve later
         let resolveLater;
         const pendingPromise = new Promise((resolve) => {
           resolveLater = resolve;
         });
-
-        // Immediately store the pending promise under meshName
         flock.modelReadyPromises.set(meshName, pendingPromise);
-        /*console.log(
-          "📦 [deferred] Storing early pending modelReadyPromise",
-          meshName,
-          pendingPromise,
-        );*/
 
         flock.modelsBeingLoaded[modelName].then(() => {
           if (flock.modelCache[modelName]) {
@@ -323,36 +316,35 @@ export const flockModels = {
               mesh,
               ...mesh
                 .getDescendants(false)
-                .filter((node) => node instanceof flock.BABYLON.AbstractMesh),
+                .filter(
+                  (node) => node instanceof flock.BABYLON.AbstractMesh,
+                ),
             ];
-            allDescendantMeshes.forEach((mesh) => {
-              mesh.isPickable = true;
-              mesh.setEnabled(true);
+            allDescendantMeshes.forEach((m) => {
+              m.isPickable = true;
+              m.setEnabled(true);
             });
 
             flock.announceMeshReady(meshName, groupName);
+            if (callback) requestAnimationFrame(callback);
 
-            if (callback) {
-              requestAnimationFrame(callback);
-            }
-
-            // ✅ Resolve the previously stored promise
             resolveLater(mesh);
-            //console.log("✅ [deferred] Resolving modelReadyPromise after model load", meshName);
           }
         });
 
         return meshName;
       }
-      // ✅ Create and immediately register the promise
+
+      // --- Cache miss: load via AssetContainer, but don't retain it ---
+      let resolveReady;
+      const readyPromise = new Promise((res) => (resolveReady = res));
+      flock.modelReadyPromises.set(meshName, readyPromise);
+
       const loadPromise = flock.BABYLON.SceneLoader.LoadAssetContainerAsync(
         flock.modelPath,
         modelName,
         flock.scene,
       );
-
-      flock.modelReadyPromises.set(meshName, loadPromise);
-      //console.log("Storing modelReadyPromise", meshName, loadPromise);
 
       flock.modelsBeingLoaded[modelName] = loadPromise;
 
@@ -362,6 +354,7 @@ export const flockModels = {
 
           container.addAllToScene();
 
+          // Create hidden template for future clones
           const firstMesh = container.meshes[0].clone(`${modelName}_first`);
           firstMesh.setEnabled(false);
           firstMesh.isPickable = false;
@@ -370,24 +363,27 @@ export const flockModels = {
             child.setEnabled(false);
           });
 
-          container.meshes.forEach((mesh) => {
-            if (mesh.id != "__root__") {
-              mesh.material.metadata = mesh.material.metadata || {};
-              mesh.material.metadata.internal = true;
+          // Mark internal materials if desired (unchanged behaviour)
+          container.meshes.forEach((m) => {
+            if (m.id != "__root__" && m.material) {
+              m.material.metadata = m.material.metadata || {};
+              m.material.metadata.internal = true;
             }
           });
 
           flock.modelCache[modelName] = firstMesh;
 
-          container.meshes[0].isPickable = true;
-          container.meshes[0].setEnabled(true);
-          container.meshes[0].getChildMeshes().forEach((child) => {
+          // Configure the live instance that came from the container
+          const live = container.meshes[0];
+          live.isPickable = true;
+          live.setEnabled(true);
+          live.getChildMeshes().forEach((child) => {
             child.isPickable = true;
             child.setEnabled(true);
           });
 
           flock.setupMesh(
-            container.meshes[0],
+            live,
             modelName,
             meshName,
             blockKey,
@@ -398,15 +394,16 @@ export const flockModels = {
             color,
           );
 
-          if (applyColor) flock.changeColorMesh(container.meshes[0], color);
+          if (applyColor) flock.changeColorMesh(live, color);
 
-          return new Promise((resolve) => {
-            requestAnimationFrame(() => {
-              const mesh = flock.scene.getMeshByName(meshName);
-              flock.announceMeshReady(meshName, groupName);
-              if (callback) callback();
-              resolve(mesh);
-            });
+          requestAnimationFrame(() => {
+            const mesh = flock.scene.getMeshByName(meshName);
+            flock.announceMeshReady(meshName, groupName);
+            if (callback) callback();
+            resolveReady(mesh);
+
+            // 🔑 Allow the AssetContainer to be garbage-collected
+            releaseContainer(container);
           });
         })
         .catch((error) => {
@@ -442,4 +439,18 @@ export const flockModels = {
       applyColor: false,
     });
   },
+  releaseContainer(container, { disposeAnims = false } = {}) {
+    try {
+      if (disposeAnims) {
+        container.animationGroups?.forEach(ag => ag.dispose?.());
+      }
+      // Drop references so the container itself can be GC’d
+      container.meshes = [];
+      container.materials = [];
+      container.textures = [];
+      container.skeletons = [];
+      container.animationGroups = [];
+    } catch (_) { /* ignore */ }
+  }
+
 };
