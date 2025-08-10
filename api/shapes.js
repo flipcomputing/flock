@@ -340,11 +340,6 @@ export const flockShapes = {
       planeId = planeId + "_" + flock.scene.getUniqueId();
     }
 
-    console.log(
-      "Creating plane with id: " + planeId,
-      flock.scene.getMeshByName(planeId),
-    );
-
     // Create plane with specified dimensions
     const newPlane = flock.BABYLON.MeshBuilder.CreatePlane(
       planeId,
