@@ -20,6 +20,17 @@ export const flockModels = {
     },
     callback = () => {},
   }) {
+    // Helper to drop container references (do NOT call container.dispose() after addAllToScene)
+    const releaseContainer = (container) => {
+      try {
+        container.meshes = [];
+        container.materials = [];
+        container.textures = [];
+        container.skeletons = [];
+        container.animationGroups = [];
+      } catch (_) {}
+    };
+
     const { x, y, z } = position;
 
     let blockKey;
@@ -33,7 +44,7 @@ export const flockModels = {
     }
 
     if (flock.callbackMode) {
-      // ✅ Create deferred promise now
+      // ✅ Create deferred promise now (resolve with the mesh, not the container)
       let resolveLater;
       const pendingPromise = new Promise((resolve) => {
         resolveLater = resolve;
@@ -41,10 +52,6 @@ export const flockModels = {
 
       // ✅ Store immediately to avoid race conditions
       flock.modelReadyPromises.set(modelId, pendingPromise);
-      /*console.log(
-        "📦 [character] Storing early pending modelReadyPromise",
-        modelId,
-      );*/
 
       flock.BABYLON.SceneLoader.LoadAssetContainerAsync(
         flock.modelPath,
@@ -57,6 +64,7 @@ export const flockModels = {
         .then((container) => {
           container.addAllToScene();
           const mesh = container.meshes[0];
+
           const bb = flock.setupMesh(
             mesh,
             modelName,
@@ -79,8 +87,8 @@ export const flockModels = {
             }
           });
 
-          ["Idle", "Walk", "Jump"].forEach(name =>
-            flock.switchToAnimation(flock.scene, bb, name, false, false, false)
+          ["Idle", "Walk", "Jump"].forEach((name) =>
+            flock.switchToAnimation(flock.scene, bb, name, false, false, false),
           );
 
           flock.announceMeshReady(modelId, groupName);
@@ -90,7 +98,9 @@ export const flockModels = {
           }
 
           resolveLater(mesh);
-          //console.log("✅ [character] Resolved modelReadyPromise", modelId);
+
+          // 🔑 Allow the AssetContainer object itself to be GC'd (keep anims/skeletons in scene)
+          releaseContainer(container);
         })
         .catch((error) => {
           console.log("❌ Error loading character:", error);
@@ -129,10 +139,7 @@ export const flockModels = {
             z,
           );
 
-          //if (modelName.startsWith("Character")) {
           flock.ensureStandardMaterial(mesh);
-          // }
-
           flock.applyColorsToCharacter(mesh, colors);
 
           const descendants = mesh.getChildMeshes(false);
@@ -143,8 +150,8 @@ export const flockModels = {
             }
           });
 
-          ["Idle", "Walk", "Jump"].forEach(name =>
-            flock.switchToAnimation(flock.scene, bb, name, false, false, false)
+          ["Idle", "Walk", "Jump"].forEach((name) =>
+            flock.switchToAnimation(flock.scene, bb, name, false, false, false),
           );
 
           flock.announceMeshReady(modelId, groupName);
@@ -152,6 +159,9 @@ export const flockModels = {
           if (callback) {
             requestAnimationFrame(() => callback());
           }
+
+          // 🔑 Drop container references (characters keep their scene anims/skeletons)
+          releaseContainer(container);
         })
         .catch((error) => {
           console.log("❌ Error loading character (fallback):", error);
