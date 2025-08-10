@@ -551,105 +551,6 @@ export function initializeBlockHandling() {
 		}
 	});
 
-	const workspaceSvg = workspace.getParentSvg();
-
-	// Bind mousemove event using browserEvents
-	Blockly.browserEvents.bind(workspaceSvg, "mousemove", null, (event) => {
-		const mouseXY = Blockly.utils.browserEvents.mouseToSvg(
-			event,
-			workspace.getParentSvg(),
-			workspace.getInverseScreenCTM(),
-		);
-
-		const absoluteMetrics = workspace
-			.getMetricsManager()
-			.getAbsoluteMetrics();
-		mouseXY.x -= absoluteMetrics.left;
-		mouseXY.y -= absoluteMetrics.top;
-
-		// Adjust for scrolling
-		mouseXY.x -= workspace.scrollX;
-		mouseXY.y -= workspace.scrollY;
-
-		// Adjust for zoom scaling
-		mouseXY.x /= workspace.scale;
-		mouseXY.y /= workspace.scale;
-
-		highlightBlockUnderCursor(workspace, mouseXY.x, mouseXY.y);
-	});
-
-	let lastHighlightedBlock = null;
-
-	function highlightBlockUnderCursor(workspace, cursorX, cursorY) {
-		if (lastHighlightedBlock) {
-			lastHighlightedBlock.removeSelect();
-			lastHighlightedBlock = null;
-		}
-
-		const allBlocks = workspace.getAllBlocks();
-
-		// Flatten all descendants of each block to consider nested blocks
-		const blocksWithDescendants = [];
-		for (const block of allBlocks) {
-			blocksWithDescendants.push(...block.getDescendants(false));
-		}
-
-		// Iterate through blocks in reverse order to prioritize inner blocks
-		for (let i = blocksWithDescendants.length - 1; i >= 0; i--) {
-			const block = blocksWithDescendants[i];
-			if (!block.rendered) continue;
-
-			const blockBounds = block.getBoundingRectangle();
-
-			// Check if cursor is within block bounds
-			if (
-				cursorX >= blockBounds.left &&
-				cursorX <= blockBounds.right &&
-				cursorY >= blockBounds.top &&
-				cursorY <= blockBounds.bottom
-			) {
-				if (isBlockDraggable(block)) {
-					block.addSelect();
-					lastHighlightedBlock = block;
-				}
-				lastHighlightedBlock = block;
-				break;
-			}
-		}
-	}
-
-	function isBlockDraggable(block) {
-		// Check if block is a shadow block
-		if (block.isShadow()) {
-			return false;
-		}
-
-		if (block.previousConnection || block.nextConnection) {
-			return false;
-		}
-
-		// Check if block is a C-block
-		if (block.statementInputCount > 0) {
-			return false;
-		}
-
-		// Check if block is movable
-		if (!block.isMovable()) {
-			return false;
-		}
-
-		// Check if block is deletable
-		if (!block.isDeletable()) {
-			return false;
-		}
-
-		// Output blocks are allowed
-		if (block.outputConnection) {
-			return true;
-		}
-
-		return true;
-	}
 }
 
 // Function to enforce minimum font size and delay the focus to prevent zoom
@@ -695,4 +596,104 @@ function observeBlocklyInputs() {
 
 	// Start observing the entire document for added nodes (input fields may appear anywhere)
 	observer.observe(document.body, { childList: true, subtree: true });
+}
+
+// Fast hover highlight (no full scans)
+export function installHoverHighlight(workspace) {
+  const svg = workspace.getParentSvg();
+  if (!svg) return () => {};
+
+  // State
+  let lastHighlighted = null;
+  let rafScheduled = false;
+  let pendingXY = null;
+  let panning = false;
+  let dragging = false;
+  let panTimer = null;
+
+  // Prefer your own isBlockDraggable if present
+  const isDraggable = (block) => {
+	if (typeof window.isBlockDraggable === "function") return window.isBlockDraggable(block);
+	if (!block) return false;
+	if (block.isShadow && block.isShadow()) return false;
+	if (!block.isMovable || !block.isMovable()) return false;
+	if (!block.isDeletable || !block.isDeletable()) return false;
+	// Match your old rules:
+	if (block.previousConnection || block.nextConnection) return false;
+	return true; // allow output blocks or standalones
+  };
+
+  function clearHighlight() {
+	if (lastHighlighted) lastHighlighted.removeSelect();
+	lastHighlighted = null;
+  }
+  function applyHighlight(block) {
+	if (lastHighlighted === block) return;
+	clearHighlight();
+	block.addSelect();
+	lastHighlighted = block;
+  }
+
+  // Track viewport pan/zoom and drag state via UI events
+  const uiListener = (e) => {
+	if (e.type !== Blockly.Events.UI) return;
+	if (e.element === "viewport" || e.element === "zoom") {
+	  panning = true;
+	  clearTimeout(panTimer);
+	  panTimer = setTimeout(() => (panning = false), 120);
+	} else if (e.element === "drag") {
+	  dragging = !!e.newValue; // true while dragging, false on release
+	  if (!dragging) {
+		// drag ended; make sure highlight is sane
+		pendingXY = null;
+		rafScheduled = false;
+	  }
+	}
+  };
+  workspace.addChangeListener(uiListener);
+
+  // Mousemove on the workspace SVG (throttled to 1 per frame)
+  const moveBinding = Blockly.browserEvents.bind(svg, "mousemove", null, (ev) => {
+	if (panning || dragging) return;
+	pendingXY = { x: ev.clientX, y: ev.clientY };
+	if (rafScheduled) return;
+	rafScheduled = true;
+	requestAnimationFrame(() => {
+	  rafScheduled = false;
+	  if (!pendingXY) return;
+	  const { x, y } = pendingXY;
+	  pendingXY = null;
+
+	  const el = document.elementFromPoint(x, y);
+	  if (!el || !el.closest) { clearHighlight(); return; }
+
+	  // Find the block <g> that carries data-id (covers normal & drag surface)
+	  const g = el.closest('g.blocklyDraggable[data-id], g[data-id]');
+	  if (!g) { clearHighlight(); return; }
+
+	  const id = g.getAttribute("data-id");
+	  if (!id) { clearHighlight(); return; }
+
+	  const block = workspace.getBlockById(id);
+		if (!block || !block.rendered || block.isInFlyout || !isDraggable(block)) {
+		  clearHighlight();
+		  return;
+		}
+	  applyHighlight(block);
+	});
+  });
+
+  // Clear highlight when leaving the workspace SVG
+  const leaveBinding = Blockly.browserEvents.bind(svg, "mouseleave", null, () => {
+	clearHighlight();
+  });
+
+  // Cleanup
+  return function destroyHoverHighlight() {
+	clearTimeout(panTimer);
+	clearHighlight();
+	workspace.removeChangeListener(uiListener);
+	Blockly.browserEvents.unbind(moveBinding);
+	Blockly.browserEvents.unbind(leaveBinding);
+  };
 }

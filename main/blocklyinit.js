@@ -6,6 +6,7 @@ import { WorkspaceSearch } from "@blockly/plugin-workspace-search";
 import * as BlockDynamicConnection from "@blockly/block-dynamic-connection";
 import { CrossTabCopyPaste } from "@blockly/plugin-cross-tab-copy-paste";
 import { initializeTheme} from "./themes.js";
+import { installHoverHighlight} from "./blockhandling.js"
 import {
 	options,
 	defineBlocks,
@@ -166,6 +167,7 @@ export function createBlocklyWorkspace() {
 	
 	workspace = Blockly.inject("blocklyDiv", options);
 	initializeTheme();
+	installHoverHighlight(workspace);
 	if(flock.performanceOverlay)
 		initBlocklyPerfOverlay(workspace);
 	
