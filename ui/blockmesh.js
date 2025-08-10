@@ -71,6 +71,7 @@ export function updateOrCreateMeshFromBlock(block, changeEvent) {
 }
 
 export function deleteMeshFromBlock(blockId) {
+  
   const blockKey = Object.keys(meshBlockIdMap).find(
     (key) => meshBlockIdMap[key] === blockId,
   );
@@ -83,7 +84,7 @@ export function deleteMeshFromBlock(blockId) {
 
   if (!mesh || mesh.name === "__root__") {
   } else {
-    flock.dispose(mesh);
+    flock.disposeMesh(mesh);
   }
 
   // Remove mappings
