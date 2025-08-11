@@ -1,4 +1,4 @@
-import { blockNames } from "../config.js";
+import { blockNames, modelAnimationNames } from "../config.js";
 
 let flock;
 
@@ -897,7 +897,15 @@ export const flockAnimate = {
   ) {
     const modelName = meshOrGroup.metadata.modelName;
 
-    if (flock.separateAnimations) {
+    if (modelAnimationNames.includes(modelName)) {
+      return flock.switchToAnimationModel(
+        scene,
+        meshOrGroup,
+        animationName,
+        loop,
+        restart,
+      );
+    } else if (flock.separateAnimations) {
       // || meshOrGroup.name.includes('ANIMTEST'))
 
       return flock.switchToAnimationLoad(
@@ -1163,8 +1171,14 @@ export const flockAnimate = {
     // Get the modelName from metadata or whatever property you use
     const modelName = mesh.metadata?.modelName;
 
-    // Now check blockNames
-    if (flock.separateAnimations) {
+    // Check if model should use playAnimationModel based on configuration
+    if (modelAnimationNames.includes(modelName)) {
+      return flock.playAnimationModel(meshName, {
+        animationName,
+        loop,
+        restart,
+      });
+    } else if (flock.separateAnimations) {
       return flock.playAnimationLoad(meshName, {
         animationName,
         loop,

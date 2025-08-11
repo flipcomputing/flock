@@ -218,6 +218,11 @@ export const blockNames = [
 	"rhino.glb",
 ];
 
+export const modelAnimationNames = [
+	"Flock.glb",
+	"rhino.glb",
+];
+
 export function mapNames() {
 	return [
 		getDropdownOption("circular_depression.png"),
