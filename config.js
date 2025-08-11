@@ -248,8 +248,6 @@ export function animationNames() {
 		getDropdownOption("Dance2"),
 		getDropdownOption("Dance3"),
 		getDropdownOption("Dance4"),
-		getDropdownOption("Jump_Idle"),
-		getDropdownOption("Jump_Land"),
 		getDropdownOption("Punch"),
 		getDropdownOption("HitReact"),
 		getDropdownOption("Idle_Hold"),
