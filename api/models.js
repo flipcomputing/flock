@@ -87,15 +87,34 @@ export const flockModels = {
             }
           });
 
-          ["Idle", "Walk", "Jump"].forEach((name) =>
+          // Hide the character initially
+          mesh.setEnabled(false);
+
+          // Load animations first
+          const animationPromises = ["Idle", "Walk", "Jump"].map((name) =>
             flock.switchToAnimation(flock.scene, bb, name, false, false, false),
           );
 
-          flock.announceMeshReady(modelId, groupName);
+          // Wait for all animations to load, then add a delay to ensure they're fully processed
+          Promise.all(animationPromises).then(async () => {
+            // Run callback if present
+            if (callback) {
+              try {
+                const result = callback();
+                // Check if callback returns a promise
+                if (result && typeof result.then === 'function') {
+                  await result; // Wait for the promise to fully resolve
+                }
+              } catch (error) {
+                console.error("Callback error:", error);
+              }
+            }
+          }).then(() => {
+            // Show the character after everything completes
+            mesh.setEnabled(true);
+          });
 
-          if (callback) {
-            requestAnimationFrame(() => callback());
-          }
+          flock.announceMeshReady(modelId, groupName);
 
           resolveLater(mesh);
 
@@ -150,15 +169,34 @@ export const flockModels = {
             }
           });
 
-          ["Idle", "Walk", "Jump"].forEach((name) =>
+          // Hide the character initially
+          mesh.setEnabled(false);
+
+          // Load animations first
+          const animationPromises = ["Idle", "Walk", "Jump"].map((name) =>
             flock.switchToAnimation(flock.scene, bb, name, false, false, false),
           );
 
-          flock.announceMeshReady(modelId, groupName);
+          // Wait for all animations to load, then add a delay to ensure they're fully processed
+          Promise.all(animationPromises).then(async () => {
+            // Run callback if present
+            if (callback) {
+              try {
+                const result = callback();
+                // Check if callback returns a promise
+                if (result && typeof result.then === 'function') {
+                  await result; // Wait for the promise to fully resolve
+                }
+              } catch (error) {
+                console.error("Callback error:", error);
+              }
+            }
+          }).then(() => {
+            // Show the character after everything completes
+            mesh.setEnabled(true);
+          });
 
-          if (callback) {
-            requestAnimationFrame(() => callback());
-          }
+          flock.announceMeshReady(modelId, groupName);
 
           // 🔑 Drop container references (characters keep their scene anims/skeletons)
           releaseContainer(container);
