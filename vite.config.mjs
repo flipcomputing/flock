@@ -106,6 +106,10 @@ export default {
         modifyURLPrefix: isProduction ? {
           '': BASE_URL, // Prepend the base URL to all cached assets in production
         } : {},
+         ignoreURLParametersMatching: [/^fullscreen$/],
+        additionalManifestEntries: [
+          { url: isProduction ? BASE_URL + '?fullscreen=true' : '/', revision: null }
+        ],
         runtimeCaching: [
           {
             // Cache all static assets
@@ -137,6 +141,7 @@ export default {
             handler: 'CacheFirst',
             options: {
               cacheName: 'sounds-cache',
+              rangeRequests: true, 
               expiration: {
                 maxEntries: 100,
                 maxAgeSeconds: 365 * 24 * 60 * 60,
