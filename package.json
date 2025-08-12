@@ -21,7 +21,7 @@
     "@blockly/block-plus-minus": "^8.0.12",
     "@blockly/block-shareable-procedures": "^5.0.12",
     "@blockly/field-colour": "^5.0.12",
-    "@blockly/field-grid-dropdown": "^5.0.12",
+    "@blockly/field-grid-dropdown": "^6.0.3",
     "@blockly/keyboard-navigation": "^2.0.0",
     "@blockly/plugin-cross-tab-copy-paste": "^6.0.12",
     "@blockly/plugin-scroll-options": "^6.0.12",

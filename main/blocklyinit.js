@@ -140,8 +140,7 @@ export function initializeWorkspace() {
 	});
 
 	// Add change listeners
-
-	workspace.addChangeListener(BlockDynamicConnection.finalizeConnections);
+workspace.addChangeListener(BlockDynamicConnection.finalizeConnections);
 	workspace.addChangeListener(handleBlockSelect);
 	workspace.addChangeListener(handleBlockDelete);
 
@@ -167,6 +166,7 @@ export function createBlocklyWorkspace() {
 
 	workspace = Blockly.inject("blocklyDiv", options);
 
+	return;
 	window.addEventListener('keydown', (e) => {
 	  if (e.code === 'KeyK' && e.ctrlKey && e.shiftKey) {
 		e.preventDefault();
