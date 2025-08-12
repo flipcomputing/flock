@@ -1,7 +1,6 @@
 import * as Blockly from "blockly";
 import { KeyboardNavigation } from "@blockly/keyboard-navigation";
 import { javascriptGenerator } from "blockly/javascript";
-import { FieldGridDropdown } from "@blockly/field-grid-dropdown";
 import { WorkspaceSearch } from "@blockly/plugin-workspace-search";
 import * as BlockDynamicConnection from "@blockly/block-dynamic-connection";
 import { CrossTabCopyPaste } from "@blockly/plugin-cross-tab-copy-paste";
@@ -166,7 +165,6 @@ export function createBlocklyWorkspace() {
 
 	workspace = Blockly.inject("blocklyDiv", options);
 
-	return;
 	window.addEventListener('keydown', (e) => {
 	  if (e.code === 'KeyK' && e.ctrlKey && e.shiftKey) {
 		e.preventDefault();
