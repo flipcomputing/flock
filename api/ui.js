@@ -7,72 +7,75 @@ export function setFlockReference(ref) {
 export const flockUI = {
   
   UIText({ text, x, y, fontSize, color, duration, id = null } = {}) {
-    // Ensure flock.scene and flock.GUI are initialized
     if (!flock.scene || !flock.GUI) {
       throw new Error("flock.scene or flock.GUI is not initialized.");
     }
 
-    // Ensure UITexture and controls exist
     flock.scene.UITexture ??=
       flock.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
-    flock.scene.UITexture.controls ??= [];
-    flock.abortController ??= new AbortController();
 
-    // Generate a unique ID if none is provided
     const textBlockId =
-      id ||
-      `textBlock_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      id || `textBlock_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
-    // Get canvas dimensions
     const maxWidth = flock.scene.getEngine().getRenderWidth();
     const maxHeight = flock.scene.getEngine().getRenderHeight();
-
-    // Adjust negative coordinates
     const adjustedX = x < 0 ? maxWidth + x : x;
     const adjustedY = y < 0 ? maxHeight + y : y;
 
-    // Check if a TextBlock with the given ID already exists
     let textBlock = flock.scene.UITexture.getControlByName(textBlockId);
-
-    if (textBlock) {
-      // Reuse the existing TextBlock and update its properties
-      textBlock.text = text;
-      textBlock.color = color || "white"; // Default color
-      textBlock.fontSize = fontSize || 24; // Default font size
-      textBlock.left = adjustedX;
-      textBlock.top = adjustedY;
-      textBlock.isVisible = true; // Ensure the text block is visible
-    } else {
-      textBlock = new flock.GUI.TextBlock(textBlockId); // Assign the ID as the name
+    if (!textBlock) {
+      textBlock = new flock.GUI.TextBlock(textBlockId);
+      textBlock.name = textBlockId;
       flock.scene.UITexture.addControl(textBlock);
-      flock.scene.UITexture.controls.push(textBlock);
 
-      // Set initial text properties
-      textBlock.text = text;
-      textBlock.color = color || "white"; // Default color
-      textBlock.fontSize = fontSize || 24; // Default font size
-      textBlock.textHorizontalAlignment =
-        flock.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
-      textBlock.textVerticalAlignment =
-        flock.GUI.Control.VERTICAL_ALIGNMENT_TOP;
-      textBlock.left = adjustedX;
-      textBlock.top = adjustedY;
+      // Anchor control at screen top-left; don't block input.
+      textBlock.horizontalAlignment = flock.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
+      textBlock.verticalAlignment   = flock.GUI.Control.VERTICAL_ALIGNMENT_TOP;
+      textBlock.textWrapping = false;
+      textBlock.isPointerBlocker = false;
+      // Keep text centered inside its line box.
+      textBlock.textHorizontalAlignment = flock.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
+      textBlock.textVerticalAlignment   = flock.GUI.Control.VERTICAL_ALIGNMENT_CENTER;
     }
 
-    // Ensure the text disappears after the duration
+    // Update text + style
+    textBlock.text  = text;
+    textBlock.color = color || "white";
+
+    // Font & line box
+    const px = Number(fontSize || 24);
+    textBlock.fontSize   = px;
+    const linePx = Math.max(1, Math.round(px * 1.2)); // 1.2× prevents ascender clipping
+    textBlock.lineHeight = `${linePx}px`;
+    textBlock.height     = `${Math.max(linePx, px + 4)}px`;
+
+    // Position
+    textBlock.left = adjustedX;
+    textBlock.top  = adjustedY;
+
+    // WEB FONT STABILIZER: avoid the “first update jump”
+    if (document.fonts && document.fonts.status !== "loaded") {
+      // Hide until fonts are ready, then force a clean measure.
+      const prevAlpha = textBlock.alpha;
+      textBlock.alpha = 0;
+      document.fonts.ready.then(() => {
+        textBlock._markAsDirty();             // re-measure with real font
+        textBlock.alpha = prevAlpha ?? 1;
+      });
+    } else {
+      // If fonts are already ready, still nudge a re-measure on update.
+      // This helps when the first call happened before the font loaded.
+      setTimeout(() => textBlock._markAsDirty(), 0);
+    }
+
+    // Auto-hide after duration
     if (duration > 0) {
       setTimeout(() => {
-        if (flock.scene.UITexture.controls.includes(textBlock)) {
-          textBlock.isVisible = false; // Hide the text block
-        } else {
-          console.warn(
-            `TextBlock "${textBlockId}" not found in controls array.`,
-          );
-        }
+        const ctl = flock.scene.UITexture.getControlByName(textBlockId);
+        if (ctl) ctl.isVisible = false;
       }, duration * 1000);
     }
 
-    // Return the ID for future reference
     return textBlockId;
   },
   UIButton({

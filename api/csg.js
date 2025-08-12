@@ -5,7 +5,7 @@ export function setFlockReference(ref) {
 }
 
 export const flockCSG = {
-	
+
 mergeMeshes(modelId, meshList) {
 	const blockId = modelId;
 	modelId += "_" + flock.scene.getUniqueId();
@@ -75,12 +75,6 @@ mergeMeshes(modelId, meshList) {
 				mergedMesh1.metadata = mergedMesh1.metadata || {};
 				mergedMesh1.metadata.sharedMaterial = false;
 
-        mergedMesh1.material.metadata = mergedMesh1.material.metadata || {};
-        mergedMesh1.material.metadata.internal = true;
-
-        mergedMesh.material.metadata = mergedMesh.material.metadata || {};
-        mergedMesh.material.metadata.internal = true;
-
 				flock.applyResultMeshProperties(
 					mergedMesh,
 					firstMesh,
@@ -88,8 +82,8 @@ mergeMeshes(modelId, meshList) {
 					blockId,
 				);
 
-				flock.dispose(mergedMesh1.name);
-				validMeshes.forEach((mesh) => flock.dispose(mesh.name));
+				mergedMesh1.dispose();
+				validMeshes.forEach((mesh) => mesh.dispose());
 
 				return modelId; // Return the modelId as per original functionality
 			} else {
@@ -213,9 +207,6 @@ subtractMeshes(modelId, baseMeshName, meshNames) {
 
 						resultMesh.computeWorldMatrix(true);
 
-            resultMesh.material.metadata = resultMesh.material.metadata || {};
-            resultMesh.material.metadata.internal = true;
-
 						flock.applyResultMeshProperties(
 							resultMesh,
 							actualMesh,
@@ -224,12 +215,12 @@ subtractMeshes(modelId, baseMeshName, meshNames) {
 						);
 
 						// Clean up duplicates.
-						flock.dispose(baseDuplicate.name);
-						meshDuplicates.forEach((mesh) => flock.dispose(mesh.name));
+						baseDuplicate.dispose();
+						meshDuplicates.forEach((mesh) => mesh.dispose());
 
 						// Clean up the original meshes used in the CSG operation.
-						flock.dispose(baseMesh.name);
-						validMeshes.forEach((mesh) => flock.dispose(mesh.name));
+						baseMesh.dispose();
+						validMeshes.forEach((mesh) => mesh.dispose());
 
 						resolve(modelId);
 					} else {
@@ -314,10 +305,6 @@ intersectMeshes(modelId, meshList) {
 				// Align the resulting mesh to the combined centre
 				intersectedMesh.position = combinedCentre;
 
-
-        intersectedMesh.material.metadata = intersectedMesh.material.metadata || {};
-        intersectedMesh.material.metadata.internal = true;
-
 				// Apply properties to the resulting mesh
 				flock.applyResultMeshProperties(
 					intersectedMesh,
@@ -325,8 +312,8 @@ intersectMeshes(modelId, meshList) {
 					modelId,
 					blockId,
 				);
-        
-				validMeshes.forEach((mesh) => flock.dispose(mesh.name));
+
+				validMeshes.forEach((mesh) => mesh.dispose());
 
 				return modelId; // Return the modelId as per original functionality
 			} else {
@@ -416,10 +403,6 @@ createHull(modelId, meshList) {
 
 				hullMesh.material = updatedValidMeshes[0].material;
 
-
-        hullMesh.material.metadata = hullMesh.material.metadata || {};
-        hullMesh.material.metadata.internal = true;
-
 				// Apply properties to the resulting mesh
 				flock.applyResultMeshProperties(
 					hullMesh,
@@ -428,8 +411,8 @@ createHull(modelId, meshList) {
 					blockId,
 				);
 				// Dispose of original meshes after creating the hull
-				validMeshes.forEach((mesh) => flock.dispose(mesh.name));
-				flock.dispose(mergedMesh.name);
+				validMeshes.forEach((mesh) => mesh.dispose());
+				mergedMesh.dispose();
 
 				return modelId; // Return the debug mesh for further use
 			} else {
