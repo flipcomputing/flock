@@ -94,59 +94,33 @@ console.log("Blockly version:", Blockly.VERSION);
 function initializeApp() {
 	console.log("Initializing app...");
 
+	
 	(() => {
-	  const q = (el, sel) => el?.closest(sel);
-	  const inToolbox = el => !!q(el, '.blocklyToolboxDiv');
-	  const inFlyout  = el => !!q(el, '.blocklyFlyout');
-	  const searchInput = el => q(el, '.blocklyToolboxCategory')?.querySelector('input[type="search"]');
+	  const ws = () => Blockly.getMainWorkspace?.();
+	  const flyout = () => ws()?.getToolbox?.()?.getFlyout?.();
 
-	  const hideFlyout = () => {
-		const ws = Blockly.getMainWorkspace?.();
-		ws?.getToolbox?.()?.getFlyout?.()?.hide?.();
+	  const isSearchCategorySelected = () => {
+		const sel = document.querySelector(
+		  '.blocklyToolboxDiv .blocklyToolboxCategory.blocklyToolboxSelected'
+		);
+		return !!sel?.querySelector('input[type="search"]');
 	  };
 
-	  // Desktop (mouse/pen): use pointerdown for instant focus
-	  function onPointerDown(e) {
-		if (e.pointerType && e.pointerType !== 'mouse' && e.pointerType !== 'pen') return;
+	  const clickIsInsideToolboxOrFlyout = (el) =>
+		!!el.closest('.blocklyToolboxDiv, .blocklyFlyout');
 
-		const t = e.target;
-		const input = searchInput(t);
+	  // Close search flyout on outside clicks *only when* search is the selected category.
+	  const onOutside = (e) => {
+		if (!isSearchCategorySelected()) return;              // only for search
+		if (clickIsInsideToolboxOrFlyout(e.target)) return;   // ignore toolbox/flyout clicks
+		flyout()?.hide?.();
+	  };
 
-		if (input) {
-		  if (t !== input) {                // clicked the row/container
-			e.stopPropagation();
-			requestAnimationFrame(() => input.focus());
-		  }
-		  return;                            // don't close flyout
-		}
-
-		// Click-away: outside toolbox & flyout closes it
-		if (!inToolbox(t) && !inFlyout(t)) hideFlyout();
-	  }
-
-	  // Mobile: run on click/touchend so the keyboard appears
-	  function onClickLike(e) {
-		const t = e.target;
-		const input = searchInput(t);
-
-		if (input) {
-		  if (t !== input) {                // tapped the row/container
-			e.stopPropagation();
-			e.preventDefault();             // avoid ghost click stealing focus
-			input.focus();                  // keyboard shows on mobile
-		  }
-		  return;                            // keep flyout open
-		}
-
-		if (!inToolbox(t) && !inFlyout(t)) hideFlyout();
-	  }
-
-	  window.addEventListener('pointerdown', onPointerDown, { capture: true });
-	  window.addEventListener('touchend',  onClickLike,    { capture: true, passive: false });
-	  window.addEventListener('click',     onClickLike,    { capture: true });
+	  // Capture so we run even if something stops propagation later.
+	  window.addEventListener('pointerdown', onOutside, { capture: true });
+	  window.addEventListener('click',       onOutside, { capture: true });
 	})();
 
-	
 
 	const observer = new MutationObserver((mutations) => {
 	  const unmuteButton = document.getElementById('babylonUnmuteButton');
