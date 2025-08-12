@@ -9,10 +9,10 @@
   --color-outline-focus:        #fc3;
 
   /* Dropdown & menu semantics */
-  --color-dropdown-text:        var(--color-text);
-  --color-menu-item-text:       var(--color-text);
-  --color-dropdown-menu-bg:     var(--color-bg);
-  --color-dropdown-menu-hover:  rgba(0, 0, 0, 0.05);
+  --color-dropdown-text:        var(--color-text);
+  --color-menu-item-text:       var(--color-text);
+  --color-dropdown-menu-bg:     var(--color-bg);
+  --color-dropdown-menu-hover:  rgba(0, 0, 0, 0.05);
   --color-dropdown-menu-border: var(--color-dropdown-menu-border, 1px solid rgba(0,0,0,0.1));
 
 }
@@ -27,49 +27,8 @@
   fill: var(--color-text-primary) !important;
 }
 
-/* Core Blockly text and dropdown fill */
-.blocklyText,
-.blocklyDropdownField,
-.blocklyDropdownDiv,
-.blocklyDropdownContent,
-.custom_zelos_renderer-renderer.classic-theme .blocklyDropdownText,
-.custom_zelos_renderer-renderer.classic-theme .blocklyDropDownText,
-.custom_zelos_renderer-renderer.classic-theme .blocklyMenuItemContent {
-  fill: var(--color-dropdown-text) !important;
-}
-
-/* Menu item text in classic‑theme dropdowns */
-.custom_zelos_renderer-renderer.classic-theme.blocklyDropDownDiv .goog-menuitem-content {
-  color: var(--color-menu-item-text) !important;
-}
-
-/* Blockly Styles */
-.custom_zelos_renderer-renderer.classic-theme .blocklyEditableText {
-  cursor: pointer !important;
-}
-
-.custom_zelos_renderer-renderer.classic-theme .blocklyText,
-.custom_zelos_renderer-renderer.classic-theme .blocklyFlyoutLabelText {
-  font-weight: 500 !important;
-  font-family: "Asap", Helvetica, Arial, Lucida, sans-serif !important;
-}
-
-.blocklyTreeLabel {
-  font-weight: normal !important;
-  font-family: "Asap", Helvetica, Arial, Lucida, sans-serif !important;
-  color: var(--color-text) !important;
-  background-color: inherit;
-  font-size: 14px;
-  text-align: center;
-  margin-top: 5px;
-}
-
-.blocklyDropDownArrow {
-  cursor: pointer;
-}
-
-.blocklyToolboxDiv {
-  padding-top: 0;
+text.blocklyText.blocklyFieldText.blocklyDropdownText {
+ fill: var(--color-dropdown-text) !important; 
 }
 
 .blocklyTreeRow {
@@ -96,64 +55,35 @@ path.blocklyPath.blockly-ws-search-highlight.blockly-ws-search-current {
   fill: var(--color-border-highlight);
 }
 
-/* Responsive Styles */
-@media (max-width: 768px) {
-  :root {
-	--dynamic-offset: 65px;
-  }
-
-  .blocklyTreeRowContentContainer {
-	flex-direction: column !important;
-	background-color: var(--category-color) !important;
-	color:          var(--color-bg);
-	font-size:      10px;
-	display:        flex !important;
-	align-items:    center !important;
-	justify-content:center !important;
-	padding-top:    20px; /* Reserve space for the search box */
-  }
-
-  .blocklyTreeRow {
-	flex-direction: column;
-	height:         unset;
-	line-height:    unset;
-	margin-bottom:  3px;
-	margin-top:     0;
-	padding:        3px;
-	padding-top:    0;
-	white-space:    nowrap;
-  }
-}
-
 @media (min-width: 769px) {
   .blocklyTreeRow {
-	flex-direction: row;
-	justify-content:start;
-	height:         25px;
-	line-height:    25px;
-	margin-bottom:  2px;
-	margin-top:     0;
-	padding:        3px;
-	white-space:    nowrap;
-	padding-left:   5px;
+  flex-direction: row;
+  justify-content:start;
+  height:         25px;
+  line-height:    25px;
+  margin-bottom:  2px;
+  margin-top:     0;
+  padding:        3px;
+  white-space:    nowrap;
+  padding-left:   5px;
   min-width: 120px;
   }
 
   .blocklyTreeRowContentContainer {
-	flex-direction: row !important;
-	justify-content:start;
-	gap:            4px;
-	color:          var(--color-bg);
-	font-size:      10px;
-	display:        flex !important;
-	align-items:    flex-start !important;
+  flex-direction: row !important;
+  justify-content:start;
+  gap:            4px;
+  color:          var(--color-bg);
+  font-size:      10px;
+  display:        flex !important;
+  align-items:    flex-start !important;
   }
 
   .blocklyTreeRowContentContainer img {
-	height: 18px;
-	width:  18px;
-	padding:4px;
-	padding-left:8px;
+  height: 18px;
+  width:  18px;
+  padding:4px;
+  padding-left:8px;
   }
 }
 
@@ -192,13 +122,6 @@ path.blocklyPath.blockly-ws-search-highlight.blockly-ws-search-current {
   outline:none;
 }
 
-#renderCanvas:focus-within,
-.blocklyToolboxDiv:focus-within {
-  outline:        3px solid var(--color-outline-focus);
-  outline-offset: -3px;
-  z-index:         20;
-}
-
 /* Toolbox category selection outline */
 .blocklyToolboxCategoryContainer[aria-selected="true"][aria-level="1"] > .blocklyToolboxCategory,
 .blocklyToolboxCategoryContainer[aria-selected="true"][aria-level="2"] > .blocklyToolboxCategory {
@@ -217,23 +140,6 @@ path.blocklyPath.blockly-ws-search-highlight.blockly-ws-search-current {
   opacity: 1 !important;
 }
 
-/* Dropdown menus */
-body .blocklyDropdownMenu .blocklyMenuItem {
-  color:            var(--color-menu-item-text) !important;
-  background-color: var(--color-dropdown-menu-bg) !important;
-  border:           var(--color-dropdown-menu-border) !important;
-}
-body .blocklyDropdownMenu .blocklyMenuItem:hover {
-  background-color: var(--color-dropdown-menu-hover) !important;
-}
-
-/* SVG‑specific dropdown text */
-svg .blocklyText.blocklyDropdownText,
-.blocklyEditableText .blocklyText.blocklyDropdownText,
-g.blocklyEditableText text.blocklyDropdownText {
-  fill: var(--color-dropdown-text) !important;
-}
-
 .blocklyToolboxCategoryLabel {
   color: var(--color-text) !important;
 }
@@ -244,9 +150,6 @@ g.blocklyEditableText text.blocklyDropdownText {
   padding-left:4px !important;
   background:   none !important;
 }
-
-
-
 
 /* Core Blockly text and dropdown fill */
 .blocklyText,
@@ -269,17 +172,6 @@ color: var(--color-menu-item-text) !important;
 cursor: pointer !important;
 }
 
-.blocklyDropDownArrow {
-cursor: pointer;
-}
-
-.blocklyToolboxDiv {
-padding-top: 0;
-}
-
-.blocklyTreeRow {
-border-left: none !important;
-}
 
 /* Search Highlight Styles */
 .blockly-ws-search {
@@ -306,148 +198,16 @@ fill: var(--color-border-highlight);
 :root {
   --dynamic-offset: 65px;
 }
-
-.blocklyTreeRowContentContainer {
-  flex-direction: column !important;
-  background-color: var(--category-color) !important;
-  color:          var(--color-bg);
-  font-size:      10px;
-  display:        flex !important;
-  align-items:    center !important;
-  justify-content:center !important;
-  padding-top:    20px; /* Reserve space for the search box */
-}
-
-.blocklyTreeRow {
-  flex-direction: column;
-  height:         unset;
-  line-height:    unset;
-  margin-bottom:  3px;
-  margin-top:     0;
-  padding:        3px;
-  padding-top:    0;
-  white-space:    nowrap;
-}
-}
-
-@media (min-width: 769px) {
-.blocklyTreeRow {
-  flex-direction: row;
-  justify-content:start;
-  height:         25px;
-  line-height:    25px;
-  margin-bottom:  2px;
-  margin-top:     0;
-  padding:        2px;
-  white-space:    nowrap;
-  padding-left:   5px;
-}
-
-.blocklyTreeRowContentContainer {
-  flex-direction: row !important;
-  justify-content:start;
-  gap:            4px;
-  color:          var(--color-bg);
-  font-size:      10px;
-  display:        flex !important;
-  align-items:    flex-start !important;
-}
-
-.blocklyTreeRowContentContainer img {
-  height: 18px;
-  width:  18px;
-  padding:4px;
-  padding-left:8px;
-}
-}
-
-.blocklyDropDownContent img {
-object-fit:       contain;
-}
-
-.blocklyTreeRowContentContainer {
-position: relative;
-}
-
-.blocklyTreeRowContentContainer input[type="search"] {
-position: absolute;
-top:      0;
-left:     0;
-right:    0;
-width:    auto;
-box-sizing:border-box;
-padding:  2px;
-margin:   0 !important;
-font-size:14px;
-min-width:0;
-z-index: 10;
-}
-
-.blocklyTreeRowContentContainer input[type="search"]:focus {
-outline:        3px solid var(--color-outline-focus);
-outline-offset: 2px;
-background-color: var(--color-bg);
-}
-
-#blocklyDiv {
-height: 100%;
-width:  100%;
-border: none;
-outline:none;
-}
-
-#renderCanvas:focus-within,
-.blocklyToolboxDiv:focus-within {
-outline:        3px solid var(--color-outline-focus);
-outline-offset: -3px;
-z-index:         20;
 }
 
 /* Toolbox category selection outline */
 .blocklyToolboxCategoryContainer[aria-selected="true"][aria-level="1"] > .blocklyToolboxCategory,
 .blocklyToolboxCategoryContainer[aria-selected="true"][aria-level="2"] > .blocklyToolboxCategory {
-outline:        2px solid var(--color-outline-focus);
+outline:        2px solid var(--color-outline-focus);
 outline-offset: -2px;
-border-radius:   4px;
+border-radius:   4px;
 }
 
-.blocklyZoomReset {
-display: none;
-}
-
-.blocklyTrash,
-.blocklyZoomIn > image,
-.blocklyZoomOut > image {
-opacity: 1 !important;
-}
-
-/* Dropdown menus */
-body .blocklyDropdownMenu .blocklyMenuItem {
-color:            var(--color-menu-item-text) !important;
-background-color: var(--color-dropdown-menu-bg) !important;
-border:           var(--color-dropdown-menu-border) !important;
-}
-body .blocklyDropdownMenu .blocklyMenuItem:hover {
-background-color: var(--color-dropdown-menu-hover) !important;
-}
-
-/* SVG‑specific dropdown text */
-svg .blocklyText.blocklyDropdownText,
-.blocklyEditableText .blocklyText.blocklyDropdownText,
-g.blocklyEditableText text.blocklyDropdownText {
-fill: var(--color-dropdown-text) !important;
-}
-
-.blocklyToolboxCategoryLabel {
-color: var(--color-text) !important;
-}
-
-.blocklyToolboxCategoryIconClosed,
-.blocklyToolboxCategoryIconOpen {
-margin-left: 4px !important;
-padding-left:4px !important;
-background:   none !important;
-}
 
 /* 2. Default item text color */
 .blocklyDropDownDiv .goog-menuitem-content,
@@ -493,3 +253,163 @@ body[data-theme="dark"] .blocklyTreeLabel {
   opacity: 0.9;
   stroke: #ccc;
 }
+
+.blocklyTreeSelected {
+  border-left: 4px solid #fc3  !important;
+}
+
+.blocklyToolboxCategory {
+  border-left: 0 !important; /* Reset default */
+}
+
+.blocklyToolboxCategoryContainer:focus {
+  outline: none !important;
+}
+
+.blocklyToolboxCategoryContainer[aria-selected="true"][aria-level="1"]
+  > .blocklyToolboxCategory {
+  outline: 2px solid #fc3;
+  outline-offset: -2px;
+  border-radius: 4px;
+}
+
+/* Add custom selection outline for both level 1 and 2 categories */
+.blocklyToolboxCategoryContainer[aria-selected="true"][aria-level="1"] > .blocklyToolboxCategory,
+.blocklyToolboxCategoryContainer[aria-selected="true"][aria-level="2"] > .blocklyToolboxCategory {
+  outline: 2px solid #fc3;
+  outline-offset: -2px;
+  border-radius: 4px;
+}
+
+
+/* === Blockly v12 desktop: center icon + label within the full row === */
+@media (min-width: 769px) {
+
+  .blocklyToolboxCategoryContainer[aria-level="2"] > .blocklyToolboxCategory {
+    border-left: 8px solid transparent  !important;
+  }
+
+  /* The row element */
+  .blocklyToolbox .blocklyToolboxCategoryContainer > .blocklyToolboxCategory {
+    display: flex !important;
+    align-items: center !important;   /* <-- centers within the full row */
+    min-height: 28px !important;      /* pick your row height */
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+    padding-left: 8px !important;
+  }
+
+  /* The inner content wrapper (icon + label) */
+  .blocklyToolbox .blocklyToolboxCategory > .blocklyTreeRowContentContainer {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 8px;
+  }
+
+  /* Icon size + no baseline gap */
+  .blocklyToolbox .customToolboxIcon,
+  .blocklyToolbox .blocklyToolboxCategoryIconClosed,
+  .blocklyToolbox .blocklyToolboxCategoryIconOpen {
+    width: 18px !important;
+    height: 18px !important;
+    display: block !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    flex: 0 0 24px;
+  }
+
+  .blocklyToolbox .blocklyToolboxCategoryLabel {
+    margin: 0 !important;
+    line-height: 1 !important;
+    display: inline-flex;
+    align-items: center;
+    color: var(--color-text) !important;
+    background-color: inherit;
+    font-size: 14px;
+  }
+
+  .blocklyToolbox .blocklyTreeRowContentContainer input[type="search"] {
+    display: block;
+    height: 30px;
+    margin: 0;      
+    box-sizing: border-box;
+  }
+  
+
+  .blocklyToolbox .blocklyToolboxCategory:has(input[type="search"]) > .blocklyTreeRowContentContainer {
+    display: block !important;
+    position: static !important;
+    /*pointer-events: auto !important;*/
+  }
+}
+
+@media (max-width: 768px) {
+
+  /* NORMAL rows: stack icon over label; taps go to the row container */
+  .blocklyToolbox .blocklyToolboxCategoryContainer > .blocklyToolboxCategory {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 44px;        /* comfy tap target */
+    padding: 6px 4px;
+  }
+  .blocklyToolbox .blocklyToolboxCategory > .blocklyTreeRowContentContainer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    pointer-events: none;     /* <-- let taps hit the parent row */
+    min-width: 0;
+  }
+
+  .blocklyToolbox .customToolboxIcon,
+  .blocklyToolbox .blocklyToolboxCategoryIconClosed,
+  .blocklyToolbox .blocklyToolboxCategoryIconOpen {
+    width: 24px;
+    height: 24px;
+    display: block;
+  }
+  .blocklyToolbox .blocklyToolboxCategoryLabel {
+    margin: 0;
+    font-size: 11px;
+    line-height: 1.2;
+    text-align: center;
+  }
+
+  /* SEARCH row: make the input usable */
+  .blocklyToolbox .blocklyToolboxCategory:has(input[type="search"]) {
+    display: block;
+    min-height: 0;
+    padding: 6px 8px;
+    margin: 0 0 0 0;
+  }
+  .blocklyToolbox .blocklyToolboxCategory:has(input[type="search"]) > .blocklyTreeRowContentContainer {
+    display: block;
+    position: static;
+    /*pointer-events: auto;*/
+  }
+  .blocklyToolbox .blocklyToolboxCategory input[type="search"] {
+    display: block;
+    width: 100%;
+    height: 32px;
+    margin: 0;
+    box-sizing: border-box;
+  }
+}
+
+.blocklyToolboxCategoryContainer[aria-selected="true"][aria-level="1"]
+  > .blocklyToolboxCategory {
+  outline: 2px solid #fc3;
+  outline-offset: -2px;
+  border-radius: 4px;
+}
+
+.blocklyToolboxCategoryContainer[aria-selected="true"][aria-level="1"] > .blocklyToolboxCategory,
+.blocklyToolboxCategoryContainer[aria-selected="true"][aria-level="2"] > .blocklyToolboxCategory {
+  outline: 2px solid #fc3;
+  outline-offset: -2px;
+  border-radius: 4px;
+}
+
+

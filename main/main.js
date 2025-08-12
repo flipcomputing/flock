@@ -94,6 +94,60 @@ console.log("Blockly version:", Blockly.VERSION);
 function initializeApp() {
 	console.log("Initializing app...");
 
+	(() => {
+	  const q = (el, sel) => el?.closest(sel);
+	  const inToolbox = el => !!q(el, '.blocklyToolboxDiv');
+	  const inFlyout  = el => !!q(el, '.blocklyFlyout');
+	  const searchInput = el => q(el, '.blocklyToolboxCategory')?.querySelector('input[type="search"]');
+
+	  const hideFlyout = () => {
+		const ws = Blockly.getMainWorkspace?.();
+		ws?.getToolbox?.()?.getFlyout?.()?.hide?.();
+	  };
+
+	  // Desktop (mouse/pen): use pointerdown for instant focus
+	  function onPointerDown(e) {
+		if (e.pointerType && e.pointerType !== 'mouse' && e.pointerType !== 'pen') return;
+
+		const t = e.target;
+		const input = searchInput(t);
+
+		if (input) {
+		  if (t !== input) {                // clicked the row/container
+			e.stopPropagation();
+			requestAnimationFrame(() => input.focus());
+		  }
+		  return;                            // don't close flyout
+		}
+
+		// Click-away: outside toolbox & flyout closes it
+		if (!inToolbox(t) && !inFlyout(t)) hideFlyout();
+	  }
+
+	  // Mobile: run on click/touchend so the keyboard appears
+	  function onClickLike(e) {
+		const t = e.target;
+		const input = searchInput(t);
+
+		if (input) {
+		  if (t !== input) {                // tapped the row/container
+			e.stopPropagation();
+			e.preventDefault();             // avoid ghost click stealing focus
+			input.focus();                  // keyboard shows on mobile
+		  }
+		  return;                            // keep flyout open
+		}
+
+		if (!inToolbox(t) && !inFlyout(t)) hideFlyout();
+	  }
+
+	  window.addEventListener('pointerdown', onPointerDown, { capture: true });
+	  window.addEventListener('touchend',  onClickLike,    { capture: true, passive: false });
+	  window.addEventListener('click',     onClickLike,    { capture: true });
+	})();
+
+	
+
 	const observer = new MutationObserver((mutations) => {
 	  const unmuteButton = document.getElementById('babylonUnmuteButton');
 	  if (unmuteButton && !unmuteButton.getAttribute('aria-label')) {

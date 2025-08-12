@@ -140,6 +140,7 @@ export function initializeWorkspace() {
 	});
 
 	// Add change listeners
+
 	workspace.addChangeListener(BlockDynamicConnection.finalizeConnections);
 	workspace.addChangeListener(handleBlockSelect);
 	workspace.addChangeListener(handleBlockDelete);
@@ -164,10 +165,49 @@ export function createBlocklyWorkspace() {
 
 	//KeyboardNavigation.registerKeyboardNavigationStyles();
 
-	
 	workspace = Blockly.inject("blocklyDiv", options);
+
+	const ws = workspace;                     // your injected workspace
+	const mm = ws.getMetricsManager();
+	const tb = ws.getToolbox();
+
+	// Helper: current toolbox width only (not flyout)
+	function toolboxWidth() {
+	  if (!tb) return 0;
+	  if (typeof tb.getWidth === 'function') return tb.getWidth();
+	  const div = tb.getHtmlDiv ? tb.getHtmlDiv() : tb.htmlDiv_;
+	  return div ? div.getBoundingClientRect().width : 0;
+	}
+
+	// 1) Clamp the metrics that Blockly actually consumes.
+	if (mm && typeof mm.getMetrics === 'function') {
+	  const origGetMetrics = mm.getMetrics.bind(mm);
+	  mm.getMetrics = function () {
+		const m  = origGetMetrics();
+		const w  = toolboxWidth();       // what we want the left offset to be
+		m.viewLeft     = w;
+		m.absoluteLeft = w;
+		// normalize nested shapes some builds expose
+		if (m.viewMetrics)  m.viewMetrics.left  = w;
+		if (m.toolboxMetrics) m.toolboxMetrics.width = w;
+		if (m.flyoutMetrics)  m.flyoutMetrics.width  = 0; // flyout overlays
+		return m;
+	  };
+	}
+
+	// 2) Ensure any translate(x,y) uses our X (prevents flicker).
+	const origTranslate = ws.translate.bind(ws);
+	ws.translate = function(x, y) {
+	  return origTranslate(toolboxWidth(), y);
+	};
+
+	// 3) Apply once.
+	Blockly.svgResize(ws);
+
+
 	initializeTheme();
 	installHoverHighlight(workspace);
+	
 	if(flock.performanceOverlay)
 		initBlocklyPerfOverlay(workspace);
 	
@@ -175,6 +215,7 @@ export function createBlocklyWorkspace() {
 
 	window.mainWorkspace = workspace;
 
+	
 	return workspace;
 }
 

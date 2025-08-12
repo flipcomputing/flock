@@ -111,8 +111,8 @@ function getThemeBaseStyles(themeName) {
 	const themes = {
 		light: {
 			// For light theme, use consistent structure with colourPrimary
-			events: { colourPrimary: categoryColours.Events || 20 },
-			scene: { colourPrimary: categoryColours.Scene || 160 },
+			events: { colourPrimary: categoryColours.Events || 20,  colourText: "#000000" },
+			scene: { colourPrimary: categoryColours.Scene || 160, colourText: "#000000" },
 			transform: { colourPrimary: categoryColours.Transform || 210 },
 			animate: { colourPrimary: categoryColours.Animate || 60 },
 			materials: { colourPrimary: categoryColours.Materials || 290 },
