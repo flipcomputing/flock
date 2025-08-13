@@ -1462,100 +1462,194 @@ export const flock = {
 		yield null;
 	},
 	whenModelReady(id, callback) {
-		// Always check for immediate availability first
-		if (flock.scene) {
-			let target = null;
+	  // Helper: locate an object by id across meshes/GUI/anim groups/particle systems/active camera
+	  const locate = () => {
+		const scene = flock.scene;
+		if (!scene) return null;
+		if (id === "__active_camera__") return scene.activeCamera ?? null;
 
-			// Handle special camera identifier
-			if (id === "__active_camera__") {
-				target = flock.scene.activeCamera;
-			} else {
-				target = flock.scene.getMeshByName(id);
-				if (!target && flock.scene.UITexture) {
-					target = flock.scene.UITexture.getControlByName(id);
-				}
-				if (!target) {
-					target = flock.scene.animationGroups.find(
-						(group) => group.name === id,
-					);
-				}
-				if (!target) {
-					target = flock.scene.particleSystems.find(
-						(system) => system.name === id,
-					);
-				}
-			}
+		let t = scene.getMeshByName?.(id) ?? null;
+		if (!t && scene.UITexture) t = scene.UITexture.getControlByName?.(id) ?? null;
+		if (!t && Array.isArray(scene.animationGroups)) t = scene.animationGroups.find(g => g.name === id) ?? null;
+		if (!t && Array.isArray(scene.particleSystems)) t = scene.particleSystems.find(s => s.name === id) ?? null;
+		return t ?? null;
+	  };
 
-			if (target) {
-				if (flock.abortController?.signal?.aborted) {
-					return;
-				}
-				callback(target);
-				return;
-			}
+	  // Fast path: already available
+	  if (flock.scene) {
+		const existing = locate();
+		if (existing) {
+		  // Mesh-path debug for immediate hits
+		  if (existing && existing.name === id && existing.getClassName?.() && existing.getClassName() !== "AnimationGroup") {
+			//console.debug("[whenModelReady] immediate mesh hit:", id);
+		  }
+		  if (!flock.abortController?.signal?.aborted) callback(existing);
+		  return;
 		}
+	  }
 
-		// Use promise-based approach when callbackMode is true
-		if (flock.callbackMode) {
-			const promise = flock.modelReadyPromises.get(id);
+	  // Observer-based path for callback mode
+	  if (flock.callbackMode) {
+		const signal = flock.abortController?.signal;
 
-			if (!promise) {
-				console.warn(`No load started for object with id '${id}'`);
-				return;
+		const attachObservers = () => {
+		  const scene = flock.scene;
+		  if (!scene) return null;
+
+		  const disposers = [];
+		  let done = false;
+
+		  // One-shot completion (with optional mesh-path debug)
+		  const finish = (target, source) => {
+			if (done) return;
+			done = true;
+
+			if (source === "mesh") {
+			  // This is the single, authoritative mesh-path debug (will only print once per id)
+			  //console.debug("[whenModelReady] mesh resolved via onNewMeshAdded:", id);
 			}
 
-			promise
-				.then(() => {
-					// Check again for the target after promise resolves
-					let target = flock.scene.getMeshByName(id);
-					if (!target && flock.scene.UITexture) {
-						target = flock.scene.UITexture.getControlByName(id);
-					}
-					if (!target) {
-						target = flock.scene.animationGroups.find(
-							(group) => group.name === id,
-						);
-					}
-					if (!target) {
-						target = flock.scene.particleSystems.find(
-							(system) => system.name === id,
-						);
-					}
-
-					if (!target) {
-						console.error(
-							`Target with id '${id}' not found in scene after loading.`,
-						);
-						return;
-					}
-					callback(target);
-				})
-				.catch((err) => {
-					console.error(`Error in whenModelReady for '${id}':`, err);
-				});
-			return;
-		}
-
-		// Use generator approach when callbackMode is false
-		(async () => {
-			const generator = flock.modelReadyGenerator(id);
 			try {
-				for await (const target of generator) {
-					if (flock.abortController?.signal?.aborted) {
-						console.log(`Aborted waiting for target: ${id}`);
-						return;
-					}
-					callback(target);
-					return;
-				}
-			} catch (err) {
-				if (flock.abortController?.signal?.aborted) {
-					console.log(`Operation was aborted: ${id}`);
-				} else {
-					console.error(`Error in whenModelReady: ${err}`);
-				}
+			  if (!signal?.aborted) callback(target);
+			} finally {
+			  while (disposers.length) {
+				try { disposers.pop()(); } catch {}
+			  }
 			}
-		})();
+		  };
+
+		  // Special case: active camera
+		  if (id === "__active_camera__") {
+			const camNow = scene.activeCamera;
+			if (camNow) { finish(camNow, "camera-immediate"); return disposers; }
+
+			if (scene.onActiveCameraChanged) {
+			  const cb = () => { if (scene.activeCamera) finish(scene.activeCamera, "camera-observer"); };
+			  scene.onActiveCameraChanged.add(cb);
+			  disposers.push(() => scene.onActiveCameraChanged.removeCallback(cb));
+			}
+
+			if (scene.onDisposeObservable) {
+			  const h = scene.onDisposeObservable.add(() => finish(undefined, "camera-dispose"));
+			  disposers.push(() => scene.onDisposeObservable.remove(h));
+			}
+			if (signal) {
+			  const onAbort = () => finish(undefined, "camera-abort");
+			  signal.addEventListener("abort", onAbort, { once: true });
+			  disposers.push(() => signal.removeEventListener("abort", onAbort));
+			}
+			return disposers;
+		  }
+
+		  // Meshes — primary detector (with debug)
+		  if (scene.onNewMeshAddedObservable) {
+			const h = scene.onNewMeshAddedObservable.add(mesh => {
+			  if (done) return;
+			  if (mesh?.name === id) finish(mesh, "mesh"); // debug happens inside finish when source === "mesh"
+			});
+			disposers.push(() => scene.onNewMeshAddedObservable.remove(h));
+		  }
+
+		  // Animation groups
+		  if (scene.onAnimationGroupAddedObservable) {
+			const h = scene.onAnimationGroupAddedObservable.add(group => {
+			  if (done) return;
+			  if (group?.name === id) finish(group, "animGroup");
+			});
+			disposers.push(() => scene.onAnimationGroupAddedObservable.remove(h));
+		  }
+
+		  // Particle systems
+		  if (scene.onNewParticleSystemAddedObservable) {
+			const h = scene.onNewParticleSystemAddedObservable.add(ps => {
+			  if (done) return;
+			  if (ps?.name === id) finish(ps, "particleSystem");
+			});
+			disposers.push(() => scene.onNewParticleSystemAddedObservable.remove(h));
+		  }
+
+		  // GUI controls — attach when UITexture exists
+		  const attachGui = () => {
+			const tex = scene.UITexture;
+			if (!tex?.onControlAddedObservable) return false;
+			const h = tex.onControlAddedObservable.add(ctrl => {
+			  if (done) return;
+			  if (ctrl?.name === id) finish(ctrl, "guiControl");
+			});
+			disposers.push(() => tex.onControlAddedObservable.remove(h));
+			return true;
+		  };
+
+		  if (!attachGui()) {
+			// Wait until UITexture exists, then attach once
+			const tick = scene.onBeforeRenderObservable.add(() => {
+			  if (attachGui()) scene.onBeforeRenderObservable.remove(tick);
+			});
+			disposers.push(() => scene.onBeforeRenderObservable.remove(tick));
+		  }
+
+		  // Scene dispose / abort cleanup
+		  if (scene.onDisposeObservable) {
+			const h = scene.onDisposeObservable.add(() => finish(undefined, "dispose"));
+			disposers.push(() => scene.onDisposeObservable.remove(h));
+		  }
+		  if (signal) {
+			const onAbort = () => finish(undefined, "abort");
+			signal.addEventListener("abort", onAbort, { once: true });
+			disposers.push(() => signal.removeEventListener("abort", onAbort));
+		  }
+
+		  return disposers;
+		};
+
+		// If there is no scene yet, wait until there is one (abortable), then attach
+		if (!flock.scene) {
+		  let rafId = 0;
+		  const check = () => {
+			if (flock.abortController?.signal?.aborted) return;
+			if (flock.scene) {
+			  cancelAnimationFrame(rafId);
+			  attachObservers();
+			  return;
+			}
+			rafId = requestAnimationFrame(check);
+		  };
+		  rafId = requestAnimationFrame(check);
+		  if (signal) {
+			const onAbort = () => cancelAnimationFrame(rafId);
+			signal.addEventListener("abort", onAbort, { once: true });
+		  }
+		  return;
+		}
+
+		// Scene exists: attach observers immediately
+		attachObservers();
+		return;
+	  }
+
+	  // Fallback: existing generator path (polling with backoff)
+	  (async () => {
+		const generator = flock.modelReadyGenerator(id);
+		try {
+		  for await (const target of generator) {
+			if (flock.abortController?.signal?.aborted) return;
+			if (target) {
+			  // Mesh-path debug if the polled target is a mesh
+			  if (target?.name === id && target.getClassName?.() && target.getClassName() !== "AnimationGroup") {
+				//console.debug("[whenModelReady] mesh resolved via generator:", id);
+			  }
+			  callback(target);
+			}
+			return;
+		  }
+		} catch (err) {
+		  if (flock.abortController?.signal?.aborted) {
+			console.log(`Operation was aborted: ${id}`);
+		  } else {
+			console.error(`Error in whenModelReady for '${id}':`, err);
+		  }
+		}
+	  })();
 	},
 	announceMeshReady(meshName, groupName) {
 		//console.log(`[flock] Mesh ready: ${meshName} (group: ${groupName})`);

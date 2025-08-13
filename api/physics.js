@@ -117,35 +117,62 @@ export const flockPhysics = {
       );
     }
   },
-  setPhysics(meshName, physicsType) {
-    return flock.whenModelReady(meshName, (mesh) => {
-      switch (physicsType) {
-        case "STATIC":
-          mesh.physics.setMotionType(flock.BABYLON.PhysicsMotionType.STATIC);
-          mesh.physics.disablePreStep = true;
-          break;
-        case "DYNAMIC":
-          mesh.physics.setMotionType(flock.BABYLON.PhysicsMotionType.DYNAMIC);
-          mesh.physics.disablePreStep = false;
-          break;
-        case "ANIMATED":
-          mesh.physics.setMotionType(flock.BABYLON.PhysicsMotionType.ANIMATED);
-          mesh.physics.disablePreStep = false;
-          break;
-        case "NONE":
-          mesh.physics.setMotionType(flock.BABYLON.PhysicsMotionType.STATIC);
-          mesh.isPickable = false;
-          flock.hk._hknp.HP_World_RemoveBody(
-            flock.hk.world,
-            mesh.physics._pluginData.hpBodyId,
-          );
-          mesh.physics.disablePreStep = true;
-          break;
-        default:
-          console.error("Invalid physics type provided:", physicsType);
-          break;
-      }
-    });
+  async setPhysics(meshName, physicsType) {
+    // 1) Wait for the mesh to exist (this truly blocks)
+    const mesh = await (
+      typeof flock.ensureModelReadyPromise === "function"
+        ? flock.ensureModelReadyPromise(meshName)
+        : new Promise((resolve) => flock.whenModelReady(meshName, resolve))
+    );
+
+    // Abort safety: if scene was torn down during the wait, exit quietly
+    if (flock.abortController?.signal?.aborted || !mesh) return mesh;
+
+    // 2) Apply physics mode (guard if no physics body yet)
+    if (!mesh.physics) {
+      console.warn("[setPhysics] Mesh has no physics body yet:", meshName);
+      return mesh;
+    }
+
+    switch (physicsType) {
+      case "STATIC":
+        mesh.physics.setMotionType(flock.BABYLON.PhysicsMotionType.STATIC);
+        mesh.physics.disablePreStep = true;
+        break;
+
+      case "DYNAMIC":
+        mesh.physics.setMotionType(flock.BABYLON.PhysicsMotionType.DYNAMIC);
+        mesh.physics.disablePreStep = false;
+        break;
+
+      case "ANIMATED":
+        mesh.physics.setMotionType(flock.BABYLON.PhysicsMotionType.ANIMATED);
+        mesh.physics.disablePreStep = false;
+        break;
+
+      case "NONE":
+        // Park as STATIC and remove from the Havok world
+        mesh.physics.setMotionType(flock.BABYLON.PhysicsMotionType.STATIC);
+        mesh.isPickable = false;
+        try {
+          const id = mesh.physics._pluginData?.hpBodyId;
+          if (id != null) {
+            flock.hk._hknp.HP_World_RemoveBody(flock.hk.world, id);
+          } else {
+            console.warn("[setPhysics] No hpBodyId on mesh physics; skip removal:", meshName);
+          }
+        } catch (e) {
+          console.warn("[setPhysics] Error removing body from Havok world:", e);
+        }
+        mesh.physics.disablePreStep = true;
+        break;
+
+      default:
+        console.error("[setPhysics] Invalid physics type:", physicsType);
+        break;
+    }
+
+    return mesh;
   },
   setPhysicsShape(meshName, shapeType) {
     return flock.whenModelReady(meshName, (mesh) => {
