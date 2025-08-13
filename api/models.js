@@ -31,26 +31,39 @@ export const flockModels = {
       } catch (_) {}
     };
 
-    // --- sanitize inputs ---
-    modelName = (typeof modelName === "string" ? modelName : "").replace(/[^a-zA-Z0-9._-]/g, "");
-    modelId   = (typeof modelId   === "string" ? modelId   : "").replace(/[^a-zA-Z0-9._-]/g, "");
-    if (!modelName || !modelId) {
-      console.warn("createCharacter: invalid modelName/modelId");
+    // --- validate ---
+    if (!modelName || typeof modelName !== "string" || modelName.length > 100) {
+      console.warn("createCharacter: invalid modelName");
+      return "error_" + flock.scene.getUniqueId();
+    }
+    if (!modelId || typeof modelId !== "string" || modelId.length > 100) {
+      console.warn("createCharacter: invalid modelId");
       return "error_" + flock.scene.getUniqueId();
     }
 
+    // --- parse BEFORE sanitizing so blockKey remains RAW ---
+    let desiredBase = modelId; // e.g. "player__j9#WY5..."
+    let blockKey = null;
+    if (desiredBase.includes("__")) {
+      [desiredBase, blockKey] = desiredBase.split("__");
+    }
+    // If no "__" was provided, fall back to base as the key (keeps prior behavior safe)
+    if (!blockKey) blockKey = desiredBase;
+
+    // --- sanitize ONLY modelName + BASE (NOT the blockKey) ---
+    modelName   = modelName.replace(/[^a-zA-Z0-9._-]/g, "");
+    desiredBase = desiredBase.replace(/[^a-zA-Z0-9._-]/g, "");
+
+    // --- compose final runtime name using RAW key, and reserve it ---
+    const desiredFinalName = `${desiredBase}__${blockKey}`;
+    const meshName  = flock._reserveName(desiredFinalName); // may suffix on true collision
+    const groupName = desiredBase;                          // group by base for onTrigger applyToGroup
+
+    // position/scale clamps
     const x = Number.isFinite(position?.x) ? Math.max(-1000, Math.min(1000, position.x)) : 0;
     const y = Number.isFinite(position?.y) ? Math.max(-1000, Math.min(1000, position.y)) : 0;
     const z = Number.isFinite(position?.z) ? Math.max(-1000, Math.min(1000, position.z)) : 0;
     if (!(typeof scale === "number" && scale >= 0.01 && scale <= 100)) scale = 1;
-
-    // --- parse "name__blockKey" and reserve a unique final name (REAL collisions only) ---
-    let blockKey = modelId;
-    let desiredName = modelId;
-    if (desiredName.includes("__")) [desiredName, blockKey] = desiredName.split("__");
-
-    const meshName = flock._reserveName(desiredName); // only suffix on true name collision
-    const groupName = desiredName;
 
     // --- create readiness deferred (resolve OR reject) + abort hookup ---
     let resolveReady, rejectReady;
@@ -67,7 +80,7 @@ export const flockModels = {
     signal?.addEventListener("abort", onAbort, { once: true });
     const cleanupAbort = () => signal?.removeEventListener("abort", onAbort);
 
-    // --- load character (single path; works in both modes) ---
+    // --- single load path ---
     flock.BABYLON.SceneLoader.LoadAssetContainerAsync(
       flock.modelPath,
       modelName,
@@ -86,7 +99,7 @@ export const flockModels = {
         flock.ensureStandardMaterial(mesh);
         flock.applyColorsToCharacter(mesh, colors);
 
-        // pickable + face orientation on descendants with geometry
+        // make descendants interactive
         const descendants = mesh.getChildMeshes(false);
         descendants.forEach((childMesh) => {
           if (childMesh.getTotalVertices() > 0) {
@@ -95,10 +108,10 @@ export const flockModels = {
           }
         });
 
-        // Hide initially (we still resolve readiness so other systems can wire up)
+        // Hide initially (readiness still announced so others can wire up)
         mesh.setEnabled(false);
 
-        // Kick off animation preloads (non-blocking for readiness)
+        // Preload animations (non-blocking for readiness)
         const animationPromises = ["Idle", "Walk", "Jump"].map((name) =>
           flock.switchToAnimation(flock.scene, bb, name, false, false, false)
         );
@@ -109,9 +122,7 @@ export const flockModels = {
             if (callback) {
               try {
                 const result = callback();
-                if (result && typeof result.then === "function") {
-                  await result;
-                }
+                if (result && typeof result.then === "function") await result;
               } catch (err) {
                 console.error("Callback error:", err);
               }
@@ -121,30 +132,30 @@ export const flockModels = {
             mesh.setEnabled(true);
           });
 
-        // Announce readiness immediately after mesh is in the scene & configured
+        // Announce readiness as soon as mesh is configured
         flock.announceMeshReady(meshName, groupName);
         flock._markNameCreated(meshName);
         resolveReady(mesh);
         cleanupAbort();
 
-        // Allow the container to be GC'd (anims/skeletons are in the scene now)
+        // Allow the container to be GC'd (anims/skeletons are now in the scene)
         releaseContainer(container);
       })
       .catch((error) => {
         console.log("❌ Error loading character:", error);
-        rejectReady(error);                 // propagate failure to waiters
-        flock._releaseName(meshName);       // free reserved name
+        rejectReady(error);
+        flock._releaseName(meshName);
         flock.modelReadyPromises.delete(meshName);
         cleanupAbort();
       })
       .finally(() => {
-        // Optional: keep resolved promises for a short time, then drop to avoid map growth
+        // Optional: drop resolved entry after a short TTL to avoid map growth
         setTimeout(() => {
           flock.modelReadyPromises.delete(meshName);
         }, 5000);
       });
 
-    // Return the final (possibly suffixed) name so callers can reference this instance
+    // Return the final (possibly suffixed) id
     return meshName;
   },
   createObject({
@@ -168,7 +179,7 @@ export const flockModels = {
     };
 
     try {
-      // Validate / sanitize
+      // Validate
       if (!modelName || typeof modelName !== "string" || modelName.length > 100) {
         console.warn("createObject: Invalid modelName parameter");
         return "error_" + flock.scene.getUniqueId();
@@ -178,12 +189,25 @@ export const flockModels = {
         return "error_" + flock.scene.getUniqueId();
       }
 
-      modelName = modelName.replace(/[^a-zA-Z0-9._-]/g, "");
-      modelId   = modelId.replace(/[^a-zA-Z0-9._-]/g, "");
+      // Parse BEFORE sanitizing so blockKey remains RAW (unchanged)
+      let desiredBase = modelId;  // e.g. "star__zq?)gH+/2$^1Sh9Cbmky"
+      let blockKey = null;
+      if (desiredBase.includes("__")) {
+        [desiredBase, blockKey] = desiredBase.split("__");
+      }
+      // If no "__" provided, fall back to base as the key (previous behavior)
+      if (!blockKey) blockKey = desiredBase;
 
+      // Sanitize ONLY modelName + BASE (NOT the blockKey)
+      modelName   = modelName.replace(/[^a-zA-Z0-9._-]/g, "");
+      desiredBase = desiredBase.replace(/[^a-zA-Z0-9._-]/g, "");
+
+      // Final runtime name uses RAW blockKey so mapping works: base__blockKey
+      const desiredFinalName = `${desiredBase}__${blockKey}`;
+
+      // Position/scale clamps
       if (!position || typeof position !== "object") position = { x: 0, y: 0, z: 0 };
       if (typeof scale !== "number" || scale < 0.01 || scale > 100) scale = 1;
-
       ["x", "y", "z"].forEach((axis) => {
         const v = position[axis];
         position[axis] = (typeof v === "number" && isFinite(v)) ? Math.max(-1000, Math.min(1000, v)) : 0;
@@ -198,14 +222,9 @@ export const flockModels = {
         }
       }
 
-      // Parse "name__blockKey"
-      let blockKey = modelId;
-      let desiredName = modelId;
-      if (desiredName.includes("__")) [desiredName, blockKey] = desiredName.split("__");
-
-      // Reserve final unique name (only actual name collisions cause suffixes)
-      let meshName = flock._reserveName(desiredName);
-      const groupName = desiredName;
+      // Reserve the actual runtime name; group by BASE (intuitive for onTrigger)
+      let meshName = flock._reserveName(desiredFinalName);
+      const groupName = desiredBase;
 
       // Create readiness deferred (resolve OR reject) + abort cleanup
       let resolveReady, rejectReady;
@@ -230,6 +249,7 @@ export const flockModels = {
         mesh.position.copyFrom(flock.BABYLON.Vector3.Zero());
 
         flock.setupMesh(mesh, modelName, meshName, blockKey, scale, x, y, z, color);
+
         if (applyColor) flock.changeColorMesh(mesh, color);
         mesh.computeWorldMatrix(true);
         mesh.refreshBoundingInfo();
@@ -325,6 +345,7 @@ export const flockModels = {
           live.getChildMeshes().forEach((child) => { child.isPickable = true; child.setEnabled(true); });
 
           flock.setupMesh(live, modelName, meshName, blockKey, scale, x, y, z, color);
+
           if (applyColor) flock.changeColorMesh(live, color);
 
           requestAnimationFrame(() => {
