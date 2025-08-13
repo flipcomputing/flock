@@ -241,6 +241,297 @@ export function findCreateBlock(block) {
   return null;
 }
 
+
+// smart-variable-duplication.js (final)
+// - Split variable on duplicate (duplicate-parent safe)
+// - Retarget descendants oldVar -> newVar
+// - Adopt isolated default-looking vars in subtree -> newVar
+// - Normalize creator var name to the LOWEST available suffix (fixes “skipped 3”)
+// - Recompute nextVariableIndexes[prefix] from workspace state
+
+const _pendingRetarget = new WeakMap(); // block -> { from, to, type, prefix } | undefined
+
+function getBlockly(opts) {
+  return (opts && opts.Blockly) || (typeof Blockly !== "undefined" ? Blockly : null);
+}
+
+function getVariableFieldsOnBlock(block, BlocklyNS) {
+  const out = [];
+  for (const input of block.inputList || []) {
+    for (const field of input.fieldRow || []) {
+      if (field instanceof BlocklyNS.FieldVariable) out.push(field);
+    }
+  }
+  return out;
+}
+
+function isVariableUsedElsewhere(workspace, varId, excludingBlockId, BlocklyNS) {
+  if (!varId) return false;
+  const blocks = workspace.getAllBlocks(false);
+  for (const b of blocks) {
+    if (b.id === excludingBlockId) continue;
+    const fields = getVariableFieldsOnBlock(b, BlocklyNS);
+    for (const f of fields) {
+      if (f.getValue && f.getValue() === varId) return true;
+    }
+  }
+  return false;
+}
+
+function getFieldVariableType(block, fieldName, BlocklyNS) {
+  const field = block.getField(fieldName);
+  if (!field) return "";
+  const model = typeof field.getVariable === "function" ? field.getVariable() : null;
+  if (model && typeof model.type === "string") return model.type || "";
+  const varId = field.getValue && field.getValue();
+  const byId = varId ? block.workspace.getVariableById(varId) : null;
+  return (byId && byId.type) || "";
+}
+
+function parseNumericSuffix(name, prefix) {
+  if (!name || !name.startsWith(prefix)) return null;
+  const rest = name.slice(prefix.length);
+  if (!/^\d+$/.test(rest)) return null;
+  return parseInt(rest, 10);
+}
+
+function createFreshVariable(workspace, prefix, type, nextVariableIndexes) {
+  // Pick the smallest available suffix >= 1 (not just "next"), to be robust to temp vars.
+  let n = 1;
+  while (workspace.getVariable(`${prefix}${n}`, type)) n += 1;
+  // Also keep your counter roughly in sync (but we’ll normalize later).
+  nextVariableIndexes[prefix] = Math.max(nextVariableIndexes[prefix] || 1, n + 1);
+  return workspace.createVariable(`${prefix}${n}`, type); // VariableModel
+}
+
+function retargetDescendantsVariables(rootBlock, fromVarId, toVarId, BlocklyNS) {
+  if (!fromVarId || !toVarId || fromVarId === toVarId) return 0;
+  const descendants = rootBlock.getDescendants(false);
+  let changes = 0;
+  for (const b of descendants) {
+    const fields = getVariableFieldsOnBlock(b, BlocklyNS);
+    for (const f of fields) {
+      if (f.getValue && f.getValue() === fromVarId) {
+        f.setValue(toVarId);
+        changes++;
+      }
+    }
+  }
+  return changes;
+}
+
+function subtreeHasVarId(rootBlock, fromVarId, BlocklyNS) {
+  const descendants = rootBlock.getDescendants(false);
+  for (const b of descendants) {
+    const fields = getVariableFieldsOnBlock(b, BlocklyNS);
+    for (const f of fields) {
+      if (f.getValue && f.getValue() === fromVarId) return true;
+    }
+  }
+  return false;
+}
+
+function buildDescendantIdSet(rootBlock) {
+  const set = new Set();
+  for (const b of rootBlock.getDescendants(false)) set.add(b.id);
+  return set;
+}
+
+function countVarUses(workspace, varId, BlocklyNS) {
+  let count = 0;
+  const blocks = workspace.getAllBlocks(false);
+  for (const b of blocks) {
+    const fields = getVariableFieldsOnBlock(b, BlocklyNS);
+    for (const f of fields) {
+      if (f.getValue && f.getValue() === varId) count++;
+    }
+  }
+  return count;
+}
+
+/**
+ * Adopt single-use "default-looking" variables inside the creator's subtree:
+ * - type matches
+ * - name startsWith prefix
+ * - ALL uses are inside this subtree (none outside)
+ */
+function adoptIsolatedDefaultVarsTo(rootBlock, toVarId, varType, prefix, workspace, BlocklyNS) {
+  const descendantIds = buildDescendantIdSet(rootBlock);
+  let adopted = 0;
+
+  for (const b of rootBlock.getDescendants(false)) {
+    const fields = getVariableFieldsOnBlock(b, BlocklyNS);
+    for (const f of fields) {
+      const vid = f.getValue && f.getValue();
+      if (!vid || vid === toVarId) continue;
+
+      const model = workspace.getVariableById(vid);
+      if (!model) continue;
+
+      const typeOk = model.type === varType || !model.type || !varType;
+      if (!typeOk) continue;
+      if (!model.name || !model.name.startsWith(prefix)) continue;
+
+      // ensure all uses are within subtree
+      let usedOutside = false;
+      const allBlocks = workspace.getAllBlocks(false);
+      for (const bb of allBlocks) {
+        const fields2 = getVariableFieldsOnBlock(bb, BlocklyNS);
+        for (const f2 of fields2) {
+          if (f2.getValue && f2.getValue() === vid) {
+            if (!descendantIds.has(bb.id)) {
+              usedOutside = true;
+              break;
+            }
+          }
+        }
+        if (usedOutside) break;
+      }
+      if (usedOutside) continue;
+
+      // adopt
+      f.setValue(toVarId);
+      adopted++;
+
+      // clean up orphan if now unused
+      if (countVarUses(workspace, vid, BlocklyNS) === 0) {
+        try { workspace.deleteVariableById(vid); } catch (_) { /* ignore */ }
+      }
+    }
+  }
+
+  return adopted;
+}
+
+/** Find the LOWEST available numeric suffix for prefix+N (type-scoped). */
+function lowestAvailableSuffix(workspace, prefix, type) {
+  let n = 1;
+  while (workspace.getVariable(`${prefix}${n}`, type)) n += 1;
+  return n;
+}
+
+/** Compute the max numeric suffix currently present for prefix (type-scoped). */
+function maxExistingSuffix(workspace, prefix, type) {
+  let max = 0;
+  const vars = type ? workspace.getVariablesOfType(type) : workspace.getAllVariables();
+  for (const v of vars) {
+    const n = parseNumericSuffix(v.name, prefix);
+    if (n && n > max) max = n;
+  }
+  return max;
+}
+
+/**
+ * After adoption, normalize the creator variable's NAME to the LOWEST free suffix.
+ * Then recompute nextVariableIndexes[prefix] = maxSuffix + 1.
+ */
+function normalizeVarNameAndIndex(workspace, varId, prefix, type, nextVariableIndexes) {
+  const model = workspace.getVariableById(varId);
+  if (!model) return;
+
+  const currentSuffix = parseNumericSuffix(model.name, prefix);
+  const targetSuffix = lowestAvailableSuffix(workspace, prefix, type);
+
+  // If our current name isn't the lowest available, and the lowest is different, rename.
+  if (targetSuffix && targetSuffix !== currentSuffix) {
+    try {
+      workspace.renameVariableById(varId, `${prefix}${targetSuffix}`);
+    } catch (_) { /* ignore rename failures */ }
+  }
+
+  const maxSuffix = maxExistingSuffix(workspace, prefix, type);
+  nextVariableIndexes[prefix] = maxSuffix + 1;
+}
+
+/**
+ * Public entry: call from your existing handleBlockCreateEvent (or in setOnChange).
+ */
+export function ensureFreshVarOnDuplicate(
+  block,
+  changeEvent,
+  variableNamePrefix,
+  nextVariableIndexes,
+  opts = {}
+) {
+  const BlocklyNS = getBlockly(opts);
+  if (!BlocklyNS) return;
+
+  const fieldName = opts.fieldName || "ID_VAR";
+
+  // Finish any pending work (retarget, adopt, normalize) from earlier in the same dup group.
+  const pending = _pendingRetarget.get(block);
+  if (pending && pending.from && pending.to) {
+    BlocklyNS.Events.setGroup(changeEvent.group || null);
+    try {
+      BlocklyNS.Events.disable();
+
+      retargetDescendantsVariables(block, pending.from, pending.to, BlocklyNS);
+      adoptIsolatedDefaultVarsTo(block, pending.to, pending.type, pending.prefix, block.workspace, BlocklyNS);
+      normalizeVarNameAndIndex(block.workspace, pending.to, pending.prefix, pending.type, nextVariableIndexes);
+
+      if (!subtreeHasVarId(block, pending.from, BlocklyNS)) {
+        _pendingRetarget.set(block, undefined);
+      }
+    } finally {
+      BlocklyNS.Events.enable();
+      BlocklyNS.Events.setGroup(false);
+    }
+  }
+
+  // Only act on *this block's* create event.
+  if (changeEvent.type !== BlocklyNS.Events.BLOCK_CREATE) return;
+  if (changeEvent.blockId !== block.id) return;
+
+  const ws = block.workspace;
+  const idField = block.getField(fieldName);
+  if (!idField) return;
+
+  const oldVarId = idField.getValue && idField.getValue();
+  if (!oldVarId) return;
+
+  // Duplicate/copy/duplicate-parent case?
+  if (!isVariableUsedElsewhere(ws, oldVarId, block.id, BlocklyNS)) return;
+
+  const varType = getFieldVariableType(block, fieldName, BlocklyNS);
+  const group = changeEvent.group || `auto-split-${block.id}-${Date.now()}`;
+
+  BlocklyNS.Events.setGroup(group);
+  try {
+    BlocklyNS.Events.disable();
+
+    // Mint a new var with the *lowest* available suffix now.
+    const newVarModel = createFreshVariable(ws, variableNamePrefix, varType, nextVariableIndexes);
+    const newVarId =
+      newVarModel.id ||
+      (typeof newVarModel.getId === "function" ? newVarModel.getId() : null);
+    if (!newVarId) return;
+
+    // Point the creator at the fresh variable.
+    idField.setValue(newVarId);
+
+    // Pass 1: retarget descendants old -> new (for those already present)
+    retargetDescendantsVariables(block, oldVarId, newVarId, BlocklyNS);
+
+    // Pass 2: adopt any isolated default-looking vars inside subtree to the new var
+    adoptIsolatedDefaultVarsTo(block, newVarId, varType, variableNamePrefix, ws, BlocklyNS);
+
+    // Normalize the creator var’s name to the LOWEST free suffix (fixes visible gaps)
+    normalizeVarNameAndIndex(ws, newVarId, variableNamePrefix, varType, nextVariableIndexes);
+
+    // If more children will connect later, remember to finish on subsequent events.
+    _pendingRetarget.set(block, {
+      from: oldVarId,
+      to: newVarId,
+      type: varType,
+      prefix: variableNamePrefix
+    });
+  } finally {
+    BlocklyNS.Events.enable();
+    BlocklyNS.Events.setGroup(false);
+  }
+}
+
+
 /*
 export default Blockly.Theme.defineTheme("flock", {
 	base: Blockly.Themes.Modern,
@@ -851,6 +1142,9 @@ export function handleBlockCreateEvent(
 ) {
   if (window.loadingCode) return; // Don't rename variables during code loading
 
+  ensureFreshVarOnDuplicate(blockInstance, changeEvent, variableNamePrefix, nextVariableIndexes, {
+    fieldName: 'ID_VAR', 
+  });
   if (blockInstance.id !== changeEvent.blockId) return;
   // Check if this is an undo/redo operation
   const isUndo = !changeEvent.recordUndo;
