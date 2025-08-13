@@ -67,6 +67,7 @@ export const flock = {
 	modelReadyPromises: new Map(),
 	pendingMeshCreations: 0,
 	pendingTriggers: new Map(),
+	_nameRegistry: new Map(),
 	_animationFileCache: {},
 	characterNames: characterNames,
 	alert: alert,
@@ -1113,6 +1114,7 @@ export const flock = {
 				flock.geometryCache = {};
 				flock.materialCache = {};
 				flock.pendingTriggers = new Map();
+				flock._nameRegistry = new Map();
 				flock._animationFileCache = {};
 				flock.ground = null;
 				flock.sky = null;
@@ -1160,6 +1162,7 @@ export const flock = {
 		flock.originalModelTransformations = {};
 		flock.geometryCache = {};
 		flock.pendingTriggers = new Map();
+		flock._nameRegistry = new Map();
 		flock._animationFileCache = {};
 		flock.materialCache = {};
 		flock.disposed = false;
@@ -1683,6 +1686,27 @@ export const flock = {
 				});
 			}
 		}
+	},
+	/** Reserve a unique name. If desired is taken or pending, suffix it. */
+	_reserveName (desired) {
+	  const has = (n) => flock._nameRegistry.has(n) || !!flock.scene?.getMeshByName(n);
+	  let name = desired;
+	  while (has(name)) {
+		name = `${desired}_${flock.scene.getUniqueId()}`;
+	  }
+	  flock._nameRegistry.set(name, { pending: true, exists: false });
+	  return name;
+	},
+
+	/** Mark a reserved name as created (exists in scene). */
+	_markNameCreated (name) {
+	  const rec = flock._nameRegistry.get(name);
+	  if (rec) { rec.pending = false; rec.exists = true; }
+	},
+
+	/** Release a reservation on failure/disposal. */
+	_releaseName(name) {
+	  flock._nameRegistry.delete(name);
 	},
 
 	/* 
