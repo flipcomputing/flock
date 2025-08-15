@@ -266,6 +266,8 @@ export function animationNames() {
 		getDropdownOption("Stand_Up"),
 		getDropdownOption("Wobble"),
 		getDropdownOption("Clap"),
+		getDropdownOption("Jump_Idle"),
+		getDropdownOption("Jump_Land"),
 	];
 }
 
