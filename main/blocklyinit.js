@@ -202,10 +202,13 @@ export function createBlocklyWorkspace() {
 		};
 	}
 
-	// 2) Ensure any translate(x,y) uses our X (prevents flicker).
+	// 2) Ensure any translate(x,y) accounts for toolbox offset while allowing scrolling.
 	const origTranslate = ws.translate.bind(ws);
 	ws.translate = function (x, y) {
-		return origTranslate(toolboxWidth(), y);
+		// Allow horizontal scrolling by adding the toolbox width to the provided x offset
+		// instead of replacing it entirely
+		const toolboxOffset = toolboxWidth();
+		return origTranslate(x + toolboxOffset, y);
 	};
 
 	// 3) Apply once.
