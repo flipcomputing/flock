@@ -93,93 +93,145 @@ mergeMeshes(modelId, meshList) {
 		});
 },
 	subtractMeshes(modelId, baseMeshName, meshNames) {
-	  const blockId = modelId;
-	  modelId += "_" + flock.scene.getUniqueId();
+		const blockId = modelId;
+		modelId += "_" + flock.scene.getUniqueId();
+		return new Promise((resolve) => {
+			flock.whenModelReady(baseMeshName, (baseMesh) => {
+				if (!baseMesh) {
+					resolve(null);
+					return;
+				}
 
-	  return new Promise((resolve) => {
-		flock.whenModelReady(baseMeshName, (baseMesh) => {
-		  if (!baseMesh) { resolve(null); return; }
+				let actualMesh = baseMesh;
+				if (baseMesh.metadata?.modelName) {
+					const meshWithMaterial =
+						flock.findFirstDescendantWithMaterial(baseMesh);
+					if (meshWithMaterial) {
+						actualMesh = meshWithMaterial;
+						//actualMesh.parent = null;
+					}
+				}
 
-		  let actualMesh = baseMesh;
-		  if (baseMesh.metadata?.modelName) {
-			const withMat = flock.findFirstDescendantWithMaterial(baseMesh);
-			if (withMat) actualMesh = withMat;
-		  }
+				// Ensure world matrices are computed.
+				baseMesh.computeWorldMatrix(true);
+				actualMesh.computeWorldMatrix(true);
 
-		  baseMesh.computeWorldMatrix(true);
-		  actualMesh.computeWorldMatrix(true);
+				// Prepare the subtracting meshes.
+				flock
+					.prepareMeshes(modelId, meshNames, blockId)
+					.then((validMeshes) => {
+						if (validMeshes.length) {
+							const scene = baseMesh.getScene();
 
-		  flock.prepareMeshes(modelId, meshNames, blockId).then((validMeshes) => {
-			if (!validMeshes.length) { resolve(null); return; }
+							// Duplicate the base mesh for CSG.
+							const baseDuplicate =
+								actualMesh.clone("baseDuplicate");
+							baseDuplicate.setParent(null);
+							baseDuplicate.position = actualMesh
+								.getAbsolutePosition()
+								.clone();
+							baseDuplicate.rotationQuaternion = null;
+							baseDuplicate.rotation =
+								actualMesh.absoluteRotationQuaternion
+									? actualMesh.absoluteRotationQuaternion.toEulerAngles()
+									: actualMesh.rotation.clone();
+							baseDuplicate.computeWorldMatrix(true);
 
-			const BAB = flock.BABYLON;
-			const scene = baseMesh.getScene();
+							// Duplicate the meshes to subtract.
+							const meshDuplicates = validMeshes.map((mesh) => {
+								// If metadata exists, use the mesh with material.
+								if (mesh.metadata?.modelName) {
+									const meshWithMaterial =
+										flock.findFirstDescendantWithMaterial(
+											mesh,
+										);
+									if (meshWithMaterial) {
+										mesh = meshWithMaterial;
+										mesh.refreshBoundingInfo();
+										mesh.flipFaces();
+									}
+								}
 
-			// helper: clone -> set world TRS -> bake -> identity
-			const toWorldBaked = (src, name) => {
-			  const dup = src.clone(name, null, /*cloneChildren*/ true);
-			  dup.setParent(null);
-			  const S = new BAB.Vector3(), Q = new BAB.Quaternion(), P = new BAB.Vector3();
-			  src.getWorldMatrix().decompose(S, Q, P);
-			  dup.position = P; dup.rotationQuaternion = Q; dup.scaling = S;
-			  dup.computeWorldMatrix(true);
-			  dup.bakeCurrentTransformIntoVertices();           // 🔑 vertices now in world coords
-			  dup.setPivotMatrix(BAB.Matrix.Identity(), false); // clean local
-			  dup.position.set(0,0,0);
-			  dup.rotationQuaternion = BAB.Quaternion.Identity();
-			  dup.scaling.set(1,1,1);
-			  dup.computeWorldMatrix(true);
-			  dup.refreshBoundingInfo(true);
-			  dup.physicsBody?.dispose?.(); // belt & braces: ensure no physics
-			  return dup;
-			};
+								const duplicate = mesh.clone(
+									"meshDuplicate",
+									null,
+									true,
+								);
+								duplicate.computeWorldMatrix(true);
+								duplicate.refreshBoundingInfo();
 
-			// world-baked base and cutters
-			const baseDup = toWorldBaked(actualMesh, "csg_base");
-			const cutters = validMeshes.map((m0) => {
-			  let m = m0;
-			  if (m.metadata?.modelName) {
-				const withMat = flock.findFirstDescendantWithMaterial(m);
-				if (withMat) m = withMat;
-			  }
-			  return toWorldBaked(m, "csg_cutter");
+								return duplicate;
+							});
+							baseDuplicate.refreshBoundingInfo();
+							let outerCSG = flock.BABYLON.CSG2.FromMesh(
+								baseDuplicate,
+								false,
+							);
+
+							meshDuplicates.forEach((mesh) => {
+								const meshCSG = flock.BABYLON.CSG2.FromMesh(
+									mesh,
+									false,
+								);
+
+								try {
+									outerCSG = outerCSG.subtract(meshCSG);
+								} catch (e) {
+									console.log("CSG error", e);
+								}
+							});
+
+							// Create the result mesh.
+							const resultMesh = outerCSG.toMesh(
+								"resultMesh",
+								scene,
+								{ centerMesh: false },
+							);
+							const localCenter = resultMesh
+								.getBoundingInfo()
+								.boundingBox.center.clone();
+
+							resultMesh.setPivotMatrix(
+								BABYLON.Matrix.Translation(
+									localCenter.x,
+									localCenter.y,
+									localCenter.z,
+								),
+								false,
+							);
+
+							resultMesh.position.subtractInPlace(localCenter);
+							//resultMesh.setParent(null);
+							resultMesh.computeWorldMatrix(true);
+							resultMesh.refreshBoundingInfo();
+
+							resultMesh.computeWorldMatrix(true);
+
+							flock.applyResultMeshProperties(
+								resultMesh,
+								actualMesh,
+								modelId,
+								blockId,
+							);
+
+							// Clean up duplicates.
+							baseDuplicate.dispose();
+							meshDuplicates.forEach((mesh) => mesh.dispose());
+
+							// Clean up the original meshes used in the CSG operation.
+							baseMesh.dispose();
+							validMeshes.forEach((mesh) => mesh.dispose());
+
+							resolve(modelId);
+						} else {
+							console.warn(
+								"No valid meshes to subtract from the base mesh.",
+							);
+							resolve(null);
+						}
+					});
 			});
-
-			// build CSG in world coordinates
-			let csg = BAB.CSG2.FromMesh(baseDup, false);
-			for (const d of cutters) {
-			  try { csg = csg.subtract(BAB.CSG2.FromMesh(d, false)); }
-			  catch (e) { console.warn("CSG subtract error:", e); }
-			}
-
-			// result geometry is already in world space — don’t recenter/pivot/bake here
-			const resultMesh = csg.toMesh("resultMesh", scene, { centerMesh: false });
-			resultMesh.computeWorldMatrix(true);
-			resultMesh.refreshBoundingInfo(true);
-
-			// absolutely NO parenting or pivot changes here yet
-			resultMesh.physicsBody?.dispose?.();
-
-			// quick diagnostics
-			console.log("[csg] hasBody?", !!resultMesh.physicsBody);
-			console.log("[csg] abs pos", resultMesh.getAbsolutePosition().toString());
-			console.log("[csg] aabb minY/maxY",
-			  resultMesh.getBoundingInfo().boundingBox.minimumWorld.y,
-			  resultMesh.getBoundingInfo().boundingBox.maximumWorld.y
-			);
-
-			flock.applyResultMeshProperties?.(resultMesh, actualMesh, modelId, blockId, { skipPhysics: true });
-
-			// cleanup
-			baseDup.dispose();
-			cutters.forEach((m) => m.dispose());
-			baseMesh.dispose();
-			validMeshes.forEach((m) => m.dispose());
-
-			resolve(modelId);
-		  });
 		});
-	  });
 	},
 intersectMeshes(modelId, meshList) {
 	const blockId = modelId;
