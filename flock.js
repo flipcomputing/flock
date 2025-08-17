@@ -1465,7 +1465,22 @@ export const flock = {
 		yield null;
 	},
 	whenModelReady(id, callback) {
-	  // Helper: locate an object by id across meshes/GUI/anim groups/particle systems/active camera
+	  // --- Promise that resolves when ready (or undefined on abort/dispose) ---
+	  let settled = false;
+	  let resolveP;
+	  const promise = new Promise((r) => { resolveP = r; });
+
+	  const safeCall = (val) => {
+		if (settled) return;
+		settled = true;
+		try {
+		  if (typeof callback === "function") callback(val);
+		} finally {
+		  resolveP(val);
+		}
+	  };
+
+	  // Helper: locate current object
 	  const locate = () => {
 		const scene = flock.scene;
 		if (!scene) return null;
@@ -1478,143 +1493,114 @@ export const flock = {
 		return t ?? null;
 	  };
 
-	  // Fast path: already available
+	  // --- Fast path ---
 	  if (flock.scene) {
 		const existing = locate();
 		if (existing) {
-		  // Mesh-path debug for immediate hits
-		  if (existing && existing.name === id && existing.getClassName?.() && existing.getClassName() !== "AnimationGroup") {
-			//console.debug("[whenModelReady] immediate mesh hit:", id);
-		  }
-		  if (!flock.abortController?.signal?.aborted) callback(existing);
-		  return;
+		  if (!flock.abortController?.signal?.aborted) safeCall(existing);
+		  return promise; // <— return the promise even in fast path
 		}
 	  }
 
-	  // Observer-based path for callback mode
+	  // --- CallbackMode (observer) path ---
 	  if (flock.callbackMode) {
 		const signal = flock.abortController?.signal;
 
 		const attachObservers = () => {
 		  const scene = flock.scene;
-		  if (!scene) return null;
+		  if (!scene) return;
 
 		  const disposers = [];
 		  let done = false;
-
-		  // One-shot completion (with optional mesh-path debug)
-		  const finish = (target, source) => {
+		  const finish = (target /*, source */) => {
 			if (done) return;
 			done = true;
-
-			if (source === "mesh") {
-			  // This is the single, authoritative mesh-path debug (will only print once per id)
-			  //console.debug("[whenModelReady] mesh resolved via onNewMeshAdded:", id);
-			}
-
-			try {
-			  if (!signal?.aborted) callback(target);
-			} finally {
-			  while (disposers.length) {
-				try { disposers.pop()(); } catch {}
-			  }
+			try { if (!signal?.aborted) safeCall(target); }
+			finally {
+			  while (disposers.length) { try { disposers.pop()(); } catch {} }
 			}
 		  };
 
-		  // Special case: active camera
+		  // active camera
 		  if (id === "__active_camera__") {
 			const camNow = scene.activeCamera;
-			if (camNow) { finish(camNow, "camera-immediate"); return disposers; }
-
+			if (camNow) { finish(camNow); return; }
 			if (scene.onActiveCameraChanged) {
-			  const cb = () => { if (scene.activeCamera) finish(scene.activeCamera, "camera-observer"); };
+			  const cb = () => { if (scene.activeCamera) finish(scene.activeCamera); };
 			  scene.onActiveCameraChanged.add(cb);
 			  disposers.push(() => scene.onActiveCameraChanged.removeCallback(cb));
 			}
-
 			if (scene.onDisposeObservable) {
-			  const h = scene.onDisposeObservable.add(() => finish(undefined, "camera-dispose"));
+			  const h = scene.onDisposeObservable.add(() => finish(undefined));
 			  disposers.push(() => scene.onDisposeObservable.remove(h));
 			}
 			if (signal) {
-			  const onAbort = () => finish(undefined, "camera-abort");
+			  const onAbort = () => finish(undefined);
 			  signal.addEventListener("abort", onAbort, { once: true });
 			  disposers.push(() => signal.removeEventListener("abort", onAbort));
 			}
-			return disposers;
+			return;
 		  }
 
-		  // Meshes — primary detector (with debug)
+		  // meshes
 		  if (scene.onNewMeshAddedObservable) {
 			const h = scene.onNewMeshAddedObservable.add(mesh => {
-			  if (done) return;
-			  if (mesh?.name === id) finish(mesh, "mesh"); // debug happens inside finish when source === "mesh"
+			  if (!done && mesh?.name === id) finish(mesh);
 			});
 			disposers.push(() => scene.onNewMeshAddedObservable.remove(h));
 		  }
 
-		  // Animation groups
+		  // animation groups
 		  if (scene.onAnimationGroupAddedObservable) {
 			const h = scene.onAnimationGroupAddedObservable.add(group => {
-			  if (done) return;
-			  if (group?.name === id) finish(group, "animGroup");
+			  if (!done && group?.name === id) finish(group);
 			});
 			disposers.push(() => scene.onAnimationGroupAddedObservable.remove(h));
 		  }
 
-		  // Particle systems
+		  // particle systems
 		  if (scene.onNewParticleSystemAddedObservable) {
 			const h = scene.onNewParticleSystemAddedObservable.add(ps => {
-			  if (done) return;
-			  if (ps?.name === id) finish(ps, "particleSystem");
+			  if (!done && ps?.name === id) finish(ps);
 			});
 			disposers.push(() => scene.onNewParticleSystemAddedObservable.remove(h));
 		  }
 
-		  // GUI controls — attach when UITexture exists
+		  // GUI controls (attach when UITexture exists)
 		  const attachGui = () => {
 			const tex = scene.UITexture;
 			if (!tex?.onControlAddedObservable) return false;
 			const h = tex.onControlAddedObservable.add(ctrl => {
-			  if (done) return;
-			  if (ctrl?.name === id) finish(ctrl, "guiControl");
+			  if (!done && ctrl?.name === id) finish(ctrl);
 			});
 			disposers.push(() => tex.onControlAddedObservable.remove(h));
 			return true;
 		  };
-
 		  if (!attachGui()) {
-			// Wait until UITexture exists, then attach once
 			const tick = scene.onBeforeRenderObservable.add(() => {
 			  if (attachGui()) scene.onBeforeRenderObservable.remove(tick);
 			});
 			disposers.push(() => scene.onBeforeRenderObservable.remove(tick));
 		  }
 
-		  // Scene dispose / abort cleanup
+		  // scene dispose / abort
 		  if (scene.onDisposeObservable) {
-			const h = scene.onDisposeObservable.add(() => finish(undefined, "dispose"));
+			const h = scene.onDisposeObservable.add(() => finish(undefined));
 			disposers.push(() => scene.onDisposeObservable.remove(h));
 		  }
 		  if (signal) {
-			const onAbort = () => finish(undefined, "abort");
+			const onAbort = () => finish(undefined);
 			signal.addEventListener("abort", onAbort, { once: true });
 			disposers.push(() => signal.removeEventListener("abort", onAbort));
 		  }
-
-		  return disposers;
 		};
 
-		// If there is no scene yet, wait until there is one (abortable), then attach
+		// wait for scene if needed
 		if (!flock.scene) {
 		  let rafId = 0;
 		  const check = () => {
 			if (flock.abortController?.signal?.aborted) return;
-			if (flock.scene) {
-			  cancelAnimationFrame(rafId);
-			  attachObservers();
-			  return;
-			}
+			if (flock.scene) { cancelAnimationFrame(rafId); attachObservers(); return; }
 			rafId = requestAnimationFrame(check);
 		  };
 		  rafId = requestAnimationFrame(check);
@@ -1622,37 +1608,35 @@ export const flock = {
 			const onAbort = () => cancelAnimationFrame(rafId);
 			signal.addEventListener("abort", onAbort, { once: true });
 		  }
-		  return;
+		  return promise; // <— still return the promise
 		}
 
-		// Scene exists: attach observers immediately
 		attachObservers();
-		return;
+		return promise;
 	  }
 
-	  // Fallback: existing generator path (polling with backoff)
+	  // --- Polling fallback (generator) ---
 	  (async () => {
 		const generator = flock.modelReadyGenerator(id);
 		try {
 		  for await (const target of generator) {
-			if (flock.abortController?.signal?.aborted) return;
-			if (target) {
-			  // Mesh-path debug if the polled target is a mesh
-			  if (target?.name === id && target.getClassName?.() && target.getClassName() !== "AnimationGroup") {
-				//console.debug("[whenModelReady] mesh resolved via generator:", id);
-			  }
-			  callback(target);
-			}
+			if (flock.abortController?.signal?.aborted) { safeCall(undefined); return; }
+			if (target) safeCall(target);
 			return;
 		  }
 		} catch (err) {
 		  if (flock.abortController?.signal?.aborted) {
-			console.log(`Operation was aborted: ${id}`);
+			// resolve undefined on abort
+			safeCall(undefined);
 		  } else {
 			console.error(`Error in whenModelReady for '${id}':`, err);
+			// resolve undefined on error to prevent hangs
+			safeCall(undefined);
 		  }
 		}
 	  })();
+
+	  return promise; // <— important: always return the promise
 	},
 	announceMeshReady(meshName, groupName) {
 		//console.log(`[flock] Mesh ready: ${meshName} (group: ${groupName})`);
