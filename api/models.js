@@ -55,7 +55,7 @@ export const flockModels = {
     desiredBase = desiredBase.replace(/[^a-zA-Z0-9._-]/g, "");
 
     // --- compose final runtime name using RAW key, and reserve it ---
-    const desiredFinalName = `${desiredBase}__${blockKey}`;
+     const desiredFinalName = desiredBase;
     const meshName  = flock._reserveName(desiredFinalName); // may suffix on true collision
     const groupName = desiredBase;                          // group by base for onTrigger applyToGroup
 
@@ -202,8 +202,7 @@ export const flockModels = {
       modelName   = modelName.replace(/[^a-zA-Z0-9._-]/g, "");
       desiredBase = desiredBase.replace(/[^a-zA-Z0-9._-]/g, "");
 
-      // Final runtime name uses RAW blockKey so mapping works: base__blockKey
-      const desiredFinalName = `${desiredBase}__${blockKey}`;
+      const desiredFinalName = desiredBase;
 
       // Position/scale clamps
       if (!position || typeof position !== "object") position = { x: 0, y: 0, z: 0 };
