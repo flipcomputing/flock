@@ -569,59 +569,76 @@ export const flockTransform = {
   },
   setPivotPoint(meshName, {
     xPivot = "CENTER",
-    yPivot = "CENTER", 
-    zPivot = "CENTER"
+    yPivot = "MIN",     // <- default Y is MIN (BASE)
+    zPivot = "CENTER",
   } = {}) {
     return flock.whenModelReady(meshName, (mesh) => {
-      if (mesh) {
-        const boundingBox =
-          mesh.getBoundingInfo().boundingBox.extendSize;
+      if (!mesh) return;
 
-        // Helper to resolve "MIN", "CENTER", "MAX", or numbers
-        function resolvePivotValue(value, axis) {
-          if (typeof value === "string") {
-            switch (value) {
-              case "MIN":
-                return -boundingBox[axis];
-              case "MAX":
-                return boundingBox[axis];
-              case "CENTER":
-              default:
-                return 0;
-            }
-          } else if (typeof value === "number") {
-            return value;
-          } else {
-            return 0;
+      const BABYLON = flock.BABYLON;
+
+      const bounding = mesh.getBoundingInfo().boundingBox.extendSize;
+      function resolvePivotValue(value, axis) {
+        if (typeof value === "string") {
+          switch (value) {
+            case "MIN":    return -bounding[axis];
+            case "MAX":    return  bounding[axis];
+            case "CENTER":
+            default:       return 0;
           }
         }
-
-        // Resolve pivot values for each axis
-        const resolvedX = resolvePivotValue(xPivot, "x");
-        const resolvedY = resolvePivotValue(yPivot, "y");
-        const resolvedZ = resolvePivotValue(zPivot, "z");
-
-        const pivotPoint = new flock.BABYLON.Vector3(
-          resolvedX,
-          resolvedY,
-          resolvedZ,
-        );
-
-        mesh.setPivotPoint(pivotPoint);
-
-        // Set pivot point on child meshes
-        mesh.getChildMeshes().forEach((child) => {
-          child.setPivotPoint(pivotPoint);
-        });
-
-        // Store original pivot settings in metadata
-        mesh.metadata = mesh.metadata || {};
-        mesh.metadata.pivotSettings = {
-          x: xPivot,  // These should now have the correct values
-          y: yPivot,
-          z: zPivot,
-        };
+        return (typeof value === "number") ? value : 0;
       }
+
+      // OLD pivot from metadata; default Y is MIN, X/Z are CENTER
+      const prev = (mesh.metadata && mesh.metadata.pivotSettings) || { x: "CENTER", y: "MIN", z: "CENTER" };
+      const oldPivotLocal = new BABYLON.Vector3(
+        resolvePivotValue(prev.x, "x"),
+        resolvePivotValue(prev.y, "y"),
+        resolvePivotValue(prev.z, "z"),
+      );
+
+      // NEW pivot from args (Y defaults to MIN above)
+      const newPivotLocal = new BABYLON.Vector3(
+        resolvePivotValue(xPivot, "x"),
+        resolvePivotValue(yPivot, "y"),
+        resolvePivotValue(zPivot, "z"),
+      );
+
+      // World position of OLD pivot (before change)
+      mesh.computeWorldMatrix(true);
+      const wmBefore = mesh.getWorldMatrix().clone();
+      const oldPivotWorld = BABYLON.Vector3.TransformCoordinates(oldPivotLocal, wmBefore);
+
+      // Apply new pivot to mesh (and children, per your existing behavior)
+      mesh.setPivotPoint(newPivotLocal);
+      mesh.getChildMeshes().forEach((child) => child.setPivotPoint(newPivotLocal));
+
+      // World position of NEW pivot (after change)
+      mesh.computeWorldMatrix(true);
+      const wmAfter = mesh.getWorldMatrix().clone();
+      const newPivotWorld = BABYLON.Vector3.TransformCoordinates(newPivotLocal, wmAfter);
+
+      // Reposition to preserve visual placement
+      const delta = oldPivotWorld.subtract(newPivotWorld);
+      mesh.position.addInPlace(delta);
+
+      // Physics sync
+      if (mesh.physics) {
+        if (mesh.physics.getMotionType() !== BABYLON.PhysicsMotionType.DYNAMIC) {
+          mesh.physics.setMotionType(BABYLON.PhysicsMotionType.ANIMATED);
+        }
+        const rq = mesh.rotationQuaternion || BABYLON.Quaternion.FromEulerAngles(mesh.rotation.x, mesh.rotation.y, mesh.rotation.z);
+        mesh.physics.disablePreStep = false;
+        mesh.physics.setTargetTransform(mesh.position, rq);
+      }
+
+      mesh.computeWorldMatrix(true);
+
+      // Save NEW pivot settings
+      mesh.metadata = mesh.metadata || {};
+      mesh.metadata.pivotSettings = { x: xPivot, y: yPivot, z: zPivot };
     });
   },
+
 }

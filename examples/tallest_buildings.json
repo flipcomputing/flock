@@ -1583,7 +1583,7 @@
                                                               "X": {
                                                                 "shadow": {
                                                                   "type": "math_number",
-                                                                  "id": "+;FFX]jE$^TyJ{^zVxnI",
+                                                                  "id": "Gql]j+*N^?`UDs2@f6WS",
                                                                   "fields": {
                                                                     "NUM": 0
                                                                   }
@@ -1686,7 +1686,7 @@
                                                                       "type": "min_centre_max",
                                                                       "id": "*Ps8-ljv1uCAM$W+@!2y",
                                                                       "fields": {
-                                                                        "PIVOT_OPTION": "MIN"
+                                                                        "PIVOT_OPTION": "CENTER"
                                                                       }
                                                                     }
                                                                   },
@@ -1704,7 +1704,7 @@
                                                                       "type": "min_centre_max",
                                                                       "id": "V@4+_N06Z=W{rAU$nRRp",
                                                                       "fields": {
-                                                                        "PIVOT_OPTION": "MIN"
+                                                                        "PIVOT_OPTION": "CENTER"
                                                                       }
                                                                     }
                                                                   }
@@ -1835,69 +1835,6 @@
                                                                               "id": "+;FFX]jE$^TyJ{^zVxnI",
                                                                               "fields": {
                                                                                 "NUM": 0
-                                                                              }
-                                                                            },
-                                                                            "block": {
-                                                                              "type": "math_arithmetic",
-                                                                              "id": ")LU{oL|bxL%NB*HlDOiq",
-                                                                              "fields": {
-                                                                                "OP": "MINUS"
-                                                                              },
-                                                                              "inputs": {
-                                                                                "A": {
-                                                                                  "shadow": {
-                                                                                    "type": "math_number",
-                                                                                    "id": "75TL1.YZ+K15dDcPQ/*#",
-                                                                                    "fields": {
-                                                                                      "NUM": 5
-                                                                                    }
-                                                                                  }
-                                                                                },
-                                                                                "B": {
-                                                                                  "shadow": {
-                                                                                    "type": "math_number",
-                                                                                    "id": "HpwY{tdI8ync0@AEqGIP",
-                                                                                    "fields": {
-                                                                                      "NUM": 1
-                                                                                    }
-                                                                                  },
-                                                                                  "block": {
-                                                                                    "type": "math_arithmetic",
-                                                                                    "id": "d,HB3$:3%dV~R`nBI2*0",
-                                                                                    "fields": {
-                                                                                      "OP": "MULTIPLY"
-                                                                                    },
-                                                                                    "inputs": {
-                                                                                      "A": {
-                                                                                        "shadow": {
-                                                                                          "type": "math_number",
-                                                                                          "id": "%4nL@oTTgzQKN2-Bs);d",
-                                                                                          "fields": {
-                                                                                            "NUM": 1
-                                                                                          }
-                                                                                        },
-                                                                                        "block": {
-                                                                                          "type": "variables_get",
-                                                                                          "id": ",fl~sZk8+XMHKJbyTL._",
-                                                                                          "fields": {
-                                                                                            "VAR": {
-                                                                                              "id": "=`fP7jUb5nUgi}-0Hp;H"
-                                                                                            }
-                                                                                          }
-                                                                                        }
-                                                                                      },
-                                                                                      "B": {
-                                                                                        "shadow": {
-                                                                                          "type": "math_number",
-                                                                                          "id": "ZIfwtE1!sgm:zzpcs%nH",
-                                                                                          "fields": {
-                                                                                            "NUM": 2
-                                                                                          }
-                                                                                        }
-                                                                                      }
-                                                                                    }
-                                                                                  }
-                                                                                }
                                                                               }
                                                                             }
                                                                           },
@@ -3794,7 +3731,7 @@
         "type": "on_event",
         "id": "/8*5Q5sRD0|QC$@=o4MU",
         "x": 10,
-        "y": 5040,
+        "y": 5016,
         "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" inline=\"false\"></mutation>",
         "inputs": {
           "EVENT_NAME": {
@@ -4050,7 +3987,7 @@
         "type": "on_event",
         "id": "$|$xOVQs[22U*6`Ewew-",
         "x": 10,
-        "y": 5608,
+        "y": 5584,
         "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" inline=\"false\"></mutation>",
         "inputs": {
           "EVENT_NAME": {
