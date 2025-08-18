@@ -243,6 +243,9 @@ export function createBlocklyWorkspace() {
 	initializeTheme();
 	installHoverHighlight(workspace);
 
+	// Register comment options for workspace comments
+	Blockly.ContextMenuItems.registerCommentOptions();
+
 	if (flock.performanceOverlay) initBlocklyPerfOverlay(workspace);
 
 	//const keyboardNav = new KeyboardNavigation(workspace);
