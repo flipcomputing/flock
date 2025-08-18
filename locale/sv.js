@@ -739,4 +739,8 @@ export default {
 
   // New variable option
   new_variable_decision: "Ny variabel...",
+
+  // Service worker update notifications
+  update_available: "En ny version av Flock är tillgänglig.",
+  reload_button: "Ladda om",
 }

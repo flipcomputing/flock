@@ -3,7 +3,7 @@ import common from "./commmonHTML.js"
 export default {
   // Blockly category message keys for custom categories
   CATEGORY_SCENE: "Szene",
-  CATEGORY_MESHES: "Meshes", 
+  CATEGORY_MESHES: "Meshes",
   CATEGORY_XR: "XR",
   CATEGORY_EFFECTS: "Effekte",
   CATEGORY_CAMERA: "Kamera",
@@ -18,7 +18,7 @@ export default {
   CATEGORY_CONDITION: "Bedingung",
   CATEGORY_SENSING: "Erkennung",
   CATEGORY_TEXT: "Text",
-  CATEGORY_STRINGS: "Zeichenketten", 
+  CATEGORY_STRINGS: "Zeichenketten",
   CATEGORY_MATERIALS: "Materialien",
   CATEGORY_SOUND: "Ton",
   CATEGORY_VARIABLES: "Variablen",
@@ -370,4 +370,11 @@ export default {
   // XR tooltips
   device_camera_background_tooltip: "Verwende Gerätekamera als Hintergrund für die Szene. Funktioniert auf Mobilgeräten und Desktop.",
   set_xr_mode_tooltip: "Setze XR‑Modus der Szene.\nOptionen: VR, AR, Magic Window.",
+
+  // New variable option
+  new_variable_decision: "Neue Variable...",
+
+  // Service worker update notifications
+  update_available: "Eine neue Version von Flock ist verfügbar.",
+  reload_button: "Neu laden",
 }

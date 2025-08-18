@@ -741,4 +741,8 @@ export default {
 
   // New variable option
   new_variable_decision: "New variable...",
+
+  // Service worker update notification
+  update_available_ui: "A new version of Flock is available.",
+  reload_button_ui: "Reload",
 };

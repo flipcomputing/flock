@@ -4,7 +4,7 @@ export default {
   // Blockly category message keys for custom categories
   CATEGORY_SCENE: "Scène",
   CATEGORY_MESHES: "Maillages",
-  CATEGORY_XR: "RX", 
+  CATEGORY_XR: "RX",
   CATEGORY_EFFECTS: "Effets",
   CATEGORY_CAMERA: "Caméra",
   CATEGORY_EVENTS: "Événements",
@@ -19,7 +19,7 @@ export default {
   CATEGORY_SENSING: "Détection",
   CATEGORY_TEXT: "Texte",
   CATEGORY_STRINGS: "Chaînes",
-  CATEGORY_MATERIALS: "Matériaux", 
+  CATEGORY_MATERIALS: "Matériaux",
   CATEGORY_SOUND: "Son",
   CATEGORY_VARIABLES: "Variables",
   CATEGORY_LISTS: "Listes",
@@ -202,16 +202,16 @@ export default {
   CONTROLS_IF_MSG_THEN: "",
   CONTROLS_IF_MSG_ELSE: "sinon\n",
   CONTROLS_FOR_TITLE: "pour chaque %1 de %2 à %3 par %4",
-  
+
   // Block message translations
   BLOCK_PRINT_TEXT_MESSAGE: "afficher %1 pendant %2 secondes %3",
   BLOCK_WAIT_SECONDS_MESSAGE: "attendre %1 secondes",
   BLOCK_KEY_PRESSED_MESSAGE: "touche %1 pressée?",
   BLOCK_MOVE_FORWARD_MESSAGE: "déplacer %1 vers l'avant de %2",
   BLOCK_CREATE_BOX_MESSAGE: "créer boîte %1 couleur %2 taille %3 × %4 × %5 à %6, %7, %8",
-  
+
   // Add more custom block translations as needed
-  
+
   // Tooltip translations - Scene blocks
   set_sky_color_tooltip: "Définir la couleur du ciel de la scène.\nMot-clé: sky",
   create_ground_tooltip: "Ajouter un plan de sol avec collisions activées à la scène.\nMot-clé: ground",
@@ -221,7 +221,7 @@ export default {
   hide_tooltip: "Cacher le maillage sélectionné.\nMot-clé: hide",
   dispose_tooltip: "Supprimer le maillage spécifié de la scène.\nMot-clé: dispose",
   clone_mesh_tooltip: "Cloner un maillage et l'assigner à une variable.\nMot-clé: clone",
-  
+
   // Tooltip translations - Models blocks
   load_character_tooltip: "Créer un personnage configurable.\nMot-clé: character",
   load_object_tooltip: "Créer un objet.\nMot-clé: object",
@@ -247,7 +247,7 @@ export default {
 
   // Tooltip translations - Base blocks
   xyz_tooltip: "Crée un vecteur avec des coordonnées X, Y, Z",
-  
+
   // Tooltip translations - Camera blocks
   camera_control_tooltip: "Associer une touche spécifique à une action de contrôle de la caméra.",
   camera_follow_tooltip: "Faire suivre un maillage par la caméra avec une distance (rayon) personnalisable par rapport à la cible.\nMot-clé: follow",
@@ -681,7 +681,7 @@ export default {
   tent_lights_ui: "⛺ Tente de festival",
   my_place_ui: "🏠 Mon endroit",
   microbit_monkey_ui: "🐵 Singe micro:bit",
-  
+
   main_menu_ui: "Ouvrir le menu pour plus d'options",
   project_submenu_ui: "Projet",
   project_new_ui: "Nouveau",
@@ -734,11 +734,15 @@ export default {
   keyboard_navigation_ui: "Aller à la barre de navigation du navigateur (les raccourcis remplacés fonctionnent à partir d'ici)",
 
   // Context menu option translations
-  export_JSON_snippet: "Exporter le bloc en extrait JSON",
+  export_JSON_snippet: "Exporter le bloc comme extrait JSON",
   import_snippet: "Importer un extrait",
   export_PNG_snippet: "Exporter en PNG",
   export_SVG_snippet: "Exporter en SVG",
 
   // New variable option
   new_variable_decision: "Nouvelle variable...",
+
+  // Service worker update notification
+  update_available_ui: "Une nouvelle version de Flock est disponible.",
+  reload_button_ui: "Recharger",
 };
