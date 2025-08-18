@@ -435,7 +435,7 @@ function normalizeVarNameAndIndex(workspace, varId, prefix, type, nextVariableIn
   // If our current name isn't the lowest available, and the lowest is different, rename.
   if (targetSuffix && targetSuffix !== currentSuffix) {
     try {
-      workspace.renameVariableById(varId, `${prefix}${targetSuffix}`);
+      workspace.getVariableMap().renameVariable(model, `${prefix}${targetSuffix}`);
     } catch (_) { /* ignore rename failures */ }
   }
 
