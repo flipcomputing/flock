@@ -29,11 +29,18 @@ export function runBlocksTests() {
               }
               return null;
           },
+          getVariableMap: function() {
+              return {
+                  createVariable: function(name, type) {
+                      const id = `var_${Math.random().toString(36).substr(2, 9)}`;
+                      const variable = { name: name, type: type, getId: () => id };
+                      createdVariables.set(id, variable);
+                      return variable;
+                  }
+              };
+          },
           createVariable: function(name, type) {
-              const id = `var_${Math.random().toString(36).substr(2, 9)}`;
-              const variable = { name: name, type: type, getId: () => id };
-              createdVariables.set(id, variable);
-              return variable;
+              return this.getVariableMap().createVariable(name, type);
           }
       };
 

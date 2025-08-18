@@ -301,7 +301,7 @@ function createFreshVariable(workspace, prefix, type, nextVariableIndexes) {
   while (workspace.getVariable(`${prefix}${n}`, type)) n += 1;
   // Also keep your counter roughly in sync (but we’ll normalize later).
   nextVariableIndexes[prefix] = Math.max(nextVariableIndexes[prefix] || 1, n + 1);
-  return workspace.createVariable(`${prefix}${n}`, type); // VariableModel
+  return workspace.getVariableMap().createVariable(`${prefix}${n}`, type); // VariableModel
 }
 
 function retargetDescendantsVariables(rootBlock, fromVarId, toVarId, BlocklyNS) {
@@ -1179,7 +1179,7 @@ export function handleBlockCreateEvent(
           
           let newVariable = blockInstance.workspace.getVariableMap().getVariable(newVariableName);
           if (!newVariable) {
-            newVariable = blockInstance.workspace.createVariable(newVariableName, null);
+            newVariable = blockInstance.workspace.getVariableMap().createVariable(newVariableName, null);
           }
           variableField.setValue(newVariable.getId());
         }
@@ -1191,7 +1191,7 @@ export function handleBlockCreateEvent(
         let newVariableName = variableNamePrefix + nextVariableIndexes[variableNamePrefix];
         let newVariable = blockInstance.workspace.getVariableMap().getVariable(newVariableName);
         if (!newVariable) {
-          newVariable = blockInstance.workspace.createVariable(newVariableName, null);
+          newVariable = blockInstance.workspace.getVariableMap().createVariable(newVariableName, null);
         }
         variableField.setValue(newVariable.getId());
         nextVariableIndexes[variableNamePrefix] += 1;
