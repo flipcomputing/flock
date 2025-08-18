@@ -657,6 +657,10 @@ button {
 
 @media (min-width: 769px) {
 
+  #bottomBar {
+    display: none !important;
+  }
+
   #maincontent {
     display: flex;
   }
