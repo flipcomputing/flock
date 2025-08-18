@@ -329,7 +329,7 @@ export function defineConnectBlocks() {
 		  tooltip: getTooltip("export_mesh"),
 		});
 		this.setHelpUrl(getHelpUrlFor(this.type));
-		  this.setStyle('transform_blocks');
+		  this.setStyle('scene_blocks');
 		  
 	  },
 	};
