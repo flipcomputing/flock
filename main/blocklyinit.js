@@ -161,9 +161,74 @@ export function createBlocklyWorkspace() {
 		CustomZelosRenderer,
 	);
 
+	
 	KeyboardNavigation.registerKeyboardNavigationStyles();
 
+	
 	workspace = Blockly.inject("blocklyDiv", options);
+
+
+	(function guardCategoryKeepScroll(ws) {
+	  function getToolboxEl() {
+		var inj = ws.getInjectionDiv && ws.getInjectionDiv();
+		return inj && (inj.querySelector('.blocklyToolbox') || inj.querySelector('.blocklyToolboxDiv'));
+	  }
+	  function currentX() {
+		var t = ws.getCanvas().getAttribute('transform') || '';
+		var m = /translate\(([-\d.]+),\s*([-\d.]+)\)/.exec(t);
+		return m ? parseFloat(m[1]) : 0;
+	  }
+
+	  var toolboxNode = getToolboxEl();
+	  if (!toolboxNode) return;
+
+	  var guarding = false;
+	  var savedTranslate = null;
+	  var savedMoveCanvas = null;
+
+	  function startGuard() {
+		if (guarding) return;
+		guarding = true;
+
+		var beforeX = currentX();              // remember where the canvas is now
+		savedTranslate = ws.translate;
+		savedMoveCanvas = ws.moveCanvas;
+
+		function wrap(callOrig) {
+		  return function(x, y) {
+			// During the category-open window, keep X where it was if Blockly tries to move it.
+			// Small +/-1px jitters pass; anything bigger is considered the buggy push.
+			if (Math.abs(x - beforeX) > 3) x = beforeX;
+			return callOrig.call(ws, x, y);
+		  };
+		}
+
+		ws.translate  = wrap(savedTranslate);
+		ws.moveCanvas = wrap(savedMoveCanvas);
+
+		// Release after initial layout settles (two frames).
+		requestAnimationFrame(function() {
+		  requestAnimationFrame(function() {
+			ws.translate  = savedTranslate;
+			ws.moveCanvas = savedMoveCanvas;
+			guarding = false;
+		  });
+		});
+	  }
+
+	  // Start guard BEFORE Blockly’s handlers (capture phase) so we catch the first translate.
+	  toolboxNode.addEventListener('pointerdown', startGuard, true);
+	  toolboxNode.addEventListener('mousedown',   startGuard, true);
+	  toolboxNode.addEventListener('keydown', function(e) {
+		var k = e.key;
+		if (k === 'Enter' || k === ' ' || k === 'Spacebar' ||
+			k === 'ArrowUp' || k === 'ArrowDown' || k === 'ArrowLeft' || k === 'ArrowRight') {
+		  startGuard();
+		}
+	  }, true);
+
+	  // If you select categories programmatically, call startGuard() just before you do.
+	})(workspace);
 
 	window.addEventListener('keydown', (e) => {
 	  if (e.code === 'KeyK' && e.ctrlKey && e.shiftKey) {
@@ -174,45 +239,6 @@ export function createBlocklyWorkspace() {
 	  }
 	});
 
-	const ws = workspace; // your injected workspace
-	const mm = ws.getMetricsManager();
-	const tb = ws.getToolbox();
-
-	// Helper: current toolbox width only (not flyout)
-	function toolboxWidth() {
-		if (!tb) return 0;
-		if (typeof tb.getWidth === "function") return tb.getWidth();
-		const div = tb.getHtmlDiv ? tb.getHtmlDiv() : tb.htmlDiv_;
-		return div ? div.getBoundingClientRect().width : 0;
-	}
-
-	// 1) Clamp the metrics that Blockly actually consumes.
-	if (mm && typeof mm.getMetrics === "function") {
-		const origGetMetrics = mm.getMetrics.bind(mm);
-		mm.getMetrics = function () {
-			const m = origGetMetrics();
-			const w = toolboxWidth(); // what we want the left offset to be
-			m.viewLeft = w;
-			m.absoluteLeft = w;
-			// normalize nested shapes some builds expose
-			if (m.viewMetrics) m.viewMetrics.left = w;
-			if (m.toolboxMetrics) m.toolboxMetrics.width = w;
-			if (m.flyoutMetrics) m.flyoutMetrics.width = 0; // flyout overlays
-			return m;
-		};
-	}
-
-	// 2) Ensure any translate(x,y) accounts for toolbox offset while allowing scrolling.
-	const origTranslate = ws.translate.bind(ws);
-	ws.translate = function (x, y) {
-		// Allow horizontal scrolling by adding the toolbox width to the provided x offset
-		// instead of replacing it entirely
-		const toolboxOffset = toolboxWidth();
-		return origTranslate(x + toolboxOffset, y);
-	};
-
-	// 3) Apply once.
-	Blockly.svgResize(ws);
 
 	initializeTheme();
 	installHoverHighlight(workspace);

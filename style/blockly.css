@@ -411,5 +411,26 @@ body[data-theme="dark"] .blocklyTreeLabel {
   outline-offset: -2px;
   border-radius: 4px;
 }
+/* Your injection container */
+#blocklyDiv {
+  position: relative;
+  overflow: hidden;        /* clip overlay so it can't grow layout */
+  min-width: 0;            /* if any ancestor is flex/grid */
+  min-height: 0;
+}
 
+/* v12 toolbox container (renamed; was .blocklyToolboxDiv in v11) */
+.blocklyToolbox {
+  position: absolute !important;   /* keep it out of normal flow */
+  top: 0; left: 0; height: 100%;
+  z-index: 22;
+  /* Optional: pin the tree width so it never expands with contents */
+  /* width: 120px; */
+}
 
+/* Flyout is overlayed too */
+.blocklyFlyout,
+.blocklyFlyoutBackground {
+  position: absolute !important;
+  z-index: 21;
+}
