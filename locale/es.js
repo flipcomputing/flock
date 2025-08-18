@@ -607,7 +607,7 @@ export default {
   _18px_option: "mediano",
   _24px_option: "grande",
 
-  __fonts_FreeSans_Bold_json_option: "Sans Negrita",
+  __fonts_FreeSans_Bold_json_option: "Free Sans",
 
   VR_option: "VR (Oculus Quest o visor de teléfono)",
   AR_option: "RA (Realidad Aumentada)",

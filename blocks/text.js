@@ -338,7 +338,7 @@ export function defineTextBlocks() {
 						type: "field_dropdown",
 						name: "FONT",
 						options: [
-              getDropdownOption("./fonts/FreeSans_Bold.json"),
+              getDropdownOption("__fonts_FreeSans_Bold_json"),
             ],
 					},
 					{

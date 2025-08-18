@@ -3,7 +3,7 @@ import common from "./commmonHTML.js"
 export default {
   // Blockly category message keys for custom categories
   CATEGORY_SCENE: "Scen",
-  CATEGORY_MESHES: "Nätverk", 
+  CATEGORY_MESHES: "Nätverk",
   CATEGORY_XR: "XR",
   CATEGORY_EFFECTS: "Effekter",
   CATEGORY_CAMERA: "Kamera",
@@ -18,7 +18,7 @@ export default {
   CATEGORY_CONDITION: "Villkor",
   CATEGORY_SENSING: "Sensorer",
   CATEGORY_TEXT: "Text",
-  CATEGORY_STRINGS: "Strängar", 
+  CATEGORY_STRINGS: "Strängar",
   CATEGORY_MATERIALS: "Material",
   CATEGORY_SOUND: "Ljud",
   CATEGORY_VARIABLES: "Variabler",
@@ -42,7 +42,7 @@ export default {
   load_object: "lägg till %1 %2 %3 skala: %4 x: %5 y: %6 z: %7",
   load_multi_object: "lägg till %1 %2 skala: %3 x: %4 y: %5 z: %6\nfärger: %7",
   load_model: "lägg till %1 %2 skala: %3 x: %4 y: %5 z: %6",
-  
+
   // Custom block translations - Animate blocks
   glide_to: "glid %1 till x %2 y %3 z %4 på %5 ms\n%6 återvända? %7 loop? %8 %9",
   glide_to_seconds: "glid %1 till x %2 y %3 z %4 på %5 sekunder\n%6 återvända? %7 loop? %8 %9",
@@ -73,7 +73,7 @@ export default {
   subtract_meshes: "lägg till %1 som %2 subtrahera %3",
   intersection_meshes: "lägg till %1 som snitta %2",
   hull_meshes: "lägg till %1 som hölje av %2",
-  
+
   // Custom block translations - Connect blocks
   parent: "förälder %1 barn %2",
   parent_child: "förälder %1 barn %2\nförskjutning x: %3 y: %4 z: %5",
@@ -84,7 +84,7 @@ export default {
   follow: "gör att %1 följer %2 på %3\nförskjutning x: %4 y: %5 z: %6",
   export_mesh: "exportera %1 som %2",
   attach: "fäst %1 på %2 vid %3\nförskjutning x: %4 y: %5 z: %6",
-  
+
   // Custom block translations - Control blocks
   wait: "vänta %1 ms",
   wait_seconds: "vänta %1 sekunder",
@@ -97,7 +97,7 @@ export default {
   // Custom block translations - Effects blocks
   light_intensity: "ställ in ljusintensitet till %1",
   set_fog: "ställ in dimma färg %1 läge %2 densitet %3",
-  
+
   // Custom block translation - Events blocks
   start: "starta",
   forever: "för alltid\n%1",
@@ -131,7 +131,7 @@ export default {
   add_physics: "lägg till fysik %1 typ %2",
   add_physics_shape: "lägg till fysikform %1 typ %2",
   apply_force: "tillämpa kraft på %1 x: %2 y: %3 z: %4",
-  
+
   // Custom block translations - Sensing blocks
   key_pressed: "tangent nedtryckt är %1",
   meshes_touching: "%1 vidrör %2",
@@ -152,7 +152,7 @@ export default {
   create_cylinder: "lägg till cylinder %1 %2 höjd %3 topp %4 botten %5 sidor %6\nvid x %7 y %8 z %9",
   create_capsule: "lägg till kapsel %1 %2 diameter %3 höjd %4 \nvid x %5 y %6 z %7",
   create_plane: "lägg till plan %1 %2 bredd %3 höjd %4 \nvid x %5 y %6 z %7",
-  
+
   // Custom block translations - Sound blocks
   play_sound: "spela ljud %1 %2 från %3 \nrotation %4 volym %5 läge %6 asynkront %7",
   stop_all_sounds: "stoppa alla ljud",
@@ -164,7 +164,7 @@ export default {
   create_instrument: "instrument %1 våg %2 frekvens %3 attack %4 förfall %5 sustain %6 release %7",
   instrument: "instrument %1",
   speak: "tala %1 %2 röst %3 språk %4\nhastighet %5 tonhöjd %6 volym %7 läge %8",
-  
+
   // Custom block translations - Text blocks
   comment: "// %1",
   print_text: "skriv ut %1 för %2 sekunder %3",
@@ -173,7 +173,7 @@ export default {
   ui_button: "ui knapp %1 %2 vid x: %3 y: %4\nstorlek: %5 textstorlek: %6 textfärg: %7 bakgrundsfärg: %8",
   ui_input: "ui inmatning %1 %2 vid x: %3 y: %4\nstorlek: %5 textstorlek: %6 text: %7 bakgrund: %8",
   create_3d_text: "lägg till %1 3D text: %2 font: %3 storlek: %4 färg: %5\ndjup: %6 x: %7 y: %8 z: %9 ",
-  
+
   // Custom block translations - Transform blocks
   move_by_xyz: "flytta %1 med x: %2 y: %3 z: %4",
   move_to_xyz: "flytta %1 till x: %2 y: %3 z: %4 y? %5",
@@ -282,7 +282,7 @@ export default {
   // Tooltip translations - Events blocks
   start_tooltip: "Kör blocken när projektet startar. Du kan ha flera startblock.\nKeyword: start",
   forever_tooltip: "Kör blocken varje bildruta eller när föregående iteration är klar.\nKeyword: forever",
-  when_clicked_tooltip: "Kör blocken när mesh-triggaren aktiveras.\nKeyword: click",
+  when_clicked_tooltip: "Kör blocken när mesh-triggern aktiveras.\nKeyword: click",
   on_collision_tooltip: "Kör blocken när ett mesh-objekt kolliderar med eller slutar kollidera med ett annat.\nKeyword: collide",
   when_key_event_tooltip: "Kör blocken när den angivna tangenten trycks ned eller släpps.",
   broadcast_event_tooltip: "Sänd ett event som tas emot av on event.\nKeyword: broadcast",
@@ -349,7 +349,10 @@ export default {
   comment_tooltip: "En kommentarsrad för att hjälpa andra att förstå din kod.",
   print_text_tooltip: "Skriv ut text till utmatningspanelen.\nKeyword: print",
   say_tooltip: "Visa en textruta som ett pratmoln på ett mesh.\nKeyword: say",
-  ui_text_tooltip: "Lägg till text på UI-skärmen och spara kontrollen i en variabel för senare användning eller borttagning.",
+  ui_text_tooltip: "Lägg till text på UI-skärmen och spara kontrollen i en variabel för senare användning.",
+
+  __fonts_FreeSans_Bold_json_option: "Free Sans",
+
   ui_button_tooltip: "Lägg till en 2D-knapp på UI-skärmen med förinställd storlek och spara kontrollen i en variabel för senare användning eller borttagning.",
   ui_input_tooltip: "Ställ en fråga till användaren och vänta på svar. Sparar resultatet i en variabel.",
   create_3d_text_tooltip: "Skapa 3D-text i scenen.",
@@ -605,7 +608,7 @@ export default {
   _18px_option: "medel",
   _24px_option: "stor",
 
-  __fonts_FreeSans_Bold_json_option: "Sans fet",
+  __fonts_FreeSans_Bold_json_option: "Free Sans",
 
   VR_option: "VR (Oculus Quest eller mobilvisare)",
   AR_option: "AR (Förstärkt verklighet)",

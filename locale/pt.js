@@ -350,6 +350,9 @@ export default {
   print_text_tooltip: "Mostra um texto no painel de saída.\nPalavra-chave: imprimir",
   say_tooltip: "Exibe um texto como balão de fala em um mesh.\nPalavra-chave: dizer",
   ui_text_tooltip: "Adiciona um texto à interface e armazena o controle em uma variável para uso posterior.",
+
+  __fonts_FreeSans_Bold_json_option: "Free Sans",
+
   ui_button_tooltip: "Adiciona um botão 2D à interface com tamanho predefinido e armazena o controle em uma variável.",
   ui_input_tooltip: "Faz uma pergunta ao usuário e aguarda a resposta. Armazena o resultado em uma variável.",
   create_3d_text_tooltip: "Cria um texto 3D na cena.",
@@ -605,7 +608,7 @@ export default {
   _18px_option: "médio",
   _24px_option: "grande",
 
-  __fonts_FreeSans_Bold_json_option: "Sans Negrito",
+  __fonts_FreeSans_Bold_json_option: "Free Sans",
 
   VR_option: "VR (Oculus Quest ou visor de telemóvel)",
   AR_option: "AR (Realidade Aumentada)",

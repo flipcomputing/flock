@@ -1073,19 +1073,26 @@ export function defineGenerators() {
 	};
 
 	javascriptGenerator.forBlock["create_3d_text"] = function (block) {
+		const variableName = javascriptGenerator.nameDB_.getName(
+			block.getFieldValue("ID_VAR"),
+			Blockly.Names.NameType.VARIABLE,
+		);
+
 		const text = getFieldValue(block, "TEXT", "Hello World");
+		const fontKey =
+			block.getFieldValue("FONT") || "__fonts_FreeSans_Bold_json";
 		const size = getFieldValue(block, "SIZE", "50");
 		const depth = getFieldValue(block, "DEPTH", "1.0");
 		const x = getFieldValue(block, "X", "0");
 		const y = getFieldValue(block, "Y", "0");
 		const z = getFieldValue(block, "Z", "0");
 		const color = getFieldValue(block, "COLOR", "#FFFFFF");
-		const font =
-			block.getFieldValue("FONT") || "./fonts/FreeSans_Bold.json";
-		const variableName = javascriptGenerator.nameDB_.getName(
-			block.getFieldValue("ID_VAR"),
-			Blockly.Names.NameType.VARIABLE,
-		);
+
+		// Convert font key to actual path
+		let font = "./fonts/FreeSans_Bold.json"; // Default path
+		if (fontKey === "__fonts_FreeSans_Bold_json") {
+			font = "./fonts/FreeSans_Bold.json";
+		}
 
 		const meshId = "text_" + generateUniqueId();
 		meshMap[meshId] = block;

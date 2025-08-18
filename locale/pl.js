@@ -52,8 +52,8 @@ export default {
   colour_keyframe: "w %1 kolor: %2",
   number_keyframe: "w %1 wartość: %2",
   xyz_keyframe: "w %1 x: %2, y: %3, z: %4",
-  animate_keyframes: "animuj klatki kluczowe %1, właściwość: %2\nklatki: %3\nwygładzanie: %4, pętla: %5, odwróć: %6 %7",
-  animation: "animuj klatki kluczowe %1, właściwość: %2, grupa: %3\nklatki: %4\nwygładzanie: %5, pętla: %6, odwróć: %7, tryb: %8",
+  animate_keyframes: "animuj klatki kluczowe %1, właściwość: %2\nklatki: %3\nWygładzanie: %4, pętla: %5, odwróć: %6 %7",
+  animation: "animuj klatki kluczowe %1, właściwość: %2, grupa: %3\nklatki: %4\nWygładzanie: %5, pętla: %6, odwróć: %7, tryb: %8",
   control_animation_group: "grupa animacji %1 %2",
   animate_from: "animuj grupę %1 od %2 sekund",
   stop_animations: "zatrzymaj animacje %1",
@@ -94,7 +94,7 @@ export default {
   for_loop: "dla %1 od %2 do %3 co %4 wykonaj %5",
   get_lexical_variable: "%1",
 
-  // Custom block translations - Effects blocks
+  // Custom block blocks - Effects blocks
   light_intensity: "ustaw intensywność światła na %1",
   set_fog: "ustaw mgłę, kolor: %1, tryb: %2, gęstość: %3",
 
@@ -346,6 +346,8 @@ export default {
   create_instrument_tooltip: "Stwórz instrument i przypisz do zmiennej.",
   instrument_tooltip: "Wybierz instrument do grania nut.",
   speak_tooltip: "Konwertuj tekst na mowę za pomocą Web Speech API, z opcjonalnym pozycjonowaniem 3D.\nSłowo kluczowe: speak",
+
+  __fonts_FreeSans_Bold_json_option: "Free Sans",
 
   // Tooltip translations - Text blocks
   comment_tooltip: "Linia komentarza, by pomóc zrozumieć kod.",
@@ -607,7 +609,7 @@ export default {
   _18px_option: "średni",
   _24px_option: "duży",
 
-  __fonts_FreeSans_Bold_json_option: "Sans Bold",
+  __fonts_FreeSans_Bold_json_option: "Free Sans",
 
   VR_option: "VR (Oculus Quest lub viewer mobilny)",
   AR_option: "AR (Rzeczywistość rozszerzona)",
