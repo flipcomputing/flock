@@ -14,8 +14,9 @@ export function createMeshOnCanvas(block) {
   let shapeType = block.type;
   let position, scale, color, modelName, newMesh;
 
-  // Disable events during mesh creation to avoid grouping issues
-  Blockly.Events.disable();
+  // Create a unique group for this specific shape creation
+  const groupId = Blockly.utils.idGenerator.genUid();
+  Blockly.Events.setGroup(groupId);
 
   if (
     ![
@@ -382,8 +383,8 @@ export function createMeshOnCanvas(block) {
       meshBlockIdMap[block.id] = block.id;
     }
 
-  // Re-enable events
-  Blockly.Events.enable();
+  // End the event group
+  Blockly.Events.setGroup(false);
 }
 
 function getMeshFromBlock(block) {
