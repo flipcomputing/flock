@@ -733,9 +733,15 @@ export function toggleGizmo(gizmoType) {
           return;
         }
 
+        // Generate a unique group ID for this gizmo action
+        const groupId = Blockly.utils.idGenerator.genUid();
+        Blockly.Events.setGroup(groupId);
+
         //console.log("Rotating", block);
+        let addedDoSection = false;
         if (!block.getInput("DO")) {
           block.appendStatementInput("DO").setCheck(null).appendField("");
+          addedDoSection = true;
         }
 
         // Check if the 'rotate_to' block already exists in the 'DO' section
@@ -781,6 +787,14 @@ export function toggleGizmo(gizmoType) {
           block
             .getInput("DO")
             .connection.connect(rotateBlock.previousConnection);
+          
+          // Track this block for DO section cleanup
+          const timestamp = Date.now();
+          gizmoCreatedBlocks.set(rotateBlock.id, {
+            parentId: block.id,
+            createdDoSection: addedDoSection,
+            timestamp: timestamp
+          });
         }
 
         function getEulerAnglesFromQuaternion(quaternion) {
@@ -825,6 +839,9 @@ export function toggleGizmo(gizmoType) {
         setRotationValue("X", rotationX);
         setRotationValue("Y", rotationY);
         setRotationValue("Z", rotationZ);
+        
+        // End undo group
+        Blockly.Events.setGroup(null);
       });
 
       break;
@@ -1030,8 +1047,14 @@ export function toggleGizmo(gizmoType) {
             case "load_multi_object":
             case "load_object":
             case "load_character": {
+              // Generate a unique group ID for this gizmo action
+              const groupId = Blockly.utils.idGenerator.genUid();
+              Blockly.Events.setGroup(groupId);
+              
+              let addedDoSection = false;
               if (!block.getInput("DO")) {
                 block.appendStatementInput("DO").setCheck(null).appendField("");
+                addedDoSection = true;
               }
 
               let scaleBlock = null;
@@ -1072,6 +1095,14 @@ export function toggleGizmo(gizmoType) {
                 block
                   .getInput("DO")
                   .connection.connect(scaleBlock.previousConnection);
+                
+                // Track this block for DO section cleanup
+                const timestamp = Date.now();
+                gizmoCreatedBlocks.set(scaleBlock.id, {
+                  parentId: block.id,
+                  createdDoSection: addedDoSection,
+                  timestamp: timestamp
+                });
               }
 
               function setScaleValue(inputName, value) {
@@ -1090,6 +1121,9 @@ export function toggleGizmo(gizmoType) {
               setScaleValue("X", scaleX);
               setScaleValue("Y", scaleY);
               setScaleValue("Z", scaleZ);
+              
+              // End undo group
+              Blockly.Events.setGroup(null);
               break;
             }
           }
@@ -1125,7 +1159,65 @@ function turnOffAllGizmos() {
   gizmoManager.boundingBoxGizmoEnabled = false;
 }
 
+// Track DO sections and their associated blocks for cleanup
+const gizmoCreatedBlocks = new Map(); // blockId -> { parentId, createdDoSection, timestamp }
+
+// Add undo handler to clean up DO sections when undoing block creation
+function addUndoHandler() {
+  const workspace = Blockly.getMainWorkspace();
+  
+  workspace.addChangeListener(function(event) {
+    if (event.type === Blockly.Events.BLOCK_DELETE && event.oldJson) {
+      const deletedBlockId = event.blockId;
+      
+      // Check if this was a gizmo-created block
+      if (gizmoCreatedBlocks.has(deletedBlockId)) {
+        const blockInfo = gizmoCreatedBlocks.get(deletedBlockId);
+        const { parentId, createdDoSection, timestamp } = blockInfo;
+        
+        // Remove from tracking
+        gizmoCreatedBlocks.delete(deletedBlockId);
+        
+        // If this block created the DO section, check if we should remove it
+        if (createdDoSection) {
+          const parentBlock = workspace.getBlockById(parentId);
+          if (parentBlock) {
+            const doInput = parentBlock.getInput("DO");
+            
+            // Check if DO section is now empty or only contains blocks created after this one
+            let shouldRemoveDoSection = true;
+            if (doInput && doInput.connection.targetBlock()) {
+              let currentBlock = doInput.connection.targetBlock();
+              
+              // Check all blocks in the DO section
+              while (currentBlock) {
+                const blockInfo = gizmoCreatedBlocks.get(currentBlock.id);
+                
+                // If there's a block that wasn't created by gizmos, or was created before this block, keep DO section
+                if (!blockInfo || blockInfo.timestamp < timestamp) {
+                  shouldRemoveDoSection = false;
+                  break;
+                }
+                
+                currentBlock = currentBlock.getNextBlock();
+              }
+            }
+            
+            // Remove DO section if it should be removed
+            if (shouldRemoveDoSection && doInput) {
+              parentBlock.removeInput("DO");
+            }
+          }
+        }
+      }
+    }
+  });
+}
+
 export function enableGizmos() {
+  // Initialize undo handler for DO section cleanup
+  addUndoHandler();
+  
   const positionButton = document.getElementById("positionButton");
   const rotationButton = document.getElementById("rotationButton");
   const scaleButton = document.getElementById("scaleButton");
