@@ -74,7 +74,7 @@ if ("serviceWorker" in navigator) {
 		});
 }
 
-function showUpdateNotification() {
+async function showUpdateNotification() {
 	const notification = document.createElement("div");
 	notification.innerHTML = `
 	<div style="position: fixed; bottom: 0; left: 0; width: 100%; background: #511D91; color: white; text-align: center; padding: 10px; z-index: 1000;">
@@ -84,7 +84,7 @@ function showUpdateNotification() {
 	document.body.appendChild(notification);
 
 	// Apply translations to the new elements
-	const { applyTranslations } = require("./translation.js");
+	const { applyTranslations } = await import("./translation.js");
 	applyTranslations();
 
 	document.getElementById("reload-btn").addEventListener("click", () => {
