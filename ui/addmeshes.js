@@ -11,12 +11,11 @@ export function createMeshOnCanvas(block) {
     return;
   }
 
-  // Create a unique group ID for this specific shape creation
-  const groupId = Blockly.utils.idGenerator.genUid();
-  Blockly.Events.setGroup(groupId);
-
   let shapeType = block.type;
   let position, scale, color, modelName, newMesh;
+
+  // Disable events during mesh creation to avoid grouping issues
+  Blockly.Events.disable();
 
   if (
     ![
@@ -383,7 +382,8 @@ export function createMeshOnCanvas(block) {
       meshBlockIdMap[block.id] = block.id;
     }
 
-  Blockly.Events.setGroup(false);
+  // Re-enable events
+  Blockly.Events.enable();
 }
 
 function getMeshFromBlock(block) {
