@@ -12,7 +12,7 @@ export function createMeshOnCanvas(block) {
   }
 
   // Create a unique group ID for this specific shape creation
-  const groupId = Blockly.utils.genUid();
+  const groupId = Blockly.utils.idGenerator.genUid();
   Blockly.Events.setGroup(groupId);
 
   let shapeType = block.type;
