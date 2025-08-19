@@ -4,19 +4,33 @@ import { flock } from "../flock.js";
 import { extractMaterialInfo } from "./blockmesh.js";
 
 export function createMeshOnCanvas(block) {
-  
+
   const mesh = getMeshFromBlock(block);
   if (mesh) {
     console.warn("Mesh already exists for block", block.id);
     return;
   }
 
+  // For shapes (not models), defer creation with aggressive event isolation
+  const isShape = [
+    "create_box", "create_sphere", "create_cylinder", 
+    "create_capsule", "create_plane"
+  ].includes(block.type);
+
+  if (isShape) {
+    // Use the same grouping approach as objects for consistency
+    // Group all shape creation events together
+    Blockly.Events.setGroup(true);
+    try {
+      createShapeInternal(block);
+    } finally {
+      Blockly.Events.setGroup(false);
+    }
+    return;
+  }
+
   let shapeType = block.type;
   let position, scale, color, modelName, newMesh;
-
-  // Create a timestamp-based unique group for this specific shape creation
-  const groupId = `shape_creation_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-  Blockly.Events.setGroup(groupId);
 
   if (
     ![
@@ -260,6 +274,189 @@ export function createMeshOnCanvas(block) {
         .connection.targetBlock()
         .getFieldValue("NUM");
 
+      meshId = `box__${block.id}`;
+      meshMap[block.id] = block;
+      meshBlockIdMap[block.id] = block.id;
+
+      newMesh = flock.createBox(meshId, {
+        color,
+        width,
+        height,
+        depth,
+        position: [position.x, position.y, position.z],
+      });
+      break;
+
+    case "create_sphere":
+      color = block
+        .getInput("COLOR")
+        .connection.targetBlock()
+        .getFieldValue("COLOR");
+      diameterX = block
+        .getInput("DIAMETER_X")
+        .connection.targetBlock()
+        .getFieldValue("NUM");
+      diameterY = block
+        .getInput("DIAMETER_Y")
+        .connection.targetBlock()
+        .getFieldValue("NUM");
+      diameterZ = block
+        .getInput("DIAMETER_Z")
+        .connection.targetBlock()
+        .getFieldValue("NUM");
+
+      meshId = `sphere__${block.id}`;
+      meshMap[block.id] = block;
+      meshBlockIdMap[block.id] = block.id;
+
+      newMesh = flock.createSphere(meshId, {
+        color,
+        diameterX,
+        diameterY,
+        diameterZ,
+        position: [position.x, position.y, position.z],
+      });
+      break;
+
+    case "create_cylinder":
+      color = block
+        .getInput("COLOR")
+        .connection.targetBlock()
+        .getFieldValue("COLOR");
+      cylinderHeight = block
+        .getInput("HEIGHT")
+        .connection.targetBlock()
+        .getFieldValue("NUM");
+      diameterTop = block
+        .getInput("DIAMETER_TOP")
+        .connection.targetBlock()
+        .getFieldValue("NUM");
+      diameterBottom = block
+        .getInput("DIAMETER_BOTTOM")
+        .connection.targetBlock()
+        .getFieldValue("NUM");
+
+      meshId = `cylinder__${block.id}`;
+      meshMap[block.id] = block;
+      meshBlockIdMap[block.id] = block.id;
+
+      newMesh = flock.createCylinder(meshId, {
+        color,
+        height: cylinderHeight,
+        diameterTop,
+        diameterBottom,
+        tessellation: 24,
+        position: [position.x, position.y, position.z],
+      });
+      break;
+
+    case "create_capsule":
+      color = block
+        .getInput("COLOR")
+        .connection.targetBlock()
+        .getFieldValue("COLOR");
+      capsuleDiameter = block
+        .getInput("DIAMETER")
+        .connection.targetBlock()
+        .getFieldValue("NUM");
+      capsuleHeight = block
+        .getInput("HEIGHT")
+        .connection.targetBlock()
+        .getFieldValue("NUM");
+
+      meshId = `capsule__${block.id}`;
+      meshMap[block.id] = block;
+      meshBlockIdMap[block.id] = block.id;
+
+      newMesh = flock.createCapsule(meshId, {
+        color,
+        diameter: capsuleDiameter,
+        height: capsuleHeight,
+        position: [position.x, position.y, position.z],
+      });
+      break;
+
+    case "create_plane":
+      color = block
+        .getInput("COLOR")
+        .connection.targetBlock()
+        .getFieldValue("COLOR");
+      planeWidth = block
+        .getInput("WIDTH")
+        .connection.targetBlock()
+        .getFieldValue("NUM");
+      planeHeight = block
+        .getInput("HEIGHT")
+        .connection.targetBlock()
+        .getFieldValue("NUM");
+
+      meshId = `plane__${block.id}`;
+      meshMap[block.id] = block;
+      meshBlockIdMap[block.id] = block.id;
+
+      newMesh = flock.createPlane(meshId, {
+        color,
+        width: planeWidth,
+        height: planeHeight,
+        position: [position.x, position.y, position.z],
+      });
+      break;
+
+    default:
+      Blockly.Events.setGroup(false);
+      return;
+    }
+
+    if (newMesh) {
+      meshMap[block.id] = block;
+      meshBlockIdMap[block.id] = block.id;
+    }
+}
+
+function createShapeInternal(block) {
+  const shapeType = block.type;
+  let position, scale, color, newMesh;
+  let width, height, depth, diameterX, diameterY, diameterZ, cylinderHeight, diameterTop, diameterBottom, capsuleHeight, capsuleDiameter, planeWidth, planeHeight;
+
+  // Helper function to safely get position value
+  function getPositionValue(inputName, defaultValue = 0) {
+    const input = block.getInput(inputName);
+    if (!input || !input.connection) return defaultValue;
+
+    const targetBlock = input.connection.targetBlock();
+    if (!targetBlock) return defaultValue;
+
+    const value = targetBlock.getFieldValue("NUM");
+    return value !== null ? parseFloat(value) : defaultValue;
+  }
+
+  position = {
+    x: getPositionValue("X", 0),
+    y: getPositionValue("Y", 0),
+    z: getPositionValue("Z", 0),
+  };
+
+
+  // Handle shape creation blocks
+  switch (shapeType) {
+    case "create_box":
+      color = block
+        .getInput("COLOR")
+        .connection.targetBlock()
+        .getFieldValue("COLOR");
+      width = block
+        .getInput("WIDTH")
+        .connection.targetBlock()
+        .getFieldValue("NUM");
+      height = block
+        .getInput("HEIGHT")
+        .connection.targetBlock()
+        .getFieldValue("NUM");
+      depth = block
+        .getInput("DEPTH")
+        .connection.targetBlock()
+        .getFieldValue("NUM");
+
       newMesh = flock.createBox(`box__${block.id}`, {
         color,
         width,
@@ -382,15 +579,8 @@ export function createMeshOnCanvas(block) {
       meshMap[block.id] = block;
       meshBlockIdMap[block.id] = block.id;
     }
-
-  // End the event group and fire a completion event
-  Blockly.Events.setGroup(false);
-  
-  // Force a new undo boundary by firing a null event
-  setTimeout(() => {
-    Blockly.Events.fire(new Blockly.Events.UiBase(block, 'shape_created', '', ''));
-  }, 0);
 }
+
 
 function getMeshFromBlock(block) {
   const blockKey = Object.keys(meshMap).find((key) => meshMap[key] === block);
