@@ -14,8 +14,8 @@ export function createMeshOnCanvas(block) {
   let shapeType = block.type;
   let position, scale, color, modelName, newMesh;
 
-  // Create a unique group for this specific shape creation
-  const groupId = Blockly.utils.idGenerator.genUid();
+  // Create a timestamp-based unique group for this specific shape creation
+  const groupId = `shape_creation_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
   Blockly.Events.setGroup(groupId);
 
   if (
@@ -383,8 +383,13 @@ export function createMeshOnCanvas(block) {
       meshBlockIdMap[block.id] = block.id;
     }
 
-  // End the event group
+  // End the event group and fire a completion event
   Blockly.Events.setGroup(false);
+  
+  // Force a new undo boundary by firing a null event
+  setTimeout(() => {
+    Blockly.Events.fire(new Blockly.Events.UiBase(block, 'shape_created', '', ''));
+  }, 0);
 }
 
 function getMeshFromBlock(block) {
