@@ -114,7 +114,7 @@ export const flockCamera = {
 			depth: 1,
 		});
 		newBox.position = new flock.BABYLON.Vector3(0, -4, 0);
-		newBox.blockKey = newBox.name;
+		newBox.metadata.blockKey = newBox.name;
 		newBox.name = newBox.name + "_" + newBox.uniqueId;
 		const boxBody = new flock.BABYLON.PhysicsBody(
 			newBox,
