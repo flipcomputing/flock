@@ -57,7 +57,7 @@ export const flockMesh = {
 
     // Set metadata and unique name
     mesh.metadata = { shapeType };
-    mesh.blockKey = mesh.name;
+    mesh.metadata.blockKey = mesh.name;
     //mesh.name = `${mesh.name}_${mesh.uniqueId}`;
 
     flock.applyMaterialToMesh(mesh, shapeType, color, alpha);
@@ -361,9 +361,9 @@ export const flockMesh = {
       flock.BABYLON.BoundingBoxGizmo.MakeNotPickableAndWrapInBoundingBox(mesh);
 
     bb.name = modelId;
-    bb.blockKey = blockId;
+    bb.metadata.blockKey = blockId;
 
-    //console.log("Model setup", bb.name, bb.blockKey);
+    //console.log("Model setup", bb.name, bb.metadata.blockKey);
     bb.isPickable = false;
 
     const objectNames = [
