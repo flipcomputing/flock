@@ -80,7 +80,7 @@ export function deleteMeshFromBlock(blockId) {
     return;
   }
 
-  const mesh = flock.scene.meshes.find((m) => m.blockKey === blockKey);
+  const mesh = flock.scene.meshes.find((m) => m.metadata.blockKey === blockKey);
 
   if (!mesh || mesh.name === "__root__") {
   } else {
@@ -99,7 +99,7 @@ export function getMeshFromBlock(block) {
     return null;
   }
 
-  const found = flock.scene?.meshes?.find((mesh) => mesh.blockKey === blockKey);
+  const found = flock.scene?.meshes?.find((mesh) => mesh.metadata.blockKey === blockKey);
 
   return found;
 }
@@ -109,7 +109,7 @@ function getMeshFromBlockId(blockId) {
     (key) => meshBlockIdMap[key] === blockId,
   );
 
-  return flock.scene?.meshes?.find((mesh) => mesh.blockKey === blockKey);
+  return flock.scene?.meshes?.find((mesh) => mesh.metadata.blockKey === blockKey);
 }
 
 function rescaleBoundingBox(bb, newScale) {
@@ -757,13 +757,13 @@ export function updateBlockColorAndHighlight(mesh, selectedColor) {
   }
 
   if (mesh && materialName) {
-    block = meshMap[ultimateParent(mesh).blockKey];
+    block = meshMap[ultimateParent(mesh).metadata.blockKey];
 
     if (!block) {
       console.error(
         "Block not found for mesh:",
         mesh.name,
-        ultimateParent(mesh).blockKey,
+        ultimateParent(mesh).metadata.blockKey,
         mesh.name,
         ultimateParent(mesh).name,
         meshMap,
