@@ -10,6 +10,10 @@ Flock XR has been designed as a bridge between Scratch and professional 3D tools
 
 Flock XR is based on Blockly, the Babylon JS library and the Havok physics engine. It uses CC0 3D assets from [Quaternius](https://quaternius.com/) and [Kenney.nl](https://kenney.nl/) as well as our own assets created in Blender.
 
+## End user documentation
+
+Please see our [free resources for clubs](https://github.com/flipcomputing/flock/blob/main/docs/docs.md).
+
 ## Development info
 
 View the current development version at [flipcomputing.github.io/flock/](https://flipcomputing.github.io/flock/)

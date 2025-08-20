@@ -278,6 +278,29 @@ export function setupInput(){
 	}
 
 	function handleCanvasKeyboard(e) {
+		// Handle Ctrl+Z for undo when canvas is focused
+		if (e.ctrlKey && e.key.toLowerCase() === 'z' && !e.shiftKey) {
+			e.preventDefault();
+			const workspace = window.mainWorkspace || Blockly.getMainWorkspace();
+			if (workspace) {
+				workspace.undo(false);
+				announceToScreenReader("Undo performed");
+			}
+			return;
+		}
+
+		// Handle Ctrl+Shift+Z or Ctrl+Y for redo when canvas is focused
+		if ((e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 'z') || 
+			(e.ctrlKey && e.key.toLowerCase() === 'y')) {
+			e.preventDefault();
+			const workspace = window.mainWorkspace || Blockly.getMainWorkspace();
+			if (workspace) {
+				workspace.undo(true);
+				announceToScreenReader("Redo performed");
+			}
+			return;
+		}
+
 		// Announce camera movements to screen readers
 		const announcements = {
 			ArrowUp: "Camera moving forward",

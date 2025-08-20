@@ -1,4 +1,3 @@
-
 import * as Blockly from "blockly";
 import { flock } from "../flock.js";
 import {
@@ -126,7 +125,7 @@ import { setPositionValues } from "./addmeshes.js";
 
 function addShapeToWorkspace(shapeType, position) {
   //console.log("Adding shape to workspace", shapeType, position);
-  Blockly.Events.setGroup("workspace-add");
+  Blockly.Events.setGroup(true);
 
   // Create the shape block in the Blockly workspace
 
@@ -211,7 +210,6 @@ function addShapeToWorkspace(shapeType, position) {
   block.initSvg();
   block.render();
   Blockly.Events.enable();
-  Blockly.Events.setGroup("workspace-add");
 
   // Create a new 'start' block and connect the shape block to it
   const startBlock = Blockly.getMainWorkspace().newBlock("start");
