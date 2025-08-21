@@ -443,6 +443,7 @@ prepareMeshes(modelId, meshNames, blockId) {
 				flock.whenModelReady(meshName, (mesh) => {
 					if (mesh) {
 						mesh.name = modelId;
+						mesh.metadata = mesh.metadata || {};
 						mesh.metadata.blockKey = blockId;
 						resolve(mesh);
 					} else {
@@ -468,6 +469,7 @@ applyResultMeshProperties(resultMesh, referenceMesh, modelId, blockId) {
 	resultMesh.scaling.copyFrom(referenceMesh.scaling);
 	resultMesh.rotationQuaternion = flock.BABYLON.Quaternion.Identity();
 	resultMesh.name = modelId;
+	resultMesh.metadata = resultMesh.metadata || {};
 	resultMesh.metadata.blockKey = blockId;
 
 	// Apply physics

@@ -361,6 +361,7 @@ export const flockMesh = {
       flock.BABYLON.BoundingBoxGizmo.MakeNotPickableAndWrapInBoundingBox(mesh);
 
     bb.name = modelId;
+    bb.metadata = bb.metadata || {};
     bb.metadata.blockKey = blockId;
 
     //console.log("Model setup", bb.name, bb.metadata.blockKey);

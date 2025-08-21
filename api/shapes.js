@@ -57,6 +57,7 @@ export const flockShapes = {
     flock.initializeMesh(newBox, position, color, "Box", alpha);
 
     newBox.position.y += height / 2; // Middle of the box
+    newBox.metadata = newBox.metadata || {};
     newBox.metadata.blockKey = blockKey;
 
     // Define and apply the physics shape
@@ -130,6 +131,7 @@ export const flockShapes = {
     flock.initializeMesh(newSphere, position, color, "Sphere", alpha);
     newSphere.position.y += diameterY / 2;
 
+    newSphere.metadata = newSphere.metadata || {};
     newSphere.metadata.blockKey = blockKey;
 
     // Define and apply the physics shape
@@ -214,6 +216,7 @@ export const flockShapes = {
     newCylinder.position.y += height / 2;
     // Initialise the mesh with position, color, and other properties
 
+    newCylinder.metadata = newCylinder.metadata || {};
     newCylinder.metadata.blockKey = blockKey;
 
     // Create and apply physics shape
@@ -285,6 +288,7 @@ export const flockShapes = {
 
     flock.setCapsuleUVs(newCapsule, radius, height, 1); // Adjust texturePhysicalSize as needed
 
+    newCapsule.metadata = newCapsule.metadata || {};
     newCapsule.metadata.blockKey = blockKey;
     // Define central point for the capsule
     const center = new flock.BABYLON.Vector3(0, 0, 0);
