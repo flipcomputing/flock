@@ -135,7 +135,7 @@ export function runCreateObjectTests(flock) {
 			// Get the created mesh
 			const mesh = flock.scene.getMeshByName(result);
 			expect(mesh).to.exist;
-			expect(mesh.blockKey).to.equal("block123");
+			expect(mesh.metadata.blockKey).to.equal("block123");
 
 			// Test with no double underscore
 			const modelId2 = "tree.glb";
@@ -147,7 +147,7 @@ export function runCreateObjectTests(flock) {
 			});
 			const mesh2 = flock.scene.getMeshByName(result2);
 			expect(mesh2).to.exist;
-			expect(mesh2.blockKey).to.equal(modelId2);
+			expect(mesh2.metadata.blockKey).to.equal(modelId2);
 
 			// Test with multiple double underscores - should only split on first __
 			const modelId3 = "tree.glb__block123__extra";
@@ -159,7 +159,7 @@ export function runCreateObjectTests(flock) {
 			});
 			const mesh3 = flock.scene.getMeshByName(result3);
 			expect(mesh3).to.exist;
-			expect(mesh3.blockKey).to.equal("block123");  // Only takes first part after __
+			expect(mesh3.metadata.blockKey).to.equal("block123");  // Only takes first part after __
 
 			// Test with empty string after double underscore
 			const modelId4 = "tree.glb__";
@@ -171,7 +171,7 @@ export function runCreateObjectTests(flock) {
 			});
 			const mesh4 = flock.scene.getMeshByName(result4);
 			expect(mesh4).to.exist;
-			expect(mesh4.blockKey).to.equal("");  // Empty string after __
+			expect(mesh4.metadata.blockKey).to.equal("");  // Empty string after __
 		});
 
 		it("should handle object scaling operations", async function () {

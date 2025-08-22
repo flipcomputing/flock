@@ -157,7 +157,7 @@ function highlightBlockById(workspace, block) {
 function findParentWithBlockId(mesh) {
   let currentNode = mesh;
   while (currentNode) {
-    if (currentNode.blockKey !== undefined) {
+    if (currentNode.metadata.blockKey !== undefined) {
       return currentNode;
     }
     currentNode = currentNode.parent;
@@ -228,7 +228,7 @@ function focusCameraOnMesh() {
     const blockKey = Object.keys(meshMap).find(
       (key) => meshMap[key] === window.currentBlock,
     );
-    mesh = flock.scene?.meshes?.find((mesh) => mesh.blockKey === blockKey);
+    mesh = flock.scene?.meshes?.find((mesh) => mesh.metadata.blockKey === blockKey);
   }
   if (!mesh) return;
 
@@ -336,7 +336,7 @@ export function toggleGizmo(gizmoType) {
         });
         return;
       }
-      blockKey = findParentWithBlockId(gizmoManager.attachedMesh).blockKey;
+      blockKey = findParentWithBlockId(gizmoManager.attachedMesh).metadata.blockKey;
       blockId = meshBlockIdMap[blockKey];
       deleteBlockWithUndo(blockId);
       break;
@@ -350,7 +350,7 @@ export function toggleGizmo(gizmoType) {
         });
         return;
       }
-      blockKey = findParentWithBlockId(gizmoManager.attachedMesh).blockKey;
+      blockKey = findParentWithBlockId(gizmoManager.attachedMesh).metadata.blockKey;
       blockId = meshBlockIdMap[blockKey];
 
       document.body.style.cursor = "crosshair"; // Change cursor to indicate picking mode
@@ -462,7 +462,7 @@ export function toggleGizmo(gizmoType) {
               .forEach((child) => (child.showBoundingBox = false));
             blockKey = findParentWithBlockId(
               gizmoManager.attachedMesh,
-            ).blockKey;
+            ).metadata.blockKey;
           }
           const pickedMesh = event.pickInfo.pickedMesh;
 
@@ -541,7 +541,7 @@ export function toggleGizmo(gizmoType) {
             mesh.physics.disablePreStep = false;
           }
 
-          const block = meshMap[mesh.blockKey];
+          const block = meshMap[mesh.metadata.blockKey];
 
           highlightBlockById(Blockly.getMainWorkspace(), block);
         },
@@ -557,7 +557,7 @@ export function toggleGizmo(gizmoType) {
 
         mesh.computeWorldMatrix(true);
 
-        const block = meshMap[mesh.blockKey];
+        const block = meshMap[mesh.metadata.blockKey];
 
         let meshY = mesh.position.y;
 
@@ -622,7 +622,7 @@ export function toggleGizmo(gizmoType) {
           mesh.physics.disablePreStep = false;
         }
 
-        const block = meshMap[mesh.blockKey];
+        const block = meshMap[mesh.metadata.blockKey];
 
         highlightBlockById(Blockly.getMainWorkspace(), block);
       });
@@ -635,7 +635,7 @@ export function toggleGizmo(gizmoType) {
         }
         mesh.computeWorldMatrix(true);
 
-        const block = meshMap[mesh.blockKey];
+        const block = meshMap[mesh.metadata.blockKey];
 
         let meshY = mesh.position.y;
 
@@ -711,7 +711,7 @@ export function toggleGizmo(gizmoType) {
           mesh.physics.disablePreStep = false;
         }
 
-        const block = meshMap[mesh.blockKey];
+        const block = meshMap[mesh.metadata.blockKey];
 
         highlightBlockById(Blockly.getMainWorkspace(), block);
       });
@@ -726,7 +726,7 @@ export function toggleGizmo(gizmoType) {
           mesh.physics.setMotionType(mesh.savedMotionType);
         }
 
-        const block = meshMap[mesh.blockKey];
+        const block = meshMap[mesh.metadata.blockKey];
 
         //console.log("Rotating", mesh, blockKey, meshMap);
         if (!block) {
@@ -880,7 +880,7 @@ export function toggleGizmo(gizmoType) {
           mesh.physics.disablePreStep = false;
         }
 
-        const block = meshMap[mesh.blockKey];
+        const block = meshMap[mesh.metadata.blockKey];
         highlightBlockById(Blockly.getMainWorkspace(), block);
       });
 
@@ -894,7 +894,7 @@ export function toggleGizmo(gizmoType) {
         const deltaY = originalBottomY - newBottomY;
         mesh.position.y += deltaY;
 
-        const block = Blockly.getMainWorkspace().getBlockById(mesh.blockKey);
+        const block = Blockly.getMainWorkspace().getBlockById(mesh.metadata.blockKey);
         if (gizmoManager.scaleGizmoEnabled) {
           switch (block?.type) {
             case "create_capsule":
@@ -907,7 +907,7 @@ export function toggleGizmo(gizmoType) {
 
       gizmoManager.gizmos.scaleGizmo.onDragEndObservable.add(() => {
         const mesh = gizmoManager.attachedMesh;
-        const block = meshMap[mesh.blockKey];
+        const block = meshMap[mesh.metadata.blockKey];
 
         if (mesh.savedMotionType) {
           mesh.physics.setMotionType(mesh.savedMotionType);
@@ -1309,7 +1309,7 @@ export function setGizmoManager(value) {
           mesh = mesh.parent;
         }
 
-        const block = Blockly.getMainWorkspace().getBlockById(mesh.blockKey);
+        const block = Blockly.getMainWorkspace().getBlockById(mesh.metadata.blockKey);
 
         if (block && gizmoManager.scaleGizmoEnabled) {
           switch (block.type) {
@@ -1332,7 +1332,7 @@ export function setGizmoManager(value) {
     }
 
     if (mesh) {
-      const block = meshMap[mesh.blockKey];
+      const block = meshMap[mesh.metadata.blockKey];
       //highlightBlockById(Blockly.getMainWorkspace(), block);
     }
     originalAttach(mesh);
@@ -1348,7 +1348,7 @@ export function setGizmoManager(value) {
 
       const blockKey = findParentWithBlockId(
         gizmoManager.attachedMesh,
-      ).blockKey;
+      ).metadata.blockKey;
       const blockId = meshBlockIdMap[blockKey];
 
       //console.log("Delete", blockKey, meshMap);

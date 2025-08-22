@@ -587,7 +587,7 @@ function getMeshFromBlock(block) {
 
   if (!blockKey) return null;
 
-  const found = flock.scene?.meshes?.find((mesh) => mesh.blockKey === blockKey);
+  const found = flock.scene?.meshes?.find((mesh) => mesh.metadata.blockKey === blockKey);
 
   return found;
 }

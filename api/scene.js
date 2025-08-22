@@ -76,7 +76,8 @@ export const flockScene = {
     );
 
     ground.name = modelId;
-    ground.blockKey = blockId;
+    ground.metadata = ground.metadata || {};
+    ground.metadata.blockKey = blockId;
     ground.receiveShadows = true;
     const groundMaterial = new flock.BABYLON.StandardMaterial(
       "groundMaterial",
@@ -110,7 +111,8 @@ export const flockScene = {
       );
       ground.physics = groundAggregate;
       ground.name = modelId;
-      ground.blockKey = modelId;
+      ground.metadata = ground.metadata || {};
+      ground.metadata.blockKey = modelId;
       ground.receiveShadows = true;
     } else {
       const minHeight = 0;
@@ -164,7 +166,8 @@ export const flockScene = {
       );
     }
     ground.name = "ground";
-    ground.blockKey = "ground";
+    ground.metadata = ground.metadata || {};
+    ground.metadata.blockKey = "ground";
 
     //console.log("Scaling material");
     // Simply assign the passed-through material:

@@ -57,7 +57,8 @@ export const flockShapes = {
     flock.initializeMesh(newBox, position, color, "Box", alpha);
 
     newBox.position.y += height / 2; // Middle of the box
-    newBox.blockKey = blockKey;
+    newBox.metadata = newBox.metadata || {};
+    newBox.metadata.blockKey = blockKey;
 
     // Define and apply the physics shape
     const boxShape = new flock.BABYLON.PhysicsShapeBox(
@@ -130,7 +131,8 @@ export const flockShapes = {
     flock.initializeMesh(newSphere, position, color, "Sphere", alpha);
     newSphere.position.y += diameterY / 2;
 
-    newSphere.blockKey = blockKey;
+    newSphere.metadata = newSphere.metadata || {};
+    newSphere.metadata.blockKey = blockKey;
 
     // Define and apply the physics shape
     const sphereShape = new flock.BABYLON.PhysicsShapeSphere(
@@ -214,7 +216,8 @@ export const flockShapes = {
     newCylinder.position.y += height / 2;
     // Initialise the mesh with position, color, and other properties
 
-    newCylinder.blockKey = blockKey;
+    newCylinder.metadata = newCylinder.metadata || {};
+    newCylinder.metadata.blockKey = blockKey;
 
     // Create and apply physics shape
     const startPoint = new flock.BABYLON.Vector3(0, -height / 2, 0);
@@ -285,7 +288,8 @@ export const flockShapes = {
 
     flock.setCapsuleUVs(newCapsule, radius, height, 1); // Adjust texturePhysicalSize as needed
 
-    newCapsule.blockKey = blockKey;
+    newCapsule.metadata = newCapsule.metadata || {};
+    newCapsule.metadata.blockKey = blockKey;
     // Define central point for the capsule
     const center = new flock.BABYLON.Vector3(0, 0, 0);
 
@@ -353,6 +357,7 @@ export const flockShapes = {
     // Set metadata and name
     newPlane.metadata = newPlane.metadata || {};
     newPlane.metadata.shape = "plane";
+    newPlane.metadata.blockKey = blockKey;
 
     // Set final position including the height offset all at once
     newPlane.position = new flock.BABYLON.Vector3(
@@ -391,7 +396,7 @@ export const flockShapes = {
     newPlane.material.metadata = newPlane.material.metadata || {};
     newPlane.material.metadata.internal = true;
 
-    newPlane.blockKey = blockKey;
+    newPlane.metadata.blockKey = blockKey;
 
     flock.announceMeshReady(newPlane.name, groupName);
 
