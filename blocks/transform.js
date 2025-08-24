@@ -1,8 +1,10 @@
 import * as Blockly from "blockly";
 import { categoryColours } from "../toolbox.js";
 import { 
+  addDoMutatorWithToggleBehavior,
   getHelpUrlFor,
 } from "../blocks.js";
+import { handleBlockChange } from "./shapes.js"
 import { translate, getTooltip, getDropdownOption } from "../main/translation.js";
 
 export function defineTransformBlocks() {
@@ -45,6 +47,12 @@ export function defineTransformBlocks() {
 			this.setHelpUrl(getHelpUrlFor(this.type));
 			this.setStyle('transform_blocks');
 
+			// Set up the change handler.
+			this.setOnChange((changeEvent) =>
+				handleBlockChange(this, changeEvent, window.currentMesh.variableNamePrefix),
+			);
+			// Add the mutator with toggle behaviour.
+			addDoMutatorWithToggleBehavior(this);
 		},
 	};
 
@@ -93,6 +101,12 @@ export function defineTransformBlocks() {
 			this.setHelpUrl(getHelpUrlFor(this.type));
 			this.setStyle('transform_blocks');
 
+			// Set up the change handler.
+			this.setOnChange((changeEvent) =>
+				handleBlockChange(this, changeEvent, window.currentMesh.variableNamePrefix),
+			);
+			// Add the mutator with toggle behaviour.
+			addDoMutatorWithToggleBehavior(this);
 		},
 	};
 
@@ -128,6 +142,12 @@ export function defineTransformBlocks() {
 			this.setHelpUrl(getHelpUrlFor(this.type));
 			this.setStyle('transform_blocks');
 
+			// Set up the change handler.
+			this.setOnChange((changeEvent) =>
+				handleBlockChange(this, changeEvent, window.currentMesh.variableNamePrefix),
+			);
+			// Add the mutator with toggle behaviour.
+			addDoMutatorWithToggleBehavior(this);
 		},
 	};
 
@@ -194,6 +214,12 @@ export function defineTransformBlocks() {
 			this.setHelpUrl(getHelpUrlFor(this.type));
 			this.setStyle('transform_blocks');
 
+			// Set up the change handler.
+			this.setOnChange((changeEvent) =>
+				handleBlockChange(this, changeEvent, window.currentMesh.variableNamePrefix),
+			);
+			// Add the mutator with toggle behaviour.
+			addDoMutatorWithToggleBehavior(this);
 		},
 	};
 
@@ -260,6 +286,12 @@ export function defineTransformBlocks() {
 			this.setHelpUrl(getHelpUrlFor(this.type));
 			this.setStyle('transform_blocks');
 
+			// Set up the change handler.
+			this.setOnChange((changeEvent) =>
+				handleBlockChange(this, changeEvent, window.currentMesh.variableNamePrefix),
+			);
+			// Add the mutator with toggle behaviour.
+			addDoMutatorWithToggleBehavior(this);
 		},
 	};
 
@@ -302,6 +334,12 @@ export function defineTransformBlocks() {
 			this.setHelpUrl(getHelpUrlFor(this.type));
 			this.setStyle('transform_blocks');
 
+			// Set up the change handler.
+			this.setOnChange((changeEvent) =>
+				handleBlockChange(this, changeEvent, window.currentMesh.variableNamePrefix),
+			);
+			// Add the mutator with toggle behaviour.
+			addDoMutatorWithToggleBehavior(this);
 		},
 	};
 
@@ -344,6 +382,12 @@ export function defineTransformBlocks() {
 			this.setHelpUrl(getHelpUrlFor(this.type));
 			this.setStyle('transform_blocks');
 
+			// Set up the change handler.
+			this.setOnChange((changeEvent) =>
+				handleBlockChange(this, changeEvent, window.currentMesh.variableNamePrefix),
+			);
+			// Add the mutator with toggle behaviour.
+			addDoMutatorWithToggleBehavior(this);
 		},
 	};
 
@@ -379,6 +423,12 @@ export function defineTransformBlocks() {
 			this.setHelpUrl(getHelpUrlFor(this.type));
 			this.setStyle('transform_blocks');
 
+			// Set up the change handler.
+			this.setOnChange((changeEvent) =>
+				handleBlockChange(this, changeEvent, window.currentMesh.variableNamePrefix),
+			);
+			// Add the mutator with toggle behaviour.
+			addDoMutatorWithToggleBehavior(this);
 		},
 	};
 
@@ -417,6 +467,12 @@ export function defineTransformBlocks() {
 			this.setHelpUrl(getHelpUrlFor(this.type));
 			this.setStyle('transform_blocks');
 
+			// Set up the change handler.
+			this.setOnChange((changeEvent) =>
+				handleBlockChange(this, changeEvent, window.currentMesh.variableNamePrefix),
+			);
+			// Add the mutator with toggle behaviour.
+			addDoMutatorWithToggleBehavior(this);
 		},
 	};
 
@@ -456,6 +512,12 @@ export function defineTransformBlocks() {
 			this.setHelpUrl(getHelpUrlFor(this.type));
 			this.setStyle('transform_blocks');
 
+			// Set up the change handler.
+			this.setOnChange((changeEvent) =>
+				handleBlockChange(this, changeEvent, window.currentMesh.variableNamePrefix),
+			);
+			// Add the mutator with toggle behaviour.
+			addDoMutatorWithToggleBehavior(this);
 		},
 	};
 
@@ -482,6 +544,12 @@ export function defineTransformBlocks() {
 			this.setHelpUrl(getHelpUrlFor(this.type));
 			this.setStyle('transform_blocks');
 
+			// Set up the change handler.
+			this.setOnChange((changeEvent) =>
+				handleBlockChange(this, changeEvent, window.currentMesh.variableNamePrefix),
+			);
+			// Add the mutator with toggle behaviour.
+			addDoMutatorWithToggleBehavior(this);
 		},
 	};
 }
