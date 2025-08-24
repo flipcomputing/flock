@@ -20,6 +20,44 @@ import {
 	getDropdownOption,
 } from "../main/translation.js";
 
+export function handleBlockChange(block, changeEvent, variableNamePrefix) {
+	// Always run first to handle variable naming
+	handleBlockCreateEvent(
+		block,
+		changeEvent,
+		variableNamePrefix,
+		nextVariableIndexes,
+	);
+
+	// Handle lifecycle events like enable/disable/move on the block directly
+	if (changeEvent.blockId === block.id) {
+		if (handleMeshLifecycleChange(block, changeEvent)) return;
+	}
+
+	// Handle field changes on self or attached unchainable children
+	if (handleFieldOrChildChange(block, changeEvent)) return;
+
+	// Handle BLOCK_CREATE or BLOCK_CHANGE if a child is attached
+	if (
+		(changeEvent.type === Blockly.Events.BLOCK_CREATE ||
+			changeEvent.type === Blockly.Events.BLOCK_CHANGE) &&
+		changeEvent.workspaceId === Blockly.getMainWorkspace().id
+	) {
+		const changedBlock = Blockly.getMainWorkspace().getBlockById(
+			changeEvent.blockId,
+		);
+		const parent = findCreateBlock(changedBlock);
+
+		if (parent === block) {
+			const blockInWorkspace =
+				Blockly.getMainWorkspace().getBlockById(block.id);
+			if (blockInWorkspace) {
+				updateOrCreateMeshFromBlock(block, changeEvent);
+			}
+		}
+	}
+}
+
 export function defineShapeBlocks() {
 	function createShapeBlockDefinition({
 		type,
@@ -86,44 +124,6 @@ export function defineShapeBlocks() {
 				}
 			},
 		};
-	}
-
-	function handleBlockChange(block, changeEvent, variableNamePrefix) {
-		// Always run first to handle variable naming
-		handleBlockCreateEvent(
-			block,
-			changeEvent,
-			variableNamePrefix,
-			nextVariableIndexes,
-		);
-
-		// Handle lifecycle events like enable/disable/move on the block directly
-		if (changeEvent.blockId === block.id) {
-			if (handleMeshLifecycleChange(block, changeEvent)) return;
-		}
-
-		// Handle field changes on self or attached unchainable children
-		if (handleFieldOrChildChange(block, changeEvent)) return;
-
-		// Handle BLOCK_CREATE or BLOCK_CHANGE if a child is attached
-		if (
-			(changeEvent.type === Blockly.Events.BLOCK_CREATE ||
-				changeEvent.type === Blockly.Events.BLOCK_CHANGE) &&
-			changeEvent.workspaceId === Blockly.getMainWorkspace().id
-		) {
-			const changedBlock = Blockly.getMainWorkspace().getBlockById(
-				changeEvent.blockId,
-			);
-			const parent = findCreateBlock(changedBlock);
-
-			if (parent === block) {
-				const blockInWorkspace =
-					Blockly.getMainWorkspace().getBlockById(block.id);
-				if (blockInWorkspace) {
-					updateOrCreateMeshFromBlock(block, changeEvent);
-				}
-			}
-		}
 	}
 
 	// Define the particle effect block.
