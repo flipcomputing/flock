@@ -51,8 +51,6 @@ export function defineTransformBlocks() {
 			this.setOnChange((changeEvent) =>
 				handleBlockChange(this, changeEvent, window.currentMesh.variableNamePrefix),
 			);
-			// Add the mutator with toggle behaviour.
-			addDoMutatorWithToggleBehavior(this);
 		},
 	};
 
@@ -105,8 +103,6 @@ export function defineTransformBlocks() {
 			this.setOnChange((changeEvent) =>
 				handleBlockChange(this, changeEvent, window.currentMesh.variableNamePrefix),
 			);
-			// Add the mutator with toggle behaviour.
-			addDoMutatorWithToggleBehavior(this);
 		},
 	};
 
@@ -146,8 +142,6 @@ export function defineTransformBlocks() {
 			this.setOnChange((changeEvent) =>
 				handleBlockChange(this, changeEvent, window.currentMesh.variableNamePrefix),
 			);
-			// Add the mutator with toggle behaviour.
-			addDoMutatorWithToggleBehavior(this);
 		},
 	};
 
@@ -218,8 +212,6 @@ export function defineTransformBlocks() {
 			this.setOnChange((changeEvent) =>
 				handleBlockChange(this, changeEvent, window.currentMesh.variableNamePrefix),
 			);
-			// Add the mutator with toggle behaviour.
-			addDoMutatorWithToggleBehavior(this);
 		},
 	};
 
@@ -290,8 +282,6 @@ export function defineTransformBlocks() {
 			this.setOnChange((changeEvent) =>
 				handleBlockChange(this, changeEvent, window.currentMesh.variableNamePrefix),
 			);
-			// Add the mutator with toggle behaviour.
-			addDoMutatorWithToggleBehavior(this);
 		},
 	};
 
@@ -338,8 +328,6 @@ export function defineTransformBlocks() {
 			this.setOnChange((changeEvent) =>
 				handleBlockChange(this, changeEvent, window.currentMesh.variableNamePrefix),
 			);
-			// Add the mutator with toggle behaviour.
-			addDoMutatorWithToggleBehavior(this);
 		},
 	};
 
@@ -386,8 +374,6 @@ export function defineTransformBlocks() {
 			this.setOnChange((changeEvent) =>
 				handleBlockChange(this, changeEvent, window.currentMesh.variableNamePrefix),
 			);
-			// Add the mutator with toggle behaviour.
-			addDoMutatorWithToggleBehavior(this);
 		},
 	};
 
@@ -427,8 +413,6 @@ export function defineTransformBlocks() {
 			this.setOnChange((changeEvent) =>
 				handleBlockChange(this, changeEvent, window.currentMesh.variableNamePrefix),
 			);
-			// Add the mutator with toggle behaviour.
-			addDoMutatorWithToggleBehavior(this);
 		},
 	};
 
@@ -471,8 +455,6 @@ export function defineTransformBlocks() {
 			this.setOnChange((changeEvent) =>
 				handleBlockChange(this, changeEvent, window.currentMesh.variableNamePrefix),
 			);
-			// Add the mutator with toggle behaviour.
-			addDoMutatorWithToggleBehavior(this);
 		},
 	};
 
@@ -516,8 +498,6 @@ export function defineTransformBlocks() {
 			this.setOnChange((changeEvent) =>
 				handleBlockChange(this, changeEvent, window.currentMesh.variableNamePrefix),
 			);
-			// Add the mutator with toggle behaviour.
-			addDoMutatorWithToggleBehavior(this);
 		},
 	};
 
@@ -548,8 +528,6 @@ export function defineTransformBlocks() {
 			this.setOnChange((changeEvent) =>
 				handleBlockChange(this, changeEvent, window.currentMesh.variableNamePrefix),
 			);
-			// Add the mutator with toggle behaviour.
-			addDoMutatorWithToggleBehavior(this);
 		},
 	};
 }
