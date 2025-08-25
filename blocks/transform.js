@@ -1,13 +1,12 @@
 import * as Blockly from "blockly";
 import { categoryColours } from "../toolbox.js";
 import { 
-  addDoMutatorWithToggleBehavior,
   getHelpUrlFor,
 } from "../blocks.js";
-import { handleBlockChange } from "./shapes.js"
 import { translate, getTooltip, getDropdownOption } from "../main/translation.js";
 
 export function defineTransformBlocks() {
+	function handleBlockChange(block, changeEvent, ) {}
 	Blockly.Blocks["move_by_xyz"] = {
 		init: function () {
 			this.jsonInit({
