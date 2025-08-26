@@ -38,6 +38,8 @@ export function updateOrCreateMeshFromBlock(block, changeEvent) {
 
   const mesh = getMeshFromBlock(block);
 
+  console.log(mesh);
+
   const isEnabledEvent =
     changeEvent?.type === Blockly.Events.BLOCK_CHANGE &&
     changeEvent.element === "disabled" &&
@@ -57,6 +59,9 @@ export function updateOrCreateMeshFromBlock(block, changeEvent) {
     createMeshOnCanvas(block);
     return;
   }
+
+  console.log((changeEvent?.type === Blockly.Events.BLOCK_CHANGE ||
+      changeEvent?.type === Blockly.Events.BLOCK_CREATE));
 
   if (
     (changeEvent?.type === Blockly.Events.BLOCK_CHANGE ||
@@ -173,7 +178,7 @@ export function extractMaterialInfo(materialBlock) {
 }
 
 export function updateMeshFromBlock(mesh, block, changeEvent) {
-  //console.log("Update", block.type, changeEvent.type);
+  console.log("Update", block.type, changeEvent.type);
   if (
     !mesh &&
     !["set_sky_color", "set_background_color", "create_ground"].includes(
