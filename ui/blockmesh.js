@@ -573,12 +573,27 @@ export function updateMeshFromBlock(mesh, block, changeEvent) {
     }
   }
   if (["X", "Y", "Z"].includes(changed)) {
-    flock.positionAt(mesh.name, {
-      x: position.x,
-      y: position.y,
-      z: position.z,
-      useY: true,
-    });
+    switch (block.type) {
+      case "rotate_to":
+        /* The "position" X, Y and Z values are automatically picked up from the "rotate_to"
+        block and assigned as such, so we can just use those for the rotations instead of
+        having to reassign them. */
+        flock.rotateTo(mesh.name, {
+          x: position.x,
+          y: position.y,
+          z: position.z,
+        });
+        break;
+
+      default:
+        flock.positionAt(mesh.name, {
+          x: position.x,
+          y: position.y,
+          z: position.z,
+          useY: true,
+        });
+        break;
+    }
   }
   //console.log("Update physics");
   flock.updatePhysics(mesh);
