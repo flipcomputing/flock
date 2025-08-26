@@ -127,7 +127,6 @@ export function defineShapeBlocks() {
 					updateOrCreateMeshFromBlock(block, changeEvent);
 				}
 			}
-			children = changedBlock.getChildren();
 		}
 	}
 
