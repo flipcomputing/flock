@@ -98,6 +98,10 @@ export function deleteMeshFromBlock(blockId) {
 }
 
 export function getMeshFromBlock(block) {
+  if (block && block.type === "rotate_to") {
+    block = block.getParent();
+  }
+  
   const blockKey = Object.keys(meshMap).find((key) => meshMap[key] === block);
 
   if (!blockKey) {
