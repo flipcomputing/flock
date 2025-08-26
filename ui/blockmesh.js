@@ -24,7 +24,7 @@ const colorFields = {
 };
 
 export function updateOrCreateMeshFromBlock(block, changeEvent) {
-  //console.log("Update or create mesh from block", block.type, changeEvent.type);
+  console.log("Update or create mesh from block", block.type, changeEvent.type);
 
   if (
     ["set_sky_color", "set_background_color", "create_ground"].includes(

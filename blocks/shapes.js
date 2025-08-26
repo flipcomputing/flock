@@ -111,11 +111,15 @@ export function defineShapeBlocks() {
 				changeEvent.type === Blockly.Events.BLOCK_CHANGE) &&
 			changeEvent.workspaceId === Blockly.getMainWorkspace().id
 		) {
+			console.log("The changed block is", changeEvent.blockId);
 			const changedBlock = Blockly.getMainWorkspace().getBlockById(
 				changeEvent.blockId,
 			);
 			const parent = findCreateBlock(changedBlock);
-
+			console.log("The type of the changed block is", changedBlock.type);
+			console.log("This block is", block.id);
+			// console.log("The parent is", parent);
+			console.log("The type of this block is", block.type);
 			if (parent === block) {
 				const blockInWorkspace =
 					Blockly.getMainWorkspace().getBlockById(block.id);
@@ -123,6 +127,7 @@ export function defineShapeBlocks() {
 					updateOrCreateMeshFromBlock(block, changeEvent);
 				}
 			}
+			children = changedBlock.getChildren();
 		}
 	}
 
