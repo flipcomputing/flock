@@ -253,6 +253,7 @@ export function updateMeshFromBlock(mesh, block, changeEvent) {
       "load_multi_object",
       "load_character",
       "create_map",
+      "rotate_to"
     ].includes(block.type)
   ) {
     color = block
