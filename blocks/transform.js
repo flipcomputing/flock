@@ -2,10 +2,24 @@ import * as Blockly from "blockly";
 import { categoryColours } from "../toolbox.js";
 import { 
   getHelpUrlFor,
+  handleFieldOrChildChange,
 } from "../blocks.js";
 import { translate, getTooltip, getDropdownOption } from "../main/translation.js";
+import { updateOrCreateMeshFromBlock } from "../ui/blockmesh.js";
 
 export function defineTransformBlocks() {
+	function handleBlockChange(block, changeEvent) {
+		// console.log("TODO: Buy Matrix DVD");
+		const changeEventBlock = Blockly.getMainWorkspace().getBlockById(changeEvent.blockId);
+		if (!changeEventBlock) return;
+		console.log("The ID of this change event is", changeEventBlock.id);
+		const changeEventParentBlock = changeEventBlock.getParent();
+		if (!changeEventParentBlock) return;
+		const changeEventBlockType= changeEventParentBlock.type;
+		console.log("The type of this change event is", changeEventBlockType);
+		if (changeEventBlockType != "rotate_to") return;
+		console.log(handleFieldOrChildChange(block, changeEvent));
+	}
 	Blockly.Blocks["move_by_xyz"] = {
 		init: function () {
 			this.jsonInit({
@@ -45,6 +59,10 @@ export function defineTransformBlocks() {
 			this.setHelpUrl(getHelpUrlFor(this.type));
 			this.setStyle('transform_blocks');
 
+			// Set up the change handler.
+			this.setOnChange((changeEvent) =>
+				handleBlockChange(this, changeEvent),
+			);
 		},
 	};
 
@@ -93,6 +111,10 @@ export function defineTransformBlocks() {
 			this.setHelpUrl(getHelpUrlFor(this.type));
 			this.setStyle('transform_blocks');
 
+			// Set up the change handler.
+			this.setOnChange((changeEvent) =>
+				handleBlockChange(this, changeEvent),
+			);
 		},
 	};
 
@@ -128,6 +150,10 @@ export function defineTransformBlocks() {
 			this.setHelpUrl(getHelpUrlFor(this.type));
 			this.setStyle('transform_blocks');
 
+			// Set up the change handler.
+			this.setOnChange((changeEvent) =>
+				handleBlockChange(this, changeEvent),
+			);
 		},
 	};
 
@@ -194,6 +220,10 @@ export function defineTransformBlocks() {
 			this.setHelpUrl(getHelpUrlFor(this.type));
 			this.setStyle('transform_blocks');
 
+			// Set up the change handler.
+			this.setOnChange((changeEvent) =>
+				handleBlockChange(this, changeEvent),
+			);
 		},
 	};
 
@@ -260,6 +290,10 @@ export function defineTransformBlocks() {
 			this.setHelpUrl(getHelpUrlFor(this.type));
 			this.setStyle('transform_blocks');
 
+			// Set up the change handler.
+			this.setOnChange((changeEvent) =>
+				handleBlockChange(this, changeEvent),
+			);
 		},
 	};
 
@@ -302,6 +336,10 @@ export function defineTransformBlocks() {
 			this.setHelpUrl(getHelpUrlFor(this.type));
 			this.setStyle('transform_blocks');
 
+			// Set up the change handler.
+			this.setOnChange((changeEvent) =>
+				handleBlockChange(this, changeEvent),
+			);
 		},
 	};
 
@@ -344,6 +382,10 @@ export function defineTransformBlocks() {
 			this.setHelpUrl(getHelpUrlFor(this.type));
 			this.setStyle('transform_blocks');
 
+			// Set up the change handler.
+			this.setOnChange((changeEvent) =>
+				handleBlockChange(this, changeEvent),
+			);
 		},
 	};
 
@@ -379,6 +421,10 @@ export function defineTransformBlocks() {
 			this.setHelpUrl(getHelpUrlFor(this.type));
 			this.setStyle('transform_blocks');
 
+			// Set up the change handler.
+			this.setOnChange((changeEvent) =>
+				handleBlockChange(this, changeEvent),
+			);
 		},
 	};
 
@@ -417,6 +463,10 @@ export function defineTransformBlocks() {
 			this.setHelpUrl(getHelpUrlFor(this.type));
 			this.setStyle('transform_blocks');
 
+			// Set up the change handler.
+			this.setOnChange((changeEvent) =>
+				handleBlockChange(this, changeEvent),
+			);
 		},
 	};
 
@@ -456,6 +506,10 @@ export function defineTransformBlocks() {
 			this.setHelpUrl(getHelpUrlFor(this.type));
 			this.setStyle('transform_blocks');
 
+			// Set up the change handler.
+			this.setOnChange((changeEvent) =>
+				handleBlockChange(this, changeEvent),
+			);
 		},
 	};
 
@@ -482,6 +536,10 @@ export function defineTransformBlocks() {
 			this.setHelpUrl(getHelpUrlFor(this.type));
 			this.setStyle('transform_blocks');
 
+			// Set up the change handler.
+			this.setOnChange((changeEvent) =>
+				handleBlockChange(this, changeEvent),
+			);
 		},
 	};
 }

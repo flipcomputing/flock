@@ -24,7 +24,7 @@ const colorFields = {
 };
 
 export function updateOrCreateMeshFromBlock(block, changeEvent) {
-  //console.log("Update or create mesh from block", block.type, changeEvent.type);
+  console.log("Update or create mesh from block", block.type, changeEvent.type);
 
   if (
     ["set_sky_color", "set_background_color", "create_ground"].includes(
@@ -37,6 +37,8 @@ export function updateOrCreateMeshFromBlock(block, changeEvent) {
   }
 
   const mesh = getMeshFromBlock(block);
+
+  console.log(mesh);
 
   const isEnabledEvent =
     changeEvent?.type === Blockly.Events.BLOCK_CHANGE &&
@@ -57,6 +59,9 @@ export function updateOrCreateMeshFromBlock(block, changeEvent) {
     createMeshOnCanvas(block);
     return;
   }
+
+  console.log((changeEvent?.type === Blockly.Events.BLOCK_CHANGE ||
+      changeEvent?.type === Blockly.Events.BLOCK_CREATE));
 
   if (
     (changeEvent?.type === Blockly.Events.BLOCK_CHANGE ||
@@ -93,6 +98,10 @@ export function deleteMeshFromBlock(blockId) {
 }
 
 export function getMeshFromBlock(block) {
+  if (block && block.type === "rotate_to") {
+    block = block.getParent();
+  }
+  
   const blockKey = Object.keys(meshMap).find((key) => meshMap[key] === block);
 
   if (!blockKey) {
@@ -173,7 +182,7 @@ export function extractMaterialInfo(materialBlock) {
 }
 
 export function updateMeshFromBlock(mesh, block, changeEvent) {
-  //console.log("Update", block.type, changeEvent.type);
+  console.log("Update", block.type, changeEvent.type);
   if (
     !mesh &&
     !["set_sky_color", "set_background_color", "create_ground"].includes(
@@ -244,6 +253,7 @@ export function updateMeshFromBlock(mesh, block, changeEvent) {
       "load_multi_object",
       "load_character",
       "create_map",
+      "rotate_to"
     ].includes(block.type)
   ) {
     color = block
@@ -563,12 +573,27 @@ export function updateMeshFromBlock(mesh, block, changeEvent) {
     }
   }
   if (["X", "Y", "Z"].includes(changed)) {
-    flock.positionAt(mesh.name, {
-      x: position.x,
-      y: position.y,
-      z: position.z,
-      useY: true,
-    });
+    switch (block.type) {
+      case "rotate_to":
+        /* The "position" X, Y and Z values are automatically picked up from the "rotate_to"
+        block and assigned as such, so we can just use those for the rotations instead of
+        having to reassign them. */
+        flock.rotateTo(mesh.name, {
+          x: position.x,
+          y: position.y,
+          z: position.z,
+        });
+        break;
+
+      default:
+        flock.positionAt(mesh.name, {
+          x: position.x,
+          y: position.y,
+          z: position.z,
+          useY: true,
+        });
+        break;
+    }
   }
   //console.log("Update physics");
   flock.updatePhysics(mesh);
