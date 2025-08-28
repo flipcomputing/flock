@@ -123,6 +123,7 @@ export const objectNames = [
 	"Key.glb",
 	"Wand.glb",
 	"Hat.glb",
+	"donut.glb",
 ];
 
 export const objectColours = {
@@ -136,6 +137,7 @@ export const objectColours = {
 	"Key.glb": ["#A47E1B", "#C9A227", "#76520E"],
 	"Wand.glb": ["#FF4500", "#8A2BE2", "#92614A"],
 	"Hat.glb": ["#9D3F72", "#B5FDFD", "#3D0073"],
+	"donut.glb": ["#f9cb9c", "#fba0c3"],
 
 	"tree.glb": ["#66CDAA", "#CD853F"],
 	"tree2.glb": ["#7F9F7F", "#A1623B"],
