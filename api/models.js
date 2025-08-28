@@ -320,6 +320,7 @@ export const flockModels = {
 
           // Hidden template for future clones
           const firstMesh = container.meshes[0].clone(`${modelName}_first`);
+          firstMesh.metadata = firstMesh.metadata || {};
           firstMesh.setEnabled(false);
           firstMesh.isPickable = false;
           firstMesh.getChildMeshes().forEach((child) => {
