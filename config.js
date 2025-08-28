@@ -120,6 +120,7 @@ export const objectNames = [
 	"Gem1.glb",
 	"Gem2.glb",
 	"Gem3.glb",
+	"Key.glb",
 	"Wand.glb",
 	"Hat.glb",
 ];
@@ -132,6 +133,7 @@ export const objectColours = {
 	"Gem1.glb": ["#00BFFF", "#00BFFF", "#00BFFF"],
 	"Gem2.glb": ["#8A2BE2", "#8A2BE2", "#8A2BE2"],
 	"Gem3.glb": ["#FF4500", "#FF4500", "#FF4500"],
+	"Key.glb": ["#A47E1B", "#C9A227", "#76520E"],
 	"Wand.glb": ["#FF4500", "#8A2BE2", "#92614A"],
 	"Hat.glb": ["#9D3F72", "#B5FDFD", "#3D0073"],
 
