@@ -192,7 +192,7 @@ const toolboxSceneMeshes = {
 					shadow: {
 						type: "math_number",
 						fields: {
-							NUM: 1,
+							NUM: 0,
 						},
 					},
 				},
