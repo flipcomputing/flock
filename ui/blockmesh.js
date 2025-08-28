@@ -552,6 +552,10 @@ export function updateMeshFromBlock(mesh, block, changeEvent) {
       }
       break;
 
+    case "rotate_to":
+      // Recognised as a shape here for some reason.
+      break;
+
     default:
       console.warn(`Unknown shape type: ${shapeType}`);
   }
