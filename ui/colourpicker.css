@@ -237,6 +237,45 @@
   background-color: var(--color-button-bg-hover);
 }
 
+.color-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 16px;
+  margin-bottom: 12px;
+}
+
+.hue-slider-container {
+  position: relative;
+  width: 150px;
+  height: 20px;
+}
+
+.hue-slider-canvas {
+  border-radius: 4px;
+  cursor: pointer;
+  border: 1px solid #ddd;
+  width: 150px;
+  height: 20px;
+}
+
+.hue-slider-handle {
+  position: absolute;
+  top: -2px;
+  width: 12px;
+  height: 24px;
+  background: white;
+  border: 2px solid #333;
+  border-radius: 2px;
+  cursor: grab;
+  pointer-events: auto;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+.hue-slider-handle:active {
+  cursor: grabbing;
+}
+
 .color-picker-eyedropper {
   background-color: var(--color-button-primary);
   color: white;
@@ -246,7 +285,6 @@
   padding: 10px;
   border-radius: 4px;
   transition: background-color 0.2s;
-  margin-top: 4px;
   width: 40px;
   height: 40px;
   display: flex;
@@ -256,6 +294,96 @@
 
 .color-picker-eyedropper:hover {
   background-color: var(--color-button-bg-hover);
+}
+
+.color-picker-more-options {
+  background-color: var(--color-button-primary);
+  color: white;
+  border: none;
+  font-size: 16px;
+  cursor: pointer;
+  padding: 10px;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.color-picker-more-options:hover {
+  background-color: var(--color-button-bg-hover);
+}
+
+.color-advanced-options {
+  margin-top: 8px;
+  width: 100%;
+  padding: 12px 0;
+}
+
+.advanced-options-row {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.css-input-container {
+  flex: 0.6;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.css-prefix {
+  color: #666;
+  font-family: monospace;
+  font-size: 13px;
+  font-weight: bold;
+  user-select: none;
+}
+
+.css-color-input {
+  flex: 1;
+  padding: 10px 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 13px;
+  font-family: monospace;
+  box-sizing: border-box;
+  height: 44px;
+}
+
+.rgb-inputs {
+  flex: 1.4;
+  display: flex;
+  gap: 10px;
+  justify-content: space-between;
+}
+
+.rgb-input-group {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.rgb-input-group label {
+  font-size: 13px;
+  margin-top: 6px;
+  color: #666;
+  font-weight: 900;
+}
+
+.rgb-input {
+  width: 100%;
+  padding: 10px 6px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 13px;
+  text-align: center;
+  box-sizing: border-box;
+  height: 38px;
 }
 
 .header-left {
