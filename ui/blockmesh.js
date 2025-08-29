@@ -98,7 +98,7 @@ export function deleteMeshFromBlock(blockId) {
 }
 
 export function getMeshFromBlock(block) {
-  if (block && block.type === "rotate_to") {
+  if (block && !["rotate_to", "rotate_model_xyz"].includes(block.type)) {
     block = block.getParent();
   }
   
@@ -253,7 +253,8 @@ export function updateMeshFromBlock(mesh, block, changeEvent) {
       "load_multi_object",
       "load_character",
       "create_map",
-      "rotate_to"
+      "rotate_to",
+      "rotate_model_xyz"
     ].includes(block.type)
   ) {
     color = block
@@ -583,6 +584,15 @@ export function updateMeshFromBlock(mesh, block, changeEvent) {
         block and assigned as such, so we can just use those for the rotations instead of
         having to reassign them. */
         flock.rotateTo(mesh.name, {
+          x: position.x,
+          y: position.y,
+          z: position.z,
+        });
+        break;
+
+      case "rotate_model_xyz":
+        /* As above. */
+        flock.rotate(mesh.name, {
           x: position.x,
           y: position.y,
           z: position.z,

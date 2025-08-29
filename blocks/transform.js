@@ -17,7 +17,7 @@ export function defineTransformBlocks() {
 		if (!changeEventParentBlock) return;
 		const changeEventBlockType= changeEventParentBlock.type;
 		console.log("The type of this change event is", changeEventBlockType);
-		if (changeEventBlockType != "rotate_to") return;
+		if (!["rotate_to", "rotate_model_xyz"].includes(changeEventBlockType)) return;
 		console.log(handleFieldOrChildChange(block, changeEvent));
 	}
 	Blockly.Blocks["move_by_xyz"] = {
