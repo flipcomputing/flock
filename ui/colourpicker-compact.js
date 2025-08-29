@@ -104,7 +104,7 @@ class CustomColorPicker {
                 ).join('')}
               </div>
               <div class="color-controls">
-                <div class="hue-slider-container">
+                <div class="hue-slider-container" tabindex="0" role="slider" aria-label="Hue slider" aria-valuemin="0" aria-valuemax="360" aria-valuenow="0">
                   <canvas class="hue-slider-canvas" width="150" height="20"></canvas>
                   <div class="hue-slider-handle"></div>
                 </div>
@@ -298,6 +298,12 @@ class CustomColorPicker {
     
     // Keyboard navigation
     this.container.addEventListener('keydown', (e) => this.handleKeydown(e));
+    
+    // Setup focus trapping
+    this.setupFocusTrapping();
+    
+    // Setup hue slider keyboard controls
+    this.setupHueSliderKeyboard();
   }
   
   handleCanvasClick(x, y) {
@@ -333,6 +339,189 @@ class CustomColorPicker {
     return `#${f(0)}${f(8)}${f(4)}`;
   }
   
+  setupFocusTrapping() {
+    // Get all focusable elements within the color picker
+    this.focusableElements = this.container.querySelectorAll(
+      'button, input, [tabindex]:not([tabindex="-1"])'
+    );
+    this.firstFocusableElement = this.focusableElements[0];
+    this.lastFocusableElement = this.focusableElements[this.focusableElements.length - 1];
+    
+    // Add tab key event listener for focus trapping
+    this.container.addEventListener('keydown', (e) => {
+      if (e.key === 'Tab') {
+        if (e.shiftKey) {
+          // Shift + Tab (backward)
+          if (document.activeElement === this.firstFocusableElement) {
+            e.preventDefault();
+            this.lastFocusableElement.focus();
+          }
+        } else {
+          // Tab (forward)
+          if (document.activeElement === this.lastFocusableElement) {
+            e.preventDefault();
+            this.firstFocusableElement.focus();
+          }
+        }
+      }
+    });
+  }
+
+  setupHueSliderKeyboard() {
+    const hueSlider = this.container.querySelector('.hue-slider-container');
+    if (!hueSlider) return;
+    
+    // Dedicated event listener for hue slider keyboard controls
+    hueSlider.addEventListener('keydown', (e) => {
+      // Only handle if the hue slider is focused
+      if (document.activeElement !== hueSlider) return;
+      
+      let currentHue = this.getCurrentHue();
+      let newHue = currentHue;
+      let handled = false;
+      
+      switch (e.key) {
+        case 'ArrowLeft':
+        case 'ArrowDown':
+          e.preventDefault();
+          e.stopPropagation();
+          newHue = Math.max(0, currentHue - 5);
+          handled = true;
+          break;
+        case 'ArrowRight':
+        case 'ArrowUp':
+          e.preventDefault();
+          e.stopPropagation();
+          newHue = Math.min(360, currentHue + 5);
+          handled = true;
+          break;
+        case 'Home':
+          e.preventDefault();
+          e.stopPropagation();
+          newHue = 0;
+          handled = true;
+          break;
+        case 'End':
+          e.preventDefault();
+          e.stopPropagation();
+          newHue = 360;
+          handled = true;
+          break;
+        case 'PageUp':
+          e.preventDefault();
+          e.stopPropagation();
+          newHue = Math.min(360, currentHue + 30);
+          handled = true;
+          break;
+        case 'PageDown':
+          e.preventDefault();
+          e.stopPropagation();
+          newHue = Math.max(0, currentHue - 30);
+          handled = true;
+          break;
+      }
+      
+      if (handled) {
+        // Update hue and regenerate color
+        this.setHueFromKeyboard(newHue);
+        hueSlider.setAttribute('aria-valuenow', Math.round(newHue));
+      }
+    });
+    
+    // Add focus styling to match other interactive elements
+    hueSlider.addEventListener('focus', () => {
+      hueSlider.style.outline = '3px solid var(--color-focus)';
+      hueSlider.style.outlineOffset = '2px';
+    });
+    
+    hueSlider.addEventListener('blur', () => {
+      hueSlider.style.outline = 'none';
+    });
+  }
+
+  getCurrentHue() {
+    // Convert current color to HSL to get hue
+    const rgb = this.hexToRgb(this.currentColor);
+    if (!rgb) return 0;
+    
+    const r = rgb.r / 255;
+    const g = rgb.g / 255;
+    const b = rgb.b / 255;
+    
+    const max = Math.max(r, g, b);
+    const min = Math.min(r, g, b);
+    const delta = max - min;
+    
+    if (delta === 0) return 0;
+    
+    let hue;
+    if (max === r) {
+      hue = ((g - b) / delta) % 6;
+    } else if (max === g) {
+      hue = (b - r) / delta + 2;
+    } else {
+      hue = (r - g) / delta + 4;
+    }
+    
+    hue = hue * 60;
+    if (hue < 0) hue += 360;
+    
+    return hue;
+  }
+
+  setHueFromKeyboard(hue) {
+    // Get current saturation and lightness, or use defaults for better color range
+    const rgb = this.hexToRgb(this.currentColor);
+    if (!rgb) return;
+    
+    const r = rgb.r / 255;
+    const g = rgb.g / 255;
+    const b = rgb.b / 255;
+    
+    const max = Math.max(r, g, b);
+    const min = Math.min(r, g, b);
+    const delta = max - min;
+    
+    let lightness = (max + min) / 2;
+    let saturation = delta === 0 ? 0 : delta / (1 - Math.abs(2 * lightness - 1));
+    
+    // If we have a very low saturation color, boost it to make hue changes visible
+    if (saturation < 0.3) {
+      saturation = 0.8;
+    }
+    
+    // Ensure reasonable lightness for visibility
+    if (lightness < 0.2) {
+      lightness = 0.5;
+    } else if (lightness > 0.9) {
+      lightness = 0.7;
+    }
+    
+    
+    // Create new color with updated hue
+    const newColor = this.hslToHex(hue, saturation * 100, lightness * 100);
+    this.setColor(newColor);
+    
+    // Update the hue slider handle position
+    this.updateHueSliderPosition(hue);
+  }
+
+  updateHueSliderPosition(hue) {
+    const handle = this.container.querySelector('.hue-slider-handle');
+    const container = this.container.querySelector('.hue-slider-container');
+    if (!handle || !container) return;
+    
+    // Calculate position (hue 0-360 maps to 0-150px width)
+    const position = (hue / 360) * 150;
+    handle.style.left = `${Math.max(0, Math.min(150 - 6, position - 6))}px`;
+  }
+
+  updateHueSliderFromColor() {
+    // Get the hue from the current color and update slider position
+    const hue = this.getCurrentHue();
+    this.updateHueSliderPosition(hue);
+  }
+
   handleKeydown(e) {
     if (e.key === 'Escape') {
       this.close();
@@ -377,6 +566,9 @@ class CustomColorPicker {
     // Update CSS input and RGB inputs to show current color
     this.updateCssInput();
     this.updateRgbInputs();
+    
+    // Update hue slider position to match new color
+    this.updateHueSliderFromColor();
   }
   
   updateCssInput() {

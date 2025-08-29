@@ -249,6 +249,8 @@
   position: relative;
   width: 150px;
   height: 20px;
+  padding: 8px 0;
+  margin: 4px 0;
 }
 
 .hue-slider-canvas {
@@ -257,11 +259,14 @@
   border: 1px solid #ddd;
   width: 150px;
   height: 20px;
+  position: absolute;
+  top: 8px;
+  left: 0;
 }
 
 .hue-slider-handle {
   position: absolute;
-  top: -2px;
+  top: 6px;
   width: 12px;
   height: 24px;
   background: white;
