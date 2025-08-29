@@ -248,6 +248,21 @@ class CustomColorPicker {
       this.handleCanvasClick(x, y);
     });
     
+    // Make color wheel keyboard focusable
+    this.canvas.setAttribute('tabindex', '0');
+    this.canvas.setAttribute('role', 'slider');
+    this.canvas.setAttribute('aria-label', 'Color wheel: use arrow keys to select hue and saturation');
+    this.canvas.setAttribute('aria-valuenow', '0');
+    this.canvas.setAttribute('aria-valuemin', '0');
+    this.canvas.setAttribute('aria-valuemax', '360');
+    
+    // Color wheel keyboard navigation
+    this.canvas.addEventListener('keydown', (e) => this.handleColorWheelKeydown(e));
+    
+    // Initialize color wheel position tracking
+    this.colorWheelPosition = { x: 50, y: 50 }; // Center position
+    this.createColorWheelIndicator();
+    
     // Hue slider canvas
     this.hueCanvas.addEventListener('click', (e) => {
       e.preventDefault();
@@ -315,6 +330,10 @@ class CustomColorPicker {
     const radius = 48;
     
     if (distance <= radius) {
+      // Update position tracking
+      this.colorWheelPosition = { x, y };
+      this.updateColorWheelIndicator();
+      
       // Calculate hue based on angle
       const angle = Math.atan2(dy, dx) * 180 / Math.PI;
       const hue = (angle + 360) % 360;
@@ -522,14 +541,118 @@ class CustomColorPicker {
     this.updateHueSliderPosition(hue);
   }
 
+  createColorWheelIndicator() {
+    // Create position indicator ring
+    const indicator = document.createElement('div');
+    indicator.className = 'color-wheel-indicator';
+    indicator.style.cssText = `
+      position: absolute;
+      width: 8px;
+      height: 8px;
+      border: 2px solid #ffff00;
+      border-radius: 50%;
+      pointer-events: none;
+      box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.3), 0 0 4px rgba(255, 255, 0, 0.5);
+      z-index: 10;
+      transform: translate(-50%, -50%);
+    `;
+    
+    // Add to color wheel container
+    const wheelContainer = this.canvas.parentElement;
+    wheelContainer.style.position = 'relative';
+    wheelContainer.appendChild(indicator);
+    this.colorWheelIndicator = indicator;
+    
+    // Update initial position
+    this.updateColorWheelIndicator();
+  }
+  
+  updateColorWheelIndicator() {
+    if (!this.colorWheelIndicator) return;
+    
+    const x = this.colorWheelPosition.x;
+    const y = this.colorWheelPosition.y;
+    
+    this.colorWheelIndicator.style.left = `${x}px`;
+    this.colorWheelIndicator.style.top = `${y}px`;
+  }
+  
+  handleColorWheelKeydown(e) {
+    const step = 2; // pixels per step
+    let newX = this.colorWheelPosition.x;
+    let newY = this.colorWheelPosition.y;
+    
+    // Handle keyboard navigation as 2D movement
+    switch (e.key) {
+      case 'ArrowLeft':
+        e.preventDefault();
+        newX = Math.max(2, newX - step);
+        break;
+      case 'ArrowRight':
+        e.preventDefault();
+        newX = Math.min(98, newX + step);
+        break;
+      case 'ArrowUp':
+        e.preventDefault();
+        newY = Math.max(2, newY - step);
+        break;
+      case 'ArrowDown':
+        e.preventDefault();
+        newY = Math.min(98, newY + step);
+        break;
+      case 'Home':
+        e.preventDefault();
+        newX = 98; // Right edge (red)
+        newY = 50; // Center
+        break;
+      case 'End':
+        e.preventDefault();
+        newX = 50; // Center
+        newY = 50; // Center
+        break;
+      default:
+        return; // Don't handle other keys
+    }
+    
+    // Keep within circle bounds
+    const centerX = 50;
+    const centerY = 50;
+    const dx = newX - centerX;
+    const dy = newY - centerY;
+    const distance = Math.sqrt(dx * dx + dy * dy);
+    const maxRadius = 48;
+    
+    if (distance > maxRadius) {
+      // Constrain to circle edge
+      const angle = Math.atan2(dy, dx);
+      newX = centerX + Math.cos(angle) * maxRadius;
+      newY = centerY + Math.sin(angle) * maxRadius;
+    }
+    
+    // Update position and color
+    this.colorWheelPosition = { x: newX, y: newY };
+    this.updateColorWheelIndicator();
+    this.handleCanvasClick(newX, newY);
+  }
+
   handleKeydown(e) {
     if (e.key === 'Escape') {
       this.close();
       return;
     }
     
-    if (e.key === 'Enter' && e.target.classList.contains('color-picker-btn')) {
-      e.target.click();
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      e.stopPropagation();
+      
+      // If Enter is pressed on a specific button, handle it
+      if (e.target.classList.contains('color-picker-btn')) {
+        e.target.click();
+        return;
+      }
+      
+      // Otherwise, confirm the color selection (like clicking the tick)
+      this.confirmColor();
       return;
     }
     
@@ -667,11 +790,10 @@ class CustomColorPicker {
       document.addEventListener('click', this.outsideClickHandler, true);
     }, 100);
     
-    // Focus first focusable element
-    const firstFocusable = this.container.querySelector('.color-picker-use');
-    if (firstFocusable) {
-      firstFocusable.focus();
-    }
+    // Focus the color wheel for immediate keyboard interaction
+    setTimeout(() => {
+      this.canvas.focus();
+    }, 150);
   }
   
   close() {

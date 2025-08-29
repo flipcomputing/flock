@@ -519,9 +519,14 @@
 
 .color-wheel:hover,
 .color-wheel:focus {
-  outline: 3px solid #511d91;
-  outline-offset: 4px;
+  outline: 3px solid var(--color-focus) !important;
+  outline-offset: 2px;
   transform: scale(1.02);
+}
+
+.color-wheel-canvas:focus {
+  outline: 3px solid var(--color-focus) !important;
+  outline-offset: 2px;
 }
 
 .color-brightness {
