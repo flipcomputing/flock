@@ -265,13 +265,14 @@ export default {
   ],
   server: {
     host: '0.0.0.0',
+    port: 5000,
     fs: {
       // Allow serving files outside of the root
       allow: [
         "../.."
       ]
     },
-    allowedHosts: ['27c4c3b0-9860-47aa-a95d-03ca8acd6af0-00-2qj22wjmgrujn.picard.replit.dev', '1099a351-df60-40b5-bf61-4999bad0d153-00-4np7mg24c4rr.janeway.replit.dev'] //added this
+    allowedHosts: true //added this
   },
   optimizeDeps: { exclude: ["@babylonjs/havok"] },
   build: {

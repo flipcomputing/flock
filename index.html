@@ -1021,8 +1021,15 @@
                 </div>
               </span>
             </div>
-            <label for="colorPickerButton" class="sr-only">Change object color</label>
-            <input type="color" id="colorPickerButton" data-i18n="color_picker_button" disabled title="Change object color"/>
+            <button class="gizmo-button" id="colorPickerButton" data-i18n="color_picker_button_ui" aria-label="Change object color" title="Change object color">
+              <img
+                src="./images/looks.svg"
+                width="20px"
+                height="20px"
+                alt=""
+                aria-hidden="true"
+              />
+            </button>
             <button class="gizmo-button" id="positionButton" data-i18n="position_button" disabled aria-label="Position mesh" title="Position mesh">
               <img
                 src="./images/position.svg"

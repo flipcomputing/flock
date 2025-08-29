@@ -1,4 +1,5 @@
 @import url("./style/blockly.css");
+@import url("./ui/colourpicker.css");
 
 :root {
   /* Primary Brand Colors */
@@ -425,6 +426,10 @@ button {
 
 .gizmo-button img {
   filter: none; /* light mode: normal */
+}
+
+#colorPickerButton img {
+  filter: invert(1) brightness(2); /* Make palette icon white */
 }
 
 .bigbutton svg {

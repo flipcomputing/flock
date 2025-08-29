@@ -7,12 +7,12 @@ import { CrossTabCopyPaste } from "@blockly/plugin-cross-tab-copy-paste";
 import { initializeTheme } from "./themes.js";
 import { installHoverHighlight } from "./blockhandling.js";
 import {
-	options,
-	defineBlocks,
-	initializeVariableIndexes,
-	handleBlockSelect,
-	handleBlockDelete,
-	CustomZelosRenderer,
+        options,
+        defineBlocks,
+        initializeVariableIndexes,
+        handleBlockSelect,
+        handleBlockDelete,
+        CustomZelosRenderer,
 } from "../blocks";
 import { defineBaseBlocks } from "../blocks/base";
 import { defineShapeBlocks } from "../blocks/shapes";
@@ -31,6 +31,7 @@ import { defineConditionBlocks } from "../blocks/condition.js";
 import { defineAnimateBlocks } from "../blocks/animate.js";
 import { defineSoundBlocks } from "../blocks/sound.js";
 import { defineMaterialsBlocks } from "../blocks/materials.js";
+import { defineColourBlocks } from "../blocks/colour.js";
 import { defineSensingBlocks } from "../blocks/sensing.js";
 import { defineTextBlocks } from "../blocks/text.js";
 import { defineGenerators } from "../generators";
@@ -40,27 +41,28 @@ export { workspace };
 import { flock } from "../flock.js";
 
 export function initializeBlocks() {
-	defineBaseBlocks();
-	defineBlocks();
-	defineSceneBlocks();
-	defineModelBlocks();
-	defineShapeBlocks();
-	defineEffectsBlocks();
-	defineCameraBlocks();
-	defineXRBlocks();
-	defineEventsBlocks();
-	definePhysicsBlocks();
-	defineConnectBlocks();
-	defineCombineBlocks();
-	defineTransformBlocks();
-	defineControlBlocks();
-	defineConditionBlocks();
-	defineAnimateBlocks();
-	defineSoundBlocks();
-	defineMaterialsBlocks();
-	defineSensingBlocks();
-	defineTextBlocks();
-	defineGenerators();
+        defineBaseBlocks();
+        defineBlocks();
+        defineSceneBlocks();
+        defineModelBlocks();
+        defineShapeBlocks();
+        defineEffectsBlocks();
+        defineCameraBlocks();
+        defineXRBlocks();
+        defineEventsBlocks();
+        definePhysicsBlocks();
+        defineConnectBlocks();
+        defineCombineBlocks();
+        defineTransformBlocks();
+        defineControlBlocks();
+        defineConditionBlocks();
+        defineAnimateBlocks();
+        defineSoundBlocks();
+        defineMaterialsBlocks();
+        defineColourBlocks();
+        defineSensingBlocks();
+        defineTextBlocks();
+        defineGenerators();
 }
 
 Blockly.utils.colour.setHsvSaturation(0.3); // 0 (inclusive) to 1 (exclusive), defaulting to 0.45
@@ -68,682 +70,682 @@ Blockly.utils.colour.setHsvValue(0.85); // 0 (inclusive) to 1 (exclusive), defau
 
 /*
 function Mesh(id = "UNDEFINED") {
-	this.id = id;
+        this.id = id;
 }
 flock.Mesh = Mesh;
 Mesh.prototype.toString = function MeshToString() {
-	console.log("Mesh.toString", `${this.id}`);
-	return `${this.id}`;
+        console.log("Mesh.toString", `${this.id}`);
+        return `${this.id}`;
 };injec
 */
 
 export function initializeWorkspace() {
-	// Set Blockly color configuration
-	Blockly.utils.colour.setHsvSaturation(0.3);
-	Blockly.utils.colour.setHsvValue(0.85);
+        // Set Blockly color configuration
+        Blockly.utils.colour.setHsvSaturation(0.3);
+        Blockly.utils.colour.setHsvValue(0.85);
 
-	// Register variable category callback
-	workspace.registerToolboxCategoryCallback("VARIABLE", function (ws) {
-		const xmlList = Blockly.Variables.flyoutCategory(ws);
+        // Register variable category callback
+        workspace.registerToolboxCategoryCallback("VARIABLE", function (ws) {
+                const xmlList = Blockly.Variables.flyoutCategory(ws);
 
-		xmlList.forEach((xmlBlock) => {
-			if (xmlBlock.getAttribute("type") === "variables_set") {
-				const valueElement = document.createElement("value");
-				valueElement.setAttribute("name", "VALUE");
+                xmlList.forEach((xmlBlock) => {
+                        if (xmlBlock.getAttribute("type") === "variables_set") {
+                                const valueElement = document.createElement("value");
+                                valueElement.setAttribute("name", "VALUE");
 
-				const shadowElement = document.createElement("shadow");
-				shadowElement.setAttribute("type", "math_number");
+                                const shadowElement = document.createElement("shadow");
+                                shadowElement.setAttribute("type", "math_number");
 
-				const fieldElement = document.createElement("field");
-				fieldElement.setAttribute("name", "NUM");
-				fieldElement.textContent = "0";
+                                const fieldElement = document.createElement("field");
+                                fieldElement.setAttribute("name", "NUM");
+                                fieldElement.textContent = "0";
 
-				shadowElement.appendChild(fieldElement);
-				valueElement.appendChild(shadowElement);
-				xmlBlock.appendChild(valueElement);
-			}
-		});
+                                shadowElement.appendChild(fieldElement);
+                                valueElement.appendChild(shadowElement);
+                                xmlBlock.appendChild(valueElement);
+                        }
+                });
 
-		const defaultBlock = xmlList.find(
-			(xmlBlock) => xmlBlock.getAttribute("type") === "variables_set",
-		);
-		if (defaultBlock) {
-			const xmlBlockText = defaultBlock.cloneNode(true);
+                const defaultBlock = xmlList.find(
+                        (xmlBlock) => xmlBlock.getAttribute("type") === "variables_set",
+                );
+                if (defaultBlock) {
+                        const xmlBlockText = defaultBlock.cloneNode(true);
 
-			const valueElements = xmlBlockText.getElementsByTagName("value");
-			for (let i = 0; i < valueElements.length; i++) {
-				if (valueElements[i].getAttribute("name") === "VALUE") {
-					while (valueElements[i].firstChild) {
-						valueElements[i].removeChild(
-							valueElements[i].firstChild,
-						);
-					}
-					const shadowText = document.createElement("shadow");
-					shadowText.setAttribute("type", "text");
+                        const valueElements = xmlBlockText.getElementsByTagName("value");
+                        for (let i = 0; i < valueElements.length; i++) {
+                                if (valueElements[i].getAttribute("name") === "VALUE") {
+                                        while (valueElements[i].firstChild) {
+                                                valueElements[i].removeChild(
+                                                        valueElements[i].firstChild,
+                                                );
+                                        }
+                                        const shadowText = document.createElement("shadow");
+                                        shadowText.setAttribute("type", "text");
 
-					const fieldText = document.createElement("field");
-					fieldText.setAttribute("name", "TEXT");
-					fieldText.textContent = "";
-					shadowText.appendChild(fieldText);
-					valueElements[i].appendChild(shadowText);
-					break;
-				}
-			}
+                                        const fieldText = document.createElement("field");
+                                        fieldText.setAttribute("name", "TEXT");
+                                        fieldText.textContent = "";
+                                        shadowText.appendChild(fieldText);
+                                        valueElements[i].appendChild(shadowText);
+                                        break;
+                                }
+                        }
 
-			const defaultIndex = xmlList.indexOf(defaultBlock);
-			if (defaultIndex !== -1) {
-				xmlList.splice(defaultIndex + 1, 0, xmlBlockText);
-			}
-		}
-		return xmlList;
-	});
+                        const defaultIndex = xmlList.indexOf(defaultBlock);
+                        if (defaultIndex !== -1) {
+                                xmlList.splice(defaultIndex + 1, 0, xmlBlockText);
+                        }
+                }
+                return xmlList;
+        });
 
-	// Add change listeners
+        // Add change listeners
 workspace.addChangeListener(BlockDynamicConnection.finalizeConnections);
-	workspace.addChangeListener(handleBlockSelect);
-	workspace.addChangeListener(handleBlockDelete);
+        workspace.addChangeListener(handleBlockSelect);
+        workspace.addChangeListener(handleBlockDelete);
 
-	// Initialize workspace search
-	const workspaceSearch = new WorkspaceSearch(workspace);
-	workspaceSearch.init();
+        // Initialize workspace search
+        const workspaceSearch = new WorkspaceSearch(workspace);
+        workspaceSearch.init();
 
-	// Set up auto value behavior
-	setupAutoValueBehavior(workspace);
+        // Set up auto value behavior
+        setupAutoValueBehavior(workspace);
 
-	return workspace;
+        return workspace;
 }
 
 export function createBlocklyWorkspace() {
-	// Register the custom renderer
-	Blockly.registry.register(
-		Blockly.registry.Type.RENDERER,
-		"custom_zelos_renderer",
-		CustomZelosRenderer,
-	);
+        // Register the custom renderer
+        Blockly.registry.register(
+                Blockly.registry.Type.RENDERER,
+                "custom_zelos_renderer",
+                CustomZelosRenderer,
+        );
 
-	
-	KeyboardNavigation.registerKeyboardNavigationStyles();
+        
+        KeyboardNavigation.registerKeyboardNavigationStyles();
 
-	
-	workspace = Blockly.inject("blocklyDiv", options);
-
-
-	(function guardCategoryKeepScroll(ws) {
-	  function getToolboxEl() {
-		var inj = ws.getInjectionDiv && ws.getInjectionDiv();
-		return inj && (inj.querySelector('.blocklyToolbox') || inj.querySelector('.blocklyToolboxDiv'));
-	  }
-	  function currentX() {
-		var t = ws.getCanvas().getAttribute('transform') || '';
-		var m = /translate\(([-\d.]+),\s*([-\d.]+)\)/.exec(t);
-		return m ? parseFloat(m[1]) : 0;
-	  }
-
-	  var toolboxNode = getToolboxEl();
-	  if (!toolboxNode) return;
-
-	  var guarding = false;
-	  var savedTranslate = null;
-	  var savedMoveCanvas = null;
-
-	  function startGuard() {
-		if (guarding) return;
-		guarding = true;
-
-		var beforeX = currentX();              // remember where the canvas is now
-		savedTranslate = ws.translate;
-		savedMoveCanvas = ws.moveCanvas;
-
-		function wrap(callOrig) {
-		  return function(x, y) {
-			// During the category-open window, keep X where it was if Blockly tries to move it.
-			// Small +/-1px jitters pass; anything bigger is considered the buggy push.
-			if (Math.abs(x - beforeX) > 3) x = beforeX;
-			return callOrig.call(ws, x, y);
-		  };
-		}
-
-		ws.translate  = wrap(savedTranslate);
-		ws.moveCanvas = wrap(savedMoveCanvas);
-
-		// Release after initial layout settles (two frames).
-		requestAnimationFrame(function() {
-		  requestAnimationFrame(function() {
-			ws.translate  = savedTranslate;
-			ws.moveCanvas = savedMoveCanvas;
-			guarding = false;
-		  });
-		});
-	  }
-
-	  // Start guard BEFORE Blockly’s handlers (capture phase) so we catch the first translate.
-	  toolboxNode.addEventListener('pointerdown', startGuard, true);
-	  toolboxNode.addEventListener('mousedown',   startGuard, true);
-	  toolboxNode.addEventListener('keydown', function(e) {
-		var k = e.key;
-		if (k === 'Enter' || k === ' ' || k === 'Spacebar' ||
-			k === 'ArrowUp' || k === 'ArrowDown' || k === 'ArrowLeft' || k === 'ArrowRight') {
-		  startGuard();
-		}
-	  }, true);
-
-	  // If you select categories programmatically, call startGuard() just before you do.
-	})(workspace);
-
-	window.addEventListener('keydown', (e) => {
-	  if (e.code === 'KeyK' && e.ctrlKey && e.shiftKey) {
-		e.preventDefault();
-		console.log("Keyboard Navigation on");
-		  const keyboardNav = new KeyboardNavigation(workspace);
-
-	  }
-	});
+        
+        workspace = Blockly.inject("blocklyDiv", options);
 
 
-	initializeTheme();
-	installHoverHighlight(workspace);
+        (function guardCategoryKeepScroll(ws) {
+          function getToolboxEl() {
+                var inj = ws.getInjectionDiv && ws.getInjectionDiv();
+                return inj && (inj.querySelector('.blocklyToolbox') || inj.querySelector('.blocklyToolboxDiv'));
+          }
+          function currentX() {
+                var t = ws.getCanvas().getAttribute('transform') || '';
+                var m = /translate\(([-\d.]+),\s*([-\d.]+)\)/.exec(t);
+                return m ? parseFloat(m[1]) : 0;
+          }
 
-	// Register comment options for workspace comments
-	Blockly.ContextMenuItems.registerCommentOptions();
+          var toolboxNode = getToolboxEl();
+          if (!toolboxNode) return;
 
-	if (flock.performanceOverlay) initBlocklyPerfOverlay(workspace);
+          var guarding = false;
+          var savedTranslate = null;
+          var savedMoveCanvas = null;
 
-	//const keyboardNav = new KeyboardNavigation(workspace);
+          function startGuard() {
+                if (guarding) return;
+                guarding = true;
 
-	window.mainWorkspace = workspace;
+                var beforeX = currentX();              // remember where the canvas is now
+                savedTranslate = ws.translate;
+                savedMoveCanvas = ws.moveCanvas;
 
-	return workspace;
+                function wrap(callOrig) {
+                  return function(x, y) {
+                        // During the category-open window, keep X where it was if Blockly tries to move it.
+                        // Small +/-1px jitters pass; anything bigger is considered the buggy push.
+                        if (Math.abs(x - beforeX) > 3) x = beforeX;
+                        return callOrig.call(ws, x, y);
+                  };
+                }
+
+                ws.translate  = wrap(savedTranslate);
+                ws.moveCanvas = wrap(savedMoveCanvas);
+
+                // Release after initial layout settles (two frames).
+                requestAnimationFrame(function() {
+                  requestAnimationFrame(function() {
+                        ws.translate  = savedTranslate;
+                        ws.moveCanvas = savedMoveCanvas;
+                        guarding = false;
+                  });
+                });
+          }
+
+          // Start guard BEFORE Blockly’s handlers (capture phase) so we catch the first translate.
+          toolboxNode.addEventListener('pointerdown', startGuard, true);
+          toolboxNode.addEventListener('mousedown',   startGuard, true);
+          toolboxNode.addEventListener('keydown', function(e) {
+                var k = e.key;
+                if (k === 'Enter' || k === ' ' || k === 'Spacebar' ||
+                        k === 'ArrowUp' || k === 'ArrowDown' || k === 'ArrowLeft' || k === 'ArrowRight') {
+                  startGuard();
+                }
+          }, true);
+
+          // If you select categories programmatically, call startGuard() just before you do.
+        })(workspace);
+
+        window.addEventListener('keydown', (e) => {
+          if (e.code === 'KeyK' && e.ctrlKey && e.shiftKey) {
+                e.preventDefault();
+                console.log("Keyboard Navigation on");
+                  const keyboardNav = new KeyboardNavigation(workspace);
+
+          }
+        });
+
+
+        initializeTheme();
+        installHoverHighlight(workspace);
+
+        // Register comment options for workspace comments
+        Blockly.ContextMenuItems.registerCommentOptions();
+
+        if (flock.performanceOverlay) initBlocklyPerfOverlay(workspace);
+
+        //const keyboardNav = new KeyboardNavigation(workspace);
+
+        window.mainWorkspace = workspace;
+
+        return workspace;
 }
 
 export function getWorkspace() {
-	return workspace;
+        return workspace;
 }
 
 function setupAutoValueBehavior(workspace) {
-	workspace.addChangeListener(function (event) {
-		if (
-			event.type === Blockly.Events.BLOCK_CHANGE ||
-			event.type === Blockly.Events.BLOCK_CREATE
-		) {
-			var block = workspace.getBlockById(event.blockId);
-			if (block && block.type === "lists_create_with") {
-				var inputCount = 0;
-				while (block.getInput("ADD" + inputCount)) {
-					inputCount++;
-				}
-				if (inputCount >= 2) {
-					var previousInput = block.getInput(
-						"ADD" + (inputCount - 2),
-					);
-					var lastInput = block.getInput("ADD" + (inputCount - 1));
-					if (
-						previousInput &&
-						previousInput.connection.targetConnection &&
-						lastInput &&
-						!lastInput.connection.targetConnection
-					) {
-						var sourceBlock =
-							previousInput.connection.targetConnection
-								.sourceBlock_;
+        workspace.addChangeListener(function (event) {
+                if (
+                        event.type === Blockly.Events.BLOCK_CHANGE ||
+                        event.type === Blockly.Events.BLOCK_CREATE
+                ) {
+                        var block = workspace.getBlockById(event.blockId);
+                        if (block && block.type === "lists_create_with") {
+                                var inputCount = 0;
+                                while (block.getInput("ADD" + inputCount)) {
+                                        inputCount++;
+                                }
+                                if (inputCount >= 2) {
+                                        var previousInput = block.getInput(
+                                                "ADD" + (inputCount - 2),
+                                        );
+                                        var lastInput = block.getInput("ADD" + (inputCount - 1));
+                                        if (
+                                                previousInput &&
+                                                previousInput.connection.targetConnection &&
+                                                lastInput &&
+                                                !lastInput.connection.targetConnection
+                                        ) {
+                                                var sourceBlock =
+                                                        previousInput.connection.targetConnection
+                                                                .sourceBlock_;
 
-						function deepCopyBlock(originalBlock) {
-							var newBlock = workspace.newBlock(
-								originalBlock.type,
-							);
+                                                function deepCopyBlock(originalBlock) {
+                                                        var newBlock = workspace.newBlock(
+                                                                originalBlock.type,
+                                                        );
 
-							if (originalBlock.isShadow()) {
-								newBlock.setShadow(true);
-							}
+                                                        if (originalBlock.isShadow()) {
+                                                                newBlock.setShadow(true);
+                                                        }
 
-							var fieldMap = {
-								math_number: "NUM",
-								text: "TEXT",
-								logic_boolean: "BOOL",
-								variables_get: "VAR",
-							};
+                                                        var fieldMap = {
+                                                                math_number: "NUM",
+                                                                text: "TEXT",
+                                                                logic_boolean: "BOOL",
+                                                                variables_get: "VAR",
+                                                        };
 
-							if (fieldMap[originalBlock.type]) {
-								var fieldName = fieldMap[originalBlock.type];
-								newBlock.setFieldValue(
-									originalBlock.getFieldValue(fieldName),
-									fieldName,
-								);
-							}
+                                                        if (fieldMap[originalBlock.type]) {
+                                                                var fieldName = fieldMap[originalBlock.type];
+                                                                newBlock.setFieldValue(
+                                                                        originalBlock.getFieldValue(fieldName),
+                                                                        fieldName,
+                                                                );
+                                                        }
 
-							for (
-								var i = 0;
-								i < originalBlock.inputList.length;
-								i++
-							) {
-								var originalInput = originalBlock.inputList[i];
-								var newInput = newBlock.getInput(
-									originalInput.name,
-								);
+                                                        for (
+                                                                var i = 0;
+                                                                i < originalBlock.inputList.length;
+                                                                i++
+                                                        ) {
+                                                                var originalInput = originalBlock.inputList[i];
+                                                                var newInput = newBlock.getInput(
+                                                                        originalInput.name,
+                                                                );
 
-								if (
-									originalInput.connection &&
-									originalInput.connection.targetConnection
-								) {
-									var originalNestedBlock =
-										originalInput.connection
-											.targetConnection.sourceBlock_;
+                                                                if (
+                                                                        originalInput.connection &&
+                                                                        originalInput.connection.targetConnection
+                                                                ) {
+                                                                        var originalNestedBlock =
+                                                                                originalInput.connection
+                                                                                        .targetConnection.sourceBlock_;
 
-									var newNestedBlock =
-										deepCopyBlock(originalNestedBlock);
+                                                                        var newNestedBlock =
+                                                                                deepCopyBlock(originalNestedBlock);
 
-									if (
-										newInput &&
-										newNestedBlock.outputConnection
-									) {
-										newInput.connection.connect(
-											newNestedBlock.outputConnection,
-										);
-									}
-								}
-							}
+                                                                        if (
+                                                                                newInput &&
+                                                                                newNestedBlock.outputConnection
+                                                                        ) {
+                                                                                newInput.connection.connect(
+                                                                                        newNestedBlock.outputConnection,
+                                                                                );
+                                                                        }
+                                                                }
+                                                        }
 
-							newBlock.initSvg();
-							newBlock.render();
+                                                        newBlock.initSvg();
+                                                        newBlock.render();
 
-							return newBlock;
-						}
+                                                        return newBlock;
+                                                }
 
-						var newBlock = deepCopyBlock(sourceBlock);
-						lastInput.connection.connect(newBlock.outputConnection);
-					}
-				}
-			}
-		}
-	});
+                                                var newBlock = deepCopyBlock(sourceBlock);
+                                                lastInput.connection.connect(newBlock.outputConnection);
+                                        }
+                                }
+                        }
+                }
+        });
 }
 
 export function overrideSearchPlugin(workspace) {
-	function getBlocksFromToolbox(workspace) {
-		const toolboxBlocks = [];
+        function getBlocksFromToolbox(workspace) {
+                const toolboxBlocks = [];
 
-		function processItem(item, categoryName = "") {
-			const currentCategory = item.getName
-				? item.getName()
-				: categoryName;
+                function processItem(item, categoryName = "") {
+                        const currentCategory = item.getName
+                                ? item.getName()
+                                : categoryName;
 
-			if (currentCategory === "Snippets") {
-				return;
-			}
+                        if (currentCategory === "Snippets") {
+                                return;
+                        }
 
-			if (item.getContents) {
-				const contents = item.getContents();
-				const blocks = Array.isArray(contents) ? contents : [contents];
+                        if (item.getContents) {
+                                const contents = item.getContents();
+                                const blocks = Array.isArray(contents) ? contents : [contents];
 
-				blocks.forEach((block) => {
-					if (block.kind === "block") {
-						toolboxBlocks.push({
-							type: block.type,
-							text: block.type,
-							full: block,
-						});
-					}
-				});
-			}
+                                blocks.forEach((block) => {
+                                        if (block.kind === "block") {
+                                                toolboxBlocks.push({
+                                                        type: block.type,
+                                                        text: block.type,
+                                                        full: block,
+                                                });
+                                        }
+                                });
+                        }
 
-			if (item.getChildToolboxItems) {
-				item.getChildToolboxItems().forEach((child) => {
-					processItem(child, currentCategory);
-				});
-			}
-		}
+                        if (item.getChildToolboxItems) {
+                                item.getChildToolboxItems().forEach((child) => {
+                                        processItem(child, currentCategory);
+                                });
+                        }
+                }
 
-		workspace.getToolbox().getToolboxItems().forEach(processItem);
-		return toolboxBlocks;
-	}
+                workspace.getToolbox().getToolboxItems().forEach(processItem);
+                return toolboxBlocks;
+        }
 
-	const SearchCategory = Blockly.registry.getClass(
-		Blockly.registry.Type.TOOLBOX_ITEM,
-		"search",
-	);
+        const SearchCategory = Blockly.registry.getClass(
+                Blockly.registry.Type.TOOLBOX_ITEM,
+                "search",
+        );
 
-	if (!SearchCategory) {
-		console.error("Search category not found in registry!");
-		return;
-	}
+        if (!SearchCategory) {
+                console.error("Search category not found in registry!");
+                return;
+        }
 
-	const toolboxBlocks = getBlocksFromToolbox(workspace);
-	SearchCategory.prototype.initBlockSearcher = function () {
-		this.blockSearcher.indexBlocks = function () {
-			this.indexedBlocks_ = toolboxBlocks;
-		};
-		this.blockSearcher.indexBlocks();
-	};
+        const toolboxBlocks = getBlocksFromToolbox(workspace);
+        SearchCategory.prototype.initBlockSearcher = function () {
+                this.blockSearcher.indexBlocks = function () {
+                        this.indexedBlocks_ = toolboxBlocks;
+                };
+                this.blockSearcher.indexBlocks();
+        };
 
-	SearchCategory.prototype.matchBlocks = function () {
-		if (!this.hasInputStarted) {
-			this.hasInputStarted = true;
-			return;
-		}
+        SearchCategory.prototype.matchBlocks = function () {
+                if (!this.hasInputStarted) {
+                        this.hasInputStarted = true;
+                        return;
+                }
 
-		const query = this.searchField?.value.toLowerCase().trim() || "";
+                const query = this.searchField?.value.toLowerCase().trim() || "";
 
-		const matches = this.blockSearcher.indexedBlocks_.filter((block) => {
-			if (block.text) {
-				return block.text.toLowerCase().includes(query);
-			}
-			return false;
-		});
+                const matches = this.blockSearcher.indexedBlocks_.filter((block) => {
+                        if (block.text) {
+                                return block.text.toLowerCase().includes(query);
+                        }
+                        return false;
+                });
 
-		this.showMatchingBlocks(matches);
-	};
+                this.showMatchingBlocks(matches);
+        };
 
-	function createXmlFromJson(blockJson, isShadow = false, isTopLevel = true) {
-		const blockXml = Blockly.utils.xml.createElement(
-			isShadow ? "shadow" : "block",
-		);
-		blockXml.setAttribute("type", blockJson.type);
+        function createXmlFromJson(blockJson, isShadow = false, isTopLevel = true) {
+                const blockXml = Blockly.utils.xml.createElement(
+                        isShadow ? "shadow" : "block",
+                );
+                blockXml.setAttribute("type", blockJson.type);
 
-		if (isTopLevel && blockJson.type === "lists_create_with") {
-			blockXml.setAttribute("inline", "true");
-		}
+                if (isTopLevel && blockJson.type === "lists_create_with") {
+                        blockXml.setAttribute("inline", "true");
+                }
 
-		if (blockJson.type === "lists_create_with" && blockJson.extraState) {
-			const mutation = Blockly.utils.xml.createElement("mutation");
-			mutation.setAttribute("items", blockJson.extraState.itemCount);
-			blockXml.appendChild(mutation);
-		}
+                if (blockJson.type === "lists_create_with" && blockJson.extraState) {
+                        const mutation = Blockly.utils.xml.createElement("mutation");
+                        mutation.setAttribute("items", blockJson.extraState.itemCount);
+                        blockXml.appendChild(mutation);
+                }
 
-		if (blockJson.inputs) {
-			Object.entries(blockJson.inputs).forEach(([name, input]) => {
-				const valueXml = Blockly.utils.xml.createElement("value");
-				valueXml.setAttribute("name", name);
+                if (blockJson.inputs) {
+                        Object.entries(blockJson.inputs).forEach(([name, input]) => {
+                                const valueXml = Blockly.utils.xml.createElement("value");
+                                valueXml.setAttribute("name", name);
 
-				if (input.block) {
-					const nestedXml = createXmlFromJson(
-						input.block,
-						false,
-						false,
-					);
-					valueXml.appendChild(nestedXml);
-				}
+                                if (input.block) {
+                                        const nestedXml = createXmlFromJson(
+                                                input.block,
+                                                false,
+                                                false,
+                                        );
+                                        valueXml.appendChild(nestedXml);
+                                }
 
-				if (input.shadow) {
-					const shadowXml = createXmlFromJson(
-						input.shadow,
-						true,
-						false,
-					);
-					valueXml.appendChild(shadowXml);
-				}
+                                if (input.shadow) {
+                                        const shadowXml = createXmlFromJson(
+                                                input.shadow,
+                                                true,
+                                                false,
+                                        );
+                                        valueXml.appendChild(shadowXml);
+                                }
 
-				blockXml.appendChild(valueXml);
-			});
-		}
+                                blockXml.appendChild(valueXml);
+                        });
+                }
 
-		if (blockJson.fields) {
-			Object.entries(blockJson.fields).forEach(([name, value]) => {
-				const fieldXml = Blockly.utils.xml.createElement("field");
-				fieldXml.setAttribute("name", name);
-				fieldXml.textContent = value;
-				blockXml.appendChild(fieldXml);
-			});
-		}
+                if (blockJson.fields) {
+                        Object.entries(blockJson.fields).forEach(([name, value]) => {
+                                const fieldXml = Blockly.utils.xml.createElement("field");
+                                fieldXml.setAttribute("name", name);
+                                fieldXml.textContent = value;
+                                blockXml.appendChild(fieldXml);
+                        });
+                }
 
-		return blockXml;
-	}
+                return blockXml;
+        }
 
-	SearchCategory.prototype.showMatchingBlocks = function (matches) {
-		const flyout = this.workspace_.getToolbox().getFlyout();
-		if (!flyout) {
-			console.error("Flyout not found!");
-			return;
-		}
+        SearchCategory.prototype.showMatchingBlocks = function (matches) {
+                const flyout = this.workspace_.getToolbox().getFlyout();
+                if (!flyout) {
+                        console.error("Flyout not found!");
+                        return;
+                }
 
-		flyout.hide();
-		flyout.show([]);
+                flyout.hide();
+                flyout.show([]);
 
-		const xmlList = [];
-		const mutations = [];
+                const xmlList = [];
+                const mutations = [];
 
-		matches.forEach((match) => {
-			const blockJson = match.full;
-			const blockXml = createXmlFromJson(blockJson);
+                matches.forEach((match) => {
+                        const blockJson = match.full;
+                        const blockXml = createXmlFromJson(blockJson);
 
-			xmlList.push(blockXml);
+                        xmlList.push(blockXml);
 
-			if (
-				blockJson.type === "lists_create_with" &&
-				blockJson.extraState
-			) {
-				const mutation = Blockly.utils.xml.createElement("mutation");
-				mutation.setAttribute("items", blockJson.extraState.itemCount);
-				mutations.push(mutation);
-			} else {
-				mutations.push(null);
-			}
-		});
+                        if (
+                                blockJson.type === "lists_create_with" &&
+                                blockJson.extraState
+                        ) {
+                                const mutation = Blockly.utils.xml.createElement("mutation");
+                                mutation.setAttribute("items", blockJson.extraState.itemCount);
+                                mutations.push(mutation);
+                        } else {
+                                mutations.push(null);
+                        }
+                });
 
-		flyout.show(xmlList);
+                flyout.show(xmlList);
 
-		const flyoutWorkspace = flyout.getWorkspace();
-		flyoutWorkspace.getAllBlocks(false).forEach((block, index) => {
-			const mutation = mutations[index];
-			if (mutation) {
-				block.domToMutation(mutation);
-			}
-		});
-	};
+                const flyoutWorkspace = flyout.getWorkspace();
+                flyoutWorkspace.getAllBlocks(false).forEach((block, index) => {
+                        const mutation = mutations[index];
+                        if (mutation) {
+                                block.domToMutation(mutation);
+                        }
+                });
+        };
 
-	const toolboxDef = workspace.options.languageTree;
-	workspace.updateToolbox(toolboxDef);
+        const toolboxDef = workspace.options.languageTree;
+        workspace.updateToolbox(toolboxDef);
 }
 
 // blockly-perf-overlay.js
 export function initBlocklyPerfOverlay(
-	workspace,
-	{
-		updateIntervalMs = 250,
-		patchRender = true, // set false if you don't want to wrap render()
-		patchResize = true, // set false if you don't want to wrap resize()
-	} = {},
+        workspace,
+        {
+                updateIntervalMs = 250,
+                patchRender = true, // set false if you don't want to wrap render()
+                patchResize = true, // set false if you don't want to wrap resize()
+        } = {},
 ) {
-	if (!workspace)
-		throw new Error("initBlocklyPerfOverlay: workspace required");
+        if (!workspace)
+                throw new Error("initBlocklyPerfOverlay: workspace required");
 
-	// ----- DOM: overlay -------------------------------------------------------
-	const panel = document.createElement("div");
-	panel.id = "blockly-perf-overlay";
-	panel.setAttribute("aria-live", "polite");
-	panel.style.cssText = `
-	position: fixed; z-index: 99999; right: 10px; bottom: 10px;
-	font: 12px/1.35 system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
-	background: rgba(0,0,0,.75); color: #fff; padding: 10px 12px; border-radius: 10px;
-	box-shadow: 0 6px 20px rgba(0,0,0,.35); max-width: 320px; pointer-events: none;
+        // ----- DOM: overlay -------------------------------------------------------
+        const panel = document.createElement("div");
+        panel.id = "blockly-perf-overlay";
+        panel.setAttribute("aria-live", "polite");
+        panel.style.cssText = `
+        position: fixed; z-index: 99999; right: 10px; bottom: 10px;
+        font: 12px/1.35 system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+        background: rgba(0,0,0,.75); color: #fff; padding: 10px 12px; border-radius: 10px;
+        box-shadow: 0 6px 20px rgba(0,0,0,.35); max-width: 320px; pointer-events: none;
   `;
-	panel.innerHTML = `
-	<div style="font-weight:600;margin-bottom:6px;">Blockly Perf</div>
-	<div style="display:grid;grid-template-columns:auto 1fr;gap:2px 8px;white-space:nowrap;">
-	  <div>Blocks (all/top):</div><div id="bp_blocks">–</div>
-	  <div>Rendered blocks:</div><div id="bp_rendered">–</div>
-	  <div>SVG nodes:</div><div id="bp_svg">–</div>
-	  <div>Events/sec:</div><div id="bp_eps">–</div>
-	  <div>Render time:</div><div id="bp_render">–</div>
-	  <div>Resize time:</div><div id="bp_resize">–</div>
-	  <div>Pan speed:</div><div id="bp_pan">–</div>
-	  <div>Pan FPS (~):</div><div id="bp_fps">–</div>
-	</div>
-	<div style="margin-top:6px;opacity:.8;">Press <kbd style="background:#222;border-radius:4px;padding:0 4px;">O</kbd> to hide/show</div>
+        panel.innerHTML = `
+        <div style="font-weight:600;margin-bottom:6px;">Blockly Perf</div>
+        <div style="display:grid;grid-template-columns:auto 1fr;gap:2px 8px;white-space:nowrap;">
+          <div>Blocks (all/top):</div><div id="bp_blocks">–</div>
+          <div>Rendered blocks:</div><div id="bp_rendered">–</div>
+          <div>SVG nodes:</div><div id="bp_svg">–</div>
+          <div>Events/sec:</div><div id="bp_eps">–</div>
+          <div>Render time:</div><div id="bp_render">–</div>
+          <div>Resize time:</div><div id="bp_resize">–</div>
+          <div>Pan speed:</div><div id="bp_pan">–</div>
+          <div>Pan FPS (~):</div><div id="bp_fps">–</div>
+        </div>
+        <div style="margin-top:6px;opacity:.8;">Press <kbd style="background:#222;border-radius:4px;padding:0 4px;">O</kbd> to hide/show</div>
   `;
-	document.body.appendChild(panel);
-	let hidden = false;
-	const toggle = () => {
-		hidden = !hidden;
-		panel.style.display = hidden ? "none" : "block";
-	};
-	// Keyboard: O to toggle
-	const keyHandler = (e) => {
-		if (
-			e.key.toLowerCase() === "o" &&
-			!e.metaKey &&
-			!e.ctrlKey &&
-			!e.altKey
-		)
-			toggle();
-	};
-	window.addEventListener("keydown", keyHandler, { passive: true });
+        document.body.appendChild(panel);
+        let hidden = false;
+        const toggle = () => {
+                hidden = !hidden;
+                panel.style.display = hidden ? "none" : "block";
+        };
+        // Keyboard: O to toggle
+        const keyHandler = (e) => {
+                if (
+                        e.key.toLowerCase() === "o" &&
+                        !e.metaKey &&
+                        !e.ctrlKey &&
+                        !e.altKey
+                )
+                        toggle();
+        };
+        window.addEventListener("keydown", keyHandler, { passive: true });
 
-	// ----- Metrics state -------------------------------------------------------
-	const el = (id) => panel.querySelector(`#${id}`);
-	const fmtMs = (n) => (n ? `${n.toFixed(1)} ms` : "–");
-	const fmtInt = (n) => (Number.isFinite(n) ? n.toString() : "–");
+        // ----- Metrics state -------------------------------------------------------
+        const el = (id) => panel.querySelector(`#${id}`);
+        const fmtMs = (n) => (n ? `${n.toFixed(1)} ms` : "–");
+        const fmtInt = (n) => (Number.isFinite(n) ? n.toString() : "–");
 
-	let eventsThisSecond = 0;
-	let lastEPSFlush = performance.now();
+        let eventsThisSecond = 0;
+        let lastEPSFlush = performance.now();
 
-	// Track pan (workspace scroll) speed and rough FPS while panning
-	let lastScrollX = workspace.scrollX;
-	let lastScrollY = workspace.scrollY;
-	let lastPanT = performance.now();
-	let panSpeed = 0; // px/s (screen coords-ish)
-	let panFrameCount = 0;
-	let panLastFpsFlush = performance.now();
-	let panFPS = 0;
+        // Track pan (workspace scroll) speed and rough FPS while panning
+        let lastScrollX = workspace.scrollX;
+        let lastScrollY = workspace.scrollY;
+        let lastPanT = performance.now();
+        let panSpeed = 0; // px/s (screen coords-ish)
+        let panFrameCount = 0;
+        let panLastFpsFlush = performance.now();
+        let panFPS = 0;
 
-	// Render/resize timings (rolling average of last N)
-	const rolling = (size = 10) => {
-		const arr = [];
-		return {
-			push(v) {
-				arr.push(v);
-				if (arr.length > size) arr.shift();
-			},
-			avg() {
-				return arr.length
-					? arr.reduce((a, b) => a + b, 0) / arr.length
-					: 0;
-			},
-		};
-	};
-	const renderTimes = rolling(12);
-	const resizeTimes = rolling(12);
+        // Render/resize timings (rolling average of last N)
+        const rolling = (size = 10) => {
+                const arr = [];
+                return {
+                        push(v) {
+                                arr.push(v);
+                                if (arr.length > size) arr.shift();
+                        },
+                        avg() {
+                                return arr.length
+                                        ? arr.reduce((a, b) => a + b, 0) / arr.length
+                                        : 0;
+                        },
+                };
+        };
+        const renderTimes = rolling(12);
+        const resizeTimes = rolling(12);
 
-	// ----- Instrument events ---------------------------------------------------
-	const changeListener = () => {
-		eventsThisSecond++;
-	};
-	workspace.addChangeListener(changeListener);
+        // ----- Instrument events ---------------------------------------------------
+        const changeListener = () => {
+                eventsThisSecond++;
+        };
+        workspace.addChangeListener(changeListener);
 
-	// Count rendered blocks quickly
-	const countRendered = () => {
-		let rendered = 0;
-		// getAllBlocks(true) excludes children? In Blockly, true = ordered; false = include children.
-		// We want all, so false:
-		const blocks = workspace.getAllBlocks(false);
-		for (let i = 0; i < blocks.length; i++) {
-			if (blocks[i].rendered) rendered++;
-		}
-		return {
-			total: blocks.length,
-			rendered,
-			top: workspace.getTopBlocks(false).length,
-		};
-	};
+        // Count rendered blocks quickly
+        const countRendered = () => {
+                let rendered = 0;
+                // getAllBlocks(true) excludes children? In Blockly, true = ordered; false = include children.
+                // We want all, so false:
+                const blocks = workspace.getAllBlocks(false);
+                for (let i = 0; i < blocks.length; i++) {
+                        if (blocks[i].rendered) rendered++;
+                }
+                return {
+                        total: blocks.length,
+                        rendered,
+                        top: workspace.getTopBlocks(false).length,
+                };
+        };
 
-	// SVG node count
-	const countSvgNodes = () => {
-		const svg = workspace.getParentSvg?.();
-		if (!svg) return NaN;
-		return svg.getElementsByTagName("*").length;
-	};
+        // SVG node count
+        const countSvgNodes = () => {
+                const svg = workspace.getParentSvg?.();
+                if (!svg) return NaN;
+                return svg.getElementsByTagName("*").length;
+        };
 
-	// ----- Monkey-patch (optional) render/resize to time calls -----------------
-	let origRender = null;
-	if (patchRender && typeof workspace.render === "function") {
-		origRender = workspace.render;
-		workspace.render = function (...args) {
-			const t0 = performance.now();
-			const res = origRender.apply(this, args);
-			renderTimes.push(performance.now() - t0);
-			return res;
-		};
-	}
+        // ----- Monkey-patch (optional) render/resize to time calls -----------------
+        let origRender = null;
+        if (patchRender && typeof workspace.render === "function") {
+                origRender = workspace.render;
+                workspace.render = function (...args) {
+                        const t0 = performance.now();
+                        const res = origRender.apply(this, args);
+                        renderTimes.push(performance.now() - t0);
+                        return res;
+                };
+        }
 
-	let origResize = null;
-	if (patchResize && typeof workspace.resize === "function") {
-		origResize = workspace.resize;
-		workspace.resize = function (...args) {
-			const t0 = performance.now();
-			const res = origResize.apply(this, args);
-			resizeTimes.push(performance.now() - t0);
-			return res;
-		};
-	}
+        let origResize = null;
+        if (patchResize && typeof workspace.resize === "function") {
+                origResize = workspace.resize;
+                workspace.resize = function (...args) {
+                        const t0 = performance.now();
+                        const res = origResize.apply(this, args);
+                        resizeTimes.push(performance.now() - t0);
+                        return res;
+                };
+        }
 
-	// ----- RAF loop: pan metrics ----------------------------------------------
-	let rafId = 0;
-	const rafLoop = () => {
-		const now = performance.now();
-		// Pan speed
-		if (
-			workspace &&
-			(workspace.scrollX !== lastScrollX ||
-				workspace.scrollY !== lastScrollY)
-		) {
-			const dx = workspace.scrollX - lastScrollX;
-			const dy = workspace.scrollY - lastScrollY;
-			const dt = (now - lastPanT) / 1000; // s
-			if (dt > 0) panSpeed = Math.hypot(dx, dy) / dt; // px/s-ish
-			lastScrollX = workspace.scrollX;
-			lastScrollY = workspace.scrollY;
-			lastPanT = now;
-			panFrameCount++;
-		}
-		// Rough FPS while panning: frames per second over last 500ms window
-		if (now - panLastFpsFlush >= 500) {
-			panFPS = panFrameCount / ((now - panLastFpsFlush) / 1000) || 0;
-			panFrameCount = 0;
-			panLastFpsFlush = now;
-		}
-		rafId = requestAnimationFrame(rafLoop);
-	};
-	rafId = requestAnimationFrame(rafLoop);
+        // ----- RAF loop: pan metrics ----------------------------------------------
+        let rafId = 0;
+        const rafLoop = () => {
+                const now = performance.now();
+                // Pan speed
+                if (
+                        workspace &&
+                        (workspace.scrollX !== lastScrollX ||
+                                workspace.scrollY !== lastScrollY)
+                ) {
+                        const dx = workspace.scrollX - lastScrollX;
+                        const dy = workspace.scrollY - lastScrollY;
+                        const dt = (now - lastPanT) / 1000; // s
+                        if (dt > 0) panSpeed = Math.hypot(dx, dy) / dt; // px/s-ish
+                        lastScrollX = workspace.scrollX;
+                        lastScrollY = workspace.scrollY;
+                        lastPanT = now;
+                        panFrameCount++;
+                }
+                // Rough FPS while panning: frames per second over last 500ms window
+                if (now - panLastFpsFlush >= 500) {
+                        panFPS = panFrameCount / ((now - panLastFpsFlush) / 1000) || 0;
+                        panFrameCount = 0;
+                        panLastFpsFlush = now;
+                }
+                rafId = requestAnimationFrame(rafLoop);
+        };
+        rafId = requestAnimationFrame(rafLoop);
 
-	// ----- Interval: update overlay text --------------------------------------
-	const intervalId = setInterval(() => {
-		// EPS flush every ~1s for stability
-		const now = performance.now();
-		let eps = null;
-		if (now - lastEPSFlush >= 1000) {
-			eps = Math.round(eventsThisSecond / ((now - lastEPSFlush) / 1000));
-			eventsThisSecond = 0;
-			lastEPSFlush = now;
-		}
+        // ----- Interval: update overlay text --------------------------------------
+        const intervalId = setInterval(() => {
+                // EPS flush every ~1s for stability
+                const now = performance.now();
+                let eps = null;
+                if (now - lastEPSFlush >= 1000) {
+                        eps = Math.round(eventsThisSecond / ((now - lastEPSFlush) / 1000));
+                        eventsThisSecond = 0;
+                        lastEPSFlush = now;
+                }
 
-		const { total, rendered, top } = countRendered();
-		const svgNodes = countSvgNodes();
+                const { total, rendered, top } = countRendered();
+                const svgNodes = countSvgNodes();
 
-		el("bp_blocks").textContent = `${fmtInt(total)} / ${fmtInt(top)}`;
-		el("bp_rendered").textContent = fmtInt(rendered);
-		el("bp_svg").textContent = fmtInt(svgNodes);
-		if (eps !== null) el("bp_eps").textContent = fmtInt(eps);
-		el("bp_render").textContent = renderTimes.avg()
-			? fmtMs(renderTimes.avg())
-			: "–";
-		el("bp_resize").textContent = resizeTimes.avg()
-			? fmtMs(resizeTimes.avg())
-			: "–";
-		el("bp_pan").textContent = Number.isFinite(panSpeed)
-			? `${panSpeed.toFixed(0)} px/s`
-			: "–";
-		el("bp_fps").textContent = panFPS ? panFPS.toFixed(0) : "–";
-	}, updateIntervalMs);
+                el("bp_blocks").textContent = `${fmtInt(total)} / ${fmtInt(top)}`;
+                el("bp_rendered").textContent = fmtInt(rendered);
+                el("bp_svg").textContent = fmtInt(svgNodes);
+                if (eps !== null) el("bp_eps").textContent = fmtInt(eps);
+                el("bp_render").textContent = renderTimes.avg()
+                        ? fmtMs(renderTimes.avg())
+                        : "–";
+                el("bp_resize").textContent = resizeTimes.avg()
+                        ? fmtMs(resizeTimes.avg())
+                        : "–";
+                el("bp_pan").textContent = Number.isFinite(panSpeed)
+                        ? `${panSpeed.toFixed(0)} px/s`
+                        : "–";
+                el("bp_fps").textContent = panFPS ? panFPS.toFixed(0) : "–";
+        }, updateIntervalMs);
 
-	// ----- Cleanup API ---------------------------------------------------------
-	function destroy() {
-		workspace.removeChangeListener(changeListener);
-		if (origRender) workspace.render = origRender;
-		if (origResize) workspace.resize = origResize;
-		cancelAnimationFrame(rafId);
-		clearInterval(intervalId);
-		window.removeEventListener("keydown", keyHandler);
-		panel.remove();
-	}
+        // ----- Cleanup API ---------------------------------------------------------
+        function destroy() {
+                workspace.removeChangeListener(changeListener);
+                if (origRender) workspace.render = origRender;
+                if (origResize) workspace.resize = origResize;
+                cancelAnimationFrame(rafId);
+                clearInterval(intervalId);
+                window.removeEventListener("keydown", keyHandler);
+                panel.remove();
+        }
 
-	// Return a tiny control API
-	return { destroy, toggle };
+        // Return a tiny control API
+        return { destroy, toggle };
 }

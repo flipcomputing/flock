@@ -11,9 +11,10 @@ const greenColor = flock.BABYLON.Color3.FromHexString("#009E73"); // Colour for 
 const orangeColor = flock.BABYLON.Color3.FromHexString("#D55E00"); // Colour for Z-axis
 
 window.selectedColor = "#ffffff"; // Default color
+let colorPicker = null;
 
 document.addEventListener("DOMContentLoaded", function () {
-  const colorInput = document.getElementById("colorPickerButton");
+  const colorButton = document.getElementById("colorPickerButton");
 
   window.addEventListener("keydown", (event) => {
     // Check if both Ctrl and the comma key (,) are pressed
@@ -22,19 +23,30 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   });
 
-  // Attach the event listener to capture color changes when user interacts with the input
-  colorInput?.addEventListener("input", (event) => {
-    window.selectedColor = event.target.value; // Store the selected color
+  // Initialize custom color picker
+  if (!colorPicker) {
+    colorPicker = new window.CustomColorPicker({
+      color: window.selectedColor,
+      onColorChange: (newColor) => {
+        window.selectedColor = newColor;
+      },
+      onClose: () => {
+        // After color picker closes, start mesh selection
+        pickMeshFromCanvas();
+      },
+      target: document.body
+    });
+  }
 
-    // Delay the blur to ensure the color selection is processed first
-    setTimeout(() => {
-      colorInput.blur(); // Close the picker after a brief delay
-      colorInput.setAttribute("type", "text");
-      colorInput.setAttribute("type", "color");
-    }, 100); // Adjust the delay time as needed
-    // Call a function to handle the selected color
-    pickMeshFromCanvas();
-  });
+  // Attach click event to open custom color picker
+  if (colorButton) {
+    colorButton.addEventListener("click", (event) => {
+      event.preventDefault();
+      if (colorPicker) {
+        colorPicker.open(window.selectedColor);
+      }
+    });
+  }
 });
 
 function pickMeshFromCanvas() {
