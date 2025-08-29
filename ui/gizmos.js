@@ -13,6 +13,12 @@ const orangeColor = flock.BABYLON.Color3.FromHexString("#D55E00"); // Colour for
 window.selectedColor = "#ffffff"; // Default color
 let colorPicker = null;
 
+// Color picking keyboard mode variables
+let colorPickingKeyboardMode = false;
+let colorPickingCallback = null;
+let colorPickingCircle = null;
+let colorPickingCirclePosition = { x: 0, y: 0 };
+
 document.addEventListener("DOMContentLoaded", function () {
   const colorButton = document.getElementById("colorPickerButton");
 
@@ -50,9 +56,7 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 
 function pickMeshFromCanvas() {
-  const canvas = flock.scene.getEngine().getRenderingCanvas(); // Get the flock.BABYLON.js canvas
-
-  document.body.style.cursor = "crosshair"; // Change cursor to indicate picking mode
+  const canvas = flock.scene.getEngine().getRenderingCanvas();
 
   const onPickMesh = function (event) {
     // Get the canvas bounds relative to the window
@@ -67,6 +71,7 @@ function pickMeshFromCanvas() {
     ) {
       window.removeEventListener("click", onPickMesh);
       document.body.style.cursor = "default";
+      endColorPickingMode();
       return;
     }
 
@@ -74,32 +79,171 @@ function pickMeshFromCanvas() {
     const canvasX = event.clientX - canvasRect.left;
     const canvasY = event.clientY - canvasRect.top;
 
-    // Create a picking ray using the adjusted canvas coordinates
-    const pickRay = flock.scene.createPickingRay(
-      canvasX,
-      canvasY,
-      flock.BABYLON.Matrix.Identity(),
-      flock.scene.activeCamera,
-    );
-
-    // Perform the picking
-    const pickResult = flock.scene.pickWithRay(
-      pickRay,
-      (mesh) => mesh.isPickable,
-    );
-
-    flock.changeColorMesh(pickResult.pickedMesh, selectedColor);
-    updateBlockColorAndHighlight(pickResult.pickedMesh, selectedColor);
-
-    document.body.style.cursor = "default"; // Reset the cursor
-    window.removeEventListener("click", onPickMesh); // Remove the event listener after picking
+    applyColorAtPosition(canvasX, canvasY);
+    
+    document.body.style.cursor = "default";
+    window.removeEventListener("click", onPickMesh);
+    endColorPickingMode();
   };
 
-  // Add event listener to pick the mesh on the next click
-  window.addEventListener("click", onPickMesh);
+  // Start keyboard placement mode for color picking
+  startColorPickingKeyboardMode(onPickMesh);
+
+  // Also set up mouse click as fallback
+  document.body.style.cursor = "crosshair";
+  setTimeout(() => {
+    window.addEventListener("click", onPickMesh);
+  }, 200);
+}
+
+function applyColorAtPosition(canvasX, canvasY) {
+  // Create a picking ray using the canvas coordinates
+  const pickRay = flock.scene.createPickingRay(
+    canvasX,
+    canvasY,
+    flock.BABYLON.Matrix.Identity(),
+    flock.scene.activeCamera,
+  );
+
+  // Perform the picking
+  const pickResult = flock.scene.pickWithRay(
+    pickRay,
+    (mesh) => mesh.isPickable,
+  );
+
+  if (pickResult.pickedMesh) {
+    flock.changeColorMesh(pickResult.pickedMesh, selectedColor);
+    updateBlockColorAndHighlight(pickResult.pickedMesh, selectedColor);
+  }
 }
 
 let cameraMode = "play";
+
+// --- Color Picking Keyboard Mode Functions ---
+
+function startColorPickingKeyboardMode(callback) {
+  endColorPickingMode();
+  colorPickingKeyboardMode = true;
+  colorPickingCallback = callback;
+  document.addEventListener("keydown", handleColorPickingKeydown);
+  document.body.style.cursor = "crosshair";
+}
+
+function handleColorPickingKeydown(event) {
+  if (!colorPickingKeyboardMode) return;
+
+  const moveDistance = event.shiftKey ? 10 : 2;
+  switch (event.key) {
+    case "ArrowRight":
+      event.preventDefault();
+      if (!colorPickingCircle) {
+        createColorPickingCircle();
+        document.body.style.cursor = "none";
+      }
+      colorPickingCirclePosition.x += moveDistance;
+      updateColorPickingCirclePosition();
+      break;
+    case "ArrowLeft":
+      event.preventDefault();
+      if (!colorPickingCircle) {
+        createColorPickingCircle();
+        document.body.style.cursor = "none";
+      }
+      colorPickingCirclePosition.x -= moveDistance;
+      updateColorPickingCirclePosition();
+      break;
+    case "ArrowUp":
+      event.preventDefault();
+      if (!colorPickingCircle) {
+        createColorPickingCircle();
+        document.body.style.cursor = "none";
+      }
+      colorPickingCirclePosition.y -= moveDistance;
+      updateColorPickingCirclePosition();
+      break;
+    case "ArrowDown":
+      event.preventDefault();
+      if (!colorPickingCircle) {
+        createColorPickingCircle();
+        document.body.style.cursor = "none";
+      }
+      colorPickingCirclePosition.y += moveDistance;
+      updateColorPickingCirclePosition();
+      break;
+    case "Enter":
+      event.preventDefault();
+      if (colorPickingCircle) {
+        // Apply color at current circle position
+        applyColorAtPosition(colorPickingCirclePosition.x, colorPickingCirclePosition.y);
+        endColorPickingMode();
+      }
+      break;
+    case "Escape":
+      event.preventDefault();
+      endColorPickingMode();
+      break;
+  }
+}
+
+function createColorPickingCircle() {
+  if (colorPickingCircle) return;
+
+  // Create the visual indicator circle
+  colorPickingCircle = document.createElement("div");
+  colorPickingCircle.style.cssText = `
+    position: fixed;
+    width: 20px;
+    height: 20px;
+    border: 3px solid #ffff00;
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 10000;
+    box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.3), 0 0 8px rgba(255, 255, 0, 0.5);
+  `;
+  document.body.appendChild(colorPickingCircle);
+
+  // Initialize position to canvas center
+  const canvas = flock.scene.getEngine().getRenderingCanvas();
+  const canvasRect = canvas.getBoundingClientRect();
+  colorPickingCirclePosition.x = canvasRect.width / 2;
+  colorPickingCirclePosition.y = canvasRect.height / 2;
+
+  updateColorPickingCirclePosition();
+}
+
+function updateColorPickingCirclePosition() {
+  if (!colorPickingCircle) return;
+
+  const canvas = flock.scene.getEngine().getRenderingCanvas();
+  const canvasRect = canvas.getBoundingClientRect();
+
+  // Constrain position to canvas bounds
+  colorPickingCirclePosition.x = Math.max(
+    10,
+    Math.min(canvasRect.width - 10, colorPickingCirclePosition.x),
+  );
+  colorPickingCirclePosition.y = Math.max(
+    10,
+    Math.min(canvasRect.height - 10, colorPickingCirclePosition.y),
+  );
+
+  // Position relative to canvas
+  colorPickingCircle.style.left =
+    canvasRect.left + colorPickingCirclePosition.x + "px";
+  colorPickingCircle.style.top = canvasRect.top + colorPickingCirclePosition.y + "px";
+}
+
+function endColorPickingMode() {
+  colorPickingKeyboardMode = false;
+  colorPickingCallback = null;
+  document.removeEventListener("keydown", handleColorPickingKeydown);
+  document.body.style.cursor = "default";
+  
+  if (colorPickingCircle) {
+    colorPickingCircle.remove();
+    colorPickingCircle = null;
+  }
+}
 
 function scrollToBlockTopParentLeft(workspace, blockId) {
   if (!workspace.isMovable()) {
