@@ -300,7 +300,9 @@ class CustomColorPicker {
       input.addEventListener('input', () => this.handleRgbInput());
     });
     
-    // Color swatches
+    // Color swatches with grid navigation
+    this.setupColorSwatchNavigation();
+    
     this.container.addEventListener('click', (e) => {
       if (e.target.classList.contains('color-swatch')) {
         this.setColor(e.target.dataset.color);
@@ -539,6 +541,87 @@ class CustomColorPicker {
     // Get the hue from the current color and update slider position
     const hue = this.getCurrentHue();
     this.updateHueSliderPosition(hue);
+  }
+  
+  setupColorSwatchNavigation() {
+    const swatches = this.container.querySelectorAll('.color-swatch');
+    if (swatches.length === 0) return;
+    
+    // Make only the first swatch tabbable initially
+    swatches.forEach((swatch, index) => {
+      swatch.setAttribute('tabindex', index === 0 ? '0' : '-1');
+      swatch.setAttribute('role', 'gridcell');
+    });
+    
+    // Add ARIA attributes to the container
+    const palette = this.container.querySelector('.color-palette');
+    if (palette) {
+      palette.setAttribute('role', 'grid');
+      palette.setAttribute('aria-label', 'Color palette: use arrow keys to navigate');
+    }
+    
+    // Add keyboard navigation
+    swatches.forEach(swatch => {
+      swatch.addEventListener('keydown', (e) => this.handleSwatchKeydown(e, swatches));
+    });
+  }
+  
+  handleSwatchKeydown(e, swatches) {
+    const currentIndex = Array.from(swatches).indexOf(e.target);
+    const cols = 8; // Color palette has 8 columns
+    const rows = Math.ceil(swatches.length / cols);
+    let newIndex = currentIndex;
+    
+    switch (e.key) {
+      case 'ArrowRight':
+        e.preventDefault();
+        newIndex = currentIndex + 1;
+        if (newIndex >= swatches.length) newIndex = 0; // Wrap to start
+        break;
+      case 'ArrowLeft':
+        e.preventDefault();
+        newIndex = currentIndex - 1;
+        if (newIndex < 0) newIndex = swatches.length - 1; // Wrap to end
+        break;
+      case 'ArrowDown':
+        e.preventDefault();
+        newIndex = currentIndex + cols;
+        if (newIndex >= swatches.length) {
+          // Go to same column in first row
+          newIndex = currentIndex % cols;
+        }
+        break;
+      case 'ArrowUp':
+        e.preventDefault();
+        newIndex = currentIndex - cols;
+        if (newIndex < 0) {
+          // Go to same column in last row
+          const col = currentIndex % cols;
+          const lastRowStart = Math.floor((swatches.length - 1) / cols) * cols;
+          newIndex = Math.min(lastRowStart + col, swatches.length - 1);
+        }
+        break;
+      case 'Home':
+        e.preventDefault();
+        newIndex = 0;
+        break;
+      case 'End':
+        e.preventDefault();
+        newIndex = swatches.length - 1;
+        break;
+      case 'Enter':
+      case ' ':
+        e.preventDefault();
+        this.setColor(e.target.dataset.color);
+        return;
+      default:
+        return;
+    }
+    
+    // Update focus
+    swatches[currentIndex].setAttribute('tabindex', '-1');
+    swatches[newIndex].setAttribute('tabindex', '0');
+    swatches[newIndex].focus();
   }
 
   createColorWheelIndicator() {
