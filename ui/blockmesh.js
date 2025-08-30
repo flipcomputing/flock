@@ -635,7 +635,7 @@ function setAbsoluteSize(mesh, width, height, depth) {
   mesh.bakeCurrentTransformIntoVertices();
 
   // Reset scaling to 1,1,1
-  mesh.scaling = new flock.BABYLON.Vector3(1, 1, 1);
+  mesh.scaling = flock.BABYLON.Vector3.One();
 
   // Restore original position and rotation from world matrix
   mesh.position = currentPosition;
@@ -651,7 +651,7 @@ function setAbsoluteSize(mesh, width, height, depth) {
     switch (shapeType) {
       case "Box":
         newShape = new flock.BABYLON.PhysicsShapeBox(
-          new flock.BABYLON.Vector3(0, 0, 0),
+          flock.BABYLON.Vector3.Zero(),
           new flock.BABYLON.Quaternion(0, 0, 0, 1),
           new flock.BABYLON.Vector3(width, height, depth),
           mesh.getScene(),
@@ -670,7 +670,7 @@ function setAbsoluteSize(mesh, width, height, depth) {
         break;
       case "Sphere":
         newShape = new flock.BABYLON.PhysicsShapeSphere(
-          new flock.BABYLON.Vector3(0, 0, 0),
+          flock.BABYLON.Vector3.Zero(),
           Math.max(width, depth, height) / 2,
           mesh.getScene(),
         );
@@ -721,7 +721,7 @@ function updateCylinderGeometry(
   // Temporarily reset mesh transform
   mesh.position = flock.BABYLON.Vector3.Zero();
   mesh.rotation = flock.BABYLON.Vector3.Zero();
-  mesh.scaling = new flock.BABYLON.Vector3(1, 1, 1);
+  mesh.scaling = flock.BABYLON.Vector3.One();
 
   // Create a temporary mesh with the provided dimensions (already in world space)
   const tempMesh = flock.BABYLON.MeshBuilder.CreateCylinder(
@@ -758,7 +758,7 @@ function updateCylinderGeometry(
   // Restore position and rotation only, keep scale at 1,1,1
   mesh.position = currentPosition;
   mesh.rotationQuaternion = currentRotationQuaternion;
-  mesh.scaling = new flock.BABYLON.Vector3(1, 1, 1);
+  mesh.scaling = flock.BABYLON.Vector3.One();
 
   // Ensure the world matrix is updated
   mesh.computeWorldMatrix(true);

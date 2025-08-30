@@ -125,9 +125,9 @@ export const flockCamera = {
 		);
 
 		const boxShape = new flock.BABYLON.PhysicsShapeBox(
-			new flock.BABYLON.Vector3(0, 0, 0),
+			flock.BABYLON.Vector3.Zero(),
 			new flock.BABYLON.Quaternion(0, 0, 0, 1),
-			new flock.BABYLON.Vector3(1, 1, 1),
+			flock.BABYLON.Vector3.One(),
 			flock.scene,
 		);
 

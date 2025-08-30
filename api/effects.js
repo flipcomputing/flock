@@ -96,7 +96,7 @@ export const flockEffects = {
           // Apply gravity if enabled
           particleSystem.gravity = gravity
             ? new flock.BABYLON.Vector3(0, -9.81, 0)
-            : new flock.BABYLON.Vector3(0, 0, 0);
+            : flock.BABYLON.Vector3.Zero();
 
           if (direction) {
             const { x, y, z } = direction;
