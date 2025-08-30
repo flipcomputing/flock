@@ -1,7 +1,7 @@
 import { expect } from "chai";
 
 export function runScaleTests(flock) {
-	describe("Scale function tests", function () {
+	describe("Scale function tests @scale", function () {
 		const testBoxIds = [];
 		const testColors = ["#FF0000", "#00FF00", "#0000FF", "#FFFF00"];
 		const scaleFactors = [0.5, 1.0, 1.5, 2.0, 3.0];
@@ -128,7 +128,7 @@ export function runScaleTests(flock) {
 		});
 	});
 
-	describe("Resize function tests", function () {
+	describe("Resize function tests @scale", function () {
 		const testBoxIds = [];
 		const testColors = ["#FF6600", "#66FF00", "#0066FF", "#FF0066"];
 		const targetSizes = [1, 2, 5, 10, 0.5];
@@ -316,7 +316,7 @@ export function runScaleTests(flock) {
 		});
 	});
 
-	describe("setPivotPoint function tests", function () {
+	describe("setPivotPoint function tests @scale", function () {
 		const testBoxIds = [];
 		const testColors = ["#FF0000", "#00FF00", "#0000FF", "#FFFF00"];
 		const pivotPositions = ["MIN", "CENTER", "MAX"];

@@ -1,7 +1,7 @@
 import { expect } from "chai";
 
 export function runSoundTests(flock) {
-	describe("Sound playback", function () {
+	describe("Sound playback @sound", function () {
 	  this.timeout(10000); // Allow time for async sound to start/stop
 
 	  let boxId;
@@ -158,7 +158,7 @@ export function runSoundTests(flock) {
 	  });
 	});
 
-	describe("Play notes", function () {
+	describe("Play notes @sound", function () {
 		this.timeout(10000); // Allow time for async sound to start/stop
 		let boxId;
 		beforeEach(() => {
