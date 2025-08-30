@@ -62,7 +62,7 @@ export const flockShapes = {
 
     // Define and apply the physics shape
     const boxShape = new flock.BABYLON.PhysicsShapeBox(
-      new flock.BABYLON.Vector3.Zero(),
+      flock.BABYLON.Vector3.Zero(),
       new flock.BABYLON.Quaternion(0, 0, 0, 1),
       new flock.BABYLON.Vector3(width, height, depth),
       flock.scene,
@@ -136,7 +136,7 @@ export const flockShapes = {
 
     // Define and apply the physics shape
     const sphereShape = new flock.BABYLON.PhysicsShapeSphere(
-      new flock.BABYLON.Vector3.Zero(),
+      flock.BABYLON.Vector3.Zero(),
       Math.max(diameterX, diameterY, diameterZ) / 2,
       flock.scene,
     );
@@ -291,7 +291,7 @@ export const flockShapes = {
     newCapsule.metadata = newCapsule.metadata || {};
     newCapsule.metadata.blockKey = blockKey;
     // Define central point for the capsule
-    const center = new flock.BABYLON.Vector3.Zero();
+    const center = flock.BABYLON.Vector3.Zero();
 
     // Calculate physics shape parameters
     const capsuleRadius = radius;
@@ -376,7 +376,7 @@ export const flockShapes = {
 
     // Create physics shape - matching the mesh position
     const planeShape = new flock.BABYLON.PhysicsShapeBox(
-      new flock.BABYLON.Vector3.Zero(), // Center offset
+      flock.BABYLON.Vector3.Zero(), // Center offset
       new flock.BABYLON.Quaternion(0, 0, 0, 1),
       new flock.BABYLON.Vector3(width, height, 0.001),
       flock.scene,
