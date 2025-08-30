@@ -45,3 +45,11 @@ Defined in `ui/addmeshes.js`
 Called within [`updateOrCreateMeshFromBlock`](#updateorcreatemeshfromblockblock-changeevent)
 
 Creates a mesh on the Babylon.js canvas.
+
+#### `deleteMeshFromBlock(blockId)`
+
+Defined in `ui/blockmesh.js`
+
+Called within `handleBlockDelete(event)` and `handleMeshLifecycleChange(block, changeEvent)` in [`blocks.js`](../blocks.js)
+
+Removes a mesh associated with a particular block `blockId` from the mesh map (`meshMap` in the FlockXR codebase).
