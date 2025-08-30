@@ -59,7 +59,7 @@ export const flockPhysics = {
         const depth = boundingBox.maximumWorld.z - boundingBox.minimumWorld.z;
 
         const boxShape = new flock.BABYLON.PhysicsShapeBox(
-          new flock.BABYLON.Vector3(0, 0, 0),
+          new flock.BABYLON.Vector3.Zero(),
           new flock.BABYLON.Quaternion(0, 0, 0, 1), // No rotation
           new flock.BABYLON.Vector3(width, height, depth), // Updated dimensions
           flock.scene,

@@ -1035,7 +1035,7 @@ function triggerPlacement() {
   const syntheticEvent = {
     clientX: canvasRect.left + placementCirclePosition.x,
     clientY: canvasRect.top + placementCirclePosition.y,
-    defaultPosition: new flock.BABYLON.Vector3(0, 0, 0),
+    defaultPosition: new flock.BABYLON.Vector3.Zero(),
   };
 
   placementCallback(syntheticEvent);
