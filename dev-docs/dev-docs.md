@@ -34,7 +34,7 @@ Enacts an event (`changeEvent`) on a mesh associated with a particular block (`b
 
 Defined in `ui/blockmesh.js`
 
-Called within [`getMeshFromBlock`](#updateorcreatemeshfromblockblock-changeevent)
+Called within [`updateOrCreateMeshFromBlock`](#updateorcreatemeshfromblockblock-changeevent)
 
 Enacts an update (`changeEvent`) on an existing mesh (`mesh`) associated with a particular block (`block`) using data entered within said block.
 
