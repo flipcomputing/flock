@@ -45,6 +45,7 @@ import {
         initializeLanguageMenu,
         initializeSavedLanguage,
 } from "./translation.js";
+import { initialize360VideoRecorder } from "./360VideoRecorder.js";
 
 if ("serviceWorker" in navigator) {
         navigator.serviceWorker
@@ -421,6 +422,9 @@ window.onload = async function () {
         }
 
         initializeApp();
+
+        // Initialize 360 video recorder
+        initialize360VideoRecorder();
 
         setupFileInput(workspace, executeCode);
 
