@@ -9,3 +9,28 @@ The blocks *themselves*, for each mesh, transformation (such as rotation) and ot
 Each block has code generated for it through Blockly (as described in [CONTRIBUTING.md](../CONTRIBUTING.md)). Every time the canvas is initialised, whether that be at the start of running FlockXR or through the play button, this generated code is run via the `executeCode` function in `execution.js`.
 
 When a change happens in the *canvas* editor, the blocks themselves *also* get updated. `ui/gizmos.js` handles all of this live updating through the way of a "gizmo" manager that observes changes from the editor and updates the related blocks as they are enacted.
+
+Within this code are several methods that get called to enact these changes within blocks to items in the canvas. These functions are **not** in the FlockXR API.
+
+### Details on specific methods in code that handle block changes
+
+#### `getMeshFromBlock(block)`
+
+Defined in: `ui/blockmesh.js`
+
+Retrieves the mesh associated with a particular block (`block`).
+
+#### `updateOrCreateMeshFromBlock(block, changeEvent)`
+
+Defined in: `ui/blockmesh.js`
+
+Enacts an event (`changeEvent`) on a mesh associated with a particular block (`block`), whether that be the creation of that mesh itself or a transformation on it.
+
+#### `updateMeshFromBlock(mesh, block, changeEvent)`
+
+Defined in `ui/blockmesh.js`
+
+Called within [`getMeshFromBlock`](#updateorcreatemeshfromblockblock-changeevent)
+
+Enacts an update (`changeEvent`) on an existing mesh (`mesh`) associated with a particular block (`block`) using data entered within said block.
+
