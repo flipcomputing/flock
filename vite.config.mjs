@@ -1,6 +1,6 @@
 import { VitePWA } from 'vite-plugin-pwa'
 import { viteStaticCopy } from 'vite-plugin-static-copy';
-import { copyFileSync, readdirSync } from 'fs';
+import { copyFileSync } from 'fs';
 import { resolve } from 'path';
 import cssInjectedByJsPlugin from 'vite-plugin-css-injected-by-js';
 import { writeFileSync } from 'fs';
@@ -10,60 +10,40 @@ const isProduction = process.env.NODE_ENV === 'production';
 const BASE_URL = process.env.VITE_BASE_URL || '/';
 
 export default {
+  // ✨ Ensure assets/chunk URLs are correct in standalone/PWA and under subpaths
+  base: BASE_URL,
+
   plugins: [
     cssInjectedByJsPlugin(),
     viteStaticCopy({
       targets: [
-        {
-          src: 'models/*.{glb,gltf}',
-          dest: 'models'
-        },
-        {
-          src: 'animations/*.{glb,gltf}',
-          dest: 'animations'
-        },
-        {
-          src: 'sounds/*.{ogg,mp3,aac,wav}',
-          dest: 'sounds'
-        },
-        {
-          src: 'images/*.*',
-          dest: 'images'
-        },
-        {
-          src: 'examples/*.json',
-          dest: 'examples'
-        },
-        {
-          src: 'textures/*.png',
-          dest: 'textures'
-        },
-        {
-          src: 'fonts/*.{json,woff2}',
-          dest: 'fonts'
-        },
-        {
-          src: 'node_modules/blockly/media/*',
-          dest: 'blockly/media',
-        },
-        {
-          src: 'images/dropdown-arrow.svg',
-          dest: 'blockly/media',
-        },
-        /*{
-          src: 'flock.js', 
-          dest: ''      
-        }*/
+        { src: 'models/*.{glb,gltf}', dest: 'models' },
+        { src: 'animations/*.{glb,gltf}', dest: 'animations' },
+        { src: 'sounds/*.{ogg,mp3,aac,wav}', dest: 'sounds' },
+        { src: 'images/*.*', dest: 'images' },
+        { src: 'examples/*.json', dest: 'examples' },
+        { src: 'textures/*.png', dest: 'textures' },
+        { src: 'fonts/*.{json,woff2}', dest: 'fonts' },
+        { src: 'node_modules/blockly/media/*', dest: 'blockly/media' },
+        { src: 'images/dropdown-arrow.svg', dest: 'blockly/media' },
       ]
     }),
     VitePWA({
       base: BASE_URL,
       registerType: 'autoUpdate',
-      devOptions: {
-        enabled: false
-      },
-      assetsInclude: ['**/*.glb', '**/*.gltf', '**/*.ogg', '**/*.aac', '**/*.mp3', '**/*.json', '**/*.png', '**/*.woff', '**/*.woff2', '**/*.css', '**/*.svg', '**/*.wasm'],
-      includeAssets: ['**/*.glb', '**/*.gltf', '**/*.ogg', '**/*.aac', '**/*.mp3', '**/*.json', '**/*.png', '**/*.woff', '**/*.woff2', '**/*.css', '**/*.svg', '**/*.wasm'],
+      devOptions: { enabled: false },
+
+      assetsInclude: [
+        '**/*.glb', '**/*.gltf', '**/*.ogg', '**/*.aac', '**/*.mp3',
+        '**/*.json', '**/*.png', '**/*.woff', '**/*.woff2',
+        '**/*.css', '**/*.svg', '**/*.wasm'
+      ],
+      includeAssets: [
+        '**/*.glb', '**/*.gltf', '**/*.ogg', '**/*.aac', '**/*.mp3',
+        '**/*.json', '**/*.png', '**/*.woff', '**/*.woff2',
+        '**/*.css', '**/*.svg', '**/*.wasm'
+      ],
+
       manifest: {
         name: 'Flock XR - Creative coding in 3D',
         short_name: 'Flock XR',
@@ -71,28 +51,22 @@ export default {
         theme_color: '#511d91',
         background_color: '#ffffff',
         display: 'fullscreen',
-        start_url: isProduction ? BASE_URL + '?fullscreen=true' : '/',
-        id: isProduction ? BASE_URL + '?fullscreen=true' : '/',
+
+        // ✅ Keep start route simple and within scope
+        start_url: BASE_URL,
+        id: BASE_URL,
         scope: BASE_URL,
+
         orientation: 'any',
         categories: ['education', 'games'],
         icons: [
-          {
-            src: 'images/icon_192x192.png',
-            sizes: '192x192',
-            type: 'image/png',
-            purpose: 'any maskable'
-          },
-          {
-            src: 'images/icon_512x512.png',
-            sizes: '512x512',
-            type: 'image/png',
-            purpose: 'any maskable'
-          }
+          { src: 'images/icon_192x192.png', sizes: '192x192', type: 'image/png', purpose: 'any maskable' },
+          { src: 'images/icon_512x512.png', sizes: '512x512', type: 'image/png', purpose: 'any maskable' }
         ]
       },
+
       workbox: {
-        maximumFileSizeToCacheInBytes: 25000000,
+        maximumFileSizeToCacheInBytes: 25_000_000,
         globPatterns: [
           '**/*.{js,css,html,ico,png,svg,glb,gltf,ogg,mp3,aac,wasm,json,woff,woff2}',
           'models/**/*',
@@ -103,114 +77,95 @@ export default {
           'fonts/**/*',
           'blockly/media/**/*'
         ],
-        modifyURLPrefix: isProduction ? {
-          '': BASE_URL, // Prepend the base URL to all cached assets in production
-        } : {},
+        modifyURLPrefix: isProduction ? { '': BASE_URL } : {},
+
+        // ✅ Safe runtime caching: NetworkFirst for navigations; CacheFirst for real static assets
         runtimeCaching: [
           {
-            // Cache all static assets
-            urlPattern: /.*\.(glb|gltf|ogg|mp3|aac|png|jpg|jpeg|svg|wasm|json|woff|woff2|css|js|html)$/,
+            // HTML shell (navigations)
+            urlPattern: ({ request }) => request.mode === 'navigate',
+            handler: 'NetworkFirst',
+            options: {
+              cacheName: 'pages',
+              networkTimeoutSeconds: 5
+            },
+          },
+          {
+            // Static assets by destination
+            urlPattern: ({ request }) =>
+              ['script', 'style', 'image', 'font', 'audio', 'video', 'worker']
+                .includes(request.destination),
             handler: 'CacheFirst',
             options: {
               cacheName: 'static-assets',
               expiration: {
                 maxEntries: 1000,
-                maxAgeSeconds: 365 * 24 * 60 * 60, // Cache for 1 year
+                maxAgeSeconds: 365 * 24 * 60 * 60,
               },
             },
           },
+          // Optional: keep your fine-grained caches
           {
-            // Cache models directory
             urlPattern: /\/models\/.*/,
             handler: 'CacheFirst',
             options: {
               cacheName: 'models-cache',
-              expiration: {
-                maxEntries: 100,
-                maxAgeSeconds: 365 * 24 * 60 * 60,
-              },
+              expiration: { maxEntries: 100, maxAgeSeconds: 365 * 24 * 60 * 60 },
             },
           },
           {
-            // Cache sounds directory
             urlPattern: /\/sounds\/.*/,
             handler: 'CacheFirst',
             options: {
               cacheName: 'sounds-cache',
-              expiration: {
-                maxEntries: 100,
-                maxAgeSeconds: 365 * 24 * 60 * 60,
-              },
+              rangeRequests: true,
+              expiration: { maxEntries: 100, maxAgeSeconds: 365 * 24 * 60 * 60 },
             },
           },
           {
-            // Cache textures directory
             urlPattern: /\/textures\/.*/,
             handler: 'CacheFirst',
             options: {
               cacheName: 'textures-cache',
-              expiration: {
-                maxEntries: 100,
-                maxAgeSeconds: 365 * 24 * 60 * 60,
-              },
+              expiration: { maxEntries: 100, maxAgeSeconds: 365 * 24 * 60 * 60 },
             },
           },
           {
-            // Cache examples directory
             urlPattern: /\/examples\/.*/,
             handler: 'CacheFirst',
             options: {
               cacheName: 'examples-cache',
-              expiration: {
-                maxEntries: 50,
-                maxAgeSeconds: 365 * 24 * 60 * 60,
-              },
+              expiration: { maxEntries: 50, maxAgeSeconds: 365 * 24 * 60 * 60 },
             },
           },
           {
-            // Cache Blockly media files
             urlPattern: /\/blockly\/media\/.*/,
             handler: 'CacheFirst',
             options: {
               cacheName: 'blockly-media',
-              expiration: {
-                maxEntries: 50,
-                maxAgeSeconds: 365 * 24 * 60 * 60,
-              },
-            },
-          },
-          {
-            // Cache same-origin requests
-            urlPattern: ({ url }) => url.origin === self.location.origin,
-            handler: 'CacheFirst',
-            options: {
-              cacheName: 'same-origin-cache',
-              expiration: {
-                maxEntries: 200,
-                maxAgeSeconds: 365 * 24 * 60 * 60,
-              },
+              expiration: { maxEntries: 50, maxAgeSeconds: 365 * 24 * 60 * 60 },
             },
           },
         ],
-        cleanupOutdatedCaches: true, // Remove old cache versions
+
+        cleanupOutdatedCaches: true,
       },
     }),
+
+    // Build-time proxy that generates a stable 'flock.js' re-export
     {
       name: 'create-flock-proxy',
       writeBundle(options, bundle) {
         let hashedFileName;
-
         for (const fileName in bundle) {
           if (fileName.startsWith('assets/index-') && fileName.endsWith('.js')) {
             hashedFileName = fileName;
             break;
           }
         }
-
         if (hashedFileName) {
           const proxyContent = `export * from './${hashedFileName}';\n`;
           const proxyPath = resolve(options.dir, 'flock.js');
-
           try {
             writeFileSync(proxyPath, proxyContent);
             console.log(`Generated proxy file: flock.js -> ${hashedFileName}`);
@@ -222,34 +177,8 @@ export default {
         }
       },
     },
-    /*{
-      name: 'copy-bundle-with-fixed-name',
-      writeBundle(options, bundle) {
-        let jsFileName;
 
-        // Look for the main JavaScript file in the bundle
-        for (const fileName in bundle) {
-          if (fileName.endsWith('.js')) {
-            jsFileName = fileName;
-            break;  // Assuming the first .js file is the main one; adjust if needed
-          }
-        }
-
-        if (jsFileName) {
-          const srcPath = resolve(options.dir, jsFileName);
-          const destPath = resolve(options.dir, 'flock.js');
-
-          try {
-            copyFileSync(srcPath, destPath);
-            console.log(`Copied ${jsFileName} to flock.js`);
-          } catch (error) {
-            console.error(`Failed to copy file: ${error.message}`);
-          }
-        } else {
-          console.error('No JavaScript file found in the bundle.');
-        }
-      },
-    },*/
+    // Copy demo files
     {
       name: 'copy-library-files',
       writeBundle() {
@@ -258,22 +187,21 @@ export default {
       },
     },
   ],
+
   server: {
     host: '0.0.0.0',
-    fs: {
-      // Allow serving files outside of the root
-      allow: [
-        "../.."
-      ]
-    },
-    allowedHosts: ['27c4c3b0-9860-47aa-a95d-03ca8acd6af0-00-2qj22wjmgrujn.picard.replit.dev', '1099a351-df60-40b5-bf61-4999bad0d153-00-4np7mg24c4rr.janeway.replit.dev'] //added this
+    fs: { allow: ['../..'] },
+    allowedHosts: [
+      '27c4c3b0-9860-47aa-a95d-03ca8acd6af0-00-2qj22wjmgrujn.picard.replit.dev',
+      '1099a351-df60-40b5-bf61-4999bad0d153-00-4np7mg24c4rr.janeway.replit.dev'
+    ]
   },
-  optimizeDeps: { exclude: ["@babylonjs/havok"] },
+
+  optimizeDeps: { exclude: ['@babylonjs/havok'] },
+
   build: {
-    assetsInlineLimit: 100000,  // Set high enough to include font files
-    cssCodeSplit: false,  // Disables CSS code splitting and inlines CSS into JavaScript
-    rollupOptions: {
-      input: 'index.html',
-    },
+    assetsInlineLimit: 100000,   // include font files inline if needed
+    cssCodeSplit: false,         // inline CSS into JS
+    rollupOptions: { input: 'index.html' },
   }
 }
