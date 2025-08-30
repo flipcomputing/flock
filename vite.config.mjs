@@ -106,10 +106,6 @@ export default {
         modifyURLPrefix: isProduction ? {
           '': BASE_URL, // Prepend the base URL to all cached assets in production
         } : {},
-         ignoreURLParametersMatching: [/^fullscreen$/],
-        additionalManifestEntries: [
-          { url: isProduction ? BASE_URL + '?fullscreen=true' : '/', revision: null }
-        ],
         runtimeCaching: [
           {
             // Cache all static assets
@@ -141,7 +137,6 @@ export default {
             handler: 'CacheFirst',
             options: {
               cacheName: 'sounds-cache',
-              rangeRequests: true, 
               expiration: {
                 maxEntries: 100,
                 maxAgeSeconds: 365 * 24 * 60 * 60,
@@ -265,14 +260,13 @@ export default {
   ],
   server: {
     host: '0.0.0.0',
-    port: 5000,
     fs: {
       // Allow serving files outside of the root
       allow: [
         "../.."
       ]
     },
-    allowedHosts: true //added this
+    allowedHosts: ['27c4c3b0-9860-47aa-a95d-03ca8acd6af0-00-2qj22wjmgrujn.picard.replit.dev', '1099a351-df60-40b5-bf61-4999bad0d153-00-4np7mg24c4rr.janeway.replit.dev'] //added this
   },
   optimizeDeps: { exclude: ["@babylonjs/havok"] },
   build: {
