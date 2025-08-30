@@ -853,18 +853,36 @@ class CustomColorPicker {
       
       // Position relative to canvas area, ABOVE the button
       this.container.style.position = 'absolute';
-      this.container.style.left = `${buttonRect.left - canvasRect.left}px`;
-      this.container.style.top = `${buttonRect.top - canvasRect.top - 180}px`; // Above button
       
-      // Adjust if it goes off screen horizontally
-      const containerWidth = 280;
-      if (buttonRect.left - canvasRect.left + containerWidth > canvasRect.width) {
-        this.container.style.left = `${canvasRect.width - containerWidth - 10}px`;
-      }
+      // Check if mobile viewport
+      const isMobile = window.innerWidth <= 600;
       
-      // Ensure it's not too high up
-      if (buttonRect.top - canvasRect.top - 180 < 10) {
-        this.container.style.top = '10px';
+      if (isMobile) {
+        // On mobile, use full canvas width with margins
+        this.container.style.left = '0px';
+        this.container.style.right = '0px';
+        this.container.style.width = `${canvasRect.width - 20}px`;
+        this.container.style.maxWidth = 'none';
+        this.container.style.marginLeft = '10px';
+        this.container.style.marginRight = '10px';
+        this.container.style.top = `${Math.max(10, buttonRect.top - canvasRect.top - 200)}px`;
+      } else {
+        // Desktop positioning
+        this.container.style.left = `${buttonRect.left - canvasRect.left}px`;
+        this.container.style.top = `${buttonRect.top - canvasRect.top - 180}px`;
+        this.container.style.width = '360px';
+        this.container.style.right = 'auto';
+        
+        // Adjust if it goes off screen horizontally
+        const containerWidth = 360;
+        if (buttonRect.left - canvasRect.left + containerWidth > canvasRect.width) {
+          this.container.style.left = `${canvasRect.width - containerWidth - 10}px`;
+        }
+        
+        // Ensure it's not too high up
+        if (buttonRect.top - canvasRect.top - 180 < 10) {
+          this.container.style.top = '10px';
+        }
       }
     }
     

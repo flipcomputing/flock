@@ -778,45 +778,57 @@
 
 /* Responsive design */
 @media (max-width: 600px) {
+  .custom-color-picker {
+    left: 0 !important;
+    right: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+  
   .color-picker-content {
-    width: 95vw;
+    width: 100vw !important;
+    max-width: none !important;
     max-height: 90vh;
-    padding: 16px;
+    padding: 8px !important;
+    left: 0 !important;
+    right: 0 !important;
+    margin: 0 !important;
+    box-sizing: border-box;
+    border-left: none !important;
+    border-right: none !important;
+    border-radius: 0 !important;
   }
   
   .color-picker-header h3 {
-    font-size: 20px;
+    font-size: 18px;
   }
   
   .color-palette {
-    grid-template-columns: repeat(auto-fit, minmax(35px, 1fr));
-    gap: 6px;
+    grid-template-columns: repeat(8, 1fr);
+    gap: 4px;
+    max-width: 100%;
   }
   
   .color-swatch {
-    width: 35px;
-    height: 35px;
+    width: 32px;
+    height: 32px;
   }
   
   .color-wheel {
-    width: 150px;
-    height: 150px;
+    width: 120px;
+    height: 120px;
   }
   
   .color-brightness {
+    width: 120px;
+  }
+  
+  .hue-slider-container {
     width: 150px;
   }
   
-  .color-picker-actions {
-    flex-direction: column;
-  }
-  
-  .rgb-controls label {
-    font-size: 14px;
-  }
-  
-  .rgb-number {
-    width: 50px;
+  .hue-slider-canvas {
+    width: 150px;
   }
 }
 
