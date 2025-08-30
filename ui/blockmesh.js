@@ -103,6 +103,10 @@ export function getBlockKeyFromBlockID(blockId, map) {
   return Object.keys(map).find((key) => meshBlockIdMap[key] === blockId);
 }
 
+export function getMeshFromBlockKey(blockKey) {
+  return flock.scene?.meshes?.find((mesh) => mesh.metadata.blockKey === blockKey);
+}
+
 export function getMeshFromBlock(block) {
   if (block && block.type === "rotate_to") {
     block = block.getParent();
@@ -114,7 +118,7 @@ export function getMeshFromBlock(block) {
     return null;
   }
 
-  const found = flock.scene?.meshes?.find((mesh) => mesh.metadata.blockKey === blockKey);
+  const found = getMeshFromBlockKey(blockKey);
 
   return found;
 }
@@ -122,7 +126,7 @@ export function getMeshFromBlock(block) {
 function getMeshFromBlockId(blockId) {
   const blockKey = getBlockKeyFromBlockID(blockId, meshMap);
 
-  return flock.scene?.meshes?.find((mesh) => mesh.metadata.blockKey === blockKey);
+  return getMeshFromBlockKey(blockKey);
 }
 
 function rescaleBoundingBox(bb, newScale) {

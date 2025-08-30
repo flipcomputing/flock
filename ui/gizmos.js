@@ -3,7 +3,7 @@ import * as Blockly from "blockly";
 import { meshMap, meshBlockIdMap } from "../generators";
 import { flock } from "../flock.js";
 import { setPositionValues } from "./addmeshes.js";
-import { updateBlockColorAndHighlight } from "./blockmesh.js";
+import { getMeshFromBlockKey, updateBlockColorAndHighlight } from "./blockmesh.js";
 export let gizmoManager;
 
 const blueColor = flock.BABYLON.Color3.FromHexString("#0072B2"); // Colour for X-axis
@@ -384,7 +384,7 @@ function focusCameraOnMesh() {
     const blockKey = Object.keys(meshMap).find(
       (key) => meshMap[key] === window.currentBlock,
     );
-    mesh = flock.scene?.meshes?.find((mesh) => mesh.metadata.blockKey === blockKey);
+    mesh = getMeshFromBlockKey(blockKey);
   }
   if (!mesh) return;
 
