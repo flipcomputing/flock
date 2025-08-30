@@ -57,24 +57,34 @@
 
     <!-- Import the test suite -->
     <script type="module">
+
+      // Define test suites in an array
+      // note: this array will change as test suites are refined
+      // some test files (materials, physics, sound, 3xtransform) have several top-level describe blocks
+      // the importFn is the function to call to register the tests with mocha - but if standardised the column could be removed
+      // if the tests were standardised and imported with a glob, (most of) the array could be generated automatically, reducing maintenance
+      // alternatively, the array can be customised to run tagged tests or subsets of tests
+      const testSuiteDefinitions = [
+        { id: "babylon", name: "Basic Babylon Tests", importPath: "./babylon.test.js", importFn: "runTests", pattern: "Flock API Tests" },
+        { id: "glide", name: "Glide Animation Tests", importPath: "./glide.test.js", importFn: "runGlideToTests", pattern: "glideTo function tests" },
+        { id: "ui", name: "UI Text/Button Tests", importPath: "./uitextbutton.test.js", importFn: "runUITests", pattern: "UIText, UIButton, UIInput, and UISlider function tests" },
+        { id: "stress", name: "Stress Tests (Boxes)", importPath: "./boxes.test.js", importFn: "runStressTests", pattern: "Stress test for many boxes" },
+        { id: "objects", name: "Object Creation Tests", importPath: "./objects.test.js", importFn: "runCreateObjectTests", pattern: "createObject tests" },
+        { id: "sound", name: "Sound Tests", importPath: "./sound.test.js", importFn: "runSoundTests", pattern: "@sound" },
+        { id: "translation", name: "Translation/Movement Tests", importPath: "./transform.translate.test.js", importFn: "runTranslationTests", pattern: "@translation" },
+        { id: "rotation", name: "Rotation Tests", importPath: "./transform.rotate.test.js", importFn: "runRotationTests", pattern: "@rotation" },
+        { id: "scale", name: "Scale Tests", importPath: "./transform.scale.test.js", importFn: "runScaleTests", pattern: "@scale" },
+        { id: "materials", name: "Materials Tests", importPath: "./materials.test.js", importFn: "runMaterialsTests", pattern: "@materials" },
+        { id: "physics", name: "Physics Tests", importPath: "./physics.test.js", importFn: "runPhysicsTests", pattern: "@physics" },
+        { id: "effects", name: "Effects Tests", importPath: "./effects.test.js", importFn: "runEffectsTests", pattern: "Effects API" },
+        { id: "animate", name: "Animation API Tests", importPath: "./animate.test.js", importFn: "runAnimateTests", pattern: "Animation API Tests" },
+        { id: "concurrency", name: "Concurrency Tests", importPath: "./concurrency.test.js", importFn: "runConcurrencyTests", pattern: "Concurrency and Stress Tests" },
+        { id: "blocks", name: "Block Tests", importPath: "./blocks.test.js", importFn: "runBlocksTests", pattern: "blocks.js tests" }
+      ];
+
       import * as flockmodule from "../flock.js";
       import "@babylonjs/core/Debug/debugLayer";
       import "@babylonjs/inspector";
-      import { runTests } from "./babylon.test.js"; // Import the test suite
-      import { runGlideToTests } from "./glide.test.js";
-      import { runUITests } from "./uitextbutton.test.js";
-      import { runStressTests } from "./boxes.test.js";
-      import { runCreateObjectTests } from "./objects.test.js";
-      import { runSoundTests } from "./sound.test.js";
-      import { runTranslationTests } from "./transform.translate.test.js";
-      import { runRotationTests } from "./transform.rotate.test.js";
-      import { runScaleTests } from "./transform.scale.test.js";
-      import { runMaterialsTests } from "./materials.test.js";
-      import { runPhysicsTests } from "./physics.test.js";
-      import { runEffectsTests } from "./effects.test.js";
-      import { runAnimateTests } from "./animate.test.js";
-	    import { runConcurrencyTests } from "./concurrency.test.js";
-	    import { runBlocksTests } from "./blocks.test.js";
 
       const flock = flockmodule.flock;
       flock.modelPath = "../models/";
@@ -83,6 +93,7 @@
 
       mocha.setup({
         ui: "bdd",
+        reporter: 'html',
         cleanReferencesAfterRun: false
       });
 
@@ -115,40 +126,62 @@
       }
 
       // Test suite mapping
-      const testSuites = {
-        babylon: () => runTests(flock, chai.expect),
-        glide: () => runGlideToTests(flock),
-        ui: () => runUITests(flock),
-        stress: () => runStressTests(flock),
-        objects: () => runCreateObjectTests(flock),
-        sound: () => runSoundTests(flock),
-        translation: () => runTranslationTests(flock),
-        rotation: () => runRotationTests(flock),
-        scale: () => runScaleTests(flock),
-        materials: () => runMaterialsTests(flock),
-        physics: () => runPhysicsTests(flock),
-        effects: () => runEffectsTests(flock),
-        animate: () => runAnimateTests(flock),
-		    concurrency: () => runConcurrencyTests(flock),
-        blocks: () => runBlocksTests(),
-        all: () => {
-          runTests(flock, chai.expect);
-          runGlideToTests(flock);
-          runUITests(flock);
-          runStressTests(flock);
-          runCreateObjectTests(flock);
-          runSoundTests(flock);
-          runTranslationTests(flock);
-          runRotationTests(flock);
-          runScaleTests(flock);
-          runMaterialsTests(flock);
-          runPhysicsTests(flock);
-          runEffectsTests(flock);
-          runAnimateTests(flock);
-		      runConcurrencyTests(flock);
-          runBlocksTests();
+      // Import all test modules and run them to register tests
+      async function loadAllTests() {
+        // First, load all test modules
+        for (const suite of testSuiteDefinitions) {
+          try {
+            const module = await import(suite.importPath);
+            // Call the function to register tests with mocha, but don't run them yet
+            if (suite.id === "babylon") {
+              module[suite.importFn](flock, chai.expect);
+            } else {
+              module[suite.importFn](flock);  
+            }
+          } catch (error) {
+            console.error(`Error loading test suite ${suite.id}:`, error);
+          }
         }
-      };
+
+        let returnableTestSuites = {
+          babylon: () => runTests(flock, chai.expect),
+          glide: () => runGlideToTests(flock),
+          ui: () => runUITests(flock),
+          stress: () => runStressTests(flock),
+          objects: () => runCreateObjectTests(flock),
+          sound: () => runSoundTests(flock),
+          translation: () => runTranslationTests(flock),
+          rotation: () => runRotationTests(flock),
+          scale: () => runScaleTests(flock),
+          materials: () => runMaterialsTests(flock),
+          physics: () => runPhysicsTests(flock),
+          effects: () => runEffectsTests(flock),
+          animate: () => runAnimateTests(flock),
+          concurrency: () => runConcurrencyTests(flock),
+          blocks: () => runBlocksTests(),
+          all: () => {
+            runTests(flock, chai.expect);
+            runGlideToTests(flock);
+            runUITests(flock);
+            runStressTests(flock);
+            runCreateObjectTests(flock);
+            runSoundTests(flock);
+            runTranslationTests(flock);
+            runRotationTests(flock);
+            runScaleTests(flock);
+            runMaterialsTests(flock);
+            runPhysicsTests(flock);
+            runEffectsTests(flock);
+            runAnimateTests(flock);
+            runConcurrencyTests(flock);
+            runBlocksTests();
+          }
+        }
+      return(returnableTestSuites);
+      }
+
+      // Load all tests immediately, and get test suite mapping
+      const testSuites = await loadAllTests();
 
       // Setup test selection interface
       const testSelect = document.getElementById('testSelect');
@@ -157,6 +190,8 @@
 
       runTestBtn.addEventListener('click', () => {
         const selectedTest = testSelect.value;
+        //console.log("Selected test suite:", selectedTest);
+        //console.log("Pattern being used:", testSuiteDefinitions.find(suite => suite.id === selectedTest)?.pattern);
         if (!selectedTest) {
           alert('Please select a test suite to run');
           return;
@@ -165,11 +200,21 @@
         // Clear previous results
         document.getElementById('mocha').innerHTML = '';
 
-        // Run selected test suite
-        if (testSuites[selectedTest]) {
-          testSuites[selectedTest]();
-          mocha.run();
+        // Reset any previous grep pattern
+        mocha.grep(null);
+        
+        // If a specific test suite is selected (not "all")
+        if (selectedTest !== "all") {
+          // Find the pattern for the selected test suite
+          const testSuite = testSuiteDefinitions.find(suite => suite.id === selectedTest);
+          if (testSuite && testSuite.pattern) {
+            // Apply the grep pattern to filter tests
+            mocha.grep(testSuite.pattern);
+          }
         }
+        
+        // Run the filtered tests
+        mocha.run();
       });
 
       clearTestBtn.addEventListener('click', () => {
