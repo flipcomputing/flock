@@ -110,7 +110,7 @@ class CustomColorPicker {
         
         <div class="color-picker-tools-row">
           <div class="hue-slider-container" tabindex="0" role="slider" aria-label="Hue slider" aria-valuemin="0" aria-valuemax="360" aria-valuenow="0">
-            <canvas class="hue-slider-canvas" width="150" height="20"></canvas>
+            <canvas class="hue-slider-canvas" height="20"></canvas>
             <div class="hue-slider-handle"></div>
           </div>
           <div class="color-picker-buttons">
@@ -190,6 +190,26 @@ class CustomColorPicker {
     // Initialize color wheel and hue slider
     this.drawColorWheel();
     this.drawHueSlider();
+  }
+  
+  setupHueSliderCanvas() {
+    // Set canvas width to match the actual slider container width minus button space  
+    const toolsRow = this.container.querySelector('.color-picker-tools-row');
+    const buttonsContainer = this.container.querySelector('.color-picker-buttons');
+    
+    if (toolsRow && buttonsContainer) {
+      const toolsRect = toolsRow.getBoundingClientRect();
+      const buttonsRect = buttonsContainer.getBoundingClientRect();
+      
+      // Calculate available width for the slider (total tools row minus buttons and gap)
+      const availableWidth = toolsRect.width - buttonsRect.width - 12; // 12px gap
+      
+      // Set canvas width to available space
+      this.hueCanvas.width = Math.max(100, availableWidth);
+    } else {
+      // Fallback: measure after DOM is ready
+      setTimeout(() => this.setupHueSliderCanvas(), 10);
+    }
   }
   
   drawColorWheel() {
@@ -541,12 +561,17 @@ class CustomColorPicker {
 
   updateHueSliderPosition(hue) {
     const handle = this.container.querySelector('.hue-slider-handle');
-    const container = this.container.querySelector('.hue-slider-container');
-    if (!handle || !container) return;
+    const canvas = this.container.querySelector('.hue-slider-canvas');
+    if (!handle || !canvas) return;
     
-    // Calculate position (hue 0-360 maps to 0-150px width)
-    const position = (hue / 360) * 150;
-    handle.style.left = `${Math.max(0, Math.min(150 - 6, position - 6))}px`;
+    // Get the actual canvas width (not the container width)
+    const canvasRect = canvas.getBoundingClientRect();
+    const canvasWidth = canvasRect.width;
+    
+    // Calculate position relative to canvas only (hue 0-360 maps to 0-canvasWidth)
+    const position = (hue / 360) * canvasWidth;
+    const handleWidth = 12; // Handle is 12px wide
+    handle.style.left = `${Math.max(0, Math.min(canvasWidth - handleWidth, position - handleWidth/2))}px`;
   }
 
   updateHueSliderFromColor() {
@@ -854,6 +879,12 @@ class CustomColorPicker {
     this.setColor(color);
     this.container.style.display = 'block';
     this.isOpen = true;
+    
+    // Setup hue slider canvas size once layout is established
+    setTimeout(() => {
+      this.setupHueSliderCanvas();
+      this.drawHueSlider();
+    }, 10);
     
     // Position above the color button over the canvas
     const colorButton = document.getElementById('colorPickerButton');
