@@ -63,24 +63,29 @@ Flock XR is a creative coding platform for 3D development using Blockly and Baby
 
 ## 📁 Project Structure
 
-Understanding the codebase:
+Understanding the codebase – key files:
 - **`index.html`** - Main HTML file that defines the application structure, UI layout (menu, canvas, code panel), and loads all necessary scripts and stylesheets
-- **`main.js`** - Main application entry point that initializes Blockly workspace, handles code execution, manages UI views (canvas/blocks/split), and controls file operations
-- **`ui/designview.js`** - Visual design interface enabling direct 3D object manipulation with gizmos, synchronizing 3D changes with Blockly blocks
+- **`main/main.js`** - Main application entry point that initializes Blockly workspace, handles code execution, manages UI views (canvas/blocks/split), and controls file operations
 - **`flock.js`** - Main Flock engine
-- **`api/`** - Core Flock XR API functions (scene, animation, physics, etc.)
+- **`ui/designview.js`** - Visual design interface enabling direct 3D object manipulation with gizmos, synchronizing 3D changes with Blockly blocks
 - **`blocks.js`** - Block definitions
-- **`blocks/`** - Additional Blockly block definitions
-- **`generators.js`** - Blockly JavaSode generators for blocks
+- **`generators.js`** - Blockly JavaScript generators for blocks
 - **`toolbox.js`** - Blockly toolbox configuration
-- **`examples/`** - Sample projects and demos
-- **`models/`** - 3D models (.glb files)
+
+Directories:
+- **`api/`** - Core Flock XR API functions (scene, animation, physics, etc.)
+- **`blocks/`** - Additional Blockly block definitions
+- **`docs/`** - Getting started documentation
+- **`examples/`** - Example project JSON files including those featured in the Demo dropdown
+- **`fonts/`** - Fonts used in UI and 3D text generation
 - **`images/`** - Images used in UI
+- **`locale/`** - localisation / translation
+- **`main/`** - application file to support flock engine
+- **`models/`** - 3D models (.glb files)
 - **`textures/`** - Texture files for materials
 - **`sounds/`** - Audio files
-- **`fonts/`** - Fonts used in UI and 3D text generation
-- **`examples/`** - Example project JSON files including those featured in the Demo dropdown
 - **`tests/`** - Test files (please add tests for new features!)
+- **`ui/`** – UI files
 
 ## 🧪 Testing
 
