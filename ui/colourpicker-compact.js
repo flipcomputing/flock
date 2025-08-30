@@ -16,10 +16,11 @@ class CustomColorPicker {
     
     // Compact preset colors 
     this.presetColors = [
-      '#ff0000', '#ff8000', '#ffff00', '#80ff00',
+      '#ff0000', '#ff8000', '#ffff00', '#008080',
       '#00ff00', '#00ff80', '#00ffff', '#0080ff',
       '#0000ff', '#8000ff', '#ff00ff', '#ff0080',
-      '#ffffff', '#cccccc', '#666666', '#000000'
+      '#ffffff', '#cccccc', '#666666', '#000000',
+      '#8B4513', '#FF7F7F'
     ];
     
     this.createElement();
@@ -103,23 +104,31 @@ class CustomColorPicker {
                   `<button class="color-swatch" style="background-color: ${color}" data-color="${color}" tabindex="0"></button>`
                 ).join('')}
               </div>
-              <div class="color-controls">
-                <div class="hue-slider-container" tabindex="0" role="slider" aria-label="Hue slider" aria-valuemin="0" aria-valuemax="360" aria-valuenow="0">
-                  <canvas class="hue-slider-canvas" width="150" height="20"></canvas>
-                  <div class="hue-slider-handle"></div>
-                </div>
-                <button class="color-picker-eyedropper" aria-label="Pick color from screen" title="Pick color from screen">
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" width="20" height="20" fill="currentColor">
-                    <path d="M405.6 93.2L304 194.8L294.6 185.4C282.1 172.9 261.8 172.9 249.3 185.4C236.8 197.9 236.8 218.2 249.3 230.7L409.3 390.7C421.8 403.2 442.1 403.2 454.6 390.7C467.1 378.2 467.1 357.9 454.6 345.4L445.2 336L546.8 234.4C585.8 195.4 585.8 132.2 546.8 93.3C507.8 54.4 444.6 54.3 405.7 93.3zM119.4 387.3C104.4 402.3 96 422.7 96 443.9L96 486.3L69.4 526.2C60.9 538.9 62.6 555.8 73.4 566.6C84.2 577.4 101.1 579.1 113.8 570.6L153.7 544L196.1 544C217.3 544 237.7 535.6 252.7 520.6L362.1 411.2L316.8 365.9L207.4 475.3C204.4 478.3 200.3 480 196.1 480L160 480L160 443.9C160 439.7 161.7 435.6 164.7 432.6L274.1 323.2L228.8 277.9L119.4 387.3z"/>
-                  </svg>
-                </button>
-                <button class="color-picker-more-options" aria-label="More options" title="More options">
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" width="20" height="20" fill="currentColor">
-                    <path d="M535.1 342.6C547.6 330.1 547.6 309.8 535.1 297.3L375.1 137.3C362.6 124.8 342.3 124.8 329.8 137.3C317.3 149.8 317.3 170.1 329.8 182.6L467.2 320L329.9 457.4C317.4 469.9 317.4 490.2 329.9 502.7C342.4 515.2 362.7 515.2 375.2 502.7L535.2 342.7zM183.1 502.6L343.1 342.6C355.6 330.1 355.6 309.8 343.1 297.3L183.1 137.3C170.6 124.8 150.3 124.8 137.8 137.3C125.3 149.8 125.3 170.1 137.8 182.6L275.2 320L137.9 457.4C125.4 469.9 125.4 490.2 137.9 502.7C150.4 515.2 170.7 515.2 183.2 502.7z"/>
-                  </svg>
-                </button>
-              </div>
             </div>
+          </div>
+        </div>
+        
+        <div class="color-picker-tools-row">
+          <div class="hue-slider-container" tabindex="0" role="slider" aria-label="Hue slider" aria-valuemin="0" aria-valuemax="360" aria-valuenow="0">
+            <canvas class="hue-slider-canvas" width="150" height="20"></canvas>
+            <div class="hue-slider-handle"></div>
+          </div>
+          <div class="color-picker-buttons">
+            <button class="color-picker-random" aria-label="Random color" title="Random color">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" width="20" height="20" fill="currentColor">
+                <path d="M320 160C178.6 160 64 274.6 64 416L64 480C64 497.7 49.7 512 32 512C14.3 512 0 497.7 0 480L0 416C0 239.3 143.3 96 320 96C496.7 96 640 239.3 640 416L640 480C640 497.7 625.7 512 608 512C590.3 512 576 497.7 576 480L576 416C576 274.6 461.4 160 320 160zM320 272C240.5 272 176 336.5 176 416L176 480C176 497.7 161.7 512 144 512C126.3 512 112 497.7 112 480L112 416C112 301.1 205.1 208 320 208C434.9 208 528 301.1 528 416L528 480C528 497.7 513.7 512 496 512C478.3 512 464 497.7 464 480L464 416C464 336.5 399.5 272 320 272zM288 416L288 480C288 497.7 273.7 512 256 512C238.3 512 224 497.7 224 480L224 416C224 363 267 320 320 320C373 320 416 363 416 416L416 480C416 497.7 401.7 512 384 512C366.3 512 352 497.7 352 480L352 416C352 398.3 337.7 384 320 384C302.3 384 288 398.3 288 416z"/>
+              </svg>
+            </button>
+            <button class="color-picker-eyedropper" aria-label="Pick color from screen" title="Pick color from screen">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" width="20" height="20" fill="currentColor">
+                <path d="M405.6 93.2L304 194.8L294.6 185.4C282.1 172.9 261.8 172.9 249.3 185.4C236.8 197.9 236.8 218.2 249.3 230.7L409.3 390.7C421.8 403.2 442.1 403.2 454.6 390.7C467.1 378.2 467.1 357.9 454.6 345.4L445.2 336L546.8 234.4C585.8 195.4 585.8 132.2 546.8 93.3C507.8 54.4 444.6 54.3 405.7 93.3zM119.4 387.3C104.4 402.3 96 422.7 96 443.9L96 486.3L69.4 526.2C60.9 538.9 62.6 555.8 73.4 566.6C84.2 577.4 101.1 579.1 113.8 570.6L153.7 544L196.1 544C217.3 544 237.7 535.6 252.7 520.6L362.1 411.2L316.8 365.9L207.4 475.3C204.4 478.3 200.3 480 196.1 480L160 480L160 443.9C160 439.7 161.7 435.6 164.7 432.6L274.1 323.2L228.8 277.9L119.4 387.3z"/>
+              </svg>
+            </button>
+            <button class="color-picker-more-options" aria-label="More options" title="More options">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" width="20" height="20" fill="currentColor">
+                <path d="M535.1 342.6C547.6 330.1 547.6 309.8 535.1 297.3L375.1 137.3C362.6 124.8 342.3 124.8 329.8 137.3C317.3 149.8 317.3 170.1 329.8 182.6L467.2 320L329.9 457.4C317.4 469.9 317.4 490.2 329.9 502.7C342.4 515.2 362.7 515.2 375.2 502.7L535.2 342.7zM183.1 502.6L343.1 342.6C355.6 330.1 355.6 309.8 343.1 297.3L183.1 137.3C170.6 124.8 150.3 124.8 137.8 137.3C125.3 149.8 125.3 170.1 137.8 182.6L275.2 320L137.9 457.4C125.4 469.9 125.4 490.2 137.9 502.7C150.4 515.2 170.7 515.2 183.2 502.7z"/>
+              </svg>
+            </button>
           </div>
         </div>
         
@@ -234,6 +243,9 @@ class CustomColorPicker {
         this.close();
       }
     };
+    
+    // Random color button
+    this.container.querySelector('.color-picker-random').addEventListener('click', () => this.generateRandomColor());
     
     // Eyedropper tool
     this.container.querySelector('.color-picker-eyedropper').addEventListener('click', () => this.startEyedropper());
@@ -865,7 +877,12 @@ class CustomColorPicker {
         this.container.style.maxWidth = 'none';
         this.container.style.marginLeft = '10px';
         this.container.style.marginRight = '10px';
-        this.container.style.top = `${Math.max(10, buttonRect.top - canvasRect.top - 200)}px`;
+        const topPosition = Math.max(10, buttonRect.top - canvasRect.top - 200);
+        // Ensure mobile doesn't go below bottom bar either
+        const pickerHeight = 250;
+        const bottomBarHeight = 40;
+        const maxTop = canvasRect.height - pickerHeight - bottomBarHeight;
+        this.container.style.top = `${Math.min(topPosition, Math.max(10, maxTop))}px`;
       } else {
         // Desktop positioning
         this.container.style.left = `${buttonRect.left - canvasRect.left}px`;
@@ -882,6 +899,15 @@ class CustomColorPicker {
         // Ensure it's not too high up
         if (buttonRect.top - canvasRect.top - 180 < 10) {
           this.container.style.top = '10px';
+        }
+        
+        // Ensure it doesn't go below the bottom gizmo bar (30px height + margin)
+        const pickerHeight = 250; // Approximate picker height
+        const bottomBarHeight = 40; // Bottom bar + margin
+        const maxTop = canvasRect.height - pickerHeight - bottomBarHeight;
+        const currentTop = parseInt(this.container.style.top);
+        if (currentTop > maxTop) {
+          this.container.style.top = `${Math.max(10, maxTop)}px`;
         }
       }
     }
@@ -906,11 +932,14 @@ class CustomColorPicker {
   }
   
   drawHueSlider() {
+    const sliderWidth = this.hueCanvas.width;
+    const sliderHeight = this.hueCanvas.height;
+    
     // Clear canvas
-    this.hueCtx.clearRect(0, 0, 150, 20);
+    this.hueCtx.clearRect(0, 0, sliderWidth, sliderHeight);
     
     // Draw horizontal hue gradient from left (red) to right (red again through spectrum)
-    const gradient = this.hueCtx.createLinearGradient(0, 0, 150, 0);
+    const gradient = this.hueCtx.createLinearGradient(0, 0, sliderWidth, 0);
     gradient.addColorStop(0, 'hsl(0, 100%, 50%)');    // Red
     gradient.addColorStop(0.17, 'hsl(60, 100%, 50%)'); // Yellow
     gradient.addColorStop(0.33, 'hsl(120, 100%, 50%)'); // Green
@@ -920,12 +949,12 @@ class CustomColorPicker {
     gradient.addColorStop(1, 'hsl(360, 100%, 50%)');    // Red
     
     this.hueCtx.fillStyle = gradient;
-    this.hueCtx.fillRect(0, 0, 150, 20);
+    this.hueCtx.fillRect(0, 0, sliderWidth, sliderHeight);
     
     // Draw border
     this.hueCtx.strokeStyle = '#ddd';
     this.hueCtx.lineWidth = 1;
-    this.hueCtx.strokeRect(0, 0, 150, 20);
+    this.hueCtx.strokeRect(0, 0, sliderWidth, sliderHeight);
     
     // Update handle position
     this.updateHueHandle();
@@ -934,14 +963,16 @@ class CustomColorPicker {
   updateHueHandle() {
     const handle = this.container.querySelector('.hue-slider-handle');
     if (handle) {
-      const position = (this.currentHue / 360) * 150;
+      const sliderWidth = this.hueCanvas.width;
+      const position = (this.currentHue / 360) * sliderWidth;
       handle.style.left = `${position - 6}px`; // Offset by half handle width (12px / 2)
     }
   }
   
   handleHueSliderClick(x) {
-    // Calculate hue from click position
-    const hue = (x / 150) * 360;
+    // Calculate hue from click position using actual canvas width
+    const sliderWidth = this.hueCanvas.width;
+    const hue = (x / sliderWidth) * 360;
     this.currentHue = Math.max(0, Math.min(360, hue));
     
     // Convert HSL to RGB hex for proper color handling
@@ -972,7 +1003,8 @@ class CustomColorPicker {
       e.preventDefault();
       
       const rect = this.hueCanvas.getBoundingClientRect();
-      const x = Math.max(0, Math.min(150, e.clientX - rect.left));
+      const sliderWidth = this.hueCanvas.width;
+      const x = Math.max(0, Math.min(sliderWidth, e.clientX - rect.left));
       this.handleHueSliderClick(x);
     };
     
@@ -990,6 +1022,16 @@ class CustomColorPicker {
       this.handleHueSliderClick(x);
       startDrag(e);
     });
+  }
+
+  generateRandomColor() {
+    // Use the same algorithm as the Blockly random color block
+    const letters = "0123456789ABCDEF";
+    let color = "#";
+    for (let i = 0; i < 6; i++) {
+      color += letters[Math.floor(Math.random() * 16)];
+    }
+    this.setColor(color);
   }
 
   toggleAdvancedOptions() {
