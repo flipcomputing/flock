@@ -162,6 +162,15 @@
   </head>
 
   <body class="loading">
+    <script>
+      (async () => {
+        const url = new URL('./sw.js', location.href).href;
+        const r = await fetch(url, { cache: 'no-store' });
+        console.log('sw.js status:', r.status, 'type:', r.type, 'ct:', r.headers.get('content-type'));
+        const text = await r.text();
+        console.log('first 120 chars:', text.slice(0,120).replace(/\n/g,' '));
+      })();
+    </script>
     <!-- Loading Screen -->
     <div id="loadingScreen" class="loading-screen" role="dialog" aria-modal="true" aria-labelledby="loading-title" aria-describedby="loading-description">
       <div class="loading-content">
