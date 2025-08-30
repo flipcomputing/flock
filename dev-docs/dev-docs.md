@@ -18,11 +18,15 @@ Within this code are several methods that get called to enact these changes with
 
 Defined in: `ui/blockmesh.js`
 
+Called within [`updateOrCreateMeshFromBlock`](#updateorcreatemeshfromblockblock-changeevent) and [`updateMeshFromBlock`](#updatemeshfromblockmesh-block-changeevent)
+
 Retrieves the mesh associated with a particular block (`block`).
 
 #### `updateOrCreateMeshFromBlock(block, changeEvent)`
 
 Defined in: `ui/blockmesh.js`
+
+Called within `handleBlockChange` in each block's event handler.
 
 Enacts an event (`changeEvent`) on a mesh associated with a particular block (`block`), whether that be the creation of that mesh itself or a transformation on it.
 
