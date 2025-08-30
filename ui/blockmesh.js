@@ -77,9 +77,7 @@ export function updateOrCreateMeshFromBlock(block, changeEvent) {
 
 export function deleteMeshFromBlock(blockId) {
   
-  const blockKey = Object.keys(meshBlockIdMap).find(
-    (key) => meshBlockIdMap[key] === blockId,
-  );
+  const blockKey = getBlockKeyFromBlockID(blockId, meshBlockIdMap);
 
   if (!blockKey) {
     return;
@@ -97,12 +95,20 @@ export function deleteMeshFromBlock(blockId) {
   delete meshBlockIdMap[blockKey];
 }
 
+export function getBlockKeyFromBlock(block) {
+  return Object.keys(meshMap).find((key) => meshMap[key] === block);
+}
+
+export function getBlockKeyFromBlockID(blockId, map) {
+  return Object.keys(map).find((key) => meshBlockIdMap[key] === blockId);
+}
+
 export function getMeshFromBlock(block) {
   if (block && block.type === "rotate_to") {
     block = block.getParent();
   }
   
-  const blockKey = Object.keys(meshMap).find((key) => meshMap[key] === block);
+  const blockKey = getBlockKeyFromBlock(block);
 
   if (!blockKey) {
     return null;
@@ -114,9 +120,7 @@ export function getMeshFromBlock(block) {
 }
 
 function getMeshFromBlockId(blockId) {
-  const blockKey = Object.keys(meshMap).find(
-    (key) => meshBlockIdMap[key] === blockId,
-  );
+  const blockKey = getBlockKeyFromBlockID(blockId, meshMap);
 
   return flock.scene?.meshes?.find((mesh) => mesh.metadata.blockKey === blockKey);
 }
