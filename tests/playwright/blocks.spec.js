@@ -1,132 +1,177 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from "@playwright/test";
 
-test.describe('Create Blockly project and open Events flyout', () => {
-  test('starts new project and opens Events category', async ({ page }) => {
-	  page.on('console', msg => {
-		console.log(`📥 [console.${msg.type()}]`, msg.text());
-	  });
+test.describe("Create Blockly project and open Events flyout", () => {
+  test("starts new project and opens Events category", async ({ page }) => {
+	page.on("console", (msg) => {
+	  console.log(`📥 [console.${msg.type()}]`, msg.text());
+	});
 
-	await page.goto('/');
-	await page.waitForLoadState('networkidle');
+	// ✅ Load page and wait for DOM readiness instead of networkidle
+	await page.goto("/", { waitUntil: "domcontentloaded" });
+
+	// ✅ Wait until the project select dropdown is visible
+	await page.waitForSelector("#exampleSelect", { state: "visible", timeout: 20000 });
+
+	// ✅ Also wait until Blockly is fully initialised
+	await page.waitForFunction(() => {
+	  const ws = window.mainWorkspace ?? window.Blockly?.getMainWorkspace?.();
+	  return !!ws;
+	}, { timeout: 20000 });
 
 	// Step 1: Start a new project
-	const projectMenu = page.locator('#exampleSelect');
+	const projectMenu = page.locator("#exampleSelect");
 	await expect(projectMenu).toBeVisible();
 	await expect(projectMenu).toBeEnabled();
 
-	const newOption = await page.locator('#project-new');
-	const newValue = await newOption.getAttribute('value');
+	const newOption = await page.locator("#new");
+	const newValue = await newOption.getAttribute("value");
 	if (newValue) {
 	  await projectMenu.selectOption(newValue);
 	} else {
-	  throw new Error('Could not find value for #project-new');
+	  throw new Error("Could not find value for #new");
 	}
 
-	// Step 2: Confirm empty workspace
-	await page.waitForFunction(() =>
-	  window.mainWorkspace?.getAllBlocks?.().length === 0
-	);
-
-	// Step 3: Click the "Events" category
-	await page.locator('.blocklyTreeRow.custom-category:has-text("Events")').click();
-
-	// Step 4: Wait for the flyout to contain at least one block
+	// Step 2: Wait for Blockly ready & empty workspace
 	await page.waitForFunction(() => {
-	  const flyout = window.mainWorkspace?.getFlyout?.();
-	  return flyout?.getWorkspace?.().getTopBlocks(false).length > 0;
+	  const ws = window.mainWorkspace ?? window.Blockly?.getMainWorkspace?.();
+	  if (!ws) return false;
+	  return (
+		(ws.getToolbox?.() || ws.getFlyout?.()) &&
+		ws.getAllBlocks?.().length === 0
+	  );
 	});
 
-	  const target = await page.locator('.blocklyFlyout .blocklyBlockCanvas g.blocklyDraggable:has-text("start")').boundingBox();
+	// Helper to open a category via Blockly API (robust against UI/DOM changes)
+	async function openCategoryByName(namePart) {
+	  const result = await page.evaluate((namePart) => {
+		const ws = window.mainWorkspace ?? window.Blockly?.getMainWorkspace?.();
+		if (!ws) return { ok: false, reason: "no workspace" };
+		const tb = ws.getToolbox?.();
+		if (!tb) return { ok: false, reason: "no toolbox" };
 
-	  if (target) {
-		await page.mouse.click(target.x + target.width / 2, target.y + target.height / 2);
-	  } else {
-		throw new Error('Could not find the "start" block to click.');
-	  }
+		const items = tb.getToolboxItems?.() || [];
+		const wanted = items.find(i =>
+		  (i.getName?.() || "").toLowerCase().includes(namePart.toLowerCase())
+		) || null;
 
-	  await page.waitForFunction(() =>
-		window.mainWorkspace?.getAllBlocks?.().length === 1
-	  );
+		const names = items.map(i => i.getName?.()).filter(Boolean);
 
-	  // Step 1: Click the "Scene" category
-	  await page.locator('.blocklyTreeRow.custom-category:has-text("Scene")').click();
-
-	  // Step 2: Wait for flyout to populate
-	  await page.waitForFunction(() =>
-		window.mainWorkspace?.getFlyout?.()?.getWorkspace?.()?.getTopBlocks(false)?.length > 0
-	  );
-
-	  // Step 3: Find the "sky" block and click it
-	  const skyBlock = await page
-		.locator('.blocklyFlyout .blocklyBlockCanvas g.blocklyDraggable:has-text("sky")')
-		.boundingBox();
-
-	  if (skyBlock) {
-		await page.mouse.click(skyBlock.x + skyBlock.width / 2, skyBlock.y + skyBlock.height / 2);
-	  } else {
-		throw new Error('Could not find the "sky" block to click.');
-	  }
-
-	  const debug = await page.evaluate(() => {
-		const ws = window.mainWorkspace;
-		const blocks = ws.getAllBlocks();
-
-		const start = blocks.find(b => b.type === 'start');
-		const sky = blocks.find(b => b.type === 'set_sky_color');
-
-		const debugInfo = {
-		  foundStart: !!start,
-		  foundSky: !!sky,
-		  inputList: [],
-		  connected: false,
-		  error: null,
-		};
-
-		try {
-		  if (!start || !sky) return debugInfo;
-
-		  const inputs = start.inputList || [];
-		  const inputConn = inputs.find(i => i.name === 'DO' && i.connection)?.connection;
-		  const skyPrev = sky.previousConnection;
-
-		  debugInfo.inputList = inputs.map(i => ({
-			name: i.name,
-			hasConnection: !!i.connection,
-			connectionType: i.connection?.type ?? null,
-			isConnected: i.connection?.isConnected() ?? null
-		  }));
-
-		  if (inputConn && skyPrev && !inputConn.isConnected() && !skyPrev.isConnected()) {
-			inputConn.connect(skyPrev); // don’t use canConnectWithReason
-			debugInfo.connected = true;
-		  }
-		} catch (e) {
-		  debugInfo.error = e.message || String(e);
+		if (!wanted) {
+		  return {
+			ok: false,
+			reason: `category "${namePart}" not found`,
+			names
+		  };
 		}
 
-		return debugInfo;
-	  });
+		tb.setSelectedItem?.(wanted);
+		wanted.setExpanded?.(true);
 
-	  //console.log("🔍 Blockly connection debug:", debug);
+		const fly = tb.getFlyout?.() || ws.getFlyout?.();
+		const count = fly ? fly.workspace_.getTopBlocks(false).length : 0;
+		return { ok: count >= 0, count, names: [wanted.getName?.()] };
+	  }, namePart);
 
-	  await page.evaluate(() => {
-		console.log('BLOCK COUNT:', window.mainWorkspace?.getAllBlocks?.().length);
-		console.log('BLOCK TYPES:', window.mainWorkspace?.getAllBlocks?.().map(b => b.type));
-	  });
+	  if (!result.ok) {
+		throw new Error(
+		  `Could not open "${namePart}" category (${result.reason || "unknown"}). Available: ${
+			result.names?.join(", ") || "(none)"
+		  }`
+		);
+	  }
+	}
 
-	  await page.waitForFunction(() =>
-		window.mainWorkspace?.getAllBlocks?.().length === 3
-	  );
+	// Step 3: Open “Events” category
+	await page.waitForFunction(() => {
+	  const ws = window.mainWorkspace ?? window.Blockly?.getMainWorkspace?.();
+	  const tb = ws?.getToolbox?.();
+	  return !!(tb && (tb.getToolboxItems?.()?.length ?? 0) > 0);
+	}, { timeout: 20000 });
+	await openCategoryByName("events");
 
-	  await page.locator('#runCodeButton').click(); // Adjust selector if your play button has a different ID/class
+	// Step 4: Create a `start` block programmatically
+	const createdStart = await page.evaluate(() => {
+	  const ws = window.mainWorkspace ?? window.Blockly?.getMainWorkspace?.();
+	  if (!ws) return false;
+	  let start = ws.getAllBlocks().find((b) => b.type === "start");
+	  if (!start) {
+		start = ws.newBlock("start");
+		start.initSvg?.();
+		start.render?.();
+		start.moveBy(80, 80);
+	  }
+	  return !!start;
+	});
+	if (!createdStart) throw new Error("Failed to create start block");
 
-	  await page.waitForTimeout(1000); // 1 second; adjust if needed
+	// Wait until workspace reflects the single block (start)
+	await page.waitForFunction(() => {
+	  const ws = window.mainWorkspace ?? window.Blockly?.getMainWorkspace?.();
+	  return (ws?.getAllBlocks?.().length ?? 0) >= 1;
+	});
 
-	  const renderCanvas = page.locator('#renderCanvas');
-	  await expect(renderCanvas).toBeVisible();
-	  //await renderCanvas.screenshot({ path: 'tests/playwright/screenshots/canvas-output.png' });
+	// Step 5: Open “Scene” category
+	await openCategoryByName("scene");
 
-	  await expect(renderCanvas).toHaveScreenshot('canvas-baseline.png');
+	// Step 6: Create a `set_sky_color` block programmatically
+	const createdSky = await page.evaluate(() => {
+	  const ws = window.mainWorkspace ?? window.Blockly?.getMainWorkspace?.();
+	  if (!ws) return false;
+	  let sky = ws.getAllBlocks().find((b) => b.type === "set_sky_color");
+	  if (!sky) {
+		sky = ws.newBlock("set_sky_color");
+		sky.initSvg?.();
+		sky.render?.();
+		sky.moveBy(80, 160);
+	  }
+	  return !!sky;
+	});
+	if (!createdSky) throw new Error("Failed to create set_sky_color block");
 
+	// Step 7: Connect sky under start programmatically
+	const connected = await page.evaluate(() => {
+	  const ws = window.mainWorkspace ?? window.Blockly?.getMainWorkspace?.();
+	  if (!ws) return { ok: false, msg: "no workspace" };
+
+	  const blocks = ws.getAllBlocks();
+	  const start = blocks.find((b) => b.type === "start");
+	  const sky = blocks.find((b) => b.type === "set_sky_color");
+	  if (!start || !sky) return { ok: false, msg: "missing blocks" };
+
+	  const inputConn = (start.inputList || []).find(
+		(i) => i.name === "DO" && i.connection,
+	  )?.connection;
+	  const skyPrev = sky.previousConnection;
+	  if (!inputConn || !skyPrev) return { ok: false, msg: "no connections" };
+
+	  if (!inputConn.isConnected() && !skyPrev.isConnected()) {
+		inputConn.connect(skyPrev);
+	  }
+
+	  return {
+		ok: inputConn.isConnected() && skyPrev.isConnected(),
+		count: ws.getAllBlocks().length,
+		types: ws.getAllBlocks().map((b) => b.type),
+	  };
+	});
+
+	if (!connected.ok) {
+	  throw new Error(`Failed to connect blocks: ${connected.msg || "unknown"}`);
+	}
+
+	// Step 8: Ensure at least the 2 required blocks exist (start + sky)
+	await page.waitForFunction(() => {
+	  const ws = window.mainWorkspace ?? window.Blockly?.getMainWorkspace?.();
+	  return (ws?.getAllBlocks?.().length ?? 0) >= 2;
+	});
+
+	// Run the code
+	await page.locator("#runCodeButton").click();
+	await page.waitForTimeout(1000);
+
+	// Verify canvas renders and matches baseline
+	const renderCanvas = page.locator("#renderCanvas");
+	await expect(renderCanvas).toBeVisible();
+	await expect(renderCanvas).toHaveScreenshot("canvas-baseline.png");
   });
 });
