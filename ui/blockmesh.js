@@ -603,6 +603,12 @@ export function updateMeshFromBlock(mesh, block, changeEvent) {
   flock.updatePhysics(mesh);
 }
 
+function moveMeshToOrigin(mesh) {
+  mesh.position = flock.BABYLON.Vector3.Zero();
+  mesh.rotation = flock.BABYLON.Vector3.Zero();
+  return mesh;
+}
+
 function setAbsoluteSize(mesh, width, height, depth) {
   flock.ensureUniqueGeometry(mesh);
   const boundingInfo = mesh.getBoundingInfo();
@@ -620,8 +626,7 @@ function setAbsoluteSize(mesh, width, height, depth) {
   );
 
   // Temporarily move mesh to origin
-  mesh.position = flock.BABYLON.Vector3.Zero();
-  mesh.rotation = flock.BABYLON.Vector3.Zero();
+  mesh = moveMeshToOrigin(mesh);
 
   // Calculate new scaling
   const newScaleX = width / (originalSize.x * 2);
@@ -719,8 +724,7 @@ function updateCylinderGeometry(
   }
 
   // Temporarily reset mesh transform
-  mesh.position = flock.BABYLON.Vector3.Zero();
-  mesh.rotation = flock.BABYLON.Vector3.Zero();
+  mesh = moveMeshToOrigin(mesh);
   mesh.scaling = flock.BABYLON.Vector3.One();
 
   // Create a temporary mesh with the provided dimensions (already in world space)
