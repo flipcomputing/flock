@@ -12,7 +12,6 @@ import {
 import { registerFieldColour } from "@blockly/field-colour";
 import { createThemeConfig } from "./main/themes.js";
 
-// Register the default Blockly color field
 registerFieldColour();
 
 export let nextVariableIndexes = {};
@@ -535,21 +534,21 @@ export function ensureFreshVarOnDuplicate(
 
 /*
 export default Blockly.Theme.defineTheme("flock", {
-        base: Blockly.Themes.Modern,
-        componentStyles: {
-                workspaceBackgroundColour: "white",
-                toolboxBackgroundColour: "#ffffff66",
-                //'toolboxForegroundColour': '#fff',
-                //'flyoutBackgroundColour': '#252526',
-                //'flyoutForegroundColour': '#ccc',
-                //'flyoutOpacity': 1,
-                //'scrollbarColour': '#797979',
-                insertionMarkerColour: "#defd6c",
-                insertionMarkerOpacity: 0.3,
-                scrollbarOpacity: 0.4,
-                cursorColour: "#defd6c",
-                //'blackBackground': '#333',
-        },
+  base: Blockly.Themes.Modern,
+  componentStyles: {
+    workspaceBackgroundColour: "white",
+    toolboxBackgroundColour: "#ffffff66",
+    //'toolboxForegroundColour': '#fff',
+    //'flyoutBackgroundColour': '#252526',
+    //'flyoutForegroundColour': '#ccc',
+    //'flyoutOpacity': 1,
+    //'scrollbarColour': '#797979',
+    insertionMarkerColour: "#defd6c",
+    insertionMarkerOpacity: 0.3,
+    scrollbarOpacity: 0.4,
+    cursorColour: "#defd6c",
+    //'blackBackground': '#333',
+  },
 });
 */
 
@@ -703,9 +702,9 @@ export function defineBlocks() {
   //BlockDynamicConnection.overrideOldBlockDefinitions();
   //Blockly.Blocks['dynamic_list_create'].minInputs = 1;
 
-  //     Blockly.Blocks['lists_create_with'] = Blockly.Blocks['dynamic_list_create'];
+  //	 Blockly.Blocks['lists_create_with'] = Blockly.Blocks['dynamic_list_create'];
 
-  //     Blockly.Blocks['text_join'] = Blockly.Blocks['dynamic_text_join'];
+  //	 Blockly.Blocks['text_join'] = Blockly.Blocks['dynamic_text_join'];
 
 
   function updateCurrentMeshName(block, variableFieldName) {

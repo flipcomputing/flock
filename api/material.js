@@ -16,11 +16,16 @@ export const flockMaterial = {
     return colour;
   },
   rgbToHex(rgb) {
-    const result = rgb.match(/\d+/g).map(function (x) {
-      const hex = parseInt(x).toString(16);
+    const matches = rgb.match(/\d+/g);
+    if (!matches || matches.length < 3) {
+      return "#000000"; // fallback to black for invalid input
+    }
+    const result = matches.slice(0, 3).map(function (x) {
+      const num = parseInt(x);
+      if (isNaN(num)) return "00";
+      const hex = Math.max(0, Math.min(255, num)).toString(16);
       return hex.length === 1 ? "0" + hex : hex;
     });
-    // if (flock.materialsDebug) console.log(`  Converted ${rgb} to ${"#" + result.join("")}`);
     return "#" + result.join("");
   },
   hexToRgba(hex, alpha) {
@@ -56,7 +61,16 @@ export const flockMaterial = {
       const computedColor = getComputedStyle(colorDiv).color;
 
       flock.document.body.removeChild(colorDiv);
-      return flock.rgbToHex(computedColor);
+      // Parse the rgb(r, g, b) string and convert to individual numbers
+      const matches = computedColor.match(/\d+/g);
+      if (!matches || matches.length < 3) {
+        return "#000000";
+      }
+      const r = parseInt(matches[0]);
+      const g = parseInt(matches[1]); 
+      const b = parseInt(matches[2]);
+      const result = flock.rgbToHex(r, g, b);
+      return result;
     } catch (e) {
       return "#000000";
     }
