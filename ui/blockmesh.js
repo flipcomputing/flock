@@ -98,7 +98,7 @@ export function deleteMeshFromBlock(blockId) {
 }
 
 export function getMeshFromBlock(block) {
-  if (block && block.type === "rotate_to") {
+  if (block && !["rotate_to", "scale", "resize"].includes(block.type)) {
     block = block.getParent();
   }
   
@@ -253,7 +253,9 @@ export function updateMeshFromBlock(mesh, block, changeEvent) {
       "load_multi_object",
       "load_character",
       "create_map",
-      "rotate_to"
+      "rotate_to",
+      "scale",
+      "resize"
     ].includes(block.type)
   ) {
     color = block
@@ -381,12 +383,22 @@ export function updateMeshFromBlock(mesh, block, changeEvent) {
 
   // Retrieve the position values (X, Y, Z) from the connected blocks
   let position;
+  let origin;
 
   position = {
     x: block.getInput("X").connection.targetBlock().getFieldValue("NUM"),
     y: block.getInput("Y").connection.targetBlock().getFieldValue("NUM"),
     z: block.getInput("Z").connection.targetBlock().getFieldValue("NUM"),
   };
+
+  if (["scale", "resize"].includes(block.type)) {
+    origin = {
+      x: block.getInput("X").connection.targetBlock().getFieldValue("TEXT"),
+      y: block.getInput("Y").connection.targetBlock().getFieldValue("TEXT"),
+      z: block.getInput("Z").connection.targetBlock().getFieldValue("TEXT"),
+    };
+    console.log("origin");
+  }
 
   let colors,
     width,
@@ -586,6 +598,28 @@ export function updateMeshFromBlock(mesh, block, changeEvent) {
           x: position.x,
           y: position.y,
           z: position.z,
+        });
+        break;
+
+      case "scale":
+        flock.scale(mesh.name, {
+          x: position.x,
+          y: position.y,
+          z: position.z,
+          xOrigin: origin.x,
+          yOrigin: origin.y,
+          zOrigin: origin.z,
+        });
+        break;
+
+      case "resize":
+        flock.resize(mesh.name, {
+          x: position.x,
+          y: position.y,
+          z: position.z,
+          xOrigin: origin.x,
+          yOrigin: origin.y,
+          zOrigin: origin.z,
         });
         break;
 
