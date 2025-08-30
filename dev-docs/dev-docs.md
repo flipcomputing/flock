@@ -38,3 +38,10 @@ Called within [`updateOrCreateMeshFromBlock`](#updateorcreatemeshfromblockblock-
 
 Enacts an update (`changeEvent`) on an existing mesh (`mesh`) associated with a particular block (`block`) using data entered within said block.
 
+#### `createMeshOnCanvas(block)`
+
+Defined in `ui/addmeshes.js`
+
+Called within [`updateOrCreateMeshFromBlock`](#updateorcreatemeshfromblockblock-changeevent)
+
+Creates a mesh on the Babylon.js canvas.
