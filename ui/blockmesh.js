@@ -198,12 +198,24 @@ export function updateMeshFromBlock(mesh, block, changeEvent) {
   const parent = changedBlock.getParent() || changedBlock;
   let changed;
 
-  parent.inputList.forEach((input) => {
-    let value =
-      input?.connection?.shadowState?.id ||
-      input?.connection?.targetConnection?.sourceBlock_?.id;
-    if (value === changedBlock.id) changed = input.name;
-  });
+  // Check for direct field changes on the block itself FIRST
+  if (changeEvent.type === Blockly.Events.BLOCK_CHANGE && 
+      changeEvent.element === "field" && changeEvent.blockId === block.id) {
+    if (block.type === "load_object" && changeEvent.name === "MODELS") {
+      changed = "MODELS";
+    } else if (block.type === "create_map" && changeEvent.name === "MAP_NAME") {
+      changed = "MAP_NAME";
+    }
+  }
+
+  if (!changed) {
+    parent.inputList.forEach((input) => {
+      let value =
+        input?.connection?.shadowState?.id ||
+        input?.connection?.targetConnection?.sourceBlock_?.id;
+      if (value === changedBlock.id) changed = input.name;
+    });
+  }
 
   if (
     !changed &&
@@ -222,16 +234,6 @@ export function updateMeshFromBlock(mesh, block, changeEvent) {
   }
 
   if (!changed) {
-    // For create_map, also trigger on terrain/map name dropdown changes
-    if (
-      block.type === "create_map" &&
-      changeEvent.name === "MAP_NAME" // Or the exact name of your dropdown field
-    ) {
-      changed = "MAP_NAME";
-    }
-  }
-
-  if (!changed) {
     if (block.type === "set_sky_color" || block.type === "create_ground") {
       changed = "COLOR"; // or any value to keep going
     } else {
@@ -242,6 +244,11 @@ export function updateMeshFromBlock(mesh, block, changeEvent) {
   if (!changed) return;
 
   const shapeType = block.type;
+
+  // Special handling for load_object MODELS field change - get mesh if not provided
+  if (block.type === "load_object" && changed === "MODELS" && !mesh) {
+    mesh = getMeshFromBlock(block);
+  }
 
   if (mesh && mesh.physics) mesh.physics.disablePreStep = true;
 
@@ -407,6 +414,11 @@ export function updateMeshFromBlock(mesh, block, changeEvent) {
   // Shape-specific updates based on the block type
   switch (shapeType) {
     case "load_object":
+      if (changed === "MODELS") {
+        // Handle live model replacement
+        replaceMeshModel(mesh, block, changeEvent);
+        return;
+      }
       break;
     case "load_model":
       break;
@@ -762,6 +774,152 @@ function updateCylinderGeometry(
 
   // Ensure the world matrix is updated
   mesh.computeWorldMatrix(true);
+}
+
+function replaceMeshModel(currentMesh, block, changeEvent) {
+  if (!currentMesh || !block) {
+    return;
+  }
+
+  // Store current mesh state including the original mesh name
+  const meshState = {
+    position: currentMesh.position.clone(),
+    rotation: currentMesh.rotation ? currentMesh.rotation.clone() : null,
+    rotationQuaternion: currentMesh.rotationQuaternion ? currentMesh.rotationQuaternion.clone() : null,
+    scaling: currentMesh.scaling.clone(),
+    physics: null,
+    savedMotionType: currentMesh.savedMotionType,
+    metadata: { ...currentMesh.metadata },
+    blockKey: currentMesh.metadata?.blockKey,
+    material: currentMesh.material,
+    isVisible: currentMesh.isVisible,
+    originalName: currentMesh.name, // Current mesh name
+    originalBaseName: currentMesh.metadata?.originalBaseName || currentMesh.name.split('__')[0] // Base name for triggers
+  };
+
+  // Store physics properties if they exist
+  if (currentMesh.physics) {
+    meshState.physics = {
+      motionType: currentMesh.physics.getMotionType(),
+      mass: currentMesh.physics.getMassProperties().mass,
+      friction: currentMesh.physics.shape?.friction,
+      restitution: currentMesh.physics.shape?.restitution,
+      disablePreStep: currentMesh.physics.disablePreStep
+    };
+  }
+
+  // Get new model information from block
+  const newModelName = block.getFieldValue("MODELS");
+  const scale = block.getInput("SCALE").connection.targetBlock().getFieldValue("NUM");
+  const color = block.getInput("COLOR").connection.targetBlock().getFieldValue("COLOR");
+  
+  // Get position values
+  const position = {
+    x: parseFloat(block.getInput("X").connection.targetBlock().getFieldValue("NUM")),
+    y: parseFloat(block.getInput("Y").connection.targetBlock().getFieldValue("NUM")),
+    z: parseFloat(block.getInput("Z").connection.targetBlock().getFieldValue("NUM"))
+  };
+
+  // Create a temporary unique name, then rename after creation
+  const tempMeshId = `${newModelName}__${block.id}__${Date.now()}`;
+  const targetName = meshState.originalName;
+  
+  // Dispose of the old mesh
+  if (currentMesh.name !== "__root__") {
+    flock.disposeMesh(currentMesh);
+  }
+
+  // Create new mesh with preserved state
+  const newMesh = flock.createObject({
+    modelName: newModelName,
+    modelId: tempMeshId,
+    color: color,
+    scale: parseFloat(scale),
+    position: meshState.position,
+    callback: () => {
+      // Get the newly loaded mesh using our lookup function
+      const loadedMesh = getMeshFromBlock(block);
+      
+      // Ensure the new mesh has the correct blockKey metadata immediately
+      if (loadedMesh && typeof loadedMesh === 'object') {
+        loadedMesh.metadata = loadedMesh.metadata || {};
+        loadedMesh.metadata.blockKey = meshState.blockKey;
+        
+        // Rename the mesh to preserve the original name
+        loadedMesh.name = targetName;
+      } else {
+        return;
+      }
+      
+      if (loadedMesh && loadedMesh !== currentMesh) {
+        // Restore transform state, but adjust Y position for new mesh size
+        loadedMesh.position.x = meshState.position.x;
+        loadedMesh.position.z = meshState.position.z;
+        
+        // Calculate proper Y position based on new mesh bounding box
+        loadedMesh.computeWorldMatrix(true);
+        loadedMesh.refreshBoundingInfo();
+        const boundingInfo = loadedMesh.getBoundingInfo();
+        const extendSize = boundingInfo.boundingBox.extendSize;
+        
+        // Get the intended ground-level Y from the block's Y input
+        const groundY = parseFloat(block.getInput("Y").connection.targetBlock().getFieldValue("NUM"));
+        
+        // Position mesh so its bottom sits at the ground level
+        // Account for scale and any Y offset metadata
+        let adjustedY = groundY;
+        if (loadedMesh.metadata?.yOffset && loadedMesh.metadata.yOffset !== 0) {
+          adjustedY += parseFloat(scale) * loadedMesh.metadata.yOffset;
+        }
+        adjustedY += extendSize.y * loadedMesh.scaling.y;
+        
+        loadedMesh.position.y = adjustedY;
+        
+        if (meshState.rotation) {
+          loadedMesh.rotation.copyFrom(meshState.rotation);
+        }
+        if (meshState.rotationQuaternion) {
+          loadedMesh.rotationQuaternion.copyFrom(meshState.rotationQuaternion);
+        }
+        loadedMesh.scaling.copyFrom(meshState.scaling);
+        loadedMesh.isVisible = meshState.isVisible;
+
+        // Restore metadata
+        if (meshState.metadata) {
+          loadedMesh.metadata = { ...meshState.metadata };
+          loadedMesh.metadata.blockKey = meshState.blockKey;
+        }
+        
+        // Preserve the original base name for future trigger lookups
+        loadedMesh.metadata.originalBaseName = meshState.originalBaseName;
+
+        // Restore physics if it existed
+        if (meshState.physics && loadedMesh.physics) {
+          if (meshState.physics.motionType !== undefined) {
+            loadedMesh.physics.setMotionType(meshState.physics.motionType);
+          }
+          loadedMesh.physics.disablePreStep = meshState.physics.disablePreStep;
+          loadedMesh.savedMotionType = meshState.savedMotionType;
+        }
+
+        // Update physics to ensure collision detection works
+        flock.updatePhysics(loadedMesh);
+        
+        // Re-apply any pending triggers using the original mesh base name
+        const newMeshName = loadedMesh.name;
+        const originalBaseName = meshState.originalBaseName;
+        
+        if (flock.pendingTriggers && flock.pendingTriggers.has(originalBaseName)) {
+          const triggers = flock.pendingTriggers.get(originalBaseName);
+          triggers.forEach(({ trigger, callback, mode }) => {
+            flock.onTrigger(newMeshName, { trigger, callback, mode, applyToGroup: false });
+          });
+        }
+      }
+    }
+  });
+
+  return newMesh;
 }
 
 export function updateBlockColorAndHighlight(mesh, selectedColor) {
