@@ -12,19 +12,20 @@
     </style>
     <style>
       /* CSS Variables for test filtering */
-      :root {
-        --test-pass-display: block;
-        --test-fail-display: block;
+
+      #mocha-report[data-filter="failures"] .test.pass {
+        display: none !important;
       }
 
-      /* Apply the variables to control visibility */
-      #mocha-report .test.pass {
-        display: var(--test-pass-display) !important;
+      #mocha-report[data-filter="passes"] .test.fail {
+        display: none !important;
       }
 
-      #mocha-report .test.fail {
-        display: var(--test-fail-display) !important;
+      #mocha-report[data-filter="all"] .test.fail, 
+      #mocha-report[data-filter="all"] .test.pass {
+        display: block !important;
       }
+
     </style>
   </head>
   <body>
@@ -205,14 +206,14 @@
       const clearTestBtn = document.getElementById('clearTestBtn');
 
       function setupFailuresLink() {
+        const mochaReport = document.getElementById('mocha-report');
         const failuresLink = document.querySelector('#mocha-stats .failures a');
         const passesLink = document.querySelector('#mocha-stats .passes a');
-        const root = document.documentElement;
+
         if (failuresLink) {
           failuresLink.onclick = function() {
             // Show only failures
-            root.style.setProperty('--test-pass-display', 'none');
-            root.style.setProperty('--test-fail-display', 'block');
+            mochaReport.dataset.filter = 'failures';
             
             // Scroll to first failure
             const firstFailure = document.querySelector('#mocha-report .test.fail');
@@ -220,16 +221,22 @@
               firstFailure.scrollIntoView({ behavior: 'smooth', block: 'start' });
             }
             
+            // toggle back to all results on next click
+            const oldText = failuresLink.innerHTML;
+            failuresLink.innerHTML = "(toggle) "+oldText;
+            failuresLink.onclick = function() { mochaReport.dataset.filter = 'all'; failuresLink.innerHTML = oldText ;return false; };
+
             return false;
           };
         }
         if (passesLink) {
           passesLink.onclick = function() {
             // Show only passes
-            root.style.setProperty('--test-pass-display', 'block');
-            root.style.setProperty('--test-fail-display', 'none');
-            root.style.setProperty('--test-pending-display', 'none');
-            
+            mochaReport.dataset.filter = 'passes';
+            // toggle back to all results on next click
+            const oldText = passesLink.innerHTML;
+            passesLink.innerHTML = "(toggle) "+oldText;
+            passesLink.onclick = function() { mochaReport.dataset.filter = 'all'; passesLink.innerHTML = oldText; return false; };
             return false;
           };
         }
