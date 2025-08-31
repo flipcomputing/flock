@@ -203,6 +203,8 @@ export function updateMeshFromBlock(mesh, block, changeEvent) {
       changeEvent.element === "field" && changeEvent.blockId === block.id) {
     if (block.type === "load_object" && changeEvent.name === "MODELS") {
       changed = "MODELS";
+    } else if (block.type === "load_multi_object" && changeEvent.name === "MODELS") {
+      changed = "MODELS";
     } else if (block.type === "create_map" && changeEvent.name === "MAP_NAME") {
       changed = "MAP_NAME";
     }
@@ -245,8 +247,8 @@ export function updateMeshFromBlock(mesh, block, changeEvent) {
 
   const shapeType = block.type;
 
-  // Special handling for load_object MODELS field change - get mesh if not provided
-  if (block.type === "load_object" && changed === "MODELS" && !mesh) {
+  // Special handling for MODELS field change - get mesh if not provided
+  if ((block.type === "load_object" || block.type === "load_multi_object") && changed === "MODELS" && !mesh) {
     mesh = getMeshFromBlock(block);
   }
 
@@ -423,6 +425,11 @@ export function updateMeshFromBlock(mesh, block, changeEvent) {
     case "load_model":
       break;
     case "load_multi_object":
+      if (changed === "MODELS") {
+        // Handle live model replacement for multi objects
+        replaceMeshModel(mesh, block, changeEvent);
+        return;
+      }
       break;
     case "load_character":
       modelName = block.getFieldValue("MODELS");
@@ -811,7 +818,30 @@ function replaceMeshModel(currentMesh, block, changeEvent) {
   // Get new model information from block
   const newModelName = block.getFieldValue("MODELS");
   const scale = block.getInput("SCALE").connection.targetBlock().getFieldValue("NUM");
-  const color = block.getInput("COLOR").connection.targetBlock().getFieldValue("COLOR");
+  
+  // Handle color differently for multi objects vs single objects
+  let color;
+  if (block.type === "load_multi_object") {
+    // Multi objects use a COLORS input with a list - get all colors
+    const colorsBlock = block.getInput("COLORS").connection.targetBlock();
+    let colorsArray = [];
+
+    if (colorsBlock) {
+      // Loop through the child blocks (array items) and get their values
+      colorsBlock.childBlocks_.forEach((childBlock) => {
+        // Get the color value from the child block
+        const colorValue = childBlock.getFieldValue("COLOR");
+        if (colorValue) {
+          colorsArray.push(colorValue);
+        }
+      });
+    }
+
+    color = colorsArray;
+  } else {
+    // Single objects use a COLOR input
+    color = block.getInput("COLOR").connection.targetBlock().getFieldValue("COLOR");
+  }
   
   // Get position values
   const position = {
@@ -856,32 +886,55 @@ function replaceMeshModel(currentMesh, block, changeEvent) {
         loadedMesh.position.x = meshState.position.x;
         loadedMesh.position.z = meshState.position.z;
         
-        // Calculate proper Y position based on new mesh bounding box
-        loadedMesh.computeWorldMatrix(true);
-        loadedMesh.refreshBoundingInfo();
-        const boundingInfo = loadedMesh.getBoundingInfo();
-        const extendSize = boundingInfo.boundingBox.extendSize;
-        
-        // Get the intended ground-level Y from the block's Y input
-        const groundY = parseFloat(block.getInput("Y").connection.targetBlock().getFieldValue("NUM"));
-        
-        // Position mesh so its bottom sits at the ground level
-        // Account for scale and any Y offset metadata
-        let adjustedY = groundY;
-        if (loadedMesh.metadata?.yOffset && loadedMesh.metadata.yOffset !== 0) {
-          adjustedY += parseFloat(scale) * loadedMesh.metadata.yOffset;
-        }
-        adjustedY += extendSize.y * loadedMesh.scaling.y;
-        
-        loadedMesh.position.y = adjustedY;
-        
+        // Restore rotation first
         if (meshState.rotation) {
           loadedMesh.rotation.copyFrom(meshState.rotation);
         }
         if (meshState.rotationQuaternion) {
           loadedMesh.rotationQuaternion.copyFrom(meshState.rotationQuaternion);
         }
-        loadedMesh.scaling.copyFrom(meshState.scaling);
+        
+        // Check if mesh has gizmo scaling (scaling different from 1,1,1)
+        const hasGizmoScaling = meshState.scaling && (
+          Math.abs(meshState.scaling.x - 1) > 0.001 ||
+          Math.abs(meshState.scaling.y - 1) > 0.001 ||
+          Math.abs(meshState.scaling.z - 1) > 0.001
+        );
+        
+        if (hasGizmoScaling) {
+          // Apply gizmo scaling and calculate position based on scaled bounding box
+          loadedMesh.scaling.copyFrom(meshState.scaling);
+          loadedMesh.computeWorldMatrix(true);
+          loadedMesh.refreshBoundingInfo();
+          const boundingInfo = loadedMesh.getBoundingInfo();
+          
+          const groundY = parseFloat(block.getInput("Y").connection.targetBlock().getFieldValue("NUM"));
+          
+          // Calculate how much to raise the mesh so its bottom sits at ground level
+          const meshBottomY = boundingInfo.boundingBox.minimumWorld.y;
+          const meshCenterY = loadedMesh.position.y;
+          
+          // The mesh needs to be positioned so its bottom is at groundY
+          // Current bottom is at meshBottomY, we want it at groundY
+          // So we need to move the center by (groundY - meshBottomY)
+          loadedMesh.position.y = meshCenterY + (groundY - meshBottomY);
+        } else {
+          // No gizmo scaling - use block scale approach
+          loadedMesh.computeWorldMatrix(true);
+          loadedMesh.refreshBoundingInfo();
+          const boundingInfo = loadedMesh.getBoundingInfo();
+          const extendSize = boundingInfo.boundingBox.extendSize;
+          
+          const groundY = parseFloat(block.getInput("Y").connection.targetBlock().getFieldValue("NUM"));
+          let adjustedY = groundY;
+          
+          if (loadedMesh.metadata?.yOffset && loadedMesh.metadata.yOffset !== 0) {
+            adjustedY += parseFloat(scale) * loadedMesh.metadata.yOffset;
+          }
+          adjustedY += extendSize.y * parseFloat(scale);
+          
+          loadedMesh.position.y = adjustedY;
+        }
         loadedMesh.isVisible = meshState.isVisible;
 
         // Restore metadata
