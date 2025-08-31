@@ -205,6 +205,8 @@ export function updateMeshFromBlock(mesh, block, changeEvent) {
       changed = "MODELS";
     } else if (block.type === "load_multi_object" && changeEvent.name === "MODELS") {
       changed = "MODELS";
+    } else if (block.type === "load_character" && changeEvent.name === "MODELS") {
+      changed = "MODELS";
     } else if (block.type === "create_map" && changeEvent.name === "MAP_NAME") {
       changed = "MAP_NAME";
     }
@@ -248,7 +250,7 @@ export function updateMeshFromBlock(mesh, block, changeEvent) {
   const shapeType = block.type;
 
   // Special handling for MODELS field change - get mesh if not provided
-  if ((block.type === "load_object" || block.type === "load_multi_object") && changed === "MODELS" && !mesh) {
+  if ((block.type === "load_object" || block.type === "load_multi_object" || block.type === "load_character") && changed === "MODELS" && !mesh) {
     mesh = getMeshFromBlock(block);
   }
 
@@ -432,6 +434,12 @@ export function updateMeshFromBlock(mesh, block, changeEvent) {
       }
       break;
     case "load_character":
+      if (changed === "MODELS") {
+        // Handle live model replacement for characters
+        replaceMeshModel(mesh, block, changeEvent);
+        return;
+      }
+      
       modelName = block.getFieldValue("MODELS");
 
       if (changed in colorFields) {
@@ -819,7 +827,7 @@ function replaceMeshModel(currentMesh, block, changeEvent) {
   const newModelName = block.getFieldValue("MODELS");
   const scale = block.getInput("SCALE").connection.targetBlock().getFieldValue("NUM");
   
-  // Handle color differently for multi objects vs single objects
+  // Handle color differently for different block types
   let color;
   if (block.type === "load_multi_object") {
     // Multi objects use a COLORS input with a list - get all colors
@@ -838,6 +846,24 @@ function replaceMeshModel(currentMesh, block, changeEvent) {
     }
 
     color = colorsArray;
+  } else if (block.type === "load_character") {
+    // Characters use multiple color inputs - match the existing structure
+    color = {};
+    const colorMapping = {
+      "HAIR_COLOR": "hair",
+      "SKIN_COLOR": "skin", 
+      "EYES_COLOR": "eyes",
+      "TSHIRT_COLOR": "tshirt",
+      "SHORTS_COLOR": "shorts",
+      "SLEEVES_COLOR": "sleeves"
+    };
+    
+    Object.entries(colorMapping).forEach(([inputName, colorKey]) => {
+      const input = block.getInput(inputName);
+      if (input && input.connection && input.connection.targetBlock()) {
+        color[colorKey] = input.connection.targetBlock().getFieldValue("COLOR");
+      }
+    });
   } else {
     // Single objects use a COLOR input
     color = block.getInput("COLOR").connection.targetBlock().getFieldValue("COLOR");
@@ -894,16 +920,19 @@ function replaceMeshModel(currentMesh, block, changeEvent) {
           loadedMesh.rotationQuaternion.copyFrom(meshState.rotationQuaternion);
         }
         
-        // Check if mesh has gizmo scaling (scaling different from 1,1,1)
-        const hasGizmoScaling = meshState.scaling && (
+        // Check if mesh has gizmo scaling (scaling different from 1,1,1) OR if the block has a scale transform
+        const hasGizmoScaling = (meshState.scaling && (
           Math.abs(meshState.scaling.x - 1) > 0.001 ||
           Math.abs(meshState.scaling.y - 1) > 0.001 ||
           Math.abs(meshState.scaling.z - 1) > 0.001
-        );
+        )) || (parseFloat(scale) === 1.0 && meshState.scaling); // Scale block case: block scale is 1 but has custom scaling
         
         if (hasGizmoScaling) {
           // Apply gizmo scaling and calculate position based on scaled bounding box
           loadedMesh.scaling.copyFrom(meshState.scaling);
+          
+          // Reset to origin for clean calculation
+          loadedMesh.position.y = 0;
           loadedMesh.computeWorldMatrix(true);
           loadedMesh.refreshBoundingInfo();
           const boundingInfo = loadedMesh.getBoundingInfo();
@@ -912,28 +941,31 @@ function replaceMeshModel(currentMesh, block, changeEvent) {
           
           // Calculate how much to raise the mesh so its bottom sits at ground level
           const meshBottomY = boundingInfo.boundingBox.minimumWorld.y;
-          const meshCenterY = loadedMesh.position.y;
           
-          // The mesh needs to be positioned so its bottom is at groundY
-          // Current bottom is at meshBottomY, we want it at groundY
-          // So we need to move the center by (groundY - meshBottomY)
-          loadedMesh.position.y = meshCenterY + (groundY - meshBottomY);
+          // Position the mesh so its bottom is at groundY
+          // If bottom is at meshBottomY when center is at 0, then center needs to be at (groundY - meshBottomY)
+          loadedMesh.position.y = groundY - meshBottomY;
         } else {
-          // No gizmo scaling - use block scale approach
+          // No gizmo scaling - mesh was created with block scale already applied
+          // Reset to origin for clean calculation
+          loadedMesh.position.y = 0;
           loadedMesh.computeWorldMatrix(true);
           loadedMesh.refreshBoundingInfo();
           const boundingInfo = loadedMesh.getBoundingInfo();
-          const extendSize = boundingInfo.boundingBox.extendSize;
           
           const groundY = parseFloat(block.getInput("Y").connection.targetBlock().getFieldValue("NUM"));
-          let adjustedY = groundY;
           
+          // Calculate how much to raise the mesh so its bottom sits at ground level
+          const meshBottomY = boundingInfo.boundingBox.minimumWorld.y;
+          
+          // Position the mesh so its bottom is at groundY
+          // If bottom is at meshBottomY when center is at 0, then center needs to be at (groundY - meshBottomY)
+          loadedMesh.position.y = groundY - meshBottomY;
+          
+          // Apply any Y offset from metadata
           if (loadedMesh.metadata?.yOffset && loadedMesh.metadata.yOffset !== 0) {
-            adjustedY += parseFloat(scale) * loadedMesh.metadata.yOffset;
+            loadedMesh.position.y += parseFloat(scale) * loadedMesh.metadata.yOffset;
           }
-          adjustedY += extendSize.y * parseFloat(scale);
-          
-          loadedMesh.position.y = adjustedY;
         }
         loadedMesh.isVisible = meshState.isVisible;
 
@@ -955,6 +987,17 @@ function replaceMeshModel(currentMesh, block, changeEvent) {
           loadedMesh.savedMotionType = meshState.savedMotionType;
         }
 
+        // Apply colors based on block type
+        if (block.type === "load_character" && color && Object.keys(color).length > 0) {
+          flock.applyColorsToCharacter(loadedMesh, color);
+        } else if (block.type === "load_multi_object" && Array.isArray(color) && color.length > 0) {
+          // Multi-object color application - reuse existing logic
+          flock.applyColorsToMesh(loadedMesh, color);
+        } else if (color && typeof color === "string") {
+          // Single object color application
+          flock.applyColorToMaterial(loadedMesh, null, color);
+        }
+        
         // Update physics to ensure collision detection works
         flock.updatePhysics(loadedMesh);
         
