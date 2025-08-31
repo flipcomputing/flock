@@ -131,14 +131,17 @@
       // Test suite mapping
       // Import all test modules and run them to register tests
       async function loadAllTests() {
-        // First, load all test modules
+        // Add an option for each test tag / suite, and try to import the module for a suite
         for (const suite of testSuiteDefinitions) {
           // add a new option element to testSelect with value=suite.id and text=suite.name
           const option = document.createElement('option');
           option.value = suite.id;
           option.text = suite.name;
-          document.getElementById('testSelect').appendChild(option);   
-          try { // for now, expect failures for Mocha tags only - like @new – as there's no import path
+          document.getElementById('testSelect').appendChild(option);  
+
+          // import the test module if an importPath is defined
+          // for now, expect (and accept) failures for Mocha tags only - like @new – as there's no import path
+          try { 
             const module = await import(suite.importPath);
             // Call the function to register tests with mocha, but don't run them yet
             if (suite.id === "babylon") {
