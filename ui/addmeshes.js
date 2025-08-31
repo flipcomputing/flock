@@ -1,7 +1,7 @@
 import * as Blockly from "blockly";
 import { meshMap, meshBlockIdMap, generateUniqueId } from "../generators";
 import { flock } from "../flock.js";
-import { extractMaterialInfo } from "./blockmesh.js";
+import { extractMaterialInfo, getMeshFromBlock } from "./blockmesh.js";
 
 export function createMeshOnCanvas(block) {
 
@@ -579,17 +579,6 @@ function createShapeInternal(block) {
       meshMap[block.id] = block;
       meshBlockIdMap[block.id] = block.id;
     }
-}
-
-
-function getMeshFromBlock(block) {
-  const blockKey = Object.keys(meshMap).find((key) => meshMap[key] === block);
-
-  if (!blockKey) return null;
-
-  const found = flock.scene?.meshes?.find((mesh) => mesh.metadata.blockKey === blockKey);
-
-  return found;
 }
 
 export function setPositionValues(block, position, blockType) {

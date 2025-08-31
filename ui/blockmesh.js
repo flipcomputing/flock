@@ -77,15 +77,13 @@ export function updateOrCreateMeshFromBlock(block, changeEvent) {
 
 export function deleteMeshFromBlock(blockId) {
   
-  const blockKey = Object.keys(meshBlockIdMap).find(
-    (key) => meshBlockIdMap[key] === blockId,
-  );
+  const blockKey = getBlockKeyFromBlockID(blockId);
 
   if (!blockKey) {
     return;
   }
 
-  const mesh = flock.scene.meshes.find((m) => m.metadata.blockKey === blockKey);
+  const mesh = getMeshFromBlockKey(blockKey);
 
   if (!mesh || mesh.name === "__root__") {
   } else {
@@ -97,28 +95,36 @@ export function deleteMeshFromBlock(blockId) {
   delete meshBlockIdMap[blockKey];
 }
 
+export function getBlockKeyFromBlock(block) {
+  return Object.keys(meshMap).find((key) => meshMap[key] === block);
+}
+
+export function getBlockKeyFromBlockID(blockId) {
+  return Object.keys(meshBlockIdMap).find((key) => meshBlockIdMap[key] === blockId);
+}
+
+export function getMeshFromBlockKey(blockKey) {
+  return flock.scene?.meshes?.find((mesh) => mesh.metadata.blockKey === blockKey);
+}
+
 export function getMeshFromBlock(block) {
   if (block && block.type === "rotate_to") {
     block = block.getParent();
   }
   
-  const blockKey = Object.keys(meshMap).find((key) => meshMap[key] === block);
+  const blockKey = getBlockKeyFromBlock(block);
 
-  if (!blockKey) {
-    return null;
-  }
+  if (!blockKey) return null;
 
-  const found = flock.scene?.meshes?.find((mesh) => mesh.metadata.blockKey === blockKey);
+  const found = getMeshFromBlockKey(blockKey);
 
   return found;
 }
 
 function getMeshFromBlockId(blockId) {
-  const blockKey = Object.keys(meshMap).find(
-    (key) => meshBlockIdMap[key] === blockId,
-  );
+  const blockKey = getBlockKeyFromBlockID(blockId);
 
-  return flock.scene?.meshes?.find((mesh) => mesh.metadata.blockKey === blockKey);
+  return getMeshFromBlockKey(blockKey);
 }
 
 function rescaleBoundingBox(bb, newScale) {
@@ -603,6 +609,12 @@ export function updateMeshFromBlock(mesh, block, changeEvent) {
   flock.updatePhysics(mesh);
 }
 
+function moveMeshToOrigin(mesh) {
+  mesh.position = flock.BABYLON.Vector3.Zero();
+  mesh.rotation = flock.BABYLON.Vector3.Zero();
+  return mesh;
+}
+
 function setAbsoluteSize(mesh, width, height, depth) {
   flock.ensureUniqueGeometry(mesh);
   const boundingInfo = mesh.getBoundingInfo();
@@ -620,8 +632,7 @@ function setAbsoluteSize(mesh, width, height, depth) {
   );
 
   // Temporarily move mesh to origin
-  mesh.position = flock.BABYLON.Vector3.Zero();
-  mesh.rotation = flock.BABYLON.Vector3.Zero();
+  mesh = moveMeshToOrigin(mesh);
 
   // Calculate new scaling
   const newScaleX = width / (originalSize.x * 2);
@@ -719,8 +730,7 @@ function updateCylinderGeometry(
   }
 
   // Temporarily reset mesh transform
-  mesh.position = flock.BABYLON.Vector3.Zero();
-  mesh.rotation = flock.BABYLON.Vector3.Zero();
+  mesh = moveMeshToOrigin(mesh);
   mesh.scaling = flock.BABYLON.Vector3.One();
 
   // Create a temporary mesh with the provided dimensions (already in world space)
