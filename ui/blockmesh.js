@@ -83,7 +83,7 @@ export function deleteMeshFromBlock(blockId) {
     return;
   }
 
-  const mesh = flock.scene.meshes.find((m) => m.metadata.blockKey === blockKey);
+  const mesh = getMeshFromBlockKey(blockKey);
 
   if (!mesh || mesh.name === "__root__") {
   } else {
