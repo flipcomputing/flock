@@ -108,7 +108,7 @@ export function getMeshFromBlock(block) {
     return null;
   }
 
-  const found = flock.scene?.meshes?.find((mesh) => mesh.metadata.blockKey === blockKey);
+  const found = flock.scene?.meshes?.find((mesh) => mesh.metadata?.blockKey === blockKey);
 
   return found;
 }
@@ -118,7 +118,7 @@ function getMeshFromBlockId(blockId) {
     (key) => meshBlockIdMap[key] === blockId,
   );
 
-  return flock.scene?.meshes?.find((mesh) => mesh.metadata.blockKey === blockKey);
+  return flock.scene?.meshes?.find((mesh) => mesh.metadata?.blockKey === blockKey);
 }
 
 function rescaleBoundingBox(bb, newScale) {
