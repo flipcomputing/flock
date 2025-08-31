@@ -77,7 +77,7 @@ export function updateOrCreateMeshFromBlock(block, changeEvent) {
 
 export function deleteMeshFromBlock(blockId) {
   
-  const blockKey = getBlockKeyFromBlockID(blockId, meshBlockIdMap);
+  const blockKey = getBlockKeyFromBlockID(blockId);
 
   if (!blockKey) {
     return;
@@ -99,8 +99,8 @@ export function getBlockKeyFromBlock(block) {
   return Object.keys(meshMap).find((key) => meshMap[key] === block);
 }
 
-export function getBlockKeyFromBlockID(blockId, map) {
-  return Object.keys(map).find((key) => meshBlockIdMap[key] === blockId);
+export function getBlockKeyFromBlockID(blockId) {
+  return Object.keys(meshBlockIdMap).find((key) => meshBlockIdMap[key] === blockId);
 }
 
 export function getMeshFromBlockKey(blockKey) {
@@ -124,7 +124,7 @@ export function getMeshFromBlock(block) {
 }
 
 function getMeshFromBlockId(blockId) {
-  const blockKey = getBlockKeyFromBlockID(blockId, meshMap);
+  const blockKey = getBlockKeyFromBlockID(blockId);
 
   return getMeshFromBlockKey(blockKey);
 }
