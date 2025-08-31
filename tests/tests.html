@@ -10,6 +10,22 @@
         padding: 20px;
       }
     </style>
+    <style>
+      /* CSS Variables for test filtering */
+      :root {
+        --test-pass-display: block;
+        --test-fail-display: block;
+      }
+
+      /* Apply the variables to control visibility */
+      #mocha-report .test.pass {
+        display: var(--test-pass-display) !important;
+      }
+
+      #mocha-report .test.fail {
+        display: var(--test-fail-display) !important;
+      }
+    </style>
   </head>
   <body>
     <h1>Flock Test Example</h1>
@@ -188,6 +204,37 @@
       const runTestBtn = document.getElementById('runTestBtn');
       const clearTestBtn = document.getElementById('clearTestBtn');
 
+      function setupFailuresLink() {
+        const failuresLink = document.querySelector('#mocha-stats .failures a');
+        const passesLink = document.querySelector('#mocha-stats .passes a');
+        const root = document.documentElement;
+        if (failuresLink) {
+          failuresLink.onclick = function() {
+            // Show only failures
+            root.style.setProperty('--test-pass-display', 'none');
+            root.style.setProperty('--test-fail-display', 'block');
+            
+            // Scroll to first failure
+            const firstFailure = document.querySelector('#mocha-report .test.fail');
+            if (firstFailure) {
+              firstFailure.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+            
+            return false;
+          };
+        }
+        if (passesLink) {
+          passesLink.onclick = function() {
+            // Show only passes
+            root.style.setProperty('--test-pass-display', 'block');
+            root.style.setProperty('--test-fail-display', 'none');
+            root.style.setProperty('--test-pending-display', 'none');
+            
+            return false;
+          };
+        }
+      }
+
       runTestBtn.addEventListener('click', () => {
         const selectedTest = testSelect.value;
         //console.log("Selected test suite:", selectedTest);
@@ -214,7 +261,8 @@
         }
         
         // Run the filtered tests
-        mocha.run();
+        let runner = mocha.run();
+        runner.on("end", setupFailuresLink);
       });
 
       clearTestBtn.addEventListener('click', () => {
