@@ -63,7 +63,8 @@
         <option value="animate">Animation API Tests</option>
         <option value="concurrency">Concurrency Tests</option>
         <option value="blocks">Block Tests</option>
-        <option value="all">Run All Tests</option>
+        <option value="@new">:Run Tests tagged @new</option>
+        <option value="all">:Run All Tests</option>
       </select>
       <button id="runTestBtn" style="padding: 5px 15px;">Run Tests</button>
       <button id="clearTestBtn" style="padding: 5px 15px; margin-left: 5px;">Clear Results</button>
@@ -96,7 +97,8 @@
         { id: "effects", name: "Effects Tests", importPath: "./effects.test.js", importFn: "runEffectsTests", pattern: "Effects API" },
         { id: "animate", name: "Animation API Tests", importPath: "./animate.test.js", importFn: "runAnimateTests", pattern: "Animation API Tests" },
         { id: "concurrency", name: "Concurrency Tests", importPath: "./concurrency.test.js", importFn: "runConcurrencyTests", pattern: "Concurrency and Stress Tests" },
-        { id: "blocks", name: "Block Tests", importPath: "./blocks.test.js", importFn: "runBlocksTests", pattern: "blocks.js tests" }
+        { id: "blocks", name: "Block Tests", importPath: "./blocks.test.js", importFn: "runBlocksTests", pattern: "blocks.js tests" },
+        { id: "@new", name: ":Run Tests tagged @new", importPath: "", importFn: "", pattern: "@new" }
       ];
 
       import * as flockmodule from "../flock.js";
@@ -147,7 +149,7 @@
       async function loadAllTests() {
         // First, load all test modules
         for (const suite of testSuiteDefinitions) {
-          try {
+          try { // for now, expect failures for Mocha tags only - like @new – as there's no import path
             const module = await import(suite.importPath);
             // Call the function to register tests with mocha, but don't run them yet
             if (suite.id === "babylon") {
@@ -159,46 +161,10 @@
             console.error(`Error loading test suite ${suite.id}:`, error);
           }
         }
-
-        let returnableTestSuites = {
-          babylon: () => runTests(flock, chai.expect),
-          glide: () => runGlideToTests(flock),
-          ui: () => runUITests(flock),
-          stress: () => runStressTests(flock),
-          objects: () => runCreateObjectTests(flock),
-          sound: () => runSoundTests(flock),
-          translation: () => runTranslationTests(flock),
-          rotation: () => runRotationTests(flock),
-          scale: () => runScaleTests(flock),
-          materials: () => runMaterialsTests(flock),
-          physics: () => runPhysicsTests(flock),
-          effects: () => runEffectsTests(flock),
-          animate: () => runAnimateTests(flock),
-          concurrency: () => runConcurrencyTests(flock),
-          blocks: () => runBlocksTests(),
-          all: () => {
-            runTests(flock, chai.expect);
-            runGlideToTests(flock);
-            runUITests(flock);
-            runStressTests(flock);
-            runCreateObjectTests(flock);
-            runSoundTests(flock);
-            runTranslationTests(flock);
-            runRotationTests(flock);
-            runScaleTests(flock);
-            runMaterialsTests(flock);
-            runPhysicsTests(flock);
-            runEffectsTests(flock);
-            runAnimateTests(flock);
-            runConcurrencyTests(flock);
-            runBlocksTests();
-          }
-        }
-      return(returnableTestSuites);
       }
 
       // Load all tests immediately, and get test suite mapping
-      const testSuites = await loadAllTests();
+      await loadAllTests();
 
       // Setup test selection interface
       const testSelect = document.getElementById('testSelect');
@@ -257,7 +223,7 @@
         // Reset any previous grep pattern
         mocha.grep(null);
         
-        // If a specific test suite is selected (not "all")
+        // If a specific test suite / tag is selected (not "all")
         if (selectedTest !== "all") {
           // Find the pattern for the selected test suite
           const testSuite = testSuiteDefinitions.find(suite => suite.id === selectedTest);
