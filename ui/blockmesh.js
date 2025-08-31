@@ -114,9 +114,7 @@ export function getMeshFromBlock(block) {
   
   const blockKey = getBlockKeyFromBlock(block);
 
-  if (!blockKey) {
-    return null;
-  }
+  if (!blockKey) return null;
 
   const found = getMeshFromBlockKey(blockKey);
 
