@@ -288,488 +288,247 @@ export const flock = {
 
                 return true;
         },
-        async runCode2(code) {
-                let iframe = document.getElementById("flock-iframe");
-
-                try {
-                        // Validate code first
-                        this.validateCode(code);
-
-                        // Dispose old scene if iframe exists
-                        if (iframe) {
-                                try {
-                                        iframe.contentWindow.flock?.disposeOldScene();
-                                        delete iframe.contentWindow.flock;
-                                } catch (error) {
-                                        console.warn("Error disposing old scene in iframe:", error);
-                                }
-                        } else {
-                                // Create a new iframe if not found
-                                iframe = document.createElement("iframe");
-                                iframe.id = "flock-iframe";
-                                iframe.style.display = "none";
-                                document.body.appendChild(iframe);
-                        }
-
-                        // Wait for iframe to load with stricter CSP
-                        await new Promise((resolve, reject) => {
-                                iframe.onload = () => resolve();
-                                iframe.onerror = () =>
-                                        reject(new Error("Failed to load iframe"));
-                                iframe.srcdoc = `
-                                <!DOCTYPE html>
-                                <html>
-                                  <head>
-                                        <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-eval' 'unsafe-inline';">
-                                  </head>
-                                  <body></body>
-                                </html>`;
-                        });
-
-                        const iframeWindow = iframe.contentWindow;
-                        if (!iframeWindow) throw new Error("Iframe window is unavailable");
-
-                        // Define API methods list once to avoid duplication
-                        const apiMethods = [
-                                // Core
-                                "initialize",
-                                "createEngine",
-                                "createScene",
-
-                                // Animation & Movement
-                                "playAnimation",
-                                "switchAnimation",
-                                "glideTo",
-                                "createAnimation",
-                                "animateFrom",
-                                "playAnimationGroup",
-                                "pauseAnimationGroup",
-                                "stopAnimationGroup",
-                                "animateKeyFrames",
-                                "setPivotPoint",
-                                "rotate",
-                                "lookAt",
-                                "moveTo",
-                                "rotateTo",
-                                "rotateCamera",
-                                "rotateAnim",
-                                "animateProperty",
-                                "positionAt",
-                                "moveForward",
-                                "moveSideways",
-                                "strafe",
-
-                                // Audio
-                                "playSound",
-                                "stopAllSounds",
-                                "playNotes",
-                                "setBPM",
-                                "createInstrument",
-                                "speak",
-
-                                // Effects
-                                "highlight",
-                                "glow",
-                                "tint",
-                                "setAlpha",
-                                "clearEffects",
-                                "stopAnimations",
-
-                                // 3D Objects
-                                "createCharacter",
-                                "createObject",
-                                "createParticleEffect",
-                                "create3DText",
-                                "createModel",
-                                "createBox",
-                                "createSphere",
-                                "createCylinder",
-                                "createCapsule",
-                                "createPlane",
-
-                                // Mesh Operations
-                                "cloneMesh",
-                                "parentChild",
-                                "setParent",
-                                "mergeMeshes",
-                                "subtractMeshes",
-                                "intersectMeshes",
-                                "createHull",
-                                "hold",
-                                "attach",
-                                "drop",
-                                "makeFollow",
-                                "stopFollow",
-                                "removeParent",
-
-                                // Environment
-                                "createGround",
-                                "createMap",
-                                "createCustomMap",
-                                "setSky",
-                                "lightIntensity",
-                                "setFog",
-
-                                // Camera & Controls
-                                "buttonControls",
-                                "getCamera",
-                                "cameraControl",
-                                "setCameraBackground",
-                                "setXRMode",
-                                "attachCamera",
-                                "canvasControls",
-
-                                // Physics
-                                "applyForce",
-                                "moveByVector",
-                                "setPhysics",
-                                "setPhysicsShape",
-                                "checkMeshesTouching",
-
-                                // Particles
-                                "startParticleSystem",
-                                "stopParticleSystem",
-                                "resetParticleSystem",
-
-                                // Utilities
-                                "distanceTo",
-                                "wait",
-                                "safeLoop",
-                                "waitUntil",
-                                "show",
-                                "hide",
-                                "dispose",
-                                "keyPressed",
-                                "isTouchingSurface",
-                                "meshExists",
-                                "seededRandom",
-                                "randomColour",
-                                "scale",
-                                "resize",
-
-                                // Materials & Colors
-                                "changeColor",
-                                "changeColorMesh",
-                                "changeMaterial",
-                                "setMaterial",
-                                "createMaterial",
-                                "textMaterial",
-
-                                // Events & Interaction
-                                "say",
-                                "onTrigger",
-                                "onEvent",
-                                "broadcastEvent",
-                                "start",
-                                "forever",
-                                "whenKeyEvent",
-                                "onIntersect",
-
-                                // UI
-                                "printText",
-                                "UIText",
-                                "UIButton",
-                                "UIInput",
-                                "UISlider",
-
-                                // Utilities & Data
-                                "randomInteger",
-                                "getProperty",
-                                "exportMesh",
-                                "abortSceneExecution",
-                                "ensureUniqueGeometry",
-                                "createVector3",
-                                "disposeOldScene",
-                        ];
-
-                        // Create API object dynamically
-                        const flockAPI = {};
-                        apiMethods.forEach((method) => {
-                                if (typeof this[method] === "function") {
-                                        flockAPI[method] = (...args) => this[method](...args);
-                                }
-                        });
-
-                        // Initialize new scene in iframe context
-                        await this.initializeNewScene();
-                        if (flock.memoryDebug) flock.startMemoryMonitoring();
-                        // Create and execute sandboxed function more directly
-                        const sandboxFunction = new iframeWindow.Function(
-                                "flock",
-                                `
-                                "use strict";
-
-                                // Destructure the API for clean user access
-                                const {
-                                        ${apiMethods.join(",\n                ")}
-                                } = flock;
-
-                                // Add some safety measures
-                                const setTimeout = undefined;
-                                const setInterval = undefined;
-                                const clearTimeout = undefined;
-                                const clearInterval = undefined;
-
-                                // Wrap user code in async function with better error handling
-                                return (async function() {
-                                        try {
-                                                ${code}
-                                        } catch (error) {
-                                                // Enhanced error reporting with line numbers
-                                                const stack = error.stack || '';
-                                                const match = stack.match(/<anonymous>:(\\d+):(\\d+)/);
-                                                const lineNumber = match ? parseInt(match[1]) - 20 : 'unknown'; // Adjust for wrapper code
-
-                                                console.error(\`User code error at line \${lineNumber}:\`, error.message);
-                                                throw new Error(\`Line \${lineNumber}: \${error.message}\`);
-                                        }
-                                })();
-                        `,
-                        );
-
-                        // Execute with better error context
-                        try {
-                                await sandboxFunction(flockAPI);
-                        } catch (sandboxError) {
-                                throw new Error(
-                                        `Code execution failed: ${sandboxError.message}`,
-                                );
-                        }
-
-                        // Focus render canvas
-                        document.getElementById("renderCanvas")?.focus();
-                } catch (error) {
-                        // Enhanced error reporting
-                        const enhancedError = this.createEnhancedError(error, code);
-                        console.error("Enhanced error details:", enhancedError);
-
-                        // Show user-friendly error
-                        this.printText({
-                                text: `Error: ${error.message}`,
-                                duration: 5,
-                                color: "#ff0000",
-                        });
-
-                        // Clean up on error
-                        try {
-                                this.audioContext?.close();
-                                this.engine?.stopRenderLoop();
-                                this.removeEventListeners();
-                        } catch (cleanupError) {
-                                console.error("Error during cleanup:", cleanupError);
-                        }
-
-                        throw error;
-                }
-        },
+        // Updated runCode with whitelisting + constructor hardening + frozen built-ins
         async runCode(code) {
-                let iframe = document.getElementById("flock-iframe");
+          let iframe = document.getElementById("flock-iframe");
 
-                try {
-                        // Validate code first
-                        this.validateCode(code);
+          try {
+            // 1) Dispose old scene if iframe exists
+            if (iframe) {
+              try {
+                await iframe.contentWindow?.flock?.disposeOldScene?.();
+              } catch (err) {
+                console.warn("Error disposing old scene in iframe:", err);
+              }
+            } else {
+              // 2) Create a new iframe if not found
+              iframe = document.createElement("iframe");
+              iframe.id = "flock-iframe";
+              iframe.style.display = "none";
+              document.body.appendChild(iframe);
+            }
 
-                        // Step 1: Dispose old scene if iframe exists
-                        if (iframe) {
-                                try {
-                                        await iframe.contentWindow?.flock?.disposeOldScene();
-                                } catch (error) {
-                                        console.warn("Error disposing old scene in iframe:", error);
-                                }
-                        } else {
-                                // Step 2: Create a new iframe if not found
-                                iframe = document.createElement("iframe");
-                                iframe.id = "flock-iframe";
-                                iframe.style.display = "none";
-                                document.body.appendChild(iframe);
-                        }
+            // 3) Load a clean iframe context
+            await new Promise((resolve, reject) => {
+              iframe.onload = () => resolve();
+              iframe.onerror = () => reject(new Error("Failed to load iframe"));
+              iframe.src = "about:blank";
+            });
 
-                        // Step 3: Wait for iframe to load
-                        await new Promise((resolve, reject) => {
-                                iframe.onload = () => resolve();
-                                iframe.onerror = () =>
-                                        reject(new Error("Failed to load iframe"));
-                                iframe.src = "about:blank";
-                        });
+            // 4) Set up iframe window and flock reference
+            const iframeWindow = iframe.contentWindow;
+            if (!iframeWindow) throw new Error("Iframe window is unavailable");
+            iframeWindow.flock = this;
 
-                        // Step 4: Access iframe window and set up flock
-                        const iframeWindow = iframe.contentWindow;
-                        if (!iframeWindow) throw new Error("Iframe window is unavailable");
+            // Initialise a fresh scene (unchanged)
+            await this.initializeNewScene?.();
+            if (this.memoryDebug) this.startMemoryMonitoring?.();
 
-                        // Copy flock reference to iframe
-                        iframeWindow.flock = this;
+            // 5) Build the whitelisted environment
+            const whitelist = this.createWhitelist();
+            const wlNames = Object.keys(whitelist);
+            const wlValues = Object.values(whitelist);
 
-                        // Initialize new scene in iframe context
-                        await this.initializeNewScene();
+            // Shadow dangerous globals by passing them as undefined params
+            const shadowNames = [
+              "window", "document", "globalThis", "self", "parent", "top", "frames",
+              "Function", "fetch", "XMLHttpRequest"
+            ];
+            const shadowValues = new Array(shadowNames.length).fill(undefined);
 
-                        if (flock.memoryDebug) flock.startMemoryMonitoring();
+            const paramNames = shadowNames.concat(wlNames);
+            const paramValues = shadowValues.concat(wlValues);
 
-                        // Step 5: Create sandboxed function with all flock API methods
-                        const sandboxFunction = new iframeWindow.Function(`
-                                "use strict";
+            // Harden constructor escape paths
+            const hardenPrelude =
+              'try{' +
+                'Object.defineProperty(Object.prototype,"constructor",{value:undefined,writable:true,configurable:true});' +
+                'Object.defineProperty(Function.prototype,"constructor",{value:undefined,writable:true,configurable:true});' +
+              '}catch{}';
 
-                                const {
-                                        initialize,
-                                                createEngine,
-                                                createScene,
-                                                playAnimation,
-                                                playSound,
-                                                stopAllSounds,
-                                                playNotes,
-                                                setBPM,
-                                                createInstrument,
-                                                speak,
-                                                switchAnimation,
-                                                highlight,
-                                                glow,
-                                                createCharacter,
-                                                createObject,
-                                                createParticleEffect,
-                                                create3DText,
-                                                createModel,
-                                                createBox,
-                                                createSphere,
-                                                createCylinder,
-                                                createCapsule,
-                                                createPlane,
-                                                cloneMesh,
-                                                parentChild,
-                                                setParent,
-                                                mergeMeshes,
-                                                subtractMeshes,
-                                                intersectMeshes,
-                                                createHull,
-                                                hold, 
-                                                attach,
-                                                drop,
-                                                makeFollow,
-                                                stopFollow,
-                                                removeParent,
-                                                createGround,
-                                                createMap,
-                                                createCustomMap,
-                                                setSky,
-                                                lightIntensity,
-                                                buttonControls,
-                                                getCamera,
-                                                cameraControl,
-                                                setCameraBackground,
-                                                setXRMode,
-                                                applyForce,
-                                                moveByVector,
-                                                glideTo,
-                                                createAnimation,
-                                                animateFrom,
-                                                playAnimationGroup, 
-                                                pauseAnimationGroup, 
-                                                stopAnimationGroup,
-                                                startParticleSystem,
-                                                stopParticleSystem,
-                                                resetParticleSystem,
-                                                animateKeyFrames,
-                                                setPivotPoint,
-                                                rotate,
-                                                lookAt,
-                                                moveTo,
-                                                rotateTo,
-                                                rotateCamera,
-                                                rotateAnim,
-                                                animateProperty,
-                                                positionAt,
-                                                distanceTo,
-                                                wait,
-                                                safeLoop,
-                                                waitUntil,
-                                                show,
-                                                hide,
-                                                clearEffects,
-                                                stopAnimations,
-                                                tint,
-                                                setAlpha,
-                                                dispose,
-                                                setFog,
-                                                keyPressed,
-                                                isTouchingSurface,
-                                                meshExists,
-                                                seededRandom,
-                                                randomColour,
-                                                scale,
-                                                resize,
-                                                changeColor,
-                                                changeColorMesh,
-                                                changeMaterial,
-                                                setMaterial,
-                                                createMaterial,
-                                                textMaterial,
-                                                createDecal,
-                                                placeDecal,
-                                                moveForward,
-                                                moveSideways,
-                                                strafe,
-                                                attachCamera,
-                                                canvasControls,
-                                                setPhysics,
-                                                setPhysicsShape,
-                                                checkMeshesTouching,
-                                                say,
-                                                onTrigger,
-                                                onEvent,
-                                                broadcastEvent,
-                                                Mesh,
-                                                start,
-                                                forever,
-                                                whenKeyEvent,
-                                                randomInteger,
-                                                printText,
-                                                UIText,
-                                                UIButton,
-                                                UIInput,
-                                                UISlider,
-                                                onIntersect,
-                                                getProperty,
-                                                exportMesh,
-                                                abortSceneExecution,
-                                                ensureUniqueGeometry,
-                                                createVector3,
-                                } = flock;
+            // Freeze safe built-ins to prevent tampering
+            const freezePrelude =
+              'try{' +
+                'Object.freeze(Math);' +
+                'Object.freeze(JSON);' +
+                'Object.freeze(Date);' +
+                'Object.freeze(Number);' +
+                'Object.freeze(String);' +
+                'Object.freeze(Boolean);' +
+                'Object.freeze(Array);' +
+                'Object.freeze(Object);' +
+              '}catch{}';
 
-                                ${code}
-                        `);
+            // Assemble the function body safely (no template literals)
+            const body =
+              '"use strict";\n' +
+              hardenPrelude + '\n' +
+              freezePrelude + '\n' +
+              'return (async () => {\n' +
+              code +
+              '\n})();\n';
 
-                        // Execute sandboxed code
-                        try {
-                                await sandboxFunction();
-                        } catch (sandboxError) {
-                                throw new Error(
-                                        `Sandbox execution failed: ${sandboxError.message}`,
-                                );
-                        }
+            // Create the sandboxed function using only whitelisted APIs + shadowed globals
+            const run = new iframeWindow.Function(...paramNames, body);
 
-                        // Focus render canvas
-                        document.getElementById("renderCanvas")?.focus();
-                } catch (error) {
-                        // Enhanced error reporting
-                        const enhancedError = this.createEnhancedError(error, code);
-                        console.error("Enhanced error details:", enhancedError);
+            // Execute code with whitelisting enforced
+            await run(...paramValues);
 
-                        // Show user-friendly error
-                        this.printText({
-                                text: `Error: ${error.message}`,
-                                duration: 5,
-                                color: "#ff0000",
-                        });
+document.getElementById("renderCanvas")?.focus();
+          } catch (error) {
+            
+            const enhancedError = this.createEnhancedError?.(error, code) ?? error;
+            console.error("Enhanced error details:", enhancedError);
 
-                        // Clean up on error
-                        try {
-                                this.audioContext?.close();
-                                this.engine?.stopRenderLoop();
-                                this.removeEventListeners();
-                        } catch (cleanupError) {
-                                console.error("Error during cleanup:", cleanupError);
-                        }
+            this.printText?.({
+              text: `Error: ${error.message}`,
+              duration: 5,
+              color: "#ff0000",
+            });
 
-                        throw error;
-                }
+            try {
+              this.audioContext?.close?.();
+              this.engine?.stopRenderLoop?.();
+              this.removeEventListeners?.();
+            } catch (cleanupError) {
+              console.error("Error during cleanup:", cleanupError);
+            }
+
+            throw error;
+          }
+        },
+        createWhitelist() {
+          const api = {
+            // Safe built-ins
+            Object, Array, String, Number, Boolean, Math, Date, JSON, Promise, console,
+
+            // All Flock API methods — unchanged
+            initialize: this.initialize?.bind(this),
+            createEngine: this.createEngine?.bind(this),
+            createScene: this.createScene?.bind(this),
+            playAnimation: this.playAnimation?.bind(this),
+            playSound: this.playSound?.bind(this),
+            stopAllSounds: this.stopAllSounds?.bind(this),
+            playNotes: this.playNotes?.bind(this),
+            setBPM: this.setBPM?.bind(this),
+            createInstrument: this.createInstrument?.bind(this),
+            speak: this.speak?.bind(this),
+            switchAnimation: this.switchAnimation?.bind(this),
+            highlight: this.highlight?.bind(this),
+            glow: this.glow?.bind(this),
+            createCharacter: this.createCharacter?.bind(this),
+            createObject: this.createObject?.bind(this),
+            createParticleEffect: this.createParticleEffect?.bind(this),
+            create3DText: this.create3DText?.bind(this),
+            createModel: this.createModel?.bind(this),
+            createBox: this.createBox?.bind(this),
+            createSphere: this.createSphere?.bind(this),
+            createCylinder: this.createCylinder?.bind(this),
+            createCapsule: this.createCapsule?.bind(this),
+            createPlane: this.createPlane?.bind(this),
+            cloneMesh: this.cloneMesh?.bind(this),
+            parentChild: this.parentChild?.bind(this),
+            setParent: this.setParent?.bind(this),
+            mergeMeshes: this.mergeMeshes?.bind(this),
+            subtractMeshes: this.subtractMeshes?.bind(this),
+            intersectMeshes: this.intersectMeshes?.bind(this),
+            createHull: this.createHull?.bind(this),
+            hold: this.hold?.bind(this),
+            attach: this.attach?.bind(this),
+            drop: this.drop?.bind(this),
+            makeFollow: this.makeFollow?.bind(this),
+            stopFollow: this.stopFollow?.bind(this),
+            removeParent: this.removeParent?.bind(this),
+            createGround: this.createGround?.bind(this),
+            createMap: this.createMap?.bind(this),
+            createCustomMap: this.createCustomMap?.bind(this),
+            setSky: this.setSky?.bind(this),
+            lightIntensity: this.lightIntensity?.bind(this),
+            buttonControls: this.buttonControls?.bind(this),
+            getCamera: this.getCamera?.bind(this),
+            cameraControl: this.cameraControl?.bind(this),
+            setCameraBackground: this.setCameraBackground?.bind(this),
+            setXRMode: this.setXRMode?.bind(this),
+            applyForce: this.applyForce?.bind(this),
+            moveByVector: this.moveByVector?.bind(this),
+            glideTo: this.glideTo?.bind(this),
+            createAnimation: this.createAnimation?.bind(this),
+            animateFrom: this.animateFrom?.bind(this),
+            playAnimationGroup: this.playAnimationGroup?.bind(this),
+            pauseAnimationGroup: this.pauseAnimationGroup?.bind(this),
+            stopAnimationGroup: this.stopAnimationGroup?.bind(this),
+            startParticleSystem: this.startParticleSystem?.bind(this),
+            stopParticleSystem: this.stopParticleSystem?.bind(this),
+            resetParticleSystem: this.resetParticleSystem?.bind(this),
+            animateKeyFrames: this.animateKeyFrames?.bind(this),
+            setPivotPoint: this.setPivotPoint?.bind(this),
+            rotate: this.rotate?.bind(this),
+            lookAt: this.lookAt?.bind(this),
+            moveTo: this.moveTo?.bind(this),
+            rotateTo: this.rotateTo?.bind(this),
+            rotateCamera: this.rotateCamera?.bind(this),
+            rotateAnim: this.rotateAnim?.bind(this),
+            animateProperty: this.animateProperty?.bind(this),
+            positionAt: this.positionAt?.bind(this),
+            distanceTo: this.distanceTo?.bind(this),
+            wait: this.wait?.bind(this),
+            safeLoop: this.safeLoop?.bind(this),
+            waitUntil: this.waitUntil?.bind(this),
+            show: this.show?.bind(this),
+            hide: this.hide?.bind(this),
+            clearEffects: this.clearEffects?.bind(this),
+            stopAnimations: this.stopAnimations?.bind(this),
+            tint: this.tint?.bind(this),
+            setAlpha: this.setAlpha?.bind(this),
+            dispose: this.dispose?.bind(this),
+            setFog: this.setFog?.bind(this),
+            keyPressed: this.keyPressed?.bind(this),
+            isTouchingSurface: this.isTouchingSurface?.bind(this),
+            meshExists: this.meshExists?.bind(this),
+            seededRandom: this.seededRandom?.bind(this),
+            randomColour: this.randomColour?.bind(this),
+            scale: this.scale?.bind(this),
+            resize: this.resize?.bind(this),
+            changeColor: this.changeColor?.bind(this),
+            changeColorMesh: this.changeColorMesh?.bind(this),
+            changeMaterial: this.changeMaterial?.bind(this),
+            setMaterial: this.setMaterial?.bind(this),
+            createMaterial: this.createMaterial?.bind(this),
+            textMaterial: this.textMaterial?.bind(this),
+            createDecal: this.createDecal?.bind(this),
+            placeDecal: this.placeDecal?.bind(this),
+            moveForward: this.moveForward?.bind(this),
+            moveSideways: this.moveSideways?.bind(this),
+            strafe: this.strafe?.bind(this),
+            attachCamera: this.attachCamera?.bind(this),
+            canvasControls: this.canvasControls?.bind(this),
+            setPhysics: this.setPhysics?.bind(this),
+            setPhysicsShape: this.setPhysicsShape?.bind(this),
+            checkMeshesTouching: this.checkMeshesTouching?.bind(this),
+            say: this.say?.bind(this),
+            onTrigger: this.onTrigger?.bind(this),
+            onEvent: this.onEvent?.bind(this),
+            broadcastEvent: this.broadcastEvent?.bind(this),
+            Mesh: this.Mesh,
+            start: this.start?.bind(this),
+            forever: this.forever?.bind(this),
+            whenKeyEvent: this.whenKeyEvent?.bind(this),
+            randomInteger: this.randomInteger?.bind(this),
+            printText: this.printText?.bind(this),
+            UIText: this.UIText?.bind(this),
+            UIButton: this.UIButton?.bind(this),
+            UIInput: this.UIInput?.bind(this),
+            UISlider: this.UISlider?.bind(this),
+            onIntersect: this.onIntersect?.bind(this),
+            getProperty: this.getProperty?.bind(this),
+            exportMesh: this.exportMesh?.bind(this),
+            abortSceneExecution: this.abortSceneExecution?.bind(this),
+            ensureUniqueGeometry: this.ensureUniqueGeometry?.bind(this),
+            createVector3: this.createVector3?.bind(this),
+          };
+
+          // Freeze for safety — prevents mutation of the API surface
+          try { return Object.freeze(api); } catch { return api; }
         },
         async initialize() {
                 flock.BABYLON = BABYLON;
