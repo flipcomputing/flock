@@ -48,22 +48,6 @@
       <label for="testSelect" style="font-weight: bold; margin-right: 10px;">Select Test Suite:</label>
       <select id="testSelect" style="padding: 5px; margin-right: 10px;">
         <option value="">-- Choose a test suite --</option>
-        <option value="babylon">Basic Babylon Tests</option>
-        <option value="glide">Glide Animation Tests</option>
-        <option value="ui">UI Text/Button Tests</option>
-        <option value="stress">Stress Tests (Boxes)</option>
-        <option value="objects">Object Creation Tests</option>
-        <option value="sound">Sound Tests</option>
-        <option value="translation">Translation/Movement Tests</option>
-        <option value="rotation">Rotation Tests</option>
-        <option value="scale">Scale Tests</option>
-        <option value="materials">Materials Tests</option>
-        <option value="physics">Physics Tests</option>
-        <option value="effects">Effects Tests</option>
-        <option value="animate">Animation API Tests</option>
-        <option value="concurrency">Concurrency Tests</option>
-        <option value="blocks">Block Tests</option>
-        <option value="@new">:Run Tests tagged @new</option>
         <option value="all">:Run All Tests</option>
       </select>
       <button id="runTestBtn" style="padding: 5px 15px;">Run Tests</button>
@@ -83,6 +67,7 @@
       // if the tests were standardised and imported with a glob, (most of) the array could be generated automatically, reducing maintenance
       // alternatively, the array can be customised to run tagged tests or subsets of tests
       const testSuiteDefinitions = [
+        { id: "@new", name: ":Run Tests tagged @new", importPath: "", importFn: "", pattern: "@new" },
         { id: "babylon", name: "Basic Babylon Tests", importPath: "./babylon.test.js", importFn: "runTests", pattern: "Flock API Tests" },
         { id: "glide", name: "Glide Animation Tests", importPath: "./glide.test.js", importFn: "runGlideToTests", pattern: "glideTo function tests" },
         { id: "ui", name: "UI Text/Button Tests", importPath: "./uitextbutton.test.js", importFn: "runUITests", pattern: "UIText, UIButton, UIInput, and UISlider function tests" },
@@ -97,8 +82,7 @@
         { id: "effects", name: "Effects Tests", importPath: "./effects.test.js", importFn: "runEffectsTests", pattern: "Effects API" },
         { id: "animate", name: "Animation API Tests", importPath: "./animate.test.js", importFn: "runAnimateTests", pattern: "Animation API Tests" },
         { id: "concurrency", name: "Concurrency Tests", importPath: "./concurrency.test.js", importFn: "runConcurrencyTests", pattern: "Concurrency and Stress Tests" },
-        { id: "blocks", name: "Block Tests", importPath: "./blocks.test.js", importFn: "runBlocksTests", pattern: "blocks.js tests" },
-        { id: "@new", name: ":Run Tests tagged @new", importPath: "", importFn: "", pattern: "@new" }
+        { id: "blocks", name: "Block Tests", importPath: "./blocks.test.js", importFn: "runBlocksTests", pattern: "blocks.js tests" }
       ];
 
       import * as flockmodule from "../flock.js";
@@ -149,6 +133,11 @@
       async function loadAllTests() {
         // First, load all test modules
         for (const suite of testSuiteDefinitions) {
+          // add a new option element to testSelect with value=suite.id and text=suite.name
+          const option = document.createElement('option');
+          option.value = suite.id;
+          option.text = suite.name;
+          document.getElementById('testSelect').appendChild(option);   
           try { // for now, expect failures for Mocha tags only - like @new – as there's no import path
             const module = await import(suite.importPath);
             // Call the function to register tests with mocha, but don't run them yet
