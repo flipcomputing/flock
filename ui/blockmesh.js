@@ -60,8 +60,10 @@ export function updateOrCreateMeshFromBlock(block, changeEvent) {
     return;
   }
 
-  console.log((changeEvent?.type === Blockly.Events.BLOCK_CHANGE ||
-      changeEvent?.type === Blockly.Events.BLOCK_CREATE));
+  console.log(
+    changeEvent?.type === Blockly.Events.BLOCK_CHANGE ||
+      changeEvent?.type === Blockly.Events.BLOCK_CREATE,
+  );
 
   if (
     (changeEvent?.type === Blockly.Events.BLOCK_CHANGE ||
@@ -76,16 +78,13 @@ export function updateOrCreateMeshFromBlock(block, changeEvent) {
 }
 
 export function deleteMeshFromBlock(blockId) {
-  
-  const blockKey = Object.keys(meshBlockIdMap).find(
-    (key) => meshBlockIdMap[key] === blockId,
-  );
+  const blockKey = getBlockKeyFromBlockID(blockId);
 
   if (!blockKey) {
     return;
   }
 
-  const mesh = flock.scene.meshes.find((m) => m?.metadata?.blockKey === blockKey);
+  const mesh = getMeshFromBlockKey(blockKey);
 
   if (!mesh || mesh.name === "__root__") {
   } else {
@@ -97,28 +96,38 @@ export function deleteMeshFromBlock(blockId) {
   delete meshBlockIdMap[blockKey];
 }
 
+export function getBlockKeyFromBlock(block) {
+  return Object.keys(meshMap).find((key) => meshMap[key] === block);
+}
+
+export function getBlockKeyFromBlockID(blockId) {
+  return Object.keys(meshBlockIdMap).find(
+    (key) => meshBlockIdMap[key] === blockId,
+  );
+}
+
+export function getMeshFromBlockKey(blockKey) {
+  return flock.scene?.meshes?.find(
+    (mesh) => mesh.metadata.blockKey === blockKey,
+  );
+}
+
 export function getMeshFromBlock(block) {
   if (block && block.type === "rotate_to") {
     block = block.getParent();
   }
-  
-  const blockKey = Object.keys(meshMap).find((key) => meshMap[key] === block);
 
-  if (!blockKey) {
-    return null;
-  }
+  const blockKey = getBlockKeyFromBlock(block);
 
-  const found = flock.scene?.meshes?.find((mesh) => mesh.metadata?.blockKey === blockKey);
-
+  if (!blockKey) return null;
+  const found = getMeshFromBlockKey(blockKey);
   return found;
 }
 
 function getMeshFromBlockId(blockId) {
-  const blockKey = Object.keys(meshMap).find(
-    (key) => meshBlockIdMap[key] === blockId,
-  );
+  const blockKey = getBlockKeyFromBlockID(blockId);
 
-  return flock.scene?.meshes?.find((mesh) => mesh.metadata?.blockKey === blockKey);
+  return getMeshFromBlockKey(blockKey);
 }
 
 function rescaleBoundingBox(bb, newScale) {
@@ -199,13 +208,22 @@ export function updateMeshFromBlock(mesh, block, changeEvent) {
   let changed;
 
   // Check for direct field changes on the block itself FIRST
-  if (changeEvent.type === Blockly.Events.BLOCK_CHANGE && 
-      changeEvent.element === "field" && changeEvent.blockId === block.id) {
+  if (
+    changeEvent.type === Blockly.Events.BLOCK_CHANGE &&
+    changeEvent.element === "field" &&
+    changeEvent.blockId === block.id
+  ) {
     if (block.type === "load_object" && changeEvent.name === "MODELS") {
       changed = "MODELS";
-    } else if (block.type === "load_multi_object" && changeEvent.name === "MODELS") {
+    } else if (
+      block.type === "load_multi_object" &&
+      changeEvent.name === "MODELS"
+    ) {
       changed = "MODELS";
-    } else if (block.type === "load_character" && changeEvent.name === "MODELS") {
+    } else if (
+      block.type === "load_character" &&
+      changeEvent.name === "MODELS"
+    ) {
       changed = "MODELS";
     } else if (block.type === "create_map" && changeEvent.name === "MAP_NAME") {
       changed = "MAP_NAME";
@@ -250,7 +268,13 @@ export function updateMeshFromBlock(mesh, block, changeEvent) {
   const shapeType = block.type;
 
   // Special handling for MODELS field change - get mesh if not provided
-  if ((block.type === "load_object" || block.type === "load_multi_object" || block.type === "load_character") && changed === "MODELS" && !mesh) {
+  if (
+    (block.type === "load_object" ||
+      block.type === "load_multi_object" ||
+      block.type === "load_character") &&
+    changed === "MODELS" &&
+    !mesh
+  ) {
     mesh = getMeshFromBlock(block);
   }
 
@@ -264,7 +288,7 @@ export function updateMeshFromBlock(mesh, block, changeEvent) {
       "load_multi_object",
       "load_character",
       "create_map",
-      "rotate_to"
+      "rotate_to",
     ].includes(block.type)
   ) {
     color = block
@@ -439,7 +463,7 @@ export function updateMeshFromBlock(mesh, block, changeEvent) {
         replaceMeshModel(mesh, block, changeEvent);
         return;
       }
-      
+
       modelName = block.getFieldValue("MODELS");
 
       if (changed in colorFields) {
@@ -630,6 +654,12 @@ export function updateMeshFromBlock(mesh, block, changeEvent) {
   flock.updatePhysics(mesh);
 }
 
+function moveMeshToOrigin(mesh) {
+  mesh.position = flock.BABYLON.Vector3.Zero();
+  mesh.rotation = flock.BABYLON.Vector3.Zero();
+  return mesh;
+}
+
 function setAbsoluteSize(mesh, width, height, depth) {
   flock.ensureUniqueGeometry(mesh);
   const boundingInfo = mesh.getBoundingInfo();
@@ -647,8 +677,7 @@ function setAbsoluteSize(mesh, width, height, depth) {
   );
 
   // Temporarily move mesh to origin
-  mesh.position = flock.BABYLON.Vector3.Zero();
-  mesh.rotation = flock.BABYLON.Vector3.Zero();
+  mesh = moveMeshToOrigin(mesh);
 
   // Calculate new scaling
   const newScaleX = width / (originalSize.x * 2);
@@ -746,8 +775,7 @@ function updateCylinderGeometry(
   }
 
   // Temporarily reset mesh transform
-  mesh.position = flock.BABYLON.Vector3.Zero();
-  mesh.rotation = flock.BABYLON.Vector3.Zero();
+  mesh = moveMeshToOrigin(mesh);
   mesh.scaling = flock.BABYLON.Vector3.One();
 
   // Create a temporary mesh with the provided dimensions (already in world space)
@@ -800,7 +828,9 @@ function replaceMeshModel(currentMesh, block, changeEvent) {
   const meshState = {
     position: currentMesh.position.clone(),
     rotation: currentMesh.rotation ? currentMesh.rotation.clone() : null,
-    rotationQuaternion: currentMesh.rotationQuaternion ? currentMesh.rotationQuaternion.clone() : null,
+    rotationQuaternion: currentMesh.rotationQuaternion
+      ? currentMesh.rotationQuaternion.clone()
+      : null,
     scaling: currentMesh.scaling.clone(),
     physics: null,
     savedMotionType: currentMesh.savedMotionType,
@@ -809,7 +839,8 @@ function replaceMeshModel(currentMesh, block, changeEvent) {
     material: currentMesh.material,
     isVisible: currentMesh.isVisible,
     originalName: currentMesh.name, // Current mesh name
-    originalBaseName: currentMesh.metadata?.originalBaseName || currentMesh.name.split('__')[0] // Base name for triggers
+    originalBaseName:
+      currentMesh.metadata?.originalBaseName || currentMesh.name.split("__")[0], // Base name for triggers
   };
 
   // Store physics properties if they exist
@@ -819,14 +850,17 @@ function replaceMeshModel(currentMesh, block, changeEvent) {
       mass: currentMesh.physics.getMassProperties().mass,
       friction: currentMesh.physics.shape?.friction,
       restitution: currentMesh.physics.shape?.restitution,
-      disablePreStep: currentMesh.physics.disablePreStep
+      disablePreStep: currentMesh.physics.disablePreStep,
     };
   }
 
   // Get new model information from block
   const newModelName = block.getFieldValue("MODELS");
-  const scale = block.getInput("SCALE").connection.targetBlock().getFieldValue("NUM");
-  
+  const scale = block
+    .getInput("SCALE")
+    .connection.targetBlock()
+    .getFieldValue("NUM");
+
   // Handle color differently for different block types
   let color;
   if (block.type === "load_multi_object") {
@@ -850,14 +884,14 @@ function replaceMeshModel(currentMesh, block, changeEvent) {
     // Characters use multiple color inputs - match the existing structure
     color = {};
     const colorMapping = {
-      "HAIR_COLOR": "hair",
-      "SKIN_COLOR": "skin", 
-      "EYES_COLOR": "eyes",
-      "TSHIRT_COLOR": "tshirt",
-      "SHORTS_COLOR": "shorts",
-      "SLEEVES_COLOR": "sleeves"
+      HAIR_COLOR: "hair",
+      SKIN_COLOR: "skin",
+      EYES_COLOR: "eyes",
+      TSHIRT_COLOR: "tshirt",
+      SHORTS_COLOR: "shorts",
+      SLEEVES_COLOR: "sleeves",
     };
-    
+
     Object.entries(colorMapping).forEach(([inputName, colorKey]) => {
       const input = block.getInput(inputName);
       if (input && input.connection && input.connection.targetBlock()) {
@@ -866,20 +900,29 @@ function replaceMeshModel(currentMesh, block, changeEvent) {
     });
   } else {
     // Single objects use a COLOR input
-    color = block.getInput("COLOR").connection.targetBlock().getFieldValue("COLOR");
+    color = block
+      .getInput("COLOR")
+      .connection.targetBlock()
+      .getFieldValue("COLOR");
   }
-  
+
   // Get position values
   const position = {
-    x: parseFloat(block.getInput("X").connection.targetBlock().getFieldValue("NUM")),
-    y: parseFloat(block.getInput("Y").connection.targetBlock().getFieldValue("NUM")),
-    z: parseFloat(block.getInput("Z").connection.targetBlock().getFieldValue("NUM"))
+    x: parseFloat(
+      block.getInput("X").connection.targetBlock().getFieldValue("NUM"),
+    ),
+    y: parseFloat(
+      block.getInput("Y").connection.targetBlock().getFieldValue("NUM"),
+    ),
+    z: parseFloat(
+      block.getInput("Z").connection.targetBlock().getFieldValue("NUM"),
+    ),
   };
 
   // Create a temporary unique name, then rename after creation
   const tempMeshId = `${newModelName}__${block.id}__${Date.now()}`;
   const targetName = meshState.originalName;
-  
+
   // Dispose of the old mesh
   if (currentMesh.name !== "__root__") {
     flock.disposeMesh(currentMesh);
@@ -895,23 +938,23 @@ function replaceMeshModel(currentMesh, block, changeEvent) {
     callback: () => {
       // Get the newly loaded mesh using our lookup function
       const loadedMesh = getMeshFromBlock(block);
-      
+
       // Ensure the new mesh has the correct blockKey metadata immediately
-      if (loadedMesh && typeof loadedMesh === 'object') {
+      if (loadedMesh && typeof loadedMesh === "object") {
         loadedMesh.metadata = loadedMesh.metadata || {};
         loadedMesh.metadata.blockKey = meshState.blockKey;
-        
+
         // Rename the mesh to preserve the original name
         loadedMesh.name = targetName;
       } else {
         return;
       }
-      
+
       if (loadedMesh && loadedMesh !== currentMesh) {
         // Restore transform state, but adjust Y position for new mesh size
         loadedMesh.position.x = meshState.position.x;
         loadedMesh.position.z = meshState.position.z;
-        
+
         // Restore rotation first
         if (meshState.rotation) {
           loadedMesh.rotation.copyFrom(meshState.rotation);
@@ -919,29 +962,32 @@ function replaceMeshModel(currentMesh, block, changeEvent) {
         if (meshState.rotationQuaternion) {
           loadedMesh.rotationQuaternion.copyFrom(meshState.rotationQuaternion);
         }
-        
+
         // Check if mesh has gizmo scaling (scaling different from 1,1,1) OR if the block has a scale transform
-        const hasGizmoScaling = (meshState.scaling && (
-          Math.abs(meshState.scaling.x - 1) > 0.001 ||
-          Math.abs(meshState.scaling.y - 1) > 0.001 ||
-          Math.abs(meshState.scaling.z - 1) > 0.001
-        )) || (parseFloat(scale) === 1.0 && meshState.scaling); // Scale block case: block scale is 1 but has custom scaling
-        
+        const hasGizmoScaling =
+          (meshState.scaling &&
+            (Math.abs(meshState.scaling.x - 1) > 0.001 ||
+              Math.abs(meshState.scaling.y - 1) > 0.001 ||
+              Math.abs(meshState.scaling.z - 1) > 0.001)) ||
+          (parseFloat(scale) === 1.0 && meshState.scaling); // Scale block case: block scale is 1 but has custom scaling
+
         if (hasGizmoScaling) {
           // Apply gizmo scaling and calculate position based on scaled bounding box
           loadedMesh.scaling.copyFrom(meshState.scaling);
-          
+
           // Reset to origin for clean calculation
           loadedMesh.position.y = 0;
           loadedMesh.computeWorldMatrix(true);
           loadedMesh.refreshBoundingInfo();
           const boundingInfo = loadedMesh.getBoundingInfo();
-          
-          const groundY = parseFloat(block.getInput("Y").connection.targetBlock().getFieldValue("NUM"));
-          
+
+          const groundY = parseFloat(
+            block.getInput("Y").connection.targetBlock().getFieldValue("NUM"),
+          );
+
           // Calculate how much to raise the mesh so its bottom sits at ground level
           const meshBottomY = boundingInfo.boundingBox.minimumWorld.y;
-          
+
           // Position the mesh so its bottom is at groundY
           // If bottom is at meshBottomY when center is at 0, then center needs to be at (groundY - meshBottomY)
           loadedMesh.position.y = groundY - meshBottomY;
@@ -952,19 +998,25 @@ function replaceMeshModel(currentMesh, block, changeEvent) {
           loadedMesh.computeWorldMatrix(true);
           loadedMesh.refreshBoundingInfo();
           const boundingInfo = loadedMesh.getBoundingInfo();
-          
-          const groundY = parseFloat(block.getInput("Y").connection.targetBlock().getFieldValue("NUM"));
-          
+
+          const groundY = parseFloat(
+            block.getInput("Y").connection.targetBlock().getFieldValue("NUM"),
+          );
+
           // Calculate how much to raise the mesh so its bottom sits at ground level
           const meshBottomY = boundingInfo.boundingBox.minimumWorld.y;
-          
+
           // Position the mesh so its bottom is at groundY
           // If bottom is at meshBottomY when center is at 0, then center needs to be at (groundY - meshBottomY)
           loadedMesh.position.y = groundY - meshBottomY;
-          
+
           // Apply any Y offset from metadata
-          if (loadedMesh.metadata?.yOffset && loadedMesh.metadata.yOffset !== 0) {
-            loadedMesh.position.y += parseFloat(scale) * loadedMesh.metadata.yOffset;
+          if (
+            loadedMesh.metadata?.yOffset &&
+            loadedMesh.metadata.yOffset !== 0
+          ) {
+            loadedMesh.position.y +=
+              parseFloat(scale) * loadedMesh.metadata.yOffset;
           }
         }
         loadedMesh.isVisible = meshState.isVisible;
@@ -974,7 +1026,7 @@ function replaceMeshModel(currentMesh, block, changeEvent) {
           loadedMesh.metadata = { ...meshState.metadata };
           loadedMesh.metadata.blockKey = meshState.blockKey;
         }
-        
+
         // Preserve the original base name for future trigger lookups
         loadedMesh.metadata.originalBaseName = meshState.originalBaseName;
 
@@ -988,31 +1040,47 @@ function replaceMeshModel(currentMesh, block, changeEvent) {
         }
 
         // Apply colors based on block type
-        if (block.type === "load_character" && color && Object.keys(color).length > 0) {
+        if (
+          block.type === "load_character" &&
+          color &&
+          Object.keys(color).length > 0
+        ) {
           flock.applyColorsToCharacter(loadedMesh, color);
-        } else if (block.type === "load_multi_object" && Array.isArray(color) && color.length > 0) {
+        } else if (
+          block.type === "load_multi_object" &&
+          Array.isArray(color) &&
+          color.length > 0
+        ) {
           // Multi-object color application - reuse existing logic
           flock.applyColorsToMesh(loadedMesh, color);
         } else if (color && typeof color === "string") {
           // Single object color application
           flock.applyColorToMaterial(loadedMesh, null, color);
         }
-        
+
         // Update physics to ensure collision detection works
         flock.updatePhysics(loadedMesh);
-        
+
         // Re-apply any pending triggers using the original mesh base name
         const newMeshName = loadedMesh.name;
         const originalBaseName = meshState.originalBaseName;
-        
-        if (flock.pendingTriggers && flock.pendingTriggers.has(originalBaseName)) {
+
+        if (
+          flock.pendingTriggers &&
+          flock.pendingTriggers.has(originalBaseName)
+        ) {
           const triggers = flock.pendingTriggers.get(originalBaseName);
           triggers.forEach(({ trigger, callback, mode }) => {
-            flock.onTrigger(newMeshName, { trigger, callback, mode, applyToGroup: false });
+            flock.onTrigger(newMeshName, {
+              trigger,
+              callback,
+              mode,
+              applyToGroup: false,
+            });
           });
         }
       }
-    }
+    },
   });
 
   return newMesh;
