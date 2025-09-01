@@ -173,7 +173,7 @@ function handleColorPickingKeydown(event) {
     case "Enter":
       event.preventDefault();
       if (colorPickingCircle) {
-        // Apply color at current circle position
+        // Apply color at current circle position (circle is centered via CSS transform)
         applyColorAtPosition(colorPickingCirclePosition.x, colorPickingCirclePosition.y);
         endColorPickingMode();
       }
@@ -199,6 +199,7 @@ function createColorPickingCircle() {
     pointer-events: none;
     z-index: 10000;
     box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.3), 0 0 8px rgba(255, 255, 0, 0.5);
+    transform: translate(-50%, -50%);
   `;
   document.body.appendChild(colorPickingCircle);
 

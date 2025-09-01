@@ -1039,6 +1039,13 @@ function triggerPlacement() {
   };
 
   placementCallback(syntheticEvent);
+  
+  // Clean up the active handler to match mouse behavior
+  if (flock.activePickHandler) {
+    window.removeEventListener("click", flock.activePickHandler);
+    flock.activePickHandler = null;
+  }
+  
   cancelPlacement();
 }
 
