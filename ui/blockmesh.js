@@ -824,9 +824,38 @@ function replaceMeshModel(currentMesh, block, changeEvent) {
     return;
   }
 
+  // Calculate the current mesh's bottom position in world space (including scaling)
+  currentMesh.computeWorldMatrix(true);
+  currentMesh.refreshBoundingInfo();
+  const currentBottomY = currentMesh.getBoundingInfo().boundingBox.minimumWorld.y;
+  
+  // Also store the actual mesh position (which may have been adjusted by gizmos)
+  const actualMeshPosition = {
+    x: currentMesh.position.x,
+    y: currentMesh.position.y,
+    z: currentMesh.position.z
+  };
+  
+
+  // Get the current block position values (which should reflect gizmo updates)
+  const currentBlockPosition = {
+    x: parseFloat(
+      block.getInput("X").connection.targetBlock().getFieldValue("NUM"),
+    ),
+    y: parseFloat(
+      block.getInput("Y").connection.targetBlock().getFieldValue("NUM"),
+    ),
+    z: parseFloat(
+      block.getInput("Z").connection.targetBlock().getFieldValue("NUM"),
+    ),
+  };
+  
+
   // Store current mesh state including the original mesh name
   const meshState = {
-    position: currentMesh.position.clone(),
+    position: actualMeshPosition, // Use actual mesh position that accounts for gizmo adjustments
+    currentBlockPosition: currentBlockPosition, // Current block values (updated by gizmos)
+    currentBottomY: currentBottomY, // Store the current bottom position for alignment
     rotation: currentMesh.rotation ? currentMesh.rotation.clone() : null,
     rotationQuaternion: currentMesh.rotationQuaternion
       ? currentMesh.rotationQuaternion.clone()
@@ -906,18 +935,6 @@ function replaceMeshModel(currentMesh, block, changeEvent) {
       .getFieldValue("COLOR");
   }
 
-  // Get position values
-  const position = {
-    x: parseFloat(
-      block.getInput("X").connection.targetBlock().getFieldValue("NUM"),
-    ),
-    y: parseFloat(
-      block.getInput("Y").connection.targetBlock().getFieldValue("NUM"),
-    ),
-    z: parseFloat(
-      block.getInput("Z").connection.targetBlock().getFieldValue("NUM"),
-    ),
-  };
 
   // Create a temporary unique name, then rename after creation
   const tempMeshId = `${newModelName}__${block.id}__${Date.now()}`;
@@ -928,13 +945,17 @@ function replaceMeshModel(currentMesh, block, changeEvent) {
     flock.disposeMesh(currentMesh);
   }
 
-  // Create new mesh with preserved state
+  // Create new mesh using the actual mesh position (since block values aren't updated yet)
   const newMesh = flock.createObject({
     modelName: newModelName,
     modelId: tempMeshId,
     color: color,
     scale: parseFloat(scale),
-    position: meshState.position,
+    position: { 
+      x: meshState.position.x, 
+      y: meshState.currentBlockPosition.y, // Use block Y as base since setupMesh will adjust it
+      z: meshState.position.z 
+    },
     callback: () => {
       // Get the newly loaded mesh using our lookup function
       const loadedMesh = getMeshFromBlock(block);
@@ -963,61 +984,89 @@ function replaceMeshModel(currentMesh, block, changeEvent) {
           loadedMesh.rotationQuaternion.copyFrom(meshState.rotationQuaternion);
         }
 
-        // Check if mesh has gizmo scaling (scaling different from 1,1,1) OR if the block has a scale transform
-        const hasGizmoScaling =
+        // Check if there's a scale block in the DO section (created by gizmo)
+        let scaleBlock = null;
+        const modelVariable = block.getFieldValue("ID_VAR");
+        const doInput = block.getInput("DO");
+        if (doInput && doInput.connection && doInput.connection.targetBlock()) {
+          let currentBlock = doInput.connection.targetBlock();
+          while (currentBlock) {
+            if (currentBlock.type === "scale") {
+              const modelField = currentBlock.getFieldValue("BLOCK_NAME");
+              if (modelField === modelVariable) {
+                scaleBlock = currentBlock;
+                break;
+              }
+            }
+            currentBlock = currentBlock.getNextBlock();
+          }
+        }
+        
+        // Check if mesh has gizmo scaling (either from mesh.scaling or scale block)
+        const hasGizmoScaling = scaleBlock || 
           (meshState.scaling &&
             (Math.abs(meshState.scaling.x - 1) > 0.001 ||
               Math.abs(meshState.scaling.y - 1) > 0.001 ||
               Math.abs(meshState.scaling.z - 1) > 0.001)) ||
           (parseFloat(scale) === 1.0 && meshState.scaling); // Scale block case: block scale is 1 but has custom scaling
+          
 
-        if (hasGizmoScaling) {
-          // Apply gizmo scaling and calculate position based on scaled bounding box
-          loadedMesh.scaling.copyFrom(meshState.scaling);
-
-          // Reset to origin for clean calculation
-          loadedMesh.position.y = 0;
-          loadedMesh.computeWorldMatrix(true);
-          loadedMesh.refreshBoundingInfo();
-          const boundingInfo = loadedMesh.getBoundingInfo();
-
-          const groundY = parseFloat(
-            block.getInput("Y").connection.targetBlock().getFieldValue("NUM"),
-          );
-
-          // Calculate how much to raise the mesh so its bottom sits at ground level
-          const meshBottomY = boundingInfo.boundingBox.minimumWorld.y;
-
-          // Position the mesh so its bottom is at groundY
-          // If bottom is at meshBottomY when center is at 0, then center needs to be at (groundY - meshBottomY)
-          loadedMesh.position.y = groundY - meshBottomY;
-        } else {
-          // No gizmo scaling - mesh was created with block scale already applied
-          // Reset to origin for clean calculation
-          loadedMesh.position.y = 0;
-          loadedMesh.computeWorldMatrix(true);
-          loadedMesh.refreshBoundingInfo();
-          const boundingInfo = loadedMesh.getBoundingInfo();
-
-          const groundY = parseFloat(
-            block.getInput("Y").connection.targetBlock().getFieldValue("NUM"),
-          );
-
-          // Calculate how much to raise the mesh so its bottom sits at ground level
-          const meshBottomY = boundingInfo.boundingBox.minimumWorld.y;
-
-          // Position the mesh so its bottom is at groundY
-          // If bottom is at meshBottomY when center is at 0, then center needs to be at (groundY - meshBottomY)
-          loadedMesh.position.y = groundY - meshBottomY;
-
-          // Apply any Y offset from metadata
-          if (
-            loadedMesh.metadata?.yOffset &&
-            loadedMesh.metadata.yOffset !== 0
-          ) {
-            loadedMesh.position.y +=
-              parseFloat(scale) * loadedMesh.metadata.yOffset;
+        // Use setTimeout to let setupMesh complete, then apply scaling
+        setTimeout(() => {
+          if (scaleBlock) {
+            // Apply scale block transformation using flock.scale API
+            const scaleX = parseFloat(scaleBlock.getInput("X").connection.targetBlock().getFieldValue("NUM"));
+            const scaleY = parseFloat(scaleBlock.getInput("Y").connection.targetBlock().getFieldValue("NUM"));
+            const scaleZ = parseFloat(scaleBlock.getInput("Z").connection.targetBlock().getFieldValue("NUM"));
+            
+            // Get scale origin settings (if they exist)
+            const xOrigin = scaleBlock.getFieldValue("X_ORIGIN") || "CENTRE";
+            const yOrigin = scaleBlock.getFieldValue("Y_ORIGIN") || "BASE"; // BASE for bottom alignment
+            const zOrigin = scaleBlock.getFieldValue("Z_ORIGIN") || "CENTRE";
+            
+            // Apply scaling using the flock.scale API (which handles positioning correctly)
+            flock.scale(loadedMesh.name, {
+              x: scaleX,
+              y: scaleY, 
+              z: scaleZ,
+              xOrigin: xOrigin,
+              yOrigin: yOrigin,
+              zOrigin: zOrigin
+            });
+            
+            // Wait for scale to complete, then align bottoms
+            setTimeout(() => {
+              loadedMesh.computeWorldMatrix(true);
+              loadedMesh.refreshBoundingInfo();
+              const newMeshCurrentBottomY = loadedMesh.getBoundingInfo().boundingBox.minimumWorld.y;
+              
+              // Calculate the Y adjustment needed to align bottoms
+              const yAdjustment = meshState.currentBottomY - newMeshCurrentBottomY;
+              loadedMesh.position.y += yAdjustment;
+            }, 100);
+            
+          } else if (hasGizmoScaling) {
+            // No scale block, apply direct mesh scaling
+            loadedMesh.scaling.copyFrom(meshState.scaling);
+            
+            // Calculate bottom alignment after scaling
+            loadedMesh.computeWorldMatrix(true);
+            loadedMesh.refreshBoundingInfo();
+            const newMeshCurrentBottomY = loadedMesh.getBoundingInfo().boundingBox.minimumWorld.y;
+            
+            // Calculate the Y adjustment needed to align bottoms
+            const yAdjustment = meshState.currentBottomY - newMeshCurrentBottomY;
+            loadedMesh.position.y += yAdjustment;
           }
+        }, 100); // Give setupMesh time to complete
+
+        // Apply any Y offset from metadata
+        if (
+          loadedMesh.metadata?.yOffset &&
+          loadedMesh.metadata.yOffset !== 0
+        ) {
+          loadedMesh.position.y +=
+            parseFloat(scale) * loadedMesh.metadata.yOffset;
         }
         loadedMesh.isVisible = meshState.isVisible;
 
