@@ -108,7 +108,7 @@ export function getBlockKeyFromBlockID(blockId) {
 
 export function getMeshFromBlockKey(blockKey) {
   return flock.scene?.meshes?.find(
-    (mesh) => mesh.metadata.blockKey === blockKey,
+    (mesh) => mesh.metadata?.blockKey === blockKey,
   );
 }
 
