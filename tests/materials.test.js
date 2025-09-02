@@ -1,7 +1,7 @@
 import { expect } from "chai";
 
 export function runMaterialsTests(flock) {
-	describe("Effects methods", function () {
+	describe("Effects methods @materials", function () {
 		const boxIds = [];
 		const colors = ["#FF0000", "#00FF00", "#0000FF", "#FFFF00"];
 		const alphas = [0.1, 0.5, 0.9];
@@ -135,7 +135,7 @@ export function runMaterialsTests(flock) {
 		});
 	});
 
-	describe("changeColor method", function () {
+	describe("changeColor method @materials", function () {
 	  const boxIds = [];
 	  const colors = ["#FF0000", "#00FF00", "#0000FF", "#FFFF00"];
 
@@ -220,7 +220,7 @@ export function runMaterialsTests(flock) {
 	  });
 	});
 
-	describe("createMaterial method", function () {
+	describe("createMaterial method @materials", function () {
 	  const boxIds = [];
 
 	  async function createTestBox(id) {
@@ -304,7 +304,7 @@ export function runMaterialsTests(flock) {
 	  });
 	});
   
-	describe("setting a material scenarios", function () {
+	describe("setting a material scenarios @materials", function () {
 	  const boxIds = [];
 
 	  async function createTestBox(id) {
@@ -411,7 +411,7 @@ export function runMaterialsTests(flock) {
 	  });
 	});
 
-	describe("combine blocks dispose of old materials", function () {
+	describe("combine blocks dispose of old materials @materials", function () {
 	  const boxIds = [];
 
 	  beforeEach(async function () {

@@ -1,7 +1,7 @@
 import { expect } from "chai";
 
 export function runPhysicsTests(flock) {
-	describe("onTrigger", function () {
+	describe("onTrigger @physics", function () {
 		const boxIds = [];
 
 		beforeEach(async function () {
@@ -78,7 +78,7 @@ export function runPhysicsTests(flock) {
 		});
 	});
 
-	describe("onIntersect", function () {
+	describe("onIntersect @physics", function () {
 		const boxIds = [];
 
 		beforeEach(async function () {
@@ -133,7 +133,7 @@ export function runPhysicsTests(flock) {
 		});
 	});
 
-	describe("applyForce method", function () {
+	describe("applyForce method @physics", function () {
 		const boxIds = [];
 
 		beforeEach(async function () {
