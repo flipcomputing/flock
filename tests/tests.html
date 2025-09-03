@@ -26,6 +26,47 @@
         display: block !important;
       }
 
+      #mocha-report  {
+      } 
+
+      #mocha-report h1 {
+        font-size: 1.1em;
+      }
+
+      #mocha-report h2 {
+        font-size: 1em;
+      }
+
+      /* Disable links in mocha header etc to avoid interference with test selection */ 
+      #mocha h1 a,
+      #mocha h2 a,
+      #mocha .replay a {
+        pointer-events: none;
+        cursor: default;
+      }
+
+      /* Stop disabled links from looking like links (disclosure arrows still work) */
+      #mocha h1 a,
+      #mocha h2 a {
+        text-decoration: none;
+        color: inherit;
+      }
+
+
+      /* Make embed-host float over content like a window */
+      #embed-host {
+        position: absolute !important;
+        z-index: 1000;
+
+      }
+
+      /* Ensure mocha content flows normally, ignoring the floating embed */
+      #mocha {
+        position: relative;
+        z-index: 1;
+        /* Content flows as if embed-host doesn't exist */
+      }
+
     </style>
   </head>
   <body>
@@ -52,6 +93,9 @@
       </select>
       <button id="runTestBtn" style="padding: 5px 15px;">Run Tests</button>
       <button id="clearTestBtn" style="padding: 5px 15px; margin-left: 5px;">Clear Results</button>
+    </div>
+    <div  style="margin: 20px 0;">
+      <p>Test Filter: <span id="mochaFilter"></span></p>
     </div>
 
     <!-- Mocha test results will be displayed here -->
@@ -94,10 +138,11 @@
 
       await flock.initialize();
 
+      // use standard mocha HTML reporter – note that paramaterised access to grep is turned off for this, as it conflicts with dropdown selection and cna leave tests confusingly not executing
       mocha.setup({
         ui: "bdd",
         reporter: 'html',
-        cleanReferencesAfterRun: false
+        cleanReferencesAfterRun: false  // allow tests to be re-run without re-registering the tests
       });
 
       try {
@@ -139,18 +184,19 @@
           option.text = suite.name;
           document.getElementById('testSelect').appendChild(option);  
 
-          // import the test module if an importPath is defined
-          // for now, expect (and accept) failures for Mocha tags only - like @new – as there's no import path
-          try { 
-            const module = await import(suite.importPath);
-            // Call the function to register tests with mocha, but don't run them yet
-            if (suite.id === "babylon") {
-              module[suite.importFn](flock, chai.expect);
-            } else {
-              module[suite.importFn](flock);  
+          // import the test module if an importPath is defined – some entries may be for tagged tests only
+          if (suite.importPath) {
+            try { 
+              const module = await import(suite.importPath);
+              // Call the function to register tests with mocha, but don't run them yet
+              if (suite.id === "babylon") {
+                module[suite.importFn](flock, chai.expect);
+              } else {
+                module[suite.importFn](flock);  
+              }
+            } catch (error) {
+              console.error(`Error loading test suite ${suite.id}:`, error);
             }
-          } catch (error) {
-            console.error(`Error loading test suite ${suite.id}:`, error);
           }
         }
       }
@@ -163,57 +209,83 @@
       const runTestBtn = document.getElementById('runTestBtn');
       const clearTestBtn = document.getElementById('clearTestBtn');
 
+      // set up (global for this script) selectedTest variable
+      let selectedTest = null;
+
+      function setMochaFiter(pattern) {
+        mocha.grep(pattern);
+        const filterSpan = document.getElementById('mochaFilter');
+        filterSpan.textContent = pattern ? pattern : "None";
+      }
+
+      function clearMochaFilter() {
+        // clear mocha's filter
+        setMochaFiter(null);
+
+        //// Clear the filter if represented in URL parameters
+        //const currentUrl = new URL(window.location.href);
+        //currentUrl.searchParams.delete('grep');
+        //window.history.replaceState({}, document.title, currentUrl.toString());
+      }
+
+
       function setupFailuresLink() {
         const mochaReport = document.getElementById('mocha-report');
         const failuresLink = document.querySelector('#mocha-stats .failures a');
         const passesLink = document.querySelector('#mocha-stats .passes a');
 
-        if (failuresLink) {
-          failuresLink.onclick = function() {
-            // Show only failures
-            mochaReport.dataset.filter = 'failures';
-            
-            // Scroll to first failure
-            const firstFailure = document.querySelector('#mocha-report .test.fail');
-            if (firstFailure) {
-              firstFailure.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            }
-            
-            // toggle back to all results on next click
-            const oldText = failuresLink.innerHTML;
-            failuresLink.innerHTML = "(toggle) "+oldText;
-            failuresLink.onclick = function() { mochaReport.dataset.filter = 'all'; failuresLink.innerHTML = oldText ;return false; };
+        const failuresLinkText = failuresLink.innerHTML;
+        const failuresLinkTextToggled = "(toggle) "+failuresLink.innerHTML;
+        const passesLinkText = passesLink.innerHTML;
+        const passesLinkTextToggled = "(toggle) "+passesLink.innerHTML;
 
-            return false;
-          };
+        function showFailures() {
+          mochaReport.dataset.filter = 'failures';
+          failuresLink.innerHTML = failuresLinkTextToggled;
+          failuresLink.onclick = showAll;
+          passesLink.innerHTML = passesLinkText;
+          passesLink.onclick = showPasses;
+          // Scroll to first failure
+          //const firstFailure = document.querySelector('#mocha-report .test.fail');
+          //if (firstFailure) {
+          //  firstFailure.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          //}
+        }
+
+        function showPasses() {
+          mochaReport.dataset.filter = 'passes';
+          failuresLink.innerHTML = failuresLinkText;
+          failuresLink.onclick = showFailures;
+          passesLink.innerHTML = passesLinkTextToggled;
+          passesLink.onclick = showAll;
+        }
+
+        function showAll() {
+          mochaReport.dataset.filter = 'all';
+          failuresLink.innerHTML = failuresLinkText;
+          failuresLink.onclick = showFailures;
+          passesLink.innerHTML = passesLinkText;
+          passesLink.onclick = showPasses;
+        }
+
+        if (failuresLink) {
+          failuresLink.onclick = showFailures
         }
         if (passesLink) {
-          passesLink.onclick = function() {
-            // Show only passes
-            mochaReport.dataset.filter = 'passes';
-            // toggle back to all results on next click
-            const oldText = passesLink.innerHTML;
-            passesLink.innerHTML = "(toggle) "+oldText;
-            passesLink.onclick = function() { mochaReport.dataset.filter = 'all'; passesLink.innerHTML = oldText; return false; };
-            return false;
-          };
+          passesLink.onclick = showPasses;
         }
       }
 
-      runTestBtn.addEventListener('click', () => {
-        const selectedTest = testSelect.value;
+      testSelect.addEventListener('change', () => {
+        selectedTest = testSelect.value;
         //console.log("Selected test suite:", selectedTest);
         //console.log("Pattern being used:", testSuiteDefinitions.find(suite => suite.id === selectedTest)?.pattern);
-        if (!selectedTest) {
-          alert('Please select a test suite to run');
-          return;
-        }
-
+        
         // Clear previous results
         document.getElementById('mocha').innerHTML = '';
 
         // Reset any previous grep pattern
-        mocha.grep(null);
+        clearMochaFilter();
         
         // If a specific test suite / tag is selected (not "all")
         if (selectedTest !== "all") {
@@ -221,10 +293,17 @@
           const testSuite = testSuiteDefinitions.find(suite => suite.id === selectedTest);
           if (testSuite && testSuite.pattern) {
             // Apply the grep pattern to filter tests
-            mocha.grep(testSuite.pattern);
+            setMochaFiter(testSuite.pattern);
           }
         }
-        
+      });
+
+      runTestBtn.addEventListener('click', () => {
+          if (!selectedTest) {
+            alert('Please select a test suite to run');
+            return;
+        }
+
         // Run the filtered tests
         let runner = mocha.run();
         runner.on("end", setupFailuresLink);
@@ -232,6 +311,7 @@
 
       clearTestBtn.addEventListener('click', () => {
         document.getElementById('mocha').innerHTML = '';
+        clearMochaFilter();
       });
 
       // Show debug layer
