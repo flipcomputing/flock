@@ -169,7 +169,37 @@ export function createBlocklyWorkspace() {
         
         workspace = Blockly.inject("blocklyDiv", options);
 
+        const originalNewBlock = workspace.newBlock.bind(workspace);
 
+        workspace.newBlock = function(prototypeName, opt_id) {
+          const isShape = ['create_box', 'create_sphere', 'create_cylinder', 'create_capsule', 'create_plane'].includes(prototypeName);
+
+          if (isShape) {
+            console.log(`Creating shape block ${prototypeName} with grouping`);
+
+            // Start grouping BEFORE creating the block (to catch variable creation)
+            // Use a simple string ID instead of genUid
+            const groupId = 'shape_creation_' + Date.now() + '_' + Math.random();
+            Blockly.Events.setGroup(groupId);
+
+            try {
+              const block = originalNewBlock.call(this, prototypeName, opt_id);
+
+              // Keep the group active for a bit longer to catch all related events
+              setTimeout(() => {
+                console.log(`Ending grouping for ${prototypeName}`);
+                Blockly.Events.setGroup(false);
+              }, 100); // Increased timeout
+
+              return block;
+            } catch (error) {
+              Blockly.Events.setGroup(false);
+              throw error;
+            }
+          } else {
+            return originalNewBlock.call(this, prototypeName, opt_id);
+          }
+        };
         (function guardCategoryKeepScroll(ws) {
           function getToolboxEl() {
                 var inj = ws.getInjectionDiv && ws.getInjectionDiv();
