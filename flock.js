@@ -60,6 +60,7 @@ export const flock = {
         performanceOverlay: false,
         maxMeshes: 5000,
         console: console,
+        triggerHandlingDebug: false,
         modelPath: "./models/",
         soundPath: "./sounds/",
         imagePath: "./images/",
