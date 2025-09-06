@@ -19,6 +19,7 @@ import {
 	getTooltip,
 	getDropdownOption,
 } from "../main/translation.js";
+import { flock } from "../flock.js";
 
 export function defineShapeBlocks() {
 	function createShapeBlockDefinition({
@@ -111,20 +112,20 @@ export function defineShapeBlocks() {
 				changeEvent.type === Blockly.Events.BLOCK_CHANGE) &&
 			changeEvent.workspaceId === Blockly.getMainWorkspace().id
 		) {
-			console.log("The changed block is", changeEvent.block);
-			console.log("The changed block is", changeEvent.blockId);
+			if (flock.blockDebug) console.log("The changed block is", changeEvent.block);
+			if (flock.blockDebug) console.log("The changed block is", changeEvent.blockId);
 			const changedBlock = Blockly.getMainWorkspace().getBlockById(
 				changeEvent.blockId,
 			);
 			const parent = findCreateBlock(changedBlock);
-			console.log("The type of the changed block is", changedBlock.type);
+			if (flock.blockDebug) console.log("The type of the changed block is", changedBlock.type);
 			if (changedBlock.getParent()) {
-				console.log("The ID of the parent of the changed block is", changedBlock.getParent().id);
-				console.log("The type of the parent of the changed block is", changedBlock.getParent().type);
+				if (flock.blockDebug) console.log("The ID of the parent of the changed block is", changedBlock.getParent().id);
+				if (flock.blockDebug) console.log("The type of the parent of the changed block is", changedBlock.getParent().type);
 			}
-			console.log("This block is", block.id);
-			// console.log("The parent is", parent);
-			console.log("The type of this block is", block.type);
+			if (flock.blockDebug) console.log("This block is", block.id);
+			// if (flock.blockDebug) console.log("The parent is", parent);
+			if (flock.blockDebug) console.log("The type of this block is", block.type);
 			if (parent === block) {
 				const blockInWorkspace =
 					Blockly.getMainWorkspace().getBlockById(block.id);
