@@ -430,32 +430,42 @@ function createShapeInternal(block) {
     return value !== null ? parseFloat(value) : defaultValue;
   }
 
+  // Helper function to safely get field value from connected block
+  function getConnectedFieldValue(inputName, fieldName, defaultValue) {
+    const input = block.getInput(inputName);
+    if (!input || !input.connection) {
+      console.warn(`Input ${inputName} not found or has no connection on block ${block.type}`);
+      return defaultValue;
+    }
+
+    const targetBlock = input.connection.targetBlock();
+    if (!targetBlock) {
+      console.warn(`No target block connected to input ${inputName} on block ${block.type}`);
+      return defaultValue;
+    }
+
+    try {
+      const value = targetBlock.getFieldValue(fieldName);
+      return value !== null ? value : defaultValue;
+    } catch (e) {
+      console.error(`Error getting field ${fieldName} from connected block:`, e);
+      return defaultValue;
+    }
+  }
+
   position = {
     x: getPositionValue("X", 0),
     y: getPositionValue("Y", 0),
     z: getPositionValue("Z", 0),
   };
 
-
   // Handle shape creation blocks
   switch (shapeType) {
     case "create_box":
-      color = block
-        .getInput("COLOR")
-        .connection.targetBlock()
-        .getFieldValue("COLOR");
-      width = block
-        .getInput("WIDTH")
-        .connection.targetBlock()
-        .getFieldValue("NUM");
-      height = block
-        .getInput("HEIGHT")
-        .connection.targetBlock()
-        .getFieldValue("NUM");
-      depth = block
-        .getInput("DEPTH")
-        .connection.targetBlock()
-        .getFieldValue("NUM");
+      color = getConnectedFieldValue("COLOR", "COLOR", "#ff0000");
+      width = parseFloat(getConnectedFieldValue("WIDTH", "NUM", "1"));
+      height = parseFloat(getConnectedFieldValue("HEIGHT", "NUM", "1"));
+      depth = parseFloat(getConnectedFieldValue("DEPTH", "NUM", "1"));
 
       newMesh = flock.createBox(`box__${block.id}`, {
         color,
@@ -464,26 +474,13 @@ function createShapeInternal(block) {
         depth,
         position: [position.x, position.y, position.z],
       });
-
       break;
 
     case "create_sphere":
-      color = block
-        .getInput("COLOR")
-        .connection.targetBlock()
-        .getFieldValue("COLOR");
-      diameterX = block
-        .getInput("DIAMETER_X")
-        .connection.targetBlock()
-        .getFieldValue("NUM");
-      diameterY = block
-        .getInput("DIAMETER_Y")
-        .connection.targetBlock()
-        .getFieldValue("NUM");
-      diameterZ = block
-        .getInput("DIAMETER_Z")
-        .connection.targetBlock()
-        .getFieldValue("NUM");
+      color = getConnectedFieldValue("COLOR", "COLOR", "#ff0000");
+      diameterX = parseFloat(getConnectedFieldValue("DIAMETER_X", "NUM", "1"));
+      diameterY = parseFloat(getConnectedFieldValue("DIAMETER_Y", "NUM", "1"));
+      diameterZ = parseFloat(getConnectedFieldValue("DIAMETER_Z", "NUM", "1"));
 
       newMesh = flock.createSphere(`sphere__${block.id}`, {
         color,
@@ -492,26 +489,13 @@ function createShapeInternal(block) {
         diameterZ,
         position: [position.x, position.y, position.z],
       });
-
       break;
 
     case "create_cylinder":
-      color = block
-        .getInput("COLOR")
-        .connection.targetBlock()
-        .getFieldValue("COLOR");
-      cylinderHeight = block
-        .getInput("HEIGHT")
-        .connection.targetBlock()
-        .getFieldValue("NUM");
-      diameterTop = block
-        .getInput("DIAMETER_TOP")
-        .connection.targetBlock()
-        .getFieldValue("NUM");
-      diameterBottom = block
-        .getInput("DIAMETER_BOTTOM")
-        .connection.targetBlock()
-        .getFieldValue("NUM");
+      color = getConnectedFieldValue("COLOR", "COLOR", "#ff0000");
+      cylinderHeight = parseFloat(getConnectedFieldValue("HEIGHT", "NUM", "1"));
+      diameterTop = parseFloat(getConnectedFieldValue("DIAMETER_TOP", "NUM", "1"));
+      diameterBottom = parseFloat(getConnectedFieldValue("DIAMETER_BOTTOM", "NUM", "1"));
 
       newMesh = flock.createCylinder(`cylinder__${block.id}`, {
         color,
@@ -521,22 +505,12 @@ function createShapeInternal(block) {
         tessellation: 24,
         position: [position.x, position.y, position.z],
       });
-
       break;
 
     case "create_capsule":
-      color = block
-        .getInput("COLOR")
-        .connection.targetBlock()
-        .getFieldValue("COLOR");
-      capsuleDiameter = block
-        .getInput("DIAMETER")
-        .connection.targetBlock()
-        .getFieldValue("NUM");
-      capsuleHeight = block
-        .getInput("HEIGHT")
-        .connection.targetBlock()
-        .getFieldValue("NUM");
+      color = getConnectedFieldValue("COLOR", "COLOR", "#ff0000");
+      capsuleDiameter = parseFloat(getConnectedFieldValue("DIAMETER", "NUM", "1"));
+      capsuleHeight = parseFloat(getConnectedFieldValue("HEIGHT", "NUM", "1"));
 
       newMesh = flock.createCapsule(`capsule__${block.id}`, {
         color,
@@ -544,22 +518,12 @@ function createShapeInternal(block) {
         height: capsuleHeight,
         position: [position.x, position.y, position.z],
       });
-
       break;
 
     case "create_plane":
-      color = block
-        .getInput("COLOR")
-        .connection.targetBlock()
-        .getFieldValue("COLOR");
-      planeWidth = block
-        .getInput("WIDTH")
-        .connection.targetBlock()
-        .getFieldValue("NUM");
-      planeHeight = block
-        .getInput("HEIGHT")
-        .connection.targetBlock()
-        .getFieldValue("NUM");
+      color = getConnectedFieldValue("COLOR", "COLOR", "#ff0000");
+      planeWidth = parseFloat(getConnectedFieldValue("WIDTH", "NUM", "2"));
+      planeHeight = parseFloat(getConnectedFieldValue("HEIGHT", "NUM", "2"));
 
       newMesh = flock.createPlane(`plane__${block.id}`, {
         color,
@@ -567,20 +531,19 @@ function createShapeInternal(block) {
         height: planeHeight,
         position: [position.x, position.y, position.z],
       });
-
       break;
 
     default:
-      //Blockly.Events.setGroup(false);
       return;
-    }
+  }
 
-    if (newMesh) {
-      meshMap[block.id] = block;
-      meshBlockIdMap[block.id] = block.id;
-    }
+  if (newMesh) {
+    meshMap[block.id] = block;
+    meshBlockIdMap[block.id] = block.id;
+  }
 }
 
+// Updated setPositionValues function with rounding behavior
 export function setPositionValues(block, position, blockType) {
   // Helper function to set position values on blocks
   if (block && position) {
@@ -590,12 +553,14 @@ export function setPositionValues(block, position, blockType) {
         const input = block.getInput(inputName);
         if (!input) return;
 
-        let targetBlock = input.connection.targetBlock();
+        // Round the value to 1 decimal place
+        const roundedValue = Math.round(value * 10) / 10;
 
+        let targetBlock = input.connection.targetBlock();
         if (!targetBlock) {
           // Create a shadow block if none exists
           const shadowBlock = Blockly.getMainWorkspace().newBlock("math_number");
-          shadowBlock.setFieldValue(String(Math.round(value * 10) / 10), "NUM");
+          shadowBlock.setFieldValue(String(roundedValue), "NUM");
           shadowBlock.setShadow(true);
           shadowBlock.setMovable(false);
           shadowBlock.setDeletable(false);
@@ -604,7 +569,7 @@ export function setPositionValues(block, position, blockType) {
           input.connection.connect(shadowBlock.outputConnection);
         } else {
           // Set the value if a block is already connected
-          targetBlock.setFieldValue(String(Math.round(value * 10) / 10), "NUM");
+          targetBlock.setFieldValue(String(roundedValue), "NUM");
         }
       }
 
@@ -615,4 +580,8 @@ export function setPositionValues(block, position, blockType) {
       console.warn("Could not set position values for block:", blockType, e);
     }
   }
+}
+
+function roundPositionValue(value) {
+ return Math.round(value * 10) / 10; // 1 decimal place
 }
