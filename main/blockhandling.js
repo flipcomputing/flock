@@ -20,110 +20,23 @@ export function initializeBlockHandling() {
 		}
 	});
 
-	const blockTypesToCleanUp = [
-		"start",
-		"forever",
-		"when_clicked",
-		"when_touches",
-		"on_collision",
-		"when_key_event",
-		"on_event",
-		"procedures_defnoreturn",
-		"procedures_defreturn",
-		"microbit_input",
-	];
-
-	workspace.cleanUp = function () {
-		Blockly.Events.setGroup(true); // Start a new group for cleanup events
-
-		const topBlocks = workspace.getTopBlocks(false);
-		const spacing = 40;
-		let cursorY = 10;
-		let cursorX = 10;
-
-		topBlocks.sort(
-			(a, b) =>
-				a.getRelativeToSurfaceXY().y - b.getRelativeToSurfaceXY().y,
-		);
-
-		topBlocks.forEach((block) => {
-			if (blockTypesToCleanUp.includes(block.type)) {
-				const blockXY = block.getRelativeToSurfaceXY();
-				//console.log(`Moving block ${block.type} during cleanup`);
-				block.moveBy(cursorX - blockXY.x, cursorY - blockXY.y);
-				cursorY += block.getHeightWidth().height + spacing;
-			}
-		});
-
-		enforceOrphanZOrder();
-		Blockly.Events.setGroup(false); // End the group
-		//console.log('Finished workspace cleanup');
-	};
-
 	let cleanupTimeout;
 
-	function enforceOrphanZOrder() {
-		workspace.getAllBlocks().forEach((block) => {
-			if (!block.getParent() && !block.isInFlyout) {
-				bringToTop(block);
-			}
-		});
-	}
-
-	function bringToTop(block) {
-		if (block.rendered) {
-			try {
-				// Use Blockly's workspace method instead
-				const workspace = block.workspace;
-				if (workspace && workspace.getBlockCanvas) {
-					const canvas = workspace.getBlockCanvas();
-					const blockSvg = block.getSvgRoot();
-					if (canvas && blockSvg && blockSvg.parentNode === canvas) {
-						canvas.appendChild(blockSvg);
-					}
-				}
-			} catch (error) {
-				console.warn("Could not reorder block:", error);
-			}
-		}
-	}
-	workspace.addChangeListener(Blockly.Events.disableOrphans);
-
 	workspace.addChangeListener(function (event) {
-		// Log all events during cleanup
-		if (window.cleanupInProgress) {
-			/*console.log('Event during cleanup:', {
-			type: event.type,
-			blockId: event.blockId,
-			group: event.group,
-			recordUndo: event.recordUndo,
-			trace: new Error().stack
-		});*/
-		}
+		// Only schedule after moves or deletes
+		if (event.type === Blockly.Events.BLOCK_MOVE ||
+			event.type === Blockly.Events.BLOCK_DELETE) {
 
-		try {
-			const block = workspace.getBlockById(event.blockId);
+			clearTimeout(cleanupTimeout);
 
-			if (
-				event.type === Blockly.Events.BLOCK_MOVE ||
-				event.type === Blockly.Events.BLOCK_DELETE
-			) {
-				clearTimeout(cleanupTimeout);
-
-				// Set a new timeout to call cleanUp after block movement settles
-				cleanupTimeout = setTimeout(() => {
-					window.cleanupInProgress = true;
-					Blockly.Events.disable(); // Temporarily disable events
-					workspace.cleanUp(); // Clean up the workspace
-					Blockly.Events.enable(); // Re-enable events
-					window.cleanupInProgress = false;
-				}, 500); // Delay cleanup by 500ms to ensure block moves have settled
-			}
-		} catch (error) {
-			console.error(
-				"An error occurred during the Blockly workspace cleanup process:",
-				error,
-			);
+			cleanupTimeout = setTimeout(() => {
+				Blockly.Events.disable();    // Don't record undo
+				try {
+					workspace.cleanUp();     // Pure cleanup, no setGroup
+				} finally {
+					Blockly.Events.enable();
+				}
+			}, 300);
 		}
 	});
 

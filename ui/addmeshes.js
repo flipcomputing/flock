@@ -20,11 +20,11 @@ export function createMeshOnCanvas(block) {
   if (isShape) {
     // Use the same grouping approach as objects for consistency
     // Group all shape creation events together
-    Blockly.Events.setGroup(true);
+   
     try {
       createShapeInternal(block);
     } finally {
-      Blockly.Events.setGroup(false);
+     
     }
     return;
   }
@@ -403,7 +403,7 @@ export function createMeshOnCanvas(block) {
       break;
 
     default:
-      Blockly.Events.setGroup(false);
+      //Blockly.Events.setGroup(false);
       return;
     }
 
@@ -571,7 +571,7 @@ function createShapeInternal(block) {
       break;
 
     default:
-      Blockly.Events.setGroup(false);
+      //Blockly.Events.setGroup(false);
       return;
     }
 

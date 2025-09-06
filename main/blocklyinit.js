@@ -169,37 +169,108 @@ export function createBlocklyWorkspace() {
         
         workspace = Blockly.inject("blocklyDiv", options);
 
-        const originalNewBlock = workspace.newBlock.bind(workspace);
+        // ---- Blockly event debug helpers ----
+        (function setupBlocklyEventDebug(){
+          if (!window.Blockly) return;
 
-        workspace.newBlock = function(prototypeName, opt_id) {
-          const isShape = ['create_box', 'create_sphere', 'create_cylinder', 'create_capsule', 'create_plane'].includes(prototypeName);
+          const pad = (s, n) => (s + '').padEnd(n, ' ');
+          const short = (id) => (id ? id.slice(0, 8) : '');
 
-          if (isShape) {
-            console.log(`Creating shape block ${prototypeName} with grouping`);
+          // Pretty-print one event
+          function describeEvent(e) {
+            const bits = [
+              pad(e.type, 14),
+              'grp:', pad(e.group || '∅', 12),
+              'ui:', String(!!e.isUiEvent).padEnd(5),
+              'undo:', String(!!e.recordUndo).padEnd(5),
+              'id:', short(e.blockId),
+            ];
 
-            // Start grouping BEFORE creating the block (to catch variable creation)
-            // Use a simple string ID instead of genUid
-            const groupId = 'shape_creation_' + Date.now() + '_' + Math.random();
-            Blockly.Events.setGroup(groupId);
-
-            try {
-              const block = originalNewBlock.call(this, prototypeName, opt_id);
-
-              // Keep the group active for a bit longer to catch all related events
-              setTimeout(() => {
-                console.log(`Ending grouping for ${prototypeName}`);
-                Blockly.Events.setGroup(false);
-              }, 100); // Increased timeout
-
-              return block;
-            } catch (error) {
-              Blockly.Events.setGroup(false);
-              throw error;
+            // Extra for moves/connects
+            if (e.type === Blockly.Events.BLOCK_MOVE) {
+              bits.push(
+                ' oldParent:', short(e.oldParentId),
+                ' -> newParent:', short(e.newParentId),
+                ' oldInp:', e.oldInputName || '∅',
+                ' -> newInp:', e.newInputName || '∅',
+                ' newXY:', e.newCoordinate ? `(${e.newCoordinate.x.toFixed(0)},${e.newCoordinate.y.toFixed(0)})` : '∅'
+              );
             }
-          } else {
-            return originalNewBlock.call(this, prototypeName, opt_id);
+            // Variable & create
+            if (e.type === Blockly.Events.BLOCK_CREATE) bits.push(' createdIds:', e.ids?.length);
+            if (e.type === Blockly.Events.VAR_CREATE ||
+                e.type === Blockly.Events.VAR_DELETE ||
+                e.type === Blockly.Events.VAR_RENAME) {
+              bits.push(' varId:', short(e.varId), ' name:', e.varName);
+            }
+            // Changes to fields
+            if (e.type === Blockly.Events.CHANGE) {
+              bits.push(' elem:', e.element, ' name:', e.name, ' old→new:', `${e.oldValue}→${e.newValue}`);
+            }
+            // UI events (selected, dragging, clicked, etc.)
+            if (e.type === Blockly.Events.UI) {
+              bits.push(' elem:', e.element, ' newVal:', e.newValue, ' oldVal:', e.oldValue);
+            }
+            return bits.join('');
           }
-        };
+
+          // Dump undo/redo stack sizes + top group
+          function dumpStacks(ws) {
+            try {
+              const u = ws.getUndoStack?.() || [];
+              const r = ws.getRedoStack?.() || [];
+              const topGrp = u.length ? (u[u.length - 1].group || '∅') : '∅';
+              console.log(
+                `%c[UNDO] size:${u.length} topGrp:${topGrp}   [REDO] size:${r.length}`,
+                'color:#0072B2'
+              );
+            } catch {}
+          }
+
+          // Attach once per workspace you care about:
+          window.attachBlocklyDebug = function attachBlocklyDebug(workspace, label='WS') {
+            if (!workspace || workspace.__debugListenerAttached) return;
+            workspace.__debugListenerAttached = true;
+
+            workspace.addChangeListener((e) => {
+              // Filter noise if you like, but for now log everything:
+              console.log(
+                `%c[${label}] ${describeEvent(e)}`,
+                e.group ? 'color:#009E73' : 'color:#D55E00'
+              );
+              dumpStacks(workspace);
+            });
+
+            // Warn if something fiddles with grouping
+            const origSetGroup = Blockly.Events.setGroup;
+            Blockly.Events.setGroup = function patchedSetGroup(g) {
+              console.log(
+                `%c[EVT.setGroup] ->`,
+                'color:#aa00ff',
+                g === true ? '(true: start auto-group)'
+                : g === false ? '(false: end auto-group)'
+                : g == null ? 'null/∅'
+                : `id:${g}`
+              );
+              return origSetGroup.call(Blockly.Events, g);
+            };
+
+            // Optional: trace event fire points (very verbose)
+            const origFire = Blockly.Events.fire;
+            Blockly.Events.fire = function patchedFire(evts) {
+              const arr = Array.isArray(evts) ? evts : [evts];
+              console.log(`%c[EVT.fire] ${arr.length} event(s)`, 'color:#555');
+              return origFire.call(Blockly.Events, evts);
+            };
+
+            console.log('%cBlockly event debug attached →', 'color:#0072B2', label);
+          };
+        })();
+
+        // after you create your workspace:
+        //attachBlocklyDebug(workspace, 'MainWS');
+
+
         (function guardCategoryKeepScroll(ws) {
           function getToolboxEl() {
                 var inj = ws.getInjectionDiv && ws.getInjectionDiv();

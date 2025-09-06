@@ -1190,12 +1190,12 @@ export function updateBlockColorAndHighlight(mesh, selectedColor) {
 
       if (fieldName) {
         // Update the corresponding character color field in the block
-        Blockly.Events.setGroup(true);
+        //Blockly.Events.setGroup(true);
         block
           .getInput(fieldName)
           .connection.targetBlock()
           .setFieldValue(selectedColor, "COLOR");
-        Blockly.Events.setGroup(false);
+        //Blockly.Events.setGroup(false);
       } else {
         console.error("No matching field for material:", materialName);
       }
