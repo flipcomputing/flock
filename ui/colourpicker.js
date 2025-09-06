@@ -683,3 +683,6 @@ export class CustomColorPicker {
     return s.color !== '';
   }
 }
+
+// Make the CustomColorPicker class available globally
+window.CustomColorPicker = CustomColorPicker;

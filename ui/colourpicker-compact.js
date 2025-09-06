@@ -310,7 +310,7 @@ class CustomColorPicker {
     // More options button
     this.container.querySelector('.color-picker-more-options').addEventListener('click', () => this.toggleAdvancedOptions());
     
-    // CSS color input
+    // CSS color input - check if valid color after each keystroke
     const cssInput = this.container.querySelector('.css-color-input');
     cssInput.addEventListener('input', (e) => this.handleCssColorInput(e.target.value));
     
@@ -1081,21 +1081,50 @@ class CustomColorPicker {
   handleCssColorInput(value) {
     if (!value) return;
     
-    // Create a temporary element to validate and convert the color
-    const tempDiv = document.createElement('div');
-    tempDiv.style.color = value;
-    document.body.appendChild(tempDiv);
+    let processedValue = value.trim();
     
-    const computedColor = window.getComputedStyle(tempDiv).color;
-    document.body.removeChild(tempDiv);
+    // Only process if it looks like a complete color
+    let isCompleteColor = false;
     
-    if (computedColor && computedColor !== 'rgba(0, 0, 0, 0)') {
-      // Convert RGB to hex if needed
-      const rgbMatch = computedColor.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/);
-      if (rgbMatch) {
-        const hex = this.rgbToHex(parseInt(rgbMatch[1]), parseInt(rgbMatch[2]), parseInt(rgbMatch[3]));
-        this.setColor(hex);
-        this.updateRgbInputs();
+    // Check for complete hex codes (3 or 6 digits, with or without #)
+    if (/^#?[0-9a-fA-F]{6}$/.test(processedValue) || /^#?[0-9a-fA-F]{3}$/.test(processedValue)) {
+      isCompleteColor = true;
+      // Add # if missing
+      if (!processedValue.startsWith('#')) {
+        processedValue = '#' + processedValue;
+      }
+    } else {
+      // Check if it's a valid CSS color name by testing it
+      const tempDiv = document.createElement('div');
+      tempDiv.style.color = processedValue;
+      document.body.appendChild(tempDiv);
+      const computedColor = window.getComputedStyle(tempDiv).color;
+      document.body.removeChild(tempDiv);
+      
+      // If it's a valid color name, it will have a computed color other than transparent
+      if (computedColor && computedColor !== 'rgba(0, 0, 0, 0)') {
+        isCompleteColor = true;
+      }
+    }
+    
+    // Only update the color if we have a complete, valid color
+    if (isCompleteColor) {
+      // Create a temporary element to validate and convert the color
+      const tempDiv = document.createElement('div');
+      tempDiv.style.color = processedValue;
+      document.body.appendChild(tempDiv);
+      
+      const computedColor = window.getComputedStyle(tempDiv).color;
+      document.body.removeChild(tempDiv);
+      
+      if (computedColor && computedColor !== 'rgba(0, 0, 0, 0)') {
+        // Convert RGB to hex if needed
+        const rgbMatch = computedColor.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/);
+        if (rgbMatch) {
+          const hex = this.rgbToHex(parseInt(rgbMatch[1]), parseInt(rgbMatch[2]), parseInt(rgbMatch[3]));
+          this.setColor(hex);
+          this.updateRgbInputs();
+        }
       }
     }
   }
