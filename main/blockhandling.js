@@ -20,25 +20,90 @@ export function initializeBlockHandling() {
 		}
 	});
 
-	let cleanupTimeout;
+	// ──────────────────────────────────────────────────────────────
+	// Back-to-working cleanup (original behaviour)
+	// ──────────────────────────────────────────────────────────────
 
-	workspace.addChangeListener(function (event) {
-		// Only schedule after moves or deletes
-		if (event.type === Blockly.Events.BLOCK_MOVE ||
-			event.type === Blockly.Events.BLOCK_DELETE) {
+	const blockTypesToCleanUp = [
+	  "start",
+	  "forever",
+	  "when_clicked",
+	  "when_touches",
+	  "on_collision",
+	  "when_key_event",
+	  "on_event",
+	  "procedures_defnoreturn",
+	  "procedures_defreturn",
+	  "microbit_input",
+	];
 
-			clearTimeout(cleanupTimeout);
+	// PURE cleanup: no setGroup, no Events toggling here
+	workspace.cleanUp = function () {
+	  const spacing = 40;
+	  const cursorX = 10;
+	  let cursorY = 10;
 
-			cleanupTimeout = setTimeout(() => {
-				Blockly.Events.disable();    // Don't record undo
-				try {
-					workspace.cleanUp();     // Pure cleanup, no setGroup
-				} finally {
-					Blockly.Events.enable();
-				}
-			}, 300);
+	  // Get top-level roots (Blockly already filters by parent=null)
+	  const topBlocks = (workspace.getTopBlocks(false) || [])
+		.filter(b => !!b && !b.isInFlyout && !b.isShadow?.())
+		.sort((a, b) =>
+		  a.getRelativeToSurfaceXY().y - b.getRelativeToSurfaceXY().y
+		);
+
+	  for (const block of topBlocks) {
+		if (!blockTypesToCleanUp.includes(block.type)) continue;
+
+		try {
+		  const xy = block.getRelativeToSurfaceXY();
+		  const dx = cursorX - xy.x;
+		  const dy = cursorY - xy.y;
+		  if (dx || dy) block.moveBy(dx, dy);
+
+		  const h = (block.getHeightWidth?.().height) || 40;
+		  cursorY += h + spacing;
+		} catch {}
+	  }
+
+	  // Original z-order behaviour: top-level blocks (any type) to the front
+	  try {
+		const canvas = workspace.getBlockCanvas?.();
+		if (canvas) {
+		  for (const b of workspace.getAllBlocks(false) || []) {
+			if (!b || b.isInFlyout || b.isShadow?.()) continue;
+			const hasParent = typeof b.getParent === "function" ? !!b.getParent() : !!b.parentBlock_;
+			if (hasParent) continue;
+			const svg = b.getSvgRoot?.();
+			if (svg && svg.parentNode === canvas) canvas.appendChild(svg);
+		  }
 		}
+	  } catch {}
+	};
+
+	// ──────────────────────────────────────────────────────────────
+	// Trigger: debounce on structural changes; run with events disabled
+	// ──────────────────────────────────────────────────────────────
+	let cleanupTimeout = null;
+
+	workspace.addChangeListener((e) => {
+	  if (e.isUiEvent) return;
+
+	  if (e.type === Blockly.Events.BLOCK_MOVE ||
+		  e.type === Blockly.Events.BLOCK_CREATE ||
+		  e.type === Blockly.Events.BLOCK_DELETE) {
+
+		clearTimeout(cleanupTimeout);
+		cleanupTimeout = setTimeout(() => {
+		  const wasEnabled = Blockly.Events.isEnabled();
+		  try {
+			if (wasEnabled) Blockly.Events.disable(); // don’t create undo entries
+			workspace.cleanUp();
+		  } finally {
+			if (wasEnabled) Blockly.Events.enable();
+		  }
+		}, 300); // adjust if you want snappier/slower cleanup
+	  }
 	});
+
 
 	// Global keyboard shortcuts
 	document.addEventListener("keydown", function (event) {
