@@ -1588,7 +1588,7 @@ function replaceMeshModel(currentMesh, block, changeEvent) {
             color.length > 0
           ) {
             // Multi-object color application - reuse existing logic
-            flock.applyColorsToMesh(loadedMesh, color);
+            //flock.applyColorsToMesh(loadedMesh, color);
           } else if (color && typeof color === "string") {
             // Single object color application
             flock.applyColorToMaterial(loadedMesh, null, color);
