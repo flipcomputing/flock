@@ -27,7 +27,7 @@ export function updateOrCreateMeshFromBlock(block, changeEvent) {
   if (flock.meshDebug) console.log("Update or create mesh from block", block.type, changeEvent.type);
 
   if (
-    ["set_sky_color", "set_background_color", "create_ground"].includes(
+    ["set_sky_color", "set_background_color", "create_ground", "create_map"].includes(
       block.type,
     )
   ) {
@@ -71,7 +71,7 @@ export function updateOrCreateMeshFromBlock(block, changeEvent) {
     (changeEvent?.type === Blockly.Events.BLOCK_CHANGE ||
       changeEvent?.type === Blockly.Events.BLOCK_CREATE) &&
     (mesh ||
-      ["set_sky_color", "set_background_color", "create_ground"].includes(
+      ["set_sky_color", "set_background_color", "create_ground", "create_map"].includes(
         block.type,
       ))
   ) {
@@ -196,7 +196,7 @@ export function updateMeshFromBlock(mesh, block, changeEvent) {
   if (flock.meshDebug) console.log("Update", block.type, changeEvent.type);
   if (
     !mesh &&
-    !["set_sky_color", "set_background_color", "create_ground"].includes(
+    !["set_sky_color", "set_background_color", "create_ground", "create_map"].includes(
       block.type,
     )
   )
@@ -258,7 +258,7 @@ export function updateMeshFromBlock(mesh, block, changeEvent) {
   }
 
   if (!changed) {
-    if (block.type === "set_sky_color" || block.type === "create_ground") {
+    if (block.type === "set_sky_color" || block.type === "create_ground"  || block.type === "create_map") {
       changed = "COLOR"; // or any value to keep going
     } else {
       return;
@@ -1162,7 +1162,7 @@ export function updateBlockColorAndHighlight(mesh, selectedColor) {
     block = meshMap[ultimateParent(mesh).metadata.blockKey];
 
     if (!block) {
-      console.error(
+      console.log(
         "Block not found for mesh:",
         mesh.name,
         ultimateParent(mesh).metadata.blockKey,
