@@ -210,7 +210,7 @@ export const modelNames = [
 	//"bird.glb",
 	//"boat.glb",
 	"rhino.glb",
-	"Seagull.glb",
+	//"Seagull.glb",
 ];
 
 export const blockNames = [
@@ -221,13 +221,13 @@ export const blockNames = [
 	"Flock.glb",
 	"Character.glb",
 	"rhino.glb",
-	"Seagull.glb",
+	//"Seagull.glb",
 ];
 
 export const modelAnimationNames = [
 	"Flock.glb",
 	"rhino.glb",
-	"Seagull.glb",
+	//"Seagull.glb",
 ];
 
 export function mapNames() {
