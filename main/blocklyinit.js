@@ -270,8 +270,7 @@ export function createBlocklyWorkspace() {
         // after you create your workspace:
         //attachBlocklyDebug(workspace, 'MainWS');
 
-
-        (function guardCategoryKeepScroll(ws) {
+       /* (function guardCategoryKeepScroll(ws) {
           function getToolboxEl() {
                 var inj = ws.getInjectionDiv && ws.getInjectionDiv();
                 return inj && (inj.querySelector('.blocklyToolbox') || inj.querySelector('.blocklyToolboxDiv'));
@@ -331,7 +330,7 @@ export function createBlocklyWorkspace() {
           }, true);
 
           // If you select categories programmatically, call startGuard() just before you do.
-        })(workspace);
+        })(workspace);*/
 
         window.addEventListener('keydown', (e) => {
           if (e.code === 'KeyK' && e.ctrlKey && e.shiftKey) {
