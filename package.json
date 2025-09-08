@@ -28,6 +28,7 @@
     "@blockly/plugin-workspace-search": "^10.1.1",
     "@blockly/toolbox-search": "^3.0.2",
     "@fontsource/asap": "^5.2.7",
+    "@fontsource/atkinson-hyperlegible-next": "^5.2.6",
     "@playwright/test": "^1.55.0",
     "@types/estree": "^1.0.8",
     "babylonjs": "^8.25.0",

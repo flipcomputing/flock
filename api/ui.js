@@ -1,4 +1,6 @@
 let flock;
+//let fontFamily = "Asap";
+let fontFamily = "Atkinson Hyperlegible Next";
 
 export function setFlockReference(ref) {
   flock = ref;
@@ -324,7 +326,7 @@ export const flockUI = {
     button.background = "transparent";
     button.fontSize = `${40 * flock.displayScale}px`; // Scale font size
 
-    button.fontFamily = "Asap";
+    button.fontFamily = fontFamily;
     button.onPointerDownObservable.add(() => {
       flock.canvas.pressedButtons.add(key);
       flock.gridKeyPressObservable.notifyObservers(key);
@@ -562,7 +564,7 @@ export const flockUI = {
           textBlock.text = String(text);
           textBlock.color = textColor;
           textBlock.fontSize = size * scale;
-          textBlock.fontFamily = "Asap";
+          textBlock.fontFamily = fontFamily;
           textBlock.alpha = 1;
           textBlock.textWrapping = flock.GUI.TextWrapping.WordWrap;
           textBlock.resizeToFit = true;
@@ -625,7 +627,7 @@ export const flockUI = {
       const textBlock = new flock.GUI.TextBlock("textBlock", text);
       textBlock.color = color;
       textBlock.fontSize = "20"; // Match the original font size
-      textBlock.fontFamily = "Asap"; // Retain original font
+      textBlock.fontFamily = fontFamily; // Retain original font
       textBlock.height = "25px"; // Match the original height
       textBlock.paddingLeft = "10px"; // Padding for left alignment
       textBlock.paddingRight = "10px";

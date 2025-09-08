@@ -9,6 +9,10 @@ import * as BABYLON_LOADER from "@babylonjs/loaders";
 import { GradientMaterial } from "@babylonjs/materials";
 import * as BABYLON_EXPORT from "@babylonjs/serializers";
 import { FlowGraphLog10Block, SetMaterialIDBlock } from "babylonjs";
+import "@fontsource/atkinson-hyperlegible-next"; 
+import "@fontsource/atkinson-hyperlegible-next/500.css";
+import "@fontsource/atkinson-hyperlegible-next/600.css";
+
 import "@fontsource/asap";
 import "@fontsource/asap/500.css";
 import "@fontsource/asap/600.css";
