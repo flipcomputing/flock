@@ -639,6 +639,7 @@ export function toggleGizmo(gizmoType) {
               color: "black"
             });
 
+            if (flock.meshDebug) console.log(pickedMesh.parent);
 
             const block = meshMap[blockKey];
             highlightBlockById(Blockly.getMainWorkspace(), block);
