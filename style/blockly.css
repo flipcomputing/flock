@@ -293,11 +293,14 @@ body[data-theme="dark"] .blocklyTreeLabel {
     border-left: 8px solid transparent  !important;
   }
 
+  .blocklyToolbox,  .blocklyToolboxCategoryContainer {
+    background: #D3D3D3;
+  }
   /* The row element */
   .blocklyToolbox .blocklyToolboxCategoryContainer > .blocklyToolboxCategory {
     display: flex !important;
     align-items: center !important;   /* <-- centers within the full row */
-    min-height: 28px !important;      /* pick your row height */
+    min-height: 26px !important;      /* pick your row height */
     padding-top: 0 !important;
     padding-bottom: 0 !important;
     padding-left: 8px !important;
