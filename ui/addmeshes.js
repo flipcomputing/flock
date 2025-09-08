@@ -187,6 +187,7 @@ export function createMeshOnCanvas(block) {
         position: { x: position.x, y: position.y, z: position.z },
         colors: colors,
       });
+
       break;
 
     case "load_object":

@@ -67,7 +67,7 @@ export const flockMaterial = {
         return "#000000";
       }
       const r = parseInt(matches[0]);
-      const g = parseInt(matches[1]); 
+      const g = parseInt(matches[1]);
       const b = parseInt(matches[2]);
       const result = flock.rgbToHex(r, g, b);
       return result;
