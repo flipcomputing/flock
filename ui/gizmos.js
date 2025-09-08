@@ -3,7 +3,7 @@ import * as Blockly from "blockly";
 import { meshMap, meshBlockIdMap } from "../generators";
 import { flock } from "../flock.js";
 import { setPositionValues } from "./addmeshes.js";
-import { getMeshFromBlockKey, updateBlockColorAndHighlight } from "./blockmesh.js";
+import { getMeshFromBlockKey, getRootMesh, updateBlockColorAndHighlight } from "./blockmesh.js";
 export let gizmoManager;
 
 const blueColor = flock.BABYLON.Color3.FromHexString("#0072B2"); // Colour for X-axis
@@ -640,6 +640,8 @@ export function toggleGizmo(gizmoType) {
             });
 
             if (flock.meshDebug) console.log(pickedMesh.parent);
+
+            if (pickedMesh.parent) pickedMesh = getRootMesh(pickedMesh.parent);
 
             const block = meshMap[blockKey];
             highlightBlockById(Blockly.getMainWorkspace(), block);
