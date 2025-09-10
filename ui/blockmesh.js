@@ -1629,10 +1629,22 @@ export function updateBlockColorAndHighlight(mesh, selectedColor) {
   if (!mesh) {
     block = meshMap["sky"];
 
-    block
+    if (block) {
+      block
       .getInput("COLOR")
       .connection.targetBlock()
       .setFieldValue(selectedColor, "COLOR");
+    } else {
+      // Create sky block if one doesn't exist.
+      block = Blockly.getMainWorkspace().newBlock("set_sky_color");
+      block.setFieldValue(selectedColor, "COLOR");
+      block.initSvg();
+      block.render();
+      let connection = block.getInput("DO").connection;
+      if (connection) {
+        connection.connect(block.previousConnection);
+      }
+    }
 
     return;
   } else {
