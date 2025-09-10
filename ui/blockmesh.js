@@ -1651,10 +1651,12 @@ export function updateBlockColorAndHighlight(mesh, selectedColor) {
       .setFieldValue(selectedColor, "COLOR");
     } else {
       // Create sky block if one doesn't exist.
-      block = Blockly.getMainWorkspace().newBlock("set_sky_color");
-      block.setFieldValue(selectedColor, "COLOR");
-      block.initSvg();
-      block.render();
+      const spec = {
+        type: "set_sky_color",
+        COLOR: selectedColor,
+        inputs: {}
+      };
+      block = appendWithUndo(spec, Blockly.getMainWorkspace(), Blockly.Events.getGroup());
       let connection = block.getInput("DO").connection;
       if (connection) {
         connection.connect(block.previousConnection);
