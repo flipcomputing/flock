@@ -1622,6 +1622,21 @@ function replaceMeshModel(currentMesh, block, changeEvent) {
 }
 
 export function updateBlockColorAndHighlight(mesh, selectedColor) {
+  function appendWithUndo(spec, ws, groupId) {
+    let block;
+    try {
+      block = Blockly.serialization.blocks.append(spec, ws, { recordUndo: true });
+    } catch {
+      block = Blockly.serialization.blocks.append(spec, ws);
+      const ev = new Blockly.Events.BlockCreate(block);
+      ev.group = groupId;
+      ev.recordUndo = true;
+      Blockly.Events.fire(ev);
+    }
+    block?.initSvg?.();
+    block?.render?.();
+    return block;
+  }
   let block = null;
   let materialName = null;
   let colorIndex, ultimateParent;
