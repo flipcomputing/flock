@@ -24,7 +24,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
   window.addEventListener("keydown", (event) => {
     // Check if both Ctrl and the comma key (,) are pressed
-    if (event.ctrlKey && event.code === "Comma") {
+    if ((event.ctrlKey && event.code === "Comma") || (event.code === "KeyF")) {
       focusCameraOnMesh();
     }
   });
