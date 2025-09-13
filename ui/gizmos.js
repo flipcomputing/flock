@@ -3,7 +3,7 @@ import * as Blockly from "blockly";
 import { meshMap, meshBlockIdMap } from "../generators";
 import { flock } from "../flock.js";
 import { setPositionValues } from "./addmeshes.js";
-import { getMeshFromBlockKey, updateBlockColorAndHighlight } from "./blockmesh.js";
+import { getMeshFromBlockKey, getRootMesh, updateBlockColorAndHighlight } from "./blockmesh.js";
 export let gizmoManager;
 
 const blueColor = flock.BABYLON.Color3.FromHexString("#0072B2"); // Colour for X-axis
@@ -621,7 +621,7 @@ export function toggleGizmo(gizmoType) {
               gizmoManager.attachedMesh,
             ).metadata.blockKey;
           }
-          const pickedMesh = event.pickInfo.pickedMesh;
+          let pickedMesh = event.pickInfo.pickedMesh;
 
           if (pickedMesh && pickedMesh.name !== "ground") {
             // Assuming 'mesh' is your Babylon.js mesh object
@@ -639,6 +639,9 @@ export function toggleGizmo(gizmoType) {
               color: "black"
             });
 
+            if (flock.meshDebug) console.log(pickedMesh.parent);
+
+            if (pickedMesh.parent) pickedMesh = getRootMesh(pickedMesh.parent);
 
             const block = meshMap[blockKey];
             highlightBlockById(Blockly.getMainWorkspace(), block);
