@@ -1622,88 +1622,166 @@ function replaceMeshModel(currentMesh, block, changeEvent) {
 }
 
 export function updateBlockColorAndHighlight(mesh, selectedColor) {
+  // ---------- helpers ----------
+  const withUndoGroup = (fn) => { try { Blockly.Events.setGroup(true); fn(); } finally { Blockly.Events.setGroup(false); } };
+
+  const getUltimateParent = (m) => (m?.parent ? getUltimateParent(m.parent) : m);
+
+  // Try to set colour on a target block (colour picker) or, failing that, on the parent block's field.
+  const setColorOnTargetOrField = (targetBlock, parentBlock, colorHex) => {
+    if (targetBlock) {
+      if (targetBlock.getField?.("COLOR")) { targetBlock.setFieldValue(colorHex, "COLOR"); return true; }
+      if (targetBlock.getField?.("COLOUR")) { targetBlock.setFieldValue(colorHex, "COLOUR"); return true; }
+    }
+    if (parentBlock) {
+      if (parentBlock.getField?.("COLOR")) { parentBlock.setFieldValue(colorHex, "COLOR"); return true; }
+      if (parentBlock.getField?.("COLOUR")) { parentBlock.setFieldValue(colorHex, "COLOUR"); return true; }
+    }
+    return false;
+  };
+
+  // Ensure a colour target exists on an input: connect shadow if needed, then return the target block.
+  const ensureColorTargetOnInput = (input) => {
+    if (!input?.connection) return null;
+    let tgt = input.connection.targetBlock?.();
+    const ws = input.sourceBlock_?.workspace;
+    if (!tgt && ws) {
+      // materialize existing shadow if present
+      const shadowDom = input.connection.getShadowDom?.();
+      if (shadowDom) {
+        const shadowBlock = Blockly.Xml.domToBlock(shadowDom, ws);
+        if (shadowBlock?.outputConnection) input.connection.connect(shadowBlock.outputConnection);
+        tgt = input.connection.targetBlock?.();
+      }
+      // or create a new colour picker shadow
+      if (!tgt) {
+        const picker = ws.newBlock('colour_picker');
+        picker.setShadow(true);
+        picker.initSvg(); picker.render();
+        input.connection.connect(picker.outputConnection);
+        tgt = picker;
+      }
+    }
+    return tgt || null;
+  };
+
+  // Heuristic: is this input likely to be a color input?
+  const isColorishName = (name) => /(?:^|_)(MAP_)?COL(?:OU)?R$/i.test(name || "");
+
+  // Depth-first search for a colour input/field anywhere under a block.
+  // Returns { input, targetBlock, ownerBlock } where:
+  //  - input: the Input that should hold a color picker (could be nested)
+  //  - targetBlock: the colour picker (created if needed)
+  //  - ownerBlock: the block that owns `input` (fallback for direct field set)
+  const findNestedColorTarget = (rootBlock, visited = new Set()) => {
+    if (!rootBlock || visited.has(rootBlock.id)) return null;
+    visited.add(rootBlock.id);
+
+    // 0) direct field on this block (rare but cheap to check)
+    if (rootBlock.getField?.("COLOR") || rootBlock.getField?.("COLOUR")) {
+      return { input: null, targetBlock: rootBlock, ownerBlock: rootBlock };
+    }
+
+    // 1) look for an input that is explicitly colour-ish
+    for (const inp of rootBlock.inputList || []) {
+      if (isColorishName(inp?.name)) {
+        const targetBlock = ensureColorTargetOnInput(inp);
+        return { input: inp, targetBlock, ownerBlock: rootBlock };
+      }
+    }
+
+    // 2) Otherwise, traverse all connected children; many designs have a MATERIAL input → material block → colour input
+    for (const inp of rootBlock.inputList || []) {
+      const child = inp?.connection?.targetBlock?.();
+      if (!child) continue;
+      const found = findNestedColorTarget(child, visited);
+      if (found) return found;
+    }
+
+    return null;
+  };
+
+  const materialToFieldMap = {
+    Hair: "HAIR_COLOR",
+    Skin: "SKIN_COLOR",
+    Eyes: "EYES_COLOR",
+    Sleeves: "SLEEVES_COLOR",
+    Shorts: "SHORTS_COLOR",
+    TShirt: "TSHIRT_COLOR",
+  };
+
+  // ---------- main ----------
   let block = null;
-  let materialName = null;
-  let colorIndex, ultimateParent;
 
+  // Special case: sky fallback
   if (!mesh) {
-    block = meshMap["sky"];
-
-    block
-      .getInput("COLOR")
-      .connection.targetBlock()
-      .setFieldValue(selectedColor, "COLOR");
-
+    block = meshMap?.["sky"];
+    if (!block) return;
+    withUndoGroup(() => {
+      const found = findNestedColorTarget(block);
+      if (!found) { console.warn("[color] No color target found on 'sky' block"); return; }
+      setColorOnTargetOrField(found.targetBlock, found.ownerBlock, selectedColor);
+      block.initSvg?.();
+      highlightBlockById(Blockly.getMainWorkspace(), block);
+    });
     return;
-  } else {
-    materialName = mesh?.material?.name?.replace(/_clone$/, "");
-    colorIndex = mesh.metadata.materialIndex;
-    ultimateParent = (mesh) =>
-      mesh.parent ? ultimateParent(mesh.parent) : mesh;
   }
 
-  if (mesh && materialName) {
-    block = meshMap[ultimateParent(mesh).metadata.blockKey];
+  // Mesh → block
+  const root = getUltimateParent(mesh);
+  const blockKey = root?.metadata?.blockKey;
+  if (!blockKey || !meshMap?.[blockKey]) {
+    console.warn("[color] Block not found for mesh", { mesh: mesh?.name, blockKey, root: root?.name });
+    return;
+  }
+  block = meshMap[blockKey];
 
-    if (!block) {
-      console.log(
-        "Block not found for mesh:",
-        mesh.name,
-        ultimateParent(mesh).metadata.blockKey,
-        mesh.name,
-        ultimateParent(mesh).name,
-        meshMap,
-      );
+  const materialName = mesh?.material?.name?.replace(/_clone$/, "");
+  const colorIndex = mesh?.metadata?.materialIndex;
 
-      return;
-    }
-
-    if (characterMaterials.includes(materialName)) {
-      // Update the corresponding character submesh color field (e.g., HAIR_COLOR, SKIN_COLOR)
-
-      const materialToFieldMap = {
-        Hair: "HAIR_COLOR",
-        Skin: "SKIN_COLOR",
-        Eyes: "EYES_COLOR",
-        Sleeves: "SLEEVES_COLOR",
-        Shorts: "SHORTS_COLOR",
-        TShirt: "TSHIRT_COLOR",
-      };
-
-      const fieldName = materialToFieldMap[materialName];
-
-      if (fieldName) {
-        // Update the corresponding character color field in the block
-        //Blockly.Events.setGroup(true);
-        block
-          .getInput(fieldName)
-          .connection.targetBlock()
-          .setFieldValue(selectedColor, "COLOR");
-        //Blockly.Events.setGroup(false);
-      } else {
-        console.error("No matching field for material:", materialName);
-      }
-    } else if (block.type === "load_multi_object") {
-      block.updateColorAtIndex(selectedColor, colorIndex);
-    } else {
-      // For load_object blocks, check if we should use config default instead of purple
-      if (block.type === "load_object" && selectedColor === "#9932cc") {
-        const modelName = block.getFieldValue("MODELS");
-        const configColor = objectColours[modelName] || "#FFD700";
-        block
-          .getInput("COLOR")
-          .connection.targetBlock()
-          .setFieldValue(configColor, "COLOR");
-      } else {
-        block
-          .getInput("COLOR")
-          .connection.targetBlock()
-          .setFieldValue(selectedColor, "COLOR");
-      }
-    }
+  // 1) Character sub-mesh path (these use fixed field inputs on the character block)
+  if (materialName && Object.prototype.hasOwnProperty.call(materialToFieldMap, materialName)) {
+    const fieldName = materialToFieldMap[materialName];
+    const input = block.getInput(fieldName);
+    if (!input) { console.warn(`[color] Character field input '${fieldName}' not found on '${block.type}'`); return; }
+    withUndoGroup(() => {
+      const target = ensureColorTargetOnInput(input);
+      setColorOnTargetOrField(target, block, selectedColor);
+      block.initSvg?.();
+      highlightBlockById(Blockly.getMainWorkspace(), block);
+    });
+    return;
   }
 
-  block?.initSvg();
+  // 2) Multi-object path stays as-is
+  if (block.type === "load_multi_object") {
+    withUndoGroup(() => {
+      block.updateColorAtIndex?.(selectedColor, colorIndex);
+      block.initSvg?.();
+      highlightBlockById(Blockly.getMainWorkspace(), block);
+    });
+    return;
+  }
 
-  highlightBlockById(Blockly.getMainWorkspace(), block);
+  // 3) Generic / map / ground / load_object, including NESTED MATERIAL BLOCKS
+  //    We now search recursively for a colour input under this block.
+  const found = findNestedColorTarget(block);
+  if (!found) {
+    console.warn(`[color] No nested color target found under block '${block.type}' for mesh '${mesh.name}'`);
+    return;
+  }
+
+  // Respect your special purple → config default for load_object (only if top-level is load_object).
+  const isDefaultPurple = selectedColor?.toLowerCase?.() === "#9932cc";
+  let finalColor = selectedColor;
+  if (block.type === "load_object" && isDefaultPurple && typeof objectColours === "object") {
+    finalColor = objectColours[block.getFieldValue?.("MODELS")] || "#FFD700";
+  }
+
+  withUndoGroup(() => {
+    setColorOnTargetOrField(found.targetBlock, found.ownerBlock, finalColor);
+    block.initSvg?.();
+    highlightBlockById(Blockly.getMainWorkspace(), block);
+  });
 }
+
