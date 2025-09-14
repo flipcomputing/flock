@@ -24,12 +24,20 @@ const colorFields = {
 };
 
 export function updateOrCreateMeshFromBlock(block, changeEvent) {
-  if (flock.meshDebug) console.log("Update or create mesh from block", block.type, changeEvent.type);
+  
+  if (flock.meshDebug)
+    console.log(
+      "Update or create mesh from block",
+      block.type,
+      changeEvent.type,
+    );
 
   if (
-    ["set_sky_color", "set_background_color", "create_ground", "create_map"].includes(
-      block.type,
-    )
+    [
+      "set_sky_color",
+      "set_background_color",
+      "create_ground",
+    ].includes(block.type)
   ) {
     // Always proceed to update
     updateMeshFromBlock(null, block, changeEvent);
@@ -60,20 +68,23 @@ export function updateOrCreateMeshFromBlock(block, changeEvent) {
     return;
   }
 
-  if (flock.meshDebug) {  
+  if (flock.meshDebug) {
     console.log(
       changeEvent?.type === Blockly.Events.BLOCK_CHANGE ||
         changeEvent?.type === Blockly.Events.BLOCK_CREATE,
     );
   }
-  
+
   if (
     (changeEvent?.type === Blockly.Events.BLOCK_CHANGE ||
       changeEvent?.type === Blockly.Events.BLOCK_CREATE) &&
     (mesh ||
-      ["set_sky_color", "set_background_color", "create_ground", "create_map"].includes(
-        block.type,
-      ))
+      [
+        "set_sky_color",
+        "set_background_color",
+        "create_ground",
+        "create_map",
+      ].includes(block.type))
   ) {
     updateMeshFromBlock(mesh, block, changeEvent);
   }
@@ -81,6 +92,17 @@ export function updateOrCreateMeshFromBlock(block, changeEvent) {
 
 export function deleteMeshFromBlock(blockId) {
   const blockKey = getBlockKeyFromBlockID(blockId);
+
+  if (!blockKey) {
+    const block = Blockly.getMainWorkspace().getBlockById(blockId);
+    if (block.type === "create_map") {
+      const mesh = flock?.scene?.getMeshByName("ground");
+      if (mesh) {
+        flock.disposeMesh(mesh);
+        return;
+      }
+    }
+  }
 
   if (!blockKey) {
     return;
@@ -115,6 +137,10 @@ export function getMeshFromBlockKey(blockKey) {
 }
 
 export function getMeshFromBlock(block) {
+  if (block && block.type === "create_map") {
+    return flock?.scene?.getMeshByName("ground");
+  }
+
   if (block && block.type === "rotate_to") {
     block = block.getParent();
   }
@@ -193,12 +219,16 @@ export function extractMaterialInfo(materialBlock) {
 }
 
 export function updateMeshFromBlock(mesh, block, changeEvent) {
+ 
   if (flock.meshDebug) console.log("Update", block.type, changeEvent.type);
   if (
     !mesh &&
-    !["set_sky_color", "set_background_color", "create_ground", "create_map"].includes(
-      block.type,
-    )
+    ![
+      "set_sky_color",
+      "set_background_color",
+      "create_ground",
+      "create_map",
+    ].includes(block.type)
   )
     return;
 
@@ -251,14 +281,19 @@ export function updateMeshFromBlock(mesh, block, changeEvent) {
     if (
       changeEvent.blockId === materialBlock.id ||
       (changeEvent.type === Blockly.Events.BLOCK_CHANGE &&
-        materialBlock.getField(changeEvent.name))
+        changeEvent.name &&
+        materialBlock?.getField(changeEvent.name))
     ) {
       changed = "MATERIAL";
     }
   }
 
   if (!changed) {
-    if (block.type === "set_sky_color" || block.type === "create_ground"  || block.type === "create_map") {
+    if (
+      block.type === "set_sky_color" ||
+      block.type === "create_ground" ||
+      block.type === "create_map"
+    ) {
       changed = "COLOR"; // or any value to keep going
     } else {
       return;
@@ -829,15 +864,15 @@ function replaceMeshModel2(currentMesh, block, changeEvent) {
   // Calculate the current mesh's bottom position in world space (including scaling)
   currentMesh.computeWorldMatrix(true);
   currentMesh.refreshBoundingInfo();
-  const currentBottomY = currentMesh.getBoundingInfo().boundingBox.minimumWorld.y;
-  
+  const currentBottomY =
+    currentMesh.getBoundingInfo().boundingBox.minimumWorld.y;
+
   // Also store the actual mesh position (which may have been adjusted by gizmos)
   const actualMeshPosition = {
     x: currentMesh.position.x,
     y: currentMesh.position.y,
-    z: currentMesh.position.z
+    z: currentMesh.position.z,
   };
-  
 
   // Get the current block position values (which should reflect gizmo updates)
   const currentBlockPosition = {
@@ -851,7 +886,6 @@ function replaceMeshModel2(currentMesh, block, changeEvent) {
       block.getInput("Z").connection.targetBlock().getFieldValue("NUM"),
     ),
   };
-  
 
   // Store current mesh state including the original mesh name
   const meshState = {
@@ -936,7 +970,6 @@ function replaceMeshModel2(currentMesh, block, changeEvent) {
       .getFieldValue("COLOR");
   }
 
-
   // Create a temporary unique name, then rename after creation
   const tempMeshId = `${newModelName}__${block.id}__${Date.now()}`;
   const targetName = meshState.originalName;
@@ -946,18 +979,16 @@ function replaceMeshModel2(currentMesh, block, changeEvent) {
     flock.disposeMesh(currentMesh);
   }
 
-   console.log("Live change", color); 
-  
   // Create new mesh using the actual mesh position (since block values aren't updated yet)
   const newMesh = flock.createObject({
     modelName: newModelName,
     modelId: tempMeshId,
     color: color,
     scale: parseFloat(scale),
-    position: { 
-      x: meshState.position.x, 
+    position: {
+      x: meshState.position.x,
       y: meshState.currentBlockPosition.y, // Use block Y as base since setupMesh will adjust it
-      z: meshState.position.z 
+      z: meshState.position.z,
     },
     callback: () => {
       // Get the newly loaded mesh using our lookup function
@@ -1004,70 +1035,85 @@ function replaceMeshModel2(currentMesh, block, changeEvent) {
             currentBlock = currentBlock.getNextBlock();
           }
         }
-        
+
         // Check if mesh has gizmo scaling (either from mesh.scaling or scale block)
-        const hasGizmoScaling = scaleBlock || 
+        const hasGizmoScaling =
+          scaleBlock ||
           (meshState.scaling &&
             (Math.abs(meshState.scaling.x - 1) > 0.001 ||
               Math.abs(meshState.scaling.y - 1) > 0.001 ||
               Math.abs(meshState.scaling.z - 1) > 0.001)) ||
           (parseFloat(scale) === 1.0 && meshState.scaling); // Scale block case: block scale is 1 but has custom scaling
-          
 
         // Use setTimeout to let setupMesh complete, then apply scaling
         setTimeout(() => {
           if (scaleBlock) {
             // Apply scale block transformation using flock.scale API
-            const scaleX = parseFloat(scaleBlock.getInput("X").connection.targetBlock().getFieldValue("NUM"));
-            const scaleY = parseFloat(scaleBlock.getInput("Y").connection.targetBlock().getFieldValue("NUM"));
-            const scaleZ = parseFloat(scaleBlock.getInput("Z").connection.targetBlock().getFieldValue("NUM"));
-            
+            const scaleX = parseFloat(
+              scaleBlock
+                .getInput("X")
+                .connection.targetBlock()
+                .getFieldValue("NUM"),
+            );
+            const scaleY = parseFloat(
+              scaleBlock
+                .getInput("Y")
+                .connection.targetBlock()
+                .getFieldValue("NUM"),
+            );
+            const scaleZ = parseFloat(
+              scaleBlock
+                .getInput("Z")
+                .connection.targetBlock()
+                .getFieldValue("NUM"),
+            );
+
             // Get scale origin settings (if they exist)
             const xOrigin = scaleBlock.getFieldValue("X_ORIGIN") || "CENTRE";
             const yOrigin = scaleBlock.getFieldValue("Y_ORIGIN") || "BASE"; // BASE for bottom alignment
             const zOrigin = scaleBlock.getFieldValue("Z_ORIGIN") || "CENTRE";
-            
+
             // Apply scaling using the flock.scale API (which handles positioning correctly)
             flock.scale(loadedMesh.name, {
               x: scaleX,
-              y: scaleY, 
+              y: scaleY,
               z: scaleZ,
               xOrigin: xOrigin,
               yOrigin: yOrigin,
-              zOrigin: zOrigin
+              zOrigin: zOrigin,
             });
-            
+
             // Wait for scale to complete, then align bottoms
             setTimeout(() => {
               loadedMesh.computeWorldMatrix(true);
               loadedMesh.refreshBoundingInfo();
-              const newMeshCurrentBottomY = loadedMesh.getBoundingInfo().boundingBox.minimumWorld.y;
-              
+              const newMeshCurrentBottomY =
+                loadedMesh.getBoundingInfo().boundingBox.minimumWorld.y;
+
               // Calculate the Y adjustment needed to align bottoms
-              const yAdjustment = meshState.currentBottomY - newMeshCurrentBottomY;
+              const yAdjustment =
+                meshState.currentBottomY - newMeshCurrentBottomY;
               loadedMesh.position.y += yAdjustment;
             }, 100);
-            
           } else if (hasGizmoScaling) {
             // No scale block, apply direct mesh scaling
             loadedMesh.scaling.copyFrom(meshState.scaling);
-            
+
             // Calculate bottom alignment after scaling
             loadedMesh.computeWorldMatrix(true);
             loadedMesh.refreshBoundingInfo();
-            const newMeshCurrentBottomY = loadedMesh.getBoundingInfo().boundingBox.minimumWorld.y;
-            
+            const newMeshCurrentBottomY =
+              loadedMesh.getBoundingInfo().boundingBox.minimumWorld.y;
+
             // Calculate the Y adjustment needed to align bottoms
-            const yAdjustment = meshState.currentBottomY - newMeshCurrentBottomY;
+            const yAdjustment =
+              meshState.currentBottomY - newMeshCurrentBottomY;
             loadedMesh.position.y += yAdjustment;
           }
         }, 100); // Give setupMesh time to complete
 
         // Apply any Y offset from metadata
-        if (
-          loadedMesh.metadata?.yOffset &&
-          loadedMesh.metadata.yOffset !== 0
-        ) {
+        if (loadedMesh.metadata?.yOffset && loadedMesh.metadata.yOffset !== 0) {
           loadedMesh.position.y +=
             parseFloat(scale) * loadedMesh.metadata.yOffset;
         }
@@ -1146,15 +1192,15 @@ function replaceMeshModel(currentMesh, block, changeEvent) {
   // Calculate the current mesh's bottom position in world space (including scaling)
   currentMesh.computeWorldMatrix(true);
   currentMesh.refreshBoundingInfo();
-  const currentBottomY = currentMesh.getBoundingInfo().boundingBox.minimumWorld.y;
+  const currentBottomY =
+    currentMesh.getBoundingInfo().boundingBox.minimumWorld.y;
 
   // Also store the actual mesh position (which may have been adjusted by gizmos)
   const actualMeshPosition = {
     x: currentMesh.position.x,
     y: currentMesh.position.y,
-    z: currentMesh.position.z
+    z: currentMesh.position.z,
   };
-
 
   // Get the current block position values (which should reflect gizmo updates)
   const currentBlockPosition = {
@@ -1168,7 +1214,6 @@ function replaceMeshModel(currentMesh, block, changeEvent) {
       block.getInput("Z").connection.targetBlock().getFieldValue("NUM"),
     ),
   };
-
 
   // Store current mesh state including the original mesh name
   const meshState = {
@@ -1253,7 +1298,6 @@ function replaceMeshModel(currentMesh, block, changeEvent) {
       .getFieldValue("COLOR");
   }
 
-
   // Create a temporary unique name, then rename after creation
   const tempMeshId = `${newModelName}__${block.id}__${Date.now()}`;
   const targetName = meshState.originalName;
@@ -1271,10 +1315,10 @@ function replaceMeshModel(currentMesh, block, changeEvent) {
       modelId: tempMeshId,
       colors: color,
       scale: parseFloat(scale),
-      position: { 
-        x: meshState.position.x, 
+      position: {
+        x: meshState.position.x,
         y: meshState.currentBlockPosition.y, // Use block Y as base since setupMesh will adjust it
-        z: meshState.position.z 
+        z: meshState.position.z,
       },
       callback: () => {
         // Get the newly loaded mesh using our lookup function
@@ -1301,14 +1345,20 @@ function replaceMeshModel(currentMesh, block, changeEvent) {
             loadedMesh.rotation.copyFrom(meshState.rotation);
           }
           if (meshState.rotationQuaternion) {
-            loadedMesh.rotationQuaternion.copyFrom(meshState.rotationQuaternion);
+            loadedMesh.rotationQuaternion.copyFrom(
+              meshState.rotationQuaternion,
+            );
           }
 
           // Check if there's a scale block in the DO section (created by gizmo)
           let scaleBlock = null;
           const modelVariable = block.getFieldValue("ID_VAR");
           const doInput = block.getInput("DO");
-          if (doInput && doInput.connection && doInput.connection.targetBlock()) {
+          if (
+            doInput &&
+            doInput.connection &&
+            doInput.connection.targetBlock()
+          ) {
             let currentBlock = doInput.connection.targetBlock();
             while (currentBlock) {
               if (currentBlock.type === "scale") {
@@ -1323,21 +1373,36 @@ function replaceMeshModel(currentMesh, block, changeEvent) {
           }
 
           // Check if mesh has gizmo scaling (either from mesh.scaling or scale block)
-          const hasGizmoScaling = scaleBlock || 
+          const hasGizmoScaling =
+            scaleBlock ||
             (meshState.scaling &&
               (Math.abs(meshState.scaling.x - 1) > 0.001 ||
                 Math.abs(meshState.scaling.y - 1) > 0.001 ||
                 Math.abs(meshState.scaling.z - 1) > 0.001)) ||
             (parseFloat(scale) === 1.0 && meshState.scaling); // Scale block case: block scale is 1 but has custom scaling
 
-
           // Use setTimeout to let setupMesh complete, then apply scaling
           setTimeout(() => {
             if (scaleBlock) {
               // Apply scale block transformation using flock.scale API
-              const scaleX = parseFloat(scaleBlock.getInput("X").connection.targetBlock().getFieldValue("NUM"));
-              const scaleY = parseFloat(scaleBlock.getInput("Y").connection.targetBlock().getFieldValue("NUM"));
-              const scaleZ = parseFloat(scaleBlock.getInput("Z").connection.targetBlock().getFieldValue("NUM"));
+              const scaleX = parseFloat(
+                scaleBlock
+                  .getInput("X")
+                  .connection.targetBlock()
+                  .getFieldValue("NUM"),
+              );
+              const scaleY = parseFloat(
+                scaleBlock
+                  .getInput("Y")
+                  .connection.targetBlock()
+                  .getFieldValue("NUM"),
+              );
+              const scaleZ = parseFloat(
+                scaleBlock
+                  .getInput("Z")
+                  .connection.targetBlock()
+                  .getFieldValue("NUM"),
+              );
 
               // Get scale origin settings (if they exist)
               const xOrigin = scaleBlock.getFieldValue("X_ORIGIN") || "CENTRE";
@@ -1347,24 +1412,25 @@ function replaceMeshModel(currentMesh, block, changeEvent) {
               // Apply scaling using the flock.scale API (which handles positioning correctly)
               flock.scale(loadedMesh.name, {
                 x: scaleX,
-                y: scaleY, 
+                y: scaleY,
                 z: scaleZ,
                 xOrigin: xOrigin,
                 yOrigin: yOrigin,
-                zOrigin: zOrigin
+                zOrigin: zOrigin,
               });
 
               // Wait for scale to complete, then align bottoms
               setTimeout(() => {
                 loadedMesh.computeWorldMatrix(true);
                 loadedMesh.refreshBoundingInfo();
-                const newMeshCurrentBottomY = loadedMesh.getBoundingInfo().boundingBox.minimumWorld.y;
+                const newMeshCurrentBottomY =
+                  loadedMesh.getBoundingInfo().boundingBox.minimumWorld.y;
 
                 // Calculate the Y adjustment needed to align bottoms
-                const yAdjustment = meshState.currentBottomY - newMeshCurrentBottomY;
+                const yAdjustment =
+                  meshState.currentBottomY - newMeshCurrentBottomY;
                 loadedMesh.position.y += yAdjustment;
               }, 100);
-
             } else if (hasGizmoScaling) {
               // No scale block, apply direct mesh scaling
               loadedMesh.scaling.copyFrom(meshState.scaling);
@@ -1372,10 +1438,12 @@ function replaceMeshModel(currentMesh, block, changeEvent) {
               // Calculate bottom alignment after scaling
               loadedMesh.computeWorldMatrix(true);
               loadedMesh.refreshBoundingInfo();
-              const newMeshCurrentBottomY = loadedMesh.getBoundingInfo().boundingBox.minimumWorld.y;
+              const newMeshCurrentBottomY =
+                loadedMesh.getBoundingInfo().boundingBox.minimumWorld.y;
 
               // Calculate the Y adjustment needed to align bottoms
-              const yAdjustment = meshState.currentBottomY - newMeshCurrentBottomY;
+              const yAdjustment =
+                meshState.currentBottomY - newMeshCurrentBottomY;
               loadedMesh.position.y += yAdjustment;
             }
           }, 100); // Give setupMesh time to complete
@@ -1404,7 +1472,8 @@ function replaceMeshModel(currentMesh, block, changeEvent) {
             if (meshState.physics.motionType !== undefined) {
               loadedMesh.physics.setMotionType(meshState.physics.motionType);
             }
-            loadedMesh.physics.disablePreStep = meshState.physics.disablePreStep;
+            loadedMesh.physics.disablePreStep =
+              meshState.physics.disablePreStep;
             loadedMesh.savedMotionType = meshState.savedMotionType;
           }
 
@@ -1438,10 +1507,10 @@ function replaceMeshModel(currentMesh, block, changeEvent) {
       modelId: tempMeshId,
       color: color,
       scale: parseFloat(scale),
-      position: { 
-        x: meshState.position.x, 
+      position: {
+        x: meshState.position.x,
         y: meshState.currentBlockPosition.y, // Use block Y as base since setupMesh will adjust it
-        z: meshState.position.z 
+        z: meshState.position.z,
       },
       callback: () => {
         // Get the newly loaded mesh using our lookup function
@@ -1468,14 +1537,20 @@ function replaceMeshModel(currentMesh, block, changeEvent) {
             loadedMesh.rotation.copyFrom(meshState.rotation);
           }
           if (meshState.rotationQuaternion) {
-            loadedMesh.rotationQuaternion.copyFrom(meshState.rotationQuaternion);
+            loadedMesh.rotationQuaternion.copyFrom(
+              meshState.rotationQuaternion,
+            );
           }
 
           // Check if there's a scale block in the DO section (created by gizmo)
           let scaleBlock = null;
           const modelVariable = block.getFieldValue("ID_VAR");
           const doInput = block.getInput("DO");
-          if (doInput && doInput.connection && doInput.connection.targetBlock()) {
+          if (
+            doInput &&
+            doInput.connection &&
+            doInput.connection.targetBlock()
+          ) {
             let currentBlock = doInput.connection.targetBlock();
             while (currentBlock) {
               if (currentBlock.type === "scale") {
@@ -1490,21 +1565,36 @@ function replaceMeshModel(currentMesh, block, changeEvent) {
           }
 
           // Check if mesh has gizmo scaling (either from mesh.scaling or scale block)
-          const hasGizmoScaling = scaleBlock || 
+          const hasGizmoScaling =
+            scaleBlock ||
             (meshState.scaling &&
               (Math.abs(meshState.scaling.x - 1) > 0.001 ||
                 Math.abs(meshState.scaling.y - 1) > 0.001 ||
                 Math.abs(meshState.scaling.z - 1) > 0.001)) ||
             (parseFloat(scale) === 1.0 && meshState.scaling); // Scale block case: block scale is 1 but has custom scaling
 
-
           // Use setTimeout to let setupMesh complete, then apply scaling
           setTimeout(() => {
             if (scaleBlock) {
               // Apply scale block transformation using flock.scale API
-              const scaleX = parseFloat(scaleBlock.getInput("X").connection.targetBlock().getFieldValue("NUM"));
-              const scaleY = parseFloat(scaleBlock.getInput("Y").connection.targetBlock().getFieldValue("NUM"));
-              const scaleZ = parseFloat(scaleBlock.getInput("Z").connection.targetBlock().getFieldValue("NUM"));
+              const scaleX = parseFloat(
+                scaleBlock
+                  .getInput("X")
+                  .connection.targetBlock()
+                  .getFieldValue("NUM"),
+              );
+              const scaleY = parseFloat(
+                scaleBlock
+                  .getInput("Y")
+                  .connection.targetBlock()
+                  .getFieldValue("NUM"),
+              );
+              const scaleZ = parseFloat(
+                scaleBlock
+                  .getInput("Z")
+                  .connection.targetBlock()
+                  .getFieldValue("NUM"),
+              );
 
               // Get scale origin settings (if they exist)
               const xOrigin = scaleBlock.getFieldValue("X_ORIGIN") || "CENTRE";
@@ -1514,24 +1604,25 @@ function replaceMeshModel(currentMesh, block, changeEvent) {
               // Apply scaling using the flock.scale API (which handles positioning correctly)
               flock.scale(loadedMesh.name, {
                 x: scaleX,
-                y: scaleY, 
+                y: scaleY,
                 z: scaleZ,
                 xOrigin: xOrigin,
                 yOrigin: yOrigin,
-                zOrigin: zOrigin
+                zOrigin: zOrigin,
               });
 
               // Wait for scale to complete, then align bottoms
               setTimeout(() => {
                 loadedMesh.computeWorldMatrix(true);
                 loadedMesh.refreshBoundingInfo();
-                const newMeshCurrentBottomY = loadedMesh.getBoundingInfo().boundingBox.minimumWorld.y;
+                const newMeshCurrentBottomY =
+                  loadedMesh.getBoundingInfo().boundingBox.minimumWorld.y;
 
                 // Calculate the Y adjustment needed to align bottoms
-                const yAdjustment = meshState.currentBottomY - newMeshCurrentBottomY;
+                const yAdjustment =
+                  meshState.currentBottomY - newMeshCurrentBottomY;
                 loadedMesh.position.y += yAdjustment;
               }, 100);
-
             } else if (hasGizmoScaling) {
               // No scale block, apply direct mesh scaling
               loadedMesh.scaling.copyFrom(meshState.scaling);
@@ -1539,10 +1630,12 @@ function replaceMeshModel(currentMesh, block, changeEvent) {
               // Calculate bottom alignment after scaling
               loadedMesh.computeWorldMatrix(true);
               loadedMesh.refreshBoundingInfo();
-              const newMeshCurrentBottomY = loadedMesh.getBoundingInfo().boundingBox.minimumWorld.y;
+              const newMeshCurrentBottomY =
+                loadedMesh.getBoundingInfo().boundingBox.minimumWorld.y;
 
               // Calculate the Y adjustment needed to align bottoms
-              const yAdjustment = meshState.currentBottomY - newMeshCurrentBottomY;
+              const yAdjustment =
+                meshState.currentBottomY - newMeshCurrentBottomY;
               loadedMesh.position.y += yAdjustment;
             }
           }, 100); // Give setupMesh time to complete
@@ -1571,7 +1664,8 @@ function replaceMeshModel(currentMesh, block, changeEvent) {
             if (meshState.physics.motionType !== undefined) {
               loadedMesh.physics.setMotionType(meshState.physics.motionType);
             }
-            loadedMesh.physics.disablePreStep = meshState.physics.disablePreStep;
+            loadedMesh.physics.disablePreStep =
+              meshState.physics.disablePreStep;
             loadedMesh.savedMotionType = meshState.savedMotionType;
           }
 
@@ -1622,20 +1716,41 @@ function replaceMeshModel(currentMesh, block, changeEvent) {
 }
 
 export function updateBlockColorAndHighlight(mesh, selectedColor) {
+  
   // ---------- helpers ----------
-  const withUndoGroup = (fn) => { try { Blockly.Events.setGroup(true); fn(); } finally { Blockly.Events.setGroup(false); } };
+  const withUndoGroup = (fn) => {
+    try {
+      Blockly.Events.setGroup(true);
+      fn();
+    } finally {
+      Blockly.Events.setGroup(false);
+    }
+  };
 
-  const getUltimateParent = (m) => (m?.parent ? getUltimateParent(m.parent) : m);
+  const getUltimateParent = (m) =>
+    m?.parent ? getUltimateParent(m.parent) : m;
 
   // Try to set colour on a target block (colour picker) or, failing that, on the parent block's field.
   const setColorOnTargetOrField = (targetBlock, parentBlock, colorHex) => {
     if (targetBlock) {
-      if (targetBlock.getField?.("COLOR")) { targetBlock.setFieldValue(colorHex, "COLOR"); return true; }
-      if (targetBlock.getField?.("COLOUR")) { targetBlock.setFieldValue(colorHex, "COLOUR"); return true; }
+      if (targetBlock.getField?.("COLOR")) {
+        targetBlock.setFieldValue(colorHex, "COLOR");
+        return true;
+      }
+      if (targetBlock.getField?.("COLOUR")) {
+        targetBlock.setFieldValue(colorHex, "COLOUR");
+        return true;
+      }
     }
     if (parentBlock) {
-      if (parentBlock.getField?.("COLOR")) { parentBlock.setFieldValue(colorHex, "COLOR"); return true; }
-      if (parentBlock.getField?.("COLOUR")) { parentBlock.setFieldValue(colorHex, "COLOUR"); return true; }
+      if (parentBlock.getField?.("COLOR")) {
+        parentBlock.setFieldValue(colorHex, "COLOR");
+        return true;
+      }
+      if (parentBlock.getField?.("COLOUR")) {
+        parentBlock.setFieldValue(colorHex, "COLOUR");
+        return true;
+      }
     }
     return false;
   };
@@ -1650,14 +1765,16 @@ export function updateBlockColorAndHighlight(mesh, selectedColor) {
       const shadowDom = input.connection.getShadowDom?.();
       if (shadowDom) {
         const shadowBlock = Blockly.Xml.domToBlock(shadowDom, ws);
-        if (shadowBlock?.outputConnection) input.connection.connect(shadowBlock.outputConnection);
+        if (shadowBlock?.outputConnection)
+          input.connection.connect(shadowBlock.outputConnection);
         tgt = input.connection.targetBlock?.();
       }
       // or create a new colour picker shadow
       if (!tgt) {
-        const picker = ws.newBlock('colour_picker');
+        const picker = ws.newBlock("colour_picker");
         picker.setShadow(true);
-        picker.initSvg(); picker.render();
+        picker.initSvg();
+        picker.render();
         input.connection.connect(picker.outputConnection);
         tgt = picker;
       }
@@ -1666,7 +1783,8 @@ export function updateBlockColorAndHighlight(mesh, selectedColor) {
   };
 
   // Heuristic: is this input likely to be a color input?
-  const isColorishName = (name) => /(?:^|_)(MAP_)?COL(?:OU)?R$/i.test(name || "");
+  const isColorishName = (name) =>
+    /(?:^|_)(MAP_)?COL(?:OU)?R$/i.test(name || "");
 
   // Depth-first search for a colour input/field anywhere under a block.
   // Returns { input, targetBlock, ownerBlock } where:
@@ -1719,8 +1837,15 @@ export function updateBlockColorAndHighlight(mesh, selectedColor) {
     if (!block) return;
     withUndoGroup(() => {
       const found = findNestedColorTarget(block);
-      if (!found) { console.warn("[color] No color target found on 'sky' block"); return; }
-      setColorOnTargetOrField(found.targetBlock, found.ownerBlock, selectedColor);
+      if (!found) {
+        console.warn("[color] No color target found on 'sky' block");
+        return;
+      }
+      setColorOnTargetOrField(
+        found.targetBlock,
+        found.ownerBlock,
+        selectedColor,
+      );
       block.initSvg?.();
       highlightBlockById(Blockly.getMainWorkspace(), block);
     });
@@ -1730,8 +1855,13 @@ export function updateBlockColorAndHighlight(mesh, selectedColor) {
   // Mesh → block
   const root = getUltimateParent(mesh);
   const blockKey = root?.metadata?.blockKey;
+
   if (!blockKey || !meshMap?.[blockKey]) {
-    console.warn("[color] Block not found for mesh", { mesh: mesh?.name, blockKey, root: root?.name });
+    console.warn("[color] Block not found for mesh", {
+      mesh: mesh?.name,
+      blockKey,
+      root: root?.name,
+    });
     return;
   }
   block = meshMap[blockKey];
@@ -1740,10 +1870,18 @@ export function updateBlockColorAndHighlight(mesh, selectedColor) {
   const colorIndex = mesh?.metadata?.materialIndex;
 
   // 1) Character sub-mesh path (these use fixed field inputs on the character block)
-  if (materialName && Object.prototype.hasOwnProperty.call(materialToFieldMap, materialName)) {
+  if (
+    materialName &&
+    Object.prototype.hasOwnProperty.call(materialToFieldMap, materialName)
+  ) {
     const fieldName = materialToFieldMap[materialName];
     const input = block.getInput(fieldName);
-    if (!input) { console.warn(`[color] Character field input '${fieldName}' not found on '${block.type}'`); return; }
+    if (!input) {
+      console.warn(
+        `[color] Character field input '${fieldName}' not found on '${block.type}'`,
+      );
+      return;
+    }
     withUndoGroup(() => {
       const target = ensureColorTargetOnInput(input);
       setColorOnTargetOrField(target, block, selectedColor);
@@ -1767,14 +1905,20 @@ export function updateBlockColorAndHighlight(mesh, selectedColor) {
   //    We now search recursively for a colour input under this block.
   const found = findNestedColorTarget(block);
   if (!found) {
-    console.warn(`[color] No nested color target found under block '${block.type}' for mesh '${mesh.name}'`);
+    console.warn(
+      `[color] No nested color target found under block '${block.type}' for mesh '${mesh.name}'`,
+    );
     return;
   }
 
   // Respect your special purple → config default for load_object (only if top-level is load_object).
   const isDefaultPurple = selectedColor?.toLowerCase?.() === "#9932cc";
   let finalColor = selectedColor;
-  if (block.type === "load_object" && isDefaultPurple && typeof objectColours === "object") {
+  if (
+    block.type === "load_object" &&
+    isDefaultPurple &&
+    typeof objectColours === "object"
+  ) {
     finalColor = objectColours[block.getFieldValue?.("MODELS")] || "#FFD700";
   }
 
@@ -1784,4 +1928,3 @@ export function updateBlockColorAndHighlight(mesh, selectedColor) {
     highlightBlockById(Blockly.getMainWorkspace(), block);
   });
 }
-
