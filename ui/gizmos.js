@@ -116,7 +116,7 @@ function applyColorAtPosition(canvasX, canvasY) {
     updateBlockColorAndHighlight(pickResult.pickedMesh, selectedColor);
   } else {
     flock.setSky(selectedColor);
-    updateBlockColorAndHighlight(null, selectedColor);
+    updateBlockColorAndHighlight(meshMap?.["sky"], selectedColor);
   }
 }
 
