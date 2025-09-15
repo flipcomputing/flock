@@ -1834,7 +1834,19 @@ export function updateBlockColorAndHighlight(mesh, selectedColor) {
   // Special case: sky fallback
   if (!mesh) {
     block = meshMap?.["sky"];
-    if (!block) return;
+    if (!block) {
+      // Create a sky block if one doesn't exist.
+      block = Blockly.getMainWorkspace().newBlock("set_sky_color");
+      block.setFieldValue(String(selectedColor), "COLOR");
+      block.initSvg();
+      block.render();
+      let connection = block.getInput("DO").connection;
+      if (connection) {
+        connection.connect(block.previousConnection);
+      }
+      updateBlockColorAndHighlight(mesh, selectedColor);
+      return;
+    }
     withUndoGroup(() => {
       const found = findNestedColorTarget(block);
       if (!found) {
