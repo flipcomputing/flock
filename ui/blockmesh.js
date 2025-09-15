@@ -686,6 +686,21 @@ export function updateMeshFromBlock(mesh, block, changeEvent) {
         });
         break;
     }
+  } else if (!["X", "Y", "Z"].includes(changed) && changed === "SCALE") {
+    for (const childBlock of block.getChildren()) {
+      if (childBlock.type === "rotate_to") {
+        let rotation = {
+          x: childBlock.getInput("X").connection.targetBlock().getFieldValue("NUM"),
+          y: childBlock.getInput("Y").connection.targetBlock().getFieldValue("NUM"),
+          z: childBlock.getInput("Z").connection.targetBlock().getFieldValue("NUM"),
+        };
+        flock.rotateTo(mesh.name,{
+          x: rotation.x,
+          y: rotation.y,
+          z: rotation.z,
+        });
+      }
+    }
   }
   //console.log("Update physics");
   flock.updatePhysics(mesh);
