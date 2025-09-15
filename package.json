@@ -9,14 +9,14 @@
     "lint": "eslint flock.js"
   },
   "dependencies": {
-    "@babylonjs/addons": "^8.25.0",
-    "@babylonjs/core": "^8.25.0",
-    "@babylonjs/gui": "^8.25.0",
+    "@babylonjs/addons": "^8.27.0",
+    "@babylonjs/core": "^8.27.0",
+    "@babylonjs/gui": "^8.27.0",
     "@babylonjs/gui-editor": "^8.25.0",
     "@babylonjs/havok": "1.3.10",
-    "@babylonjs/loaders": "^8.25.0",
-    "@babylonjs/materials": "^8.25.0",
-    "@babylonjs/serializers": "^8.25.0",
+    "@babylonjs/loaders": "^8.27.0",
+    "@babylonjs/materials": "^8.27.0",
+    "@babylonjs/serializers": "^8.27.0",
     "@blockly/block-dynamic-connection": "^0.8.2",
     "@blockly/block-plus-minus": "^9.0.2",
     "@blockly/block-shareable-procedures": "^6.0.3",
@@ -31,7 +31,7 @@
     "@fontsource/atkinson-hyperlegible-next": "^5.2.6",
     "@playwright/test": "^1.55.0",
     "@types/estree": "^1.0.8",
-    "babylonjs": "^8.25.0",
+    "babylonjs": "^8.27.0",
     "babylonjs-gui": "^8.25.0",
     "babylonjs-serializers": "^8.25.0",
     "blockly": "^12.3.0",
@@ -43,7 +43,7 @@
     "vite-plugin-css-injected-by-js": "^3.5.2"
   },
   "devDependencies": {
-    "@babylonjs/inspector": "^8.25.0",
+    "@babylonjs/inspector": "^8.27.0",
     "@eslint/js": "^9.34.0",
     "chai": "^6.0.1",
     "eslint": "^9.34.0",

@@ -13,18 +13,20 @@ export function createMeshOnCanvas(block) {
 
   // For shapes (not models), defer creation with aggressive event isolation
   const isShape = [
-    "create_box", "create_sphere", "create_cylinder", 
-    "create_capsule", "create_plane"
+    "create_box",
+    "create_sphere",
+    "create_cylinder",
+    "create_capsule",
+    "create_plane",
   ].includes(block.type);
 
   if (isShape) {
     // Use the same grouping approach as objects for consistency
     // Group all shape creation events together
-   
+
     try {
       createShapeInternal(block);
     } finally {
-     
     }
     return;
   }
@@ -107,18 +109,33 @@ export function createMeshOnCanvas(block) {
         .getFieldValue("COLOR");
       flock.createGround(color, "ground");
       break;
-    case "create_map": {
+    case "create_map":
       meshId = "ground";
       meshMap[meshId] = block;
       meshBlockIdMap[meshId] = block.id;
-      let map = block.getFieldValue("MAP_NAME");
+
+      const mapName = block.getFieldValue("MAP_NAME") || "NONE";
       const materialBlock = block.getInputTargetBlock("MATERIAL");
-      const { textureSet, baseColor, alpha } =
-        extractMaterialInfo(materialBlock);
-      const material = flock.createMaterial(baseColor, textureSet, alpha);
-      flock.createMap(map, material);
+
+      let textureSet, baseColor, alpha;
+      if (materialBlock) {
+        ({ textureSet, baseColor, alpha } = extractMaterialInfo(materialBlock));
+      } else {
+        textureSet = null;
+        baseColor = "#808080";
+        alpha = 1;
+      }
+
+      const material = flock.createMaterial({
+        color: baseColor,
+        materialName: textureSet,
+        alpha,
+      });
+
+      flock.createMap(mapName, material);
+
       break;
-    }
+
     // --- Model Loading Blocks --
     case "load_model":
       modelName = block.getFieldValue("MODELS");
@@ -406,18 +423,30 @@ export function createMeshOnCanvas(block) {
     default:
       //Blockly.Events.setGroup(false);
       return;
-    }
+  }
 
-    if (newMesh) {
-      meshMap[block.id] = block;
-      meshBlockIdMap[block.id] = block.id;
-    }
+  if (newMesh) {
+    meshMap[block.id] = block;
+    meshBlockIdMap[block.id] = block.id;
+  }
 }
 
 function createShapeInternal(block) {
   const shapeType = block.type;
   let position, scale, color, newMesh;
-  let width, height, depth, diameterX, diameterY, diameterZ, cylinderHeight, diameterTop, diameterBottom, capsuleHeight, capsuleDiameter, planeWidth, planeHeight;
+  let width,
+    height,
+    depth,
+    diameterX,
+    diameterY,
+    diameterZ,
+    cylinderHeight,
+    diameterTop,
+    diameterBottom,
+    capsuleHeight,
+    capsuleDiameter,
+    planeWidth,
+    planeHeight;
 
   // Helper function to safely get position value
   function getPositionValue(inputName, defaultValue = 0) {
@@ -435,13 +464,17 @@ function createShapeInternal(block) {
   function getConnectedFieldValue(inputName, fieldName, defaultValue) {
     const input = block.getInput(inputName);
     if (!input || !input.connection) {
-      console.warn(`Input ${inputName} not found or has no connection on block ${block.type}`);
+      console.warn(
+        `Input ${inputName} not found or has no connection on block ${block.type}`,
+      );
       return defaultValue;
     }
 
     const targetBlock = input.connection.targetBlock();
     if (!targetBlock) {
-      console.warn(`No target block connected to input ${inputName} on block ${block.type}`);
+      console.warn(
+        `No target block connected to input ${inputName} on block ${block.type}`,
+      );
       return defaultValue;
     }
 
@@ -449,7 +482,10 @@ function createShapeInternal(block) {
       const value = targetBlock.getFieldValue(fieldName);
       return value !== null ? value : defaultValue;
     } catch (e) {
-      console.error(`Error getting field ${fieldName} from connected block:`, e);
+      console.error(
+        `Error getting field ${fieldName} from connected block:`,
+        e,
+      );
       return defaultValue;
     }
   }
@@ -495,8 +531,12 @@ function createShapeInternal(block) {
     case "create_cylinder":
       color = getConnectedFieldValue("COLOR", "COLOR", "#ff0000");
       cylinderHeight = parseFloat(getConnectedFieldValue("HEIGHT", "NUM", "1"));
-      diameterTop = parseFloat(getConnectedFieldValue("DIAMETER_TOP", "NUM", "1"));
-      diameterBottom = parseFloat(getConnectedFieldValue("DIAMETER_BOTTOM", "NUM", "1"));
+      diameterTop = parseFloat(
+        getConnectedFieldValue("DIAMETER_TOP", "NUM", "1"),
+      );
+      diameterBottom = parseFloat(
+        getConnectedFieldValue("DIAMETER_BOTTOM", "NUM", "1"),
+      );
 
       newMesh = flock.createCylinder(`cylinder__${block.id}`, {
         color,
@@ -510,7 +550,9 @@ function createShapeInternal(block) {
 
     case "create_capsule":
       color = getConnectedFieldValue("COLOR", "COLOR", "#ff0000");
-      capsuleDiameter = parseFloat(getConnectedFieldValue("DIAMETER", "NUM", "1"));
+      capsuleDiameter = parseFloat(
+        getConnectedFieldValue("DIAMETER", "NUM", "1"),
+      );
       capsuleHeight = parseFloat(getConnectedFieldValue("HEIGHT", "NUM", "1"));
 
       newMesh = flock.createCapsule(`capsule__${block.id}`, {
@@ -560,7 +602,8 @@ export function setPositionValues(block, position, blockType) {
         let targetBlock = input.connection.targetBlock();
         if (!targetBlock) {
           // Create a shadow block if none exists
-          const shadowBlock = Blockly.getMainWorkspace().newBlock("math_number");
+          const shadowBlock =
+            Blockly.getMainWorkspace().newBlock("math_number");
           shadowBlock.setFieldValue(String(roundedValue), "NUM");
           shadowBlock.setShadow(true);
           shadowBlock.setMovable(false);
@@ -584,5 +627,5 @@ export function setPositionValues(block, position, blockType) {
 }
 
 function roundPositionValue(value) {
- return Math.round(value * 10) / 10; // 1 decimal place
+  return Math.round(value * 10) / 10; // 1 decimal place
 }
