@@ -51,28 +51,40 @@ export const flockModels = {
     if (!blockKey) blockKey = desiredBase;
 
     // --- sanitize ONLY modelName + BASE (NOT the blockKey) ---
-    modelName   = modelName.replace(/[^a-zA-Z0-9._-]/g, "");
+    modelName = modelName.replace(/[^a-zA-Z0-9._-]/g, "");
     desiredBase = desiredBase.replace(/[^a-zA-Z0-9._-]/g, "");
 
     // --- compose final runtime name using RAW key, and reserve it ---
-     const desiredFinalName = desiredBase;
-    const meshName  = flock._reserveName(desiredFinalName); // may suffix on true collision
-    const groupName = desiredBase;                          // group by base for onTrigger applyToGroup
+    const desiredFinalName = desiredBase;
+    const meshName = flock._reserveName(desiredFinalName); // may suffix on true collision
+    const groupName = desiredBase; // group by base for onTrigger applyToGroup
 
     // position/scale clamps
-    const x = Number.isFinite(position?.x) ? Math.max(-1000, Math.min(1000, position.x)) : 0;
-    const y = Number.isFinite(position?.y) ? Math.max(-1000, Math.min(1000, position.y)) : 0;
-    const z = Number.isFinite(position?.z) ? Math.max(-1000, Math.min(1000, position.z)) : 0;
-    if (!(typeof scale === "number" && scale >= 0.01 && scale <= 100)) scale = 1;
+    const x = Number.isFinite(position?.x)
+      ? Math.max(-1000, Math.min(1000, position.x))
+      : 0;
+    const y = Number.isFinite(position?.y)
+      ? Math.max(-1000, Math.min(1000, position.y))
+      : 0;
+    const z = Number.isFinite(position?.z)
+      ? Math.max(-1000, Math.min(1000, position.z))
+      : 0;
+    if (!(typeof scale === "number" && scale >= 0.01 && scale <= 100))
+      scale = 1;
 
     // --- create readiness deferred (resolve OR reject) + abort hookup ---
     let resolveReady, rejectReady;
-    const readyPromise = new Promise((res, rej) => { resolveReady = res; rejectReady = rej; });
+    const readyPromise = new Promise((res, rej) => {
+      resolveReady = res;
+      rejectReady = rej;
+    });
     flock.modelReadyPromises.set(meshName, readyPromise);
 
     const signal = flock.abortController?.signal;
     const onAbort = () => {
-      try { rejectReady(new Error("aborted")); } catch {}
+      try {
+        rejectReady(new Error("aborted"));
+      } catch {}
       flock.modelReadyPromises.delete(meshName);
       flock._releaseName?.(meshName);
       signal?.removeEventListener("abort", onAbort);
@@ -87,13 +99,22 @@ export const flockModels = {
       flock.scene,
       null,
       null,
-      { signal: flock.abortController?.signal }
+      { signal: flock.abortController?.signal },
     )
       .then((container) => {
         container.addAllToScene();
 
         const mesh = container.meshes[0];
-        const bb = flock.setupMesh(mesh, modelName, meshName, blockKey, scale, x, y, z);
+        const bb = flock.setupMesh(
+          mesh,
+          modelName,
+          meshName,
+          blockKey,
+          scale,
+          x,
+          y,
+          z,
+        );
 
         // materials & colors
         flock.ensureStandardMaterial(mesh);
@@ -112,8 +133,8 @@ export const flockModels = {
         mesh.setEnabled(false);
 
         // Preload animations (non-blocking for readiness)
-        const animationPromises = ["Idle", "Walk", "Jump"].map((name) =>
-          flock.switchToAnimation(flock.scene, bb, name, false, false, false)
+        const animationPromises = ["Walk", "Jump", "Idle"].map((name) =>
+          flock.switchToAnimation(flock.scene, bb, name, false, false, false),
         );
 
         // After anims, run optional callback (await if it returns a promise), then show
@@ -180,7 +201,11 @@ export const flockModels = {
 
     try {
       // Validate
-      if (!modelName || typeof modelName !== "string" || modelName.length > 100) {
+      if (
+        !modelName ||
+        typeof modelName !== "string" ||
+        modelName.length > 100
+      ) {
         console.warn("createObject: Invalid modelName parameter");
         return "error_" + flock.scene.getUniqueId();
       }
@@ -190,7 +215,7 @@ export const flockModels = {
       }
 
       // Parse BEFORE sanitizing so blockKey remains RAW (unchanged)
-      let desiredBase = modelId;  // e.g. "star__zq?)gH+/2$^1Sh9Cbmky"
+      let desiredBase = modelId; // e.g. "star__zq?)gH+/2$^1Sh9Cbmky"
       let blockKey = null;
       if (desiredBase.includes("__")) {
         [desiredBase, blockKey] = desiredBase.split("__");
@@ -199,17 +224,21 @@ export const flockModels = {
       if (!blockKey) blockKey = desiredBase;
 
       // Sanitize ONLY modelName + BASE (NOT the blockKey)
-      modelName   = modelName.replace(/[^a-zA-Z0-9._-]/g, "");
+      modelName = modelName.replace(/[^a-zA-Z0-9._-]/g, "");
       desiredBase = desiredBase.replace(/[^a-zA-Z0-9._-]/g, "");
 
       const desiredFinalName = desiredBase;
 
       // Position/scale clamps
-      if (!position || typeof position !== "object") position = { x: 0, y: 0, z: 0 };
+      if (!position || typeof position !== "object")
+        position = { x: 0, y: 0, z: 0 };
       if (typeof scale !== "number" || scale < 0.01 || scale > 100) scale = 1;
       ["x", "y", "z"].forEach((axis) => {
         const v = position[axis];
-        position[axis] = (typeof v === "number" && isFinite(v)) ? Math.max(-1000, Math.min(1000, v)) : 0;
+        position[axis] =
+          typeof v === "number" && isFinite(v)
+            ? Math.max(-1000, Math.min(1000, v))
+            : 0;
       });
       const { x, y, z } = position;
 
@@ -227,12 +256,17 @@ export const flockModels = {
 
       // Create readiness deferred (resolve OR reject) + abort cleanup
       let resolveReady, rejectReady;
-      const readyPromise = new Promise((res, rej) => { resolveReady = res; rejectReady = rej; });
+      const readyPromise = new Promise((res, rej) => {
+        resolveReady = res;
+        rejectReady = rej;
+      });
       flock.modelReadyPromises.set(meshName, readyPromise);
 
       const signal = flock.abortController?.signal;
       const onAbort = () => {
-        try { rejectReady(new Error("aborted")); } catch {}
+        try {
+          rejectReady(new Error("aborted"));
+        } catch {}
         flock.modelReadyPromises.delete(meshName);
         flock._releaseName?.(meshName);
         signal?.removeEventListener("abort", onAbort);
@@ -247,15 +281,33 @@ export const flockModels = {
         mesh.scaling.copyFrom(flock.BABYLON.Vector3.One());
         mesh.position.copyFrom(flock.BABYLON.Vector3.Zero());
 
-        flock.setupMesh(mesh, modelName, meshName, blockKey, scale, x, y, z, color);
+        flock.setupMesh(
+          mesh,
+          modelName,
+          meshName,
+          blockKey,
+          scale,
+          x,
+          y,
+          z,
+          color,
+        );
 
         if (applyColor) flock.changeColorMesh(mesh, color);
         mesh.computeWorldMatrix(true);
         mesh.refreshBoundingInfo();
         mesh.setEnabled(true);
 
-        const all = [mesh, ...mesh.getDescendants(false).filter(n => n instanceof flock.BABYLON.AbstractMesh)];
-        all.forEach((m) => { m.isPickable = true; m.setEnabled(true); });
+        const all = [
+          mesh,
+          ...mesh
+            .getDescendants(false)
+            .filter((n) => n instanceof flock.BABYLON.AbstractMesh),
+        ];
+        all.forEach((m) => {
+          m.isPickable = true;
+          m.setEnabled(true);
+        });
 
         flock.announceMeshReady(meshName, groupName);
         flock._markNameCreated(meshName);
@@ -264,7 +316,9 @@ export const flockModels = {
 
         if (callback) requestAnimationFrame(callback);
 
-        setTimeout(() => { flock.modelReadyPromises.delete(meshName); }, 5000);
+        setTimeout(() => {
+          flock.modelReadyPromises.delete(meshName);
+        }, 5000);
         return meshName;
       }
 
@@ -272,19 +326,38 @@ export const flockModels = {
       if (flock.modelsBeingLoaded[modelName]) {
         flock.modelsBeingLoaded[modelName]
           .then(() => {
-            if (!flock.modelCache[modelName]) throw new Error("Template missing after load");
+            if (!flock.modelCache[modelName])
+              throw new Error("Template missing after load");
             const firstMesh = flock.modelCache[modelName];
             const mesh = firstMesh.clone(blockKey);
             mesh.scaling.copyFrom(flock.BABYLON.Vector3.One());
             mesh.position.copyFrom(flock.BABYLON.Vector3.Zero());
 
-            flock.setupMesh(mesh, modelName, meshName, blockKey, scale, x, y, z, color);
+            flock.setupMesh(
+              mesh,
+              modelName,
+              meshName,
+              blockKey,
+              scale,
+              x,
+              y,
+              z,
+              color,
+            );
             if (applyColor) flock.changeColorMesh(mesh, color);
             mesh.computeWorldMatrix(true);
             mesh.refreshBoundingInfo();
 
-            const all = [mesh, ...mesh.getDescendants(false).filter(n => n instanceof flock.BABYLON.AbstractMesh)];
-            all.forEach((m) => { m.isPickable = true; m.setEnabled(true); });
+            const all = [
+              mesh,
+              ...mesh
+                .getDescendants(false)
+                .filter((n) => n instanceof flock.BABYLON.AbstractMesh),
+            ];
+            all.forEach((m) => {
+              m.isPickable = true;
+              m.setEnabled(true);
+            });
 
             flock.announceMeshReady(meshName, groupName);
             flock._markNameCreated(meshName);
@@ -301,7 +374,9 @@ export const flockModels = {
             cleanupAbort();
           })
           .finally(() => {
-            setTimeout(() => { flock.modelReadyPromises.delete(meshName); }, 5000);
+            setTimeout(() => {
+              flock.modelReadyPromises.delete(meshName);
+            }, 5000);
           });
 
         return meshName;
@@ -309,7 +384,9 @@ export const flockModels = {
 
       // ===== C) First load → AssetContainer → cache hidden template → configure live =====
       const loadPromise = flock.BABYLON.SceneLoader.LoadAssetContainerAsync(
-        flock.modelPath, modelName, flock.scene
+        flock.modelPath,
+        modelName,
+        flock.scene,
       );
       flock.modelsBeingLoaded[modelName] = loadPromise;
 
@@ -342,9 +419,22 @@ export const flockModels = {
           const live = container.meshes[0];
           live.isPickable = true;
           live.setEnabled(true);
-          live.getChildMeshes().forEach((child) => { child.isPickable = true; child.setEnabled(true); });
+          live.getChildMeshes().forEach((child) => {
+            child.isPickable = true;
+            child.setEnabled(true);
+          });
 
-          flock.setupMesh(live, modelName, meshName, blockKey, scale, x, y, z, color);
+          flock.setupMesh(
+            live,
+            modelName,
+            meshName,
+            blockKey,
+            scale,
+            x,
+            y,
+            z,
+            color,
+          );
 
           if (applyColor) flock.changeColorMesh(live, color);
 
@@ -371,7 +461,9 @@ export const flockModels = {
         })
         .finally(() => {
           delete flock.modelsBeingLoaded[modelName];
-          setTimeout(() => { flock.modelReadyPromises.delete(meshName); }, 5000);
+          setTimeout(() => {
+            flock.modelReadyPromises.delete(meshName);
+          }, 5000);
         });
 
       return meshName;
@@ -399,7 +491,7 @@ export const flockModels = {
   releaseContainer(container, { disposeAnims = false } = {}) {
     try {
       if (disposeAnims) {
-        container.animationGroups?.forEach(ag => ag.dispose?.());
+        container.animationGroups?.forEach((ag) => ag.dispose?.());
       }
       // Drop references so the container itself can be GC’d
       container.meshes = [];
@@ -407,7 +499,8 @@ export const flockModels = {
       container.textures = [];
       container.skeletons = [];
       container.animationGroups = [];
-    } catch (_) { /* ignore */ }
-  }
-
+    } catch (_) {
+      /* ignore */
+    }
+  },
 };
