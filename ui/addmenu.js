@@ -58,12 +58,12 @@ function __metaFor(name) {
 }
 
 // --- DROP-IN REPLACEMENT ---
-function createBlockWithShadows(shapeType, position) {
+function createBlockWithShadows(shapeType, position, colour) {
   const workspace = Blockly.getMainWorkspace();
   const spec = __CREATE_SPEC[shapeType];
   if (!spec) return null;
 
-  const c = flock.randomColour();
+  const c = colour ? colour : flock.randomColour();
   const posX = position?.x !== undefined ? roundPos(position.x) : 0;
   const posY = position?.y !== undefined ? roundPos(position.y) : 0;
   const posZ = position?.z !== undefined ? roundPos(position.z) : 0;
