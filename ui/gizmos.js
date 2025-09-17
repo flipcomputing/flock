@@ -55,6 +55,10 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 });
 
+function resetMesh(mesh) {
+  
+}
+
 function pickMeshFromCanvas() {
   const canvas = flock.scene.getEngine().getRenderingCanvas();
 
@@ -1464,6 +1468,7 @@ export function setGizmoManager(value) {
     }
 
     if (gizmoManager.attachedMesh) {
+      if (gizmoManager.attachedMesh.visibility === 0.001) gizmoManager.attachedMesh.visibility = 0;
       gizmoManager.attachedMesh.showBoundingBox = false;
       gizmoManager.attachedMesh
         .getChildMeshes()
