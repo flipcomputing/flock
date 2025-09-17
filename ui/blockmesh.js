@@ -1837,6 +1837,7 @@ export function updateBlockColorAndHighlight(mesh, selectedColor) {
     if (!block) {
       // Create a sky block if one doesn't exist.
       block = Blockly.getMainWorkspace().newBlock("set_sky_color");
+      if (flock.blockDebug) console.log(selectedColor);
       block.setFieldValue(selectedColor, "COLOR");
       block.initSvg();
       block.render();
