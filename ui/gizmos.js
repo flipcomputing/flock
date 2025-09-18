@@ -323,11 +323,15 @@ function findParentWithBlockId(mesh) {
   return null;
 }
 
-function resetAttachedMesh() {
-  gizmoManager.attachedMesh.showBoundingBox = false;
+function resetChildMeshesOfAttachedMesh() {
   gizmoManager.attachedMesh
     .getChildMeshes()
     .forEach((child) => (child.showBoundingBox = false));
+}
+
+function resetAttachedMesh() {
+  gizmoManager.attachedMesh.showBoundingBox = false;
+  resetChildMeshesOfAttachedMesh();
 }
 
 function resetAttachedMeshIfMeshAttached() {
@@ -672,9 +676,7 @@ export function toggleGizmo(gizmoType) {
 
             // Deselect if no mesh is picked
             if (gizmoManager.attachedMesh) {
-              gizmoManager.attachedMesh
-                .getChildMeshes()
-                .forEach((child) => (child.showBoundingBox = false));
+              resetChildMeshesOfAttachedMesh();
               gizmoManager.attachToMesh(null); // Detach the gizmo
             }
           }
