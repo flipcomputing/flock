@@ -1,7 +1,7 @@
 import { expect } from "chai";
 
 export function runAnimateTests(flock) {
-	describe("Animation API Tests", function () {
+	describe("Animation API Tests @slow", function () {
 		const boxIds = [];
 
 		beforeEach(async function () {

@@ -148,7 +148,7 @@ export function runPhysicsTests(flock) {
 			boxIds.length = 0;
 		});
 
-		it("should apply force to a mesh with default values (no movement)", async function () {
+		it("should apply force to a mesh with default values (no movement) @slow", async function () {
 			const id = "boxApplyForceDefault";
 			await flock.createBox(id, {
 				width: 1,
