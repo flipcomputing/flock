@@ -1013,7 +1013,7 @@ export function toggleGizmo(gizmoType) {
         orangeColor;
 
       gizmoManager.gizmos.scaleGizmo.sensitivity = 4;
-      gizmoManager.gizmos.scaleGizmo.uniformScaleGizmo.scaleRatio = 4;
+      gizmoManager.gizmos.scaleGizmo.uniformScaleGizmo.scaleRatio = 3;
 
       // Track bottom for correct visual anchoring
       let originalBottomY = 0;
