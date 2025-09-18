@@ -1409,23 +1409,17 @@ export function enableGizmos() {
   );
 
   // Enable the buttons
-  positionButton.removeAttribute("disabled");
-  rotationButton.removeAttribute("disabled");
-  scaleButton.removeAttribute("disabled");
-  hideButton.removeAttribute("disabled");
-  duplicateButton.removeAttribute("disabled");
-  deleteButton.removeAttribute("disabled");
-  cameraButton.removeAttribute("disabled");
-  showShapesButton.removeAttribute("disabled");
-  colorPickerButton.removeAttribute("disabled");
-  aboutButton.removeAttribute("disabled");
 
-  scrollModelsLeftButton.removeAttribute("disabled");
-  scrollModelsRightButton.removeAttribute("disabled");
-  scrollObjectsLeftButton.removeAttribute("disabled");
-  scrollObjectsRightButton.removeAttribute("disabled");
-  scrollCharactersLeftButton.removeAttribute("disabled");
-  scrollCharactersRightButton.removeAttribute("disabled");
+  const buttons = [
+    positionButton, rotationButton, scaleButton, hideButton,
+    duplicateButton, deleteButton, cameraButton, showShapesButton,
+    colorPickerButton, aboutButton, scrollModelsLeftButton,
+    scrollModelsRightButton, scrollObjectsLeftButton,
+    scrollObjectsRightButton, scrollCharactersLeftButton,
+    scrollCharactersRightButton
+  ];
+
+  buttons.forEach(button => button.removeAttribute("disabled"));
 
   // Attach event listeners
   positionButton.addEventListener("click", () => toggleGizmo("position"));
