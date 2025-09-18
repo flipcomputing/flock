@@ -95,7 +95,7 @@ export function deleteMeshFromBlock(blockId) {
 
   if (!blockKey) {
     const block = Blockly.getMainWorkspace().getBlockById(blockId);
-    if (block.type === "create_map") {
+    if (block && block.type === "create_map") {
       const mesh = flock?.scene?.getMeshByName("ground");
       if (mesh) {
         flock.disposeMesh(mesh);
