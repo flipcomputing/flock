@@ -56,7 +56,8 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 
 function resetMesh(mesh) {
-  
+  if (mesh.visibility === 0.001) mesh.visibility = 0;
+  mesh.showBoundingBox = false;
 }
 
 function pickMeshFromCanvas() {
@@ -458,10 +459,10 @@ export function toggleGizmo(gizmoType) {
   gizmoManager.boundingBoxGizmoEnabled = false;
 
   if (gizmoManager.attachedMesh) {
-    gizmoManager.attachedMesh.showBoundingBox = false;
+    gizmoManager.attachedMesh.resetMesh();
     gizmoManager.attachedMesh
       .getChildMeshes()
-      .forEach((child) => (child.showBoundingBox = false));
+      .forEach((child) => (child.resetMesh()));
   }
 
   document.body.style.cursor = "default";
@@ -617,10 +618,10 @@ export function toggleGizmo(gizmoType) {
       const pointerObserver = pointerObservable.add((event) => {
         if (event.type === flock.BABYLON.PointerEventTypes.POINTERPICK) {
           if (gizmoManager.attachedMesh) {
-            gizmoManager.attachedMesh.showBoundingBox = false;
+            gizmoManager.attachedMesh.resetMesh();
             gizmoManager.attachedMesh
               .getChildMeshes()
-              .forEach((child) => (child.showBoundingBox = false));
+              .forEach((child) => (child.resetMesh()));
             blockKey = findParentWithBlockId(
               gizmoManager.attachedMesh,
             ).metadata.blockKey;
@@ -681,7 +682,7 @@ export function toggleGizmo(gizmoType) {
             if (gizmoManager.attachedMesh) {
               gizmoManager.attachedMesh
                 .getChildMeshes()
-                .forEach((child) => (child.showBoundingBox = false));
+                .forEach((child) => (child.resetMesh()));
               gizmoManager.attachToMesh(null); // Detach the gizmo
             }
           }
@@ -1316,10 +1317,10 @@ export function toggleGizmo(gizmoType) {
 
 function turnOffAllGizmos() {
   if (gizmoManager.attachedMesh) {
-    gizmoManager.attachedMesh.showBoundingBox = false;
+    gizmoManager.attachedMesh.resetMesh();
     gizmoManager.attachedMesh
       .getChildMeshes()
-      .forEach((child) => (child.showBoundingBox = false));
+      .forEach((child) => (child.resetMesh()));
   }
   gizmoManager.attachToMesh(null);
   gizmoManager.positionGizmoEnabled = false;
@@ -1468,11 +1469,10 @@ export function setGizmoManager(value) {
     }
 
     if (gizmoManager.attachedMesh) {
-      if (gizmoManager.attachedMesh.visibility === 0.001) gizmoManager.attachedMesh.visibility = 0;
-      gizmoManager.attachedMesh.showBoundingBox = false;
+      gizmoManager.attachedMesh.resetMesh();
       gizmoManager.attachedMesh
         .getChildMeshes()
-        .forEach((child) => (child.showBoundingBox = false));
+        .forEach((child) => (child.resetMesh()));
 
       if (mesh) {
         while (mesh && mesh.parent && !mesh.parent.physics) {
