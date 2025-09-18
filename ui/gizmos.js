@@ -58,6 +58,7 @@ document.addEventListener("DOMContentLoaded", function () {
 function resetMesh(mesh) {
   if (mesh.visibility === 0.001) mesh.visibility = 0;
   mesh.showBoundingBox = false;
+  if (flock.meshDebug) console.log(mesh.visibility);
 }
 
 function pickMeshFromCanvas() {
