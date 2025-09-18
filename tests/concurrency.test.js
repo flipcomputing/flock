@@ -1,7 +1,7 @@
 import { expect } from "chai";
 
 export function runConcurrencyTests(flock) {
-	describe("Concurrency and Stress Tests", function () {
+	describe("Concurrency and Stress Tests @slow", function () {
 		this.timeout(30000); // Extended timeout for stress tests
 		const createdObjects = [];
 

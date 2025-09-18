@@ -2,7 +2,7 @@ import { expect } from "chai";
 
 // Stress test for handling many boxes with dynamic inputs
 export function runStressTests(flock) {
-	describe("Stress test for many boxes", function () {
+	describe("Stress test for many boxes @slow", function () {
 		const boxCount = 50; // Number of boxes to create
 		const boxIds = [];
 		const boxColors = ["#FF0000", "#00FF00", "#0000FF", "#FFFF00", "#FF00FF", "#00FFFF"];
