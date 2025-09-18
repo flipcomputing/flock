@@ -42,7 +42,8 @@ export function defineSceneBlocks() {
 			this.setOnChange((changeEvent) => {
 				if (
 					changeEvent.type === Blockly.Events.BLOCK_CREATE ||
-					changeEvent.type === Blockly.Events.BLOCK_CHANGE
+					changeEvent.type === Blockly.Events.BLOCK_CHANGE ||
+					changeEvent.type === Blockly.Events.BLOCK_MOVE
 				) {
 					const parent = findCreateBlock(
 						Blockly.getMainWorkspace().getBlockById(
