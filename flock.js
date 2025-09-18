@@ -71,6 +71,7 @@ export const flock = {
         texturePath: "./textures/",
         engine: null,
         engineReady: false,
+        eventDebug: false,
         modelReadyPromises: new Map(),
         pendingMeshCreations: 0,
         pendingTriggers: new Map(),
