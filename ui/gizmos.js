@@ -324,11 +324,15 @@ function findParentWithBlockId(mesh) {
 }
 
 function resetAttachedMesh() {
+  gizmoManager.attachedMesh.showBoundingBox = false;
+  gizmoManager.attachedMesh
+    .getChildMeshes()
+    .forEach((child) => (child.showBoundingBox = false));
+}
+
+function resetAttachedMeshIfMeshAttached() {
   if (gizmoManager.attachedMesh) {
-    gizmoManager.attachedMesh.showBoundingBox = false;
-    gizmoManager.attachedMesh
-      .getChildMeshes()
-      .forEach((child) => (child.showBoundingBox = false));
+    resetAttachedMesh();
   }
 }
 
@@ -462,7 +466,7 @@ export function toggleGizmo(gizmoType) {
   gizmoManager.scaleGizmoEnabled = false;
   gizmoManager.boundingBoxGizmoEnabled = false;
 
-  resetAttachedMesh();
+  resetAttachedMeshIfMeshAttached();
 
   document.body.style.cursor = "default";
 
@@ -1308,7 +1312,7 @@ export function toggleGizmo(gizmoType) {
 }
 
 function turnOffAllGizmos() {
-  resetAttachedMesh();
+  resetAttachedMeshIfMeshAttached();
   gizmoManager.attachToMesh(null);
   gizmoManager.positionGizmoEnabled = false;
   gizmoManager.rotationGizmoEnabled = false;
