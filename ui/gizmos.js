@@ -63,12 +63,7 @@ function pickMeshFromCanvas() {
     const canvasRect = canvas.getBoundingClientRect();
 
     // Check if the click happened outside the canvas
-    if (
-      event.clientX < canvasRect.left ||
-      event.clientX > canvasRect.right ||
-      event.clientY < canvasRect.top ||
-      event.clientY > canvasRect.bottom
-    ) {
+    if (eventIsOutOfCanvasBounds(event, canvasRect)) {
       window.removeEventListener("click", onPickMesh);
       document.body.style.cursor = "default";
       endColorPickingMode();
@@ -333,6 +328,13 @@ function resetAttachedMeshIfMeshAttached() {
   }
 }
 
+function eventIsOutOfCanvasBounds(event, canvasRect) {
+  return event.clientX < canvasRect.left ||
+    event.clientX > canvasRect.right ||
+    event.clientY < canvasRect.top ||
+    event.clientY > canvasRect.bottom;
+}
+
 function deleteBlockWithUndo(blockId) {
   const workspace = Blockly.getMainWorkspace();
   const block = workspace.getBlockById(blockId);
@@ -522,12 +524,7 @@ export function toggleGizmo(gizmoType) {
       onPickMesh = function (event) {
         const canvasRect = canvas.getBoundingClientRect();
 
-        if (
-          event.clientX < canvasRect.left ||
-          event.clientX > canvasRect.right ||
-          event.clientY < canvasRect.top ||
-          event.clientY > canvasRect.bottom
-        ) {
+        if (eventIsOutOfCanvasBounds(event, canvasRect)) {
           window.removeEventListener("click", onPickMesh);
           document.body.style.cursor = "default";
           return;
