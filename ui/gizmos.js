@@ -130,43 +130,36 @@ function startColorPickingKeyboardMode(callback) {
 }
 
 function handleColorPickingKeydown(event) {
+  
+  function preventDefaultEventAndDefineColourPickingCircle() {
+    event.preventDefault();
+    if (!colorPickingCircle) {
+      createColorPickingCircle();
+      document.body.style.cursor = "none";
+    }
+  }
+  
   if (!colorPickingKeyboardMode) return;
 
   const moveDistance = event.shiftKey ? 10 : 2;
   switch (event.key) {
     case "ArrowRight":
-      event.preventDefault();
-      if (!colorPickingCircle) {
-        createColorPickingCircle();
-        document.body.style.cursor = "none";
-      }
+      preventDefaultEventAndDefineColourPickingCircle();
       colorPickingCirclePosition.x += moveDistance;
       updateColorPickingCirclePosition();
       break;
     case "ArrowLeft":
-      event.preventDefault();
-      if (!colorPickingCircle) {
-        createColorPickingCircle();
-        document.body.style.cursor = "none";
-      }
+      preventDefaultEventAndDefineColourPickingCircle();
       colorPickingCirclePosition.x -= moveDistance;
       updateColorPickingCirclePosition();
       break;
     case "ArrowUp":
-      event.preventDefault();
-      if (!colorPickingCircle) {
-        createColorPickingCircle();
-        document.body.style.cursor = "none";
-      }
+      preventDefaultEventAndDefineColourPickingCircle();
       colorPickingCirclePosition.y -= moveDistance;
       updateColorPickingCirclePosition();
       break;
     case "ArrowDown":
-      event.preventDefault();
-      if (!colorPickingCircle) {
-        createColorPickingCircle();
-        document.body.style.cursor = "none";
-      }
+      preventDefaultEventAndDefineColourPickingCircle();
       colorPickingCirclePosition.y += moveDistance;
       updateColorPickingCirclePosition();
       break;
