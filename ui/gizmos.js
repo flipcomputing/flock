@@ -621,10 +621,7 @@ export function toggleGizmo(gizmoType) {
       const pointerObserver = pointerObservable.add((event) => {
         if (event.type === flock.BABYLON.PointerEventTypes.POINTERPICK) {
           if (gizmoManager.attachedMesh) {
-            gizmoManager.attachedMesh.showBoundingBox = false;
-            gizmoManager.attachedMesh
-              .getChildMeshes()
-              .forEach((child) => (child.showBoundingBox = false));
+            resetAttachedMesh();
             blockKey = findParentWithBlockId(
               gizmoManager.attachedMesh,
             ).metadata.blockKey;
@@ -1460,10 +1457,7 @@ export function setGizmoManager(value) {
     }
 
     if (gizmoManager.attachedMesh) {
-      gizmoManager.attachedMesh.showBoundingBox = false;
-      gizmoManager.attachedMesh
-        .getChildMeshes()
-        .forEach((child) => (child.showBoundingBox = false));
+      resetAttachedMesh();
 
       if (mesh) {
         while (mesh && mesh.parent && !mesh.parent.physics) {
