@@ -7,6 +7,7 @@ import {
   objectColours,
 } from "../config.js";
 import {setPositionValues} from "./addmeshes.js";
+import {getCanvasXAndCanvasYValues} from "./gizmos.js";
 
 const colorFields = {
   HAIR_COLOR: "#000000", // Hair: black
@@ -400,8 +401,7 @@ function selectShape(shapeType) {
 
   flock.activePickHandler = function onPick(event) {
     const canvasRect = flock.canvas.getBoundingClientRect();
-    const canvasX = event.clientX - canvasRect.left;
-    const canvasY = event.clientY - canvasRect.top;
+    const [canvasX, canvasY] = getCanvasXAndCanvasYValues(event, canvasRect);
 
     const pickResult = flock.scene.pick(canvasX, canvasY);
     if (pickResult && pickResult.hit) {
@@ -429,8 +429,7 @@ function selectModel(modelName) {
 
   const onPick = function (event) {
     const canvasRect = flock.canvas.getBoundingClientRect();
-    const canvasX = event.clientX - canvasRect.left;
-    const canvasY = event.clientY - canvasRect.top;
+    const [canvasX, canvasY] = getCanvasXAndCanvasYValues(event, canvasRect);
 
     const pickResult = flock.scene.pick(canvasX, canvasY);
     if (pickResult.hit) {

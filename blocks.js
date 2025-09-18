@@ -707,7 +707,7 @@ export function initializeVariableIndexes() {
     "3dtext": 1,
     sound: 1,
     character: 1,
-    object: 1,
+    item: 1,
     instrument: 1,
     animation: 1,
     clone: 1,

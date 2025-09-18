@@ -95,7 +95,7 @@ export function deleteMeshFromBlock(blockId) {
 
   if (!blockKey) {
     const block = Blockly.getMainWorkspace().getBlockById(blockId);
-    if (block.type === "create_map") {
+    if (block && block.type === "create_map") {
       const mesh = flock?.scene?.getMeshByName("ground");
       if (mesh) {
         flock.disposeMesh(mesh);
@@ -685,6 +685,21 @@ export function updateMeshFromBlock(mesh, block, changeEvent) {
           useY: true,
         });
         break;
+    }
+  } else if (!["X", "Y", "Z"].includes(changed) && changed === "SCALE") {
+    for (const childBlock of block.getChildren()) {
+      if (childBlock.type === "rotate_to") {
+        let rotation = {
+          x: childBlock.getInput("X").connection.targetBlock().getFieldValue("NUM"),
+          y: childBlock.getInput("Y").connection.targetBlock().getFieldValue("NUM"),
+          z: childBlock.getInput("Z").connection.targetBlock().getFieldValue("NUM"),
+        };
+        flock.rotateTo(mesh.name,{
+          x: rotation.x,
+          y: rotation.y,
+          z: rotation.z,
+        });
+      }
     }
   }
   //console.log("Update physics");

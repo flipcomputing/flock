@@ -1,7 +1,7 @@
 import { expect } from "chai";
 
 export function runCreateObjectTests(flock) {
-	describe("createObject tests", function () {
+	describe("createObject tests @slow", function () {
 		this.timeout(5000);
 
 		it("should create one object then create another", async function () {
