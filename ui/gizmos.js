@@ -323,6 +323,15 @@ function findParentWithBlockId(mesh) {
   return null;
 }
 
+function resetAttachedMesh() {
+  if (gizmoManager.attachedMesh) {
+    gizmoManager.attachedMesh.showBoundingBox = false;
+    gizmoManager.attachedMesh
+      .getChildMeshes()
+      .forEach((child) => (child.showBoundingBox = false));
+  }
+}
+
 function deleteBlockWithUndo(blockId) {
   const workspace = Blockly.getMainWorkspace();
   const block = workspace.getBlockById(blockId);
@@ -453,12 +462,7 @@ export function toggleGizmo(gizmoType) {
   gizmoManager.scaleGizmoEnabled = false;
   gizmoManager.boundingBoxGizmoEnabled = false;
 
-  if (gizmoManager.attachedMesh) {
-    gizmoManager.attachedMesh.showBoundingBox = false;
-    gizmoManager.attachedMesh
-      .getChildMeshes()
-      .forEach((child) => (child.showBoundingBox = false));
-  }
+  resetAttachedMesh();
 
   document.body.style.cursor = "default";
 
@@ -1304,12 +1308,7 @@ export function toggleGizmo(gizmoType) {
 }
 
 function turnOffAllGizmos() {
-  if (gizmoManager.attachedMesh) {
-    gizmoManager.attachedMesh.showBoundingBox = false;
-    gizmoManager.attachedMesh
-      .getChildMeshes()
-      .forEach((child) => (child.showBoundingBox = false));
-  }
+  resetAttachedMesh();
   gizmoManager.attachToMesh(null);
   gizmoManager.positionGizmoEnabled = false;
   gizmoManager.rotationGizmoEnabled = false;
