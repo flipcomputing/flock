@@ -95,7 +95,7 @@
       <button id="clearTestBtn" style="padding: 5px 15px; margin-left: 5px;">Clear Results</button>
     </div>
     <div  style="margin: 20px 0;">
-      <p>Test Filter: <span id="mochaFilter"></span></p>
+      <p>Test Filter (mocha grep): <span id="mochaFilter"></span></p>
     </div>
 
     <!-- Mocha test results will be displayed here -->
@@ -112,6 +112,8 @@
       // alternatively, the array can be customised to run tagged tests or subsets of tests
       const testSuiteDefinitions = [
         { id: "@new", name: ":Run Tests tagged @new", importPath: "", importFn: "", pattern: "@new" },
+        { id: "@notslow", name: ":Run all except @slow", importPath: "", importFn: "", pattern: "/^(?!.*@slow).*$/" },
+        { id: "@onlyslow", name: ":Run only @slow", importPath: "", importFn: "", pattern: "@slow" },
         { id: "babylon", name: "Basic Babylon Tests", importPath: "./babylon.test.js", importFn: "runTests", pattern: "Flock API Tests" },
         { id: "glide", name: "Glide Animation Tests", importPath: "./glide.test.js", importFn: "runGlideToTests", pattern: "glideTo function tests" },
         { id: "ui", name: "UI Text/Button Tests", importPath: "./uitextbutton.test.js", importFn: "runUITests", pattern: "UIText, UIButton, UIInput, and UISlider function tests" },
@@ -212,10 +214,15 @@
       // set up (global for this script) selectedTest variable
       let selectedTest = null;
 
-      function setMochaFiter(pattern) {
-        mocha.grep(pattern);
+      function mentionMochaFilter(pattern, name) {
+        const info = `${pattern || "None"}`
         const filterSpan = document.getElementById('mochaFilter');
-        filterSpan.textContent = pattern ? pattern : "None";
+        filterSpan.textContent = info ;
+      }
+
+      function setMochaFiter(pattern, name=null) {
+        mocha.grep(pattern);
+        mentionMochaFilter(pattern, name);
       }
 
       function clearMochaFilter() {
@@ -278,8 +285,6 @@
 
       testSelect.addEventListener('change', () => {
         selectedTest = testSelect.value;
-        //console.log("Selected test suite:", selectedTest);
-        //console.log("Pattern being used:", testSuiteDefinitions.find(suite => suite.id === selectedTest)?.pattern);
         
         // Clear previous results
         document.getElementById('mocha').innerHTML = '';
@@ -293,7 +298,7 @@
           const testSuite = testSuiteDefinitions.find(suite => suite.id === selectedTest);
           if (testSuite && testSuite.pattern) {
             // Apply the grep pattern to filter tests
-            setMochaFiter(testSuite.pattern);
+            setMochaFiter(testSuite.pattern, testSuite.name);
           }
         }
       });
@@ -310,7 +315,9 @@
       });
 
       clearTestBtn.addEventListener('click', () => {
+        // workroomprds says: let's clarify what this is for. I'm concerned that we're introducing a covert state – and that may mean re-running tests produces different behavior becuase the tests are in a slightly different state
         document.getElementById('mocha').innerHTML = '';
+        testSelect.selectedIndex = 0;
         clearMochaFilter();
       });
 

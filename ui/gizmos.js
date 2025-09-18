@@ -3,7 +3,7 @@ import * as Blockly from "blockly";
 import { meshMap, meshBlockIdMap } from "../generators";
 import { flock } from "../flock.js";
 import { setPositionValues } from "./addmeshes.js";
-import { getMeshFromBlockKey, getRootMesh, updateBlockColorAndHighlight } from "./blockmesh.js";
+import { getMeshFromBlockKey, updateBlockColorAndHighlight } from "./blockmesh.js";
 export let gizmoManager;
 
 const blueColor = flock.BABYLON.Color3.FromHexString("#0072B2"); // Colour for X-axis
@@ -55,12 +55,6 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 });
 
-function resetMesh(mesh) {
-  if (mesh.visibility === 0.001) mesh.visibility = 0;
-  mesh.showBoundingBox = false;
-  if (flock.meshDebug) console.log(mesh.visibility);
-}
-
 function pickMeshFromCanvas() {
   const canvas = flock.scene.getEngine().getRenderingCanvas();
 
@@ -69,12 +63,7 @@ function pickMeshFromCanvas() {
     const canvasRect = canvas.getBoundingClientRect();
 
     // Check if the click happened outside the canvas
-    if (
-      event.clientX < canvasRect.left ||
-      event.clientX > canvasRect.right ||
-      event.clientY < canvasRect.top ||
-      event.clientY > canvasRect.bottom
-    ) {
+    if (eventIsOutOfCanvasBounds(event, canvasRect)) {
       window.removeEventListener("click", onPickMesh);
       document.body.style.cursor = "default";
       endColorPickingMode();
@@ -82,8 +71,7 @@ function pickMeshFromCanvas() {
     }
 
     // Calculate the click position relative to the canvas, not the window
-    const canvasX = event.clientX - canvasRect.left;
-    const canvasY = event.clientY - canvasRect.top;
+    const [canvasX, canvasY] = getCanvasXAndCanvasYValues(event, canvasRect);
 
     applyColorAtPosition(canvasX, canvasY);
     
@@ -136,43 +124,36 @@ function startColorPickingKeyboardMode(callback) {
 }
 
 function handleColorPickingKeydown(event) {
+  
+  function preventDefaultEventAndDefineColourPickingCircle() {
+    event.preventDefault();
+    if (!colorPickingCircle) {
+      createColorPickingCircle();
+      document.body.style.cursor = "none";
+    }
+  }
+  
   if (!colorPickingKeyboardMode) return;
 
   const moveDistance = event.shiftKey ? 10 : 2;
   switch (event.key) {
     case "ArrowRight":
-      event.preventDefault();
-      if (!colorPickingCircle) {
-        createColorPickingCircle();
-        document.body.style.cursor = "none";
-      }
+      preventDefaultEventAndDefineColourPickingCircle();
       colorPickingCirclePosition.x += moveDistance;
       updateColorPickingCirclePosition();
       break;
     case "ArrowLeft":
-      event.preventDefault();
-      if (!colorPickingCircle) {
-        createColorPickingCircle();
-        document.body.style.cursor = "none";
-      }
+      preventDefaultEventAndDefineColourPickingCircle();
       colorPickingCirclePosition.x -= moveDistance;
       updateColorPickingCirclePosition();
       break;
     case "ArrowUp":
-      event.preventDefault();
-      if (!colorPickingCircle) {
-        createColorPickingCircle();
-        document.body.style.cursor = "none";
-      }
+      preventDefaultEventAndDefineColourPickingCircle();
       colorPickingCirclePosition.y -= moveDistance;
       updateColorPickingCirclePosition();
       break;
     case "ArrowDown":
-      event.preventDefault();
-      if (!colorPickingCircle) {
-        createColorPickingCircle();
-        document.body.style.cursor = "none";
-      }
+      preventDefaultEventAndDefineColourPickingCircle();
       colorPickingCirclePosition.y += moveDistance;
       updateColorPickingCirclePosition();
       break;
@@ -329,6 +310,34 @@ function findParentWithBlockId(mesh) {
   return null;
 }
 
+function resetChildMeshesOfAttachedMesh() {
+  gizmoManager.attachedMesh
+    .getChildMeshes()
+    .forEach((child) => (child.showBoundingBox = false));
+}
+
+function resetAttachedMesh() {
+  gizmoManager.attachedMesh.showBoundingBox = false;
+  resetChildMeshesOfAttachedMesh();
+}
+
+function resetAttachedMeshIfMeshAttached() {
+  if (gizmoManager.attachedMesh) {
+    resetAttachedMesh();
+  }
+}
+
+function eventIsOutOfCanvasBounds(event, canvasRect) {
+  return event.clientX < canvasRect.left ||
+    event.clientX > canvasRect.right ||
+    event.clientY < canvasRect.top ||
+    event.clientY > canvasRect.bottom;
+}
+
+export function getCanvasXAndCanvasYValues(event, canvasRect) {
+  return [event.clientX - canvasRect.left, event.clientY - canvasRect.top];
+}
+
 function deleteBlockWithUndo(blockId) {
   const workspace = Blockly.getMainWorkspace();
   const block = workspace.getBlockById(blockId);
@@ -459,12 +468,7 @@ export function toggleGizmo(gizmoType) {
   gizmoManager.scaleGizmoEnabled = false;
   gizmoManager.boundingBoxGizmoEnabled = false;
 
-  if (gizmoManager.attachedMesh) {
-    resetMesh(gizmoManager.attachedMesh);
-    gizmoManager.attachedMesh
-      .getChildMeshes()
-      .forEach((child) => (resetMesh(child)));
-  }
+  resetAttachedMeshIfMeshAttached();
 
   document.body.style.cursor = "default";
 
@@ -523,19 +527,13 @@ export function toggleGizmo(gizmoType) {
       onPickMesh = function (event) {
         const canvasRect = canvas.getBoundingClientRect();
 
-        if (
-          event.clientX < canvasRect.left ||
-          event.clientX > canvasRect.right ||
-          event.clientY < canvasRect.top ||
-          event.clientY > canvasRect.bottom
-        ) {
+        if (eventIsOutOfCanvasBounds(event, canvasRect)) {
           window.removeEventListener("click", onPickMesh);
           document.body.style.cursor = "default";
           return;
         }
 
-        const canvasX = event.clientX - canvasRect.left;
-        const canvasY = event.clientY - canvasRect.top;
+        const [canvasX, canvasY] = getCanvasXAndCanvasYValues(event, canvasRect);
 
         const pickRay = flock.scene.createPickingRay(
           canvasX,
@@ -619,15 +617,12 @@ export function toggleGizmo(gizmoType) {
       const pointerObserver = pointerObservable.add((event) => {
         if (event.type === flock.BABYLON.PointerEventTypes.POINTERPICK) {
           if (gizmoManager.attachedMesh) {
-            resetMesh(gizmoManager.attachedMesh);
-            gizmoManager.attachedMesh
-              .getChildMeshes()
-              .forEach((child) => (resetMesh(child)));
+            resetAttachedMesh();
             blockKey = findParentWithBlockId(
               gizmoManager.attachedMesh,
             ).metadata.blockKey;
           }
-          let pickedMesh = event.pickInfo.pickedMesh;
+          const pickedMesh = event.pickInfo.pickedMesh;
 
           if (pickedMesh && pickedMesh.name !== "ground") {
             // Assuming 'mesh' is your Babylon.js mesh object
@@ -645,14 +640,6 @@ export function toggleGizmo(gizmoType) {
               color: "black"
             });
 
-            if (flock.meshDebug) console.log(pickedMesh.parent);
-
-            if (pickedMesh.parent) {
-              pickedMesh = getRootMesh(pickedMesh.parent);
-              if (flock.meshDebug) console.log(pickedMesh.visibility);
-              pickedMesh.visibility = 0.001;
-              if (flock.meshDebug) console.log(pickedMesh.visibility);
-            }
 
             const block = meshMap[blockKey];
             highlightBlockById(Blockly.getMainWorkspace(), block);
@@ -681,9 +668,7 @@ export function toggleGizmo(gizmoType) {
 
             // Deselect if no mesh is picked
             if (gizmoManager.attachedMesh) {
-              gizmoManager.attachedMesh
-                .getChildMeshes()
-                .forEach((child) => (resetMesh(child)));
+              resetChildMeshesOfAttachedMesh();
               gizmoManager.attachToMesh(null); // Detach the gizmo
             }
           }
@@ -1028,6 +1013,7 @@ export function toggleGizmo(gizmoType) {
         orangeColor;
 
       gizmoManager.gizmos.scaleGizmo.sensitivity = 4;
+      gizmoManager.gizmos.scaleGizmo.uniformScaleGizmo.scaleRatio = 3;
 
       // Track bottom for correct visual anchoring
       let originalBottomY = 0;
@@ -1317,12 +1303,7 @@ export function toggleGizmo(gizmoType) {
 }
 
 function turnOffAllGizmos() {
-  if (gizmoManager.attachedMesh) {
-    resetMesh(gizmoManager.attachedMesh);
-    gizmoManager.attachedMesh
-      .getChildMeshes()
-      .forEach((child) => (resetMesh(child)));
-  }
+  resetAttachedMeshIfMeshAttached();
   gizmoManager.attachToMesh(null);
   gizmoManager.positionGizmoEnabled = false;
   gizmoManager.rotationGizmoEnabled = false;
@@ -1420,23 +1401,17 @@ export function enableGizmos() {
   );
 
   // Enable the buttons
-  positionButton.removeAttribute("disabled");
-  rotationButton.removeAttribute("disabled");
-  scaleButton.removeAttribute("disabled");
-  hideButton.removeAttribute("disabled");
-  duplicateButton.removeAttribute("disabled");
-  deleteButton.removeAttribute("disabled");
-  cameraButton.removeAttribute("disabled");
-  showShapesButton.removeAttribute("disabled");
-  colorPickerButton.removeAttribute("disabled");
-  aboutButton.removeAttribute("disabled");
 
-  scrollModelsLeftButton.removeAttribute("disabled");
-  scrollModelsRightButton.removeAttribute("disabled");
-  scrollObjectsLeftButton.removeAttribute("disabled");
-  scrollObjectsRightButton.removeAttribute("disabled");
-  scrollCharactersLeftButton.removeAttribute("disabled");
-  scrollCharactersRightButton.removeAttribute("disabled");
+  const buttons = [
+    positionButton, rotationButton, scaleButton, hideButton,
+    duplicateButton, deleteButton, cameraButton, showShapesButton,
+    colorPickerButton, aboutButton, scrollModelsLeftButton,
+    scrollModelsRightButton, scrollObjectsLeftButton,
+    scrollObjectsRightButton, scrollCharactersLeftButton,
+    scrollCharactersRightButton
+  ];
+
+  buttons.forEach(button => button.removeAttribute("disabled"));
 
   // Attach event listeners
   positionButton.addEventListener("click", () => toggleGizmo("position"));
@@ -1470,10 +1445,7 @@ export function setGizmoManager(value) {
     }
 
     if (gizmoManager.attachedMesh) {
-      resetMesh(gizmoManager.attachedMesh);
-      gizmoManager.attachedMesh
-        .getChildMeshes()
-        .forEach((child) => (resetMesh(child)));
+      resetAttachedMesh();
 
       if (mesh) {
         while (mesh && mesh.parent && !mesh.parent.physics) {

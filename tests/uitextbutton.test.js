@@ -72,7 +72,7 @@ export function runUITests(flock) {
 		expect(textBlock.isVisible).to.be.true;
 	  });
 
-	  it("should hide the text block after the specified duration", function (done) {
+	  it("should hide the text block after the specified duration @slow", function (done) {
 		this.timeout(5000);
 
 		flock.UIText({
@@ -92,7 +92,7 @@ export function runUITests(flock) {
 		}, 2500);
 	  });
 
-	  it("should show the text block again using the show function", function (done) {
+	  it("should show the text block again using the show function @slow", function (done) {
 		this.timeout(5000);
 
 		flock.UIText({

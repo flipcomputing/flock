@@ -1,7 +1,7 @@
 import { expect } from "chai";
 
 export function runTranslationTests(flock) {
-  describe("Translation API Tests @translation", function () {
+  describe("Translation API Tests @translation @slow", function () {
 	let boxId;
 
 	beforeEach(async function () {
@@ -145,7 +145,7 @@ export function runTranslationTests(flock) {
 		  expect(box1.getAbsolutePosition().z).to.be.closeTo(box2.getAbsolutePosition().z, 0.01);
 		});
 
-	  it("should move a box to the target box centre position without changing Y when useY is false", function (done) {
+	  it("should move a box to the target box centre position without changing Y when useY is false @slow", function (done) {
 		flock.positionAt(box1Id, { x: 0, y: 10, z: 0 });
 
 		setTimeout(() => {

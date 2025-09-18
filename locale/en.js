@@ -3,7 +3,7 @@ import common from "./commmonHTML.js"
 export default {
   // Blockly category message keys for custom categories
   CATEGORY_SCENE: "Scene",
-  CATEGORY_MESHES: "Meshes", 
+  CATEGORY_MESHES: "Objects", 
   CATEGORY_XR: "XR",
   CATEGORY_EFFECTS: "Effects",
   CATEGORY_CAMERA: "Camera",
