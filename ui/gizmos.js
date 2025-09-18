@@ -334,7 +334,7 @@ function eventIsOutOfCanvasBounds(event, canvasRect) {
     event.clientY > canvasRect.bottom;
 }
 
-function getCanvasXAndCanvasYValues(event, canvasRect) {
+export function getCanvasXAndCanvasYValues(event, canvasRect) {
   return [event.clientX - canvasRect.left, event.clientY - canvasRect.top];
 }
 
