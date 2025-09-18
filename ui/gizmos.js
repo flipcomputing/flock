@@ -460,10 +460,10 @@ export function toggleGizmo(gizmoType) {
   gizmoManager.boundingBoxGizmoEnabled = false;
 
   if (gizmoManager.attachedMesh) {
-    gizmoManager.attachedMesh.resetMesh();
+    resetMesh(gizmoManager.attachedMesh);
     gizmoManager.attachedMesh
       .getChildMeshes()
-      .forEach((child) => (child.resetMesh()));
+      .forEach((child) => (resetMesh(child)));
   }
 
   document.body.style.cursor = "default";
@@ -619,10 +619,10 @@ export function toggleGizmo(gizmoType) {
       const pointerObserver = pointerObservable.add((event) => {
         if (event.type === flock.BABYLON.PointerEventTypes.POINTERPICK) {
           if (gizmoManager.attachedMesh) {
-            gizmoManager.attachedMesh.resetMesh();
+            resetMesh(gizmoManager.attachedMesh);
             gizmoManager.attachedMesh
               .getChildMeshes()
-              .forEach((child) => (child.resetMesh()));
+              .forEach((child) => (resetMesh(child)));
             blockKey = findParentWithBlockId(
               gizmoManager.attachedMesh,
             ).metadata.blockKey;
@@ -683,7 +683,7 @@ export function toggleGizmo(gizmoType) {
             if (gizmoManager.attachedMesh) {
               gizmoManager.attachedMesh
                 .getChildMeshes()
-                .forEach((child) => (child.resetMesh()));
+                .forEach((child) => (resetMesh(child)));
               gizmoManager.attachToMesh(null); // Detach the gizmo
             }
           }
@@ -1318,10 +1318,10 @@ export function toggleGizmo(gizmoType) {
 
 function turnOffAllGizmos() {
   if (gizmoManager.attachedMesh) {
-    gizmoManager.attachedMesh.resetMesh();
+    resetMesh(gizmoManager.attachedMesh);
     gizmoManager.attachedMesh
       .getChildMeshes()
-      .forEach((child) => (child.resetMesh()));
+      .forEach((child) => (resetMesh(child)));
   }
   gizmoManager.attachToMesh(null);
   gizmoManager.positionGizmoEnabled = false;
@@ -1470,10 +1470,10 @@ export function setGizmoManager(value) {
     }
 
     if (gizmoManager.attachedMesh) {
-      gizmoManager.attachedMesh.resetMesh();
+      resetMesh(gizmoManager.attachedMesh);
       gizmoManager.attachedMesh
         .getChildMeshes()
-        .forEach((child) => (child.resetMesh()));
+        .forEach((child) => (resetMesh(child)));
 
       if (mesh) {
         while (mesh && mesh.parent && !mesh.parent.physics) {
