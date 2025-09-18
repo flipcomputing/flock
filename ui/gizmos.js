@@ -71,8 +71,7 @@ function pickMeshFromCanvas() {
     }
 
     // Calculate the click position relative to the canvas, not the window
-    const canvasX = event.clientX - canvasRect.left;
-    const canvasY = event.clientY - canvasRect.top;
+    const [canvasX, canvasY] = getCanvasXAndCanvasYValues(event, canvasRect);
 
     applyColorAtPosition(canvasX, canvasY);
     
@@ -335,6 +334,10 @@ function eventIsOutOfCanvasBounds(event, canvasRect) {
     event.clientY > canvasRect.bottom;
 }
 
+function getCanvasXAndCanvasYValues(event, canvasRect) {
+  return [event.clientX - canvasRect.left, event.clientY - canvasRect.top];
+}
+
 function deleteBlockWithUndo(blockId) {
   const workspace = Blockly.getMainWorkspace();
   const block = workspace.getBlockById(blockId);
@@ -530,8 +533,7 @@ export function toggleGizmo(gizmoType) {
           return;
         }
 
-        const canvasX = event.clientX - canvasRect.left;
-        const canvasY = event.clientY - canvasRect.top;
+        const [canvasX, canvasY] = getCanvasXAndCanvasYValues(event, canvasRect);
 
         const pickRay = flock.scene.createPickingRay(
           canvasX,
