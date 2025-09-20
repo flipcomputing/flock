@@ -20,11 +20,24 @@ class CustomColorPicker {
 
     // Compact preset colors
     this.presetColors = [
-        '#ff0000', '#ff8000', '#ffff00', '#008080',
-        '#00ff00', '#228B22', '#00ffff', '#0080ff',
-        '#0000ff', '#8000ff', '#ff00ff', '#ff0080',
-        '#ffffff', '#cccccc', '#666666', '#000000',
-        '#8B4513', '#FF7F7F'
+        'red',          // #ff0000
+        'darkorange',   // ~#ff8000
+        'yellow',       // #ffff00
+        'teal',         // #008080
+        'lime',         // #00ff00
+        'forestgreen',  // #228B22
+        'aqua',         // #00ffff (aka cyan)
+        'dodgerblue',   // ~#0080ff
+        'blue',         // #0000ff
+        'blueviolet',   // ~#8000ff
+        'fuchsia',      // #ff00ff (aka magenta)
+        'deeppink',     // ~#ff0080
+        'white',        // #ffffff
+        'lightgray',    // ~#cccccc
+        'dimgray',      // ~#666666
+        'black',        // #000000
+        'saddlebrown',  // #8B4513
+        'lightcoral'    // ~#ff7f7f
       ];
 
     this.createElement();
@@ -61,9 +74,16 @@ class CustomColorPicker {
           <div class="color-picker-right">
             <div class="color-picker-section">
               <div class="color-palette">
-                ${this.presetColors.map((color) =>
-                  `<button class="color-swatch" style="background-color: ${color}" data-color="${color}" tabindex="0"></button>`
-                ).join('')}
+               ${this.presetColors.map((color) => 
+                 `<button 
+                    class="color-swatch" 
+                    style="background-color: ${color}" 
+                    data-color="${color}" 
+                    aria-label="${color}" 
+                    title="${color}" 
+                    tabindex="0"></button>`
+               ).join('')}
+
               </div>
             </div>
           </div>
