@@ -231,34 +231,77 @@ class CustomColorPicker {
   }
 
   drawColorWheel() {
+    // Render in CSS pixels; setupWheelCanvasScaling() aligns the backing store
     const w = 100, h = 100;
-    const centerX = w / 2;
-    const centerY = h / 2;
-    const radius = 48;
+    const cx = w / 2;
+    const cy = h / 2;
+    const R  = 48;
+    // Sample at pixel centers; stop exactly at R - 0.5 so the border sits on a clean ring
+    const fillR = R - 0.5;
+    const img = this.ctx.createImageData(w, h);
+    const data = img.data;
 
-    this.ctx.clearRect(0, 0, w, h);
-
+    // Paint interior directly into the pixel buffer (no AA at the boundary)
+    let i = 0;
     for (let y = 0; y < h; y++) {
-      for (let x = 0; x < w; x++) {
-        const dx = x - centerX;
-        const dy = y - centerY;
+      const py = y + 0.5;          // pixel center
+      const dy = py - cy;
+      for (let x = 0; x < w; x++, i += 4) {
+        const px = x + 0.5;        // pixel center
+        const dx = px - cx;
         const dist = Math.hypot(dx, dy);
-        if (dist <= radius + 0.5) {
+        if (dist <= fillR) {
+          // HSL at fixed L=60% like before
           const hue = (Math.atan2(dy, dx) * 180 / Math.PI + 360) % 360;
-          const sat = Math.min(100, (dist / radius) * 100);
-          this.ctx.fillStyle = `hsl(${hue}, ${sat}%, 60%)`;
-          this.ctx.fillRect(x, y, 1, 1);
+          const sat = Math.min(100, (dist / fillR) * 100);
+          // HSL → RGB (fast inline)
+          const s = sat / 100, l = 0.60;
+          const c = (1 - Math.abs(2 * l - 1)) * s;
+          const hp = hue / 60;
+          const xcol = c * (1 - Math.abs((hp % 2) - 1));
+          let r=0, g=0, b=0;
+          if (hp >= 0 && hp < 1) { r = c; g = xcol; }
+          else if (hp < 2) { r = xcol; g = c; }
+          else if (hp < 3) { g = c; b = xcol; }
+          else if (hp < 4) { g = xcol; b = c; }
+          else if (hp < 5) { r = xcol; b = c; }
+          else { r = c; b = xcol; }
+          const m = l - c / 2;
+          data[i    ] = Math.round((r + m) * 255);
+          data[i + 1] = Math.round((g + m) * 255);
+          data[i + 2] = Math.round((b + m) * 255);
+          data[i + 3] = 255; // opaque
+        } else {
+          // fully transparent outside: hard edge, no fuzz
+          data[i    ] = 0;
+          data[i + 1] = 0;
+          data[i + 2] = 0;
+          data[i + 3] = 0;
         }
       }
     }
 
-    this.ctx.beginPath();
-    this.ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
-    this.ctx.strokeStyle = '#ddd';
-    this.ctx.lineWidth = 1;
-    this.ctx.stroke();
-  }
+    // Clear and blit
+    this.ctx.clearRect(0, 0, w, h);
 
+    // Ensure crisp pixel rendering
+    this.ctx.imageSmoothingEnabled = false;
+    this.ctx.putImageData(img, 0, 0);
+
+    // Draw single white outline
+    this.ctx.save();
+    this.ctx.beginPath();
+    this.ctx.arc(cx, cy, R - 0.5, 0, Math.PI * 2);
+    this.ctx.strokeStyle = '#ffffff'; // Pure white outline
+    this.ctx.lineWidth = 1;
+
+    // Ensure crisp line rendering
+    this.ctx.lineCap = 'butt';
+    this.ctx.lineJoin = 'miter';
+
+    this.ctx.stroke();
+    this.ctx.restore();
+  }
 
   bindEvents() {
     // Close on backdrop click
