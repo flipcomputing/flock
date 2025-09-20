@@ -59,11 +59,20 @@ if ("serviceWorker" in navigator) {
 
                                 if (newWorker) {
                                         newWorker.onstatechange = () => {
-                                                if (newWorker.state === "installed") {
+                                                if (
+                                                        newWorker.state ===
+                                                        "installed"
+                                                ) {
                                                         // If the old Service Worker is controlling the page
-                                                        if (navigator.serviceWorker.controller) {
+                                                        if (
+                                                                navigator
+                                                                        .serviceWorker
+                                                                        .controller
+                                                        ) {
                                                                 // Notify the user about the update
-                                                                console.log("New update available");
+                                                                console.log(
+                                                                        "New update available",
+                                                                );
                                                                 showUpdateNotification();
                                                         }
                                                 }
@@ -72,7 +81,10 @@ if ("serviceWorker" in navigator) {
                         };
                 })
                 .catch((error) => {
-                        console.error("Service Worker registration failed:", error);
+                        console.error(
+                                "Service Worker registration failed:",
+                                error,
+                        );
                 });
 }
 
@@ -100,45 +112,47 @@ console.log("Blockly version:", Blockly.VERSION);
 function initializeApp() {
         console.log("Initializing app...");
 
-        
         (() => {
-          const ws = () => Blockly.getMainWorkspace?.();
-          const flyout = () => ws()?.getToolbox?.()?.getFlyout?.();
+                const ws = () => Blockly.getMainWorkspace?.();
+                const flyout = () => ws()?.getToolbox?.()?.getFlyout?.();
 
-          const isSearchCategorySelected = () => {
-                const sel = document.querySelector(
-                  '.blocklyToolboxDiv .blocklyToolboxCategory.blocklyToolboxSelected'
-                );
-                return !!sel?.querySelector('input[type="search"]');
-          };
+                const isSearchCategorySelected = () => {
+                        const sel = document.querySelector(
+                                ".blocklyToolboxDiv .blocklyToolboxCategory.blocklyToolboxSelected",
+                        );
+                        return !!sel?.querySelector('input[type="search"]');
+                };
 
-          const clickIsInsideToolboxOrFlyout = (el) =>
-                !!el.closest('.blocklyToolboxDiv, .blocklyFlyout');
+                const clickIsInsideToolboxOrFlyout = (el) =>
+                        !!el.closest(".blocklyToolboxDiv, .blocklyFlyout");
 
-          // Close search flyout on outside clicks *only when* search is the selected category.
-          const onOutside = (e) => {
-                if (!isSearchCategorySelected()) return;              // only for search
-                if (clickIsInsideToolboxOrFlyout(e.target)) return;   // ignore toolbox/flyout clicks
-                flyout()?.hide?.();
-          };
+                // Close search flyout on outside clicks *only when* search is the selected category.
+                const onOutside = (e) => {
+                        if (!isSearchCategorySelected()) return; // only for search
+                        if (clickIsInsideToolboxOrFlyout(e.target)) return; // ignore toolbox/flyout clicks
+                        flyout()?.hide?.();
+                };
 
-          // Capture so we run even if something stops propagation later.
-          window.addEventListener('pointerdown', onOutside, { capture: true });
-          window.addEventListener('click',       onOutside, { capture: true });
+                // Capture so we run even if something stops propagation later.
+                window.addEventListener("pointerdown", onOutside, {
+                        capture: true,
+                });
+                window.addEventListener("click", onOutside, { capture: true });
         })();
 
-
         const observer = new MutationObserver((mutations) => {
-          const unmuteButton = document.getElementById('babylonUnmuteButton');
-          if (unmuteButton && !unmuteButton.getAttribute('aria-label')) {
-                unmuteButton.setAttribute('aria-label', 'Unmute audio');
-                observer.disconnect(); // Stop observing once we've found it
-          }
+                const unmuteButton = document.getElementById(
+                        "babylonUnmuteButton",
+                );
+                if (unmuteButton && !unmuteButton.getAttribute("aria-label")) {
+                        unmuteButton.setAttribute("aria-label", "Unmute audio");
+                        observer.disconnect(); // Stop observing once we've found it
+                }
         });
 
-        observer.observe(document.body, { 
-          childList: true, 
-          subtree: true 
+        observer.observe(document.body, {
+                childList: true,
+                subtree: true,
         });
         // Add event listeners for menu buttons and controls
         const runCodeButton = document.getElementById("runCodeButton");
@@ -173,7 +187,11 @@ function initializeApp() {
         document.addEventListener("keydown", function (e) {
                 // Avoid in inputs
                 const tag = (e.target.tagName || "").toLowerCase();
-                if (tag === "input" || tag === "textarea" || e.target.isContentEditable)
+                if (
+                        tag === "input" ||
+                        tag === "textarea" ||
+                        e.target.isContentEditable
+                )
                         return;
 
                 // Check for modifier key (Ctrl on Windows/Linux, Cmd on Mac)
@@ -197,13 +215,17 @@ function initializeApp() {
                                 if (typeof executeCode === "function") {
                                         executeCode();
                                 } else {
-                                        console.warn("executeCode is not defined.");
+                                        console.warn(
+                                                "executeCode is not defined.",
+                                        );
                                 }
                                 break;
 
                         case "/": // Ctrl+/ - Toggle info details
                                 e.preventDefault();
-                                const infoSummary = document.querySelector("#info-details summary");
+                                const infoSummary = document.querySelector(
+                                        "#info-details summary",
+                                );
                                 if (infoSummary) {
                                         infoSummary.click(); // Simulate a click to toggle details
                                         infoSummary.focus(); // Move focus to the summary
@@ -214,8 +236,11 @@ function initializeApp() {
                                 e.preventDefault();
                                 menuButton.click(); // Simulate click to open the menu
                                 // Focus the first menu item
-                                const menuDropdown = document.getElementById("menuDropdown");
-                                const firstMenuItem = menuDropdown ? menuDropdown.querySelector("li") : null;
+                                const menuDropdown =
+                                        document.getElementById("menuDropdown");
+                                const firstMenuItem = menuDropdown
+                                        ? menuDropdown.querySelector("li")
+                                        : null;
                                 if (firstMenuItem) {
                                         firstMenuItem.focus(); // Set focus on the first item
                                 }
@@ -223,8 +248,15 @@ function initializeApp() {
 
                         case "g": // Ctrl+G - Focus shapes button
                                 e.preventDefault();
-                                const btn = document.getElementById("showShapesButton");
-                                if (btn && !btn.disabled && btn.offsetParent !== null) {
+                                const btn =
+                                        document.getElementById(
+                                                "showShapesButton",
+                                        );
+                                if (
+                                        btn &&
+                                        !btn.disabled &&
+                                        btn.offsetParent !== null
+                                ) {
                                         btn.focus();
                                 }
                                 break;
@@ -248,20 +280,32 @@ function initializeApp() {
 
         togglePlayButton.addEventListener("click", togglePlayMode);
 
-        document
-                .getElementById("fullscreenToggle")
-                .addEventListener("click", function () {
+        document.getElementById("fullscreenToggle").addEventListener(
+                "click",
+                function () {
                         if (!document.fullscreenElement) {
                                 // Go fullscreen
-                                if (document.documentElement.requestFullscreen) {
+                                if (
+                                        document.documentElement
+                                                .requestFullscreen
+                                ) {
                                         document.documentElement.requestFullscreen();
-                                } else if (document.documentElement.mozRequestFullScreen) {
+                                } else if (
+                                        document.documentElement
+                                                .mozRequestFullScreen
+                                ) {
                                         /* Firefox */
                                         document.documentElement.mozRequestFullScreen();
-                                } else if (document.documentElement.webkitRequestFullscreen) {
+                                } else if (
+                                        document.documentElement
+                                                .webkitRequestFullscreen
+                                ) {
                                         /* Chrome, Safari & Opera */
                                         document.documentElement.webkitRequestFullscreen();
-                                } else if (document.documentElement.msRequestFullscreen) {
+                                } else if (
+                                        document.documentElement
+                                                .msRequestFullscreen
+                                ) {
                                         /* IE/Edge */
                                         document.documentElement.msRequestFullscreen();
                                 }
@@ -280,29 +324,39 @@ function initializeApp() {
                                         document.msExitFullscreen();
                                 }
                         }
-                });
+                },
+        );
 
-        document
-                .getElementById("project-new")
-                .addEventListener("click", function (e) {
+        document.getElementById("project-new").addEventListener(
+                "click",
+                function (e) {
                         e.preventDefault();
                         newProject();
-                        document.getElementById("menuDropdown").classList.add("hidden");
-                });
-        document
-                .getElementById("project-open")
-                .addEventListener("click", function (e) {
+                        document.getElementById("menuDropdown").classList.add(
+                                "hidden",
+                        );
+                },
+        );
+        document.getElementById("project-open").addEventListener(
+                "click",
+                function (e) {
                         e.preventDefault();
                         fileInput.click();
-                        document.getElementById("menuDropdown").classList.add("hidden");
-                });
-        document
-                .getElementById("project-save")
-                .addEventListener("click", function (e) {
+                        document.getElementById("menuDropdown").classList.add(
+                                "hidden",
+                        );
+                },
+        );
+        document.getElementById("project-save").addEventListener(
+                "click",
+                function (e) {
                         e.preventDefault();
                         exportCode();
-                        document.getElementById("menuDropdown").classList.add("hidden");
-                });
+                        document.getElementById("menuDropdown").classList.add(
+                                "hidden",
+                        );
+                },
+        );
 
         initializeUI();
 
@@ -336,7 +390,6 @@ function initializeApp() {
 }
 
 window.onload = async function () {
-
         // Resize Blockly workspace and Babylon.js canvas when the window is resized
         window.addEventListener("resize", onResize);
 
@@ -388,22 +441,29 @@ window.onload = async function () {
                 }
         });
 
-        document.getElementById('info-details').addEventListener('toggle', function(e) {
-                if (this.open) {
-                        setTimeout(() => {
-                                const content = this.querySelector('.content');
+        document.getElementById("info-details").addEventListener(
+                "toggle",
+                function (e) {
+                        if (this.open) {
+                                setTimeout(() => {
+                                        const content =
+                                                this.querySelector(".content");
+                                        if (content) {
+                                                content.setAttribute(
+                                                        "tabindex",
+                                                        "0",
+                                                ); // Make it focusable
+                                                content.focus();
+                                        }
+                                }, 10);
+                        } else {
+                                const content = this.querySelector(".content");
                                 if (content) {
-                                        content.setAttribute('tabindex', '0'); // Make it focusable
-                                        content.focus();
+                                        content.setAttribute("tabindex", "-1"); // Remove from tab order when closed
                                 }
-                        }, 10);
-                } else {
-                        const content = this.querySelector('.content');
-                        if (content) {
-                                content.setAttribute('tabindex', '-1'); // Remove from tab order when closed
                         }
-                }
-        });
+                },
+        );
 
         // Initial view setup
         window.loadingCode = true;
@@ -423,13 +483,30 @@ window.onload = async function () {
 
         initializeApp();
 
-        // Initialize 360 video recorder
-        initialize360VideoRecorder();
-
         setupFileInput(workspace, executeCode);
 
         setupInput();
-        
+
         loadWorkspace(workspace, executeCode);
-        
+
+        // Initialize 360 video recorder
+        initialize360VideoRecorder();
+
+        // Add event listener for keyboard shortcuts
+        document.addEventListener("keydown", function (event) {
+                // Check if Ctrl+Shift+2 is pressed
+                if (
+                        event.ctrlKey &&
+                        event.shiftKey &&
+                        event.code === "Digit2"
+                ) {
+                        console.log("Exporting GLB of scene");
+                        event.preventDefault(); // Prevent default browser behavior
+
+                        // Call the exportMesh function with specified parameters
+                        flock.exportMesh("scene", "GLB");
+
+                        console.log("Export triggered: scene as GLB format");
+                }
+        });
 };

@@ -9,7 +9,7 @@ import * as BABYLON_LOADER from "@babylonjs/loaders";
 import { GradientMaterial } from "@babylonjs/materials";
 import * as BABYLON_EXPORT from "@babylonjs/serializers";
 import { FlowGraphLog10Block, SetMaterialIDBlock } from "babylonjs";
-import "@fontsource/atkinson-hyperlegible-next"; 
+import "@fontsource/atkinson-hyperlegible-next";
 import "@fontsource/atkinson-hyperlegible-next/500.css";
 import "@fontsource/atkinson-hyperlegible-next/600.css";
 
@@ -71,6 +71,7 @@ export const flock = {
         texturePath: "./textures/",
         engine: null,
         engineReady: false,
+        eventDebug: false,
         modelReadyPromises: new Map(),
         pendingMeshCreations: 0,
         pendingTriggers: new Map(),
@@ -143,7 +144,10 @@ export const flock = {
                                         .slice(start, end)
                                         .map((line, idx) => {
                                                 const actualLine = start + idx;
-                                                const marker = actualLine === lineNum ? ">>> " : "    ";
+                                                const marker =
+                                                        actualLine === lineNum
+                                                                ? ">>> "
+                                                                : "    ";
                                                 return `${marker}${actualLine + 1}: ${line}`;
                                         })
                                         .join("\n");
@@ -220,12 +224,16 @@ export const flock = {
                 if (flock.scene) {
                         const counts = {
                                 meshes: flock.scene.meshes.length,
-                                geometries: Object.keys(flock.geometryCache).length,
+                                geometries: Object.keys(flock.geometryCache)
+                                        .length,
                                 vertices: flock.getTotalSceneVertices(),
                                 materials: flock.scene.materials.length,
-                                cachedMaterials: Object.keys(flock.materialCache).length,
+                                cachedMaterials: Object.keys(
+                                        flock.materialCache,
+                                ).length,
                                 textures: flock.scene.textures.length,
-                                animationGroups: flock.scene.animationGroups.length,
+                                animationGroups:
+                                        flock.scene.animationGroups.length,
                         };
                         console.log("Scene objects:", counts);
                 }
@@ -297,245 +305,294 @@ export const flock = {
         },
         // Updated runCode with whitelisting + constructor hardening + frozen built-ins
         async runCode(code) {
-          let iframe = document.getElementById("flock-iframe");
+                let iframe = document.getElementById("flock-iframe");
 
-          try {
-            // 1) Dispose old scene if iframe exists
-            if (iframe) {
-              try {
-                await iframe.contentWindow?.flock?.disposeOldScene?.();
-              } catch (err) {
-                console.warn("Error disposing old scene in iframe:", err);
-              }
-            } else {
-              // 2) Create a new iframe if not found
-              iframe = document.createElement("iframe");
-              iframe.id = "flock-iframe";
-              iframe.style.display = "none";
-              document.body.appendChild(iframe);
-            }
+                try {
+                        // 1) Dispose old scene if iframe exists
+                        if (iframe) {
+                                try {
+                                        await iframe.contentWindow?.flock?.disposeOldScene?.();
+                                } catch (err) {
+                                        console.warn(
+                                                "Error disposing old scene in iframe:",
+                                                err,
+                                        );
+                                }
+                        } else {
+                                // 2) Create a new iframe if not found
+                                iframe = document.createElement("iframe");
+                                iframe.id = "flock-iframe";
+                                iframe.style.display = "none";
+                                document.body.appendChild(iframe);
+                        }
 
-            // 3) Load a clean iframe context
-            await new Promise((resolve, reject) => {
-              iframe.onload = () => resolve();
-              iframe.onerror = () => reject(new Error("Failed to load iframe"));
-              iframe.src = "about:blank";
-            });
+                        // 3) Load a clean iframe context
+                        await new Promise((resolve, reject) => {
+                                iframe.onload = () => resolve();
+                                iframe.onerror = () =>
+                                        reject(
+                                                new Error(
+                                                        "Failed to load iframe",
+                                                ),
+                                        );
+                                iframe.src = "about:blank";
+                        });
 
-            // 4) Set up iframe window and flock reference
-            const iframeWindow = iframe.contentWindow;
-            if (!iframeWindow) throw new Error("Iframe window is unavailable");
-            iframeWindow.flock = this;
+                        // 4) Set up iframe window and flock reference
+                        const iframeWindow = iframe.contentWindow;
+                        if (!iframeWindow)
+                                throw new Error("Iframe window is unavailable");
+                        iframeWindow.flock = this;
 
-            // Initialise a fresh scene (unchanged)
-            await this.initializeNewScene?.();
-            if (this.memoryDebug) this.startMemoryMonitoring?.();
+                        // Initialise a fresh scene (unchanged)
+                        await this.initializeNewScene?.();
+                        if (this.memoryDebug) this.startMemoryMonitoring?.();
 
-            // 5) Build the whitelisted environment
-            const whitelist = this.createWhitelist();
-            const wlNames = Object.keys(whitelist);
-            const wlValues = Object.values(whitelist);
+                        // 5) Build the whitelisted environment
+                        const whitelist = this.createWhitelist();
+                        const wlNames = Object.keys(whitelist);
+                        const wlValues = Object.values(whitelist);
 
-            // Shadow dangerous globals by passing them as undefined params
-            const shadowNames = [
-              "window", "document", "globalThis", "self", "parent", "top", "frames",
-              "Function", "fetch", "XMLHttpRequest"
-            ];
-            const shadowValues = new Array(shadowNames.length).fill(undefined);
+                        // Shadow dangerous globals by passing them as undefined params
+                        const shadowNames = [
+                                "window",
+                                "document",
+                                "globalThis",
+                                "self",
+                                "parent",
+                                "top",
+                                "frames",
+                                "Function",
+                                "fetch",
+                                "XMLHttpRequest",
+                        ];
+                        const shadowValues = new Array(shadowNames.length).fill(
+                                undefined,
+                        );
 
-            const paramNames = shadowNames.concat(wlNames);
-            const paramValues = shadowValues.concat(wlValues);
+                        const paramNames = shadowNames.concat(wlNames);
+                        const paramValues = shadowValues.concat(wlValues);
 
-            // Harden constructor escape paths
-            const hardenPrelude =
-              'try{' +
-                'Object.defineProperty(Object.prototype,"constructor",{value:undefined,writable:true,configurable:true});' +
-                'Object.defineProperty(Function.prototype,"constructor",{value:undefined,writable:true,configurable:true});' +
-              '}catch{}';
+                        // Harden constructor escape paths
+                        const hardenPrelude =
+                                "try{" +
+                                'Object.defineProperty(Object.prototype,"constructor",{value:undefined,writable:true,configurable:true});' +
+                                'Object.defineProperty(Function.prototype,"constructor",{value:undefined,writable:true,configurable:true});' +
+                                "}catch{}";
 
-            // Freeze safe built-ins to prevent tampering
-            const freezePrelude =
-              'try{' +
-                'Object.freeze(Math);' +
-                'Object.freeze(JSON);' +
-                'Object.freeze(Date);' +
-                'Object.freeze(Number);' +
-                'Object.freeze(String);' +
-                'Object.freeze(Boolean);' +
-                'Object.freeze(Array);' +
-                'Object.freeze(Object);' +
-              '}catch{}';
+                        // Freeze safe built-ins to prevent tampering
+                        const freezePrelude =
+                                "try{" +
+                                "Object.freeze(Math);" +
+                                "Object.freeze(JSON);" +
+                                "Object.freeze(Date);" +
+                                "Object.freeze(Number);" +
+                                "Object.freeze(String);" +
+                                "Object.freeze(Boolean);" +
+                                "Object.freeze(Array);" +
+                                "Object.freeze(Object);" +
+                                "}catch{}";
 
-            // Assemble the function body safely (no template literals)
-            const body =
-              '"use strict";\n' +
-              hardenPrelude + '\n' +
-              freezePrelude + '\n' +
-              'return (async () => {\n' +
-              code +
-              '\n})();\n';
+                        // Assemble the function body safely (no template literals)
+                        const body =
+                                '"use strict";\n' +
+                                hardenPrelude +
+                                "\n" +
+                                freezePrelude +
+                                "\n" +
+                                "return (async () => {\n" +
+                                code +
+                                "\n})();\n";
 
-            // Create the sandboxed function using only whitelisted APIs + shadowed globals
-            const run = new iframeWindow.Function(...paramNames, body);
+                        // Create the sandboxed function using only whitelisted APIs + shadowed globals
+                        const run = new iframeWindow.Function(
+                                ...paramNames,
+                                body,
+                        );
 
-            // Execute code with whitelisting enforced
-            await run(...paramValues);
+                        // Execute code with whitelisting enforced
+                        await run(...paramValues);
 
-document.getElementById("renderCanvas")?.focus();
-          } catch (error) {
-            
-            const enhancedError = this.createEnhancedError?.(error, code) ?? error;
-            console.error("Enhanced error details:", enhancedError);
+                        document.getElementById("renderCanvas")?.focus();
+                } catch (error) {
+                        const enhancedError =
+                                this.createEnhancedError?.(error, code) ??
+                                error;
+                        console.error("Enhanced error details:", enhancedError);
 
-            this.printText?.({
-              text: `Error: ${error.message}`,
-              duration: 5,
-              color: "#ff0000",
-            });
+                        this.printText?.({
+                                text: `Error: ${error.message}`,
+                                duration: 5,
+                                color: "#ff0000",
+                        });
 
-            try {
-              this.audioContext?.close?.();
-              this.engine?.stopRenderLoop?.();
-              this.removeEventListeners?.();
-            } catch (cleanupError) {
-              console.error("Error during cleanup:", cleanupError);
-            }
+                        try {
+                                this.audioContext?.close?.();
+                                this.engine?.stopRenderLoop?.();
+                                this.removeEventListeners?.();
+                        } catch (cleanupError) {
+                                console.error(
+                                        "Error during cleanup:",
+                                        cleanupError,
+                                );
+                        }
 
-            throw error;
-          }
+                        throw error;
+                }
         },
         createWhitelist() {
-          const api = {
-            // Safe built-ins
-            Object, Array, String, Number, Boolean, Math, Date, JSON, Promise, console,
+                const api = {
+                        // Safe built-ins
+                        Object,
+                        Array,
+                        String,
+                        Number,
+                        Boolean,
+                        Math,
+                        Date,
+                        JSON,
+                        Promise,
+                        console,
 
-            // All Flock API methods — unchanged
-            initialize: this.initialize?.bind(this),
-            createEngine: this.createEngine?.bind(this),
-            createScene: this.createScene?.bind(this),
-            playAnimation: this.playAnimation?.bind(this),
-            playSound: this.playSound?.bind(this),
-            stopAllSounds: this.stopAllSounds?.bind(this),
-            playNotes: this.playNotes?.bind(this),
-            setBPM: this.setBPM?.bind(this),
-            createInstrument: this.createInstrument?.bind(this),
-            speak: this.speak?.bind(this),
-            switchAnimation: this.switchAnimation?.bind(this),
-            highlight: this.highlight?.bind(this),
-            glow: this.glow?.bind(this),
-            createCharacter: this.createCharacter?.bind(this),
-            createObject: this.createObject?.bind(this),
-            createParticleEffect: this.createParticleEffect?.bind(this),
-            create3DText: this.create3DText?.bind(this),
-            createModel: this.createModel?.bind(this),
-            createBox: this.createBox?.bind(this),
-            createSphere: this.createSphere?.bind(this),
-            createCylinder: this.createCylinder?.bind(this),
-            createCapsule: this.createCapsule?.bind(this),
-            createPlane: this.createPlane?.bind(this),
-            cloneMesh: this.cloneMesh?.bind(this),
-            parentChild: this.parentChild?.bind(this),
-            setParent: this.setParent?.bind(this),
-            mergeMeshes: this.mergeMeshes?.bind(this),
-            subtractMeshes: this.subtractMeshes?.bind(this),
-            intersectMeshes: this.intersectMeshes?.bind(this),
-            createHull: this.createHull?.bind(this),
-            hold: this.hold?.bind(this),
-            attach: this.attach?.bind(this),
-            drop: this.drop?.bind(this),
-            makeFollow: this.makeFollow?.bind(this),
-            stopFollow: this.stopFollow?.bind(this),
-            removeParent: this.removeParent?.bind(this),
-            createGround: this.createGround?.bind(this),
-            createMap: this.createMap?.bind(this),
-            createCustomMap: this.createCustomMap?.bind(this),
-            setSky: this.setSky?.bind(this),
-            lightIntensity: this.lightIntensity?.bind(this),
-            buttonControls: this.buttonControls?.bind(this),
-            getCamera: this.getCamera?.bind(this),
-            cameraControl: this.cameraControl?.bind(this),
-            setCameraBackground: this.setCameraBackground?.bind(this),
-            setXRMode: this.setXRMode?.bind(this),
-            applyForce: this.applyForce?.bind(this),
-            moveByVector: this.moveByVector?.bind(this),
-            glideTo: this.glideTo?.bind(this),
-            createAnimation: this.createAnimation?.bind(this),
-            animateFrom: this.animateFrom?.bind(this),
-            playAnimationGroup: this.playAnimationGroup?.bind(this),
-            pauseAnimationGroup: this.pauseAnimationGroup?.bind(this),
-            stopAnimationGroup: this.stopAnimationGroup?.bind(this),
-            startParticleSystem: this.startParticleSystem?.bind(this),
-            stopParticleSystem: this.stopParticleSystem?.bind(this),
-            resetParticleSystem: this.resetParticleSystem?.bind(this),
-            animateKeyFrames: this.animateKeyFrames?.bind(this),
-            setPivotPoint: this.setPivotPoint?.bind(this),
-            rotate: this.rotate?.bind(this),
-            lookAt: this.lookAt?.bind(this),
-            moveTo: this.moveTo?.bind(this),
-            rotateTo: this.rotateTo?.bind(this),
-            rotateCamera: this.rotateCamera?.bind(this),
-            rotateAnim: this.rotateAnim?.bind(this),
-            animateProperty: this.animateProperty?.bind(this),
-            positionAt: this.positionAt?.bind(this),
-            distanceTo: this.distanceTo?.bind(this),
-            wait: this.wait?.bind(this),
-            safeLoop: this.safeLoop?.bind(this),
-            waitUntil: this.waitUntil?.bind(this),
-            show: this.show?.bind(this),
-            hide: this.hide?.bind(this),
-            clearEffects: this.clearEffects?.bind(this),
-            stopAnimations: this.stopAnimations?.bind(this),
-            tint: this.tint?.bind(this),
-            setAlpha: this.setAlpha?.bind(this),
-            dispose: this.dispose?.bind(this),
-            setFog: this.setFog?.bind(this),
-            keyPressed: this.keyPressed?.bind(this),
-            isTouchingSurface: this.isTouchingSurface?.bind(this),
-            meshExists: this.meshExists?.bind(this),
-            seededRandom: this.seededRandom?.bind(this),
-            randomColour: this.randomColour?.bind(this),
-            scale: this.scale?.bind(this),
-            resize: this.resize?.bind(this),
-            changeColor: this.changeColor?.bind(this),
-            changeColorMesh: this.changeColorMesh?.bind(this),
-            changeMaterial: this.changeMaterial?.bind(this),
-            setMaterial: this.setMaterial?.bind(this),
-            createMaterial: this.createMaterial?.bind(this),
-            textMaterial: this.textMaterial?.bind(this),
-            createDecal: this.createDecal?.bind(this),
-            placeDecal: this.placeDecal?.bind(this),
-            moveForward: this.moveForward?.bind(this),
-            moveSideways: this.moveSideways?.bind(this),
-            strafe: this.strafe?.bind(this),
-            attachCamera: this.attachCamera?.bind(this),
-            canvasControls: this.canvasControls?.bind(this),
-            setPhysics: this.setPhysics?.bind(this),
-            setPhysicsShape: this.setPhysicsShape?.bind(this),
-            checkMeshesTouching: this.checkMeshesTouching?.bind(this),
-            say: this.say?.bind(this),
-            onTrigger: this.onTrigger?.bind(this),
-            onEvent: this.onEvent?.bind(this),
-            broadcastEvent: this.broadcastEvent?.bind(this),
-            Mesh: this.Mesh,
-            start: this.start?.bind(this),
-            forever: this.forever?.bind(this),
-            whenKeyEvent: this.whenKeyEvent?.bind(this),
-            randomInteger: this.randomInteger?.bind(this),
-            printText: this.printText?.bind(this),
-            UIText: this.UIText?.bind(this),
-            UIButton: this.UIButton?.bind(this),
-            UIInput: this.UIInput?.bind(this),
-            UISlider: this.UISlider?.bind(this),
-            onIntersect: this.onIntersect?.bind(this),
-            getProperty: this.getProperty?.bind(this),
-            exportMesh: this.exportMesh?.bind(this),
-            abortSceneExecution: this.abortSceneExecution?.bind(this),
-            ensureUniqueGeometry: this.ensureUniqueGeometry?.bind(this),
-            createVector3: this.createVector3?.bind(this),
-          };
+                        // All Flock API methods — unchanged
+                        initialize: this.initialize?.bind(this),
+                        createEngine: this.createEngine?.bind(this),
+                        createScene: this.createScene?.bind(this),
+                        playAnimation: this.playAnimation?.bind(this),
+                        playSound: this.playSound?.bind(this),
+                        stopAllSounds: this.stopAllSounds?.bind(this),
+                        playNotes: this.playNotes?.bind(this),
+                        setBPM: this.setBPM?.bind(this),
+                        createInstrument: this.createInstrument?.bind(this),
+                        speak: this.speak?.bind(this),
+                        switchAnimation: this.switchAnimation?.bind(this),
+                        highlight: this.highlight?.bind(this),
+                        glow: this.glow?.bind(this),
+                        createCharacter: this.createCharacter?.bind(this),
+                        createObject: this.createObject?.bind(this),
+                        createParticleEffect:
+                                this.createParticleEffect?.bind(this),
+                        create3DText: this.create3DText?.bind(this),
+                        createModel: this.createModel?.bind(this),
+                        createBox: this.createBox?.bind(this),
+                        createSphere: this.createSphere?.bind(this),
+                        createCylinder: this.createCylinder?.bind(this),
+                        createCapsule: this.createCapsule?.bind(this),
+                        createPlane: this.createPlane?.bind(this),
+                        cloneMesh: this.cloneMesh?.bind(this),
+                        parentChild: this.parentChild?.bind(this),
+                        setParent: this.setParent?.bind(this),
+                        mergeMeshes: this.mergeMeshes?.bind(this),
+                        subtractMeshes: this.subtractMeshes?.bind(this),
+                        intersectMeshes: this.intersectMeshes?.bind(this),
+                        createHull: this.createHull?.bind(this),
+                        hold: this.hold?.bind(this),
+                        attach: this.attach?.bind(this),
+                        drop: this.drop?.bind(this),
+                        makeFollow: this.makeFollow?.bind(this),
+                        stopFollow: this.stopFollow?.bind(this),
+                        removeParent: this.removeParent?.bind(this),
+                        createGround: this.createGround?.bind(this),
+                        createMap: this.createMap?.bind(this),
+                        createCustomMap: this.createCustomMap?.bind(this),
+                        setSky: this.setSky?.bind(this),
+                        lightIntensity: this.lightIntensity?.bind(this),
+                        buttonControls: this.buttonControls?.bind(this),
+                        getCamera: this.getCamera?.bind(this),
+                        cameraControl: this.cameraControl?.bind(this),
+                        setCameraBackground:
+                                this.setCameraBackground?.bind(this),
+                        setXRMode: this.setXRMode?.bind(this),
+                        applyForce: this.applyForce?.bind(this),
+                        moveByVector: this.moveByVector?.bind(this),
+                        glideTo: this.glideTo?.bind(this),
+                        createAnimation: this.createAnimation?.bind(this),
+                        animateFrom: this.animateFrom?.bind(this),
+                        playAnimationGroup: this.playAnimationGroup?.bind(this),
+                        pauseAnimationGroup:
+                                this.pauseAnimationGroup?.bind(this),
+                        stopAnimationGroup: this.stopAnimationGroup?.bind(this),
+                        startParticleSystem:
+                                this.startParticleSystem?.bind(this),
+                        stopParticleSystem: this.stopParticleSystem?.bind(this),
+                        resetParticleSystem:
+                                this.resetParticleSystem?.bind(this),
+                        animateKeyFrames: this.animateKeyFrames?.bind(this),
+                        setPivotPoint: this.setPivotPoint?.bind(this),
+                        rotate: this.rotate?.bind(this),
+                        lookAt: this.lookAt?.bind(this),
+                        moveTo: this.moveTo?.bind(this),
+                        rotateTo: this.rotateTo?.bind(this),
+                        rotateCamera: this.rotateCamera?.bind(this),
+                        rotateAnim: this.rotateAnim?.bind(this),
+                        animateProperty: this.animateProperty?.bind(this),
+                        positionAt: this.positionAt?.bind(this),
+                        distanceTo: this.distanceTo?.bind(this),
+                        wait: this.wait?.bind(this),
+                        safeLoop: this.safeLoop?.bind(this),
+                        waitUntil: this.waitUntil?.bind(this),
+                        show: this.show?.bind(this),
+                        hide: this.hide?.bind(this),
+                        clearEffects: this.clearEffects?.bind(this),
+                        stopAnimations: this.stopAnimations?.bind(this),
+                        tint: this.tint?.bind(this),
+                        setAlpha: this.setAlpha?.bind(this),
+                        dispose: this.dispose?.bind(this),
+                        setFog: this.setFog?.bind(this),
+                        keyPressed: this.keyPressed?.bind(this),
+                        isTouchingSurface: this.isTouchingSurface?.bind(this),
+                        meshExists: this.meshExists?.bind(this),
+                        seededRandom: this.seededRandom?.bind(this),
+                        randomColour: this.randomColour?.bind(this),
+                        scale: this.scale?.bind(this),
+                        resize: this.resize?.bind(this),
+                        changeColor: this.changeColor?.bind(this),
+                        changeColorMesh: this.changeColorMesh?.bind(this),
+                        changeMaterial: this.changeMaterial?.bind(this),
+                        setMaterial: this.setMaterial?.bind(this),
+                        createMaterial: this.createMaterial?.bind(this),
+                        textMaterial: this.textMaterial?.bind(this),
+                        createDecal: this.createDecal?.bind(this),
+                        placeDecal: this.placeDecal?.bind(this),
+                        moveForward: this.moveForward?.bind(this),
+                        moveSideways: this.moveSideways?.bind(this),
+                        strafe: this.strafe?.bind(this),
+                        attachCamera: this.attachCamera?.bind(this),
+                        canvasControls: this.canvasControls?.bind(this),
+                        setPhysics: this.setPhysics?.bind(this),
+                        setPhysicsShape: this.setPhysicsShape?.bind(this),
+                        checkMeshesTouching:
+                                this.checkMeshesTouching?.bind(this),
+                        say: this.say?.bind(this),
+                        onTrigger: this.onTrigger?.bind(this),
+                        onEvent: this.onEvent?.bind(this),
+                        broadcastEvent: this.broadcastEvent?.bind(this),
+                        Mesh: this.Mesh,
+                        start: this.start?.bind(this),
+                        forever: this.forever?.bind(this),
+                        whenKeyEvent: this.whenKeyEvent?.bind(this),
+                        randomInteger: this.randomInteger?.bind(this),
+                        printText: this.printText?.bind(this),
+                        UIText: this.UIText?.bind(this),
+                        UIButton: this.UIButton?.bind(this),
+                        UIInput: this.UIInput?.bind(this),
+                        UISlider: this.UISlider?.bind(this),
+                        onIntersect: this.onIntersect?.bind(this),
+                        getProperty: this.getProperty?.bind(this),
+                        exportMesh: this.exportMesh?.bind(this),
+                        abortSceneExecution:
+                                this.abortSceneExecution?.bind(this),
+                        ensureUniqueGeometry:
+                                this.ensureUniqueGeometry?.bind(this),
+                        createVector3: this.createVector3?.bind(this),
+                };
 
-          // Freeze for safety — prevents mutation of the API surface
-          try { return Object.freeze(api); } catch { return api; }
+                // Freeze for safety — prevents mutation of the API surface
+                try {
+                        return Object.freeze(api);
+                } catch {
+                        return api;
+                }
         },
         async initialize() {
                 flock.BABYLON = BABYLON;
@@ -575,15 +632,20 @@ document.getElementById("renderCanvas")?.focus();
                         (event) => {
                                 if (event.touches.length === 0) {
                                         const input =
-                                                flock.scene.activeCamera.inputs?.attached?.pointers;
+                                                flock.scene.activeCamera.inputs
+                                                        ?.attached?.pointers;
                                         // Add null check for input itself
                                         if (
                                                 input &&
                                                 (input._pointA !== null ||
-                                                        input._pointB !== null ||
-                                                        input._isMultiTouch === true)
+                                                        input._pointB !==
+                                                                null ||
+                                                        input._isMultiTouch ===
+                                                                true)
                                         ) {
-                                                flock.scene.activeCamera.detachControl(flock.canvas);
+                                                flock.scene.activeCamera.detachControl(
+                                                        flock.canvas,
+                                                );
                                                 setTimeout(() => {
                                                         flock.scene.activeCamera.attachControl(
                                                                 flock.canvas,
@@ -625,7 +687,9 @@ document.getElementById("renderCanvas")?.focus();
                 });
 
                 flock.engine.enableOfflineSupport = false;
-                flock.engine.setHardwareScalingLevel(1 / window.devicePixelRatio);
+                flock.engine.setHardwareScalingLevel(
+                        1 / window.devicePixelRatio,
+                );
         },
         async disposeOldScene() {
                 console.log("Disposing old scene");
@@ -634,10 +698,15 @@ document.getElementById("renderCanvas")?.focus();
                 if (flock.scene) {
                         try {
                                 // Check if WebGL context is lost before disposal operations
-                                const canvas = flock.engine?.getRenderingCanvas();
-                                const gl = canvas?.getContext('webgl') || canvas?.getContext('webgl2');
+                                const canvas =
+                                        flock.engine?.getRenderingCanvas();
+                                const gl =
+                                        canvas?.getContext("webgl") ||
+                                        canvas?.getContext("webgl2");
                                 if (gl?.isContextLost?.()) {
-                                        console.warn("WebGL context already lost, skipping some disposal operations");
+                                        console.warn(
+                                                "WebGL context already lost, skipping some disposal operations",
+                                        );
                                         return;
                                 }
 
@@ -655,25 +724,35 @@ document.getElementById("renderCanvas")?.focus();
 
                                 // Dispose animatables
                                 if (flock.scene.animatables) {
-                                        [...flock.scene.animatables].forEach((animatable) => {
-                                                try {
-                                                        animatable.stop();
-                                                        animatable.dispose?.();
-                                                } catch (error) {
-                                                        console.warn("Error disposing animatable:", error);
-                                                }
-                                        });
+                                        [...flock.scene.animatables].forEach(
+                                                (animatable) => {
+                                                        try {
+                                                                animatable.stop();
+                                                                animatable.dispose?.();
+                                                        } catch (error) {
+                                                                console.warn(
+                                                                        "Error disposing animatable:",
+                                                                        error,
+                                                                );
+                                                        }
+                                                },
+                                        );
                                 }
 
                                 // Dispose animation groups
                                 if (flock.scene.animationGroups) {
-                                        [...flock.scene.animationGroups].forEach((group) => {
+                                        [
+                                                ...flock.scene.animationGroups,
+                                        ].forEach((group) => {
                                                 if (group) {
                                                         try {
                                                                 group.stop();
                                                                 group.dispose();
                                                         } catch (error) {
-                                                                console.warn("Error disposing animation group:", error);
+                                                                console.warn(
+                                                                        "Error disposing animation group:",
+                                                                        error,
+                                                                );
                                                         }
                                                 }
                                         });
@@ -712,12 +791,16 @@ document.getElementById("renderCanvas")?.focus();
                                         flock.scene.mainSoundTrack.dispose();
                                 }
                                 if (flock.scene.soundTracks) {
-                                        flock.scene.soundTracks.forEach(track => track?.dispose());
+                                        flock.scene.soundTracks.forEach(
+                                                (track) => track?.dispose(),
+                                        );
                                 }
 
                                 // Dispose post-processing effects
                                 if (flock.scene.postProcesses) {
-                                        [...flock.scene.postProcesses].forEach(pp => pp?.dispose());
+                                        [...flock.scene.postProcesses].forEach(
+                                                (pp) => pp?.dispose(),
+                                        );
                                 }
                                 flock.scene.postProcessRenderPipelineManager?.dispose();
 
@@ -732,7 +815,8 @@ document.getElementById("renderCanvas")?.focus();
                                 flock.mainLight = null;
 
                                 // Dispose particle systems first (before meshes they might be attached to)
-                                const particleSystems = flock.scene.particleSystems
+                                const particleSystems = flock.scene
+                                        .particleSystems
                                         ? [...flock.scene.particleSystems]
                                         : [];
                                 particleSystems.forEach((system) => {
@@ -740,7 +824,10 @@ document.getElementById("renderCanvas")?.focus();
                                                 try {
                                                         system.dispose();
                                                 } catch (error) {
-                                                        console.warn("Error disposing particle system:", error);
+                                                        console.warn(
+                                                                "Error disposing particle system:",
+                                                                error,
+                                                        );
                                                 }
                                         }
                                 });
@@ -754,49 +841,73 @@ document.getElementById("renderCanvas")?.focus();
                                                 try {
                                                         mesh.actionManager.dispose();
                                                 } catch (error) {
-                                                        console.warn("Error disposing action manager:", error);
+                                                        console.warn(
+                                                                "Error disposing action manager:",
+                                                                error,
+                                                        );
                                                 }
                                         }
-                                        if (mesh?.material?.dispose && typeof mesh.material.dispose === "function") {
+                                        if (
+                                                mesh?.material?.dispose &&
+                                                typeof mesh.material.dispose ===
+                                                        "function"
+                                        ) {
                                                 try {
                                                         mesh.material.dispose();
                                                 } catch (error) {
-                                                        console.warn("Error disposing mesh material:", error);
+                                                        console.warn(
+                                                                "Error disposing mesh material:",
+                                                                error,
+                                                        );
                                                 }
                                         }
-                                        if (mesh?.dispose && typeof mesh.dispose === "function") {
+                                        if (
+                                                mesh?.dispose &&
+                                                typeof mesh.dispose ===
+                                                        "function"
+                                        ) {
                                                 try {
                                                         mesh.dispose();
                                                 } catch (error) {
-                                                        console.warn("Error disposing mesh:", error);
+                                                        console.warn(
+                                                                "Error disposing mesh:",
+                                                                error,
+                                                        );
                                                 }
                                         }
                                 });
 
                                 // Dispose transform nodes
-                                const transformNodes = flock.scene.transformNodes 
-                                        ? [...flock.scene.transformNodes] 
+                                const transformNodes = flock.scene
+                                        .transformNodes
+                                        ? [...flock.scene.transformNodes]
                                         : [];
                                 transformNodes.forEach((node) => {
                                         if (node?.dispose) {
                                                 try {
                                                         node.dispose();
                                                 } catch (error) {
-                                                        console.warn("Error disposing transform node:", error);
+                                                        console.warn(
+                                                                "Error disposing transform node:",
+                                                                error,
+                                                        );
                                                 }
                                         }
                                 });
 
                                 // Dispose geometries (after meshes)
-                                const geometries = flock.scene.geometries 
-                                        ? [...flock.scene.geometries] 
+                                const geometries = flock.scene.geometries
+                                        ? [...flock.scene.geometries]
                                         : [];
                                 geometries.forEach((geometry) => {
                                         if (geometry?.dispose) {
                                                 try {
                                                         geometry.dispose();
                                                 } catch (error) {
-                                                        console.warn("Error disposing geometry:", error);
+                                                        console.warn(
+                                                                "Error disposing geometry:",
+                                                                error,
+                                                        );
                                                 }
                                         }
                                 });
@@ -812,11 +923,18 @@ document.getElementById("renderCanvas")?.focus();
                                         ? [...flock.scene.textures]
                                         : [];
                                 textures.forEach((texture) => {
-                                        if (texture?.dispose && typeof texture.dispose === "function") {
+                                        if (
+                                                texture?.dispose &&
+                                                typeof texture.dispose ===
+                                                        "function"
+                                        ) {
                                                 try {
                                                         texture.dispose();
                                                 } catch (error) {
-                                                        console.warn("Error disposing texture:", error);
+                                                        console.warn(
+                                                                "Error disposing texture:",
+                                                                error,
+                                                        );
                                                 }
                                         }
                                 });
@@ -826,11 +944,18 @@ document.getElementById("renderCanvas")?.focus();
                                         ? [...flock.scene.materials]
                                         : [];
                                 materials.forEach((material) => {
-                                        if (material?.dispose && typeof material.dispose === "function") {
+                                        if (
+                                                material?.dispose &&
+                                                typeof material.dispose ===
+                                                        "function"
+                                        ) {
                                                 try {
                                                         material.dispose();
                                                 } catch (error) {
-                                                        console.warn("Error disposing material:", error);
+                                                        console.warn(
+                                                                "Error disposing material:",
+                                                                error,
+                                                        );
                                                 }
                                         }
                                 });
@@ -847,7 +972,9 @@ document.getElementById("renderCanvas")?.focus();
                                 flock.scene.onKeyboardObservable?.clear();
 
                                 // Wait for async operations to complete
-                                await new Promise((resolve) => setTimeout(resolve, 100));
+                                await new Promise((resolve) =>
+                                        setTimeout(resolve, 100),
+                                );
 
                                 // Dispose of the scene
                                 flock.scene.dispose();
@@ -862,11 +989,17 @@ document.getElementById("renderCanvas")?.focus();
                                 flock.engine = null;
 
                                 // Close audio context
-                                if (flock.audioContext && flock.audioContext.state !== "closed") {
+                                if (
+                                        flock.audioContext &&
+                                        flock.audioContext.state !== "closed"
+                                ) {
                                         try {
                                                 await flock.audioContext.close();
                                         } catch (error) {
-                                                console.warn("AudioContext was already closed or closing:", error);
+                                                console.warn(
+                                                        "AudioContext was already closed or closing:",
+                                                        error,
+                                                );
                                         }
                                 }
                                 flock.audioContext = null;
@@ -889,21 +1022,30 @@ document.getElementById("renderCanvas")?.focus();
                                 flock.abortController = null;
 
                                 // Force garbage collection in development (if available)
-                                if (typeof window !== 'undefined' && window.gc) {
+                                if (
+                                        typeof window !== "undefined" &&
+                                        window.gc
+                                ) {
                                         setTimeout(() => {
                                                 try {
                                                         window.gc();
-                                                        console.log("Forced garbage collection");
+                                                        console.log(
+                                                                "Forced garbage collection",
+                                                        );
                                                 } catch (error) {
                                                         // Silently fail if gc is not available
                                                 }
                                         }, 100);
                                 }
 
-                                console.log("Scene disposal completed successfully");
-
+                                console.log(
+                                        "Scene disposal completed successfully",
+                                );
                         } catch (error) {
-                                console.error("Error during scene disposal:", error);
+                                console.error(
+                                        "Error during scene disposal:",
+                                        error,
+                                );
                                 // Even if disposal fails, clear critical references
                                 flock.scene = null;
                                 flock.engine = null;
@@ -918,7 +1060,9 @@ document.getElementById("renderCanvas")?.focus();
                 await new Promise((resolve) => setTimeout(resolve, 200));
 
                 // Stop existing render loop or create a new engine
-                flock.engine ? flock.engine.stopRenderLoop() : flock.createEngine();
+                flock.engine
+                        ? flock.engine.stopRenderLoop()
+                        : flock.createEngine();
 
                 // Reset scene-wide state
                 flock.events = {};
@@ -945,7 +1089,10 @@ document.getElementById("renderCanvas")?.focus();
                 });
 
                 // Enable physics
-                flock.hk = new flock.BABYLON.HavokPlugin(true, flock.havokInstance);
+                flock.hk = new flock.BABYLON.HavokPlugin(
+                        true,
+                        flock.havokInstance,
+                );
                 flock.scene.enablePhysics(
                         new flock.BABYLON.Vector3(0, -9.81, 0),
                         flock.hk,
@@ -994,27 +1141,38 @@ document.getElementById("renderCanvas")?.focus();
                 );
                 hemisphericLight.intensity = 1.0;
                 hemisphericLight.diffuse = new flock.BABYLON.Color3(1, 1, 1);
-                hemisphericLight.groundColor = new flock.BABYLON.Color3(0.5, 0.5, 0.5);
+                hemisphericLight.groundColor = new flock.BABYLON.Color3(
+                        0.5,
+                        0.5,
+                        0.5,
+                );
 
                 flock.mainLight = hemisphericLight;
 
-                flock.audioEnginePromise = flock.BABYLON.CreateAudioEngineAsync({
-                        volume: 1,
-                        listenerAutoUpdate: true,
-                        listenerEnabled: true,
-                        resumeOnInteraction: true,
-                });
+                flock.audioEnginePromise = flock.BABYLON.CreateAudioEngineAsync(
+                        {
+                                volume: 1,
+                                listenerAutoUpdate: true,
+                                listenerEnabled: true,
+                                resumeOnInteraction: true,
+                        },
+                );
 
                 flock.audioEnginePromise.then((audioEngine) => {
                         flock.audioEngine = audioEngine;
-                        flock.globalStartTime = flock.getAudioContext().currentTime;
+                        flock.globalStartTime =
+                                flock.getAudioContext().currentTime;
                         if (flock.scene.activeCamera) {
-                                audioEngine.listener.attach(flock.scene.activeCamera);
+                                audioEngine.listener.attach(
+                                        flock.scene.activeCamera,
+                                );
                         }
 
                         // Reattach listener if the active camera ever changes
                         flock.scene.onActiveCameraChanged.add(() => {
-                                audioEngine.listener.attach(flock.scene.activeCamera);
+                                audioEngine.listener.attach(
+                                        flock.scene.activeCamera,
+                                );
                         });
                 });
 
@@ -1028,14 +1186,18 @@ document.getElementById("renderCanvas")?.focus();
 
                 if (isTouchScreen) {
                         flock.controlsTexture =
-                                flock.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
+                                flock.GUI.AdvancedDynamicTexture.CreateFullscreenUI(
+                                        "UI",
+                                );
                         flock.createArrowControls("white");
                         flock.createButtonControls("white");
                 }
 
                 // Create the UI
                 flock.advancedTexture =
-                        flock.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
+                        flock.GUI.AdvancedDynamicTexture.CreateFullscreenUI(
+                                "UI",
+                        );
 
                 // Stack panel for text
                 flock.stackPanel = new flock.GUI.StackPanel();
@@ -1077,11 +1239,18 @@ document.getElementById("renderCanvas")?.focus();
                 if (flock.xrHelper) return; // Avoid reinitializing
 
                 if (mode === "VR") {
-                        flock.xrHelper = await flock.scene.createDefaultXRExperienceAsync();
+                        flock.xrHelper =
+                                await flock.scene.createDefaultXRExperienceAsync();
                 } else if (mode === "AR") {
-                        flock.xrHelper = await flock.scene.createDefaultXRExperienceAsync({
-                                uiOptions: { sessionMode: "immersive-ar" },
-                        });
+                        flock.xrHelper =
+                                await flock.scene.createDefaultXRExperienceAsync(
+                                        {
+                                                uiOptions: {
+                                                        sessionMode:
+                                                                "immersive-ar",
+                                                },
+                                        },
+                                );
                 } else if (mode === "MAGIC_WINDOW") {
                         let camera = flock.scene.activeCamera;
                         if (!camera.inputs.attached.deviceOrientation) {
@@ -1104,51 +1273,83 @@ document.getElementById("renderCanvas")?.focus();
                 planeMaterial.disableDepthWrite = true;
                 flock.uiPlane.material = planeMaterial;
 
-                flock.meshTexture = flock.GUI.AdvancedDynamicTexture.CreateForMesh(
-                        flock.uiPlane,
-                );
+                flock.meshTexture =
+                        flock.GUI.AdvancedDynamicTexture.CreateForMesh(
+                                flock.uiPlane,
+                        );
 
                 // Ensure the UI plane follows the wrist (using a controller or camera offset)
-                flock.xrHelper.input.onControllerAddedObservable.add((controller) => {
-                        if (controller.inputSource.handedness === "left") {
-                                // Attach the UI plane to the left-hand controller
-                                flock.uiPlane.parent = controller.grip || controller.pointer;
+                flock.xrHelper.input.onControllerAddedObservable.add(
+                        (controller) => {
+                                if (
+                                        controller.inputSource.handedness ===
+                                        "left"
+                                ) {
+                                        // Attach the UI plane to the left-hand controller
+                                        flock.uiPlane.parent =
+                                                controller.grip ||
+                                                controller.pointer;
 
-                                // Position the UI plane to simulate a watch
-                                flock.uiPlane.position.set(0.1, -0.05, 0); // Slightly to the side, closer to the wrist
-                                flock.uiPlane.rotation.set(Math.PI / 2, 0, 0); // Rotate to face the user
-                        }
-                });
+                                        // Position the UI plane to simulate a watch
+                                        flock.uiPlane.position.set(
+                                                0.1,
+                                                -0.05,
+                                                0,
+                                        ); // Slightly to the side, closer to the wrist
+                                        flock.uiPlane.rotation.set(
+                                                Math.PI / 2,
+                                                0,
+                                                0,
+                                        ); // Rotate to face the user
+                                }
+                        },
+                );
 
                 // Handle XR state changes
-                flock.xrHelper.baseExperience.onStateChangedObservable.add((state) => {
-                        if (state === flock.BABYLON.WebXRState.ENTERING_XR) {
-                                flock.advancedTexture.removeControl(flock.stackPanel);
-                                flock.meshTexture.addControl(flock.stackPanel);
-                                flock.uiPlane.isVisible = true;
+                flock.xrHelper.baseExperience.onStateChangedObservable.add(
+                        (state) => {
+                                if (
+                                        state ===
+                                        flock.BABYLON.WebXRState.ENTERING_XR
+                                ) {
+                                        flock.advancedTexture.removeControl(
+                                                flock.stackPanel,
+                                        );
+                                        flock.meshTexture.addControl(
+                                                flock.stackPanel,
+                                        );
+                                        flock.uiPlane.isVisible = true;
 
-                                // Update alignment for wrist UI
-                                flock.stackPanel.horizontalAlignment =
-                                        flock.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
-                                flock.stackPanel.verticalAlignment =
-                                        flock.GUI.Control.VERTICAL_ALIGNMENT_TOP;
+                                        // Update alignment for wrist UI
+                                        flock.stackPanel.horizontalAlignment =
+                                                flock.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
+                                        flock.stackPanel.verticalAlignment =
+                                                flock.GUI.Control.VERTICAL_ALIGNMENT_TOP;
 
-                                flock.advancedTexture.isVisible = false; // Hide fullscreen UI
-                        } else if (state === flock.BABYLON.WebXRState.EXITING_XR) {
-                                flock.meshTexture.removeControl(flock.stackPanel);
-                                flock.advancedTexture.addControl(flock.stackPanel);
-                                flock.uiPlane.isVisible = false;
+                                        flock.advancedTexture.isVisible = false; // Hide fullscreen UI
+                                } else if (
+                                        state ===
+                                        flock.BABYLON.WebXRState.EXITING_XR
+                                ) {
+                                        flock.meshTexture.removeControl(
+                                                flock.stackPanel,
+                                        );
+                                        flock.advancedTexture.addControl(
+                                                flock.stackPanel,
+                                        );
+                                        flock.uiPlane.isVisible = false;
 
-                                // Restore alignment for non-XR
-                                flock.stackPanel.width = "100%";
-                                flock.stackPanel.horizontalAlignment =
-                                        flock.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
-                                flock.stackPanel.verticalAlignment =
-                                        flock.GUI.Control.VERTICAL_ALIGNMENT_TOP;
+                                        // Restore alignment for non-XR
+                                        flock.stackPanel.width = "100%";
+                                        flock.stackPanel.horizontalAlignment =
+                                                flock.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
+                                        flock.stackPanel.verticalAlignment =
+                                                flock.GUI.Control.VERTICAL_ALIGNMENT_TOP;
 
-                                flock.advancedTexture.rootContainer.isVisible = true;
-                        }
-                });
+                                        flock.advancedTexture.rootContainer.isVisible = true;
+                                }
+                        },
+                );
         },
         removeEventListeners() {
                 flock.scene.eventListeners?.forEach(({ event, handler }) => {
@@ -1169,7 +1370,11 @@ document.getElementById("renderCanvas")?.focus();
                 const signal = flock.abortController?.signal;
 
                 while (attempt <= maxAttempts) {
-                        if (flock.disposed || !flock.scene || flock.scene.isDisposed) {
+                        if (
+                                flock.disposed ||
+                                !flock.scene ||
+                                flock.scene.isDisposed
+                        ) {
                                 console.warn(
                                         "Scene has been disposed or generator invalidated.",
                                 );
@@ -1181,7 +1386,10 @@ document.getElementById("renderCanvas")?.focus();
                                         yield flock.scene.activeCamera;
                                         return;
                                 } else {
-                                        const mesh = flock.scene.getMeshByName(meshId);
+                                        const mesh =
+                                                flock.scene.getMeshByName(
+                                                        meshId,
+                                                );
                                         if (mesh) {
                                                 yield mesh;
                                                 return;
@@ -1191,23 +1399,38 @@ document.getElementById("renderCanvas")?.focus();
 
                         try {
                                 await new Promise((resolve, reject) => {
-                                        const timeoutId = setTimeout(resolve, interval);
+                                        const timeoutId = setTimeout(
+                                                resolve,
+                                                interval,
+                                        );
 
                                         // Reject the promise if the abort signal is triggered
                                         const onAbort = () => {
                                                 clearTimeout(timeoutId);
-                                                reject(new Error("Wait aborted"));
+                                                reject(
+                                                        new Error(
+                                                                "Wait aborted",
+                                                        ),
+                                                );
                                         };
 
                                         if (signal) {
-                                                signal.addEventListener("abort", onAbort, {
-                                                        once: true,
-                                                });
+                                                signal.addEventListener(
+                                                        "abort",
+                                                        onAbort,
+                                                        {
+                                                                once: true,
+                                                        },
+                                                );
 
                                                 // Ensure the event listener is cleaned up after resolving
                                                 signal.addEventListener(
                                                         "abort",
-                                                        () => signal.removeEventListener("abort", onAbort),
+                                                        () =>
+                                                                signal.removeEventListener(
+                                                                        "abort",
+                                                                        onAbort,
+                                                                ),
                                                         { once: true },
                                                 );
                                         }
@@ -1231,178 +1454,339 @@ document.getElementById("renderCanvas")?.focus();
                 yield null;
         },
         whenModelReady(id, callback) {
-          // --- Promise that resolves when ready (or undefined on abort/dispose) ---
-          let settled = false;
-          let resolveP;
-          const promise = new Promise((r) => { resolveP = r; });
+                // --- Promise that resolves when ready (or undefined on abort/dispose) ---
+                let settled = false;
+                let resolveP;
+                const promise = new Promise((r) => {
+                        resolveP = r;
+                });
 
-          const safeCall = (val) => {
-                if (settled) return;
-                settled = true;
-                try {
-                  if (typeof callback === "function") callback(val);
-                } finally {
-                  resolveP(val);
-                }
-          };
-
-          // Helper: locate current object
-          const locate = () => {
-                const scene = flock.scene;
-                if (!scene) return null;
-                if (id === "__active_camera__") return scene.activeCamera ?? null;
-
-                let t = scene.getMeshByName?.(id) ?? null;
-                if (!t && scene.UITexture) t = scene.UITexture.getControlByName?.(id) ?? null;
-                if (!t && Array.isArray(scene.animationGroups)) t = scene.animationGroups.find(g => g.name === id) ?? null;
-                if (!t && Array.isArray(scene.particleSystems)) t = scene.particleSystems.find(s => s.name === id) ?? null;
-                return t ?? null;
-          };
-
-          // --- Fast path ---
-          if (flock.scene) {
-                const existing = locate();
-                if (existing) {
-                  if (!flock.abortController?.signal?.aborted) safeCall(existing);
-                  return promise; // <— return the promise even in fast path
-                }
-          }
-
-          // --- CallbackMode (observer) path ---
-          if (flock.callbackMode) {
-                const signal = flock.abortController?.signal;
-
-                const attachObservers = () => {
-                  const scene = flock.scene;
-                  if (!scene) return;
-
-                  const disposers = [];
-                  let done = false;
-                  const finish = (target /*, source */) => {
-                        if (done) return;
-                        done = true;
-                        try { if (!signal?.aborted) safeCall(target); }
-                        finally {
-                          while (disposers.length) { try { disposers.pop()(); } catch {} }
+                const safeCall = (val) => {
+                        if (settled) return;
+                        settled = true;
+                        try {
+                                if (typeof callback === "function")
+                                        callback(val);
+                        } finally {
+                                resolveP(val);
                         }
-                  };
-
-                  // active camera
-                  if (id === "__active_camera__") {
-                        const camNow = scene.activeCamera;
-                        if (camNow) { finish(camNow); return; }
-                        if (scene.onActiveCameraChanged) {
-                          const cb = () => { if (scene.activeCamera) finish(scene.activeCamera); };
-                          scene.onActiveCameraChanged.add(cb);
-                          disposers.push(() => scene.onActiveCameraChanged.removeCallback(cb));
-                        }
-                        if (scene.onDisposeObservable) {
-                          const h = scene.onDisposeObservable.add(() => finish(undefined));
-                          disposers.push(() => scene.onDisposeObservable.remove(h));
-                        }
-                        if (signal) {
-                          const onAbort = () => finish(undefined);
-                          signal.addEventListener("abort", onAbort, { once: true });
-                          disposers.push(() => signal.removeEventListener("abort", onAbort));
-                        }
-                        return;
-                  }
-
-                  // meshes
-                  if (scene.onNewMeshAddedObservable) {
-                        const h = scene.onNewMeshAddedObservable.add(mesh => {
-                          if (!done && mesh?.name === id) finish(mesh);
-                        });
-                        disposers.push(() => scene.onNewMeshAddedObservable.remove(h));
-                  }
-
-                  // animation groups
-                  if (scene.onAnimationGroupAddedObservable) {
-                        const h = scene.onAnimationGroupAddedObservable.add(group => {
-                          if (!done && group?.name === id) finish(group);
-                        });
-                        disposers.push(() => scene.onAnimationGroupAddedObservable.remove(h));
-                  }
-
-                  // particle systems
-                  if (scene.onNewParticleSystemAddedObservable) {
-                        const h = scene.onNewParticleSystemAddedObservable.add(ps => {
-                          if (!done && ps?.name === id) finish(ps);
-                        });
-                        disposers.push(() => scene.onNewParticleSystemAddedObservable.remove(h));
-                  }
-
-                  // GUI controls (attach when UITexture exists)
-                  const attachGui = () => {
-                        const tex = scene.UITexture;
-                        if (!tex?.onControlAddedObservable) return false;
-                        const h = tex.onControlAddedObservable.add(ctrl => {
-                          if (!done && ctrl?.name === id) finish(ctrl);
-                        });
-                        disposers.push(() => tex.onControlAddedObservable.remove(h));
-                        return true;
-                  };
-                  if (!attachGui()) {
-                        const tick = scene.onBeforeRenderObservable.add(() => {
-                          if (attachGui()) scene.onBeforeRenderObservable.remove(tick);
-                        });
-                        disposers.push(() => scene.onBeforeRenderObservable.remove(tick));
-                  }
-
-                  // scene dispose / abort
-                  if (scene.onDisposeObservable) {
-                        const h = scene.onDisposeObservable.add(() => finish(undefined));
-                        disposers.push(() => scene.onDisposeObservable.remove(h));
-                  }
-                  if (signal) {
-                        const onAbort = () => finish(undefined);
-                        signal.addEventListener("abort", onAbort, { once: true });
-                        disposers.push(() => signal.removeEventListener("abort", onAbort));
-                  }
                 };
 
-                // wait for scene if needed
-                if (!flock.scene) {
-                  let rafId = 0;
-                  const check = () => {
-                        if (flock.abortController?.signal?.aborted) return;
-                        if (flock.scene) { cancelAnimationFrame(rafId); attachObservers(); return; }
-                        rafId = requestAnimationFrame(check);
-                  };
-                  rafId = requestAnimationFrame(check);
-                  if (signal) {
-                        const onAbort = () => cancelAnimationFrame(rafId);
-                        signal.addEventListener("abort", onAbort, { once: true });
-                  }
-                  return promise; // <— still return the promise
+                // Helper: locate current object
+                const locate = () => {
+                        const scene = flock.scene;
+                        if (!scene) return null;
+                        if (id === "__active_camera__")
+                                return scene.activeCamera ?? null;
+
+                        let t = scene.getMeshByName?.(id) ?? null;
+                        if (!t && scene.UITexture)
+                                t =
+                                        scene.UITexture.getControlByName?.(
+                                                id,
+                                        ) ?? null;
+                        if (!t && Array.isArray(scene.animationGroups))
+                                t =
+                                        scene.animationGroups.find(
+                                                (g) => g.name === id,
+                                        ) ?? null;
+                        if (!t && Array.isArray(scene.particleSystems))
+                                t =
+                                        scene.particleSystems.find(
+                                                (s) => s.name === id,
+                                        ) ?? null;
+                        return t ?? null;
+                };
+
+                // --- Fast path ---
+                if (flock.scene) {
+                        const existing = locate();
+                        if (existing) {
+                                if (!flock.abortController?.signal?.aborted)
+                                        safeCall(existing);
+                                return promise; // <— return the promise even in fast path
+                        }
                 }
 
-                attachObservers();
-                return promise;
-          }
+                // --- CallbackMode (observer) path ---
+                if (flock.callbackMode) {
+                        const signal = flock.abortController?.signal;
 
-          // --- Polling fallback (generator) ---
-          (async () => {
-                const generator = flock.modelReadyGenerator(id);
-                try {
-                  for await (const target of generator) {
-                        if (flock.abortController?.signal?.aborted) { safeCall(undefined); return; }
-                        if (target) safeCall(target);
-                        return;
-                  }
-                } catch (err) {
-                  if (flock.abortController?.signal?.aborted) {
-                        // resolve undefined on abort
-                        safeCall(undefined);
-                  } else {
-                        console.error(`Error in whenModelReady for '${id}':`, err);
-                        // resolve undefined on error to prevent hangs
-                        safeCall(undefined);
-                  }
+                        const attachObservers = () => {
+                                const scene = flock.scene;
+                                if (!scene) return;
+
+                                const disposers = [];
+                                let done = false;
+                                const finish = (target /*, source */) => {
+                                        if (done) return;
+                                        done = true;
+                                        try {
+                                                if (!signal?.aborted)
+                                                        safeCall(target);
+                                        } finally {
+                                                while (disposers.length) {
+                                                        try {
+                                                                disposers.pop()();
+                                                        } catch {}
+                                                }
+                                        }
+                                };
+
+                                // active camera
+                                if (id === "__active_camera__") {
+                                        const camNow = scene.activeCamera;
+                                        if (camNow) {
+                                                finish(camNow);
+                                                return;
+                                        }
+                                        if (scene.onActiveCameraChanged) {
+                                                const cb = () => {
+                                                        if (scene.activeCamera)
+                                                                finish(
+                                                                        scene.activeCamera,
+                                                                );
+                                                };
+                                                scene.onActiveCameraChanged.add(
+                                                        cb,
+                                                );
+                                                disposers.push(() =>
+                                                        scene.onActiveCameraChanged.removeCallback(
+                                                                cb,
+                                                        ),
+                                                );
+                                        }
+                                        if (scene.onDisposeObservable) {
+                                                const h =
+                                                        scene.onDisposeObservable.add(
+                                                                () =>
+                                                                        finish(
+                                                                                undefined,
+                                                                        ),
+                                                        );
+                                                disposers.push(() =>
+                                                        scene.onDisposeObservable.remove(
+                                                                h,
+                                                        ),
+                                                );
+                                        }
+                                        if (signal) {
+                                                const onAbort = () =>
+                                                        finish(undefined);
+                                                signal.addEventListener(
+                                                        "abort",
+                                                        onAbort,
+                                                        { once: true },
+                                                );
+                                                disposers.push(() =>
+                                                        signal.removeEventListener(
+                                                                "abort",
+                                                                onAbort,
+                                                        ),
+                                                );
+                                        }
+                                        return;
+                                }
+
+                                // meshes
+                                if (scene.onNewMeshAddedObservable) {
+                                        const h =
+                                                scene.onNewMeshAddedObservable.add(
+                                                        (mesh) => {
+                                                                if (
+                                                                        !done &&
+                                                                        mesh?.name ===
+                                                                                id
+                                                                )
+                                                                        finish(
+                                                                                mesh,
+                                                                        );
+                                                        },
+                                                );
+                                        disposers.push(() =>
+                                                scene.onNewMeshAddedObservable.remove(
+                                                        h,
+                                                ),
+                                        );
+                                }
+
+                                // animation groups
+                                if (scene.onAnimationGroupAddedObservable) {
+                                        const h =
+                                                scene.onAnimationGroupAddedObservable.add(
+                                                        (group) => {
+                                                                if (
+                                                                        !done &&
+                                                                        group?.name ===
+                                                                                id
+                                                                )
+                                                                        finish(
+                                                                                group,
+                                                                        );
+                                                        },
+                                                );
+                                        disposers.push(() =>
+                                                scene.onAnimationGroupAddedObservable.remove(
+                                                        h,
+                                                ),
+                                        );
+                                }
+
+                                // particle systems
+                                if (scene.onNewParticleSystemAddedObservable) {
+                                        const h =
+                                                scene.onNewParticleSystemAddedObservable.add(
+                                                        (ps) => {
+                                                                if (
+                                                                        !done &&
+                                                                        ps?.name ===
+                                                                                id
+                                                                )
+                                                                        finish(
+                                                                                ps,
+                                                                        );
+                                                        },
+                                                );
+                                        disposers.push(() =>
+                                                scene.onNewParticleSystemAddedObservable.remove(
+                                                        h,
+                                                ),
+                                        );
+                                }
+
+                                // GUI controls (attach when UITexture exists)
+                                const attachGui = () => {
+                                        const tex = scene.UITexture;
+                                        if (!tex?.onControlAddedObservable)
+                                                return false;
+                                        const h =
+                                                tex.onControlAddedObservable.add(
+                                                        (ctrl) => {
+                                                                if (
+                                                                        !done &&
+                                                                        ctrl?.name ===
+                                                                                id
+                                                                )
+                                                                        finish(
+                                                                                ctrl,
+                                                                        );
+                                                        },
+                                                );
+                                        disposers.push(() =>
+                                                tex.onControlAddedObservable.remove(
+                                                        h,
+                                                ),
+                                        );
+                                        return true;
+                                };
+                                if (!attachGui()) {
+                                        const tick =
+                                                scene.onBeforeRenderObservable.add(
+                                                        () => {
+                                                                if (attachGui())
+                                                                        scene.onBeforeRenderObservable.remove(
+                                                                                tick,
+                                                                        );
+                                                        },
+                                                );
+                                        disposers.push(() =>
+                                                scene.onBeforeRenderObservable.remove(
+                                                        tick,
+                                                ),
+                                        );
+                                }
+
+                                // scene dispose / abort
+                                if (scene.onDisposeObservable) {
+                                        const h = scene.onDisposeObservable.add(
+                                                () => finish(undefined),
+                                        );
+                                        disposers.push(() =>
+                                                scene.onDisposeObservable.remove(
+                                                        h,
+                                                ),
+                                        );
+                                }
+                                if (signal) {
+                                        const onAbort = () => finish(undefined);
+                                        signal.addEventListener(
+                                                "abort",
+                                                onAbort,
+                                                { once: true },
+                                        );
+                                        disposers.push(() =>
+                                                signal.removeEventListener(
+                                                        "abort",
+                                                        onAbort,
+                                                ),
+                                        );
+                                }
+                        };
+
+                        // wait for scene if needed
+                        if (!flock.scene) {
+                                let rafId = 0;
+                                const check = () => {
+                                        if (
+                                                flock.abortController?.signal
+                                                        ?.aborted
+                                        )
+                                                return;
+                                        if (flock.scene) {
+                                                cancelAnimationFrame(rafId);
+                                                attachObservers();
+                                                return;
+                                        }
+                                        rafId = requestAnimationFrame(check);
+                                };
+                                rafId = requestAnimationFrame(check);
+                                if (signal) {
+                                        const onAbort = () =>
+                                                cancelAnimationFrame(rafId);
+                                        signal.addEventListener(
+                                                "abort",
+                                                onAbort,
+                                                { once: true },
+                                        );
+                                }
+                                return promise; // <— still return the promise
+                        }
+
+                        attachObservers();
+                        return promise;
                 }
-          })();
 
-          return promise; // <— important: always return the promise
+                // --- Polling fallback (generator) ---
+                (async () => {
+                        const generator = flock.modelReadyGenerator(id);
+                        try {
+                                for await (const target of generator) {
+                                        if (
+                                                flock.abortController?.signal
+                                                        ?.aborted
+                                        ) {
+                                                safeCall(undefined);
+                                                return;
+                                        }
+                                        if (target) safeCall(target);
+                                        return;
+                                }
+                        } catch (err) {
+                                if (flock.abortController?.signal?.aborted) {
+                                        // resolve undefined on abort
+                                        safeCall(undefined);
+                                } else {
+                                        console.error(
+                                                `Error in whenModelReady for '${id}':`,
+                                                err,
+                                        );
+                                        // resolve undefined on error to prevent hangs
+                                        safeCall(undefined);
+                                }
+                        }
+                })();
+
+                return promise; // <— important: always return the promise
         },
         announceMeshReady(meshName, groupName) {
                 //console.log(`[flock] Mesh ready: ${meshName} (group: ${groupName})`);
@@ -1412,11 +1796,16 @@ document.getElementById("renderCanvas")?.focus();
                 //console.log(`[flock] Registering pending triggers for group: '${groupName}'`);
                 const triggers = flock.pendingTriggers.get(groupName);
 
-                for (const { trigger, callback, mode, applyToGroup } of triggers) {
+                for (const {
+                        trigger,
+                        callback,
+                        mode,
+                        applyToGroup,
+                } of triggers) {
                         if (applyToGroup) {
                                 // 🔁 Reapply trigger across all matching meshes
-                                const matching = flock.scene.meshes.filter((m) =>
-                                        m.name.startsWith(groupName),
+                                const matching = flock.scene.meshes.filter(
+                                        (m) => m.name.startsWith(groupName),
                                 );
                                 for (const m of matching) {
                                         flock.onTrigger(m.name, {
@@ -1438,25 +1827,30 @@ document.getElementById("renderCanvas")?.focus();
                 }
         },
         /** Reserve a unique name. If desired is taken or pending, suffix it. */
-        _reserveName (desired) {
-          const has = (n) => flock._nameRegistry.has(n) || !!flock.scene?.getMeshByName(n);
-          let name = desired;
-          while (has(name)) {
-                name = `${desired}_${flock.scene.getUniqueId()}`;
-          }
-          flock._nameRegistry.set(name, { pending: true, exists: false });
-          return name;
+        _reserveName(desired) {
+                const has = (n) =>
+                        flock._nameRegistry.has(n) ||
+                        !!flock.scene?.getMeshByName(n);
+                let name = desired;
+                while (has(name)) {
+                        name = `${desired}_${flock.scene.getUniqueId()}`;
+                }
+                flock._nameRegistry.set(name, { pending: true, exists: false });
+                return name;
         },
 
         /** Mark a reserved name as created (exists in scene). */
-        _markNameCreated (name) {
-          const rec = flock._nameRegistry.get(name);
-          if (rec) { rec.pending = false; rec.exists = true; }
+        _markNameCreated(name) {
+                const rec = flock._nameRegistry.get(name);
+                if (rec) {
+                        rec.pending = false;
+                        rec.exists = true;
+                }
         },
 
         /** Release a reservation on failure/disposal. */
         _releaseName(name) {
-          flock._nameRegistry.delete(name);
+                flock._nameRegistry.delete(name);
         },
 
         /* 
@@ -1504,6 +1898,100 @@ document.getElementById("renderCanvas")?.focus();
                 });
         },
         exportMesh(meshName, format) {
+                //meshName = "scene";
+  
+                if (meshName === "scene" && format === "GLB") {
+                        const scene = flock.scene;
+
+                        const cls = (n) => n?.getClassName?.();
+                        const isEnabledDeep = (n) =>
+                                typeof n.isEnabled === "function"
+                                        ? n.isEnabled(true)
+                                        : true;
+
+                        // Treat ALL mesh subclasses as geometry; we'll still skip LinesMesh explicitly
+                        const isAbstractMesh = (n) =>
+                                typeof BABYLON !== "undefined" &&
+                                n instanceof BABYLON.AbstractMesh;
+                        const isLines = (n) => cls(n) === "LinesMesh";
+
+                        // --- Ghost: top-level + enabled + AbstractMesh + no material (not lines)
+                        const targets = scene.meshes.filter(
+                                (m) =>
+                                        !m.parent &&
+                                        isEnabledDeep(m) &&
+                                        isAbstractMesh(m) &&
+                                        !isLines(m) &&
+                                        !m.material,
+                        );
+
+                        // Shared transparent PBR material (GLTF-friendly)
+                        const ghostMat = new BABYLON.PBRMaterial(
+                                "_tmpExportGhost",
+                                scene,
+                        );
+                        ghostMat.alpha = 0;
+                        ghostMat.alphaMode = BABYLON.Engine.ALPHA_BLEND;
+                        ghostMat.transparencyMode =
+                                BABYLON.PBRMaterial.PBRMATERIAL_ALPHABLEND;
+                        ghostMat.disableLighting = true;
+                        ghostMat.metallic = 0;
+                        ghostMat.roughness = 1;
+                        ghostMat.albedoColor = new BABYLON.Color4(1, 1, 1, 0);
+
+                        const patches = targets.map((mesh) => ({
+                                mesh,
+                                prev: mesh.material ?? null,
+                        }));
+                        for (const { mesh } of patches)
+                                mesh.material = ghostMat;
+
+                        // Optional: name allowlist for safety (keeps ground even if disabled, if you want)
+                        const alwaysKeepNames = new Set(["ground", "Ground"]);
+
+                        const shouldExportNode = (node) => {
+                                const c = cls(node);
+                                if (!c) return false;
+
+                                // Always keep ground (by name) before any other checks
+                                if (node.name && alwaysKeepNames.has(node.name))
+                                        return true;
+
+                                // Respect enabled state (includes ancestors)
+                                if (!isEnabledDeep(node)) return false;
+
+                                // Never export cameras/lights
+                                if (c === "Camera" || c === "Light")
+                                        return false;
+
+                                // Skip line helpers entirely
+                                if (c === "LinesMesh") return false;
+
+                                // Keep all transform containers
+                                if (c === "TransformNode") return true;
+
+                                // Keep ALL mesh subclasses (e.g., Mesh, InstancedMesh, GroundMesh, etc.)
+                                if (isAbstractMesh(node)) return true;
+
+                                return false;
+                        };
+
+                        flock.EXPORT.GLTF2Export.GLBAsync(scene, "scene.glb", {
+                                exportMaterials: true,
+                                exportTextures: true,
+                                shouldExportNode,
+                        })
+                                .then((glb) => glb.downloadFiles())
+                                .finally(() => {
+                                        // Restore originals
+                                        for (const { mesh, prev } of patches)
+                                                mesh.material = prev;
+                                        ghostMat.dispose();
+                                });
+
+                        return;
+                }
+
                 return flock.whenModelReady(meshName, async function (mesh) {
                         const rootChild = mesh
                                 .getChildMeshes()
@@ -1511,22 +1999,21 @@ document.getElementById("renderCanvas")?.focus();
                         if (rootChild) {
                                 mesh = rootChild;
                         }
-
                         const childMeshes = mesh.getChildMeshes(false);
-
                         // Combine the parent mesh with its children
                         const meshList = [mesh, ...childMeshes];
-
                         if (format === "STL") {
-                                const stlData = flock.EXPORT.STLExport.CreateSTL(
-                                        meshList,
-                                        true,
-                                        mesh.name,
-                                        false,
-                                        false,
-                                );
+                                const stlData =
+                                        flock.EXPORT.STLExport.CreateSTL(
+                                                meshList,
+                                                true,
+                                                mesh.name,
+                                                false,
+                                                false,
+                                        );
                         } else if (format === "OBJ") {
-                                const objData = flock.EXPORT.OBJExport.OBJ(mesh);
+                                const objData =
+                                        flock.EXPORT.OBJExport.OBJ(mesh);
                                 //download(mesh.name + ".obj", objData, "text/plain");
                         } else if (format === "GLB") {
                                 mesh.flipFaces();
@@ -1536,7 +2023,9 @@ document.getElementById("renderCanvas")?.focus();
                                         {
                                                 shouldExportNode: (node) =>
                                                         node === mesh ||
-                                                        mesh.getChildMeshes().includes(node),
+                                                        mesh
+                                                                .getChildMeshes()
+                                                                .includes(node),
                                         },
                                 ).then((glb) => {
                                         mesh.flipFaces();
@@ -1575,7 +2064,10 @@ document.getElementById("renderCanvas")?.focus();
                         };
 
                         if (flock.abortController?.signal) {
-                                flock.abortController.signal.addEventListener("abort", onAbort);
+                                flock.abortController.signal.addEventListener(
+                                        "abort",
+                                        onAbort,
+                                );
                         }
                 }).catch((error) => {
                         // Check if the error is the expected "Wait aborted" error and handle it
@@ -1603,7 +2095,9 @@ document.getElementById("renderCanvas")?.focus();
                         const currentTime = performance.now();
 
                         if (currentTime - timing.lastFrameTime > 16) {
-                                await new Promise((resolve) => requestAnimationFrame(resolve));
+                                await new Promise((resolve) =>
+                                        requestAnimationFrame(resolve),
+                                );
                                 timing.lastFrameTime = performance.now(); // Update timing for this loop
                         }
                 }
@@ -1625,7 +2119,9 @@ document.getElementById("renderCanvas")?.focus();
                                         reject(error);
                                 }
                         };
-                        flock.scene.onBeforeRenderObservable.add(checkCondition);
+                        flock.scene.onBeforeRenderObservable.add(
+                                checkCondition,
+                        );
                 });
         },
         getProperty(modelName, propertyName) {
@@ -1654,39 +2150,56 @@ document.getElementById("renderCanvas")?.focus();
                 let allMeshes, materialNode, materialNodes;
                 switch (propertyName) {
                         case "POSITION_X":
-                                propertyValue = parseFloat(position.x.toFixed(2));
+                                propertyValue = parseFloat(
+                                        position.x.toFixed(2),
+                                );
                                 break;
                         case "POSITION_Y":
-                                propertyValue = parseFloat(position.y.toFixed(2));
+                                propertyValue = parseFloat(
+                                        position.y.toFixed(2),
+                                );
                                 break;
                         case "POSITION_Z":
-                                propertyValue = parseFloat(position.z.toFixed(2));
+                                propertyValue = parseFloat(
+                                        position.z.toFixed(2),
+                                );
                                 break;
                         case "ROTATION_X":
                                 propertyValue = parseFloat(
-                                        flock.BABYLON.Tools.ToDegrees(rotation.x).toFixed(2),
+                                        flock.BABYLON.Tools.ToDegrees(
+                                                rotation.x,
+                                        ).toFixed(2),
                                 );
                                 break;
                         case "ROTATION_Y":
                                 parseFloat(
-                                        (propertyValue = flock.BABYLON.Tools.ToDegrees(
-                                                rotation.y,
-                                        ).toFixed(2)),
+                                        (propertyValue =
+                                                flock.BABYLON.Tools.ToDegrees(
+                                                        rotation.y,
+                                                ).toFixed(2)),
                                 );
                                 break;
                         case "ROTATION_Z":
                                 propertyValue = parseFloat(
-                                        flock.BABYLON.Tools.ToDegrees(rotation.z).toFixed(2),
+                                        flock.BABYLON.Tools.ToDegrees(
+                                                rotation.z,
+                                        ).toFixed(2),
                                 );
                                 break;
                         case "SCALE_X":
-                                propertyValue = parseFloat(mesh.scaling.x.toFixed(2));
+                                propertyValue = parseFloat(
+                                        mesh.scaling.x.toFixed(2),
+                                );
                                 break;
                         case "SCALE_Y":
-                                propertyValue = parseFloat(mesh.scaling.y.toFixed(2));
+                                propertyValue = parseFloat(
+                                        mesh.scaling.y.toFixed(2),
+                                );
                                 break;
                         case "SCALE_Z":
-                                propertyValue = parseFloat(mesh.scaling.z.toFixed(2));
+                                propertyValue = parseFloat(
+                                        mesh.scaling.z.toFixed(2),
+                                );
                                 break;
                         case "SIZE_X": {
                                 const bi = mesh.getBoundingInfo();
@@ -1722,39 +2235,62 @@ document.getElementById("renderCanvas")?.focus();
                                 if (mesh.metadata?.origin?.xOrigin === "LEFT") {
                                         // Adjust based on LEFT origin
                                         propertyValue =
-                                                mesh.getBoundingInfo().boundingBox.minimumWorld.x;
-                                } else if (mesh.metadata?.origin?.xOrigin === "RIGHT") {
+                                                mesh.getBoundingInfo()
+                                                        .boundingBox
+                                                        .minimumWorld.x;
+                                } else if (
+                                        mesh.metadata?.origin?.xOrigin ===
+                                        "RIGHT"
+                                ) {
                                         // Adjust based on RIGHT origin
                                         const diffX =
-                                                (mesh.getBoundingInfo().boundingBox.maximum.x -
-                                                        mesh.getBoundingInfo().boundingBox.minimum.x) *
+                                                (mesh.getBoundingInfo()
+                                                        .boundingBox.maximum.x -
+                                                        mesh.getBoundingInfo()
+                                                                .boundingBox
+                                                                .minimum.x) *
                                                 (1 - mesh.scaling.x);
                                         propertyValue =
-                                                mesh.getBoundingInfo().boundingBox.maximumWorld.x -
-                                                diffX;
+                                                mesh.getBoundingInfo()
+                                                        .boundingBox
+                                                        .maximumWorld.x - diffX;
                                 } else {
                                         // Default CENTER origin
                                         propertyValue =
-                                                mesh.getBoundingInfo().boundingBox.minimum.x *
+                                                mesh.getBoundingInfo()
+                                                        .boundingBox.minimum.x *
                                                 mesh.scaling.x;
                                 }
                                 break;
 
                         case "MAX_X":
-                                if (mesh.metadata?.origin?.xOrigin === "RIGHT") {
+                                if (
+                                        mesh.metadata?.origin?.xOrigin ===
+                                        "RIGHT"
+                                ) {
                                         propertyValue =
-                                                mesh.getBoundingInfo().boundingBox.maximumWorld.x;
-                                } else if (mesh.metadata?.origin?.xOrigin === "LEFT") {
+                                                mesh.getBoundingInfo()
+                                                        .boundingBox
+                                                        .maximumWorld.x;
+                                } else if (
+                                        mesh.metadata?.origin?.xOrigin ===
+                                        "LEFT"
+                                ) {
                                         const diffX =
-                                                (mesh.getBoundingInfo().boundingBox.maximum.x -
-                                                        mesh.getBoundingInfo().boundingBox.minimum.x) *
+                                                (mesh.getBoundingInfo()
+                                                        .boundingBox.maximum.x -
+                                                        mesh.getBoundingInfo()
+                                                                .boundingBox
+                                                                .minimum.x) *
                                                 mesh.scaling.x;
                                         propertyValue =
-                                                mesh.getBoundingInfo().boundingBox.minimumWorld.x +
-                                                diffX;
+                                                mesh.getBoundingInfo()
+                                                        .boundingBox
+                                                        .minimumWorld.x + diffX;
                                 } else {
                                         propertyValue =
-                                                mesh.getBoundingInfo().boundingBox.maximum.x *
+                                                mesh.getBoundingInfo()
+                                                        .boundingBox.maximum.x *
                                                 mesh.scaling.x;
                                 }
                                 break;
@@ -1762,18 +2298,28 @@ document.getElementById("renderCanvas")?.focus();
                         case "MIN_Y":
                                 if (mesh.metadata?.origin?.yOrigin === "BASE") {
                                         propertyValue =
-                                                mesh.getBoundingInfo().boundingBox.minimumWorld.y;
-                                } else if (mesh.metadata?.origin?.yOrigin === "TOP") {
+                                                mesh.getBoundingInfo()
+                                                        .boundingBox
+                                                        .minimumWorld.y;
+                                } else if (
+                                        mesh.metadata?.origin?.yOrigin === "TOP"
+                                ) {
                                         const diffY =
-                                                (mesh.getBoundingInfo().boundingBox.maximum.y -
-                                                        mesh.getBoundingInfo().boundingBox.minimum.y) *
+                                                (mesh.getBoundingInfo()
+                                                        .boundingBox.maximum.y -
+                                                        mesh.getBoundingInfo()
+                                                                .boundingBox
+                                                                .minimum.y) *
                                                 (1 - mesh.scaling.y);
                                         propertyValue =
-                                                mesh.getBoundingInfo().boundingBox.maximumWorld.y -
-                                                diffY;
+                                                mesh.getBoundingInfo()
+                                                        .boundingBox
+                                                        .maximumWorld.y - diffY;
                                 } else {
                                         propertyValue =
-                                                mesh.getBoundingInfo().boundingBox.minimumWorld.y;
+                                                mesh.getBoundingInfo()
+                                                        .boundingBox
+                                                        .minimumWorld.y;
                                         //mesh.getBoundingInfo().boundingBox.minimum.y *
                                         //                                              mesh.scaling.y;
                                 }
@@ -1783,38 +2329,62 @@ document.getElementById("renderCanvas")?.focus();
                         case "MAX_Y":
                                 if (mesh.metadata?.origin?.yOrigin === "TOP") {
                                         propertyValue =
-                                                mesh.getBoundingInfo().boundingBox.maximumWorld.y;
-                                } else if (mesh.metadata?.origin?.yOrigin === "BASE") {
+                                                mesh.getBoundingInfo()
+                                                        .boundingBox
+                                                        .maximumWorld.y;
+                                } else if (
+                                        mesh.metadata?.origin?.yOrigin ===
+                                        "BASE"
+                                ) {
                                         const diffY =
-                                                (mesh.getBoundingInfo().boundingBox.maximum.y -
-                                                        mesh.getBoundingInfo().boundingBox.minimum.y) *
+                                                (mesh.getBoundingInfo()
+                                                        .boundingBox.maximum.y -
+                                                        mesh.getBoundingInfo()
+                                                                .boundingBox
+                                                                .minimum.y) *
                                                 mesh.scaling.y;
                                         propertyValue =
-                                                mesh.getBoundingInfo().boundingBox.minimumWorld.y +
-                                                diffY;
+                                                mesh.getBoundingInfo()
+                                                        .boundingBox
+                                                        .minimumWorld.y + diffY;
                                 } else {
                                         propertyValue = propertyValue =
-                                                mesh.getBoundingInfo().boundingBox.maximumWorld.y;
+                                                mesh.getBoundingInfo()
+                                                        .boundingBox
+                                                        .maximumWorld.y;
                                         //mesh.getBoundingInfo().boundingBox.maximum.y *
                                         //                                              mesh.scaling.y;
                                 }
                                 break;
 
                         case "MIN_Z":
-                                if (mesh.metadata?.origin?.zOrigin === "FRONT") {
+                                if (
+                                        mesh.metadata?.origin?.zOrigin ===
+                                        "FRONT"
+                                ) {
                                         propertyValue =
-                                                mesh.getBoundingInfo().boundingBox.minimumWorld.z;
-                                } else if (mesh.metadata?.origin?.zOrigin === "BACK") {
+                                                mesh.getBoundingInfo()
+                                                        .boundingBox
+                                                        .minimumWorld.z;
+                                } else if (
+                                        mesh.metadata?.origin?.zOrigin ===
+                                        "BACK"
+                                ) {
                                         const diffZ =
-                                                (mesh.getBoundingInfo().boundingBox.maximum.z -
-                                                        mesh.getBoundingInfo().boundingBox.minimum.z) *
+                                                (mesh.getBoundingInfo()
+                                                        .boundingBox.maximum.z -
+                                                        mesh.getBoundingInfo()
+                                                                .boundingBox
+                                                                .minimum.z) *
                                                 (1 - mesh.scaling.z);
                                         propertyValue =
-                                                mesh.getBoundingInfo().boundingBox.maximumWorld.z -
-                                                diffZ;
+                                                mesh.getBoundingInfo()
+                                                        .boundingBox
+                                                        .maximumWorld.z - diffZ;
                                 } else {
                                         propertyValue =
-                                                mesh.getBoundingInfo().boundingBox.minimum.z *
+                                                mesh.getBoundingInfo()
+                                                        .boundingBox.minimum.z *
                                                 mesh.scaling.z;
                                 }
                                 break;
@@ -1822,18 +2392,28 @@ document.getElementById("renderCanvas")?.focus();
                         case "MAX_Z":
                                 if (mesh.metadata?.origin?.zOrigin === "BACK") {
                                         propertyValue =
-                                                mesh.getBoundingInfo().boundingBox.maximumWorld.z;
-                                } else if (mesh.metadata?.origin?.zOrigin === "FRONT") {
+                                                mesh.getBoundingInfo()
+                                                        .boundingBox
+                                                        .maximumWorld.z;
+                                } else if (
+                                        mesh.metadata?.origin?.zOrigin ===
+                                        "FRONT"
+                                ) {
                                         const diffZ =
-                                                (mesh.getBoundingInfo().boundingBox.maximum.z -
-                                                        mesh.getBoundingInfo().boundingBox.minimum.z) *
+                                                (mesh.getBoundingInfo()
+                                                        .boundingBox.maximum.z -
+                                                        mesh.getBoundingInfo()
+                                                                .boundingBox
+                                                                .minimum.z) *
                                                 mesh.scaling.z;
                                         propertyValue =
-                                                mesh.getBoundingInfo().boundingBox.minimumWorld.z +
-                                                diffZ;
+                                                mesh.getBoundingInfo()
+                                                        .boundingBox
+                                                        .minimumWorld.z + diffZ;
                                 } else {
                                         propertyValue =
-                                                mesh.getBoundingInfo().boundingBox.maximum.z *
+                                                mesh.getBoundingInfo()
+                                                        .boundingBox.maximum.z *
                                                 mesh.scaling.z;
                                 }
                                 break;
@@ -1841,23 +2421,38 @@ document.getElementById("renderCanvas")?.focus();
                                 propertyValue = mesh.isVisible;
                                 break;
                         case "ALPHA":
-                                allMeshes = [mesh].concat(mesh.getDescendants());
-                                materialNode = allMeshes.find((node) => node.material);
+                                allMeshes = [mesh].concat(
+                                        mesh.getDescendants(),
+                                );
+                                materialNode = allMeshes.find(
+                                        (node) => node.material,
+                                );
 
                                 if (materialNode) {
-                                        propertyValue = materialNode.material.alpha;
+                                        propertyValue =
+                                                materialNode.material.alpha;
                                 }
                                 break;
                         case "COLOUR":
-                                allMeshes = [mesh].concat(mesh.getDescendants());
-                                materialNodes = allMeshes.filter((node) => node.material);
+                                allMeshes = [mesh].concat(
+                                        mesh.getDescendants(),
+                                );
+                                materialNodes = allMeshes.filter(
+                                        (node) => node.material,
+                                );
 
                                 // Map to get the diffuseColor or albedoColor of each material as a hex string
                                 colors = materialNodes
                                         .map((node) => {
-                                                if (node.material.diffuseColor) {
+                                                if (
+                                                        node.material
+                                                                .diffuseColor
+                                                ) {
                                                         return node.material.diffuseColor.toHexString();
-                                                } else if (node.material.albedoColor) {
+                                                } else if (
+                                                        node.material
+                                                                .albedoColor
+                                                ) {
                                                         return node.material.albedoColor.toHexString();
                                                 }
                                                 return null;
@@ -1885,28 +2480,64 @@ document.getElementById("renderCanvas")?.focus();
                         flock.xrHelper?.baseExperience?.input?.inputSources.some(
                                 (inputSource) => {
                                         if (inputSource.gamepad) {
-                                                const gamepad = inputSource.gamepad;
+                                                const gamepad =
+                                                        inputSource.gamepad;
 
                                                 // Thumbstick movement
-                                                if (key === "W" && gamepad.axes[1] < -0.5) return true; // Forward
-                                                if (key === "S" && gamepad.axes[1] > 0.5) return true; // Backward
-                                                if (key === "A" && gamepad.axes[0] < -0.5) return true; // Left
-                                                if (key === "D" && gamepad.axes[0] > 0.5) return true; // Right
+                                                if (
+                                                        key === "W" &&
+                                                        gamepad.axes[1] < -0.5
+                                                )
+                                                        return true; // Forward
+                                                if (
+                                                        key === "S" &&
+                                                        gamepad.axes[1] > 0.5
+                                                )
+                                                        return true; // Backward
+                                                if (
+                                                        key === "A" &&
+                                                        gamepad.axes[0] < -0.5
+                                                )
+                                                        return true; // Left
+                                                if (
+                                                        key === "D" &&
+                                                        gamepad.axes[0] > 0.5
+                                                )
+                                                        return true; // Right
 
                                                 // Button mappings
-                                                if (key === "SPACE" && gamepad.buttons[0]?.pressed)
+                                                if (
+                                                        key === "SPACE" &&
+                                                        gamepad.buttons[0]
+                                                                ?.pressed
+                                                )
                                                         return true; // A button for jump
-                                                if (key === "Q" && gamepad.buttons[1]?.pressed)
+                                                if (
+                                                        key === "Q" &&
+                                                        gamepad.buttons[1]
+                                                                ?.pressed
+                                                )
                                                         return true; // B button for action 1
-                                                if (key === "F" && gamepad.buttons[2]?.pressed)
+                                                if (
+                                                        key === "F" &&
+                                                        gamepad.buttons[2]
+                                                                ?.pressed
+                                                )
                                                         return true; // X button for action 2
-                                                if (key === "E" && gamepad.buttons[3]?.pressed)
+                                                if (
+                                                        key === "E" &&
+                                                        gamepad.buttons[3]
+                                                                ?.pressed
+                                                )
                                                         return true; // Y button for action 3
 
                                                 // General button check
                                                 if (
                                                         key === "ANY" &&
-                                                        gamepad.buttons.some((button) => button.pressed)
+                                                        gamepad.buttons.some(
+                                                                (button) =>
+                                                                        button.pressed,
+                                                        )
                                                 )
                                                         return true;
                                         }
@@ -1916,7 +2547,11 @@ document.getElementById("renderCanvas")?.focus();
 
                 // Combine all sources
                 if (key === "ANY") {
-                        return pressedKeys.size > 0 || pressedButtons.size > 0 || vrPressed;
+                        return (
+                                pressedKeys.size > 0 ||
+                                pressedButtons.size > 0 ||
+                                vrPressed
+                        );
                 } else if (key === "NONE") {
                         return (
                                 pressedKeys.size === 0 &&
@@ -1990,10 +2625,16 @@ document.getElementById("renderCanvas")?.focus();
                 b = Math.max(0, Math.min(255, Math.round(b)));
 
                 // Convert to hex and pad with zeros if needed
-                const hex = "#" + [r, g, b].map(x => {
-                        const hex = x.toString(16);
-                        return hex.length === 1 ? "0" + hex : hex;
-                }).join("");
+                const hex =
+                        "#" +
+                        [r, g, b]
+                                .map((x) => {
+                                        const hex = x.toString(16);
+                                        return hex.length === 1
+                                                ? "0" + hex
+                                                : hex;
+                                })
+                                .join("");
 
                 return hex;
         },
@@ -2027,7 +2668,11 @@ document.getElementById("renderCanvas")?.focus();
                         "babylon",
                         "flock",
                 ];
-                if (reservedPrefixes.some((prefix) => lower.startsWith(prefix))) {
+                if (
+                        reservedPrefixes.some((prefix) =>
+                                lower.startsWith(prefix),
+                        )
+                ) {
                         return false;
                 }
 
@@ -2048,7 +2693,8 @@ document.getElementById("renderCanvas")?.focus();
                         return;
                 }
                 if (!flock.events[eventName]) {
-                        flock.events[eventName] = new flock.BABYLON.Observable();
+                        flock.events[eventName] =
+                                new flock.BABYLON.Observable();
                 }
                 if (once) {
                         const wrappedHandler = (data) => {
@@ -2098,90 +2744,126 @@ document.getElementById("renderCanvas")?.focus();
                         }
                 });
 
-                flock.xrHelper?.input.onControllerAddedObservable.add((controller) => {
-                        console.log(
-                                `DEBUG: Controller added: ${controller.inputSource.handedness}`,
-                        );
+                flock.xrHelper?.input.onControllerAddedObservable.add(
+                        (controller) => {
+                                console.log(
+                                        `DEBUG: Controller added: ${controller.inputSource.handedness}`,
+                                );
 
-                        const handedness = controller.inputSource.handedness;
+                                const handedness =
+                                        controller.inputSource.handedness;
 
-                        // Map button IDs to the corresponding keyboard keys
-                        const buttonMap =
-                                handedness === "left"
-                                        ? { "y-button": "q", "x-button": "e" } // Left controller: Y -> Q, X -> E
-                                        : handedness === "right"
-                                                ? { "b-button": "f", "a-button": " " } // Right controller: B -> F, A -> Space
-                                                : {}; // Unknown handedness: No mapping
+                                // Map button IDs to the corresponding keyboard keys
+                                const buttonMap =
+                                        handedness === "left"
+                                                ? {
+                                                          "y-button": "q",
+                                                          "x-button": "e",
+                                                  } // Left controller: Y -> Q, X -> E
+                                                : handedness === "right"
+                                                  ? {
+                                                            "b-button": "f",
+                                                            "a-button": " ",
+                                                    } // Right controller: B -> F, A -> Space
+                                                  : {}; // Unknown handedness: No mapping
 
-                        controller.onMotionControllerInitObservable.add(
-                                (motionController) => {
-                                        Object.entries(buttonMap).forEach(
-                                                ([buttonId, mappedKey]) => {
-                                                        // Trigger the callback only for the specific key
-                                                        if (mappedKey !== key) {
-                                                                return;
-                                                        }
-                                                        const component =
-                                                                motionController.getComponent(buttonId);
-
-                                                        if (!component) {
-                                                                console.warn(
-                                                                        `DEBUG: Button ID '${buttonId}' not found for ${handedness} controller.`,
-                                                                );
-                                                                return;
-                                                        }
-
-                                                        console.log(
-                                                                `DEBUG: Observing button ID '${buttonId}' for key '${mappedKey}' on ${handedness} controller.`,
-                                                        );
-
-                                                        // Track the last known pressed state for this specific button
-                                                        let lastPressedState = false;
-
-                                                        // Monitor state changes for this specific button
-                                                        component.onButtonStateChangedObservable.add(() => {
-                                                                const isPressed = component.pressed;
-
-                                                                // Debugging to verify button states
-                                                                console.log(
-                                                                        `DEBUG: Observable fired for '${buttonId}', pressed: ${isPressed}`,
-                                                                );
-
-                                                                // Ensure this logic only processes events for the current button
+                                controller.onMotionControllerInitObservable.add(
+                                        (motionController) => {
+                                                Object.entries(
+                                                        buttonMap,
+                                                ).forEach(
+                                                        ([
+                                                                buttonId,
+                                                                mappedKey,
+                                                        ]) => {
+                                                                // Trigger the callback only for the specific key
                                                                 if (
-                                                                        motionController.getComponent(buttonId) !==
-                                                                        component
+                                                                        mappedKey !==
+                                                                        key
                                                                 ) {
-                                                                        console.log(
-                                                                                `DEBUG: Skipping event for '${buttonId}' as it doesn't match the triggering component.`,
+                                                                        return;
+                                                                }
+                                                                const component =
+                                                                        motionController.getComponent(
+                                                                                buttonId,
+                                                                        );
+
+                                                                if (
+                                                                        !component
+                                                                ) {
+                                                                        console.warn(
+                                                                                `DEBUG: Button ID '${buttonId}' not found for ${handedness} controller.`,
                                                                         );
                                                                         return;
                                                                 }
 
-                                                                // Ignore repeated callbacks for the same state
-                                                                if (isPressed === lastPressedState) {
-                                                                        console.log(
-                                                                                `DEBUG: No state change for '${buttonId}', skipping callback.`,
-                                                                        );
-                                                                        return;
-                                                                }
+                                                                console.log(
+                                                                        `DEBUG: Observing button ID '${buttonId}' for key '${mappedKey}' on ${handedness} controller.`,
+                                                                );
 
-                                                                // Only handle "released" transitions
-                                                                if (!isPressed && lastPressedState) {
-                                                                        console.log(
-                                                                                `DEBUG: Key '${mappedKey}' (button ID '${buttonId}') released on ${handedness} controller.`,
-                                                                        );
-                                                                        callback(mappedKey, "released");
-                                                                }
+                                                                // Track the last known pressed state for this specific button
+                                                                let lastPressedState = false;
 
-                                                                // Update last pressed state
-                                                                lastPressedState = isPressed;
-                                                        });
-                                                },
-                                        );
-                                },
-                        );
-                });
+                                                                // Monitor state changes for this specific button
+                                                                component.onButtonStateChangedObservable.add(
+                                                                        () => {
+                                                                                const isPressed =
+                                                                                        component.pressed;
+
+                                                                                // Debugging to verify button states
+                                                                                console.log(
+                                                                                        `DEBUG: Observable fired for '${buttonId}', pressed: ${isPressed}`,
+                                                                                );
+
+                                                                                // Ensure this logic only processes events for the current button
+                                                                                if (
+                                                                                        motionController.getComponent(
+                                                                                                buttonId,
+                                                                                        ) !==
+                                                                                        component
+                                                                                ) {
+                                                                                        console.log(
+                                                                                                `DEBUG: Skipping event for '${buttonId}' as it doesn't match the triggering component.`,
+                                                                                        );
+                                                                                        return;
+                                                                                }
+
+                                                                                // Ignore repeated callbacks for the same state
+                                                                                if (
+                                                                                        isPressed ===
+                                                                                        lastPressedState
+                                                                                ) {
+                                                                                        console.log(
+                                                                                                `DEBUG: No state change for '${buttonId}', skipping callback.`,
+                                                                                        );
+                                                                                        return;
+                                                                                }
+
+                                                                                // Only handle "released" transitions
+                                                                                if (
+                                                                                        !isPressed &&
+                                                                                        lastPressedState
+                                                                                ) {
+                                                                                        console.log(
+                                                                                                `DEBUG: Key '${mappedKey}' (button ID '${buttonId}') released on ${handedness} controller.`,
+                                                                                        );
+                                                                                        callback(
+                                                                                                mappedKey,
+                                                                                                "released",
+                                                                                        );
+                                                                                }
+
+                                                                                // Update last pressed state
+                                                                                lastPressedState =
+                                                                                        isPressed;
+                                                                        },
+                                                                );
+                                                        },
+                                                );
+                                        },
+                                );
+                        },
+                );
         },
         start(action) {
                 flock.scene.onBeforeRenderObservable.addOnce(action);
@@ -2193,7 +2875,9 @@ document.getElementById("renderCanvas")?.focus();
                 // Function to run the action
                 const runAction = async () => {
                         if (isDisposed) {
-                                console.log("Scene is disposed. Exiting action.");
+                                console.log(
+                                        "Scene is disposed. Exiting action.",
+                                );
                                 return; // Exit if the scene is disposed
                         }
 
@@ -2209,11 +2893,16 @@ document.getElementById("renderCanvas")?.focus();
                                 }
                                 await action();
                         } catch (error) {
-                                console.log("Error while running action:", error);
+                                console.log(
+                                        "Error while running action:",
+                                        error,
+                                );
                         } finally {
                                 isActionRunning = false;
                                 if (!isDisposed) {
-                                        flock.scene.onBeforeRenderObservable.addOnce(runAction);
+                                        flock.scene.onBeforeRenderObservable.addOnce(
+                                                runAction,
+                                        );
                                 }
                         }
                 };
@@ -2222,7 +2911,9 @@ document.getElementById("renderCanvas")?.focus();
                 // Handle scene disposal
                 const disposeHandler = () => {
                         if (isDisposed) {
-                                console.log("Dispose handler already triggered.");
+                                console.log(
+                                        "Dispose handler already triggered.",
+                                );
                                 return;
                         }
 
@@ -2247,8 +2938,7 @@ document.getElementById("renderCanvas")?.focus();
 export function initializeFlock() {
         const scriptElement = flock.document.getElementById("flock");
         if (scriptElement) {
-                flock
-                        .initialize()
+                flock.initialize()
                         .then(() => {
                                 flock.modelPath =
                                         "https://flipcomputing.github.io/flock/models/";
@@ -2262,7 +2952,10 @@ export function initializeFlock() {
                                 flock.runCode(userCode);
                         })
                         .catch((error) => {
-                                console.error("Error initializing flock:", error);
+                                console.error(
+                                        "Error initializing flock:",
+                                        error,
+                                );
                         });
         }
 }
