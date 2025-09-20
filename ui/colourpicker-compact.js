@@ -114,10 +114,8 @@ class CustomColorPicker {
             <div class="hue-slider-handle"></div>
           </div>
           <div class="color-picker-buttons">
-            <button class="color-picker-random" aria-label="Random color" title="Random color">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" width="20" height="20" fill="currentColor">
-                <path d="M320 160C178.6 160 64 274.6 64 416L64 480C64 497.7 49.7 512 32 512C14.3 512 0 497.7 0 480L0 416C0 239.3 143.3 96 320 96C496.7 96 640 239.3 640 416L640 480C640 497.7 625.7 512 608 512C590.3 512 576 497.7 576 480L576 416C576 274.6 461.4 160 320 160zM320 272C240.5 272 176 336.5 176 416L176 480C176 497.7 161.7 512 144 512C126.3 512 112 497.7 112 480L112 416C112 301.1 205.1 208 320 208C434.9 208 528 301.1 528 416L528 480C528 497.7 513.7 512 496 512C478.3 512 464 497.7 464 480L464 416C464 336.5 399.5 272 320 272zM288 416L288 480C288 497.7 273.7 512 256 512C238.3 512 224 497.7 224 480L224 416C224 363 267 320 320 320C373 320 416 363 416 416L416 480C416 497.7 401.7 512 384 512C366.3 512 352 497.7 352 480L352 416C352 398.3 337.7 384 320 384C302.3 384 288 398.3 288 416z"/>
-              </svg>
+            <button class="color-picker-random" aria-label="Surprise color" title="Surprise color">
+             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640"><!--!Font Awesome Free v7.0.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.--><path fill="#FFFFFF" d="M467.8 98.4C479.8 93.4 493.5 96.2 502.7 105.3L566.7 169.3C572.7 175.3 576.1 183.4 576.1 191.9C576.1 200.4 572.7 208.5 566.7 214.5L502.7 278.5C493.5 287.7 479.8 290.4 467.8 285.4C455.8 280.4 448 268.9 448 256L448 224L416 224C405.9 224 396.4 228.7 390.4 236.8L358 280L318 226.7L339.2 198.4C357.3 174.2 385.8 160 416 160L448 160L448 128C448 115.1 455.8 103.4 467.8 98.4zM218 360L258 413.3L236.8 441.6C218.7 465.8 190.2 480 160 480L96 480C78.3 480 64 465.7 64 448C64 430.3 78.3 416 96 416L160 416C170.1 416 179.6 411.3 185.6 403.2L218 360zM502.6 534.6C493.4 543.8 479.7 546.5 467.7 541.5C455.7 536.5 448 524.9 448 512L448 480L416 480C385.8 480 357.3 465.8 339.2 441.6L185.6 236.8C179.6 228.7 170.1 224 160 224L96 224C78.3 224 64 209.7 64 192C64 174.3 78.3 160 96 160L160 160C190.2 160 218.7 174.2 236.8 198.4L390.4 403.2C396.4 411.3 405.9 416 416 416L448 416L448 384C448 371.1 455.8 359.4 467.8 354.4C479.8 349.4 493.5 352.2 502.7 361.3L566.7 425.3C572.7 431.3 576.1 439.4 576.1 447.9C576.1 456.4 572.7 464.5 566.7 470.5L502.7 534.5z"/></svg>
             </button>
             <button class="color-picker-eyedropper" aria-label="Pick color from screen" title="Pick color from screen">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" width="20" height="20" fill="currentColor">
@@ -158,8 +156,7 @@ class CustomColorPicker {
         
         <div class="color-picker-footer">
           <div class="current-color-display" style="background-color: ${this.currentColor}"></div>
-          <button class="color-picker-use" type="button" aria-label="Use color">✓</button>
-          <button class="color-picker-cancel" type="button" aria-label="Cancel">✕</button>
+          <button class="color-picker-use" type="button" aria-label="Use your color" title="Use your color"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640"><!--!Font Awesome Free v7.0.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.--><path fill="#FFFFFF" d="M512.5 74.3L291.1 222C262 241.4 243.5 272.9 240.5 307.3C302.8 320.1 351.9 369.2 364.8 431.6C399.3 428.6 430.7 410.1 450.1 381L597.7 159.5C604.4 149.4 608 137.6 608 125.4C608 91.5 580.5 64 546.6 64C534.5 64 522.6 67.6 512.5 74.3zM320 464C320 402.1 269.9 352 208 352C146.1 352 96 402.1 96 464C96 467.9 96.2 471.8 96.6 475.6C98.4 493.1 86.4 512 68.8 512L64 512C46.3 512 32 526.3 32 544C32 561.7 46.3 576 64 576L208 576C269.9 576 320 525.9 320 464z"/></svg></button>
         </div>
         
       </div>
@@ -343,7 +340,6 @@ class CustomColorPicker {
     
     // Action buttons
     this.container.querySelector('.color-picker-use').addEventListener('click', () => this.confirmColor());
-    this.container.querySelector('.color-picker-cancel').addEventListener('click', () => this.close());
     
     // Keyboard navigation
     this.container.addEventListener('keydown', (e) => this.handleKeydown(e));
