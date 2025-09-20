@@ -17,6 +17,7 @@ import {
 	getOption,
 	getDropdownOption,
 } from "../main/translation.js";
+import { flock } from "../flock.js";
 
 export function defineSceneBlocks() {
 	Blockly.Blocks["set_sky_color"] = {
@@ -40,9 +41,11 @@ export function defineSceneBlocks() {
 			this.setHelpUrl(getHelpUrlFor(this.type));
 			this.setStyle("scene_blocks");
 			this.setOnChange((changeEvent) => {
+				if (flock.eventDebug) console.log(changeEvent.type);
 				if (
 					changeEvent.type === Blockly.Events.BLOCK_CREATE ||
-					changeEvent.type === Blockly.Events.BLOCK_CHANGE
+					changeEvent.type === Blockly.Events.BLOCK_CHANGE ||
+					changeEvent.type === Blockly.Events.BLOCK_MOVE
 				) {
 					const parent = findCreateBlock(
 						Blockly.getMainWorkspace().getBlockById(

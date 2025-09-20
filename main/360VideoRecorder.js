@@ -23,7 +23,7 @@ const overlayStyles = `
     z-index: 9999;
     font-family: "Asap", Helvetica, Arial, sans-serif;
   }
-  
+
   .recording-content {
     text-align: center;
     color: white;
@@ -32,7 +32,7 @@ const overlayStyles = `
     align-items: center;
     gap: 20px;
   }
-  
+
   .recording-indicator {
     width: 20px;
     height: 20px;
@@ -40,19 +40,19 @@ const overlayStyles = `
     border-radius: 50%;
     animation: pulse 1s ease-in-out infinite;
   }
-  
+
   .recording-text {
     font-size: 24px;
     font-weight: 500;
     margin: 0;
   }
-  
+
   .recording-time {
     font-size: 18px;
     opacity: 0.8;
     margin: 0;
   }
-  
+
   @keyframes pulse {
     0%, 100% {
       opacity: 1;
@@ -131,7 +131,7 @@ if (!BABYLON.captureEquirectangularFromScene) {
 function showRecordingOverlay(totalSeconds) {
   recordingOverlay = document.createElement('div');
   recordingOverlay.className = 'recording-overlay';
-  
+
   recordingOverlay.innerHTML = `
     <div class="recording-content">
       <div class="recording-indicator"></div>
@@ -139,7 +139,7 @@ function showRecordingOverlay(totalSeconds) {
       <p class="recording-time">0 / ${totalSeconds}s</p>
     </div>
   `;
-  
+
   document.body.appendChild(recordingOverlay);
 }
 
@@ -165,10 +165,10 @@ function hideRecordingOverlay() {
   }
 }
 
-export async function record360({ scene, seconds = 10, size = 512, fps = 30, filename = `flock-360-${Date.now()}.webm` } = {}) {
+export async function record360({ scene, seconds = 10, size = 512, fps = 30, filename = `flock-360-${Date.now()}.mp4` } = {}) {
   if (isRecording360) return;
   isRecording360 = true;
-  
+
   // Show recording overlay
   showRecordingOverlay(seconds);
 
@@ -177,12 +177,13 @@ export async function record360({ scene, seconds = 10, size = 512, fps = 30, fil
   canvas.width = width; canvas.height = height;
   const ctx = canvas.getContext('2d', { willReadFrequently: true });
 
-  // Pick a supported codec/container
+  // Pick a supported codec/container - prioritize MP4
   const candidates = [
+    'video/mp4;codecs=avc1.42E01E',
+    'video/mp4',
     'video/webm;codecs=vp9',
     'video/webm;codecs=vp8',
-    'video/webm',
-    'video/mp4;codecs=avc1.42E01E' // Safari (if supported)
+    'video/webm'
   ];
   const mimeType = candidates.find(t => window.MediaRecorder && MediaRecorder.isTypeSupported(t)) || '';
   const stream = canvas.captureStream(fps);
@@ -222,11 +223,11 @@ export async function record360({ scene, seconds = 10, size = 512, fps = 30, fil
   } finally {
     // Hide recording overlay
     hideRecordingOverlay();
-    
+
     recorder.stop();
     await doneRecording;
 
-    const blob = new Blob(chunks, { type: mimeType || 'video/webm' });
+    const blob = new Blob(chunks, { type: mimeType || 'video/mp4' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;

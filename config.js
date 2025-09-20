@@ -106,6 +106,7 @@ export const multiObjectNames = [
 	"boat.glb",
 	"airplane.glb",
 	"airplane2.glb",
+	"skateboard.glb",
 	"humped.glb",
 	"jetty.glb",
 	"flower.glb",
@@ -209,6 +210,13 @@ export const objectColours = {
 		"#E75D43",
 		"#E7C777",
 	],
+
+		"skateboard.glb": [
+		"#E769D3",
+		"#484848",
+		"#251BE7",
+	],
+	
 	"rhino.glb": ["#6D6B6C", "#F6F6F6", "#373737", "#230F0F"],
 
 	"humped.glb": ["#FFA869", "#7E5024", "#E76F31"],
