@@ -312,12 +312,11 @@ function findParentWithBlockId(mesh) {
 
 // For composite meshes where visibility needs setting to
 // 0.001 in order to show parent mesh's bounding box
-function resetBoundingBoxVisibilityIfManuallySet() {
-  if (mesh.visibility === 0.001) mesh.visibility = 0;
+function resetBoundingBoxVisibilityIfManuallyChanged(mesh) {
+  if (mesh && mesh.visibility === 0.001) mesh.visibility = 0;
 }
 
 function hideBoundingBox(mesh) {
-  // resetBoundingBoxVisibilityIfManuallySet();
   mesh.showBoundingBox = false;
 }
 
@@ -1322,6 +1321,7 @@ export function toggleGizmo(gizmoType) {
 }
 
 function turnOffAllGizmos() {
+  resetBoundingBoxVisibilityIfManuallyChanged(gizmoManager.attachedMesh);
   resetAttachedMeshIfMeshAttached();
   gizmoManager.attachToMesh(null);
   gizmoManager.positionGizmoEnabled = false;
