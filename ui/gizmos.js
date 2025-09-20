@@ -622,7 +622,7 @@ export function toggleGizmo(gizmoType) {
               gizmoManager.attachedMesh,
             ).metadata.blockKey;
           }
-          const pickedMesh = event.pickInfo.pickedMesh;
+          let pickedMesh = event.pickInfo.pickedMesh;
 
           if (pickedMesh && pickedMesh.name !== "ground") {
             // Assuming 'mesh' is your Babylon.js mesh object
