@@ -217,143 +217,170 @@ class CustomColorPicker {
     }
   }
 
+  // === Crisp canvas + aligned hit-testing ===
+  setupWheelCanvasScaling() {
+    const dpr = Math.max(1, window.devicePixelRatio || 1);
+    // Keep visual size at 100×100 CSS px
+    this.canvas.style.width = '100px';
+    this.canvas.style.height = '100px';
+    // Backing store = CSS * DPR
+    this.canvas.width = 100 * dpr;
+    this.canvas.height = 100 * dpr;
+    // Draw in CSS pixel coordinates
+    this.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+
   drawColorWheel() {
-    const centerX = 50;
-    const centerY = 50;
+    const w = 100, h = 100;
+    const centerX = w / 2;
+    const centerY = h / 2;
     const radius = 48;
 
-    // Clear canvas
-    this.ctx.clearRect(0, 0, 100, 100);
+    this.ctx.clearRect(0, 0, w, h);
 
-    // Paint wheel
-    for (let y = 0; y < 100; y++) {
-      for (let x = 0; x < 100; x++) {
+    for (let y = 0; y < h; y++) {
+      for (let x = 0; x < w; x++) {
         const dx = x - centerX;
         const dy = y - centerY;
-        const distance = Math.sqrt(dx * dx + dy * dy);
-
-        if (distance <= radius) {
-          const hue = (Math.atan2(dy, dx) * 180) / Math.PI;
-          const normalizedHue = (hue + 360) % 360;
-          const saturation = Math.min(100, (distance / radius) * 100);
-          this.ctx.fillStyle = `hsl(${normalizedHue}, ${saturation}%, 60%)`;
+        const dist = Math.hypot(dx, dy);
+        if (dist <= radius + 0.5) {
+          const hue = (Math.atan2(dy, dx) * 180 / Math.PI + 360) % 360;
+          const sat = Math.min(100, (dist / radius) * 100);
+          this.ctx.fillStyle = `hsl(${hue}, ${sat}%, 60%)`;
           this.ctx.fillRect(x, y, 1, 1);
         }
       }
     }
 
-    // Border
     this.ctx.beginPath();
-    this.ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
-    this.ctx.strokeStyle = "#ddd";
+    this.ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
+    this.ctx.strokeStyle = '#ddd';
     this.ctx.lineWidth = 1;
     this.ctx.stroke();
   }
 
+
   bindEvents() {
-    // Close on backdrop
-    const backdrop = this.container.querySelector(".color-picker-backdrop");
+    // Close on backdrop click
+    const backdrop = this.container.querySelector('.color-picker-backdrop');
     if (backdrop) {
-      backdrop.addEventListener("click", () => this.close());
+      backdrop.addEventListener('click', () => this.close());
     }
 
     // Click outside to close (guarded during eyedropper)
     this.outsideClickHandler = (e) => {
-      if (this._eyedropperActive) return;
+      if (this._eyedropperActive) return; // don't close while eyedropper overlay is up
       if (this.isOpen && !this.container.contains(e.target)) {
         this.close();
       }
     };
 
-    // Random colour
-    this.container
-      .querySelector(".color-picker-random")
-      .addEventListener("click", () => this.generateRandomColor());
+    // Random color
+    this.container.querySelector('.color-picker-random')
+      .addEventListener('click', () => this.generateRandomColor());
 
     // Eyedropper tool
-    this.container
-      .querySelector(".color-picker-eyedropper")
-      .addEventListener("click", () => this.startEyedropper());
+    this.container.querySelector('.color-picker-eyedropper')
+      .addEventListener('click', () => this.startEyedropper());
 
-    // Color wheel click
-    this.canvas.addEventListener("click", (e) => {
-      e.preventDefault();
-      e.stopPropagation();
+    // === Color wheel: pointer-based picking (replaces old click listener) ===
+    let wheelDragging = false;
+
+    const pickFromEvent = (e) => {
       const rect = this.canvas.getBoundingClientRect();
+      // thanks to setupWheelCanvasScaling(), client coords map 1:1 to CSS px
       const x = e.clientX - rect.left;
       const y = e.clientY - rect.top;
-      this.handleCanvasPickAt(x, y);
+      this.handleCanvasPickAt(x, y);           // compute & set color
+      this.colorWheelPosition = { x, y };     // move the indicator
+      this.updateColorWheelIndicator();
+    };
+
+    this.canvas.addEventListener('pointerdown', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      this.canvas.setPointerCapture?.(e.pointerId);
+      wheelDragging = true;
+      pickFromEvent(e);
     });
 
-    // Color wheel a11y
-    this.canvas.setAttribute("tabindex", "0");
-    this.canvas.setAttribute("role", "slider");
-    this.canvas.setAttribute(
-      "aria-label",
-      "Color wheel: use arrow keys to select hue and saturation",
-    );
-    this.canvas.setAttribute("aria-valuenow", "0");
-    this.canvas.setAttribute("aria-valuemin", "0");
-    this.canvas.setAttribute("aria-valuemax", "360");
+    this.canvas.addEventListener('pointermove', (e) => {
+      if (!wheelDragging) return;
+      e.preventDefault();
+      pickFromEvent(e);
+    });
 
-    this.canvas.addEventListener("keydown", (e) =>
-      this.handleColorWheelKeydown(e),
-    );
+    const endWheelDrag = (e) => {
+      wheelDragging = false;
+      try { this.canvas.releasePointerCapture?.(e.pointerId); } catch {}
+    };
 
-    // Track wheel indicator
-    this.colorWheelPosition = { x: 50, y: 50 };
+    this.canvas.addEventListener('pointerup', endWheelDrag);
+    this.canvas.addEventListener('pointercancel', endWheelDrag);
+
+    // Make color wheel keyboard-focusable & ARIA-described
+    this.canvas.setAttribute('tabindex', '0');
+    this.canvas.setAttribute('role', 'slider');
+    this.canvas.setAttribute('aria-label', 'Color wheel: use arrow keys to select hue and saturation');
+    this.canvas.setAttribute('aria-valuenow', '0');
+    this.canvas.setAttribute('aria-valuemin', '0');
+    this.canvas.setAttribute('aria-valuemax', '360');
+
+    // Keyboard navigation for the wheel
+    this.canvas.addEventListener('keydown', (e) => this.handleColorWheelKeydown(e));
+
+    // Initialize color wheel position tracking + indicator
+    if (!this.colorWheelPosition) this.colorWheelPosition = { x: 50, y: 50 };
     this.createColorWheelIndicator();
 
-    // Hue slider click/drag
-    this.hueCanvas.addEventListener("click", (e) => {
+    // Hue slider click
+    this.hueCanvas.addEventListener('click', (e) => {
       e.preventDefault();
       e.stopPropagation();
       const rect = this.hueCanvas.getBoundingClientRect();
       const x = e.clientX - rect.left;
       this.handleHueSliderClick(x);
     });
+
+    // Hue slider dragging
     this.initHueSliderDragging();
 
-    // Advanced options
-    this.container
-      .querySelector(".color-picker-more-options")
-      .addEventListener("click", () => this.toggleAdvancedOptions());
+    // More options (advanced inputs)
+    this.container.querySelector('.color-picker-more-options')
+      .addEventListener('click', () => this.toggleAdvancedOptions());
 
-    // CSS input
-    const cssInput = this.container.querySelector(".css-color-input");
-    cssInput.addEventListener("input", (e) =>
-      this.handleCssColorInput(e.target.value),
-    );
-    cssInput.addEventListener("focus", () => {
+    // CSS color input
+    const cssInput = this.container.querySelector('.css-color-input');
+    cssInput.addEventListener('input', (e) => this.handleCssColorInput(e.target.value));
+    cssInput.addEventListener('focus', () => {
       this.cssInputFocused = true;
       cssInput.select();
     });
-    cssInput.addEventListener("blur", () => {
+    cssInput.addEventListener('blur', () => {
       this.cssInputFocused = false;
       this.updateCssInput();
     });
 
     // RGB inputs
-    const rgbInputs = this.container.querySelectorAll(".rgb-input");
-    rgbInputs.forEach((input) =>
-      input.addEventListener("input", () => this.handleRgbInput()),
-    );
+    const rgbInputs = this.container.querySelectorAll('.rgb-input');
+    rgbInputs.forEach(input => {
+      input.addEventListener('input', () => this.handleRgbInput());
+    });
 
-    // Swatches
+    // Color swatches with grid navigation
     this.setupColorSwatchNavigation();
-    this.container.addEventListener("click", (e) => {
-      if (e.target.classList.contains("color-swatch")) {
+
+    // Click to choose a preset swatch
+    this.container.addEventListener('click', (e) => {
+      if (e.target.classList.contains('color-swatch')) {
         this.setColor(e.target.dataset.color);
       }
     });
 
-    // Confirm
-    this.container
-      .querySelector(".color-picker-use")
-      .addEventListener("click", () => this.confirmColor());
-
-    // Keyboard handling (Escape / Enter)
-    this.container.addEventListener("keydown", (e) => this.handleKeydown(e));
+    // Confirm / general keyboard handling on the container (Esc/Enter/Space)
+    this.container.querySelector('.color-picker-use')
+      .addEventListener('click', () => this.confirmColor());
+    this.container.addEventListener('keydown', (e) => this.handleKeydown(e));
 
     // Focus trap + hue slider keyboard
     this.setupFocusTrapping();
@@ -363,22 +390,19 @@ class CustomColorPicker {
   handleCanvasPickAt(x, y) {
     const centerX = 50;
     const centerY = 50;
-    const dx = x - centerX;
-    const dy = y - centerY;
-    const distance = Math.sqrt(dx * dx + dy * dy);
     const radius = 48;
 
-    if (distance <= radius) {
-      this.colorWheelPosition = { x, y };
-      this.updateColorWheelIndicator();
+    const dx = x - centerX;
+    const dy = y - centerY;
+    const dist = Math.hypot(dx, dy);
 
-      const angle = (Math.atan2(dy, dx) * 180) / Math.PI;
-      const hue = (angle + 360) % 360;
-      const saturation = Math.min(100, (distance / radius) * 100);
+    if (dist > radius + 0.5) return; // ignore clicks outside the wheel
 
-      const color = this.hslToHex(hue, saturation, 60);
-      this.setColor(color);
-    }
+    const hue = (Math.atan2(dy, dx) * 180 / Math.PI + 360) % 360;
+    const saturation = Math.min(100, (dist / radius) * 100);
+
+    const color = this.hslToHex(hue, saturation, 60);
+    this.setColor(color);
   }
 
   createColorWheelIndicator() {
