@@ -84,85 +84,78 @@ class CustomColorPicker {
       .join("");
   }
 
-  // --- DPR-safe sizing for the vertical lightness canvas ---
+  /* =========================
+   * LIGHTNESS SLIDER (fixed)
+   * ========================= */
+
+  // Scale canvas safely (works even if initially hidden)
   setupLightnessCanvasScaling() {
     if (!this.lightCanvas || !this.lightCtx) return;
     const dpr = Math.max(1, window.devicePixelRatio || 1);
 
-    // CSS (visual) size is already set via your CSS: 15×120 (or 15×100)
-    const cssW = this.lightCanvas.clientWidth  || 15;
-    const cssH = this.lightCanvas.clientHeight || 120;
+    const host = this.lightSlider || this.lightCanvas;
+    const rect = host.getBoundingClientRect();
+    const cssW = Math.max(
+      1,
+      Math.round(rect.width || parseFloat(getComputedStyle(host).width) || 15),
+    );
+    const cssH = Math.max(
+      1,
+      Math.round(
+        rect.height || parseFloat(getComputedStyle(host).height) || 120,
+      ),
+    );
 
-    // Backing store at DPR
-    this.lightCanvas.width  = Math.max(1, Math.round(cssW * dpr));
+    this._lightCssW = cssW;
+    this._lightCssH = cssH;
+
+    this.lightCanvas.width = Math.max(1, Math.round(cssW * dpr));
     this.lightCanvas.height = Math.max(1, Math.round(cssH * dpr));
 
-    // Draw in CSS units
     this.lightCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
     this.lightCtx.imageSmoothingEnabled = false;
   }
 
-  // --- Paint vertical gradient using current H & S (L varies top→bottom) ---
+  // Draw gradient using current H & S; L varies top(100) → bottom(0)
   drawLightnessSlider() {
     if (!this.lightCtx || !this.lightCanvas) return;
 
-    // Use H & S from current color; preserve currentLightness for the thumb only
-    const hsl = this.hexToHSL(this.currentColor) || { h: 0, s: 0, l: this.currentLightness };
-    const cssW = this.lightCanvas.clientWidth  || 15;
-    const cssH = this.lightCanvas.clientHeight || 120;
+    const cssW = this._lightCssW ?? 15;
+    const cssH = this._lightCssH ?? 120;
+    if (!(cssW > 0 && cssH > 0)) return;
 
-    // Per-row fill (crisp, no AA fringe)
-    const img = this.lightCtx.createImageData(cssW, cssH);
-    let i = 0;
-    for (let y = 0; y < cssH; y++) {
-      const L = Math.round(100 * (1 - y / (cssH - 1))); // top=100 → bottom=0
+    const hsl = this.hexToHSL(this.currentColor) || { h: 0, s: 0, l: 60 };
 
-      // Inline HSL→RGB (fast)
-      const s = (hsl.s) / 100, l = L / 100;
-      const c = (1 - Math.abs(2*l - 1)) * s;
-      const hp = (hsl.h % 360) / 60;
-      const x = c * (1 - Math.abs((hp % 2) - 1));
-      let r=0,g=0,b=0;
-      if (hp>=0&&hp<1){ r=c; g=x; }
-      else if (hp<2){ r=x; g=c; }
-      else if (hp<3){ g=c; b=x; }
-      else if (hp<4){ g=x; b=c; }
-      else if (hp<5){ r=x; b=c; }
-      else { r=c; b=x; }
-      const m = l - c/2;
-      const R = Math.round((r+m)*255);
-      const G = Math.round((g+m)*255);
-      const B = Math.round((b+m)*255);
+    const g = this.lightCtx.createLinearGradient(0, 0, 0, cssH);
+    g.addColorStop(0, `hsl(${hsl.h} ${hsl.s}% 100%)`);
+    g.addColorStop(0.5, `hsl(${hsl.h} ${hsl.s}% 50%)`);
+    g.addColorStop(1, `hsl(${hsl.h} ${hsl.s}% 0%)`);
 
-      for (let xpx = 0; xpx < cssW; xpx++, i += 4) {
-        img.data[i    ] = R;
-        img.data[i + 1] = G;
-        img.data[i + 2] = B;
-        img.data[i + 3] = 255;
-      }
-    }
-    // Clear & blit in CSS coords (we already set transform)
     this.lightCtx.clearRect(0, 0, cssW, cssH);
-    this.lightCtx.putImageData(img, 0, 0);
+    this.lightCtx.fillStyle = g;
+    this.lightCtx.fillRect(0, 0, cssW, cssH);
+
+    this.updateLightnessHandle();
   }
 
-  // --- Convert clientY to Lightness (0–100) based on slider rect ---
   _lightnessFromClientY(clientY) {
     const rect = this.lightSlider.getBoundingClientRect();
     const t = Math.max(0, Math.min(1, (clientY - rect.top) / rect.height));
-    return Math.round(100 * (1 - t)); // top = 100 (light), bottom = 0 (dark)
+    return Math.round(100 * (1 - t)); // 100 at top, 0 at bottom
   }
 
-  // --- Move the handle to match this.currentLightness ---
   updateLightnessHandle() {
     if (!this.lightHandle || !this.lightSlider) return;
-    const h = this.lightSlider.clientHeight || 120;
+    const h = this.lightSlider.clientHeight || this._lightCssH || 120;
     const y = (1 - (this.currentLightness ?? 60) / 100) * h;
     this.lightHandle.style.top = `${y}px`;
-    this.lightSlider.setAttribute('aria-valuenow', String(Math.round(this.currentLightness)));
+    this.lightSlider.setAttribute(
+      "aria-valuenow",
+      String(Math.round(this.currentLightness)),
+    );
   }
 
-  // --- Change only L; keep H & S from the current color; propagate via setColor() ---
+  // Change ONLY L, keep H & S; do not repaint the gradient while dragging
   setLightness(L) {
     L = Math.max(0, Math.min(100, Math.round(L)));
     this.currentLightness = L;
@@ -170,26 +163,37 @@ class CustomColorPicker {
     const hsl = this.hexToHSL(this.currentColor) || { h: 0, s: 0, l: L };
     const hex = this.hslToHex(hsl.h, hsl.s, L);
 
-    this.setColor(hex);            // your existing pipeline updates inputs/swatches/etc.
-    this.updateLightnessHandle();  // move the thumb
+    // Avoid triggering a gradient repaint while dragging (prevents loop/grey flips)
+    this.setColor(hex, { skipLightnessSync: true });
+    this.updateLightnessHandle();
   }
 
-  // --- Sync the slider when currentColor changes from elsewhere ---
+  // Repaint gradient ONLY when H or S changed; always move the thumb
   updateLightnessFromColor() {
     const hsl = this.hexToHSL(this.currentColor);
     if (!hsl) return;
+
+    const prev = this._lastLightnessHS || { h: NaN, s: NaN };
+    const changed = hsl.h !== prev.h || hsl.s !== prev.s;
+
     this.currentLightness = hsl.l;
-    this.setupLightnessCanvasScaling(); // in case size changed (DPR/resize)
-    this.drawLightnessSlider();         // H/S may have changed
-    this.updateLightnessHandle();       // reflect new L
+
+    if (changed) {
+      this._lastLightnessHS = { h: hsl.h, s: hsl.s };
+      this.setupLightnessCanvasScaling();
+      this.drawLightnessSlider();
+    }
+    this.updateLightnessHandle();
   }
 
+  /* =========================
+   * /LIGHTNESS SLIDER (fixed)
+   * ========================= */
 
   createElement() {
     this.container = document.createElement("div");
     this.container.className = "custom-color-picker";
     this.container.style.display = "none";
-    // Optional fade for hide/show (nice with eyedropper)
     this.container.style.transition = "opacity 120ms ease";
 
     this.container.innerHTML = `
@@ -201,29 +205,31 @@ class CustomColorPicker {
               <canvas class="color-wheel-canvas" width="100" height="100"></canvas>
             </div>
 
-            <!-- NEW: Vertical Lightness slider UI (no interactions yet) -->
+            <!-- Vertical Lightness slider -->
             <div class="lightness-slider" aria-label="Lightness" role="slider"
                  aria-valuemin="0" aria-valuemax="100" aria-valuenow="60" tabindex="0">
               <canvas class="lightness-canvas" width="20" height="100"></canvas>
               <div class="lightness-handle" aria-hidden="true"></div>
             </div>
-            <!-- /NEW -->
+            <!-- /Vertical Lightness slider -->
           </div>
 
           <div class="color-picker-right">
             <div class="color-picker-section">
               <div class="color-palette">
-               ${this.presetColors.map((color) => {
-    const key = String(color).toLowerCase();
-    const label = this.colorLabels[key] || key;
-    return `<button 
+               ${this.presetColors
+                 .map((color) => {
+                   const key = String(color).toLowerCase();
+                   const label = this.colorLabels[key] || key;
+                   return `<button 
               class="color-swatch" 
               style="background-color: ${color}" 
               data-color="${color}" 
               aria-label="${label}" 
               title="${label}" 
               tabindex="0"></button>`;
-  }).join('')}
+                 })
+                 .join("")}
               </div>
             </div>
           </div>
@@ -297,23 +303,30 @@ class CustomColorPicker {
     this.ctx = this.canvas.getContext("2d");
     this.hueCanvas = this.container.querySelector(".hue-slider-canvas");
     this.hueCtx = this.hueCanvas.getContext("2d");
-    this.currentColorDisplay = this.container.querySelector(".current-color-display");
+    this.currentColorDisplay = this.container.querySelector(
+      ".current-color-display",
+    );
     this.currentColorText = this.container.querySelector(".current-color-text");
 
-    // NEW: lightness refs
-    this.lightSlider = this.container.querySelector(".lightness-slider");   // NEW
-    this.lightCanvas = this.container.querySelector(".lightness-canvas");  // NEW
-    this.lightHandle = this.container.querySelector(".lightness-handle");  // NEW
-    // (No JS painting yet — we’ll wire interactions next in bindEvents)
+    // Lightness slider refs
+    this.lightSlider = this.container.querySelector(".lightness-slider");
+    this.lightCanvas = this.container.querySelector(".lightness-canvas");
+    this.lightCtx = this.lightCanvas.getContext("2d");
+    this.lightHandle = this.container.querySelector(".lightness-handle");
+
+    // Initial lightness paint
+    this.setupLightnessCanvasScaling();
+    this.drawLightnessSlider();
+    this.updateLightnessHandle();
 
     // Initialize
     this.currentHue = 0;
     this.advancedOptionsOpen = false;
 
+    // NOTE: leaving the color wheel & hue logic as-is (no changes)
     this.drawColorWheel();
     this.drawHueSlider();
   }
-
 
   setupHueSliderCanvas() {
     const toolsRow = this.container.querySelector(".color-picker-tools-row");
@@ -321,22 +334,55 @@ class CustomColorPicker {
       ".color-picker-buttons",
     );
 
-    if (toolsRow && buttonsContainer) {
+    const apply = () => {
       const toolsRect = toolsRow.getBoundingClientRect();
       const buttonsRect = buttonsContainer.getBoundingClientRect();
-      const availableWidth = toolsRect.width - buttonsRect.width - 12;
-      this.hueCanvas.width = Math.max(100, availableWidth);
+      const availableWidth = Math.max(
+        120,
+        Math.round(toolsRect.width - buttonsRect.width - 12),
+      );
+
+      // Set BOTH intrinsic and CSS width so getBoundingClientRect() is non-zero
+      this.hueCanvas.width = availableWidth;
+      this.hueCanvas.style.width = `${availableWidth}px`;
+
+      // Ensure a real CSS height as well
+      const h = this.hueCanvas.height || 20;
+      this.hueCanvas.style.height = `${h}px`;
+    };
+
+    if (toolsRow && buttonsContainer) {
+      apply();
     } else {
-      setTimeout(() => this.setupHueSliderCanvas(), 10);
+      // Try again next frame if layout isn't ready yet
+      requestAnimationFrame(() => this.setupHueSliderCanvas());
     }
+  }
+
+  // Put this method in the class (anywhere with the other helpers)
+  updateColorWheelFromColor() {
+    const hsl = this.hexToHSL(this.currentColor);
+    if (!hsl) return;
+
+    const centerX = 50,
+      centerY = 50,
+      radius = 48;
+    const angle = (hsl.h * Math.PI) / 180;
+    const r = (hsl.s / 100) * radius;
+
+    const x = centerX + Math.cos(angle) * r;
+    const y = centerY + Math.sin(angle) * r;
+
+    this.colorWheelPosition = { x, y };
+    this.updateColorWheelIndicator?.();
   }
 
   // === Crisp canvas + aligned hit-testing ===
   setupWheelCanvasScaling() {
     const dpr = Math.max(1, window.devicePixelRatio || 1);
     // Keep visual size at 100×100 CSS px
-    this.canvas.style.width = '100px';
-    this.canvas.style.height = '100px';
+    this.canvas.style.width = "100px";
+    this.canvas.style.height = "100px";
     // Backing store = CSS * DPR
     this.canvas.width = 100 * dpr;
     this.canvas.height = 100 * dpr;
@@ -346,10 +392,11 @@ class CustomColorPicker {
 
   drawColorWheel() {
     // Render in CSS pixels; setupWheelCanvasScaling() aligns the backing store
-    const w = 100, h = 100;
+    const w = 100,
+      h = 100;
     const cx = w / 2;
     const cy = h / 2;
-    const R  = 48;
+    const R = 48;
     // Sample at pixel centers; stop exactly at R - 0.5 so the border sits on a clean ring
     const fillR = R - 0.5;
     const img = this.ctx.createImageData(w, h);
@@ -358,36 +405,52 @@ class CustomColorPicker {
     // Paint interior directly into the pixel buffer (no AA at the boundary)
     let i = 0;
     for (let y = 0; y < h; y++) {
-      const py = y + 0.5;          // pixel center
+      const py = y + 0.5; // pixel center
       const dy = py - cy;
       for (let x = 0; x < w; x++, i += 4) {
-        const px = x + 0.5;        // pixel center
+        const px = x + 0.5; // pixel center
         const dx = px - cx;
         const dist = Math.hypot(dx, dy);
         if (dist <= fillR) {
           // HSL at fixed L=60% like before
-          const hue = (Math.atan2(dy, dx) * 180 / Math.PI + 360) % 360;
+          const hue = ((Math.atan2(dy, dx) * 180) / Math.PI + 360) % 360;
           const sat = Math.min(100, (dist / fillR) * 100);
           // HSL → RGB (fast inline)
-          const s = sat / 100, l = 0.60;
+          const s = sat / 100,
+            l = 0.6;
           const c = (1 - Math.abs(2 * l - 1)) * s;
           const hp = hue / 60;
           const xcol = c * (1 - Math.abs((hp % 2) - 1));
-          let r=0, g=0, b=0;
-          if (hp >= 0 && hp < 1) { r = c; g = xcol; }
-          else if (hp < 2) { r = xcol; g = c; }
-          else if (hp < 3) { g = c; b = xcol; }
-          else if (hp < 4) { g = xcol; b = c; }
-          else if (hp < 5) { r = xcol; b = c; }
-          else { r = c; b = xcol; }
+          let r = 0,
+            g = 0,
+            b = 0;
+          if (hp >= 0 && hp < 1) {
+            r = c;
+            g = xcol;
+          } else if (hp < 2) {
+            r = xcol;
+            g = c;
+          } else if (hp < 3) {
+            g = c;
+            b = xcol;
+          } else if (hp < 4) {
+            g = xcol;
+            b = c;
+          } else if (hp < 5) {
+            r = xcol;
+            b = c;
+          } else {
+            r = c;
+            b = xcol;
+          }
           const m = l - c / 2;
-          data[i    ] = Math.round((r + m) * 255);
+          data[i] = Math.round((r + m) * 255);
           data[i + 1] = Math.round((g + m) * 255);
           data[i + 2] = Math.round((b + m) * 255);
           data[i + 3] = 255; // opaque
         } else {
           // fully transparent outside: hard edge, no fuzz
-          data[i    ] = 0;
+          data[i] = 0;
           data[i + 1] = 0;
           data[i + 2] = 0;
           data[i + 3] = 0;
@@ -406,12 +469,12 @@ class CustomColorPicker {
     this.ctx.save();
     this.ctx.beginPath();
     this.ctx.arc(cx, cy, R - 0.5, 0, Math.PI * 2);
-    this.ctx.strokeStyle = '#ffffff'; // Pure white outline
+    this.ctx.strokeStyle = "#ffffff"; // Pure white outline
     this.ctx.lineWidth = 1;
 
     // Ensure crisp line rendering
-    this.ctx.lineCap = 'butt';
-    this.ctx.lineJoin = 'miter';
+    this.ctx.lineCap = "butt";
+    this.ctx.lineJoin = "miter";
 
     this.ctx.stroke();
     this.ctx.restore();
@@ -419,9 +482,9 @@ class CustomColorPicker {
 
   bindEvents() {
     // Close on backdrop click
-    const backdrop = this.container.querySelector('.color-picker-backdrop');
+    const backdrop = this.container.querySelector(".color-picker-backdrop");
     if (backdrop) {
-      backdrop.addEventListener('click', () => this.close());
+      backdrop.addEventListener("click", () => this.close());
     }
 
     // Click outside to close (guarded during eyedropper)
@@ -433,27 +496,33 @@ class CustomColorPicker {
     };
 
     // Random color
-    this.container.querySelector('.color-picker-random')
-      .addEventListener('click', () => this.generateRandomColor());
+    this.container
+      .querySelector(".color-picker-random")
+      .addEventListener("click", () => this.generateRandomColor());
 
     // Eyedropper tool
-    this.container.querySelector('.color-picker-eyedropper')
-      .addEventListener('click', () => this.startEyedropper());
+    this.container
+      .querySelector(".color-picker-eyedropper")
+      .addEventListener("click", () => this.startEyedropper());
 
-    // === Color wheel: pointer-based picking (replaces old click listener) ===
+    // === Color wheel: pointer-based picking (unchanged) ===
     let wheelDragging = false;
 
     const pickFromEvent = (e) => {
       const rect = this.canvas.getBoundingClientRect();
-      // thanks to setupWheelCanvasScaling(), client coords map 1:1 to CSS px
       const x = e.clientX - rect.left;
       const y = e.clientY - rect.top;
-      this.handleCanvasPickAt(x, y);           // compute & set color
-      this.colorWheelPosition = { x, y };     // move the indicator
-      this.updateColorWheelIndicator();
+
+      // Normalize to 0–100 space so it matches keyboard & math
+      const nx = (x / rect.width) * 100;
+      const ny = (y / rect.height) * 100;
+
+      this.handleCanvasPickAt(nx, ny);            // expects 0–100 coords
+      this.colorWheelPosition = { x: nx, y: ny }; // store normalized
+      this.updateColorWheelIndicator();           // will scale to px for display
     };
 
-    this.canvas.addEventListener('pointerdown', (e) => {
+    this.canvas.addEventListener("pointerdown", (e) => {
       e.preventDefault();
       e.stopPropagation();
       this.canvas.setPointerCapture?.(e.pointerId);
@@ -461,7 +530,7 @@ class CustomColorPicker {
       pickFromEvent(e);
     });
 
-    this.canvas.addEventListener('pointermove', (e) => {
+    this.canvas.addEventListener("pointermove", (e) => {
       if (!wheelDragging) return;
       e.preventDefault();
       pickFromEvent(e);
@@ -469,29 +538,38 @@ class CustomColorPicker {
 
     const endWheelDrag = (e) => {
       wheelDragging = false;
-      try { this.canvas.releasePointerCapture?.(e.pointerId); } catch {}
+      try {
+        this.canvas.releasePointerCapture?.(e.pointerId);
+      } catch {}
     };
 
-    this.canvas.addEventListener('pointerup', endWheelDrag);
-    this.canvas.addEventListener('pointercancel', endWheelDrag);
+    this.canvas.addEventListener("pointerup", endWheelDrag);
+    this.canvas.addEventListener("pointercancel", endWheelDrag);
 
     // Make color wheel keyboard-focusable & ARIA-described
-    this.canvas.setAttribute('tabindex', '0');
-    this.canvas.setAttribute('role', 'slider');
-    this.canvas.setAttribute('aria-label', 'Color wheel: use arrow keys to select hue and saturation');
-    this.canvas.setAttribute('aria-valuenow', '0');
-    this.canvas.setAttribute('aria-valuemin', '0');
-    this.canvas.setAttribute('aria-valuemax', '360');
+    this.canvas.setAttribute("tabindex", "0");
+    this.canvas.setAttribute("role", "slider");
+    this.canvas.setAttribute(
+      "aria-label",
+      "Color wheel: use arrow keys to select hue and saturation",
+    );
+    this.canvas.setAttribute("aria-valuenow", "0");
+    this.canvas.setAttribute("aria-valuemin", "0");
+    this.canvas.setAttribute("aria-valuemax", "360");
 
-    // Keyboard navigation for the wheel
-    this.canvas.addEventListener('keydown', (e) => this.handleColorWheelKeydown(e));
+    // Keyboard navigation for the wheel (unchanged)
+    this.canvas.addEventListener("keydown", (e) =>
+      this.handleColorWheelKeydown(e),
+    );
 
     // Initialize color wheel position tracking + indicator
     if (!this.colorWheelPosition) this.colorWheelPosition = { x: 50, y: 50 };
+    
     this.createColorWheelIndicator();
+    this.updateColorWheelFromColor();
 
-    // Hue slider click
-    this.hueCanvas.addEventListener('click', (e) => {
+    // Hue slider click (unchanged)
+    this.hueCanvas.addEventListener("click", (e) => {
       e.preventDefault();
       e.stopPropagation();
       const rect = this.hueCanvas.getBoundingClientRect();
@@ -499,45 +577,131 @@ class CustomColorPicker {
       this.handleHueSliderClick(x);
     });
 
-    // Hue slider dragging
+    // Hue slider dragging (unchanged)
     this.initHueSliderDragging();
 
     // More options (advanced inputs)
-    this.container.querySelector('.color-picker-more-options')
-      .addEventListener('click', () => this.toggleAdvancedOptions());
+    this.container
+      .querySelector(".color-picker-more-options")
+      .addEventListener("click", () => this.toggleAdvancedOptions());
 
     // CSS color input
-    const cssInput = this.container.querySelector('.css-color-input');
-    cssInput.addEventListener('input', (e) => this.handleCssColorInput(e.target.value));
-    cssInput.addEventListener('focus', () => {
+    const cssInput = this.container.querySelector(".css-color-input");
+    cssInput.addEventListener("input", (e) =>
+      this.handleCssColorInput(e.target.value),
+    );
+    cssInput.addEventListener("focus", () => {
       this.cssInputFocused = true;
       cssInput.select();
     });
-    cssInput.addEventListener('blur', () => {
+    cssInput.addEventListener("blur", () => {
       this.cssInputFocused = false;
       this.updateCssInput();
     });
 
     // RGB inputs
-    const rgbInputs = this.container.querySelectorAll('.rgb-input');
-    rgbInputs.forEach(input => {
-      input.addEventListener('input', () => this.handleRgbInput());
+    const rgbInputs = this.container.querySelectorAll(".rgb-input");
+    rgbInputs.forEach((input) => {
+      input.addEventListener("input", () => this.handleRgbInput());
     });
 
     // Color swatches with grid navigation
     this.setupColorSwatchNavigation();
 
     // Click to choose a preset swatch
-    this.container.addEventListener('click', (e) => {
-      if (e.target.classList.contains('color-swatch')) {
-        this.setColor(e.target.dataset.color);
+    this.container.addEventListener("click", (e) => {
+      if (e.target.classList.contains("color-swatch")) {
+        this.setColor(e.target.dataset.color); // lightness strip will repaint via updateLightnessFromColor()
       }
     });
 
     // Confirm / general keyboard handling on the container (Esc/Enter/Space)
-    this.container.querySelector('.color-picker-use')
-      .addEventListener('click', () => this.confirmColor());
-    this.container.addEventListener('keydown', (e) => this.handleKeydown(e));
+    this.container
+      .querySelector(".color-picker-use")
+      .addEventListener("click", () => this.confirmColor());
+    this.container.addEventListener("keydown", (e) => this.handleKeydown(e));
+
+    // === Lightness slider interactions (fixed) ===
+    if (this.lightSlider) {
+      let dragging = false;
+      let rafId = null;
+
+      const updateFromClientY = (clientY) => {
+        const L = this._lightnessFromClientY(clientY);
+        this.setLightness(L);
+      };
+
+      this.lightSlider.addEventListener("pointerdown", (e) => {
+        e.preventDefault();
+        dragging = true;
+        this.lightSlider.setPointerCapture?.(e.pointerId);
+        updateFromClientY(e.clientY);
+      });
+
+      this.lightSlider.addEventListener("pointermove", (e) => {
+        if (!dragging) return;
+        e.preventDefault();
+        if (rafId) return;
+        rafId = requestAnimationFrame(() => {
+          rafId = null;
+          updateFromClientY(e.clientY);
+        });
+      });
+
+      const endDrag = (e) => {
+        dragging = false;
+        try {
+          this.lightSlider.releasePointerCapture?.(e.pointerId);
+        } catch {}
+      };
+      this.lightSlider.addEventListener("pointerup", endDrag);
+      this.lightSlider.addEventListener("pointercancel", endDrag);
+
+      // Keyboard control (unchanged)
+      this.lightSlider.addEventListener("keydown", (e) => {
+        let delta = 0;
+        switch (e.key) {
+          case "ArrowUp":
+            delta = +2;
+            break;
+          case "ArrowDown":
+            delta = -2;
+            break;
+          case "PageUp":
+            delta = +10;
+            break;
+          case "PageDown":
+            delta = -10;
+            break;
+          case "Home":
+            this.setLightness(100);
+            e.preventDefault();
+            return;
+          case "End":
+            this.setLightness(0);
+            e.preventDefault();
+            return;
+          default:
+            return;
+        }
+        e.preventDefault();
+        this.setLightness((this.currentLightness ?? 60) + delta);
+      });
+
+      // Keep gradient correct on size/DPR changes
+      if (!this._lightResizeObs) {
+        this._lightResizeObs = new ResizeObserver(() => {
+          this.setupLightnessCanvasScaling();
+          this.updateLightnessFromColor();
+        });
+        this._lightResizeObs.observe(this.lightSlider);
+      }
+
+      window.addEventListener("resize", () => {
+        this.setupLightnessCanvasScaling();
+        this.updateLightnessFromColor();
+      });
+    }
 
     // Focus trap + hue slider keyboard
     this.setupFocusTrapping();
@@ -555,11 +719,36 @@ class CustomColorPicker {
 
     if (dist > radius + 0.5) return; // ignore clicks outside the wheel
 
-    const hue = (Math.atan2(dy, dx) * 180 / Math.PI + 360) % 360;
+    const hue = ((Math.atan2(dy, dx) * 180) / Math.PI + 360) % 360;
     const saturation = Math.min(100, (dist / radius) * 100);
 
-    const color = this.hslToHex(hue, saturation, 60);
-    this.setColor(color);
+    // Blender-like: keep current L when changing H/S from the wheel
+    const keepL = this.lockLightnessOnWheel
+      ? (this.currentLightness ?? this.hexToHSL(this.currentColor)?.l ?? 60)
+      : 60;
+
+    const color = this.hslToHex(hue, saturation, keepL);
+    this.setColor(color); // will repaint lightness bar (since H/S changed)
+  }
+
+  _setWheelNormalized(nx, ny) {
+    // clamp to 0–100
+    nx = Math.max(0, Math.min(100, nx));
+    ny = Math.max(0, Math.min(100, ny));
+
+    // clamp to the wheel circle (center 50,50 radius 48)
+    const cx = 50, cy = 50, R = 48;
+    let dx = nx - cx, dy = ny - cy;
+    const dist = Math.hypot(dx, dy);
+    if (dist > R) {
+      const k = R / dist;
+      nx = cx + dx * k;
+      ny = cy + dy * k;
+    }
+
+    this.colorWheelPosition = { x: nx, y: ny };
+    this.updateColorWheelIndicator?.();
+    this.handleCanvasPickAt(nx, ny); // expects 0–100 space
   }
 
   createColorWheelIndicator() {
@@ -584,64 +773,51 @@ class CustomColorPicker {
   }
 
   updateColorWheelIndicator() {
-    if (!this.colorWheelIndicator) return;
-    this.colorWheelIndicator.style.left = `${this.colorWheelPosition.x}px`;
-    this.colorWheelIndicator.style.top = `${this.colorWheelPosition.y}px`;
+    if (!this.colorWheelIndicator || !this.canvas) return;
+
+    const parent = this.canvas.parentElement; // indicator is absolutely positioned here
+    if (!parent) return;
+
+    const canvasRect = this.canvas.getBoundingClientRect();
+    const parentRect = parent.getBoundingClientRect();
+
+    // Canvas offset inside its parent (handles padding/centering)
+    const offX = canvasRect.left - parentRect.left;
+    const offY = canvasRect.top  - parentRect.top;
+
+    const p = this.colorWheelPosition || { x: 50, y: 50 };
+    const w = canvasRect.width  || 100;
+    const h = canvasRect.height || 100;
+
+    // If values look like 0–100, treat them as normalized and scale to CSS px.
+    // Otherwise assume they're already in canvas-local px.
+    const isNormalized = p.x <= 100 && p.y <= 100;
+    const xpx = isNormalized ? (p.x / 100) * w : p.x;
+    const ypx = isNormalized ? (p.y / 100) * h : p.y;
+
+    this.colorWheelIndicator.style.left = `${offX + xpx}px`;
+    this.colorWheelIndicator.style.top  = `${offY + ypx}px`;
   }
+
 
   handleColorWheelKeydown(e) {
+    const p = this.colorWheelPosition || { x: 50, y: 50 };
     const step = 2;
-    let newX = this.colorWheelPosition.x;
-    let newY = this.colorWheelPosition.y;
+    let nx = p.x, ny = p.y;
 
     switch (e.key) {
-      case "ArrowLeft":
-        e.preventDefault();
-        newX = Math.max(2, newX - step);
-        break;
-      case "ArrowRight":
-        e.preventDefault();
-        newX = Math.min(98, newX + step);
-        break;
-      case "ArrowUp":
-        e.preventDefault();
-        newY = Math.max(2, newY - step);
-        break;
-      case "ArrowDown":
-        e.preventDefault();
-        newY = Math.min(98, newY + step);
-        break;
-      case "Home":
-        e.preventDefault();
-        newX = 98;
-        newY = 50;
-        break;
-      case "End":
-        e.preventDefault();
-        newX = 50;
-        newY = 50;
-        break;
-      default:
-        return;
+      case "ArrowLeft":  e.preventDefault(); nx -= step; break;
+      case "ArrowRight": e.preventDefault(); nx += step; break;
+      case "ArrowUp":    e.preventDefault(); ny -= step; break;
+      case "ArrowDown":  e.preventDefault(); ny += step; break;
+      case "Home":       e.preventDefault(); nx = 98; ny = 50; break; // max sat at 0°
+      case "End":        e.preventDefault(); nx = 50; ny = 50; break; // center
+      default: return;
     }
 
-    const centerX = 50;
-    const centerY = 50;
-    const dx = newX - centerX;
-    const dy = newY - centerY;
-    const distance = Math.sqrt(dx * dx + dy * dy);
-    const maxRadius = 48;
-
-    if (distance > maxRadius) {
-      const angle = Math.atan2(dy, dx);
-      newX = centerX + Math.cos(angle) * maxRadius;
-      newY = centerY + Math.sin(angle) * maxRadius;
-    }
-
-    this.colorWheelPosition = { x: newX, y: newY };
-    this.updateColorWheelIndicator();
-    this.handleCanvasPickAt(newX, newY);
+    this._setWheelNormalized(nx, ny);
   }
+
 
   handleKeydown(e) {
     if (e.key === "Escape") {
@@ -713,16 +889,85 @@ class CustomColorPicker {
       this.restoreUIAfterEyedropper();
     }
   }
+  // Normalize any CSS color string to #RRGGBB (returns null if invalid)
+  normalizeToHex(input) {
+    if (!input || typeof input !== "string") return null;
+    let s = input.trim();
 
-  setColor(color) {
-    this.currentColor = color;
+    // Already hex? handle #RGB and #RRGGBB
+    if (/^#([0-9a-f]{3})$/i.test(s)) {
+      const r = s[1],
+        g = s[2],
+        b = s[3];
+      return `#${r}${r}${g}${g}${b}${b}`.toLowerCase();
+    }
+    if (/^#([0-9a-f]{6})$/i.test(s)) {
+      return s.toLowerCase();
+    }
+
+    // Try to resolve any CSS color (names, rgb(), hsl(), etc.) via the browser
+    const el = document.createElement("div");
+    el.style.color = s;
+    document.body.appendChild(el);
+    const computed = getComputedStyle(el).color; // e.g., "rgb(255, 0, 0)"
+    document.body.removeChild(el);
+
+    const m =
+      computed && computed.match(/^rgb\(\s*(\d+),\s*(\d+),\s*(\d+)\s*\)$/i);
+    if (!m) return null;
+
+    const r = parseInt(m[1], 10);
+    const g = parseInt(m[2], 10);
+    const b = parseInt(m[3], 10);
+    return this.rgbToHex(r, g, b).toLowerCase();
+  }
+
+  hexToRgb(hex) {
+    if (!hex || typeof hex !== "string") return null;
+    let s = hex.trim().toLowerCase();
+    if (s[0] !== "#") s = "#" + s;
+
+    // #RGB → #RRGGBB
+    if (/^#([0-9a-f]{3})$/i.test(s)) {
+      const r = s[1],
+        g = s[2],
+        b = s[3];
+      s = `#${r}${r}${g}${g}${b}${b}`;
+    }
+
+    const m = /^#([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i.exec(s);
+    return m
+      ? { r: parseInt(m[1], 16), g: parseInt(m[2], 16), b: parseInt(m[3], 16) }
+      : null;
+  }
+
+  setColor(color, opts = {}) {
+    // NEW: normalize any CSS color to #RRGGBB so downstream code always has hex
+    const normalized = this.normalizeToHex(color) || color;
+    this.currentColor = normalized;
+
+    // Track lightness (0–100). Seed from currentColor if possible.
+    const seedHsl = this.hexToHSL(this.currentColor) || { l: 60, h: 0, s: 0 };
+    this.currentLightness = Math.max(0, Math.min(100, Math.round(seedHsl.l)));
+
+    // Update swatch display
     const colorDisplay = this.container.querySelector(
       ".color-picker-footer .current-color-display",
     );
-    if (colorDisplay) colorDisplay.style.backgroundColor = color;
+    if (colorDisplay) {
+      colorDisplay.style.backgroundColor = this.currentColor;
+    }
+
+    // Sync inputs + sliders
     this.updateCssInput();
     this.updateRgbInputs();
     this.updateHueSliderFromColor();
+    this.updateColorWheelFromColor();
+
+    // Lightness bar: repaint unless we're dragging the L handle
+    if (!opts.skipLightnessSync && this.lightSlider) {
+      this.updateLightnessFromColor();
+    }
   }
 
   updateCssInput() {
@@ -925,7 +1170,6 @@ class CustomColorPicker {
     palette.addEventListener("focusin", () => this._computeSwatchGrid());
   }
 
-  // Determine current columns by reading offsetTop wraps
   _computeSwatchGrid() {
     const swatches = Array.from(
       this.container.querySelectorAll(".color-swatch"),
@@ -936,7 +1180,6 @@ class CustomColorPicker {
       return;
     }
 
-    // Count how many items share the first row's top
     const firstTop = swatches[0].offsetTop;
     let cols = 0;
     for (const el of swatches) {
@@ -983,10 +1226,8 @@ class CustomColorPicker {
       }
       case "ArrowDown": {
         e.preventDefault();
-        // same column, next row
         let newIndex = currentIndex + cols;
         if (newIndex >= total) {
-          // wrap to same column in first row if needed
           newIndex = currentIndex % cols;
         }
         moveFocus(newIndex);
@@ -994,10 +1235,8 @@ class CustomColorPicker {
       }
       case "ArrowUp": {
         e.preventDefault();
-        // same column, previous row
         let newIndex = currentIndex - cols;
         if (newIndex < 0) {
-          // wrap to same column in last row (clamp to last item if short final row)
           const col = currentIndex % cols;
           const lastRowStart = Math.floor((total - 1) / cols) * cols;
           newIndex = Math.min(lastRowStart + col, total - 1);
@@ -1022,13 +1261,8 @@ class CustomColorPicker {
         break;
       }
       default:
-        // allow other keys
         break;
     }
-  }
-
-  setupHueSliderKeyboard() {
-    /* already defined above; kept for clarity */
   }
 
   drawHueSlider() {
@@ -1068,7 +1302,11 @@ class CustomColorPicker {
     const sliderWidth = this.hueCanvas.width;
     const hue = (x / sliderWidth) * 360;
     this.currentHue = Math.max(0, Math.min(360, hue));
-    const newColor = this.hslToHex(this.currentHue, 100, 50);
+
+    // Keep current S & L (Blender-like)
+    const hsl = this.hexToHSL(this.currentColor) || { h: 0, s: 100, l: 50 };
+    const newColor = this.hslToHex(this.currentHue, hsl.s, hsl.l);
+
     this.setColor(newColor);
     this.updateHueHandle();
     this.drawColorWheel();
@@ -1199,17 +1437,6 @@ class CustomColorPicker {
     return `#${r.toString(16).padStart(2, "0")}${g.toString(16).padStart(2, "0")}${b.toString(16).padStart(2, "0")}`;
   }
 
-  hexToRgb(hex) {
-    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-    return result
-      ? {
-          r: parseInt(result[1], 16),
-          g: parseInt(result[2], 16),
-          b: parseInt(result[3], 16),
-        }
-      : null;
-  }
-
   getContrastColor(hexcolor) {
     const rgb = this.hexToRgb(hexcolor);
     if (!rgb) return "#000000";
@@ -1217,9 +1444,24 @@ class CustomColorPicker {
     return brightness > 128 ? "#000000" : "#ffffff";
   }
 
+  // Keep the indicator fully inside the wheel (accounts for its own size + outline)
+  // Keep the indicator fully inside the ring (accounts for its size & border)
+  _indicatorPad() {
+    const el = this.colorWheelIndicator;
+    if (!el) return 6; // default for 8px dot + 2px border
+    const rect = el.getBoundingClientRect();
+    if (rect.width) return rect.width / 2 + 1; // +1 to avoid overlapping the white outline
+    const cs = getComputedStyle(el);
+    const inner = parseFloat(cs.width) || 8;
+    const bw = parseFloat(cs.borderWidth) || 2;
+    return inner / 2 + bw + 1;
+  }
+
   // HSL/HEX conversion
   hslToHex(h, s, l) {
-    // Convert HSL to RGB then to hex
+    // ✅ normalize hue into [0,360)
+    h = ((h % 360) + 360) % 360;
+
     s /= 100;
     l /= 100;
     const c = (1 - Math.abs(2 * l - 1)) * s;
@@ -1249,7 +1491,7 @@ class CustomColorPicker {
       r = x;
       g = 0;
       b = c;
-    } else if (300 <= h && h < 360) {
+    } /* 300 <= h < 360 */ else {
       r = c;
       g = 0;
       b = x;
@@ -1263,9 +1505,12 @@ class CustomColorPicker {
   }
 
   hexToHSL(hex) {
-    const r = parseInt(hex.slice(1, 3), 16) / 255;
-    const g = parseInt(hex.slice(3, 5), 16) / 255;
-    const b = parseInt(hex.slice(5, 7), 16) / 255;
+    const rgb = this.hexToRgb(hex);
+    if (!rgb) return null;
+
+    const r = rgb.r / 255;
+    const g = rgb.g / 255;
+    const b = rgb.b / 255;
 
     const max = Math.max(r, g, b);
     const min = Math.min(r, g, b);
@@ -1298,21 +1543,15 @@ class CustomColorPicker {
   }
 
   open(color = this.currentColor) {
-    this.setColor(color);
+    // Show first so layout has real sizes
     this.container.style.display = "block";
     this.container.style.opacity = "1";
     this.container.style.pointerEvents = "auto";
     this.isOpen = true;
 
-    setTimeout(() => {
-      this.setupHueSliderCanvas();
-      this.drawHueSlider();
-    }, 10);
-
-    // Position above the colour button over the canvas
+    // --- Positioning (unchanged) ---
     const colorButton = document.getElementById("colorPickerButton");
     const canvasArea = document.getElementById("canvasArea");
-
     if (colorButton && canvasArea) {
       const buttonRect = colorButton.getBoundingClientRect();
       const canvasRect = canvasArea.getBoundingClientRect();
@@ -1358,10 +1597,55 @@ class CustomColorPicker {
       }
     }
 
+    // After visible: size canvases, pick a usable start color, then draw & place handles
+    requestAnimationFrame(() => {
+      // 1) Ensure canvases have correct sizes
+      this.setupHueSliderCanvas();
+      this.setupLightnessCanvasScaling();
+
+      // 2) Choose starting color
+      //    - use saved/explicit color if valid and not a "dead" extreme (pure white/black with S≈0)
+      //    - otherwise, pick a random color (same as pressing Random)
+      const normalized = this.normalizeToHex(color);
+      let useRandom = true;
+
+      if (normalized) {
+        const hsl = this.hexToHSL(normalized);
+        if (hsl) {
+          const isGray = hsl.s === 0; // greyscale
+          const extremeL = hsl.l <= 2 || hsl.l >= 98; // near black/white
+          if (!(isGray && extremeL)) {
+            useRandom = false; // keep saved color if it's not a dead extreme
+          }
+        }
+      }
+
+      if (useRandom) {
+        this.generateRandomColor(); // calls setColor(...)
+      } else {
+        this.setColor(normalized); // preserves saved color exactly
+      }
+
+      // 3) Draw sliders & place handles/indicator to match current color
+      this.drawHueSlider();
+      this.drawLightnessSlider(); // uses current H/S for the gradient
+      this.updateHueSliderFromColor?.(); // position hue handle from current color
+      this.updateLightnessHandle?.(); // position lightness thumb from current L
+      this.updateColorWheelFromColor?.(); // move the wheel indicator to current H/S
+
+      // Ensure footer swatch reflects the actual color
+      const colorDisplay = this.container.querySelector(
+        ".color-picker-footer .current-color-display",
+      );
+      if (colorDisplay) colorDisplay.style.backgroundColor = this.currentColor;
+    });
+
+    // Outside click to close
     setTimeout(() => {
       document.addEventListener("click", this.outsideClickHandler, true);
     }, 100);
 
+    // Focus for keyboard nav
     setTimeout(() => {
       this.canvas?.focus();
     }, 150);
