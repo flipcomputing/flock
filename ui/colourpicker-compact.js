@@ -84,6 +84,107 @@ class CustomColorPicker {
       .join("");
   }
 
+  // --- DPR-safe sizing for the vertical lightness canvas ---
+  setupLightnessCanvasScaling() {
+    if (!this.lightCanvas || !this.lightCtx) return;
+    const dpr = Math.max(1, window.devicePixelRatio || 1);
+
+    // CSS (visual) size is already set via your CSS: 15×120 (or 15×100)
+    const cssW = this.lightCanvas.clientWidth  || 15;
+    const cssH = this.lightCanvas.clientHeight || 120;
+
+    // Backing store at DPR
+    this.lightCanvas.width  = Math.max(1, Math.round(cssW * dpr));
+    this.lightCanvas.height = Math.max(1, Math.round(cssH * dpr));
+
+    // Draw in CSS units
+    this.lightCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    this.lightCtx.imageSmoothingEnabled = false;
+  }
+
+  // --- Paint vertical gradient using current H & S (L varies top→bottom) ---
+  drawLightnessSlider() {
+    if (!this.lightCtx || !this.lightCanvas) return;
+
+    // Use H & S from current color; preserve currentLightness for the thumb only
+    const hsl = this.hexToHSL(this.currentColor) || { h: 0, s: 0, l: this.currentLightness };
+    const cssW = this.lightCanvas.clientWidth  || 15;
+    const cssH = this.lightCanvas.clientHeight || 120;
+
+    // Per-row fill (crisp, no AA fringe)
+    const img = this.lightCtx.createImageData(cssW, cssH);
+    let i = 0;
+    for (let y = 0; y < cssH; y++) {
+      const L = Math.round(100 * (1 - y / (cssH - 1))); // top=100 → bottom=0
+
+      // Inline HSL→RGB (fast)
+      const s = (hsl.s) / 100, l = L / 100;
+      const c = (1 - Math.abs(2*l - 1)) * s;
+      const hp = (hsl.h % 360) / 60;
+      const x = c * (1 - Math.abs((hp % 2) - 1));
+      let r=0,g=0,b=0;
+      if (hp>=0&&hp<1){ r=c; g=x; }
+      else if (hp<2){ r=x; g=c; }
+      else if (hp<3){ g=c; b=x; }
+      else if (hp<4){ g=x; b=c; }
+      else if (hp<5){ r=x; b=c; }
+      else { r=c; b=x; }
+      const m = l - c/2;
+      const R = Math.round((r+m)*255);
+      const G = Math.round((g+m)*255);
+      const B = Math.round((b+m)*255);
+
+      for (let xpx = 0; xpx < cssW; xpx++, i += 4) {
+        img.data[i    ] = R;
+        img.data[i + 1] = G;
+        img.data[i + 2] = B;
+        img.data[i + 3] = 255;
+      }
+    }
+    // Clear & blit in CSS coords (we already set transform)
+    this.lightCtx.clearRect(0, 0, cssW, cssH);
+    this.lightCtx.putImageData(img, 0, 0);
+  }
+
+  // --- Convert clientY to Lightness (0–100) based on slider rect ---
+  _lightnessFromClientY(clientY) {
+    const rect = this.lightSlider.getBoundingClientRect();
+    const t = Math.max(0, Math.min(1, (clientY - rect.top) / rect.height));
+    return Math.round(100 * (1 - t)); // top = 100 (light), bottom = 0 (dark)
+  }
+
+  // --- Move the handle to match this.currentLightness ---
+  updateLightnessHandle() {
+    if (!this.lightHandle || !this.lightSlider) return;
+    const h = this.lightSlider.clientHeight || 120;
+    const y = (1 - (this.currentLightness ?? 60) / 100) * h;
+    this.lightHandle.style.top = `${y}px`;
+    this.lightSlider.setAttribute('aria-valuenow', String(Math.round(this.currentLightness)));
+  }
+
+  // --- Change only L; keep H & S from the current color; propagate via setColor() ---
+  setLightness(L) {
+    L = Math.max(0, Math.min(100, Math.round(L)));
+    this.currentLightness = L;
+
+    const hsl = this.hexToHSL(this.currentColor) || { h: 0, s: 0, l: L };
+    const hex = this.hslToHex(hsl.h, hsl.s, L);
+
+    this.setColor(hex);            // your existing pipeline updates inputs/swatches/etc.
+    this.updateLightnessHandle();  // move the thumb
+  }
+
+  // --- Sync the slider when currentColor changes from elsewhere ---
+  updateLightnessFromColor() {
+    const hsl = this.hexToHSL(this.currentColor);
+    if (!hsl) return;
+    this.currentLightness = hsl.l;
+    this.setupLightnessCanvasScaling(); // in case size changed (DPR/resize)
+    this.drawLightnessSlider();         // H/S may have changed
+    this.updateLightnessHandle();       // reflect new L
+  }
+
+
   createElement() {
     this.container = document.createElement("div");
     this.container.className = "custom-color-picker";
@@ -99,22 +200,30 @@ class CustomColorPicker {
             <div class="color-wheel-section">
               <canvas class="color-wheel-canvas" width="100" height="100"></canvas>
             </div>
+
+            <!-- NEW: Vertical Lightness slider UI (no interactions yet) -->
+            <div class="lightness-slider" aria-label="Lightness" role="slider"
+                 aria-valuemin="0" aria-valuemax="100" aria-valuenow="60" tabindex="0">
+              <canvas class="lightness-canvas" width="20" height="100"></canvas>
+              <div class="lightness-handle" aria-hidden="true"></div>
+            </div>
+            <!-- /NEW -->
           </div>
 
           <div class="color-picker-right">
             <div class="color-picker-section">
               <div class="color-palette">
                ${this.presetColors.map((color) => {
-  const key = String(color).toLowerCase();
-  const label = this.colorLabels[key] || key;
-  return `<button 
-            class="color-swatch" 
-            style="background-color: ${color}" 
-            data-color="${color}" 
-            aria-label="${label}" 
-            title="${label}" 
-            tabindex="0"></button>`;
-}).join('')}
+    const key = String(color).toLowerCase();
+    const label = this.colorLabels[key] || key;
+    return `<button 
+              class="color-swatch" 
+              style="background-color: ${color}" 
+              data-color="${color}" 
+              aria-label="${label}" 
+              title="${label}" 
+              tabindex="0"></button>`;
+  }).join('')}
               </div>
             </div>
           </div>
@@ -188,10 +297,14 @@ class CustomColorPicker {
     this.ctx = this.canvas.getContext("2d");
     this.hueCanvas = this.container.querySelector(".hue-slider-canvas");
     this.hueCtx = this.hueCanvas.getContext("2d");
-    this.currentColorDisplay = this.container.querySelector(
-      ".current-color-display",
-    );
+    this.currentColorDisplay = this.container.querySelector(".current-color-display");
     this.currentColorText = this.container.querySelector(".current-color-text");
+
+    // NEW: lightness refs
+    this.lightSlider = this.container.querySelector(".lightness-slider");   // NEW
+    this.lightCanvas = this.container.querySelector(".lightness-canvas");  // NEW
+    this.lightHandle = this.container.querySelector(".lightness-handle");  // NEW
+    // (No JS painting yet — we’ll wire interactions next in bindEvents)
 
     // Initialize
     this.currentHue = 0;
@@ -200,6 +313,7 @@ class CustomColorPicker {
     this.drawColorWheel();
     this.drawHueSlider();
   }
+
 
   setupHueSliderCanvas() {
     const toolsRow = this.container.querySelector(".color-picker-tools-row");
