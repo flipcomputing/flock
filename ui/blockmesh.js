@@ -23,6 +23,12 @@ const colorFields = {
   SLEEVES_COLOR: true,
 };
 
+export function getRootMesh(mesh) {
+  if (flock.meshDebug) console.log(mesh.parent);
+  if (mesh.parent && mesh.name === "__root__") return mesh.parent;
+  return getRootMesh(mesh.parent);
+}
+
 export function updateOrCreateMeshFromBlock(block, changeEvent) {
   
   if (flock.meshDebug)
