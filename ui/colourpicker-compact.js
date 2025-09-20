@@ -575,45 +575,129 @@ class CustomColorPicker {
   }
 
   setupColorSwatchNavigation() {
-    const swatches = this.container.querySelectorAll('.color-swatch');
-    if (swatches.length === 0) return;
-
-    swatches.forEach((swatch, index) => {
-      swatch.setAttribute('tabindex', index === 0 ? '0' : '-1');
-      swatch.setAttribute('role', 'gridcell');
-    });
-
     const palette = this.container.querySelector('.color-palette');
-    if (palette) {
-      palette.setAttribute('role', 'grid');
-      palette.setAttribute('aria-label', 'Color palette: use arrow keys to navigate');
-    }
+    const swatches = this.container.querySelectorAll('.color-swatch');
+    if (!palette || swatches.length === 0) return;
 
-    swatches.forEach(swatch => {
-      swatch.addEventListener('keydown', (e) => this.handleSwatchKeydown(e, swatches));
+    // ARIA
+    palette.setAttribute('role', 'grid');
+    palette.setAttribute('aria-label', 'Color palette: use arrow keys to navigate');
+
+    // Only first is tabbable initially
+    swatches.forEach((swatch, i) => {
+      swatch.setAttribute('tabindex', i === 0 ? '0' : '-1');
+      swatch.setAttribute('role', 'gridcell');
+      // Delegate keydown per swatch to a shared handler
+      swatch.addEventListener('keydown', (e) => this.handleSwatchKeydown(e));
     });
+
+    // Compute grid metrics initially and when layout changes
+    this._computeSwatchGrid();                 // initial
+    // Recompute when the palette resizes (responsive wrap)
+    if (!this._paletteResizeObs) {
+      this._paletteResizeObs = new ResizeObserver(() => this._computeSwatchGrid());
+      this._paletteResizeObs.observe(palette);
+    }
+    // Also recompute when the palette gains focus (e.g., after opening)
+    palette.addEventListener('focusin', () => this._computeSwatchGrid());
   }
 
-  handleSwatchKeydown(e, swatches) {
-    const currentIndex = Array.from(swatches).indexOf(e.target);
-    const cols = 8;
-    let newIndex = currentIndex;
-
-    switch (e.key) {
-      case 'ArrowRight': e.preventDefault(); newIndex = (currentIndex + 1) % swatches.length; break;
-      case 'ArrowLeft': e.preventDefault(); newIndex = (currentIndex - 1 + swatches.length) % swatches.length; break;
-      case 'ArrowDown': e.preventDefault(); newIndex = currentIndex + cols; if (newIndex >= swatches.length) newIndex = currentIndex % cols; break;
-      case 'ArrowUp': e.preventDefault(); newIndex = currentIndex - cols; if (newIndex < 0) { const col = currentIndex % cols; const lastRowStart = Math.floor((swatches.length - 1) / cols) * cols; newIndex = Math.min(lastRowStart + col, swatches.length - 1); } break;
-      case 'Home': e.preventDefault(); newIndex = 0; break;
-      case 'End': e.preventDefault(); newIndex = swatches.length - 1; break;
-      case 'Enter':
-      case ' ': e.preventDefault(); this.setColor(e.target.dataset.color); return;
-      default: return;
+  // Determine current columns by reading offsetTop wraps
+  _computeSwatchGrid() {
+    const swatches = Array.from(this.container.querySelectorAll('.color-swatch'));
+    if (swatches.length === 0) {
+      this._swatchCols = 1;
+      this._swatchRows = 1;
+      return;
     }
 
-    swatches[currentIndex].setAttribute('tabindex', '-1');
-    swatches[newIndex].setAttribute('tabindex', '0');
-    swatches[newIndex].focus();
+    // Count how many items share the first row's top
+    const firstTop = swatches[0].offsetTop;
+    let cols = 0;
+    for (const el of swatches) {
+      if (el.offsetTop !== firstTop) break;
+      cols++;
+    }
+    cols = Math.max(1, cols);
+    const rows = Math.ceil(swatches.length / cols);
+
+    this._swatchCols = cols;
+    this._swatchRows = rows;
+  }
+
+  handleSwatchKeydown(e) {
+    const swatches = Array.from(this.container.querySelectorAll('.color-swatch'));
+    if (swatches.length === 0) return;
+
+    const currentIndex = swatches.indexOf(e.target);
+    if (currentIndex === -1) return;
+
+    const cols = this._swatchCols || 8; // fallback
+    const total = swatches.length;
+
+    const moveFocus = (newIndex) => {
+      if (newIndex < 0) newIndex = 0;
+      if (newIndex >= total) newIndex = total - 1;
+      swatches[currentIndex].setAttribute('tabindex', '-1');
+      swatches[newIndex].setAttribute('tabindex', '0');
+      swatches[newIndex].focus();
+    };
+
+    switch (e.key) {
+      case 'ArrowRight': {
+        e.preventDefault();
+        moveFocus((currentIndex + 1) % total);
+        break;
+      }
+      case 'ArrowLeft': {
+        e.preventDefault();
+        moveFocus((currentIndex - 1 + total) % total);
+        break;
+      }
+      case 'ArrowDown': {
+        e.preventDefault();
+        // same column, next row
+        let newIndex = currentIndex + cols;
+        if (newIndex >= total) {
+          // wrap to same column in first row if needed
+          newIndex = currentIndex % cols;
+        }
+        moveFocus(newIndex);
+        break;
+      }
+      case 'ArrowUp': {
+        e.preventDefault();
+        // same column, previous row
+        let newIndex = currentIndex - cols;
+        if (newIndex < 0) {
+          // wrap to same column in last row (clamp to last item if short final row)
+          const col = currentIndex % cols;
+          const lastRowStart = Math.floor((total - 1) / cols) * cols;
+          newIndex = Math.min(lastRowStart + col, total - 1);
+        }
+        moveFocus(newIndex);
+        break;
+      }
+      case 'Home': {
+        e.preventDefault();
+        moveFocus(0);
+        break;
+      }
+      case 'End': {
+        e.preventDefault();
+        moveFocus(total - 1);
+        break;
+      }
+      case 'Enter':
+      case ' ': {
+        e.preventDefault();
+        this.setColor(e.target.dataset.color);
+        break;
+      }
+      default:
+        // allow other keys
+        break;
+    }
   }
 
   setupHueSliderKeyboard() { /* already defined above; kept for clarity */ }
