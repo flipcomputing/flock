@@ -3,11 +3,11 @@
  * Designed for young users with focus on simplicity and accessibility
  */
 
-import { translate } from '../main/translation.js';
+import { translate } from "../main/translation.js";
 
 class CustomColorPicker {
   constructor(options = {}) {
-    this.currentColor = options.color || '#ff0000';
+    this.currentColor = options.color || "#ff0000";
     this.onColorChange = options.onColorChange || (() => {});
     this.onClose = options.onClose || (() => {});
     this.targetElement = options.target || document.body;
@@ -20,25 +20,46 @@ class CustomColorPicker {
 
     // Compact preset colors
     this.presetColors = [
-        'red',          // #ff0000
-        'darkorange',   // ~#ff8000
-        'yellow',       // #ffff00
-        'teal',         // #008080
-        'lime',         // #00ff00
-        'forestgreen',  // #228B22
-        'aqua',         // #00ffff (aka cyan)
-        'dodgerblue',   // ~#0080ff
-        'blue',         // #0000ff
-        'blueviolet',   // ~#8000ff
-        'fuchsia',      // #ff00ff (aka magenta)
-        'deeppink',     // ~#ff0080
-        'white',        // #ffffff
-        'lightgray',    // ~#cccccc
-        'dimgray',      // ~#666666
-        'black',        // #000000
-        'saddlebrown',  // #8B4513
-        'lightcoral'    // ~#ff7f7f
-      ];
+      "red", // #ff0000
+      "darkorange", // ~#ff8000
+      "yellow", // #ffff00
+      "teal", // #008080
+      "lime", // #00ff00
+      "forestgreen", // #228B22
+      "aqua", // #00ffff (aka cyan)
+      "dodgerblue", // ~#0080ff
+      "blue", // #0000ff
+      "blueviolet", // ~#8000ff
+      "fuchsia", // #ff00ff (aka magenta)
+      "deeppink", // ~#ff0080
+      "white", // #ffffff
+      "lightgray", // ~#cccccc
+      "dimgray", // ~#666666
+      "black", // #000000
+      "saddlebrown", // #8B4513
+      "lightcoral", // ~#ff7f7f
+    ];
+
+    this.colorLabels = {
+      red: "Red",
+      darkorange: "Dark orange",
+      yellow: "Yellow",
+      teal: "Teal",
+      lime: "Lime",
+      forestgreen: "Forest green",
+      aqua: "Aqua",
+      dodgerblue: "Dodger blue",
+      blue: "Blue",
+      blueviolet: "Blue violet",
+      fuchsia: "Fuchsia",
+      deeppink: "Deep pink",
+      white: "White",
+      lightgray: "Light gray",
+      dimgray: "Dim gray",
+      black: "Black",
+      saddlebrown: "Saddle brown",
+      lightcoral: "Light coral",
+    };
 
     this.createElement();
     this.bindEvents();
@@ -46,20 +67,29 @@ class CustomColorPicker {
 
   generateSkinPalette() {
     const skinColors = [
-      '#FDBCB4', '#F1C27D', '#E0AC69', '#C68642',
-      '#8D5524', '#C67856', '#A0522D', '#8B4513'
+      "#FDBCB4",
+      "#F1C27D",
+      "#E0AC69",
+      "#C68642",
+      "#8D5524",
+      "#C67856",
+      "#A0522D",
+      "#8B4513",
     ];
-    return skinColors.map((color) =>
-      `<button class="color-swatch" style="background-color: ${color}" data-color="${color}" aria-label="Skin tone ${color}" tabindex="0"></button>`
-    ).join('');
+    return skinColors
+      .map(
+        (color) =>
+          `<button class="color-swatch" style="background-color: ${color}" data-color="${color}" aria-label="Skin tone ${color}" tabindex="0"></button>`,
+      )
+      .join("");
   }
 
   createElement() {
-    this.container = document.createElement('div');
-    this.container.className = 'custom-color-picker';
-    this.container.style.display = 'none';
+    this.container = document.createElement("div");
+    this.container.className = "custom-color-picker";
+    this.container.style.display = "none";
     // Optional fade for hide/show (nice with eyedropper)
-    this.container.style.transition = 'opacity 120ms ease';
+    this.container.style.transition = "opacity 120ms ease";
 
     this.container.innerHTML = `
       <div class="color-picker-backdrop"></div>
@@ -74,16 +104,17 @@ class CustomColorPicker {
           <div class="color-picker-right">
             <div class="color-picker-section">
               <div class="color-palette">
-               ${this.presetColors.map((color) => 
-                 `<button 
-                    class="color-swatch" 
-                    style="background-color: ${color}" 
-                    data-color="${color}" 
-                    aria-label="${color}" 
-                    title="${color}" 
-                    tabindex="0"></button>`
-               ).join('')}
-
+               ${this.presetColors.map((color) => {
+  const key = String(color).toLowerCase();
+  const label = this.colorLabels[key] || key;
+  return `<button 
+            class="color-swatch" 
+            style="background-color: ${color}" 
+            data-color="${color}" 
+            aria-label="${label}" 
+            title="${label}" 
+            tabindex="0"></button>`;
+}).join('')}
               </div>
             </div>
           </div>
@@ -145,7 +176,7 @@ class CustomColorPicker {
     `;
 
     // Append to canvas area for proper positioning
-    const canvasArea = document.getElementById('canvasArea');
+    const canvasArea = document.getElementById("canvasArea");
     if (canvasArea) {
       canvasArea.appendChild(this.container);
     } else {
@@ -153,12 +184,14 @@ class CustomColorPicker {
     }
 
     // Store references
-    this.canvas = this.container.querySelector('.color-wheel-canvas');
-    this.ctx = this.canvas.getContext('2d');
-    this.hueCanvas = this.container.querySelector('.hue-slider-canvas');
-    this.hueCtx = this.hueCanvas.getContext('2d');
-    this.currentColorDisplay = this.container.querySelector('.current-color-display');
-    this.currentColorText = this.container.querySelector('.current-color-text');
+    this.canvas = this.container.querySelector(".color-wheel-canvas");
+    this.ctx = this.canvas.getContext("2d");
+    this.hueCanvas = this.container.querySelector(".hue-slider-canvas");
+    this.hueCtx = this.hueCanvas.getContext("2d");
+    this.currentColorDisplay = this.container.querySelector(
+      ".current-color-display",
+    );
+    this.currentColorText = this.container.querySelector(".current-color-text");
 
     // Initialize
     this.currentHue = 0;
@@ -169,8 +202,10 @@ class CustomColorPicker {
   }
 
   setupHueSliderCanvas() {
-    const toolsRow = this.container.querySelector('.color-picker-tools-row');
-    const buttonsContainer = this.container.querySelector('.color-picker-buttons');
+    const toolsRow = this.container.querySelector(".color-picker-tools-row");
+    const buttonsContainer = this.container.querySelector(
+      ".color-picker-buttons",
+    );
 
     if (toolsRow && buttonsContainer) {
       const toolsRect = toolsRow.getBoundingClientRect();
@@ -198,7 +233,7 @@ class CustomColorPicker {
         const distance = Math.sqrt(dx * dx + dy * dy);
 
         if (distance <= radius) {
-          const hue = Math.atan2(dy, dx) * 180 / Math.PI;
+          const hue = (Math.atan2(dy, dx) * 180) / Math.PI;
           const normalizedHue = (hue + 360) % 360;
           const saturation = Math.min(100, (distance / radius) * 100);
           this.ctx.fillStyle = `hsl(${normalizedHue}, ${saturation}%, 60%)`;
@@ -210,16 +245,16 @@ class CustomColorPicker {
     // Border
     this.ctx.beginPath();
     this.ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
-    this.ctx.strokeStyle = '#ddd';
+    this.ctx.strokeStyle = "#ddd";
     this.ctx.lineWidth = 1;
     this.ctx.stroke();
   }
 
   bindEvents() {
     // Close on backdrop
-    const backdrop = this.container.querySelector('.color-picker-backdrop');
+    const backdrop = this.container.querySelector(".color-picker-backdrop");
     if (backdrop) {
-      backdrop.addEventListener('click', () => this.close());
+      backdrop.addEventListener("click", () => this.close());
     }
 
     // Click outside to close (guarded during eyedropper)
@@ -231,15 +266,17 @@ class CustomColorPicker {
     };
 
     // Random colour
-    this.container.querySelector('.color-picker-random')
-      .addEventListener('click', () => this.generateRandomColor());
+    this.container
+      .querySelector(".color-picker-random")
+      .addEventListener("click", () => this.generateRandomColor());
 
     // Eyedropper tool
-    this.container.querySelector('.color-picker-eyedropper')
-      .addEventListener('click', () => this.startEyedropper());
+    this.container
+      .querySelector(".color-picker-eyedropper")
+      .addEventListener("click", () => this.startEyedropper());
 
     // Color wheel click
-    this.canvas.addEventListener('click', (e) => {
+    this.canvas.addEventListener("click", (e) => {
       e.preventDefault();
       e.stopPropagation();
       const rect = this.canvas.getBoundingClientRect();
@@ -249,21 +286,26 @@ class CustomColorPicker {
     });
 
     // Color wheel a11y
-    this.canvas.setAttribute('tabindex', '0');
-    this.canvas.setAttribute('role', 'slider');
-    this.canvas.setAttribute('aria-label', 'Color wheel: use arrow keys to select hue and saturation');
-    this.canvas.setAttribute('aria-valuenow', '0');
-    this.canvas.setAttribute('aria-valuemin', '0');
-    this.canvas.setAttribute('aria-valuemax', '360');
+    this.canvas.setAttribute("tabindex", "0");
+    this.canvas.setAttribute("role", "slider");
+    this.canvas.setAttribute(
+      "aria-label",
+      "Color wheel: use arrow keys to select hue and saturation",
+    );
+    this.canvas.setAttribute("aria-valuenow", "0");
+    this.canvas.setAttribute("aria-valuemin", "0");
+    this.canvas.setAttribute("aria-valuemax", "360");
 
-    this.canvas.addEventListener('keydown', (e) => this.handleColorWheelKeydown(e));
+    this.canvas.addEventListener("keydown", (e) =>
+      this.handleColorWheelKeydown(e),
+    );
 
     // Track wheel indicator
     this.colorWheelPosition = { x: 50, y: 50 };
     this.createColorWheelIndicator();
 
     // Hue slider click/drag
-    this.hueCanvas.addEventListener('click', (e) => {
+    this.hueCanvas.addEventListener("click", (e) => {
       e.preventDefault();
       e.stopPropagation();
       const rect = this.hueCanvas.getBoundingClientRect();
@@ -273,33 +315,45 @@ class CustomColorPicker {
     this.initHueSliderDragging();
 
     // Advanced options
-    this.container.querySelector('.color-picker-more-options')
-      .addEventListener('click', () => this.toggleAdvancedOptions());
+    this.container
+      .querySelector(".color-picker-more-options")
+      .addEventListener("click", () => this.toggleAdvancedOptions());
 
     // CSS input
-    const cssInput = this.container.querySelector('.css-color-input');
-    cssInput.addEventListener('input', (e) => this.handleCssColorInput(e.target.value));
-    cssInput.addEventListener('focus', () => { this.cssInputFocused = true; cssInput.select(); });
-    cssInput.addEventListener('blur', () => { this.cssInputFocused = false; this.updateCssInput(); });
+    const cssInput = this.container.querySelector(".css-color-input");
+    cssInput.addEventListener("input", (e) =>
+      this.handleCssColorInput(e.target.value),
+    );
+    cssInput.addEventListener("focus", () => {
+      this.cssInputFocused = true;
+      cssInput.select();
+    });
+    cssInput.addEventListener("blur", () => {
+      this.cssInputFocused = false;
+      this.updateCssInput();
+    });
 
     // RGB inputs
-    const rgbInputs = this.container.querySelectorAll('.rgb-input');
-    rgbInputs.forEach(input => input.addEventListener('input', () => this.handleRgbInput()));
+    const rgbInputs = this.container.querySelectorAll(".rgb-input");
+    rgbInputs.forEach((input) =>
+      input.addEventListener("input", () => this.handleRgbInput()),
+    );
 
     // Swatches
     this.setupColorSwatchNavigation();
-    this.container.addEventListener('click', (e) => {
-      if (e.target.classList.contains('color-swatch')) {
+    this.container.addEventListener("click", (e) => {
+      if (e.target.classList.contains("color-swatch")) {
         this.setColor(e.target.dataset.color);
       }
     });
 
     // Confirm
-    this.container.querySelector('.color-picker-use')
-      .addEventListener('click', () => this.confirmColor());
+    this.container
+      .querySelector(".color-picker-use")
+      .addEventListener("click", () => this.confirmColor());
 
     // Keyboard handling (Escape / Enter)
-    this.container.addEventListener('keydown', (e) => this.handleKeydown(e));
+    this.container.addEventListener("keydown", (e) => this.handleKeydown(e));
 
     // Focus trap + hue slider keyboard
     this.setupFocusTrapping();
@@ -318,7 +372,7 @@ class CustomColorPicker {
       this.colorWheelPosition = { x, y };
       this.updateColorWheelIndicator();
 
-      const angle = Math.atan2(dy, dx) * 180 / Math.PI;
+      const angle = (Math.atan2(dy, dx) * 180) / Math.PI;
       const hue = (angle + 360) % 360;
       const saturation = Math.min(100, (distance / radius) * 100);
 
@@ -328,8 +382,8 @@ class CustomColorPicker {
   }
 
   createColorWheelIndicator() {
-    const indicator = document.createElement('div');
-    indicator.className = 'color-wheel-indicator';
+    const indicator = document.createElement("div");
+    indicator.className = "color-wheel-indicator";
     indicator.style.cssText = `
       position: absolute;
       width: 8px;
@@ -342,7 +396,7 @@ class CustomColorPicker {
       transform: translate(-50%, -50%);
     `;
     const wheelContainer = this.canvas.parentElement;
-    wheelContainer.style.position = 'relative';
+    wheelContainer.style.position = "relative";
     wheelContainer.appendChild(indicator);
     this.colorWheelIndicator = indicator;
     this.updateColorWheelIndicator();
@@ -360,13 +414,34 @@ class CustomColorPicker {
     let newY = this.colorWheelPosition.y;
 
     switch (e.key) {
-      case 'ArrowLeft': e.preventDefault(); newX = Math.max(2, newX - step); break;
-      case 'ArrowRight': e.preventDefault(); newX = Math.min(98, newX + step); break;
-      case 'ArrowUp': e.preventDefault(); newY = Math.max(2, newY - step); break;
-      case 'ArrowDown': e.preventDefault(); newY = Math.min(98, newY + step); break;
-      case 'Home': e.preventDefault(); newX = 98; newY = 50; break;
-      case 'End': e.preventDefault(); newX = 50; newY = 50; break;
-      default: return;
+      case "ArrowLeft":
+        e.preventDefault();
+        newX = Math.max(2, newX - step);
+        break;
+      case "ArrowRight":
+        e.preventDefault();
+        newX = Math.min(98, newX + step);
+        break;
+      case "ArrowUp":
+        e.preventDefault();
+        newY = Math.max(2, newY - step);
+        break;
+      case "ArrowDown":
+        e.preventDefault();
+        newY = Math.min(98, newY + step);
+        break;
+      case "Home":
+        e.preventDefault();
+        newX = 98;
+        newY = 50;
+        break;
+      case "End":
+        e.preventDefault();
+        newX = 50;
+        newY = 50;
+        break;
+      default:
+        return;
     }
 
     const centerX = 50;
@@ -388,21 +463,24 @@ class CustomColorPicker {
   }
 
   handleKeydown(e) {
-    if (e.key === 'Escape') {
+    if (e.key === "Escape") {
       this.close();
       return;
     }
-    if (e.key === 'Enter') {
+    if (e.key === "Enter") {
       e.preventDefault();
       e.stopPropagation();
-      if (e.target.classList.contains('color-picker-btn')) {
+      if (e.target.classList.contains("color-picker-btn")) {
         e.target.click();
         return;
       }
       this.confirmColor();
       return;
     }
-    if ((e.key === ' ' || e.key === 'Enter') && e.target.classList.contains('color-swatch')) {
+    if (
+      (e.key === " " || e.key === "Enter") &&
+      e.target.classList.contains("color-swatch")
+    ) {
       e.preventDefault();
       this.setColor(e.target.dataset.color);
       return;
@@ -414,29 +492,32 @@ class CustomColorPicker {
     if (!this.isOpen) return;
     this._eyedropperActive = true;
     this._preEyeDropperFocusEl = document.activeElement || null;
-    this.container.setAttribute('aria-hidden', 'true');
-    this.container.style.opacity = '0';
-    this.container.style.pointerEvents = 'none';
+    this.container.setAttribute("aria-hidden", "true");
+    this.container.style.opacity = "0";
+    this.container.style.pointerEvents = "none";
   }
 
   restoreUIAfterEyedropper() {
     if (!this.isOpen) return;
-    this.container.removeAttribute('aria-hidden');
-    this.container.style.opacity = '1';
-    this.container.style.pointerEvents = 'auto';
+    this.container.removeAttribute("aria-hidden");
+    this.container.style.opacity = "1";
+    this.container.style.pointerEvents = "auto";
     this._eyedropperActive = false;
 
-    const useBtn = this.container.querySelector('.color-picker-use');
+    const useBtn = this.container.querySelector(".color-picker-use");
     if (useBtn) useBtn.focus();
     else if (this.canvas) this.canvas.focus();
-    else if (this._preEyeDropperFocusEl?.focus) this._preEyeDropperFocusEl.focus();
+    else if (this._preEyeDropperFocusEl?.focus)
+      this._preEyeDropperFocusEl.focus();
 
     this._preEyeDropperFocusEl = null;
   }
 
   async startEyedropper() {
     if (!window.EyeDropper) {
-      alert('Color picker tool is not supported in this browser. Try using Chrome or Edge.');
+      alert(
+        "Color picker tool is not supported in this browser. Try using Chrome or Edge.",
+      );
       return;
     }
 
@@ -454,7 +535,9 @@ class CustomColorPicker {
 
   setColor(color) {
     this.currentColor = color;
-    const colorDisplay = this.container.querySelector('.color-picker-footer .current-color-display');
+    const colorDisplay = this.container.querySelector(
+      ".color-picker-footer .current-color-display",
+    );
     if (colorDisplay) colorDisplay.style.backgroundColor = color;
     this.updateCssInput();
     this.updateRgbInputs();
@@ -462,22 +545,25 @@ class CustomColorPicker {
   }
 
   updateCssInput() {
-    const cssInput = this.container.querySelector('.css-color-input');
+    const cssInput = this.container.querySelector(".css-color-input");
     if (cssInput && this.currentColor && !this.cssInputFocused) {
-      const displayValue = this.currentColor.startsWith('#') ? this.currentColor.slice(1) : this.currentColor;
+      const displayValue = this.currentColor.startsWith("#")
+        ? this.currentColor.slice(1)
+        : this.currentColor;
       cssInput.value = displayValue;
     }
   }
 
   setupFocusTrapping() {
     this.focusableElements = this.container.querySelectorAll(
-      'button, input, [tabindex]:not([tabindex="-1"])'
+      'button, input, [tabindex]:not([tabindex="-1"])',
     );
     this.firstFocusableElement = this.focusableElements[0];
-    this.lastFocusableElement = this.focusableElements[this.focusableElements.length - 1];
+    this.lastFocusableElement =
+      this.focusableElements[this.focusableElements.length - 1];
 
-    this.container.addEventListener('keydown', (e) => {
-      if (e.key !== 'Tab') return;
+    this.container.addEventListener("keydown", (e) => {
+      if (e.key !== "Tab") return;
       if (e.shiftKey) {
         if (document.activeElement === this.firstFocusableElement) {
           e.preventDefault();
@@ -493,10 +579,10 @@ class CustomColorPicker {
   }
 
   setupHueSliderKeyboard() {
-    const hueSlider = this.container.querySelector('.hue-slider-container');
+    const hueSlider = this.container.querySelector(".hue-slider-container");
     if (!hueSlider) return;
 
-    hueSlider.addEventListener('keydown', (e) => {
+    hueSlider.addEventListener("keydown", (e) => {
       if (document.activeElement !== hueSlider) return;
 
       let currentHue = this.getCurrentHue();
@@ -504,28 +590,58 @@ class CustomColorPicker {
       let handled = false;
 
       switch (e.key) {
-        case 'ArrowLeft':
-        case 'ArrowDown': e.preventDefault(); e.stopPropagation(); newHue = Math.max(0, currentHue - 5); handled = true; break;
-        case 'ArrowRight':
-        case 'ArrowUp': e.preventDefault(); e.stopPropagation(); newHue = Math.min(360, currentHue + 5); handled = true; break;
-        case 'Home': e.preventDefault(); e.stopPropagation(); newHue = 0; handled = true; break;
-        case 'End': e.preventDefault(); e.stopPropagation(); newHue = 360; handled = true; break;
-        case 'PageUp': e.preventDefault(); e.stopPropagation(); newHue = Math.min(360, currentHue + 30); handled = true; break;
-        case 'PageDown': e.preventDefault(); e.stopPropagation(); newHue = Math.max(0, currentHue - 30); handled = true; break;
+        case "ArrowLeft":
+        case "ArrowDown":
+          e.preventDefault();
+          e.stopPropagation();
+          newHue = Math.max(0, currentHue - 5);
+          handled = true;
+          break;
+        case "ArrowRight":
+        case "ArrowUp":
+          e.preventDefault();
+          e.stopPropagation();
+          newHue = Math.min(360, currentHue + 5);
+          handled = true;
+          break;
+        case "Home":
+          e.preventDefault();
+          e.stopPropagation();
+          newHue = 0;
+          handled = true;
+          break;
+        case "End":
+          e.preventDefault();
+          e.stopPropagation();
+          newHue = 360;
+          handled = true;
+          break;
+        case "PageUp":
+          e.preventDefault();
+          e.stopPropagation();
+          newHue = Math.min(360, currentHue + 30);
+          handled = true;
+          break;
+        case "PageDown":
+          e.preventDefault();
+          e.stopPropagation();
+          newHue = Math.max(0, currentHue - 30);
+          handled = true;
+          break;
       }
 
       if (handled) {
         this.setHueFromKeyboard(newHue);
-        hueSlider.setAttribute('aria-valuenow', Math.round(newHue));
+        hueSlider.setAttribute("aria-valuenow", Math.round(newHue));
       }
     });
 
-    hueSlider.addEventListener('focus', () => {
-      hueSlider.style.outline = '3px solid var(--color-focus)';
-      hueSlider.style.outlineOffset = '2px';
+    hueSlider.addEventListener("focus", () => {
+      hueSlider.style.outline = "3px solid var(--color-focus)";
+      hueSlider.style.outlineOffset = "2px";
     });
-    hueSlider.addEventListener('blur', () => {
-      hueSlider.style.outline = 'none';
+    hueSlider.addEventListener("blur", () => {
+      hueSlider.style.outline = "none";
     });
   }
 
@@ -551,7 +667,7 @@ class CustomColorPicker {
     hue *= 60;
     if (hue < 0) hue += 360;
     return hue;
-    }
+  }
 
   setHueFromKeyboard(hue) {
     const rgb = this.hexToRgb(this.currentColor);
@@ -566,7 +682,8 @@ class CustomColorPicker {
     const delta = max - min;
 
     let lightness = (max + min) / 2;
-    let saturation = delta === 0 ? 0 : delta / (1 - Math.abs(2 * lightness - 1));
+    let saturation =
+      delta === 0 ? 0 : delta / (1 - Math.abs(2 * lightness - 1));
 
     if (saturation < 0.3) saturation = 0.8;
     if (lightness < 0.2) lightness = 0.5;
@@ -578,8 +695,8 @@ class CustomColorPicker {
   }
 
   updateHueSliderPosition(hue) {
-    const handle = this.container.querySelector('.hue-slider-handle');
-    const canvas = this.container.querySelector('.hue-slider-canvas');
+    const handle = this.container.querySelector(".hue-slider-handle");
+    const canvas = this.container.querySelector(".hue-slider-canvas");
     if (!handle || !canvas) return;
 
     const canvasRect = canvas.getBoundingClientRect();
@@ -595,36 +712,43 @@ class CustomColorPicker {
   }
 
   setupColorSwatchNavigation() {
-    const palette = this.container.querySelector('.color-palette');
-    const swatches = this.container.querySelectorAll('.color-swatch');
+    const palette = this.container.querySelector(".color-palette");
+    const swatches = this.container.querySelectorAll(".color-swatch");
     if (!palette || swatches.length === 0) return;
 
     // ARIA
-    palette.setAttribute('role', 'grid');
-    palette.setAttribute('aria-label', 'Color palette: use arrow keys to navigate');
+    palette.setAttribute("role", "grid");
+    palette.setAttribute(
+      "aria-label",
+      "Color palette: use arrow keys to navigate",
+    );
 
     // Only first is tabbable initially
     swatches.forEach((swatch, i) => {
-      swatch.setAttribute('tabindex', i === 0 ? '0' : '-1');
-      swatch.setAttribute('role', 'gridcell');
+      swatch.setAttribute("tabindex", i === 0 ? "0" : "-1");
+      swatch.setAttribute("role", "gridcell");
       // Delegate keydown per swatch to a shared handler
-      swatch.addEventListener('keydown', (e) => this.handleSwatchKeydown(e));
+      swatch.addEventListener("keydown", (e) => this.handleSwatchKeydown(e));
     });
 
     // Compute grid metrics initially and when layout changes
-    this._computeSwatchGrid();                 // initial
+    this._computeSwatchGrid(); // initial
     // Recompute when the palette resizes (responsive wrap)
     if (!this._paletteResizeObs) {
-      this._paletteResizeObs = new ResizeObserver(() => this._computeSwatchGrid());
+      this._paletteResizeObs = new ResizeObserver(() =>
+        this._computeSwatchGrid(),
+      );
       this._paletteResizeObs.observe(palette);
     }
     // Also recompute when the palette gains focus (e.g., after opening)
-    palette.addEventListener('focusin', () => this._computeSwatchGrid());
+    palette.addEventListener("focusin", () => this._computeSwatchGrid());
   }
 
   // Determine current columns by reading offsetTop wraps
   _computeSwatchGrid() {
-    const swatches = Array.from(this.container.querySelectorAll('.color-swatch'));
+    const swatches = Array.from(
+      this.container.querySelectorAll(".color-swatch"),
+    );
     if (swatches.length === 0) {
       this._swatchCols = 1;
       this._swatchRows = 1;
@@ -646,7 +770,9 @@ class CustomColorPicker {
   }
 
   handleSwatchKeydown(e) {
-    const swatches = Array.from(this.container.querySelectorAll('.color-swatch'));
+    const swatches = Array.from(
+      this.container.querySelectorAll(".color-swatch"),
+    );
     if (swatches.length === 0) return;
 
     const currentIndex = swatches.indexOf(e.target);
@@ -658,23 +784,23 @@ class CustomColorPicker {
     const moveFocus = (newIndex) => {
       if (newIndex < 0) newIndex = 0;
       if (newIndex >= total) newIndex = total - 1;
-      swatches[currentIndex].setAttribute('tabindex', '-1');
-      swatches[newIndex].setAttribute('tabindex', '0');
+      swatches[currentIndex].setAttribute("tabindex", "-1");
+      swatches[newIndex].setAttribute("tabindex", "0");
       swatches[newIndex].focus();
     };
 
     switch (e.key) {
-      case 'ArrowRight': {
+      case "ArrowRight": {
         e.preventDefault();
         moveFocus((currentIndex + 1) % total);
         break;
       }
-      case 'ArrowLeft': {
+      case "ArrowLeft": {
         e.preventDefault();
         moveFocus((currentIndex - 1 + total) % total);
         break;
       }
-      case 'ArrowDown': {
+      case "ArrowDown": {
         e.preventDefault();
         // same column, next row
         let newIndex = currentIndex + cols;
@@ -685,7 +811,7 @@ class CustomColorPicker {
         moveFocus(newIndex);
         break;
       }
-      case 'ArrowUp': {
+      case "ArrowUp": {
         e.preventDefault();
         // same column, previous row
         let newIndex = currentIndex - cols;
@@ -698,18 +824,18 @@ class CustomColorPicker {
         moveFocus(newIndex);
         break;
       }
-      case 'Home': {
+      case "Home": {
         e.preventDefault();
         moveFocus(0);
         break;
       }
-      case 'End': {
+      case "End": {
         e.preventDefault();
         moveFocus(total - 1);
         break;
       }
-      case 'Enter':
-      case ' ': {
+      case "Enter":
+      case " ": {
         e.preventDefault();
         this.setColor(e.target.dataset.color);
         break;
@@ -720,7 +846,9 @@ class CustomColorPicker {
     }
   }
 
-  setupHueSliderKeyboard() { /* already defined above; kept for clarity */ }
+  setupHueSliderKeyboard() {
+    /* already defined above; kept for clarity */
+  }
 
   drawHueSlider() {
     const sliderWidth = this.hueCanvas.width;
@@ -729,18 +857,18 @@ class CustomColorPicker {
     this.hueCtx.clearRect(0, 0, sliderWidth, sliderHeight);
 
     const gradient = this.hueCtx.createLinearGradient(0, 0, sliderWidth, 0);
-    gradient.addColorStop(0, 'hsl(0, 100%, 50%)');
-    gradient.addColorStop(0.17, 'hsl(60, 100%, 50%)');
-    gradient.addColorStop(0.33, 'hsl(120, 100%, 50%)');
-    gradient.addColorStop(0.5, 'hsl(180, 100%, 50%)');
-    gradient.addColorStop(0.67, 'hsl(240, 100%, 50%)');
-    gradient.addColorStop(0.83, 'hsl(300, 100%, 50%)');
-    gradient.addColorStop(1, 'hsl(360, 100%, 50%)');
+    gradient.addColorStop(0, "hsl(0, 100%, 50%)");
+    gradient.addColorStop(0.17, "hsl(60, 100%, 50%)");
+    gradient.addColorStop(0.33, "hsl(120, 100%, 50%)");
+    gradient.addColorStop(0.5, "hsl(180, 100%, 50%)");
+    gradient.addColorStop(0.67, "hsl(240, 100%, 50%)");
+    gradient.addColorStop(0.83, "hsl(300, 100%, 50%)");
+    gradient.addColorStop(1, "hsl(360, 100%, 50%)");
 
     this.hueCtx.fillStyle = gradient;
     this.hueCtx.fillRect(0, 0, sliderWidth, sliderHeight);
 
-    this.hueCtx.strokeStyle = '#ddd';
+    this.hueCtx.strokeStyle = "#ddd";
     this.hueCtx.lineWidth = 1;
     this.hueCtx.strokeRect(0, 0, sliderWidth, sliderHeight);
 
@@ -748,7 +876,7 @@ class CustomColorPicker {
   }
 
   updateHueHandle() {
-    const handle = this.container.querySelector('.hue-slider-handle');
+    const handle = this.container.querySelector(".hue-slider-handle");
     if (!handle) return;
     const sliderWidth = this.hueCanvas.width;
     const position = (this.currentHue / 360) * sliderWidth;
@@ -766,15 +894,15 @@ class CustomColorPicker {
   }
 
   initHueSliderDragging() {
-    const handle = this.container.querySelector('.hue-slider-handle');
-    const container = this.container.querySelector('.hue-slider-container');
+    const handle = this.container.querySelector(".hue-slider-handle");
+    const container = this.container.querySelector(".hue-slider-container");
     let isDragging = false;
 
     const startDrag = (e) => {
       isDragging = true;
       e.preventDefault();
-      document.addEventListener('mousemove', handleDrag);
-      document.addEventListener('mouseup', endDrag);
+      document.addEventListener("mousemove", handleDrag);
+      document.addEventListener("mouseup", endDrag);
     };
 
     const handleDrag = (e) => {
@@ -788,12 +916,12 @@ class CustomColorPicker {
 
     const endDrag = () => {
       isDragging = false;
-      document.removeEventListener('mousemove', handleDrag);
-      document.removeEventListener('mouseup', endDrag);
+      document.removeEventListener("mousemove", handleDrag);
+      document.removeEventListener("mouseup", endDrag);
     };
 
-    handle.addEventListener('mousedown', startDrag);
-    container.addEventListener('mousedown', (e) => {
+    handle.addEventListener("mousedown", startDrag);
+    container.addEventListener("mousedown", (e) => {
       const rect = this.hueCanvas.getBoundingClientRect();
       const x = e.clientX - rect.left;
       this.handleHueSliderClick(x);
@@ -804,14 +932,17 @@ class CustomColorPicker {
   generateRandomColor() {
     const letters = "0123456789ABCDEF";
     let color = "#";
-    for (let i = 0; i < 6; i++) color += letters[Math.floor(Math.random() * 16)];
+    for (let i = 0; i < 6; i++)
+      color += letters[Math.floor(Math.random() * 16)];
     this.setColor(color);
   }
 
   toggleAdvancedOptions() {
-    const advancedSection = this.container.querySelector('.color-advanced-options');
+    const advancedSection = this.container.querySelector(
+      ".color-advanced-options",
+    );
     this.advancedOptionsOpen = !this.advancedOptionsOpen;
-    advancedSection.style.display = this.advancedOptionsOpen ? 'block' : 'none';
+    advancedSection.style.display = this.advancedOptionsOpen ? "block" : "none";
     if (this.advancedOptionsOpen) this.updateRgbInputs();
   }
 
@@ -820,29 +951,38 @@ class CustomColorPicker {
     let processedValue = value.trim();
     let isCompleteColor = false;
 
-    if (/^#?[0-9a-fA-F]{6}$/.test(processedValue) || /^#?[0-9a-fA-F]{3}$/.test(processedValue)) {
+    if (
+      /^#?[0-9a-fA-F]{6}$/.test(processedValue) ||
+      /^#?[0-9a-fA-F]{3}$/.test(processedValue)
+    ) {
       isCompleteColor = true;
-      if (!processedValue.startsWith('#')) processedValue = '#' + processedValue;
+      if (!processedValue.startsWith("#"))
+        processedValue = "#" + processedValue;
     } else {
-      const tempDiv = document.createElement('div');
+      const tempDiv = document.createElement("div");
       tempDiv.style.color = processedValue;
       document.body.appendChild(tempDiv);
       const computedColor = window.getComputedStyle(tempDiv).color;
       document.body.removeChild(tempDiv);
-      if (computedColor && computedColor !== 'rgba(0, 0, 0, 0)') isCompleteColor = true;
+      if (computedColor && computedColor !== "rgba(0, 0, 0, 0)")
+        isCompleteColor = true;
     }
 
     if (isCompleteColor) {
-      const tempDiv = document.createElement('div');
+      const tempDiv = document.createElement("div");
       tempDiv.style.color = processedValue;
       document.body.appendChild(tempDiv);
       const computedColor = window.getComputedStyle(tempDiv).color;
       document.body.removeChild(tempDiv);
 
-      if (computedColor && computedColor !== 'rgba(0, 0, 0, 0)') {
+      if (computedColor && computedColor !== "rgba(0, 0, 0, 0)") {
         const rgbMatch = computedColor.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/);
         if (rgbMatch) {
-          const hex = this.rgbToHex(parseInt(rgbMatch[1]), parseInt(rgbMatch[2]), parseInt(rgbMatch[3]));
+          const hex = this.rgbToHex(
+            parseInt(rgbMatch[1]),
+            parseInt(rgbMatch[2]),
+            parseInt(rgbMatch[3]),
+          );
           this.setColor(hex);
           this.updateRgbInputs();
         }
@@ -851,14 +991,14 @@ class CustomColorPicker {
   }
 
   handleRgbInput() {
-    const r = parseInt(this.container.querySelector('#rgb-r').value) || 0;
-    const g = parseInt(this.container.querySelector('#rgb-g').value) || 0;
-    const b = parseInt(this.container.querySelector('#rgb-b').value) || 0;
+    const r = parseInt(this.container.querySelector("#rgb-r").value) || 0;
+    const g = parseInt(this.container.querySelector("#rgb-g").value) || 0;
+    const b = parseInt(this.container.querySelector("#rgb-b").value) || 0;
 
     const hex = this.rgbToHex(
       Math.max(0, Math.min(255, r)),
       Math.max(0, Math.min(255, g)),
-      Math.max(0, Math.min(255, b))
+      Math.max(0, Math.min(255, b)),
     );
     this.setColor(hex);
   }
@@ -866,55 +1006,79 @@ class CustomColorPicker {
   updateRgbInputs() {
     const rgb = this.hexToRgb(this.currentColor);
     if (!rgb) return;
-    const rInput = this.container.querySelector('#rgb-r');
-    const gInput = this.container.querySelector('#rgb-g');
-    const bInput = this.container.querySelector('#rgb-b');
-    if (rInput && !rInput.matches(':focus')) rInput.value = rgb.r;
-    if (gInput && !gInput.matches(':focus')) gInput.value = rgb.g;
-    if (bInput && !bInput.matches(':focus')) bInput.value = rgb.b;
+    const rInput = this.container.querySelector("#rgb-r");
+    const gInput = this.container.querySelector("#rgb-g");
+    const bInput = this.container.querySelector("#rgb-b");
+    if (rInput && !rInput.matches(":focus")) rInput.value = rgb.r;
+    if (gInput && !gInput.matches(":focus")) gInput.value = rgb.g;
+    if (bInput && !bInput.matches(":focus")) bInput.value = rgb.b;
   }
 
   rgbToHex(r, g, b) {
-    return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
+    return `#${r.toString(16).padStart(2, "0")}${g.toString(16).padStart(2, "0")}${b.toString(16).padStart(2, "0")}`;
   }
 
   hexToRgb(hex) {
     const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-    return result ? {
-      r: parseInt(result[1], 16),
-      g: parseInt(result[2], 16),
-      b: parseInt(result[3], 16)
-    } : null;
+    return result
+      ? {
+          r: parseInt(result[1], 16),
+          g: parseInt(result[2], 16),
+          b: parseInt(result[3], 16),
+        }
+      : null;
   }
 
   getContrastColor(hexcolor) {
     const rgb = this.hexToRgb(hexcolor);
-    if (!rgb) return '#000000';
+    if (!rgb) return "#000000";
     const brightness = (rgb.r * 299 + rgb.g * 587 + rgb.b * 114) / 1000;
-    return brightness > 128 ? '#000000' : '#ffffff';
+    return brightness > 128 ? "#000000" : "#ffffff";
   }
 
   // HSL/HEX conversion
   hslToHex(h, s, l) {
     // Convert HSL to RGB then to hex
-    s /= 100; l /= 100;
+    s /= 100;
+    l /= 100;
     const c = (1 - Math.abs(2 * l - 1)) * s;
-    const x = c * (1 - Math.abs((h / 60) % 2 - 1));
+    const x = c * (1 - Math.abs(((h / 60) % 2) - 1));
     const m = l - c / 2;
-    let r = 0, g = 0, b = 0;
+    let r = 0,
+      g = 0,
+      b = 0;
 
-    if (0 <= h && h < 60) { r = c; g = x; b = 0; }
-    else if (60 <= h && h < 120) { r = x; g = c; b = 0; }
-    else if (120 <= h && h < 180) { r = 0; g = c; b = x; }
-    else if (180 <= h && h < 240) { r = 0; g = x; b = c; }
-    else if (240 <= h && h < 300) { r = x; g = 0; b = c; }
-    else if (300 <= h && h < 360) { r = c; g = 0; b = x; }
+    if (0 <= h && h < 60) {
+      r = c;
+      g = x;
+      b = 0;
+    } else if (60 <= h && h < 120) {
+      r = x;
+      g = c;
+      b = 0;
+    } else if (120 <= h && h < 180) {
+      r = 0;
+      g = c;
+      b = x;
+    } else if (180 <= h && h < 240) {
+      r = 0;
+      g = x;
+      b = c;
+    } else if (240 <= h && h < 300) {
+      r = x;
+      g = 0;
+      b = c;
+    } else if (300 <= h && h < 360) {
+      r = c;
+      g = 0;
+      b = x;
+    }
 
     r = Math.round((r + m) * 255);
     g = Math.round((g + m) * 255);
     b = Math.round((b + m) * 255);
 
-    return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
+    return `#${r.toString(16).padStart(2, "0")}${g.toString(16).padStart(2, "0")}${b.toString(16).padStart(2, "0")}`;
   }
 
   hexToHSL(hex) {
@@ -924,7 +1088,8 @@ class CustomColorPicker {
 
     const max = Math.max(r, g, b);
     const min = Math.min(r, g, b);
-    let h, s; const l = (max + min) / 2;
+    let h, s;
+    const l = (max + min) / 2;
 
     if (max === min) {
       h = s = 0;
@@ -932,20 +1097,30 @@ class CustomColorPicker {
       const d = max - min;
       s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
       switch (max) {
-        case r: h = (g - b) / d + (g < b ? 6 : 0); break;
-        case g: h = (b - r) / d + 2; break;
-        case b: h = (r - g) / d + 4; break;
+        case r:
+          h = (g - b) / d + (g < b ? 6 : 0);
+          break;
+        case g:
+          h = (b - r) / d + 2;
+          break;
+        case b:
+          h = (r - g) / d + 4;
+          break;
       }
       h /= 6;
     }
-    return { h: Math.round(h * 360), s: Math.round(s * 100), l: Math.round(l * 100) };
+    return {
+      h: Math.round(h * 360),
+      s: Math.round(s * 100),
+      l: Math.round(l * 100),
+    };
   }
 
   open(color = this.currentColor) {
     this.setColor(color);
-    this.container.style.display = 'block';
-    this.container.style.opacity = '1';
-    this.container.style.pointerEvents = 'auto';
+    this.container.style.display = "block";
+    this.container.style.opacity = "1";
+    this.container.style.pointerEvents = "auto";
     this.isOpen = true;
 
     setTimeout(() => {
@@ -954,23 +1129,23 @@ class CustomColorPicker {
     }, 10);
 
     // Position above the colour button over the canvas
-    const colorButton = document.getElementById('colorPickerButton');
-    const canvasArea = document.getElementById('canvasArea');
+    const colorButton = document.getElementById("colorPickerButton");
+    const canvasArea = document.getElementById("canvasArea");
 
     if (colorButton && canvasArea) {
       const buttonRect = colorButton.getBoundingClientRect();
       const canvasRect = canvasArea.getBoundingClientRect();
 
-      this.container.style.position = 'absolute';
+      this.container.style.position = "absolute";
       const isMobile = window.innerWidth <= 600;
 
       if (isMobile) {
-        this.container.style.left = '0px';
-        this.container.style.right = '0px';
+        this.container.style.left = "0px";
+        this.container.style.right = "0px";
         this.container.style.width = `${canvasRect.width - 20}px`;
-        this.container.style.maxWidth = 'none';
-        this.container.style.marginLeft = '10px';
-        this.container.style.marginRight = '10px';
+        this.container.style.maxWidth = "none";
+        this.container.style.marginLeft = "10px";
+        this.container.style.marginRight = "10px";
         const topPosition = Math.max(10, buttonRect.top - canvasRect.top - 200);
         const pickerHeight = 250;
         const bottomBarHeight = 40;
@@ -979,15 +1154,18 @@ class CustomColorPicker {
       } else {
         this.container.style.left = `${buttonRect.left - canvasRect.left}px`;
         this.container.style.top = `${buttonRect.top - canvasRect.top - 180}px`;
-        this.container.style.width = '360px';
-        this.container.style.right = 'auto';
+        this.container.style.width = "360px";
+        this.container.style.right = "auto";
 
         const containerWidth = 360;
-        if (buttonRect.left - canvasRect.left + containerWidth > canvasRect.width) {
+        if (
+          buttonRect.left - canvasRect.left + containerWidth >
+          canvasRect.width
+        ) {
           this.container.style.left = `${canvasRect.width - containerWidth - 10}px`;
         }
         if (buttonRect.top - canvasRect.top - 180 < 10) {
-          this.container.style.top = '10px';
+          this.container.style.top = "10px";
         }
         const pickerHeight = 250;
         const bottomBarHeight = 40;
@@ -1000,7 +1178,7 @@ class CustomColorPicker {
     }
 
     setTimeout(() => {
-      document.addEventListener('click', this.outsideClickHandler, true);
+      document.addEventListener("click", this.outsideClickHandler, true);
     }, 100);
 
     setTimeout(() => {
@@ -1009,9 +1187,9 @@ class CustomColorPicker {
   }
 
   close() {
-    this.container.style.display = 'none';
+    this.container.style.display = "none";
     this.isOpen = false;
-    document.removeEventListener('click', this.outsideClickHandler, true);
+    document.removeEventListener("click", this.outsideClickHandler, true);
   }
 
   confirmColor() {
