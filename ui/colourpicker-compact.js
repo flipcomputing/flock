@@ -127,9 +127,9 @@ class CustomColorPicker {
     const hsl = this.hexToHSL(this.currentColor) || { h: 0, s: 0, l: 60 };
 
     const g = this.lightCtx.createLinearGradient(0, 0, 0, cssH);
-    g.addColorStop(0, `hsl(${hsl.h} ${hsl.s}% 100%)`);
-    g.addColorStop(0.5, `hsl(${hsl.h} ${hsl.s}% 50%)`);
-    g.addColorStop(1, `hsl(${hsl.h} ${hsl.s}% 0%)`);
+    g.addColorStop(0, `hsl(${hsl.h}, ${hsl.s}%, 100%)`);
+    g.addColorStop(0.5, `hsl(${hsl.h}, ${hsl.s}%, 50%)`);
+    g.addColorStop(1, `hsl(${hsl.h}, ${hsl.s}%, 0%)`);
 
     this.lightCtx.clearRect(0, 0, cssW, cssH);
     this.lightCtx.fillStyle = g;
@@ -315,17 +315,17 @@ class CustomColorPicker {
     this.lightHandle = this.container.querySelector(".lightness-handle");
 
     // Initial lightness paint
-    this.setupLightnessCanvasScaling();
-    this.drawLightnessSlider();
-    this.updateLightnessHandle();
+
+    //this.drawLightnessSlider();
+    //this.updateLightnessHandle();
 
     // Initialize
-    this.currentHue = 0;
     this.advancedOptionsOpen = false;
 
     // NOTE: leaving the color wheel & hue logic as-is (no changes)
     this.drawColorWheel();
     this.drawHueSlider();
+    this.setupLightnessCanvasScaling();
   }
 
   setupHueSliderCanvas() {
@@ -517,9 +517,9 @@ class CustomColorPicker {
       const nx = (x / rect.width) * 100;
       const ny = (y / rect.height) * 100;
 
-      this.handleCanvasPickAt(nx, ny);            // expects 0–100 coords
+      this.handleCanvasPickAt(nx, ny); // expects 0–100 coords
       this.colorWheelPosition = { x: nx, y: ny }; // store normalized
-      this.updateColorWheelIndicator();           // will scale to px for display
+      this.updateColorWheelIndicator(); // will scale to px for display
     };
 
     this.canvas.addEventListener("pointerdown", (e) => {
@@ -564,7 +564,7 @@ class CustomColorPicker {
 
     // Initialize color wheel position tracking + indicator
     if (!this.colorWheelPosition) this.colorWheelPosition = { x: 50, y: 50 };
-    
+
     this.createColorWheelIndicator();
     this.updateColorWheelFromColor();
 
@@ -737,8 +737,11 @@ class CustomColorPicker {
     ny = Math.max(0, Math.min(100, ny));
 
     // clamp to circle (center 50,50; radius 48)
-    const cx = 50, cy = 50, R = 48;
-    let dx = nx - cx, dy = ny - cy;
+    const cx = 50,
+      cy = 50,
+      R = 48;
+    let dx = nx - cx,
+      dy = ny - cy;
     const dist = Math.hypot(dx, dy);
     if (dist > R) {
       const k = R / dist;
@@ -750,7 +753,6 @@ class CustomColorPicker {
     this.updateColorWheelIndicator?.();
     this.handleCanvasPickAt(nx, ny); // expects 0–100 space
   }
-
 
   createColorWheelIndicator() {
     const indicator = document.createElement("div");
@@ -784,10 +786,10 @@ class CustomColorPicker {
 
     // Canvas offset inside its parent (handles padding/centering)
     const offX = canvasRect.left - parentRect.left;
-    const offY = canvasRect.top  - parentRect.top;
+    const offY = canvasRect.top - parentRect.top;
 
     const p = this.colorWheelPosition || { x: 50, y: 50 };
-    const w = canvasRect.width  || 100;
+    const w = canvasRect.width || 100;
     const h = canvasRect.height || 100;
 
     // If values look like 0–100, treat them as normalized and scale to CSS px.
@@ -797,28 +799,48 @@ class CustomColorPicker {
     const ypx = isNormalized ? (p.y / 100) * h : p.y;
 
     this.colorWheelIndicator.style.left = `${offX + xpx}px`;
-    this.colorWheelIndicator.style.top  = `${offY + ypx}px`;
+    this.colorWheelIndicator.style.top = `${offY + ypx}px`;
   }
-
 
   handleColorWheelKeydown(e) {
     const p = this.colorWheelPosition || { x: 50, y: 50 };
     const step = 2;
-    let nx = p.x, ny = p.y;
+    let nx = p.x,
+      ny = p.y;
 
     switch (e.key) {
-      case "ArrowLeft":  e.preventDefault(); nx -= step; break;
-      case "ArrowRight": e.preventDefault(); nx += step; break;
-      case "ArrowUp":    e.preventDefault(); ny -= step; break;
-      case "ArrowDown":  e.preventDefault(); ny += step; break;
-      case "Home":       e.preventDefault(); nx = 98; ny = 50; break; // max sat at 0°
-      case "End":        e.preventDefault(); nx = 50; ny = 50; break; // center
-      default: return;
+      case "ArrowLeft":
+        e.preventDefault();
+        nx -= step;
+        break;
+      case "ArrowRight":
+        e.preventDefault();
+        nx += step;
+        break;
+      case "ArrowUp":
+        e.preventDefault();
+        ny -= step;
+        break;
+      case "ArrowDown":
+        e.preventDefault();
+        ny += step;
+        break;
+      case "Home":
+        e.preventDefault();
+        nx = 98;
+        ny = 50;
+        break; // max sat at 0°
+      case "End":
+        e.preventDefault();
+        nx = 50;
+        ny = 50;
+        break; // center
+      default:
+        return;
     }
 
     this._setWheelNormalized(nx, ny);
   }
-
 
   handleKeydown(e) {
     if (e.key === "Escape") {
@@ -1629,6 +1651,8 @@ class CustomColorPicker {
 
       // 3) Draw sliders & place handles/indicator to match current color
       this.drawHueSlider();
+      this._lastLightnessHS = { h: NaN, s: NaN }; // ensure update doesn’t skip
+      this.setupLightnessCanvasScaling(); // size with real layout
       this.drawLightnessSlider(); // uses current H/S for the gradient
       this.updateHueSliderFromColor?.(); // position hue handle from current color
       this.updateLightnessHandle?.(); // position lightness thumb from current L
