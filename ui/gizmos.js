@@ -311,6 +311,7 @@ function findParentWithBlockId(mesh) {
 }
 
 function resetBoundingBoxVisibility(mesh) {
+  if (mesh.visibility === 0.001) mesh.visibility = 0;
   mesh.showBoundingBox = false;
 }
 
