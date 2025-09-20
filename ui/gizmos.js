@@ -317,7 +317,7 @@ function resetBoundingBoxVisibilityIfManuallySet() {
 }
 
 function hideBoundingBox(mesh) {
-  resetBoundingBoxVisibilityIfManuallySet();
+  // resetBoundingBoxVisibilityIfManuallySet();
   mesh.showBoundingBox = false;
 }
 
