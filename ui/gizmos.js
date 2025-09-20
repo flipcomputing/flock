@@ -310,14 +310,18 @@ function findParentWithBlockId(mesh) {
   return null;
 }
 
+function resetBoundingBoxVisibility(mesh) {
+  mesh.showBoundingBox = false;
+}
+
 function resetChildMeshesOfAttachedMesh() {
   gizmoManager.attachedMesh
     .getChildMeshes()
-    .forEach((child) => (child.showBoundingBox = false));
+    .forEach((child) => (resetBoundingBoxVisibility(child)));
 }
 
 function resetAttachedMesh() {
-  gizmoManager.attachedMesh.showBoundingBox = false;
+  resetBoundingBoxVisibility(gizmoManager.attachedMesh);
   resetChildMeshesOfAttachedMesh();
 }
 
@@ -640,13 +644,13 @@ export function toggleGizmo(gizmoType) {
               color: "black"
             });
 
-            if (flock.meshDebug) console.log(pickedMesh.parent);
+            /* if (flock.meshDebug) */ console.log(pickedMesh.parent);
 
             if (pickedMesh.parent) {
               pickedMesh = getRootMesh(pickedMesh.parent);
-              if (flock.meshDebug) console.log(pickedMesh.visibility);
+              /* if (flock.meshDebug) */ console.log(pickedMesh.visibility);
               pickedMesh.visibility = 0.001;
-              if (flock.meshDebug) console.log(pickedMesh.visibility);
+              /* if (flock.meshDebug) */ console.log(pickedMesh.visibility);
             }
 
             const block = meshMap[blockKey];
