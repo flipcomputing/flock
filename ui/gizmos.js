@@ -650,13 +650,13 @@ export function toggleGizmo(gizmoType) {
               color: "black"
             });
 
-            /* if (flock.meshDebug) */ console.log(pickedMesh.parent);
+            if (flock.meshDebug) console.log(pickedMesh.parent);
 
             if (pickedMesh.parent) {
               pickedMesh = getRootMesh(pickedMesh.parent);
-              /* if (flock.meshDebug) */ console.log(pickedMesh.visibility);
+              if (flock.meshDebug) console.log(pickedMesh.visibility);
               pickedMesh.visibility = 0.001;
-              /* if (flock.meshDebug) */ console.log(pickedMesh.visibility);
+              if (flock.meshDebug) console.log(pickedMesh.visibility);
             }
 
             const block = meshMap[blockKey];
