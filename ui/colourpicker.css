@@ -928,3 +928,24 @@
     transform: none;
   }
 }
+
+/* Top-align the left/right columns */
+.custom-color-picker .color-picker-body {
+  display: grid;
+  grid-template-columns: auto 1fr; /* left column then right column */
+  align-items: start;              /* <-- key: top-align rows */
+  column-gap: 12px;
+}
+
+/* Kill baseline offsets */
+.custom-color-picker canvas { display: block; }
+
+/* Ensure no extra top spacing */
+.custom-color-picker .color-picker-left,
+.custom-color-picker .color-picker-right,
+.custom-color-picker .color-wheel-section,
+.custom-color-picker .lightness-slider,
+.custom-color-picker .color-picker-right .color-picker-section:first-child {
+  margin-top: 0;
+  padding-top: 0;
+}

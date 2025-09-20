@@ -732,11 +732,11 @@ class CustomColorPicker {
   }
 
   _setWheelNormalized(nx, ny) {
-    // clamp to 0–100
+    // normalize to 0–100
     nx = Math.max(0, Math.min(100, nx));
     ny = Math.max(0, Math.min(100, ny));
 
-    // clamp to the wheel circle (center 50,50 radius 48)
+    // clamp to circle (center 50,50; radius 48)
     const cx = 50, cy = 50, R = 48;
     let dx = nx - cx, dy = ny - cy;
     const dist = Math.hypot(dx, dy);
@@ -750,6 +750,7 @@ class CustomColorPicker {
     this.updateColorWheelIndicator?.();
     this.handleCanvasPickAt(nx, ny); // expects 0–100 space
   }
+
 
   createColorWheelIndicator() {
     const indicator = document.createElement("div");
