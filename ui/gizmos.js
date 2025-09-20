@@ -310,7 +310,7 @@ function findParentWithBlockId(mesh) {
   return null;
 }
 
-function resetBoundingBoxVisibility(mesh) {
+function hideBoundingBox(mesh) {
   if (mesh.visibility === 0.001) mesh.visibility = 0;
   mesh.showBoundingBox = false;
 }
@@ -318,11 +318,11 @@ function resetBoundingBoxVisibility(mesh) {
 function resetChildMeshesOfAttachedMesh() {
   gizmoManager.attachedMesh
     .getChildMeshes()
-    .forEach((child) => (resetBoundingBoxVisibility(child)));
+    .forEach((child) => (hideBoundingBox(child)));
 }
 
 function resetAttachedMesh() {
-  resetBoundingBoxVisibility(gizmoManager.attachedMesh);
+  hideBoundingBox(gizmoManager.attachedMesh);
   resetChildMeshesOfAttachedMesh();
 }
 
