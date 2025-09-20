@@ -310,8 +310,14 @@ function findParentWithBlockId(mesh) {
   return null;
 }
 
-function hideBoundingBox(mesh) {
+// For composite meshes where visibility needs setting to
+// 0.001 in order to show parent mesh's bounding box
+function resetBoundingBoxVisibilityIfManuallySet() {
   if (mesh.visibility === 0.001) mesh.visibility = 0;
+}
+
+function hideBoundingBox(mesh) {
+  resetBoundingBoxVisibilityIfManuallySet();
   mesh.showBoundingBox = false;
 }
 
