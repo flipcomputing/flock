@@ -507,17 +507,10 @@
   box-sizing: border-box;
 }
 
-.color-swatch:hover,
 .color-swatch:focus {
-  transform: scale(1.1);
-  border-color: #511d91;
-  box-shadow: 0 4px 12px rgba(81, 29, 145, 0.3);
-  outline: none;
+  outline: 3px solid var(--color-focus); /* Add an outline */
+  outline-offset: 2px; /* This creates the gap! */
   z-index: 1;
-}
-
-.color-swatch:active {
-  transform: scale(0.95);
 }
 
 /* Skin tones grid */
@@ -841,6 +834,7 @@
     grid-template-columns: repeat(6, 1fr);
     gap: 3px;
     max-width: 100%;
+    
   }
   
   .color-swatch {
