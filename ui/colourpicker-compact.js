@@ -5,6 +5,11 @@
 
 import { translate } from "../main/translation.js";
 
+// Keep visible color; avoid pure black/white
+const L_MIN = 15;      
+const L_MAX = 95;    
+const clampL = L => Math.max(L_MIN, Math.min(L_MAX, Math.round(L)));
+
 class CustomColorPicker {
   constructor(options = {}) {
     this.currentColor = options.color || "#ff0000";
@@ -85,8 +90,19 @@ class CustomColorPicker {
   }
 
   /* =========================
-   * LIGHTNESS SLIDER (fixed)
+   * LIGHTNESS SLIDER
    * ========================= */
+
+  _getLightTrackMetrics() {
+    const rect = this.lightSlider.getBoundingClientRect();
+    const hRect = this.lightHandle.getBoundingClientRect();
+    const handleH = Math.max(1, hRect.height || 0); // fallback if hidden early
+    const handleHalf = handleH / 2;
+
+    // Effective track is the area the *center* of the handle can travel
+    const trackH = Math.max(1, rect.height - handleH);
+    return { rect, handleH, handleHalf, trackH };
+  }
 
   // Scale canvas safely (works even if initially hidden)
   setupLightnessCanvasScaling() {
@@ -124,12 +140,13 @@ class CustomColorPicker {
     const cssH = this._lightCssH ?? 120;
     if (!(cssW > 0 && cssH > 0)) return;
 
-    const hsl = this.hexToHSL(this.currentColor) || { h: 0, s: 0, l: 60 };
+    const hsl = this.hexToHSL(this.currentColor) || { h: 0, s: 100, l: 60 };
+    const H = hsl.h, S = hsl.s;
 
     const g = this.lightCtx.createLinearGradient(0, 0, 0, cssH);
-    g.addColorStop(0, `hsl(${hsl.h}, ${hsl.s}%, 100%)`);
-    g.addColorStop(0.5, `hsl(${hsl.h}, ${hsl.s}%, 50%)`);
-    g.addColorStop(1, `hsl(${hsl.h}, ${hsl.s}%, 0%)`);
+    g.addColorStop(0,   `hsl(${hsl.h}, ${hsl.s}%, ${L_MAX}%)`);
+    g.addColorStop(0.5, `hsl(${hsl.h}, ${hsl.s}%, ${Math.round((L_MIN+L_MAX)/2)}%)`);
+    g.addColorStop(1,   `hsl(${hsl.h}, ${hsl.s}%, ${L_MIN}%)`);
 
     this.lightCtx.clearRect(0, 0, cssW, cssH);
     this.lightCtx.fillStyle = g;
@@ -138,53 +155,69 @@ class CustomColorPicker {
     this.updateLightnessHandle();
   }
 
+
   _lightnessFromClientY(clientY) {
-    const rect = this.lightSlider.getBoundingClientRect();
-    const t = Math.max(0, Math.min(1, (clientY - rect.top) / rect.height));
-    return Math.round(100 * (1 - t)); // 100 at top, 0 at bottom
+    const { rect, handleHalf, trackH } = this._getLightTrackMetrics();
+
+    // Convert pointer Y to a 0..1 along the usable track (for the handle center)
+    let t = (clientY - (rect.top + handleHalf)) / trackH;
+    t = Math.max(0, Math.min(1, t));      // clamp to [0,1]
+
+    // Top = L_MAX, Bottom = L_MIN
+    const L = L_MIN + (1 - t) * (L_MAX - L_MIN);
+    return Math.round(L);
   }
+
 
   updateLightnessHandle() {
     if (!this.lightHandle || !this.lightSlider) return;
-    const h = this.lightSlider.clientHeight || this._lightCssH || 120;
-    const y = (1 - (this.currentLightness ?? 60) / 100) * h;
-    this.lightHandle.style.top = `${y}px`;
-    this.lightSlider.setAttribute(
-      "aria-valuenow",
-      String(Math.round(this.currentLightness)),
-    );
+
+    const { rect, handleHalf, trackH } = this._getLightTrackMetrics();
+    const L = clampL(this.currentLightness ?? 60);
+
+    // Map L within [L_MIN..L_MAX] to t in [0..1]
+    const t = (L - L_MIN) / (L_MAX - L_MIN);
+
+    // y coordinate for the *center* of the handle, then offset by -handleHalf
+    const yCenter = (1 - t) * trackH + handleHalf;
+    const yCSS = yCenter - handleHalf;
+
+    this.lightHandle.style.top = `${yCSS}px`;
+    this.lightSlider.setAttribute("aria-valuenow", String(Math.round(L)));
   }
 
-  // Change ONLY L, keep H & S; do not repaint the gradient while dragging
+  _lightnessFromClientY(clientY) {
+    const rect = this.lightSlider.getBoundingClientRect();
+    const t = Math.max(0, Math.min(1, (clientY - rect.top) / rect.height));
+    const L = L_MIN + (1 - t) * (L_MAX - L_MIN); // top -> L_MAX, bottom -> L_MIN
+    return Math.round(L);
+  }
+
   setLightness(L) {
-    L = Math.max(0, Math.min(100, Math.round(L)));
+    L = clampL(L);
     this.currentLightness = L;
 
     const hsl = this.hexToHSL(this.currentColor) || { h: 0, s: 0, l: L };
     const hex = this.hslToHex(hsl.h, hsl.s, L);
 
-    // Avoid triggering a gradient repaint while dragging (prevents loop/grey flips)
-    this.setColor(hex, { skipLightnessSync: true });
+    // forceLightness ensures we don't bounce after HSL→HEX→HSL round-trip
+    this.setColor(hex, { skipLightnessSync: true, forceLightness: L });
     this.updateLightnessHandle();
   }
+
 
   // Repaint gradient ONLY when H or S changed; always move the thumb
   updateLightnessFromColor() {
     const hsl = this.hexToHSL(this.currentColor);
     if (!hsl) return;
 
-    const prev = this._lastLightnessHS || { h: NaN, s: NaN };
-    const changed = hsl.h !== prev.h || hsl.s !== prev.s;
+    this.currentLightness = clampL(hsl.l);  // keep within [1..75]
 
-    this.currentLightness = hsl.l;
-
-    if (changed) {
-      this._lastLightnessHS = { h: hsl.h, s: hsl.s };
-      this.setupLightnessCanvasScaling();
-      this.drawLightnessSlider();
-    }
+    this.setupLightnessCanvasScaling();
+    this.drawLightnessSlider();  // uses the current H/S
     this.updateLightnessHandle();
   }
+
 
   /* =========================
    * /LIGHTNESS SLIDER (fixed)
@@ -206,8 +239,8 @@ class CustomColorPicker {
             </div>
 
             <!-- Vertical Lightness slider -->
-            <div class="lightness-slider" aria-label="Lightness" role="slider"
-                 aria-valuemin="0" aria-valuemax="100" aria-valuenow="60" tabindex="0">
+           <div class="lightness-slider" aria-label="Lightness" role="slider"
+            aria-valuemin="1" aria-valuemax="99" aria-valuenow="60" tabindex="0">
               <canvas class="lightness-canvas" width="20" height="100"></canvas>
               <div class="lightness-handle" aria-hidden="true"></div>
             </div>
@@ -660,6 +693,7 @@ class CustomColorPicker {
       // Keyboard control (unchanged)
       this.lightSlider.addEventListener("keydown", (e) => {
         let delta = 0;
+        // inside this.lightSlider.addEventListener("keydown", (e) => { ... })
         switch (e.key) {
           case "ArrowUp":
             delta = +2;
@@ -674,18 +708,20 @@ class CustomColorPicker {
             delta = -10;
             break;
           case "Home":
-            this.setLightness(100);
+            this.setLightness(L_MAX); // was 100
             e.preventDefault();
             return;
           case "End":
-            this.setLightness(0);
+            this.setLightness(L_MIN); // was 0
             e.preventDefault();
             return;
           default:
             return;
         }
         e.preventDefault();
-        this.setLightness((this.currentLightness ?? 60) + delta);
+        this.setLightness(clampL((this.currentLightness ?? 60) + delta));
+        e.preventDefault();
+        this.setLightness(clampL((this.currentLightness ?? 60) + delta));
       });
 
       // Keep gradient correct on size/DPR changes
@@ -965,13 +1001,17 @@ class CustomColorPicker {
   }
 
   setColor(color, opts = {}) {
-    // NEW: normalize any CSS color to #RRGGBB so downstream code always has hex
     const normalized = this.normalizeToHex(color) || color;
     this.currentColor = normalized;
 
-    // Track lightness (0–100). Seed from currentColor if possible.
+    // Track lightness (0–100). If caller provides a specific L (e.g. slider drag),
+    // trust that value instead of re-deriving from hex to avoid bounce.
     const seedHsl = this.hexToHSL(this.currentColor) || { l: 60, h: 0, s: 0 };
-    this.currentLightness = Math.max(0, Math.min(100, Math.round(seedHsl.l)));
+    if (opts && typeof opts.forceLightness === "number") {
+      this.currentLightness = clampL(opts.forceLightness);
+    } else {
+      this.currentLightness = clampL(seedHsl.l);
+    }
 
     // Update swatch display
     const colorDisplay = this.container.querySelector(
@@ -992,6 +1032,7 @@ class CustomColorPicker {
       this.updateLightnessFromColor();
     }
   }
+
 
   updateCssInput() {
     const cssInput = this.container.querySelector(".css-color-input");
