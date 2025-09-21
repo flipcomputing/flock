@@ -25,10 +25,11 @@
 .color-picker-tools-row {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 8px;
   margin: 12px 0;
   justify-content: space-between;
   width: 100%;
+  margin-right: 20px; 
 }
 
 .color-picker-buttons {
@@ -38,39 +39,51 @@
 }
 
 .color-picker-body {
-  display: flex;
-  gap: 12px;
+  display: grid; /* left/right layout stays neat */
+  grid-template-columns: auto 1fr;
+  align-items: start;
+  column-gap: 12px;
   margin-bottom: 0px;
 }
 
+/* ——— Lightness track remains 15×100; handle can overhang ——— */
 .lightness-slider {
   position: relative;
-  width: 15px;
-  height: 100px;           
+  width: 15px;           /* fixed old width */
+  height: 100px;         /* fixed old height */
+  box-sizing: content-box;
   border: 1px solid #ddd;
-  border-radius: 4px;    
-  overflow: hidden;
-  cursor: pointer;         /* Added cursor pointer */
-
-  /* Updated gradient with midtone */
+  border-radius: 4px;
+  cursor: pointer;
+  overflow: visible;      /* allow handle to extend outside */
   background: linear-gradient(to bottom, #ffffff 0%, #808080 50%, #000000 100%);
   background-size: 100% 100%;
   background-repeat: no-repeat;
 }
 
+.lightness-canvas {
+  display: block;
+  width: 15px !important;    /* match track width */
+  height: 100px !important;  /* match track height */
+}
+
+/* Wider/taller handle that doesn't change track size */
 .lightness-handle {
   position: absolute;
-  left: 50%;               /* Changed from 0 to 50% */
-  transform: translateX(-50%); /* Changed from translateY(-1px) */
-  width: 16px;             /* Changed from 100% to 16px */
-  height: 3px;             /* Changed from 2px to 3px */
-  background: #fff;
-  border: 1px solid rgba(0,0,0,.6); /* Changed shadow to border */
-  border-radius: 2px;      /* Added border radius */
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2); /* Updated shadow */
+  left: 50%;
+  transform: translateX(-50%);
+  width: 20px;
+  height: 12px;
+  background: rgba(255,255,255);          
+  border: 2px solid #511d91;                   /* outer purple ring */
+  border-radius: 8px;
+  box-shadow:
+    0 0 0 1px rgba(255,255,255,0.9) inset,     /* thin inner white ring for contrast */
+    0 0 2px rgba(0,0,0,0.5);                   /* subtle outer shadow */
   pointer-events: none;
-  top: 60px;               /* Added default position */
 }
+
+/* ——— end lightness sizing block ——— */
 
 .color-picker-right {
   flex: 1;
@@ -94,7 +107,7 @@
 .color-picker-left {
   flex: 0 0 140px;
   display: flex;
-  flex-direction: row;     
+  flex-direction: row;
   align-items: center;
   gap: 12px;
   padding-right: 16px;
@@ -158,7 +171,6 @@
   border: 2px solid #333 !important;
 }
 
-
 .toggle-advanced {
   background: none;
   border: none;
@@ -212,7 +224,6 @@
   border-radius: 3px;
   text-align: center;
 }
-
 
 .color-picker-footer {
   display: flex;
@@ -294,18 +305,17 @@
   top: 8px;
   left: 0;
 }
-
 .hue-slider-handle {
   position: absolute;
   top: 6px;
   width: 12px;
   height: 24px;
-  background: white;
-  border: 2px solid #333;
-  border-radius: 2px;
+  background: rgba(255,255,255);          /* transparent/glassy */
+  border: 2px solid #511d91;                  /* purple outline */
+  border-radius: 8px;                         /* rounded corners */
   cursor: grab;
   pointer-events: auto;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  transition: box-shadow 0.2s ease;
 }
 
 .hue-slider-handle:active {
@@ -523,8 +533,8 @@
 }
 
 .color-swatch:focus {
-  outline: 3px solid var(--color-focus); /* Add an outline */
-  outline-offset: 2px; /* This creates the gap! */
+  outline: 3px solid var(--color-focus);
+  outline-offset: 2px;
   z-index: 1;
 }
 
@@ -819,7 +829,7 @@
     margin: 0 !important;
     padding: 0 !important;
   }
-  
+
   .color-picker-content {
     width: 100vw !important;
     max-width: none !important;
@@ -833,47 +843,47 @@
     border-right: none !important;
     border-radius: 0 !important;
   }
-  
+
   .color-picker-tools-row {
     flex-direction: row;
     gap: 8px;
     margin-bottom: 8px;
+    margin-right: 20px; 
   }
-  
+
   .color-picker-header h3 {
     font-size: 18px;
   }
-  
+
   .color-palette {
     grid-template-columns: repeat(6, 1fr);
     gap: 3px;
     max-width: 100%;
-    
   }
-  
+
   .color-swatch {
     aspect-ratio: 1;
     min-height: 24px;
   }
-  
+
   .color-wheel-canvas {
     width: 100px;
     height: 100px;
   }
-  
+
   .hue-slider-container {
     flex: 1;
     min-width: 120px;
   }
-  
+
   .hue-slider-canvas {
     width: 100%;
   }
-  
+
   .color-picker-buttons {
     gap: 6px;
   }
-  
+
   .color-picker-random,
   .color-picker-eyedropper,
   .color-picker-more-options {
@@ -881,13 +891,13 @@
     width: 36px;
     height: 36px;
   }
-  
+
   .rgb-number {
     width: 35px;
     padding: 4px 2px;
     font-size: 11px;
   }
-  
+
   .css-color-input {
     padding: 4px;
     font-size: 11px;
@@ -899,11 +909,11 @@
   .color-picker-content {
     border: 4px solid #000;
   }
-  
+
   .color-swatch {
     border-width: 4px;
   }
-  
+
   .color-swatch:focus,
   .color-swatch:hover {
     border-width: 5px;
@@ -917,12 +927,12 @@
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
-  
+
   .color-swatch:hover,
   .color-swatch:focus {
     transform: none;
   }
-  
+
   .color-wheel:hover,
   .color-wheel:focus {
     transform: none;
@@ -933,7 +943,7 @@
 .custom-color-picker .color-picker-body {
   display: grid;
   grid-template-columns: auto 1fr; /* left column then right column */
-  align-items: start;              /* <-- key: top-align rows */
+  align-items: start;              /* top-align rows */
   column-gap: 12px;
 }
 
@@ -948,4 +958,8 @@
 .custom-color-picker .color-picker-right .color-picker-section:first-child {
   margin-top: 0;
   padding-top: 0;
+}
+
+.color-picker-buttons {
+  flex: 0 0 auto;
 }
