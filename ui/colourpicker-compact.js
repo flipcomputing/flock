@@ -666,17 +666,12 @@ class CustomColorPicker {
 
     const pickFromEvent = (e) => {
       const rect = this.canvas.getBoundingClientRect();
-      const x = e.clientX - rect.left;
-      const y = e.clientY - rect.top;
-
-      // Normalize to 0–100 space so it matches keyboard & math
-      const nx = (x / rect.width) * 100;
-      const ny = (y / rect.height) * 100;
-
-      this.handleCanvasPickAt(nx, ny); // expects 0–100 coords
-      this.colorWheelPosition = { x: nx, y: ny }; // store normalized
-      this.updateColorWheelIndicator(); // will scale to px for display
+      const nx = ((e.clientX - rect.left) / rect.width) * 100;
+      const ny = ((e.clientY - rect.top) / rect.height) * 100;
+      this._setWheelNormalized(nx, ny);  // ← clamps + updates indicator
     };
+
+    
 
     this.canvas.addEventListener("pointerdown", (e) => {
       e.preventDefault();
@@ -866,6 +861,30 @@ class CustomColorPicker {
     this.setupFocusTrapping();
     this.setupHueSliderKeyboard();
   }
+
+  _setWheelNormalized(nx, ny) {
+    // normalize to 0–100
+    nx = Math.max(0, Math.min(100, nx));
+    ny = Math.max(0, Math.min(100, ny));
+
+    const cx = 50, cy = 50, R = 48;
+    const pad = typeof this._indicatorPad === "function" ? this._indicatorPad() : 6; // ~dot radius
+    const Rclamp = Math.max(0, R - pad); // keep the whole dot inside
+
+    let dx = nx - cx, dy = ny - cy;
+    const dist = Math.hypot(dx, dy);
+
+    if (dist > Rclamp) {
+      const k = Rclamp / dist;
+      nx = cx + dx * k;
+      ny = cy + dy * k;
+    }
+
+    this.colorWheelPosition = { x: nx, y: ny };
+    this.updateColorWheelIndicator?.();
+    this.handleCanvasPickAt(nx, ny); // uses R (=48) for H/S calc
+  }
+
 
   handleCanvasPickAt(x, y) {
     const centerX = 50;
