@@ -25,6 +25,7 @@ const colorFields = {
 
 export function getRootMesh(mesh) {
   if (flock.meshDebug) console.log(mesh.parent);
+  if (!mesh) return null;
   if (!mesh.parent) return mesh;
   return getRootMesh(mesh.parent);
 }
