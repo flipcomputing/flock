@@ -96,10 +96,31 @@ Directories:
 We use Mocha and Chai for testing, plus Playwright for end-to-end testing. Always test your changes:
 
 ### Unit/Integration Tests (Mocha & Chai)
+**Add new tests** for any features you create
+
+#### Run tests
 1. **Run the development server**: `npm run dev`
-2. **Visit the test page**: http://localhost:5173/tests/tests.html
-3. **Select tests** from the dropdown and click "Run Tests"
-4. **Add new tests** for any features you create
+1. **Visit the test page**: http://localhost:5173/tests/tests.html
+1. **Select tests** from the dropdown and click _Run Tests_ 
+
+
+#### Filtering tests and test results
+* **Get fast feedback** by using the _Run all except @slow_ option
+* **Run only your newest tests** by tagging those tets with @new and picking _Run tests tagged @new_
+* **Focus on results** with the _failures_ / _passes_ links in report
+* **Show the test code** by clicking on test name in the report
+* **Tag slow tests with @slow** so that they can be run separately if needed.
+* **Tag new tests with @new** so that you can fiter on those new tests. Remove tag when they're no longer new.
+
+#### Tagging tests
+To add a tag, change the `describe` or `it` text in unit tests to add a tag. 
+
+#### Adding new unit test files / adding new tags to test runner
+* Array `testSuiteDefinitions` corresponds to the test selection dropdown. Eaxh test file, and each selectable tag, need a definition.
+* Modify `testSuiteDefinitions` in `tests/tests.html` to pick up the test file. Each test file needs an entry.
+* Modify `testSuiteDefinitions` in `tests/tests.html` to add tags or names to focus. Each tag needs an entry.
+* Note that some test suites are selected/filtered on a name (the name from the top `describe` if there's only one) and others on tag (added to all top-level describes if several).
+
 
 ### End-to-End Tests (Playwright)
 1. **Run all Playwright tests**: `npx playwright test`
