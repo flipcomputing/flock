@@ -389,55 +389,44 @@ export function defineMaterialsBlocks() {
                 },
           };
 
-          Blockly.Blocks["skin_colour"] = {
-                init: function () {
-                  this.jsonInit({
-                        type: "skin_colour",
-                        message0: translate("skin_colour"),
-                        args0: [
-                          {
-                                type: "field_colour",
-                                name: "COLOR",
-                                colour: "#FFE0BD",
-                                colourOptions: [
-                                  "#3F2A1D",
-                                  "#5C4033",
-                                  "#6F4E37",
-                                  "#7A421D",
-                                  "#8D5524",
-                                  "#A86B38",
-                                  "#C68642",
-                                  "#D1A36A",
-                                  "#E1B899",
-                                  "#F0D5B1",
-                                  "#FFDFC4",
-                                  "#FFF5E1",
-                                ],
-                                colourTitles: [
-                                  "color 1",
-                                  "color 2",
-                                  "color 3",
-                                  "color 4",
-                                  "color 5",
-                                  "color 6",
-                                  "color 7",
-                                  "color 8",
-                                  "color 9",
-                                  "color 10",
-                                  "color 11",
-                                  "color 12",
-                                ],
-                                columns: 4,
-                          },
-                        ],
-                        output: "Colour",
-                        colour: categoryColours["Materials"],
-                        tooltip: getTooltip("skin_colour"),
-                  });
-                  this.setHelpUrl(getHelpUrlFor(this.type));
-                        this.setStyle('materials_blocks');
-                },
-          };
+      // put this near your blocks file top
+      const SKIN_HEXES = [
+        "#2E1A1B","#37221D","#442B22","#6E473C","#926451","#966456","#D8A190","#E1BCB0","#EACDC7",
+        "#290A0E","#34130A","#602C14","#884B2C","#C27753","#E89878","#EEA98A","#FECCC0","#FCDACE",
+        "#2F2018","#41291C","#5A3C26","#845B40","#B98459","#D39E74","#E4BB9D","#EFCFB1","#ECD8C6",
+        "#231304","#3E1C0A","#572E15","#AC6534","#D8945D","#F4B077","#FCC292","#FFD2AA","#FEE0C7",
+        "#2D2113","#4F351F","#694831","#8F633E","#AD7D43","#C59B69","#DAB485","#E6CEAA","#E9D4B8",
+        "#251601","#3F1F03","#5D340F","#8D521E","#D2894A","#F2AF6C","#F1C387","#F4D0A4","#F5DDBE",
+        "#302418","#3C2D1B","#563E28","#7C6041","#957345","#9F7D4B","#CCB081","#DFCCA5","#E7DBC5",
+        "#271D07","#442E0F","#64421B","#976E2F","#C69045","#D9A756","#EBC57E","#F4DBA6","#FBE6C1"
+      ];
+
+      // Use the hex strings themselves as the hover titles
+      const SKIN_TITLES = SKIN_HEXES.map(h => h);
+
+      Blockly.Blocks["skin_colour"] = {
+        init: function () {
+          this.jsonInit({
+            type: "skin_colour",
+            message0: translate("skin_colour"),
+            args0: [
+              {
+                type: "field_colour",
+                name: "COLOR",
+                colour: "#FFE0BD",
+                colourOptions: SKIN_HEXES,
+                colourTitles: SKIN_TITLES,
+                columns: 9  
+              },
+            ],
+            output: "Colour",
+            colour: categoryColours["Materials"],
+            tooltip: getTooltip("skin_colour"),
+          });
+          this.setHelpUrl(getHelpUrlFor(this.type));
+          this.setStyle('materials_blocks');
+        },
+      };
 
           Blockly.Blocks["greyscale_colour"] = {
                 init: function () {
