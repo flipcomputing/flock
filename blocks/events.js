@@ -30,7 +30,8 @@ export function defineEventsBlocks() {
 			this.setHelpUrl(getHelpUrlFor(this.type));
 			this.setStyle('events_blocks');
 			this.setOnChange((changeEvent) => {
-				console.log(changeEvent.type);
+				if (Blockly.getMainWorkspace().getBlockById(changeEvent.blockId) === this)
+					console.log(changeEvent.type);
 			});
 		},
 	};
