@@ -30,7 +30,7 @@ export function defineEventsBlocks() {
 			this.setHelpUrl(getHelpUrlFor(this.type));
 			this.setStyle('events_blocks');
 			this.setOnChange((changeEvent) => {
-				let createNewEvent = (block, event) => {
+				let createNewCreateEvent = (block, event) => {
 					let newEvent = new Blockly.Events.BlockCreate();
 					newEvent.blockId = block.id;
 					newEvent.group = event.group;
@@ -53,7 +53,7 @@ export function defineEventsBlocks() {
 					&& changeEvent.type === Blockly.Events.BLOCK_MOVE
 				) {
 					blocks.forEach(block => {
-						if (block.id !== this.id) Blockly.Events.fire(createNewEvent(block, changeEvent));
+						if (block.id !== this.id) Blockly.Events.fire(createNewCreateEvent(block, changeEvent));
 					});
 				}
 			});
