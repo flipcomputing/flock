@@ -47,7 +47,11 @@ export function defineEventsBlocks() {
 
 				let blocks = this.getDescendants();
 
-				if (blocks.length > 0 && Blockly.getMainWorkspace().getBlockById(changeEvent.blockId) === this && changeEvent.type === Blockly.Events.BLOCK_MOVE) {
+				if (
+					blocks.length > 0
+					&& Blockly.getMainWorkspace().getBlockById(changeEvent.blockId) === this
+					&& changeEvent.type === Blockly.Events.BLOCK_MOVE
+				) {
 					blocks.forEach(block => {
 						Blockly.Events.fire(createNewEvent(block, changeEvent));
 						block.getChildren().forEach(innerblock => Blockly.Events.fire(createNewEvent(innerblock, changeEvent)));
