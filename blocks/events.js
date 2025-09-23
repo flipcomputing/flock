@@ -12,6 +12,8 @@ import { translate, getTooltip, getDropdownOption } from "../main/translation.js
 
 export function defineEventsBlocks() {
 	function handleCaseWhereSnippetLoadedFromToolbox(currentBlock, changeEvent) {
+		let changeEventBlockIsCurrentBlock = Blockly.getMainWorkspace().getBlockById(changeEvent.blockId) === currentBlock;
+
 		let createNewCreateEvent = (block, event) => {
 			let newEvent = new Blockly.Events.BlockCreate();
 			newEvent.blockId = block.id;
@@ -24,14 +26,14 @@ export function defineEventsBlocks() {
 			return newEvent;
 		};
 
-		if (flock.blockDebug && Blockly.getMainWorkspace().getBlockById(changeEvent.blockId) === currentBlock)
+		if (flock.blockDebug && changeEventBlockIsCurrentBlock)
 			console.log(changeEvent.type);
 
 		let blocks = currentBlock.getDescendants();
 
 		if (
 			blocks.length > 0
-			&& Blockly.getMainWorkspace().getBlockById(changeEvent.blockId) === currentBlock
+			&& changeEventBlockIsCurrentBlock
 			&& changeEvent.type === Blockly.Events.BLOCK_MOVE
 		) {
 			blocks.forEach(block => {
