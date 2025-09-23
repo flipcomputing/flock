@@ -22,6 +22,9 @@ export function defineEventsBlocks() {
 			newEvent.isUiEvent = false;
 			newEvent.recordUndo = true;
 			// newEvent.type = Blockly.Events.BLOCK_CREATE;
+			if (block.type === "load_character") {
+				
+			}
 			newEvent.workspaceId = event.workspaceId;
 			return newEvent;
 		};
