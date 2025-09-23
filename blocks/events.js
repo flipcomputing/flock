@@ -36,7 +36,12 @@ export function defineEventsBlocks() {
 				let blocks = this.getChildren();
 
 				if (blocks.length > 0 && Blockly.getMainWorkspace().getBlockById(changeEvent.blockId) === this && changeEvent.type === Blockly.Events.BLOCK_MOVE) {
-					console.log(blocks);
+					for (const block in blocks) {
+						console.log(block.type);
+						for (const innerblock in block.childBlocks) {
+							console.log(innerblock.type);
+						}
+					}
 				}
 			});
 		},
