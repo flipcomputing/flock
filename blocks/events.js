@@ -30,6 +30,18 @@ export function defineEventsBlocks() {
 			this.setHelpUrl(getHelpUrlFor(this.type));
 			this.setStyle('events_blocks');
 			this.setOnChange((changeEvent) => {
+				let createNewEvent = (block, event) => {
+					let newEvent = new Blockly.Events.BlockCreate();
+					newEvent.blockId = block.id;
+					newEvent.group = event.group;
+					newEvent.isBlank = false;
+					newEvent.isUiEvent = false;
+					newEvent.recordUndo = true;
+					// newEvent.type = Blockly.Events.BLOCK_CREATE;
+					newEvent.workspaceId = event.workspaceId;
+					return newEvent;
+				};
+
 				if (flock.blockDebug && Blockly.getMainWorkspace().getBlockById(changeEvent.blockId) === this)
 					console.log(changeEvent.type);
 
@@ -37,8 +49,8 @@ export function defineEventsBlocks() {
 
 				if (blocks.length > 0 && Blockly.getMainWorkspace().getBlockById(changeEvent.blockId) === this && changeEvent.type === Blockly.Events.BLOCK_MOVE) {
 					blocks.forEach(block => {
-						console.log(block.type);
-						block.getChildren().forEach(innerblock => console.log(innerblock.type));
+						Blockly.Events.fire(createNewEvent(block, changeEvent));
+						block.getChildren().forEach(innerblock => Blockly.Events.fire(createNewEvent(innerblock, changeEvent)));
 					});
 				}
 			});
