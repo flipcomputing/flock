@@ -26,6 +26,11 @@ export function defineEventsBlocks() {
 			return newEvent;
 		};
 
+		let fireNewEventOnAllChildBlocks = (block, event) => {
+			let newEvent = createNewCreateEvent(block, event);
+			if (block.id !== currentBlock.id) Blockly.Events.fire(newEvent);
+		}
+
 		if (flock.blockDebug && changeEventBlockIsCurrentBlock)
 			console.log(changeEvent.type);
 
@@ -36,9 +41,7 @@ export function defineEventsBlocks() {
 			&& changeEventBlockIsCurrentBlock
 			&& changeEvent.type === Blockly.Events.BLOCK_MOVE
 		) {
-			blocks.forEach(block => {
-				if (block.id !== currentBlock.id) Blockly.Events.fire(createNewCreateEvent(block, changeEvent));
-			});
+			blocks.forEach(block => fireNewEventOnAllChildBlocks(block, changeEvent));
 		}
 	}
 
