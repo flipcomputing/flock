@@ -33,7 +33,7 @@ export function defineEventsBlocks() {
 				if (flock.blockDebug && Blockly.getMainWorkspace().getBlockById(changeEvent.blockId) === this)
 					console.log(changeEvent.type);
 
-				let blocks = this.getInput("DO");
+				let blocks = this.getChildren();
 
 				if (blocks && Blockly.getMainWorkspace().getBlockById(changeEvent.blockId) === this && changeEvent.type === Blockly.Events.BLOCK_MOVE) {
 					console.log(blocks);
