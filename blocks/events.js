@@ -30,7 +30,7 @@ export function defineEventsBlocks() {
 			this.setHelpUrl(getHelpUrlFor(this.type));
 			this.setStyle('events_blocks');
 			this.setOnChange((changeEvent) => {
-				console.log(changeEvent);
+				console.log(changeEvent.type);
 			});
 		},
 	};
