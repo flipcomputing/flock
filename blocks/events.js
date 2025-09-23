@@ -45,7 +45,7 @@ export function defineEventsBlocks() {
 				if (flock.blockDebug && Blockly.getMainWorkspace().getBlockById(changeEvent.blockId) === this)
 					console.log(changeEvent.type);
 
-				let blocks = this.getChildren();
+				let blocks = this.getDescendants();
 
 				if (blocks.length > 0 && Blockly.getMainWorkspace().getBlockById(changeEvent.blockId) === this && changeEvent.type === Blockly.Events.BLOCK_MOVE) {
 					blocks.forEach(block => {
