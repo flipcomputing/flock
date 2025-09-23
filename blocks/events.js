@@ -11,6 +11,35 @@ import {
 import { translate, getTooltip, getDropdownOption } from "../main/translation.js";
 
 export function defineEventsBlocks() {
+	function handleCaseWhereSnippetLoadedFromToolbox(currentBlock, changeEvent) {
+		let createNewCreateEvent = (block, event) => {
+			let newEvent = new Blockly.Events.BlockCreate();
+			newEvent.blockId = block.id;
+			newEvent.group = event.group;
+			newEvent.isBlank = false;
+			newEvent.isUiEvent = false;
+			newEvent.recordUndo = true;
+			// newEvent.type = Blockly.Events.BLOCK_CREATE;
+			newEvent.workspaceId = event.workspaceId;
+			return newEvent;
+		};
+
+		if (flock.blockDebug && Blockly.getMainWorkspace().getBlockById(changeEvent.blockId) === currentBlock)
+			console.log(changeEvent.type);
+
+		let blocks = currentBlock.getDescendants();
+
+		if (
+			blocks.length > 0
+			&& Blockly.getMainWorkspace().getBlockById(changeEvent.blockId) === currentBlock
+			&& changeEvent.type === Blockly.Events.BLOCK_MOVE
+		) {
+			blocks.forEach(block => {
+				if (block.id !== currentBlock.id) Blockly.Events.fire(createNewCreateEvent(block, changeEvent));
+			});
+		}
+	}
+
 	Blockly.Blocks["start"] = {
 		init: function () {
 			this.jsonInit({
@@ -29,34 +58,7 @@ export function defineEventsBlocks() {
 			});
 			this.setHelpUrl(getHelpUrlFor(this.type));
 			this.setStyle('events_blocks');
-			this.setOnChange((changeEvent) => {
-				let createNewCreateEvent = (block, event) => {
-					let newEvent = new Blockly.Events.BlockCreate();
-					newEvent.blockId = block.id;
-					newEvent.group = event.group;
-					newEvent.isBlank = false;
-					newEvent.isUiEvent = false;
-					newEvent.recordUndo = true;
-					// newEvent.type = Blockly.Events.BLOCK_CREATE;
-					newEvent.workspaceId = event.workspaceId;
-					return newEvent;
-				};
-
-				if (flock.blockDebug && Blockly.getMainWorkspace().getBlockById(changeEvent.blockId) === this)
-					console.log(changeEvent.type);
-
-				let blocks = this.getDescendants();
-
-				if (
-					blocks.length > 0
-					&& Blockly.getMainWorkspace().getBlockById(changeEvent.blockId) === this
-					&& changeEvent.type === Blockly.Events.BLOCK_MOVE
-				) {
-					blocks.forEach(block => {
-						if (block.id !== this.id) Blockly.Events.fire(createNewCreateEvent(block, changeEvent));
-					});
-				}
-			});
+			this.setOnChange((changeEvent) => handleCaseWhereSnippetLoadedFromToolbox(this, changeEvent));
 		},
 	};
 
@@ -78,6 +80,7 @@ export function defineEventsBlocks() {
 			});
 			this.setHelpUrl(getHelpUrlFor(this.type));
 			this.setStyle('events_blocks');
+			this.setOnChange((changeEvent) => handleCaseWhereSnippetLoadedFromToolbox(this, changeEvent));
 			this.isInline = false;
 			addToggleButton(this);
 		},
