@@ -29,6 +29,8 @@ export function defineEventsBlocks() {
 		let fireNewEventOnAllChildBlocks = (block, event) => {
 			let newEvent = createNewCreateEvent(block, event);
 			if (block.id !== currentBlock.id) Blockly.Events.fire(newEvent);
+			let subBlocks = block.getChildren();
+			if (subBlocks.length > 0) subBlocks.forEach(subBlock => fireNewEventOnAllChildBlocks(subBlock, event));
 		}
 
 		if (flock.blockDebug && changeEventBlockIsCurrentBlock)
