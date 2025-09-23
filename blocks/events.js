@@ -38,7 +38,7 @@ export function defineEventsBlocks() {
 				if (blocks.length > 0 && Blockly.getMainWorkspace().getBlockById(changeEvent.blockId) === this && changeEvent.type === Blockly.Events.BLOCK_MOVE) {
 					blocks.forEach(block => {
 						console.log(block.type);
-						block.childBlocks.forEach(innerblock => console.log(innerblock.type));
+						block.getChildren().forEach(innerblock => console.log(innerblock.type));
 					});
 				}
 			});
