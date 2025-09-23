@@ -53,8 +53,7 @@ export function defineEventsBlocks() {
 					&& changeEvent.type === Blockly.Events.BLOCK_MOVE
 				) {
 					blocks.forEach(block => {
-						Blockly.Events.fire(createNewEvent(block, changeEvent));
-						block.getChildren().forEach(innerblock => Blockly.Events.fire(createNewEvent(innerblock, changeEvent)));
+						if (block.id !== this.id) Blockly.Events.fire(createNewEvent(block, changeEvent));
 					});
 				}
 			});
