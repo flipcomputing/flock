@@ -3,7 +3,7 @@ import * as Blockly from "blockly";
 import { meshMap, meshBlockIdMap } from "../generators";
 import { flock } from "../flock.js";
 import { setPositionValues } from "./addmeshes.js";
-import { getMeshFromBlockKey, updateBlockColorAndHighlight } from "./blockmesh.js";
+import { getMeshFromBlockKey, getRootMesh, updateBlockColorAndHighlight } from "./blockmesh.js";
 export let gizmoManager;
 
 const blueColor = flock.BABYLON.Color3.FromHexString("#0072B2"); // Colour for X-axis
@@ -313,14 +313,24 @@ function findParentWithBlockId(mesh) {
   return null;
 }
 
+// For composite meshes where visibility needs setting to
+// 0.001 in order to show parent mesh's bounding box
+function resetBoundingBoxVisibilityIfManuallyChanged(mesh) {
+  if (mesh && mesh.visibility === 0.001) mesh.visibility = 0;
+}
+
+function hideBoundingBox(mesh) {
+  mesh.showBoundingBox = false;
+}
+
 function resetChildMeshesOfAttachedMesh() {
   gizmoManager.attachedMesh
     .getChildMeshes()
-    .forEach((child) => (child.showBoundingBox = false));
+    .forEach((child) => (hideBoundingBox(child)));
 }
 
 function resetAttachedMesh() {
-  gizmoManager.attachedMesh.showBoundingBox = false;
+  hideBoundingBox(gizmoManager.attachedMesh);
   resetChildMeshesOfAttachedMesh();
 }
 
@@ -625,7 +635,7 @@ export function toggleGizmo(gizmoType) {
               gizmoManager.attachedMesh,
             ).metadata.blockKey;
           }
-          const pickedMesh = event.pickInfo.pickedMesh;
+          let pickedMesh = event.pickInfo.pickedMesh;
 
           if (pickedMesh && pickedMesh.name !== "ground") {
             // Assuming 'mesh' is your Babylon.js mesh object
@@ -643,6 +653,14 @@ export function toggleGizmo(gizmoType) {
               color: "black"
             });
 
+            if (flock.meshDebug) console.log(pickedMesh.parent);
+
+            if (pickedMesh.parent) {
+              pickedMesh = getRootMesh(pickedMesh.parent);
+              if (flock.meshDebug) console.log(pickedMesh.visibility);
+              pickedMesh.visibility = 0.001;
+              if (flock.meshDebug) console.log(pickedMesh.visibility);
+            }
 
             const block = meshMap[blockKey];
             highlightBlockById(Blockly.getMainWorkspace(), block);
@@ -1306,6 +1324,7 @@ export function toggleGizmo(gizmoType) {
 }
 
 function turnOffAllGizmos() {
+  resetBoundingBoxVisibilityIfManuallyChanged(gizmoManager.attachedMesh);
   resetAttachedMeshIfMeshAttached();
   gizmoManager.attachToMesh(null);
   gizmoManager.positionGizmoEnabled = false;
