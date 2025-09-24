@@ -59,7 +59,7 @@ function __metaFor(name) {
 }
 
 // --- DROP-IN REPLACEMENT ---
-function createBlockWithShadows(shapeType, position, colour) {
+export function createBlockWithShadows(shapeType, position, colour) {
   const workspace = Blockly.getMainWorkspace();
   const spec = __CREATE_SPEC[shapeType];
   if (!spec) return null;
