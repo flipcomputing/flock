@@ -130,6 +130,7 @@ export const objectNames = [
 	"pumpkin.glb",	
 	"apple.glb",	
 	"starboppers.glb",
+	"headphones.glb",
 ];
 
 export const objectColours = {
@@ -147,6 +148,7 @@ export const objectColours = {
 	"pumpkin.glb": ["#E78632", "#75430F"],
 	"apple.glb": ["#3FAF45", "#A9323F", "#624A20"],
 	"starboppers.glb": ["#FFD700", "#FFD700", "#FFD700", "#f9f9f9"],
+	"headphones.glb": ["#53E0E7", "#3291E7", "#7D7D7D"],
 
 	"tree.glb": ["#66CDAA", "#CD853F"],
 	"tree2.glb": ["#7F9F7F", "#A1623B"],
