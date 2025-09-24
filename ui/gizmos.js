@@ -25,33 +25,44 @@ let colorPickingCirclePosition = { x: 0, y: 0 };
 document.addEventListener("DOMContentLoaded", function () {
   const colorButton = document.getElementById("colorPickerButton");
 
-  window.addEventListener("keydown", (e) => {
-    // Only plain Esc (no modifiers)
-    if (e.key !== "Escape" || e.ctrlKey || e.altKey || e.metaKey) return;
+  window.addEventListener(
+    "keydown",
+    (e) => {
+      // Only plain Esc (no modifiers)
+      if (e.key !== "Escape" || e.ctrlKey || e.altKey || e.metaKey) return;
 
-    // Don’t hijack when typing
-    const t = e.target;
-    const tag = (t?.tagName || "").toLowerCase();
-    if (t?.isContentEditable || tag === "input" || tag === "textarea" || tag === "select") {
-      return;
-    }
-
-    // If gizmos are on, kill them
-    try {
-      if (typeof areGizmosEnabled === "function" ? areGizmosEnabled() : true) {
-        disableGizmos();
-        e.stopPropagation(); // avoid duplicate handlers upstream
-        // don't e.preventDefault() globally unless you *need* to stop other Esc behavior
+      // Don’t hijack when typing
+      const t = e.target;
+      const tag = (t?.tagName || "").toLowerCase();
+      if (
+        t?.isContentEditable ||
+        tag === "input" ||
+        tag === "textarea" ||
+        tag === "select"
+      ) {
+        return;
       }
-    } catch (err) {
-      // fail-safe: still attempt to disable
-      disableGizmos?.();
-    }
 
-    // Broadcast a generic Esc event apps can listen to if they want
-    window.dispatchEvent(new CustomEvent("global:escape"));
-  }, true); // capture=true so we run before scene/camera handlers
-  
+      // If gizmos are on, kill them
+      try {
+        if (
+          typeof areGizmosEnabled === "function" ? areGizmosEnabled() : true
+        ) {
+          disableGizmos();
+          e.stopPropagation(); // avoid duplicate handlers upstream
+          // don't e.preventDefault() globally unless you *need* to stop other Esc behavior
+        }
+      } catch (err) {
+        // fail-safe: still attempt to disable
+        disableGizmos?.();
+      }
+
+      // Broadcast a generic Esc event apps can listen to if they want
+      window.dispatchEvent(new CustomEvent("global:escape"));
+    },
+    true,
+  ); // capture=true so we run before scene/camera handlers
+
   window.addEventListener("keydown", (event) => {
     // Check if both Ctrl and the comma key (,) are pressed
     if ((event.ctrlKey && event.code === "Comma") || event.code === "KeyF") {
@@ -125,7 +136,6 @@ function pickMeshFromCanvas() {
   }, 200);
 }
 
-
 function applyColorAtPosition(canvasX, canvasY) {
   // Create a picking ray using the canvas coordinates
   const pickRay = flock.scene.createPickingRay(
@@ -196,7 +206,10 @@ function handleColorPickingKeydown(event) {
       event.preventDefault();
       if (colorPickingCircle) {
         // Paint and KEEP GOING (no checks, no exit)
-        applyColorAtPosition(colorPickingCirclePosition.x, colorPickingCirclePosition.y);
+        applyColorAtPosition(
+          colorPickingCirclePosition.x,
+          colorPickingCirclePosition.y,
+        );
       }
       break;
     case "Escape":
@@ -204,7 +217,6 @@ function handleColorPickingKeydown(event) {
       break;
   }
 }
-
 
 function createColorPickingCircle() {
   if (colorPickingCircle) return;
@@ -261,7 +273,9 @@ function endColorPickingMode() {
   colorPickingCallback = null;
 
   // Remove keyboard listener(s)
-  document.removeEventListener("keydown", handleColorPickingKeydown, { capture: true });
+  document.removeEventListener("keydown", handleColorPickingKeydown, {
+    capture: true,
+  });
   document.removeEventListener("keydown", handleColorPickingKeydown);
 
   // Remove pointer listener if active
@@ -277,7 +291,6 @@ function endColorPickingMode() {
     colorPickingCircle = null;
   }
 }
-
 
 function scrollToBlockTopParentLeft(workspace, blockId) {
   if (!workspace.isMovable()) {
@@ -395,12 +408,12 @@ export function getCanvasXAndCanvasYValues(event, canvasRect) {
   return [event.clientX - canvasRect.left, event.clientY - canvasRect.top];
 }
 function getCanvasXYFromEvent(ev, canvas, rect) {
-  const rw = canvas.width;   // render/backing width
-  const rh = canvas.height;  // render/backing height
-  const cw = rect.width;     // CSS width
-  const ch = rect.height;    // CSS height
+  const rw = canvas.width; // render/backing width
+  const rh = canvas.height; // render/backing height
+  const cw = rect.width; // CSS width
+  const ch = rect.height; // CSS height
   const x = (ev.clientX - rect.left) * (rw / cw);
-  const y = (ev.clientY - rect.top)  * (rh / ch);
+  const y = (ev.clientY - rect.top) * (rh / ch);
   return [x, y];
 }
 
@@ -1095,7 +1108,7 @@ export function toggleGizmo(gizmoType) {
         orangeColor;
 
       gizmoManager.gizmos.scaleGizmo.sensitivity = 4;
-      gizmoManager.gizmos.scaleGizmo.uniformScaleGizmo.scaleRatio = 3;
+      gizmoManager.gizmos.scaleGizmo.uniformScaleGizmo.scaleRatio = 2.5;
 
       // Track bottom for correct visual anchoring
       let originalBottomY = 0;
@@ -1587,11 +1600,13 @@ export function setGizmoManager(value) {
 
     let _lastDisposeObs = mesh?.onDisposeObservable.addOnce(() => {
       // Only detach if we're still attached to THIS node
-      if (gizmoManager.attachedMesh === mesh || gizmoManager.attachedNode === mesh) {
+      if (
+        gizmoManager.attachedMesh === mesh ||
+        gizmoManager.attachedNode === mesh
+      ) {
         gizmoManager.attachToMesh(null);
       }
     });
-    
   };
 
   const canvas = flock.scene.getEngine().getRenderingCanvas();
