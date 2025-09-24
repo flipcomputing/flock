@@ -25,6 +25,33 @@ let colorPickingCirclePosition = { x: 0, y: 0 };
 document.addEventListener("DOMContentLoaded", function () {
   const colorButton = document.getElementById("colorPickerButton");
 
+  window.addEventListener("keydown", (e) => {
+    // Only plain Esc (no modifiers)
+    if (e.key !== "Escape" || e.ctrlKey || e.altKey || e.metaKey) return;
+
+    // Don’t hijack when typing
+    const t = e.target;
+    const tag = (t?.tagName || "").toLowerCase();
+    if (t?.isContentEditable || tag === "input" || tag === "textarea" || tag === "select") {
+      return;
+    }
+
+    // If gizmos are on, kill them
+    try {
+      if (typeof areGizmosEnabled === "function" ? areGizmosEnabled() : true) {
+        disableGizmos();
+        e.stopPropagation(); // avoid duplicate handlers upstream
+        // don't e.preventDefault() globally unless you *need* to stop other Esc behavior
+      }
+    } catch (err) {
+      // fail-safe: still attempt to disable
+      disableGizmos?.();
+    }
+
+    // Broadcast a generic Esc event apps can listen to if they want
+    window.dispatchEvent(new CustomEvent("global:escape"));
+  }, true); // capture=true so we run before scene/camera handlers
+  
   window.addEventListener("keydown", (event) => {
     // Check if both Ctrl and the comma key (,) are pressed
     if ((event.ctrlKey && event.code === "Comma") || event.code === "KeyF") {
@@ -58,40 +85,46 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 });
 
+let _onPickMeshRef = null;
+
 function pickMeshFromCanvas() {
   const canvas = flock.scene.getEngine().getRenderingCanvas();
 
   const onPickMesh = function (event) {
-    // Get the canvas bounds relative to the window
     const canvasRect = canvas.getBoundingClientRect();
 
-    // Check if the click happened outside the canvas
+    // Exit if outside canvas
     if (eventIsOutOfCanvasBounds(event, canvasRect)) {
       window.removeEventListener("click", onPickMesh);
-      document.body.style.cursor = "default";
+      // keep this if you want outside-click to exit picking:
       endColorPickingMode();
+      // restore cursors
+      document.body.style.cursor = "default";
+      canvas.style.cursor = "auto";
       return;
     }
 
-    // Calculate the click position relative to the canvas, not the window
+    // Inside canvas → paint (stay in mode)
     const [canvasX, canvasY] = getCanvasXAndCanvasYValues(event, canvasRect);
-
     applyColorAtPosition(canvasX, canvasY);
 
-    document.body.style.cursor = "default";
-    window.removeEventListener("click", onPickMesh);
-    endColorPickingMode();
+    // 🔁 Re-assert crosshair in case Babylon/camera changed it
+    document.body.style.cursor = "crosshair";
+    canvas.style.cursor = "crosshair";
   };
 
-  // Start keyboard placement mode for color picking
+  // Keyboard mode still supported
   startColorPickingKeyboardMode(onPickMesh);
 
-  // Also set up mouse click as fallback
+  // Enter persistent pointer mode
   document.body.style.cursor = "crosshair";
+  canvas.style.cursor = "crosshair";
+  // keep your click wiring (no {once:true})
   setTimeout(() => {
     window.addEventListener("click", onPickMesh);
   }, 200);
 }
+
 
 function applyColorAtPosition(canvasX, canvasY) {
   // Create a picking ray using the canvas coordinates
@@ -162,20 +195,16 @@ function handleColorPickingKeydown(event) {
     case "Enter":
       event.preventDefault();
       if (colorPickingCircle) {
-        // Apply color at current circle position (circle is centered via CSS transform)
-        applyColorAtPosition(
-          colorPickingCirclePosition.x,
-          colorPickingCirclePosition.y,
-        );
-        endColorPickingMode();
+        // Paint and KEEP GOING (no checks, no exit)
+        applyColorAtPosition(colorPickingCirclePosition.x, colorPickingCirclePosition.y);
       }
       break;
     case "Escape":
       event.preventDefault();
-      endColorPickingMode();
       break;
   }
 }
+
 
 function createColorPickingCircle() {
   if (colorPickingCircle) return;
@@ -230,7 +259,17 @@ function updateColorPickingCirclePosition() {
 function endColorPickingMode() {
   colorPickingKeyboardMode = false;
   colorPickingCallback = null;
+
+  // Remove keyboard listener(s)
+  document.removeEventListener("keydown", handleColorPickingKeydown, { capture: true });
   document.removeEventListener("keydown", handleColorPickingKeydown);
+
+  // Remove pointer listener if active
+  if (_onPickMeshRef) {
+    document.removeEventListener("pointerdown", _onPickMeshRef, true);
+    _onPickMeshRef = null;
+  }
+
   document.body.style.cursor = "default";
 
   if (colorPickingCircle) {
@@ -238,6 +277,7 @@ function endColorPickingMode() {
     colorPickingCircle = null;
   }
 }
+
 
 function scrollToBlockTopParentLeft(workspace, blockId) {
   if (!workspace.isMovable()) {
@@ -353,6 +393,15 @@ function eventIsOutOfCanvasBounds(event, canvasRect) {
 
 export function getCanvasXAndCanvasYValues(event, canvasRect) {
   return [event.clientX - canvasRect.left, event.clientY - canvasRect.top];
+}
+function getCanvasXYFromEvent(ev, canvas, rect) {
+  const rw = canvas.width;   // render/backing width
+  const rh = canvas.height;  // render/backing height
+  const cw = rect.width;     // CSS width
+  const ch = rect.height;    // CSS height
+  const x = (ev.clientX - rect.left) * (rw / cw);
+  const y = (ev.clientY - rect.top)  * (rh / ch);
+  return [x, y];
 }
 
 function deleteBlockWithUndo(blockId) {
@@ -485,6 +534,7 @@ export function disableGizmos() {
   gizmoManager.rotationGizmoEnabled = false;
   gizmoManager.scaleGizmoEnabled = false;
   gizmoManager.boundingBoxGizmoEnabled = false;
+  endColorPickingMode();
 }
 
 export function toggleGizmo(gizmoType) {
