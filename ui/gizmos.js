@@ -1584,6 +1584,14 @@ export function setGizmoManager(value) {
       //highlightBlockById(Blockly.getMainWorkspace(), block);
     }
     originalAttach(mesh);
+
+    let _lastDisposeObs = mesh?.onDisposeObservable.addOnce(() => {
+      // Only detach if we're still attached to THIS node
+      if (gizmoManager.attachedMesh === mesh || gizmoManager.attachedNode === mesh) {
+        gizmoManager.attachToMesh(null);
+      }
+    });
+    
   };
 
   const canvas = flock.scene.getEngine().getRenderingCanvas();
