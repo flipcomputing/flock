@@ -3,7 +3,7 @@ import { meshMap, meshBlockIdMap } from "../generators";
 import { flock } from "../flock.js";
 import { objectColours } from "../config.js";
 import { createMeshOnCanvas } from "./addmeshes.js";
-import { highlightBlockById } from "./addmenu.js";
+import { createBlockWithShadows, highlightBlockById } from "./addmenu.js";
 
 const characterMaterials = [
   "Hair",
@@ -1858,15 +1858,16 @@ export function updateBlockColorAndHighlight(mesh, selectedColor) {
     block = meshMap?.["sky"];
     if (!block) {
       // Create a sky block if one doesn't exist.
-      block = Blockly.getMainWorkspace().newBlock("set_sky_color");
-      if (flock.blockDebug) console.log(selectedColor);
-      block.setFieldValue(selectedColor, "COLOR");
-      block.initSvg();
-      block.render();
-      let connection = block.getInput("DO").connection;
-      if (connection) {
-        connection.connect(block.previousConnection);
-      }
+      // block = Blockly.getMainWorkspace().newBlock("set_sky_color");
+      // if (flock.blockDebug) console.log(selectedColor);
+      // block.setFieldValue(selectedColor, "COLOR");
+      // block.initSvg();
+      // block.render();
+      // let connection = block.getInput("DO").connection;
+      // if (connection) {
+      //   connection.connect(block.previousConnection);
+      // }
+      createBlockWithShadows(null, null, selectedColor);
       updateBlockColorAndHighlight(mesh, selectedColor);
       return;
     }
