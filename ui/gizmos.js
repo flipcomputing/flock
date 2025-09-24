@@ -1,9 +1,12 @@
-
 import * as Blockly from "blockly";
 import { meshMap, meshBlockIdMap } from "../generators";
 import { flock } from "../flock.js";
 import { setPositionValues } from "./addmeshes.js";
-import { getMeshFromBlockKey, getRootMesh, updateBlockColorAndHighlight } from "./blockmesh.js";
+import {
+  getMeshFromBlockKey,
+  getRootMesh,
+  updateBlockColorAndHighlight,
+} from "./blockmesh.js";
 export let gizmoManager;
 
 const blueColor = flock.BABYLON.Color3.FromHexString("#0072B2"); // Colour for X-axis
@@ -24,7 +27,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
   window.addEventListener("keydown", (event) => {
     // Check if both Ctrl and the comma key (,) are pressed
-    if ((event.ctrlKey && event.code === "Comma") || (event.code === "KeyF")) {
+    if ((event.ctrlKey && event.code === "Comma") || event.code === "KeyF") {
       focusCameraOnMesh();
     }
   });
@@ -40,7 +43,7 @@ document.addEventListener("DOMContentLoaded", function () {
         // After color picker closes, start mesh selection
         pickMeshFromCanvas();
       },
-      target: document.body
+      target: document.body,
     });
   }
 
@@ -74,7 +77,7 @@ function pickMeshFromCanvas() {
     const [canvasX, canvasY] = getCanvasXAndCanvasYValues(event, canvasRect);
 
     applyColorAtPosition(canvasX, canvasY);
-    
+
     document.body.style.cursor = "default";
     window.removeEventListener("click", onPickMesh);
     endColorPickingMode();
@@ -124,7 +127,6 @@ function startColorPickingKeyboardMode(callback) {
 }
 
 function handleColorPickingKeydown(event) {
-  
   function preventDefaultEventAndDefineColourPickingCircle() {
     event.preventDefault();
     if (!colorPickingCircle) {
@@ -132,7 +134,7 @@ function handleColorPickingKeydown(event) {
       document.body.style.cursor = "none";
     }
   }
-  
+
   if (!colorPickingKeyboardMode) return;
 
   const moveDistance = event.shiftKey ? 10 : 2;
@@ -161,7 +163,10 @@ function handleColorPickingKeydown(event) {
       event.preventDefault();
       if (colorPickingCircle) {
         // Apply color at current circle position (circle is centered via CSS transform)
-        applyColorAtPosition(colorPickingCirclePosition.x, colorPickingCirclePosition.y);
+        applyColorAtPosition(
+          colorPickingCirclePosition.x,
+          colorPickingCirclePosition.y,
+        );
         endColorPickingMode();
       }
       break;
@@ -218,7 +223,8 @@ function updateColorPickingCirclePosition() {
   // Position relative to canvas
   colorPickingCircle.style.left =
     canvasRect.left + colorPickingCirclePosition.x + "px";
-  colorPickingCircle.style.top = canvasRect.top + colorPickingCirclePosition.y + "px";
+  colorPickingCircle.style.top =
+    canvasRect.top + colorPickingCirclePosition.y + "px";
 }
 
 function endColorPickingMode() {
@@ -226,7 +232,7 @@ function endColorPickingMode() {
   colorPickingCallback = null;
   document.removeEventListener("keydown", handleColorPickingKeydown);
   document.body.style.cursor = "default";
-  
+
   if (colorPickingCircle) {
     colorPickingCircle.remove();
     colorPickingCircle = null;
@@ -284,7 +290,6 @@ function scrollToBlockTopParentLeft(workspace, blockId) {
   workspace.scroll(x, y);
 }
 
-
 function highlightBlockById(workspace, block) {
   if (block) {
     // Select the new block
@@ -323,7 +328,7 @@ function hideBoundingBox(mesh) {
 function resetChildMeshesOfAttachedMesh() {
   gizmoManager.attachedMesh
     .getChildMeshes()
-    .forEach((child) => (hideBoundingBox(child)));
+    .forEach((child) => hideBoundingBox(child));
 }
 
 function resetAttachedMesh() {
@@ -338,10 +343,12 @@ function resetAttachedMeshIfMeshAttached() {
 }
 
 function eventIsOutOfCanvasBounds(event, canvasRect) {
-  return event.clientX < canvasRect.left ||
+  return (
+    event.clientX < canvasRect.left ||
     event.clientX > canvasRect.right ||
     event.clientY < canvasRect.top ||
-    event.clientY > canvasRect.bottom;
+    event.clientY > canvasRect.bottom
+  );
 }
 
 export function getCanvasXAndCanvasYValues(event, canvasRect) {
@@ -471,13 +478,17 @@ function focusCameraOnMesh() {
   }
 }
 
-export function toggleGizmo(gizmoType) {
+export function disableGizmos() {
+  if (!gizmoManager) return;
   // Disable all gizmos
   gizmoManager.positionGizmoEnabled = false;
   gizmoManager.rotationGizmoEnabled = false;
   gizmoManager.scaleGizmoEnabled = false;
   gizmoManager.boundingBoxGizmoEnabled = false;
+}
 
+export function toggleGizmo(gizmoType) {
+  disableGizmos();
   resetAttachedMeshIfMeshAttached();
 
   document.body.style.cursor = "default";
@@ -492,9 +503,8 @@ export function toggleGizmo(gizmoType) {
         flock.printText({
           text: "ℹ️ Fly camera, use arrow keys and page up/down",
           duration: 15,
-          color: "white"
+          color: "white",
         });
-
       } else {
         cameraMode = "play";
       }
@@ -504,16 +514,17 @@ export function toggleGizmo(gizmoType) {
       flock.scene.activeCamera = flock.savedCamera;
       flock.savedCamera = currentCamera;
       break;
-      case "delete":
+    case "delete":
       if (!gizmoManager.attachedMesh) {
         flock.printText({
           text: "⚠️ Select a mesh then click delete.",
           duration: 30,
-          color: "black"
+          color: "black",
         });
         return;
       }
-      blockKey = findParentWithBlockId(gizmoManager.attachedMesh).metadata.blockKey;
+      blockKey = findParentWithBlockId(gizmoManager.attachedMesh).metadata
+        .blockKey;
       blockId = meshBlockIdMap[blockKey];
       deleteBlockWithUndo(blockId);
       break;
@@ -523,11 +534,12 @@ export function toggleGizmo(gizmoType) {
         flock.printText({
           text: "⚠️ Select a mesh then click duplicate, then click to place copies.",
           duration: 30,
-          color: "black"
+          color: "black",
         });
         return;
       }
-      blockKey = findParentWithBlockId(gizmoManager.attachedMesh).metadata.blockKey;
+      blockKey = findParentWithBlockId(gizmoManager.attachedMesh).metadata
+        .blockKey;
       blockId = meshBlockIdMap[blockKey];
 
       document.body.style.cursor = "crosshair"; // Change cursor to indicate picking mode
@@ -543,7 +555,10 @@ export function toggleGizmo(gizmoType) {
           return;
         }
 
-        const [canvasX, canvasY] = getCanvasXAndCanvasYValues(event, canvasRect);
+        const [canvasX, canvasY] = getCanvasXAndCanvasYValues(
+          event,
+          canvasRect,
+        );
 
         const pickRay = flock.scene.createPickingRay(
           canvasX,
@@ -628,9 +643,8 @@ export function toggleGizmo(gizmoType) {
         if (event.type === flock.BABYLON.PointerEventTypes.POINTERPICK) {
           if (gizmoManager.attachedMesh) {
             resetAttachedMesh();
-            blockKey = findParentWithBlockId(
-              gizmoManager.attachedMesh,
-            ).metadata.blockKey;
+            blockKey = findParentWithBlockId(gizmoManager.attachedMesh).metadata
+              .blockKey;
           }
           let pickedMesh = event.pickInfo.pickedMesh;
 
@@ -647,7 +661,7 @@ export function toggleGizmo(gizmoType) {
             flock.printText({
               text: "Position: " + roundedPosition,
               duration: 30,
-              color: "black"
+              color: "black",
             });
 
             if (flock.meshDebug) console.log(pickedMesh.parent);
@@ -680,7 +694,7 @@ export function toggleGizmo(gizmoType) {
               flock.printText({
                 text: "Position: " + roundedPosition,
                 duration: 30,
-                color: "black"
+                color: "black",
               });
             }
 
@@ -961,13 +975,13 @@ export function toggleGizmo(gizmoType) {
           block
             .getInput("DO")
             .connection.connect(rotateBlock.previousConnection);
-          
+
           // Track this block for DO section cleanup
           const timestamp = Date.now();
           gizmoCreatedBlocks.set(rotateBlock.id, {
             parentId: block.id,
             createdDoSection: addedDoSection,
-            timestamp: timestamp
+            timestamp: timestamp,
           });
         }
 
@@ -1013,7 +1027,7 @@ export function toggleGizmo(gizmoType) {
         setRotationValue("X", rotationX);
         setRotationValue("Y", rotationY);
         setRotationValue("Z", rotationZ);
-        
+
         // End undo group
         Blockly.Events.setGroup(null);
       });
@@ -1069,7 +1083,9 @@ export function toggleGizmo(gizmoType) {
         const deltaY = originalBottomY - newBottomY;
         mesh.position.y += deltaY;
 
-        const block = Blockly.getMainWorkspace().getBlockById(mesh.metadata.blockKey);
+        const block = Blockly.getMainWorkspace().getBlockById(
+          mesh.metadata.blockKey,
+        );
         if (gizmoManager.scaleGizmoEnabled) {
           switch (block?.type) {
             case "create_capsule":
@@ -1225,7 +1241,7 @@ export function toggleGizmo(gizmoType) {
               // Generate a unique group ID for this gizmo action
               const groupId = Blockly.utils.idGenerator.genUid();
               Blockly.Events.setGroup(groupId);
-              
+
               let addedDoSection = false;
               if (!block.getInput("DO")) {
                 block.appendStatementInput("DO").setCheck(null).appendField("");
@@ -1270,13 +1286,13 @@ export function toggleGizmo(gizmoType) {
                 block
                   .getInput("DO")
                   .connection.connect(scaleBlock.previousConnection);
-                
+
                 // Track this block for DO section cleanup
                 const timestamp = Date.now();
                 gizmoCreatedBlocks.set(scaleBlock.id, {
                   parentId: block.id,
                   createdDoSection: addedDoSection,
-                  timestamp: timestamp
+                  timestamp: timestamp,
                 });
               }
 
@@ -1296,7 +1312,7 @@ export function toggleGizmo(gizmoType) {
               setScaleValue("X", scaleX);
               setScaleValue("Y", scaleY);
               setScaleValue("Z", scaleZ);
-              
+
               // End undo group
               Blockly.Events.setGroup(null);
               break;
@@ -1336,44 +1352,44 @@ const gizmoCreatedBlocks = new Map(); // blockId -> { parentId, createdDoSection
 // Add undo handler to clean up DO sections when undoing block creation
 function addUndoHandler() {
   const workspace = Blockly.getMainWorkspace();
-  
-  workspace.addChangeListener(function(event) {
+
+  workspace.addChangeListener(function (event) {
     if (event.type === Blockly.Events.BLOCK_DELETE && event.oldJson) {
       const deletedBlockId = event.blockId;
-      
+
       // Check if this was a gizmo-created block
       if (gizmoCreatedBlocks.has(deletedBlockId)) {
         const blockInfo = gizmoCreatedBlocks.get(deletedBlockId);
         const { parentId, createdDoSection, timestamp } = blockInfo;
-        
+
         // Remove from tracking
         gizmoCreatedBlocks.delete(deletedBlockId);
-        
+
         // If this block created the DO section, check if we should remove it
         if (createdDoSection) {
           const parentBlock = workspace.getBlockById(parentId);
           if (parentBlock) {
             const doInput = parentBlock.getInput("DO");
-            
+
             // Check if DO section is now empty or only contains blocks created after this one
             let shouldRemoveDoSection = true;
             if (doInput && doInput.connection.targetBlock()) {
               let currentBlock = doInput.connection.targetBlock();
-              
+
               // Check all blocks in the DO section
               while (currentBlock) {
                 const blockInfo = gizmoCreatedBlocks.get(currentBlock.id);
-                
+
                 // If there's a block that wasn't created by gizmos, or was created before this block, keep DO section
                 if (!blockInfo || blockInfo.timestamp < timestamp) {
                   shouldRemoveDoSection = false;
                   break;
                 }
-                
+
                 currentBlock = currentBlock.getNextBlock();
               }
             }
-            
+
             // Remove DO section if it should be removed
             if (shouldRemoveDoSection && doInput) {
               parentBlock.removeInput("DO");
@@ -1388,7 +1404,7 @@ function addUndoHandler() {
 export function enableGizmos() {
   // Initialize undo handler for DO section cleanup
   addUndoHandler();
-  
+
   const positionButton = document.getElementById("positionButton");
   const rotationButton = document.getElementById("rotationButton");
   const scaleButton = document.getElementById("scaleButton");
@@ -1422,15 +1438,25 @@ export function enableGizmos() {
   // Enable the buttons
 
   const buttons = [
-    positionButton, rotationButton, scaleButton, hideButton,
-    duplicateButton, deleteButton, cameraButton, showShapesButton,
-    colorPickerButton, aboutButton, scrollModelsLeftButton,
-    scrollModelsRightButton, scrollObjectsLeftButton,
-    scrollObjectsRightButton, scrollCharactersLeftButton,
-    scrollCharactersRightButton
+    positionButton,
+    rotationButton,
+    scaleButton,
+    hideButton,
+    duplicateButton,
+    deleteButton,
+    cameraButton,
+    showShapesButton,
+    colorPickerButton,
+    aboutButton,
+    scrollModelsLeftButton,
+    scrollModelsRightButton,
+    scrollObjectsLeftButton,
+    scrollObjectsRightButton,
+    scrollCharactersLeftButton,
+    scrollCharactersRightButton,
   ];
 
-  buttons.forEach(button => button.removeAttribute("disabled"));
+  buttons.forEach((button) => button.removeAttribute("disabled"));
 
   // Attach event listeners
   positionButton.addEventListener("click", () => toggleGizmo("position"));
@@ -1441,10 +1467,18 @@ export function enableGizmos() {
   duplicateButton.addEventListener("click", () => toggleGizmo("duplicate"));
   deleteButton.addEventListener("click", () => toggleGizmo("delete"));
   showShapesButton.addEventListener("click", window.showShapes);
-  scrollModelsLeftButton.addEventListener("click", () => window.scrollModels(-1));
-  scrollModelsRightButton.addEventListener("click", () => window.scrollModels(1));
-  scrollObjectsLeftButton.addEventListener("click", () => window.scrollObjects(-1));
-  scrollObjectsRightButton.addEventListener("click", () => window.scrollObjects(1));
+  scrollModelsLeftButton.addEventListener("click", () =>
+    window.scrollModels(-1),
+  );
+  scrollModelsRightButton.addEventListener("click", () =>
+    window.scrollModels(1),
+  );
+  scrollObjectsLeftButton.addEventListener("click", () =>
+    window.scrollObjects(-1),
+  );
+  scrollObjectsRightButton.addEventListener("click", () =>
+    window.scrollObjects(1),
+  );
   scrollCharactersLeftButton.addEventListener("click", () =>
     window.scrollCharacters(-1),
   );
@@ -1471,7 +1505,9 @@ export function setGizmoManager(value) {
           mesh = mesh.parent;
         }
 
-        const block = Blockly.getMainWorkspace().getBlockById(mesh.metadata.blockKey);
+        const block = Blockly.getMainWorkspace().getBlockById(
+          mesh.metadata.blockKey,
+        );
 
         if (block && gizmoManager.scaleGizmoEnabled) {
           switch (block.type) {
@@ -1508,9 +1544,8 @@ export function setGizmoManager(value) {
       // KeyCode for 'Delete' key is 46
       // Handle delete action
 
-      const blockKey = findParentWithBlockId(
-        gizmoManager.attachedMesh,
-      ).metadata.blockKey;
+      const blockKey = findParentWithBlockId(gizmoManager.attachedMesh).metadata
+        .blockKey;
       const blockId = meshBlockIdMap[blockKey];
 
       //console.log("Delete", blockKey, meshMap);
