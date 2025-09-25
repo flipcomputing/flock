@@ -50,6 +50,10 @@ const __CREATE_SPEC = {
     defaults: ({ c }) => ({ COLOR: c, WIDTH: 2, HEIGHT: 2 }),
     inputs: ['COLOR','WIDTH','HEIGHT'],
   },
+  set_sky_color: {
+    defaults: ({ c }) => ({ COLOR: c }),
+    input: ['COLOR'],
+  },
 };
 
 function __metaFor(name) {
