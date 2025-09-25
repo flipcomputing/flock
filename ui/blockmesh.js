@@ -1867,7 +1867,7 @@ export function updateBlockColorAndHighlight(mesh, selectedColor) {
       // if (connection) {
       //   connection.connect(block.previousConnection);
       // }
-      createBlockWithShadows("set_sky_color", null, selectedColor);
+      block = createBlockWithShadows("set_sky_color", null, selectedColor);
     }
     withUndoGroup(() => {
       const found = findNestedColorTarget(block);
