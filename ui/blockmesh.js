@@ -1857,16 +1857,6 @@ export function updateBlockColorAndHighlight(mesh, selectedColor) {
   if (!mesh) {
     block = meshMap?.["sky"];
     if (!block) {
-      // Create a sky block if one doesn't exist.
-      // block = Blockly.getMainWorkspace().newBlock("set_sky_color");
-      // if (flock.blockDebug) console.log(selectedColor);
-      // block.setFieldValue(selectedColor, "COLOR");
-      // block.initSvg();
-      // block.render();
-      // let connection = block.getInput("DO").connection;
-      // if (connection) {
-      //   connection.connect(block.previousConnection);
-      // }
       block = createBlockWithShadows("set_sky_color", null, selectedColor);
       meshMap["sky"] = block;
     }
