@@ -52,7 +52,7 @@ const __CREATE_SPEC = {
   },
   set_sky_color: {
     defaults: ({ c }) => ({ COLOR: c }),
-    input: ['COLOR'],
+    inputs: ['COLOR'],
   },
 };
 
