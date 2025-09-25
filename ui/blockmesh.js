@@ -1869,7 +1869,6 @@ export function updateBlockColorAndHighlight(mesh, selectedColor) {
       // }
       createBlockWithShadows("set_sky_color", null, selectedColor);
       updateBlockColorAndHighlight(mesh, selectedColor);
-      return;
     }
     withUndoGroup(() => {
       const found = findNestedColorTarget(block);
