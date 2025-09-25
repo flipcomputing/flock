@@ -325,6 +325,7 @@ export const materialNames = [
 	"rough.png",
 	"shapes.png",
 	"stars.png",
+	"stripes.png",
 	"swirl.png",
 	"tiles.png",
 	"triangles.png",
