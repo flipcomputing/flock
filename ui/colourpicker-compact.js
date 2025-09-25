@@ -1,7 +1,8 @@
 import { translate } from "../main/translation.js";
+import { disableGizmos } from "./gizmos.js";
 
 const COLOR_PALETTES = {
- Bright: [
+  Bright: [
     { hex: "#EF292B", name: "Red" },
     { hex: "#F8932A", name: "Orange" },
     { hex: "#FFF120", name: "Yellow" },
@@ -80,6 +81,7 @@ const clampL = (L) => Math.max(L_MIN, Math.min(L_MAX, Math.round(L)));
 
 class CustomColorPicker {
   constructor(options = {}) {
+
     this.currentColor = options.color || "#ff0000";
     this.onColorChange = options.onColorChange || (() => {});
     this.onClose = options.onClose || (() => {});
@@ -286,10 +288,6 @@ class CustomColorPicker {
     this.drawLightnessSlider(); // uses the current H/S
     this.updateLightnessHandle();
   }
-
-  /* =========================
-   * /LIGHTNESS SLIDER (fixed)
-   * ========================= */
 
   createElement() {
     this.container = document.createElement("div");
@@ -668,10 +666,8 @@ class CustomColorPicker {
       const rect = this.canvas.getBoundingClientRect();
       const nx = ((e.clientX - rect.left) / rect.width) * 100;
       const ny = ((e.clientY - rect.top) / rect.height) * 100;
-      this._setWheelNormalized(nx, ny);  // ← clamps + updates indicator
+      this._setWheelNormalized(nx, ny); // ← clamps + updates indicator
     };
-
-    
 
     this.canvas.addEventListener("pointerdown", (e) => {
       e.preventDefault();
@@ -772,7 +768,6 @@ class CustomColorPicker {
       .addEventListener("click", () => this.confirmColor());
     this.container.addEventListener("keydown", (e) => this.handleKeydown(e));
 
-    // === Lightness slider interactions (fixed) ===
     if (this.lightSlider) {
       let dragging = false;
       let rafId = null;
@@ -867,11 +862,15 @@ class CustomColorPicker {
     nx = Math.max(0, Math.min(100, nx));
     ny = Math.max(0, Math.min(100, ny));
 
-    const cx = 50, cy = 50, R = 48;
-    const pad = typeof this._indicatorPad === "function" ? this._indicatorPad() : 6; // ~dot radius
+    const cx = 50,
+      cy = 50,
+      R = 48;
+    const pad =
+      typeof this._indicatorPad === "function" ? this._indicatorPad() : 6; // ~dot radius
     const Rclamp = Math.max(0, R - pad); // keep the whole dot inside
 
-    let dx = nx - cx, dy = ny - cy;
+    let dx = nx - cx,
+      dy = ny - cy;
     const dist = Math.hypot(dx, dy);
 
     if (dist > Rclamp) {
@@ -884,7 +883,6 @@ class CustomColorPicker {
     this.updateColorWheelIndicator?.();
     this.handleCanvasPickAt(nx, ny); // uses R (=48) for H/S calc
   }
-
 
   handleCanvasPickAt(x, y) {
     const centerX = 50;
@@ -1775,6 +1773,8 @@ class CustomColorPicker {
   }
 
   open(color = this.currentColor) {
+    disableGizmos();
+    
     // Show first so layout has real sizes
     this.container.style.display = "block";
     this.container.style.opacity = "1";
