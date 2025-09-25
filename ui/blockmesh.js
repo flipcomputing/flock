@@ -1860,6 +1860,11 @@ export function updateBlockColorAndHighlight(mesh, selectedColor) {
       // Create sky block
       block = createBlockWithShadows("set_sky_color", null, selectedColor);
       meshMap["sky"] = block;
+      // Create start block
+      const startBlock = appendWithUndo({ type: "start" }, workspace, groupId);
+      // Wrap sky block around start block
+      const connection = startBlock.getInput("DO").connection;
+      if (connection && block.previousConnection) connection.connect(block.previousConnection);
     }
     withUndoGroup(() => {
       const found = findNestedColorTarget(block);
