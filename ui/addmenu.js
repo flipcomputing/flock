@@ -76,10 +76,10 @@ export function createBlockWithShadows(shapeType, position, colour) {
   const defaults = { ...spec.defaults({ c }), X: posX, Y: posY, Z: posZ };
   
   let allInputs;
-  if (shapeType !== "set_sky_color") {
-    allInputs = [...spec.inputs, 'X','Y','Z'];
-  } else {
+  if (shapeType === "set_sky_color") {
     allInputs = [...spec.inputs];
+  } else {
+    allInputs = [...spec.inputs, 'X','Y','Z'];
   }
 
   // Build serializer JSON with shadows populated
