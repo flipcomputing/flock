@@ -1865,6 +1865,8 @@ export function updateBlockColorAndHighlight(mesh, selectedColor) {
       // Wrap sky block around start block
       const connection = startBlock.getInput("DO").connection;
       if (connection && block.previousConnection) connection.connect(block.previousConnection);
+      startBlock.initSvg();
+      startBlock.render();
     }
     withUndoGroup(() => {
       const found = findNestedColorTarget(block);
