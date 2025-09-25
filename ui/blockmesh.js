@@ -1867,7 +1867,7 @@ export function updateBlockColorAndHighlight(mesh, selectedColor) {
       // if (connection) {
       //   connection.connect(block.previousConnection);
       // }
-      createBlockWithShadows(null, null, selectedColor);
+      createBlockWithShadows("set_sky_color", null, selectedColor);
       updateBlockColorAndHighlight(mesh, selectedColor);
       return;
     }
