@@ -1857,6 +1857,7 @@ export function updateBlockColorAndHighlight(mesh, selectedColor) {
   if (!mesh) {
     block = meshMap?.["sky"];
     if (!block) {
+      // Create sky block
       block = createBlockWithShadows("set_sky_color", null, selectedColor);
       meshMap["sky"] = block;
     }
