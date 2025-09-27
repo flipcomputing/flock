@@ -1604,10 +1604,10 @@ export function setGizmoManager(value) {
     let _lastDisposeObs = mesh?.onDisposeObservable.addOnce(() => {
       // Only detach if we're still attached to THIS node
       if (
-        gizmoManager.attachedMesh === mesh ||
-        gizmoManager.attachedNode === mesh
+        gizmoManager?.attachedMesh === mesh ||
+        gizmoManager?.attachedNode === mesh
       ) {
-        gizmoManager.attachToMesh(null);
+        gizmoManager?.attachToMesh(null);
       }
     });
   };
