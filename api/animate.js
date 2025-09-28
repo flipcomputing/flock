@@ -1019,7 +1019,6 @@ export const flockAnimate = {
       return retargetedGroup;
     }
 
-    // Switch logic (unchanged semantics)
     if (
       mesh._currentAnimGroup &&
       mesh._currentAnimGroup !== retargetedGroup &&
@@ -1039,6 +1038,22 @@ export const flockAnimate = {
     }
 
     return retargetedGroup;
+  },
+  getCurrentAnimationName(meshOrGroup) {
+    const findMeshWithSkeleton = (rootMesh) => {
+      if (rootMesh?.skeleton) return rootMesh;
+      if (rootMesh?.getChildMeshes) {
+        for (const child of rootMesh.getChildMeshes()) {
+          if (child.skeleton) return child;
+        }
+      }
+      return null;
+    };
+
+    const mesh = findMeshWithSkeleton(meshOrGroup);
+    if (!mesh || !mesh.metadata) return null;
+
+    return mesh.metadata.currentAnimationName || null;
   },
   switchToAnimationModel(
     scene,
