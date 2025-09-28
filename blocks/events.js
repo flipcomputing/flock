@@ -28,7 +28,6 @@ export function defineEventsBlocks() {
 			newEvent.isBlank = false;
 			newEvent.isUiEvent = false;
 			newEvent.recordUndo = true;
-			// newEvent.type = Blockly.Events.BLOCK_CREATE;
 			newEvent.workspaceId = event.workspaceId;
 			return newEvent;
 		};
