@@ -1862,11 +1862,11 @@ export function updateBlockColorAndHighlight(mesh, selectedColor) {
       meshMap["sky"] = block;
       // Create start block
       const startBlock = Blockly.getMainWorkspace().newBlock("start");
+      startBlock.initSvg();
+      startBlock.render();
       // Wrap sky block around start block
       const connection = startBlock.getInput("DO").connection;
       if (connection && block.previousConnection) connection.connect(block.previousConnection);
-      startBlock.initSvg();
-      startBlock.render();
     }
     withUndoGroup(() => {
       const found = findNestedColorTarget(block);
