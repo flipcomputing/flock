@@ -537,6 +537,7 @@ function focusCameraOnMesh() {
     camera.setTarget(player.position);
     
     // "Select" the focused mesh
+    gizmoManager.selectGizmoEnabled = true;
     showBoundingBox(mesh, true);
   } else {
     // For other types of cameras
@@ -554,6 +555,7 @@ function focusCameraOnMesh() {
     camera.setTarget(newTarget);
     
     // "Select" the focused mesh
+    gizmoManager.selectGizmoEnabled = true;
     showBoundingBox(mesh, true);
   }
 }
