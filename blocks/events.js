@@ -14,7 +14,7 @@ export function defineEventsBlocks() {
 	function handleCaseWhereSnippetLoadedFromToolbox(currentBlock, changeEvent) {
 		let changeEventBlockIsCurrentBlock = Blockly.getMainWorkspace().getBlockById(changeEvent.blockId) === currentBlock;
 
-		let createNewCreateEvent = (block, event) => {
+		let createNewEventForSnippetBlock = (block, event) => {
 			let newEvent;
 			if (block.type === "load_character") {
 				newEvent = new Blockly.Events.BlockChange();
@@ -34,7 +34,7 @@ export function defineEventsBlocks() {
 		};
 
 		let fireNewEventOnAllChildBlocks = (block, event) => {
-			let newEvent = createNewCreateEvent(block, event);
+			let newEvent = createNewEventForSnippetBlock(block, event);
 			if (block.id !== currentBlock.id) Blockly.Events.fire(newEvent);
 			let subBlocks = block.getChildren();
 			if (subBlocks.length > 0) subBlocks.forEach(subBlock => fireNewEventOnAllChildBlocks(subBlock, event));
