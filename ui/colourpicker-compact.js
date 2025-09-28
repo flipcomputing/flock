@@ -1,17 +1,87 @@
-/**
- * Compact Custom Color Picker for Flock XR
- * Designed for young users with focus on simplicity and accessibility
- */
-
 import { translate } from "../main/translation.js";
+import { disableGizmos } from "./gizmos.js";
+
+const COLOR_PALETTES = {
+  Bright: [
+    { hex: "#EF292B", name: "Red" },
+    { hex: "#F8932A", name: "Orange" },
+    { hex: "#FFF120", name: "Yellow" },
+    { hex: "#07A951", name: "Green" },
+    { hex: "#0E8142", name: "Dark Green" },
+    { hex: "#01AFCA", name: "Cyan" },
+    { hex: "#353A98", name: "Blue" },
+    { hex: "#632A9F", name: "Purple" },
+    { hex: "#ED84F7", name: "Pink" },
+    { hex: "#652700", name: "Brown" },
+    { hex: "#000000", name: "Black" },
+    { hex: "#FFFFFF", name: "White" },
+  ],
+  Earthy: [
+    { hex: "#28673B", name: "Forest Green" },
+    { hex: "#AA7C49", name: "Clay" },
+    { hex: "#976030", name: "Walnut" },
+    { hex: "#A1C458", name: "Olive" },
+    { hex: "#ACD62A", name: "Lime" },
+    { hex: "#3492E4", name: "Sky Blue" },
+    { hex: "#66C1E1", name: "Water" },
+    { hex: "#FFD441", name: "Sunflower" },
+    { hex: "#F6C178", name: "Sand" },
+    { hex: "#C77546", name: "Terracotta" },
+    { hex: "#000000", name: "Black" },
+    { hex: "#FFFFFF", name: "White" },
+  ],
+  Pastel: [
+    { hex: "#FBF8CC", name: "Cream" },
+    { hex: "#FDE4CF", name: "Peach" },
+    { hex: "#FFCFD2", name: "Rose" },
+    { hex: "#F1C0E8", name: "Lilac" },
+    { hex: "#CFBAF0", name: "Lavender" },
+    { hex: "#A3C4F3", name: "Sky" },
+    { hex: "#90DBF4", name: "Aqua" },
+    { hex: "#8EECF5", name: "Turquoise" },
+    { hex: "#98F5E1", name: "Mint" },
+    { hex: "#B9FBC0", name: "Pale Green" },
+    { hex: "#000000", name: "Black" },
+    { hex: "#FFFFFF", name: "White" },
+  ],
+  Neon: [
+    { hex: "#DB01EC", name: "Magenta" },
+    { hex: "#C330F6", name: "Violet" },
+    { hex: "#029CFF", name: "Electric Blue" },
+    { hex: "#0CE2EA", name: "Cyan Glow" },
+    { hex: "#02FF67", name: "Neon Green" },
+    { hex: "#97FC03", name: "Lime Glow" },
+    { hex: "#FDFF66", name: "Lemon" },
+    { hex: "#FEDB1B", name: "Amber" },
+    { hex: "#FF6600", name: "Neon Orange" },
+    { hex: "#FF0066", name: "Hot Pink" },
+    { hex: "#000000", name: "Black" },
+    { hex: "#FFFFFF", name: "White" },
+  ],
+  Sunset: [
+    { hex: "#21215C", name: "Midnight" },
+    { hex: "#3B55A7", name: "Indigo" },
+    { hex: "#4E385F", name: "Plum" },
+    { hex: "#66479D", name: "Amethyst" },
+    { hex: "#9875B4", name: "Orchid" },
+    { hex: "#D8499A", name: "Fuchsia" },
+    { hex: "#DE4D6D", name: "Rose Red" },
+    { hex: "#E58644", name: "Coral" },
+    { hex: "#E69B79", name: "Apricot" },
+    { hex: "#F1CB85", name: "Golden" },
+    { hex: "#000000", name: "Black" },
+    { hex: "#FFFFFF", name: "White" },
+  ],
+};
 
 // Keep visible color; avoid pure black/white
-const L_MIN = 15;      
-const L_MAX = 95;    
-const clampL = L => Math.max(L_MIN, Math.min(L_MAX, Math.round(L)));
+const L_MIN = 15;
+const L_MAX = 95;
+const clampL = (L) => Math.max(L_MIN, Math.min(L_MAX, Math.round(L)));
 
 class CustomColorPicker {
   constructor(options = {}) {
+
     this.currentColor = options.color || "#ff0000";
     this.onColorChange = options.onColorChange || (() => {});
     this.onClose = options.onClose || (() => {});
@@ -141,12 +211,16 @@ class CustomColorPicker {
     if (!(cssW > 0 && cssH > 0)) return;
 
     const hsl = this.hexToHSL(this.currentColor) || { h: 0, s: 100, l: 60 };
-    const H = hsl.h, S = hsl.s;
+    const H = hsl.h,
+      S = hsl.s;
 
     const g = this.lightCtx.createLinearGradient(0, 0, 0, cssH);
-    g.addColorStop(0,   `hsl(${hsl.h}, ${hsl.s}%, ${L_MAX}%)`);
-    g.addColorStop(0.5, `hsl(${hsl.h}, ${hsl.s}%, ${Math.round((L_MIN+L_MAX)/2)}%)`);
-    g.addColorStop(1,   `hsl(${hsl.h}, ${hsl.s}%, ${L_MIN}%)`);
+    g.addColorStop(0, `hsl(${hsl.h}, ${hsl.s}%, ${L_MAX}%)`);
+    g.addColorStop(
+      0.5,
+      `hsl(${hsl.h}, ${hsl.s}%, ${Math.round((L_MIN + L_MAX) / 2)}%)`,
+    );
+    g.addColorStop(1, `hsl(${hsl.h}, ${hsl.s}%, ${L_MIN}%)`);
 
     this.lightCtx.clearRect(0, 0, cssW, cssH);
     this.lightCtx.fillStyle = g;
@@ -155,19 +229,17 @@ class CustomColorPicker {
     this.updateLightnessHandle();
   }
 
-
   _lightnessFromClientY(clientY) {
     const { rect, handleHalf, trackH } = this._getLightTrackMetrics();
 
     // Convert pointer Y to a 0..1 along the usable track (for the handle center)
     let t = (clientY - (rect.top + handleHalf)) / trackH;
-    t = Math.max(0, Math.min(1, t));      // clamp to [0,1]
+    t = Math.max(0, Math.min(1, t)); // clamp to [0,1]
 
     // Top = L_MAX, Bottom = L_MIN
     const L = L_MIN + (1 - t) * (L_MAX - L_MIN);
     return Math.round(L);
   }
-
 
   updateLightnessHandle() {
     if (!this.lightHandle || !this.lightSlider) return;
@@ -205,23 +277,17 @@ class CustomColorPicker {
     this.updateLightnessHandle();
   }
 
-
   // Repaint gradient ONLY when H or S changed; always move the thumb
   updateLightnessFromColor() {
     const hsl = this.hexToHSL(this.currentColor);
     if (!hsl) return;
 
-    this.currentLightness = clampL(hsl.l);  // keep within [1..75]
+    this.currentLightness = clampL(hsl.l); // keep within [1..75]
 
     this.setupLightnessCanvasScaling();
-    this.drawLightnessSlider();  // uses the current H/S
+    this.drawLightnessSlider(); // uses the current H/S
     this.updateLightnessHandle();
   }
-
-
-  /* =========================
-   * /LIGHTNESS SLIDER (fixed)
-   * ========================= */
 
   createElement() {
     this.container = document.createElement("div");
@@ -248,23 +314,13 @@ class CustomColorPicker {
           </div>
 
           <div class="color-picker-right">
-            <div class="color-picker-section">
-              <div class="color-palette">
-               ${this.presetColors
-                 .map((color) => {
-                   const key = String(color).toLowerCase();
-                   const label = this.colorLabels[key] || key;
-                   return `<button 
-              class="color-swatch" 
-              style="background-color: ${color}" 
-              data-color="${color}" 
-              aria-label="${label}" 
-              title="${label}" 
-              tabindex="0"></button>`;
-                 })
-                 .join("")}
-              </div>
-            </div>
+           <div class="color-picker-section">
+             <div class="palette-row">
+               <label for="palette-select" class="sr-only">Palette</label>
+               <select id="palette-select" class="palette-dropdown" aria-label="Palette"></select>
+             </div>
+             <div class="color-palette" aria-label="Color palette"></div>
+           </div>
           </div>
         </div>
 
@@ -317,7 +373,7 @@ class CustomColorPicker {
         <div class="color-picker-footer">
           <div class="current-color-display" style="background-color: ${this.currentColor}"></div>
           <button class="color-picker-use" type="button" aria-label="Use your color" title="Use your color">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640"><path fill="#FFFFFF" d="M512.5 74.3L291.1 222C262 241.4 243.5 272.9 240.5 307.3C302.8 320.1 351.9 369.2 364.8 431.6C399.3 428.6 430.7 410.1 450.1 381L597.7 159.5C604.4 149.4 608 137.6 608 125.4C608 91.5 580.5 64 546.6 64C534.5 64 522.6 67.6 512.5 74.3zM320 464C320 402.1 269.9 352 208 352C146.1 352 96 402.1 96 464C96 467.9 96.2 471.8 96.6 475.6C98.4 493.1 86.4 512 68.8 512L64 512C46.3 512 32 526.3 32 544C32 561.7 46.3 576 64 576L208 576C269.9 576 320 525.9 320 464z"/></svg>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><!--!Font Awesome Free v6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.--><path fill="white" d="M41.4 9.4C53.9-3.1 74.1-3.1 86.6 9.4L168 90.7l53.1-53.1c28.1-28.1 73.7-28.1 101.8 0L474.3 189.1c28.1 28.1 28.1 73.7 0 101.8L283.9 481.4c-37.5 37.5-98.3 37.5-135.8 0L30.6 363.9c-37.5-37.5-37.5-98.3 0-135.8L122.7 136 41.4 54.6c-12.5-12.5-12.5-32.8 0-45.3zm176 221.3L168 181.3 75.9 273.4c-4.2 4.2-7 9.3-8.4 14.6l319.2 0 42.3-42.3c3.1-3.1 3.1-8.2 0-11.3L277.7 82.9c-3.1-3.1-8.2-3.1-11.3 0L213.3 136l49.4 49.4c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0zM512 512c-35.3 0-64-28.7-64-64c0-25.2 32.6-79.6 51.2-108.7c6-9.4 19.5-9.4 25.5 0C543.4 368.4 576 422.8 576 448c0 35.3-28.7 64-64 64z"/></svg>
           </button>
         </div>
       </div>
@@ -347,6 +403,13 @@ class CustomColorPicker {
     this.lightCtx = this.lightCanvas.getContext("2d");
     this.lightHandle = this.container.querySelector(".lightness-handle");
 
+    // Palette UI refs
+    this.paletteSelect = this.container.querySelector("#palette-select");
+    this.paletteGrid = this.container.querySelector(".color-palette");
+
+    // Build dropdown options + render default swatches before events bind
+    this._initPaletteUI();
+
     // Initial lightness paint
 
     //this.drawLightnessSlider();
@@ -359,6 +422,64 @@ class CustomColorPicker {
     this.drawColorWheel();
     this.drawHueSlider();
     this.setupLightnessCanvasScaling();
+  }
+
+  _initPaletteUI() {
+    // 1) Populate dropdown from COLOR_PALETTES keys
+    this.paletteSelect.innerHTML = "";
+    Object.keys(COLOR_PALETTES).forEach((name) => {
+      const opt = document.createElement("option");
+      opt.value = name;
+      opt.textContent = name;
+      this.paletteSelect.appendChild(opt);
+    });
+
+    // 2) Default on first open
+    this.paletteSelect.value = "Bright";
+
+    // 3) Render swatches for Default (2×6)
+    this._renderSwatches("Bright");
+
+    // 4) Change handler to switch palettes
+    this.paletteSelect.addEventListener("change", () => {
+      this._renderSwatches(this.paletteSelect.value);
+    });
+  }
+
+  // change signature to accept an options bag (optional)
+  _renderSwatches(paletteName, opts = {}) {
+    const list = COLOR_PALETTES[paletteName] || [];
+    const twelve = list.slice(0, 12);
+
+    this.paletteGrid.innerHTML = twelve
+      .map((c, i) => {
+        const label = c.name || c.hex;
+        const hex = c.hex;
+        return `
+        <button 
+          class="color-swatch" 
+          style="background-color: ${hex}"
+          data-color="${hex}"
+          title="${label}"
+          aria-label="${label}"
+          role="gridcell"
+          tabindex="${i === 0 ? "0" : "-1"}"
+        ></button>`;
+      })
+      .join("");
+
+    this.paletteGrid.setAttribute("role", "grid");
+    this.paletteGrid.setAttribute("aria-rowcount", "2");
+    this.paletteGrid.setAttribute("aria-colcount", "6");
+
+    // 🔧 Recompute grid + reattach per-swatch keydown handlers
+    this.setupColorSwatchNavigation();
+
+    // 🔧 Optional: put focus on the first swatch so arrows work right away
+    if (opts.focusFirst) {
+      const first = this.paletteGrid.querySelector(".color-swatch");
+      first?.focus();
+    }
   }
 
   setupHueSliderCanvas() {
@@ -543,16 +664,9 @@ class CustomColorPicker {
 
     const pickFromEvent = (e) => {
       const rect = this.canvas.getBoundingClientRect();
-      const x = e.clientX - rect.left;
-      const y = e.clientY - rect.top;
-
-      // Normalize to 0–100 space so it matches keyboard & math
-      const nx = (x / rect.width) * 100;
-      const ny = (y / rect.height) * 100;
-
-      this.handleCanvasPickAt(nx, ny); // expects 0–100 coords
-      this.colorWheelPosition = { x: nx, y: ny }; // store normalized
-      this.updateColorWheelIndicator(); // will scale to px for display
+      const nx = ((e.clientX - rect.left) / rect.width) * 100;
+      const ny = ((e.clientY - rect.top) / rect.height) * 100;
+      this._setWheelNormalized(nx, ny); // ← clamps + updates indicator
     };
 
     this.canvas.addEventListener("pointerdown", (e) => {
@@ -650,11 +764,10 @@ class CustomColorPicker {
 
     // Confirm / general keyboard handling on the container (Esc/Enter/Space)
     this.container
-      .querySelector(".color-picker-use")
+      .querySelector(".color-picker-footer")
       .addEventListener("click", () => this.confirmColor());
     this.container.addEventListener("keydown", (e) => this.handleKeydown(e));
 
-    // === Lightness slider interactions (fixed) ===
     if (this.lightSlider) {
       let dragging = false;
       let rafId = null;
@@ -742,6 +855,33 @@ class CustomColorPicker {
     // Focus trap + hue slider keyboard
     this.setupFocusTrapping();
     this.setupHueSliderKeyboard();
+  }
+
+  _setWheelNormalized(nx, ny) {
+    // normalize to 0–100
+    nx = Math.max(0, Math.min(100, nx));
+    ny = Math.max(0, Math.min(100, ny));
+
+    const cx = 50,
+      cy = 50,
+      R = 48;
+    const pad =
+      typeof this._indicatorPad === "function" ? this._indicatorPad() : 6; // ~dot radius
+    const Rclamp = Math.max(0, R - pad); // keep the whole dot inside
+
+    let dx = nx - cx,
+      dy = ny - cy;
+    const dist = Math.hypot(dx, dy);
+
+    if (dist > Rclamp) {
+      const k = Rclamp / dist;
+      nx = cx + dx * k;
+      ny = cy + dy * k;
+    }
+
+    this.colorWheelPosition = { x: nx, y: ny };
+    this.updateColorWheelIndicator?.();
+    this.handleCanvasPickAt(nx, ny); // uses R (=48) for H/S calc
   }
 
   handleCanvasPickAt(x, y) {
@@ -879,26 +1019,53 @@ class CustomColorPicker {
   }
 
   handleKeydown(e) {
+    const t = e.target;
+
+    // Always allow Esc to close
     if (e.key === "Escape") {
       this.close();
       return;
     }
-    if (e.key === "Enter") {
-      e.preventDefault();
-      e.stopPropagation();
-      if (e.target.classList.contains("color-picker-btn")) {
-        e.target.click();
-        return;
-      }
-      this.confirmColor();
-      return;
-    }
+
+    // SPACE/ENTER on swatches should *pick* but not close
     if (
       (e.key === " " || e.key === "Enter") &&
-      e.target.classList.contains("color-swatch")
+      t.classList.contains("color-swatch")
     ) {
       e.preventDefault();
-      this.setColor(e.target.dataset.color);
+      this.setColor(t.dataset.color);
+      return;
+    }
+
+    // Only the "Use" (paintbrush) button should confirm + close on Enter
+    if (e.key === "Enter") {
+      // Is the Use button (or inside it)?
+      if (t.closest(".color-picker-use")) {
+        e.preventDefault();
+        this.confirmColor();
+        return;
+      }
+
+      // If focused element is any of these interactive controls,
+      // DO NOT close on Enter.
+      const isNonCommitControl =
+        t.id === "palette-select" || // palette dropdown
+        t.closest(".palette-dropdown") || // (defensive)
+        t.closest(".color-picker-random") || // random button
+        t.closest(".color-picker-eyedropper") || // eyedropper
+        t.closest(".color-picker-more-options") || // more options
+        t === this.canvas || // color wheel canvas
+        t.closest(".hue-slider-container") || // hue slider wrapper
+        t.closest(".lightness-slider") || // lightness slider wrapper
+        t.classList.contains("rgb-input") || // R/G/B inputs
+        t.classList.contains("css-color-input"); // hex/css input
+
+      if (isNonCommitControl) {
+        // Let the control handle Enter normally (e.g., open select, click button)
+        return;
+      }
+
+      // Fallback: do not auto-close from miscellaneous elements
       return;
     }
   }
@@ -1032,7 +1199,6 @@ class CustomColorPicker {
       this.updateLightnessFromColor();
     }
   }
-
 
   updateCssInput() {
     const cssInput = this.container.querySelector(".css-color-input");
@@ -1607,6 +1773,8 @@ class CustomColorPicker {
   }
 
   open(color = this.currentColor) {
+    disableGizmos();
+    
     // Show first so layout has real sizes
     this.container.style.display = "block";
     this.container.style.opacity = "1";

@@ -180,14 +180,24 @@ export const flockCamera = {
 		createVerticalConstraint(mesh, boxBody, flock.scene);
 
 		flock.scene.onAfterPhysicsObservable.add(() => {
-			const currentVelocity = mesh.physics.getLinearVelocity();
-			const newVelocity = new flock.BABYLON.Vector3(
-				0,
-				currentVelocity.y,
-				0,
-			);
-			mesh.physics.setLinearVelocity(newVelocity);
-			mesh.physics.setAngularVelocity(flock.BABYLON.Vector3.Zero());
+			// Check if mesh and physics body still exist and are valid
+			if (!mesh || mesh.isDisposed() || !mesh.physics || !mesh.physics._pluginData) {
+				return; // Early return if invalid
+			}
+
+			try {
+				const currentVelocity = mesh.physics.getLinearVelocity();
+				const newVelocity = new flock.BABYLON.Vector3(
+					0,
+					currentVelocity.y,
+					0,
+				);
+				mesh.physics.setLinearVelocity(newVelocity);
+				mesh.physics.setAngularVelocity(flock.BABYLON.Vector3.Zero());
+			} catch (error) {
+				// Handle case where physics body became invalid during execution
+				console.warn("Physics body became invalid:", error);
+			}
 		});
 	},
 	getCamera() {
