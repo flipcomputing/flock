@@ -757,7 +757,7 @@ export function toggleGizmo(gizmoType) {
             gizmoManager.attachToMesh(pickedMesh);
 
             // Show bounding box for the selected mesh
-            showBoundingBox(pickedMesh)
+            showBoundingBox(pickedMesh);
           } else {
             if (pickedMesh && pickedMesh.name === "ground") {
               const position = event.pickInfo.pickedPoint;
