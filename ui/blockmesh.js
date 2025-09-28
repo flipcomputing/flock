@@ -1861,7 +1861,7 @@ export function updateBlockColorAndHighlight(mesh, selectedColor) {
       block = createBlockWithShadows("set_sky_color", null, selectedColor);
       meshMap["sky"] = block;
       // Create start block
-      const startBlock = appendWithUndo({ type: "start" }, workspace, groupId);
+      const startBlock = appendWithUndo({ type: "start" }, Blockly.getMainWorkspace(), groupId);
       // Wrap sky block around start block
       const connection = startBlock.getInput("DO").connection;
       if (connection && block.previousConnection) connection.connect(block.previousConnection);
