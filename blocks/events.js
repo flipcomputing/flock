@@ -16,16 +16,16 @@ export function defineEventsBlocks() {
 
 		let createNewCreateEvent = (block, event) => {
 			let newEvent = new Blockly.Events.BlockCreate();
+			if (block.type === "load_character") {
+				newEvent.ids = [];
+				blocks.forEach(subBlock => newEvent.ids.push(subBlock.id));
+			}
 			newEvent.blockId = block.id;
 			newEvent.group = event.group;
 			newEvent.isBlank = false;
 			newEvent.isUiEvent = false;
 			newEvent.recordUndo = true;
 			// newEvent.type = Blockly.Events.BLOCK_CREATE;
-			if (block.type === "load_character") {
-				newEvent.ids = [];
-				blocks.forEach(subBlock => newEvent.ids.push(subBlock.id));
-			}
 			newEvent.workspaceId = event.workspaceId;
 			return newEvent;
 		};
