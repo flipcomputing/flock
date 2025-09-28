@@ -128,6 +128,9 @@ export const objectNames = [
 	"Hat.glb",
 	"donut.glb",
 	"pumpkin.glb",	
+	"apple.glb",	
+	"starboppers.glb",
+	"headphones.glb",
 ];
 
 export const objectColours = {
@@ -143,6 +146,9 @@ export const objectColours = {
 	"Hat.glb": ["#9D3F72", "#B5FDFD", "#3D0073"],
 	"donut.glb": ["#f9cb9c", "#fba0c3"],
 	"pumpkin.glb": ["#E78632", "#75430F"],
+	"apple.glb": ["#3FAF45", "#A9323F", "#624A20"],
+	"starboppers.glb": ["#FFD700", "#FFD700", "#FFD700", "#f9f9f9"],
+	"headphones.glb": ["#53E0E7", "#3291E7", "#7D7D7D"],
 
 	"tree.glb": ["#66CDAA", "#CD853F"],
 	"tree2.glb": ["#7F9F7F", "#A1623B"],
@@ -305,6 +311,7 @@ export const materialNames = [
 	"none.png",
 	"arrows.png",
 	"brick.png",
+	"bricks.png",
 	"carpet.png",
 	"circles.png",
 	"eyeball.png",
@@ -313,12 +320,14 @@ export const materialNames = [
 	"flowers.png",
 	"fruit.png",
 	"grass.png",
+	"gravel.png",
 	"leaves.png",
 	"marble.png",
 	"mushroom.png",
 	"rough.png",
 	"shapes.png",
 	"stars.png",
+	"stripes.png",
 	"swirl.png",
 	"tiles.png",
 	"triangles.png",

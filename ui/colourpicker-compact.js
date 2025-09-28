@@ -1,7 +1,8 @@
 import { translate } from "../main/translation.js";
+import { disableGizmos } from "./gizmos.js";
 
 const COLOR_PALETTES = {
-  Default: [
+  Bright: [
     { hex: "#EF292B", name: "Red" },
     { hex: "#F8932A", name: "Orange" },
     { hex: "#FFF120", name: "Yellow" },
@@ -80,6 +81,7 @@ const clampL = (L) => Math.max(L_MIN, Math.min(L_MAX, Math.round(L)));
 
 class CustomColorPicker {
   constructor(options = {}) {
+
     this.currentColor = options.color || "#ff0000";
     this.onColorChange = options.onColorChange || (() => {});
     this.onClose = options.onClose || (() => {});
@@ -287,10 +289,6 @@ class CustomColorPicker {
     this.updateLightnessHandle();
   }
 
-  /* =========================
-   * /LIGHTNESS SLIDER (fixed)
-   * ========================= */
-
   createElement() {
     this.container = document.createElement("div");
     this.container.className = "custom-color-picker";
@@ -375,7 +373,7 @@ class CustomColorPicker {
         <div class="color-picker-footer">
           <div class="current-color-display" style="background-color: ${this.currentColor}"></div>
           <button class="color-picker-use" type="button" aria-label="Use your color" title="Use your color">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640"><path fill="#FFFFFF" d="M512.5 74.3L291.1 222C262 241.4 243.5 272.9 240.5 307.3C302.8 320.1 351.9 369.2 364.8 431.6C399.3 428.6 430.7 410.1 450.1 381L597.7 159.5C604.4 149.4 608 137.6 608 125.4C608 91.5 580.5 64 546.6 64C534.5 64 522.6 67.6 512.5 74.3zM320 464C320 402.1 269.9 352 208 352C146.1 352 96 402.1 96 464C96 467.9 96.2 471.8 96.6 475.6C98.4 493.1 86.4 512 68.8 512L64 512C46.3 512 32 526.3 32 544C32 561.7 46.3 576 64 576L208 576C269.9 576 320 525.9 320 464z"/></svg>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><!--!Font Awesome Free v6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.--><path fill="white" d="M41.4 9.4C53.9-3.1 74.1-3.1 86.6 9.4L168 90.7l53.1-53.1c28.1-28.1 73.7-28.1 101.8 0L474.3 189.1c28.1 28.1 28.1 73.7 0 101.8L283.9 481.4c-37.5 37.5-98.3 37.5-135.8 0L30.6 363.9c-37.5-37.5-37.5-98.3 0-135.8L122.7 136 41.4 54.6c-12.5-12.5-12.5-32.8 0-45.3zm176 221.3L168 181.3 75.9 273.4c-4.2 4.2-7 9.3-8.4 14.6l319.2 0 42.3-42.3c3.1-3.1 3.1-8.2 0-11.3L277.7 82.9c-3.1-3.1-8.2-3.1-11.3 0L213.3 136l49.4 49.4c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0zM512 512c-35.3 0-64-28.7-64-64c0-25.2 32.6-79.6 51.2-108.7c6-9.4 19.5-9.4 25.5 0C543.4 368.4 576 422.8 576 448c0 35.3-28.7 64-64 64z"/></svg>
           </button>
         </div>
       </div>
@@ -437,10 +435,10 @@ class CustomColorPicker {
     });
 
     // 2) Default on first open
-    this.paletteSelect.value = "Default";
+    this.paletteSelect.value = "Bright";
 
     // 3) Render swatches for Default (2×6)
-    this._renderSwatches("Default");
+    this._renderSwatches("Bright");
 
     // 4) Change handler to switch palettes
     this.paletteSelect.addEventListener("change", () => {
@@ -668,10 +666,8 @@ class CustomColorPicker {
       const rect = this.canvas.getBoundingClientRect();
       const nx = ((e.clientX - rect.left) / rect.width) * 100;
       const ny = ((e.clientY - rect.top) / rect.height) * 100;
-      this._setWheelNormalized(nx, ny);  // ← clamps + updates indicator
+      this._setWheelNormalized(nx, ny); // ← clamps + updates indicator
     };
-
-    
 
     this.canvas.addEventListener("pointerdown", (e) => {
       e.preventDefault();
@@ -768,11 +764,10 @@ class CustomColorPicker {
 
     // Confirm / general keyboard handling on the container (Esc/Enter/Space)
     this.container
-      .querySelector(".color-picker-use")
+      .querySelector(".color-picker-footer")
       .addEventListener("click", () => this.confirmColor());
     this.container.addEventListener("keydown", (e) => this.handleKeydown(e));
 
-    // === Lightness slider interactions (fixed) ===
     if (this.lightSlider) {
       let dragging = false;
       let rafId = null;
@@ -867,11 +862,15 @@ class CustomColorPicker {
     nx = Math.max(0, Math.min(100, nx));
     ny = Math.max(0, Math.min(100, ny));
 
-    const cx = 50, cy = 50, R = 48;
-    const pad = typeof this._indicatorPad === "function" ? this._indicatorPad() : 6; // ~dot radius
+    const cx = 50,
+      cy = 50,
+      R = 48;
+    const pad =
+      typeof this._indicatorPad === "function" ? this._indicatorPad() : 6; // ~dot radius
     const Rclamp = Math.max(0, R - pad); // keep the whole dot inside
 
-    let dx = nx - cx, dy = ny - cy;
+    let dx = nx - cx,
+      dy = ny - cy;
     const dist = Math.hypot(dx, dy);
 
     if (dist > Rclamp) {
@@ -884,7 +883,6 @@ class CustomColorPicker {
     this.updateColorWheelIndicator?.();
     this.handleCanvasPickAt(nx, ny); // uses R (=48) for H/S calc
   }
-
 
   handleCanvasPickAt(x, y) {
     const centerX = 50;
@@ -1775,6 +1773,8 @@ class CustomColorPicker {
   }
 
   open(color = this.currentColor) {
+    disableGizmos();
+    
     // Show first so layout has real sizes
     this.container.style.display = "block";
     this.container.style.opacity = "1";
