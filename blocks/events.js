@@ -15,10 +15,13 @@ export function defineEventsBlocks() {
 		let changeEventBlockIsCurrentBlock = Blockly.getMainWorkspace().getBlockById(changeEvent.blockId) === currentBlock;
 
 		let createNewCreateEvent = (block, event) => {
-			let newEvent = new Blockly.Events.BlockCreate();
+			let newEvent;
 			if (block.type === "load_character") {
+				newEvent = new Blockly.Events.BlockChange();
 				newEvent.ids = [];
 				blocks.forEach(subBlock => newEvent.ids.push(subBlock.id));
+			} else {
+				newEvent = new Blockly.Events.BlockCreate();
 			}
 			newEvent.blockId = block.id;
 			newEvent.group = event.group;
