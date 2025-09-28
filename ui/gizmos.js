@@ -374,9 +374,13 @@ function resetBoundingBoxVisibilityIfManuallyChanged(mesh) {
   if (mesh && mesh.visibility === 0.001) mesh.visibility = 0;
 }
 
-function showBoundingBox(mesh) {
+function showBoundingBox(mesh, focusMode = false) {
   if (mesh.parent) {
     mesh = getRootMesh(mesh.parent);
+    mesh.visibility = 0.001;
+  } else if (focusMode) {
+    // Set mesh visibility even if mesh has no parent
+    // focusMode is only used when camera focused on mesh
     mesh.visibility = 0.001;
   }
   mesh.showBoundingBox = true;
@@ -533,7 +537,7 @@ function focusCameraOnMesh() {
     camera.setTarget(player.position);
     
     // "Select" the focused mesh
-    showBoundingBox(mesh);
+    showBoundingBox(mesh, true);
   } else {
     // For other types of cameras
     const currentDistance = camera.radius || 10;
@@ -550,7 +554,7 @@ function focusCameraOnMesh() {
     camera.setTarget(newTarget);
     
     // "Select" the focused mesh
-    showBoundingBox(mesh);
+    showBoundingBox(mesh, true);
   }
 }
 
