@@ -476,7 +476,7 @@ export function updateMeshFromBlock(mesh, block, changeEvent) {
       y: block.getFieldValue("Y_ORIGIN"),
       z: block.getFieldValue("Z_ORIGIN"),
     };
-    console.log("origin");
+    if (flock.blockDebug || flock.meshDebug) console.log("origin");
   }
 
   let colors,
