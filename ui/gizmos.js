@@ -500,6 +500,13 @@ function focusCameraOnMesh() {
   const newTarget = boundingInfo.boundingBox.centerWorld; // Center of the new mesh
   const camera = flock.scene.activeCamera;
 
+  let selectFocusedMesh = () => {
+    // "Select" the focused mesh
+    gizmoManager.selectGizmoEnabled = true;
+    gizmoManager.attachToMesh(mesh); // Unfortunately needed to ensure bounding box gets hidden 
+    showBoundingBox(mesh, true);
+  }
+
   if (camera.metadata && camera.metadata.following) {
     const player = camera.metadata.following; // The player (mesh) the camera is following
     const playerDistance = 5; // Fixed distance between player and target
@@ -536,10 +543,7 @@ function focusCameraOnMesh() {
     camera.setPosition(cameraPosition);
     camera.setTarget(player.position);
     
-    // "Select" the focused mesh
-    gizmoManager.selectGizmoEnabled = true;
-    gizmoManager.attachToMesh(mesh); // Unfortunately needed to ensure bounding box gets hidden 
-    showBoundingBox(mesh, true);
+    selectFocusedMesh();
   } else {
     // For other types of cameras
     const currentDistance = camera.radius || 10;
@@ -555,10 +559,7 @@ function focusCameraOnMesh() {
     camera.position = newCameraPosition;
     camera.setTarget(newTarget);
     
-    // "Select" the focused mesh
-    gizmoManager.selectGizmoEnabled = true;
-    gizmoManager.attachToMesh(mesh); // Unfortunately needed to ensure bounding box gets hidden
-    showBoundingBox(mesh, true);
+    selectFocusedMesh();
   }
 }
 
