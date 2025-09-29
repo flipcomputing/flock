@@ -572,6 +572,7 @@ function focusCameraOnMesh() {
 export function disableGizmos() {
   if (!gizmoManager) return;
   // Disable all gizmos
+  gizmoManager.selectGizmoEnabled = false;
   gizmoManager.positionGizmoEnabled = false;
   gizmoManager.rotationGizmoEnabled = false;
   gizmoManager.scaleGizmoEnabled = false;
@@ -1432,6 +1433,7 @@ function turnOffAllGizmos() {
   resetBoundingBoxVisibilityIfManuallyChanged(gizmoManager.attachedMesh);
   resetAttachedMeshIfMeshAttached();
   gizmoManager.attachToMesh(null);
+  gizmoManager.selectGizmoEnabled = false;
   gizmoManager.positionGizmoEnabled = false;
   gizmoManager.rotationGizmoEnabled = false;
   gizmoManager.scaleGizmoEnabled = false;
