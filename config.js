@@ -310,7 +310,6 @@ export function animationNames() {
 export const materialNames = [
 	"none.png",
 	"arrows.png",
-	"brick.png",
 	"bricks.png",
 	"carpet.png",
 	"circles.png",
@@ -324,6 +323,7 @@ export const materialNames = [
 	"leaves.png",
 	"marble.png",
 	"mushroom.png",
+	"planks.png",
 	"rough.png",
 	"shapes.png",
 	"stars.png",
