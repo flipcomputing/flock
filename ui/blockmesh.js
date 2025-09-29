@@ -1854,7 +1854,10 @@ export function updateBlockColorAndHighlight(mesh, selectedColor) {
   let block = null;
 
   // Special case: sky fallback
-  if (!mesh) {
+  /* Not sure why type of mesh is set to "set_sky_color"
+  but this makes sure the sky colour can be updated if
+  block exists. */
+  if (!mesh || mesh.type === "set_sky_color") {
     block = meshMap?.["sky"];
     if (!block) {
       // Create sky block
