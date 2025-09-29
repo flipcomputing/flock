@@ -162,6 +162,38 @@
   </head>
 
   <body class="loading">
+    <script>
+    (function(){
+      const overlay = document.createElement('div');
+      Object.assign(overlay.style, {
+        position:'fixed', left:'0', bottom:'0', width:'100%', maxHeight:'45vh',
+        overflowY:'auto', background:'rgba(0,0,0,.8)', color:'#0f0',
+        font:'12px/1.4 monospace', padding:'8px', zIndex: 2147483647, display:'none'
+      });
+      document.addEventListener('touchstart', (e)=>{
+        if (e.touches.length >= 3) overlay.style.display = (overlay.style.display==='none'?'block':'none');
+      }, {passive:true});
+      document.body.appendChild(overlay);
+
+      const append = (tag, args) => {
+        const line = document.createElement('div');
+        line.textContent = `[${tag}] ` + args.map(a=>{
+          try { return typeof a==='string'?a:JSON.stringify(a); }
+          catch(_){ return String(a); }
+        }).join(' ');
+        overlay.appendChild(line);
+        overlay.scrollTop = overlay.scrollHeight;
+      };
+
+      const orig = { log:console.log, warn:console.warn, error:console.error };
+      console.log = (...a)=>{ append('log',a); orig.log.apply(console,a); };
+      console.warn = (...a)=>{ append('warn',a); orig.warn.apply(console,a); };
+      console.error = (...a)=>{ append('error',a); orig.error.apply(console,a); };
+
+      window.addEventListener('error', e => append('uncaught', [e.message, e.filename+':'+e.lineno]));
+      window.addEventListener('unhandledrejection', e => append('rejection', [String(e.reason)]));
+    })();
+    </script>
     <!-- Loading Screen -->
     <div id="loadingScreen" class="loading-screen" role="dialog" aria-modal="true" aria-labelledby="loading-title" aria-describedby="loading-description">
       <div class="loading-content">
@@ -759,13 +791,7 @@
             <label for="fileInput" class="sr-only">Select project file to open</label>
             <input type="file" id="fileInput" style="display: none" disabled />
             <div class="icon" style="width: 1.25em; height: 1.25em" aria-hidden="true">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-                <!--!Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.-->
-                <path
-                  fill="#511D91"
-                  d="M64 480H448c35.3 0 64-28.7 64-64V160c0-35.3-28.7-64-64-64H288c-10.1 0-19.6-4.7-25.6-12.8L243.2 57.6C231.1 41.5 212.1 32 192 32H64C28.7 32 0 60.7 0 96V416c0 35.3 28.7 64 64 64z"
-                />
-              </svg>
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--!Font Awesome Free v6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.--><path d="M288 109.3L288 352c0 17.7-14.3 32-32 32s-32-14.3-32-32l0-242.7-73.4 73.4c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3l128-128c12.5-12.5 32.8-12.5 45.3 0l128 128c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L288 109.3zM64 352l128 0c0 35.3 28.7 64 64 64s64-28.7 64-64l128 0c35.3 0 64 28.7 64 64l0 32c0 35.3-28.7 64-64 64L64 512c-35.3 0-64-28.7-64-64l0-32c0-35.3 28.7-64 64-64zM432 456a24 24 0 1 0 0-48 24 24 0 1 0 0 48z"/></svg>
             </div>
           </button>
           <label for="projectName" class="sr-only">Project name</label>
@@ -813,7 +839,7 @@
             aria-describedby="demo-desc"
           >
             <option value="" data-i18n="demo" style="color: #511d91">Demo</option>
-            <option id="project-new" data-i18n="new" value="examples/new.json">New</option>
+            <option id="new" data-i18n="new" value="examples/new.json">New</option>
             <option data-i18n="starter" value="examples/starter.json">👋🏽 Starter</option>
             <option data-i18n="controller_starter" value="examples/controller_starter.json">🎮 Controller Starter</option>
             <option data-i18n="snow_globe" value="examples/snow_globe.json">❄️ Snow globe</option>
@@ -1021,7 +1047,7 @@
                 </div>
               </span>
             </div>
-            <button class="gizmo-button" id="colorPickerButton" data-i18n="color_picker_button_ui" aria-label="Change object color" title="Change object color">
+            <button class="gizmo-button" id="colorPickerButton" data-i18n="color_picker_button_ui" aria-label="Choose a color" title="Choose a color">
               <img
                 src="./images/looks.svg"
                 width="20px"

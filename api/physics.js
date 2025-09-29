@@ -59,7 +59,7 @@ export const flockPhysics = {
         const depth = boundingBox.maximumWorld.z - boundingBox.minimumWorld.z;
 
         const boxShape = new flock.BABYLON.PhysicsShapeBox(
-          new flock.BABYLON.Vector3(0, 0, 0),
+          flock.BABYLON.Vector3.Zero(),
           new flock.BABYLON.Quaternion(0, 0, 0, 1), // No rotation
           new flock.BABYLON.Vector3(width, height, depth), // Updated dimensions
           flock.scene,
@@ -278,7 +278,7 @@ export const flockPhysics = {
 
     // 🛡 Scene not ready yet – queue for later
     if (!flock.scene) {
-      console.log(`[flock] Scene not ready, queuing group '${groupName}' trigger`);
+      if (flock.triggerHandlingDebug) console.log(`[flock] Scene not ready, queuing group '${groupName}' trigger`);
       if (!flock.pendingTriggers.has(groupName)) {
         flock.pendingTriggers.set(groupName, []);
       }
@@ -292,9 +292,11 @@ export const flockPhysics = {
         m.name.startsWith(groupName)
       );
       if (matching.length > 0) {
-        console.log(
-          `[flock] Applying trigger to ${matching.length} existing mesh(es) in group '${groupName}'`
-        );
+        if (flock.triggerHandlingDebug) {
+          console.log(
+            `[flock] Applying trigger to ${matching.length} existing mesh(es) in group '${groupName}'`
+          );
+        }
         for (const m of matching) {
           // ✅ No longer skipping the group anchor (e.g., "box1")
           flock.onTrigger(m.name, {
@@ -325,7 +327,7 @@ export const flockPhysics = {
       }
       flock.pendingTriggers.get(groupName).push({ trigger, callback, mode });
 
-      console.log(`[flock] Trigger for '${meshName}' stored for group '${groupName}'`);
+      if (flock.triggerHandlingDebug) console.log(`[flock] Trigger for '${meshName}' stored for group '${groupName}'`);
       return;
     }
 

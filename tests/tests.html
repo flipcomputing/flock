@@ -10,6 +10,64 @@
         padding: 20px;
       }
     </style>
+    <style>
+      /* CSS Variables for test filtering */
+
+      #mocha-report[data-filter="failures"] .test.pass {
+        display: none !important;
+      }
+
+      #mocha-report[data-filter="passes"] .test.fail {
+        display: none !important;
+      }
+
+      #mocha-report[data-filter="all"] .test.fail, 
+      #mocha-report[data-filter="all"] .test.pass {
+        display: block !important;
+      }
+
+      #mocha-report  {
+      } 
+
+      #mocha-report h1 {
+        font-size: 1.1em;
+      }
+
+      #mocha-report h2 {
+        font-size: 1em;
+      }
+
+      /* Disable links in mocha header etc to avoid interference with test selection */ 
+      #mocha h1 a,
+      #mocha h2 a,
+      #mocha .replay a {
+        pointer-events: none;
+        cursor: default;
+      }
+
+      /* Stop disabled links from looking like links (disclosure arrows still work) */
+      #mocha h1 a,
+      #mocha h2 a {
+        text-decoration: none;
+        color: inherit;
+      }
+
+
+      /* Make embed-host float over content like a window */
+      #embed-host {
+        position: absolute !important;
+        z-index: 1000;
+
+      }
+
+      /* Ensure mocha content flows normally, ignoring the floating embed */
+      #mocha {
+        position: relative;
+        z-index: 1;
+        /* Content flows as if embed-host doesn't exist */
+      }
+
+    </style>
   </head>
   <body>
     <h1>Flock Test Example</h1>
@@ -31,25 +89,13 @@
       <label for="testSelect" style="font-weight: bold; margin-right: 10px;">Select Test Suite:</label>
       <select id="testSelect" style="padding: 5px; margin-right: 10px;">
         <option value="">-- Choose a test suite --</option>
-        <option value="babylon">Basic Babylon Tests</option>
-        <option value="glide">Glide Animation Tests</option>
-        <option value="ui">UI Text/Button Tests</option>
-        <option value="stress">Stress Tests (Boxes)</option>
-        <option value="objects">Object Creation Tests</option>
-        <option value="sound">Sound Tests</option>
-        <option value="translation">Translation/Movement Tests</option>
-        <option value="rotation">Rotation Tests</option>
-        <option value="scale">Scale Tests</option>
-        <option value="materials">Materials Tests</option>
-        <option value="physics">Physics Tests</option>
-        <option value="effects">Effects Tests</option>
-        <option value="animate">Animation API Tests</option>
-        <option value="concurrency">Concurrency Tests</option>
-        <option value="blocks">Block Tests</option>
-        <option value="all">Run All Tests</option>
+        <option value="all">:Run All Tests</option>
       </select>
       <button id="runTestBtn" style="padding: 5px 15px;">Run Tests</button>
       <button id="clearTestBtn" style="padding: 5px 15px; margin-left: 5px;">Clear Results</button>
+    </div>
+    <div  style="margin: 20px 0;">
+      <p>Test Filter (mocha grep): <span id="mochaFilter"></span></p>
     </div>
 
     <!-- Mocha test results will be displayed here -->
@@ -57,33 +103,48 @@
 
     <!-- Import the test suite -->
     <script type="module">
+
+      // Define test suites in an array
+      // note: this array will change as test suites are refined
+      // some test files (materials, physics, sound, 3xtransform) have several top-level describe blocks
+      // the importFn is the function to call to register the tests with mocha - but if standardised the column could be removed
+      // if the tests were standardised and imported with a glob, (most of) the array could be generated automatically, reducing maintenance
+      // alternatively, the array can be customised to run tagged tests or subsets of tests
+      const testSuiteDefinitions = [
+        { id: "@new", name: ":Run Tests tagged @new", importPath: "", importFn: "", pattern: "@new" },
+        { id: "@notslow", name: ":Run all except @slow", importPath: "", importFn: "", pattern: "/^(?!.*@slow).*$/" },
+        { id: "@onlyslow", name: ":Run only @slow", importPath: "", importFn: "", pattern: "@slow" },
+        { id: "babylon", name: "Basic Babylon Tests", importPath: "./babylon.test.js", importFn: "runTests", pattern: "Flock API Tests" },
+        { id: "glide", name: "Glide Animation Tests", importPath: "./glide.test.js", importFn: "runGlideToTests", pattern: "glideTo function tests" },
+        { id: "ui", name: "UI Text/Button Tests", importPath: "./uitextbutton.test.js", importFn: "runUITests", pattern: "UIText, UIButton, UIInput, and UISlider function tests" },
+        { id: "stress", name: "Stress Tests (Boxes)", importPath: "./boxes.test.js", importFn: "runStressTests", pattern: "Stress test for many boxes" },
+        { id: "objects", name: "Object Creation Tests", importPath: "./objects.test.js", importFn: "runCreateObjectTests", pattern: "createObject tests" },
+        { id: "sound", name: "Sound Tests", importPath: "./sound.test.js", importFn: "runSoundTests", pattern: "@sound" },
+        { id: "translation", name: "Translation/Movement Tests", importPath: "./transform.translate.test.js", importFn: "runTranslationTests", pattern: "@translation" },
+        { id: "rotation", name: "Rotation Tests", importPath: "./transform.rotate.test.js", importFn: "runRotationTests", pattern: "@rotation" },
+        { id: "scale", name: "Scale Tests", importPath: "./transform.scale.test.js", importFn: "runScaleTests", pattern: "@scale" },
+        { id: "materials", name: "Materials Tests", importPath: "./materials.test.js", importFn: "runMaterialsTests", pattern: "@materials" },
+        { id: "physics", name: "Physics Tests", importPath: "./physics.test.js", importFn: "runPhysicsTests", pattern: "@physics" },
+        { id: "effects", name: "Effects Tests", importPath: "./effects.test.js", importFn: "runEffectsTests", pattern: "Effects API" },
+        { id: "animate", name: "Animation API Tests", importPath: "./animate.test.js", importFn: "runAnimateTests", pattern: "Animation API Tests" },
+        { id: "concurrency", name: "Concurrency Tests", importPath: "./concurrency.test.js", importFn: "runConcurrencyTests", pattern: "Concurrency and Stress Tests" },
+        { id: "blocks", name: "Block Tests", importPath: "./blocks.test.js", importFn: "runBlocksTests", pattern: "blocks.js tests" }
+      ];
+
       import * as flockmodule from "../flock.js";
       import "@babylonjs/core/Debug/debugLayer";
       import "@babylonjs/inspector";
-      import { runTests } from "./babylon.test.js"; // Import the test suite
-      import { runGlideToTests } from "./glide.test.js";
-      import { runUITests } from "./uitextbutton.test.js";
-      import { runStressTests } from "./boxes.test.js";
-      import { runCreateObjectTests } from "./objects.test.js";
-      import { runSoundTests } from "./sound.test.js";
-      import { runTranslationTests } from "./transform.translate.test.js";
-      import { runRotationTests } from "./transform.rotate.test.js";
-      import { runScaleTests } from "./transform.scale.test.js";
-      import { runMaterialsTests } from "./materials.test.js";
-      import { runPhysicsTests } from "./physics.test.js";
-      import { runEffectsTests } from "./effects.test.js";
-      import { runAnimateTests } from "./animate.test.js";
-	    import { runConcurrencyTests } from "./concurrency.test.js";
-	    import { runBlocksTests } from "./blocks.test.js";
 
       const flock = flockmodule.flock;
       flock.modelPath = "../models/";
 
       await flock.initialize();
 
+      // use standard mocha HTML reporter – note that paramaterised access to grep is turned off for this, as it conflicts with dropdown selection and cna leave tests confusingly not executing
       mocha.setup({
         ui: "bdd",
-        cleanReferencesAfterRun: false
+        reporter: 'html',
+        cleanReferencesAfterRun: false  // allow tests to be re-run without re-registering the tests
       });
 
       try {
@@ -115,65 +176,149 @@
       }
 
       // Test suite mapping
-      const testSuites = {
-        babylon: () => runTests(flock, chai.expect),
-        glide: () => runGlideToTests(flock),
-        ui: () => runUITests(flock),
-        stress: () => runStressTests(flock),
-        objects: () => runCreateObjectTests(flock),
-        sound: () => runSoundTests(flock),
-        translation: () => runTranslationTests(flock),
-        rotation: () => runRotationTests(flock),
-        scale: () => runScaleTests(flock),
-        materials: () => runMaterialsTests(flock),
-        physics: () => runPhysicsTests(flock),
-        effects: () => runEffectsTests(flock),
-        animate: () => runAnimateTests(flock),
-		    concurrency: () => runConcurrencyTests(flock),
-        blocks: () => runBlocksTests(),
-        all: () => {
-          runTests(flock, chai.expect);
-          runGlideToTests(flock);
-          runUITests(flock);
-          runStressTests(flock);
-          runCreateObjectTests(flock);
-          runSoundTests(flock);
-          runTranslationTests(flock);
-          runRotationTests(flock);
-          runScaleTests(flock);
-          runMaterialsTests(flock);
-          runPhysicsTests(flock);
-          runEffectsTests(flock);
-          runAnimateTests(flock);
-		      runConcurrencyTests(flock);
-          runBlocksTests();
+      // Import all test modules and run them to register tests
+      async function loadAllTests() {
+        // Add an option for each test tag / suite, and try to import the module for a suite
+        for (const suite of testSuiteDefinitions) {
+          // add a new option element to testSelect with value=suite.id and text=suite.name
+          const option = document.createElement('option');
+          option.value = suite.id;
+          option.text = suite.name;
+          document.getElementById('testSelect').appendChild(option);  
+
+          // import the test module if an importPath is defined – some entries may be for tagged tests only
+          if (suite.importPath) {
+            try { 
+              const module = await import(suite.importPath);
+              // Call the function to register tests with mocha, but don't run them yet
+              if (suite.id === "babylon") {
+                module[suite.importFn](flock, chai.expect);
+              } else {
+                module[suite.importFn](flock);  
+              }
+            } catch (error) {
+              console.error(`Error loading test suite ${suite.id}:`, error);
+            }
+          }
         }
-      };
+      }
+
+      // Load all tests immediately, and get test suite mapping
+      await loadAllTests();
 
       // Setup test selection interface
       const testSelect = document.getElementById('testSelect');
       const runTestBtn = document.getElementById('runTestBtn');
       const clearTestBtn = document.getElementById('clearTestBtn');
 
-      runTestBtn.addEventListener('click', () => {
-        const selectedTest = testSelect.value;
-        if (!selectedTest) {
-          alert('Please select a test suite to run');
-          return;
+      // set up (global for this script) selectedTest variable
+      let selectedTest = null;
+
+      function mentionMochaFilter(pattern, name) {
+        const info = `${pattern || "None"}`
+        const filterSpan = document.getElementById('mochaFilter');
+        filterSpan.textContent = info ;
+      }
+
+      function setMochaFiter(pattern, name=null) {
+        mocha.grep(pattern);
+        mentionMochaFilter(pattern, name);
+      }
+
+      function clearMochaFilter() {
+        // clear mocha's filter
+        setMochaFiter(null);
+
+        //// Clear the filter if represented in URL parameters
+        //const currentUrl = new URL(window.location.href);
+        //currentUrl.searchParams.delete('grep');
+        //window.history.replaceState({}, document.title, currentUrl.toString());
+      }
+
+
+      function setupFailuresLink() {
+        const mochaReport = document.getElementById('mocha-report');
+        const failuresLink = document.querySelector('#mocha-stats .failures a');
+        const passesLink = document.querySelector('#mocha-stats .passes a');
+
+        const failuresLinkText = failuresLink.innerHTML;
+        const failuresLinkTextToggled = "(toggle) "+failuresLink.innerHTML;
+        const passesLinkText = passesLink.innerHTML;
+        const passesLinkTextToggled = "(toggle) "+passesLink.innerHTML;
+
+        function showFailures() {
+          mochaReport.dataset.filter = 'failures';
+          failuresLink.innerHTML = failuresLinkTextToggled;
+          failuresLink.onclick = showAll;
+          passesLink.innerHTML = passesLinkText;
+          passesLink.onclick = showPasses;
+          // Scroll to first failure
+          //const firstFailure = document.querySelector('#mocha-report .test.fail');
+          //if (firstFailure) {
+          //  firstFailure.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          //}
         }
 
+        function showPasses() {
+          mochaReport.dataset.filter = 'passes';
+          failuresLink.innerHTML = failuresLinkText;
+          failuresLink.onclick = showFailures;
+          passesLink.innerHTML = passesLinkTextToggled;
+          passesLink.onclick = showAll;
+        }
+
+        function showAll() {
+          mochaReport.dataset.filter = 'all';
+          failuresLink.innerHTML = failuresLinkText;
+          failuresLink.onclick = showFailures;
+          passesLink.innerHTML = passesLinkText;
+          passesLink.onclick = showPasses;
+        }
+
+        if (failuresLink) {
+          failuresLink.onclick = showFailures
+        }
+        if (passesLink) {
+          passesLink.onclick = showPasses;
+        }
+      }
+
+      testSelect.addEventListener('change', () => {
+        selectedTest = testSelect.value;
+        
         // Clear previous results
         document.getElementById('mocha').innerHTML = '';
 
-        // Run selected test suite
-        if (testSuites[selectedTest]) {
-          testSuites[selectedTest]();
-          mocha.run();
+        // Reset any previous grep pattern
+        clearMochaFilter();
+        
+        // If a specific test suite / tag is selected (not "all")
+        if (selectedTest !== "all") {
+          // Find the pattern for the selected test suite
+          const testSuite = testSuiteDefinitions.find(suite => suite.id === selectedTest);
+          if (testSuite && testSuite.pattern) {
+            // Apply the grep pattern to filter tests
+            setMochaFiter(testSuite.pattern, testSuite.name);
+          }
         }
       });
 
+      runTestBtn.addEventListener('click', () => {
+          if (!selectedTest) {
+            alert('Please select a test suite to run');
+            return;
+        }
+
+        // Run the filtered tests
+        let runner = mocha.run();
+        runner.on("end", setupFailuresLink);
+      });
+
       clearTestBtn.addEventListener('click', () => {
+        // workroomprds says: let's clarify what this is for. I'm concerned that we're introducing a covert state – and that may mean re-running tests produces different behavior becuase the tests are in a slightly different state
         document.getElementById('mocha').innerHTML = '';
+        testSelect.selectedIndex = 0;
+        clearMochaFilter();
       });
 
       // Show debug layer

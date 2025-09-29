@@ -1,7 +1,7 @@
 import { expect } from "chai";
 
 export function runTranslationTests(flock) {
-  describe("Translation API Tests", function () {
+  describe("Translation API Tests @translation @slow", function () {
 	let boxId;
 
 	beforeEach(async function () {
@@ -105,7 +105,7 @@ export function runTranslationTests(flock) {
 
   });
 
-	describe("moveTo API Tests", function () {
+	describe("moveTo API Tests @translation", function () {
 	  let box1Id, box2Id;
 
 	  beforeEach(function () {
@@ -145,7 +145,7 @@ export function runTranslationTests(flock) {
 		  expect(box1.getAbsolutePosition().z).to.be.closeTo(box2.getAbsolutePosition().z, 0.01);
 		});
 
-	  it("should move a box to the target box centre position without changing Y when useY is false", function (done) {
+	  it("should move a box to the target box centre position without changing Y when useY is false @slow", function (done) {
 		flock.positionAt(box1Id, { x: 0, y: 10, z: 0 });
 
 		setTimeout(() => {
@@ -167,7 +167,7 @@ export function runTranslationTests(flock) {
 	  });
 	});
 
-	describe("moveByVector API Tests", function () {
+	describe("moveByVector API Tests @translation", function () {
 	  let boxId;
 	  beforeEach(function () {
 		boxId = `box_${Date.now()}`;
@@ -240,7 +240,7 @@ export function runTranslationTests(flock) {
 	  });
 	});
 
-	describe("distanceTo API Tests", function () {
+	describe("distanceTo API Tests @translation", function () {
 	  let box1Id, box2Id, box3Id;
 	  beforeEach(function () {
 		box1Id = `box1_${Date.now()}`;

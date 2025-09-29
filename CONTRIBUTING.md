@@ -16,6 +16,8 @@ Flock XR is a creative coding platform for 3D development using Blockly and Baby
 - 🌍 **Translations** - Help us reach more users worldwide
 - 🎨 **UI/UX improvements** - Make the interface better
 
+Before starting, we suggest you [get in touch](https://flipcomputing.com/contact/).
+
 ## 🛠️ Development Setup
 
 ### Prerequisites
@@ -61,36 +63,64 @@ Flock XR is a creative coding platform for 3D development using Blockly and Baby
    ```
 6. **Create a Pull Request** on GitHub
 
+For more specific developer-facing documentation, please see [dev-docs.md](dev-docs/dev-docs.md).
+
 ## 📁 Project Structure
 
-Understanding the codebase:
+Understanding the codebase – key files:
 - **`index.html`** - Main HTML file that defines the application structure, UI layout (menu, canvas, code panel), and loads all necessary scripts and stylesheets
-- **`main.js`** - Main application entry point that initializes Blockly workspace, handles code execution, manages UI views (canvas/blocks/split), and controls file operations
-- **`ui/designview.js`** - Visual design interface enabling direct 3D object manipulation with gizmos, synchronizing 3D changes with Blockly blocks
+- **`main/main.js`** - Main application entry point that initializes Blockly workspace, handles code execution, manages UI views (canvas/blocks/split), and controls file operations
 - **`flock.js`** - Main Flock engine
-- **`api/`** - Core Flock XR API functions (scene, animation, physics, etc.)
+- **`ui/designview.js`** - Visual design interface enabling direct 3D object manipulation with gizmos, synchronizing 3D changes with Blockly blocks
 - **`blocks.js`** - Block definitions
-- **`blocks/`** - Additional Blockly block definitions
-- **`generators.js`** - Blockly JavaSode generators for blocks
+- **`generators.js`** - Blockly JavaScript generators for blocks
 - **`toolbox.js`** - Blockly toolbox configuration
-- **`examples/`** - Sample projects and demos
-- **`models/`** - 3D models (.glb files)
+
+Directories:
+- **`api/`** - Core Flock XR API functions (scene, animation, physics, etc.)
+- **`blocks/`** - Additional Blockly block definitions
+- **`docs/`** - Getting started documentation
+- **`examples/`** - Example project JSON files including those featured in the Demo dropdown
+- **`fonts/`** - Fonts used in UI and 3D text generation
 - **`images/`** - Images used in UI
+- **`locale/`** - localisation / translation
+- **`main/`** - application file to support flock engine
+- **`models/`** - 3D models (.glb files)
 - **`textures/`** - Texture files for materials
 - **`sounds/`** - Audio files
-- **`fonts/`** - Fonts used in UI and 3D text generation
-- **`examples/`** - Example project JSON files including those featured in the Demo dropdown
 - **`tests/`** - Test files (please add tests for new features!)
+- **`ui/`** – UI files
 
 ## 🧪 Testing
 
 We use Mocha and Chai for testing, plus Playwright for end-to-end testing. Always test your changes:
 
 ### Unit/Integration Tests (Mocha & Chai)
+**Add new tests** for any features you create
+
+#### Run tests
 1. **Run the development server**: `npm run dev`
-2. **Visit the test page**: http://localhost:5173/tests/tests.html
-3. **Select tests** from the dropdown and click "Run Tests"
-4. **Add new tests** for any features you create
+1. **Visit the test page**: http://localhost:5173/tests/tests.html
+1. **Select tests** from the dropdown and click _Run Tests_ 
+
+
+#### Filtering tests and test results
+* **Get fast feedback** by using the _Run all except @slow_ option
+* **Run only your newest tests** by tagging those tets with @new and picking _Run tests tagged @new_
+* **Focus on results** with the _failures_ / _passes_ links in report
+* **Show the test code** by clicking on test name in the report
+* **Tag slow tests with @slow** so that they can be run separately if needed.
+* **Tag new tests with @new** so that you can fiter on those new tests. Remove tag when they're no longer new.
+
+#### Tagging tests
+To add a tag, change the `describe` or `it` text in unit tests to add a tag. 
+
+#### Adding new unit test files / adding new tags to test runner
+* Array `testSuiteDefinitions` corresponds to the test selection dropdown. Eaxh test file, and each selectable tag, need a definition.
+* Modify `testSuiteDefinitions` in `tests/tests.html` to pick up the test file. Each test file needs an entry.
+* Modify `testSuiteDefinitions` in `tests/tests.html` to add tags or names to focus. Each tag needs an entry.
+* Note that some test suites are selected/filtered on a name (the name from the top `describe` if there's only one) and others on tag (added to all top-level describes if several).
+
 
 ### End-to-End Tests (Playwright)
 1. **Run all Playwright tests**: `npx playwright test`

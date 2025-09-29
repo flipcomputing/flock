@@ -38,8 +38,16 @@ localPort = 4173
 externalPort = 3001
 
 [[ports]]
-localPort = 5173
+localPort = 5000
 externalPort = 80
+
+[[ports]]
+localPort = 5001
+externalPort = 6000
+
+[[ports]]
+localPort = 5173
+externalPort = 5173
 
 [[ports]]
 localPort = 5174
@@ -59,16 +67,11 @@ externalPort = 5000
 
 [[ports]]
 localPort = 5178
-externalPort = 5173
 
 [[ports]]
 localPort = 9323
 externalPort = 3003
 exposeLocalhost = true
-
-[[ports]]
-localPort = 5000
-externalPort = 80
 
 [agent]
 expertMode = true
@@ -89,10 +92,10 @@ args = "Dev Server"
 name = "Dev Server"
 author = "agent"
 
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "npm run dev"
-waitForPort = 5000
-
 [workflows.workflow.metadata]
 outputType = "webview"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "npm run dev -- --port 5000 --host 0.0.0.0"
+waitForPort = 5000

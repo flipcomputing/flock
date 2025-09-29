@@ -12,7 +12,6 @@ import {
 import { registerFieldColour } from "@blockly/field-colour";
 import { createThemeConfig } from "./main/themes.js";
 
-// Register the default Blockly color field
 registerFieldColour();
 
 export let nextVariableIndexes = {};
@@ -119,6 +118,7 @@ export function handleBlockDelete(event) {
 }
 
 export function handleMeshLifecycleChange(block, changeEvent) {
+ 
   const mesh = getMeshFromBlock(block);
 
   if (
@@ -165,31 +165,70 @@ export function handleFieldOrChildChange(containerBlock, changeEvent) {
   if (
     changeEvent.type !== Blockly.Events.BLOCK_CHANGE ||
     changeEvent.element !== "field"
-  )
+  ) {
     return false;
+  }
 
-  const changedBlock = Blockly.getMainWorkspace().getBlockById(
-    changeEvent.blockId,
-  );
+  const ws = Blockly.getMainWorkspace?.();
+  const changedBlock = ws?.getBlockById?.(changeEvent.blockId);
   if (!changedBlock) return false;
 
-  // Direct change on container block
   if (changedBlock.id === containerBlock.id) {
     updateOrCreateMeshFromBlock(containerBlock, changeEvent);
     return true;
   }
 
-  // Change on an unchainable child block
-  const parent = changedBlock.getParent();
+  const parent = changedBlock.getParent?.();
   if (parent && parent.id === containerBlock.id) {
-    if (changedBlock.nextConnection || changedBlock.previousConnection)
-      return false;
+    if (changedBlock.nextConnection || changedBlock.previousConnection) return false;
     updateOrCreateMeshFromBlock(containerBlock, changeEvent);
     return true;
   }
 
+  if (containerBlock.type === "create_map") {
+    const materialBlock = containerBlock.getInputTargetBlock?.("MATERIAL");
+    if (materialBlock) {
+      // If the MATERIAL block itself changed, forward.
+      if (changedBlock.id === materialBlock.id) {
+        updateOrCreateMeshFromBlock(containerBlock, changeEvent);
+        return true;
+      }
+
+      // Forward if the change occurred in the MATERIAL subtree via VALUE inputs only (not statement chains).
+      const INPUT_VALUE =
+        typeof Blockly?.INPUT_VALUE !== "undefined" ? Blockly.INPUT_VALUE : 1;
+
+      // Walk up from the changed block to the MATERIAL block,
+      // ensuring each step is through a VALUE input connection.
+      let node = changedBlock;
+      while (node && node !== materialBlock) {
+        const p = node.getParent?.();
+        if (!p) break;
+
+        const viaValueInput = (p.inputList || []).some(
+          (inp) =>
+            inp?.type === INPUT_VALUE &&
+            inp?.connection?.targetBlock?.() === node
+        );
+
+        if (!viaValueInput) {
+          // Left the MATERIAL value-input subtree → do not forward.
+          node = null;
+          break;
+        }
+        node = p;
+      }
+
+      if (node === materialBlock) {
+        updateOrCreateMeshFromBlock(containerBlock, changeEvent);
+        return true;
+      }
+    }
+  }
+
   return false;
 }
+
 
 export function handleParentLinkedUpdate(containerBlock, changeEvent) {
   if (
@@ -535,21 +574,21 @@ export function ensureFreshVarOnDuplicate(
 
 /*
 export default Blockly.Theme.defineTheme("flock", {
-        base: Blockly.Themes.Modern,
-        componentStyles: {
-                workspaceBackgroundColour: "white",
-                toolboxBackgroundColour: "#ffffff66",
-                //'toolboxForegroundColour': '#fff',
-                //'flyoutBackgroundColour': '#252526',
-                //'flyoutForegroundColour': '#ccc',
-                //'flyoutOpacity': 1,
-                //'scrollbarColour': '#797979',
-                insertionMarkerColour: "#defd6c",
-                insertionMarkerOpacity: 0.3,
-                scrollbarOpacity: 0.4,
-                cursorColour: "#defd6c",
-                //'blackBackground': '#333',
-        },
+  base: Blockly.Themes.Modern,
+  componentStyles: {
+    workspaceBackgroundColour: "white",
+    toolboxBackgroundColour: "#ffffff66",
+    //'toolboxForegroundColour': '#fff',
+    //'flyoutBackgroundColour': '#252526',
+    //'flyoutForegroundColour': '#ccc',
+    //'flyoutOpacity': 1,
+    //'scrollbarColour': '#797979',
+    insertionMarkerColour: "#defd6c",
+    insertionMarkerOpacity: 0.3,
+    scrollbarOpacity: 0.4,
+    cursorColour: "#defd6c",
+    //'blackBackground': '#333',
+  },
 });
 */
 
@@ -668,7 +707,7 @@ export function initializeVariableIndexes() {
     "3dtext": 1,
     sound: 1,
     character: 1,
-    object: 1,
+    item: 1,
     instrument: 1,
     animation: 1,
     clone: 1,

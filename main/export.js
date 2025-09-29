@@ -1,8 +1,6 @@
 import * as Blockly from "blockly";
-import {
-	importSnippet,
-} from "./files.js";
-import { getSnippetOption } from "./translation.js"
+import { importSnippet } from "./files.js";
+import { getSnippetOption } from "./translation.js";
 
 async function exportBlockSnippet(block) {
 	try {
@@ -56,7 +54,7 @@ async function exportBlockSnippet(block) {
 	}
 }
 
-export function addExportContextMenuOptions(){
+export function addExportContextMenuOptions() {
 	addExportContextMenuOption();
 	addImportContextMenuOption();
 	//addExportSVGContextMenuOption();

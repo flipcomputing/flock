@@ -262,6 +262,9 @@ Rotates a mesh instantly.
 - `meshName` (string): Name of the mesh
 - `x`, `y`, `z` (number): Rotation values
 
+#### `rotateTo(meshName, x, y, z)`
+Rotates a mesh to a specific 3D rotation instantly.
+
 #### `scale(meshName, scaling, options)`
 Scales a mesh.
 

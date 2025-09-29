@@ -6,6 +6,8 @@ import {
   characterNames,
   objectColours,
 } from "../config.js";
+import {setPositionValues} from "./addmeshes.js";
+import {getCanvasXAndCanvasYValues} from "./gizmos.js";
 
 const colorFields = {
   HAIR_COLOR: "#000000", // Hair: black
@@ -16,44 +18,177 @@ const colorFields = {
   TSHIRT_COLOR: "#FF8F60", // T-Shirt: light orange
 };
 
-// Helper function to create and attach shadow blocks
-function addShadowBlock(block, inputName, blockType, defaultValue) {
-  const shadowBlock = Blockly.getMainWorkspace().newBlock(blockType);
-
-  // Determine the correct field based on block type
-  const fieldName = ["colour", "skin_colour"].includes(blockType)
-    ? "COLOR"
-    : "NUM";
-
-  shadowBlock.setFieldValue(String(defaultValue), fieldName);
-  shadowBlock.setShadow(true); // Ensure it's treated as a shadow block
-  shadowBlock.setMovable(false); // Prevent dragging
-  shadowBlock.setDeletable(false); // Prevent deletion
-  shadowBlock.initSvg();
-  shadowBlock.render();
-  block.getInput(inputName).connection.connect(shadowBlock.outputConnection);
+function roundPositionValue(value) {
+ return Math.round(value * 10) / 10; // 1 decimal place
 }
 
+// --- helpers (local to this file) ---
+function makeShadowSpec(type, fields) { return { type, fields }; }
+function roundPos(v) { return typeof roundPositionValue === 'function' ? roundPositionValue(v) : v; }
 
+// Per-shape defaults + inputs
+const __CREATE_SPEC = {
+  create_box: {
+    defaults: ({ c }) => ({ COLOR: c, WIDTH: 1, HEIGHT: 1, DEPTH: 1 }),
+    inputs: ['COLOR','WIDTH','HEIGHT','DEPTH'],
+  },
+  create_sphere: {
+    defaults: ({ c }) => ({ COLOR: c, DIAMETER_X: 1, DIAMETER_Y: 1, DIAMETER_Z: 1 }),
+    inputs: ['COLOR','DIAMETER_X','DIAMETER_Y','DIAMETER_Z'],
+  },
+  create_cylinder: {
+    defaults: ({ c }) => ({
+      COLOR: c, HEIGHT: 1, DIAMETER_TOP: 1, DIAMETER_BOTTOM: 1, TESSELLATIONS: 24
+    }),
+    inputs: ['COLOR','HEIGHT','DIAMETER_TOP','DIAMETER_BOTTOM','TESSELLATIONS'],
+  },
+  create_capsule: {
+    defaults: ({ c }) => ({ COLOR: c, DIAMETER: 1, HEIGHT: 2 }),
+    inputs: ['COLOR','DIAMETER','HEIGHT'],
+  },
+  create_plane: {
+    defaults: ({ c }) => ({ COLOR: c, WIDTH: 2, HEIGHT: 2 }),
+    inputs: ['COLOR','WIDTH','HEIGHT'],
+  },
+};
 
-// Helper function to set a numeric input value or create a shadow block if missing
-function setNumberInput(block, inputName, value) {
-  let inputConnection = block.getInput(inputName).connection;
-  let targetBlock = inputConnection.targetBlock();
+function __metaFor(name) {
+  return name === 'COLOR'
+    ? { type: 'colour', field: 'COLOR' }     // your deliberate colour shadow
+    : { type: 'math_number', field: 'NUM' };
+}
 
-  if (!targetBlock) {
-    // Create a shadow block for the input if none exists
-    const shadowBlock = Blockly.getMainWorkspace().newBlock("math_number");
-    shadowBlock.setFieldValue(String(Math.round(value * 10) / 10), "NUM");
-    shadowBlock.setShadow(true); // Ensure it's treated as a shadow block
-    shadowBlock.setMovable(false); // Prevent dragging
-    shadowBlock.setDeletable(false); // Prevent deletion
-    shadowBlock.initSvg();
-    shadowBlock.render();
-    inputConnection.connect(shadowBlock.outputConnection);
-  } else {
-    // Set the value if a block is already connected
-    targetBlock.setFieldValue(String(Math.round(value * 10) / 10), "NUM");
+// --- DROP-IN REPLACEMENT ---
+function createBlockWithShadows(shapeType, position) {
+  const workspace = Blockly.getMainWorkspace();
+  const spec = __CREATE_SPEC[shapeType];
+  if (!spec) return null;
+
+  const c = flock.randomColour();
+  const posX = position?.x !== undefined ? roundPos(position.x) : 0;
+  const posY = position?.y !== undefined ? roundPos(position.y) : 0;
+  const posZ = position?.z !== undefined ? roundPos(position.z) : 0;
+
+  const defaults = { ...spec.defaults({ c }), X: posX, Y: posY, Z: posZ };
+  const allInputs = [...spec.inputs, 'X','Y','Z'];
+
+  // Build serializer JSON with shadows populated
+  const data = { type: shapeType, inputs: {} };
+  for (const name of allInputs) {
+    const { type, field } = __metaFor(name);
+    data.inputs[name] = { shadow: makeShadowSpec(type, { [field]: defaults[name] }) };
+  }
+
+  // --- Undo grouping semantics ---
+  // If a group already exists (e.g., your START block just created it), reuse it.
+  // Otherwise, create a temporary one so this call is a single undo step on its own.
+  const existingGroup = Blockly.Events.getGroup();
+  const startTempGroup = !existingGroup;
+  if (startTempGroup) Blockly.Events.setGroup(true);
+  const groupId = Blockly.Events.getGroup();
+
+  const eventsWereEnabled = Blockly.Events.isEnabled();
+  if (!eventsWereEnabled) Blockly.Events.enable();
+
+  try {
+    // Pin the same group around the append so it joins the START block's group when present.
+    Blockly.Events.setGroup(groupId);
+
+    let block;
+    try {
+      // Modern signature
+      block = Blockly.serialization.blocks.append(data, workspace, { recordUndo: true });
+    } catch {
+      // Older signature: ensure it's recorded on the undo stack
+      block = Blockly.serialization.blocks.append(data, workspace);
+      const ev = new Blockly.Events.BlockCreate(block);
+      ev.group = groupId;
+      ev.recordUndo = true;
+      Blockly.Events.fire(ev);
+    }
+
+    block?.initSvg?.();
+    block?.render?.();
+    return block;
+
+  } finally {
+    // Close temp group only if we opened it here; otherwise leave caller's group intact.
+    if (startTempGroup) Blockly.Events.setGroup(false);
+    else Blockly.Events.setGroup(existingGroup);
+    if (!eventsWereEnabled) Blockly.Events.disable();
+  }
+}
+
+function addShapeToWorkspace(shapeType, position) {
+  const workspace = Blockly.getMainWorkspace();
+
+  const existingGroup = Blockly.Events.getGroup();
+  const startTempGroup = !existingGroup;
+  if (startTempGroup) Blockly.Events.setGroup(true);
+  const groupId = Blockly.Events.getGroup();
+
+  const eventsWereEnabled = Blockly.Events.isEnabled();
+  if (!eventsWereEnabled) Blockly.Events.enable();
+
+  try {
+    // --- 1) Shape block (your JSON-based creator) ---
+    // Assumes createBlockWithShadows uses serialization.append internally and
+    // respects the current event group (from earlier messages).
+    Blockly.Events.setGroup(groupId);
+    const block = createBlockWithShadows(shapeType, position);
+    if (!block) {
+      console.error(`Failed to create block of type: ${shapeType}`);
+      return null;
+    }
+
+    // Optional: set fields explicitly (still in same group)
+    try {
+      setPositionValues(block, position, shapeType);
+    } catch (e) {
+      console.error('Error setting position values:', e);
+    }
+
+    // --- 2) Start block via JSON, same group & undo ---
+    const startSpec = { type: 'start' };
+    let startBlock;
+    try {
+      startBlock = Blockly.serialization.blocks.append(startSpec, workspace, { recordUndo: true });
+    } catch {
+      startBlock = Blockly.serialization.blocks.append(startSpec, workspace);
+      const ev = new Blockly.Events.BlockCreate(startBlock);
+      ev.group = groupId;
+      ev.recordUndo = true;
+      Blockly.Events.fire(ev);
+    }
+    startBlock?.initSvg?.();
+    startBlock?.render?.();
+
+    // --- 3) Connect shape under start (same group) ---
+    const connection = startBlock?.getInput('DO')?.connection;
+    if (connection && block.previousConnection) {
+      try {
+        connection.connect(block.previousConnection);
+      } catch (e) {
+        console.error('Error connecting to start block:', e);
+      }
+    }
+
+    // --- 4) Highlight (UI-only; not on undo stack) ---
+    try {
+      highlightBlockById(workspace, block);
+    } catch (e) {
+      console.error('Error highlighting block:', e);
+    }
+
+    return block;
+  } catch (error) {
+    console.error('Error in addShapeToWorkspace:', error);
+    return null;
+  } finally {
+    // Close temp group only if we opened it here
+    if (startTempGroup) Blockly.Events.setGroup(false);
+    else Blockly.Events.setGroup(existingGroup);
+    if (!eventsWereEnabled) Blockly.Events.disable();
   }
 }
 
@@ -121,177 +256,139 @@ export function highlightBlockById(workspace, block) {
   }
 }
 
-import { setPositionValues } from "./addmeshes.js";
-
-function addShapeToWorkspace(shapeType, position) {
-  //console.log("Adding shape to workspace", shapeType, position);
-  Blockly.Events.setGroup(true);
-
-  // Create the shape block in the Blockly workspace
-
-  const block = Blockly.getMainWorkspace().newBlock(shapeType);
-
-  Blockly.Events.disable();
-  let color,
-    width,
-    height,
-    depth,
-    diameterX,
-    diameterY,
-    diameterZ,
-    diameter,
-    diameterTop,
-    diameterBottom,
-    sides;
-
-  // Set different fields based on the shape type and capture the actual values
-  switch (shapeType) {
-    case "create_box":
-      color = flock.randomColour();
-      width = 1;
-      height = 1;
-      depth = 1;
-      addShadowBlock(block, "COLOR", "colour", color);
-      addShadowBlock(block, "WIDTH", "math_number", width);
-      addShadowBlock(block, "HEIGHT", "math_number", height);
-      addShadowBlock(block, "DEPTH", "math_number", depth);
-      break;
-
-    case "create_sphere":
-      color = flock.randomColour();
-      diameterX = 1;
-      diameterY = 1;
-      diameterZ = 1;
-      addShadowBlock(block, "COLOR", "colour", color);
-      addShadowBlock(block, "DIAMETER_X", "math_number", diameterX);
-      addShadowBlock(block, "DIAMETER_Y", "math_number", diameterY);
-      addShadowBlock(block, "DIAMETER_Z", "math_number", diameterZ);
-      break;
-
-    case "create_cylinder":
-      color = flock.randomColour();
-      height = 1;
-      diameterTop = 1;
-      diameterBottom = 1;
-      sides = 24;
-      addShadowBlock(block, "COLOR", "colour", color);
-      addShadowBlock(block, "HEIGHT", "math_number", height);
-      addShadowBlock(block, "DIAMETER_TOP", "math_number", diameterTop);
-      addShadowBlock(block, "DIAMETER_BOTTOM", "math_number", diameterBottom);
-      addShadowBlock(block, "TESSELLATIONS", "math_number", sides);
-      break;
-
-    case "create_capsule":
-      color = flock.randomColour();
-      diameter = 1;
-      height = 2;
-      addShadowBlock(block, "COLOR", "colour", color);
-      addShadowBlock(block, "DIAMETER", "math_number", diameter);
-      addShadowBlock(block, "HEIGHT", "math_number", height);
-      break;
-
-    case "create_plane":
-      color = flock.randomColour();
-      width = 2;
-      height = 2;
-      addShadowBlock(block, "COLOR", "colour", color);
-      addShadowBlock(block, "WIDTH", "math_number", width);
-      addShadowBlock(block, "HEIGHT", "math_number", height);
-      break;
-
-    default:
-      Blockly.Events.setGroup(false);
-      return;
-  }
-
-  // Set position values (X, Y, Z) from the picked position
-  setPositionValues(block, position, shapeType);
-  // Initialize and render the shape block
-  block.initSvg();
-  block.render();
-  Blockly.Events.enable();
-
-  // Create a new 'start' block and connect the shape block to it
-  const startBlock = Blockly.getMainWorkspace().newBlock("start");
-  startBlock.initSvg();
-  startBlock.render();
-
-  const connection = startBlock.getInput("DO").connection;
-  if (connection) {
-    connection.connect(block.previousConnection);
-  }
-
-  Blockly.Events.setGroup(false);
-
-  highlightBlockById(Blockly.getMainWorkspace(), block);
-}
-
 function selectCharacter(characterName) {
-  document.getElementById("shapes-dropdown").style.display = "none";
+  // Hide dropdown if present
+  const dd = document.getElementById("shapes-dropdown");
+  if (dd) dd.style.display = "none";
 
-  // Remove any previous handler before adding a new one!
+  const workspace = Blockly.getMainWorkspace();
+  const canvas = flock.canvas || flock.scene?.getEngine()?.getRenderingCanvas?.();
+
+  // Remove any previous handler
   if (flock.activePickHandler) {
-    window.removeEventListener("click", flock.activePickHandler);
+    window.removeEventListener("click", flock.activePickHandler, true);
     flock.activePickHandler = null;
+  }
+
+  // ---- helpers (scoped) ----
+  function appendWithUndo(spec, ws, groupId) {
+    let block;
+    try {
+      block = Blockly.serialization.blocks.append(spec, ws, { recordUndo: true });
+    } catch {
+      block = Blockly.serialization.blocks.append(spec, ws);
+      const ev = new Blockly.Events.BlockCreate(block);
+      ev.group = groupId;
+      ev.recordUndo = true;
+      Blockly.Events.fire(ev);
+    }
+    block?.initSvg?.();
+    block?.render?.();
+    return block;
+  }
+  function addNumberShadow(spec, inputName, value) {
+    spec.inputs ||= {};
+    spec.inputs[inputName] = { shadow: { type: "math_number", fields: { NUM: value } } };
+  }
+  function addColourShadow(spec, inputName, shadowType, hex) {
+    spec.inputs ||= {};
+    spec.inputs[inputName] = { shadow: { type: shadowType, fields: { COLOR: hex } } };
+  }
+  function addPositionShadows(spec, pos) {
+    const rx = typeof roundPositionValue === "function" ? roundPositionValue : (v) => v;
+    addNumberShadow(spec, "X", rx(pos?.x ?? 0));
+    addNumberShadow(spec, "Y", rx(pos?.y ?? 0));
+    addNumberShadow(spec, "Z", rx(pos?.z ?? 0));
+  }
+  function cleanup() {
+    document.body.style.cursor = "default";
+    if (flock.activePickHandler) {
+      window.removeEventListener("click", flock.activePickHandler, true);
+      flock.activePickHandler = null;
+    }
   }
 
   flock.activePickHandler = function onPick(event) {
-    const canvasRect = flock.canvas.getBoundingClientRect();
-    const canvasX = event.clientX - canvasRect.left;
-    const canvasY = event.clientY - canvasRect.top;
+    if (!canvas) return cleanup();
+    const rect = canvas.getBoundingClientRect();
+    const x = event.clientX - rect.left;
+    const y = event.clientY - rect.top;
 
-    const pickResult = flock.scene.pick(canvasX, canvasY);
-    if (pickResult.hit) {
-      const pickedPosition = pickResult.pickedPoint;
-
-      Blockly.Events.setGroup(true);
-      try {
-        const block = Blockly.getMainWorkspace().newBlock("load_character");
-        block.setFieldValue(characterName, "MODELS");
-
-        setPositionValues(block, pickedPosition, "load_character");
-
-        const scale = 1;
-        addShadowBlock(block, "SCALE", "math_number", scale);
-        Object.keys(colorFields).forEach((colorInputName) => {
-          addShadowBlock(
-            block,
-            colorInputName,
-            colorInputName === "SKIN_COLOR" ? "skin_colour" : "colour",
-            colorFields[colorInputName],
-          );
-        });
-
-        block.initSvg();
-        block.render();
-        highlightBlockById(Blockly.getMainWorkspace(), block);
-
-        const startBlock = Blockly.getMainWorkspace().newBlock("start");
-        startBlock.initSvg();
-        startBlock.render();
-        const connection = startBlock.getInput("DO").connection;
-        if (connection) {
-          connection.connect(block.previousConnection);
-        }
-      } finally {
-        Blockly.Events.setGroup(false);
-      }
+    // Ignore clicks outside canvas
+    if (x < 0 || y < 0 || x > rect.width || y > rect.height) {
+      return cleanup();
     }
 
-    document.body.style.cursor = "default";
-    window.removeEventListener("click", flock.activePickHandler);
-    flock.activePickHandler = null;
+    const pick = flock.scene.pick(x, y);
+    if (!pick?.hit) {
+      return cleanup();
+    }
+
+    const pickedPosition = pick.pickedPoint;
+
+    // --- single undo/redo group for everything ---
+    const prevGroup = Blockly.Events.getGroup();
+    const startTempGroup = !prevGroup;
+    if (startTempGroup) Blockly.Events.setGroup(true);
+    const groupId = Blockly.Events.getGroup();
+
+    const eventsWereEnabled = Blockly.Events.isEnabled();
+    if (!eventsWereEnabled) Blockly.Events.enable();
+
+    try {
+      Blockly.Events.setGroup(groupId);
+
+      // 1) Build character block spec with fields + shadows
+      const spec = {
+        type: "load_character",
+        fields: { MODELS: characterName },
+        inputs: {}
+      };
+      addPositionShadows(spec, pickedPosition);
+      addNumberShadow(spec, "SCALE", 1);
+
+      // Colour inputs per your map; SKIN_COLOR uses 'skin_colour'
+      if (typeof colorFields === "object" && colorFields) {
+        for (const [inputName, hex] of Object.entries(colorFields)) {
+          const shadowType = inputName === "SKIN_COLOR" ? "skin_colour" : "colour";
+          addColourShadow(spec, inputName, shadowType, hex);
+        }
+      }
+
+      const charBlock = appendWithUndo(spec, workspace, groupId);
+
+      // Optional extra: keep parity with your existing behaviour
+      try { setPositionValues?.(charBlock, pickedPosition, "load_character"); } catch {}
+
+      // 2) Create start block and connect character under it
+      const startBlock = appendWithUndo({ type: "start" }, workspace, groupId);
+      const conn = startBlock?.getInput("DO")?.connection;
+      if (conn && charBlock?.previousConnection) {
+        try { conn.connect(charBlock.previousConnection); } catch (e) { console.error(e); }
+      }
+
+      // 3) Highlight for UX (UI-only)
+      try { highlightBlockById?.(workspace, charBlock); } catch {}
+
+    } finally {
+      if (startTempGroup) Blockly.Events.setGroup(false);
+      else Blockly.Events.setGroup(prevGroup);
+      if (!eventsWereEnabled) Blockly.Events.disable();
+    }
+
+    cleanup();
   };
 
-  // Start keyboard placement mode with singleton handler
-  startKeyboardPlacementMode(flock.activePickHandler);
+  // Start keyboard placement (shares same handler)
+  try { startKeyboardPlacementMode?.(flock.activePickHandler); } catch {}
 
-  // Also set up mouse click as fallback
+  // Mouse fallback (capture=true so we win over other listeners)
   document.body.style.cursor = "crosshair";
   setTimeout(() => {
-    window.addEventListener("click", flock.activePickHandler);
-  }, 300);
+    window.addEventListener("click", flock.activePickHandler, true);
+  }, 0);
 }
+
 
 function selectShape(shapeType) {
   document.getElementById("shapes-dropdown").style.display = "none";
@@ -304,8 +401,7 @@ function selectShape(shapeType) {
 
   flock.activePickHandler = function onPick(event) {
     const canvasRect = flock.canvas.getBoundingClientRect();
-    const canvasX = event.clientX - canvasRect.left;
-    const canvasY = event.clientY - canvasRect.top;
+    const [canvasX, canvasY] = getCanvasXAndCanvasYValues(event, canvasRect);
 
     const pickResult = flock.scene.pick(canvasX, canvasY);
     if (pickResult && pickResult.hit) {
@@ -333,8 +429,7 @@ function selectModel(modelName) {
 
   const onPick = function (event) {
     const canvasRect = flock.canvas.getBoundingClientRect();
-    const canvasX = event.clientX - canvasRect.left;
-    const canvasY = event.clientY - canvasRect.top;
+    const [canvasX, canvasY] = getCanvasXAndCanvasYValues(event, canvasRect);
 
     const pickResult = flock.scene.pick(canvasX, canvasY);
     if (pickResult.hit) {
@@ -395,104 +490,220 @@ function selectMultiObject(objectName) {
   selectObjectWithCommand(objectName, "shapes-dropdown", "load_multi_object");
 }
 
+// --- tiny helpers used below ---
+function __appendWithUndo(spec, workspace, groupId) {
+  let block;
+  try {
+    block = Blockly.serialization.blocks.append(spec, workspace, { recordUndo: true });
+  } catch {
+    block = Blockly.serialization.blocks.append(spec, workspace);
+    const ev = new Blockly.Events.BlockCreate(block);
+    ev.group = groupId;
+    ev.recordUndo = true;
+    Blockly.Events.fire(ev);
+  }
+  block?.initSvg?.();
+  block?.render?.();
+  return block;
+}
+
+function __shadowSpec(type, fieldName, value) {
+  return { type, fields: { [fieldName]: value } };
+}
+
+// Add a numeric shadow to an input in a JSON spec
+function __addNumberShadow(spec, inputName, value) {
+  spec.inputs ||= {};
+  spec.inputs[inputName] = { shadow: __shadowSpec('math_number', 'NUM', value) };
+  return spec;
+}
+// Add colour shadow (your deliberate custom shadow: type 'colour', field 'COLOR')
+function __addColourShadow(spec, inputName, hex) {
+  spec.inputs ||= {};
+  spec.inputs[inputName] = { shadow: __shadowSpec('colour', 'COLOR', hex) };
+  return spec;
+}
+
+// Set X/Y/Z shadows from a Vector3 (or object with x,y,z)
+function __withPositionShadows(spec, pos, command) {
+  const px = typeof roundPositionValue === 'function' ? roundPositionValue(pos?.x ?? 0) : (pos?.x ?? 0);
+  const py = typeof roundPositionValue === 'function' ? roundPositionValue(pos?.y ?? 0) : (pos?.y ?? 0);
+  const pz = typeof roundPositionValue === 'function' ? roundPositionValue(pos?.z ?? 0) : (pos?.z ?? 0);
+  // Many of your blocks share X/Y/Z input names; if some differ per command, patch here.
+  __addNumberShadow(spec, 'X', px);
+  __addNumberShadow(spec, 'Y', py);
+  __addNumberShadow(spec, 'Z', pz);
+  return spec;
+}
+
 function selectObjectWithCommand(objectName, menu, command) {
-  document.getElementById(menu).style.display = "none";
+  // Hide menu
+  const menuEl = document.getElementById(menu);
+  if (menuEl) menuEl.style.display = "none";
+
+  const workspace = Blockly.getMainWorkspace();
   const canvas = flock.scene.getEngine().getRenderingCanvas();
 
-  // Remove any previous handler!
+  // Remove previous handler
   if (flock.activePickHandler) {
-    window.removeEventListener("click", flock.activePickHandler);
+    window.removeEventListener("click", flock.activePickHandler, true);
     flock.activePickHandler = null;
   }
 
-  flock.activePickHandler = function onPickMesh(event) {
-    const canvasRect = canvas.getBoundingClientRect();
-
-    // Check if the click happened outside the canvas
-    if (
-      event.clientX < canvasRect.left ||
-      event.clientX > canvasRect.right ||
-      event.clientY < canvasRect.top ||
-      event.clientY > canvasRect.bottom
-    ) {
-      window.removeEventListener("click", flock.activePickHandler);
-      flock.activePickHandler = null;
-      document.body.style.cursor = "default";
-      return;
+  // --- helpers ---
+  function appendWithUndo(spec, ws, groupId) {
+    let block;
+    try {
+      block = Blockly.serialization.blocks.append(spec, ws, { recordUndo: true });
+    } catch {
+      block = Blockly.serialization.blocks.append(spec, ws);
+      const ev = new Blockly.Events.BlockCreate(block);
+      ev.group = groupId;
+      ev.recordUndo = true;
+      Blockly.Events.fire(ev);
     }
+    block?.initSvg?.();
+    block?.render?.();
+    return block;
+  }
+  function addNumShadow(spec, name, value) {
+    spec.inputs ||= {};
+    spec.inputs[name] = { shadow: { type: "math_number", fields: { NUM: value } } };
+  }
+  function addXYZShadows(spec, pos) {
+    const round = typeof roundPositionValue === "function" ? roundPositionValue : (v) => v;
+    addNumShadow(spec, "X", round(pos?.x ?? 0));
+    addNumShadow(spec, "Y", round(pos?.y ?? 0));
+    addNumShadow(spec, "Z", round(pos?.z ?? 0));
+  }
+  function addColourShadowSpec(spec, name, hex, shadowType = "colour") {
+    spec.inputs ||= {};
+    spec.inputs[name] = { shadow: { type: shadowType, fields: { COLOR: hex } } };
+  }
 
-    const canvasX = event.clientX - canvasRect.left;
-    const canvasY = event.clientY - canvasRect.top;
+  // INLINE lists_create_with + per-item colour shadows for COLORS
+  function buildColorsListShadowSpec(objectName) {
+    const colours = objectColours?.[objectName] || ["#000000", "#FFFFFF", "#CCCCCC"];
 
-    // Create a picking ray using the adjusted canvas coordinates
-    const pickRay = flock.scene.createPickingRay(
-      canvasX,
-      canvasY,
-      flock.BABYLON.Matrix.Identity(),
-      flock.scene.activeCamera,
-    );
+    const listSpec = {
+      type: "lists_create_with",
+      // Modern serializer:
+      extraState: { itemCount: colours.length },
+      // Older builds read mutation for count:
+      mutation:   { items: colours.length },
+      // ✅ Correct flag for JSON serializer:
+      inline: true,
+      inputs: {}
+    };
 
-    // Perform the picking
-    const pickResult = flock.scene.pickWithRay(
-      pickRay,
-      (mesh) => mesh.isPickable,
-    );
+    colours.forEach((hex, i) => {
+      listSpec.inputs["ADD" + i] = {
+        shadow: { type: "colour", fields: { COLOR: hex } }
+      };
+    });
 
-    if (pickResult.hit) {
-      const pickedPosition = pickResult.pickedPoint;
+    return listSpec;
+  }
 
-      Blockly.Events.setGroup(true);
 
-      try {
-        const block = Blockly.getMainWorkspace().newBlock(command);
-        block.initSvg();
-        highlightBlockById(Blockly.getMainWorkspace(), block);
-
-        block.setFieldValue(objectName, "MODELS");
-        setPositionValues(block, pickedPosition, command);
-        addShadowBlock(block, "SCALE", "math_number", 1);
-
-        if (command === "load_object") {
-          const configColors = objectColours[objectName];
-          const color = Array.isArray(configColors)
-            ? configColors[0]
-            : configColors || "#FFD700";
-          addShadowBlock(block, "COLOR", "colour", color);
-        } else if (command === "load_multi_object") {
-          if (Blockly.Blocks["load_multi_object"].updateColorsField) {
-            Blockly.Blocks["load_multi_object"].updateColorsField.call(block);
-          }
-        }
-
-        block.render();
-
-        const startBlock = Blockly.getMainWorkspace().newBlock("start");
-        startBlock.initSvg();
-        startBlock.render();
-
-        const connection = startBlock.getInput("DO").connection;
-        if (connection) {
-          connection.connect(block.previousConnection);
-        }
-      } finally {
-        Blockly.Events.setGroup(false);
-      }
-    }
-
+  function cleanup() {
     document.body.style.cursor = "default";
-    window.removeEventListener("click", flock.activePickHandler);
-    flock.activePickHandler = null;
+    if (flock.activePickHandler) {
+      window.removeEventListener("click", flock.activePickHandler, true);
+      flock.activePickHandler = null;
+    }
+  }
+
+  flock.activePickHandler = function onPickMesh(event) {
+    const rect = canvas.getBoundingClientRect();
+    // Outside canvas? cancel
+    if (
+      event.clientX < rect.left || event.clientX > rect.right ||
+      event.clientY < rect.top  || event.clientY > rect.bottom
+    ) return cleanup();
+
+    const x = event.clientX - rect.left;
+    const y = event.clientY - rect.top;
+
+    // Ray pick with isPickable filter
+    const pickRay = flock.scene.createPickingRay(
+      x, y, flock.BABYLON.Matrix.Identity(), flock.scene.activeCamera
+    );
+    const pick = flock.scene.pickWithRay(pickRay, (m) => m.isPickable);
+    if (!pick?.hit) return cleanup();
+
+    const pickedPosition = pick.pickedPoint;
+
+    // --- single undo/redo group for everything ---
+    const prevGroup = Blockly.Events.getGroup();
+    const startTempGroup = !prevGroup;
+    if (startTempGroup) Blockly.Events.setGroup(true);
+    const groupId = Blockly.Events.getGroup();
+
+    const eventsWereEnabled = Blockly.Events.isEnabled();
+    if (!eventsWereEnabled) Blockly.Events.enable();
+
+    try {
+      Blockly.Events.setGroup(groupId);
+
+      // 1) Build base spec for requested command
+      const spec = { type: command, fields: {}, inputs: {} };
+
+      // MODELS for load_* commands
+      if (command === "load_object" || command === "load_multi_object" ||
+          command === "load_model"  || command === "load_character") {
+        spec.fields.MODELS = objectName;
+      }
+
+      // Position + scale shadows
+      addXYZShadows(spec, pickedPosition);
+      addNumShadow(spec, "SCALE", 1);
+
+      // Single-object default colour
+      if (command === "load_object") {
+        const configColors = objectColours?.[objectName];
+        const color = Array.isArray(configColors) ? configColors[0] : (configColors || "#FFD700");
+        addColourShadowSpec(spec, "COLOR", color, "colour");
+      }
+
+      // Multi-object: embed full COLORS list as a shadow so redo restores it
+      if (command === "load_multi_object") {
+        spec.inputs.COLORS = { shadow: buildColorsListShadowSpec(objectName) };
+      }
+
+      // 2) Create the command block atomically
+      const block = appendWithUndo(spec, workspace, groupId);
+
+      // Keep parity with your existing per-block field logic
+      try { setPositionValues?.(block, pickedPosition, command); } catch {}
+
+      // 3) Create start block and connect (same group)
+      const startBlock = appendWithUndo({ type: "start" }, workspace, groupId);
+      const conn = startBlock?.getInput("DO")?.connection;
+      if (conn && block?.previousConnection) {
+        try { conn.connect(block.previousConnection); } catch (e) { console.error("connect error:", e); }
+      }
+
+      // 4) UX highlight (UI-only)
+      try { highlightBlockById?.(workspace, block); } catch {}
+
+    } finally {
+      if (startTempGroup) Blockly.Events.setGroup(false);
+      else Blockly.Events.setGroup(prevGroup);
+      if (!eventsWereEnabled) Blockly.Events.disable();
+    }
+
+    cleanup();
   };
 
-  // Start keyboard placement mode (reuses the same handler, so also cancels click)
-  startKeyboardPlacementMode(flock.activePickHandler);
+  // Keyboard placement shares same handler
+  try { startKeyboardPlacementMode?.(flock.activePickHandler); } catch {}
 
-  // Set up mouse click as fallback
+  // Mouse click fallback (capture=true)
   document.body.style.cursor = "crosshair";
-  setTimeout(() => {
-    window.addEventListener("click", flock.activePickHandler);
-  }, 200);
+  setTimeout(() => window.addEventListener("click", flock.activePickHandler, true), 0);
 }
+
 
 // Scroll function to move the object row left or right
 function scrollObjects(direction) {
@@ -1035,10 +1246,17 @@ function triggerPlacement() {
   const syntheticEvent = {
     clientX: canvasRect.left + placementCirclePosition.x,
     clientY: canvasRect.top + placementCirclePosition.y,
-    defaultPosition: new flock.BABYLON.Vector3(0, 0, 0),
+    defaultPosition: flock.BABYLON.Vector3.Zero(),
   };
 
   placementCallback(syntheticEvent);
+  
+  // Clean up the active handler to match mouse behavior
+  if (flock.activePickHandler) {
+    window.removeEventListener("click", flock.activePickHandler);
+    flock.activePickHandler = null;
+  }
+  
   cancelPlacement();
 }
 

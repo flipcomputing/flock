@@ -1,7 +1,7 @@
 import { expect } from "chai";
 
 export function runRotationTests(flock) {
-	describe("rotate API Tests", function () {
+	describe("rotate API Tests @rotation", function () {
 	  let boxId;
 	  beforeEach(function () {
 		boxId = `box_${Date.now()}`;
@@ -143,7 +143,7 @@ export function runRotationTests(flock) {
 	  });*/
 	});
 
-	describe("rotate Camera API Tests", function () {
+	describe("rotate Camera API Tests @rotation", function () {
 	  it("should handle camera rotation without throwing errors", async function () {
 		// This test assumes there's an active camera
 		try {
@@ -170,7 +170,7 @@ export function runRotationTests(flock) {
 	  });*/
 	});
 
-	describe("rotateTo API Tests", function () {
+	describe("rotateTo API Tests @rotation", function () {
 	  let boxId;
 	  beforeEach(function () {
 		boxId = `box_${Date.now()}`;
@@ -298,7 +298,7 @@ export function runRotationTests(flock) {
 	  });
 	});
 
-	describe("lookAt API Tests", function () {
+	describe("lookAt API Tests @rotation", function () {
 	  let mesh1Id, mesh2Id;
 
 	  beforeEach(function () {

@@ -6,19 +6,21 @@ import {
 } from "../blocks.js";
 import { translate, getTooltip, getDropdownOption } from "../main/translation.js";
 import { updateOrCreateMeshFromBlock } from "../ui/blockmesh.js";
+import { flock } from "../flock.js";
 
 export function defineTransformBlocks() {
 	function handleBlockChange(block, changeEvent) {
-		// console.log("TODO: Buy Matrix DVD");
+		// if (flock.blockDebug) console.log("TODO: Buy Matrix DVD");
 		const changeEventBlock = Blockly.getMainWorkspace().getBlockById(changeEvent.blockId);
 		if (!changeEventBlock) return;
-		console.log("The ID of this change event is", changeEventBlock.id);
+		if (flock.blockDebug) console.log("The ID of this change event is", changeEventBlock.id);
 		const changeEventParentBlock = changeEventBlock.getParent();
 		if (!changeEventParentBlock) return;
-		const changeEventBlockType= changeEventParentBlock.type;
-		console.log("The type of this change event is", changeEventBlockType);
+		const changeEventBlockType = changeEventParentBlock.type;
+		if (flock.blockDebug) console.log("The type of this change event is", changeEventBlockType);
 		if (!["rotate_to", "scale", "resize"].includes(changeEventBlockType)) return;
-		console.log(handleFieldOrChildChange(block, changeEvent));
+		const handleChange = handleFieldOrChildChange(block, changeEvent)
+		if (flock.blockDebug) console.log(handleChange);
 	}
 	Blockly.Blocks["move_by_xyz"] = {
 		init: function () {

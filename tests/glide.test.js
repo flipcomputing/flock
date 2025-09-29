@@ -8,7 +8,7 @@ function checkXPosition(box, pos) {
 
 // Test suite for glideTo function
 export function runGlideToTests(flock) {
-	describe("glideTo function tests", function () {
+	describe("glideTo function tests @slow", function () {
 		let box1;
 
 		// Set up the box before each test
@@ -29,7 +29,7 @@ export function runGlideToTests(flock) {
 			flock.dispose(box1);
 		});
 
-		it("should move the box to the correct position", function (done) {
+		it("should move the box to the correct position @slow", function (done) {
 			this.timeout(15000); // Increase the timeout forthis test
 			// Call glideTo to move the
 
@@ -44,7 +44,7 @@ export function runGlideToTests(flock) {
 			});
 		});
 
-		it("should handle reverse movement", function (done) {
+		it("should handle reverse movement @slow", function (done) {
 			this.timeout(10000); // Increase the timeout for this test
 
 			// Move the box with loop enabled

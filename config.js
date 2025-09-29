@@ -104,6 +104,9 @@ export const multiObjectNames = [
 	"rocks4.glb",
 	"pond.glb",
 	"boat.glb",
+	"airplane.glb",
+	"airplane2.glb",
+	"skateboard.glb",
 	"humped.glb",
 	"jetty.glb",
 	"flower.glb",
@@ -124,6 +127,10 @@ export const objectNames = [
 	"Wand.glb",
 	"Hat.glb",
 	"donut.glb",
+	"pumpkin.glb",	
+	"apple.glb",	
+	"starboppers.glb",
+	"headphones.glb",
 ];
 
 export const objectColours = {
@@ -138,6 +145,10 @@ export const objectColours = {
 	"Wand.glb": ["#FF4500", "#8A2BE2", "#92614A"],
 	"Hat.glb": ["#9D3F72", "#B5FDFD", "#3D0073"],
 	"donut.glb": ["#f9cb9c", "#fba0c3"],
+	"pumpkin.glb": ["#E78632", "#75430F"],
+	"apple.glb": ["#3FAF45", "#A9323F", "#624A20"],
+	"starboppers.glb": ["#FFD700", "#FFD700", "#FFD700", "#f9f9f9"],
+	"headphones.glb": ["#53E0E7", "#3291E7", "#7D7D7D"],
 
 	"tree.glb": ["#66CDAA", "#CD853F"],
 	"tree2.glb": ["#7F9F7F", "#A1623B"],
@@ -194,6 +205,24 @@ export const objectColours = {
 		"#E711CD",
 	],
 
+	"airplane.glb": [
+		"#E75D43",
+		"#6A6A6A",
+		"#E7C777",
+	],
+
+	"airplane2.glb": [
+		"#6A6A6A",
+		"#E75D43",
+		"#E7C777",
+	],
+
+		"skateboard.glb": [
+		"#E769D3",
+		"#484848",
+		"#251BE7",
+	],
+	
 	"rhino.glb": ["#6D6B6C", "#F6F6F6", "#373737", "#230F0F"],
 
 	"humped.glb": ["#FFA869", "#7E5024", "#E76F31"],
@@ -210,6 +239,7 @@ export const modelNames = [
 	//"bird.glb",
 	//"boat.glb",
 	"rhino.glb",
+	//"Seagull.glb",
 ];
 
 export const blockNames = [
@@ -220,11 +250,13 @@ export const blockNames = [
 	"Flock.glb",
 	"Character.glb",
 	"rhino.glb",
+	//"Seagull.glb",
 ];
 
 export const modelAnimationNames = [
 	"Flock.glb",
 	"rhino.glb",
+	//"Seagull.glb",
 ];
 
 export function mapNames() {
@@ -278,7 +310,7 @@ export function animationNames() {
 export const materialNames = [
 	"none.png",
 	"arrows.png",
-	"brick.png",
+	"bricks.png",
 	"carpet.png",
 	"circles.png",
 	"eyeball.png",
@@ -287,12 +319,15 @@ export const materialNames = [
 	"flowers.png",
 	"fruit.png",
 	"grass.png",
+	"gravel.png",
 	"leaves.png",
 	"marble.png",
 	"mushroom.png",
+	"planks.png",
 	"rough.png",
 	"shapes.png",
 	"stars.png",
+	"stripes.png",
 	"swirl.png",
 	"tiles.png",
 	"triangles.png",

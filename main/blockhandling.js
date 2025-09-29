@@ -20,6 +20,10 @@ export function initializeBlockHandling() {
 		}
 	});
 
+	// ──────────────────────────────────────────────────────────────
+	// Back-to-working cleanup (original behaviour)
+	// ──────────────────────────────────────────────────────────────
+
 	const blockTypesToCleanUp = [
 		"start",
 		"forever",
@@ -33,97 +37,80 @@ export function initializeBlockHandling() {
 		"microbit_input",
 	];
 
+	// PURE cleanup: no setGroup, no Events toggling here
 	workspace.cleanUp = function () {
-		Blockly.Events.setGroup(true); // Start a new group for cleanup events
-
-		const topBlocks = workspace.getTopBlocks(false);
 		const spacing = 40;
+		const cursorX = 10;
 		let cursorY = 10;
-		let cursorX = 10;
 
-		topBlocks.sort(
-			(a, b) =>
-				a.getRelativeToSurfaceXY().y - b.getRelativeToSurfaceXY().y,
-		);
+		// Get top-level roots (Blockly already filters by parent=null)
+		const topBlocks = (workspace.getTopBlocks(false) || [])
+			.filter((b) => !!b && !b.isInFlyout && !b.isShadow?.())
+			.sort(
+				(a, b) =>
+					a.getRelativeToSurfaceXY().y - b.getRelativeToSurfaceXY().y,
+			);
 
-		topBlocks.forEach((block) => {
-			if (blockTypesToCleanUp.includes(block.type)) {
-				const blockXY = block.getRelativeToSurfaceXY();
-				//console.log(`Moving block ${block.type} during cleanup`);
-				block.moveBy(cursorX - blockXY.x, cursorY - blockXY.y);
-				cursorY += block.getHeightWidth().height + spacing;
+		for (const block of topBlocks) {
+			if (!blockTypesToCleanUp.includes(block.type)) continue;
+
+			try {
+				const xy = block.getRelativeToSurfaceXY();
+				const dx = cursorX - xy.x;
+				const dy = cursorY - xy.y;
+				if (dx || dy) block.moveBy(dx, dy);
+
+				const h = block.getHeightWidth?.().height || 40;
+				cursorY += h + spacing;
+			} catch {}
+		}
+
+		// Original z-order behaviour: top-level blocks (any type) to the front
+		try {
+			const canvas = workspace.getBlockCanvas?.();
+			if (canvas) {
+				for (const b of workspace.getAllBlocks(false) || []) {
+					if (!b || b.isInFlyout || b.isShadow?.()) continue;
+					const hasParent =
+						typeof b.getParent === "function"
+							? !!b.getParent()
+							: !!b.parentBlock_;
+					if (hasParent) continue;
+					const svg = b.getSvgRoot?.();
+					if (svg && svg.parentNode === canvas)
+						canvas.appendChild(svg);
+				}
 			}
-		});
-
-		enforceOrphanZOrder();
-		Blockly.Events.setGroup(false); // End the group
-		//console.log('Finished workspace cleanup');
+		} catch {}
 	};
 
-	let cleanupTimeout;
-
-	function enforceOrphanZOrder() {
-		workspace.getAllBlocks().forEach((block) => {
-			if (!block.getParent() && !block.isInFlyout) {
-				bringToTop(block);
-			}
-		});
-	}
-
-	function bringToTop(block) {
-		if (block.rendered) {
-			try {
-				// Use Blockly's workspace method instead
-				const workspace = block.workspace;
-				if (workspace && workspace.getBlockCanvas) {
-					const canvas = workspace.getBlockCanvas();
-					const blockSvg = block.getSvgRoot();
-					if (canvas && blockSvg && blockSvg.parentNode === canvas) {
-						canvas.appendChild(blockSvg);
-					}
-				}
-			} catch (error) {
-				console.warn("Could not reorder block:", error);
-			}
-		}
-	}
+	// ──────────────────────────────────────────────────────────────
+	// Trigger: debounce on structural changes; run with events disabled
+	// ──────────────────────────────────────────────────────────────
 	workspace.addChangeListener(Blockly.Events.disableOrphans);
+	
+	let cleanupTimeout = null;
 
-	workspace.addChangeListener(function (event) {
-		// Log all events during cleanup
-		if (window.cleanupInProgress) {
-			/*console.log('Event during cleanup:', {
-			type: event.type,
-			blockId: event.blockId,
-			group: event.group,
-			recordUndo: event.recordUndo,
-			trace: new Error().stack
-		});*/
-		}
+	workspace.addChangeListener((e) => {
+		if (e.isUiEvent) return;
 
-		try {
-			const block = workspace.getBlockById(event.blockId);
+		if (
+			e.type === Blockly.Events.BLOCK_MOVE ||
+			e.type === Blockly.Events.BLOCK_CREATE ||
+			e.type === Blockly.Events.BLOCK_DELETE
+		) {
+			clearTimeout(cleanupTimeout);
+			cleanupTimeout = setTimeout(() => {
+				const wasEnabled = Blockly.Events.isEnabled();
+				try {
+					if (wasEnabled) Blockly.Events.disable(); // don’t create undo entries
+					workspace.cleanUp();
+				} finally {
+					if (wasEnabled) Blockly.Events.enable();
+				}
 
-			if (
-				event.type === Blockly.Events.BLOCK_MOVE ||
-				event.type === Blockly.Events.BLOCK_DELETE
-			) {
-				clearTimeout(cleanupTimeout);
-
-				// Set a new timeout to call cleanUp after block movement settles
-				cleanupTimeout = setTimeout(() => {
-					window.cleanupInProgress = true;
-					Blockly.Events.disable(); // Temporarily disable events
-					workspace.cleanUp(); // Clean up the workspace
-					Blockly.Events.enable(); // Re-enable events
-					window.cleanupInProgress = false;
-				}, 500); // Delay cleanup by 500ms to ensure block moves have settled
-			}
-		} catch (error) {
-			console.error(
-				"An error occurred during the Blockly workspace cleanup process:",
-				error,
-			);
+				Blockly.Events.disableOrphans(workspace);
+			}, 300); // adjust if you want snappier/slower cleanup
 		}
 	});
 
@@ -550,7 +537,6 @@ export function initializeBlockHandling() {
 			draggedBlock = null;
 		}
 	});
-
 }
 
 // Function to enforce minimum font size and delay the focus to prevent zoom
@@ -600,100 +586,125 @@ function observeBlocklyInputs() {
 
 // Fast hover highlight (no full scans)
 export function installHoverHighlight(workspace) {
-  const svg = workspace.getParentSvg();
-  if (!svg) return () => {};
+	const svg = workspace.getParentSvg();
+	if (!svg) return () => {};
 
-  // State
-  let lastHighlighted = null;
-  let rafScheduled = false;
-  let pendingXY = null;
-  let panning = false;
-  let dragging = false;
-  let panTimer = null;
+	// State
+	let lastHighlighted = null;
+	let rafScheduled = false;
+	let pendingXY = null;
+	let panning = false;
+	let dragging = false;
+	let panTimer = null;
 
-  // Prefer your own isBlockDraggable if present
-  const isDraggable = (block) => {
-	if (typeof window.isBlockDraggable === "function") return window.isBlockDraggable(block);
-	if (!block) return false;
-	if (block.isShadow && block.isShadow()) return false;
-	if (!block.isMovable || !block.isMovable()) return false;
-	if (!block.isDeletable || !block.isDeletable()) return false;
-	// Match your old rules:
-	if (block.previousConnection || block.nextConnection) return false;
-	return true; // allow output blocks or standalones
-  };
+	// Prefer your own isBlockDraggable if present
+	const isDraggable = (block) => {
+		if (typeof window.isBlockDraggable === "function")
+			return window.isBlockDraggable(block);
+		if (!block) return false;
+		if (block.isShadow && block.isShadow()) return false;
+		if (!block.isMovable || !block.isMovable()) return false;
+		if (!block.isDeletable || !block.isDeletable()) return false;
+		// Match your old rules:
+		if (block.previousConnection || block.nextConnection) return false;
+		return true; // allow output blocks or standalones
+	};
 
-  function clearHighlight() {
-	if (lastHighlighted) lastHighlighted.removeSelect();
-	lastHighlighted = null;
-  }
-  function applyHighlight(block) {
-	if (lastHighlighted === block) return;
-	clearHighlight();
-	block.addSelect();
-	lastHighlighted = block;
-  }
-
-  // Track viewport pan/zoom and drag state via UI events
-  const uiListener = (e) => {
-	if (e.type !== Blockly.Events.UI) return;
-	if (e.element === "viewport" || e.element === "zoom") {
-	  panning = true;
-	  clearTimeout(panTimer);
-	  panTimer = setTimeout(() => (panning = false), 120);
-	} else if (e.element === "drag") {
-	  dragging = !!e.newValue; // true while dragging, false on release
-	  if (!dragging) {
-		// drag ended; make sure highlight is sane
-		pendingXY = null;
-		rafScheduled = false;
-	  }
+	function clearHighlight() {
+		if (lastHighlighted) lastHighlighted.removeSelect();
+		lastHighlighted = null;
 	}
-  };
-  workspace.addChangeListener(uiListener);
+	function applyHighlight(block) {
+		if (lastHighlighted === block) return;
+		clearHighlight();
+		block.addSelect();
+		lastHighlighted = block;
+	}
 
-  // Mousemove on the workspace SVG (throttled to 1 per frame)
-  const moveBinding = Blockly.browserEvents.bind(svg, "mousemove", null, (ev) => {
-	if (panning || dragging) return;
-	pendingXY = { x: ev.clientX, y: ev.clientY };
-	if (rafScheduled) return;
-	rafScheduled = true;
-	requestAnimationFrame(() => {
-	  rafScheduled = false;
-	  if (!pendingXY) return;
-	  const { x, y } = pendingXY;
-	  pendingXY = null;
-
-	  const el = document.elementFromPoint(x, y);
-	  if (!el || !el.closest) { clearHighlight(); return; }
-
-	  // Find the block <g> that carries data-id (covers normal & drag surface)
-	  const g = el.closest('g.blocklyDraggable[data-id], g[data-id]');
-	  if (!g) { clearHighlight(); return; }
-
-	  const id = g.getAttribute("data-id");
-	  if (!id) { clearHighlight(); return; }
-
-	  const block = workspace.getBlockById(id);
-		if (!block || !block.rendered || block.isInFlyout || !isDraggable(block)) {
-		  clearHighlight();
-		  return;
+	// Track viewport pan/zoom and drag state via UI events
+	const uiListener = (e) => {
+		if (e.type !== Blockly.Events.UI) return;
+		if (e.element === "viewport" || e.element === "zoom") {
+			panning = true;
+			clearTimeout(panTimer);
+			panTimer = setTimeout(() => (panning = false), 120);
+		} else if (e.element === "drag") {
+			dragging = !!e.newValue; // true while dragging, false on release
+			if (!dragging) {
+				// drag ended; make sure highlight is sane
+				pendingXY = null;
+				rafScheduled = false;
+			}
 		}
-	  applyHighlight(block);
-	});
-  });
+	};
+	workspace.addChangeListener(uiListener);
 
-  // Clear highlight when leaving the workspace SVG
-  const leaveBinding = Blockly.browserEvents.bind(svg, "mouseleave", null, () => {
-	clearHighlight();
-  });
+	// Mousemove on the workspace SVG (throttled to 1 per frame)
+	const moveBinding = Blockly.browserEvents.bind(
+		svg,
+		"mousemove",
+		null,
+		(ev) => {
+			if (panning || dragging) return;
+			pendingXY = { x: ev.clientX, y: ev.clientY };
+			if (rafScheduled) return;
+			rafScheduled = true;
+			requestAnimationFrame(() => {
+				rafScheduled = false;
+				if (!pendingXY) return;
+				const { x, y } = pendingXY;
+				pendingXY = null;
 
-  // Cleanup
-  return function destroyHoverHighlight() {
-	clearTimeout(panTimer);
-	clearHighlight();
-	workspace.removeChangeListener(uiListener);
-	Blockly.browserEvents.unbind(moveBinding);
-	Blockly.browserEvents.unbind(leaveBinding);
-  };
+				const el = document.elementFromPoint(x, y);
+				if (!el || !el.closest) {
+					clearHighlight();
+					return;
+				}
+
+				// Find the block <g> that carries data-id (covers normal & drag surface)
+				const g = el.closest("g.blocklyDraggable[data-id], g[data-id]");
+				if (!g) {
+					clearHighlight();
+					return;
+				}
+
+				const id = g.getAttribute("data-id");
+				if (!id) {
+					clearHighlight();
+					return;
+				}
+
+				const block = workspace.getBlockById(id);
+				if (
+					!block ||
+					!block.rendered ||
+					block.isInFlyout ||
+					!isDraggable(block)
+				) {
+					clearHighlight();
+					return;
+				}
+				applyHighlight(block);
+			});
+		},
+	);
+
+	// Clear highlight when leaving the workspace SVG
+	const leaveBinding = Blockly.browserEvents.bind(
+		svg,
+		"mouseleave",
+		null,
+		() => {
+			clearHighlight();
+		},
+	);
+
+	// Cleanup
+	return function destroyHoverHighlight() {
+		clearTimeout(panTimer);
+		clearHighlight();
+		workspace.removeChangeListener(uiListener);
+		Blockly.browserEvents.unbind(moveBinding);
+		Blockly.browserEvents.unbind(leaveBinding);
+	};
 }

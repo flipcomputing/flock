@@ -25,7 +25,7 @@ export const flockMesh = {
 
     const cylinderHeight = Math.max(0, height - 2 * radius);
 
-    const center = new flock.BABYLON.Vector3(0, 0, 0);
+    const center = flock.BABYLON.Vector3.Zero();
 
     const segmentStart = new flock.BABYLON.Vector3(
       center.x,
