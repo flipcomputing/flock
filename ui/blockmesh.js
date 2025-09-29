@@ -148,7 +148,7 @@ export function getMeshFromBlock(block) {
     return flock?.scene?.getMeshByName("ground");
   }
 
-  if (block && !["rotate_to", "scale", "resize"].includes(block.type)) {
+  if (block && ["rotate_to", "scale", "resize"].includes(block.type)) {
     block = block.getParent();
   }
 
