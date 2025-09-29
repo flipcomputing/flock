@@ -381,6 +381,12 @@ function showBoundingBox(mesh, focusMode = false) {
   } else if (focusMode) {
     // Set mesh visibility even if mesh has no parent
     // focusMode is only used when camera focused on mesh
+
+    /* With this, non-composite meshes can still have their
+    visibility set to 0.001. However, this will not be a big
+    issue here as, even in past testing, non-composite meshes
+    still were not showing, so this may even be preferred. */
+
     mesh.visibility = 0.001;
   }
   mesh.showBoundingBox = true;
