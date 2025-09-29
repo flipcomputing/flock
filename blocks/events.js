@@ -11,48 +11,6 @@ import {
 import { translate, getTooltip, getDropdownOption } from "../main/translation.js";
 
 export function defineEventsBlocks() {
-	function handleCaseWhereSnippetLoadedFromToolbox(currentBlock, changeEvent) {
-		let changeEventBlockIsCurrentBlock = Blockly.getMainWorkspace().getBlockById(changeEvent.blockId) === currentBlock;
-
-		let createNewEventForSnippetBlock = (block, event) => {
-			let newEvent;
-			if (block.type === "load_character") {
-				newEvent = new Blockly.Events.BlockChange();
-				newEvent.ids = [];
-				blocks.forEach(subBlock => newEvent.ids.push(subBlock.id));
-			} else {
-				newEvent = new Blockly.Events.BlockCreate();
-			}
-			newEvent.blockId = block.id;
-			newEvent.group = event.group;
-			newEvent.isBlank = false;
-			newEvent.isUiEvent = false;
-			newEvent.recordUndo = true;
-			newEvent.workspaceId = event.workspaceId;
-			return newEvent;
-		};
-
-		let fireNewEventOnAllChildBlocks = (block, event) => {
-			let newEvent = createNewEventForSnippetBlock(block, event);
-			if (block.id !== currentBlock.id) Blockly.Events.fire(newEvent);
-			let subBlocks = block.getChildren();
-			if (subBlocks.length > 0) subBlocks.forEach(subBlock => fireNewEventOnAllChildBlocks(subBlock, event));
-		}
-
-		if (flock.blockDebug && changeEventBlockIsCurrentBlock)
-			console.log(changeEvent.type);
-
-		let blocks = currentBlock.getDescendants();
-
-		if (
-			blocks.length > 0
-			&& changeEventBlockIsCurrentBlock
-			&& changeEvent.type === Blockly.Events.BLOCK_MOVE
-		) {
-			blocks.forEach(block => fireNewEventOnAllChildBlocks(block, changeEvent));
-		}
-	}
-
 	Blockly.Blocks["start"] = {
 		init: function () {
 			this.jsonInit({
@@ -71,7 +29,6 @@ export function defineEventsBlocks() {
 			});
 			this.setHelpUrl(getHelpUrlFor(this.type));
 			this.setStyle('events_blocks');
-			this.setOnChange((changeEvent) => handleCaseWhereSnippetLoadedFromToolbox(this, changeEvent));
 		},
 	};
 
@@ -93,7 +50,6 @@ export function defineEventsBlocks() {
 			});
 			this.setHelpUrl(getHelpUrlFor(this.type));
 			this.setStyle('events_blocks');
-			this.setOnChange((changeEvent) => handleCaseWhereSnippetLoadedFromToolbox(this, changeEvent));
 			this.isInline = false;
 			addToggleButton(this);
 		},

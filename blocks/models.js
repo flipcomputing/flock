@@ -112,8 +112,6 @@ export function defineModelBlocks() {
 			this.setStyle("scene_blocks");
 
 			this.setOnChange((changeEvent) => {
-				if (flock.blockDebug) console.log(changeEvent.type);
-				
 				// Always handle variable naming first (even if mesh is skipped)
 				handleBlockCreateEvent(
 					this,
