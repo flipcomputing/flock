@@ -1433,11 +1433,7 @@ function turnOffAllGizmos() {
   resetBoundingBoxVisibilityIfManuallyChanged(gizmoManager.attachedMesh);
   resetAttachedMeshIfMeshAttached();
   gizmoManager.attachToMesh(null);
-  gizmoManager.selectGizmoEnabled = false;
-  gizmoManager.positionGizmoEnabled = false;
-  gizmoManager.rotationGizmoEnabled = false;
-  gizmoManager.scaleGizmoEnabled = false;
-  gizmoManager.boundingBoxGizmoEnabled = false;
+  disableGizmos();
 }
 
 // Track DO sections and their associated blocks for cleanup
