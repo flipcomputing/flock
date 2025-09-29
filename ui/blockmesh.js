@@ -472,9 +472,9 @@ export function updateMeshFromBlock(mesh, block, changeEvent) {
 
   if (["scale", "resize"].includes(block.type)) {
     origin = {
-      x: block.getInput("X").connection.targetBlock().getFieldValue("TEXT"),
-      y: block.getInput("Y").connection.targetBlock().getFieldValue("TEXT"),
-      z: block.getInput("Z").connection.targetBlock().getFieldValue("TEXT"),
+      x: block.getFieldValue("X_ORIGIN"),
+      y: block.getFieldValue("Y_ORIGIN"),
+      z: block.getFieldValue("Z_ORIGIN"),
     };
     console.log("origin");
   }
