@@ -683,7 +683,7 @@ export function updateMeshFromBlock(mesh, block, changeEvent) {
       flock.changeColor(mesh.name, { color });
     }
   }
-  if (["X", "Y", "Z"].includes(changed) || (changed === "DO" && shapeType === "scale")) {
+  if (["X", "Y", "Z"].includes(changed) || (changed === "DO" && ["scale", "resize"].includes(shapeType))) {
     switch (block.type) {
       case "rotate_to":
         /* The "position" X, Y and Z values are automatically picked up from the "rotate_to"
