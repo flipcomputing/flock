@@ -538,6 +538,7 @@ function focusCameraOnMesh() {
     
     // "Select" the focused mesh
     gizmoManager.selectGizmoEnabled = true;
+    gizmoManager.attachToMesh(mesh); // Unfortunately needed to ensure bounding box gets hidden 
     showBoundingBox(mesh, true);
   } else {
     // For other types of cameras
@@ -556,6 +557,7 @@ function focusCameraOnMesh() {
     
     // "Select" the focused mesh
     gizmoManager.selectGizmoEnabled = true;
+    gizmoManager.attachToMesh(mesh); // Unfortunately needed to ensure bounding box gets hidden
     showBoundingBox(mesh, true);
   }
 }
