@@ -3,7 +3,7 @@ import { meshMap, meshBlockIdMap } from "../generators";
 import { flock } from "../flock.js";
 import { objectColours } from "../config.js";
 import { createMeshOnCanvas } from "./addmeshes.js";
-import { createBlockWithShadows, highlightBlockById } from "./addmenu.js";
+import { highlightBlockById } from "./addmenu.js";
 
 const characterMaterials = [
   "Hair",
@@ -1376,23 +1376,9 @@ export function updateBlockColorAndHighlight(mesh, selectedColor) {
   let block = null;
 
   // Special case: sky fallback
-  /* Not sure why type of mesh is set to "set_sky_color"
-  but this makes sure the sky colour can be updated if
-  block exists. */
-  if (!mesh || mesh.type === "set_sky_color") {
+  if (!mesh) {
     block = meshMap?.["sky"];
-    if (!block) {
-      // Create sky block
-      block = createBlockWithShadows("set_sky_color", null, selectedColor);
-      meshMap["sky"] = block;
-      // Create start block
-      const startBlock = Blockly.getMainWorkspace().newBlock("start");
-      startBlock.initSvg();
-      startBlock.render();
-      // Wrap sky block around start block
-      const connection = startBlock.getInput("DO").connection;
-      if (connection && block.previousConnection) connection.connect(block.previousConnection);
-    }
+    if (!block) return;
     withUndoGroup(() => {
       const found = findNestedColorTarget(block);
       if (!found) {
