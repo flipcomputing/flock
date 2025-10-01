@@ -561,6 +561,7 @@ export const flock = {
                         canvasControls: this.canvasControls?.bind(this),
                         setPhysics: this.setPhysics?.bind(this),
                         setPhysicsShape: this.setPhysicsShape?.bind(this),
+                        showPhysics: this.showPhysics?.bind(this),
                         checkMeshesTouching:
                                 this.checkMeshesTouching?.bind(this),
                         say: this.say?.bind(this),

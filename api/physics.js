@@ -537,5 +537,35 @@ export const flockPhysics = {
   },
   meshExists(name) {
     return !!(flock.scene && flock.scene.getMeshByName(name));
+  },
+  showPhysics(show) {
+    if (!flock.scene) {
+      console.warn("Scene not ready yet");
+      return;
+    }
+
+    // Create physics viewer if it doesn't exist
+    if (!flock.physicsViewer) {
+      flock.physicsViewer = new flock.BABYLON.Debug.PhysicsViewer(flock.scene);
+      flock.physicsViewerActive = false;
+    }
+
+    if (show) {
+      // Show physics colliders for all physics bodies
+      flock.scene.meshes.forEach(mesh => {
+        if (mesh.physicsBody) {
+          flock.physicsViewer.showBody(mesh.physicsBody);
+        }
+      });
+      flock.physicsViewerActive = true;
+    } else {
+      // Hide physics colliders for all physics bodies
+      flock.scene.meshes.forEach(mesh => {
+        if (mesh.physicsBody) {
+          flock.physicsViewer.hideBody(mesh.physicsBody);
+        }
+      });
+      flock.physicsViewerActive = false;
+    }
   }
 };

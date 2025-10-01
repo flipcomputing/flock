@@ -226,6 +226,7 @@ export default {
   add_physics: "Physik hinzufügen %1 Typ %2",
   add_physics_shape: "Physikform hinzufügen %1 Typ %2",
   apply_force: "Kraft auf %1 anwenden x: %2 y: %3 z: %4",
+  show_physics: "Physik zeigen %1",
 
   // Sensing blocks
   key_pressed: "Taste gedrückt? %1",
@@ -406,6 +407,7 @@ export default {
   add_physics_tooltip: "Füge Physik zum Objekt hinzu: dynamisch, statisch, animiert oder keine.\nSchlüsselwort: physics",
   add_physics_shape_tooltip: "Füge Physik‑Form hinzu: Mesh oder Kapsel.\nSchlüsselwort: physics",
   apply_force_tooltip: "Wende Kraft auf Objekt in XYZ‑Richtung an.\nSchlüsselwort: force",
+  show_physics_tooltip: "Physik-Kollisionskörper zum Debuggen anzeigen oder ausblenden. Aktivieren zum Anzeigen, deaktivieren zum Ausblenden.\nSchlüsselwort: debug physics collider",
 
   // Tooltip translations - Sensing blocks
   key_pressed_tooltip: "Gibt true zurück, wenn die angegebene Taste gedrückt ist.\nSchlüsselwort: ispressed",

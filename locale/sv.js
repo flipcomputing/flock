@@ -226,6 +226,7 @@ export default {
   add_physics: "lägg till fysik %1 typ %2",
   add_physics_shape: "lägg till fysikform %1 typ %2",
   apply_force: "tillämpa kraft på %1 x: %2 y: %3 z: %4",
+  show_physics: "visa fysik %1",
 
   // Custom block translations - Sensing blocks
   key_pressed: "tangent nedtryckt är %1",
@@ -406,6 +407,7 @@ export default {
   add_physics_tooltip: "Lägg till fysik på mesh-objektet. Alternativen är dynamisk, statisk, animerad och ingen.\nKeyword:physics",
   add_physics_shape_tooltip: "Lägg till en fysikform på mesh-objektet. Alternativen är mesh eller kapsel.\nKeyword:physics",
   apply_force_tooltip: "Applicera en kraft på ett mesh i XYZ-riktningar.\nKeyword: force",
+  show_physics_tooltip: "Visa eller dölj fysik-kollisionsobjekt för felsökning. Markera för att visa, avmarkera för att dölja.\nKeyword: debug physics collider",
 
   // Tooltip translations - Sensing blocks
   key_pressed_tooltip: "Returnerar sant om den angivna tangenten är nedtryckt.\nKeyword:ispressed",

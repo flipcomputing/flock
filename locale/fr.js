@@ -227,6 +227,7 @@ export default {
   add_physics: "ajouter physique %1 type %2",
   add_physics_shape: "ajouter forme physique %1 type %2",
   apply_force: "appliquer force à %1 x: %2 y: %3 z: %4",
+  show_physics: "afficher la physique %1",
 
   // Custom block translations - Sensing blocks
   key_pressed: "touche pressée est %1",
@@ -409,6 +410,7 @@ export default {
   add_physics_tooltip: "Ajoute la physique au maillage. Les options sont dynamique, statique, animée et aucune.\nMot-clé: physics",
   add_physics_shape_tooltip: "Ajoute une forme physique au maillage. Les options sont maillage ou capsule.\nMot-clé: physics",
   apply_force_tooltip: "Applique une force à un maillage selon les directions X, Y et Z.\nMot-clé: force",
+  show_physics_tooltip: "Afficher ou masquer les colliders physiques pour le débogage. Cochez pour afficher, décochez pour masquer.\nMot-clé: debug physics collider",
 
   // Tooltip translations - Sensing blocks
   key_pressed_tooltip: "Renvoie vrai si la touche spécifiée est enfoncée.\nMot-clé: ispressed",

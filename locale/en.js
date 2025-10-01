@@ -231,6 +231,7 @@ export default {
   add_physics: "add physics %1 type %2",
   add_physics_shape: "add physics shape %1 type %2",
   apply_force: "apply force to %1 x: %2 y: %3 z: %4",
+  show_physics: "show physics %1",
   
   // Custom block translations - Sensing blocks
   key_pressed: "key pressed is %1",
@@ -413,6 +414,7 @@ export default {
   add_physics_tooltip: "Add physics to the mesh. Options are dynamic, static, animated and none.\nKeyword:physics",
   add_physics_shape_tooltip: "Add a physics shape to the mesh. Options are mesh or capsule.\nKeyword:physics",
   apply_force_tooltip: "Apply a force to a mesh in XYZ directions.\nKeyword: force",
+  show_physics_tooltip: "Show or hide physics colliders for debugging. Check to show, uncheck to hide.\nKeyword: debug physics collider",
   
   // Tooltip translations - Sensing blocks
   key_pressed_tooltip: "Return true if the specified key is pressed.\nKeyword:ispressed",

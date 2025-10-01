@@ -226,6 +226,7 @@ export default {
   add_physics: "adicionar física %1 tipo %2",
   add_physics_shape: "adicionar forma física %1 tipo %2",
   apply_force: "aplicar força em %1 x: %2 y: %3 z: %4",
+  show_physics: "mostrar física %1",
 
   // Custom block translations - Sensing blocks
   key_pressed: "tecla pressionada é %1",
@@ -406,6 +407,7 @@ export default {
   add_physics_tooltip: "Adiciona física ao mesh. As opções são dinâmico, estático, animado e nenhum.\nPalavra-chave: física",
   add_physics_shape_tooltip: "Adiciona uma forma de física ao mesh. As opções são mesh ou cápsula.\nPalavra-chave: física",
   apply_force_tooltip: "Aplica uma força a um mesh nas direções X, Y e Z.\nPalavra-chave: força",
+  show_physics_tooltip: "Mostrar ou ocultar colisores de física para depuração. Marque para mostrar, desmarque para ocultar.\nPalavra-chave: debug physics collider",
 
   // Tooltip translations - Sensing blocks
   key_pressed_tooltip: "Retorna verdadeiro se a tecla especificada estiver pressionada.\nPalavra-chave: estápressionada",

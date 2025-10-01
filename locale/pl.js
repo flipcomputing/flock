@@ -226,6 +226,7 @@ export default {
   add_physics: "dodaj fizykę do %1 typ: %2",
   add_physics_shape: "dodaj kształt fizyczny do %1 typ: %2",
   apply_force: "zastosuj siłę do %1 x: %2 y: %3 z: %4",
+  show_physics: "pokaż fizykę %1",
 
   // Custom block translations - Sensing blocks
   key_pressed: "czy klawisz %1 jest wciśnięty?",
@@ -408,6 +409,7 @@ export default {
   add_physics_tooltip: "Dodaj fizykę do obiektu. Opcje: dynamiczny, statyczny, animowany lub brak.\nSłowo kluczowe: fizyka",
   add_physics_shape_tooltip: "Dodaj kształt fizyczny do obiektu. Opcje: siatka lub kapsuła.\nSłowo kluczowe: fizyka",
   apply_force_tooltip: "Zastosuj siłę na obiekt w kierunkach XYZ.\nSłowo kluczowe: siła",
+  show_physics_tooltip: "Pokaż lub ukryj kolizje fizyki do debugowania. Zaznacz, aby pokazać, odznacz, aby ukryć.\nSłowo kluczowe: debug physics collider",
 
   // Tooltip translations - Sensing blocks
   key_pressed_tooltip: "Zwraca true, jeśli podany klawisz jest wciśnięty.\nSłowo kluczowe:ispressed",
