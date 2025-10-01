@@ -83,6 +83,8 @@ document.addEventListener("DOMContentLoaded", function () {
       },
       target: document.body,
     });
+    // Make accessible globally for translation updates
+    window.flockColorPicker = colorPicker;
   }
 
   // Attach click event to open custom color picker

@@ -3,74 +3,74 @@ import { disableGizmos } from "./gizmos.js";
 
 const COLOR_PALETTES = {
   Bright: [
-    { hex: "#EF292B", name: "Red" },
-    { hex: "#F8932A", name: "Orange" },
-    { hex: "#FFF120", name: "Yellow" },
-    { hex: "#07A951", name: "Green" },
-    { hex: "#0E8142", name: "Dark Green" },
-    { hex: "#01AFCA", name: "Cyan" },
-    { hex: "#353A98", name: "Blue" },
-    { hex: "#632A9F", name: "Purple" },
-    { hex: "#ED84F7", name: "Pink" },
-    { hex: "#652700", name: "Brown" },
-    { hex: "#000000", name: "Black" },
-    { hex: "#FFFFFF", name: "White" },
+    { hex: "#EF292B", name: "color_red" },
+    { hex: "#F8932A", name: "color_orange" },
+    { hex: "#FFF120", name: "color_yellow" },
+    { hex: "#07A951", name: "color_green" },
+    { hex: "#0E8142", name: "color_dark_green" },
+    { hex: "#01AFCA", name: "color_cyan" },
+    { hex: "#353A98", name: "color_blue" },
+    { hex: "#632A9F", name: "color_purple" },
+    { hex: "#ED84F7", name: "color_pink" },
+    { hex: "#652700", name: "color_brown" },
+    { hex: "#000000", name: "color_black" },
+    { hex: "#FFFFFF", name: "color_white" },
   ],
   Earthy: [
-    { hex: "#28673B", name: "Forest Green" },
-    { hex: "#AA7C49", name: "Clay" },
-    { hex: "#976030", name: "Walnut" },
-    { hex: "#A1C458", name: "Olive" },
-    { hex: "#ACD62A", name: "Lime" },
-    { hex: "#3492E4", name: "Sky Blue" },
-    { hex: "#66C1E1", name: "Water" },
-    { hex: "#FFD441", name: "Sunflower" },
-    { hex: "#F6C178", name: "Sand" },
-    { hex: "#C77546", name: "Terracotta" },
-    { hex: "#000000", name: "Black" },
-    { hex: "#FFFFFF", name: "White" },
+    { hex: "#28673B", name: "color_forest_green" },
+    { hex: "#AA7C49", name: "color_clay" },
+    { hex: "#976030", name: "color_walnut" },
+    { hex: "#A1C458", name: "color_olive" },
+    { hex: "#ACD62A", name: "color_lime" },
+    { hex: "#3492E4", name: "color_sky_blue" },
+    { hex: "#66C1E1", name: "color_water" },
+    { hex: "#FFD441", name: "color_sunflower" },
+    { hex: "#F6C178", name: "color_sand" },
+    { hex: "#C77546", name: "color_terracotta" },
+    { hex: "#000000", name: "color_black" },
+    { hex: "#FFFFFF", name: "color_white" },
   ],
   Pastel: [
-    { hex: "#FBF8CC", name: "Cream" },
-    { hex: "#FDE4CF", name: "Peach" },
-    { hex: "#FFCFD2", name: "Rose" },
-    { hex: "#F1C0E8", name: "Lilac" },
-    { hex: "#CFBAF0", name: "Lavender" },
-    { hex: "#A3C4F3", name: "Sky" },
-    { hex: "#90DBF4", name: "Aqua" },
-    { hex: "#8EECF5", name: "Turquoise" },
-    { hex: "#98F5E1", name: "Mint" },
-    { hex: "#B9FBC0", name: "Pale Green" },
-    { hex: "#000000", name: "Black" },
-    { hex: "#FFFFFF", name: "White" },
+    { hex: "#FBF8CC", name: "color_cream" },
+    { hex: "#FDE4CF", name: "color_peach" },
+    { hex: "#FFCFD2", name: "color_rose" },
+    { hex: "#F1C0E8", name: "color_lilac" },
+    { hex: "#CFBAF0", name: "color_lavender" },
+    { hex: "#A3C4F3", name: "color_sky" },
+    { hex: "#90DBF4", name: "color_aqua" },
+    { hex: "#8EECF5", name: "color_turquoise" },
+    { hex: "#98F5E1", name: "color_mint" },
+    { hex: "#B9FBC0", name: "color_pale_green" },
+    { hex: "#000000", name: "color_black" },
+    { hex: "#FFFFFF", name: "color_white" },
   ],
   Neon: [
-    { hex: "#DB01EC", name: "Magenta" },
-    { hex: "#C330F6", name: "Violet" },
-    { hex: "#029CFF", name: "Electric Blue" },
-    { hex: "#0CE2EA", name: "Cyan Glow" },
-    { hex: "#02FF67", name: "Neon Green" },
-    { hex: "#97FC03", name: "Lime Glow" },
-    { hex: "#FDFF66", name: "Lemon" },
-    { hex: "#FEDB1B", name: "Amber" },
-    { hex: "#FF6600", name: "Neon Orange" },
-    { hex: "#FF0066", name: "Hot Pink" },
-    { hex: "#000000", name: "Black" },
-    { hex: "#FFFFFF", name: "White" },
+    { hex: "#DB01EC", name: "color_magenta" },
+    { hex: "#C330F6", name: "color_violet" },
+    { hex: "#029CFF", name: "color_electric_blue" },
+    { hex: "#0CE2EA", name: "color_cyan_glow" },
+    { hex: "#02FF67", name: "color_neon_green" },
+    { hex: "#97FC03", name: "color_lime_glow" },
+    { hex: "#FDFF66", name: "color_lemon" },
+    { hex: "#FEDB1B", name: "color_amber" },
+    { hex: "#FF6600", name: "color_neon_orange" },
+    { hex: "#FF0066", name: "color_hot_pink" },
+    { hex: "#000000", name: "color_black" },
+    { hex: "#FFFFFF", name: "color_white" },
   ],
   Sunset: [
-    { hex: "#21215C", name: "Midnight" },
-    { hex: "#3B55A7", name: "Indigo" },
-    { hex: "#4E385F", name: "Plum" },
-    { hex: "#66479D", name: "Amethyst" },
-    { hex: "#9875B4", name: "Orchid" },
-    { hex: "#D8499A", name: "Fuchsia" },
-    { hex: "#DE4D6D", name: "Rose Red" },
-    { hex: "#E58644", name: "Coral" },
-    { hex: "#E69B79", name: "Apricot" },
-    { hex: "#F1CB85", name: "Golden" },
-    { hex: "#000000", name: "Black" },
-    { hex: "#FFFFFF", name: "White" },
+    { hex: "#21215C", name: "color_midnight" },
+    { hex: "#3B55A7", name: "color_indigo" },
+    { hex: "#4E385F", name: "color_plum" },
+    { hex: "#66479D", name: "color_amethyst" },
+    { hex: "#9875B4", name: "color_orchid" },
+    { hex: "#D8499A", name: "color_fuchsia" },
+    { hex: "#DE4D6D", name: "color_rose_red" },
+    { hex: "#E58644", name: "color_coral" },
+    { hex: "#E69B79", name: "color_apricot" },
+    { hex: "#F1CB85", name: "color_golden" },
+    { hex: "#000000", name: "color_black" },
+    { hex: "#FFFFFF", name: "color_white" },
   ],
 };
 
@@ -116,24 +116,24 @@ class CustomColorPicker {
     ];
 
     this.colorLabels = {
-      red: "Red",
-      darkorange: "Dark orange",
-      yellow: "Yellow",
-      teal: "Teal",
-      lime: "Lime",
-      forestgreen: "Forest green",
-      aqua: "Aqua",
-      dodgerblue: "Dodger blue",
-      blue: "Blue",
-      blueviolet: "Blue violet",
-      fuchsia: "Fuchsia",
-      deeppink: "Deep pink",
-      white: "White",
-      lightgray: "Light gray",
-      dimgray: "Dim gray",
-      black: "Black",
-      saddlebrown: "Saddle brown",
-      lightcoral: "Light coral",
+      red: "color_red",
+      darkorange: "color_dark_orange",
+      yellow: "color_yellow",
+      teal: "color_teal",
+      lime: "color_lime",
+      forestgreen: "color_forest_green",
+      aqua: "color_aqua",
+      dodgerblue: "color_dodger_blue",
+      blue: "color_blue",
+      blueviolet: "color_blue_violet",
+      fuchsia: "color_fuchsia",
+      deeppink: "color_deep_pink",
+      white: "color_white",
+      lightgray: "color_light_gray",
+      dimgray: "color_dim_gray",
+      black: "color_black",
+      saddlebrown: "color_saddle_brown",
+      lightcoral: "color_light_coral",
     };
 
     this.createElement();
@@ -154,7 +154,7 @@ class CustomColorPicker {
     return skinColors
       .map(
         (color) =>
-          `<button class="color-swatch" style="background-color: ${color}" data-color="${color}" aria-label="Skin tone ${color}" tabindex="0"></button>`,
+          `<button class="color-swatch" style="background-color: ${color}" data-color="${color}" aria-label="${translate('skin_tone')} ${color}" tabindex="0"></button>`,
       )
       .join("");
   }
@@ -305,7 +305,7 @@ class CustomColorPicker {
             </div>
 
             <!-- Vertical Lightness slider -->
-           <div class="lightness-slider" aria-label="Lightness" role="slider"
+           <div class="lightness-slider" aria-label="${translate('lightness')}" role="slider"
             aria-valuemin="1" aria-valuemax="99" aria-valuenow="60" tabindex="0">
               <canvas class="lightness-canvas" width="20" height="100"></canvas>
               <div class="lightness-handle" aria-hidden="true"></div>
@@ -316,29 +316,29 @@ class CustomColorPicker {
           <div class="color-picker-right">
            <div class="color-picker-section">
              <div class="palette-row">
-               <label for="palette-select" class="sr-only">Palette</label>
-               <select id="palette-select" class="palette-dropdown" aria-label="Palette"></select>
+               <label for="palette-select" class="sr-only">${translate('palette')}</label>
+               <select id="palette-select" class="palette-dropdown" aria-label="${translate('palette')}"></select>
              </div>
-             <div class="color-palette" aria-label="Color palette"></div>
+             <div class="color-palette" aria-label="${translate('color_palette')}"></div>
            </div>
           </div>
         </div>
 
         <div class="color-picker-tools-row">
-          <div class="hue-slider-container" tabindex="0" role="slider" aria-label="Hue slider" aria-valuemin="0" aria-valuemax="360" aria-valuenow="0">
+          <div class="hue-slider-container" tabindex="0" role="slider" aria-label="${translate('hue_slider')}" aria-valuemin="0" aria-valuemax="360" aria-valuenow="0">
             <canvas class="hue-slider-canvas" height="20"></canvas>
             <div class="hue-slider-handle"></div>
           </div>
           <div class="color-picker-buttons">
-            <button class="color-picker-random" aria-label="Surprise color" title="Surprise color">
+            <button class="color-picker-random" aria-label="${translate('surprise_color')}" title="${translate('surprise_color')}">
              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640"><path fill="#FFFFFF" d="M467.8 98.4C479.8 93.4 493.5 96.2 502.7 105.3L566.7 169.3C572.7 175.3 576.1 183.4 576.1 191.9C576.1 200.4 572.7 208.5 566.7 214.5L502.7 278.5C493.5 287.7 479.8 290.4 467.8 285.4C455.8 280.4 448 268.9 448 256L448 224L416 224C405.9 224 396.4 228.7 390.4 236.8L358 280L318 226.7L339.2 198.4C357.3 174.2 385.8 160 416 160L448 160L448 128C448 115.1 455.8 103.4 467.8 98.4zM218 360L258 413.3L236.8 441.6C218.7 465.8 190.2 480 160 480L96 480C78.3 480 64 465.7 64 448C64 430.3 78.3 416 96 416L160 416C170.1 416 179.6 411.3 185.6 403.2L218 360zM502.6 534.6C493.4 543.8 479.7 546.5 467.7 541.5C455.7 536.5 448 524.9 448 512L448 480L416 480C385.8 480 357.3 465.8 339.2 441.6L185.6 236.8C179.6 228.7 170.1 224 160 224L96 224C78.3 224 64 209.7 64 192C64 174.3 78.3 160 96 160L160 160C190.2 160 218.7 174.2 236.8 198.4L390.4 403.2C396.4 411.3 405.9 416 416 416L448 416L448 384C448 371.1 455.8 359.4 467.8 354.4C479.8 349.4 493.5 352.2 502.7 361.3L566.7 425.3C572.7 431.3 576.1 439.4 576.1 447.9C576.1 456.4 572.7 464.5 566.7 470.5L502.7 534.5z"/></svg>
             </button>
-            <button class="color-picker-eyedropper" aria-label="Pick color from screen" title="Pick color from screen">
+            <button class="color-picker-eyedropper" aria-label="${translate('pick_color_from_screen')}" title="${translate('pick_color_from_screen')}">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" width="20" height="20" fill="currentColor">
                 <path d="M405.6 93.2L304 194.8L294.6 185.4C282.1 172.9 261.8 172.9 249.3 185.4C236.8 197.9 236.8 218.2 249.3 230.7L409.3 390.7C421.8 403.2 442.1 403.2 454.6 390.7C467.1 378.2 467.1 357.9 454.6 345.4L445.2 336L546.8 234.4C585.8 195.4 585.8 132.2 546.8 93.3C507.8 54.4 444.6 54.3 405.7 93.3zM119.4 387.3C104.4 402.3 96 422.7 96 443.9L96 486.3L69.4 526.2C60.9 538.9 62.6 555.8 73.4 566.6C84.2 577.4 101.1 579.1 113.8 570.6L153.7 544L196.1 544C217.3 544 237.7 535.6 252.7 520.6L362.1 411.2L316.8 365.9L207.4 475.3C204.4 478.3 200.3 480 196.1 480L160 480L160 443.9C160 439.7 161.7 435.6 164.7 432.6L274.1 323.2L228.8 277.9L119.4 387.3z"/>
               </svg>
             </button>
-            <button class="color-picker-more-options" aria-label="More options" title="More options">
+            <button class="color-picker-more-options" aria-label="${translate('more_options')}" title="${translate('more_options')}">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" width="20" height="20" fill="currentColor">
                 <path d="M535.1 342.6C547.6 330.1 547.6 309.8 535.1 297.3L375.1 137.3C362.6 124.8 342.3 124.8 329.8 137.3C317.3 149.8 317.3 170.1 329.8 182.6L467.2 320L329.9 457.4C317.4 469.9 317.4 490.2 329.9 502.7C342.4 515.2 362.7 515.2 375.2 502.7L535.2 342.7zM183.1 502.6L343.1 342.6C355.6 330.1 355.6 309.8 343.1 297.3L183.1 137.3C170.6 124.8 150.3 124.8 137.8 137.3C125.3 149.8 125.3 170.1 137.8 182.6L275.2 320L137.9 457.4C125.4 469.9 125.4 490.2 137.9 502.7C150.4 515.2 170.7 515.2 183.2 502.7z"/>
               </svg>
@@ -350,7 +350,7 @@ class CustomColorPicker {
           <div class="advanced-options-row">
             <div class="css-input-container">
               <span class="css-prefix">#</span>
-              <input type="text" id="css-color-input" class="css-color-input" placeholder="ff0000 or red" />
+              <input type="text" id="css-color-input" class="css-color-input" placeholder="${translate('hex_placeholder')}" />
             </div>
 
             <div class="rgb-inputs">
@@ -372,7 +372,7 @@ class CustomColorPicker {
 
         <div class="color-picker-footer">
           <div class="current-color-display" style="background-color: ${this.currentColor}"></div>
-          <button class="color-picker-use" type="button" aria-label="Use your color" title="Use your color">
+          <button class="color-picker-use" type="button" aria-label="${translate('use_this_color')}" title="${translate('use_this_color')}">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><!--!Font Awesome Free v6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.--><path fill="white" d="M41.4 9.4C53.9-3.1 74.1-3.1 86.6 9.4L168 90.7l53.1-53.1c28.1-28.1 73.7-28.1 101.8 0L474.3 189.1c28.1 28.1 28.1 73.7 0 101.8L283.9 481.4c-37.5 37.5-98.3 37.5-135.8 0L30.6 363.9c-37.5-37.5-37.5-98.3 0-135.8L122.7 136 41.4 54.6c-12.5-12.5-12.5-32.8 0-45.3zm176 221.3L168 181.3 75.9 273.4c-4.2 4.2-7 9.3-8.4 14.6l319.2 0 42.3-42.3c3.1-3.1 3.1-8.2 0-11.3L277.7 82.9c-3.1-3.1-8.2-3.1-11.3 0L213.3 136l49.4 49.4c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0zM512 512c-35.3 0-64-28.7-64-64c0-25.2 32.6-79.6 51.2-108.7c6-9.4 19.5-9.4 25.5 0C543.4 368.4 576 422.8 576 448c0 35.3-28.7 64-64 64z"/></svg>
           </button>
         </div>
@@ -430,7 +430,7 @@ class CustomColorPicker {
     Object.keys(COLOR_PALETTES).forEach((name) => {
       const opt = document.createElement("option");
       opt.value = name;
-      opt.textContent = name;
+      opt.textContent = translate(`palette_${name.toLowerCase()}`);
       this.paletteSelect.appendChild(opt);
     });
 
@@ -453,7 +453,7 @@ class CustomColorPicker {
 
     this.paletteGrid.innerHTML = twelve
       .map((c, i) => {
-        const label = c.name || c.hex;
+        const label = translate(c.name) || c.hex;
         const hex = c.hex;
         return `
         <button 
@@ -698,7 +698,7 @@ class CustomColorPicker {
     this.canvas.setAttribute("role", "slider");
     this.canvas.setAttribute(
       "aria-label",
-      "Color wheel: use arrow keys to select hue and saturation",
+      translate("color_wheel_aria"),
     );
     this.canvas.setAttribute("aria-valuenow", "0");
     this.canvas.setAttribute("aria-valuemin", "0");
@@ -1883,6 +1883,83 @@ class CustomColorPicker {
     setTimeout(() => {
       this.canvas?.focus();
     }, 150);
+  }
+
+  refreshTranslations() {
+    if (!this.container) return;
+
+    // Update ARIA labels and tooltips
+    const lightnessSlider = this.container.querySelector('.lightness-slider');
+    if (lightnessSlider) {
+      lightnessSlider.setAttribute('aria-label', translate('lightness'));
+    }
+
+    const paletteLabel = this.container.querySelector('label[for="palette-select"]');
+    if (paletteLabel) {
+      paletteLabel.textContent = translate('palette');
+    }
+
+    const paletteSelect = this.container.querySelector('#palette-select');
+    if (paletteSelect) {
+      paletteSelect.setAttribute('aria-label', translate('palette'));
+    }
+
+    const colorPalette = this.container.querySelector('.color-palette');
+    if (colorPalette) {
+      colorPalette.setAttribute('aria-label', translate('color_palette'));
+    }
+
+    const hueSliderContainer = this.container.querySelector('.hue-slider-container');
+    if (hueSliderContainer) {
+      hueSliderContainer.setAttribute('aria-label', translate('hue_slider'));
+    }
+
+    const randomBtn = this.container.querySelector('.color-picker-random');
+    if (randomBtn) {
+      randomBtn.setAttribute('aria-label', translate('surprise_color'));
+      randomBtn.setAttribute('title', translate('surprise_color'));
+    }
+
+    const eyedropperBtn = this.container.querySelector('.color-picker-eyedropper');
+    if (eyedropperBtn) {
+      eyedropperBtn.setAttribute('aria-label', translate('pick_color_from_screen'));
+      eyedropperBtn.setAttribute('title', translate('pick_color_from_screen'));
+    }
+
+    const moreOptionsBtn = this.container.querySelector('.color-picker-more-options');
+    if (moreOptionsBtn) {
+      moreOptionsBtn.setAttribute('aria-label', translate('more_options'));
+      moreOptionsBtn.setAttribute('title', translate('more_options'));
+    }
+
+    const cssInput = this.container.querySelector('#css-color-input');
+    if (cssInput) {
+      cssInput.setAttribute('placeholder', translate('hex_placeholder'));
+    }
+
+    const useBtn = this.container.querySelector('.color-picker-use');
+    if (useBtn) {
+      useBtn.setAttribute('aria-label', translate('use_this_color'));
+      useBtn.setAttribute('title', translate('use_this_color'));
+    }
+
+    // Update palette dropdown options
+    if (this.paletteSelect) {
+      const currentValue = this.paletteSelect.value;
+      this.paletteSelect.innerHTML = "";
+      Object.keys(COLOR_PALETTES).forEach((name) => {
+        const opt = document.createElement("option");
+        opt.value = name;
+        opt.textContent = translate(`palette_${name.toLowerCase()}`);
+        this.paletteSelect.appendChild(opt);
+      });
+      this.paletteSelect.value = currentValue;
+    }
+
+    // Update color swatches with new labels
+    if (this.paletteSelect) {
+      this._renderSwatches(this.paletteSelect.value);
+    }
   }
 
   close() {
