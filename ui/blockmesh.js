@@ -145,7 +145,7 @@ export function getMeshFromBlock(block) {
     return flock?.scene?.getMeshByName("ground");
   }
 
-  if (block && block.type === "rotate_to") {
+  if (block && ["rotate_to", "scale", "resize"].includes(block.type)) {
     block = block.getParent();
   }
 
@@ -329,6 +329,8 @@ export function updateMeshFromBlock(mesh, block, changeEvent) {
       "load_character",
       "create_map",
       "rotate_to",
+      "scale",
+      "resize"
     ].includes(block.type)
   ) {
     color = block
@@ -456,12 +458,22 @@ export function updateMeshFromBlock(mesh, block, changeEvent) {
 
   // Retrieve the position values (X, Y, Z) from the connected blocks
   let position;
+  let origin;
 
   position = {
     x: block.getInput("X").connection.targetBlock().getFieldValue("NUM"),
     y: block.getInput("Y").connection.targetBlock().getFieldValue("NUM"),
     z: block.getInput("Z").connection.targetBlock().getFieldValue("NUM"),
   };
+
+  if (["scale", "resize"].includes(block.type)) {
+    origin = {
+      x: block.getFieldValue("X_ORIGIN"),
+      y: block.getFieldValue("Y_ORIGIN"),
+      z: block.getFieldValue("Z_ORIGIN"),
+    };
+    if (flock.blockDebug || flock.meshDebug) console.log("origin");
+  }
 
   let colors,
     width,
@@ -667,7 +679,7 @@ export function updateMeshFromBlock(mesh, block, changeEvent) {
       flock.changeColor(mesh.name, { color });
     }
   }
-  if (["X", "Y", "Z"].includes(changed)) {
+  if (["X", "Y", "Z"].includes(changed) || (changed === "DO" && ["scale", "resize"].includes(shapeType))) {
     switch (block.type) {
       case "rotate_to":
         /* The "position" X, Y and Z values are automatically picked up from the "rotate_to"
@@ -677,6 +689,28 @@ export function updateMeshFromBlock(mesh, block, changeEvent) {
           x: position.x,
           y: position.y,
           z: position.z,
+        });
+        break;
+
+      case "scale":
+        flock.scale(mesh.name, {
+          x: position.x,
+          y: position.y,
+          z: position.z,
+          xOrigin: origin.x,
+          yOrigin: origin.y,
+          zOrigin: origin.z,
+        });
+        break;
+
+      case "resize":
+        flock.resize(mesh.name, {
+          x: position.x,
+          y: position.y,
+          z: position.z,
+          xOrigin: origin.x,
+          yOrigin: origin.y,
+          zOrigin: origin.z,
         });
         break;
 
