@@ -805,7 +805,7 @@ export default {
   fullscreen_toggle_ui: "Switch between fullscreen and normal views.",
 
   show_shapes_button_ui: "Add shapes and models",
-  color_picker_button_ui_ui: "Choose a color",
+  color_picker_button_ui: "Choose a color",
   position_button_ui: "Position mesh",
   rotation_button_ui: "Rotate mesh",
   scale_button_ui: "Scale mesh size",

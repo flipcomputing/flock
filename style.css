@@ -434,6 +434,10 @@ button {
   filter: invert(1) brightness(2); /* Make palette icon white */
 }
 
+[data-theme="dark"] #colorPickerButton img {
+  filter: invert(1) brightness(2) invert(30%) sepia(2%) saturate(0%) hue-rotate(180deg) brightness(96%) contrast(85%);
+}
+
 .bigbutton svg {
   filter: none; /* light mode: normal */
 }
