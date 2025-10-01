@@ -538,34 +538,117 @@ export const flockPhysics = {
   meshExists(name) {
     return !!(flock.scene && flock.scene.getMeshByName(name));
   },
-  showPhysics(show) {
-    if (!flock.scene) {
+  // Toggle Physics V2 debug shapes, resilient to scene/engine reloads & reruns.
+  showPhysics(show = true) {
+    const scene = flock?.scene;
+    if (!scene) {
       console.warn("Scene not ready yet");
       return;
     }
 
-    // Create physics viewer if it doesn't exist
-    if (!flock.physicsViewer) {
-      flock.physicsViewer = new flock.BABYLON.Debug.PhysicsViewer(flock.scene);
-      flock.physicsViewerActive = false;
+    const engine = scene.getPhysicsEngine?.();
+    if (!engine) {
+      console.warn("Physics engine not enabled on this scene.");
+      return;
     }
 
-    if (show) {
-      // Show physics colliders for all physics bodies
-      flock.scene.meshes.forEach(mesh => {
-        if (mesh.physicsBody) {
-          flock.physicsViewer.showBody(mesh.physicsBody);
-        }
+    const PhysicsViewerClass =
+      flock.BABYLON?.Debug?.PhysicsViewer || flock.BABYLON?.PhysicsViewer;
+
+    if (!PhysicsViewerClass) {
+      console.warn("PhysicsViewer not available on BABYLON namespace.");
+      return;
+    }
+
+    // If we have a viewer from an old scene/engine, tear it down.
+    const sceneChanged =
+      flock._physicsViewerScene && flock._physicsViewerScene !== scene;
+    const engineChanged =
+      flock._physicsViewerEngine && flock._physicsViewerEngine !== engine;
+
+    if (sceneChanged || engineChanged) {
+      try { flock.physicsViewer?.dispose?.(); } catch (_) {}
+      flock.physicsViewer = null;
+      flock._physicsViewerScene = null;
+      flock._physicsViewerEngine = null;
+      flock._physicsBodiesShown?.clear?.();
+      flock._physicsBodiesShown = null;
+    }
+
+    // Create once per scene/engine.
+    if (!flock.physicsViewer) {
+      flock.physicsViewer = new PhysicsViewerClass(scene);
+      flock._physicsViewerScene = scene;
+      flock._physicsViewerEngine = engine;
+      flock._physicsBodiesShown = new Set();
+
+      // Auto-clean if this scene is disposed before a full page reload.
+      scene.onDisposeObservable.add(() => {
+        try { flock.physicsViewer?.dispose?.(); } catch (_) {}
+        flock.physicsViewer = null;
+        flock._physicsViewerScene = null;
+        flock._physicsViewerEngine = null;
+        flock._physicsBodiesShown?.clear?.();
+        flock._physicsBodiesShown = null;
       });
+    }
+
+    // Collect all current Physics V2 bodies (Inspector uses the engine's list).
+    const collectBodies = () => {
+      const bodies = [];
+      const seen = new Set();
+
+      if (typeof engine.getBodies === "function") {
+        for (const body of engine.getBodies()) {
+          if (body && !seen.has(body)) {
+            seen.add(body);
+            bodies.push(body);
+          }
+        }
+      }
+
+      // Fallback: meshes that expose a body (helps if plugin wraps differently).
+      for (const mesh of scene.meshes) {
+        const body = mesh.physicsBody || mesh.physics?.body || mesh.physics;
+        if (body && !seen.has(body)) {
+          seen.add(body);
+          bodies.push(body);
+        }
+      }
+      return bodies;
+    };
+
+    const bodies = collectBodies();
+
+    if (show) {
+      for (const body of bodies) {
+        if (!flock._physicsBodiesShown.has(body)) {
+          try {
+            flock.physicsViewer.showBody(body);
+            flock._physicsBodiesShown.add(body);
+          } catch (_) {}
+        }
+      }
       flock.physicsViewerActive = true;
     } else {
-      // Hide physics colliders for all physics bodies
-      flock.scene.meshes.forEach(mesh => {
-        if (mesh.physicsBody) {
-          flock.physicsViewer.hideBody(mesh.physicsBody);
+      for (const body of bodies) {
+        if (flock._physicsBodiesShown.has(body)) {
+          try {
+            flock.physicsViewer.hideBody(body);
+          } catch (_) {}
+          flock._physicsBodiesShown.delete(body);
         }
-      });
+      }
       flock.physicsViewerActive = false;
+
+      // Optional: fully dispose to guarantee no leftovers between runs.
+      // Comment these out if you prefer to keep the instance around.
+      try { flock.physicsViewer?.dispose?.(); } catch (_) {}
+      flock.physicsViewer = null;
+      flock._physicsViewerScene = null;
+      flock._physicsViewerEngine = null;
+      flock._physicsBodiesShown?.clear?.();
+      flock._physicsBodiesShown = null;
     }
   }
 };

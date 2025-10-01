@@ -1,6 +1,6 @@
 import * as Blockly from "blockly";
 import "@blockly/toolbox-search";
-import { translate } from './main/translation.js';
+import { translate } from "./main/translation.js";
 
 export const categoryColours = {
         Events: 5,
@@ -1072,7 +1072,7 @@ const toolboxTransformPhysics = {
                 {
                         kind: "block",
                         type: "show_physics",
-                        keyword: "debug physics collider",
+                        keyword: "colliders",
                 },
         ],
 };
@@ -2399,125 +2399,125 @@ const toolboxText = {
                         },
                 },
                 {
-                  kind: "block",
-                  type: "ui_input",
-                  keyword: "ui",
-                  inputs: {
-                        TEXT: {
-                          shadow: {
-                                type: "text",
-                                fields: {
-                                  TEXT: "What's your name?",
+                        kind: "block",
+                        type: "ui_input",
+                        keyword: "ui",
+                        inputs: {
+                                TEXT: {
+                                        shadow: {
+                                                type: "text",
+                                                fields: {
+                                                        TEXT: "What's your name?",
+                                                },
+                                        },
                                 },
-                          }
+                                X: {
+                                        shadow: {
+                                                type: "math_number",
+                                                fields: {
+                                                        NUM: 100,
+                                                },
+                                        },
+                                },
+                                Y: {
+                                        shadow: {
+                                                type: "math_number",
+                                                fields: {
+                                                        NUM: 50,
+                                                },
+                                        },
+                                },
+                                TEXT_SIZE: {
+                                        shadow: {
+                                                type: "math_number",
+                                                fields: {
+                                                        NUM: 24,
+                                                },
+                                        },
+                                },
+                                TEXT_COLOR: {
+                                        shadow: {
+                                                type: "colour",
+                                                fields: {
+                                                        COLOR: "#ffffff",
+                                                },
+                                        },
+                                },
+                                BACKGROUND_COLOR: {
+                                        shadow: {
+                                                type: "colour",
+                                                fields: {
+                                                        COLOR: "#000080",
+                                                },
+                                        },
+                                },
                         },
-                        X: {
-                          shadow: {
-                                type: "math_number",
-                                fields: {
-                                  NUM: 100,
-                                },
-                          }
+                        fields: {
+                                SIZE: "MEDIUM",
                         },
-                        Y: {
-                          shadow: {
-                                type: "math_number",
-                                fields: {
-                                  NUM: 50,
-                                },
-                          }
-                        },
-                        TEXT_SIZE: {
-                          shadow: {
-                                type: "math_number",
-                                fields: {
-                                  NUM: 24,
-                                },
-                          }
-                        },
-                        TEXT_COLOR: {
-                          shadow: {
-                                type: "colour",
-                                fields: {
-                                  COLOR: "#ffffff",
-                                },
-                          }
-                        },
-                        BACKGROUND_COLOR: {
-                          shadow: {
-                                type: "colour",
-                                fields: {
-                                  COLOR: "#000080",
-                                },
-                          }
-                        }
-                  },
-                  fields: {
-                        SIZE: "MEDIUM"
-                  }
                 },
                 {
-                  kind: "block",
-                  type: "ui_slider",
-                  keyword: "ui",
-                  inputs: {
-                        MIN: {
-                          shadow: {
-                                type: "math_number",
-                                fields: {
-                                  NUM: 0,
+                        kind: "block",
+                        type: "ui_slider",
+                        keyword: "ui",
+                        inputs: {
+                                MIN: {
+                                        shadow: {
+                                                type: "math_number",
+                                                fields: {
+                                                        NUM: 0,
+                                                },
+                                        },
                                 },
-                          },
-                        },
-                        MAX: {
-                          shadow: {
-                                type: "math_number",
-                                fields: {
-                                  NUM: 100,
+                                MAX: {
+                                        shadow: {
+                                                type: "math_number",
+                                                fields: {
+                                                        NUM: 100,
+                                                },
+                                        },
                                 },
-                          },
-                        },
-                        VALUE: {
-                          shadow: {
-                                type: "math_number",
-                                fields: {
-                                  NUM: 50,
+                                VALUE: {
+                                        shadow: {
+                                                type: "math_number",
+                                                fields: {
+                                                        NUM: 50,
+                                                },
+                                        },
                                 },
-                          },
-                        },
-                        X: {
-                          shadow: {
-                                type: "math_number",
-                                fields: {
-                                  NUM: 100,
+                                X: {
+                                        shadow: {
+                                                type: "math_number",
+                                                fields: {
+                                                        NUM: 100,
+                                                },
+                                        },
                                 },
-                          },
-                        },
-                        Y: {
-                          shadow: {
-                                type: "math_number",
-                                fields: {
-                                  NUM: 50,
+                                Y: {
+                                        shadow: {
+                                                type: "math_number",
+                                                fields: {
+                                                        NUM: 50,
+                                                },
+                                        },
                                 },
-                          },
-                        },
-                        COLOR: {
-                          shadow: {
-                                type: "colour",
-                                fields: {
-                                  COLOR: "#ffffff",
+                                COLOR: {
+                                        shadow: {
+                                                type: "colour",
+                                                fields: {
+                                                        COLOR: "#ffffff",
+                                                },
+                                        },
                                 },
-                          },
-                        },
-                        BACKGROUND: {
-                          shadow: {
-                                type: "colour",
-                                fields: {
-                                  COLOR: "#000080",
+                                BACKGROUND: {
+                                        shadow: {
+                                                type: "colour",
+                                                fields: {
+                                                        COLOR: "#000080",
+                                                },
+                                        },
                                 },
-                          },
                         },
-                  }
                 },
                 {
                         kind: "block",
@@ -3085,7 +3085,9 @@ const toolboxSound = {
                                                         ADD0: {
                                                                 block: {
                                                                         type: "midi_note",
-                                                                        fields: { NOTE: 60 },
+                                                                        fields: {
+                                                                                NOTE: 60,
+                                                                        },
                                                                 },
                                                         },
                                                 },
@@ -3100,7 +3102,9 @@ const toolboxSound = {
                                                         ADD0: {
                                                                 block: {
                                                                         type: "math_number",
-                                                                        fields: { NUM: 1 },
+                                                                        fields: {
+                                                                                NUM: 1,
+                                                                        },
                                                                 },
                                                         },
                                                 },
@@ -3110,7 +3114,10 @@ const toolboxSound = {
                                         block: {
                                                 // Real block initially
                                                 type: "instrument",
-                                                fields: { INSTRUMENT_TYPE: "default" },
+                                                fields: {
+                                                        INSTRUMENT_TYPE:
+                                                                "default",
+                                                },
                                         },
                                 },
                         },
@@ -3473,7 +3480,8 @@ const toolboxSnippets = {
                                                                                         type: "material",
 
                                                                                         fields: {
-                                                                                                TEXTURE_SET: "none.png",
+                                                                                                TEXTURE_SET:
+                                                                                                        "none.png",
                                                                                         },
                                                                                         inputs: {
                                                                                                 BASE_COLOR: {
@@ -3608,7 +3616,8 @@ const toolboxSnippets = {
                                                                                 name: "player",
                                                                                 type: "",
                                                                         },
-                                                                        PHYSICS_TYPE: "DYNAMIC",
+                                                                        PHYSICS_TYPE:
+                                                                                "DYNAMIC",
                                                                 },
                                                                 next: {
                                                                         block: {
@@ -3684,7 +3693,8 @@ const toolboxSnippets = {
                                                                                                         name: "player",
                                                                                                         type: "",
                                                                                                 },
-                                                                                                ANIMATION_NAME: "Walk",
+                                                                                                ANIMATION_NAME:
+                                                                                                        "Walk",
                                                                                         },
                                                                                 },
                                                                         },
@@ -3725,7 +3735,8 @@ const toolboxSnippets = {
                                                                                                         name: "player",
                                                                                                         type: "",
                                                                                                 },
-                                                                                                ANIMATION_NAME: "Walk",
+                                                                                                ANIMATION_NAME:
+                                                                                                        "Walk",
                                                                                         },
                                                                                 },
                                                                         },
@@ -3739,7 +3750,8 @@ const toolboxSnippets = {
                                                                                         name: "player",
                                                                                         type: "",
                                                                                 },
-                                                                                ANIMATION_NAME: "Idle",
+                                                                                ANIMATION_NAME:
+                                                                                        "Idle",
                                                                         },
                                                                 },
                                                         },
