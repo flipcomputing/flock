@@ -158,6 +158,33 @@ export function defineShapeBlocks() {
 						options: [
 							[
 								{
+									src: "./textures/blast_texture.png",
+									width: 32,
+									height: 32,
+									alt: "Blast",
+								},
+								"blast_texture.png",
+							],
+							[
+								{
+									src: "./textures/bubble_texture.png",
+									width: 32,
+									height: 32,
+									alt: "Bubble",
+								},
+								"bubble_texture.png",
+							],
+							[
+								{
+									src: "./textures/burst_texture.png",
+									width: 32,
+									height: 32,
+									alt: "Burst",
+								},
+								"burst_texture.png",
+							],
+							[
+								{
 									src: "./textures/circle_texture.png",
 									width: 32,
 									height: 32,
@@ -167,12 +194,120 @@ export function defineShapeBlocks() {
 							],
 							[
 								{
+									src: "./textures/comet_texture.png",
+									width: 32,
+									height: 32,
+									alt: "Comet",
+								},
+								"comet_texture.png",
+							],
+							[
+								{
+									src: "./textures/confetti_texture.png",
+									width: 32,
+									height: 32,
+									alt: "Confetti",
+								},
+								"confetti_texture.png",
+							],
+							[
+								{
+									src: "./textures/exclaim_texture.png",
+									width: 32,
+									height: 32,
+									alt: "Exclaim",
+								},
+								"exclaim_texture.png",
+							],
+							[
+								{
+									src: "./textures/fish_texture.png",
+									width: 32,
+									height: 32,
+									alt: "Fish",
+								},
+								"fish_texture.png",
+							],
+							[
+								{
+									src: "./textures/fragments_texture.png",
+									width: 32,
+									height: 32,
+									alt: "Fragments",
+								},
+								"fragments_texture.png",
+							],
+							[
+								{
+									src: "./textures/gem_texture.png",
+									width: 32,
+									height: 32,
+									alt: "Gem",
+								},
+								"gem_texture.png",
+							],
+							[
+								{
+									src: "./textures/ghost_texture.png",
+									width: 32,
+									height: 32,
+									alt: "Ghost",
+								},
+								"ghost_texture.png",
+							],
+							[
+								{
 									src: "./textures/heart_texture.png",
 									width: 32,
 									height: 32,
 									alt: "Heart",
 								},
 								"heart_texture.png",
+							],
+							[
+								{
+									src: "./textures/mic_texture.png",
+									width: 32,
+									height: 32,
+									alt: "Mic",
+								},
+								"mic_texture.png",
+							],
+							[
+								{
+									src: "./textures/paw_texture.png",
+									width: 32,
+									height: 32,
+									alt: "Paw",
+								},
+								"paw_texture.png",
+							],
+							[
+								{
+									src: "./textures/ripple_texture.png",
+									width: 32,
+									height: 32,
+									alt: "Ripple",
+								},
+								"ripple_texture.png",
+							],
+							[
+								{
+									src: "./textures/speaking_texture.png",
+									width: 32,
+									height: 32,
+									alt: "Speaking",
+								},
+								"speaking_texture.png",
+							],
+							[
+								{
+									src: "./textures/splash_texture.png",
+									width: 32,
+									height: 32,
+									alt: "Splash",
+								},
+								"splash_texture.png",
 							],
 							[
 								{
@@ -230,15 +365,6 @@ export function defineShapeBlocks() {
 							],
 							[
 								{
-									src: "./textures/ripple_texture.png",
-									width: 32,
-									height: 32,
-									alt: "Ripple",
-								},
-								"ripple_texture.png",
-							],
-							[
-								{
 									src: "./textures/smoke_texture.png",
 									width: 32,
 									height: 32,
@@ -254,6 +380,24 @@ export function defineShapeBlocks() {
 									alt: "Snowflake",
 								},
 								"snowflake_texture.png",
+							],
+							[
+								{
+									src: "./textures/swirl_texture.png",
+									width: 32,
+									height: 32,
+									alt: "Swirl",
+								},
+								"swirl_texture.png",
+							],
+							[
+								{
+									src: "./textures/wave_texture.png",
+									width: 32,
+									height: 32,
+									alt: "Wave",
+								},
+								"wave_texture.png",
 							],
 							[
 								{
