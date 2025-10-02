@@ -295,6 +295,7 @@ body[data-theme="dark"] .blocklyTreeLabel {
 
   .blocklyToolbox,  .blocklyToolboxCategoryContainer {
     background: #F3F3F3;
+    background-color: #F3F3F3;
   }
   /* The row element */
   .blocklyToolbox .blocklyToolboxCategoryContainer > .blocklyToolboxCategory {
