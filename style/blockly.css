@@ -134,6 +134,10 @@ path.blocklyPath.blockly-ws-search-highlight.blockly-ws-search-current {
   display: none;
 }
 
+.blocklyTrash {
+  color: #4c4c4c !important;
+}
+
 .blocklyTrash,
 .blocklyZoomIn > image,
 .blocklyZoomOut > image {
