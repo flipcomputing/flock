@@ -473,15 +473,6 @@ export function defineShapeBlocks() {
 							],
 							[
 								{
-									src: "./textures/note_texture.png",
-									width: 32,
-									height: 32,
-									alt: "Note",
-								},
-								"note_texture.png",
-							],
-							[
-								{
 									src: "./textures/flame_texture.png",
 									width: 32,
 									height: 32,
