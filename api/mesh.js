@@ -8,6 +8,7 @@ export function setFlockReference(ref) {
 
 export const flockMesh = {
   createCapsuleFromBoundingBox(mesh, scene) {
+    // Always calculate from current bounding box (original behavior)
     mesh.computeWorldMatrix(true);
     const boundingInfo = mesh.getBoundingInfo();
 
@@ -36,6 +37,108 @@ export const flockMesh = {
       center.x,
       center.y + cylinderHeight / 2,
       center.z,
+    );
+
+    const shape = new flock.BABYLON.PhysicsShapeCapsule(
+      segmentStart,
+      segmentEnd,
+      radius,
+      scene,
+    );
+
+    // Store the original capsule dimensions for reuse when changing orientations
+    if (!mesh.metadata) mesh.metadata = {};
+    mesh.metadata.physicsCapsule = { radius, height };
+
+    return shape;
+  },
+  createHorizontalCapsuleFromBoundingBox(mesh, scene, yOffsetFactor = 0) {
+    // Get dimensions from the current vertical capsule
+    let radius, height;
+    
+    const physicsMesh = mesh.physics ? mesh : (mesh.parent?.physics ? mesh.parent : null);
+    
+    if (physicsMesh?.physics?.shape?.constructor.name === "_PhysicsShapeCapsule") {
+      const currentShape = physicsMesh.physics.shape;
+      if (currentShape.pointA && currentShape.pointB && currentShape.radius !== undefined) {
+        const cylinderLength = flock.BABYLON.Vector3.Distance(currentShape.pointA, currentShape.pointB);
+        radius = currentShape.radius;
+        height = cylinderLength + 2 * radius;
+      }
+    }
+    
+    if (!radius || !height) {
+      if (mesh.metadata?.physicsCapsule) {
+        radius = mesh.metadata.physicsCapsule.radius;
+        height = mesh.metadata.physicsCapsule.height;
+      } else {
+        mesh.computeWorldMatrix(true);
+        const boundingInfo = mesh.getBoundingInfo();
+        height = boundingInfo.boundingBox.maximumWorld.y - boundingInfo.boundingBox.minimumWorld.y;
+        const width = boundingInfo.boundingBox.maximumWorld.x - boundingInfo.boundingBox.minimumWorld.x;
+        const depth = boundingInfo.boundingBox.maximumWorld.z - boundingInfo.boundingBox.minimumWorld.z;
+        radius = Math.min(width, depth) / 2;
+      }
+    }
+
+    // Create horizontal capsule with same dimensions as vertical, rotated along Z-axis
+    const cylinderLength = Math.max(0, height - 2 * radius);
+    const center = flock.BABYLON.Vector3.Zero();
+    
+    // Calculate Y offset relative to mesh height
+    const yOffset = yOffsetFactor * height;
+
+    const segmentStart = new flock.BABYLON.Vector3(
+      center.x,
+      center.y + yOffset,
+      center.z - cylinderLength / 2,
+    );
+    const segmentEnd = new flock.BABYLON.Vector3(
+      center.x,
+      center.y + yOffset,
+      center.z + cylinderLength / 2,
+    );
+
+    const shape = new flock.BABYLON.PhysicsShapeCapsule(
+      segmentStart,
+      segmentEnd,
+      radius,
+      scene,
+    );
+
+    return shape;
+  },
+  createSittingCapsuleFromBoundingBox(mesh, scene) {
+    // Get sitting pose bounding box dimensions for proper fit
+    mesh.computeWorldMatrix(true);
+    const boundingInfo = mesh.getBoundingInfo();
+    const meshPos = mesh.getAbsolutePosition();
+    
+    // Calculate dimensions from sitting bounding box
+    const bbHeight = boundingInfo.boundingBox.maximumWorld.y - boundingInfo.boundingBox.minimumWorld.y;
+    const bbWidth = boundingInfo.boundingBox.maximumWorld.x - boundingInfo.boundingBox.minimumWorld.x;
+    const bbDepth = boundingInfo.boundingBox.maximumWorld.z - boundingInfo.boundingBox.minimumWorld.z;
+    
+    const radius = Math.min(bbWidth, bbDepth) / 2;
+    // Reduce height by 35% for sitting pose
+    const cylinderHeight = Math.max(0, (bbHeight * 0.65) - 2 * radius);
+    
+    // Get Z offset for backward lean (convert to local space)
+    const bbCenterLocal = boundingInfo.boundingBox.center.subtract(meshPos);
+    const centerZ = bbCenterLocal.z * -15;  
+    
+    // Raise capsule up slightly (10% of height)
+    const centerY = bbHeight * 0.02;
+    
+    const segmentStart = new flock.BABYLON.Vector3(
+      0,
+      centerY - cylinderHeight / 2,
+      centerZ,
+    );
+    const segmentEnd = new flock.BABYLON.Vector3(
+      0,
+      centerY + cylinderHeight / 2,
+      centerZ,
     );
 
     const shape = new flock.BABYLON.PhysicsShapeCapsule(
