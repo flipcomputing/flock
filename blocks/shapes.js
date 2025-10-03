@@ -158,6 +158,78 @@ export function defineShapeBlocks() {
 						options: [
 							[
 								{
+									src: "./textures/arrow_texture.png",
+									width: 32,
+									height: 32,
+									alt: "Arrow",
+								},
+								"arrow_texture.png",
+							],
+							[
+								{
+									src: "./textures/balloon_texture.png",
+									width: 32,
+									height: 32,
+									alt: "Balloon",
+								},
+								"balloon_texture.png",
+							],
+							[
+								{
+									src: "./textures/bee_texture.png",
+									width: 32,
+									height: 32,
+									alt: "Bee",
+								},
+								"bee_texture.png",
+							],
+							[
+								{
+									src: "./textures/bird_texture.png",
+									width: 32,
+									height: 32,
+									alt: "Bird",
+								},
+								"bird_texture.png",
+							],
+							[
+								{
+									src: "./textures/blast_texture.png",
+									width: 32,
+									height: 32,
+									alt: "Blast",
+								},
+								"blast_texture.png",
+							],
+							[
+								{
+									src: "./textures/bubble_texture.png",
+									width: 32,
+									height: 32,
+									alt: "Bubble",
+								},
+								"bubble_texture.png",
+							],
+							[
+								{
+									src: "./textures/burst_texture.png",
+									width: 32,
+									height: 32,
+									alt: "Burst",
+								},
+								"burst_texture.png",
+							],
+							[
+								{
+									src: "./textures/chevron_texture.png",
+									width: 32,
+									height: 32,
+									alt: "Cheveron",
+								},
+								"chevron_texture.png",
+							],
+							[
+								{
 									src: "./textures/circle_texture.png",
 									width: 32,
 									height: 32,
@@ -167,12 +239,192 @@ export function defineShapeBlocks() {
 							],
 							[
 								{
+									src: "./textures/comet_texture.png",
+									width: 32,
+									height: 32,
+									alt: "Comet",
+								},
+								"comet_texture.png",
+							],
+							[
+								{
+									src: "./textures/confetti_texture.png",
+									width: 32,
+									height: 32,
+									alt: "Confetti",
+								},
+								"confetti_texture.png",
+							],
+							[
+								{
+									src: "./textures/exclaim_texture.png",
+									width: 32,
+									height: 32,
+									alt: "Exclaim",
+								},
+								"exclaim_texture.png",
+							],
+							[
+								{
+									src: "./textures/flock_texture.png",
+									width: 32,
+									height: 32,
+									alt: "Flock",
+								},
+								"flock_texture.png",
+							],
+							[
+								{
+									src: "./textures/fish_texture.png",
+									width: 32,
+									height: 32,
+									alt: "Fish",
+								},
+								"fish_texture.png",
+							],
+							[
+								{
+									src: "./textures/fragments_texture.png",
+									width: 32,
+									height: 32,
+									alt: "Fragments",
+								},
+								"fragments_texture.png",
+							],
+							[
+								{
+									src: "./textures/gem_texture.png",
+									width: 32,
+									height: 32,
+									alt: "Gem",
+								},
+								"gem_texture.png",
+							],
+							[
+								{
+									src: "./textures/ghost_texture.png",
+									width: 32,
+									height: 32,
+									alt: "Ghost",
+								},
+								"ghost_texture.png",
+							],
+							[
+								{
 									src: "./textures/heart_texture.png",
 									width: 32,
 									height: 32,
 									alt: "Heart",
 								},
 								"heart_texture.png",
+							],
+							[
+								{
+									src: "./textures/leaf_texture.png",
+									width: 32,
+									height: 32,
+									alt: "Leaf",
+								},
+								"leaf_texture.png",
+							],
+							[
+								{
+									src: "./textures/leaf2_texture.png",
+									width: 32,
+									height: 32,
+									alt: "Leaf",
+								},
+								"leaf2_texture.png",
+							],
+							[
+								{
+									src: "./textures/mic_texture.png",
+									width: 32,
+									height: 32,
+									alt: "Mic",
+								},
+								"mic_texture.png",
+							],
+							[
+								{
+									src: "./textures/money_texture.png",
+									width: 32,
+									height: 32,
+									alt: "Money",
+								},
+								"money_texture.png",
+							],
+							[
+								{
+									src: "./textures/music_texture.png",
+									width: 32,
+									height: 32,
+									alt: "Music",
+								},
+								"music_texture.png",
+							],
+							[
+								{
+									src: "./textures/paw_texture.png",
+									width: 32,
+									height: 32,
+									alt: "Paw",
+								},
+								"paw_texture.png",
+							],
+							[
+								{
+									src: "./textures/rays_texture.png",
+									width: 32,
+									height: 32,
+									alt: "Rays",
+								},
+								"rays_texture.png",
+							],
+							[
+								{
+									src: "./textures/ripple_texture.png",
+									width: 32,
+									height: 32,
+									alt: "Ripple",
+								},
+								"ripple_texture.png",
+							],
+							[
+								{
+									src: "./textures/rocket_texture.png",
+									width: 32,
+									height: 32,
+									alt: "Rocket",
+								},
+								"rocket_texture.png",
+							],
+							[
+								{
+									src: "./textures/sleep_texture.png",
+									width: 32,
+									height: 32,
+									alt: "Sleep",
+								},
+								"sleep_texture.png",
+							],
+							[
+								{
+									src: "./textures/speaking_texture.png",
+									width: 32,
+									height: 32,
+									alt: "Speaking",
+								},
+								"speaking_texture.png",
+							],
+							[
+								{
+									src: "./textures/splash_texture.png",
+									width: 32,
+									height: 32,
+									alt: "Splash",
+								},
+								"splash_texture.png",
 							],
 							[
 								{
@@ -194,6 +446,15 @@ export function defineShapeBlocks() {
 							],
 							[
 								{
+									src: "./textures/sweet_texture.png",
+									width: 32,
+									height: 32,
+									alt: "Sweet",
+								},
+								"sweet_texture.png",
+							],
+							[
+								{
 									src: "./textures/butterfly_texture.png",
 									width: 32,
 									height: 32,
@@ -212,30 +473,12 @@ export function defineShapeBlocks() {
 							],
 							[
 								{
-									src: "./textures/music_texture.png",
-									width: 32,
-									height: 32,
-									alt: "Music",
-								},
-								"music_texture.png",
-							],
-							[
-								{
 									src: "./textures/flame_texture.png",
 									width: 32,
 									height: 32,
 									alt: "Flame",
 								},
 								"flame_texture.png",
-							],
-							[
-								{
-									src: "./textures/ripple_texture.png",
-									width: 32,
-									height: 32,
-									alt: "Ripple",
-								},
-								"ripple_texture.png",
 							],
 							[
 								{
@@ -257,6 +500,24 @@ export function defineShapeBlocks() {
 							],
 							[
 								{
+									src: "./textures/swirl_texture.png",
+									width: 32,
+									height: 32,
+									alt: "Swirl",
+								},
+								"swirl_texture.png",
+							],
+							[
+								{
+									src: "./textures/wave_texture.png",
+									width: 32,
+									height: 32,
+									alt: "Wave",
+								},
+								"wave_texture.png",
+							],
+							[
+								{
 									src: "./textures/wind_texture.png",
 									width: 32,
 									height: 32,
@@ -272,15 +533,6 @@ export function defineShapeBlocks() {
 									alt: "Strip",
 								},
 								"strip_texture.png",
-							],
-							[
-								{
-									src: "./textures/leaf_texture.png",
-									width: 32,
-									height: 32,
-									alt: "Leaf",
-								},
-								"leaf_texture.png",
 							],
 							[
 								{

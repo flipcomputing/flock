@@ -393,7 +393,7 @@ button {
   margin-left: 3px;
   padding: 4px;
   font-size: 18px;
-  mix-height:30px;
+  min-height:30px;
   background-color: var(--color-button-bg);
   color: var(--color-text-primary);
   border: none;

@@ -105,6 +105,18 @@ export const flockMovement = {
     );
 
     // Keep the mesh’s rotation constrained to the Y axis.
+    // Create a rotation quaternion if it doesn't exist
+    if (!model.rotationQuaternion) {
+        model.rotationQuaternion = BABYLON.Quaternion.RotationYawPitchRoll(
+            model.rotation.y,
+            model.rotation.x,
+            model.rotation.z
+        );
+    }
+
+    // Now safely set the values
+    model.rotationQuaternion.x = 0;
+    model.rotationQuaternion.z = 0;
     model.rotationQuaternion.x = 0;
     model.rotationQuaternion.z = 0;
     model.rotationQuaternion.normalize();

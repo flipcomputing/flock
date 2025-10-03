@@ -485,6 +485,165 @@ export const flockPhysics = {
       });
     });
   },
+  onIntersect2(
+    meshName,
+    otherMeshName,
+    {
+      trigger = "OnIntersectionEnterTrigger", // kept for ActionManager path
+      callback,
+      usePhysics,           // legacy boolean still supported
+      debounce = 0,
+      mode = "either",        // "auto" | "either" | "intersection" | "physics"
+      separationFrames = 5, // when to consider 'exited' if only physics is used
+    } = {}
+  ) {
+    return flock.whenModelReady(meshName, async (mesh) => {
+      if (!mesh) { console.error("Model not loaded:", meshName); return; }
+
+      return flock.whenModelReady(otherMeshName, async (otherMesh) => {
+        if (!otherMesh) { console.error("Model not loaded:", otherMeshName); return; }
+
+        const scene = flock.scene;
+        const B = flock.BABYLON;
+
+        // ---- config / mode resolution (back-compat) ----
+        const bothHaveBodies = !!(mesh.physicsBody && otherMesh.physicsBody);
+        let resolvedMode = mode;
+        if (mode !== "either") {
+          if (usePhysics === true) resolvedMode = "physics";
+          else if (usePhysics === false) resolvedMode = "intersection";
+          else if (mode === "auto") resolvedMode = bothHaveBodies ? "physics" : "intersection";
+        }
+
+        // ---- shared state (per pair) ----
+        const key = `${mesh.uniqueId}_${otherMesh.uniqueId}`;
+        const state = {
+          inContact: false,             // are we "inside" a contact session?
+          lastFireMs: 0,                // for debounce
+          physicsFramesSinceHit: 0,     // physics separation counter
+          intersectingNow: false,       // action-manager says we're intersecting
+          lastFrameFired: -1,           // dedupe same-frame double reports
+        };
+
+        const cleanups = [];
+
+        const timeNow = () => (typeof performance !== "undefined" ? performance.now() : Date.now());
+        const tryFireEnter = (sourceTag) => {
+          // If both systems shout on the same frame, only fire once
+          if (scene.getFrameId() === state.lastFrameFired) return;
+
+          const now = timeNow();
+          if (!state.inContact && now - state.lastFireMs >= debounce) {
+            state.inContact = true;
+            state.lastFireMs = now;
+            state.lastFrameFired = scene.getFrameId();
+            // Fire user callback
+            Promise.resolve(callback(mesh.name, otherMesh.name)).catch(console.error);
+          }
+        };
+
+        const markExit = () => {
+          state.inContact = false;
+          state.intersectingNow = false;
+          state.physicsFramesSinceHit = 0;
+        };
+
+        // ---- PHYSICS LISTENER (Havok v2) ----
+        const enablePhysicsPath = (resolvedMode === "physics" || resolvedMode === "either") && bothHaveBodies;
+        if (enablePhysicsPath) {
+          try {
+            // Enable collision callbacks (safe to enable on both)
+            mesh.physicsBody.setCollisionCallbackEnabled(true);
+            otherMesh.physicsBody.setCollisionCallbackEnabled(true);
+
+            const observable = mesh.physicsBody.getCollisionObservable();
+            const physicsObserver = observable.add((evt) => {
+              const other = evt.collidedAgainst?.transformNode;
+              if (other === otherMesh && otherMesh.isEnabled()) {
+                state.physicsFramesSinceHit = 0;
+                tryFireEnter("physics");
+              }
+            });
+            cleanups.push(() => observable.remove(physicsObserver));
+
+            // Separation via frames without physics contact (only if AM path isn’t actively intersecting)
+            const tickObserver = scene.onBeforeRenderObservable.add(() => {
+              if (state.inContact && !state.intersectingNow) {
+                state.physicsFramesSinceHit++;
+                if (state.physicsFramesSinceHit > separationFrames) {
+                  markExit();
+                }
+              } else {
+                // reset counter when not in contact
+                state.physicsFramesSinceHit = 0;
+              }
+            });
+            cleanups.push(() => scene.onBeforeRenderObservable.remove(tickObserver));
+          } catch (e) {
+            console.warn("Physics collision subscription failed, falling back to intersections:", e);
+          }
+        }
+
+        // ---- ACTION MANAGER INTERSECTION LISTENER ----
+        const enableAMPath = (resolvedMode === "intersection" || resolvedMode === "either" || (!bothHaveBodies && resolvedMode === "auto"));
+        if (enableAMPath) {
+          if (!mesh.actionManager) {
+            mesh.actionManager = new B.ActionManager(scene);
+            mesh.actionManager.isRecursive = true;
+          }
+
+          // Always register Enter & Exit for robust state (even if caller passed Exit)
+          const ENTER = B.ActionManager.OnIntersectionEnterTrigger;
+          const EXIT  = B.ActionManager.OnIntersectionExitTrigger;
+
+          const enterAction = new B.ExecuteCodeAction(
+            { trigger: ENTER, parameter: { mesh: otherMesh, usePreciseIntersection: true } },
+            () => {
+              if (otherMesh.isEnabled()) {
+                state.intersectingNow = true;
+                tryFireEnter("am");
+              }
+            },
+            new B.PredicateCondition(B.ActionManager, () => otherMesh.isEnabled())
+          );
+
+          const exitAction = new B.ExecuteCodeAction(
+            { trigger: EXIT, parameter: { mesh: otherMesh, usePreciseIntersection: true } },
+            () => { state.intersectingNow = false; markExit(); }
+          );
+
+          const enterReg = mesh.actionManager.registerAction(enterAction);
+          const exitReg  = mesh.actionManager.registerAction(exitAction);
+          cleanups.push(() => {
+            try { enterReg?.dispose(); } catch(_) {}
+            try { exitReg?.dispose(); } catch(_) {}
+          });
+
+          // If the caller asked for a specific trigger callback semantics (e.g. Exit),
+          // also register their requested trigger to invoke the callback directly.
+          // This preserves your original API behavior.
+          if (trigger && B.ActionManager[trigger] && trigger !== "OnIntersectionEnterTrigger") {
+            const specific = new B.ExecuteCodeAction(
+              { trigger: B.ActionManager[trigger], parameter: { mesh: otherMesh, usePreciseIntersection: true } },
+              () => { if (otherMesh.isEnabled()) Promise.resolve(callback(mesh.name, otherMesh.name)).catch(console.error); }
+            );
+            const reg = mesh.actionManager.registerAction(specific);
+            cleanups.push(() => { try { reg?.dispose(); } catch(_) {} });
+          }
+        }
+
+        // ---- return a disposer so callers can unregister later ----
+        // Usage: const dispose = onIntersect(...); dispose && dispose();
+        return () => {
+          // best effort cleanup
+          while (cleanups.length) {
+            const fn = cleanups.pop();
+            try { fn(); } catch(_) {}
+          }
+        };
+      });
+    });
+  },
   isTouchingSurface(meshName) {
     const mesh = flock.scene.getMeshByName(meshName);
     if (mesh) {
