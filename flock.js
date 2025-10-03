@@ -376,8 +376,8 @@ export const flock = {
                         // Harden constructor escape paths
                         const hardenPrelude =
                                 "try{" +
-                                'Object.defineProperty(Object.prototype,"constructor",{value:undefined,writable:true,configurable:true});' +
-                                'Object.defineProperty(Function.prototype,"constructor",{value:undefined,writable:true,configurable:true});' +
+                                'Object.defineProperty(Object.prototype,"constructor",{value:undefined,writable:false,configurable:false});' +
+                                'Object.defineProperty(Function.prototype,"constructor",{value:undefined,writable:false,configurable:false});' +
                                 "}catch{}";
 
                         // Freeze safe built-ins to prevent tampering
