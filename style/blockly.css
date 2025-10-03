@@ -201,6 +201,11 @@ fill: var(--color-border-highlight);
 }
 }
 
+/* Override code area colour */
+.blocklySvg {
+  background-color: #ebebeb !important;
+}
+
 /* Toolbox category selection outline */
 .blocklyToolboxCategoryContainer[aria-selected="true"][aria-level="1"] > .blocklyToolboxCategory,
 .blocklyToolboxCategoryContainer[aria-selected="true"][aria-level="2"] > .blocklyToolboxCategory {
