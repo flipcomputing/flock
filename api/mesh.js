@@ -8,7 +8,6 @@ export function setFlockReference(ref) {
 
 export const flockMesh = {
   createCapsuleFromBoundingBox(mesh, scene) {
-    // Always calculate from current bounding box (original behavior)
     mesh.computeWorldMatrix(true);
     const boundingInfo = mesh.getBoundingInfo();
 
@@ -24,7 +23,11 @@ export const flockMesh = {
 
     const radius = Math.min(width, depth) / 2;
 
-    const cylinderHeight = Math.max(0, height - 2 * radius);
+    // Shrink slightly in world units, clamp to avoid degenerate cylinders
+    const shrinkY = Math.min(0.01, Math.max(0, height - 2 * radius - 1e-6));
+
+    const adjustedHeight = Math.max(0, height - shrinkY);
+    const cylinderHeight = Math.max(0, adjustedHeight - 2 * radius);
 
     const center = flock.BABYLON.Vector3.Zero();
 
@@ -46,13 +49,12 @@ export const flockMesh = {
       scene,
     );
 
-    // Store the original capsule dimensions for reuse when changing orientations
     if (!mesh.metadata) mesh.metadata = {};
-    mesh.metadata.physicsCapsule = { radius, height };
+    mesh.metadata.physicsCapsule = { radius, height: adjustedHeight };
 
     return shape;
   },
-  createHorizontalCapsuleFromBoundingBox(mesh, scene, yOffsetFactor = 0) {
+createHorizontalCapsuleFromBoundingBox(mesh, scene, yOffsetFactor = 0) {
     // Get dimensions from the current vertical capsule
     let radius, height;
     
