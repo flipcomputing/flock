@@ -7,7 +7,7 @@ export function setFlockReference(ref) {
 export const flockMovement = {
   moveForward(modelName, speed) {
     const model = flock.scene.getMeshByName(modelName);
-    if (!model || speed === 0) return;
+    if (!model || !model.physics || speed === 0) return;
 
     // --- CONFIGURATION ---
     const capsuleHeightBottomOffset = 1.0;
