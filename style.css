@@ -451,6 +451,13 @@ button {
   filter: invert(30%) sepia(2%) saturate(0%) hue-rotate(180deg) brightness(96%) contrast(85%);
 }
 
+[data-theme="contrast"] .gizmo-button img {
+  color: #ffffff !important;
+}
+
+[data-theme="contrast"] .bigbutton svg {
+  color: #ffffff !important;
+}
 
 /* Shape Menu */
 #shape-menu {
