@@ -21,7 +21,7 @@ const overlayStyles = `
     justify-content: center;
     align-items: center;
     z-index: 9999;
-    font-family: "Asap", Helvetica, Arial, sans-serif;
+    font-family: "Atkinson Hyperlegible Next", "Asap", Helvetica, Arial, sans-serif;
   }
 
   .recording-content {

@@ -138,6 +138,7 @@ path.blocklyPath.blockly-ws-search-highlight.blockly-ws-search-current {
 .blocklyZoomIn > image,
 .blocklyZoomOut > image {
   opacity: 1 !important;
+  color: #4c4c4c !important;
 }
 
 .blocklyToolboxCategoryLabel {
@@ -198,6 +199,11 @@ fill: var(--color-border-highlight);
 :root {
   --dynamic-offset: 65px;
 }
+}
+
+/* Override code area colour */
+.blocklySvg {
+  background-color: #ebebeb !important;
 }
 
 /* Toolbox category selection outline */
@@ -294,7 +300,8 @@ body[data-theme="dark"] .blocklyTreeLabel {
   }
 
   .blocklyToolbox,  .blocklyToolboxCategoryContainer {
-    background: #D3D3D3;
+    background: #F3F3F3 !important;
+    background-color: #F3F3F3 !important;
   }
   /* The row element */
   .blocklyToolbox .blocklyToolboxCategoryContainer > .blocklyToolboxCategory {

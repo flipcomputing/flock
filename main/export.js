@@ -258,11 +258,11 @@ async function generateSVG(block) {
 	);
 	style.textContent = `
 	@font-face {
-	  font-family: "Asap";
+	  font-family: "Atkinson Hyperlegible Next", "Asap";
 	  src: url('data:font/woff2;base64,${fontBase64}') format('woff2');
 	}
 	.blocklyText {
-	  font-family: "Asap", sans-serif;
+	  font-family: "Atkinson Hyperlegible Next", "Asap", sans-serif;
 	  font-weight: 500;
 	}
 	.blocklyEditableText rect.blocklyFieldRect:not(.blocklyDropdownRect) {
