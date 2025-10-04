@@ -285,6 +285,9 @@ body[data-theme="dark"] .blocklyTreeLabel {
   border-radius: 4px;
 }
 
+#menu {
+  background: #000000 !important;
+}
 
 /* === Blockly v12 desktop: center icon + label within the full row === */
 @media (min-width: 769px) {
@@ -294,7 +297,8 @@ body[data-theme="dark"] .blocklyTreeLabel {
   }
 
   .blocklyToolbox,  .blocklyToolboxCategoryContainer {
-    background: #D3D3D3;
+    background: #000000;
+    background-color: #000000;
   }
   /* The row element */
   .blocklyToolbox .blocklyToolboxCategoryContainer > .blocklyToolboxCategory {
