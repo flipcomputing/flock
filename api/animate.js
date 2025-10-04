@@ -1034,7 +1034,6 @@ export const flockAnimate = {
     // Update physics shape based on animation
     const physicsMesh = meshOrGroup;
 
-    console.log("Animation name:", animationName);
     if (physicsMesh && physicsMesh.physics && physicsMesh.physics.shape && physicsMesh.physics.shape.constructor.name === "_PhysicsShapeCapsule") {
       // Determine desired physics shape type based on animation name
       let desiredShapeType = "vertical";

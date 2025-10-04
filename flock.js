@@ -2870,58 +2870,71 @@ export const flock = {
                 flock.scene.onBeforeRenderObservable.addOnce(action);
         },
         async forever(action) {
-                let isDisposed = false;
-                let isActionRunning = false;
+          const scene = flock.scene;
+          if (!scene) {
+            console.warn("[forever] Scene not ready yet");
+            return;
+          }
 
-                // Function to run the action
-                const runAction = async () => {
-                        if (isDisposed) {
-                                console.log(
-                                        "Scene is disposed. Exiting action.",
-                                );
-                                return; // Exit if the scene is disposed
-                        }
+          let isDisposed = false;
+          let isActionRunning = false;
+          let tickObserver = null;
+          let disposeObserver = null;
+          let watchdogId = null;
+          const WATCHDOG_MS = 4000; // unlock if an iteration takes too long
 
-                        if (isActionRunning) {
-                                return; // Exit if the action is already running
-                        }
+          const clearWatchdog = () => {
+            if (watchdogId) {
+              clearTimeout(watchdogId);
+              watchdogId = null;
+            }
+          };
 
-                        isActionRunning = true;
+          const runAction = () => {
+            if (isDisposed) return;
 
-                        try {
-                                if (isDisposed) {
-                                        return;
-                                }
-                                await action();
-                        } catch (error) {
-                                console.log(
-                                        "Error while running action:",
-                                        error,
-                                );
-                        } finally {
-                                isActionRunning = false;
-                                if (!isDisposed) {
-                                        flock.scene.onBeforeRenderObservable.addOnce(
-                                                runAction,
-                                        );
-                                }
-                        }
-                };
+            // If previous iteration still running, skip this frame but keep observer alive
+            if (isActionRunning) return;
 
-                flock.scene.onBeforeRenderObservable.addOnce(runAction);
-                // Handle scene disposal
-                const disposeHandler = () => {
-                        if (isDisposed) {
-                                console.log(
-                                        "Dispose handler already triggered.",
-                                );
-                                return;
-                        }
+            isActionRunning = true;
 
-                        isDisposed = true;
-                        flock.scene.onBeforeRenderObservable.clear(); // Clear the observable
-                };
-                flock.scene.onDisposeObservable.add(disposeHandler);
+            // Start watchdog so a stuck Promise can't freeze the loop
+            clearWatchdog();
+            watchdogId = setTimeout(() => {
+              console.warn("[forever] Watchdog tripped; unlocking stalled iteration");
+              isActionRunning = false;
+            }, WATCHDOG_MS);
+
+            try {
+              // Fire-and-forget; never await inside the render tick
+              Promise.resolve(action())
+                .catch((err) => {
+                  console.error("[forever] Action error:", err);
+                })
+                .finally(() => {
+                  clearWatchdog();
+                  isActionRunning = false;
+                });
+            } catch (err) {
+              // Synchronous errors still won't kill the observer
+              clearWatchdog();
+              isActionRunning = false;
+              console.error("[forever] Sync error:", err);
+            }
+          };
+
+          // Persistent observer: stays attached every frame
+          tickObserver = scene.onBeforeRenderObservable.add(runAction);
+
+          // Clean up only our own observers on dispose
+          const disposeHandler = () => {
+            if (isDisposed) return;
+            isDisposed = true;
+            clearWatchdog();
+            if (tickObserver) scene.onBeforeRenderObservable.remove(tickObserver);
+            if (disposeObserver) scene.onDisposeObservable.remove(disposeObserver);
+          };
+          disposeObserver = scene.onDisposeObservable.add(disposeHandler);
         },
         download(filename, data, mimeType) {
                 const blob = new Blob([data], { type: mimeType });
