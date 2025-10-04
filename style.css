@@ -56,13 +56,13 @@
 /* Dark theme */
 [data-theme="dark"] {
   /* Core colours */
-  --color-bg:                        #1e1e1e;
+  --color-bg:                        #2c2c2c;
   --color-bg-alt:                    #2a2a2a;
   --color-text:                      #000000;
-  --color-text-primary: #888888;
+  --color-text-primary:              #bababa;
   --color-primary:                   #888888;
-   --color-text-brand:  #888888;
-  --color-menu-item:  #888888;
+  --color-text-brand:                #bababa;
+  --color-menu-item:                 #888888;
   --color-muted:                     #555555;
   --color-border:                    #555555;
   --color-border-light:              #333333;
@@ -80,7 +80,7 @@
   --color-button-bg-focus:           #444444;
 
   
-  --color-text-on-primary:  #444444;
+  --color-text-on-primary:           #bababa;
 
   /* Loading screen gradient */
   --color-loading-gradient-start:    var(--color-bg);
