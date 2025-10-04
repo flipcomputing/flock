@@ -2870,6 +2870,60 @@ export const flock = {
                 flock.scene.onBeforeRenderObservable.addOnce(action);
         },
         async forever(action) {
+                let isDisposed = false;
+                let isActionRunning = false;
+
+                // Function to run the action
+                const runAction = async () => {
+                        if (isDisposed) {
+                                console.log(
+                                        "Scene is disposed. Exiting action.",
+                                );
+                                return; // Exit if the scene is disposed
+                        }
+
+                        if (isActionRunning) {
+                                return; // Exit if the action is already running
+                        }
+
+                        isActionRunning = true;
+
+                        try {
+                                if (isDisposed) {
+                                        return;
+                                }
+                                await action();
+                        } catch (error) {
+                                console.log(
+                                        "Error while running action:",
+                                        error,
+                                );
+                        } finally {
+                                isActionRunning = false;
+                                if (!isDisposed) {
+                                        flock.scene.onBeforeRenderObservable.addOnce(
+                                                runAction,
+                                        );
+                                }
+                        }
+                };
+
+                flock.scene.onBeforeRenderObservable.addOnce(runAction);
+                // Handle scene disposal
+                const disposeHandler = () => {
+                        if (isDisposed) {
+                                console.log(
+                                        "Dispose handler already triggered.",
+                                );
+                                return;
+                        }
+
+                        isDisposed = true;
+                        flock.scene.onBeforeRenderObservable.clear(); // Clear the observable
+                };
+                flock.scene.onDisposeObservable.add(disposeHandler);
+        },
+        async forever2(action) {
           const scene = flock.scene;
           if (!scene) {
             console.warn("[forever] Scene not ready yet");

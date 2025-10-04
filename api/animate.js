@@ -937,9 +937,7 @@ export const flockAnimate = {
     const findMeshWithSkeleton = (rootMesh) => {
       if (rootMesh?.skeleton) return rootMesh;
       if (rootMesh?.getChildMeshes) {
-        for (const child of rootMesh.getChildMeshes()) {
-          if (child.skeleton) return child;
-        }
+        for (const c of rootMesh.getChildMeshes()) if (c.skeleton) return c;
       }
       return null;
     };
@@ -947,142 +945,197 @@ export const flockAnimate = {
     const mesh = findMeshWithSkeleton(meshOrGroup);
     if (!mesh || !mesh.skeleton) return null;
 
-    if (!mesh.metadata) mesh.metadata = {};
-    if (!mesh.metadata.animationGroups) mesh.metadata.animationGroups = {};
-    const cache = mesh.metadata.animationGroups;
+    // --- caches ---
+    mesh.metadata ||= {};
+    mesh.metadata._animCache ||= { groups: {}, inflight: {} };
+    const cacheGroups = mesh.metadata._animCache.groups;
+    const cacheInflight = mesh.metadata._animCache.inflight;
 
-    // Only record "intent" when we actually plan to play something now.
-    if (play) {
-      mesh.metadata.requestedAnimationName = animationName;
+    if (play) mesh.metadata.requestedAnimationName = animationName;
+    mesh.metadata._animReqCounter = (mesh.metadata._animReqCounter || 0) + 1;
+    const requestToken = mesh.metadata._animReqCounter;
+
+    const isGroupAlive = (ag) =>
+      !!ag && !ag.isDisposed &&
+      Array.isArray(ag.targetedAnimations) &&
+      ag.targetedAnimations.length > 0 &&
+      ag.targetedAnimations.every((ta) => !!ta?.animation && !!ta?.target);
+
+    const withTimeout = (p, ms) => {
+      let t; const to = new Promise((_, rej) => t = setTimeout(() => rej(new Error("timeout")), ms));
+      return Promise.race([p, to]).finally(() => clearTimeout(t));
+    };
+
+    // --- resolved? ---
+    let retargetedGroup = cacheGroups[animationName];
+    if (retargetedGroup && !isGroupAlive(retargetedGroup)) {
+      delete cacheGroups[animationName];
+      retargetedGroup = null;
     }
 
-    // Resolve or load the animation group (promise-cached)
-    let retargetedGroup;
-    if (cache[animationName]) {
-      retargetedGroup = (typeof cache[animationName].then === "function")
-        ? await cache[animationName]
-        : cache[animationName];
-    } else {
-      cache[animationName] = (async () => {
-        const modelName = meshOrGroup.metadata?.modelName;
-        const animationFile = (typeof blockNames !== "undefined" && blockNames.includes(modelName))
+    // --- inflight? return immediately to avoid blocking forever loops ---
+    if (!retargetedGroup && cacheInflight[animationName]) {
+      return null;
+    }
+
+    // --- start background load (non-blocking) ---
+    if (!retargetedGroup) {
+      const modelName = meshOrGroup.metadata?.modelName;
+      const animationFile =
+        (typeof blockNames !== "undefined" && blockNames.includes(modelName))
           ? animationName + "_Block"
           : animationName;
 
-        const animImport = await flock.BABYLON.SceneLoader.LoadAssetContainerAsync(
-          "./animations/", animationFile + ".glb", flock.scene, undefined, undefined,
-          { gltf: { animationStartMode: flock.BABYLON_LOADER.GLTFLoaderAnimationStartMode.NONE } },
-        );
+      cacheInflight[animationName] = (async () => {
+        try {
+          const container = await withTimeout(
+            flock.BABYLON.SceneLoader.LoadAssetContainerAsync(
+              "./animations/", animationFile + ".glb", flock.scene, undefined, undefined,
+              { gltf: { animationStartMode: flock.BABYLON_LOADER.GLTFLoaderAnimationStartMode.NONE } },
+            ), 7000,
+          );
+          try {
+            const src = container.animationGroups.find(
+              (ag) => ag.name === animationName && ag.targetedAnimations.length > 0,
+            );
+            if (!src) return null;
 
-        const animGroup = animImport.animationGroups.find(
-          (ag) => ag.name === animationName && ag.targetedAnimations.length > 0,
-        );
-        if (!animGroup) {
-          animImport.dispose();
-          return null;
-        }
+            const boneMap = {}, tnMap = {};
+            mesh.skeleton.bones.forEach((b) => {
+              boneMap[b.name] = b;
+              if (b._linkedTransformNode) tnMap[b._linkedTransformNode.name] = b._linkedTransformNode;
+            });
 
-        const boneMap = {}, tnMap = {};
-        mesh.skeleton.bones.forEach((b) => {
-          boneMap[b.name] = b;
-          if (b._linkedTransformNode) tnMap[b._linkedTransformNode.name] = b._linkedTransformNode;
-        });
-
-        const newGroup = new flock.BABYLON.AnimationGroup(`${mesh.name}.${animationName}`, scene);
-        for (const ta of animGroup.targetedAnimations) {
-          let target = null;
-          if (ta.target instanceof flock.BABYLON.Bone) target = boneMap[ta.target.name];
-          else if (ta.target instanceof flock.BABYLON.TransformNode) target = tnMap[ta.target.name];
-          if (target && ta.animation?.targetProperty !== "scaling") {
-            const animCopy = ta.animation.clone(`${ta.animation.name}_${mesh.name}`);
-            newGroup.addTargetedAnimation(animCopy, target);
+            const newGroup = new flock.BABYLON.AnimationGroup(`${mesh.name}.${animationName}`, scene);
+            for (const ta of src.targetedAnimations) {
+              let target = null;
+              if (ta.target instanceof flock.BABYLON.Bone) target = boneMap[ta.target.name];
+              else if (ta.target instanceof flock.BABYLON.TransformNode) target = tnMap[ta.target.name];
+              if (target && ta.animation?.targetProperty !== "scaling") {
+                const cloned = ta.animation.clone(`${ta.animation.name}_${mesh.name}`);
+                newGroup.addTargetedAnimation(cloned, target);
+              }
+            }
+            return isGroupAlive(newGroup) ? newGroup : null;
+          } finally {
+            container.dispose();
           }
-        }
-
-        animImport.dispose();
-        return newGroup;
+        } catch { return null; }
       })();
 
-      retargetedGroup = await cache[animationName];
-      cache[animationName] = retargetedGroup;
+      cacheInflight[animationName]
+        .then((g) => { if (g) cacheGroups[animationName] = g; })
+        .finally(() => { delete cacheInflight[animationName]; });
+
+      return null; // immediate return
     }
 
-    if (!retargetedGroup) return null;
+    // --- preload only? ---
+    if (!play) return retargetedGroup;
 
-    // If this was a preload (play === false), do NOT switch or start anything.
-    if (!play) {
-      return retargetedGroup;
+    if (requestToken !== mesh.metadata._animReqCounter) return retargetedGroup;
+    if (mesh.metadata.requestedAnimationName !== animationName) return retargetedGroup;
+
+    const activeGroup = mesh._currentAnimGroup;
+    const sameGroupActive = activeGroup === retargetedGroup;
+
+    // --- only stop siblings when switching ---
+    if (!sameGroupActive) {
+      const allGroups = scene.animationGroups || [];
+      for (const ag of allGroups) {
+        if (ag === retargetedGroup) continue;
+        if (!isGroupAlive(ag)) continue;
+        const touches = ag.targetedAnimations.some(
+          (ta) => (ta.target instanceof flock.BABYLON.Bone) && ta.target.skeleton === mesh.skeleton,
+        );
+        if (touches && ag.isPlaying) { try { ag.stop(); } catch {} }
+      }
     }
 
-    // Only activate if this is still the latest requested animation.
-    if (mesh.metadata.requestedAnimationName !== animationName) {
-      return retargetedGroup;
-    }
-
-    if (
-      mesh._currentAnimGroup &&
-      mesh._currentAnimGroup !== retargetedGroup &&
-      mesh._currentAnimGroup.isPlaying
-    ) {
-      mesh._currentAnimGroup.stop();
-      mesh._currentAnimGroup = null;
-    }
-
+    // mark current
     mesh._currentAnimGroup = retargetedGroup;
     mesh.metadata.currentAnimationName = animationName;
- 
-    // Update physics shape based on animation
-    const physicsMesh = meshOrGroup;
 
-    if (physicsMesh && physicsMesh.physics && physicsMesh.physics.shape && physicsMesh.physics.shape.constructor.name === "_PhysicsShapeCapsule") {
-      // Determine desired physics shape type based on animation name
-      let desiredShapeType = "vertical";
-      if (animationName === "Fly") {
-        desiredShapeType = "horizontal-fly";
-      } else if (animationName === "Fall") {
-        desiredShapeType = "horizontal-fall";
-      } else if (animationName === "Sitting" || animationName === "Sit_Down") {
-        console.log("Sitting animation detected");
-        desiredShapeType = "sitting";
-      }
-
-      // Only update if the shape type has changed
-      if (!mesh.metadata.currentPhysicsShapeType || mesh.metadata.currentPhysicsShapeType !== desiredShapeType) {
-        // Preserve physics properties
-        const motionType = physicsMesh.physics.getMotionType();
-        const massProps = physicsMesh.physics.getMassProperties();
-        const disablePreStep = physicsMesh.physics.disablePreStep;
-
-        // Create new shape based on animation
-        // Always use physicsMesh which has the full body bounding box
-        let newShape;
-        if (desiredShapeType === "horizontal-fly") {
-          newShape = flock.createHorizontalCapsuleFromBoundingBox(physicsMesh, flock.scene, 0);
-        } else if (desiredShapeType === "horizontal-fall") {
-          newShape = flock.createHorizontalCapsuleFromBoundingBox(physicsMesh, flock.scene, -0.4);
-        } else if (desiredShapeType === "sitting") {
-          newShape = flock.createSittingCapsuleFromBoundingBox(physicsMesh, flock.scene);
-        } else {
-          newShape = flock.createCapsuleFromBoundingBox(physicsMesh, flock.scene);
-        }
-
-        // Update the physics shape
-        physicsMesh.physics.shape = newShape;
-        
-        // Restore physics properties
-        physicsMesh.physics.setMotionType(motionType);
-        physicsMesh.physics.setMassProperties(massProps);
-        physicsMesh.physics.disablePreStep = disablePreStep;
-
-        // Track the current physics shape type
-        mesh.metadata.currentPhysicsShapeType = desiredShapeType;
-      }
+    // --- prime ONCE per group per skeleton (avoid per-frame reset) ---
+    const skelId = mesh.skeleton.uniqueId;
+    retargetedGroup._flockPrimed ||= {};
+    if (!retargetedGroup._flockPrimed[skelId]) {
+      try { retargetedGroup.normalize(0, null); } catch {}
+      try { retargetedGroup.reset(); } catch {}
+      try { retargetedGroup.goToFrame(0); } catch {}
+      retargetedGroup._flockPrimed[skelId] = true;
     }
 
-    if (!retargetedGroup.isPlaying || restart) {
-      retargetedGroup.stop();
-      retargetedGroup.reset();
-      retargetedGroup.start(loop);
+    // ensure positive speed
+    if (!(typeof retargetedGroup.speedRatio === "number" && retargetedGroup.speedRatio > 0)) {
+      retargetedGroup.speedRatio = 1;
+    }
+
+    // --- idempotent start logic ---
+    if (sameGroupActive && !restart) {
+      // already active: don't reset; just ensure it's playing and loop flag is set
+      if (!retargetedGroup.isPlaying) {
+        try { retargetedGroup.start(loop); } catch {}
+        if (!retargetedGroup.isPlaying) { try { retargetedGroup.play(loop); } catch {} }
+      } else {
+        retargetedGroup.loopAnimation = !!loop;
+      }
+    } else {
+      // switching or explicit restart
+      try { retargetedGroup.stop(); } catch {}
+      try { retargetedGroup.reset(); } catch {}
+      try { retargetedGroup.goToFrame(0); } catch {}
+      try { retargetedGroup.start(loop); } catch {}
+      if (!retargetedGroup.isPlaying) { try { retargetedGroup.play(loop); } catch {} }
+    }
+
+    // One-frame watchdog (fires once) ONLY when we just switched or were not playing
+    if (!sameGroupActive || restart || !retargetedGroup.isPlaying) {
+      scene.onBeforeRenderObservable.addOnce(() => {
+        if (requestToken !== mesh.metadata._animReqCounter) return;
+        if (!isGroupAlive(retargetedGroup) || retargetedGroup.isPlaying) return;
+        try { retargetedGroup.reset(); } catch {}
+        try { retargetedGroup.goToFrame(0); } catch {}
+        if (!(typeof retargetedGroup.speedRatio === "number" && retargetedGroup.speedRatio > 0)) {
+          retargetedGroup.speedRatio = 1;
+        }
+        try { retargetedGroup.start(loop); } catch {}
+        if (!retargetedGroup.isPlaying) { try { retargetedGroup.play(loop); } catch {} }
+      });
+    }
+
+    // --- physics shape update: only when desired shape changes ---
+    const body = meshOrGroup?.physics;
+    if (body?.shape && body.shape.constructor?.name === "_PhysicsShapeCapsule") {
+      let desired = "vertical";
+      if (animationName === "Fly") desired = "horizontal-fly";
+      else if (animationName === "Fall") desired = "horizontal-fall";
+      else if (animationName === "Sitting" || animationName === "Sit_Down") desired = "sitting";
+
+      if (mesh.metadata.currentPhysicsShapeType !== desired) {
+        const motionType = body.getMotionType();
+        const massProps = body.getMassProperties();
+        const disablePreStep = body.disablePreStep;
+
+        let newShape;
+        if (desired === "horizontal-fly") {
+          newShape = flock.createHorizontalCapsuleFromBoundingBox(meshOrGroup, flock.scene, 0);
+        } else if (desired === "horizontal-fall") {
+          newShape = flock.createHorizontalCapsuleFromBoundingBox(meshOrGroup, flock.scene, -0.4);
+        } else if (desired === "sitting") {
+          newShape = flock.createSittingCapsuleFromBoundingBox(meshOrGroup, flock.scene);
+        } else {
+          newShape = flock.createCapsuleFromBoundingBox(meshOrGroup, flock.scene);
+        }
+
+        if (requestToken === mesh.metadata._animReqCounter) {
+          body.shape = newShape;
+          body.setMotionType(motionType);
+          body.setMassProperties(massProps);
+          body.disablePreStep = disablePreStep;
+          mesh.metadata.currentPhysicsShapeType = desired;
+        }
+      }
     }
 
     return retargetedGroup;

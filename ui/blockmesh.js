@@ -883,14 +883,19 @@ function updateCylinderGeometry(
   mesh.computeWorldMatrix(true);
 }
 
-/**
- * Replace the mesh model while preserving world-facing orientation and camera attachments.
- * Preserves: facing (re-applied via flock.rotateTo in DEGREES), parent, X/Z position, bottom-aligned Y,
- * visibility, metadata, triggers, physics, name, and current animation.
- * Includes rotation debug logs to verify orientation after replacement.
- */
 function replaceMeshModel(currentMesh, block, changeEvent) {
   if (!currentMesh || !block) return;
+
+  const followerCam = (flock.scene?.cameras || []).find(
+    (c) =>
+      c?.metadata?.following === currentMesh ||
+      c?.lockedTarget === currentMesh ||
+      (c?.getClassName?.() === "ArcRotateCamera" && c.target === currentMesh) ||
+      c?.parent === currentMesh,
+  );
+  // Boolean:
+  const hasAnyCameraAttached = !!followerCam;
+
 
   const scene = flock.scene;
   const animationName = flock.getCurrentAnimationName(currentMesh);
@@ -906,22 +911,6 @@ function replaceMeshModel(currentMesh, block, changeEvent) {
   // Save world-space forward/up to reconstruct yaw/pitch/roll in DEGREES later
   const savedForward = currentMesh.getDirection(flock.BABYLON.Axis.Z).clone();
   const savedUp = currentMesh.getDirection(flock.BABYLON.Axis.Y).clone();
-
-  // Debug helpers
-  function _fmtV3(v) {
-    return v
-      ? `(${v.x.toFixed(3)}, ${v.y.toFixed(3)}, ${v.z.toFixed(3)})`
-      : "(null)";
-  }
-  function _fmtQ(q) {
-    return q
-      ? `(${q.x.toFixed(4)}, ${q.y.toFixed(4)}, ${q.z.toFixed(4)}, ${q.w.toFixed(4)})`
-      : "(null)";
-  }
-  function _snap(m, label) {
-    if (!m) return;
-    m.computeWorldMatrix(true);
-  }
 
   // Cameras attached to the old mesh
   const cameraAttachments = [];
@@ -972,6 +961,10 @@ function replaceMeshModel(currentMesh, block, changeEvent) {
           friction: currentMesh.physics.shape?.friction,
           restitution: currentMesh.physics.shape?.restitution,
           disablePreStep: currentMesh.physics.disablePreStep,
+          linearDamping: currentMesh.physics.getLinearDamping?.() || 0,
+          angularDamping: currentMesh.physics.getAngularDamping?.() || 0,
+          linearVelocity: currentMesh.physics.getLinearVelocity().clone(),
+          angularVelocity: currentMesh.physics.getAngularVelocity().clone(),
         }
       : null,
     savedMotionType: currentMesh.savedMotionType,
@@ -1036,6 +1029,13 @@ function replaceMeshModel(currentMesh, block, changeEvent) {
       if (kind === "lockedTarget") cam.lockedTarget = target;
       if (kind === "parent") cam.parent = target;
       if (kind === "arcSetTarget" && cam.setTarget) cam.setTarget(target);
+    }
+
+    if (hasAnyCameraAttached) {
+      target.metadata.constraint = false;
+      target.metadata._uprightStabiliser = false;
+      flock.updatePhysics(target);
+      flock.ensureVerticalConstraint(target, hasAnyCameraAttached);
     }
   }
 
@@ -1121,8 +1121,73 @@ function replaceMeshModel(currentMesh, block, changeEvent) {
 
     const finish = () => {
       alignBottom(loadedMesh);
-      reattachCameras(loadedMesh);
-      applyFacingWithRotateTo(loadedMesh);
+
+      // Instead of using applyFacingWithRotateTo, set rotation directly
+      const eulerDeg = computeEulerDegreesFromForwardUp(savedForward, savedUp);
+
+      // Set rotation using quaternion (what moveForward expects)
+      loadedMesh.rotationQuaternion =
+        flock.BABYLON.Quaternion.RotationYawPitchRoll(
+          (eulerDeg.y * Math.PI) / 180, // yaw
+          0, // pitch - constrain to 0
+          0, // roll - constrain to 0
+        );
+
+      // NOW restore physics properties AFTER positioning and rotation
+      if (meshState.physics && loadedMesh.physics) {
+        if (meshState.physics.motionType !== undefined) {
+          loadedMesh.physics.setMotionType(meshState.physics.motionType);
+        }
+        loadedMesh.physics.disablePreStep = meshState.physics.disablePreStep;
+        loadedMesh.savedMotionType = meshState.savedMotionType;
+
+        // Restore friction and restitution to match original physics behavior
+        if (loadedMesh.physics.shape) {
+          if (meshState.physics.friction !== undefined) {
+            loadedMesh.physics.shape.friction = meshState.physics.friction;
+          }
+          if (meshState.physics.restitution !== undefined) {
+            loadedMesh.physics.shape.restitution =
+              meshState.physics.restitution;
+          }
+        }
+
+        // Restore damping - this is critical for stopping motion
+        if (
+          loadedMesh.physics.setLinearDamping &&
+          meshState.physics.linearDamping !== undefined
+        ) {
+          loadedMesh.physics.setLinearDamping(meshState.physics.linearDamping);
+        }
+        if (
+          loadedMesh.physics.setAngularDamping &&
+          meshState.physics.angularDamping !== undefined
+        ) {
+          loadedMesh.physics.setAngularDamping(
+            meshState.physics.angularDamping,
+          );
+        }
+      }
+
+      // Update physics with the final transform
+      flock.updatePhysics(loadedMesh);
+
+      // Wait longer for physics to fully settle, then clear velocities
+      setTimeout(() => {
+        if (loadedMesh.physics) {
+          loadedMesh.physics.setLinearVelocity(
+            new flock.BABYLON.Vector3(0, 0, 0),
+          );
+          loadedMesh.physics.setAngularVelocity(
+            new flock.BABYLON.Vector3(0, 0, 0),
+          );
+
+          loadedMesh.computeWorldMatrix(true);
+        
+        }
+        applyFacingWithRotateTo(loadedMesh);
+        reattachCameras(loadedMesh);
+      }, 10); 
     };
 
     setTimeout(() => {
@@ -1179,19 +1244,6 @@ function replaceMeshModel(currentMesh, block, changeEvent) {
     }
     loadedMesh.metadata.originalBaseName = meshState.originalBaseName;
 
-    if (meshState.physics && loadedMesh.physics) {
-      if (meshState.physics.motionType !== undefined) {
-        loadedMesh.physics.setMotionType(meshState.physics.motionType);
-      }
-      loadedMesh.physics.disablePreStep = meshState.physics.disablePreStep;
-      loadedMesh.savedMotionType = meshState.savedMotionType;
-    }
-
-    flock.updatePhysics(loadedMesh);
-
-    if (animationName) 
-      flock.switchAnimation(loadedMesh.name, { animationName, restart: true });
-
     const newMeshName = loadedMesh.name;
     const originalBaseName = meshState.originalBaseName;
     if (flock.pendingTriggers && flock.pendingTriggers.has(originalBaseName)) {
@@ -1221,7 +1273,10 @@ function replaceMeshModel(currentMesh, block, changeEvent) {
       callback: () => {
         const loadedMesh = getMeshFromBlock(block);
         if (!loadedMesh || typeof loadedMesh !== "object") return;
-        finalizeNewMesh(loadedMesh);
+        finalizeNewMesh(loadedMesh, hasAnyCameraAttached);
+
+        if (animationName)
+          flock.switchAnimation(loadedMesh.name, { animationName, restart: true });
       },
     });
   } else {
@@ -1391,7 +1446,8 @@ export function updateBlockColorAndHighlight(mesh, selectedColor) {
       startBlock.render();
       // Wrap sky block around start block
       const connection = startBlock.getInput("DO").connection;
-      if (connection && block.previousConnection) connection.connect(block.previousConnection);
+      if (connection && block.previousConnection)
+        connection.connect(block.previousConnection);
     }
     withUndoGroup(() => {
       const found = findNestedColorTarget(block);
