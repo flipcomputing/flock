@@ -1034,6 +1034,7 @@ export const flockAnimate = {
     // Update physics shape based on animation
     const physicsMesh = meshOrGroup;
 
+    console.log("Animation name:", animationName);
     if (physicsMesh && physicsMesh.physics && physicsMesh.physics.shape && physicsMesh.physics.shape.constructor.name === "_PhysicsShapeCapsule") {
       // Determine desired physics shape type based on animation name
       let desiredShapeType = "vertical";
@@ -1041,7 +1042,8 @@ export const flockAnimate = {
         desiredShapeType = "horizontal-fly";
       } else if (animationName === "Fall") {
         desiredShapeType = "horizontal-fall";
-      } else if (animationName === "Sitting") {
+      } else if (animationName === "Sitting" || animationName === "Sit_Down") {
+        console.log("Sitting animation detected");
         desiredShapeType = "sitting";
       }
 
