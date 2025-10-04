@@ -17,6 +17,11 @@ export const flockCamera = {
 				return;
 			}
 
+			if (!mesh.physics) {
+				console.log("Can't attach camera to: ", meshName);
+				return;
+			}
+
 			console.log("Attaching camera to model");
 			flock.ensureVerticalConstraint(mesh);
 
@@ -107,6 +112,7 @@ export const flockCamera = {
 	},
 	ensureVerticalConstraint(mesh) {
 		if (mesh.metadata.constraint) return;
+		if (!mesh.physics) return;
 
 		const newBox = flock.BABYLON.MeshBuilder.CreateBox("Constraint", {
 			height: 1,
@@ -168,7 +174,7 @@ export const flockCamera = {
 			);
 
 			// Ensure both bodies are defined before adding constraint
-			if (mesh && referenceBody) {
+			if (mesh?.physics && referenceBody) {
 				mesh.physics.addConstraint(referenceBody, constraint);
 
 				mesh.metadata.constraint = true;

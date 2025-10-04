@@ -8,7 +8,6 @@ export function setFlockReference(ref) {
 
 export const flockMesh = {
   createCapsuleFromBoundingBox(mesh, scene) {
-    // Always calculate from current bounding box (original behavior)
     mesh.computeWorldMatrix(true);
     const boundingInfo = mesh.getBoundingInfo();
 
@@ -24,7 +23,11 @@ export const flockMesh = {
 
     const radius = Math.min(width, depth) / 2;
 
-    const cylinderHeight = Math.max(0, height - 2 * radius);
+    // Shrink slightly in world units, clamp to avoid degenerate cylinders
+    const shrinkY = Math.min(0.01, Math.max(0, height - 2 * radius - 1e-6));
+
+    const adjustedHeight = Math.max(0, height - shrinkY);
+    const cylinderHeight = Math.max(0, adjustedHeight - 2 * radius);
 
     const center = flock.BABYLON.Vector3.Zero();
 
@@ -46,13 +49,12 @@ export const flockMesh = {
       scene,
     );
 
-    // Store the original capsule dimensions for reuse when changing orientations
     if (!mesh.metadata) mesh.metadata = {};
-    mesh.metadata.physicsCapsule = { radius, height };
+    mesh.metadata.physicsCapsule = { radius, height: adjustedHeight };
 
     return shape;
   },
-  createHorizontalCapsuleFromBoundingBox(mesh, scene, yOffsetFactor = 0) {
+createHorizontalCapsuleFromBoundingBox(mesh, scene, yOffsetFactor = 0) {
     // Get dimensions from the current vertical capsule
     let radius, height;
     
@@ -568,93 +570,121 @@ export const flockMesh = {
   ) {
     return flock.whenModelReady(targetMesh, (targetMeshInstance) => {
       flock.whenModelReady(meshToAttach, (meshToAttachInstance) => {
-        const logicalBoneName = boneName;
-
-        if (targetMeshInstance?.metadata?.modelName?.startsWith("Character")) {
-          boneName = attachBlockMapping[boneName];
-        } else {
-          boneName = attachMixamoMapping[boneName];
+        // Save pre-attach world rotation for later restore
+        {
+          const worldMatrix = meshToAttachInstance.getWorldMatrix(true).clone();
+          const scale = new flock.BABYLON.Vector3();
+          const rotation = new flock.BABYLON.Quaternion();
+          const position = new flock.BABYLON.Vector3();
+          worldMatrix.decompose(scale, rotation, position);
+          (meshToAttachInstance.metadata ||= {})._preAttachWorldRotation = rotation.clone();
         }
+
+        // Pause physics by removing body from Havok world (keep reference)
+        if (meshToAttachInstance.physics && meshToAttachInstance.physics._pluginData) {
+          flock.hk._hknp.HP_World_RemoveBody(
+            flock.hk.world,
+            meshToAttachInstance.physics._pluginData.hpBodyId,
+          );
+        }
+
+        const logicalBoneName = boneName;
+        boneName = targetMeshInstance?.metadata?.modelName?.startsWith("Character")
+          ? attachBlockMapping[boneName]
+          : attachMixamoMapping[boneName];
 
         const targetWithSkeleton = targetMeshInstance.skeleton
           ? targetMeshInstance
           : targetMeshInstance.getChildMeshes().find((mesh) => mesh.skeleton);
 
         if (targetWithSkeleton) {
-          const bone = targetWithSkeleton.skeleton.bones.find(
-            (b) => b.name === boneName,
-          );
-
+          const bone = targetWithSkeleton.skeleton.bones.find((b) => b.name === boneName);
           if (bone) {
             meshToAttachInstance.attachToBone(bone, targetWithSkeleton);
-            //console.log(`[Attach] Attached '${meshToAttachInstance.name}' to bone '${bone.name}'`);
 
             if (logicalBoneName === "Head") {
               let estimatedLength = 0.1;
-
               if (bone.children.length > 0) {
-                const headWorld = BABYLON.Vector3.TransformCoordinates(
-                  BABYLON.Vector3.Zero(),
+                const headWorld = flock.BABYLON.Vector3.TransformCoordinates(
+                  flock.BABYLON.Vector3.Zero(),
                   bone.getWorldMatrix()
                 );
-
-                const childWorld = BABYLON.Vector3.TransformCoordinates(
-                  BABYLON.Vector3.Zero(),
+                const childWorld = flock.BABYLON.Vector3.TransformCoordinates(
+                  flock.BABYLON.Vector3.Zero(),
                   bone.children[0].getWorldMatrix()
                 );
-
                 estimatedLength = childWorld.subtract(headWorld).length();
-                //console.log("[Attach] Estimated head offset from child bone:", estimatedLength.toFixed(4));
-
               } else {
-                // Fallback using bounding box height
                 const meshes = targetWithSkeleton.getChildMeshes?.() || [targetWithSkeleton];
                 const minYVals = [];
                 const maxYVals = [];
-
-                for (const mesh of meshes) {
-                  const info = mesh.getBoundingInfo?.();
+                for (const m of meshes) {
+                  const info = m.getBoundingInfo?.();
                   if (!info) continue;
-
                   const minY = info.boundingBox.minimumWorld.y;
                   const maxY = info.boundingBox.maximumWorld.y;
-
                   if (isFinite(minY) && isFinite(maxY)) {
                     minYVals.push(minY);
                     maxYVals.push(maxY);
                   }
                 }
-
-                let modelHeight = 1; // fallback
-                if (minYVals.length > 0 && maxYVals.length > 0) {
+                let modelHeight = 1;
+                if (minYVals.length && maxYVals.length) {
                   const allMinY = Math.min(...minYVals);
                   const allMaxY = Math.max(...maxYVals);
                   modelHeight = allMaxY - allMinY;
                 }
-
                 const defaultHeadOffset = 1.3;
                 estimatedLength = defaultHeadOffset * Math.max(modelHeight, 1);
-                //console.log(`[Attach] Fallback scaled head offset: ${estimatedLength.toFixed(4)}`);
               }
-
               y += estimatedLength;
-              //console.log(`[Attach] Final Y offset applied: ${y.toFixed(4)}`);
             }
 
             meshToAttachInstance.position = new flock.BABYLON.Vector3(x, y, z);
-            //console.log(`[Attach] Final local position: {X: ${x}, Y: ${y}, Z: ${z}}`);
           }
         }
       });
     });
   },
   drop(meshToDetach) {
-    return flock.whenModelReady(meshToDetach, (meshToDetachInstance) => {
-      const worldPosition = meshToDetachInstance.getAbsolutePosition();
-      meshToDetachInstance.detachFromBone();
+    return flock.whenModelReady(meshToDetach, (mesh) => {
+      // Capture current world transform
+      const worldMatrix = mesh.getWorldMatrix(true).clone();
+      const scale = new flock.BABYLON.Vector3();
+      const rotationNow = new flock.BABYLON.Quaternion();
+      const position = new flock.BABYLON.Vector3();
+      worldMatrix.decompose(scale, rotationNow, position);
 
-      // Set the child mesh's position to its world position
-      meshToDetachInstance.position = worldPosition;
+      // Restore pre-attach world rotation if available
+      const md = mesh.metadata || {};
+      const restoreRotation = md._preAttachWorldRotation || rotationNow;
+
+      mesh.detachFromBone?.();
+      mesh.parent = null;
+      mesh.rotationQuaternion = restoreRotation.clone();
+      mesh.scaling = scale;
+      mesh.position = position.add(new flock.BABYLON.Vector3(0, 0.002, 0));
+      mesh.computeWorldMatrix(true);
+
+      const body = mesh.physics;
+      if (body && body._pluginData) {
+        body.setMotionType(flock.BABYLON.PhysicsMotionType.ANIMATED);
+        if (body.setTargetTransform) body.setTargetTransform(mesh.position, mesh.rotationQuaternion);
+        body.setLinearVelocity(flock.BABYLON.Vector3.Zero());
+        body.setAngularVelocity(flock.BABYLON.Vector3.Zero());
+
+        flock.hk._hknp.HP_World_AddBody(
+          flock.hk.world,
+          body._pluginData.hpBodyId,
+          true
+        );
+
+        flock.scene.onBeforeRenderObservable.addOnce(() => {
+          body.setMotionType(flock.BABYLON.PhysicsMotionType.DYNAMIC);
+          body.setLinearVelocity(flock.BABYLON.Vector3.Zero());
+          body.setAngularVelocity(flock.BABYLON.Vector3.Zero());
+        });
+      }
     });
   },
   setParent(parentModelName, childModelName) {
