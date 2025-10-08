@@ -9,6 +9,8 @@ export const flockMovement = {
     const model = flock.scene.getMeshByName(modelName);
     if (!model || !model.physics || speed === 0) return;
 
+    flock.ensureVerticalConstraint(model);
+
     // --- CONFIGURATION ---
     const capsuleHeightBottomOffset = 1.0;
     const capsuleRadius = 0.5;
