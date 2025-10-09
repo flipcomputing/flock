@@ -75,4 +75,4 @@ Please include:
 We’ll review your submission and handle the upload for you.
 
 
-The creation of these resources was supported by a grant from Nlnet.
+The creation of these resources was supported by a [grant from Nlnet](https://nlnet.nl/project/FlockXR).
