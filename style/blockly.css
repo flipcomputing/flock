@@ -299,10 +299,13 @@ body[data-theme="dark"] .blocklyTreeLabel {
     border-left: 8px solid transparent  !important;
   }
 
-  .blocklyToolbox,  .blocklyToolboxCategoryContainer {
+  .blocklyToolbox {
     background: #F3F3F3 !important;
-    background-color: #F3F3F3 !important;
   }
+  .blocklyToolboxCategoryGroup {
+    background-color: #D3D3D3 !important;
+  }
+
   /* The row element */
   .blocklyToolbox .blocklyToolboxCategoryContainer > .blocklyToolboxCategory {
     display: flex !important;
