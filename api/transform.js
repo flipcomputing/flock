@@ -169,34 +169,52 @@ export const flockTransform = {
 
         try {
           let originalMotionType = null;
+          let originalVelocity = null;
+          let motionTypeTemporarilyChanged = false;
 
-          // Store original physics state if physics object
           if (mesh.physics) {
-            originalMotionType = mesh.physics.getMotionType();
+            originalMotionType = mesh.physics.getMotionType?.();
+            originalVelocity = mesh.physics.getLinearVelocity?.();
 
-            // Only change motion type if it's not already DYNAMIC or ANIMATED
-            if (originalMotionType !== flock.BABYLON.PhysicsMotionType.DYNAMIC &&
-                originalMotionType !== flock.BABYLON.PhysicsMotionType.ANIMATED) {
+            // Only coerce to ANIMATED if the body is neither DYNAMIC nor ANIMATED.
+            if (
+              originalMotionType !== flock.BABYLON.PhysicsMotionType.DYNAMIC &&
+              originalMotionType !== flock.BABYLON.PhysicsMotionType.ANIMATED
+            ) {
               mesh.physics.setMotionType(flock.BABYLON.PhysicsMotionType.ANIMATED);
+              motionTypeTemporarilyChanged = true;
             }
           }
 
-          // Perform the vector movement
+          // Apply position delta
           mesh.position.addInPlace(new flock.BABYLON.Vector3(x, y, z));
 
-          // Update physics and world matrix
           if (mesh.physics) {
-            mesh.physics.disablePreStep = false;
-            mesh.physics.setTargetTransform(
-              mesh.position,
-              mesh.rotationQuaternion,
-            );
+            if (
+              originalMotionType === flock.BABYLON.PhysicsMotionType.ANIMATED ||
+              motionTypeTemporarilyChanged
+            ) {
+              // For ANIMATED bodies, drive transform explicitly.
+              mesh.physics.disablePreStep = false;
+              mesh.physics.setTargetTransform(
+                mesh.position,
+                mesh.rotationQuaternion
+              );
+            } else if (originalMotionType === flock.BABYLON.PhysicsMotionType.DYNAMIC) {
+              // For DYNAMIC bodies, do not call setTargetTransform.
+              // Preserve horizontal velocity; zero vertical to avoid solver fighting the Y nudge.
+              if (originalVelocity) {
+                originalVelocity.y = 0;
+                mesh.physics.setLinearVelocity(originalVelocity);
+              }
+            }
 
-            // Restore original motion type if it was changed and different from ANIMATED
-            if (originalMotionType && 
-                originalMotionType !== flock.BABYLON.PhysicsMotionType.ANIMATED &&
-                originalMotionType !== flock.BABYLON.PhysicsMotionType.DYNAMIC) {
-              // Use setTimeout to allow physics update to complete first
+            // Restore original motion type if we coerced it temporarily.
+            if (
+              motionTypeTemporarilyChanged &&
+              originalMotionType !== flock.BABYLON.PhysicsMotionType.ANIMATED &&
+              originalMotionType !== flock.BABYLON.PhysicsMotionType.DYNAMIC
+            ) {
               setTimeout(() => {
                 mesh.physics.setTargetTransform(mesh.position, mesh.rotationQuaternion);
                 mesh.physics.setMotionType(originalMotionType);
@@ -206,7 +224,6 @@ export const flockTransform = {
 
           mesh.computeWorldMatrix(true);
           resolve();
-
         } catch (error) {
           reject(new Error(`Failed to move mesh '${meshName}' by vector: ${error.message}`));
         }

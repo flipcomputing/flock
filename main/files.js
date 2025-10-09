@@ -1,4 +1,3 @@
-
 import * as Blockly from "blockly";
 import { workspace } from "./blocklyinit.js";
 
@@ -11,6 +10,7 @@ export function saveWorkspace(workspace) {
 
 // Function to load workspace and execute callback
 export function loadWorkspaceAndExecute(json, workspace, executeCallback) {
+
 	try {
 		if (!workspace || !json) {
 			throw new Error("Invalid workspace or json data.");
@@ -77,7 +77,11 @@ export function loadWorkspace(workspace, executeCallback) {
 				});
 		}
 	} else if (savedState) {
-		loadWorkspaceAndExecute(JSON.parse(savedState), workspace, executeCallback);
+		loadWorkspaceAndExecute(
+			JSON.parse(savedState),
+			workspace,
+			executeCallback,
+		);
 	} else {
 		loadStarter();
 	}
@@ -105,7 +109,10 @@ export async function exportCode(workspace) {
 			document.getElementById("projectName").value || "default_project";
 
 		// Ensure we have a valid workspace
-		const ws = workspace && workspace.getAllBlocks ? workspace : Blockly.getMainWorkspace();
+		const ws =
+			workspace && workspace.getAllBlocks
+				? workspace
+				: Blockly.getMainWorkspace();
 		if (!ws || !ws.getAllBlocks) {
 			throw new Error("No valid workspace found");
 		}
@@ -162,7 +169,7 @@ export function importSnippet() {
 		if (file) {
 			const fileType = file.type;
 			const reader = new FileReader();
-			
+
 			reader.onload = () => {
 				const content = reader.result;
 
@@ -176,7 +183,7 @@ export function importSnippet() {
 					console.error("Unsupported file type:", fileType);
 				}
 			};
-			
+
 			if (fileType === "image/png") {
 				reader.readAsArrayBuffer(file);
 			} else {
@@ -192,7 +199,7 @@ function handleSVGImport(content) {
 		const parser = new DOMParser();
 		const svgDoc = parser.parseFromString(content, "image/svg+xml");
 		const metadataElement = svgDoc.querySelector("metadata");
-		
+
 		if (!metadataElement) {
 			console.error("No <metadata> tag found in the SVG file.");
 			return;
@@ -200,7 +207,7 @@ function handleSVGImport(content) {
 
 		const metadataContent = metadataElement.textContent.trim();
 		const parsedData = JSON.parse(metadataContent);
-		
+
 		if (!parsedData.blockJson) {
 			console.error("Metadata JSON does not contain 'blockJson'.");
 			return;
@@ -246,40 +253,38 @@ function handleJSONImport(content) {
 
 // Function to set up file input handler
 export function setupFileInput(workspace, executeCallback) {
-	document.getElementById("fileInput").addEventListener("change", function (event) {
+	const fileInput = document.getElementById("fileInput");
+
+	fileInput.addEventListener("change", function (event) {
 		const file = event.target.files[0];
 		if (!file) return;
-
 		const maxSize = 5 * 1024 * 1024;
 		if (file.size > maxSize) {
 			alert("File too large. Maximum size is 5MB.");
+			event.target.value = ""; // Reset the input
 			return;
 		}
-
 		if (!file.name.toLowerCase().endsWith(".json")) {
 			alert("Only JSON files are allowed.");
+			event.target.value = ""; // Reset the input
 			return;
 		}
-
 		const reader = new FileReader();
 		reader.onload = function () {
 			window.loadingCode = true;
-
 			try {
 				const text = reader.result;
-
 				if (typeof text !== "string") {
 					console.log("Invalid file content: not a string");
-					throw new Error("File content is invalid (not a string)");
+					throw new Error(
+						"File content is invalid (not a string)",
+					);
 				}
-
 				if (text.length > 4 * 1024 * 1024) {
 					console.log("Invalid file content: too large");
 					throw new Error("File content is too large");
 				}
-
 				const json = JSON.parse(text);
-
 				if (
 					!json ||
 					typeof json !== "object" ||
@@ -287,9 +292,10 @@ export function setupFileInput(workspace, executeCallback) {
 					typeof json.blocks !== "object" ||
 					!json.blocks.blocks
 				) {
-					throw new Error("Invalid Blockly project file structure");
+					throw new Error(
+						"Invalid Blockly project file structure",
+					);
 				}
-
 				const rawName = file.name || "untitled";
 				const sanitizedName =
 					rawName
@@ -297,20 +303,21 @@ export function setupFileInput(workspace, executeCallback) {
 						.substring(0, 50) || "untitled";
 				document.getElementById("projectName").value =
 					stripFilename(sanitizedName.replace("json", ""));
-
 				loadWorkspaceAndExecute(json, workspace, executeCallback);
 			} catch (e) {
 				console.error("Error loading Blockly project:", e);
 				alert("This file isn't a valid Blockly project.");
 				window.loadingCode = false;
+			} finally {
+				// Reset the input so the same file can be selected again
+				event.target.value = "";
 			}
 		};
-
 		reader.onerror = function () {
 			alert("Failed to read file.");
 			window.loadingCode = false;
+			event.target.value = ""; // Reset the input
 		};
-
 		reader.readAsText(file);
 	});
 }
@@ -324,7 +331,8 @@ export function loadExample(workspace, executeCallback) {
 	const projectNameElement = document.getElementById("projectName");
 
 	if (exampleFile) {
-		const selectedOption = exampleSelect.options[exampleSelect.selectedIndex].text;
+		const selectedOption =
+			exampleSelect.options[exampleSelect.selectedIndex].text;
 		projectNameElement.value = selectedOption;
 
 		fetch(exampleFile)
@@ -347,21 +355,21 @@ export function loadExampleWrapper() {
 window.loadExample = loadExampleWrapper;
 
 export function newProject() {
-  // Set project name
-  const projectNameElement = document.getElementById("projectName");
-  if (projectNameElement) {
-	projectNameElement.value = "New";
-  }
+	// Set project name
+	const projectNameElement = document.getElementById("projectName");
+	if (projectNameElement) {
+		projectNameElement.value = "New";
+	}
 
-  // Load the empty project template
-  fetch("examples/new.json")
-	.then((response) => response.json())
-	.then((json) => {
-	  loadWorkspaceAndExecute(json, workspace, executeCode);
-	})
-	.catch((error) => {
-	  console.error("Error loading new project:", error);
-	});
+	// Load the empty project template
+	fetch("examples/new.json")
+		.then((response) => response.json())
+		.then((json) => {
+			loadWorkspaceAndExecute(json, workspace, executeCode);
+		})
+		.catch((error) => {
+			console.error("Error loading new project:", error);
+		});
 }
 
 window.newProject = newProject;
