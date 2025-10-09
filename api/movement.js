@@ -11,117 +11,152 @@ export const flockMovement = {
 
     flock.ensureVerticalConstraint(model);
 
-    // --- CONFIGURATION ---
+    // --- Tunables ---
     const capsuleHeightBottomOffset = 1.0;
     const capsuleRadius = 0.5;
-    const deltaTime = 0.016;
-    const maxSlopeAngle = 45;
-    const groundCheckDistance = 0.3; // Increased ground check distance
-    const DEBUG = true;
+    const maxSlopeAngleDeg = 45;
+    const groundCheckDistance = 0.3;
+    const coyoteTimeMs = 120;          // brief grace after leaving ground
+    const airControlFactor = 0.0;      // 0 = no airborne acceleration
+    const airDragPerTick = 0.90;       // horizontal decay while airborne
+    const stepHeight = 0.3;
+    const stepProbeDistance = 0.6;
+    const maxVerticalVelocity = 3.0;
 
-    // --- MOVEMENT CALCULATION ---
-    const camForward = flock.scene.activeCamera.getForwardRay().direction;
-    const horizontalForward = new flock.BABYLON.Vector3(
-      camForward.x,
-      0,
-      camForward.z,
-    ).normalize();
-    let desiredMovement = horizontalForward.scale(speed);
+    const up = flock.BABYLON.Vector3.Up();
+    const scene = flock.scene;
 
-    // --- GROUND CHECK ---
+    // Desired horizontal direction from camera
+    const cameraForward = scene.activeCamera.getForwardRay().direction;
+    const horizontalForward = new flock.BABYLON.Vector3(cameraForward.x, 0, cameraForward.z).normalize();
+    const desiredHorizontalVelocity = horizontalForward.scale(speed);
+
+    // --- Grounded check via capsule shapeCast ---
     const groundCheckStart = model.position.clone();
-    const groundCheckEnd = groundCheckStart.add(
-      new flock.BABYLON.Vector3(0, -groundCheckDistance, 0),
-    );
+    const groundCheckEnd = groundCheckStart.add(new flock.BABYLON.Vector3(0, -groundCheckDistance, 0));
+
+    const physicsEngine = scene.getPhysicsEngine();
+    if (!physicsEngine) return;
+    const havokPlugin = physicsEngine.getPhysicsPlugin();
 
     const groundQuery = {
       shape: new flock.BABYLON.PhysicsShapeCapsule(
         new flock.BABYLON.Vector3(0, -capsuleHeightBottomOffset, 0),
-        new flock.BABYLON.Vector3(0, capsuleHeightBottomOffset, 0),
+        new flock.BABYLON.Vector3(0,  capsuleHeightBottomOffset, 0),
         capsuleRadius,
-        flock.scene,
+        scene
       ),
       rotation: model.rotationQuaternion || flock.BABYLON.Quaternion.Identity(),
       startPosition: groundCheckStart,
       endPosition: groundCheckEnd,
       shouldHitTriggers: false,
+      ignoredBodies: [],              // must be an array
+      collisionFilterGroup: -1,
+      collisionFilterMask: -1,
     };
 
     const groundResult = new flock.BABYLON.ShapeCastResult();
     const groundHitResult = new flock.BABYLON.ShapeCastResult();
-
-    const physicsEngine = flock.scene.getPhysicsEngine();
-    if (!physicsEngine) {
-      console.warn("No physics engine available.");
-      return;
-    }
-    const havokPlugin = physicsEngine.getPhysicsPlugin();
-
     havokPlugin.shapeCast(groundQuery, groundResult, groundHitResult);
 
-    // --- STATE TRACKING ---
-    const currentVelocity = model.physics.getLinearVelocity();
     let grounded = false;
-    let previouslyGrounded = model.isGrounded || false; // Store previous state
-    let stateChanged = false;
-
-    // Store grounded state for next frame
-    model.isGrounded = grounded;
-    // --- APPLY MOVEMENT ---
-    const maxVerticalVelocity = 3.0; // Reduced max vertical velocity
-    let newVertical = grounded ? 0 : currentVelocity.y;
-    newVertical = Math.min(
-      Math.max(newVertical, -maxVerticalVelocity),
-      maxVerticalVelocity,
-    );
-
-    const finalVelocity = new flock.BABYLON.Vector3(
-      desiredMovement.x,
-      newVertical,
-      desiredMovement.z,
-    );
-
-    model.physics.setLinearVelocity(finalVelocity);
-
-    // If your mesh is coming out backwards, flip the vector:
-    const facingDirection =
-      speed >= 0 ? horizontalForward : horizontalForward.scale(-1);
-
-    // Compute the target rotation based on the facing direction.
-    const targetRotation = flock.BABYLON.Quaternion.FromLookDirectionLH(
-      facingDirection,
-      flock.BABYLON.Vector3.Up(),
-    );
-
-    // Use the current rotation (defaulting to identity if missing).
-    const currentRotation =
-      model.rotationQuaternion || flock.BABYLON.Quaternion.Identity();
-
-    // Compute the difference between the current and target rotations.
-    const deltaRotation = targetRotation.multiply(currentRotation.conjugate());
-    const deltaEuler = deltaRotation.toEulerAngles();
-
-    // Apply angular velocity (adjust multiplier as needed for smoothness).
-    model.physics.setAngularVelocity(
-      new flock.BABYLON.Vector3(0, deltaEuler.y * 5, 0),
-    );
-
-    // Keep the mesh’s rotation constrained to the Y axis.
-    // Create a rotation quaternion if it doesn't exist
-    if (!model.rotationQuaternion) {
-        model.rotationQuaternion = BABYLON.Quaternion.RotationYawPitchRoll(
-            model.rotation.y,
-            model.rotation.x,
-            model.rotation.z
-        );
+    if (groundResult.hasHit) {
+      const n = groundResult.hitNormalWorld;
+      if (n) {
+        const dot = flock.BABYLON.Vector3.Dot(n.normalize(), up);
+        const clampedDot = Math.min(Math.max(dot, -1), 1);
+        const angleDeg = Math.acos(clampedDot) * 180 / Math.PI;
+        grounded = angleDeg <= maxSlopeAngleDeg;
+      } else {
+        grounded = true;
+      }
     }
 
-    // Now safely set the values
-    model.rotationQuaternion.x = 0;
-    model.rotationQuaternion.z = 0;
+    // --- Coyote time window ---
+    const nowMs = (typeof performance !== "undefined" && performance.now) ? performance.now() : Date.now();
+    if (grounded) model._lastGroundedAt = nowMs;
+    const withinCoyoteTime = model._lastGroundedAt ? (nowMs - model._lastGroundedAt) <= coyoteTimeMs : false;
+
+    // --- Horizontal control policy ---
+    const currentVelocity = model.physics.getLinearVelocity();
+    const currentHorizontalVelocity = new flock.BABYLON.Vector3(currentVelocity.x, 0, currentVelocity.z);
+
+    let appliedHorizontalVelocity;
+    if (grounded || withinCoyoteTime) {
+      // full control on ground/coyote
+      appliedHorizontalVelocity = desiredHorizontalVelocity;
+    } else {
+      // airborne: no acceleration toward input, apply drag
+      appliedHorizontalVelocity = currentHorizontalVelocity.scale(airDragPerTick);
+      if (airControlFactor > 0) {
+        appliedHorizontalVelocity = appliedHorizontalVelocity.add(
+          desiredHorizontalVelocity.scale(airControlFactor)
+        );
+      }
+    }
+
+    // --- Step-up probe to allow ledge hops when near ground ---
+    if (grounded || withinCoyoteTime) {
+      const probeStartLow = model.position.add(new flock.BABYLON.Vector3(0, 0.05, 0));
+      const probeEndLow = probeStartLow.add(horizontalForward.scale(stepProbeDistance));
+      const probeStartHigh = probeStartLow.add(new flock.BABYLON.Vector3(0, stepHeight, 0));
+      const probeEndHigh = probeStartHigh.add(horizontalForward.scale(stepProbeDistance));
+
+      const stepProbeQueryLow = {
+        shape: new flock.BABYLON.PhysicsShapeSphere(new flock.BABYLON.Vector3(0,0,0), capsuleRadius * 0.9, scene),
+        rotation: flock.BABYLON.Quaternion.Identity(),
+        startPosition: probeStartLow,
+        endPosition: probeEndLow,
+        shouldHitTriggers: false,
+        ignoredBodies: [],
+        collisionFilterGroup: -1,
+        collisionFilterMask: -1,
+      };
+      const stepProbeQueryHigh = { ...stepProbeQueryLow, startPosition: probeStartHigh, endPosition: probeEndHigh };
+
+      const lowResult = new flock.BABYLON.ShapeCastResult();
+      const lowHitResult = new flock.BABYLON.ShapeCastResult();
+      havokPlugin.shapeCast(stepProbeQueryLow, lowResult, lowHitResult);
+
+      if (lowResult.hasHit) {
+        const highResult = new flock.BABYLON.ShapeCastResult();
+        const highHitResult = new flock.BABYLON.ShapeCastResult();
+        havokPlugin.shapeCast(stepProbeQueryHigh, highResult, highHitResult);
+        if (!highResult.hasHit) model.position.y += stepHeight;
+      }
+    }
+
+    // --- Vertical: let gravity act; just clamp extremes ---
+    const clampedVertical = Math.min(Math.max(currentVelocity.y, -maxVerticalVelocity), maxVerticalVelocity);
+
+    const finalVelocity = new flock.BABYLON.Vector3(
+      appliedHorizontalVelocity.x,
+      clampedVertical,
+      appliedHorizontalVelocity.z
+    );
+    model.physics.setLinearVelocity(finalVelocity);
+
+    // --- Face movement direction if there is meaningful horizontal speed ---
+    const horizontalSpeedSq = appliedHorizontalVelocity.lengthSquared();
+    if (horizontalSpeedSq > 1e-6) {
+      const facingDirection = appliedHorizontalVelocity.normalize();
+      const targetRotation = flock.BABYLON.Quaternion.FromLookDirectionLH(facingDirection, up);
+      const currentRotation = model.rotationQuaternion || flock.BABYLON.Quaternion.Identity();
+      const deltaRotation = targetRotation.multiply(currentRotation.conjugate());
+      const deltaEuler = deltaRotation.toEulerAngles();
+      model.physics.setAngularVelocity(new flock.BABYLON.Vector3(0, deltaEuler.y * 5, 0));
+    }
+
+    if (!model.rotationQuaternion) {
+      model.rotationQuaternion = flock.BABYLON.Quaternion.RotationYawPitchRoll(
+        model.rotation.y, model.rotation.x, model.rotation.z
+      );
+    }
     model.rotationQuaternion.x = 0;
     model.rotationQuaternion.z = 0;
     model.rotationQuaternion.normalize();
+
+    model.isGrounded = grounded;
   },
   moveSideways(modelName, speed) {
     const model = flock.scene.getMeshByName(modelName);
