@@ -470,7 +470,6 @@ button {
   padding: 10px 10px 10px 5px;
   box-shadow: 0px 4px 8px var(--color-shadow-medium);
   border-radius: 5px;
-  width: 320px;
   overflow: hidden;
 }
 
@@ -531,7 +530,7 @@ button {
   position: relative;
   display: flex;
   align-items: center;
-  width: 100%;
+  width: 340px;
 }
 
 #model-row {
@@ -1059,8 +1058,22 @@ details summary:focus,
   cursor: pointer;
 }
 
-#shape-row button:focus {
-  outline: 2px solid #0066cc; /* Or your preferred focus color */
+
+/* Exactly 5 columns wide, matching your asymmetric inner padding */
+#shapes-dropdown {
+  /* 5 * 60px tiles + 4 * 8px gaps + left 5px + right 10px padding */
+  width: calc(5 * 60px + 4 * 8px + 5px + 10px);
+  box-sizing: border-box;
+  overflow: visible;
+}
+
+/* Force grid (override earlier flex rules) and remove extra ul padding */
+#shapes-dropdown > ul {
+  display: grid !important;
+  grid-template-columns: repeat(5, 60px);
+  gap: 8px;
+  overflow: visible !important; /* override old scrollbar-hiding rule */
+  list-style: none;
 }
 
 
