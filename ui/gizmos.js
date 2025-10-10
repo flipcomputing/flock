@@ -383,7 +383,7 @@ function showBoundingBox(mesh, focusMode = false) {
   if (mesh.parent) {
     mesh = getRootMesh(mesh.parent);
     mesh.visibility = 0.001;
-  } else if (focusMode) {
+  } else if (focusMode && !mesh.visibility) {
     // Set mesh visibility even if mesh has no parent
     // focusMode is only used when camera focused on mesh
 
