@@ -21,7 +21,7 @@
   --color-button-bg: #e0e0e0;
   --color-button-bg-hover: #d0d0d0; 
   --color-button-primary: #004d4d;
-  --color-button-scroll: rgba(0, 0, 0, 0.5);
+  --color-button-scroll: rgba(76, 76, 76, 0.5);
 
   /* Text Colors */
   --color-text-primary: #000000;
@@ -350,6 +350,7 @@ button {
 
 #canvasArea {
   position: relative;
+  background-color: #f3f3f3;
 }
 
 #menu {
@@ -406,7 +407,7 @@ button {
 
 /* Gizmo Buttons */
 .gizmo-buttons {
-  font-family: "Asap", Helvetica, Arial, Lucida, sans-serif;
+  font-family: "Atkinson Hyperlegible Next", "Asap", Helvetica, Arial, Lucida, sans-serif;
   display: flex;
   flex-wrap: wrap;
   gap: 5px;
@@ -416,7 +417,7 @@ button {
 }
 
 .gizmo-button {
-  font-family: "Asap", Helvetica, Arial, Lucida, sans-serif;
+  font-family: "Atkinson Hyperlegible Next", "Asap", Helvetica, Arial, Lucida, sans-serif;
   padding: 5px;
   font-size: 12px;
   cursor: pointer;
