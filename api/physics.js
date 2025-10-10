@@ -118,19 +118,14 @@ export const flockPhysics = {
     }
   },
   async setPhysics(meshName, physicsType) {
-    // 1) Wait for the mesh to exist (this truly blocks)
-    const mesh = await (
-      typeof flock.ensureModelReadyPromise === "function"
-        ? flock.ensureModelReadyPromise(meshName)
-        : new Promise((resolve) => flock.whenModelReady(meshName, resolve))
-    );
+    const mesh = await (typeof flock.ensureModelReadyPromise === "function"
+      ? flock.ensureModelReadyPromise(meshName)
+      : new Promise((resolve) => flock.whenModelReady(meshName, resolve)));
 
     // Abort safety: if scene was torn down during the wait, exit quietly
     if (flock.abortController?.signal?.aborted || !mesh) return mesh;
 
-    // 2) Apply physics mode (guard if no physics body yet)
     if (!mesh.physics) {
-      console.warn("[setPhysics] Mesh has no physics body yet:", meshName);
       return mesh;
     }
 
@@ -159,7 +154,10 @@ export const flockPhysics = {
           if (id != null) {
             flock.hk._hknp.HP_World_RemoveBody(flock.hk.world, id);
           } else {
-            console.warn("[setPhysics] No hpBodyId on mesh physics; skip removal:", meshName);
+            console.warn(
+              "[setPhysics] No hpBodyId on mesh physics; skip removal:",
+              meshName,
+            );
           }
         } catch (e) {
           console.warn("[setPhysics] Error removing body from Havok world:", e);
@@ -181,67 +179,49 @@ export const flockPhysics = {
           const body = targetMesh.physics;
 
           // Remove the body from the physics world
-          flock.hk._hknp.HP_World_RemoveBody(
-            flock.hk.world,
-            body._pluginData.hpBodyId,
-          );
-
-          // Dispose of the shape explicitly
-          if (body.shape) {
-            body.shape.dispose();
-            body.shape = null; // Clear shape reference
+          try {
+            if (body._pluginData?.hpBodyId) {
+              flock.hk._hknp.HP_World_RemoveBody(
+                flock.hk.world,
+                body._pluginData.hpBodyId,
+              );
+            }
+          } catch (e) {
+            console.warn("[setPhysicsShape] RemoveBody warning:", e);
           }
 
-          // Dispose of the body explicitly
-          body.dispose();
-          targetMesh.physics = null; // Clear reference
+          // Dispose of the shape explicitly
+          try {
+            body.shape?.dispose?.();
+          } catch {}
+          try {
+            body.dispose?.();
+          } catch {}
+          targetMesh.physics = null;
         }
       };
 
-      const applyPhysicsShape = (targetMesh) => {
-        // Dispose physics if no material
-        if (!targetMesh.material) {
-          disposePhysics(targetMesh);
-          return; // Skip further processing
-        }
-
-        if (!targetMesh.geometry) {
-          return; // Skip if no geometry
-        }
-
-        // Dispose existing physics before applying a new shape
+      // --- CAPSULE path (player collider) ---
+      const applyCapsuleToRoot = (targetMesh) => {
+        targetMesh.computeWorldMatrix(true);
         disposePhysics(targetMesh);
 
-        let physicsShape, radius, boundingBox, height;
-        switch (shapeType) {
-          case "CAPSULE":
-            boundingBox = targetMesh.getBoundingInfo().boundingBox;
-            radius =
-              Math.max(
-                boundingBox.maximum.x - boundingBox.minimum.x,
-                boundingBox.maximum.z - boundingBox.minimum.z,
-              ) / 2;
-            height = boundingBox.maximum.y - boundingBox.minimum.y;
-            physicsShape = new flock.BABYLON.PhysicsShapeCapsule(
-              targetMesh,
-              flock.scene,
-              { radius: radius, height: height },
-            );
-            break;
-          case "MESH":
-            physicsShape = new flock.BABYLON.PhysicsShapeMesh(
-              targetMesh,
-              flock.scene,
-            );
-            break;
-          default:
-            console.error("Invalid shape type provided:", shapeType);
-            return;
+        // IMPORTANT: use targetMesh (not outer mesh)
+        const physicsShape = flock.createCapsuleFromBoundingBox(
+          targetMesh,
+          flock.scene,
+        );
+        if (!physicsShape) {
+          console.error(
+            "[setPhysicsShape] Failed to create capsule for",
+            targetMesh.name,
+          );
+          return;
         }
 
         const physicsBody = new flock.BABYLON.PhysicsBody(
           targetMesh,
-          flock.BABYLON.PhysicsMotionType.STATIC, // Default motion type
+          flock.BABYLON.PhysicsMotionType.DYNAMIC,
           false,
           flock.scene,
         );
@@ -252,14 +232,53 @@ export const flockPhysics = {
         targetMesh.physics = physicsBody;
       };
 
-      // Apply to main mesh
-      applyPhysicsShape(mesh);
+      // --- MESH path (preserve original behaviour) ---
+      const applyMeshPhysicsShape = (targetMesh) => {
+        // Keep your original material gate
+        if (!targetMesh.material) {
+          disposePhysics(targetMesh);
+          return;
+        }
 
-      // Apply to submeshes
-      if (mesh.getChildMeshes) {
-        mesh.getChildMeshes().forEach((subMesh) => {
-          applyPhysicsShape(subMesh);
-        });
+        disposePhysics(targetMesh);
+
+        const physicsShape = new flock.BABYLON.PhysicsShapeMesh(
+          targetMesh,
+          flock.scene,
+        );
+
+        const physicsBody = new flock.BABYLON.PhysicsBody(
+          targetMesh,
+          flock.BABYLON.PhysicsMotionType.STATIC, // unchanged
+          false,
+          flock.scene,
+        );
+        physicsBody.shape = physicsShape;
+        physicsBody.setMassProperties({ mass: 1, restitution: 0.5 }); // unchanged
+        physicsBody.disablePreStep = false;
+
+        targetMesh.physics = physicsBody;
+      };
+
+      // --- Dispatch by shape type ---
+      switch (shapeType) {
+        case "CAPSULE":
+          // Only on root (player), no children
+          applyCapsuleToRoot(mesh);
+          break;
+
+        case "MESH":
+          applyMeshPhysicsShape(mesh);
+          if (mesh.getChildMeshes) {
+            mesh.getChildMeshes().forEach((subMesh) => {
+              applyMeshPhysicsShape(subMesh);
+            });
+          }
+          break;
+
+        default:
+          console.error("Invalid shape type provided:", shapeType);
+          return;
       }
     });
   },
@@ -271,14 +290,20 @@ export const flockPhysics = {
     }
     return false;
   },
-  onTrigger(meshName, { trigger, callback, mode = "wait", applyToGroup = false }) {
+  onTrigger(
+    meshName,
+    { trigger, callback, mode = "wait", applyToGroup = false },
+  ) {
     const groupName = meshName.includes("__")
       ? meshName.split("__")[0]
       : meshName.split("_")[0];
 
     // 🛡 Scene not ready yet – queue for later
     if (!flock.scene) {
-      if (flock.triggerHandlingDebug) console.log(`[flock] Scene not ready, queuing group '${groupName}' trigger`);
+      if (flock.triggerHandlingDebug)
+        console.log(
+          `[flock] Scene not ready, queuing group '${groupName}' trigger`,
+        );
       if (!flock.pendingTriggers.has(groupName)) {
         flock.pendingTriggers.set(groupName, []);
       }
@@ -289,12 +314,12 @@ export const flockPhysics = {
     // 🧠 Handle group-wide registration
     if (applyToGroup) {
       const matching = flock.scene.meshes.filter((m) =>
-        m.name.startsWith(groupName)
+        m.name.startsWith(groupName),
       );
       if (matching.length > 0) {
         if (flock.triggerHandlingDebug) {
           console.log(
-            `[flock] Applying trigger to ${matching.length} existing mesh(es) in group '${groupName}'`
+            `[flock] Applying trigger to ${matching.length} existing mesh(es) in group '${groupName}'`,
           );
         }
         for (const m of matching) {
@@ -327,7 +352,10 @@ export const flockPhysics = {
       }
       flock.pendingTriggers.get(groupName).push({ trigger, callback, mode });
 
-      if (flock.triggerHandlingDebug) console.log(`[flock] Trigger for '${meshName}' stored for group '${groupName}'`);
+      if (flock.triggerHandlingDebug)
+        console.log(
+          `[flock] Trigger for '${meshName}' stored for group '${groupName}'`,
+        );
       return;
     }
 
@@ -359,15 +387,15 @@ export const flockPhysics = {
             for (let i = 1; i < callbacks.length; i++) {
               await callbacks[i]();
             }
-          }
+          },
         );
 
         for (let i = 1; i < callbacks.length; i++) {
           actionSequence = actionSequence.then(
             new flock.BABYLON.ExecuteCodeAction(
               flock.BABYLON.ActionManager[trigger],
-              async () => await callbacks[i]()
-            )
+              async () => await callbacks[i](),
+            ),
           );
         }
 
@@ -409,35 +437,39 @@ export const flockPhysics = {
         });
 
         if (flock.xrHelper && flock.xrHelper.baseExperience) {
-          flock.xrHelper.baseExperience.onStateChangedObservable.add((state) => {
-            if (
-              state === flock.BABYLON.WebXRState.IN_XR &&
-              flock.xrHelper.baseExperience.sessionManager.sessionMode === "immersive-ar"
-            ) {
-              flock.xrHelper.baseExperience.featuresManager.enableFeature(
-                flock.BABYLON.WebXRHitTest.Name,
-                "latest",
-                {
-                  onHitTestResultObservable: (results) => {
-                    if (results.length > 0) {
-                      const hitTest = results[0];
-                      const position = hitTest.transformationMatrix.getTranslation();
-                      target.position.copyFrom(position);
-                      target.isVisible = true;
-                    }
-                  }
-                }
-              );
+          flock.xrHelper.baseExperience.onStateChangedObservable.add(
+            (state) => {
+              if (
+                state === flock.BABYLON.WebXRState.IN_XR &&
+                flock.xrHelper.baseExperience.sessionManager.sessionMode ===
+                  "immersive-ar"
+              ) {
+                flock.xrHelper.baseExperience.featuresManager.enableFeature(
+                  flock.BABYLON.WebXRHitTest.Name,
+                  "latest",
+                  {
+                    onHitTestResultObservable: (results) => {
+                      if (results.length > 0) {
+                        const hitTest = results[0];
+                        const position =
+                          hitTest.transformationMatrix.getTranslation();
+                        target.position.copyFrom(position);
+                        target.isVisible = true;
+                      }
+                    },
+                  },
+                );
 
-              flock.scene.onPointerDown = function (evt, pickResult) {
-                if (pickResult.hit && pickResult.pickedMesh === target) {
-                  executeAction();
-                }
-              };
-            } else if (state === flock.BABYLON.WebXRState.NOT_IN_XR) {
-              flock.scene.onPointerDown = null;
-            }
-          });
+                flock.scene.onPointerDown = function (evt, pickResult) {
+                  if (pickResult.hit && pickResult.pickedMesh === target) {
+                    executeAction();
+                  }
+                };
+              } else if (state === flock.BABYLON.WebXRState.NOT_IN_XR) {
+                flock.scene.onPointerDown = null;
+              }
+            },
+          );
         }
       } else if (target instanceof flock.GUI.Button) {
         registerButtonAction(target, trigger, async () => {
@@ -482,6 +514,218 @@ export const flockPhysics = {
         );
 
         mesh.actionManager.registerAction(action);
+      });
+    });
+  },
+  onIntersect2(
+    meshName,
+    otherMeshName,
+    {
+      trigger = "OnIntersectionEnterTrigger", // kept for ActionManager path
+      callback,
+      usePhysics, // legacy boolean still supported
+      debounce = 0,
+      mode = "either", // "auto" | "either" | "intersection" | "physics"
+      separationFrames = 5, // when to consider 'exited' if only physics is used
+    } = {},
+  ) {
+    return flock.whenModelReady(meshName, async (mesh) => {
+      if (!mesh) {
+        console.error("Model not loaded:", meshName);
+        return;
+      }
+
+      return flock.whenModelReady(otherMeshName, async (otherMesh) => {
+        if (!otherMesh) {
+          console.error("Model not loaded:", otherMeshName);
+          return;
+        }
+
+        const scene = flock.scene;
+        const B = flock.BABYLON;
+
+        // ---- config / mode resolution (back-compat) ----
+        const bothHaveBodies = !!(mesh.physicsBody && otherMesh.physicsBody);
+        let resolvedMode = mode;
+        if (mode !== "either") {
+          if (usePhysics === true) resolvedMode = "physics";
+          else if (usePhysics === false) resolvedMode = "intersection";
+          else if (mode === "auto")
+            resolvedMode = bothHaveBodies ? "physics" : "intersection";
+        }
+
+        // ---- shared state (per pair) ----
+        const key = `${mesh.uniqueId}_${otherMesh.uniqueId}`;
+        const state = {
+          inContact: false, // are we "inside" a contact session?
+          lastFireMs: 0, // for debounce
+          physicsFramesSinceHit: 0, // physics separation counter
+          intersectingNow: false, // action-manager says we're intersecting
+          lastFrameFired: -1, // dedupe same-frame double reports
+        };
+
+        const cleanups = [];
+
+        const timeNow = () =>
+          typeof performance !== "undefined" ? performance.now() : Date.now();
+        const tryFireEnter = (sourceTag) => {
+          // If both systems shout on the same frame, only fire once
+          if (scene.getFrameId() === state.lastFrameFired) return;
+
+          const now = timeNow();
+          if (!state.inContact && now - state.lastFireMs >= debounce) {
+            state.inContact = true;
+            state.lastFireMs = now;
+            state.lastFrameFired = scene.getFrameId();
+            // Fire user callback
+            Promise.resolve(callback(mesh.name, otherMesh.name)).catch(
+              console.error,
+            );
+          }
+        };
+
+        const markExit = () => {
+          state.inContact = false;
+          state.intersectingNow = false;
+          state.physicsFramesSinceHit = 0;
+        };
+
+        // ---- PHYSICS LISTENER (Havok v2) ----
+        const enablePhysicsPath =
+          (resolvedMode === "physics" || resolvedMode === "either") &&
+          bothHaveBodies;
+        if (enablePhysicsPath) {
+          try {
+            // Enable collision callbacks (safe to enable on both)
+            mesh.physicsBody.setCollisionCallbackEnabled(true);
+            otherMesh.physicsBody.setCollisionCallbackEnabled(true);
+
+            const observable = mesh.physicsBody.getCollisionObservable();
+            const physicsObserver = observable.add((evt) => {
+              const other = evt.collidedAgainst?.transformNode;
+              if (other === otherMesh && otherMesh.isEnabled()) {
+                state.physicsFramesSinceHit = 0;
+                tryFireEnter("physics");
+              }
+            });
+            cleanups.push(() => observable.remove(physicsObserver));
+
+            // Separation via frames without physics contact (only if AM path isn’t actively intersecting)
+            const tickObserver = scene.onBeforeRenderObservable.add(() => {
+              if (state.inContact && !state.intersectingNow) {
+                state.physicsFramesSinceHit++;
+                if (state.physicsFramesSinceHit > separationFrames) {
+                  markExit();
+                }
+              } else {
+                // reset counter when not in contact
+                state.physicsFramesSinceHit = 0;
+              }
+            });
+            cleanups.push(() =>
+              scene.onBeforeRenderObservable.remove(tickObserver),
+            );
+          } catch (e) {
+            console.warn(
+              "Physics collision subscription failed, falling back to intersections:",
+              e,
+            );
+          }
+        }
+
+        // ---- ACTION MANAGER INTERSECTION LISTENER ----
+        const enableAMPath =
+          resolvedMode === "intersection" ||
+          resolvedMode === "either" ||
+          (!bothHaveBodies && resolvedMode === "auto");
+        if (enableAMPath) {
+          if (!mesh.actionManager) {
+            mesh.actionManager = new B.ActionManager(scene);
+            mesh.actionManager.isRecursive = true;
+          }
+
+          // Always register Enter & Exit for robust state (even if caller passed Exit)
+          const ENTER = B.ActionManager.OnIntersectionEnterTrigger;
+          const EXIT = B.ActionManager.OnIntersectionExitTrigger;
+
+          const enterAction = new B.ExecuteCodeAction(
+            {
+              trigger: ENTER,
+              parameter: { mesh: otherMesh, usePreciseIntersection: true },
+            },
+            () => {
+              if (otherMesh.isEnabled()) {
+                state.intersectingNow = true;
+                tryFireEnter("am");
+              }
+            },
+            new B.PredicateCondition(B.ActionManager, () =>
+              otherMesh.isEnabled(),
+            ),
+          );
+
+          const exitAction = new B.ExecuteCodeAction(
+            {
+              trigger: EXIT,
+              parameter: { mesh: otherMesh, usePreciseIntersection: true },
+            },
+            () => {
+              state.intersectingNow = false;
+              markExit();
+            },
+          );
+
+          const enterReg = mesh.actionManager.registerAction(enterAction);
+          const exitReg = mesh.actionManager.registerAction(exitAction);
+          cleanups.push(() => {
+            try {
+              enterReg?.dispose();
+            } catch (_) {}
+            try {
+              exitReg?.dispose();
+            } catch (_) {}
+          });
+
+          // If the caller asked for a specific trigger callback semantics (e.g. Exit),
+          // also register their requested trigger to invoke the callback directly.
+          // This preserves your original API behavior.
+          if (
+            trigger &&
+            B.ActionManager[trigger] &&
+            trigger !== "OnIntersectionEnterTrigger"
+          ) {
+            const specific = new B.ExecuteCodeAction(
+              {
+                trigger: B.ActionManager[trigger],
+                parameter: { mesh: otherMesh, usePreciseIntersection: true },
+              },
+              () => {
+                if (otherMesh.isEnabled())
+                  Promise.resolve(callback(mesh.name, otherMesh.name)).catch(
+                    console.error,
+                  );
+              },
+            );
+            const reg = mesh.actionManager.registerAction(specific);
+            cleanups.push(() => {
+              try {
+                reg?.dispose();
+              } catch (_) {}
+            });
+          }
+        }
+
+        // ---- return a disposer so callers can unregister later ----
+        // Usage: const dispose = onIntersect(...); dispose && dispose();
+        return () => {
+          // best effort cleanup
+          while (cleanups.length) {
+            const fn = cleanups.pop();
+            try {
+              fn();
+            } catch (_) {}
+          }
+        };
       });
     });
   },
@@ -537,5 +781,124 @@ export const flockPhysics = {
   },
   meshExists(name) {
     return !!(flock.scene && flock.scene.getMeshByName(name));
-  }
+  },
+  // Toggle Physics V2 debug shapes, resilient to scene/engine reloads & reruns.
+  showPhysics(show = true) {
+    const scene = flock?.scene;
+    if (!scene) {
+      console.warn("Scene not ready yet");
+      return;
+    }
+
+    const engine = scene.getPhysicsEngine?.();
+    if (!engine) {
+      console.warn("Physics engine not enabled on this scene.");
+      return;
+    }
+
+    const PhysicsViewerClass =
+      flock.BABYLON?.Debug?.PhysicsViewer || flock.BABYLON?.PhysicsViewer;
+
+    if (!PhysicsViewerClass) {
+      console.warn("PhysicsViewer not available on BABYLON namespace.");
+      return;
+    }
+
+    // If we have a viewer from an old scene/engine, tear it down.
+    const sceneChanged =
+      flock._physicsViewerScene && flock._physicsViewerScene !== scene;
+    const engineChanged =
+      flock._physicsViewerEngine && flock._physicsViewerEngine !== engine;
+
+    if (sceneChanged || engineChanged) {
+      try {
+        flock.physicsViewer?.dispose?.();
+      } catch (_) {}
+      flock.physicsViewer = null;
+      flock._physicsViewerScene = null;
+      flock._physicsViewerEngine = null;
+      flock._physicsBodiesShown?.clear?.();
+      flock._physicsBodiesShown = null;
+    }
+
+    // Create once per scene/engine.
+    if (!flock.physicsViewer) {
+      flock.physicsViewer = new PhysicsViewerClass(scene);
+      flock._physicsViewerScene = scene;
+      flock._physicsViewerEngine = engine;
+      flock._physicsBodiesShown = new Set();
+
+      // Auto-clean if this scene is disposed before a full page reload.
+      scene.onDisposeObservable.add(() => {
+        try {
+          flock.physicsViewer?.dispose?.();
+        } catch (_) {}
+        flock.physicsViewer = null;
+        flock._physicsViewerScene = null;
+        flock._physicsViewerEngine = null;
+        flock._physicsBodiesShown?.clear?.();
+        flock._physicsBodiesShown = null;
+      });
+    }
+
+    // Collect all current Physics V2 bodies (Inspector uses the engine's list).
+    const collectBodies = () => {
+      const bodies = [];
+      const seen = new Set();
+
+      if (typeof engine.getBodies === "function") {
+        for (const body of engine.getBodies()) {
+          if (body && !seen.has(body)) {
+            seen.add(body);
+            bodies.push(body);
+          }
+        }
+      }
+
+      // Fallback: meshes that expose a body (helps if plugin wraps differently).
+      for (const mesh of scene.meshes) {
+        const body = mesh.physicsBody || mesh.physics?.body || mesh.physics;
+        if (body && !seen.has(body)) {
+          seen.add(body);
+          bodies.push(body);
+        }
+      }
+      return bodies;
+    };
+
+    const bodies = collectBodies();
+
+    if (show) {
+      for (const body of bodies) {
+        if (!flock._physicsBodiesShown.has(body)) {
+          try {
+            flock.physicsViewer.showBody(body);
+            flock._physicsBodiesShown.add(body);
+          } catch (_) {}
+        }
+      }
+      flock.physicsViewerActive = true;
+    } else {
+      for (const body of bodies) {
+        if (flock._physicsBodiesShown.has(body)) {
+          try {
+            flock.physicsViewer.hideBody(body);
+          } catch (_) {}
+          flock._physicsBodiesShown.delete(body);
+        }
+      }
+      flock.physicsViewerActive = false;
+
+      // Optional: fully dispose to guarantee no leftovers between runs.
+      // Comment these out if you prefer to keep the instance around.
+      try {
+        flock.physicsViewer?.dispose?.();
+      } catch (_) {}
+      flock.physicsViewer = null;
+      flock._physicsViewerScene = null;
+      flock._physicsViewerEngine = null;
+      flock._physicsBodiesShown?.clear?.();
+      flock._physicsBodiesShown = null;
+    }
+  },
 };

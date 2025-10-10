@@ -72,21 +72,22 @@ export const audioNames = [
 ];
 
 export const characterNames = [
-	"Character1.glb",
-	"Character2.glb",
-	"Character3.glb",
-	"Character4.glb",
 	"Liz1.glb",
 	"Liz2.glb",
 	"Liz3.glb",
 	"Liz4.glb",
 	"Liz5.glb",
+	"Liz6.glb",
 	"Block1.glb",
 	"Block2.glb",
 	"Block3.glb",
 	"Block4.glb",
 	"Block5.glb",
 	"Block6.glb",
+	"Character1.glb",
+	"Character2.glb",
+	"Character3.glb",
+	"Character4.glb",
 ];
 
 export const multiObjectNames = [
@@ -110,7 +111,7 @@ export const multiObjectNames = [
 	"humped.glb",
 	"jetty.glb",
 	"flower.glb",
-	"flower2.glb"
+	"flower2.glb",
 	//"stones_straight.glb",
 	//"stones_curve.glb",
 ];
@@ -127,8 +128,8 @@ export const objectNames = [
 	"Wand.glb",
 	"Hat.glb",
 	"donut.glb",
-	"pumpkin.glb",	
-	"apple.glb",	
+	"pumpkin.glb",
+	"apple.glb",
 	"starboppers.glb",
 	"headphones.glb",
 ];
@@ -205,24 +206,12 @@ export const objectColours = {
 		"#E711CD",
 	],
 
-	"airplane.glb": [
-		"#E75D43",
-		"#6A6A6A",
-		"#E7C777",
-	],
+	"airplane.glb": ["#E75D43", "#6A6A6A", "#E7C777"],
 
-	"airplane2.glb": [
-		"#6A6A6A",
-		"#E75D43",
-		"#E7C777",
-	],
+	"airplane2.glb": ["#6A6A6A", "#E75D43", "#E7C777"],
 
-		"skateboard.glb": [
-		"#E769D3",
-		"#484848",
-		"#251BE7",
-	],
-	
+	"skateboard.glb": ["#E769D3", "#484848", "#251BE7"],
+
 	"rhino.glb": ["#6D6B6C", "#F6F6F6", "#373737", "#230F0F"],
 
 	"humped.glb": ["#FFA869", "#7E5024", "#E76F31"],
@@ -310,7 +299,6 @@ export function animationNames() {
 export const materialNames = [
 	"none.png",
 	"arrows.png",
-	"brick.png",
 	"bricks.png",
 	"carpet.png",
 	"circles.png",
@@ -324,6 +312,7 @@ export const materialNames = [
 	"leaves.png",
 	"marble.png",
 	"mushroom.png",
+	"planks.png",
 	"rough.png",
 	"shapes.png",
 	"stars.png",

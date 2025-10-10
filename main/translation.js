@@ -103,6 +103,11 @@ async function applySavedLanguageTranslations() {
   Object.keys(translations[currentLanguage]).forEach((key) => {
     Blockly.Msg[key] = translations[currentLanguage][key];
   });
+
+  // Update colour picker translations if it exists (for initial load)
+  if (window.flockColorPicker?.refreshTranslations) {
+    window.flockColorPicker.refreshTranslations();
+  }
 }
 
 // Save language preference to localStorage
@@ -199,6 +204,11 @@ export async function setLanguage(language) {
   Object.keys(translations[currentLanguage]).forEach((key) => {
     Blockly.Msg[key] = translations[currentLanguage][key];
   });
+
+  // Update colour picker translations if it exists
+  if (window.flockColorPicker?.refreshTranslations) {
+    window.flockColorPicker.refreshTranslations();
+  }
 
   // Refresh the workspace to show updated language
   const workspace = Blockly.getMainWorkspace();

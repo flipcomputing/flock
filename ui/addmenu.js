@@ -50,6 +50,10 @@ const __CREATE_SPEC = {
     defaults: ({ c }) => ({ COLOR: c, WIDTH: 2, HEIGHT: 2 }),
     inputs: ['COLOR','WIDTH','HEIGHT'],
   },
+  set_sky_color: {
+    defaults: ({ c }) => ({ COLOR: c }),
+    inputs: ['COLOR'],
+  },
 };
 
 function __metaFor(name) {
@@ -59,18 +63,24 @@ function __metaFor(name) {
 }
 
 // --- DROP-IN REPLACEMENT ---
-function createBlockWithShadows(shapeType, position) {
+export function createBlockWithShadows(shapeType, position, colour) {
   const workspace = Blockly.getMainWorkspace();
   const spec = __CREATE_SPEC[shapeType];
   if (!spec) return null;
 
-  const c = flock.randomColour();
+  const c = colour ? colour : flock.randomColour();
   const posX = position?.x !== undefined ? roundPos(position.x) : 0;
   const posY = position?.y !== undefined ? roundPos(position.y) : 0;
   const posZ = position?.z !== undefined ? roundPos(position.z) : 0;
 
   const defaults = { ...spec.defaults({ c }), X: posX, Y: posY, Z: posZ };
-  const allInputs = [...spec.inputs, 'X','Y','Z'];
+  
+  let allInputs;
+  if (shapeType === "set_sky_color") {
+    allInputs = [...spec.inputs];
+  } else {
+    allInputs = [...spec.inputs, 'X','Y','Z'];
+  }
 
   // Build serializer JSON with shadows populated
   const data = { type: shapeType, inputs: {} };

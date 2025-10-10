@@ -122,7 +122,8 @@
         font-size: 18px;
         font-weight: 500;
         margin: 0;
-        font-family: "Asap", Helvetica, Arial, Lucida, sans-serif;
+        padding: 1em;
+        font-family: "Atkinson Hyperlegible Next", "Asap", Helvetica, Arial, Lucida, sans-serif;
         order: 4;
       }
 
@@ -1047,13 +1048,13 @@
                 </div>
               </span>
             </div>
-            <button class="gizmo-button" id="colorPickerButton" data-i18n="color_picker_button_ui" aria-label="Choose a color" title="Choose a color">
+            <button class="gizmo-button" id="colorPickerButton" data-i18n="color_picker_button" aria-label="Choose a color" title="Choose a color">
               <img
                 src="./images/looks.svg"
                 width="20px"
                 height="20px"
-                alt=""
-                aria-hidden="true"
+                alt="Color"
+                onerror="this.style.display='none'; this.parentNode.textContent='🎨';"
               />
             </button>
             <button class="gizmo-button" id="positionButton" data-i18n="position_button" disabled aria-label="Position mesh" title="Position mesh">

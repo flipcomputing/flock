@@ -10,7 +10,7 @@ export const flockUI = {
   
   UIText({ text, x, y, fontSize, color, duration, id = null } = {}) {
     if (!flock.scene || !flock.GUI) {
-      throw new Error("flock.scene or flock.GUI is not initialized.");
+      return;
     }
 
     flock.scene.UITexture ??=

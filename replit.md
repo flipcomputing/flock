@@ -6,6 +6,13 @@ Flock XR is a creative coding platform designed to make 3D programming accessibl
 
 The platform combines Blockly visual programming with Babylon.js 3D rendering and Havok physics engine to provide a comprehensive 3D creation environment. Users can create characters, animations, scenes, interactive games, and educational simulations through an intuitive block-based interface that generates JavaScript code.
 
+## Recent Changes
+
+### October 2025
+- **Colour Picker Internationalization**: Fully internationalized the compact colour picker component (`ui/colourpicker-compact.js`) with translations for all user-facing text including palette names, color names, UI labels, ARIA labels, and tooltips across all 7 supported languages (English, French, Spanish, Swedish, Portuguese, Polish, and German). Added approximately 80 translation keys to each locale file.
+  - Fixed dynamic translation update: Added `refreshTranslations()` method to colour picker that updates all text when language changes. Integrated with `setLanguage()` function to ensure colour picker updates in real-time when users switch languages.
+- **Physics Debug Block**: Added new "show physics" block to the Physics category (`blocks/physics.js`) that allows users to toggle physics collider visualization for debugging. The block uses a checkbox to show/hide physics colliders using Babylon.js PhysicsViewer, enabling users to see the actual collision shapes used by the physics engine. Fully internationalized across all 7 supported languages.
+
 ## User Preferences
 
 Preferred communication style: Simple, everyday language.

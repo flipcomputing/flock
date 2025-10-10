@@ -17,7 +17,10 @@ export const flockCamera = {
 				return;
 			}
 
-			console.log("Attaching camera to model");
+			if (!mesh.physics) {
+				console.log("Can't attach camera to: ", meshName);
+				return;
+			}
 			flock.ensureVerticalConstraint(mesh);
 
 			let camera;
@@ -106,99 +109,124 @@ export const flockCamera = {
 		});
 	},
 	ensureVerticalConstraint(mesh) {
-		if (mesh.metadata.constraint) return;
+	  if (!mesh || !flock.scene) return;
+	  if (!mesh.physics) return;
+	  mesh.metadata = mesh.metadata || {};
+	  if (mesh.metadata.constraint) return; // unset this before calling when swapping meshes
 
-		const newBox = flock.BABYLON.MeshBuilder.CreateBox("Constraint", {
-			height: 1,
-			width: 1,
-			depth: 1,
-		});
-		newBox.position = new flock.BABYLON.Vector3(0, -4, 0);
-		newBox.metadata = newBox.metadata || {};
-		newBox.metadata.blockKey = newBox.name;
-		newBox.name = newBox.name + "_" + newBox.uniqueId;
-		const boxBody = new flock.BABYLON.PhysicsBody(
-			newBox,
-			flock.BABYLON.PhysicsMotionType.STATIC,
-			false,
-			flock.scene,
+	  const scene = flock.scene;
+
+	  // --- find or create a reusable constraint box (anchor) ---
+	  let constraintBox =
+		(flock._constraintBox && !flock._constraintBox.isDisposed() && flock._constraintBox) ||
+		(scene.meshes || []).find(m =>
+		  m && typeof m.name === "string" && m.name.startsWith("Constraint_") && !m.isDisposed()
 		);
 
-		const boxShape = new flock.BABYLON.PhysicsShapeBox(
+	  if (!constraintBox) {
+		// create a new hidden static box
+		constraintBox = flock.BABYLON.MeshBuilder.CreateBox(
+		  "Constraint",
+		  { height: 1, width: 1, depth: 1 },
+		  scene
+		);
+		constraintBox.metadata = constraintBox.metadata || {};
+		constraintBox.metadata.blockKey = constraintBox.name;
+		constraintBox.name = constraintBox.name + "_" + constraintBox.uniqueId;
+		constraintBox.isVisible = false;
+		constraintBox.material = constraintBox.material || new flock.BABYLON.StandardMaterial("staticMaterial", scene);
+
+		const body = new flock.BABYLON.PhysicsBody(
+		  constraintBox,
+		  flock.BABYLON.PhysicsMotionType.STATIC,
+		  false,
+		  scene
+		);
+		const shape = new flock.BABYLON.PhysicsShapeBox(
+		  flock.BABYLON.Vector3.Zero(),
+		  new flock.BABYLON.Quaternion(0, 0, 0, 1),
+		  flock.BABYLON.Vector3.One(),
+		  scene
+		);
+		body.shape = shape;
+		body.setMassProperties({ mass: 1, restitution: 0.5 });
+		constraintBox.physics = body;
+
+		// cache it for reuse
+		flock._constraintBox = constraintBox;
+	  } else {
+		// ensure reused box still has a valid static body + shape
+		if (!constraintBox.physics) {
+		  const body = new flock.BABYLON.PhysicsBody(
+			constraintBox,
+			flock.BABYLON.PhysicsMotionType.STATIC,
+			false,
+			scene
+		  );
+		  const shape = new flock.BABYLON.PhysicsShapeBox(
 			flock.BABYLON.Vector3.Zero(),
 			new flock.BABYLON.Quaternion(0, 0, 0, 1),
 			flock.BABYLON.Vector3.One(),
-			flock.scene,
-		);
-
-		boxBody.shape = boxShape;
-		boxBody.setMassProperties({ mass: 1, restitution: 0.5 });
-		newBox.isVisible = false;
-
-		newBox.physics = boxBody;
-
-		const material = new flock.BABYLON.StandardMaterial(
-			"staticMaterial",
-			flock.scene,
-		);
-
-		newBox.material = material;
-
-		function createVerticalConstraint(mesh, referenceBody, scene) {
-			let constraint = new flock.BABYLON.Physics6DoFConstraint(
-				{
-					axisA: new flock.BABYLON.Vector3(1, 0, 0), // trying to turn the car
-					axisB: new flock.BABYLON.Vector3(1, 0, 0),
-					perpAxisA: new flock.BABYLON.Vector3(0, 1, 0),
-					perpAxisB: new flock.BABYLON.Vector3(0, 1, 0),
-				},
-				[
-					{
-						axis: flock.BABYLON.PhysicsConstraintAxis.ANGULAR_X,
-						minLimit: 0,
-						maxLimit: 0,
-					},
-					{
-						axis: flock.BABYLON.PhysicsConstraintAxis.ANGULAR_Z,
-						minLimit: 0,
-						maxLimit: 0,
-					},
-				],
-				scene,
-			);
-
-			// Ensure both bodies are defined before adding constraint
-			if (mesh && referenceBody) {
-				mesh.physics.addConstraint(referenceBody, constraint);
-
-				mesh.metadata.constraint = true;
-			} else {
-				console.error("Mesh body or reference body is not defined");
-			}
+			scene
+		  );
+		  body.shape = shape;
+		  body.setMassProperties({ mass: 1, restitution: 0.5 });
+		  constraintBox.physics = body;
+		} else if (!constraintBox.physics.shape) {
+		  constraintBox.physics.shape = new flock.BABYLON.PhysicsShapeBox(
+			flock.BABYLON.Vector3.Zero(),
+			new flock.BABYLON.Quaternion(0, 0, 0, 1),
+			flock.BABYLON.Vector3.One(),
+			scene
+		  );
 		}
-		// Create the constraint for the platform
-		createVerticalConstraint(mesh, boxBody, flock.scene);
+	  }
 
-		flock.scene.onAfterPhysicsObservable.add(() => {
-			// Check if mesh and physics body still exist and are valid
-			if (!mesh || mesh.isDisposed() || !mesh.physics || !mesh.physics._pluginData) {
-				return; // Early return if invalid
-			}
+	  // position the anchor under the mesh so it doesn’t introduce sideways torque
+	  const meshWorldPos = mesh.getAbsolutePosition ? mesh.getAbsolutePosition() : mesh.position.clone();
+	  constraintBox.position.copyFrom(meshWorldPos);
+	  constraintBox.position.y += -4; // keep your original -4 offset
 
-			try {
-				const currentVelocity = mesh.physics.getLinearVelocity();
-				const newVelocity = new flock.BABYLON.Vector3(
-					0,
-					currentVelocity.y,
-					0,
-				);
-				mesh.physics.setLinearVelocity(newVelocity);
-				mesh.physics.setAngularVelocity(flock.BABYLON.Vector3.Zero());
-			} catch (error) {
-				// Handle case where physics body became invalid during execution
-				console.warn("Physics body became invalid:", error);
-			}
+	  // --- add the vertical constraint (lock roll & pitch; allow yaw) ---
+	  const constraint = new flock.BABYLON.Physics6DoFConstraint(
+		{
+		  axisA:     new flock.BABYLON.Vector3(1, 0, 0),
+		  axisB:     new flock.BABYLON.Vector3(1, 0, 0),
+		  perpAxisA: new flock.BABYLON.Vector3(0, 1, 0),
+		  perpAxisB: new flock.BABYLON.Vector3(0, 1, 0),
+		},
+		[
+		  { axis: flock.BABYLON.PhysicsConstraintAxis.ANGULAR_X, minLimit: 0, maxLimit: 0 },
+		  { axis: flock.BABYLON.PhysicsConstraintAxis.ANGULAR_Z, minLimit: 0, maxLimit: 0 },
+		],
+		scene
+	  );
+
+	  try {
+		mesh.physics.addConstraint(constraintBox.physics, constraint);
+		mesh.metadata.constraint = true;
+		mesh.metadata.uprightConstraint = constraint;
+	  } catch (e) {
+		console.warn("[ensureVerticalConstraint] addConstraint failed:", e);
+	  }
+
+	  // --- stabiliser: add only once per mesh to avoid stacking effects after swaps ---
+	  if (!mesh.metadata._uprightStabiliser) {
+		mesh.metadata._uprightStabiliser = scene.onAfterPhysicsObservable.add(() => {
+		  if (!mesh || mesh.isDisposed() || !mesh.physics || !mesh.physics._pluginData) return;
+		  try {
+			// preserve Y motion; zero X/Z linear velocity *only if you really want to block sliding*.
+			// If sideways walking causes spin, comment the next two lines so movement isn't fighting physics.
+			const v = mesh.physics.getLinearVelocity();
+			mesh.physics.setLinearVelocity(new flock.BABYLON.Vector3(0, v.y, 0));
+
+			// keep yaw free; kill roll/pitch
+			mesh.physics.setAngularVelocity(new flock.BABYLON.Vector3(0, 0, 0));
+		  } catch (err) {
+			console.warn("Physics body became invalid:", err);
+		  }
 		});
+	  }
 	},
 	getCamera() {
 		return "__active_camera__";

@@ -21,7 +21,7 @@
   --color-button-bg: #e0e0e0;
   --color-button-bg-hover: #d0d0d0; 
   --color-button-primary: #004d4d;
-  --color-button-scroll: rgba(0, 0, 0, 0.5);
+  --color-button-scroll: rgba(76, 76, 76, 0.5);
 
   /* Text Colors */
   --color-text-primary: #000000;
@@ -350,6 +350,7 @@ button {
 
 #canvasArea {
   position: relative;
+  background-color: #f3f3f3;
 }
 
 #menu {
@@ -391,7 +392,7 @@ button {
   margin-left: 3px;
   padding: 4px;
   font-size: 18px;
-  mix-height:30px;
+  min-height:30px;
   background-color: var(--color-button-bg);
   color: var(--color-text-primary);
   border: none;
@@ -406,7 +407,7 @@ button {
 
 /* Gizmo Buttons */
 .gizmo-buttons {
-  font-family: "Asap", Helvetica, Arial, Lucida, sans-serif;
+  font-family: "Atkinson Hyperlegible Next", "Asap", Helvetica, Arial, Lucida, sans-serif;
   display: flex;
   flex-wrap: wrap;
   gap: 5px;
@@ -416,7 +417,7 @@ button {
 }
 
 .gizmo-button {
-  font-family: "Asap", Helvetica, Arial, Lucida, sans-serif;
+  font-family: "Atkinson Hyperlegible Next", "Asap", Helvetica, Arial, Lucida, sans-serif;
   padding: 5px;
   font-size: 12px;
   cursor: pointer;
@@ -432,6 +433,10 @@ button {
 
 #colorPickerButton img {
   filter: invert(1) brightness(2); /* Make palette icon white */
+}
+
+[data-theme="dark"] #colorPickerButton img {
+  filter: invert(1) brightness(2) invert(30%) sepia(2%) saturate(0%) hue-rotate(180deg) brightness(96%) contrast(85%);
 }
 
 .bigbutton svg {
@@ -464,7 +469,6 @@ button {
   padding: 10px 10px 10px 5px;
   box-shadow: 0px 4px 8px var(--color-shadow-medium);
   border-radius: 5px;
-  width: 320px;
   overflow: hidden;
 }
 
@@ -525,7 +529,7 @@ button {
   position: relative;
   display: flex;
   align-items: center;
-  width: 100%;
+  width: 340px;
 }
 
 #model-row {
@@ -1053,8 +1057,22 @@ details summary:focus,
   cursor: pointer;
 }
 
-#shape-row button:focus {
-  outline: 2px solid #0066cc; /* Or your preferred focus color */
+
+/* Exactly 5 columns wide, matching your asymmetric inner padding */
+#shapes-dropdown {
+  /* 5 * 60px tiles + 4 * 8px gaps + left 5px + right 10px padding */
+  width: calc(5 * 60px + 4 * 8px + 5px + 10px);
+  box-sizing: border-box;
+  overflow: visible;
+}
+
+/* Force grid (override earlier flex rules) and remove extra ul padding */
+#shapes-dropdown > ul {
+  display: grid !important;
+  grid-template-columns: repeat(5, 60px);
+  gap: 8px;
+  overflow: visible !important; /* override old scrollbar-hiding rule */
+  list-style: none;
 }
 
 

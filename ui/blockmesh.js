@@ -3,7 +3,7 @@ import { meshMap, meshBlockIdMap } from "../generators";
 import { flock } from "../flock.js";
 import { objectColours } from "../config.js";
 import { createMeshOnCanvas } from "./addmeshes.js";
-import { highlightBlockById } from "./addmenu.js";
+import { createBlockWithShadows, highlightBlockById } from "./addmenu.js";
 
 const characterMaterials = [
   "Hair",
@@ -31,7 +31,6 @@ export function getRootMesh(mesh) {
 }
 
 export function updateOrCreateMeshFromBlock(block, changeEvent) {
-  
   if (flock.meshDebug)
     console.log(
       "Update or create mesh from block",
@@ -40,11 +39,9 @@ export function updateOrCreateMeshFromBlock(block, changeEvent) {
     );
 
   if (
-    [
-      "set_sky_color",
-      "set_background_color",
-      "create_ground",
-    ].includes(block.type)
+    ["set_sky_color", "set_background_color", "create_ground"].includes(
+      block.type,
+    )
   ) {
     // Always proceed to update
     updateMeshFromBlock(null, block, changeEvent);
@@ -226,7 +223,6 @@ export function extractMaterialInfo(materialBlock) {
 }
 
 export function updateMeshFromBlock(mesh, block, changeEvent) {
- 
   if (flock.meshDebug) console.log("Update", block.type, changeEvent.type);
   if (
     !mesh &&
@@ -697,11 +693,20 @@ export function updateMeshFromBlock(mesh, block, changeEvent) {
     for (const childBlock of block.getChildren()) {
       if (childBlock.type === "rotate_to") {
         let rotation = {
-          x: childBlock.getInput("X").connection.targetBlock().getFieldValue("NUM"),
-          y: childBlock.getInput("Y").connection.targetBlock().getFieldValue("NUM"),
-          z: childBlock.getInput("Z").connection.targetBlock().getFieldValue("NUM"),
+          x: childBlock
+            .getInput("X")
+            .connection.targetBlock()
+            .getFieldValue("NUM"),
+          y: childBlock
+            .getInput("Y")
+            .connection.targetBlock()
+            .getFieldValue("NUM"),
+          z: childBlock
+            .getInput("Z")
+            .connection.targetBlock()
+            .getFieldValue("NUM"),
         };
-        flock.rotateTo(mesh.name,{
+        flock.rotateTo(mesh.name, {
           x: rotation.x,
           y: rotation.y,
           z: rotation.z,
@@ -878,25 +883,59 @@ function updateCylinderGeometry(
   mesh.computeWorldMatrix(true);
 }
 
-function replaceMeshModel2(currentMesh, block, changeEvent) {
-  if (!currentMesh || !block) {
-    return;
-  }
+function replaceMeshModel(currentMesh, block, changeEvent) {
+  if (!currentMesh || !block) return;
 
-  // Calculate the current mesh's bottom position in world space (including scaling)
+  const followerCam = (flock.scene?.cameras || []).find(
+    (c) =>
+      c?.metadata?.following === currentMesh ||
+      c?.lockedTarget === currentMesh ||
+      (c?.getClassName?.() === "ArcRotateCamera" && c.target === currentMesh) ||
+      c?.parent === currentMesh,
+  );
+  // Boolean:
+  const hasAnyCameraAttached = !!followerCam;
+
+
+  const scene = flock.scene;
+  const animationName = flock.getCurrentAnimationName(currentMesh);
+
   currentMesh.computeWorldMatrix(true);
   currentMesh.refreshBoundingInfo();
+
   const currentBottomY =
     currentMesh.getBoundingInfo().boundingBox.minimumWorld.y;
 
-  // Also store the actual mesh position (which may have been adjusted by gizmos)
+  const savedParent = currentMesh.parent || null;
+
+  // Save world-space forward/up to reconstruct yaw/pitch/roll in DEGREES later
+  const savedForward = currentMesh.getDirection(flock.BABYLON.Axis.Z).clone();
+  const savedUp = currentMesh.getDirection(flock.BABYLON.Axis.Y).clone();
+
+  // Cameras attached to the old mesh
+  const cameraAttachments = [];
+  if (scene?.cameras?.length) {
+    for (const cam of scene.cameras) {
+      if (cam.lockedTarget === currentMesh)
+        cameraAttachments.push({ cam, kind: "lockedTarget" });
+      if (cam.parent === currentMesh)
+        cameraAttachments.push({ cam, kind: "parent" });
+      if (
+        cam.getClassName &&
+        cam.getClassName() === "ArcRotateCamera" &&
+        cam.target === currentMesh
+      ) {
+        cameraAttachments.push({ cam, kind: "arcSetTarget" });
+      }
+    }
+  }
+
   const actualMeshPosition = {
     x: currentMesh.position.x,
     y: currentMesh.position.y,
     z: currentMesh.position.z,
   };
 
-  // Get the current block position values (which should reflect gizmo updates)
   const currentBlockPosition = {
     x: parseFloat(
       block.getInput("X").connection.targetBlock().getFieldValue("NUM"),
@@ -909,66 +948,53 @@ function replaceMeshModel2(currentMesh, block, changeEvent) {
     ),
   };
 
-  // Store current mesh state including the original mesh name
   const meshState = {
-    position: actualMeshPosition, // Use actual mesh position that accounts for gizmo adjustments
-    currentBlockPosition: currentBlockPosition, // Current block values (updated by gizmos)
-    currentBottomY: currentBottomY, // Store the current bottom position for alignment
-    rotation: currentMesh.rotation ? currentMesh.rotation.clone() : null,
-    rotationQuaternion: currentMesh.rotationQuaternion
-      ? currentMesh.rotationQuaternion.clone()
-      : null,
+    position: actualMeshPosition,
+    currentBlockPosition,
+    currentBottomY,
+    parent: savedParent,
     scaling: currentMesh.scaling.clone(),
-    physics: null,
+    physics: currentMesh.physics
+      ? {
+          motionType: currentMesh.physics.getMotionType(),
+          mass: currentMesh.physics.getMassProperties().mass,
+          friction: currentMesh.physics.shape?.friction,
+          restitution: currentMesh.physics.shape?.restitution,
+          disablePreStep: currentMesh.physics.disablePreStep,
+          linearDamping: currentMesh.physics.getLinearDamping?.() || 0,
+          angularDamping: currentMesh.physics.getAngularDamping?.() || 0,
+          linearVelocity: currentMesh.physics.getLinearVelocity().clone(),
+          angularVelocity: currentMesh.physics.getAngularVelocity().clone(),
+        }
+      : null,
     savedMotionType: currentMesh.savedMotionType,
     metadata: { ...currentMesh.metadata },
     blockKey: currentMesh.metadata?.blockKey,
     material: currentMesh.material,
     isVisible: currentMesh.isVisible,
-    originalName: currentMesh.name, // Current mesh name
+    originalName: currentMesh.name,
     originalBaseName:
-      currentMesh.metadata?.originalBaseName || currentMesh.name.split("__")[0], // Base name for triggers
+      currentMesh.metadata?.originalBaseName || currentMesh.name.split("__")[0],
   };
 
-  // Store physics properties if they exist
-  if (currentMesh.physics) {
-    meshState.physics = {
-      motionType: currentMesh.physics.getMotionType(),
-      mass: currentMesh.physics.getMassProperties().mass,
-      friction: currentMesh.physics.shape?.friction,
-      restitution: currentMesh.physics.shape?.restitution,
-      disablePreStep: currentMesh.physics.disablePreStep,
-    };
-  }
-
-  // Get new model information from block
   const newModelName = block.getFieldValue("MODELS");
   const scale = block
     .getInput("SCALE")
     .connection.targetBlock()
     .getFieldValue("NUM");
 
-  // Handle color differently for different block types
   let color;
   if (block.type === "load_multi_object") {
-    // Multi objects use a COLORS input with a list - get all colors
     const colorsBlock = block.getInput("COLORS").connection.targetBlock();
     let colorsArray = [];
-
     if (colorsBlock) {
-      // Loop through the child blocks (array items) and get their values
       colorsBlock.childBlocks_.forEach((childBlock) => {
-        // Get the color value from the child block
         const colorValue = childBlock.getFieldValue("COLOR");
-        if (colorValue) {
-          colorsArray.push(colorValue);
-        }
+        if (colorValue) colorsArray.push(colorValue);
       });
     }
-
     color = colorsArray;
   } else if (block.type === "load_character") {
-    // Characters use multiple color inputs - match the existing structure
     color = {};
     const colorMapping = {
       HAIR_COLOR: "hair",
@@ -985,181 +1011,289 @@ function replaceMeshModel2(currentMesh, block, changeEvent) {
       }
     });
   } else {
-    // Single objects use a COLOR input
     color = block
       .getInput("COLOR")
       .connection.targetBlock()
       .getFieldValue("COLOR");
   }
 
-  // Create a temporary unique name, then rename after creation
   const tempMeshId = `${newModelName}__${block.id}__${Date.now()}`;
   const targetName = meshState.originalName;
 
-  // Dispose of the old mesh
   if (currentMesh.name !== "__root__") {
     flock.disposeMesh(currentMesh);
   }
 
-  // Create new mesh using the actual mesh position (since block values aren't updated yet)
-  const newMesh = flock.createObject({
-    modelName: newModelName,
-    modelId: tempMeshId,
-    color: color,
-    scale: parseFloat(scale),
-    position: {
-      x: meshState.position.x,
-      y: meshState.currentBlockPosition.y, // Use block Y as base since setupMesh will adjust it
-      z: meshState.position.z,
-    },
-    callback: () => {
-      // Get the newly loaded mesh using our lookup function
-      const loadedMesh = getMeshFromBlock(block);
+  function reattachCameras(target) {
+    for (const { cam, kind } of cameraAttachments) {
+      if (kind === "lockedTarget") cam.lockedTarget = target;
+      if (kind === "parent") cam.parent = target;
+      if (kind === "arcSetTarget" && cam.setTarget) cam.setTarget(target);
+    }
 
-      // Ensure the new mesh has the correct blockKey metadata immediately
-      if (loadedMesh && typeof loadedMesh === "object") {
-        loadedMesh.metadata = loadedMesh.metadata || {};
-        loadedMesh.metadata.blockKey = meshState.blockKey;
+    if (hasAnyCameraAttached) {
+      target.metadata.constraint = false;
+      target.metadata._uprightStabiliser = false;
+      flock.updatePhysics(target);
+      flock.ensureVerticalConstraint(target, hasAnyCameraAttached);
+    }
+  }
 
-        // Rename the mesh to preserve the original name
-        loadedMesh.name = targetName;
-      } else {
-        return;
+  function alignBottom(loadedMesh) {
+    loadedMesh.computeWorldMatrix(true);
+    loadedMesh.refreshBoundingInfo();
+    const newBottomY = loadedMesh.getBoundingInfo().boundingBox.minimumWorld.y;
+    loadedMesh.position.y += meshState.currentBottomY - newBottomY;
+  }
+
+  // Convert saved forward/up to Euler degrees (yaw, pitch, roll)
+  function computeEulerDegreesFromForwardUp(fwd, up) {
+    const nx = fwd.x,
+      ny = fwd.y,
+      nz = fwd.z;
+    const yawDeg = (Math.atan2(nx, nz) * 180) / Math.PI; // Y axis
+    const pitchDeg = (Math.atan2(-ny, Math.hypot(nx, nz)) * 180) / Math.PI; // X axis
+    let rollDeg = 0;
+    if (Math.abs(up.x) + Math.abs(up.z) > 1e-4) {
+      const worldRight = new flock.BABYLON.Vector3(1, 0, 0);
+      const right = flock.BABYLON.Vector3.Cross(up, fwd).normalize();
+      rollDeg =
+        (Math.acos(
+          Math.max(
+            -1,
+            Math.min(1, flock.BABYLON.Vector3.Dot(right, worldRight)),
+          ),
+        ) *
+          180) /
+        Math.PI;
+      if (right.z < 0) rollDeg = -rollDeg;
+    }
+    return { x: pitchDeg, y: yawDeg, z: rollDeg };
+  }
+
+  function applyFacingWithRotateTo(target) {
+    const eulerDeg = computeEulerDegreesFromForwardUp(savedForward, savedUp);
+    // Ensure Euler path is used by rotateTo
+    target.rotationQuaternion = null;
+    flock.rotateTo(target.name, {
+      x: eulerDeg.x,
+      y: eulerDeg.y,
+      z: eulerDeg.z,
+    });
+  }
+
+  function finalizeNewMesh(loadedMesh) {
+    if (!loadedMesh) return;
+
+    loadedMesh.metadata = loadedMesh.metadata || {};
+    loadedMesh.metadata.blockKey = meshState.blockKey;
+    loadedMesh.name = targetName;
+
+    if (meshState.parent) loadedMesh.parent = meshState.parent;
+
+    loadedMesh.position.x = meshState.position.x;
+    loadedMesh.position.z = meshState.position.z;
+
+    let scaleBlock = null;
+    const modelVariable = block.getFieldValue("ID_VAR");
+    const doInput = block.getInput("DO");
+    if (doInput && doInput.connection && doInput.connection.targetBlock()) {
+      let currentBlock = doInput.connection.targetBlock();
+      while (currentBlock) {
+        if (currentBlock.type === "scale") {
+          const modelField = currentBlock.getFieldValue("BLOCK_NAME");
+          if (modelField === modelVariable) {
+            scaleBlock = currentBlock;
+            break;
+          }
+        }
+        currentBlock = currentBlock.getNextBlock();
+      }
+    }
+
+    const hasGizmoScaling =
+      scaleBlock ||
+      (meshState.scaling &&
+        (Math.abs(meshState.scaling.x - 1) > 0.001 ||
+          Math.abs(meshState.scaling.y - 1) > 0.001 ||
+          Math.abs(meshState.scaling.z - 1) > 0.001)) ||
+      (parseFloat(scale) === 1.0 && meshState.scaling);
+
+    const finish = () => {
+      alignBottom(loadedMesh);
+
+      // Instead of using applyFacingWithRotateTo, set rotation directly
+      const eulerDeg = computeEulerDegreesFromForwardUp(savedForward, savedUp);
+
+      // Set rotation using quaternion (what moveForward expects)
+      loadedMesh.rotationQuaternion =
+        flock.BABYLON.Quaternion.RotationYawPitchRoll(
+          (eulerDeg.y * Math.PI) / 180, // yaw
+          0, // pitch - constrain to 0
+          0, // roll - constrain to 0
+        );
+
+      // NOW restore physics properties AFTER positioning and rotation
+      if (meshState.physics && loadedMesh.physics) {
+        if (meshState.physics.motionType !== undefined) {
+          loadedMesh.physics.setMotionType(meshState.physics.motionType);
+        }
+        loadedMesh.physics.disablePreStep = meshState.physics.disablePreStep;
+        loadedMesh.savedMotionType = meshState.savedMotionType;
+
+        // Restore friction and restitution to match original physics behavior
+        if (loadedMesh.physics.shape) {
+          if (meshState.physics.friction !== undefined) {
+            loadedMesh.physics.shape.friction = meshState.physics.friction;
+          }
+          if (meshState.physics.restitution !== undefined) {
+            loadedMesh.physics.shape.restitution =
+              meshState.physics.restitution;
+          }
+        }
+
+        // Restore damping - this is critical for stopping motion
+        if (
+          loadedMesh.physics.setLinearDamping &&
+          meshState.physics.linearDamping !== undefined
+        ) {
+          loadedMesh.physics.setLinearDamping(meshState.physics.linearDamping);
+        }
+        if (
+          loadedMesh.physics.setAngularDamping &&
+          meshState.physics.angularDamping !== undefined
+        ) {
+          loadedMesh.physics.setAngularDamping(
+            meshState.physics.angularDamping,
+          );
+        }
       }
 
-      if (loadedMesh && loadedMesh !== currentMesh) {
-        // Restore transform state, but adjust Y position for new mesh size
-        loadedMesh.position.x = meshState.position.x;
-        loadedMesh.position.z = meshState.position.z;
+      // Update physics with the final transform
+      flock.updatePhysics(loadedMesh);
 
-        // Restore rotation first
-        if (meshState.rotation) {
-          loadedMesh.rotation.copyFrom(meshState.rotation);
+      // Wait longer for physics to fully settle, then clear velocities
+      setTimeout(() => {
+        if (loadedMesh.physics) {
+          loadedMesh.physics.setLinearVelocity(
+            new flock.BABYLON.Vector3(0, 0, 0),
+          );
+          loadedMesh.physics.setAngularVelocity(
+            new flock.BABYLON.Vector3(0, 0, 0),
+          );
+
+          loadedMesh.computeWorldMatrix(true);
+        
         }
-        if (meshState.rotationQuaternion) {
-          loadedMesh.rotationQuaternion.copyFrom(meshState.rotationQuaternion);
-        }
+        applyFacingWithRotateTo(loadedMesh);
+        reattachCameras(loadedMesh);
+      }, 10); 
+    };
 
-        // Check if there's a scale block in the DO section (created by gizmo)
-        let scaleBlock = null;
-        const modelVariable = block.getFieldValue("ID_VAR");
-        const doInput = block.getInput("DO");
-        if (doInput && doInput.connection && doInput.connection.targetBlock()) {
-          let currentBlock = doInput.connection.targetBlock();
-          while (currentBlock) {
-            if (currentBlock.type === "scale") {
-              const modelField = currentBlock.getFieldValue("BLOCK_NAME");
-              if (modelField === modelVariable) {
-                scaleBlock = currentBlock;
-                break;
-              }
-            }
-            currentBlock = currentBlock.getNextBlock();
-          }
-        }
+    setTimeout(() => {
+      if (scaleBlock) {
+        const scaleX = parseFloat(
+          scaleBlock
+            .getInput("X")
+            .connection.targetBlock()
+            .getFieldValue("NUM"),
+        );
+        const scaleY = parseFloat(
+          scaleBlock
+            .getInput("Y")
+            .connection.targetBlock()
+            .getFieldValue("NUM"),
+        );
+        const scaleZ = parseFloat(
+          scaleBlock
+            .getInput("Z")
+            .connection.targetBlock()
+            .getFieldValue("NUM"),
+        );
+        const xOrigin = scaleBlock.getFieldValue("X_ORIGIN") || "CENTRE";
+        const yOrigin = scaleBlock.getFieldValue("Y_ORIGIN") || "BASE";
+        const zOrigin = scaleBlock.getFieldValue("Z_ORIGIN") || "CENTRE";
 
-        // Check if mesh has gizmo scaling (either from mesh.scaling or scale block)
-        const hasGizmoScaling =
-          scaleBlock ||
-          (meshState.scaling &&
-            (Math.abs(meshState.scaling.x - 1) > 0.001 ||
-              Math.abs(meshState.scaling.y - 1) > 0.001 ||
-              Math.abs(meshState.scaling.z - 1) > 0.001)) ||
-          (parseFloat(scale) === 1.0 && meshState.scaling); // Scale block case: block scale is 1 but has custom scaling
+        flock.scale(loadedMesh.name, {
+          x: scaleX,
+          y: scaleY,
+          z: scaleZ,
+          xOrigin,
+          yOrigin,
+          zOrigin,
+        });
 
-        // Use setTimeout to let setupMesh complete, then apply scaling
-        setTimeout(() => {
-          if (scaleBlock) {
-            // Apply scale block transformation using flock.scale API
-            const scaleX = parseFloat(
-              scaleBlock
-                .getInput("X")
-                .connection.targetBlock()
-                .getFieldValue("NUM"),
-            );
-            const scaleY = parseFloat(
-              scaleBlock
-                .getInput("Y")
-                .connection.targetBlock()
-                .getFieldValue("NUM"),
-            );
-            const scaleZ = parseFloat(
-              scaleBlock
-                .getInput("Z")
-                .connection.targetBlock()
-                .getFieldValue("NUM"),
-            );
+        setTimeout(finish, 100);
+      } else if (hasGizmoScaling) {
+        loadedMesh.scaling.copyFrom(meshState.scaling);
+        finish();
+      } else {
+        finish();
+      }
+    }, 100);
 
-            // Get scale origin settings (if they exist)
-            const xOrigin = scaleBlock.getFieldValue("X_ORIGIN") || "CENTRE";
-            const yOrigin = scaleBlock.getFieldValue("Y_ORIGIN") || "BASE"; // BASE for bottom alignment
-            const zOrigin = scaleBlock.getFieldValue("Z_ORIGIN") || "CENTRE";
+    if (loadedMesh.metadata?.yOffset && loadedMesh.metadata.yOffset !== 0) {
+      loadedMesh.position.y += parseFloat(scale) * loadedMesh.metadata.yOffset;
+    }
 
-            // Apply scaling using the flock.scale API (which handles positioning correctly)
-            flock.scale(loadedMesh.name, {
-              x: scaleX,
-              y: scaleY,
-              z: scaleZ,
-              xOrigin: xOrigin,
-              yOrigin: yOrigin,
-              zOrigin: zOrigin,
-            });
+    loadedMesh.isVisible = meshState.isVisible;
 
-            // Wait for scale to complete, then align bottoms
-            setTimeout(() => {
-              loadedMesh.computeWorldMatrix(true);
-              loadedMesh.refreshBoundingInfo();
-              const newMeshCurrentBottomY =
-                loadedMesh.getBoundingInfo().boundingBox.minimumWorld.y;
+    if (meshState.metadata) {
+      loadedMesh.metadata = { ...meshState.metadata };
+      loadedMesh.metadata.blockKey = meshState.blockKey;
+    }
+    loadedMesh.metadata.originalBaseName = meshState.originalBaseName;
 
-              // Calculate the Y adjustment needed to align bottoms
-              const yAdjustment =
-                meshState.currentBottomY - newMeshCurrentBottomY;
-              loadedMesh.position.y += yAdjustment;
-            }, 100);
-          } else if (hasGizmoScaling) {
-            // No scale block, apply direct mesh scaling
-            loadedMesh.scaling.copyFrom(meshState.scaling);
+    const newMeshName = loadedMesh.name;
+    const originalBaseName = meshState.originalBaseName;
+    if (flock.pendingTriggers && flock.pendingTriggers.has(originalBaseName)) {
+      const triggers = flock.pendingTriggers.get(originalBaseName);
+      triggers.forEach(({ trigger, callback, mode }) => {
+        flock.onTrigger(newMeshName, {
+          trigger,
+          callback,
+          mode,
+          applyToGroup: false,
+        });
+      });
+    }
+  }
 
-            // Calculate bottom alignment after scaling
-            loadedMesh.computeWorldMatrix(true);
-            loadedMesh.refreshBoundingInfo();
-            const newMeshCurrentBottomY =
-              loadedMesh.getBoundingInfo().boundingBox.minimumWorld.y;
+  if (block.type === "load_character") {
+    flock.createCharacter({
+      modelName: newModelName,
+      modelId: tempMeshId,
+      colors: color,
+      scale: parseFloat(scale),
+      position: {
+        x: meshState.position.x,
+        y: meshState.currentBlockPosition.y,
+        z: meshState.position.z,
+      },
+      callback: () => {
+        const loadedMesh = getMeshFromBlock(block);
+        if (!loadedMesh || typeof loadedMesh !== "object") return;
+        finalizeNewMesh(loadedMesh, hasAnyCameraAttached);
 
-            // Calculate the Y adjustment needed to align bottoms
-            const yAdjustment =
-              meshState.currentBottomY - newMeshCurrentBottomY;
-            loadedMesh.position.y += yAdjustment;
-          }
-        }, 100); // Give setupMesh time to complete
+        if (animationName)
+          flock.switchAnimation(loadedMesh.name, { animationName, restart: true });
+      },
+    });
+  } else {
+    flock.createObject({
+      modelName: newModelName,
+      modelId: tempMeshId,
+      color,
+      scale: parseFloat(scale),
+      position: {
+        x: meshState.position.x,
+        y: meshState.currentBlockPosition.y,
+        z: meshState.position.z,
+      },
+      callback: () => {
+        const loadedMesh = getMeshFromBlock(block);
+        if (!loadedMesh || typeof loadedMesh !== "object") return;
 
-        // Apply any Y offset from metadata
-        if (loadedMesh.metadata?.yOffset && loadedMesh.metadata.yOffset !== 0) {
-          loadedMesh.position.y +=
-            parseFloat(scale) * loadedMesh.metadata.yOffset;
-        }
-        loadedMesh.isVisible = meshState.isVisible;
-
-        // Restore metadata
-        if (meshState.metadata) {
-          loadedMesh.metadata = { ...meshState.metadata };
-          loadedMesh.metadata.blockKey = meshState.blockKey;
-        }
-
-        // Preserve the original base name for future trigger lookups
-        loadedMesh.metadata.originalBaseName = meshState.originalBaseName;
-
-        // Restore physics if it existed
-        if (meshState.physics && loadedMesh.physics) {
-          if (meshState.physics.motionType !== undefined) {
-            loadedMesh.physics.setMotionType(meshState.physics.motionType);
-          }
-          loadedMesh.physics.disablePreStep = meshState.physics.disablePreStep;
-          loadedMesh.savedMotionType = meshState.savedMotionType;
-        }
-
-        // Apply colors based on block type
         if (
           block.type === "load_character" &&
           color &&
@@ -1171,574 +1305,17 @@ function replaceMeshModel2(currentMesh, block, changeEvent) {
           Array.isArray(color) &&
           color.length > 0
         ) {
-          // Multi-object color application - reuse existing logic
-          flock.applyColorsToMesh(loadedMesh, color);
         } else if (color && typeof color === "string") {
-          // Single object color application
           flock.applyColorToMaterial(loadedMesh, null, color);
         }
 
-        // Update physics to ensure collision detection works
-        flock.updatePhysics(loadedMesh);
-
-        // Re-apply any pending triggers using the original mesh base name
-        const newMeshName = loadedMesh.name;
-        const originalBaseName = meshState.originalBaseName;
-
-        if (
-          flock.pendingTriggers &&
-          flock.pendingTriggers.has(originalBaseName)
-        ) {
-          const triggers = flock.pendingTriggers.get(originalBaseName);
-          triggers.forEach(({ trigger, callback, mode }) => {
-            flock.onTrigger(newMeshName, {
-              trigger,
-              callback,
-              mode,
-              applyToGroup: false,
-            });
-          });
-        }
-      }
-    },
-  });
-
-  return newMesh;
-}
-
-function replaceMeshModel(currentMesh, block, changeEvent) {
-  if (!currentMesh || !block) {
-    return;
-  }
-
-  // Calculate the current mesh's bottom position in world space (including scaling)
-  currentMesh.computeWorldMatrix(true);
-  currentMesh.refreshBoundingInfo();
-  const currentBottomY =
-    currentMesh.getBoundingInfo().boundingBox.minimumWorld.y;
-
-  // Also store the actual mesh position (which may have been adjusted by gizmos)
-  const actualMeshPosition = {
-    x: currentMesh.position.x,
-    y: currentMesh.position.y,
-    z: currentMesh.position.z,
-  };
-
-  // Get the current block position values (which should reflect gizmo updates)
-  const currentBlockPosition = {
-    x: parseFloat(
-      block.getInput("X").connection.targetBlock().getFieldValue("NUM"),
-    ),
-    y: parseFloat(
-      block.getInput("Y").connection.targetBlock().getFieldValue("NUM"),
-    ),
-    z: parseFloat(
-      block.getInput("Z").connection.targetBlock().getFieldValue("NUM"),
-    ),
-  };
-
-  // Store current mesh state including the original mesh name
-  const meshState = {
-    position: actualMeshPosition, // Use actual mesh position that accounts for gizmo adjustments
-    currentBlockPosition: currentBlockPosition, // Current block values (updated by gizmos)
-    currentBottomY: currentBottomY, // Store the current bottom position for alignment
-    rotation: currentMesh.rotation ? currentMesh.rotation.clone() : null,
-    rotationQuaternion: currentMesh.rotationQuaternion
-      ? currentMesh.rotationQuaternion.clone()
-      : null,
-    scaling: currentMesh.scaling.clone(),
-    physics: null,
-    savedMotionType: currentMesh.savedMotionType,
-    metadata: { ...currentMesh.metadata },
-    blockKey: currentMesh.metadata?.blockKey,
-    material: currentMesh.material,
-    isVisible: currentMesh.isVisible,
-    originalName: currentMesh.name, // Current mesh name
-    originalBaseName:
-      currentMesh.metadata?.originalBaseName || currentMesh.name.split("__")[0], // Base name for triggers
-  };
-
-  // Store physics properties if they exist
-  if (currentMesh.physics) {
-    meshState.physics = {
-      motionType: currentMesh.physics.getMotionType(),
-      mass: currentMesh.physics.getMassProperties().mass,
-      friction: currentMesh.physics.shape?.friction,
-      restitution: currentMesh.physics.shape?.restitution,
-      disablePreStep: currentMesh.physics.disablePreStep,
-    };
-  }
-
-  // Get new model information from block
-  const newModelName = block.getFieldValue("MODELS");
-  const scale = block
-    .getInput("SCALE")
-    .connection.targetBlock()
-    .getFieldValue("NUM");
-
-  // Handle color differently for different block types
-  let color;
-  if (block.type === "load_multi_object") {
-    // Multi objects use a COLORS input with a list - get all colors
-    const colorsBlock = block.getInput("COLORS").connection.targetBlock();
-    let colorsArray = [];
-
-    if (colorsBlock) {
-      // Loop through the child blocks (array items) and get their values
-      colorsBlock.childBlocks_.forEach((childBlock) => {
-        // Get the color value from the child block
-        const colorValue = childBlock.getFieldValue("COLOR");
-        if (colorValue) {
-          colorsArray.push(colorValue);
-        }
-      });
-    }
-
-    color = colorsArray;
-  } else if (block.type === "load_character") {
-    // Characters use multiple color inputs - match the existing structure
-    color = {};
-    const colorMapping = {
-      HAIR_COLOR: "hair",
-      SKIN_COLOR: "skin",
-      EYES_COLOR: "eyes",
-      TSHIRT_COLOR: "tshirt",
-      SHORTS_COLOR: "shorts",
-      SLEEVES_COLOR: "sleeves",
-    };
-    Object.entries(colorMapping).forEach(([inputName, colorKey]) => {
-      const input = block.getInput(inputName);
-      if (input && input.connection && input.connection.targetBlock()) {
-        color[colorKey] = input.connection.targetBlock().getFieldValue("COLOR");
-      }
-    });
-  } else {
-    // Single objects use a COLOR input
-    color = block
-      .getInput("COLOR")
-      .connection.targetBlock()
-      .getFieldValue("COLOR");
-  }
-
-  // Create a temporary unique name, then rename after creation
-  const tempMeshId = `${newModelName}__${block.id}__${Date.now()}`;
-  const targetName = meshState.originalName;
-
-  // Dispose of the old mesh
-  if (currentMesh.name !== "__root__") {
-    flock.disposeMesh(currentMesh);
-  }
-
-  // Create new mesh using the appropriate creation method
-  let newMesh;
-  if (block.type === "load_character") {
-    newMesh = flock.createCharacter({
-      modelName: newModelName,
-      modelId: tempMeshId,
-      colors: color,
-      scale: parseFloat(scale),
-      position: {
-        x: meshState.position.x,
-        y: meshState.currentBlockPosition.y, // Use block Y as base since setupMesh will adjust it
-        z: meshState.position.z,
-      },
-      callback: () => {
-        // Get the newly loaded mesh using our lookup function
-        const loadedMesh = getMeshFromBlock(block);
-
-        // Ensure the new mesh has the correct blockKey metadata immediately
-        if (loadedMesh && typeof loadedMesh === "object") {
-          loadedMesh.metadata = loadedMesh.metadata || {};
-          loadedMesh.metadata.blockKey = meshState.blockKey;
-
-          // Rename the mesh to preserve the original name
-          loadedMesh.name = targetName;
-        } else {
-          return;
-        }
-
-        if (loadedMesh && loadedMesh !== currentMesh) {
-          // Restore transform state, but adjust Y position for new mesh size
-          loadedMesh.position.x = meshState.position.x;
-          loadedMesh.position.z = meshState.position.z;
-
-          // Restore rotation first
-          if (meshState.rotation) {
-            loadedMesh.rotation.copyFrom(meshState.rotation);
-          }
-          if (meshState.rotationQuaternion) {
-            loadedMesh.rotationQuaternion.copyFrom(
-              meshState.rotationQuaternion,
-            );
-          }
-
-          // Check if there's a scale block in the DO section (created by gizmo)
-          let scaleBlock = null;
-          const modelVariable = block.getFieldValue("ID_VAR");
-          const doInput = block.getInput("DO");
-          if (
-            doInput &&
-            doInput.connection &&
-            doInput.connection.targetBlock()
-          ) {
-            let currentBlock = doInput.connection.targetBlock();
-            while (currentBlock) {
-              if (currentBlock.type === "scale") {
-                const modelField = currentBlock.getFieldValue("BLOCK_NAME");
-                if (modelField === modelVariable) {
-                  scaleBlock = currentBlock;
-                  break;
-                }
-              }
-              currentBlock = currentBlock.getNextBlock();
-            }
-          }
-
-          // Check if mesh has gizmo scaling (either from mesh.scaling or scale block)
-          const hasGizmoScaling =
-            scaleBlock ||
-            (meshState.scaling &&
-              (Math.abs(meshState.scaling.x - 1) > 0.001 ||
-                Math.abs(meshState.scaling.y - 1) > 0.001 ||
-                Math.abs(meshState.scaling.z - 1) > 0.001)) ||
-            (parseFloat(scale) === 1.0 && meshState.scaling); // Scale block case: block scale is 1 but has custom scaling
-
-          // Use setTimeout to let setupMesh complete, then apply scaling
-          setTimeout(() => {
-            if (scaleBlock) {
-              // Apply scale block transformation using flock.scale API
-              const scaleX = parseFloat(
-                scaleBlock
-                  .getInput("X")
-                  .connection.targetBlock()
-                  .getFieldValue("NUM"),
-              );
-              const scaleY = parseFloat(
-                scaleBlock
-                  .getInput("Y")
-                  .connection.targetBlock()
-                  .getFieldValue("NUM"),
-              );
-              const scaleZ = parseFloat(
-                scaleBlock
-                  .getInput("Z")
-                  .connection.targetBlock()
-                  .getFieldValue("NUM"),
-              );
-
-              // Get scale origin settings (if they exist)
-              const xOrigin = scaleBlock.getFieldValue("X_ORIGIN") || "CENTRE";
-              const yOrigin = scaleBlock.getFieldValue("Y_ORIGIN") || "BASE"; // BASE for bottom alignment
-              const zOrigin = scaleBlock.getFieldValue("Z_ORIGIN") || "CENTRE";
-
-              // Apply scaling using the flock.scale API (which handles positioning correctly)
-              flock.scale(loadedMesh.name, {
-                x: scaleX,
-                y: scaleY,
-                z: scaleZ,
-                xOrigin: xOrigin,
-                yOrigin: yOrigin,
-                zOrigin: zOrigin,
-              });
-
-              // Wait for scale to complete, then align bottoms
-              setTimeout(() => {
-                loadedMesh.computeWorldMatrix(true);
-                loadedMesh.refreshBoundingInfo();
-                const newMeshCurrentBottomY =
-                  loadedMesh.getBoundingInfo().boundingBox.minimumWorld.y;
-
-                // Calculate the Y adjustment needed to align bottoms
-                const yAdjustment =
-                  meshState.currentBottomY - newMeshCurrentBottomY;
-                loadedMesh.position.y += yAdjustment;
-              }, 100);
-            } else if (hasGizmoScaling) {
-              // No scale block, apply direct mesh scaling
-              loadedMesh.scaling.copyFrom(meshState.scaling);
-
-              // Calculate bottom alignment after scaling
-              loadedMesh.computeWorldMatrix(true);
-              loadedMesh.refreshBoundingInfo();
-              const newMeshCurrentBottomY =
-                loadedMesh.getBoundingInfo().boundingBox.minimumWorld.y;
-
-              // Calculate the Y adjustment needed to align bottoms
-              const yAdjustment =
-                meshState.currentBottomY - newMeshCurrentBottomY;
-              loadedMesh.position.y += yAdjustment;
-            }
-          }, 100); // Give setupMesh time to complete
-
-          // Apply any Y offset from metadata
-          if (
-            loadedMesh.metadata?.yOffset &&
-            loadedMesh.metadata.yOffset !== 0
-          ) {
-            loadedMesh.position.y +=
-              parseFloat(scale) * loadedMesh.metadata.yOffset;
-          }
-          loadedMesh.isVisible = meshState.isVisible;
-
-          // Restore metadata
-          if (meshState.metadata) {
-            loadedMesh.metadata = { ...meshState.metadata };
-            loadedMesh.metadata.blockKey = meshState.blockKey;
-          }
-
-          // Preserve the original base name for future trigger lookups
-          loadedMesh.metadata.originalBaseName = meshState.originalBaseName;
-
-          // Restore physics if it existed
-          if (meshState.physics && loadedMesh.physics) {
-            if (meshState.physics.motionType !== undefined) {
-              loadedMesh.physics.setMotionType(meshState.physics.motionType);
-            }
-            loadedMesh.physics.disablePreStep =
-              meshState.physics.disablePreStep;
-            loadedMesh.savedMotionType = meshState.savedMotionType;
-          }
-
-          // Update physics to ensure collision detection works
-          flock.updatePhysics(loadedMesh);
-
-          // Re-apply any pending triggers using the original mesh base name
-          const newMeshName = loadedMesh.name;
-          const originalBaseName = meshState.originalBaseName;
-
-          if (
-            flock.pendingTriggers &&
-            flock.pendingTriggers.has(originalBaseName)
-          ) {
-            const triggers = flock.pendingTriggers.get(originalBaseName);
-            triggers.forEach(({ trigger, callback, mode }) => {
-              flock.onTrigger(newMeshName, {
-                trigger,
-                callback,
-                mode,
-                applyToGroup: false,
-              });
-            });
-          }
-        }
-      },
-    });
-  } else {
-    newMesh = flock.createObject({
-      modelName: newModelName,
-      modelId: tempMeshId,
-      color: color,
-      scale: parseFloat(scale),
-      position: {
-        x: meshState.position.x,
-        y: meshState.currentBlockPosition.y, // Use block Y as base since setupMesh will adjust it
-        z: meshState.position.z,
-      },
-      callback: () => {
-        // Get the newly loaded mesh using our lookup function
-        const loadedMesh = getMeshFromBlock(block);
-
-        // Ensure the new mesh has the correct blockKey metadata immediately
-        if (loadedMesh && typeof loadedMesh === "object") {
-          loadedMesh.metadata = loadedMesh.metadata || {};
-          loadedMesh.metadata.blockKey = meshState.blockKey;
-
-          // Rename the mesh to preserve the original name
-          loadedMesh.name = targetName;
-        } else {
-          return;
-        }
-
-        if (loadedMesh && loadedMesh !== currentMesh) {
-          // Restore transform state, but adjust Y position for new mesh size
-          loadedMesh.position.x = meshState.position.x;
-          loadedMesh.position.z = meshState.position.z;
-
-          // Restore rotation first
-          if (meshState.rotation) {
-            loadedMesh.rotation.copyFrom(meshState.rotation);
-          }
-          if (meshState.rotationQuaternion) {
-            loadedMesh.rotationQuaternion.copyFrom(
-              meshState.rotationQuaternion,
-            );
-          }
-
-          // Check if there's a scale block in the DO section (created by gizmo)
-          let scaleBlock = null;
-          const modelVariable = block.getFieldValue("ID_VAR");
-          const doInput = block.getInput("DO");
-          if (
-            doInput &&
-            doInput.connection &&
-            doInput.connection.targetBlock()
-          ) {
-            let currentBlock = doInput.connection.targetBlock();
-            while (currentBlock) {
-              if (currentBlock.type === "scale") {
-                const modelField = currentBlock.getFieldValue("BLOCK_NAME");
-                if (modelField === modelVariable) {
-                  scaleBlock = currentBlock;
-                  break;
-                }
-              }
-              currentBlock = currentBlock.getNextBlock();
-            }
-          }
-
-          // Check if mesh has gizmo scaling (either from mesh.scaling or scale block)
-          const hasGizmoScaling =
-            scaleBlock ||
-            (meshState.scaling &&
-              (Math.abs(meshState.scaling.x - 1) > 0.001 ||
-                Math.abs(meshState.scaling.y - 1) > 0.001 ||
-                Math.abs(meshState.scaling.z - 1) > 0.001)) ||
-            (parseFloat(scale) === 1.0 && meshState.scaling); // Scale block case: block scale is 1 but has custom scaling
-
-          // Use setTimeout to let setupMesh complete, then apply scaling
-          setTimeout(() => {
-            if (scaleBlock) {
-              // Apply scale block transformation using flock.scale API
-              const scaleX = parseFloat(
-                scaleBlock
-                  .getInput("X")
-                  .connection.targetBlock()
-                  .getFieldValue("NUM"),
-              );
-              const scaleY = parseFloat(
-                scaleBlock
-                  .getInput("Y")
-                  .connection.targetBlock()
-                  .getFieldValue("NUM"),
-              );
-              const scaleZ = parseFloat(
-                scaleBlock
-                  .getInput("Z")
-                  .connection.targetBlock()
-                  .getFieldValue("NUM"),
-              );
-
-              // Get scale origin settings (if they exist)
-              const xOrigin = scaleBlock.getFieldValue("X_ORIGIN") || "CENTRE";
-              const yOrigin = scaleBlock.getFieldValue("Y_ORIGIN") || "BASE"; // BASE for bottom alignment
-              const zOrigin = scaleBlock.getFieldValue("Z_ORIGIN") || "CENTRE";
-
-              // Apply scaling using the flock.scale API (which handles positioning correctly)
-              flock.scale(loadedMesh.name, {
-                x: scaleX,
-                y: scaleY,
-                z: scaleZ,
-                xOrigin: xOrigin,
-                yOrigin: yOrigin,
-                zOrigin: zOrigin,
-              });
-
-              // Wait for scale to complete, then align bottoms
-              setTimeout(() => {
-                loadedMesh.computeWorldMatrix(true);
-                loadedMesh.refreshBoundingInfo();
-                const newMeshCurrentBottomY =
-                  loadedMesh.getBoundingInfo().boundingBox.minimumWorld.y;
-
-                // Calculate the Y adjustment needed to align bottoms
-                const yAdjustment =
-                  meshState.currentBottomY - newMeshCurrentBottomY;
-                loadedMesh.position.y += yAdjustment;
-              }, 100);
-            } else if (hasGizmoScaling) {
-              // No scale block, apply direct mesh scaling
-              loadedMesh.scaling.copyFrom(meshState.scaling);
-
-              // Calculate bottom alignment after scaling
-              loadedMesh.computeWorldMatrix(true);
-              loadedMesh.refreshBoundingInfo();
-              const newMeshCurrentBottomY =
-                loadedMesh.getBoundingInfo().boundingBox.minimumWorld.y;
-
-              // Calculate the Y adjustment needed to align bottoms
-              const yAdjustment =
-                meshState.currentBottomY - newMeshCurrentBottomY;
-              loadedMesh.position.y += yAdjustment;
-            }
-          }, 100); // Give setupMesh time to complete
-
-          // Apply any Y offset from metadata
-          if (
-            loadedMesh.metadata?.yOffset &&
-            loadedMesh.metadata.yOffset !== 0
-          ) {
-            loadedMesh.position.y +=
-              parseFloat(scale) * loadedMesh.metadata.yOffset;
-          }
-          loadedMesh.isVisible = meshState.isVisible;
-
-          // Restore metadata
-          if (meshState.metadata) {
-            loadedMesh.metadata = { ...meshState.metadata };
-            loadedMesh.metadata.blockKey = meshState.blockKey;
-          }
-
-          // Preserve the original base name for future trigger lookups
-          loadedMesh.metadata.originalBaseName = meshState.originalBaseName;
-
-          // Restore physics if it existed
-          if (meshState.physics && loadedMesh.physics) {
-            if (meshState.physics.motionType !== undefined) {
-              loadedMesh.physics.setMotionType(meshState.physics.motionType);
-            }
-            loadedMesh.physics.disablePreStep =
-              meshState.physics.disablePreStep;
-            loadedMesh.savedMotionType = meshState.savedMotionType;
-          }
-
-          // Apply colors based on block type
-          if (
-            block.type === "load_character" &&
-            color &&
-            Object.keys(color).length > 0
-          ) {
-            flock.applyColorsToCharacter(loadedMesh, color);
-          } else if (
-            block.type === "load_multi_object" &&
-            Array.isArray(color) &&
-            color.length > 0
-          ) {
-            // Multi-object color application - reuse existing logic
-            //flock.applyColorsToMesh(loadedMesh, color);
-          } else if (color && typeof color === "string") {
-            // Single object color application
-            flock.applyColorToMaterial(loadedMesh, null, color);
-          }
-
-          // Update physics to ensure collision detection works
-          flock.updatePhysics(loadedMesh);
-
-          // Re-apply any pending triggers using the original mesh base name
-          const newMeshName = loadedMesh.name;
-          const originalBaseName = meshState.originalBaseName;
-
-          if (
-            flock.pendingTriggers &&
-            flock.pendingTriggers.has(originalBaseName)
-          ) {
-            const triggers = flock.pendingTriggers.get(originalBaseName);
-            triggers.forEach(({ trigger, callback, mode }) => {
-              flock.onTrigger(newMeshName, {
-                trigger,
-                callback,
-                mode,
-                applyToGroup: false,
-              });
-            });
-          }
-        }
+        finalizeNewMesh(loadedMesh);
       },
     });
   }
 }
 
 export function updateBlockColorAndHighlight(mesh, selectedColor) {
-  
   // ---------- helpers ----------
   const withUndoGroup = (fn) => {
     try {
@@ -1854,9 +1431,24 @@ export function updateBlockColorAndHighlight(mesh, selectedColor) {
   let block = null;
 
   // Special case: sky fallback
-  if (!mesh) {
+  /* Not sure why type of mesh is set to "set_sky_color"
+  but this makes sure the sky colour can be updated if
+  block exists. */
+  if (!mesh || mesh.type === "set_sky_color") {
     block = meshMap?.["sky"];
-    if (!block) return;
+    if (!block) {
+      // Create sky block
+      block = createBlockWithShadows("set_sky_color", null, selectedColor);
+      meshMap["sky"] = block;
+      // Create start block
+      const startBlock = Blockly.getMainWorkspace().newBlock("start");
+      startBlock.initSvg();
+      startBlock.render();
+      // Wrap sky block around start block
+      const connection = startBlock.getInput("DO").connection;
+      if (connection && block.previousConnection)
+        connection.connect(block.previousConnection);
+    }
     withUndoGroup(() => {
       const found = findNestedColorTarget(block);
       if (!found) {

@@ -23,7 +23,11 @@ export const flockMesh = {
 
     const radius = Math.min(width, depth) / 2;
 
-    const cylinderHeight = Math.max(0, height - 2 * radius);
+    // Shrink slightly in world units, clamp to avoid degenerate cylinders
+    const shrinkY = Math.min(0.01, Math.max(0, height - 2 * radius - 1e-6));
+
+    const adjustedHeight = Math.max(0, height - shrinkY);
+    const cylinderHeight = Math.max(0, adjustedHeight - 2 * radius);
 
     const center = flock.BABYLON.Vector3.Zero();
 
@@ -45,7 +49,143 @@ export const flockMesh = {
       scene,
     );
 
+    if (!mesh.metadata) mesh.metadata = {};
+    mesh.metadata.physicsCapsule = { radius, height: adjustedHeight };
+
     return shape;
+  },
+  createHorizontalCapsuleFromBoundingBox(mesh, scene, yOffsetFactor = 0) {
+    // Get dimensions from the current vertical capsule
+    let radius, height;
+
+    const physicsMesh = mesh.physics
+      ? mesh
+      : mesh.parent?.physics
+        ? mesh.parent
+        : null;
+
+    if (
+      physicsMesh?.physics?.shape?.constructor.name === "_PhysicsShapeCapsule"
+    ) {
+      const currentShape = physicsMesh.physics.shape;
+      if (
+        currentShape.pointA &&
+        currentShape.pointB &&
+        currentShape.radius !== undefined
+      ) {
+        const cylinderLength = flock.BABYLON.Vector3.Distance(
+          currentShape.pointA,
+          currentShape.pointB,
+        );
+        radius = currentShape.radius;
+        height = cylinderLength + 2 * radius;
+      }
+    }
+
+    if (!radius || !height) {
+      if (mesh.metadata?.physicsCapsule) {
+        radius = mesh.metadata.physicsCapsule.radius;
+        height = mesh.metadata.physicsCapsule.height;
+      } else {
+        mesh.computeWorldMatrix(true);
+        const boundingInfo = mesh.getBoundingInfo();
+        height =
+          boundingInfo.boundingBox.maximumWorld.y -
+          boundingInfo.boundingBox.minimumWorld.y;
+        const width =
+          boundingInfo.boundingBox.maximumWorld.x -
+          boundingInfo.boundingBox.minimumWorld.x;
+        const depth =
+          boundingInfo.boundingBox.maximumWorld.z -
+          boundingInfo.boundingBox.minimumWorld.z;
+        radius = Math.min(width, depth) / 2;
+      }
+    }
+
+    // Create horizontal capsule with same dimensions as vertical, rotated along Z-axis
+    const cylinderLength = Math.max(0, height - 2 * radius);
+    const center = flock.BABYLON.Vector3.Zero();
+
+    // Calculate Y offset relative to mesh height
+    const yOffset = yOffsetFactor * height;
+
+    const segmentStart = new flock.BABYLON.Vector3(
+      center.x,
+      center.y + yOffset,
+      center.z - cylinderLength / 2,
+    );
+    const segmentEnd = new flock.BABYLON.Vector3(
+      center.x,
+      center.y + yOffset,
+      center.z + cylinderLength / 2,
+    );
+
+    const shape = new flock.BABYLON.PhysicsShapeCapsule(
+      segmentStart,
+      segmentEnd,
+      radius,
+      scene,
+    );
+
+    return shape;
+  },
+  // backRatio: signed fraction of mesh size along the chosen axis (e.g., 0.25 = 25% back; -0.25 = 25% forward)
+  // axis: "z" (default) if your rig faces ±Z; use "x" if it faces ±X
+  createSittingCapsuleFromBoundingBox(mesh, scene, { backRatio = -1, axis = "z" } = {}) {
+    mesh.computeWorldMatrix(true);
+
+    const boundingInfo = mesh.getBoundingInfo();
+    const bb = boundingInfo.boundingBox;
+
+    // Local-space extents
+    const localMin = bb.minimum;
+    const localMax = bb.maximum;
+
+    const localHeight = localMax.y - localMin.y;
+    const localWidth  = localMax.x - localMin.x;
+    const localDepth  = localMax.z - localMin.z;
+
+    // Capsule sizing for sitting pose
+    const radius = Math.max(1e-5, Math.min(localWidth, localDepth) * 0.5);
+    const targetHeight   = Math.max(0, localHeight * 0.65);
+    const cylinderHeight = Math.max(0, targetHeight - 2 * radius);
+    const halfCylinder   = cylinderHeight * 0.5;
+
+    // Base center in LOCAL space
+    const centerLocal = bb.center.clone();
+
+    // Small upward nudge
+    const centerYOffset = localHeight * 0.02;
+
+    // Signed backward/forward offset relative to mesh size on chosen axis
+    const sizeAlongAxis = axis === "x" ? localWidth : localDepth;
+    const signedUnits = backRatio * sizeAlongAxis; // negative values move the other way
+
+    const offsetX = axis === "x" ? -signedUnits : 0; // "-signedUnits" so positive backRatio = move toward local -axis
+    const offsetZ = axis === "z" ? -signedUnits : 0;
+
+    const segmentStart = new flock.BABYLON.Vector3(
+      centerLocal.x + offsetX,
+      centerLocal.y + centerYOffset - halfCylinder,
+      centerLocal.z + offsetZ
+    );
+
+    const segmentEnd = new flock.BABYLON.Vector3(
+      centerLocal.x + offsetX,
+      centerLocal.y + centerYOffset + halfCylinder,
+      centerLocal.z + offsetZ
+    );
+
+    if (segmentStart.equals(segmentEnd)) {
+      segmentEnd.y += 1e-3; // guard against degenerate segment
+    }
+
+    return new flock.BABYLON.PhysicsShapeCapsule(
+      segmentStart,
+      segmentEnd,
+      radius,
+      scene
+    );
   },
   initializeMesh(mesh, position, color, shapeType, alpha = 1) {
     // Set position
@@ -465,13 +605,34 @@ export const flockMesh = {
   ) {
     return flock.whenModelReady(targetMesh, (targetMeshInstance) => {
       flock.whenModelReady(meshToAttach, (meshToAttachInstance) => {
-        const logicalBoneName = boneName;
-
-        if (targetMeshInstance?.metadata?.modelName?.startsWith("Character")) {
-          boneName = attachBlockMapping[boneName];
-        } else {
-          boneName = attachMixamoMapping[boneName];
+        // Save pre-attach world rotation for later restore
+        {
+          const worldMatrix = meshToAttachInstance.getWorldMatrix(true).clone();
+          const scale = new flock.BABYLON.Vector3();
+          const rotation = new flock.BABYLON.Quaternion();
+          const position = new flock.BABYLON.Vector3();
+          worldMatrix.decompose(scale, rotation, position);
+          (meshToAttachInstance.metadata ||= {})._preAttachWorldRotation =
+            rotation.clone();
         }
+
+        // Pause physics by removing body from Havok world (keep reference)
+        if (
+          meshToAttachInstance.physics &&
+          meshToAttachInstance.physics._pluginData
+        ) {
+          flock.hk._hknp.HP_World_RemoveBody(
+            flock.hk.world,
+            meshToAttachInstance.physics._pluginData.hpBodyId,
+          );
+        }
+
+        const logicalBoneName = boneName;
+        boneName = targetMeshInstance?.metadata?.modelName?.startsWith(
+          "Character",
+        )
+          ? attachBlockMapping[boneName]
+          : attachMixamoMapping[boneName];
 
         const targetWithSkeleton = targetMeshInstance.skeleton
           ? targetMeshInstance
@@ -481,77 +642,95 @@ export const flockMesh = {
           const bone = targetWithSkeleton.skeleton.bones.find(
             (b) => b.name === boneName,
           );
-
           if (bone) {
             meshToAttachInstance.attachToBone(bone, targetWithSkeleton);
-            //console.log(`[Attach] Attached '${meshToAttachInstance.name}' to bone '${bone.name}'`);
 
             if (logicalBoneName === "Head") {
               let estimatedLength = 0.1;
-
               if (bone.children.length > 0) {
-                const headWorld = BABYLON.Vector3.TransformCoordinates(
-                  BABYLON.Vector3.Zero(),
-                  bone.getWorldMatrix()
+                const headWorld = flock.BABYLON.Vector3.TransformCoordinates(
+                  flock.BABYLON.Vector3.Zero(),
+                  bone.getWorldMatrix(),
                 );
-
-                const childWorld = BABYLON.Vector3.TransformCoordinates(
-                  BABYLON.Vector3.Zero(),
-                  bone.children[0].getWorldMatrix()
+                const childWorld = flock.BABYLON.Vector3.TransformCoordinates(
+                  flock.BABYLON.Vector3.Zero(),
+                  bone.children[0].getWorldMatrix(),
                 );
-
                 estimatedLength = childWorld.subtract(headWorld).length();
-                //console.log("[Attach] Estimated head offset from child bone:", estimatedLength.toFixed(4));
-
               } else {
-                // Fallback using bounding box height
-                const meshes = targetWithSkeleton.getChildMeshes?.() || [targetWithSkeleton];
+                const meshes = targetWithSkeleton.getChildMeshes?.() || [
+                  targetWithSkeleton,
+                ];
                 const minYVals = [];
                 const maxYVals = [];
-
-                for (const mesh of meshes) {
-                  const info = mesh.getBoundingInfo?.();
+                for (const m of meshes) {
+                  const info = m.getBoundingInfo?.();
                   if (!info) continue;
-
                   const minY = info.boundingBox.minimumWorld.y;
                   const maxY = info.boundingBox.maximumWorld.y;
-
                   if (isFinite(minY) && isFinite(maxY)) {
                     minYVals.push(minY);
                     maxYVals.push(maxY);
                   }
                 }
-
-                let modelHeight = 1; // fallback
-                if (minYVals.length > 0 && maxYVals.length > 0) {
+                let modelHeight = 1;
+                if (minYVals.length && maxYVals.length) {
                   const allMinY = Math.min(...minYVals);
                   const allMaxY = Math.max(...maxYVals);
                   modelHeight = allMaxY - allMinY;
                 }
-
                 const defaultHeadOffset = 1.3;
                 estimatedLength = defaultHeadOffset * Math.max(modelHeight, 1);
-                //console.log(`[Attach] Fallback scaled head offset: ${estimatedLength.toFixed(4)}`);
               }
-
               y += estimatedLength;
-              //console.log(`[Attach] Final Y offset applied: ${y.toFixed(4)}`);
             }
 
             meshToAttachInstance.position = new flock.BABYLON.Vector3(x, y, z);
-            //console.log(`[Attach] Final local position: {X: ${x}, Y: ${y}, Z: ${z}}`);
           }
         }
       });
     });
   },
   drop(meshToDetach) {
-    return flock.whenModelReady(meshToDetach, (meshToDetachInstance) => {
-      const worldPosition = meshToDetachInstance.getAbsolutePosition();
-      meshToDetachInstance.detachFromBone();
+    return flock.whenModelReady(meshToDetach, (mesh) => {
+      // Capture current world transform
+      const worldMatrix = mesh.getWorldMatrix(true).clone();
+      const scale = new flock.BABYLON.Vector3();
+      const rotationNow = new flock.BABYLON.Quaternion();
+      const position = new flock.BABYLON.Vector3();
+      worldMatrix.decompose(scale, rotationNow, position);
 
-      // Set the child mesh's position to its world position
-      meshToDetachInstance.position = worldPosition;
+      // Restore pre-attach world rotation if available
+      const md = mesh.metadata || {};
+      const restoreRotation = md._preAttachWorldRotation || rotationNow;
+
+      mesh.detachFromBone?.();
+      mesh.parent = null;
+      mesh.rotationQuaternion = restoreRotation.clone();
+      mesh.scaling = scale;
+      mesh.position = position.add(new flock.BABYLON.Vector3(0, 0.002, 0));
+      mesh.computeWorldMatrix(true);
+
+      const body = mesh.physics;
+      if (body && body._pluginData) {
+        body.setMotionType(flock.BABYLON.PhysicsMotionType.ANIMATED);
+        if (body.setTargetTransform)
+          body.setTargetTransform(mesh.position, mesh.rotationQuaternion);
+        body.setLinearVelocity(flock.BABYLON.Vector3.Zero());
+        body.setAngularVelocity(flock.BABYLON.Vector3.Zero());
+
+        flock.hk._hknp.HP_World_AddBody(
+          flock.hk.world,
+          body._pluginData.hpBodyId,
+          true,
+        );
+
+        flock.scene.onBeforeRenderObservable.addOnce(() => {
+          body.setMotionType(flock.BABYLON.PhysicsMotionType.DYNAMIC);
+          body.setLinearVelocity(flock.BABYLON.Vector3.Zero());
+          body.setAngularVelocity(flock.BABYLON.Vector3.Zero());
+        });
+      }
     });
   },
   setParent(parentModelName, childModelName) {

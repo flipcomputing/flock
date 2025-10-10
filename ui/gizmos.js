@@ -83,6 +83,8 @@ document.addEventListener("DOMContentLoaded", function () {
       },
       target: document.body,
     });
+    // Make accessible globally for translation updates
+    window.flockColorPicker = colorPicker;
   }
 
   // Attach click event to open custom color picker
@@ -154,6 +156,9 @@ function applyColorAtPosition(canvasX, canvasY) {
   if (pickResult.pickedMesh) {
     flock.changeColorMesh(pickResult.pickedMesh, selectedColor);
     updateBlockColorAndHighlight(pickResult.pickedMesh, selectedColor);
+  } else {
+    flock.setSky(selectedColor);
+    updateBlockColorAndHighlight(meshMap?.["sky"], selectedColor);
   }
 }
 
@@ -1628,10 +1633,10 @@ export function setGizmoManager(value) {
     let _lastDisposeObs = mesh?.onDisposeObservable.addOnce(() => {
       // Only detach if we're still attached to THIS node
       if (
-        gizmoManager.attachedMesh === mesh ||
-        gizmoManager.attachedNode === mesh
+        gizmoManager?.attachedMesh === mesh ||
+        gizmoManager?.attachedNode === mesh
       ) {
-        gizmoManager.attachToMesh(null);
+        gizmoManager?.attachToMesh(null);
       }
     });
   };

@@ -68,17 +68,6 @@ export function initializeBlocks() {
 Blockly.utils.colour.setHsvSaturation(0.3); // 0 (inclusive) to 1 (exclusive), defaulting to 0.45
 Blockly.utils.colour.setHsvValue(0.85); // 0 (inclusive) to 1 (exclusive), defaulting to 0.65
 
-/*
-function Mesh(id = "UNDEFINED") {
-        this.id = id;
-}
-flock.Mesh = Mesh;
-Mesh.prototype.toString = function MeshToString() {
-        console.log("Mesh.toString", `${this.id}`);
-        return `${this.id}`;
-};injec
-*/
-
 export function initializeWorkspace() {
         // Set Blockly color configuration
         Blockly.utils.colour.setHsvSaturation(0.3);
@@ -144,6 +133,24 @@ export function initializeWorkspace() {
 workspace.addChangeListener(BlockDynamicConnection.finalizeConnections);
         workspace.addChangeListener(handleBlockSelect);
         workspace.addChangeListener(handleBlockDelete);
+
+        // Disable scrollBoundsIntoView temporarily during focus changes after deletion
+        const originalScrollBoundsIntoView = Blockly.WorkspaceSvg.prototype.scrollBoundsIntoView;
+
+        Blockly.WorkspaceSvg.prototype.scrollBoundsIntoView = function(bounds) {
+          // Check if we're in the middle of a block deletion by looking at the call stack
+          const stack = new Error().stack;
+
+          // If this is being called from the dispose->focus chain, skip scrolling
+          if (stack.includes('dispose') || stack.includes('onNodeFocus')) {
+            return; // Don't scroll at all
+          }
+
+          // Otherwise, do normal scrolling
+          originalScrollBoundsIntoView.call(this, bounds);
+        };
+
+        console.log("Workspace initialized", workspace);
 
         // Initialize workspace search
         const workspaceSearch = new WorkspaceSearch(workspace);
