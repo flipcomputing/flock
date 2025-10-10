@@ -1234,23 +1234,6 @@ export const flockAnimate = {
     restart = false,
     play = true,
   ) {
-    // Validate critical dependencies
-    if (!scene || !meshOrGroup || !animationName) {
-      console.warn("switchToAnimationLoad: Missing required parameters");
-      return null;
-    }
-
-    if (
-      !flock?.BABYLON ||
-      !flock?.scene ||
-      typeof flock.activateAnimation !== "function"
-    ) {
-      console.error(
-        "switchToAnimationLoad: Required flock dependencies not available",
-      );
-      return null;
-    }
-
     const findMeshWithSkeleton = (rootMesh) => {
       if (rootMesh?.skeleton) return rootMesh;
       if (rootMesh?.getChildMeshes) {
@@ -1262,210 +1245,147 @@ export const flockAnimate = {
     };
 
     const mesh = findMeshWithSkeleton(meshOrGroup);
-    if (!mesh || !mesh.skeleton) {
-      console.warn("switchToAnimationLoad: No skeleton found on mesh");
-      return null;
-    }
+    if (!mesh || !mesh.skeleton) return null;
 
-    // Initialize metadata structure
     if (!mesh.metadata) mesh.metadata = {};
     if (!mesh.metadata.animationGroups) mesh.metadata.animationGroups = {};
-    if (!mesh.metadata.inflightLoads) mesh.metadata.inflightLoads = {};
-
     const cache = mesh.metadata.animationGroups;
-    const inflight = mesh.metadata.inflightLoads;
 
-    // Always initialize request counter, even if not playing
-    mesh.metadata.requestCounter = (mesh.metadata.requestCounter || 0) + 1;
-    const currentRequest = mesh.metadata.requestCounter;
-
-    // Record intent when we plan to play
+    // Only record "intent" when we actually plan to play something now.
     if (play) {
       mesh.metadata.requestedAnimationName = animationName;
     }
 
-    // Check cache atomically - get reference once
-    const cachedEntry = cache[animationName];
-
-    // Handle promise (still loading)
-    if (cachedEntry && typeof cachedEntry.then === "function") {
-      return null; // Already loading, don't block
-    }
-
-    // Handle error state (previous load failed)
-    if (cachedEntry && cachedEntry._loadError) {
-      console.warn(`Animation ${animationName} previously failed to load`);
-      return null;
-    }
-
-    // Handle loaded animation group
-    if (cachedEntry && cachedEntry instanceof flock.BABYLON.AnimationGroup) {
-      if (!play) {
-        return cachedEntry;
-      }
-
-      // Check if this is still the requested animation
-      if (mesh.metadata.requestedAnimationName !== animationName) {
-        return cachedEntry;
-      }
-
-      // Activate with error handling
-      try {
-        flock.activateAnimation(
-          mesh,
-          meshOrGroup,
-          cachedEntry,
-          animationName,
-          loop,
-          restart,
-          currentRequest,
-        );
-      } catch (error) {
-        console.error(`Failed to activate animation ${animationName}:`, error);
-      }
-      return cachedEntry;
-    }
-
-    // Not loaded yet - start loading
-    if (inflight[animationName]) {
-      return null; // Already loading, don't duplicate
-    }
-
-    inflight[animationName] = true;
-
-    const loadPromise = (async () => {
-      try {
+    // Resolve or load the animation group (promise-cached)
+    let retargetedGroup;
+    if (cache[animationName]) {
+      retargetedGroup = (typeof cache[animationName].then === "function")
+        ? await cache[animationName]
+        : cache[animationName];
+    } else {
+      cache[animationName] = (async () => {
         const modelName = meshOrGroup.metadata?.modelName;
-
-        // Safe check for blockNames
-        const useBlockSuffix =
-          typeof blockNames !== "undefined" &&
-          Array.isArray(blockNames) &&
-          blockNames.includes(modelName);
-
-        const animationFile = useBlockSuffix
+        const animationFile = (typeof blockNames !== "undefined" && blockNames.includes(modelName))
           ? animationName + "_Block"
           : animationName;
 
-        const animImport =
-          await flock.BABYLON.SceneLoader.LoadAssetContainerAsync(
-            "./animations/",
-            animationFile + ".glb",
-            flock.scene,
-            undefined,
-            undefined,
-            {
-              gltf: {
-                animationStartMode:
-                  flock.BABYLON_LOADER.GLTFLoaderAnimationStartMode.NONE,
-              },
-            },
-          );
+        const animImport = await flock.BABYLON.SceneLoader.LoadAssetContainerAsync(
+          "./animations/", animationFile + ".glb", flock.scene, undefined, undefined,
+          { gltf: { animationStartMode: flock.BABYLON_LOADER.GLTFLoaderAnimationStartMode.NONE } },
+        );
 
         const animGroup = animImport.animationGroups.find(
           (ag) => ag.name === animationName && ag.targetedAnimations.length > 0,
         );
-
         if (!animGroup) {
-          console.warn(
-            `Animation group ${animationName} not found in loaded file`,
-          );
           animImport.dispose();
-          return {
-            _loadError: true,
-            _errorMessage: "Animation group not found",
-          };
+          return null;
         }
 
-        // Build bone and transform node maps
-        const boneMap = {};
-        const tnMap = {};
+        const boneMap = {}, tnMap = {};
         mesh.skeleton.bones.forEach((b) => {
           boneMap[b.name] = b;
-          if (b._linkedTransformNode) {
-            tnMap[b._linkedTransformNode.name] = b._linkedTransformNode;
-          }
+          if (b._linkedTransformNode) tnMap[b._linkedTransformNode.name] = b._linkedTransformNode;
         });
 
-        // Create retargeted animation group
-        const newGroup = new flock.BABYLON.AnimationGroup(
-          `${mesh.name}.${animationName}`,
-          scene,
-        );
-
+        const newGroup = new flock.BABYLON.AnimationGroup(`${mesh.name}.${animationName}`, scene);
         for (const ta of animGroup.targetedAnimations) {
           let target = null;
-          if (ta.target instanceof flock.BABYLON.Bone) {
-            target = boneMap[ta.target.name];
-          } else if (ta.target instanceof flock.BABYLON.TransformNode) {
-            target = tnMap[ta.target.name];
-          }
-
+          if (ta.target instanceof flock.BABYLON.Bone) target = boneMap[ta.target.name];
+          else if (ta.target instanceof flock.BABYLON.TransformNode) target = tnMap[ta.target.name];
           if (target && ta.animation?.targetProperty !== "scaling") {
-            const animCopy = ta.animation.clone(
-              `${ta.animation.name}_${mesh.name}`,
-            );
+            const animCopy = ta.animation.clone(`${ta.animation.name}_${mesh.name}`);
             newGroup.addTargetedAnimation(animCopy, target);
           }
         }
 
         animImport.dispose();
         return newGroup;
-      } catch (error) {
-        console.error(`Failed to load animation ${animationName}:`, error);
-        return { _loadError: true, _errorMessage: error.message };
-      } finally {
-        delete inflight[animationName];
+      })();
+
+      retargetedGroup = await cache[animationName];
+      cache[animationName] = retargetedGroup;
+    }
+
+    if (!retargetedGroup) return null;
+
+    // If this was a preload (play === false), do NOT switch or start anything.
+    if (!play) {
+      return retargetedGroup;
+    }
+
+    // Only activate if this is still the latest requested animation.
+    if (mesh.metadata.requestedAnimationName !== animationName) {
+      return retargetedGroup;
+    }
+
+    if (
+      mesh._currentAnimGroup &&
+      mesh._currentAnimGroup !== retargetedGroup &&
+      mesh._currentAnimGroup.isPlaying
+    ) {
+      mesh._currentAnimGroup.stop();
+      mesh._currentAnimGroup = null;
+    }
+
+    mesh._currentAnimGroup = retargetedGroup;
+    mesh.metadata.currentAnimationName = animationName;
+
+    // Update physics shape based on animation
+    const physicsMesh = meshOrGroup;
+
+    if (physicsMesh && physicsMesh.physics && physicsMesh.physics.shape && physicsMesh.physics.shape.constructor.name === "_PhysicsShapeCapsule") {
+      // Determine desired physics shape type based on animation name
+      let desiredShapeType = "vertical";
+      if (animationName === "Fly") {
+        desiredShapeType = "horizontal-fly";
+      } else if (animationName === "Fall") {
+        desiredShapeType = "horizontal-fall";
+      } else if (animationName === "Sitting" || animationName === "Sit_Down") {
+        console.log("Sitting animation detected");
+        desiredShapeType = "sitting";
       }
-    })();
 
-    // Store promise in cache
-    cache[animationName] = loadPromise;
+      // Only update if the shape type has changed
+      if (!mesh.metadata.currentPhysicsShapeType || mesh.metadata.currentPhysicsShapeType !== desiredShapeType) {
+        // Preserve physics properties
+        const motionType = physicsMesh.physics.getMotionType();
+        const massProps = physicsMesh.physics.getMassProperties();
+        const disablePreStep = physicsMesh.physics.disablePreStep;
 
-    // Auto-activate when loaded
-    loadPromise
-      .then((result) => {
-        // Replace promise with actual result (group or error object)
-        cache[animationName] = result;
-
-        // Only activate if it's a valid group and conditions are met
-        if (
-          result &&
-          result instanceof flock.BABYLON.AnimationGroup &&
-          play &&
-          mesh.metadata.requestedAnimationName === animationName
-        ) {
-          try {
-            flock.activateAnimation(
-              mesh,
-              meshOrGroup,
-              result,
-              animationName,
-              loop,
-              restart,
-              currentRequest,
-            );
-          } catch (error) {
-            console.error(
-              `Failed to activate animation ${animationName} after load:`,
-              error,
-            );
-          }
+        // Create new shape based on animation
+        // Always use physicsMesh which has the full body bounding box
+        let newShape;
+        if (desiredShapeType === "horizontal-fly") {
+          newShape = flock.createHorizontalCapsuleFromBoundingBox(physicsMesh, flock.scene, 0);
+        } else if (desiredShapeType === "horizontal-fall") {
+          newShape = flock.createHorizontalCapsuleFromBoundingBox(physicsMesh, flock.scene, -0.4);
+        } else if (desiredShapeType === "sitting") {
+          newShape = flock.createSittingCapsuleFromBoundingBox(physicsMesh, flock.scene);
+        } else {
+          newShape = flock.createCapsuleFromBoundingBox(physicsMesh, flock.scene);
         }
-      })
-      .catch((error) => {
-        // Shouldn't reach here due to try-catch above, but safety net
-        console.error(
-          `Unexpected error in animation load promise for ${animationName}:`,
-          error,
-        );
-        cache[animationName] = {
-          _loadError: true,
-          _errorMessage: error.message,
-        };
-      });
 
-    return null; // Return immediately
+        // Update the physics shape
+        physicsMesh.physics.shape = newShape;
+
+        // Restore physics properties
+        physicsMesh.physics.setMotionType(motionType);
+        physicsMesh.physics.setMassProperties(massProps);
+        physicsMesh.physics.disablePreStep = disablePreStep;
+
+        // Track the current physics shape type
+        mesh.metadata.currentPhysicsShapeType = desiredShapeType;
+      }
+    }
+
+    if (!retargetedGroup.isPlaying || restart) {
+      retargetedGroup.stop();
+      retargetedGroup.reset();
+      retargetedGroup.start(loop);
+    }
+
+    return retargetedGroup;
   },
   async switchToAnimationLoad2(
     scene,
