@@ -261,7 +261,7 @@ body[data-theme="dark"] .blocklyTreeLabel {
 
 .blocklyFlyoutBackground {
   opacity: 0.9;
-  stroke: #ccc;
+  /* stroke: #ccc !important; */
   fill: #ddd !important;
   fill-opacity: 0.8 !important;
 }
