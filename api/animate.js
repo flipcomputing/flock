@@ -2372,6 +2372,149 @@ export const flockAnimate = {
 
     return mesh.metadata.currentAnimationName || null;
   },
+  switchToAnimationModel(
+    scene,
+    mesh,
+    animationName,
+    loop = true,
+    restart = false,
+  ) {
+    const newAnimationName = animationName;
+
+    if (!mesh) {
+      console.error(`Mesh ${mesh.name} not found.`);
+      return null;
+    }
+
+    if (flock.flockNotReady) return null;
+
+    let targetAnimationGroup = flock.scene?.animationGroups?.find(
+      (group) =>
+        group.name === newAnimationName &&
+        flock.animationGroupTargetsDescendant(group, mesh),
+    );
+
+    if (!targetAnimationGroup) {
+      console.error(`Animation "${newAnimationName}" not found.`);
+      return null;
+    }
+
+    if (!mesh.animationGroups) {
+      mesh.animationGroups = [];
+      flock.stopAnimationsTargetingMesh(scene, mesh);
+    }
+
+    if (
+      mesh.animationGroups[0] &&
+      mesh.animationGroups[0].name !== newAnimationName
+    ) {
+      flock.stopAnimationsTargetingMesh(scene, mesh);
+      mesh.animationGroups[0].stop();
+      mesh.animationGroups = [];
+    }
+
+    if (
+      !mesh.animationGroups[0] ||
+      (mesh.animationGroups[0].name == newAnimationName && restart)
+    ) {
+      flock.stopAnimationsTargetingMesh(scene, mesh);
+      mesh.animationGroups[0] = targetAnimationGroup;
+      mesh.animationGroups[0].reset();
+      mesh.animationGroups[0].stop();
+      mesh.animationGroups[0].start(
+        loop,
+        1.0,
+        targetAnimationGroup.from,
+        targetAnimationGroup.to,
+        false,
+      );
+    }
+
+    // Update physics shape based on animation
+    const physicsMesh = mesh;
+
+    if (
+      physicsMesh &&
+      physicsMesh.physics &&
+      physicsMesh.physics.shape &&
+      physicsMesh.physics.shape.constructor.name === "_PhysicsShapeCapsule"
+    ) {
+      // Find mesh with skeleton for bounding box calculation
+      const findMeshWithSkeleton = (rootMesh) => {
+        if (rootMesh?.skeleton) return rootMesh;
+        if (rootMesh?.getChildMeshes) {
+          for (const child of rootMesh.getChildMeshes()) {
+            if (child.skeleton) return child;
+          }
+        }
+        return null;
+      };
+      const skeletonMesh = findMeshWithSkeleton(mesh) || mesh;
+
+      // Determine desired physics shape type based on animation name
+      let desiredShapeType = "vertical";
+      if (animationName === "Fly") {
+        desiredShapeType = "horizontal-fly";
+      } else if (animationName === "Fall") {
+        desiredShapeType = "horizontal-fall";
+      } else if (animationName === "Sitting") {
+        desiredShapeType = "sitting";
+      }
+
+      // Only update if the shape type has changed
+      if (!skeletonMesh.metadata) skeletonMesh.metadata = {};
+      if (
+        !skeletonMesh.metadata.currentPhysicsShapeType ||
+        skeletonMesh.metadata.currentPhysicsShapeType !== desiredShapeType
+      ) {
+        // Preserve physics properties
+        const motionType = physicsMesh.physics.getMotionType();
+        const massProps = physicsMesh.physics.getMassProperties();
+        const disablePreStep = physicsMesh.physics.disablePreStep;
+
+        // Create new shape based on animation
+        // Always use physicsMesh which has the full body bounding box
+        let newShape;
+        if (desiredShapeType === "horizontal-fly") {
+          newShape = flock.createHorizontalCapsuleFromBoundingBox(
+            physicsMesh,
+            flock.scene,
+            0,
+          );
+        } else if (desiredShapeType === "horizontal-fall") {
+          newShape = flock.createHorizontalCapsuleFromBoundingBox(
+            physicsMesh,
+            flock.scene,
+            -0.5,
+          );
+        } else if (desiredShapeType === "sitting") {
+          newShape = flock.createSittingCapsuleFromBoundingBox(
+            physicsMesh,
+            flock.scene,
+          );
+        } else {
+          newShape = flock.createCapsuleFromBoundingBox(
+            physicsMesh,
+            flock.scene,
+          );
+        }
+
+        // Update the physics shape
+        physicsMesh.physics.shape = newShape;
+
+        // Restore physics properties
+        physicsMesh.physics.setMotionType(motionType);
+        physicsMesh.physics.setMassProperties(massProps);
+        physicsMesh.physics.disablePreStep = disablePreStep;
+
+        // Track the current physics shape type
+        skeletonMesh.metadata.currentPhysicsShapeType = desiredShapeType;
+      }
+    }
+
+    return targetAnimationGroup;
+  },
+
   switchAnimationModel(
     meshName,
     { animationName, loop = true, restart = false } = {},
