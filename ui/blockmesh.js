@@ -883,7 +883,7 @@ function updateCylinderGeometry(
   mesh.computeWorldMatrix(true);
 }
 
-function replaceMeshModel(currentMesh, block, changeEvent) {
+function replaceMeshModel2(currentMesh, block, changeEvent) {
   if (!currentMesh || !block) return;
 
   const followerCam = (flock.scene?.cameras || []).find(
@@ -1314,6 +1314,361 @@ function replaceMeshModel(currentMesh, block, changeEvent) {
     });
   }
 }
+
+function replaceMeshModel(currentMesh, block) {
+  if (!currentMesh || !block) return;
+
+  const scene = flock.scene;
+  const modelName = block.getFieldValue("MODELS");
+  if (!modelName) return;
+
+  // ---------- helpers ----------
+  function walkNodes(root) {
+    const out = [];
+    const stack = [root];
+    while (stack.length) {
+      const n = stack.pop();
+      if (!n) continue;
+      out.push(n);
+      if (n.getChildren) {
+        const kids = n.getChildren();
+        for (let i = kids.length - 1; i >= 0; i--) stack.push(kids[i]);
+      }
+    }
+    return out;
+  }
+
+  function isRenderableMesh(n) {
+    const cls = n?.getClassName?.();
+    return cls === "Mesh" || cls === "InstancedMesh";
+  }
+
+  function firstRenderable(node) {
+    const nodes = walkNodes(node);
+    for (const n of nodes) {
+      if (isRenderableMesh(n) && n.name !== "__root__") return n;
+    }
+    return null;
+  }
+
+  function disposeTree(node) {
+    if (!node || node.isDisposed?.()) return;
+    const kids = node.getChildren ? node.getChildren() : [];
+    for (const k of kids) disposeTree(k);
+    try { node.setParent?.(null); } catch {}
+    try { node.dispose?.(); } catch {}
+  }
+
+  function disposePhysics(node) {
+    try { node.physics?.dispose?.(); } catch {}
+  }
+
+  function stripPhysicsTree(root) {
+    const stack = [root];
+    while (stack.length) {
+      const n = stack.pop();
+      if (!n) continue;
+      disposePhysics(n);
+      if (n.getChildren) {
+        const kids = n.getChildren();
+        for (let i = 0; i < kids.length; i++) stack.push(kids[i]);
+      }
+    }
+  }
+
+  function _colToHex(c) {
+    if (!c) return null;
+    const r = Math.round(c.r * 255), g = Math.round(c.g * 255), b = Math.round(c.b * 255);
+    return flock.rgbToHex(r, g, b);
+  }
+
+  function _matPrimaryColor(mat) {
+    if (!mat) return null;
+    return (mat.diffuseColor !== undefined && mat.diffuseColor)
+      ? mat.diffuseColor
+      : (mat.albedoColor !== undefined && mat.albedoColor)
+        ? mat.albedoColor
+        : null;
+  }
+
+  function printMaterialTree(root, label = "MATERIAL_TREE") {
+    function printNode(node, depth) {
+      const indent = "  ".repeat(depth);
+      const cls = node?.getClassName?.();
+      const nm = node?.name;
+      const metaIdx = node?.metadata?.materialIndex;
+      console.log(`${label} - ${indent}${nm} [${cls}] meta.materialIndex=${metaIdx}`);
+
+      let mat = node?.material;
+      let matOwner = "self";
+      if (!mat && cls === "InstancedMesh") {
+        mat = node?.sourceMesh?.material || null;
+        matOwner = mat ? "sourceMesh" : "self";
+      }
+
+      if (!mat) {
+        console.log(`${label}   ${indent}material: none`);
+      } else {
+        const mCls = mat.getClassName?.();
+        console.log(`${label}   ${indent}material(${matOwner}): ${mat.name || "(unnamed)"} [${mCls}]`);
+        if (mCls === "MultiMaterial") {
+          const subs = mat.subMaterials || [];
+          const subMeshes = node.subMeshes || [];
+          console.log(`${label}   ${indent}subMaterials: ${subs.length} | subMeshes: ${subMeshes.length}`);
+          for (let i = 0; i < subs.length; i++) {
+            const sm = subs[i];
+            const c = _matPrimaryColor(sm);
+            console.log(`${label}   ${indent}[${i}] ${sm?.name || "(unnamed)"} color=${_colToHex(c)}`);
+          }
+          for (let i = 0; i < subMeshes.length; i++) {
+            const s = subMeshes[i];
+            const idx = s.materialIndex;
+            const sm = (mat.subMaterials || [])[idx] || null;
+            const c = _matPrimaryColor(sm);
+            console.log(`${label}   ${indent}subMesh#${i} -> subMat#${idx} (${sm?.name || "?"}) color=${_colToHex(c)}`);
+          }
+        } else {
+          const c = _matPrimaryColor(mat);
+          const hasDiff = mat.diffuseColor !== undefined;
+          const hasAlb = mat.albedoColor !== undefined;
+          console.log(`${label}   ${indent}color=${_colToHex(c)} diffuse?=${hasDiff} albedo?=${hasAlb}`);
+        }
+      }
+
+      const kids = node.getChildMeshes?.().sort((a, b) => a.name.localeCompare(b.name)) || [];
+      for (const k of kids) printNode(k, depth + 1);
+    }
+    try { printNode(root, 0); } catch (e) { console.warn(label, "print error", e); }
+  }
+
+  function extractColorsForChangeOrder(root) {
+    const colors = [];
+    const materialToIndex = new Map();
+
+    function visit(part) {
+      let mat = part.material;
+      if (!mat && part.getClassName?.() === "InstancedMesh") {
+        mat = part.sourceMesh?.material || null;
+      }
+      if (mat && !materialToIndex.has(mat)) {
+        const mCls = mat.getClassName?.();
+        if (mCls === "MultiMaterial") {
+          const subs = mat.subMaterials || [];
+          const subMeshes = part.subMeshes || [];
+          let chosen = null;
+          if (subs.length && subMeshes.length) {
+            const idx = subMeshes[0].materialIndex;
+            chosen = _matPrimaryColor(subs[idx]);
+          }
+          if (!chosen && subs.length) chosen = _matPrimaryColor(subs[0]);
+          if (!chosen) chosen = _matPrimaryColor(mat);
+          colors.push(_colToHex(chosen));
+        } else {
+          colors.push(_colToHex(_matPrimaryColor(mat)));
+        }
+        materialToIndex.set(mat, colors.length - 1);
+      }
+      const kids = part.getChildMeshes?.().sort((a, b) => a.name.localeCompare(b.name)) || [];
+      for (const k of kids) visit(k);
+    }
+
+    visit(root);
+    return colors.filter(Boolean);
+  }
+
+  function worldBaseYOfRenderables(roots) {
+    let minY = Infinity;
+    const collect = Array.isArray(roots) ? roots : [roots];
+    for (const r of collect) {
+      const nodes = walkNodes(r);
+      for (const n of nodes) {
+        if (!isRenderableMesh(n)) continue;
+        try {
+          n.computeWorldMatrix(true);
+          n.refreshBoundingInfo?.();
+          const y = n.getBoundingInfo().boundingBox.minimumWorld.y;
+          if (y < minY) minY = y;
+        } catch {}
+      }
+    }
+    return isFinite(minY) ? minY : null;
+  }
+
+  const NAME_TO_PART = {
+    hair: "hair",
+    skin: "skin",
+    eyes: "eyes",
+    shorts: "shorts",
+    tshirt: "tshirt",
+    "t-shirt": "tshirt",
+    tee: "tshirt",
+    sleeves: "sleeves",
+    sleeve: "sleeves",
+    detail: "sleeves",
+  };
+  const partFromName = (name = "") => {
+    const s = name.toLowerCase();
+    for (const key of Object.keys(NAME_TO_PART)) {
+      if (s === key || s.includes(key)) return NAME_TO_PART[key];
+    }
+    return null;
+  };
+
+  function extractCharacterColorsFromHierarchy(root) {
+    const found = {};
+    const nodes = walkNodes(root);
+    for (const n of nodes) {
+      if (!isRenderableMesh(n) || n.name === "__root__") continue;
+      const mat = n.material;
+      if (!mat) continue;
+
+      const cls = mat.getClassName?.();
+      if (cls === "MultiMaterial") {
+        const subMats = mat.subMaterials || [];
+        const subMeshes = n.subMeshes || [];
+        for (let i = 0; i < subMeshes.length; i++) {
+          const idx = subMeshes[i].materialIndex;
+          const sm = subMats[idx] || null;
+          const part = partFromName(sm?.name) || partFromName(n.name) || partFromName(mat.name);
+          const color = sm?.albedoColor || sm?.diffuseColor || null;
+          const hex = _colToHex(color);
+          if (part && hex && !found[part]) found[part] = hex;
+        }
+      } else {
+        const part = partFromName(mat.name) || partFromName(n.name);
+        const color = mat?.albedoColor || mat?.diffuseColor || null;
+        const hex = _colToHex(color);
+        if (part && hex && !found[part]) found[part] = hex;
+      }
+    }
+    return found;
+  }
+
+  function logCharacterPalette(palette, label = "CHAR_COLORS") {
+    console.log(`[${label}]`, JSON.stringify(palette, null, 2));
+  }
+
+  // ---------- capture original children and debug ----------
+  const originalDirectChildren = (currentMesh.getChildren ? currentMesh.getChildren() : []).slice();
+  //const originalNames = originalDirectChildren.map(n => n?.name);
+  //console.log("[replaceMeshModel] Snapshot direct children:", originalNames);
+
+  // Debug old tree before removal
+  /*for (const oc of originalDirectChildren) {
+    if (oc && !oc.isDisposed?.()) {
+      printMaterialTree(oc, "OLD");
+    }
+  }*/
+
+  // ---------- create temp new mesh ----------
+  const tempId = `${modelName}__temp__${Date.now()}`;
+  const isCharacter = (block.type === "load_character");
+  let createArgs;
+
+  if (isCharacter) {
+    const prev = (currentMesh.metadata && currentMesh.metadata.colors) || {};
+    const extracted = extractCharacterColorsFromHierarchy(currentMesh);
+    const characterPalette = { ...prev, ...extracted };
+    logCharacterPalette(characterPalette, "CHAR_FINAL");
+    createArgs = Object.keys(characterPalette).length
+      ? { modelName, modelId: tempId, colors: characterPalette }
+      : { modelName, modelId: tempId };
+  } else {
+    createArgs = { modelName, modelId: tempId };
+  }
+
+  //console.log("[replaceMeshModel] create() args:", createArgs);
+  const newMeshName =
+    isCharacter
+      ? flock.createCharacter(createArgs)
+      : flock.createObject(createArgs);
+
+  flock.whenModelReady(newMeshName, (loadedMesh) => {
+    if (!loadedMesh) return;
+
+    const newChild = firstRenderable(loadedMesh) || loadedMesh;
+
+    // Debug new incoming temp tree
+    //printMaterialTree(loadedMesh, "NEW");
+
+    // Colors to reapply for non-characters
+    let nonCharacterColors = null;
+    if (!isCharacter) {
+      const cols = [];
+      for (const oc of originalDirectChildren) {
+        if (oc && !oc.isDisposed?.()) {
+          const c = extractColorsForChangeOrder(oc);
+          if (c.length) cols.push(...c);
+        }
+      }
+      nonCharacterColors = cols;
+      //console.log("[NONCHAR_COLORS]", nonCharacterColors);
+    }
+
+    // Measure old base (world) before removing originals
+    const oldBaseY = worldBaseYOfRenderables(originalDirectChildren);
+
+    // Remove physics on the temp container to avoid duplicate bodies
+    stripPhysicsTree(loadedMesh);
+
+    // Detach new child from its loader wrapper
+    try { newChild.setParent?.(null, true); } catch {}
+
+    // Remove ONLY the original direct children
+    const removed = [];
+    const skipped = [];
+    for (const child of originalDirectChildren) {
+      if (!child || child.isDisposed?.()) { skipped.push({ name: child?.name, reason: "already disposed" }); continue; }
+      if (child === currentMesh) { skipped.push({ name: child.name, reason: "is parent" }); continue; }
+      if (child.parent !== currentMesh) { skipped.push({ name: child.name, reason: "no longer direct child" }); continue; }
+      stripPhysicsTree(child);
+      disposeTree(child);
+      removed.push(child.name);
+    }
+    //console.log("[replaceMeshModel] Disposed original direct children:", removed);
+    //if (skipped.length) console.log("[replaceMeshModel] Skipped (not removed):", skipped);
+
+    // Parent the replacement under the existing parent
+    newChild.parent = currentMesh;
+
+    // Base alignment (world)
+    if (oldBaseY != null) {
+      try {
+        newChild.computeWorldMatrix(true);
+        newChild.refreshBoundingInfo?.();
+        const newBaseY = newChild.getBoundingInfo().boundingBox.minimumWorld.y;
+        if (isFinite(newBaseY)) {
+          const dy = oldBaseY - newBaseY;
+          const abs = newChild.getAbsolutePosition();
+          newChild.setAbsolutePosition(new flock.BABYLON.Vector3(abs.x, abs.y + dy, abs.z));
+        }
+      } catch {}
+    }
+
+    // Apply colours
+    if (isCharacter) {
+      const palette = (currentMesh.metadata && currentMesh.metadata.colors) || null;
+      if (palette && Object.keys(palette).length) {
+        try { flock.applyColorsToCharacter(currentMesh, palette); } catch {}
+      }
+    } else if (nonCharacterColors && nonCharacterColors.length) {
+      try { flock.changeColorMesh(newChild, nonCharacterColors); } catch (e) {
+        console.warn("changeColorMesh failed", e);
+      }
+    }
+
+    // Dispose loader wrapper if distinct (physics already stripped)
+    if (loadedMesh !== newChild && !loadedMesh.isDisposed?.()) {
+      try { loadedMesh.setParent?.(null); } catch {}
+      try { loadedMesh.dispose?.(); } catch {}
+    }
+
+    /*const childNames = (currentMesh.getChildren ? currentMesh.getChildren() : []).map(n => n.name);
+    console.log(`[replaceMeshModel] Parent '${currentMesh.name}' kept. New children:`, childNames);*/
+  });
+}
+
+
 
 export function updateBlockColorAndHighlight(mesh, selectedColor) {
   // ---------- helpers ----------
