@@ -886,7 +886,6 @@ function updateCylinderGeometry(
 function replaceMeshModel(currentMesh, block) {
   if (!currentMesh || !block) return;
 
-  const scene = flock.scene;
   const modelName = block.getFieldValue("MODELS");
   if (!modelName) return;
 
@@ -1118,6 +1117,8 @@ function replaceMeshModel(currentMesh, block) {
 
   // ---------- capture original children and debug ----------
   const originalDirectChildren = (currentMesh.getChildren ? currentMesh.getChildren() : []).slice();
+  const oldFirstChild = originalDirectChildren.length ? originalDirectChildren[0] : null;
+  const oldChildScale = oldFirstChild?.scaling?.clone?.() || null;
   //const originalNames = originalDirectChildren.map(n => n?.name);
   //console.log("[replaceMeshModel] Snapshot direct children:", originalNames);
 
@@ -1199,6 +1200,29 @@ function replaceMeshModel(currentMesh, block) {
     // Parent the replacement under the existing parent
     newChild.parent = currentMesh;
 
+    // Apply old first child's local scale (if any) to the new child
+    if (oldChildScale && newChild.scaling) {
+      try { newChild.scaling.copyFrom(oldChildScale); } catch {}
+      try {
+        newChild.computeWorldMatrix(true);
+        newChild.refreshBoundingInfo?.();
+      } catch {}
+    }
+
+    // Base alignment (world) uses updated bounds
+    if (oldBaseY != null) {
+      try {
+        newChild.computeWorldMatrix(true);
+        newChild.refreshBoundingInfo?.();
+        const newBaseY = newChild.getBoundingInfo().boundingBox.minimumWorld.y;
+        if (isFinite(newBaseY)) {
+          const dy = oldBaseY - newBaseY;
+          const abs = newChild.getAbsolutePosition();
+          newChild.setAbsolutePosition(new flock.BABYLON.Vector3(abs.x, abs.y + dy, abs.z));
+        }
+      } catch {}
+    }
+
     // Base alignment (world)
     if (oldBaseY != null) {
       try {
@@ -1235,8 +1259,6 @@ function replaceMeshModel(currentMesh, block) {
     console.log(`[replaceMeshModel] Parent '${currentMesh.name}' kept. New children:`, childNames);*/
   });
 }
-
-
 
 export function updateBlockColorAndHighlight(mesh, selectedColor) {
   // ---------- helpers ----------
