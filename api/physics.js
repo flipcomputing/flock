@@ -743,6 +743,8 @@ export const flockPhysics = {
     const boundingInfo = mesh.getBoundingInfo();
 
     const minY = boundingInfo.boundingBox.minimumWorld.y;
+
+    //console.log("Min bounding", minY);
     const rayOrigin = new flock.BABYLON.Vector3(
       boundingInfo.boundingBox.centerWorld.x,
       minY + 0.01,
@@ -752,7 +754,7 @@ export const flockPhysics = {
     const ray = new flock.BABYLON.Ray(
       rayOrigin,
       new flock.BABYLON.Vector3(0, -1, 0),
-      2,
+      0.2,
     );
 
     let parentPickable = false;

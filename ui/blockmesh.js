@@ -1138,7 +1138,7 @@ function replaceMeshModel(currentMesh, block) {
     const prev = (currentMesh.metadata && currentMesh.metadata.colors) || {};
     const extracted = extractCharacterColorsFromHierarchy(currentMesh);
     const characterPalette = { ...prev, ...extracted };
-    logCharacterPalette(characterPalette, "CHAR_FINAL");
+    //logCharacterPalette(characterPalette, "CHAR_FINAL");
     createArgs = Object.keys(characterPalette).length
       ? { modelName, modelId: tempId, colors: characterPalette }
       : { modelName, modelId: tempId };
