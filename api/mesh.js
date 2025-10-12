@@ -24,7 +24,8 @@ export const flockMesh = {
     const radius = Math.min(width, depth) / 2;
 
     // Shrink slightly in world units, clamp to avoid degenerate cylinders
-    const shrinkY = Math.min(0.01, Math.max(0, height - 2 * radius - 1e-6));
+    //const shrinkY = Math.min(0.01, Math.max(0, height - 2 * radius - 1e-6));
+    const shrinkY = 0;
 
     const adjustedHeight = Math.max(0, height - shrinkY);
     const cylinderHeight = Math.max(0, adjustedHeight - 2 * radius);
