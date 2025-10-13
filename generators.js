@@ -2075,7 +2075,7 @@ export function defineGenerators() {
                         Blockly.Names.NameType.VARIABLE,
                 );
                 var animationName = block.getFieldValue("ANIMATION_NAME");
-                var code = `await switchAnimation(${model}, { animationName: "${animationName}" });\n`;
+                var code = `switchAnimation(${model}, { animationName: "${animationName}" });\n`;
                 return code;
         };
 
