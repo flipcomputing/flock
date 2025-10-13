@@ -553,8 +553,6 @@ function focusCameraOnMesh() {
     // Update camera position and target
     camera.setPosition(cameraPosition);
     camera.setTarget(player.position);
-    
-    selectFocusedMesh();
   } else {
     // For other types of cameras
     const currentDistance = camera.radius || 10;
@@ -569,9 +567,8 @@ function focusCameraOnMesh() {
 
     camera.position = newCameraPosition;
     camera.setTarget(newTarget);
-    
-    selectFocusedMesh();
   }
+  selectFocusedMesh();
 }
 
 export function disableGizmos() {
