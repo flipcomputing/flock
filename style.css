@@ -79,7 +79,7 @@
   --color-button-bg-hover:           #333333;
   --color-button-bg-focus:           #444444;
   --color-button-primary:            #bababa;
-  
+  --color-button-scroll:             rgb(186, 186, 186, 0.5);
   --color-text-on-primary:           #bababa;
 
   /* Loading screen gradient */
