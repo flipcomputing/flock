@@ -378,6 +378,7 @@ export const flock = {
 
                         // Shadow dangerous globals by passing them as undefined params
                         const shadowNames = [
+                                // Window and frame access
                                 "window",
                                 "document",
                                 "globalThis",
@@ -385,10 +386,62 @@ export const flock = {
                                 "parent",
                                 "top",
                                 "frames",
+                                "frameElement",
+
+                                // Dynamic code execution
                                 "Function",
+                                "setTimeout",
+                                "setInterval",
+                                "setImmediate",
+
+                                // Network access
                                 "fetch",
                                 "XMLHttpRequest",
+                                "WebSocket",
+                                "EventSource",
+
+                                // Storage APIs
+                                "localStorage",
+                                "sessionStorage",
+                                "indexedDB",
+                                "caches",
+                                "cookieStore",
+
+                                // Navigation and location
+                                "location",
+                                "history",
+                                "navigator",
+
+                                // Popup and modal APIs
+                                "open",
+                                "alert",
+                                "confirm",
+                                "prompt",
+                                "print",
+                                "showModalDialog",
+
+                                // Messaging APIs
+                                "postMessage",
+                                "MessageChannel",
+                                "MessagePort",
+                                "BroadcastChannel",
+
+                                // Worker APIs
+                                "Worker",
+                                "SharedWorker",
+                                "ServiceWorker",
+                                "Worklet",
+                                "importScripts",
+
+                                // Module/import
+                                "require",
+                                "Error",
+                                "Blob",
+                                "File",
+                                "FileReader",
+                                "crypto",
                         ];
+
                         const shadowValues = new Array(shadowNames.length).fill(
                                 undefined,
                         );
@@ -403,7 +456,6 @@ export const flock = {
                                 'Object.defineProperty(Function.prototype,"constructor",{value:undefined,writable:false,configurable:false});' +
                                 "}catch{}";
 
-                        // Freeze safe built-ins to prevent tampering
                         const freezePrelude =
                                 "try{" +
                                 "Object.freeze(Math);" +
@@ -414,6 +466,29 @@ export const flock = {
                                 "Object.freeze(Boolean);" +
                                 "Object.freeze(Array);" +
                                 "Object.freeze(Object);" +
+                                "Object.freeze(RegExp);" +
+                                "Object.freeze(Error);" +
+                                "Object.freeze(TypeError);" +
+                                "Object.freeze(RangeError);" +
+                                "Object.freeze(ReferenceError);" +
+                                "Object.freeze(SyntaxError);" +
+                                "Object.freeze(Promise);" +
+                                "Object.freeze(Set);" +
+                                "Object.freeze(Map);" +
+                                "Object.freeze(WeakSet);" +
+                                "Object.freeze(WeakMap);" +
+                                "Object.freeze(ArrayBuffer);" +
+                                "Object.freeze(Int8Array);" +
+                                "Object.freeze(Uint8Array);" +
+                                "Object.freeze(Int16Array);" +
+                                "Object.freeze(Uint16Array);" +
+                                "Object.freeze(Int32Array);" +
+                                "Object.freeze(Uint32Array);" +
+                                "Object.freeze(Float32Array);" +
+                                "Object.freeze(Float64Array);" +
+                                "Object.freeze(Symbol);" +
+                                "Object.freeze(Proxy);" +
+                                "Object.freeze(Reflect);" +
                                 "}catch{}";
 
                         // Assemble the function body safely (no template literals)
