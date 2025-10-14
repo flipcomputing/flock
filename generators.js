@@ -603,21 +603,33 @@ export function defineGenerators() {
         };
 
         javascriptGenerator.forBlock["print_text"] = function (block) {
-                const text =
-                        javascriptGenerator.valueToCode(
-                                block,
-                                "TEXT",
-                                javascriptGenerator.ORDER_ATOMIC,
-                        ) || "''";
-                const duration =
-                        javascriptGenerator.valueToCode(
-                                block,
-                                "DURATION",
-                                javascriptGenerator.ORDER_ATOMIC,
-                        ) || "0";
-                const color = getFieldValue(block, "COLOR", "#9932CC");
-                return `printText({ text: ${text}, duration: ${duration}, color: ${color} });\n`;
+          const textCode =
+            javascriptGenerator.valueToCode(block, "TEXT", javascriptGenerator.ORDER_NONE) || "''";
+          const durationCode =
+            javascriptGenerator.valueToCode(block, "DURATION", javascriptGenerator.ORDER_NONE) || "0";
+
+          // Color is a field value; constrain to a safe hex literal at generate-time.
+          let colorRaw = getFieldValue(block, "COLOR", "#9932CC");
+          if (typeof colorRaw !== "string") colorRaw = "#9932CC";
+          colorRaw = colorRaw.trim();
+          const colorHex = /^#([0-9a-f]{3}|[0-9a-f]{6}|[0-9a-f]{8})$/i.test(colorRaw) ? colorRaw : "#9932CC";
+          const colorLiteral = JSON.stringify(colorHex);
+
+          // Sanitize text at runtime to preserve support for expressions/variables.
+          const safeTextExpr =
+            `(String(${textCode})` +
+            `.replace(/\\r?\\n/g, " ")` +       // flatten newlines
+            `.replace(/\\*\\//g, "*∕")` +       // prevent closing block comments
+            `.replace(/\\/\\//g, "∕∕")` +       // prevent line comment starts
+            `.replace(/\\u0060/g, "ˋ"))`;       // neutralize backticks
+
+          // Validate duration as a finite, non-negative number.
+          const numDur = `(Number(${durationCode}))`;
+          const safeDurationExpr = `(isFinite(${numDur}) && ${numDur} >= 0 ? ${numDur} : 0)`;
+
+          return `printText({ text: ${safeTextExpr}, duration: ${safeDurationExpr}, color: ${colorLiteral} });\n`;
         };
+
 
         javascriptGenerator.forBlock["set_fog"] = function (block) {
                 const fogColorHex = getFieldValue(
