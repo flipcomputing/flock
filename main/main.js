@@ -45,7 +45,6 @@ import {
         initializeLanguageMenu,
         initializeSavedLanguage,
 } from "./translation.js";
-import { initialize360VideoRecorder } from "./360VideoRecorder.js";
 
 if ("serviceWorker" in navigator) {
         navigator.serviceWorker
