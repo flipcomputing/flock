@@ -303,7 +303,6 @@ export const flock = {
 
                 return true;
         },
-        // Updated runCode with whitelisting + constructor hardening + frozen built-ins
         async runCode(code) {
                 let iframe = document.getElementById("flock-iframe");
 
@@ -337,6 +336,30 @@ export const flock = {
                                         );
                                 iframe.src = "about:blank";
                         });
+
+                        // 3.5) ADD CSP TO IFRAME - Inject before any code execution
+                        const iframeDoc =
+                                iframe.contentDocument ||
+                                iframe.contentWindow.document;
+                        if (!iframeDoc) {
+                                throw new Error(
+                                        "Cannot access iframe document",
+                                );
+                        }
+
+                        // Create and inject CSP meta tag
+                        const meta = iframeDoc.createElement("meta");
+                        meta.httpEquiv = "Content-Security-Policy";
+                        meta.content =
+                                "default-src 'none'; script-src 'unsafe-inline' 'unsafe-eval'; style-src 'unsafe-inline';";
+
+                        // Ensure head exists
+                        if (!iframeDoc.head) {
+                                iframeDoc.documentElement.appendChild(
+                                        iframeDoc.createElement("head"),
+                                );
+                        }
+                        iframeDoc.head.appendChild(meta);
 
                         // 4) Set up iframe window and flock reference
                         const iframeWindow = iframe.contentWindow;
@@ -2871,11 +2894,11 @@ export const flock = {
         },
         // Runtime helper must exist where generated code executes.
         sanitizeInlineText(input) {
-          return String(input)
-            .replace(/\r?\n/g, " ")
-            .replace(/\*\//g, "*∕")
-            .replace(/\/\//g, "∕∕")
-            .replace(/`/g, "ˋ");
+                return String(input)
+                        .replace(/\r?\n/g, " ")
+                        .replace(/\*\//g, "*∕")
+                        .replace(/\/\//g, "∕∕")
+                        .replace(/`/g, "ˋ");
         },
         async forever(action) {
                 let isDisposed = false;
