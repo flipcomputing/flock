@@ -1,0 +1,423 @@
+{
+  "blocks": {
+	"languageVersion": 0,
+	"blocks": [
+	  {
+		"type": "start",
+		"id": "zk/4o@c%q,piDp7b9c/c",
+		"x": 10,
+		"y": 792,
+		"inputs": {
+		  "DO": {
+			"block": {
+			  "type": "set_sky_color",
+			  "id": "0gX8W@jIj%:P5)LwC`bs",
+			  "inputs": {
+				"COLOR": {
+				  "shadow": {
+					"type": "colour",
+					"id": "H{i?4aAVa5qD/sSu6AIw",
+					"fields": {
+					  "COLOR": "#6495ed"
+					}
+				  }
+				}
+			  },
+			  "next": {
+				"block": {
+				  "type": "create_map",
+				  "id": "@DlOWrD)0/RzTE,0~,Q(",
+				  "fields": {
+					"MAP_NAME": "NONE"
+				  },
+				  "inputs": {
+					"MATERIAL": {
+					  "shadow": {
+						"type": "material",
+						"id": "n~r.{6@]sV!3BU4p|^y?",
+						"fields": {
+						  "TEXTURE_SET": "none.png"
+						},
+						"inputs": {
+						  "BASE_COLOR": {
+							"shadow": {
+							  "type": "colour",
+							  "id": "XH]a9aJzR:xA2rMIC*Yb",
+							  "fields": {
+								"COLOR": "#71bc78"
+							  }
+							}
+						  },
+						  "ALPHA": {
+							"shadow": {
+							  "type": "math_number",
+							  "id": "IrZ#A$bUfnr`rfGdXs,*",
+							  "fields": {
+								"NUM": 1
+							  }
+							}
+						  }
+						}
+					  }
+					}
+				  }
+				}
+			  }
+			}
+		  }
+		}
+	  },
+	  {
+		"type": "start",
+		"id": "`dgR!n1Fo71{[mvj}Drh",
+		"x": 10,
+		"y": 10,
+		"inputs": {
+		  "DO": {
+			"block": {
+			  "type": "load_character",
+			  "id": "!8#UQ]b8|2NfcRx?r$-}",
+			  "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" has_do=\"false\"></mutation>",
+			  "fields": {
+				"ID_VAR": {
+				  "id": "np21Qh#%fuan*h-k?Gl*"
+				},
+				"MODELS": "Block4.glb"
+			  },
+			  "inputs": {
+				"SCALE": {
+				  "shadow": {
+					"type": "math_number",
+					"id": "LVrzFfxI+xU[,|,00g]l",
+					"fields": {
+					  "NUM": 1.5
+					}
+				  }
+				},
+				"X": {
+				  "shadow": {
+					"type": "math_number",
+					"id": "JeE4ETlIN4C4[=ui=Lr`",
+					"fields": {
+					  "NUM": -0.1
+					}
+				  }
+				},
+				"Y": {
+				  "shadow": {
+					"type": "math_number",
+					"id": "V,@.Nv1[/Zbj/cyU0^gh",
+					"fields": {
+					  "NUM": 0
+					}
+				  }
+				},
+				"Z": {
+				  "shadow": {
+					"type": "math_number",
+					"id": ":=B=WnU{ifklQ[NJw,*T",
+					"fields": {
+					  "NUM": 0
+					}
+				  }
+				},
+				"HAIR_COLOR": {
+				  "shadow": {
+					"type": "colour",
+					"id": "3o};~4,5Y0v5Ib:,PUE0",
+					"fields": {
+					  "COLOR": "#339999"
+					}
+				  }
+				},
+				"SKIN_COLOR": {
+				  "shadow": {
+					"type": "skin_colour",
+					"id": "QQ3{Q#N~2dF+{M}2Xe8Y",
+					"fields": {
+					  "COLOR": "#5a3c26"
+					}
+				  }
+				},
+				"EYES_COLOR": {
+				  "shadow": {
+					"type": "colour",
+					"id": "D}ZfP+V:}.d_?!1iNG/@",
+					"fields": {
+					  "COLOR": "#000000"
+					}
+				  }
+				},
+				"TSHIRT_COLOR": {
+				  "shadow": {
+					"type": "colour",
+					"id": "`xw?H(KBG~G{qRNj]sP0",
+					"fields": {
+					  "COLOR": "#336666"
+					}
+				  }
+				},
+				"SHORTS_COLOR": {
+				  "shadow": {
+					"type": "colour",
+					"id": "@dA=FEJ;vKOk]`e0(9pm",
+					"fields": {
+					  "COLOR": "#00008b"
+					}
+				  }
+				},
+				"SLEEVES_COLOR": {
+				  "shadow": {
+					"type": "colour",
+					"id": "uPwF2ZxGXy]O7pJqka]#",
+					"fields": {
+					  "COLOR": "#9932cc"
+					}
+				  }
+				}
+			  },
+			  "next": {
+				"block": {
+				  "type": "switch_animation",
+				  "id": "OSoOEsqy,KuVo)I[p*I(",
+				  "fields": {
+					"MODEL": {
+					  "id": "np21Qh#%fuan*h-k?Gl*"
+					},
+					"ANIMATION_NAME": "Idle"
+				  },
+				  "next": {
+					"block": {
+					  "type": "wait_seconds",
+					  "id": "qS=tJ*N]fE2x*oe$BOQJ",
+					  "inputs": {
+						"DURATION": {
+						  "shadow": {
+							"type": "math_number",
+							"id": "QY)zcuv!+ZWzH#^BRhg.",
+							"fields": {
+							  "NUM": 1
+							}
+						  }
+						}
+					  },
+					  "next": {
+						"block": {
+						  "type": "switch_animation",
+						  "id": "CNDhp,2*GqRD%,pM6K$z",
+						  "fields": {
+							"MODEL": {
+							  "id": "np21Qh#%fuan*h-k?Gl*"
+							},
+							"ANIMATION_NAME": "Wave"
+						  },
+						  "next": {
+							"block": {
+							  "type": "say",
+							  "id": "98S;l,AH_L@UYy6^IJ#[",
+							  "fields": {
+								"MESH_VAR": {
+								  "id": "np21Qh#%fuan*h-k?Gl*"
+								},
+								"MODE": "ADD",
+								"ASYNC": "AWAIT"
+							  },
+							  "inputs": {
+								"TEXT": {
+								  "shadow": {
+									"type": "text",
+									"id": "z6eGYlsm}:Pwb=3^PTaJ",
+									"fields": {
+									  "TEXT": "Hello"
+									}
+								  }
+								},
+								"DURATION": {
+								  "shadow": {
+									"type": "math_number",
+									"id": "bP]4g4gkzuSD._AWL/Zm",
+									"fields": {
+									  "NUM": 3
+									}
+								  }
+								},
+								"TEXT_COLOR": {
+								  "shadow": {
+									"type": "colour",
+									"id": "TBdeV.p,O8BJUr]vuuiY",
+									"fields": {
+									  "COLOR": "#000000"
+									}
+								  }
+								},
+								"BACKGROUND_COLOR": {
+								  "shadow": {
+									"type": "colour",
+									"id": "f3lQ`.vASB0IQMD_.qR)",
+									"fields": {
+									  "COLOR": "#ffffff"
+									}
+								  }
+								},
+								"ALPHA": {
+								  "shadow": {
+									"type": "math_number",
+									"id": "k|.}NaPdqyiXFj^Oa=CP",
+									"fields": {
+									  "NUM": 1
+									}
+								  }
+								},
+								"SIZE": {
+								  "shadow": {
+									"type": "math_number",
+									"id": "*43[iDLBQ4Asn_*o(d_%",
+									"fields": {
+									  "NUM": 20
+									}
+								  }
+								}
+							  },
+							  "next": {
+								"block": {
+								  "type": "switch_animation",
+								  "id": "sW?e;n[9z8H{BUW4E2hW",
+								  "fields": {
+									"MODEL": {
+									  "id": "np21Qh#%fuan*h-k?Gl*"
+									},
+									"ANIMATION_NAME": "Idle"
+								  },
+								  "next": {
+									"block": {
+									  "type": "wait_seconds",
+									  "id": "zh/|.OsV1=o.bIy7qQWA",
+									  "inputs": {
+										"DURATION": {
+										  "shadow": {
+											"type": "math_number",
+											"id": "!OTL[c-XwiVRM,3dEli+",
+											"fields": {
+											  "NUM": 1
+											}
+										  }
+										}
+									  },
+									  "next": {
+										"block": {
+										  "type": "say",
+										  "id": "a^Fv57lMSS7L3^JfF_rq",
+										  "fields": {
+											"MESH_VAR": {
+											  "id": "np21Qh#%fuan*h-k?Gl*"
+											},
+											"MODE": "ADD",
+											"ASYNC": "START"
+										  },
+										  "inputs": {
+											"TEXT": {
+											  "shadow": {
+												"type": "text",
+												"id": "x_]gsFOt#HWs;;i(BTpx",
+												"fields": {
+												  "TEXT": "Flip!"
+												}
+											  }
+											},
+											"DURATION": {
+											  "shadow": {
+												"type": "math_number",
+												"id": "TIP)6h|^7oO;tq(^H=(l",
+												"fields": {
+												  "NUM": 2
+												}
+											  }
+											},
+											"TEXT_COLOR": {
+											  "shadow": {
+												"type": "colour",
+												"id": "F4uJGWYkoDIZfJvbb%W8",
+												"fields": {
+												  "COLOR": "#000000"
+												}
+											  }
+											},
+											"BACKGROUND_COLOR": {
+											  "shadow": {
+												"type": "colour",
+												"id": "doUt1Bn1=[4V9A]1fp|L",
+												"fields": {
+												  "COLOR": "#ffffff"
+												}
+											  }
+											},
+											"ALPHA": {
+											  "shadow": {
+												"type": "math_number",
+												"id": "D3RPl93kA{%M`iQ/Uk7k",
+												"fields": {
+												  "NUM": 1
+												}
+											  }
+											},
+											"SIZE": {
+											  "shadow": {
+												"type": "math_number",
+												"id": "g18RZmGvkB,/g;u|m%w-",
+												"fields": {
+												  "NUM": 20
+												}
+											  }
+											}
+										  },
+										  "next": {
+											"block": {
+											  "type": "play_animation",
+											  "id": "iSfwvPz;99fQ[5pDcTN8",
+											  "fields": {
+												"ANIMATION_NAME": "Flip",
+												"MODEL": {
+												  "id": "np21Qh#%fuan*h-k?Gl*"
+												}
+											  },
+											  "next": {
+												"block": {
+												  "type": "switch_animation",
+												  "id": "^#7L*L:?-JL8:%$*{gDo",
+												  "fields": {
+													"MODEL": {
+													  "id": "np21Qh#%fuan*h-k?Gl*"
+													},
+													"ANIMATION_NAME": "Idle"
+												  }
+												}
+											  }
+											}
+										  }
+										}
+									  }
+									}
+								  }
+								}
+							  }
+							}
+						  }
+						}
+					  }
+					}
+				  }
+				}
+			  }
+			}
+		  }
+		}
+	  }
+	]
+  },
+  "variables": [
+	{
+	  "name": "character1",
+	  "id": "np21Qh#%fuan*h-k?Gl*"
+	}
+  ]
+}
