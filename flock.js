@@ -321,6 +321,8 @@ export const flock = {
                                 // 2) Create a new iframe if not found
                                 iframe = document.createElement("iframe");
                                 iframe.id = "flock-iframe";
+                                iframe.sandbox =
+                                        "allow-scripts allow-same-origin";
                                 iframe.style.display = "none";
                                 document.body.appendChild(iframe);
                         }
