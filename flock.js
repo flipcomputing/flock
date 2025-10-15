@@ -2,6 +2,8 @@
 // Dr Tracy Gardner - https://github.com/tracygardner
 // Flip Computing Limited - flipcomputing.com
 
+import * as acorn from "acorn";
+import * as walk from "acorn-walk";
 import HavokPhysics from "@babylonjs/havok";
 import * as BABYLON from "@babylonjs/core";
 import * as BABYLON_GUI from "@babylonjs/gui";
@@ -303,8 +305,129 @@ export const flock = {
 
                 return true;
         },
+        validateUserCodeAST(src) {
+                // 1) Very broad identifier blocklist (names anywhere in user code)
+                const REJECT_IDENTIFIERS = new Set([
+                  // dynamic code / reflection
+                  "eval","Function","AsyncFunction","GeneratorFunction","Proxy","Reflect",
+                  // frames & globals
+                  "window","document","globalThis","self","parent","top","frames","frameElement",
+                  // navigation & env
+                  "location","history","navigator","opener",
+                  // network / ipc
+                  "fetch","XMLHttpRequest","WebSocket","EventSource","postMessage",
+                  "MessageChannel","MessagePort","BroadcastChannel",
+                  // workers & worklets
+                  "Worker","SharedWorker","ServiceWorker","Worklet","importScripts",
+                  // storage / persistence
+                  "localStorage","sessionStorage","indexedDB","caches","cookieStore",
+                  // file/blob/crypto
+                  "Blob","File","FileReader","crypto",
+                  // urls & media constructors
+                  "URL","URLSearchParams","Image","Audio","RTCPeerConnection","MediaDevices","Notification",
+                  // popups / UI
+                  "open","alert","confirm","prompt","print","showModalDialog",
+                  // timers (we’ll also do special checks)
+                  "setTimeout","setInterval","setImmediate","queueMicrotask",
+                  // module-ish
+                  "require",
+                ]);
+
+                // 2) Callees we never allow (even if shadowed)
+                const REJECT_CALLEES = new Set([
+                  "eval","Function","AsyncFunction","GeneratorFunction",
+                  "setTimeout","setInterval","setImmediate","queueMicrotask",
+                  "open","alert","confirm","prompt","print",
+                ]);
+
+                // 3) Member/property names that are escape hatches
+                const REJECT_PROPERTIES = new Set([
+                  "constructor","__proto__","prototype","caller","callee","arguments"
+                ]);
+          let ast;
+          try {
+            ast = acorn.parse(src, {
+              ecmaVersion: "latest",
+              sourceType: "script",
+              allowAwaitOutsideFunction: true,
+              locations: false
+            });
+          } catch (e) {
+            // Surface syntax errors directly
+            throw e;
+          }
+
+          walk.simple(ast, {
+            // Syntax we never allow
+            WithStatement()        { throw new Error("with() not allowed"); },
+            DebuggerStatement()    { throw new Error("debugger not allowed"); },
+            ImportDeclaration()    { throw new Error("import declarations not allowed"); },
+            ExportNamedDeclaration(){ throw new Error("export not allowed"); },
+            ExportDefaultDeclaration(){ throw new Error("export not allowed"); },
+            ImportExpression()     { throw new Error("dynamic import() not allowed"); },
+            MetaProperty(n) {
+              if (n.meta?.name === "import") throw new Error("import.meta not allowed");
+            },
+
+            // Any usage of these identifiers anywhere
+            Identifier(n) {
+              if (REJECT_IDENTIFIERS.has(n.name)) {
+                throw new Error(`Identifier '${n.name}' is not allowed`);
+              }
+            },
+
+            // Ban .constructor / .__proto__ / .prototype / .caller / .callee / .arguments
+            MemberExpression(n) {
+              // foo.bar
+              if (!n.computed && n.property?.type === "Identifier" &&
+                  REJECT_PROPERTIES.has(n.property.name)) {
+                throw new Error(`Access to '.${n.property.name}' is not allowed`);
+              }
+              // foo["constructor"]
+              if (n.computed && n.property?.type === "Literal" &&
+                  typeof n.property.value === "string" &&
+                  REJECT_PROPERTIES.has(n.property.value)) {
+                throw new Error(`Access to '["${n.property.value}"]' is not allowed`);
+              }
+            },
+
+            // Disallow dangerous callees; forbid string-eval timers
+            CallExpression(n) {
+              const callee = n.callee;
+              const name =
+                callee?.type === "Identifier" ? callee.name :
+                callee?.type === "MemberExpression" && !callee.computed && callee.property?.type === "Identifier"
+                  ? callee.property.name
+                  : null;
+
+              if (name && REJECT_CALLEES.has(name)) {
+                // Special case: timers with string as first arg (string-eval)
+                if ((name === "setTimeout" || name === "setInterval") &&
+                    n.arguments[0]?.type === "Literal" &&
+                    typeof n.arguments[0].value === "string") {
+                  throw new Error("String-eval timers are not allowed");
+                }
+                // Block all the listed callees regardless
+                throw new Error(`Call to '${name}()' is not allowed`);
+              }
+            },
+
+            // new Function(), new Worker(), etc.
+            NewExpression(n) {
+              const callee = n.callee;
+              const name = callee?.type === "Identifier" ? callee.name : null;
+              if (name && (REJECT_CALLEES.has(name) || REJECT_IDENTIFIERS.has(name))) {
+                throw new Error(`'new ${name}()' is not allowed`);
+              }
+            },
+          });
+        },
         async runCode(code) {
+
+                //code = "alert('Hello, world!');";
+                
                 try {
+                        flock.validateUserCodeAST(code);
                         await flock.disposeOldScene();
 
                         // at the very start of runCode
