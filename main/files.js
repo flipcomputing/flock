@@ -119,6 +119,11 @@ function validateBlocklyJson(json) {
 
 	// 3. Validate it's actually a Blockly workspace structure
 	function validateBlocklyStructure(data) {
+		// Empty workspace is valid
+		if (Object.keys(data).length === 0) {
+			return;
+		}
+
 		// Blockly workspace JSON should have specific structure
 		// Check if data.blocks exists and is a non-null object (not an array)
 		if (!data.blocks || typeof data.blocks !== 'object' || Array.isArray(data.blocks)) {
