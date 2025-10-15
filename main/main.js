@@ -488,9 +488,6 @@ window.onload = async function () {
 
         loadWorkspace(workspace, executeCode);
 
-        // Initialize 360 video recorder
-        initialize360VideoRecorder();
-
         // Add event listener for keyboard shortcuts
         document.addEventListener("keydown", function (event) {
                 // Check if Ctrl+Shift+2 is pressed
