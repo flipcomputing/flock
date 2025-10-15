@@ -49,7 +49,7 @@ function emitSafeTextArg(code) {
   let decoded;
   try { decoded = JSON.parse(q + body + q); }
   catch {
-    decoded = body.replace(/\\\\/g, "\\").replace(/\\"/g, '"').replace(/\\'/g, "'");
+    decoded = body.replace(/\\"/g, '"').replace(/\\'/g, "'").replace(/\\\\/g, "\\");
   }
 
   return JSON.stringify(sanitizeForCode(decoded));
