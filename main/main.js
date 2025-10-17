@@ -45,7 +45,6 @@ import {
         initializeLanguageMenu,
         initializeSavedLanguage,
 } from "./translation.js";
-import { initialize360VideoRecorder } from "./360VideoRecorder.js";
 
 if ("serviceWorker" in navigator) {
         navigator.serviceWorker
@@ -488,9 +487,6 @@ window.onload = async function () {
         setupInput();
 
         loadWorkspace(workspace, executeCode);
-
-        // Initialize 360 video recorder
-        initialize360VideoRecorder();
 
         // Add event listener for keyboard shortcuts
         document.addEventListener("keydown", function (event) {
