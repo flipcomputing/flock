@@ -442,7 +442,7 @@ button {
   height: 20px;
 } */
 
-#colorPickerButton img {
+#colorPickerButton svg {
   filter: invert(1) brightness(2); /* Make palette icon white */
 }
 
