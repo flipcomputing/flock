@@ -430,12 +430,16 @@ button {
  
 }
 
-.gizmo-button img {
+.gizmo-button svg {
   filter: none; /* light mode: normal */
+  width: 20px;
+  height: 20px;
 }
 
-[data-theme="dark"] .gizmo-button img {
+[data-theme="dark"] .gizmo-button svg {
   filter: invert(30%) sepia(2%) saturate(0%) hue-rotate(180deg) brightness(96%) contrast(85%);
+  width: 20px;
+  height: 20px;
 }
 
 #colorPickerButton img {
