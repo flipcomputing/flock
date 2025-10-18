@@ -883,436 +883,381 @@ function updateCylinderGeometry(
   mesh.computeWorldMatrix(true);
 }
 
-function replaceMeshModel(currentMesh, block, changeEvent) {
+function replaceMeshModel(currentMesh, block) {
   if (!currentMesh || !block) return;
 
-  const followerCam = (flock.scene?.cameras || []).find(
-    (c) =>
-      c?.metadata?.following === currentMesh ||
-      c?.lockedTarget === currentMesh ||
-      (c?.getClassName?.() === "ArcRotateCamera" && c.target === currentMesh) ||
-      c?.parent === currentMesh,
-  );
-  // Boolean:
-  const hasAnyCameraAttached = !!followerCam;
+  const modelName = block.getFieldValue("MODELS");
+  if (!modelName) return;
 
+  // ---------- helpers ----------
+  function walkNodes(root) {
+    const out = [];
+    const stack = [root];
+    while (stack.length) {
+      const n = stack.pop();
+      if (!n) continue;
+      out.push(n);
+      if (n.getChildren) {
+        const kids = n.getChildren();
+        for (let i = kids.length - 1; i >= 0; i--) stack.push(kids[i]);
+      }
+    }
+    return out;
+  }
 
-  const scene = flock.scene;
-  const animationName = flock.getCurrentAnimationName(currentMesh);
+  function isRenderableMesh(n) {
+    const cls = n?.getClassName?.();
+    return cls === "Mesh" || cls === "InstancedMesh";
+  }
 
-  currentMesh.computeWorldMatrix(true);
-  currentMesh.refreshBoundingInfo();
+  function firstRenderable(node) {
+    const nodes = walkNodes(node);
+    for (const n of nodes) {
+      if (isRenderableMesh(n) && n.name !== "__root__") return n;
+    }
+    return null;
+  }
 
-  const currentBottomY =
-    currentMesh.getBoundingInfo().boundingBox.minimumWorld.y;
+  function disposeTree(node) {
+    if (!node || node.isDisposed?.()) return;
+    const kids = node.getChildren ? node.getChildren() : [];
+    for (const k of kids) disposeTree(k);
+    try { node.setParent?.(null); } catch {}
+    try { node.dispose?.(); } catch {}
+  }
 
-  const savedParent = currentMesh.parent || null;
+  function disposePhysics(node) {
+    try { node.physics?.dispose?.(); } catch {}
+  }
 
-  // Save world-space forward/up to reconstruct yaw/pitch/roll in DEGREES later
-  const savedForward = currentMesh.getDirection(flock.BABYLON.Axis.Z).clone();
-  const savedUp = currentMesh.getDirection(flock.BABYLON.Axis.Y).clone();
-
-  // Cameras attached to the old mesh
-  const cameraAttachments = [];
-  if (scene?.cameras?.length) {
-    for (const cam of scene.cameras) {
-      if (cam.lockedTarget === currentMesh)
-        cameraAttachments.push({ cam, kind: "lockedTarget" });
-      if (cam.parent === currentMesh)
-        cameraAttachments.push({ cam, kind: "parent" });
-      if (
-        cam.getClassName &&
-        cam.getClassName() === "ArcRotateCamera" &&
-        cam.target === currentMesh
-      ) {
-        cameraAttachments.push({ cam, kind: "arcSetTarget" });
+  function stripPhysicsTree(root) {
+    const stack = [root];
+    while (stack.length) {
+      const n = stack.pop();
+      if (!n) continue;
+      disposePhysics(n);
+      if (n.getChildren) {
+        const kids = n.getChildren();
+        for (let i = 0; i < kids.length; i++) stack.push(kids[i]);
       }
     }
   }
 
-  const actualMeshPosition = {
-    x: currentMesh.position.x,
-    y: currentMesh.position.y,
-    z: currentMesh.position.z,
-  };
+  function _colToHex(c) {
+    if (!c) return null;
+    const r = Math.round(c.r * 255), g = Math.round(c.g * 255), b = Math.round(c.b * 255);
+    return flock.rgbToHex(r, g, b);
+  }
 
-  const currentBlockPosition = {
-    x: parseFloat(
-      block.getInput("X").connection.targetBlock().getFieldValue("NUM"),
-    ),
-    y: parseFloat(
-      block.getInput("Y").connection.targetBlock().getFieldValue("NUM"),
-    ),
-    z: parseFloat(
-      block.getInput("Z").connection.targetBlock().getFieldValue("NUM"),
-    ),
-  };
+  function _matPrimaryColor(mat) {
+    if (!mat) return null;
+    return (mat.diffuseColor !== undefined && mat.diffuseColor)
+      ? mat.diffuseColor
+      : (mat.albedoColor !== undefined && mat.albedoColor)
+        ? mat.albedoColor
+        : null;
+  }
 
-  const meshState = {
-    position: actualMeshPosition,
-    currentBlockPosition,
-    currentBottomY,
-    parent: savedParent,
-    scaling: currentMesh.scaling.clone(),
-    physics: currentMesh.physics
-      ? {
-          motionType: currentMesh.physics.getMotionType(),
-          mass: currentMesh.physics.getMassProperties().mass,
-          friction: currentMesh.physics.shape?.friction,
-          restitution: currentMesh.physics.shape?.restitution,
-          disablePreStep: currentMesh.physics.disablePreStep,
-          linearDamping: currentMesh.physics.getLinearDamping?.() || 0,
-          angularDamping: currentMesh.physics.getAngularDamping?.() || 0,
-          linearVelocity: currentMesh.physics.getLinearVelocity().clone(),
-          angularVelocity: currentMesh.physics.getAngularVelocity().clone(),
+  function printMaterialTree(root, label = "MATERIAL_TREE") {
+    function printNode(node, depth) {
+      const indent = "  ".repeat(depth);
+      const cls = node?.getClassName?.();
+      const nm = node?.name;
+      const metaIdx = node?.metadata?.materialIndex;
+      console.log(`${label} - ${indent}${nm} [${cls}] meta.materialIndex=${metaIdx}`);
+
+      let mat = node?.material;
+      let matOwner = "self";
+      if (!mat && cls === "InstancedMesh") {
+        mat = node?.sourceMesh?.material || null;
+        matOwner = mat ? "sourceMesh" : "self";
+      }
+
+      if (!mat) {
+        console.log(`${label}   ${indent}material: none`);
+      } else {
+        const mCls = mat.getClassName?.();
+        console.log(`${label}   ${indent}material(${matOwner}): ${mat.name || "(unnamed)"} [${mCls}]`);
+        if (mCls === "MultiMaterial") {
+          const subs = mat.subMaterials || [];
+          const subMeshes = node.subMeshes || [];
+          console.log(`${label}   ${indent}subMaterials: ${subs.length} | subMeshes: ${subMeshes.length}`);
+          for (let i = 0; i < subs.length; i++) {
+            const sm = subs[i];
+            const c = _matPrimaryColor(sm);
+            console.log(`${label}   ${indent}[${i}] ${sm?.name || "(unnamed)"} color=${_colToHex(c)}`);
+          }
+          for (let i = 0; i < subMeshes.length; i++) {
+            const s = subMeshes[i];
+            const idx = s.materialIndex;
+            const sm = (mat.subMaterials || [])[idx] || null;
+            const c = _matPrimaryColor(sm);
+            console.log(`${label}   ${indent}subMesh#${i} -> subMat#${idx} (${sm?.name || "?"}) color=${_colToHex(c)}`);
+          }
+        } else {
+          const c = _matPrimaryColor(mat);
+          const hasDiff = mat.diffuseColor !== undefined;
+          const hasAlb = mat.albedoColor !== undefined;
+          console.log(`${label}   ${indent}color=${_colToHex(c)} diffuse?=${hasDiff} albedo?=${hasAlb}`);
         }
-      : null,
-    savedMotionType: currentMesh.savedMotionType,
-    metadata: { ...currentMesh.metadata },
-    blockKey: currentMesh.metadata?.blockKey,
-    material: currentMesh.material,
-    isVisible: currentMesh.isVisible,
-    originalName: currentMesh.name,
-    originalBaseName:
-      currentMesh.metadata?.originalBaseName || currentMesh.name.split("__")[0],
+      }
+
+      const kids = node.getChildMeshes?.().sort((a, b) => a.name.localeCompare(b.name)) || [];
+      for (const k of kids) printNode(k, depth + 1);
+    }
+    try { printNode(root, 0); } catch (e) { console.warn(label, "print error", e); }
+  }
+
+  function extractColorsForChangeOrder(root) {
+    const colors = [];
+    const materialToIndex = new Map();
+
+    function visit(part) {
+      let mat = part.material;
+      if (!mat && part.getClassName?.() === "InstancedMesh") {
+        mat = part.sourceMesh?.material || null;
+      }
+      if (mat && !materialToIndex.has(mat)) {
+        const mCls = mat.getClassName?.();
+        if (mCls === "MultiMaterial") {
+          const subs = mat.subMaterials || [];
+          const subMeshes = part.subMeshes || [];
+          let chosen = null;
+          if (subs.length && subMeshes.length) {
+            const idx = subMeshes[0].materialIndex;
+            chosen = _matPrimaryColor(subs[idx]);
+          }
+          if (!chosen && subs.length) chosen = _matPrimaryColor(subs[0]);
+          if (!chosen) chosen = _matPrimaryColor(mat);
+          colors.push(_colToHex(chosen));
+        } else {
+          colors.push(_colToHex(_matPrimaryColor(mat)));
+        }
+        materialToIndex.set(mat, colors.length - 1);
+      }
+      const kids = part.getChildMeshes?.().sort((a, b) => a.name.localeCompare(b.name)) || [];
+      for (const k of kids) visit(k);
+    }
+
+    visit(root);
+    return colors.filter(Boolean);
+  }
+
+  function worldBaseYOfRenderables(roots) {
+    let minY = Infinity;
+    const collect = Array.isArray(roots) ? roots : [roots];
+    for (const r of collect) {
+      const nodes = walkNodes(r);
+      for (const n of nodes) {
+        if (!isRenderableMesh(n)) continue;
+        try {
+          n.computeWorldMatrix(true);
+          n.refreshBoundingInfo?.();
+          const y = n.getBoundingInfo().boundingBox.minimumWorld.y;
+          if (y < minY) minY = y;
+        } catch {}
+      }
+    }
+    return isFinite(minY) ? minY : null;
+  }
+
+  const NAME_TO_PART = {
+    hair: "hair",
+    skin: "skin",
+    eyes: "eyes",
+    shorts: "shorts",
+    tshirt: "tshirt",
+    "t-shirt": "tshirt",
+    tee: "tshirt",
+    sleeves: "sleeves",
+    sleeve: "sleeves",
+    detail: "sleeves",
+  };
+  const partFromName = (name = "") => {
+    const s = name.toLowerCase();
+    for (const key of Object.keys(NAME_TO_PART)) {
+      if (s === key || s.includes(key)) return NAME_TO_PART[key];
+    }
+    return null;
   };
 
-  const newModelName = block.getFieldValue("MODELS");
-  const scale = block
-    .getInput("SCALE")
-    .connection.targetBlock()
-    .getFieldValue("NUM");
+  function extractCharacterColorsFromHierarchy(root) {
+    const found = {};
+    const nodes = walkNodes(root);
+    for (const n of nodes) {
+      if (!isRenderableMesh(n) || n.name === "__root__") continue;
+      const mat = n.material;
+      if (!mat) continue;
 
-  let color;
-  if (block.type === "load_multi_object") {
-    const colorsBlock = block.getInput("COLORS").connection.targetBlock();
-    let colorsArray = [];
-    if (colorsBlock) {
-      colorsBlock.childBlocks_.forEach((childBlock) => {
-        const colorValue = childBlock.getFieldValue("COLOR");
-        if (colorValue) colorsArray.push(colorValue);
-      });
-    }
-    color = colorsArray;
-  } else if (block.type === "load_character") {
-    color = {};
-    const colorMapping = {
-      HAIR_COLOR: "hair",
-      SKIN_COLOR: "skin",
-      EYES_COLOR: "eyes",
-      TSHIRT_COLOR: "tshirt",
-      SHORTS_COLOR: "shorts",
-      SLEEVES_COLOR: "sleeves",
-    };
-    Object.entries(colorMapping).forEach(([inputName, colorKey]) => {
-      const input = block.getInput(inputName);
-      if (input && input.connection && input.connection.targetBlock()) {
-        color[colorKey] = input.connection.targetBlock().getFieldValue("COLOR");
+      const cls = mat.getClassName?.();
+      if (cls === "MultiMaterial") {
+        const subMats = mat.subMaterials || [];
+        const subMeshes = n.subMeshes || [];
+        for (let i = 0; i < subMeshes.length; i++) {
+          const idx = subMeshes[i].materialIndex;
+          const sm = subMats[idx] || null;
+          const part = partFromName(sm?.name) || partFromName(n.name) || partFromName(mat.name);
+          const color = sm?.albedoColor || sm?.diffuseColor || null;
+          const hex = _colToHex(color);
+          if (part && hex && !found[part]) found[part] = hex;
+        }
+      } else {
+        const part = partFromName(mat.name) || partFromName(n.name);
+        const color = mat?.albedoColor || mat?.diffuseColor || null;
+        const hex = _colToHex(color);
+        if (part && hex && !found[part]) found[part] = hex;
       }
-    });
+    }
+    return found;
+  }
+
+  function logCharacterPalette(palette, label = "CHAR_COLORS") {
+    console.log(`[${label}]`, JSON.stringify(palette, null, 2));
+  }
+
+  // ---------- capture original children and debug ----------
+  const originalDirectChildren = (currentMesh.getChildren ? currentMesh.getChildren() : []).slice();
+  const oldFirstChild = originalDirectChildren.length ? originalDirectChildren[0] : null;
+  const oldChildScale = oldFirstChild?.scaling?.clone?.() || null;
+  //const originalNames = originalDirectChildren.map(n => n?.name);
+  //console.log("[replaceMeshModel] Snapshot direct children:", originalNames);
+
+  // Debug old tree before removal
+  /*for (const oc of originalDirectChildren) {
+    if (oc && !oc.isDisposed?.()) {
+      printMaterialTree(oc, "OLD");
+    }
+  }*/
+
+  // ---------- create temp new mesh ----------
+  const tempId = `${modelName}__temp__${Date.now()}`;
+  const isCharacter = (block.type === "load_character");
+  let createArgs;
+
+  if (isCharacter) {
+    const prev = (currentMesh.metadata && currentMesh.metadata.colors) || {};
+    const extracted = extractCharacterColorsFromHierarchy(currentMesh);
+    const characterPalette = { ...prev, ...extracted };
+    //logCharacterPalette(characterPalette, "CHAR_FINAL");
+    createArgs = Object.keys(characterPalette).length
+      ? { modelName, modelId: tempId, colors: characterPalette }
+      : { modelName, modelId: tempId };
   } else {
-    color = block
-      .getInput("COLOR")
-      .connection.targetBlock()
-      .getFieldValue("COLOR");
+    createArgs = { modelName, modelId: tempId };
   }
 
-  const tempMeshId = `${newModelName}__${block.id}__${Date.now()}`;
-  const targetName = meshState.originalName;
+  //console.log("[replaceMeshModel] create() args:", createArgs);
+  const newMeshName =
+    isCharacter
+      ? flock.createCharacter(createArgs)
+      : flock.createObject(createArgs);
 
-  if (currentMesh.name !== "__root__") {
-    flock.disposeMesh(currentMesh);
-  }
-
-  function reattachCameras(target) {
-    for (const { cam, kind } of cameraAttachments) {
-      if (kind === "lockedTarget") cam.lockedTarget = target;
-      if (kind === "parent") cam.parent = target;
-      if (kind === "arcSetTarget" && cam.setTarget) cam.setTarget(target);
-    }
-
-    if (hasAnyCameraAttached) {
-      target.metadata.constraint = false;
-      target.metadata._uprightStabiliser = false;
-      flock.updatePhysics(target);
-      flock.ensureVerticalConstraint(target, hasAnyCameraAttached);
-    }
-  }
-
-  function alignBottom(loadedMesh) {
-    loadedMesh.computeWorldMatrix(true);
-    loadedMesh.refreshBoundingInfo();
-    const newBottomY = loadedMesh.getBoundingInfo().boundingBox.minimumWorld.y;
-    loadedMesh.position.y += meshState.currentBottomY - newBottomY;
-  }
-
-  // Convert saved forward/up to Euler degrees (yaw, pitch, roll)
-  function computeEulerDegreesFromForwardUp(fwd, up) {
-    const nx = fwd.x,
-      ny = fwd.y,
-      nz = fwd.z;
-    const yawDeg = (Math.atan2(nx, nz) * 180) / Math.PI; // Y axis
-    const pitchDeg = (Math.atan2(-ny, Math.hypot(nx, nz)) * 180) / Math.PI; // X axis
-    let rollDeg = 0;
-    if (Math.abs(up.x) + Math.abs(up.z) > 1e-4) {
-      const worldRight = new flock.BABYLON.Vector3(1, 0, 0);
-      const right = flock.BABYLON.Vector3.Cross(up, fwd).normalize();
-      rollDeg =
-        (Math.acos(
-          Math.max(
-            -1,
-            Math.min(1, flock.BABYLON.Vector3.Dot(right, worldRight)),
-          ),
-        ) *
-          180) /
-        Math.PI;
-      if (right.z < 0) rollDeg = -rollDeg;
-    }
-    return { x: pitchDeg, y: yawDeg, z: rollDeg };
-  }
-
-  function applyFacingWithRotateTo(target) {
-    const eulerDeg = computeEulerDegreesFromForwardUp(savedForward, savedUp);
-    // Ensure Euler path is used by rotateTo
-    target.rotationQuaternion = null;
-    flock.rotateTo(target.name, {
-      x: eulerDeg.x,
-      y: eulerDeg.y,
-      z: eulerDeg.z,
-    });
-  }
-
-  function finalizeNewMesh(loadedMesh) {
+  flock.whenModelReady(newMeshName, (loadedMesh) => {
     if (!loadedMesh) return;
 
-    loadedMesh.metadata = loadedMesh.metadata || {};
-    loadedMesh.metadata.blockKey = meshState.blockKey;
-    loadedMesh.name = targetName;
+    const newChild = firstRenderable(loadedMesh) || loadedMesh;
 
-    if (meshState.parent) loadedMesh.parent = meshState.parent;
+    // Debug new incoming temp tree
+    //printMaterialTree(loadedMesh, "NEW");
 
-    loadedMesh.position.x = meshState.position.x;
-    loadedMesh.position.z = meshState.position.z;
-
-    let scaleBlock = null;
-    const modelVariable = block.getFieldValue("ID_VAR");
-    const doInput = block.getInput("DO");
-    if (doInput && doInput.connection && doInput.connection.targetBlock()) {
-      let currentBlock = doInput.connection.targetBlock();
-      while (currentBlock) {
-        if (currentBlock.type === "scale") {
-          const modelField = currentBlock.getFieldValue("BLOCK_NAME");
-          if (modelField === modelVariable) {
-            scaleBlock = currentBlock;
-            break;
-          }
+    // Colors to reapply for non-characters
+    let nonCharacterColors = null;
+    if (!isCharacter) {
+      const cols = [];
+      for (const oc of originalDirectChildren) {
+        if (oc && !oc.isDisposed?.()) {
+          const c = extractColorsForChangeOrder(oc);
+          if (c.length) cols.push(...c);
         }
-        currentBlock = currentBlock.getNextBlock();
+      }
+      nonCharacterColors = cols;
+      //console.log("[NONCHAR_COLORS]", nonCharacterColors);
+    }
+
+    // Measure old base (world) before removing originals
+    const oldBaseY = worldBaseYOfRenderables(originalDirectChildren);
+
+    // Remove physics on the temp container to avoid duplicate bodies
+    stripPhysicsTree(loadedMesh);
+
+    // Detach new child from its loader wrapper
+    try { newChild.setParent?.(null, true); } catch {}
+
+    // Remove ONLY the original direct children
+    const removed = [];
+    const skipped = [];
+    for (const child of originalDirectChildren) {
+      if (!child || child.isDisposed?.()) { skipped.push({ name: child?.name, reason: "already disposed" }); continue; }
+      if (child === currentMesh) { skipped.push({ name: child.name, reason: "is parent" }); continue; }
+      if (child.parent !== currentMesh) { skipped.push({ name: child.name, reason: "no longer direct child" }); continue; }
+      stripPhysicsTree(child);
+      disposeTree(child);
+      removed.push(child.name);
+    }
+    //console.log("[replaceMeshModel] Disposed original direct children:", removed);
+    //if (skipped.length) console.log("[replaceMeshModel] Skipped (not removed):", skipped);
+
+    // Parent the replacement under the existing parent
+    newChild.parent = currentMesh;
+
+    // Apply old first child's local scale (if any) to the new child
+    if (oldChildScale && newChild.scaling) {
+      try { newChild.scaling.copyFrom(oldChildScale); } catch {}
+      try {
+        newChild.computeWorldMatrix(true);
+        newChild.refreshBoundingInfo?.();
+      } catch {}
+    }
+
+    // Base alignment (world) uses updated bounds
+    if (oldBaseY != null) {
+      try {
+        newChild.computeWorldMatrix(true);
+        newChild.refreshBoundingInfo?.();
+        const newBaseY = newChild.getBoundingInfo().boundingBox.minimumWorld.y;
+        if (isFinite(newBaseY)) {
+          const dy = oldBaseY - newBaseY;
+          const abs = newChild.getAbsolutePosition();
+          newChild.setAbsolutePosition(new flock.BABYLON.Vector3(abs.x, abs.y + dy, abs.z));
+        }
+      } catch {}
+    }
+
+    // Base alignment (world)
+    if (oldBaseY != null) {
+      try {
+        newChild.computeWorldMatrix(true);
+        newChild.refreshBoundingInfo?.();
+        const newBaseY = newChild.getBoundingInfo().boundingBox.minimumWorld.y;
+        if (isFinite(newBaseY)) {
+          const dy = oldBaseY - newBaseY;
+          const abs = newChild.getAbsolutePosition();
+          newChild.setAbsolutePosition(new flock.BABYLON.Vector3(abs.x, abs.y + dy, abs.z));
+        }
+      } catch {}
+    }
+
+    // Apply colours
+    if (isCharacter) {
+      const palette = (currentMesh.metadata && currentMesh.metadata.colors) || null;
+      if (palette && Object.keys(palette).length) {
+        try { flock.applyColorsToCharacter(currentMesh, palette); } catch {}
+      }
+    } else if (nonCharacterColors && nonCharacterColors.length) {
+      try { flock.changeColorMesh(newChild, nonCharacterColors); } catch (e) {
+        console.warn("changeColorMesh failed", e);
       }
     }
 
-    const hasGizmoScaling =
-      scaleBlock ||
-      (meshState.scaling &&
-        (Math.abs(meshState.scaling.x - 1) > 0.001 ||
-          Math.abs(meshState.scaling.y - 1) > 0.001 ||
-          Math.abs(meshState.scaling.z - 1) > 0.001)) ||
-      (parseFloat(scale) === 1.0 && meshState.scaling);
-
-    const finish = () => {
-      alignBottom(loadedMesh);
-
-      // Instead of using applyFacingWithRotateTo, set rotation directly
-      const eulerDeg = computeEulerDegreesFromForwardUp(savedForward, savedUp);
-
-      // Set rotation using quaternion (what moveForward expects)
-      loadedMesh.rotationQuaternion =
-        flock.BABYLON.Quaternion.RotationYawPitchRoll(
-          (eulerDeg.y * Math.PI) / 180, // yaw
-          0, // pitch - constrain to 0
-          0, // roll - constrain to 0
-        );
-
-      // NOW restore physics properties AFTER positioning and rotation
-      if (meshState.physics && loadedMesh.physics) {
-        if (meshState.physics.motionType !== undefined) {
-          loadedMesh.physics.setMotionType(meshState.physics.motionType);
-        }
-        loadedMesh.physics.disablePreStep = meshState.physics.disablePreStep;
-        loadedMesh.savedMotionType = meshState.savedMotionType;
-
-        // Restore friction and restitution to match original physics behavior
-        if (loadedMesh.physics.shape) {
-          if (meshState.physics.friction !== undefined) {
-            loadedMesh.physics.shape.friction = meshState.physics.friction;
-          }
-          if (meshState.physics.restitution !== undefined) {
-            loadedMesh.physics.shape.restitution =
-              meshState.physics.restitution;
-          }
-        }
-
-        // Restore damping - this is critical for stopping motion
-        if (
-          loadedMesh.physics.setLinearDamping &&
-          meshState.physics.linearDamping !== undefined
-        ) {
-          loadedMesh.physics.setLinearDamping(meshState.physics.linearDamping);
-        }
-        if (
-          loadedMesh.physics.setAngularDamping &&
-          meshState.physics.angularDamping !== undefined
-        ) {
-          loadedMesh.physics.setAngularDamping(
-            meshState.physics.angularDamping,
-          );
-        }
-      }
-
-      // Update physics with the final transform
-      flock.updatePhysics(loadedMesh);
-
-      // Wait longer for physics to fully settle, then clear velocities
-      setTimeout(() => {
-        if (loadedMesh.physics) {
-          loadedMesh.physics.setLinearVelocity(
-            new flock.BABYLON.Vector3(0, 0, 0),
-          );
-          loadedMesh.physics.setAngularVelocity(
-            new flock.BABYLON.Vector3(0, 0, 0),
-          );
-
-          loadedMesh.computeWorldMatrix(true);
-        
-        }
-        applyFacingWithRotateTo(loadedMesh);
-        reattachCameras(loadedMesh);
-      }, 10); 
-    };
-
-    setTimeout(() => {
-      if (scaleBlock) {
-        const scaleX = parseFloat(
-          scaleBlock
-            .getInput("X")
-            .connection.targetBlock()
-            .getFieldValue("NUM"),
-        );
-        const scaleY = parseFloat(
-          scaleBlock
-            .getInput("Y")
-            .connection.targetBlock()
-            .getFieldValue("NUM"),
-        );
-        const scaleZ = parseFloat(
-          scaleBlock
-            .getInput("Z")
-            .connection.targetBlock()
-            .getFieldValue("NUM"),
-        );
-        const xOrigin = scaleBlock.getFieldValue("X_ORIGIN") || "CENTRE";
-        const yOrigin = scaleBlock.getFieldValue("Y_ORIGIN") || "BASE";
-        const zOrigin = scaleBlock.getFieldValue("Z_ORIGIN") || "CENTRE";
-
-        flock.scale(loadedMesh.name, {
-          x: scaleX,
-          y: scaleY,
-          z: scaleZ,
-          xOrigin,
-          yOrigin,
-          zOrigin,
-        });
-
-        setTimeout(finish, 100);
-      } else if (hasGizmoScaling) {
-        loadedMesh.scaling.copyFrom(meshState.scaling);
-        finish();
-      } else {
-        finish();
-      }
-    }, 100);
-
-    if (loadedMesh.metadata?.yOffset && loadedMesh.metadata.yOffset !== 0) {
-      loadedMesh.position.y += parseFloat(scale) * loadedMesh.metadata.yOffset;
+    // Dispose loader wrapper if distinct (physics already stripped)
+    if (loadedMesh !== newChild && !loadedMesh.isDisposed?.()) {
+      try { loadedMesh.setParent?.(null); } catch {}
+      try { loadedMesh.dispose?.(); } catch {}
     }
 
-    loadedMesh.isVisible = meshState.isVisible;
-
-    if (meshState.metadata) {
-      loadedMesh.metadata = { ...meshState.metadata };
-      loadedMesh.metadata.blockKey = meshState.blockKey;
-    }
-    loadedMesh.metadata.originalBaseName = meshState.originalBaseName;
-
-    const newMeshName = loadedMesh.name;
-    const originalBaseName = meshState.originalBaseName;
-    if (flock.pendingTriggers && flock.pendingTriggers.has(originalBaseName)) {
-      const triggers = flock.pendingTriggers.get(originalBaseName);
-      triggers.forEach(({ trigger, callback, mode }) => {
-        flock.onTrigger(newMeshName, {
-          trigger,
-          callback,
-          mode,
-          applyToGroup: false,
-        });
-      });
-    }
-  }
-
-  if (block.type === "load_character") {
-    flock.createCharacter({
-      modelName: newModelName,
-      modelId: tempMeshId,
-      colors: color,
-      scale: parseFloat(scale),
-      position: {
-        x: meshState.position.x,
-        y: meshState.currentBlockPosition.y,
-        z: meshState.position.z,
-      },
-      callback: () => {
-        const loadedMesh = getMeshFromBlock(block);
-        if (!loadedMesh || typeof loadedMesh !== "object") return;
-        finalizeNewMesh(loadedMesh, hasAnyCameraAttached);
-
-        if (animationName)
-          flock.switchAnimation(loadedMesh.name, { animationName, restart: true });
-      },
-    });
-  } else {
-    flock.createObject({
-      modelName: newModelName,
-      modelId: tempMeshId,
-      color,
-      scale: parseFloat(scale),
-      position: {
-        x: meshState.position.x,
-        y: meshState.currentBlockPosition.y,
-        z: meshState.position.z,
-      },
-      callback: () => {
-        const loadedMesh = getMeshFromBlock(block);
-        if (!loadedMesh || typeof loadedMesh !== "object") return;
-
-        if (
-          block.type === "load_character" &&
-          color &&
-          Object.keys(color).length > 0
-        ) {
-          flock.applyColorsToCharacter(loadedMesh, color);
-        } else if (
-          block.type === "load_multi_object" &&
-          Array.isArray(color) &&
-          color.length > 0
-        ) {
-        } else if (color && typeof color === "string") {
-          flock.applyColorToMaterial(loadedMesh, null, color);
-        }
-
-        finalizeNewMesh(loadedMesh);
-      },
-    });
-  }
+    /*const childNames = (currentMesh.getChildren ? currentMesh.getChildren() : []).map(n => n.name);
+    console.log(`[replaceMeshModel] Parent '${currentMesh.name}' kept. New children:`, childNames);*/
+  });
 }
 
 export function updateBlockColorAndHighlight(mesh, selectedColor) {
