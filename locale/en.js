@@ -774,6 +774,7 @@ export default {
   beetle_ui: "🪲 Beetle",
   roominator_ui: "🛋️ Roominator",
   ball_pit_ui: "🟠 Ball Pit",
+  rainball_ui: "🟣 Rainball",
   ur_enough_ui: "💗 UR Enough!",
   tallest_buildings_ui: "📊 Tallest buildings",
   candy_dash_ui: "🎃 Candy dash",
