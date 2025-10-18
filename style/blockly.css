@@ -138,6 +138,7 @@ path.blocklyPath.blockly-ws-search-highlight.blockly-ws-search-current {
 .blocklyZoomIn > image,
 .blocklyZoomOut > image {
   opacity: 1 !important;
+  color: #4c4c4c !important;
 }
 
 .blocklyToolboxCategoryLabel {
@@ -200,6 +201,11 @@ fill: var(--color-border-highlight);
 }
 }
 
+/* Override code area colour */
+.blocklySvg {
+  background-color: #ebebeb !important;
+}
+
 /* Toolbox category selection outline */
 .blocklyToolboxCategoryContainer[aria-selected="true"][aria-level="1"] > .blocklyToolboxCategory,
 .blocklyToolboxCategoryContainer[aria-selected="true"][aria-level="2"] > .blocklyToolboxCategory {
@@ -255,7 +261,9 @@ body[data-theme="dark"] .blocklyTreeLabel {
 
 .blocklyFlyoutBackground {
   opacity: 0.9;
-  stroke: #ccc;
+  /* stroke: #ccc !important; */
+  fill: #ddd !important;
+  fill-opacity: 0.8 !important;
 }
 
 .blocklyTreeSelected {
@@ -296,10 +304,13 @@ body[data-theme="dark"] .blocklyTreeLabel {
     border-left: 8px solid transparent  !important;
   }
 
-  .blocklyToolbox,  .blocklyToolboxCategoryContainer {
-    background: #000000;
-    background-color: #000000;
+  .blocklyToolbox {
+    background: #F3F3F3 !important;
   }
+  .blocklyToolboxCategoryGroup {
+    background-color: #D3D3D3 !important;
+  }
+
   /* The row element */
   .blocklyToolbox .blocklyToolboxCategoryContainer > .blocklyToolboxCategory {
     display: flex !important;

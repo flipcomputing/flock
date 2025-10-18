@@ -2,6 +2,8 @@
 // Dr Tracy Gardner - https://github.com/tracygardner
 // Flip Computing Limited - flipcomputing.com
 
+import * as acorn from "acorn";
+import * as walk from "acorn-walk";
 import HavokPhysics from "@babylonjs/havok";
 import * as BABYLON from "@babylonjs/core";
 import * as BABYLON_GUI from "@babylonjs/gui";
@@ -303,58 +305,195 @@ export const flock = {
 
                 return true;
         },
-        // Updated runCode with whitelisting + constructor hardening + frozen built-ins
-        async runCode(code) {
-                let iframe = document.getElementById("flock-iframe");
+        validateUserCodeAST(src) {
+                // 1) Very broad identifier blocklist (names anywhere in user code)
+                const REJECT_IDENTIFIERS = new Set([
+                  // dynamic code / reflection
+                  "eval","Function","AsyncFunction","GeneratorFunction","Proxy","Reflect",
+                  // frames & globals
+                  "window","document","globalThis","self","parent","top","frames","frameElement",
+                  // navigation & env
+                  "location","history","navigator","opener",
+                  // network / ipc
+                  "fetch","XMLHttpRequest","WebSocket","EventSource","postMessage",
+                  "MessageChannel","MessagePort","BroadcastChannel",
+                  // workers & worklets
+                  "Worker","SharedWorker","ServiceWorker","Worklet","importScripts",
+                  // storage / persistence
+                  "localStorage","sessionStorage","indexedDB","caches","cookieStore",
+                  // file/blob/crypto
+                  "Blob","File","FileReader","crypto",
+                  // urls & media constructors
+                  "URL","URLSearchParams","Image","Audio","RTCPeerConnection","MediaDevices","Notification",
+                  // popups / UI
+                  "open","alert","confirm","prompt","print","showModalDialog",
+                  // timers (we’ll also do special checks)
+                  "setTimeout","setInterval","setImmediate","queueMicrotask",
+                  // module-ish
+                  "require",
+                ]);
 
+                // 2) Callees we never allow (even if shadowed)
+                const REJECT_CALLEES = new Set([
+                  "eval","Function","AsyncFunction","GeneratorFunction",
+                  "setTimeout","setInterval","setImmediate","queueMicrotask",
+                  "open","alert","confirm","prompt","print",
+                ]);
+
+                // 3) Member/property names that are escape hatches
+                const REJECT_PROPERTIES = new Set([
+                  "constructor","__proto__","prototype","caller","callee","arguments"
+                ]);
+          let ast;
+          try {
+            ast = acorn.parse(src, {
+              ecmaVersion: "latest",
+              sourceType: "script",
+              allowAwaitOutsideFunction: true,
+              locations: false
+            });
+          } catch (e) {
+            // Surface syntax errors directly
+            throw e;
+          }
+
+          walk.simple(ast, {
+            // Syntax we never allow
+            WithStatement()        { throw new Error("with() not allowed"); },
+            DebuggerStatement()    { throw new Error("debugger not allowed"); },
+            ImportDeclaration()    { throw new Error("import declarations not allowed"); },
+            ExportNamedDeclaration(){ throw new Error("export not allowed"); },
+            ExportDefaultDeclaration(){ throw new Error("export not allowed"); },
+            ImportExpression()     { throw new Error("dynamic import() not allowed"); },
+            MetaProperty(n) {
+              if (n.meta?.name === "import") throw new Error("import.meta not allowed");
+            },
+
+            // Any usage of these identifiers anywhere
+            Identifier(n) {
+              if (REJECT_IDENTIFIERS.has(n.name)) {
+                throw new Error(`Identifier '${n.name}' is not allowed`);
+              }
+            },
+
+            // Ban .constructor / .__proto__ / .prototype / .caller / .callee / .arguments
+            MemberExpression(n) {
+              // foo.bar
+              if (!n.computed && n.property?.type === "Identifier" &&
+                  REJECT_PROPERTIES.has(n.property.name)) {
+                throw new Error(`Access to '.${n.property.name}' is not allowed`);
+              }
+              // foo["constructor"]
+              if (n.computed && n.property?.type === "Literal" &&
+                  typeof n.property.value === "string" &&
+                  REJECT_PROPERTIES.has(n.property.value)) {
+                throw new Error(`Access to '["${n.property.value}"]' is not allowed`);
+              }
+            },
+
+            // Disallow dangerous callees; forbid string-eval timers
+            CallExpression(n) {
+              const callee = n.callee;
+              const name =
+                callee?.type === "Identifier" ? callee.name :
+                callee?.type === "MemberExpression" && !callee.computed && callee.property?.type === "Identifier"
+                  ? callee.property.name
+                  : null;
+
+              if (name && REJECT_CALLEES.has(name)) {
+                // Special case: timers with string as first arg (string-eval)
+                if ((name === "setTimeout" || name === "setInterval") &&
+                    n.arguments[0]?.type === "Literal" &&
+                    typeof n.arguments[0].value === "string") {
+                  throw new Error("String-eval timers are not allowed");
+                }
+                // Block all the listed callees regardless
+                throw new Error(`Call to '${name}()' is not allowed`);
+              }
+            },
+
+            // new Function(), new Worker(), etc.
+            NewExpression(n) {
+              const callee = n.callee;
+              const name = callee?.type === "Identifier" ? callee.name : null;
+              if (name && (REJECT_CALLEES.has(name) || REJECT_IDENTIFIERS.has(name))) {
+                throw new Error(`'new ${name}()' is not allowed`);
+              }
+            },
+          });
+        },
+        async runCode(code) {
+
+                //code = "alert('Hello, world!');";
+                
                 try {
-                        // 1) Dispose old scene if iframe exists
-                        if (iframe) {
+                        flock.validateUserCodeAST(code);
+                        await flock.disposeOldScene();
+
+                        // at the very start of runCode
+                        const oldIframe =
+                                document.getElementById("flock-iframe");
+                        if (oldIframe) {
                                 try {
-                                        await iframe.contentWindow?.flock?.disposeOldScene?.();
-                                } catch (err) {
-                                        console.warn(
-                                                "Error disposing old scene in iframe:",
-                                                err,
+                                        await oldIframe.contentWindow?.flock?.disposeOldScene?.();
+                                } catch {}
+                                try {
+                                        oldIframe.onload = oldIframe.onerror =
+                                                null;
+                                } catch {}
+                                try {
+                                        oldIframe.src = "about:blank";
+                                } catch {}
+                                try {
+                                        oldIframe.remove();
+                                } catch {
+                                        oldIframe.parentNode?.removeChild(
+                                                oldIframe,
                                         );
                                 }
-                        } else {
-                                // 2) Create a new iframe if not found
-                                iframe = document.createElement("iframe");
-                                iframe.id = "flock-iframe";
-                                iframe.style.display = "none";
-                                document.body.appendChild(iframe);
                         }
 
-                        // 3) Load a clean iframe context
-                        await new Promise((resolve, reject) => {
-                                iframe.onload = () => resolve();
-                                iframe.onerror = () =>
-                                        reject(
-                                                new Error(
-                                                        "Failed to load iframe",
-                                                ),
-                                        );
-                                iframe.src = "about:blank";
-                        });
-
-                        // 4) Set up iframe window and flock reference
-                        const iframeWindow = iframe.contentWindow;
-                        if (!iframeWindow)
-                                throw new Error("Iframe window is unavailable");
-                        iframeWindow.flock = this;
+                        const { iframe, win, doc } =
+                                await flock.replaceSandboxIframe({
+                                        id: "flock-iframe",
+                                        sameOrigin: true,
+                                });
 
                         // Initialise a fresh scene (unchanged)
                         await this.initializeNewScene?.();
                         if (this.memoryDebug) this.startMemoryMonitoring?.();
 
                         // 5) Build the whitelisted environment
-                        const whitelist = this.createWhitelist();
+                        // after you have { win, doc } for the new iframe
+                        this.__runToken = (this.__runToken || 0) + 1;
+                        const runToken = this.__runToken;
+                        this.abortController?.abort?.();
+                        this.abortController = new AbortController();
+                        const signal = this.abortController.signal;
+                        const guard =
+                                (fn) =>
+                                (...args) => {
+                                        if (
+                                                signal.aborted ||
+                                                runToken !== this.__runToken
+                                        )
+                                                return;
+                                        return fn(...args);
+                                };
+
+                        const whitelist = this.createWhitelist({
+                                win,
+                                doc,
+                                signal,
+                                runToken,
+                                guard,
+                        });
                         const wlNames = Object.keys(whitelist);
                         const wlValues = Object.values(whitelist);
 
                         // Shadow dangerous globals by passing them as undefined params
                         const shadowNames = [
+                                // Window and frame access
                                 "window",
                                 "document",
                                 "globalThis",
@@ -362,16 +501,78 @@ export const flock = {
                                 "parent",
                                 "top",
                                 "frames",
+                                "frameElement",
+                                // Dynamic code execution
                                 "Function",
+                                "setTimeout",
+                                "setInterval",
+                                "setImmediate",
+                                // Network access
                                 "fetch",
                                 "XMLHttpRequest",
+                                "WebSocket",
+                                "EventSource",
+                                // Storage APIs
+                                "localStorage",
+                                "sessionStorage",
+                                "indexedDB",
+                                "caches",
+                                "cookieStore",
+                                // Navigation and location
+                                "location",
+                                "history",
+                                "navigator",
+                                "opener",
+                                // Media/URL surfaces
+                                "URL",
+                                "URLSearchParams",
+                                "Image",
+                                "Audio",
+                                "RTCPeerConnection",
+                                "MediaDevices",
+                                "Notification",
+                                // Popup and modal APIs
+                                "open",
+                                "alert",
+                                "confirm",
+                                "prompt",
+                                "print",
+                                "showModalDialog",
+                                // Messaging APIs
+                                "postMessage",
+                                "MessageChannel",
+                                "MessagePort",
+                                "BroadcastChannel",
+                                // Worker APIs
+                                "Worker",
+                                "SharedWorker",
+                                "ServiceWorker",
+                                "Worklet",
+                                "importScripts",
+                                // Module/import
+                                "eval",
+                                "require",
+                                "Error",
+                                "Blob",
+                                "File",
+                                "FileReader",
+                                "crypto",
                         ];
                         const shadowValues = new Array(shadowNames.length).fill(
                                 undefined,
                         );
 
-                        const paramNames = shadowNames.concat(wlNames);
-                        const paramValues = shadowValues.concat(wlValues);
+                        // Pass a frozen, minimal API instead of leaking a global
+                        const flockAPI = Object.freeze(whitelist); // or a narrower surface if you like
+
+                        const paramNames = shadowNames.concat(
+                                ["flock"],
+                                wlNames,
+                        );
+                        const paramValues = shadowValues.concat(
+                                [flockAPI],
+                                wlValues,
+                        );
 
                         // Harden constructor escape paths
                         const hardenPrelude =
@@ -380,40 +581,58 @@ export const flock = {
                                 'Object.defineProperty(Function.prototype,"constructor",{value:undefined,writable:false,configurable:false});' +
                                 "}catch{}";
 
-                        // Freeze safe built-ins to prevent tampering
                         const freezePrelude =
                                 "try{" +
-                                "Object.freeze(Math);" +
-                                "Object.freeze(JSON);" +
-                                "Object.freeze(Date);" +
-                                "Object.freeze(Number);" +
-                                "Object.freeze(String);" +
-                                "Object.freeze(Boolean);" +
-                                "Object.freeze(Array);" +
-                                "Object.freeze(Object);" +
+                                "Object.freeze(Math);Object.freeze(JSON);Object.freeze(Date);Object.freeze(Number);Object.freeze(String);" +
+                                "Object.freeze(Boolean);Object.freeze(Array);Object.freeze(Object);Object.freeze(RegExp);" +
+                                "Object.freeze(Error);Object.freeze(TypeError);Object.freeze(RangeError);Object.freeze(ReferenceError);Object.freeze(SyntaxError);" +
+                                "Object.freeze(Promise);Object.freeze(Set);Object.freeze(Map);Object.freeze(WeakSet);Object.freeze(WeakMap);" +
+                                "Object.freeze(ArrayBuffer);Object.freeze(Int8Array);Object.freeze(Uint8Array);Object.freeze(Int16Array);Object.freeze(Uint16Array);" +
+                                "Object.freeze(Int32Array);Object.freeze(Uint32Array);Object.freeze(Float32Array);Object.freeze(Float64Array);" +
+                                "Object.freeze(Symbol);Object.freeze(Proxy);Object.freeze(Reflect);" +
                                 "}catch{}";
 
-                        // Assemble the function body safely (no template literals)
+                        // Assemble the function body safely (adds sourceURL for nicer stacks)
                         const body =
-                                '"use strict";\n' +
                                 hardenPrelude +
                                 "\n" +
                                 freezePrelude +
                                 "\n" +
-                                "return (async () => {\n" +
+                                // Use a normal async function so `this` is undefined in strict mode
+                                "return (async function(){\n" +
+                                '"use strict";\n' +
                                 code +
-                                "\n})();\n";
+                                "\n}).call(undefined);\n" +
+                                "//# sourceURL=user-code.js";
 
-                        // Create the sandboxed function using only whitelisted APIs + shadowed globals
-                        const run = new iframeWindow.Function(
-                                ...paramNames,
-                                body,
-                        );
+                        // Create the sandboxed function inside the iframe realm
+                        const run = new win.Function(...paramNames, body);
 
-                        // Execute code with whitelisting enforced
-                        await run(...paramValues);
+                        // Host timer for timeout guard (shadowed timers inside sandbox)
+                        const hostSetTimeout = window.setTimeout.bind(window);
+                        const MAX_MS = 5000;
 
-                        document.getElementById("renderCanvas")?.focus();
+                        // Execute with whitelist + timeout
+                        await Promise.race([
+                                run(...paramValues),
+                                new Promise((_, rej) =>
+                                        hostSetTimeout(
+                                                () =>
+                                                        rej(
+                                                                new Error(
+                                                                        "User code timed out",
+                                                                ),
+                                                        ),
+                                                MAX_MS,
+                                        ),
+                                ),
+                        ]);
+
+                        // Focus canvas (parent or iframe—pick the one you actually use)
+                        (
+                                document.getElementById("renderCanvas") ||
+                                doc.getElementById("renderCanvas")
+                        )?.focus();
                 } catch (error) {
                         const enhancedError =
                                 this.createEnhancedError?.(error, code) ??
@@ -440,7 +659,50 @@ export const flock = {
                         throw error;
                 }
         },
-        createWhitelist() {
+        // New signature: pass { win, doc, signal, runToken, guard } from runCode
+        createWhitelist({ win, doc, signal, runToken, guard } = {}) {
+                // --- Bind realm-scoped primitives (fallback to parent if win missing) ---
+                const setT =
+                        win?.setTimeout?.bind(win) ??
+                        window.setTimeout.bind(window);
+                const clrT =
+                        win?.clearTimeout?.bind(win) ??
+                        window.clearTimeout.bind(window);
+                const raf =
+                        win?.requestAnimationFrame?.bind(win) ??
+                        window.requestAnimationFrame.bind(window);
+                const caf =
+                        win?.cancelAnimationFrame?.bind(win) ??
+                        window.cancelAnimationFrame.bind(window);
+
+                // Optional: RAF-based nextTick tied to the iframe realm
+                const nextFrame = () =>
+                        new Promise((resolve, reject) => {
+                                if (signal?.aborted)
+                                        return reject(
+                                                new DOMException(
+                                                        "Aborted",
+                                                        "AbortError",
+                                                ),
+                                        );
+                                const id = raf(() => resolve());
+                                const onAbort = () => {
+                                        try {
+                                                caf(id);
+                                        } catch {}
+                                        reject(
+                                                new DOMException(
+                                                        "Aborted",
+                                                        "AbortError",
+                                                ),
+                                        );
+                                };
+                                signal?.addEventListener?.("abort", onAbort, {
+                                        once: true,
+                                });
+                        });
+
+                // Build the base API (mostly the same as yours)
                 const api = {
                         // Safe built-ins
                         Object,
@@ -454,7 +716,13 @@ export const flock = {
                         Promise,
                         console,
 
-                        // All Flock API methods — unchanged
+                        // Per-run helpers
+                        nextFrame,
+                        isAborted: () => !!signal?.aborted,
+                        // If you ever need realm access inside your methods:
+                        __realm: Object.freeze({ win, doc }),
+
+                        // All Flock API methods — default-bind to `this`
                         initialize: this.initialize?.bind(this),
                         createEngine: this.createEngine?.bind(this),
                         createScene: this.createScene?.bind(this),
@@ -506,6 +774,7 @@ export const flock = {
                         applyForce: this.applyForce?.bind(this),
                         moveByVector: this.moveByVector?.bind(this),
                         glideTo: this.glideTo?.bind(this),
+                        wait: this.wait?.bind(this),
                         createAnimation: this.createAnimation?.bind(this),
                         animateFrom: this.animateFrom?.bind(this),
                         playAnimationGroup: this.playAnimationGroup?.bind(this),
@@ -528,9 +797,11 @@ export const flock = {
                         animateProperty: this.animateProperty?.bind(this),
                         positionAt: this.positionAt?.bind(this),
                         distanceTo: this.distanceTo?.bind(this),
-                        wait: this.wait?.bind(this),
+
+                        // NOTE: we override `wait` above with the realm-bound version
                         safeLoop: this.safeLoop?.bind(this),
                         waitUntil: this.waitUntil?.bind(this),
+
                         show: this.show?.bind(this),
                         hide: this.hide?.bind(this),
                         clearEffects: this.clearEffects?.bind(this),
@@ -588,12 +859,159 @@ export const flock = {
                         createVector3: this.createVector3?.bind(this),
                 };
 
-                // Freeze for safety — prevents mutation of the API surface
+                // --- Guard side-effecting APIs so stale runs no-op ---
+                const SIDE_EFFECT_APIS = [
+                        "printText",
+                        "UIText",
+                        "UIButton",
+                        "UIInput",
+                        "UISlider",
+                        "say",
+                        "highlight",
+                        "glow",
+                        "createParticleEffect",
+                        "startParticleSystem",
+                        "stopParticleSystem",
+                        "resetParticleSystem",
+                        "playSound",
+                        "stopAllSounds",
+                        "speak",
+                        "broadcastEvent",
+                        "onEvent",
+                        "onTrigger",
+                        "start",
+                        "forever",
+                        "canvasControls",
+                        "buttonControls",
+                        "cameraControl",
+                        "attachCamera",
+                        "setSky",
+                        "setFog",
+                        "setCameraBackground",
+                        "lightIntensity",
+                        "create3DText",
+                        "createModel",
+                        "createBox",
+                        "createSphere",
+                        "createCylinder",
+                        "createCapsule",
+                        "createPlane",
+                        "mergeMeshes",
+                        "subtractMeshes",
+                        "intersectMeshes",
+                        "createHull",
+                        "dispose",
+                        "clearEffects",
+                        "stopAnimations",
+                ];
+                for (const name of SIDE_EFFECT_APIS) {
+                        if (typeof api[name] === "function")
+                                api[name] = guard(api[name]);
+                }
+
                 try {
                         return Object.freeze(api);
                 } catch {
                         return api;
                 }
+        },
+        async replaceSandboxIframe({
+                id = "flock-iframe",
+                sameOrigin = true,
+                srcdocHtml,
+        } = {}) {
+                const old = document.getElementById(id);
+
+                // --- 1) Hard teardown of the old iframe (if any) ---
+                if (old) {
+                        try {
+                                // Detach handlers first
+                                old.onload = null;
+                                old.onerror = null;
+
+                                // Best-effort stop inside the old realm
+                                const w = old.contentWindow;
+                                try {
+                                        w?.cancelAnimationFrame?.(w.__raf);
+                                } catch {}
+                                try {
+                                        w?.stop?.();
+                                } catch {} // stops loading
+                                try {
+                                        w?.close?.();
+                                } catch {} // some browsers free resources
+
+                                // Navigate to a harmless page to break references, then remove
+                                try {
+                                        old.src = "about:blank";
+                                } catch {}
+                        } finally {
+                                // Remove from DOM to release the realm
+                                old.remove?.();
+                        }
+                }
+
+                // --- 2) Create a brand-new iframe (fresh realm) ---
+                const iframe = document.createElement("iframe");
+                iframe.id = id;
+                iframe.style.display = "none";
+
+                // Keep same-origin only if you need to touch iframe DOM/Canvas/WebGL from parent
+                iframe.sandbox = `allow-scripts${sameOrigin ? " allow-same-origin" : ""}`;
+
+                // Prefer srcdoc so CSP is present before any script runs
+                const csp = `default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline' 'unsafe-eval'`;
+                const html =
+                        srcdocHtml ??
+                        `<!doctype html>
+        <meta http-equiv="Content-Security-Policy" content="${csp}">
+        <canvas id="renderCanvas"></canvas>`;
+
+                // Attach to DOM before setting src/srcdoc to ensure load events fire consistently
+                document.body.appendChild(iframe);
+
+                // Load and await readiness
+                await new Promise((resolve, reject) => {
+                        iframe.onload = () => {
+                                iframe.onload = iframe.onerror = null;
+                                resolve();
+                        };
+                        iframe.onerror = (e) => {
+                                iframe.onload = iframe.onerror = null;
+                                reject(new Error("iframe failed to load"));
+                        };
+                        // Use srcdoc when possible; fallback to about:blank + injected head if needed
+                        try {
+                                iframe.srcdoc = html;
+                        } catch {
+                                iframe.src = "about:blank";
+                        }
+                });
+
+                // If we fell back to about:blank, inject CSP meta now (runs before your code anyway)
+                if (
+                        !("srcdoc" in document.createElement("iframe")) ||
+                        !iframe.srcdoc
+                ) {
+                        const doc =
+                                iframe.contentDocument ||
+                                iframe.contentWindow?.document;
+                        if (!doc.head)
+                                doc.documentElement.appendChild(
+                                        doc.createElement("head"),
+                                );
+                        const meta = doc.createElement("meta");
+                        meta.httpEquiv = "Content-Security-Policy";
+                        meta.content = csp;
+                        doc.head.appendChild(meta);
+                        // Optionally inject your canvas or boot HTML here if needed
+                }
+
+                const win = iframe.contentWindow;
+                const doc = iframe.contentDocument || win?.document;
+                if (!win || !doc) throw new Error("New iframe is unavailable");
+
+                return { iframe, win, doc };
         },
         async initialize() {
                 flock.BABYLON = BABYLON;
@@ -708,12 +1126,34 @@ export const flock = {
                                         console.warn(
                                                 "WebGL context already lost, skipping some disposal operations",
                                         );
-                                        return;
                                 }
 
                                 // Stop all sounds and animations first
                                 flock.stopAllSounds();
                                 flock.engine?.stopRenderLoop();
+
+                                try {
+                                        const canvas =
+                                                flock.engine?.getRenderingCanvas?.();
+                                        flock.scene?.activeCamera?.detachControl?.(
+                                                canvas,
+                                        );
+                                        flock.scene?.detachControl?.();
+                                } catch {}
+
+                                try {
+                                        const containers = Array.isArray(
+                                                flock._assetContainers,
+                                        )
+                                                ? flock._assetContainers
+                                                : [];
+                                        for (const c of containers) {
+                                                try {
+                                                        c?.dispose?.();
+                                                } catch {}
+                                        }
+                                        flock._assetContainers = [];
+                                } catch {}
 
                                 // Abort any ongoing operations
                                 if (flock.abortController) {
@@ -1900,7 +2340,7 @@ export const flock = {
         },
         exportMesh(meshName, format) {
                 //meshName = "scene";
-  
+
                 if (meshName === "scene" && format === "GLB") {
                         const scene = flock.scene;
 
@@ -2869,6 +3309,14 @@ export const flock = {
         start(action) {
                 flock.scene.onBeforeRenderObservable.addOnce(action);
         },
+        // Runtime helper must exist where generated code executes.
+        sanitizeInlineText(input) {
+                return String(input)
+                        .replace(/\r?\n/g, " ")
+                        .replace(/\*\//g, "*∕")
+                        .replace(/\/\//g, "∕∕")
+                        .replace(/`/g, "ˋ");
+        },
         async forever(action) {
                 let isDisposed = false;
                 let isActionRunning = false;
@@ -2924,71 +3372,82 @@ export const flock = {
                 flock.scene.onDisposeObservable.add(disposeHandler);
         },
         async forever2(action) {
-          const scene = flock.scene;
-          if (!scene) {
-            console.warn("[forever] Scene not ready yet");
-            return;
-          }
+                const scene = flock.scene;
+                if (!scene) {
+                        console.warn("[forever] Scene not ready yet");
+                        return;
+                }
 
-          let isDisposed = false;
-          let isActionRunning = false;
-          let tickObserver = null;
-          let disposeObserver = null;
-          let watchdogId = null;
-          const WATCHDOG_MS = 4000; // unlock if an iteration takes too long
+                let isDisposed = false;
+                let isActionRunning = false;
+                let tickObserver = null;
+                let disposeObserver = null;
+                let watchdogId = null;
+                const WATCHDOG_MS = 4000; // unlock if an iteration takes too long
 
-          const clearWatchdog = () => {
-            if (watchdogId) {
-              clearTimeout(watchdogId);
-              watchdogId = null;
-            }
-          };
+                const clearWatchdog = () => {
+                        if (watchdogId) {
+                                clearTimeout(watchdogId);
+                                watchdogId = null;
+                        }
+                };
 
-          const runAction = () => {
-            if (isDisposed) return;
+                const runAction = () => {
+                        if (isDisposed) return;
 
-            // If previous iteration still running, skip this frame but keep observer alive
-            if (isActionRunning) return;
+                        // If previous iteration still running, skip this frame but keep observer alive
+                        if (isActionRunning) return;
 
-            isActionRunning = true;
+                        isActionRunning = true;
 
-            // Start watchdog so a stuck Promise can't freeze the loop
-            clearWatchdog();
-            watchdogId = setTimeout(() => {
-              console.warn("[forever] Watchdog tripped; unlocking stalled iteration");
-              isActionRunning = false;
-            }, WATCHDOG_MS);
+                        // Start watchdog so a stuck Promise can't freeze the loop
+                        clearWatchdog();
+                        watchdogId = setTimeout(() => {
+                                console.warn(
+                                        "[forever] Watchdog tripped; unlocking stalled iteration",
+                                );
+                                isActionRunning = false;
+                        }, WATCHDOG_MS);
 
-            try {
-              // Fire-and-forget; never await inside the render tick
-              Promise.resolve(action())
-                .catch((err) => {
-                  console.error("[forever] Action error:", err);
-                })
-                .finally(() => {
-                  clearWatchdog();
-                  isActionRunning = false;
-                });
-            } catch (err) {
-              // Synchronous errors still won't kill the observer
-              clearWatchdog();
-              isActionRunning = false;
-              console.error("[forever] Sync error:", err);
-            }
-          };
+                        try {
+                                // Fire-and-forget; never await inside the render tick
+                                Promise.resolve(action())
+                                        .catch((err) => {
+                                                console.error(
+                                                        "[forever] Action error:",
+                                                        err,
+                                                );
+                                        })
+                                        .finally(() => {
+                                                clearWatchdog();
+                                                isActionRunning = false;
+                                        });
+                        } catch (err) {
+                                // Synchronous errors still won't kill the observer
+                                clearWatchdog();
+                                isActionRunning = false;
+                                console.error("[forever] Sync error:", err);
+                        }
+                };
 
-          // Persistent observer: stays attached every frame
-          tickObserver = scene.onBeforeRenderObservable.add(runAction);
+                // Persistent observer: stays attached every frame
+                tickObserver = scene.onBeforeRenderObservable.add(runAction);
 
-          // Clean up only our own observers on dispose
-          const disposeHandler = () => {
-            if (isDisposed) return;
-            isDisposed = true;
-            clearWatchdog();
-            if (tickObserver) scene.onBeforeRenderObservable.remove(tickObserver);
-            if (disposeObserver) scene.onDisposeObservable.remove(disposeObserver);
-          };
-          disposeObserver = scene.onDisposeObservable.add(disposeHandler);
+                // Clean up only our own observers on dispose
+                const disposeHandler = () => {
+                        if (isDisposed) return;
+                        isDisposed = true;
+                        clearWatchdog();
+                        if (tickObserver)
+                                scene.onBeforeRenderObservable.remove(
+                                        tickObserver,
+                                );
+                        if (disposeObserver)
+                                scene.onDisposeObservable.remove(
+                                        disposeObserver,
+                                );
+                };
+                disposeObserver = scene.onDisposeObservable.add(disposeHandler);
         },
         download(filename, data, mimeType) {
                 const blob = new Blob([data], { type: mimeType });
@@ -3017,6 +3476,7 @@ export function initializeFlock() {
                                 flock.texturePath =
                                         "https://flipcomputing.github.io/flock/textures/";
                                 const userCode = scriptElement.textContent;
+
                                 flock.runCode(userCode);
                         })
                         .catch((error) => {

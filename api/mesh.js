@@ -11,35 +11,39 @@ export const flockMesh = {
     mesh.computeWorldMatrix(true);
     const boundingInfo = mesh.getBoundingInfo();
 
-    const height =
-      boundingInfo.boundingBox.maximumWorld.y -
-      boundingInfo.boundingBox.minimumWorld.y;
-    const width =
-      boundingInfo.boundingBox.maximumWorld.x -
-      boundingInfo.boundingBox.minimumWorld.x;
-    const depth =
-      boundingInfo.boundingBox.maximumWorld.z -
-      boundingInfo.boundingBox.minimumWorld.z;
+    // Use LOCAL bounding box coordinates
+    const localMin = boundingInfo.boundingBox.minimum;
+    const localMax = boundingInfo.boundingBox.maximum;
 
+    const height = localMax.y - localMin.y;
+    const width = localMax.x - localMin.x;
+    const depth = localMax.z - localMin.z;
     const radius = Math.min(width, depth) / 2;
 
-    // Shrink slightly in world units, clamp to avoid degenerate cylinders
-    const shrinkY = Math.min(0.01, Math.max(0, height - 2 * radius - 1e-6));
+    //console.log("Create capsule from bounding box", mesh.name, height);
+    //console.log("Local bounding min Y:", localMin.y, "max Y:", localMax.y);
 
-    const adjustedHeight = Math.max(0, height - shrinkY);
+    // Shrink the capsule vertically to allow intersections
+    const shrinkAmount = 0.01; // Adjust this value as needed
+    const adjustedHeight = Math.max(0, height - shrinkAmount);
     const cylinderHeight = Math.max(0, adjustedHeight - 2 * radius);
 
-    const center = flock.BABYLON.Vector3.Zero();
+    // Center the capsule at the bounding box center in LOCAL space
+    const localCenter = new flock.BABYLON.Vector3(
+      (localMin.x + localMax.x) / 2,
+      (localMin.y + localMax.y) / 2,
+      (localMin.z + localMax.z) / 2
+    );
 
     const segmentStart = new flock.BABYLON.Vector3(
-      center.x,
-      center.y - cylinderHeight / 2,
-      center.z,
+      localCenter.x,
+      localCenter.y - cylinderHeight / 2,
+      localCenter.z,
     );
     const segmentEnd = new flock.BABYLON.Vector3(
-      center.x,
-      center.y + cylinderHeight / 2,
-      center.z,
+      localCenter.x,
+      localCenter.y + cylinderHeight / 2,
+      localCenter.z,
     );
 
     const shape = new flock.BABYLON.PhysicsShapeCapsule(
@@ -50,8 +54,7 @@ export const flockMesh = {
     );
 
     if (!mesh.metadata) mesh.metadata = {};
-    mesh.metadata.physicsCapsule = { radius, height: adjustedHeight };
-
+    mesh.metadata.physicsCapsule = { radius, height: adjustedHeight, localCenter };
     return shape;
   },
   createHorizontalCapsuleFromBoundingBox(mesh, scene, yOffsetFactor = 0) {
