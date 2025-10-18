@@ -304,6 +304,11 @@ body[data-theme="dark"] .blocklyTreeLabel {
   .blocklyToolbox {
     background: #F3F3F3 !important;
   }
+
+  [data-theme="dark-contrast"] .blocklyToolbox {
+    background: #090909 !important;
+  }
+
   .blocklyToolboxCategoryGroup {
     background-color: #D3D3D3 !important;
   }
