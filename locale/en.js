@@ -766,6 +766,7 @@ export default {
   snow_globe_ui: "❄️ Snow globe",
   forest_base_ui: "🌲 Forest Base",
   character_animation_ui: "🎥 Character Animation",
+  sit_on_block_ui: "💺 Sit on the Block",
   cube_art_ui: "🎨 Cube Art",
   physics_fun_ui: "👆🏾 Physics Fun",
   collect_the_gems_ui: "💎 Collect the Gems",
