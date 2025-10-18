@@ -115,10 +115,10 @@
 /* Dark high-contrast theme */
 [data-theme="dark-contrast"] {
   /* Core colours */
-  --color-bg:                        #1e1e1e;
+  --color-bg:                        #090909;
   --color-bg-alt:                    #2a2a2a;
-  --color-text:                      #000000;
-  --color-text-primary: #888888;
+  --color-text:                      #cdcdcd;
+  --color-text-primary: #cdcdcd;
   --color-primary:                   #888888;
    --color-text-brand:  #888888;
   --color-menu-item:  #888888;
@@ -137,6 +137,7 @@
   --color-button-bg:                 var(--color-bg-alt);
   --color-button-bg-hover:           #333333;
   --color-button-bg-focus:           #444444;
+  --color-button-scroll:             #cdcdcd;
 
   
   --color-text-on-primary:  #444444;
