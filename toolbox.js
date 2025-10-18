@@ -3436,7 +3436,7 @@ const toolboxSnippetsPhysics = {
         icon: "./images/physics.svg",
         //colour: categoryColours["Snippets"],
         categorystyle: "snippets_category",
-        name: "%{BKY_CATEGORY_SNIPPETS}",
+        name: "%{BKY_CATEGORY_PHYSICS}",
         contents: [
                 {
                         kind: "block",
