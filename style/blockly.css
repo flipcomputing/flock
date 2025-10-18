@@ -17,6 +17,22 @@
 
 }
 
+[data-theme="dark-contrast"] {
+  /* Core colours */
+  --color-bg:                   black;
+  --color-text:                 white;
+  --color-border-highlight:     #ee5d6c;
+  --color-search-highlight:     #ed808b;
+  --color-shadow:               grey;
+  --color-outline-focus:        #fc3;
+
+  /* Dropdown & menu semantics */
+  --color-dropdown-text:        var(--color-text);
+  --color-menu-item-text:       var(--color-text);
+  --color-dropdown-menu-bg:     var(--color-bg);
+  --color-dropdown-menu-hover:  rgba(0, 0, 0, 0.05);
+  --color-dropdown-menu-border: var(--color-dropdown-menu-border, 1px solid rgba(0,0,0,0.1));
+}
 
 /* Only target text inputs with cursor: text */
 .blocklyEditableText[style*="cursor: text"] > rect {
