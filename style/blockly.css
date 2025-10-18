@@ -206,10 +206,6 @@ fill: var(--color-border-highlight);
   background-color: #ebebeb !important;
 }
 
-[data-theme="dark-contrast"] .blocklySvg {
-  background-color: #bababa !important;
-}
-
 /* Toolbox category selection outline */
 .blocklyToolboxCategoryContainer[aria-selected="true"][aria-level="1"] > .blocklyToolboxCategory,
 .blocklyToolboxCategoryContainer[aria-selected="true"][aria-level="2"] > .blocklyToolboxCategory {
