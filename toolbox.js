@@ -2795,22 +2795,6 @@ const toolboxText = {
                                 text: "Input/Output:",
                                 "web-class": "ioLabel",
                         },*/
-                                {
-                                        kind: "block",
-                                        type: "text_prompt_ext",
-                                        keyword: "prompt",
-                                        tooltip: "Ask the user for input.\nKeyword: prompt",
-                                        inputs: {
-                                                TEXT: {
-                                                        shadow: {
-                                                                type: "text",
-                                                                fields: {
-                                                                        TEXT: "abc",
-                                                                },
-                                                        },
-                                                },
-                                        },
-                                },
                         ],
                 },
         ],

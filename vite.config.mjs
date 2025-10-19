@@ -26,6 +26,10 @@ export default {
         { src: 'fonts/*.{json,woff2}', dest: 'fonts' },
         { src: 'node_modules/blockly/media/*', dest: 'blockly/media' },
         { src: 'images/dropdown-arrow.svg', dest: 'blockly/media' },
+        {
+          src: 'node_modules/ses/dist/lockdown.umd.min.js',
+          dest: 'vendor/ses', // => served at /vendor/ses/lockdown.umd.min.js
+        },
       ]
     }),
     VitePWA({
