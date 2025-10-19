@@ -3504,7 +3504,7 @@ const toolboxSnippets = {
                                         block: {
                                                 type: "load_character",
                                                 fields: {
-                                                        MODELS: "Character1.glb",
+                                                        MODELS: "Block3.glb",
                                                         ID_VAR: {
                                                                 name: "player",
                                                                 type: "",
