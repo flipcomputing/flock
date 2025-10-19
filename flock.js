@@ -576,7 +576,7 @@ export const flock = {
                         
                         // --- load SES text in parent and inject inline into iframe (CSP allows inline) ---
                         const sesResp = await fetch(
-                                "/vendor/ses/lockdown.umd.min.js",
+                                "vendor/ses/lockdown.umd.min.js",
                         );
                         if (!sesResp.ok)
                                 throw new Error(
