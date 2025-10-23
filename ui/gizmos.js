@@ -503,7 +503,6 @@ function focusCameraOnMesh() {
       (key) => meshMap[key] === window.currentBlock,
     );
     mesh = getMeshFromBlockKey(blockKey);
-    window.currentMesh = mesh;
   }
   if (!mesh) return;
 
@@ -514,6 +513,7 @@ function focusCameraOnMesh() {
 
   let selectFocusedMesh = () => {
     // "Select" the focused mesh
+    window.currentMesh = mesh;
     gizmoManager.selectGizmoEnabled = true;
     gizmoManager.attachToMesh(mesh); // Unfortunately needed to ensure bounding box gets hidden 
     showBoundingBox(mesh, true);
