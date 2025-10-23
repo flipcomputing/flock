@@ -1498,6 +1498,7 @@ export function enableGizmos() {
   // Initialize undo handler for DO section cleanup
   addUndoHandler();
 
+  const focusButton = document.getElementById("focusButton");
   const positionButton = document.getElementById("positionButton");
   const rotationButton = document.getElementById("rotationButton");
   const scaleButton = document.getElementById("scaleButton");
@@ -1531,6 +1532,7 @@ export function enableGizmos() {
   // Enable the buttons
 
   const buttons = [
+    focusButton,
     positionButton,
     rotationButton,
     scaleButton,
@@ -1552,6 +1554,7 @@ export function enableGizmos() {
   buttons.forEach((button) => button.removeAttribute("disabled"));
 
   // Attach event listeners
+  focusButton.addEventListener("click", () => toggleGizmo("focus"));
   positionButton.addEventListener("click", () => toggleGizmo("position"));
   rotationButton.addEventListener("click", () => toggleGizmo("rotation"));
   scaleButton.addEventListener("click", () => toggleGizmo("scale"));
