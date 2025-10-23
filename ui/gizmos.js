@@ -503,6 +503,7 @@ function focusCameraOnMesh() {
       (key) => meshMap[key] === window.currentBlock,
     );
     mesh = getMeshFromBlockKey(blockKey);
+    window.currentMesh = mesh;
   }
   if (!mesh) return;
 
