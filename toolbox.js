@@ -2795,22 +2795,6 @@ const toolboxText = {
                                 text: "Input/Output:",
                                 "web-class": "ioLabel",
                         },*/
-                                {
-                                        kind: "block",
-                                        type: "text_prompt_ext",
-                                        keyword: "prompt",
-                                        tooltip: "Ask the user for input.\nKeyword: prompt",
-                                        inputs: {
-                                                TEXT: {
-                                                        shadow: {
-                                                                type: "text",
-                                                                fields: {
-                                                                        TEXT: "abc",
-                                                                },
-                                                        },
-                                                },
-                                        },
-                                },
                         ],
                 },
         ],
@@ -3652,7 +3636,7 @@ const toolboxSnippets = {
                                         block: {
                                                 type: "load_character",
                                                 fields: {
-                                                        MODELS: "Character1.glb",
+                                                        MODELS: "Block3.glb",
                                                         ID_VAR: {
                                                                 name: "player",
                                                                 type: "",

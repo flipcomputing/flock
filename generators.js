@@ -15,44 +15,95 @@ export function generateUniqueId(prefix = "") {
 }
 
 function sanitizeForCode(input) {
-  let s = String(input);
+        let s = String(input);
 
-  // Cut from the first *real* newline (\r, \n, or Unicode line separator)
-  s = s.replace(/[\r\n\u2028\u2029].*$/s, "");
-  // Cut from the first *escaped* newline sequence (\n, \r, \u2028, \u2029, \x0A, \x0D)
-  s = s.replace(/\\(?:n|r|u(?:2028|2029|000a|000d)|x0(?:a|d)).*$/i, "");
+        // Cut from the first *real* newline (\r, \n, or Unicode line separator)
+        s = s.replace(/[\r\n\u2028\u2029].*$/s, "");
+        // Cut from the first *escaped* newline sequence (\n, \r, \u2028, \u2029, \x0A, \x0D)
+        s = s.replace(/\\(?:n|r|u(?:2028|2029|000a|000d)|x0(?:a|d)).*$/i, "");
 
-  // Remove any trailing backslashes that could remain (edge cases)
-  s = s.replace(/\\+$/, "");
+        // Remove any trailing backslashes that could remain (edge cases)
+        s = s.replace(/\\+$/, "");
 
-  // Neutralize comment and template literal markers
-  s = s.replace(/\*\//g, "*∕")
-       .replace(/\/\//g, "∕∕")
-       .replace(/`/g, "ˋ");
+        // Neutralize comment and template literal markers
+        s = s.replace(/\*\//g, "*∕").replace(/\/\//g, "∕∕").replace(/`/g, "ˋ");
 
-  // Strip control characters (optional, keeps tabs/spaces)
-  s = s.replace(/[\u0000-\u001F\u007F]/g, "");
+        // Strip control characters (optional, keeps tabs/spaces)
+        s = s.replace(/[\u0000-\u001F\u007F]/g, "");
 
-  return s;
+        return s;
 }
 
-
 function emitSafeTextArg(code) {
-  if (!code) return '""';
-  const m = code.match(/^(['"`])(.*)\1$/s);
-  if (!m) return code;
+        if (!code) return '""';
+        const m = code.match(/^(['"`])(.*)\1$/s);
+        if (!m) return code;
 
-  const q = m[1];
-  const body = m[2];
+        const q = m[1];
+        const body = m[2];
 
-  // Decode literal safely (handles \', \\ , \n, \uXXXX, etc.)
-  let decoded;
-  try { decoded = JSON.parse(q + body + q); }
-  catch {
-    decoded = body.replace(/\\"/g, '"').replace(/\\'/g, "'").replace(/\\\\/g, "\\");
+        // Decode literal safely (handles \', \\ , \n, \uXXXX, etc.)
+        let decoded;
+        try {
+                decoded = JSON.parse(q + body + q);
+        } catch {
+                decoded = body
+                        .replace(/\\"/g, '"')
+                        .replace(/\\'/g, "'")
+                        .replace(/\\\\/g, "\\");
+        }
+
+        return JSON.stringify(sanitizeForCode(decoded));
+}
+
+const RESERVED_IDENTIFIERS = new Set([
+  "await","break","case","catch","class","const","continue","debugger","default",
+  "delete","do","else","enum","export","extends","false","finally","for","function",
+  "if","implements","import","in","instanceof","interface","let","new","null",
+  "package","private","protected","public","return","static","super","switch",
+  "this","throw","true","try","typeof","var","void","while","with","yield",
+  "arguments","eval"
+]);
+
+function emitSafeIdentifierLiteral(code) {
+  if (!code) {
+    console.debug("[emitSafeIdentifierLiteral] No code → undefined");
+    return "undefined";
   }
 
-  return JSON.stringify(sanitizeForCode(decoded));
+  // Match single, double, or template quoted literals
+  const m = code.match(/^(['"`])(.*)\1$/s);
+  if (!m) {
+    console.debug("[emitSafeIdentifierLiteral] Not quoted → undefined:", code);
+    return "undefined";
+  }
+
+  const rawBody = m[2];
+
+  // Reject escapes entirely
+  if (rawBody.includes("\\")) {
+    console.debug("[emitSafeIdentifierLiteral] Contains backslash → undefined:", rawBody);
+    return "undefined";
+  }
+
+  // Replace spaces and other whitespace with underscores
+  const normalized = rawBody.replace(/\s+/g, "_");
+  console.debug("[emitSafeIdentifierLiteral] Normalized:", normalized);
+
+  // Validate identifier
+  if (!/^[A-Za-z$_][A-Za-z0-9$_]*$/.test(normalized)) {
+    console.debug("[emitSafeIdentifierLiteral] Invalid identifier → undefined:", normalized);
+    return "undefined";
+  }
+
+  // Check reserved keywords
+  if (RESERVED_IDENTIFIERS.has(normalized)) {
+    console.debug("[emitSafeIdentifierLiteral] Reserved identifier → undefined:", normalized);
+    return "undefined";
+  }
+
+  console.debug("[emitSafeIdentifierLiteral] OK →", normalized);
+  return JSON.stringify(normalized);
 }
 
 export function defineGenerators() {
@@ -640,19 +691,27 @@ export function defineGenerators() {
         };
 
         javascriptGenerator.forBlock["print_text"] = function (block) {
-          const textCode =
-            javascriptGenerator.valueToCode(block, "TEXT", javascriptGenerator.ORDER_NONE) || "''";
-          const durationCode =
-            javascriptGenerator.valueToCode(block, "DURATION", javascriptGenerator.ORDER_NONE) || "0";
+                const textCode =
+                        javascriptGenerator.valueToCode(
+                                block,
+                                "TEXT",
+                                javascriptGenerator.ORDER_NONE,
+                        ) || "''";
+                const durationCode =
+                        javascriptGenerator.valueToCode(
+                                block,
+                                "DURATION",
+                                javascriptGenerator.ORDER_NONE,
+                        ) || "0";
 
-          const color = getFieldValue(block, "COLOR", "#9932CC");
+                const color = getFieldValue(block, "COLOR", "#9932CC");
 
-          const safeTextArg = emitSafeTextArg(textCode);
+                const safeTextArg = emitSafeTextArg(textCode);
 
-          const n = `(Number(${durationCode}))`;
-          const safeDuration = `(isFinite(${n}) && ${n} >= 0 ? ${n} : 0)`;
+                const n = `(Number(${durationCode}))`;
+                const safeDuration = `(isFinite(${n}) && ${n} >= 0 ? ${n} : 0)`;
 
-          return `printText({ text: ${safeTextArg}, duration: ${safeDuration}, color: ${color} });\n`;
+                return `printText({ text: ${safeTextArg}, duration: ${safeDuration}, color: ${color} });\n`;
         };
 
         javascriptGenerator.forBlock["set_fog"] = function (block) {
@@ -673,25 +732,51 @@ export function defineGenerators() {
         };
 
         javascriptGenerator.forBlock["ui_text"] = function (block) {
-          const textCode =
-            javascriptGenerator.valueToCode(block, "TEXT", javascriptGenerator.ORDER_ATOMIC) || '""';
-          const xCode = javascriptGenerator.valueToCode(block, "X", javascriptGenerator.ORDER_ATOMIC) || "0";
-          const yCode = javascriptGenerator.valueToCode(block, "Y", javascriptGenerator.ORDER_ATOMIC) || "0";
-          const fontSizeCode =
-            javascriptGenerator.valueToCode(block, "FONT_SIZE", javascriptGenerator.ORDER_ATOMIC) || "24";
-          const durationCode =
-            javascriptGenerator.valueToCode(block, "DURATION", javascriptGenerator.ORDER_ATOMIC) || "0";
-          const colorCode =
-            javascriptGenerator.valueToCode(block, "COLOR", javascriptGenerator.ORDER_ATOMIC) || '""';
+                const textCode =
+                        javascriptGenerator.valueToCode(
+                                block,
+                                "TEXT",
+                                javascriptGenerator.ORDER_ATOMIC,
+                        ) || '""';
+                const xCode =
+                        javascriptGenerator.valueToCode(
+                                block,
+                                "X",
+                                javascriptGenerator.ORDER_ATOMIC,
+                        ) || "0";
+                const yCode =
+                        javascriptGenerator.valueToCode(
+                                block,
+                                "Y",
+                                javascriptGenerator.ORDER_ATOMIC,
+                        ) || "0";
+                const fontSizeCode =
+                        javascriptGenerator.valueToCode(
+                                block,
+                                "FONT_SIZE",
+                                javascriptGenerator.ORDER_ATOMIC,
+                        ) || "24";
+                const durationCode =
+                        javascriptGenerator.valueToCode(
+                                block,
+                                "DURATION",
+                                javascriptGenerator.ORDER_ATOMIC,
+                        ) || "0";
+                const colorCode =
+                        javascriptGenerator.valueToCode(
+                                block,
+                                "COLOR",
+                                javascriptGenerator.ORDER_ATOMIC,
+                        ) || '""';
 
-          const textBlockVar = javascriptGenerator.nameDB_.getName(
-            block.getFieldValue("TEXTBLOCK_VAR"),
-            Blockly.VARIABLE_CATEGORY_NAME
-          );
+                const textBlockVar = javascriptGenerator.nameDB_.getName(
+                        block.getFieldValue("TEXTBLOCK_VAR"),
+                        Blockly.VARIABLE_CATEGORY_NAME,
+                );
 
-          const safeTextArg = emitSafeTextArg(textCode);
+                const safeTextArg = emitSafeTextArg(textCode);
 
-          return `${textBlockVar} = UIText({
+                return `${textBlockVar} = UIText({
           text: ${safeTextArg},
           x: ${xCode},
           y: ${yCode},
@@ -702,31 +787,54 @@ export function defineGenerators() {
         });\n`;
         };
 
-
         javascriptGenerator.forBlock["ui_input"] = function (block) {
-          const varName = javascriptGenerator.nameDB_.getName(
-            block.getFieldValue("INPUT_VAR"),
-            Blockly.VARIABLE_CATEGORY_NAME
-          );
+                const varName = javascriptGenerator.nameDB_.getName(
+                        block.getFieldValue("INPUT_VAR"),
+                        Blockly.VARIABLE_CATEGORY_NAME,
+                );
 
-          const textCode =
-            javascriptGenerator.valueToCode(block, "TEXT", javascriptGenerator.ORDER_ATOMIC) || '""';
-          const xCode = javascriptGenerator.valueToCode(block, "X", javascriptGenerator.ORDER_ATOMIC) || "0";
-          const yCode = javascriptGenerator.valueToCode(block, "Y", javascriptGenerator.ORDER_ATOMIC) || "0";
-          const fontSizeCode =
-            javascriptGenerator.valueToCode(block, "TEXT_SIZE", javascriptGenerator.ORDER_ATOMIC) || "24";
-          const textColorCode =
-            javascriptGenerator.valueToCode(block, "TEXT_COLOR", javascriptGenerator.ORDER_ATOMIC) ||
-            '"#000000"';
-          const backgroundColorCode =
-            javascriptGenerator.valueToCode(block, "BACKGROUND_COLOR", javascriptGenerator.ORDER_ATOMIC) ||
-            '"#ffffff"';
+                const textCode =
+                        javascriptGenerator.valueToCode(
+                                block,
+                                "TEXT",
+                                javascriptGenerator.ORDER_ATOMIC,
+                        ) || '""';
+                const xCode =
+                        javascriptGenerator.valueToCode(
+                                block,
+                                "X",
+                                javascriptGenerator.ORDER_ATOMIC,
+                        ) || "0";
+                const yCode =
+                        javascriptGenerator.valueToCode(
+                                block,
+                                "Y",
+                                javascriptGenerator.ORDER_ATOMIC,
+                        ) || "0";
+                const fontSizeCode =
+                        javascriptGenerator.valueToCode(
+                                block,
+                                "TEXT_SIZE",
+                                javascriptGenerator.ORDER_ATOMIC,
+                        ) || "24";
+                const textColorCode =
+                        javascriptGenerator.valueToCode(
+                                block,
+                                "TEXT_COLOR",
+                                javascriptGenerator.ORDER_ATOMIC,
+                        ) || '"#000000"';
+                const backgroundColorCode =
+                        javascriptGenerator.valueToCode(
+                                block,
+                                "BACKGROUND_COLOR",
+                                javascriptGenerator.ORDER_ATOMIC,
+                        ) || '"#ffffff"';
 
-          const size = block.getFieldValue("SIZE") || "medium";
+                const size = block.getFieldValue("SIZE") || "medium";
 
-          const safeTextArg = emitSafeTextArg(textCode);
+                const safeTextArg = emitSafeTextArg(textCode);
 
-          return `${varName} = await UIInput({
+                return `${varName} = await UIInput({
             text: ${safeTextArg},
             x: ${xCode},
             y: ${yCode},
@@ -737,7 +845,6 @@ export function defineGenerators() {
             id: ${varName}
           });\n`;
         };
-
 
         javascriptGenerator.forBlock["ui_slider"] = function (block) {
                 const varName = javascriptGenerator.nameDB_.getName(
@@ -863,39 +970,58 @@ export function defineGenerators() {
         };
 
         javascriptGenerator.forBlock["say"] = function (block) {
-          const textCode =
-            javascriptGenerator.valueToCode(block, "TEXT", javascriptGenerator.ORDER_ATOMIC) || '""';
-          const durationCode =
-            javascriptGenerator.valueToCode(block, "DURATION", javascriptGenerator.ORDER_ATOMIC) || "0";
-          const alphaCode =
-            javascriptGenerator.valueToCode(block, "ALPHA", javascriptGenerator.ORDER_ATOMIC) || "1";
-          const sizeCode =
-            javascriptGenerator.valueToCode(block, "SIZE", javascriptGenerator.ORDER_ATOMIC) || "24";
+                const textCode =
+                        javascriptGenerator.valueToCode(
+                                block,
+                                "TEXT",
+                                javascriptGenerator.ORDER_ATOMIC,
+                        ) || '""';
+                const durationCode =
+                        javascriptGenerator.valueToCode(
+                                block,
+                                "DURATION",
+                                javascriptGenerator.ORDER_ATOMIC,
+                        ) || "0";
+                const alphaCode =
+                        javascriptGenerator.valueToCode(
+                                block,
+                                "ALPHA",
+                                javascriptGenerator.ORDER_ATOMIC,
+                        ) || "1";
+                const sizeCode =
+                        javascriptGenerator.valueToCode(
+                                block,
+                                "SIZE",
+                                javascriptGenerator.ORDER_ATOMIC,
+                        ) || "24";
 
-          const meshVariable = javascriptGenerator.nameDB_.getName(
-            block.getFieldValue("MESH_VAR"),
-            Blockly.Names.NameType.VARIABLE
-          );
+                const meshVariable = javascriptGenerator.nameDB_.getName(
+                        block.getFieldValue("MESH_VAR"),
+                        Blockly.Names.NameType.VARIABLE,
+                );
 
-          const textColor = getFieldValue(block, "TEXT_COLOR", "#000000");
-          const backgroundColor = getFieldValue(block, "BACKGROUND_COLOR", "#ffffff");
+                const textColor = getFieldValue(block, "TEXT_COLOR", "#000000");
+                const backgroundColor = getFieldValue(
+                        block,
+                        "BACKGROUND_COLOR",
+                        "#ffffff",
+                );
 
-          const mode = block.getFieldValue("MODE") || "";
-          const asyncMode = block.getFieldValue("ASYNC");
-          const asyncWrapper = asyncMode === "AWAIT" ? "await " : "";
+                const mode = block.getFieldValue("MODE") || "";
+                const asyncMode = block.getFieldValue("ASYNC");
+                const asyncWrapper = asyncMode === "AWAIT" ? "await " : "";
 
-          const safeTextArg = emitSafeTextArg(textCode);
+                const safeTextArg = emitSafeTextArg(textCode);
 
-          const d = `(Number(${durationCode}))`;
-          const safeDuration = `(isFinite(${d}) && ${d} >= 0 ? ${d} : 0)`;
-          const a = `(Number(${alphaCode}))`;
-          const safeAlpha = `(isFinite(${a}) ? Math.min(Math.max(${a}, 0), 1) : 1)`;
-          const s = `(Number(${sizeCode}))`;
-          const safeSize = `(isFinite(${s}) && ${s} > 0 ? ${s} : 24)`;
+                const d = `(Number(${durationCode}))`;
+                const safeDuration = `(isFinite(${d}) && ${d} >= 0 ? ${d} : 0)`;
+                const a = `(Number(${alphaCode}))`;
+                const safeAlpha = `(isFinite(${a}) ? Math.min(Math.max(${a}, 0), 1) : 1)`;
+                const s = `(Number(${sizeCode}))`;
+                const safeSize = `(isFinite(${s}) && ${s} > 0 ? ${s} : 24)`;
 
-          return `${asyncWrapper}say(${meshVariable}, { text: ${safeTextArg}, duration: ${safeDuration}, textColor: ${textColor}, backgroundColor: ${backgroundColor}, alpha: ${safeAlpha}, size: ${safeSize}, mode: ${JSON.stringify(mode)} });\n`;
+                return `${asyncWrapper}say(${meshVariable}, { text: ${safeTextArg}, duration: ${safeDuration}, textColor: ${textColor}, backgroundColor: ${backgroundColor}, alpha: ${safeAlpha}, size: ${safeSize}, mode: ${JSON.stringify(mode)} });\n`;
         };
-
 
         javascriptGenerator.forBlock["load_model"] = function (block) {
                 const modelName = block.getFieldValue("MODELS");
@@ -1144,38 +1270,48 @@ export function defineGenerators() {
         };
 
         javascriptGenerator.forBlock["create_3d_text"] = function (block) {
-          const variableName = javascriptGenerator.nameDB_.getName(
-            block.getFieldValue("ID_VAR"),
-            Blockly.Names.NameType.VARIABLE
-          );
+                const variableName = javascriptGenerator.nameDB_.getName(
+                        block.getFieldValue("ID_VAR"),
+                        Blockly.Names.NameType.VARIABLE,
+                );
 
-          let rawText = getFieldValue(block, "TEXT", "Hello World");
-          if (typeof rawText !== "string") rawText = String(rawText ?? "");
-          const m = rawText.match(/^(['"`])(.*)\1$/s);
-          const textLiteral = JSON.stringify(sanitizeForCode(m ? m[2] : rawText));
+                let rawText = getFieldValue(block, "TEXT", "Hello World");
+                if (typeof rawText !== "string")
+                        rawText = String(rawText ?? "");
+                const m = rawText.match(/^(['"`])(.*)\1$/s);
+                const textLiteral = JSON.stringify(
+                        sanitizeForCode(m ? m[2] : rawText),
+                );
 
-          const fontKey = block.getFieldValue("FONT") || "__fonts_FreeSans_Bold_json";
-          const size = getFieldValue(block, "SIZE", "50");
-          const depth = getFieldValue(block, "DEPTH", "1.0");
-          const x = getFieldValue(block, "X", "0");
-          const y = getFieldValue(block, "Y", "0");
-          const z = getFieldValue(block, "Z", "0");
-          const color = getFieldValue(block, "COLOR", "#FFFFFF");
+                const fontKey =
+                        block.getFieldValue("FONT") ||
+                        "__fonts_FreeSans_Bold_json";
+                const size = getFieldValue(block, "SIZE", "50");
+                const depth = getFieldValue(block, "DEPTH", "1.0");
+                const x = getFieldValue(block, "X", "0");
+                const y = getFieldValue(block, "Y", "0");
+                const z = getFieldValue(block, "Z", "0");
+                const color = getFieldValue(block, "COLOR", "#FFFFFF");
 
-          let font = "./fonts/FreeSans_Bold.json";
-          if (fontKey === "__fonts_FreeSans_Bold_json") font = "./fonts/FreeSans_Bold.json";
+                let font = "./fonts/FreeSans_Bold.json";
+                if (fontKey === "__fonts_FreeSans_Bold_json")
+                        font = "./fonts/FreeSans_Bold.json";
 
-          const meshId = "text_" + generateUniqueId();
-          meshMap[meshId] = block;
-          meshBlockIdMap[meshId] = block.id;
+                const meshId = "text_" + generateUniqueId();
+                meshMap[meshId] = block;
+                meshBlockIdMap[meshId] = block.id;
 
-          let doCode = "";
-          if (block.getInput("DO")) {
-            doCode = javascriptGenerator.statementToCode(block, "DO") || "";
-          }
-          doCode = doCode ? `async function() {\n${doCode}\n}` : "";
+                let doCode = "";
+                if (block.getInput("DO")) {
+                        doCode =
+                                javascriptGenerator.statementToCode(
+                                        block,
+                                        "DO",
+                                ) || "";
+                }
+                doCode = doCode ? `async function() {\n${doCode}\n}` : "";
 
-          return `${variableName} = create3DText({
+                return `${variableName} = create3DText({
           text: ${textLiteral},
           font: '${font}',
           color: ${color},
@@ -1185,7 +1321,6 @@ export function defineGenerators() {
           modelId: '${meshId}'${doCode ? `,\n  callback: ${doCode}` : ""}
         });\n`;
         };
-
 
         javascriptGenerator.forBlock["create_particle_effect"] = function (
                 block,
@@ -1669,7 +1804,7 @@ export function defineGenerators() {
         };
 
         javascriptGenerator.forBlock["time"] = function (block) {
-                let code = `Math.floor(new Date().getTime()) / 1000`;
+                let code = `Math.floor(Date.now() / 1000)`;
                 return [code, javascriptGenerator.ORDER_ATOMIC];
         };
 
@@ -2068,31 +2203,36 @@ export function defineGenerators() {
 
         // JavaScript generator for broadcast_event
         javascriptGenerator.forBlock["broadcast_event"] = function (block) {
-                const eventName =
-                        javascriptGenerator.valueToCode(
-                                block,
-                                "EVENT_NAME",
-                                javascriptGenerator.ORDER_ATOMIC,
-                        ) || '"go"';
+          const raw =
+            javascriptGenerator.valueToCode(
+              block,
+              "EVENT_NAME",
+              javascriptGenerator.ORDER_ATOMIC
+            ) || 'undefined';
 
-                return `broadcastEvent(${eventName});\n`;
+          const safe = emitSafeIdentifierLiteral(raw, undefined);
+          return `broadcastEvent(${safe});\n`;
         };
+
 
         // JavaScript generator for on_event
         javascriptGenerator.forBlock["on_event"] = function (block) {
-                const eventName =
-                        javascriptGenerator.valueToCode(
-                                block,
-                                "EVENT_NAME",
-                                javascriptGenerator.ORDER_ATOMIC,
-                        ) || '"go"';
-                const statements_do = javascriptGenerator.statementToCode(
-                        block,
-                        "DO",
-                );
+          // Don't force a default; let invalid/empty resolve to undefined
+          const raw =
+            javascriptGenerator.valueToCode(
+              block,
+              "EVENT_NAME",
+              javascriptGenerator.ORDER_ATOMIC
+            ) || "";
 
-                return `onEvent(${eventName}, async function() {\n${statements_do}});\n`;
+          console.debug("[on_event] Raw EVENT_NAME:", raw);
+          const safe = emitSafeIdentifierLiteral(raw);
+          console.debug("[on_event] Safe result:", safe);
+
+          const statements_do = javascriptGenerator.statementToCode(block, "DO");
+          return `onEvent(${safe}, async function() {\n${statements_do}});\n`;
         };
+
         javascriptGenerator.forBlock["highlight"] = function (block) {
                 const modelName = javascriptGenerator.nameDB_.getName(
                         block.getFieldValue("MODEL_VAR"),
