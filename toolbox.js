@@ -3433,106 +3433,106 @@ const toolboxSnippetsPhysics = {
                                                         name: "sphere",
                                                         type: "",
                                                 },
-                                        },
-                                        inputs: {
-                                                COLOR: {
-                                                        shadow: {
-                                                                type: "colour",
-                                                                fields: {
-                                                                        COLOR: "#9932cc",
-                                                                },
-                                                        },
-                                                },
-                                                DIAMETER_X: {
-                                                        shadow: {
-                                                                type: "math_number",
-                                                                fields: {
-                                                                        NUM: 1,
-                                                                },
-                                                        },
-                                                },
-                                                DIAMETER_Y: {
-                                                        shadow: {
-                                                                type: "math_number",
-                                                                fields: {
-                                                                        NUM: 1,
-                                                                },
-                                                        },
-                                                },
-                                                DIAMETER_Z: {
-                                                        shadow: {
-                                                                type: "math_number",
-                                                                fields: {
-                                                                        NUM: 1,
-                                                                },
-                                                        },
-                                                },
-                                                X: {
-                                                        shadow: {
-                                                                type: "math_number",
-                                                                fields: {
-                                                                        NUM: 0,
-                                                                },
-                                                        },
-                                                },
-                                                Y: {
-                                                        shadow: {
-                                                                type: "math_number",
-                                                                fields: {
-                                                                        NUM: 0,
-                                                                },
-                                                        },
-                                                },
-                                                Z: {
-                                                        shadow: {
-                                                                type: "math_number",
-                                                                fields: {
-                                                                        NUM: 0,
-                                                                },
-                                                        },
-                                                },
-                                        },
-                                        next: {
-                                                block: {
-                                                        type: "add_physics",
-                                                        fields: {
-                                                                MODEL_VAR: {
-                                                                        name: "sphere",
-                                                                        type: "",
-                                                                },
-                                                                PHYSICS_TYPE: "DYNAMIC",
-                                                        },
-                                                        next: {
-                                                                block: {
-                                                                        type: "apply_force",
+                                                inputs: {
+                                                        COLOR: {
+                                                                shadow: {
+                                                                        type: "colour",
                                                                         fields: {
-                                                                                MESH_VAR: {
-                                                                                        name: "sphere",
-                                                                                        type: "",
-                                                                                },
+                                                                                COLOR: "#9932cc",
                                                                         },
-                                                                        inputs: {
-                                                                                X: {
-                                                                                        shadow: {
-                                                                                                type: "math_number",
-                                                                                                fields: {
-                                                                                                        NUM: 1,
-                                                                                                },
+                                                                },
+                                                        },
+                                                        DIAMETER_X: {
+                                                                shadow: {
+                                                                        type: "math_number",
+                                                                        fields: {
+                                                                                NUM: 1,
+                                                                        },
+                                                                },
+                                                        },
+                                                        DIAMETER_Y: {
+                                                                shadow: {
+                                                                        type: "math_number",
+                                                                        fields: {
+                                                                                NUM: 1,
+                                                                        },
+                                                                },
+                                                        },
+                                                        DIAMETER_Z: {
+                                                                shadow: {
+                                                                        type: "math_number",
+                                                                        fields: {
+                                                                                NUM: 1,
+                                                                        },
+                                                                },
+                                                        },
+                                                        X: {
+                                                                shadow: {
+                                                                        type: "math_number",
+                                                                        fields: {
+                                                                                NUM: 0,
+                                                                        },
+                                                                },
+                                                        },
+                                                        Y: {
+                                                                shadow: {
+                                                                        type: "math_number",
+                                                                        fields: {
+                                                                                NUM: 0,
+                                                                        },
+                                                                },
+                                                        },
+                                                        Z: {
+                                                                shadow: {
+                                                                        type: "math_number",
+                                                                        fields: {
+                                                                                NUM: 0,
+                                                                        },
+                                                                },
+                                                        },
+                                                },
+                                                next: {
+                                                        block: {
+                                                                type: "add_physics",
+                                                                fields: {
+                                                                        MODEL_VAR: {
+                                                                                name: "sphere",
+                                                                                type: "",
+                                                                        },
+                                                                        PHYSICS_TYPE: "DYNAMIC",
+                                                                },
+                                                                next: {
+                                                                        block: {
+                                                                                type: "apply_force",
+                                                                                fields: {
+                                                                                        MESH_VAR: {
+                                                                                                name: "sphere",
+                                                                                                type: "",
                                                                                         },
                                                                                 },
-                                                                                Y: {
-                                                                                        shadow: {
-                                                                                                type: "math_number",
-                                                                                                fields: {
-                                                                                                        NUM: 2,
+                                                                                inputs: {
+                                                                                        X: {
+                                                                                                shadow: {
+                                                                                                        type: "math_number",
+                                                                                                        fields: {
+                                                                                                                NUM: 1,
+                                                                                                        },
                                                                                                 },
                                                                                         },
-                                                                                },
-                                                                                Z: {
-                                                                                        shadow: {
-                                                                                                type: "math_number",
-                                                                                                fields: {
-                                                                                                        NUM: 1,
+                                                                                        Y: {
+                                                                                                shadow: {
+                                                                                                        type: "math_number",
+                                                                                                        fields: {
+                                                                                                                NUM: 2,
+                                                                                                        },
+                                                                                                },
+                                                                                        },
+                                                                                        Z: {
+                                                                                                shadow: {
+                                                                                                        type: "math_number",
+                                                                                                        fields: {
+                                                                                                                NUM: 1,
+                                                                                                        },
                                                                                                 },
                                                                                         },
                                                                                 },
