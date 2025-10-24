@@ -20,10 +20,6 @@ export function initializeBlockHandling() {
 		}
 	});
 
-	// ──────────────────────────────────────────────────────────────
-	// Back-to-working cleanup (original behaviour)
-	// ──────────────────────────────────────────────────────────────
-
 	const blockTypesToCleanUp = [
 		"start",
 		"forever",
@@ -378,24 +374,6 @@ export function initializeBlockHandling() {
 		console.warn("Scene category not found in toolbox");
 	}
 });*/
-
-	Blockly.getMainWorkspace().addChangeListener((event) => {
-		// Check if the event is a block collapse action
-		if (
-			event.type === Blockly.Events.BLOCK_CHANGE &&
-			event.element === "collapsed"
-		) {
-			const block = Blockly.getMainWorkspace().getBlockById(
-				event.blockId,
-			);
-
-			// Check if the block is a top-level block (no parent)
-			if (block && !block.getParent() && block.isCollapsed()) {
-				// Call Blockly's built-in clean up function
-				Blockly.getMainWorkspace().cleanUp();
-			}
-		}
-	});
 
 	Blockly.getMainWorkspace().addChangeListener((event) => {
 		// Check if the event is a block collapse/expand action
