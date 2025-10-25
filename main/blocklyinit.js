@@ -204,29 +204,58 @@ export function createBlocklyWorkspace() {
 
         workspace = Blockly.inject("blocklyDiv", options);
 
-        // Stop some categories moving workspace on open
-        (function neutralizeToolboxPlusFlyoutOnly() {
+        // Keep scrolling; remove only the obvious flyout-width bump.
+        (function simpleNoBumpTranslate() {
           const ws = Blockly.getMainWorkspace();
           const original = ws.translate.bind(ws);
 
-          ws.translate = function(newX, newY) {
+          ws.translate = function(requestedX, newY) {
             const tb = this.getToolbox?.();
             const fo = this.getFlyout?.();
-            const tbW = tb?.getWidth?.() || 0;
-            const foW = (fo && fo.isVisible?.()) ? fo.getWidth() : 0;
+            const mm = this.getMetricsManager?.();
 
-            // Only neutralize the specific bad value: toolbox + flyout (overlay bug)
-            // Allow tiny float error.
-            const EPS = 1;
-            if (fo && fo.isVisible?.() && Math.abs(newX - (tbW + foW)) < EPS) {
-              // Force overlay semantics: never add flyout width.
-              newX = tbW;
-              // (optional) console.warn('[neutralized] translate toolbox+flyout -> toolboxOnly', { tbW, foW });
+            // Toolbox edge on the left. Prefer toolbox.getWidth(); fallback to absolute metrics.
+            const tbW =
+              (tb && tb.getWidth?.()) ??
+              (mm && mm.getAbsoluteMetrics ? mm.getAbsoluteMetrics().left : 0) ??
+              0;
+
+            let x = requestedX;
+
+            // Only adjust when the flyout is actually visible.
+            if (fo && fo.isVisible?.()) {
+              const foW = fo.getWidth?.() || 0;
+              const EPS = 1; // small float tolerance
+
+              if (foW > 0) {
+                // Case 1: absolute shove to ≈ toolbox + flyout
+                if (x >= tbW + foW - EPS) {
+                  x -= foW;
+                }
+                // Case 2: relative shove by ≈ flyout from current position
+                else if ((x - this.scrollX) >= foW - EPS) {
+                  x -= foW;
+                }
+              }
             }
 
-            return original(newX, newY);
+            // Never allow the origin to go left of the toolbox edge.
+            if (x < tbW) x = tbW;
+
+            // Debug
+            /*console.log('[translate simple-no-bump]', {
+              requestedX,
+              appliedX: x,
+              scrollX: this.scrollX,
+              toolboxWidth: tbW,
+              flyoutVisible: !!(fo && fo.isVisible?.()),
+              flyoutWidth: fo?.getWidth?.() || 0
+            });*/
+
+            return original(x, newY);
           };
         })();
+
 
 
         // ---- Blockly event debug helpers ----
