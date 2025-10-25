@@ -303,6 +303,7 @@ body[data-theme="dark"] .blocklyTreeLabel {
 
   .blocklyToolbox {
     background: #F3F3F3 !important;
+    min-width: 130px;
   }
   .blocklyToolboxCategoryGroup {
     background-color: #D3D3D3 !important;
