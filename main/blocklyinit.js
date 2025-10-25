@@ -296,79 +296,182 @@ export function createBlocklyWorkspace() {
               ? toolbox.getFlyout()
               : toolbox.flyout_);
 
-          function flyoutOpen() {
-            if (!flyout) return false;
-            if (typeof flyout.isVisible === 'function') return !!flyout.isVisible();
-            const el =
-              (typeof flyout.getWorkspace === 'function' &&
-                flyout.getWorkspace()?.getParentSvg()) ||
-              flyout.svgGroup_ ||
-              flyout.workspace_?.getParentSvg();
-            if (!el) return false;
-            const style = (el.ownerDocument && el.ownerDocument.defaultView
-              ? el.ownerDocument.defaultView
-              : window
-            ).getComputedStyle(el);
-            return style && style.display !== 'none' && style.visibility !== 'hidden';
+          // Get the flyout width
+          function getFlyoutWidth() {
+            if (!flyout) return 0;
+            if (typeof flyout.getWidth === 'function') {
+              const width = flyout.getWidth();
+              return width > 0 && width < 500 ? width : 0;
+            }
+            if (flyout.width_ && flyout.width_ < 500) return flyout.width_;
+            return 0;
           }
 
-          // --- short-lived adjust window, in milliseconds
-          let adjustUntil = 0;
-          function armAdjust(frames = 2) {
-            const ms = Math.max(16 * frames + 2, 20);
-            adjustUntil = performance.now() + ms;
+          // Track the stable X position
+          let stableX = Math.max(canvasX(), getFlyoutWidth() || 100);
+          let inFlyoutOperation = false;
+          let operationTimeout = null;
+          let userIsScrolling = false;
+          let scrollTimeout = null;
+
+          //console.log(`[patch] Initial stable X=${stableX.toFixed(2)}, flyout width=${getFlyoutWidth()}`);
+
+          // Hook into scrollbar events to detect real user scrolling
+          function installScrollbarHooks() {
+            const hScrollbar = ws.scrollbar?.hScroll;
+            if (hScrollbar && hScrollbar.onMouseDownHandle_) {
+              const origOnMouseDown = hScrollbar.onMouseDownHandle_.bind(hScrollbar);
+              hScrollbar.onMouseDownHandle_ = function(e) {
+                userIsScrolling = true;
+                //console.log('[patch] 🖱️ Scrollbar drag started');
+                return origOnMouseDown.apply(this, arguments);
+              };
+            }
+
+            if (hScrollbar && hScrollbar.onMouseUpHandle_) {
+              const origOnMouseUp = hScrollbar.onMouseUpHandle_.bind(hScrollbar);
+              hScrollbar.onMouseUpHandle_ = function(e) {
+                //console.log('[patch] 🖱️ Scrollbar drag ended');
+                clearTimeout(scrollTimeout);
+                scrollTimeout = setTimeout(() => {
+                  userIsScrolling = false;
+                  // Update stable X after scrolling
+                  const finalX = canvasX();
+                  const flyoutWidth = getFlyoutWidth() || 100;
+                  if (finalX >= flyoutWidth) {
+                    stableX = finalX;
+                    //console.log(`[patch] 📜 Updated stable X after scroll: ${stableX.toFixed(2)}`);
+                  }
+                }, 100);
+                return origOnMouseUp.apply(this, arguments);
+              };
+            }
           }
 
-          // Wrap a method so that it arms adjust briefly after it runs
-          function wrapWithShortAdjust(obj, methodName) {
-            const fn = obj && obj[methodName];
-            if (typeof fn !== 'function') return;
-            obj[methodName] = function wrapped() {
-              try {
-                return fn.apply(this, arguments);
-              } finally {
-                requestAnimationFrame(() => requestAnimationFrame(armAdjust));
+          // Try to install hooks immediately and after workspace init
+          installScrollbarHooks();
+          setTimeout(installScrollbarHooks, 100);
+
+          function startFlyoutOperation(reason = 'unknown') {
+            const currentX = canvasX();
+            const flyoutWidth = getFlyoutWidth() || 100;
+
+            if (!inFlyoutOperation) {
+              if (currentX >= flyoutWidth) {
+                stableX = currentX;
+                //console.log(`[patch] 🔧 Starting flyout operation (${reason}), stable X=${stableX.toFixed(2)}`);
+              } else {
+                //console.log(`[patch] 🔧 Starting flyout operation (${reason}), keeping stable X=${stableX.toFixed(2)} (current=${currentX.toFixed(2)} is invalid)`);
               }
-            };
+            }
+
+            inFlyoutOperation = true;
+            clearTimeout(operationTimeout);
+
+            operationTimeout = setTimeout(() => {
+              const finalX = canvasX();
+              const finalFlyoutWidth = getFlyoutWidth() || 100;
+
+              if (finalX >= finalFlyoutWidth) {
+                stableX = finalX;
+                //console.log(`[patch] ✅ Flyout operation complete, updated stable X=${stableX.toFixed(2)}`);
+              } else {
+                //console.log(`[patch] ✅ Flyout operation complete, keeping stable X=${stableX.toFixed(2)} (final=${finalX.toFixed(2)} is invalid)`);
+              }
+              inFlyoutOperation = false;
+            }, 300);
           }
 
           // --- patch translate
           const origTranslate = ws.translate.bind(ws);
           ws.translate = function patchedTranslate(x, y) {
-            const now = performance.now();
+            const beforeX = canvasX();
+            const flyoutWidth = getFlyoutWidth() || 100;
 
-            // Skip adjustment if the user is actively dragging or panning
-            if (ws.currentGesture_) {
-              return origTranslate(x, y);
+            // Check if user is actively panning/dragging
+            const hasActiveGesture = ws.currentGesture_ && (
+              (ws.currentGesture_.isDragging) ||
+              (ws.currentGesture_.hasExceededDragRadius) ||
+              (ws.scrollDragSurface_ && ws.scrollDragSurface_.getCurrentNode && 
+               ws.scrollDragSurface_.getCurrentNode())
+            );
+
+            const isDraggingBlock = ws.currentGesture_ && 
+              (typeof ws.currentGesture_.getCurrentDragger === 'function' && 
+               ws.currentGesture_.getCurrentDragger());
+
+            const xDelta = x - beforeX;
+
+            // Log significant translate attempts
+            if (Math.abs(xDelta) > 0.5) {
+              /*console.log(`[patch] 📍 translate() x=${x.toFixed(2)} (Δ${xDelta.toFixed(2)}), beforeX=${beforeX.toFixed(2)}, stableX=${stableX.toFixed(2)}, flyoutW=${flyoutWidth.toFixed(2)}`, {
+                inFlyoutOperation,
+                userIsScrolling,
+                hasActiveGesture: !!hasActiveGesture,
+                isDraggingBlock: !!isDraggingBlock
+              });*/
             }
 
-            // Apply the guard only when the flyout is active and within the adjust window
-            if (now < adjustUntil && flyoutOpen()) {
-              const beforeX = canvasX();
-              if (Math.abs(x - beforeX) > 2) {
-                x = beforeX; // clamp unexpected X nudges
+            // Allow translates when user is actively interacting
+            const userIsInteracting = hasActiveGesture || userIsScrolling;
+
+            // Block translates below flyout width unless user is interacting
+            if (x < flyoutWidth && !userIsInteracting) {
+             // console.warn(`[patch] ❌ BLOCKED translate to ${x.toFixed(2)} (below flyoutWidth=${flyoutWidth.toFixed(2)}), enforcing stable X=${stableX.toFixed(2)}`);
+              x = stableX;
+            }
+
+            // During flyout operations, enforce stable X unless user is interacting
+            if (inFlyoutOperation && !userIsInteracting) {
+              if (Math.abs(x - stableX) > 2) {
+                //console.warn(`[patch] ❌ BLOCKED translate during flyout op to ${x.toFixed(2)}, enforcing stable X=${stableX.toFixed(2)}`);
+                x = stableX;
+              }
+            }
+
+            // Update stable X after successful translates when calm (no operations, no interaction)
+            if (!inFlyoutOperation && !userIsInteracting && !isDraggingBlock && x >= flyoutWidth) {
+              if (Math.abs(x - stableX) > 1) {
+               // console.log(`[patch] 📌 Updated stable X from ${stableX.toFixed(2)} to ${x.toFixed(2)}`);
+                stableX = x;
               }
             }
 
             return origTranslate(x, y);
           };
 
-          // Arm adjust only for toolbox/flyout entry points that cause category nudges
-          wrapWithShortAdjust(ws, 'refreshToolboxSelection');
-          wrapWithShortAdjust(ws, 'updateToolbox');
+          // Wrap methods that trigger flyout operations
+          function wrapWithOperation(obj, methodName) {
+            const fn = obj && obj[methodName];
+            if (typeof fn !== 'function') return;
+            obj[methodName] = function wrapped() {
+              startFlyoutOperation(methodName);
+              return fn.apply(this, arguments);
+            };
+          }
 
-          // Some builds nudge via toolbox API directly
+          // Apply to all flyout/toolbox methods
+          wrapWithOperation(ws, 'refreshToolboxSelection');
+          wrapWithOperation(ws, 'updateToolbox');
+
           if (toolbox) {
-            wrapWithShortAdjust(toolbox, 'setSelectedItem');
-            wrapWithShortAdjust(toolbox, 'setSelectedCategoryByName');
-          }
-          if (flyout) {
-            wrapWithShortAdjust(flyout, 'show');   // opening a new category
-            wrapWithShortAdjust(flyout, 'hide');   // closing the flyout
-            wrapWithShortAdjust(flyout, 'reflow'); // width recompute path
+            wrapWithOperation(toolbox, 'setSelectedItem');
+            wrapWithOperation(toolbox, 'setSelectedCategoryByName');
+            wrapWithOperation(toolbox, 'selectItemByPosition');
           }
 
-          console.log('[patch] category nudge guard installed (toolbox-scoped, adjust mode).');
+          if (flyout) {
+            wrapWithOperation(flyout, 'show');
+            wrapWithOperation(flyout, 'hide');
+            wrapWithOperation(flyout, 'reflow');
+            wrapWithOperation(flyout, 'position');
+
+            if (typeof flyout.positionAt_ === 'function') {
+              wrapWithOperation(flyout, 'positionAt_');
+            }
+          }
+
+          //console.log('[patch] ✅ flyout X-translation stabilizer installed (scrollbar hooks).');
         })(workspace);
 
 
