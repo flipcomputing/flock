@@ -277,67 +277,100 @@ export function createBlocklyWorkspace() {
         // after you create your workspace:
         //attachBlocklyDebug(workspace, 'MainWS');
 
-        (function guardCategoryKeepScroll(ws) {
-          function getToolboxEl() {
-                var inj = ws.getInjectionDiv && ws.getInjectionDiv();
-                return inj && (inj.querySelector('.blocklyToolbox') || inj.querySelector('.blocklyToolboxDiv'));
-          }
-          function currentX() {
-                var t = ws.getCanvas().getAttribute('transform') || '';
-                var m = /translate\(([-\d.]+),\s*([-\d.]+)\)/.exec(t);
-                return m ? parseFloat(m[1]) : 0;
+        (function squashCategoryNudge(ws) {
+          if (!ws || typeof ws.translate !== 'function') {
+            console.warn('[patch] workspace not ready or no translate(). Skipping.');
+            return;
           }
 
-          var toolboxNode = getToolboxEl();
-          if (!toolboxNode) return;
-
-          var guarding = false;
-          var savedTranslate = null;
-          var savedMoveCanvas = null;
-
-          function startGuard() {
-                if (guarding) return;
-                guarding = true;
-
-                var beforeX = currentX();              // remember where the canvas is now
-                savedTranslate = ws.translate;
-                savedMoveCanvas = ws.moveCanvas;
-
-                function wrap(callOrig) {
-                  return function(x, y) {
-                        // During the category-open window, keep X where it was if Blockly tries to move it.
-                        // Small +/-1px jitters pass; anything bigger is considered the buggy push.
-                        if (Math.abs(x - beforeX) > 3) x = beforeX;
-                        return callOrig.call(ws, x, y);
-                  };
-                }
-
-                ws.translate  = wrap(savedTranslate);
-                ws.moveCanvas = wrap(savedMoveCanvas);
-
-                // Release after initial layout settles (two frames).
-                requestAnimationFrame(function() {
-                  requestAnimationFrame(function() {
-                        ws.translate  = savedTranslate;
-                        ws.moveCanvas = savedMoveCanvas;
-                        guarding = false;
-                  });
-                });
+          // --- helpers
+          function canvasX() {
+            const t = ws.getCanvas()?.getAttribute('transform') || '';
+            const m = /translate\(([-\d.]+),\s*([-\d.]+)\)/.exec(t);
+            return m ? parseFloat(m[1]) : 0;
           }
 
-          // Start guard BEFORE Blockly’s handlers (capture phase) so we catch the first translate.
-          toolboxNode.addEventListener('pointerdown', startGuard, true);
-          toolboxNode.addEventListener('mousedown',   startGuard, true);
-          toolboxNode.addEventListener('keydown', function(e) {
-                var k = e.key;
-                if (k === 'Enter' || k === ' ' || k === 'Spacebar' ||
-                        k === 'ArrowUp' || k === 'ArrowDown' || k === 'ArrowLeft' || k === 'ArrowRight') {
-                  startGuard();
-                }
-          }, true);
+          const toolbox = typeof ws.getToolbox === 'function' ? ws.getToolbox() : null;
+          const flyout =
+            toolbox && (typeof toolbox.getFlyout === 'function'
+              ? toolbox.getFlyout()
+              : toolbox.flyout_);
 
-          // If you select categories programmatically, call startGuard() just before you do.
+          function flyoutOpen() {
+            if (!flyout) return false;
+            if (typeof flyout.isVisible === 'function') return !!flyout.isVisible();
+            const el =
+              (typeof flyout.getWorkspace === 'function' &&
+                flyout.getWorkspace()?.getParentSvg()) ||
+              flyout.svgGroup_ ||
+              flyout.workspace_?.getParentSvg();
+            if (!el) return false;
+            const style = (el.ownerDocument && el.ownerDocument.defaultView
+              ? el.ownerDocument.defaultView
+              : window
+            ).getComputedStyle(el);
+            return style && style.display !== 'none' && style.visibility !== 'hidden';
+          }
+
+          // --- short-lived adjust window, in milliseconds
+          let adjustUntil = 0;
+          function armAdjust(frames = 2) {
+            const ms = Math.max(16 * frames + 2, 20);
+            adjustUntil = performance.now() + ms;
+          }
+
+          // Wrap a method so that it arms adjust briefly after it runs
+          function wrapWithShortAdjust(obj, methodName) {
+            const fn = obj && obj[methodName];
+            if (typeof fn !== 'function') return;
+            obj[methodName] = function wrapped() {
+              try {
+                return fn.apply(this, arguments);
+              } finally {
+                requestAnimationFrame(() => requestAnimationFrame(armAdjust));
+              }
+            };
+          }
+
+          // --- patch translate
+          const origTranslate = ws.translate.bind(ws);
+          ws.translate = function patchedTranslate(x, y) {
+            const now = performance.now();
+
+            // Skip adjustment if the user is actively dragging or panning
+            if (ws.currentGesture_) {
+              return origTranslate(x, y);
+            }
+
+            // Apply the guard only when the flyout is active and within the adjust window
+            if (now < adjustUntil && flyoutOpen()) {
+              const beforeX = canvasX();
+              if (Math.abs(x - beforeX) > 2) {
+                x = beforeX; // clamp unexpected X nudges
+              }
+            }
+
+            return origTranslate(x, y);
+          };
+
+          // Arm adjust only for toolbox/flyout entry points that cause category nudges
+          wrapWithShortAdjust(ws, 'refreshToolboxSelection');
+          wrapWithShortAdjust(ws, 'updateToolbox');
+
+          // Some builds nudge via toolbox API directly
+          if (toolbox) {
+            wrapWithShortAdjust(toolbox, 'setSelectedItem');
+            wrapWithShortAdjust(toolbox, 'setSelectedCategoryByName');
+          }
+          if (flyout) {
+            wrapWithShortAdjust(flyout, 'show');   // opening a new category
+            wrapWithShortAdjust(flyout, 'hide');   // closing the flyout
+            wrapWithShortAdjust(flyout, 'reflow'); // width recompute path
+          }
+
+          console.log('[patch] category nudge guard installed (toolbox-scoped, adjust mode).');
         })(workspace);
+
 
         window.addEventListener('keydown', (e) => {
           if (e.code === 'KeyK' && e.ctrlKey && e.shiftKey) {
