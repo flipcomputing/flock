@@ -1173,43 +1173,45 @@ function setupAutoValueBehavior(workspace) {
 
 export function overrideSearchPlugin(workspace) {
         function getBlocksFromToolbox(workspace) {
-                const toolboxBlocks = [];
+            const toolboxBlocks = [];
+            const seenTypes = new Set(); // Track which block types we've already added
 
-                function processItem(item, categoryName = "") {
-                        const currentCategory = item.getName
-                                ? item.getName()
-                                : categoryName;
+            function processItem(item, categoryName = "") {
+                const currentCategory = item.getName
+                    ? item.getName()
+                    : categoryName;
 
-                        if (currentCategory === "Snippets") {
-                                return;
-                        }
-
-                        if (item.getContents) {
-                                const contents = item.getContents();
-                                const blocks = Array.isArray(contents)
-                                        ? contents
-                                        : [contents];
-
-                                blocks.forEach((block) => {
-                                        if (block.kind === "block") {
-                                                toolboxBlocks.push({
-                                                        type: block.type,
-                                                        text: block.type,
-                                                        full: block,
-                                                });
-                                        }
-                                });
-                        }
-
-                        if (item.getChildToolboxItems) {
-                                item.getChildToolboxItems().forEach((child) => {
-                                        processItem(child, currentCategory);
-                                });
-                        }
+                if (currentCategory === "Snippets") {
+                    return;
                 }
 
-                workspace.getToolbox().getToolboxItems().forEach(processItem);
-                return toolboxBlocks;
+                if (item.getContents) {
+                    const contents = item.getContents();
+                    const blocks = Array.isArray(contents)
+                        ? contents
+                        : [contents];
+
+                    blocks.forEach((block) => {
+                        if (block.kind === "block" && !seenTypes.has(block.type)) {
+                            seenTypes.add(block.type);
+                            toolboxBlocks.push({
+                                type: block.type,
+                                text: block.type,
+                                full: block,
+                            });
+                        }
+                    });
+                }
+
+                if (item.getChildToolboxItems) {
+                    item.getChildToolboxItems().forEach((child) => {
+                        processItem(child, currentCategory);
+                    });
+                }
+            }
+
+            workspace.getToolbox().getToolboxItems().forEach(processItem);
+            return toolboxBlocks;
         }
 
         const SearchCategory = Blockly.registry.getClass(
@@ -1332,51 +1334,17 @@ export function overrideSearchPlugin(workspace) {
         }
 
         SearchCategory.prototype.showMatchingBlocks = function (matches) {
-                const flyout = this.workspace_.getToolbox().getFlyout();
-                if (!flyout) {
-                        console.error("Flyout not found!");
-                        return;
-                }
+            const flyout = this.workspace_.getToolbox().getFlyout();
+            if (!flyout) {
+                console.error("Flyout not found!");
+                return;
+            }
 
-                flyout.hide();
-                flyout.show([]);
+            flyout.hide();
+            flyout.show([]);
 
-                const xmlList = [];
-                const mutations = [];
-
-                matches.forEach((match) => {
-                        const blockJson = match.full;
-                        const blockXml = createXmlFromJson(blockJson);
-
-                        xmlList.push(blockXml);
-
-                        if (
-                                blockJson.type === "lists_create_with" &&
-                                blockJson.extraState
-                        ) {
-                                const mutation =
-                                        Blockly.utils.xml.createElement(
-                                                "mutation",
-                                        );
-                                mutation.setAttribute(
-                                        "items",
-                                        blockJson.extraState.itemCount,
-                                );
-                                mutations.push(mutation);
-                        } else {
-                                mutations.push(null);
-                        }
-                });
-
-                flyout.show(xmlList);
-
-                const flyoutWorkspace = flyout.getWorkspace();
-                flyoutWorkspace.getAllBlocks(false).forEach((block, index) => {
-                        const mutation = mutations[index];
-                        if (mutation) {
-                                block.domToMutation(mutation);
-                        }
-                });
+            const xmlList = matches.map(match => createXmlFromJson(match.full));
+            flyout.show(xmlList);
         };
 
         const toolboxDef = workspace.options.languageTree;
