@@ -44,106 +44,84 @@ export function setupInput(){
 
 	function setupTabOrder() {
 		function getFocusableElements() {
-			const elements = [];
+		  const elements = [];
 
-			// Add canvas first
-			const canvas = document.getElementById("renderCanvas");
-			if (canvas && isElementVisible(canvas)) {
-				elements.push(canvas);
+		  // Helper: add once if visible & enabled
+		  const pushUnique = (el) => {
+			if (!el) return;
+			const disabled = 'disabled' in el && el.disabled;
+			if (isElementVisible(el) && !disabled && !elements.includes(el)) {
+			  elements.push(el);
 			}
+		  };
 
-			// Add gizmo buttons if visible
-			const gizmoButtons = document.querySelectorAll(
-				"#gizmoButtons button, #gizmoButtons input",
-			);
-			gizmoButtons.forEach((btn) => {
-				if (isElementVisible(btn) && !btn.disabled) {
-					elements.push(btn);
-				}
-			});
+		  // 1) Canvas
+		  pushUnique(document.getElementById('renderCanvas'));
 
-			   // Add info panel summary
-			const infoSummary = document.querySelector("#info-details summary");
-			if (infoSummary && isElementVisible(infoSummary)) {
-			elements.push(infoSummary);
+		  // 2) Gizmo buttons
+		  document
+			.querySelectorAll('#gizmoButtons button, #gizmoButtons input')
+			.forEach(pushUnique);
+
+		  // 3) Info panel
+		  pushUnique(document.querySelector('#info-details summary'));
+		  const infoDetails = document.getElementById('info-details');
+		  if (infoDetails && infoDetails.open) {
+			pushUnique(infoDetails.querySelector('.content'));
+		  }
+
+		  // 4) Logo link + resizer
+		  pushUnique(document.querySelector('#info-panel-link'));
+		  pushUnique(document.querySelector('#resizer'));
+
+		  // 5) Search inputs (toolbox flyout etc.)
+		  document
+			.querySelectorAll(
+			  '.blocklySearchInput, .blocklyTreeSearch input, input[placeholder*="Search"]'
+			)
+			.forEach(pushUnique);
+
+		  // 6) Blockly MAIN WORKSPACE (one level above blocks)
+		  // Your DOM shows:
+		  // <svg class="blocklySvg"> <g class="blocklyWorkspace" tabindex="0"> ... <g class="blocklyBlockCanvas">...</g> ... </g> </svg>
+		  // We want the g.blocklyWorkspace INSIDE a blocklySvg, but NOT inside any svg.blocklyFlyout.
+		  const workspaceGroup = Array.from(
+			document.querySelectorAll('svg.blocklySvg g.blocklyWorkspace')
+		  )
+			.filter((ws) => !ws.closest('svg.blocklyFlyout')) // exclude flyout workspaces
+			// If there are multiple, prefer the one that actually contains the block canvas
+			.sort((a, b) => {
+			  const aHasCanvas = !!a.querySelector('g.blocklyBlockCanvas');
+			  const bHasCanvas = !!b.querySelector('g.blocklyBlockCanvas');
+			  return Number(bHasCanvas) - Number(aHasCanvas);
+			})[0];
+
+		  if (workspaceGroup && isElementVisible(workspaceGroup)) {
+			if (workspaceGroup.getAttribute('tabindex') !== '0') {
+			  workspaceGroup.setAttribute('tabindex', '0');
 			}
+			workspaceGroup.setAttribute('role', 'group');      // lets AT know it's an interactive region
+			workspaceGroup.setAttribute('aria-label', 'Blocks workspace');
+			workspaceGroup.setAttribute('focusable', 'true');  // helpful for SVG focus on some browsers
+			pushUnique(workspaceGroup);
+		  }
 
-			// Add this in getFocusableElements(), after the info summary section:
-			const infoDetails = document.getElementById("info-details");
-			if (infoDetails && infoDetails.open) {
-				const detailsContent = infoDetails.querySelector(".content");
-				if (detailsContent && isElementVisible(detailsContent)) {
-					elements.push(detailsContent);
-				}
-			}
+		  // 7) Main UI controls (in natural order)
+		  [
+			'#menuBtn',
+			'#runCodeButton',
+			'#stopCodeButton',
+			'#openButton',
+			'#colorPickerButton',
+			'#projectName',
+			'#exportCodeButton',
+			'#exampleSelect',
+			'#toggleDesign',
+			'#togglePlay',
+			'#fullscreenToggle',
+		  ].forEach((sel) => pushUnique(document.querySelector(sel)));
 
-			// Add Flock XR logo link after gizmos if visible
-			const logoLink = document.querySelector("#info-panel-link");
-			if (
-				logoLink &&
-				isElementVisible(logoLink) &&
-				!elements.includes(logoLink)
-			) {
-				elements.push(logoLink);
-			}
-
-			const resizer = document.querySelector("#resizer");
-			if (
-				resizer &&
-				isElementVisible(resizer) &&
-				!elements.includes(resizer)
-			) {
-				elements.push(resizer);
-			}
-
-			// Add search inputs if visible
-			const searchInputs = document.querySelectorAll(
-				'.blocklySearchInput, .blocklyTreeSearch input, input[placeholder*="Search"]',
-			);
-			searchInputs.forEach((input) => {
-				if (isElementVisible(input) && !input.disabled) {
-					elements.push(input);
-				}
-			});
-
-			// Add blockly workspace
-			const blocklyDiv = document.getElementById("blocklyDiv");
-			if (
-				blocklyDiv &&
-				blocklyDiv.getAttribute("tabindex") === "0" &&
-				isElementVisible(blocklyDiv)
-			) {
-				elements.push(blocklyDiv);
-			}
-
-			// Add main UI elements in their natural order
-			const mainUISelectors = [
-				"#menuBtn",
-				"#runCodeButton",
-				"#stopCodeButton",
-				"#openButton", // The actual open button
-				"#colorPickerButton", // Color picker with correct ID
-				"#projectName",
-				"#exportCodeButton",
-				"#exampleSelect",
-				"#toggleDesign",
-				"#togglePlay",
-				"#fullscreenToggle",
-			];
-
-			mainUISelectors.forEach((selector) => {
-				const element = document.querySelector(selector);
-				if (
-					element &&
-					isElementVisible(element) &&
-					!element.disabled &&
-					!elements.includes(element)
-				) {
-					elements.push(element);
-				}
-			});
-
-			return elements;
+		  return elements;
 		}
 
 		function isElementVisible(element) {
