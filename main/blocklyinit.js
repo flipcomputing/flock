@@ -202,8 +202,18 @@ export function createBlocklyWorkspace() {
 
         KeyboardNavigation.registerKeyboardNavigationStyles();
 
+        const _origOnKeyDown = Blockly.Toolbox && Blockly.Toolbox.prototype.onKeyDown_;
+        if (Blockly.Toolbox && Blockly.Toolbox.prototype) {
+          Blockly.Toolbox.prototype.onKeyDown_ = function /* no-op */ (e) { /* defer to keyboard nav */ };
+        }
+
         workspace = Blockly.inject("blocklyDiv", options);
 
+        const keyboardNav = new KeyboardNavigation(workspace);
+
+       
+
+        
         // Keep scrolling; remove only the obvious flyout-width bump.
         (function simpleNoBumpTranslate() {
                 const ws = Blockly.getMainWorkspace();
@@ -1001,14 +1011,6 @@ export function createBlocklyWorkspace() {
         // after you create your workspace:
         //attachBlocklyDebug(workspace, 'MainWS');
 
-        window.addEventListener("keydown", (e) => {
-                if (e.code === "KeyK" && e.ctrlKey && e.shiftKey) {
-                        e.preventDefault();
-                        console.log("Keyboard Navigation on");
-                        const keyboardNav = new KeyboardNavigation(workspace);
-                }
-        });
-
         initializeTheme();
         installHoverHighlight(workspace);
 
@@ -1016,8 +1018,6 @@ export function createBlocklyWorkspace() {
         Blockly.ContextMenuItems.registerCommentOptions();
 
         if (flock.performanceOverlay) initBlocklyPerfOverlay(workspace);
-
-        //const keyboardNav = new KeyboardNavigation(workspace);
 
         window.mainWorkspace = workspace;
 
