@@ -265,223 +265,356 @@ export function createBlocklyWorkspace() {
         const mainWs = Blockly.getMainWorkspace();
         let lastCM = { x: 0, y: 0 };
         (mainWs.getInjectionDiv() || document).addEventListener(
-          'contextmenu',
-          (e) => { lastCM = { x: e.clientX, y: e.clientY }; },
-          { capture: true }
+                "contextmenu",
+                (e) => {
+                        lastCM = { x: e.clientX, y: e.clientY };
+                },
+                { capture: true },
         );
 
         // Screen -> workspace coords
         function screenToWs(ws, xy) {
-          const c = new Blockly.utils.Coordinate(xy.x, xy.y);
-          return Blockly.utils.svgMath.screenToWsCoordinates(ws, c);
+                const c = new Blockly.utils.Coordinate(xy.x, xy.y);
+                return Blockly.utils.svgMath.screenToWsCoordinates(ws, c);
         }
 
         // Small helper
         function hasClipboardData() {
-          return !!Blockly.clipboard.getLastCopiedData?.();
+                return !!Blockly.clipboard.getLastCopiedData?.();
         }
 
         // ===== 1) COPY on ALL BLOCKS (workspace + flyout) =====
         Blockly.ContextMenuRegistry.registry.register({
-          id: 'fc_copy_block',
-          weight: -1000000,
-          scopeType: Blockly.ContextMenuRegistry.ScopeType.BLOCK,
-          displayText: () => 'Copy',
-          preconditionFn(scope) {
-            return (scope?.block instanceof Blockly.BlockSvg) ? 'enabled' : 'hidden';
-          },
-          callback(scope) {
-            const block = /** @type {Blockly.BlockSvg} */ (scope.block);
-            Blockly.clipboard.copy(block);
+                id: "fc_copy_block",
+                weight: -1000000,
+                scopeType: Blockly.ContextMenuRegistry.ScopeType.BLOCK,
+                displayText: () => "Copy",
+                preconditionFn(scope) {
+                        return scope?.block instanceof Blockly.BlockSvg
+                                ? "enabled"
+                                : "hidden";
+                },
+                callback(scope) {
+                        const block = /** @type {Blockly.BlockSvg} */ (
+                                scope.block
+                        );
+                        Blockly.clipboard.copy(block);
 
-            // If copied from the toolbox flyout, close the flyout.
-            if (block.isInFlyout) {
-              const tb = Blockly.getMainWorkspace()?.getToolbox?.();
-              const flyout = tb?.getFlyout?.();
-              flyout?.hide?.();
+                        // If copied from the toolbox flyout, close the flyout.
+                        if (block.isInFlyout) {
+                                const tb =
+                                        Blockly.getMainWorkspace()?.getToolbox?.();
+                                const flyout = tb?.getFlyout?.();
+                                flyout?.hide?.();
 
-              // (optional) also clear the selected category so it collapses
-              tb?.getSelectedItem?.()?.setSelected?.(false);
-            }
-          },
-          checkbox: false,
+                                // (optional) also clear the selected category so it collapses
+                                tb?.getSelectedItem?.()?.setSelected?.(false);
+                        }
+                },
+                checkbox: false,
         });
-
 
         // ===== 2) PASTE on WORKSPACE (at pointer) =====
         Blockly.ContextMenuRegistry.registry.register({
-          id: 'fc_paste_to_workspace_here',
-          weight: -900000,
-          scopeType: Blockly.ContextMenuRegistry.ScopeType.WORKSPACE,
-          displayText: () => 'Paste',
-          preconditionFn(scope) {
-            // Enable only if clipboard has something AND this is the main workspace (not flyout)
-            const isMain = scope?.workspace === mainWs;
-            return (isMain && hasClipboardData()) ? 'enabled' : 'hidden';
-          },
-          callback(scope) {
-            const ws = scope.workspace;
-            const at = screenToWs(ws, lastCM);
-            const data = Blockly.clipboard.getLastCopiedData();
-            Blockly.clipboard.paste(data, ws, at);
-          },
-          checkbox: false,
+                id: "fc_paste_to_workspace_here",
+                weight: -900000,
+                scopeType: Blockly.ContextMenuRegistry.ScopeType.WORKSPACE,
+                displayText: () => "Paste",
+                preconditionFn(scope) {
+                        // Enable only if clipboard has something AND this is the main workspace (not flyout)
+                        const isMain = scope?.workspace === mainWs;
+                        return isMain && hasClipboardData()
+                                ? "enabled"
+                                : "hidden";
+                },
+                callback(scope) {
+                        const ws = scope.workspace;
+                        const at = screenToWs(ws, lastCM);
+                        const data = Blockly.clipboard.getLastCopiedData();
+                        Blockly.clipboard.paste(data, ws, at);
+                },
+                checkbox: false,
         });
 
         // ===== 3) PASTE on BLOCK (try attach as child; else at pointer) =====
         Blockly.ContextMenuRegistry.registry.register({
-          id: 'fc_paste_as_child_or_here',
-          weight: -900000,
-          scopeType: Blockly.ContextMenuRegistry.ScopeType.BLOCK,
-          displayText: () => 'Paste',
-          preconditionFn(scope) {
-            const block = /** @type {Blockly.BlockSvg|undefined} */ (scope?.block);
-            if (!hasClipboardData() || !(block instanceof Blockly.BlockSvg)) return 'hidden';
-            // Never offer paste for flyout blocks
-            if (block.isInFlyout) return 'hidden';
-            return 'enabled';
-          },
-          callback(scope) {
-            const target = /** @type {Blockly.BlockSvg} */ (scope.block);
-            const ws = workspace;
-            const data = Blockly.clipboard.getLastCopiedData();
-            if (!data) return;
+                id: "fc_paste_as_child_or_here",
+                weight: -800000,
+                scopeType: Blockly.ContextMenuRegistry.ScopeType.BLOCK,
+                displayText: () => "Paste",
+                preconditionFn(scope) {
+                        const block =
+                                /** @type {Blockly.BlockSvg|undefined} */ (
+                                        scope?.block
+                                );
+                        if (
+                                !hasClipboardData() ||
+                                !(block instanceof Blockly.BlockSvg)
+                        )
+                                return "hidden";
+                        // Never offer paste for flyout blocks
+                        if (block.isInFlyout) return "hidden";
+                        return "enabled";
+                },
+                callback(scope) {
+                        const target = /** @type {Blockly.BlockSvg} */ (
+                                scope.block
+                        );
+                        const ws = workspace;
+                        const data = Blockly.clipboard.getLastCopiedData();
+                        if (!data) return;
 
-            // Paste near the pointer first
-            const at = screenToWs(ws, lastCM);
-            const pasted = Blockly.clipboard.paste(data, ws, at);
-            const pastedBlock = /** @type {Blockly.BlockSvg} */ (pasted);
+                        // Paste near the pointer first
+                        const at = screenToWs(ws, lastCM);
+                        const pasted = Blockly.clipboard.paste(data, ws, at);
+                        const pastedBlock = /** @type {Blockly.BlockSvg} */ (
+                                pasted
+                        );
 
-            // Try to connect intelligently
-            const checker = ws.getConnectionChecker
-              ? ws.getConnectionChecker()
-              : new Blockly.ConnectionChecker();
-            const can = (a, b) => checker.canConnect(a, b, /*isDragging=*/false);
+                        // Try to connect intelligently
+                        const checker = ws.getConnectionChecker
+                                ? ws.getConnectionChecker()
+                                : new Blockly.ConnectionChecker();
+                        const can = (a, b) =>
+                                checker.canConnect(a, b, /*isDragging=*/ false);
 
-            // 1) stack after: target.next ⟷ pasted.previous
-            if (target.nextConnection && pastedBlock.previousConnection &&
-                can(target.nextConnection, pastedBlock.previousConnection)) {
-              target.nextConnection.connect(pastedBlock.previousConnection);
-              return;
-            }
+                        // 1) stack after: target.next ⟷ pasted.previous
+                        if (
+                                target.nextConnection &&
+                                pastedBlock.previousConnection &&
+                                can(
+                                        target.nextConnection,
+                                        pastedBlock.previousConnection,
+                                )
+                        ) {
+                                target.nextConnection.connect(
+                                        pastedBlock.previousConnection,
+                                );
+                                return;
+                        }
 
-            // 2) empty statement input ⟷ pasted.previous
-            for (const input of target.inputList) {
-              if (input.type === Blockly.NEXT_STATEMENT && input.connection &&
-                  !input.connection.targetBlock() &&
-                  pastedBlock.previousConnection &&
-                  can(input.connection, pastedBlock.previousConnection)) {
-                input.connection.connect(pastedBlock.previousConnection);
-                return;
-              }
-            }
+                        // 2) empty statement input ⟷ pasted.previous
+                        for (const input of target.inputList) {
+                                if (
+                                        input.type === Blockly.NEXT_STATEMENT &&
+                                        input.connection &&
+                                        !input.connection.targetBlock() &&
+                                        pastedBlock.previousConnection &&
+                                        can(
+                                                input.connection,
+                                                pastedBlock.previousConnection,
+                                        )
+                                ) {
+                                        input.connection.connect(
+                                                pastedBlock.previousConnection,
+                                        );
+                                        return;
+                                }
+                        }
 
-            // 3) empty value input ⟷ pasted.output
-            for (const input of target.inputList) {
-              if (input.type === Blockly.INPUT_VALUE && input.connection &&
-                  !input.connection.targetBlock() &&
-                  pastedBlock.outputConnection &&
-                  can(input.connection, pastedBlock.outputConnection)) {
-                input.connection.connect(pastedBlock.outputConnection);
-                return;
-              }
-            }
+                        // 3) empty value input ⟷ pasted.output
+                        for (const input of target.inputList) {
+                                if (
+                                        input.type === Blockly.INPUT_VALUE &&
+                                        input.connection &&
+                                        !input.connection.targetBlock() &&
+                                        pastedBlock.outputConnection &&
+                                        can(
+                                                input.connection,
+                                                pastedBlock.outputConnection,
+                                        )
+                                ) {
+                                        input.connection.connect(
+                                                pastedBlock.outputConnection,
+                                        );
+                                        return;
+                                }
+                        }
 
-            // 4) insert above: target.previous ⟷ pasted.next
-            if (target.previousConnection && pastedBlock.nextConnection &&
-                can(target.previousConnection, pastedBlock.nextConnection)) {
-              target.previousConnection.connect(pastedBlock.nextConnection);
-              return;
-            }
-            // else: stays where pasted (at pointer)
-          },
-          checkbox: false,
+                        // 4) insert above: target.previous ⟷ pasted.next
+                        if (
+                                target.previousConnection &&
+                                pastedBlock.nextConnection &&
+                                can(
+                                        target.previousConnection,
+                                        pastedBlock.nextConnection,
+                                )
+                        ) {
+                                target.previousConnection.connect(
+                                        pastedBlock.nextConnection,
+                                );
+                                return;
+                        }
+                        // else: stays where pasted (at pointer)
+                },
+                checkbox: false,
         });
 
         function getClipboardData() {
-          return Blockly.clipboard?.getLastCopiedData?.() || null;
+                return Blockly.clipboard?.getLastCopiedData?.() || null;
         }
 
         function screenToWs(ws, xy) {
-          const c = new Blockly.utils.Coordinate(xy.x, xy.y);
-          return Blockly.utils.svgMath.screenToWsCoordinates(ws, c);
+                const c = new Blockly.utils.Coordinate(xy.x, xy.y);
+                return Blockly.utils.svgMath.screenToWsCoordinates(ws, c);
         }
 
+        // Clean re-register on hot reloads (optional)
+        try {
+                Blockly.ContextMenuRegistry.registry.unregister("fc_cut_block");
+        } catch (e) {}
+
+        Blockly.ContextMenuRegistry.registry.register({
+                id: "fc_cut_block",
+                // Order: Copy (-1000000), then Cut (-999999.5), then your Paste (-999999)
+                weight: -900000,
+                scopeType: Blockly.ContextMenuRegistry.ScopeType.BLOCK,
+                displayText: () => "Cut",
+                preconditionFn(scope) {
+                        const b = scope?.block;
+                        if (!(b instanceof Blockly.BlockSvg)) return "hidden";
+                        if (b.isInFlyout) return "hidden"; // never in toolbox
+                        if (b.isShadow()) return "hidden"; // avoid cutting shadows
+                        if (!b.isDeletable() || !b.isMovable()) return "hidden";
+                        return "enabled";
+                },
+                callback(scope) {
+                        const block = /** @type {Blockly.BlockSvg} */ (
+                                scope.block
+                        );
+
+                        // Group copy+delete as one undoable action
+                        const prev = Blockly.Events.getGroup?.();
+                        Blockly.Events.setGroup?.("fc_cut");
+
+                        try {
+                                // Put block on the clipboard
+                                Blockly.clipboard.copy(block);
+                                // Delete block, healing stacks where possible
+                                block.dispose(true /* heal stack */);
+                        } finally {
+                                Blockly.Events.setGroup?.(prev || false);
+                        }
+                },
+                checkbox: false,
+        });
+
         function isTypingInInput() {
-          const el = document.activeElement;
-          if (!el) return false;
-          const tag = el.tagName?.toLowerCase();
-          return tag === 'input' || tag === 'textarea' || !!el.isContentEditable;
+                const el = document.activeElement;
+                if (!el) return false;
+                const tag = el.tagName?.toLowerCase();
+                return (
+                        tag === "input" ||
+                        tag === "textarea" ||
+                        !!el.isContentEditable
+                );
         }
 
         const host = mainWs.getInjectionDiv() || document;
-        host.addEventListener('contextmenu', (e) => { lastCM = { x: e.clientX, y: e.clientY }; }, { capture: true });
-        host.addEventListener('mousemove',   (e) => { lastCM = { x: e.clientX, y: e.clientY }; }, { capture: true });
+        host.addEventListener(
+                "contextmenu",
+                (e) => {
+                        lastCM = { x: e.clientX, y: e.clientY };
+                },
+                { capture: true },
+        );
+        host.addEventListener(
+                "mousemove",
+                (e) => {
+                        lastCM = { x: e.clientX, y: e.clientY };
+                },
+                { capture: true },
+        );
 
         // ---- Core paste logic (same behavior as your menu item) ----
         function pasteAsChildOrHere(targetBlock /* may be null */, ws, data) {
-          if (!data) return;
-          const at = screenToWs(ws, lastCM);
-          const pasted = Blockly.clipboard.paste(data, ws, at);
-          const pb = /** @type {Blockly.BlockSvg} */ (pasted);
-          if (!targetBlock) return;
+                if (!data) return;
+                const at = screenToWs(ws, lastCM);
+                const pasted = Blockly.clipboard.paste(data, ws, at);
+                const pb = /** @type {Blockly.BlockSvg} */ (pasted);
+                if (!targetBlock) return;
 
-          const checker = ws.getConnectionChecker ? ws.getConnectionChecker() : new Blockly.ConnectionChecker();
-          const can = (a, b) => checker.canConnect(a, b, /*isDragging=*/false);
+                const checker = ws.getConnectionChecker
+                        ? ws.getConnectionChecker()
+                        : new Blockly.ConnectionChecker();
+                const can = (a, b) =>
+                        checker.canConnect(a, b, /*isDragging=*/ false);
 
-          // 1) stack after: target.next ⟷ pb.previous
-          if (targetBlock.nextConnection && pb.previousConnection &&
-              can(targetBlock.nextConnection, pb.previousConnection)) {
-            targetBlock.nextConnection.connect(pb.previousConnection);
-            return;
-          }
-          // 2) empty statement input ⟷ pb.previous
-          for (const input of targetBlock.inputList) {
-            if (input.type === Blockly.NEXT_STATEMENT && input.connection &&
-                !input.connection.targetBlock() &&
-                pb.previousConnection &&
-                can(input.connection, pb.previousConnection)) {
-              input.connection.connect(pb.previousConnection);
-              return;
-            }
-          }
-          // 3) empty value input ⟷ pb.output
-          for (const input of targetBlock.inputList) {
-            if (input.type === Blockly.INPUT_VALUE && input.connection &&
-                !input.connection.targetBlock() &&
-                pb.outputConnection &&
-                can(input.connection, pb.outputConnection)) {
-              input.connection.connect(pb.outputConnection);
-              return;
-            }
-          }
-          // 4) insert above: target.previous ⟷ pb.next
-          if (targetBlock.previousConnection && pb.nextConnection &&
-              can(targetBlock.previousConnection, pb.nextConnection)) {
-            targetBlock.previousConnection.connect(pb.nextConnection);
-            return;
-          }
-          // else: stays at pointer
+                // 1) stack after: target.next ⟷ pb.previous
+                if (
+                        targetBlock.nextConnection &&
+                        pb.previousConnection &&
+                        can(targetBlock.nextConnection, pb.previousConnection)
+                ) {
+                        targetBlock.nextConnection.connect(
+                                pb.previousConnection,
+                        );
+                        return;
+                }
+                // 2) empty statement input ⟷ pb.previous
+                for (const input of targetBlock.inputList) {
+                        if (
+                                input.type === Blockly.NEXT_STATEMENT &&
+                                input.connection &&
+                                !input.connection.targetBlock() &&
+                                pb.previousConnection &&
+                                can(input.connection, pb.previousConnection)
+                        ) {
+                                input.connection.connect(pb.previousConnection);
+                                return;
+                        }
+                }
+                // 3) empty value input ⟷ pb.output
+                for (const input of targetBlock.inputList) {
+                        if (
+                                input.type === Blockly.INPUT_VALUE &&
+                                input.connection &&
+                                !input.connection.targetBlock() &&
+                                pb.outputConnection &&
+                                can(input.connection, pb.outputConnection)
+                        ) {
+                                input.connection.connect(pb.outputConnection);
+                                return;
+                        }
+                }
+                // 4) insert above: target.previous ⟷ pb.next
+                if (
+                        targetBlock.previousConnection &&
+                        pb.nextConnection &&
+                        can(targetBlock.previousConnection, pb.nextConnection)
+                ) {
+                        targetBlock.previousConnection.connect(
+                                pb.nextConnection,
+                        );
+                        return;
+                }
+                // else: stays at pointer
         }
 
         // ---- Bind Ctrl/Cmd+V ----
-        host.addEventListener('keydown', (e) => {
-          if (!(e.ctrlKey || e.metaKey)) return;
-          if ((e.key || '').toLowerCase() !== 'v') return;
-          if (isTypingInInput()) return;
+        host.addEventListener(
+                "keydown",
+                (e) => {
+                        if (!(e.ctrlKey || e.metaKey)) return;
+                        if ((e.key || "").toLowerCase() !== "v") return;
+                        if (isTypingInInput()) return;
 
-          const data = getClipboardData();
-          if (!data) return;
+                        const data = getClipboardData();
+                        if (!data) return;
 
-          // Selected block (if any, and not from flyout)
-          const selected = (Blockly.common?.getSelected?.() || Blockly.selected || null);
-          if (selected && selected.isInFlyout) return; // never paste in the flyout
+                        // Selected block (if any, and not from flyout)
+                        const selected =
+                                Blockly.common?.getSelected?.() ||
+                                Blockly.selected ||
+                                null;
+                        if (selected && selected.isInFlyout) return; // never paste in the flyout
 
-          e.preventDefault();
-          e.stopPropagation();
-          pasteAsChildOrHere(selected || null, mainWs, data);
-        }, { capture: true });
-
+                        e.preventDefault();
+                        e.stopPropagation();
+                        pasteAsChildOrHere(selected || null, mainWs, data);
+                },
+                { capture: true },
+        );
 
         // ---- Blockly event debug helpers ----
         (function setupBlocklyEventDebug() {
@@ -631,8 +764,6 @@ export function createBlocklyWorkspace() {
                         );
                 };
         })();
-
-        
 
         // after you create your workspace:
         //attachBlocklyDebug(workspace, 'MainWS');
