@@ -33,52 +33,110 @@ export function initializeBlockHandling() {
 		"microbit_input",
 	];
 
-	// PURE cleanup: no setGroup, no Events toggling here
+	// Preserve selection/cursor focus while tidying.
 	workspace.cleanUp = function () {
-		const spacing = 40;
-		const cursorX = 10;
-		let cursorY = 10;
+	  const spacing = 40;
+	  const cursorX = 10;
+	  let cursorY = 10;
 
+	  // --- Preserve current focus/selection/cursor ---
+	  const prevSelected =
+		(Blockly.common && Blockly.common.getSelected?.()) || null;
+
+	  // Keyboard Navigation (if installed)
+	  const navCursor = workspace.getCursor?.() || null;
+	  const prevCurNode = navCursor?.getCurNode ? navCursor.getCurNode() : null;
+
+	  // Keep track of the exact focused element (for keyboard users)
+	  const prevActiveEl = document.activeElement;
+
+	  // Group events to reduce churn / side-effects
+	  Blockly.Events.setGroup(true);
+	  try {
 		// Get top-level roots (Blockly already filters by parent=null)
 		const topBlocks = (workspace.getTopBlocks(false) || [])
-			.filter((b) => !!b && !b.isInFlyout && !b.isShadow?.())
-			.sort(
-				(a, b) =>
-					a.getRelativeToSurfaceXY().y - b.getRelativeToSurfaceXY().y,
-			);
+		  .filter((b) => !!b && !b.isInFlyout && !b.isShadow?.())
+		  .sort(
+			(a, b) =>
+			  a.getRelativeToSurfaceXY().y - b.getRelativeToSurfaceXY().y,
+		  );
 
 		for (const block of topBlocks) {
-			if (!blockTypesToCleanUp.includes(block.type)) continue;
+		  if (!blockTypesToCleanUp.includes(block.type)) continue;
+		  try {
+			const xy = block.getRelativeToSurfaceXY();
+			const dx = cursorX - xy.x;
+			const dy = cursorY - xy.y;
+			if (dx || dy) block.moveBy(dx, dy);
 
-			try {
-				const xy = block.getRelativeToSurfaceXY();
-				const dx = cursorX - xy.x;
-				const dy = cursorY - xy.y;
-				if (dx || dy) block.moveBy(dx, dy);
-
-				const h = block.getHeightWidth?.().height || 40;
-				cursorY += h + spacing;
-			} catch {}
+			const h = block.getHeightWidth?.().height || 40;
+			cursorY += h + spacing;
+		  } catch {}
 		}
 
 		// Original z-order behaviour: top-level blocks (any type) to the front
 		try {
-			const canvas = workspace.getBlockCanvas?.();
-			if (canvas) {
-				for (const b of workspace.getAllBlocks(false) || []) {
-					if (!b || b.isInFlyout || b.isShadow?.()) continue;
-					const hasParent =
-						typeof b.getParent === "function"
-							? !!b.getParent()
-							: !!b.parentBlock_;
-					if (hasParent) continue;
-					const svg = b.getSvgRoot?.();
-					if (svg && svg.parentNode === canvas)
-						canvas.appendChild(svg);
+		  const canvas = workspace.getBlockCanvas?.();
+		  if (canvas) {
+			for (const b of workspace.getAllBlocks(false) || []) {
+			  if (!b || b.isInFlyout || b.isShadow?.()) continue;
+			  const hasParent =
+				typeof b.getParent === "function"
+				  ? !!b.getParent()
+				  : !!b.parentBlock_;
+			  if (hasParent) continue;
+
+			  // Only adjust z-order if needed; avoid DOM churn
+			  const svg = b.getSvgRoot?.();
+			  if (svg && svg.parentNode === canvas) {
+				// If this is the selected block, remember its SVG to re-focus later
+				const isSelected = prevSelected && b.id === prevSelected.id;
+				canvas.appendChild(svg);
+				if (isSelected) {
+				  // Re-apply selection highlight immediately to avoid flicker
+				  // (Blockly keeps internal state; this just ensures CSS focus ring remains.)
+				  prevSelected.addSelect?.();
 				}
+			  }
 			}
+		  }
 		} catch {}
+	  } finally {
+		Blockly.Events.setGroup(false);
+
+		// --- Restore selection and focus deterministically ---
+		// Re-select the previously selected block (if it still exists in this workspace)
+		if (prevSelected && !prevSelected.isDeadOrDying?.()) {
+		  if (Blockly.common?.setSelected) {
+			Blockly.common.setSelected(prevSelected);
+		  } else {
+			// Fallback for older APIs
+			prevSelected.select?.();
+		  }
+
+		  // Restore keyboard nav cursor position (if available)
+		  if (navCursor && prevCurNode) {
+			try {
+			  navCursor.setCurNode(prevCurNode);
+			} catch {}
+		  }
+
+		  // Put DOM focus back on the block's SVG root for keyboard users
+		  const svgRoot = prevSelected.getSvgRoot?.();
+		  if (svgRoot && svgRoot.focus) {
+			try {
+			  svgRoot.focus({ preventScroll: true });
+			} catch {}
+		  } else if (prevActiveEl && document.contains(prevActiveEl)) {
+			// Fallback: restore whatever had focus before
+			try {
+			  prevActiveEl.focus?.({ preventScroll: true });
+			} catch {}
+		  }
+		}
+	  }
 	};
+
 
 	// ──────────────────────────────────────────────────────────────
 	// Trigger: debounce on structural changes; run with events disabled
