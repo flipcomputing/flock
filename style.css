@@ -438,7 +438,6 @@ button {
 
 [data-theme="dark"] .gizmo-button svg {
   /* filter: invert(30%) sepia(2%) saturate(0%) hue-rotate(180deg) brightness(96%) contrast(85%); */
-  fill: #000000 !important;
   width: 20px;
   height: 20px;
 }
@@ -450,11 +449,6 @@ button {
 #colorPickerButton svg {
   /* filter: invert(1) brightness(2); Make palette icon white */
   fill: #ffffff !important;
-}
-
-[data-theme="dark"] #colorPickerButton img {
-  /* filter: invert(1) brightness(2) invert(30%) sepia(2%) saturate(0%) hue-rotate(180deg) brightness(96%) contrast(85%); */
-  fill: #000000 !important;
 }
 
 .bigbutton svg {
