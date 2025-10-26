@@ -1068,7 +1068,7 @@ export const flockAnimate = {
       } else if (animationName === "Fall") {
         desiredShapeType = "horizontal-fall";
       } else if (animationName === "Sitting" || animationName === "Sit_Down") {
-        console.log("Sitting animation detected");
+        //console.log("Sitting animation detected");
         desiredShapeType = "sitting";
       }
 
