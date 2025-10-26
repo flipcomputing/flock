@@ -81,6 +81,34 @@ export function setupInput(){
 			)
 			.forEach(pushUnique);
 
+			// Find the *visible* search flyout
+			  const flyout = Array.from(
+				document.querySelectorAll('svg.blocklyToolboxFlyout')
+			  ).find(svg => {
+				const r = svg.getBoundingClientRect();
+				return r.width > 0 && r.height > 0;
+			  });
+
+			  if (flyout) {
+				// Prefer the inner workspace <g>, fall back to the svg
+				const ws = flyout.querySelector('g.blocklyWorkspace');
+				const target = ws || flyout;
+
+				// Ensure it can receive focus
+				if (!target.hasAttribute('tabindex') || target.tabIndex < 0) {
+				  target.setAttribute('tabindex', '0');
+				}
+				target.setAttribute('focusable', 'true');
+				target.setAttribute('role', 'group');
+				if (!target.getAttribute('aria-label')) {
+				  target.setAttribute('aria-label', 'Toolbox search results');
+				}
+
+				// Return just the flyout target (you can merge this into your larger list)
+				elements.push(target);
+			  }
+
+
 		  // 6) Blockly MAIN WORKSPACE (one level above blocks)
 		  // Your DOM shows:
 		  // <svg class="blocklySvg"> <g class="blocklyWorkspace" tabindex="0"> ... <g class="blocklyBlockCanvas">...</g> ... </g> </svg>

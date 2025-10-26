@@ -186,6 +186,8 @@ export function initializeWorkspace() {
         const workspaceSearch = new WorkspaceSearch(workspace);
         workspaceSearch.init();
 
+        
+       
         // Set up auto value behavior
         setupAutoValueBehavior(workspace);
 
@@ -209,9 +211,71 @@ export function createBlocklyWorkspace() {
 
         workspace = Blockly.inject("blocklyDiv", options);
 
+        // --- Blockly search flyout accessibility fix ---
+        // Makes the visible search flyout tabbable and allows Tab/↓ from the search input to reach it.
+
+        (function enableBlocklySearchFlyoutTabbing() {
+          // 1) Blockly's injection area (always exists when workspace is loaded)
+          const root = document.getElementById('blocklyDiv');
+          if (!root) return;
+
+          // 2) Helper to find visible search flyout (the one with actual results)
+          function getVisibleFlyout() {
+            const flyouts = root.querySelectorAll('svg.blocklyToolboxFlyout');
+            return Array.from(flyouts).find(svg => {
+              const r = svg.getBoundingClientRect();
+              return r.width > 0 && r.height > 0;
+            }) || null;
+          }
+
+          // 3) Make the flyout focusable
+          function ensureFlyoutFocusable() {
+            const flyout = getVisibleFlyout();
+            if (!flyout) return null;
+
+            const ws = flyout.querySelector('g.blocklyWorkspace');
+            const target = ws || flyout;
+
+            // Ensure focusability
+            target.setAttribute('tabindex', '0');
+            target.setAttribute('focusable', 'true');
+            target.setAttribute('role', 'group');
+            target.setAttribute('aria-label', 'Toolbox search results');
+
+            return target;
+          }
+
+          // 4) Jump from search input → flyout
+          function wireSearchInput() {
+            const search = root.querySelector('.blocklyToolbox input[type="search"]');
+            if (!search) return;
+
+            // Blockly sets tabindex="-1" by default — fix that
+            if (search.tabIndex < 0) search.tabIndex = 0;
+
+            search.addEventListener('keydown', (e) => {
+              if ((e.key === 'Tab' && !e.shiftKey) || e.key === 'ArrowDown') {
+                const target = ensureFlyoutFocusable();
+                if (!target) return;
+                e.preventDefault();
+                e.stopPropagation();
+                try { target.focus({ preventScroll: true }); } catch {}
+              }
+            });
+          }
+
+          // 5) Keep it alive while Blockly updates dynamically
+          const observer = new MutationObserver(() => ensureFlyoutFocusable());
+          observer.observe(root, { childList: true, subtree: true });
+
+          // Initial setup
+          wireSearchInput();
+          ensureFlyoutFocusable();
+        })();
+
+
         const keyboardNav = new KeyboardNavigation(workspace);
 
-       
 
         
         // Keep scrolling; remove only the obvious flyout-width bump.
