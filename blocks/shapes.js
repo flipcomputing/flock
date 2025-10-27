@@ -158,12 +158,12 @@ export function defineShapeBlocks() {
 						options: [
 							[
 								{
-									src: "./textures/arrow_texture.png",
+									src: "./textures/circle_texture.png",
 									width: 32,
 									height: 32,
-									alt: "Arrow",
+									alt: "Circle",
 								},
-								"arrow_texture.png",
+								"circle_texture.png",
 							],
 							[
 								{
@@ -227,15 +227,6 @@ export function defineShapeBlocks() {
 									alt: "Cheveron",
 								},
 								"chevron_texture.png",
-							],
-							[
-								{
-									src: "./textures/circle_texture.png",
-									width: 32,
-									height: 32,
-									alt: "Circle",
-								},
-								"circle_texture.png",
 							],
 							[
 								{
@@ -578,6 +569,15 @@ export function defineShapeBlocks() {
 									alt: "Square",
 								},
 								"square_texture.png",
+							],
+							[
+								{
+									src: "./textures/arrow_texture.png",
+									width: 32,
+									height: 32,
+									alt: "Arrow",
+								},
+								"arrow_texture.png",
 							],
 						],
 					},

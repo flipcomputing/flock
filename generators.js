@@ -1788,7 +1788,7 @@ export function defineGenerators() {
         };
 
         javascriptGenerator.forBlock["distance_to"] = function (block) {
-                c;
+        
                 const meshName1 = javascriptGenerator.nameDB_.getName(
                         block.getFieldValue("MODEL1"),
                         Blockly.Names.NameType.VARIABLE,

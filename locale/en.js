@@ -773,6 +773,7 @@ export default {
   skittles_ui: "🎳 Skittles",
   beetle_ui: "🪲 Beetle",
   roominator_ui: "🛋️ Roominator",
+  sit_down_ui: "🪑 Sit Down",
   ball_pit_ui: "🟠 Ball Pit",
   ur_enough_ui: "💗 UR Enough!",
   tallest_buildings_ui: "📊 Tallest buildings",
