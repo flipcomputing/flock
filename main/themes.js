@@ -23,13 +23,13 @@ function setLogos(themeName) {
 	const inlineLogo = document.getElementById("flocklogo");
 	switch (themeName) {
 		case "dark":
-			inlineLogo.src = "../images/inline-flock-xr-dark2.svg";
-			bird.src = "../images/flock-bird-mascot-2colours-dark2.svg";
+			inlineLogo.src = "./images/inline-flock-xr-dark2.svg";
+			bird.src = "./images/flock-bird-mascot-2colours-dark2.svg";
 			break;
 
 		default:
-			inlineLogo.src = "../images/inline-flock-xr.svg";
-			bird.src = "../images/flock-bird-mascot.svg";
+			inlineLogo.src = "./images/inline-flock-xr.svg";
+			bird.src = "./images/flock-bird-mascot.svg";
 			break;
 	};
 }
