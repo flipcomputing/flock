@@ -19,16 +19,20 @@ export const categoryColours = {
 };
 
 function setLogos(themeName) {
+	const bird = document.getElementById("logo");
 	const inlineLogo = document.getElementById("flocklogo");
 	switch (themeName) {
 		case "dark":
-			inlineLogo.src = "../images/inline-flock-xr-dark2.svg"
+			inlineLogo.src = "../images/inline-flock-xr-dark2.svg";
+			bird.src = "../images/flock-bird-mascot-2colours-dark2.svg";
+			bird.style = "fill: none;";
 			break;
 
 		default:
-			inlineLogo.src = "../images/inline-flock-xr.svg"
+			inlineLogo.src = "../images/inline-flock-xr.svg";
+			bird.src = "../images/flock-bird-mascot.svg";
 			break;
-	}
+	};
 }
 
 // Function to call when switching themes
