@@ -321,8 +321,8 @@ body[data-theme="dark"] .blocklyTreeLabel {
     display: flex !important;
     align-items: center !important;   /* <-- centers within the full row */
     min-height: 26px !important;      /* pick your row height */
-    padding-top: 0 !important;
-    padding-bottom: 0 !important;
+    padding-top: 1.25px !important;
+    padding-bottom: 1.25px !important;
     padding-left: 8px !important;
   }
 
