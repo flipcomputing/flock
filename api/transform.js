@@ -388,40 +388,70 @@ export const flockTransform = {
       mesh.computeWorldMatrix(true);
     });
   },
-  lookAt(meshName, { target, useY = false } = {}) {
-    return flock.whenModelReady(meshName, (mesh1) => {
-        return flock.whenModelReady(target, (mesh2) => {
-        if (mesh1.physics) {
-          if (
-            mesh1.physics.getMotionType() !==
-            flock.BABYLON.PhysicsMotionType.DYNAMIC
-          ) {
-            mesh1.physics.setMotionType(
-              flock.BABYLON.PhysicsMotionType.ANIMATED,
-            );
-          }
-        }
-        let targetPosition = mesh2.absolutePosition.clone();
-        if (!useY) {
-          targetPosition.y = mesh1.absolutePosition.y;
-        }
-        if (meshName === "__active_camera__") {
-          //mesh1.setTarget(mesh2);
-        } else {
-          // Calculate the direction vector and its opposite
-          const direction = targetPosition.subtract(
-            mesh1.absolutePosition,
-          );
-          const oppositeTarget =
-            mesh1.absolutePosition.subtract(direction);
-          mesh1.lookAt(oppositeTarget);
-        }
-        if (mesh1.physics) {
-          mesh1.physics.disablePreStep = false;
-        }
-        mesh1.computeWorldMatrix(true);
+  async lookAt(meshName, { target, useY = false } = {}) {
+    const [mesh1, mesh2] = await Promise.all([
+      flock.whenModelReady(meshName),
+      flock.whenModelReady(target),
+    ]);
+
+    const scene = mesh1.getScene?.() ?? mesh2.getScene?.();
+    if (!scene) return;
+
+    // Camera special case: Babylon camera API already handles this well.
+    if (meshName === "__active_camera__" && typeof mesh1.setTarget === "function") {
+      const camPos = mesh1.getAbsolutePosition?.() ?? mesh1.absolutePosition;
+      const tgtPos = (mesh2.getAbsolutePosition?.() ?? mesh2.absolutePosition).clone();
+      if (!useY) tgtPos.y = camPos.y;
+      mesh1.setTarget(tgtPos);
+      await new Promise(resolve => {
+        const cb = () => { scene.onAfterRenderObservable.removeCallback(cb); resolve(); };
+        scene.onAfterRenderObservable.add(cb);
       });
-    });
+      return;
+    }
+
+    // If the body isn't fully dynamic, drive it as ANIMATED (kinematic-like) so we can set orientation.
+    if (mesh1.physics) {
+      const mt = mesh1.physics.getMotionType();
+      if (mt !== flock.BABYLON.PhysicsMotionType.DYNAMIC) {
+        mesh1.physics.setMotionType(flock.BABYLON.PhysicsMotionType.ANIMATED);
+      }
+    }
+
+    // Build a look direction toward target (flatten Y if requested)
+    const p1 = mesh1.getAbsolutePosition?.() ?? mesh1.absolutePosition;
+    const p2 = mesh2.getAbsolutePosition?.() ?? mesh2.absolutePosition;
+    const dir = p2.subtract(p1);
+    if (!useY) dir.y = 0;
+    if (dir.lengthSquared() === 0) return; // already at target horizontally
+
+    dir.normalize();
+
+    // Babylon is left-handed; FromLookDirectionLH expects a forward (toward target) and up.
+    const up = flock.BABYLON.Axis.Y; // world up
+    const q = flock.BABYLON.Quaternion.FromLookDirectionLH(dir, up);
+
+    // Ensure we’re using quaternions for rotation (safer with physics)
+    if (!mesh1.rotationQuaternion) {
+      mesh1.rotationQuaternion = new flock.BABYLON.Quaternion();
+    }
+    mesh1.rotationQuaternion.copyFrom(q);
+    mesh1.computeWorldMatrix(true);
+
+    // Wait one tick so transforms “stick” before returning.
+    if (mesh1.physics) {
+      await new Promise(resolve => {
+        const cb = () => { scene.onAfterPhysicsObservable.removeCallback(cb); resolve(); };
+        scene.onAfterPhysicsObservable.add(cb);
+      });
+    } else {
+      await new Promise(resolve => {
+        const cb = () => { scene.onAfterRenderObservable.removeCallback(cb); resolve(); };
+        scene.onAfterRenderObservable.add(cb);
+      });
+    }
+
+    mesh1.computeWorldMatrix(true);
   },
   scale(
     meshName,

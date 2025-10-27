@@ -104,8 +104,7 @@ export const flockMovement = {
       appliedHorizontalVelocity = desiredHorizontalVelocity;
     } else {
       // airborne: no acceleration toward input, apply drag
-      appliedHorizontalVelocity =
-        currentHorizontalVelocity.scale(airDragPerTick);
+      appliedHorizontalVelocity = currentHorizontalVelocity.scale(airDragPerTick);
       if (airControlFactor > 0) {
         appliedHorizontalVelocity = appliedHorizontalVelocity.add(
           desiredHorizontalVelocity.scale(airControlFactor),
@@ -122,7 +121,7 @@ export const flockMovement = {
         horizontalForward.scale(stepProbeDistance),
       );
       const probeStartHigh = probeStartLow.add(
-        new flock.BABYLON.Vector3(0, stepHeight, 0),
+        new flock.BABYLON.Vector3(0, stepHeight + 0.1, 0),
       );
       const probeEndHigh = probeStartHigh.add(
         horizontalForward.scale(stepProbeDistance),
@@ -131,7 +130,7 @@ export const flockMovement = {
       const stepProbeQueryLow = {
         shape: new flock.BABYLON.PhysicsShapeSphere(
           new flock.BABYLON.Vector3(0, 0, 0),
-          capsuleRadius * 0.9,
+          capsuleRadius * 0.8,
           scene,
         ),
         rotation: flock.BABYLON.Quaternion.Identity(),
@@ -156,7 +155,22 @@ export const flockMovement = {
         const highResult = new flock.BABYLON.ShapeCastResult();
         const highHitResult = new flock.BABYLON.ShapeCastResult();
         havokPlugin.shapeCast(stepProbeQueryHigh, highResult, highHitResult);
-        if (!highResult.hasHit) model.position.y += stepHeight;
+        if (!highResult.hasHit) {
+          // Only boost if we haven't recently boosted
+          const lastStepBoost = model._lastStepBoost || 0;
+          if (nowMs - lastStepBoost > 400) {
+            model._lastStepBoost = nowMs;
+
+            // Apply upward boost
+            const boostedVelocity = new flock.BABYLON.Vector3(
+              appliedHorizontalVelocity.x,
+              Math.max(currentVelocity.y, 2.5),
+              appliedHorizontalVelocity.z,
+            );
+            model.physics.setLinearVelocity(boostedVelocity);
+            return; // Skip rest of movement logic this frame
+          }
+        }
       }
     }
 
