@@ -415,6 +415,9 @@ button {
 [data-theme="dark"] #canvasArea {
   background-color: #2c2c2c !important;
 }
+[data-theme="dark-contrast"] #canvasArea {
+  background-color: #090909 !important;
+}
 
 #menu {
   display: flex;
