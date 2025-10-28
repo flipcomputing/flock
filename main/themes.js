@@ -22,6 +22,11 @@ function setLogos(themeName) {
 	const bird = document.getElementById("logo");
 	const inlineLogo = document.getElementById("flocklogo");
 	switch (themeName) {
+		case "dark-contrast":
+			inlineLogo.src = "./images/inline-flock-xr-dark1.svg";
+			bird.src = "./images/flock-bird-mascot-2colours-dark1.svg";
+			break;
+
 		case "dark":
 			inlineLogo.src = "./images/inline-flock-xr-dark2.svg";
 			bird.src = "./images/flock-bird-mascot-2colours-dark2.svg";
