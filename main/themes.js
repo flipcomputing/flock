@@ -27,6 +27,11 @@ function setLogos(themeName) {
 			bird.src = "./images/flock-bird-mascot-2colours-dark2.svg";
 			break;
 
+		case "contrast":
+			inlineLogo.src = "./images/inline-flock-xr-white.svg";
+			bird.src = "./images/flock-bird-mascot-2colours.svg";
+			break;
+
 		default:
 			inlineLogo.src = "./images/inline-flock-xr.svg";
 			bird.src = "./images/flock-bird-mascot.svg";
