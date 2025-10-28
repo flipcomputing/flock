@@ -56,13 +56,13 @@
 /* Dark theme */
 [data-theme="dark"] {
   /* Core colours */
-  --color-bg:                        #1e1e1e;
+  --color-bg:                        #2c2c2c;
   --color-bg-alt:                    #2a2a2a;
   --color-text:                      #000000;
-  --color-text-primary: #888888;
+  --color-text-primary:              #bababa;
   --color-primary:                   #888888;
-   --color-text-brand:  #888888;
-  --color-menu-item:  #888888;
+  --color-text-brand:                #bababa;
+  --color-menu-item:                 #888888;
   --color-muted:                     #555555;
   --color-border:                    #555555;
   --color-border-light:              #333333;
@@ -78,9 +78,9 @@
   --color-button-bg:                 var(--color-bg-alt);
   --color-button-bg-hover:           #333333;
   --color-button-bg-focus:           #444444;
-
-  
-  --color-text-on-primary:  #444444;
+  --color-button-primary:            #bababa;
+  --color-button-scroll:             rgb(186, 186, 186, 0.5);
+  --color-text-on-primary:           #bababa;
 
   /* Loading screen gradient */
   --color-loading-gradient-start:    var(--color-bg);
@@ -352,6 +352,9 @@ button {
   position: relative;
   background-color: #f3f3f3;
 }
+[data-theme="dark"] #canvasArea {
+  background-color: #2c2c2c !important;
+}
 
 #menu {
   display: flex;
@@ -427,24 +430,29 @@ button {
  
 }
 
-.gizmo-button img {
+.gizmo-button svg {
   filter: none; /* light mode: normal */
+  width: 20px;
+  height: 20px;
 }
 
-#colorPickerButton img {
-  filter: invert(1) brightness(2); /* Make palette icon white */
+[data-theme="dark"] .gizmo-button svg {
+  /* filter: invert(30%) sepia(2%) saturate(0%) hue-rotate(180deg) brightness(96%) contrast(85%); */
+  width: 20px;
+  height: 20px;
 }
 
-[data-theme="dark"] #colorPickerButton img {
-  filter: invert(1) brightness(2) invert(30%) sepia(2%) saturate(0%) hue-rotate(180deg) brightness(96%) contrast(85%);
+[data-theme="dark"] .gizmo-button path {
+  fill: black !important;
+}
+
+#colorPickerButton svg {
+  /* filter: invert(1) brightness(2); Make palette icon white */
+  fill: #ffffff !important;
 }
 
 .bigbutton svg {
   filter: none; /* light mode: normal */
-}
-
-[data-theme="dark"] .gizmo-button img {
-  filter: invert(30%) sepia(2%) saturate(0%) hue-rotate(180deg) brightness(96%) contrast(85%);
 }
 
 [data-theme="dark"] .bigbutton svg {
