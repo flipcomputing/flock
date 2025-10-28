@@ -327,6 +327,9 @@ body[data-theme="dark"] .blocklyTreeLabel {
   border-radius: 4px;
 }
 
+[data-theme="dark-contrast"] .blocklyText {
+  fill: white !important;
+}
 
 /* === Blockly v12 desktop: center icon + label within the full row === */
 @media (min-width: 769px) {
