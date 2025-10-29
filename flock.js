@@ -15,9 +15,9 @@ import * as BABYLON_EXPORT from "@babylonjs/serializers";
 // Point Babylon’s Draco loader at your local folder
 BABYLON.DracoCompression.Configuration = {
         decoder: {
-                wasmUrl: "/draco/draco_wasm_wrapper_gltf.js",
-                wasmBinaryUrl: "/draco/draco_decoder_gltf.wasm",
-                fallbackUrl: "/draco/draco_decoder_gltf.js",
+                wasmUrl: "./draco/draco_wasm_wrapper_gltf.js",
+                wasmBinaryUrl: "./draco/draco_decoder_gltf.wasm",
+                fallbackUrl: "./draco/draco_decoder_gltf.js",
         },
 };
 import { FlowGraphLog10Block, SetMaterialIDBlock } from "babylonjs";
