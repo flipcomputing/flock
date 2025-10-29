@@ -12,6 +12,14 @@ import * as BABYLON_GUI from "@babylonjs/gui";
 import * as BABYLON_LOADER from "@babylonjs/loaders";
 import { GradientMaterial } from "@babylonjs/materials";
 import * as BABYLON_EXPORT from "@babylonjs/serializers";
+// Point Babylon’s Draco loader at your local folder
+BABYLON.DracoCompression.Configuration = {
+        decoder: {
+                wasmUrl: "/draco/draco_wasm_wrapper_gltf.js",
+                wasmBinaryUrl: "/draco/draco_decoder_gltf.wasm",
+                fallbackUrl: "/draco/draco_decoder_gltf.js",
+        },
+};
 import { FlowGraphLog10Block, SetMaterialIDBlock } from "babylonjs";
 import "@fontsource/atkinson-hyperlegible-next";
 import "@fontsource/atkinson-hyperlegible-next/500.css";
@@ -539,7 +547,6 @@ export const flock = {
                 });
         },
         async runCode(code) {
-
                 try {
                         flock.validateUserCodeAST(code);
                         await flock.disposeOldScene();
@@ -573,7 +580,7 @@ export const flock = {
                                         id: "flock-iframe",
                                         sameOrigin: true,
                                 });
-                        
+
                         // --- load SES text in parent and inject inline into iframe (CSP allows inline) ---
                         const sesResp = await fetch(
                                 "vendor/ses/lockdown.umd.min.js",
@@ -758,9 +765,9 @@ export const flock = {
                                 "\n})()\n//# sourceURL=user-code.js";*/
 
                         const wrapped =
-                          '(async function () {\n"use strict";\n' +
-                          code +
-                          '\n}).call(undefined)\n//# sourceURL=user-code.js';
+                                '(async function () {\n"use strict";\n' +
+                                code +
+                                "\n}).call(undefined)\n//# sourceURL=user-code.js";
 
                         // Evaluate in SES Compartment
                         const c = new win.Compartment(endowments);
