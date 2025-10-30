@@ -46,10 +46,6 @@
   fill: var(--color-text-primary) !important;
 }
 
-text.blocklyText.blocklyFieldText {
- fill: var(--color-dropdown-text) !important;
-}
-
 text.blocklyText.blocklyFieldText.blocklyDropdownText {
  fill: var(--color-dropdown-text) !important; 
 }
