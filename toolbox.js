@@ -3549,11 +3549,11 @@ const toolboxSnippetsPhysics = {
                         type: "when_clicked",
                         extraState: "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" inline=\"false\"></mutation>",
                         fields: {
-                                        MODEL_VAR: {
-                                                name: "sphere",
-                                                type: ""
-                                        },
-                                        TRIGGER: "OnPickTrigger"
+                                MODEL_VAR: {
+                                        name: "sphere",
+                                        type: ""
+                                },
+                                TRIGGER: "OnPickTrigger"
                         },
                         inputs: {
                                 DO: {
