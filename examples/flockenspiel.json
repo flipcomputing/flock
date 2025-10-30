@@ -141,7 +141,7 @@
         "type": "start",
         "id": "rYSM[9*$cgU?cfx}y-dk",
         "x": 10,
-        "y": 374,
+        "y": 378,
         "inputs": {
           "DO": {
             "block": {
@@ -257,7 +257,7 @@
         "type": "start",
         "id": "R-/s$mznFNBCtuKIhWo1",
         "x": 10,
-        "y": 714,
+        "y": 724,
         "inputs": {
           "DO": {
             "block": {
@@ -368,6 +368,9 @@
                       "block": {
                         "type": "lists_split",
                         "id": "o$(R6%qqFa`3NP[l_psP",
+                        "extraState": {
+                          "mode": "SPLIT"
+                        },
                         "fields": {
                           "MODE": "SPLIT"
                         },
@@ -749,65 +752,142 @@
                                                 "inputs": {
                                                   "DO": {
                                                     "block": {
-                                                      "type": "play_notes",
-                                                      "id": "(p96H+?-Y79Y#A1/rD}r",
-                                                      "fields": {
-                                                        "MESH": {
-                                                          "id": "f=8($HYZoE:IjT|U8x8J"
-                                                        },
-                                                        "ASYNC": "START"
-                                                      },
+                                                      "type": "controls_if",
+                                                      "id": ",D4LCfJVFaI[%[X=|VP-",
                                                       "inputs": {
-                                                        "NOTES": {
+                                                        "IF0": {
                                                           "block": {
-                                                            "type": "lists_create_with",
-                                                            "id": "sOU:Q-9e[#|c8MOXA:{a",
-                                                            "inline": true,
-                                                            "extraState": {
-                                                              "itemCount": 1
+                                                            "type": "logic_compare",
+                                                            "id": "IA_yn_adO.Zo.OQ,PYHS",
+                                                            "fields": {
+                                                              "OP": "LT"
                                                             },
                                                             "inputs": {
-                                                              "ADD0": {
+                                                              "A": {
                                                                 "block": {
-                                                                  "type": "variables_get",
-                                                                  "id": "P;Eld.[mLGp:w*yqip5c",
+                                                                  "type": "math_arithmetic",
+                                                                  "id": "4nBpj[T7=DT]3.b.5nG7",
                                                                   "fields": {
-                                                                    "VAR": {
-                                                                      "id": "iDM)e(Dw[zfo:n{Gdb$4"
+                                                                    "OP": "MINUS"
+                                                                  },
+                                                                  "inputs": {
+                                                                    "A": {
+                                                                      "shadow": {
+                                                                        "type": "math_number",
+                                                                        "id": "|me1R`?T~n`;Yl0@a3Nl",
+                                                                        "fields": {
+                                                                          "NUM": 1
+                                                                        }
+                                                                      },
+                                                                      "block": {
+                                                                        "type": "get_property",
+                                                                        "id": "|eU9-NOM@^[0^r^v_6+W",
+                                                                        "fields": {
+                                                                          "PROPERTY": "MAX_Y",
+                                                                          "MESH": {
+                                                                            "id": "je-v0Pr-tcUQk^BN6~}o"
+                                                                          }
+                                                                        }
+                                                                      }
+                                                                    },
+                                                                    "B": {
+                                                                      "shadow": {
+                                                                        "type": "math_number",
+                                                                        "id": "VrKP__nC[T|6g^M:i^{?",
+                                                                        "fields": {
+                                                                          "NUM": 1
+                                                                        }
+                                                                      },
+                                                                      "block": {
+                                                                        "type": "get_property",
+                                                                        "id": "q#/8X$e_HEOR92pJa`Yp",
+                                                                        "fields": {
+                                                                          "PROPERTY": "MIN_Y",
+                                                                          "MESH": {
+                                                                            "id": "f=8($HYZoE:IjT|U8x8J"
+                                                                          }
+                                                                        }
+                                                                      }
                                                                     }
                                                                   }
                                                                 }
-                                                              }
-                                                            }
-                                                          }
-                                                        },
-                                                        "DURATIONS": {
-                                                          "block": {
-                                                            "type": "lists_create_with",
-                                                            "id": "o[c,!0gvufht#{IQZR]c",
-                                                            "inline": true,
-                                                            "extraState": {
-                                                              "itemCount": 1
-                                                            },
-                                                            "inputs": {
-                                                              "ADD0": {
-                                                                "block": {
+                                                              },
+                                                              "B": {
+                                                                "shadow": {
                                                                   "type": "math_number",
-                                                                  "id": "2aDzbrwouV4G@q.8zHZ}",
+                                                                  "id": "^v}1Q9X?!TgjnVz)~`,g",
                                                                   "fields": {
-                                                                    "NUM": 1
+                                                                    "NUM": 0.01
                                                                   }
                                                                 }
                                                               }
                                                             }
                                                           }
                                                         },
-                                                        "INSTRUMENT": {
-                                                          "shadow": {
-                                                            "type": "instrument",
-                                                            "id": "5+ktH{|,/sjY1tJO`ZrL",
+                                                        "DO0": {
+                                                          "block": {
+                                                            "type": "play_notes",
+                                                            "id": "(p96H+?-Y79Y#A1/rD}r",
                                                             "fields": {
-                                                              "INSTRUMENT_TYPE": "default"
+                                                              "MESH": {
+                                                                "id": "f=8($HYZoE:IjT|U8x8J"
+                                                              },
+                                                              "ASYNC": "START"
+                                                            },
+                                                            "inputs": {
+                                                              "NOTES": {
+                                                                "block": {
+                                                                  "type": "lists_create_with",
+                                                                  "id": "sOU:Q-9e[#|c8MOXA:{a",
+                                                                  "inline": true,
+                                                                  "extraState": {
+                                                                    "itemCount": 1
+                                                                  },
+                                                                  "inputs": {
+                                                                    "ADD0": {
+                                                                      "block": {
+                                                                        "type": "variables_get",
+                                                                        "id": "P;Eld.[mLGp:w*yqip5c",
+                                                                        "fields": {
+                                                                          "VAR": {
+                                                                            "id": "iDM)e(Dw[zfo:n{Gdb$4"
+                                                                          }
+                                                                        }
+                                                                      }
+                                                                    }
+                                                                  }
+                                                                }
+                                                              },
+                                                              "DURATIONS": {
+                                                                "block": {
+                                                                  "type": "lists_create_with",
+                                                                  "id": "o[c,!0gvufht#{IQZR]c",
+                                                                  "inline": true,
+                                                                  "extraState": {
+                                                                    "itemCount": 1
+                                                                  },
+                                                                  "inputs": {
+                                                                    "ADD0": {
+                                                                      "block": {
+                                                                        "type": "math_number",
+                                                                        "id": "2aDzbrwouV4G@q.8zHZ}",
+                                                                        "fields": {
+                                                                          "NUM": 1
+                                                                        }
+                                                                      }
+                                                                    }
+                                                                  }
+                                                                }
+                                                              },
+                                                              "INSTRUMENT": {
+                                                                "shadow": {
+                                                                  "type": "instrument",
+                                                                  "id": "5+ktH{|,/sjY1tJO`ZrL",
+                                                                  "fields": {
+                                                                    "INSTRUMENT_TYPE": "default"
+                                                                  }
+                                                                }
+                                                              }
                                                             }
                                                           }
                                                         }
@@ -840,8 +920,7 @@
         "type": "forever",
         "id": "#XfxE5T1:ZF%ugv8Tgp*",
         "x": 10,
-        "y": 1586,
-        "collapsed": true,
+        "y": 1706,
         "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" inline=\"false\"></mutation>",
         "inputs": {
           "DO": {
@@ -1079,7 +1158,7 @@
                                   "type": "math_number",
                                   "id": "3Cl*w*C5j42Gk3{0fwSn",
                                   "fields": {
-                                    "NUM": 8
+                                    "NUM": 7
                                   }
                                 }
                               }
@@ -1111,7 +1190,7 @@
                                   "type": "math_number",
                                   "id": "tHU=qFV,bQS.PB)gH9%B",
                                   "fields": {
-                                    "NUM": -8
+                                    "NUM": -7
                                   }
                                 }
                               }

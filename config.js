@@ -283,16 +283,11 @@ export function animationNames() {
 		getDropdownOption("Idle_Hold"),
 		getDropdownOption("Walk_Hold"),
 		getDropdownOption("Run_Hold"),
-		getDropdownOption("Idle_Attack"),
-		getDropdownOption("Walk_Attack"),
-		getDropdownOption("Run_Attack"),
 		getDropdownOption("Sit_Down"),
 		getDropdownOption("Sitting"),
 		getDropdownOption("Stand_Up"),
 		getDropdownOption("Wobble"),
 		getDropdownOption("Clap"),
-		getDropdownOption("Jump_Idle"),
-		getDropdownOption("Jump_Land"),
 	];
 }
 

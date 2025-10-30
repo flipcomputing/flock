@@ -198,7 +198,7 @@
     <div id="loadingScreen" class="loading-screen" role="dialog" aria-modal="true" aria-labelledby="loading-title" aria-describedby="loading-description">
       <div class="loading-content">
         <img src="images/flock-bird-mascot.svg" alt="Flock XR Bird mascot" class="loading-bird" width="120" height="120" />
-        <img src="images/inline-flock-xr.png" alt="Flock XR Logo" class="loading-logo" />
+        <img src="images/inline-flock-xr.svg" alt="Flock XR Logo" class="loading-logo"/>
         <div class="loading-spinner" role="img" aria-label="Loading animation"></div>
         <h1 id="loading-title" class="sr-only">Loading Flock XR</h1>
         <p id="loading-description" data-i18n="loading" class="loading-text" aria-live="polite">Loading Flock XR...</p>
@@ -218,7 +218,7 @@
       <header role="banner">
         <nav id="menu" role="navigation" aria-label="Main navigation">
         <div id="menuleft">
-          <img src="images/flockxr-bird.png" alt="Flock XR logo" id="logo" />
+          <img src="./images/flock-bird-mascot.svg" alt="Flock XR logo" id="logo" />
           <!-- Menu Button -->
           <!-- Added the menu wrapper for mobile screens and put about option when clicked shows the popup modal for the screen of the button show info inherently disabled the showinfo button on mobile screens-->
           <div id="main-menu">
@@ -841,7 +841,6 @@
             <option value="" data-i18n="demo" style="color: #511d91">Demo</option>
             <option id="new" data-i18n="new" value="examples/new.json">New</option>
             <option data-i18n="starter" value="examples/starter.json">👋🏽 Starter</option>
-            <option data-i18n="controller_starter" value="examples/controller_starter.json">🎮 Controller Starter</option>
             <option data-i18n="snow_globe" value="examples/snow_globe.json">❄️ Snow globe</option>
             <option data-i18n="forest_base" value="examples/forest_base.json">🌲 Forest Base</option>
             <option data-i18n="character_animation" value="examples/character_animation.json">🎥 Character Animation</option>
@@ -852,6 +851,7 @@
             <option data-i18n="skittles" value="examples/skittles.json">🎳 Skittles</option>
             <option data-i18n="beetle" value="examples/beetle.json">🪲 Beetle</option>
             <option data-i18n="roominator" value="examples/roominator.json">🛋️ Roominator</option>
+             <option data-i18n="sit_down" value="examples/sit_down.json">🪑 Sit Down</option>
             <option data-i18n="ball_pit" value="examples/ball_pit.json">🟠 Ball Pit</option>
             <option data-i18n="ur_enough" value="examples/ur_enough.json">💗 UR Enough!</option>
             <option data-i18n="tallest_buildings" value="examples/tallest_buildings.json">📊 Tallest buildings</option>
@@ -940,13 +940,14 @@
                 aria-expanded="false"
                 aria-haspopup="true"
               >
-                <img
+                <!-- <img
                   src="./images/add.svg"
                   width="20px"
                   height="20px"
                   alt="Add"
                   onerror="this.style.display='none'; this.parentNode.textContent='+';"
-                />
+                /> -->
+                <?xml version="1.0" encoding="utf-8"?><svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" width="122.875px" height="122.648px" viewBox="0 0 122.875 122.648" enable-background="new 0 0 122.875 122.648" xml:space="preserve"><g><path fill="#fff" fill-rule="evenodd" clip-rule="evenodd" d="M108.993,47.079c7.683-0.059,13.898,6.12,13.882,13.805 c-0.018,7.683-6.26,13.959-13.942,14.019L75.24,75.138l-0.235,33.73c-0.063,7.619-6.338,13.789-14.014,13.78 c-7.678-0.01-13.848-6.197-13.785-13.818l0.233-33.497l-33.558,0.235C6.2,75.628-0.016,69.448,0,61.764 c0.018-7.683,6.261-13.959,13.943-14.018l33.692-0.236l0.236-33.73C47.935,6.161,54.209-0.009,61.885,0 c7.678,0.009,13.848,6.197,13.784,13.818l-0.233,33.497L108.993,47.079L108.993,47.079z"/></g></svg>
               </button>
 
               <!-- Dropdown for shapes and models -->
@@ -1048,40 +1049,44 @@
               </span>
             </div>
             <button class="gizmo-button" id="colorPickerButton" data-i18n="color_picker_button" aria-label="Choose a color" title="Choose a color">
-              <img
+              <!-- <img
                 src="./images/looks.svg"
                 width="20px"
                 height="20px"
                 alt="Color"
                 onerror="this.style.display='none'; this.parentNode.textContent='🎨';"
-              />
+              /> -->
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--!Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.--><path d="M512 256c0 .9 0 1.8 0 2.7c-.4 36.5-33.6 61.3-70.1 61.3L344 320c-26.5 0-48 21.5-48 48c0 3.4 .4 6.7 1 9.9c2.1 10.2 6.5 20 10.8 29.9c6.1 13.8 12.1 27.5 12.1 42c0 31.8-21.6 60.7-53.4 62c-3.5 .1-7 .2-10.6 .2C114.6 512 0 397.4 0 256S114.6 0 256 0S512 114.6 512 256zM128 288a32 32 0 1 0 -64 0 32 32 0 1 0 64 0zm0-96a32 32 0 1 0 0-64 32 32 0 1 0 0 64zM288 96a32 32 0 1 0 -64 0 32 32 0 1 0 64 0zm96 96a32 32 0 1 0 0-64 32 32 0 1 0 0 64z"/></svg>
             </button>
             <button class="gizmo-button" id="positionButton" data-i18n="position_button" disabled aria-label="Position mesh" title="Position mesh">
-              <img
+              <!-- <img
                 src="./images/position.svg"
                 width="20px"
                 height="20px"
                 alt="Position"
                 onerror="this.style.display='none'; this.parentNode.textContent='⌖';"
-              />
+              /> -->
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--!Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.--><path fill="white" d="M278.6 9.4c-12.5-12.5-32.8-12.5-45.3 0l-64 64c-9.2 9.2-11.9 22.9-6.9 34.9s16.6 19.8 29.6 19.8l32 0 0 96-96 0 0-32c0-12.9-7.8-24.6-19.8-29.6s-25.7-2.2-34.9 6.9l-64 64c-12.5 12.5-12.5 32.8 0 45.3l64 64c9.2 9.2 22.9 11.9 34.9 6.9s19.8-16.6 19.8-29.6l0-32 96 0 0 96-32 0c-12.9 0-24.6 7.8-29.6 19.8s-2.2 25.7 6.9 34.9l64 64c12.5 12.5 32.8 12.5 45.3 0l64-64c9.2-9.2 11.9-22.9 6.9-34.9s-16.6-19.8-29.6-19.8l-32 0 0-96 96 0 0 32c0 12.9 7.8 24.6 19.8 29.6s25.7 2.2 34.9-6.9l64-64c12.5-12.5 12.5-32.8 0-45.3l-64-64c-9.2-9.2-22.9-11.9-34.9-6.9s-19.8 16.6-19.8 29.6l0 32-96 0 0-96 32 0c12.9 0 24.6-7.8 29.6-19.8s2.2-25.7-6.9-34.9l-64-64z"/></svg>
             </button>
             <button class="gizmo-button" id="rotationButton" data-i18n="rotation_button" disabled aria-label="Rotate mesh" title="Rotate mesh">
-              <img
+              <!-- <img
                 src="./images/rotate.svg"
                 width="20px"
                 height="20px"
                 alt="Rotate"
                 onerror="this.style.display='none'; this.parentNode.textContent='↻';"
-              />
+              /> -->
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--!Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.--><path fill="white" d="M142.9 142.9c-17.5 17.5-30.1 38-37.8 59.8c-5.9 16.7-24.2 25.4-40.8 19.5s-25.4-24.2-19.5-40.8C55.6 150.7 73.2 122 97.6 97.6c87.2-87.2 228.3-87.5 315.8-1L455 55c6.9-6.9 17.2-8.9 26.2-5.2s14.8 12.5 14.8 22.2l0 128c0 13.3-10.7 24-24 24l-8.4 0c0 0 0 0 0 0L344 224c-9.7 0-18.5-5.8-22.2-14.8s-1.7-19.3 5.2-26.2l41.1-41.1c-62.6-61.5-163.1-61.2-225.3 1zM16 312c0-13.3 10.7-24 24-24l7.6 0 .7 0L168 288c9.7 0 18.5 5.8 22.2 14.8s1.7 19.3-5.2 26.2l-41.1 41.1c62.6 61.5 163.1 61.2 225.3-1c17.5-17.5 30.1-38 37.8-59.8c5.9-16.7 24.2-25.4 40.8-19.5s25.4 24.2 19.5 40.8c-10.8 30.6-28.4 59.3-52.9 83.8c-87.2 87.2-228.3 87.5-315.8 1L57 457c-6.9 6.9-17.2 8.9-26.2 5.2S16 449.7 16 440l0-119.6 0-.7 0-7.6z"/></svg>
             </button>
             <button class="gizmo-button" id="scaleButton" data-i18n="scale_button" disabled aria-label="Scale mesh size" title="Scale mesh size">
-              <img
+              <!-- <img
                 src="./images/scale.svg"                              c
                 width="20px"
                 height="20px"
                 alt="Scale"
                 onerror="this.style.display='none'; this.parentNode.textContent='⚏';"
-              />
+              /> -->
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--!Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.--><path fill="white" d="M320 0c-17.7 0-32 14.3-32 32s14.3 32 32 32l82.7 0L201.4 265.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L448 109.3l0 82.7c0 17.7 14.3 32 32 32s32-14.3 32-32l0-160c0-17.7-14.3-32-32-32L320 0zM80 32C35.8 32 0 67.8 0 112L0 432c0 44.2 35.8 80 80 80l320 0c44.2 0 80-35.8 80-80l0-112c0-17.7-14.3-32-32-32s-32 14.3-32 32l0 112c0 8.8-7.2 16-16 16L80 448c-8.8 0-16-7.2-16-16l0-320c0-8.8 7.2-16 16-16l112 0c17.7 0 32-14.3 32-32s-14.3-32-32-32L80 32z"/></svg>
             </button>
             <!--button class="gizmo-button" id="boundsButton" disabled>
               <img
@@ -1100,40 +1105,44 @@
               /-->
             </button>
             <button class="gizmo-button" id="hideButton" data-i18n="hide_button" disabled aria-label="Select object" title="Select object">
-              <img
+              <!-- <img
                 src="./images/pointer.svg"
                 width="20px"
                 height="20px"
                 alt="Select"
                 onerror="this.style.display='none'; this.parentNode.textContent='👆';"
-              />
+              /> -->
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--!Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.--><path fill="white" d="M0 55.2L0 426c0 12.2 9.9 22 22 22c6.3 0 12.4-2.7 16.6-7.5L121.2 346l58.1 116.3c7.9 15.8 27.1 22.2 42.9 14.3s22.2-27.1 14.3-42.9L179.8 320l118.1 0c12.2 0 22.1-9.9 22.1-22.1c0-6.3-2.7-12.3-7.4-16.5L38.6 37.9C34.3 34.1 28.9 32 23.2 32C10.4 32 0 42.4 0 55.2z"/></svg>
             </button>
             <button class="gizmo-button" id="duplicateButton" data-i18n="duplicate_button" disabled aria-label="Duplicate mesh" title="Duplicate selected mesh">
-              <img
+              <!-- <img
                 src="./images/duplicate.svg"
                 width="20px"
                 height="20px"
                 alt="Duplicate"
                 onerror="this.style.display='none'; this.parentNode.textContent='⧉';"
-              />
+              /> -->
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--!Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.--><path fill="white" d="M208 0L332.1 0c12.7 0 24.9 5.1 33.9 14.1l67.9 67.9c9 9 14.1 21.2 14.1 33.9L448 336c0 26.5-21.5 48-48 48l-192 0c-26.5 0-48-21.5-48-48l0-288c0-26.5 21.5-48 48-48zM48 128l80 0 0 64-64 0 0 256 192 0 0-32 64 0 0 48c0 26.5-21.5 48-48 48L48 512c-26.5 0-48-21.5-48-48L0 176c0-26.5 21.5-48 48-48z"/></svg>
             </button>
             <button class="gizmo-button" id="deleteButton" data-i18n="delete_button" disabled aria-label="Delete mesh" title="Delete selected mesh">
-              <img
+              <!-- <img
                 src="./images/delete.svg"
                 width="20px"
                 height="20px"
                 alt="Delete"
                 onerror="this.style.display='none'; this.parentNode.textContent='🗑';"
-              />
+              /> -->
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--!Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.--><path fill="white" d="M135.2 17.7L128 32 32 32C14.3 32 0 46.3 0 64S14.3 96 32 96l384 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-96 0-7.2-14.3C307.4 6.8 296.3 0 284.2 0L163.8 0c-12.1 0-23.2 6.8-28.6 17.7zM416 128L32 128 53.2 467c1.6 25.3 22.6 45 47.9 45l245.8 0c25.3 0 46.3-19.7 47.9-45L416 128z"/></svg>
             </button>
             <button class="gizmo-button" id="cameraButton" data-i18n="camera_button" disabled aria-label="Camera controls" title="Camera controls">
-              <img
+              <!-- <img
                 src="./images/camera2.svg"
                 width="20px"
                 height="20px"
                 alt="Camera"
                 onerror="this.style.display='none'; this.parentNode.textContent='📷';"
-              />
+              /> -->
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><!--!Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.--><path fill="white" d="M0 128C0 92.7 28.7 64 64 64l256 0c35.3 0 64 28.7 64 64l0 256c0 35.3-28.7 64-64 64L64 448c-35.3 0-64-28.7-64-64L0 128zM559.1 99.8c10.4 5.6 16.9 16.4 16.9 28.2l0 256c0 11.8-6.5 22.6-16.9 28.2s-23 5-32.9-1.6l-96-64L416 337.1l0-17.1 0-128 0-17.1 14.2-9.5 96-64c9.8-6.5 22.4-7.2 32.9-1.6z"/></svg>
             </button>
           </aside>
 
@@ -1216,8 +1225,9 @@
                   title="Visit Flock XR website"
                 >
                   <img
-                    src="images/inline-flock-xr.png"
+                    src="./images/inline-flock-xr.svg"
                     alt="Flock XR logo"
+                    id="flocklogo"
                   >
                   <span class="sr-only">
                     Visit Flock XR website in a new tab
