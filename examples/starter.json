@@ -231,7 +231,7 @@
         "type": "start",
         "id": "~D}tXQlU1{M6S=%edJVA",
         "x": 10,
-        "y": 1068,
+        "y": 832,
         "collapsed": true,
         "inputs": {
           "DO": {
@@ -397,130 +397,6 @@
             }
           }
         }
-      },
-      {
-        "type": "start",
-        "id": "_AFj4gSiY!{fUCr@01?d",
-        "x": 10,
-        "y": 832,
-        "inputs": {
-          "DO": {
-            "block": {
-              "type": "load_character",
-              "id": "tM+=+8JA2^-[m%-{u`qr",
-              "disabledReasons": [
-                "MANUALLY_DISABLED"
-              ],
-              "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" has_do=\"false\"></mutation>",
-              "icons": {
-                "comment": {
-                  "text": "Right-click or tap and hold \nand enable this block. ",
-                  "pinned": false,
-                  "height": 81.90478515625,
-                  "width": 241.90475463867188
-                }
-              },
-              "fields": {
-                "ID_VAR": {
-                  "id": "nR@9%DMJ;6)0xKajV0Uw"
-                },
-                "MODELS": "Character1.glb"
-              },
-              "inputs": {
-                "SCALE": {
-                  "shadow": {
-                    "type": "math_number",
-                    "id": "P1Np%0Q1|mhtKEN5gVO;",
-                    "fields": {
-                      "NUM": 1
-                    }
-                  }
-                },
-                "X": {
-                  "shadow": {
-                    "type": "math_number",
-                    "id": "JmnJzO2/3n$Kv4Xdol.B",
-                    "fields": {
-                      "NUM": 3
-                    }
-                  }
-                },
-                "Y": {
-                  "shadow": {
-                    "type": "math_number",
-                    "id": "eL!0?qjONEY.(6[|]R6y",
-                    "fields": {
-                      "NUM": 0
-                    }
-                  }
-                },
-                "Z": {
-                  "shadow": {
-                    "type": "math_number",
-                    "id": "w_x$I($xx|lBwXA8{_Rm",
-                    "fields": {
-                      "NUM": 0
-                    }
-                  }
-                },
-                "HAIR_COLOR": {
-                  "shadow": {
-                    "type": "colour",
-                    "id": "PUsrwSL%X=80W.wuez4U",
-                    "fields": {
-                      "COLOR": "#000000"
-                    }
-                  }
-                },
-                "SKIN_COLOR": {
-                  "shadow": {
-                    "type": "skin_colour",
-                    "id": "kb:OYLcMICl*Emz$(9n!",
-                    "fields": {
-                      "COLOR": "#a15c33"
-                    }
-                  }
-                },
-                "EYES_COLOR": {
-                  "shadow": {
-                    "type": "colour",
-                    "id": "9Ce;8=xG4d/.iy371x#T",
-                    "fields": {
-                      "COLOR": "#000000"
-                    }
-                  }
-                },
-                "TSHIRT_COLOR": {
-                  "shadow": {
-                    "type": "colour",
-                    "id": "*Y,+IZ^w5Qm,VX%acDN7",
-                    "fields": {
-                      "COLOR": "#ff8f60"
-                    }
-                  }
-                },
-                "SHORTS_COLOR": {
-                  "shadow": {
-                    "type": "colour",
-                    "id": "piE,M3|yxu!_%zxPtS7(",
-                    "fields": {
-                      "COLOR": "#00008b"
-                    }
-                  }
-                },
-                "SLEEVES_COLOR": {
-                  "shadow": {
-                    "type": "colour",
-                    "id": "==i$Uu1uHLA[[g5Q[$)g",
-                    "fields": {
-                      "COLOR": "#008b8b"
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
       }
     ]
   },
@@ -528,10 +404,6 @@
     {
       "name": "bird",
       "id": "H]1?IQv^=%_LL!pnT;:Y"
-    },
-    {
-      "name": "character2",
-      "id": "nR@9%DMJ;6)0xKajV0Uw"
     }
   ]
 }
