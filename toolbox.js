@@ -3710,15 +3710,14 @@ const toolboxSnippetsPhysics = {
                                                         }
                                                 },
                                                 next: {
-                                                        "block": {
-                                                        "type": "add_physics",
-                                                        "id": "GoE|nIS6ngo.QtSX1e-g",
-                                                        "fields": {
-                                                        "MODEL_VAR": {
-                                                        "id": "}YC7Uf+8p5KAeDcHuW?."
-                                                        },
-                                                        "PHYSICS_TYPE": "DYNAMIC"
-                                                        }
+                                                        block: {
+                                                                type: "add_physics",
+                                                                fields: {
+                                                                        MODEL_VAR: {
+                                                                                name: "heart"
+                                                                        },
+                                                                        PHYSICS_TYPE: "DYNAMIC"
+                                                                }
                                                         }
                                                 }
                                         }
