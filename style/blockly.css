@@ -21,6 +21,7 @@
   /* Core colours */
   --color-bg:                   black;
   --color-text:                 white;
+  --color-text-primary:         var(--color-text);
   --color-border-highlight:     #ee5d6c;
   --color-search-highlight:     #ed808b;
   --color-shadow:               grey;
@@ -178,6 +179,18 @@ path.blocklyPath.blockly-ws-search-highlight.blockly-ws-search-current {
 .custom_zelos_renderer-renderer.classic-theme .blocklyMenuItemContent {
 fill: var(--color-dropdown-text) !important;
 }
+
+[data-theme="dark-contrast"]
+.blocklyText,
+.blocklyDropdownField,
+.blocklyDropdownDiv,
+.blocklyDropdownContent,
+.custom_zelos_renderer-renderer.classic-theme .blocklyDropdownText,
+.custom_zelos_renderer-renderer.classic-theme .blocklyDropDownText,
+.custom_zelos_renderer-renderer.classic-theme .blocklyMenuItemContent {
+fill: var(--color-dropdown-text) !important;
+}
+
 
 /* Menu item text in classic‑theme dropdowns */
 .custom_zelos_renderer-renderer.classic-theme.blocklyDropDownDiv .goog-menuitem-content {
