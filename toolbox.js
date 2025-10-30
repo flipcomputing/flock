@@ -3546,6 +3546,57 @@ const toolboxSnippetsPhysics = {
                 },
                 {
                         kind: "block",
+                        type: "when_clicked",
+                        extraState: "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" inline=\"false\"></mutation>",
+                        fields: {
+                                        MODEL_VAR: {
+                                                name: "sphere",
+                                                type: ""
+                                        },
+                                        TRIGGER: "OnPickTrigger"
+                        },
+                        inputs: {
+                                DO: {
+                                        block: {
+                                                type: "apply_force",
+                                                fields: {
+                                                        MESH_VAR: {
+                                                                name: "sphere",
+                                                                type: ""
+                                                        }
+                                                },
+                                                inputs: {
+                                                        X: {
+                                                                shadow: {
+                                                                        type: "math_number",
+                                                                        fields: {
+                                                                                "NUM": 2
+                                                                        }
+                                                                }
+                                                        },
+                                                        Y: {
+                                                                shadow: {
+                                                                        type: "math_number",
+                                                                        fields: {
+                                                                                "NUM": 0
+                                                                        }
+                                                                }
+                                                        },
+                                                        Z: {
+                                                                shadow: {
+                                                                        type: "math_number",
+                                                                        fields: {
+                                                                                "NUM": 0
+                                                                        }
+                                                                }
+                                                        }
+                                                }
+                                        }
+                                }
+                        }
+                },
+                {
+                        kind: "block",
                         type: "start",
                         inputs: {
                                 DO: {
