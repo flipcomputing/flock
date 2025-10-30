@@ -118,10 +118,10 @@
   --color-bg:                        #090909;
   --color-bg-alt:                    #2a2a2a;
   --color-text:                      #cdcdcd;
-  --color-text-primary: #cdcdcd;
+  --color-text-primary:              #cdcdcd;
   --color-primary:                   #888888;
-   --color-text-brand:  #888888;
-  --color-menu-item:  #888888;
+  --color-text-brand:                #cdcdcd;
+  --color-menu-item:                 #888888;
   --color-muted:                     #555555;
   --color-border:                    #555555;
   --color-border-light:              #333333;
