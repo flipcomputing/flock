@@ -3429,7 +3429,6 @@ const toolboxSnippetsPhysics = {
                                 DO: {
                                         block: {
                                                 type: "create_box",
-                                                id: "s~usd339iO-mEZRyDZ6i",
                                                 extraState: "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" has_do=\"false\"></mutation>",
                                                 fields: {
                                                         ID_VAR: {
