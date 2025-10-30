@@ -3544,6 +3544,78 @@ const toolboxSnippetsPhysics = {
                                 },
                         },
                 },
+                {
+                        kind: "block",
+                        type: "start",
+                        inputs: {
+                                DO: {
+                                        block: {
+                                                type: "load_object",
+                                                extraState: "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" has_do=\"false\"></mutation>",
+                                                fields: {
+                                                        ID_VAR: {
+                                                                name: "star",
+                                                                type: ""
+                                                        },
+                                                        MODELS: "Star.glb"
+                                                },
+                                                inputs: {
+                                                        COLOR: {
+                                                                shadow: {
+                                                                        type: "colour",
+                                                                        fields: {
+                                                                                COLOR: "#ffd700"
+                                                                        }
+                                                                }
+                                                        },
+                                                        SCALE: {
+                                                                shadow: {
+                                                                        type: "math_number",
+                                                                        fields: {
+                                                                                NUM: 1
+                                                                        }
+                                                                }
+                                                        },
+                                                        X: {
+                                                                shadow: {
+                                                                        type: "math_number",
+                                                                        fields: {
+                                                                                NUM: 0
+                                                                        }
+                                                                }
+                                                        },
+                                                        Y: {
+                                                                shadow: {
+                                                                        type: "math_number",
+                                                                        fields: {
+                                                                                NUM: 50
+                                                                        }
+                                                                }
+                                                        },
+                                                        Z: {
+                                                                shadow: {
+                                                                        type: "math_number",
+                                                                        fields: {
+                                                                                NUM: 0
+                                                                        }
+                                                                }
+                                                        }
+                                                },
+                                                next: {
+                                                        block: {
+                                                                type: "add_physics",
+                                                                fields: {
+                                                                        MODEL_VAR: {
+                                                                                name: "star"
+                                                                        },
+                                                                        PHYSICS_TYPE: "DYNAMIC"
+                                                                }
+                                                        }
+                                                }
+                                        }
+                                }
+                        }
+                }
         ],
 };
 
