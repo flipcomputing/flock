@@ -56,7 +56,7 @@ function switchTheme(themeName) {
 		Blockly.utils.colour.setHsvValue(0.85);
 	} else if (["contrast", "dark-contrast"].includes(themeName)) {
 		// Contrast theme now uses more saturated colors like the old dark theme
-		Blockly.utils.colour.setHsvSaturation(0.45);
+		Blockly.utils.colour.setHsvSaturation(0.525);
 		Blockly.utils.colour.setHsvValue(0.65);
 	}
 
