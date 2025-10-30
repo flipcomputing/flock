@@ -518,8 +518,9 @@ button {
   filter: none; /* light mode: normal */
 }
 
-[data-theme="dark"] .bigbutton svg {
-  filter: invert(30%) sepia(2%) saturate(0%) hue-rotate(180deg) brightness(96%) contrast(85%);
+[data-theme="dark"] .icon svg {
+  /* filter: invert(30%) sepia(2%) saturate(0%) hue-rotate(180deg) brightness(96%) contrast(85%); */
+  color: #bababa !important;
 }
 
 
