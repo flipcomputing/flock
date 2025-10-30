@@ -3428,6 +3428,142 @@ const toolboxSnippetsPhysics = {
                         inputs: {
                                 DO: {
                                         block: {
+                                                type: "create_box",
+                                                id: "s~usd339iO-mEZRyDZ6i",
+                                                extraState: "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" has_do=\"false\"></mutation>",
+                                                fields: {
+                                                        ID_VAR: {
+                                                                name: "box"
+                                                        }
+                                                },
+                                                inputs: {
+                                                        COLOR: {
+                                                                shadow: {
+                                                                        type: "colour",
+                                                                        fields: {
+                                                                                COLOR: "#6633ff"
+                                                                        }
+                                                                }
+                                                        },
+                                                        WIDTH: {
+                                                                shadow: {
+                                                                        type: "math_number",
+                                                                        fields: {
+                                                                                NUM: 1
+                                                                        }
+                                                                }
+                                                        },
+                                                        HEIGHT: {
+                                                                shadow: {
+                                                                        type: "math_number",
+                                                                        fields: {
+                                                                                NUM: 1
+                                                                        }
+                                                                }
+                                                        },
+                                                        DEPTH: {
+                                                                shadow: {
+                                                                        type: "math_number",
+                                                                        fields: {
+                                                                                NUM: 1
+                                                                        }
+                                                                }
+                                                        },
+                                                        X: {
+                                                                shadow: {
+                                                                        type: "math_number",
+                                                                        fields: {
+                                                                                NUM: 0
+                                                                        }
+                                                                }
+                                                        },
+                                                        Y: {
+                                                                shadow: {
+                                                                        type: "math_number",
+                                                                        fields: {
+                                                                                NUM: 0.5
+                                                                        }
+                                                                }
+                                                        },
+                                                        Z: {
+                                                                shadow: {
+                                                                        type: "math_number",
+                                                                        fields: {
+                                                                                NUM: 0
+                                                                        }
+                                                                }
+                                                        }
+                                                },
+                                                next: {
+                                                        block: {
+                                                        type: "add_physics",
+                                                        fields: {
+                                                                        MODEL_VAR: {
+                                                                                name: "box"
+                                                                        },
+                                                                        PHYSICS_TYPE: "DYNAMIC"
+                                                                }
+                                                        }
+                                                }
+                                        }
+                                }
+                        }
+                },
+                {
+                        kind: "block",
+                        type: "when_clicked",
+                        extraState: "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" inline=\"false\"></mutation>",
+                        fields: {
+                                MODEL_VAR: {
+                                        name: "box"
+                                },
+                                TRIGGER: "OnPickTrigger"
+                        },
+                        inputs: {
+                                DO: {
+                                        block: {
+                                                type: "apply_force",
+                                                fields: {
+                                                        MESH_VAR: {
+                                                                name: "box"
+                                                        }
+                                                },
+                                                inputs: {
+                                                        X: {
+                                                                shadow: {
+                                                                        type: "math_number",
+                                                                        fields: {
+                                                                                NUM: 2
+                                                                        }
+                                                                }
+                                                        },
+                                                        Y: {
+                                                                shadow: {
+                                                                        type: "math_number",
+                                                                        fields: {
+                                                                                NUM: 0
+                                                                        }
+                                                                }
+                                                        },
+                                                        Z: {
+                                                                shadow: {
+                                                                        type: "math_number",
+                                                                        fields: {
+                                                                                NUM: 0
+                                                                        }
+                                                                }
+                                                        }
+                                                }
+                                        }
+                                }
+                        }
+                },
+                {
+                        kind: "block",
+                        type: "start",
+                        inputs: {
+                                DO: {
+                                        block: {
                                                 type: "create_sphere",
                                                 ID_VAR: {
                                                         name: "sphere",
@@ -3543,57 +3679,6 @@ const toolboxSnippetsPhysics = {
                                         },
                                 },
                         },
-                },
-                {
-                        kind: "block",
-                        type: "when_clicked",
-                        extraState: "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" inline=\"false\"></mutation>",
-                        fields: {
-                                MODEL_VAR: {
-                                        name: "sphere",
-                                        type: ""
-                                },
-                                TRIGGER: "OnPickTrigger"
-                        },
-                        inputs: {
-                                DO: {
-                                        block: {
-                                                type: "apply_force",
-                                                fields: {
-                                                        MESH_VAR: {
-                                                                name: "sphere",
-                                                                type: ""
-                                                        }
-                                                },
-                                                inputs: {
-                                                        X: {
-                                                                shadow: {
-                                                                        type: "math_number",
-                                                                        fields: {
-                                                                                "NUM": 2
-                                                                        }
-                                                                }
-                                                        },
-                                                        Y: {
-                                                                shadow: {
-                                                                        type: "math_number",
-                                                                        fields: {
-                                                                                "NUM": 0
-                                                                        }
-                                                                }
-                                                        },
-                                                        Z: {
-                                                                shadow: {
-                                                                        type: "math_number",
-                                                                        fields: {
-                                                                                "NUM": 0
-                                                                        }
-                                                                }
-                                                        }
-                                                }
-                                        }
-                                }
-                        }
                 },
                 {
                         kind: "block",
