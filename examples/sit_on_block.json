@@ -304,7 +304,7 @@
                                                   "id": "yNL|7CoX8]JqSk%=o!%."
                                                 },
                                                 "MODEL2": {
-                                                  "id": "!%dHi3u^_UI^,.1u,a_B"
+                                                  "id": "`H?U4AzcuY[f7}H.PE^%"
                                                 },
                                                 "USE_Y": false
                                               },
@@ -473,13 +473,13 @@
                                                               },
                                                               "next": {
                                                                 "block": {
-                                                                  "type": "switch_animation",
-                                                                  "id": "9fhHX-}`L*Wl``CSp7+?",
+                                                                  "type": "play_animation",
+                                                                  "id": "j:RQZN[G~|F{dUUW%$bG",
                                                                   "fields": {
+                                                                    "ANIMATION_NAME": "Sit_Down",
                                                                     "MODEL": {
                                                                       "id": "yNL|7CoX8]JqSk%=o!%."
-                                                                    },
-                                                                    "ANIMATION_NAME": "Sit_Down"
+                                                                    }
                                                                   },
                                                                   "next": {
                                                                     "block": {
@@ -533,10 +533,6 @@
     {
       "name": "box1",
       "id": "`H?U4AzcuY[f7}H.PE^%"
-    },
-    {
-      "name": "mesh2",
-      "id": "!%dHi3u^_UI^,.1u,a_B"
     }
   ]
 }
