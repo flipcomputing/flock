@@ -112,6 +112,65 @@
   --color-scroll-button-bg:          rgba(0, 0, 0, 0.5);
 }
 
+/* Dark high-contrast theme */
+[data-theme="dark-contrast"] {
+  /* Core colours */
+  --color-bg:                        #090909;
+  --color-bg-alt:                    #2a2a2a;
+  --color-text:                      #cdcdcd;
+  --color-text-primary:              #cdcdcd;
+  --color-primary:                   #888888;
+  --color-text-brand:                #cdcdcd;
+  --color-menu-item:                 #888888;
+  --color-muted:                     #555555;
+  --color-border:                    #555555;
+  --color-border-light:              #333333;
+  --color-border-highlight:          #555555;
+  --color-search-highlight:          #777777;
+  --color-shadow:                    rgba(0, 0, 0, 0.7);
+  --color-shadow-light:              rgba(0, 0, 0, 0.5);
+  --color-shadow-medium:             rgba(0, 0, 0, 0.7);
+  --color-outline-focus:             #ffb700;
+  --color-focus-ring:                #ffb700;
+
+  /* Buttons */
+  --color-button-bg:                 var(--color-bg-alt);
+  --color-button-bg-hover:           #333333;
+  --color-button-bg-focus:           #444444;
+  --color-button-scroll:             rgba(205, 205, 205, 0.5);
+  --color-button-primary:            #cdcdcd;
+  --color-text-on-primary:           #cdcdcd;
+
+  /* Loading screen gradient */
+  --color-loading-gradient-start:    var(--color-bg);
+  --color-loading-gradient-end:      var(--color-bg-alt);
+
+  /* Spinner */
+  --color-spinner-border:            var(--color-muted);
+  --color-spinner-border-top:        var(--color-primary);
+
+  /* Dropdown & menus */
+  --color-dropdown-text:        var(--color-text);
+  --color-menu-item-text:       var(--color-text);
+  --color-dropdown-menu-bg:     var(--color-bg);
+  --color-dropdown-menu-hover:  rgba(0, 0, 0, 0.05);
+  --color-dropdown-menu-border: var(--color-dropdown-menu-border, 1px solid rgba(0,0,0,0.1));
+
+  --color-dropdown-bg:               #333333;
+  --color-dropdown-hover:            #555555;
+ 
+  --color-menu-hover:                var(--color-dropdown-hover);
+  --color-menu-item-hover:           #444444;
+
+  /* Overlays */
+  --color-overlay:                   rgba(0, 0, 0, 0.7);
+  --color-overlay-light:             rgba(0, 0, 0, 0.5);
+  --color-overlay-modal:             rgba(0, 0, 0, 0.4);
+
+  /* Scroll buttons */
+  --color-scroll-button-bg:          rgba(0, 0, 0, 0.5);
+}
+
 
 /* High‑contrast theme */
 [data-theme="contrast"] {
@@ -355,6 +414,9 @@ button {
 [data-theme="dark"] #canvasArea {
   background-color: #2c2c2c !important;
 }
+[data-theme="dark-contrast"] #canvasArea {
+  background-color: #090909 !important;
+}
 
 #menu {
   display: flex;
@@ -436,13 +498,11 @@ button {
   height: 20px;
 }
 
-[data-theme="dark"] .gizmo-button svg {
-  /* filter: invert(30%) sepia(2%) saturate(0%) hue-rotate(180deg) brightness(96%) contrast(85%); */
-  width: 20px;
-  height: 20px;
+[data-theme="dark"] .gizmo-button path {
+  fill: black !important;
 }
 
-[data-theme="dark"] .gizmo-button path {
+[data-theme="dark-contrast"] .gizmo-button path {
   fill: black !important;
 }
 
@@ -455,8 +515,12 @@ button {
   filter: none; /* light mode: normal */
 }
 
-[data-theme="dark"] .bigbutton svg {
-  filter: invert(30%) sepia(2%) saturate(0%) hue-rotate(180deg) brightness(96%) contrast(85%);
+[data-theme="dark"] .icon path {
+  fill: #bababa !important;
+}
+
+[data-theme="dark-contrast"] .icon path {
+  fill: #cdcdcd !important;
 }
 
 
