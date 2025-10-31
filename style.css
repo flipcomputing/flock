@@ -173,6 +173,9 @@
   margin-right: 10px;
 } 
 
+[data-theme="contrast"] #exampleSelect {
+  color: #000000 !important;
+}
 
 /* Loading Screen Styles */
 .loading-screen {
