@@ -35,6 +35,36 @@ text.blocklyText.blocklyFieldText.blocklyDropdownText {
   border-left: none !important;
 }
 
+body[data-theme="contrast"] {
+  .blocklyWidgetDiv .blocklyMenuItemContent {
+    color: black !important;
+  }
+  .blocklyField text.blocklyText.blocklyFieldText {
+    fill: black !important;
+  }
+  text.blocklyText.blocklyFieldText.blocklyDropdownText {
+    fill: white !important;
+  }
+  .blocklyMenuItemContent {
+    color: white !important;
+  }
+  .blocklyWidgetDiv .blocklyMenuItemContent {
+    color: black !important;
+  }
+  .blocklyToolboxCategoryLabel {
+    color: white !important;
+  }
+  .customToolboxIcon {
+    filter: invert(1);
+    /* Should be fine to use filters here as we are only
+    converting between black and white for toolbox icons */
+  }
+}
+
+textarea.blocklyCommentText.blocklyTextarea.blocklyText {
+  color: black;
+}
+
 /* Search Highlight Styles */
 .blockly-ws-search {
   background: var(--color-bg);
