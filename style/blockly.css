@@ -301,10 +301,6 @@ body[data-theme="dark"] .blocklyTreeLabel {
   border-radius: 4px;
 }
 
-#menu {
-  background: #000000 !important;
-}
-
 [data-theme="contrast"] .blocklyText {
   fill: white !important;
 }
