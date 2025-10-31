@@ -60,6 +60,11 @@ body[data-theme="dark-contrast"] {
   .blocklyToolboxCategoryLabel {
     color: white !important;
   }
+  .customToolboxIcon {
+    filter: invert(1);
+    /* Should be fine to use filters here as we are only
+    converting between black and white for toolbox icons */
+  }
 }
 
 .blocklyTreeRow {
