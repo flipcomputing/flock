@@ -201,6 +201,22 @@ path.blocklyPath.blockly-ws-search-highlight.blockly-ws-search-current {
   color: #4c4c4c !important;
 }
 
+[data-theme="dark"]
+.blocklyTrash,
+.blocklyZoomIn > image,
+.blocklyZoomOut > image {
+  opacity: 1 !important;
+  color: #bababa !important;
+}
+
+[data-theme="dark-contrast"]
+.blocklyTrash,
+.blocklyZoomIn > image,
+.blocklyZoomOut > image {
+  opacity: 1 !important;
+  color: #cdcdcd !important;
+}
+
 .blocklyToolboxCategoryLabel {
   color: var(--color-text-label) !important;
 }
