@@ -50,6 +50,12 @@ text.blocklyText.blocklyFieldText.blocklyDropdownText {
  fill: var(--color-dropdown-text) !important; 
 }
 
+body[data-theme="dark-contrast"] {
+  text.blocklyText.blocklyFieldText.blocklyDropdownText {
+    fill: white !important; 
+  }
+}
+
 .blocklyTreeRow {
   border-left: none !important;
 }
