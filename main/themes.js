@@ -22,6 +22,11 @@ function setLogos(themeName) {
 	const bird = document.getElementById("logo");
 	const inlineLogo = document.getElementById("flocklogo");
 	switch (themeName) {
+		case "dark-contrast":
+			inlineLogo.src = "./images/inline-flock-xr-dark1.svg";
+			bird.src = "./images/flock-bird-mascot-2colours-dark1.svg";
+			break;
+
 		case "dark":
 			inlineLogo.src = "./images/inline-flock-xr-dark2.svg";
 			bird.src = "./images/flock-bird-mascot-2colours-dark2.svg";
@@ -54,7 +59,7 @@ function switchTheme(themeName) {
 		// For dark theme, use same saturation/value as light theme
 		Blockly.utils.colour.setHsvSaturation(0.3);
 		Blockly.utils.colour.setHsvValue(0.85);
-	} else if (themeName === "contrast") {
+	} else if (["contrast", "dark-contrast"].includes(themeName)) {
 		// Contrast theme now uses more saturated colors like the old dark theme
 		Blockly.utils.colour.setHsvSaturation(0.525);
 		Blockly.utils.colour.setHsvValue(0.65);
@@ -193,6 +198,97 @@ function getThemeBaseStyles(themeName) {
 		},
 		contrast: {
 			// Contrast theme now uses the old dark theme colors
+			events: {
+				colourPrimary: "#E74C3C",
+				colourSecondary: "#C0392B",
+				colourTertiary: "#A93226",
+			},
+			scene: {
+				colourPrimary: "#1ABC9C",
+				colourSecondary: "#16A085",
+				colourTertiary: "#138D75",
+			},
+			transform: {
+				colourPrimary: "#3498DB",
+				colourSecondary: "#2980B9",
+				colourTertiary: "#2471A3",
+			},
+			animate: {
+				colourPrimary: "#F1C40F",
+				colourSecondary: "#D4AC0D",
+				colourTertiary: "#B7950B",
+			},
+			materials: {
+				colourPrimary: "#9B59B6",
+				colourSecondary: "#8E44AD",
+				colourTertiary: "#7D3C98",
+			},
+			sound: {
+				colourPrimary: "#E67E22",
+				colourSecondary: "#D35400",
+				colourTertiary: "#BA4A00",
+			},
+			sensing: {
+				colourPrimary: "#5DADE2",
+				colourSecondary: "#3498DB",
+				colourTertiary: "#2980B9",
+			},
+			snippets: {
+				colourPrimary: "#58D68D",
+				colourSecondary: "#27AE60",
+				colourTertiary: "#229954",
+			},
+			control: {
+				colourPrimary: "#FF8F00",
+				colourSecondary: "#E65100",
+				colourTertiary: "#BF360C",
+			},
+			logic: {
+				colourPrimary: "#2196F3",
+				colourSecondary: "#1976D2",
+				colourTertiary: "#1565C0",
+			},
+			variables: {
+				colourPrimary: "#F44336",
+				colourSecondary: "#D32F2F",
+				colourTertiary: "#C62828",
+			},
+			text: {
+				colourPrimary: "#4CAF50",
+				colourSecondary: "#388E3C",
+				colourTertiary: "#2E7D32",
+			},
+			lists: {
+				colourPrimary: "#9C27B0",
+				colourSecondary: "#7B1FA2",
+				colourTertiary: "#6A1B9A",
+			},
+			math: {
+				colourPrimary: "#3F51B5",
+				colourSecondary: "#303F9F",
+				colourTertiary: "#283593",
+			},
+			procedures: {
+				colourPrimary: "#009688",
+				colourSecondary: "#00796B",
+				colourTertiary: "#00695C",
+			},
+			components: {
+				workspaceBackgroundColour: "#FFFFFF",
+				toolboxBackgroundColour: "#000000",
+				toolboxForegroundColour: "#FFFFFF",
+				flyoutBackgroundColour: "#F0F0F0",
+				flyoutForegroundColour: "#000000",
+				flyoutOpacity: 1,
+				scrollbarColour: "#000000",
+				insertionMarkerColour: "#FF0000",
+				insertionMarkerOpacity: 1,
+				markerColour: "#FF0000",
+				cursorColour: "#FF0000",
+			},
+		},
+		"dark-contrast": {
+			// Use same colours for both high contrast theme
 			events: {
 				colourPrimary: "#E74C3C",
 				colourSecondary: "#C0392B",

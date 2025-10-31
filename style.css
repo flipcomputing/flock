@@ -112,6 +112,65 @@
   --color-scroll-button-bg:          rgba(0, 0, 0, 0.5);
 }
 
+/* Dark high-contrast theme */
+[data-theme="dark-contrast"] {
+  /* Core colours */
+  --color-bg:                        #090909;
+  --color-bg-alt:                    #2a2a2a;
+  --color-text:                      #cdcdcd;
+  --color-text-primary:              #cdcdcd;
+  --color-primary:                   #888888;
+  --color-text-brand:                #cdcdcd;
+  --color-menu-item:                 #888888;
+  --color-muted:                     #555555;
+  --color-border:                    #555555;
+  --color-border-light:              #333333;
+  --color-border-highlight:          #555555;
+  --color-search-highlight:          #777777;
+  --color-shadow:                    rgba(0, 0, 0, 0.7);
+  --color-shadow-light:              rgba(0, 0, 0, 0.5);
+  --color-shadow-medium:             rgba(0, 0, 0, 0.7);
+  --color-outline-focus:             #ffb700;
+  --color-focus-ring:                #ffb700;
+
+  /* Buttons */
+  --color-button-bg:                 var(--color-bg-alt);
+  --color-button-bg-hover:           #333333;
+  --color-button-bg-focus:           #444444;
+  --color-button-scroll:             rgba(205, 205, 205, 0.5);
+  --color-button-primary:            #cdcdcd;
+  --color-text-on-primary:           #cdcdcd;
+
+  /* Loading screen gradient */
+  --color-loading-gradient-start:    var(--color-bg);
+  --color-loading-gradient-end:      var(--color-bg-alt);
+
+  /* Spinner */
+  --color-spinner-border:            var(--color-muted);
+  --color-spinner-border-top:        var(--color-primary);
+
+  /* Dropdown & menus */
+  --color-dropdown-text:        var(--color-text);
+  --color-menu-item-text:       var(--color-text);
+  --color-dropdown-menu-bg:     var(--color-bg);
+  --color-dropdown-menu-hover:  rgba(0, 0, 0, 0.05);
+  --color-dropdown-menu-border: var(--color-dropdown-menu-border, 1px solid rgba(0,0,0,0.1));
+
+  --color-dropdown-bg:               #333333;
+  --color-dropdown-hover:            #555555;
+ 
+  --color-menu-hover:                var(--color-dropdown-hover);
+  --color-menu-item-hover:           #444444;
+
+  /* Overlays */
+  --color-overlay:                   rgba(0, 0, 0, 0.7);
+  --color-overlay-light:             rgba(0, 0, 0, 0.5);
+  --color-overlay-modal:             rgba(0, 0, 0, 0.4);
+
+  /* Scroll buttons */
+  --color-scroll-button-bg:          rgba(0, 0, 0, 0.5);
+}
+
 
 /* High‑contrast theme */
 [data-theme="contrast"] {
@@ -358,8 +417,13 @@ button {
 [data-theme="dark"] #canvasArea {
   background-color: #2c2c2c !important;
 }
+
 [data-theme="contrast"] #canvasArea {
   background-color: #000000 !important;
+}
+
+[data-theme="dark-contrast"] #canvasArea {
+  background-color: #090909 !important;
 }
 
 #menu {
@@ -450,6 +514,10 @@ button {
   fill: black !important;
 }
 
+[data-theme="dark-contrast"] .gizmo-button path {
+  fill: black !important;
+}
+
 #colorPickerButton svg {
   /* filter: invert(1) brightness(2); Make palette icon white */
   fill: #ffffff !important;
@@ -461,6 +529,10 @@ button {
 
 [data-theme="dark"] .icon path {
   fill: #bababa !important;
+}
+
+[data-theme="dark-contrast"] .icon path {
+  fill: #cdcdcd !important;
 }
 
 [data-theme="contrast"] .icon path {

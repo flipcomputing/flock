@@ -794,7 +794,8 @@ export default {
 
   theme_submenu_ui: "Theme",
   light_theme_ui: "Light",
-  dark_theme_ui: "Dark",
+  dark_theme_ui: "Dark 2",
+  dark_contrast_theme_ui: "Dark",
   contrast_theme_ui: "Contrast",
 
   run_code_button_ui: "Run your code",
