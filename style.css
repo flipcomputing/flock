@@ -443,6 +443,10 @@ button {
   fill: black !important;
 }
 
+[data-theme="contrast"] .gizmo-button path {
+  fill: black !important;
+}
+
 #colorPickerButton svg {
   /* filter: invert(1) brightness(2); Make palette icon white */
   fill: #ffffff !important;
