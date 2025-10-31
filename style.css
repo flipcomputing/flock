@@ -456,8 +456,12 @@ button {
   filter: none; /* light mode: normal */
 }
 
-[data-theme="dark"] .bigbutton svg {
-  filter: invert(30%) sepia(2%) saturate(0%) hue-rotate(180deg) brightness(96%) contrast(85%);
+[data-theme="dark"] .icon path {
+  fill: #bababa !important;
+}
+
+[data-theme="contrast"] .icon path {
+  fill: #000000 !important;
 }
 
 [data-theme="contrast"] .gizmo-button img {
