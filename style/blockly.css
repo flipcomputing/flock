@@ -99,6 +99,39 @@ textarea.blocklyCommentText.blocklyTextarea.blocklyText {
   fill: rgba(205, 205, 205, 0.5) !important;
 }
 
+[data-theme="contrast"] .blocklyMainWorkspaceScrollbar .blocklyScrollbarHandle {
+  fill: rgba(255, 255, 255, 0.5) !important;
+}
+
+body[data-theme="contrast"] {
+  .blocklyWidgetDiv .blocklyMenuItemContent {
+    color: black !important;
+  }
+  .blocklyField text.blocklyText.blocklyFieldText {
+    fill: black !important;
+  }
+  text.blocklyText.blocklyFieldText.blocklyDropdownText {
+    fill: white !important;
+  }
+  .blocklyMenuItemContent {
+    color: white !important;
+  }
+  .blocklyWidgetDiv .blocklyMenuItemContent {
+    color: black !important;
+  }
+  .blocklyToolboxCategoryLabel {
+    color: white !important;
+  }
+  .customToolboxIcon {
+    filter: invert(1);
+    /* Should be fine to use filters here as we are only
+    converting between black and white for toolbox icons */
+  }
+}
+
+textarea.blocklyCommentText.blocklyTextarea.blocklyText {
+  color: black;
+}
 /* Search Highlight Styles */
 .blockly-ws-search {
   background: var(--color-bg);
@@ -221,6 +254,14 @@ path.blocklyPath.blockly-ws-search-highlight.blockly-ws-search-current {
   color: #cdcdcd !important;
 }
 
+[data-theme="contrast"]
+.blocklyTrash,
+.blocklyZoomIn > image,
+.blocklyZoomOut > image {
+  opacity: 1 !important;
+  color: #ffffff !important;
+}
+
 .blocklyToolboxCategoryLabel {
   color: var(--color-text-label) !important;
 }
@@ -304,6 +345,10 @@ fill: var(--color-border-highlight);
 
 [data-theme="dark"] .blocklySvg {
   background-color: #2c2c2c !important;
+}
+
+[data-theme="contrast"] .blocklySvg {
+  background-color: #000000 !important;
 }
 
 /* Toolbox category selection outline */
@@ -403,6 +448,10 @@ body[data-theme="dark"] .blocklyTreeLabel {
   border-radius: 4px;
 }
 
+[data-theme="contrast"] .blocklyText {
+  fill: white !important;
+}
+
 [data-theme="dark-contrast"] .blocklyText {
   fill: white !important;
 }
@@ -425,6 +474,10 @@ body[data-theme="dark"] .blocklyTreeLabel {
 
   [data-theme="dark"] .blocklyToolbox {
     background: #232323 !important;
+  }
+
+  [data-theme="contrast"] .blocklyToolbox {
+    background: #1f1f1f !important;
   }
   
   .blocklyToolboxCategoryGroup {

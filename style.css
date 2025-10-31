@@ -180,7 +180,7 @@
   --color-primary-dark: #004d4d;
 
   /* Background Colors */
-  --color-bg: #ffffff;
+  --color-bg: #000000;
   --color-text: #ffffff;
   --color-bg-secondary: #f8f9fa;
   --color-bg-overlay: rgba(0, 0, 0, 0.4);
@@ -191,15 +191,15 @@
   --color-bg-glass-focused: rgba(255, 255, 255, 0.9);
 
   /* Button Colors */
-  --color-button-bg: #e0e0e0;
+  --color-button-bg: #ffffff;
   --color-button-bg-hover: #d0d0d0;
-  --color-button-primary: #004d4d;
+  --color-button-primary: #ffffff;
   --color-button-scroll: rgba(0, 0, 0, 0.5);
 
   /* Text Colors */
-  --color-text-primary: #000000;
+  --color-text-primary: #ffffff;
   --color-text-on-primary: #ffffff;
-  --color-text-brand: #511D91;
+  --color-text-brand: #ffffff;
   --color-text-loading: #511D91;
 
   /* Border Colors */
@@ -217,7 +217,7 @@
 
   /* Menu Colors */
   --color-menu-hover: #f0f0f0;
-  --color-menu-item: #511D91;
+  --color-menu-item: #ffffff;
   --color-menu:  #f9f9f9;
   --color-button-bg:  #f0f0f0;
 
@@ -232,6 +232,9 @@
   margin-right: 10px;
 } 
 
+[data-theme="contrast"] #exampleSelect {
+  color: #000000 !important;
+}
 
 /* Loading Screen Styles */
 .loading-screen {
@@ -414,6 +417,11 @@ button {
 [data-theme="dark"] #canvasArea {
   background-color: #2c2c2c !important;
 }
+
+[data-theme="contrast"] #canvasArea {
+  background-color: #000000 !important;
+}
+
 [data-theme="dark-contrast"] #canvasArea {
   background-color: #090909 !important;
 }
@@ -502,6 +510,10 @@ button {
   fill: black !important;
 }
 
+[data-theme="contrast"] .gizmo-button path {
+  fill: black !important;
+}
+
 [data-theme="dark-contrast"] .gizmo-button path {
   fill: black !important;
 }
@@ -523,6 +535,17 @@ button {
   fill: #cdcdcd !important;
 }
 
+[data-theme="contrast"] .icon path {
+  fill: #000000 !important;
+}
+
+[data-theme="contrast"] .gizmo-button img {
+  color: #ffffff !important;
+}
+
+[data-theme="contrast"] .bigbutton svg {
+  color: #ffffff !important;
+}
 
 /* Shape Menu */
 #shape-menu {
