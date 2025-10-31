@@ -121,7 +121,7 @@
   --color-primary-dark: #004d4d;
 
   /* Background Colors */
-  --color-bg: #ffffff;
+  --color-bg: #000000;
   --color-text: #ffffff;
   --color-bg-secondary: #f8f9fa;
   --color-bg-overlay: rgba(0, 0, 0, 0.4);
@@ -134,13 +134,13 @@
   /* Button Colors */
   --color-button-bg: #ffffff;
   --color-button-bg-hover: #d0d0d0;
-  --color-button-primary: #004d4d;
+  --color-button-primary: #ffffff;
   --color-button-scroll: rgba(0, 0, 0, 0.5);
 
   /* Text Colors */
   --color-text-primary: #ffffff;
   --color-text-on-primary: #ffffff;
-  --color-text-brand: #511D91;
+  --color-text-brand: #ffffff;
   --color-text-loading: #511D91;
 
   /* Border Colors */
