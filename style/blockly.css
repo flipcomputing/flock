@@ -206,6 +206,10 @@ fill: var(--color-border-highlight);
   background-color: #ebebeb !important;
 }
 
+[data-theme="dark"] .blocklySvg {
+  background-color: #2c2c2c !important;
+}
+
 /* Toolbox category selection outline */
 .blocklyToolboxCategoryContainer[aria-selected="true"][aria-level="1"] > .blocklyToolboxCategory,
 .blocklyToolboxCategoryContainer[aria-selected="true"][aria-level="2"] > .blocklyToolboxCategory {
@@ -303,6 +307,10 @@ body[data-theme="dark"] .blocklyTreeLabel {
 
   .blocklyToolbox {
     background: #F3F3F3 !important;
+    min-width: 130px;
+  }
+  [data-theme="dark"] .blocklyToolbox {
+    background: #232323 !important;
   }
   .blocklyToolboxCategoryGroup {
     background-color: #D3D3D3 !important;
@@ -313,8 +321,8 @@ body[data-theme="dark"] .blocklyTreeLabel {
     display: flex !important;
     align-items: center !important;   /* <-- centers within the full row */
     min-height: 26px !important;      /* pick your row height */
-    padding-top: 0 !important;
-    padding-bottom: 0 !important;
+    padding-top: 1.25px !important;
+    padding-bottom: 1.25px !important;
     padding-left: 8px !important;
   }
 

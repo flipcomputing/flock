@@ -886,6 +886,8 @@ function updateCylinderGeometry(
 function replaceMeshModel(currentMesh, block) {
   if (!currentMesh || !block) return;
 
+  const animationInfo = flock.getCurrentAnimationInfo(currentMesh);
+
   const modelName = block.getFieldValue("MODELS");
   if (!modelName) return;
 
@@ -922,12 +924,18 @@ function replaceMeshModel(currentMesh, block) {
     if (!node || node.isDisposed?.()) return;
     const kids = node.getChildren ? node.getChildren() : [];
     for (const k of kids) disposeTree(k);
-    try { node.setParent?.(null); } catch {}
-    try { node.dispose?.(); } catch {}
+    try {
+      node.setParent?.(null);
+    } catch {}
+    try {
+      node.dispose?.();
+    } catch {}
   }
 
   function disposePhysics(node) {
-    try { node.physics?.dispose?.(); } catch {}
+    try {
+      node.physics?.dispose?.();
+    } catch {}
   }
 
   function stripPhysicsTree(root) {
@@ -945,15 +953,17 @@ function replaceMeshModel(currentMesh, block) {
 
   function _colToHex(c) {
     if (!c) return null;
-    const r = Math.round(c.r * 255), g = Math.round(c.g * 255), b = Math.round(c.b * 255);
+    const r = Math.round(c.r * 255),
+      g = Math.round(c.g * 255),
+      b = Math.round(c.b * 255);
     return flock.rgbToHex(r, g, b);
   }
 
   function _matPrimaryColor(mat) {
     if (!mat) return null;
-    return (mat.diffuseColor !== undefined && mat.diffuseColor)
+    return mat.diffuseColor !== undefined && mat.diffuseColor
       ? mat.diffuseColor
-      : (mat.albedoColor !== undefined && mat.albedoColor)
+      : mat.albedoColor !== undefined && mat.albedoColor
         ? mat.albedoColor
         : null;
   }
@@ -964,7 +974,9 @@ function replaceMeshModel(currentMesh, block) {
       const cls = node?.getClassName?.();
       const nm = node?.name;
       const metaIdx = node?.metadata?.materialIndex;
-      console.log(`${label} - ${indent}${nm} [${cls}] meta.materialIndex=${metaIdx}`);
+      console.log(
+        `${label} - ${indent}${nm} [${cls}] meta.materialIndex=${metaIdx}`,
+      );
 
       let mat = node?.material;
       let matOwner = "self";
@@ -977,35 +989,51 @@ function replaceMeshModel(currentMesh, block) {
         console.log(`${label}   ${indent}material: none`);
       } else {
         const mCls = mat.getClassName?.();
-        console.log(`${label}   ${indent}material(${matOwner}): ${mat.name || "(unnamed)"} [${mCls}]`);
+        console.log(
+          `${label}   ${indent}material(${matOwner}): ${mat.name || "(unnamed)"} [${mCls}]`,
+        );
         if (mCls === "MultiMaterial") {
           const subs = mat.subMaterials || [];
           const subMeshes = node.subMeshes || [];
-          console.log(`${label}   ${indent}subMaterials: ${subs.length} | subMeshes: ${subMeshes.length}`);
+          console.log(
+            `${label}   ${indent}subMaterials: ${subs.length} | subMeshes: ${subMeshes.length}`,
+          );
           for (let i = 0; i < subs.length; i++) {
             const sm = subs[i];
             const c = _matPrimaryColor(sm);
-            console.log(`${label}   ${indent}[${i}] ${sm?.name || "(unnamed)"} color=${_colToHex(c)}`);
+            console.log(
+              `${label}   ${indent}[${i}] ${sm?.name || "(unnamed)"} color=${_colToHex(c)}`,
+            );
           }
           for (let i = 0; i < subMeshes.length; i++) {
             const s = subMeshes[i];
             const idx = s.materialIndex;
             const sm = (mat.subMaterials || [])[idx] || null;
             const c = _matPrimaryColor(sm);
-            console.log(`${label}   ${indent}subMesh#${i} -> subMat#${idx} (${sm?.name || "?"}) color=${_colToHex(c)}`);
+            console.log(
+              `${label}   ${indent}subMesh#${i} -> subMat#${idx} (${sm?.name || "?"}) color=${_colToHex(c)}`,
+            );
           }
         } else {
           const c = _matPrimaryColor(mat);
           const hasDiff = mat.diffuseColor !== undefined;
           const hasAlb = mat.albedoColor !== undefined;
-          console.log(`${label}   ${indent}color=${_colToHex(c)} diffuse?=${hasDiff} albedo?=${hasAlb}`);
+          console.log(
+            `${label}   ${indent}color=${_colToHex(c)} diffuse?=${hasDiff} albedo?=${hasAlb}`,
+          );
         }
       }
 
-      const kids = node.getChildMeshes?.().sort((a, b) => a.name.localeCompare(b.name)) || [];
+      const kids =
+        node.getChildMeshes?.().sort((a, b) => a.name.localeCompare(b.name)) ||
+        [];
       for (const k of kids) printNode(k, depth + 1);
     }
-    try { printNode(root, 0); } catch (e) { console.warn(label, "print error", e); }
+    try {
+      printNode(root, 0);
+    } catch (e) {
+      console.warn(label, "print error", e);
+    }
   }
 
   function extractColorsForChangeOrder(root) {
@@ -1035,7 +1063,9 @@ function replaceMeshModel(currentMesh, block) {
         }
         materialToIndex.set(mat, colors.length - 1);
       }
-      const kids = part.getChildMeshes?.().sort((a, b) => a.name.localeCompare(b.name)) || [];
+      const kids =
+        part.getChildMeshes?.().sort((a, b) => a.name.localeCompare(b.name)) ||
+        [];
       for (const k of kids) visit(k);
     }
 
@@ -1096,7 +1126,10 @@ function replaceMeshModel(currentMesh, block) {
         for (let i = 0; i < subMeshes.length; i++) {
           const idx = subMeshes[i].materialIndex;
           const sm = subMats[idx] || null;
-          const part = partFromName(sm?.name) || partFromName(n.name) || partFromName(mat.name);
+          const part =
+            partFromName(sm?.name) ||
+            partFromName(n.name) ||
+            partFromName(mat.name);
           const color = sm?.albedoColor || sm?.diffuseColor || null;
           const hex = _colToHex(color);
           if (part && hex && !found[part]) found[part] = hex;
@@ -1116,8 +1149,12 @@ function replaceMeshModel(currentMesh, block) {
   }
 
   // ---------- capture original children and debug ----------
-  const originalDirectChildren = (currentMesh.getChildren ? currentMesh.getChildren() : []).slice();
-  const oldFirstChild = originalDirectChildren.length ? originalDirectChildren[0] : null;
+  const originalDirectChildren = (
+    currentMesh.getChildren ? currentMesh.getChildren() : []
+  ).slice();
+  const oldFirstChild = originalDirectChildren.length
+    ? originalDirectChildren[0]
+    : null;
   const oldChildScale = oldFirstChild?.scaling?.clone?.() || null;
   //const originalNames = originalDirectChildren.map(n => n?.name);
   //console.log("[replaceMeshModel] Snapshot direct children:", originalNames);
@@ -1131,7 +1168,7 @@ function replaceMeshModel(currentMesh, block) {
 
   // ---------- create temp new mesh ----------
   const tempId = `${modelName}__temp__${Date.now()}`;
-  const isCharacter = (block.type === "load_character");
+  const isCharacter = block.type === "load_character";
   let createArgs;
 
   if (isCharacter) {
@@ -1147,10 +1184,9 @@ function replaceMeshModel(currentMesh, block) {
   }
 
   //console.log("[replaceMeshModel] create() args:", createArgs);
-  const newMeshName =
-    isCharacter
-      ? flock.createCharacter(createArgs)
-      : flock.createObject(createArgs);
+  const newMeshName = isCharacter
+    ? flock.createCharacter(createArgs)
+    : flock.createObject(createArgs);
 
   flock.whenModelReady(newMeshName, (loadedMesh) => {
     if (!loadedMesh) return;
@@ -1181,15 +1217,26 @@ function replaceMeshModel(currentMesh, block) {
     stripPhysicsTree(loadedMesh);
 
     // Detach new child from its loader wrapper
-    try { newChild.setParent?.(null, true); } catch {}
+    try {
+      newChild.setParent?.(null, true);
+    } catch {}
 
     // Remove ONLY the original direct children
     const removed = [];
     const skipped = [];
     for (const child of originalDirectChildren) {
-      if (!child || child.isDisposed?.()) { skipped.push({ name: child?.name, reason: "already disposed" }); continue; }
-      if (child === currentMesh) { skipped.push({ name: child.name, reason: "is parent" }); continue; }
-      if (child.parent !== currentMesh) { skipped.push({ name: child.name, reason: "no longer direct child" }); continue; }
+      if (!child || child.isDisposed?.()) {
+        skipped.push({ name: child?.name, reason: "already disposed" });
+        continue;
+      }
+      if (child === currentMesh) {
+        skipped.push({ name: child.name, reason: "is parent" });
+        continue;
+      }
+      if (child.parent !== currentMesh) {
+        skipped.push({ name: child.name, reason: "no longer direct child" });
+        continue;
+      }
       stripPhysicsTree(child);
       disposeTree(child);
       removed.push(child.name);
@@ -1202,7 +1249,9 @@ function replaceMeshModel(currentMesh, block) {
 
     // Apply old first child's local scale (if any) to the new child
     if (oldChildScale && newChild.scaling) {
-      try { newChild.scaling.copyFrom(oldChildScale); } catch {}
+      try {
+        newChild.scaling.copyFrom(oldChildScale);
+      } catch {}
       try {
         newChild.computeWorldMatrix(true);
         newChild.refreshBoundingInfo?.();
@@ -1218,7 +1267,9 @@ function replaceMeshModel(currentMesh, block) {
         if (isFinite(newBaseY)) {
           const dy = oldBaseY - newBaseY;
           const abs = newChild.getAbsolutePosition();
-          newChild.setAbsolutePosition(new flock.BABYLON.Vector3(abs.x, abs.y + dy, abs.z));
+          newChild.setAbsolutePosition(
+            new flock.BABYLON.Vector3(abs.x, abs.y + dy, abs.z),
+          );
         }
       } catch {}
     }
@@ -1232,27 +1283,46 @@ function replaceMeshModel(currentMesh, block) {
         if (isFinite(newBaseY)) {
           const dy = oldBaseY - newBaseY;
           const abs = newChild.getAbsolutePosition();
-          newChild.setAbsolutePosition(new flock.BABYLON.Vector3(abs.x, abs.y + dy, abs.z));
+          newChild.setAbsolutePosition(
+            new flock.BABYLON.Vector3(abs.x, abs.y + dy, abs.z),
+          );
         }
       } catch {}
     }
 
     // Apply colours
     if (isCharacter) {
-      const palette = (currentMesh.metadata && currentMesh.metadata.colors) || null;
+      const palette =
+        (currentMesh.metadata && currentMesh.metadata.colors) || null;
       if (palette && Object.keys(palette).length) {
-        try { flock.applyColorsToCharacter(currentMesh, palette); } catch {}
+        try {
+          flock.applyColorsToCharacter(currentMesh, palette);
+        } catch {}
       }
     } else if (nonCharacterColors && nonCharacterColors.length) {
-      try { flock.changeColorMesh(newChild, nonCharacterColors); } catch (e) {
+      try {
+        flock.changeColorMesh(newChild, nonCharacterColors);
+      } catch (e) {
         console.warn("changeColorMesh failed", e);
       }
     }
 
     // Dispose loader wrapper if distinct (physics already stripped)
     if (loadedMesh !== newChild && !loadedMesh.isDisposed?.()) {
-      try { loadedMesh.setParent?.(null); } catch {}
-      try { loadedMesh.dispose?.(); } catch {}
+      try {
+        loadedMesh.setParent?.(null);
+      } catch {}
+      try {
+        loadedMesh.dispose?.();
+      } catch {}
+    }
+
+    if (animationInfo?.name) {
+      flock.switchAnimation(loadedMesh.name, {
+        animationName: animationInfo.name,
+        restart: true,
+        loop: animationInfo.isLooping ?? true, // defaults to true if undefined
+      });
     }
 
     /*const childNames = (currentMesh.getChildren ? currentMesh.getChildren() : []).map(n => n.name);
@@ -1261,7 +1331,7 @@ function replaceMeshModel(currentMesh, block) {
 }
 
 export function updateBlockColorAndHighlight(mesh, selectedColor) {
-  // ---------- helpers ----------
+  // ---------- helpers
   const withUndoGroup = (fn) => {
     try {
       Blockly.Events.setGroup(true);

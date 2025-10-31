@@ -1068,7 +1068,7 @@ export const flockAnimate = {
       } else if (animationName === "Fall") {
         desiredShapeType = "horizontal-fall";
       } else if (animationName === "Sitting" || animationName === "Sit_Down") {
-        console.log("Sitting animation detected");
+        //console.log("Sitting animation detected");
         desiredShapeType = "sitting";
       }
 
@@ -1803,6 +1803,31 @@ export const flockAnimate = {
 
     return mesh.metadata.currentAnimationName || null;
   },
+  getCurrentAnimationInfo(meshOrGroup) {
+    // Find mesh with skeleton
+    const findMeshWithSkeleton = (rootMesh) => {
+      if (rootMesh?.skeleton) return rootMesh;
+      if (rootMesh?.getChildMeshes) {
+        for (const child of rootMesh.getChildMeshes()) {
+          if (child.skeleton) return child;
+        }
+      }
+      return null;
+    };
+
+    const mesh = findMeshWithSkeleton(meshOrGroup);
+    if (!mesh || !mesh.metadata) return null;
+
+    const scene = mesh.getScene?.();
+    const animName = mesh.metadata.currentAnimationName || null;
+    if (!animName || !scene) return { name: null, isLooping: false };
+
+    // Try to find a Babylon AnimationGroup that matches
+    const group = scene.animationGroups.find(g => g.name === animName);
+    const isLooping = group ? !!group.loopAnimation : false;
+
+    return { name: animName, isLooping };
+  },
   async switchToAnimationLoad(
     scene,
     meshOrGroup,
@@ -1945,7 +1970,7 @@ export const flockAnimate = {
       } else if (animationName === "Fall") {
         desiredShapeType = "horizontal-fall";
       } else if (animationName === "Sitting" || animationName === "Sit_Down") {
-        console.log("Sitting animation detected");
+        //console.log("Sitting animation detected");
         desiredShapeType = "sitting";
       }
 

@@ -1,6 +1,7 @@
 import * as Blockly from "blockly";
 import { importSnippet } from "./files.js";
 import { getSnippetOption } from "./translation.js";
+import w500 from "@fontsource/atkinson-hyperlegible-next/files/atkinson-hyperlegible-next-latin-500-normal.woff2";
 
 async function exportBlockSnippet(block) {
 	try {
@@ -189,6 +190,34 @@ async function convertFontToBase64(fontUrl) {
 
 async function generateSVG(block) {
 	const svgBlock = block.getSvgRoot().cloneNode(true);
+
+	// A) Only neutralise overlays that are safe to blank
+	svgBlock.querySelectorAll(
+	  '.blocklyPath.blocklyPathSelected, .blocklyHighlightedConnectionPath'
+	).forEach(el => {
+	  el.setAttribute('fill', 'none');           // prevent covering text
+	  if (!el.getAttribute('stroke')) el.setAttribute('stroke', '#999'); // optional thin outline
+	  el.setAttribute('stroke-width', '1');
+	});
+
+	// B) Do NOT change fills on .blocklyActiveFocus (base path can have it).
+	// If you want to remove the class (purely cosmetic), do this:
+	svgBlock.querySelectorAll('.blocklyActiveFocus').forEach(el => {
+	  el.classList.remove('blocklyActiveFocus');
+	});
+
+	// C) Safety net: in each block group, keep only the FIRST path filled
+	svgBlock.querySelectorAll('g.blocklyBlock, g.start').forEach(g => {
+	  const paths = g.querySelectorAll(':scope > path.blocklyPath');
+	  paths.forEach((p, i) => {
+		if (i > 0) {                          // later paths are overlays
+		  p.setAttribute('fill', 'none');
+		  if (!p.getAttribute('stroke')) p.setAttribute('stroke', '#999');
+		  p.setAttribute('stroke-width', '1');
+		}
+	  });
+	});
+
 	const serializer = new XMLSerializer();
 
 	svgBlock.removeAttribute("transform");
@@ -247,10 +276,10 @@ async function generateSVG(block) {
 	uiTexts.forEach((textElement) => {
 		textElement.setAttribute("style", "fill: #000000 !important;");
 		textElement.setAttribute("stroke", "none");
-		textElement.setAttribute("font-weight", "600");
+		textElement.setAttribute("font-weight", "500");
 	});
 
-	const fontBase64 = await convertFontToBase64("./fonts/Asap-Medium.woff2");
+	const fontBase64 = await convertFontToBase64(w500);
 
 	const style = document.createElementNS(
 		"http://www.w3.org/2000/svg",
@@ -258,11 +287,11 @@ async function generateSVG(block) {
 	);
 	style.textContent = `
 	@font-face {
-	  font-family: "Atkinson Hyperlegible Next", "Asap";
+	  font-family: "Atkinson Hyperlegible Next";
 	  src: url('data:font/woff2;base64,${fontBase64}') format('woff2');
 	}
 	.blocklyText {
-	  font-family: "Atkinson Hyperlegible Next", "Asap", sans-serif;
+	  font-family: "Atkinson Hyperlegible Next", sans-serif;
 	  font-weight: 500;
 	}
 	.blocklyEditableText rect.blocklyFieldRect:not(.blocklyDropdownRect) {
@@ -306,6 +335,7 @@ async function generateSVG(block) {
 
 	const svgString = serializer.serializeToString(wrapperSVG);
 	const svgDeclaration = '<?xml version="1.0" encoding="UTF-8"?>';
+
 	const finalSVG = `${svgDeclaration}${svgString}`;
 
 	return finalSVG;
