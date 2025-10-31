@@ -83,6 +83,18 @@ body[data-theme="dark-contrast"] {
   border-left: none !important;
 }
 
+.blocklyMainWorkspaceScrollbar .blocklyScrollbarHandle {
+  fill: rgba(76, 76, 76, 0.5) !important;
+}
+
+[data-theme="dark"] .blocklyMainWorkspaceScrollbar .blocklyScrollbarHandle {
+  fill: rgba(186, 186, 186, 0.5) !important;
+}
+
+[data-theme="dark-contrast"] .blocklyMainWorkspaceScrollbar .blocklyScrollbarHandle {
+  fill: rgba(205, 205, 205, 0.5) !important;
+}
+
 /* Search Highlight Styles */
 .blockly-ws-search {
   background: var(--color-bg);
