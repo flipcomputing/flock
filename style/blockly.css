@@ -54,6 +54,9 @@ body[data-theme="dark-contrast"] {
   text.blocklyText.blocklyFieldText.blocklyDropdownText {
     fill: white !important; 
   }
+  .blocklyMenuItemContent {
+    color: white !important;
+  }
 }
 
 .blocklyTreeRow {
