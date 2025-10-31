@@ -137,10 +137,9 @@
   --color-button-bg:                 var(--color-bg-alt);
   --color-button-bg-hover:           #333333;
   --color-button-bg-focus:           #444444;
-  --color-button-scroll:             #cdcdcd;
-  --color-button-primary:              #cdcdcd;
-  
-  --color-text-on-primary:  #444444;
+  --color-button-scroll:             rgba(205, 205, 205, 0.5);
+  --color-button-primary:            #cdcdcd;
+  --color-text-on-primary:           #cdcdcd;
 
   /* Loading screen gradient */
   --color-loading-gradient-start:    var(--color-bg);
