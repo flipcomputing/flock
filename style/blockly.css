@@ -35,6 +35,18 @@ text.blocklyText.blocklyFieldText.blocklyDropdownText {
   border-left: none !important;
 }
 
+.blocklyMainWorkspaceScrollbar .blocklyScrollbarHandle {
+  fill: rgba(76, 76, 76, 0.5) !important;
+}
+
+[data-theme="dark"] .blocklyMainWorkspaceScrollbar .blocklyScrollbarHandle {
+  fill: rgba(186, 186, 186, 0.5) !important;
+}
+
+[data-theme="contrast"] .blocklyMainWorkspaceScrollbar .blocklyScrollbarHandle {
+  fill: rgba(255, 255, 255, 0.5) !important;
+}
+
 body[data-theme="contrast"] {
   .blocklyWidgetDiv .blocklyMenuItemContent {
     color: black !important;
