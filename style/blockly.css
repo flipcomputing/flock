@@ -57,6 +57,9 @@ body[data-theme="dark"] {
 }
 
 body[data-theme="dark-contrast"] {
+  .blocklyField text.blocklyText.blocklyFieldText {
+    fill: black !important;
+  }
   text.blocklyText.blocklyFieldText.blocklyDropdownText {
     fill: white !important; 
   }
