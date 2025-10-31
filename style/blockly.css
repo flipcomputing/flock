@@ -57,6 +57,9 @@ body[data-theme="dark-contrast"] {
   .blocklyMenuItemContent {
     color: white !important;
   }
+  .blocklyWidgetDiv .blocklyMenuItemContent {
+    color: black !important;
+  }
   .blocklyToolboxCategoryLabel {
     color: white !important;
   }
