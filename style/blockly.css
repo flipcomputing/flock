@@ -79,6 +79,10 @@ body[data-theme="dark-contrast"] {
   }
 }
 
+textarea.blocklyCommentText.blocklyTextarea.blocklyText {
+  color: black;
+}
+
 .blocklyTreeRow {
   border-left: none !important;
 }
