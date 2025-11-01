@@ -19,37 +19,59 @@ export const flockScene = {
         { segments: 32, diameter: 1000 },
         flock.scene,
       );
-
       flock.sky = skySphere;
       color.diffuseTexture.uScale = 10.0;
       color.diffuseTexture.vScale = 10.0;
       skySphere.material = color;
       skySphere.isPickable = false; // Make non-interactive
-    } else if (Array.isArray(color) && color.length === 2) {
-      // Handle gradient case
+    } else if (Array.isArray(color) && color.length >= 2) {
+      // Handle gradient case (2 or more colors)
       const skySphere = flock.BABYLON.MeshBuilder.CreateSphere(
         "sky",
         { segments: 32, diameter: 1000 },
         flock.scene,
       );
       flock.sky = skySphere;
-      const gradientMaterial = new flock.GradientMaterial(
-        "skyGradient",
-        flock.scene,
-      );
 
-      gradientMaterial.bottomColor = flock.BABYLON.Color3.FromHexString(
-        flock.getColorFromString(color[0]),
-      );
-      gradientMaterial.topColor = flock.BABYLON.Color3.FromHexString(
-        flock.getColorFromString(color[1]),
-      );
-      gradientMaterial.offset = 0.8; // Push the gradient midpoint towards the top
-      gradientMaterial.smoothness = 0.5; // Sharper gradient transition
-      gradientMaterial.scale = 0.01;
-      gradientMaterial.backFaceCulling = false; // Render on the inside of the sphere
+      if (color.length === 2) {
+        // Two-color gradient using GradientMaterial
+        const gradientMaterial = new flock.GradientMaterial(
+          "skyGradient",
+          flock.scene,
+        );
+        gradientMaterial.bottomColor = flock.BABYLON.Color3.FromHexString(
+          flock.getColorFromString(color[0]),
+        );
+        gradientMaterial.topColor = flock.BABYLON.Color3.FromHexString(
+          flock.getColorFromString(color[1]),
+        );
+        gradientMaterial.offset = 0.8; // Push the gradient midpoint towards the top
+        gradientMaterial.smoothness = 0.5; // Sharper gradient transition
+        gradientMaterial.scale = 0.01;
+        gradientMaterial.backFaceCulling = false; // Render on the inside of the sphere
+        skySphere.material = gradientMaterial;
+      } else {
+        // Multi-color gradient using shader (3+ colors)
+        const gradientMaterial = flock.createMultiColorGradientMaterial(
+          "skyGradient",
+          color,
+        );
 
-      skySphere.material = gradientMaterial;
+        // Get sphere bounds and set them
+        const boundingInfo = skySphere.getBoundingInfo();
+        const minY = boundingInfo.minimum.y;
+        const maxY = boundingInfo.maximum.y;
+
+        if (flock.materialsDebug) {
+          console.log(`Sky gradient bounds - minY: ${minY}, maxY: ${maxY}`);
+        }
+
+        gradientMaterial.setVector2("minMax", new flock.BABYLON.Vector2(minY, maxY));
+        gradientMaterial.backFaceCulling = false; // Render on the inside of the sphere
+
+        skySphere.material = gradientMaterial;
+      }
+
       skySphere.isPickable = false; // Make non-interactive
     } else {
       // Handle single color case
