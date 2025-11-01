@@ -279,7 +279,7 @@ const toolboxSceneMeshes = {
                                         shadow: {
                                                 type: "colour",
                                                 fields: {
-                                                        COLOR: "#9932CC",
+                                                        COLOR: "#6666cc",
                                                 },
                                         },
                                 },
@@ -342,7 +342,7 @@ const toolboxSceneMeshes = {
                                         shadow: {
                                                 type: "colour",
                                                 fields: {
-                                                        COLOR: "#9932CC",
+                                                        COLOR: "#ff6666",
                                                 },
                                         },
                                 },
@@ -405,7 +405,7 @@ const toolboxSceneMeshes = {
                                         shadow: {
                                                 type: "colour",
                                                 fields: {
-                                                        COLOR: "#9932CC",
+                                                        COLOR: "#ffcc00",
                                                 },
                                         },
                                 },
@@ -477,7 +477,7 @@ const toolboxSceneMeshes = {
                                         shadow: {
                                                 type: "colour",
                                                 fields: {
-                                                        COLOR: "#9932CC",
+                                                        COLOR: "#339999",
                                                 },
                                         },
                                 },
@@ -532,7 +532,7 @@ const toolboxSceneMeshes = {
                                         shadow: {
                                                 type: "colour",
                                                 fields: {
-                                                        COLOR: "#9932CC",
+                                                        COLOR: "#cc33cc",
                                                 },
                                         },
                                 },
