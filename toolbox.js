@@ -858,7 +858,7 @@ const toolboxScene = {
                                 },
                         },
                 },
-                {
+                /*{
                         kind: "block",
                         type: "create_ground",
                         keyword: "ground",
@@ -872,7 +872,7 @@ const toolboxScene = {
                                         },
                                 },
                         },
-                },
+                },*/
                 {
                         kind: "block",
                         type: "set_background_color",
