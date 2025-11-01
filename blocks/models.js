@@ -181,7 +181,7 @@ export function defineModelBlocks() {
 					{
 						type: "input_value",
 						name: "COLOR",
-						check: "Colour",
+						check:  ["Colour", "Array"],
 					},
 					{
 						type: "input_value",
