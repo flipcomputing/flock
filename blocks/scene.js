@@ -76,7 +76,7 @@ export function defineSceneBlocks() {
 						type: "input_value",
 						name: "COLOR",
 						colour: "#71BC78",
-						check: "Colour",
+						check: ["Colour", "Array", "Material"],
 					},
 				],
 				inputsInline: true,

@@ -66,7 +66,10 @@ export const flockScene = {
           console.log(`Sky gradient bounds - minY: ${minY}, maxY: ${maxY}`);
         }
 
-        gradientMaterial.setVector2("minMax", new flock.BABYLON.Vector2(minY, maxY));
+        gradientMaterial.setVector2(
+          "minMax",
+          new flock.BABYLON.Vector2(minY, maxY),
+        );
         gradientMaterial.backFaceCulling = false; // Render on the inside of the sphere
 
         skySphere.material = gradientMaterial;
@@ -80,16 +83,67 @@ export const flockScene = {
       );
     }
   },
-  createGround(color, modelId) {
+  createLinearGradientTexture(
+    colors,
+    opts = {},
+  ) {
+    const size = opts.size || 512; // texture width
+    const horizontal = !!opts.horizontal; // false => vertical along V, true => along U
+
+    const dt = new flock.BABYLON.DynamicTexture(
+      "groundGradientDT",
+      { width: horizontal ? size : 1, height: horizontal ? 1 : size },
+      flock.scene,
+      false,
+    );
+    const ctx = dt.getContext();
+    const w = dt.getSize().width;
+    const h = dt.getSize().height;
+
+    // Build canvas gradient
+    const grad = horizontal
+      ? ctx.createLinearGradient(0, 0, w, 0)
+      : ctx.createLinearGradient(0, 0, 0, h);
+    const n = Math.max(2, colors.length);
+    for (let i = 0; i < n; i++) {
+      const stop = i / (n - 1);
+      const hex = flock.getColorFromString(colors[i]);
+      const c3 = flock.BABYLON.Color3.FromHexString(hex);
+      const rgb = `rgb(${Math.round(c3.r * 255)}, ${Math.round(c3.g * 255)}, ${Math.round(c3.b * 255)})`;
+      grad.addColorStop(stop, rgb);
+    }
+
+    // Paint
+    if (horizontal) {
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, w, 1);
+    } else {
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, 1, h);
+    }
+    dt.update(false);
+
+    // Configure addressing for clean edges
+    const tex = new flock.BABYLON.Texture(null, flock.scene);
+    tex._texture = dt.getInternalTexture(); // bind underlying texture
+    tex.wrapU = flock.BABYLON.Texture.CLAMP_ADDRESSMODE;
+    tex.wrapV = flock.BABYLON.Texture.CLAMP_ADDRESSMODE;
+    return dt; // return DynamicTexture; consumers can also use dt
+  },
+  createGround(colorOrMaterial, modelId, opts = {}) {
+
+    const tile = typeof opts.tile === "number" ? opts.tile : 10;
+
     if (flock.ground) {
       flock.disposeMesh(flock.ground);
     }
+
     const ground = flock.BABYLON.MeshBuilder.CreateGround(
       modelId,
       { width: 100, height: 100, subdivisions: 2 },
       flock.scene,
     );
-    const blockId = modelId;
+
     const groundAggregate = new flock.BABYLON.PhysicsAggregate(
       ground,
       flock.BABYLON.PhysicsShapeType.BOX,
@@ -99,18 +153,62 @@ export const flockScene = {
 
     ground.name = modelId;
     ground.metadata = ground.metadata || {};
-    ground.metadata.blockKey = blockId;
+    ground.metadata.blockKey = modelId;
     ground.receiveShadows = true;
-    const groundMaterial = new flock.BABYLON.StandardMaterial(
-      "groundMaterial",
-      flock.scene,
-    );
     ground.physics = groundAggregate;
 
-    groundMaterial.diffuseColor = flock.BABYLON.Color3.FromHexString(
-      flock.getColorFromString(color),
-    );
-    ground.material = groundMaterial;
+    // Helper to apply tiling consistently (diffuse/albedo/base)
+    const applyTilingIfAnyTexture = (mat, repeat = tile) => {
+      const tex =
+        mat?.diffuseTexture || mat?.albedoTexture || mat?.baseTexture || null;
+      if (
+        tex &&
+        typeof tex.uScale === "number" &&
+        typeof tex.vScale === "number"
+      ) {
+        tex.uScale = repeat;
+        tex.vScale = repeat;
+      }
+    };
+
+    if (colorOrMaterial && colorOrMaterial instanceof flock.BABYLON.Material) {
+      // Case 1: Material passed in
+      ground.material = colorOrMaterial;
+      applyTilingIfAnyTexture(ground.material); // <<< match sky (default 10)
+    } else if (Array.isArray(colorOrMaterial) && colorOrMaterial.length >= 2) {
+      // Case 2: Multi-colour gradient (no tiling needed for a 1×N gradient)
+      const mat = new flock.BABYLON.StandardMaterial(
+        "groundGradientMat",
+        flock.scene,
+      );
+      const dt = flock.createLinearGradientTexture(colorOrMaterial, {
+        size: 1024,
+        horizontal: false,
+      });
+      mat.diffuseTexture = dt;
+      mat.specularColor = new flock.BABYLON.Color3(0, 0, 0);
+      mat.backFaceCulling = true;
+
+      // Clamp so the gradient spans the plane once
+      mat.diffuseTexture.wrapU = flock.BABYLON.Texture.CLAMP_ADDRESSMODE;
+      mat.diffuseTexture.wrapV = flock.BABYLON.Texture.CLAMP_ADDRESSMODE;
+      mat.diffuseTexture.uScale = 1;
+      mat.diffuseTexture.vScale = 1;
+
+      ground.material = mat;
+    } else {
+      // Case 3: Single colour
+      const mat = new flock.BABYLON.StandardMaterial(
+        "groundMaterial",
+        flock.scene,
+      );
+      mat.diffuseColor = flock.BABYLON.Color3.FromHexString(
+        flock.getColorFromString(colorOrMaterial),
+      );
+      mat.specularColor = new flock.BABYLON.Color3(0, 0, 0);
+      ground.material = mat;
+    }
+
     flock.ground = ground;
   },
   createMap(image, material) {
@@ -203,7 +301,6 @@ export const flockScene = {
     flock.ground = ground;
 
     return ground;
-
   },
   show(meshName) {
     // Check if the ID refers to a UI button
@@ -377,8 +474,8 @@ export const flockScene = {
       uiButton.dispose();
       return;
     }
-    
-    flock.whenModelReady(meshName, mesh => {
+
+    flock.whenModelReady(meshName, (mesh) => {
       if (mesh) flock.disposeMesh(mesh);
     });
 
@@ -392,7 +489,9 @@ export const flockScene = {
       const clone = sourceMesh.clone(uniqueCloneId);
 
       sourceMesh.metadata.clones = sourceMesh.metadata.clones || [];
-      sourceMesh.metadata.clones = sourceMesh.metadata.clones.concat(clone.name);
+      sourceMesh.metadata.clones = sourceMesh.metadata.clones.concat(
+        clone.name,
+      );
 
       if (clone) {
         sourceMesh.computeWorldMatrix(true);
