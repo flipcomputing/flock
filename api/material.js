@@ -664,7 +664,6 @@ export const flockMaterial = {
       });
     });
   },
-
   setMaterialInternal(meshName, materials) {
     return flock.whenModelReady(meshName, (mesh) => {
       const allMeshes = [mesh].concat(mesh.getDescendants());
