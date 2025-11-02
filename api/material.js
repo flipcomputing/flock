@@ -193,6 +193,8 @@ export const flockMaterial = {
           }
           nextMesh.material.transparencyMode =
             flock.BABYLON.Material.MATERIAL_ALPHABLEND;
+          if (value > 0) nextMesh.material.needDepthPrePass = true;
+          else nextMesh.material.needDepthPrePass = false;
         }
       });
     });
@@ -729,20 +731,28 @@ export const flockMaterial = {
       },
       {
         attributes: ["position"],
-        uniforms: ["worldViewProjection", "colorCount", "colors", "alpha", "minMax"],
+        uniforms: [
+          "worldViewProjection",
+          "colorCount",
+          "colors",
+          "alpha",
+          "minMax",
+        ],
       },
     );
 
     // Convert colors to Color3 array
-    const color3Array = colors.map(c => {
-      const hex = flock.getColorFromString(c);
-      const color3 = flock.BABYLON.Color3.FromHexString(hex);
-      return [color3.r, color3.g, color3.b];
-    }).flat();
+    const color3Array = colors
+      .map((c) => {
+        const hex = flock.getColorFromString(c);
+        const color3 = flock.BABYLON.Color3.FromHexString(hex);
+        return [color3.r, color3.g, color3.b];
+      })
+      .flat();
 
     if (flock.materialsDebug) {
-      console.log('Color count:', colors.length);
-      console.log('Color array:', color3Array);
+      console.log("Color count:", colors.length);
+      console.log("Color array:", color3Array);
     }
 
     shaderMaterial.setInt("colorCount", colors.length);

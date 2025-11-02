@@ -32,7 +32,7 @@ export const flockMesh = {
     const localCenter = new flock.BABYLON.Vector3(
       (localMin.x + localMax.x) / 2,
       (localMin.y + localMax.y) / 2,
-      (localMin.z + localMax.z) / 2
+      (localMin.z + localMax.z) / 2,
     );
 
     const segmentStart = new flock.BABYLON.Vector3(
@@ -54,7 +54,11 @@ export const flockMesh = {
     );
 
     if (!mesh.metadata) mesh.metadata = {};
-    mesh.metadata.physicsCapsule = { radius, height: adjustedHeight, localCenter };
+    mesh.metadata.physicsCapsule = {
+      radius,
+      height: adjustedHeight,
+      localCenter,
+    };
     return shape;
   },
   createHorizontalCapsuleFromBoundingBox(mesh, scene, yOffsetFactor = 0) {
@@ -134,7 +138,11 @@ export const flockMesh = {
   },
   // backRatio: signed fraction of mesh size along the chosen axis (e.g., 0.25 = 25% back; -0.25 = 25% forward)
   // axis: "z" (default) if your rig faces ±Z; use "x" if it faces ±X
-  createSittingCapsuleFromBoundingBox(mesh, scene, { backRatio = -1, axis = "z" } = {}) {
+  createSittingCapsuleFromBoundingBox(
+    mesh,
+    scene,
+    { backRatio = -1, axis = "z" } = {},
+  ) {
     mesh.computeWorldMatrix(true);
 
     const boundingInfo = mesh.getBoundingInfo();
@@ -145,14 +153,14 @@ export const flockMesh = {
     const localMax = bb.maximum;
 
     const localHeight = localMax.y - localMin.y;
-    const localWidth  = localMax.x - localMin.x;
-    const localDepth  = localMax.z - localMin.z;
+    const localWidth = localMax.x - localMin.x;
+    const localDepth = localMax.z - localMin.z;
 
     // Capsule sizing for sitting pose
     const radius = Math.max(1e-5, Math.min(localWidth, localDepth) * 0.5);
-    const targetHeight   = Math.max(0, localHeight * 0.65);
+    const targetHeight = Math.max(0, localHeight * 0.65);
     const cylinderHeight = Math.max(0, targetHeight - 2 * radius);
-    const halfCylinder   = cylinderHeight * 0.5;
+    const halfCylinder = cylinderHeight * 0.5;
 
     // Base center in LOCAL space
     const centerLocal = bb.center.clone();
@@ -170,13 +178,13 @@ export const flockMesh = {
     const segmentStart = new flock.BABYLON.Vector3(
       centerLocal.x + offsetX,
       centerLocal.y + centerYOffset - halfCylinder,
-      centerLocal.z + offsetZ
+      centerLocal.z + offsetZ,
     );
 
     const segmentEnd = new flock.BABYLON.Vector3(
       centerLocal.x + offsetX,
       centerLocal.y + centerYOffset + halfCylinder,
-      centerLocal.z + offsetZ
+      centerLocal.z + offsetZ,
     );
 
     if (segmentStart.equals(segmentEnd)) {
@@ -187,7 +195,7 @@ export const flockMesh = {
       segmentStart,
       segmentEnd,
       radius,
-      scene
+      scene,
     );
   },
   initializeMesh(mesh, position, color, shapeType, alpha = 1) {
@@ -213,7 +221,7 @@ export const flockMesh = {
     // Enable and make the mesh visible
     mesh.isVisible = true;
     mesh.setEnabled(true);
-    mesh.material.needDepthPrePass = true;
+    if (alpha > 0) mesh.material.needDepthPrePass = true;
     mesh.metadata.sharedGeometry = true;
   },
 
