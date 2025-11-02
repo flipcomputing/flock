@@ -20,8 +20,14 @@ export const flockScene = {
         flock.scene,
       );
       flock.sky = skySphere;
-      color.diffuseTexture.uScale = 10.0;
-      color.diffuseTexture.vScale = 10.0;
+      
+      // Apply tiling if the material has a texture
+      const tex = color.diffuseTexture || color.albedoTexture || color.baseTexture;
+      if (tex && typeof tex.uScale === "number" && typeof tex.vScale === "number") {
+        tex.uScale = 10.0;
+        tex.vScale = 10.0;
+      }
+      
       skySphere.material = color;
       skySphere.isPickable = false; // Make non-interactive
     } else if (Array.isArray(color) && color.length >= 2) {
