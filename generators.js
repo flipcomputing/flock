@@ -1632,23 +1632,28 @@ export function defineGenerators() {
                 return createMesh(block, "Plane", params, "plane");
         };
 
-        javascriptGenerator.forBlock["set_background_color"] = function (
-                block,
-        ) {
-                let color = getFieldValue(block, "COLOR", '"#6495ED"');
-                
-                const colorInput = block.getInput("COLOR");
-                const colorBlock = colorInput?.connection?.targetBlock();
-                
-                if (colorBlock && colorBlock.type === "material") {
-                        color = `(${color}).color`;
-                }
-                
-                const meshId = "sky";
-                meshMap[meshId] = block;
-                meshBlockIdMap[meshId] = block.id;
-                return `setSky(${color});\n`;
+        javascriptGenerator.forBlock["set_background_color"] = function (block) {
+          // Defaults to a quoted hex string (e.g., "#6495ED")
+          let color = getFieldValue(block, "COLOR", '"#6495ED"');
+
+          const colorInput = block.getInput("COLOR");
+          const colorBlock = colorInput?.connection?.targetBlock();
+
+          if (colorBlock && colorBlock.type === "material") {
+            color = `(function(m){
+              const c = (m && (m.color || m.diffuseColor || m.albedoColor));
+              return (c && c.toHexString) ? c.toHexString() : "#6495ED";
+            })(${color})`;
+          }
+
+          const meshId = "sky";
+          meshMap[meshId] = block;
+          meshBlockIdMap[meshId] = block.id;
+
+          // Background block should always request clear-color behaviour
+          return `setSky(${color}, { clear: true });\n`;
         };
+
 
         javascriptGenerator.forBlock["create_wall"] = function (block) {
                 const color = getFieldValue(block, "COLOR", "#9932CC");

@@ -8,86 +8,100 @@ export const flockScene = {
   /*
    Category: Scene
   */
-  setSky(color) {
-    // If color is a Babylon.js material, apply it directly
+  // Back-compatible: setSky(colorOrMaterialOrArray, options)
+  // setSky(colorOrMaterialOrArray, options?)
+  setSky(color, options = {}) {
+    const { clear = false } = options;
+
+    // Dispose any previous sky dome
     if (flock.sky) {
       flock.disposeMesh(flock.sky);
+      flock.sky = null;
     }
-    if (color && color instanceof flock.BABYLON.Material) {
-      const skySphere = flock.BABYLON.MeshBuilder.CreateSphere(
+
+    // --- BACKGROUND ONLY (flat clear color) ---
+    if (clear === true) {
+      const c3 = flock.BABYLON.Color3.FromHexString(flock.getColorFromString(color));
+      flock.scene.clearColor = c3;
+      return;
+    }
+
+    // Helper to create an inside-facing dome that follows the camera
+    const createSkySphere = () => {
+      const s = flock.BABYLON.MeshBuilder.CreateSphere(
         "sky",
-        { segments: 32, diameter: 1000 },
-        flock.scene,
+        { segments: 32, diameter: 1000, sideOrientation: flock.BABYLON.Mesh.BACKSIDE },
+        flock.scene
       );
+      s.infiniteDistance = true;
+      s.isPickable = false;
+      s.applyFog = false;
+      return s;
+    };
+
+    // --- MATERIAL INPUT: use as-is ---
+    if (color && color instanceof flock.BABYLON.Material) {
+      const skySphere = createSkySphere();
       flock.sky = skySphere;
-      
-      // Apply tiling if the material has a texture
+
+      // Optional tiling if there’s a texture
       const tex = color.diffuseTexture || color.albedoTexture || color.baseTexture;
       if (tex && typeof tex.uScale === "number" && typeof tex.vScale === "number") {
-        tex.uScale = 10.0;
-        tex.vScale = 10.0;
+        tex.uScale = 10;
+        tex.vScale = 10;
       }
-      
+      color.backFaceCulling = false;
+      color.disableLighting = !!color.disableLighting; // leave caller’s intent
       skySphere.material = color;
-      skySphere.isPickable = false; // Make non-interactive
-    } else if (Array.isArray(color) && color.length >= 2) {
-      // Handle gradient case (2 or more colors)
-      const skySphere = flock.BABYLON.MeshBuilder.CreateSphere(
-        "sky",
-        { segments: 32, diameter: 1000 },
-        flock.scene,
-      );
+      return;
+    }
+
+    // --- GRADIENT INPUT: arrays (2+) ---
+    if (Array.isArray(color) && color.length >= 2) {
+      const skySphere = createSkySphere();
       flock.sky = skySphere;
 
       if (color.length === 2) {
-        // Two-color gradient using GradientMaterial
-        const gradientMaterial = new flock.GradientMaterial(
-          "skyGradient",
-          flock.scene,
-        );
-        gradientMaterial.bottomColor = flock.BABYLON.Color3.FromHexString(
-          flock.getColorFromString(color[0]),
-        );
-        gradientMaterial.topColor = flock.BABYLON.Color3.FromHexString(
-          flock.getColorFromString(color[1]),
-        );
-        gradientMaterial.offset = 0.8; // Push the gradient midpoint towards the top
-        gradientMaterial.smoothness = 0.5; // Sharper gradient transition
-        gradientMaterial.scale = 0.01;
-        gradientMaterial.backFaceCulling = false; // Render on the inside of the sphere
-        skySphere.material = gradientMaterial;
+        const mat = new flock.GradientMaterial("skyGradient", flock.scene);
+        mat.bottomColor = flock.BABYLON.Color3.FromHexString(flock.getColorFromString(color[0]));
+        mat.topColor    = flock.BABYLON.Color3.FromHexString(flock.getColorFromString(color[1]));
+        mat.offset = 0.8;
+        mat.smoothness = 0.5;
+        mat.scale = 0.01;
+        mat.backFaceCulling = false;
+        mat.disableLighting = true; // gradient is usually unlit
+        skySphere.material = mat;
       } else {
-        // Multi-color gradient using shader (3+ colors)
-        const gradientMaterial = flock.createMultiColorGradientMaterial(
-          "skyGradient",
-          color,
-        );
-
-        // Get sphere bounds and set them
-        const boundingInfo = skySphere.getBoundingInfo();
-        const minY = boundingInfo.minimum.y;
-        const maxY = boundingInfo.maximum.y;
-
-        if (flock.materialsDebug) {
-          console.log(`Sky gradient bounds - minY: ${minY}, maxY: ${maxY}`);
-        }
-
-        gradientMaterial.setVector2(
-          "minMax",
-          new flock.BABYLON.Vector2(minY, maxY),
-        );
-        gradientMaterial.backFaceCulling = false; // Render on the inside of the sphere
-
-        skySphere.material = gradientMaterial;
+        const mat = flock.createMultiColorGradientMaterial("skyGradient", color);
+        const { minimum, maximum } = skySphere.getBoundingInfo();
+        mat.setVector2("minMax", new flock.BABYLON.Vector2(minimum.y, maximum.y));
+        mat.backFaceCulling = false;
+        mat.disableLighting = true;
+        skySphere.material = mat;
       }
-
-      skySphere.isPickable = false; // Make non-interactive
-    } else {
-      // Handle single color case
-      flock.scene.clearColor = flock.BABYLON.Color3.FromHexString(
-        flock.getColorFromString(color),
-      );
+      return;
     }
+
+    // --- SINGLE-COLOUR SKY DOME (this is the key change) ---
+    if (typeof color === "string") {
+      const c3 = flock.BABYLON.Color3.FromHexString(flock.getColorFromString(color));
+
+      const skySphere = createSkySphere();
+      flock.sky = skySphere;
+
+      const skyMat = new flock.BABYLON.StandardMaterial("skyMaterial", flock.scene);
+      skyMat.backFaceCulling = false;
+      skyMat.disableLighting = false;     // ensure lit
+      skyMat.diffuseColor     = c3;       // reacts to lights
+      skyMat.ambientColor     = c3.scale(0.05); // gentle lift, optional
+      skyMat.fogEnabled       = false;
+
+      skySphere.material = skyMat;
+      return;
+    }
+
+    // Fallback (shouldn’t hit)
+    flock.scene.clearColor = new flock.BABYLON.Color3(0, 0, 0);
   },
   createLinearGradientTexture(
     colors,
