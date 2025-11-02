@@ -946,7 +946,7 @@ export const flockMaterial = {
           "uScale",
           "vScale",
         ],
-        needAlphaBlending: true,
+        needAlphaBlending: false,
       },
     );
 
@@ -1093,7 +1093,7 @@ export const flockMaterial = {
       {
         attributes: ["position", "uv"],
         uniforms: ["worldViewProjection", "color", "colorCount", "alpha"],
-        needAlphaBlending: true,
+        needAlphaBlending: false,
       },
     );
 
