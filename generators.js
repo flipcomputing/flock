@@ -655,14 +655,11 @@ export function defineGenerators() {
                 const meshId = "sky";
                 meshMap[meshId] = block;
                 meshBlockIdMap[meshId] = block.id;
-                let color = getFieldValue(block, "COLOR", '"#6495ED"');
-                
-                const colorInput = block.getInput("COLOR");
-                const colorBlock = colorInput?.connection?.targetBlock();
-                
-                if (colorBlock && colorBlock.type === "material") {
-                        color = `(${color}).color`;
-                }
+                let color = javascriptGenerator.valueToCode(
+                        block,
+                        "COLOR",
+                        javascriptGenerator.ORDER_NONE,
+                ) || '"#6495ED"';
                 
                 return `setSky(${color});\n`;
         };
