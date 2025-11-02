@@ -839,6 +839,9 @@ export const flockMaterial = {
       // Load texture if provided
       if (texturePath) {
         const texture = new flock.BABYLON.Texture(texturePath, flock.scene);
+        // Apply default tiling for consistency
+        texture.uScale = 10;
+        texture.vScale = 10;
         material.diffuseTexture = texture;
       }
 
@@ -891,9 +894,12 @@ export const flockMaterial = {
       uniform vec3 lightColor;      // Replaces white
       uniform vec3 greyTintColor;   // Tints greys in proportion
       uniform float alpha;
+      uniform float uScale;         // Horizontal tiling
+      uniform float vScale;         // Vertical tiling
 
       void main(void) {
-        vec4 texColor = texture2D(textureSampler, vUV);
+        vec2 scaledUV = vec2(vUV.x * uScale, vUV.y * vScale);
+        vec4 texColor = texture2D(textureSampler, scaledUV);
 
         if (texColor.a < 0.5) {
           discard;
@@ -937,6 +943,8 @@ export const flockMaterial = {
           "lightColor",
           "greyTintColor",
           "alpha",
+          "uScale",
+          "vScale",
         ],
         needAlphaBlending: true,
       },
@@ -951,7 +959,12 @@ export const flockMaterial = {
     // Set texture
     if (texturePath) {
       const texture = new flock.BABYLON.Texture(texturePath, flock.scene);
+      texture.wrapU = flock.BABYLON.Texture.WRAP_ADDRESSMODE;
+      texture.wrapV = flock.BABYLON.Texture.WRAP_ADDRESSMODE;
       shaderMaterial.setTexture("textureSampler", texture);
+      // Apply tiling through shader uniforms (shader materials don't automatically use texture matrix)
+      shaderMaterial.setFloat("uScale", 10);
+      shaderMaterial.setFloat("vScale", 10);
     }
 
     // Convert colors and set uniforms

@@ -357,6 +357,51 @@ export function updateMeshFromBlock(mesh, block, changeEvent) {
   }
 
   if (block.type === "set_sky_color") {
+    const colorInput = block.getInputTargetBlock("COLOR");
+    
+    if (colorInput && colorInput.type === "material") {
+      // Handle material block - extract what it contains
+      const { textureSet, baseColor, alpha } = extractMaterialInfo(colorInput);
+      
+      // Check if BASE_COLOR is a color list
+      const baseColorBlock = colorInput.getInputTargetBlock("BASE_COLOR");
+      let colorValue = baseColor;
+      if (baseColorBlock && baseColorBlock.type === "lists_create_with") {
+        // Extract colors from the list
+        let colorList = [];
+        for (let input of baseColorBlock.inputList) {
+          const targetBlock = input.connection?.targetBlock();
+          if (targetBlock) {
+            colorList.push(targetBlock.getFieldValue("COLOR"));
+          }
+        }
+        colorValue = colorList;
+      }
+      
+      // If it has a texture set, create a material (it will combine gradient + texture)
+      if (textureSet && textureSet !== "NONE") {
+        const materialOptions = {
+          color: colorValue,  // Can be single color or array
+          materialName: textureSet,
+          alpha,
+          // NO tiling parameter - let it use default
+        };
+        const material = flock.createMaterial(materialOptions);
+        if (material) {
+          flock.setSky(material);
+        } else {
+          // Fallback to color if material creation fails
+          flock.setSky(colorValue);
+        }
+        return;
+      }
+      
+      // No texture - just use the color or gradient
+      flock.setSky(colorValue);
+      return;
+    }
+    
+    // Handle color list (original code)
     let isColorList = false;
     let colorList = [];
 
@@ -381,6 +426,51 @@ export function updateMeshFromBlock(mesh, block, changeEvent) {
     return;
   }
   if (block.type === "create_ground") {
+    const colorInput = block.getInputTargetBlock("COLOR");
+    
+    if (colorInput && colorInput.type === "material") {
+      // Handle material block
+      const { textureSet, baseColor, alpha } = extractMaterialInfo(colorInput);
+      
+      // Check if BASE_COLOR is a color list (gradient)
+      const baseColorBlock = colorInput.getInputTargetBlock("BASE_COLOR");
+      let colorValue = baseColor;
+      if (baseColorBlock && baseColorBlock.type === "lists_create_with") {
+        // Extract colors from the list
+        let colorList = [];
+        for (let input of baseColorBlock.inputList) {
+          const targetBlock = input.connection?.targetBlock();
+          if (targetBlock) {
+            colorList.push(targetBlock.getFieldValue("COLOR"));
+          }
+        }
+        colorValue = colorList;
+      }
+      
+      // If it has a texture set, create a material (it will combine gradient + texture)
+      if (textureSet && textureSet !== "NONE") {
+        const materialOptions = {
+          color: colorValue,  // Can be single color or array
+          materialName: textureSet,
+          alpha,
+          // NO tiling parameter - let it use default
+        };
+        const material = flock.createMaterial(materialOptions);
+        if (material) {
+          flock.createGround(material, "ground");
+        } else {
+          // Fallback to color if material creation fails
+          flock.createGround(colorValue, "ground");
+        }
+        return;
+      }
+      
+      // No texture - just use the color or gradient
+      flock.createGround(colorValue, "ground");
+      return;
+    }
+    
+    // Original color handling
     flock.createGround(color, "ground");
     return;
   }
