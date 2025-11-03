@@ -725,15 +725,15 @@ export function defineAnimateBlocks() {
 				message0: translate("switch_animation"),
 				args0: [
 					{
-						type: "field_variable",
-						name: "MODEL",
-						variable: window.currentMesh,
-					},
-					{
 						type: "field_dropdown",
 						name: "ANIMATION_NAME",
 						options: animationNames(),
 					},
+					{
+						type: "field_variable",
+						name: "MODEL",
+						variable: window.currentMesh,
+					},		
 				],
 				previousStatement: null,
 				nextStatement: null,
