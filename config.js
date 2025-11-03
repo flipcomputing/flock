@@ -305,6 +305,7 @@ export const materialNames = [
 	"fruit.png",
 	"grass.png",
 	"gravel.png",
+	"Grid.png",
 	"leaves.png",
 	"marble.png",
 	"mushroom.png",
