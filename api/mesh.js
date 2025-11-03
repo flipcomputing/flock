@@ -225,64 +225,108 @@ export const flockMesh = {
     mesh.metadata.sharedGeometry = true;
   },
 
+ 
+  // 1 tile = `texturePhysicalSize` world units
+  // Sets edge-aligned, per-face planar UVs for a bSox so the pattern has constant physical size.
+  // Works for non-cubes (width ≠ height ≠ depth). Keeps seams consistent by flipping some faces.
   setSizeBasedBoxUVs(mesh, width, height, depth, texturePhysicalSize = 4) {
-    const positions = mesh.getVerticesData(
-      flock.BABYLON.VertexBuffer.PositionKind,
-    );
-    const normals = mesh.getVerticesData(flock.BABYLON.VertexBuffer.NormalKind);
-    const uvs =
-      mesh.getVerticesData(flock.BABYLON.VertexBuffer.UVKind) ||
-      new Array((positions.length / 3) * 2).fill(0);
+    // Ensure we can read/write UVs
+    const positions = mesh.getVerticesData(flock.BABYLON.VertexBuffer.PositionKind);
+    const normals   = mesh.getVerticesData(flock.BABYLON.VertexBuffer.NormalKind);
+    let uvs         = mesh.getVerticesData(flock.BABYLON.VertexBuffer.UVKind);
+    if (!positions || !normals) return;
+    if (!uvs) uvs = new Float32Array((positions.length / 3) * 2);
 
-    for (let i = 0; i < positions.length / 3; i++) {
-      const normal = new flock.BABYLON.Vector3(
-        normals[i * 3],
-        normals[i * 3 + 1],
-        normals[i * 3 + 2],
-      );
+    // Compute local-space AABB to align tiles to edges (not the centre).
+    // This makes (min edge) map to UV 0, so every face starts on a tile boundary.
+    let minX = +Infinity, maxX = -Infinity;
+    let minY = +Infinity, maxY = -Infinity;
+    let minZ = +Infinity, maxZ = -Infinity;
+    for (let i = 0; i < positions.length; i += 3) {
+      const x = positions[i], y = positions[i + 1], z = positions[i + 2];
+      if (x < minX) minX = x; if (x > maxX) maxX = x;
+      if (y < minY) minY = y; if (y > maxY) maxY = y;
+      if (z < minZ) minZ = z; if (z > maxZ) maxZ = z;
+    }
+    // Fallback to provided sizes if the geometry AABB is degenerate
+    const spanX = (Number.isFinite(minX) && Number.isFinite(maxX)) ? (maxX - minX) : width;
+    const spanY = (Number.isFinite(minY) && Number.isFinite(maxY)) ? (maxY - minY) : height;
+    const spanZ = (Number.isFinite(minZ) && Number.isFinite(maxZ)) ? (maxZ - minZ) : depth;
 
-      const position = new flock.BABYLON.Vector3(
-        positions[i * 3],
-        positions[i * 3 + 1],
-        positions[i * 3 + 2],
-      );
+    // Scale factor: converts world/local distance → UV repeats
+    // 1 tile per `texturePhysicalSize` units
+    const invTile = 1 / texturePhysicalSize;
 
-      let u = 0,
-        v = 0;
+    // Assign per-vertex UVs based on dominant normal (face detection).
+    // Orientation choices below keep seams continuous:
+    // - Front (+Z):   U=X increasing +, V=Y increasing +
+    // - Back  (-Z):   U=X flipped,      V=Y increasing +
+    // - Right (+X):   U=Z flipped,      V=Y increasing +
+    // - Left  (-X):   U=Z increasing +, V=Y increasing +
+    // - Top   (+Y):   U=X increasing +, V=Z flipped
+    // - Bottom(-Y):   U=X increasing +, V=Z increasing +
+    for (let i = 0, vi = 0; i < positions.length; i += 3, vi += 2) {
+      const nx = normals[i], ny = normals[i + 1], nz = normals[i + 2];
+      const x  = positions[i], y  = positions[i + 1], z  = positions[i + 2];
 
-      // Front/Back faces (aligned with Z-axis)
-      if (
-        Math.abs(normal.z) > Math.abs(normal.x) &&
-        Math.abs(normal.z) > Math.abs(normal.y)
-      ) {
-        u = position.x / texturePhysicalSize; // Horizontal scale
-        v = position.y / texturePhysicalSize; // Vertical scale
+      // Decide which axis the face is aligned to
+      const ax = Math.abs(nx), ay = Math.abs(ny), az = Math.abs(nz);
+
+      let u = 0, v = 0;
+
+      if (az >= ax && az >= ay) {
+        // Z faces (front/back) → map X × Y
+        // edge-aligned: subtract min edge so 0 at the border
+        const uRaw = (x - minX) * invTile; // 0..spanX/texturePhysicalSize
+        const vRaw = (y - minY) * invTile; // 0..spanY/texturePhysicalSize
+        if (nz >= 0) {
+          // Front (+Z): no flip
+          u = uRaw; v = vRaw;
+        } else {
+          // Back (-Z): flip U to keep seam continuity
+          u = (spanX * invTile) - uRaw; v = vRaw;
+        }
+      } else if (ax >= ay && ax >= az) {
+        // X faces (left/right) → map Z × Y
+        const uRaw = (z - minZ) * invTile; // 0..spanZ/texturePhysicalSize
+        const vRaw = (y - minY) * invTile; // 0..spanY/texturePhysicalSize
+        if (nx >= 0) {
+          // Right (+X): flip U so front-right edge matches
+          u = (spanZ * invTile) - uRaw; v = vRaw;
+        } else {
+          // Left (-X): no flip
+          u = uRaw; v = vRaw;
+        }
+      } else {
+        // Y faces (top/bottom) → map X × Z
+        const uRaw = (x - minX) * invTile; // 0..spanX/texturePhysicalSize
+        const vRaw = (z - minZ) * invTile; // 0..spanZ/texturePhysicalSize
+        if (ny >= 0) {
+          // Top (+Y): flip V so front-top edge matches
+          u = uRaw; v = (spanZ * invTile) - vRaw;
+        } else {
+          // Bottom (-Y): no flip
+          u = uRaw; v = vRaw;
+        }
       }
-      // Side faces (aligned with X-axis)
-      else if (
-        Math.abs(normal.x) > Math.abs(normal.y) &&
-        Math.abs(normal.x) > Math.abs(normal.z)
-      ) {
-        u = position.z / texturePhysicalSize; // Horizontal scale
-        v = position.y / texturePhysicalSize; // Vertical scale
-      }
-      // Top/Bottom faces (aligned with Y-axis)
-      else if (
-        Math.abs(normal.y) > Math.abs(normal.x) &&
-        Math.abs(normal.y) > Math.abs(normal.z)
-      ) {
-        u = position.x / texturePhysicalSize; // Horizontal scale
-        v = position.z / texturePhysicalSize; // Vertical scale
-      }
 
-      uvs[i * 2] = u;
-      uvs[i * 2 + 1] = v;
+      uvs[vi]     = u;
+      uvs[vi + 1] = v;
     }
 
-    // Apply updated UV mapping
+    // Apply updated UVs
     mesh.setVerticesData(flock.BABYLON.VertexBuffer.UVKind, uvs, true);
-  },
 
+    // Make sure any assigned texture will actually tile
+    if (mesh.material && mesh.material.diffuseTexture) {
+      const t = mesh.material.diffuseTexture;
+      t.wrapU = flock.BABYLON.Texture.WRAP_ADDRESSMODE;
+      t.wrapV = flock.BABYLON.Texture.WRAP_ADDRESSMODE;
+      // Per-vertex UVs already encode the repeats; keep global scales neutral
+      t.uScale = 1; t.vScale = 1;
+      t.uOffset = 0; t.vOffset = 0;
+    }
+  },
   setSphereUVs(mesh, diameter, texturePhysicalSize = 1) {
     const positions = mesh.getVerticesData(
       flock.BABYLON.VertexBuffer.PositionKind,

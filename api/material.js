@@ -721,6 +721,69 @@ export const flockMaterial = {
       }
     });
   },
+  createMaterial({ color, materialName, alpha } = {}) {
+    if (flock.materialsDebug) console.log(`Create material: ${materialName}`);
+    let material;
+    const texturePath = flock.texturePath + materialName;
+
+    // Handle two-color case
+    if (Array.isArray(color) && color.length === 2) {
+      // Use gradient for Flat material
+      if (materialName === "none.png") {
+        material = new flock.GradientMaterial(materialName, flock.scene);
+        material.bottomColor = flock.BABYLON.Color3.FromHexString(
+          flock.getColorFromString(color[0]),
+        );
+        material.topColor = flock.BABYLON.Color3.FromHexString(
+          flock.getColorFromString(color[1]),
+        );
+        material.offset = 0.5;
+        material.smoothness = 0.5;
+        material.scale = 1.0;
+        material.backFaceCulling = false;
+      } else {
+        // Use shader-based color replacement for patterned materials
+        material = flock.createColorReplaceShaderMaterial(
+          materialName,
+          texturePath,
+          color,
+        );
+        material.backFaceCulling = false;
+      }
+    } else {
+      // Default to StandardMaterial for single color or no color
+      material = new flock.BABYLON.StandardMaterial(materialName, flock.scene);
+
+      // Load texture if provided
+      if (texturePath) {
+        const texture = new flock.BABYLON.Texture(texturePath, flock.scene);
+        // Apply default tiling for consistency
+        texture.uScale = 1;
+        texture.vScale = 1;
+        material.diffuseTexture = texture;
+      }
+
+      // Set single color if provided
+      if (color) {
+        const hexColor = flock.getColorFromString(color);
+        const babylonColor = flock.BABYLON.Color3.FromHexString(hexColor);
+        material.diffuseColor = babylonColor;
+      }
+
+      material.backFaceCulling = false;
+    }
+
+    material.alpha = alpha;
+
+    // Update alpha for shader materials
+    if (material.setFloat && alpha !== undefined) {
+      material.setFloat("alpha", alpha);
+    }
+
+    if (flock.materialsDebug)
+      console.log(`Created the material: ${material.name}`);
+    return material;
+  },
   createMultiColorGradientMaterial(name, colors) {
     const shaderMaterial = new flock.BABYLON.ShaderMaterial(
       name,
@@ -812,69 +875,6 @@ export const flockMaterial = {
     `;
 
     return shaderMaterial;
-  },
-  createMaterial({ color, materialName, alpha } = {}) {
-    if (flock.materialsDebug) console.log(`Create material: ${materialName}`);
-    let material;
-    const texturePath = flock.texturePath + materialName;
-
-    // Handle two-color case
-    if (Array.isArray(color) && color.length === 2) {
-      // Use gradient for Flat material
-      if (materialName === "none.png") {
-        material = new flock.GradientMaterial(materialName, flock.scene);
-        material.bottomColor = flock.BABYLON.Color3.FromHexString(
-          flock.getColorFromString(color[0]),
-        );
-        material.topColor = flock.BABYLON.Color3.FromHexString(
-          flock.getColorFromString(color[1]),
-        );
-        material.offset = 0.5;
-        material.smoothness = 0.5;
-        material.scale = 1.0;
-        material.backFaceCulling = false;
-      } else {
-        // Use shader-based color replacement for patterned materials
-        material = flock.createColorReplaceShaderMaterial(
-          materialName,
-          texturePath,
-          color,
-        );
-        material.backFaceCulling = false;
-      }
-    } else {
-      // Default to StandardMaterial for single color or no color
-      material = new flock.BABYLON.StandardMaterial(materialName, flock.scene);
-
-      // Load texture if provided
-      if (texturePath) {
-        const texture = new flock.BABYLON.Texture(texturePath, flock.scene);
-        // Apply default tiling for consistency
-        texture.uScale = 10;
-        texture.vScale = 10;
-        material.diffuseTexture = texture;
-      }
-
-      // Set single color if provided
-      if (color) {
-        const hexColor = flock.getColorFromString(color);
-        const babylonColor = flock.BABYLON.Color3.FromHexString(hexColor);
-        material.diffuseColor = babylonColor;
-      }
-
-      material.backFaceCulling = false;
-    }
-
-    material.alpha = alpha;
-
-    // Update alpha for shader materials
-    if (material.setFloat && alpha !== undefined) {
-      material.setFloat("alpha", alpha);
-    }
-
-    if (flock.materialsDebug)
-      console.log(`Created the material: ${material.name}`);
-    return material;
   },
   // Create shader material for color replacement
   createColorReplaceShaderMaterial(materialName, texturePath, colors) {
