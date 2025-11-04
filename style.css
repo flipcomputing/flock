@@ -56,13 +56,13 @@
 /* Dark theme */
 [data-theme="dark"] {
   /* Core colours */
-  --color-bg:                        #1e1e1e;
+  --color-bg:                        #2c2c2c;
   --color-bg-alt:                    #2a2a2a;
   --color-text:                      #000000;
-  --color-text-primary: #888888;
+  --color-text-primary:              #bababa;
   --color-primary:                   #888888;
-   --color-text-brand:  #888888;
-  --color-menu-item:  #888888;
+  --color-text-brand:                #bababa;
+  --color-menu-item:                 #888888;
   --color-muted:                     #555555;
   --color-border:                    #555555;
   --color-border-light:              #333333;
@@ -78,9 +78,68 @@
   --color-button-bg:                 var(--color-bg-alt);
   --color-button-bg-hover:           #333333;
   --color-button-bg-focus:           #444444;
+  --color-button-primary:            #bababa;
+  --color-button-scroll:             rgb(186, 186, 186, 0.5);
+  --color-text-on-primary:           #bababa;
 
-  
-  --color-text-on-primary:  #444444;
+  /* Loading screen gradient */
+  --color-loading-gradient-start:    var(--color-bg);
+  --color-loading-gradient-end:      var(--color-bg-alt);
+
+  /* Spinner */
+  --color-spinner-border:            var(--color-muted);
+  --color-spinner-border-top:        var(--color-primary);
+
+  /* Dropdown & menus */
+  --color-dropdown-text:        var(--color-text);
+  --color-menu-item-text:       var(--color-text);
+  --color-dropdown-menu-bg:     var(--color-bg);
+  --color-dropdown-menu-hover:  rgba(0, 0, 0, 0.05);
+  --color-dropdown-menu-border: var(--color-dropdown-menu-border, 1px solid rgba(0,0,0,0.1));
+
+  --color-dropdown-bg:               #333333;
+  --color-dropdown-hover:            #555555;
+ 
+  --color-menu-hover:                var(--color-dropdown-hover);
+  --color-menu-item-hover:           #444444;
+
+  /* Overlays */
+  --color-overlay:                   rgba(0, 0, 0, 0.7);
+  --color-overlay-light:             rgba(0, 0, 0, 0.5);
+  --color-overlay-modal:             rgba(0, 0, 0, 0.4);
+
+  /* Scroll buttons */
+  --color-scroll-button-bg:          rgba(0, 0, 0, 0.5);
+}
+
+/* Dark high-contrast theme */
+[data-theme="dark-contrast"] {
+  /* Core colours */
+  --color-bg:                        #090909;
+  --color-bg-alt:                    #2a2a2a;
+  --color-text:                      #cdcdcd;
+  --color-text-primary:              #cdcdcd;
+  --color-primary:                   #888888;
+  --color-text-brand:                #cdcdcd;
+  --color-menu-item:                 #888888;
+  --color-muted:                     #555555;
+  --color-border:                    #555555;
+  --color-border-light:              #333333;
+  --color-border-highlight:          #555555;
+  --color-search-highlight:          #777777;
+  --color-shadow:                    rgba(0, 0, 0, 0.7);
+  --color-shadow-light:              rgba(0, 0, 0, 0.5);
+  --color-shadow-medium:             rgba(0, 0, 0, 0.7);
+  --color-outline-focus:             #ffb700;
+  --color-focus-ring:                #ffb700;
+
+  /* Buttons */
+  --color-button-bg:                 var(--color-bg-alt);
+  --color-button-bg-hover:           #333333;
+  --color-button-bg-focus:           #444444;
+  --color-button-scroll:             rgba(205, 205, 205, 0.5);
+  --color-button-primary:            #cdcdcd;
+  --color-text-on-primary:           #cdcdcd;
 
   /* Loading screen gradient */
   --color-loading-gradient-start:    var(--color-bg);
@@ -121,7 +180,7 @@
   --color-primary-dark: #004d4d;
 
   /* Background Colors */
-  --color-bg: #ffffff;
+  --color-bg: #000000;
   --color-text: #ffffff;
   --color-bg-secondary: #f8f9fa;
   --color-bg-overlay: rgba(0, 0, 0, 0.4);
@@ -132,15 +191,15 @@
   --color-bg-glass-focused: rgba(255, 255, 255, 0.9);
 
   /* Button Colors */
-  --color-button-bg: #e0e0e0;
+  --color-button-bg: #ffffff;
   --color-button-bg-hover: #d0d0d0;
-  --color-button-primary: #004d4d;
+  --color-button-primary: #ffffff;
   --color-button-scroll: rgba(0, 0, 0, 0.5);
 
   /* Text Colors */
-  --color-text-primary: #000000;
+  --color-text-primary: #ffffff;
   --color-text-on-primary: #ffffff;
-  --color-text-brand: #511D91;
+  --color-text-brand: #ffffff;
   --color-text-loading: #511D91;
 
   /* Border Colors */
@@ -158,7 +217,7 @@
 
   /* Menu Colors */
   --color-menu-hover: #f0f0f0;
-  --color-menu-item: #511D91;
+  --color-menu-item: #ffffff;
   --color-menu:  #f9f9f9;
   --color-button-bg:  #f0f0f0;
 
@@ -173,6 +232,9 @@
   margin-right: 10px;
 } 
 
+[data-theme="contrast"] #exampleSelect {
+  color: #000000 !important;
+}
 
 /* Loading Screen Styles */
 .loading-screen {
@@ -352,6 +414,17 @@ button {
   position: relative;
   background-color: #f3f3f3;
 }
+[data-theme="dark"] #canvasArea {
+  background-color: #2c2c2c !important;
+}
+
+[data-theme="contrast"] #canvasArea {
+  background-color: #000000 !important;
+}
+
+[data-theme="dark-contrast"] #canvasArea {
+  background-color: #090909 !important;
+}
 
 #menu {
   display: flex;
@@ -427,31 +500,52 @@ button {
  
 }
 
-.gizmo-button img {
+.gizmo-button svg {
   filter: none; /* light mode: normal */
+  width: 20px;
+  height: 20px;
 }
 
-#colorPickerButton img {
-  filter: invert(1) brightness(2); /* Make palette icon white */
+[data-theme="dark"] .gizmo-button path {
+  fill: black !important;
 }
 
-[data-theme="dark"] #colorPickerButton img {
-  filter: invert(1) brightness(2) invert(30%) sepia(2%) saturate(0%) hue-rotate(180deg) brightness(96%) contrast(85%);
+[data-theme="contrast"] .gizmo-button path {
+  fill: black !important;
+}
+
+[data-theme="dark-contrast"] .gizmo-button path {
+  fill: black !important;
+}
+
+#colorPickerButton svg {
+  /* filter: invert(1) brightness(2); Make palette icon white */
+  fill: #ffffff !important;
 }
 
 .bigbutton svg {
   filter: none; /* light mode: normal */
 }
 
-
-[data-theme="dark"] .gizmo-button img {
-  filter: invert(30%) sepia(2%) saturate(0%) hue-rotate(180deg) brightness(96%) contrast(85%);
+[data-theme="dark"] .icon path {
+  fill: #bababa !important;
 }
 
-[data-theme="dark"] .bigbutton svg {
-  filter: invert(30%) sepia(2%) saturate(0%) hue-rotate(180deg) brightness(96%) contrast(85%);
+[data-theme="dark-contrast"] .icon path {
+  fill: #cdcdcd !important;
 }
 
+[data-theme="contrast"] .icon path {
+  fill: #000000 !important;
+}
+
+[data-theme="contrast"] .gizmo-button img {
+  color: #ffffff !important;
+}
+
+[data-theme="contrast"] .bigbutton svg {
+  color: #ffffff !important;
+}
 
 /* Shape Menu */
 #shape-menu {

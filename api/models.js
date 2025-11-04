@@ -293,7 +293,67 @@ export const flockModels = {
           color,
         );
 
-        if (applyColor) flock.changeColorMesh(mesh, color);
+        if (applyColor) {
+          console.log("Applying color/material to mesh:", color);
+          
+          // Case A: single Babylon material OR plain material object {color, materialName, alpha}
+          if (color && typeof color === "object" && !Array.isArray(color)) {
+            // If it's a plain object with materialName, convert it to a Material
+            let mat = color;
+            if (color.materialName && !color.getClassName) {
+              console.log("Converting plain material object to Babylon Material");
+              mat = flock.createMaterial(color);
+            } else if (color.getClassName && typeof color.getClassName === "function") {
+              console.log("✅ Detected as Babylon Material, applying...");
+            }
+            
+            // Apply the material
+
+            
+            // Match sky’s default tiling if the material has a tileable texture
+            const tex = mat.diffuseTexture || mat.albedoTexture || mat.baseTexture || null;
+            if (tex && typeof tex.uScale === "number" && typeof tex.vScale === "number") {
+              if (!tex.uScale) tex.uScale = 10;
+              if (!tex.vScale) tex.vScale = 10;
+            }
+
+            // Apply to root and children
+            if (typeof mesh.getChildMeshes === "function") {
+              for (const m of mesh.getChildMeshes(false)) {
+                if (m && m.material !== undefined) m.material = mat;
+              }
+            }
+            if (mesh.material !== undefined) mesh.material = mat;
+
+          // Case B: array of Babylon materials or plain material objects
+          } else if (Array.isArray(color) && color.length && color.every(c => c && typeof c === "object")) {
+            
+            // Convert plain objects to Materials if needed
+            const mats = color.map(c => {
+              if (c.materialName && !c.getClassName) {
+                return flock.createMaterial(c);
+              }
+              return c;
+            });
+            const children = typeof mesh.getChildMeshes === "function"
+              ? mesh.getChildMeshes(false)
+              : [];
+
+            // Apply by index order to children; root gets first if present
+            if (mesh.material !== undefined && mats[0]) mesh.material = mats[0];
+            for (let i = 0; i < children.length; i++) {
+              if (children[i] && children[i].material !== undefined && mats[i]) {
+                children[i].material = mats[i];
+              }
+            }
+
+          // Case C: colours/gradients -> keep your existing behaviour
+          } else {
+            console.log("⚠️ Falling back to color string/array path");
+            flock.changeColorMesh(mesh, color);
+          }
+        }
+
         mesh.computeWorldMatrix(true);
         mesh.refreshBoundingInfo();
         mesh.setEnabled(true);
@@ -344,7 +404,43 @@ export const flockModels = {
               z,
               color,
             );
-            if (applyColor) flock.changeColorMesh(mesh, color);
+            
+            if (applyColor) {
+              // Handle materials the same way as cache hit path
+              if (color && typeof color === "object" && !Array.isArray(color)) {
+                let mat = color;
+                if (color.materialName && !color.getClassName) {
+                  mat = flock.createMaterial(color);
+                }
+                const tex = mat.diffuseTexture || mat.albedoTexture || mat.baseTexture || null;
+                if (tex && typeof tex.uScale === "number" && typeof tex.vScale === "number") {
+                  if (!tex.uScale) tex.uScale = 10;
+                  if (!tex.vScale) tex.vScale = 10;
+                }
+                if (typeof mesh.getChildMeshes === "function") {
+                  for (const m of mesh.getChildMeshes(false)) {
+                    if (m && m.material !== undefined) m.material = mat;
+                  }
+                }
+                if (mesh.material !== undefined) mesh.material = mat;
+              } else if (Array.isArray(color) && color.length && color.every(c => c && typeof c === "object")) {
+                const mats = color.map(c => {
+                  if (c.materialName && !c.getClassName) {
+                    return flock.createMaterial(c);
+                  }
+                  return c;
+                });
+                const children = typeof mesh.getChildMeshes === "function" ? mesh.getChildMeshes(false) : [];
+                if (mesh.material !== undefined && mats[0]) mesh.material = mats[0];
+                for (let i = 0; i < children.length; i++) {
+                  if (children[i] && children[i].material !== undefined && mats[i]) {
+                    children[i].material = mats[i];
+                  }
+                }
+              } else {
+                flock.changeColorMesh(mesh, color);
+              }
+            }
             mesh.computeWorldMatrix(true);
             mesh.refreshBoundingInfo();
 
@@ -436,7 +532,42 @@ export const flockModels = {
             color,
           );
 
-          if (applyColor) flock.changeColorMesh(live, color);
+          if (applyColor) {
+            // Handle materials the same way as cache hit path
+            if (color && typeof color === "object" && !Array.isArray(color)) {
+              let mat = color;
+              if (color.materialName && !color.getClassName) {
+                mat = flock.createMaterial(color);
+              }
+              const tex = mat.diffuseTexture || mat.albedoTexture || mat.baseTexture || null;
+              if (tex && typeof tex.uScale === "number" && typeof tex.vScale === "number") {
+                if (!tex.uScale) tex.uScale = 10;
+                if (!tex.vScale) tex.vScale = 10;
+              }
+              if (typeof live.getChildMeshes === "function") {
+                for (const m of live.getChildMeshes(false)) {
+                  if (m && m.material !== undefined) m.material = mat;
+                }
+              }
+              if (live.material !== undefined) live.material = mat;
+            } else if (Array.isArray(color) && color.length && color.every(c => c && typeof c === "object")) {
+              const mats = color.map(c => {
+                if (c.materialName && !c.getClassName) {
+                  return flock.createMaterial(c);
+                }
+                return c;
+              });
+              const children = typeof live.getChildMeshes === "function" ? live.getChildMeshes(false) : [];
+              if (live.material !== undefined && mats[0]) live.material = mats[0];
+              for (let i = 0; i < children.length; i++) {
+                if (children[i] && children[i].material !== undefined && mats[i]) {
+                  children[i].material = mats[i];
+                }
+              }
+            } else {
+              flock.changeColorMesh(live, color);
+            }
+          }
 
           requestAnimationFrame(() => {
             const mesh = flock.scene.getMeshByName(meshName) || live;

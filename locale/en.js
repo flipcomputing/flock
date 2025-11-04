@@ -773,6 +773,7 @@ export default {
   skittles_ui: "🎳 Skittles",
   beetle_ui: "🪲 Beetle",
   roominator_ui: "🛋️ Roominator",
+  sit_down_ui: "🪑 Sit Down",
   ball_pit_ui: "🟠 Ball Pit",
   ur_enough_ui: "💗 UR Enough!",
   tallest_buildings_ui: "📊 Tallest buildings",
@@ -793,7 +794,8 @@ export default {
 
   theme_submenu_ui: "Theme",
   light_theme_ui: "Light",
-  dark_theme_ui: "Dark",
+  dark_theme_ui: "Dark 2",
+  dark_contrast_theme_ui: "Dark",
   contrast_theme_ui: "Contrast",
 
   run_code_button_ui: "Run your code",

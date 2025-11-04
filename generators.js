@@ -14,6 +14,98 @@ export function generateUniqueId(prefix = "") {
         return `${prefix}_${uniqueIdCounter}`;
 }
 
+function sanitizeForCode(input) {
+        let s = String(input);
+
+        // Cut from the first *real* newline (\r, \n, or Unicode line separator)
+        s = s.replace(/[\r\n\u2028\u2029].*$/s, "");
+        // Cut from the first *escaped* newline sequence (\n, \r, \u2028, \u2029, \x0A, \x0D)
+        s = s.replace(/\\(?:n|r|u(?:2028|2029|000a|000d)|x0(?:a|d)).*$/i, "");
+
+        // Remove any trailing backslashes that could remain (edge cases)
+        s = s.replace(/\\+$/, "");
+
+        // Neutralize comment and template literal markers
+        s = s.replace(/\*\//g, "*∕").replace(/\/\//g, "∕∕").replace(/`/g, "ˋ");
+
+        // Strip control characters (optional, keeps tabs/spaces)
+        s = s.replace(/[\u0000-\u001F\u007F]/g, "");
+
+        return s;
+}
+
+function emitSafeTextArg(code) {
+        if (!code) return '""';
+        const m = code.match(/^(['"`])(.*)\1$/s);
+        if (!m) return code;
+
+        const q = m[1];
+        const body = m[2];
+
+        // Decode literal safely (handles \', \\ , \n, \uXXXX, etc.)
+        let decoded;
+        try {
+                decoded = JSON.parse(q + body + q);
+        } catch {
+                decoded = body
+                        .replace(/\\"/g, '"')
+                        .replace(/\\'/g, "'")
+                        .replace(/\\\\/g, "\\");
+        }
+
+        return JSON.stringify(sanitizeForCode(decoded));
+}
+
+const RESERVED_IDENTIFIERS = new Set([
+  "await","break","case","catch","class","const","continue","debugger","default",
+  "delete","do","else","enum","export","extends","false","finally","for","function",
+  "if","implements","import","in","instanceof","interface","let","new","null",
+  "package","private","protected","public","return","static","super","switch",
+  "this","throw","true","try","typeof","var","void","while","with","yield",
+  "arguments","eval"
+]);
+
+function emitSafeIdentifierLiteral(code) {
+  if (!code) {
+    console.debug("[emitSafeIdentifierLiteral] No code → undefined");
+    return "undefined";
+  }
+
+  // Match single, double, or template quoted literals
+  const m = code.match(/^(['"`])(.*)\1$/s);
+  if (!m) {
+    console.debug("[emitSafeIdentifierLiteral] Not quoted → undefined:", code);
+    return "undefined";
+  }
+
+  const rawBody = m[2];
+
+  // Reject escapes entirely
+  if (rawBody.includes("\\")) {
+    console.debug("[emitSafeIdentifierLiteral] Contains backslash → undefined:", rawBody);
+    return "undefined";
+  }
+
+  // Replace spaces and other whitespace with underscores
+  const normalized = rawBody.replace(/\s+/g, "_");
+  console.debug("[emitSafeIdentifierLiteral] Normalized:", normalized);
+
+  // Validate identifier
+  if (!/^[A-Za-z$_][A-Za-z0-9$_]*$/.test(normalized)) {
+    console.debug("[emitSafeIdentifierLiteral] Invalid identifier → undefined:", normalized);
+    return "undefined";
+  }
+
+  // Check reserved keywords
+  if (RESERVED_IDENTIFIERS.has(normalized)) {
+    console.debug("[emitSafeIdentifierLiteral] Reserved identifier → undefined:", normalized);
+    return "undefined";
+  }
+
+  console.debug("[emitSafeIdentifierLiteral] OK →", normalized);
+  return JSON.stringify(normalized);
+}
+
 export function defineGenerators() {
         // Force re-initialization of animation generators
         delete javascriptGenerator.forBlock["play_animation"];
@@ -191,8 +283,13 @@ export function defineGenerators() {
 
                 if (keyframesBlock) {
                         // Loop through keyframe blocks to gather data
-                        for (let i = 0; i < keyframesBlock.inputList.length; i++) {
-                                const keyframeInput = keyframesBlock.inputList[i];
+                        for (
+                                let i = 0;
+                                i < keyframesBlock.inputList.length;
+                                i++
+                        ) {
+                                const keyframeInput =
+                                        keyframesBlock.inputList[i];
                                 const valueBlock = keyframeInput.connection
                                         ? keyframeInput.connection.targetBlock()
                                         : null;
@@ -200,21 +297,30 @@ export function defineGenerators() {
 
                                 if (valueBlock) {
                                         // If the keyframe block is of type "colour_keyframe", treat it as a color keyframe.
-                                        if (valueBlock.type === "colour_keyframe") {
-                                                value = javascriptGenerator.valueToCode(
-                                                        valueBlock,
-                                                        "VALUE",
-                                                        javascriptGenerator.ORDER_NONE,
-                                                );
+                                        if (
+                                                valueBlock.type ===
+                                                "colour_keyframe"
+                                        ) {
+                                                value =
+                                                        javascriptGenerator.valueToCode(
+                                                                valueBlock,
+                                                                "VALUE",
+                                                                javascriptGenerator.ORDER_NONE,
+                                                        );
                                         } else if (property === "color") {
                                                 // Otherwise, if property equals "color", extract as a color.
-                                                value = javascriptGenerator.valueToCode(
-                                                        valueBlock,
-                                                        "VALUE",
-                                                        javascriptGenerator.ORDER_NONE,
-                                                );
+                                                value =
+                                                        javascriptGenerator.valueToCode(
+                                                                valueBlock,
+                                                                "VALUE",
+                                                                javascriptGenerator.ORDER_NONE,
+                                                        );
                                         } else if (
-                                                ["position", "rotation", "scaling"].includes(property)
+                                                [
+                                                        "position",
+                                                        "rotation",
+                                                        "scaling",
+                                                ].includes(property)
                                         ) {
                                                 // For vector keyframes, extract X, Y, and Z.
                                                 const x =
@@ -238,16 +344,18 @@ export function defineGenerators() {
                                                 value = `createVector3(${x}, ${y}, ${z})`;
                                         } else {
                                                 // Handle alpha or other scalar properties.
-                                                value = javascriptGenerator.valueToCode(
-                                                        valueBlock,
-                                                        "VALUE",
-                                                        javascriptGenerator.ORDER_ATOMIC,
-                                                );
+                                                value =
+                                                        javascriptGenerator.valueToCode(
+                                                                valueBlock,
+                                                                "VALUE",
+                                                                javascriptGenerator.ORDER_ATOMIC,
+                                                        );
                                         }
                                 } else {
                                         // Default value for missing blocks.
                                         value =
-                                                property === "color" || property === "colour_keyframe"
+                                                property === "color" ||
+                                                property === "colour_keyframe"
                                                         ? '"#ffffff"'
                                                         : `createVector3(0, 0, 0)`;
                                 }
@@ -258,10 +366,10 @@ export function defineGenerators() {
                                         : null;
                                 const duration = durationBlock
                                         ? javascriptGenerator.valueToCode(
-                                                        durationBlock,
-                                                        "DURATION",
-                                                        javascriptGenerator.ORDER_ATOMIC,
-                                                )
+                                                  durationBlock,
+                                                  "DURATION",
+                                                  javascriptGenerator.ORDER_ATOMIC,
+                                          )
                                         : "1"; // Default duration of 1 second if not specified
 
                                 keyframesArray.push({ value, duration });
@@ -308,8 +416,13 @@ export function defineGenerators() {
 
                 if (keyframesBlock) {
                         // Loop through keyframe blocks to gather data
-                        for (let i = 0; i < keyframesBlock.inputList.length; i++) {
-                                const keyframeInput = keyframesBlock.inputList[i];
+                        for (
+                                let i = 0;
+                                i < keyframesBlock.inputList.length;
+                                i++
+                        ) {
+                                const keyframeInput =
+                                        keyframesBlock.inputList[i];
 
                                 const valueBlock = keyframeInput.connection
                                         ? keyframeInput.connection.targetBlock()
@@ -319,18 +432,24 @@ export function defineGenerators() {
                                         : null;
 
                                 let value;
-                                const property = block.getFieldValue("PROPERTY");
+                                const property =
+                                        block.getFieldValue("PROPERTY");
 
                                 if (valueBlock) {
                                         if (property === "color") {
                                                 // Handle color keyframe (as a string)
-                                                value = javascriptGenerator.valueToCode(
-                                                        valueBlock,
-                                                        "VALUE",
-                                                        javascriptGenerator.ORDER_NONE,
-                                                );
+                                                value =
+                                                        javascriptGenerator.valueToCode(
+                                                                valueBlock,
+                                                                "VALUE",
+                                                                javascriptGenerator.ORDER_NONE,
+                                                        );
                                         } else if (
-                                                ["position", "rotation", "scaling"].includes(property)
+                                                [
+                                                        "position",
+                                                        "rotation",
+                                                        "scaling",
+                                                ].includes(property)
                                         ) {
                                                 // Handle XYZ (Vector3) keyframe for position, rotation, or scaling
                                                 const x =
@@ -354,11 +473,12 @@ export function defineGenerators() {
                                                 value = `createVector3(${x}, ${y}, ${z})`; // Generate the text for Vector3, not the object itself
                                         } else {
                                                 // Handle alpha or other properties
-                                                value = javascriptGenerator.valueToCode(
-                                                        valueBlock,
-                                                        "VALUE",
-                                                        javascriptGenerator.ORDER_ATOMIC,
-                                                );
+                                                value =
+                                                        javascriptGenerator.valueToCode(
+                                                                valueBlock,
+                                                                "VALUE",
+                                                                javascriptGenerator.ORDER_ATOMIC,
+                                                        );
                                         }
                                 } else {
                                         // Default values for missing blocks
@@ -370,10 +490,10 @@ export function defineGenerators() {
 
                                 const duration = durationBlock
                                         ? javascriptGenerator.valueToCode(
-                                                        durationBlock,
-                                                        "DURATION",
-                                                        javascriptGenerator.ORDER_ATOMIC,
-                                                )
+                                                  durationBlock,
+                                                  "DURATION",
+                                                  javascriptGenerator.ORDER_ATOMIC,
+                                          )
                                         : "1"; // Default duration of 1 second if not specified
 
                                 keyframesArray.push({ value, duration });
@@ -502,7 +622,15 @@ export function defineGenerators() {
                 const meshId = "ground";
                 meshMap[meshId] = block;
                 meshBlockIdMap[meshId] = block.id;
-                const color = getFieldValue(block, "COLOR", "#6495ED");
+                let color = getFieldValue(block, "COLOR", '"#6495ED"');
+                
+                const colorInput = block.getInput("COLOR");
+                const colorBlock = colorInput?.connection?.targetBlock();
+                
+                if (colorBlock && colorBlock.type === "material") {
+                        color = `(${color}).color`;
+                }
+                
                 return `createGround(${color}, "${meshId}");\n`;
         };
 
@@ -527,7 +655,12 @@ export function defineGenerators() {
                 const meshId = "sky";
                 meshMap[meshId] = block;
                 meshBlockIdMap[meshId] = block.id;
-                const color = getFieldValue(block, "COLOR", "#6495ED");
+                let color = javascriptGenerator.valueToCode(
+                        block,
+                        "COLOR",
+                        javascriptGenerator.ORDER_NONE,
+                ) || '"#6495ED"';
+                
                 return `setSky(${color});\n`;
         };
 
@@ -549,35 +682,57 @@ export function defineGenerators() {
                 return `buttonControls("${control}", ${enabled}, ${color});\n`;
         };
 
+        // Assumes sanitizeForCode(text) is defined and in scope.
+
+        /**
+         * comment block -> single-line JS comment.
+         * Sanitizes the displayed text so it cannot break out of comment context.
+         */
         javascriptGenerator.forBlock["comment"] = function (block) {
-                const commentText =
+                let raw =
                         javascriptGenerator.valueToCode(
                                 block,
                                 "COMMENT",
                                 javascriptGenerator.ORDER_ATOMIC,
                         ) || "''";
-                return `// ${commentText}\n`;
+
+                const m = raw.match(/^(['"`])(.*)\1$/s);
+                const content = m ? m[2] : raw;
+
+                const safe = sanitizeForCode(content);
+                return `// ${safe}\n`;
         };
 
         javascriptGenerator.forBlock["print_text"] = function (block) {
-                const text =
+                const textCode =
                         javascriptGenerator.valueToCode(
                                 block,
                                 "TEXT",
-                                javascriptGenerator.ORDER_ATOMIC,
+                                javascriptGenerator.ORDER_NONE,
                         ) || "''";
-                const duration =
+                const durationCode =
                         javascriptGenerator.valueToCode(
                                 block,
                                 "DURATION",
-                                javascriptGenerator.ORDER_ATOMIC,
+                                javascriptGenerator.ORDER_NONE,
                         ) || "0";
+
                 const color = getFieldValue(block, "COLOR", "#9932CC");
-                return `printText({ text: ${text}, duration: ${duration}, color: ${color} });\n`;
+
+                const safeTextArg = emitSafeTextArg(textCode);
+
+                const n = `(Number(${durationCode}))`;
+                const safeDuration = `(isFinite(${n}) && ${n} >= 0 ? ${n} : 0)`;
+
+                return `printText({ text: ${safeTextArg}, duration: ${safeDuration}, color: ${color} });\n`;
         };
 
         javascriptGenerator.forBlock["set_fog"] = function (block) {
-                const fogColorHex = getFieldValue(block, "FOG_COLOR", "#9932CC");
+                const fogColorHex = getFieldValue(
+                        block,
+                        "FOG_COLOR",
+                        "#9932CC",
+                );
                 const fogMode = block.getFieldValue("FOG_MODE");
                 const fogDensity =
                         javascriptGenerator.valueToCode(
@@ -590,54 +745,59 @@ export function defineGenerators() {
         };
 
         javascriptGenerator.forBlock["ui_text"] = function (block) {
-                const text = javascriptGenerator.valueToCode(
-                        block,
-                        "TEXT",
-                        javascriptGenerator.ORDER_ATOMIC,
-                );
-                const x = javascriptGenerator.valueToCode(
-                        block,
-                        "X",
-                        javascriptGenerator.ORDER_ATOMIC,
-                );
-                const y = javascriptGenerator.valueToCode(
-                        block,
-                        "Y",
-                        javascriptGenerator.ORDER_ATOMIC,
-                );
-                const fontSize = javascriptGenerator.valueToCode(
-                        block,
-                        "FONT_SIZE",
-                        javascriptGenerator.ORDER_ATOMIC,
-                );
-                const duration = javascriptGenerator.valueToCode(
-                        block,
-                        "DURATION",
-                        javascriptGenerator.ORDER_ATOMIC,
-                );
-                const color = javascriptGenerator.valueToCode(
-                        block,
-                        "COLOR",
-                        javascriptGenerator.ORDER_ATOMIC,
-                );
+                const textCode =
+                        javascriptGenerator.valueToCode(
+                                block,
+                                "TEXT",
+                                javascriptGenerator.ORDER_ATOMIC,
+                        ) || '""';
+                const xCode =
+                        javascriptGenerator.valueToCode(
+                                block,
+                                "X",
+                                javascriptGenerator.ORDER_ATOMIC,
+                        ) || "0";
+                const yCode =
+                        javascriptGenerator.valueToCode(
+                                block,
+                                "Y",
+                                javascriptGenerator.ORDER_ATOMIC,
+                        ) || "0";
+                const fontSizeCode =
+                        javascriptGenerator.valueToCode(
+                                block,
+                                "FONT_SIZE",
+                                javascriptGenerator.ORDER_ATOMIC,
+                        ) || "24";
+                const durationCode =
+                        javascriptGenerator.valueToCode(
+                                block,
+                                "DURATION",
+                                javascriptGenerator.ORDER_ATOMIC,
+                        ) || "0";
+                const colorCode =
+                        javascriptGenerator.valueToCode(
+                                block,
+                                "COLOR",
+                                javascriptGenerator.ORDER_ATOMIC,
+                        ) || '""';
 
                 const textBlockVar = javascriptGenerator.nameDB_.getName(
                         block.getFieldValue("TEXTBLOCK_VAR"),
                         Blockly.VARIABLE_CATEGORY_NAME,
                 );
 
-                // Generate the code using the helper function
-                const code = `${textBlockVar} = UIText({
-                  text: ${text},
-                  x: ${x},
-                  y: ${y},
-                  fontSize: ${fontSize},
-                  color: ${color},
-                  duration: ${duration},
-                  id: ${textBlockVar}
-                });\n`;
+                const safeTextArg = emitSafeTextArg(textCode);
 
-                return code;
+                return `${textBlockVar} = UIText({
+          text: ${safeTextArg},
+          x: ${xCode},
+          y: ${yCode},
+          fontSize: ${fontSizeCode},
+          color: ${colorCode},
+          duration: ${durationCode},
+          id: ${textBlockVar}
+        });\n`;
         };
 
         javascriptGenerator.forBlock["ui_input"] = function (block) {
@@ -646,54 +806,57 @@ export function defineGenerators() {
                         Blockly.VARIABLE_CATEGORY_NAME,
                 );
 
-                const text = javascriptGenerator.valueToCode(
-                        block,
-                        "TEXT",
-                        javascriptGenerator.ORDER_ATOMIC,
-                );
+                const textCode =
+                        javascriptGenerator.valueToCode(
+                                block,
+                                "TEXT",
+                                javascriptGenerator.ORDER_ATOMIC,
+                        ) || '""';
+                const xCode =
+                        javascriptGenerator.valueToCode(
+                                block,
+                                "X",
+                                javascriptGenerator.ORDER_ATOMIC,
+                        ) || "0";
+                const yCode =
+                        javascriptGenerator.valueToCode(
+                                block,
+                                "Y",
+                                javascriptGenerator.ORDER_ATOMIC,
+                        ) || "0";
+                const fontSizeCode =
+                        javascriptGenerator.valueToCode(
+                                block,
+                                "TEXT_SIZE",
+                                javascriptGenerator.ORDER_ATOMIC,
+                        ) || "24";
+                const textColorCode =
+                        javascriptGenerator.valueToCode(
+                                block,
+                                "TEXT_COLOR",
+                                javascriptGenerator.ORDER_ATOMIC,
+                        ) || '"#000000"';
+                const backgroundColorCode =
+                        javascriptGenerator.valueToCode(
+                                block,
+                                "BACKGROUND_COLOR",
+                                javascriptGenerator.ORDER_ATOMIC,
+                        ) || '"#ffffff"';
 
-                const x = javascriptGenerator.valueToCode(
-                        block,
-                        "X",
-                        javascriptGenerator.ORDER_ATOMIC,
-                );
+                const size = block.getFieldValue("SIZE") || "medium";
 
-                const y = javascriptGenerator.valueToCode(
-                        block,
-                        "Y",
-                        javascriptGenerator.ORDER_ATOMIC,
-                );
-
-                const fontSize = javascriptGenerator.valueToCode(
-                        block,
-                        "TEXT_SIZE",
-                        javascriptGenerator.ORDER_ATOMIC,
-                );
-
-                const textColor = javascriptGenerator.valueToCode(
-                        block,
-                        "TEXT_COLOR",
-                        javascriptGenerator.ORDER_ATOMIC,
-                );
-
-                const backgroundColor = javascriptGenerator.valueToCode(
-                        block,
-                        "BACKGROUND_COLOR",
-                        javascriptGenerator.ORDER_ATOMIC,
-                );
-
-                const size = block.getFieldValue("SIZE");
+                const safeTextArg = emitSafeTextArg(textCode);
 
                 return `${varName} = await UIInput({
-                  text: ${text},
-                  x: ${x},
-                  y: ${y},
-                  size: "${size}",
-                  fontSize: ${fontSize},
-                  textColor: ${textColor},
-                  backgroundColor: ${backgroundColor},
-                  id: ${varName}
-                });\n`;
+            text: ${safeTextArg},
+            x: ${xCode},
+            y: ${yCode},
+            size: "${size}",
+            fontSize: ${fontSizeCode},
+            textColor: ${textColorCode},
+            backgroundColor: ${backgroundColorCode},
+            id: ${varName}
+          });\n`;
         };
 
         javascriptGenerator.forBlock["ui_slider"] = function (block) {
@@ -820,46 +983,57 @@ export function defineGenerators() {
         };
 
         javascriptGenerator.forBlock["say"] = function (block) {
-                const text =
+                const textCode =
                         javascriptGenerator.valueToCode(
                                 block,
                                 "TEXT",
                                 javascriptGenerator.ORDER_ATOMIC,
                         ) || '""';
-                const duration =
+                const durationCode =
                         javascriptGenerator.valueToCode(
                                 block,
                                 "DURATION",
                                 javascriptGenerator.ORDER_ATOMIC,
                         ) || "0";
+                const alphaCode =
+                        javascriptGenerator.valueToCode(
+                                block,
+                                "ALPHA",
+                                javascriptGenerator.ORDER_ATOMIC,
+                        ) || "1";
+                const sizeCode =
+                        javascriptGenerator.valueToCode(
+                                block,
+                                "SIZE",
+                                javascriptGenerator.ORDER_ATOMIC,
+                        ) || "24";
+
                 const meshVariable = javascriptGenerator.nameDB_.getName(
                         block.getFieldValue("MESH_VAR"),
                         Blockly.Names.NameType.VARIABLE,
                 );
+
                 const textColor = getFieldValue(block, "TEXT_COLOR", "#000000");
                 const backgroundColor = getFieldValue(
                         block,
                         "BACKGROUND_COLOR",
                         "#ffffff",
                 );
-                const alpha =
-                        javascriptGenerator.valueToCode(
-                                block,
-                                "ALPHA",
-                                javascriptGenerator.ORDER_ATOMIC,
-                        ) || "1";
-                const size =
-                        javascriptGenerator.valueToCode(
-                                block,
-                                "SIZE",
-                                javascriptGenerator.ORDER_ATOMIC,
-                        ) || "24";
-                const mode = block.getFieldValue("MODE");
-                const asyncMode = block.getFieldValue("ASYNC");
 
+                const mode = block.getFieldValue("MODE") || "";
+                const asyncMode = block.getFieldValue("ASYNC");
                 const asyncWrapper = asyncMode === "AWAIT" ? "await " : "";
 
-                return `${asyncWrapper}say(${meshVariable}, { text: ${text}, duration: ${duration}, textColor: ${textColor}, backgroundColor: ${backgroundColor}, alpha: ${alpha}, size: ${size}, mode: "${mode}" });\n`;
+                const safeTextArg = emitSafeTextArg(textCode);
+
+                const d = `(Number(${durationCode}))`;
+                const safeDuration = `(isFinite(${d}) && ${d} >= 0 ? ${d} : 0)`;
+                const a = `(Number(${alphaCode}))`;
+                const safeAlpha = `(isFinite(${a}) ? Math.min(Math.max(${a}, 0), 1) : 1)`;
+                const s = `(Number(${sizeCode}))`;
+                const safeSize = `(isFinite(${s}) && ${s} > 0 ? ${s} : 24)`;
+
+                return `${asyncWrapper}say(${meshVariable}, { text: ${safeTextArg}, duration: ${safeDuration}, textColor: ${textColor}, backgroundColor: ${backgroundColor}, alpha: ${safeAlpha}, size: ${safeSize}, mode: ${JSON.stringify(mode)} });\n`;
         };
 
         javascriptGenerator.forBlock["load_model"] = function (block) {
@@ -879,7 +1053,11 @@ export function defineGenerators() {
 
                 let doCode = "";
                 if (block.getInput("DO")) {
-                        doCode = javascriptGenerator.statementToCode(block, "DO") || "";
+                        doCode =
+                                javascriptGenerator.statementToCode(
+                                        block,
+                                        "DO",
+                                ) || "";
                 }
                 doCode = doCode ? `async function() {\n${doCode}\n}` : "";
 
@@ -900,9 +1078,21 @@ export function defineGenerators() {
                 const hairColor = getFieldValue(block, "HAIR_COLOR", "#000000");
                 const skinColor = getFieldValue(block, "SKIN_COLOR", "#FFE0BD");
                 const eyesColor = getFieldValue(block, "EYES_COLOR", "#0000FF");
-                const sleevesColor = getFieldValue(block, "SLEEVES_COLOR", "#FFFFFF");
-                const shortsColor = getFieldValue(block, "SHORTS_COLOR", "#000000");
-                const tshirtColor = getFieldValue(block, "TSHIRT_COLOR", "#FF0000");
+                const sleevesColor = getFieldValue(
+                        block,
+                        "SLEEVES_COLOR",
+                        "#FFFFFF",
+                );
+                const shortsColor = getFieldValue(
+                        block,
+                        "SHORTS_COLOR",
+                        "#000000",
+                );
+                const tshirtColor = getFieldValue(
+                        block,
+                        "TSHIRT_COLOR",
+                        "#FF0000",
+                );
                 const variableName = javascriptGenerator.nameDB_.getName(
                         block.getFieldValue("ID_VAR"),
                         Blockly.Names.NameType.VARIABLE,
@@ -915,7 +1105,11 @@ export function defineGenerators() {
                 let doCode = "";
 
                 if (block.getInput("DO")) {
-                        doCode = javascriptGenerator.statementToCode(block, "DO") || "";
+                        doCode =
+                                javascriptGenerator.statementToCode(
+                                        block,
+                                        "DO",
+                                ) || "";
                 }
 
                 doCode = doCode ? `async function() {\n${doCode}\n}` : "";
@@ -942,7 +1136,8 @@ export function defineGenerators() {
                 const x = getFieldValue(block, "X", "0");
                 const y = getFieldValue(block, "Y", "0");
                 const z = getFieldValue(block, "Z", "0");
-                const color = getFieldValue(block, "COLOR", "#000000");
+                const color = getFieldValue(block, "COLOR", '"#000000"');
+                
                 const variableName = javascriptGenerator.nameDB_.getName(
                         block.getFieldValue("ID_VAR"),
                         Blockly.Names.NameType.VARIABLE,
@@ -956,7 +1151,11 @@ export function defineGenerators() {
                 let doCode = "";
 
                 if (block.getInput("DO")) {
-                        doCode = javascriptGenerator.statementToCode(block, "DO") || "";
+                        doCode =
+                                javascriptGenerator.statementToCode(
+                                        block,
+                                        "DO",
+                                ) || "";
                 }
 
                 doCode = doCode ? `async function() {\n${doCode}\n}` : "";
@@ -976,7 +1175,8 @@ export function defineGenerators() {
                 const x = getFieldValue(block, "X", "0");
                 const y = getFieldValue(block, "Y", "0");
                 const z = getFieldValue(block, "Z", "0");
-                const color = getFieldValue(block, "COLOR", "#000000");
+                const color = getFieldValue(block, "COLOR", '"#000000"');
+                
                 const variableName = javascriptGenerator.nameDB_.getName(
                         block.getFieldValue("ID_VAR"),
                         Blockly.Names.NameType.VARIABLE,
@@ -990,7 +1190,11 @@ export function defineGenerators() {
                 let doCode = "";
 
                 if (block.getInput("DO")) {
-                        doCode = javascriptGenerator.statementToCode(block, "DO") || "";
+                        doCode =
+                                javascriptGenerator.statementToCode(
+                                        block,
+                                        "DO",
+                                ) || "";
                 }
 
                 doCode = doCode ? `async function() {\n${doCode}\n}` : "";
@@ -1024,7 +1228,11 @@ export function defineGenerators() {
                 let doCode = "";
 
                 if (block.getInput("DO")) {
-                        doCode = javascriptGenerator.statementToCode(block, "DO") || "";
+                        doCode =
+                                javascriptGenerator.statementToCode(
+                                        block,
+                                        "DO",
+                                ) || "";
                 }
 
                 doCode = doCode ? `async function() {\n${doCode}\n}` : "";
@@ -1059,7 +1267,11 @@ export function defineGenerators() {
                 // Generate the code for the "do" part (if present)
                 let doCode = "";
                 if (block.getInput("DO")) {
-                        doCode = javascriptGenerator.statementToCode(block, "DO") || "";
+                        doCode =
+                                javascriptGenerator.statementToCode(
+                                        block,
+                                        "DO",
+                                ) || "";
                 }
 
                 // Wrap "DO" code in an async function if it exists
@@ -1078,9 +1290,17 @@ export function defineGenerators() {
                         Blockly.Names.NameType.VARIABLE,
                 );
 
-                const text = getFieldValue(block, "TEXT", "Hello World");
+                let rawText = getFieldValue(block, "TEXT", "Hello World");
+                if (typeof rawText !== "string")
+                        rawText = String(rawText ?? "");
+                const m = rawText.match(/^(['"`])(.*)\1$/s);
+                const textLiteral = JSON.stringify(
+                        sanitizeForCode(m ? m[2] : rawText),
+                );
+
                 const fontKey =
-                        block.getFieldValue("FONT") || "__fonts_FreeSans_Bold_json";
+                        block.getFieldValue("FONT") ||
+                        "__fonts_FreeSans_Bold_json";
                 const size = getFieldValue(block, "SIZE", "50");
                 const depth = getFieldValue(block, "DEPTH", "1.0");
                 const x = getFieldValue(block, "X", "0");
@@ -1088,37 +1308,38 @@ export function defineGenerators() {
                 const z = getFieldValue(block, "Z", "0");
                 const color = getFieldValue(block, "COLOR", "#FFFFFF");
 
-                // Convert font key to actual path
-                let font = "./fonts/FreeSans_Bold.json"; // Default path
-                if (fontKey === "__fonts_FreeSans_Bold_json") {
+                let font = "./fonts/FreeSans_Bold.json";
+                if (fontKey === "__fonts_FreeSans_Bold_json")
                         font = "./fonts/FreeSans_Bold.json";
-                }
 
                 const meshId = "text_" + generateUniqueId();
                 meshMap[meshId] = block;
                 meshBlockIdMap[meshId] = block.id;
 
-                // Generate the code for the "do" part (if present)
                 let doCode = "";
-
                 if (block.getInput("DO")) {
-                        doCode = javascriptGenerator.statementToCode(block, "DO") || "";
+                        doCode =
+                                javascriptGenerator.statementToCode(
+                                        block,
+                                        "DO",
+                                ) || "";
                 }
-
                 doCode = doCode ? `async function() {\n${doCode}\n}` : "";
 
                 return `${variableName} = create3DText({
-                        text: ${text},
-                        font: '${font}',
-                        color: ${color},
-                        size: ${size},
-                        depth: ${depth},
-                        position: { x: ${x}, y: ${y}, z: ${z} },
-                        modelId: '${meshId}'${doCode ? `,\ncallback: ${doCode}` : ""}
-                });\n`;
+          text: ${textLiteral},
+          font: '${font}',
+          color: ${color},
+          size: ${size},
+          depth: ${depth},
+          position: { x: ${x}, y: ${y}, z: ${z} },
+          modelId: '${meshId}'${doCode ? `,\n  callback: ${doCode}` : ""}
+        });\n`;
         };
 
-        javascriptGenerator.forBlock["create_particle_effect"] = function (block) {
+        javascriptGenerator.forBlock["create_particle_effect"] = function (
+                block,
+        ) {
                 const emitRate = parseFloat(
                         javascriptGenerator.valueToCode(
                                 block,
@@ -1270,7 +1491,9 @@ export function defineGenerators() {
                 return `${variableName} = createParticleEffect("${variableName}", ${options.trim()});\n`;
         };
 
-        javascriptGenerator.forBlock["control_particle_system"] = function (block) {
+        javascriptGenerator.forBlock["control_particle_system"] = function (
+                block,
+        ) {
                 const systemName = javascriptGenerator.nameDB_.getName(
                         block.getFieldValue("SYSTEM_NAME"),
                         Blockly.Names.NameType.VARIABLE,
@@ -1350,8 +1573,16 @@ export function defineGenerators() {
                 const color = getFieldValue(block, "COLOR", "#9932CC");
                 const height = getFieldValue(block, "HEIGHT", "2");
                 const diameterTop = getFieldValue(block, "DIAMETER_TOP", "1");
-                const diameterBottom = getFieldValue(block, "DIAMETER_BOTTOM", "1");
-                const tessellations = getFieldValue(block, "TESSELLATIONS", "12");
+                const diameterBottom = getFieldValue(
+                        block,
+                        "DIAMETER_BOTTOM",
+                        "1",
+                );
+                const tessellations = getFieldValue(
+                        block,
+                        "TESSELLATIONS",
+                        "12",
+                );
 
                 const positionSource = getPositionTuple(block);
 
@@ -1402,12 +1633,27 @@ export function defineGenerators() {
         };
 
         javascriptGenerator.forBlock["set_background_color"] = function (block) {
-                const color = getFieldValue(block, "COLOR", "#6495ED");
-                const meshId = "sky";
-                meshMap[meshId] = block;
-                meshBlockIdMap[meshId] = block.id;
-                return `setSky(${color});\n`;
+          // Defaults to a quoted hex string (e.g., "#6495ED")
+          let color = getFieldValue(block, "COLOR", '"#6495ED"');
+
+          const colorInput = block.getInput("COLOR");
+          const colorBlock = colorInput?.connection?.targetBlock();
+
+          if (colorBlock && colorBlock.type === "material") {
+            color = `(function(m){
+              const c = (m && (m.color || m.diffuseColor || m.albedoColor));
+              return (c && c.toHexString) ? c.toHexString() : "#6495ED";
+            })(${color})`;
+          }
+
+          const meshId = "sky";
+          meshMap[meshId] = block;
+          meshBlockIdMap[meshId] = block.id;
+
+          // Background block should always request clear-color behaviour
+          return `setSky(${color}, { clear: true });\n`;
         };
+
 
         javascriptGenerator.forBlock["create_wall"] = function (block) {
                 const color = getFieldValue(block, "COLOR", "#9932CC");
@@ -1570,7 +1816,7 @@ export function defineGenerators() {
         };
 
         javascriptGenerator.forBlock["distance_to"] = function (block) {
-                c;
+        
                 const meshName1 = javascriptGenerator.nameDB_.getName(
                         block.getFieldValue("MODEL1"),
                         Blockly.Names.NameType.VARIABLE,
@@ -1586,7 +1832,7 @@ export function defineGenerators() {
         };
 
         javascriptGenerator.forBlock["time"] = function (block) {
-                let code = `Math.floor(new Date().getTime()) / 1000`;
+                let code = `Math.floor(Date.now() / 1000)`;
                 return [code, javascriptGenerator.ORDER_ATOMIC];
         };
 
@@ -1759,7 +2005,8 @@ export function defineGenerators() {
         };
 
         javascriptGenerator.forBlock["set_mesh_bpm"] = function (block) {
-                const meshNameField = block.getFieldValue("MESH") || "__everywhere__";
+                const meshNameField =
+                        block.getFieldValue("MESH") || "__everywhere__";
                 const meshName = `"${meshNameField}"`; // Always quoted
 
                 const bpm =
@@ -1815,7 +2062,9 @@ export function defineGenerators() {
                 );
 
                 const meshDropdownField = meshInput
-                        ? meshInput.fieldRow.find((field) => field.name === "MESH_NAME")
+                        ? meshInput.fieldRow.find(
+                                  (field) => field.name === "MESH_NAME",
+                          )
                         : null;
                 console.log(
                         `[SPEAK GENERATOR DEBUG] meshDropdownField:`,
@@ -1918,7 +2167,9 @@ export function defineGenerators() {
                 const trigger = block.getFieldValue("TRIGGER");
                 const mode = block.getFieldValue("MODE") || "wait";
 
-                const doCode = javascriptGenerator.statementToCode(block, "DO").trim();
+                const doCode = javascriptGenerator
+                        .statementToCode(block, "DO")
+                        .trim();
                 const thenCodes = [];
 
                 for (let i = 0; i < block.thenCount_; i++) {
@@ -1930,7 +2181,9 @@ export function defineGenerators() {
                         }
                 }
 
-                const allActions = [doCode, ...thenCodes].filter((code) => code);
+                const allActions = [doCode, ...thenCodes].filter(
+                        (code) => code,
+                );
                 const actionFunctions = allActions.map(
                         (code) => `async function(${modelName}) {\n${code}\n}`,
                 );
@@ -1967,7 +2220,10 @@ export function defineGenerators() {
         javascriptGenerator.forBlock["when_key_event"] = function (block) {
                 const key = block.getFieldValue("KEY");
                 const event = block.getFieldValue("EVENT"); // "pressed" or "released"
-                const statements_do = javascriptGenerator.statementToCode(block, "DO");
+                const statements_do = javascriptGenerator.statementToCode(
+                        block,
+                        "DO",
+                );
 
                 // Pass "true" if event is "released" for the whenKeyPressed helper function
                 return `whenKeyEvent("${key}", async () => {${statements_do}}, ${event === "released"});\n`;
@@ -1975,28 +2231,36 @@ export function defineGenerators() {
 
         // JavaScript generator for broadcast_event
         javascriptGenerator.forBlock["broadcast_event"] = function (block) {
-                const eventName =
-                        javascriptGenerator.valueToCode(
-                                block,
-                                "EVENT_NAME",
-                                javascriptGenerator.ORDER_ATOMIC,
-                        ) || '"go"';
+          const raw =
+            javascriptGenerator.valueToCode(
+              block,
+              "EVENT_NAME",
+              javascriptGenerator.ORDER_ATOMIC
+            ) || 'undefined';
 
-                return `broadcastEvent(${eventName});\n`;
+          const safe = emitSafeIdentifierLiteral(raw, undefined);
+          return `broadcastEvent(${safe});\n`;
         };
+
 
         // JavaScript generator for on_event
         javascriptGenerator.forBlock["on_event"] = function (block) {
-                const eventName =
-                        javascriptGenerator.valueToCode(
-                                block,
-                                "EVENT_NAME",
-                                javascriptGenerator.ORDER_ATOMIC,
-                        ) || '"go"';
-                const statements_do = javascriptGenerator.statementToCode(block, "DO");
+          // Don't force a default; let invalid/empty resolve to undefined
+          const raw =
+            javascriptGenerator.valueToCode(
+              block,
+              "EVENT_NAME",
+              javascriptGenerator.ORDER_ATOMIC
+            ) || "";
 
-                return `onEvent(${eventName}, async function() {\n${statements_do}});\n`;
+          console.debug("[on_event] Raw EVENT_NAME:", raw);
+          const safe = emitSafeIdentifierLiteral(raw);
+          console.debug("[on_event] Safe result:", safe);
+
+          const statements_do = javascriptGenerator.statementToCode(block, "DO");
+          return `onEvent(${safe}, async function() {\n${statements_do}});\n`;
         };
+
         javascriptGenerator.forBlock["highlight"] = function (block) {
                 const modelName = javascriptGenerator.nameDB_.getName(
                         block.getFieldValue("MODEL_VAR"),
@@ -2122,7 +2386,9 @@ export function defineGenerators() {
                 return `${helperFunction}(${modelName}, ${speed});\n`;
         };
 
-        javascriptGenerator.forBlock["control_animation_group"] = function (block) {
+        javascriptGenerator.forBlock["control_animation_group"] = function (
+                block,
+        ) {
                 const animationGroupName = javascriptGenerator.nameDB_.getName(
                         block.getFieldValue("GROUP_NAME"),
                         Blockly.Names.NameType.VARIABLE,
@@ -2205,7 +2471,10 @@ export function defineGenerators() {
                         Blockly.Names.NameType.VARIABLE,
                 );
 
-                return [`meshExists(${modelName})`, javascriptGenerator.ORDER_NONE];
+                return [
+                        `meshExists(${modelName})`,
+                        javascriptGenerator.ORDER_NONE,
+                ];
         };
 
         javascriptGenerator.forBlock["camera_follow"] = function (block) {
@@ -2585,7 +2854,11 @@ export function defineGenerators() {
 
         javascriptGenerator.forBlock["random_seeded_int"] = function (block) {
                 const value_from = getFieldValue(block, "FROM", 0);
-                const value_to = getFieldValue(block, "TO", FlowGraphLog10Block);
+                const value_to = getFieldValue(
+                        block,
+                        "TO",
+                        FlowGraphLog10Block,
+                );
                 const value_seed = getFieldValue(block, "SEED", 123456);
 
                 const code = `seededRandom(${value_from}, ${value_to}, ${value_seed})`;
@@ -2636,7 +2909,7 @@ export function defineGenerators() {
                                 "BASE_COLOR",
 
                                 javascriptGenerator.ORDER_ATOMIC,
-                        ) || "1";
+                        ) || '"#ffffff"';
 
                 const textureSet = block.getFieldValue("TEXTURE_SET");
                 const alpha =
@@ -2646,16 +2919,18 @@ export function defineGenerators() {
                                 javascriptGenerator.ORDER_ATOMIC,
                         ) || "1";
 
-    function findSetMaterial(currentBlock) {
-      if (currentBlock.type === "set_material") return true;
-      if (currentBlock.parentBlock_ === null) return false;
-      return findSetMaterial(currentBlock.parentBlock_);
-    }
+                function findSetMaterial(currentBlock) {
+                        if (currentBlock.type === "set_material") return true;
+                        if (currentBlock.parentBlock_ === null) return false;
+                        return findSetMaterial(currentBlock.parentBlock_);
+                }
 
-    const isInSetMaterial = findSetMaterial(block);
+                const isInSetMaterial = findSetMaterial(block);
 
                 // Generate the code to call the createMaterial helper function
-                const code = isInSetMaterial ? `{ color: ${baseColor}, materialName: "${textureSet}", alpha: ${alpha} }` : `createMaterial({ color: ${baseColor}, materialName: "${textureSet}", alpha: ${alpha} })`;
+                const code = isInSetMaterial
+                        ? `{ color: ${baseColor}, materialName: "${textureSet}", alpha: ${alpha} }`
+                        : `createMaterial({ color: ${baseColor}, materialName: "${textureSet}", alpha: ${alpha} })`;
                 return [code, javascriptGenerator.ORDER_FUNCTION_CALL];
         };
 
@@ -2837,21 +3112,21 @@ export function defineGenerators() {
         };
 
         javascriptGenerator.forBlock["set_material"] = function (block) {
-    const meshVar = javascriptGenerator.nameDB_.getName(
-      block.getFieldValue("MESH"),
-      Blockly.Names.NameType.VARIABLE,
-    );
+                const meshVar = javascriptGenerator.nameDB_.getName(
+                        block.getFieldValue("MESH"),
+                        Blockly.Names.NameType.VARIABLE,
+                );
 
-    const material = javascriptGenerator.valueToCode(
-      block,
-      "MATERIAL",
-      javascriptGenerator.ORDER_ATOMIC,
-    );
+                const material = javascriptGenerator.valueToCode(
+                        block,
+                        "MATERIAL",
+                        javascriptGenerator.ORDER_ATOMIC,
+                );
 
-    // Ensure the MATERIAL input is wrapped in an array if not already one
-    const code = `setMaterial(${meshVar}, Array.isArray(${material}) ? ${material} : [${material}]);\n`;
-    return code;
-    /*
+                // Ensure the MATERIAL input is wrapped in an array if not already one
+                const code = `setMaterial(${meshVar}, Array.isArray(${material}) ? ${material} : [${material}]);\n`;
+                return code;
+                /*
                 // Generate a unique temporary variable name
                 const tempVar = javascriptGenerator.nameDB_.getDistinctName(
                         "material_temp",
@@ -2890,7 +3165,9 @@ export function defineGenerators() {
                 return [`"${colourValue}"`, javascriptGenerator.ORDER_ATOMIC];
         };
 
-        javascriptGenerator.forBlock["procedures_defnoreturn"] = function (block) {
+        javascriptGenerator.forBlock["procedures_defnoreturn"] = function (
+                block,
+        ) {
                 const functionName = javascriptGenerator.nameDB_.getName(
                         block.getFieldValue("NAME"),
                         Blockly.PROCEDURE_CATEGORY_NAME,
@@ -2909,7 +3186,9 @@ export function defineGenerators() {
                 return code;
         };
 
-        javascriptGenerator.forBlock["procedures_callnoreturn"] = function (block) {
+        javascriptGenerator.forBlock["procedures_callnoreturn"] = function (
+                block,
+        ) {
                 const functionName = javascriptGenerator.nameDB_.getName(
                         block.getFieldValue("NAME"),
                         Blockly.PROCEDURE_CATEGORY_NAME,
@@ -2928,7 +3207,9 @@ export function defineGenerators() {
                 return code;
         };
 
-        javascriptGenerator.forBlock["procedures_defreturn"] = function (block) {
+        javascriptGenerator.forBlock["procedures_defreturn"] = function (
+                block,
+        ) {
                 const functionName = javascriptGenerator.nameDB_.getName(
                         block.getFieldValue("NAME"),
                         Blockly.PROCEDURE_CATEGORY_NAME,
@@ -2952,7 +3233,9 @@ export function defineGenerators() {
                 return code;
         };
 
-        javascriptGenerator.forBlock["procedures_callreturn"] = function (block) {
+        javascriptGenerator.forBlock["procedures_callreturn"] = function (
+                block,
+        ) {
                 const functionName = javascriptGenerator.nameDB_.getName(
                         block.getFieldValue("NAME"),
                         Blockly.PROCEDURE_CATEGORY_NAME,
@@ -2983,18 +3266,22 @@ export function defineGenerators() {
                 } else {
                         javascriptGenerator.nameDB_.reset();
                 }
-                javascriptGenerator.nameDB_.setVariableMap(workspace.getVariableMap());
+                javascriptGenerator.nameDB_.setVariableMap(
+                        workspace.getVariableMap(),
+                );
                 javascriptGenerator.nameDB_.populateVariables(workspace);
                 javascriptGenerator.nameDB_.populateProcedures(workspace);
 
                 const defvars = [];
                 // Add developer variables (not created or named by the user).
-                const devVarList = Blockly.Variables.allDeveloperVariables(workspace);
+                const devVarList =
+                        Blockly.Variables.allDeveloperVariables(workspace);
                 for (let i = 0; i < devVarList.length; i++) {
                         defvars.push(
                                 javascriptGenerator.nameDB_.getName(
                                         devVarList[i],
-                                        Blockly.Names.NameType.DEVELOPER_VARIABLE,
+                                        Blockly.Names.NameType
+                                                .DEVELOPER_VARIABLE,
                                 ),
                         );
                 }
@@ -3016,7 +3303,9 @@ export function defineGenerators() {
                                 return `let ${name} = '${name}';`;
                         });
                         javascriptGenerator.definitions_["variables"] =
-                                `// Made with Flock XR\n` + defvarsmesh.join(" ") + "\n";
+                                `// Made with Flock XR\n` +
+                                defvarsmesh.join(" ") +
+                                "\n";
                 }
 
                 javascriptGenerator.isInitialized = true;
@@ -3034,19 +3323,23 @@ export function defineGenerators() {
                 } else {
                         javascriptGenerator.nameDB_.reset();
                 }
-                javascriptGenerator.nameDB_.setVariableMap(workspace.getVariableMap());
+                javascriptGenerator.nameDB_.setVariableMap(
+                        workspace.getVariableMap(),
+                );
                 javascriptGenerator.nameDB_.populateVariables(workspace);
                 javascriptGenerator.nameDB_.populateProcedures(workspace);
 
                 const defvars = [];
 
                 // Add developer variables
-                const devVarList = Blockly.Variables.allDeveloperVariables(workspace);
+                const devVarList =
+                        Blockly.Variables.allDeveloperVariables(workspace);
                 for (let i = 0; i < devVarList.length; i++) {
                         defvars.push(
                                 javascriptGenerator.nameDB_.getName(
                                         devVarList[i],
-                                        Blockly.Names.NameType.DEVELOPER_VARIABLE,
+                                        Blockly.Names.NameType
+                                                .DEVELOPER_VARIABLE,
                                 ),
                         );
                 }
@@ -3068,7 +3361,9 @@ export function defineGenerators() {
                                 return `let ${name} = '${name}';`;
                         });
                         javascriptGenerator.definitions_["variables"] =
-                                `// Made with Flock XR\n` + defvarsmesh.join(" ") + "\n";
+                                `// Made with Flock XR\n` +
+                                defvarsmesh.join(" ") +
+                                "\n";
                 }
 
                 // Order blocks: triggers first
@@ -3105,9 +3400,11 @@ export function defineGenerators() {
                 let code = javascriptGenerator.definitions_["variables"] || "";
 
                 const blocks =
-                        javascriptGenerator._orderedBlocks || workspace.getTopBlocks(true);
+                        javascriptGenerator._orderedBlocks ||
+                        workspace.getTopBlocks(true);
                 for (const block of blocks) {
-                        const blockCode = javascriptGenerator.blockToCode(block);
+                        const blockCode =
+                                javascriptGenerator.blockToCode(block);
                         if (typeof blockCode === "string") {
                                 code += blockCode;
                         } else if (Array.isArray(blockCode)) {
@@ -3158,7 +3455,12 @@ javascriptGenerator.forBlock["controls_whileUntil"] = function (block) {
                 argument0 = "!" + argument0;
         }
         return (
-                "while (" + argument0 + ") {\n" + branch + `\nawait wait(0);\n` + "}\n"
+                "while (" +
+                argument0 +
+                ") {\n" +
+                branch +
+                `\nawait wait(0);\n` +
+                "}\n"
         );
 };
 
@@ -3188,8 +3490,11 @@ javascriptGenerator.forBlock["controls_repeat_ext"] = function (
                 repeats = String(Number(block.getFieldValue("TIMES")));
         } else {
                 repeats =
-                        generator.valueToCode(block, "TIMES", generator.ORDER_ASSIGNMENT) ||
-                        "0";
+                        generator.valueToCode(
+                                block,
+                                "TIMES",
+                                generator.ORDER_ASSIGNMENT,
+                        ) || "0";
         }
 
         let branch = generator.statementToCode(block, "DO");
@@ -3230,11 +3535,23 @@ javascriptGenerator.forBlock["controls_for"] = function (block, generator) {
         const variable0 = generator.getVariableName(block.getFieldValue("VAR"));
 
         const argument0 =
-                generator.valueToCode(block, "FROM", generator.ORDER_ASSIGNMENT) || "0";
+                generator.valueToCode(
+                        block,
+                        "FROM",
+                        generator.ORDER_ASSIGNMENT,
+                ) || "0";
         const argument1 =
-                generator.valueToCode(block, "TO", generator.ORDER_ASSIGNMENT) || "0";
+                generator.valueToCode(
+                        block,
+                        "TO",
+                        generator.ORDER_ASSIGNMENT,
+                ) || "0";
         const increment =
-                generator.valueToCode(block, "BY", generator.ORDER_ASSIGNMENT) || "1";
+                generator.valueToCode(
+                        block,
+                        "BY",
+                        generator.ORDER_ASSIGNMENT,
+                ) || "1";
 
         const branch = generator.statementToCode(block, "DO");
 
@@ -3267,11 +3584,23 @@ javascriptGenerator.forBlock["for_loop"] = function (block, generator) {
         const variable0 = generator.getVariableName(block.getFieldValue("VAR"));
 
         const argument0 =
-                generator.valueToCode(block, "FROM", generator.ORDER_ASSIGNMENT) || "0";
+                generator.valueToCode(
+                        block,
+                        "FROM",
+                        generator.ORDER_ASSIGNMENT,
+                ) || "0";
         const argument1 =
-                generator.valueToCode(block, "TO", generator.ORDER_ASSIGNMENT) || "0";
+                generator.valueToCode(
+                        block,
+                        "TO",
+                        generator.ORDER_ASSIGNMENT,
+                ) || "0";
         const increment =
-                generator.valueToCode(block, "BY", generator.ORDER_ASSIGNMENT) || "1";
+                generator.valueToCode(
+                        block,
+                        "BY",
+                        generator.ORDER_ASSIGNMENT,
+                ) || "1";
 
         const branch = generator.statementToCode(block, "DO");
 
@@ -3311,8 +3640,11 @@ javascriptGenerator.forBlock["controls_forEach"] = function (block, generator) {
 
         // Use correct ORDER constant from the generator
         const argument0 =
-                generator.valueToCode(block, "LIST", generator.ORDER_ASSIGNMENT) ||
-                "[]";
+                generator.valueToCode(
+                        block,
+                        "LIST",
+                        generator.ORDER_ASSIGNMENT,
+                ) || "[]";
 
         let branch = generator.statementToCode(block, "DO");
         let code = "";
