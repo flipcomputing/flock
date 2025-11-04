@@ -29,11 +29,11 @@ Before starting, we suggest you [get in touch](https://flipcomputing.com/contact
 1. **Fork the repo** on GitHub
 2. **Clone your fork** to your local machine:
    ```bash
-   git clone git@github.com:YOUR_USERNAME/flockupdate.git
+   git clone git@github.com:YOUR_USERNAME/flock.git
    ```
 3. **Navigate to the project**:
    ```bash
-   cd flockupdate
+   cd flock
    ```
 4. **Install dependencies**:
    ```bash
@@ -50,8 +50,8 @@ Before starting, we suggest you [get in touch](https://flipcomputing.com/contact
    ```bash
    git checkout -b your-feature-name
    ```
-2. **Make your changes** (see project structure below)
-3. **Test your changes** by visiting http://localhost:5173/tests/tests.html
+2. **Make your changes** (see project structure below).
+3. **Test your changes** including running the automated tests, details of how to do so follow below.
 4. **Commit your changes**:
    ```bash
    git add .
@@ -99,9 +99,9 @@ We use Mocha and Chai for testing, plus Playwright for end-to-end testing. Alway
 **Add new tests** for any features you create
 
 #### Run tests
-1. **Run the development server**: `npm run dev`
+1. **Run the development server**: `npm run dev`, which starts a local webserver.
 1. **Visit the test page**: http://localhost:5173/tests/tests.html
-1. **Select tests** from the dropdown and click _Run Tests_ 
+1. **Select tests** from the dropdown and click _Run Tests_.
 
 
 #### Filtering tests and test results
@@ -123,12 +123,63 @@ To add a tag, change the `describe` or `it` text in unit tests to add a tag.
 
 
 ### End-to-End Tests (Playwright)
-1. **Run all Playwright tests**: `npx playwright test`
-2. **Run specific test file**: `npx playwright test tests/playwright/flock.spec.js`
-3. **Run visual regression tests**: `npx playwright test tests/playwright/visual.spec.js`
-4. **View test report**: `npx playwright show-report`
 
-Playwright tests verify that the UI loads correctly, blocks function properly, and the overall user experience works as expected.
+Playwright tests are located in `tests/playwright/`. These are automated end-to-end tests that verify the UI loads correctly, blocks function properly, and the overall user experience works as expected.
+
+#### Install Playwright browsers
+
+Before running tests, ensure Playwright browsers are installed:
+
+```bash
+npx playwright install
+```
+
+#### Verify browsers are installed
+
+Check that browsers are properly installed:
+
+```bash
+npx playwright install --dry-run
+```
+
+#### Run Playwright tests
+
+Run all tests:
+```bash
+npx playwright test
+```
+
+Run a specific test file:
+```bash
+npx playwright test tests/playwright/flock.spec.js
+```
+
+The tests will automatically start the dev server (http://localhost:5173) before running.
+
+#### View test results
+
+View the HTML test report:
+```bash
+npx playwright show-report
+```
+
+#### Generate or update visual snapshots
+
+Some tests use visual regression testing by comparing screenshots against baseline images. When running these tests for the first time or when intentional visual changes are made, you need to generate/update the snapshots:
+
+```bash
+npx playwright test --update-snapshots
+```
+
+After generating snapshots:
+1. Review the generated images in `tests/playwright/*-snapshots/` to ensure they look correct
+2. Run the tests again without the flag to verify they pass
+3. Commit the snapshot images to version control
+
+Update specific snapshots only:
+```bash
+npx playwright test blocks.spec.js --update-snapshots
+```
 
 ### Test Artifacts
 
