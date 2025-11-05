@@ -103,21 +103,16 @@ export function defineSceneBlocks() {
 		inputColor: "#6495ED",
 	});
 
-	// Standalone block definition for create_map
 	Blockly.Blocks['create_map'] = {
 	  init: function () {
-		// Build args0 to keep the same UX (dropdown + a value input for MATERIAL)
 		const args0 = [];
 
-		// Dropdown for map name (kept for parity with your original)
 		args0.push({
 		  type: 'field_dropdown',
 		  name: 'MAP_NAME',
 		  options: [[getOption('FLAT'), 'NONE']].concat(mapNames()),
 		});
 
-		// Value input for MATERIAL. Accept both material AND array (and colour),
-		// plus optional union/custom types used elsewhere in your workspace.
 		args0.push({
 		  type: 'input_value',
 		  name: 'MATERIAL',
@@ -138,75 +133,71 @@ export function defineSceneBlocks() {
 		this.setHelpUrl(getHelpUrlFor(this.type));
 		this.setStyle('scene_blocks');
 
-		// Event handling preserved; works with your lifecycle helpers if present.
-		this.setOnChange((changeEvent) => {
-		  // Respect your debug flag if it exists
-		  if (typeof flock !== 'undefined' && flock.eventDebug && this.debugEvents) {
-			console.log(changeEvent.type);
+		// Optional: small debounce to avoid spam during slider drags
+		let debounceTimer = null;
+		const run = (evt) => {
+		  // 1) Promote nested shadow `material` → real so its inputs accept drops
+		  const mat = this.getInputTargetBlock('MATERIAL');
+		  if (mat && mat.isShadow && mat.isShadow()) {
+			mat.setShadow(false);
 		  }
 
-			this.setOnChange(function (event) {
-			  if (event.type === Blockly.Events.BLOCK_MOVE ||
-				  event.type === Blockly.Events.BLOCK_CHANGE) {
+		  // 2) If MATERIAL got cleared, respawn default shadow (MakeCode feel)
+		  if (!this.getInputTargetBlock('MATERIAL')) {
+			const shadowDom = Blockly.utils.xml.textToDom(`
+			  <shadow type="material">
+				<value name="BASE_COLOR">
+				  <shadow type="colour">
+					<field name="COLOR">#71BC78</field>
+				  </shadow>
+				</value>
+				<value name="ALPHA">
+				  <shadow type="math_number">
+					<field name="NUM">1.0</field>
+				  </shadow>
+				</value>
+			  </shadow>
+			`);
+			const conn = this.getInput('MATERIAL').connection;
+			conn.setShadowDom(shadowDom);
+			conn.respawnShadow_();
+		  }
 
-				const mat = this.getInputTargetBlock('MATERIAL');
-				if (mat && mat.isShadow && mat.isShadow()) {
-				  mat.setShadow(false); // promote shadow material to real
-				}
-
-				// Optional: if MATERIAL becomes empty, re-insert the default shadow XML
-				if (!this.getInputTargetBlock('MATERIAL')) {
-				  const ws = this.workspace;
-				  const shadowDom = Blockly.utils.xml.textToDom(`
-					<shadow type="material">
-					  <value name="BASE_COLOR">
-						<shadow type="colour">
-						  <field name="COLOR">#71BC78</field>
-						</shadow>
-					  </value>
-					  <value name="ALPHA">
-						<shadow type="math_number">
-						  <field name="NUM">1.0</field>
-						</shadow>
-					  </value>
-					</shadow>`);
-				  this.getInput('MATERIAL').connection.setShadowDom(shadowDom);
-				  this.getInput('MATERIAL').connection.respawnShadow_();
-				}
-			  }
-			});
-
-		  // Same event filtering as before (no move-listening by default)
-		  const eventTypes = [Blockly.Events.BLOCK_CREATE, Blockly.Events.BLOCK_CHANGE];
-
-		  if (!eventTypes.includes(changeEvent.type)) return;
-
-		  // Ensure we only react when this block (or its fields/children) actually changed
-		  const root = Blockly.getMainWorkspace().getBlockById(changeEvent.blockId);
-		  const parent = root && typeof findCreateBlock === 'function'
-			? findCreateBlock(root)
-			: null;
-
-		  if (parent !== this) return;
-
-		  const blockInWorkspace = Blockly.getMainWorkspace().getBlockById(this.id);
-		  if (!blockInWorkspace) return;
-
-		  // Prefer your mesh lifecycle flow if available
+		  // 3) Your existing lifecycle/update pipeline
 		  if (typeof handleMeshLifecycleChange === 'function') {
-			if (handleMeshLifecycleChange(this, changeEvent)) return;
+			if (handleMeshLifecycleChange(this, evt)) return;
 		  }
 		  if (typeof handleFieldOrChildChange === 'function') {
-			if (handleFieldOrChildChange(this, changeEvent)) return;
+			if (handleFieldOrChildChange(this, evt)) return;
 		  }
-
-		  // Fallback to your updater if lifecycle handlers are not used
 		  if (typeof updateOrCreateMeshFromBlock === 'function') {
-			updateOrCreateMeshFromBlock(this, changeEvent);
+			updateOrCreateMeshFromBlock(this, evt);
 		  }
+		};
+
+		this.setOnChange((evt) => {
+		  // Live update: include MOVE events (like your sky block)
+		  const eventTypes = [
+			Blockly.Events.BLOCK_CREATE,
+			Blockly.Events.BLOCK_CHANGE,
+			Blockly.Events.BLOCK_MOVE,
+		  ];
+		  if (!eventTypes.includes(evt.type)) return;
+
+		  // Only react when this block (or one of its children) actually changed
+		  const changedRoot = Blockly.getMainWorkspace().getBlockById(evt.blockId);
+		  const parent = (typeof findCreateBlock === 'function')
+			? findCreateBlock(changedRoot)
+			: null;
+		  if (parent !== this) return;
+
+		  // Debounce a touch to keep things smooth during drags
+		  if (debounceTimer) clearTimeout(debounceTimer);
+		  debounceTimer = setTimeout(() => run(evt), 30);
 		});
 	  }
 	};
+
 
 
 	Blockly.Blocks["show"] = {
