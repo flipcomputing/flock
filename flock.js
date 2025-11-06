@@ -982,8 +982,6 @@ export const flock = {
                         onIntersect: this.onIntersect?.bind(this),
                         getProperty: this.getProperty?.bind(this),
                         exportMesh: this.exportMesh?.bind(this),
-                        ensureUniqueGeometry:
-                                this.ensureUniqueGeometry?.bind(this),
                         createVector3: this.createVector3?.bind(this),
                 };
 
