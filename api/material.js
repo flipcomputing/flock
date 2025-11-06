@@ -722,7 +722,7 @@ export const flockMaterial = {
     });
   },
   createMaterial({ color, materialName, alpha } = {}) {
-    if (flock.materialsDebug) console.log(`Create material: ${materialName}`);
+    if (flock?.materialsDebug) console.log(`Create material: ${materialName}`);
     let material;
     const texturePath = flock.texturePath + materialName;
 
