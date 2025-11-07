@@ -157,7 +157,7 @@ export default {
   control_animation_group: "animation group %1 %2",
   animate_from: "animate group %1 from %2 seconds",
   stop_animations: "stop animations %1",
-  switch_animation: "switch animation of %1 to %2",
+  switch_animation: "switch animation to %1 on %2",
   play_animation: "play animation %1 on %2",
 
   // Custom block translations - Base blocks
