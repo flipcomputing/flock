@@ -56,6 +56,9 @@ export const flockShapes = {
     // Initialise the mesh with position, color, and other properties
     flock.initializeMesh(newBox, position, color, "Box", alpha);
 
+    // Initialise the mesh with position, color, and other properties
+    flock.initializeMesh(newBox, position, color, "Box", alpha);
+
     newBox.position.y += height / 2; // Middle of the box
     newBox.metadata = newBox.metadata || {};
     newBox.metadata.blockKey = blockKey;

@@ -198,34 +198,93 @@ export const flockMesh = {
       scene,
     );
   },
+  
+  coerceToMaterialIfNeeded(spec) {
+    // Already a Babylon Material?
+    if (spec && typeof spec === "object" && typeof spec.getClassName === "function") {
+      return spec;
+    }
+    // Plain spec like { materialName, color, alpha } → build it
+    if (spec && typeof spec === "object" && !Array.isArray(spec) && spec.materialName) {
+      return flock.createMaterial(spec);
+    }
+    return null;
+  },
+
   initializeMesh(mesh, position, color, shapeType, alpha = 1) {
-    // Set position
-    mesh.position = new flock.BABYLON.Vector3(
-      position[0],
-      position[1],
-      position[2],
-    );
+    // Accept Vector3 or [x,y,z]
+    const px = Array.isArray(position) ? position[0] : position?.x ?? 0;
+    const py = Array.isArray(position) ? position[1] : position?.y ?? 0;
+    const pz = Array.isArray(position) ? position[2] : position?.z ?? 0;
+
+    mesh.position = new flock.BABYLON.Vector3(px, py, pz);
 
     // Set metadata and unique name
-    mesh.metadata = { shapeType };
+    mesh.metadata = { ...(mesh.metadata || {}), shapeType };
     mesh.metadata.blockKey = mesh.name;
-    //mesh.name = `${mesh.name}_${mesh.uniqueId}`;
 
-    flock.applyMaterialToMesh(mesh, shapeType, color, alpha);
+    let handledMaterial = false;
+    const singleMat = flock.coerceToMaterialIfNeeded(color);
+
+    if (singleMat) {
+      // Optional tiling like sky if texture exists
+      const tex = singleMat.diffuseTexture || singleMat.albedoTexture || singleMat.baseTexture || null;
+      if (tex && typeof tex.uScale === "number" && typeof tex.vScale === "number") {
+        if (!tex.uScale) tex.uScale = 10;
+        if (!tex.vScale) tex.vScale = 10;
+      }
+
+      // Respect alpha if provided
+      if (alpha != null) {
+        singleMat.alpha = alpha;
+        if (singleMat.alpha < 1 && singleMat.transparencyMode == null) {
+          singleMat.transparencyMode = flock.BABYLON.Material.MATERIAL_ALPHABLEND;
+        }
+      }
+
+      // Apply to mesh and children
+      if (typeof mesh.getChildMeshes === "function") {
+        for (const m of mesh.getChildMeshes(false)) {
+          if (m && m.material !== undefined) m.material = singleMat;
+        }
+      }
+      if (mesh.material !== undefined) mesh.material = singleMat;
+
+      handledMaterial = true;
+    }
+
+    if (!handledMaterial && Array.isArray(color) && color.length && color.every(c => c && typeof c === "object")) {
+      const mats = color.map(c => flock.coerceToMaterialIfNeeded(c) || c);
+      if (mesh.material !== undefined && mats[0]) mesh.material = mats[0];
+
+      const kids = typeof mesh.getChildMeshes === "function" ? mesh.getChildMeshes(false) : [];
+      for (let i = 0; i < kids.length; i++) {
+        if (kids[i] && kids[i].material !== undefined && mats[i]) {
+          kids[i].material = mats[i];
+        }
+      }
+      handledMaterial = true;
+    }
+
+    if (!handledMaterial) {
+      flock.applyMaterialToMesh(mesh, shapeType, color, alpha);
+    }
 
     mesh.metadata.sharedMaterial = false;
 
-    mesh.material.metadata = mesh.material.metadata || {};
-    mesh.material.metadata.internal = true;
+    // Guard: ensure material exists before tagging metadata
+    if (mesh.material) {
+      mesh.material.metadata = mesh.material.metadata || {};
+      mesh.material.metadata.internal = true;
+    }
 
     // Enable and make the mesh visible
     mesh.isVisible = true;
     mesh.setEnabled(true);
-    if (alpha > 0) mesh.material.needDepthPrePass = true;
+    if (alpha > 0 && mesh.material) mesh.material.needDepthPrePass = true;
     mesh.metadata.sharedGeometry = true;
   },
 
- 
   // 1 tile = `texturePhysicalSize` world units
   // Sets edge-aligned, per-face planar UVs for a bSox so the pattern has constant physical size.
   // Works for non-cubes (width ≠ height ≠ depth). Keeps seams consistent by flipping some faces.

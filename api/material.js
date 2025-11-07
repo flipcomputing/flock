@@ -1132,6 +1132,24 @@ export const flockMaterial = {
     if (flock.materialsDebug) console.log(`Applying material to ${mesh.name}`);
     const scene = mesh.getScene();
 
+    // --- Helpers --------------------------------------------------------------
+    const isBabylonMaterial = (v) =>
+      v && typeof v.getClassName === "function";
+
+    const isMaterialDescriptor = (v) =>
+      v && typeof v === "object" && !Array.isArray(v) &&
+      ("materialName" in v || "color" in v || "alpha" in v);
+
+    const toMaterial = (v) => {
+      if (isBabylonMaterial(v)) return v;
+      if (isMaterialDescriptor(v)) {
+        const desc = { ...v };
+        if (desc.alpha == null) desc.alpha = alpha;
+        return flock.createMaterial(desc);
+      }
+      return null;
+    };
+
     const makeColor4 = (c) => {
       if (typeof c === "string") {
         const col = flock.BABYLON.Color3.FromHexString(c);
@@ -1139,51 +1157,70 @@ export const flockMaterial = {
       } else if (c instanceof flock.BABYLON.Color3) {
         return new flock.BABYLON.Color4(c.r, c.g, c.b, alpha);
       } else if (c instanceof flock.BABYLON.Color4) {
-        return new flock.BABYLON.Color4(c.r, c.g, c.b, alpha);
+        return new flock.BABYLON.Color4(c.r, c.g, c.b, c.a);
       } else {
-        return new flock.BABYLON.Color4(1, 1, 1, alpha); // default to white
+        return new flock.BABYLON.Color4(1, 1, 1, alpha);
       }
     };
 
+    const applyMaterialWithTilingIfAny = (m) => {
+      mesh.material = m;
+      const tex =
+        m?.albedoTexture || m?.diffuseTexture || m?.baseTexture || null;
+      if (tex && typeof tex.uScale === "number" && typeof tex.vScale === "number") {
+        if (!tex.uScale) tex.uScale = 1;
+        if (!tex.vScale) tex.vScale = 1;
+      }
+    };
+
+    // --- Material path for objects that can take a single material ------------
+    // Plane: allow a material or a material descriptor (or array -> first)
+    if (shapeType === "Plane") {
+      let matCandidate = null;
+
+      if (Array.isArray(color) && color.length) {
+        // First material-like element wins
+        const first = color[0];
+        if (isBabylonMaterial(first) || isMaterialDescriptor(first)) {
+          matCandidate = toMaterial(first);
+        }
+      } else if (isBabylonMaterial(color) || isMaterialDescriptor(color)) {
+        matCandidate = toMaterial(color);
+      }
+
+      if (matCandidate) {
+        applyMaterialWithTilingIfAny(matCandidate);
+        return;
+      }
+      // Fall through to colour handling if not material-like
+    }
+
+    // --- Single uniform colour (all shapes except special cases below) --------
     if (!Array.isArray(color) || color.length === 1) {
       const material = new flock.BABYLON.StandardMaterial(
         `${shapeType.toLowerCase()}Material`,
-        mesh.getScene(),
+        scene
       );
       material.diffuseColor = flock.BABYLON.Color3.FromHexString(
-        flock.getColorFromString(color),
+        flock.getColorFromString(Array.isArray(color) ? color[0] : color)
       );
       material.alpha = alpha;
       mesh.material = material;
       return;
     }
 
+    // --- Box face colours via vertex colours ----------------------------------
     if (shapeType === "Box") {
-      const positions = mesh.getVerticesData(
-        flock.BABYLON.VertexBuffer.PositionKind,
-      );
+      const positions = mesh.getVerticesData(flock.BABYLON.VertexBuffer.PositionKind);
       const indices = mesh.getIndices();
-      const normals = mesh.getVerticesData(
-        flock.BABYLON.VertexBuffer.NormalKind,
-      );
+      const normals = mesh.getVerticesData(flock.BABYLON.VertexBuffer.NormalKind);
 
       if (!positions || !indices || indices.length !== 36) {
-        console.warn(
-          "Mesh is not a standard box; falling back to uniform color.",
-        );
+        console.warn("Mesh is not a standard box; falling back to uniform color.");
         return flock.applyMaterialToMesh(mesh, shapeType, color[0], alpha);
       }
 
-      // Face order: front, back, right, left, top, bottom
-      const faceToSide = [
-        "front", // face 0
-        "back", // face 1
-        "right", // face 2
-        "left", // face 3
-        "top", // face 4
-        "bottom", // face 5
-      ];
-
+      const faceToSide = ["front", "back", "right", "left", "top", "bottom"];
       const sideColorMap = {
         front: makeColor4(color[0]),
         back: makeColor4(color[0]),
@@ -1196,11 +1233,7 @@ export const flockMaterial = {
       switch (color.length) {
         case 2:
           sideColorMap.top = sideColorMap.bottom = makeColor4(color[0]);
-          sideColorMap.left =
-            sideColorMap.right =
-            sideColorMap.front =
-            sideColorMap.back =
-              makeColor4(color[1]);
+          sideColorMap.left = sideColorMap.right = sideColorMap.front = sideColorMap.back = makeColor4(color[1]);
           break;
         case 3:
           sideColorMap.top = sideColorMap.bottom = makeColor4(color[0]);
@@ -1220,24 +1253,16 @@ export const flockMaterial = {
           sideColorMap.front = makeColor4(color[3]);
           sideColorMap.back = makeColor4(color[4]);
           break;
-        case 6:
-        default:
-          [
-            sideColorMap.top,
-            sideColorMap.bottom,
-            sideColorMap.left,
-            sideColorMap.right,
-            sideColorMap.front,
-            sideColorMap.back,
-          ] = color.slice(0, 6).map(makeColor4);
-          break;
+        default: {
+          const arr = color.slice(0, 6).map(makeColor4);
+          [sideColorMap.top, sideColorMap.bottom, sideColorMap.left, sideColorMap.right, sideColorMap.front, sideColorMap.back] = arr;
+        }
       }
 
       const colors = [];
       const newPositions = [];
       const newNormals = [];
       const newIndices = [];
-
       let baseIndex = 0;
 
       for (let i = 0; i < indices.length; i += 6) {
@@ -1251,14 +1276,14 @@ export const flockMaterial = {
           newPositions.push(
             positions[vi * 3],
             positions[vi * 3 + 1],
-            positions[vi * 3 + 2],
+            positions[vi * 3 + 2]
           );
 
           if (normals) {
             newNormals.push(
               normals[vi * 3],
               normals[vi * 3 + 1],
-              normals[vi * 3 + 2],
+              normals[vi * 3 + 2]
             );
           }
 
@@ -1267,11 +1292,8 @@ export const flockMaterial = {
         }
       }
 
-      mesh.setVerticesData(
-        flock.BABYLON.VertexBuffer.PositionKind,
-        newPositions,
-      );
-      mesh.setVerticesData(flock.BABYLON.VertexBuffer.NormalKind, newNormals);
+      mesh.setVerticesData(flock.BABYLON.VertexBuffer.PositionKind, newPositions);
+      if (normals) mesh.setVerticesData(flock.BABYLON.VertexBuffer.NormalKind, newNormals);
       mesh.setVerticesData(flock.BABYLON.VertexBuffer.ColorKind, colors);
       mesh.setIndices(newIndices);
 
@@ -1284,19 +1306,15 @@ export const flockMaterial = {
       mesh.material = mat;
       return;
     }
+
+    // --- Cylinder colours via vertex colours ----------------------------------
     if (shapeType === "Cylinder") {
-      const positions = mesh.getVerticesData(
-        flock.BABYLON.VertexBuffer.PositionKind,
-      );
+      const positions = mesh.getVerticesData(flock.BABYLON.VertexBuffer.PositionKind);
       const indices = mesh.getIndices();
-      const normals = mesh.getVerticesData(
-        flock.BABYLON.VertexBuffer.NormalKind,
-      );
+      const normals = mesh.getVerticesData(flock.BABYLON.VertexBuffer.NormalKind);
 
       if (!positions || !indices) {
-        console.warn(
-          "Missing geometry for cylinder; falling back to uniform color.",
-        );
+        console.warn("Missing geometry for cylinder; falling back to uniform color.");
         return flock.applyMaterialToMesh(mesh, shapeType, color[0], alpha);
       }
 
@@ -1306,9 +1324,7 @@ export const flockMaterial = {
       const newIndices = [];
 
       const yVals = [];
-      for (let i = 0; i < positions.length; i += 3) {
-        yVals.push(positions[i + 1]);
-      }
+      for (let i = 0; i < positions.length; i += 3) yVals.push(positions[i + 1]);
 
       const minY = Math.min(...yVals);
       const maxY = Math.max(...yVals);
@@ -1331,21 +1347,19 @@ export const flockMaterial = {
         const isBottom = y0 === minY && y1 === minY && y2 === minY;
 
         let faceColor;
-
         if (isTop) {
-          faceColor = makeColor4(color[0]); // always color[0]
+          faceColor = makeColor4(color[0]);
         } else if (isBottom) {
-          faceColor = makeColor4(color.length > 1 ? color[1] : color[0]); // fallback to top if only 1 color
+          faceColor = makeColor4(color.length > 1 ? color[1] : color[0]);
         } else {
           if (color.length === 2) {
             faceColor = makeColor4(color[1]);
           } else if (color.length === 3) {
             faceColor = makeColor4(color[2]);
           } else {
-            // Use color[2+] for alternating side face colors, one color per 2 triangles
             const sideColorIndex = 2 + Math.floor(sideFaceIndex / 2);
             faceColor = makeColor4(
-              color[(sideColorIndex % (color.length - 2)) + 2],
+              color[(sideColorIndex % (color.length - 2)) + 2]
             );
             sideFaceIndex++;
           }
@@ -1357,14 +1371,14 @@ export const flockMaterial = {
           newPositions.push(
             positions[vi * 3],
             positions[vi * 3 + 1],
-            positions[vi * 3 + 2],
+            positions[vi * 3 + 2]
           );
 
           if (normals) {
             newNormals.push(
               normals[vi * 3],
               normals[vi * 3 + 1],
-              normals[vi * 3 + 2],
+              normals[vi * 3 + 2]
             );
           }
 
@@ -1373,12 +1387,8 @@ export const flockMaterial = {
         }
       }
 
-      mesh.setVerticesData(
-        flock.BABYLON.VertexBuffer.PositionKind,
-        newPositions,
-      );
-      if (normals)
-        mesh.setVerticesData(flock.BABYLON.VertexBuffer.NormalKind, newNormals);
+      mesh.setVerticesData(flock.BABYLON.VertexBuffer.PositionKind, newPositions);
+      if (normals) mesh.setVerticesData(flock.BABYLON.VertexBuffer.NormalKind, newNormals);
       mesh.setVerticesData(flock.BABYLON.VertexBuffer.ColorKind, colors);
       mesh.setIndices(newIndices);
 
@@ -1392,16 +1402,18 @@ export const flockMaterial = {
       return;
     }
 
+    // --- Default N-colour fallback (treat as uniform) -------------------------
     const material = new flock.BABYLON.StandardMaterial(
       `${shapeType.toLowerCase()}Material`,
-      mesh.getScene(),
+      scene
     );
     material.diffuseColor = flock.BABYLON.Color3.FromHexString(
-      flock.getColorFromString(color[0]),
+      flock.getColorFromString(color[0])
     );
     material.alpha = alpha;
     mesh.material = material;
   },
+
   getOrCreateMaterial(color, alpha, scene) {
     const color3 =
       typeof color === "string"

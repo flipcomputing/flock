@@ -51,8 +51,7 @@ export function defineShapeBlocks() {
 						{
 							type: "input_value",
 							name: "COLOR",
-							check: "Colour",
-							//check: ["Colour", "Array"], // FUTURE
+							check: ["Colour", "Array", "Material"], 
 						},
 						...additionalArgs0,
 						{ type: "input_value", name: "X", check: "Number" },
@@ -695,8 +694,7 @@ export function defineShapeBlocks() {
 					{
 						type: "input_value",
 						name: "COLOR",
-						check: "Colour",
-						//check: ["Colour", "Array"], // FUTURE
+						check: ["Colour", "Array", "Material"], 
 					},
 					{ type: "input_value", name: "WIDTH", check: "Number" },
 					{ type: "input_value", name: "HEIGHT", check: "Number" },
@@ -740,8 +738,7 @@ export function defineShapeBlocks() {
 					{
 						type: "input_value",
 						name: "COLOR",
-						check: "Colour",
-						//check: ["Colour", "Array"], // FUTURE
+						check: ["Colour", "Array", "Material"], 
 					},
 					{
 						type: "input_value",
@@ -797,8 +794,7 @@ export function defineShapeBlocks() {
 					{
 						type: "input_value",
 						name: "COLOR",
-						check: "Colour",
-						//check: ["Colour", "Array"], // FUTURE
+						check: ["Colour", "Array", "Material"], 
 					},
 					{ type: "input_value", name: "HEIGHT", check: "Number" },
 					{
@@ -855,8 +851,7 @@ export function defineShapeBlocks() {
 					{
 						type: "input_value",
 						name: "COLOR",
-						check: "Colour",
-						//check: ["Colour", "Array"], // FUTURE
+						check: ["Colour", "Array", "Material"], 
 					},
 					{ type: "input_value", name: "DIAMETER", check: "Number" },
 					{ type: "input_value", name: "HEIGHT", check: "Number" },
@@ -899,8 +894,7 @@ export function defineShapeBlocks() {
 					{
 						type: "input_value",
 						name: "COLOR",
-						check: "Colour",
-						//check: ["Colour", "Array"], // FUTURE
+						check: ["Colour", "Array", "Material"], 
 					},
 					{ type: "input_value", name: "WIDTH", check: "Number" },
 					{ type: "input_value", name: "HEIGHT", check: "Number" },
