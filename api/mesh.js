@@ -234,12 +234,18 @@ export const flockMesh = {
         if (!tex.vScale) tex.vScale = 10;
       }
 
-      // Respect alpha if provided
-      if (alpha != null) {
-        singleMat.alpha = alpha;
-        if (singleMat.alpha < 1 && singleMat.transparencyMode == null) {
-          singleMat.transparencyMode = flock.BABYLON.Material.MATERIAL_ALPHABLEND;
-        }
+      // Determine which alpha to use:
+      // 1) If material already has alpha -> inherit it
+      // 2) Otherwise use the provided alpha param
+      const alphaToUse =
+        (singleMat.alpha != null && singleMat.alpha !== 1)
+          ? singleMat.alpha
+          : alpha;
+
+      singleMat.alpha = alphaToUse;
+
+      if (singleMat.alpha < 1 && singleMat.transparencyMode == null) {
+        singleMat.transparencyMode = flock.BABYLON.Material.MATERIAL_ALPHABLEND;
       }
 
       // Apply to mesh and children
