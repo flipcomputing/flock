@@ -262,28 +262,45 @@ export function updateOrCreateMeshFromBlock(block, changeEvent) {
   }
 }
 
+function setWorldBaseY(mesh, baseYWorld) {
+  // Ensure up-to-date world AABB first
+  mesh.computeWorldMatrix(true);
+  mesh.refreshBoundingInfo();
+  const bi = mesh.getBoundingInfo().boundingBox;
+  const halfY = bi.extendSizeWorld.y;
+
+  // Desired WORLD-space center Y = base + half-height
+  const desiredCenterY = baseYWorld + halfY;
+
+  // Keep current WORLD X/Z, move only Y in WORLD space
+  const wp = mesh.getAbsolutePosition();
+  mesh.setAbsolutePosition(new flock.BABYLON.Vector3(wp.x, desiredCenterY, wp.z));
+
+  // Recompute after the move
+  mesh.computeWorldMatrix(true);
+  mesh.refreshBoundingInfo();
+}
+
 export function updateMeshFromBlock(mesh, block, changeEvent) {
+  // --- Debug header ----------------------------------------------------------
   if (flock.meshDebug) {
     console.log("=== UPDATE MESH FROM BLOCK ===");
-    console.log("Block type:", block.type);
-    console.log("Block ID:", block.id);
-    console.log("Change event type:", changeEvent.type);
+    console.log("Block type:", block?.type);
+    console.log("Block ID:", block?.id);
+    console.log("Change event type:", changeEvent?.type);
     console.log("Change event details:", changeEvent);
   }
 
+  // --- Early outs for blocks that don't need a mesh --------------------------
   if (
     !mesh &&
-    ![
-      "set_sky_color",
-      "set_background_color",
-      "create_ground",
-      "create_map",
-    ].includes(block.type)
+    !["set_sky_color", "set_background_color", "create_ground", "create_map"].includes(block.type)
   ) {
     if (flock.meshDebug) console.log("No mesh and not a special block type, returning");
     return;
   }
 
+  // --- Workspace helpers -----------------------------------------------------
   const ws = Blockly.getMainWorkspace();
   const getById = (id) => (id ? ws.getBlockById(id) : null);
 
@@ -295,52 +312,52 @@ export function updateMeshFromBlock(mesh, block, changeEvent) {
     return root.getDescendants(false).some((d) => d.id === b.id);
   };
 
-  const safeGetFieldValue = (block, fieldName) => {
-    if (!block || !fieldName) return null;
-    const fld = block.getField(fieldName);
-    return fld ? fld.getValue() : null;
+  const safeGetFieldValue = (b, field) => {
+    if (!b || !field) return null;
+    const f = b.getField(field);
+    return f ? f.getValue() : null;
   };
 
-  const readColourValue = (block) => {
-    if (!block) return { value: null, kind: "none" };
+  const numFrom = (b, inputName) => {
+    // Defensive numeric read from an INPUT -> SHADOW/TARGET number
+    const inp = b?.getInput(inputName);
+    const tb = inp?.connection?.targetBlock();
+    const v = tb?.getFieldValue("NUM");
+    return v != null ? Number(v) : 0;
+  };
 
-    if (block.type === "lists_create_with") {
+  const readColourValue = (colourBlock) => {
+    if (!colourBlock) return { value: null, kind: "none" };
+
+    if (colourBlock.type === "lists_create_with") {
       const list = [];
-      for (const input of block.inputList) {
+      for (const input of colourBlock.inputList) {
         const tb = input.connection?.targetBlock();
         if (!tb) continue;
 
         if (tb.type === "random_colour") {
-          const c = flock.randomColour();
-          list.push(c);
+          list.push(flock.randomColour());
           continue;
         }
 
-        const c =
-          safeGetFieldValue(tb, "COLOR") ??
-          safeGetFieldValue(tb, "COLOUR") ??
-          null;
-
+        const c = safeGetFieldValue(tb, "COLOR") ?? safeGetFieldValue(tb, "COLOUR") ?? null;
         if (c) list.push(c);
       }
       return { value: list, kind: "list" };
     }
 
-    if (block.type === "random_colour") {
+    if (colourBlock.type === "random_colour") {
       return { value: flock.randomColour(), kind: "single" };
     }
 
-    const single =
-      safeGetFieldValue(block, "COLOR") ??
-      safeGetFieldValue(block, "COLOUR") ??
-      null;
-
+    const single = safeGetFieldValue(colourBlock, "COLOR") ?? safeGetFieldValue(colourBlock, "COLOUR") ?? null;
     return { value: single, kind: single ? "single" : "none" };
   };
 
+  // --- Work out WHAT changed -------------------------------------------------
+  let changed = null; // <- ensure defined before any use
   const changedBlock = getById(changeEvent.blockId);
   const parent = changedBlock?.getParent() || changedBlock;
-  let changed;
 
   if (flock.meshDebug) {
     console.log("Changed block:", changedBlock?.type);
@@ -360,10 +377,11 @@ export function updateMeshFromBlock(mesh, block, changeEvent) {
       changed = "MODELS";
     } else if (block.type === "create_map" && changeEvent.name === "MAP_NAME") {
       changed = "MAP_NAME";
+    } else if (["X", "Y", "Z", "SCALE", "WIDTH", "HEIGHT", "DEPTH", "DIAMETER", "DIAMETER_X", "DIAMETER_Y", "DIAMETER_Z", "DIAMETER_TOP", "DIAMETER_BOTTOM", "TESSELLATIONS"].includes(changeEvent.name)) {
+      changed = changeEvent.name;
     }
   }
 
-  // Check if the changed block is in one of our inputs
   if (!changed && parent?.inputList) {
     parent.inputList.forEach((input) => {
       const value =
@@ -376,12 +394,10 @@ export function updateMeshFromBlock(mesh, block, changeEvent) {
     });
   }
 
-  // Special handling for material blocks - check if change is in material subtree
   if (!changed) {
     const colorInput = block.getInputTargetBlock("COLOR");
     if (colorInput) {
-      // Check if the changed block is the color input or in its subtree
-      const isMaterialChange = 
+      const isMaterialChange =
         changeEvent.blockId === colorInput.id ||
         inSubtree(colorInput, changeEvent.blockId) ||
         inSubtree(colorInput, changeEvent.newParentId) ||
@@ -401,18 +417,13 @@ export function updateMeshFromBlock(mesh, block, changeEvent) {
         inSubtree(m, changeEvent.blockId) ||
         inSubtree(m, changeEvent.newParentId) ||
         inSubtree(m, changeEvent.oldParentId) ||
-        (changeEvent.type === Blockly.Events.BLOCK_CHANGE &&
-          changeEvent.blockId === m.id);
+        (changeEvent.type === Blockly.Events.BLOCK_CHANGE && changeEvent.blockId === m.id);
       if (touched) changed = "MATERIAL";
     }
   }
 
   if (!changed) {
-    if (
-      block.type === "set_sky_color" ||
-      block.type === "create_ground" ||
-      block.type === "create_map"
-    ) {
+    if (["set_sky_color", "create_ground", "create_map"].includes(block.type)) {
       changed = "COLOR";
     } else {
       if (flock.meshDebug) console.log("No relevant change detected, returning");
@@ -420,10 +431,9 @@ export function updateMeshFromBlock(mesh, block, changeEvent) {
     }
   }
 
-  if (!changed) return;
-
   if (flock.meshDebug) console.log(`Processing change type: ${changed}`);
 
+  // --- If this is a loader and MODELS changed, hand off ----------------------
   const shapeType = block.type;
 
   if (
@@ -436,20 +446,55 @@ export function updateMeshFromBlock(mesh, block, changeEvent) {
     mesh = getMeshFromBlock(block);
   }
 
-  if (mesh && mesh.physics) mesh.physics.disablePreStep = true;
+  // Temporarily stop physics pre-step while we mutate transforms
+  if (mesh?.physics) mesh.physics.disablePreStep = true;
 
+  // --- Position inputs (from the BLOCK, i.e., "base" coordinates) -----------
+  // NOTE: This is the *source of truth* for the desired base position.
+  const position = {
+    x: numFrom(block, "X"),
+    y: numFrom(block, "Y"),
+    z: numFrom(block, "Z"),
+  };
+  if (flock.meshDebug) console.log("Block position (base coords):", position);
+
+  // --- Helpers to keep base-at-Y after any size/scale change -----------------
+  const recomputeBI = (m) => {
+    m.computeWorldMatrix(true);
+    m.refreshBoundingInfo();
+    return m.getBoundingInfo().boundingBox.extendSizeWorld;
+  };
+
+  const ensureOrigScaleBaseline = (m) => {
+    m.metadata = m.metadata || {};
+    if (!m.metadata.__origScale) {
+      // baseline = first time we touch scale in this session
+      const ext = recomputeBI(m);
+      m.metadata.__origScale = { x: m.scaling.x, y: m.scaling.y, z: m.scaling.z };
+      m.metadata.__origExtent = { x: ext.x, y: ext.y, z: ext.z };
+      if (flock.meshDebug) {
+        console.log("Captured original scaling baseline:", m.metadata.__origScale);
+        console.log("Captured original extent baseline:", m.metadata.__origExtent);
+      }
+    }
+  };
+
+  const placeBaseAtY = (m, baseY) => {
+    const ext = recomputeBI(m); // extent AFTER size/scale change
+    const newCenterY = Number(baseY) + ext.y;
+    m.position.y = newCenterY;
+    if (flock.meshDebug) {
+      console.log("placeBaseAtY -> extent.y:", ext.y, "baseY:", baseY, "centerY:", newCenterY);
+    }
+  };
+
+  // --- Sky / Background / Ground / Map branches (kept from your logic) -------
   if (block.type === "set_sky_color") {
     const colorInput = block.getInputTargetBlock("COLOR");
-
     if (colorInput && colorInput.type === "material") {
       const { textureSet, baseColor, alpha } = extractMaterialInfo(colorInput);
       const baseColorBlock = colorInput.getInputTargetBlock("BASE_COLOR");
       let read = readColourValue(baseColorBlock);
-
-      if (flock.meshDebug) {
-        console.log("Sky material info:", { textureSet, baseColor, alpha, colorValue: read.value });
-      }
-
       if (read.value == null && !block.__skyRetry) {
         block.__skyRetry = true;
         requestAnimationFrame(() => {
@@ -458,24 +503,16 @@ export function updateMeshFromBlock(mesh, block, changeEvent) {
         });
         return;
       }
-
       const colorValue = read.value ?? baseColor;
-
       if (textureSet && textureSet !== "NONE") {
-        const materialOptions = {
-          color: colorValue,
-          materialName: textureSet,
-          alpha,
-        };
+        const materialOptions = { color: colorValue, materialName: textureSet, alpha };
         const material = flock.createMaterial(materialOptions);
         flock.setSky(material || colorValue);
         return;
       }
-
       flock.setSky(colorValue);
       return;
     }
-
     const read = readColourValue(colorInput);
     flock.setSky(read.value);
     return;
@@ -489,16 +526,13 @@ export function updateMeshFromBlock(mesh, block, changeEvent) {
 
   if (block.type === "create_ground") {
     const colorInput = block.getInputTargetBlock("COLOR");
-
     if (colorInput && colorInput.type === "material") {
       const { textureSet, baseColor, alpha } = extractMaterialInfo(colorInput);
       const baseColorBlock = colorInput.getInputTargetBlock("BASE_COLOR");
       let read = readColourValue(baseColorBlock);
-
       if (flock.meshDebug) {
         console.log("Ground material info:", { textureSet, baseColor, alpha, colorValue: read.value });
       }
-
       if (read.value == null && !block.__groundRetry) {
         block.__groundRetry = true;
         requestAnimationFrame(() => {
@@ -507,24 +541,16 @@ export function updateMeshFromBlock(mesh, block, changeEvent) {
         });
         return;
       }
-
       const colorValue = read.value ?? baseColor;
-
       if (textureSet && textureSet !== "NONE") {
-        const materialOptions = {
-          color: colorValue,
-          materialName: textureSet,
-          alpha,
-        };
+        const materialOptions = { color: colorValue, materialName: textureSet, alpha };
         const material = flock.createMaterial(materialOptions);
         flock.createGround(material || colorValue, "ground");
         return;
       }
-
       flock.createGround(colorValue, "ground");
       return;
     }
-
     const read = readColourValue(colorInput);
     flock.createGround(read.value, "ground");
     return;
@@ -533,12 +559,10 @@ export function updateMeshFromBlock(mesh, block, changeEvent) {
   if (block.type === "create_map") {
     const map = block.getFieldValue("MAP_NAME");
     const materialBlock = block.getInputTargetBlock("MATERIAL");
-
     if (materialBlock) {
       const { textureSet, alpha } = extractMaterialInfo(materialBlock);
       const baseColorInput = materialBlock.getInputTargetBlock("BASE_COLOR");
       let read = readColourValue(baseColorInput);
-
       if (read.value == null && !block.__mapRetry) {
         block.__mapRetry = true;
         requestAnimationFrame(() => {
@@ -547,295 +571,151 @@ export function updateMeshFromBlock(mesh, block, changeEvent) {
         });
         return;
       }
-
-      const materialOptions = {
-        color: read.value,
-        materialName: textureSet,
-        alpha,
-      };
-
+      const materialOptions = { color: read.value, materialName: textureSet, alpha };
       const material = flock.createMaterial(materialOptions);
       flock.createMap(map, material);
     }
-
     return;
   }
 
+  // --- Color/material collection for object & primitives ---------------------
   let color;
   let materialInfo = null;
 
-  if (
-    ![
-      "load_object",
-      "load_multi_object",
-      "load_character",
-      "create_map",
-      "rotate_to",
-    ].includes(block.type)
-  ) {
-    const colorInput = block.getInputTargetBlock("COLOR");
-
-    // Check if it's a material block
-    if (colorInput && colorInput.type === "material") {
-      materialInfo = extractMaterialInfo(colorInput);
-      const baseColorBlock = colorInput.getInputTargetBlock("BASE_COLOR");
+  const pullColor = () => {
+    const ci = block.getInputTargetBlock("COLOR");
+    if (ci && ci.type === "material") {
+      materialInfo = extractMaterialInfo(ci);
+      const baseColorBlock = ci.getInputTargetBlock("BASE_COLOR");
       const read = readColourValue(baseColorBlock);
-
       if (flock.meshDebug) {
-        console.log("Material block detected:");
-        console.log("  Texture:", materialInfo.textureSet);
-        console.log("  Base color from material:", materialInfo.baseColor);
-        console.log("  Color from input:", read.value);
-        console.log("  Alpha:", materialInfo.alpha);
+        console.log("Material block detected:", {
+          texture: materialInfo.textureSet, baseColor: materialInfo.baseColor,
+          inputColor: read.value, alpha: materialInfo.alpha
+        });
       }
-
-      color = read.value ?? materialInfo.baseColor;
-    } else {
-      // Simple color block
-      const read = readColourValue(colorInput);
-      color = read.value;
-
-      if (flock.meshDebug) {
-        console.log("Simple color block detected:", color);
-      }
+      return read.value ?? materialInfo.baseColor;
     }
+    const read = readColourValue(ci);
+    return read.value;
+  };
+
+  if (!["load_object", "load_multi_object", "load_character", "create_map", "rotate_to"].includes(block.type)) {
+    color = pullColor();
   } else if (block.type === "load_object" || block.type === "load_character") {
-    // Handle load_object and load_character color input
-    const colorInput = block.getInputTargetBlock("COLOR");
-
-    if (flock.meshDebug) {
-      console.log("Processing load_object/load_character color input");
-      console.log("  Color input type:", colorInput?.type);
-    }
-
-    // Check if it's a material block
-    if (colorInput && colorInput.type === "material") {
-      materialInfo = extractMaterialInfo(colorInput);
-      const baseColorBlock = colorInput.getInputTargetBlock("BASE_COLOR");
-      const read = readColourValue(baseColorBlock);
-
-      if (flock.meshDebug) {
-        console.log("Material block detected for load_object:");
-        console.log("  Texture:", materialInfo.textureSet);
-        console.log("  Base color from material:", materialInfo.baseColor);
-        console.log("  Color from input:", read.value);
-        console.log("  Alpha:", materialInfo.alpha);
-      }
-
-      color = read.value ?? materialInfo.baseColor;
-    } else {
-      // Simple color block
-      const read = readColourValue(colorInput);
-      color = read.value;
-
-      if (flock.meshDebug) {
-        console.log("Simple color for load_object:", color);
-      }
-    }
+    color = pullColor();
   } else if (block.type === "load_multi_object") {
     const colorsBlock = block.getInput("COLORS").connection.targetBlock();
     const read = readColourValue(colorsBlock);
     color = read.value;
   }
 
-  if (block.type.startsWith("load_")) {
-    let scale = block
-      .getInput("SCALE")
-      .connection.targetBlock()
-      .getFieldValue("NUM");
-
-    if (changed === "SCALE") {
-      const relativeScale = changeEvent.oldValue
-        ? scale / changeEvent.oldValue
-        : scale;
-
-      if (relativeScale !== 1) {
-        mesh.computeWorldMatrix(true);
-        mesh.refreshBoundingInfo();
-        const ydiff = mesh.getBoundingInfo().boundingBox.extendSizeWorld.y;
-
-        rescaleBoundingBox(mesh, relativeScale);
-        mesh.computeWorldMatrix(true);
-        mesh.refreshBoundingInfo();
-
-        flock.positionAt(mesh.name, {
-          x: mesh.position.x,
-          y: mesh.position.y - ydiff,
-          z: mesh.position.z,
-        });
-
-        mesh.computeWorldMatrix(true);
-        mesh.refreshBoundingInfo();
-      }
-    }
-  } else {
-    flock.updatePhysics(mesh);
+  // --- Handle model replacement shortcuts ------------------------------------
+  if (["load_object", "load_multi_object", "load_character"].includes(shapeType) && changed === "MODELS") {
+    replaceMeshModel(mesh, block, changeEvent);
+    return;
   }
 
-  const position = {
-    x: block.getInput("X").connection.targetBlock().getFieldValue("NUM"),
-    y: block.getInput("Y").connection.targetBlock().getFieldValue("NUM"),
-    z: block.getInput("Z").connection.targetBlock().getFieldValue("NUM"),
+  // --- SCALE handling (load_*): scale relative to original, keep base at Y ---
+  if (shapeType.startsWith("load_") && changed === "SCALE") {
+    const newScale = numFrom(block, "SCALE"); // scalar
+    ensureOrigScaleBaseline(mesh);
+
+    // Set scaling relative to original baseline, not compounding
+    const os = mesh.metadata.__origScale;
+    mesh.scaling.set(os.x * newScale, os.y * newScale, os.z * newScale);
+
+    // Reposition so base sits at the block Y
+    placeBaseAtY(mesh, position.y);
+
+    if (flock.meshDebug) {
+      console.log("=== LOAD_* SCALE APPLIED ===");
+      console.log("New scale (scalar):", newScale);
+      console.log("Applied scaling vector:", mesh.scaling);
+      console.log("Mesh position after base placement:", mesh.position);
+    }
+
+    if (mesh.physics) {
+      mesh.physics.disablePreStep = false;
+      mesh.physics.setTargetTransform(mesh.position, mesh.rotationQuaternion);
+    }
+  }
+
+  // --- Primitive dimension changes: keep base at Y ---------------------------
+  const rebaseAfterSizeChange = () => {
+    placeBaseAtY(mesh, position.y);
+    if (flock.meshDebug) {
+      console.log("Rebased mesh to base-Y after size change. pos:", mesh.position);
+    }
   };
 
   switch (shapeType) {
-    case "load_object":
-      if (changed === "MODELS") {
-        replaceMeshModel(mesh, block, changeEvent);
-        return;
-      }
-      break;
-
-    case "load_multi_object":
-      if (changed === "MODELS") {
-        replaceMeshModel(mesh, block, changeEvent);
-        return;
-      }
-      break;
-
-    case "load_character":
-      if (changed === "MODELS") {
-        replaceMeshModel(mesh, block, changeEvent);
-        return;
-      }
-      if (changed in colorFields) {
-        const colors = {
-          hair: block
-            .getInput("HAIR_COLOR")
-            .connection.targetBlock()
-            .getFieldValue("COLOR"),
-          skin: block
-            .getInput("SKIN_COLOR")
-            .connection.targetBlock()
-            .getFieldValue("COLOR"),
-          eyes: block
-            .getInput("EYES_COLOR")
-            .connection.targetBlock()
-            .getFieldValue("COLOR"),
-          tshirt: block
-            .getInput("TSHIRT_COLOR")
-            .connection.targetBlock()
-            .getFieldValue("COLOR"),
-          shorts: block
-            .getInput("SHORTS_COLOR")
-            .connection.targetBlock()
-            .getFieldValue("COLOR"),
-          sleeves: block
-            .getInput("SLEEVES_COLOR")
-            .connection.targetBlock()
-            .getFieldValue("COLOR"),
-        };
-        flock.applyColorsToCharacter(getMeshFromBlock(block), colors);
-      }
-      break;
-
     case "create_box": {
       if (["WIDTH", "HEIGHT", "DEPTH"].includes(changed)) {
-        const width = block
-          .getInput("WIDTH")
-          .connection.targetBlock()
-          .getFieldValue("NUM");
-        const height = block
-          .getInput("HEIGHT")
-          .connection.targetBlock()
-          .getFieldValue("NUM");
-        const depth = block
-          .getInput("DEPTH")
-          .connection.targetBlock()
-          .getFieldValue("NUM");
+        const width  = numFrom(block, "WIDTH");
+        const height = numFrom(block, "HEIGHT");
+        const depth  = numFrom(block, "DEPTH");
+        if (flock.meshDebug) {
+          console.log("=== BOX DIMENSION CHANGE ===", { width, height, depth });
+        }
         setAbsoluteSize(mesh, width, height, depth);
+        rebaseAfterSizeChange();
       }
       break;
     }
-
     case "create_sphere": {
       if (["DIAMETER_X", "DIAMETER_Y", "DIAMETER_Z"].includes(changed)) {
-        const dx = block
-          .getInput("DIAMETER_X")
-          .connection.targetBlock()
-          .getFieldValue("NUM");
-        const dy = block
-          .getInput("DIAMETER_Y")
-          .connection.targetBlock()
-          .getFieldValue("NUM");
-        const dz = block
-          .getInput("DIAMETER_Z")
-          .connection.targetBlock()
-          .getFieldValue("NUM");
+        const dx = numFrom(block, "DIAMETER_X");
+        const dy = numFrom(block, "DIAMETER_Y");
+        const dz = numFrom(block, "DIAMETER_Z");
         setAbsoluteSize(mesh, dx, dy, dz);
+        rebaseAfterSizeChange();
       }
       break;
     }
-
     case "create_cylinder": {
-      if (
-        ["HEIGHT", "DIAMETER_TOP", "DIAMETER_BOTTOM", "TESSELLATIONS"].includes(
-          changed,
-        )
-      ) {
-        const h = block
-          .getInput("HEIGHT")
-          .connection.targetBlock()
-          .getFieldValue("NUM");
-        const dt = block
-          .getInput("DIAMETER_TOP")
-          .connection.targetBlock()
-          .getFieldValue("NUM");
-        const db = block
-          .getInput("DIAMETER_BOTTOM")
-          .connection.targetBlock()
-          .getFieldValue("NUM");
-        const s = block
-          .getInput("TESSELLATIONS")
-          .connection.targetBlock()
-          .getFieldValue("NUM");
+      if (["HEIGHT", "DIAMETER_TOP", "DIAMETER_BOTTOM", "TESSELLATIONS"].includes(changed)) {
+        const h  = numFrom(block, "HEIGHT");
+        const dt = numFrom(block, "DIAMETER_TOP");
+        const db = numFrom(block, "DIAMETER_BOTTOM");
+        const s  = numFrom(block, "TESSELLATIONS");
         updateCylinderGeometry(mesh, dt, db, h, s);
+        rebaseAfterSizeChange();
       }
       break;
     }
-
     case "create_capsule": {
       if (["HEIGHT", "DIAMETER"].includes(changed)) {
-        const d = block
-          .getInput("DIAMETER")
-          .connection.targetBlock()
-          .getFieldValue("NUM");
-        const h = block
-          .getInput("HEIGHT")
-          .connection.targetBlock()
-          .getFieldValue("NUM");
+        const d = numFrom(block, "DIAMETER");
+        const h = numFrom(block, "HEIGHT");
         setAbsoluteSize(mesh, d, h, d);
+        rebaseAfterSizeChange();
       }
       break;
     }
-
     case "create_plane": {
       if (["HEIGHT", "WIDTH"].includes(changed)) {
-        const w = block
-          .getInput("WIDTH")
-          .connection.targetBlock()
-          .getFieldValue("NUM");
-        const h = block
-          .getInput("HEIGHT")
-          .connection.targetBlock()
-          .getFieldValue("NUM");
+        const w = numFrom(block, "WIDTH");
+        const h = numFrom(block, "HEIGHT");
         setAbsoluteSize(mesh, w, h, 0);
+        rebaseAfterSizeChange();
       }
       break;
     }
   }
 
-  // Handle material/color changes
+  // --- Material / color updates (unchanged logic with debug) -----------------
   if (["COLOR", "COLORS", "BASE_COLOR"].includes(changed) || changed.startsWith?.("ADD")) {
     if (flock.meshDebug) {
       console.log("=== APPLYING COLOR/MATERIAL CHANGE ===");
+      console.log("Block type:", block.type);
       console.log("Material info:", materialInfo);
       console.log("Color:", color);
       console.log("Color type:", typeof color, Array.isArray(color));
+      console.log("Mesh position before color change:", mesh.position);
     }
 
     if (color) {
-      // Special handling for load_object default color
       if (color === "#9932cc" && block.type === "load_object") {
         const modelName = block.getFieldValue("MODELS");
         color = objectColours[modelName] || "#FFD700";
@@ -844,86 +724,68 @@ export function updateMeshFromBlock(mesh, block, changeEvent) {
       const ultimateParent = (m) => (m.parent ? ultimateParent(m.parent) : m);
       mesh = ultimateParent(mesh);
 
-      // Check if mesh currently has a textured material
       const currentMaterial = mesh.material;
-      const hasTexture = currentMaterial?.diffuseTexture || 
-                        currentMaterial?.name?.includes('.png') ||
-                        currentMaterial instanceof flock.GradientMaterial;
+      const hasTexture =
+        currentMaterial?.diffuseTexture ||
+        currentMaterial?.name?.includes(".png") ||
+        currentMaterial instanceof flock.GradientMaterial;
 
-      // Case A: Material with texture - apply as single material to all parts
       if (materialInfo && materialInfo.textureSet && materialInfo.textureSet !== "NONE") {
-        const materialOptions = {
-          color: color,
-          materialName: materialInfo.textureSet,
-          alpha: materialInfo.alpha,
-        };
-
-        if (flock.meshDebug) {
-          console.log("Creating and applying textured material with options:", materialOptions);
-        }
-
+        const materialOptions = { color, materialName: materialInfo.textureSet, alpha: materialInfo.alpha };
+        if (flock.meshDebug) console.log("Creating & applying textured material:", materialOptions);
         const material = flock.createMaterial(materialOptions);
         flock.setMaterial(mesh.name, [material]);
-      }
-      // Case B: Two-color array - use changeColorMesh to assign to parts (like initial creation)
-      else if (Array.isArray(color) && color.length === 2) {
-        if (flock.meshDebug) {
-          console.log("Applying two-color array to mesh parts:", color);
-        }
-
+      } else if (Array.isArray(color) && color.length === 2) {
+        if (flock.meshDebug) console.log("Applying two-color array:", color);
         flock.changeColorMesh(mesh, color);
-      }
-      // Case C: Transitioning from textured to flat single color - create new flat material
-      else if (hasTexture) {
-        if (flock.meshDebug) {
-          console.log("Transitioning from textured to flat material, creating new material with color:", color);
-        }
-
-        // Create a flat colored material to replace the textured one
-        const materialOptions = {
-          color: color,
-          materialName: "none.png",
-          alpha: materialInfo?.alpha ?? 1.0,
-        };
-
+      } else if (hasTexture) {
+        if (flock.meshDebug) console.log("Switching from textured -> flat color:", color);
+        const materialOptions = { color, materialName: "none.png", alpha: materialInfo?.alpha ?? 1.0 };
         const material = flock.createMaterial(materialOptions);
         flock.setMaterial(mesh.name, [material]);
-      }
-      // Case D: Simple color change within flat material
-      else {
-        if (flock.meshDebug) {
-          console.log("Applying simple color change with changeColor:", color);
-        }
-
-        // Use changeColor like the generated code does
+      } else {
+        if (flock.meshDebug) console.log("Applying simple color change via changeColor:", color);
         flock.changeColor(mesh.name, { color });
       }
     }
   }
 
+  // --- Position / rotation changes from block fields -------------------------
   if (["X", "Y", "Z"].includes(changed)) {
+    if (flock.meshDebug) {
+      console.log("=== POSITION CHANGE ===");
+      console.log("Changed field:", changed);
+      console.log("Desired base position:", position);
+      console.log("Mesh position before:", mesh.position);
+    }
     if (block.type === "rotate_to") {
       flock.rotateTo(mesh.name, position);
     } else {
+      // positionAt: your API interprets base coords when useY=true
       flock.positionAt(mesh.name, { ...position, useY: true });
     }
+    if (flock.meshDebug) console.log("Mesh position after:", mesh.position);
   } else if (changed === "SCALE") {
+    // Re-apply any child rotate_to blocks after scale
     for (const child of block.getChildren()) {
       if (child.type === "rotate_to") {
         const rotation = {
-          x: child.getInput("X").connection.targetBlock().getFieldValue("NUM"),
-          y: child.getInput("Y").connection.targetBlock().getFieldValue("NUM"),
-          z: child.getInput("Z").connection.targetBlock().getFieldValue("NUM"),
+          x: numFrom(child, "X"),
+          y: numFrom(child, "Y"),
+          z: numFrom(child, "Z"),
         };
         flock.rotateTo(mesh.name, rotation);
       }
     }
   }
 
+  // --- Physics resume & final recompute --------------------------------------
   flock.updatePhysics(mesh);
+  if (mesh?.physics) mesh.physics.disablePreStep = false;
 
   if (flock.meshDebug) console.log("=== UPDATE COMPLETE ===");
 }
+
 
 function moveMeshToOrigin(mesh) {
   mesh.position = flock.BABYLON.Vector3.Zero();
