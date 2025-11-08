@@ -51,7 +51,7 @@ export function defineShapeBlocks() {
 						{
 							type: "input_value",
 							name: "COLOR",
-							check: ["Colour", "Array", "Material"], 
+							check: ["Colour", "Material"], 
 						},
 						...additionalArgs0,
 						{ type: "input_value", name: "X", check: "Number" },
@@ -108,7 +108,7 @@ export function defineShapeBlocks() {
 		// Handle BLOCK_CREATE or BLOCK_CHANGE if a child is attached
 		if (
 			(changeEvent.type === Blockly.Events.BLOCK_CREATE ||
-				changeEvent.type === Blockly.Events.BLOCK_CHANGE) &&
+				changeEvent.type === Blockly.Events.BLOCK_CHANGE || changeEvent.type === Blockly.Events.BLOCK_MOVE) &&
 			changeEvent.workspaceId === Blockly.getMainWorkspace().id
 		) {
 			if (flock.blockDebug) console.log("The changed block is", changeEvent.block);
@@ -116,6 +116,12 @@ export function defineShapeBlocks() {
 			const changedBlock = Blockly.getMainWorkspace().getBlockById(
 				changeEvent.blockId,
 			);
+
+			if (!changedBlock) {
+				if (flock.blockDebug) console.log("Changed block not found in workspace");
+				return;
+			}
+			
 			const parent = findCreateBlock(changedBlock);
 			if (flock.blockDebug) console.log("The type of the changed block is", changedBlock.type);
 			if (changedBlock.getParent()) {
@@ -694,7 +700,7 @@ export function defineShapeBlocks() {
 					{
 						type: "input_value",
 						name: "COLOR",
-						check: ["Colour", "Array", "Material"], 
+						check: ["Colour", "Material"], 
 					},
 					{ type: "input_value", name: "WIDTH", check: "Number" },
 					{ type: "input_value", name: "HEIGHT", check: "Number" },
@@ -738,7 +744,7 @@ export function defineShapeBlocks() {
 					{
 						type: "input_value",
 						name: "COLOR",
-						check: ["Colour", "Array", "Material"], 
+						check: ["Colour", "Material"], 
 					},
 					{
 						type: "input_value",
@@ -794,7 +800,7 @@ export function defineShapeBlocks() {
 					{
 						type: "input_value",
 						name: "COLOR",
-						check: ["Colour", "Array", "Material"], 
+						check: ["Colour", "Material"], 
 					},
 					{ type: "input_value", name: "HEIGHT", check: "Number" },
 					{
@@ -851,7 +857,7 @@ export function defineShapeBlocks() {
 					{
 						type: "input_value",
 						name: "COLOR",
-						check: ["Colour", "Array", "Material"], 
+						check: ["Colour", "Material"], 
 					},
 					{ type: "input_value", name: "DIAMETER", check: "Number" },
 					{ type: "input_value", name: "HEIGHT", check: "Number" },

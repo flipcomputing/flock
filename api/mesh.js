@@ -590,23 +590,47 @@ export const flockMesh = {
     mesh.setVerticesData(flock.BABYLON.VertexBuffer.UVKind, uvs, true);
   },
   ensureUniqueGeometry(mesh) {
-    //console.log("Cloning geometry");
+    // Add safety checks
+    if (!mesh || mesh.isDisposed()) {
+      console.warn("Cannot ensure unique geometry: mesh is null or disposed");
+      return false;
+    }
 
     if (mesh.metadata?.sharedGeometry) {
-      // Extract vertex data from mesh
-      const vertexData = flock.BABYLON.VertexData.ExtractFromMesh(mesh);
+      try {
+        // Check if mesh has valid geometry before extracting
+        const positions = mesh.getVerticesData(flock.BABYLON.VertexBuffer.PositionKind);
+        if (!positions || positions.length === 0) {
+          console.warn("Mesh has no valid position data");
+          return false;
+        }
 
-      // Remove shared geometry by clearing existing bindings
-      mesh.setVerticesData("position", null); // Remove reference to old data
+        // Extract vertex data from mesh
+        const vertexData = flock.BABYLON.VertexData.ExtractFromMesh(mesh);
 
-      // Apply cloned vertex data (creates a new internal geometry)
-      vertexData.applyToMesh(mesh, true); // `true` = updatable
+        // Validate vertex data
+        if (!vertexData) {
+          console.warn("Failed to extract vertex data");
+          return false;
+        }
 
-      // Mark the geometry as no longer shared
-      mesh.metadata.sharedGeometry = false;
+        // Remove shared geometry by clearing existing bindings
+        mesh.setVerticesData("position", null);
 
-      //console.log("Geometry cloned and applied.");
+        // Apply cloned vertex data (creates a new internal geometry)
+        vertexData.applyToMesh(mesh, true); // `true` = updatable
+
+        // Mark the geometry as no longer shared
+        mesh.metadata.sharedGeometry = false;
+
+        return true;
+      } catch (error) {
+        console.error("Error ensuring unique geometry:", error);
+        return false;
+      }
     }
+
+    return true; // Already has unique geometry
   },
   setupMesh(mesh, modelName, modelId, blockId, scale, x, y, z, color = null) {
     mesh.scaling = new flock.BABYLON.Vector3(scale, scale, scale);
