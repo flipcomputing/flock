@@ -30,73 +30,6 @@ export function getRootMesh(mesh) {
   return getRootMesh(mesh.parent);
 }
 
-export function updateOrCreateMeshFromBlock(block, changeEvent) {
-  if (flock.meshDebug)
-    console.log(
-      "Update or create mesh from block",
-      block.type,
-      changeEvent.type,
-    );
-
-  if (
-    [
-      "set_sky_color",
-      "set_background_color",
-      "create_ground",
-      "create_map",
-    ].includes(block.type)
-  ) {
-    // Always proceed to update
-    updateMeshFromBlock(null, block, changeEvent);
-    return;
-  }
-
-  const mesh = getMeshFromBlock(block);
-
-  if (flock.meshDebug) console.log(mesh);
-
-  const isEnabledEvent =
-    changeEvent?.type === Blockly.Events.BLOCK_CHANGE &&
-    changeEvent.element === "disabled" &&
-    changeEvent.oldValue &&
-    !changeEvent.newValue;
-
-  const isImmediateEnabledCreate =
-    changeEvent?.type === Blockly.Events.BLOCK_CREATE &&
-    block.isEnabled() &&
-    !mesh;
-
-  if (window.loadingCode || block.disposed) return;
-
-  const alreadyCreatingMesh = meshMap[block.id] !== undefined;
-
-  if (!alreadyCreatingMesh && (isEnabledEvent || isImmediateEnabledCreate)) {
-    createMeshOnCanvas(block);
-    return;
-  }
-
-  if (flock.meshDebug) {
-    console.log("Change event type:", changeEvent?.type,
-      changeEvent?.type === Blockly.Events.BLOCK_CHANGE ||
-        changeEvent?.type === Blockly.Events.BLOCK_CREATE ||  changeEvent?.type === Blockly.Events.BLOCK_MOVE
-    );
-  }
-
-  if (
-    (changeEvent?.type === Blockly.Events.BLOCK_CHANGE ||
-      changeEvent?.type === Blockly.Events.BLOCK_CREATE ||  changeEvent?.type === Blockly.Events.BLOCK_MOVE) &&
-    (mesh ||
-      [
-        "set_sky_color",
-        "set_background_color",
-        "create_ground",
-        "create_map",
-      ].includes(block.type))
-  ) {
-    updateMeshFromBlock(mesh, block, changeEvent);
-  }
-}
-
 export function deleteMeshFromBlock(blockId) {
   const blockKey = getBlockKeyFromBlockID(blockId);
 
@@ -266,6 +199,67 @@ export function extractMaterialInfo(materialBlock) {
   const alpha = readNumberInput(materialBlock, "ALPHA", 1);
 
   return { textureSet, baseColor, alpha };
+}
+
+// Add this function before updateMeshFromBlock
+export function updateOrCreateMeshFromBlock(block, changeEvent) {
+  if (flock.meshDebug)
+    console.log(
+      "Update or create mesh from block",
+      block.type,
+      changeEvent.type,
+    );
+  if (
+    [
+      "set_sky_color",
+      "set_background_color",
+      "create_ground",
+      "create_map",
+    ].includes(block.type)
+  ) {
+    // Always proceed to update
+    updateMeshFromBlock(null, block, changeEvent);
+    return;
+  }
+  const mesh = getMeshFromBlock(block);
+  if (flock.meshDebug) console.log(mesh);
+  const isEnabledEvent =
+    changeEvent?.type === Blockly.Events.BLOCK_CHANGE &&
+    changeEvent.element === "disabled" &&
+    changeEvent.oldValue &&
+    !changeEvent.newValue;
+  const isImmediateEnabledCreate =
+    changeEvent?.type === Blockly.Events.BLOCK_CREATE &&
+    block.isEnabled() &&
+    !mesh;
+  if (window.loadingCode || block.disposed) return;
+  const alreadyCreatingMesh = meshMap[block.id] !== undefined;
+  if (!alreadyCreatingMesh && (isEnabledEvent || isImmediateEnabledCreate)) {
+    createMeshOnCanvas(block);
+    return;
+  }
+  if (flock.meshDebug) {
+    console.log(
+      "Should update?",
+      changeEvent?.type === Blockly.Events.BLOCK_CHANGE ||
+        changeEvent?.type === Blockly.Events.BLOCK_CREATE ||
+        changeEvent?.type === Blockly.Events.BLOCK_MOVE,
+    );
+  }
+  if (
+    (changeEvent?.type === Blockly.Events.BLOCK_CHANGE ||
+      changeEvent?.type === Blockly.Events.BLOCK_CREATE ||
+      changeEvent?.type === Blockly.Events.BLOCK_MOVE) &&
+    (mesh ||
+      [
+        "set_sky_color",
+        "set_background_color",
+        "create_ground",
+        "create_map",
+      ].includes(block.type))
+  ) {
+    updateMeshFromBlock(mesh, block, changeEvent);
+  }
 }
 
 export function updateMeshFromBlock(mesh, block, changeEvent) {
@@ -572,7 +566,7 @@ export function updateMeshFromBlock(mesh, block, changeEvent) {
 
   if (
     ![
-      "load_model",
+      "load_object",
       "load_multi_object",
       "load_character",
       "create_map",
@@ -603,6 +597,39 @@ export function updateMeshFromBlock(mesh, block, changeEvent) {
 
       if (flock.meshDebug) {
         console.log("Simple color block detected:", color);
+      }
+    }
+  } else if (block.type === "load_object" || block.type === "load_character") {
+    // Handle load_object and load_character color input
+    const colorInput = block.getInputTargetBlock("COLOR");
+
+    if (flock.meshDebug) {
+      console.log("Processing load_object/load_character color input");
+      console.log("  Color input type:", colorInput?.type);
+    }
+
+    // Check if it's a material block
+    if (colorInput && colorInput.type === "material") {
+      materialInfo = extractMaterialInfo(colorInput);
+      const baseColorBlock = colorInput.getInputTargetBlock("BASE_COLOR");
+      const read = readColourValue(baseColorBlock);
+
+      if (flock.meshDebug) {
+        console.log("Material block detected for load_object:");
+        console.log("  Texture:", materialInfo.textureSet);
+        console.log("  Base color from material:", materialInfo.baseColor);
+        console.log("  Color from input:", read.value);
+        console.log("  Alpha:", materialInfo.alpha);
+      }
+
+      color = read.value ?? materialInfo.baseColor;
+    } else {
+      // Simple color block
+      const read = readColourValue(colorInput);
+      color = read.value;
+
+      if (flock.meshDebug) {
+        console.log("Simple color for load_object:", color);
       }
     }
   } else if (block.type === "load_multi_object") {
@@ -804,6 +831,7 @@ export function updateMeshFromBlock(mesh, block, changeEvent) {
       console.log("=== APPLYING COLOR/MATERIAL CHANGE ===");
       console.log("Material info:", materialInfo);
       console.log("Color:", color);
+      console.log("Color type:", typeof color, Array.isArray(color));
     }
 
     if (color) {
@@ -822,7 +850,7 @@ export function updateMeshFromBlock(mesh, block, changeEvent) {
                         currentMaterial?.name?.includes('.png') ||
                         currentMaterial instanceof flock.GradientMaterial;
 
-      // If we have material info (texture), use setMaterial like generated code does
+      // Case A: Material with texture - apply as single material to all parts
       if (materialInfo && materialInfo.textureSet && materialInfo.textureSet !== "NONE") {
         const materialOptions = {
           color: color,
@@ -836,8 +864,16 @@ export function updateMeshFromBlock(mesh, block, changeEvent) {
 
         const material = flock.createMaterial(materialOptions);
         flock.setMaterial(mesh.name, [material]);
-      } 
-      // If transitioning from textured to flat, need to create new flat material
+      }
+      // Case B: Two-color array - use changeColorMesh to assign to parts (like initial creation)
+      else if (Array.isArray(color) && color.length === 2) {
+        if (flock.meshDebug) {
+          console.log("Applying two-color array to mesh parts:", color);
+        }
+
+        flock.changeColorMesh(mesh, color);
+      }
+      // Case C: Transitioning from textured to flat single color - create new flat material
       else if (hasTexture) {
         if (flock.meshDebug) {
           console.log("Transitioning from textured to flat material, creating new material with color:", color);
@@ -853,7 +889,7 @@ export function updateMeshFromBlock(mesh, block, changeEvent) {
         const material = flock.createMaterial(materialOptions);
         flock.setMaterial(mesh.name, [material]);
       }
-      // Simple color change within flat material
+      // Case D: Simple color change within flat material
       else {
         if (flock.meshDebug) {
           console.log("Applying simple color change with changeColor:", color);
