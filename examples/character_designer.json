@@ -129,115 +129,115 @@
 		"inputs": {
 		  "DO": {
 			"block": {
-			  "type": "switch_animation",
-			  "id": "2q`2]WZkYan7=5yki%Q)",
+			  "type": "load_character",
+			  "id": "VdoPSUW*V=1:.ufCK+/Z",
+			  "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" has_do=\"false\"></mutation>",
 			  "fields": {
-				"ANIMATION_NAME": "Idle",
-				"MODEL": {
+				"ID_VAR": {
 				  "id": "2?;XHa6KmcG~lbbN#Eud"
+				},
+				"MODELS": "Liz1.glb"
+			  },
+			  "inputs": {
+				"SCALE": {
+				  "shadow": {
+					"type": "math_number",
+					"id": ":MyDWU,S0DsTXX5$9@`5",
+					"fields": {
+					  "NUM": 1
+					}
+				  }
+				},
+				"X": {
+				  "shadow": {
+					"type": "math_number",
+					"id": "0V2faZHwHr-VUw0R#]Mc",
+					"fields": {
+					  "NUM": 0
+					}
+				  }
+				},
+				"Y": {
+				  "shadow": {
+					"type": "math_number",
+					"id": "9=2D|Pn9zWP_60,W2:~^",
+					"fields": {
+					  "NUM": 0
+					}
+				  }
+				},
+				"Z": {
+				  "shadow": {
+					"type": "math_number",
+					"id": "$)Pex#RUUD@EsDT1mSYU",
+					"fields": {
+					  "NUM": 0
+					}
+				  }
+				},
+				"HAIR_COLOR": {
+				  "shadow": {
+					"type": "colour",
+					"id": "8W;t[](h6e-kM7]+F~z+",
+					"fields": {
+					  "COLOR": "#000000"
+					}
+				  }
+				},
+				"SKIN_COLOR": {
+				  "shadow": {
+					"type": "skin_colour",
+					"id": "}.hnfN=T+@$-DHM3VDDL",
+					"fields": {
+					  "COLOR": "#a15c33"
+					}
+				  }
+				},
+				"EYES_COLOR": {
+				  "shadow": {
+					"type": "colour",
+					"id": "LQPU`/Ydgke!98UoFwP|",
+					"fields": {
+					  "COLOR": "#000000"
+					}
+				  }
+				},
+				"TSHIRT_COLOR": {
+				  "shadow": {
+					"type": "colour",
+					"id": "G(v8`tjABY}8-a|`@}3$",
+					"fields": {
+					  "COLOR": "#ff8f60"
+					}
+				  }
+				},
+				"SHORTS_COLOR": {
+				  "shadow": {
+					"type": "colour",
+					"id": "f:DUnKnT@(hw,31dy]HX",
+					"fields": {
+					  "COLOR": "#00008b"
+					}
+				  }
+				},
+				"SLEEVES_COLOR": {
+				  "shadow": {
+					"type": "colour",
+					"id": "qd9R2xGs(43SmRV;M{Fl",
+					"fields": {
+					  "COLOR": "#008b8b"
+					}
+				  }
 				}
 			  },
 			  "next": {
 				"block": {
-				  "type": "load_character",
-				  "id": "x6R7bvc7tEkOa`I}a!{H",
-				  "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" has_do=\"false\"></mutation>",
+				  "type": "switch_animation",
+				  "id": "2q`2]WZkYan7=5yki%Q)",
 				  "fields": {
-					"ID_VAR": {
-					  "id": "bz2;=4aJow-.,lKQ7dpg"
-					},
-					"MODELS": "Liz1.glb"
-				  },
-				  "inputs": {
-					"SCALE": {
-					  "shadow": {
-						"type": "math_number",
-						"id": "D{l!#Yjht#,MK*D2mSV`",
-						"fields": {
-						  "NUM": 1
-						}
-					  }
-					},
-					"X": {
-					  "shadow": {
-						"type": "math_number",
-						"id": "{|7gqKYg{^`{THs9#$1W",
-						"fields": {
-						  "NUM": 0
-						}
-					  }
-					},
-					"Y": {
-					  "shadow": {
-						"type": "math_number",
-						"id": "K3Q.m}mzvN=ttYtz`Cr+",
-						"fields": {
-						  "NUM": 0
-						}
-					  }
-					},
-					"Z": {
-					  "shadow": {
-						"type": "math_number",
-						"id": "ZlOae=Q!cU4kz:oL^{hA",
-						"fields": {
-						  "NUM": 0
-						}
-					  }
-					},
-					"HAIR_COLOR": {
-					  "shadow": {
-						"type": "colour",
-						"id": "Mz#z6?6fv5IX[wACwp;j",
-						"fields": {
-						  "COLOR": "#000000"
-						}
-					  }
-					},
-					"SKIN_COLOR": {
-					  "shadow": {
-						"type": "skin_colour",
-						"id": "lWdhPh.E:EfLVZH^}V9i",
-						"fields": {
-						  "COLOR": "#a15c33"
-						}
-					  }
-					},
-					"EYES_COLOR": {
-					  "shadow": {
-						"type": "colour",
-						"id": "]2XpCdNAy=7y#;K)vu=0",
-						"fields": {
-						  "COLOR": "#000000"
-						}
-					  }
-					},
-					"TSHIRT_COLOR": {
-					  "shadow": {
-						"type": "colour",
-						"id": "2WAw6/jA_UCj7tue5N![",
-						"fields": {
-						  "COLOR": "#5e07ab"
-						}
-					  }
-					},
-					"SHORTS_COLOR": {
-					  "shadow": {
-						"type": "colour",
-						"id": "x^`k0r/NOdjF(#}rA8=S",
-						"fields": {
-						  "COLOR": "#00008b"
-						}
-					  }
-					},
-					"SLEEVES_COLOR": {
-					  "shadow": {
-						"type": "colour",
-						"id": "qae?t,5yN`EnndH*H-!i",
-						"fields": {
-						  "COLOR": "#008b8b"
-						}
-					  }
+					"ANIMATION_NAME": "Idle",
+					"MODEL": {
+					  "id": "2?;XHa6KmcG~lbbN#Eud"
 					}
 				  }
 				}
@@ -360,10 +360,6 @@
 	{
 	  "name": "character1",
 	  "id": "2?;XHa6KmcG~lbbN#Eud"
-	},
-	{
-	  "name": "character2",
-	  "id": "bz2;=4aJow-.,lKQ7dpg"
 	}
   ]
 }
