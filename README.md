@@ -44,8 +44,36 @@ You should see it here: http://localhost:5173/
 For detailed testing documentation including Playwright end-to-end tests and Mocha unit tests, see the [Testing section in CONTRIBUTING.md](CONTRIBUTING.md#testing).
 
 **Quick start:**
-- Mocha tests: http://localhost:5173/tests/tests.html (with dev server running)
+- Mocha tests (browser): http://localhost:5173/tests/tests.html (with dev server running)
+- Mocha tests (CLI): `npm run test:api @notslow` (automated, headless)
 - Playwright tests: `npx playwright test`
+
+### API Quality Tools
+
+This project includes automated tools for tracking and improving API documentation and test coverage.
+
+**📚 Documentation:**
+- **[API Quality Tools Guide](docs/API_QUALITY_TOOLS.md)** ⭐ - Complete guide to using the tools
+- [Getting Started](docs/GETTING_STARTED.md) - Quick start for improving API quality
+- [API Strategy](docs/API_RECONCILIATION_PLAN.md) - Overall approach and goals
+- [Current Status](docs/IMPLEMENTATION_STATUS.md) - Metrics and progress tracking
+
+**🔧 Key Commands:**
+```bash
+# Check API documentation and test coverage
+npm run docs:coverage
+
+# Run API tests (automated, headless)
+npm run test:api @notslow    # All fast tests (100 tests)
+npm run test:api babylon     # Specific test suite
+npm run test:api @onlyslow   # All slow tests (94 tests)
+```
+
+**📊 Current Metrics:**
+- 108 total API methods
+- 48% documented in API.md (52 methods)
+- 49% tested (53 methods)
+- 226 total tests across 15 test files
 
 ### Project Structure
 This is a Vite-based project using:
