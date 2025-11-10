@@ -638,40 +638,99 @@ export function updateMeshFromBlock(mesh, block, changeEvent) {
     color = read.value;
   }
 
-  if (block.type.startsWith("load_")) {
-    if (changed === "SCALE") {
-      const scale = block
-        .getInput("SCALE")
-        .connection.targetBlock()
-        .getFieldValue("NUM");
+  if (block.type.startsWith("load_") && changed === "SCALE") {
+    mesh.metadata = mesh.metadata || {};
 
-      // Initialize baseline on first scale operation
-      mesh.metadata = mesh.metadata || {};
-      if (!mesh.metadata.__origScale) {
-        mesh.computeWorldMatrix(true);
-        mesh.refreshBoundingInfo();
-        const ext = mesh.getBoundingInfo().boundingBox.extendSizeWorld;
-        mesh.metadata.__origScale = { x: mesh.scaling.x, y: mesh.scaling.y, z: mesh.scaling.z };
-        mesh.metadata.__origExtent = { x: ext.x, y: ext.y, z: ext.z };
+    // Extract old/new values from the Blockly change event, even if it came from the child math_number
+    const getScaleFromEvent = (blk, ev) => {
+      const num = v => {
+        const n = Number(v);
+        return Number.isFinite(n) ? n : null;
+      };
+
+      // 1) If this change came from the child plugged into SCALE, use its old/new
+      const inp = blk.getInput && blk.getInput("SCALE");
+      const child = inp && inp.connection && inp.connection.targetBlock && inp.connection.targetBlock();
+
+      if (child && ev && ev.type === Blockly.Events.CHANGE && ev.blockId === child.id) {
+        // ev.element likely "field", ev.name likely "NUM"
+        return {
+          oldScale: num(ev.oldValue),
+          newScale: num(ev.newValue),
+        };
       }
 
-      // Apply scale relative to original baseline
-      const os = mesh.metadata.__origScale;
-      mesh.scaling.set(os.x * scale, os.y * scale, os.z * scale);
+      // 2) If the change came from an inline field on the parent, use that
+      if (ev && ev.type === Blockly.Events.CHANGE && ev.blockId === blk.id && ev.name === "SCALE") {
+        return {
+          oldScale: num(ev.oldValue),
+          newScale: num(ev.newValue),
+        };
+      }
 
-      // Maintain base position at Y
-      mesh.computeWorldMatrix(true);
-      mesh.refreshBoundingInfo();
-      const ext = mesh.getBoundingInfo().boundingBox.extendSizeWorld;
-      const baseY = block.getInput("Y").connection.targetBlock().getFieldValue("NUM");
-      mesh.position.y = Number(baseY) + ext.y;
+      // 3) Fallback: read current value block (post-change)
+      const readCurrent = () => {
+        if (child && typeof child.getFieldValue === "function") {
+          const v = num(child.getFieldValue("NUM"));
+          if (v != null) return v;
+        }
+        // inline field fallback
+        const v2 = num(blk.getField && blk.getField("SCALE") && blk.getFieldValue("SCALE"));
+        return v2 != null ? v2 : 1;
+      };
 
-      mesh.computeWorldMatrix(true);
-      mesh.refreshBoundingInfo();
+      const cur = readCurrent();
+      return { oldScale: null, newScale: cur };
+    };
+
+    const { oldScale, newScale } = getScaleFromEvent(block, changeEvent);
+    const toNum = (v, d) => (Number.isFinite(v) ? Number(v) : d);
+    const prev = toNum(oldScale, null);
+    const next = toNum(newScale, 1);
+
+    // Establish a true unit baseline the *first* time we see a scale change.
+    // If we know the previous factor (prev), unitScale = currentVisual / prev.
+    if (!mesh.metadata.__unitScale) {
+      const divider = prev || next || 1; // prefer oldScale; else newScale; avoid 0
+      mesh.metadata.__unitScale = {
+        x: mesh.scaling.x / divider,
+        y: mesh.scaling.y / divider,
+        z: mesh.scaling.z / divider,
+      };
     }
-  } else {
+
+    // Apply absolute scale: scaling = unit × newScale
+    const u = mesh.metadata.__unitScale;
+    mesh.scaling.set(u.x * next, u.y * next, u.z * next);
+    mesh.metadata.__lastAppliedScale = next;
+
+    // Keep base on ground
+    mesh.computeWorldMatrix(true);
+    mesh.refreshBoundingInfo();
+    const ext = mesh.getBoundingInfo().boundingBox.extendSizeWorld;
+
+    // read Y (robustly)
+    const getNumInput = (blk, name, def = 0) => {
+      const inp = blk.getInput && blk.getInput(name);
+      const tgt = inp && inp.connection && inp.connection.targetBlock && inp.connection.targetBlock();
+      const v = tgt ? Number(tgt.getFieldValue("NUM")) : def;
+      return Number.isFinite(v) ? v : def;
+      // add inline fallback if your Y is inline
+    };
+    const baseY = getNumInput(block, "Y", 0);
+    mesh.position.y = baseY + ext.y;
+
+    mesh.computeWorldMatrix(true);
+    mesh.refreshBoundingInfo();
+
     flock.updatePhysics(mesh);
+
+    if (flock.meshDebug) {
+      console.log("[SCALE change]",
+        { oldScale, newScale, unit: mesh.metadata.__unitScale, applied: mesh.scaling.clone() });
+    }
   }
+
 
   const position = {
     x: block.getInput("X").connection.targetBlock().getFieldValue("NUM"),
