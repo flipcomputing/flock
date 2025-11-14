@@ -130,7 +130,7 @@
 		  "DO": {
 			"block": {
 			  "type": "load_character",
-			  "id": "dwSV-Vy~8ppp[0ndTm)L",
+			  "id": "VdoPSUW*V=1:.ufCK+/Z",
 			  "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" has_do=\"false\"></mutation>",
 			  "fields": {
 				"ID_VAR": {
@@ -142,16 +142,16 @@
 				"SCALE": {
 				  "shadow": {
 					"type": "math_number",
-					"id": "`+KPF,qHIA~:)h?pgFkJ",
+					"id": ":MyDWU,S0DsTXX5$9@`5",
 					"fields": {
-					  "NUM": 1.5
+					  "NUM": 1
 					}
 				  }
 				},
 				"X": {
 				  "shadow": {
 					"type": "math_number",
-					"id": "F)~P4CyJ1?[Uno/%b.$4",
+					"id": "0V2faZHwHr-VUw0R#]Mc",
 					"fields": {
 					  "NUM": 0
 					}
@@ -160,7 +160,7 @@
 				"Y": {
 				  "shadow": {
 					"type": "math_number",
-					"id": "x0fG~Gm{nwOTdyh?2Tqd",
+					"id": "9=2D|Pn9zWP_60,W2:~^",
 					"fields": {
 					  "NUM": 0
 					}
@@ -169,7 +169,7 @@
 				"Z": {
 				  "shadow": {
 					"type": "math_number",
-					"id": "~KpFvD]yb%dtaog}UO$g",
+					"id": "$)Pex#RUUD@EsDT1mSYU",
 					"fields": {
 					  "NUM": 0
 					}
@@ -178,7 +178,7 @@
 				"HAIR_COLOR": {
 				  "shadow": {
 					"type": "colour",
-					"id": ",mQC;HAjaOCenLBdAZ?x",
+					"id": "8W;t[](h6e-kM7]+F~z+",
 					"fields": {
 					  "COLOR": "#000000"
 					}
@@ -187,7 +187,7 @@
 				"SKIN_COLOR": {
 				  "shadow": {
 					"type": "skin_colour",
-					"id": "0pd[2UXFV#45Ma-_o)GZ",
+					"id": "}.hnfN=T+@$-DHM3VDDL",
 					"fields": {
 					  "COLOR": "#a15c33"
 					}
@@ -196,7 +196,7 @@
 				"EYES_COLOR": {
 				  "shadow": {
 					"type": "colour",
-					"id": "MxsXn;o/*EyiiqgI=+`c",
+					"id": "LQPU`/Ydgke!98UoFwP|",
 					"fields": {
 					  "COLOR": "#000000"
 					}
@@ -205,7 +205,7 @@
 				"TSHIRT_COLOR": {
 				  "shadow": {
 					"type": "colour",
-					"id": "YXC@n,.I7Q|Ln#?Q8q3E",
+					"id": "G(v8`tjABY}8-a|`@}3$",
 					"fields": {
 					  "COLOR": "#ff8f60"
 					}
@@ -214,7 +214,7 @@
 				"SHORTS_COLOR": {
 				  "shadow": {
 					"type": "colour",
-					"id": "QG~^nzOY{1_{?1-;81~o",
+					"id": "f:DUnKnT@(hw,31dy]HX",
 					"fields": {
 					  "COLOR": "#00008b"
 					}
@@ -223,7 +223,7 @@
 				"SLEEVES_COLOR": {
 				  "shadow": {
 					"type": "colour",
-					"id": "o:B/@xKgq+3Ghf7wUn%I",
+					"id": "qd9R2xGs(43SmRV;M{Fl",
 					"fields": {
 					  "COLOR": "#008b8b"
 					}
