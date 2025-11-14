@@ -1623,6 +1623,24 @@ export const flock = {
                         console.log("No scene to dispose");
                 }
         },
+        async createHemisphericLightForMainScene(x, y, z) {
+                // Set up lighting
+                const hemisphericLight = new flock.BABYLON.HemisphericLight(
+                        "hemisphericLight",
+                        new flock.BABYLON.Vector3(x, y, z),
+                        flock.scene,
+                );
+                hemisphericLight.intensity = 1.0;
+                hemisphericLight.diffuse = new flock.BABYLON.Color3(1, 1, 1);
+                hemisphericLight.groundColor = new flock.BABYLON.Color3(
+                        0.5,
+                        0.5,
+                        0.5,
+                );
+
+                flock.mainLight = hemisphericLight;
+
+        },
         async initializeNewScene() {
                 // Wait a bit more to ensure all disposal operations are complete
                 await new Promise((resolve) => setTimeout(resolve, 200));
@@ -1702,20 +1720,7 @@ export const flock = {
                 flock.scene.activeCamera = camera;
                 camera.attachControl(flock.canvas, false);
                 // Set up lighting
-                const hemisphericLight = new flock.BABYLON.HemisphericLight(
-                        "hemisphericLight",
-                        new flock.BABYLON.Vector3(1, 1, 0),
-                        flock.scene,
-                );
-                hemisphericLight.intensity = 1.0;
-                hemisphericLight.diffuse = new flock.BABYLON.Color3(1, 1, 1);
-                hemisphericLight.groundColor = new flock.BABYLON.Color3(
-                        0.5,
-                        0.5,
-                        0.5,
-                );
-
-                flock.mainLight = hemisphericLight;
+                flock.createHemisphericLightForMainScene(1, 1, 0);
 
                 flock.audioEnginePromise = flock.BABYLON.CreateAudioEngineAsync(
                         {
