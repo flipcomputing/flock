@@ -8,7 +8,7 @@ export default {
   CATEGORY_EFFECTS: "Effetti",
   CATEGORY_CAMERA: "Camera",
   CATEGORY_EVENTS: "Eventi",
-  CATEGORY_TRANSFORM: "Trasforma",
+  CATEGORY_CHANGE: "Trasforma",
   CATEGORY_PHYSICS: "Fisica",
   CATEGORY_CONNECT: "Collega",
   CATEGORY_COMBINE: "Combina",
@@ -299,7 +299,7 @@ export default {
   create_3d_text:
     "aggiungi %1 testo 3D: %2 font: %3 dimensione: %4 colore: %5\nprofondità: %6 x: %7 y: %8 z: %9 ",
 
-  // Custom block translations - Transform blocks
+  // Custom block translations - Change blocks
   move_by_xyz: "muovi %1 di x: %2 y: %3 z: %4",
   move_to_xyz: "muovi %1 a x: %2 y: %3 z: %4 y? %5",
   move_to: "muovi %1 a %2 y? %3",
@@ -565,7 +565,7 @@ export default {
     "Chiede all’utente una risposta e attende l’input. Salva il risultato in una variabile.",
   create_3d_text_tooltip: "Crea testo 3D nella scena.",
 
-  // Tooltip translations - Transform blocks
+  // Tooltip translations - Change blocks
   move_by_xyz_tooltip:
     "Muove una mesh di una certa quantità in x, y e z.\nParola chiave: move",
   move_to_xyz_tooltip:

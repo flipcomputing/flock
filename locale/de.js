@@ -8,7 +8,7 @@ export default {
   CATEGORY_EFFECTS: "Effekte",
   CATEGORY_CAMERA: "Kamera",
   CATEGORY_EVENTS: "Ereignisse",
-  CATEGORY_TRANSFORM: "Transformieren",
+  CATEGORY_CHANGE: "Transformieren",
   CATEGORY_PHYSICS: "Physik",
   CATEGORY_CONNECT: "Verbinden",
   CATEGORY_COMBINE: "Kombinieren",
@@ -270,7 +270,7 @@ export default {
   ui_input: "UI‑Eingabe %1 %2 bei x: %3 y: %4\nGröße: %5 Textgröße: %6 Text: %7 Hintergrund: %8",
   create_3d_text: "Füge 3D‑Text hinzu %1: %2 Schrift: %3 Größe: %4 Farbe: %5\nTiefe: %6 x: %7 y: %8 z: %9",
 
-  // Transform blocks
+  // Change blocks
   move_by_xyz: "Bewege %1 um x: %2 y: %3 z: %4",
   move_to_xyz: "Bewege %1 zu x: %2 y: %3 z: %4 y? %5",
   move_to: "Bewege %1 zu %2 y? %3",
@@ -451,7 +451,7 @@ export default {
   ui_input_tooltip: "Stelle dem Benutzer eine Frage und warte auf die Eingabe. Ergebnis wird in einer Variable gespeichert.",
   create_3d_text_tooltip: "Erstelle 3D-Text in der Szene.",
 
-  // Tooltip translations - Transform blocks
+  // Tooltip translations - Change blocks
   move_by_xyz_tooltip: "Bewege ein Objekt um den angegebenen Wert in X-, Y- und Z-Richtung.\nSchlüsselwort: move",
   move_to_xyz_tooltip: "Teleportiert das Objekt zu den angegebenen Koordinaten. Optional Y-Achse nutzen.\nSchlüsselwort: moveby",
   move_to_tooltip: "Teleportiert das erste Objekt zur Position des zweiten.\nSchlüsselwort: moveto",

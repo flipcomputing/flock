@@ -106,14 +106,14 @@ function rescaleBoundingBox(bb, newScale) {
   const originalPosition = originalWorldMatrix.getTranslation();
 
   // Bake current transform into vertices
-  bb.bakeCurrentTransformIntoVertices();
+  bb.bakeCurrentChangeIntoVertices();
 
   // Reset scaling to 1,1,1 first
   bb.scaling.set(1, 1, 1);
 
   // Set the new scale and bake it
   bb.scaling.set(newScale, newScale, newScale);
-  bb.bakeCurrentTransformIntoVertices();
+  bb.bakeCurrentChangeIntoVertices();
 
   // Reset scaling to 1,1,1 again
   bb.scaling.set(1, 1, 1);
@@ -1019,7 +1019,7 @@ function setAbsoluteSize(mesh, width, height, depth) {
   mesh.scaling = new flock.BABYLON.Vector3(newScaleX, newScaleY, newScaleZ);
 
   // Bake the scaling into the vertices
-  mesh.bakeCurrentTransformIntoVertices();
+  mesh.bakeCurrentChangeIntoVertices();
 
   // Reset scaling to 1,1,1
   mesh.scaling = flock.BABYLON.Vector3.One();

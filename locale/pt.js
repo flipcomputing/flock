@@ -8,7 +8,7 @@ export default {
   CATEGORY_EFFECTS: "Efeitos",
   CATEGORY_CAMERA: "Câmera",
   CATEGORY_EVENTS: "Eventos",
-  CATEGORY_TRANSFORM: "Transformar",
+  CATEGORY_CHANGE: "Transformar",
   CATEGORY_PHYSICS: "Física",
   CATEGORY_CONNECT: "Conectar",
   CATEGORY_COMBINE: "Combinar",
@@ -270,7 +270,7 @@ export default {
   ui_input: "campo de entrada UI %1 %2 em x: %3 y: %4\ntamanho: %5 tamanho do texto: %6 texto: %7 fundo: %8",
   create_3d_text: "adicionar texto 3D %1: %2 fonte: %3 tamanho: %4 cor: %5\nprofundidade: %6 x: %7 y: %8 z: %9",
 
-  // Custom block translations - Transform blocks
+  // Custom block translations - Change blocks
   move_by_xyz: "mover %1 por x: %2 y: %3 z: %4",
   move_to_xyz: "mover %1 para x: %2 y: %3 z: %4 y? %5",
   move_to: "mover %1 para %2 y? %3",
@@ -454,7 +454,7 @@ export default {
   ui_input_tooltip: "Faz uma pergunta ao usuário e aguarda a resposta. Armazena o resultado em uma variável.",
   create_3d_text_tooltip: "Cria um texto 3D na cena.",
 
-  // Tooltip translations - Transform blocks
+  // Tooltip translations - Change blocks
   move_by_xyz_tooltip: "Move um mesh uma certa distância nas direções x, y e z.\nPalavra-chave: mover",
   move_to_xyz_tooltip: "Teleporta o mesh para as coordenadas. Opcionalmente, use o eixo Y.\nPalavra-chave: moverpor",
   move_to_tooltip: "Teleporta o primeiro mesh para a localização do segundo mesh.\nPalavra-chave: moverte",

@@ -998,8 +998,8 @@ export const flockAnimate = {
           tnMap = {};
         mesh.skeleton.bones.forEach((b) => {
           boneMap[b.name] = b;
-          if (b._linkedTransformNode)
-            tnMap[b._linkedTransformNode.name] = b._linkedTransformNode;
+          if (b._linkedChangeNode)
+            tnMap[b._linkedChangeNode.name] = b._linkedChangeNode;
         });
 
         const newGroup = new flock.BABYLON.AnimationGroup(
@@ -1010,7 +1010,7 @@ export const flockAnimate = {
           let target = null;
           if (ta.target instanceof flock.BABYLON.Bone)
             target = boneMap[ta.target.name];
-          else if (ta.target instanceof flock.BABYLON.TransformNode)
+          else if (ta.target instanceof flock.BABYLON.ChangeNode)
             target = tnMap[ta.target.name];
           if (target && ta.animation?.targetProperty !== "scaling") {
             const animCopy = ta.animation.clone(
@@ -1360,13 +1360,13 @@ export const flockAnimate = {
           return { _loadError: true, _errorMessage: 'Animation group not found' };
         }
 
-        // Build bone and transform node maps
+        // Build bone and change node maps
         const boneMap = {};
         const tnMap = {};
         mesh.skeleton.bones.forEach((b) => {
           boneMap[b.name] = b;
-          if (b._linkedTransformNode) {
-            tnMap[b._linkedTransformNode.name] = b._linkedTransformNode;
+          if (b._linkedChangeNode) {
+            tnMap[b._linkedChangeNode.name] = b._linkedChangeNode;
           }
         });
 
@@ -1380,7 +1380,7 @@ export const flockAnimate = {
           let target = null;
           if (ta.target instanceof flock.BABYLON.Bone) {
             target = boneMap[ta.target.name];
-          } else if (ta.target instanceof flock.BABYLON.TransformNode) {
+          } else if (ta.target instanceof flock.BABYLON.ChangeNode) {
             target = tnMap[ta.target.name];
           }
 
@@ -1459,7 +1459,7 @@ export const flockAnimate = {
     const meshCandidate =
       typeof meshOrGroup === "string"
         ? scene.getMeshByName(meshOrGroup) ||
-          scene.getTransformNodeByName(meshOrGroup)
+          scene.getChangeNodeByName(meshOrGroup)
         : meshOrGroup;
 
     // Ensure metadata scaffolding even before skeleton is present
@@ -1733,8 +1733,8 @@ export const flockAnimate = {
               tnMap = {};
             mesh.skeleton.bones.forEach((b) => {
               boneMap[b.name] = b;
-              if (b._linkedTransformNode)
-                tnMap[b._linkedTransformNode.name] = b._linkedTransformNode;
+              if (b._linkedChangeNode)
+                tnMap[b._linkedChangeNode.name] = b._linkedChangeNode;
             });
 
             const newGroup = new flock.BABYLON.AnimationGroup(
@@ -1745,7 +1745,7 @@ export const flockAnimate = {
               let target = null;
               if (ta.target instanceof flock.BABYLON.Bone)
                 target = boneMap[ta.target.name];
-              else if (ta.target instanceof flock.BABYLON.TransformNode)
+              else if (ta.target instanceof flock.BABYLON.ChangeNode)
                 target = tnMap[ta.target.name];
               if (target && ta.animation?.targetProperty !== "scaling") {
                 const cloned = ta.animation.clone(
@@ -1900,8 +1900,8 @@ export const flockAnimate = {
           tnMap = {};
         mesh.skeleton.bones.forEach((b) => {
           boneMap[b.name] = b;
-          if (b._linkedTransformNode)
-            tnMap[b._linkedTransformNode.name] = b._linkedTransformNode;
+          if (b._linkedChangeNode)
+            tnMap[b._linkedChangeNode.name] = b._linkedChangeNode;
         });
 
         const newGroup = new flock.BABYLON.AnimationGroup(
@@ -1912,7 +1912,7 @@ export const flockAnimate = {
           let target = null;
           if (ta.target instanceof flock.BABYLON.Bone)
             target = boneMap[ta.target.name];
-          else if (ta.target instanceof flock.BABYLON.TransformNode)
+          else if (ta.target instanceof flock.BABYLON.ChangeNode)
             target = tnMap[ta.target.name];
           if (target && ta.animation?.targetProperty !== "scaling") {
             const animCopy = ta.animation.clone(
@@ -2053,7 +2053,7 @@ export const flockAnimate = {
     const meshCandidate =
       typeof meshOrGroup === "string"
         ? scene.getMeshByName(meshOrGroup) ||
-          scene.getTransformNodeByName(meshOrGroup)
+          scene.getChangeNodeByName(meshOrGroup)
         : meshOrGroup;
 
     // Ensure metadata scaffolding even before skeleton is present
@@ -2327,8 +2327,8 @@ export const flockAnimate = {
               tnMap = {};
             mesh.skeleton.bones.forEach((b) => {
               boneMap[b.name] = b;
-              if (b._linkedTransformNode)
-                tnMap[b._linkedTransformNode.name] = b._linkedTransformNode;
+              if (b._linkedChangeNode)
+                tnMap[b._linkedChangeNode.name] = b._linkedChangeNode;
             });
 
             const newGroup = new flock.BABYLON.AnimationGroup(
@@ -2339,7 +2339,7 @@ export const flockAnimate = {
               let target = null;
               if (ta.target instanceof flock.BABYLON.Bone)
                 target = boneMap[ta.target.name];
-              else if (ta.target instanceof flock.BABYLON.TransformNode)
+              else if (ta.target instanceof flock.BABYLON.ChangeNode)
                 target = tnMap[ta.target.name];
               if (target && ta.animation?.targetProperty !== "scaling") {
                 const cloned = ta.animation.clone(

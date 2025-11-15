@@ -20,13 +20,13 @@ export function defineCombineBlocks() {
 						check: "Array",
 					},
 				],
-				colour: categoryColours["Transform"],
+				colour: categoryColours["Change"],
 				tooltip: getTooltip("merge_meshes"),
 				previousStatement: null,
 				nextStatement: null,
 			});
 			this.setHelpUrl(getHelpUrlFor(this.type));
-			this.setStyle('transform_blocks');
+			this.setStyle('change_blocks');
 
 		},
 	};
@@ -52,13 +52,13 @@ export function defineCombineBlocks() {
 						check: "Array",
 					},
 				],
-				colour: categoryColours["Transform"],
+				colour: categoryColours["Change"],
 				tooltip: getTooltip("subtract_meshes"),
 				previousStatement: null,
 				nextStatement: null,
 			});
 			this.setHelpUrl(getHelpUrlFor(this.type));
-			this.setStyle('transform_blocks');
+			this.setStyle('change_blocks');
 
 		},
 	};
@@ -78,13 +78,13 @@ export function defineCombineBlocks() {
 						check: "Array",
 					},
 				],
-				colour: categoryColours["Transform"],
+				colour: categoryColours["Change"],
 				tooltip: getTooltip("intersection_meshes"),
 				previousStatement: null,
 				nextStatement: null,
 			});
 			this.setHelpUrl(getHelpUrlFor(this.type));
-			this.setStyle('transform_blocks');
+			this.setStyle('change_blocks');
 
 		},
 	};
@@ -105,13 +105,13 @@ export function defineCombineBlocks() {
 						check: "Array",
 					},
 				],
-				colour: categoryColours["Transform"],
+				colour: categoryColours["Change"],
 				tooltip: getTooltip("hull_meshes"),
 				previousStatement: null,
 				nextStatement: null,
 			});
 			this.setHelpUrl(getHelpUrlFor(this.type));
-			this.setStyle('transform_blocks');
+			this.setStyle('change_blocks');
 
 		},
 	};

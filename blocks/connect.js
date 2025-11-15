@@ -29,12 +29,12 @@ export function defineConnectBlocks() {
 				],
 				previousStatement: null,
 				nextStatement: null,
-				colour: categoryColours["Transform"],
+				colour: categoryColours["Change"],
 				inputsInline: true,
 				tooltip: getTooltip("parent"),
 			});
 			this.setHelpUrl(getHelpUrlFor(this.type));
-			this.setStyle('transform_blocks');
+			this.setStyle('change_blocks');
 		},
 	};
 
@@ -72,12 +72,12 @@ export function defineConnectBlocks() {
 				],
 				previousStatement: null,
 				nextStatement: null,
-				colour: categoryColours["Transform"],
+				colour: categoryColours["Change"],
 				inputsInline: true,
 				tooltip: getTooltip("parent_child"),
 			});
 			this.setHelpUrl(getHelpUrlFor(this.type));
-			this.setStyle('transform_blocks');
+			this.setStyle('change_blocks');
 
 		},
 	};
@@ -96,11 +96,11 @@ export function defineConnectBlocks() {
 				],
 				previousStatement: null,
 				nextStatement: null,
-				colour: categoryColours["Transform"],
+				colour: categoryColours["Change"],
 				tooltip: getTooltip("remove_parent"),
 			});
 			this.setHelpUrl(getHelpUrlFor(this.type));
-			this.setStyle('transform_blocks');
+			this.setStyle('change_blocks');
 
 		},
 	};
@@ -119,11 +119,11 @@ export function defineConnectBlocks() {
 				],
 				previousStatement: null,
 				nextStatement: null,
-				colour: categoryColours["Transform"],
+				colour: categoryColours["Change"],
 				tooltip: getTooltip("stop_follow"),
 			});
 			this.setHelpUrl(getHelpUrlFor(this.type));
-			this.setStyle('transform_blocks');
+			this.setStyle('change_blocks');
 
 		},
 	};
@@ -165,12 +165,12 @@ export function defineConnectBlocks() {
 				],
 				previousStatement: null,
 				nextStatement: null,
-				colour: categoryColours["Transform"],
+				colour: categoryColours["Change"],
 				inputsInline: true,
 				tooltip: getTooltip("hold"),
 			});
 			this.setHelpUrl(getHelpUrlFor(this.type));
-			this.setStyle('transform_blocks');
+			this.setStyle('change_blocks');
 
 		},
 	};
@@ -217,12 +217,12 @@ export function defineConnectBlocks() {
 				],
 				previousStatement: null,
 				nextStatement: null,
-				colour: categoryColours["Transform"],
+				colour: categoryColours["Change"],
 				inputsInline: true,
 				tooltip: getTooltip("attach"),
 			});
 			this.setHelpUrl(getHelpUrlFor(this.type));
-			this.setStyle('transform_blocks');
+			this.setStyle('change_blocks');
 		},
 	};
 	Blockly.Blocks["drop"] = {
@@ -239,12 +239,12 @@ export function defineConnectBlocks() {
 				],
 				previousStatement: null,
 				nextStatement: null,
-				colour: categoryColours["Transform"],
+				colour: categoryColours["Change"],
 				inputsInline: true,
 				tooltip: getTooltip("drop"),
 			});
 			this.setHelpUrl(getHelpUrlFor(this.type));
-			this.setStyle('transform_blocks');
+			this.setStyle('change_blocks');
 
 		},
 	};
@@ -292,12 +292,12 @@ export function defineConnectBlocks() {
 				],
 				previousStatement: null,
 				nextStatement: null,
-				colour: categoryColours["Transform"],
+				colour: categoryColours["Change"],
 				inputsInline: true,
 				tooltip: getTooltip("follow"),
 			});
 			this.setHelpUrl(getHelpUrlFor(this.type));
-			this.setStyle('transform_blocks');
+			this.setStyle('change_blocks');
 
 		},
 	};

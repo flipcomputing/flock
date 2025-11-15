@@ -8,7 +8,7 @@ export default {
   CATEGORY_EFFECTS: "Effets",
   CATEGORY_CAMERA: "Caméra",
   CATEGORY_EVENTS: "Événements",
-  CATEGORY_TRANSFORM: "Transformation",
+  CATEGORY_CHANGE: "Transformation",
   CATEGORY_PHYSICS: "Physique",
   CATEGORY_CONNECT: "Connecter",
   CATEGORY_COMBINE: "Combiner",
@@ -271,7 +271,7 @@ export default {
   ui_input: "champ de saisie UI %1 %2 à x: %3 y: %4\ntaille: %5 taille du texte: %6 texte: %7 fond: %8",
   create_3d_text: "ajouter texte 3D %1 : %2 police : %3 taille : %4 couleur : %5\nprofondeur : %6 x : %7 y : %8 z : %9",
 
-  // Custom block translations - Transform blocks
+  // Custom block translations - Change blocks
   move_by_xyz: "déplacer %1 de x : %2 y : %3 z : %4",
   move_to_xyz: "déplacer %1 à x : %2 y : %3 z : %4 y ? %5",
   move_to: "déplacer %1 vers %2 y ? %3",
@@ -454,7 +454,7 @@ export default {
   ui_input_tooltip: "Pose une question à l’utilisateur et attend une réponse. Stocke le résultat dans une variable.",
   create_3d_text_tooltip: "Crée du texte 3D dans la scène.",
 
-  // Tooltip translations - Transform blocks
+  // Tooltip translations - Change blocks
   move_by_xyz_tooltip: "Déplace un maillage d'une certaine valeur selon X, Y et Z.\nMot-clé: move",
   move_to_xyz_tooltip: "Téléporte le maillage aux coordonnées données. Utilise l’axe Y en option.\nMot-clé: moveby",
   move_to_tooltip: "Téléporte le premier maillage à l’emplacement du second.\nMot-clé: moveto",

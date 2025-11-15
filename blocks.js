@@ -932,7 +932,7 @@ export function defineBlocks() {
         inputsInline: true,
         previousStatement: null,
         nextStatement: null,
-        colour: categoryColours["Transform"],
+        colour: categoryColours["Change"],
         tooltip:
           "Rotate the camera left or right by the given degrees.\nKeyword: rotate",
       });
@@ -959,7 +959,7 @@ export function defineBlocks() {
         ],
         previousStatement: null,
         nextStatement: null,
-        colour: categoryColours["Transform"],
+        colour: categoryColours["Change"],
         tooltip: "Apply the specified upwards force.\nKeyword: up",
       });
       this.setHelpUrl(getHelpUrlFor(this.type));

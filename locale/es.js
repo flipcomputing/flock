@@ -8,7 +8,7 @@ export default {
   CATEGORY_EFFECTS: "Efectos",
   CATEGORY_CAMERA: "Cámara",
   CATEGORY_EVENTS: "Eventos",
-  CATEGORY_TRANSFORM: "Transformar",
+  CATEGORY_CHANGE: "Transformar",
   CATEGORY_PHYSICS: "Física",
   CATEGORY_CONNECT: "Conectar",
   CATEGORY_COMBINE: "Combinar",
@@ -270,7 +270,7 @@ export default {
   ui_input: "entrada UI %1 %2 en x: %3 y: %4\ntamaño: %5 tamaño del texto: %6 texto: %7 fondo: %8",
   create_3d_text: "agregar %1 texto 3D: %2 fuente: %3 tamaño: %4 color: %5\nprofundidad: %6 x: %7 y: %8 z: %9",
 
-  // Custom block translations - Transform blocks
+  // Custom block translations - Change blocks
   move_by_xyz: "mover %1 por x: %2 y: %3 z: %4",
   move_to_xyz: "mover %1 a x: %2 y: %3 z: %4 ¿eje y? %5",
   move_to: "mover %1 a %2 ¿eje y? %3",
@@ -453,7 +453,7 @@ export default {
   ui_input_tooltip: "Pregunta al usuario y espera su respuesta. Guarda el resultado en una variable.",
   create_3d_text_tooltip: "Crea texto 3D en la escena.",
 
-  // Tooltip translations - Transform blocks
+  // Tooltip translations - Change blocks
   move_by_xyz_tooltip: "Mueve una malla cierta cantidad en direcciones x, y y z.\nPalabra clave: move",
   move_to_xyz_tooltip: "Teletransporta la malla a las coordenadas. Opcionalmente, usa el eje Y.\nPalabra clave: moveby",
   move_to_tooltip: "Teletransporta la primera malla a la ubicación de la segunda.\nPalabra clave: moveto",

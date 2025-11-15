@@ -44,9 +44,9 @@ import {
 import { flockModels, setFlockReference as setFlockModels } from "./api/models";
 import { flockShapes, setFlockReference as setFlockShapes } from "./api/shapes";
 import {
-        flockTransform,
-        setFlockReference as setFlockTransform,
-} from "./api/transform";
+        flockChange,
+        setFlockReference as setFlockChange,
+} from "./api/change";
 import {
         flockMaterial,
         setFlockReference as setFlockMaterial,
@@ -114,7 +114,7 @@ export const flock = {
         events: {},
         modelCache: {},
         globalSounds: [],
-        originalModelTransformations: {},
+        originalModelChangeations: {},
         modelsBeingLoaded: {},
         geometryCache: {},
         materialCache: {},
@@ -128,7 +128,7 @@ export const flock = {
         ...flockMovement,
         ...flockModels,
         ...flockShapes,
-        ...flockTransform,
+        ...flockChange,
         ...flockMaterial,
         ...flockEffects,
         ...flockPhysics,
@@ -1445,18 +1445,18 @@ export const flock = {
                                         }
                                 });
 
-                                // Dispose transform nodes
-                                const transformNodes = flock.scene
-                                        .transformNodes
-                                        ? [...flock.scene.transformNodes]
+                                // Dispose change nodes
+                                const changeNodes = flock.scene
+                                        .changeNodes
+                                        ? [...flock.scene.changeNodes]
                                         : [];
-                                transformNodes.forEach((node) => {
+                                changeNodes.forEach((node) => {
                                         if (node?.dispose) {
                                                 try {
                                                         node.dispose();
                                                 } catch (error) {
                                                         console.warn(
-                                                                "Error disposing transform node:",
+                                                                "Error disposing change node:",
                                                                 error,
                                                         );
                                                 }
@@ -1577,7 +1577,7 @@ export const flock = {
                                 flock.modelCache = {};
                                 flock.globalSounds = [];
                                 flock.modelsBeingLoaded = {};
-                                flock.originalModelTransformations = {};
+                                flock.originalModelChangeations = {};
                                 flock.geometryCache = {};
                                 flock.materialCache = {};
                                 flock.pendingTriggers = new Map();
@@ -1637,7 +1637,7 @@ export const flock = {
                 flock.modelCache = {};
                 flock.globalSounds = [];
                 flock.modelsBeingLoaded = {};
-                flock.originalModelTransformations = {};
+                flock.originalModelChangeations = {};
                 flock.geometryCache = {};
                 flock.pendingTriggers = new Map();
                 flock._nameRegistry = new Map();
@@ -1672,7 +1672,7 @@ export const flock = {
                 setFlockMovement(flock);
                 setFlockModels(flock);
                 setFlockShapes(flock);
-                setFlockTransform(flock);
+                setFlockChange(flock);
                 setFlockMaterial(flock);
                 setFlockEffects(flock);
                 setFlockPhysics(flock);
@@ -2535,8 +2535,8 @@ export const flock = {
                                 // Skip line helpers entirely
                                 if (c === "LinesMesh") return false;
 
-                                // Keep all transform containers
-                                if (c === "TransformNode") return true;
+                                // Keep all change containers
+                                if (c === "ChangeNode") return true;
 
                                 // Keep ALL mesh subclasses (e.g., Mesh, InstancedMesh, GroundMesh, etc.)
                                 if (isAbstractMesh(node)) return true;

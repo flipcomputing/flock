@@ -666,7 +666,7 @@ export const flockMesh = {
 
       bb.position.y -= halfHeight;
     }
-    bb.bakeCurrentTransformIntoVertices();
+    bb.bakeCurrentChangeIntoVertices();
     bb.scaling.set(1, 1, 1);
 
     bb.position = new flock.BABYLON.Vector3(x, y, z);
@@ -792,11 +792,11 @@ export const flockMesh = {
             if (logicalBoneName === "Head") {
               let estimatedLength = 0.1;
               if (bone.children.length > 0) {
-                const headWorld = flock.BABYLON.Vector3.TransformCoordinates(
+                const headWorld = flock.BABYLON.Vector3.ChangeCoordinates(
                   flock.BABYLON.Vector3.Zero(),
                   bone.getWorldMatrix(),
                 );
-                const childWorld = flock.BABYLON.Vector3.TransformCoordinates(
+                const childWorld = flock.BABYLON.Vector3.ChangeCoordinates(
                   flock.BABYLON.Vector3.Zero(),
                   bone.children[0].getWorldMatrix(),
                 );
@@ -837,7 +837,7 @@ export const flockMesh = {
   },
   drop(meshToDetach) {
     return flock.whenModelReady(meshToDetach, (mesh) => {
-      // Capture current world transform
+      // Capture current world change
       const worldMatrix = mesh.getWorldMatrix(true).clone();
       const scale = new flock.BABYLON.Vector3();
       const rotationNow = new flock.BABYLON.Quaternion();
@@ -858,8 +858,8 @@ export const flockMesh = {
       const body = mesh.physics;
       if (body && body._pluginData) {
         body.setMotionType(flock.BABYLON.PhysicsMotionType.ANIMATED);
-        if (body.setTargetTransform)
-          body.setTargetTransform(mesh.position, mesh.rotationQuaternion);
+        if (body.setTargetChange)
+          body.setTargetChange(mesh.position, mesh.rotationQuaternion);
         body.setLinearVelocity(flock.BABYLON.Vector3.Zero());
         body.setAngularVelocity(flock.BABYLON.Vector3.Zero());
 

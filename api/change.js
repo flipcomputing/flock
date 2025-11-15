@@ -4,7 +4,7 @@ export function setFlockReference(ref) {
   flock = ref;
 }
 
-export const flockTransform = {
+export const flockChange = {
   positionAt(meshName, {
     x = 0,
     y = 0,
@@ -80,7 +80,7 @@ export const flockTransform = {
         // Update physics and world matrix
         if (mesh.physics) {
           mesh.physics.disablePreStep = false;
-          mesh.physics.setTargetTransform(
+          mesh.physics.setTargetChange(
             mesh.position,
             mesh.rotationQuaternion,
           );
@@ -134,7 +134,7 @@ export const flockTransform = {
             // Update physics if present
             if (mesh1.physics) {
               mesh1.physics.disablePreStep = false;
-              mesh1.physics.setTargetTransform(
+              mesh1.physics.setTargetChange(
                 mesh1.position,
                 mesh1.rotationQuaternion,
               );
@@ -194,14 +194,14 @@ export const flockTransform = {
               originalMotionType === flock.BABYLON.PhysicsMotionType.ANIMATED ||
               motionTypeTemporarilyChanged
             ) {
-              // For ANIMATED bodies, drive transform explicitly.
+              // For ANIMATED bodies, drive change explicitly.
               mesh.physics.disablePreStep = false;
-              mesh.physics.setTargetTransform(
+              mesh.physics.setTargetChange(
                 mesh.position,
                 mesh.rotationQuaternion
               );
             } else if (originalMotionType === flock.BABYLON.PhysicsMotionType.DYNAMIC) {
-              // For DYNAMIC bodies, do not call setTargetTransform.
+              // For DYNAMIC bodies, do not call setTargetChange.
               // Preserve horizontal velocity; zero vertical to avoid solver fighting the Y nudge.
               if (originalVelocity) {
                 originalVelocity.y = 0;
@@ -216,7 +216,7 @@ export const flockTransform = {
               originalMotionType !== flock.BABYLON.PhysicsMotionType.DYNAMIC
             ) {
               setTimeout(() => {
-                mesh.physics.setTargetTransform(mesh.position, mesh.rotationQuaternion);
+                mesh.physics.setTargetChange(mesh.position, mesh.rotationQuaternion);
                 mesh.physics.setMotionType(originalMotionType);
               }, 0);
             }
@@ -310,7 +310,7 @@ export const flockTransform = {
 
       if (mesh.physics) {
         mesh.physics.disablePreStep = false;
-        mesh.physics.setTargetTransform(
+        mesh.physics.setTargetChange(
           mesh.absolutePosition,
           mesh.rotationQuaternion,
         );
@@ -380,7 +380,7 @@ export const flockTransform = {
       // Update physics if present
       if (mesh.physics) {
         mesh.physics.disablePreStep = false;
-        mesh.physics.setTargetTransform(
+        mesh.physics.setTargetChange(
           mesh.absolutePosition,
           mesh.rotationQuaternion,
         );
@@ -438,7 +438,7 @@ export const flockTransform = {
     mesh1.rotationQuaternion.copyFrom(q);
     mesh1.computeWorldMatrix(true);
 
-    // Wait one tick so transforms “stick” before returning.
+    // Wait one tick so changes “stick” before returning.
     if (mesh1.physics) {
       await new Promise(resolve => {
         const cb = () => { scene.onAfterPhysicsObservable.removeCallback(cb); resolve(); };
@@ -655,7 +655,7 @@ export const flockTransform = {
       // World position of OLD pivot (before change)
       mesh.computeWorldMatrix(true);
       const wmBefore = mesh.getWorldMatrix().clone();
-      const oldPivotWorld = BABYLON.Vector3.TransformCoordinates(oldPivotLocal, wmBefore);
+      const oldPivotWorld = BABYLON.Vector3.ChangeCoordinates(oldPivotLocal, wmBefore);
 
       // Apply new pivot to mesh (and children, per your existing behavior)
       mesh.setPivotPoint(newPivotLocal);
@@ -664,7 +664,7 @@ export const flockTransform = {
       // World position of NEW pivot (after change)
       mesh.computeWorldMatrix(true);
       const wmAfter = mesh.getWorldMatrix().clone();
-      const newPivotWorld = BABYLON.Vector3.TransformCoordinates(newPivotLocal, wmAfter);
+      const newPivotWorld = BABYLON.Vector3.ChangeCoordinates(newPivotLocal, wmAfter);
 
       // Reposition to preserve visual placement
       const delta = oldPivotWorld.subtract(newPivotWorld);
@@ -677,7 +677,7 @@ export const flockTransform = {
         }
         const rq = mesh.rotationQuaternion || BABYLON.Quaternion.FromEulerAngles(mesh.rotation.x, mesh.rotation.y, mesh.rotation.z);
         mesh.physics.disablePreStep = false;
-        mesh.physics.setTargetTransform(mesh.position, rq);
+        mesh.physics.setTargetChange(mesh.position, rq);
       }
 
       mesh.computeWorldMatrix(true);

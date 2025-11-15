@@ -18,7 +18,7 @@ export function defineBaseBlocks() {
 				],
 				inputsInline: true,
 				output: "Vector",
-				colour: categoryColours["Transform"],
+				colour: categoryColours["Change"],
 				tooltip: getTooltip("xyz"),
 				helpUrl: "",
 			});

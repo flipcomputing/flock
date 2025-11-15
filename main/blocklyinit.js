@@ -25,7 +25,7 @@ import { defineEventsBlocks } from "../blocks/events.js";
 import { definePhysicsBlocks } from "../blocks/physics.js";
 import { defineConnectBlocks } from "../blocks/connect.js";
 import { defineCombineBlocks } from "../blocks/combine.js";
-import { defineTransformBlocks } from "../blocks/transform.js";
+import { defineChangeBlocks } from "../blocks/change.js";
 import { defineControlBlocks } from "../blocks/control.js";
 import { defineConditionBlocks } from "../blocks/condition.js";
 import { defineAnimateBlocks } from "../blocks/animate.js";
@@ -53,7 +53,7 @@ export function initializeBlocks() {
         definePhysicsBlocks();
         defineConnectBlocks();
         defineCombineBlocks();
-        defineTransformBlocks();
+        defineChangeBlocks();
         defineControlBlocks();
         defineConditionBlocks();
         defineAnimateBlocks();

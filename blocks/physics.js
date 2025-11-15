@@ -31,11 +31,11 @@ export function definePhysicsBlocks() {
                         ],
                         previousStatement: null,
                         nextStatement: null,
-                        colour: categoryColours["Transform"],
+                        colour: categoryColours["Change"],
                         tooltip: getTooltip("add_physics"),
                   });
                   this.setHelpUrl(getHelpUrlFor(this.type));
-                        this.setStyle('transform_blocks');
+                        this.setStyle('change_blocks');
 
                 },
           };
@@ -63,11 +63,11 @@ export function definePhysicsBlocks() {
                         ],
                         previousStatement: null,
                         nextStatement: null,
-                        colour: categoryColours["Transform"],
+                        colour: categoryColours["Change"],
                         tooltip: getTooltip("add_physics_shape"),
                   });
                   this.setHelpUrl(getHelpUrlFor(this.type));
-                        this.setStyle('transform_blocks');
+                        this.setStyle('change_blocks');
 
                 },
           };
@@ -102,11 +102,11 @@ export function definePhysicsBlocks() {
                         inputsInline: true,
                         previousStatement: null,
                         nextStatement: null,
-                        colour: categoryColours["Transform"],
+                        colour: categoryColours["Change"],
                         tooltip: getTooltip("apply_force"),
                   });
                   this.setHelpUrl(getHelpUrlFor(this.type));
-                        this.setStyle('transform_blocks');
+                        this.setStyle('change_blocks');
 
                 },
           };
@@ -125,11 +125,11 @@ export function definePhysicsBlocks() {
                         ],
                         previousStatement: null,
                         nextStatement: null,
-                        colour: categoryColours["Transform"],
+                        colour: categoryColours["Change"],
                         tooltip: getTooltip("show_physics"),
                   });
                   this.setHelpUrl(getHelpUrlFor(this.type));
-                        this.setStyle('transform_blocks');
+                        this.setStyle('change_blocks');
 
                 },
           };

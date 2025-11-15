@@ -8,7 +8,7 @@ export default {
   CATEGORY_EFFECTS: "Efekty",
   CATEGORY_CAMERA: "Kamera",
   CATEGORY_EVENTS: "Zdarzenia",
-  CATEGORY_TRANSFORM: "Transformacje",
+  CATEGORY_CHANGE: "Transformacje",
   CATEGORY_PHYSICS: "Fizyka",
   CATEGORY_CONNECT: "Połączenia",
   CATEGORY_COMBINE: "Łączenie",
@@ -270,7 +270,7 @@ export default {
   ui_input: "wejście UI %1 %2 w x: %3 y: %4\nrozmiar: %5 rozmiar tekstu: %6 tekst: %7 tło: %8",
   create_3d_text: "dodaj tekst 3D %1: %2 czcionka: %3 rozmiar: %4 kolor: %5\ngłębokość: %6 x: %7 y: %8 z: %9",
 
-  // Custom block translations - Transform blocks
+  // Custom block translations - Change blocks
   move_by_xyz: "przesuń %1 o x: %2, y: %3, z: %4",
   move_to_xyz: "przesuń %1 do x: %2, y: %3, z: %4 y? %5",
   move_to: "przesuń %1 do %2 y? %3",
@@ -455,7 +455,7 @@ export default {
   ui_input_tooltip: "Zadaj użytkownikowi pytanie i poczekaj na odpowiedź. Wynik zapisany w zmiennej.",
   create_3d_text_tooltip: "Stwórz tekst 3D w scenie.",
 
-  // Tooltip translations - Transform blocks
+  // Tooltip translations - Change blocks
   move_by_xyz_tooltip: "Przesuń siatkę o określoną wartość w osiach x, y i z.\nSłowo kluczowe: move",
   move_to_xyz_tooltip: "Teleportuj siatkę do koordynatów. Opcjonalnie: użyj osi Y.\nSłowo kluczowe: moveby",
   move_to_tooltip: "Teleportuj pierwszą siatkę do pozycji drugiej.\nSłowo kluczowe: moveto",

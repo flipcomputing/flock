@@ -220,7 +220,7 @@ async function generateSVG(block) {
 
 	const serializer = new XMLSerializer();
 
-	svgBlock.removeAttribute("transform");
+	svgBlock.removeAttribute("change");
 
 	const bbox = block.getSvgRoot().getBBox();
 
@@ -314,7 +314,7 @@ async function generateSVG(block) {
 		"g",
 	);
 	translationGroup.setAttribute(
-		"transform",
+		"change",
 		`translate(${-bbox.x}, ${-bbox.y})`,
 	);
 	translationGroup.appendChild(svgBlock);

@@ -48,7 +48,7 @@ export const flockShapes = {
     flock.setSizeBasedBoxUVs(newBox, width, height, depth);
 
     // Bake the scaling into the mesh
-    newBox.bakeCurrentTransformIntoVertices();
+    newBox.bakeCurrentChangeIntoVertices();
 
     // Reset scaling to (1,1,1) since the transformation is now baked
     newBox.scaling.set(1, 1, 1);
@@ -122,7 +122,7 @@ export const flockShapes = {
     vertexData.applyToMesh(newSphere);
 
     flock.setSphereUVs(newSphere, diameterX, diameterY, diameterZ, 1);
-    newSphere.bakeCurrentTransformIntoVertices();
+    newSphere.bakeCurrentChangeIntoVertices();
 
     // Reset scaling to (1,1,1) since the transformation is now baked
     newSphere.scaling.set(1, 1, 1);
@@ -206,7 +206,7 @@ export const flockShapes = {
       diameterBottom,
     ); // Adjust texturePhysicalSize as needed
 
-    newCylinder.bakeCurrentTransformIntoVertices();
+    newCylinder.bakeCurrentChangeIntoVertices();
 
     // Reset scaling to (1,1,1) since the transformation is now baked
     newCylinder.scaling.set(1, 1, 1);
@@ -277,7 +277,7 @@ export const flockShapes = {
     // Create a new mesh and apply the cached VertexData
     const newCapsule = new flock.BABYLON.Mesh(capsuleId, flock.scene);
     vertexData.applyToMesh(newCapsule);
-    newCapsule.bakeCurrentTransformIntoVertices();
+    newCapsule.bakeCurrentChangeIntoVertices();
 
     // Reset scaling to (1,1,1) since the transformation is now baked
     newCapsule.scaling.set(1, 1, 1);

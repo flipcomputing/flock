@@ -8,7 +8,7 @@ export default {
   CATEGORY_EFFECTS: "Effects",
   CATEGORY_CAMERA: "Camera",
   CATEGORY_EVENTS: "Events",
-  CATEGORY_TRANSFORM: "Transform",
+  CATEGORY_CHANGE: "Change",
   CATEGORY_PHYSICS: "Physics",
   CATEGORY_CONNECT: "Connect",
   CATEGORY_COMBINE: "Combine",
@@ -275,7 +275,7 @@ export default {
   ui_input: "ui input %1 %2 at x: %3 y: %4\nsize: %5 text size: %6 text: %7 background: %8",
   create_3d_text: "add %1 3D text: %2 font: %3 size: %4 color: %5\ndepth: %6 x: %7 y: %8 z: %9 ",
   
-  // Custom block translations - Transform blocks
+  // Custom block translations - Change blocks
   move_by_xyz: "move %1 by x: %2 y: %3 z: %4",
   move_to_xyz: "move %1 to x: %2 y: %3 z: %4 y? %5",
   move_to: "move %1 to %2 y? %3",
@@ -458,7 +458,7 @@ export default {
   ui_input_tooltip: "Ask the user a question and wait for input. Stores the result in a variable.",
   create_3d_text_tooltip: "Create 3D text in the scene.",
   
-  // Tooltip translations - Transform blocks
+  // Tooltip translations - Change blocks
   move_by_xyz_tooltip: "Move a mesh a given amount in x y and z directions.\nKeyword: move",
   move_to_xyz_tooltip: "Teleport the mesh to the coordinates. Optionally, use the Y axis.\nKeyword: moveby",
   move_to_tooltip: "Teleport the first mesh to the location of the second mesh.\nKeyword: moveto",

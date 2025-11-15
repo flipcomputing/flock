@@ -8,7 +8,7 @@ import { translate, getTooltip, getDropdownOption } from "../main/translation.js
 import { updateOrCreateMeshFromBlock } from "../ui/blockmesh.js";
 import { flock } from "../flock.js";
 
-export function defineTransformBlocks() {
+export function defineChangeBlocks() {
 	function handleBlockChange(block, changeEvent) {
 		// if (flock.blockDebug) console.log("TODO: Buy Matrix DVD");
 		const changeEventBlock = Blockly.getMainWorkspace().getBlockById(changeEvent.blockId);
@@ -54,12 +54,12 @@ export function defineTransformBlocks() {
 				],
 				previousStatement: null,
 				nextStatement: null,
-				colour: categoryColours["Transform"],
+				colour: categoryColours["Change"],
 				inputsInline: true,
 				tooltip: getTooltip("move_by_xyz"),
 			});
 			this.setHelpUrl(getHelpUrlFor(this.type));
-			this.setStyle('transform_blocks');
+			this.setStyle('change_blocks');
 
 			// Set up the change handler.
 			this.setOnChange((changeEvent) =>
@@ -106,12 +106,12 @@ export function defineTransformBlocks() {
 				],
 				previousStatement: null,
 				nextStatement: null,
-				colour: categoryColours["Transform"],
+				colour: categoryColours["Change"],
 				inputsInline: true,
 				tooltip: getTooltip("move_to_xyz"),
 			});
 			this.setHelpUrl(getHelpUrlFor(this.type));
-			this.setStyle('transform_blocks');
+			this.setStyle('change_blocks');
 
 			// Set up the change handler.
 			this.setOnChange((changeEvent) =>
@@ -145,12 +145,12 @@ export function defineTransformBlocks() {
 				],
 				previousStatement: null,
 				nextStatement: null,
-				colour: categoryColours["Transform"],
+				colour: categoryColours["Change"],
 				inputsInline: true,
 				tooltip: getTooltip("move_to"),
 			});
 			this.setHelpUrl(getHelpUrlFor(this.type));
-			this.setStyle('transform_blocks');
+			this.setStyle('change_blocks');
 
 			// Set up the change handler.
 			this.setOnChange((changeEvent) =>
@@ -215,12 +215,12 @@ export function defineTransformBlocks() {
 				],
 				previousStatement: null,
 				nextStatement: null,
-				colour: categoryColours["Transform"],
+				colour: categoryColours["Change"],
 				inputsInline: true,
 				tooltip: getTooltip("scale"),
 			});
 			this.setHelpUrl(getHelpUrlFor(this.type));
-			this.setStyle('transform_blocks');
+			this.setStyle('change_blocks');
 
 			// Set up the change handler.
 			this.setOnChange((changeEvent) =>
@@ -285,12 +285,12 @@ export function defineTransformBlocks() {
 				],
 				previousStatement: null,
 				nextStatement: null,
-				colour: categoryColours["Transform"],
+				colour: categoryColours["Change"],
 				inputsInline: true,
 				tooltip: getTooltip("resize"),
 			});
 			this.setHelpUrl(getHelpUrlFor(this.type));
-			this.setStyle('transform_blocks');
+			this.setStyle('change_blocks');
 
 			// Set up the change handler.
 			this.setOnChange((changeEvent) =>
@@ -331,12 +331,12 @@ export function defineTransformBlocks() {
 				],
 				previousStatement: null,
 				nextStatement: null,
-				colour: categoryColours["Transform"],
+				colour: categoryColours["Change"],
 				inputsInline: true,
 				tooltip: getTooltip("rotate_model_xyz"),
 			});
 			this.setHelpUrl(getHelpUrlFor(this.type));
-			this.setStyle('transform_blocks');
+			this.setStyle('change_blocks');
 
 			// Set up the change handler.
 			this.setOnChange((changeEvent) =>
@@ -377,12 +377,12 @@ export function defineTransformBlocks() {
 				],
 				previousStatement: null,
 				nextStatement: null,
-				colour: categoryColours["Transform"],
+				colour: categoryColours["Change"],
 				inputsInline: true,
 				tooltip: getTooltip("rotate_to"),
 			});
 			this.setHelpUrl(getHelpUrlFor(this.type));
-			this.setStyle('transform_blocks');
+			this.setStyle('change_blocks');
 
 			// Set up the change handler.
 			this.setOnChange((changeEvent) =>
@@ -416,12 +416,12 @@ export function defineTransformBlocks() {
 				],
 				previousStatement: null,
 				nextStatement: null,
-				colour: categoryColours["Transform"],
+				colour: categoryColours["Change"],
 				inputsInline: true,
 				tooltip: getTooltip("look_at"),
 			});
 			this.setHelpUrl(getHelpUrlFor(this.type));
-			this.setStyle('transform_blocks');
+			this.setStyle('change_blocks');
 
 			// Set up the change handler.
 			this.setOnChange((changeEvent) =>
@@ -459,11 +459,11 @@ export function defineTransformBlocks() {
 				inputsInline: true,
 				previousStatement: null,
 				nextStatement: null,
-				colour: categoryColours["Transform"],
+				colour: categoryColours["Change"],
 				tooltip: getTooltip("move_forward"),
 			});
 			this.setHelpUrl(getHelpUrlFor(this.type));
-			this.setStyle('transform_blocks');
+			this.setStyle('change_blocks');
 
 			// Set up the change handler.
 			this.setOnChange((changeEvent) =>
@@ -502,11 +502,11 @@ export function defineTransformBlocks() {
 				inputsInline: true,
 				previousStatement: null,
 				nextStatement: null,
-				colour: categoryColours["Transform"],
+				colour: categoryColours["Change"],
 				tooltip: getTooltip("set_pivot"),
 			});
 			this.setHelpUrl(getHelpUrlFor(this.type));
-			this.setStyle('transform_blocks');
+			this.setStyle('change_blocks');
 
 			// Set up the change handler.
 			this.setOnChange((changeEvent) =>
@@ -532,11 +532,11 @@ export function defineTransformBlocks() {
 					},
 				],
 				output: "String", // Now returns a symbolic string
-				colour: categoryColours["Transform"],
+				colour: categoryColours["Change"],
 				tooltip: getTooltip("min_centre_max"),
 			});
 			this.setHelpUrl(getHelpUrlFor(this.type));
-			this.setStyle('transform_blocks');
+			this.setStyle('change_blocks');
 
 			// Set up the change handler.
 			this.setOnChange((changeEvent) =>

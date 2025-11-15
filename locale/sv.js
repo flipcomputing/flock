@@ -8,7 +8,7 @@ export default {
   CATEGORY_EFFECTS: "Effekter",
   CATEGORY_CAMERA: "Kamera",
   CATEGORY_EVENTS: "Händelser",
-  CATEGORY_TRANSFORM: "Transformera",
+  CATEGORY_CHANGE: "Transformera",
   CATEGORY_PHYSICS: "Fysik",
   CATEGORY_CONNECT: "Anslut",
   CATEGORY_COMBINE: "Kombinera",
@@ -270,7 +270,7 @@ export default {
   ui_input: "ui inmatning %1 %2 vid x: %3 y: %4\nstorlek: %5 textstorlek: %6 text: %7 bakgrund: %8",
   create_3d_text: "lägg till %1 3D text: %2 font: %3 storlek: %4 färg: %5\ndjup: %6 x: %7 y: %8 z: %9 ",
 
-  // Custom block translations - Transform blocks
+  // Custom block translations - Change blocks
   move_by_xyz: "flytta %1 med x: %2 y: %3 z: %4",
   move_to_xyz: "flytta %1 till x: %2 y: %3 z: %4 y? %5",
   move_to: "flytta %1 till %2 y? %3",
@@ -454,7 +454,7 @@ export default {
   ui_input_tooltip: "Ställ en fråga till användaren och vänta på svar. Sparar resultatet i en variabel.",
   create_3d_text_tooltip: "Skapa 3D-text i scenen.",
 
-  // Tooltip translations - Transform blocks
+  // Tooltip translations - Change blocks
   move_by_xyz_tooltip: "Flytta ett mesh ett angivet värde i x-, y- och z-led.\nKeyword: move",
   move_to_xyz_tooltip: "Teleportera mesh-objektet till angivna koordinater. Du kan välja att använda Y-axeln.\nKeyword: moveby",
   move_to_tooltip: "Teleportera det första mesh-objektet till det andra mesh-objektets position.\nKeyword: moveto",

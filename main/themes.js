@@ -3,7 +3,7 @@ import * as Blockly from "blockly";
 export const categoryColours = {
 	Events: 5,
 	Scene: 85,
-	Transform: 65,
+	Change: 65,
 	Animate: 45,
 	Materials: 280,
 	Sound: 25,
@@ -94,7 +94,7 @@ export function createThemeConfig(themeName) {
 		blockStyles: {
 			events_blocks: baseStyles.events,
 			scene_blocks: baseStyles.scene,
-			transform_blocks: baseStyles.transform,
+			change_blocks: baseStyles.change,
 			animate_blocks: baseStyles.animate,
 			materials_blocks: baseStyles.materials,
 			sound_blocks: baseStyles.sound,
@@ -111,7 +111,7 @@ export function createThemeConfig(themeName) {
 		categoryStyles: {
 			events_category: { colour: baseStyles.events.colourPrimary },
 			scene_category: { colour: baseStyles.scene.colourPrimary },
-			transform_category: { colour: baseStyles.transform.colourPrimary },
+			change_category: { colour: baseStyles.change.colourPrimary },
 			animate_category: { colour: baseStyles.animate.colourPrimary },
 			materials_category: { colour: baseStyles.materials.colourPrimary },
 			sound_category: { colour: baseStyles.sound.colourPrimary },
@@ -138,7 +138,7 @@ function getThemeBaseStyles(themeName) {
 			// For light theme, use consistent structure with colourPrimary
 			events: { colourPrimary: categoryColours.Events || 20,  colourText: "#000000" },
 			scene: { colourPrimary: categoryColours.Scene || 160, colourText: "#000000" },
-			transform: { colourPrimary: categoryColours.Transform || 210 },
+			change: { colourPrimary: categoryColours.Change || 210 },
 			animate: { colourPrimary: categoryColours.Animate || 60 },
 			materials: { colourPrimary: categoryColours.Materials || 290 },
 			sound: { colourPrimary: categoryColours.Sound || 30 },
@@ -167,7 +167,7 @@ function getThemeBaseStyles(themeName) {
 			// Dark theme now uses the same block colors as light theme
 			events: { colourPrimary: categoryColours.Events || 20 },
 			scene: { colourPrimary: categoryColours.Scene || 160 },
-			transform: { colourPrimary: categoryColours.Transform || 210 },
+			change: { colourPrimary: categoryColours.Change || 210 },
 			animate: { colourPrimary: categoryColours.Animate || 60 },
 			materials: { colourPrimary: categoryColours.Materials || 290 },
 			sound: { colourPrimary: categoryColours.Sound || 30 },
@@ -208,7 +208,7 @@ function getThemeBaseStyles(themeName) {
 				colourSecondary: "#16A085",
 				colourTertiary: "#138D75",
 			},
-			transform: {
+			change: {
 				colourPrimary: "#3498DB",
 				colourSecondary: "#2980B9",
 				colourTertiary: "#2471A3",
@@ -299,7 +299,7 @@ function getThemeBaseStyles(themeName) {
 				colourSecondary: "#16A085",
 				colourTertiary: "#138D75",
 			},
-			transform: {
+			change: {
 				colourPrimary: "#3498DB",
 				colourSecondary: "#2980B9",
 				colourTertiary: "#2471A3",
@@ -427,7 +427,7 @@ function registerCategoryStyles() {
 	const categoryStyles = {
 		events_category: { colour: lightStyles.events.colourPrimary },
 		scene_category: { colour: lightStyles.scene.colourPrimary },
-		transform_category: { colour: lightStyles.transform.colourPrimary },
+		change_category: { colour: lightStyles.change.colourPrimary },
 		animate_category: { colour: lightStyles.animate.colourPrimary },
 		materials_category: { colour: lightStyles.materials.colourPrimary },
 		sound_category: { colour: lightStyles.sound.colourPrimary },

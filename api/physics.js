@@ -452,7 +452,7 @@ export const flockPhysics = {
                       if (results.length > 0) {
                         const hitTest = results[0];
                         const position =
-                          hitTest.transformationMatrix.getTranslation();
+                          hitTest.changeationMatrix.getTranslation();
                         target.position.copyFrom(position);
                         target.isVisible = true;
                       }
@@ -602,7 +602,7 @@ export const flockPhysics = {
 
             const observable = mesh.physicsBody.getCollisionObservable();
             const physicsObserver = observable.add((evt) => {
-              const other = evt.collidedAgainst?.transformNode;
+              const other = evt.collidedAgainst?.changeNode;
               if (other === otherMesh && otherMesh.isEnabled()) {
                 state.physicsFramesSinceHit = 0;
                 tryFireEnter("physics");

@@ -376,7 +376,7 @@ createHull(modelId, meshList) {
 				}
 
 				// Offset the merged mesh to be locally centred
-				mergedMesh.bakeTransformIntoVertices(
+				mergedMesh.bakeChangeIntoVertices(
 					flock.BABYLON.Matrix.Translation(
 						-combinedCentre.x,
 						-combinedCentre.y,

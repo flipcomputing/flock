@@ -5,7 +5,7 @@ import { translate } from "./main/translation.js";
 export const categoryColours = {
         Events: 5,
         Scene: 85,
-        Transform: 65,
+        Change: 65,
         Animate: 45,
         Materials: 280,
         Sound: 25,
@@ -1021,12 +1021,12 @@ const toolboxEvents = {
         ],
 };
 
-const toolboxTransformPhysics = {
+const toolboxChangePhysics = {
         kind: "category",
         name: "%{BKY_CATEGORY_PHYSICS}",
         icon: "./images/physics.svg",
-        //colour: categoryColours["Transform"],
-        categorystyle: "transform_category",
+        //colour: categoryColours["Change"],
+        categorystyle: "change_category",
         contents: [
                 {
                         kind: "block",
@@ -1077,12 +1077,12 @@ const toolboxTransformPhysics = {
         ],
 };
 
-const toolboxTransformConnect = {
+const toolboxChangeConnect = {
         kind: "category",
         name: "%{BKY_CATEGORY_CONNECT}",
         icon: "./images/connect.svg",
-        //colour: categoryColours["Transform"],
-        categorystyle: "transform_category",
+        //colour: categoryColours["Change"],
+        categorystyle: "change_category",
         contents: [
                 {
                         kind: "block",
@@ -1231,12 +1231,12 @@ const toolboxTransformConnect = {
         ],
 };
 
-const toolboxTransformCombine = {
+const toolboxChangeCombine = {
         kind: "category",
         name: "%{BKY_CATEGORY_COMBINE}",
         icon: "./images/combine.svg",
-        //colour: categoryColours["Transform"],
-        categorystyle: "transform_category",
+        //colour: categoryColours["Change"],
+        categorystyle: "change_category",
         contents: [
                 {
                         kind: "block",
@@ -1345,12 +1345,12 @@ const toolboxTransformCombine = {
         ],
 };
 
-const toolboxTransform = {
+const toolboxChange = {
         kind: "category",
-        name: "%{BKY_CATEGORY_TRANSFORM}",
+        name: "%{BKY_CATEGORY_CHANGE}",
         icon: "./images/motion.svg",
-        //colour: categoryColours["Transform"],
-        categorystyle: "transform_category",
+        //colour: categoryColours["Change"],
+        categorystyle: "change_category",
         contents: [
                 {
                         kind: "block",
@@ -1623,9 +1623,9 @@ const toolboxTransform = {
                                 },
                         },
                 },
-                toolboxTransformPhysics,
-                toolboxTransformConnect,
-                toolboxTransformCombine,
+                toolboxChangePhysics,
+                toolboxChangeConnect,
+                toolboxChangeCombine,
         ],
 };
 
@@ -4209,7 +4209,7 @@ export const toolbox = {
                 toolboxSearch,
                 toolboxScene,
                 toolboxEvents,
-                toolboxTransform,
+                toolboxChange,
                 toolboxAnimate,
                 toolboxControl,
                 toolboxCondition,
