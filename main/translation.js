@@ -4,6 +4,7 @@ import * as Blockly from "blockly";
 import * as fr from "blockly/msg/fr";
 import * as en from "blockly/msg/en";
 import * as es from "blockly/msg/es";
+import * as it from "blockly/msg/it";
 import * as sv from "blockly/msg/sv";
 import * as pt from "blockly/msg/pt";
 import * as pl from "blockly/msg/pl";
@@ -11,6 +12,7 @@ import * as de from "blockly/msg/de";
 import enLocale from "../locale/en.js";
 import frLocale from "../locale/fr.js";
 import esLocale from "../locale/es.js";
+import itLocale from "../locale/it.js";
 import svLocale from "../locale/sv.js";
 import ptLocale from "../locale/pt.js";
 import plLocale from "../locale/pl.js";
@@ -22,6 +24,7 @@ let isOriginalMessagesCached = false;
 // Load locale files
 const translations = {
   en: enLocale,
+  it: itLocale,
   fr: frLocale,
   es: esLocale,
   sv: svLocale,
@@ -31,7 +34,7 @@ const translations = {
 };
 
 export function getDropdownOption(key) {
-  return [getOption(key), key]
+  return [getOption(key), key];
 }
 
 let currentLanguage = "en";
@@ -63,6 +66,14 @@ async function applySavedLanguageTranslations() {
     Object.keys(esMessages).forEach((key) => {
       if (typeof esMessages[key] === "string") {
         Blockly.Msg[key] = esMessages[key];
+      }
+    });
+  } else if (currentLanguage === "it") {
+    // Apply Blockly's Italian translations
+    const itMessages = it.default || it;
+    Object.keys(itMessages).forEach((key) => {
+      if (typeof itMessages[key] === "string") {
+        Blockly.Msg[key] = itMessages[key];
       }
     });
   } else if (currentLanguage === "sv") {
@@ -151,6 +162,16 @@ export async function setLanguage(language) {
       }
     });
     console.log("Español seleccionado - Blockly Spanish translations applied!");
+  } else if (language === "it") {
+    // Applica le traduzioni italiane di Blockly
+    Object.keys(it).forEach((key) => {
+      if (typeof it[key] === "string") {
+        Blockly.Msg[key] = it[key];
+      }
+    });
+    console.log(
+      "Italiano selezionato - Traduzioni italiane di Blockly applicate!",
+    );
   } else if (language === "sv") {
     // Apply Blockly's Swedish translations
     Object.keys(sv).forEach((key) => {
@@ -166,7 +187,9 @@ export async function setLanguage(language) {
         Blockly.Msg[key] = pt[key];
       }
     });
-    console.log("Português selecionado - Blockly Portuguese translations applied!");
+    console.log(
+      "Português selecionado - Blockly Portuguese translations applied!",
+    );
   } else if (language === "pl") {
     // Apply Blockly's Polish translations
     Object.keys(pl).forEach((key) => {
@@ -195,10 +218,9 @@ export async function setLanguage(language) {
     console.log(
       "English selected - Blockly English and custom translations applied!",
     );
-
   }
 
-  applyTranslations()
+  applyTranslations();
 
   // Apply custom translations for the selected language
   Object.keys(translations[currentLanguage]).forEach((key) => {
@@ -281,12 +303,18 @@ export function getSnippetOption(blockType) {
 
 // Helper function to get translated dropdown options
 export function getOption(key) {
-  const optionKey 
-    = key == " " ? "space_option"
-    : key == "," ? "comma_option"
-    : key == "." ? "dot_option"
-    : key == "/" ? "slash_option"
-    : (/^\d$/.test(key[0]) ? "_" : "") + key.replace(".", "_").replace("-", "_").replace("/", "_") + "_option";
+  const optionKey =
+    key == " "
+      ? "space_option"
+      : key == ","
+        ? "comma_option"
+        : key == "."
+          ? "dot_option"
+          : key == "/"
+            ? "slash_option"
+            : (/^\d$/.test(key[0]) ? "_" : "") +
+              key.replace(".", "_").replace("-", "_").replace("/", "_") +
+              "_option";
   return (
     translations[currentLanguage]?.[optionKey] ||
     translations["en"]?.[optionKey] ||
@@ -295,24 +323,26 @@ export function getOption(key) {
 }
 
 export function applyTranslations() {
-  document.querySelectorAll('[data-i18n]').forEach(el => {
+  document.querySelectorAll("[data-i18n]").forEach((el) => {
     const key = el.dataset.i18n + "_ui";
 
-    let contents = ""
+    let contents = "";
     for (const element of el.childNodes) {
       if (element.nodeType == Node.TEXT_NODE || element.nodeName == "STRONG") {
-        contents += element.textContent
+        contents += element.textContent;
       }
     }
-    contents = contents.trim()
-    if (contents != "") { el.innerHTML = translate(key) || key }
-    else if (el.hasAttribute("title")) { el.title = translate(key) || key }
-    else if (el.hasAttribute("placeholder")) {el.setAttribute("placeholder", translate(key) || key) }
+    contents = contents.trim();
+    if (contents != "") {
+      el.innerHTML = translate(key) || key;
+    } else if (el.hasAttribute("title")) {
+      el.title = translate(key) || key;
+    } else if (el.hasAttribute("placeholder")) {
+      el.setAttribute("placeholder", translate(key) || key);
+    }
   });
 }
-document.addEventListener('DOMContentLoaded', () =>
-  applyTranslations()
-);
+document.addEventListener("DOMContentLoaded", () => applyTranslations());
 
 // Function to update custom block translations
 export function updateCustomBlockTranslations() {

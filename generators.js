@@ -622,7 +622,15 @@ export function defineGenerators() {
                 const meshId = "ground";
                 meshMap[meshId] = block;
                 meshBlockIdMap[meshId] = block.id;
-                const color = getFieldValue(block, "COLOR", "#6495ED");
+                let color = getFieldValue(block, "COLOR", '"#6495ED"');
+                
+                const colorInput = block.getInput("COLOR");
+                const colorBlock = colorInput?.connection?.targetBlock();
+                
+                if (colorBlock && colorBlock.type === "material") {
+                        color = `(${color}).color`;
+                }
+                
                 return `createGround(${color}, "${meshId}");\n`;
         };
 
@@ -647,7 +655,12 @@ export function defineGenerators() {
                 const meshId = "sky";
                 meshMap[meshId] = block;
                 meshBlockIdMap[meshId] = block.id;
-                const color = getFieldValue(block, "COLOR", "#6495ED");
+                let color = javascriptGenerator.valueToCode(
+                        block,
+                        "COLOR",
+                        javascriptGenerator.ORDER_NONE,
+                ) || '"#6495ED"';
+                
                 return `setSky(${color});\n`;
         };
 
@@ -1123,7 +1136,8 @@ export function defineGenerators() {
                 const x = getFieldValue(block, "X", "0");
                 const y = getFieldValue(block, "Y", "0");
                 const z = getFieldValue(block, "Z", "0");
-                const color = getFieldValue(block, "COLOR", "#000000");
+                const color = getFieldValue(block, "COLOR", '"#000000"');
+                
                 const variableName = javascriptGenerator.nameDB_.getName(
                         block.getFieldValue("ID_VAR"),
                         Blockly.Names.NameType.VARIABLE,
@@ -1161,7 +1175,8 @@ export function defineGenerators() {
                 const x = getFieldValue(block, "X", "0");
                 const y = getFieldValue(block, "Y", "0");
                 const z = getFieldValue(block, "Z", "0");
-                const color = getFieldValue(block, "COLOR", "#000000");
+                const color = getFieldValue(block, "COLOR", '"#000000"');
+                
                 const variableName = javascriptGenerator.nameDB_.getName(
                         block.getFieldValue("ID_VAR"),
                         Blockly.Names.NameType.VARIABLE,
@@ -1617,15 +1632,28 @@ export function defineGenerators() {
                 return createMesh(block, "Plane", params, "plane");
         };
 
-        javascriptGenerator.forBlock["set_background_color"] = function (
-                block,
-        ) {
-                const color = getFieldValue(block, "COLOR", "#6495ED");
-                const meshId = "sky";
-                meshMap[meshId] = block;
-                meshBlockIdMap[meshId] = block.id;
-                return `setSky(${color});\n`;
+        javascriptGenerator.forBlock["set_background_color"] = function (block) {
+          // Defaults to a quoted hex string (e.g., "#6495ED")
+          let color = getFieldValue(block, "COLOR", '"#6495ED"');
+
+          const colorInput = block.getInput("COLOR");
+          const colorBlock = colorInput?.connection?.targetBlock();
+
+          if (colorBlock && colorBlock.type === "material") {
+            color = `(function(m){
+              const c = (m && (m.color || m.diffuseColor || m.albedoColor));
+              return (c && c.toHexString) ? c.toHexString() : "#6495ED";
+            })(${color})`;
+          }
+
+          const meshId = "sky";
+          meshMap[meshId] = block;
+          meshBlockIdMap[meshId] = block.id;
+
+          // Background block should always request clear-color behaviour
+          return `setSky(${color}, { clear: true });\n`;
         };
+
 
         javascriptGenerator.forBlock["create_wall"] = function (block) {
                 const color = getFieldValue(block, "COLOR", "#9932CC");
@@ -1788,7 +1816,7 @@ export function defineGenerators() {
         };
 
         javascriptGenerator.forBlock["distance_to"] = function (block) {
-                c;
+        
                 const meshName1 = javascriptGenerator.nameDB_.getName(
                         block.getFieldValue("MODEL1"),
                         Blockly.Names.NameType.VARIABLE,
@@ -2881,7 +2909,7 @@ export function defineGenerators() {
                                 "BASE_COLOR",
 
                                 javascriptGenerator.ORDER_ATOMIC,
-                        ) || "1";
+                        ) || '"#ffffff"';
 
                 const textureSet = block.getFieldValue("TEXTURE_SET");
                 const alpha =

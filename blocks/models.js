@@ -2,7 +2,7 @@ import * as Blockly from "blockly";
 import { categoryColours } from "../toolbox.js";
 import {
 	nextVariableIndexes,
-	findCreateBlock,
+	handleBlockChange,
 	handleBlockCreateEvent,
 	handleMeshLifecycleChange,
 	handleFieldOrChildChange,
@@ -181,7 +181,7 @@ export function defineModelBlocks() {
 					{
 						type: "input_value",
 						name: "COLOR",
-						check: "Colour",
+						check: ["Colour", "Array", "Material"],
 					},
 					{
 						type: "input_value",
@@ -230,21 +230,22 @@ export function defineModelBlocks() {
 			updateColorField();
 
 			this.setOnChange((changeEvent) => {
-				handleBlockCreateEvent(
-					this,
-					changeEvent,
-					variableNamePrefix,
-					nextVariableIndexes,
-				);
+			  handleBlockCreateEvent(
+				this,
+				changeEvent,
+				variableNamePrefix,
+				nextVariableIndexes,
+			  );
 
-				if (
-					this.id !== changeEvent.blockId &&
-					changeEvent.type !== Blockly.Events.BLOCK_CHANGE
-				)
-					return;
+			  handleBlockChange(this, changeEvent, variableNamePrefix);
 
-				if (handleMeshLifecycleChange(this, changeEvent)) return;
-				if (handleFieldOrChildChange(this, changeEvent)) return;
+			  if (
+				this.id !== changeEvent.blockId &&
+				changeEvent.type !== Blockly.Events.BLOCK_CHANGE
+			  )
+				return;
+			  if (handleMeshLifecycleChange(this, changeEvent)) return;
+			  if (handleFieldOrChildChange(this, changeEvent)) return;
 			});
 
 			addDoMutatorWithToggleBehavior(this);

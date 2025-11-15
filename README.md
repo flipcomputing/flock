@@ -40,13 +40,12 @@ View the current development version at [flipcomputing.github.io/flock/](https:/
 You should see it here: http://localhost:5173/
 
 ### Run tests
-You can find the tests in the codebase here: `tests/tests.html`
 
-With your npm server running go to: http://localhost:5173/tests/tests.html
+For detailed testing documentation including Playwright end-to-end tests and Mocha unit tests, see the [Testing section in CONTRIBUTING.md](CONTRIBUTING.md#testing).
 
-Select the tests you want to run from the dropdown and 'Run Tests'.
-
-You should see the tests run.
+**Quick start:**
+- Mocha tests: http://localhost:5173/tests/tests.html (with dev server running)
+- Playwright tests: `npx playwright test`
 
 ### Project Structure
 This is a Vite-based project using:

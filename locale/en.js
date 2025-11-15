@@ -157,7 +157,7 @@ export default {
   control_animation_group: "animation group %1 %2",
   animate_from: "animate group %1 from %2 seconds",
   stop_animations: "stop animations %1",
-  switch_animation: "switch animation of %1 to %2",
+  switch_animation: "switch animation to %1 on %2",
   play_animation: "play animation %1 on %2",
 
   // Custom block translations - Base blocks
@@ -762,6 +762,7 @@ export default {
   demo_ui: "Demo",
   new_ui: "New",
   starter_ui: "👋🏽 Starter",
+  character_designer_ui: "👚 Character Designer",
   controller_starter_ui: "🎮 Controller Starter",
   snow_globe_ui: "❄️ Snow globe",
   forest_base_ui: "🌲 Forest Base",
@@ -773,6 +774,7 @@ export default {
   skittles_ui: "🎳 Skittles",
   beetle_ui: "🪲 Beetle",
   roominator_ui: "🛋️ Roominator",
+  sit_down_ui: "🪑 Sit Down",
   ball_pit_ui: "🟠 Ball Pit",
   ur_enough_ui: "💗 UR Enough!",
   tallest_buildings_ui: "📊 Tallest buildings",
@@ -793,7 +795,8 @@ export default {
 
   theme_submenu_ui: "Theme",
   light_theme_ui: "Light",
-  dark_theme_ui: "Dark",
+  dark_theme_ui: "Dark 2",
+  dark_contrast_theme_ui: "Dark",
   contrast_theme_ui: "Contrast",
 
   run_code_button_ui: "Run your code",

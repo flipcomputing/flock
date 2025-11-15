@@ -2,10 +2,7 @@ import * as Blockly from "blockly";
 import { categoryColours } from "../toolbox.js";
 import {
 	nextVariableIndexes,
-	findCreateBlock,
-	handleBlockCreateEvent,
-	handleMeshLifecycleChange,
-	handleFieldOrChildChange,
+	handleBlockChange,
 	addDoMutatorWithToggleBehavior,
 	getHelpUrlFor,
 } from "../blocks.js";
@@ -51,8 +48,7 @@ export function defineShapeBlocks() {
 						{
 							type: "input_value",
 							name: "COLOR",
-							check: "Colour",
-							//check: ["Colour", "Array"], // FUTURE
+							check: ["Colour", "Material"], 
 						},
 						...additionalArgs0,
 						{ type: "input_value", name: "X", check: "Number" },
@@ -89,52 +85,7 @@ export function defineShapeBlocks() {
 		};
 	}
 
-	function handleBlockChange(block, changeEvent, variableNamePrefix) {
-		// Always run first to handle variable naming
-		handleBlockCreateEvent(
-			block,
-			changeEvent,
-			variableNamePrefix,
-			nextVariableIndexes,
-		);
-
-		// Handle lifecycle events like enable/disable/move on the block directly
-		if (changeEvent.blockId === block.id) {
-			if (handleMeshLifecycleChange(block, changeEvent)) return;
-		}
-
-		// Handle field changes on self or attached unchainable children
-		if (handleFieldOrChildChange(block, changeEvent)) return;
-
-		// Handle BLOCK_CREATE or BLOCK_CHANGE if a child is attached
-		if (
-			(changeEvent.type === Blockly.Events.BLOCK_CREATE ||
-				changeEvent.type === Blockly.Events.BLOCK_CHANGE) &&
-			changeEvent.workspaceId === Blockly.getMainWorkspace().id
-		) {
-			if (flock.blockDebug) console.log("The changed block is", changeEvent.block);
-			if (flock.blockDebug) console.log("The changed block is", changeEvent.blockId);
-			const changedBlock = Blockly.getMainWorkspace().getBlockById(
-				changeEvent.blockId,
-			);
-			const parent = findCreateBlock(changedBlock);
-			if (flock.blockDebug) console.log("The type of the changed block is", changedBlock.type);
-			if (changedBlock.getParent()) {
-				if (flock.blockDebug) console.log("The ID of the parent of the changed block is", changedBlock.getParent().id);
-				if (flock.blockDebug) console.log("The type of the parent of the changed block is", changedBlock.getParent().type);
-			}
-			if (flock.blockDebug) console.log("This block is", block.id);
-			// if (flock.blockDebug) console.log("The parent is", parent);
-			if (flock.blockDebug) console.log("The type of this block is", block.type);
-			if (parent === block) {
-				const blockInWorkspace =
-					Blockly.getMainWorkspace().getBlockById(block.id);
-				if (blockInWorkspace) {
-					updateOrCreateMeshFromBlock(block, changeEvent);
-				}
-			}
-		}
-	}
+	
 
 	// Define the particle effect block.
 	Blockly.Blocks["create_particle_effect"] = {
@@ -158,12 +109,12 @@ export function defineShapeBlocks() {
 						options: [
 							[
 								{
-									src: "./textures/arrow_texture.png",
+									src: "./textures/circle_texture.png",
 									width: 32,
 									height: 32,
-									alt: "Arrow",
+									alt: "Circle",
 								},
-								"arrow_texture.png",
+								"circle_texture.png",
 							],
 							[
 								{
@@ -227,15 +178,6 @@ export function defineShapeBlocks() {
 									alt: "Cheveron",
 								},
 								"chevron_texture.png",
-							],
-							[
-								{
-									src: "./textures/circle_texture.png",
-									width: 32,
-									height: 32,
-									alt: "Circle",
-								},
-								"circle_texture.png",
 							],
 							[
 								{
@@ -579,6 +521,15 @@ export function defineShapeBlocks() {
 								},
 								"square_texture.png",
 							],
+							[
+								{
+									src: "./textures/arrow_texture.png",
+									width: 32,
+									height: 32,
+									alt: "Arrow",
+								},
+								"arrow_texture.png",
+							],
 						],
 					},
 					{
@@ -695,8 +646,7 @@ export function defineShapeBlocks() {
 					{
 						type: "input_value",
 						name: "COLOR",
-						check: "Colour",
-						//check: ["Colour", "Array"], // FUTURE
+						check: ["Colour", "Material"], 
 					},
 					{ type: "input_value", name: "WIDTH", check: "Number" },
 					{ type: "input_value", name: "HEIGHT", check: "Number" },
@@ -740,8 +690,7 @@ export function defineShapeBlocks() {
 					{
 						type: "input_value",
 						name: "COLOR",
-						check: "Colour",
-						//check: ["Colour", "Array"], // FUTURE
+						check: ["Colour", "Material"], 
 					},
 					{
 						type: "input_value",
@@ -797,8 +746,7 @@ export function defineShapeBlocks() {
 					{
 						type: "input_value",
 						name: "COLOR",
-						check: "Colour",
-						//check: ["Colour", "Array"], // FUTURE
+						check: ["Colour", "Material"], 
 					},
 					{ type: "input_value", name: "HEIGHT", check: "Number" },
 					{
@@ -855,8 +803,7 @@ export function defineShapeBlocks() {
 					{
 						type: "input_value",
 						name: "COLOR",
-						check: "Colour",
-						//check: ["Colour", "Array"], // FUTURE
+						check: ["Colour", "Material"], 
 					},
 					{ type: "input_value", name: "DIAMETER", check: "Number" },
 					{ type: "input_value", name: "HEIGHT", check: "Number" },
@@ -899,8 +846,7 @@ export function defineShapeBlocks() {
 					{
 						type: "input_value",
 						name: "COLOR",
-						check: "Colour",
-						//check: ["Colour", "Array"], // FUTURE
+						check: ["Colour", "Array", "Material"], 
 					},
 					{ type: "input_value", name: "WIDTH", check: "Number" },
 					{ type: "input_value", name: "HEIGHT", check: "Number" },

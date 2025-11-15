@@ -17,19 +17,7 @@ export default defineConfig({
   projects: [
     {
       name: 'chromium',
-      use: { 
-        ...devices['Desktop Chrome'],
-        launchOptions: {
-          executablePath: process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH || '/nix/store/x205pbkd5xh5g4iv0g58xjla55has3cx-chromium-108.0.5359.94/bin/chromium',
-          args: [
-            '--no-sandbox',
-            '--disable-setuid-sandbox',
-            '--disable-dev-shm-usage',
-            '--enable-automation',
-            '--disable-web-security'
-          ]
-        }
-      },
+      use: { ...devices['Desktop Chrome'] },
     },
   ],
   webServer: {

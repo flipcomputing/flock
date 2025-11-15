@@ -530,7 +530,7 @@
                                                                     "type": "math_number",
                                                                     "id": "=:xk9l:.sSQeZePGI~z3",
                                                                     "fields": {
-                                                                      "NUM": 11
+                                                                      "NUM": 8
                                                                     }
                                                                   }
                                                                 }
@@ -606,7 +606,7 @@
                                                                         "type": "math_number",
                                                                         "id": "xC.r9f5=(cOw6WC*e9{3",
                                                                         "fields": {
-                                                                          "NUM": 14
+                                                                          "NUM": 8
                                                                         }
                                                                       }
                                                                     }
@@ -673,7 +673,7 @@
                                                                             "type": "math_number",
                                                                             "id": "N/v=/Rj#7S2R?^bv:~}#",
                                                                             "fields": {
-                                                                              "NUM": 11
+                                                                              "NUM": 8
                                                                             }
                                                                           }
                                                                         }
@@ -1193,7 +1193,7 @@
                         "ID_VAR": {
                           "id": "f=8($HYZoE:IjT|U8x8J"
                         },
-                        "MODELS": "Character1.glb"
+                        "MODELS": "Liz4.glb"
                       },
                       "inputs": {
                         "SCALE": {
@@ -1314,7 +1314,8 @@
                                   "fields": {
                                     "MESH_VAR": {
                                       "id": "f=8($HYZoE:IjT|U8x8J"
-                                    }
+                                    },
+                                    "FRONT": false
                                   },
                                   "inputs": {
                                     "RADIUS": {
@@ -2544,7 +2545,9 @@
               "inline": true,
               "extraState": {
                 "name": "forest",
-                "params": ["seed"]
+                "params": [
+                  "seed"
+                ]
               },
               "inputs": {
                 "ARG0": {

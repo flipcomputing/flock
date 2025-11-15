@@ -3,6 +3,7 @@
   /* Core colours */
   --color-bg:                   white;
   --color-text:                 black;
+  --color-text-label:           var(--color-text);
   --color-border-highlight:     #ee5d6c;
   --color-search-highlight:     #ed808b;
   --color-shadow:               grey;
@@ -17,6 +18,24 @@
 
 }
 
+[data-theme="dark-contrast"] {
+  /* Core colours */
+  --color-bg:                   black;
+  --color-text:                 white;
+  --color-text-label:           black; /* Makes category text more visible in high contrast mode */
+  --color-text-primary:         var(--color-text);
+  --color-border-highlight:     #ee5d6c;
+  --color-search-highlight:     #ed808b;
+  --color-shadow:               grey;
+  --color-outline-focus:        #fc3;
+
+  /* Dropdown & menu semantics */
+  --color-dropdown-text:        var(--color-text);
+  --color-menu-item-text:       var(--color-text);
+  --color-dropdown-menu-bg:     var(--color-bg);
+  --color-dropdown-menu-hover:  rgba(0, 0, 0, 0.05);
+  --color-dropdown-menu-border: var(--color-dropdown-menu-border, 1px solid rgba(0,0,0,0.1));
+}
 
 /* Only target text inputs with cursor: text */
 .blocklyEditableText[style*="cursor: text"] > rect {
@@ -31,10 +50,88 @@ text.blocklyText.blocklyFieldText.blocklyDropdownText {
  fill: var(--color-dropdown-text) !important; 
 }
 
+body[data-theme="dark"] {
+  .blocklyWidgetDiv .blocklyMenuItemContent {
+    color: black !important;
+  }
+}
+
+body[data-theme="dark-contrast"] {
+  .blocklyField text.blocklyText.blocklyFieldText {
+    fill: black !important;
+  }
+  text.blocklyText.blocklyFieldText.blocklyDropdownText {
+    fill: white !important; 
+  }
+  .blocklyMenuItemContent {
+    color: white !important;
+  }
+  .blocklyWidgetDiv .blocklyMenuItemContent {
+    color: black !important;
+  }
+  .blocklyToolboxCategoryLabel {
+    color: white !important;
+  }
+  .customToolboxIcon {
+    filter: invert(1);
+    /* Should be fine to use filters here as we are only
+    converting between black and white for toolbox icons */
+  }
+}
+
+textarea.blocklyCommentText.blocklyTextarea.blocklyText {
+  color: black;
+}
+
 .blocklyTreeRow {
   border-left: none !important;
 }
 
+.blocklyMainWorkspaceScrollbar .blocklyScrollbarHandle {
+  fill: rgba(76, 76, 76, 0.5) !important;
+}
+
+[data-theme="dark"] .blocklyMainWorkspaceScrollbar .blocklyScrollbarHandle {
+  fill: rgba(186, 186, 186, 0.5) !important;
+}
+
+[data-theme="dark-contrast"] .blocklyMainWorkspaceScrollbar .blocklyScrollbarHandle {
+  fill: rgba(205, 205, 205, 0.5) !important;
+}
+
+[data-theme="contrast"] .blocklyMainWorkspaceScrollbar .blocklyScrollbarHandle {
+  fill: rgba(255, 255, 255, 0.5) !important;
+}
+
+body[data-theme="contrast"] {
+  .blocklyWidgetDiv .blocklyMenuItemContent {
+    color: black !important;
+  }
+  .blocklyField text.blocklyText.blocklyFieldText {
+    fill: black !important;
+  }
+  text.blocklyText.blocklyFieldText.blocklyDropdownText {
+    fill: white !important;
+  }
+  .blocklyMenuItemContent {
+    color: white !important;
+  }
+  .blocklyWidgetDiv .blocklyMenuItemContent {
+    color: black !important;
+  }
+  .blocklyToolboxCategoryLabel {
+    color: white !important;
+  }
+  .customToolboxIcon {
+    filter: invert(1);
+    /* Should be fine to use filters here as we are only
+    converting between black and white for toolbox icons */
+  }
+}
+
+textarea.blocklyCommentText.blocklyTextarea.blocklyText {
+  color: black;
+}
 /* Search Highlight Styles */
 .blockly-ws-search {
   background: var(--color-bg);
@@ -141,8 +238,32 @@ path.blocklyPath.blockly-ws-search-highlight.blockly-ws-search-current {
   color: #4c4c4c !important;
 }
 
+[data-theme="dark"]
+.blocklyTrash,
+.blocklyZoomIn > image,
+.blocklyZoomOut > image {
+  opacity: 1 !important;
+  color: #bababa !important;
+}
+
+[data-theme="dark-contrast"]
+.blocklyTrash,
+.blocklyZoomIn > image,
+.blocklyZoomOut > image {
+  opacity: 1 !important;
+  color: #cdcdcd !important;
+}
+
+[data-theme="contrast"]
+.blocklyTrash,
+.blocklyZoomIn > image,
+.blocklyZoomOut > image {
+  opacity: 1 !important;
+  color: #ffffff !important;
+}
+
 .blocklyToolboxCategoryLabel {
-  color: var(--color-text) !important;
+  color: var(--color-text-label) !important;
 }
 
 .blocklyToolboxCategoryIconClosed,
@@ -162,6 +283,18 @@ path.blocklyPath.blockly-ws-search-highlight.blockly-ws-search-current {
 .custom_zelos_renderer-renderer.classic-theme .blocklyMenuItemContent {
 fill: var(--color-dropdown-text) !important;
 }
+
+[data-theme="dark-contrast"]
+.blocklyText,
+.blocklyDropdownField,
+.blocklyDropdownDiv,
+.blocklyDropdownContent,
+.custom_zelos_renderer-renderer.classic-theme .blocklyDropdownText,
+.custom_zelos_renderer-renderer.classic-theme .blocklyDropDownText,
+.custom_zelos_renderer-renderer.classic-theme .blocklyMenuItemContent {
+fill: var(--color-dropdown-text) !important;
+}
+
 
 /* Menu item text in classic‑theme dropdowns */
 .custom_zelos_renderer-renderer.classic-theme.blocklyDropDownDiv .goog-menuitem-content {
@@ -206,6 +339,18 @@ fill: var(--color-border-highlight);
   background-color: #ebebeb !important;
 }
 
+[data-theme="dark-contrast"] .blocklySvg {
+  background-color: #090909 !important;
+}
+
+[data-theme="dark"] .blocklySvg {
+  background-color: #2c2c2c !important;
+}
+
+[data-theme="contrast"] .blocklySvg {
+  background-color: #000000 !important;
+}
+
 /* Toolbox category selection outline */
 .blocklyToolboxCategoryContainer[aria-selected="true"][aria-level="1"] > .blocklyToolboxCategory,
 .blocklyToolboxCategoryContainer[aria-selected="true"][aria-level="2"] > .blocklyToolboxCategory {
@@ -244,6 +389,16 @@ body[data-theme="contrast"] .blocklyText {
 
 }
 
+body[data-theme="dark-contrast"] .blocklyText {
+  font-weight: 600 !important;
+  font-family:  "Atkinson Hyperlegible Next", "Asap", Helvetica, Arial, Lucida, sans-serif !important;
+
+}
+
+body[data-theme="dark-contrast"] .blocklyTreeLabel {
+  font-weight: 500 !important;
+  font-family:  "Atkinson Hyperlegible Next", "Asap", Helvetica, Arial, Lucida, sans-serif !important;
+}
 
 body[data-theme="contrast"] .blocklyTreeLabel {
   font-weight: 500 !important;
@@ -293,6 +448,13 @@ body[data-theme="dark"] .blocklyTreeLabel {
   border-radius: 4px;
 }
 
+[data-theme="contrast"] .blocklyText {
+  fill: white !important;
+}
+
+[data-theme="dark-contrast"] .blocklyText {
+  fill: white !important;
+}
 
 /* === Blockly v12 desktop: center icon + label within the full row === */
 @media (min-width: 769px) {
@@ -303,7 +465,21 @@ body[data-theme="dark"] .blocklyTreeLabel {
 
   .blocklyToolbox {
     background: #F3F3F3 !important;
+    min-width: 130px;
   }
+
+  [data-theme="dark-contrast"] .blocklyToolbox {
+    background: #000000 !important;
+  }
+
+  [data-theme="dark"] .blocklyToolbox {
+    background: #232323 !important;
+  }
+
+  [data-theme="contrast"] .blocklyToolbox {
+    background: #1f1f1f !important;
+  }
+  
   .blocklyToolboxCategoryGroup {
     background-color: #D3D3D3 !important;
   }
@@ -313,8 +489,8 @@ body[data-theme="dark"] .blocklyTreeLabel {
     display: flex !important;
     align-items: center !important;   /* <-- centers within the full row */
     min-height: 26px !important;      /* pick your row height */
-    padding-top: 0 !important;
-    padding-bottom: 0 !important;
+    padding-top: 1.25px !important;
+    padding-bottom: 1.25px !important;
     padding-left: 8px !important;
   }
 

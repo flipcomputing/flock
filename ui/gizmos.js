@@ -65,7 +65,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
   window.addEventListener("keydown", (event) => {
     // Check if both Ctrl and the comma key (,) are pressed
-    if ((event.ctrlKey && event.code === "Comma") || event.code === "KeyF") {
+    if ((event.ctrlKey && event.code === "Comma") /*|| event.code === "KeyF"*/) {
       focusCameraOnMesh();
     }
   });
@@ -138,29 +138,82 @@ function pickMeshFromCanvas() {
   }, 200);
 }
 
+// treat undefined as pickable; only exclude explicit false
+const PICK_OK = (m) => m && m.isPickable !== false;
+
+function isLeafMesh(m) {
+  if (!m || m.isDisposed?.()) return false;
+  const hasKids = (m.getChildren?.().length ?? 0) > 0;
+  const hasGeom = typeof m.getTotalVertices === "function" && m.getTotalVertices() > 0;
+  return !hasKids && hasGeom;
+}
+
+function isInSubtree(root, node) {
+  if (!root || !node) return false;
+  if (root === node) return true;
+  for (let p = node.parent; p; p = p.parent) if (p === root) return true;
+  return false;
+}
+
+function pickLeafFromRay(ray, scene) {
+  // 1) Prefer a direct leaf hit (skips the composite parent)
+  const leafFirst = scene.pickWithRay(ray, m => PICK_OK(m) && isLeafMesh(m));
+  if (leafFirst?.pickedMesh) return leafFirst.pickedMesh;
+
+  // 2) Fallback: get primary (likely parent), then search only its subtree
+  const primary = scene.pickWithRay(ray, PICK_OK);
+  const parent = primary?.pickedMesh;
+  if (!parent) return null;
+
+  if (isLeafMesh(parent)) return parent;
+
+  const maxDist = (primary.distance ?? Number.POSITIVE_INFINITY) + 1e-4;
+  const ray2 = ray.clone();
+  ray2.length = Math.min(ray.length ?? maxDist, maxDist);
+
+  const hits = scene.multiPickWithRay(
+    ray2,
+    m => PICK_OK(m) && isLeafMesh(m) && isInSubtree(parent, m),
+    false
+  ) || [];
+
+  if (hits.length) {
+    // ensure nearest leaf is chosen
+    hits.sort((a, b) => a.distance - b.distance);
+    return hits[0].pickedMesh;
+  }
+
+  // last resort: color the parent
+  return parent;
+}
+
 function applyColorAtPosition(canvasX, canvasY) {
-  // Create a picking ray using the canvas coordinates
-  const pickRay = flock.scene.createPickingRay(
+  const scene = flock.scene;
+
+  // If you use the selection octree, keep it fresh (cheap if unchanged)
+  if (scene.selectionOctree) scene.createOrUpdateSelectionOctree();
+
+  const pickRay = scene.createPickingRay(
     canvasX,
     canvasY,
     flock.BABYLON.Matrix.Identity(),
-    flock.scene.activeCamera,
+    scene.activeCamera
   );
 
-  // Perform the picking
-  const pickResult = flock.scene.pickWithRay(
-    pickRay,
-    (mesh) => mesh.isPickable,
-  );
+  const pickedMesh = pickLeafFromRay(pickRay, scene);
 
-  if (pickResult.pickedMesh) {
-    flock.changeColorMesh(pickResult.pickedMesh, selectedColor);
-    updateBlockColorAndHighlight(pickResult.pickedMesh, selectedColor);
+  if (pickedMesh) {
+    flock.changeColorMesh(pickedMesh, selectedColor);
+    updateBlockColorAndHighlight(pickedMesh, selectedColor);
   } else {
     flock.setSky(selectedColor);
     updateBlockColorAndHighlight(meshMap?.["sky"], selectedColor);
   }
 }
+
+
+
+
 
 let cameraMode = "play";
 

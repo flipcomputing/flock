@@ -90,7 +90,7 @@
                             "ID_VAR": {
                               "id": "f=8($HYZoE:IjT|U8x8J"
                             },
-                            "MODELS": "Character1.glb"
+                            "MODELS": "Liz3.glb"
                           },
                           "inputs": {
                             "SCALE": {
@@ -1981,7 +1981,7 @@
                                                                                   "X": {
                                                                                     "shadow": {
                                                                                       "type": "math_number",
-                                                                                      "id": "+;FFX]jE$^TyJ{^zVxnI",
+                                                                                      "id": "W%).,wmZ%saiaolW]ar3",
                                                                                       "fields": {
                                                                                         "NUM": 0
                                                                                       }
