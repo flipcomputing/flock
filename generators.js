@@ -675,6 +675,29 @@ export function defineGenerators() {
                 return `lightIntensity(${intensity});\n`;
         };
 
+        javascriptGenerator.forBlock["hemispheric_light"] = function (block) {
+                const x =
+                        javascriptGenerator.valueToCode(
+                                block,
+                                "X",
+                                javascriptGenerator.ORDER_ATOMIC,
+                        ) || "0";
+                const y =
+                        javascriptGenerator.valueToCode(
+                                block,
+                                "Y",
+                                javascriptGenerator.ORDER_ATOMIC,
+                        ) || "3";
+                const z =
+                        javascriptGenerator.valueToCode(
+                                block,
+                                "Z",
+                                javascriptGenerator.ORDER_ATOMIC,
+                        ) || "0";
+
+                return `await flock.createHemisphericLightForMainScene(${meshName}, { x: ${x}, y: ${y}, z: ${z} });\n`;
+        };
+
         javascriptGenerator.forBlock["button_controls"] = function (block) {
                 const color = getFieldValue(block, "COLOR", "#6495ED");
                 const control = block.getFieldValue("CONTROL");

@@ -30,6 +30,38 @@ export function defineEffectsBlocks() {
 		},
 	};
 
+	Blockly.Blocks["hemispheric_light"] = {
+		init: function () {
+			this.jsonInit({
+				type: "hemispheric_light",
+				message0: translate("hemispheric_light"),
+				args0: [
+					{
+						type: "input_value",
+						name: "X",
+						check: "Number",
+					},
+					{
+						type: "input_value",
+						name: "Y",
+						check: "Number",
+					},
+					{
+						type: "input_value",
+						name: "Z",
+						check: "Number",
+					},
+				],
+				previousStatement: null,
+				nextStatement: null,
+				colour: categoryColours["Scene"],
+				tooltip: getTooltip("hemispheric_light"),
+			});
+			this.setHelpUrl(getHelpUrlFor(this.type));
+			this.setStyle("scene_blocks");
+		},
+	};
+
 	Blockly.Blocks["set_fog"] = {
 		init: function () {
 			this.jsonInit({

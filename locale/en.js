@@ -196,6 +196,7 @@ export default {
 
   // Custom block translations - Effects blocks
   light_intensity: "set light intensity to %1",
+  hemispheric_light: "set light position to x: %1 y: %2 z: %3",
   set_fog: "set fog color %1 mode %2 density %3",
   
   // Custom block translation - Events blocks
