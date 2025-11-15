@@ -46,6 +46,18 @@
   fill: var(--color-text-primary) !important;
 }
 
+[data-theme="dark"] g.blocklyEditing text.blocklyText.blocklyFieldText.blocklyDropdownText {
+ fill: white !important;
+}
+
+[data-theme="dark-contrast"] g.blocklyEditing text.blocklyText.blocklyFieldText.blocklyDropdownText {
+ fill: white !important;
+}
+
+[data-theme="contrast"] g.blocklyEditing text.blocklyText.blocklyFieldText.blocklyDropdownText {
+ fill: white !important;
+}
+
 text.blocklyText.blocklyFieldText.blocklyDropdownText {
  fill: var(--color-dropdown-text) !important; 
 }
