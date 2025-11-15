@@ -695,7 +695,7 @@ export function defineGenerators() {
                                 javascriptGenerator.ORDER_ATOMIC,
                         ) || "0";
 
-                return `await flock.createHemisphericLightForMainScene( x: ${x}, y: ${y}, z: ${z} );\n`;
+                return `flock.createHemisphericLightForMainScene( x: ${x}, y: ${y}, z: ${z} );\n`;
         };
 
         javascriptGenerator.forBlock["button_controls"] = function (block) {
