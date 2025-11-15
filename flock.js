@@ -108,11 +108,6 @@ export const flock = {
         canvas: {
                 pressedKeys: null,
         },
-        hemisphericLightPosition: {
-                x: 1,
-                y: 1,
-                z: 0,
-        },
         abortController: null,
         document: document,
         disposed: null,
@@ -1630,16 +1625,9 @@ export const flock = {
         },
         async createHemisphericLightForMainScene(x, y, z) {
                 // Set up lighting
-                flock.hemisphericLightPosition.x = x;
-                flock.hemisphericLightPosition.y = y;
-                flock.hemisphericLightPosition.z = z;
                 const hemisphericLight = new flock.BABYLON.HemisphericLight(
                         "hemisphericLight",
-                        new flock.BABYLON.Vector3(
-                                flock.hemisphericLightPosition.x,
-                                flock.hemisphericLightPosition.y,
-                                flock.hemisphericLightPosition.z
-                        ),
+                        new flock.BABYLON.Vector3(x, y, z),
                         flock.scene,
                 );
                 hemisphericLight.intensity = 1.0;
@@ -1732,11 +1720,7 @@ export const flock = {
                 flock.scene.activeCamera = camera;
                 camera.attachControl(flock.canvas, false);
                 // Set up lighting
-                flock.createHemisphericLightForMainScene(
-                        flock.hemisphericLightPosition.x,
-                        flock.hemisphericLightPosition.y,
-                        flock.hemisphericLightPosition.z
-                );
+                flock.createHemisphericLightForMainScene(1, 1, 0);
 
                 flock.audioEnginePromise = flock.BABYLON.CreateAudioEngineAsync(
                         {
