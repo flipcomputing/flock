@@ -290,6 +290,9 @@ export function animationNames() {
 		getDropdownOption("Clap"),
 		getDropdownOption("Climb_rope"),
 		getDropdownOption("Climb_wall"),
+		getDropdownOption("Lie_down"),
+		getDropdownOption("Paddle"),
+		getDropdownOption("Push_button"),
 	];
 }
 
