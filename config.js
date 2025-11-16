@@ -273,6 +273,7 @@ export function animationNames() {
 		getDropdownOption("Fall"),
 		getDropdownOption("Fly"),
 		getDropdownOption("Jump"),
+		getDropdownOption("Jump_down"),
 		getDropdownOption("Flip"),
 		getDropdownOption("Dance1"),
 		getDropdownOption("Dance2"),
