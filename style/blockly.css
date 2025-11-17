@@ -46,15 +46,15 @@
   fill: var(--color-text-primary) !important;
 }
 
-[data-theme="dark"] g.blocklyEditing text.blocklyText.blocklyFieldText.blocklyDropdownText {
+[data-theme="dark"] g.blocklyEditing text.blocklyText.blocklyFieldText {
  fill: white !important;
 }
 
-[data-theme="dark-contrast"] g.blocklyEditing text.blocklyText.blocklyFieldText.blocklyDropdownText {
+[data-theme="dark-contrast"] g.blocklyEditing text.blocklyText.blocklyFieldText {
  fill: white !important;
 }
 
-[data-theme="contrast"] g.blocklyEditing text.blocklyText.blocklyFieldText.blocklyDropdownText {
+[data-theme="contrast"] g.blocklyEditing text.blocklyText.blocklyFieldText {
  fill: white !important;
 }
 
