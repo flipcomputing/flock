@@ -466,29 +466,42 @@ export function importSnippet() {
 
 	fileInput.onchange = (event) => {
 		const file = event.target.files[0];
-		if (file) {
-			const fileType = file.type;
-			const reader = new FileReader();
+		if (!file) return;
 
-			reader.onload = () => {
-				const content = reader.result;
+		const fileType = file.type;
+		const fileName = file.name.toLowerCase();
 
-				if (fileType === "image/svg+xml") {
-					handleSVGImport(content);
-				} else if (fileType === "image/png") {
-					handlePNGImport(content);
-				} else if (fileType === "application/json") {
-					handleJSONImport(content);
-				} else {
-					console.error("Unsupported file type:", fileType);
-				}
-			};
+		// Custom MIME for Flock snippets (matches exportBlockSnippet)
+		const FLOCK_SNIP_MIME = "application/vnd.flock-snippet+json";
 
-			if (fileType === "image/png") {
-				reader.readAsArrayBuffer(file);
+		const reader = new FileReader();
+
+		reader.onload = () => {
+			const content = reader.result;
+
+			if (fileType === "image/svg+xml") {
+				handleSVGImport(content);
+			} else if (fileType === "image/png") {
+				handlePNGImport(content);
+			} else if (
+				fileType === "application/json" ||
+				fileType === FLOCK_SNIP_MIME ||
+				fileName.endsWith(".fsnip")
+			) {
+				// Treat .fsnip the same as JSON snippets
+				handleJSONImport(content);
 			} else {
-				reader.readAsText(file);
+				console.error("Unsupported file type:", fileType || "(none)");
 			}
+
+			// Allow re-selecting the same file
+			event.target.value = "";
+		};
+
+		if (fileType === "image/png") {
+			reader.readAsArrayBuffer(file);
+		} else {
+			reader.readAsText(file);
 		}
 	};
 }
