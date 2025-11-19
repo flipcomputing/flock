@@ -777,6 +777,8 @@ export default {
   tent_lights_ui: "⛺ Carpa de Festival",
   my_place_ui: "🏠 Mi Lugar",
   microbit_monkey_ui: "🐵 Mono micro:bit",
+  character_designer_ui: "👚 Diseñador de personajes",
+  sit_down_ui: "🪑 Siéntate",
 
   main_menu_ui: "Abrir menú para más opciones",
   project_submenu_ui: "Proyecto",
@@ -841,4 +843,12 @@ export default {
   // Service worker update notification
   update_available_ui: "Una nueva versión de Flock está disponible.",
   reload_button_ui: "Recargar",
+
+  colour_rgb: "rojo %1 verde %2 azul %3",
+  colour_random: "color aleatorio",
+  colour_blend: "mezclar %1 y %2 en %3",
+
+  dark_contrast_theme_ui: "Oscuro",
+  
+
 };
