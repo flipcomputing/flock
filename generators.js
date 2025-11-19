@@ -230,7 +230,7 @@ export function defineGenerators() {
                 return `${asyncWrapper}glideTo(${meshName}, { x: ${x}, y: ${y}, z: ${z}, duration: ${duration}, reverse: ${reverse}, loop: ${loop}, easing: "${easing}" });\n`;
         };
 
-        javascriptGenerator.forBlock["move_to_object"] = function (block) {
+        javascriptGenerator.forBlock["glide_to_object"] = function (block) {
                 const meshName1 = javascriptGenerator.nameDB_.getName(
                         block.getFieldValue("MODEL1"),
                         Blockly.Names.NameType.VARIABLE,
