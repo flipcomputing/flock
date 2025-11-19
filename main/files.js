@@ -12,51 +12,54 @@ function validateBlocklyJson(json) {
 	// 1. Parse JSON safely
 	let data;
 	try {
-		data = typeof json === 'string' ? JSON.parse(json) : json;
+		data = typeof json === "string" ? JSON.parse(json) : json;
 	} catch (e) {
 		throw new Error("Invalid JSON format");
 	}
 
 	// 2. Check for dangerous properties that could execute code
 	const dangerousKeys = [
-		'__proto__',
-		'constructor',
-		'prototype',
-		'eval',
-		'Function',
-		'setTimeout',
-		'setInterval',
-		'innerHTML',
-		'outerHTML',
-		'onclick',
-		'onerror',
-		'onload'
+		"__proto__",
+		"constructor",
+		"prototype",
+		"eval",
+		"Function",
+		"setTimeout",
+		"setInterval",
+		"innerHTML",
+		"outerHTML",
+		"onclick",
+		"onerror",
+		"onload",
 	];
 
-	function checkForDangerousContent(obj, path = '') {
+	function checkForDangerousContent(obj, path = "") {
 		if (obj === null || obj === undefined) return;
 
 		// Check primitive values for suspicious patterns
-		if (typeof obj === 'string') {
+		if (typeof obj === "string") {
 			// Skip validation for block IDs - they can contain random characters
-			if (path.endsWith('.id') || path.endsWith('.ID_VAR.id')) {
+			if (path.endsWith(".id") || path.endsWith(".ID_VAR.id")) {
 				return;
 			}
 
 			// Allow newlines in specific safe contexts:
 			// - extraState (for Blockly mutation XML)
 			// - comment text (for block comments and workspace comments)
-			const allowNewlines = path.includes('extraState') || 
-								  path.includes('icons.comment') ||
-								  path.includes('workspaceComments');
+			const allowNewlines =
+				path.includes("extraState") ||
+				path.includes("icons.comment") ||
+				path.includes("workspaceComments");
 
 			// Block newlines everywhere else as they could be code
 			if (/[\r\n]/.test(obj) && !allowNewlines) {
-				throw new Error(`Newline characters not allowed at ${path}: potential code injection`);
+				throw new Error(
+					`Newline characters not allowed at ${path}: potential code injection`,
+				);
 			}
 
 			// Normalize string by removing/reducing whitespace for pattern matching
-			const normalized = obj.replace(/\s+/g, ' ').trim();
+			const normalized = obj.replace(/\s+/g, " ").trim();
 
 			// Look for script tags, event handlers, or javascript: protocol
 			const suspiciousPatterns = [
@@ -84,11 +87,15 @@ function validateBlocklyJson(json) {
 				/\.innerHTML\s*=/i,
 				/\.outerHTML\s*=/i,
 				/\bdocument\s*\.\s*write/i,
-				/\bwindow\s*\.\s*location/i
+				/\bwindow\s*\.\s*location/i,
 			];
 
-			if (suspiciousPatterns.some(pattern => pattern.test(normalized))) {
-				throw new Error(`Suspicious content found at ${path}: potential code injection. Content: "${obj.substring(0, 50)}${obj.length > 50 ? '...' : ''}"`);
+			if (
+				suspiciousPatterns.some((pattern) => pattern.test(normalized))
+			) {
+				throw new Error(
+					`Suspicious content found at ${path}: potential code injection. Content: "${obj.substring(0, 50)}${obj.length > 50 ? "..." : ""}"`,
+				);
 			}
 
 			// Check for suspicious character sequences that might indicate obfuscation
@@ -96,23 +103,30 @@ function validateBlocklyJson(json) {
 				/\\x[0-9a-f]{2}/i, // Hex escape sequences
 				/\\u[0-9a-f]{4}/i, // Unicode escape sequences
 				/&#x?[0-9a-f]+;/i, // HTML entities
-				/%[0-9a-f]{2}/i,   // URL encoded characters
+				/%[0-9a-f]{2}/i, // URL encoded characters
 			];
 
 			// Count suspicious patterns - allow a few for legitimate use, but flag excessive use
-			const suspiciousCount = obfuscationPatterns.filter(pattern => pattern.test(obj)).length;
+			const suspiciousCount = obfuscationPatterns.filter((pattern) =>
+				pattern.test(obj),
+			).length;
 			if (suspiciousCount >= 2) {
 				throw new Error(`Potential obfuscation detected at ${path}`);
 			}
 		}
 
-		if (typeof obj === 'object') {
+		if (typeof obj === "object") {
 			// Check for dangerous keys
 			for (const key of Object.keys(obj)) {
 				if (dangerousKeys.includes(key)) {
-					throw new Error(`Dangerous property found: ${key} at ${path}`);
+					throw new Error(
+						`Dangerous property found: ${key} at ${path}`,
+					);
 				}
-				checkForDangerousContent(obj[key], path ? `${path}.${key}` : key);
+				checkForDangerousContent(
+					obj[key],
+					path ? `${path}.${key}` : key,
+				);
 			}
 		}
 	}
@@ -126,12 +140,18 @@ function validateBlocklyJson(json) {
 
 		// Blockly workspace JSON should have specific structure
 		// Check if data.blocks exists and is a non-null object (not an array)
-		if (!data.blocks || typeof data.blocks !== 'object' || Array.isArray(data.blocks)) {
-			throw new Error("Invalid Blockly structure: missing or invalid blocks object");
+		if (
+			!data.blocks ||
+			typeof data.blocks !== "object" ||
+			Array.isArray(data.blocks)
+		) {
+			throw new Error(
+				"Invalid Blockly structure: missing or invalid blocks object",
+			);
 		}
 
 		// Whitelist allowed properties at root level
-		const allowedRootKeys = ['blocks', 'variables', 'workspaceComments'];
+		const allowedRootKeys = ["blocks", "variables", "workspaceComments"];
 		const rootKeys = Object.keys(data);
 
 		for (const key of rootKeys) {
@@ -141,11 +161,13 @@ function validateBlocklyJson(json) {
 		}
 
 		// Whitelist allowed properties in blocks object
-		const allowedBlocksKeys = ['languageVersion', 'blocks'];
+		const allowedBlocksKeys = ["languageVersion", "blocks"];
 		if (data.blocks) {
 			for (const key of Object.keys(data.blocks)) {
 				if (!allowedBlocksKeys.includes(key)) {
-					console.warn(`Unexpected property in blocks object: ${key}`);
+					console.warn(
+						`Unexpected property in blocks object: ${key}`,
+					);
 				}
 			}
 		}
@@ -153,7 +175,9 @@ function validateBlocklyJson(json) {
 		// Validate blocks array if present
 		if (data.blocks.blocks) {
 			if (!Array.isArray(data.blocks.blocks)) {
-				throw new Error("Invalid Blockly structure: blocks.blocks must be an array");
+				throw new Error(
+					"Invalid Blockly structure: blocks.blocks must be an array",
+				);
 			}
 			data.blocks.blocks.forEach((block, index) => {
 				validateBlock(block, `blocks.blocks[${index}]`);
@@ -163,11 +187,15 @@ function validateBlocklyJson(json) {
 		// Validate variables if present
 		if (data.variables) {
 			if (!Array.isArray(data.variables)) {
-				throw new Error("Invalid Blockly structure: variables must be an array");
+				throw new Error(
+					"Invalid Blockly structure: variables must be an array",
+				);
 			}
 			data.variables.forEach((variable, index) => {
 				if (!variable.name || !variable.id) {
-					throw new Error(`Invalid variable at variables[${index}]: must have name and id`);
+					throw new Error(
+						`Invalid variable at variables[${index}]: must have name and id`,
+					);
 				}
 			});
 		}
@@ -175,15 +203,30 @@ function validateBlocklyJson(json) {
 
 	// 4. Validate individual block structure
 	function validateBlock(block, path) {
-		if (!block || typeof block !== 'object') {
+		if (!block || typeof block !== "object") {
 			throw new Error(`Invalid block at ${path}`);
 		}
 
 		// Whitelist allowed block properties
 		const allowedBlockKeys = [
-			'type', 'id', 'x', 'y', 'collapsed', 'disabled', 'deletable',
-			'movable', 'editable', 'inline', 'data', 'extraState',
-			'icons', 'fields', 'inputs', 'next', 'shadow', 'disabledReasons'
+			"type",
+			"id",
+			"x",
+			"y",
+			"collapsed",
+			"disabled",
+			"deletable",
+			"movable",
+			"editable",
+			"inline",
+			"data",
+			"extraState",
+			"icons",
+			"fields",
+			"inputs",
+			"next",
+			"shadow",
+			"disabledReasons",
 		];
 
 		for (const key of Object.keys(block)) {
@@ -195,14 +238,20 @@ function validateBlocklyJson(json) {
 		// Validate field values (but skip extraState - it can contain XML)
 		if (block.fields) {
 			Object.entries(block.fields).forEach(([fieldName, fieldValue]) => {
-				if (fieldValue && typeof fieldValue === 'object') {
+				if (fieldValue && typeof fieldValue === "object") {
 					// Field values can be objects with 'id' property for variables
-					if (!fieldValue.id && fieldName !== 'extraState') {
-						checkForDangerousContent(fieldValue, `${path}.fields.${fieldName}`);
+					if (!fieldValue.id && fieldName !== "extraState") {
+						checkForDangerousContent(
+							fieldValue,
+							`${path}.fields.${fieldName}`,
+						);
 					}
-				} else if (typeof fieldValue === 'string') {
+				} else if (typeof fieldValue === "string") {
 					// Check string field values for dangerous content
-					checkForDangerousContent(fieldValue, `${path}.fields.${fieldName}`);
+					checkForDangerousContent(
+						fieldValue,
+						`${path}.fields.${fieldName}`,
+					);
 				}
 			});
 		}
@@ -211,10 +260,16 @@ function validateBlocklyJson(json) {
 		if (block.inputs) {
 			Object.entries(block.inputs).forEach(([inputName, input]) => {
 				if (input.block) {
-					validateBlock(input.block, `${path}.inputs.${inputName}.block`);
+					validateBlock(
+						input.block,
+						`${path}.inputs.${inputName}.block`,
+					);
 				}
 				if (input.shadow) {
-					validateBlock(input.shadow, `${path}.inputs.${inputName}.shadow`);
+					validateBlock(
+						input.shadow,
+						`${path}.inputs.${inputName}.shadow`,
+					);
 				}
 			});
 		}
@@ -248,10 +303,14 @@ export function loadWorkspaceAndExecute(json, workspace, executeCallback) {
 		console.error("Failed to load workspace:", error);
 
 		// Handle validation errors
-		if (error.message.includes("Suspicious content") || 
+		if (
+			error.message.includes("Suspicious content") ||
 			error.message.includes("Dangerous property") ||
-			error.message.includes("Invalid Blockly structure")) {
-			console.error("Security validation failed - JSON may contain malicious content");
+			error.message.includes("Invalid Blockly structure")
+		) {
+			console.error(
+				"Security validation failed - JSON may contain malicious content",
+			);
 			throw error; // Re-throw security errors - don't try to recover
 		}
 
@@ -260,7 +319,7 @@ export function loadWorkspaceAndExecute(json, workspace, executeCallback) {
 			console.warn("Workspace might be corrupted, attempting reset.");
 			workspace.clear();
 			// Note: localStorage usage - be aware this won't work in Claude artifacts
-			if (typeof localStorage !== 'undefined') {
+			if (typeof localStorage !== "undefined") {
 				localStorage.removeItem("flock_autosave.json");
 			}
 		}
@@ -365,13 +424,19 @@ export async function exportCode(workspace) {
 		const json = Blockly.serialization.workspaces.save(ws);
 		const jsonString = JSON.stringify(json, null, 2);
 
+		// Custom MIME type for Flock project files
+		const FLOCK_MIME = "application/vnd.flock+json";
+		const FLOCK_EXT = ".flock";
+
 		if ("showSaveFilePicker" in window) {
 			const options = {
-				suggestedName: `${projectName}.json`,
+				suggestedName: `${projectName}${FLOCK_EXT}`,
 				types: [
 					{
-						description: "JSON Files",
-						accept: { "application/json": [".json"] },
+						description: "Flock XR Project",
+						accept: {
+							[FLOCK_MIME]: [FLOCK_EXT],
+						},
 					},
 				],
 			};
@@ -381,10 +446,10 @@ export async function exportCode(workspace) {
 			await writable.write(jsonString);
 			await writable.close();
 		} else {
-			const blob = new Blob([jsonString], { type: "application/json" });
+			const blob = new Blob([jsonString], { type: FLOCK_MIME });
 			const link = document.createElement("a");
 			link.href = URL.createObjectURL(blob);
-			link.download = `${projectName}.json`;
+			link.download = `${projectName}${FLOCK_EXT}`;
 			document.body.appendChild(link);
 			link.click();
 			document.body.removeChild(link);
@@ -401,29 +466,42 @@ export function importSnippet() {
 
 	fileInput.onchange = (event) => {
 		const file = event.target.files[0];
-		if (file) {
-			const fileType = file.type;
-			const reader = new FileReader();
+		if (!file) return;
 
-			reader.onload = () => {
-				const content = reader.result;
+		const fileType = file.type;
+		const fileName = file.name.toLowerCase();
 
-				if (fileType === "image/svg+xml") {
-					handleSVGImport(content);
-				} else if (fileType === "image/png") {
-					handlePNGImport(content);
-				} else if (fileType === "application/json") {
-					handleJSONImport(content);
-				} else {
-					console.error("Unsupported file type:", fileType);
-				}
-			};
+		// Custom MIME for Flock snippets (matches exportBlockSnippet)
+		const FLOCK_SNIP_MIME = "application/vnd.flock-snippet+json";
 
-			if (fileType === "image/png") {
-				reader.readAsArrayBuffer(file);
+		const reader = new FileReader();
+
+		reader.onload = () => {
+			const content = reader.result;
+
+			if (fileType === "image/svg+xml") {
+				handleSVGImport(content);
+			} else if (fileType === "image/png") {
+				handlePNGImport(content);
+			} else if (
+				fileType === "application/json" ||
+				fileType === FLOCK_SNIP_MIME ||
+				fileName.endsWith(".fsnip")
+			) {
+				// Treat .fsnip the same as JSON snippets
+				handleJSONImport(content);
 			} else {
-				reader.readAsText(file);
+				console.error("Unsupported file type:", fileType || "(none)");
 			}
+
+			// Allow re-selecting the same file
+			event.target.value = "";
+		};
+
+		if (fileType === "image/png") {
+			reader.readAsArrayBuffer(file);
+		} else {
+			reader.readAsText(file);
 		}
 	};
 }
@@ -493,17 +571,21 @@ export function setupFileInput(workspace, executeCallback) {
 	fileInput.addEventListener("change", function (event) {
 		const file = event.target.files[0];
 		if (!file) return;
+
 		const maxSize = 5 * 1024 * 1024;
 		if (file.size > maxSize) {
 			alert("File too large. Maximum size is 5MB.");
 			event.target.value = ""; // Reset the input
 			return;
 		}
-		if (!file.name.toLowerCase().endsWith(".json")) {
-			alert("Only JSON files are allowed.");
+
+		const lowerName = file.name.toLowerCase();
+		if (!lowerName.endsWith(".json") && !lowerName.endsWith(".flock")) {
+			alert("Only .json or .flock project files are allowed.");
 			event.target.value = ""; // Reset the input
 			return;
 		}
+
 		const reader = new FileReader();
 		reader.onload = function () {
 			window.loadingCode = true;
@@ -511,9 +593,7 @@ export function setupFileInput(workspace, executeCallback) {
 				const text = reader.result;
 				if (typeof text !== "string") {
 					console.log("Invalid file content: not a string");
-					throw new Error(
-						"File content is invalid (not a string)",
-					);
+					throw new Error("File content is invalid (not a string)");
 				}
 				if (text.length > 4 * 1024 * 1024) {
 					console.log("Invalid file content: too large");
@@ -527,21 +607,24 @@ export function setupFileInput(workspace, executeCallback) {
 					typeof json.blocks !== "object" ||
 					!json.blocks.blocks
 				) {
-					throw new Error(
-						"Invalid Blockly project file structure",
-					);
+					throw new Error("Invalid Blockly project file structure");
 				}
+
 				const rawName = file.name || "untitled";
 				const sanitizedName =
-					rawName
-						.replace(/[^a-zA-Z0-9_-]/g, "")
-						.substring(0, 50) || "untitled";
+					rawName.replace(/[^a-zA-Z0-9_.-]/g, "").substring(0, 50) ||
+					"untitled";
+
+				// Remove .json or .flock extension (case-insensitive) before using as project name
+				const baseName = sanitizedName.replace(/\.(json|flock)$/i, "");
+
 				document.getElementById("projectName").value =
-					stripFilename(sanitizedName.replace("json", ""));
+					stripFilename(baseName);
+
 				loadWorkspaceAndExecute(json, workspace, executeCallback);
 			} catch (e) {
 				console.error("Error loading Blockly project:", e);
-				alert("This file isn't a valid Blockly project.");
+				alert("This file isn't a valid Flock XR project.");
 				window.loadingCode = false;
 			} finally {
 				// Reset the input so the same file can be selected again

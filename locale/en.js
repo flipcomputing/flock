@@ -840,7 +840,7 @@ export default {
   keyboard_navigation_ui: "Go to browser navigation bar (overridden shortcuts work from here)",
 
   // Context menu option translations
-  export_JSON_snippet: "Export block as JSON snippet",
+  export_JSON_snippet: "Export block as snippet",
   import_snippet: "Import snippet",
   export_PNG_snippet: "Export as PNG",
   export_SVG_snippet: "Export as SVG",
