@@ -721,36 +721,41 @@ export default {
   mixed_heights_png_option: "zmienne wysokości",
   uneven_terrain_png_option: "nierówny teren",
 
-  Idle_option: "Idle",
-  Walk_option: "Walk",
-  Run_option: "Run",
-  Wave_option: "Wave",
-  Yes_option: "Yes",
-  No_option: "No",
-  Duck_option: "Duck",
-  Fall_option: "Fall",
-  Fly_option: "Fly",
-  Jump_option: "Jump",
-  Flip_option: "Flip",
-  Dance1_option: "Dance1",
-  Dance2_option: "Dance2",
-  Dance3_option: "Dance3",
-  Dance4_option: "Dance4",
-  Jump_Idle_option: "Jump Idle",
-  Jump_Land_option: "Jump Land",
-  Punch_option: "Punch",
-  HitReact_option: "Hit React",
-  Idle_Hold_option: "Idle Hold",
-  Walk_Hold_option: "Walk Hold",
-  Run_Hold_option: "Run Hold",
-  Idle_Attack_option: "Idle Attack",
-  Walk_Attack_option: "Walk Attack",
-  Run_Attack_option: "Run Attack",
-  Sit_Down_option: "Sit Down",
-  Sitting_option: "Sitting",
-  Stand_Up_option: "Stand Up",
-  Wobble_option: "Wobble",
-  Clap_option: "Clap",
+  Idle_option: "Bezczynność",
+  Walk_option: "Chód",
+  Run_option: "Bieg",
+  Wave_option: "Machanie",
+  Yes_option: "Tak",
+  No_option: "Nie",
+  Duck_option: "Schylenie",
+  Fall_option: "Upadek",
+  Fly_option: "Lot",
+  Jump_option: "Skok",
+  Flip_option: "Salto",
+
+  Dance1_option: "Taniec 1",
+  Dance2_option: "Taniec 2",
+  Dance3_option: "Taniec 3",
+  Dance4_option: "Taniec 4",
+
+  Jump_Idle_option: "Skok – bezczynność",
+  Jump_Land_option: "Lądowanie",
+  Punch_option: "Cios",
+  HitReact_option: "Reakcja na uderzenie",
+
+  Idle_Hold_option: "Bezczynność – trzymanie",
+  Walk_Hold_option: "Chód – trzymanie",
+  Run_Hold_option: "Bieg – trzymanie",
+
+  Idle_Attack_option: "Bezczynność – atak",
+  Walk_Attack_option: "Chód – atak",
+  Run_Attack_option: "Bieg – atak",
+
+  Sit_Down_option: "Siadanie",
+  Sitting_option: "Siedzenie",
+  Stand_Up_option: "Wstawanie",
+  Wobble_option: "Chwianie",
+  Clap_option: "Klaśnięcie",
 
   // HTML translations
   loading_ui: "Ładowanie Flock XR…",
@@ -779,6 +784,8 @@ export default {
   tent_lights_ui: "⛺ Światełka namiotu",
   my_place_ui: "🏠 Moje miejsce",
   microbit_monkey_ui: "🐵 małpa micro:bit",
+  character_designer_ui: "👚 Kreator postaci",
+  sit_down_ui: "🪑 Usiądź",
 
   main_menu_ui: "Menu główne",
   project_submenu_ui: "Projekt",
@@ -842,6 +849,14 @@ export default {
   new_variable_decision: "Nowa zmienna…",
 
   // Service worker update notifications
-  update_available: "Dostępna jest nowa wersja Flock.",
-  reload_button: "Odśwież",
+  update_available_ui: "Dostępna jest nowa wersja Flock.",
+  reload_button_ui: "Odśwież",
+
+  colour_rgb: "czerwony %1 zielony %2 niebieski %3",
+  colour_random: "losowy kolor",
+  colour_blend: "zmieszaj %1 i %2 o %3",
+
+  dark_contrast_theme_ui: "Ciemny",
+  
+
 }
