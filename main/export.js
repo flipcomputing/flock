@@ -11,16 +11,20 @@ async function exportBlockSnippet(block) {
 		// Convert the JSON object to a pretty-printed JSON string
 		const jsonString = JSON.stringify(blockJson, null, 2);
 
+		// Custom extension + MIME for Flock snippets
+		const FLOCK_SNIP_EXT = ".fsnip";
+		const FLOCK_SNIP_MIME = "application/vnd.flock-snippet+json";
+
 		// Check if the File System Access API is available
 		if ("showSaveFilePicker" in window) {
 			// Define the options for the file picker
 			const options = {
-				suggestedName: "blockly_snippet.json",
+				suggestedName: `flock_snippet${FLOCK_SNIP_EXT}`,
 				types: [
 					{
-						description: "JSON Files",
+						description: "Flock XR Snippet",
 						accept: {
-							"application/json": [".json"],
+							[FLOCK_SNIP_MIME]: [FLOCK_SNIP_EXT],
 						},
 					},
 				],
@@ -44,16 +48,18 @@ async function exportBlockSnippet(block) {
 					"Enter a filename for the snippet:",
 					"blockly_snippet",
 				) || "blockly_snippet";
-			const blob = new Blob([jsonString], { type: "application/json" });
+
+			const blob = new Blob([jsonString], { type: FLOCK_SNIP_MIME });
 			const link = document.createElement("a");
 			link.href = URL.createObjectURL(blob);
-			link.download = `${filename}.json`;
+			link.download = `${filename}${FLOCK_SNIP_EXT}`;
 			link.click();
 		}
 	} catch (e) {
 		console.error("Error exporting block:", e);
 	}
 }
+
 
 export function addExportContextMenuOptions() {
 	addExportContextMenuOption();

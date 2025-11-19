@@ -1704,7 +1704,7 @@ export const flock = {
                 // Set up lighting
                 const hemisphericLight = new flock.BABYLON.HemisphericLight(
                         "hemisphericLight",
-                        new flock.BABYLON.Vector3(1, 1, 0),
+                        new flock.BABYLON.Vector3(0, 3, 0),
                         flock.scene,
                 );
                 hemisphericLight.intensity = 1.0;
