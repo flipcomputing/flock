@@ -1720,7 +1720,7 @@ export const flock = {
                 flock.scene.activeCamera = camera;
                 camera.attachControl(flock.canvas, false);
                 // Set up lighting
-                flock.createHemisphericLightForMainScene(1, 1, 0);
+                flock.createHemisphericLightForMainScene(0, 3, 0);
 
                 flock.audioEnginePromise = flock.BABYLON.CreateAudioEngineAsync(
                         {
