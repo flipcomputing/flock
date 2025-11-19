@@ -170,7 +170,7 @@ export function defineAnimateBlocks() {
 		init: function () {
 			this.jsonInit({
 				type0: "glide_to_object",
-				message0: "glide_to_object",
+				message0: translate("glide_to_object"),
 				args0: [
 					{
 						type: "field_variable",
