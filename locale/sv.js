@@ -959,6 +959,42 @@ export default {
       keyboard_navigation_ui:
             "Gå till webbläsarens adressfält (överskrivna genvägar fungerar härifrån)",
 
+      // Accessibility and announcements
+      unmute_audio_aria: "Slå på ljud.",
+      focused_main_content: "Huvudinnehållet har fokus.",
+      toolbox_search_results_aria: "Verktygslådans sökresultat.",
+      context_copy_option: "Kopiera",
+      context_paste_option: "Klistra in",
+      context_cut_option: "Klipp ut",
+      canvas_focus_navigation:
+        "3D-canvas har fokus. Använd piltangenterna eller WASD för att navigera.",
+      design_tool_label: "Designverktyg",
+      focused_element_suffix: "{name} har fokus",
+      search_toolbox_focused: "Verktygslådesökningen har fokus",
+      code_workspace_focused: "Kodarbetsytan har fokus",
+      interactive_element_label: "Interaktivt element",
+      panel_resizer_focused:
+        "Paneljustering har fokus. Använd piltangenterna för att ändra storlek, Home för att återställa.",
+      undo_performed: "Ångra utförd",
+      redo_performed: "Gör om utförd",
+      camera_moving_forward: "Kameran rör sig framåt",
+      camera_moving_backward: "Kameran rör sig bakåt",
+      camera_moving_left: "Kameran rör sig åt vänster",
+      camera_moving_right: "Kameran rör sig åt höger",
+      moving_forward: "Rör mig framåt",
+      moving_backward: "Rör mig bakåt",
+      moving_left: "Rör mig åt vänster",
+      moving_right: "Rör mig åt höger",
+      action_triggered: "Åtgärd utlösts",
+      snippet_file_description: "Flock XR-snippet",
+      snippet_filename_prompt: "Ange ett filnamn för snippeten:",
+      project_file_description: "Flock XR-projekt",
+      file_too_large_alert: "Filen är för stor. Maxstorlek är 5 MB.",
+      invalid_filetype_alert:
+        "Endast .json- eller .flock-projektfiler är tillåtna.",
+      invalid_project_alert: "Den här filen är inte ett giltigt Flock XR-projekt.",
+      failed_to_read_file_alert: "Det gick inte att läsa filen.",
+
       // Context menu option translations
       export_JSON_snippet: "Exportera block som JSON-utdrag",
       import_snippet: "Importera utdrag",

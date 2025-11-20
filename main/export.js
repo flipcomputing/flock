@@ -1,6 +1,6 @@
 import * as Blockly from "blockly";
 import { importSnippet } from "./files.js";
-import { getSnippetOption } from "./translation.js";
+import { getSnippetOption, translate } from "./translation.js";
 import w500 from "@fontsource/atkinson-hyperlegible-next/files/atkinson-hyperlegible-next-latin-500-normal.woff2";
 
 async function exportBlockSnippet(block) {
@@ -20,14 +20,16 @@ async function exportBlockSnippet(block) {
 			// Define the options for the file picker
 			const options = {
 				suggestedName: `flock_snippet${FLOCK_SNIP_EXT}`,
-				types: [
-					{
-						description: "Flock XR Snippet",
-						accept: {
-							[FLOCK_SNIP_MIME]: [FLOCK_SNIP_EXT],
-						},
-					},
-				],
+                                types: [
+                                        {
+                                                description: translate(
+                                                        "snippet_file_description",
+                                                ),
+                                                accept: {
+                                                        [FLOCK_SNIP_MIME]: [FLOCK_SNIP_EXT],
+                                                },
+                                        },
+                                ],
 			};
 
 			// Show the save file picker
@@ -44,10 +46,10 @@ async function exportBlockSnippet(block) {
 		} else {
 			// Fallback for browsers that don't support the File System Access API
 			const filename =
-				prompt(
-					"Enter a filename for the snippet:",
-					"blockly_snippet",
-				) || "blockly_snippet";
+                                prompt(
+                                        translate("snippet_filename_prompt"),
+                                        "blockly_snippet",
+                                ) || "blockly_snippet";
 
 			const blob = new Blob([jsonString], { type: FLOCK_SNIP_MIME });
 			const link = document.createElement("a");
