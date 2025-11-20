@@ -753,6 +753,8 @@ export default {
                                       // HTML translations
                                       loading_ui: "Chargement de Flock XR...",
                                       loading_success_ui: "Flock XR chargé avec succès",
+                                      loading_title_ui: "Chargement de Flock XR",
+                                      import_project_file_ui: "Importer un fichier de projet",
 
                                       demo_ui: "Démo",
                                       new_ui: "Nouveau",
@@ -782,6 +784,7 @@ export default {
                                       sit_down_ui: "🪑 Assieds-toi",
 
                                       main_menu_ui: "Ouvrir le menu pour plus d'options",
+                                      menu_button_sr_label_ui: "Menu",
                                       project_submenu_ui: "Projet",
                                       project_new_ui: "Nouveau",
                                       project_open_ui: "Ouvrir",
@@ -797,6 +800,7 @@ export default {
                                       run_code_button_ui: "Exécuter votre code",
                                       stop_code_button_ui: "Arrêter votre code",
                                       open_button_ui: "Ouvrir un projet depuis un fichier sur votre ordinateur",
+                                      open_file_input_label_ui: "Sélectionnez le fichier projet à ouvrir",
                                       export_code_button_ui: "Enregistrer ce projet dans un fichier sur votre ordinateur.",
                                       example_select_ui: "Choisir un projet exemple à charger",
 
