@@ -86,7 +86,7 @@ export function defineConditionBlocks() {
 			// IF0 row
 			const if0Input = this.appendValueInput('IF0').setCheck('Boolean').appendField('if');
 			this.appendDummyInput('ICONS_IF0')
-			  .setAlign(Blockly.ALIGN_RIGHT)
+                    .setAlign(Blockly.inputs.Align.RIGHT)
 			  .appendField(this.makePlusIcon_(() => this.addElseIfAt(0)));
 			this.appendStatementInput('DO0').appendField(new Blockly.FieldLabel(''));
 
@@ -94,7 +94,7 @@ export function defineConditionBlocks() {
 			for (let i = 1; i <= this.elseifCount_; i++) {
 			  const input = this.appendValueInput('IF' + i).setCheck('Boolean').appendField('else if');
 			  this.appendDummyInput('ICONS_' + i)
-				.setAlign(Blockly.ALIGN_RIGHT)
+                          .setAlign(Blockly.inputs.Align.RIGHT)
 				.appendField(this.makePlusIcon_(() => this.addElseIfAt(i)))
 				.appendField(this.makeMinusIcon_(() => this.removeElseIf_(i)));
 			  this.appendStatementInput('DO' + i).appendField(new Blockly.FieldLabel(''));
@@ -112,7 +112,7 @@ export function defineConditionBlocks() {
 			}
 
 			const bottom = this.appendDummyInput('BOTTOM_ADD');
-			bottom.setAlign(Blockly.ALIGN_RIGHT)
+                   bottom.setAlign(Blockly.inputs.Align.RIGHT)
 			  .appendField(this.makePlusIcon_(() => this.addElseOrElseIf()));
 
 			this.restoreConnections_(savedConnections);

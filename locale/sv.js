@@ -875,6 +875,8 @@ export default {
       // HTML translations
       loading_ui: "Laddar Flock XR...",
       loading_success_ui: "Flock XR laddades framgångsrikt",
+      loading_title_ui: "Laddar Flock XR",
+      import_project_file_ui: "Importera projektfil",
 
       demo_ui: "Demo",
       new_ui: "Ny",
@@ -903,6 +905,7 @@ export default {
       sit_down_ui: "🪑 Sätt dig",
 
       main_menu_ui: "Huvudmeny",
+      menu_button_sr_label_ui: "Meny",
       project_submenu_ui: "Projekt",
       project_new_ui: "Nytt",
       project_open_ui: "Öppna",
@@ -918,6 +921,7 @@ export default {
       run_code_button_ui: "Kör din kod",
       stop_code_button_ui: "Stoppa din kod",
       open_button_ui: "Öppna ett projekt från en fil på din dator",
+      open_file_input_label_ui: "Välj projektfil att öppna",
       export_code_button_ui: "Spara detta projekt till en fil på din dator.",
       example_select_ui: "Välj ett exempelprojekt att ladda",
 

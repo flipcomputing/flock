@@ -762,6 +762,8 @@ export default {
 
   loading_ui: "Flock XR wird geladen...",
   loading_success_ui: "Flock XR erfolgreich geladen",
+  loading_title_ui: "Flock XR wird geladen",
+  import_project_file_ui: "Projektdatei importieren",
 
   demo_ui: "Demo",
   new_ui: "Neu",
@@ -790,6 +792,7 @@ export default {
   microbit_monkey_ui: "🐵 micro:bit-Affe",
 
   main_menu_ui: "Hauptmenü",
+  menu_button_sr_label_ui: "Menü",
   project_submenu_ui: "Projekt",
   project_new_ui: "Neu",
   project_open_ui: "Öffnen",
@@ -804,6 +807,7 @@ export default {
   run_code_button_ui: "Code ausführen",
   stop_code_button_ui: "Code stoppen",
   open_button_ui: "Projekt von Datei öffnen",
+  open_file_input_label_ui: "Projektdatei zum Öffnen auswählen",
   export_code_button_ui: "Projekt speichern",
   example_select_ui: "Beispielprojekt auswählen",
   toggle_design_ui: "Projekt designen",

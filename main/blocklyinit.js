@@ -914,10 +914,7 @@ export function createBlocklyWorkspace() {
                         if (!data) return;
 
                         // Selected block (if any, and not from flyout)
-                        const selected =
-                                Blockly.common?.getSelected?.() ||
-                                Blockly.selected ||
-                                null;
+                        const selected = Blockly.common?.getSelected?.() || null;
                         if (selected && selected.isInFlyout) return; // never paste in the flyout
 
                         e.preventDefault();
