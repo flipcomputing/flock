@@ -183,8 +183,8 @@ Summary Statistics:
 - `scripts/utils/test-analyzer.mjs` - Test coverage analysis
 
 **Documentation:**
-- `docs/TEST_RUNNER_CI_FIX_SUMMARY.md` - CI/GitHub Actions fix (Nov 2025)
-- `docs/TEST_RUNNER_SERVER_STARTUP.md` - Server startup technical details
+- `dev-docs/archive/github-ci-debugging/TEST_RUNNER_CI_FIX_SUMMARY.md` - CI/GitHub Actions fix (Nov 2025)
+- `dev-docs/archive/github-ci-debugging/TEST_RUNNER_SERVER_STARTUP.md` - Server startup technical details
 - `docs/docs.md` - User documentation
 - `docs/models.md` - 3D models documentation
 
