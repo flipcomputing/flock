@@ -103,36 +103,91 @@ let browser;
 let serverReady = false;
 
 /**
+ * Check if server is responsive by making an HTTP request
+ */
+async function checkServerHealth(url, maxAttempts = 30) {
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    try {
+      if (verbose) {
+        console.log(`   Attempt ${attempt}/${maxAttempts}: Checking ${url}`);
+      }
+
+      // Use AbortController for timeout since Node's fetch doesn't have a timeout option
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 2000);
+
+      const response = await fetch(url, { signal: controller.signal });
+      clearTimeout(timeoutId);
+
+      if (response.ok || response.status === 304) {
+        return true;
+      }
+    } catch (error) {
+      // Server not ready yet, continue trying
+      if (verbose && attempt % 5 === 0) {
+        console.log(`   Still waiting... (${error.message})`);
+      }
+    }
+
+    // Wait 1 second between attempts
+    await new Promise(resolve => setTimeout(resolve, 1000));
+  }
+
+  return false;
+}
+
+/**
  * Start the Vite development server
  */
 function startServer() {
   return new Promise((resolve, reject) => {
     console.log('🚀 Starting development server...');
 
+    const isCI = process.env.CI === 'true' || process.env.GITHUB_ACTIONS === 'true';
+    if (isCI) {
+      console.log('   📋 CI environment detected');
+    }
+
+    // Capture all output for diagnostics
+    const outputBuffer = [];
+    const errorBuffer = [];
+
     server = spawn('npm', ['run', 'dev'], {
       cwd: path.resolve(__dirname, '..'),
       stdio: 'pipe',
-      shell: true
+      shell: true,
+      env: { ...process.env }
     });
 
     server.stdout.on('data', (data) => {
       const output = data.toString();
+      outputBuffer.push(output);
+
+      if (verbose) {
+        console.log('   [stdout]', output.trim());
+      }
 
       // Look for Vite server ready message
       if (output.includes('Local:') && !serverReady) {
         serverReady = true;
-        console.log('✅ Development server started\n');
-        resolve();
+        console.log('   ✓ Vite ready message detected');
+        verifyServerWithHealthCheck();
       }
     });
 
     server.stderr.on('data', (data) => {
       // Vite outputs to stderr for some messages
       const output = data.toString();
+      errorBuffer.push(output);
+
+      if (verbose) {
+        console.log('   [stderr]', output.trim());
+      }
+
       if (output.includes('Local:') && !serverReady) {
         serverReady = true;
-        console.log('✅ Development server started\n');
-        resolve();
+        console.log('   ✓ Vite ready message detected');
+        verifyServerWithHealthCheck();
       }
     });
 
@@ -140,10 +195,84 @@ function startServer() {
       reject(new Error(`Failed to start server: ${error.message}`));
     });
 
-    // Timeout after 30 seconds
+    server.on('exit', (code, signal) => {
+      if (!serverReady) {
+        console.error('❌ Server exited prematurely');
+        console.error(`   Exit code: ${code}, Signal: ${signal}`);
+        console.error('\n   Last stdout output:');
+        outputBuffer.slice(-5).forEach(line => console.error('   ', line.trim()));
+        console.error('\n   Last stderr output:');
+        errorBuffer.slice(-5).forEach(line => console.error('   ', line.trim()));
+        reject(new Error(`Server exited with code ${code}`));
+      }
+    });
+
+    // Health check function that verifies server is actually responding
+    async function verifyServerWithHealthCheck() {
+      console.log('   🔍 Verifying server is responsive...');
+
+      const isHealthy = await checkServerHealth('http://localhost:5173', 10);
+
+      if (isHealthy) {
+        console.log('✅ Development server started and responding\n');
+        resolve();
+      } else {
+        reject(new Error('Server appeared to start but is not responding to HTTP requests'));
+      }
+    }
+
+    // In CI environments or if verbose, also try health check after a delay
+    // even if we haven't seen the "Local:" message
+    const fallbackHealthCheckDelay = isCI ? 5000 : 10000;
+
+    setTimeout(async () => {
+      if (!serverReady) {
+        console.log('   ⚠️  No "Local:" message detected yet, trying health check...');
+        console.log('   📊 Output received so far:');
+        console.log('      stdout lines:', outputBuffer.length);
+        console.log('      stderr lines:', errorBuffer.length);
+
+        if (outputBuffer.length > 0) {
+          console.log('   Last stdout:', outputBuffer[outputBuffer.length - 1].trim());
+        }
+        if (errorBuffer.length > 0) {
+          console.log('   Last stderr:', errorBuffer[errorBuffer.length - 1].trim());
+        }
+
+        const isHealthy = await checkServerHealth('http://localhost:5173', 20);
+
+        if (isHealthy) {
+          serverReady = true;
+          console.log('✅ Development server started and responding (detected via health check)\n');
+          resolve();
+        }
+      }
+    }, fallbackHealthCheckDelay);
+
+    // Final timeout after 30 seconds
     setTimeout(() => {
       if (!serverReady) {
-        reject(new Error('Server failed to start within 30 seconds'));
+        console.error('❌ Server failed to start within 30 seconds');
+        console.error('\n📊 Diagnostic Information:');
+        console.error(`   Environment: ${isCI ? 'CI' : 'Local'}`);
+        console.error(`   stdout lines captured: ${outputBuffer.length}`);
+        console.error(`   stderr lines captured: ${errorBuffer.length}`);
+
+        if (outputBuffer.length > 0) {
+          console.error('\n   Recent stdout:');
+          outputBuffer.slice(-10).forEach(line => console.error('   ', line.trim()));
+        } else {
+          console.error('\n   ⚠️  No stdout captured (buffering issue?)');
+        }
+
+        if (errorBuffer.length > 0) {
+          console.error('\n   Recent stderr:');
+          errorBuffer.slice(-10).forEach(line => console.error('   ', line.trim()));
+        } else {
+          console.error('\n   ⚠️  No stderr captured');
+        }
+
+        reject(new Error('Server failed to start within 30 seconds - see diagnostic output above'));
       }
     }, 30000);
   });

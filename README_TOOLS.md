@@ -33,11 +33,12 @@ npm run test:api glide -- --log-all --verbose  # With detailed logging
 
 ### 2. CLI Test Runner
 - Runs tests in headless browser
-- Automatic server management
+- Automatic server management with CI support
 - Full test result reporting
 - **100% functional!** 🎉
 - **All 226 tests running successfully!**
 - Supports logging (--log-api, --log-tests, --log-all)
+- **CI-ready:** Works reliably in GitHub Actions (fixed Nov 2025)
 
 ### 3. All Utilities
 - Method extraction from flock.js
@@ -182,11 +183,10 @@ Summary Statistics:
 - `scripts/utils/test-analyzer.mjs` - Test coverage analysis
 
 **Documentation:**
-- `docs/API_QUALITY_TOOLS.md` ⭐ - Primary guide
-- `docs/GETTING_STARTED.md` - Quick start
-- `docs/API_RECONCILIATION_PLAN.md` - Strategy
-- `docs/IMPLEMENTATION_STATUS.md` - Current status
-- `docs/archive/` - Historical investigation docs
+- `docs/TEST_RUNNER_CI_FIX_SUMMARY.md` - CI/GitHub Actions fix (Nov 2025)
+- `docs/TEST_RUNNER_SERVER_STARTUP.md` - Server startup technical details
+- `docs/docs.md` - User documentation
+- `docs/models.md` - 3D models documentation
 
 **Reports:**
 - `reports/api-coverage.md` - Generated coverage report
@@ -217,6 +217,8 @@ Summary Statistics:
 
 ---
 
-**Everything is working! Start with:** `npm run docs:coverage`
+**Everything is working!**
 
-**Then read:** `docs/API_QUALITY_TOOLS.md` ⭐
+**Run tests:** `npm run test:api babylon`
+
+**For CI/GitHub Actions:** See `docs/TEST_RUNNER_CI_FIX_SUMMARY.md` ⭐

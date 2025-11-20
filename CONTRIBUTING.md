@@ -121,6 +121,33 @@ To add a tag, change the `describe` or `it` text in unit tests to add a tag.
 * Modify `testSuiteDefinitions` in `tests/tests.html` to add tags or names to focus. Each tag needs an entry.
 * Note that some test suites are selected/filtered on a name (the name from the top `describe` if there's only one) and others on tag (added to all top-level describes if several).
 
+#### CLI Test Runner (Automated/Headless)
+
+For CI/CD or automated testing, you can run tests via command line:
+
+```bash
+# Run specific test suite
+npm run test:api babylon
+
+# Run fast tests (excludes @slow)
+npm run test:api @notslow
+
+# Run slow tests only
+npm run test:api @onlyslow
+
+# Enable detailed logging
+npm run test:api babylon -- --verbose
+npm run test:api glide -- --log-all
+```
+
+**Features:**
+- Automatic server startup and shutdown
+- Headless browser execution (Playwright)
+- Works in CI environments (GitHub Actions, etc.)
+- Logging support for debugging (`--log-api`, `--log-tests`, `--log-all`)
+- Verbose mode for diagnostics (`--verbose`)
+
+**CI/GitHub Actions:** The test runner is optimized for CI environments with automatic environment detection and robust server startup handling. See `docs/TEST_RUNNER_CI_FIX_SUMMARY.md` for details.
 
 ### End-to-End Tests (Playwright)
 
