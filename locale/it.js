@@ -963,6 +963,41 @@ export default {
   keyboard_navigation_ui:
     "Vai alla barra di navigazione del browser (le scorciatoie sovrascritte funzionano da qui)",
 
+  // Accessibility and announcements
+  unmute_audio_aria: "Riattiva l'audio.",
+  focused_main_content: "Contenuto principale focalizzato.",
+  toolbox_search_results_aria: "Risultati della ricerca nella toolbox.",
+  context_copy_option: "Copia",
+  context_paste_option: "Incolla",
+  context_cut_option: "Taglia",
+  canvas_focus_navigation:
+    "Canvas 3D focalizzato. Usa le frecce o WASD per navigare.",
+  design_tool_label: "Strumento di progettazione",
+  focused_element_suffix: "{name} focalizzato",
+  search_toolbox_focused: "Ricerca della toolbox focalizzata",
+  code_workspace_focused: "Area di lavoro del codice focalizzata",
+  interactive_element_label: "Elemento interattivo",
+  panel_resizer_focused:
+    "Ridimensionatore del pannello focalizzato. Usa le frecce per ridimensionare, Home per reimpostare.",
+  undo_performed: "Annullamento eseguito",
+  redo_performed: "Ripristino eseguito",
+  camera_moving_forward: "Telecamera in movimento in avanti",
+  camera_moving_backward: "Telecamera in movimento indietro",
+  camera_moving_left: "Telecamera in movimento a sinistra",
+  camera_moving_right: "Telecamera in movimento a destra",
+  moving_forward: "Mi muovo in avanti",
+  moving_backward: "Mi muovo indietro",
+  moving_left: "Mi muovo a sinistra",
+  moving_right: "Mi muovo a destra",
+  action_triggered: "Azione avviata",
+  snippet_file_description: "Snippet Flock XR",
+  snippet_filename_prompt: "Inserisci un nome file per lo snippet:",
+  project_file_description: "Progetto Flock XR",
+  file_too_large_alert: "File troppo grande. La dimensione massima è 5 MB.",
+  invalid_filetype_alert: "Sono consentiti solo file di progetto .json o .flock.",
+  invalid_project_alert: "Questo file non è un progetto Flock XR valido.",
+  failed_to_read_file_alert: "Impossibile leggere il file.",
+
   // Context menu option translations
   export_JSON_snippet: "Esporta blocco come frammento JSON",
   import_snippet: "Importa frammento",

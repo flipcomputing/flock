@@ -1,5 +1,6 @@
 import * as Blockly from "blockly";
 import { workspace } from "./blocklyinit.js";
+import { translate } from "./translation.js";
 
 // Function to save the current workspace state
 export function saveWorkspace(workspace) {
@@ -433,7 +434,9 @@ export async function exportCode(workspace) {
 				suggestedName: `${projectName}${FLOCK_EXT}`,
 				types: [
 					{
-						description: "Flock XR Project",
+                                            description: translate(
+                                                    "project_file_description",
+                                            ),
 						accept: {
 							[FLOCK_MIME]: [FLOCK_EXT],
 						},
@@ -574,14 +577,14 @@ export function setupFileInput(workspace, executeCallback) {
 
 		const maxSize = 5 * 1024 * 1024;
 		if (file.size > maxSize) {
-			alert("File too large. Maximum size is 5MB.");
+                    alert(translate("file_too_large_alert"));
 			event.target.value = ""; // Reset the input
 			return;
 		}
 
 		const lowerName = file.name.toLowerCase();
 		if (!lowerName.endsWith(".json") && !lowerName.endsWith(".flock")) {
-			alert("Only .json or .flock project files are allowed.");
+                    alert(translate("invalid_filetype_alert"));
 			event.target.value = ""; // Reset the input
 			return;
 		}
@@ -624,7 +627,7 @@ export function setupFileInput(workspace, executeCallback) {
 				loadWorkspaceAndExecute(json, workspace, executeCallback);
 			} catch (e) {
 				console.error("Error loading Blockly project:", e);
-				alert("This file isn't a valid Flock XR project.");
+                            alert(translate("invalid_project_alert"));
 				window.loadingCode = false;
 			} finally {
 				// Reset the input so the same file can be selected again
@@ -632,7 +635,7 @@ export function setupFileInput(workspace, executeCallback) {
 			}
 		};
 		reader.onerror = function () {
-			alert("Failed to read file.");
+                    alert(translate("failed_to_read_file_alert"));
 			window.loadingCode = false;
 			event.target.value = ""; // Reset the input
 		};

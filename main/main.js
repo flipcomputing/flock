@@ -44,6 +44,7 @@ import {
         setLanguage,
         initializeLanguageMenu,
         initializeSavedLanguage,
+        translate,
 } from "./translation.js";
 
 if ("serviceWorker" in navigator) {
@@ -144,7 +145,10 @@ function initializeApp() {
                         "babylonUnmuteButton",
                 );
                 if (unmuteButton && !unmuteButton.getAttribute("aria-label")) {
-                        unmuteButton.setAttribute("aria-label", "Unmute audio");
+                        unmuteButton.setAttribute(
+                                "aria-label",
+                                translate("unmute_audio_aria"),
+                        );
                         observer.disconnect(); // Stop observing once we've found it
                 }
         });

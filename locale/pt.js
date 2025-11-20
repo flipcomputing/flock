@@ -955,6 +955,41 @@ export default {
   keyboard_navigation_ui:
     "Ir para a barra de navegação do browser (os atalhos sobrepostos funcionam a partir daqui)",
 
+  // Accessibility and announcements
+  unmute_audio_aria: "Ativar som.",
+  focused_main_content: "Conteúdo principal focalizado.",
+  toolbox_search_results_aria: "Resultados de pesquisa da caixa de ferramentas.",
+  context_copy_option: "Copiar",
+  context_paste_option: "Colar",
+  context_cut_option: "Cortar",
+  canvas_focus_navigation:
+    "Tela 3D focada. Use as setas ou WASD para navegar.",
+  design_tool_label: "Ferramenta de design",
+  focused_element_suffix: "{name} focado",
+  search_toolbox_focused: "Pesquisa da caixa de ferramentas focada",
+  code_workspace_focused: "Área de trabalho de código focada",
+  interactive_element_label: "Elemento interativo",
+  panel_resizer_focused:
+    "Redimensionador de painel focado. Use as setas para redimensionar, Home para reiniciar.",
+  undo_performed: "Desfazer concluído",
+  redo_performed: "Refazer concluído",
+  camera_moving_forward: "Câmera movendo-se para frente",
+  camera_moving_backward: "Câmera movendo-se para trás",
+  camera_moving_left: "Câmera movendo-se para a esquerda",
+  camera_moving_right: "Câmera movendo-se para a direita",
+  moving_forward: "Movendo-se para frente",
+  moving_backward: "Movendo-se para trás",
+  moving_left: "Movendo-se para a esquerda",
+  moving_right: "Movendo-se para a direita",
+  action_triggered: "Ação acionada",
+  snippet_file_description: "Snippet Flock XR",
+  snippet_filename_prompt: "Insira um nome de arquivo para o snippet:",
+  project_file_description: "Projeto Flock XR",
+  file_too_large_alert: "Arquivo muito grande. O tamanho máximo é 5 MB.",
+  invalid_filetype_alert: "Somente arquivos de projeto .json ou .flock são permitidos.",
+  invalid_project_alert: "Este arquivo não é um projeto Flock XR válido.",
+  failed_to_read_file_alert: "Falha ao ler o arquivo.",
+
   // Context menu option translations
   export_JSON_snippet: "Exportar bloco como excerto JSON",
   import_snippet: "Importar excerto",
