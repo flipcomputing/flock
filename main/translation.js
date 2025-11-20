@@ -115,6 +115,8 @@ async function applySavedLanguageTranslations() {
     Blockly.Msg[key] = translations[currentLanguage][key];
   });
 
+  applyContextMenuShortcutTranslations();
+
   // Update colour picker translations if it exists (for initial load)
   if (window.flockColorPicker?.refreshTranslations) {
     window.flockColorPicker.refreshTranslations();
@@ -136,6 +138,14 @@ function cacheOriginalMessages() {
     isOriginalMessagesCached = true;
     console.log("Original English messages cached");
   }
+}
+
+function applyContextMenuShortcutTranslations() {
+  // Ensure copy/paste/cut shortcuts use localized labels even when Blockly's
+  // built-in locale packs leave them untranslated.
+  Blockly.Msg["COPY_SHORTCUT"] = translate("context_copy_option");
+  Blockly.Msg["PASTE_SHORTCUT"] = translate("context_paste_option");
+  Blockly.Msg["CUT_SHORTCUT"] = translate("context_cut_option");
 }
 
 export async function setLanguage(language) {
@@ -226,6 +236,8 @@ export async function setLanguage(language) {
   Object.keys(translations[currentLanguage]).forEach((key) => {
     Blockly.Msg[key] = translations[currentLanguage][key];
   });
+
+  applyContextMenuShortcutTranslations();
 
   // Update colour picker translations if it exists
   if (window.flockColorPicker?.refreshTranslations) {
