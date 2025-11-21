@@ -218,10 +218,22 @@ export function createMeshOnCanvas(block) {
         .connection.targetBlock()
         .getFieldValue("NUM");
 
-      color = block
-        .getInput("COLOR")
-        .connection.targetBlock()
-        .getFieldValue("COLOR");
+      {
+        const colorInput = block.getInput("COLOR");
+        const target = colorInput?.connection?.targetBlock?.();
+
+        if (target) {
+          const read = readColourValue(target);
+          color = read.value;
+        } else {
+          const shadowDom = colorInput?.connection?.getShadowDom?.();
+          const shadowField =
+            shadowDom?.querySelector?.('field[name="COLOUR"]') ||
+            shadowDom?.querySelector?.('field[name="COLOR"]');
+
+          color = shadowField?.textContent || shadowField?.innerText || null;
+        }
+      }
 
       meshId = `${modelName}__${block.id}`;
       meshMap[block.id] = block;

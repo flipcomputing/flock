@@ -921,7 +921,18 @@ export function updateMeshFromBlock(mesh, block, changeEvent) {
       mesh?.material?.diffuseColor?.toHexString?.() ??
       mesh?.material?.albedoColor?.toHexString?.();
 
-    if (baseColor != null || hasMaterial || mesh?.material) {
+    const isColorList = Array.isArray(baseColor) && baseColor.length > 1;
+    let appliedColourList = false;
+
+    if (isColorList && !hasMaterial) {
+      const ultimateParent = (m) => (m.parent ? ultimateParent(m.parent) : m);
+      mesh = ultimateParent(mesh);
+
+      flock.changeColorMesh(mesh, baseColor);
+      appliedColourList = true;
+    }
+
+    if (!appliedColourList && (baseColor != null || hasMaterial || mesh?.material)) {
       // Special handling for load_object default color
       if (color === "#9932cc" && block.type === "load_object") {
         const modelName = block.getFieldValue("MODELS");
