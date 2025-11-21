@@ -2701,7 +2701,8 @@ export const flock = {
                 const mesh =
                         modelName === "__active_camera__"
                                 ? flock.scene.activeCamera
-                                : flock.scene.getMeshByName(modelName);
+                                : modelName === "__hemispheric_light__"
+                                ? flock.mainLight : flock.scene.getMeshByName(modelName);
 
                 if (!mesh) return null;
 
