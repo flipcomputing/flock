@@ -924,12 +924,28 @@ export function updateMeshFromBlock(mesh, block, changeEvent) {
     const isColorList = Array.isArray(baseColor) && baseColor.length > 1;
     let appliedColourList = false;
 
+    const blockShapeMap = {
+      create_box: "Box",
+      create_sphere: "Sphere",
+      create_cylinder: "Cylinder",
+      create_capsule: "Capsule",
+      create_plane: "Plane",
+    };
+
+    const rootShapeType =
+      mesh?.metadata?.shapeType || blockShapeMap[block.type] || block.type;
+
     if (isColorList && !hasMaterial) {
       const ultimateParent = (m) => (m.parent ? ultimateParent(m.parent) : m);
       mesh = ultimateParent(mesh);
 
-      flock.changeColorMesh(mesh, baseColor);
-      appliedColourList = true;
+      const useMeshWideColorCycle =
+        block.type === "load_object" || block.type === "load_multi_object";
+
+      if (useMeshWideColorCycle) {
+        flock.changeColorMesh(mesh, baseColor);
+        appliedColourList = true;
+      }
     }
 
     if (!appliedColourList && (baseColor != null || hasMaterial || mesh?.material)) {
@@ -942,16 +958,6 @@ export function updateMeshFromBlock(mesh, block, changeEvent) {
       const ultimateParent = (m) => (m.parent ? ultimateParent(m.parent) : m);
       mesh = ultimateParent(mesh);
 
-      const blockShapeMap = {
-        create_box: "Box",
-        create_sphere: "Sphere",
-        create_cylinder: "Cylinder",
-        create_capsule: "Capsule",
-        create_plane: "Plane",
-      };
-
-      const rootShapeType =
-        mesh?.metadata?.shapeType || blockShapeMap[block.type] || block.type;
       const colorOrMaterial = hasMaterial
         ? { materialName: materialInfo.textureSet, color: baseColor, alpha }
         : baseColor ?? mesh.material;
