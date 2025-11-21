@@ -168,11 +168,6 @@ export function definePhysicsBlocks() {
                   });
                   this.setHelpUrl(getHelpUrlFor(this.type));
                   this.setStyle('transform_blocks');
-
-                  // Set up the change handler.
-                  this.setOnChange((changeEvent) =>
-                        handleBlockChange(this, changeEvent),
-                  );
             },
       };
 }
