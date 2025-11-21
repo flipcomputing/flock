@@ -260,6 +260,8 @@ export const flockAnimate = {
               const y = mesh2.position.y;
               const z = mesh2.position.z;
               glideTo(meshName1, {x, y, z, duration, reverse, loop, easing});
+            } else {
+              resolve();
             }
           });
         } else {
