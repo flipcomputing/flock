@@ -15,6 +15,9 @@ export const flockEffects = {
       );
     }
   },
+  getLight() {
+    return "__hemispheric_light__";
+  },
   createParticleEffect(
     name,
     {
