@@ -1132,6 +1132,8 @@ export const flockMaterial = {
     if (flock.materialsDebug) console.log(`Applying material to ${mesh.name}`);
     const scene = mesh.getScene();
 
+    const resolvedAlpha = alpha == null ? 1.0 : alpha;
+
     // --- Helpers --------------------------------------------------------------
     const isBabylonMaterial = (v) =>
       v && typeof v.getClassName === "function";
@@ -1144,7 +1146,7 @@ export const flockMaterial = {
       if (isBabylonMaterial(v)) return v;
       if (isMaterialDescriptor(v)) {
         const desc = { ...v };
-        if (desc.alpha == null) desc.alpha = alpha;
+        if (desc.alpha == null) desc.alpha = resolvedAlpha;
         return flock.createMaterial(desc);
       }
       return null;
@@ -1153,13 +1155,13 @@ export const flockMaterial = {
     const makeColor4 = (c) => {
       if (typeof c === "string") {
         const col = flock.BABYLON.Color3.FromHexString(c);
-        return new flock.BABYLON.Color4(col.r, col.g, col.b, alpha);
+        return new flock.BABYLON.Color4(col.r, col.g, col.b, resolvedAlpha);
       } else if (c instanceof flock.BABYLON.Color3) {
-        return new flock.BABYLON.Color4(c.r, c.g, c.b, alpha);
+        return new flock.BABYLON.Color4(c.r, c.g, c.b, resolvedAlpha);
       } else if (c instanceof flock.BABYLON.Color4) {
         return new flock.BABYLON.Color4(c.r, c.g, c.b, c.a);
       } else {
-        return new flock.BABYLON.Color4(1, 1, 1, alpha);
+        return new flock.BABYLON.Color4(1, 1, 1, resolvedAlpha);
       }
     };
 
@@ -1191,7 +1193,7 @@ export const flockMaterial = {
       const matCandidate = materialFromArray || toMaterial(color);
       if (matCandidate) {
         clearVertexColors();
-        matCandidate.alpha = alpha;
+        matCandidate.alpha = resolvedAlpha;
         applyMaterialWithTilingIfAny(matCandidate);
         return;
       }
@@ -1213,7 +1215,7 @@ export const flockMaterial = {
 
       if (matCandidate) {
         clearVertexColors();
-        matCandidate.alpha = alpha;
+        matCandidate.alpha = resolvedAlpha;
         applyMaterialWithTilingIfAny(matCandidate);
         return;
       }
@@ -1230,7 +1232,7 @@ export const flockMaterial = {
       material.diffuseColor = flock.BABYLON.Color3.FromHexString(
         flock.getColorFromString(Array.isArray(color) ? color[0] : color)
       );
-      material.alpha = alpha;
+      material.alpha = resolvedAlpha;
       mesh.material = material;
       return;
     }
@@ -1243,7 +1245,7 @@ export const flockMaterial = {
 
       if (!positions || !indices || indices.length !== 36) {
         console.warn("Mesh is not a standard box; falling back to uniform color.");
-        return flock.applyMaterialToMesh(mesh, shapeType, color[0], alpha);
+        return flock.applyMaterialToMesh(mesh, shapeType, color[0], resolvedAlpha);
       }
 
       const faceToSide = ["front", "back", "right", "left", "top", "bottom"];
@@ -1323,11 +1325,12 @@ export const flockMaterial = {
       mesh.setVerticesData(flock.BABYLON.VertexBuffer.ColorKind, colors);
       mesh.setIndices(newIndices);
 
-      mesh.hasVertexAlpha = true;
+      const useVertexAlpha = resolvedAlpha < 1;
+      mesh.hasVertexAlpha = useVertexAlpha;
 
       const mat = new flock.BABYLON.StandardMaterial("faceColorMat", scene);
       mat.diffuseColor = flock.BABYLON.Color3.White();
-      mat.alpha = alpha;
+      mat.alpha = resolvedAlpha;
       mat.backFaceCulling = false;
       mat.vertexColors = true;
       mesh.material = mat;
@@ -1342,7 +1345,12 @@ export const flockMaterial = {
 
       if (!positions || !indices) {
         console.warn("Missing geometry for cylinder; falling back to uniform color.");
-        return flock.applyMaterialToMesh(mesh, shapeType, color[0], alpha);
+        return flock.applyMaterialToMesh(
+          mesh,
+          shapeType,
+          color[0],
+          resolvedAlpha,
+        );
       }
 
       const colors = [];
@@ -1419,12 +1427,14 @@ export const flockMaterial = {
       mesh.setVerticesData(flock.BABYLON.VertexBuffer.ColorKind, colors);
       mesh.setIndices(newIndices);
 
-      mesh.hasVertexAlpha = true;
+      const useVertexAlpha = resolvedAlpha < 1;
+      mesh.hasVertexAlpha = useVertexAlpha;
 
       const mat = new flock.BABYLON.StandardMaterial("cylColorMat", scene);
       mat.diffuseColor = flock.BABYLON.Color3.White();
       mat.backFaceCulling = false;
       mat.vertexColors = true;
+      mat.alpha = resolvedAlpha;
       mesh.material = mat;
       return;
     }
@@ -1437,7 +1447,7 @@ export const flockMaterial = {
     material.diffuseColor = flock.BABYLON.Color3.FromHexString(
       flock.getColorFromString(color[0])
     );
-    material.alpha = alpha;
+    material.alpha = resolvedAlpha;
     mesh.material = material;
   },
 
