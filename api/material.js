@@ -1327,6 +1327,7 @@ export const flockMaterial = {
 
       const mat = new flock.BABYLON.StandardMaterial("faceColorMat", scene);
       mat.diffuseColor = flock.BABYLON.Color3.White();
+      mat.alpha = alpha;
       mat.backFaceCulling = false;
       mat.vertexColors = true;
       mesh.material = mat;

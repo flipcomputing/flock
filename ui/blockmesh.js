@@ -914,7 +914,12 @@ export function updateMeshFromBlock(mesh, block, changeEvent) {
       materialInfo &&
       materialInfo.textureSet &&
       materialInfo.textureSet !== "NONE";
-    const alpha = materialInfo?.alpha ?? mesh?.material?.alpha ?? 1;
+    const alpha =
+      materialInfo?.alpha != null
+        ? materialInfo.alpha
+        : hasMaterial
+          ? mesh?.material?.alpha ?? 1
+          : 1;
     const baseColor =
       color ??
       materialInfo?.baseColor ??
