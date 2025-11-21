@@ -183,6 +183,25 @@ function readNumberInput(parent, inputName, fallback = 1) {
   return Number.isFinite(n) ? n : fallback;
 }
 
+// Reads a colour from an input's target block, falling back to the shadow's value when present.
+function readColourFromInputOrShadow(parent, inputName) {
+  const target = parent?.getInputTargetBlock?.(inputName);
+  if (target) return readColourValue(target);
+
+  const shadowDom = parent
+    ?.getInput?.(inputName)
+    ?.connection?.getShadowDom?.();
+
+  if (!shadowDom?.querySelector) return { value: null, kind: "none" };
+
+  const shadowField =
+    shadowDom.querySelector('field[name="COLOUR"]') ||
+    shadowDom.querySelector('field[name="COLOR"]');
+
+  const shadowValue = shadowField?.textContent || shadowField?.innerText || null;
+  return shadowValue ? { value: shadowValue, kind: "shadow" } : { value: null, kind: "none" };
+}
+
 // Extract texture set, base colour (single or list), and alpha.
 export function extractMaterialInfo(materialBlock) {
   if (!materialBlock) return { textureSet: "NONE", baseColor: null, alpha: 1 };
@@ -192,8 +211,7 @@ export function extractMaterialInfo(materialBlock) {
     getBlockValue(materialBlock, "TEXTURE") ??
     "NONE";
 
-  const baseColorInput = materialBlock.getInputTargetBlock("BASE_COLOR");
-  const read = readColourValue(baseColorInput);
+  const read = readColourFromInputOrShadow(materialBlock, "BASE_COLOR");
   const baseColor = read.value ?? null;
 
   const alpha = readNumberInput(materialBlock, "ALPHA", 1);
@@ -443,8 +461,7 @@ export function updateMeshFromBlock(mesh, block, changeEvent) {
 
     if (colorInput && colorInput.type === "material") {
       const { textureSet, baseColor, alpha } = extractMaterialInfo(colorInput);
-      const baseColorBlock = colorInput.getInputTargetBlock("BASE_COLOR");
-      let read = readColourValue(baseColorBlock);
+      let read = readColourFromInputOrShadow(colorInput, "BASE_COLOR");
 
       if (flock.meshDebug) {
         console.log("Sky material info:", { textureSet, baseColor, alpha, colorValue: read.value });
@@ -476,13 +493,13 @@ export function updateMeshFromBlock(mesh, block, changeEvent) {
       return;
     }
 
-    const read = readColourValue(colorInput);
+    const read = readColourFromInputOrShadow(block, "COLOR");
     flock.setSky(read.value);
     return;
   }
 
   if (block.type === "set_background_color") {
-    const read = readColourValue(block.getInputTargetBlock("COLOR"));
+    const read = readColourFromInputOrShadow(block, "COLOR");
     flock.setSky(read.value);
     return;
   }
@@ -492,8 +509,7 @@ export function updateMeshFromBlock(mesh, block, changeEvent) {
 
     if (colorInput && colorInput.type === "material") {
       const { textureSet, baseColor, alpha } = extractMaterialInfo(colorInput);
-      const baseColorBlock = colorInput.getInputTargetBlock("BASE_COLOR");
-      let read = readColourValue(baseColorBlock);
+      let read = readColourFromInputOrShadow(colorInput, "BASE_COLOR");
 
       if (flock.meshDebug) {
         console.log("Ground material info:", { textureSet, baseColor, alpha, colorValue: read.value });
@@ -525,7 +541,7 @@ export function updateMeshFromBlock(mesh, block, changeEvent) {
       return;
     }
 
-    const read = readColourValue(colorInput);
+    const read = readColourFromInputOrShadow(block, "COLOR");
     flock.createGround(read.value, "ground");
     return;
   }
@@ -536,8 +552,7 @@ export function updateMeshFromBlock(mesh, block, changeEvent) {
 
     if (materialBlock) {
       const { textureSet, alpha } = extractMaterialInfo(materialBlock);
-      const baseColorInput = materialBlock.getInputTargetBlock("BASE_COLOR");
-      let read = readColourValue(baseColorInput);
+      let read = readColourFromInputOrShadow(materialBlock, "BASE_COLOR");
 
       if (read.value == null && !block.__mapRetry) {
         block.__mapRetry = true;
@@ -578,8 +593,7 @@ export function updateMeshFromBlock(mesh, block, changeEvent) {
     // Check if it's a material block
     if (colorInput && colorInput.type === "material") {
       materialInfo = extractMaterialInfo(colorInput);
-      const baseColorBlock = colorInput.getInputTargetBlock("BASE_COLOR");
-      const read = readColourValue(baseColorBlock);
+      const read = readColourFromInputOrShadow(colorInput, "BASE_COLOR");
 
       if (flock.meshDebug) {
         console.log("Material block detected:");
@@ -592,7 +606,7 @@ export function updateMeshFromBlock(mesh, block, changeEvent) {
       color = read.value ?? materialInfo.baseColor;
     } else {
       // Simple color block
-      const read = readColourValue(colorInput);
+      const read = readColourFromInputOrShadow(block, "COLOR");
       color = read.value;
 
       if (flock.meshDebug) {
@@ -611,8 +625,7 @@ export function updateMeshFromBlock(mesh, block, changeEvent) {
     // Check if it's a material block
     if (colorInput && colorInput.type === "material") {
       materialInfo = extractMaterialInfo(colorInput);
-      const baseColorBlock = colorInput.getInputTargetBlock("BASE_COLOR");
-      const read = readColourValue(baseColorBlock);
+      const read = readColourFromInputOrShadow(colorInput, "BASE_COLOR");
 
       if (flock.meshDebug) {
         console.log("Material block detected for load_object:");
@@ -625,7 +638,7 @@ export function updateMeshFromBlock(mesh, block, changeEvent) {
       color = read.value ?? materialInfo.baseColor;
     } else {
       // Simple color block
-      const read = readColourValue(colorInput);
+      const read = readColourFromInputOrShadow(block, "COLOR");
       color = read.value;
 
       if (flock.meshDebug) {
