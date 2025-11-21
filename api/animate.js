@@ -241,6 +241,33 @@ export const flockAnimate = {
       });
     });
   },
+  async glideToObject(
+    meshName1,
+    meshName2,
+    {
+      duration = 1,
+      reverse = false,
+      loop = false,
+      easing = "Linear",
+    } = {},
+  ) {
+    return new Promise(async (resolve) => {
+      await flock.whenModelReady(meshName1, async function (mesh1) {
+        if (mesh1) {
+          await flock.whenModelReady(meshName2, async function (mesh2) {
+            if (mesh2) {
+              const x = mesh2.position.x;
+              const y = mesh2.position.y;
+              const z = mesh2.position.z;
+              glideTo(meshName1, {x, y, z, duration, reverse, loop, easing});
+            }
+          });
+        } else {
+          resolve(); // Resolve immediately if mesh1 is not available
+        }
+      });
+    });
+  },
   resolvePropertyToAnimate(property, mesh) {
     if (!mesh) {
       console.warn("Mesh not found.");

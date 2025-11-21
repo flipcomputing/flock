@@ -250,7 +250,7 @@ export function defineGenerators() {
                 const easing = block.getFieldValue("EASING");
                 const asyncWrapper = mode === "AWAIT" ? "await " : "";
 
-                return `${asyncWrapper}glideTo(${meshName1}, { x: ${x}, y: ${y}, z: ${z}, duration: ${duration}, reverse: ${reverse}, loop: ${loop}, easing: "${easing}" });\n`;
+                return `${asyncWrapper}glideToObject(${meshName1}, ${meshName2}, { duration: ${duration}, reverse: ${reverse}, loop: ${loop}, easing: "${easing}" });\n`;
         };
 
         javascriptGenerator.forBlock["rotate_anim"] = function (block) {
