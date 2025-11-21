@@ -44,6 +44,7 @@ import {
         setLanguage,
         initializeLanguageMenu,
         initializeSavedLanguage,
+        translate,
 } from "./translation.js";
 
 if ("serviceWorker" in navigator) {
@@ -109,7 +110,7 @@ async function showUpdateNotification() {
 console.log("Blockly version:", Blockly.VERSION);
 
 function initializeApp() {
-        console.log("Initializing app...");
+        console.log("Initializing Flock XR ...");
 
         (() => {
                 const ws = () => Blockly.getMainWorkspace?.();
@@ -144,7 +145,10 @@ function initializeApp() {
                         "babylonUnmuteButton",
                 );
                 if (unmuteButton && !unmuteButton.getAttribute("aria-label")) {
-                        unmuteButton.setAttribute("aria-label", "Unmute audio");
+                        unmuteButton.setAttribute(
+                                "aria-label",
+                                translate("unmute_audio_aria"),
+                        );
                         observer.disconnect(); // Stop observing once we've found it
                 }
         });
@@ -359,8 +363,6 @@ function initializeApp() {
 
         initializeUI();
 
-        console.log("Enabling gizmos");
-
         enableGizmos();
         // Enable gizmo buttons
 
@@ -487,22 +489,4 @@ window.onload = async function () {
         setupInput();
 
         loadWorkspace(workspace, executeCode);
-
-        // Add event listener for keyboard shortcuts
-        document.addEventListener("keydown", function (event) {
-                // Check if Ctrl+Shift+2 is pressed
-                if (
-                        event.ctrlKey &&
-                        event.shiftKey &&
-                        event.code === "Digit2"
-                ) {
-                        console.log("Exporting GLB of scene");
-                        event.preventDefault(); // Prevent default browser behavior
-
-                        // Call the exportMesh function with specified parameters
-                        flock.exportMesh("scene", "GLB");
-
-                        console.log("Export triggered: scene as GLB format");
-                }
-        });
 };

@@ -200,13 +200,13 @@
         <img src="images/flock-bird-mascot.svg" alt="Flock XR Bird mascot" class="loading-bird" width="120" height="120" />
         <img src="images/inline-flock-xr.svg" alt="Flock XR Logo" class="loading-logo"/>
         <div class="loading-spinner" role="img" aria-label="Loading animation"></div>
-        <h1 id="loading-title" class="sr-only">Loading Flock XR</h1>
+        <h1 id="loading-title" class="sr-only" data-i18n="loading_title">Loading Flock XR</h1>
         <p id="loading-description" data-i18n="loading" class="loading-text" aria-live="polite">Loading Flock XR...</p>
       </div>
     </div>
 
     <h1 class="sr-only">FlockXR</h1>
-    <label for="importFile" class="sr-only">Import project file</label>
+    <label for="importFile" class="sr-only" data-i18n="import_project_file">Import project file</label>
     <input
       type="file"
       id="importFile"
@@ -229,8 +229,10 @@
                   aria-label="Main menu"
                   aria-expanded="false"
                   aria-haspopup="true"
+                  data-i18n="main_menu"
+                  data-i18n-attrs="title,aria-label"
               >
-                  <span class="sr-only">Menu</span>
+                  <span class="sr-only" data-i18n="menu_button_sr_label">Menu</span>
                   <div class="icon" style="width: 1.25em; height: 1.25em" aria-hidden="true">
                       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" fill="#511D91">
                           <path fill="#511D91" d="M0 96C0 78.3 14.3 64 32 64h384c17.7 0 32 14.3 32 32s-14.3 32-32 32H32C14.3 128 0 113.7 0 96zm0 160c0-17.7 14.3-32 32-32h384c17.7 0 32 14.3 32 32s-14.3 32-32 32H32c-17.7 0-32-14.3-32-32zm448 160c0 17.7-14.3 32-32 32H32c-17.7 0-32-14.3-32-32s14.3-32 32-32h384c17.7 0 32-14.3 32 32z"/>
@@ -358,17 +360,19 @@
               <h2 id="modal-title" data-i18n="about_heading" style="margin-top: 0;">About Flock XR</h2>
 
               <div id="model-panel-content">
-              <p data-i18n="about_description">
-                Flock XR is a <strong>prototype</strong> made by
-                <a target="_blank" href="https://flipcomputing.com/flockxr/"
-                  >Flip Computing</a
-                >. Please try it out but be aware that things may change and
-                some features aren't finished yet. We're currently looking for
-                support to develop Flock so that you can rely on it.
+              <p>
+                <span data-i18n="about_description_intro"></span>
+                <strong data-i18n="about_description_prototype"></strong>
+                <span data-i18n="about_description_made_by"></span>
+                <a
+                  target="_blank"
+                  href="https://flipcomputing.com/flockxr/"
+                  data-i18n="about_description_company"
+                ></a>.
+                <span data-i18n="about_description_disclaimer"></span>
               </p>
-              <div data-i18n="about_run">
-                Take a look at the demos above to see what you can do.
-                Make some changes and click
+              <div class="about-run">
+                <span data-i18n="about_run_intro"></span>
                 <div
                   style="
                     display: inline-block;
@@ -391,13 +395,24 @@
                     </svg>
                   </div>
                 </div>
-                run.
+                <span data-i18n="about_run_action"></span>
               </div>
               <p>      
               </p>
-              <p data-i18n="about_links">View the <a target="_blank" href="https://flockxr.com/privacy-policy/">privacy policy</a> for Flock XR. <a href="https://flipcomputing.com/contact/" target="_blank"
-                >Get in touch</a
-              ></p>
+              <p>
+                <span data-i18n="about_links_privacy_prefix"></span>
+                <a
+                  target="_blank"
+                  href="https://flockxr.com/privacy-policy/"
+                  data-i18n="about_links_privacy_label"
+                ></a>
+                <span data-i18n="about_links_privacy_suffix"></span>
+                <a
+                  href="https://flipcomputing.com/contact/"
+                  target="_blank"
+                  data-i18n="about_links_contact_label"
+                ></a>
+              </p>
               </div>
             </div>
           </div>
@@ -790,7 +805,7 @@
             aria-label="Open a project from a file on your computer"
             tabindex="0"
           >
-            <label for="fileInput" class="sr-only">Select project file to open</label>
+            <label for="fileInput" class="sr-only" data-i18n="open_file_input_label">Select project file to open</label>
             <input type="file" id="fileInput" style="display: none" disabled />
             <div class="icon" style="width: 1.25em; height: 1.25em" aria-hidden="true">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--!Font Awesome Free v6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.--><path fill="#511D91" d="M288 109.3L288 352c0 17.7-14.3 32-32 32s-32-14.3-32-32l0-242.7-73.4 73.4c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3l128-128c12.5-12.5 32.8-12.5 45.3 0l128 128c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L288 109.3zM64 352l128 0c0 35.3 28.7 64 64 64s64-28.7 64-64l128 0c35.3 0 64 28.7 64 64l0 32c0 35.3-28.7 64-64 64L64 512c-35.3 0-64-28.7-64-64l0-32c0-35.3 28.7-64 64-64zM432 456a24 24 0 1 0 0-48 24 24 0 1 0 0 48z"/></svg>
@@ -1181,7 +1196,11 @@
 
           <aside id="info-panel" role="complementary" aria-label="Information panel">
             <details id="info-details">
-              <summary data-i18n="keyboard_controls"><strong>Keyboard controls info [&nbsp;Ctrl + /&nbsp;]</strong></summary>
+              <summary>
+                <strong data-i18n="keyboard_controls">
+                  Keyboard controls info [Ctrl + /]
+                </strong>
+              </summary>
 
                <div id="info-content" class="content" tabindex="-1" >
                  <table role="table" aria-label="Keyboard shortcuts">

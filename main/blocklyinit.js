@@ -6,6 +6,7 @@ import * as BlockDynamicConnection from "@blockly/block-dynamic-connection";
 import { CrossTabCopyPaste } from "@blockly/plugin-cross-tab-copy-paste";
 import { initializeTheme } from "./themes.js";
 import { installHoverHighlight } from "./blockhandling.js";
+import { translate } from "./translation.js";
 import {
         options,
         defineBlocks,
@@ -240,7 +241,10 @@ export function createBlocklyWorkspace() {
             target.setAttribute('tabindex', '0');
             target.setAttribute('focusable', 'true');
             target.setAttribute('role', 'group');
-            target.setAttribute('aria-label', 'Toolbox search results');
+            target.setAttribute(
+              'aria-label',
+              translate('toolbox_search_results_aria'),
+            );
 
             return target;
           }
@@ -362,7 +366,7 @@ export function createBlocklyWorkspace() {
                 id: "fc_copy_block",
                 weight: -1000000,
                 scopeType: Blockly.ContextMenuRegistry.ScopeType.BLOCK,
-                displayText: () => "Copy",
+                displayText: () => translate("context_copy_option"),
                 preconditionFn(scope) {
                         return scope?.block instanceof Blockly.BlockSvg
                                 ? "enabled"
@@ -393,7 +397,7 @@ export function createBlocklyWorkspace() {
                 id: "fc_paste_to_workspace_here",
                 weight: -900000,
                 scopeType: Blockly.ContextMenuRegistry.ScopeType.WORKSPACE,
-                displayText: () => "Paste",
+                displayText: () => translate("context_paste_option"),
                 preconditionFn(scope) {
                         // Enable only if clipboard has something AND this is the main workspace (not flyout)
                         const isMain = scope?.workspace === mainWs;
@@ -415,7 +419,7 @@ export function createBlocklyWorkspace() {
                 id: "fc_paste_as_child_or_here",
                 weight: -800000,
                 scopeType: Blockly.ContextMenuRegistry.ScopeType.BLOCK,
-                displayText: () => "Paste",
+                displayText: () => translate("context_paste_option"),
                 preconditionFn(scope) {
                         const block =
                                 /** @type {Blockly.BlockSvg|undefined} */ (
@@ -742,7 +746,7 @@ export function createBlocklyWorkspace() {
                 // Order: Copy (-1000000), then Cut (-999999.5), then your Paste (-999999)
                 weight: -900000,
                 scopeType: Blockly.ContextMenuRegistry.ScopeType.BLOCK,
-                displayText: () => "Cut",
+                displayText: () => translate("context_cut_option"),
                 preconditionFn(scope) {
                         const b = scope?.block;
                         if (!(b instanceof Blockly.BlockSvg)) return "hidden";
@@ -910,10 +914,7 @@ export function createBlocklyWorkspace() {
                         if (!data) return;
 
                         // Selected block (if any, and not from flyout)
-                        const selected =
-                                Blockly.common?.getSelected?.() ||
-                                Blockly.selected ||
-                                null;
+                        const selected = Blockly.common?.getSelected?.() || null;
                         if (selected && selected.isInFlyout) return; // never paste in the flyout
 
                         e.preventDefault();
