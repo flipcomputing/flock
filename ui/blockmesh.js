@@ -131,7 +131,7 @@ function getBlockValue(block, fieldName) {
 }
 
 // Safe colour reader: supports single colour, lists, and random_colour via API.
-function readColourValue(block) {
+export function readColourValue(block) {
   if (!block) return { value: null, kind: "none" };
 
   if (block.type === "lists_create_with") {
