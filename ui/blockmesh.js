@@ -886,7 +886,10 @@ export function updateMeshFromBlock(mesh, block, changeEvent) {
   }
 
   // Handle material/color changes
-  if (["COLOR", "COLORS", "BASE_COLOR"].includes(changed) || changed.startsWith?.("ADD")) {
+  if (
+    ["COLOR", "COLORS", "BASE_COLOR", "ALPHA"].includes(changed) ||
+    changed.startsWith?.("ADD")
+  ) {
     if (flock.meshDebug) {
       console.log("=== APPLYING COLOR/MATERIAL CHANGE ===");
       console.log("Material info:", materialInfo);
@@ -894,7 +897,18 @@ export function updateMeshFromBlock(mesh, block, changeEvent) {
       console.log("Color type:", typeof color, Array.isArray(color));
     }
 
-    if (color) {
+    const hasMaterial =
+      materialInfo &&
+      materialInfo.textureSet &&
+      materialInfo.textureSet !== "NONE";
+    const alpha = materialInfo?.alpha ?? mesh?.material?.alpha ?? 1;
+    const baseColor =
+      color ??
+      materialInfo?.baseColor ??
+      mesh?.material?.diffuseColor?.toHexString?.() ??
+      mesh?.material?.albedoColor?.toHexString?.();
+
+    if (baseColor != null || hasMaterial || mesh?.material) {
       // Special handling for load_object default color
       if (color === "#9932cc" && block.type === "load_object") {
         const modelName = block.getFieldValue("MODELS");
@@ -904,59 +918,29 @@ export function updateMeshFromBlock(mesh, block, changeEvent) {
       const ultimateParent = (m) => (m.parent ? ultimateParent(m.parent) : m);
       mesh = ultimateParent(mesh);
 
-      // Check if mesh currently has a textured material
-      const currentMaterial = mesh.material;
-      const hasTexture = currentMaterial?.diffuseTexture || 
-                        currentMaterial?.name?.includes('.png') ||
-                        currentMaterial instanceof flock.GradientMaterial;
+      const blockShapeMap = {
+        create_box: "Box",
+        create_sphere: "Sphere",
+        create_cylinder: "Cylinder",
+        create_capsule: "Capsule",
+        create_plane: "Plane",
+      };
 
-      // Case A: Material with texture - apply as single material to all parts
-      if (materialInfo && materialInfo.textureSet && materialInfo.textureSet !== "NONE") {
-        const materialOptions = {
-          color: color,
-          materialName: materialInfo.textureSet,
-          alpha: materialInfo.alpha,
-        };
+      const rootShapeType =
+        mesh?.metadata?.shapeType || blockShapeMap[block.type] || block.type;
+      const colorOrMaterial = hasMaterial
+        ? { materialName: materialInfo.textureSet, color: baseColor, alpha }
+        : baseColor ?? mesh.material;
 
-        if (flock.meshDebug) {
-          console.log("Creating and applying textured material with options:", materialOptions);
-        }
+      if (colorOrMaterial != null) {
+        const targets = [mesh]
+          .concat(mesh.getDescendants?.() || [])
+          .filter((m) => m instanceof flock.BABYLON.Mesh);
 
-        const material = flock.createMaterial(materialOptions);
-        flock.setMaterial(mesh.name, [material]);
-      }
-      // Case B: Two-color array - use changeColorMesh to assign to parts (like initial creation)
-      else if (Array.isArray(color) && color.length === 2) {
-        if (flock.meshDebug) {
-          console.log("Applying two-color array to mesh parts:", color);
-        }
-
-        flock.changeColorMesh(mesh, color);
-      }
-      // Case C: Transitioning from textured to flat single color - create new flat material
-      else if (hasTexture) {
-        if (flock.meshDebug) {
-          console.log("Transitioning from textured to flat material, creating new material with color:", color);
-        }
-
-        // Create a flat colored material to replace the textured one
-        const materialOptions = {
-          color: color,
-          materialName: "none.png",
-          alpha: materialInfo?.alpha ?? 1.0,
-        };
-
-        const material = flock.createMaterial(materialOptions);
-        flock.setMaterial(mesh.name, [material]);
-      }
-      // Case D: Simple color change within flat material
-      else {
-        if (flock.meshDebug) {
-          console.log("Applying simple color change with changeColor:", color);
-        }
-
-        // Use changeColor like the generated code does
-        flock.changeColor(mesh.name, { color });
+        targets.forEach((target) => {
+          const shape = target?.metadata?.shapeType || rootShapeType;
+          flock.applyMaterialToMesh(target, shape, colorOrMaterial, alpha);
+        });
       }
     }
   }

@@ -1174,6 +1174,22 @@ export const flockMaterial = {
     };
 
     // --- Material path for objects that can take a single material ------------
+    const materialFromArray =
+      Array.isArray(color) &&
+      color.length === 1 &&
+      (isBabylonMaterial(color[0]) || isMaterialDescriptor(color[0]))
+        ? toMaterial(color[0])
+        : null;
+
+    if (materialFromArray || isBabylonMaterial(color) || isMaterialDescriptor(color)) {
+      const matCandidate = materialFromArray || toMaterial(color);
+      if (matCandidate) {
+        matCandidate.alpha = alpha;
+        applyMaterialWithTilingIfAny(matCandidate);
+        return;
+      }
+    }
+
     // Plane: allow a material or a material descriptor (or array -> first)
     if (shapeType === "Plane") {
       let matCandidate = null;
@@ -1189,6 +1205,7 @@ export const flockMaterial = {
       }
 
       if (matCandidate) {
+        matCandidate.alpha = alpha;
         applyMaterialWithTilingIfAny(matCandidate);
         return;
       }
