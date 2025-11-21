@@ -347,25 +347,24 @@ export function applyTranslations() {
         .forEach((attr) => el.setAttribute(attr, translation));
     }
 
-    let contents = "";
-    for (const element of el.childNodes) {
-      if (element.nodeType == Node.TEXT_NODE || element.nodeName == "STRONG") {
-        contents += element.textContent;
-      }
+    const hasOnlyTextOrStrongChildren = Array.from(el.childNodes).every(
+      (node) => node.nodeType === Node.TEXT_NODE || node.nodeName === "STRONG",
+    );
+
+    if (hasOnlyTextOrStrongChildren) {
+      // Replace the element's textual content only to avoid injecting HTML
+      el.textContent = translation;
+      return;
     }
-    contents = contents.trim();
-    if (contents != "") {
-      el.innerHTML = translation;
-    } else {
-      if (el.hasAttribute("title")) {
-        el.title = translation;
-      }
-      if (el.hasAttribute("aria-label")) {
-        el.setAttribute("aria-label", translation);
-      }
-      if (el.hasAttribute("placeholder")) {
-        el.setAttribute("placeholder", translation);
-      }
+
+    if (el.hasAttribute("title")) {
+      el.title = translation;
+    }
+    if (el.hasAttribute("aria-label")) {
+      el.setAttribute("aria-label", translation);
+    }
+    if (el.hasAttribute("placeholder")) {
+      el.setAttribute("placeholder", translation);
     }
   });
 }

@@ -1,5 +1,3 @@
-import common from "./commmonHTML.js";
-
 export default {
       // Blockly category message keys for custom categories
       CATEGORY_SCENE: "Scen",
@@ -944,19 +942,21 @@ export default {
       project_name_ui: "Projektnamn",
 
       about_heading_ui: "Om Flock XR",
-      about_description_ui: `Flock XR är ett <strong>prototyp</strong> utvecklat av
-  <a target="_blank" href="https://flipcomputing.com/flockxr/">Flip Computing</a
-  >. Testa gärna, men kom ihåg att saker kan ändras och
-  vissa funktioner är ännu inte färdiga. Vi söker för närvarande
-  stöd för att utveckla Flock så att du kan lita på det.`,
-      about_run_ui:
-            "Titta på demona ovan för att se vad du kan göra. Gör några ändringar och klicka på " +
-            common["run_icon"] +
-            "kör.",
-      about_links_ui: `Se <a target="_blank" href="https://flockxr.com/privacy-policy/">integritetspolicyn</a> för Flock XR. <a href="https://flipcomputing.com/contact/" target="_blank">Kontakta oss</a>`,
+      about_description_intro_ui: "Flock XR är ett ",
+      about_description_prototype_ui: "prototyp",
+      about_description_made_by_ui: " utvecklat av ",
+      about_description_company_ui: "Flip Computing",
+      about_description_disclaimer_ui:
+        " Testa gärna, men kom ihåg att saker kan ändras och vissa funktioner är ännu inte färdiga. Vi söker för närvarande stöd för att utveckla Flock så att du kan lita på det.",
+      about_run_intro_ui:
+            "Titta på demona ovan för att se vad du kan göra. Gör några ändringar och klicka på",
+      about_run_action_ui: "kör.",
+      about_links_privacy_prefix_ui: "Se ",
+      about_links_privacy_label_ui: "integritetspolicyn",
+      about_links_privacy_suffix_ui: " för Flock XR. ",
+      about_links_contact_label_ui: "Kontakta oss",
 
-      keyboard_controls_ui:
-            "<strong>Tangentbordsgenvägar [&nbsp;Ctrl + /&nbsp;]</strong>",
+      keyboard_controls_ui: "Tangentbordsgenvägar [Ctrl + /]",
       keyboard_menu_ui: "Öppna huvudmenyn",
       keyboard_play_ui: "Spela",
       keyboard_gizmos_ui: "Gå till gizmos",

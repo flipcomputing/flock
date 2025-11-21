@@ -1,5 +1,3 @@
-import common from "./commmonHTML.js"
-
 export default {
   // Blockly category message keys for custom categories
   CATEGORY_SCENE: "Escena",
@@ -822,14 +820,21 @@ export default {
   project_name_ui: "Nombre del proyecto",
 
   about_heading_ui: "Acerca de Flock XR",
-  about_description_ui: `Flock XR es un <strong>prototipo</strong> hecho por
-  <a target="_blank" href="https://flipcomputing.com/flockxr/">Flip Computing</a>.
-  Por favor pruébalo, pero ten en cuenta que las cosas pueden cambiar y algunas funciones aún no están terminadas.
-  Actualmente estamos buscando apoyo para desarrollar Flock para que puedas confiar en él.`,
-  about_run_ui: "Echa un vistazo a las demos arriba para ver lo que puedes hacer. Haz algunos cambios y haz clic en " + common["run_icon"] + " ejecutar.",
-  about_links_ui: `Consulta la <a target="_blank" href="https://flockxr.com/privacy-policy/">política de privacidad</a> de Flock XR. <a href="https://flipcomputing.com/contact/" target="_blank">Contacta con nosotros</a>`,
+  about_description_intro_ui: "Flock XR es un ",
+  about_description_prototype_ui: "prototipo",
+  about_description_made_by_ui: " hecho por ",
+  about_description_company_ui: "Flip Computing",
+  about_description_disclaimer_ui:
+    " Por favor pruébalo, pero ten en cuenta que las cosas pueden cambiar y algunas funciones aún no están terminadas. Actualmente estamos buscando apoyo para desarrollar Flock para que puedas confiar en él.",
+  about_run_intro_ui:
+    "Echa un vistazo a las demos arriba para ver lo que puedes hacer. Haz algunos cambios y haz clic en",
+  about_run_action_ui: "ejecutar.",
+  about_links_privacy_prefix_ui: "Consulta la ",
+  about_links_privacy_label_ui: "política de privacidad",
+  about_links_privacy_suffix_ui: " de Flock XR. ",
+  about_links_contact_label_ui: "Contacta con nosotros",
 
-  keyboard_controls_ui: "<strong>Información de controles del teclado [&nbsp;Ctrl + /&nbsp;]</strong>",
+  keyboard_controls_ui: "Información de controles del teclado [Ctrl + /]",
   keyboard_menu_ui: "Abrir el menú principal",
   keyboard_play_ui: "Reproducir",
   keyboard_gizmos_ui: "Ir a los artilugios",

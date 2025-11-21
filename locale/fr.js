@@ -1,5 +1,3 @@
-import common from "./commmonHTML.js";
-
 export default {
                                       // Blockly category message keys for custom categories
                                       CATEGORY_SCENE: "Scène",
@@ -823,19 +821,21 @@ export default {
                                       project_name_ui: "Nom du projet",
 
                                       about_heading_ui: "À propos de Flock XR",
-                                      about_description_ui: `Flock XR est un <strong>prototype</strong> créé par
-  <a target="_blank" href="https://flipcomputing.com/flockxr/">Flip Computing</a>.
-  Veuillez l’essayer, mais sachez que certaines choses peuvent changer et que certaines fonctionnalités ne sont pas encore terminées.
-  Nous cherchons actuellement du soutien pour développer Flock afin que vous puissiez compter sur lui.`,
-                                      about_run_ui:
-                                                                            "Regardez les démos ci-dessus pour voir ce que vous pouvez faire. Apportez quelques modifications, puis cliquez sur " +
-                                                                            common[
-                                                                                                                  "run_icon"
-                                                                            ] +
-                                                                            " exécuter.",
-                                      about_links_ui: `Consultez la <a target="_blank" href="https://flockxr.com/privacy-policy/">politique de confidentialité</a> de Flock XR. <a href="https://flipcomputing.com/contact/" target="_blank">Contactez-nous</a>`,
+                                      about_description_intro_ui: "Flock XR est un ",
+                                      about_description_prototype_ui: "prototype",
+                                      about_description_made_by_ui: " créé par ",
+                                      about_description_company_ui: "Flip Computing",
+                                      about_description_disclaimer_ui:
+                                        " Veuillez l’essayer, mais sachez que certaines choses peuvent changer et que certaines fonctionnalités ne sont pas encore terminées. Nous cherchons actuellement du soutien pour développer Flock afin que vous puissiez compter sur lui.",
+                                      about_run_intro_ui:
+                                                                            "Regardez les démos ci-dessus pour voir ce que vous pouvez faire. Apportez quelques modifications, puis cliquez sur",
+                                      about_run_action_ui: " exécuter.",
+                                      about_links_privacy_prefix_ui: "Consultez la ",
+                                      about_links_privacy_label_ui: "politique de confidentialité",
+                                      about_links_privacy_suffix_ui: " de Flock XR. ",
+                                      about_links_contact_label_ui: "Contactez-nous",
 
-                                      keyboard_controls_ui: "<strong>Infos sur les raccourcis clavier [&nbsp;Ctrl + /&nbsp;]</strong>",
+                                      keyboard_controls_ui: "Infos sur les raccourcis clavier [Ctrl + /]",
                                       keyboard_menu_ui: "Ouvrir le menu principal",
                                       keyboard_play_ui: "Lire",
                                       keyboard_gizmos_ui: "Aller aux gadgets",

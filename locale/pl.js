@@ -1,5 +1,3 @@
-import common from "./commmonHTML.js"
-
 export default {
   // Blockly category message keys for custom categories
   CATEGORY_SCENE: "Scena",
@@ -829,15 +827,21 @@ export default {
   project_name_ui: "Nazwa projektu",
 
   about_heading_ui: "O Flock XR",
-  about_description_ui: `Flock XR to <strong>prototyp</strong> stworzony przez
-  <a target="_blank" href="https://flipcomputing.com/flockxr/">Flip Computing</a
-  >. Wypróbuj go, ale miej na uwadze, że rzeczy mogą się zmieniać i
-  niektóre funkcje nie są jeszcze ukończone. Aktualnie
-  poszukujemy wsparcia, aby Flock XR mógł stać się stabilny.`,
-  about_run_ui: "Spójrz na powyższe dema, aby zobaczyć, co możesz zrobić. Wprowadź zmiany i kliknij " + common["run_icon"] + "uruchom.",
-  about_links_ui: `Zobacz <a target="_blank" href="https://flockxr.com/privacy-policy/">politykę prywatności</a> Flock XR. <a href="https://flipcomputing.com/contact/" target="_blank">Skontaktuj się z nami</a>`,
+  about_description_intro_ui: "Flock XR to ",
+  about_description_prototype_ui: "prototyp",
+  about_description_made_by_ui: " stworzony przez ",
+  about_description_company_ui: "Flip Computing",
+  about_description_disclaimer_ui:
+    " Wypróbuj go, ale miej na uwadze, że rzeczy mogą się zmieniać i niektóre funkcje nie są jeszcze ukończone. Aktualnie poszukujemy wsparcia, aby Flock XR mógł stać się stabilny.",
+  about_run_intro_ui:
+    "Spójrz na powyższe dema, aby zobaczyć, co możesz zrobić. Wprowadź zmiany i kliknij",
+  about_run_action_ui: "uruchom.",
+  about_links_privacy_prefix_ui: "Zobacz ",
+  about_links_privacy_label_ui: "politykę prywatności",
+  about_links_privacy_suffix_ui: " Flock XR. ",
+  about_links_contact_label_ui: "Skontaktuj się z nami",
 
-  keyboard_controls_ui: "<strong>Informacje o kontrolach klawiatury [&nbsp;Ctrl + /&nbsp;]</strong>",
+  keyboard_controls_ui: "Informacje o kontrolach klawiatury [Ctrl + /]",
   keyboard_menu_ui: "Otwórz menu główne",
   keyboard_play_ui: "Play",
   keyboard_gizmos_ui: "Przejdź do narzędzi",

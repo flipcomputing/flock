@@ -360,17 +360,19 @@
               <h2 id="modal-title" data-i18n="about_heading" style="margin-top: 0;">About Flock XR</h2>
 
               <div id="model-panel-content">
-              <p data-i18n="about_description">
-                Flock XR is a <strong>prototype</strong> made by
-                <a target="_blank" href="https://flipcomputing.com/flockxr/"
-                  >Flip Computing</a
-                >. Please try it out but be aware that things may change and
-                some features aren't finished yet. We're currently looking for
-                support to develop Flock so that you can rely on it.
+              <p>
+                <span data-i18n="about_description_intro"></span>
+                <strong data-i18n="about_description_prototype"></strong>
+                <span data-i18n="about_description_made_by"></span>
+                <a
+                  target="_blank"
+                  href="https://flipcomputing.com/flockxr/"
+                  data-i18n="about_description_company"
+                ></a>.
+                <span data-i18n="about_description_disclaimer"></span>
               </p>
-              <div data-i18n="about_run">
-                Take a look at the demos above to see what you can do.
-                Make some changes and click
+              <div class="about-run">
+                <span data-i18n="about_run_intro"></span>
                 <div
                   style="
                     display: inline-block;
@@ -393,13 +395,24 @@
                     </svg>
                   </div>
                 </div>
-                run.
+                <span data-i18n="about_run_action"></span>
               </div>
               <p>      
               </p>
-              <p data-i18n="about_links">View the <a target="_blank" href="https://flockxr.com/privacy-policy/">privacy policy</a> for Flock XR. <a href="https://flipcomputing.com/contact/" target="_blank"
-                >Get in touch</a
-              ></p>
+              <p>
+                <span data-i18n="about_links_privacy_prefix"></span>
+                <a
+                  target="_blank"
+                  href="https://flockxr.com/privacy-policy/"
+                  data-i18n="about_links_privacy_label"
+                ></a>
+                <span data-i18n="about_links_privacy_suffix"></span>
+                <a
+                  href="https://flipcomputing.com/contact/"
+                  target="_blank"
+                  data-i18n="about_links_contact_label"
+                ></a>
+              </p>
               </div>
             </div>
           </div>
@@ -1183,7 +1196,11 @@
 
           <aside id="info-panel" role="complementary" aria-label="Information panel">
             <details id="info-details">
-              <summary data-i18n="keyboard_controls"><strong>Keyboard controls info [&nbsp;Ctrl + /&nbsp;]</strong></summary>
+              <summary>
+                <strong data-i18n="keyboard_controls">
+                  Keyboard controls info [Ctrl + /]
+                </strong>
+              </summary>
 
                <div id="info-content" class="content" tabindex="-1" >
                  <table role="table" aria-label="Keyboard shortcuts">
