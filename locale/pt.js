@@ -942,17 +942,22 @@ export default {
   project_name_ui: "Nome do projeto",
 
   about_heading_ui: "Sobre o Flock XR",
-  about_description_ui: `O Flock XR é um <strong>protótipo</strong> criado pela
-  <a target="_blank" href="https://flipcomputing.com/flockxr/">Flip Computing</a
-  >. Por favor, experimenta, mas tem em atenção que algumas funcionalidades podem ainda estar por terminar e que o projeto pode sofrer alterações. Estamos à procura de apoio para continuar a desenvolver o Flock de forma fiável.`,
+  about_description_intro_ui: "O Flock XR é um ",
+  about_description_prototype_ui: "protótipo",
+  about_description_made_by_ui: " criado pela ",
+  about_description_company_ui: "Flip Computing",
+  about_description_disclaimer_ui:
+    " Por favor, experimenta, mas tem em atenção que algumas funcionalidades podem ainda estar por terminar e que o projeto pode sofrer alterações. Estamos à procura de apoio para continuar a desenvolver o Flock de forma fiável.",
   about_run_ui:
     "Vê as demonstrações acima para veres o que podes fazer. Faz algumas alterações e clica em " +
     common["run_icon"] +
     "executar.",
-  about_links_ui: `Consulta a <a target="_blank" href="https://flockxr.com/privacy-policy/">política de privacidade</a> do Flock XR. <a href="https://flipcomputing.com/contact/" target="_blank">Entra em contacto</a>`,
+  about_links_privacy_prefix_ui: "Consulta a ",
+  about_links_privacy_label_ui: "política de privacidade",
+  about_links_privacy_suffix_ui: " do Flock XR. ",
+  about_links_contact_label_ui: "Entra em contacto",
 
-  keyboard_controls_ui:
-    "<strong>Informações dos atalhos de teclado [&nbsp;Ctrl + /&nbsp;]</strong>",
+  keyboard_controls_ui: "Informações dos atalhos de teclado [Ctrl + /]",
   keyboard_menu_ui: "Abrir o menu principal",
   keyboard_play_ui: "Reproduzir",
   keyboard_gizmos_ui: "Ir para os controlos",

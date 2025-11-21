@@ -824,7 +824,7 @@ export default {
   camera_button_ui: "Kamera-Steuerung",
   info_panel_link_ui: "Flock XR Webseite (neuer Tab)",
   project_name_ui: "Projektname",
-  keyboard_controls_ui: "<strong>Tastatursteuerung [&nbsp;Ctrl + /&nbsp;]</strong>",
+  keyboard_controls_ui: "Tastatursteuerung [Ctrl + /]",
   keyboard_menu_ui: "Hauptmenü öffnen",
   keyboard_play_ui: "Abspielen",
   keyboard_gizmos_ui: "Gizmos öffnen",
@@ -878,12 +878,16 @@ export default {
   new_variable_decision: "Neue Variable...",
 
   about_heading_ui: "Über Flock XR",
-  about_description_ui: `Flock XR ist ein <strong>Prototyp</strong> von
-    <a target="_blank" href="https://flipcomputing.com/flockxr/">Flip Computing</a>.
-    Du kannst es gern ausprobieren, aber beachte, dass sich noch Dinge ändern können
-    und manche Funktionen noch nicht fertig sind. Wir suchen derzeit Unterstützung,
-    um Flock weiterzuentwickeln, sodass du dich darauf verlassen kannst.`,
+  about_description_intro_ui: "Flock XR ist ein ",
+  about_description_prototype_ui: "Prototyp",
+  about_description_made_by_ui: " von ",
+  about_description_company_ui: "Flip Computing",
+  about_description_disclaimer_ui:
+    " Du kannst es gern ausprobieren, aber beachte, dass sich noch Dinge ändern können und manche Funktionen noch nicht fertig sind. Wir suchen derzeit Unterstützung, um Flock weiterzuentwickeln, sodass du dich darauf verlassen kannst.",
   about_run_ui: "Schau dir die Demos oben an, um zu sehen, was möglich ist. Mach ein paar Änderungen und klicke auf " + common["run_icon"] + "Start.",
-  about_links_ui: `Sieh dir die <a target="_blank" href="https://flockxr.com/privacy-policy/">Datenschutzerklärung</a> für Flock XR an. <a href="https://flipcomputing.com/contact/" target="_blank">Kontaktiere uns</a>`,
+  about_links_privacy_prefix_ui: "Sieh dir die ",
+  about_links_privacy_label_ui: "Datenschutzerklärung",
+  about_links_privacy_suffix_ui: " für Flock XR an. ",
+  about_links_contact_label_ui: "Kontaktiere uns",
 
 }

@@ -828,15 +828,19 @@ export default {
   project_name_ui: "Project name",
 
   about_heading_ui: "About Flock XR",
-  about_description_ui: `Flock XR is a <strong>prototype</strong> made by
-  <a target="_blank" href="https://flipcomputing.com/flockxr/">Flip Computing</a
-  >. Please try it out but be aware that things may change and
-  some features aren't finished yet. We're currently looking for
-  support to develop Flock so that you can rely on it.`,
+  about_description_intro_ui: "Flock XR is a ",
+  about_description_prototype_ui: "prototype",
+  about_description_made_by_ui: " made by ",
+  about_description_company_ui: "Flip Computing",
+  about_description_disclaimer_ui:
+    " Please try it out but be aware that things may change and some features aren't finished yet. We're currently looking for support to develop Flock so that you can rely on it.",
   about_run_ui: "Take a look at the demos above to see what you can do. Make some changes and click " + common["run_icon"] + "run.",
-  about_links_ui: `View the <a target="_blank" href="https://flockxr.com/privacy-policy/">privacy policy</a> for Flock XR. <a href="https://flipcomputing.com/contact/" target="_blank">Get in touch</a>`,
+  about_links_privacy_prefix_ui: "View the ",
+  about_links_privacy_label_ui: "privacy policy",
+  about_links_privacy_suffix_ui: " for Flock XR. ",
+  about_links_contact_label_ui: "Get in touch",
 
-  keyboard_controls_ui: "<strong>Keyboard controls info [&nbsp;Ctrl + /&nbsp;]</strong>",
+  keyboard_controls_ui: "Keyboard controls info [Ctrl + /]",
   keyboard_menu_ui: "Open the main menu",
   keyboard_play_ui: "Play",
   keyboard_gizmos_ui: "Go to gizmos",

@@ -354,18 +354,21 @@ export function applyTranslations() {
       }
     }
     contents = contents.trim();
-    if (contents != "") {
-      el.innerHTML = translation;
-    } else {
-      if (el.hasAttribute("title")) {
-        el.title = translation;
-      }
-      if (el.hasAttribute("aria-label")) {
-        el.setAttribute("aria-label", translation);
-      }
-      if (el.hasAttribute("placeholder")) {
-        el.setAttribute("placeholder", translation);
-      }
+
+    if (contents !== "") {
+      // Replace the element's textual content only to avoid injecting HTML
+      el.textContent = translation;
+      return;
+    }
+
+    if (el.hasAttribute("title")) {
+      el.title = translation;
+    }
+    if (el.hasAttribute("aria-label")) {
+      el.setAttribute("aria-label", translation);
+    }
+    if (el.hasAttribute("placeholder")) {
+      el.setAttribute("placeholder", translation);
     }
   });
 }
