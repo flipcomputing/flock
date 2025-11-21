@@ -1,5 +1,3 @@
-import common from "./commmonHTML.js"
-
 export default {
   // Blockly category message keys for custom categories
   CATEGORY_SCENE: "Escena",
@@ -753,6 +751,8 @@ export default {
   // HTML translations
   loading_ui: "Cargando Flock XR...",
   loading_success_ui: "Flock XR se cargó correctamente",
+  loading_title_ui: "Cargando Flock XR",
+  import_project_file_ui: "Importar archivo de proyecto",
 
   demo_ui: "Demostración",
   new_ui: "Nuevo",
@@ -777,8 +777,11 @@ export default {
   tent_lights_ui: "⛺ Carpa de Festival",
   my_place_ui: "🏠 Mi Lugar",
   microbit_monkey_ui: "🐵 Mono micro:bit",
+  character_designer_ui: "👚 Diseñador de personajes",
+  sit_down_ui: "🪑 Siéntate",
 
   main_menu_ui: "Abrir menú para más opciones",
+  menu_button_sr_label_ui: "Menú",
   project_submenu_ui: "Proyecto",
   project_new_ui: "Nuevo",
   project_open_ui: "Abrir",
@@ -794,6 +797,7 @@ export default {
   run_code_button_ui: "Ejecutar tu código",
   stop_code_button_ui: "Detener tu código",
   open_button_ui: "Abrir un proyecto desde un archivo en tu computadora",
+  open_file_input_label_ui: "Selecciona el archivo de proyecto para abrir",
   export_code_button_ui: "Guardar este proyecto en un archivo en tu computadora.",
   example_select_ui: "Elige un proyecto de ejemplo para cargar",
 
@@ -816,18 +820,60 @@ export default {
   project_name_ui: "Nombre del proyecto",
 
   about_heading_ui: "Acerca de Flock XR",
-  about_description_ui: `Flock XR es un <strong>prototipo</strong> hecho por
-  <a target="_blank" href="https://flipcomputing.com/flockxr/">Flip Computing</a>.
-  Por favor pruébalo, pero ten en cuenta que las cosas pueden cambiar y algunas funciones aún no están terminadas.
-  Actualmente estamos buscando apoyo para desarrollar Flock para que puedas confiar en él.`,
-  about_run_ui: "Echa un vistazo a las demos arriba para ver lo que puedes hacer. Haz algunos cambios y haz clic en " + common["run_icon"] + " ejecutar.",
-  about_links_ui: `Consulta la <a target="_blank" href="https://flockxr.com/privacy-policy/">política de privacidad</a> de Flock XR. <a href="https://flipcomputing.com/contact/" target="_blank">Contacta con nosotros</a>`,
+  about_description_intro_ui: "Flock XR es un ",
+  about_description_prototype_ui: "prototipo",
+  about_description_made_by_ui: " hecho por ",
+  about_description_company_ui: "Flip Computing",
+  about_description_disclaimer_ui:
+    " Por favor pruébalo, pero ten en cuenta que las cosas pueden cambiar y algunas funciones aún no están terminadas. Actualmente estamos buscando apoyo para desarrollar Flock para que puedas confiar en él.",
+  about_run_intro_ui:
+    "Echa un vistazo a las demos arriba para ver lo que puedes hacer. Haz algunos cambios y haz clic en",
+  about_run_action_ui: "ejecutar.",
+  about_links_privacy_prefix_ui: "Consulta la ",
+  about_links_privacy_label_ui: "política de privacidad",
+  about_links_privacy_suffix_ui: " de Flock XR. ",
+  about_links_contact_label_ui: "Contacta con nosotros",
 
-  keyboard_controls_ui: "<strong>Información de controles del teclado [&nbsp;Ctrl + /&nbsp;]</strong>",
+  keyboard_controls_ui: "Información de controles del teclado [Ctrl + /]",
   keyboard_menu_ui: "Abrir el menú principal",
   keyboard_play_ui: "Reproducir",
   keyboard_gizmos_ui: "Ir a los artilugios",
   keyboard_navigation_ui: "Ir a la barra de navegación del navegador (los atajos sobrescritos funcionan desde aquí)",
+
+  // Accessibility and announcements
+  unmute_audio_aria: "Activar sonido.",
+  focused_main_content: "Contenido principal enfocado.",
+  toolbox_search_results_aria: "Resultados de búsqueda de la caja de herramientas.",
+  context_copy_option: "Copiar",
+  context_paste_option: "Pegar",
+  context_cut_option: "Cortar",
+  canvas_focus_navigation:
+    "Lienzo 3D enfocado. Usa las flechas o WASD para navegar.",
+  design_tool_label: "Herramienta de diseño",
+  focused_element_suffix: "{name} enfocado",
+  search_toolbox_focused: "Búsqueda de la caja de herramientas enfocada",
+  code_workspace_focused: "Espacio de trabajo de código enfocado",
+  interactive_element_label: "Elemento interactivo",
+  panel_resizer_focused:
+    "Redimensionador de panel enfocado. Usa las flechas para redimensionar, Inicio para restablecer.",
+  undo_performed: "Deshacer realizado",
+  redo_performed: "Rehacer realizado",
+  camera_moving_forward: "Cámara moviéndose hacia adelante",
+  camera_moving_backward: "Cámara moviéndose hacia atrás",
+  camera_moving_left: "Cámara moviéndose a la izquierda",
+  camera_moving_right: "Cámara moviéndose a la derecha",
+  moving_forward: "Moviéndose hacia adelante",
+  moving_backward: "Moviéndose hacia atrás",
+  moving_left: "Moviéndose a la izquierda",
+  moving_right: "Moviéndose a la derecha",
+  action_triggered: "Acción activada",
+  snippet_file_description: "Fragmento de Flock XR",
+  snippet_filename_prompt: "Introduce un nombre de archivo para el fragmento:",
+  project_file_description: "Proyecto de Flock XR",
+  file_too_large_alert: "Archivo demasiado grande. El tamaño máximo es 5 MB.",
+  invalid_filetype_alert: "Solo se permiten archivos de proyecto .json o .flock.",
+  invalid_project_alert: "Este archivo no es un proyecto válido de Flock XR.",
+  failed_to_read_file_alert: "No se pudo leer el archivo.",
 
   // Context menu option translations
   export_JSON_snippet: "Exportar bloque como fragmento JSON",
@@ -841,4 +887,12 @@ export default {
   // Service worker update notification
   update_available_ui: "Una nueva versión de Flock está disponible.",
   reload_button_ui: "Recargar",
+
+  colour_rgb: "rojo %1 verde %2 azul %3",
+  colour_random: "color aleatorio",
+  colour_blend: "mezclar %1 y %2 en %3",
+
+  dark_contrast_theme_ui: "Oscuro",
+  
+
 };

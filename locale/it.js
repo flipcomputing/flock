@@ -1,5 +1,3 @@
-import common from "./commmonHTML.js";
-
 export default {
   // Blockly category message keys for custom categories
   CATEGORY_SCENE: "Scena",
@@ -878,6 +876,8 @@ export default {
   // HTML translations
   loading_ui: "Caricamento di Flock XR...",
   loading_success_ui: "Flock XR caricato con successo",
+  loading_title_ui: "Caricamento di Flock XR",
+  import_project_file_ui: "Importa file di progetto",
 
   demo_ui: "Demo",
   new_ui: "Nuovo",
@@ -906,6 +906,7 @@ export default {
   microbit_monkey_ui: "🐵 micro:bit scimmia",
 
   main_menu_ui: "Menu principale",
+  menu_button_sr_label_ui: "Menu",
   project_submenu_ui: "Progetto",
   project_new_ui: "Nuovo",
   project_open_ui: "Apri",
@@ -922,6 +923,7 @@ export default {
   run_code_button_ui: "Esegui il tuo codice",
   stop_code_button_ui: "Ferma il tuo codice",
   open_button_ui: "Apri un progetto da un file sul tuo computer",
+  open_file_input_label_ui: "Seleziona il file di progetto da aprire",
   export_code_button_ui: "Salva questo progetto in un file sul tuo computer.",
   example_select_ui: "Scegli un progetto di esempio da caricare",
 
@@ -944,24 +946,61 @@ export default {
   project_name_ui: "Nome progetto",
 
   about_heading_ui: "Informazioni su Flock XR",
-  about_description_ui: `Flock XR è un <strong>prototipo</strong> creato da
-  <a target="_blank" href="https://flipcomputing.com/flockxr/">Flip Computing</a
-  >. Provalo pure, ma tieni presente che le cose possono cambiare e
-  alcune funzionalità non sono ancora complete. Stiamo cercando supporto
-  per sviluppare Flock in modo che tu possa farci affidamento.`,
-  about_run_ui:
-    "Dai un’occhiata alle demo sopra per vedere cosa puoi fare. Fai qualche modifica e clicca " +
-    common["run_icon"] +
-    "esegui.",
-  about_links_ui: `Consulta la <a target="_blank" href="https://flockxr.com/privacy-policy/">privacy policy</a> di Flock XR. <a href="https://flipcomputing.com/contact/" target="_blank">Contattaci</a>`,
+  about_description_intro_ui: "Flock XR è un ",
+  about_description_prototype_ui: "prototipo",
+  about_description_made_by_ui: " creato da ",
+  about_description_company_ui: "Flip Computing",
+  about_description_disclaimer_ui:
+    " Provalo pure, ma tieni presente che le cose possono cambiare e alcune funzionalità non sono ancora complete. Stiamo cercando supporto per sviluppare Flock in modo che tu possa farci affidamento.",
+  about_run_intro_ui:
+    "Dai un’occhiata alle demo sopra per vedere cosa puoi fare. Fai qualche modifica e clicca",
+  about_run_action_ui: "esegui.",
+  about_links_privacy_prefix_ui: "Consulta la ",
+  about_links_privacy_label_ui: "privacy policy",
+  about_links_privacy_suffix_ui: " di Flock XR. ",
+  about_links_contact_label_ui: "Contattaci",
 
-  keyboard_controls_ui:
-    "<strong>Info controlli da tastiera [&nbsp;Ctrl + /&nbsp;]</strong>",
+  keyboard_controls_ui: "Info controlli da tastiera [Ctrl + /]",
   keyboard_menu_ui: "Apri il menu principale",
   keyboard_play_ui: "Play",
   keyboard_gizmos_ui: "Vai ai gizmo",
   keyboard_navigation_ui:
     "Vai alla barra di navigazione del browser (le scorciatoie sovrascritte funzionano da qui)",
+
+  // Accessibility and announcements
+  unmute_audio_aria: "Riattiva l'audio.",
+  focused_main_content: "Contenuto principale focalizzato.",
+  toolbox_search_results_aria: "Risultati della ricerca nella toolbox.",
+  context_copy_option: "Copia",
+  context_paste_option: "Incolla",
+  context_cut_option: "Taglia",
+  canvas_focus_navigation:
+    "Canvas 3D focalizzato. Usa le frecce o WASD per navigare.",
+  design_tool_label: "Strumento di progettazione",
+  focused_element_suffix: "{name} focalizzato",
+  search_toolbox_focused: "Ricerca della toolbox focalizzata",
+  code_workspace_focused: "Area di lavoro del codice focalizzata",
+  interactive_element_label: "Elemento interattivo",
+  panel_resizer_focused:
+    "Ridimensionatore del pannello focalizzato. Usa le frecce per ridimensionare, Home per reimpostare.",
+  undo_performed: "Annullamento eseguito",
+  redo_performed: "Ripristino eseguito",
+  camera_moving_forward: "Telecamera in movimento in avanti",
+  camera_moving_backward: "Telecamera in movimento indietro",
+  camera_moving_left: "Telecamera in movimento a sinistra",
+  camera_moving_right: "Telecamera in movimento a destra",
+  moving_forward: "Mi muovo in avanti",
+  moving_backward: "Mi muovo indietro",
+  moving_left: "Mi muovo a sinistra",
+  moving_right: "Mi muovo a destra",
+  action_triggered: "Azione avviata",
+  snippet_file_description: "Snippet Flock XR",
+  snippet_filename_prompt: "Inserisci un nome file per lo snippet:",
+  project_file_description: "Progetto Flock XR",
+  file_too_large_alert: "File troppo grande. La dimensione massima è 5 MB.",
+  invalid_filetype_alert: "Sono consentiti solo file di progetto .json o .flock.",
+  invalid_project_alert: "Questo file non è un progetto Flock XR valido.",
+  failed_to_read_file_alert: "Impossibile leggere il file.",
 
   // Context menu option translations
   export_JSON_snippet: "Esporta blocco come frammento JSON",

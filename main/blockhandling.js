@@ -1,5 +1,6 @@
 import * as Blockly from "blockly";
 import { workspace } from "./blocklyinit.js";
+import { translate } from "./translation.js";
 
 export function initializeBlockHandling() {
 	observeBlocklyInputs();
@@ -173,13 +174,15 @@ export function initializeBlockHandling() {
 		// Skip to main content (Alt+M)
 		if (event.altKey && event.key.toLowerCase() === "m") {
 			event.preventDefault();
-			const mainContent = document.getElementById("maincontent");
-			if (mainContent) {
-				mainContent.focus();
-				announceToScreenReader("Focused main content");
-			}
-			return;
-		}
+                        const mainContent = document.getElementById("maincontent");
+                        if (mainContent) {
+                                mainContent.focus();
+                                announceToScreenReader(
+                                        translate("focused_main_content"),
+                                );
+                        }
+                        return;
+                }
 
 		// Close modal with Escape
 		if (event.key === "Escape") {
