@@ -254,7 +254,7 @@ export const flockAnimate = {
     return new Promise(async (resolve) => {
       await flock.whenModelReady(meshName1, async function (mesh1) {
         if (mesh1) {
-          await flock.whenModelReady(meshName2, async function (mesh2) {
+          flock.whenModelReady(meshName2, async function (mesh2) {
             if (mesh2) {
               const x = mesh2.position.x;
               const y = mesh2.position.y;
