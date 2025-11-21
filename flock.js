@@ -1953,6 +1953,9 @@ export const flock = {
                                 if (meshId === "__active_camera__") {
                                         yield flock.scene.activeCamera;
                                         return;
+                                } else if (meshId === "__hemispheric_light__") {
+                                        yield flock.mainLight;
+                                        return;
                                 } else {
                                         const mesh =
                                                 flock.scene.getMeshByName(
@@ -2046,6 +2049,8 @@ export const flock = {
                         if (!scene) return null;
                         if (id === "__active_camera__")
                                 return scene.activeCamera ?? null;
+                        if (id === "hemispheric_light__")
+                                return flock.mainLight ?? null;
 
                         let t = scene.getMeshByName?.(id) ?? null;
                         if (!t && scene.UITexture)
