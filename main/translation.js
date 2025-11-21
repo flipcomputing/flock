@@ -347,15 +347,11 @@ export function applyTranslations() {
         .forEach((attr) => el.setAttribute(attr, translation));
     }
 
-    let contents = "";
-    for (const element of el.childNodes) {
-      if (element.nodeType == Node.TEXT_NODE || element.nodeName == "STRONG") {
-        contents += element.textContent;
-      }
-    }
-    contents = contents.trim();
+    const hasOnlyTextOrStrongChildren = Array.from(el.childNodes).every(
+      (node) => node.nodeType === Node.TEXT_NODE || node.nodeName === "STRONG",
+    );
 
-    if (contents !== "") {
+    if (hasOnlyTextOrStrongChildren) {
       // Replace the element's textual content only to avoid injecting HTML
       el.textContent = translation;
       return;

@@ -1,5 +1,3 @@
-import common from "./commmonHTML.js";
-
 export default {
   // Blockly category message keys for custom categories
   CATEGORY_SCENE: "Scena",
@@ -954,10 +952,9 @@ export default {
   about_description_company_ui: "Flip Computing",
   about_description_disclaimer_ui:
     " Provalo pure, ma tieni presente che le cose possono cambiare e alcune funzionalità non sono ancora complete. Stiamo cercando supporto per sviluppare Flock in modo che tu possa farci affidamento.",
-  about_run_ui:
-    "Dai un’occhiata alle demo sopra per vedere cosa puoi fare. Fai qualche modifica e clicca " +
-    common["run_icon"] +
-    "esegui.",
+  about_run_intro_ui:
+    "Dai un’occhiata alle demo sopra per vedere cosa puoi fare. Fai qualche modifica e clicca",
+  about_run_action_ui: "esegui.",
   about_links_privacy_prefix_ui: "Consulta la ",
   about_links_privacy_label_ui: "privacy policy",
   about_links_privacy_suffix_ui: " di Flock XR. ",
