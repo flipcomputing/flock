@@ -1173,6 +1173,12 @@ export const flockMaterial = {
       }
     };
 
+    const clearVertexColors = () => {
+      if (mesh?.isVerticesDataPresent?.(flock.BABYLON.VertexBuffer.ColorKind)) {
+        mesh.removeVerticesData(flock.BABYLON.VertexBuffer.ColorKind);
+      }
+    };
+
     // --- Material path for objects that can take a single material ------------
     const materialFromArray =
       Array.isArray(color) &&
@@ -1184,6 +1190,7 @@ export const flockMaterial = {
     if (materialFromArray || isBabylonMaterial(color) || isMaterialDescriptor(color)) {
       const matCandidate = materialFromArray || toMaterial(color);
       if (matCandidate) {
+        clearVertexColors();
         matCandidate.alpha = alpha;
         applyMaterialWithTilingIfAny(matCandidate);
         return;
@@ -1205,6 +1212,7 @@ export const flockMaterial = {
       }
 
       if (matCandidate) {
+        clearVertexColors();
         matCandidate.alpha = alpha;
         applyMaterialWithTilingIfAny(matCandidate);
         return;
@@ -1214,6 +1222,7 @@ export const flockMaterial = {
 
     // --- Single uniform colour (all shapes except special cases below) --------
     if (!Array.isArray(color) || color.length === 1) {
+      clearVertexColors();
       const material = new flock.BABYLON.StandardMaterial(
         `${shapeType.toLowerCase()}Material`,
         scene
