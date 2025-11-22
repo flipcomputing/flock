@@ -557,20 +557,24 @@ export const flock = {
                         if (oldIframe) {
                                 try {
                                         await oldIframe.contentWindow?.flock?.disposeOldScene?.();
-                                } catch {}
+                                } catch {
+                                        /* ignore cleanup errors */
+                                }
                                 try {
                                         oldIframe.onload = oldIframe.onerror =
                                                 null;
-                                } catch {}
+                                } catch {
+                                        /* ignore cleanup errors */
+                                }
                                 try {
                                         oldIframe.src = "about:blank";
-                                } catch {}
+                                } catch {
+                                        /* ignore cleanup errors */
+                                }
                                 try {
                                         oldIframe.remove();
                                 } catch {
-                                        oldIframe.parentNode?.removeChild(
-                                                oldIframe,
-                                        );
+                                        /* ignore cleanup errors */
                                 }
                         }
 
@@ -844,7 +848,9 @@ export const flock = {
                                 const onAbort = () => {
                                         try {
                                                 caf(id);
-                                        } catch {}
+                                        } catch {
+                                                /* ignore animation cancel errors */
+                                        }
                                         reject(
                                                 new DOMException(
                                                         "Aborted",
@@ -1060,18 +1066,26 @@ export const flock = {
                                 const w = old.contentWindow;
                                 try {
                                         w?.cancelAnimationFrame?.(w.__raf);
-                                } catch {}
+                                } catch {
+                                        /* ignore teardown errors */
+                                }
                                 try {
                                         w?.stop?.();
-                                } catch {} // stops loading
+                                } catch {
+                                        /* ignore teardown errors */ // stops loading
+                                }
                                 try {
                                         w?.close?.();
-                                } catch {} // some browsers free resources
+                                } catch {
+                                        /* ignore teardown errors */ // some browsers free resources
+                                }
 
                                 // Navigate to a harmless page to break references, then remove
                                 try {
                                         old.src = "about:blank";
-                                } catch {}
+                                } catch {
+                                        /* ignore teardown errors */
+                                }
                         } finally {
                                 // Remove from DOM to release the realm
                                 old.remove?.();
@@ -1266,7 +1280,9 @@ export const flock = {
                                                 canvas,
                                         );
                                         flock.scene?.detachControl?.();
-                                } catch {}
+                                } catch {
+                                        /* ignore scene cleanup errors */
+                                }
 
                                 try {
                                         const containers = Array.isArray(
@@ -1277,10 +1293,14 @@ export const flock = {
                                         for (const c of containers) {
                                                 try {
                                                         c?.dispose?.();
-                                                } catch {}
+                                                } catch {
+                                                        /* ignore asset disposal errors */
+                                                }
                                         }
                                         flock._assetContainers = [];
-                                } catch {}
+                                } catch {
+                                        /* ignore asset container cleanup errors */
+                                }
 
                                 // Abort any ongoing operations
                                 if (flock.abortController) {
@@ -2096,7 +2116,9 @@ export const flock = {
                                                 while (disposers.length) {
                                                         try {
                                                                 disposers.pop()();
-                                                        } catch {}
+                                                        } catch {
+                                                                /* ignore disposer errors */
+                                                        }
                                                 }
                                         }
                                 };
@@ -3213,7 +3235,7 @@ export const flock = {
                 // Remove disallowed characters (symbols, control chars), allow emoji, spaces, letters, numbers
                 // This allows everything except common punctuation and control characters
                 const clean = eventName.replace(
-                        /[!@#\$%\^&\*\(\)\+=\[\]\{\};:'"\\|,<>\?\/\n\r\t]/g,
+                        /[!@#$%^&*()+=[\]{};:'"\\|,<>?/\n\r\t]/g,
                         "",
                 );
                 return clean.substring(0, 50);
@@ -3245,7 +3267,7 @@ export const flock = {
                 }
 
                 const disallowedChars =
-                        /[!@#\$%\^&\*\(\)\+=\[\]\{\};:'"\\|,<>\?\/\n\r\t]/;
+                        /[!@#$%^&*()+=[\]{};:'"\\|,<>?/\n\r\t]/;
                 if (disallowedChars.test(eventName)) {
                         return false;
                 }
