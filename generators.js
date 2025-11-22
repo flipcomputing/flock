@@ -1695,15 +1695,15 @@ export function defineGenerators() {
                         Blockly.Names.NameType.VARIABLE,
                 );
 
-                const coordinate = block.getFieldValue("COORDINATE") || "'X'";
+                const coordinate = block.getFieldValue("COORDINATE") || "x";
                 const value = getFieldValue(block, "VALUE", "0");
 
                 switch (coordinate) {
-                        case "'X'":
+                        case "x":
                                 return `await moveByVector(${modelName}, { x: ${value}, y: 0, z: 0 });\n`;
-                        case "'Y'":
+                        case "y":
                                 return `await moveByVector(${modelName}, { x: 0, y: ${value}, z: 0 });\n`;
-                        case "'Z'":
+                        case "z":
                                 return `await moveByVector(${modelName}, { x: 0, y: 0, z: ${value} });\n`;
                 };
 
