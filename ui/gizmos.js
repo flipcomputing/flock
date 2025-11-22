@@ -1,6 +1,7 @@
 import * as Blockly from "blockly";
 import { meshMap, meshBlockIdMap } from "../generators";
 import { flock } from "../flock.js";
+import { translate } from "../main/translation.js";
 import { setPositionValues } from "./addmeshes.js";
 import {
   getMeshFromBlockKey,
@@ -622,7 +623,7 @@ export function toggleGizmo(gizmoType) {
       if (cameraMode === "play") {
         cameraMode = "fly";
         flock.printText({
-          text: "ℹ️ Fly camera, use arrow keys and page up/down",
+          text: translate("fly_camera_instructions"),
           duration: 15,
           color: "white",
         });
@@ -638,7 +639,7 @@ export function toggleGizmo(gizmoType) {
     case "delete":
       if (!gizmoManager.attachedMesh) {
         flock.printText({
-          text: "⚠️ Select a mesh then click delete.",
+          text: translate("select_mesh_delete_prompt"),
           duration: 30,
           color: "black",
         });
@@ -653,7 +654,7 @@ export function toggleGizmo(gizmoType) {
     case "duplicate":
       if (!gizmoManager.attachedMesh) {
         flock.printText({
-          text: "⚠️ Select a mesh then click duplicate, then click to place copies.",
+          text: translate("select_mesh_duplicate_prompt"),
           duration: 30,
           color: "black",
         });
@@ -780,7 +781,10 @@ export function toggleGizmo(gizmoType) {
               parseFloat(position.z.toFixed(2)),
             );
             flock.printText({
-              text: "Position: " + roundedPosition,
+              text: translate("position_readout").replace(
+                "{position}",
+                String(roundedPosition),
+              ),
               duration: 30,
               color: "black",
             });
@@ -813,7 +817,10 @@ export function toggleGizmo(gizmoType) {
                 parseFloat(position.z.toFixed(2)),
               );
               flock.printText({
-                text: "Position: " + roundedPosition,
+                text: translate("position_readout").replace(
+                  "{position}",
+                  String(roundedPosition),
+                ),
                 duration: 30,
                 color: "black",
               });

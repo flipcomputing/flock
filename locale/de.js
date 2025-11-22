@@ -863,6 +863,25 @@ export default {
   invalid_project_alert: "Diese Datei ist kein gültiges Flock XR-Projekt.",
   failed_to_read_file_alert: "Datei konnte nicht gelesen werden.",
 
+  // UI status messages
+  max_mesh_limit_reached:
+    "⚠️ Limit erreicht: Du kannst nur {max} Meshes in deiner Welt haben.",
+  high_memory_usage_warning: "Warnung: Hoher Speicherverbrauch ({percent}%)",
+  runtime_error_message: "Fehler: {message}",
+  xr_mode_message: "XR-Modus!",
+  fly_camera_instructions:
+    "ℹ️ Flugkamera, nutze Pfeiltasten und Bild auf/ab",
+  select_mesh_delete_prompt:
+    "⚠️ Wähle ein Mesh aus und klicke dann auf Löschen.",
+  select_mesh_duplicate_prompt:
+    "⚠️ Wähle ein Mesh aus, klicke auf Duplizieren und klicke dann, um Kopien zu platzieren.",
+  position_readout: "Position: {position}",
+  eyedropper_not_supported_alert:
+    "Das Pipettenwerkzeug wird in diesem Browser nicht unterstützt. Versuche es mit Chrome oder Edge.",
+  blocks_copied_alert: "Blöcke in den lokalen Speicher kopiert!",
+  no_blocks_to_copy_alert: "Keine Blöcke zum Kopieren verfügbar.",
+  copy_blocks_failed_alert: "Kopieren der Blöcke fehlgeschlagen.",
+
   export_JSON_snippet: "Block als Snippet exportieren",
   import_snippet: "Snippet importieren",
   export_PNG_snippet: "Als PNG exportieren",
