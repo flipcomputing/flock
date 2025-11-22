@@ -172,7 +172,7 @@ export function defineTransformBlocks() {
 				args0: [
 					{
 						type: "field_variable",
-						name: "BLOCK_NAME",
+						name: "MODEL",
 						variable: window.currentMesh,
 					},
 					{
