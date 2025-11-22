@@ -1886,6 +1886,21 @@ const toolboxAnimate = {
                 },
                 {
                         kind: "block",
+                        type: "glide_to_object",
+                        keyword: "glide",
+                        inputs: {
+                                DURATION: {
+                                        shadow: {
+                                                type: "math_number",
+                                                fields: {
+                                                        NUM: 1,
+                                                },
+                                        },
+                                },
+                        },
+                },
+                {
+                        kind: "block",
                         type: "rotate_anim_seconds",
                         keyword: "rotate",
                         inputs: {
