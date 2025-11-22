@@ -1165,6 +1165,35 @@ export const flockMaterial = {
       }
     };
 
+    const isPlaneSideMultiMaterial = (m) =>
+      m instanceof flock.BABYLON.MultiMaterial &&
+      (m.metadata?.planeSides || m.name?.startsWith("planeMultiMat_"));
+
+    const disposePlaneSideMaterials = (target = mesh.material) => {
+      if (!isPlaneSideMultiMaterial(target)) return;
+
+      target.subMaterials?.forEach((sub) => sub?.dispose());
+      target.dispose(true, true);
+      if (target === mesh.material) {
+        mesh.material = null;
+      }
+
+      // Revert to a single submesh when we drop the plane-side materials.
+      if (mesh.subMeshes?.length > 1) {
+        const indices = mesh.getIndices();
+        const verticesCount = mesh.getTotalVertices();
+        mesh.subMeshes = [];
+        new flock.BABYLON.SubMesh(
+          0,
+          0,
+          verticesCount,
+          0,
+          indices?.length || 0,
+          mesh,
+        );
+      }
+    };
+
     const applyMaterialWithTilingIfAny = (m) => {
       mesh.material = m;
       const tex =
@@ -1192,6 +1221,7 @@ export const flockMaterial = {
     if (materialFromArray || isBabylonMaterial(color) || isMaterialDescriptor(color)) {
       const matCandidate = materialFromArray || toMaterial(color);
       if (matCandidate) {
+        disposePlaneSideMaterials();
         clearVertexColors();
         matCandidate.alpha = resolvedAlpha;
         applyMaterialWithTilingIfAny(matCandidate);
@@ -1214,16 +1244,132 @@ export const flockMaterial = {
       }
 
       if (matCandidate) {
+        disposePlaneSideMaterials();
         clearVertexColors();
         matCandidate.alpha = resolvedAlpha;
         applyMaterialWithTilingIfAny(matCandidate);
         return;
+      }
+
+      // Two-colour planes: one colour per side
+      const isPlainColour = (c) =>
+        typeof c === "string" ||
+        c instanceof flock.BABYLON.Color3 ||
+        c instanceof flock.BABYLON.Color4;
+
+      if (Array.isArray(color) && color.length === 2 && color.every(isPlainColour)) {
+        clearVertexColors();
+
+        const [front, back] = color.map(makeColor4);
+        const makePlaneMaterial = (c4, suffix) => {
+          const mat = new flock.BABYLON.StandardMaterial(
+            `planeSide${suffix}_${mesh.id}`,
+            scene,
+          );
+          mat.diffuseColor = new flock.BABYLON.Color3(c4.r, c4.g, c4.b);
+          mat.alpha = c4.a;
+          return mat;
+        };
+
+        const tryReusePlaneSideMaterial = () => {
+          if (!isPlaneSideMultiMaterial(mesh.material)) return null;
+          if (mesh.material?.subMaterials?.length !== 2) return null;
+          return mesh.material;
+        };
+
+        const updatePlaneSideMaterial = (mat, frontColor, backColor) => {
+          if (mat.subMaterials?.length !== 2) return false;
+          const [frontMat, backMat] = mat.subMaterials;
+          if (!(frontMat instanceof flock.BABYLON.StandardMaterial)) return false;
+          if (!(backMat instanceof flock.BABYLON.StandardMaterial)) return false;
+
+          frontMat.diffuseColor = new flock.BABYLON.Color3(
+            frontColor.r,
+            frontColor.g,
+            frontColor.b,
+          );
+          frontMat.alpha = frontColor.a;
+
+          backMat.diffuseColor = new flock.BABYLON.Color3(
+            backColor.r,
+            backColor.g,
+            backColor.b,
+          );
+          backMat.alpha = backColor.a;
+
+          return true;
+        };
+
+        let multiMaterial = tryReusePlaneSideMaterial();
+        if (multiMaterial && !updatePlaneSideMaterial(multiMaterial, front, back)) {
+          disposePlaneSideMaterials(multiMaterial);
+          multiMaterial = null;
+        }
+
+        if (!multiMaterial) {
+          multiMaterial = new flock.BABYLON.MultiMaterial(
+            `planeMultiMat_${mesh.id}`,
+            scene,
+          );
+          multiMaterial.metadata = { planeSides: true };
+          multiMaterial.subMaterials.push(
+            makePlaneMaterial(front, "Front"),
+            makePlaneMaterial(back, "Back"),
+          );
+        }
+
+        multiMaterial.metadata = multiMaterial.metadata || {};
+        multiMaterial.metadata.planeSides = true;
+
+        const indices = mesh.getIndices();
+        const verticesCount = mesh.getTotalVertices();
+        if (
+          !indices ||
+          indices.length < 12 ||
+          indices.length % 2 !== 0 ||
+          verticesCount <= 0
+        ) {
+          disposePlaneSideMaterials(multiMaterial);
+          console.warn(
+            "Plane mesh missing expected geometry; falling back to single colour.",
+          );
+          return flock.applyMaterialToMesh(
+            mesh,
+            shapeType,
+            color[0],
+            resolvedAlpha,
+          );
+        } else {
+          mesh.subMeshes = [];
+          const firstSideCount = indices.length / 2;
+          new flock.BABYLON.SubMesh(
+            0,
+            0,
+            verticesCount,
+            0,
+            firstSideCount,
+            mesh,
+          );
+          new flock.BABYLON.SubMesh(
+            1,
+            0,
+            verticesCount,
+            firstSideCount,
+            indices.length - firstSideCount,
+            mesh,
+          );
+          mesh.material = multiMaterial;
+          return;
+        }
       }
       // Fall through to colour handling if not material-like
     }
 
     // --- Single uniform colour (all shapes except special cases below) --------
     if (!Array.isArray(color) || color.length === 1) {
+      if (shapeType === "Plane") {
+        disposePlaneSideMaterials();
+      }
       clearVertexColors();
       const material = new flock.BABYLON.StandardMaterial(
         `${shapeType.toLowerCase()}Material`,
