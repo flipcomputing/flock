@@ -1,3 +1,5 @@
+import { translate } from "./translation.js";
+
 export function setupInput(){
 
 	// Get the canvas element
@@ -228,35 +230,59 @@ export function setupInput(){
 					nextElement.focus();
 
 					// Announce for screen readers
-					if (nextElement.id === "renderCanvas") {
-						announceToScreenReader(
-							"3D canvas focused. Use arrow keys or WASD to navigate.",
-						);
-					} else if (nextElement.closest("#gizmoButtons")) {
-						announceToScreenReader(
-							`${nextElement.getAttribute("aria-label") || nextElement.title || "Design tool"} focused`,
-						);
-					} else if (
-						nextElement.classList?.contains("blocklySearchInput") ||
-						nextElement.type === "search"
-					) {
-						announceToScreenReader("Search toolbox focused");
-					} else if (nextElement.id === "blocklyDiv") {
-						announceToScreenReader("Code workspace focused");
-					} else if (
-						nextElement.tagName === "BUTTON" ||
-						nextElement.tagName === "LABEL"
-					) {
-						const text =
-							nextElement.getAttribute("aria-label") ||
-							nextElement.title ||
-							nextElement.textContent ||
-							"Interactive element";
-						announceToScreenReader(`${text} focused`);
-					}
-					else if (nextElement.id === "resizer") {
-						announceToScreenReader("Panel resizer focused. Use arrow keys to resize panels, Home to reset.");
-					}
+                                        if (nextElement.id === "renderCanvas") {
+                                                announceToScreenReader(
+                                                        translate(
+                                                                "canvas_focus_navigation",
+                                                        ),
+                                                );
+                                        } else if (nextElement.closest("#gizmoButtons")) {
+                                                const label =
+                                                        nextElement.getAttribute(
+                                                                "aria-label",
+                                                        ) ||
+                                                        nextElement.title ||
+                                                        translate("design_tool_label");
+                                                const focusedMessage = translate(
+                                                        "focused_element_suffix",
+                                                ).replace("{name}", label);
+                                                announceToScreenReader(focusedMessage);
+                                        } else if (
+                                                nextElement.classList?.contains("blocklySearchInput") ||
+                                                nextElement.type === "search"
+                                        ) {
+                                                announceToScreenReader(
+                                                        translate(
+                                                                "search_toolbox_focused",
+                                                        ),
+                                                );
+                                        } else if (nextElement.id === "blocklyDiv") {
+                                                announceToScreenReader(
+                                                        translate(
+                                                                "code_workspace_focused",
+                                                        ),
+                                                );
+                                        } else if (
+                                                nextElement.tagName === "BUTTON" ||
+                                                nextElement.tagName === "LABEL"
+                                        ) {
+                                                const text =
+                                                        nextElement.getAttribute("aria-label") ||
+                                                        nextElement.title ||
+                                                        nextElement.textContent ||
+                                                        translate("interactive_element_label");
+                                                const focusedMessage = translate(
+                                                        "focused_element_suffix",
+                                                ).replace("{name}", text);
+                                                announceToScreenReader(focusedMessage);
+                                        }
+                                        else if (nextElement.id === "resizer") {
+                                                announceToScreenReader(
+                                                        translate(
+                                                                "panel_resizer_focused",
+                                                        ),
+                                                );
+                                        }
 
 				}
 			}
@@ -289,8 +315,10 @@ export function setupInput(){
 			e.preventDefault();
 			const workspace = window.mainWorkspace || Blockly.getMainWorkspace();
 			if (workspace) {
-				workspace.undo(false);
-				announceToScreenReader("Undo performed");
+                                workspace.undo(false);
+                                announceToScreenReader(
+                                        translate("undo_performed"),
+                                );
 			}
 			return;
 		}
@@ -301,24 +329,26 @@ export function setupInput(){
 			e.preventDefault();
 			const workspace = window.mainWorkspace || Blockly.getMainWorkspace();
 			if (workspace) {
-				workspace.undo(true);
-				announceToScreenReader("Redo performed");
+                                workspace.undo(true);
+                                announceToScreenReader(
+                                        translate("redo_performed"),
+                                );
 			}
 			return;
 		}
 
 		// Announce camera movements to screen readers
-		const announcements = {
-			ArrowUp: "Camera moving forward",
-			ArrowDown: "Camera moving backward",
-			ArrowLeft: "Camera moving left",
-			ArrowRight: "Camera moving right",
-			w: "Moving forward",
-			s: "Moving backward",
-			a: "Moving left",
-			d: "Moving right",
-			" ": "Action triggered",
-		};
+                const announcements = {
+                        ArrowUp: translate("camera_moving_forward"),
+                        ArrowDown: translate("camera_moving_backward"),
+                        ArrowLeft: translate("camera_moving_left"),
+                        ArrowRight: translate("camera_moving_right"),
+                        w: translate("moving_forward"),
+                        s: translate("moving_backward"),
+                        a: translate("moving_left"),
+                        d: translate("moving_right"),
+                        " ": translate("action_triggered"),
+                };
 
 		if (announcements[e.key]) {
 			announceToScreenReader(announcements[e.key]);

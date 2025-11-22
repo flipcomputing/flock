@@ -46,6 +46,42 @@
   fill: var(--color-text-primary) !important;
 }
 
+/* Same as standard light theme */
+body[data-theme="dark"] .blocklyWidgetDiv input.blocklyHtmlInput {
+  background-color: #ffffff !important;
+  color: #000000 !important;
+}
+
+/* Same as standard light theme */
+body[data-theme="dark"] .blocklyWidgetDiv input.blocklyHtmlInput.blocklyInvalidInput {
+  background: #ffaaaa !important;
+  color: #575e75 !important;
+}
+
+/* Same as standard light theme */
+body[data-theme="dark-contrast"] .blocklyWidgetDiv input.blocklyHtmlInput {
+  background-color: #ffffff !important;
+  color: #000000 !important;
+}
+
+/* Same as standard light theme */
+body[data-theme="dark-contrast"] .blocklyWidgetDiv input.blocklyHtmlInput.blocklyInvalidInput {
+  background: #ffaaaa !important;
+  color: #575e75 !important;
+}
+
+/* Same as standard light theme */
+body[data-theme="contrast"] .blocklyWidgetDiv input.blocklyHtmlInput {
+  background-color: #ffffff !important;
+  color: #000000 !important;
+}
+
+/* Same as standard light theme */
+body[data-theme="contrast"] .blocklyWidgetDiv input.blocklyHtmlInput.blocklyInvalidInput {
+  background: #ffaaaa !important;
+  color: #575e75 !important;
+}
+
 text.blocklyText.blocklyFieldText.blocklyDropdownText {
  fill: var(--color-dropdown-text) !important; 
 }

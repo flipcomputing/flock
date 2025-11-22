@@ -1,5 +1,3 @@
-import common from "./commmonHTML.js"
-
 export default {
   // Blockly category message keys for custom categories
   CATEGORY_SCENE: "Scena",
@@ -721,40 +719,47 @@ export default {
   mixed_heights_png_option: "zmienne wysokości",
   uneven_terrain_png_option: "nierówny teren",
 
-  Idle_option: "Idle",
-  Walk_option: "Walk",
-  Run_option: "Run",
-  Wave_option: "Wave",
-  Yes_option: "Yes",
-  No_option: "No",
-  Duck_option: "Duck",
-  Fall_option: "Fall",
-  Fly_option: "Fly",
-  Jump_option: "Jump",
-  Flip_option: "Flip",
-  Dance1_option: "Dance1",
-  Dance2_option: "Dance2",
-  Dance3_option: "Dance3",
-  Dance4_option: "Dance4",
-  Jump_Idle_option: "Jump Idle",
-  Jump_Land_option: "Jump Land",
-  Punch_option: "Punch",
-  HitReact_option: "Hit React",
-  Idle_Hold_option: "Idle Hold",
-  Walk_Hold_option: "Walk Hold",
-  Run_Hold_option: "Run Hold",
-  Idle_Attack_option: "Idle Attack",
-  Walk_Attack_option: "Walk Attack",
-  Run_Attack_option: "Run Attack",
-  Sit_Down_option: "Sit Down",
-  Sitting_option: "Sitting",
-  Stand_Up_option: "Stand Up",
-  Wobble_option: "Wobble",
-  Clap_option: "Clap",
+  Idle_option: "Bezczynność",
+  Walk_option: "Chód",
+  Run_option: "Bieg",
+  Wave_option: "Machanie",
+  Yes_option: "Tak",
+  No_option: "Nie",
+  Duck_option: "Schylenie",
+  Fall_option: "Upadek",
+  Fly_option: "Lot",
+  Jump_option: "Skok",
+  Flip_option: "Salto",
+
+  Dance1_option: "Taniec 1",
+  Dance2_option: "Taniec 2",
+  Dance3_option: "Taniec 3",
+  Dance4_option: "Taniec 4",
+
+  Jump_Idle_option: "Skok – bezczynność",
+  Jump_Land_option: "Lądowanie",
+  Punch_option: "Cios",
+  HitReact_option: "Reakcja na uderzenie",
+
+  Idle_Hold_option: "Bezczynność – trzymanie",
+  Walk_Hold_option: "Chód – trzymanie",
+  Run_Hold_option: "Bieg – trzymanie",
+
+  Idle_Attack_option: "Bezczynność – atak",
+  Walk_Attack_option: "Chód – atak",
+  Run_Attack_option: "Bieg – atak",
+
+  Sit_Down_option: "Siadanie",
+  Sitting_option: "Siedzenie",
+  Stand_Up_option: "Wstawanie",
+  Wobble_option: "Chwianie",
+  Clap_option: "Klaśnięcie",
 
   // HTML translations
   loading_ui: "Ładowanie Flock XR…",
   loading_success_ui: "Flock XR został pomyślnie załadowany",
+  loading_title_ui: "Ładowanie Flock XR",
+  import_project_file_ui: "Importuj plik projektu",
 
   demo_ui: "Demo",
   new_ui: "Nowy",
@@ -779,8 +784,11 @@ export default {
   tent_lights_ui: "⛺ Światełka namiotu",
   my_place_ui: "🏠 Moje miejsce",
   microbit_monkey_ui: "🐵 małpa micro:bit",
+  character_designer_ui: "👚 Kreator postaci",
+  sit_down_ui: "🪑 Usiądź",
 
   main_menu_ui: "Menu główne",
+  menu_button_sr_label_ui: "Menu",
   project_submenu_ui: "Projekt",
   project_new_ui: "Nowy",
   project_open_ui: "Otwórz",
@@ -796,6 +804,7 @@ export default {
   run_code_button_ui: "Uruchom kod",
   stop_code_button_ui: "Zatrzymaj kod",
   open_button_ui: "Otwórz projekt z pliku na komputerze",
+  open_file_input_label_ui: "Wybierz plik projektu do otwarcia",
   export_code_button_ui: "Zapisz projekt do pliku na komputerze",
   example_select_ui: "Wybierz przykład do załadowania",
 
@@ -818,19 +827,60 @@ export default {
   project_name_ui: "Nazwa projektu",
 
   about_heading_ui: "O Flock XR",
-  about_description_ui: `Flock XR to <strong>prototyp</strong> stworzony przez
-  <a target="_blank" href="https://flipcomputing.com/flockxr/">Flip Computing</a
-  >. Wypróbuj go, ale miej na uwadze, że rzeczy mogą się zmieniać i
-  niektóre funkcje nie są jeszcze ukończone. Aktualnie
-  poszukujemy wsparcia, aby Flock XR mógł stać się stabilny.`,
-  about_run_ui: "Spójrz na powyższe dema, aby zobaczyć, co możesz zrobić. Wprowadź zmiany i kliknij " + common["run_icon"] + "uruchom.",
-  about_links_ui: `Zobacz <a target="_blank" href="https://flockxr.com/privacy-policy/">politykę prywatności</a> Flock XR. <a href="https://flipcomputing.com/contact/" target="_blank">Skontaktuj się z nami</a>`,
+  about_description_intro_ui: "Flock XR to ",
+  about_description_prototype_ui: "prototyp",
+  about_description_made_by_ui: " stworzony przez ",
+  about_description_company_ui: "Flip Computing",
+  about_description_disclaimer_ui:
+    " Wypróbuj go, ale miej na uwadze, że rzeczy mogą się zmieniać i niektóre funkcje nie są jeszcze ukończone. Aktualnie poszukujemy wsparcia, aby Flock XR mógł stać się stabilny.",
+  about_run_intro_ui:
+    "Spójrz na powyższe dema, aby zobaczyć, co możesz zrobić. Wprowadź zmiany i kliknij",
+  about_run_action_ui: "uruchom.",
+  about_links_privacy_prefix_ui: "Zobacz ",
+  about_links_privacy_label_ui: "politykę prywatności",
+  about_links_privacy_suffix_ui: " Flock XR. ",
+  about_links_contact_label_ui: "Skontaktuj się z nami",
 
-  keyboard_controls_ui: "<strong>Informacje o kontrolach klawiatury [&nbsp;Ctrl + /&nbsp;]</strong>",
+  keyboard_controls_ui: "Informacje o kontrolach klawiatury [Ctrl + /]",
   keyboard_menu_ui: "Otwórz menu główne",
   keyboard_play_ui: "Play",
   keyboard_gizmos_ui: "Przejdź do narzędzi",
   keyboard_navigation_ui: "Przejdź do paska nawigacji przeglądarki (skróty działają tutaj)",
+
+  // Accessibility and announcements
+  unmute_audio_aria: "Włącz dźwięk.",
+  focused_main_content: "Skupiono się na głównej treści.",
+  toolbox_search_results_aria: "Wyniki wyszukiwania w toolboxie.",
+  context_copy_option: "Kopiuj",
+  context_paste_option: "Wklej",
+  context_cut_option: "Wytnij",
+  canvas_focus_navigation:
+    "Skupiono na płótnie 3D. Użyj klawiszy strzałek lub WASD, aby nawigować.",
+  design_tool_label: "Narzędzie projektowe",
+  focused_element_suffix: "{name} w fokuse",
+  search_toolbox_focused: "Skupiono wyszukiwanie w toolboxie",
+  code_workspace_focused: "Skupiono przestrzeń kodu",
+  interactive_element_label: "Element interaktywny",
+  panel_resizer_focused:
+    "Uchwyt zmiany rozmiaru panelu w fokusie. Użyj strzałek, aby zmienić rozmiar, Home aby zresetować.",
+  undo_performed: "Cofnięto",
+  redo_performed: "Ponowiono",
+  camera_moving_forward: "Kamera porusza się do przodu",
+  camera_moving_backward: "Kamera porusza się do tyłu",
+  camera_moving_left: "Kamera porusza się w lewo",
+  camera_moving_right: "Kamera porusza się w prawo",
+  moving_forward: "Poruszanie do przodu",
+  moving_backward: "Poruszanie do tyłu",
+  moving_left: "Poruszanie w lewo",
+  moving_right: "Poruszanie w prawo",
+  action_triggered: "Akcja wywołana",
+  snippet_file_description: "Fragment Flock XR",
+  snippet_filename_prompt: "Podaj nazwę pliku dla fragmentu:",
+  project_file_description: "Projekt Flock XR",
+  file_too_large_alert: "Plik jest za duży. Maksymalny rozmiar to 5 MB.",
+  invalid_filetype_alert: "Dozwolone są tylko pliki projektu .json lub .flock.",
+  invalid_project_alert: "Ten plik nie jest prawidłowym projektem Flock XR.",
+  failed_to_read_file_alert: "Nie udało się odczytać pliku.",
 
   // Context menu option translations
   export_JSON_snippet: "Eksportuj blok jako fragment JSON",
@@ -842,6 +892,14 @@ export default {
   new_variable_decision: "Nowa zmienna…",
 
   // Service worker update notifications
-  update_available: "Dostępna jest nowa wersja Flock.",
-  reload_button: "Odśwież",
+  update_available_ui: "Dostępna jest nowa wersja Flock.",
+  reload_button_ui: "Odśwież",
+
+  colour_rgb: "czerwony %1 zielony %2 niebieski %3",
+  colour_random: "losowy kolor",
+  colour_blend: "zmieszaj %1 i %2 o %3",
+
+  dark_contrast_theme_ui: "Ciemny",
+  
+
 }
