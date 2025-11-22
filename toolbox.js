@@ -635,6 +635,37 @@ const toolboxSceneLights = {
                 },
                 {
                         kind: "block",
+                        type: "hemispheric_light",
+                        keyword: "hemispheric_light",
+                        inputs: {
+                                X: {
+                                        shadow: {
+                                                type: "math_number",
+                                                fields: {
+                                                        NUM: 0,
+                                                },
+                                        },
+                                },
+                                Y: {
+                                        shadow: {
+                                                type: "math_number",
+                                                fields: {
+                                                        NUM: 3,
+                                                },
+                                        },
+                                },
+                                Z: {
+                                        shadow: {
+                                                type: "math_number",
+                                                fields: {
+                                                        NUM: 0,
+                                                },
+                                        },
+                                },
+                        },
+                },
+                {
+                        kind: "block",
                         type: "create_particle_effect",
                         keyword: "particle",
                         inputs: {
