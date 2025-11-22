@@ -2,8 +2,6 @@
 // Dr Tracy Gardner - https://github.com/tracygardner
 // Flip Computing Limited - flipcomputing.com
 
-const sesUrl = "/vendor/ses/lockdown.umd.min.js";
-
 import * as acorn from "acorn";
 import * as walk from "acorn-walk";
 import HavokPhysics from "@babylonjs/havok";
@@ -12,6 +10,7 @@ import * as BABYLON_GUI from "@babylonjs/gui";
 import * as BABYLON_LOADER from "@babylonjs/loaders";
 import { GradientMaterial } from "@babylonjs/materials";
 import * as BABYLON_EXPORT from "@babylonjs/serializers";
+import { FlowGraphLog10Block, SetMaterialIDBlock } from "babylonjs";
 // Point Babylon’s Draco loader at your local folder
 BABYLON.DracoCompression.Configuration = {
         decoder: {
@@ -20,7 +19,7 @@ BABYLON.DracoCompression.Configuration = {
                 fallbackUrl: "./draco/draco_decoder_gltf.js",
         },
 };
-import { FlowGraphLog10Block, SetMaterialIDBlock } from "babylonjs";
+import earcut from "earcut";
 import "@fontsource/atkinson-hyperlegible-next";
 import "@fontsource/atkinson-hyperlegible-next/500.css";
 import "@fontsource/atkinson-hyperlegible-next/600.css";
@@ -28,8 +27,13 @@ import "@fontsource/atkinson-hyperlegible-next/600.css";
 import "@fontsource/asap";
 import "@fontsource/asap/500.css";
 import "@fontsource/asap/600.css";
-import earcut from "earcut";
 import { characterNames } from "./config";
+
+const optionalBabylonDeps = { earcut, FlowGraphLog10Block, SetMaterialIDBlock };
+const globalEarcutTarget = typeof globalThis !== "undefined" ? globalThis : undefined;
+if (globalEarcutTarget) {
+        Object.assign(globalEarcutTarget, optionalBabylonDeps);
+}
 import { flockCSG, setFlockReference as setFlockCSG } from "./api/csg";
 import {
         flockAnimate,
@@ -81,6 +85,8 @@ export const flock = {
         soundPath: "./sounds/",
         imagePath: "./images/",
         texturePath: "./textures/",
+        // Keep optional Babylon dependencies referenced so bundlers include them.
+        optionalBabylonDeps,
         engine: null,
         engineReady: false,
         eventDebug: false,
@@ -415,18 +421,12 @@ export const flock = {
                         "callee",
                         "arguments",
                 ]);
-                let ast;
-                try {
-                        ast = acorn.parse(src, {
-                                ecmaVersion: "latest",
-                                sourceType: "script",
-                                allowAwaitOutsideFunction: true,
-                                locations: false,
-                        });
-                } catch (e) {
-                        // Surface syntax errors directly
-                        throw e;
-                }
+                const ast = acorn.parse(src, {
+                        ecmaVersion: "latest",
+                        sourceType: "script",
+                        allowAwaitOutsideFunction: true,
+                        locations: false,
+                });
 
                 walk.simple(ast, {
                         // Syntax we never allow
@@ -579,7 +579,7 @@ export const flock = {
                         }
 
                         // --- create fresh same-origin iframe ---
-                        const { iframe, win, doc } =
+                        const { win, doc } =
                                 await flock.replaceSandboxIframe({
                                         id: "flock-iframe",
                                         sameOrigin: true,
@@ -625,9 +625,7 @@ export const flock = {
 
                         const whitelist = this.createWhitelist({
                                 win,
-                                doc,
                                 signal,
-                                runToken,
                                 guard,
                         });
 
@@ -730,36 +728,6 @@ export const flock = {
                                 endowments[key] = undefined;
                         }
 
-                        function buildConsole(win) {
-                                const src = win.console || {};
-                                const cons = Object.create(null);
-                                const methods = [
-                                        "log",
-                                        "info",
-                                        "warn",
-                                        "error",
-                                        "debug",
-                                        "trace",
-                                        "group",
-                                        "groupCollapsed",
-                                        "groupEnd",
-                                        "table",
-                                        "time",
-                                        "timeEnd",
-                                        "timeLog",
-                                        "clear",
-                                        "assert",
-                                        "count",
-                                        "countReset",
-                                ];
-                                for (const m of methods) {
-                                        if (typeof src[m] === "function")
-                                                cons[m] = src[m].bind(src);
-                                }
-                                return Object.freeze(cons);
-                        }
-                        //endowments.console = buildConsole(win);
-
                         Object.freeze(endowments);
 
                         // Wrap user code to allow top-level await
@@ -824,7 +792,7 @@ export const flock = {
                         throw error;
                 }
         },
-        createWhitelist({ win, doc, signal, runToken, guard } = {}) {
+        createWhitelist({ win, signal, guard } = {}) {
                 // --- Bind realm-scoped primitives (fallback to parent if win missing) ---
                 const raf =
                         win?.requestAnimationFrame?.bind(win) ??
@@ -1117,7 +1085,7 @@ export const flock = {
                                 iframe.onload = iframe.onerror = null;
                                 resolve();
                         };
-                        iframe.onerror = (e) => {
+                        iframe.onerror = () => {
                                 iframe.onload = iframe.onerror = null;
                                 reject(new Error("iframe failed to load"));
                         };
@@ -1620,10 +1588,10 @@ export const flock = {
                                                         console.log(
                                                                 "Forced garbage collection",
                                                         );
-                                                } catch (error) {
-                                                        // Silently fail if gc is not available
-                                                }
-                                        }, 100);
+                                        } catch {
+                                                // Silently fail if gc is not available
+                                        }
+                                }, 100);
                                 }
 
                                 console.log(
@@ -2593,17 +2561,15 @@ export const flock = {
                         // Combine the parent mesh with its children
                         const meshList = [mesh, ...childMeshes];
                         if (format === "STL") {
-                                const stlData =
-                                        flock.EXPORT.STLExport.CreateSTL(
-                                                meshList,
-                                                true,
-                                                mesh.name,
-                                                false,
-                                                false,
-                                        );
+                                flock.EXPORT.STLExport.CreateSTL(
+                                        meshList,
+                                        true,
+                                        mesh.name,
+                                        false,
+                                        false,
+                                );
                         } else if (format === "OBJ") {
-                                const objData =
-                                        flock.EXPORT.OBJExport.OBJ(mesh);
+                                flock.EXPORT.OBJExport.OBJ(mesh);
                                 //download(mesh.name + ".obj", objData, "text/plain");
                         } else if (format === "GLB") {
                                 mesh.flipFaces();
