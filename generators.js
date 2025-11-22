@@ -1696,7 +1696,7 @@ export function defineGenerators() {
                 );
 
                 const coordinate = block.getFieldValue("COORDINATE") || "'X'";
-                const value = getFieldValue(block, "VALUE", "0")
+                const value = getFieldValue(block, "VALUE", "0");
 
                 switch (coordinate) {
                         case "'X'":
