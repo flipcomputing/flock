@@ -1446,6 +1446,21 @@ const toolboxTransform = {
                 },
                 {
                         kind: "block",
+                        type: "move_to_xyz_single",
+                        keyword: "pos",
+                        inputs: {
+                                VALUE: {
+                                        shadow: {
+                                                type: "math_number",
+                                                fields: {
+                                                        NUM: 0,
+                                                },
+                                        },
+                                },
+                        },
+                },
+                {
+                        kind: "block",
                         type: "move_to",
                         keyword: "goto",
                 },

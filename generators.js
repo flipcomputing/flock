@@ -1835,6 +1835,26 @@ export function defineGenerators() {
                 return `await positionAt(${meshName}, { x: ${x}, y: ${y}, z: ${z}, useY: ${useY} });\n`;
         };
 
+        javascriptGenerator.forBlock["move_to_xyz_single"] = function (block) {
+                const meshName = javascriptGenerator.nameDB_.getName(
+                        block.getFieldValue("MODEL"),
+                        Blockly.Names.NameType.VARIABLE,
+                );
+
+                const coordinate = block.getFieldValue("COORDINATE") || "x";
+                const value = getFieldValue(block, "VALUE", "0");
+                const useY = block.getFieldValue("USE_Y") === "TRUE";
+                
+                switch (coordinate) {
+                        case "x":                              
+                                return `await positionAt(${meshName}, { x: ${value}, y: 0, z: 0, useY: ${useY} });\n`; 
+                        case "y":                              
+                                return `await positionAt(${meshName}, { x: 0, y: ${value}, z: 0, useY: ${useY} });\n`; 
+                        case "z":                              
+                                return `await positionAt(${meshName}, { x: 0, y: 0, z: ${value}, useY: ${useY} });\n`; 
+                };
+        };
+
         javascriptGenerator.forBlock["distance_to"] = function (block) {
         
                 const meshName1 = javascriptGenerator.nameDB_.getName(
