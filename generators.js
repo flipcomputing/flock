@@ -1705,7 +1705,7 @@ export function defineGenerators() {
                                 return `await moveByVector(${modelName}, { x: 0, y: ${value}, z: 0 });\n`;
                         case "'Z'":
                                 return `await moveByVector(${modelName}, { x: 0, y: 0, z: ${value} });\n`;
-                }
+                };
 
         };
 
