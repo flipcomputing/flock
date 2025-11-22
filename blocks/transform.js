@@ -22,6 +22,7 @@ export function defineTransformBlocks() {
 		const handleChange = handleFieldOrChildChange(block, changeEvent)
 		if (flock.blockDebug) console.log(handleChange);
 	}
+
 	Blockly.Blocks["move_by_xyz"] = {
 		init: function () {
 			this.jsonInit({
@@ -57,6 +58,49 @@ export function defineTransformBlocks() {
 				colour: categoryColours["Transform"],
 				inputsInline: true,
 				tooltip: getTooltip("move_by_xyz"),
+			});
+			this.setHelpUrl(getHelpUrlFor(this.type));
+			this.setStyle('transform_blocks');
+
+			// Set up the change handler.
+			this.setOnChange((changeEvent) =>
+				handleBlockChange(this, changeEvent),
+			);
+		},
+	};
+
+	Blockly.Blocks["move_by_xyz_single"] = {
+		init: function () {
+			this.jsonInit({
+				type: "move_by_xyz_single",
+				message0: translate("move_by_xyz_single"),
+				args0: [
+					{
+						type: "field_variable",
+						name: "BLOCK_NAME",
+						variable: window.currentMesh,
+					},
+					{
+						type: "field_dropdown",
+						name: "COORDINATE",
+						options: [
+							getDropdownOption("x_coordinate"),
+							getDropdownOption("y_coordinate"),
+							getDropdownOption("z_coordinate"),
+						]
+					},
+					{
+						type: "input_value",
+						name: "VALUE",
+						check: "Number",
+						align: "RIGHT",
+					},
+				],
+				previousStatement: null,
+				nextStatement: null,
+				colour: categoryColours["Transform"],
+				inputsInline: true,
+				tooltip: getTooltip("move_by_xyz_single"),
 			});
 			this.setHelpUrl(getHelpUrlFor(this.type));
 			this.setStyle('transform_blocks');
@@ -109,6 +153,55 @@ export function defineTransformBlocks() {
 				colour: categoryColours["Transform"],
 				inputsInline: true,
 				tooltip: getTooltip("move_to_xyz"),
+			});
+			this.setHelpUrl(getHelpUrlFor(this.type));
+			this.setStyle('transform_blocks');
+
+			// Set up the change handler.
+			this.setOnChange((changeEvent) =>
+				handleBlockChange(this, changeEvent),
+			);
+		},
+	};
+
+	Blockly.Blocks["move_to_xyz_single"] = {
+		init: function () {
+			this.jsonInit({
+				type: "move_to_xyz_single",
+				message0: translate("move_to_xyz_single"),
+				args0: [
+					{
+						type: "field_variable",
+						name: "MODEL",
+						variable: window.currentMesh,
+					},
+					{
+						type: "field_dropdown",
+						name: "COORDINATE",
+						options: [
+							getDropdownOption("x_coordinate"),
+							getDropdownOption("y_coordinate"),
+							getDropdownOption("z_coordinate"),
+						]
+					},
+					{
+						type: "input_value",
+						name: "VALUE",
+						check: "Number",
+						align: "RIGHT",
+					},
+					{
+						type: "field_checkbox",
+						name: "USE_Y",
+						checked: false,
+						text: "Use Y axis",
+					},
+				],
+				previousStatement: null,
+				nextStatement: null,
+				colour: categoryColours["Transform"],
+				inputsInline: true,
+				tooltip: getTooltip("move_to_xyz_single"),
 			});
 			this.setHelpUrl(getHelpUrlFor(this.type));
 			this.setStyle('transform_blocks');

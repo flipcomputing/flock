@@ -1689,6 +1689,26 @@ export function defineGenerators() {
                 return `await moveByVector(${modelName}, { x: ${x}, y: ${y}, z: ${z} });\n`;
         };
 
+        javascriptGenerator.forBlock["move_by_xyz_single"] = function (block) {
+                const modelName = javascriptGenerator.nameDB_.getName(
+                        block.getFieldValue("BLOCK_NAME"),
+                        Blockly.Names.NameType.VARIABLE,
+                );
+
+                const coordinate = block.getFieldValue("COORDINATE") || "x_coordinate";
+                const value = getFieldValue(block, "VALUE", "0");
+
+                switch (coordinate) {
+                        case "x_coordinate":
+                                return `await moveByVector(${modelName}, { x: ${value}, y: 0, z: 0 });\n`;
+                        case "y_coordinate":
+                                return `await moveByVector(${modelName}, { x: 0, y: ${value}, z: 0 });\n`;
+                        case "z_coordinate":
+                                return `await moveByVector(${modelName}, { x: 0, y: 0, z: ${value} });\n`;
+                };
+
+        };
+
         javascriptGenerator.forBlock["scale"] = function (block) {
                 const modelName = javascriptGenerator.nameDB_.getName(
                         block.getFieldValue("BLOCK_NAME"),
@@ -1813,6 +1833,26 @@ export function defineGenerators() {
                 const useY = block.getFieldValue("USE_Y") === "TRUE";
 
                 return `await positionAt(${meshName}, { x: ${x}, y: ${y}, z: ${z}, useY: ${useY} });\n`;
+        };
+
+        javascriptGenerator.forBlock["move_to_xyz_single"] = function (block) {
+                const meshName = javascriptGenerator.nameDB_.getName(
+                        block.getFieldValue("MODEL"),
+                        Blockly.Names.NameType.VARIABLE,
+                );
+
+                const coordinate = block.getFieldValue("COORDINATE") || "x_coordinate";
+                const value = getFieldValue(block, "VALUE", "0");
+                const useY = block.getFieldValue("USE_Y") === "TRUE";
+                
+                switch (coordinate) {
+                        case "x_coordinate":                              
+                                return `await positionAt(${meshName}, { x: ${value}, y: null, z: null, useY: ${useY} });\n`;
+                        case "y_coordinate":                              
+                                return `await positionAt(${meshName}, { x: null, y: ${value}, z: null, useY: ${useY} });\n`;
+                        case "z_coordinate":                              
+                                return `await positionAt(${meshName}, { x: null, y: null, z: ${value}, useY: ${useY} });\n`;
+                };
         };
 
         javascriptGenerator.forBlock["distance_to"] = function (block) {
