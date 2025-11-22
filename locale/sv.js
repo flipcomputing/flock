@@ -999,6 +999,25 @@ export default {
       invalid_project_alert: "Den här filen är inte ett giltigt Flock XR-projekt.",
       failed_to_read_file_alert: "Det gick inte att läsa filen.",
 
+      // UI status messages
+      max_mesh_limit_reached:
+        "⚠️ Gräns nådd: du kan bara ha {max} mesh i din värld.",
+      high_memory_usage_warning: "Varning: hög minnesanvändning ({percent}%)",
+      runtime_error_message: "Fel: {message}",
+      xr_mode_message: "XR-läge!",
+      fly_camera_instructions:
+        "ℹ️ Flygkamera, använd piltangenterna och Page Up/Down",
+      select_mesh_delete_prompt:
+        "⚠️ Välj ett mesh och klicka sedan på ta bort.",
+      select_mesh_duplicate_prompt:
+        "⚠️ Välj ett mesh och klicka på duplicera, klicka sedan för att placera kopior.",
+      position_readout: "Position: {position}",
+      eyedropper_not_supported_alert:
+        "Färgväljaren stöds inte i den här webbläsaren. Prova Chrome eller Edge.",
+      blocks_copied_alert: "Block kopierade till lokal lagring!",
+      no_blocks_to_copy_alert: "Inga block att kopiera.",
+      copy_blocks_failed_alert: "Det gick inte att kopiera blocken.",
+
       // Context menu option translations
       export_JSON_snippet: "Exportera block som JSON-utdrag",
       import_snippet: "Importera utdrag",

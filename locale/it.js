@@ -1002,6 +1002,25 @@ export default {
   invalid_project_alert: "Questo file non è un progetto Flock XR valido.",
   failed_to_read_file_alert: "Impossibile leggere il file.",
 
+  // UI status messages
+  max_mesh_limit_reached:
+    "⚠️ Limite raggiunto: puoi avere solo {max} mesh nel tuo mondo.",
+  high_memory_usage_warning: "Avviso: uso di memoria elevato ({percent}%)",
+  runtime_error_message: "Errore: {message}",
+  xr_mode_message: "Modalità XR!",
+  fly_camera_instructions:
+    "ℹ️ Telecamera volante, usa le frecce e Pag su/giù",
+  select_mesh_delete_prompt:
+    "⚠️ Seleziona una mesh e poi fai clic su elimina.",
+  select_mesh_duplicate_prompt:
+    "⚠️ Seleziona una mesh, fai clic su duplica e poi fai clic per posizionare le copie.",
+  position_readout: "Posizione: {position}",
+  eyedropper_not_supported_alert:
+    "Lo strumento contagocce non è supportato in questo browser. Prova a usare Chrome o Edge.",
+  blocks_copied_alert: "Blocchi copiati nella memoria locale!",
+  no_blocks_to_copy_alert: "Nessun blocco disponibile da copiare.",
+  copy_blocks_failed_alert: "Copia dei blocchi non riuscita.",
+
   // Context menu option translations
   export_JSON_snippet: "Esporta blocco come frammento JSON",
   import_snippet: "Importa frammento",

@@ -66,6 +66,7 @@ import {
 import { flockScene, setFlockReference as setFlockScene } from "./api/scene";
 import { flockMesh, setFlockReference as setFlockMesh } from "./api/mesh";
 import { flockCamera, setFlockReference as setFlockCamera } from "./api/camera";
+import { translate } from "./main/translation.js";
 // Helper functions to make flock.BABYLON js easier to use in Flock
 console.log("Flock helpers loading");
 
@@ -195,7 +196,7 @@ export const flock = {
 
                 if (meshCount >= max) {
                         flock.printText?.({
-                                text: `⚠️ Limit reached: You can only have ${max} meshes in your world.`,
+                                text: translate("max_mesh_limit_reached").replace("{max}", max),
                                 duration: 30,
                                 color: "#ff0000",
                         });
@@ -232,7 +233,10 @@ export const flock = {
                         );
                         // Show user warning in your UI
                         this.printText({
-                                text: `Warning: High memory usage (${usagePercent.toFixed(1)}%)`,
+                                text: translate("high_memory_usage_warning").replace(
+                                        "{percent}",
+                                        usagePercent.toFixed(1),
+                                ),
                                 duration: 3,
                                 color: "#ff9900",
                         });
@@ -773,7 +777,10 @@ export const flock = {
                         console.error("Enhanced error details:", enhancedError);
 
                         this.printText?.({
-                                text: `Error: ${error.message}`,
+                                text: translate("runtime_error_message").replace(
+                                        "{message}",
+                                        error.message,
+                                ),
                                 duration: 5,
                                 color: "#ff0000",
                         });
@@ -2450,7 +2457,7 @@ export const flock = {
         async setXRMode(mode) {
                 await flock.initializeXR(mode);
                 flock.printText({
-                        text: "XR Mode!",
+                        text: translate("xr_mode_message"),
                         duration: 5,
                         color: "white",
                 });
