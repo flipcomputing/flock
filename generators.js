@@ -1689,6 +1689,26 @@ export function defineGenerators() {
                 return `await moveByVector(${modelName}, { x: ${x}, y: ${y}, z: ${z} });\n`;
         };
 
+        javascriptGenerator.forBlock["move_by_xyz_single"] = function (block) {
+                const modelName = javascriptGenerator.nameDB_.getName(
+                        block.getFieldValue("BLOCK_NAME"),
+                        Blockly.Names.NameType.VARIABLE,
+                );
+
+                const coordinate = block.getFieldValue("COORDINATE") || "'X'";
+                const value = getFieldValue(block, "VALUE", "0")
+
+                switch (coordinate) {
+                        case "'X'":
+                                return `await moveByVector(${modelName}, { x: ${value}, y: 0, z: 0 });\n`;
+                        case "'Y'":
+                                return `await moveByVector(${modelName}, { x: 0, y: ${value}, z: 0 });\n`;
+                        case "'Z'":
+                                return `await moveByVector(${modelName}, { x: 0, y: 0, z: ${value} });\n`;
+                }
+
+        };
+
         javascriptGenerator.forBlock["scale"] = function (block) {
                 const modelName = javascriptGenerator.nameDB_.getName(
                         block.getFieldValue("BLOCK_NAME"),

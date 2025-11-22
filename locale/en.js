@@ -275,6 +275,7 @@ export default {
   
   // Custom block translations - Transform blocks
   move_by_xyz: "move %1 by x: %2 y: %3 z: %4",
+  move_by_xyz_single: "change position of %1 by %2 %3",
   move_to_xyz: "move %1 to x: %2 y: %3 z: %4 y? %5",
   move_to: "move %1 to %2 y? %3",
   scale: "scale %1 x: %2 y: %3 z: %4\norigin x: %5 y: %6 z: %7",
@@ -458,6 +459,7 @@ export default {
   
   // Tooltip translations - Transform blocks
   move_by_xyz_tooltip: "Move a mesh a given amount in x y and z directions.\nKeyword: move",
+  move_by_xyz_single_tooltip: "Move a mesh a given amount in either x y or z direction.\nKeyword: move",
   move_to_xyz_tooltip: "Teleport the mesh to the coordinates. Optionally, use the Y axis.\nKeyword: moveby",
   move_to_tooltip: "Teleport the first mesh to the location of the second mesh.\nKeyword: moveto",
   scale_tooltip: "Resize a mesh to the given x, y, and z and controls the origin of scaling. \nKeyword: scale",
