@@ -1074,6 +1074,21 @@ const toolboxTransformPhysics = {
                         type: "show_physics",
                         keyword: "colliders",
                 },
+                {
+                        kind: "block",
+                        type: "move_forward",
+                        keyword: "forward",
+                        inputs: {
+                                SPEED: {
+                                        shadow: {
+                                                type: "math_number",
+                                                fields: {
+                                                        NUM: 3,
+                                                },
+                                        },
+                                },
+                        },
+                },
         ],
 };
 
@@ -1543,21 +1558,6 @@ const toolboxTransform = {
                                                 type: "math_number",
                                                 fields: {
                                                         NUM: 1,
-                                                },
-                                        },
-                                },
-                        },
-                },
-                {
-                        kind: "block",
-                        type: "move_forward",
-                        keyword: "forward",
-                        inputs: {
-                                SPEED: {
-                                        shadow: {
-                                                type: "math_number",
-                                                fields: {
-                                                        NUM: 3,
                                                 },
                                         },
                                 },
