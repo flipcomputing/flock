@@ -1695,15 +1695,15 @@ export function defineGenerators() {
                         Blockly.Names.NameType.VARIABLE,
                 );
 
-                const coordinate = block.getFieldValue("COORDINATE") || "x";
+                const coordinate = block.getFieldValue("COORDINATE") || "x_coordinate";
                 const value = getFieldValue(block, "VALUE", "0");
 
                 switch (coordinate) {
-                        case "x":
+                        case "x_coordinate":
                                 return `await moveByVector(${modelName}, { x: ${value}, y: 0, z: 0 });\n`;
-                        case "y":
+                        case "y_coordinate":
                                 return `await moveByVector(${modelName}, { x: 0, y: ${value}, z: 0 });\n`;
-                        case "z":
+                        case "z_coordinate":
                                 return `await moveByVector(${modelName}, { x: 0, y: 0, z: ${value} });\n`;
                 };
 
@@ -1841,16 +1841,16 @@ export function defineGenerators() {
                         Blockly.Names.NameType.VARIABLE,
                 );
 
-                const coordinate = block.getFieldValue("COORDINATE") || "x";
+                const coordinate = block.getFieldValue("COORDINATE") || "x_coordinate";
                 const value = getFieldValue(block, "VALUE", "0");
                 const useY = block.getFieldValue("USE_Y") === "TRUE";
                 
                 switch (coordinate) {
-                        case "x":                              
+                        case "x_coordinate":                              
                                 return `await positionAt(${meshName}, { x: ${value}, y: null, z: null, useY: ${useY} });\n`;
-                        case "y":                              
+                        case "y_coordinate":                              
                                 return `await positionAt(${meshName}, { x: null, y: ${value}, z: null, useY: ${useY} });\n`;
-                        case "z":                              
+                        case "z_coordinate":                              
                                 return `await positionAt(${meshName}, { x: null, y: null, z: ${value}, useY: ${useY} });\n`;
                 };
         };

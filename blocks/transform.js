@@ -84,9 +84,9 @@ export function defineTransformBlocks() {
 						type: "field_dropdown",
 						name: "COORDINATE",
 						options: [
-							getDropdownOption("x"),
-							getDropdownOption("y"),
-							getDropdownOption("z"),
+							getDropdownOption("x_coordinate"),
+							getDropdownOption("y_coordinate"),
+							getDropdownOption("z_coordinate"),
 						]
 					},
 					{
@@ -179,9 +179,9 @@ export function defineTransformBlocks() {
 						type: "field_dropdown",
 						name: "COORDINATE",
 						options: [
-							getDropdownOption("x"),
-							getDropdownOption("y"),
-							getDropdownOption("z"),
+							getDropdownOption("x_coordinate"),
+							getDropdownOption("y_coordinate"),
+							getDropdownOption("z_coordinate"),
 						]
 					},
 					{
