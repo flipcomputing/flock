@@ -47,18 +47,18 @@
 }
 
 body[data-theme="dark"] .blocklyWidgetDiv input.blocklyHtmlInput {
-  /* background-color: #ffffff !important; */
-  color: #ffffff !important;
+  background-color: #ffffff !important;
+  color: #000000 !important;
 }
 
 body[data-theme="dark-contrast"] .blocklyWidgetDiv input.blocklyHtmlInput {
-  /* background-color: #ffffff !important; */
-  color: #ffffff !important;
+  background-color: #ffffff !important;
+  color: #000000 !important;
 }
 
 body[data-theme="contrast"] .blocklyWidgetDiv input.blocklyHtmlInput {
-  /* background-color: #ffffff !important; */
-  color: #ffffff !important;
+  background-color: #ffffff !important;
+  color: #000000 !important;
 }
 
 text.blocklyText.blocklyFieldText.blocklyDropdownText {
