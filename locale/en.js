@@ -330,6 +330,7 @@ export default {
   // Tooltip translations - Animate blocks
   glide_to_tooltip: "Glide to a specified position over a duration with options for reversing, looping, and easing.",
   glide_to_seconds_tooltip: "Glide to a specified position over a duration with options for reversing, looping, and easing.",
+  glide_to_object_tooltip: "Glide to the position of a specified mesh over a duration with options for reversing, looping, and easing.",
   rotate_anim_tooltip: "Rotate a mesh to specified angles over a duration with options for reverse, looping, and easing.",
   rotate_anim_seconds_tooltip: "Rotate a mesh to specified angles over a duration with options for reverse, looping, and easing.",
   animate_property_tooltip: "Animate a material property of the mesh and its children.",
