@@ -1,7 +1,11 @@
 import * as Blockly from "blockly";
 import { meshMap, meshBlockIdMap, generateUniqueId } from "../generators";
 import { flock } from "../flock.js";
-import { extractMaterialInfo, getMeshFromBlock } from "./blockmesh.js";
+import {
+  extractMaterialInfo,
+  getMeshFromBlock,
+  readColourValue,
+} from "./blockmesh.js";
 
 export function createMeshOnCanvas(block) {
 
@@ -214,10 +218,22 @@ export function createMeshOnCanvas(block) {
         .connection.targetBlock()
         .getFieldValue("NUM");
 
-      color = block
-        .getInput("COLOR")
-        .connection.targetBlock()
-        .getFieldValue("COLOR");
+      {
+        const colorInput = block.getInput("COLOR");
+        const target = colorInput?.connection?.targetBlock?.();
+
+        if (target) {
+          const read = readColourValue(target);
+          color = read.value;
+        } else {
+          const shadowDom = colorInput?.connection?.getShadowDom?.();
+          const shadowField =
+            shadowDom?.querySelector?.('field[name="COLOUR"]') ||
+            shadowDom?.querySelector?.('field[name="COLOR"]');
+
+          color = shadowField?.textContent || shadowField?.innerText || null;
+        }
+      }
 
       meshId = `${modelName}__${block.id}`;
       meshMap[block.id] = block;
@@ -433,7 +449,7 @@ export function createMeshOnCanvas(block) {
 
 function createShapeInternal(block) {
   const shapeType = block.type;
-  let position, scale, color, newMesh;
+  let position, scale, color, newMesh, alpha;
   let width,
     height,
     depth,
@@ -496,10 +512,37 @@ function createShapeInternal(block) {
     z: getPositionValue("Z", 0),
   };
 
+  const resolveColorOrMaterial = (defaultColor = "#ff0000") => {
+    const colorInput = block.getInputTargetBlock("COLOR");
+    let alpha = 1;
+    let colorOrMaterial = defaultColor;
+
+    if (colorInput?.type === "material") {
+      const materialInfo = extractMaterialInfo(colorInput);
+      alpha = materialInfo.alpha ?? 1;
+      const hasMaterial =
+        materialInfo.textureSet && materialInfo.textureSet !== "NONE";
+      const baseColor = materialInfo.baseColor ?? defaultColor;
+
+      colorOrMaterial = hasMaterial
+        ? {
+            materialName: materialInfo.textureSet,
+            color: baseColor,
+            alpha,
+          }
+        : baseColor;
+    } else {
+      const read = readColourValue(colorInput);
+      colorOrMaterial = read.value ?? defaultColor;
+    }
+
+    return { colorOrMaterial, alpha };
+  };
+
   // Handle shape creation blocks
   switch (shapeType) {
     case "create_box":
-      color = getConnectedFieldValue("COLOR", "COLOR", "#ff0000");
+      ({ colorOrMaterial: color, alpha } = resolveColorOrMaterial("#ff0000"));
       width = parseFloat(getConnectedFieldValue("WIDTH", "NUM", "1"));
       height = parseFloat(getConnectedFieldValue("HEIGHT", "NUM", "1"));
       depth = parseFloat(getConnectedFieldValue("DEPTH", "NUM", "1"));
@@ -510,11 +553,12 @@ function createShapeInternal(block) {
         height,
         depth,
         position: [position.x, position.y, position.z],
+        alpha,
       });
       break;
 
     case "create_sphere":
-      color = getConnectedFieldValue("COLOR", "COLOR", "#ff0000");
+      ({ colorOrMaterial: color, alpha } = resolveColorOrMaterial("#ff0000"));
       diameterX = parseFloat(getConnectedFieldValue("DIAMETER_X", "NUM", "1"));
       diameterY = parseFloat(getConnectedFieldValue("DIAMETER_Y", "NUM", "1"));
       diameterZ = parseFloat(getConnectedFieldValue("DIAMETER_Z", "NUM", "1"));
@@ -525,11 +569,12 @@ function createShapeInternal(block) {
         diameterY,
         diameterZ,
         position: [position.x, position.y, position.z],
+        alpha,
       });
       break;
 
     case "create_cylinder":
-      color = getConnectedFieldValue("COLOR", "COLOR", "#ff0000");
+      ({ colorOrMaterial: color, alpha } = resolveColorOrMaterial("#ff0000"));
       cylinderHeight = parseFloat(getConnectedFieldValue("HEIGHT", "NUM", "1"));
       diameterTop = parseFloat(
         getConnectedFieldValue("DIAMETER_TOP", "NUM", "1"),
@@ -545,11 +590,12 @@ function createShapeInternal(block) {
         diameterBottom,
         tessellation: 24,
         position: [position.x, position.y, position.z],
+        alpha,
       });
       break;
 
     case "create_capsule":
-      color = getConnectedFieldValue("COLOR", "COLOR", "#ff0000");
+      ({ colorOrMaterial: color, alpha } = resolveColorOrMaterial("#ff0000"));
       capsuleDiameter = parseFloat(
         getConnectedFieldValue("DIAMETER", "NUM", "1"),
       );
@@ -560,11 +606,12 @@ function createShapeInternal(block) {
         diameter: capsuleDiameter,
         height: capsuleHeight,
         position: [position.x, position.y, position.z],
+        alpha,
       });
       break;
 
     case "create_plane":
-      color = getConnectedFieldValue("COLOR", "COLOR", "#ff0000");
+      ({ colorOrMaterial: color, alpha } = resolveColorOrMaterial("#ff0000"));
       planeWidth = parseFloat(getConnectedFieldValue("WIDTH", "NUM", "2"));
       planeHeight = parseFloat(getConnectedFieldValue("HEIGHT", "NUM", "2"));
 
@@ -573,6 +620,7 @@ function createShapeInternal(block) {
         width: planeWidth,
         height: planeHeight,
         position: [position.x, position.y, position.z],
+        alpha,
       });
       break;
 

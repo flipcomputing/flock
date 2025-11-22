@@ -1,5 +1,3 @@
-import common from "./commmonHTML.js"
-
 export default {
   // Blockly category message keys for custom categories
   CATEGORY_SCENE: "Scene",
@@ -758,6 +756,8 @@ export default {
   // HTML translations
   loading_ui: "Loading Flock XR...",
   loading_success_ui: "Flock XR loaded successfully",
+  loading_title_ui: "Loading Flock XR",
+  import_project_file_ui: "Import project file",
 
   demo_ui: "Demo",
   new_ui: "New",
@@ -786,6 +786,7 @@ export default {
   microbit_monkey_ui: "🐵 micro:bit monkey",
   
   main_menu_ui: "Main menu",
+  menu_button_sr_label_ui: "Menu",
   project_submenu_ui: "Project",
   project_new_ui: "New",
   project_open_ui: "Open",
@@ -802,6 +803,7 @@ export default {
   run_code_button_ui: "Run your code",
   stop_code_button_ui: "Stop your code",
   open_button_ui: "Open a project from a file on your computer",
+  open_file_input_label_ui: "Select project file to open",
   export_code_button_ui: "Save this project to a file on your computer.",
   example_select_ui: "Choose an example project to load",
 
@@ -824,19 +826,59 @@ export default {
   project_name_ui: "Project name",
 
   about_heading_ui: "About Flock XR",
-  about_description_ui: `Flock XR is a <strong>prototype</strong> made by
-  <a target="_blank" href="https://flipcomputing.com/flockxr/">Flip Computing</a
-  >. Please try it out but be aware that things may change and
-  some features aren't finished yet. We're currently looking for
-  support to develop Flock so that you can rely on it.`,
-  about_run_ui: "Take a look at the demos above to see what you can do. Make some changes and click " + common["run_icon"] + "run.",
-  about_links_ui: `View the <a target="_blank" href="https://flockxr.com/privacy-policy/">privacy policy</a> for Flock XR. <a href="https://flipcomputing.com/contact/" target="_blank">Get in touch</a>`,
+  about_description_intro_ui: "Flock XR is a ",
+  about_description_prototype_ui: "prototype",
+  about_description_made_by_ui: " made by ",
+  about_description_company_ui: "Flip Computing",
+  about_description_disclaimer_ui:
+    " Please try it out but be aware that things may change and some features aren't finished yet. We're currently looking for support to develop Flock so that you can rely on it.",
+  about_run_intro_ui:
+    "Take a look at the demos above to see what you can do. Make some changes and click",
+  about_run_action_ui: "run.",
+  about_links_privacy_prefix_ui: "View the ",
+  about_links_privacy_label_ui: "privacy policy",
+  about_links_privacy_suffix_ui: " for Flock XR. ",
+  about_links_contact_label_ui: "Get in touch",
 
-  keyboard_controls_ui: "<strong>Keyboard controls info [&nbsp;Ctrl + /&nbsp;]</strong>",
+  keyboard_controls_ui: "Keyboard controls info [Ctrl + /]",
   keyboard_menu_ui: "Open the main menu",
   keyboard_play_ui: "Play",
   keyboard_gizmos_ui: "Go to gizmos",
   keyboard_navigation_ui: "Go to browser navigation bar (overridden shortcuts work from here)",
+
+  // Accessibility and announcements
+  unmute_audio_aria: "Unmute audio.",
+  focused_main_content: "Focused main content.",
+  toolbox_search_results_aria: "Toolbox search results.",
+  context_copy_option: "Copy",
+  context_paste_option: "Paste",
+  context_cut_option: "Cut",
+  canvas_focus_navigation: "3D canvas focused. Use arrow keys or WASD to navigate.",
+  design_tool_label: "Design tool",
+  focused_element_suffix: "{name} focused",
+  search_toolbox_focused: "Search toolbox focused",
+  code_workspace_focused: "Code workspace focused",
+  interactive_element_label: "Interactive element",
+  panel_resizer_focused:
+    "Panel resizer focused. Use arrow keys to resize panels, Home to reset.",
+  undo_performed: "Undo performed",
+  redo_performed: "Redo performed",
+  camera_moving_forward: "Camera moving forward",
+  camera_moving_backward: "Camera moving backward",
+  camera_moving_left: "Camera moving left",
+  camera_moving_right: "Camera moving right",
+  moving_forward: "Moving forward",
+  moving_backward: "Moving backward",
+  moving_left: "Moving left",
+  moving_right: "Moving right",
+  action_triggered: "Action triggered",
+  snippet_file_description: "Flock XR Snippet",
+  snippet_filename_prompt: "Enter a filename for the snippet:",
+  project_file_description: "Flock XR Project",
+  file_too_large_alert: "File too large. Maximum size is 5MB.",
+  invalid_filetype_alert: "Only .json or .flock project files are allowed.",
+  invalid_project_alert: "This file isn't a valid Flock XR project.",
+  failed_to_read_file_alert: "Failed to read file.",
 
   // Context menu option translations
   export_JSON_snippet: "Export block as snippet",
