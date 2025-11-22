@@ -1407,7 +1407,7 @@ const toolboxTransform = {
                                         shadow: {
                                                 type: "math_number",
                                                 fields: {
-                                                        NUM: 0,
+                                                        NUM: 1,
                                                 },
                                         },
                                 },
