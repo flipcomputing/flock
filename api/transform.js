@@ -19,9 +19,9 @@ export const flockTransform = {
           return;
         }
 
-        x = x ? x : mesh.position.x;
-        y = y ? y : mesh.position.y;
-        z = z ? z : mesh.position.z;
+        x = x ?? mesh.position.x;
+        y = y ?? mesh.position.y;
+        z = z ?? mesh.position.z;
 
         if (mesh.physics) {
           if (
