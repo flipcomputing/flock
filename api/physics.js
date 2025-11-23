@@ -428,27 +428,14 @@ export const flockPhysics = {
       }
 
       function registerButtonAction(button, trigger, action) {
-        console.log(
-          "[onTrigger DEBUG] registerButtonAction called for button:",
-          button.name,
-          "trigger:",
-          trigger,
-        );
         if (trigger === "OnPointerUpTrigger") {
           button.onPointerUpObservable.add(action);
         } else {
           button.onPointerClickObservable.add(action);
         }
-        console.log("[onTrigger DEBUG] Button action registered");
       }
 
       async function executeAction(meshId) {
-        console.log(
-          "[onTrigger DEBUG] executeAction called with meshId:",
-          meshId,
-          "mode:",
-          mode,
-        );
 
         if (mode === "once") {
           if (hasExecuted) return;
@@ -461,12 +448,6 @@ export const flockPhysics = {
         }
 
         try {
-          console.log(
-            "[onTrigger DEBUG] Executing callback",
-            currentIndex,
-            "with meshId:",
-            meshId,
-          );
           await callbacks[currentIndex](meshId);
           currentIndex = (currentIndex + 1) % callbacks.length;
         } catch (e) {
