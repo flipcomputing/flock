@@ -317,7 +317,7 @@ export const flockPhysics = {
       let matchingButtons = [];
       if (flock.scene.UITexture) {
         matchingButtons = flock.scene.UITexture._rootContainer._children.filter(
-          (control) => control.name && control.name.startsWith(groupName)
+          (control) => control.name && control.name.startsWith(groupName),
         );
       }
 
@@ -369,7 +369,7 @@ export const flockPhysics = {
     let guiButton = null;
     if (flock.scene.UITexture) {
       guiButton = flock.scene.UITexture._rootContainer._children.find(
-        (control) => control.name === meshName
+        (control) => control.name === meshName,
       );
     }
 
@@ -428,7 +428,12 @@ export const flockPhysics = {
       }
 
       function registerButtonAction(button, trigger, action) {
-        console.log("[onTrigger DEBUG] registerButtonAction called for button:", button.name, "trigger:", trigger);
+        console.log(
+          "[onTrigger DEBUG] registerButtonAction called for button:",
+          button.name,
+          "trigger:",
+          trigger,
+        );
         if (trigger === "OnPointerUpTrigger") {
           button.onPointerUpObservable.add(action);
         } else {
@@ -438,7 +443,12 @@ export const flockPhysics = {
       }
 
       async function executeAction(meshId) {
-        console.log("[onTrigger DEBUG] executeAction called with meshId:", meshId, "mode:", mode);
+        console.log(
+          "[onTrigger DEBUG] executeAction called with meshId:",
+          meshId,
+          "mode:",
+          mode,
+        );
 
         if (mode === "once") {
           if (hasExecuted) return;
@@ -451,7 +461,12 @@ export const flockPhysics = {
         }
 
         try {
-          console.log("[onTrigger DEBUG] Executing callback", currentIndex, "with meshId:", meshId);
+          console.log(
+            "[onTrigger DEBUG] Executing callback",
+            currentIndex,
+            "with meshId:",
+            meshId,
+          );
           await callbacks[currentIndex](meshId);
           currentIndex = (currentIndex + 1) % callbacks.length;
         } catch (e) {
@@ -504,9 +519,7 @@ export const flockPhysics = {
           );
         }
       } else if (target instanceof flock.GUI.Button) {
-        console.log("[onTrigger DEBUG] Registering button trigger for:", target.name);
         registerButtonAction(target, trigger, async () => {
-          console.log("[onTrigger DEBUG] Button clicked!");
           await executeAction(target.name);
         });
       }
