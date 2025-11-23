@@ -2020,18 +2020,27 @@ export const flock = {
                 // --- Promise that resolves when ready (or undefined on abort/dispose) ---
                 let settled = false;
                 let resolveP;
-                const promise = new Promise((r) => {
-                        resolveP = r;
+                let rejectP;
+                const promise = new Promise((resolve, reject) => {
+                        resolveP = resolve;
+                        rejectP = reject;
                 });
 
-                const safeCall = (val) => {
+                // The callback often does async setup (e.g. awaiting materials,
+                // loading textures, or chaining other whenModelReady calls).
+                // Await it so the readiness promise only resolves once that
+                // user-provided async work is finished.
+                const settle = async (val) => {
                         if (settled) return;
                         settled = true;
                         try {
+                                // Await the callback so the readiness promise doesn't resolve
+                                // before user async work completes (premature resolution).
                                 if (typeof callback === "function")
-                                        callback(val);
-                        } finally {
+                                        await callback(val);
                                 resolveP(val);
+                        } catch (error) {
+                                rejectP(error);
                         }
                 };
 
@@ -2066,7 +2075,7 @@ export const flock = {
                         const existing = locate();
                         if (existing) {
                                 if (!flock.abortController?.signal?.aborted)
-                                        safeCall(existing);
+                                        void settle(existing);
                                 return promise; // <— return the promise even in fast path
                         }
                 }
@@ -2081,12 +2090,12 @@ export const flock = {
 
                                 const disposers = [];
                                 let done = false;
-                                const finish = (target /*, source */) => {
+                                const finish = async (target /*, source */) => {
                                         if (done) return;
                                         done = true;
                                         try {
                                                 if (!signal?.aborted)
-                                                        safeCall(target);
+                                                        await settle(target);
                                         } finally {
                                                 while (disposers.length) {
                                                         try {
@@ -2330,23 +2339,23 @@ export const flock = {
                                                 flock.abortController?.signal
                                                         ?.aborted
                                         ) {
-                                                safeCall(undefined);
+                                                await settle(undefined);
                                                 return;
                                         }
-                                        if (target) safeCall(target);
+                                        if (target) await settle(target);
                                         return;
                                 }
                         } catch (err) {
                                 if (flock.abortController?.signal?.aborted) {
                                         // resolve undefined on abort
-                                        safeCall(undefined);
+                                        await settle(undefined);
                                 } else {
                                         console.error(
                                                 `Error in whenModelReady for '${id}':`,
                                                 err,
                                         );
                                         // resolve undefined on error to prevent hangs
-                                        safeCall(undefined);
+                                        await settle(undefined);
                                 }
                         }
                 })();
