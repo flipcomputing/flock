@@ -1492,6 +1492,14 @@ export function toggleGizmo(gizmoType) {
               break;
             }
           }
+
+          // Re-anchor the mesh to its original base in case block updates
+          // (like adding a resize block) modified the bounding box mid-flow.
+          mesh.computeWorldMatrix(true);
+          mesh.refreshBoundingInfo();
+
+          const finalBottomY = mesh.getBoundingInfo().boundingBox.minimumWorld.y;
+          mesh.position.y += originalBottomY - finalBottomY;
         } catch (e) {
           console.error("Error updating block values:", e);
         }
