@@ -1834,17 +1834,35 @@ const toolboxAnimate = {
         icon: "./images/animate.svg",
         //colour: categoryColours["Animate"],
         categorystyle: "animate_category",
-        contents: [
-                {
-                        kind: "block",
-                        type: "switch_animation",
-                        keyword: "switch",
-                },
-                {
-                        kind: "block",
-                        type: "play_animation",
-                        keyword: "play",
-                },
+                contents: [
+                        {
+                                kind: "block",
+                                type: "switch_animation",
+                                keyword: "switch",
+                                inputs: {
+                                        ANIMATION_NAME: {
+                                                shadow: {
+                                                        type: "animation_name",
+                                                },
+                                        },
+                                },
+                        },
+                        {
+                                kind: "block",
+                                type: "play_animation",
+                                keyword: "play",
+                                inputs: {
+                                        ANIMATION_NAME: {
+                                                shadow: {
+                                                        type: "animation_name",
+                                                },
+                                        },
+                                },
+                        },
+                        {
+                                kind: "block",
+                                type: "animation_name",
+                        },
                 {
                         kind: "block",
                         type: "glide_to_seconds",
@@ -4124,8 +4142,17 @@ const toolboxSnippets = {
                                                                                                         name: "player",
                                                                                                         type: "",
                                                                                                 },
-                                                                                                ANIMATION_NAME:
-                                                                                                        "Walk",
+                                                                                        },
+                                                                                        inputs: {
+                                                                                                ANIMATION_NAME: {
+                                                                                                        shadow: {
+                                                                                                                type: "animation_name",
+                                                                                                                fields: {
+                                                                                                                        ANIMATION_NAME:
+                                                                                                                                "Walk",
+                                                                                                                },
+                                                                                                        },
+                                                                                                },
                                                                                         },
                                                                                 },
                                                                         },
@@ -4166,8 +4193,17 @@ const toolboxSnippets = {
                                                                                                         name: "player",
                                                                                                         type: "",
                                                                                                 },
-                                                                                                ANIMATION_NAME:
-                                                                                                        "Walk",
+                                                                                        },
+                                                                                        inputs: {
+                                                                                                ANIMATION_NAME: {
+                                                                                                        shadow: {
+                                                                                                                type: "animation_name",
+                                                                                                                fields: {
+                                                                                                                        ANIMATION_NAME:
+                                                                                                                                "Walk",
+                                                                                                                },
+                                                                                                        },
+                                                                                                },
                                                                                         },
                                                                                 },
                                                                         },
@@ -4181,8 +4217,17 @@ const toolboxSnippets = {
                                                                                         name: "player",
                                                                                         type: "",
                                                                                 },
-                                                                                ANIMATION_NAME:
-                                                                                        "Idle",
+                                                                        },
+                                                                        inputs: {
+                                                                                ANIMATION_NAME: {
+                                                                                        shadow: {
+                                                                                                type: "animation_name",
+                                                                                                fields: {
+                                                                                                        ANIMATION_NAME:
+                                                                                                                "Idle",
+                                                                                                },
+                                                                                        },
+                                                                                },
                                                                         },
                                                                 },
                                                         },
