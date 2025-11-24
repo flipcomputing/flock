@@ -3189,13 +3189,13 @@ const toolboxSound = {
 };
 
 const toolboxLists = {
-        kind: "category",
-        name: "%{BKY_CATEGORY_LISTS}",
-        icon: "./images/lists.svg",
-        //colour: categoryColours["Lists"],
-        categorystyle: "lists_category",
-        contents: [
-                {
+kind: "category",
+name: "%{BKY_CATEGORY_LISTS}",
+icon: "./images/lists.svg",
+//colour: categoryColours["Lists"],
+categorystyle: "variables_category",
+contents: [
+{
                         kind: "block",
                         type: "lists_create_empty",
                         keyword: "list",
