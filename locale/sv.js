@@ -19,7 +19,7 @@ export default {
       CATEGORY_STRINGS: "Strängar",
       CATEGORY_MATERIALS: "Material",
       CATEGORY_SOUND: "Ljud",
-      CATEGORY_VARIABLES: "Variabler",
+      CATEGORY_VARIABLES: "Data",
       CATEGORY_LISTS: "Listor",
       CATEGORY_MATH: "Matematik",
       CATEGORY_FUNCTIONS: "Funktioner",

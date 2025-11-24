@@ -19,7 +19,7 @@ export default {
   CATEGORY_STRINGS: "Cadenas", 
   CATEGORY_MATERIALS: "Materiales",
   CATEGORY_SOUND: "Sonido",
-  CATEGORY_VARIABLES: "Variables",
+  CATEGORY_VARIABLES: "Datos",
   CATEGORY_LISTS: "Listas",
   CATEGORY_MATH: "Matemáticas",
   CATEGORY_FUNCTIONS: "Funciones",

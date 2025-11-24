@@ -19,7 +19,7 @@ export default {
   CATEGORY_STRINGS: "Łańcuchy tekstowe",
   CATEGORY_MATERIALS: "Materiały",
   CATEGORY_SOUND: "Dźwięk",
-  CATEGORY_VARIABLES: "Zmienne",
+  CATEGORY_VARIABLES: "Dane",
   CATEGORY_LISTS: "Listy",
   CATEGORY_MATH: "Matematyka",
   CATEGORY_FUNCTIONS: "Funkcje",

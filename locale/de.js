@@ -19,7 +19,7 @@ export default {
   CATEGORY_STRINGS: "Zeichenketten",
   CATEGORY_MATERIALS: "Materialien",
   CATEGORY_SOUND: "Ton",
-  CATEGORY_VARIABLES: "Variablen",
+  CATEGORY_VARIABLES: "Daten",
   CATEGORY_LISTS: "Listen",
   CATEGORY_MATH: "Mathe",
   CATEGORY_FUNCTIONS: "Funktionen",
