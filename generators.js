@@ -1901,13 +1901,23 @@ export function defineGenerators() {
                 return code;
         };
 
+        javascriptGenerator.forBlock["animation_name"] = function (block) {
+                const animationName = block.getFieldValue("ANIMATION_NAME");
+                return [`"${animationName}"`, javascriptGenerator.ORDER_ATOMIC];
+        };
+
         javascriptGenerator.forBlock["play_animation"] = function (block) {
                 var model = javascriptGenerator.nameDB_.getName(
                         block.getFieldValue("MODEL"),
                         Blockly.Names.NameType.VARIABLE,
                 );
-                var animationName = block.getFieldValue("ANIMATION_NAME");
-                var code = `await playAnimation(${model}, { animationName: "${animationName}" });\n`;
+                const animationName =
+                        javascriptGenerator.valueToCode(
+                                block,
+                                "ANIMATION_NAME",
+                                javascriptGenerator.ORDER_NONE,
+                        ) || '"Idle"';
+                var code = `await playAnimation(${model}, { animationName: ${animationName} });\n`;
                 return code;
         };
 
@@ -2338,8 +2348,13 @@ export function defineGenerators() {
                         block.getFieldValue("MODEL"),
                         Blockly.Names.NameType.VARIABLE,
                 );
-                var animationName = block.getFieldValue("ANIMATION_NAME");
-                var code = `switchAnimation(${model}, { animationName: "${animationName}" });\n`;
+                const animationName =
+                        javascriptGenerator.valueToCode(
+                                block,
+                                "ANIMATION_NAME",
+                                javascriptGenerator.ORDER_NONE,
+                        ) || '"Idle"';
+                var code = `switchAnimation(${model}, { animationName: ${animationName} });\n`;
                 return code;
         };
 
