@@ -1177,9 +1177,12 @@ export function toggleGizmo(gizmoType) {
 
       // Track bottom for correct visual anchoring
       let originalBottomY = 0;
+      let anchoredMesh = null;
 
       gizmoManager.gizmos.scaleGizmo.onDragStartObservable.add(() => {
-        const mesh = gizmoManager.attachedMesh;
+        const mesh = getRootMesh(gizmoManager.attachedMesh);
+        anchoredMesh = mesh;
+
         flock.ensureUniqueGeometry(mesh);
         mesh.computeWorldMatrix(true);
         mesh.refreshBoundingInfo();
@@ -1202,14 +1205,19 @@ export function toggleGizmo(gizmoType) {
       });
 
       gizmoManager.gizmos.scaleGizmo.onDragObservable.add(() => {
-        const mesh = gizmoManager.attachedMesh;
+        const mesh = anchoredMesh || gizmoManager.attachedMesh;
+        if (!mesh) return;
 
         mesh.computeWorldMatrix(true);
         mesh.refreshBoundingInfo();
 
         const newBottomY = mesh.getBoundingInfo().boundingBox.minimumWorld.y;
         const deltaY = originalBottomY - newBottomY;
-        mesh.position.y += deltaY;
+        mesh.translate(
+          flock.BABYLON.Axis.Y,
+          deltaY,
+          flock.BABYLON.Space.WORLD,
+        );
 
         const block = Blockly.getMainWorkspace().getBlockById(
           mesh.metadata.blockKey,
@@ -1225,7 +1233,9 @@ export function toggleGizmo(gizmoType) {
       });
 
       gizmoManager.gizmos.scaleGizmo.onDragEndObservable.add(() => {
-        const mesh = gizmoManager.attachedMesh;
+        const mesh = anchoredMesh || gizmoManager.attachedMesh;
+        if (!mesh) return;
+
         const block = meshMap[mesh.metadata.blockKey];
 
         if (mesh.savedMotionType) {
@@ -1239,7 +1249,11 @@ export function toggleGizmo(gizmoType) {
 
           const newBottomY = mesh.getBoundingInfo().boundingBox.minimumWorld.y;
           const deltaY = originalBottomY - newBottomY;
-          mesh.position.y += deltaY;
+          mesh.translate(
+            flock.BABYLON.Axis.Y,
+            deltaY,
+            flock.BABYLON.Space.WORLD,
+          );
 
           const originalSize = mesh
             .getBoundingInfo()
@@ -1499,10 +1513,16 @@ export function toggleGizmo(gizmoType) {
           mesh.refreshBoundingInfo();
 
           const finalBottomY = mesh.getBoundingInfo().boundingBox.minimumWorld.y;
-          mesh.position.y += originalBottomY - finalBottomY;
+          mesh.translate(
+            flock.BABYLON.Axis.Y,
+            originalBottomY - finalBottomY,
+            flock.BABYLON.Space.WORLD,
+          );
         } catch (e) {
           console.error("Error updating block values:", e);
         }
+
+        anchoredMesh = null;
       });
 
       break;
