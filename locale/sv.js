@@ -20,6 +20,7 @@ export default {
       CATEGORY_MATERIALS: "Material",
       CATEGORY_SOUND: "Ljud",
       CATEGORY_VARIABLES: "Data",
+      CATEGORY_VARIABLES_SUBCATEGORY: "Variabler",
       CATEGORY_LISTS: "Listor",
       CATEGORY_MATH: "Matematik",
       CATEGORY_FUNCTIONS: "Funktioner",

@@ -3188,16 +3188,6 @@ const toolboxSound = {
         ],
 };
 
-const toolboxVariables = {
-        kind: "category",
-        name: "%{BKY_CATEGORY_VARIABLES}",
-        icon: "./images/variables.svg",
-        //colour: categoryColours["Variables"],
-        categorystyle: "variables_category",
-        custom: "VARIABLE",
-        contents: [],
-};
-
 const toolboxLists = {
         kind: "category",
         name: "%{BKY_CATEGORY_LISTS}",
@@ -3262,6 +3252,26 @@ const toolboxLists = {
                         type: "lists_sort",
                         keyword: "sort",
                 },
+        ],
+};
+
+const toolboxVariables = {
+        kind: "category",
+        name: "%{BKY_CATEGORY_VARIABLES_SUBCATEGORY}",
+        //colour: categoryColours["Variables"],
+        categorystyle: "variables_category",
+        custom: "VARIABLE",
+        contents: [],
+};
+
+const toolboxData = {
+        kind: "category",
+        name: "%{BKY_CATEGORY_VARIABLES}",
+        icon: "./images/variables.svg",
+        categorystyle: "variables_category",
+        contents: [
+                toolboxVariables,
+                toolboxLists,
         ],
 };
 
@@ -4262,8 +4272,7 @@ export const toolbox = {
                 toolboxText,
                 toolboxMaterials,
                 toolboxSound,
-                toolboxVariables,
-                toolboxLists,
+                toolboxData,
                 toolboxMath,
                 toolboxFunctions,
                 toolboxSnippets,

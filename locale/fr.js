@@ -20,6 +20,7 @@ export default {
                                       CATEGORY_MATERIALS: "Matériaux",
                                       CATEGORY_SOUND: "Son",
                                       CATEGORY_VARIABLES: "Données",
+                                      CATEGORY_VARIABLES_SUBCATEGORY: "Variables",
                                       CATEGORY_LISTS: "Listes",
                                       CATEGORY_MATH: "Mathématiques",
                                       CATEGORY_FUNCTIONS: "Fonctions",
