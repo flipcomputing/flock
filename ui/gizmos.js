@@ -1376,40 +1376,31 @@ export function toggleGizmo(gizmoType) {
                 addedDoSection = true;
               }
 
-              let resizeBlock = null;
               let scaleBlock = null;
               let modelVariable = block.getFieldValue("ID_VAR");
               const statementConnection = block.getInput("DO").connection;
               if (statementConnection && statementConnection.targetBlock()) {
                 let currentBlock = statementConnection.targetBlock();
                 while (currentBlock) {
-                  if (currentBlock.type === "resize") {
-                    const modelField = currentBlock.getFieldValue("BLOCK_NAME");
-                    if (modelField === modelVariable) {
-                      resizeBlock = currentBlock;
-                      break;
-                    }
-                  } else if (currentBlock.type === "scale") {
+                  if (currentBlock.type === "scale") {
                     const modelField = currentBlock.getFieldValue("BLOCK_NAME");
                     if (modelField === modelVariable) {
                       scaleBlock = currentBlock;
+                      break;
                     }
                   }
                   currentBlock = currentBlock.getNextBlock();
                 }
               }
 
-              if (!resizeBlock) {
-                resizeBlock = Blockly.getMainWorkspace().newBlock("resize");
-                resizeBlock.setFieldValue(modelVariable, "BLOCK_NAME");
-                resizeBlock.setFieldValue("CENTRE", "X_ORIGIN");
-                resizeBlock.setFieldValue("BASE", "Y_ORIGIN");
-                resizeBlock.setFieldValue("CENTRE", "Z_ORIGIN");
-                resizeBlock.initSvg();
-                resizeBlock.render();
+              if (!scaleBlock) {
+                scaleBlock = Blockly.getMainWorkspace().newBlock("scale");
+                scaleBlock.setFieldValue(modelVariable, "BLOCK_NAME");
+                scaleBlock.initSvg();
+                scaleBlock.render();
 
                 ["X", "Y", "Z"].forEach((axis) => {
-                  const input = resizeBlock.getInput(axis);
+                  const input = scaleBlock.getInput(axis);
                   const shadowBlock =
                     Blockly.getMainWorkspace().newBlock("math_number");
                   shadowBlock.setFieldValue("1", "NUM");
@@ -1419,73 +1410,36 @@ export function toggleGizmo(gizmoType) {
                   input.connection.connect(shadowBlock.outputConnection);
                 });
 
-                resizeBlock.render();
+                scaleBlock.render();
                 block
                   .getInput("DO")
-                  .connection.connect(resizeBlock.previousConnection);
+                  .connection.connect(scaleBlock.previousConnection);
 
                 // Track this block for DO section cleanup
                 const timestamp = Date.now();
-                gizmoCreatedBlocks.set(resizeBlock.id, {
+                gizmoCreatedBlocks.set(scaleBlock.id, {
                   parentId: block.id,
                   createdDoSection: addedDoSection,
                   timestamp: timestamp,
                 });
               }
 
-              function setBlockValue(targetBlock, inputName, value) {
-                const input = targetBlock.getInput(inputName);
-                let connectedBlock = input.connection.targetBlock();
-
-                if (connectedBlock?.getField("NUM")) {
-                  connectedBlock.setFieldValue(String(value), "NUM");
-                  return;
-                }
-
-                const newNumberBlock = Blockly.getMainWorkspace().newBlock(
-                  "math_number",
-                );
-                newNumberBlock.setShadow(true);
-                newNumberBlock.initSvg();
-                newNumberBlock.render();
-                newNumberBlock.setFieldValue(String(value), "NUM");
+              function setScaleValue(inputName, value) {
+                const input = scaleBlock.getInput(inputName);
+                const connectedBlock = input.connection.targetBlock();
 
                 if (connectedBlock) {
-                  connectedBlock.unplug(true);
+                  connectedBlock.setFieldValue(String(value), "NUM");
                 }
-
-                input.connection.connect(newNumberBlock.outputConnection);
               }
 
-              // Update the resize block with absolute dimensions if present, otherwise
-              // fall back to legacy scale blocks with scaling factors.
-              if (resizeBlock) {
-                mesh.computeWorldMatrix(true);
-                mesh.refreshBoundingInfo();
+              const scaleX = Math.round(mesh.scaling.x * 10) / 10;
+              const scaleY = Math.round(mesh.scaling.y * 10) / 10;
+              const scaleZ = Math.round(mesh.scaling.z * 10) / 10;
 
-                const boundingBox = mesh.getBoundingInfo().boundingBox;
-                const formatDimension = (value) =>
-                  (Math.round(value * 10) / 10).toFixed(1);
-
-                const width =
-                  boundingBox.maximumWorld.x - boundingBox.minimumWorld.x;
-                const height =
-                  boundingBox.maximumWorld.y - boundingBox.minimumWorld.y;
-                const depth =
-                  boundingBox.maximumWorld.z - boundingBox.minimumWorld.z;
-
-                setBlockValue(resizeBlock, "X", formatDimension(width));
-                setBlockValue(resizeBlock, "Y", formatDimension(height));
-                setBlockValue(resizeBlock, "Z", formatDimension(depth));
-              } else if (scaleBlock) {
-                const scaleX = Math.round(mesh.scaling.x * 10) / 10;
-                const scaleY = Math.round(mesh.scaling.y * 10) / 10;
-                const scaleZ = Math.round(mesh.scaling.z * 10) / 10;
-
-                setBlockValue(scaleBlock, "X", scaleX);
-                setBlockValue(scaleBlock, "Y", scaleY);
-                setBlockValue(scaleBlock, "Z", scaleZ);
-              }
+              setScaleValue("X", scaleX);
+              setScaleValue("Y", scaleY);
+              setScaleValue("Z", scaleZ);
 
               // End undo group
               Blockly.Events.setGroup(null);
