@@ -1435,11 +1435,19 @@ export function toggleGizmo(gizmoType) {
 
               function setBlockValue(targetBlock, inputName, value) {
                 const input = targetBlock.getInput(inputName);
-                const connectedBlock = input.connection.targetBlock();
+                let connectedBlock = input.connection.targetBlock();
 
-                if (connectedBlock) {
-                  connectedBlock.setFieldValue(String(value), "NUM");
+                if (!connectedBlock) {
+                  connectedBlock = Blockly.getMainWorkspace().newBlock(
+                    "math_number",
+                  );
+                  connectedBlock.setShadow(true);
+                  connectedBlock.initSvg();
+                  connectedBlock.render();
+                  input.connection.connect(connectedBlock.outputConnection);
                 }
+
+                connectedBlock.setFieldValue(String(value), "NUM");
               }
 
               // Update the resize block with absolute dimensions if present, otherwise
