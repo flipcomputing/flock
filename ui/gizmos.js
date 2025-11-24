@@ -1436,13 +1436,29 @@ export function toggleGizmo(gizmoType) {
                 }
               }
 
-              const scaleX = Math.round(mesh.scaling.x * 10) / 10;
-              const scaleY = Math.round(mesh.scaling.y * 10) / 10;
-              const scaleZ = Math.round(mesh.scaling.z * 10) / 10;
+              mesh.computeWorldMatrix(true);
+              mesh.refreshBoundingInfo();
 
-              setResizeValue("X", scaleX);
-              setResizeValue("Y", scaleY);
-              setResizeValue("Z", scaleZ);
+              const boundingBox = mesh.getBoundingInfo().boundingBox;
+              const width =
+                Math.round(
+                  (boundingBox.maximumWorld.x - boundingBox.minimumWorld.x) *
+                    10,
+                ) / 10;
+              const height =
+                Math.round(
+                  (boundingBox.maximumWorld.y - boundingBox.minimumWorld.y) *
+                    10,
+                ) / 10;
+              const depth =
+                Math.round(
+                  (boundingBox.maximumWorld.z - boundingBox.minimumWorld.z) *
+                    10,
+                ) / 10;
+
+              setResizeValue("X", width);
+              setResizeValue("Y", height);
+              setResizeValue("Z", depth);
 
               // End undo group
               Blockly.Events.setGroup(null);
