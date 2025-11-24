@@ -1177,6 +1177,7 @@ export function toggleGizmo(gizmoType) {
 
       // Track bottom for correct visual anchoring
       let originalBottomY = 0;
+      let originalAbsoluteY = 0;
 
       gizmoManager.gizmos.scaleGizmo.onDragStartObservable.add(() => {
         const mesh = gizmoManager.attachedMesh;
@@ -1184,6 +1185,7 @@ export function toggleGizmo(gizmoType) {
         mesh.computeWorldMatrix(true);
         mesh.refreshBoundingInfo();
         originalBottomY = mesh.getBoundingInfo().boundingBox.minimumWorld.y;
+        originalAbsoluteY = mesh.getAbsolutePosition().y;
 
         const motionType = mesh.physics?.getMotionType();
         mesh.savedMotionType = motionType;
@@ -1209,7 +1211,9 @@ export function toggleGizmo(gizmoType) {
 
         const newBottomY = mesh.getBoundingInfo().boundingBox.minimumWorld.y;
         const deltaY = originalBottomY - newBottomY;
-        mesh.position.y += deltaY;
+        const absolutePosition = mesh.getAbsolutePosition();
+        absolutePosition.y += deltaY;
+        mesh.setAbsolutePosition(absolutePosition);
 
         const block = Blockly.getMainWorkspace().getBlockById(
           mesh.metadata.blockKey,
@@ -1239,7 +1243,14 @@ export function toggleGizmo(gizmoType) {
 
           const newBottomY = mesh.getBoundingInfo().boundingBox.minimumWorld.y;
           const deltaY = originalBottomY - newBottomY;
-          mesh.position.y += deltaY;
+          const absolutePosition = mesh.getAbsolutePosition();
+          absolutePosition.y += deltaY;
+          mesh.setAbsolutePosition(absolutePosition);
+
+          // Ensure any minor rounding error still restores the original height
+          const finalPosition = mesh.getAbsolutePosition();
+          finalPosition.y = originalAbsoluteY;
+          mesh.setAbsolutePosition(finalPosition);
 
           const originalSize = mesh
             .getBoundingInfo()
