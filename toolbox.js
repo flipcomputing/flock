@@ -3260,43 +3260,8 @@ const toolboxVariables = {
         name: "%{BKY_CATEGORY_VARIABLES_SUBCATEGORY}",
         icon: "./images/variables.svg",
         categorystyle: "variables_category",
-        contents: [
-                {
-                        kind: "block",
-                        type: "variables_get",
-                        keyword: "getvariable",
-                },
-                {
-                        kind: "block",
-                        type: "variables_set",
-                        keyword: "setvariable",
-                        inputs: {
-                                VALUE: {
-                                        shadow: {
-                                                type: "math_number",
-                                                fields: {
-                                                        NUM: 0,
-                                                },
-                                        },
-                                },
-                        },
-                },
-                {
-                        kind: "block",
-                        type: "math_change",
-                        keyword: "changevariable",
-                        inputs: {
-                                DELTA: {
-                                        shadow: {
-                                                type: "math_number",
-                                                fields: {
-                                                        NUM: 1,
-                                                },
-                                        },
-                                },
-                        },
-                },
-        ],
+        contents: [],
+        custom: "VARIABLE",
 };
 
 const toolboxData = {
