@@ -1446,18 +1446,18 @@ export function toggleGizmo(gizmoType) {
               const width =
                 Math.round(
                   (boundingBox.maximumWorld.x - boundingBox.minimumWorld.x) *
-                    100,
-                ) / 100;
+                    10000,
+                ) / 10000;
               const height =
                 Math.round(
                   (boundingBox.maximumWorld.y - boundingBox.minimumWorld.y) *
-                    100,
-                ) / 100;
+                    10000,
+                ) / 10000;
               const depth =
                 Math.round(
                   (boundingBox.maximumWorld.z - boundingBox.minimumWorld.z) *
-                    100,
-                ) / 100;
+                    10000,
+                ) / 10000;
 
               setResizeValue("X", width);
               setResizeValue("Y", height);
