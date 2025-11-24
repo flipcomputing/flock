@@ -3296,13 +3296,6 @@ const toolboxData = {
                                 },
                         },
                 },
-                {
-                        kind: "category",
-                        name: "%{BKY_CATEGORY_VARIABLES_SUBCATEGORY}",
-                        categorystyle: "variables_category",
-                        custom: "VARIABLE",
-                        contents: [],
-                },
                 toolboxLists,
         ],
 };
