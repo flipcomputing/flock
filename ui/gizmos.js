@@ -1461,17 +1461,35 @@ export function toggleGizmo(gizmoType) {
               // fall back to legacy scale blocks with scaling factors.
               if (resizeBlock) {
                 const targetMesh = getRootMesh(mesh);
+                targetMesh.refreshBoundingInfo();
                 targetMesh.computeWorldMatrix(true);
 
-                const { min: worldMin, max: worldMax } =
-                  targetMesh.getHierarchyBoundingVectors(true);
+                const boundingBox = targetMesh.getBoundingInfo().boundingBox;
+                const localWidth = Math.abs(
+                  boundingBox.maximum.x - boundingBox.minimum.x,
+                );
+                const localHeight = Math.abs(
+                  boundingBox.maximum.y - boundingBox.minimum.y,
+                );
+                const localDepth = Math.abs(
+                  boundingBox.maximum.z - boundingBox.minimum.z,
+                );
+
+                const worldScale = new flock.BABYLON.Vector3();
+                targetMesh
+                  .getWorldMatrix()
+                  .decompose(
+                    worldScale,
+                    new flock.BABYLON.Quaternion(),
+                    new flock.BABYLON.Vector3(),
+                  );
 
                 const formatDimension = (value) =>
                   (Math.round(value * 10) / 10).toFixed(1);
 
-                const width = Math.abs(worldMax.x - worldMin.x);
-                const height = Math.abs(worldMax.y - worldMin.y);
-                const depth = Math.abs(worldMax.z - worldMin.z);
+                const width = localWidth * Math.abs(worldScale.x);
+                const height = localHeight * Math.abs(worldScale.y);
+                const depth = localDepth * Math.abs(worldScale.z);
 
                 setBlockValue(resizeBlock, "X", formatDimension(width));
                 setBlockValue(resizeBlock, "Y", formatDimension(height));
