@@ -1449,22 +1449,19 @@ export function toggleGizmo(gizmoType) {
                 mesh.refreshBoundingInfo();
 
                 const boundingBox = mesh.getBoundingInfo().boundingBox;
-                const width =
-                  Math.round(
-                    (boundingBox.maximum.x - boundingBox.minimum.x) * 10000,
-                  ) / 10000;
-                const height =
-                  Math.round(
-                    (boundingBox.maximum.y - boundingBox.minimum.y) * 10000,
-                  ) / 10000;
-                const depth =
-                  Math.round(
-                    (boundingBox.maximum.z - boundingBox.minimum.z) * 10000,
-                  ) / 10000;
+                const formatDimension = (value) =>
+                  (Math.round(value * 10) / 10).toFixed(1);
 
-                setBlockValue(resizeBlock, "X", width);
-                setBlockValue(resizeBlock, "Y", height);
-                setBlockValue(resizeBlock, "Z", depth);
+                const width =
+                  boundingBox.maximum.x - boundingBox.minimum.x;
+                const height =
+                  boundingBox.maximum.y - boundingBox.minimum.y;
+                const depth =
+                  boundingBox.maximum.z - boundingBox.minimum.z;
+
+                setBlockValue(resizeBlock, "X", formatDimension(width));
+                setBlockValue(resizeBlock, "Y", formatDimension(height));
+                setBlockValue(resizeBlock, "Z", formatDimension(depth));
               } else if (scaleBlock) {
                 const scaleX = Math.round(mesh.scaling.x * 10) / 10;
                 const scaleY = Math.round(mesh.scaling.y * 10) / 10;
