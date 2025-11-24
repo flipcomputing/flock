@@ -107,10 +107,11 @@ export function defineSceneBlocks() {
 		listenToMove: true,
 	});
 
-	Blockly.Blocks["create_ground"] = createSceneColorBlock({
-		type: "create_ground",
-		inputColor: "#71BC78",
-	});
+        Blockly.Blocks["create_ground"] = createSceneColorBlock({
+                type: "create_ground",
+                inputColor: "#71BC78",
+                listenToMove: true,
+        });
 
 	Blockly.Blocks["set_background_color"] = createSceneColorBlock({
 		type: "set_background_color",

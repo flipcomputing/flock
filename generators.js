@@ -622,13 +622,24 @@ export function defineGenerators() {
                 const meshId = "ground";
                 meshMap[meshId] = block;
                 meshBlockIdMap[meshId] = block.id;
-                let color = getFieldValue(block, "COLOR", '"#6495ED"');
-                
-                const colorInput = block.getInput("COLOR");
-                const colorBlock = colorInput?.connection?.targetBlock();
-                
+                let color =
+                        javascriptGenerator.valueToCode(
+                                block,
+                                "COLOR",
+                                javascriptGenerator.ORDER_NONE,
+                        ) || '"#71BC78"';
+
+                const colorBlock = block.getInputTargetBlock("COLOR");
+
                 if (colorBlock && colorBlock.type === "material") {
-                        color = `(${color}).color`;
+                        // Material blocks already generate a material object; pass it directly to
+                        // createGround so the material can be applied instead of trying to access
+                        // a colour property.
+                        color = javascriptGenerator.valueToCode(
+                                block,
+                                "COLOR",
+                                javascriptGenerator.ORDER_FUNCTION_CALL,
+                        );
                 }
                 
                 return `createGround(${color}, "${meshId}");\n`;
