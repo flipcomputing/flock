@@ -3267,7 +3267,7 @@ const toolboxVariables = {
 const toolboxData = {
         kind: "category",
         name: "%{BKY_CATEGORY_VARIABLES}",
-        icon: "./images/variables.svg",
+        icon: "./images/data.svg",
         categorystyle: "variables_category",
         contents: [toolboxVariables, toolboxLists],
 };
