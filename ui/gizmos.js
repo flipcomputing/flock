@@ -1399,6 +1399,9 @@ export function toggleGizmo(gizmoType) {
               if (!resizeBlock) {
                 resizeBlock = Blockly.getMainWorkspace().newBlock("resize");
                 resizeBlock.setFieldValue(modelVariable, "BLOCK_NAME");
+                resizeBlock.setFieldValue("CENTRE", "X_ORIGIN");
+                resizeBlock.setFieldValue("BASE", "Y_ORIGIN");
+                resizeBlock.setFieldValue("CENTRE", "Z_ORIGIN");
                 resizeBlock.initSvg();
                 resizeBlock.render();
 
@@ -1443,18 +1446,18 @@ export function toggleGizmo(gizmoType) {
               const width =
                 Math.round(
                   (boundingBox.maximumWorld.x - boundingBox.minimumWorld.x) *
-                    10,
-                ) / 10;
+                    100,
+                ) / 100;
               const height =
                 Math.round(
                   (boundingBox.maximumWorld.y - boundingBox.minimumWorld.y) *
-                    10,
-                ) / 10;
+                    100,
+                ) / 100;
               const depth =
                 Math.round(
                   (boundingBox.maximumWorld.z - boundingBox.minimumWorld.z) *
-                    10,
-                ) / 10;
+                    100,
+                ) / 100;
 
               setResizeValue("X", width);
               setResizeValue("Y", height);
