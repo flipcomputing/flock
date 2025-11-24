@@ -3255,22 +3255,54 @@ const toolboxLists = {
         ],
 };
 
-const toolboxVariables = {
-        kind: "category",
-        name: "%{BKY_CATEGORY_VARIABLES_SUBCATEGORY}",
-        //colour: categoryColours["Variables"],
-        categorystyle: "variables_category",
-        custom: "VARIABLE",
-        contents: [],
-};
-
 const toolboxData = {
         kind: "category",
         name: "%{BKY_CATEGORY_VARIABLES}",
         icon: "./images/variables.svg",
         categorystyle: "variables_category",
         contents: [
-                toolboxVariables,
+                {
+                        kind: "block",
+                        type: "variables_get",
+                        keyword: "getvariable",
+                },
+                {
+                        kind: "block",
+                        type: "variables_set",
+                        keyword: "setvariable",
+                        inputs: {
+                                VALUE: {
+                                        shadow: {
+                                                type: "math_number",
+                                                fields: {
+                                                        NUM: 0,
+                                                },
+                                        },
+                                },
+                        },
+                },
+                {
+                        kind: "block",
+                        type: "math_change",
+                        keyword: "changevariable",
+                        inputs: {
+                                DELTA: {
+                                        shadow: {
+                                                type: "math_number",
+                                                fields: {
+                                                        NUM: 1,
+                                                },
+                                        },
+                                },
+                        },
+                },
+                {
+                        kind: "category",
+                        name: "%{BKY_CATEGORY_VARIABLES_SUBCATEGORY}",
+                        categorystyle: "variables_category",
+                        custom: "VARIABLE",
+                        contents: [],
+                },
                 toolboxLists,
         ],
 };
