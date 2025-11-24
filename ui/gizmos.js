@@ -1179,14 +1179,19 @@ export function toggleGizmo(gizmoType) {
       let originalBottomY = 0;
       let anchoredMesh = null;
 
+      const getHierarchyBottomY = (mesh) => {
+        if (!mesh) return 0;
+        mesh.computeWorldMatrix(true);
+        const { min } = mesh.getHierarchyBoundingVectors(true);
+        return min.y;
+      };
+
       gizmoManager.gizmos.scaleGizmo.onDragStartObservable.add(() => {
         const mesh = getRootMesh(gizmoManager.attachedMesh);
         anchoredMesh = mesh;
 
         flock.ensureUniqueGeometry(mesh);
-        mesh.computeWorldMatrix(true);
-        mesh.refreshBoundingInfo();
-        originalBottomY = mesh.getBoundingInfo().boundingBox.minimumWorld.y;
+        originalBottomY = getHierarchyBottomY(mesh);
 
         const motionType = mesh.physics?.getMotionType();
         mesh.savedMotionType = motionType;
@@ -1208,10 +1213,7 @@ export function toggleGizmo(gizmoType) {
         const mesh = anchoredMesh || gizmoManager.attachedMesh;
         if (!mesh) return;
 
-        mesh.computeWorldMatrix(true);
-        mesh.refreshBoundingInfo();
-
-        const newBottomY = mesh.getBoundingInfo().boundingBox.minimumWorld.y;
+        const newBottomY = getHierarchyBottomY(mesh);
         const deltaY = originalBottomY - newBottomY;
         mesh.translate(
           flock.BABYLON.Axis.Y,
@@ -1244,16 +1246,16 @@ export function toggleGizmo(gizmoType) {
 
         try {
           // Ensure world matrix and bounding info are current
-          mesh.computeWorldMatrix(true);
-          mesh.refreshBoundingInfo();
-
-          const newBottomY = mesh.getBoundingInfo().boundingBox.minimumWorld.y;
+          const newBottomY = getHierarchyBottomY(mesh);
           const deltaY = originalBottomY - newBottomY;
           mesh.translate(
             flock.BABYLON.Axis.Y,
             deltaY,
             flock.BABYLON.Space.WORLD,
           );
+
+          mesh.computeWorldMatrix(true);
+          mesh.refreshBoundingInfo();
 
           const originalSize = mesh
             .getBoundingInfo()
