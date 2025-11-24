@@ -1179,9 +1179,19 @@ export function toggleGizmo(gizmoType) {
       let originalBottomY = 0;
       let anchoredMesh = null;
 
+      const refreshHierarchyBoundingInfo = (mesh) => {
+        if (!mesh) return;
+
+        mesh.refreshBoundingInfo(true);
+        for (const child of mesh.getChildMeshes(true)) {
+          child.refreshBoundingInfo(true);
+        }
+
+        mesh.computeWorldMatrix(true);
+      };
+
       const getHierarchyBottomY = (mesh) => {
         if (!mesh) return 0;
-        mesh.computeWorldMatrix(true);
         const { min } = mesh.getHierarchyBoundingVectors(true);
         return min.y;
       };
@@ -1191,6 +1201,7 @@ export function toggleGizmo(gizmoType) {
         anchoredMesh = mesh;
 
         flock.ensureUniqueGeometry(mesh);
+        refreshHierarchyBoundingInfo(mesh);
         originalBottomY = getHierarchyBottomY(mesh);
 
         const motionType = mesh.physics?.getMotionType();
@@ -1213,6 +1224,7 @@ export function toggleGizmo(gizmoType) {
         const mesh = anchoredMesh || gizmoManager.attachedMesh;
         if (!mesh) return;
 
+        refreshHierarchyBoundingInfo(mesh);
         const newBottomY = getHierarchyBottomY(mesh);
         const deltaY = originalBottomY - newBottomY;
         mesh.translate(
@@ -1246,6 +1258,7 @@ export function toggleGizmo(gizmoType) {
 
         try {
           // Ensure world matrix and bounding info are current
+          refreshHierarchyBoundingInfo(mesh);
           const newBottomY = getHierarchyBottomY(mesh);
           const deltaY = originalBottomY - newBottomY;
           mesh.translate(
