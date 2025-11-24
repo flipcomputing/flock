@@ -2965,65 +2965,29 @@ const toolboxMaterials = {
                         },
                 },
                 {
-                        kind: "block",
-                        type: "material",
-                        inputs: {
-                                BASE_COLOR: {
-                                        shadow: {
-                                                type: "colour",
-                                                fields: {
-                                                        COLOR: "#FFFFFF",
-                                                },
-                                        },
-                                },
-                                ALPHA: {
-                                        shadow: {
-                                                type: "math_number",
-                                                fields: {
-                                                        NUM: 1, // Default alpha value: 1 (fully opaque)
-                                                },
-                                        },
-                                },
+                  kind: "block",
+                  type: "material",
+                  fields: {
+                    TEXTURE_SET: "grass.png", // Use the named material
+                  },
+                  inputs: {
+                    BASE_COLOR: {
+                      shadow: {
+                        type: "colour",
+                        fields: {
+                          COLOR: "#00AA00", // Default to a green colour
                         },
-                },
-                {
-                        kind: "block",
-                        type: "gradient_material",
-                        inputs: {
-                                COLOR: {
-                                        block: {
-                                                type: "lists_create_with",
-                                                extraState: { itemCount: 2 },
-                                                inline: true,
-                                                inputs: {
-                                                        ADD0: {
-                                                                shadow: {
-                                                                        type: "colour",
-                                                                        fields: {
-                                                                                COLOR: "#FF5733",
-                                                                        },
-                                                                },
-                                                        },
-                                                        ADD1: {
-                                                                shadow: {
-                                                                        type: "colour",
-                                                                        fields: {
-                                                                                COLOR: "#FDFD96",
-                                                                        },
-                                                                },
-                                                        },
-                                                },
-                                        },
-                                },
-                                ALPHA: {
-                                        shadow: {
-                                                type: "math_number",
-                                                fields: {
-                                                        NUM: 1,
-                                                },
-                                        },
-                                },
+                      },
+                    },
+                    ALPHA: {
+                      shadow: {
+                        type: "math_number",
+                        fields: {
+                          NUM: 1, // Default alpha value: 1 (fully opaque)
                         },
+                      },
+                    },
+                  },
                 },
         ],
 };
