@@ -1451,18 +1451,15 @@ export function toggleGizmo(gizmoType) {
                 const boundingBox = mesh.getBoundingInfo().boundingBox;
                 const width =
                   Math.round(
-                    (boundingBox.maximumWorld.x - boundingBox.minimumWorld.x) *
-                      10000,
+                    (boundingBox.maximum.x - boundingBox.minimum.x) * 10000,
                   ) / 10000;
                 const height =
                   Math.round(
-                    (boundingBox.maximumWorld.y - boundingBox.minimumWorld.y) *
-                      10000,
+                    (boundingBox.maximum.y - boundingBox.minimum.y) * 10000,
                   ) / 10000;
                 const depth =
                   Math.round(
-                    (boundingBox.maximumWorld.z - boundingBox.minimumWorld.z) *
-                      10000,
+                    (boundingBox.maximum.z - boundingBox.minimum.z) * 10000,
                   ) / 10000;
 
                 setBlockValue(resizeBlock, "X", width);
