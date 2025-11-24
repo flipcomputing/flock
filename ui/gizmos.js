@@ -1377,19 +1377,22 @@ export function toggleGizmo(gizmoType) {
               }
 
               let resizeBlock = null;
+              let scaleBlock = null;
               let modelVariable = block.getFieldValue("ID_VAR");
               const statementConnection = block.getInput("DO").connection;
               if (statementConnection && statementConnection.targetBlock()) {
                 let currentBlock = statementConnection.targetBlock();
                 while (currentBlock) {
-                  if (
-                    currentBlock.type === "resize" ||
-                    currentBlock.type === "scale"
-                  ) {
+                  if (currentBlock.type === "resize") {
                     const modelField = currentBlock.getFieldValue("BLOCK_NAME");
                     if (modelField === modelVariable) {
                       resizeBlock = currentBlock;
                       break;
+                    }
+                  } else if (currentBlock.type === "scale") {
+                    const modelField = currentBlock.getFieldValue("BLOCK_NAME");
+                    if (modelField === modelVariable) {
+                      scaleBlock = currentBlock;
                     }
                   }
                   currentBlock = currentBlock.getNextBlock();
@@ -1430,8 +1433,8 @@ export function toggleGizmo(gizmoType) {
                 });
               }
 
-              function setResizeValue(inputName, value) {
-                const input = resizeBlock.getInput(inputName);
+              function setBlockValue(targetBlock, inputName, value) {
+                const input = targetBlock.getInput(inputName);
                 const connectedBlock = input.connection.targetBlock();
 
                 if (connectedBlock) {
@@ -1439,29 +1442,41 @@ export function toggleGizmo(gizmoType) {
                 }
               }
 
-              mesh.computeWorldMatrix(true);
-              mesh.refreshBoundingInfo();
+              // Update the resize block with absolute dimensions if present, otherwise
+              // fall back to legacy scale blocks with scaling factors.
+              if (resizeBlock) {
+                mesh.computeWorldMatrix(true);
+                mesh.refreshBoundingInfo();
 
-              const boundingBox = mesh.getBoundingInfo().boundingBox;
-              const width =
-                Math.round(
-                  (boundingBox.maximumWorld.x - boundingBox.minimumWorld.x) *
-                    10000,
-                ) / 10000;
-              const height =
-                Math.round(
-                  (boundingBox.maximumWorld.y - boundingBox.minimumWorld.y) *
-                    10000,
-                ) / 10000;
-              const depth =
-                Math.round(
-                  (boundingBox.maximumWorld.z - boundingBox.minimumWorld.z) *
-                    10000,
-                ) / 10000;
+                const boundingBox = mesh.getBoundingInfo().boundingBox;
+                const width =
+                  Math.round(
+                    (boundingBox.maximumWorld.x - boundingBox.minimumWorld.x) *
+                      10000,
+                  ) / 10000;
+                const height =
+                  Math.round(
+                    (boundingBox.maximumWorld.y - boundingBox.minimumWorld.y) *
+                      10000,
+                  ) / 10000;
+                const depth =
+                  Math.round(
+                    (boundingBox.maximumWorld.z - boundingBox.minimumWorld.z) *
+                      10000,
+                  ) / 10000;
 
-              setResizeValue("X", width);
-              setResizeValue("Y", height);
-              setResizeValue("Z", depth);
+                setBlockValue(resizeBlock, "X", width);
+                setBlockValue(resizeBlock, "Y", height);
+                setBlockValue(resizeBlock, "Z", depth);
+              } else if (scaleBlock) {
+                const scaleX = Math.round(mesh.scaling.x * 10) / 10;
+                const scaleY = Math.round(mesh.scaling.y * 10) / 10;
+                const scaleZ = Math.round(mesh.scaling.z * 10) / 10;
+
+                setBlockValue(scaleBlock, "X", scaleX);
+                setBlockValue(scaleBlock, "Y", scaleY);
+                setBlockValue(scaleBlock, "Z", scaleZ);
+              }
 
               // End undo group
               Blockly.Events.setGroup(null);
