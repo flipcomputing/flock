@@ -9,19 +9,20 @@ import { updateOrCreateMeshFromBlock } from "../ui/blockmesh.js";
 import { flock } from "../flock.js";
 
 export function defineTransformBlocks() {
-	function handleBlockChange(block, changeEvent) {
-		// if (flock.blockDebug) console.log("TODO: Buy Matrix DVD");
-		const changeEventBlock = Blockly.getMainWorkspace().getBlockById(changeEvent.blockId);
-		if (!changeEventBlock) return;
-		if (flock.blockDebug) console.log("The ID of this change event is", changeEventBlock.id);
-		const changeEventParentBlock = changeEventBlock.getParent();
-		if (!changeEventParentBlock) return;
-		const changeEventBlockType = changeEventParentBlock.type;
-		if (flock.blockDebug) console.log("The type of this change event is", changeEventBlockType);
-		if (changeEventBlockType != "rotate_to") return;
-		const handleChange = handleFieldOrChildChange(block, changeEvent)
-		if (flock.blockDebug) console.log(handleChange);
-	}
+        function handleBlockChange(block, changeEvent) {
+                // if (flock.blockDebug) console.log("TODO: Buy Matrix DVD");
+                const changeEventBlock = Blockly.getMainWorkspace().getBlockById(changeEvent.blockId);
+                if (!changeEventBlock) return;
+                if (flock.blockDebug) console.log("The ID of this change event is", changeEventBlock.id);
+                const changeEventParentBlock = changeEventBlock.getParent();
+                if (
+                        changeEventBlock === block ||
+                        changeEventParentBlock === block
+                ) {
+                        const handleChange = handleFieldOrChildChange(block, changeEvent)
+                        if (flock.blockDebug) console.log(handleChange);
+                }
+        }
 	Blockly.Blocks["move_by_xyz"] = {
 		init: function () {
 			this.jsonInit({

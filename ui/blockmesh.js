@@ -81,7 +81,7 @@ export function getMeshFromBlock(block) {
     return flock?.scene?.getMeshByName("ground");
   }
 
-  if (block && block.type === "rotate_to") {
+  if (block && (block.type === "rotate_to" || block.type === "resize")) {
     block = block.getParent();
   }
 
@@ -378,6 +378,8 @@ export function updateMeshFromBlock(mesh, block, changeEvent) {
       changed = "MODELS";
     } else if (block.type === "create_map" && changeEvent.name === "MAP_NAME") {
       changed = "MAP_NAME";
+    } else if (block.type === "resize") {
+      changed = changeEvent.name;
     }
   }
 
@@ -495,6 +497,27 @@ export function updateMeshFromBlock(mesh, block, changeEvent) {
 
     const read = readColourFromInputOrShadow(block, "COLOR");
     flock.setSky(read.value);
+    return;
+  }
+
+  if (block.type === "resize") {
+    if (!mesh) return;
+
+    const sizeFallback = mesh
+      ?.getBoundingInfo()
+      ?.boundingBox?.extendSize?.scale(2) ??
+      flock.BABYLON.Vector3.One();
+
+    const resizeArgs = {
+      width: readNumberInput(block, "X", sizeFallback.x),
+      height: readNumberInput(block, "Y", sizeFallback.y),
+      depth: readNumberInput(block, "Z", sizeFallback.z),
+      xOrigin: block.getFieldValue("X_ORIGIN") || "CENTRE",
+      yOrigin: block.getFieldValue("Y_ORIGIN") || "BASE",
+      zOrigin: block.getFieldValue("Z_ORIGIN") || "CENTRE",
+    };
+
+    flock.resize(mesh.name, resizeArgs);
     return;
   }
 
