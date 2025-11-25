@@ -465,6 +465,27 @@ export const flockTransform = {
     } = {}
   ) {
     return flock.whenModelReady(meshName, (mesh) => {
+      const physics = mesh.physics;
+      const restorePhysicsState = physics
+        ? {
+            disablePreStep: physics.disablePreStep,
+            motionType: physics.getMotionType?.(),
+            linearVelocity:
+              physics.getLinearVelocity?.()?.clone?.() ||
+              physics.getLinearVelocity?.(),
+            angularVelocity:
+              physics.getAngularVelocity?.()?.clone?.() ||
+              physics.getAngularVelocity?.(),
+          }
+        : null;
+
+      if (physics) {
+        physics.disablePreStep = true;
+        if (physics.setMotionType && restorePhysicsState.motionType != null) {
+          physics.setMotionType(flock.BABYLON.PhysicsMotionType.STATIC);
+        }
+      }
+
       mesh.metadata = mesh.metadata || {};
       mesh.metadata.origin = { xOrigin, yOrigin, zOrigin };
 
@@ -541,6 +562,27 @@ export const flockTransform = {
     } = {}
   ) {
     return flock.whenModelReady(meshName, (mesh) => {
+      const physics = mesh.physics;
+      const restorePhysicsState = physics
+        ? {
+            disablePreStep: physics.disablePreStep,
+            motionType: physics.getMotionType?.(),
+            linearVelocity:
+              physics.getLinearVelocity?.()?.clone?.() ||
+              physics.getLinearVelocity?.(),
+            angularVelocity:
+              physics.getAngularVelocity?.()?.clone?.() ||
+              physics.getAngularVelocity?.(),
+          }
+        : null;
+
+      if (physics) {
+        physics.disablePreStep = true;
+        if (physics.setMotionType && restorePhysicsState.motionType != null) {
+          physics.setMotionType(flock.BABYLON.PhysicsMotionType.STATIC);
+        }
+      }
+
       mesh.metadata = mesh.metadata || {};
       // Save the original local bounding box once.
       if (!mesh.metadata.originalMin || !mesh.metadata.originalMax) {
@@ -612,6 +654,19 @@ export const flockTransform = {
       mesh.refreshBoundingInfo();
       mesh.computeWorldMatrix(true);
       flock.updatePhysics(mesh);
+
+      if (restorePhysicsState && physics) {
+        if (restorePhysicsState.motionType != null && physics.setMotionType) {
+          physics.setMotionType(restorePhysicsState.motionType);
+        }
+        if (restorePhysicsState.linearVelocity && physics.setLinearVelocity) {
+          physics.setLinearVelocity(restorePhysicsState.linearVelocity);
+        }
+        if (restorePhysicsState.angularVelocity && physics.setAngularVelocity) {
+          physics.setAngularVelocity(restorePhysicsState.angularVelocity);
+        }
+        physics.disablePreStep = restorePhysicsState.disablePreStep;
+      }
     });
   },
   setPivotPoint(meshName, {
