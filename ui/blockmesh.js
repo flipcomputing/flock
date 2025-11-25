@@ -458,59 +458,16 @@ export function updateMeshFromBlock(mesh, block, changeEvent) {
 
     const readSize = (name, fallback) => readNumberInput(block, name, fallback);
 
-    targetMesh.computeWorldMatrix(true);
-    targetMesh.refreshBoundingInfo();
-    const currentExtents = targetMesh.getBoundingInfo().boundingBox.extendSizeWorld;
-
-    const width = readSize(
-      "X",
-      Math.max(0.1, currentExtents.x * 2),
-    );
-    const height = readSize(
-      "Y",
-      Math.max(0.1, currentExtents.y * 2),
-    );
-    const depth = readSize(
-      "Z",
-      Math.max(0.1, currentExtents.z * 2),
-    );
-
-    const oldWidth = currentExtents.x * 2;
-    const oldHeight = currentExtents.y * 2;
-    const oldDepth = currentExtents.z * 2;
-
-    setAbsoluteSize(targetMesh, width, height, depth);
-
-    targetMesh.computeWorldMatrix(true);
-    targetMesh.refreshBoundingInfo();
-    const newExtents = targetMesh.getBoundingInfo().boundingBox.extendSizeWorld;
-
-    const adjustByOrigin = (axis, oldSize, newSize) => {
-      const delta = (newSize - oldSize) / 2;
-      switch (block.getFieldValue(`${axis}_ORIGIN`)) {
-        case "LEFT":
-        case "BASE":
-        case "FRONT":
-          return delta;
-        case "RIGHT":
-        case "TOP":
-        case "BACK":
-          return -delta;
-        default:
-          return 0;
-      }
-    };
-
-    targetMesh.position.x += adjustByOrigin("X", oldWidth, newExtents.x * 2);
-    targetMesh.position.y += adjustByOrigin("Y", oldHeight, newExtents.y * 2);
-    targetMesh.position.z += adjustByOrigin("Z", oldDepth, newExtents.z * 2);
-
-    targetMesh.refreshBoundingInfo(true);
-
-    const rootMesh = getRootMesh(targetMesh) || targetMesh;
-    rootMesh.computeWorldMatrix(true);
-    rootMesh.refreshBoundingInfo(true);
-    flock.updatePhysics(rootMesh, rootMesh);
+    resizeMeshToDimensions(targetMesh, {
+      width: readSize("X", null),
+      height: readSize("Y", null),
+      depth: readSize("Z", null),
+      origins: {
+        x: block.getFieldValue("X_ORIGIN"),
+        y: block.getFieldValue("Y_ORIGIN"),
+        z: block.getFieldValue("Z_ORIGIN"),
+      },
+    });
     return;
   }
 
@@ -1078,6 +1035,69 @@ function moveMeshToOrigin(mesh) {
   mesh.position = flock.BABYLON.Vector3.Zero();
   mesh.rotation = flock.BABYLON.Vector3.Zero();
   return mesh;
+}
+
+function resizeMeshToDimensions(
+  mesh,
+  { width = null, height = null, depth = null, origins = {} } = {},
+) {
+  if (!mesh) return;
+
+  mesh.computeWorldMatrix(true);
+  mesh.refreshBoundingInfo();
+
+  const currentExtents = mesh.getBoundingInfo()?.boundingBox?.extendSizeWorld;
+  const currentWidth = Math.max(0.001, (currentExtents?.x || 0.05) * 2);
+  const currentHeight = Math.max(0.001, (currentExtents?.y || 0.05) * 2);
+  const currentDepth = Math.max(0.001, (currentExtents?.z || 0.05) * 2);
+
+  const targetWidth = Number.isFinite(width) && width > 0 ? width : currentWidth;
+  const targetHeight =
+    Number.isFinite(height) && height > 0 ? height : currentHeight;
+  const targetDepth = Number.isFinite(depth) && depth > 0 ? depth : currentDepth;
+
+  const scaleVec = new flock.BABYLON.Vector3(
+    targetWidth / currentWidth,
+    targetHeight / currentHeight,
+    targetDepth / currentDepth,
+  );
+
+  mesh.scaling.multiplyInPlace(scaleVec);
+
+  mesh.computeWorldMatrix(true);
+  mesh.refreshBoundingInfo(true);
+
+  const newExtents = mesh.getBoundingInfo()?.boundingBox?.extendSizeWorld;
+  const nextWidth = Math.max(0.001, (newExtents?.x || 0.05) * 2);
+  const nextHeight = Math.max(0.001, (newExtents?.y || 0.05) * 2);
+  const nextDepth = Math.max(0.001, (newExtents?.z || 0.05) * 2);
+
+  const adjustByOrigin = (axis, oldSize, newSize) => {
+    const delta = (newSize - oldSize) / 2;
+    switch ((origins?.[axis] || "").toUpperCase()) {
+      case "LEFT":
+      case "BASE":
+      case "FRONT":
+        return delta;
+      case "RIGHT":
+      case "TOP":
+      case "BACK":
+        return -delta;
+      default:
+        return 0;
+    }
+  };
+
+  mesh.position.x += adjustByOrigin("x", currentWidth, nextWidth);
+  mesh.position.y += adjustByOrigin("y", currentHeight, nextHeight);
+  mesh.position.z += adjustByOrigin("z", currentDepth, nextDepth);
+
+  mesh.refreshBoundingInfo(true);
+
+  const rootMesh = getRootMesh(mesh) || mesh;
+  rootMesh.computeWorldMatrix(true);
+  rootMesh.refreshBoundingInfo(true);
+  flock.updatePhysics(rootMesh, rootMesh);
 }
 
 function setAbsoluteSize(mesh, width, height, depth) {
