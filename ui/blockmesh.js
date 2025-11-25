@@ -85,6 +85,10 @@ export function getMeshFromBlock(block) {
     block = block.getParent();
   }
 
+  if (block && block.type === "resize") {
+    block = block.getParent();
+  }
+
   const blockKey = getBlockKeyFromBlock(block);
 
   if (!blockKey) return null;
@@ -426,6 +430,10 @@ export function updateMeshFromBlock(mesh, block, changeEvent) {
   }
 
   if (!changed) {
+    if (block.type === "resize") {
+      changed = changeEvent.name || "RESIZE";
+    }
+
     if (
       block.type === "set_sky_color" ||
       block.type === "create_ground" ||
@@ -443,6 +451,63 @@ export function updateMeshFromBlock(mesh, block, changeEvent) {
   if (flock.meshDebug) console.log(`Processing change type: ${changed}`);
 
   const shapeType = block.type;
+
+  if (block.type === "resize") {
+    const targetMesh = mesh || getMeshFromBlock(block);
+    if (!targetMesh) return;
+
+    const readSize = (name, fallback) => readNumberInput(block, name, fallback);
+
+    targetMesh.computeWorldMatrix(true);
+    targetMesh.refreshBoundingInfo();
+    const currentExtents = targetMesh.getBoundingInfo().boundingBox.extendSizeWorld;
+
+    const width = readSize(
+      "X",
+      Math.max(0.1, currentExtents.x * 2),
+    );
+    const height = readSize(
+      "Y",
+      Math.max(0.1, currentExtents.y * 2),
+    );
+    const depth = readSize(
+      "Z",
+      Math.max(0.1, currentExtents.z * 2),
+    );
+
+    const oldWidth = currentExtents.x * 2;
+    const oldHeight = currentExtents.y * 2;
+    const oldDepth = currentExtents.z * 2;
+
+    setAbsoluteSize(targetMesh, width, height, depth);
+
+    targetMesh.computeWorldMatrix(true);
+    targetMesh.refreshBoundingInfo();
+    const newExtents = targetMesh.getBoundingInfo().boundingBox.extendSizeWorld;
+
+    const adjustByOrigin = (axis, oldSize, newSize) => {
+      const delta = (newSize - oldSize) / 2;
+      switch (block.getFieldValue(`${axis}_ORIGIN`)) {
+        case "LEFT":
+        case "BASE":
+        case "FRONT":
+          return delta;
+        case "RIGHT":
+        case "TOP":
+        case "BACK":
+          return -delta;
+        default:
+          return 0;
+      }
+    };
+
+    targetMesh.position.x += adjustByOrigin("X", oldWidth, newExtents.x * 2);
+    targetMesh.position.y += adjustByOrigin("Y", oldHeight, newExtents.y * 2);
+    targetMesh.position.z += adjustByOrigin("Z", oldDepth, newExtents.z * 2);
+
+    flock.updatePhysics(targetMesh);
+    return;
+  }
 
   if (
     (block.type === "load_object" ||

@@ -1376,16 +1376,16 @@ export function toggleGizmo(gizmoType) {
                 addedDoSection = true;
               }
 
-              let scaleBlock = null;
+              let resizeBlock = null;
               let modelVariable = block.getFieldValue("ID_VAR");
               const statementConnection = block.getInput("DO").connection;
               if (statementConnection && statementConnection.targetBlock()) {
                 let currentBlock = statementConnection.targetBlock();
                 while (currentBlock) {
-                  if (currentBlock.type === "scale") {
+                  if (currentBlock.type === "resize") {
                     const modelField = currentBlock.getFieldValue("BLOCK_NAME");
                     if (modelField === modelVariable) {
-                      scaleBlock = currentBlock;
+                      resizeBlock = currentBlock;
                       break;
                     }
                   }
@@ -1393,14 +1393,14 @@ export function toggleGizmo(gizmoType) {
                 }
               }
 
-              if (!scaleBlock) {
-                scaleBlock = Blockly.getMainWorkspace().newBlock("scale");
-                scaleBlock.setFieldValue(modelVariable, "BLOCK_NAME");
-                scaleBlock.initSvg();
-                scaleBlock.render();
+              if (!resizeBlock) {
+                resizeBlock = Blockly.getMainWorkspace().newBlock("resize");
+                resizeBlock.setFieldValue(modelVariable, "BLOCK_NAME");
+                resizeBlock.initSvg();
+                resizeBlock.render();
 
                 ["X", "Y", "Z"].forEach((axis) => {
-                  const input = scaleBlock.getInput(axis);
+                  const input = resizeBlock.getInput(axis);
                   const shadowBlock =
                     Blockly.getMainWorkspace().newBlock("math_number");
                   shadowBlock.setFieldValue("1", "NUM");
@@ -1410,22 +1410,22 @@ export function toggleGizmo(gizmoType) {
                   input.connection.connect(shadowBlock.outputConnection);
                 });
 
-                scaleBlock.render();
+                resizeBlock.render();
                 block
                   .getInput("DO")
-                  .connection.connect(scaleBlock.previousConnection);
+                  .connection.connect(resizeBlock.previousConnection);
 
                 // Track this block for DO section cleanup
                 const timestamp = Date.now();
-                gizmoCreatedBlocks.set(scaleBlock.id, {
+                gizmoCreatedBlocks.set(resizeBlock.id, {
                   parentId: block.id,
                   createdDoSection: addedDoSection,
                   timestamp: timestamp,
                 });
               }
 
-              function setScaleValue(inputName, value) {
-                const input = scaleBlock.getInput(inputName);
+              function setResizeValue(inputName, value) {
+                const input = resizeBlock.getInput(inputName);
                 const connectedBlock = input.connection.targetBlock();
 
                 if (connectedBlock) {
@@ -1433,13 +1433,14 @@ export function toggleGizmo(gizmoType) {
                 }
               }
 
-              const scaleX = Math.round(mesh.scaling.x * 10) / 10;
-              const scaleY = Math.round(mesh.scaling.y * 10) / 10;
-              const scaleZ = Math.round(mesh.scaling.z * 10) / 10;
+              const extent = mesh.getBoundingInfo().boundingBox.extendSizeWorld;
+              const absoluteWidth = Math.round(extent.x * 2 * 10) / 10;
+              const absoluteHeight = Math.round(extent.y * 2 * 10) / 10;
+              const absoluteDepth = Math.round(extent.z * 2 * 10) / 10;
 
-              setScaleValue("X", scaleX);
-              setScaleValue("Y", scaleY);
-              setScaleValue("Z", scaleZ);
+              setResizeValue("X", absoluteWidth);
+              setResizeValue("Y", absoluteHeight);
+              setResizeValue("Z", absoluteDepth);
 
               // End undo group
               Blockly.Events.setGroup(null);

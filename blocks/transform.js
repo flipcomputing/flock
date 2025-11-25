@@ -18,7 +18,7 @@ export function defineTransformBlocks() {
 		if (!changeEventParentBlock) return;
 		const changeEventBlockType = changeEventParentBlock.type;
 		if (flock.blockDebug) console.log("The type of this change event is", changeEventBlockType);
-		if (changeEventBlockType != "rotate_to") return;
+                if (changeEventBlockType != "rotate_to" && changeEventBlockType != "resize") return;
 		const handleChange = handleFieldOrChildChange(block, changeEvent)
 		if (flock.blockDebug) console.log(handleChange);
 	}
