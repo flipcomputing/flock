@@ -508,7 +508,9 @@ export function updateMeshFromBlock(mesh, block, changeEvent) {
     targetMesh.refreshBoundingInfo(true);
 
     const rootMesh = getRootMesh(targetMesh) || targetMesh;
-    flock.updatePhysics(targetMesh, rootMesh);
+    rootMesh.computeWorldMatrix(true);
+    rootMesh.refreshBoundingInfo(true);
+    flock.updatePhysics(rootMesh, rootMesh);
     return;
   }
 
