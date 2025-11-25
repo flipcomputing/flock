@@ -505,7 +505,10 @@ export function updateMeshFromBlock(mesh, block, changeEvent) {
     targetMesh.position.y += adjustByOrigin("Y", oldHeight, newExtents.y * 2);
     targetMesh.position.z += adjustByOrigin("Z", oldDepth, newExtents.z * 2);
 
-    flock.updatePhysics(targetMesh);
+    targetMesh.refreshBoundingInfo(true);
+
+    const rootMesh = getRootMesh(targetMesh) || targetMesh;
+    flock.updatePhysics(targetMesh, rootMesh);
     return;
   }
 
