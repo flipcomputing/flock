@@ -1085,19 +1085,17 @@ function setAbsoluteSize(mesh, width, height, depth) {
   const boundingInfo = mesh.getBoundingInfo();
   const originalSize = boundingInfo.boundingBox.extendSize;
 
-  // Store the current world matrix and decompose it
-  const worldMatrix = mesh.computeWorldMatrix(true);
-  const currentScale = new flock.BABYLON.Vector3();
-  const currentRotationQuaternion = new flock.BABYLON.Quaternion();
-  const currentPosition = new flock.BABYLON.Vector3();
-  worldMatrix.decompose(
-    currentScale,
-    currentRotationQuaternion,
-    currentPosition,
-  );
+  // Preserve the local transform so we can restore it after baking
+  const originalPosition = mesh.position.clone();
+  const originalRotationQuaternion = mesh.rotationQuaternion?.clone() || null;
+  const originalRotation = mesh.rotation?.clone();
 
-  // Temporarily move mesh to origin
-  mesh = moveMeshToOrigin(mesh);
+  // Temporarily move mesh to origin without changing parent space
+  mesh.position.setAll(0);
+  if (mesh.rotationQuaternion) {
+    mesh.rotationQuaternion = flock.BABYLON.Quaternion.Identity();
+  }
+  mesh.rotation = flock.BABYLON.Vector3.Zero();
 
   // Calculate new scaling
   const newScaleX = width / (originalSize.x * 2);
@@ -1113,9 +1111,13 @@ function setAbsoluteSize(mesh, width, height, depth) {
   // Reset scaling to 1,1,1
   mesh.scaling = flock.BABYLON.Vector3.One();
 
-  // Restore original position and rotation from world matrix
-  mesh.position = currentPosition;
-  mesh.rotationQuaternion = currentRotationQuaternion;
+  // Restore original transform in the local space
+  mesh.position.copyFrom(originalPosition);
+  if (originalRotationQuaternion) {
+    mesh.rotationQuaternion = originalRotationQuaternion;
+  } else if (originalRotation) {
+    mesh.rotation.copyFrom(originalRotation);
+  }
 
   let shapeType = null;
   if (mesh.metadata) shapeType = mesh.metadata.shapeType;
