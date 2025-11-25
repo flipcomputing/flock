@@ -18,10 +18,11 @@ export function defineTransformBlocks() {
 		if (!changeEventParentBlock) return;
 		const changeEventBlockType = changeEventParentBlock.type;
 		if (flock.blockDebug) console.log("The type of this change event is", changeEventBlockType);
-		if (changeEventBlockType != "rotate_to") return;
-		const handleChange = handleFieldOrChildChange(block, changeEvent)
-		if (flock.blockDebug) console.log(handleChange);
-	}
+                if (!["rotate_to", "resize"].includes(changeEventBlockType))
+                        return;
+                const handleChange = handleFieldOrChildChange(block, changeEvent)
+                if (flock.blockDebug) console.log(handleChange);
+        }
 	Blockly.Blocks["move_by_xyz"] = {
 		init: function () {
 			this.jsonInit({

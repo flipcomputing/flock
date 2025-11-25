@@ -81,7 +81,7 @@ export function getMeshFromBlock(block) {
     return flock?.scene?.getMeshByName("ground");
   }
 
-  if (block && block.type === "rotate_to") {
+  if (block && ["rotate_to", "resize"].includes(block.type)) {
     block = block.getParent();
   }
 
@@ -983,6 +983,24 @@ export function updateMeshFromBlock(mesh, block, changeEvent) {
   if (["X", "Y", "Z"].includes(changed)) {
     if (block.type === "rotate_to") {
       flock.rotateTo(mesh.name, position);
+    } else if (block.type === "resize") {
+      const size =
+        mesh.getBoundingInfo?.().boundingBox.extendSizeWorld ||
+        mesh.getBoundingInfo?.().boundingBox.extendSize ||
+        flock.BABYLON.Vector3.Zero();
+
+      const getNumericInput = (blk, name, fallback) => {
+        const input = blk.getInput(name);
+        const targetBlock = input?.connection?.targetBlock?.();
+        const value = Number(targetBlock?.getFieldValue("NUM"));
+        return Number.isFinite(value) ? value : fallback;
+      };
+
+      const width = getNumericInput(block, "X", size.x * 2);
+      const height = getNumericInput(block, "Y", size.y * 2);
+      const depth = getNumericInput(block, "Z", size.z * 2);
+
+      setAbsoluteSize(mesh, width, height, depth);
     } else {
       flock.positionAt(mesh.name, { ...position, useY: true });
     }
