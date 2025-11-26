@@ -89,12 +89,6 @@ export function defineTransformBlocks() {
 							getDropdownOption("z_coordinate"),
 						]
 					},
-					{
-						type: "input_value",
-						name: "VALUE",
-						check: "Number",
-						align: "RIGHT",
-					},
 				],
 				previousStatement: null,
 				nextStatement: null,

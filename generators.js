@@ -1843,15 +1843,14 @@ export function defineGenerators() {
 
                 const coordinate = block.getFieldValue("COORDINATE") || "x_coordinate";
                 const value = getFieldValue(block, "VALUE", "0");
-                const useY = block.getFieldValue("USE_Y") === "TRUE";
                 
                 switch (coordinate) {
                         case "x_coordinate":                              
-                                return `await positionAt(${meshName}, { x: ${value}, y: null, z: null, useY: ${useY} });\n`;
+                                return `await positionAt(${meshName}, { x: ${value}, y: null, z: null, useY: false });\n`;
                         case "y_coordinate":                              
-                                return `await positionAt(${meshName}, { x: null, y: ${value}, z: null, useY: ${useY} });\n`;
+                                return `await positionAt(${meshName}, { x: null, y: ${value}, z: null, useY: true });\n`;
                         case "z_coordinate":                              
-                                return `await positionAt(${meshName}, { x: null, y: null, z: ${value}, useY: ${useY} });\n`;
+                                return `await positionAt(${meshName}, { x: null, y: null, z: ${value}, useY: false });\n`;
                 };
         };
 
