@@ -190,12 +190,6 @@ export function defineTransformBlocks() {
 						check: "Number",
 						align: "RIGHT",
 					},
-					{
-						type: "field_checkbox",
-						name: "USE_Y",
-						checked: false,
-						text: "Use Y axis",
-					},
 				],
 				previousStatement: null,
 				nextStatement: null,
