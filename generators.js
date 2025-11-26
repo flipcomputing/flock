@@ -1843,7 +1843,6 @@ export function defineGenerators() {
 
                 const coordinate = block.getFieldValue("COORDINATE") || "x_coordinate";
                 const value = getFieldValue(block, "VALUE", "0");
-                const useY = block.getFieldValue("USE_Y") === "TRUE";
                 
                 switch (coordinate) {
                         case "x_coordinate":                              
