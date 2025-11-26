@@ -277,7 +277,7 @@ export default {
   move_by_xyz: "move %1 by x: %2 y: %3 z: %4",
   move_by_xyz_single: "change position of %1 by %2 %3",
   move_to_xyz: "move %1 to x: %2 y: %3 z: %4 y? %5",
-  move_to_xyz_single: "set position of %1 to %2 %3 y? %4",
+  move_to_xyz_single: "set position of %1 to %2 %3",
   move_to: /* "move %1 to %2 y? %3" */ "position %1 at %2 y? %3",
   scale: "scale %1 x: %2 y: %3 z: %4\norigin x: %5 y: %6 z: %7",
   resize: "resize %1 x: %2 y: %3 z: %4\norigin x: %5 y: %6 z: %7",
