@@ -1846,11 +1846,11 @@ export function defineGenerators() {
                 
                 switch (coordinate) {
                         case "x_coordinate":                              
-                                return `await positionAt(${meshName}, { x: ${value}, y: null, z: null, useY: false });\n`;
+                                return `await positionAt(${meshName}, { x: ${value} });\n`;
                         case "y_coordinate":                              
-                                return `await positionAt(${meshName}, { x: null, y: ${value}, z: null, useY: true });\n`;
+                                return `await positionAt(${meshName}, { y: ${value} });\n`;
                         case "z_coordinate":                              
-                                return `await positionAt(${meshName}, { x: null, y: null, z: ${value}, useY: false });\n`;
+                                return `await positionAt(${meshName}, { z: ${value} });\n`;
                 };
         };
 
