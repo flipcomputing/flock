@@ -886,6 +886,7 @@ export const flock = {
                         lightIntensity: this.lightIntensity?.bind(this),
                         buttonControls: this.buttonControls?.bind(this),
                         getCamera: this.getCamera?.bind(this),
+                        getMainLight: this.getMainLight?.bind(this),
                         cameraControl: this.cameraControl?.bind(this),
                         setCameraBackground:
                                 this.setCameraBackground?.bind(this),
