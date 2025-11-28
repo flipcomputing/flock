@@ -163,7 +163,10 @@ export function handleMeshLifecycleChange(block, changeEvent) {
 
     if (!isDisabling) {
       setTimeout(() => {
-        if (block.getParent()) {
+        const stillExists = Blockly.getMainWorkspace()
+          ?.getBlockById?.(block.id);
+
+        if (stillExists) {
           updateOrCreateMeshFromBlock(block, changeEvent);
         }
       }, 0);
