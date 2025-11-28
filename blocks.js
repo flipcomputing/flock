@@ -9,6 +9,8 @@ import {
   updateOrCreateMeshFromBlock,
   getMeshFromBlock,
   applySceneBackgroundFromWorkspace,
+  clearSkyMesh,
+  setClearSkyToBlack,
 } from "./ui/blockmesh.js";
 import { registerFieldColour } from "@blockly/field-colour";
 import { createThemeConfig } from "./main/themes.js";
@@ -97,6 +99,11 @@ export function handleBlockDelete(event) {
         deleteMeshFromBlock(blockJson.id);
       } else if (blockJson.type === "set_background_color") {
         deleteMeshFromBlock(blockJson.id);
+        if (!applySceneBackgroundFromWorkspace(blockJson.id)) {
+          setClearSkyToBlack();
+        }
+      } else if (blockJson.type === "set_sky_color") {
+        clearSkyMesh();
         applySceneBackgroundFromWorkspace(blockJson.id);
       }
 
@@ -149,6 +156,11 @@ export function handleMeshLifecycleChange(block, changeEvent) {
     } else {
       deleteMeshFromBlock(block.id);
       if (block.type === "set_background_color") {
+        if (!applySceneBackgroundFromWorkspace(block.id)) {
+          setClearSkyToBlack();
+        }
+      } else if (block.type === "set_sky_color") {
+        clearSkyMesh();
         applySceneBackgroundFromWorkspace(block.id);
       }
     }

@@ -263,6 +263,15 @@ function applyBackgroundColorFromBlock(block) {
   flock.setSky(read.value, { clear: true });
 }
 
+export function clearSkyMesh() {
+  flock.setSky(null);
+  delete meshMap["sky"];
+}
+
+export function setClearSkyToBlack() {
+  flock.setSky("#000000", { clear: true });
+}
+
 function applyFirstBackgroundBlock(excludeBlockId) {
   const ws = Blockly.getMainWorkspace?.();
   if (!ws) return false;
@@ -304,9 +313,9 @@ function applySkyFromWorkspace() {
 }
 
 export function applySceneBackgroundFromWorkspace(excludeBlockId) {
-  if (applyFirstBackgroundBlock(excludeBlockId)) return;
+  if (applyFirstBackgroundBlock(excludeBlockId)) return true;
 
-  applySkyFromWorkspace();
+  return applySkyFromWorkspace();
 }
 
 // Add this function before updateMeshFromBlock
