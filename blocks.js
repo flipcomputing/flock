@@ -158,7 +158,10 @@ export function handleMeshLifecycleChange(block, changeEvent) {
     changeEvent.blockId === block.id &&
     changeEvent.element === "disabled"
   ) {
-    if (block.isEnabled()) {
+    const isDisabling =
+      changeEvent.newValue === true || changeEvent.newValue === "true";
+
+    if (!isDisabling) {
       setTimeout(() => {
         if (block.getParent()) {
           updateOrCreateMeshFromBlock(block, changeEvent);
