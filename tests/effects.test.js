@@ -74,19 +74,35 @@ export function runEffectsTests(flock) {
 	  }, 50);
 	});
 
-	it("should set fog parameters", function () {
-	  flock.scene.fogMode = null;
-	  flock.scene.fogColor = null;
-	  flock.scene.fogDensity = null;
-	  flock.scene.fogStart = null;
+        it("should set fog parameters", function () {
+          flock.scene.fogMode = null;
+          flock.scene.fogColor = null;
+          flock.scene.fogDensity = null;
+          flock.scene.fogStart = null;
 	  flock.scene.fogEnd = null;
 
 	  flock.setFog({ fogColorHex: "#9932cc", fogMode: "EXP", fogDensity: 0.2 });
 
 	  expect(flock.scene.fogMode).to.equal(flock.BABYLON.Scene.FOGMODE_EXP);
-	  expect(flock.scene.fogDensity).to.equal(0.2);
-	  expect(flock.scene.fogStart).to.equal(50);
-	  expect(flock.scene.fogEnd).to.equal(100);
-	});
+          expect(flock.scene.fogDensity).to.equal(0.2);
+          expect(flock.scene.fogStart).to.equal(50);
+          expect(flock.scene.fogEnd).to.equal(100);
+        });
+
+        it("should allow custom fog start and end", function () {
+          flock.scene.fogStart = null;
+          flock.scene.fogEnd = null;
+
+          flock.setFog({
+            fogColorHex: "#9932cc",
+            fogMode: "LINEAR",
+            fogDensity: 0.05,
+            fogStart: 25,
+            fogEnd: 75,
+          });
+
+          expect(flock.scene.fogStart).to.equal(25);
+          expect(flock.scene.fogEnd).to.equal(75);
+        });
   });
 }

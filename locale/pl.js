@@ -190,7 +190,7 @@ export default {
 
   // Custom block blocks - Effects blocks
   light_intensity: "ustaw intensywność światła na %1",
-  set_fog: "ustaw mgłę, kolor: %1, tryb: %2, gęstość: %3",
+  set_fog: "ustaw mgłę, kolor: %1, tryb: %2, gęstość: %3\npoczątek %4 koniec %5",
 
   // Custom block translation - Events blocks
   start: "start",
@@ -374,7 +374,7 @@ export default {
 
   // Tooltip translations - Effects blocks
   light_intensity_tooltip: "Ustaw intensywność głównego światła.\nSłowo kluczowe: light intensity",
-  set_fog_tooltip: "Skonfiguruj mgłę sceny.\nSłowo kluczowe: fog",
+  set_fog_tooltip: "Skonfiguruj mgłę sceny. Użyj początku i końca, aby ustawić bliską i daleką odległość.\nSłowo kluczowe: fog",
 
   // Tooltip translations - Events blocks
   start_tooltip: "Wykonaj bloki po starcie projektu. Możesz mieć wiele bloków start.\nSłowo kluczowe: start",

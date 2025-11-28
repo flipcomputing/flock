@@ -801,6 +801,22 @@ const toolboxSceneLights = {
                                                 },
                                         },
                                 },
+                                START: {
+                                        shadow: {
+                                                type: "math_number",
+                                                fields: {
+                                                        NUM: 50,
+                                                },
+                                        },
+                                },
+                                END: {
+                                        shadow: {
+                                                type: "math_number",
+                                                fields: {
+                                                        NUM: 100,
+                                                },
+                                        },
+                                },
                         },
                 },
         ],

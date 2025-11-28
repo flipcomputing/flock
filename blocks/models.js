@@ -245,7 +245,7 @@ export function defineModelBlocks() {
 			  )
 				return;
 			  if (handleMeshLifecycleChange(this, changeEvent)) return;
-			  if (handleFieldOrChildChange(this, changeEvent)) return;
+			 // if (handleFieldOrChildChange(this, changeEvent)) return;
 			});
 
 			addDoMutatorWithToggleBehavior(this);

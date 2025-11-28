@@ -8,6 +8,9 @@ import {
   deleteMeshFromBlock,
   updateOrCreateMeshFromBlock,
   getMeshFromBlock,
+  applySceneBackgroundFromWorkspace,
+  clearSkyMesh,
+  setClearSkyToBlack,
 } from "./ui/blockmesh.js";
 import { registerFieldColour } from "@blockly/field-colour";
 import { createThemeConfig } from "./main/themes.js";
@@ -94,6 +97,25 @@ export function handleBlockDelete(event) {
         blockJson.type.startsWith("create_")
       ) {
         deleteMeshFromBlock(blockJson.id);
+      } else if (blockJson.type === "set_background_color") {
+        deleteMeshFromBlock(blockJson.id);
+        if (
+          !applySceneBackgroundFromWorkspace(blockJson.id, {
+            allowSkyFallback: false,
+          })
+        ) {
+          clearSkyMesh();
+          setClearSkyToBlack();
+        }
+      } else if (blockJson.type === "set_sky_color") {
+        clearSkyMesh();
+        if (
+          !applySceneBackgroundFromWorkspace(blockJson.id, {
+            allowSkyFallback: false,
+          })
+        ) {
+          setClearSkyToBlack();
+        }
       }
 
       // Check inputs for child blocks
@@ -136,23 +158,52 @@ export function handleMeshLifecycleChange(block, changeEvent) {
     changeEvent.blockId === block.id &&
     changeEvent.element === "disabled"
   ) {
-    if (block.isEnabled()) {
+    const isDisabling =
+      changeEvent.newValue === true || changeEvent.newValue === "true";
+
+    if (!isDisabling) {
       setTimeout(() => {
-        if (block.getParent()) {
+        const stillExists = Blockly.getMainWorkspace()
+          ?.getBlockById?.(block.id);
+
+        if (stillExists) {
           updateOrCreateMeshFromBlock(block, changeEvent);
         }
       }, 0);
     } else {
       deleteMeshFromBlock(block.id);
+      if (block.type === "set_background_color") {
+        if (
+          !applySceneBackgroundFromWorkspace(block.id, {
+            allowSkyFallback: false,
+          })
+        ) {
+          clearSkyMesh();
+          setClearSkyToBlack();
+        }
+      } else if (block.type === "set_sky_color") {
+        clearSkyMesh();
+        if (
+          !applySceneBackgroundFromWorkspace(block.id, {
+            allowSkyFallback: false,
+          })
+        ) {
+          setClearSkyToBlack();
+        }
+      }
     }
     return true;
   }
 
   if (
     changeEvent.type === Blockly.Events.BLOCK_CREATE &&
-    changeEvent.blockId === block.id &&
     Blockly.getMainWorkspace().getBlockById(block.id)
   ) {
+    const createdBlockIds = Array.isArray(changeEvent.ids)
+      ? changeEvent.ids
+      : [changeEvent.blockId];
+
+    if (!createdBlockIds.includes(block.id)) return false;
     if (window.loadingCode) return true;
     updateOrCreateMeshFromBlock(block, changeEvent);
     return true;
@@ -237,14 +288,24 @@ export function handleParentLinkedUpdate(containerBlock, changeEvent) {
   )
     return false;
 
-  const changed = Blockly.getMainWorkspace().getBlockById(changeEvent.blockId);
-  const parent = findCreateBlock(changed);
+  const ws = Blockly.getMainWorkspace();
+  const changedBlocks =
+    changeEvent.type === Blockly.Events.BLOCK_CREATE &&
+    Array.isArray(changeEvent.ids)
+      ? changeEvent.ids
+          .map((id) => ws.getBlockById(id))
+          .filter(Boolean)
+      : [ws.getBlockById(changeEvent.blockId)].filter(Boolean);
 
-  if (parent === containerBlock && changed) {
-    if (!window.loadingCode) {
-      updateOrCreateMeshFromBlock(containerBlock, changeEvent);
+  for (const changed of changedBlocks) {
+    const parent = findCreateBlock(changed);
+
+    if (parent === containerBlock && changed) {
+      if (!window.loadingCode) {
+        updateOrCreateMeshFromBlock(containerBlock, changeEvent);
+      }
+      return true;
     }
-    return true;
   }
 
   return false;
@@ -310,12 +371,20 @@ export function handleBlockChange(block, changeEvent, variableNamePrefix) {
       changeEvent.blockId,
     );
 
-    if (!changedBlock) {
+    const createdBlocks =
+      changeEvent.type === Blockly.Events.BLOCK_CREATE &&
+      Array.isArray(changeEvent.ids)
+        ? changeEvent.ids
+            .map((id) => Blockly.getMainWorkspace().getBlockById(id))
+            .filter(Boolean)
+        : [changedBlock].filter(Boolean);
+
+    if (!createdBlocks.length) {
       if (flock.blockDebug) console.log("Changed block not found in workspace");
       return;
     }
 
-    const parent = findCreateBlock(changedBlock);
+    const parents = createdBlocks.map((cb) => findCreateBlock(cb));
     if (flock.blockDebug) console.log("The type of the changed block is", changedBlock.type);
     if (changedBlock.getParent()) {
       if (flock.blockDebug) console.log("The ID of the parent of the changed block is", changedBlock.getParent().id);
@@ -324,7 +393,7 @@ export function handleBlockChange(block, changeEvent, variableNamePrefix) {
     if (flock.blockDebug) console.log("This block is", block.id);
     // if (flock.blockDebug) console.log("The parent is", parent);
     if (flock.blockDebug) console.log("The type of this block is", block.type);
-    if (parent === block) {
+    if (parents.includes(block)) {
       const blockInWorkspace =
         Blockly.getMainWorkspace().getBlockById(block.id);
       if (blockInWorkspace) {
