@@ -339,6 +339,9 @@ export function updateOrCreateMeshFromBlock(block, changeEvent) {
       block.type,
       changeEvent.type,
     );
+  const inFlyout =
+    typeof block.isInFlyout === "function" ? block.isInFlyout() : block.isInFlyout;
+  if (inFlyout) return;
   if (
     [
       "set_sky_color",
