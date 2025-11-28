@@ -434,6 +434,10 @@ export const flockScene = {
     });
   },
   disposeMesh(mesh) {
+    if (!mesh) {
+      return;
+    }
+
     if (mesh.name === "ground") {
       mesh.material.dispose();
       mesh.dispose();
