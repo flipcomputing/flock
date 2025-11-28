@@ -259,12 +259,14 @@ export function defineSceneBlocks() {
 					return inSubtree(matBlock, id);
 				};
 
-				const relevant =
-					touchesMap(evt.blockId) ||
-					touchesMap(evt.newParentId) ||
-					touchesMap(evt.oldParentId) ||
-					(evt.type === Blockly.Events.UI &&
-						evt.element === "dragStop");
+                                const relevant =
+                                        touchesMap(evt.blockId) ||
+                                        (Array.isArray(evt.ids) &&
+                                                evt.ids.some((id) => touchesMap(id))) ||
+                                        touchesMap(evt.newParentId) ||
+                                        touchesMap(evt.oldParentId) ||
+                                        (evt.type === Blockly.Events.UI &&
+                                                evt.element === "dragStop");
 
 				if (!relevant) return;
 

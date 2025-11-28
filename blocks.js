@@ -288,14 +288,24 @@ export function handleParentLinkedUpdate(containerBlock, changeEvent) {
   )
     return false;
 
-  const changed = Blockly.getMainWorkspace().getBlockById(changeEvent.blockId);
-  const parent = findCreateBlock(changed);
+  const ws = Blockly.getMainWorkspace();
+  const changedBlocks =
+    changeEvent.type === Blockly.Events.BLOCK_CREATE &&
+    Array.isArray(changeEvent.ids)
+      ? changeEvent.ids
+          .map((id) => ws.getBlockById(id))
+          .filter(Boolean)
+      : [ws.getBlockById(changeEvent.blockId)].filter(Boolean);
 
-  if (parent === containerBlock && changed) {
-    if (!window.loadingCode) {
-      updateOrCreateMeshFromBlock(containerBlock, changeEvent);
+  for (const changed of changedBlocks) {
+    const parent = findCreateBlock(changed);
+
+    if (parent === containerBlock && changed) {
+      if (!window.loadingCode) {
+        updateOrCreateMeshFromBlock(containerBlock, changeEvent);
+      }
+      return true;
     }
-    return true;
   }
 
   return false;
