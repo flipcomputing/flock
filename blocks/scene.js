@@ -53,7 +53,7 @@ function createSceneColorBlock(config) {
 			this.setHelpUrl(getHelpUrlFor(this.type));
 			this.setStyle("scene_blocks");
 
-			this.setOnChange((changeEvent) => {
+					this.setOnChange((changeEvent) => {
 				if (flock.eventDebug && config.debugEvents) {
 					console.log(changeEvent.type);
 				}
@@ -63,22 +63,27 @@ function createSceneColorBlock(config) {
 							Blockly.Events.BLOCK_CREATE,
 							Blockly.Events.BLOCK_CHANGE,
 							Blockly.Events.BLOCK_MOVE,
-						]
+					]
 					: [
 							Blockly.Events.BLOCK_CREATE,
 							Blockly.Events.BLOCK_CHANGE,
-						];
+					];
 
 				if (eventTypes.includes(changeEvent.type)) {
-					const parent = findCreateBlock(
-						Blockly.getMainWorkspace().getBlockById(
-							changeEvent.blockId,
-						),
-					);
+					const workspace = Blockly.getMainWorkspace();
+					const changedBlocks = Array.isArray(changeEvent.ids)
+						? changeEvent.ids
+								.map((id) => workspace.getBlockById(id))
+								.filter(Boolean)
+						: [workspace.getBlockById(changeEvent.blockId)].filter(Boolean);
 
-					if (parent === this) {
+					const parents = changedBlocks
+						.map((block) => findCreateBlock(block))
+						.filter(Boolean);
+
+					if (parents.includes(this)) {
 						const blockInWorkspace =
-							Blockly.getMainWorkspace().getBlockById(this.id);
+								Blockly.getMainWorkspace().getBlockById(this.id);
 
 						if (blockInWorkspace) {
 							if (config.useMeshLifecycle) {
