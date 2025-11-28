@@ -682,8 +682,21 @@ export function defineGenerators() {
                                 "INTENSITY",
                                 javascriptGenerator.ORDER_ATOMIC,
                         ) || "1.0";
+                const diffuse = 
+                        javascriptGenerator.valueToCode(
+                                block,
+                                "DIFFUSE",
+                                javascriptGenerator.ORDER_ATOMIC,
+                        ) || "#FFFFFFFF";
+                const groundColor = 
+                        javascriptGenerator.valueToCode(
+                                block,
+                                "GROUND_COLOR",
+                                javascriptGenerator.ORDER_ATOMIC,
+                        ) || "#808080FF";
+                
 
-                return `lightIntensity(${intensity});\n`;
+                return `lightIntensity(${intensity});\nlightColor(${diffuse}, ${groundColor})\n`;
         };
 
         javascriptGenerator.forBlock["get_light"] = function (block) {

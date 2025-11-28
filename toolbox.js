@@ -631,6 +631,22 @@ const toolboxSceneLights = {
                                                 },
                                         },
                                 },
+                                DIFFUSE: {
+                                        shadow: {
+                                                type: "colour",
+                                                fields: {
+                                                        COLOR: "#FFFFFFFF",
+                                                },
+                                        },
+                                },
+                                GROUND_COLOR: {
+                                        shadow: {
+                                                type: "colour",
+                                                fields: {
+                                                        COLOR: "#808080FF",
+                                                },
+                                        },
+                                },
                         },
                 },
                 {

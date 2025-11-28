@@ -15,6 +15,16 @@ export const flockEffects = {
       );
     }
   },
+  lightColor(diffuse, groundColor) {
+    if (flock.mainLight) {
+      flock.mainLight.diffuse = diffuse;
+      flock.mainLight.groundColor = groundColor;
+    } else {
+      console.warn(
+        "Main light is not defined. Please ensure flock.mainLight exists.",
+      );
+    }
+  },
   getMainLight() {
     return "__main_light__";
   },

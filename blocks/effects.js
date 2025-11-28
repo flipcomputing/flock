@@ -19,7 +19,18 @@ export function defineEffectsBlocks() {
 						name: "INTENSITY",
 						check: "Number",
 					},
+					{
+						type: "input_value",
+						name: "DIFFUSE",
+						check: "Colour",
+					},
+					{
+						type: "input_value",
+						name: "GROUND_COLOR",
+						check: "Colour",
+					},
 				],
+				inputsInline: true,
 				previousStatement: null,
 				nextStatement: null,
 				colour: categoryColours["Scene"],
