@@ -33,7 +33,7 @@ export function defineTransformBlocks() {
 		const handleChange = handleFieldOrChildChange(block, changeEvent);
 		if (flock.blockDebug) console.log(handleChange);
 	}
-	
+
 	Blockly.Blocks["move_by_xyz"] = {
 		init: function () {
 			this.jsonInit({
@@ -146,7 +146,7 @@ export function defineTransformBlocks() {
 					{
 						type: "field_variable",
 						name: "MODEL2",
-						variable: "mesh2",
+						variable: "object2",
 					},
 					{
 						type: "field_checkbox",
@@ -417,7 +417,7 @@ export function defineTransformBlocks() {
 					{
 						type: "field_variable",
 						name: "MODEL2",
-						variable: "mesh2",
+						variable: "object2",
 					},
 					{
 						type: "field_checkbox",
