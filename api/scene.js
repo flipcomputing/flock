@@ -11,6 +11,10 @@ export const flockScene = {
   // Back-compatible: setSky(colorOrMaterialOrArray, options)
   // setSky(colorOrMaterialOrArray, options?)
   setSky(color, options = {}) {
+    if (!flock || !flock.scene || !flock.BABYLON) {
+      return;
+    }
+
     const { clear = false } = options;
 
     // Dispose any previous sky dome
