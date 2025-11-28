@@ -1948,7 +1948,7 @@ export const flock = {
                                 if (meshId === "__active_camera__") {
                                         yield flock.scene.activeCamera;
                                         return;
-                                } else if (meshId === "__hemispheric_light__") {
+                                } else if (meshId === "__main_light__") {
                                         yield flock.mainLight;
                                         return;
                                 } else {
@@ -2705,7 +2705,7 @@ export const flock = {
                 const mesh =
                         modelName === "__active_camera__"
                                 ? flock.scene.activeCamera
-                                : modelName === "__hemispheric_light__"
+                                : modelName === "__main_light__"
                                 ? flock.mainLight : flock.scene.getMeshByName(modelName);
 
                 if (!mesh) return null;
