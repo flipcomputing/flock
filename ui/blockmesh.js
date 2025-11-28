@@ -83,7 +83,7 @@ export function getMeshFromBlock(block) {
     return flock?.scene?.getMeshByName("ground");
   }
 
-  if (block.type === "rotate_to") {
+  if (block.type === "rotate_to" || block.type === "resize") {
     let container = null;
     let node = block;
 
@@ -130,8 +130,6 @@ export function getMeshFromBlock(block) {
 
   return getMeshFromBlockKey(blockKey);
 }
-
-
 
 function getMeshFromBlockId(blockId) {
   const blockKey = getBlockKeyFromBlockID(blockId);
@@ -262,7 +260,6 @@ export function extractMaterialInfo(materialBlock) {
 
 // Add this function before updateMeshFromBlock
 export function updateOrCreateMeshFromBlock(block, changeEvent) {
-   
   if (flock.meshDebug)
     console.log(
       "Update or create mesh from block",
@@ -900,7 +897,7 @@ function handleLoadBlockChange(mesh, block, changed, changeEvent) {
 }
 
 export function updateMeshFromBlock(mesh, block, changeEvent) {
- 
+  
   if (flock.meshDebug) {
     console.log("=== UPDATE MESH FROM BLOCK ===");
     console.log("Block type:", block.type);
@@ -1026,8 +1023,7 @@ export function updateMeshFromBlock(mesh, block, changeEvent) {
     mesh = getMeshFromBlock(block);
   }
 
-
-  if (mesh && mesh.physics) mesh.physics.disablePreStep = true;
+  //if (mesh && mesh.physics) mesh.physics.disablePreStep = true;
 
   if (block.type === "set_sky_color") {
     updateSkyFromBlock(mesh, block, changeEvent);
@@ -1059,12 +1055,6 @@ export function updateMeshFromBlock(mesh, block, changeEvent) {
     updateLoadBlockScaleFromEvent(mesh, block, changeEvent);
   }
 
-  const position = {
-    x: block.getInput("X").connection.targetBlock().getFieldValue("NUM"),
-    y: block.getInput("Y").connection.targetBlock().getFieldValue("NUM"),
-    z: block.getInput("Z").connection.targetBlock().getFieldValue("NUM"),
-  };
-
   // Handle load_* blocks (models and character colours)
   if (handleLoadBlockChange(mesh, block, changed, changeEvent)) {
     return;
@@ -1077,29 +1067,100 @@ export function updateMeshFromBlock(mesh, block, changeEvent) {
   handleMaterialOrColorChange(mesh, block, changed, color, materialInfo);
 
   if (["X", "Y", "Z"].includes(changed)) {
-    if (block.type === "rotate_to") {
-      flock.rotateTo(mesh.name, position);
-    } else {
-      flock.positionAt(mesh.name, { ...position, useY: true });
+    const isFieldChange =
+      changeEvent.type === Blockly.Events.BLOCK_CHANGE &&
+      changeEvent.element === "field";
+
+    // Decide which block actually owns the X/Y/Z inputs:
+    // - rotate_to / resize child (nested inside DO)
+    // - otherwise the root block itself
+    const contextBlock =
+      parent &&
+      (parent.type === "rotate_to" || parent.type === "resize")
+        ? parent
+        : block;
+
+    const getXYZFromBlock = (b) => ({
+      x: b.getInput("X")?.connection?.targetBlock()?.getFieldValue("NUM"),
+      y: b.getInput("Y")?.connection?.targetBlock()?.getFieldValue("NUM"),
+      z: b.getInput("Z")?.connection?.targetBlock()?.getFieldValue("NUM"),
+    });
+
+    // --- rotate_to: allow gizmo / non-field events ---
+    if (contextBlock.type === "rotate_to") {
+      const rotation = getXYZFromBlock(contextBlock);
+      flock.rotateTo(mesh.name, rotation);
+      return;
     }
-  } 
-  /*else if (changed === "SCALE") {
-    for (const child of block.getChildren()) {
-      if (child.type === "rotate_to") {
-        const rotation = {
-          x: child.getInput("X").connection.targetBlock().getFieldValue("NUM"),
-          y: child.getInput("Y").connection.targetBlock().getFieldValue("NUM"),
-          z: child.getInput("Z").connection.targetBlock().getFieldValue("NUM"),
-        };
-        flock.rotateTo(mesh.name, rotation);
+
+    // --- resize: also allow gizmo / non-field events ---
+    if (contextBlock.type === "resize") {
+      const dims = getXYZFromBlock(contextBlock);
+      const resizeOptions = {
+        width: dims.x ?? null,
+        height: dims.y ?? null,
+        depth: dims.z ?? null,
+        xOrigin: contextBlock.getFieldValue("X_ORIGIN") || "CENTRE",
+        yOrigin: contextBlock.getFieldValue("Y_ORIGIN") || "BASE",
+        zOrigin: contextBlock.getFieldValue("Z_ORIGIN") || "CENTRE",
+      };
+
+      if (flock.meshDebug) {
+        console.log(
+          "Resize",
+          resizeOptions,
+          "on mesh",
+          mesh?.name,
+          "from block",
+          block.type,
+          "event type",
+          changeEvent.type,
+        );
       }
+
+      flock.resize(mesh.name, resizeOptions);
+      if (flock.meshDebug) console.log("After resize", mesh);
+      return;
     }
-  }*/
+
+    // --- Everything else (positionAt) stays strict: only real field edits ---
+    if (!isFieldChange) {
+      if (flock.meshDebug) {
+        console.log(
+          "Ignoring X/Y/Z change for non-field event on",
+          block.type,
+          "event type:",
+          changeEvent.type,
+        );
+      }
+      return;
+    }
+
+    // This is a direct X/Y/Z on the root block (e.g. create_box, load_object)
+    if (parent && parent.id !== block.id) {
+      if (flock.meshDebug) {
+        console.log(
+          "X/Y/Z change is on a nested block; skipping positionAt for",
+          "root:",
+          block.type,
+          "parent:",
+          parent.type,
+        );
+      }
+      return;
+    }
+
+    const position = getXYZFromBlock(block);
+    if (flock.meshDebug) console.log("Position", position, block.type);
+    flock.positionAt(mesh.name, { ...position, useY: true });
+  }
+
 
   flock.updatePhysics(mesh);
 
   if (flock.meshDebug) console.log("=== UPDATE COMPLETE ===");
 }
+
 
 function moveMeshToOrigin(mesh) {
   mesh.position = flock.BABYLON.Vector3.Zero();
