@@ -312,10 +312,13 @@ function applySkyFromWorkspace() {
   return true;
 }
 
-export function applySceneBackgroundFromWorkspace(excludeBlockId) {
+export function applySceneBackgroundFromWorkspace(
+  excludeBlockId,
+  { allowSkyFallback = true } = {},
+) {
   if (applyFirstBackgroundBlock(excludeBlockId)) return true;
 
-  return applySkyFromWorkspace();
+  return allowSkyFallback ? applySkyFromWorkspace() : false;
 }
 
 // Add this function before updateMeshFromBlock

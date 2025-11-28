@@ -99,12 +99,22 @@ export function handleBlockDelete(event) {
         deleteMeshFromBlock(blockJson.id);
       } else if (blockJson.type === "set_background_color") {
         deleteMeshFromBlock(blockJson.id);
-        if (!applySceneBackgroundFromWorkspace(blockJson.id)) {
+        if (
+          !applySceneBackgroundFromWorkspace(blockJson.id, {
+            allowSkyFallback: false,
+          })
+        ) {
           setClearSkyToBlack();
         }
       } else if (blockJson.type === "set_sky_color") {
         clearSkyMesh();
-        applySceneBackgroundFromWorkspace(blockJson.id);
+        if (
+          !applySceneBackgroundFromWorkspace(blockJson.id, {
+            allowSkyFallback: false,
+          })
+        ) {
+          setClearSkyToBlack();
+        }
       }
 
       // Check inputs for child blocks
@@ -156,12 +166,22 @@ export function handleMeshLifecycleChange(block, changeEvent) {
     } else {
       deleteMeshFromBlock(block.id);
       if (block.type === "set_background_color") {
-        if (!applySceneBackgroundFromWorkspace(block.id)) {
+        if (
+          !applySceneBackgroundFromWorkspace(block.id, {
+            allowSkyFallback: false,
+          })
+        ) {
           setClearSkyToBlack();
         }
       } else if (block.type === "set_sky_color") {
         clearSkyMesh();
-        applySceneBackgroundFromWorkspace(block.id);
+        if (
+          !applySceneBackgroundFromWorkspace(block.id, {
+            allowSkyFallback: false,
+          })
+        ) {
+          setClearSkyToBlack();
+        }
       }
     }
     return true;
