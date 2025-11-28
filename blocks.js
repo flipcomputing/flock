@@ -197,9 +197,13 @@ export function handleMeshLifecycleChange(block, changeEvent) {
 
   if (
     changeEvent.type === Blockly.Events.BLOCK_CREATE &&
-    changeEvent.blockId === block.id &&
     Blockly.getMainWorkspace().getBlockById(block.id)
   ) {
+    const createdBlockIds = Array.isArray(changeEvent.ids)
+      ? changeEvent.ids
+      : [changeEvent.blockId];
+
+    if (!createdBlockIds.includes(block.id)) return false;
     if (window.loadingCode) return true;
     updateOrCreateMeshFromBlock(block, changeEvent);
     return true;
