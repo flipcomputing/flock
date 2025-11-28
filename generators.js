@@ -696,7 +696,7 @@ export function defineGenerators() {
                         ) || "#808080FF";
                 
 
-                return `lightIntensity(${intensity});\nlightColor(${diffuse}, ${groundColor})\n`;
+                return `lightIntensity(${intensity});\nlightColor(${diffuse}, ${groundColor});\n`;
         };
 
         javascriptGenerator.forBlock["get_light"] = function (block) {
