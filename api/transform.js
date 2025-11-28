@@ -300,7 +300,10 @@ export const flockTransform = {
 
       if (mesh.name === "hemisphericLight") {
         const oldLightVector = mesh.direction;
-        const newLightVector = new flock.BABYLON.Vector3(x, y, z);
+        const xRadian = flock.BABYLON.Tools.ToRadians(x);
+        const yRadian = flock.BABYLON.Tools.ToRadians(y);
+        const zRadian = flock.BABYLON.Tools.ToRadians(z);
+        const newLightVector = new flock.BABYLON.Vector3(xRadian, yRadian, zRadian);
         mesh.direction = oldLightVector.add(newLightVector);
         return;
       }
@@ -386,7 +389,10 @@ export const flockTransform = {
 
       // Rotate light
       if (mesh.name === "hemisphericLight") {
-        mesh.direction = new flock.BABYLON.Vector3(x, y, z);
+        const xRadian = flock.BABYLON.Tools.ToRadians(x);
+        const yRadian = flock.BABYLON.Tools.ToRadians(y);
+        const zRadian = flock.BABYLON.Tools.ToRadians(z);
+        mesh.direction = new flock.BABYLON.Vector3(xRadian, yRadian, zRadian);
       }
 
       // Update physics if present
