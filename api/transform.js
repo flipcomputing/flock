@@ -359,7 +359,7 @@ export const flockTransform = {
         return;
       }
       // Ensure mesh has a rotation quaternion
-      if (!mesh.rotationQuaternion) {
+      if (!mesh.rotationQuaternion && mesh.name != "hemisphericLight") {
         mesh.rotationQuaternion = flock.BABYLON.Quaternion.RotationYawPitchRoll(
           mesh.rotation.y,
           mesh.rotation.x,
