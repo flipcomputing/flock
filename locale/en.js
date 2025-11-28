@@ -195,7 +195,7 @@ export default {
 
   // Custom block translations - Effects blocks
   light_intensity: "set light intensity to %1",
-  set_fog: "set fog color %1 mode %2 density %3",
+  set_fog: "set fog color %1 mode %2 density %3\\nstart %4 end %5",
   
   // Custom block translation - Events blocks
   start: "start",

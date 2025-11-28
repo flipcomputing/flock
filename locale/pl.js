@@ -190,7 +190,7 @@ export default {
 
   // Custom block blocks - Effects blocks
   light_intensity: "ustaw intensywność światła na %1",
-  set_fog: "ustaw mgłę, kolor: %1, tryb: %2, gęstość: %3",
+  set_fog: "ustaw mgłę, kolor: %1, tryb: %2, gęstość: %3\\npoczątek %4 koniec %5",
 
   // Custom block translation - Events blocks
   start: "start",

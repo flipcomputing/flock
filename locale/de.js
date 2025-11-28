@@ -194,7 +194,7 @@ export default {
 
   // Custom block translations - Effects blocks
   light_intensity: "Lichtintensität auf %1 setzen",
-  set_fog: "Nebel setzen Farbe %1 Modus %2 Dichte %3",
+  set_fog: "Nebel setzen Farbe %1 Modus %2 Dichte %3\\nStart %4 Ende %5",
 
   // Custom block translation - Events blocks
   start: "start",

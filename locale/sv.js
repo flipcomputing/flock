@@ -199,7 +199,7 @@ export default {
 
       // Custom block translations - Effects blocks
       light_intensity: "ställ in ljusintensitet till %1",
-      set_fog: "ställ in dimma färg %1 läge %2 densitet %3",
+      set_fog: "ställ in dimma färg %1 läge %2 densitet %3\\nstart %4 slut %5",
 
       // Custom block translation - Events blocks
       start: "starta",

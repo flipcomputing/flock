@@ -198,7 +198,7 @@ export default {
 
   // Custom block translations - Effects blocks
   light_intensity: "definir intensidade da luz para %1",
-  set_fog: "definir cor da névoa %1 modo %2 densidade %3",
+  set_fog: "definir cor da névoa %1 modo %2 densidade %3\\ninício %4 fim %5",
 
   // Custom block translation - Events blocks
   start: "início",
