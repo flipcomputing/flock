@@ -1768,6 +1768,17 @@ function replaceMeshModel(currentMesh, block) {
     // Parent the replacement under the existing parent
     newChild.parent = currentMesh;
 
+    // Mark this replacement so cleanup logic keeps the newest child
+    const replacementId = Date.now();
+    newChild.metadata = {
+      ...(newChild.metadata || {}),
+      replacementId,
+    };
+    currentMesh.metadata = {
+      ...(currentMesh.metadata || {}),
+      latestReplacementId: replacementId,
+    };
+
     // Apply old first child's local scale (if any) to the new child
     if (oldChildScale && newChild.scaling) {
       try {
@@ -1839,13 +1850,18 @@ function replaceMeshModel(currentMesh, block) {
     }
 
     // Guard against lingering renderable children (e.g., double-attached meshes)
-    const lingeringChildren = (currentMesh.getChildren?.() || []).filter(
-      (child) => child !== newChild && isRenderableMesh(child),
-    );
+    const keepReplacementId = currentMesh.metadata?.latestReplacementId;
+    if (keepReplacementId) {
+      const lingeringChildren = (currentMesh.getChildren?.() || []).filter(
+        (child) =>
+          isRenderableMesh(child) &&
+          child.metadata?.replacementId !== keepReplacementId,
+      );
 
-    for (const child of lingeringChildren) {
-      stripPhysicsTree(child);
-      disposeTree(child);
+      for (const child of lingeringChildren) {
+        stripPhysicsTree(child);
+        disposeTree(child);
+      }
     }
 
     if (animationInfo?.name) {
