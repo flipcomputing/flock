@@ -1,5 +1,7 @@
 let flock;
 
+const sceneReady = () => !!(flock && flock.scene && flock.BABYLON);
+
 export function setFlockReference(ref) {
   flock = ref;
 }
@@ -11,7 +13,7 @@ export const flockScene = {
   // Back-compatible: setSky(colorOrMaterialOrArray, options)
   // setSky(colorOrMaterialOrArray, options?)
   setSky(color, options = {}) {
-    if (!flock || !flock.scene || !flock.BABYLON) {
+    if (!sceneReady()) {
       return;
     }
 
@@ -111,6 +113,10 @@ export const flockScene = {
     colors,
     opts = {},
   ) {
+    if (!sceneReady()) {
+      return null;
+    }
+
     const size = opts.size || 512; // texture width
     const horizontal = !!opts.horizontal; // false => vertical along V, true => along U
 
@@ -156,7 +162,7 @@ export const flockScene = {
   },
   createGround(colorOrMaterial, modelId, opts = {}) {
 
-    if (!flock || !flock.scene || !flock.BABYLON) {
+    if (!sceneReady()) {
       return;
     }
 
@@ -240,6 +246,10 @@ export const flockScene = {
     flock.ground = ground;
   },
   createMap(image, material) {
+    if (!sceneReady()) {
+      return;
+    }
+
     if (flock.ground) {
       flock.disposeMesh(flock.ground);
     }
