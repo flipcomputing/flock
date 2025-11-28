@@ -8,6 +8,9 @@ import {
   deleteMeshFromBlock,
   updateOrCreateMeshFromBlock,
   getMeshFromBlock,
+  applySceneBackgroundFromWorkspace,
+  clearSkyMesh,
+  setClearSkyToBlack,
 } from "./ui/blockmesh.js";
 import { registerFieldColour } from "@blockly/field-colour";
 import { createThemeConfig } from "./main/themes.js";
@@ -94,6 +97,25 @@ export function handleBlockDelete(event) {
         blockJson.type.startsWith("create_")
       ) {
         deleteMeshFromBlock(blockJson.id);
+      } else if (blockJson.type === "set_background_color") {
+        deleteMeshFromBlock(blockJson.id);
+        if (
+          !applySceneBackgroundFromWorkspace(blockJson.id, {
+            allowSkyFallback: false,
+          })
+        ) {
+          clearSkyMesh();
+          setClearSkyToBlack();
+        }
+      } else if (blockJson.type === "set_sky_color") {
+        clearSkyMesh();
+        if (
+          !applySceneBackgroundFromWorkspace(blockJson.id, {
+            allowSkyFallback: false,
+          })
+        ) {
+          setClearSkyToBlack();
+        }
       }
 
       // Check inputs for child blocks
@@ -136,14 +158,39 @@ export function handleMeshLifecycleChange(block, changeEvent) {
     changeEvent.blockId === block.id &&
     changeEvent.element === "disabled"
   ) {
-    if (block.isEnabled()) {
+    const isDisabling =
+      changeEvent.newValue === true || changeEvent.newValue === "true";
+
+    if (!isDisabling) {
       setTimeout(() => {
-        if (block.getParent()) {
+        const stillExists = Blockly.getMainWorkspace()
+          ?.getBlockById?.(block.id);
+
+        if (stillExists) {
           updateOrCreateMeshFromBlock(block, changeEvent);
         }
       }, 0);
     } else {
       deleteMeshFromBlock(block.id);
+      if (block.type === "set_background_color") {
+        if (
+          !applySceneBackgroundFromWorkspace(block.id, {
+            allowSkyFallback: false,
+          })
+        ) {
+          clearSkyMesh();
+          setClearSkyToBlack();
+        }
+      } else if (block.type === "set_sky_color") {
+        clearSkyMesh();
+        if (
+          !applySceneBackgroundFromWorkspace(block.id, {
+            allowSkyFallback: false,
+          })
+        ) {
+          setClearSkyToBlack();
+        }
+      }
     }
     return true;
   }

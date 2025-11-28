@@ -258,6 +258,79 @@ export function extractMaterialInfo(materialBlock) {
   return { textureSet, baseColor, alpha };
 }
 
+function applyBackgroundColorFromBlock(block) {
+  const read = readColourFromInputOrShadow(block, "COLOR");
+  flock.setSky(read.value, { clear: true });
+}
+
+export function clearSkyMesh({ preserveClearColor = true } = {}) {
+  // Dispose the existing sky dome without forcing the clear colour to change;
+  // callers decide what the next background should be.
+  if (flock.sky) {
+    flock.disposeMesh(flock.sky);
+    flock.sky = null;
+  }
+
+  if (!preserveClearColor) {
+    flock.scene.clearColor = new flock.BABYLON.Color3(0, 0, 0);
+  }
+
+  delete meshMap["sky"];
+}
+
+export function setClearSkyToBlack() {
+  flock.setSky("#000000", { clear: true });
+}
+
+function applyFirstBackgroundBlock(excludeBlockId) {
+  const ws = Blockly.getMainWorkspace?.();
+  if (!ws) return false;
+
+  const backgroundBlock = ws
+    .getAllBlocks(false)
+    .find(
+      (b) =>
+        b.type === "set_background_color" &&
+        b.isEnabled() &&
+        b.id !== excludeBlockId,
+    );
+
+  if (backgroundBlock) {
+    applyBackgroundColorFromBlock(backgroundBlock);
+    return true;
+  }
+
+  return false;
+}
+
+function applySkyFromWorkspace() {
+  const ws = Blockly.getMainWorkspace?.();
+  if (!ws) return false;
+
+  const skyBlock = ws
+    .getAllBlocks(false)
+    .find((b) => b.type === "set_sky_color" && b.isEnabled());
+
+  if (!skyBlock) return false;
+
+  updateSkyFromBlock(null, skyBlock, {
+    type: Blockly.Events.BLOCK_CHANGE,
+    blockId: skyBlock.id,
+    element: "field",
+  });
+
+  return true;
+}
+
+export function applySceneBackgroundFromWorkspace(
+  excludeBlockId,
+  { allowSkyFallback = true } = {},
+) {
+  if (applyFirstBackgroundBlock(excludeBlockId)) return true;
+
+  return allowSkyFallback ? applySkyFromWorkspace() : false;
+}
+
 // Add this function before updateMeshFromBlock
 export function updateOrCreateMeshFromBlock(block, changeEvent) {
   if (flock.meshDebug)
@@ -280,11 +353,15 @@ export function updateOrCreateMeshFromBlock(block, changeEvent) {
   }
   const mesh = getMeshFromBlock(block);
   if (flock.meshDebug) console.log(mesh);
+  const wasDisabled =
+    changeEvent?.oldValue === true || changeEvent?.oldValue === "true";
+  const nowEnabled =
+    changeEvent?.newValue === false || changeEvent?.newValue === "false";
   const isEnabledEvent =
     changeEvent?.type === Blockly.Events.BLOCK_CHANGE &&
     changeEvent.element === "disabled" &&
-    changeEvent.oldValue &&
-    !changeEvent.newValue;
+    wasDisabled &&
+    nowEnabled;
   const isImmediateEnabledCreate =
     changeEvent?.type === Blockly.Events.BLOCK_CREATE &&
     block.isEnabled() &&
@@ -1000,6 +1077,7 @@ export function updateMeshFromBlock(mesh, block, changeEvent) {
   if (!changed) {
     if (
       block.type === "set_sky_color" ||
+      block.type === "set_background_color" ||
       block.type === "create_ground" ||
       block.type === "create_map"
     ) {
@@ -1031,8 +1109,7 @@ export function updateMeshFromBlock(mesh, block, changeEvent) {
   }
 
   if (block.type === "set_background_color") {
-    const read = readColourFromInputOrShadow(block, "COLOR");
-    flock.setSky(read.value);
+    applyBackgroundColorFromBlock(block);
     return;
   }
 
@@ -1889,9 +1966,16 @@ export function updateBlockColorAndHighlight(mesh, selectedColor) {
   // ---------- main ----------
   let block = null;
 
-  // Special case: sky fallback
+  // Special case: background/sky fallback
   if (!mesh || mesh.type === "set_sky_color") {
-    block = meshMap?.["sky"];
+    const ws = Blockly.getMainWorkspace();
+    const backgroundBlock = ws
+      ?.getAllBlocks(false)
+      .find((b) => b.type === "set_background_color" && b.isEnabled())
+      ?? ws?.getAllBlocks(false).find((b) => b.type === "set_background_color");
+
+    block = backgroundBlock || meshMap?.["sky"];
+
     if (!block) {
       // Create sky block
       block = createBlockWithShadows("set_sky_color", null, selectedColor);
@@ -1905,10 +1989,11 @@ export function updateBlockColorAndHighlight(mesh, selectedColor) {
       if (connection && block.previousConnection)
         connection.connect(block.previousConnection);
     }
+
     withUndoGroup(() => {
       const found = findNestedColorTarget(block);
       if (!found) {
-        console.warn("[color] No color target found on 'sky' block");
+        console.warn("[color] No color target found on background/sky block");
         return;
       }
       setColorOnTargetOrField(
