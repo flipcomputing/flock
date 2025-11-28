@@ -361,12 +361,20 @@ export function handleBlockChange(block, changeEvent, variableNamePrefix) {
       changeEvent.blockId,
     );
 
-    if (!changedBlock) {
+    const createdBlocks =
+      changeEvent.type === Blockly.Events.BLOCK_CREATE &&
+      Array.isArray(changeEvent.ids)
+        ? changeEvent.ids
+            .map((id) => Blockly.getMainWorkspace().getBlockById(id))
+            .filter(Boolean)
+        : [changedBlock].filter(Boolean);
+
+    if (!createdBlocks.length) {
       if (flock.blockDebug) console.log("Changed block not found in workspace");
       return;
     }
 
-    const parent = findCreateBlock(changedBlock);
+    const parents = createdBlocks.map((cb) => findCreateBlock(cb));
     if (flock.blockDebug) console.log("The type of the changed block is", changedBlock.type);
     if (changedBlock.getParent()) {
       if (flock.blockDebug) console.log("The ID of the parent of the changed block is", changedBlock.getParent().id);
@@ -375,7 +383,7 @@ export function handleBlockChange(block, changeEvent, variableNamePrefix) {
     if (flock.blockDebug) console.log("This block is", block.id);
     // if (flock.blockDebug) console.log("The parent is", parent);
     if (flock.blockDebug) console.log("The type of this block is", block.type);
-    if (parent === block) {
+    if (parents.includes(block)) {
       const blockInWorkspace =
         Blockly.getMainWorkspace().getBlockById(block.id);
       if (blockInWorkspace) {
