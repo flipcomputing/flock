@@ -886,6 +886,7 @@ export const flock = {
                         lightIntensity: this.lightIntensity?.bind(this),
                         buttonControls: this.buttonControls?.bind(this),
                         getCamera: this.getCamera?.bind(this),
+                        getMainLight: this.getMainLight?.bind(this),
                         cameraControl: this.cameraControl?.bind(this),
                         setCameraBackground:
                                 this.setCameraBackground?.bind(this),
@@ -1948,6 +1949,9 @@ export const flock = {
                                 if (meshId === "__active_camera__") {
                                         yield flock.scene.activeCamera;
                                         return;
+                                } else if (meshId === "__main_light__") {
+                                        yield flock.mainLight;
+                                        return;
                                 } else {
                                         const mesh =
                                                 flock.scene.getMeshByName(
@@ -2050,6 +2054,8 @@ export const flock = {
                         if (!scene) return null;
                         if (id === "__active_camera__")
                                 return scene.activeCamera ?? null;
+                        if (id === "__main_light__")
+                                return flock.mainLight ?? null;
 
                         let t = scene.getMeshByName?.(id) ?? null;
                         if (!t && scene.UITexture)
@@ -2700,7 +2706,8 @@ export const flock = {
                 const mesh =
                         modelName === "__active_camera__"
                                 ? flock.scene.activeCamera
-                                : flock.scene.getMeshByName(modelName);
+                                : modelName === "__main_light__"
+                                ? flock.mainLight : flock.scene.getMeshByName(modelName);
 
                 if (!mesh) return null;
 

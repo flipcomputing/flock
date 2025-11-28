@@ -686,6 +686,15 @@ export function defineGenerators() {
                 return `lightIntensity(${intensity});\n`;
         };
 
+        javascriptGenerator.forBlock["get_light"] = function (block) {
+                const variableName = javascriptGenerator.nameDB_.getName(
+                        block.getFieldValue("VAR"),
+                        Blockly.Names.NameType.VARIABLE,
+                );
+
+                return `${variableName} = getMainLight();\n`;
+        };
+
         javascriptGenerator.forBlock["button_controls"] = function (block) {
                 const color = getFieldValue(block, "COLOR", "#6495ED");
                 const control = block.getFieldValue("CONTROL");

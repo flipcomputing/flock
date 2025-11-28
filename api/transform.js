@@ -298,6 +298,16 @@ export const flockTransform = {
         return;
       }
 
+      if (mesh.name === "hemisphericLight") {
+        const oldLightVector = mesh.direction;
+        const xRadian = flock.BABYLON.Tools.ToRadians(x);
+        const yRadian = flock.BABYLON.Tools.ToRadians(y);
+        const zRadian = flock.BABYLON.Tools.ToRadians(z);
+        const newLightVector = new flock.BABYLON.Vector3(xRadian, yRadian, zRadian);
+        mesh.direction = oldLightVector.add(newLightVector);
+        return;
+      }
+
       const incrementalRotation =
         flock.BABYLON.Quaternion.RotationYawPitchRoll(
           flock.BABYLON.Tools.ToRadians(y),
@@ -359,7 +369,7 @@ export const flockTransform = {
         return;
       }
       // Ensure mesh has a rotation quaternion
-      if (!mesh.rotationQuaternion) {
+      if (!mesh.rotationQuaternion && mesh.name != "hemisphericLight") {
         mesh.rotationQuaternion = flock.BABYLON.Quaternion.RotationYawPitchRoll(
           mesh.rotation.y,
           mesh.rotation.x,
@@ -376,6 +386,14 @@ export const flockTransform = {
 
       // Set the mesh's rotation directly to the target
       mesh.rotationQuaternion = targetQuat;
+
+      // Rotate light
+      if (mesh.name === "hemisphericLight") {
+        const xRadian = flock.BABYLON.Tools.ToRadians(x);
+        const yRadian = flock.BABYLON.Tools.ToRadians(y);
+        const zRadian = flock.BABYLON.Tools.ToRadians(z);
+        mesh.direction = new flock.BABYLON.Vector3(xRadian, yRadian, zRadian);
+      }
 
       // Update physics if present
       if (mesh.physics) {
