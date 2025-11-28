@@ -2053,7 +2053,7 @@ export const flock = {
                         if (!scene) return null;
                         if (id === "__active_camera__")
                                 return scene.activeCamera ?? null;
-                        if (id === "hemispheric_light__")
+                        if (id === "__main_light__")
                                 return flock.mainLight ?? null;
 
                         let t = scene.getMeshByName?.(id) ?? null;
