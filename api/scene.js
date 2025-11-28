@@ -156,6 +156,10 @@ export const flockScene = {
   },
   createGround(colorOrMaterial, modelId, opts = {}) {
 
+    if (!flock || !flock.scene || !flock.BABYLON) {
+      return;
+    }
+
     const tile = typeof opts.tile === "number" ? opts.tile : 10;
 
     if (flock.ground) {
