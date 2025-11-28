@@ -1940,9 +1940,16 @@ export function updateBlockColorAndHighlight(mesh, selectedColor) {
   // ---------- main ----------
   let block = null;
 
-  // Special case: sky fallback
+  // Special case: background/sky fallback
   if (!mesh || mesh.type === "set_sky_color") {
-    block = meshMap?.["sky"];
+    const ws = Blockly.getMainWorkspace();
+    const backgroundBlock = ws
+      ?.getAllBlocks(false)
+      .find((b) => b.type === "set_background_color" && b.isEnabled())
+      ?? ws?.getAllBlocks(false).find((b) => b.type === "set_background_color");
+
+    block = backgroundBlock || meshMap?.["sky"];
+
     if (!block) {
       // Create sky block
       block = createBlockWithShadows("set_sky_color", null, selectedColor);
@@ -1956,10 +1963,11 @@ export function updateBlockColorAndHighlight(mesh, selectedColor) {
       if (connection && block.previousConnection)
         connection.connect(block.previousConnection);
     }
+
     withUndoGroup(() => {
       const found = findNestedColorTarget(block);
       if (!found) {
-        console.warn("[color] No color target found on 'sky' block");
+        console.warn("[color] No color target found on background/sky block");
         return;
       }
       setColorOnTargetOrField(
