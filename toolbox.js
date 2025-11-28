@@ -635,6 +635,11 @@ const toolboxSceneLights = {
                 },
                 {
                         kind: "block",
+                        type: "get_light",
+                        keyword: "light",
+                },
+                {
+                        kind: "block",
                         type: "create_particle_effect",
                         keyword: "particle",
                         inputs: {

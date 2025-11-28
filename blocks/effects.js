@@ -68,4 +68,26 @@ export function defineEffectsBlocks() {
 			this.setStyle("scene_blocks");
 		},
 	};
+
+	Blockly.Blocks["get_light"] = {
+		init: function () {
+			this.jsonInit({
+				type: "get_light",
+				message0: translate("get_light"),
+				args0: [
+					{
+						type: "field_variable",
+						name: "VAR",
+						variable: "light", // Default variable is 'camera'
+					},
+				],
+				previousStatement: null,
+				nextStatement: null,
+				colour: categoryColours["Effects"],
+				tooltip: getTooltip("get_light"),
+			});
+			this.setHelpUrl(getHelpUrlFor(this.type));
+			this.setStyle('scene_blocks');
+		},
+	};
 }
