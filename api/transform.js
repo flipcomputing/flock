@@ -377,6 +377,11 @@ export const flockTransform = {
       // Set the mesh's rotation directly to the target
       mesh.rotationQuaternion = targetQuat;
 
+      // Rotate light
+      if (mesh.name == "hemisphericLight") {
+        mesh.direction = new flock.BABYLON.Vector3(x, y, z);
+      }
+
       // Update physics if present
       if (mesh.physics) {
         mesh.physics.disablePreStep = false;
