@@ -439,13 +439,13 @@ export const flockScene = {
     }
 
     if (mesh.name === "ground") {
-      mesh.material.dispose();
+      mesh.material?.dispose();
       mesh.dispose();
       flock.ground = null;
       return;
     }
     if (mesh.name === "sky") {
-      mesh.material.dispose();
+      mesh.material?.dispose();
       mesh.dispose();
       flock.sky = null;
       return;
