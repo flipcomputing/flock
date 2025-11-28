@@ -299,7 +299,9 @@ export const flockTransform = {
       }
 
       if (mesh.name === "hemisphericLight") {
-        mesh.direction.add(new flock.BABYLON.Vector3(x, y, z));
+        const oldLightVector = mesh.direction;
+        const newLightVector = new flock.BABYLON.Vector3(x, y, z);
+        mesh.direction = oldLightVector.add(newLightVector);
         return;
       }
 
