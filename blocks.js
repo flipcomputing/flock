@@ -104,6 +104,7 @@ export function handleBlockDelete(event) {
             allowSkyFallback: false,
           })
         ) {
+          clearSkyMesh();
           setClearSkyToBlack();
         }
       } else if (blockJson.type === "set_sky_color") {
@@ -171,6 +172,7 @@ export function handleMeshLifecycleChange(block, changeEvent) {
             allowSkyFallback: false,
           })
         ) {
+          clearSkyMesh();
           setClearSkyToBlack();
         }
       } else if (block.type === "set_sky_color") {
