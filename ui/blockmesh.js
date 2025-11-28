@@ -1838,6 +1838,16 @@ function replaceMeshModel(currentMesh, block) {
       } catch {}
     }
 
+    // Guard against lingering renderable children (e.g., double-attached meshes)
+    const lingeringChildren = (currentMesh.getChildren?.() || []).filter(
+      (child) => child !== newChild && isRenderableMesh(child),
+    );
+
+    for (const child of lingeringChildren) {
+      stripPhysicsTree(child);
+      disposeTree(child);
+    }
+
     if (animationInfo?.name) {
       flock.switchAnimation(loadedMesh.name, {
         animationName: animationInfo.name,
