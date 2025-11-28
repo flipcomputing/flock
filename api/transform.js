@@ -298,6 +298,11 @@ export const flockTransform = {
         return;
       }
 
+      if (mesh.name === "hemisphericLight") {
+        mesh.direction.add(new flock.BABYLON.Vector3(x, y, z));
+        return;
+      }
+
       const incrementalRotation =
         flock.BABYLON.Quaternion.RotationYawPitchRoll(
           flock.BABYLON.Tools.ToRadians(y),
