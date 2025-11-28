@@ -189,7 +189,7 @@ export default {
   get_lexical_variable: "%1",
 
   // Custom block translations - Effects blocks
-  light_intensity: "establecer intensidad de luz a %1",
+  light_intensity_and_color: "establecer intensidad de luz a %1",
   set_fog: "establecer niebla color %1 modo %2 densidad %3\ninicio %4 fin %5",
 
   // Custom block translation - Events blocks
@@ -373,7 +373,7 @@ export default {
   get_lexical_variable_tooltip: "Obtiene el valor de una variable léxica",
 
   // Tooltip translations - Effects blocks
-  light_intensity_tooltip: "Establece la intensidad de la luz principal.\nPalabra clave: light intensity",
+  light_intensity_and_color_tooltip: "Establece la intensidad de la luz principal.\nPalabra clave: light intensity",
   set_fog_tooltip: "Configura la niebla de la escena. Usa inicio y fin para definir las distancias cercana y lejana.\nPalabra clave: fog",
 
   // Tooltip translations - Events blocks

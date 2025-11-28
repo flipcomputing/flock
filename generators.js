@@ -675,7 +675,7 @@ export function defineGenerators() {
                 return `setSky(${color});\n`;
         };
 
-        javascriptGenerator.forBlock["light_intensity"] = function (block) {
+        javascriptGenerator.forBlock["light_intensity_and_color"] = function (block) {
                 const intensity =
                         javascriptGenerator.valueToCode(
                                 block,
