@@ -258,6 +258,57 @@ export function extractMaterialInfo(materialBlock) {
   return { textureSet, baseColor, alpha };
 }
 
+function applyBackgroundColorFromBlock(block) {
+  const read = readColourFromInputOrShadow(block, "COLOR");
+  flock.setSky(read.value, { clear: true });
+}
+
+function applyFirstBackgroundBlock(excludeBlockId) {
+  const ws = Blockly.getMainWorkspace?.();
+  if (!ws) return false;
+
+  const backgroundBlock = ws
+    .getAllBlocks(false)
+    .find(
+      (b) =>
+        b.type === "set_background_color" &&
+        b.isEnabled() &&
+        b.id !== excludeBlockId,
+    );
+
+  if (backgroundBlock) {
+    applyBackgroundColorFromBlock(backgroundBlock);
+    return true;
+  }
+
+  return false;
+}
+
+function applySkyFromWorkspace() {
+  const ws = Blockly.getMainWorkspace?.();
+  if (!ws) return false;
+
+  const skyBlock = ws
+    .getAllBlocks(false)
+    .find((b) => b.type === "set_sky_color" && b.isEnabled());
+
+  if (!skyBlock) return false;
+
+  updateSkyFromBlock(null, skyBlock, {
+    type: Blockly.Events.BLOCK_CHANGE,
+    blockId: skyBlock.id,
+    element: "field",
+  });
+
+  return true;
+}
+
+export function applySceneBackgroundFromWorkspace(excludeBlockId) {
+  if (applyFirstBackgroundBlock(excludeBlockId)) return;
+
+  applySkyFromWorkspace();
+}
+
 // Add this function before updateMeshFromBlock
 export function updateOrCreateMeshFromBlock(block, changeEvent) {
   if (flock.meshDebug)
@@ -1000,6 +1051,7 @@ export function updateMeshFromBlock(mesh, block, changeEvent) {
   if (!changed) {
     if (
       block.type === "set_sky_color" ||
+      block.type === "set_background_color" ||
       block.type === "create_ground" ||
       block.type === "create_map"
     ) {
@@ -1031,8 +1083,7 @@ export function updateMeshFromBlock(mesh, block, changeEvent) {
   }
 
   if (block.type === "set_background_color") {
-    const read = readColourFromInputOrShadow(block, "COLOR");
-    flock.setSky(read.value);
+    applyBackgroundColorFromBlock(block);
     return;
   }
 

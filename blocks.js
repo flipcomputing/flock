@@ -8,6 +8,7 @@ import {
   deleteMeshFromBlock,
   updateOrCreateMeshFromBlock,
   getMeshFromBlock,
+  applySceneBackgroundFromWorkspace,
 } from "./ui/blockmesh.js";
 import { registerFieldColour } from "@blockly/field-colour";
 import { createThemeConfig } from "./main/themes.js";
@@ -94,6 +95,9 @@ export function handleBlockDelete(event) {
         blockJson.type.startsWith("create_")
       ) {
         deleteMeshFromBlock(blockJson.id);
+      } else if (blockJson.type === "set_background_color") {
+        deleteMeshFromBlock(blockJson.id);
+        applySceneBackgroundFromWorkspace(blockJson.id);
       }
 
       // Check inputs for child blocks
@@ -144,6 +148,9 @@ export function handleMeshLifecycleChange(block, changeEvent) {
       }, 0);
     } else {
       deleteMeshFromBlock(block.id);
+      if (block.type === "set_background_color") {
+        applySceneBackgroundFromWorkspace(block.id);
+      }
     }
     return true;
   }
