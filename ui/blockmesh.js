@@ -353,11 +353,15 @@ export function updateOrCreateMeshFromBlock(block, changeEvent) {
   }
   const mesh = getMeshFromBlock(block);
   if (flock.meshDebug) console.log(mesh);
+  const wasDisabled =
+    changeEvent?.oldValue === true || changeEvent?.oldValue === "true";
+  const nowEnabled =
+    changeEvent?.newValue === false || changeEvent?.newValue === "false";
   const isEnabledEvent =
     changeEvent?.type === Blockly.Events.BLOCK_CHANGE &&
     changeEvent.element === "disabled" &&
-    changeEvent.oldValue &&
-    !changeEvent.newValue;
+    wasDisabled &&
+    nowEnabled;
   const isImmediateEnabledCreate =
     changeEvent?.type === Blockly.Events.BLOCK_CREATE &&
     block.isEnabled() &&
