@@ -263,8 +263,18 @@ function applyBackgroundColorFromBlock(block) {
   flock.setSky(read.value, { clear: true });
 }
 
-export function clearSkyMesh() {
-  flock.setSky(null);
+export function clearSkyMesh({ preserveClearColor = true } = {}) {
+  // Dispose the existing sky dome without forcing the clear colour to change;
+  // callers decide what the next background should be.
+  if (flock.sky) {
+    flock.disposeMesh(flock.sky);
+    flock.sky = null;
+  }
+
+  if (!preserveClearColor) {
+    flock.scene.clearColor = new flock.BABYLON.Color3(0, 0, 0);
+  }
+
   delete meshMap["sky"];
 }
 
