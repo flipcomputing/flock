@@ -198,7 +198,7 @@ export default {
 
   // Custom block translations - Effects blocks
   light_intensity: "definir intensidade da luz para %1",
-  set_fog: "definir cor da névoa %1 modo %2 densidade %3\\ninício %4 fim %5",
+  set_fog: "definir cor da névoa %1 modo %2 densidade %3\ninício %4 fim %5",
 
   // Custom block translation - Events blocks
   start: "início",
@@ -434,7 +434,7 @@ export default {
   // Tooltip translations - Effects blocks
   light_intensity_tooltip:
     "Define a intensidade da luz principal.\nPalavra-chave: intensidade da luz",
-  set_fog_tooltip: "Configura a névoa da cena.\nPalavra-chave: névoa",
+  set_fog_tooltip: "Configura a névoa da cena. Use início e fim para definir as distâncias próxima e distante.\nPalavra-chave: névoa",
 
   // Tooltip translations - Events blocks
   start_tooltip:

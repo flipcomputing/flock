@@ -195,7 +195,7 @@ export default {
 
   // Custom block translations - Effects blocks
   light_intensity: "set light intensity to %1",
-  set_fog: "set fog color %1 mode %2 density %3\\nstart %4 end %5",
+  set_fog: "set fog color %1 mode %2 density %3\nstart %4 end %5",
   
   // Custom block translation - Events blocks
   start: "start",
@@ -379,7 +379,7 @@ export default {
   
   // Tooltip translations - Effects blocks
   light_intensity_tooltip: "Set the intensity of the main light.\nKeyword: light intensity",
-  set_fog_tooltip: "Configure the scene's fog.\nKeyword: fog",
+  set_fog_tooltip: "Configure the scene's fog. Use start and end to set the near and far distances.\nKeyword: fog",
 
   // Tooltip translations - Events blocks
   start_tooltip: "Run the blocks inside whenthe project starts. You can have multiple start blocks. \nKeyword: start",

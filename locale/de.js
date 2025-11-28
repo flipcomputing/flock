@@ -194,7 +194,7 @@ export default {
 
   // Custom block translations - Effects blocks
   light_intensity: "Lichtintensität auf %1 setzen",
-  set_fog: "Nebel setzen Farbe %1 Modus %2 Dichte %3\\nStart %4 Ende %5",
+  set_fog: "Nebel setzen Farbe %1 Modus %2 Dichte %3\nStart %4 Ende %5",
 
   // Custom block translation - Events blocks
   start: "start",
@@ -497,7 +497,7 @@ export default {
 
   // Effects tooltips
   light_intensity_tooltip: "Stelle die Intensität der Hauptbeleuchtung ein.\nSchlüsselwort: light intensity",
-  set_fog_tooltip: "Konfiguriere den Nebel der Szene.\nSchlüsselwort: fog",
+  set_fog_tooltip: "Konfiguriere den Nebel der Szene. Verwende Start und Ende, um die Nah- und Fernwerte festzulegen.\nSchlüsselwort: fog",
 
   // Events tooltips
   start_tooltip: "Führe Blöcke beim Projektstart aus. Mehrere Startblöcke möglich.\nSchlüsselwort: start",

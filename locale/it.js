@@ -203,7 +203,7 @@ export default {
 
   // Custom block translations - Effects blocks
   light_intensity: "imposta intensità luce a %1",
-  set_fog: "imposta nebbia colore %1 modalità %2 densità %3\\ninizio %4 fine %5",
+  set_fog: "imposta nebbia colore %1 modalità %2 densità %3\ninizio %4 fine %5",
 
   // Custom block translation - Events blocks
   start: "avvio",
@@ -442,7 +442,7 @@ export default {
   // Tooltip translations - Effects blocks
   light_intensity_tooltip:
     "Imposta l’intensità della luce principale.\nParola chiave: intensità luce",
-  set_fog_tooltip: "Configura la nebbia della scena.\nParola chiave: fog",
+  set_fog_tooltip: "Configura la nebbia della scena. Usa inizio e fine per impostare le distanze vicina e lontana.\nParola chiave: fog",
 
   // Tooltip translations - Events blocks
   start_tooltip:
