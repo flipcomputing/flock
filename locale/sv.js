@@ -199,7 +199,7 @@ export default {
 
       // Custom block translations - Effects blocks
       light_intensity: "ställ in ljusintensitet till %1",
-      set_fog: "ställ in dimma färg %1 läge %2 densitet %3",
+      set_fog: "ställ in dimma färg %1 läge %2 densitet %3\nstart %4 slut %5",
 
       // Custom block translation - Events blocks
       start: "starta",
@@ -434,7 +434,7 @@ export default {
       // Tooltip translations - Effects blocks
       light_intensity_tooltip:
             "Ställ in intensiteten på huvudljuset.\nKeyword: light intensity",
-      set_fog_tooltip: "Konfigurera scenens dimma.\nKeyword: fog",
+      set_fog_tooltip: "Konfigurera scenens dimma. Använd start och slut för att ställa in nära och långt avstånd.\nKeyword: fog",
 
       // Tooltip translations - Events blocks
       start_tooltip:

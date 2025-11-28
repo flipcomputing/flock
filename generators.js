@@ -751,8 +751,20 @@ export function defineGenerators() {
                                 "DENSITY",
                                 javascriptGenerator.ORDER_ATOMIC,
                         ) || "0.1"; // Default density
+                const fogStart =
+                        javascriptGenerator.valueToCode(
+                                block,
+                                "START",
+                                javascriptGenerator.ORDER_ATOMIC,
+                        ) || "50"; // Default start
+                const fogEnd =
+                        javascriptGenerator.valueToCode(
+                                block,
+                                "END",
+                                javascriptGenerator.ORDER_ATOMIC,
+                        ) || "100"; // Default end
 
-                return `setFog({ fogColorHex: ${fogColorHex}, fogMode: "${fogMode}", fogDensity: ${fogDensity} });\n`;
+                return `setFog({ fogColorHex: ${fogColorHex}, fogMode: "${fogMode}", fogDensity: ${fogDensity}, fogStart: ${fogStart}, fogEnd: ${fogEnd} });\n`;
         };
 
         javascriptGenerator.forBlock["ui_text"] = function (block) {
