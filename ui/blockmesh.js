@@ -1713,6 +1713,16 @@ function replaceMeshModel(currentMesh, block) {
     if (!loadedMesh) return;
 
     const newChild = firstRenderable(loadedMesh) || loadedMesh;
+    const replaceDirectParent =
+      isRenderableMesh(currentMesh) &&
+      (currentMesh.getChildren?.() || []).length === 0;
+    const currentParent = currentMesh.parent || null;
+    const currentAbsPos = currentMesh.getAbsolutePosition?.()?.clone?.();
+    const currentRotQuat = currentMesh.rotationQuaternion?.clone?.();
+    const currentRot = !currentRotQuat
+      ? currentMesh.rotation?.clone?.()
+      : null;
+    const currentScale = currentMesh.scaling?.clone?.();
 
     // Debug new incoming temp tree
     //printMaterialTree(loadedMesh, "NEW");
@@ -1765,19 +1775,61 @@ function replaceMeshModel(currentMesh, block) {
     //console.log("[replaceMeshModel] Disposed original direct children:", removed);
     //if (skipped.length) console.log("[replaceMeshModel] Skipped (not removed):", skipped);
 
-    // Parent the replacement under the existing parent
-    newChild.parent = currentMesh;
-
-    // Mark this replacement so cleanup logic keeps the newest child
     const replacementId = Date.now();
-    newChild.metadata = {
-      ...(newChild.metadata || {}),
-      replacementId,
-    };
-    currentMesh.metadata = {
-      ...(currentMesh.metadata || {}),
-      latestReplacementId: replacementId,
-    };
+
+    // Parent the replacement, mirroring character behavior when the current
+    // mesh is itself the renderable (no direct children). In that case we
+    // fully replace the parent mesh rather than nesting the new renderable
+    // under it, matching how character containers work.
+    if (replaceDirectParent) {
+      newChild.parent = currentParent;
+
+      if (currentRotQuat && newChild.rotationQuaternion) {
+        try {
+          newChild.rotationQuaternion.copyFrom(currentRotQuat);
+        } catch {}
+      } else if (currentRot && newChild.rotation) {
+        try {
+          newChild.rotation.copyFrom(currentRot);
+        } catch {}
+      }
+
+      if (currentScale && newChild.scaling) {
+        try {
+          newChild.scaling.copyFrom(currentScale);
+        } catch {}
+      }
+
+      if (currentAbsPos) {
+        try {
+          newChild.setAbsolutePosition(currentAbsPos);
+        } catch {}
+      }
+
+      newChild.name = currentMesh.name;
+      newChild.metadata = {
+        ...(currentMesh.metadata || {}),
+        ...(newChild.metadata || {}),
+        replacementId,
+        latestReplacementId: replacementId,
+      };
+
+      disposeTree(currentMesh);
+      currentMesh = newChild;
+    } else {
+      // Parent the replacement under the existing parent
+      newChild.parent = currentMesh;
+
+      // Mark this replacement so cleanup logic keeps the newest child
+      newChild.metadata = {
+        ...(newChild.metadata || {}),
+        replacementId,
+      };
+      currentMesh.metadata = {
+        ...(currentMesh.metadata || {}),
+        latestReplacementId: replacementId,
+      };
+    }
 
     // Apply old first child's local scale (if any) to the new child
     if (oldChildScale && newChild.scaling) {
