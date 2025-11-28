@@ -687,13 +687,13 @@ export function defineGenerators() {
                                 block,
                                 "DIFFUSE",
                                 javascriptGenerator.ORDER_ATOMIC,
-                        ) || "#FFFFFFFF";
+                        ) || "#FFFFFF";
                 const groundColor = 
                         javascriptGenerator.valueToCode(
                                 block,
                                 "GROUND_COLOR",
                                 javascriptGenerator.ORDER_ATOMIC,
-                        ) || "#808080FF";
+                        ) || "#808080";
                 
 
                 return `lightIntensity(${intensity});\nlightColor(${diffuse}, ${groundColor});\n`;
