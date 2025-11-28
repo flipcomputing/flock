@@ -1834,17 +1834,35 @@ const toolboxAnimate = {
         icon: "./images/animate.svg",
         //colour: categoryColours["Animate"],
         categorystyle: "animate_category",
-        contents: [
-                {
-                        kind: "block",
-                        type: "switch_animation",
-                        keyword: "switch",
-                },
-                {
-                        kind: "block",
-                        type: "play_animation",
-                        keyword: "play",
-                },
+                contents: [
+                        {
+                                kind: "block",
+                                type: "switch_animation",
+                                keyword: "switch",
+                                inputs: {
+                                        ANIMATION_NAME: {
+                                                shadow: {
+                                                        type: "animation_name",
+                                                },
+                                        },
+                                },
+                        },
+                        {
+                                kind: "block",
+                                type: "play_animation",
+                                keyword: "play",
+                                inputs: {
+                                        ANIMATION_NAME: {
+                                                shadow: {
+                                                        type: "animation_name",
+                                                },
+                                        },
+                                },
+                        },
+                        {
+                                kind: "block",
+                                type: "animation_name",
+                        },
                 {
                         kind: "block",
                         type: "glide_to_seconds",
@@ -2947,65 +2965,29 @@ const toolboxMaterials = {
                         },
                 },
                 {
-                        kind: "block",
-                        type: "material",
-                        inputs: {
-                                BASE_COLOR: {
-                                        shadow: {
-                                                type: "colour",
-                                                fields: {
-                                                        COLOR: "#FFFFFF",
-                                                },
-                                        },
-                                },
-                                ALPHA: {
-                                        shadow: {
-                                                type: "math_number",
-                                                fields: {
-                                                        NUM: 1, // Default alpha value: 1 (fully opaque)
-                                                },
-                                        },
-                                },
+                  kind: "block",
+                  type: "material",
+                  fields: {
+                    TEXTURE_SET: "grass.png", // Use the named material
+                  },
+                  inputs: {
+                    BASE_COLOR: {
+                      shadow: {
+                        type: "colour",
+                        fields: {
+                          COLOR: "#00AA00", // Default to a green colour
                         },
-                },
-                {
-                        kind: "block",
-                        type: "gradient_material",
-                        inputs: {
-                                COLOR: {
-                                        block: {
-                                                type: "lists_create_with",
-                                                extraState: { itemCount: 2 },
-                                                inline: true,
-                                                inputs: {
-                                                        ADD0: {
-                                                                shadow: {
-                                                                        type: "colour",
-                                                                        fields: {
-                                                                                COLOR: "#FF5733",
-                                                                        },
-                                                                },
-                                                        },
-                                                        ADD1: {
-                                                                shadow: {
-                                                                        type: "colour",
-                                                                        fields: {
-                                                                                COLOR: "#FDFD96",
-                                                                        },
-                                                                },
-                                                        },
-                                                },
-                                        },
-                                },
-                                ALPHA: {
-                                        shadow: {
-                                                type: "math_number",
-                                                fields: {
-                                                        NUM: 1,
-                                                },
-                                        },
-                                },
+                      },
+                    },
+                    ALPHA: {
+                      shadow: {
+                        type: "math_number",
+                        fields: {
+                          NUM: 1, // Default alpha value: 1 (fully opaque)
                         },
+                      },
+                    },
+                  },
                 },
         ],
 };
@@ -3170,24 +3152,14 @@ const toolboxSound = {
         ],
 };
 
-const toolboxVariables = {
-        kind: "category",
-        name: "%{BKY_CATEGORY_VARIABLES}",
-        icon: "./images/variables.svg",
-        //colour: categoryColours["Variables"],
-        categorystyle: "variables_category",
-        custom: "VARIABLE",
-        contents: [],
-};
-
 const toolboxLists = {
-        kind: "category",
-        name: "%{BKY_CATEGORY_LISTS}",
-        icon: "./images/lists.svg",
-        //colour: categoryColours["Lists"],
-        categorystyle: "lists_category",
-        contents: [
-                {
+kind: "category",
+name: "%{BKY_CATEGORY_LISTS}",
+icon: "./images/lists.svg",
+//colour: categoryColours["Lists"],
+categorystyle: "variables_category",
+contents: [
+{
                         kind: "block",
                         type: "lists_create_empty",
                         keyword: "list",
@@ -3245,6 +3217,23 @@ const toolboxLists = {
                         keyword: "sort",
                 },
         ],
+};
+
+const toolboxVariables = {
+        kind: "category",
+        name: "%{BKY_CATEGORY_VARIABLES_SUBCATEGORY}",
+        icon: "./images/variables.svg",
+        categorystyle: "variables_category",
+        contents: [],
+        custom: "VARIABLE",
+};
+
+const toolboxData = {
+        kind: "category",
+        name: "%{BKY_CATEGORY_VARIABLES}",
+        icon: "./images/data.svg",
+        categorystyle: "variables_category",
+        contents: [toolboxVariables, toolboxLists],
 };
 
 const toolboxMath = {
@@ -4124,8 +4113,17 @@ const toolboxSnippets = {
                                                                                                         name: "player",
                                                                                                         type: "",
                                                                                                 },
-                                                                                                ANIMATION_NAME:
-                                                                                                        "Walk",
+                                                                                        },
+                                                                                        inputs: {
+                                                                                                ANIMATION_NAME: {
+                                                                                                        shadow: {
+                                                                                                                type: "animation_name",
+                                                                                                                fields: {
+                                                                                                                        ANIMATION_NAME:
+                                                                                                                                "Walk",
+                                                                                                                },
+                                                                                                        },
+                                                                                                },
                                                                                         },
                                                                                 },
                                                                         },
@@ -4166,8 +4164,17 @@ const toolboxSnippets = {
                                                                                                         name: "player",
                                                                                                         type: "",
                                                                                                 },
-                                                                                                ANIMATION_NAME:
-                                                                                                        "Walk",
+                                                                                        },
+                                                                                        inputs: {
+                                                                                                ANIMATION_NAME: {
+                                                                                                        shadow: {
+                                                                                                                type: "animation_name",
+                                                                                                                fields: {
+                                                                                                                        ANIMATION_NAME:
+                                                                                                                                "Walk",
+                                                                                                                },
+                                                                                                        },
+                                                                                                },
                                                                                         },
                                                                                 },
                                                                         },
@@ -4181,8 +4188,17 @@ const toolboxSnippets = {
                                                                                         name: "player",
                                                                                         type: "",
                                                                                 },
-                                                                                ANIMATION_NAME:
-                                                                                        "Idle",
+                                                                        },
+                                                                        inputs: {
+                                                                                ANIMATION_NAME: {
+                                                                                        shadow: {
+                                                                                                type: "animation_name",
+                                                                                                fields: {
+                                                                                                        ANIMATION_NAME:
+                                                                                                                "Idle",
+                                                                                                },
+                                                                                        },
+                                                                                },
                                                                         },
                                                                 },
                                                         },
@@ -4217,8 +4233,7 @@ export const toolbox = {
                 toolboxText,
                 toolboxMaterials,
                 toolboxSound,
-                toolboxVariables,
-                toolboxLists,
+                toolboxData,
                 toolboxMath,
                 toolboxFunctions,
                 toolboxSnippets,

@@ -19,7 +19,8 @@ export default {
                                       CATEGORY_STRINGS: "Chaînes",
                                       CATEGORY_MATERIALS: "Matériaux",
                                       CATEGORY_SOUND: "Son",
-                                      CATEGORY_VARIABLES: "Variables",
+                                      CATEGORY_VARIABLES: "Données",
+                                      CATEGORY_VARIABLES_SUBCATEGORY: "Variables",
                                       CATEGORY_LISTS: "Listes",
                                       CATEGORY_MATH: "Mathématiques",
                                       CATEGORY_FUNCTIONS: "Fonctions",
@@ -873,6 +874,26 @@ export default {
                                       invalid_filetype_alert: "Seuls les fichiers .json ou .flock sont autorisés.",
                                       invalid_project_alert: "Ce fichier n'est pas un projet Flock XR valide.",
                                       failed_to_read_file_alert: "Échec de lecture du fichier.",
+
+                                      // UI status messages
+                                      max_mesh_limit_reached:
+                                        "⚠️ Limite atteinte : vous pouvez avoir seulement {max} maillages dans votre monde.",
+                                      high_memory_usage_warning:
+                                        "Avertissement : utilisation mémoire élevée ({percent}%)",
+                                      runtime_error_message: "Erreur : {message}",
+                                      xr_mode_message: "Mode XR !",
+                                      fly_camera_instructions:
+                                        "ℹ️ Caméra en vol, utilisez les flèches et Page haut/bas",
+                                      select_mesh_delete_prompt:
+                                        "⚠️ Sélectionnez un maillage puis cliquez sur supprimer.",
+                                      select_mesh_duplicate_prompt:
+                                        "⚠️ Sélectionnez un maillage puis cliquez sur dupliquer, puis cliquez pour placer les copies.",
+                                      position_readout: "Position : {position}",
+                                      eyedropper_not_supported_alert:
+                                        "L'outil pipette n'est pas pris en charge dans ce navigateur. Essayez d'utiliser Chrome ou Edge.",
+                                      blocks_copied_alert: "Blocs copiés dans le stockage local !",
+                                      no_blocks_to_copy_alert: "Aucun bloc à copier.",
+                                      copy_blocks_failed_alert: "Échec de la copie des blocs.",
 
                                       // Context menu option translations
                                       export_JSON_snippet: "Exporter le bloc comme extrait JSON",

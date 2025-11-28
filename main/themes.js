@@ -104,7 +104,7 @@ export function createThemeConfig(themeName) {
 			logic_blocks: baseStyles.logic,
 			variable_blocks: baseStyles.variables,
 			text_blocks: baseStyles.text,
-			list_blocks: baseStyles.lists,
+                        list_blocks: baseStyles.variables,
 			math_blocks: baseStyles.math,
 			procedure_blocks: baseStyles.procedures,
 		},
@@ -148,7 +148,7 @@ function getThemeBaseStyles(themeName) {
 			logic: { colourPrimary: categoryColours.Logic || 210 },
 			variables: { colourPrimary: categoryColours.Variables || 330 },
 			text: { colourPrimary: categoryColours.Text || 160 },
-			lists: { colourPrimary: categoryColours.Lists || 260 },
+                        lists: { colourPrimary: categoryColours.Variables || 330 },
 			math: { colourPrimary: categoryColours.Math || 230 },
 			procedures: { colourPrimary: categoryColours.Procedures || 290 },
 			components: {
@@ -177,7 +177,7 @@ function getThemeBaseStyles(themeName) {
 			logic: { colourPrimary: categoryColours.Logic || 210 },
 			variables: { colourPrimary: categoryColours.Variables || 330 },
 			text: { colourPrimary: categoryColours.Text || 160 },
-			lists: { colourPrimary: categoryColours.Lists || 260 },
+                        lists: { colourPrimary: categoryColours.Variables || 330 },
 			math: { colourPrimary: categoryColours.Math || 230 },
 			procedures: { colourPrimary: categoryColours.Procedures || 290 },
 			components: {
@@ -258,11 +258,11 @@ function getThemeBaseStyles(themeName) {
 				colourSecondary: "#388E3C",
 				colourTertiary: "#2E7D32",
 			},
-			lists: {
-				colourPrimary: "#9C27B0",
-				colourSecondary: "#7B1FA2",
-				colourTertiary: "#6A1B9A",
-			},
+                        lists: {
+                                colourPrimary: "#F44336",
+                                colourSecondary: "#D32F2F",
+                                colourTertiary: "#C62828",
+                        },
 			math: {
 				colourPrimary: "#3F51B5",
 				colourSecondary: "#303F9F",
@@ -349,11 +349,11 @@ function getThemeBaseStyles(themeName) {
 				colourSecondary: "#388E3C",
 				colourTertiary: "#2E7D32",
 			},
-			lists: {
-				colourPrimary: "#9C27B0",
-				colourSecondary: "#7B1FA2",
-				colourTertiary: "#6A1B9A",
-			},
+                        lists: {
+                                colourPrimary: "#F44336",
+                                colourSecondary: "#D32F2F",
+                                colourTertiary: "#C62828",
+                        },
 			math: {
 				colourPrimary: "#3F51B5",
 				colourSecondary: "#303F9F",

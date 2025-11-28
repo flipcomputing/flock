@@ -5,6 +5,7 @@ import { defineBlocks, CustomZelosRenderer } from "./blocks.js";
 import { defineBaseBlocks } from "./blocks/base";
 import { defineShapeBlocks } from "./blocks/shapes";
 import { registerFieldColour } from "@blockly/field-colour";
+import { translate } from "./main/translation.js";
 
 defineBaseBlocks();
 defineBlocks();
@@ -64,17 +65,17 @@ crossTabCopyPaste.init({ contextMenu: true, shortcut: true });
 
 document.getElementById('copyButton').addEventListener('click', () => {
   try {
-	const topBlock = workspace.getTopBlocks(false)[0]; // Get the first top-level block
-	if (topBlock) {
-	  // Use the plugin's storage mechanism to copy the block
-	  localStorage.setItem('blocklyStash', JSON.stringify(topBlock.toCopyData()));
-	  alert('Blocks copied to local storage!');
-	} else {
-	  alert('No blocks available to copy.');
-	}
+        const topBlock = workspace.getTopBlocks(false)[0]; // Get the first top-level block
+        if (topBlock) {
+          // Use the plugin's storage mechanism to copy the block
+          localStorage.setItem('blocklyStash', JSON.stringify(topBlock.toCopyData()));
+          alert(translate("blocks_copied_alert"));
+        } else {
+          alert(translate("no_blocks_to_copy_alert"));
+        }
   } catch (err) {
-	console.error('Error copying blocks:', err);
-	alert('Failed to copy blocks.');
+        console.error('Error copying blocks:', err);
+        alert(translate("copy_blocks_failed_alert"));
   }
 });
 let blocklyJson = {

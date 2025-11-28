@@ -110,6 +110,7 @@ export function defineSceneBlocks() {
 	Blockly.Blocks["create_ground"] = createSceneColorBlock({
 		type: "create_ground",
 		inputColor: "#71BC78",
+		listenToMove: true,
 	});
 
 	Blockly.Blocks["set_background_color"] = createSceneColorBlock({
@@ -117,58 +118,66 @@ export function defineSceneBlocks() {
 		inputColor: "#6495ED",
 	});
 
-	Blockly.Blocks['create_map'] = {
-	  init: function () {
-		const args0 = [];
+	Blockly.Blocks["create_map"] = {
+		init: function () {
+			const args0 = [];
 
-		args0.push({
-		  type: 'field_dropdown',
-		  name: 'MAP_NAME',
-		  options: [[getOption('FLAT'), 'NONE']].concat(mapNames()),
-		});
+			args0.push({
+				type: "field_dropdown",
+				name: "MAP_NAME",
+				options: [[getOption("FLAT"), "NONE"]].concat(mapNames()),
+			});
 
-		args0.push({
-		  type: 'input_value',
-		  name: 'MATERIAL',
-		  check: ['Material', 'Array', 'Colour', 'material_like', 'colour_array'],
-		});
+			args0.push({
+				type: "input_value",
+				name: "MATERIAL",
+				check: [
+					"Material",
+					"Array",
+					"Colour",
+					"material_like",
+					"colour_array",
+				],
+			});
 
-		this.jsonInit({
-		  type: 'create_map',
-		  message0: translate('create_map'),
-		  args0,
-		  previousStatement: null,
-		  nextStatement: null,
-		  inputsInline: true,
-		  colour: categoryColours['Scene'],
-		  tooltip: getTooltip('create_map'),
-		});
+			this.jsonInit({
+				type: "create_map",
+				message0: translate("create_map"),
+				args0,
+				previousStatement: null,
+				nextStatement: null,
+				inputsInline: true,
+				colour: categoryColours["Scene"],
+				tooltip: getTooltip("create_map"),
+			});
 
-		this.setHelpUrl(getHelpUrlFor(this.type));
-		this.setStyle('scene_blocks');
+			this.setHelpUrl(getHelpUrlFor(this.type));
+			this.setStyle("scene_blocks");
 
-		let debounceTimer = null;
-		const ws = this.workspace;
+			let debounceTimer = null;
+			const ws = this.workspace;
 
-		// Is Flock runtime initialized yet?
-		const runtimeReady = () =>
-		  typeof window !== 'undefined' &&
-		  window.flock &&
-		  flock.BABYLON &&
-		  flock.scene;
+			// Is Flock runtime initialized yet?
+			const runtimeReady = () =>
+				typeof window !== "undefined" &&
+				window.flock &&
+				flock.BABYLON &&
+				flock.scene;
 
-		const inSubtree = (rootBlock, id) => {
-		  if (!id) return false;
-		  const b = ws.getBlockById(id);
-		  if (!b) return false;
-		  if (b === rootBlock) return true;
-		  return rootBlock.getDescendants(false).some(x => x.id === b.id);
-		};
+			const inSubtree = (rootBlock, id) => {
+				if (!id) return false;
+				const b = ws.getBlockById(id);
+				if (!b) return false;
+				if (b === rootBlock) return true;
+				return rootBlock
+					.getDescendants(false)
+					.some((x) => x.id === b.id);
+			};
 
-		const respawnMaterialShadow = () => {
-		  const input = this.getInput('MATERIAL');
-		  if (!input || !input.connection) return;
-		  const shadowDom = Blockly.utils.xml.textToDom(`
+			const respawnMaterialShadow = () => {
+				const input = this.getInput("MATERIAL");
+				if (!input || !input.connection) return;
+				const shadowDom = Blockly.utils.xml.textToDom(`
 			<shadow type="material">
 			  <value name="BASE_COLOR">
 				<shadow type="colour">
@@ -182,70 +191,82 @@ export function defineSceneBlocks() {
 			  </value>
 			</shadow>
 		  `);
-		  input.connection.setShadowDom(shadowDom);
-		  input.connection.respawnShadow_();
-		};
+				input.connection.setShadowDom(shadowDom);
+				input.connection.respawnShadow_();
+			};
 
-		const runAfterLayout = (evt) => {
-		  // Let Blockly finalize connections first
-		  Promise.resolve().then(() => {
-			requestAnimationFrame(() => {
-			  // Bail out quietly until Flock is ready to avoid
-			  // `flock.materialsDebug` / `flock.texturePath` undefined errors.
-			  if (!runtimeReady()) return;
+			const runAfterLayout = (evt) => {
+				// Let Blockly finalize connections first
+				Promise.resolve().then(() => {
+					requestAnimationFrame(() => {
+						// Bail out quietly until Flock is ready to avoid
+						// `flock.materialsDebug` / `flock.texturePath` undefined errors.
+						if (!runtimeReady()) return;
 
-			  const mat = this.getInputTargetBlock('MATERIAL');
+						const mat = this.getInputTargetBlock("MATERIAL");
 
-			  // De-shadow only when editing inside the material subtree.
-			  if (mat && mat.isShadow && mat.isShadow()) {
-				const touchesMat =
-				  inSubtree(mat, evt.blockId) ||
-				  inSubtree(mat, evt.newParentId) ||
-				  inSubtree(mat, evt.oldParentId);
-				if (touchesMat) mat.setShadow(false);
-			  }
+						// De-shadow only when editing inside the material subtree.
+						if (mat && mat.isShadow && mat.isShadow()) {
+							const touchesMat =
+								inSubtree(mat, evt.blockId) ||
+								inSubtree(mat, evt.newParentId) ||
+								inSubtree(mat, evt.oldParentId);
+							if (touchesMat) mat.setShadow(false);
+						}
 
-			  // If MATERIAL cleared entirely, respawn default shadow.
-			  if (!this.getInputTargetBlock('MATERIAL')) {
-				respawnMaterialShadow();
-			  }
+						// If MATERIAL cleared entirely, respawn default shadow.
+						if (!this.getInputTargetBlock("MATERIAL")) {
+							respawnMaterialShadow();
+						}
 
-			  // Update pipeline (only when runtime is ready)
-			  if (typeof handleMeshLifecycleChange === 'function') {
-				if (handleMeshLifecycleChange(this, evt)) return;
-			  }
-			  if (typeof handleFieldOrChildChange === 'function') {
-				if (handleFieldOrChildChange(this, evt)) return;
-			  }
-			  if (typeof updateOrCreateMeshFromBlock === 'function') {
-				updateOrCreateMeshFromBlock(this, evt);
-			  }
+						// Update pipeline (only when runtime is ready)
+						if (typeof handleMeshLifecycleChange === "function") {
+							if (handleMeshLifecycleChange(this, evt)) return;
+						}
+						if (typeof handleFieldOrChildChange === "function") {
+							if (handleFieldOrChildChange(this, evt)) return;
+						}
+						if (typeof updateOrCreateMeshFromBlock === "function") {
+							updateOrCreateMeshFromBlock(this, evt);
+						}
+					});
+				});
+			};
+
+			this.setOnChange((evt) => {
+				const eventTypes = [
+					Blockly.Events.BLOCK_CREATE,
+					Blockly.Events.BLOCK_CHANGE,
+					Blockly.Events.BLOCK_MOVE,
+					Blockly.Events.BLOCK_DELETE,
+					Blockly.Events.UI, // dragStop path
+				];
+				if (!eventTypes.includes(evt.type)) return;
+
+				// Only treat changes to this block or its MATERIAL subtree as relevant
+				const touchesMap = (id) => {
+					if (!id) return false;
+					if (id === this.id) return true;
+
+					const matBlock = this.getInputTargetBlock("MATERIAL");
+					if (!matBlock) return false;
+
+					return inSubtree(matBlock, id);
+				};
+
+				const relevant =
+					touchesMap(evt.blockId) ||
+					touchesMap(evt.newParentId) ||
+					touchesMap(evt.oldParentId) ||
+					(evt.type === Blockly.Events.UI &&
+						evt.element === "dragStop");
+
+				if (!relevant) return;
+
+				if (debounceTimer) clearTimeout(debounceTimer);
+				debounceTimer = setTimeout(() => runAfterLayout(evt), 30);
 			});
-		  });
-		};
-
-		this.setOnChange((evt) => {
-		  const eventTypes = [
-			Blockly.Events.BLOCK_CREATE,
-			Blockly.Events.BLOCK_CHANGE,
-			Blockly.Events.BLOCK_MOVE,
-			Blockly.Events.BLOCK_DELETE,
-			Blockly.Events.UI, // dragStop path
-		  ];
-		  if (!eventTypes.includes(evt.type)) return;
-
-		  const relevant =
-			inSubtree(this, evt.blockId) ||
-			inSubtree(this, evt.newParentId) ||
-			inSubtree(this, evt.oldParentId) ||
-			(evt.type === Blockly.Events.UI && evt.element === 'dragStop');
-
-		  if (!relevant) return;
-
-		  if (debounceTimer) clearTimeout(debounceTimer);
-		  debounceTimer = setTimeout(() => runAfterLayout(evt), 30);
-		});
-	  }
+		},
 	};
 
 	Blockly.Blocks["show"] = {
