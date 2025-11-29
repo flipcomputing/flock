@@ -5,8 +5,8 @@ const GRID_LIMIT = 50;
 const GRID_STEP = 10;
 const MINOR_GRID_STEP = 1;
 const MINOR_GRID_ALPHA = 0.18;
-const GRID_Y_MAX = 5;
-const GRID_Y_MIN = -5;
+const GRID_Y_MAX = 50;
+const GRID_Y_MIN = -50;
 const LABEL_DISTANCE = 20;
 const CULL_DISTANCE = 20;
 const MAJOR_RADIUS = 0.045;
@@ -44,7 +44,7 @@ function createTextLabel(text, position, color, parent) {
   const scene = flock.scene;
   const plane = flock.BABYLON.MeshBuilder.CreatePlane(
     `gridLabel-${text}-${position.x}-${position.y}-${position.z}`,
-    { size: 1.2, sideOrientation: flock.BABYLON.Mesh.DOUBLESIDE },
+    { size: 0.9, sideOrientation: flock.BABYLON.Mesh.DOUBLESIDE },
     scene,
   );
   plane.position = position;
@@ -57,19 +57,19 @@ function createTextLabel(text, position, color, parent) {
 
   const container = new flock.GUI.Rectangle();
   container.background = "#FFFFFF";
-  container.alpha = 0.9;
-  container.cornerRadius = 10;
-  container.thickness = 4;
-  container.color = "#222222";
-  container.paddingTop = "6px";
-  container.paddingBottom = "6px";
-  container.paddingLeft = "10px";
-  container.paddingRight = "10px";
+  container.alpha = 0.65;
+  container.cornerRadius = 12;
+  container.thickness = 0;
+  container.color = "transparent";
+  container.paddingTop = "4px";
+  container.paddingBottom = "4px";
+  container.paddingLeft = "8px";
+  container.paddingRight = "8px";
 
   const textBlock = new flock.GUI.TextBlock();
   textBlock.text = text;
   textBlock.color = color.toHexString();
-  textBlock.fontSize = 220;
+  textBlock.fontSize = 70;
   textBlock.fontFamily = "Atkinson Hyperlegible Next";
   textBlock.textHorizontalAlignment = flock.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
   textBlock.textVerticalAlignment = flock.GUI.Control.VERTICAL_ALIGNMENT_CENTER;
@@ -211,39 +211,6 @@ function createGroundGrid() {
 }
 
 function createVerticalPlanes() {
-  const xyLines = [];
-  const xyColors = [];
-  const yzLines = [];
-  const yzColors = [];
-
-  for (let y = GRID_Y_MIN; y <= GRID_Y_MAX; y += 1) {
-    xyLines.push([
-      new flock.BABYLON.Vector3(-GRID_LIMIT, y, 0),
-      new flock.BABYLON.Vector3(GRID_LIMIT, y, 0),
-    ]);
-    xyColors.push([xAxisColor.toColor4(0.8), xAxisColor.toColor4(0.8)]);
-
-    yzLines.push([
-      new flock.BABYLON.Vector3(0, y, -GRID_LIMIT),
-      new flock.BABYLON.Vector3(0, y, GRID_LIMIT),
-    ]);
-    yzColors.push([zAxisColor.toColor4(0.8), zAxisColor.toColor4(0.8)]);
-  }
-
-  buildLineSystem({
-    lines: xyLines,
-    colors: xyColors,
-    name: "grid-xy-plane",
-    parent: volumeParent,
-  });
-
-  buildLineSystem({
-    lines: yzLines,
-    colors: yzColors,
-    name: "grid-yz-plane",
-    parent: volumeParent,
-  });
-
   createAxisTube(
     "grid-axis-y",
     new flock.BABYLON.Vector3(0, GRID_Y_MIN, 0),
@@ -263,6 +230,14 @@ function createVerticalPlanes() {
         new flock.BABYLON.Vector3(x, GRID_Y_MAX, z),
       ]);
       majorColors.push([color, color]);
+
+      for (
+        let y = Math.ceil(GRID_Y_MIN / GRID_STEP) * GRID_STEP;
+        y <= GRID_Y_MAX;
+        y += GRID_STEP
+      ) {
+        createTextLabel(`${y}`, new flock.BABYLON.Vector3(x, y + 0.25, z), yAxisColor, volumeParent);
+      }
     }
   }
 
@@ -272,74 +247,6 @@ function createVerticalPlanes() {
     name: "grid-volume-vertical-major",
     parent: volumeParent,
   });
-
-  for (
-    let y = Math.ceil(GRID_Y_MIN / GRID_STEP) * GRID_STEP;
-    y <= GRID_Y_MAX;
-    y += GRID_STEP
-  ) {
-    createTextLabel(
-      `${y}`,
-      new flock.BABYLON.Vector3(0.8, y + 0.25, 0.8),
-      yAxisColor,
-      volumeParent,
-    );
-  }
-}
-
-function createStackedXZGrids() {
-  for (let y = GRID_Y_MIN; y <= GRID_Y_MAX; y += 1) {
-    const minorLines = [];
-    const minorColors = [];
-    const majorLines = [];
-    const majorColors = [];
-
-    for (let x = -GRID_LIMIT; x <= GRID_LIMIT; x += MINOR_GRID_STEP) {
-      const line = [
-        new flock.BABYLON.Vector3(x, y, -GRID_LIMIT),
-        new flock.BABYLON.Vector3(x, y, GRID_LIMIT),
-      ];
-      if (x % GRID_STEP === 0) {
-        majorLines.push(line);
-        majorColors.push([xAxisColor.toColor4(0.65), xAxisColor.toColor4(0.65)]);
-      } else {
-        minorLines.push(line);
-        minorColors.push([xAxisColor.toColor4(MINOR_GRID_ALPHA), xAxisColor.toColor4(MINOR_GRID_ALPHA)]);
-      }
-    }
-
-    for (let z = -GRID_LIMIT; z <= GRID_LIMIT; z += MINOR_GRID_STEP) {
-      const line = [
-        new flock.BABYLON.Vector3(-GRID_LIMIT, y, z),
-        new flock.BABYLON.Vector3(GRID_LIMIT, y, z),
-      ];
-      if (z % GRID_STEP === 0) {
-        majorLines.push(line);
-        majorColors.push([zAxisColor.toColor4(0.65), zAxisColor.toColor4(0.65)]);
-      } else {
-        minorLines.push(line);
-        minorColors.push([zAxisColor.toColor4(MINOR_GRID_ALPHA), zAxisColor.toColor4(MINOR_GRID_ALPHA)]);
-      }
-    }
-
-    if (minorLines.length) {
-      buildLineSystem({
-        lines: minorLines,
-        colors: minorColors,
-        name: `grid-layer-${y}-minor`,
-        parent: volumeParent,
-      });
-    }
-
-    if (majorLines.length) {
-      buildLineSystem({
-        lines: majorLines,
-        colors: majorColors,
-        name: `grid-layer-${y}-major`,
-        parent: volumeParent,
-      });
-    }
-  }
 }
 
 function disposeGrid() {
@@ -373,7 +280,6 @@ function ensureGrid(scene) {
 
     createGroundGrid();
     createVerticalPlanes();
-    createStackedXZGrids();
 
     gridRoot.setEnabled(false);
     volumeParent.setEnabled(false);
@@ -385,10 +291,22 @@ function ensureGrid(scene) {
       const updateVisibility = ({ mesh, maxDistance }) => {
         if (!mesh || mesh.isDisposed()) return;
         const info = mesh.getBoundingInfo?.();
-        const center = info
-          ? info.boundingBox.centerWorld
-          : mesh.getAbsolutePosition?.() ?? mesh.position ?? flock.BABYLON.Vector3.Zero();
-        const distance = flock.BABYLON.Vector3.Distance(camPos, center);
+
+        let distance;
+        if (info) {
+          const box = info.boundingBox;
+          const clamped = new flock.BABYLON.Vector3(
+            flock.BABYLON.Scalar.Clamp(camPos.x, box.minimumWorld.x, box.maximumWorld.x),
+            flock.BABYLON.Scalar.Clamp(camPos.y, box.minimumWorld.y, box.maximumWorld.y),
+            flock.BABYLON.Scalar.Clamp(camPos.z, box.minimumWorld.z, box.maximumWorld.z),
+          );
+          distance = flock.BABYLON.Vector3.Distance(camPos, clamped);
+        } else {
+          const center =
+            mesh.getAbsolutePosition?.() ?? mesh.position ?? flock.BABYLON.Vector3.Zero();
+          distance = flock.BABYLON.Vector3.Distance(camPos, center);
+        }
+
         mesh.isVisible = mesh.isEnabled() && distance <= maxDistance;
       };
 
