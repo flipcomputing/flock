@@ -11,13 +11,6 @@ const isMobile = () => {
         return /Mobi|Android/i.test(navigator.userAgent);
 };
 
-const setGridToggleVisibility = (display) => {
-        const gridToggleRow = document.getElementById("gridToggleRow");
-        if (gridToggleRow) {
-                gridToggleRow.style.display = display;
-        }
-};
-
 const getVisibleHeight = (element) => {
         if (!element) return 0;
         const styles = getComputedStyle(element);
@@ -63,8 +56,6 @@ function resizeCanvas() {
 
         const gizmoButtons = document.getElementById("gizmoButtons");
         areaHeight -= getVisibleHeight(gizmoButtons);
-        const gridToggleRow = document.getElementById("gridToggleRow");
-        areaHeight -= getVisibleHeight(gridToggleRow);
 
         areaHeight = Math.max(areaHeight, 1);
 
@@ -290,7 +281,6 @@ export function showCanvasView() {
         const flockLink = document.getElementById("flocklink");
 
         gizmoButtons.style.display = "block";
-        setGridToggleVisibility("flex");
         flockLink.style.display = "block";
 
         currentView = "canvas";
@@ -445,7 +435,6 @@ export function togglePlayMode() {
                 flock.scene.debugLayer.hide();
                 blocklyArea.style.display = "none";
                 gizmoButtons.style.display = "none";
-                setGridToggleVisibility("none");
                 bottomBar.style.display = "none";
                 flockLink.style.display = "none";
                 if (resizer) resizer.style.display = "none";
@@ -455,7 +444,6 @@ export function togglePlayMode() {
                 blocklyArea.style.display = "block";
                 canvasArea.style.display = "block";
                 gizmoButtons.style.display = "block";
-                setGridToggleVisibility("flex");
                 bottomBar.style.display = "block";
                 flockLink.style.display = "block";
                 if (resizer) resizer.style.display = "block";
@@ -500,14 +488,12 @@ export function toggleDesignMode(){
                 flock.scene.debugLayer.hide();
                 flockLink.style.display = "block";
                 infoPanel.style.display = "block";
-                setGridToggleVisibility("flex");
         } else {
                 blocklyArea.style.display = "none";
                 codeMode = "none";
                 canvasArea.style.display = "block";
                 canvasArea.style.width = "0";
                 gizmoButtons.style.display = "block";
-                setGridToggleVisibility("flex");
                 flockLink.style.display = "none";
                 infoPanel.style.display = "none";
                 if (resizer) resizer.style.display = "none";

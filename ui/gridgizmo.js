@@ -323,20 +323,27 @@ function updateButtonLabel() {
   const button = document.getElementById("gridToggleButton");
   if (!button) return;
   const mode = GRID_MODES[gridModeIndex];
+  const labelSpan = button.querySelector(".grid-toggle-label");
+  let label = "Grid off";
+  let pressed = "false";
+
   switch (mode) {
     case "ground":
-      button.textContent = "Ground grid";
-      button.setAttribute("aria-pressed", "true");
+      label = "Ground grid";
+      pressed = "true";
       break;
     case "volume":
-      button.textContent = "3D grid";
-      button.setAttribute("aria-pressed", "true");
+      label = "3D grid";
+      pressed = "true";
       break;
     default:
-      button.textContent = "Grid off";
-      button.setAttribute("aria-pressed", "false");
       break;
   }
+
+  button.setAttribute("aria-pressed", pressed);
+  button.setAttribute("aria-label", label);
+  button.setAttribute("title", label);
+  if (labelSpan) labelSpan.textContent = label;
 }
 
 export function cycleGridMode() {
