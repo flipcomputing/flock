@@ -235,7 +235,7 @@ export default {
       add_physics: "lägg till fysik %1 typ %2",
       add_physics_shape: "lägg till fysikform %1 typ %2",
       apply_force: "tillämpa kraft på %1 x: %2 y: %3 z: %4",
-      show_physics: "visa fysik %1",
+      show_physics: "visa fysikformer %1",
 
       // Custom block translations - Sensing blocks
       key_pressed: "tangent nedtryckt är %1",
