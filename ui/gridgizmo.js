@@ -7,7 +7,8 @@ const MINOR_GRID_STEP = 1;
 const MINOR_GRID_ALPHA = 0.18;
 const GRID_Y_MAX = 5;
 const GRID_Y_MIN = -5;
-const LABEL_DISTANCE = 35;
+const LABEL_DISTANCE = 20;
+const CULL_DISTANCE = 20;
 const MAJOR_RADIUS = 0.045;
 const AXIS_RADIUS = 0.07;
 
@@ -32,35 +33,43 @@ let currentScene = null;
 let gridModeIndex = 0;
 
 const labels = [];
+const culledMeshes = [];
+
+function registerCulledMesh(mesh, maxDistance = CULL_DISTANCE) {
+  if (!mesh) return;
+  culledMeshes.push({ mesh, maxDistance });
+}
 
 function createTextLabel(text, position, color, parent) {
   const scene = flock.scene;
   const plane = flock.BABYLON.MeshBuilder.CreatePlane(
     `gridLabel-${text}-${position.x}-${position.y}-${position.z}`,
-    { size: 1.4, sideOrientation: flock.BABYLON.Mesh.DOUBLESIDE },
+    { size: 1.2, sideOrientation: flock.BABYLON.Mesh.DOUBLESIDE },
     scene,
   );
   plane.position = position;
   plane.billboardMode = flock.BABYLON.AbstractMesh.BILLBOARDMODE_ALL;
   plane.parent = parent;
   disablePhysics(plane);
+  registerCulledMesh(plane, LABEL_DISTANCE);
 
   const texture = flock.GUI.AdvancedDynamicTexture.CreateForMesh(plane, 512, 256);
 
   const container = new flock.GUI.Rectangle();
-  container.background = "#FFFFFFE6";
-  container.alpha = 0.95;
-  container.cornerRadius = 8;
-  container.thickness = 0;
-  container.paddingTop = "8px";
-  container.paddingBottom = "8px";
-  container.paddingLeft = "12px";
-  container.paddingRight = "12px";
+  container.background = "#FFFFFF";
+  container.alpha = 0.9;
+  container.cornerRadius = 10;
+  container.thickness = 4;
+  container.color = "#222222";
+  container.paddingTop = "6px";
+  container.paddingBottom = "6px";
+  container.paddingLeft = "10px";
+  container.paddingRight = "10px";
 
   const textBlock = new flock.GUI.TextBlock();
   textBlock.text = text;
   textBlock.color = color.toHexString();
-  textBlock.fontSize = 320;
+  textBlock.fontSize = 220;
   textBlock.fontFamily = "Atkinson Hyperlegible Next";
   textBlock.textHorizontalAlignment = flock.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
   textBlock.textVerticalAlignment = flock.GUI.Control.VERTICAL_ALIGNMENT_CENTER;
@@ -80,6 +89,7 @@ function createAxisTube(name, from, to, color, parent, radius = AXIS_RADIUS) {
   );
   tube.parent = parent;
   disablePhysics(tube);
+  registerCulledMesh(tube);
 
   const material = new flock.BABYLON.StandardMaterial(`${name}-mat`, flock.scene);
   material.diffuseColor = color;
@@ -116,6 +126,7 @@ function buildLineSystem({ lines, colors, name, parent }) {
   lineSystem.parent = parent;
   disablePhysics(lineSystem);
   lineSystem.alwaysSelectAsActiveMesh = false;
+  registerCulledMesh(lineSystem);
   return lineSystem;
 }
 
@@ -219,22 +230,6 @@ function createVerticalPlanes() {
     yzColors.push([zAxisColor.toColor4(0.8), zAxisColor.toColor4(0.8)]);
   }
 
-  for (let x = -GRID_LIMIT; x <= GRID_LIMIT; x += GRID_STEP) {
-    xyLines.push([
-      new flock.BABYLON.Vector3(x, GRID_Y_MIN, 0),
-      new flock.BABYLON.Vector3(x, GRID_Y_MAX, 0),
-    ]);
-    xyColors.push([yAxisColor.toColor4(0.8), yAxisColor.toColor4(0.8)]);
-  }
-
-  for (let z = -GRID_LIMIT; z <= GRID_LIMIT; z += GRID_STEP) {
-    yzLines.push([
-      new flock.BABYLON.Vector3(0, GRID_Y_MIN, z),
-      new flock.BABYLON.Vector3(0, GRID_Y_MAX, z),
-    ]);
-    yzColors.push([yAxisColor.toColor4(0.8), yAxisColor.toColor4(0.8)]);
-  }
-
   buildLineSystem({
     lines: xyLines,
     colors: xyColors,
@@ -257,34 +252,19 @@ function createVerticalPlanes() {
     volumeParent,
   );
 
-  const minorColumns = [];
-  const minorColors = [];
   const majorColumns = [];
   const majorColors = [];
 
-  for (let x = -GRID_LIMIT; x <= GRID_LIMIT; x += MINOR_GRID_STEP) {
-    for (let z = -GRID_LIMIT; z <= GRID_LIMIT; z += MINOR_GRID_STEP) {
-      const isMajor = x % GRID_STEP === 0 || z % GRID_STEP === 0;
-      const targetLines = isMajor ? majorColumns : minorColumns;
-      const targetColors = isMajor ? majorColors : minorColors;
-      const color = isMajor
-        ? yAxisColor.toColor4(0.65)
-        : yAxisColor.toColor4(MINOR_GRID_ALPHA);
-
-      targetLines.push([
+  for (let x = -GRID_LIMIT; x <= GRID_LIMIT; x += GRID_STEP) {
+    for (let z = -GRID_LIMIT; z <= GRID_LIMIT; z += GRID_STEP) {
+      const color = yAxisColor.toColor4(0.65);
+      majorColumns.push([
         new flock.BABYLON.Vector3(x, GRID_Y_MIN, z),
         new flock.BABYLON.Vector3(x, GRID_Y_MAX, z),
       ]);
-      targetColors.push([color, color]);
+      majorColors.push([color, color]);
     }
   }
-
-  buildLineSystem({
-    lines: minorColumns,
-    colors: minorColors,
-    name: "grid-volume-vertical-minor",
-    parent: volumeParent,
-  });
 
   buildLineSystem({
     lines: majorColumns,
@@ -293,7 +273,11 @@ function createVerticalPlanes() {
     parent: volumeParent,
   });
 
-  for (let y = GRID_Y_MIN; y <= GRID_Y_MAX; y += 1) {
+  for (
+    let y = Math.ceil(GRID_Y_MIN / GRID_STEP) * GRID_STEP;
+    y <= GRID_Y_MAX;
+    y += GRID_STEP
+  ) {
     createTextLabel(
       `${y}`,
       new flock.BABYLON.Vector3(0.8, y + 0.25, 0.8),
@@ -303,12 +287,68 @@ function createVerticalPlanes() {
   }
 }
 
+function createStackedXZGrids() {
+  for (let y = GRID_Y_MIN; y <= GRID_Y_MAX; y += 1) {
+    const minorLines = [];
+    const minorColors = [];
+    const majorLines = [];
+    const majorColors = [];
+
+    for (let x = -GRID_LIMIT; x <= GRID_LIMIT; x += MINOR_GRID_STEP) {
+      const line = [
+        new flock.BABYLON.Vector3(x, y, -GRID_LIMIT),
+        new flock.BABYLON.Vector3(x, y, GRID_LIMIT),
+      ];
+      if (x % GRID_STEP === 0) {
+        majorLines.push(line);
+        majorColors.push([xAxisColor.toColor4(0.65), xAxisColor.toColor4(0.65)]);
+      } else {
+        minorLines.push(line);
+        minorColors.push([xAxisColor.toColor4(MINOR_GRID_ALPHA), xAxisColor.toColor4(MINOR_GRID_ALPHA)]);
+      }
+    }
+
+    for (let z = -GRID_LIMIT; z <= GRID_LIMIT; z += MINOR_GRID_STEP) {
+      const line = [
+        new flock.BABYLON.Vector3(-GRID_LIMIT, y, z),
+        new flock.BABYLON.Vector3(GRID_LIMIT, y, z),
+      ];
+      if (z % GRID_STEP === 0) {
+        majorLines.push(line);
+        majorColors.push([zAxisColor.toColor4(0.65), zAxisColor.toColor4(0.65)]);
+      } else {
+        minorLines.push(line);
+        minorColors.push([zAxisColor.toColor4(MINOR_GRID_ALPHA), zAxisColor.toColor4(MINOR_GRID_ALPHA)]);
+      }
+    }
+
+    if (minorLines.length) {
+      buildLineSystem({
+        lines: minorLines,
+        colors: minorColors,
+        name: `grid-layer-${y}-minor`,
+        parent: volumeParent,
+      });
+    }
+
+    if (majorLines.length) {
+      buildLineSystem({
+        lines: majorLines,
+        colors: majorColors,
+        name: `grid-layer-${y}-major`,
+        parent: volumeParent,
+      });
+    }
+  }
+}
+
 function disposeGrid() {
   if (labelObserver && currentScene) {
     currentScene.onBeforeRenderObservable.remove(labelObserver);
     labelObserver = null;
   }
   labels.splice(0, labels.length);
+  culledMeshes.splice(0, culledMeshes.length);
   gridRoot?.dispose();
   gridRoot = null;
   groundParent = null;
@@ -333,6 +373,7 @@ function ensureGrid(scene) {
 
     createGroundGrid();
     createVerticalPlanes();
+    createStackedXZGrids();
 
     gridRoot.setEnabled(false);
     volumeParent.setEnabled(false);
@@ -341,11 +382,18 @@ function ensureGrid(scene) {
       const camera = scene.activeCamera;
       if (!camera) return;
       const camPos = camera.position;
-      labels.forEach(({ mesh, maxDistance }) => {
+      const updateVisibility = ({ mesh, maxDistance }) => {
         if (!mesh || mesh.isDisposed()) return;
-        const distance = flock.BABYLON.Vector3.Distance(camPos, mesh.getAbsolutePosition());
+        const info = mesh.getBoundingInfo?.();
+        const center = info
+          ? info.boundingBox.centerWorld
+          : mesh.getAbsolutePosition?.() ?? mesh.position ?? flock.BABYLON.Vector3.Zero();
+        const distance = flock.BABYLON.Vector3.Distance(camPos, center);
         mesh.isVisible = mesh.isEnabled() && distance <= maxDistance;
-      });
+      };
+
+      labels.forEach(updateVisibility);
+      culledMeshes.forEach(updateVisibility);
     });
 
     scene.onDisposeObservable.addOnce(() => {
