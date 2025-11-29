@@ -17,8 +17,8 @@ export const flockEffects = {
   },
   lightColor(diffuse, groundColor) {
     if (flock.mainLight) {
-      flock.mainLight.diffuse = diffuse;
-      flock.mainLight.groundColor = groundColor;
+      flock.mainLight.diffuse = flock.BABYLON.Color3.FromHexString(diffuse);
+      flock.mainLight.groundColor = flock.BABYLON.Color3.FromHexString(groundColor);
     } else {
       console.warn(
         "Main light is not defined. Please ensure flock.mainLight exists.",
