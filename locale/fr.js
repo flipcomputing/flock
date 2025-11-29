@@ -6,7 +6,7 @@ export default {
                                       CATEGORY_EFFECTS: "Effets",
                                       CATEGORY_CAMERA: "Caméra",
                                       CATEGORY_EVENTS: "Événements",
-                                      CATEGORY_TRANSFORM: "Transformation",
+                                      CATEGORY_TRANSFORM: "Changement",
                                       CATEGORY_PHYSICS: "Physique",
                                       CATEGORY_CONNECT: "Connecter",
                                       CATEGORY_COMBINE: "Combiner",
