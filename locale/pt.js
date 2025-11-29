@@ -197,7 +197,7 @@ export default {
   get_lexical_variable: "%1",
 
   // Custom block translations - Effects blocks
-  light_intensity: "definir intensidade da luz para %1",
+  light_intensity_and_color: "definir intensidade da luz para %1",
   set_fog: "definir cor da névoa %1 modo %2 densidade %3\ninício %4 fim %5",
 
   // Custom block translation - Events blocks
@@ -432,7 +432,7 @@ export default {
   get_lexical_variable_tooltip: "Obtém o valor de uma variável lexical",
 
   // Tooltip translations - Effects blocks
-  light_intensity_tooltip:
+  light_intensity_and_color_tooltip:
     "Define a intensidade da luz principal.\nPalavra-chave: intensidade da luz",
   set_fog_tooltip: "Configura a névoa da cena. Use início e fim para definir as distâncias próxima e distante.\nPalavra-chave: névoa",
 
