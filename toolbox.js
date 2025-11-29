@@ -3094,13 +3094,12 @@ const toolboxSound = {
                         inputsInline: true,
                         inputs: {
                                 NOTES: {
-                                        block: {
-                                                // Real block initially
+                                        shadow: {
                                                 type: "lists_create_with",
                                                 extraState: { itemCount: 1 },
                                                 inputs: {
                                                         ADD0: {
-                                                                block: {
+                                                                shadow: {
                                                                         type: "midi_note",
                                                                         fields: {
                                                                                 NOTE: 60,
@@ -3111,13 +3110,12 @@ const toolboxSound = {
                                         },
                                 },
                                 DURATIONS: {
-                                        block: {
-                                                // Real block initially
+                                        shadow: {
                                                 type: "lists_create_with",
                                                 extraState: { itemCount: 1 },
                                                 inputs: {
                                                         ADD0: {
-                                                                block: {
+                                                                shadow: {
                                                                         type: "math_number",
                                                                         fields: {
                                                                                 NUM: 1,
