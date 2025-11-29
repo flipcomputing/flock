@@ -1876,14 +1876,7 @@ export function defineGenerators() {
                 const coordinate = block.getFieldValue("COORDINATE") || "x_coordinate";
                 const value = getFieldValue(block, "VALUE", "0");
                 
-                switch (coordinate) {
-                        case "x_coordinate":                              
-                                return `await positionAt(${meshName}, { x: ${value} });\n`;
-                        case "y_coordinate":                              
-                                return `await positionAt(${meshName}, { y: ${value} });\n`;
-                        case "z_coordinate":                              
-                                return `await positionAt(${meshName}, { z: ${value} });\n`;
-                };
+                return `await positionAtSingleCoordinate(${meshName}, "${coordinate}", ${value});\n`;
         };
 
         javascriptGenerator.forBlock["distance_to"] = function (block) {

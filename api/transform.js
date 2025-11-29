@@ -97,6 +97,33 @@ export const flockTransform = {
       });
     });
   },
+  positionAtSingleCoordinate(meshName, coordinate_setting, value) {
+    return new Promise((resolve, reject) => {
+      flock.whenModelReady(meshName, (mesh) => {
+        // Prevent positionAt call if mesh doesn't exist in the first place
+        if (!mesh) {
+          reject(new Error(`Mesh '${meshName}' not found`));
+          return;
+        }
+
+        switch (coordinate_setting) {
+          case "x_coordinate":
+            flock.positionAt(meshName, { x: value, y: null, z: null, useY: false});
+            break;
+
+          case "y_coordinate":
+            flock.positionAt(meshName, { x: null, y: value, z: null, useY: true});
+            break;
+
+          case "z_coordinate":
+            flock.positionAt(meshName, { x: null, y: null, z: value, useY: false});
+            break;
+        }
+
+        resolve();
+      });
+    });
+  },
   moveTo(meshName, { target, useY = true } = {}) {
     return new Promise((resolve, reject) => {
       flock.whenModelReady(meshName, (mesh1) => {

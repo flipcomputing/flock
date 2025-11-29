@@ -915,6 +915,7 @@ export const flock = {
                         rotateAnim: this.rotateAnim?.bind(this),
                         animateProperty: this.animateProperty?.bind(this),
                         positionAt: this.positionAt?.bind(this),
+                        positionAtSingleCoordinate: this.positionAtSingleCoordinate?.bind(this),
                         distanceTo: this.distanceTo?.bind(this),
                         safeLoop: this.safeLoop?.bind(this),
                         waitUntil: this.waitUntil?.bind(this),
