@@ -628,6 +628,10 @@ export default {
                                       e_icon_option: "E ✿",
                                       f_icon_option: "F ✱",
 
+                                      x_coordinate_option: "x",
+                                      y_coordinate_option: "y",
+                                      z_coordinate_option: "z",
+
                                       POSITION_X_option: "position x",
                                       POSITION_Y_option: "position y",
                                       POSITION_Z_option: "position z",
