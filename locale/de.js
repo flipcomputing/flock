@@ -499,7 +499,7 @@ export default {
   // Effects tooltips
   light_intensity_and_color_tooltip: "Stelle die Intensität der Hauptbeleuchtung ein.\nSchlüsselwort: light intensity",
   set_fog_tooltip: "Konfiguriere den Nebel der Szene. Verwende Start und Ende, um die Nah- und Fernwerte festzulegen.\nSchlüsselwort: fog",
-  get_light_tooltip: "Hole die aktuelle Szene‑Hauptlicht.\nSchlüsselwort: fog",
+  get_light_tooltip: "Hole die aktuelle Szene‑Hauptbeleuchtung.\nSchlüsselwort: fog",
 
   // Events tooltips
   start_tooltip: "Führe Blöcke beim Projektstart aus. Mehrere Startblöcke möglich.\nSchlüsselwort: start",
