@@ -8,6 +8,16 @@ const MINOR_GRID_ALPHA = 0.18;
 const GRID_Y_MAX = 5;
 const GRID_Y_MIN = -5;
 const LABEL_DISTANCE = 35;
+const MAJOR_RADIUS = 0.045;
+const AXIS_RADIUS = 0.07;
+
+function disablePhysics(mesh) {
+  if (!mesh) return;
+  mesh.isPickable = false;
+  mesh.checkCollisions = false;
+  if (mesh.physicsImpostor) mesh.physicsImpostor.dispose();
+  mesh.physicsImpostor = null;
+}
 
 const xAxisColor = flock.BABYLON.Color3.FromHexString("#0072B2");
 const yAxisColor = flock.BABYLON.Color3.FromHexString("#009E73");
@@ -27,39 +37,39 @@ function createTextLabel(text, position, color, parent) {
   const scene = flock.scene;
   const plane = flock.BABYLON.MeshBuilder.CreatePlane(
     `gridLabel-${text}-${position.x}-${position.y}-${position.z}`,
-    { size: 0.85, sideOrientation: flock.BABYLON.Mesh.DOUBLESIDE },
+    { size: 1.1, sideOrientation: flock.BABYLON.Mesh.DOUBLESIDE },
     scene,
   );
   plane.position = position;
   plane.billboardMode = flock.BABYLON.AbstractMesh.BILLBOARDMODE_ALL;
-  plane.isPickable = false;
   plane.parent = parent;
+  disablePhysics(plane);
 
   const texture = flock.GUI.AdvancedDynamicTexture.CreateForMesh(plane);
   const textBlock = new flock.GUI.TextBlock();
   textBlock.text = text;
   textBlock.color = color.toHexString();
-  textBlock.fontSize = 200;
+  textBlock.fontSize = 260;
   textBlock.fontFamily = "Atkinson Hyperlegible Next";
-  textBlock.background = "#000000AA";
-  textBlock.paddingTop = "5px";
-  textBlock.paddingBottom = "5px";
-  textBlock.paddingLeft = "8px";
-  textBlock.paddingRight = "8px";
+  textBlock.background = "#FFFFFFE6";
+  textBlock.paddingTop = "6px";
+  textBlock.paddingBottom = "6px";
+  textBlock.paddingLeft = "10px";
+  textBlock.paddingRight = "10px";
   texture.addControl(textBlock);
 
   labels.push({ mesh: plane, maxDistance: LABEL_DISTANCE });
   return plane;
 }
 
-function createAxisTube(name, from, to, color, parent) {
+function createAxisTube(name, from, to, color, parent, radius = AXIS_RADIUS) {
   const tube = flock.BABYLON.MeshBuilder.CreateTube(
     name,
-    { path: [from, to], radius: 0.06 },
+    { path: [from, to], radius },
     flock.scene,
   );
   tube.parent = parent;
-  tube.isPickable = false;
+  disablePhysics(tube);
 
   const material = new flock.BABYLON.StandardMaterial(`${name}-mat`, flock.scene);
   material.diffuseColor = color;
@@ -77,7 +87,7 @@ function createMajorMarker(parent) {
   );
   marker.parent = parent;
   marker.position = flock.BABYLON.Vector3.Zero();
-  marker.isPickable = false;
+  disablePhysics(marker);
 
   const material = new flock.BABYLON.StandardMaterial("grid-center-mat", flock.scene);
   material.diffuseColor = whiteColor;
@@ -94,15 +104,12 @@ function buildLineSystem({ lines, colors, name, parent }) {
     flock.scene,
   );
   lineSystem.parent = parent;
-  lineSystem.isPickable = false;
+  disablePhysics(lineSystem);
   lineSystem.alwaysSelectAsActiveMesh = false;
   return lineSystem;
 }
 
 function createGroundGrid() {
-  const lines = [];
-  const colors = [];
-
   const minorLines = [];
   const minorColors = [];
 
@@ -130,40 +137,6 @@ function createGroundGrid() {
     ]);
   }
 
-  for (let x = -GRID_LIMIT; x <= GRID_LIMIT; x += GRID_STEP) {
-    lines.push([
-      new flock.BABYLON.Vector3(x, 0, -GRID_LIMIT),
-      new flock.BABYLON.Vector3(x, 0, GRID_LIMIT),
-    ]);
-    const color = x === 0 ? xAxisColor : xAxisColor.scale(0.7);
-    colors.push([color.toColor4(1), color.toColor4(1)]);
-    if (x !== 0) {
-      createTextLabel(
-        `${x}`,
-        new flock.BABYLON.Vector3(x, 0.35, 1.4),
-        color,
-        groundParent,
-      );
-    }
-  }
-
-  for (let z = -GRID_LIMIT; z <= GRID_LIMIT; z += GRID_STEP) {
-    lines.push([
-      new flock.BABYLON.Vector3(-GRID_LIMIT, 0, z),
-      new flock.BABYLON.Vector3(GRID_LIMIT, 0, z),
-    ]);
-    const color = z === 0 ? zAxisColor : zAxisColor.scale(0.7);
-    colors.push([color.toColor4(1), color.toColor4(1)]);
-    if (z !== 0) {
-      createTextLabel(
-        `${z}`,
-        new flock.BABYLON.Vector3(1.4, 0.35, z),
-        color,
-        groundParent,
-      );
-    }
-  }
-
   buildLineSystem({
     lines: minorLines,
     colors: minorColors,
@@ -171,27 +144,47 @@ function createGroundGrid() {
     parent: groundParent,
   });
 
-  buildLineSystem({
-    lines,
-    colors,
-    name: "grid-ground-lines",
-    parent: groundParent,
-  });
+  for (let x = -GRID_LIMIT; x <= GRID_LIMIT; x += GRID_STEP) {
+    const color = x === 0 ? xAxisColor : xAxisColor.scale(0.7);
+    const radius = x === 0 ? AXIS_RADIUS : MAJOR_RADIUS;
+    createAxisTube(
+      `grid-axis-x-${x}`,
+      new flock.BABYLON.Vector3(x, 0, -GRID_LIMIT),
+      new flock.BABYLON.Vector3(x, 0, GRID_LIMIT),
+      color,
+      groundParent,
+      radius,
+    );
+    if (x !== 0) {
+      createTextLabel(
+        `${x}`,
+        new flock.BABYLON.Vector3(x, 0.6, 1.5),
+        color,
+        groundParent,
+      );
+    }
+  }
 
-  createAxisTube(
-    "grid-axis-x",
-    new flock.BABYLON.Vector3(-GRID_LIMIT, 0, 0),
-    new flock.BABYLON.Vector3(GRID_LIMIT, 0, 0),
-    xAxisColor,
-    groundParent,
-  );
-  createAxisTube(
-    "grid-axis-z",
-    new flock.BABYLON.Vector3(0, 0, -GRID_LIMIT),
-    new flock.BABYLON.Vector3(0, 0, GRID_LIMIT),
-    zAxisColor,
-    groundParent,
-  );
+  for (let z = -GRID_LIMIT; z <= GRID_LIMIT; z += GRID_STEP) {
+    const color = z === 0 ? zAxisColor : zAxisColor.scale(0.7);
+    const radius = z === 0 ? AXIS_RADIUS : MAJOR_RADIUS;
+    createAxisTube(
+      `grid-axis-z-${z}`,
+      new flock.BABYLON.Vector3(-GRID_LIMIT, 0, z),
+      new flock.BABYLON.Vector3(GRID_LIMIT, 0, z),
+      color,
+      groundParent,
+      radius,
+    );
+    if (z !== 0) {
+      createTextLabel(
+        `${z}`,
+        new flock.BABYLON.Vector3(1.5, 0.6, z),
+        color,
+        groundParent,
+      );
+    }
+  }
 
   createMajorMarker(groundParent);
 }
@@ -253,6 +246,32 @@ function createVerticalPlanes() {
     yAxisColor,
     volumeParent,
   );
+
+  for (let x = -GRID_LIMIT; x <= GRID_LIMIT; x += GRID_STEP) {
+    const color = x === 0 ? yAxisColor : yAxisColor.scale(0.75);
+    const radius = x === 0 ? AXIS_RADIUS : MAJOR_RADIUS;
+    createAxisTube(
+      `grid-axis-y-repeat-x-${x}`,
+      new flock.BABYLON.Vector3(x, 0, 0),
+      new flock.BABYLON.Vector3(x, GRID_Y_MAX, 0),
+      color,
+      volumeParent,
+      radius,
+    );
+  }
+
+  for (let z = -GRID_LIMIT; z <= GRID_LIMIT; z += GRID_STEP) {
+    const color = z === 0 ? yAxisColor : yAxisColor.scale(0.75);
+    const radius = z === 0 ? AXIS_RADIUS : MAJOR_RADIUS;
+    createAxisTube(
+      `grid-axis-y-repeat-z-${z}`,
+      new flock.BABYLON.Vector3(0, 0, z),
+      new flock.BABYLON.Vector3(0, GRID_Y_MAX, z),
+      color,
+      volumeParent,
+      radius,
+    );
+  }
 
   for (let y = GRID_Y_MIN; y <= GRID_Y_MAX; y += 1) {
     if (y === 0) continue;
