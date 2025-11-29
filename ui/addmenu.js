@@ -254,15 +254,18 @@ function scrollToBlockTopParentLeft(workspace, blockId) {
 }
 
 export function highlightBlockById(workspace, block) {
-  if (block) {
-    // Select the new block
-    if (window.codeMode === "both") {
-      workspace.getAllBlocks().forEach((b) => b.unselect());
-      block.select();
+  if (!workspace || !block || block.workspace !== workspace) return;
 
-      // Scroll to position the block at the top and its parent at the left
-      scrollToBlockTopParentLeft(workspace, block.id);
+  // Select and scroll only when the code view is visible
+  if (window.codeMode === "both") {
+    if (typeof workspace.setSelected === "function") {
+      workspace.setSelected(block);
+    } else {
+      block.select();
     }
+
+    // Scroll to position the block at the top and its parent at the left
+    scrollToBlockTopParentLeft(workspace, block.id);
   }
 }
 
