@@ -278,8 +278,10 @@ export default {
   
   // Custom block translations - Transform blocks
   move_by_xyz: "move %1 by x: %2 y: %3 z: %4",
+  move_by_xyz_single: "change position of %1 by %2 %3",
   move_to_xyz: "move %1 to x: %2 y: %3 z: %4 y? %5",
-  move_to: "move %1 to %2 y? %3",
+  move_to_xyz_single: "set position of %1 to %2 %3",
+  move_to: /* "move %1 to %2 y? %3" */ "position %1 at %2 y? %3",
   scale: "scale %1 x: %2 y: %3 z: %4\norigin x: %5 y: %6 z: %7",
   resize: "resize %1 x: %2 y: %3 z: %4\norigin x: %5 y: %6 z: %7",
   rotate_model_xyz: "rotate %1 by x: %2 y: %3 z: %4",
@@ -463,7 +465,9 @@ export default {
   
   // Tooltip translations - Transform blocks
   move_by_xyz_tooltip: "Move a mesh a given amount in x y and z directions.\nKeyword: move",
+  move_by_xyz_single_tooltip: "Move a mesh a given amount in either x y or z direction.\nKeyword: move",
   move_to_xyz_tooltip: "Teleport the mesh to the coordinates. Optionally, use the Y axis.\nKeyword: moveby",
+  move_to_xyz_single_tooltip: "Teleport the mesh to the specified single coordinate. Optionally, use the Y axis.\nKeyword: moveby",
   move_to_tooltip: "Teleport the first mesh to the location of the second mesh.\nKeyword: moveto",
   scale_tooltip: "Resize a mesh to the given x, y, and z and controls the origin of scaling. \nKeyword: scale",
   resize_tooltip: "Resize a mesh to the given x, y, and z and controls the origin of scaling.\nKeyword: resize",
@@ -636,6 +640,10 @@ export default {
   q_icon_option: "Q ■", // Duplicate key q
   e_icon_option: "E ✿", // Duplicate key e
   f_icon_option: "F ✱", // Duplicate key f
+
+  x_coordinate_option: "x",
+  y_coordinate_option: "y",
+  z_coordinate_option: "z",
 
   POSITION_X_option: "position x",
   POSITION_Y_option: "position y",
