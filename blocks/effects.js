@@ -8,22 +8,33 @@ import {
 } from "../main/translation.js";
 
 export function defineEffectsBlocks() {
-	Blockly.Blocks["light_intensity"] = {
+	Blockly.Blocks["light_intensity_and_color"] = {
 		init: function () {
 			this.jsonInit({
-				type: "light_intensity",
-				message0: translate("light_intensity"),
+				type: "light_intensity_and_color",
+				message0: translate("light_intensity_and_color"),
 				args0: [
 					{
 						type: "input_value",
 						name: "INTENSITY",
 						check: "Number",
 					},
+					{
+						type: "input_value",
+						name: "DIFFUSE",
+						check: "Colour",
+					},
+					{
+						type: "input_value",
+						name: "GROUND_COLOR",
+						check: "Colour",
+					},
 				],
+				inputsInline: true,
 				previousStatement: null,
 				nextStatement: null,
 				colour: categoryColours["Scene"],
-				tooltip: getTooltip("light_intensity"),
+				tooltip: getTooltip("light_intensity_and_color"),
 			});
 			this.setHelpUrl(getHelpUrlFor(this.type));
 			this.setStyle("scene_blocks");

@@ -698,15 +698,28 @@ export function defineGenerators() {
                 return `setSky(${color});\n`;
         };
 
-        javascriptGenerator.forBlock["light_intensity"] = function (block) {
+        javascriptGenerator.forBlock["light_intensity_and_color"] = function (block) {
                 const intensity =
                         javascriptGenerator.valueToCode(
                                 block,
                                 "INTENSITY",
                                 javascriptGenerator.ORDER_ATOMIC,
                         ) || "1.0";
+                const diffuse = 
+                        javascriptGenerator.valueToCode(
+                                block,
+                                "DIFFUSE",
+                                javascriptGenerator.ORDER_ATOMIC,
+                        ) || "#FFFFFF";
+                const groundColor = 
+                        javascriptGenerator.valueToCode(
+                                block,
+                                "GROUND_COLOR",
+                                javascriptGenerator.ORDER_ATOMIC,
+                        ) || "#808080";
+                
 
-                return `lightIntensity(${intensity});\n`;
+                return `lightIntensity(${intensity});\nlightColor(${diffuse}, ${groundColor});\n`;
         };
 
         javascriptGenerator.forBlock["get_light"] = function (block) {
