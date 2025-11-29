@@ -16,10 +16,11 @@ export default {
   CATEGORY_CONDITION: "Condición",
   CATEGORY_SENSING: "Sensores",
   CATEGORY_TEXT: "Texto",
-  CATEGORY_STRINGS: "Cadenas", 
+  CATEGORY_STRINGS: "Cadenas",
   CATEGORY_MATERIALS: "Materiales",
   CATEGORY_SOUND: "Sonido",
-  CATEGORY_VARIABLES: "Variables",
+  CATEGORY_VARIABLES: "Datos",
+  CATEGORY_VARIABLES_SUBCATEGORY: "Variables",
   CATEGORY_LISTS: "Listas",
   CATEGORY_MATH: "Matemáticas",
   CATEGORY_FUNCTIONS: "Funciones",
@@ -188,8 +189,8 @@ export default {
   get_lexical_variable: "%1",
 
   // Custom block translations - Effects blocks
-  light_intensity: "establecer intensidad de luz a %1",
-  set_fog: "establecer niebla color %1 modo %2 densidad %3",
+  light_intensity_and_color: "establecer intensidad de luz a %1",
+  set_fog: "establecer niebla color %1 modo %2 densidad %3\ninicio %4 fin %5",
 
   // Custom block translation - Events blocks
   start: "iniciar",
@@ -372,8 +373,8 @@ export default {
   get_lexical_variable_tooltip: "Obtiene el valor de una variable léxica",
 
   // Tooltip translations - Effects blocks
-  light_intensity_tooltip: "Establece la intensidad de la luz principal.\nPalabra clave: light intensity",
-  set_fog_tooltip: "Configura la niebla de la escena.\nPalabra clave: fog",
+  light_intensity_and_color_tooltip: "Establece la intensidad de la luz principal.\nPalabra clave: light intensity",
+  set_fog_tooltip: "Configura la niebla de la escena. Usa inicio y fin para definir las distancias cercana y lejana.\nPalabra clave: fog",
 
   // Tooltip translations - Events blocks
   start_tooltip: "Ejecuta los bloques internos al iniciar el proyecto. Puede haber múltiples bloques de inicio.\nPalabra clave: start",
@@ -874,6 +875,25 @@ export default {
   invalid_filetype_alert: "Solo se permiten archivos de proyecto .json o .flock.",
   invalid_project_alert: "Este archivo no es un proyecto válido de Flock XR.",
   failed_to_read_file_alert: "No se pudo leer el archivo.",
+
+  // UI status messages
+  max_mesh_limit_reached:
+    "⚠️ Límite alcanzado: solo puedes tener {max} mallas en tu mundo.",
+  high_memory_usage_warning: "Advertencia: uso de memoria alto ({percent}%)",
+  runtime_error_message: "Error: {message}",
+  xr_mode_message: "¡Modo XR!",
+  fly_camera_instructions:
+    "ℹ️ Cámara en vuelo, usa las flechas y Page Up/Down",
+  select_mesh_delete_prompt:
+    "⚠️ Selecciona una malla y luego haz clic en eliminar.",
+  select_mesh_duplicate_prompt:
+    "⚠️ Selecciona una malla y haz clic en duplicar, luego haz clic para colocar las copias.",
+  position_readout: "Posición: {position}",
+  eyedropper_not_supported_alert:
+    "La herramienta cuentagotas no es compatible con este navegador. Prueba con Chrome o Edge.",
+  blocks_copied_alert: "¡Bloques copiados al almacenamiento local!",
+  no_blocks_to_copy_alert: "No hay bloques para copiar.",
+  copy_blocks_failed_alert: "No se pudieron copiar los bloques.",
 
   // Context menu option translations
   export_JSON_snippet: "Exportar bloque como fragmento JSON",

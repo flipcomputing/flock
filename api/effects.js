@@ -15,6 +15,19 @@ export const flockEffects = {
       );
     }
   },
+  lightColor(diffuse, groundColor) {
+    if (flock.mainLight) {
+      flock.mainLight.diffuse = flock.BABYLON.Color3.FromHexString(diffuse);
+      flock.mainLight.groundColor = flock.BABYLON.Color3.FromHexString(groundColor);
+    } else {
+      console.warn(
+        "Main light is not defined. Please ensure flock.mainLight exists.",
+      );
+    }
+  },
+  getMainLight() {
+    return "__main_light__";
+  },
   createParticleEffect(
     name,
     {
@@ -175,7 +188,7 @@ export const flockEffects = {
       console.warn(`Particle system '${systemName}' not found.`);
     }
   },
-  setFog({ fogColorHex, fogMode, fogDensity = 0.1 } = {}) {
+  setFog({ fogColorHex, fogMode, fogDensity = 0.1, fogStart = 50, fogEnd = 100 } = {}) {
     const fogColorRgb = flock.BABYLON.Color3.FromHexString(
       flock.getColorFromString(fogColorHex),
     );
@@ -197,7 +210,7 @@ export const flockEffects = {
 
     flock.scene.fogColor = fogColorRgb;
     flock.scene.fogDensity = fogDensity;
-    flock.scene.fogStart = 50;
-    flock.scene.fogEnd = 100;
+    flock.scene.fogStart = fogStart;
+    flock.scene.fogEnd = fogEnd;
   },
 }

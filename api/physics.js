@@ -313,9 +313,32 @@ export const flockPhysics = {
 
     // 🧠 Handle group-wide registration
     if (applyToGroup) {
+      // Check for GUI buttons first
+      let matchingButtons = [];
+      if (flock.scene.UITexture) {
+        matchingButtons = flock.scene.UITexture._rootContainer._children.filter(
+          (control) => control.name && control.name.startsWith(groupName),
+        );
+      }
+
+      // Check for 3D meshes
       const matching = flock.scene.meshes.filter((m) =>
         m.name.startsWith(groupName),
       );
+
+      // Apply to existing GUI buttons
+      if (matchingButtons.length > 0) {
+        for (const btn of matchingButtons) {
+          flock.onTrigger(btn.name, {
+            trigger,
+            callback,
+            mode,
+            applyToGroup: false,
+          });
+        }
+      }
+
+      // Apply to existing 3D meshes
       if (matching.length > 0) {
         if (flock.triggerHandlingDebug) {
           console.log(
@@ -333,18 +356,27 @@ export const flockPhysics = {
         }
       }
 
-      // Register for future meshes in this group
+      // Register for future meshes/buttons in this group (always do this for applyToGroup)
       if (!flock.pendingTriggers.has(groupName)) {
         flock.pendingTriggers.set(groupName, []);
       }
       flock.pendingTriggers.get(groupName).push({ trigger, callback, mode });
+
       return;
     }
 
     // 🧪 If the mesh doesn't exist yet, queue trigger
+    let guiButton = null;
+    if (flock.scene.UITexture) {
+      guiButton = flock.scene.UITexture._rootContainer._children.find(
+        (control) => control.name === meshName,
+      );
+    }
+
     const tryNow =
       flock.scene?.getMeshByName(meshName) ||
-      flock.modelReadyPromises.has(meshName);
+      flock.modelReadyPromises.has(meshName) ||
+      guiButton;
 
     if (!tryNow) {
       if (!flock.pendingTriggers.has(groupName)) {
@@ -380,14 +412,7 @@ export const flockPhysics = {
 
         let actionSequence = new flock.BABYLON.ExecuteCodeAction(
           flock.BABYLON.ActionManager[trigger],
-          async (evt) => {
-            const clickedMesh = evt.meshUnderPointer || evt.source;
-            const meshId = clickedMesh.name;
-            await callbacks[0](meshId);
-            for (let i = 1; i < callbacks.length; i++) {
-              await callbacks[i]();
-            }
-          },
+          action,
         );
 
         for (let i = 1; i < callbacks.length; i++) {
@@ -410,7 +435,8 @@ export const flockPhysics = {
         }
       }
 
-      async function executeAction() {
+      async function executeAction(meshId) {
+
         if (mode === "once") {
           if (hasExecuted) return;
           hasExecuted = true;
@@ -422,7 +448,7 @@ export const flockPhysics = {
         }
 
         try {
-          await callbacks[currentIndex]();
+          await callbacks[currentIndex](meshId);
           currentIndex = (currentIndex + 1) % callbacks.length;
         } catch (e) {
           console.error("Action execution failed:", e);
@@ -432,8 +458,10 @@ export const flockPhysics = {
       }
 
       if (target instanceof flock.BABYLON.AbstractMesh) {
-        registerMeshAction(target, trigger, async () => {
-          await executeAction();
+        registerMeshAction(target, trigger, async (evt) => {
+          const clickedMesh = evt.meshUnderPointer || evt.source;
+          const meshId = clickedMesh ? clickedMesh.name : target.name;
+          await executeAction(meshId);
         });
 
         if (flock.xrHelper && flock.xrHelper.baseExperience) {
@@ -462,7 +490,7 @@ export const flockPhysics = {
 
                 flock.scene.onPointerDown = function (evt, pickResult) {
                   if (pickResult.hit && pickResult.pickedMesh === target) {
-                    executeAction();
+                    executeAction(target.name);
                   }
                 };
               } else if (state === flock.BABYLON.WebXRState.NOT_IN_XR) {
@@ -473,7 +501,7 @@ export const flockPhysics = {
         }
       } else if (target instanceof flock.GUI.Button) {
         registerButtonAction(target, trigger, async () => {
-          await executeAction();
+          await executeAction(target.name);
         });
       }
     });

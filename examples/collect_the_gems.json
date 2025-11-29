@@ -214,7 +214,7 @@
         "type": "forever",
         "id": "rzARP?f-rL_OMXQ]LzxO",
         "x": 10,
-        "y": 2452,
+        "y": 2431,
         "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" inline=\"false\"></mutation>",
         "inputs": {
           "DO": {
@@ -662,10 +662,10 @@
                                       "type": "switch_animation",
                                       "id": "5O#beLaySI.:/Vhpdf~s",
                                       "fields": {
+                                        "ANIMATION_NAME": "Walk",
                                         "MODEL": {
                                           "id": "f=8($HYZoE:IjT|U8x8J"
-                                        },
-                                        "ANIMATION_NAME": "Walk"
+                                        }
                                       }
                                     }
                                   },
@@ -674,10 +674,10 @@
                                       "type": "switch_animation",
                                       "id": "0V5^u@Qz61,!=Q!naHa^",
                                       "fields": {
+                                        "ANIMATION_NAME": "Idle",
                                         "MODEL": {
                                           "id": "f=8($HYZoE:IjT|U8x8J"
-                                        },
-                                        "ANIMATION_NAME": "Idle"
+                                        }
                                       }
                                     }
                                   }
@@ -699,7 +699,7 @@
         "type": "start",
         "id": "rYSM[9*$cgU?cfx}y-dk",
         "x": 10,
-        "y": 1952,
+        "y": 1935,
         "inputs": {
           "DO": {
             "block": {
@@ -939,7 +939,7 @@
         "type": "on_event",
         "id": "gdeL9Um:-2~=((Hg5Ofl",
         "x": 10,
-        "y": 3766,
+        "y": 3728,
         "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" inline=\"false\"></mutation>",
         "inputs": {
           "EVENT_NAME": {
@@ -953,13 +953,37 @@
           },
           "DO": {
             "block": {
-              "type": "switch_animation",
-              "id": ":N^;i$*7Z1v-C,M5PoSJ",
+              "type": "play_animation",
+              "id": "ASC@}?1lJ8U2.Uv;H*?B",
               "fields": {
+                "ANIMATION_NAME": "JumpUp",
                 "MODEL": {
                   "id": "f=8($HYZoE:IjT|U8x8J"
-                },
-                "ANIMATION_NAME": "Idle"
+                }
+              },
+              "next": {
+                "block": {
+                  "type": "play_animation",
+                  "id": "m`E4Jm1;LeDE1`a~|##O",
+                  "fields": {
+                    "ANIMATION_NAME": "JumpIdle",
+                    "MODEL": {
+                      "id": "f=8($HYZoE:IjT|U8x8J"
+                    }
+                  },
+                  "next": {
+                    "block": {
+                      "type": "play_animation",
+                      "id": "4G2Ib{#z]E-~1u(.)=!b",
+                      "fields": {
+                        "ANIMATION_NAME": "JumpLand",
+                        "MODEL": {
+                          "id": "f=8($HYZoE:IjT|U8x8J"
+                        }
+                      }
+                    }
+                  }
+                }
               }
             }
           }
@@ -969,7 +993,7 @@
         "type": "on_event",
         "id": "JyO)XxgG$Q6={SNIy1c^",
         "x": 10,
-        "y": 3946,
+        "y": 4004,
         "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" inline=\"false\"></mutation>",
         "inputs": {
           "EVENT_NAME": {
@@ -999,7 +1023,7 @@
         "type": "procedures_defnoreturn",
         "id": "DFI[=|QVa~qxS/o?(kw8",
         "x": 10,
-        "y": 4126,
+        "y": 4182,
         "extraState": {
           "params": [
             {
@@ -1300,7 +1324,7 @@
         "type": "start",
         "id": "q5g`3+j}=$|LsI:%L7Dd",
         "x": 10,
-        "y": 422,
+        "y": 420,
         "inputs": {
           "DO": {
             "block": {
@@ -1612,7 +1636,7 @@
         "type": "forever",
         "id": "~en2}wCrci2aW!^U44y+",
         "x": 10,
-        "y": 1118,
+        "y": 1110,
         "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" inline=\"false\"></mutation>",
         "inputs": {
           "DO": {
@@ -1741,7 +1765,7 @@
         "type": "forever",
         "id": "?{8}RA5?!=.I%mtDoKF_",
         "x": 10,
-        "y": 1648,
+        "y": 1635,
         "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" inline=\"false\"></mutation>",
         "inputs": {
           "DO": {
@@ -1856,7 +1880,7 @@
         "type": "start",
         "id": "hHS.ki-zZTT(B9n*(L[.",
         "x": 10,
-        "y": 1388,
+        "y": 1377,
         "inputs": {
           "DO": {
             "block": {
@@ -1953,7 +1977,7 @@
         "type": "forever",
         "id": "5YjmV;gfXA/2sR{Nw2R:",
         "x": 10,
-        "y": 6136,
+        "y": 6163,
         "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" inline=\"false\"></mutation>",
         "inputs": {
           "DO": {
@@ -2087,7 +2111,7 @@
         "type": "on_event",
         "id": ",ZD0*XTC#5Q_!y/;$GtM",
         "x": 10,
-        "y": 6500,
+        "y": 6525,
         "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" inline=\"false\"></mutation>",
         "inputs": {
           "EVENT_NAME": {
@@ -2175,7 +2199,7 @@
         "type": "when_touches",
         "id": "#^v^@~SUmV|Dld-RrEA{",
         "x": 10,
-        "y": 4624,
+        "y": 4675,
         "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" inline=\"false\"></mutation>",
         "fields": {
           "MODEL_VAR": {
@@ -2394,7 +2418,7 @@
         "type": "when_touches",
         "id": "p/mG`%_^:QD7CDvRIRw;",
         "x": 10,
-        "y": 5144,
+        "y": 5187,
         "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" inline=\"false\"></mutation>",
         "fields": {
           "MODEL_VAR": {
@@ -2613,7 +2637,7 @@
         "type": "when_touches",
         "id": "sbobLPWU=1DrR0|na/Jk",
         "x": 10,
-        "y": 5664,
+        "y": 5699,
         "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" inline=\"false\"></mutation>",
         "fields": {
           "MODEL_VAR": {

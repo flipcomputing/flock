@@ -1,13 +1,13 @@
 import * as Blockly from "blockly";
 import { categoryColours } from "../toolbox.js";
-import { 
-  getHelpUrlFor,
-} from "../blocks.js";
-import { translate, getTooltip, getDropdownOption } from "../main/translation.js";
-
+import { getHelpUrlFor } from "../blocks.js";
 import {
-	getAttachNames,
-} from "../config.js";
+	translate,
+	getTooltip,
+	getDropdownOption,
+} from "../main/translation.js";
+
+import { getAttachNames } from "../config.js";
 
 export function defineConnectBlocks() {
 	Blockly.Blocks["parent"] = {
@@ -34,7 +34,7 @@ export function defineConnectBlocks() {
 				tooltip: getTooltip("parent"),
 			});
 			this.setHelpUrl(getHelpUrlFor(this.type));
-			this.setStyle('transform_blocks');
+			this.setStyle("transform_blocks");
 		},
 	};
 
@@ -77,8 +77,7 @@ export function defineConnectBlocks() {
 				tooltip: getTooltip("parent_child"),
 			});
 			this.setHelpUrl(getHelpUrlFor(this.type));
-			this.setStyle('transform_blocks');
-
+			this.setStyle("transform_blocks");
 		},
 	};
 
@@ -100,8 +99,7 @@ export function defineConnectBlocks() {
 				tooltip: getTooltip("remove_parent"),
 			});
 			this.setHelpUrl(getHelpUrlFor(this.type));
-			this.setStyle('transform_blocks');
-
+			this.setStyle("transform_blocks");
 		},
 	};
 
@@ -123,8 +121,7 @@ export function defineConnectBlocks() {
 				tooltip: getTooltip("stop_follow"),
 			});
 			this.setHelpUrl(getHelpUrlFor(this.type));
-			this.setStyle('transform_blocks');
-
+			this.setStyle("transform_blocks");
 		},
 	};
 
@@ -142,7 +139,7 @@ export function defineConnectBlocks() {
 					{
 						type: "field_variable",
 						name: "MESH_TO_ATTACH",
-						variable: "mesh",
+						variable: "object",
 					},
 					{
 						type: "input_value",
@@ -170,8 +167,7 @@ export function defineConnectBlocks() {
 				tooltip: getTooltip("hold"),
 			});
 			this.setHelpUrl(getHelpUrlFor(this.type));
-			this.setStyle('transform_blocks');
-
+			this.setStyle("transform_blocks");
 		},
 	};
 
@@ -180,11 +176,11 @@ export function defineConnectBlocks() {
 			this.jsonInit({
 				type: "attach",
 				message0: translate("attach"),
-				args0: [				
+				args0: [
 					{
 						type: "field_variable",
 						name: "MESH_TO_ATTACH",
-						variable: "mesh",
+						variable: "object",
 					},
 					{
 						type: "field_variable",
@@ -222,7 +218,7 @@ export function defineConnectBlocks() {
 				tooltip: getTooltip("attach"),
 			});
 			this.setHelpUrl(getHelpUrlFor(this.type));
-			this.setStyle('transform_blocks');
+			this.setStyle("transform_blocks");
 		},
 	};
 	Blockly.Blocks["drop"] = {
@@ -234,7 +230,7 @@ export function defineConnectBlocks() {
 					{
 						type: "field_variable",
 						name: "MESH_TO_DETACH",
-						variable: "mesh",
+						variable: "object",
 					},
 				],
 				previousStatement: null,
@@ -244,8 +240,7 @@ export function defineConnectBlocks() {
 				tooltip: getTooltip("drop"),
 			});
 			this.setHelpUrl(getHelpUrlFor(this.type));
-			this.setStyle('transform_blocks');
-
+			this.setStyle("transform_blocks");
 		},
 	};
 
@@ -297,41 +292,38 @@ export function defineConnectBlocks() {
 				tooltip: getTooltip("follow"),
 			});
 			this.setHelpUrl(getHelpUrlFor(this.type));
-			this.setStyle('transform_blocks');
-
+			this.setStyle("transform_blocks");
 		},
 	};
 
 	Blockly.Blocks["export_mesh"] = {
-	  init: function () {
-		this.jsonInit({
-		  type: "export_mesh",
-		  message0: translate("export_mesh"),
-		  args0: [
-			{
-			  type: "field_variable",
-			  name: "MESH_VAR",
-			  variable: window.currentMesh,
-			},
-			{
-			  type: "field_dropdown",
-			  name: "FORMAT",
-			  options: [
-				["STL", "STL"],
-				["OBJ", "OBJ"],
-				["GLB", "GLB"],
-			  ],
-			},
-		  ],
-		  previousStatement: null,
-		  nextStatement: null,
-		  colour: categoryColours["Scene"],
-		  tooltip: getTooltip("export_mesh"),
-		});
-		this.setHelpUrl(getHelpUrlFor(this.type));
-		  this.setStyle('scene_blocks');
-		  
-	  },
+		init: function () {
+			this.jsonInit({
+				type: "export_mesh",
+				message0: translate("export_mesh"),
+				args0: [
+					{
+						type: "field_variable",
+						name: "MESH_VAR",
+						variable: window.currentMesh,
+					},
+					{
+						type: "field_dropdown",
+						name: "FORMAT",
+						options: [
+							["STL", "STL"],
+							["OBJ", "OBJ"],
+							["GLB", "GLB"],
+						],
+					},
+				],
+				previousStatement: null,
+				nextStatement: null,
+				colour: categoryColours["Scene"],
+				tooltip: getTooltip("export_mesh"),
+			});
+			this.setHelpUrl(getHelpUrlFor(this.type));
+			this.setStyle("scene_blocks");
+		},
 	};
 }
-

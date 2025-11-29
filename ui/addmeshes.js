@@ -101,7 +101,7 @@ export function createMeshOnCanvas(block) {
         .getInput("COLOR")
         .connection.targetBlock()
         .getFieldValue("COLOR");
-      flock.setSky(color);
+      flock.setSky(color, { clear: true });
       break;
     case "create_ground":
       meshId = "ground";

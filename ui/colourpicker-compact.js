@@ -1099,7 +1099,7 @@ class CustomColorPicker {
   async startEyedropper() {
     if (!window.EyeDropper) {
       alert(
-        "Color picker tool is not supported in this browser. Try using Chrome or Edge.",
+        translate("eyedropper_not_supported_alert"),
       );
       return;
     }
