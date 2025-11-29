@@ -252,22 +252,31 @@ export const flockAnimate = {
     } = {},
   ) {
     return new Promise(async (resolve) => {
-      await flock.whenModelReady(meshName1, async function (mesh1) {
-        if (mesh1) {
-          flock.whenModelReady(meshName2, async function (mesh2) {
-            if (mesh2) {
-              const x = mesh2.position.x;
-              const y = mesh2.position.y;
-              const z = mesh2.position.z;
-              flockAnimate.glideTo(meshName1, {x, y, z, duration, reverse, loop, easing});
-            } else {
-              resolve();
-            }
-          });
-        } else {
-          resolve(); // Resolve immediately if mesh1 is not available
-        }
-      });
+        await flock.whenModelReady(meshName1, async function (mesh1) {
+          if (mesh1) {
+            flock.whenModelReady(meshName2, async function (mesh2) {
+              if (mesh2) {
+                const x = mesh2.position.x;
+                const y = mesh2.position.y;
+                const z = mesh2.position.z;
+                await flockAnimate.glideTo(meshName1, {
+                  x,
+                  y,
+                  z,
+                  duration,
+                  reverse,
+                  loop,
+                  easing,
+                });
+                resolve();
+              } else {
+                resolve();
+              }
+            });
+          } else {
+            resolve(); // Resolve immediately if mesh1 is not available
+          }
+        });
     });
   },
   resolvePropertyToAnimate(property, mesh) {
