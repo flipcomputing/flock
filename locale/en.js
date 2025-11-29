@@ -194,7 +194,7 @@ export default {
   get_lexical_variable: "%1",
 
   // Custom block translations - Effects blocks
-  light_intensity_and_color: "set light intensity to %1 colors %2 %3",
+  light_intensity_and_color: "light intensity %1 main %2 ground %3",
   set_fog: "set fog color %1 mode %2 density %3\nstart %4 end %5",
   get_light: "get light as %1",
   
