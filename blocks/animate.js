@@ -761,11 +761,11 @@ export function defineAnimateBlocks() {
 		},
 	};
 
-	Blockly.Blocks["stop_animations"] = {
-		init: function () {
-			this.jsonInit({
-				type: "stop_animations",
-				message0: translate("stop_animations"),
+        Blockly.Blocks["stop_animations"] = {
+                init: function () {
+                        this.jsonInit({
+                                type: "stop_animations",
+                                message0: translate("stop_animations"),
 				args0: [
 					{
 						type: "field_variable",
@@ -779,27 +779,47 @@ export function defineAnimateBlocks() {
 				colour: categoryColours["Animate"],
 				tooltip: getTooltip("stop_animations"),
 			});
-			this.setHelpUrl(getHelpUrlFor(this.type));
-			this.setStyle("animate_blocks");
-		},
-	};
+                        this.setHelpUrl(getHelpUrlFor(this.type));
+                        this.setStyle("animate_blocks");
+                },
+        };
 
-	Blockly.Blocks["switch_animation"] = {
-		init: function () {
-			this.jsonInit({
-				type: "switch_model_animation",
-				message0: translate("switch_animation"),
-				args0: [
-					{
-						type: "field_dropdown",
-						name: "ANIMATION_NAME",
-						options: animationNames(),
-					},
-					{
-						type: "field_variable",
-						name: "MODEL",
-						variable: window.currentMesh,
-					},		
+        Blockly.Blocks["animation_name"] = {
+                init: function () {
+                        this.jsonInit({
+                                type: "animation_name",
+                                message0: "%1",
+                                args0: [
+                                        {
+                                                type: "field_dropdown",
+                                                name: "ANIMATION_NAME",
+                                                options: animationNames(),
+                                        },
+                                ],
+                                output: "String",
+                                colour: categoryColours["Animate"],
+                                tooltip: getTooltip("play_animation"),
+                        });
+                        this.setStyle("animate_blocks");
+                },
+        };
+
+        Blockly.Blocks["switch_animation"] = {
+                init: function () {
+                        this.jsonInit({
+                                type: "switch_model_animation",
+                                message0: translate("switch_animation"),
+                                args0: [
+                                        {
+                                                type: "input_value",
+                                                name: "ANIMATION_NAME",
+                                                check: "String",
+                                        },
+                                        {
+                                                type: "field_variable",
+                                                name: "MODEL",
+                                                variable: window.currentMesh,
+                                        },
 				],
 				previousStatement: null,
 				nextStatement: null,
@@ -811,22 +831,22 @@ export function defineAnimateBlocks() {
 		},
 	};
 
-	Blockly.Blocks["play_animation"] = {
-		init: function () {
-			this.jsonInit({
-				type: "play_model_animation_once",
-				message0: translate("play_animation"),
-				args0: [
-					{
-						type: "field_dropdown",
-						name: "ANIMATION_NAME",
-						options: animationNames(),
-					},
-					{
-						type: "field_variable",
-						name: "MODEL",
-						variable: window.currentMesh,
-					},
+        Blockly.Blocks["play_animation"] = {
+                init: function () {
+                        this.jsonInit({
+                                type: "play_model_animation_once",
+                                message0: translate("play_animation"),
+                                args0: [
+                                        {
+                                                type: "input_value",
+                                                name: "ANIMATION_NAME",
+                                                check: "String",
+                                        },
+                                        {
+                                                type: "field_variable",
+                                                name: "MODEL",
+                                                variable: window.currentMesh,
+                                        },
 				],
 				previousStatement: null,
 				nextStatement: null,

@@ -19,7 +19,8 @@ export default {
                                       CATEGORY_STRINGS: "Chaînes",
                                       CATEGORY_MATERIALS: "Matériaux",
                                       CATEGORY_SOUND: "Son",
-                                      CATEGORY_VARIABLES: "Variables",
+                                      CATEGORY_VARIABLES: "Données",
+                                      CATEGORY_VARIABLES_SUBCATEGORY: "Variables",
                                       CATEGORY_LISTS: "Listes",
                                       CATEGORY_MATH: "Mathématiques",
                                       CATEGORY_FUNCTIONS: "Fonctions",
@@ -189,7 +190,7 @@ export default {
 
                                       // Custom block translations - Effects blocks
                                       light_intensity: "régler l'intensité de la lumière à %1",
-                                      set_fog: "définir la couleur du brouillard %1 mode %2 densité %3",
+                                      set_fog: "définir la couleur du brouillard %1 mode %2 densité %3\ndébut %4 fin %5",
 
                                       // Custom block translation - Events blocks
                                       start: "démarrer",
@@ -373,7 +374,7 @@ export default {
 
                                       // Tooltip translations - Effects blocks
                                       light_intensity_tooltip: "Définit l'intensité de la lumière principale.\nMot-clé: light intensity",
-                                      set_fog_tooltip: "Configure le brouillard de la scène.\nMot-clé: fog",
+                                      set_fog_tooltip: "Configure le brouillard de la scène. Utilisez début et fin pour définir les distances proche et lointaine.\nMot-clé: fog",
 
                                       // Tooltip translations - Events blocks
                                       start_tooltip: "Exécute les blocs à l'intérieur au démarrage du projet. Vous pouvez avoir plusieurs blocs de démarrage.\nMot-clé: start",
@@ -873,6 +874,26 @@ export default {
                                       invalid_filetype_alert: "Seuls les fichiers .json ou .flock sont autorisés.",
                                       invalid_project_alert: "Ce fichier n'est pas un projet Flock XR valide.",
                                       failed_to_read_file_alert: "Échec de lecture du fichier.",
+
+                                      // UI status messages
+                                      max_mesh_limit_reached:
+                                        "⚠️ Limite atteinte : vous pouvez avoir seulement {max} maillages dans votre monde.",
+                                      high_memory_usage_warning:
+                                        "Avertissement : utilisation mémoire élevée ({percent}%)",
+                                      runtime_error_message: "Erreur : {message}",
+                                      xr_mode_message: "Mode XR !",
+                                      fly_camera_instructions:
+                                        "ℹ️ Caméra en vol, utilisez les flèches et Page haut/bas",
+                                      select_mesh_delete_prompt:
+                                        "⚠️ Sélectionnez un maillage puis cliquez sur supprimer.",
+                                      select_mesh_duplicate_prompt:
+                                        "⚠️ Sélectionnez un maillage puis cliquez sur dupliquer, puis cliquez pour placer les copies.",
+                                      position_readout: "Position : {position}",
+                                      eyedropper_not_supported_alert:
+                                        "L'outil pipette n'est pas pris en charge dans ce navigateur. Essayez d'utiliser Chrome ou Edge.",
+                                      blocks_copied_alert: "Blocs copiés dans le stockage local !",
+                                      no_blocks_to_copy_alert: "Aucun bloc à copier.",
+                                      copy_blocks_failed_alert: "Échec de la copie des blocs.",
 
                                       // Context menu option translations
                                       export_JSON_snippet: "Exporter le bloc comme extrait JSON",

@@ -316,6 +316,18 @@ Adjusts the scene lighting intensity.
 #### `setFog(options)`
 Adds fog to the scene for atmospheric effects.
 
+**Parameters:**
+- `fogColorHex` (string): Fog color as a hex string.
+- `fogMode` (string): Fog mode (`"NONE"`, `"LINEAR"`, `"EXP"`, `"EXP2"`).
+- `fogDensity` (number, optional): Fog density. Defaults to `0.1`.
+- `fogStart` (number, optional): Distance from the camera where fog begins. Defaults to `50`.
+- `fogEnd` (number, optional): Distance from the camera where fog ends. Defaults to `100`.
+
+**Example:**
+```javascript
+setFog({ fogColorHex: "#ffffff", fogMode: "LINEAR", fogDensity: 0.1, fogStart: 50, fogEnd: 100 });
+```
+
 ### Camera
 
 #### `getCamera()`

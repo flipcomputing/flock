@@ -8,7 +8,12 @@ import {
 	inlineIcon,
 	updateShape,
 } from "../blocks.js";
-import { translate, getTooltip, getOption, getDropdownOption } from "../main/translation.js";
+import {
+	translate,
+	getTooltip,
+	getOption,
+	getDropdownOption,
+} from "../main/translation.js";
 
 export function defineSensingBlocks() {
 	Blockly.Blocks["key_pressed"] = {
@@ -39,8 +44,7 @@ export function defineSensingBlocks() {
 				tooltip: getTooltip("key_pressed"),
 			});
 			this.setHelpUrl(getHelpUrlFor(this.type));
-			this.setStyle('sensing_blocks');
-
+			this.setStyle("sensing_blocks");
 		},
 	};
 
@@ -58,7 +62,7 @@ export function defineSensingBlocks() {
 					{
 						type: "field_variable",
 						name: "MESH2",
-						variable: "mesh2",
+						variable: "object2",
 					},
 				],
 				output: "Boolean",
@@ -66,8 +70,7 @@ export function defineSensingBlocks() {
 				tooltip: getTooltip("meshes_touching"),
 			});
 			this.setHelpUrl(getHelpUrlFor(this.type));
-			this.setStyle('sensing_blocks');
-
+			this.setStyle("sensing_blocks");
 		},
 	};
 
@@ -83,8 +86,7 @@ export function defineSensingBlocks() {
 				tooltip: getTooltip("time"),
 			});
 			this.setHelpUrl(getHelpUrlFor(this.type));
-			this.setStyle('sensing_blocks');
-
+			this.setStyle("sensing_blocks");
 		},
 	};
 
@@ -102,7 +104,7 @@ export function defineSensingBlocks() {
 					{
 						type: "field_variable",
 						name: "MODEL2",
-						variable: "mesh2",
+						variable: "object2",
 					},
 				],
 				output: "Number",
@@ -111,8 +113,7 @@ export function defineSensingBlocks() {
 				tooltip: getTooltip("distance_to"),
 			});
 			this.setHelpUrl(getHelpUrlFor(this.type));
-			this.setStyle('sensing_blocks');
-
+			this.setStyle("sensing_blocks");
 		},
 	};
 
@@ -133,33 +134,31 @@ export function defineSensingBlocks() {
 				tooltip: getTooltip("touching_surface"),
 			});
 			this.setHelpUrl(getHelpUrlFor(this.type));
-			this.setStyle('sensing_blocks');
-
+			this.setStyle("sensing_blocks");
 		},
 	};
 
 	Blockly.Blocks["mesh_exists"] = {
-	  init: function () {
-		this.jsonInit({
-		  type: "mesh_exists",
-		  message0: "%1 exists",
-		  args0: [
-			{
-			  type: "field_variable",
-			  name: "MODEL_VAR",
-			  variable: window.currentMesh,
-			},
-		  ],
-		  output: "Boolean",
-		  colour: categoryColours["Sensing"],
-		  tooltip: "Returns true if the mesh with this name is present in the scene.",
-		});
-		this.setHelpUrl(getHelpUrlFor(this.type));
-		  this.setStyle('sensing_blocks');
-
-	  },
+		init: function () {
+			this.jsonInit({
+				type: "mesh_exists",
+				message0: "%1 exists",
+				args0: [
+					{
+						type: "field_variable",
+						name: "MODEL_VAR",
+						variable: window.currentMesh,
+					},
+				],
+				output: "Boolean",
+				colour: categoryColours["Sensing"],
+				tooltip:
+					"Returns true if the mesh with this name is present in the scene.",
+			});
+			this.setHelpUrl(getHelpUrlFor(this.type));
+			this.setStyle("sensing_blocks");
+		},
 	};
-
 
 	Blockly.Blocks["get_property"] = {
 		init: function () {
@@ -205,8 +204,7 @@ export function defineSensingBlocks() {
 				tooltip: getTooltip("get_property"),
 			});
 			this.setHelpUrl(getHelpUrlFor(this.type));
-			this.setStyle('sensing_blocks');
-
+			this.setStyle("sensing_blocks");
 		},
 	};
 
@@ -228,8 +226,7 @@ export function defineSensingBlocks() {
 				tooltip: getTooltip("canvas_controls"),
 			});
 			this.setHelpUrl(getHelpUrlFor(this.type));
-			this.setStyle('sensing_blocks');
-
+			this.setStyle("sensing_blocks");
 		},
 	};
 
@@ -265,8 +262,7 @@ export function defineSensingBlocks() {
 				tooltip: getTooltip("button_controls"),
 			});
 			this.setHelpUrl(getHelpUrlFor(this.type));
-			this.setStyle('sensing_blocks');
-
+			this.setStyle("sensing_blocks");
 		},
 	};
 
@@ -312,7 +308,7 @@ export function defineSensingBlocks() {
 				tooltip: getTooltip("microbit_input"),
 			});
 			this.setHelpUrl(getHelpUrlFor(this.type));
-			this.setStyle('sensing_blocks');
+			this.setStyle("sensing_blocks");
 
 			addToggleButton(this);
 		},
@@ -392,9 +388,7 @@ export function defineSensingBlocks() {
 			});
 
 			this.setHelpUrl(getHelpUrlFor(this.type));
-			this.setStyle('text_blocks');
-
+			this.setStyle("text_blocks");
 		},
 	};
 }
-

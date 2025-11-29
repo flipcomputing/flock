@@ -19,7 +19,8 @@ export default {
       CATEGORY_STRINGS: "Strängar",
       CATEGORY_MATERIALS: "Material",
       CATEGORY_SOUND: "Ljud",
-      CATEGORY_VARIABLES: "Variabler",
+      CATEGORY_VARIABLES: "Data",
+      CATEGORY_VARIABLES_SUBCATEGORY: "Variabler",
       CATEGORY_LISTS: "Listor",
       CATEGORY_MATH: "Matematik",
       CATEGORY_FUNCTIONS: "Funktioner",
@@ -198,7 +199,7 @@ export default {
 
       // Custom block translations - Effects blocks
       light_intensity: "ställ in ljusintensitet till %1",
-      set_fog: "ställ in dimma färg %1 läge %2 densitet %3",
+      set_fog: "ställ in dimma färg %1 läge %2 densitet %3\nstart %4 slut %5",
 
       // Custom block translation - Events blocks
       start: "starta",
@@ -433,7 +434,7 @@ export default {
       // Tooltip translations - Effects blocks
       light_intensity_tooltip:
             "Ställ in intensiteten på huvudljuset.\nKeyword: light intensity",
-      set_fog_tooltip: "Konfigurera scenens dimma.\nKeyword: fog",
+      set_fog_tooltip: "Konfigurera scenens dimma. Använd start och slut för att ställa in nära och långt avstånd.\nKeyword: fog",
 
       // Tooltip translations - Events blocks
       start_tooltip:
@@ -998,6 +999,25 @@ export default {
         "Endast .json- eller .flock-projektfiler är tillåtna.",
       invalid_project_alert: "Den här filen är inte ett giltigt Flock XR-projekt.",
       failed_to_read_file_alert: "Det gick inte att läsa filen.",
+
+      // UI status messages
+      max_mesh_limit_reached:
+        "⚠️ Gräns nådd: du kan bara ha {max} mesh i din värld.",
+      high_memory_usage_warning: "Varning: hög minnesanvändning ({percent}%)",
+      runtime_error_message: "Fel: {message}",
+      xr_mode_message: "XR-läge!",
+      fly_camera_instructions:
+        "ℹ️ Flygkamera, använd piltangenterna och Page Up/Down",
+      select_mesh_delete_prompt:
+        "⚠️ Välj ett mesh och klicka sedan på ta bort.",
+      select_mesh_duplicate_prompt:
+        "⚠️ Välj ett mesh och klicka på duplicera, klicka sedan för att placera kopior.",
+      position_readout: "Position: {position}",
+      eyedropper_not_supported_alert:
+        "Färgväljaren stöds inte i den här webbläsaren. Prova Chrome eller Edge.",
+      blocks_copied_alert: "Block kopierade till lokal lagring!",
+      no_blocks_to_copy_alert: "Inga block att kopiera.",
+      copy_blocks_failed_alert: "Det gick inte att kopiera blocken.",
 
       // Context menu option translations
       export_JSON_snippet: "Exportera block som JSON-utdrag",

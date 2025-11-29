@@ -19,7 +19,8 @@ export default {
   CATEGORY_STRINGS: "Strings",
   CATEGORY_MATERIALS: "Materiais",
   CATEGORY_SOUND: "Som",
-  CATEGORY_VARIABLES: "Variáveis",
+  CATEGORY_VARIABLES: "Dados",
+  CATEGORY_VARIABLES_SUBCATEGORY: "Variáveis",
   CATEGORY_LISTS: "Listas",
   CATEGORY_MATH: "Matemática",
   CATEGORY_FUNCTIONS: "Funções",
@@ -197,7 +198,7 @@ export default {
 
   // Custom block translations - Effects blocks
   light_intensity: "definir intensidade da luz para %1",
-  set_fog: "definir cor da névoa %1 modo %2 densidade %3",
+  set_fog: "definir cor da névoa %1 modo %2 densidade %3\ninício %4 fim %5",
 
   // Custom block translation - Events blocks
   start: "início",
@@ -433,7 +434,7 @@ export default {
   // Tooltip translations - Effects blocks
   light_intensity_tooltip:
     "Define a intensidade da luz principal.\nPalavra-chave: intensidade da luz",
-  set_fog_tooltip: "Configura a névoa da cena.\nPalavra-chave: névoa",
+  set_fog_tooltip: "Configura a névoa da cena. Use início e fim para definir as distâncias próxima e distante.\nPalavra-chave: névoa",
 
   // Tooltip translations - Events blocks
   start_tooltip:
@@ -995,6 +996,25 @@ export default {
   invalid_filetype_alert: "Somente arquivos de projeto .json ou .flock são permitidos.",
   invalid_project_alert: "Este arquivo não é um projeto Flock XR válido.",
   failed_to_read_file_alert: "Falha ao ler o arquivo.",
+
+  // UI status messages
+  max_mesh_limit_reached:
+    "⚠️ Limite alcançado: você só pode ter {max} malhas no seu mundo.",
+  high_memory_usage_warning: "Aviso: uso de memória alto ({percent}%)",
+  runtime_error_message: "Erro: {message}",
+  xr_mode_message: "Modo XR!",
+  fly_camera_instructions:
+    "ℹ️ Câmera de voo, use as setas e Page Up/Down",
+  select_mesh_delete_prompt:
+    "⚠️ Selecione uma malha e clique em apagar.",
+  select_mesh_duplicate_prompt:
+    "⚠️ Selecione uma malha, clique em duplicar e depois clique para posicionar as cópias.",
+  position_readout: "Posição: {position}",
+  eyedropper_not_supported_alert:
+    "A ferramenta conta-gotas não é suportada neste navegador. Tente usar o Chrome ou Edge.",
+  blocks_copied_alert: "Blocos copiados para o armazenamento local!",
+  no_blocks_to_copy_alert: "Nenhum bloco disponível para copiar.",
+  copy_blocks_failed_alert: "Falha ao copiar os blocos.",
 
   // Context menu option translations
   export_JSON_snippet: "Exportar bloco como excerto JSON",

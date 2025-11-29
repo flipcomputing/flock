@@ -16,10 +16,11 @@ export default {
   CATEGORY_CONDITION: "Condition",
   CATEGORY_SENSING: "Sensing",
   CATEGORY_TEXT: "Text",
-  CATEGORY_STRINGS: "Strings", 
+  CATEGORY_STRINGS: "Strings",
   CATEGORY_MATERIALS: "Materials",
   CATEGORY_SOUND: "Sound",
-  CATEGORY_VARIABLES: "Variables",
+  CATEGORY_VARIABLES: "Data",
+  CATEGORY_VARIABLES_SUBCATEGORY: "Variables",
   CATEGORY_LISTS: "Lists",
   CATEGORY_MATH: "Math",
   CATEGORY_FUNCTIONS: "Functions",
@@ -195,7 +196,8 @@ export default {
 
   // Custom block translations - Effects blocks
   light_intensity: "set light intensity to %1",
-  set_fog: "set fog color %1 mode %2 density %3",
+  set_fog: "set fog color %1 mode %2 density %3\nstart %4 end %5",
+  get_light: "get light as %1",
   
   // Custom block translation - Events blocks
   start: "start",
@@ -380,7 +382,8 @@ export default {
   
   // Tooltip translations - Effects blocks
   light_intensity_tooltip: "Set the intensity of the main light.\nKeyword: light intensity",
-  set_fog_tooltip: "Configure the scene's fog.\nKeyword: fog",
+  set_fog_tooltip: "Configure the scene's fog. Use start and end to set the near and far distances.\nKeyword: fog",
+  get_light_tooltip: "Get the current scene's main light.\nKeyword: light",
 
   // Tooltip translations - Events blocks
   start_tooltip: "Run the blocks inside whenthe project starts. You can have multiple start blocks. \nKeyword: start",
@@ -881,6 +884,23 @@ export default {
   invalid_filetype_alert: "Only .json or .flock project files are allowed.",
   invalid_project_alert: "This file isn't a valid Flock XR project.",
   failed_to_read_file_alert: "Failed to read file.",
+
+  // UI status messages
+  max_mesh_limit_reached:
+    "⚠️ Limit reached: You can only have {max} meshes in your world.",
+  high_memory_usage_warning: "Warning: High memory usage ({percent}%)",
+  runtime_error_message: "Error: {message}",
+  xr_mode_message: "XR Mode!",
+  fly_camera_instructions: "ℹ️ Fly camera, use arrow keys and page up/down",
+  select_mesh_delete_prompt: "⚠️ Select a mesh then click delete.",
+  select_mesh_duplicate_prompt:
+    "⚠️ Select a mesh then click duplicate, then click to place copies.",
+  position_readout: "Position: {position}",
+  eyedropper_not_supported_alert:
+    "Color picker tool is not supported in this browser. Try using Chrome or Edge.",
+  blocks_copied_alert: "Blocks copied to local storage!",
+  no_blocks_to_copy_alert: "No blocks available to copy.",
+  copy_blocks_failed_alert: "Failed to copy blocks.",
 
   // Context menu option translations
   export_JSON_snippet: "Export block as snippet",
