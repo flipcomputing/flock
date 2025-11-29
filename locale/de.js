@@ -356,6 +356,10 @@ export default {
   f_icon_option: "F ✱",
   q_icon_option: "Q ■",
 
+  x_coordinate_option: "x",
+  y_coordinate_option: "y",
+  z_coordinate_option: "z",
+
   FLAT_option: "Flach",
 
   SMALL_option: "klein",

@@ -630,6 +630,10 @@ export default {
   e_icon_option: "E ✿", // Duplicate key e
   f_icon_option: "F ✱", // Duplicate key f
 
+  x_coordinate_option: "x",
+  y_coordinate_option: "y",
+  z_coordinate_option: "z",
+
   POSITION_X_option: "posición x",
   POSITION_Y_option: "posición y",
   POSITION_Z_option: "posición z",

@@ -254,16 +254,75 @@ function scrollToBlockTopParentLeft(workspace, blockId) {
 }
 
 export function highlightBlockById(workspace, block) {
-  if (block) {
-    // Select the new block
-    if (window.codeMode === "both") {
-      workspace.getAllBlocks().forEach((b) => b.unselect());
-      block.select();
+  if (!workspace || !block || block.workspace !== workspace) return;
 
-      // Scroll to position the block at the top and its parent at the left
-      scrollToBlockTopParentLeft(workspace, block.id);
+  // Select and scroll only when the code view is visible
+  if (window.codeMode === "both") {
+    ensureAddMenuSelectionCleanup(workspace);
+
+    // Proactively clear any lingering add-menu highlight so repeated add-menu
+    // creations don't leave multiple blocks highlighted when Blockly doesn't
+    // emit a UI select event.
+    clearAddMenuHighlight(workspace, block.id);
+
+    const currentlySelected = Blockly.selected;
+    if (
+      currentlySelected &&
+      currentlySelected !== block &&
+      currentlySelected.workspace === workspace
+    ) {
+      currentlySelected.unselect();
     }
+
+    if (typeof workspace.setSelected === "function") {
+      workspace.setSelected(block);
+    } else if (typeof block.select === "function") {
+      block.select();
+    }
+
+    trackAddMenuHighlight(workspace, block.id);
+
+    // Scroll to position the block at the top and its parent at the left
+    scrollToBlockTopParentLeft(workspace, block.id);
   }
+}
+
+let lastAddMenuHighlighted = null;
+
+function trackAddMenuHighlight(workspace, blockId) {
+  lastAddMenuHighlighted = { workspace, blockId };
+}
+
+function clearAddMenuHighlight(workspace, newSelectedId) {
+  if (
+    !lastAddMenuHighlighted ||
+    lastAddMenuHighlighted.workspace !== workspace ||
+    lastAddMenuHighlighted.blockId === newSelectedId
+  ) {
+    return;
+  }
+
+  const block = workspace.getBlockById(lastAddMenuHighlighted.blockId);
+  block?.unselect?.();
+
+  lastAddMenuHighlighted = null;
+}
+
+function ensureAddMenuSelectionCleanup(workspace) {
+  if (!workspace || workspace.__addMenuSelectionCleanupAttached) return;
+
+  const listener = (event) => {
+    const isSelectEvent =
+      event.type === Blockly.Events.SELECTED ||
+      (event.type === Blockly.Events.UI && event.element === "selected");
+
+    if (isSelectEvent) {
+      clearAddMenuHighlight(workspace, event.newElementId);
+    }
+  };
+
+  workspace.addChangeListener(listener);
+  workspace.__addMenuSelectionCleanupAttached = true;
 }
 
 function selectCharacter(characterName) {
