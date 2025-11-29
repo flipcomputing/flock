@@ -376,7 +376,7 @@ export default {
   // Tooltip translations - Effects blocks
   light_intensity_and_color_tooltip: "Establece la intensidad de la luz principal.\nPalabra clave: light intensity",
   set_fog_tooltip: "Configura la niebla de la escena. Usa inicio y fin para definir las distancias cercana y lejana.\nPalabra clave: fog",
-  get_light_tooltip: "Obtén la luz principal de la escena.\nPalabra clave: light",
+  get_light_tooltip: "Obtén la luz principal de la escena actual.\nPalabra clave: light",
 
   // Tooltip translations - Events blocks
   start_tooltip: "Ejecuta los bloques internos al iniciar el proyecto. Puede haber múltiples bloques de inicio.\nPalabra clave: start",

@@ -376,7 +376,7 @@ export default {
                                       // Tooltip translations - Effects blocks
                                       light_intensity_and_color_tooltip: "Définit l'intensité de la lumière principale.\nMot-clé: light intensity",
                                       set_fog_tooltip: "Configure le brouillard de la scène. Utilisez début et fin pour définir les distances proche et lointaine.\nMot-clé: fog",
-                                      get_light_tooltip: "Obtenir la lumière principale de la scène\nMot-clé: light",
+                                      get_light_tooltip: "Obtenir la lumière principale de la scène actuelle.\nMot-clé: light",
 
                                       // Tooltip translations - Events blocks
                                       start_tooltip: "Exécute les blocs à l'intérieur au démarrage du projet. Vous pouvez avoir plusieurs blocs de démarrage.\nMot-clé: start",
