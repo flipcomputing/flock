@@ -19,7 +19,8 @@ export default {
   CATEGORY_STRINGS: "Stringhe",
   CATEGORY_MATERIALS: "Materiali",
   CATEGORY_SOUND: "Suono",
-  CATEGORY_VARIABLES: "Variabili",
+  CATEGORY_VARIABLES: "Dati",
+  CATEGORY_VARIABLES_SUBCATEGORY: "Variabili",
   CATEGORY_LISTS: "Liste",
   CATEGORY_MATH: "Matematica",
   CATEGORY_FUNCTIONS: "Funzioni",
@@ -201,8 +202,8 @@ export default {
   get_lexical_variable: "%1",
 
   // Custom block translations - Effects blocks
-  light_intensity: "imposta intensità luce a %1",
-  set_fog: "imposta nebbia colore %1 modalità %2 densità %3",
+  light_intensity_and_color: "imposta intensità luce a %1 %2 %3",
+  set_fog: "imposta nebbia colore %1 modalità %2 densità %3\ninizio %4 fine %5",
 
   // Custom block translation - Events blocks
   start: "avvio",
@@ -439,9 +440,9 @@ export default {
   get_lexical_variable_tooltip: "Ottieni il valore di una variabile lessicale",
 
   // Tooltip translations - Effects blocks
-  light_intensity_tooltip:
+  light_intensity_and_color_tooltip:
     "Imposta l’intensità della luce principale.\nParola chiave: intensità luce",
-  set_fog_tooltip: "Configura la nebbia della scena.\nParola chiave: fog",
+  set_fog_tooltip: "Configura la nebbia della scena. Usa inizio e fine per impostare le distanze vicina e lontana.\nParola chiave: fog",
 
   // Tooltip translations - Events blocks
   start_tooltip:
@@ -1001,6 +1002,25 @@ export default {
   invalid_filetype_alert: "Sono consentiti solo file di progetto .json o .flock.",
   invalid_project_alert: "Questo file non è un progetto Flock XR valido.",
   failed_to_read_file_alert: "Impossibile leggere il file.",
+
+  // UI status messages
+  max_mesh_limit_reached:
+    "⚠️ Limite raggiunto: puoi avere solo {max} mesh nel tuo mondo.",
+  high_memory_usage_warning: "Avviso: uso di memoria elevato ({percent}%)",
+  runtime_error_message: "Errore: {message}",
+  xr_mode_message: "Modalità XR!",
+  fly_camera_instructions:
+    "ℹ️ Telecamera volante, usa le frecce e Pag su/giù",
+  select_mesh_delete_prompt:
+    "⚠️ Seleziona una mesh e poi fai clic su elimina.",
+  select_mesh_duplicate_prompt:
+    "⚠️ Seleziona una mesh, fai clic su duplica e poi fai clic per posizionare le copie.",
+  position_readout: "Posizione: {position}",
+  eyedropper_not_supported_alert:
+    "Lo strumento contagocce non è supportato in questo browser. Prova a usare Chrome o Edge.",
+  blocks_copied_alert: "Blocchi copiati nella memoria locale!",
+  no_blocks_to_copy_alert: "Nessun blocco disponibile da copiare.",
+  copy_blocks_failed_alert: "Copia dei blocchi non riuscita.",
 
   // Context menu option translations
   export_JSON_snippet: "Esporta blocco come frammento JSON",

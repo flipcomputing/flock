@@ -1,8 +1,8 @@
 import * as Blockly from "blockly";
-import { categoryColours} from "../toolbox.js";
+import { categoryColours } from "../toolbox.js";
 import { translate, getTooltip } from "../main/translation.js";
 
-window.currentMesh = "mesh";
+window.currentMesh = "object";
 window.currentBlock = null;
 
 export function defineBaseBlocks() {

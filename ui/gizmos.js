@@ -1,6 +1,7 @@
 import * as Blockly from "blockly";
 import { meshMap, meshBlockIdMap } from "../generators";
 import { flock } from "../flock.js";
+import { translate } from "../main/translation.js";
 import { setPositionValues } from "./addmeshes.js";
 import {
   getMeshFromBlockKey,
@@ -65,7 +66,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
   window.addEventListener("keydown", (event) => {
     // Check if both Ctrl and the comma key (,) are pressed
-    if ((event.ctrlKey && event.code === "Comma") /*|| event.code === "KeyF"*/) {
+    if (event.ctrlKey && event.code === "Comma" /*|| event.code === "KeyF"*/) {
       focusCameraOnMesh();
     }
   });
@@ -144,7 +145,8 @@ const PICK_OK = (m) => m && m.isPickable !== false;
 function isLeafMesh(m) {
   if (!m || m.isDisposed?.()) return false;
   const hasKids = (m.getChildren?.().length ?? 0) > 0;
-  const hasGeom = typeof m.getTotalVertices === "function" && m.getTotalVertices() > 0;
+  const hasGeom =
+    typeof m.getTotalVertices === "function" && m.getTotalVertices() > 0;
   return !hasKids && hasGeom;
 }
 
@@ -157,7 +159,7 @@ function isInSubtree(root, node) {
 
 function pickLeafFromRay(ray, scene) {
   // 1) Prefer a direct leaf hit (skips the composite parent)
-  const leafFirst = scene.pickWithRay(ray, m => PICK_OK(m) && isLeafMesh(m));
+  const leafFirst = scene.pickWithRay(ray, (m) => PICK_OK(m) && isLeafMesh(m));
   if (leafFirst?.pickedMesh) return leafFirst.pickedMesh;
 
   // 2) Fallback: get primary (likely parent), then search only its subtree
@@ -171,11 +173,12 @@ function pickLeafFromRay(ray, scene) {
   const ray2 = ray.clone();
   ray2.length = Math.min(ray.length ?? maxDist, maxDist);
 
-  const hits = scene.multiPickWithRay(
-    ray2,
-    m => PICK_OK(m) && isLeafMesh(m) && isInSubtree(parent, m),
-    false
-  ) || [];
+  const hits =
+    scene.multiPickWithRay(
+      ray2,
+      (m) => PICK_OK(m) && isLeafMesh(m) && isInSubtree(parent, m),
+      false,
+    ) || [];
 
   if (hits.length) {
     // ensure nearest leaf is chosen
@@ -197,7 +200,7 @@ function applyColorAtPosition(canvasX, canvasY) {
     canvasX,
     canvasY,
     flock.BABYLON.Matrix.Identity(),
-    scene.activeCamera
+    scene.activeCamera,
   );
 
   const pickedMesh = pickLeafFromRay(pickRay, scene);
@@ -210,10 +213,6 @@ function applyColorAtPosition(canvasX, canvasY) {
     updateBlockColorAndHighlight(meshMap?.["sky"], selectedColor);
   }
 }
-
-
-
-
 
 let cameraMode = "play";
 
@@ -622,7 +621,7 @@ export function toggleGizmo(gizmoType) {
       if (cameraMode === "play") {
         cameraMode = "fly";
         flock.printText({
-          text: "ℹ️ Fly camera, use arrow keys and page up/down",
+          text: translate("fly_camera_instructions"),
           duration: 15,
           color: "white",
         });
@@ -638,7 +637,7 @@ export function toggleGizmo(gizmoType) {
     case "delete":
       if (!gizmoManager.attachedMesh) {
         flock.printText({
-          text: "⚠️ Select a mesh then click delete.",
+          text: translate("select_mesh_delete_prompt"),
           duration: 30,
           color: "black",
         });
@@ -653,7 +652,7 @@ export function toggleGizmo(gizmoType) {
     case "duplicate":
       if (!gizmoManager.attachedMesh) {
         flock.printText({
-          text: "⚠️ Select a mesh then click duplicate, then click to place copies.",
+          text: translate("select_mesh_duplicate_prompt"),
           duration: 30,
           color: "black",
         });
@@ -780,7 +779,10 @@ export function toggleGizmo(gizmoType) {
               parseFloat(position.z.toFixed(2)),
             );
             flock.printText({
-              text: "Position: " + roundedPosition,
+              text: translate("position_readout").replace(
+                "{position}",
+                String(roundedPosition),
+              ),
               duration: 30,
               color: "black",
             });
@@ -813,7 +815,10 @@ export function toggleGizmo(gizmoType) {
                 parseFloat(position.z.toFixed(2)),
               );
               flock.printText({
-                text: "Position: " + roundedPosition,
+                text: translate("position_readout").replace(
+                  "{position}",
+                  String(roundedPosition),
+                ),
                 duration: 30,
                 color: "black",
               });
@@ -1155,78 +1160,48 @@ export function toggleGizmo(gizmoType) {
 
       break;
 
-    case "scale":
-      gizmoManager.scaleGizmoEnabled = true;
-      gizmoManager.gizmos.scaleGizmo.PreserveScaling = true;
-      gizmoManager.gizmos.scaleGizmo.xGizmo._coloredMaterial.diffuseColor =
-        blueColor;
-      gizmoManager.gizmos.scaleGizmo.yGizmo._coloredMaterial.diffuseColor =
-        greenColor;
-      gizmoManager.gizmos.scaleGizmo.zGizmo._coloredMaterial.diffuseColor =
-        orangeColor;
+      case "scale":
+        gizmoManager.scaleGizmoEnabled = true;
+        gizmoManager.gizmos.scaleGizmo.PreserveScaling = true;
+        gizmoManager.gizmos.scaleGizmo.xGizmo._coloredMaterial.diffuseColor =
+          blueColor;
+        gizmoManager.gizmos.scaleGizmo.yGizmo._coloredMaterial.diffuseColor =
+          greenColor;
+        gizmoManager.gizmos.scaleGizmo.zGizmo._coloredMaterial.diffuseColor =
+          orangeColor;
 
-      gizmoManager.gizmos.scaleGizmo.sensitivity = 4;
-      gizmoManager.gizmos.scaleGizmo.uniformScaleGizmo.scaleRatio = 2.5;
+        gizmoManager.gizmos.scaleGizmo.sensitivity = 4;
+        gizmoManager.gizmos.scaleGizmo.uniformScaleGizmo.scaleRatio = 2.5;
 
-      // Track bottom for correct visual anchoring
-      let originalBottomY = 0;
+        // Track bottom for correct visual anchoring
+        let originalBottomY = 0;
 
-      gizmoManager.gizmos.scaleGizmo.onDragStartObservable.add(() => {
-        const mesh = gizmoManager.attachedMesh;
-        flock.ensureUniqueGeometry(mesh);
-        mesh.computeWorldMatrix(true);
-        mesh.refreshBoundingInfo();
-        originalBottomY = mesh.getBoundingInfo().boundingBox.minimumWorld.y;
+        gizmoManager.gizmos.scaleGizmo.onDragStartObservable.add(() => {
+          const mesh = gizmoManager.attachedMesh;
+          flock.ensureUniqueGeometry(mesh);
+          mesh.computeWorldMatrix(true);
+          mesh.refreshBoundingInfo();
+          originalBottomY = mesh.getBoundingInfo().boundingBox.minimumWorld.y;
 
-        const motionType = mesh.physics?.getMotionType();
-        mesh.savedMotionType = motionType;
+          const motionType = mesh.physics?.getMotionType();
+          mesh.savedMotionType = motionType;
 
-        if (
-          mesh.physics &&
-          mesh.physics.getMotionType() !==
-            flock.BABYLON.PhysicsMotionType.ANIMATED
-        ) {
-          mesh.physics.setMotionType(flock.BABYLON.PhysicsMotionType.ANIMATED);
-          mesh.physics.disablePreStep = false;
-        }
-
-        const block = meshMap[mesh.metadata.blockKey];
-        highlightBlockById(Blockly.getMainWorkspace(), block);
-      });
-
-      gizmoManager.gizmos.scaleGizmo.onDragObservable.add(() => {
-        const mesh = gizmoManager.attachedMesh;
-
-        mesh.computeWorldMatrix(true);
-        mesh.refreshBoundingInfo();
-
-        const newBottomY = mesh.getBoundingInfo().boundingBox.minimumWorld.y;
-        const deltaY = originalBottomY - newBottomY;
-        mesh.position.y += deltaY;
-
-        const block = Blockly.getMainWorkspace().getBlockById(
-          mesh.metadata.blockKey,
-        );
-        if (gizmoManager.scaleGizmoEnabled) {
-          switch (block?.type) {
-            case "create_capsule":
-            case "create_cylinder":
-              mesh.scaling.z = mesh.scaling.x;
-              break;
+          if (
+            mesh.physics &&
+            mesh.physics.getMotionType() !==
+              flock.BABYLON.PhysicsMotionType.ANIMATED
+          ) {
+            mesh.physics.setMotionType(flock.BABYLON.PhysicsMotionType.ANIMATED);
+            mesh.physics.disablePreStep = false;
           }
-        }
-      });
 
-      gizmoManager.gizmos.scaleGizmo.onDragEndObservable.add(() => {
-        const mesh = gizmoManager.attachedMesh;
-        const block = meshMap[mesh.metadata.blockKey];
+          const block = meshMap[mesh.metadata.blockKey];
+          highlightBlockById(Blockly.getMainWorkspace(), block);
+        });
 
-        if (mesh.savedMotionType) {
-          mesh.physics.setMotionType(mesh.savedMotionType);
-        }
+        gizmoManager.gizmos.scaleGizmo.onDragObservable.add(() => {
+          const mesh = gizmoManager.attachedMesh;
 
-        try {
-          // Ensure world matrix and bounding info are current
           mesh.computeWorldMatrix(true);
           mesh.refreshBoundingInfo();
 
@@ -1234,217 +1209,287 @@ export function toggleGizmo(gizmoType) {
           const deltaY = originalBottomY - newBottomY;
           mesh.position.y += deltaY;
 
-          const originalSize = mesh
-            .getBoundingInfo()
-            .boundingBox.extendSize.scale(2);
-
-          const newWidth =
-            Math.round(originalSize.x * mesh.scaling.x * 10) / 10;
-          const newHeight =
-            Math.round(originalSize.y * mesh.scaling.y * 10) / 10;
-          const newDepth =
-            Math.round(originalSize.z * mesh.scaling.z * 10) / 10;
-
-          switch (block.type) {
-            case "create_plane":
-              block
-                .getInput("WIDTH")
-                .connection.targetBlock()
-                .setFieldValue(String(newWidth), "NUM");
-              block
-                .getInput("HEIGHT")
-                .connection.targetBlock()
-                .setFieldValue(String(newHeight), "NUM");
-              break;
-
-            case "create_box":
-              block
-                .getInput("WIDTH")
-                .connection.targetBlock()
-                .setFieldValue(String(newWidth), "NUM");
-              block
-                .getInput("HEIGHT")
-                .connection.targetBlock()
-                .setFieldValue(String(newHeight), "NUM");
-              block
-                .getInput("DEPTH")
-                .connection.targetBlock()
-                .setFieldValue(String(newDepth), "NUM");
-              break;
-
-            case "create_capsule":
-              block
-                .getInput("HEIGHT")
-                .connection.targetBlock()
-                .setFieldValue(String(newHeight), "NUM");
-              block
-                .getInput("DIAMETER")
-                .connection.targetBlock()
-                .setFieldValue(String(newWidth), "NUM");
-              break;
-
-            case "create_cylinder": {
-              const boundingInfo = mesh.getBoundingInfo();
-              const originalSize = boundingInfo.boundingBox.extendSize.scale(2);
-              mesh.computeWorldMatrix(true);
-
-              let newCylinderHeight = mesh.scaling.y * originalSize.y;
-              block
-                .getInput("HEIGHT")
-                .connection.targetBlock()
-                .setFieldValue(
-                  String(Math.round(newCylinderHeight * 10) / 10),
-                  "NUM",
-                );
-
-              let newScaledDiameter =
-                Math.round(originalSize.x * mesh.scaling.x * 10) / 10;
-
-              let currentTop = parseFloat(
-                block
-                  .getInput("DIAMETER_TOP")
-                  .connection.targetBlock()
-                  .getFieldValue("NUM"),
-              );
-              let currentBottom = parseFloat(
-                block
-                  .getInput("DIAMETER_BOTTOM")
-                  .connection.targetBlock()
-                  .getFieldValue("NUM"),
-              );
-
-              if (currentTop >= currentBottom) {
-                let newTop = newScaledDiameter;
-                let ratio = currentBottom / currentTop;
-                let newBottom = Math.round(newTop * ratio * 10) / 10;
-                block
-                  .getInput("DIAMETER_TOP")
-                  .connection.targetBlock()
-                  .setFieldValue(String(newTop), "NUM");
-                block
-                  .getInput("DIAMETER_BOTTOM")
-                  .connection.targetBlock()
-                  .setFieldValue(String(newBottom), "NUM");
-              } else {
-                let newBottom = newScaledDiameter;
-                let ratio = currentTop / currentBottom;
-                let newTop = Math.round(newBottom * ratio * 10) / 10;
-                block
-                  .getInput("DIAMETER_BOTTOM")
-                  .connection.targetBlock()
-                  .setFieldValue(String(newBottom), "NUM");
-                block
-                  .getInput("DIAMETER_TOP")
-                  .connection.targetBlock()
-                  .setFieldValue(String(newTop), "NUM");
-              }
-              break;
-            }
-
-            case "create_sphere":
-              block
-                .getInput("DIAMETER_X")
-                .connection.targetBlock()
-                .setFieldValue(String(newWidth), "NUM");
-              block
-                .getInput("DIAMETER_Y")
-                .connection.targetBlock()
-                .setFieldValue(String(newHeight), "NUM");
-              block
-                .getInput("DIAMETER_Z")
-                .connection.targetBlock()
-                .setFieldValue(String(newDepth), "NUM");
-              break;
-
-            case "load_multi_object":
-            case "load_object":
-            case "load_character": {
-              // Generate a unique group ID for this gizmo action
-              const groupId = Blockly.utils.idGenerator.genUid();
-              Blockly.Events.setGroup(groupId);
-
-              let addedDoSection = false;
-              if (!block.getInput("DO")) {
-                block.appendStatementInput("DO").setCheck(null).appendField("");
-                addedDoSection = true;
-              }
-
-              let scaleBlock = null;
-              let modelVariable = block.getFieldValue("ID_VAR");
-              const statementConnection = block.getInput("DO").connection;
-              if (statementConnection && statementConnection.targetBlock()) {
-                let currentBlock = statementConnection.targetBlock();
-                while (currentBlock) {
-                  if (currentBlock.type === "scale") {
-                    const modelField = currentBlock.getFieldValue("BLOCK_NAME");
-                    if (modelField === modelVariable) {
-                      scaleBlock = currentBlock;
-                      break;
-                    }
-                  }
-                  currentBlock = currentBlock.getNextBlock();
-                }
-              }
-
-              if (!scaleBlock) {
-                scaleBlock = Blockly.getMainWorkspace().newBlock("scale");
-                scaleBlock.setFieldValue(modelVariable, "BLOCK_NAME");
-                scaleBlock.initSvg();
-                scaleBlock.render();
-
-                ["X", "Y", "Z"].forEach((axis) => {
-                  const input = scaleBlock.getInput(axis);
-                  const shadowBlock =
-                    Blockly.getMainWorkspace().newBlock("math_number");
-                  shadowBlock.setFieldValue("1", "NUM");
-                  shadowBlock.setShadow(true);
-                  shadowBlock.initSvg();
-                  shadowBlock.render();
-                  input.connection.connect(shadowBlock.outputConnection);
-                });
-
-                scaleBlock.render();
-                block
-                  .getInput("DO")
-                  .connection.connect(scaleBlock.previousConnection);
-
-                // Track this block for DO section cleanup
-                const timestamp = Date.now();
-                gizmoCreatedBlocks.set(scaleBlock.id, {
-                  parentId: block.id,
-                  createdDoSection: addedDoSection,
-                  timestamp: timestamp,
-                });
-              }
-
-              function setScaleValue(inputName, value) {
-                const input = scaleBlock.getInput(inputName);
-                const connectedBlock = input.connection.targetBlock();
-
-                if (connectedBlock) {
-                  connectedBlock.setFieldValue(String(value), "NUM");
-                }
-              }
-
-              const scaleX = Math.round(mesh.scaling.x * 10) / 10;
-              const scaleY = Math.round(mesh.scaling.y * 10) / 10;
-              const scaleZ = Math.round(mesh.scaling.z * 10) / 10;
-
-              setScaleValue("X", scaleX);
-              setScaleValue("Y", scaleY);
-              setScaleValue("Z", scaleZ);
-
-              // End undo group
-              Blockly.Events.setGroup(null);
-              break;
+          const block = Blockly.getMainWorkspace().getBlockById(
+            mesh.metadata.blockKey,
+          );
+          if (gizmoManager.scaleGizmoEnabled) {
+            switch (block?.type) {
+              case "create_capsule":
+              case "create_cylinder":
+                mesh.scaling.z = mesh.scaling.x;
+                break;
             }
           }
-        } catch (e) {
-          console.error("Error updating block values:", e);
-        }
-      });
+        });
 
-      break;
+        gizmoManager.gizmos.scaleGizmo.onDragEndObservable.add(() => {
+          const mesh = gizmoManager.attachedMesh;
+          const block = meshMap[mesh.metadata.blockKey];
+
+          if (mesh.savedMotionType) {
+            mesh.physics.setMotionType(mesh.savedMotionType);
+          }
+
+          try {
+            // Ensure world matrix and bounding info are current
+            mesh.computeWorldMatrix(true);
+            mesh.refreshBoundingInfo();
+
+            const newBottomY = mesh.getBoundingInfo().boundingBox.minimumWorld.y;
+            const deltaY = originalBottomY - newBottomY;
+            mesh.position.y += deltaY;
+
+            const originalSize = mesh
+              .getBoundingInfo()
+              .boundingBox.extendSize.scale(2);
+
+            const newWidth =
+              Math.round(originalSize.x * mesh.scaling.x * 10) / 10;
+            const newHeight =
+              Math.round(originalSize.y * mesh.scaling.y * 10) / 10;
+            const newDepth =
+              Math.round(originalSize.z * mesh.scaling.z * 10) / 10;
+
+            switch (block.type) {
+              case "create_plane":
+                block
+                  .getInput("WIDTH")
+                  .connection.targetBlock()
+                  .setFieldValue(String(newWidth), "NUM");
+                block
+                  .getInput("HEIGHT")
+                  .connection.targetBlock()
+                  .setFieldValue(String(newHeight), "NUM");
+                break;
+
+              case "create_box":
+                block
+                  .getInput("WIDTH")
+                  .connection.targetBlock()
+                  .setFieldValue(String(newWidth), "NUM");
+                block
+                  .getInput("HEIGHT")
+                  .connection.targetBlock()
+                  .setFieldValue(String(newHeight), "NUM");
+                block
+                  .getInput("DEPTH")
+                  .connection.targetBlock()
+                  .setFieldValue(String(newDepth), "NUM");
+                break;
+
+              case "create_capsule":
+                block
+                  .getInput("HEIGHT")
+                  .connection.targetBlock()
+                  .setFieldValue(String(newHeight), "NUM");
+                block
+                  .getInput("DIAMETER")
+                  .connection.targetBlock()
+                  .setFieldValue(String(newWidth), "NUM");
+                break;
+
+              case "create_cylinder": {
+                const boundingInfo = mesh.getBoundingInfo();
+                const originalSize = boundingInfo.boundingBox.extendSize.scale(2);
+                mesh.computeWorldMatrix(true);
+
+                let newCylinderHeight = mesh.scaling.y * originalSize.y;
+                block
+                  .getInput("HEIGHT")
+                  .connection.targetBlock()
+                  .setFieldValue(
+                    String(Math.round(newCylinderHeight * 10) / 10),
+                    "NUM",
+                  );
+
+                let newScaledDiameter =
+                  Math.round(originalSize.x * mesh.scaling.x * 10) / 10;
+
+                let currentTop = parseFloat(
+                  block
+                    .getInput("DIAMETER_TOP")
+                    .connection.targetBlock()
+                    .getFieldValue("NUM"),
+                );
+                let currentBottom = parseFloat(
+                  block
+                    .getInput("DIAMETER_BOTTOM")
+                    .connection.targetBlock()
+                    .getFieldValue("NUM"),
+                );
+
+                if (currentTop >= currentBottom) {
+                  let newTop = newScaledDiameter;
+                  let ratio = currentBottom / currentTop;
+                  let newBottom = Math.round(newTop * ratio * 10) / 10;
+                  block
+                    .getInput("DIAMETER_TOP")
+                    .connection.targetBlock()
+                    .setFieldValue(String(newTop), "NUM");
+                  block
+                    .getInput("DIAMETER_BOTTOM")
+                    .connection.targetBlock()
+                    .setFieldValue(String(newBottom), "NUM");
+                } else {
+                  let newBottom = newScaledDiameter;
+                  let ratio = currentTop / currentBottom;
+                  let newTop = Math.round(newBottom * ratio * 10) / 10;
+                  block
+                    .getInput("DIAMETER_BOTTOM")
+                    .connection.targetBlock()
+                    .setFieldValue(String(newBottom), "NUM");
+                  block
+                    .getInput("DIAMETER_TOP")
+                    .connection.targetBlock()
+                    .setFieldValue(String(newTop), "NUM");
+                }
+                break;
+              }
+
+              case "create_sphere":
+                block
+                  .getInput("DIAMETER_X")
+                  .connection.targetBlock()
+                  .setFieldValue(String(newWidth), "NUM");
+                block
+                  .getInput("DIAMETER_Y")
+                  .connection.targetBlock()
+                  .setFieldValue(String(newHeight), "NUM");
+                block
+                  .getInput("DIAMETER_Z")
+                  .connection.targetBlock()
+                  .setFieldValue(String(newDepth), "NUM");
+                break;
+
+                case "load_multi_object":
+                case "load_object":
+                case "load_character": {
+                  // Generate a unique group ID for this gizmo action
+                  const groupId = Blockly.utils.idGenerator.genUid();
+                  Blockly.Events.setGroup(groupId);
+
+                  let addedDoSection = false;
+                  if (!block.getInput("DO")) {
+                    block.appendStatementInput("DO").setCheck(null).appendField("");
+                    addedDoSection = true;
+                  }
+
+                  let resizeBlock = null;
+                  let modelVariable = block.getFieldValue("ID_VAR");
+                  const statementConnection = block.getInput("DO").connection;
+                  if (statementConnection && statementConnection.targetBlock()) {
+                    let currentBlock = statementConnection.targetBlock();
+                    while (currentBlock) {
+                      if (currentBlock.type === "resize") {
+                        const modelField = currentBlock.getFieldValue("BLOCK_NAME");
+                        if (modelField === modelVariable) {
+                          resizeBlock = currentBlock;
+                          break;
+                        }
+                      }
+                      currentBlock = currentBlock.getNextBlock();
+                    }
+                  }
+
+                  if (!resizeBlock) {
+                    resizeBlock = Blockly.getMainWorkspace().newBlock("resize");
+                    resizeBlock.setFieldValue(modelVariable, "BLOCK_NAME");
+                    resizeBlock.initSvg();
+                    resizeBlock.render();
+
+                    ["X", "Y", "Z"].forEach((axis) => {
+                      const input = resizeBlock.getInput(axis);
+                      const shadowBlock =
+                        Blockly.getMainWorkspace().newBlock("math_number");
+                      shadowBlock.setFieldValue("1", "NUM");
+                      shadowBlock.setShadow(true);
+                      shadowBlock.initSvg();
+                      shadowBlock.render();
+                      input.connection.connect(shadowBlock.outputConnection);
+                    });
+
+                    resizeBlock.render();
+                    block
+                      .getInput("DO")
+                      .connection.connect(resizeBlock.previousConnection);
+
+                    // Track this block for DO section cleanup
+                    const timestamp = Date.now();
+                    gizmoCreatedBlocks.set(resizeBlock.id, {
+                      parentId: block.id,
+                      createdDoSection: addedDoSection,
+                      timestamp: timestamp,
+                    });
+                  }
+
+                  function setResizeValue(inputName, value) {
+                    const input = resizeBlock.getInput(inputName);
+                    const connectedBlock = input?.connection?.targetBlock();
+
+                    if (!connectedBlock) {
+                      if (flock.meshDebug) {
+                        console.log(
+                          "[Gizmo resize] No number block connected on",
+                          inputName,
+                          "for resize block",
+                          resizeBlock.id
+                        );
+                      }
+                      return;
+                    }
+
+                    if (flock.meshDebug) {
+                      console.log(
+                        "[Gizmo resize] Setting",
+                        inputName,
+                        "to",
+                        value,
+                        "on block",
+                        connectedBlock.id
+                      );
+                    }
+
+                    connectedBlock.setFieldValue(String(value), "NUM");
+                  }
+
+                  // 🔍 Recompute bounding info *right here* to be absolutely sure it's fresh
+                  mesh.computeWorldMatrix(true);
+                  mesh.refreshBoundingInfo();
+
+                  const bbox = mesh.getBoundingInfo().boundingBox;
+                  const sizeWorld = bbox.extendSizeWorld.scale(2); // full width/height/depth in world
+
+                  const width  = Math.round(sizeWorld.x * 10) / 10;
+                  const height = Math.round(sizeWorld.y * 10) / 10;
+                  const depth  = Math.round(sizeWorld.z * 10) / 10;
+
+                  if (flock.meshDebug) {
+                    console.log("[Gizmo resize] load_* extents:", {
+                      width,
+                      height,
+                      depth,
+                      scaling: mesh.scaling && mesh.scaling.clone
+                        ? mesh.scaling.clone()
+                        : mesh.scaling
+                    });
+                  }
+
+                  setResizeValue("X", width);
+                  setResizeValue("Y", height);
+                  setResizeValue("Z", depth);
+
+                  // End undo group
+                  Blockly.Events.setGroup(null);
+                  break;
+                }
+
+            }
+          } catch (e) {
+            console.error("Error updating block values:", e);
+          }
+        });
+
+        break;
     case "boundingBox":
       gizmoManager.boundingBoxGizmoEnabled = true;
 

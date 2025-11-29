@@ -620,7 +620,7 @@ const toolboxSceneLights = {
         contents: [
                 {
                         kind: "block",
-                        type: "light_intensity",
+                        type: "light_intensity_and_color",
                         keyword: "intensity",
                         inputs: {
                                 INTENSITY: {
@@ -631,7 +631,28 @@ const toolboxSceneLights = {
                                                 },
                                         },
                                 },
+                                DIFFUSE: {
+                                        shadow: {
+                                                type: "colour",
+                                                fields: {
+                                                        COLOR: "#FFFFFF",
+                                                },
+                                        },
+                                },
+                                GROUND_COLOR: {
+                                        shadow: {
+                                                type: "colour",
+                                                fields: {
+                                                        COLOR: "#808080",
+                                                },
+                                        },
+                                },
                         },
+                },
+                {
+                        kind: "block",
+                        type: "get_light",
+                        keyword: "light",
                 },
                 {
                         kind: "block",
@@ -793,6 +814,22 @@ const toolboxSceneLights = {
                                                 type: "math_number",
                                                 fields: {
                                                         NUM: 0.1,
+                                                },
+                                        },
+                                },
+                                START: {
+                                        shadow: {
+                                                type: "math_number",
+                                                fields: {
+                                                        NUM: 50,
+                                                },
+                                        },
+                                },
+                                END: {
+                                        shadow: {
+                                                type: "math_number",
+                                                fields: {
+                                                        NUM: 100,
                                                 },
                                         },
                                 },
@@ -1296,7 +1333,7 @@ const toolboxTransformCombine = {
                                                                 block: {
                                                                         type: "variables_get",
                                                                         fields: {
-                                                                                VAR: "mesh2", // Default variable for a mesh to subtract
+                                                                                VAR: "object2", // Default variable for a mesh to subtract
                                                                         },
                                                                 },
                                                         },
@@ -1400,6 +1437,21 @@ const toolboxTransform = {
                 },
                 {
                         kind: "block",
+                        type: "move_by_xyz_single",
+                        keyword: "move",
+                        inputs: {
+                                VALUE: {
+                                        shadow: {
+                                                type: "math_number",
+                                                fields: {
+                                                        NUM: 1,
+                                                },
+                                        },
+                                },
+                        },
+                },
+                {
+                        kind: "block",
                         type: "move_to_xyz",
                         keyword: "pos",
                         inputs: {
@@ -1420,6 +1472,21 @@ const toolboxTransform = {
                                         },
                                 },
                                 Z: {
+                                        shadow: {
+                                                type: "math_number",
+                                                fields: {
+                                                        NUM: 0,
+                                                },
+                                        },
+                                },
+                        },
+                },
+                {
+                        kind: "block",
+                        type: "move_to_xyz_single",
+                        keyword: "pos",
+                        inputs: {
+                                VALUE: {
                                         shadow: {
                                                 type: "math_number",
                                                 fields: {
@@ -1839,11 +1906,29 @@ const toolboxAnimate = {
                         kind: "block",
                         type: "switch_animation",
                         keyword: "switch",
+                        inputs: {
+                                ANIMATION_NAME: {
+                                        shadow: {
+                                                type: "animation_name",
+                                        },
+                                },
+                        },
                 },
                 {
                         kind: "block",
                         type: "play_animation",
                         keyword: "play",
+                        inputs: {
+                                ANIMATION_NAME: {
+                                        shadow: {
+                                                type: "animation_name",
+                                        },
+                                },
+                        },
+                },
+                {
+                        kind: "block",
+                        type: "animation_name",
                 },
                 {
                         kind: "block",
@@ -1874,6 +1959,21 @@ const toolboxAnimate = {
                                                 },
                                         },
                                 },
+                                DURATION: {
+                                        shadow: {
+                                                type: "math_number",
+                                                fields: {
+                                                        NUM: 1,
+                                                },
+                                        },
+                                },
+                        },
+                },
+                {
+                        kind: "block",
+                        type: "glide_to_object",
+                        keyword: "glide",
+                        inputs: {
                                 DURATION: {
                                         shadow: {
                                                 type: "math_number",
@@ -2949,12 +3049,15 @@ const toolboxMaterials = {
                 {
                         kind: "block",
                         type: "material",
+                        fields: {
+                                TEXTURE_SET: "grass.png", // Use the named material
+                        },
                         inputs: {
                                 BASE_COLOR: {
                                         shadow: {
                                                 type: "colour",
                                                 fields: {
-                                                        COLOR: "#FFFFFF",
+                                                        COLOR: "#00AA00", // Default to a green colour
                                                 },
                                         },
                                 },
@@ -2963,45 +3066,6 @@ const toolboxMaterials = {
                                                 type: "math_number",
                                                 fields: {
                                                         NUM: 1, // Default alpha value: 1 (fully opaque)
-                                                },
-                                        },
-                                },
-                        },
-                },
-                {
-                        kind: "block",
-                        type: "gradient_material",
-                        inputs: {
-                                COLOR: {
-                                        block: {
-                                                type: "lists_create_with",
-                                                extraState: { itemCount: 2 },
-                                                inline: true,
-                                                inputs: {
-                                                        ADD0: {
-                                                                shadow: {
-                                                                        type: "colour",
-                                                                        fields: {
-                                                                                COLOR: "#FF5733",
-                                                                        },
-                                                                },
-                                                        },
-                                                        ADD1: {
-                                                                shadow: {
-                                                                        type: "colour",
-                                                                        fields: {
-                                                                                COLOR: "#FDFD96",
-                                                                        },
-                                                                },
-                                                        },
-                                                },
-                                        },
-                                },
-                                ALPHA: {
-                                        shadow: {
-                                                type: "math_number",
-                                                fields: {
-                                                        NUM: 1,
                                                 },
                                         },
                                 },
@@ -3061,13 +3125,12 @@ const toolboxSound = {
                         inputsInline: true,
                         inputs: {
                                 NOTES: {
-                                        block: {
-                                                // Real block initially
+                                        shadow: {
                                                 type: "lists_create_with",
                                                 extraState: { itemCount: 1 },
                                                 inputs: {
                                                         ADD0: {
-                                                                block: {
+                                                                shadow: {
                                                                         type: "midi_note",
                                                                         fields: {
                                                                                 NOTE: 60,
@@ -3078,13 +3141,12 @@ const toolboxSound = {
                                         },
                                 },
                                 DURATIONS: {
-                                        block: {
-                                                // Real block initially
+                                        shadow: {
                                                 type: "lists_create_with",
                                                 extraState: { itemCount: 1 },
                                                 inputs: {
                                                         ADD0: {
-                                                                block: {
+                                                                shadow: {
                                                                         type: "math_number",
                                                                         fields: {
                                                                                 NUM: 1,
@@ -3170,22 +3232,12 @@ const toolboxSound = {
         ],
 };
 
-const toolboxVariables = {
-        kind: "category",
-        name: "%{BKY_CATEGORY_VARIABLES}",
-        icon: "./images/variables.svg",
-        //colour: categoryColours["Variables"],
-        categorystyle: "variables_category",
-        custom: "VARIABLE",
-        contents: [],
-};
-
 const toolboxLists = {
         kind: "category",
         name: "%{BKY_CATEGORY_LISTS}",
         icon: "./images/lists.svg",
         //colour: categoryColours["Lists"],
-        categorystyle: "lists_category",
+        categorystyle: "variables_category",
         contents: [
                 {
                         kind: "block",
@@ -3245,6 +3297,23 @@ const toolboxLists = {
                         keyword: "sort",
                 },
         ],
+};
+
+const toolboxVariables = {
+        kind: "category",
+        name: "%{BKY_CATEGORY_VARIABLES_SUBCATEGORY}",
+        icon: "./images/variables.svg",
+        categorystyle: "variables_category",
+        contents: [],
+        custom: "VARIABLE",
+};
+
+const toolboxData = {
+        kind: "category",
+        name: "%{BKY_CATEGORY_VARIABLES}",
+        icon: "./images/data.svg",
+        categorystyle: "variables_category",
+        contents: [toolboxVariables, toolboxLists],
 };
 
 const toolboxMath = {
@@ -3429,94 +3498,95 @@ const toolboxSnippetsPhysics = {
                                 DO: {
                                         block: {
                                                 type: "create_box",
-                                                extraState: "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" has_do=\"false\"></mutation>",
+                                                extraState: '<mutation xmlns="http://www.w3.org/1999/xhtml" has_do="false"></mutation>',
                                                 fields: {
                                                         ID_VAR: {
-                                                                name: "box"
-                                                        }
+                                                                name: "box",
+                                                        },
                                                 },
                                                 inputs: {
                                                         COLOR: {
                                                                 shadow: {
                                                                         type: "colour",
                                                                         fields: {
-                                                                                COLOR: "#6633ff"
-                                                                        }
-                                                                }
+                                                                                COLOR: "#6633ff",
+                                                                        },
+                                                                },
                                                         },
                                                         WIDTH: {
                                                                 shadow: {
                                                                         type: "math_number",
                                                                         fields: {
-                                                                                NUM: 1
-                                                                        }
-                                                                }
+                                                                                NUM: 1,
+                                                                        },
+                                                                },
                                                         },
                                                         HEIGHT: {
                                                                 shadow: {
                                                                         type: "math_number",
                                                                         fields: {
-                                                                                NUM: 1
-                                                                        }
-                                                                }
+                                                                                NUM: 1,
+                                                                        },
+                                                                },
                                                         },
                                                         DEPTH: {
                                                                 shadow: {
                                                                         type: "math_number",
                                                                         fields: {
-                                                                                NUM: 1
-                                                                        }
-                                                                }
+                                                                                NUM: 1,
+                                                                        },
+                                                                },
                                                         },
                                                         X: {
                                                                 shadow: {
                                                                         type: "math_number",
                                                                         fields: {
-                                                                                NUM: 0
-                                                                        }
-                                                                }
+                                                                                NUM: 0,
+                                                                        },
+                                                                },
                                                         },
                                                         Y: {
                                                                 shadow: {
                                                                         type: "math_number",
                                                                         fields: {
-                                                                                NUM: 0
-                                                                        }
-                                                                }
+                                                                                NUM: 0,
+                                                                        },
+                                                                },
                                                         },
                                                         Z: {
                                                                 shadow: {
                                                                         type: "math_number",
                                                                         fields: {
-                                                                                NUM: 0
-                                                                        }
-                                                                }
-                                                        }
+                                                                                NUM: 0,
+                                                                        },
+                                                                },
+                                                        },
                                                 },
                                                 next: {
                                                         block: {
-                                                        type: "add_physics",
-                                                        fields: {
+                                                                type: "add_physics",
+                                                                fields: {
                                                                         MODEL_VAR: {
-                                                                                name: "box"
+                                                                                name: "box",
                                                                         },
-                                                                        PHYSICS_TYPE: "DYNAMIC"
-                                                                }
-                                                        }
-                                                }
-                                        }
-                                }
-                        }
+                                                                        PHYSICS_TYPE:
+                                                                                "DYNAMIC",
+                                                                },
+                                                        },
+                                                },
+                                        },
+                                },
+                        },
                 },
                 {
                         kind: "block",
                         type: "when_clicked",
-                        extraState: "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" inline=\"false\"></mutation>",
+                        extraState: '<mutation xmlns="http://www.w3.org/1999/xhtml" inline="false"></mutation>',
                         fields: {
                                 MODEL_VAR: {
-                                        name: "box"
+                                        name: "box",
                                 },
-                                TRIGGER: "OnPickTrigger"
+                                TRIGGER: "OnPickTrigger",
                         },
                         inputs: {
                                 DO: {
@@ -3524,38 +3594,38 @@ const toolboxSnippetsPhysics = {
                                                 type: "apply_force",
                                                 fields: {
                                                         MESH_VAR: {
-                                                                name: "box"
-                                                        }
+                                                                name: "box",
+                                                        },
                                                 },
                                                 inputs: {
                                                         X: {
                                                                 shadow: {
                                                                         type: "math_number",
                                                                         fields: {
-                                                                                NUM: 2
-                                                                        }
-                                                                }
+                                                                                NUM: 2,
+                                                                        },
+                                                                },
                                                         },
                                                         Y: {
                                                                 shadow: {
                                                                         type: "math_number",
                                                                         fields: {
-                                                                                NUM: 0
-                                                                        }
-                                                                }
+                                                                                NUM: 0,
+                                                                        },
+                                                                },
                                                         },
                                                         Z: {
                                                                 shadow: {
                                                                         type: "math_number",
                                                                         fields: {
-                                                                                NUM: 0
-                                                                        }
-                                                                }
-                                                        }
-                                                }
-                                        }
-                                }
-                        }
+                                                                                NUM: 0,
+                                                                        },
+                                                                },
+                                                        },
+                                                },
+                                        },
+                                },
+                        },
                 },
                 {
                         kind: "block",
@@ -3634,7 +3704,8 @@ const toolboxSnippetsPhysics = {
                                                                                 name: "sphere",
                                                                                 type: "",
                                                                         },
-                                                                        PHYSICS_TYPE: "DYNAMIC",
+                                                                        PHYSICS_TYPE:
+                                                                                "DYNAMIC",
                                                                 },
                                                                 next: {
                                                                         block: {
@@ -3686,70 +3757,71 @@ const toolboxSnippetsPhysics = {
                                 DO: {
                                         block: {
                                                 type: "load_object",
-                                                extraState: "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" has_do=\"false\"></mutation>",
+                                                extraState: '<mutation xmlns="http://www.w3.org/1999/xhtml" has_do="false"></mutation>',
                                                 fields: {
                                                         ID_VAR: {
                                                                 name: "star",
-                                                                type: ""
+                                                                type: "",
                                                         },
-                                                        MODELS: "Star.glb"
+                                                        MODELS: "Star.glb",
                                                 },
                                                 inputs: {
                                                         COLOR: {
                                                                 shadow: {
                                                                         type: "colour",
                                                                         fields: {
-                                                                                COLOR: "#ffd700"
-                                                                        }
-                                                                }
+                                                                                COLOR: "#ffd700",
+                                                                        },
+                                                                },
                                                         },
                                                         SCALE: {
                                                                 shadow: {
                                                                         type: "math_number",
                                                                         fields: {
-                                                                                NUM: 1
-                                                                        }
-                                                                }
+                                                                                NUM: 1,
+                                                                        },
+                                                                },
                                                         },
                                                         X: {
                                                                 shadow: {
                                                                         type: "math_number",
                                                                         fields: {
-                                                                                NUM: 0
-                                                                        }
-                                                                }
+                                                                                NUM: 0,
+                                                                        },
+                                                                },
                                                         },
                                                         Y: {
                                                                 shadow: {
                                                                         type: "math_number",
                                                                         fields: {
-                                                                                NUM: 50
-                                                                        }
-                                                                }
+                                                                                NUM: 50,
+                                                                        },
+                                                                },
                                                         },
                                                         Z: {
                                                                 shadow: {
                                                                         type: "math_number",
                                                                         fields: {
-                                                                                NUM: 0
-                                                                        }
-                                                                }
-                                                        }
+                                                                                NUM: 0,
+                                                                        },
+                                                                },
+                                                        },
                                                 },
                                                 next: {
                                                         block: {
                                                                 type: "add_physics",
                                                                 fields: {
                                                                         MODEL_VAR: {
-                                                                                name: "star"
+                                                                                name: "star",
                                                                         },
-                                                                        PHYSICS_TYPE: "DYNAMIC"
-                                                                }
-                                                        }
-                                                }
-                                        }
-                                }
-                        }
+                                                                        PHYSICS_TYPE:
+                                                                                "DYNAMIC",
+                                                                },
+                                                        },
+                                                },
+                                        },
+                                },
+                        },
                 },
                 {
                         kind: "block",
@@ -3758,107 +3830,108 @@ const toolboxSnippetsPhysics = {
                                 DO: {
                                         block: {
                                                 type: "load_object",
-                                                extraState: "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" has_do=\"true\"></mutation>",
+                                                extraState: '<mutation xmlns="http://www.w3.org/1999/xhtml" has_do="true"></mutation>',
                                                 fields: {
                                                         ID_VAR: {
                                                                 name: "heart",
-                                                                type: ""
+                                                                type: "",
                                                         },
-                                                        MODELS: "Heart.glb"
+                                                        MODELS: "Heart.glb",
                                                 },
                                                 inputs: {
                                                         COLOR: {
                                                                 shadow: {
                                                                         type: "colour",
                                                                         fields: {
-                                                                                COLOR: "#cc0000"
-                                                                        }
-                                                                }
+                                                                                COLOR: "#cc0000",
+                                                                        },
+                                                                },
                                                         },
                                                         SCALE: {
                                                                 shadow: {
                                                                         type: "math_number",
                                                                         fields: {
-                                                                                NUM: 1
-                                                                        }
-                                                                }
+                                                                                NUM: 1,
+                                                                        },
+                                                                },
                                                         },
                                                         X: {
                                                                 shadow: {
                                                                         type: "math_number",
                                                                         fields: {
-                                                                                NUM: 0
-                                                                        }
-                                                                }
+                                                                                NUM: 0,
+                                                                        },
+                                                                },
                                                         },
                                                         Y: {
                                                                 shadow: {
                                                                         type: "math_number",
                                                                         fields: {
-                                                                                NUM: 50
-                                                                        }
-                                                                }
+                                                                                NUM: 50,
+                                                                        },
+                                                                },
                                                         },
                                                         Z: {
                                                                 shadow: {
                                                                         type: "math_number",
                                                                         fields: {
-                                                                                NUM: 0
-                                                                        }
-                                                                }
+                                                                                NUM: 0,
+                                                                        },
+                                                                },
                                                         },
                                                         DO: {
                                                                 block: {
                                                                         type: "rotate_to",
                                                                         fields: {
                                                                                 MODEL: {
-                                                                                        name: "heart"
-                                                                                }
+                                                                                        name: "heart",
+                                                                                },
                                                                         },
                                                                         inputs: {
                                                                                 X: {
                                                                                         shadow: {
                                                                                                 type: "math_number",
                                                                                                 fields: {
-                                                                                                        NUM: 0
-                                                                                                }
-                                                                                        }
+                                                                                                        NUM: 0,
+                                                                                                },
+                                                                                        },
                                                                                 },
                                                                                 Y: {
                                                                                         shadow: {
                                                                                                 type: "math_number",
                                                                                                 fields: {
-                                                                                                        NUM: 0
-                                                                                                }
-                                                                                        }
+                                                                                                        NUM: 0,
+                                                                                                },
+                                                                                        },
                                                                                 },
                                                                                 Z: {
                                                                                         shadow: {
                                                                                                 type: "math_number",
                                                                                                 fields: {
-                                                                                                        NUM: -40
-                                                                                                }
-                                                                                        }
-                                                                                }
-                                                                        }
-                                                                }
-                                                        }
+                                                                                                        NUM: -40,
+                                                                                                },
+                                                                                        },
+                                                                                },
+                                                                        },
+                                                                },
+                                                        },
                                                 },
                                                 next: {
                                                         block: {
                                                                 type: "add_physics",
                                                                 fields: {
                                                                         MODEL_VAR: {
-                                                                                name: "heart"
+                                                                                name: "heart",
                                                                         },
-                                                                        PHYSICS_TYPE: "DYNAMIC"
-                                                                }
-                                                        }
-                                                }
-                                        }
-                                }
-                        }
-                }
+                                                                        PHYSICS_TYPE:
+                                                                                "DYNAMIC",
+                                                                },
+                                                        },
+                                                },
+                                        },
+                                },
+                        },
+                },
         ],
 };
 
@@ -4124,8 +4197,18 @@ const toolboxSnippets = {
                                                                                                         name: "player",
                                                                                                         type: "",
                                                                                                 },
+                                                                                        },
+                                                                                        inputs: {
                                                                                                 ANIMATION_NAME:
-                                                                                                        "Walk",
+                                                                                                        {
+                                                                                                                shadow: {
+                                                                                                                        type: "animation_name",
+                                                                                                                        fields: {
+                                                                                                                                ANIMATION_NAME:
+                                                                                                                                        "Walk",
+                                                                                                                        },
+                                                                                                                },
+                                                                                                        },
                                                                                         },
                                                                                 },
                                                                         },
@@ -4166,8 +4249,18 @@ const toolboxSnippets = {
                                                                                                         name: "player",
                                                                                                         type: "",
                                                                                                 },
+                                                                                        },
+                                                                                        inputs: {
                                                                                                 ANIMATION_NAME:
-                                                                                                        "Walk",
+                                                                                                        {
+                                                                                                                shadow: {
+                                                                                                                        type: "animation_name",
+                                                                                                                        fields: {
+                                                                                                                                ANIMATION_NAME:
+                                                                                                                                        "Walk",
+                                                                                                                        },
+                                                                                                                },
+                                                                                                        },
                                                                                         },
                                                                                 },
                                                                         },
@@ -4181,8 +4274,18 @@ const toolboxSnippets = {
                                                                                         name: "player",
                                                                                         type: "",
                                                                                 },
+                                                                        },
+                                                                        inputs: {
                                                                                 ANIMATION_NAME:
-                                                                                        "Idle",
+                                                                                        {
+                                                                                                shadow: {
+                                                                                                        type: "animation_name",
+                                                                                                        fields: {
+                                                                                                                ANIMATION_NAME:
+                                                                                                                        "Idle",
+                                                                                                        },
+                                                                                                },
+                                                                                        },
                                                                         },
                                                                 },
                                                         },
@@ -4217,8 +4320,7 @@ export const toolbox = {
                 toolboxText,
                 toolboxMaterials,
                 toolboxSound,
-                toolboxVariables,
-                toolboxLists,
+                toolboxData,
                 toolboxMath,
                 toolboxFunctions,
                 toolboxSnippets,

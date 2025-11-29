@@ -10,18 +10,16 @@ export const flockMesh = {
   createCapsuleFromBoundingBox(mesh, scene) {
     mesh.computeWorldMatrix(true);
     const boundingInfo = mesh.getBoundingInfo();
-
     // Use LOCAL bounding box coordinates
     const localMin = boundingInfo.boundingBox.minimum;
     const localMax = boundingInfo.boundingBox.maximum;
 
-    const height = localMax.y - localMin.y;
-    const width = localMax.x - localMin.x;
-    const depth = localMax.z - localMin.z;
-    const radius = Math.min(width, depth) / 2;
+    // Apply the mesh's scaling to get actual dimensions
+    const height = (localMax.y - localMin.y) * Math.abs(mesh.scaling.y);
+    const width = (localMax.x - localMin.x) * Math.abs(mesh.scaling.x);
+    const depth = (localMax.z - localMin.z) * Math.abs(mesh.scaling.z);
 
-    //console.log("Create capsule from bounding box", mesh.name, height);
-    //console.log("Local bounding min Y:", localMin.y, "max Y:", localMax.y);
+    const radius = Math.min(width, depth) / 2;
 
     // Shrink the capsule vertically to allow intersections
     const shrinkAmount = 0.01; // Adjust this value as needed
@@ -59,6 +57,7 @@ export const flockMesh = {
       height: adjustedHeight,
       localCenter,
     };
+
     return shape;
   },
   createHorizontalCapsuleFromBoundingBox(mesh, scene, yOffsetFactor = 0) {

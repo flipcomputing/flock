@@ -142,13 +142,14 @@ export function defineModelBlocks() {
 	};
 
 	Blockly.Blocks["load_object"] = {
+
 		init: function () {
 			const defaultObject = "Star.glb";
 			const defaultColours = objectColours[defaultObject];
 			const defaultColour = Array.isArray(defaultColours)
 				? defaultColours[0]
 				: defaultColours || "#FFD700";
-			const variableNamePrefix = "item";
+			const variableNamePrefix = "object";
 			let nextVariableName =
 				variableNamePrefix + nextVariableIndexes[variableNamePrefix];
 
@@ -230,22 +231,16 @@ export function defineModelBlocks() {
 			updateColorField();
 
 			this.setOnChange((changeEvent) => {
-			  handleBlockCreateEvent(
-				this,
-				changeEvent,
-				variableNamePrefix,
-				nextVariableIndexes,
-			  );
 
-			  handleBlockChange(this, changeEvent, variableNamePrefix);
+				handleBlockChange(this, changeEvent, variableNamePrefix);
 
-			  if (
-				this.id !== changeEvent.blockId &&
-				changeEvent.type !== Blockly.Events.BLOCK_CHANGE
-			  )
-				return;
-			  if (handleMeshLifecycleChange(this, changeEvent)) return;
-			  if (handleFieldOrChildChange(this, changeEvent)) return;
+				if (
+					this.id !== changeEvent.blockId &&
+					changeEvent.type !== Blockly.Events.BLOCK_CHANGE
+				)
+					return;
+				if (handleMeshLifecycleChange(this, changeEvent)) return;
+				// if (handleFieldOrChildChange(this, changeEvent)) return;
 			});
 
 			addDoMutatorWithToggleBehavior(this);
@@ -254,7 +249,7 @@ export function defineModelBlocks() {
 
 	Blockly.Blocks["load_multi_object"] = {
 		init: function () {
-			const variableNamePrefix = "item";
+			const variableNamePrefix = "object";
 			let nextVariableName =
 				variableNamePrefix + nextVariableIndexes[variableNamePrefix];
 

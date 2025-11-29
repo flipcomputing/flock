@@ -16,10 +16,11 @@ export default {
   CATEGORY_CONDITION: "Condition",
   CATEGORY_SENSING: "Sensing",
   CATEGORY_TEXT: "Text",
-  CATEGORY_STRINGS: "Strings", 
+  CATEGORY_STRINGS: "Strings",
   CATEGORY_MATERIALS: "Materials",
   CATEGORY_SOUND: "Sound",
-  CATEGORY_VARIABLES: "Variables",
+  CATEGORY_VARIABLES: "Data",
+  CATEGORY_VARIABLES_SUBCATEGORY: "Variables",
   CATEGORY_LISTS: "Lists",
   CATEGORY_MATH: "Math",
   CATEGORY_FUNCTIONS: "Functions",
@@ -144,6 +145,7 @@ export default {
   // Custom block translations - Animate blocks
   glide_to: "glide %1 to x %2 y %3 z %4 in %5 ms\n%6 return? %7 loop? %8 %9",
   glide_to_seconds: "glide %1 to x %2 y %3 z %4 in %5 seconds \n%6 return? %7 loop? %8 %9",
+  glide_to_object: "glide %1 to %2 in %3 seconds \n%4 return? %5 loop? %6 %7",
   rotate_anim: "rotate %1 to x %2 y %3 z %4 in %5 ms\n%6 reverse? %7 loop? %8  %9",
   rotate_anim_seconds: "rotate %1 to x %2 y %3 z %4 in %5 seconds\n%6 reverse? %7 loop? %8  %9",
   animate_property: "animate %1 %2 to %3 in %4 ms reverse? %5 loop? %6 %7",
@@ -193,8 +195,9 @@ export default {
   get_lexical_variable: "%1",
 
   // Custom block translations - Effects blocks
-  light_intensity: "set light intensity to %1",
-  set_fog: "set fog color %1 mode %2 density %3",
+  light_intensity_and_color: "light intensity %1 main %2 ground %3",
+  set_fog: "set fog color %1 mode %2 density %3\nstart %4 end %5",
+  get_light: "get light as %1",
   
   // Custom block translation - Events blocks
   start: "start",
@@ -275,8 +278,10 @@ export default {
   
   // Custom block translations - Transform blocks
   move_by_xyz: "move %1 by x: %2 y: %3 z: %4",
+  move_by_xyz_single: "change position of %1 by %2 %3",
   move_to_xyz: "move %1 to x: %2 y: %3 z: %4 y? %5",
-  move_to: "move %1 to %2 y? %3",
+  move_to_xyz_single: "set position of %1 to %2 %3",
+  move_to: /* "move %1 to %2 y? %3" */ "position %1 at %2 y? %3",
   scale: "scale %1 x: %2 y: %3 z: %4\norigin x: %5 y: %6 z: %7",
   resize: "resize %1 x: %2 y: %3 z: %4\norigin x: %5 y: %6 z: %7",
   rotate_model_xyz: "rotate %1 by x: %2 y: %3 z: %4",
@@ -329,6 +334,7 @@ export default {
   // Tooltip translations - Animate blocks
   glide_to_tooltip: "Glide to a specified position over a duration with options for reversing, looping, and easing.",
   glide_to_seconds_tooltip: "Glide to a specified position over a duration with options for reversing, looping, and easing.",
+  glide_to_object_tooltip: "Glide to the position of a specified mesh over a duration with options for reversing, looping, and easing.",
   rotate_anim_tooltip: "Rotate a mesh to specified angles over a duration with options for reverse, looping, and easing.",
   rotate_anim_seconds_tooltip: "Rotate a mesh to specified angles over a duration with options for reverse, looping, and easing.",
   animate_property_tooltip: "Animate a material property of the mesh and its children.",
@@ -377,8 +383,9 @@ export default {
   get_lexical_variable_tooltip: "Get the value of a lexical variable",
   
   // Tooltip translations - Effects blocks
-  light_intensity_tooltip: "Set the intensity of the main light.\nKeyword: light intensity",
-  set_fog_tooltip: "Configure the scene's fog.\nKeyword: fog",
+  light_intensity_and_color_tooltip: "Set the intensity and diffuse and ground colors of the main light.\nKeyword: light intensity",
+  set_fog_tooltip: "Configure the scene's fog. Use start and end to set the near and far distances.\nKeyword: fog",
+  get_light_tooltip: "Get the current scene's main light.\nKeyword: light",
 
   // Tooltip translations - Events blocks
   start_tooltip: "Run the blocks inside whenthe project starts. You can have multiple start blocks. \nKeyword: start",
@@ -458,7 +465,9 @@ export default {
   
   // Tooltip translations - Transform blocks
   move_by_xyz_tooltip: "Move a mesh a given amount in x y and z directions.\nKeyword: move",
+  move_by_xyz_single_tooltip: "Move a mesh a given amount in either x y or z direction.\nKeyword: move",
   move_to_xyz_tooltip: "Teleport the mesh to the coordinates. Optionally, use the Y axis.\nKeyword: moveby",
+  move_to_xyz_single_tooltip: "Teleport the mesh to the specified single coordinate. Optionally, use the Y axis.\nKeyword: moveby",
   move_to_tooltip: "Teleport the first mesh to the location of the second mesh.\nKeyword: moveto",
   scale_tooltip: "Resize a mesh to the given x, y, and z and controls the origin of scaling. \nKeyword: scale",
   resize_tooltip: "Resize a mesh to the given x, y, and z and controls the origin of scaling.\nKeyword: resize",
@@ -631,6 +640,10 @@ export default {
   q_icon_option: "Q ■", // Duplicate key q
   e_icon_option: "E ✿", // Duplicate key e
   f_icon_option: "F ✱", // Duplicate key f
+
+  x_coordinate_option: "x",
+  y_coordinate_option: "y",
+  z_coordinate_option: "z",
 
   POSITION_X_option: "position x",
   POSITION_Y_option: "position y",
@@ -879,6 +892,23 @@ export default {
   invalid_filetype_alert: "Only .json or .flock project files are allowed.",
   invalid_project_alert: "This file isn't a valid Flock XR project.",
   failed_to_read_file_alert: "Failed to read file.",
+
+  // UI status messages
+  max_mesh_limit_reached:
+    "⚠️ Limit reached: You can only have {max} meshes in your world.",
+  high_memory_usage_warning: "Warning: High memory usage ({percent}%)",
+  runtime_error_message: "Error: {message}",
+  xr_mode_message: "XR Mode!",
+  fly_camera_instructions: "ℹ️ Fly camera, use arrow keys and page up/down",
+  select_mesh_delete_prompt: "⚠️ Select a mesh then click delete.",
+  select_mesh_duplicate_prompt:
+    "⚠️ Select a mesh then click duplicate, then click to place copies.",
+  position_readout: "Position: {position}",
+  eyedropper_not_supported_alert:
+    "Color picker tool is not supported in this browser. Try using Chrome or Edge.",
+  blocks_copied_alert: "Blocks copied to local storage!",
+  no_blocks_to_copy_alert: "No blocks available to copy.",
+  copy_blocks_failed_alert: "Failed to copy blocks.",
 
   // Context menu option translations
   export_JSON_snippet: "Export block as snippet",

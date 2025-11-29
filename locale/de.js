@@ -19,7 +19,8 @@ export default {
   CATEGORY_STRINGS: "Zeichenketten",
   CATEGORY_MATERIALS: "Materialien",
   CATEGORY_SOUND: "Ton",
-  CATEGORY_VARIABLES: "Variablen",
+  CATEGORY_VARIABLES: "Daten",
+  CATEGORY_VARIABLES_SUBCATEGORY: "Variablen",
   CATEGORY_LISTS: "Listen",
   CATEGORY_MATH: "Mathe",
   CATEGORY_FUNCTIONS: "Funktionen",
@@ -192,8 +193,8 @@ export default {
   get_lexical_variable: "%1",
 
   // Custom block translations - Effects blocks
-  light_intensity: "Lichtintensität auf %1 setzen",
-  set_fog: "Nebel setzen Farbe %1 Modus %2 Dichte %3",
+  light_intensity_and_color: "Lichtintensität auf %1 setzen %2 %3",
+  set_fog: "Nebel setzen Farbe %1 Modus %2 Dichte %3\nStart %4 Ende %5",
 
   // Custom block translation - Events blocks
   start: "start",
@@ -495,8 +496,8 @@ export default {
   get_lexical_variable_tooltip: "Hole den Wert einer lexikalischen Variablen",
 
   // Effects tooltips
-  light_intensity_tooltip: "Stelle die Intensität der Hauptbeleuchtung ein.\nSchlüsselwort: light intensity",
-  set_fog_tooltip: "Konfiguriere den Nebel der Szene.\nSchlüsselwort: fog",
+  light_intensity_and_color_tooltip: "Stelle die Intensität der Hauptbeleuchtung ein.\nSchlüsselwort: light intensity",
+  set_fog_tooltip: "Konfiguriere den Nebel der Szene. Verwende Start und Ende, um die Nah- und Fernwerte festzulegen.\nSchlüsselwort: fog",
 
   // Events tooltips
   start_tooltip: "Führe Blöcke beim Projektstart aus. Mehrere Startblöcke möglich.\nSchlüsselwort: start",
@@ -862,6 +863,25 @@ export default {
   invalid_filetype_alert: "Es sind nur .json- oder .flock-Projektdateien erlaubt.",
   invalid_project_alert: "Diese Datei ist kein gültiges Flock XR-Projekt.",
   failed_to_read_file_alert: "Datei konnte nicht gelesen werden.",
+
+  // UI status messages
+  max_mesh_limit_reached:
+    "⚠️ Limit erreicht: Du kannst nur {max} Meshes in deiner Welt haben.",
+  high_memory_usage_warning: "Warnung: Hoher Speicherverbrauch ({percent}%)",
+  runtime_error_message: "Fehler: {message}",
+  xr_mode_message: "XR-Modus!",
+  fly_camera_instructions:
+    "ℹ️ Flugkamera, nutze Pfeiltasten und Bild auf/ab",
+  select_mesh_delete_prompt:
+    "⚠️ Wähle ein Mesh aus und klicke dann auf Löschen.",
+  select_mesh_duplicate_prompt:
+    "⚠️ Wähle ein Mesh aus, klicke auf Duplizieren und klicke dann, um Kopien zu platzieren.",
+  position_readout: "Position: {position}",
+  eyedropper_not_supported_alert:
+    "Das Pipettenwerkzeug wird in diesem Browser nicht unterstützt. Versuche es mit Chrome oder Edge.",
+  blocks_copied_alert: "Blöcke in den lokalen Speicher kopiert!",
+  no_blocks_to_copy_alert: "Keine Blöcke zum Kopieren verfügbar.",
+  copy_blocks_failed_alert: "Kopieren der Blöcke fehlgeschlagen.",
 
   export_JSON_snippet: "Block als Snippet exportieren",
   import_snippet: "Snippet importieren",

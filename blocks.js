@@ -1,13 +1,16 @@
 import * as Blockly from "blockly";
 //import "@blockly/block-plus-minus";
 import * as BlockDynamicConnection from "@blockly/block-dynamic-connection";
-import {  toolbox } from "./toolbox.js";
+import { toolbox } from "./toolbox.js";
 import { getOption, translate } from "/main/translation.js";
 
 import {
   deleteMeshFromBlock,
   updateOrCreateMeshFromBlock,
   getMeshFromBlock,
+  applySceneBackgroundFromWorkspace,
+  clearSkyMesh,
+  setClearSkyToBlack,
 } from "./ui/blockmesh.js";
 import { registerFieldColour } from "@blockly/field-colour";
 import { createThemeConfig } from "./main/themes.js";
@@ -94,6 +97,25 @@ export function handleBlockDelete(event) {
         blockJson.type.startsWith("create_")
       ) {
         deleteMeshFromBlock(blockJson.id);
+      } else if (blockJson.type === "set_background_color") {
+        deleteMeshFromBlock(blockJson.id);
+        if (
+          !applySceneBackgroundFromWorkspace(blockJson.id, {
+            allowSkyFallback: false,
+          })
+        ) {
+          clearSkyMesh();
+          setClearSkyToBlack();
+        }
+      } else if (blockJson.type === "set_sky_color") {
+        clearSkyMesh();
+        if (
+          !applySceneBackgroundFromWorkspace(blockJson.id, {
+            allowSkyFallback: false,
+          })
+        ) {
+          setClearSkyToBlack();
+        }
       }
 
       // Check inputs for child blocks
@@ -118,7 +140,6 @@ export function handleBlockDelete(event) {
 }
 
 export function handleMeshLifecycleChange(block, changeEvent) {
- 
   const mesh = getMeshFromBlock(block);
 
   if (
@@ -136,23 +157,53 @@ export function handleMeshLifecycleChange(block, changeEvent) {
     changeEvent.blockId === block.id &&
     changeEvent.element === "disabled"
   ) {
-    if (block.isEnabled()) {
+    const isDisabling =
+      changeEvent.newValue === true || changeEvent.newValue === "true";
+
+    if (!isDisabling) {
       setTimeout(() => {
-        if (block.getParent()) {
+        const stillExists = Blockly.getMainWorkspace()?.getBlockById?.(
+          block.id,
+        );
+
+        if (stillExists) {
           updateOrCreateMeshFromBlock(block, changeEvent);
         }
       }, 0);
     } else {
       deleteMeshFromBlock(block.id);
+      if (block.type === "set_background_color") {
+        if (
+          !applySceneBackgroundFromWorkspace(block.id, {
+            allowSkyFallback: false,
+          })
+        ) {
+          clearSkyMesh();
+          setClearSkyToBlack();
+        }
+      } else if (block.type === "set_sky_color") {
+        clearSkyMesh();
+        if (
+          !applySceneBackgroundFromWorkspace(block.id, {
+            allowSkyFallback: false,
+          })
+        ) {
+          setClearSkyToBlack();
+        }
+      }
     }
     return true;
   }
 
   if (
     changeEvent.type === Blockly.Events.BLOCK_CREATE &&
-    changeEvent.blockId === block.id &&
     Blockly.getMainWorkspace().getBlockById(block.id)
   ) {
+    const createdBlockIds = Array.isArray(changeEvent.ids)
+      ? changeEvent.ids
+      : [changeEvent.blockId];
+
+    if (!createdBlockIds.includes(block.id)) return false;
     if (window.loadingCode) return true;
     updateOrCreateMeshFromBlock(block, changeEvent);
     return true;
@@ -180,7 +231,8 @@ export function handleFieldOrChildChange(containerBlock, changeEvent) {
 
   const parent = changedBlock.getParent?.();
   if (parent && parent.id === containerBlock.id) {
-    if (changedBlock.nextConnection || changedBlock.previousConnection) return false;
+    if (changedBlock.nextConnection || changedBlock.previousConnection)
+      return false;
     updateOrCreateMeshFromBlock(containerBlock, changeEvent);
     return true;
   }
@@ -208,7 +260,7 @@ export function handleFieldOrChildChange(containerBlock, changeEvent) {
         const viaValueInput = (p.inputList || []).some(
           (inp) =>
             inp?.type === INPUT_VALUE &&
-            inp?.connection?.targetBlock?.() === node
+            inp?.connection?.targetBlock?.() === node,
         );
 
         if (!viaValueInput) {
@@ -229,7 +281,6 @@ export function handleFieldOrChildChange(containerBlock, changeEvent) {
   return false;
 }
 
-
 export function handleParentLinkedUpdate(containerBlock, changeEvent) {
   if (
     changeEvent.type !== Blockly.Events.BLOCK_CREATE &&
@@ -237,14 +288,22 @@ export function handleParentLinkedUpdate(containerBlock, changeEvent) {
   )
     return false;
 
-  const changed = Blockly.getMainWorkspace().getBlockById(changeEvent.blockId);
-  const parent = findCreateBlock(changed);
+  const ws = Blockly.getMainWorkspace();
+  const changedBlocks =
+    changeEvent.type === Blockly.Events.BLOCK_CREATE &&
+    Array.isArray(changeEvent.ids)
+      ? changeEvent.ids.map((id) => ws.getBlockById(id)).filter(Boolean)
+      : [ws.getBlockById(changeEvent.blockId)].filter(Boolean);
 
-  if (parent === containerBlock && changed) {
-    if (!window.loadingCode) {
-      updateOrCreateMeshFromBlock(containerBlock, changeEvent);
+  for (const changed of changedBlocks) {
+    const parent = findCreateBlock(changed);
+
+    if (parent === containerBlock && changed) {
+      if (!window.loadingCode) {
+        updateOrCreateMeshFromBlock(containerBlock, changeEvent);
+      }
+      return true;
     }
-    return true;
   }
 
   return false;
@@ -301,39 +360,59 @@ export function handleBlockChange(block, changeEvent, variableNamePrefix) {
   // Handle BLOCK_CREATE or BLOCK_CHANGE if a child is attached
   if (
     (changeEvent.type === Blockly.Events.BLOCK_CREATE ||
-      changeEvent.type === Blockly.Events.BLOCK_CHANGE || changeEvent.type === Blockly.Events.BLOCK_MOVE) &&
+      changeEvent.type === Blockly.Events.BLOCK_CHANGE ||
+      changeEvent.type === Blockly.Events.BLOCK_MOVE) &&
     changeEvent.workspaceId === Blockly.getMainWorkspace().id
   ) {
-    if (flock.blockDebug) console.log("The changed block is", changeEvent.block);
-    if (flock.blockDebug) console.log("The changed block is", changeEvent.blockId);
+    if (flock.blockDebug)
+      console.log("The changed block is", changeEvent.block);
+    if (flock.blockDebug)
+      console.log("The changed block is", changeEvent.blockId);
     const changedBlock = Blockly.getMainWorkspace().getBlockById(
       changeEvent.blockId,
     );
 
-    if (!changedBlock) {
+    const createdBlocks =
+      changeEvent.type === Blockly.Events.BLOCK_CREATE &&
+      Array.isArray(changeEvent.ids)
+        ? changeEvent.ids
+            .map((id) => Blockly.getMainWorkspace().getBlockById(id))
+            .filter(Boolean)
+        : [changedBlock].filter(Boolean);
+
+    if (!createdBlocks.length) {
       if (flock.blockDebug) console.log("Changed block not found in workspace");
       return;
     }
 
-    const parent = findCreateBlock(changedBlock);
-    if (flock.blockDebug) console.log("The type of the changed block is", changedBlock.type);
+    const parents = createdBlocks.map((cb) => findCreateBlock(cb));
+    if (flock.blockDebug)
+      console.log("The type of the changed block is", changedBlock.type);
     if (changedBlock.getParent()) {
-      if (flock.blockDebug) console.log("The ID of the parent of the changed block is", changedBlock.getParent().id);
-      if (flock.blockDebug) console.log("The type of the parent of the changed block is", changedBlock.getParent().type);
+      if (flock.blockDebug)
+        console.log(
+          "The ID of the parent of the changed block is",
+          changedBlock.getParent().id,
+        );
+      if (flock.blockDebug)
+        console.log(
+          "The type of the parent of the changed block is",
+          changedBlock.getParent().type,
+        );
     }
     if (flock.blockDebug) console.log("This block is", block.id);
     // if (flock.blockDebug) console.log("The parent is", parent);
     if (flock.blockDebug) console.log("The type of this block is", block.type);
-    if (parent === block) {
-      const blockInWorkspace =
-        Blockly.getMainWorkspace().getBlockById(block.id);
+    if (parents.includes(block)) {
+      const blockInWorkspace = Blockly.getMainWorkspace().getBlockById(
+        block.id,
+      );
       if (blockInWorkspace) {
         updateOrCreateMeshFromBlock(block, changeEvent);
       }
     }
   }
 }
-
 
 // smart-variable-duplication.js (final)
 // - Split variable on duplicate (duplicate-parent safe)
@@ -345,7 +424,9 @@ export function handleBlockChange(block, changeEvent, variableNamePrefix) {
 const _pendingRetarget = new WeakMap(); // block -> { from, to, type, prefix } | undefined
 
 function getBlockly(opts) {
-  return (opts && opts.Blockly) || (typeof Blockly !== "undefined" ? Blockly : null);
+  return (
+    (opts && opts.Blockly) || (typeof Blockly !== "undefined" ? Blockly : null)
+  );
 }
 
 function getVariableFieldsOnBlock(block, BlocklyNS) {
@@ -358,7 +439,12 @@ function getVariableFieldsOnBlock(block, BlocklyNS) {
   return out;
 }
 
-function isVariableUsedElsewhere(workspace, varId, excludingBlockId, BlocklyNS) {
+function isVariableUsedElsewhere(
+  workspace,
+  varId,
+  excludingBlockId,
+  BlocklyNS,
+) {
   if (!varId) return false;
   const blocks = workspace.getAllBlocks(false);
   for (const b of blocks) {
@@ -374,7 +460,8 @@ function isVariableUsedElsewhere(workspace, varId, excludingBlockId, BlocklyNS) 
 function getFieldVariableType(block, fieldName, BlocklyNS) {
   const field = block.getField(fieldName);
   if (!field) return "";
-  const model = typeof field.getVariable === "function" ? field.getVariable() : null;
+  const model =
+    typeof field.getVariable === "function" ? field.getVariable() : null;
   if (model && typeof model.type === "string") return model.type || "";
   const varId = field.getValue && field.getValue();
   const byId = varId ? block.workspace.getVariableById(varId) : null;
@@ -393,11 +480,19 @@ function createFreshVariable(workspace, prefix, type, nextVariableIndexes) {
   let n = 1;
   while (workspace.getVariable(`${prefix}${n}`, type)) n += 1;
   // Also keep your counter roughly in sync (but we’ll normalize later).
-  nextVariableIndexes[prefix] = Math.max(nextVariableIndexes[prefix] || 1, n + 1);
+  nextVariableIndexes[prefix] = Math.max(
+    nextVariableIndexes[prefix] || 1,
+    n + 1,
+  );
   return workspace.getVariableMap().createVariable(`${prefix}${n}`, type); // VariableModel
 }
 
-function retargetDescendantsVariables(rootBlock, fromVarId, toVarId, BlocklyNS) {
+function retargetDescendantsVariables(
+  rootBlock,
+  fromVarId,
+  toVarId,
+  BlocklyNS,
+) {
   if (!fromVarId || !toVarId || fromVarId === toVarId) return 0;
   const descendants = rootBlock.getDescendants(false);
   let changes = 0;
@@ -448,7 +543,14 @@ function countVarUses(workspace, varId, BlocklyNS) {
  * - name startsWith prefix
  * - ALL uses are inside this subtree (none outside)
  */
-function adoptIsolatedDefaultVarsTo(rootBlock, toVarId, varType, prefix, workspace, BlocklyNS) {
+function adoptIsolatedDefaultVarsTo(
+  rootBlock,
+  toVarId,
+  varType,
+  prefix,
+  workspace,
+  BlocklyNS,
+) {
   const descendantIds = buildDescendantIdSet(rootBlock);
   let adopted = 0;
 
@@ -488,7 +590,11 @@ function adoptIsolatedDefaultVarsTo(rootBlock, toVarId, varType, prefix, workspa
 
       // clean up orphan if now unused
       if (countVarUses(workspace, vid, BlocklyNS) === 0) {
-        try { workspace.deleteVariableById(vid); } catch (_) { /* ignore */ }
+        try {
+          workspace.deleteVariableById(vid);
+        } catch (_) {
+          /* ignore */
+        }
       }
     }
   }
@@ -506,7 +612,9 @@ function lowestAvailableSuffix(workspace, prefix, type) {
 /** Compute the max numeric suffix currently present for prefix (type-scoped). */
 function maxExistingSuffix(workspace, prefix, type) {
   let max = 0;
-  const vars = type ? workspace.getVariablesOfType(type) : workspace.getAllVariables();
+  const vars = type
+    ? workspace.getVariablesOfType(type)
+    : workspace.getAllVariables();
   for (const v of vars) {
     const n = parseNumericSuffix(v.name, prefix);
     if (n && n > max) max = n;
@@ -518,7 +626,13 @@ function maxExistingSuffix(workspace, prefix, type) {
  * After adoption, normalize the creator variable's NAME to the LOWEST free suffix.
  * Then recompute nextVariableIndexes[prefix] = maxSuffix + 1.
  */
-function normalizeVarNameAndIndex(workspace, varId, prefix, type, nextVariableIndexes) {
+function normalizeVarNameAndIndex(
+  workspace,
+  varId,
+  prefix,
+  type,
+  nextVariableIndexes,
+) {
   const model = workspace.getVariableById(varId);
   if (!model) return;
 
@@ -528,8 +642,12 @@ function normalizeVarNameAndIndex(workspace, varId, prefix, type, nextVariableIn
   // If our current name isn't the lowest available, and the lowest is different, rename.
   if (targetSuffix && targetSuffix !== currentSuffix) {
     try {
-      workspace.getVariableMap().renameVariable(model, `${prefix}${targetSuffix}`);
-    } catch (_) { /* ignore rename failures */ }
+      workspace
+        .getVariableMap()
+        .renameVariable(model, `${prefix}${targetSuffix}`);
+    } catch (_) {
+      /* ignore rename failures */
+    }
   }
 
   const maxSuffix = maxExistingSuffix(workspace, prefix, type);
@@ -544,7 +662,7 @@ export function ensureFreshVarOnDuplicate(
   changeEvent,
   variableNamePrefix,
   nextVariableIndexes,
-  opts = {}
+  opts = {},
 ) {
   const BlocklyNS = getBlockly(opts);
   if (!BlocklyNS) return;
@@ -559,8 +677,21 @@ export function ensureFreshVarOnDuplicate(
       BlocklyNS.Events.disable();
 
       retargetDescendantsVariables(block, pending.from, pending.to, BlocklyNS);
-      adoptIsolatedDefaultVarsTo(block, pending.to, pending.type, pending.prefix, block.workspace, BlocklyNS);
-      normalizeVarNameAndIndex(block.workspace, pending.to, pending.prefix, pending.type, nextVariableIndexes);
+      adoptIsolatedDefaultVarsTo(
+        block,
+        pending.to,
+        pending.type,
+        pending.prefix,
+        block.workspace,
+        BlocklyNS,
+      );
+      normalizeVarNameAndIndex(
+        block.workspace,
+        pending.to,
+        pending.prefix,
+        pending.type,
+        nextVariableIndexes,
+      );
 
       if (!subtreeHasVarId(block, pending.from, BlocklyNS)) {
         _pendingRetarget.set(block, undefined);
@@ -593,7 +724,12 @@ export function ensureFreshVarOnDuplicate(
     BlocklyNS.Events.disable();
 
     // Mint a new var with the *lowest* available suffix now.
-    const newVarModel = createFreshVariable(ws, variableNamePrefix, varType, nextVariableIndexes);
+    const newVarModel = createFreshVariable(
+      ws,
+      variableNamePrefix,
+      varType,
+      nextVariableIndexes,
+    );
     const newVarId =
       newVarModel.id ||
       (typeof newVarModel.getId === "function" ? newVarModel.getId() : null);
@@ -606,24 +742,36 @@ export function ensureFreshVarOnDuplicate(
     retargetDescendantsVariables(block, oldVarId, newVarId, BlocklyNS);
 
     // Pass 2: adopt any isolated default-looking vars inside subtree to the new var
-    adoptIsolatedDefaultVarsTo(block, newVarId, varType, variableNamePrefix, ws, BlocklyNS);
+    adoptIsolatedDefaultVarsTo(
+      block,
+      newVarId,
+      varType,
+      variableNamePrefix,
+      ws,
+      BlocklyNS,
+    );
 
     // Normalize the creator var’s name to the LOWEST free suffix (fixes visible gaps)
-    normalizeVarNameAndIndex(ws, newVarId, variableNamePrefix, varType, nextVariableIndexes);
+    normalizeVarNameAndIndex(
+      ws,
+      newVarId,
+      variableNamePrefix,
+      varType,
+      nextVariableIndexes,
+    );
 
     // If more children will connect later, remember to finish on subsequent events.
     _pendingRetarget.set(block, {
       from: oldVarId,
       to: newVarId,
       type: varType,
-      prefix: variableNamePrefix
+      prefix: variableNamePrefix,
     });
   } finally {
     BlocklyNS.Events.enable();
     BlocklyNS.Events.setGroup(false);
   }
 }
-
 
 /*
 export default Blockly.Theme.defineTheme("flock", {
@@ -686,7 +834,7 @@ const mediaPath = window.location.pathname.includes("/flock")
 
 export const options = {
   //theme: FlockTheme,
-  theme: createThemeConfig('light'),
+  theme: createThemeConfig("light"),
   //theme: "flockTheme",
   //renderer: "zelos",
   renderer: "custom_zelos_renderer",
@@ -760,13 +908,15 @@ export function initializeVariableIndexes() {
     "3dtext": 1,
     sound: 1,
     character: 1,
-    item: 1,
+    object: 1,
     instrument: 1,
     animation: 1,
     clone: 1,
   };
 
-  const allVariables = Blockly.getMainWorkspace().getVariableMap().getAllVariables(); // Retrieve all variables in the workspace
+  const allVariables = Blockly.getMainWorkspace()
+    .getVariableMap()
+    .getAllVariables(); // Retrieve all variables in the workspace
 
   // Process each type of variable
   Object.keys(nextVariableIndexes).forEach(function (type) {
@@ -798,7 +948,6 @@ export function defineBlocks() {
   //     Blockly.Blocks['lists_create_with'] = Blockly.Blocks['dynamic_list_create'];
 
   //     Blockly.Blocks['text_join'] = Blockly.Blocks['dynamic_text_join'];
-
 
   function updateCurrentMeshName(block, variableFieldName) {
     const variableName = block.getField(variableFieldName).getText(); // Get the selected variable name
@@ -899,7 +1048,6 @@ export function defineBlocks() {
     },
   };
 
-
   Blockly.Extensions.register("dynamic_mesh_dropdown", function () {
     const dropdown = new Blockly.FieldDropdown(function () {
       const options = [["everywhere", "__everywhere__"]];
@@ -965,7 +1113,6 @@ export function defineBlocks() {
       this.setHelpUrl(getHelpUrlFor(this.type));
     },
   };
-
 
   Blockly.Blocks["random_seeded_int"] = {
     init: function () {
@@ -1184,7 +1331,6 @@ export function defineBlocks() {
   }
 }
 
-
 export function addDoMutatorWithToggleBehavior(block) {
   // Custom function to toggle the "do" block mutation
   block.toggleDoBlock = function () {
@@ -1236,9 +1382,15 @@ export function handleBlockCreateEvent(
 ) {
   if (window.loadingCode) return; // Don't rename variables during code loading
 
-  ensureFreshVarOnDuplicate(blockInstance, changeEvent, variableNamePrefix, nextVariableIndexes, {
-    fieldName: 'ID_VAR', 
-  });
+  ensureFreshVarOnDuplicate(
+    blockInstance,
+    changeEvent,
+    variableNamePrefix,
+    nextVariableIndexes,
+    {
+      fieldName: "ID_VAR",
+    },
+  );
   if (blockInstance.id !== changeEvent.blockId) return;
   // Check if this is an undo/redo operation
   const isUndo = !changeEvent.recordUndo;
@@ -1254,7 +1406,9 @@ export function handleBlockCreateEvent(
     const variableField = blockInstance.getField(fieldName);
     if (variableField) {
       const variableId = variableField.getValue();
-      const variable = blockInstance.workspace.getVariableMap().getVariableById(variableId);
+      const variable = blockInstance.workspace
+        .getVariableMap()
+        .getVariableById(variableId);
 
       // Check if the variable name matches the pattern "prefixn"
       const variableNamePattern = new RegExp(`^${variableNamePrefix}\\d+$`);
@@ -1271,9 +1425,13 @@ export function handleBlockCreateEvent(
             newVariableName = variableName + "1";
           }
 
-          let newVariable = blockInstance.workspace.getVariableMap().getVariable(newVariableName);
+          let newVariable = blockInstance.workspace
+            .getVariableMap()
+            .getVariable(newVariableName);
           if (!newVariable) {
-            newVariable = blockInstance.workspace.getVariableMap().createVariable(newVariableName, null);
+            newVariable = blockInstance.workspace
+              .getVariableMap()
+              .createVariable(newVariableName, null);
           }
           variableField.setValue(newVariable.getId());
         }
@@ -1282,10 +1440,15 @@ export function handleBlockCreateEvent(
         if (!nextVariableIndexes[variableNamePrefix]) {
           nextVariableIndexes[variableNamePrefix] = 1;
         }
-        let newVariableName = variableNamePrefix + nextVariableIndexes[variableNamePrefix];
-        let newVariable = blockInstance.workspace.getVariableMap().getVariable(newVariableName);
+        let newVariableName =
+          variableNamePrefix + nextVariableIndexes[variableNamePrefix];
+        let newVariable = blockInstance.workspace
+          .getVariableMap()
+          .getVariable(newVariableName);
         if (!newVariable) {
-          newVariable = blockInstance.workspace.getVariableMap().createVariable(newVariableName, null);
+          newVariable = blockInstance.workspace
+            .getVariableMap()
+            .createVariable(newVariableName, null);
         }
         variableField.setValue(newVariable.getId());
         nextVariableIndexes[variableNamePrefix] += 1;
@@ -1370,7 +1533,10 @@ Blockly.FieldVariable.prototype.getOptions = function () {
   const options = originalGetOptions.call(this);
 
   // Add the "New variable..." option at the beginning
-  options.unshift([translate("new_variable_decision"), Blockly.FieldVariable.ADD_VARIABLE_ID]);
+  options.unshift([
+    translate("new_variable_decision"),
+    Blockly.FieldVariable.ADD_VARIABLE_ID,
+  ]);
 
   return options;
 };
@@ -1387,8 +1553,9 @@ Blockly.FieldVariable.prototype.onItemSelected_ = function (menu, menuItem) {
       (newVariableName) => {
         if (newVariableName) {
           // Find the variable by its name to get the full variable object
-          const newVariable =
-            this.sourceBlock_.workspace.getVariableMap().getVariable(newVariableName);
+          const newVariable = this.sourceBlock_.workspace
+            .getVariableMap()
+            .getVariable(newVariableName);
 
           if (newVariable) {
             // Set the new variable as selected
