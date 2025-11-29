@@ -130,6 +130,7 @@ export const flockAnimate = {
       reverse = false,
       loop = false,
       easing = "Linear",
+      applyBaseOffset = true,
     } = {},
   ) {
     return new Promise(async (resolve) => {
@@ -137,11 +138,12 @@ export const flockAnimate = {
         if (mesh) {
           const startPosition = mesh.position.clone(); // Capture start position
 
-          const addY =
-            meshName === "__active_camera__"
+          const addY = applyBaseOffset
+            ? meshName === "__active_camera__"
               ? 0
               : mesh.getBoundingInfo().boundingBox.extendSize.y *
-                mesh.scaling.y;
+                mesh.scaling.y
+            : 0;
 
           let targetY = y + addY;
 
@@ -301,6 +303,7 @@ export const flockAnimate = {
                 reverse,
                 loop,
                 easing,
+                applyBaseOffset: false,
               });
             } else {
               resolve();
