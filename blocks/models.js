@@ -142,6 +142,7 @@ export function defineModelBlocks() {
 	};
 
 	Blockly.Blocks["load_object"] = {
+
 		init: function () {
 			const defaultObject = "Star.glb";
 			const defaultColours = objectColours[defaultObject];
@@ -230,12 +231,6 @@ export function defineModelBlocks() {
 			updateColorField();
 
 			this.setOnChange((changeEvent) => {
-				handleBlockCreateEvent(
-					this,
-					changeEvent,
-					variableNamePrefix,
-					nextVariableIndexes,
-				);
 
 				handleBlockChange(this, changeEvent, variableNamePrefix);
 

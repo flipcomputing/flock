@@ -241,31 +241,58 @@ export const flockAnimate = {
       });
     });
   },
+  // Helper: Get the MIN position of a mesh on a given axis, accounting for its pivot
+  getMeshPivotPosition(mesh, axis) {
+    // Match setPivotPoint defaults: x=CENTER, y=MIN, z=CENTER
+    const pivotSettings = (mesh.metadata && mesh.metadata.pivotSettings) || {
+      x: "CENTER",
+      y: "MIN",
+      z: "CENTER",
+    };
+    const bounding = mesh.getBoundingInfo().boundingBox.extendSize;
+    const halfSize = bounding[axis] * mesh.scaling[axis];
+
+    const pivotSetting = pivotSettings[axis];
+
+    if (pivotSetting === "CENTER") {
+      return mesh.position[axis]; // No adjustment for CENTER
+    } else if (pivotSetting === "MIN") {
+      return mesh.position[axis] - halfSize; 
+    } else if (pivotSetting === "MAX") {
+      return mesh.position[axis] + halfSize;
+    }
+  },
+
   async glideToObject(
     meshName1,
     meshName2,
-    {
-      duration = 1,
-      reverse = false,
-      loop = false,
-      easing = "Linear",
-    } = {},
+    { duration = 1, reverse = false, loop = false, easing = "Linear" } = {},
   ) {
     return new Promise(async (resolve) => {
       await flock.whenModelReady(meshName1, async function (mesh1) {
         if (mesh1) {
           flock.whenModelReady(meshName2, async function (mesh2) {
             if (mesh2) {
-              const x = mesh2.position.x;
-              const y = mesh2.position.y;
-              const z = mesh2.position.z;
-              flockAnimate.glideTo(meshName1, {x, y, z, duration, reverse, loop, easing});
+              const baseX = flockAnimate.getMeshPivotPosition(mesh2, "x");
+              const baseY = flockAnimate.getMeshPivotPosition(mesh2, "y");
+              const baseZ = flockAnimate.getMeshPivotPosition(mesh2, "z");
+
+              await flockAnimate.glideTo(meshName1, {
+                x: baseX,
+                y: baseY,
+                z: baseZ,
+                duration,
+                reverse,
+                loop,
+                easing,
+              });
+              resolve();
             } else {
               resolve();
             }
           });
         } else {
-          resolve(); // Resolve immediately if mesh1 is not available
+          resolve();
         }
       });
     });
@@ -1265,12 +1292,18 @@ export const flockAnimate = {
   ) {
     // Validate critical dependencies
     if (!scene || !meshOrGroup || !animationName) {
-      console.warn('switchToAnimationLoad: Missing required parameters');
+      console.warn("switchToAnimationLoad: Missing required parameters");
       return null;
     }
 
-    if (!flock?.BABYLON || !flock?.scene || typeof flock.activateAnimation !== 'function') {
-      console.error('switchToAnimationLoad: Required flock dependencies not available');
+    if (
+      !flock?.BABYLON ||
+      !flock?.scene ||
+      typeof flock.activateAnimation !== "function"
+    ) {
+      console.error(
+        "switchToAnimationLoad: Required flock dependencies not available",
+      );
       return null;
     }
 
@@ -1286,7 +1319,7 @@ export const flockAnimate = {
 
     const mesh = findMeshWithSkeleton(meshOrGroup);
     if (!mesh || !mesh.skeleton) {
-      console.warn('switchToAnimationLoad: No skeleton found on mesh');
+      console.warn("switchToAnimationLoad: No skeleton found on mesh");
       return null;
     }
 
@@ -1311,7 +1344,7 @@ export const flockAnimate = {
     const cachedEntry = cache[animationName];
 
     // Handle promise (still loading)
-    if (cachedEntry && typeof cachedEntry.then === 'function') {
+    if (cachedEntry && typeof cachedEntry.then === "function") {
       return null; // Already loading, don't block
     }
 
@@ -1341,7 +1374,7 @@ export const flockAnimate = {
           animationName,
           loop,
           restart,
-          currentRequest
+          currentRequest,
         );
       } catch (error) {
         console.error(`Failed to activate animation ${animationName}:`, error);
@@ -1361,32 +1394,43 @@ export const flockAnimate = {
         const modelName = meshOrGroup.metadata?.modelName;
 
         // Safe check for blockNames
-        const useBlockSuffix = 
-          typeof blockNames !== 'undefined' && 
-          Array.isArray(blockNames) && 
+        const useBlockSuffix =
+          typeof blockNames !== "undefined" &&
+          Array.isArray(blockNames) &&
           blockNames.includes(modelName);
 
         const animationFile = useBlockSuffix
-          ? animationName + '_Block'
+          ? animationName + "_Block"
           : animationName;
 
-        const animImport = await flock.BABYLON.SceneLoader.LoadAssetContainerAsync(
-          './animations/',
-          animationFile + '.glb',
-          flock.scene,
-          undefined,
-          undefined,
-          { gltf: { animationStartMode: flock.BABYLON_LOADER.GLTFLoaderAnimationStartMode.NONE } },
-        );
+        const animImport =
+          await flock.BABYLON.SceneLoader.LoadAssetContainerAsync(
+            "./animations/",
+            animationFile + ".glb",
+            flock.scene,
+            undefined,
+            undefined,
+            {
+              gltf: {
+                animationStartMode:
+                  flock.BABYLON_LOADER.GLTFLoaderAnimationStartMode.NONE,
+              },
+            },
+          );
 
         const animGroup = animImport.animationGroups.find(
           (ag) => ag.name === animationName && ag.targetedAnimations.length > 0,
         );
 
         if (!animGroup) {
-          console.warn(`Animation group ${animationName} not found in loaded file`);
+          console.warn(
+            `Animation group ${animationName} not found in loaded file`,
+          );
           animImport.dispose();
-          return { _loadError: true, _errorMessage: 'Animation group not found' };
+          return {
+            _loadError: true,
+            _errorMessage: "Animation group not found",
+          };
         }
 
         // Build bone and transform node maps
@@ -1402,7 +1446,7 @@ export const flockAnimate = {
         // Create retargeted animation group
         const newGroup = new flock.BABYLON.AnimationGroup(
           `${mesh.name}.${animationName}`,
-          scene
+          scene,
         );
 
         for (const ta of animGroup.targetedAnimations) {
@@ -1413,15 +1457,16 @@ export const flockAnimate = {
             target = tnMap[ta.target.name];
           }
 
-          if (target && ta.animation?.targetProperty !== 'scaling') {
-            const animCopy = ta.animation.clone(`${ta.animation.name}_${mesh.name}`);
+          if (target && ta.animation?.targetProperty !== "scaling") {
+            const animCopy = ta.animation.clone(
+              `${ta.animation.name}_${mesh.name}`,
+            );
             newGroup.addTargetedAnimation(animCopy, target);
           }
         }
 
         animImport.dispose();
         return newGroup;
-
       } catch (error) {
         console.error(`Failed to load animation ${animationName}:`, error);
         return { _loadError: true, _errorMessage: error.message };
@@ -1434,36 +1479,47 @@ export const flockAnimate = {
     cache[animationName] = loadPromise;
 
     // Auto-activate when loaded
-    loadPromise.then((result) => {
-      // Replace promise with actual result (group or error object)
-      cache[animationName] = result;
+    loadPromise
+      .then((result) => {
+        // Replace promise with actual result (group or error object)
+        cache[animationName] = result;
 
-      // Only activate if it's a valid group and conditions are met
-      if (
-        result &&
-        result instanceof flock.BABYLON.AnimationGroup &&
-        play &&
-        mesh.metadata.requestedAnimationName === animationName
-      ) {
-        try {
-          flock.activateAnimation(
-            mesh,
-            meshOrGroup,
-            result,
-            animationName,
-            loop,
-            restart,
-            currentRequest
-          );
-        } catch (error) {
-          console.error(`Failed to activate animation ${animationName} after load:`, error);
+        // Only activate if it's a valid group and conditions are met
+        if (
+          result &&
+          result instanceof flock.BABYLON.AnimationGroup &&
+          play &&
+          mesh.metadata.requestedAnimationName === animationName
+        ) {
+          try {
+            flock.activateAnimation(
+              mesh,
+              meshOrGroup,
+              result,
+              animationName,
+              loop,
+              restart,
+              currentRequest,
+            );
+          } catch (error) {
+            console.error(
+              `Failed to activate animation ${animationName} after load:`,
+              error,
+            );
+          }
         }
-      }
-    }).catch((error) => {
-      // Shouldn't reach here due to try-catch above, but safety net
-      console.error(`Unexpected error in animation load promise for ${animationName}:`, error);
-      cache[animationName] = { _loadError: true, _errorMessage: error.message };
-    });
+      })
+      .catch((error) => {
+        // Shouldn't reach here due to try-catch above, but safety net
+        console.error(
+          `Unexpected error in animation load promise for ${animationName}:`,
+          error,
+        );
+        cache[animationName] = {
+          _loadError: true,
+          _errorMessage: error.message,
+        };
+      });
 
     return null; // Return immediately
   },
@@ -1852,7 +1908,7 @@ export const flockAnimate = {
     if (!animName || !scene) return { name: null, isLooping: false };
 
     // Try to find a Babylon AnimationGroup that matches
-    const group = scene.animationGroups.find(g => g.name === animName);
+    const group = scene.animationGroups.find((g) => g.name === animName);
     const isLooping = group ? !!group.loopAnimation : false;
 
     return { name: animName, isLooping };

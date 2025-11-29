@@ -189,7 +189,7 @@ export default {
                                       get_lexical_variable: "%1",
 
                                       // Custom block translations - Effects blocks
-                                      light_intensity_and_color: "régler l'intensité de la lumière à %1",
+                                      light_intensity_and_color: "régler l'intensité de la lumière à %1 %2 %3",
                                       set_fog: "définir la couleur du brouillard %1 mode %2 densité %3\ndébut %4 fin %5",
 
                                       // Custom block translation - Events blocks

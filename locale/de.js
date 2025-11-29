@@ -193,7 +193,7 @@ export default {
   get_lexical_variable: "%1",
 
   // Custom block translations - Effects blocks
-  light_intensity_and_color: "Lichtintensität auf %1 setzen",
+  light_intensity_and_color: "Lichtintensität auf %1 setzen %2 %3",
   set_fog: "Nebel setzen Farbe %1 Modus %2 Dichte %3\nStart %4 Ende %5",
 
   // Custom block translation - Events blocks
