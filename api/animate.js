@@ -256,10 +256,52 @@ export const flockAnimate = {
         if (mesh1) {
           flock.whenModelReady(meshName2, async function (mesh2) {
             if (mesh2) {
-              const x = mesh2.position.x;
-              const y = mesh2.position.y;
-              const z = mesh2.position.z;
-              flockAnimate.glideTo(meshName1, {x, y, z, duration, reverse, loop, easing});
+              const BABYLON = flock.BABYLON;
+
+              function resolvePivotValue(value, axis, bounding) {
+                if (typeof value === "string") {
+                  switch (value) {
+                    case "MIN":
+                      return -bounding[axis];
+                    case "MAX":
+                      return bounding[axis];
+                    case "CENTER":
+                    default:
+                      return 0;
+                  }
+                }
+                return typeof value === "number" ? value : 0;
+              }
+
+              function getPivotOffset(mesh) {
+                const bounding = mesh.getBoundingInfo().boundingBox.extendSize;
+                const pivotSettings =
+                  (mesh.metadata && mesh.metadata.pivotSettings) || {
+                    x: "CENTER",
+                    y: "MIN",
+                    z: "CENTER",
+                  };
+
+                return new BABYLON.Vector3(
+                  resolvePivotValue(pivotSettings.x, "x", bounding),
+                  resolvePivotValue(pivotSettings.y, "y", bounding),
+                  resolvePivotValue(pivotSettings.z, "z", bounding),
+                );
+              }
+
+              const targetPivotWorld = mesh2.position.add(getPivotOffset(mesh2));
+              const mesh1PivotOffset = getPivotOffset(mesh1);
+              const destination = targetPivotWorld.subtract(mesh1PivotOffset);
+
+              flockAnimate.glideTo(meshName1, {
+                x: destination.x,
+                y: destination.y,
+                z: destination.z,
+                duration,
+                reverse,
+                loop,
+                easing,
+              });
             } else {
               resolve();
             }
