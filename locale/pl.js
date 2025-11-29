@@ -189,7 +189,7 @@ export default {
   get_lexical_variable: "%1",
 
   // Custom block blocks - Effects blocks
-  light_intensity: "ustaw intensywność światła na %1",
+  light_intensity_and_color: "ustaw intensywność światła na %1",
   set_fog: "ustaw mgłę, kolor: %1, tryb: %2, gęstość: %3\npoczątek %4 koniec %5",
 
   // Custom block translation - Events blocks
@@ -373,7 +373,7 @@ export default {
   get_lexical_variable_tooltip: "Pobierz wartość zmiennej leksykalnej",
 
   // Tooltip translations - Effects blocks
-  light_intensity_tooltip: "Ustaw intensywność głównego światła.\nSłowo kluczowe: light intensity",
+  light_intensity_and_color_tooltip: "Ustaw intensywność głównego światła.\nSłowo kluczowe: light intensity",
   set_fog_tooltip: "Skonfiguruj mgłę sceny. Użyj początku i końca, aby ustawić bliską i daleką odległość.\nSłowo kluczowe: fog",
 
   // Tooltip translations - Events blocks

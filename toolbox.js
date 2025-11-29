@@ -620,7 +620,7 @@ const toolboxSceneLights = {
         contents: [
                 {
                         kind: "block",
-                        type: "light_intensity",
+                        type: "light_intensity_and_color",
                         keyword: "intensity",
                         inputs: {
                                 INTENSITY: {
@@ -628,6 +628,22 @@ const toolboxSceneLights = {
                                                 type: "math_number",
                                                 fields: {
                                                         NUM: 1,
+                                                },
+                                        },
+                                },
+                                DIFFUSE: {
+                                        shadow: {
+                                                type: "colour",
+                                                fields: {
+                                                        COLOR: "#FFFFFF",
+                                                },
+                                        },
+                                },
+                                GROUND_COLOR: {
+                                        shadow: {
+                                                type: "colour",
+                                                fields: {
+                                                        COLOR: "#808080",
                                                 },
                                         },
                                 },
