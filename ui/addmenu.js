@@ -298,9 +298,7 @@ function clearAddMenuHighlight(workspace, newSelectedId) {
   }
 
   const block = workspace.getBlockById(lastAddMenuHighlighted.blockId);
-  if (block && Blockly.selected === block) {
-    block.unselect();
-  }
+  block?.unselect?.();
 
   lastAddMenuHighlighted = null;
 }
