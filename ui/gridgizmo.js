@@ -238,7 +238,7 @@ function disposeGrid() {
 }
 
 function ensureGrid(scene) {
-  if (!scene || scene.isDisposed()) return null;
+  if (!scene || scene.isDisposed?.()) return null;
   if (scene !== currentScene || !gridRoot || gridRoot.isDisposed()) {
     disposeGrid();
     currentScene = scene;
