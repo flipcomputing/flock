@@ -258,6 +258,8 @@ export function highlightBlockById(workspace, block) {
 
   // Select and scroll only when the code view is visible
   if (window.codeMode === "both") {
+    ensureAddMenuSelectionCleanup(workspace);
+
     const currentlySelected = Blockly.selected;
     if (
       currentlySelected &&
@@ -273,9 +275,47 @@ export function highlightBlockById(workspace, block) {
       block.select();
     }
 
+    trackAddMenuHighlight(workspace, block.id);
+
     // Scroll to position the block at the top and its parent at the left
     scrollToBlockTopParentLeft(workspace, block.id);
   }
+}
+
+let lastAddMenuHighlighted = null;
+
+function trackAddMenuHighlight(workspace, blockId) {
+  lastAddMenuHighlighted = { workspace, blockId };
+}
+
+function clearAddMenuHighlight(workspace, newSelectedId) {
+  if (
+    !lastAddMenuHighlighted ||
+    lastAddMenuHighlighted.workspace !== workspace ||
+    lastAddMenuHighlighted.blockId === newSelectedId
+  ) {
+    return;
+  }
+
+  const block = workspace.getBlockById(lastAddMenuHighlighted.blockId);
+  if (block && Blockly.selected === block) {
+    block.unselect();
+  }
+
+  lastAddMenuHighlighted = null;
+}
+
+function ensureAddMenuSelectionCleanup(workspace) {
+  if (!workspace || workspace.__addMenuSelectionCleanupAttached) return;
+
+  const listener = (event) => {
+    if (event.type === Blockly.Events.SELECTED) {
+      clearAddMenuHighlight(workspace, event.newElementId);
+    }
+  };
+
+  workspace.addChangeListener(listener);
+  workspace.__addMenuSelectionCleanupAttached = true;
 }
 
 function selectCharacter(characterName) {
