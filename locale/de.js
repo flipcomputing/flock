@@ -229,7 +229,7 @@ export default {
   add_physics: "Physik hinzufügen %1 Typ %2",
   add_physics_shape: "Physikform hinzufügen %1 Typ %2",
   apply_force: "Kraft auf %1 anwenden x: %2 y: %3 z: %4",
-  show_physics: "Physik zeigen %1",
+  show_physics: "Physikformen zeigen %1",
 
   // Sensing blocks
   key_pressed: "Taste gedrückt? %1",
