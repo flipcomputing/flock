@@ -260,6 +260,11 @@ export function highlightBlockById(workspace, block) {
   if (window.codeMode === "both") {
     ensureAddMenuSelectionCleanup(workspace);
 
+    // Proactively clear any lingering add-menu highlight so repeated add-menu
+    // creations don't leave multiple blocks highlighted when Blockly doesn't
+    // emit a UI select event.
+    clearAddMenuHighlight(workspace, block.id);
+
     const currentlySelected = Blockly.selected;
     if (
       currentlySelected &&
