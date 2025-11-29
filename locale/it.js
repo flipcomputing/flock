@@ -240,7 +240,7 @@ export default {
   add_physics: "aggiungi fisica %1 tipo %2",
   add_physics_shape: "aggiungi forma fisica %1 tipo %2",
   apply_force: "applica forza a %1 x: %2 y: %3 z: %4",
-  show_physics: "mostra fisica %1",
+  show_physics: "mostra formas fisicas %1",
 
   // Custom block translations - Sensing blocks
   key_pressed: "tasto premuto è %1",
