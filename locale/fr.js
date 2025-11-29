@@ -191,6 +191,7 @@ export default {
                                       // Custom block translations - Effects blocks
                                       light_intensity_and_color: "régler l'intensité de la lumière à %1 %2 %3",
                                       set_fog: "définir la couleur du brouillard %1 mode %2 densité %3\ndébut %4 fin %5",
+                                      get_light: "obtenir la lumière comme %1",
 
                                       // Custom block translation - Events blocks
                                       start: "démarrer",
@@ -375,6 +376,7 @@ export default {
                                       // Tooltip translations - Effects blocks
                                       light_intensity_and_color_tooltip: "Définit l'intensité de la lumière principale.\nMot-clé: light intensity",
                                       set_fog_tooltip: "Configure le brouillard de la scène. Utilisez début et fin pour définir les distances proche et lointaine.\nMot-clé: fog",
+                                      get_camera_tooltip: "Obtenir la lumière principale de la scène",
 
                                       // Tooltip translations - Events blocks
                                       start_tooltip: "Exécute les blocs à l'intérieur au démarrage du projet. Vous pouvez avoir plusieurs blocs de démarrage.\nMot-clé: start",
