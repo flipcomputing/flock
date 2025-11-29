@@ -180,7 +180,7 @@ export function defineAnimateBlocks() {
 					{
 						type: "field_variable",
 						name: "MODEL2",
-						variable: "mesh2",
+						variable: "object2",
 					},
 					{
 						type: "input_value",
