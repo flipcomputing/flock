@@ -37,7 +37,7 @@ function createTextLabel(text, position, color, parent) {
   const scene = flock.scene;
   const plane = flock.BABYLON.MeshBuilder.CreatePlane(
     `gridLabel-${text}-${position.x}-${position.y}-${position.z}`,
-    { size: 1.1, sideOrientation: flock.BABYLON.Mesh.DOUBLESIDE },
+    { size: 1.4, sideOrientation: flock.BABYLON.Mesh.DOUBLESIDE },
     scene,
   );
   plane.position = position;
@@ -45,18 +45,28 @@ function createTextLabel(text, position, color, parent) {
   plane.parent = parent;
   disablePhysics(plane);
 
-  const texture = flock.GUI.AdvancedDynamicTexture.CreateForMesh(plane);
+  const texture = flock.GUI.AdvancedDynamicTexture.CreateForMesh(plane, 512, 256);
+
+  const container = new flock.GUI.Rectangle();
+  container.background = "#FFFFFFE6";
+  container.alpha = 0.95;
+  container.cornerRadius = 8;
+  container.thickness = 0;
+  container.paddingTop = "8px";
+  container.paddingBottom = "8px";
+  container.paddingLeft = "12px";
+  container.paddingRight = "12px";
+
   const textBlock = new flock.GUI.TextBlock();
   textBlock.text = text;
   textBlock.color = color.toHexString();
-  textBlock.fontSize = 260;
+  textBlock.fontSize = 320;
   textBlock.fontFamily = "Atkinson Hyperlegible Next";
-  textBlock.background = "#FFFFFFE6";
-  textBlock.paddingTop = "6px";
-  textBlock.paddingBottom = "6px";
-  textBlock.paddingLeft = "10px";
-  textBlock.paddingRight = "10px";
-  texture.addControl(textBlock);
+  textBlock.textHorizontalAlignment = flock.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
+  textBlock.textVerticalAlignment = flock.GUI.Control.VERTICAL_ALIGNMENT_CENTER;
+
+  container.addControl(textBlock);
+  texture.addControl(container);
 
   labels.push({ mesh: plane, maxDistance: LABEL_DISTANCE });
   return plane;
@@ -247,37 +257,46 @@ function createVerticalPlanes() {
     volumeParent,
   );
 
-  for (let x = -GRID_LIMIT; x <= GRID_LIMIT; x += GRID_STEP) {
-    const color = x === 0 ? yAxisColor : yAxisColor.scale(0.75);
-    const radius = x === 0 ? AXIS_RADIUS : MAJOR_RADIUS;
-    createAxisTube(
-      `grid-axis-y-repeat-x-${x}`,
-      new flock.BABYLON.Vector3(x, 0, 0),
-      new flock.BABYLON.Vector3(x, GRID_Y_MAX, 0),
-      color,
-      volumeParent,
-      radius,
-    );
+  const minorColumns = [];
+  const minorColors = [];
+  const majorColumns = [];
+  const majorColors = [];
+
+  for (let x = -GRID_LIMIT; x <= GRID_LIMIT; x += MINOR_GRID_STEP) {
+    for (let z = -GRID_LIMIT; z <= GRID_LIMIT; z += MINOR_GRID_STEP) {
+      const isMajor = x % GRID_STEP === 0 || z % GRID_STEP === 0;
+      const targetLines = isMajor ? majorColumns : minorColumns;
+      const targetColors = isMajor ? majorColors : minorColors;
+      const color = isMajor
+        ? yAxisColor.toColor4(0.65)
+        : yAxisColor.toColor4(MINOR_GRID_ALPHA);
+
+      targetLines.push([
+        new flock.BABYLON.Vector3(x, GRID_Y_MIN, z),
+        new flock.BABYLON.Vector3(x, GRID_Y_MAX, z),
+      ]);
+      targetColors.push([color, color]);
+    }
   }
 
-  for (let z = -GRID_LIMIT; z <= GRID_LIMIT; z += GRID_STEP) {
-    const color = z === 0 ? yAxisColor : yAxisColor.scale(0.75);
-    const radius = z === 0 ? AXIS_RADIUS : MAJOR_RADIUS;
-    createAxisTube(
-      `grid-axis-y-repeat-z-${z}`,
-      new flock.BABYLON.Vector3(0, 0, z),
-      new flock.BABYLON.Vector3(0, GRID_Y_MAX, z),
-      color,
-      volumeParent,
-      radius,
-    );
-  }
+  buildLineSystem({
+    lines: minorColumns,
+    colors: minorColors,
+    name: "grid-volume-vertical-minor",
+    parent: volumeParent,
+  });
+
+  buildLineSystem({
+    lines: majorColumns,
+    colors: majorColors,
+    name: "grid-volume-vertical-major",
+    parent: volumeParent,
+  });
 
   for (let y = GRID_Y_MIN; y <= GRID_Y_MAX; y += 1) {
-    if (y === 0) continue;
     createTextLabel(
       `${y}`,
-      new flock.BABYLON.Vector3(0.8, y, 0.8),
+      new flock.BABYLON.Vector3(0.8, y + 0.25, 0.8),
       yAxisColor,
       volumeParent,
     );
