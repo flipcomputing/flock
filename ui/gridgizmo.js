@@ -3,6 +3,8 @@ import { flock } from "../flock.js";
 const GRID_MODES = ["off", "ground", "volume"];
 const GRID_LIMIT = 50;
 const GRID_STEP = 10;
+const MINOR_GRID_STEP = 1;
+const MINOR_GRID_ALPHA = 0.18;
 const GRID_Y_MAX = 5;
 const GRID_Y_MIN = -5;
 const LABEL_DISTANCE = 35;
@@ -25,7 +27,7 @@ function createTextLabel(text, position, color, parent) {
   const scene = flock.scene;
   const plane = flock.BABYLON.MeshBuilder.CreatePlane(
     `gridLabel-${text}-${position.x}-${position.y}-${position.z}`,
-    { size: 0.7 },
+    { size: 0.85, sideOrientation: flock.BABYLON.Mesh.DOUBLESIDE },
     scene,
   );
   plane.position = position;
@@ -37,8 +39,13 @@ function createTextLabel(text, position, color, parent) {
   const textBlock = new flock.GUI.TextBlock();
   textBlock.text = text;
   textBlock.color = color.toHexString();
-  textBlock.fontSize = 160;
+  textBlock.fontSize = 200;
   textBlock.fontFamily = "Atkinson Hyperlegible Next";
+  textBlock.background = "#000000AA";
+  textBlock.paddingTop = "5px";
+  textBlock.paddingBottom = "5px";
+  textBlock.paddingLeft = "8px";
+  textBlock.paddingRight = "8px";
   texture.addControl(textBlock);
 
   labels.push({ mesh: plane, maxDistance: LABEL_DISTANCE });
@@ -96,6 +103,33 @@ function createGroundGrid() {
   const lines = [];
   const colors = [];
 
+  const minorLines = [];
+  const minorColors = [];
+
+  for (let x = -GRID_LIMIT; x <= GRID_LIMIT; x += MINOR_GRID_STEP) {
+    if (x % GRID_STEP === 0) continue;
+    minorLines.push([
+      new flock.BABYLON.Vector3(x, 0, -GRID_LIMIT),
+      new flock.BABYLON.Vector3(x, 0, GRID_LIMIT),
+    ]);
+    minorColors.push([
+      xAxisColor.toColor4(MINOR_GRID_ALPHA),
+      xAxisColor.toColor4(MINOR_GRID_ALPHA),
+    ]);
+  }
+
+  for (let z = -GRID_LIMIT; z <= GRID_LIMIT; z += MINOR_GRID_STEP) {
+    if (z % GRID_STEP === 0) continue;
+    minorLines.push([
+      new flock.BABYLON.Vector3(-GRID_LIMIT, 0, z),
+      new flock.BABYLON.Vector3(GRID_LIMIT, 0, z),
+    ]);
+    minorColors.push([
+      zAxisColor.toColor4(MINOR_GRID_ALPHA),
+      zAxisColor.toColor4(MINOR_GRID_ALPHA),
+    ]);
+  }
+
   for (let x = -GRID_LIMIT; x <= GRID_LIMIT; x += GRID_STEP) {
     lines.push([
       new flock.BABYLON.Vector3(x, 0, -GRID_LIMIT),
@@ -106,7 +140,7 @@ function createGroundGrid() {
     if (x !== 0) {
       createTextLabel(
         `${x}`,
-        new flock.BABYLON.Vector3(x, 0.15, 1.4),
+        new flock.BABYLON.Vector3(x, 0.35, 1.4),
         color,
         groundParent,
       );
@@ -123,12 +157,19 @@ function createGroundGrid() {
     if (z !== 0) {
       createTextLabel(
         `${z}`,
-        new flock.BABYLON.Vector3(1.4, 0.15, z),
+        new flock.BABYLON.Vector3(1.4, 0.35, z),
         color,
         groundParent,
       );
     }
   }
+
+  buildLineSystem({
+    lines: minorLines,
+    colors: minorColors,
+    name: "grid-ground-lines-minor",
+    parent: groundParent,
+  });
 
   buildLineSystem({
     lines,
@@ -238,7 +279,10 @@ function disposeGrid() {
 }
 
 function ensureGrid(scene) {
-  if (!scene || scene.isDisposed?.()) return null;
+  if (!scene) return null;
+  const disposedFlag =
+    typeof scene.isDisposed === "function" ? scene.isDisposed() : scene.isDisposed;
+  if (disposedFlag) return null;
   if (scene !== currentScene || !gridRoot || gridRoot.isDisposed()) {
     disposeGrid();
     currentScene = scene;
