@@ -258,9 +258,18 @@ export function highlightBlockById(workspace, block) {
 
   // Select and scroll only when the code view is visible
   if (window.codeMode === "both") {
+    const currentlySelected = Blockly.selected;
+    if (
+      currentlySelected &&
+      currentlySelected !== block &&
+      currentlySelected.workspace === workspace
+    ) {
+      currentlySelected.unselect();
+    }
+
     if (typeof workspace.setSelected === "function") {
       workspace.setSelected(block);
-    } else {
+    } else if (typeof block.select === "function") {
       block.select();
     }
 
