@@ -622,13 +622,24 @@ export function defineGenerators() {
                 const meshId = "ground";
                 meshMap[meshId] = block;
                 meshBlockIdMap[meshId] = block.id;
-                let color = getFieldValue(block, "COLOR", '"#6495ED"');
-                
-                const colorInput = block.getInput("COLOR");
-                const colorBlock = colorInput?.connection?.targetBlock();
-                
+                let color =
+                        javascriptGenerator.valueToCode(
+                                block,
+                                "COLOR",
+                                javascriptGenerator.ORDER_NONE,
+                        ) || '"#71BC78"';
+
+                const colorBlock = block.getInputTargetBlock("COLOR");
+
                 if (colorBlock && colorBlock.type === "material") {
-                        color = `(${color}).color`;
+                        // Material blocks already generate a material object; pass it directly to
+                        // createGround so the material can be applied instead of trying to access
+                        // a colour property.
+                        color = javascriptGenerator.valueToCode(
+                                block,
+                                "COLOR",
+                                javascriptGenerator.ORDER_FUNCTION_CALL,
+                        );
                 }
                 
                 return `createGround(${color}, "${meshId}");\n`;
@@ -673,6 +684,15 @@ export function defineGenerators() {
                         ) || "1.0";
 
                 return `lightIntensity(${intensity});\n`;
+        };
+
+        javascriptGenerator.forBlock["get_light"] = function (block) {
+                const variableName = javascriptGenerator.nameDB_.getName(
+                        block.getFieldValue("VAR"),
+                        Blockly.Names.NameType.VARIABLE,
+                );
+
+                return `${variableName} = getMainLight();\n`;
         };
 
         javascriptGenerator.forBlock["button_controls"] = function (block) {
@@ -740,8 +760,20 @@ export function defineGenerators() {
                                 "DENSITY",
                                 javascriptGenerator.ORDER_ATOMIC,
                         ) || "0.1"; // Default density
+                const fogStart =
+                        javascriptGenerator.valueToCode(
+                                block,
+                                "START",
+                                javascriptGenerator.ORDER_ATOMIC,
+                        ) || "50"; // Default start
+                const fogEnd =
+                        javascriptGenerator.valueToCode(
+                                block,
+                                "END",
+                                javascriptGenerator.ORDER_ATOMIC,
+                        ) || "100"; // Default end
 
-                return `setFog({ fogColorHex: ${fogColorHex}, fogMode: "${fogMode}", fogDensity: ${fogDensity} });\n`;
+                return `setFog({ fogColorHex: ${fogColorHex}, fogMode: "${fogMode}", fogDensity: ${fogDensity}, fogStart: ${fogStart}, fogEnd: ${fogEnd} });\n`;
         };
 
         javascriptGenerator.forBlock["ui_text"] = function (block) {
@@ -1940,13 +1972,23 @@ export function defineGenerators() {
                 return code;
         };
 
+        javascriptGenerator.forBlock["animation_name"] = function (block) {
+                const animationName = block.getFieldValue("ANIMATION_NAME");
+                return [`"${animationName}"`, javascriptGenerator.ORDER_ATOMIC];
+        };
+
         javascriptGenerator.forBlock["play_animation"] = function (block) {
                 var model = javascriptGenerator.nameDB_.getName(
                         block.getFieldValue("MODEL"),
                         Blockly.Names.NameType.VARIABLE,
                 );
-                var animationName = block.getFieldValue("ANIMATION_NAME");
-                var code = `await playAnimation(${model}, { animationName: "${animationName}" });\n`;
+                const animationName =
+                        javascriptGenerator.valueToCode(
+                                block,
+                                "ANIMATION_NAME",
+                                javascriptGenerator.ORDER_NONE,
+                        ) || '"Idle"';
+                var code = `await playAnimation(${model}, { animationName: ${animationName} });\n`;
                 return code;
         };
 
@@ -2377,8 +2419,13 @@ export function defineGenerators() {
                         block.getFieldValue("MODEL"),
                         Blockly.Names.NameType.VARIABLE,
                 );
-                var animationName = block.getFieldValue("ANIMATION_NAME");
-                var code = `switchAnimation(${model}, { animationName: "${animationName}" });\n`;
+                const animationName =
+                        javascriptGenerator.valueToCode(
+                                block,
+                                "ANIMATION_NAME",
+                                javascriptGenerator.ORDER_NONE,
+                        ) || '"Idle"';
+                var code = `switchAnimation(${model}, { animationName: ${animationName} });\n`;
                 return code;
         };
 

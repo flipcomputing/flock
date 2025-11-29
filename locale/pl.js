@@ -19,7 +19,8 @@ export default {
   CATEGORY_STRINGS: "Łańcuchy tekstowe",
   CATEGORY_MATERIALS: "Materiały",
   CATEGORY_SOUND: "Dźwięk",
-  CATEGORY_VARIABLES: "Zmienne",
+  CATEGORY_VARIABLES: "Dane",
+  CATEGORY_VARIABLES_SUBCATEGORY: "Zmienne",
   CATEGORY_LISTS: "Listy",
   CATEGORY_MATH: "Matematyka",
   CATEGORY_FUNCTIONS: "Funkcje",
@@ -189,7 +190,7 @@ export default {
 
   // Custom block blocks - Effects blocks
   light_intensity: "ustaw intensywność światła na %1",
-  set_fog: "ustaw mgłę, kolor: %1, tryb: %2, gęstość: %3",
+  set_fog: "ustaw mgłę, kolor: %1, tryb: %2, gęstość: %3\npoczątek %4 koniec %5",
 
   // Custom block translation - Events blocks
   start: "start",
@@ -373,7 +374,7 @@ export default {
 
   // Tooltip translations - Effects blocks
   light_intensity_tooltip: "Ustaw intensywność głównego światła.\nSłowo kluczowe: light intensity",
-  set_fog_tooltip: "Skonfiguruj mgłę sceny.\nSłowo kluczowe: fog",
+  set_fog_tooltip: "Skonfiguruj mgłę sceny. Użyj początku i końca, aby ustawić bliską i daleką odległość.\nSłowo kluczowe: fog",
 
   // Tooltip translations - Events blocks
   start_tooltip: "Wykonaj bloki po starcie projektu. Możesz mieć wiele bloków start.\nSłowo kluczowe: start",
@@ -881,6 +882,25 @@ export default {
   invalid_filetype_alert: "Dozwolone są tylko pliki projektu .json lub .flock.",
   invalid_project_alert: "Ten plik nie jest prawidłowym projektem Flock XR.",
   failed_to_read_file_alert: "Nie udało się odczytać pliku.",
+
+  // UI status messages
+  max_mesh_limit_reached:
+    "⚠️ Osiągnięto limit: możesz mieć tylko {max} siatek w swoim świecie.",
+  high_memory_usage_warning: "Ostrzeżenie: wysokie użycie pamięci ({percent}%)",
+  runtime_error_message: "Błąd: {message}",
+  xr_mode_message: "Tryb XR!",
+  fly_camera_instructions:
+    "ℹ️ Kamera lotu, użyj klawiszy strzałek i Page Up/Down",
+  select_mesh_delete_prompt:
+    "⚠️ Wybierz siatkę, a następnie kliknij usuń.",
+  select_mesh_duplicate_prompt:
+    "⚠️ Wybierz siatkę, kliknij duplikuj, a potem kliknij, aby umieścić kopie.",
+  position_readout: "Pozycja: {position}",
+  eyedropper_not_supported_alert:
+    "Narzędzie próbnika kolorów nie jest obsługiwane w tej przeglądarce. Spróbuj użyć Chrome lub Edge.",
+  blocks_copied_alert: "Bloki skopiowane do pamięci lokalnej!",
+  no_blocks_to_copy_alert: "Brak bloków do skopiowania.",
+  copy_blocks_failed_alert: "Nie udało się skopiować bloków.",
 
   // Context menu option translations
   export_JSON_snippet: "Eksportuj blok jako fragment JSON",

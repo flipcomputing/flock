@@ -8,7 +8,11 @@ import {
 	inlineIcon,
 	updateShape,
 } from "../blocks.js";
-import { translate, getTooltip, getDropdownOption } from "../main/translation.js";
+import {
+	translate,
+	getTooltip,
+	getDropdownOption,
+} from "../main/translation.js";
 
 export function defineEventsBlocks() {
 	Blockly.Blocks["start"] = {
@@ -28,7 +32,7 @@ export function defineEventsBlocks() {
 				tooltip: getTooltip("start"),
 			});
 			this.setHelpUrl(getHelpUrlFor(this.type));
-			this.setStyle('events_blocks');
+			this.setStyle("events_blocks");
 		},
 	};
 
@@ -49,7 +53,7 @@ export function defineEventsBlocks() {
 				tooltip: getTooltip("forever"),
 			});
 			this.setHelpUrl(getHelpUrlFor(this.type));
-			this.setStyle('events_blocks');
+			this.setStyle("events_blocks");
 			this.isInline = false;
 			addToggleButton(this);
 		},
@@ -130,7 +134,7 @@ export function defineEventsBlocks() {
 				tooltip: getTooltip("when_clicked"),
 			});
 			this.setHelpUrl(getHelpUrlFor(this.type));
-			this.setStyle('events_blocks');
+			this.setStyle("events_blocks");
 			// Default to top-level mode
 			this.isInline = false;
 			this.setPreviousStatement(false);
@@ -220,7 +224,7 @@ export function defineEventsBlocks() {
 					{
 						type: "field_variable",
 						name: "OTHER_MODEL_VAR",
-						variable: "mesh2",
+						variable: "object2",
 					},
 				],
 				message1: "%1",
@@ -234,7 +238,7 @@ export function defineEventsBlocks() {
 				tooltip: getTooltip("on_collision"),
 			});
 			this.setHelpUrl(getHelpUrlFor(this.type));
-			this.setStyle('events_blocks');
+			this.setStyle("events_blocks");
 			// Set default state to top-level block
 			this.isInline = false;
 
@@ -377,7 +381,7 @@ export function defineEventsBlocks() {
 				tooltip: getTooltip("when_key_event"),
 			});
 			this.setHelpUrl(getHelpUrlFor(this.type));
-			this.setStyle('events_blocks');
+			this.setStyle("events_blocks");
 			addToggleButton(this);
 		},
 		mutationToDom: function () {
@@ -462,7 +466,7 @@ export function defineEventsBlocks() {
 				tooltip: getTooltip("broadcast_event"),
 			});
 			this.setHelpUrl(getHelpUrlFor(this.type));
-			this.setStyle('events_blocks');
+			this.setStyle("events_blocks");
 		},
 
 		/** Called whenever anything changes */
@@ -509,7 +513,7 @@ export function defineEventsBlocks() {
 				tooltip: getTooltip("on_event"),
 			});
 			this.setHelpUrl(getHelpUrlFor(this.type));
-			this.setStyle('events_blocks');
+			this.setStyle("events_blocks");
 			addToggleButton(this);
 		},
 		mutationToDom: function () {
@@ -563,4 +567,3 @@ export function defineEventsBlocks() {
 		},
 	};
 }
-

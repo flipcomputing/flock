@@ -1,25 +1,36 @@
 import * as Blockly from "blockly";
 import { categoryColours } from "../toolbox.js";
-import { 
-  getHelpUrlFor,
-  handleFieldOrChildChange,
-} from "../blocks.js";
-import { translate, getTooltip, getDropdownOption } from "../main/translation.js";
+import { getHelpUrlFor, handleFieldOrChildChange } from "../blocks.js";
+import {
+	translate,
+	getTooltip,
+	getDropdownOption,
+} from "../main/translation.js";
 import { updateOrCreateMeshFromBlock } from "../ui/blockmesh.js";
 import { flock } from "../flock.js";
 
 export function defineTransformBlocks() {
 	function handleBlockChange(block, changeEvent) {
-		// if (flock.blockDebug) console.log("TODO: Buy Matrix DVD");
-		const changeEventBlock = Blockly.getMainWorkspace().getBlockById(changeEvent.blockId);
+		const changeEventBlock = Blockly.getMainWorkspace().getBlockById(
+			changeEvent.blockId,
+		);
 		if (!changeEventBlock) return;
-		if (flock.blockDebug) console.log("The ID of this change event is", changeEventBlock.id);
+		if (flock.blockDebug)
+			console.log("The ID of this change event is", changeEventBlock.id);
 		const changeEventParentBlock = changeEventBlock.getParent();
 		if (!changeEventParentBlock) return;
 		const changeEventBlockType = changeEventParentBlock.type;
-		if (flock.blockDebug) console.log("The type of this change event is", changeEventBlockType);
-		if (changeEventBlockType != "rotate_to") return;
-		const handleChange = handleFieldOrChildChange(block, changeEvent)
+		if (flock.blockDebug)
+			console.log(
+				"The type of this change event is",
+				changeEventBlockType,
+			);
+		if (
+			changeEventBlockType != "rotate_to" &&
+			changeEventBlockType != "resize"
+		)
+			return;
+		const handleChange = handleFieldOrChildChange(block, changeEvent);
 		if (flock.blockDebug) console.log(handleChange);
 	}
 
@@ -60,7 +71,7 @@ export function defineTransformBlocks() {
 				tooltip: getTooltip("move_by_xyz"),
 			});
 			this.setHelpUrl(getHelpUrlFor(this.type));
-			this.setStyle('transform_blocks');
+			this.setStyle("transform_blocks");
 
 			// Set up the change handler.
 			this.setOnChange((changeEvent) =>
@@ -155,7 +166,7 @@ export function defineTransformBlocks() {
 				tooltip: getTooltip("move_to_xyz"),
 			});
 			this.setHelpUrl(getHelpUrlFor(this.type));
-			this.setStyle('transform_blocks');
+			this.setStyle("transform_blocks");
 
 			// Set up the change handler.
 			this.setOnChange((changeEvent) =>
@@ -221,7 +232,7 @@ export function defineTransformBlocks() {
 					{
 						type: "field_variable",
 						name: "MODEL2",
-						variable: "mesh2",
+						variable: "object2",
 					},
 					{
 						type: "field_checkbox",
@@ -237,7 +248,7 @@ export function defineTransformBlocks() {
 				tooltip: getTooltip("move_to"),
 			});
 			this.setHelpUrl(getHelpUrlFor(this.type));
-			this.setStyle('transform_blocks');
+			this.setStyle("transform_blocks");
 
 			// Set up the change handler.
 			this.setOnChange((changeEvent) =>
@@ -307,7 +318,7 @@ export function defineTransformBlocks() {
 				tooltip: getTooltip("scale"),
 			});
 			this.setHelpUrl(getHelpUrlFor(this.type));
-			this.setStyle('transform_blocks');
+			this.setStyle("transform_blocks");
 
 			// Set up the change handler.
 			this.setOnChange((changeEvent) =>
@@ -377,7 +388,7 @@ export function defineTransformBlocks() {
 				tooltip: getTooltip("resize"),
 			});
 			this.setHelpUrl(getHelpUrlFor(this.type));
-			this.setStyle('transform_blocks');
+			this.setStyle("transform_blocks");
 
 			// Set up the change handler.
 			this.setOnChange((changeEvent) =>
@@ -423,7 +434,7 @@ export function defineTransformBlocks() {
 				tooltip: getTooltip("rotate_model_xyz"),
 			});
 			this.setHelpUrl(getHelpUrlFor(this.type));
-			this.setStyle('transform_blocks');
+			this.setStyle("transform_blocks");
 
 			// Set up the change handler.
 			this.setOnChange((changeEvent) =>
@@ -469,7 +480,7 @@ export function defineTransformBlocks() {
 				tooltip: getTooltip("rotate_to"),
 			});
 			this.setHelpUrl(getHelpUrlFor(this.type));
-			this.setStyle('transform_blocks');
+			this.setStyle("transform_blocks");
 
 			// Set up the change handler.
 			this.setOnChange((changeEvent) =>
@@ -492,7 +503,7 @@ export function defineTransformBlocks() {
 					{
 						type: "field_variable",
 						name: "MODEL2",
-						variable: "mesh2",
+						variable: "object2",
 					},
 					{
 						type: "field_checkbox",
@@ -508,7 +519,7 @@ export function defineTransformBlocks() {
 				tooltip: getTooltip("look_at"),
 			});
 			this.setHelpUrl(getHelpUrlFor(this.type));
-			this.setStyle('transform_blocks');
+			this.setStyle("transform_blocks");
 
 			// Set up the change handler.
 			this.setOnChange((changeEvent) =>
@@ -551,7 +562,7 @@ export function defineTransformBlocks() {
 				tooltip: getTooltip("set_pivot"),
 			});
 			this.setHelpUrl(getHelpUrlFor(this.type));
-			this.setStyle('transform_blocks');
+			this.setStyle("transform_blocks");
 
 			// Set up the change handler.
 			this.setOnChange((changeEvent) =>
@@ -581,7 +592,7 @@ export function defineTransformBlocks() {
 				tooltip: getTooltip("min_centre_max"),
 			});
 			this.setHelpUrl(getHelpUrlFor(this.type));
-			this.setStyle('transform_blocks');
+			this.setStyle("transform_blocks");
 
 			// Set up the change handler.
 			this.setOnChange((changeEvent) =>
@@ -590,4 +601,3 @@ export function defineTransformBlocks() {
 		},
 	};
 }
-

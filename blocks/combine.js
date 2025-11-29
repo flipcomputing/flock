@@ -44,7 +44,7 @@ export function defineCombineBlocks() {
 					{
 						type: "field_variable",
 						name: "BASE_MESH",
-						variable: "mesh",
+						variable: "object",
 					},
 					{
 						type: "input_value",

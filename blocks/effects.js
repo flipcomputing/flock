@@ -34,11 +34,11 @@ export function defineEffectsBlocks() {
 		init: function () {
 			this.jsonInit({
 				type: "set_fog",
-				message0: translate("set_fog"),
-				args0: [
-					{
-						type: "input_value",
-						name: "FOG_COLOR",
+                                message0: translate("set_fog"),
+                                args0: [
+                                        {
+                                                type: "input_value",
+                                                name: "FOG_COLOR",
 						colour: "#ffffff",
 						check: "Colour",
 					},
@@ -52,13 +52,23 @@ export function defineEffectsBlocks() {
 							getDropdownOption("EXP2"),
 						],
 					},
-					{
-						type: "input_value",
-						name: "DENSITY",
-						check: "Number",
-					},
-				],
-				inputsInline: true,
+                                        {
+                                                type: "input_value",
+                                                name: "DENSITY",
+                                                check: "Number",
+                                        },
+                                        {
+                                                type: "input_value",
+                                                name: "START",
+                                                check: "Number",
+                                        },
+                                        {
+                                                type: "input_value",
+                                                name: "END",
+                                                check: "Number",
+                                        },
+                                ],
+                                inputsInline: true,
 				previousStatement: null,
 				nextStatement: null,
 				colour: categoryColours["Scene"],
@@ -66,6 +76,28 @@ export function defineEffectsBlocks() {
 			});
 			this.setHelpUrl(getHelpUrlFor(this.type));
 			this.setStyle("scene_blocks");
+		},
+	};
+
+	Blockly.Blocks["get_light"] = {
+		init: function () {
+			this.jsonInit({
+				type: "get_light",
+				message0: translate("get_light"),
+				args0: [
+					{
+						type: "field_variable",
+						name: "VAR",
+						variable: "light", // Default variable is 'camera'
+					},
+				],
+				previousStatement: null,
+				nextStatement: null,
+				colour: categoryColours["Effects"],
+				tooltip: getTooltip("get_light"),
+			});
+			this.setHelpUrl(getHelpUrlFor(this.type));
+			this.setStyle('scene_blocks');
 		},
 	};
 }

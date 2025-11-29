@@ -132,24 +132,61 @@ function validateBlocklyJson(json) {
 		}
 	}
 
-	// 3. Validate it's actually a Blockly workspace structure
-	function validateBlocklyStructure(data) {
-		// Empty workspace is valid
-		if (Object.keys(data).length === 0) {
-			return;
-		}
+        function upgradeAnimationInputs(block) {
+                if (!block || typeof block !== "object") return;
 
-		// Blockly workspace JSON should have specific structure
-		// Check if data.blocks exists and is a non-null object (not an array)
-		if (
-			!data.blocks ||
-			typeof data.blocks !== "object" ||
-			Array.isArray(data.blocks)
-		) {
-			throw new Error(
-				"Invalid Blockly structure: missing or invalid blocks object",
-			);
-		}
+                const legacyAnimationName = block.fields?.ANIMATION_NAME;
+                const hasNewAnimationInput = block.inputs?.ANIMATION_NAME;
+
+                if (
+                        legacyAnimationName &&
+                        !hasNewAnimationInput &&
+                        (block.type === "play_animation" ||
+                                block.type === "switch_animation")
+                ) {
+                        block.inputs = block.inputs || {};
+                        block.inputs.ANIMATION_NAME = {
+                                shadow: {
+                                        type: "animation_name",
+                                        fields: { ANIMATION_NAME: legacyAnimationName },
+                                },
+                        };
+
+                        delete block.fields.ANIMATION_NAME;
+
+                        if (block.fields && Object.keys(block.fields).length === 0) {
+                                delete block.fields;
+                        }
+                }
+
+                if (block.inputs) {
+                        Object.values(block.inputs).forEach((input) => {
+                                upgradeAnimationInputs(input?.block);
+                                upgradeAnimationInputs(input?.shadow);
+                        });
+                }
+
+                upgradeAnimationInputs(block.next?.block);
+        }
+
+        // 3. Validate it's actually a Blockly workspace structure
+        function validateBlocklyStructure(data) {
+                // Empty workspace is valid
+                if (Object.keys(data).length === 0) {
+                        return;
+                }
+
+                // Blockly workspace JSON should have specific structure
+                // Check if data.blocks exists and is a non-null object (not an array)
+                if (
+                        !data.blocks ||
+                        typeof data.blocks !== "object" ||
+                        Array.isArray(data.blocks)
+                ) {
+                        throw new Error(
+                                "Invalid Blockly structure: missing or invalid blocks object",
+                        );
+                }
 
 		// Whitelist allowed properties at root level
 		const allowedRootKeys = ["blocks", "variables", "workspaceComments"];
@@ -280,11 +317,15 @@ function validateBlocklyJson(json) {
 		}
 	}
 
-	// Run all validations
-	checkForDangerousContent(data);
-	validateBlocklyStructure(data);
+        // Run all validations
+        checkForDangerousContent(data);
+        validateBlocklyStructure(data);
 
-	return data;
+        if (data?.blocks?.blocks) {
+                data.blocks.blocks.forEach((block) => upgradeAnimationInputs(block));
+        }
+
+        return data;
 }
 
 export function loadWorkspaceAndExecute(json, workspace, executeCallback) {
