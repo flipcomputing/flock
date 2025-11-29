@@ -229,15 +229,8 @@ export function defineModelBlocks() {
 
 			updateColorField();
 
-			this.setOnChange((changeEvent) => {
-				handleBlockCreateEvent(
-					this,
-					changeEvent,
-					variableNamePrefix,
-					nextVariableIndexes,
-				);
-
-				handleBlockChange(this, changeEvent, variableNamePrefix);
+                        this.setOnChange((changeEvent) => {
+                                handleBlockChange(this, changeEvent, variableNamePrefix);
 
 				if (
 					this.id !== changeEvent.blockId &&
