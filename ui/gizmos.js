@@ -1,5 +1,5 @@
 import * as Blockly from "blockly";
-import { meshMap, meshBlockIdMap } from "../generators";
+import { meshMap, meshBlockIdMap } from "../generators/generators.js";
 import { flock } from "../flock.js";
 import { translate } from "../main/translation.js";
 import { setPositionValues } from "./addmeshes.js";

@@ -1,5 +1,5 @@
 import * as Blockly from "blockly";
-import { meshMap, meshBlockIdMap } from "../generators";
+import { meshMap, meshBlockIdMap } from "../generators/generators.js";
 import { flock } from "../flock.js";
 import { objectColours } from "../config.js";
 import { createMeshOnCanvas } from "./addmeshes.js";

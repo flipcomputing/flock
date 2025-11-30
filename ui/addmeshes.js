@@ -1,5 +1,5 @@
 import * as Blockly from "blockly";
-import { meshMap, meshBlockIdMap, generateUniqueId } from "../generators";
+import { meshMap, meshBlockIdMap, generateUniqueId } from "../generators/generators.js";
 import { flock } from "../flock.js";
 import {
   extractMaterialInfo,

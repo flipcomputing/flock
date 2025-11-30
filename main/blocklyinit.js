@@ -35,7 +35,7 @@ import { defineMaterialsBlocks } from "../blocks/materials.js";
 import { defineColourBlocks } from "../blocks/colour.js";
 import { defineSensingBlocks } from "../blocks/sensing.js";
 import { defineTextBlocks } from "../blocks/text.js";
-import { defineGenerators } from "../generators";
+import { defineGenerators } from "../generators/generators.js";
 
 let workspace = null;
 export { workspace };

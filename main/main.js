@@ -7,7 +7,7 @@ import "@babylonjs/core/Debug/debugLayer";
 import "@babylonjs/inspector";
 import { flock, initializeFlock } from "../flock.js";
 import { initializeVariableIndexes } from "../blocks/blocks";
-import { meshMap } from "../generators";
+import { meshMap } from "../generators/generators.js";
 import { enableGizmos } from "../ui/gizmos.js";
 import { executeCode, stopCode } from "./execution.js";
 import "../ui/addmeshes.js";
