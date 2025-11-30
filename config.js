@@ -297,6 +297,7 @@ export function animationNames() {
 
 export const materialNames = [
 	"none.png",
+	"gridxy.png",
 	"arrows.png",
 	"bricks.png",
 	"carbonfibre.png",
