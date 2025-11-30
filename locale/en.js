@@ -232,7 +232,7 @@ export default {
   add_physics: "add physics %1 type %2",
   add_physics_shape: "add physics shape %1 type %2",
   apply_force: "apply force to %1 x: %2 y: %3 z: %4",
-  show_physics: "show physics %1",
+  show_physics: "show physics shapes %1",
   
   // Custom block translations - Sensing blocks
   key_pressed: "key pressed is %1",

@@ -225,7 +225,7 @@ export default {
                                       add_physics: "ajouter physique %1 type %2",
                                       add_physics_shape: "ajouter forme physique %1 type %2",
                                       apply_force: "appliquer force à %1 x: %2 y: %3 z: %4",
-                                      show_physics: "afficher la physique %1",
+                                      show_physics: "afficher les formes physiques %1",
 
                                       // Custom block translations - Sensing blocks
                                       key_pressed: "touche pressée est %1",
