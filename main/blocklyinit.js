@@ -14,7 +14,7 @@ import {
         handleBlockSelect,
         handleBlockDelete,
         CustomZelosRenderer,
-} from "../blocks";
+} from "../blocks/blocks";
 import { defineBaseBlocks } from "../blocks/base";
 import { defineShapeBlocks } from "../blocks/shapes";
 import { defineSceneBlocks } from "../blocks/scene.js";

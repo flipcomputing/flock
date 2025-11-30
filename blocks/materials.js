@@ -2,7 +2,7 @@ import * as Blockly from "blockly";
 import { categoryColours } from "../toolbox.js";
 import {
         getHelpUrlFor,
-} from "../blocks.js";
+} from "./blocks.js";
 import {
   materialNames,
 } from "../config.js";

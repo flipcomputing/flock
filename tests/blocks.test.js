@@ -1,22 +1,22 @@
 import { expect } from "chai";
-import { handleBlockCreateEvent } from "../blocks.js";
+import { handleBlockCreateEvent } from "../blocks/blocks.js";
 
 export function runBlocksTests() {
-	describe("blocks.js tests", function () {
-		this.timeout(5000);
+        describe("blocks.js tests", function () {
+                this.timeout(5000);
 
-		describe("handleBlockCreateEvent variable naming", function () {
-			let mockWorkspace;
-			let mockBlock;
-			let mockVariableField;
-			let nextVariableIndexes;
-			let createdVariables;
+                describe("handleBlockCreateEvent variable naming", function () {
+                        let mockWorkspace;
+                        let mockBlock;
+                        let mockVariableField;
+                        let nextVariableIndexes;
+                        let createdVariables;
 
-			beforeEach(function () {
-				nextVariableIndexes = { star: 1 };
-				createdVariables = new Map();
-				
-				mockWorkspace = {
+                        beforeEach(function () {
+                                nextVariableIndexes = { star: 1 };
+                                createdVariables = new Map();
+                                
+                                mockWorkspace = {
           getVariableById: function(id) {
               for (let [varId, variable] of createdVariables) {
                   if (varId === id) return variable;
@@ -44,29 +44,29 @@ export function runBlocksTests() {
           }
       };
 
-				mockVariableField = {
-					currentValue: null,
-					getValue: function() { return this.currentValue; },
-					setValue: function(value) { this.currentValue = value; }
-				};
+                                mockVariableField = {
+                                        currentValue: null,
+                                        getValue: function() { return this.currentValue; },
+                                        setValue: function(value) { this.currentValue = value; }
+                                };
 
-				mockBlock = {
-					id: "block123",
-					isInFlyout: false,
-					workspace: mockWorkspace,
-					getField: function(fieldName) {
-						return fieldName === "ID_VAR" ? mockVariableField : null;
-					}
-				};
+                                mockBlock = {
+                                        id: "block123",
+                                        isInFlyout: false,
+                                        workspace: mockWorkspace,
+                                        getField: function(fieldName) {
+                                                return fieldName === "ID_VAR" ? mockVariableField : null;
+                                        }
+                                };
 
         mockVariableField.currentValue = null;
 
-				window.loadingCode = false;
-			});
+                                window.loadingCode = false;
+                        });
 
-			afterEach(function () {
-				delete window.loadingCode;
-			});
+                        afterEach(function () {
+                                delete window.loadingCode;
+                        });
 
       it("should add numbers to custom variable names on duplicate", function () {
         const customVariable = mockWorkspace.createVariable("myCustomStar", null);
@@ -91,30 +91,30 @@ export function runBlocksTests() {
         expect(newVariable.name).to.equal("myCustomStar1");
       });
 
-			it("should rename numbered variables to next number on duplicate", function () {
-				const star1Variable = mockWorkspace.createVariable("star1", null);
-				mockVariableField.setValue(star1Variable.getId());
-				
-				nextVariableIndexes.star = 2;
+                        it("should rename numbered variables to next number on duplicate", function () {
+                                const star1Variable = mockWorkspace.createVariable("star1", null);
+                                mockVariableField.setValue(star1Variable.getId());
+                                
+                                nextVariableIndexes.star = 2;
 
-				const changeEvent = {
-					type: "create",
-					blockId: "block123",
-					ids: ["block123"],
-					recordUndo: true
-				};
+                                const changeEvent = {
+                                        type: "create",
+                                        blockId: "block123",
+                                        ids: ["block123"],
+                                        recordUndo: true
+                                };
 
-				handleBlockCreateEvent(
-					mockBlock,
-					changeEvent,
-					"star",
-					nextVariableIndexes,
-					"ID_VAR"
-				);
+                                handleBlockCreateEvent(
+                                        mockBlock,
+                                        changeEvent,
+                                        "star",
+                                        nextVariableIndexes,
+                                        "ID_VAR"
+                                );
 
-				const newVariable = mockWorkspace.getVariableById(mockVariableField.getValue());
-				expect(newVariable.name).to.equal("star2");
-			});
+                                const newVariable = mockWorkspace.getVariableById(mockVariableField.getValue());
+                                expect(newVariable.name).to.equal("star2");
+                        });
 
       it("should not rename variables during code loading", function () {
         window.loadingCode = true;
@@ -305,5 +305,5 @@ export function runBlocksTests() {
         expect(newVariable.name).to.equal("myCustomStar2");
       });
     });
-	});
+        });
 }

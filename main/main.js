@@ -6,7 +6,7 @@ import * as Blockly from "blockly";
 import "@babylonjs/core/Debug/debugLayer";
 import "@babylonjs/inspector";
 import { flock, initializeFlock } from "../flock.js";
-import { initializeVariableIndexes } from "../blocks";
+import { initializeVariableIndexes } from "../blocks/blocks";
 import { meshMap } from "../generators";
 import { enableGizmos } from "../ui/gizmos.js";
 import { executeCode, stopCode } from "./execution.js";

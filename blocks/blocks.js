@@ -1,8 +1,8 @@
 import * as Blockly from "blockly";
 //import "@blockly/block-plus-minus";
 import * as BlockDynamicConnection from "@blockly/block-dynamic-connection";
-import { toolbox } from "./toolbox.js";
-import { getOption, translate } from "/main/translation.js";
+import { toolbox } from "../toolbox.js";
+import { getOption, translate } from "../main/translation.js";
 
 import {
   deleteMeshFromBlock,
@@ -11,9 +11,9 @@ import {
   applySceneBackgroundFromWorkspace,
   clearSkyMesh,
   setClearSkyToBlack,
-} from "./ui/blockmesh.js";
+} from "../ui/blockmesh.js";
 import { registerFieldColour } from "@blockly/field-colour";
-import { createThemeConfig } from "./main/themes.js";
+import { createThemeConfig } from "../main/themes.js";
 
 registerFieldColour();
 

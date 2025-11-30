@@ -2,7 +2,7 @@ import * as Blockly from "blockly";
 import { categoryColours } from "../toolbox.js";
 import {
         getHelpUrlFor,
-} from "../blocks.js";
+} from "./blocks.js";
 import { translate, getTooltip, getDropdownOption } from "../main/translation.js";
 
 export function definePhysicsBlocks() {
