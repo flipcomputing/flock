@@ -467,7 +467,7 @@ export default {
   move_by_xyz_tooltip: "Move a mesh a given amount in x y and z directions.\nKeyword: move",
   move_by_xyz_single_tooltip: "Move a mesh a given amount in either x y or z direction.\nKeyword: move",
   move_to_xyz_tooltip: "Teleport the mesh to the coordinates. Optionally, use the Y axis.\nKeyword: moveby",
-  move_to_xyz_single_tooltip: "Teleport the mesh to the specified single coordinate. Optionally, use the Y axis.\nKeyword: moveby",
+  move_to_xyz_single_tooltip: "Teleport the mesh to the specified single coordinate.\nKeyword: moveby",
   move_to_tooltip: "Teleport the first mesh to the location of the second mesh.\nKeyword: moveto",
   scale_tooltip: "Resize a mesh to the given x, y, and z and controls the origin of scaling. \nKeyword: scale",
   resize_tooltip: "Resize a mesh to the given x, y, and z and controls the origin of scaling.\nKeyword: resize",
