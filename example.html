@@ -11,8 +11,17 @@
                         }
                 </style>
 	</head>
-	<body>
-		<canvas id="renderCanvas" touch-action="none"  style="width: 640px; height: 360px;" tabindex="0"></canvas>
+        <body>
+                <div id="rightArea">
+                        <canvas
+                                id="renderCanvas"
+                                touch-action="none"
+                                style="width: 640px; height: 360px;"
+                                tabindex="0"
+                        ></canvas>
+                </div>
+
+                <div id="blocklyDiv" style="display: none"></div>
 		
 		<script id="flock" type="application/flock">
 			// Made with Flock XR
