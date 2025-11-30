@@ -259,6 +259,11 @@ export function extractMaterialInfo(materialBlock) {
 }
 
 function applyBackgroundColorFromBlock(block) {
+  if (!block.isEnabled()) {
+    setClearSkyToBlack();
+    return;
+  }
+
   const read = readColourFromInputOrShadow(block, "COLOR");
   flock.setSky(read.value, { clear: true });
 }
@@ -272,14 +277,23 @@ export function clearSkyMesh({ preserveClearColor = true } = {}) {
   }
 
   if (!preserveClearColor) {
-    flock.scene.clearColor = new flock.BABYLON.Color3(0, 0, 0);
+    const clearColor = flock.initialClearColor
+      ? flock.initialClearColor.clone?.() ?? flock.initialClearColor
+      : new flock.BABYLON.Color3(0, 0, 0);
+
+    flock.scene.clearColor = clearColor;
   }
 
   delete meshMap["sky"];
 }
 
 export function setClearSkyToBlack() {
-  flock.setSky("#000000", { clear: true });
+  const fallbackColor =
+    flock.initialClearColor?.toHexString?.() ??
+    flock.initialClearColor ??
+    "#000000";
+
+  flock.setSky(fallbackColor, { clear: true });
 }
 
 function applyFirstBackgroundBlock(excludeBlockId) {
@@ -414,6 +428,11 @@ function safeGetFieldValue(block, fieldName) {
 }
 
 function updateSkyFromBlock(mesh, block, changeEvent) {
+  if (!block.isEnabled()) {
+    setClearSkyToBlack();
+    return;
+  }
+
   const colorInput = block.getInputTargetBlock("COLOR");
 
   if (colorInput && colorInput.type === "material") {
