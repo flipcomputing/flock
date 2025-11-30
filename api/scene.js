@@ -28,6 +28,7 @@ export const flockScene = {
     // --- BACKGROUND ONLY (flat clear color) ---
     if (clear === true) {
       const c3 = flock.BABYLON.Color3.FromHexString(flock.getColorFromString(color));
+      flock.initialClearColor = c3.clone?.() ?? c3;
       flock.scene.clearColor = c3;
       return;
     }

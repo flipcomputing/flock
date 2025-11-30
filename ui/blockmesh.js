@@ -283,7 +283,12 @@ export function clearSkyMesh({ preserveClearColor = true } = {}) {
 }
 
 export function setClearSkyToBlack() {
-  flock.setSky("#000000", { clear: true });
+  const fallbackColor =
+    flock.initialClearColor?.toHexString?.() ??
+    flock.initialClearColor ??
+    "#000000";
+
+  flock.setSky(fallbackColor, { clear: true });
 }
 
 function applyFirstBackgroundBlock(excludeBlockId) {
