@@ -125,7 +125,7 @@ export default {
       // Custom block translations - Scene blocks
       set_sky_color: "himmel %1",
       create_ground: "mark %1",
-      set_background_color: "ställ in bakgrundsfärg %1",
+      set_background_color: "bakgrund %1",
       create_map: "karta %1 med material %2",
       show: "visa %1",
       hide: "dölj %1",
@@ -134,7 +134,7 @@ export default {
 
       // Custom block translations - Models blocks
       load_character:
-            "lägg till %1 %2 skala: %3 x: %4 y: %5 z: %6\nHår: %7 | Hud: %8 | Ögon: %9 | T-shirt: %10 | Shorts: %11 | Detalj: %12",
+            "lägg till %1 %2 skala: %3 x: %4 y: %5 z: %6\nhår: %7 | hud: %8 | ögon: %9 | t-shirt: %10 | shorts: %11 | detalj: %12",
       load_object: "lägg till %1 %2 %3 skala: %4 x: %5 y: %6 z: %7",
       load_multi_object:
             "lägg till %1 %2 skala: %3 x: %4 y: %5 z: %6\nfärger: %7",
@@ -215,9 +215,9 @@ export default {
       change_color: "färga %1 till %2",
       change_material: "tillämpa material %1 på %2 med färg %3",
       text_material:
-            "material %1 text %2 färg %3 bakgrund %4\nbredd %5 höjd %6 storlek %7",
+            "material %1 text %2 färg %3 bakgrund %4\nbredd: %5 höjd: %6 storlek: %7",
       place_decal: "dekal %1 vinkel %2",
-      decal: "dekal på %1 från x %2 y %3 z %4\nvinkel x %5 y %6 z %7\nstorlek x %8 y %9 z %10 material %11",
+      decal: "dekal på %1 från x: %2 y: %3 z: %4\nvinkel x: %5 y: %6 z: %7\nstorlek x: %8 y: %9 z: %10 material: %11",
       highlight: "markera %1 %2",
       glow: "glöd %1",
       tint: "toning %1 %2",
@@ -256,30 +256,30 @@ export default {
             "lägg till %1 partikeleffekt på: %2\nform: %3 start %4 slut %5 alfa: %6 till %7\nfrekvens: %8 storlek: %9 till %10 livslängd: %11 till %12\ngrundkrafter: %13 kraft x: %14 y: %15 z: %16\nvinkelhastighet: %17 till %18 initial vinkel: %19 till %20",
       control_particle_system: "partikelsystem %1 %2",
       create_box:
-            "lägg till box %1 %2 bredd %3 höjd %4 djup %5 \nvid x %6 y %7 z %8",
+            "lägg till box %1 %2 bredd: %3 höjd: %4 djup: %5 \nvid x: %6 y: %7 z: %8",
       create_sphere:
-            "lägg till sfär %1 %2 diameter x %3 diameter y %4 diameter z %5\nvid x %6 y %7 z %8",
+            "lägg till sfär %1 %2 diameter x: %3 diameter y: %4 diameter z: %5\nvid x: %6 y: %7 z: %8",
       create_cylinder:
-            "lägg till cylinder %1 %2 höjd %3 topp %4 botten %5 sidor %6\nvid x %7 y %8 z %9",
+            "lägg till cylinder %1 %2 höjd: %3 topp: %4 botten: %5 sidor: %6\nvid x: %7 y: %8 z: %9",
       create_capsule:
-            "lägg till kapsel %1 %2 diameter %3 höjd %4 \nvid x %5 y %6 z %7",
+            "lägg till kapsel %1 %2 diameter: %3 höjd: %4 \nvid x: %5 y: %6 z: %7",
       create_plane:
-            "lägg till plan %1 %2 bredd %3 höjd %4 \nvid x %5 y %6 z %7",
+            "lägg till plan %1 %2 bredd: %3 höjd: %4 \nvid x: %5 y: %6 z: %7",
 
       // Custom block translations - Sound blocks
       play_sound:
-            "spela ljud %1 %2 från %3 \nrotation %4 volym %5 läge %6 asynkront %7",
+            "spela ljud %1 %2 från %3 \nrotation: %4 volym: %5 läge: %6 asynkront: %7",
       stop_all_sounds: "stoppa alla ljud",
       midi_note: "MIDI not %1",
       rest: "paus",
       play_notes:
-            "spela noter på %1\nnoter %2 varaktigheter %3\ninstrument %4 läge %5",
+            "spela noter på %1\nnoter: %2 varaktigheter: %3\ninstrument: %4 läge: %5",
       set_scene_bpm: "ställ in scenens BPM till %1",
       set_mesh_bpm: "ställ in BPM för %1 till %2",
       create_instrument:
-            "instrument %1 våg %2 frekvens %3 attack %4 förfall %5 sustain %6 release %7",
+            "instrument %1 våg: %2 frekvens: %3 attack: %4 förfall: %5 sustain: %6 release: %7",
       instrument: "instrument %1",
-      speak: "tala %1 %2 röst %3 språk %4\nhastighet %5 tonhöjd %6 volym %7 läge %8",
+      speak: "tala %1 %2 röst: %3 språk: %4\nhastighet: %5 tonhöjd: %6 volym: %7 läge: %8",
 
       // Custom block translations - Text blocks
       comment: "// %1",
@@ -287,7 +287,7 @@ export default {
       say: "säg %1 för %2 s %3 \ntext %4 på %5 alfa %6 storlek %7 %8 %9",
       ui_text: "ui text %1 %2 vid x: %3 y: %4\nstorlek: %5 för %6 sekunder färg: %7",
       ui_button:
-            "ui knapp %1 %2 vid x: %3 y: %4\nstorlek: %5 textstorlek: %6 textfärg: %7 bakgrundsfärg: %8",
+            "ui knapp %1 %2 vid x: %3 y: %4\nstorlek: %5 textstorlek: %6 text: %7 background: %8",
       ui_input: "ui inmatning %1 %2 vid x: %3 y: %4\nstorlek: %5 textstorlek: %6 text: %7 bakgrund: %8",
       create_3d_text:
             "lägg till %1 3D text: %2 font: %3 storlek: %4 färg: %5\ndjup: %6 x: %7 y: %8 z: %9 ",

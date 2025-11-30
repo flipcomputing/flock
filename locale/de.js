@@ -128,7 +128,7 @@ export default {
   // Custom block translations - Scene blocks
   set_sky_color: "Himmel %1",
   create_ground: "Boden %1",
-  set_background_color: "Hintergrundfarbe setzen %1",
+  set_background_color: "Hintergrund %1",
   create_map: "Karte %1 mit Material %2",
   show: "zeige %1",
   hide: "verstecke %1",
@@ -136,7 +136,7 @@ export default {
   clone_mesh: "füge %1 Klon von %2 hinzu",
 
   // Custom block translations - Models blocks
-  load_character: "füge %1 %2 hinzu Skalierung: %3 x: %4 y: %5 z: %6\nHaare: %7 | Haut: %8 | Augen: %9 | T-Shirt: %10 | Shorts: %11 | Details: %12",
+  load_character: "füge %1 %2 hinzu Skalierung: %3 x: %4 y: %5 z: %6\nhaare: %7 | haut: %8 | augen: %9 | t-shirt: %10 | shorts: %11 | details: %12",
   load_object: "füge %1 %2 %3 hinzu Skalierung: %4 x: %5 y: %6 z: %7",
   load_multi_object: "füge %1 %2 hinzu Skalierung: %3 x: %4 y: %5 z: %6\nFarben: %7",
   load_model: "füge %1 %2 hinzu Skalierung: %3 x: %4 y: %5 z: %6",
@@ -209,9 +209,9 @@ export default {
   // Custom block translations - Materials blocks
   change_color: "Farbe %1 auf %2 setzen",
   change_material: "Material %1 auf %2 anwenden mit Farbe %3",
-  text_material: "Material %1 Text %2 Farbe %3 Hintergrund %4\nBreite %5 Höhe %6 Größe %7",
+  text_material: "Material %1 Text %2 Farbe %3 Hintergrund %4\nBreite: %5 Höhe: %6 Größe: %7",
   place_decal: "Aufkleber %1 Winkel %2",
-  decal: "Aufkleber auf %1 von x %2 y %3 z %4 \nWinkel x %5 y %6 z %7\nGröße x %8 y %9 z %10 Material %11",
+  decal: "Aufkleber auf %1 von x: %2 y: %3 z: %4 \nWinkel x: %5 y: %6 z: %7\nGröße x: %8 y: %9 z: %10 Material: %11",
   highlight: "hervorheben %1 %2",
   glow: "leuchten %1",
   tint: "tönen %1 %2",
@@ -247,14 +247,14 @@ export default {
   // Shapes blocks
   create_particle_effect: "Füge Partikeleffekt %1 hinzu auf: %2\nForm: %3 Start: %4 Ende: %5 Alpha: %6–%7\nRate: %8 Größe: %9–%10 Lebensdauer: %11–%12\nGravitation: %13 Kraft x: %14 y: %15 z: %16\nDrehgeschwindigkeit: %17–%18 Anfangswinkel: %19–%20",
   control_particle_system: "Steuere Partikelsystem %1 %2",
-  create_box: "Box hinzufügen %1 %2 Breite %3 Höhe %4 Tiefe %5\nbei x: %6 y: %7 z: %8",
-  create_sphere: "Kugel hinzufügen %1 %2 Ø x: %3 y: %4 z: %5\nbei x: %6 y: %7 z: %8",
+  create_box: "Box hinzufügen %1 %2 Breite: %3 Höhe: %4 Tiefe: %5\nbei x: %6 y: %7 z: %8",
+  create_sphere: "Kugel hinzufügen %1 %2 Ø x: %3 Ø y: %4 Ø z: %5\nbei x: %6 y: %7 z: %8",
   create_cylinder: "Zylinder hinzufügen %1 %2 Höhe: %3 oben: %4 unten: %5 Seiten: %6\nbei x: %7 y: %8 z: %9",
   create_capsule: "Kapsel hinzufügen %1 %2 Ø: %3 Höhe: %4\nbei x: %5 y: %6 z: %7",
   create_plane: "Ebene hinzufügen %1 %2 Breite: %3 Höhe: %4\nbei x: %5 y: %6 z: %7",
 
   // Sound blocks
-  play_sound: "Ton abspielen %1 %2 von %3\nGeschwindigkeit: %4 Lautstärke: %5 Modus: %6 async: %7",
+  play_sound: "Ton abspielen %1 %2 von %3\nGeschwindigkeit: %4 Lautstärke: %5 Modus: %6 Async: %7",
   stop_all_sounds: "Alle Töne stoppen",
   midi_note: "MIDI-Note %1",
   rest: "Pause",
@@ -270,7 +270,7 @@ export default {
   print_text: "drucke %1 für %2 Sekunden %3",
   say: "sage %1 für %2 s %3\nText: %4 auf %5 Alpha: %6 Größe: %7 %8 %9",
   ui_text: "UI-Text %1 %2 bei x: %3 y: %4\nGröße: %5 für %6 Sekunden Farbe: %7",
-  ui_button: "UI‑Button %1 %2 bei x: %3 y: %4\nGröße: %5 Textgröße: %6 Textfarbe: %7 Hintergrund: %8",
+  ui_button: "UI‑Button %1 %2 bei x: %3 y: %4\nGröße: %5 Textgröße: %6 text: %7 background: %8",
   ui_input: "UI‑Eingabe %1 %2 bei x: %3 y: %4\nGröße: %5 Textgröße: %6 Text: %7 Hintergrund: %8",
   create_3d_text: "Füge 3D‑Text hinzu %1: %2 Schrift: %3 Größe: %4 Farbe: %5\nTiefe: %6 x: %7 y: %8 z: %9",
 

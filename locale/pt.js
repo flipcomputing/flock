@@ -125,7 +125,7 @@ export default {
   // Custom block translations - Scene blocks
   set_sky_color: "céu %1",
   create_ground: "chão %1",
-  set_background_color: "definir cor de fundo %1",
+  set_background_color: "fundo %1",
   create_map: "mapa %1 com material %2",
   show: "mostrar %1",
   hide: "ocultar %1",
@@ -134,7 +134,7 @@ export default {
 
   // Custom block translations - Models blocks
   load_character:
-    "adicionar %1 %2 escala: %3 x: %4 y: %5 z: %6\nCabelo: %7 | Pele: %8 | Olhos: %9 | Camiseta: %10 | Shorts: %11 | Detalhe: %12",
+    "adicionar %1 %2 escala: %3 x: %4 y: %5 z: %6\ncabelo: %7 | pele: %8 | olhos: %9 | camiseta: %10 | shorts: %11 | detalhe: %12",
   load_object: "adicionar %1 %2 %3 escala: %4 x: %5 y: %6 z: %7",
   load_multi_object: "adicionar %1 %2 escala: %3 x: %4 y: %5 z: %6\ncores: %7",
   load_model: "adicionar %1 %2 escala: %3 x: %4 y: %5 z: %6",
@@ -214,10 +214,10 @@ export default {
   change_color: "cor %1 para %2",
   change_material: "aplicar material %1 em %2 com cor %3",
   text_material:
-    "material %1 texto %2 cor %3 fundo %4\nlargura %5 altura %6 tamanho %7",
+    "material %1 texto %2 cor %3 fundo %4\nlargura: %5 altura: %6 tamanho: %7",
   place_decal: "adesivo %1 ângulo %2",
   decal:
-    "adesivo em %1 de x %2 y %3 z %4\nângulo x %5 y %6 z %7\ntamanho x %8 y %9 z %10 material %11",
+    "adesivo em %1 de x: %2 y: %3 z: %4\nângulo x: %5 y: %6 z: %7\ntamanho x: %8 y: %9 z: %10 material: %11",
   highlight: "destacar %1 %2",
   glow: "brilhar %1",
   tint: "tonalizar %1 %2",
@@ -256,29 +256,29 @@ export default {
     "adicionar efeito de partículas %1 em: %2\nforma: %3 início %4 fim %5 opacidade: %6 até %7\ntaxa: %8 tamanho: %9 até %10 duração: %11 até %12\ngravidade: %13 força x: %14 y: %15 z: %16\nvelocidade angular: %17 até %18 ângulo inicial: %19 até %20",
   control_particle_system: "sistema de partículas %1 %2",
   create_box:
-    "adicionar caixa %1 %2 largura %3 altura %4 profundidade %5 \nem x %6 y %7 z %8",
+    "adicionar caixa %1 %2 largura: %3 altura: %4 profundidade: %5 \nem x: %6 y: %7 z: %8",
   create_sphere:
-    "adicionar esfera %1 %2 diâmetro x %3 diâmetro y %4 diâmetro z %5\nem x %6 y %7 z %8",
+    "adicionar esfera %1 %2 diâmetro x: %3 diâmetro y: %4 diâmetro z: %5\nem x: %6 y: %7 z: %8",
   create_cylinder:
-    "adicionar cilindro %1 %2 altura %3 topo %4 base %5 lados %6\nem x %7 y %8 z %9",
+    "adicionar cilindro %1 %2 altura: %3 topo: %4 base: %5 lados: %6\nem x: %7 y: %8 z: %9",
   create_capsule:
-    "adicionar cápsula %1 %2 diâmetro %3 altura %4 \nem x %5 y %6 z %7",
+    "adicionar cápsula %1 %2 diâmetro: %3 altura: %4 \nem x: %5 y: %6 z: %7",
   create_plane:
-    "adicionar plano %1 %2 largura %3 altura %4 \nem x %5 y %6 z %7",
+    "adicionar plano %1 %2 largura: %3 altura: %4 \nem x: %5 y: %6 z: %7",
 
   // Custom block translations - Sound blocks
   play_sound:
-    "tocar som %1 %2 de %3 \nvelocidade %4 volume %5 modo %6 assíncrono %7",
+    "tocar som %1 %2 de %3 \nvelocidade: %4 volume: %5 modo: %6 assíncrono: %7",
   stop_all_sounds: "parar todos os sons",
   midi_note: "nota MIDI %1",
   rest: "pausa",
-  play_notes: "tocar notas em %1\nnotas %2 durações %3\ninstrumento %4 modo %5",
+  play_notes: "tocar notas em %1\nnotas: %2 durações: %3\ninstrumento: %4 modo: %5",
   set_scene_bpm: "definir BPM da cena para %1",
   set_mesh_bpm: "definir BPM de %1 para %2",
   create_instrument:
-    "instrumento %1 onda %2 frequência %3 ataque %4 decaimento %5 sustentação %6 liberação %7",
+    "instrumento %1 onda: %2 frequência: %3 ataque: %4 decaimento: %5 sustentação: %6 liberação: %7",
   instrument: "instrumento %1",
-  speak: "falar %1 %2 voz %3 idioma %4\nvelocidade %5 tom %6 volume %7 modo %8",
+  speak: "falar %1 %2 voz: %3 idioma: %4\nvelocidade: %5 tom: %6 volume: %7 modo: %8",
 
   // Custom block translations - Text blocks
   comment: "// %1",
@@ -286,7 +286,7 @@ export default {
   say: "dizer %1 por %2 s %3 \ntexto %4 em %5 opacidade %6 tamanho %7 %8 %9",
   ui_text: "texto UI %1 %2 em x: %3 y: %4\ntamanho: %5 por %6 segundos cor: %7",
   ui_button:
-    "botão UI %1 %2 em x: %3 y: %4\ntamanho: %5 tamanho do texto: %6 cor do texto: %7 cor de fundo: %8",
+    "botão UI %1 %2 em x: %3 y: %4\ntamanho: %5 tamanho do texto: %6 text: %7 background: %8",
   ui_input:
     "campo de entrada UI %1 %2 em x: %3 y: %4\ntamanho: %5 tamanho do texto: %6 texto: %7 fundo: %8",
   create_3d_text:

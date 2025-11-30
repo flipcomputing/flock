@@ -49,7 +49,7 @@ export default {
                                       more_options: "Plus d'options",
                                       hex_placeholder: "ff0000 ou red",
                                       skin_tone: "Ton de peau",
-                                      color_wheel_aria: "Roue chromatique : utilisez les touches fléchées pour sélectionner la teinte et la saturation",
+                                      color_wheel_aria: "Roue chromatique: utilisez les touches fléchées pour sélectionner la teinte et la saturation",
 
                                       // Palette names
                                       palette_bright: "Vif",
@@ -124,7 +124,7 @@ export default {
                                       // Custom block translations - Scene blocks
                                       set_sky_color: "ciel %1",
                                       create_ground: "sol %1",
-                                      set_background_color: "définir la couleur d'arrière-plan %1",
+                                      set_background_color: "arrière-plan %1",
                                       create_map: "carte %1 avec matériau %2",
                                       show: "afficher %1",
                                       hide: "cacher %1",
@@ -132,7 +132,7 @@ export default {
                                       clone_mesh: "ajouter %1 clone de %2",
 
                                       // Custom block translations - Models blocks
-                                      load_character: `ajouter %1 %2 échelle: %3 x: %4 y: %5 z: %6 Cheveux: %7 |  Peau: %8 |  Yeux: %9 |  T-Shirt: %10 |  Shorts: %11 |  Détail: %12`,
+                                      load_character: `ajouter %1 %2 échelle: %3 x: %4 y: %5 z: %6 cheveux: %7 |  peau: %8 |  yeux: %9 |  t-shirt: %10 |  shorts: %11 |  détail: %12`,
                                       load_object: "ajouter %1 %2 %3 échelle: %4 x: %5 y: %6 z: %7",
                                       load_multi_object: "ajouter %1 %2 échelle: %3 x: %4 y: %5 z: %6\ncouleurs: %7",
                                       load_model: "ajouter %1 %2 échelle:: %3 x: %4 y: %5 z: %6",
@@ -144,8 +144,8 @@ export default {
                                       rotate_anim_seconds: "tourner %1 vers x %2 y %3 z %4 en %5 secondes\n%6 inverse? %7 boucle? %8 %9",
                                       animate_property: "animer %1 %2 vers %3 en %4 ms inverse? %5 boucle? %6 %7",
                                       colour_keyframe: "à %1 couleur: %2",
-                                      number_keyframe: "à : %1 valeur: %2",
-                                      xyz_keyframe: "à : %1 x: %2 y: %3 z: %4",
+                                      number_keyframe: "à: %1 valeur: %2",
+                                      xyz_keyframe: "à: %1 x: %2 y: %3 z: %4",
                                       animate_keyframes: "animer les images clés sur %1 propriété %2\nimages clés %3\naccélération %4 boucle %5 inverse %6 %7",
                                       animation: "animer les images clés sur %1 propriété %2 groupe %3\nimages clés %4\naccélération %5 boucle %6 inverse %7 mode %8",
                                       control_animation_group: "groupe d'animation %1 %2",
@@ -170,14 +170,14 @@ export default {
 
                                       // Custom block translations - Connect blocks
                                       parent: "parent %1 enfant %2",
-                                      parent_child: "parent %1 enfant %2\ndécalage x : %3 y : %4 z : %5",
+                                      parent_child: "parent %1 enfant %2\ndécalage x: %3 y: %4 z: %5",
                                       remove_parent: "retirer le parent de %1",
                                       stop_follow: "arrêter de suivre %1",
-                                      hold: "faire en sorte que %1 tienne %2\ndécalage x : %3 y : %4 z : %5",
+                                      hold: "faire en sorte que %1 tienne %2\ndécalage x: %3 y: %4 z: %5",
                                       drop: "lâcher %1",
-                                      follow: "faire en sorte que %1 suive %2 à %3\ndécalage x : %4 y : %5 z : %6",
+                                      follow: "faire en sorte que %1 suive %2 à %3\ndécalage x: %4 y: %5 z: %6",
                                       export_mesh: "exporter %1 comme %2",
-                                      attach: "attacher %1 à %2 à %3\ndécalage x : %4 y : %5 z : %6",
+                                      attach: "attacher %1 à %2 à %3\ndécalage x: %4 y: %5 z: %6",
 
                                       // Custom block translations - Control blocks
                                       wait: "attendre %1 ms",
@@ -205,9 +205,9 @@ export default {
                                       // Custom block translations - Materials blocks
                                       change_color: "changer la couleur de %1 en %2",
                                       change_material: "appliquer le matériau %1 à %2 avec la couleur %3",
-                                      text_material: "matériau %1 texte %2 couleur %3 fond %4\nlargeur %5 hauteur %6 taille %7",
+                                      text_material: "matériau %1 texte %2 couleur %3 fond %4\nlargeur: %5 hauteur: %6 taille: %7",
                                       place_decal: "décalcomanie %1 angle %2",
-                                      decal: "décalcomanie sur %1 depuis x %2 y %3 z %4\nangle x %5 y %6 z %7\ntaille x %8 y %9 z %10 matériau %11",
+                                      decal: "décalcomanie sur %1 depuis x: %2 y: %3 z: %4\nangle x: %5 y: %6 z: %7\ntaille x: %8 y: %9 z: %10 matériau: %11",
                                       highlight: "surligner %1 %2",
                                       glow: "illuminer %1",
                                       tint: "teinter %1 %2",
@@ -241,46 +241,46 @@ export default {
                                       ui_slider: "curseur UI %1 de %2 à %3 par défaut %4 à x: %5 y: %6\ncouleur: %7 fond: %8 %9",
 
                                       // Custom block translations - Shapes blocks
-                                      create_particle_effect: "ajouter effet de particules %1 sur : %2\nforme : %3 début %4 fin %5 opacité : %6 à %7\nfréquence : %8 taille : %9 à %10 durée de vie : %11 à %12\ngravité : %13 force x : %14 y : %15 z : %16\nvitesse angulaire : %17 à %18 angle initial : %19 à %20",
+                                      create_particle_effect: "ajouter effet de particules %1 sur: %2\nforme: %3 début %4 fin %5 opacité: %6 à %7\nfréquence: %8 taille: %9 à %10 durée de vie: %11 à %12\ngravité: %13 force x: %14 y: %15 z: %16\nvitesse angulaire: %17 à %18 angle initial: %19 à %20",
                                       control_particle_system: "système de particules %1 %2",
-                                      create_box: "ajouter boîte %1 %2 largeur %3 hauteur %4 profondeur %5\nà x %6 y %7 z %8",
-                                      create_sphere: "ajouter sphère %1 %2 diamètre x %3 diamètre y %4 diamètre z %5\nà x %6 y %7 z %8",
-                                      create_cylinder: "ajouter cylindre %1 %2 hauteur %3 haut %4 bas %5 côtés %6\nà x %7 y %8 z %9",
-                                      create_capsule: "ajouter capsule %1 %2 diamètre %3 hauteur %4\nà x %5 y %6 z %7",
-                                      create_plane: "ajouter plan %1 %2 largeur %3 hauteur %4\nà x %5 y %6 z %7",
+                                      create_box: "ajouter boîte %1 %2 largeur: %3 hauteur: %4 profondeur: %5\nà x: %6 y: %7 z: %8",
+                                      create_sphere: "ajouter sphère %1 %2 diamètre x: %3 diamètre y: %4 diamètre z: %5\nà x: %6 y: %7 z: %8",
+                                      create_cylinder: "ajouter cylindre %1 %2 hauteur: %3 haut: %4 bas: %5 côtés: %6\nà x: %7 y: %8 z: %9",
+                                      create_capsule: "ajouter capsule %1 %2 diamètre: %3 hauteur: %4\nà x: %5 y: %6 z: %7",
+                                      create_plane: "ajouter plan %1 %2 largeur: %3 hauteur: %4\nà x: %5 y: %6 z: %7",
 
                                       // Custom block translations - Sound blocks
-                                      play_sound: "jouer le son %1 %2 depuis %3\nvitesse %4 volume %5 mode %6 asynchrone %7",
+                                      play_sound: "jouer le son %1 %2 depuis %3\nvitesse: %4 volume: %5 mode: %6 asynchrone: %7",
                                       stop_all_sounds: "arrêter tous les sons",
                                       midi_note: "note MIDI %1",
                                       rest: "pause",
-                                      play_notes: "jouer notes sur %1\nnotes %2 durées %3\ninstrument %4 mode %5",
+                                      play_notes: "jouer notes sur %1\nnotes: %2 durées: %3\ninstrument: %4 mode: %5",
                                       set_scene_bpm: "régler le BPM de la scène à %1",
                                       set_mesh_bpm: "régler le BPM de %1 à %2",
-                                      create_instrument: "instrument %1 onde %2 fréquence %3 attaque %4 décroissance %5 maintien %6 relâchement %7",
+                                      create_instrument: "instrument %1 onde: %2 fréquence: %3 attaque: %4 décroissance: %5 maintien: %6 relâchement: %7",
                                       instrument: "instrument %1",
-                                      speak: "parler %1 %2 voix %3 langue %4\nvitesse %5 hauteur %6 volume %7 mode %8",
+                                      speak: "parler %1 %2 voix: %3 langue: %4\nvitesse: %5 hauteur: %6 volume: %7 mode: %8",
 
                                       // Custom block translations - Text blocks
                                       comment: "// %1",
                                       print_text: "afficher %1 pendant %2 secondes %3",
                                       say: "dire %1 pendant %2 s %3\ntexte %4 sur %5 opacité %6 taille %7 %8 %9",
                                       ui_text: "texte UI %1 %2 à x: %3 y: %4\ntaille: %5 pendant %6 secondes couleur: %7",
-                                      ui_button: "bouton UI %1 %2 à x: %3 y: %4\ntaille: %5 taille du texte: %6 couleur du texte: %7 couleur de fond: %8",
+                                      ui_button: "bouton UI %1 %2 à x: %3 y: %4\ntaille: %5 taille du texte: %6 texte: %7 fond: %8",
                                       ui_input: "champ de saisie UI %1 %2 à x: %3 y: %4\ntaille: %5 taille du texte: %6 texte: %7 fond: %8",
-                                      create_3d_text: "ajouter texte 3D %1 : %2 police : %3 taille : %4 couleur : %5\nprofondeur : %6 x : %7 y : %8 z : %9",
+                                      create_3d_text: "ajouter texte 3D %1: %2 police: %3 taille: %4 couleur: %5\nprofondeur: %6 x: %7 y: %8 z: %9",
 
                                       // Custom block translations - Transform blocks
-                                      move_by_xyz: "déplacer %1 de x : %2 y : %3 z : %4",
-                                      move_to_xyz: "déplacer %1 à x : %2 y : %3 z : %4 y ? %5",
+                                      move_by_xyz: "déplacer %1 de x: %2 y: %3 z: %4",
+                                      move_to_xyz: "déplacer %1 à x: %2 y: %3 z: %4 y ? %5",
                                       move_to: "déplacer %1 vers %2 y ? %3",
-                                      scale: "échelle %1 x : %2 y : %3 z : %4\norigine x : %5 y : %6 z : %7",
-                                      resize: "redimensionner %1 x : %2 y : %3 z : %4\norigine x : %5 y : %6 z : %7",
-                                      rotate_model_xyz: "pivoter %1 de x : %2 y : %3 z : %4",
-                                      rotate_to: "pivoter %1 vers x : %2 y : %3 z : %4",
+                                      scale: "échelle %1 x: %2 y: %3 z: %4\norigine x: %5 y: %6 z: %7",
+                                      resize: "redimensionner %1 x: %2 y: %3 z: %4\norigine x: %5 y: %6 z: %7",
+                                      rotate_model_xyz: "pivoter %1 de x: %2 y: %3 z: %4",
+                                      rotate_to: "pivoter %1 vers x: %2 y: %3 z: %4",
                                       look_at: "regarder %1 vers %2 y ? %3",
                                       move_forward: "avancer %1 %2 vitesse %3",
-                                      set_pivot: "définir le pivot de %1 x : %2 y : %3 z : %4",
+                                      set_pivot: "définir le pivot de %1 x: %2 y: %3 z: %4",
                                       min_centre_max: "%1",
 
                                       // Custom block translations - XR blocks
@@ -670,14 +670,14 @@ export default {
                                       pin_space_option: "Bouton A pressé",
                                       pin_q_option: "Bouton B pressé",
                                       pin_r_option: "Boutons A+B pressés",
-                                      pin_t_option: "Geste : Chute libre",
-                                      pin_o_option: "Geste : Logo vers le haut",
-                                      pin_p_option: "Geste : Logo vers le bas",
-                                      pin_a_option: "Geste : Inclinaison gauche",
-                                      pin_d_option: "Geste : Inclinaison droite",
-                                      pin_y_option: "Geste : Écran vers le haut",
-                                      pin_h_option: "Geste : Écran vers le bas",
-                                      pin_i_option: "Geste : Secouer",
+                                      pin_t_option: "Geste: Chute libre",
+                                      pin_o_option: "Geste: Logo vers le haut",
+                                      pin_p_option: "Geste: Logo vers le bas",
+                                      pin_a_option: "Geste: Inclinaison gauche",
+                                      pin_d_option: "Geste: Inclinaison droite",
+                                      pin_y_option: "Geste: Écran vers le haut",
+                                      pin_h_option: "Geste: Écran vers le bas",
+                                      pin_i_option: "Geste: Secouer",
 
                                       SMALL_option: "petit",
                                       MEDIUM_option: "moyen",
@@ -874,7 +874,7 @@ export default {
                                       moving_right: "En mouvement vers la droite",
                                       action_triggered: "Action déclenchée",
                                       snippet_file_description: "Extrait Flock XR",
-                                      snippet_filename_prompt: "Entrez un nom de fichier pour l'extrait :",
+                                      snippet_filename_prompt: "Entrez un nom de fichier pour l'extrait:",
                                       project_file_description: "Projet Flock XR",
                                       file_too_large_alert: "Fichier trop volumineux. La taille maximale est de 5 Mo.",
                                       invalid_filetype_alert: "Seuls les fichiers .json ou .flock sont autorisés.",
@@ -883,10 +883,10 @@ export default {
 
                                       // UI status messages
                                       max_mesh_limit_reached:
-                                        "⚠️ Limite atteinte : vous pouvez avoir seulement {max} maillages dans votre monde.",
+                                        "⚠️ Limite atteinte: vous pouvez avoir seulement {max} maillages dans votre monde.",
                                       high_memory_usage_warning:
-                                        "Avertissement : utilisation mémoire élevée ({percent}%)",
-                                      runtime_error_message: "Erreur : {message}",
+                                        "Avertissement: utilisation mémoire élevée ({percent}%)",
+                                      runtime_error_message: "Erreur: {message}",
                                       xr_mode_message: "Mode XR !",
                                       fly_camera_instructions:
                                         "ℹ️ Caméra en vol, utilisez les flèches et Page haut/bas",
@@ -894,7 +894,7 @@ export default {
                                         "⚠️ Sélectionnez un maillage puis cliquez sur supprimer.",
                                       select_mesh_duplicate_prompt:
                                         "⚠️ Sélectionnez un maillage puis cliquez sur dupliquer, puis cliquez pour placer les copies.",
-                                      position_readout: "Position : {position}",
+                                      position_readout: "Position: {position}",
                                       eyedropper_not_supported_alert:
                                         "L'outil pipette n'est pas pris en charge dans ce navigateur. Essayez d'utiliser Chrome ou Edge.",
                                       blocks_copied_alert: "Blocs copiés dans le stockage local !",

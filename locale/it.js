@@ -130,7 +130,7 @@ export default {
   // Custom block translations - Scene blocks
   set_sky_color: "cielo %1",
   create_ground: "suolo %1",
-  set_background_color: "imposta colore di sfondo %1",
+  set_background_color: "sfondo %1",
   create_map: "mappa %1 con materiale %2",
   show: "mostra %1",
   hide: "nascondi %1",
@@ -139,7 +139,7 @@ export default {
 
   // Custom block translations - Models blocks
   load_character:
-    "aggiungi %1 %2 scala: %3 x: %4 y: %5 z: %6\nCapelli: %7 |  Pelle: %8 |  Occhi: %9 |  Maglietta: %10 |  Pantaloncini: %11 |  Dettaglio: %12",
+    "aggiungi %1 %2 scala: %3 x: %4 y: %5 z: %6\ncapelli: %7 |  pelle: %8 |  occhi: %9 |  maglietta: %10 |  pantaloncini: %11 |  dettaglio: %12",
   load_object: "aggiungi %1 %2 %3 scala: %4 x: %5 y: %6 z: %7",
   load_multi_object: "aggiungi %1 %2 scala: %3 x: %4 y: %5 z: %6\ncolori: %7",
   load_model: "aggiungi %1 %2 scala: %3 x: %4 y: %5 z: %6",
@@ -219,10 +219,10 @@ export default {
   change_color: "colora %1 a %2",
   change_material: "applica materiale %1 a %2 con colore %3",
   text_material:
-    "materiale %1 testo %2 colore %3 sfondo %4\nlarghezza %5 altezza %6 dimensione %7",
+    "materiale %1 testo %2 colore %3 sfondo %4\nlarghezza: %5 altezza: %6 dimensione: %7",
   place_decal: "decalcomania %1 angolo %2",
   decal:
-    "decal su %1 da x %2 y %3 z %4 \nangolo x %5 y %6 z %7\ndimensione x %8 y %9 z %10 materiale %11",
+    "decal su %1 da x: %2 y: %3 z: %4 \nangolo x: %5 y: %6 z: %7\ndimensione x: %8 y: %9 z: %10 materiale: %11",
   highlight: "evidenzia %1 %2",
   glow: "alone %1",
   tint: "tinta %1 %2",
@@ -261,31 +261,31 @@ export default {
     "aggiungi effetto particelle %1 su: %2\nforma: %3 inizio %4 fine %5 alpha: %6 a %7\nfrequenza: %8 dimensione: %9 a %10 durata: %11 a %12\ngravità: %13 forza x: %14 y: %15 z: %16\nvelocità angolare: %17 a %18 angolo iniziale: %19 a %20",
   control_particle_system: "sistema particelle %1 %2",
   create_box:
-    "aggiungi box %1 %2 larghezza %3 altezza %4 profondità %5 \na x %6 y %7 z %8",
+    "aggiungi box %1 %2 larghezza: %3 altezza: %4 profondità: %5 \na x: %6 y: %7 z: %8",
   create_sphere:
-    "aggiungi sfera %1 %2 diametro x %3 diametro y %4 diametro z %5\na x %6 y %7 z %8",
+    "aggiungi sfera %1 %2 diametro x: %3 diametro y: %4 diametro z: %5\na x: %6 y: %7 z: %8",
   create_cylinder:
-    "aggiungi cilindro %1 %2 altezza %3 sopra %4 sotto %5 lati %6\na x %7 y %8 z %9",
+    "aggiungi cilindro %1 %2 altezza: %3 sopra: %4 sotto: %5 lati: %6\na x: %7 y: %8 z: %9",
   create_capsule:
-    "aggiungi capsula %1 %2 diametro %3 altezza %4 \na x %5 y %6 z %7",
+    "aggiungi capsula %1 %2 diametro: %3 altezza: %4 \na x: %5 y: %6 z: %7",
   create_plane:
-    "aggiungi piano %1 %2 larghezza %3 altezza %4 \na x %5 y %6 z %7",
+    "aggiungi piano %1 %2 larghezza: %3 altezza: %4 \na x: %5 y: %6 z: %7",
 
   // Custom block translations - Sound blocks
   play_sound:
-    "riproduci suono %1 %2 da %3 \nvelocità %4 volume %5 modalità %6 asincrono %7",
+    "riproduci suono %1 %2 da %3 \nvelocità: %4 volume: %5 modalità: %6 asincrono: %7",
   stop_all_sounds: "ferma tutti i suoni",
   midi_note: "Nota MIDI %1",
   rest: "pausa",
   play_notes:
-    "riproduci note su %1\nnote %2 durate %3\nstrumento %4 modalità %5",
+    "riproduci note su %1\nnote: %2 durate: %3\nstrumento: %4 modalità: %5",
   set_scene_bpm: "imposta BPM scena a %1",
   set_mesh_bpm: "imposta BPM di %1 a %2",
   create_instrument:
-    "strumento %1 onda %2 frequenza %3 attacco %4 decadimento %5 sustain %6 rilascio %7",
+    "strumento %1 onda: %2 frequenza: %3 attacco: %4 decadimento: %5 sustain: %6 rilascio: %7",
   instrument: "strumento %1",
   speak:
-    "parla %1 %2 voce %3 lingua %4\nvelocità %5 intonazione %6 volume %7 modalità %8",
+    "parla %1 %2 voce: %3 lingua: %4\nvelocità: %5 intonazione: %6 volume: %7 modalità: %8",
 
   // Custom block translations - Text blocks
   comment: "// %1",
@@ -293,7 +293,7 @@ export default {
   say: "dici %1 per %2 s %3 \ntesto %4 su %5 alpha %6 dimensione %7 %8 %9",
   ui_text: "testo UI %1 %2 a x: %3 y: %4\nmisura: %5 per %6 secondi colore: %7",
   ui_button:
-    "pulsante UI %1 %2 a x: %3 y: %4\nmisura: %5 dim. testo: %6 colore testo: %7 colore sfondo: %8",
+    "pulsante UI %1 %2 a x: %3 y: %4\nmisura: %5 dim. testo: %6 text: %7 background: %8",
   ui_input:
     "input UI %1 %2 a x: %3 y: %4\nmisura: %5 dim. testo: %6 testo: %7 sfondo: %8",
   create_3d_text:

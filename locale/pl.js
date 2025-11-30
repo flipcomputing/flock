@@ -124,7 +124,7 @@ export default {
   // Custom block translations - Scene blocks
   set_sky_color: "niebo %1",
   create_ground: "ziemia %1",
-  set_background_color: "ustaw kolor tła na %1",
+  set_background_color: "tło %1",
   create_map: "stwórz mapę %1 z materiałem %2",
   show: "pokaż %1",
   hide: "ukryj %1",
@@ -132,7 +132,7 @@ export default {
   clone_mesh: "dodaj %1 jako klon obiektu %2",
 
   // Custom block translations - Models blocks
-  load_character: "dodaj %1 %2, skala: %3, x: %4, y: %5, z: %6\nWłosy: %7 | Skóra: %8 | Oczy: %9 | Koszulka: %10 | Spodenki: %11 | Detale: %12",
+  load_character: "dodaj %1 %2, skala: %3, x: %4, y: %5, z: %6\nwłosy: %7 | skóra: %8 | oczy: %9 | koszulka: %10 | spodenki: %11 | detale: %12",
   load_object: "dodaj %1 %2 %3, skala: %4, x: %5, y: %6, z: %7",
   load_multi_object: "dodaj %1 %2, skala: %3, x: %4, y: %5, z: %6\nkolory: %7",
   load_model: "dodaj model %1 %2, skala: %3, x: %4, y: %5, z: %6",
@@ -254,7 +254,7 @@ export default {
   stop_all_sounds: "zatrzymaj wszystkie dźwięki",
   midi_note: "nuta MIDI %1",
   rest: "pauza",
-  play_notes: "odtwórz nuty na %1\nnuty: %2, długości: %3\ninstrument: %4 tryb: %5",
+  play_notes: "odtwórz nuty na %1\nnuty: %2 długości: %3\ninstrument: %4 tryb: %5",
   set_scene_bpm: "ustaw tempo sceny BPM na %1",
   set_mesh_bpm: "ustaw BPM %1 na %2",
   create_instrument: "instrument %1 fala: %2 częstotliwość: %3 atak: %4 zanikanie: %5 podtrzymanie: %6 uwolnienie: %7",
@@ -266,7 +266,7 @@ export default {
   print_text: "drukuj %1 przez %2 sekund %3",
   say: "powiedz %1 przez %2 s %3\ntekst: %4 na %5 przezroczystość: %6 rozmiar: %7 %8 %9",
   ui_text: "tekst UI %1 %2 w x: %3 y: %4\nrozmiar: %5 przez %6 s kolor: %7",
-  ui_button: "przycisk UI %1 %2 w x: %3 y: %4\nrozmiar: %5 rozmiar tekstu: %6 kolor tekstu: %7 kolor tła: %8",
+  ui_button: "przycisk UI %1 %2 w x: %3 y: %4\nrozmiar: %5 rozmiar tekstu: %6 text: %7 background: %8",
   ui_input: "wejście UI %1 %2 w x: %3 y: %4\nrozmiar: %5 rozmiar tekstu: %6 tekst: %7 tło: %8",
   create_3d_text: "dodaj tekst 3D %1: %2 czcionka: %3 rozmiar: %4 kolor: %5\ngłębokość: %6 x: %7 y: %8 z: %9",
 

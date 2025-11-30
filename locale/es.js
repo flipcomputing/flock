@@ -124,7 +124,7 @@ export default {
   // Custom block translations - Scene blocks
   set_sky_color: "cielo %1",
   create_ground: "suelo %1",
-  set_background_color: "establecer color de fondo %1",
+  set_background_color: "fondo %1",
   create_map: "mapa %1 con material %2",
   show: "mostrar %1",
   hide: "ocultar %1",
@@ -132,7 +132,7 @@ export default {
   clone_mesh: "agregar %1 clon de %2",
 
   // Custom block translations - Models blocks
-  load_character: "agregar %1 %2 escala: %3 x: %4 y: %5 z: %6\nCabello: %7 |  Piel: %8 |  Ojos: %9 |  Camiseta: %10 |  Pantalones cortos: %11 |  Detalle: %12",
+  load_character: "agregar %1 %2 escala: %3 x: %4 y: %5 z: %6\ncabello: %7 |  piel: %8 |  ojos: %9 |  camiseta: %10 |  pantalones cortos: %11 |  detalle: %12",
   load_object: "agregar %1 %2 %3 escala: %4 x: %5 y: %6 z: %7",
   load_multi_object: "agregar %1 %2 escala: %3 x: %4 y: %5 z: %6\ncolores: %7",
   load_model: "agregar %1 %2 escala: %3 x: %4 y: %5 z: %6",
@@ -205,9 +205,9 @@ export default {
   // Custom block translations - Materials blocks
   change_color: "cambiar color de %1 a %2",               // 'change color' → cambiar color :contentReference[oaicite:2]{index=2}
   change_material: "aplicar material %1 a %2 con color %3",
-  text_material: "material %1 texto %2 color %3 fondo %4\nancho %5 alto %6 tamaño %7",
+  text_material: "material %1 texto %2 color %3 fondo %4\nancho: %5 alto: %6 tamaño: %7",
   place_decal: "calcomanía %1 ángulo %2",
-  decal: "calcomanía en %1 desde x %2 y %3 z %4 \nángulo x %5 y %6 z %7\ntamaño x %8 y %9 z %10 material %11",
+  decal: "calcomanía en %1 desde x: %2 y: %3 z: %4 \nángulo x: %5 y: %6 z: %7\ntamaño x: %8 y: %9 z: %10 material: %11",
   highlight: "resaltar %1 %2",
   glow: "resplandor en %1",                               // 'glow' → resplandor (noun sense) :contentReference[oaicite:3]{index=3}
   tint: "tinte %1 %2",
@@ -243,30 +243,30 @@ export default {
   // Custom block translations - Shapes blocks
   create_particle_effect: "agregar efecto de partículas %1 en: %2\nforma: %3 inicio %4 fin %5 alfa: %6 a %7\ntasa: %8 tamaño: %9 a %10 duración: %11 a %12\ngravedad: %13 fuerza x: %14 y: %15 z: %16\nvelocidad angular: %17 a %18 ángulo inicial: %19 a %20",
   control_particle_system: "sistema de partículas %1 %2",
-  create_box: "agregar caja %1 %2 ancho %3 alto %4 profundidad %5 \nen x %6 y %7 z %8",
-  create_sphere: "agregar esfera %1 %2 diámetro x %3 diámetro y %4 diámetro z %5\nen x %6 y %7 z %8",
-  create_cylinder: "agregar cilindro %1 %2 altura %3 superior %4 inferior %5 lados %6\nen x %7 y %8 z %9",
-  create_capsule: "agregar cápsula %1 %2 diámetro %3 altura %4 \nen x %5 y %6 z %7",
-  create_plane: "agregar plano %1 %2 ancho %3 alto %4 \nen x %5 y %6 z %7",
+  create_box: "agregar caja %1 %2 ancho: %3 alto: %4 profundidad: %5 \nen x: %6 y: %7 z: %8",
+  create_sphere: "agregar esfera %1 %2 diámetro x: %3 diámetro y: %4 diámetro z: %5\nen x: %6 y: %7 z: %8",
+  create_cylinder: "agregar cilindro %1 %2 altura: %3 superior: %4 inferior: %5 lados: %6\nen x: %7 y: %8 z: %9",
+  create_capsule: "agregar cápsula %1 %2 diámetro: %3 altura: %4 \nen x: %5 y: %6 z: %7",
+  create_plane: "agregar plano %1 %2 ancho: %3 alto: %4 \nen x: %5 y: %6 z: %7",
 
   // Custom block translations - Sound blocks
-  play_sound: "reproducir sonido %1 %2 desde %3 \nvelocidad %4 volumen %5 modo %6 asíncrono %7",
+  play_sound: "reproducir sonido %1 %2 desde %3 \nvelocidad: %4 volumen: %5 modo: %6 asíncrono: %7",
   stop_all_sounds: "detener todos los sonidos",
   midi_note: "nota MIDI %1",
   rest: "pausa",
-  play_notes: "reproducir notas en %1\nnotas %2 duraciones %3\ninstrumento %4 modo %5",
+  play_notes: "reproducir notas en %1\nnotas: %2 duraciones: %3\ninstrumento: %4 modo: %5",
   set_scene_bpm: "establecer BPM de la escena en %1",
   set_mesh_bpm: "establecer BPM de %1 en %2",
-  create_instrument: "instrumento %1 onda %2 frecuencia %3 ataque %4 decaimiento %5 sostenido %6 liberación %7",
+  create_instrument: "instrumento %1 onda: %2 frecuencia: %3 ataque: %4 decaimiento: %5 sostenido: %6 liberación: %7",
   instrument: "instrumento %1",
-  speak: "hablar %1 %2 voz %3 idioma %4\nvelocidad %5 tono %6 volumen %7 modo %8",
+  speak: "hablar %1 %2 voz: %3 idioma: %4\nvelocidad: %5 tono: %6 volumen: %7 modo: %8",
 
   // Custom block translations - Text blocks
   comment: "// %1",
   print_text: "imprimir %1 por %2 segundos %3",
   say: "decir %1 por %2 s %3 \ntexto %4 en %5 alfa %6 tamaño %7 %8 %9",
   ui_text: "texto UI %1 %2 en x: %3 y: %4\ntamaño: %5 por %6 segundos color: %7",
-  ui_button: "botón UI %1 %2 en x: %3 y: %4\ntamaño: %5 tamaño del texto: %6 color del texto: %7 color de fondo: %8",
+  ui_button: "botón UI %1 %2 en x: %3 y: %4\ntamaño: %5 tamaño del texto: %6 text: %7 background: %8",
   ui_input: "entrada UI %1 %2 en x: %3 y: %4\ntamaño: %5 tamaño del texto: %6 texto: %7 fondo: %8",
   create_3d_text: "agregar %1 texto 3D: %2 fuente: %3 tamaño: %4 color: %5\nprofundidad: %6 x: %7 y: %8 z: %9",
 
