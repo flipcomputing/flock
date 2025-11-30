@@ -5,15 +5,14 @@
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 		<title>Flock standalone example</title>
 
-		 <style>
-			 body {
-				 font-family: "Atkinson Hyperlegible Next", "Asap", Helvetica, Arial, Lucida, sans-serif !important;
-			   }
-			 </style>
+                <style>
+                        body {
+                                font-family: "Atkinson Hyperlegible Next", "Asap", Helvetica, Arial, Lucida, sans-serif !important;
+                        }
+                </style>
 	</head>
 	<body>
 		<canvas id="renderCanvas" touch-action="none"  style="width: 640px; height: 360px;" tabindex="0"></canvas>
-	</div>
 		
 		<script id="flock" type="application/flock">
 			// Made with Flock XR
@@ -68,8 +67,28 @@
 			});
 		</script>
 
-		<script type="module">
-			import "https://flipcomputing.github.io/flock/flock.js";
-		</script>
-	</body>
+                <script type="module">
+                        const loadFlock = async () => {
+                                let canvas = document.getElementById("renderCanvas");
+
+                                if (!canvas) {
+                                        canvas = document.createElement("canvas");
+                                        canvas.id = "renderCanvas";
+                                        canvas.tabIndex = 0;
+                                        canvas.style.width = "640px";
+                                        canvas.style.height = "360px";
+                                        canvas.setAttribute("touch-action", "none");
+                                        document.body.prepend(canvas);
+                                }
+
+                                await import("https://flipcomputing.github.io/flock/flock.js");
+                        };
+
+                        if (document.readyState === "loading") {
+                                document.addEventListener("DOMContentLoaded", loadFlock, { once: true });
+                        } else {
+                                loadFlock();
+                        }
+                </script>
+        </body>
 </html>
