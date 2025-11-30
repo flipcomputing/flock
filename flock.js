@@ -1649,9 +1649,15 @@ export const flock = {
                 // Create the new scene
                 flock.scene = new flock.BABYLON.Scene(flock.engine);
 
-                // Preserve the engine's initial clear colour so we can reuse it later
+                // Apply and remember the app's default clear colour so it can be
+                // restored if the user removes their sky/background blocks later.
+                const defaultClearColor = flock.BABYLON.Color3.FromHexString(
+                        "#33334c",
+                );
+                flock.scene.clearColor =
+                        defaultClearColor.clone?.() ?? defaultClearColor;
                 flock.initialClearColor =
-                        flock.scene.clearColor.clone?.() ?? flock.scene.clearColor;
+                        defaultClearColor.clone?.() ?? defaultClearColor;
 
                 // Abort controller for clean-up
                 flock.abortController = new AbortController();
