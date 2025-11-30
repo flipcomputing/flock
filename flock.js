@@ -107,6 +107,7 @@ export const flock = {
         mainLight: null,
         hk: null,
         havokInstance: null,
+        initialClearColor: null,
         ground: null,
         sky: null,
         GUI: null,
@@ -1647,6 +1648,10 @@ export const flock = {
 
                 // Create the new scene
                 flock.scene = new flock.BABYLON.Scene(flock.engine);
+
+                // Preserve the engine's initial clear colour so we can reuse it later
+                flock.initialClearColor =
+                        flock.scene.clearColor.clone?.() ?? flock.scene.clearColor;
 
                 // Abort controller for clean-up
                 flock.abortController = new AbortController();

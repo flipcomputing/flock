@@ -272,7 +272,11 @@ export function clearSkyMesh({ preserveClearColor = true } = {}) {
   }
 
   if (!preserveClearColor) {
-    flock.scene.clearColor = new flock.BABYLON.Color3(0, 0, 0);
+    const clearColor = flock.initialClearColor
+      ? flock.initialClearColor.clone?.() ?? flock.initialClearColor
+      : new flock.BABYLON.Color3(0, 0, 0);
+
+    flock.scene.clearColor = clearColor;
   }
 
   delete meshMap["sky"];
