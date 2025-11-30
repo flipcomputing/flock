@@ -259,6 +259,11 @@ export function extractMaterialInfo(materialBlock) {
 }
 
 function applyBackgroundColorFromBlock(block) {
+  if (!block.isEnabled()) {
+    setClearSkyToBlack();
+    return;
+  }
+
   const read = readColourFromInputOrShadow(block, "COLOR");
   flock.setSky(read.value, { clear: true });
 }
@@ -423,6 +428,11 @@ function safeGetFieldValue(block, fieldName) {
 }
 
 function updateSkyFromBlock(mesh, block, changeEvent) {
+  if (!block.isEnabled()) {
+    setClearSkyToBlack();
+    return;
+  }
+
   const colorInput = block.getInputTargetBlock("COLOR");
 
   if (colorInput && colorInput.type === "material") {
