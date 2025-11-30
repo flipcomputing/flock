@@ -11,6 +11,15 @@ const isMobile = () => {
         return /Mobi|Android/i.test(navigator.userAgent);
 };
 
+const getVisibleHeight = (element) => {
+        if (!element) return 0;
+        const styles = getComputedStyle(element);
+        if (styles.display === "none" || styles.visibility === "hidden") {
+                return 0;
+        }
+        return element.getBoundingClientRect().height;
+};
+
 export function onResize(mode) {
         // First handle canvas and engine
         resizeCanvas();
@@ -46,9 +55,9 @@ function resizeCanvas() {
         let areaHeight = canvasArea.clientHeight;
 
         const gizmoButtons = document.getElementById("gizmoButtons");
-        if (gizmoButtons.style.display != "none") {
-                areaHeight -= 60; //Gizmos visible
-        }
+        areaHeight -= getVisibleHeight(gizmoButtons);
+
+        areaHeight = Math.max(areaHeight, 1);
 
         const aspectRatio = 16 / 9;
 

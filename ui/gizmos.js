@@ -2,6 +2,7 @@ import * as Blockly from "blockly";
 import { meshMap, meshBlockIdMap } from "../generators";
 import { flock } from "../flock.js";
 import { translate } from "../main/translation.js";
+import { cycleGridMode, initializeGridToggle } from "./gridgizmo.js";
 import { setPositionValues } from "./addmeshes.js";
 import {
   getMeshFromBlockKey,
@@ -1581,6 +1582,7 @@ export function enableGizmos() {
   const duplicateButton = document.getElementById("duplicateButton");
   const deleteButton = document.getElementById("deleteButton");
   const cameraButton = document.getElementById("cameraButton");
+  const gridToggleButton = document.getElementById("gridToggleButton");
   const showShapesButton = document.getElementById("showShapesButton");
   const colorPickerButton = document.getElementById("colorPickerButton");
   const aboutButton = document.getElementById("logo");
@@ -1614,6 +1616,7 @@ export function enableGizmos() {
     duplicateButton,
     deleteButton,
     cameraButton,
+    gridToggleButton,
     showShapesButton,
     colorPickerButton,
     aboutButton,
@@ -1654,6 +1657,7 @@ export function enableGizmos() {
   scrollCharactersRightButton.addEventListener("click", () =>
     window.scrollCharacters(1),
   );
+  initializeGridToggle();
 }
 
 export function setGizmoManager(value) {
