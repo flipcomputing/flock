@@ -735,7 +735,7 @@ export function defineGenerators() {
                 const color = getFieldValue(block, "COLOR", "#6495ED");
                 const control = block.getFieldValue("CONTROL");
                 const enabled = block.getFieldValue("ENABLED") == "TRUE";
-                return `buttonControls("${control}", ${enabled}, ${color});\n`;
+                return `requestTouchControls();\nbuttonControls("${control}", ${enabled}, ${color});\n`;
         };
 
         // Assumes sanitizeForCode(text) is defined and in scope.
