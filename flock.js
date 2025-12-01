@@ -3346,10 +3346,7 @@ export const flock = {
                                         case "SPACE":
                                                 return buttons[0]?.pressed;
                                         case "E":
-                                                return (
-                                                        buttons[1]?.pressed ||
-                                                        buttons[3]?.pressed
-                                                );
+                                                return buttons[1]?.pressed;
                                         case "F":
                                                 return buttons[2]?.pressed;
                                         case "R":
@@ -3621,10 +3618,7 @@ export const flock = {
                                         case "RIGHT":
                                                 return axes[0] > 0.5;
                                         case "BUTTON1":
-                                                return (
-                                                        buttons[1]?.pressed ||
-                                                        buttons[3]?.pressed
-                                                );
+                                                return buttons[1]?.pressed;
                                         case "BUTTON2":
                                                 return (
                                                         buttons[3]?.pressed ||
