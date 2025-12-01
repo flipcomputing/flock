@@ -802,6 +802,34 @@ export class CustomConstantProvider extends Blockly.zelos.ConstantProvider {
     this.FIELD_DROPDOWN_SVG_ARROW_DATAURI =
       "data:image/svg+xml;base64,PHN2ZyBpZD0iTGF5ZXJfMSIgZGF0YS1uYW1lPSJMYXllciAxIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMi43MSIgaGVpZ2h0PSI4Ljc5IiB2aWV3Qm94PSIwIDAgMTIuNzEgOC43OSI+PHRpdGxlPmRyb3Bkb3duLWFycm93PC90aXRsZT48ZyBvcGFjaXR5PSIwLjEiPjxwYXRoIGQ9Ik0xMi43MSwyLjQ0QTIuNDEsMi40MSwwLDAsMSwxMiw0LjE2TDguMDgsOC4wOGEyLjQ1LDIuNDUsMCwwLDEtMy40NSwwTDAuNzIsNC4xNkEyLjQyLDIuNDIsMCwwLDEsMCwyLjQ0LDIuNDgsMi40OCwwLDAsMSwuNzEuNzFDMSwwLjQ3LDEuNDMsMCw2LjM2LDBTMTEuNzUsMC40NiwxMiwuNzFBMi40NCwyLjQ0LDAsMCwxLDEyLjcxLDIuNDRaIiBmaWxsPSIjMjMxZjIwIi8+PC9nPjxwYXRoIGQ9Ik02LjM2LDcuNzlhMS40MywxLjQzLDAsMCwxLTEuNDItTDEuNDIsMy40NWExLjQ0LDEuNDQsMCwwLDEsMC0yYzAuNTYtLjU2LDkuMzEtMC41Niw5Ljg3LDBhMS40NCwxLjQ0LDAsMCwxLDAsMkw3LjM3LDcuMzdBMS40MywxLjQzLDAsMCwxLDYuMzYsNy43OVoiIGZpbGw9IiMwMDAiLz48L3N2Zz4=";
   }
+
+  /**
+   * Override renderer CSS so disabled blocks keep their colour but become
+   * subtly transparent instead of being completely greyed out.
+   *
+   * @param {string} selector CSS selector provided by Blockly.
+   * @returns {string[]} Renderer CSS rules.
+   */
+  getCSS_(selector) {
+    const css = super.getCSS_(selector);
+
+    css.push(
+      `${selector}.blocklyDisabled {`,
+      "  opacity: 0.55;",
+      "}",
+      `${selector}.blocklyDisabled > .blocklyPath,`,
+      `${selector}.blocklyDisabled > .blocklyPathLight,`,
+      `${selector}.blocklyDisabled > .blocklyPathDark,`,
+      `${selector}.blocklyDisabled > .blocklyPathHighlight,`,
+      `${selector}.blocklyDisabled .blocklyText,`,
+      `${selector}.blocklyDisabled .blocklyEditableText > text {`,
+      "  fill-opacity: 1;",
+      "  stroke-opacity: 1;",
+      "}",
+    );
+
+    return css;
+  }
 }
 
 class CustomRenderInfo extends Blockly.zelos.RenderInfo {
