@@ -1219,6 +1219,163 @@ export const flock = {
 
                 flock.engineReady = true;
         },
+        setupGamepadCameraControls() {
+                if (!flock.scene) {
+                        return;
+                }
+
+                const deadZone = 0.2;
+                const yawSpeed = 2.5;
+                const pitchSpeed = 2.0;
+
+                if (flock._gamepadCameraObserver) {
+                        flock.scene.onBeforeRenderObservable.remove(
+                                flock._gamepadCameraObserver,
+                        );
+                        flock._gamepadCameraObserver = null;
+                }
+
+                flock._gamepadCameraObserver =
+                        flock.scene.onBeforeRenderObservable.add(() => {
+                                if (!navigator.getGamepads) {
+                                        return;
+                                }
+
+                                const gamepads = navigator.getGamepads() || [];
+                                const gamepad = gamepads.find((pad) => pad);
+
+                                if (!gamepad) {
+                                        return;
+                                }
+
+                                const [ , , rawRightX = 0, rawRightY = 0 ] =
+                                        gamepad.axes || [];
+
+                                const rightX =
+                                        Math.abs(rawRightX) > deadZone
+                                                ? rawRightX
+                                                : 0;
+                                const rightY =
+                                        Math.abs(rawRightY) > deadZone
+                                                ? rawRightY
+                                                : 0;
+
+                                if (!rightX && !rightY) {
+                                        return;
+                                }
+
+                                const camera = flock.scene.activeCamera;
+
+                                if (!camera) {
+                                        return;
+                                }
+
+                                const deltaTime =
+                                        (flock.engine?.getDeltaTime?.() ?? 16) /
+                                        1000;
+                                const yawDelta = rightX * yawSpeed * deltaTime;
+                                const pitchDelta =
+                                        rightY * pitchSpeed * deltaTime;
+
+                                const cameraType = camera.getClassName?.();
+
+                                if (cameraType === "ArcRotateCamera") {
+                                        camera.alpha -= yawDelta;
+                                        camera.beta -= pitchDelta;
+
+                                        const lowerBeta =
+                                                camera.lowerBetaLimit ?? 0.01;
+                                        const upperBeta =
+                                                camera.upperBetaLimit ??
+                                                Math.PI - 0.01;
+
+                                        camera.beta = Math.min(
+                                                upperBeta,
+                                                Math.max(lowerBeta, camera.beta),
+                                        );
+                                } else {
+                                        camera.rotation.y += yawDelta;
+                                        camera.rotation.x += pitchDelta;
+
+                                        const minPitch = -Math.PI / 2 + 0.01;
+                                        const maxPitch = Math.PI / 2 - 0.01;
+
+                                  camera.rotation.x = Math.min(
+                                          maxPitch,
+                                          Math.max(minPitch, camera.rotation.x),
+                                  );
+                                }
+                        });
+        },
+        setupGamepadButtonMapping() {
+                if (!flock.scene) {
+                        return;
+                }
+
+                if (flock._gamepadButtonObserver) {
+                        flock.scene.onBeforeRenderObservable.remove(
+                                flock._gamepadButtonObserver,
+                        );
+                        flock._gamepadButtonObserver = null;
+                }
+
+                const buttonToKeys = {
+                        0: [" ", "SPACE"], // Bottom face button (A/Cross) -> Space
+                        1: ["e", "E"], // Right face button (B/Circle) -> E
+                        2: ["f", "F"], // Left face button (X/Square) -> F
+                        3: ["r", "R"], // Top face button (Y/Triangle) -> R
+                };
+
+                const normalizeButtonState = (button) => {
+                        if (!button) return false;
+                        return Boolean(button.pressed || button.value > 0.5);
+                };
+
+                flock._gamepadButtonObserver =
+                        flock.scene.onBeforeRenderObservable.add(() => {
+                                if (!navigator.getGamepads) {
+                                        return;
+                                }
+
+                                const pressedButtons = flock.canvas.pressedButtons;
+                                const nextPressed = new Set();
+
+                                const gamepads = navigator.getGamepads() || [];
+                                const gamepad = gamepads.find((pad) => pad);
+
+                                if (gamepad) {
+                                        Object.entries(buttonToKeys).forEach(
+                                                ([index, keys]) => {
+                                                        const button =
+                                                                gamepad.buttons?.[
+                                                                        Number(index)
+                                                                ];
+                                                        const isPressed =
+                                                                normalizeButtonState(
+                                                                        button,
+                                                                );
+
+                                                        if (isPressed) {
+                                                                keys.forEach((k) =>
+                                                                        nextPressed.add(k),
+                                                                );
+                                                        }
+                                                },
+                                        );
+                                }
+
+                                // Sync the tracked set with current state
+                                pressedButtons.forEach((key) => {
+                                        if (!nextPressed.has(key)) {
+                                                pressedButtons.delete(key);
+                                        }
+                                });
+
+                                nextPressed.forEach((key) =>
+                                        pressedButtons.add(key),
+                                );
+                        });
+        },
         createEngine() {
                 flock.engine?.dispose();
                 flock.engine = null;
@@ -1255,6 +1412,20 @@ export const flock = {
                                 // Stop all sounds and animations first
                                 flock.stopAllSounds();
                                 flock.engine?.stopRenderLoop();
+
+                                if (flock._gamepadCameraObserver) {
+                                        flock.scene.onBeforeRenderObservable.remove(
+                                                flock._gamepadCameraObserver,
+                                        );
+                                        flock._gamepadCameraObserver = null;
+                                }
+
+                                if (flock._gamepadButtonObserver) {
+                                        flock.scene.onBeforeRenderObservable.remove(
+                                                flock._gamepadButtonObserver,
+                                        );
+                                        flock._gamepadButtonObserver = null;
+                                }
 
                                 try {
                                         const canvas =
@@ -1714,6 +1885,8 @@ export const flock = {
                 camera.speed = 0.25;
                 flock.scene.activeCamera = camera;
                 camera.attachControl(flock.canvas, false);
+                flock.setupGamepadCameraControls();
+                flock.setupGamepadButtonMapping();
                 // Set up lighting
                 const hemisphericLight = new flock.BABYLON.HemisphericLight(
                         "hemisphericLight",
@@ -3072,6 +3245,8 @@ export const flock = {
                 const pressedButtons = flock.canvas.pressedButtons;
 
                 // Check VR controller inputs
+                const normalizedKey = key.toUpperCase();
+
                 const vrPressed =
                         flock.xrHelper?.baseExperience?.input?.inputSources.some(
                                 (inputSource) => {
@@ -3081,55 +3256,57 @@ export const flock = {
 
                                                 // Thumbstick movement
                                                 if (
-                                                        key === "W" &&
+                                                        normalizedKey === "W" &&
                                                         gamepad.axes[1] < -0.5
                                                 )
                                                         return true; // Forward
                                                 if (
-                                                        key === "S" &&
+                                                        normalizedKey === "S" &&
                                                         gamepad.axes[1] > 0.5
                                                 )
                                                         return true; // Backward
                                                 if (
-                                                        key === "A" &&
+                                                        normalizedKey === "A" &&
                                                         gamepad.axes[0] < -0.5
                                                 )
                                                         return true; // Left
                                                 if (
-                                                        key === "D" &&
+                                                        normalizedKey === "D" &&
                                                         gamepad.axes[0] > 0.5
                                                 )
                                                         return true; // Right
 
                                                 // Button mappings
                                                 if (
-                                                        key === "SPACE" &&
+                                                        (normalizedKey ===
+                                                                "SPACE" ||
+                                                                key === " ") &&
                                                         gamepad.buttons[0]
                                                                 ?.pressed
                                                 )
                                                         return true; // A button for jump
                                                 if (
-                                                        key === "Q" &&
+                                                        normalizedKey === "E" &&
                                                         gamepad.buttons[1]
                                                                 ?.pressed
                                                 )
-                                                        return true; // B button for action 1
+                                                        return true; // B button maps to E
                                                 if (
-                                                        key === "F" &&
+                                                        normalizedKey === "F" &&
                                                         gamepad.buttons[2]
                                                                 ?.pressed
                                                 )
-                                                        return true; // X button for action 2
+                                                        return true; // X button maps to F
                                                 if (
-                                                        key === "E" &&
+                                                        normalizedKey === "R" &&
                                                         gamepad.buttons[3]
                                                                 ?.pressed
                                                 )
-                                                        return true; // Y button for action 3
+                                                        return true; // Y button maps to R
 
                                                 // General button check
                                                 if (
-                                                        key === "ANY" &&
+                                                        normalizedKey === "ANY" &&
                                                         gamepad.buttons.some(
                                                                 (button) =>
                                                                         button.pressed,
@@ -3141,18 +3318,92 @@ export const flock = {
                                 },
                         );
 
+                const gamepadPressed = (() => {
+                        if (!navigator.getGamepads) {
+                                return false;
+                        }
+
+                        const gamepads = navigator.getGamepads() || [];
+
+                        return Array.from(gamepads).some((gamepad) => {
+                                if (!gamepad) {
+                                        return false;
+                                }
+
+                                const { axes = [], buttons = [] } = gamepad;
+
+                                switch (normalizedKey) {
+                                        case "W":
+                                                return (
+                                                        axes[1] < -0.5 ||
+                                                        buttons[12]?.pressed
+                                                );
+                                        case "S":
+                                                return (
+                                                        axes[1] > 0.5 ||
+                                                        buttons[13]?.pressed
+                                                );
+                                        case "A":
+                                                return (
+                                                        axes[0] < -0.5 ||
+                                                        buttons[14]?.pressed
+                                                );
+                                        case "Q":
+                                                return (
+                                                        axes[0] < -0.5 ||
+                                                        buttons[14]?.pressed ||
+                                                        buttons[1]?.pressed
+                                                );
+                                        case "D":
+                                                return (
+                                                        axes[0] > 0.5 ||
+                                                        buttons[15]?.pressed
+                                                );
+                                        case "SPACE":
+                                                return buttons[0]?.pressed;
+                                        case "E":
+                                                return buttons[1]?.pressed;
+                                        case "F":
+                                                return buttons[2]?.pressed;
+                                        case "R":
+                                                return (
+                                                        buttons[3]?.pressed ||
+                                                        buttons[6]?.pressed ||
+                                                        buttons[7]?.pressed
+                                                );
+                                        case "ANY":
+                                                return (
+                                                        axes.some(
+                                                                (axis) =>
+                                                                        Math.abs(
+                                                                                axis,
+                                                                        ) > 0.5,
+                                                        ) ||
+                                                        buttons.some(
+                                                                (button) =>
+                                                                        button?.pressed,
+                                                        )
+                                                );
+                                        default:
+                                                return false;
+                                }
+                        });
+                })();
+
                 // Combine all sources
                 if (key === "ANY") {
                         return (
                                 pressedKeys.size > 0 ||
                                 pressedButtons.size > 0 ||
-                                vrPressed
+                                vrPressed ||
+                                gamepadPressed
                         );
                 } else if (key === "NONE") {
                         return (
                                 pressedKeys.size === 0 &&
                                 pressedButtons.size === 0 &&
-                                !vrPressed
+                                !vrPressed &&
+                                !gamepadPressed
                         );
                 } else {
                         return (
@@ -3160,7 +3411,8 @@ export const flock = {
                                 pressedKeys.has(key.toLowerCase()) ||
                                 pressedKeys.has(key.toUpperCase()) ||
                                 pressedButtons.has(key) ||
-                                vrPressed
+                                vrPressed ||
+                                gamepadPressed
                         );
                 }
         },
@@ -3357,6 +3609,78 @@ export const flock = {
                                 this.whenKeyEvent(key, callback, isReleased);
                         },
                 );
+
+                const getGamepadActiveState = () => {
+                        if (!navigator.getGamepads) {
+                                return false;
+                        }
+
+                        const gamepads = navigator.getGamepads() || [];
+
+                        return Array.from(gamepads).some((gamepad) => {
+                                if (!gamepad) {
+                                        return false;
+                                }
+
+                                const { axes = [], buttons = [] } = gamepad;
+
+                                switch (action) {
+                                        case "FORWARD":
+                                                return (
+                                                        axes[1] < -0.5 ||
+                                                        buttons[12]?.pressed
+                                                );
+                                        case "BACKWARD":
+                                                return (
+                                                        axes[1] > 0.5 ||
+                                                        buttons[13]?.pressed
+                                                );
+                                        case "LEFT":
+                                                return (
+                                                        axes[0] < -0.5 ||
+                                                        buttons[14]?.pressed
+                                                );
+                                        case "RIGHT":
+                                                return (
+                                                        axes[0] > 0.5 ||
+                                                        buttons[15]?.pressed
+                                                );
+                                        case "BUTTON1":
+                                                return buttons[1]?.pressed;
+                                        case "BUTTON2":
+                                                return (
+                                                        buttons[3]?.pressed ||
+                                                        buttons[6]?.pressed ||
+                                                        buttons[7]?.pressed
+                                                );
+                                        case "BUTTON3":
+                                                return buttons[2]?.pressed;
+                                        case "BUTTON4":
+                                                return buttons[0]?.pressed;
+                                        default:
+                                                return false;
+                                }
+                        });
+                };
+
+                let lastGamepadState = getGamepadActiveState();
+
+                const monitorGamepad = () => {
+                        const isActive = getGamepadActiveState();
+
+                        const shouldTrigger = isReleased
+                                ? !isActive && lastGamepadState
+                                : isActive && !lastGamepadState;
+
+                        if (shouldTrigger) {
+                                callback();
+                        }
+
+                        lastGamepadState = isActive;
+                        requestAnimationFrame(monitorGamepad);
+                };
+
+                requestAnimationFrame(monitorGamepad);
         },
         whenKeyEvent(key, callback, isReleased = false) {
                 // Handle keyboard input
