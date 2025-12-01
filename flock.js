@@ -1300,11 +1300,80 @@ export const flock = {
                                         const minPitch = -Math.PI / 2 + 0.01;
                                         const maxPitch = Math.PI / 2 - 0.01;
 
-                                        camera.rotation.x = Math.min(
-                                                maxPitch,
-                                                Math.max(minPitch, camera.rotation.x),
+                                  camera.rotation.x = Math.min(
+                                          maxPitch,
+                                          Math.max(minPitch, camera.rotation.x),
+                                  );
+                                }
+                        });
+        },
+        setupGamepadButtonMapping() {
+                if (!flock.scene) {
+                        return;
+                }
+
+                if (flock._gamepadButtonObserver) {
+                        flock.scene.onBeforeRenderObservable.remove(
+                                flock._gamepadButtonObserver,
+                        );
+                        flock._gamepadButtonObserver = null;
+                }
+
+                const buttonToKeys = {
+                        0: [" ", "SPACE"], // Bottom face button (A/Cross) -> Space
+                        1: ["e", "E"], // Right face button (B/Circle) -> E
+                        2: ["f", "F"], // Left face button (X/Square) -> F
+                        3: ["r", "R"], // Top face button (Y/Triangle) -> R
+                };
+
+                const normalizeButtonState = (button) => {
+                        if (!button) return false;
+                        return Boolean(button.pressed || button.value > 0.5);
+                };
+
+                flock._gamepadButtonObserver =
+                        flock.scene.onBeforeRenderObservable.add(() => {
+                                if (!navigator.getGamepads) {
+                                        return;
+                                }
+
+                                const pressedButtons = flock.canvas.pressedButtons;
+                                const nextPressed = new Set();
+
+                                const gamepads = navigator.getGamepads() || [];
+                                const gamepad = gamepads.find((pad) => pad);
+
+                                if (gamepad) {
+                                        Object.entries(buttonToKeys).forEach(
+                                                ([index, keys]) => {
+                                                        const button =
+                                                                gamepad.buttons?.[
+                                                                        Number(index)
+                                                                ];
+                                                        const isPressed =
+                                                                normalizeButtonState(
+                                                                        button,
+                                                                );
+
+                                                        if (isPressed) {
+                                                                keys.forEach((k) =>
+                                                                        nextPressed.add(k),
+                                                                );
+                                                        }
+                                                },
                                         );
                                 }
+
+                                // Sync the tracked set with current state
+                                pressedButtons.forEach((key) => {
+                                        if (!nextPressed.has(key)) {
+                                                pressedButtons.delete(key);
+                                        }
+                                });
+
+                                nextPressed.forEach((key) =>
+                                        pressedButtons.add(key),
+                                );
                         });
         },
         createEngine() {
@@ -1349,6 +1418,13 @@ export const flock = {
                                                 flock._gamepadCameraObserver,
                                         );
                                         flock._gamepadCameraObserver = null;
+                                }
+
+                                if (flock._gamepadButtonObserver) {
+                                        flock.scene.onBeforeRenderObservable.remove(
+                                                flock._gamepadButtonObserver,
+                                        );
+                                        flock._gamepadButtonObserver = null;
                                 }
 
                                 try {
@@ -1810,6 +1886,7 @@ export const flock = {
                 flock.scene.activeCamera = camera;
                 camera.attachControl(flock.canvas, false);
                 flock.setupGamepadCameraControls();
+                flock.setupGamepadButtonMapping();
                 // Set up lighting
                 const hemisphericLight = new flock.BABYLON.HemisphericLight(
                         "hemisphericLight",
