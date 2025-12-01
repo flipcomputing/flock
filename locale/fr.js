@@ -632,7 +632,7 @@ export default {
                                       FLAT_option: "Plat",
 
                                       ANY_option: "n'importe lequel",
-                                      space_infinity_option: "espace ꩜",
+                                      space_infinity_option: "espace 🗲",
                                       q_icon_option: "Q ■",
                                       e_icon_option: "E ✿",
                                       f_icon_option: "F ✱",
@@ -673,7 +673,7 @@ export default {
                                       ACTION_BUTTON1_option: "bouton 1 (E ■)",
                                       ACTION_BUTTON2_option: "bouton 2 (R ✿)",
                                       ACTION_BUTTON3_option: "bouton 3 (F ✱)",
-                                      ACTION_BUTTON4_option: "bouton 4 (espace ꩜)",
+                                      ACTION_BUTTON4_option: "bouton 4 (espace 🗲)",
 
                                       pin_0_option: "Broche P0 relâchée",
                                       pin_1_option: "Broche P1 relâchée",

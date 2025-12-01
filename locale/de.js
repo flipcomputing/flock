@@ -394,7 +394,7 @@ export default {
   MAX_Z_option: "max z",
 
   space_option: " ",
-  space_infinity_option: "Leertaste ꩜",
+  space_infinity_option: "Leertaste 🗲",
 
   pin_0_option: "Pin P0 losgelassen",
   pin_1_option: "Pin P1 losgelassen",
@@ -707,7 +707,7 @@ export default {
   ACTION_BUTTON1_option: "Taste 1 (E ■)",
   ACTION_BUTTON2_option: "Taste 2 (R ✿)",
   ACTION_BUTTON3_option: "Taste 3 (F ✱)",
-  ACTION_BUTTON4_option: "Taste 4 (Leertaste ꩜)",
+  ACTION_BUTTON4_option: "Taste 4 (Leertaste 🗲)",
 
   ONCE_option: "einmal",
   LOOP_option: "schleife",

@@ -753,7 +753,7 @@ export default {
   FLAT_option: "Plano",
 
   ANY_option: "qualquer",
-  space_infinity_option: "espaço ꩜",
+  space_infinity_option: "espaço 🗲",
   q_icon_option: "Q ■",
   e_icon_option: "E ✿",
   f_icon_option: "F ✱",
@@ -794,7 +794,7 @@ export default {
   ACTION_BUTTON1_option: "botão 1 (E ■)",
   ACTION_BUTTON2_option: "botão 2 (R ✿)",
   ACTION_BUTTON3_option: "botão 3 (F ✱)",
-  ACTION_BUTTON4_option: "botão 4 (espaço ꩜)",
+  ACTION_BUTTON4_option: "botão 4 (espaço 🗲)",
 
   pin_0_option: "Pino P0 libertado",
   pin_1_option: "Pino P1 libertado",
