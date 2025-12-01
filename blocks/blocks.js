@@ -490,6 +490,36 @@ export function handleDisabledStyleChange(changeEvent) {
   applyDisabledBlockStyle(block, isDisabled);
 }
 
+const MANUALLY_DISABLED_REASON =
+  Blockly.constants?.MANUALLY_DISABLED || "MANUALLY_DISABLED";
+
+function shouldSkipDisabledPropagationFromParent(child, parent) {
+  return (
+    parent &&
+    parent.hasDisabledReason?.(MANUALLY_DISABLED_REASON) &&
+    parent.nextConnection?.targetBlock() === child
+  );
+}
+
+Blockly.BlockSvg.prototype.getInheritedDisabled = function () {
+  let surroundParent = this.getSurroundParent();
+
+  while (surroundParent) {
+    if (shouldSkipDisabledPropagationFromParent(this, surroundParent)) {
+      surroundParent = surroundParent.getSurroundParent();
+      continue;
+    }
+
+    if (!surroundParent.isEnabled()) {
+      return true;
+    }
+
+    surroundParent = surroundParent.getSurroundParent();
+  }
+
+  return false;
+};
+
 // smart-variable-duplication.js (final)
 // - Split variable on duplicate (duplicate-parent safe)
 // - Retarget descendants oldVar -> newVar
