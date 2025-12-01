@@ -758,7 +758,7 @@ export default {
   FLAT_option: "Piatto", // Duplicate key NONE
 
   ANY_option: "qualsiasi",
-  space_infinity_option: "spazio 🗲", // Duplicate key space
+  space_infinity_option: "spazio ❖", // Duplicate key space
   q_icon_option: "Q ■", // Duplicate key q
   e_icon_option: "E ✿", // Duplicate key e
   f_icon_option: "F ✱", // Duplicate key f
@@ -799,7 +799,7 @@ export default {
   ACTION_BUTTON1_option: "pulsante 1 (E ■)",
   ACTION_BUTTON2_option: "pulsante 2 (R ✿)",
   ACTION_BUTTON3_option: "pulsante 3 (F ✱)",
-  ACTION_BUTTON4_option: "pulsante 4 (spazio 🗲)",
+  ACTION_BUTTON4_option: "pulsante 4 (spazio ❖)",
 
   pin_0_option: "Pin P0 rilasciato", // Duplicate key 0
   pin_1_option: "Pin P1 rilasciato", // Duplicate key 1

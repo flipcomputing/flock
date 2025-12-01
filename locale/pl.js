@@ -634,7 +634,7 @@ export default {
   FLAT_option: "Płaski",
 
   ANY_option: "dowolny",
-  space_infinity_option: "przestrzeń 🗲",
+  space_infinity_option: "przestrzeń ❖",
   q_icon_option: "Q ■",
   e_icon_option: "E ✿",
   f_icon_option: "F ✱",
@@ -675,7 +675,7 @@ export default {
   ACTION_BUTTON1_option: "przycisk 1 (E ■)",
   ACTION_BUTTON2_option: "przycisk 2 (R ✿)",
   ACTION_BUTTON3_option: "przycisk 3 (F ✱)",
-  ACTION_BUTTON4_option: "przycisk 4 (spacja 🗲)",
+  ACTION_BUTTON4_option: "przycisk 4 (spacja ❖)",
 
   pin_0_option: "Pin P0 zwolniony",
   pin_1_option: "Pin P1 zwolniony",

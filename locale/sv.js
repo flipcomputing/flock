@@ -755,7 +755,7 @@ export default {
       FLAT_option: "Platt", // Duplicate key NONE
 
       ANY_option: "vilken som helst",
-      space_infinity_option: "rymd 🗲", // Duplicate key space
+      space_infinity_option: "rymd ❖", // Duplicate key space
       q_icon_option: "Q ■", // Duplicate key q
       e_icon_option: "E ✿", // Duplicate key e
       f_icon_option: "F ✱", // Duplicate key f
@@ -796,7 +796,7 @@ export default {
       ACTION_BUTTON1_option: "knapp 1 (E ■)",
       ACTION_BUTTON2_option: "knapp 2 (R ✿)",
       ACTION_BUTTON3_option: "knapp 3 (F ✱)",
-      ACTION_BUTTON4_option: "knapp 4 (mellanslag 🗲)",
+      ACTION_BUTTON4_option: "knapp 4 (mellanslag ❖)",
 
       pin_0_option: "Stift P0 släppt", // Duplicate key 0
       pin_1_option: "Stift P1 släppt", // Duplicate key 1
