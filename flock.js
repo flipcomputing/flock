@@ -3113,23 +3113,23 @@ export const flock = {
                                                 )
                                                         return true; // A button for jump
                                                 if (
-                                                        normalizedKey === "Q" &&
+                                                        normalizedKey === "E" &&
                                                         gamepad.buttons[1]
                                                                 ?.pressed
                                                 )
-                                                        return true; // B button for action 1
+                                                        return true; // B button maps to E
                                                 if (
                                                         normalizedKey === "F" &&
                                                         gamepad.buttons[2]
                                                                 ?.pressed
                                                 )
-                                                        return true; // X button for action 2
+                                                        return true; // X button maps to F
                                                 if (
-                                                        normalizedKey === "E" &&
+                                                        normalizedKey === "R" &&
                                                         gamepad.buttons[3]
                                                                 ?.pressed
                                                 )
-                                                        return true; // Y button for action 3
+                                                        return true; // Y button maps to R
 
                                                 // General button check
                                                 if (
@@ -3173,11 +3173,18 @@ export const flock = {
                                         case "SPACE":
                                                 return buttons[0]?.pressed;
                                         case "E":
-                                                return buttons[3]?.pressed;
+                                                return (
+                                                        buttons[1]?.pressed ||
+                                                        buttons[3]?.pressed
+                                                );
                                         case "F":
                                                 return buttons[2]?.pressed;
                                         case "R":
-                                                return buttons[6]?.pressed || buttons[7]?.pressed;
+                                                return (
+                                                        buttons[3]?.pressed ||
+                                                        buttons[6]?.pressed ||
+                                                        buttons[7]?.pressed
+                                                );
                                         case "ANY":
                                                 return (
                                                         axes.some(
@@ -3441,9 +3448,16 @@ export const flock = {
                                         case "RIGHT":
                                                 return axes[0] > 0.5;
                                         case "BUTTON1":
-                                                return buttons[3]?.pressed || buttons[1]?.pressed;
+                                                return (
+                                                        buttons[1]?.pressed ||
+                                                        buttons[3]?.pressed
+                                                );
                                         case "BUTTON2":
-                                                return buttons[6]?.pressed || buttons[7]?.pressed;
+                                                return (
+                                                        buttons[3]?.pressed ||
+                                                        buttons[6]?.pressed ||
+                                                        buttons[7]?.pressed
+                                                );
                                         case "BUTTON3":
                                                 return buttons[2]?.pressed;
                                         case "BUTTON4":
