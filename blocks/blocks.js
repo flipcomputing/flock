@@ -470,6 +470,27 @@ export function syncDisabledBlockStyles(workspace) {
   });
 }
 
+const MANUALLY_DISABLED_REASON =
+  Blockly.constants?.MANUALLY_DISABLED || "MANUALLY_DISABLED";
+
+function clearManualDisableFromNextStack(block) {
+  let cursor = block?.getNextBlock?.();
+
+  while (cursor) {
+    const reasons = cursor.getDisabledReasons?.();
+
+    if (
+      reasons?.has?.(MANUALLY_DISABLED_REASON) &&
+      (reasons.size ?? 0) <= 1
+    ) {
+      cursor.setDisabledReason?.(false, MANUALLY_DISABLED_REASON);
+      applyDisabledBlockStyle(cursor, false);
+    }
+
+    cursor = cursor.getNextBlock?.();
+  }
+}
+
 export function handleDisabledStyleChange(changeEvent) {
   if (
     changeEvent.type !== Blockly.Events.BLOCK_CHANGE ||
@@ -484,14 +505,18 @@ export function handleDisabledStyleChange(changeEvent) {
     return;
   }
 
-  const isDisabled =
-    changeEvent.newValue === true || changeEvent.newValue === "true";
+  const disabledReason = changeEvent.disabledReason;
+  const isManualDisable =
+    (changeEvent.newValue === true || changeEvent.newValue === "true") &&
+    (disabledReason === MANUALLY_DISABLED_REASON ||
+      block.hasDisabledReason?.(MANUALLY_DISABLED_REASON));
 
-  applyDisabledBlockStyle(block, isDisabled);
+  if (isManualDisable) {
+    clearManualDisableFromNextStack(block);
+  }
+
+  applyDisabledBlockStyle(block, !block.isEnabled());
 }
-
-const MANUALLY_DISABLED_REASON =
-  Blockly.constants?.MANUALLY_DISABLED || "MANUALLY_DISABLED";
 
 function shouldSkipDisabledPropagationFromParent(child, parent) {
   return (

@@ -1,6 +1,7 @@
 import * as Blockly from "blockly";
 import { workspace } from "./blocklyinit.js";
 import { translate } from "./translation.js";
+import { syncDisabledBlockStyles } from "../blocks/blocks.js";
 
 // Function to save the current workspace state
 export function saveWorkspace(workspace) {
@@ -337,10 +338,11 @@ export function loadWorkspaceAndExecute(json, workspace, executeCallback) {
 		// Validate JSON before loading into workspace
 		const validatedJson = validateBlocklyJson(json);
 
-		// Load the validated JSON
-		Blockly.serialization.workspaces.load(validatedJson, workspace);
-		workspace.scroll(0, 0);
-		executeCallback();
+                // Load the validated JSON
+                Blockly.serialization.workspaces.load(validatedJson, workspace);
+                syncDisabledBlockStyles(workspace);
+                workspace.scroll(0, 0);
+                executeCallback();
 	} catch (error) {
 		console.error("Failed to load workspace:", error);
 
