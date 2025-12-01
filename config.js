@@ -237,6 +237,7 @@ export const blockNames = [
 	"Character3.glb",
 	"Character4.glb",
 	"Flock.glb",
+	"Flock_Santa.glb",
 	"Character.glb",
 	"rhino.glb",
 	//"Seagull.glb",
