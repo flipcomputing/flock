@@ -1336,6 +1336,7 @@ export const flock = {
                                 // Dispose UI elements
                                 flock.controlsTexture?.dispose();
                                 flock.controlsTexture = null;
+                                flock.actionControlsRequested = false;
                                 flock.actionControlsReady = false;
 
                                 // Clear main UI texture and all its controls
@@ -1766,6 +1767,7 @@ export const flock = {
                         "ontouchstart" in window ||
                         navigator.maxTouchPoints > 0 ||
                         window.matchMedia("(pointer: coarse)").matches;
+                flock.actionControlsRequested = false;
                 flock.actionControlsReady = false;
 
                 // Create the UI
@@ -3064,7 +3066,8 @@ export const flock = {
                 if (
                         !this.isTouchScreen ||
                         !this.GUI ||
-                        !this.scene
+                        !this.scene ||
+                        !this.actionControlsRequested
                 ) {
                         return;
                 }
@@ -3175,6 +3178,7 @@ export const flock = {
                 }
         },
         actionPressed(action) {
+                this.actionControlsRequested = true;
                 this.ensureActionControls();
                 const actionMap = {
                         FORWARD: ["W", "Z"],
@@ -3346,6 +3350,7 @@ export const flock = {
                 }
         },
         whenActionEvent(action, callback, isReleased = false) {
+                this.actionControlsRequested = true;
                 this.ensureActionControls();
                 const actionMap = {
                         FORWARD: ["w", "z"],

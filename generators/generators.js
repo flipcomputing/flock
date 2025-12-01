@@ -2336,7 +2336,7 @@ export function defineGenerators() {
                 );
 
                 // Pass "true" if event is "ends" for the whenKeyPressed helper function
-                return `whenKeyEvent("${key}", async () => {${statements_do}}, ${event === "ends_option"});\n`;
+                return `whenKeyEvent("${key}", async () => {${statements_do}}, ${event === "ends"});\n`;
         };
 
         javascriptGenerator.forBlock["when_action_event"] = function (block) {
@@ -2347,7 +2347,7 @@ export function defineGenerators() {
                         "DO",
                 );
 
-                return `whenActionEvent("${action}", async () => {${statements_do}}, ${event === "ends_option"});\n`;
+                return `whenActionEvent("${action}", async () => {${statements_do}}, ${event === "ends"});\n`;
         };
 
         // JavaScript generator for broadcast_event

@@ -12,6 +12,7 @@ import {
         translate,
         getTooltip,
         getDropdownOption,
+        getOption,
 } from "../main/translation.js";
 
 export function defineEventsBlocks() {
@@ -365,8 +366,8 @@ export function defineEventsBlocks() {
                                                 type: "field_dropdown",
                                                 name: "EVENT",
                                                 options: [
-                                                        getDropdownOption("starts_option"),
-                                                        getDropdownOption("ends_option"),
+                                                        getDropdownOption("starts"),
+                                                        getDropdownOption("ends"),
                                                 ],
                                         },
                                 ],
@@ -427,38 +428,22 @@ export function defineEventsBlocks() {
                                                 type: "field_dropdown",
                                                 name: "ACTION",
                                                 options: [
-                                                        getDropdownOption(
-                                                                "ACTION_FORWARD",
-                                                        ),
-                                                        getDropdownOption(
-                                                                "ACTION_BACKWARD",
-                                                        ),
-                                                        getDropdownOption(
-                                                                "ACTION_LEFT",
-                                                        ),
-                                                        getDropdownOption(
-                                                                "ACTION_RIGHT",
-                                                        ),
-                                                        getDropdownOption(
-                                                                "ACTION_BUTTON1",
-                                                        ),
-                                                        getDropdownOption(
-                                                                "ACTION_BUTTON2",
-                                                        ),
-                                                        getDropdownOption(
-                                                                "ACTION_BUTTON3",
-                                                        ),
-                                                        getDropdownOption(
-                                                                "ACTION_BUTTON4",
-                                                        ),
+                                                        [getOption("ACTION_FORWARD"), "FORWARD"],
+                                                        [getOption("ACTION_BACKWARD"), "BACKWARD"],
+                                                        [getOption("ACTION_LEFT"), "LEFT"],
+                                                        [getOption("ACTION_RIGHT"), "RIGHT"],
+                                                        [getOption("ACTION_BUTTON1"), "BUTTON1"],
+                                                        [getOption("ACTION_BUTTON2"), "BUTTON2"],
+                                                        [getOption("ACTION_BUTTON3"), "BUTTON3"],
+                                                        [getOption("ACTION_BUTTON4"), "BUTTON4"],
                                                 ],
                                         },
                                         {
                                                 type: "field_dropdown",
                                                 name: "EVENT",
                                                 options: [
-                                                        getDropdownOption("starts_option"),
-                                                        getDropdownOption("ends_option"),
+                                                        getDropdownOption("starts"),
+                                                        getDropdownOption("ends"),
                                                 ],
                                         },
                                 ],
