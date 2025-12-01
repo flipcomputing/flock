@@ -3334,15 +3334,31 @@ export const flock = {
 
                                 switch (normalizedKey) {
                                         case "W":
-                                                return axes[1] < -0.5;
+                                                return (
+                                                        axes[1] < -0.5 ||
+                                                        buttons[12]?.pressed
+                                                );
                                         case "S":
-                                                return axes[1] > 0.5;
+                                                return (
+                                                        axes[1] > 0.5 ||
+                                                        buttons[13]?.pressed
+                                                );
                                         case "A":
-                                                return axes[0] < -0.5;
+                                                return (
+                                                        axes[0] < -0.5 ||
+                                                        buttons[14]?.pressed
+                                                );
                                         case "Q":
-                                                return axes[0] < -0.5 || buttons[1]?.pressed;
+                                                return (
+                                                        axes[0] < -0.5 ||
+                                                        buttons[14]?.pressed ||
+                                                        buttons[1]?.pressed
+                                                );
                                         case "D":
-                                                return axes[0] > 0.5;
+                                                return (
+                                                        axes[0] > 0.5 ||
+                                                        buttons[15]?.pressed
+                                                );
                                         case "SPACE":
                                                 return buttons[0]?.pressed;
                                         case "E":
@@ -3610,13 +3626,25 @@ export const flock = {
 
                                 switch (action) {
                                         case "FORWARD":
-                                                return axes[1] < -0.5;
+                                                return (
+                                                        axes[1] < -0.5 ||
+                                                        buttons[12]?.pressed
+                                                );
                                         case "BACKWARD":
-                                                return axes[1] > 0.5;
+                                                return (
+                                                        axes[1] > 0.5 ||
+                                                        buttons[13]?.pressed
+                                                );
                                         case "LEFT":
-                                                return axes[0] < -0.5;
+                                                return (
+                                                        axes[0] < -0.5 ||
+                                                        buttons[14]?.pressed
+                                                );
                                         case "RIGHT":
-                                                return axes[0] > 0.5;
+                                                return (
+                                                        axes[0] > 0.5 ||
+                                                        buttons[15]?.pressed
+                                                );
                                         case "BUTTON1":
                                                 return buttons[1]?.pressed;
                                         case "BUTTON2":
