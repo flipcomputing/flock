@@ -684,7 +684,7 @@ export default {
   ACTION_BUTTON1_option: "button 1 (E ■)",
   ACTION_BUTTON2_option: "button 2 (R ✿)",
   ACTION_BUTTON3_option: "button 3 (F ✱)",
-  ACTION_BUTTON4_option: "button 4 (꩜)",
+  ACTION_BUTTON4_option: "button 4 (space ꩜)",
 
   pin_0_option: "Pin P0 released", // Duplicate key 0
   pin_1_option: "Pin P1 released", // Duplicate key 1

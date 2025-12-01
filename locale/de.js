@@ -707,7 +707,7 @@ export default {
   ACTION_BUTTON1_option: "Taste 1 (E ■)",
   ACTION_BUTTON2_option: "Taste 2 (R ✿)",
   ACTION_BUTTON3_option: "Taste 3 (F ✱)",
-  ACTION_BUTTON4_option: "Taste 4 (꩜)",
+  ACTION_BUTTON4_option: "Taste 4 (Leertaste ꩜)",
 
   ONCE_option: "einmal",
   LOOP_option: "schleife",

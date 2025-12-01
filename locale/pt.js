@@ -794,7 +794,7 @@ export default {
   ACTION_BUTTON1_option: "botão 1 (E ■)",
   ACTION_BUTTON2_option: "botão 2 (R ✿)",
   ACTION_BUTTON3_option: "botão 3 (F ✱)",
-  ACTION_BUTTON4_option: "botão 4 (꩜)",
+  ACTION_BUTTON4_option: "botão 4 (espaço ꩜)",
 
   pin_0_option: "Pino P0 libertado",
   pin_1_option: "Pino P1 libertado",

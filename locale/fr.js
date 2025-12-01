@@ -673,7 +673,7 @@ export default {
                                       ACTION_BUTTON1_option: "bouton 1 (E ■)",
                                       ACTION_BUTTON2_option: "bouton 2 (R ✿)",
                                       ACTION_BUTTON3_option: "bouton 3 (F ✱)",
-                                      ACTION_BUTTON4_option: "bouton 4 (꩜)",
+                                      ACTION_BUTTON4_option: "bouton 4 (espace ꩜)",
 
                                       pin_0_option: "Broche P0 relâchée",
                                       pin_1_option: "Broche P1 relâchée",

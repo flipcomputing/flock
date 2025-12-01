@@ -1769,6 +1769,8 @@ export const flock = {
                         window.matchMedia("(pointer: coarse)").matches;
                 flock.actionControlsRequested = false;
                 flock.actionControlsReady = false;
+                flock.controlsTexture?.dispose();
+                flock.controlsTexture = null;
 
                 // Create the UI
                 flock.advancedTexture =
