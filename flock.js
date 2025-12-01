@@ -113,9 +113,6 @@ export const flock = {
         GUI: null,
         EXPORT: null,
         controlsTexture: null,
-        actionControlsRequested: false,
-        actionControlsReady: false,
-        touchControlsRequested: false,
         canvas: {
                 pressedKeys: null,
         },
@@ -951,8 +948,6 @@ export const flock = {
                         strafe: this.strafe?.bind(this),
                         attachCamera: this.attachCamera?.bind(this),
                         canvasControls: this.canvasControls?.bind(this),
-                        requestTouchControls:
-                                this.requestTouchControls?.bind(this),
                         setPhysics: this.setPhysics?.bind(this),
                         setPhysicsShape: this.setPhysicsShape?.bind(this),
                         showPhysics: this.showPhysics?.bind(this),
@@ -964,8 +959,7 @@ export const flock = {
                         broadcastEvent: this.broadcastEvent?.bind(this),
                         start: this.start?.bind(this),
                         forever: this.forever?.bind(this),
-                        whenActionEvent:
-                                this.whenActionEvent?.bind(this),
+                        whenActionEvent: this.whenActionEvent?.bind(this),
                         whenKeyEvent: this.whenKeyEvent?.bind(this),
                         randomInteger: this.randomInteger?.bind(this),
                         printText: this.printText?.bind(this),
@@ -1341,9 +1335,6 @@ export const flock = {
                                 // Dispose UI elements
                                 flock.controlsTexture?.dispose();
                                 flock.controlsTexture = null;
-                                flock.actionControlsRequested = false;
-                                flock.actionControlsReady = false;
-                                flock.touchControlsRequested = false;
 
                                 // Clear main UI texture and all its controls
                                 if (flock.scene.UITexture) {
@@ -1769,15 +1760,19 @@ export const flock = {
                 // Enable collisions
                 flock.scene.collisionsEnabled = true;
 
-                flock.isTouchScreen =
+                const isTouchScreen =
                         "ontouchstart" in window ||
                         navigator.maxTouchPoints > 0 ||
                         window.matchMedia("(pointer: coarse)").matches;
-                flock.actionControlsRequested = false;
-                flock.touchControlsRequested = false;
-                flock.actionControlsReady = false;
-                flock.controlsTexture?.dispose();
-                flock.controlsTexture = null;
+
+                if (isTouchScreen) {
+                        flock.controlsTexture =
+                                flock.GUI.AdvancedDynamicTexture.CreateFullscreenUI(
+                                        "UI",
+                                );
+                        flock.createArrowControls("white");
+                        flock.createButtonControls("white");
+                }
 
                 // Create the UI
                 flock.advancedTexture =
@@ -3071,29 +3066,6 @@ export const flock = {
                 }
                 return propertyValue;
         },
-        ensureActionControls() {
-                if (
-                        !this.isTouchScreen ||
-                        !this.GUI ||
-                        !this.scene ||
-                        !(
-                                this.actionControlsRequested ||
-                                this.touchControlsRequested
-                        )
-                ) {
-                        return;
-                }
-
-                if (this.actionControlsReady) {
-                        return;
-                }
-
-                this.buttonControls?.("BOTH", true, "white");
-                this.actionControlsReady = true;
-        },
-        requestTouchControls() {
-                this.touchControlsRequested = true;
-        },
         keyPressed(key) {
                 // Combine all input sources: keys, buttons, and controllers
                 const pressedKeys = flock.canvas.pressedKeys;
@@ -3193,9 +3165,6 @@ export const flock = {
                 }
         },
         actionPressed(action) {
-                this.actionControlsRequested = true;
-                this.touchControlsRequested = true;
-                this.ensureActionControls();
                 const actionMap = {
                         FORWARD: ["W", "Z"],
                         BACKWARD: ["S"],
@@ -3366,9 +3335,6 @@ export const flock = {
                 }
         },
         whenActionEvent(action, callback, isReleased = false) {
-                this.actionControlsRequested = true;
-                this.touchControlsRequested = true;
-                this.ensureActionControls();
                 const actionMap = {
                         FORWARD: ["w", "z"],
                         BACKWARD: ["s"],

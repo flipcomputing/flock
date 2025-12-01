@@ -392,9 +392,6 @@ export const flockUI = {
     rightGrid.addControl(button4, 1, 1); // Row 1, Column 1
   },
   buttonControls(control, enabled, color) {
-    if (!flock.isTouchScreen) return;
-    if (!(flock.actionControlsRequested || flock.touchControlsRequested)) return;
-
     if (flock.controlsTexture) {
       flock.controlsTexture.dispose();
     }
