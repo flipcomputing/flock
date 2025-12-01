@@ -240,7 +240,7 @@ export default {
 
       // Custom block translations - Sensing blocks
       key_pressed: "tangent nedtryckt är %1",
-      action_pressed: "åtgärd nedtryckt är %1",
+      action_pressed: "åtgärd är %1",
       meshes_touching: "%1 vidrör %2",
       time: "tid i s",
       distance_to: "avstånd från %1 till %2",

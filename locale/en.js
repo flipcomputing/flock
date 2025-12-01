@@ -236,7 +236,7 @@ export default {
   
   // Custom block translations - Sensing blocks
   key_pressed: "key pressed is %1",
-  action_pressed: "action pressed is %1",
+  action_pressed: "action is %1",
   meshes_touching: "%1 touching %2",
   time: "time in s",
   distance_to: "distance from %1 to %2",

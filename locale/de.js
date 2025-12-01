@@ -234,7 +234,7 @@ export default {
 
   // Sensing blocks
   key_pressed: "Taste gedrückt? %1",
-  action_pressed: "Aktion gedrückt? %1",
+  action_pressed: "Aktion ist %1",
   meshes_touching: "%1 berührt %2",
   time: "Zeit in s",
   distance_to: "Entfernung von %1 nach %2",

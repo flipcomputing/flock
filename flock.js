@@ -931,6 +931,7 @@ export const flock = {
                         dispose: this.dispose?.bind(this),
                         setFog: this.setFog?.bind(this),
                         keyPressed: this.keyPressed?.bind(this),
+                        actionPressed: this.actionPressed?.bind(this),
                         isTouchingSurface: this.isTouchingSurface?.bind(this),
                         meshExists: this.meshExists?.bind(this),
                         seededRandom: this.seededRandom?.bind(this),
@@ -3180,7 +3181,7 @@ export const flock = {
                         return false;
                 }
 
-                return actionKeys.some((key) => flock.keyPressed(key));
+                return actionKeys.some((key) => this.keyPressed(key));
         },
         seededRandom(from, to, seed) {
                 const x = Math.sin(seed) * 10000;
