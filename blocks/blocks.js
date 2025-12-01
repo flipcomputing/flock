@@ -907,6 +907,23 @@ export class CustomConstantProvider extends Blockly.zelos.ConstantProvider {
   }
 }
 
+class CustomPathObject extends Blockly.blockRendering.PathObject {
+  constructor(root, style, constants) {
+    super(root, style, constants);
+  }
+
+  updateDisabled_(disabled) {
+    super.updateDisabled_(disabled);
+
+    if (!this.style) {
+      return;
+    }
+
+    this.svgPath.setAttribute("fill", this.style.colourPrimary);
+    this.svgPath.setAttribute("fill-opacity", disabled ? "0.6" : "1");
+  }
+}
+
 class CustomRenderInfo extends Blockly.zelos.RenderInfo {
   constructor(renderer, block) {
     super(renderer, block);
@@ -928,6 +945,10 @@ export class CustomZelosRenderer extends Blockly.zelos.Renderer {
   // Override the method to return our custom RenderInfo
   makeRenderInfo_(block) {
     return new CustomRenderInfo(this, block);
+  }
+
+  makePathObject(root, style) {
+    return new CustomPathObject(root, style, this.getConstants());
   }
 }
 
