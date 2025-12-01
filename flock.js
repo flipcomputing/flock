@@ -1260,7 +1260,17 @@ export const flock = {
                                                 ? rawRightY
                                                 : 0;
 
-                                if (!rightX && !rightY) {
+                                const leftShoulder = gamepad.buttons?.[4];
+                                const rightShoulder = gamepad.buttons?.[5];
+                                const normalizeShoulder = (button) =>
+                                        Boolean(button?.pressed || button?.value > 0.5);
+                                const shoulderTurn =
+                                        (normalizeShoulder(rightShoulder) ? 1 : 0) -
+                                        (normalizeShoulder(leftShoulder) ? 1 : 0);
+
+                                const yawInput = rightX + shoulderTurn;
+
+                                if (!yawInput && !rightY) {
                                         return;
                                 }
 
@@ -1273,7 +1283,7 @@ export const flock = {
                                 const deltaTime =
                                         (flock.engine?.getDeltaTime?.() ?? 16) /
                                         1000;
-                                const yawDelta = rightX * yawSpeed * deltaTime;
+                                const yawDelta = yawInput * yawSpeed * deltaTime;
                                 const pitchDelta =
                                         rightY * pitchSpeed * deltaTime;
 
