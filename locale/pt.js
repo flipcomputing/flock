@@ -450,9 +450,9 @@ export default {
   on_collision_tooltip:
     "Executa os blocos quando o mesh colide ou deixa de colidir com outro.\nPalavra-chave: colisão",
   when_key_event_tooltip:
-    "Executa os blocos quando a tecla especificada for pressionada ou liberada.",
+    "Executa os blocos quando a tecla especificada começa ou termina (pressionada ou liberada).",
   when_action_event_tooltip:
-    "Executa os blocos quando a ação escolhida é pressionada ou liberada no teclado, toque ou XR.",
+    "Executa os blocos quando a ação escolhida começa ou termina no teclado, toque ou XR.",
   broadcast_event_tooltip:
     "Emite um evento que será recebido pelo bloco 'ao receber'.\nPalavra-chave: transmitir",
   on_event_tooltip:
@@ -740,6 +740,8 @@ export default {
 
   pressed_option: "pressionado",
   released_option: "liberado",
+  starts_option: "começa",
+  ends_option: "termina",
 
   DYNAMIC_option: "dinâmico",
   ANIMATED_option: "animado",

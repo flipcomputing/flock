@@ -385,8 +385,8 @@ export default {
   forever_tooltip: "Wykonuj bloki w każdej klatce lub po zakończeniu poprzedniej iteracji.\nSłowo kluczowe: forever",
   when_clicked_tooltip: "Wykonaj bloki, gdy nastąpi kliknięcie na siatkę.\nSłowo kluczowe: click",
   on_collision_tooltip: "Wykonaj bloki, gdy siatka wejdzie lub wyjdzie z kolizji.\nSłowo kluczowe: collide",
-  when_key_event_tooltip: "Wykonaj bloki, gdy określony klawisz zostanie wciśnięty lub zwolniony.",
-  when_action_event_tooltip: "Wykonaj bloki, gdy wybrana akcja zostanie wciśnięta lub zwolniona na klawiaturze, ekranie dotykowym lub w XR.",
+  when_key_event_tooltip: "Wykonaj bloki, gdy wskazany klawisz rozpoczyna się lub kończy (naciśnięcie lub puszczenie).",
+  when_action_event_tooltip: "Wykonaj bloki, gdy wybrana akcja rozpoczyna się lub kończy na klawiaturze, ekranie dotykowym lub w XR.",
   broadcast_event_tooltip: "Wyślij zdarzenie odbierane przez blok on_event.\nSłowo kluczowe: broadcast",
   on_event_tooltip: "Wykonaj kod, gdy otrzymano zdarzenie broadcast.\nSłowo kluczowe: on",
 
@@ -621,6 +621,8 @@ export default {
 
   pressed_option: "naciśnięty",
   released_option: "puszczony",
+  starts_option: "zaczyna",
+  ends_option: "kończy",
 
   DYNAMIC_option: "dynamiczny",
   ANIMATED_option: "animowany",

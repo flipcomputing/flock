@@ -2329,14 +2329,14 @@ export function defineGenerators() {
 
         javascriptGenerator.forBlock["when_key_event"] = function (block) {
                 const key = block.getFieldValue("KEY");
-                const event = block.getFieldValue("EVENT"); // "pressed" or "released"
+                const event = block.getFieldValue("EVENT"); // "starts" or "ends"
                 const statements_do = javascriptGenerator.statementToCode(
                         block,
                         "DO",
                 );
 
-                // Pass "true" if event is "released" for the whenKeyPressed helper function
-                return `whenKeyEvent("${key}", async () => {${statements_do}}, ${event === "released"});\n`;
+                // Pass "true" if event is "ends" for the whenKeyPressed helper function
+                return `whenKeyEvent("${key}", async () => {${statements_do}}, ${event === "ends_option"});\n`;
         };
 
         javascriptGenerator.forBlock["when_action_event"] = function (block) {
@@ -2347,7 +2347,7 @@ export function defineGenerators() {
                         "DO",
                 );
 
-                return `whenActionEvent("${action}", async () => {${statements_do}}, ${event === "released"});\n`;
+                return `whenActionEvent("${action}", async () => {${statements_do}}, ${event === "ends_option"});\n`;
         };
 
         // JavaScript generator for broadcast_event

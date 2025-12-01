@@ -385,8 +385,8 @@ export default {
   forever_tooltip: "Ejecuta los bloques internos cada fotograma o tras finalizar la iteración anterior.\nPalabra clave: forever",
   when_clicked_tooltip: "Ejecuta los bloques internos cuando ocurra el evento de clic en la malla.\nPalabra clave: click",
   on_collision_tooltip: "Ejecuta los bloques internos cuando una malla intersecta o deja de intersectar otra.\nPalabra clave: collide",
-  when_key_event_tooltip: "Ejecuta los bloques internos al pulsar o soltar la tecla especificada.",
-  when_action_event_tooltip: "Ejecuta los bloques internos cuando la acción elegida se pulsa o se suelta en teclado, táctil o XR.",
+  when_key_event_tooltip: "Ejecuta los bloques internos cuando la tecla especificada empieza o termina (pulsar o soltar).",
+  when_action_event_tooltip: "Ejecuta los bloques internos cuando la acción elegida empieza o termina en teclado, táctil o XR.",
   broadcast_event_tooltip: "Emite un evento que es recibido por el bloque 'on event'.\nPalabra clave: broadcast",
   on_event_tooltip: "Ejecuta el código cuando se recibe un evento emitido.\nPalabra clave: on",
 
@@ -619,6 +619,8 @@ export default {
 
   pressed_option: "presionado",
   released_option: "liberado",
+  starts_option: "empieza",
+  ends_option: "termina",
 
   DYNAMIC_option: "dinámico",
   ANIMATED_option: "animado",

@@ -394,8 +394,8 @@ export default {
   forever_tooltip: "Run the blocks inside every frame or when the previous iteration finishes. \nKeyword: forever",
   when_clicked_tooltip: "Run the blocks inside when the mesh trigger occurs.\nKeyword: click",
   on_collision_tooltip: "Execute the blocks inside when the mesh intersects or no longer intersects with another mesh.\nKeyword: collide",
-  when_key_event_tooltip: "Execute the blocks inside when the specified key is pressed or released.",
-  when_action_event_tooltip: "Execute the blocks inside when the selected action is pressed or released across keyboard, touch, or XR.",
+  when_key_event_tooltip: "Execute the blocks inside when the specified key starts or ends (press or release).",
+  when_action_event_tooltip: "Execute the blocks inside when the selected action starts or ends across keyboard, touch, or XR.",
   broadcast_event_tooltip: "Broadcast an event that is received by on event.\nKeyword: broadcast",
   on_event_tooltip: "Run code when a broadcast event is received.\nKeyword: on",
 
@@ -630,6 +630,8 @@ export default {
 
   pressed_option: "pressed",
   released_option: "released",
+  starts_option: "starts",
+  ends_option: "ends",
 
   DYNAMIC_option: "dynamic",
   ANIMATED_option: "animated",

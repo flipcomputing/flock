@@ -385,8 +385,8 @@ export default {
                                       forever_tooltip: "Exécute les blocs à chaque image ou lorsque l’itération précédente se termine.\nMot-clé: forever",
                                       when_clicked_tooltip: "Exécute les blocs à l’intérieur lorsque le déclencheur du maillage se produit.\nMot-clé: click",
                                       on_collision_tooltip: "Exécute les blocs à l’intérieur lorsque le maillage entre ou sort en collision avec un autre maillage.\nMot-clé: collide",
-                                      when_key_event_tooltip: "Exécute les blocs à l’intérieur lorsque la touche spécifiée est pressée ou relâchée.",
-                                      when_action_event_tooltip: "Exécute les blocs à l’intérieur lorsque l’action choisie est pressée ou relâchée (clavier, tactile ou XR).",
+                                      when_key_event_tooltip: "Exécute les blocs à l’intérieur lorsque la touche spécifiée démarre ou se termine (appui ou relâche).",
+                                      when_action_event_tooltip: "Exécute les blocs à l’intérieur lorsque l’action choisie démarre ou se termine (clavier, tactile ou XR).",
                                       broadcast_event_tooltip: "Diffuse un événement qui est reçu par 'on event'.\nMot-clé: broadcast",
                                       on_event_tooltip: "Exécute le code lorsqu’un événement diffusé est reçu.\nMot-clé: on",
 
@@ -619,6 +619,8 @@ export default {
 
                                       pressed_option: "appuyé",
                                       released_option: "relâché",
+                                      starts_option: "démarre",
+                                      ends_option: "se termine",
 
                                       DYNAMIC_option: "dynamique",
                                       ANIMATED_option: "animé",

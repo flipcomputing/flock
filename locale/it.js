@@ -458,9 +458,9 @@ export default {
   on_collision_tooltip:
     "Esegue i blocchi quando la mesh entra o esce dall’intersezione con un’altra mesh.\nParola chiave: collide",
   when_key_event_tooltip:
-    "Esegue i blocchi quando il tasto specificato è premuto o rilasciato.",
+    "Esegue i blocchi quando il tasto specificato inizia o termina (pressione o rilascio).",
   when_action_event_tooltip:
-    "Esegue i blocchi quando l’azione scelta viene premuta o rilasciata su tastiera, touch o XR.",
+    "Esegue i blocchi quando l’azione scelta inizia o termina su tastiera, touch o XR.",
   broadcast_event_tooltip:
     "Trasmette un evento ricevuto da 'on event'.\nParola chiave: broadcast",
   on_event_tooltip:
@@ -745,6 +745,8 @@ export default {
 
   pressed_option: "premuto",
   released_option: "rilasciato",
+  starts_option: "inizia",
+  ends_option: "termina",
 
   DYNAMIC_option: "dinamica",
   ANIMATED_option: "animata",
