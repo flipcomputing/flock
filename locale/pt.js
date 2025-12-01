@@ -240,7 +240,7 @@ export default {
 
   // Custom block translations - Sensing blocks
   key_pressed: "tecla pressionada é %1",
-  action_pressed: "ação é %1",
+  action_pressed: "ação %1",
   meshes_touching: "%1 tocando %2",
   time: "tempo em s",
   distance_to: "distância de %1 até %2",
@@ -748,7 +748,7 @@ export default {
   FLAT_option: "Plano",
 
   ANY_option: "qualquer",
-  space_infinity_option: "espaço ∞",
+  space_infinity_option: "espaço ꩜",
   q_icon_option: "Q ■",
   e_icon_option: "E ✿",
   f_icon_option: "F ✱",
@@ -784,10 +784,10 @@ export default {
   ACTIONS_option: "ações",
   ACTION_FORWARD_option: "frente (W/Z)",
   ACTION_BACKWARD_option: "trás (S)",
-  ACTION_LEFT_option: "esquerda (A/Q ■)",
+  ACTION_LEFT_option: "esquerda (A/Q)",
   ACTION_RIGHT_option: "direita (D)",
-  ACTION_BUTTON1_option: "botão 1 (E ✿)",
-  ACTION_BUTTON2_option: "botão 2 (R)",
+  ACTION_BUTTON1_option: "botão 1 (E ■)",
+  ACTION_BUTTON2_option: "botão 2 (R ✿)",
   ACTION_BUTTON3_option: "botão 3 (F ✱)",
   ACTION_BUTTON4_option: "botão 4 (꩜)",
 

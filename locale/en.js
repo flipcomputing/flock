@@ -236,7 +236,7 @@ export default {
   
   // Custom block translations - Sensing blocks
   key_pressed: "key pressed is %1",
-  action_pressed: "action is %1",
+  action_pressed: "action %1",
   meshes_touching: "%1 touching %2",
   time: "time in s",
   distance_to: "distance from %1 to %2",
@@ -639,7 +639,7 @@ export default {
   FLAT_option: "Flat", // Duplicate key NONE
 
   ANY_option: "any",
-  space_infinity_option: "space ∞", // Duplicate key space
+  space_infinity_option: "space ꩜", // Duplicate key space
   q_icon_option: "Q ■", // Duplicate key q
   e_icon_option: "E ✿", // Duplicate key e
   f_icon_option: "F ✱", // Duplicate key f
@@ -675,10 +675,10 @@ export default {
   ACTIONS_option: "actions",
   ACTION_FORWARD_option: "forward (W/Z)",
   ACTION_BACKWARD_option: "backward (S)",
-  ACTION_LEFT_option: "left (A/Q ■)",
+  ACTION_LEFT_option: "left (A/Q)",
   ACTION_RIGHT_option: "right (D)",
-  ACTION_BUTTON1_option: "button 1 (E ✿)",
-  ACTION_BUTTON2_option: "button 2 (R)",
+  ACTION_BUTTON1_option: "button 1 (E ■)",
+  ACTION_BUTTON2_option: "button 2 (R ✿)",
   ACTION_BUTTON3_option: "button 3 (F ✱)",
   ACTION_BUTTON4_option: "button 4 (꩜)",
 

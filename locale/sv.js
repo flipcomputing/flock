@@ -240,7 +240,7 @@ export default {
 
       // Custom block translations - Sensing blocks
       key_pressed: "tangent nedtryckt är %1",
-      action_pressed: "åtgärd är %1",
+      action_pressed: "åtgärd %1",
       meshes_touching: "%1 vidrör %2",
       time: "tid i s",
       distance_to: "avstånd från %1 till %2",
@@ -750,7 +750,7 @@ export default {
       FLAT_option: "Platt", // Duplicate key NONE
 
       ANY_option: "vilken som helst",
-      space_infinity_option: "rymd ∞", // Duplicate key space
+      space_infinity_option: "rymd ꩜", // Duplicate key space
       q_icon_option: "Q ■", // Duplicate key q
       e_icon_option: "E ✿", // Duplicate key e
       f_icon_option: "F ✱", // Duplicate key f
@@ -786,10 +786,10 @@ export default {
       ACTIONS_option: "åtgärder",
       ACTION_FORWARD_option: "framåt (W/Z)",
       ACTION_BACKWARD_option: "bakåt (S)",
-      ACTION_LEFT_option: "vänster (A/Q ■)",
+      ACTION_LEFT_option: "vänster (A/Q)",
       ACTION_RIGHT_option: "höger (D)",
-      ACTION_BUTTON1_option: "knapp 1 (E ✿)",
-      ACTION_BUTTON2_option: "knapp 2 (R)",
+      ACTION_BUTTON1_option: "knapp 1 (E ■)",
+      ACTION_BUTTON2_option: "knapp 2 (R ✿)",
       ACTION_BUTTON3_option: "knapp 3 (F ✱)",
       ACTION_BUTTON4_option: "knapp 4 (꩜)",
 

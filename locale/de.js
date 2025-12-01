@@ -234,7 +234,7 @@ export default {
 
   // Sensing blocks
   key_pressed: "Taste gedrückt? %1",
-  action_pressed: "Aktion ist %1",
+  action_pressed: "Aktion %1",
   meshes_touching: "%1 berührt %2",
   time: "Zeit in s",
   distance_to: "Entfernung von %1 nach %2",
@@ -393,7 +393,7 @@ export default {
   MAX_Z_option: "max z",
 
   space_option: " ",
-  space_infinity_option: "Leertaste ∞",
+  space_infinity_option: "Leertaste ꩜",
 
   pin_0_option: "Pin P0 losgelassen",
   pin_1_option: "Pin P1 losgelassen",
@@ -698,10 +698,10 @@ export default {
   ACTIONS_option: "Aktionen",
   ACTION_FORWARD_option: "vorwärts (W/Z)",
   ACTION_BACKWARD_option: "rückwärts (S)",
-  ACTION_LEFT_option: "links (A/Q ■)",
+  ACTION_LEFT_option: "links (A/Q)",
   ACTION_RIGHT_option: "rechts (D)",
-  ACTION_BUTTON1_option: "Taste 1 (E ✿)",
-  ACTION_BUTTON2_option: "Taste 2 (R)",
+  ACTION_BUTTON1_option: "Taste 1 (E ■)",
+  ACTION_BUTTON2_option: "Taste 2 (R ✿)",
   ACTION_BUTTON3_option: "Taste 3 (F ✱)",
   ACTION_BUTTON4_option: "Taste 4 (꩜)",
 
