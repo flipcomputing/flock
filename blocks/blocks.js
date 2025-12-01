@@ -414,6 +414,82 @@ export function handleBlockChange(block, changeEvent, variableNamePrefix) {
   }
 }
 
+function applyDisabledBlockStyle(block, isDisabled) {
+  const root = block.getSvgRoot?.();
+
+  if (!root) {
+    return;
+  }
+
+  const paths = root.querySelectorAll(
+    ".blocklyPath, .blocklyPathLight, .blocklyPathDark, .blocklyPathHighlight",
+  );
+
+  const textNodes = root.querySelectorAll(
+    ".blocklyText, .blocklyEditableText > text",
+  );
+
+  root.classList.remove("blocklyDisabledPattern");
+
+  if (isDisabled) {
+    root.style.opacity = "0.55";
+
+    paths.forEach((path) => {
+      path.style.removeProperty("fill");
+      path.style.fillOpacity = "1";
+      path.style.strokeOpacity = "1";
+    });
+
+    textNodes.forEach((node) => {
+      node.style.opacity = "1";
+      node.style.fillOpacity = "1";
+      node.style.strokeOpacity = "1";
+    });
+  } else {
+    root.style.removeProperty("opacity");
+
+    paths.forEach((path) => {
+      path.style.removeProperty("fill");
+      path.style.removeProperty("fillOpacity");
+      path.style.removeProperty("strokeOpacity");
+    });
+
+    textNodes.forEach((node) => {
+      node.style.removeProperty("opacity");
+      node.style.removeProperty("fillOpacity");
+      node.style.removeProperty("strokeOpacity");
+    });
+  }
+}
+
+export function syncDisabledBlockStyles(workspace) {
+  workspace?.getAllBlocks(false).forEach((block) => {
+    if (!block.isEnabled()) {
+      applyDisabledBlockStyle(block, true);
+    }
+  });
+}
+
+export function handleDisabledStyleChange(changeEvent) {
+  if (
+    changeEvent.type !== Blockly.Events.BLOCK_CHANGE ||
+    changeEvent.element !== "disabled"
+  ) {
+    return;
+  }
+
+  const block = Blockly.getMainWorkspace()?.getBlockById(changeEvent.blockId);
+
+  if (!block) {
+    return;
+  }
+
+  const isDisabled =
+    changeEvent.newValue === true || changeEvent.newValue === "true";
+
+  applyDisabledBlockStyle(block, isDisabled);
+}
+
 // smart-variable-duplication.js (final)
 // - Split variable on duplicate (duplicate-parent safe)
 // - Retarget descendants oldVar -> newVar
