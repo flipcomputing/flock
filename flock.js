@@ -1219,6 +1219,94 @@ export const flock = {
 
                 flock.engineReady = true;
         },
+        setupGamepadCameraControls() {
+                if (!flock.scene) {
+                        return;
+                }
+
+                const deadZone = 0.2;
+                const yawSpeed = 2.5;
+                const pitchSpeed = 2.0;
+
+                if (flock._gamepadCameraObserver) {
+                        flock.scene.onBeforeRenderObservable.remove(
+                                flock._gamepadCameraObserver,
+                        );
+                        flock._gamepadCameraObserver = null;
+                }
+
+                flock._gamepadCameraObserver =
+                        flock.scene.onBeforeRenderObservable.add(() => {
+                                if (!navigator.getGamepads) {
+                                        return;
+                                }
+
+                                const gamepads = navigator.getGamepads() || [];
+                                const gamepad = gamepads.find((pad) => pad);
+
+                                if (!gamepad) {
+                                        return;
+                                }
+
+                                const [ , , rawRightX = 0, rawRightY = 0 ] =
+                                        gamepad.axes || [];
+
+                                const rightX =
+                                        Math.abs(rawRightX) > deadZone
+                                                ? rawRightX
+                                                : 0;
+                                const rightY =
+                                        Math.abs(rawRightY) > deadZone
+                                                ? rawRightY
+                                                : 0;
+
+                                if (!rightX && !rightY) {
+                                        return;
+                                }
+
+                                const camera = flock.scene.activeCamera;
+
+                                if (!camera) {
+                                        return;
+                                }
+
+                                const deltaTime =
+                                        (flock.engine?.getDeltaTime?.() ?? 16) /
+                                        1000;
+                                const yawDelta = rightX * yawSpeed * deltaTime;
+                                const pitchDelta =
+                                        rightY * pitchSpeed * deltaTime;
+
+                                const cameraType = camera.getClassName?.();
+
+                                if (cameraType === "ArcRotateCamera") {
+                                        camera.alpha -= yawDelta;
+                                        camera.beta -= pitchDelta;
+
+                                        const lowerBeta =
+                                                camera.lowerBetaLimit ?? 0.01;
+                                        const upperBeta =
+                                                camera.upperBetaLimit ??
+                                                Math.PI - 0.01;
+
+                                        camera.beta = Math.min(
+                                                upperBeta,
+                                                Math.max(lowerBeta, camera.beta),
+                                        );
+                                } else {
+                                        camera.rotation.y += yawDelta;
+                                        camera.rotation.x += pitchDelta;
+
+                                        const minPitch = -Math.PI / 2 + 0.01;
+                                        const maxPitch = Math.PI / 2 - 0.01;
+
+                                        camera.rotation.x = Math.min(
+                                                maxPitch,
+                                                Math.max(minPitch, camera.rotation.x),
+                                        );
+                                }
+                        });
+        },
         createEngine() {
                 flock.engine?.dispose();
                 flock.engine = null;
@@ -1255,6 +1343,13 @@ export const flock = {
                                 // Stop all sounds and animations first
                                 flock.stopAllSounds();
                                 flock.engine?.stopRenderLoop();
+
+                                if (flock._gamepadCameraObserver) {
+                                        flock.scene.onBeforeRenderObservable.remove(
+                                                flock._gamepadCameraObserver,
+                                        );
+                                        flock._gamepadCameraObserver = null;
+                                }
 
                                 try {
                                         const canvas =
@@ -1714,6 +1809,7 @@ export const flock = {
                 camera.speed = 0.25;
                 flock.scene.activeCamera = camera;
                 camera.attachControl(flock.canvas, false);
+                flock.setupGamepadCameraControls();
                 // Set up lighting
                 const hemisphericLight = new flock.BABYLON.HemisphericLight(
                         "hemisphericLight",
