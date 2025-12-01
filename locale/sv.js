@@ -240,6 +240,7 @@ export default {
 
       // Custom block translations - Sensing blocks
       key_pressed: "tangent nedtryckt är %1",
+      action_pressed: "åtgärd nedtryckt är %1",
       meshes_touching: "%1 vidrör %2",
       time: "tid i s",
       distance_to: "avstånd från %1 till %2",
@@ -495,6 +496,8 @@ export default {
       // Tooltip translations - Sensing blocks
       key_pressed_tooltip:
             "Returnerar sant om den angivna tangenten är nedtryckt.\nKeyword:ispressed",
+      action_pressed_tooltip:
+            "Returnerar sant om den valda rörelse- eller åtgärdskontrollen är aktiv via tangentbord, pekskärm eller XR.",
       meshes_touching_tooltip:
             "Returnerar sant om de två valda mesh-objekten rör vid varandra.\nKeyword: istouching",
       time_tooltip: "Returnerar aktuell tid i sekunder.",
@@ -781,6 +784,14 @@ export default {
       BOTH_option: "båda",
       ARROWS_option: "pilar",
       ACTIONS_option: "åtgärder",
+      ACTION_FORWARD_option: "framåt (W/Z)",
+      ACTION_BACKWARD_option: "bakåt (S)",
+      ACTION_LEFT_option: "vänster (A/Q ■)",
+      ACTION_RIGHT_option: "höger (D)",
+      ACTION_BUTTON1_option: "knapp 1 (E ✿)",
+      ACTION_BUTTON2_option: "knapp 2 (R)",
+      ACTION_BUTTON3_option: "knapp 3 (F ✱)",
+      ACTION_BUTTON4_option: "knapp 4 (꩜)",
 
       pin_0_option: "Stift P0 släppt", // Duplicate key 0
       pin_1_option: "Stift P1 släppt", // Duplicate key 1

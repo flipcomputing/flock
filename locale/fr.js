@@ -229,7 +229,8 @@ export default {
                                       show_physics: "afficher les formes physiques %1",
 
                                       // Custom block translations - Sensing blocks
-                                      key_pressed: "touche pressée est %1",
+                                     key_pressed: "touche pressée est %1",
+                                     action_pressed: "action pressée est %1",
                                       meshes_touching: "%1 touche %2",
                                       time: "temps en s",
                                       distance_to: "distance de %1 à %2",
@@ -414,6 +415,8 @@ export default {
 
                                       // Tooltip translations - Sensing blocks
                                       key_pressed_tooltip: "Renvoie vrai si la touche spécifiée est enfoncée.\nMot-clé: ispressed",
+                                      action_pressed_tooltip:
+                                              "Renvoie vrai si le contrôle de déplacement ou d’action choisi est actif sur clavier, tactile ou XR.",
                                       meshes_touching_tooltip: "Renvoie vrai si les deux maillages sélectionnés se touchent.\nMot-clé: istouching",
                                       time_tooltip: "Renvoie le temps actuel en secondes.",
                                       distance_to_tooltip: "Calcule la distance entre deux maillages.",
@@ -659,6 +662,14 @@ export default {
                                       BOTH_option: "les deux",
                                       ARROWS_option: "flèches",
                                       ACTIONS_option: "actions",
+                                      ACTION_FORWARD_option: "avant (W/Z)",
+                                      ACTION_BACKWARD_option: "arrière (S)",
+                                      ACTION_LEFT_option: "gauche (A/Q ■)",
+                                      ACTION_RIGHT_option: "droite (D)",
+                                      ACTION_BUTTON1_option: "bouton 1 (E ✿)",
+                                      ACTION_BUTTON2_option: "bouton 2 (R)",
+                                      ACTION_BUTTON3_option: "bouton 3 (F ✱)",
+                                      ACTION_BUTTON4_option: "bouton 4 (꩜)",
 
                                       pin_0_option: "Broche P0 relâchée",
                                       pin_1_option: "Broche P1 relâchée",

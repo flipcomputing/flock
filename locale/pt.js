@@ -240,6 +240,7 @@ export default {
 
   // Custom block translations - Sensing blocks
   key_pressed: "tecla pressionada é %1",
+  action_pressed: "ação pressionada é %1",
   meshes_touching: "%1 tocando %2",
   time: "tempo em s",
   distance_to: "distância de %1 até %2",
@@ -494,6 +495,8 @@ export default {
   // Tooltip translations - Sensing blocks
   key_pressed_tooltip:
     "Retorna verdadeiro se a tecla especificada estiver pressionada.\nPalavra-chave: estápressionada",
+  action_pressed_tooltip:
+    "Retorna verdadeiro se o controle de movimento ou ação escolhido estiver ativo no teclado, toque ou XR.",
   meshes_touching_tooltip:
     "Retorna verdadeiro se os dois meshes selecionados estiverem tocando.\nPalavra-chave: estátocando",
   time_tooltip: "Retorna o tempo atual em segundos.",
@@ -779,6 +782,14 @@ export default {
   BOTH_option: "ambos",
   ARROWS_option: "setas",
   ACTIONS_option: "ações",
+  ACTION_FORWARD_option: "frente (W/Z)",
+  ACTION_BACKWARD_option: "trás (S)",
+  ACTION_LEFT_option: "esquerda (A/Q ■)",
+  ACTION_RIGHT_option: "direita (D)",
+  ACTION_BUTTON1_option: "botão 1 (E ✿)",
+  ACTION_BUTTON2_option: "botão 2 (R)",
+  ACTION_BUTTON3_option: "botão 3 (F ✱)",
+  ACTION_BUTTON4_option: "botão 4 (꩜)",
 
   pin_0_option: "Pino P0 libertado",
   pin_1_option: "Pino P1 libertado",

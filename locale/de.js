@@ -234,6 +234,7 @@ export default {
 
   // Sensing blocks
   key_pressed: "Taste gedrückt? %1",
+  action_pressed: "Aktion gedrückt? %1",
   meshes_touching: "%1 berührt %2",
   time: "Zeit in s",
   distance_to: "Entfernung von %1 nach %2",
@@ -541,6 +542,8 @@ export default {
 
   // Tooltip translations - Sensing blocks
   key_pressed_tooltip: "Gibt true zurück, wenn die angegebene Taste gedrückt ist.\nSchlüsselwort: ispressed",
+  action_pressed_tooltip:
+    "Gibt true zurück, wenn die gewählte Bewegungs- oder Aktionssteuerung auf Tastatur, Touch oder XR aktiv ist.",
   meshes_touching_tooltip: "Gibt true zurück, wenn die zwei gewählten Objekte sich berühren.\nSchlüsselwort: istouching",
   time_tooltip: "Gibt die aktuelle Zeit in Sekunden zurück.",
   distance_to_tooltip: "Berechnet den Abstand zwischen zwei Objekten.",
@@ -693,6 +696,14 @@ export default {
   BOTH_option: "beides",
   ARROWS_option: "Pfeile",
   ACTIONS_option: "Aktionen",
+  ACTION_FORWARD_option: "vorwärts (W/Z)",
+  ACTION_BACKWARD_option: "rückwärts (S)",
+  ACTION_LEFT_option: "links (A/Q ■)",
+  ACTION_RIGHT_option: "rechts (D)",
+  ACTION_BUTTON1_option: "Taste 1 (E ✿)",
+  ACTION_BUTTON2_option: "Taste 2 (R)",
+  ACTION_BUTTON3_option: "Taste 3 (F ✱)",
+  ACTION_BUTTON4_option: "Taste 4 (꩜)",
 
   ONCE_option: "einmal",
   LOOP_option: "schleife",

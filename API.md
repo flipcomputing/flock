@@ -432,6 +432,19 @@ if (keyPressed("w")) {
 }
 ```
 
+#### `actionPressed(action)`
+Checks if a movement or action input is active across keyboard, touch, or XR controllers using a platform-neutral action name.
+
+**Parameters:**
+- `action` (string): One of `FORWARD`, `BACKWARD`, `LEFT`, `RIGHT`, `BUTTON1`, `BUTTON2`, `BUTTON3`, or `BUTTON4`.
+
+**Example:**
+```javascript
+if (actionPressed("FORWARD")) {
+  // Move forward regardless of whether the player is using W, Z, touch, or XR input
+}
+```
+
 #### `getProperty(meshName, propertyName)`
 Gets a property value from a mesh.
 

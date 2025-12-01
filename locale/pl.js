@@ -230,6 +230,7 @@ export default {
 
   // Custom block translations - Sensing blocks
   key_pressed: "czy klawisz %1 jest wciśnięty?",
+  action_pressed: "czy akcja %1 jest aktywna?",
   meshes_touching: "czy %1 dotyka %2?",
   time: "czas w s",
   distance_to: "odległość od %1 do %2",
@@ -414,6 +415,8 @@ export default {
 
   // Tooltip translations - Sensing blocks
   key_pressed_tooltip: "Zwraca true, jeśli podany klawisz jest wciśnięty.\nSłowo kluczowe:ispressed",
+  action_pressed_tooltip:
+    "Zwraca true, jeśli wybrane sterowanie ruchem lub akcją jest aktywne na klawiaturze, dotyku lub w XR.",
   meshes_touching_tooltip: "Zwraca true, jeśli dwie wybrane siatki się stykają.\nSłowo kluczowe: istouching",
   time_tooltip: "Zwraca bieżący czas w sekundach.",
   distance_to_tooltip: "Oblicz odległość między siatkami %1 i %2.",
@@ -661,6 +664,14 @@ export default {
   BOTH_option: "oba",
   ARROWS_option: "strzałki",
   ACTIONS_option: "akcje",
+  ACTION_FORWARD_option: "do przodu (W/Z)",
+  ACTION_BACKWARD_option: "do tyłu (S)",
+  ACTION_LEFT_option: "w lewo (A/Q ■)",
+  ACTION_RIGHT_option: "w prawo (D)",
+  ACTION_BUTTON1_option: "przycisk 1 (E ✿)",
+  ACTION_BUTTON2_option: "przycisk 2 (R)",
+  ACTION_BUTTON3_option: "przycisk 3 (F ✱)",
+  ACTION_BUTTON4_option: "przycisk 4 (꩜)",
 
   pin_0_option: "Pin P0 zwolniony",
   pin_1_option: "Pin P1 zwolniony",

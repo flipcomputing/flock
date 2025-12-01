@@ -236,6 +236,7 @@ export default {
   
   // Custom block translations - Sensing blocks
   key_pressed: "key pressed is %1",
+  action_pressed: "action pressed is %1",
   meshes_touching: "%1 touching %2",
   time: "time in s",
   distance_to: "distance from %1 to %2",
@@ -423,6 +424,8 @@ export default {
   
   // Tooltip translations - Sensing blocks
   key_pressed_tooltip: "Return true if the specified key is pressed.\nKeyword:ispressed",
+  action_pressed_tooltip:
+    "Return true if the specified movement or action control is active across keyboard, touch, or XR inputs.",
   meshes_touching_tooltip: "Return true if the two selected meshes are touching.\nKeyword: istouching",
   time_tooltip: "Return the current time in seconds.",
   distance_to_tooltip: "Calculate the distance between two meshes.",
@@ -670,6 +673,14 @@ export default {
   BOTH_option: "both",
   ARROWS_option: "arrows",
   ACTIONS_option: "actions",
+  ACTION_FORWARD_option: "forward (W/Z)",
+  ACTION_BACKWARD_option: "backward (S)",
+  ACTION_LEFT_option: "left (A/Q ■)",
+  ACTION_RIGHT_option: "right (D)",
+  ACTION_BUTTON1_option: "button 1 (E ✿)",
+  ACTION_BUTTON2_option: "button 2 (R)",
+  ACTION_BUTTON3_option: "button 3 (F ✱)",
+  ACTION_BUTTON4_option: "button 4 (꩜)",
 
   pin_0_option: "Pin P0 released", // Duplicate key 0
   pin_1_option: "Pin P1 released", // Duplicate key 1

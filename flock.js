@@ -3162,6 +3162,26 @@ export const flock = {
                         );
                 }
         },
+        actionPressed(action) {
+                const actionMap = {
+                        FORWARD: ["W", "Z"],
+                        BACKWARD: ["S"],
+                        LEFT: ["A", "Q"],
+                        RIGHT: ["D"],
+                        BUTTON1: ["E"],
+                        BUTTON2: ["R"],
+                        BUTTON3: ["F"],
+                        BUTTON4: ["SPACE", " "],
+                };
+
+                const actionKeys = actionMap[action];
+
+                if (!actionKeys) {
+                        return false;
+                }
+
+                return actionKeys.some((key) => flock.keyPressed(key));
+        },
         seededRandom(from, to, seed) {
                 const x = Math.sin(seed) * 10000;
                 const random = x - Math.floor(x);

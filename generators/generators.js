@@ -2942,6 +2942,11 @@ export function defineGenerators() {
                 return `canvasControls(${controls});\n`;
         };
 
+        javascriptGenerator.forBlock["action_pressed"] = function (block) {
+                const action = block.getFieldValue("ACTION");
+                return [`actionPressed("${action}")`, javascriptGenerator.ORDER_NONE];
+        };
+
         javascriptGenerator.forBlock["key_pressed"] = function (block) {
                 const key = block.getFieldValue("KEY");
                 return [`keyPressed("${key}")`, javascriptGenerator.ORDER_NONE];

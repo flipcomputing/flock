@@ -48,6 +48,36 @@ export function defineSensingBlocks() {
                 },
         };
 
+        Blockly.Blocks["action_pressed"] = {
+                init: function () {
+                        this.jsonInit({
+                                type: "action_pressed",
+                                message0: translate("action_pressed"),
+                                args0: [
+                                        {
+                                                type: "field_dropdown",
+                                                name: "ACTION",
+                                                options: [
+                                                        getDropdownOption("ACTION_FORWARD"),
+                                                        getDropdownOption("ACTION_BACKWARD"),
+                                                        getDropdownOption("ACTION_LEFT"),
+                                                        getDropdownOption("ACTION_RIGHT"),
+                                                        getDropdownOption("ACTION_BUTTON1"),
+                                                        getDropdownOption("ACTION_BUTTON2"),
+                                                        getDropdownOption("ACTION_BUTTON3"),
+                                                        getDropdownOption("ACTION_BUTTON4"),
+                                                ],
+                                        },
+                                ],
+                                output: "Boolean",
+                                colour: categoryColours["Sensing"],
+                                tooltip: getTooltip("action_pressed"),
+                        });
+                        this.setHelpUrl(getHelpUrlFor(this.type));
+                        this.setStyle("sensing_blocks");
+                },
+        };
+
         Blockly.Blocks["meshes_touching"] = {
                 init: function () {
                         this.jsonInit({
