@@ -414,62 +414,6 @@ export function handleBlockChange(block, changeEvent, variableNamePrefix) {
   }
 }
 
-function applyDisabledBlockStyle(block, isDisabled) {
-  const root = block.getSvgRoot?.();
-
-  if (!root) {
-    return;
-  }
-
-  const paths = root.querySelectorAll(
-    ".blocklyPath, .blocklyPathLight, .blocklyPathDark, .blocklyPathHighlight",
-  );
-
-  const textNodes = root.querySelectorAll(
-    ".blocklyText, .blocklyEditableText > text",
-  );
-
-  root.classList.remove("blocklyDisabledPattern");
-
-  if (isDisabled) {
-    root.style.opacity = "0.55";
-
-    paths.forEach((path) => {
-      path.style.removeProperty("fill");
-      path.style.fillOpacity = "1";
-      path.style.strokeOpacity = "1";
-    });
-
-    textNodes.forEach((node) => {
-      node.style.opacity = "1";
-      node.style.fillOpacity = "1";
-      node.style.strokeOpacity = "1";
-    });
-  } else {
-    root.style.removeProperty("opacity");
-
-    paths.forEach((path) => {
-      path.style.removeProperty("fill");
-      path.style.removeProperty("fillOpacity");
-      path.style.removeProperty("strokeOpacity");
-    });
-
-    textNodes.forEach((node) => {
-      node.style.removeProperty("opacity");
-      node.style.removeProperty("fillOpacity");
-      node.style.removeProperty("strokeOpacity");
-    });
-  }
-}
-
-export function syncDisabledBlockStyles(workspace) {
-  workspace?.getAllBlocks(false).forEach((block) => {
-    if (!block.isEnabled()) {
-      applyDisabledBlockStyle(block, true);
-    }
-  });
-}
-
 const MANUALLY_DISABLED_REASON =
   Blockly.constants?.MANUALLY_DISABLED || "MANUALLY_DISABLED";
 
@@ -484,7 +428,6 @@ function clearManualDisableFromNextStack(block) {
       (reasons.size ?? 0) <= 1
     ) {
       cursor.setDisabledReason?.(false, MANUALLY_DISABLED_REASON);
-      applyDisabledBlockStyle(cursor, false);
     }
 
     cursor = cursor.getNextBlock?.();
@@ -514,8 +457,6 @@ export function handleDisabledStyleChange(changeEvent) {
   if (isManualDisable) {
     clearManualDisableFromNextStack(block);
   }
-
-  applyDisabledBlockStyle(block, !block.isEnabled());
 }
 
 function shouldSkipDisabledPropagationFromParent(child, parent) {
@@ -947,6 +888,9 @@ export class CustomConstantProvider extends Blockly.zelos.ConstantProvider {
     css.push(
       `${selector}.blocklyDisabled {`,
       "  opacity: 0.55;",
+      "}",
+      `${selector}.blocklyDisabledPattern {`,
+      "  display: none;",
       "}",
       `${selector}.blocklyDisabled > .blocklyPath,`,
       `${selector}.blocklyDisabled > .blocklyPathLight,`,
