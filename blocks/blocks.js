@@ -915,7 +915,7 @@ class CustomPathObject extends Blockly.blockRendering.PathObject {
   updateDisabled_(disabled) {
     super.updateDisabled_(disabled);
 
-    if (!this.style) {
+    if (!this.style || !this.svgPath) {
       return;
     }
 
