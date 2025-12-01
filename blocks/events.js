@@ -417,6 +417,98 @@ export function defineEventsBlocks() {
                 },
         };
 
+        Blockly.Blocks["when_action_event"] = {
+                init: function () {
+                        this.jsonInit({
+                                type: "when_action_event",
+                                message0: translate("when_action_event"),
+                                args0: [
+                                        {
+                                                type: "field_dropdown",
+                                                name: "ACTION",
+                                                options: [
+                                                        getDropdownOption(
+                                                                "ACTION_FORWARD",
+                                                        ),
+                                                        getDropdownOption(
+                                                                "ACTION_BACKWARD",
+                                                        ),
+                                                        getDropdownOption(
+                                                                "ACTION_LEFT",
+                                                        ),
+                                                        getDropdownOption(
+                                                                "ACTION_RIGHT",
+                                                        ),
+                                                        getDropdownOption(
+                                                                "ACTION_BUTTON1",
+                                                        ),
+                                                        getDropdownOption(
+                                                                "ACTION_BUTTON2",
+                                                        ),
+                                                        getDropdownOption(
+                                                                "ACTION_BUTTON3",
+                                                        ),
+                                                        getDropdownOption(
+                                                                "ACTION_BUTTON4",
+                                                        ),
+                                                ],
+                                        },
+                                        {
+                                                type: "field_dropdown",
+                                                name: "EVENT",
+                                                options: [
+                                                        getDropdownOption("pressed"),
+                                                        getDropdownOption("released"),
+                                                ],
+                                        },
+                                ],
+                                message1: "%1",
+                                args1: [
+                                        {
+                                                type: "input_statement",
+                                                name: "DO",
+                                        },
+                                ],
+                                colour: categoryColours["Events"],
+                                tooltip: getTooltip("when_action_event"),
+                        });
+                        this.setHelpUrl(getHelpUrlFor(this.type));
+                        this.setStyle("events_blocks");
+                        addToggleButton(this);
+                },
+                mutationToDom: function () {
+                        return mutationToDom(this);
+                },
+                domToMutation: function (xmlElement) {
+                        domToMutation(this, xmlElement);
+                },
+                updateShape_: function (isInline) {
+                        updateShape(this, isInline);
+                },
+                toggleDoBlock: function () {
+                        const isInline = !this.isInline;
+
+                        if (!isInline) {
+                                this.unplug(true); // Ensures the block is disconnected when toggled to top-level
+                        }
+
+                        this.updateShape_(isInline);
+
+                        // Optional: Re-enable the block if it was disabled
+                        if (
+                                this.hasDisabledReason &&
+                                this.hasDisabledReason("ORPHANED_BLOCK")
+                        ) {
+                                this.setDisabledReason(false, "ORPHANED_BLOCK");
+                        }
+
+                        Blockly.Events.fire(
+                                new Blockly.Events.BlockChange(this, "mutation", null, "", ""),
+                        );
+                        Blockly.Events.fire(new Blockly.Events.BlockMove(this));
+                },
+        };
+
         function getEventNameValidationError(name) {
                 if (!name || typeof name !== "string") {
                         return "Event name must be a valid string.";

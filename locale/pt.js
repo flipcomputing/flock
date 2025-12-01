@@ -207,6 +207,7 @@ export default {
   when_clicked: "quando %1 %2",
   on_collision: "ao colidir %1 %2 %3",
   when_key_event: "quando tecla %1 %2",
+  when_action_event: "quando ação %1 %2",
   broadcast_event: "transmitir evento %1",
   on_event: "ao evento %1",
 
@@ -450,6 +451,8 @@ export default {
     "Executa os blocos quando o mesh colide ou deixa de colidir com outro.\nPalavra-chave: colisão",
   when_key_event_tooltip:
     "Executa os blocos quando a tecla especificada for pressionada ou liberada.",
+  when_action_event_tooltip:
+    "Executa os blocos quando a ação escolhida é pressionada ou liberada no teclado, toque ou XR.",
   broadcast_event_tooltip:
     "Emite um evento que será recebido pelo bloco 'ao receber'.\nPalavra-chave: transmitir",
   on_event_tooltip:

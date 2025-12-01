@@ -199,6 +199,7 @@ export default {
   when_clicked: "gdy kliknięto %1 %2",
   on_collision: "gdy %1 zderzy się z %2 %3",
   when_key_event: "gdy klawisz %1 %2",
+  when_action_event: "gdy akcja %1 %2",
   broadcast_event: "wyślij zdarzenie %1",
   on_event: "gdy zdarzenie %1",
 
@@ -385,6 +386,7 @@ export default {
   when_clicked_tooltip: "Wykonaj bloki, gdy nastąpi kliknięcie na siatkę.\nSłowo kluczowe: click",
   on_collision_tooltip: "Wykonaj bloki, gdy siatka wejdzie lub wyjdzie z kolizji.\nSłowo kluczowe: collide",
   when_key_event_tooltip: "Wykonaj bloki, gdy określony klawisz zostanie wciśnięty lub zwolniony.",
+  when_action_event_tooltip: "Wykonaj bloki, gdy wybrana akcja zostanie wciśnięta lub zwolniona na klawiaturze, ekranie dotykowym lub w XR.",
   broadcast_event_tooltip: "Wyślij zdarzenie odbierane przez blok on_event.\nSłowo kluczowe: broadcast",
   on_event_tooltip: "Wykonaj kod, gdy otrzymano zdarzenie broadcast.\nSłowo kluczowe: on",
 

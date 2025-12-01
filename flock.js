@@ -959,6 +959,8 @@ export const flock = {
                         broadcastEvent: this.broadcastEvent?.bind(this),
                         start: this.start?.bind(this),
                         forever: this.forever?.bind(this),
+                        whenActionEvent:
+                                this.whenActionEvent?.bind(this),
                         whenKeyEvent: this.whenKeyEvent?.bind(this),
                         randomInteger: this.randomInteger?.bind(this),
                         printText: this.printText?.bind(this),
@@ -1334,6 +1336,7 @@ export const flock = {
                                 // Dispose UI elements
                                 flock.controlsTexture?.dispose();
                                 flock.controlsTexture = null;
+                                flock.actionControlsReady = false;
 
                                 // Clear main UI texture and all its controls
                                 if (flock.scene.UITexture) {
@@ -1759,19 +1762,11 @@ export const flock = {
                 // Enable collisions
                 flock.scene.collisionsEnabled = true;
 
-                const isTouchScreen =
+                flock.isTouchScreen =
                         "ontouchstart" in window ||
                         navigator.maxTouchPoints > 0 ||
                         window.matchMedia("(pointer: coarse)").matches;
-
-                if (isTouchScreen) {
-                        flock.controlsTexture =
-                                flock.GUI.AdvancedDynamicTexture.CreateFullscreenUI(
-                                        "UI",
-                                );
-                        flock.createArrowControls("white");
-                        flock.createButtonControls("white");
-                }
+                flock.actionControlsReady = false;
 
                 // Create the UI
                 flock.advancedTexture =
@@ -3065,6 +3060,22 @@ export const flock = {
                 }
                 return propertyValue;
         },
+        ensureActionControls() {
+                if (
+                        !this.isTouchScreen ||
+                        !this.GUI ||
+                        !this.scene
+                ) {
+                        return;
+                }
+
+                if (this.actionControlsReady) {
+                        return;
+                }
+
+                this.buttonControls?.("BOTH", true, "white");
+                this.actionControlsReady = true;
+        },
         keyPressed(key) {
                 // Combine all input sources: keys, buttons, and controllers
                 const pressedKeys = flock.canvas.pressedKeys;
@@ -3164,6 +3175,7 @@ export const flock = {
                 }
         },
         actionPressed(action) {
+                this.ensureActionControls();
                 const actionMap = {
                         FORWARD: ["W", "Z"],
                         BACKWARD: ["S"],
@@ -3332,6 +3344,31 @@ export const flock = {
                 if (flock.events && flock.events[eventName]) {
                         flock.events[eventName].notifyObservers(data);
                 }
+        },
+        whenActionEvent(action, callback, isReleased = false) {
+                this.ensureActionControls();
+                const actionMap = {
+                        FORWARD: ["w", "z"],
+                        BACKWARD: ["s"],
+                        LEFT: ["a", "q"],
+                        RIGHT: ["d"],
+                        BUTTON1: ["e"],
+                        BUTTON2: ["r"],
+                        BUTTON3: ["f"],
+                        BUTTON4: [" "],
+                };
+
+                const actionKeys = actionMap[action];
+
+                if (!actionKeys?.length) {
+                        return;
+                }
+
+                [...new Set(actionKeys.map((key) => key.toLowerCase()))].forEach(
+                        (key) => {
+                                this.whenKeyEvent(key, callback, isReleased);
+                        },
+                );
         },
         whenKeyEvent(key, callback, isReleased = false) {
                 // Handle keyboard input

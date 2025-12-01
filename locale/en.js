@@ -205,6 +205,7 @@ export default {
   when_clicked: "when %1 %2",
   on_collision: "on %1 collision %2 %3",
   when_key_event: "when key %1 %2",
+  when_action_event: "when action %1 %2",
   broadcast_event: "broadcast event %1",
   on_event: "on event %1",
 
@@ -394,6 +395,7 @@ export default {
   when_clicked_tooltip: "Run the blocks inside when the mesh trigger occurs.\nKeyword: click",
   on_collision_tooltip: "Execute the blocks inside when the mesh intersects or no longer intersects with another mesh.\nKeyword: collide",
   when_key_event_tooltip: "Execute the blocks inside when the specified key is pressed or released.",
+  when_action_event_tooltip: "Execute the blocks inside when the selected action is pressed or released across keyboard, touch, or XR.",
   broadcast_event_tooltip: "Broadcast an event that is received by on event.\nKeyword: broadcast",
   on_event_tooltip: "Run code when a broadcast event is received.\nKeyword: on",
 

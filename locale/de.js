@@ -203,6 +203,7 @@ export default {
   when_clicked: "wenn %1 %2",
   on_collision: "bei Kollision von %1 %2 %3",
   when_key_event: "wenn Taste %1 %2",
+  when_action_event: "wenn Aktion %1 %2",
   broadcast_event: "Ereignis %1 senden",
   on_event: "bei Ereignis %1",
 
@@ -512,6 +513,7 @@ export default {
   when_clicked_tooltip: "Führe Blöcke aus, wenn ein Objekt geklickt wird.\nSchlüsselwort: click",
   on_collision_tooltip: "Führe Blöcke aus bei Kollision oder Ende der Kollision.\nSchlüsselwort: collide",
   when_key_event_tooltip: "Führe Blöcke aus bei Tastendruck oder -freigabe.",
+  when_action_event_tooltip: "Führe Blöcke aus, wenn die gewählte Aktion gedrückt oder losgelassen wird (Tastatur, Touch oder XR).",
   broadcast_event_tooltip: "Sende Ereignis, das von on_event empfangen wird.\nSchlüsselwort: broadcast",
   on_event_tooltip: "Führe Code aus, wenn Broadcast‑Ereignis empfangen wird.\nSchlüsselwort: on",
 

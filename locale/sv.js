@@ -208,6 +208,7 @@ export default {
       when_clicked: "när %1 %2",
       on_collision: "vid %1 kollision %2 %3",
       when_key_event: "när tangent %1 %2",
+      when_action_event: "när handling %1 %2",
       broadcast_event: "sänd händelse %1",
       on_event: "vid händelse %1",
 
@@ -450,6 +451,8 @@ export default {
             "Kör blocken när ett mesh-objekt kolliderar med eller slutar kollidera med ett annat.\nKeyword: collide",
       when_key_event_tooltip:
             "Kör blocken när den angivna tangenten trycks ned eller släpps.",
+      when_action_event_tooltip:
+            "Kör blocken när den valda handlingen trycks ned eller släpps via tangentbord, touch eller XR.",
       broadcast_event_tooltip:
             "Sänd ett event som tas emot av on event.\nKeyword: broadcast",
       on_event_tooltip:

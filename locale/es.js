@@ -199,6 +199,7 @@ export default {
   when_clicked: "cuando se haga clic en %1 %2",
   on_collision: "al colisionar %1 con %2 %3",
   when_key_event: "cuando tecla %1 %2",
+  when_action_event: "cuando acción %1 %2",
   broadcast_event: "difundir evento %1",
   on_event: "al evento %1",
 
@@ -385,6 +386,7 @@ export default {
   when_clicked_tooltip: "Ejecuta los bloques internos cuando ocurra el evento de clic en la malla.\nPalabra clave: click",
   on_collision_tooltip: "Ejecuta los bloques internos cuando una malla intersecta o deja de intersectar otra.\nPalabra clave: collide",
   when_key_event_tooltip: "Ejecuta los bloques internos al pulsar o soltar la tecla especificada.",
+  when_action_event_tooltip: "Ejecuta los bloques internos cuando la acción elegida se pulsa o se suelta en teclado, táctil o XR.",
   broadcast_event_tooltip: "Emite un evento que es recibido por el bloque 'on event'.\nPalabra clave: broadcast",
   on_event_tooltip: "Ejecuta el código cuando se recibe un evento emitido.\nPalabra clave: on",
 

@@ -199,6 +199,7 @@ export default {
                                       when_clicked: "quand %1 %2",
                                       on_collision: "lors de la collision de %1 avec %2 %3",
                                       when_key_event: "quand la touche %1 %2",
+                                      when_action_event: "quand l’action %1 %2",
                                       broadcast_event: "diffuser l’événement %1",
                                       on_event: "lors de l’événement %1",
 
@@ -385,6 +386,7 @@ export default {
                                       when_clicked_tooltip: "Exécute les blocs à l’intérieur lorsque le déclencheur du maillage se produit.\nMot-clé: click",
                                       on_collision_tooltip: "Exécute les blocs à l’intérieur lorsque le maillage entre ou sort en collision avec un autre maillage.\nMot-clé: collide",
                                       when_key_event_tooltip: "Exécute les blocs à l’intérieur lorsque la touche spécifiée est pressée ou relâchée.",
+                                      when_action_event_tooltip: "Exécute les blocs à l’intérieur lorsque l’action choisie est pressée ou relâchée (clavier, tactile ou XR).",
                                       broadcast_event_tooltip: "Diffuse un événement qui est reçu par 'on event'.\nMot-clé: broadcast",
                                       on_event_tooltip: "Exécute le code lorsqu’un événement diffusé est reçu.\nMot-clé: on",
 

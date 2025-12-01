@@ -2339,6 +2339,17 @@ export function defineGenerators() {
                 return `whenKeyEvent("${key}", async () => {${statements_do}}, ${event === "released"});\n`;
         };
 
+        javascriptGenerator.forBlock["when_action_event"] = function (block) {
+                const action = block.getFieldValue("ACTION");
+                const event = block.getFieldValue("EVENT");
+                const statements_do = javascriptGenerator.statementToCode(
+                        block,
+                        "DO",
+                );
+
+                return `whenActionEvent("${action}", async () => {${statements_do}}, ${event === "released"});\n`;
+        };
+
         // JavaScript generator for broadcast_event
         javascriptGenerator.forBlock["broadcast_event"] = function (block) {
           const raw =

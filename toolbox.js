@@ -1027,6 +1027,11 @@ const toolboxEvents = {
                 },
                 {
                         kind: "block",
+                        type: "when_action_event",
+                        keyword: "action",
+                },
+                {
+                        kind: "block",
                         type: "broadcast_event",
                         keyword: "broadcast",
                         inputs: {
@@ -2237,11 +2242,11 @@ const toolboxSensing = {
         //colour: categoryColours["Sensing"],
         categorystyle: "sensing_category",
         contents: [
-                {
+                /*{
                         kind: "block",
                         type: "key_pressed",
                         keyword: "ispressed",
-                },
+                },*/
                 {
                         kind: "block",
                         type: "action_pressed",

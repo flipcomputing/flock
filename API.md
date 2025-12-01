@@ -445,6 +445,21 @@ if (actionPressed("FORWARD")) {
 }
 ```
 
+#### `whenActionEvent(action, callback, isReleased = false)`
+Run a callback when the chosen action is pressed or released across keyboard, touch, or XR sources.
+
+**Parameters:**
+- `action` (string): One of `FORWARD`, `BACKWARD`, `LEFT`, `RIGHT`, `BUTTON1`, `BUTTON2`, `BUTTON3`, or `BUTTON4`.
+- `callback` (function): Function to run when the action triggers.
+- `isReleased` (boolean, optional): Set to `true` to fire on release instead of press.
+
+**Example:**
+```javascript
+whenActionEvent("BUTTON1", async () => {
+  // Respond to the action button, regardless of whether it came from E, touch, or XR
+});
+```
+
 #### `getProperty(meshName, propertyName)`
 Gets a property value from a mesh.
 

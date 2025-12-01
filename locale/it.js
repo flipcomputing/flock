@@ -212,6 +212,7 @@ export default {
   when_clicked: "quando %1 %2",
   on_collision: "su %1 collisione %2 %3",
   when_key_event: "quando tasto %1 %2",
+  when_action_event: "quando azione %1 %2",
   broadcast_event: "trasmetti evento %1",
   on_event: "all'evento %1",
 
@@ -458,6 +459,8 @@ export default {
     "Esegue i blocchi quando la mesh entra o esce dall’intersezione con un’altra mesh.\nParola chiave: collide",
   when_key_event_tooltip:
     "Esegue i blocchi quando il tasto specificato è premuto o rilasciato.",
+  when_action_event_tooltip:
+    "Esegue i blocchi quando l’azione scelta viene premuta o rilasciata su tastiera, touch o XR.",
   broadcast_event_tooltip:
     "Trasmette un evento ricevuto da 'on event'.\nParola chiave: broadcast",
   on_event_tooltip:
