@@ -12,6 +12,7 @@ import {
         translate,
         getTooltip,
         getDropdownOption,
+        getOption,
 } from "../main/translation.js";
 
 export function defineEventsBlocks() {
@@ -365,8 +366,8 @@ export function defineEventsBlocks() {
                                                 type: "field_dropdown",
                                                 name: "EVENT",
                                                 options: [
-                                                        getDropdownOption("pressed"),
-                                                        getDropdownOption("released"),
+                                                        getDropdownOption("starts"),
+                                                        getDropdownOption("ends"),
                                                 ],
                                         },
                                 ],
@@ -379,6 +380,82 @@ export function defineEventsBlocks() {
                                 ],
                                 colour: categoryColours["Events"],
                                 tooltip: getTooltip("when_key_event"),
+                        });
+                        this.setHelpUrl(getHelpUrlFor(this.type));
+                        this.setStyle("events_blocks");
+                        addToggleButton(this);
+                },
+                mutationToDom: function () {
+                        return mutationToDom(this);
+                },
+                domToMutation: function (xmlElement) {
+                        domToMutation(this, xmlElement);
+                },
+                updateShape_: function (isInline) {
+                        updateShape(this, isInline);
+                },
+                toggleDoBlock: function () {
+                        const isInline = !this.isInline;
+
+                        if (!isInline) {
+                                this.unplug(true); // Ensures the block is disconnected when toggled to top-level
+                        }
+
+                        this.updateShape_(isInline);
+
+                        // Optional: Re-enable the block if it was disabled
+                        if (
+                                this.hasDisabledReason &&
+                                this.hasDisabledReason("ORPHANED_BLOCK")
+                        ) {
+                                this.setDisabledReason(false, "ORPHANED_BLOCK");
+                        }
+
+                        Blockly.Events.fire(
+                                new Blockly.Events.BlockChange(this, "mutation", null, "", ""),
+                        );
+                        Blockly.Events.fire(new Blockly.Events.BlockMove(this));
+                },
+        };
+
+        Blockly.Blocks["when_action_event"] = {
+                init: function () {
+                        this.jsonInit({
+                                type: "when_action_event",
+                                message0: translate("when_action_event"),
+                                args0: [
+                                        {
+                                                type: "field_dropdown",
+                                                name: "ACTION",
+                                                options: [
+                                                        [getOption("ACTION_FORWARD"), "FORWARD"],
+                                                        [getOption("ACTION_BACKWARD"), "BACKWARD"],
+                                                        [getOption("ACTION_LEFT"), "LEFT"],
+                                                        [getOption("ACTION_RIGHT"), "RIGHT"],
+                                                        [getOption("ACTION_BUTTON1"), "BUTTON1"],
+                                                        [getOption("ACTION_BUTTON2"), "BUTTON2"],
+                                                        [getOption("ACTION_BUTTON3"), "BUTTON3"],
+                                                        [getOption("ACTION_BUTTON4"), "BUTTON4"],
+                                                ],
+                                        },
+                                        {
+                                                type: "field_dropdown",
+                                                name: "EVENT",
+                                                options: [
+                                                        getDropdownOption("starts"),
+                                                        getDropdownOption("ends"),
+                                                ],
+                                        },
+                                ],
+                                message1: "%1",
+                                args1: [
+                                        {
+                                                type: "input_statement",
+                                                name: "DO",
+                                        },
+                                ],
+                                colour: categoryColours["Events"],
+                                tooltip: getTooltip("when_action_event"),
                         });
                         this.setHelpUrl(getHelpUrlFor(this.type));
                         this.setStyle("events_blocks");

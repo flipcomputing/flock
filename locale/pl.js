@@ -199,6 +199,7 @@ export default {
   when_clicked: "gdy kliknięto %1 %2",
   on_collision: "gdy %1 zderzy się z %2 %3",
   when_key_event: "gdy klawisz %1 %2",
+  when_action_event: "gdy akcja %1 %2",
   broadcast_event: "wyślij zdarzenie %1",
   on_event: "gdy zdarzenie %1",
 
@@ -230,6 +231,7 @@ export default {
 
   // Custom block translations - Sensing blocks
   key_pressed: "czy klawisz %1 jest wciśnięty?",
+  action_pressed: "akcja %1",
   meshes_touching: "czy %1 dotyka %2?",
   time: "czas w s",
   distance_to: "odległość od %1 do %2",
@@ -383,7 +385,8 @@ export default {
   forever_tooltip: "Wykonuj bloki w każdej klatce lub po zakończeniu poprzedniej iteracji.\nSłowo kluczowe: forever",
   when_clicked_tooltip: "Wykonaj bloki, gdy nastąpi kliknięcie na siatkę.\nSłowo kluczowe: click",
   on_collision_tooltip: "Wykonaj bloki, gdy siatka wejdzie lub wyjdzie z kolizji.\nSłowo kluczowe: collide",
-  when_key_event_tooltip: "Wykonaj bloki, gdy określony klawisz zostanie wciśnięty lub zwolniony.",
+  when_key_event_tooltip: "Wykonaj bloki, gdy wskazany klawisz rozpoczyna się lub kończy (naciśnięcie lub puszczenie).",
+  when_action_event_tooltip: "Wykonaj bloki, gdy wybrana akcja rozpoczyna się lub kończy na klawiaturze, ekranie dotykowym lub w XR.",
   broadcast_event_tooltip: "Wyślij zdarzenie odbierane przez blok on_event.\nSłowo kluczowe: broadcast",
   on_event_tooltip: "Wykonaj kod, gdy otrzymano zdarzenie broadcast.\nSłowo kluczowe: on",
 
@@ -414,6 +417,8 @@ export default {
 
   // Tooltip translations - Sensing blocks
   key_pressed_tooltip: "Zwraca true, jeśli podany klawisz jest wciśnięty.\nSłowo kluczowe:ispressed",
+  action_pressed_tooltip:
+    "Zwraca true, jeśli wybrane sterowanie ruchem lub akcją jest aktywne na klawiaturze, dotyku lub w XR.",
   meshes_touching_tooltip: "Zwraca true, jeśli dwie wybrane siatki się stykają.\nSłowo kluczowe: istouching",
   time_tooltip: "Zwraca bieżący czas w sekundach.",
   distance_to_tooltip: "Oblicz odległość między siatkami %1 i %2.",
@@ -616,6 +621,8 @@ export default {
 
   pressed_option: "naciśnięty",
   released_option: "puszczony",
+  starts_option: "zaczyna",
+  ends_option: "kończy",
 
   DYNAMIC_option: "dynamiczny",
   ANIMATED_option: "animowany",
@@ -627,7 +634,7 @@ export default {
   FLAT_option: "Płaski",
 
   ANY_option: "dowolny",
-  space_infinity_option: "przestrzeń ∞",
+  space_infinity_option: "przestrzeń ❖",
   q_icon_option: "Q ■",
   e_icon_option: "E ✿",
   f_icon_option: "F ✱",
@@ -661,6 +668,14 @@ export default {
   BOTH_option: "oba",
   ARROWS_option: "strzałki",
   ACTIONS_option: "akcje",
+  ACTION_FORWARD_option: "do przodu (W/Z)",
+  ACTION_BACKWARD_option: "do tyłu (S)",
+  ACTION_LEFT_option: "w lewo (A/Q)",
+  ACTION_RIGHT_option: "w prawo (D)",
+  ACTION_BUTTON1_option: "przycisk 1 (E ■)",
+  ACTION_BUTTON2_option: "przycisk 2 (R ✿)",
+  ACTION_BUTTON3_option: "przycisk 3 (F ✱)",
+  ACTION_BUTTON4_option: "przycisk 4 (spacja ❖)",
 
   pin_0_option: "Pin P0 zwolniony",
   pin_1_option: "Pin P1 zwolniony",

@@ -931,6 +931,7 @@ export const flock = {
                         dispose: this.dispose?.bind(this),
                         setFog: this.setFog?.bind(this),
                         keyPressed: this.keyPressed?.bind(this),
+                        actionPressed: this.actionPressed?.bind(this),
                         isTouchingSurface: this.isTouchingSurface?.bind(this),
                         meshExists: this.meshExists?.bind(this),
                         seededRandom: this.seededRandom?.bind(this),
@@ -958,6 +959,7 @@ export const flock = {
                         broadcastEvent: this.broadcastEvent?.bind(this),
                         start: this.start?.bind(this),
                         forever: this.forever?.bind(this),
+                        whenActionEvent: this.whenActionEvent?.bind(this),
                         whenKeyEvent: this.whenKeyEvent?.bind(this),
                         randomInteger: this.randomInteger?.bind(this),
                         printText: this.printText?.bind(this),
@@ -3162,6 +3164,26 @@ export const flock = {
                         );
                 }
         },
+        actionPressed(action) {
+                const actionMap = {
+                        FORWARD: ["W", "Z"],
+                        BACKWARD: ["S"],
+                        LEFT: ["A", "Q"],
+                        RIGHT: ["D"],
+                        BUTTON1: ["E"],
+                        BUTTON2: ["R"],
+                        BUTTON3: ["F"],
+                        BUTTON4: ["SPACE", " "],
+                };
+
+                const actionKeys = actionMap[action];
+
+                if (!actionKeys) {
+                        return false;
+                }
+
+                return actionKeys.some((key) => this.keyPressed(key));
+        },
         seededRandom(from, to, seed) {
                 const x = Math.sin(seed) * 10000;
                 const random = x - Math.floor(x);
@@ -3311,6 +3333,30 @@ export const flock = {
                 if (flock.events && flock.events[eventName]) {
                         flock.events[eventName].notifyObservers(data);
                 }
+        },
+        whenActionEvent(action, callback, isReleased = false) {
+                const actionMap = {
+                        FORWARD: ["w", "z"],
+                        BACKWARD: ["s"],
+                        LEFT: ["a", "q"],
+                        RIGHT: ["d"],
+                        BUTTON1: ["e"],
+                        BUTTON2: ["r"],
+                        BUTTON3: ["f"],
+                        BUTTON4: [" "],
+                };
+
+                const actionKeys = actionMap[action];
+
+                if (!actionKeys?.length) {
+                        return;
+                }
+
+                [...new Set(actionKeys.map((key) => key.toLowerCase()))].forEach(
+                        (key) => {
+                                this.whenKeyEvent(key, callback, isReleased);
+                        },
+                );
         },
         whenKeyEvent(key, callback, isReleased = false) {
                 // Handle keyboard input

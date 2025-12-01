@@ -48,6 +48,36 @@ export function defineSensingBlocks() {
                 },
         };
 
+        Blockly.Blocks["action_pressed"] = {
+                init: function () {
+                        this.jsonInit({
+                                type: "action_pressed",
+                                message0: translate("action_pressed"),
+                                args0: [
+                                        {
+                                                type: "field_dropdown",
+                                                name: "ACTION",
+                                                options: [
+                                                        [getOption("ACTION_FORWARD"), "FORWARD"],
+                                                        [getOption("ACTION_BACKWARD"), "BACKWARD"],
+                                                        [getOption("ACTION_LEFT"), "LEFT"],
+                                                        [getOption("ACTION_RIGHT"), "RIGHT"],
+                                                        [getOption("ACTION_BUTTON1"), "BUTTON1"],
+                                                        [getOption("ACTION_BUTTON2"), "BUTTON2"],
+                                                        [getOption("ACTION_BUTTON3"), "BUTTON3"],
+                                                        [getOption("ACTION_BUTTON4"), "BUTTON4"],
+                                                ],
+                                        },
+                                ],
+                                output: "Boolean",
+                                colour: categoryColours["Sensing"],
+                                tooltip: getTooltip("action_pressed"),
+                        });
+                        this.setHelpUrl(getHelpUrlFor(this.type));
+                        this.setStyle("sensing_blocks");
+                },
+        };
+
         Blockly.Blocks["meshes_touching"] = {
                 init: function () {
                         this.jsonInit({

@@ -212,6 +212,7 @@ export default {
   when_clicked: "quando %1 %2",
   on_collision: "su %1 collisione %2 %3",
   when_key_event: "quando tasto %1 %2",
+  when_action_event: "quando azione %1 %2",
   broadcast_event: "trasmetti evento %1",
   on_event: "all'evento %1",
 
@@ -245,6 +246,7 @@ export default {
 
   // Custom block translations - Sensing blocks
   key_pressed: "tasto premuto è %1",
+  action_pressed: "azione %1",
   meshes_touching: "%1 tocca %2",
   time: "tempo in s",
   distance_to: "distanza da %1 a %2",
@@ -456,7 +458,9 @@ export default {
   on_collision_tooltip:
     "Esegue i blocchi quando la mesh entra o esce dall’intersezione con un’altra mesh.\nParola chiave: collide",
   when_key_event_tooltip:
-    "Esegue i blocchi quando il tasto specificato è premuto o rilasciato.",
+    "Esegue i blocchi quando il tasto specificato inizia o termina (pressione o rilascio).",
+  when_action_event_tooltip:
+    "Esegue i blocchi quando l’azione scelta inizia o termina su tastiera, touch o XR.",
   broadcast_event_tooltip:
     "Trasmette un evento ricevuto da 'on event'.\nParola chiave: broadcast",
   on_event_tooltip:
@@ -503,6 +507,8 @@ export default {
   // Tooltip translations - Sensing blocks
   key_pressed_tooltip:
     "Restituisce vero se il tasto specificato è premuto.\nParola chiave: ispressed",
+  action_pressed_tooltip:
+    "Restituisce vero se il controllo di movimento o azione selezionato è attivo su tastiera, tocco o XR.",
   meshes_touching_tooltip:
     "Restituisce vero se le due mesh selezionate si toccano.\nParola chiave: istouching",
   time_tooltip: "Restituisce il tempo corrente in secondi.",
@@ -739,6 +745,8 @@ export default {
 
   pressed_option: "premuto",
   released_option: "rilasciato",
+  starts_option: "inizia",
+  ends_option: "termina",
 
   DYNAMIC_option: "dinamica",
   ANIMATED_option: "animata",
@@ -750,7 +758,7 @@ export default {
   FLAT_option: "Piatto", // Duplicate key NONE
 
   ANY_option: "qualsiasi",
-  space_infinity_option: "spazio ∞", // Duplicate key space
+  space_infinity_option: "spazio ❖", // Duplicate key space
   q_icon_option: "Q ■", // Duplicate key q
   e_icon_option: "E ✿", // Duplicate key e
   f_icon_option: "F ✱", // Duplicate key f
@@ -784,6 +792,14 @@ export default {
   BOTH_option: "entrambi",
   ARROWS_option: "frecce",
   ACTIONS_option: "azioni",
+  ACTION_FORWARD_option: "avanti (W/Z)",
+  ACTION_BACKWARD_option: "indietro (S)",
+  ACTION_LEFT_option: "sinistra (A/Q)",
+  ACTION_RIGHT_option: "destra (D)",
+  ACTION_BUTTON1_option: "pulsante 1 (E ■)",
+  ACTION_BUTTON2_option: "pulsante 2 (R ✿)",
+  ACTION_BUTTON3_option: "pulsante 3 (F ✱)",
+  ACTION_BUTTON4_option: "pulsante 4 (spazio ❖)",
 
   pin_0_option: "Pin P0 rilasciato", // Duplicate key 0
   pin_1_option: "Pin P1 rilasciato", // Duplicate key 1

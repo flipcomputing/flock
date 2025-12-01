@@ -205,6 +205,7 @@ export default {
   when_clicked: "when %1 %2",
   on_collision: "on %1 collision %2 %3",
   when_key_event: "when key %1 %2",
+  when_action_event: "when action %1 %2",
   broadcast_event: "broadcast event %1",
   on_event: "on event %1",
 
@@ -236,6 +237,7 @@ export default {
   
   // Custom block translations - Sensing blocks
   key_pressed: "key pressed is %1",
+  action_pressed: "action %1",
   meshes_touching: "%1 touching %2",
   time: "time in s",
   distance_to: "distance from %1 to %2",
@@ -392,7 +394,8 @@ export default {
   forever_tooltip: "Run the blocks inside every frame or when the previous iteration finishes. \nKeyword: forever",
   when_clicked_tooltip: "Run the blocks inside when the mesh trigger occurs.\nKeyword: click",
   on_collision_tooltip: "Execute the blocks inside when the mesh intersects or no longer intersects with another mesh.\nKeyword: collide",
-  when_key_event_tooltip: "Execute the blocks inside when the specified key is pressed or released.",
+  when_key_event_tooltip: "Execute the blocks inside when the specified key starts or ends (press or release).",
+  when_action_event_tooltip: "Execute the blocks inside when the selected action starts or ends across keyboard, touch, or XR.",
   broadcast_event_tooltip: "Broadcast an event that is received by on event.\nKeyword: broadcast",
   on_event_tooltip: "Run code when a broadcast event is received.\nKeyword: on",
 
@@ -423,6 +426,8 @@ export default {
   
   // Tooltip translations - Sensing blocks
   key_pressed_tooltip: "Return true if the specified key is pressed.\nKeyword:ispressed",
+  action_pressed_tooltip:
+    "Return true if the specified movement or action control is active across keyboard, touch, or XR inputs.",
   meshes_touching_tooltip: "Return true if the two selected meshes are touching.\nKeyword: istouching",
   time_tooltip: "Return the current time in seconds.",
   distance_to_tooltip: "Calculate the distance between two meshes.",
@@ -625,6 +630,8 @@ export default {
 
   pressed_option: "pressed",
   released_option: "released",
+  starts_option: "starts",
+  ends_option: "ends",
 
   DYNAMIC_option: "dynamic",
   ANIMATED_option: "animated",
@@ -636,7 +643,7 @@ export default {
   FLAT_option: "Flat", // Duplicate key NONE
 
   ANY_option: "any",
-  space_infinity_option: "space ∞", // Duplicate key space
+  space_infinity_option: "space ❖", // Duplicate key space
   q_icon_option: "Q ■", // Duplicate key q
   e_icon_option: "E ✿", // Duplicate key e
   f_icon_option: "F ✱", // Duplicate key f
@@ -670,6 +677,14 @@ export default {
   BOTH_option: "both",
   ARROWS_option: "arrows",
   ACTIONS_option: "actions",
+  ACTION_FORWARD_option: "forward (W/Z)",
+  ACTION_BACKWARD_option: "backward (S)",
+  ACTION_LEFT_option: "left (A/Q)",
+  ACTION_RIGHT_option: "right (D)",
+  ACTION_BUTTON1_option: "button 1 (E ■)",
+  ACTION_BUTTON2_option: "button 2 (R ✿)",
+  ACTION_BUTTON3_option: "button 3 (F ✱)",
+  ACTION_BUTTON4_option: "button 4 (space ❖)",
 
   pin_0_option: "Pin P0 released", // Duplicate key 0
   pin_1_option: "Pin P1 released", // Duplicate key 1

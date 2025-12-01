@@ -199,6 +199,7 @@ export default {
   when_clicked: "cuando se haga clic en %1 %2",
   on_collision: "al colisionar %1 con %2 %3",
   when_key_event: "cuando tecla %1 %2",
+  when_action_event: "cuando acción %1 %2",
   broadcast_event: "difundir evento %1",
   on_event: "al evento %1",
 
@@ -230,6 +231,7 @@ export default {
 
   // Custom block translations - Sensing blocks
   key_pressed: "tecla presionada es %1",
+  action_pressed: "acción %1",
   meshes_touching: "%1 tocando %2",
   time: "tiempo en s",
   distance_to: "distancia de %1 a %2",
@@ -383,7 +385,8 @@ export default {
   forever_tooltip: "Ejecuta los bloques internos cada fotograma o tras finalizar la iteración anterior.\nPalabra clave: forever",
   when_clicked_tooltip: "Ejecuta los bloques internos cuando ocurra el evento de clic en la malla.\nPalabra clave: click",
   on_collision_tooltip: "Ejecuta los bloques internos cuando una malla intersecta o deja de intersectar otra.\nPalabra clave: collide",
-  when_key_event_tooltip: "Ejecuta los bloques internos al pulsar o soltar la tecla especificada.",
+  when_key_event_tooltip: "Ejecuta los bloques internos cuando la tecla especificada empieza o termina (pulsar o soltar).",
+  when_action_event_tooltip: "Ejecuta los bloques internos cuando la acción elegida empieza o termina en teclado, táctil o XR.",
   broadcast_event_tooltip: "Emite un evento que es recibido por el bloque 'on event'.\nPalabra clave: broadcast",
   on_event_tooltip: "Ejecuta el código cuando se recibe un evento emitido.\nPalabra clave: on",
 
@@ -414,6 +417,8 @@ export default {
 
   // Tooltip translations - Sensing blocks
   key_pressed_tooltip: "Devuelve verdadero si la tecla especificada está presionada.\nPalabra clave: ispressed",
+  action_pressed_tooltip:
+    "Devuelve verdadero si el control de movimiento o acción seleccionado está activo en teclado, táctil o XR.",
   meshes_touching_tooltip: "Devuelve verdadero si las dos mallas seleccionadas se están tocando.\nPalabra clave: istouching",
   time_tooltip: "Devuelve el tiempo actual en segundos.",
   distance_to_tooltip: "Calcula la distancia entre dos mallas.",
@@ -614,6 +619,8 @@ export default {
 
   pressed_option: "presionado",
   released_option: "liberado",
+  starts_option: "empieza",
+  ends_option: "termina",
 
   DYNAMIC_option: "dinámico",
   ANIMATED_option: "animado",
@@ -625,7 +632,7 @@ export default {
   FLAT_option: "Plano", // Duplicate key NONE
 
   ANY_option: "cualquiera",
-  space_infinity_option: "espacio ∞", // Duplicate key space
+  space_infinity_option: "espacio ❖", // Duplicate key space
   q_icon_option: "Q ■", // Duplicate key q
   e_icon_option: "E ✿", // Duplicate key e
   f_icon_option: "F ✱", // Duplicate key f
@@ -659,6 +666,14 @@ export default {
   BOTH_option: "ambos",
   ARROWS_option: "flechas",
   ACTIONS_option: "acciones",
+  ACTION_FORWARD_option: "adelante (W/Z)",
+  ACTION_BACKWARD_option: "atrás (S)",
+  ACTION_LEFT_option: "izquierda (A/Q)",
+  ACTION_RIGHT_option: "derecha (D)",
+  ACTION_BUTTON1_option: "botón 1 (E ■)",
+  ACTION_BUTTON2_option: "botón 2 (R ✿)",
+  ACTION_BUTTON3_option: "botón 3 (F ✱)",
+  ACTION_BUTTON4_option: "botón 4 (espacio ❖)",
 
   pin_0_option: "Pin P0 liberado", // Duplicate key 0
   pin_1_option: "Pin P1 liberado", // Duplicate key 1

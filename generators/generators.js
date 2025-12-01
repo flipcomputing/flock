@@ -2329,14 +2329,25 @@ export function defineGenerators() {
 
         javascriptGenerator.forBlock["when_key_event"] = function (block) {
                 const key = block.getFieldValue("KEY");
-                const event = block.getFieldValue("EVENT"); // "pressed" or "released"
+                const event = block.getFieldValue("EVENT"); // "starts" or "ends"
                 const statements_do = javascriptGenerator.statementToCode(
                         block,
                         "DO",
                 );
 
-                // Pass "true" if event is "released" for the whenKeyPressed helper function
-                return `whenKeyEvent("${key}", async () => {${statements_do}}, ${event === "released"});\n`;
+                // Pass "true" if event is "ends" for the whenKeyPressed helper function
+                return `whenKeyEvent("${key}", async () => {${statements_do}}, ${event === "ends"});\n`;
+        };
+
+        javascriptGenerator.forBlock["when_action_event"] = function (block) {
+                const action = block.getFieldValue("ACTION");
+                const event = block.getFieldValue("EVENT");
+                const statements_do = javascriptGenerator.statementToCode(
+                        block,
+                        "DO",
+                );
+
+                return `whenActionEvent("${action}", async () => {${statements_do}}, ${event === "ends"});\n`;
         };
 
         // JavaScript generator for broadcast_event
@@ -2940,6 +2951,11 @@ export function defineGenerators() {
         javascriptGenerator.forBlock["canvas_controls"] = function (block) {
                 const controls = block.getFieldValue("CONTROLS") == "TRUE";
                 return `canvasControls(${controls});\n`;
+        };
+
+        javascriptGenerator.forBlock["action_pressed"] = function (block) {
+                const action = block.getFieldValue("ACTION");
+                return [`actionPressed("${action}")`, javascriptGenerator.ORDER_NONE];
         };
 
         javascriptGenerator.forBlock["key_pressed"] = function (block) {

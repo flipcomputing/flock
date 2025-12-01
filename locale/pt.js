@@ -207,6 +207,7 @@ export default {
   when_clicked: "quando %1 %2",
   on_collision: "ao colidir %1 %2 %3",
   when_key_event: "quando tecla %1 %2",
+  when_action_event: "quando ação %1 %2",
   broadcast_event: "transmitir evento %1",
   on_event: "ao evento %1",
 
@@ -240,6 +241,7 @@ export default {
 
   // Custom block translations - Sensing blocks
   key_pressed: "tecla pressionada é %1",
+  action_pressed: "ação %1",
   meshes_touching: "%1 tocando %2",
   time: "tempo em s",
   distance_to: "distância de %1 até %2",
@@ -448,7 +450,9 @@ export default {
   on_collision_tooltip:
     "Executa os blocos quando o mesh colide ou deixa de colidir com outro.\nPalavra-chave: colisão",
   when_key_event_tooltip:
-    "Executa os blocos quando a tecla especificada for pressionada ou liberada.",
+    "Executa os blocos quando a tecla especificada começa ou termina (pressionada ou liberada).",
+  when_action_event_tooltip:
+    "Executa os blocos quando a ação escolhida começa ou termina no teclado, toque ou XR.",
   broadcast_event_tooltip:
     "Emite um evento que será recebido pelo bloco 'ao receber'.\nPalavra-chave: transmitir",
   on_event_tooltip:
@@ -494,6 +498,8 @@ export default {
   // Tooltip translations - Sensing blocks
   key_pressed_tooltip:
     "Retorna verdadeiro se a tecla especificada estiver pressionada.\nPalavra-chave: estápressionada",
+  action_pressed_tooltip:
+    "Retorna verdadeiro se o controle de movimento ou ação escolhido estiver ativo no teclado, toque ou XR.",
   meshes_touching_tooltip:
     "Retorna verdadeiro se os dois meshes selecionados estiverem tocando.\nPalavra-chave: estátocando",
   time_tooltip: "Retorna o tempo atual em segundos.",
@@ -734,6 +740,8 @@ export default {
 
   pressed_option: "pressionado",
   released_option: "liberado",
+  starts_option: "começa",
+  ends_option: "termina",
 
   DYNAMIC_option: "dinâmico",
   ANIMATED_option: "animado",
@@ -745,7 +753,7 @@ export default {
   FLAT_option: "Plano",
 
   ANY_option: "qualquer",
-  space_infinity_option: "espaço ∞",
+  space_infinity_option: "espaço ❖",
   q_icon_option: "Q ■",
   e_icon_option: "E ✿",
   f_icon_option: "F ✱",
@@ -779,6 +787,14 @@ export default {
   BOTH_option: "ambos",
   ARROWS_option: "setas",
   ACTIONS_option: "ações",
+  ACTION_FORWARD_option: "frente (W/Z)",
+  ACTION_BACKWARD_option: "trás (S)",
+  ACTION_LEFT_option: "esquerda (A/Q)",
+  ACTION_RIGHT_option: "direita (D)",
+  ACTION_BUTTON1_option: "botão 1 (E ■)",
+  ACTION_BUTTON2_option: "botão 2 (R ✿)",
+  ACTION_BUTTON3_option: "botão 3 (F ✱)",
+  ACTION_BUTTON4_option: "botão 4 (espaço ❖)",
 
   pin_0_option: "Pino P0 libertado",
   pin_1_option: "Pino P1 libertado",

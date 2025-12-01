@@ -199,6 +199,7 @@ export default {
                                       when_clicked: "quand %1 %2",
                                       on_collision: "lors de la collision de %1 avec %2 %3",
                                       when_key_event: "quand la touche %1 %2",
+                                      when_action_event: "quand l’action %1 %2",
                                       broadcast_event: "diffuser l’événement %1",
                                       on_event: "lors de l’événement %1",
 
@@ -229,7 +230,8 @@ export default {
                                       show_physics: "afficher les formes physiques %1",
 
                                       // Custom block translations - Sensing blocks
-                                      key_pressed: "touche pressée est %1",
+                                     key_pressed: "touche pressée est %1",
+                                     action_pressed: "action %1",
                                       meshes_touching: "%1 touche %2",
                                       time: "temps en s",
                                       distance_to: "distance de %1 à %2",
@@ -383,7 +385,8 @@ export default {
                                       forever_tooltip: "Exécute les blocs à chaque image ou lorsque l’itération précédente se termine.\nMot-clé: forever",
                                       when_clicked_tooltip: "Exécute les blocs à l’intérieur lorsque le déclencheur du maillage se produit.\nMot-clé: click",
                                       on_collision_tooltip: "Exécute les blocs à l’intérieur lorsque le maillage entre ou sort en collision avec un autre maillage.\nMot-clé: collide",
-                                      when_key_event_tooltip: "Exécute les blocs à l’intérieur lorsque la touche spécifiée est pressée ou relâchée.",
+                                      when_key_event_tooltip: "Exécute les blocs à l’intérieur lorsque la touche spécifiée démarre ou se termine (appui ou relâche).",
+                                      when_action_event_tooltip: "Exécute les blocs à l’intérieur lorsque l’action choisie démarre ou se termine (clavier, tactile ou XR).",
                                       broadcast_event_tooltip: "Diffuse un événement qui est reçu par 'on event'.\nMot-clé: broadcast",
                                       on_event_tooltip: "Exécute le code lorsqu’un événement diffusé est reçu.\nMot-clé: on",
 
@@ -414,6 +417,8 @@ export default {
 
                                       // Tooltip translations - Sensing blocks
                                       key_pressed_tooltip: "Renvoie vrai si la touche spécifiée est enfoncée.\nMot-clé: ispressed",
+                                      action_pressed_tooltip:
+                                              "Renvoie vrai si le contrôle de déplacement ou d’action choisi est actif sur clavier, tactile ou XR.",
                                       meshes_touching_tooltip: "Renvoie vrai si les deux maillages sélectionnés se touchent.\nMot-clé: istouching",
                                       time_tooltip: "Renvoie le temps actuel en secondes.",
                                       distance_to_tooltip: "Calcule la distance entre deux maillages.",
@@ -614,6 +619,8 @@ export default {
 
                                       pressed_option: "appuyé",
                                       released_option: "relâché",
+                                      starts_option: "démarre",
+                                      ends_option: "se termine",
 
                                       DYNAMIC_option: "dynamique",
                                       ANIMATED_option: "animé",
@@ -625,7 +632,7 @@ export default {
                                       FLAT_option: "Plat",
 
                                       ANY_option: "n'importe lequel",
-                                      space_infinity_option: "espace ∞",
+                                      space_infinity_option: "espace ❖",
                                       q_icon_option: "Q ■",
                                       e_icon_option: "E ✿",
                                       f_icon_option: "F ✱",
@@ -659,6 +666,14 @@ export default {
                                       BOTH_option: "les deux",
                                       ARROWS_option: "flèches",
                                       ACTIONS_option: "actions",
+                                      ACTION_FORWARD_option: "avant (W/Z)",
+                                      ACTION_BACKWARD_option: "arrière (S)",
+                                      ACTION_LEFT_option: "gauche (A/Q)",
+                                      ACTION_RIGHT_option: "droite (D)",
+                                      ACTION_BUTTON1_option: "bouton 1 (E ■)",
+                                      ACTION_BUTTON2_option: "bouton 2 (R ✿)",
+                                      ACTION_BUTTON3_option: "bouton 3 (F ✱)",
+                                      ACTION_BUTTON4_option: "bouton 4 (espace ❖)",
 
                                       pin_0_option: "Broche P0 relâchée",
                                       pin_1_option: "Broche P1 relâchée",

@@ -203,6 +203,7 @@ export default {
   when_clicked: "wenn %1 %2",
   on_collision: "bei Kollision von %1 %2 %3",
   when_key_event: "wenn Taste %1 %2",
+  when_action_event: "wenn Aktion %1 %2",
   broadcast_event: "Ereignis %1 senden",
   on_event: "bei Ereignis %1",
 
@@ -234,6 +235,7 @@ export default {
 
   // Sensing blocks
   key_pressed: "Taste gedrückt? %1",
+  action_pressed: "Aktion %1",
   meshes_touching: "%1 berührt %2",
   time: "Zeit in s",
   distance_to: "Entfernung von %1 nach %2",
@@ -392,7 +394,7 @@ export default {
   MAX_Z_option: "max z",
 
   space_option: " ",
-  space_infinity_option: "Leertaste ∞",
+  space_infinity_option: "Leertaste ❖",
 
   pin_0_option: "Pin P0 losgelassen",
   pin_1_option: "Pin P1 losgelassen",
@@ -510,7 +512,8 @@ export default {
   forever_tooltip: "Führe Blöcke in jedem Frame oder nach Iteration aus.\nSchlüsselwort: forever",
   when_clicked_tooltip: "Führe Blöcke aus, wenn ein Objekt geklickt wird.\nSchlüsselwort: click",
   on_collision_tooltip: "Führe Blöcke aus bei Kollision oder Ende der Kollision.\nSchlüsselwort: collide",
-  when_key_event_tooltip: "Führe Blöcke aus bei Tastendruck oder -freigabe.",
+  when_key_event_tooltip: "Führe Blöcke aus, wenn die Taste beginnt oder endet (Drücken oder Loslassen).",
+  when_action_event_tooltip: "Führe Blöcke aus, wenn die gewählte Aktion beginnt oder endet (Tastatur, Touch oder XR).",
   broadcast_event_tooltip: "Sende Ereignis, das von on_event empfangen wird.\nSchlüsselwort: broadcast",
   on_event_tooltip: "Führe Code aus, wenn Broadcast‑Ereignis empfangen wird.\nSchlüsselwort: on",
 
@@ -541,6 +544,8 @@ export default {
 
   // Tooltip translations - Sensing blocks
   key_pressed_tooltip: "Gibt true zurück, wenn die angegebene Taste gedrückt ist.\nSchlüsselwort: ispressed",
+  action_pressed_tooltip:
+    "Gibt true zurück, wenn die gewählte Bewegungs- oder Aktionssteuerung auf Tastatur, Touch oder XR aktiv ist.",
   meshes_touching_tooltip: "Gibt true zurück, wenn die zwei gewählten Objekte sich berühren.\nSchlüsselwort: istouching",
   time_tooltip: "Gibt die aktuelle Zeit in Sekunden zurück.",
   distance_to_tooltip: "Berechnet den Abstand zwischen zwei Objekten.",
@@ -682,6 +687,8 @@ export default {
 
   pressed_option: "gedrückt",
   released_option: "losgelassen",
+  starts_option: "beginnt",
+  ends_option: "endet",
 
   DYNAMIC_option: "dynamisch",
   ANIMATED_option: "animiert",
@@ -693,6 +700,14 @@ export default {
   BOTH_option: "beides",
   ARROWS_option: "Pfeile",
   ACTIONS_option: "Aktionen",
+  ACTION_FORWARD_option: "vorwärts (W/Z)",
+  ACTION_BACKWARD_option: "rückwärts (S)",
+  ACTION_LEFT_option: "links (A/Q)",
+  ACTION_RIGHT_option: "rechts (D)",
+  ACTION_BUTTON1_option: "Taste 1 (E ■)",
+  ACTION_BUTTON2_option: "Taste 2 (R ✿)",
+  ACTION_BUTTON3_option: "Taste 3 (F ✱)",
+  ACTION_BUTTON4_option: "Taste 4 (Leertaste ❖)",
 
   ONCE_option: "einmal",
   LOOP_option: "schleife",
