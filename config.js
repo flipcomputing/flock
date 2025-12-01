@@ -246,6 +246,7 @@ export const blockNames = [
 
 export const modelAnimationNames = [
 	"Flock.glb",
+	"Flock_Santa.glb",
 	"rhino.glb",
 	//"Seagull.glb",
 ];
