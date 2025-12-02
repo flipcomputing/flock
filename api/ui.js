@@ -394,10 +394,10 @@ export const flockUI = {
     flock.controlsTexture.addControl(rightGrid);
 
     // Create buttons for the right grid
-    const button1 = flock.createSmallButton("■", "e", color);
-    const button2 = flock.createSmallButton("✿", "r", color);
-    const button3 = flock.createSmallButton("✱", "f", color);
-    const button4 = flock.createSmallButton("❖", " ", color);
+    const button1 = flock.createSmallButton("①", "e", color);
+    const button2 = flock.createSmallButton("②", "r", color);
+    const button3 = flock.createSmallButton("③", "f", color);
+    const button4 = flock.createSmallButton("④", " ", color);
 
     // Add buttons to the right grid in a 2x2 layout
     rightGrid.addControl(button1, 0, 0); // Row 0, Column 0

@@ -205,7 +205,7 @@ export default {
   when_clicked: "when %1 %2",
   on_collision: "on %1 collision %2 %3",
   when_key_event: "when key %1 %2",
-  when_action_event: "when action %1 %2",
+  when_action_event: "when %1 %2",
   broadcast_event: "broadcast event %1",
   on_event: "on event %1",
 
@@ -237,7 +237,7 @@ export default {
   
   // Custom block translations - Sensing blocks
   key_pressed: "key pressed is %1",
-  action_pressed: "action %1",
+  action_pressed: "%1",
   meshes_touching: "%1 touching %2",
   time: "time in s",
   distance_to: "distance from %1 to %2",
@@ -394,8 +394,8 @@ export default {
   forever_tooltip: "Run the blocks inside every frame or when the previous iteration finishes. \nKeyword: forever",
   when_clicked_tooltip: "Run the blocks inside when the mesh trigger occurs.\nKeyword: click",
   on_collision_tooltip: "Execute the blocks inside when the mesh intersects or no longer intersects with another mesh.\nKeyword: collide",
-  when_key_event_tooltip: "Execute the blocks inside when the specified key starts or ends (press or release).",
-  when_action_event_tooltip: "Execute the blocks inside when the selected action starts or ends across keyboard, touch, or XR.",
+  when_key_event_tooltip: "Execute the blocks inside when the specified key is pressed or released.",
+  when_action_event_tooltip: "Execute the blocks inside when the selected action is pressed or released across keyboard, touch, or XR.",
   broadcast_event_tooltip: "Broadcast an event that is received by on event.\nKeyword: broadcast",
   on_event_tooltip: "Run code when a broadcast event is received.\nKeyword: on",
 
@@ -677,14 +677,14 @@ export default {
   BOTH_option: "both",
   ARROWS_option: "arrows",
   ACTIONS_option: "actions",
-  ACTION_FORWARD_option: "forward (W/Z)",
-  ACTION_BACKWARD_option: "backward (S)",
-  ACTION_LEFT_option: "left (A/Q)",
-  ACTION_RIGHT_option: "right (D)",
-  ACTION_BUTTON1_option: "button 1 (E ■)",
-  ACTION_BUTTON2_option: "button 2 (R ✿)",
-  ACTION_BUTTON3_option: "button 3 (F ✱)",
-  ACTION_BUTTON4_option: "button 4 (space ❖)",
+  ACTION_FORWARD_option: "forward",
+  ACTION_BACKWARD_option: "backward",
+  ACTION_LEFT_option: "left",
+  ACTION_RIGHT_option: "right",
+  ACTION_BUTTON1_option: "button 1",
+  ACTION_BUTTON2_option: "button 2",
+  ACTION_BUTTON3_option: "button 3",
+  ACTION_BUTTON4_option: "button 4",
 
   pin_0_option: "Pin P0 released", // Duplicate key 0
   pin_1_option: "Pin P1 released", // Duplicate key 1

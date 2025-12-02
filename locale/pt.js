@@ -207,7 +207,7 @@ export default {
   when_clicked: "quando %1 %2",
   on_collision: "ao colidir %1 %2 %3",
   when_key_event: "quando tecla %1 %2",
-  when_action_event: "quando ação %1 %2",
+  when_action_event: "quando %1 %2",
   broadcast_event: "transmitir evento %1",
   on_event: "ao evento %1",
 
@@ -241,7 +241,7 @@ export default {
 
   // Custom block translations - Sensing blocks
   key_pressed: "tecla pressionada é %1",
-  action_pressed: "ação %1",
+  action_pressed: "%1",
   meshes_touching: "%1 tocando %2",
   time: "tempo em s",
   distance_to: "distância de %1 até %2",
@@ -450,9 +450,9 @@ export default {
   on_collision_tooltip:
     "Executa os blocos quando o mesh colide ou deixa de colidir com outro.\nPalavra-chave: colisão",
   when_key_event_tooltip:
-    "Executa os blocos quando a tecla especificada começa ou termina (pressionada ou liberada).",
+    "Executa os blocos quando a tecla especificada é pressionada ou liberada.",
   when_action_event_tooltip:
-    "Executa os blocos quando a ação escolhida começa ou termina no teclado, toque ou XR.",
+    "Executa os blocos quando a ação escolhida é pressionada ou liberada no teclado, toque ou XR.",
   broadcast_event_tooltip:
     "Emite um evento que será recebido pelo bloco 'ao receber'.\nPalavra-chave: transmitir",
   on_event_tooltip:
@@ -787,14 +787,14 @@ export default {
   BOTH_option: "ambos",
   ARROWS_option: "setas",
   ACTIONS_option: "ações",
-  ACTION_FORWARD_option: "frente (W/Z)",
-  ACTION_BACKWARD_option: "trás (S)",
-  ACTION_LEFT_option: "esquerda (A/Q)",
-  ACTION_RIGHT_option: "direita (D)",
-  ACTION_BUTTON1_option: "botão 1 (E ■)",
-  ACTION_BUTTON2_option: "botão 2 (R ✿)",
-  ACTION_BUTTON3_option: "botão 3 (F ✱)",
-  ACTION_BUTTON4_option: "botão 4 (espaço ❖)",
+  ACTION_FORWARD_option: "frente",
+  ACTION_BACKWARD_option: "trás",
+  ACTION_LEFT_option: "esquerda",
+  ACTION_RIGHT_option: "direita",
+  ACTION_BUTTON1_option: "botão 1",
+  ACTION_BUTTON2_option: "botão 2",
+  ACTION_BUTTON3_option: "botão 3",
+  ACTION_BUTTON4_option: "botão 4",
 
   pin_0_option: "Pino P0 libertado",
   pin_1_option: "Pino P1 libertado",

@@ -208,7 +208,7 @@ export default {
       when_clicked: "när %1 %2",
       on_collision: "vid %1 kollision %2 %3",
       when_key_event: "när tangent %1 %2",
-      when_action_event: "när handling %1 %2",
+      when_action_event: "när %1 %2",
       broadcast_event: "sänd händelse %1",
       on_event: "vid händelse %1",
 
@@ -241,7 +241,7 @@ export default {
 
       // Custom block translations - Sensing blocks
       key_pressed: "tangent nedtryckt är %1",
-      action_pressed: "åtgärd %1",
+      action_pressed: "%1",
       meshes_touching: "%1 vidrör %2",
       time: "tid i s",
       distance_to: "avstånd från %1 till %2",
@@ -450,9 +450,9 @@ export default {
       on_collision_tooltip:
             "Kör blocken när ett mesh-objekt kolliderar med eller slutar kollidera med ett annat.\nKeyword: collide",
       when_key_event_tooltip:
-            "Kör blocken när den angivna tangenten startar eller avslutas (trycks ned eller släpps).",
+            "Kör blocken när den angivna tangenten trycks ned eller släpps.",
       when_action_event_tooltip:
-            "Kör blocken när den valda handlingen startar eller avslutas via tangentbord, touch eller XR.",
+            "Kör blocken när den valda handlingen trycks ned eller släpps via tangentbord, touch eller XR.",
       broadcast_event_tooltip:
             "Sänd ett event som tas emot av on event.\nKeyword: broadcast",
       on_event_tooltip:
@@ -789,14 +789,14 @@ export default {
       BOTH_option: "båda",
       ARROWS_option: "pilar",
       ACTIONS_option: "åtgärder",
-      ACTION_FORWARD_option: "framåt (W/Z)",
-      ACTION_BACKWARD_option: "bakåt (S)",
-      ACTION_LEFT_option: "vänster (A/Q)",
-      ACTION_RIGHT_option: "höger (D)",
-      ACTION_BUTTON1_option: "knapp 1 (E ■)",
-      ACTION_BUTTON2_option: "knapp 2 (R ✿)",
-      ACTION_BUTTON3_option: "knapp 3 (F ✱)",
-      ACTION_BUTTON4_option: "knapp 4 (mellanslag ❖)",
+      ACTION_FORWARD_option: "framåt",
+      ACTION_BACKWARD_option: "bakåt",
+      ACTION_LEFT_option: "vänster",
+      ACTION_RIGHT_option: "höger",
+      ACTION_BUTTON1_option: "knapp 1",
+      ACTION_BUTTON2_option: "knapp 2",
+      ACTION_BUTTON3_option: "knapp 3",
+      ACTION_BUTTON4_option: "knapp 4",
 
       pin_0_option: "Stift P0 släppt", // Duplicate key 0
       pin_1_option: "Stift P1 släppt", // Duplicate key 1
