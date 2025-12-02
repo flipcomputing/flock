@@ -973,8 +973,9 @@ export const flockMaterial = {
       texture.wrapV = flock.BABYLON.Texture.WRAP_ADDRESSMODE;
       shaderMaterial.setTexture("textureSampler", texture);
       // Apply tiling through shader uniforms (shader materials don't automatically use texture matrix)
-      shaderMaterial.setFloat("uScale", 10);
-      shaderMaterial.setFloat("vScale", 10);
+      // Use scale of 1 to match single-color material behavior
+      shaderMaterial.setFloat("uScale", 1);
+      shaderMaterial.setFloat("vScale", 1);
     }
 
     // Convert colors and set uniforms
