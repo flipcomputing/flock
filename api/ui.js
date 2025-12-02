@@ -7,7 +7,6 @@ export function setFlockReference(ref) {
 }
 
 export const flockUI = {
-  
   UIText({ text, x, y, fontSize, color, duration, id = null } = {}) {
     if (!flock.scene || !flock.GUI) {
       return;
@@ -17,7 +16,8 @@ export const flockUI = {
       flock.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
 
     const textBlockId =
-      id || `textBlock_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      id ||
+      `textBlock_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
     const maxWidth = flock.scene.getEngine().getRenderWidth();
     const maxHeight = flock.scene.getEngine().getRenderHeight();
@@ -31,29 +31,32 @@ export const flockUI = {
       flock.scene.UITexture.addControl(textBlock);
 
       // Anchor control at screen top-left; don't block input.
-      textBlock.horizontalAlignment = flock.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
-      textBlock.verticalAlignment   = flock.GUI.Control.VERTICAL_ALIGNMENT_TOP;
+      textBlock.horizontalAlignment =
+        flock.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
+      textBlock.verticalAlignment = flock.GUI.Control.VERTICAL_ALIGNMENT_TOP;
       textBlock.textWrapping = false;
       textBlock.isPointerBlocker = false;
       // Keep text centered inside its line box.
-      textBlock.textHorizontalAlignment = flock.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
-      textBlock.textVerticalAlignment   = flock.GUI.Control.VERTICAL_ALIGNMENT_CENTER;
+      textBlock.textHorizontalAlignment =
+        flock.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
+      textBlock.textVerticalAlignment =
+        flock.GUI.Control.VERTICAL_ALIGNMENT_CENTER;
     }
 
     // Update text + style
-    textBlock.text  = text;
+    textBlock.text = text;
     textBlock.color = color || "white";
 
     // Font & line box
     const px = Number(fontSize || 24);
-    textBlock.fontSize   = px;
+    textBlock.fontSize = px;
     const linePx = Math.max(1, Math.round(px * 1.2)); // 1.2× prevents ascender clipping
     textBlock.lineHeight = `${linePx}px`;
-    textBlock.height     = `${Math.max(linePx, px + 4)}px`;
+    textBlock.height = `${Math.max(linePx, px + 4)}px`;
 
     // Position
     textBlock.left = adjustedX;
-    textBlock.top  = adjustedY;
+    textBlock.top = adjustedY;
 
     // WEB FONT STABILIZER: avoid the “first update jump”
     if (document.fonts && document.fonts.status !== "loaded") {
@@ -61,7 +64,7 @@ export const flockUI = {
       const prevAlpha = textBlock.alpha;
       textBlock.alpha = 0;
       document.fonts.ready.then(() => {
-        textBlock._markAsDirty();             // re-measure with real font
+        textBlock._markAsDirty(); // re-measure with real font
         textBlock.alpha = prevAlpha ?? 1;
       });
     } else {
@@ -322,7 +325,9 @@ export const flockUI = {
     const keyList = Array.isArray(keys) ? keys : [keys];
     const uniqueKeys = Array.from(
       new Set(
-        keyList.filter((key) => key !== undefined && key !== null && key !== ""),
+        keyList.filter(
+          (key) => key !== undefined && key !== null && key !== "",
+        ),
       ),
     );
     // Use a unique ID per button so Babylon doesn't recycle the same control
@@ -371,7 +376,11 @@ export const flockUI = {
     const upButton = flock.createSmallButton("△", ["w", "ArrowUp"], color);
     const downButton = flock.createSmallButton("▽", ["s", "ArrowDown"], color);
     const leftButton = flock.createSmallButton("◁", ["a", "ArrowLeft"], color);
-    const rightButton = flock.createSmallButton("▷", ["d", "ArrowRight"], color);
+    const rightButton = flock.createSmallButton(
+      "▷",
+      ["d", "ArrowRight"],
+      color,
+    );
     // Add buttons to the grid
     grid.addControl(upButton, 0, 1); // Add to row 0, column 1
     grid.addControl(leftButton, 1, 0); // Add to row 1, column 0
@@ -435,19 +444,24 @@ export const flockUI = {
     let {
       text,
       duration,
-      textColor = "white",
+      textColor = "#ffffff",
       backgroundColor = "#000000",
-      alpha = 0.7,
-      size = 16,
-      mode = "APPEND",
+      alpha = 1,
+      size = 24,
+      mode = "ADD",
     } = options;
 
     // Validate duration: must be finite and non-negative
-    duration = (isFinite(Number(duration)) && Number(duration) >= 0) ? Number(duration) : 0;
+    duration =
+      isFinite(Number(duration)) && Number(duration) >= 0
+        ? Number(duration)
+        : 0;
     // Validate alpha: must be finite and clamped between 0 and 1
-    alpha = isFinite(Number(alpha)) ? Math.min(Math.max(Number(alpha), 0), 1) : 0.7;
+    alpha = isFinite(Number(alpha))
+      ? Math.min(Math.max(Number(alpha), 0), 1)
+      : 0.7;
     // Validate size: must be finite and positive
-    size = (isFinite(Number(size)) && Number(size) > 0) ? Number(size) : 16;
+    size = isFinite(Number(size)) && Number(size) > 0 ? Number(size) : 16;
 
     if (!flock.scene) {
       console.error("Scene is not available.");
@@ -623,15 +637,14 @@ export const flockUI = {
       });
     }
   },
-  printText({
-    text,
-    duration = 30,
-    color = "white"
-  } = {}) {
+  printText({ text, duration = 30, color = "white" } = {}) {
     if (!flock.scene || !flock.stackPanel) return;
 
     // Validate duration: must be finite and non-negative
-    const safeDuration = (isFinite(Number(duration)) && Number(duration) >= 0) ? Number(duration) : 0;
+    const safeDuration =
+      isFinite(Number(duration)) && Number(duration) >= 0
+        ? Number(duration)
+        : 0;
     duration = safeDuration;
 
     console.log(text);
