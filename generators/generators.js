@@ -777,10 +777,7 @@ export function defineGenerators() {
 
                 const safeTextArg = emitSafeTextArg(textCode);
 
-                const n = `(Number(${durationCode}))`;
-                const safeDuration = `(isFinite(${n}) && ${n} >= 0 ? ${n} : 0)`;
-
-                return `printText({ text: ${safeTextArg}, duration: ${safeDuration}, color: ${color} });\n`;
+                return `printText({ text: ${safeTextArg}, duration: ${durationCode}, color: ${color} });\n`;
         };
 
         javascriptGenerator.forBlock["set_fog"] = function (block) {
@@ -1094,14 +1091,7 @@ export function defineGenerators() {
 
                 const safeTextArg = emitSafeTextArg(textCode);
 
-                const d = `(Number(${durationCode}))`;
-                const safeDuration = `(isFinite(${d}) && ${d} >= 0 ? ${d} : 0)`;
-                const a = `(Number(${alphaCode}))`;
-                const safeAlpha = `(isFinite(${a}) ? Math.min(Math.max(${a}, 0), 1) : 1)`;
-                const s = `(Number(${sizeCode}))`;
-                const safeSize = `(isFinite(${s}) && ${s} > 0 ? ${s} : 24)`;
-
-                return `${asyncWrapper}say(${meshVariable}, { text: ${safeTextArg}, duration: ${safeDuration}, textColor: ${textColor}, backgroundColor: ${backgroundColor}, alpha: ${safeAlpha}, size: ${safeSize}, mode: ${JSON.stringify(mode)} });\n`;
+                return `${asyncWrapper}say(${meshVariable}, { text: ${safeTextArg}, duration: ${durationCode}, textColor: ${textColor}, backgroundColor: ${backgroundColor}, alpha: ${alphaCode}, size: ${sizeCode}, mode: ${JSON.stringify(mode)} });\n`;
         };
 
         javascriptGenerator.forBlock["load_model"] = function (block) {

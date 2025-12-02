@@ -432,7 +432,7 @@ export const flockUI = {
     }
   },
   say(meshName, options = {}) {
-    const {
+    let {
       text,
       duration,
       textColor = "white",
@@ -441,6 +441,13 @@ export const flockUI = {
       size = 16,
       mode = "APPEND",
     } = options;
+
+    // Validate duration: must be finite and non-negative
+    duration = (isFinite(Number(duration)) && Number(duration) >= 0) ? Number(duration) : 0;
+    // Validate alpha: must be finite and clamped between 0 and 1
+    alpha = isFinite(Number(alpha)) ? Math.min(Math.max(Number(alpha), 0), 1) : 0.7;
+    // Validate size: must be finite and positive
+    size = (isFinite(Number(size)) && Number(size) > 0) ? Number(size) : 16;
 
     if (!flock.scene) {
       console.error("Scene is not available.");
@@ -622,6 +629,10 @@ export const flockUI = {
     color = "white"
   } = {}) {
     if (!flock.scene || !flock.stackPanel) return;
+
+    // Validate duration: must be finite and non-negative
+    const safeDuration = (isFinite(Number(duration)) && Number(duration) >= 0) ? Number(duration) : 0;
+    duration = safeDuration;
 
     console.log(text);
     try {
