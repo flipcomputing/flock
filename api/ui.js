@@ -320,6 +320,9 @@ export const flockUI = {
     if (!flock.controlsTexture) return;
 
     const keyList = Array.isArray(keys) ? keys : [keys];
+    const normalizedKeys = keyList.map((key) =>
+      typeof key === "string" ? key.toLowerCase() : key,
+    );
     // Use a unique ID per button so Babylon doesn't recycle the same control
     // name, which can prevent some buttons from receiving pointer events when
     // multiple instances share an identifier.
@@ -333,14 +336,14 @@ export const flockUI = {
 
     button.fontFamily = fontFamily;
     button.onPointerDownObservable.add(() => {
-      keyList.forEach((key) => {
+      normalizedKeys.forEach((key) => {
         flock.canvas.pressedButtons.add(key);
         flock.gridKeyPressObservable.notifyObservers(key);
       });
     });
 
     button.onPointerUpObservable.add(() => {
-      keyList.forEach((key) => {
+      normalizedKeys.forEach((key) => {
         flock.canvas.pressedButtons.delete(key);
         flock.gridKeyReleaseObservable.notifyObservers(key);
       });
