@@ -316,7 +316,7 @@ export const flockUI = {
     flock.scene.UITexture.addControl(slider);
     return slider;
   },
-  createSmallButton(text, key, color) {
+  createSmallButton(text, keys, color) {
     if (!flock.controlsTexture) return;
 
     const button = flock.GUI.Button.CreateSimpleButton("but", text);
@@ -327,14 +327,20 @@ export const flockUI = {
     button.fontSize = `${40 * flock.displayScale}px`; // Scale font size
 
     button.fontFamily = fontFamily;
+    const normalizedKeys = Array.isArray(keys) ? keys : [keys];
+
     button.onPointerDownObservable.add(() => {
-      flock.canvas.pressedButtons.add(key);
-      flock.gridKeyPressObservable.notifyObservers(key);
+      normalizedKeys.forEach((key) => {
+        flock.canvas.pressedButtons.add(key);
+        flock.gridKeyPressObservable.notifyObservers(key);
+      });
     });
 
     button.onPointerUpObservable.add(() => {
-      flock.canvas.pressedButtons.delete(key);
-      flock.gridKeyReleaseObservable.notifyObservers(key);
+      normalizedKeys.forEach((key) => {
+        flock.canvas.pressedButtons.delete(key);
+        flock.gridKeyReleaseObservable.notifyObservers(key);
+      });
     });
     return button;
   },
@@ -354,10 +360,26 @@ export const flockUI = {
     grid.addColumnDefinition(1);
     grid.addColumnDefinition(1);
     flock.controlsTexture.addControl(grid);
-    const upButton = flock.createSmallButton("△", "ArrowUp", color);
-    const downButton = flock.createSmallButton("▽", "ArrowDown", color);
-    const leftButton = flock.createSmallButton("◁", "ArrowLeft", color);
-    const rightButton = flock.createSmallButton("▷", "ArrowRight", color);
+    const upButton = flock.createSmallButton(
+      "△",
+      ["ArrowUp", "w", "W", "z", "Z"],
+      color,
+    );
+    const downButton = flock.createSmallButton(
+      "▽",
+      ["ArrowDown", "s", "S"],
+      color,
+    );
+    const leftButton = flock.createSmallButton(
+      "◁",
+      ["ArrowLeft", "a", "A", "q", "Q"],
+      color,
+    );
+    const rightButton = flock.createSmallButton(
+      "▷",
+      ["ArrowRight", "d", "D"],
+      color,
+    );
     // Add buttons to the grid
     grid.addControl(upButton, 0, 1); // Add to row 0, column 1
     grid.addControl(leftButton, 1, 0); // Add to row 1, column 0
@@ -380,10 +402,10 @@ export const flockUI = {
     flock.controlsTexture.addControl(rightGrid);
 
     // Create buttons for the right grid
-    const button1 = flock.createSmallButton("①", "e", color);
-    const button2 = flock.createSmallButton("②", "r", color);
-    const button3 = flock.createSmallButton("③", "f", color);
-    const button4 = flock.createSmallButton("④", " ", color);
+    const button1 = flock.createSmallButton("①", ["e", "E", "1"], color);
+    const button2 = flock.createSmallButton("②", ["r", "R", "2"], color);
+    const button3 = flock.createSmallButton("③", ["f", "F", "3"], color);
+    const button4 = flock.createSmallButton("④", [" ", "SPACE", "4"], color);
 
     // Add buttons to the right grid in a 2x2 layout
     rightGrid.addControl(button1, 0, 0); // Row 0, Column 0
