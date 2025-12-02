@@ -25,19 +25,7 @@
               },
               "next": {
                 "block": {
-                  "type": "create_ground",
                   "id": "S%:d.e-l98E_Phu`CHx?",
-                  "inputs": {
-                    "COLOR": {
-                      "shadow": {
-                        "type": "colour",
-                        "id": "Pe/-b7d5B1Qr*:EvoPsA",
-                        "fields": {
-                          "COLOR": "#71bc78"
-                        }
-                      }
-                    }
-                  },
                   "next": {
                     "block": {
                       "type": "print_text",
@@ -101,6 +89,41 @@
                                 "fields": {
                                   "COLOR": "#000080"
                                 }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "type": "create_map",
+                  "fields": {
+                    "MAP_NAME": "NONE"
+                  },
+                  "inputs": {
+                    "MATERIAL": {
+                      "shadow": {
+                        "type": "material",
+                        "id": "S%:d.e-l98E_Phu`CHx?:material",
+                        "fields": {
+                          "TEXTURE_SET": "none.png"
+                        },
+                        "inputs": {
+                          "BASE_COLOR": {
+                            "shadow": {
+                              "type": "colour",
+                              "id": "Pe/-b7d5B1Qr*:EvoPsA",
+                              "fields": {
+                                "COLOR": "#71bc78"
+                              }
+                            }
+                          },
+                          "ALPHA": {
+                            "shadow": {
+                              "type": "math_number",
+                              "id": "S%:d.e-l98E_Phu`CHx?:alpha",
+                              "fields": {
+                                "NUM": 1
                               }
                             }
                           }
@@ -2350,7 +2373,9 @@
                                             "inline": true,
                                             "extraState": {
                                               "name": "makeBuilding",
-                                              "params": ["mesh"]
+                                              "params": [
+                                                "mesh"
+                                              ]
                                             },
                                             "inputs": {
                                               "ARG0": {
@@ -3076,7 +3101,11 @@
                                           "inline": true,
                                           "extraState": {
                                             "name": "makestairs",
-                                            "params": ["x", "y", "z"]
+                                            "params": [
+                                              "x",
+                                              "y",
+                                              "z"
+                                            ]
                                           },
                                           "inputs": {
                                             "ARG0": {

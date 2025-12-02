@@ -25,19 +25,7 @@
               },
               "next": {
                 "block": {
-                  "type": "create_ground",
                   "id": "*)R[KXLL5p;g5?I+(0|h",
-                  "inputs": {
-                    "COLOR": {
-                      "shadow": {
-                        "type": "colour",
-                        "id": "?ECwif819GMWV9D$H2rG",
-                        "fields": {
-                          "COLOR": "#ffffff"
-                        }
-                      }
-                    }
-                  },
                   "next": {
                     "block": {
                       "type": "print_text",
@@ -362,6 +350,41 @@
                                     }
                                   }
                                 }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "type": "create_map",
+                  "fields": {
+                    "MAP_NAME": "NONE"
+                  },
+                  "inputs": {
+                    "MATERIAL": {
+                      "shadow": {
+                        "type": "material",
+                        "id": "*)R[KXLL5p;g5?I+(0|h:material",
+                        "fields": {
+                          "TEXTURE_SET": "none.png"
+                        },
+                        "inputs": {
+                          "BASE_COLOR": {
+                            "shadow": {
+                              "type": "colour",
+                              "id": "?ECwif819GMWV9D$H2rG",
+                              "fields": {
+                                "COLOR": "#ffffff"
+                              }
+                            }
+                          },
+                          "ALPHA": {
+                            "shadow": {
+                              "type": "math_number",
+                              "id": "*)R[KXLL5p;g5?I+(0|h:alpha",
+                              "fields": {
+                                "NUM": 1
                               }
                             }
                           }

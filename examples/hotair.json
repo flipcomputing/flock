@@ -52,15 +52,38 @@
               },
               "next": {
                 "block": {
-                  "type": "create_ground",
                   "id": "yz%{f4qq6H/rls#6R_F%",
+                  "type": "create_map",
+                  "fields": {
+                    "MAP_NAME": "NONE"
+                  },
                   "inputs": {
-                    "COLOR": {
+                    "MATERIAL": {
                       "shadow": {
-                        "type": "colour",
-                        "id": ".AzAr4vGOf|n%l)NnUX?",
+                        "type": "material",
+                        "id": "yz%{f4qq6H/rls#6R_F%:material",
                         "fields": {
-                          "COLOR": "#71bc78"
+                          "TEXTURE_SET": "none.png"
+                        },
+                        "inputs": {
+                          "BASE_COLOR": {
+                            "shadow": {
+                              "type": "colour",
+                              "id": ".AzAr4vGOf|n%l)NnUX?",
+                              "fields": {
+                                "COLOR": "#71bc78"
+                              }
+                            }
+                          },
+                          "ALPHA": {
+                            "shadow": {
+                              "type": "math_number",
+                              "id": "yz%{f4qq6H/rls#6R_F%:alpha",
+                              "fields": {
+                                "NUM": 1
+                              }
+                            }
+                          }
                         }
                       }
                     }

@@ -1412,7 +1412,9 @@
               "inline": true,
               "extraState": {
                 "name": "Construct finger",
-                "params": ["x"]
+                "params": [
+                  "x"
+                ]
               },
               "inputs": {
                 "ARG0": {
@@ -1442,7 +1444,9 @@
               "inline": true,
               "extraState": {
                 "name": "Construct finger",
-                "params": ["x"]
+                "params": [
+                  "x"
+                ]
               },
               "inputs": {
                 "ARG0": {
@@ -1472,7 +1476,9 @@
               "inline": true,
               "extraState": {
                 "name": "Construct finger",
-                "params": ["x"]
+                "params": [
+                  "x"
+                ]
               },
               "inputs": {
                 "ARG0": {
@@ -1502,7 +1508,9 @@
               "inline": true,
               "extraState": {
                 "name": "Construct finger",
-                "params": ["x"]
+                "params": [
+                  "x"
+                ]
               },
               "inputs": {
                 "ARG0": {
@@ -1689,19 +1697,7 @@
                           },
                           "next": {
                             "block": {
-                              "type": "create_ground",
                               "id": "hg8yoa#4RnrJT7g)(@.b",
-                              "inputs": {
-                                "COLOR": {
-                                  "shadow": {
-                                    "type": "colour",
-                                    "id": "Zpdp4umJ-w(}(Ulh7nwb",
-                                    "fields": {
-                                      "COLOR": "#99ff99"
-                                    }
-                                  }
-                                }
-                              },
                               "next": {
                                 "block": {
                                   "type": "get_camera",
@@ -1786,6 +1782,41 @@
                                                 }
                                               }
                                             }
+                                          }
+                                        }
+                                      }
+                                    }
+                                  }
+                                }
+                              },
+                              "type": "create_map",
+                              "fields": {
+                                "MAP_NAME": "NONE"
+                              },
+                              "inputs": {
+                                "MATERIAL": {
+                                  "shadow": {
+                                    "type": "material",
+                                    "id": "hg8yoa#4RnrJT7g)(@.b:material",
+                                    "fields": {
+                                      "TEXTURE_SET": "none.png"
+                                    },
+                                    "inputs": {
+                                      "BASE_COLOR": {
+                                        "shadow": {
+                                          "type": "colour",
+                                          "id": "Zpdp4umJ-w(}(Ulh7nwb",
+                                          "fields": {
+                                            "COLOR": "#99ff99"
+                                          }
+                                        }
+                                      },
+                                      "ALPHA": {
+                                        "shadow": {
+                                          "type": "math_number",
+                                          "id": "hg8yoa#4RnrJT7g)(@.b:alpha",
+                                          "fields": {
+                                            "NUM": 1
                                           }
                                         }
                                       }
