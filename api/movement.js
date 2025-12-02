@@ -104,7 +104,8 @@ export const flockMovement = {
       appliedHorizontalVelocity = desiredHorizontalVelocity;
     } else {
       // airborne: no acceleration toward input, apply drag
-      appliedHorizontalVelocity = currentHorizontalVelocity.scale(airDragPerTick);
+      appliedHorizontalVelocity =
+        currentHorizontalVelocity.scale(airDragPerTick);
       if (airControlFactor > 0) {
         appliedHorizontalVelocity = appliedHorizontalVelocity.add(
           desiredHorizontalVelocity.scale(airControlFactor),
@@ -281,7 +282,7 @@ export const flockMovement = {
     const model = flock.scene.getMeshByName(modelName);
     if (!model || speed === 0) return;
 
-    const sidewaysSpeed = speed;
+    const sidewaysSpeed = -speed;
 
     // Get the camera's right direction vector (perpendicular to the forward direction)
     const cameraRight = flock.scene.activeCamera
