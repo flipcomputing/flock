@@ -316,10 +316,20 @@ export const flockUI = {
     flock.scene.UITexture.addControl(slider);
     return slider;
   },
-  createSmallButton(text, key, color) {
+  createSmallButton(text, keys, color) {
     if (!flock.controlsTexture) return;
 
-    const button = flock.GUI.Button.CreateSimpleButton("but", text);
+    const keyList = Array.isArray(keys) ? keys : [keys];
+    const uniqueKeys = Array.from(
+      new Set(
+        keyList.filter((key) => key !== undefined && key !== null && key !== ""),
+      ),
+    );
+    // Use a unique ID per button so Babylon doesn't recycle the same control
+    // name, which can prevent some buttons from receiving pointer events when
+    // multiple instances share an identifier.
+    const buttonId = `small-${text}-${Math.random().toString(36).slice(2)}`;
+    const button = flock.GUI.Button.CreateSimpleButton(buttonId, text);
     button.width = `${70 * flock.displayScale}px`; // Scale size
     button.height = `${70 * flock.displayScale}px`;
     button.color = color;
@@ -328,13 +338,17 @@ export const flockUI = {
 
     button.fontFamily = fontFamily;
     button.onPointerDownObservable.add(() => {
-      flock.canvas.pressedButtons.add(key);
-      flock.gridKeyPressObservable.notifyObservers(key);
+      uniqueKeys.forEach((key) => {
+        flock.canvas.pressedButtons.add(key);
+        flock.gridKeyPressObservable.notifyObservers(key);
+      });
     });
 
     button.onPointerUpObservable.add(() => {
-      flock.canvas.pressedButtons.delete(key);
-      flock.gridKeyReleaseObservable.notifyObservers(key);
+      uniqueKeys.forEach((key) => {
+        flock.canvas.pressedButtons.delete(key);
+        flock.gridKeyReleaseObservable.notifyObservers(key);
+      });
     });
     return button;
   },
@@ -354,10 +368,10 @@ export const flockUI = {
     grid.addColumnDefinition(1);
     grid.addColumnDefinition(1);
     flock.controlsTexture.addControl(grid);
-    const upButton = flock.createSmallButton("△", "w", color);
-    const downButton = flock.createSmallButton("▽", "s", color);
-    const leftButton = flock.createSmallButton("◁", "a", color);
-    const rightButton = flock.createSmallButton("▷", "d", color);
+    const upButton = flock.createSmallButton("△", ["w", "ArrowUp"], color);
+    const downButton = flock.createSmallButton("▽", ["s", "ArrowDown"], color);
+    const leftButton = flock.createSmallButton("◁", ["a", "ArrowLeft"], color);
+    const rightButton = flock.createSmallButton("▷", ["d", "ArrowRight"], color);
     // Add buttons to the grid
     grid.addControl(upButton, 0, 1); // Add to row 0, column 1
     grid.addControl(leftButton, 1, 0); // Add to row 1, column 0
