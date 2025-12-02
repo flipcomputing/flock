@@ -320,8 +320,11 @@ export const flockUI = {
     if (!flock.controlsTexture) return;
 
     const keyList = Array.isArray(keys) ? keys : [keys];
-
-    const button = flock.GUI.Button.CreateSimpleButton("but", text);
+    // Use a unique ID per button so Babylon doesn't recycle the same control
+    // name, which can prevent some buttons from receiving pointer events when
+    // multiple instances share an identifier.
+    const buttonId = `small-${text}-${Math.random().toString(36).slice(2)}`;
+    const button = flock.GUI.Button.CreateSimpleButton(buttonId, text);
     button.width = `${70 * flock.displayScale}px`; // Scale size
     button.height = `${70 * flock.displayScale}px`;
     button.color = color;
