@@ -3432,10 +3432,10 @@ export const flock = {
                         BACKWARD: ["S"],
                         LEFT: ["A", "Q"],
                         RIGHT: ["D"],
-                        BUTTON1: ["E"],
-                        BUTTON2: ["R"],
-                        BUTTON3: ["F"],
-                        BUTTON4: ["SPACE", " "],
+                        BUTTON1: ["E", "1"],
+                        BUTTON2: ["R", "2"],
+                        BUTTON3: ["F", "3"],
+                        BUTTON4: ["SPACE", " ", "4"],
                 };
 
                 const actionKeys = actionMap[action];
@@ -3602,10 +3602,10 @@ export const flock = {
                         BACKWARD: ["s"],
                         LEFT: ["a", "q"],
                         RIGHT: ["d"],
-                        BUTTON1: ["e"],
-                        BUTTON2: ["r"],
-                        BUTTON3: ["f"],
-                        BUTTON4: [" "],
+                        BUTTON1: ["e", "1"],
+                        BUTTON2: ["r", "2"],
+                        BUTTON3: ["f", "3"],
+                        BUTTON4: [" ", "4"],
                 };
 
                 const actionKeys = actionMap[action];

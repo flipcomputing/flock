@@ -205,7 +205,7 @@ export default {
   when_clicked: "when %1 %2",
   on_collision: "on %1 collision %2 %3",
   when_key_event: "when key %1 %2",
-  when_action_event: "when action %1 %2",
+  when_action_event: "when %1 %2",
   broadcast_event: "broadcast event %1",
   on_event: "on event %1",
 
@@ -237,7 +237,7 @@ export default {
   
   // Custom block translations - Sensing blocks
   key_pressed: "key pressed is %1",
-  action_pressed: "action %1",
+  action_pressed: "%1",
   meshes_touching: "%1 touching %2",
   time: "time in s",
   distance_to: "distance from %1 to %2",
@@ -643,10 +643,10 @@ export default {
   FLAT_option: "Flat", // Duplicate key NONE
 
   ANY_option: "any",
-  space_infinity_option: "space ❖", // Duplicate key space
-  q_icon_option: "Q ■", // Duplicate key q
-  e_icon_option: "E ✿", // Duplicate key e
-  f_icon_option: "F ✱", // Duplicate key f
+  space_infinity_option: "space ④", // Duplicate key space
+  q_icon_option: "Q ①", // Duplicate key q
+  e_icon_option: "E ②", // Duplicate key e
+  f_icon_option: "F ③", // Duplicate key f
 
   x_coordinate_option: "x",
   y_coordinate_option: "y",
@@ -677,14 +677,14 @@ export default {
   BOTH_option: "both",
   ARROWS_option: "arrows",
   ACTIONS_option: "actions",
-  ACTION_FORWARD_option: "forward (W/Z)",
-  ACTION_BACKWARD_option: "backward (S)",
-  ACTION_LEFT_option: "left (A/Q)",
-  ACTION_RIGHT_option: "right (D)",
-  ACTION_BUTTON1_option: "button 1 (E ■)",
-  ACTION_BUTTON2_option: "button 2 (R ✿)",
-  ACTION_BUTTON3_option: "button 3 (F ✱)",
-  ACTION_BUTTON4_option: "button 4 (space ❖)",
+  ACTION_FORWARD_option: "forward",
+  ACTION_BACKWARD_option: "backward",
+  ACTION_LEFT_option: "left",
+  ACTION_RIGHT_option: "right",
+  ACTION_BUTTON1_option: "button 1 ①",
+  ACTION_BUTTON2_option: "button 2 ②",
+  ACTION_BUTTON3_option: "button 3 ③",
+  ACTION_BUTTON4_option: "button 4 ④",
 
   pin_0_option: "Pin P0 released", // Duplicate key 0
   pin_1_option: "Pin P1 released", // Duplicate key 1

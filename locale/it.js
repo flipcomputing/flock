@@ -212,7 +212,7 @@ export default {
   when_clicked: "quando %1 %2",
   on_collision: "su %1 collisione %2 %3",
   when_key_event: "quando tasto %1 %2",
-  when_action_event: "quando azione %1 %2",
+  when_action_event: "quando %1 %2",
   broadcast_event: "trasmetti evento %1",
   on_event: "all'evento %1",
 
@@ -246,7 +246,7 @@ export default {
 
   // Custom block translations - Sensing blocks
   key_pressed: "tasto premuto è %1",
-  action_pressed: "azione %1",
+  action_pressed: "%1",
   meshes_touching: "%1 tocca %2",
   time: "tempo in s",
   distance_to: "distanza da %1 a %2",
@@ -758,10 +758,10 @@ export default {
   FLAT_option: "Piatto", // Duplicate key NONE
 
   ANY_option: "qualsiasi",
-  space_infinity_option: "spazio ❖", // Duplicate key space
-  q_icon_option: "Q ■", // Duplicate key q
-  e_icon_option: "E ✿", // Duplicate key e
-  f_icon_option: "F ✱", // Duplicate key f
+  space_infinity_option: "spazio ④", // Duplicate key space
+  q_icon_option: "Q ①", // Duplicate key q
+  e_icon_option: "E ②", // Duplicate key e
+  f_icon_option: "F ③", // Duplicate key f
 
   x_coordinate_option: "x",
   y_coordinate_option: "y",
@@ -792,14 +792,14 @@ export default {
   BOTH_option: "entrambi",
   ARROWS_option: "frecce",
   ACTIONS_option: "azioni",
-  ACTION_FORWARD_option: "avanti (W/Z)",
-  ACTION_BACKWARD_option: "indietro (S)",
-  ACTION_LEFT_option: "sinistra (A/Q)",
-  ACTION_RIGHT_option: "destra (D)",
-  ACTION_BUTTON1_option: "pulsante 1 (E ■)",
-  ACTION_BUTTON2_option: "pulsante 2 (R ✿)",
-  ACTION_BUTTON3_option: "pulsante 3 (F ✱)",
-  ACTION_BUTTON4_option: "pulsante 4 (spazio ❖)",
+  ACTION_FORWARD_option: "avanti",
+  ACTION_BACKWARD_option: "indietro",
+  ACTION_LEFT_option: "sinistra",
+  ACTION_RIGHT_option: "destra",
+  ACTION_BUTTON1_option: "pulsante 1 ①",
+  ACTION_BUTTON2_option: "pulsante 2 ②",
+  ACTION_BUTTON3_option: "pulsante 3 ③",
+  ACTION_BUTTON4_option: "pulsante 4 ④",
 
   pin_0_option: "Pin P0 rilasciato", // Duplicate key 0
   pin_1_option: "Pin P1 rilasciato", // Duplicate key 1
