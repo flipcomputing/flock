@@ -354,10 +354,10 @@ export const flockUI = {
     grid.addColumnDefinition(1);
     grid.addColumnDefinition(1);
     flock.controlsTexture.addControl(grid);
-    const upButton = flock.createSmallButton("△", "w", color);
-    const downButton = flock.createSmallButton("▽", "s", color);
-    const leftButton = flock.createSmallButton("◁", "a", color);
-    const rightButton = flock.createSmallButton("▷", "d", color);
+    const upButton = flock.createSmallButton("△", "ArrowUp", color);
+    const downButton = flock.createSmallButton("▽", "ArrowDown", color);
+    const leftButton = flock.createSmallButton("◁", "ArrowLeft", color);
+    const rightButton = flock.createSmallButton("▷", "ArrowRight", color);
     // Add buttons to the grid
     grid.addControl(upButton, 0, 1); // Add to row 0, column 1
     grid.addControl(leftButton, 1, 0); // Add to row 1, column 0

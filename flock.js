@@ -1143,6 +1143,7 @@ export const flock = {
                 flock.EXPORT = BABYLON_EXPORT;
                 flock.document = document;
                 flock.canvas = flock.document.getElementById("renderCanvas");
+                flock.removeEventListeners?.();
                 flock.scene = null;
                 flock.havokInstance = null;
                 flock.ground = null;
@@ -1170,7 +1171,19 @@ export const flock = {
                         console.error("Error initializing CSG2:", error);
                 }
 
-                flock.canvas.addEventListener(
+                flock.canvasEventListeners = [];
+
+                const addCanvasListener = (event, handler, options) => {
+                        flock.canvas.addEventListener(event, handler, options);
+                        flock.canvasEventListeners.push({
+                                target: flock.canvas,
+                                event,
+                                handler,
+                                options,
+                        });
+                };
+
+                addCanvasListener(
                         "touchend",
                         (event) => {
                                 if (event.touches.length === 0) {
@@ -1202,16 +1215,16 @@ export const flock = {
                         { passive: false },
                 );
 
-                flock.canvas.addEventListener("keydown", function (event) {
+                addCanvasListener("keydown", function (event) {
                         flock.canvas.currentKeyPressed = event.key;
                         flock.canvas.pressedKeys.add(event.key);
                 });
 
-                flock.canvas.addEventListener("keyup", function (event) {
+                addCanvasListener("keyup", function (event) {
                         flock.canvas.pressedKeys.delete(event.key);
                 });
 
-                flock.canvas.addEventListener("blur", () => {
+                addCanvasListener("blur", () => {
                         // Clear all pressed keys when window loses focus
                         flock.canvas.pressedKeys.clear();
                         flock.canvas.pressedButtons.clear();
@@ -2122,6 +2135,18 @@ export const flock = {
 
                 if (flock.scene && flock.scene.eventListeners)
                         flock.scene.eventListeners.length = 0; // Clear the array
+
+                flock.canvasEventListeners?.forEach(
+                        ({ target, event, handler, options }) => {
+                                target?.removeEventListener(
+                                        event,
+                                        handler,
+                                        options,
+                                );
+                        },
+                );
+
+                flock.canvasEventListeners = [];
         },
         async *modelReadyGenerator(
                 meshId,
