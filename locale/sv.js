@@ -198,7 +198,7 @@ export default {
       get_lexical_variable: "%1",
 
       // Custom block translations - Effects blocks
-      light_intensity_and_color: "ställ in ljusintensitet till %1 %2 %3",
+      main_light: "ställ in ljusintensitet till %1 %2 %3",
       set_fog: "ställ in dimma färg %1 läge %2 densitet %3\nstart %4 slut %5",
       get_light: "hämta ljus som %1",
 
@@ -435,7 +435,7 @@ export default {
       get_lexical_variable_tooltip: "Hämta värdet av en lexikal variabel",
 
       // Tooltip translations - Effects blocks
-      light_intensity_and_color_tooltip:
+      main_light_tooltip:
             "Ställ in intensiteten på huvudljuset.\nKeyword: light intensity",
       set_fog_tooltip: "Konfigurera scenens dimma. Använd start och slut för att ställa in nära och långt avstånd.\nKeyword: fog",
       get_light_tooltip: "Hämta huvudljuset på aktuella scen.\nKeyword: light",

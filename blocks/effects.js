@@ -8,11 +8,11 @@ import {
 } from "../main/translation.js";
 
 export function defineEffectsBlocks() {
-        Blockly.Blocks["light_intensity_and_color"] = {
+        Blockly.Blocks["main_light"] = {
                 init: function () {
                         this.jsonInit({
-                                type: "light_intensity_and_color",
-                                message0: translate("light_intensity_and_color"),
+                                type: "main_light",
+                                message0: translate("main_light"),
                                 args0: [
                                         {
                                                 type: "input_value",
@@ -34,7 +34,7 @@ export function defineEffectsBlocks() {
                                 previousStatement: null,
                                 nextStatement: null,
                                 colour: categoryColours["Scene"],
-                                tooltip: getTooltip("light_intensity_and_color"),
+                                tooltip: getTooltip("main_light"),
                         });
                         this.setHelpUrl(getHelpUrlFor(this.type));
                         this.setStyle("scene_blocks");

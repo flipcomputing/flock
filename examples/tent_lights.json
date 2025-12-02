@@ -56,7 +56,7 @@
                   "id": "S%:d.e-l98E_Phu`CHx?",
                   "next": {
                     "block": {
-                      "type": "light_intensity",
+                      "type": "main_light",
                       "id": "2yTaUxD3bQxD#u$@NMif",
                       "inputs": {
                         "INTENSITY": {
@@ -65,6 +65,24 @@
                             "id": "yysq]|QLoIBOyu2p/6?d",
                             "fields": {
                               "NUM": 0.7
+                            }
+                          }
+                        },
+                        "DIFFUSE": {
+                          "shadow": {
+                            "type": "colour",
+                            "id": "X}6/8oa}?Yw0)D7ghSwS",
+                            "fields": {
+                              "COLOR": "#ffd480"
+                            }
+                          }
+                        },
+                        "GROUND_COLOR": {
+                          "shadow": {
+                            "type": "colour",
+                            "id": "Vxj=92bX5RN8z=4(dY/G",
+                            "fields": {
+                              "COLOR": "#1e1b2c"
                             }
                           }
                         }

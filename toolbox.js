@@ -620,7 +620,7 @@ const toolboxSceneLights = {
         contents: [
                 {
                         kind: "block",
-                        type: "light_intensity_and_color",
+                        type: "main_light",
                         keyword: "intensity",
                         inputs: {
                                 INTENSITY: {
