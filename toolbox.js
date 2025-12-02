@@ -1020,11 +1020,11 @@ const toolboxEvents = {
                         type: "on_collision",
                         keyword: "collision",
                 },
-                {
+                /*{
                         kind: "block",
                         type: "when_key_event",
                         keyword: "press",
-                },
+                },*/
                 {
                         kind: "block",
                         type: "when_action_event",
