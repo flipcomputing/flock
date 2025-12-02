@@ -25,9 +25,55 @@ export const flockScene = {
       flock.sky = null;
     }
 
-    // --- BACKGROUND ONLY (flat clear color) ---
-    // For arrays, still create a gradient sky dome even in "clear" mode
-    if (clear === true && !(Array.isArray(color) && color.length >= 2)) {
+    // Dispose any previous background layer
+    if (flock.backgroundLayer) {
+      flock.backgroundLayer.dispose();
+      flock.backgroundLayer = null;
+    }
+
+    // --- BACKGROUND ONLY (flat clear color or gradient) ---
+    if (clear === true) {
+      // For arrays, create a flat gradient background layer (not a dome)
+      if (Array.isArray(color) && color.length >= 2) {
+        // Create a vertical gradient texture
+        const size = 512;
+        const dt = new flock.BABYLON.DynamicTexture(
+          "backgroundGradientDT",
+          { width: 1, height: size },
+          flock.scene,
+          false
+        );
+        const ctx = dt.getContext();
+        const h = dt.getSize().height;
+
+        // Build canvas gradient (top to bottom)
+        const grad = ctx.createLinearGradient(0, 0, 0, h);
+        const n = Math.max(2, color.length);
+        for (let i = 0; i < n; i++) {
+          const stop = i / (n - 1);
+          const hex = flock.getColorFromString(color[i]);
+          const c3 = flock.BABYLON.Color3.FromHexString(hex);
+          const rgb = `rgb(${Math.round(c3.r * 255)}, ${Math.round(c3.g * 255)}, ${Math.round(c3.b * 255)})`;
+          grad.addColorStop(stop, rgb);
+        }
+
+        // Paint the gradient
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, 1, h);
+        dt.update(false);
+
+        // Create a background layer with the gradient texture
+        const layer = new flock.BABYLON.Layer("backgroundGradientLayer", null, flock.scene, true);
+        layer.texture = dt;
+        layer.isBackground = true;
+        dt.wrapU = flock.BABYLON.Texture.CLAMP_ADDRESSMODE;
+        dt.wrapV = flock.BABYLON.Texture.CLAMP_ADDRESSMODE;
+
+        flock.backgroundLayer = layer;
+        return;
+      }
+
+      // Single color - just set clear color
       const c3 = flock.BABYLON.Color3.FromHexString(flock.getColorFromString(color));
       flock.scene.clearColor = c3;
       return;
