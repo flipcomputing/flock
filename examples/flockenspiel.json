@@ -1016,10 +1016,10 @@
                         "inputs": {
                           "A": {
                             "block": {
-                              "type": "key_pressed",
+                              "type": "action_pressed",
                               "id": "x`dv6@~E6T-VmWaLLyd,",
                               "fields": {
-                                "KEY": " "
+                                "ACTION": "BUTTON4"
                               }
                             }
                           },
@@ -1135,10 +1135,10 @@
                       "inputs": {
                         "IF0": {
                           "block": {
-                            "type": "key_pressed",
+                            "type": "action_pressed",
                             "id": "Os:!:_Y:Q2r@m[)*`K4T",
                             "fields": {
-                              "KEY": "w"
+                              "ACTION": "FORWARD"
                             }
                           }
                         },
@@ -1167,10 +1167,10 @@
                         },
                         "IF1": {
                           "block": {
-                            "type": "key_pressed",
+                            "type": "action_pressed",
                             "id": "W%!lyCp=RK-/}Z{1RN_C",
                             "fields": {
-                              "KEY": "s"
+                              "ACTION": "BACKWARD"
                             }
                           }
                         },
@@ -1199,10 +1199,10 @@
                         },
                         "IF2": {
                           "block": {
-                            "type": "key_pressed",
+                            "type": "action_pressed",
                             "id": "LjvMZ{CL9.jn~gft=8%u",
                             "fields": {
-                              "KEY": "a"
+                              "ACTION": "LEFT"
                             }
                           }
                         },
@@ -1231,10 +1231,10 @@
                         },
                         "IF3": {
                           "block": {
-                            "type": "key_pressed",
+                            "type": "action_pressed",
                             "id": "D*_#^2BWDljE9|;GzCr$",
                             "fields": {
-                              "KEY": "d"
+                              "ACTION": "RIGHT"
                             }
                           }
                         },
@@ -1320,19 +1320,19 @@
                                                   "inputs": {
                                                     "A": {
                                                       "block": {
-                                                        "type": "key_pressed",
+                                                        "type": "action_pressed",
                                                         "id": "ma^Z=q`?d%8^5GVM(1L^",
                                                         "fields": {
-                                                          "KEY": "w"
+                                                          "ACTION": "FORWARD"
                                                         }
                                                       }
                                                     },
                                                     "B": {
                                                       "block": {
-                                                        "type": "key_pressed",
+                                                        "type": "action_pressed",
                                                         "id": ")hRiq)Y#?$%3)v/GpKtN",
                                                         "fields": {
-                                                          "KEY": "s"
+                                                          "ACTION": "BACKWARD"
                                                         }
                                                       }
                                                     }
@@ -1341,10 +1341,10 @@
                                               },
                                               "B": {
                                                 "block": {
-                                                  "type": "key_pressed",
+                                                  "type": "action_pressed",
                                                   "id": "OGkF2,rLoMjB8C!St2@A",
                                                   "fields": {
-                                                    "KEY": "a"
+                                                    "ACTION": "LEFT"
                                                   }
                                                 }
                                               }
@@ -1353,10 +1353,10 @@
                                         },
                                         "B": {
                                           "block": {
-                                            "type": "key_pressed",
+                                            "type": "action_pressed",
                                             "id": "R*k/iC^w@g5uK@0zU,0t",
                                             "fields": {
-                                              "KEY": "d"
+                                              "ACTION": "RIGHT"
                                             }
                                           }
                                         }

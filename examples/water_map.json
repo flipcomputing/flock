@@ -231,10 +231,10 @@
 							"inputs": {
 								"IF0": {
 									"block": {
-										"type": "key_pressed",
+										"type": "action_pressed",
 										"id": "v1NgMJ/jY88Hi-|xF)t0",
 										"fields": {
-											"KEY": "w"
+											"ACTION": "FORWARD"
 										}
 									}
 								},
@@ -309,10 +309,10 @@
 								},
 								"IF1": {
 									"block": {
-										"type": "key_pressed",
+										"type": "action_pressed",
 										"id": "v0c77BjIVA,YfSv=DfQ%",
 										"fields": {
-											"KEY": "s"
+											"ACTION": "BACKWARD"
 										}
 									}
 								},
