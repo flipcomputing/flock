@@ -2129,12 +2129,13 @@ export const flock = {
                 );
         },
         removeEventListeners() {
-                flock.scene.eventListeners?.forEach(({ event, handler }) => {
+                const sceneListeners = flock.scene?.eventListeners;
+
+                sceneListeners?.forEach(({ event, handler }) => {
                         flock.document.removeEventListener(event, handler);
                 });
 
-                if (flock.scene && flock.scene.eventListeners)
-                        flock.scene.eventListeners.length = 0; // Clear the array
+                if (sceneListeners) sceneListeners.length = 0; // Clear the array
 
                 flock.canvasEventListeners?.forEach(
                         ({ target, event, handler, options }) => {
