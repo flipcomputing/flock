@@ -3400,6 +3400,11 @@ export const flock = {
                         });
                 })();
 
+                const normalizedButtonPressed =
+                        pressedButtons.has(key) ||
+                        pressedButtons.has(key.toLowerCase()) ||
+                        pressedButtons.has(key.toUpperCase());
+
                 // Combine all sources
                 if (key === "ANY") {
                         return (
@@ -3420,7 +3425,7 @@ export const flock = {
                                 pressedKeys.has(key) ||
                                 pressedKeys.has(key.toLowerCase()) ||
                                 pressedKeys.has(key.toUpperCase()) ||
-                                pressedButtons.has(key) ||
+                                normalizedButtonPressed ||
                                 vrPressed ||
                                 gamepadPressed
                         );
