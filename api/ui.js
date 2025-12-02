@@ -328,19 +328,24 @@ export const flockUI = {
 
     button.fontFamily = fontFamily;
     const normalizedKeys = Array.isArray(keys) ? keys : [keys];
+    const primaryKey = normalizedKeys[0];
 
     button.onPointerDownObservable.add(() => {
       normalizedKeys.forEach((key) => {
         flock.canvas.pressedButtons.add(key);
-        flock.gridKeyPressObservable.notifyObservers(key);
       });
+      if (primaryKey) {
+        flock.gridKeyPressObservable.notifyObservers(primaryKey);
+      }
     });
 
     button.onPointerUpObservable.add(() => {
       normalizedKeys.forEach((key) => {
         flock.canvas.pressedButtons.delete(key);
-        flock.gridKeyReleaseObservable.notifyObservers(key);
       });
+      if (primaryKey) {
+        flock.gridKeyReleaseObservable.notifyObservers(primaryKey);
+      }
     });
     return button;
   },

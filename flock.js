@@ -1221,23 +1221,17 @@ export const flock = {
                         { passive: false },
                 );
 
-                const onKeyDown = (event) => {
+                addEventListener(flock.canvas, "keydown", (event) => {
                         flock.canvas.currentKeyPressed = event.key;
                         flock.canvas.pressedKeys.add(event.key);
-                };
+                });
 
-                const onKeyUp = (event) => {
+                addEventListener(flock.canvas, "keyup", (event) => {
                         flock.canvas.pressedKeys.delete(event.key);
-                };
+                });
 
-                addEventListener(flock.document, "keydown", onKeyDown);
-                addEventListener(flock.window ?? window, "keydown", onKeyDown);
-
-                addEventListener(flock.document, "keyup", onKeyUp);
-                addEventListener(flock.window ?? window, "keyup", onKeyUp);
-
-                addEventListener(flock.window ?? window, "blur", () => {
-                        // Clear all pressed keys when window loses focus
+                addEventListener(flock.canvas, "blur", () => {
+                        // Clear all pressed keys when the canvas loses focus
                         flock.canvas.pressedKeys.clear();
                         flock.canvas.pressedButtons.clear();
                 });
