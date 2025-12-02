@@ -208,7 +208,7 @@ export default {
       when_clicked: "när %1 %2",
       on_collision: "vid %1 kollision %2 %3",
       when_key_event: "när tangent %1 %2",
-      when_action_event: "när handling %1 %2",
+      when_action_event: "när %1 %2",
       broadcast_event: "sänd händelse %1",
       on_event: "vid händelse %1",
 
@@ -241,7 +241,7 @@ export default {
 
       // Custom block translations - Sensing blocks
       key_pressed: "tangent nedtryckt är %1",
-      action_pressed: "åtgärd %1",
+      action_pressed: "%1",
       meshes_touching: "%1 vidrör %2",
       time: "tid i s",
       distance_to: "avstånd från %1 till %2",
@@ -789,14 +789,14 @@ export default {
       BOTH_option: "båda",
       ARROWS_option: "pilar",
       ACTIONS_option: "åtgärder",
-      ACTION_FORWARD_option: "framåt (W/Z)",
-      ACTION_BACKWARD_option: "bakåt (S)",
-      ACTION_LEFT_option: "vänster (A/Q)",
-      ACTION_RIGHT_option: "höger (D)",
-      ACTION_BUTTON1_option: "knapp 1 (E ■)",
-      ACTION_BUTTON2_option: "knapp 2 (R ✿)",
-      ACTION_BUTTON3_option: "knapp 3 (F ✱)",
-      ACTION_BUTTON4_option: "knapp 4 (mellanslag ❖)",
+      ACTION_FORWARD_option: "framåt",
+      ACTION_BACKWARD_option: "bakåt",
+      ACTION_LEFT_option: "vänster",
+      ACTION_RIGHT_option: "höger",
+      ACTION_BUTTON1_option: "knapp 1 ①",
+      ACTION_BUTTON2_option: "knapp 2 ②",
+      ACTION_BUTTON3_option: "knapp 3 ③",
+      ACTION_BUTTON4_option: "knapp 4 ④",
 
       pin_0_option: "Stift P0 släppt", // Duplicate key 0
       pin_1_option: "Stift P1 släppt", // Duplicate key 1
