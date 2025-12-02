@@ -698,6 +698,17 @@ function handleMaterialOrColorChange(
 }
 
 function updateGroundFromBlock(mesh, block, changeEvent) {
+  if (
+    block?.isDisposed?.() ||
+    !block?.workspace ||
+    block.workspace.isFlyout ||
+    block.isInFlyout
+  ) {
+    if (flock.meshDebug)
+      console.log("Ignoring ground update for non-workspace block");
+    return;
+  }
+
   const colorInput = block.getInputTargetBlock("COLOR");
 
   if (colorInput && colorInput.type === "material") {
@@ -740,6 +751,13 @@ function updateGroundFromBlock(mesh, block, changeEvent) {
   }
 
   const read = readColourFromInputOrShadow(block, "COLOR");
+
+  if (read.value == null) {
+    if (flock.meshDebug)
+      console.log("No colour available for ground; skipping update");
+    return;
+  }
+
   flock.createGround(read.value, "ground");
 }
 
@@ -1003,6 +1021,17 @@ export function updateMeshFromBlock(mesh, block, changeEvent) {
     console.log("Block ID:", block.id);
     console.log("Change event type:", changeEvent.type);
     console.log("Change event details:", changeEvent);
+  }
+
+  // Tab restores can fire spurious BLOCK_MOVE events for blocks that haven't
+  // actually changed. For ground/map this would recreate the ground mesh even
+  // though nothing changed, so skip move-only events for those block types.
+  if (
+    changeEvent.type === Blockly.Events.BLOCK_MOVE &&
+    ["create_ground", "create_map"].includes(block.type)
+  ) {
+    if (flock.meshDebug) console.log("Skipping ground/map BLOCK_MOVE");
+    return;
   }
 
   if (

@@ -1819,6 +1819,32 @@ export const flock = {
                         console.log("No scene to dispose");
                 }
         },
+        removeDefaultEnvironmentHelper() {
+                // Babylon's EnvironmentHelper (used by createDefaultEnvironment)
+                // creates green ground/skybox meshes named BackgroundPlane and
+                // BackgroundSkybox. These can appear unexpectedly when Babylon
+                // decides to recreate its helper (e.g., while XR initializes or
+                // after a tab has been backgrounded), so proactively dispose any
+                // of its artifacts.
+                //
+                // This ONLY targets the EnvironmentHelper meshes; the Blockly
+                // "ground"/"map" blocks create their own meshes via the Flock
+                // API and are unaffected here.
+                const envHelper = flock.scene?.environmentHelper;
+                if (envHelper) {
+                        envHelper.dispose();
+                        if (flock.scene.environmentHelper === envHelper) {
+                                flock.scene.environmentHelper = null;
+                        }
+                }
+
+                flock.scene?.meshes
+                        ?.filter((mesh) =>
+                                mesh.name === "BackgroundPlane" ||
+                                mesh.name === "BackgroundSkybox",
+                        )
+                        .forEach((mesh) => mesh.dispose());
+        },
         async initializeNewScene() {
                 // Wait a bit more to ensure all disposal operations are complete
                 await new Promise((resolve) => setTimeout(resolve, 200));
@@ -1843,6 +1869,20 @@ export const flock = {
 
                 // Create the new scene
                 flock.scene = new flock.BABYLON.Scene(flock.engine);
+
+                // In some browsers, tab switching can recreate Babylon's
+                // EnvironmentHelper (green ground + skybox). When the
+                // helper respawns, Babylon injects fresh BackgroundPlane and
+                // BackgroundSkybox meshes; the BackgroundPlane is the green
+                // ground you see after returning to the tab. Remove the
+                // helper immediately and again if it ever reappears so the
+                // Blockly-defined ground stays visible.
+                flock.removeDefaultEnvironmentHelper();
+                flock.scene.onNewMeshAddedObservable.add((mesh) => {
+                        if (mesh.name === "BackgroundPlane" || mesh.name === "BackgroundSkybox") {
+                                flock.removeDefaultEnvironmentHelper();
+                        }
+                });
 
                 // Apply and remember the app's default clear colour so it can be
                 // restored if the user removes their sky/background blocks later.
@@ -2014,13 +2054,22 @@ export const flock = {
         async initializeXR(mode) {
                 if (flock.xrHelper) return; // Avoid reinitializing
 
+                const floorMeshes = flock.ground ? [flock.ground] : undefined;
+                const xrOptions = {
+                        disableDefaultEnvironment: true, // keep user-defined ground/sky
+                        ...(floorMeshes ? { floorMeshes } : {}),
+                };
+
                 if (mode === "VR") {
                         flock.xrHelper =
-                                await flock.scene.createDefaultXRExperienceAsync();
+                                await flock.scene.createDefaultXRExperienceAsync(
+                                        xrOptions,
+                                );
                 } else if (mode === "AR") {
                         flock.xrHelper =
                                 await flock.scene.createDefaultXRExperienceAsync(
                                         {
+                                                ...xrOptions,
                                                 uiOptions: {
                                                         sessionMode:
                                                                 "immersive-ar",
@@ -4011,6 +4060,18 @@ export const flock = {
                 URL.revokeObjectURL(url);
         },
 };
+
+if (typeof document !== "undefined") {
+        document.addEventListener("visibilitychange", () => {
+                if (document.visibilityState === "visible") {
+                        // When the browser restores the tab, Babylon may
+                        // rebuild its EnvironmentHelper to "help" the scene,
+                        // which recreates the green BackgroundPlane. Clean it
+                        // up on return so the user-specified ground remains.
+                        flock.removeDefaultEnvironmentHelper?.();
+                }
+        });
+}
 
 export function initializeFlock() {
         const scriptElement = flock.document.getElementById("flock");
