@@ -1122,10 +1122,10 @@
 												"inputs": {
 													"A": {
 														"block": {
-															"type": "key_pressed",
+															"type": "action_pressed",
 															"id": "N97lR+}U#x9EDfY/#fMF",
 															"fields": {
-																"KEY": " "
+																"ACTION": "BUTTON4"
 															}
 														}
 													},
@@ -1241,10 +1241,10 @@
 											"inputs": {
 												"IF0": {
 													"block": {
-														"type": "key_pressed",
+														"type": "action_pressed",
 														"id": ")+*t5,#I4AXnZYp*rPEc",
 														"fields": {
-															"KEY": "w"
+															"ACTION": "FORWARD"
 														}
 													}
 												},
@@ -1302,10 +1302,10 @@
 												},
 												"IF1": {
 													"block": {
-														"type": "key_pressed",
+														"type": "action_pressed",
 														"id": "/4w:#{3VumL]p^7bc^+j",
 														"fields": {
-															"KEY": "s"
+															"ACTION": "BACKWARD"
 														}
 													}
 												},
@@ -1363,10 +1363,10 @@
 												},
 												"IF2": {
 													"block": {
-														"type": "key_pressed",
+														"type": "action_pressed",
 														"id": "L2%.F;w,.O$0Vl,jApKq",
 														"fields": {
-															"KEY": "a"
+															"ACTION": "LEFT"
 														}
 													}
 												},
@@ -1441,10 +1441,10 @@
 												},
 												"IF3": {
 													"block": {
-														"type": "key_pressed",
+														"type": "action_pressed",
 														"id": "87L^-z}]R$h8eG@:~U-X",
 														"fields": {
-															"KEY": "d"
+															"ACTION": "RIGHT"
 														}
 													}
 												},
@@ -1584,19 +1584,19 @@
 																						"inputs": {
 																							"A": {
 																								"block": {
-																									"type": "key_pressed",
+																									"type": "action_pressed",
 																									"id": "}[RcT7vxRW1S@khNtCs=",
 																									"fields": {
-																										"KEY": "w"
+																										"ACTION": "FORWARD"
 																									}
 																								}
 																							},
 																							"B": {
 																								"block": {
-																									"type": "key_pressed",
+																									"type": "action_pressed",
 																									"id": "![l$OhY6LTk`wROoCChT",
 																									"fields": {
-																										"KEY": "s"
+																										"ACTION": "BACKWARD"
 																									}
 																								}
 																							}

@@ -113,10 +113,10 @@
               "inputs": {
                 "IF0": {
                   "block": {
-                    "type": "key_pressed",
+                    "type": "action_pressed",
                     "id": "Dol$+;m|P#x#*es%gWda",
                     "fields": {
-                      "KEY": "w"
+                      "ACTION": "FORWARD"
                     }
                   }
                 },
@@ -157,10 +157,10 @@
                 },
                 "IF1": {
                   "block": {
-                    "type": "key_pressed",
+                    "type": "action_pressed",
                     "id": "Vi{.-XQx(PtSi,~i2{Z`",
                     "fields": {
-                      "KEY": "s"
+                      "ACTION": "BACKWARD"
                     }
                   }
                 },

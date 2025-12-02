@@ -393,10 +393,10 @@
               "inputs": {
                 "IF0": {
                   "block": {
-                    "type": "key_pressed",
+                    "type": "action_pressed",
                     "id": ":J71~R]Rm}Iv%u1-qSPQ",
                     "fields": {
-                      "KEY": "w"
+                      "ACTION": "FORWARD"
                     }
                   }
                 },
@@ -437,10 +437,10 @@
                 },
                 "IF1": {
                   "block": {
-                    "type": "key_pressed",
+                    "type": "action_pressed",
                     "id": "1Q.0}O.+I2c[6`R+3`SO",
                     "fields": {
-                      "KEY": "s"
+                      "ACTION": "BACKWARD"
                     }
                   }
                 },
@@ -481,10 +481,10 @@
                 },
                 "IF2": {
                   "block": {
-                    "type": "key_pressed",
+                    "type": "action_pressed",
                     "id": "^v4Yk)ucvYx,;]!s$W#V",
                     "fields": {
-                      "KEY": "a"
+                      "ACTION": "LEFT"
                     }
                   }
                 },
@@ -530,10 +530,10 @@
                 },
                 "IF3": {
                   "block": {
-                    "type": "key_pressed",
+                    "type": "action_pressed",
                     "id": "kH:u#:wZ3iKS=%y@)k#z",
                     "fields": {
-                      "KEY": "d"
+                      "ACTION": "RIGHT"
                     }
                   }
                 },
