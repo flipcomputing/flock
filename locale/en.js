@@ -195,7 +195,7 @@ export default {
   get_lexical_variable: "%1",
 
   // Custom block translations - Effects blocks
-  light_intensity_and_color: "light intensity %1 main %2 ground %3",
+  main_light: "light intensity: %1 color: %2 ground: %3",
   set_fog: "set fog color %1 mode %2 density %3\nstart %4 end %5",
   get_light: "get light as %1",
   
@@ -385,7 +385,7 @@ export default {
   get_lexical_variable_tooltip: "Get the value of a lexical variable",
   
   // Tooltip translations - Effects blocks
-  light_intensity_and_color_tooltip: "Set the intensity and diffuse and ground colors of the main light.\nKeyword: light intensity",
+  main_light_tooltip: "Set the intensity and diffuse and ground colors of the main light.\nKeyword: light intensity",
   set_fog_tooltip: "Configure the scene's fog. Use start and end to set the near and far distances.\nKeyword: fog",
   get_light_tooltip: "Get the current scene's main light.\nKeyword: light",
 

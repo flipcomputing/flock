@@ -202,7 +202,7 @@ export default {
   get_lexical_variable: "%1",
 
   // Custom block translations - Effects blocks
-  light_intensity_and_color: "imposta intensità luce a %1 %2 %3",
+  main_light: "intensità luce: %1 colore: %2 suolo: %3",
   set_fog: "imposta nebbia colore %1 modalità %2 densità %3\ninizio %4 fine %5",
   get_light: "ottieni luce come %1",
 
@@ -443,7 +443,7 @@ export default {
   get_lexical_variable_tooltip: "Ottieni il valore di una variabile lessicale",
 
   // Tooltip translations - Effects blocks
-  light_intensity_and_color_tooltip:
+  main_light_tooltip:
     "Imposta l’intensità della luce principale.\nParola chiave: intensità luce",
   set_fog_tooltip: "Configura la nebbia della scena. Usa inizio e fine per impostare le distanze vicina e lontana.\nParola chiave: fog",
   get_light_tooltip: "Ottieni la luce principale della scena corrente.\nParola chiave: light",
