@@ -316,15 +316,10 @@ export const flockUI = {
     flock.scene.UITexture.addControl(slider);
     return slider;
   },
-  createSmallButton(text, keys, color) {
+  createSmallButton(text, key, color) {
     if (!flock.controlsTexture) return;
 
-    const keyList = Array.isArray(keys) ? keys : [keys];
-
-    const button = flock.GUI.Button.CreateSimpleButton(
-      `but_${keyList.join("_")}`,
-      text,
-    );
+    const button = flock.GUI.Button.CreateSimpleButton("but", text);
     button.width = `${70 * flock.displayScale}px`; // Scale size
     button.height = `${70 * flock.displayScale}px`;
     button.color = color;
@@ -333,17 +328,13 @@ export const flockUI = {
 
     button.fontFamily = fontFamily;
     button.onPointerDownObservable.add(() => {
-      keyList.forEach((key) => {
-        flock.canvas.pressedButtons.add(key);
-        flock.gridKeyPressObservable.notifyObservers(key);
-      });
+      flock.canvas.pressedButtons.add(key);
+      flock.gridKeyPressObservable.notifyObservers(key);
     });
 
     button.onPointerUpObservable.add(() => {
-      keyList.forEach((key) => {
-        flock.canvas.pressedButtons.delete(key);
-        flock.gridKeyReleaseObservable.notifyObservers(key);
-      });
+      flock.canvas.pressedButtons.delete(key);
+      flock.gridKeyReleaseObservable.notifyObservers(key);
     });
     return button;
   },
@@ -389,10 +380,10 @@ export const flockUI = {
     flock.controlsTexture.addControl(rightGrid);
 
     // Create buttons for the right grid
-    const button1 = flock.createSmallButton("①", ["e", "1"], color);
-    const button2 = flock.createSmallButton("②", ["r", "2"], color);
-    const button3 = flock.createSmallButton("③", ["f", "3"], color);
-    const button4 = flock.createSmallButton("④", [" ", "SPACE", "4"], color);
+    const button1 = flock.createSmallButton("①", "e", color);
+    const button2 = flock.createSmallButton("②", "r", color);
+    const button3 = flock.createSmallButton("③", "f", color);
+    const button4 = flock.createSmallButton("④", " ", color);
 
     // Add buttons to the right grid in a 2x2 layout
     rightGrid.addControl(button1, 0, 0); // Row 0, Column 0
