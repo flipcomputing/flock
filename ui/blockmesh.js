@@ -1103,6 +1103,11 @@ export function updateMeshFromBlock(mesh, block, changeEvent) {
       block.type === "create_ground" ||
       block.type === "create_map"
     ) {
+      if (changeEvent.type === Blockly.Events.BLOCK_MOVE) {
+        if (flock.meshDebug)
+          console.log("Ignoring BLOCK_MOVE for scene block with no input change");
+        return;
+      }
       changed = "COLOR";
     } else {
       if (flock.meshDebug)
