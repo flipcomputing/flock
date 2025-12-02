@@ -1173,17 +1173,23 @@ export const flock = {
 
                 flock.canvasEventListeners = [];
 
-                const addCanvasListener = (event, handler, options) => {
-                        flock.canvas.addEventListener(event, handler, options);
+                const addEventListener = (
+                        target,
+                        event,
+                        handler,
+                        options,
+                ) => {
+                        target.addEventListener(event, handler, options);
                         flock.canvasEventListeners.push({
-                                target: flock.canvas,
+                                target,
                                 event,
                                 handler,
                                 options,
                         });
                 };
 
-                addCanvasListener(
+                addEventListener(
+                        flock.canvas,
                         "touchend",
                         (event) => {
                                 if (event.touches.length === 0) {
@@ -1215,16 +1221,16 @@ export const flock = {
                         { passive: false },
                 );
 
-                addCanvasListener("keydown", function (event) {
+                addEventListener(flock.document, "keydown", (event) => {
                         flock.canvas.currentKeyPressed = event.key;
                         flock.canvas.pressedKeys.add(event.key);
                 });
 
-                addCanvasListener("keyup", function (event) {
+                addEventListener(flock.document, "keyup", (event) => {
                         flock.canvas.pressedKeys.delete(event.key);
                 });
 
-                addCanvasListener("blur", () => {
+                addEventListener(flock.window ?? window, "blur", () => {
                         // Clear all pressed keys when window loses focus
                         flock.canvas.pressedKeys.clear();
                         flock.canvas.pressedButtons.clear();
@@ -3456,10 +3462,10 @@ export const flock = {
         },
         actionPressed(action) {
                 const actionMap = {
-                        FORWARD: ["W", "Z"],
-                        BACKWARD: ["S"],
-                        LEFT: ["A", "Q"],
-                        RIGHT: ["D"],
+                        FORWARD: ["W", "Z", "ArrowUp"],
+                        BACKWARD: ["S", "ArrowDown"],
+                        LEFT: ["A", "Q", "ArrowLeft"],
+                        RIGHT: ["D", "ArrowRight"],
                         BUTTON1: ["E", "1"],
                         BUTTON2: ["R", "2"],
                         BUTTON3: ["F", "3"],
