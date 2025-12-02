@@ -36,7 +36,7 @@ function createSceneColorBlock(config) {
                                 type: "input_value",
                                 name: config.inputName || "COLOR",
                                 colour: config.inputColor,
-                                check: ["Colour", "Array", "Material"],
+                                check: config.check || ["Colour", "Array", "Material"],
                         });
 
                         this.jsonInit({
@@ -121,6 +121,7 @@ export function defineSceneBlocks() {
         Blockly.Blocks["set_background_color"] = createSceneColorBlock({
                 type: "set_background_color",
                 inputColor: "#6495ED",
+                check: ["Colour"],
         });
 
         Blockly.Blocks["create_map"] = {
