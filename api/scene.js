@@ -66,6 +66,10 @@ export const flockScene = {
         const layer = new flock.BABYLON.Layer("backgroundGradientLayer", null, flock.scene, true);
         layer.texture = dt;
         layer.isBackground = true;
+        
+        // Ensure the layer is completely unlit and unaffected by scene lighting
+        layer.alphaBlendingMode = flock.BABYLON.Constants.ALPHA_DISABLE;
+        dt.hasAlpha = false;
         dt.wrapU = flock.BABYLON.Texture.CLAMP_ADDRESSMODE;
         dt.wrapV = flock.BABYLON.Texture.CLAMP_ADDRESSMODE;
 
