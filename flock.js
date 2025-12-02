@@ -3421,6 +3421,8 @@ export const flock = {
                                 pressedKeys.has(key.toLowerCase()) ||
                                 pressedKeys.has(key.toUpperCase()) ||
                                 pressedButtons.has(key) ||
+                                pressedButtons.has(key.toLowerCase()) ||
+                                pressedButtons.has(key.toUpperCase()) ||
                                 vrPressed ||
                                 gamepadPressed
                         );

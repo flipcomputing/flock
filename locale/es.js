@@ -632,10 +632,10 @@ export default {
   FLAT_option: "Plano", // Duplicate key NONE
 
   ANY_option: "cualquiera",
-  space_infinity_option: "espacio ④", // Duplicate key space
-  q_icon_option: "Q ①", // Duplicate key q
-  e_icon_option: "E ②", // Duplicate key e
-  f_icon_option: "F ③", // Duplicate key f
+  space_infinity_option: "espacio", // Duplicate key space
+  q_icon_option: "Q", // Duplicate key q
+  e_icon_option: "E", // Duplicate key e
+  f_icon_option: "F", // Duplicate key f
 
   x_coordinate_option: "x",
   y_coordinate_option: "y",
@@ -670,10 +670,10 @@ export default {
   ACTION_BACKWARD_option: "atrás",
   ACTION_LEFT_option: "izquierda",
   ACTION_RIGHT_option: "derecha",
-  ACTION_BUTTON1_option: "botón 1 ①",
-  ACTION_BUTTON2_option: "botón 2 ②",
-  ACTION_BUTTON3_option: "botón 3 ③",
-  ACTION_BUTTON4_option: "botón 4 ④",
+  ACTION_BUTTON1_option: "botón 1",
+  ACTION_BUTTON2_option: "botón 2",
+  ACTION_BUTTON3_option: "botón 3",
+  ACTION_BUTTON4_option: "botón 4",
 
   pin_0_option: "Pin P0 liberado", // Duplicate key 0
   pin_1_option: "Pin P1 liberado", // Duplicate key 1

@@ -354,9 +354,7 @@ export default {
   ArrowRight_option: "⯈",
   ArrowDown_option: "⯆",
 
-  e_icon_option: "E ②",
-  f_icon_option: "F ③",
-  q_icon_option: "Q ①",
+  q_icon_option: "Q",
 
   x_coordinate_option: "x",
   y_coordinate_option: "y",
@@ -394,7 +392,10 @@ export default {
   MAX_Z_option: "max z",
 
   space_option: " ",
-  space_infinity_option: "Leertaste ④",
+  e_icon_option: "E",
+  f_icon_option: "F",
+
+  space_infinity_option: "Leertaste",
 
   pin_0_option: "Pin P0 losgelassen",
   pin_1_option: "Pin P1 losgelassen",
@@ -704,10 +705,10 @@ export default {
   ACTION_BACKWARD_option: "rückwärts",
   ACTION_LEFT_option: "links",
   ACTION_RIGHT_option: "rechts",
-  ACTION_BUTTON1_option: "Taste 1 ①",
-  ACTION_BUTTON2_option: "Taste 2 ②",
-  ACTION_BUTTON3_option: "Taste 3 ③",
-  ACTION_BUTTON4_option: "Taste 4 ④",
+  ACTION_BUTTON1_option: "Taste 1",
+  ACTION_BUTTON2_option: "Taste 2",
+  ACTION_BUTTON3_option: "Taste 3",
+  ACTION_BUTTON4_option: "Taste 4",
 
   ONCE_option: "einmal",
   LOOP_option: "schleife",
