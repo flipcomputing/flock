@@ -1341,6 +1341,8 @@ export const flock = {
                         return Boolean(button.pressed || button.value > 0.5);
                 };
 
+                const trackedGamepadKeys = new Set();
+
                 flock._gamepadButtonObserver =
                         flock.scene.onBeforeRenderObservable.add(() => {
                                 if (!navigator.getGamepads) {
@@ -1348,7 +1350,7 @@ export const flock = {
                                 }
 
                                 const pressedButtons = flock.canvas.pressedButtons;
-                                const nextPressed = new Set();
+                                const nextGamepadKeys = new Set();
 
                                 const gamepads = navigator.getGamepads() || [];
                                 const gamepad = gamepads.find((pad) => pad);
@@ -1367,22 +1369,32 @@ export const flock = {
 
                                                         if (isPressed) {
                                                                 keys.forEach((k) =>
-                                                                        nextPressed.add(k),
+                                                                        nextGamepadKeys.add(
+                                                                                k,
+                                                                        ),
                                                                 );
                                                         }
                                                 },
                                         );
                                 }
 
-                                // Sync the tracked set with current state
-                                pressedButtons.forEach((key) => {
-                                        if (!nextPressed.has(key)) {
+                                // Remove only the keys that previously came from
+                                // the gamepad but are no longer active.
+                                trackedGamepadKeys.forEach((key) => {
+                                        if (!nextGamepadKeys.has(key)) {
                                                 pressedButtons.delete(key);
                                         }
                                 });
 
-                                nextPressed.forEach((key) =>
+                                // Add the currently active gamepad keys without
+                                // disturbing other input sources (e.g. touch).
+                                nextGamepadKeys.forEach((key) =>
                                         pressedButtons.add(key),
+                                );
+
+                                trackedGamepadKeys.clear();
+                                nextGamepadKeys.forEach((key) =>
+                                        trackedGamepadKeys.add(key),
                                 );
                         });
         },
