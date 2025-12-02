@@ -366,8 +366,8 @@ export function defineEventsBlocks() {
                                                 type: "field_dropdown",
                                                 name: "EVENT",
                                                 options: [
-                                                        getDropdownOption("starts"),
-                                                        getDropdownOption("ends"),
+                                                        getDropdownOption("pressed"),
+                                                        getDropdownOption("released"),
                                                 ],
                                         },
                                 ],
@@ -442,8 +442,8 @@ export function defineEventsBlocks() {
                                                 type: "field_dropdown",
                                                 name: "EVENT",
                                                 options: [
-                                                        getDropdownOption("starts"),
-                                                        getDropdownOption("ends"),
+                                                        getDropdownOption("pressed"),
+                                                        getDropdownOption("released"),
                                                 ],
                                         },
                                 ],

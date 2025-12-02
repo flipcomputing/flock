@@ -512,8 +512,8 @@ export default {
   forever_tooltip: "Führe Blöcke in jedem Frame oder nach Iteration aus.\nSchlüsselwort: forever",
   when_clicked_tooltip: "Führe Blöcke aus, wenn ein Objekt geklickt wird.\nSchlüsselwort: click",
   on_collision_tooltip: "Führe Blöcke aus bei Kollision oder Ende der Kollision.\nSchlüsselwort: collide",
-  when_key_event_tooltip: "Führe Blöcke aus, wenn die Taste beginnt oder endet (Drücken oder Loslassen).",
-  when_action_event_tooltip: "Führe Blöcke aus, wenn die gewählte Aktion beginnt oder endet (Tastatur, Touch oder XR).",
+  when_key_event_tooltip: "Führe Blöcke aus, wenn die Taste gedrückt oder losgelassen wird.",
+  when_action_event_tooltip: "Führe Blöcke aus, wenn die gewählte Aktion gedrückt oder losgelassen wird (Tastatur, Touch oder XR).",
   broadcast_event_tooltip: "Sende Ereignis, das von on_event empfangen wird.\nSchlüsselwort: broadcast",
   on_event_tooltip: "Führe Code aus, wenn Broadcast‑Ereignis empfangen wird.\nSchlüsselwort: on",
 

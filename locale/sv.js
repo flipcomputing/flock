@@ -450,9 +450,9 @@ export default {
       on_collision_tooltip:
             "Kör blocken när ett mesh-objekt kolliderar med eller slutar kollidera med ett annat.\nKeyword: collide",
       when_key_event_tooltip:
-            "Kör blocken när den angivna tangenten startar eller avslutas (trycks ned eller släpps).",
+            "Kör blocken när den angivna tangenten trycks ned eller släpps.",
       when_action_event_tooltip:
-            "Kör blocken när den valda handlingen startar eller avslutas via tangentbord, touch eller XR.",
+            "Kör blocken när den valda handlingen trycks ned eller släpps via tangentbord, touch eller XR.",
       broadcast_event_tooltip:
             "Sänd ett event som tas emot av on event.\nKeyword: broadcast",
       on_event_tooltip:
