@@ -26,7 +26,8 @@ export const flockScene = {
     }
 
     // --- BACKGROUND ONLY (flat clear color) ---
-    if (clear === true) {
+    // For arrays, still create a gradient sky dome even in "clear" mode
+    if (clear === true && !(Array.isArray(color) && color.length >= 2)) {
       const c3 = flock.BABYLON.Color3.FromHexString(flock.getColorFromString(color));
       flock.scene.clearColor = c3;
       return;
