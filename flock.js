@@ -3619,10 +3619,10 @@ export const flock = {
                         BACKWARD: ["s"],
                         LEFT: ["a", "q"],
                         RIGHT: ["d"],
-                        BUTTON1: ["e"],
-                        BUTTON2: ["r"],
-                        BUTTON3: ["f"],
-                        BUTTON4: [" "],
+                        BUTTON1: ["e", "1"],
+                        BUTTON2: ["r", "2"],
+                        BUTTON3: ["f", "3"],
+                        BUTTON4: [" ", "4"],
                 };
 
                 const actionKeys = actionMap[action];

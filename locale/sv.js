@@ -793,10 +793,10 @@ export default {
       ACTION_BACKWARD_option: "bakåt",
       ACTION_LEFT_option: "vänster",
       ACTION_RIGHT_option: "höger",
-      ACTION_BUTTON1_option: "knapp 1 ①",
-      ACTION_BUTTON2_option: "knapp 2 ②",
-      ACTION_BUTTON3_option: "knapp 3 ③",
-      ACTION_BUTTON4_option: "knapp 4 ④",
+      ACTION_BUTTON1_option: "knapp 1",
+      ACTION_BUTTON2_option: "knapp 2",
+      ACTION_BUTTON3_option: "knapp 3",
+      ACTION_BUTTON4_option: "knapp 4",
 
       pin_0_option: "Stift P0 släppt", // Duplicate key 0
       pin_1_option: "Stift P1 släppt", // Duplicate key 1

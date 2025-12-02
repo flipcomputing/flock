@@ -681,10 +681,10 @@ export default {
   ACTION_BACKWARD_option: "backward",
   ACTION_LEFT_option: "left",
   ACTION_RIGHT_option: "right",
-  ACTION_BUTTON1_option: "button 1 ①",
-  ACTION_BUTTON2_option: "button 2 ②",
-  ACTION_BUTTON3_option: "button 3 ③",
-  ACTION_BUTTON4_option: "button 4 ④",
+  ACTION_BUTTON1_option: "button 1",
+  ACTION_BUTTON2_option: "button 2",
+  ACTION_BUTTON3_option: "button 3",
+  ACTION_BUTTON4_option: "button 4",
 
   pin_0_option: "Pin P0 released", // Duplicate key 0
   pin_1_option: "Pin P1 released", // Duplicate key 1

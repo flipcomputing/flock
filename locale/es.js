@@ -670,10 +670,10 @@ export default {
   ACTION_BACKWARD_option: "atrás",
   ACTION_LEFT_option: "izquierda",
   ACTION_RIGHT_option: "derecha",
-  ACTION_BUTTON1_option: "botón 1 ①",
-  ACTION_BUTTON2_option: "botón 2 ②",
-  ACTION_BUTTON3_option: "botón 3 ③",
-  ACTION_BUTTON4_option: "botón 4 ④",
+  ACTION_BUTTON1_option: "botón 1",
+  ACTION_BUTTON2_option: "botón 2",
+  ACTION_BUTTON3_option: "botón 3",
+  ACTION_BUTTON4_option: "botón 4",
 
   pin_0_option: "Pin P0 liberado", // Duplicate key 0
   pin_1_option: "Pin P1 liberado", // Duplicate key 1
