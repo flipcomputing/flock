@@ -316,8 +316,10 @@ export const flockUI = {
     flock.scene.UITexture.addControl(slider);
     return slider;
   },
-  createSmallButton(text, key, color) {
+  createSmallButton(text, keys, color) {
     if (!flock.controlsTexture) return;
+
+    const keyList = Array.isArray(keys) ? keys : [keys];
 
     const button = flock.GUI.Button.CreateSimpleButton("but", text);
     button.width = `${70 * flock.displayScale}px`; // Scale size
@@ -328,13 +330,17 @@ export const flockUI = {
 
     button.fontFamily = fontFamily;
     button.onPointerDownObservable.add(() => {
-      flock.canvas.pressedButtons.add(key);
-      flock.gridKeyPressObservable.notifyObservers(key);
+      keyList.forEach((key) => {
+        flock.canvas.pressedButtons.add(key);
+        flock.gridKeyPressObservable.notifyObservers(key);
+      });
     });
 
     button.onPointerUpObservable.add(() => {
-      flock.canvas.pressedButtons.delete(key);
-      flock.gridKeyReleaseObservable.notifyObservers(key);
+      keyList.forEach((key) => {
+        flock.canvas.pressedButtons.delete(key);
+        flock.gridKeyReleaseObservable.notifyObservers(key);
+      });
     });
     return button;
   },
@@ -354,10 +360,10 @@ export const flockUI = {
     grid.addColumnDefinition(1);
     grid.addColumnDefinition(1);
     flock.controlsTexture.addControl(grid);
-    const upButton = flock.createSmallButton("△", "w", color);
-    const downButton = flock.createSmallButton("▽", "s", color);
-    const leftButton = flock.createSmallButton("◁", "a", color);
-    const rightButton = flock.createSmallButton("▷", "d", color);
+    const upButton = flock.createSmallButton("△", ["w", "ArrowUp"], color);
+    const downButton = flock.createSmallButton("▽", ["s", "ArrowDown"], color);
+    const leftButton = flock.createSmallButton("◁", ["a", "ArrowLeft"], color);
+    const rightButton = flock.createSmallButton("▷", ["d", "ArrowRight"], color);
     // Add buttons to the grid
     grid.addControl(upButton, 0, 1); // Add to row 0, column 1
     grid.addControl(leftButton, 1, 0); // Add to row 1, column 0
