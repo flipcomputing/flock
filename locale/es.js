@@ -189,7 +189,7 @@ export default {
   get_lexical_variable: "%1",
 
   // Custom block translations - Effects blocks
-  main_light: "establecer intensidad de luz a %1 %2 %3",
+  main_light: "intensidad de luz: %1 color: %2 suelo: %3",
   set_fog: "establecer niebla color %1 modo %2 densidad %3\ninicio %4 fin %5",
   get_light: "obtener luz como %1",
 

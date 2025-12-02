@@ -197,7 +197,7 @@ export default {
   get_lexical_variable: "%1",
 
   // Custom block translations - Effects blocks
-  main_light: "definir intensidade da luz para %1 %2 %3",
+  main_light: "intensidade de luz: %1 cor: %2 chão: %3",
   set_fog: "definir cor da névoa %1 modo %2 densidade %3\ninício %4 fim %5",
   get_light: "obter luz como %1",
 

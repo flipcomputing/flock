@@ -198,7 +198,7 @@ export default {
       get_lexical_variable: "%1",
 
       // Custom block translations - Effects blocks
-      main_light: "ställ in ljusintensitet till %1 %2 %3",
+      main_light: "ljusintensitet: %1 färg: %2 mark: %3",
       set_fog: "ställ in dimma färg %1 läge %2 densitet %3\nstart %4 slut %5",
       get_light: "hämta ljus som %1",
 

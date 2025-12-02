@@ -189,7 +189,7 @@ export default {
                                       get_lexical_variable: "%1",
 
                                       // Custom block translations - Effects blocks
-                                      main_light: "régler l'intensité de la lumière à %1 %2 %3",
+                                      main_light: "intensité lumineuse : %1 couleur : %2 sol : %3",
                                       set_fog: "définir la couleur du brouillard %1 mode %2 densité %3\ndébut %4 fin %5",
                                       get_light: "obtenir la lumière comme %1",
 
