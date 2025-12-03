@@ -665,3 +665,57 @@ body[data-theme="dark"] .blocklyTreeLabel {
   position: absolute !important;
   z-index: 21;
 }
+
+/* Custom Comment Icon Styles (block comment icon only) */
+.blocklyCommentIconPath {
+  fill: #fffcc7;
+  stroke: #555;
+  stroke-width: 30;
+}
+
+/* Block comment bubble border - targets only block comments, not workspace comments */
+.blocklyBubble.blocklyTextInputBubble .blocklyEmboss .blocklyBubbleTail,
+.blocklyBubble.blocklyTextInputBubble .blocklyEmboss rect.blocklyDraggable {
+  fill: #c9b85a !important;
+  stroke: #a89940 !important;
+  stroke-width: 2px !important;
+}
+
+/* NEEDS UPDATING PER THEME: dark theme comment icon color */
+[data-theme="dark"] .blocklyCommentIconPath {
+  fill: #ffff00;
+  stroke: #555;
+}
+
+[data-theme="dark"] .blocklyBubble.blocklyTextInputBubble .blocklyEmboss .blocklyBubbleTail,
+[data-theme="dark"] .blocklyBubble.blocklyTextInputBubble .blocklyEmboss rect.blocklyDraggable {
+  fill: #c9b85a !important;
+  stroke: #a89940 !important;
+  stroke-width: 2px !important;
+}
+
+/* NEEDS UPDATING PER THEME: dark-contrast theme comment icon color */
+[data-theme="dark-contrast"] .blocklyCommentIconPath {
+  fill: #ffff00;
+  stroke: #333;
+}
+
+[data-theme="dark-contrast"] .blocklyBubble.blocklyTextInputBubble .blocklyEmboss .blocklyBubbleTail,
+[data-theme="dark-contrast"] .blocklyBubble.blocklyTextInputBubble .blocklyEmboss rect.blocklyDraggable {
+  fill: #c9b85a !important;
+  stroke: #a89940 !important;
+  stroke-width: 2px !important;
+}
+
+/* NEEDS UPDATING PER THEME: contrast theme comment icon color */
+[data-theme="contrast"] .blocklyCommentIconPath {
+  fill: #ffff00;
+  stroke: #333;
+}
+
+[data-theme="contrast"] .blocklyBubble.blocklyTextInputBubble .blocklyEmboss .blocklyBubbleTail,
+[data-theme="contrast"] .blocklyBubble.blocklyTextInputBubble .blocklyEmboss rect.blocklyDraggable {
+  fill: #c9b85a !important;
+  stroke: #a89940 !important;
+  stroke-width: 2px !important;
+}

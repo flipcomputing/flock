@@ -36,6 +36,7 @@ import { defineColourBlocks } from "../blocks/colour.js";
 import { defineSensingBlocks } from "../blocks/sensing.js";
 import { defineTextBlocks } from "../blocks/text.js";
 import { defineGenerators } from "../generators/generators.js";
+import { registerCustomCommentIcon } from "./customCommentIcon.js";
 
 let workspace = null;
 export { workspace };
@@ -202,6 +203,8 @@ export function createBlocklyWorkspace() {
                 "custom_zelos_renderer",
                 CustomZelosRenderer,
         );
+
+        registerCustomCommentIcon();
 
         KeyboardNavigation.registerKeyboardNavigationStyles();
 
