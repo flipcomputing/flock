@@ -113,6 +113,31 @@ export default {
               },
             },
           },
+          {
+            urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*$/i,
+            handler: 'StaleWhileRevalidate',
+            options: {
+              cacheName: 'google-fonts-stylesheets',
+              expiration: {
+                maxEntries: 20,
+                maxAgeSeconds: 365 * 24 * 60 * 60,
+              },
+            },
+          },
+          {
+            urlPattern: /^https:\/\/fonts\.gstatic\.com\/.*$/i,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'google-fonts-webfonts',
+              cacheableResponse: {
+                statuses: [0, 200],
+              },
+              expiration: {
+                maxEntries: 50,
+                maxAgeSeconds: 365 * 24 * 60 * 60,
+              },
+            },
+          },
           // Optional: keep your fine-grained caches
           {
             urlPattern: /\/models\/.*/,

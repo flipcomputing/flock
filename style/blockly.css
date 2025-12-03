@@ -406,48 +406,93 @@ color: var(--color-menu-item-text) !important;
 }
 
 body .blocklyHtmlInput {
-   font-family:  "Atkinson Hyperlegible Next", "Asap", Helvetica, Arial, Lucida, sans-serif !important;
+   font-family: var(
+     --font-family-base,
+     "Atkinson Hyperlegible Next", "Asap", "Noto Color Emoji",
+     "Apple Color Emoji", "Segoe UI Emoji", "EmojiOne Color",
+     "Twemoji Mozilla", Helvetica, Arial, Lucida, sans-serif
+   ) !important;
 }
 
 body .blocklyText {
   font-weight: 500 !important;
-  font-family:  "Atkinson Hyperlegible Next", "Asap", Helvetica, Arial, Lucida, sans-serif !important;
+  font-family: var(
+    --font-family-base,
+    "Atkinson Hyperlegible Next", "Asap", "Noto Color Emoji",
+    "Apple Color Emoji", "Segoe UI Emoji", "EmojiOne Color",
+    "Twemoji Mozilla", Helvetica, Arial, Lucida, sans-serif
+  ) !important;
 }
 
 body .blocklyTreeLabel {
   font-weight: 500 !important;
-  font-family:  "Atkinson Hyperlegible Next", "Asap", Helvetica, Arial, Lucida, sans-serif !important;
+  font-family: var(
+    --font-family-base,
+    "Atkinson Hyperlegible Next", "Asap", "Noto Color Emoji",
+    "Apple Color Emoji", "Segoe UI Emoji", "EmojiOne Color",
+    "Twemoji Mozilla", Helvetica, Arial, Lucida, sans-serif
+  ) !important;
 }
 
 body[data-theme="contrast"] .blocklyText {
    font-weight: 600 !important;
-  font-family:  "Atkinson Hyperlegible Next", "Asap", Helvetica, Arial, Lucida, sans-serif !important;
+  font-family: var(
+    --font-family-base,
+    "Atkinson Hyperlegible Next", "Asap", "Noto Color Emoji",
+    "Apple Color Emoji", "Segoe UI Emoji", "EmojiOne Color",
+    "Twemoji Mozilla", Helvetica, Arial, Lucida, sans-serif
+  ) !important;
 
 }
 
 body[data-theme="dark-contrast"] .blocklyText {
   font-weight: 600 !important;
-  font-family:  "Atkinson Hyperlegible Next", "Asap", Helvetica, Arial, Lucida, sans-serif !important;
+  font-family: var(
+    --font-family-base,
+    "Atkinson Hyperlegible Next", "Asap", "Noto Color Emoji",
+    "Apple Color Emoji", "Segoe UI Emoji", "EmojiOne Color",
+    "Twemoji Mozilla", Helvetica, Arial, Lucida, sans-serif
+  ) !important;
 
 }
 
 body[data-theme="dark-contrast"] .blocklyTreeLabel {
   font-weight: 500 !important;
-  font-family:  "Atkinson Hyperlegible Next", "Asap", Helvetica, Arial, Lucida, sans-serif !important;
+  font-family: var(
+    --font-family-base,
+    "Atkinson Hyperlegible Next", "Asap", "Noto Color Emoji",
+    "Apple Color Emoji", "Segoe UI Emoji", "EmojiOne Color",
+    "Twemoji Mozilla", Helvetica, Arial, Lucida, sans-serif
+  ) !important;
 }
 
 body[data-theme="contrast"] .blocklyTreeLabel {
   font-weight: 500 !important;
-  font-family:  "Atkinson Hyperlegible Next", "Asap", Helvetica, Arial, Lucida, sans-serif !important;
+  font-family: var(
+    --font-family-base,
+    "Atkinson Hyperlegible Next", "Asap", "Noto Color Emoji",
+    "Apple Color Emoji", "Segoe UI Emoji", "EmojiOne Color",
+    "Twemoji Mozilla", Helvetica, Arial, Lucida, sans-serif
+  ) !important;
 }
 
 body[data-theme="dark"] .blocklyText {
   font-weight: 500 !important;
-  font-family:  "Atkinson Hyperlegible Next", "Asap", Helvetica, Arial, Lucida, sans-serif !important;
+  font-family: var(
+    --font-family-base,
+    "Atkinson Hyperlegible Next", "Asap", "Noto Color Emoji",
+    "Apple Color Emoji", "Segoe UI Emoji", "EmojiOne Color",
+    "Twemoji Mozilla", Helvetica, Arial, Lucida, sans-serif
+  ) !important;
 }
 
 body[data-theme="dark"] .blocklyTreeLabel {
-   font-family:  "Atkinson Hyperlegible Next", "Asap", Helvetica, Arial, Lucida, sans-serif !important;
+   font-family: var(
+     --font-family-base,
+     "Atkinson Hyperlegible Next", "Asap", "Noto Color Emoji",
+     "Apple Color Emoji", "Segoe UI Emoji", "EmojiOne Color",
+     "Twemoji Mozilla", Helvetica, Arial, Lucida, sans-serif
+   ) !important;
 }
 
 .blocklyFlyoutBackground {

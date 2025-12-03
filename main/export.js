@@ -294,14 +294,22 @@ async function generateSVG(block) {
 		"style",
 	);
 	style.textContent = `
-	@font-face {
-	  font-family: "Atkinson Hyperlegible Next";
-	  src: url('data:font/woff2;base64,${fontBase64}') format('woff2');
-	}
-	.blocklyText {
-	  font-family: "Atkinson Hyperlegible Next", sans-serif;
-	  font-weight: 500;
-	}
+        @font-face {
+          font-family: "Atkinson Hyperlegible Next";
+          src: url('data:font/woff2;base64,${fontBase64}') format('woff2');
+        }
+        @font-face {
+          font-family: "Noto Color Emoji";
+          src: url('https://fonts.gstatic.com/s/notoemoji/latest/NotoColorEmoji-Regular.woff2')
+            format('woff2');
+          font-weight: 400;
+          font-display: swap;
+        }
+        .blocklyText {
+          font-family: "Atkinson Hyperlegible Next", "Noto Color Emoji",
+            "Apple Color Emoji", "Segoe UI Emoji", sans-serif;
+          font-weight: 500;
+        }
 	.blocklyEditableText rect.blocklyFieldRect:not(.blocklyDropdownRect) {
 	  fill: #ffffff !important; 
 	}

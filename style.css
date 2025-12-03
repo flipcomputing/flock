@@ -1,6 +1,15 @@
 @import url("./style/blockly.css");
 @import url("./ui/colourpicker.css");
 
+@font-face {
+  font-family: "Noto Color Emoji";
+  src: url("https://fonts.gstatic.com/s/notoemoji/latest/NotoColorEmoji-Regular.woff2")
+    format("woff2");
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+}
+
 :root {
   /* Primary Brand Colors */
   --color-primary: #511D91;
@@ -47,6 +56,10 @@
   --color-menu-item: #511D91;
   --color-menu:  #f9f9f9;
   --color-button-bg:  #f0f0f0;
+
+  --font-family-base: "Atkinson Hyperlegible Next", "Asap",
+    "Noto Color Emoji", "Apple Color Emoji", "Segoe UI Emoji",
+    "EmojiOne Color", "Twemoji Mozilla", Helvetica, Arial, Lucida, sans-serif;
 
   /* Shadow Colors */
   --color-shadow: rgba(0, 0, 0, 0.1);
@@ -308,7 +321,12 @@
   font-size: 18px;
   font-weight: 500;
   margin: 0;
-  font-family:  "Atkinson Hyperlegible Next", "Asap", Helvetica, Arial, Lucida, sans-serif;
+  font-family: var(
+    --font-family-base,
+    "Atkinson Hyperlegible Next", "Asap", "Noto Color Emoji",
+    "Apple Color Emoji", "Segoe UI Emoji", "EmojiOne Color",
+    "Twemoji Mozilla", Helvetica, Arial, Lucida, sans-serif
+  );
   order: 4;
 }
 
@@ -364,7 +382,12 @@ body {
   display: flex;
   gap: 0;
   box-sizing: border-box;
-  font-family:  "Atkinson Hyperlegible Next", "Asap", Helvetica, Arial, Lucida, sans-serif !important;
+  font-family: var(
+    --font-family-base,
+    "Atkinson Hyperlegible Next", "Asap", "Noto Color Emoji",
+    "Apple Color Emoji", "Segoe UI Emoji", "EmojiOne Color",
+    "Twemoji Mozilla", Helvetica, Arial, Lucida, sans-serif
+  ) !important;
   background: var(--color-bg);
   color: var(--color-text-primary);
 }
@@ -480,7 +503,12 @@ button {
 
 /* Gizmo Buttons */
 .gizmo-buttons {
-  font-family: "Atkinson Hyperlegible Next", "Asap", Helvetica, Arial, Lucida, sans-serif;
+  font-family: var(
+    --font-family-base,
+    "Atkinson Hyperlegible Next", "Asap", "Noto Color Emoji",
+    "Apple Color Emoji", "Segoe UI Emoji", "EmojiOne Color",
+    "Twemoji Mozilla", Helvetica, Arial, Lucida, sans-serif
+  );
   display: flex;
   flex-wrap: wrap;
   gap: 5px;
@@ -490,7 +518,12 @@ button {
 }
 
 .gizmo-button {
-  font-family: "Atkinson Hyperlegible Next", "Asap", Helvetica, Arial, Lucida, sans-serif;
+  font-family: var(
+    --font-family-base,
+    "Atkinson Hyperlegible Next", "Asap", "Noto Color Emoji",
+    "Apple Color Emoji", "Segoe UI Emoji", "EmojiOne Color",
+    "Twemoji Mozilla", Helvetica, Arial, Lucida, sans-serif
+  );
   padding: 5px;
   font-size: 12px;
   cursor: pointer;

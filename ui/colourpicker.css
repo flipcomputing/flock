@@ -3,7 +3,11 @@
 .custom-color-picker {
   position: fixed;
   z-index: 10000;
-  font-family: 'Asap', sans-serif;
+  font-family: var(
+    --font-family-base,
+    "Asap", "Noto Color Emoji", "Apple Color Emoji", "Segoe UI Emoji",
+    "EmojiOne Color", "Twemoji Mozilla", sans-serif
+  );
 }
 
 .color-picker-backdrop {
@@ -43,7 +47,12 @@
 .palette-dropdown {
   max-width: 50%;
   padding: 3px;
-  font-family:  "Atkinson Hyperlegible Next", "Asap", Helvetica, Arial, Lucida, sans-serif;
+  font-family: var(
+    --font-family-base,
+    "Atkinson Hyperlegible Next", "Asap", "Noto Color Emoji",
+    "Apple Color Emoji", "Segoe UI Emoji", "EmojiOne Color",
+    "Twemoji Mozilla", Helvetica, Arial, Lucida, sans-serif
+  );
   font-size: 14px;
 }
 
