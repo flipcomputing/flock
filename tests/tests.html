@@ -136,6 +136,7 @@
       import "@babylonjs/inspector";
 
       const flock = flockmodule.flock;
+      window.__flockForLogging = flock;  // Expose for test runner API logging
       flock.modelPath = "../models/";
 
       await flock.initialize();
