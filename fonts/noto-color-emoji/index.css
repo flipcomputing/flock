@@ -1,0 +1,7 @@
+/* Local fontsource-style stub for Noto Color Emoji.
+   Uses system-provided color emoji fonts where available. */
+@font-face {
+  font-family: "Noto Color Emoji";
+  src: local("Noto Color Emoji"), local("Apple Color Emoji"), local("Segoe UI Emoji"), local("Segoe UI Symbol");
+  font-display: swap;
+}

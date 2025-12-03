@@ -1,0 +1,7 @@
+{
+  "name": "@fontsource/noto-color-emoji",
+  "version": "5.2.0",
+  "description": "Local fallback package providing Noto Color Emoji font-face definitions.",
+  "license": "OFL-1.1",
+  "main": "index.css"
+}

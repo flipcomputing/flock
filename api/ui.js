@@ -1,6 +1,6 @@
 let flock;
 //let fontFamily = "Asap";
-let fontFamily = "Atkinson Hyperlegible Next";
+let fontFamily = '"Atkinson Hyperlegible Next", "Noto Color Emoji", "Asap", sans-serif';
 
 export function setFlockReference(ref) {
   flock = ref;

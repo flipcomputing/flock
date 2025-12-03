@@ -289,19 +289,24 @@ async function generateSVG(block) {
 
 	const fontBase64 = await convertFontToBase64(w500);
 
-	const style = document.createElementNS(
-		"http://www.w3.org/2000/svg",
-		"style",
-	);
-	style.textContent = `
-	@font-face {
-	  font-family: "Atkinson Hyperlegible Next";
-	  src: url('data:font/woff2;base64,${fontBase64}') format('woff2');
-	}
-	.blocklyText {
-	  font-family: "Atkinson Hyperlegible Next", sans-serif;
-	  font-weight: 500;
-	}
+        const style = document.createElementNS(
+                "http://www.w3.org/2000/svg",
+                "style",
+        );
+        style.textContent = `
+        @font-face {
+          font-family: "Atkinson Hyperlegible Next";
+          src: url('data:font/woff2;base64,${fontBase64}') format('woff2');
+        }
+        @font-face {
+          font-family: "Noto Color Emoji";
+          src: local("Noto Color Emoji"), local("Apple Color Emoji"), local("Segoe UI Emoji"), local("Segoe UI Symbol");
+          font-display: swap;
+        }
+        .blocklyText {
+          font-family: "Atkinson Hyperlegible Next", "Noto Color Emoji", sans-serif;
+          font-weight: 500;
+        }
 	.blocklyEditableText rect.blocklyFieldRect:not(.blocklyDropdownRect) {
 	  fill: #ffffff !important; 
 	}

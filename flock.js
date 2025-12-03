@@ -23,6 +23,7 @@ import earcut from "earcut";
 import "@fontsource/atkinson-hyperlegible-next";
 import "@fontsource/atkinson-hyperlegible-next/500.css";
 import "@fontsource/atkinson-hyperlegible-next/600.css";
+import "@fontsource/noto-color-emoji";
 
 import "@fontsource/asap";
 import "@fontsource/asap/500.css";

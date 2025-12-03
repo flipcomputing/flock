@@ -308,7 +308,7 @@
   font-size: 18px;
   font-weight: 500;
   margin: 0;
-  font-family:  "Atkinson Hyperlegible Next", "Asap", Helvetica, Arial, Lucida, sans-serif;
+  font-family:  "Atkinson Hyperlegible Next", "Noto Color Emoji", "Asap", Helvetica, Arial, Lucida, sans-serif;
   order: 4;
 }
 
@@ -364,7 +364,7 @@ body {
   display: flex;
   gap: 0;
   box-sizing: border-box;
-  font-family:  "Atkinson Hyperlegible Next", "Asap", Helvetica, Arial, Lucida, sans-serif !important;
+  font-family:  "Atkinson Hyperlegible Next", "Noto Color Emoji", "Asap", Helvetica, Arial, Lucida, sans-serif !important;
   background: var(--color-bg);
   color: var(--color-text-primary);
 }
@@ -480,7 +480,7 @@ button {
 
 /* Gizmo Buttons */
 .gizmo-buttons {
-  font-family: "Atkinson Hyperlegible Next", "Asap", Helvetica, Arial, Lucida, sans-serif;
+  font-family: "Atkinson Hyperlegible Next", "Noto Color Emoji", "Asap", Helvetica, Arial, Lucida, sans-serif;
   display: flex;
   flex-wrap: wrap;
   gap: 5px;
@@ -490,7 +490,7 @@ button {
 }
 
 .gizmo-button {
-  font-family: "Atkinson Hyperlegible Next", "Asap", Helvetica, Arial, Lucida, sans-serif;
+  font-family: "Atkinson Hyperlegible Next", "Noto Color Emoji", "Asap", Helvetica, Arial, Lucida, sans-serif;
   padding: 5px;
   font-size: 12px;
   cursor: pointer;
