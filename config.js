@@ -74,20 +74,20 @@ export const audioNames = [
 export const characterNames = [
 	"Liz1.glb",
 	"Liz2.glb",
-	"Liz3.glb",
-	"Liz4.glb",
-	"Liz5.glb",
-	"Liz6.glb",
 	"Block1.glb",
 	"Block2.glb",
 	"Block3.glb",
 	"Block4.glb",
 	"Block5.glb",
 	"Block6.glb",
-	"Character1.glb",
+	"Liz3.glb",
+	"Liz4.glb",
+	"Liz5.glb",
+	"Liz6.glb",
+	/*"Character1.glb",
 	"Character2.glb",
 	"Character3.glb",
-	"Character4.glb",
+	"Character4.glb",*/
 ];
 
 export const multiObjectNames = [
