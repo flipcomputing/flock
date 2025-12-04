@@ -398,6 +398,78 @@ export function handleBlockChange(block, changeEvent, variableNamePrefix) {
   }
 }
 
+const MANUALLY_DISABLED_REASON =
+  Blockly.constants?.MANUALLY_DISABLED || "MANUALLY_DISABLED";
+
+function clearManualDisableFromNextStack(block) {
+  let cursor = block?.getNextBlock?.();
+
+  while (cursor) {
+    const reasons = cursor.getDisabledReasons?.();
+
+    if (
+      reasons?.has?.(MANUALLY_DISABLED_REASON) &&
+      (reasons.size ?? 0) <= 1
+    ) {
+      cursor.setDisabledReason?.(false, MANUALLY_DISABLED_REASON);
+    }
+
+    cursor = cursor.getNextBlock?.();
+  }
+}
+
+export function handleDisabledStyleChange(changeEvent) {
+  if (
+    changeEvent.type !== Blockly.Events.BLOCK_CHANGE ||
+    changeEvent.element !== "disabled"
+  ) {
+    return;
+  }
+
+  const block = Blockly.getMainWorkspace()?.getBlockById(changeEvent.blockId);
+
+  if (!block) {
+    return;
+  }
+
+  const disabledReason = changeEvent.disabledReason;
+  const isManualDisable =
+    (changeEvent.newValue === true || changeEvent.newValue === "true") &&
+    (disabledReason === MANUALLY_DISABLED_REASON ||
+      block.hasDisabledReason?.(MANUALLY_DISABLED_REASON));
+
+  if (isManualDisable) {
+    clearManualDisableFromNextStack(block);
+  }
+}
+
+function shouldSkipDisabledPropagationFromParent(child, parent) {
+  return (
+    parent &&
+    parent.hasDisabledReason?.(MANUALLY_DISABLED_REASON) &&
+    parent.nextConnection?.targetBlock() === child
+  );
+}
+
+Blockly.BlockSvg.prototype.getInheritedDisabled = function () {
+  let surroundParent = this.getSurroundParent();
+
+  while (surroundParent) {
+    if (shouldSkipDisabledPropagationFromParent(this, surroundParent)) {
+      surroundParent = surroundParent.getSurroundParent();
+      continue;
+    }
+
+    if (!surroundParent.isEnabled()) {
+      return true;
+    }
+
+    surroundParent = surroundParent.getSurroundParent();
+  }
+
+  return false;
+};
+
 // smart-variable-duplication.js (final)
 // - Split variable on duplicate (duplicate-parent safe)
 // - Retarget descendants oldVar -> newVar
@@ -786,6 +858,54 @@ export class CustomConstantProvider extends Blockly.zelos.ConstantProvider {
     this.FIELD_DROPDOWN_SVG_ARROW_DATAURI =
       "data:image/svg+xml;base64,PHN2ZyBpZD0iTGF5ZXJfMSIgZGF0YS1uYW1lPSJMYXllciAxIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMi43MSIgaGVpZ2h0PSI4Ljc5IiB2aWV3Qm94PSIwIDAgMTIuNzEgOC43OSI+PHRpdGxlPmRyb3Bkb3duLWFycm93PC90aXRsZT48ZyBvcGFjaXR5PSIwLjEiPjxwYXRoIGQ9Ik0xMi43MSwyLjQ0QTIuNDEsMi40MSwwLDAsMSwxMiw0LjE2TDguMDgsOC4wOGEyLjQ1LDIuNDUsMCwwLDEtMy40NSwwTDAuNzIsNC4xNkEyLjQyLDIuNDIsMCwwLDEsMCwyLjQ0LDIuNDgsMi40OCwwLDAsMSwuNzEuNzFDMSwwLjQ3LDEuNDMsMCw2LjM2LDBTMTEuNzUsMC40NiwxMiwuNzFBMi40NCwyLjQ0LDAsMCwxLDEyLjcxLDIuNDRaIiBmaWxsPSIjMjMxZjIwIi8+PC9nPjxwYXRoIGQ9Ik02LjM2LDcuNzlhMS40MywxLjQzLDAsMCwxLTEuNDItTDEuNDIsMy40NWExLjQ0LDEuNDQsMCwwLDEsMC0yYzAuNTYtLjU2LDkuMzEtMC41Niw5Ljg3LDBhMS40NCwxLjQ0LDAsMCwxLDAsMkw3LjM3LDcuMzdBMS40MywxLjQzLDAsMCwxLDYuMzYsNy43OVoiIGZpbGw9IiMwMDAiLz48L3N2Zz4=";
   }
+
+  /**
+   * Override renderer CSS so disabled blocks keep their colour but become
+   * subtly transparent instead of being completely greyed out.
+   *
+   * @param {string} selector CSS selector provided by Blockly.
+   * @returns {string[]} Renderer CSS rules.
+   */
+  getCSS_(selector) {
+    const css = super.getCSS_(selector);
+
+    css.push(
+      `${selector}.blocklyDisabled {`,
+      "  opacity: 0.55;",
+      "}",
+      `${selector}.blocklyDisabledPattern {`,
+      "  display: none;",
+      "}",
+      `${selector}.blocklyDisabled > .blocklyPath,`,
+      `${selector}.blocklyDisabled > .blocklyPathLight,`,
+      `${selector}.blocklyDisabled > .blocklyPathDark,`,
+      `${selector}.blocklyDisabled > .blocklyPathHighlight,`,
+      `${selector}.blocklyDisabled .blocklyText,`,
+      `${selector}.blocklyDisabled .blocklyEditableText > text {`,
+      "  fill-opacity: 1;",
+      "  stroke-opacity: 1;",
+      "}",
+    );
+
+    return css;
+  }
+}
+
+class CustomPathObject extends Blockly.blockRendering.PathObject {
+  constructor(root, style, constants) {
+    super(root, style, constants);
+  }
+
+  updateDisabled_(disabled) {
+    super.updateDisabled_(disabled);
+
+    if (!this.style || !this.svgPath) {
+      return;
+    }
+
+    this.svgPath.setAttribute("fill", this.style.colourPrimary);
+    this.svgPath.setAttribute("fill-opacity", disabled ? "0.6" : "1");
+  }
 }
 
 class CustomRenderInfo extends Blockly.zelos.RenderInfo {
@@ -809,6 +929,10 @@ export class CustomZelosRenderer extends Blockly.zelos.Renderer {
   // Override the method to return our custom RenderInfo
   makeRenderInfo_(block) {
     return new CustomRenderInfo(this, block);
+  }
+
+  makePathObject(root, style) {
+    return new CustomPathObject(root, style, this.getConstants());
   }
 }
 

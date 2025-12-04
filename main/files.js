@@ -337,10 +337,10 @@ export function loadWorkspaceAndExecute(json, workspace, executeCallback) {
 		// Validate JSON before loading into workspace
 		const validatedJson = validateBlocklyJson(json);
 
-		// Load the validated JSON
-		Blockly.serialization.workspaces.load(validatedJson, workspace);
-		workspace.scroll(0, 0);
-		executeCallback();
+                // Load the validated JSON
+                Blockly.serialization.workspaces.load(validatedJson, workspace);
+                workspace.scroll(0, 0);
+                executeCallback();
 	} catch (error) {
 		console.error("Failed to load workspace:", error);
 

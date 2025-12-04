@@ -12,6 +12,7 @@ import {
         initializeVariableIndexes,
         handleBlockSelect,
         handleBlockDelete,
+        handleDisabledStyleChange,
         CustomZelosRenderer,
 } from "../blocks/blocks";
 import { defineBaseBlocks } from "../blocks/base";
@@ -158,6 +159,7 @@ export function initializeWorkspace() {
         workspace.addChangeListener(BlockDynamicConnection.finalizeConnections);
         workspace.addChangeListener(handleBlockSelect);
         workspace.addChangeListener(handleBlockDelete);
+        workspace.addChangeListener(handleDisabledStyleChange);
 
         // Disable scrollBoundsIntoView temporarily during focus changes after deletion
         const originalScrollBoundsIntoView =
