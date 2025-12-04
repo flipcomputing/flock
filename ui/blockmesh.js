@@ -260,7 +260,9 @@ export function extractMaterialInfo(materialBlock) {
 
 function applyBackgroundColorFromBlock(block) {
   if (!block.isEnabled()) {
-    setClearSkyToBlack();
+    if (!applySceneBackgroundFromWorkspace(block.id)) {
+      setClearSkyToBlack();
+    }
     return;
   }
 
@@ -429,7 +431,9 @@ function safeGetFieldValue(block, fieldName) {
 
 function updateSkyFromBlock(mesh, block, changeEvent) {
   if (!block.isEnabled()) {
-    setClearSkyToBlack();
+    if (!applySceneBackgroundFromWorkspace(block.id)) {
+      setClearSkyToBlack();
+    }
     return;
   }
 
