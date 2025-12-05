@@ -260,9 +260,7 @@ export function extractMaterialInfo(materialBlock) {
 
 function applyBackgroundColorFromBlock(block) {
   if (!block.isEnabled()) {
-    if (!applySceneBackgroundFromWorkspace(block.id)) {
-      setClearSkyToBlack();
-    }
+    setClearSkyToBlack();
     return;
   }
 
@@ -296,55 +294,6 @@ export function setClearSkyToBlack() {
     "#000000";
 
   flock.setSky(fallbackColor, { clear: true });
-}
-
-function applyFirstBackgroundBlock(excludeBlockId) {
-  const ws = Blockly.getMainWorkspace?.();
-  if (!ws) return false;
-
-  const backgroundBlock = ws
-    .getAllBlocks(false)
-    .find(
-      (b) =>
-        b.type === "set_background_color" &&
-        b.isEnabled() &&
-        b.id !== excludeBlockId,
-    );
-
-  if (backgroundBlock) {
-    applyBackgroundColorFromBlock(backgroundBlock);
-    return true;
-  }
-
-  return false;
-}
-
-function applySkyFromWorkspace() {
-  const ws = Blockly.getMainWorkspace?.();
-  if (!ws) return false;
-
-  const skyBlock = ws
-    .getAllBlocks(false)
-    .find((b) => b.type === "set_sky_color" && b.isEnabled());
-
-  if (!skyBlock) return false;
-
-  updateSkyFromBlock(null, skyBlock, {
-    type: Blockly.Events.BLOCK_CHANGE,
-    blockId: skyBlock.id,
-    element: "field",
-  });
-
-  return true;
-}
-
-export function applySceneBackgroundFromWorkspace(
-  excludeBlockId,
-  { allowSkyFallback = true } = {},
-) {
-  if (applyFirstBackgroundBlock(excludeBlockId)) return true;
-
-  return allowSkyFallback ? applySkyFromWorkspace() : false;
 }
 
 // Add this function before updateMeshFromBlock
@@ -431,9 +380,7 @@ function safeGetFieldValue(block, fieldName) {
 
 function updateSkyFromBlock(mesh, block, changeEvent) {
   if (!block.isEnabled()) {
-    if (!applySceneBackgroundFromWorkspace(block.id)) {
-      setClearSkyToBlack();
-    }
+    setClearSkyToBlack();
     return;
   }
 
@@ -2004,8 +1951,12 @@ export function updateBlockColorAndHighlight(mesh, selectedColor) {
       ?.getAllBlocks(false)
       .find((b) => b.type === "set_background_color" && b.isEnabled())
       ?? ws?.getAllBlocks(false).find((b) => b.type === "set_background_color");
+    const skyBlock = ws
+      ?.getAllBlocks(false)
+      .find((b) => b.type === "set_sky_color" && b.isEnabled())
+      ?? ws?.getAllBlocks(false).find((b) => b.type === "set_sky_color");
 
-    block = backgroundBlock || meshMap?.["sky"];
+    block = backgroundBlock || skyBlock || meshMap?.["sky"];
 
     if (!block) {
       // Create sky block
