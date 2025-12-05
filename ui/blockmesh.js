@@ -1951,8 +1951,12 @@ export function updateBlockColorAndHighlight(mesh, selectedColor) {
       ?.getAllBlocks(false)
       .find((b) => b.type === "set_background_color" && b.isEnabled())
       ?? ws?.getAllBlocks(false).find((b) => b.type === "set_background_color");
+    const skyBlock = ws
+      ?.getAllBlocks(false)
+      .find((b) => b.type === "set_sky_color" && b.isEnabled())
+      ?? ws?.getAllBlocks(false).find((b) => b.type === "set_sky_color");
 
-    block = backgroundBlock || meshMap?.["sky"];
+    block = backgroundBlock || skyBlock || meshMap?.["sky"];
 
     if (!block) {
       // Create sky block
