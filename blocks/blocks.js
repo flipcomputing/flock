@@ -8,7 +8,6 @@ import {
   deleteMeshFromBlock,
   updateOrCreateMeshFromBlock,
   getMeshFromBlock,
-  applySceneBackgroundFromWorkspace,
   clearSkyMesh,
   setClearSkyToBlack,
 } from "../ui/blockmesh.js";
@@ -99,15 +98,11 @@ export function handleBlockDelete(event) {
         deleteMeshFromBlock(blockJson.id);
       } else if (blockJson.type === "set_background_color") {
         deleteMeshFromBlock(blockJson.id);
-        if (!applySceneBackgroundFromWorkspace(blockJson.id)) {
-          clearSkyMesh();
-          setClearSkyToBlack();
-        }
+        clearSkyMesh();
+        setClearSkyToBlack();
       } else if (blockJson.type === "set_sky_color") {
         clearSkyMesh();
-        if (!applySceneBackgroundFromWorkspace(blockJson.id)) {
-          setClearSkyToBlack();
-        }
+        setClearSkyToBlack();
       }
 
       // Check inputs for child blocks
@@ -162,20 +157,16 @@ export function handleMeshLifecycleChange(block, changeEvent) {
           updateOrCreateMeshFromBlock(block, changeEvent);
         }
       }, 0);
-    } else {
-      deleteMeshFromBlock(block.id);
-      if (block.type === "set_background_color") {
-        if (!applySceneBackgroundFromWorkspace(block.id)) {
+      } else {
+        deleteMeshFromBlock(block.id);
+        if (block.type === "set_background_color") {
+          clearSkyMesh();
+          setClearSkyToBlack();
+        } else if (block.type === "set_sky_color") {
           clearSkyMesh();
           setClearSkyToBlack();
         }
-      } else if (block.type === "set_sky_color") {
-        clearSkyMesh();
-        if (!applySceneBackgroundFromWorkspace(block.id)) {
-          setClearSkyToBlack();
-        }
       }
-    }
     return true;
   }
 
