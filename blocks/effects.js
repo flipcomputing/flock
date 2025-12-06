@@ -104,7 +104,7 @@ export function defineEffectsBlocks() {
                                 ],
                                 previousStatement: null,
                                 nextStatement: null,
-                                colour: categoryColours["Effects"],
+                                colour: categoryColours["Scene"],
                                 tooltip: getTooltip("get_light"),
                         });
                         this.setHelpUrl(getHelpUrlFor(this.type));
