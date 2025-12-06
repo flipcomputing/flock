@@ -1,6 +1,5 @@
 import * as Blockly from "blockly";
 import { KeyboardNavigation } from "@blockly/keyboard-navigation";
-import { javascriptGenerator } from "blockly/javascript";
 import { WorkspaceSearch } from "@blockly/plugin-workspace-search";
 import * as BlockDynamicConnection from "@blockly/block-dynamic-connection";
 import { initializeTheme } from "./themes.js";
@@ -9,7 +8,6 @@ import { translate } from "./translation.js";
 import {
         options,
         defineBlocks,
-        initializeVariableIndexes,
         handleBlockSelect,
         handleBlockDelete,
         CustomZelosRenderer,
@@ -358,11 +356,6 @@ export function createBlocklyWorkspace() {
                 return Blockly.utils.svgMath.screenToWsCoordinates(ws, c);
         }
 
-        // Small helper
-        function hasClipboardData() {
-                return !!Blockly.clipboard.getLastCopiedData?.();
-        }
-
         // Helper to get keyboard shortcut modifier key based on platform
         const isMac = /Mac|iPod|iPhone|iPad/.test(navigator.platform);
         const modKey = isMac ? "⌘" : "Ctrl";
@@ -384,226 +377,6 @@ export function createBlocklyWorkspace() {
                         tb?.getSelectedItem?.()?.setSelected?.(false);
                 }
         };
-
-        // ===== SMART PASTE HELPER (for block context) =====
-        function smartPasteOnBlock(target, ws, data) {
-                // Screen to workspace coordinates helper
-                function screenToWsPoint(xy) {
-                        const c = new Blockly.utils.Coordinate(xy.x, xy.y);
-                        return Blockly.utils.svgMath.screenToWsCoordinates(ws, c);
-                }
-
-                const fallbackXY = (() => {
-                        const xy = target.getRelativeToSurfaceXY();
-                        return {
-                                x: xy.x + 16 * (ws.scale || 1),
-                                y: xy.y + 16 * (ws.scale || 1),
-                        };
-                })();
-
-                const screenXY = __fcMenuPoint || __fcLastPointer || fallbackXY;
-                const pointerType = __fcMenuPointerType || __fcLastPointerType || "mouse";
-
-                const HIT_RADIUS_PX = pointerType === "touch" ? 36 : 18;
-                const REPLACE_REAL_ON_HOVER = true;
-                const REPLACE_REAL_IN_FALLBACKS = false;
-
-                function connWsXY(conn) {
-                        if (typeof conn.getOffsetInWorkspaceCoordinates === "function") {
-                                return conn.getOffsetInWorkspaceCoordinates();
-                        }
-                        const inBlock = typeof conn.getOffsetInBlock === "function"
-                                ? conn.getOffsetInBlock()
-                                : { x: 0, y: 0 };
-                        const b = conn.getSourceBlock();
-                        const base = b.getRelativeToSurfaceXY();
-                        return new Blockly.utils.Coordinate(base.x + inBlock.x, base.y + inBlock.y);
-                }
-
-                function clearInputForPaste(conn, replaceReal) {
-                        const targetBlock = conn.targetBlock && conn.targetBlock();
-                        if (!targetBlock) return true;
-                        if (targetBlock.isShadow && targetBlock.isShadow()) {
-                                targetBlock.dispose(false);
-                                return true;
-                        }
-                        if (replaceReal && conn.targetConnection) {
-                                conn.targetConnection.disconnect();
-                                return true;
-                        }
-                        return false;
-                }
-
-                const wsPoint = screenToWsPoint(screenXY);
-                const pasted = Blockly.clipboard.paste(data, ws, wsPoint);
-                const pb = pasted;
-                if (!pb) return;
-
-                const checker = ws.getConnectionChecker?.() || new Blockly.ConnectionChecker();
-                const can = (a, b) => a && b && checker.canConnect(a, b, false);
-
-                const hitR = HIT_RADIUS_PX / (ws.scale || 1);
-                const hitR2 = hitR * hitR;
-
-                // Try VALUE inputs first
-                if (pb.outputConnection) {
-                        for (const input of target.inputList) {
-                                if (input.type !== Blockly.INPUT_VALUE || !input.connection) continue;
-                                const off = connWsXY(input.connection);
-                                const dx = wsPoint.x - off.x, dy = wsPoint.y - off.y;
-                                if (dx * dx + dy * dy <= hitR2 && can(input.connection, pb.outputConnection)) {
-                                        if (!clearInputForPaste(input.connection, REPLACE_REAL_ON_HOVER)) break;
-                                        input.connection.connect(pb.outputConnection);
-                                        return;
-                                }
-                        }
-                }
-
-                // Then STATEMENT inputs
-                if (pb.previousConnection) {
-                        for (const input of target.inputList) {
-                                if (input.type !== Blockly.NEXT_STATEMENT || !input.connection) continue;
-                                const off = connWsXY(input.connection);
-                                const dx = wsPoint.x - off.x, dy = wsPoint.y - off.y;
-                                if (dx * dx + dy * dy <= hitR2 && can(input.connection, pb.previousConnection)) {
-                                        if (!clearInputForPaste(input.connection, REPLACE_REAL_ON_HOVER)) break;
-                                        input.connection.connect(pb.previousConnection);
-                                        return;
-                                }
-                        }
-                }
-
-                // Fallback: stack after
-                if (target.nextConnection && pb.previousConnection && can(target.nextConnection, pb.previousConnection)) {
-                        target.nextConnection.connect(pb.previousConnection);
-                        return;
-                }
-
-                // Fallback: empty statement input
-                for (const input of target.inputList) {
-                        if (input.type === Blockly.NEXT_STATEMENT && input.connection && pb.previousConnection && can(input.connection, pb.previousConnection)) {
-                                if (!clearInputForPaste(input.connection, REPLACE_REAL_IN_FALLBACKS)) continue;
-                                input.connection.connect(pb.previousConnection);
-                                return;
-                        }
-                }
-
-                // Fallback: empty value input
-                for (const input of target.inputList) {
-                        if (input.type === Blockly.INPUT_VALUE && input.connection && pb.outputConnection && can(input.connection, pb.outputConnection)) {
-                                if (!clearInputForPaste(input.connection, REPLACE_REAL_IN_FALLBACKS)) continue;
-                                input.connection.connect(pb.outputConnection);
-                                return;
-                        }
-                }
-
-                // Fallback: insert above
-                if (target.previousConnection && pb.nextConnection && can(target.previousConnection, pb.nextConnection)) {
-                        target.previousConnection.connect(pb.nextConnection);
-                        return;
-                }
-                // else: stays where pasted
-        }
-
-        // ===== PATCH CONTEXT MENU DISPLAY TEXT (for keyboard hints) =====
-        // Use setTimeout with delay to ensure keyboard-navigation plugin has registered its items
-        setTimeout(() => {
-                console.log("[Flock] Running context menu patching...");
-                const registry = Blockly.ContextMenuRegistry.registry;
-                
-                // Debug: Log all registered context menu items
-                const allItems = registry.getAllItems();
-                console.log("[Flock] All registered context menu items:", allItems.map(item => item.id));
-                
-                // Find items that contain "copy", "cut", or "paste" in their ID (case insensitive)
-                const clipboardItems = allItems.filter(item => 
-                        /copy|cut|paste/i.test(item.id)
-                );
-                console.log("[Flock] Clipboard-related items found:", clipboardItems.map(item => item.id));
-
-                // The @blockly/keyboard-navigation plugin uses these IDs:
-                // - blockCopyFromContextMenu
-                // - blockCutFromContextMenu
-                // - blockPasteFromContextMenu
-                
-                // Patch COPY displayText
-                const copyItem = registry.getItem("blockCopyFromContextMenu");
-                if (copyItem) {
-                        copyItem.displayText = () => `${translate("context_copy_option")} (${modKey}+C)`;
-                        console.log("[Flock] Patched blockCopyFromContextMenu");
-                } else {
-                        console.log("[Flock] blockCopyFromContextMenu NOT FOUND");
-                }
-
-                // Patch CUT displayText
-                const cutItem = registry.getItem("blockCutFromContextMenu");
-                if (cutItem) {
-                        cutItem.displayText = () => `${translate("context_cut_option")} (${modKey}+X)`;
-                        console.log("[Flock] Patched blockCutFromContextMenu");
-                } else {
-                        console.log("[Flock] blockCutFromContextMenu NOT FOUND");
-                }
-
-                // Unregister keyboard-navigation's paste and register our own with smart paste
-                const blockPasteItem = registry.getItem("blockPasteFromContextMenu");
-                if (blockPasteItem) {
-                        // Unregister the existing item
-                        try {
-                                registry.unregister("blockPasteFromContextMenu");
-                                console.log("[Flock] Unregistered blockPasteFromContextMenu");
-                        } catch (e) {
-                                console.log("[Flock] Failed to unregister:", e);
-                        }
-                        
-                        // Register our own with the same ID but custom callback
-                        registry.register({
-                                id: "blockPasteFromContextMenu",
-                                weight: blockPasteItem.weight || 12,
-                                scopeType: Blockly.ContextMenuRegistry.ScopeType.BLOCK,
-                                displayText: () => `${translate("context_paste_option")} (${modKey}+V)`,
-                                preconditionFn: (scope) => {
-                                        if (!hasClipboardData()) return "hidden";
-                                        const block = scope?.block;
-                                        if (!block || block.isInFlyout) return "hidden";
-                                        return "enabled";
-                                },
-                                callback: (scope) => {
-                                        console.log("[Flock] Custom paste callback triggered");
-                                        const target = scope.block;
-                                        if (!target || !(target instanceof Blockly.BlockSvg) || target.isInFlyout) return;
-                                        const ws = target.workspace;
-                                        const data = Blockly.clipboard?.getLastCopiedData?.();
-                                        if (!data) return;
-                                        smartPasteOnBlock(target, ws, data);
-                                },
-                        });
-                        console.log("[Flock] Registered custom blockPasteFromContextMenu with smart paste");
-                } else {
-                        console.log("[Flock] blockPasteFromContextMenu NOT FOUND - registering new one");
-                        // Register our own paste item if none exists
-                        registry.register({
-                                id: "fc_smart_paste",
-                                weight: 12,
-                                scopeType: Blockly.ContextMenuRegistry.ScopeType.BLOCK,
-                                displayText: () => `${translate("context_paste_option")} (${modKey}+V)`,
-                                preconditionFn: (scope) => {
-                                        if (!hasClipboardData()) return "hidden";
-                                        const block = scope?.block;
-                                        if (!block || block.isInFlyout) return "hidden";
-                                        return "enabled";
-                                },
-                                callback: (scope) => {
-                                        console.log("[Flock] Custom paste callback triggered (fallback)");
-                                        const target = scope.block;
-                                        if (!target || !(target instanceof Blockly.BlockSvg) || target.isInFlyout) return;
-                                        const ws = target.workspace;
-                                        const data = Blockly.clipboard?.getLastCopiedData?.();
-                                        if (!data) return;
-                                        smartPasteOnBlock(target, ws, data);
-                                },
-                        });
-                }
-        }, 500); // 500ms delay to ensure plugin has registered items
 
         function isTypingInInput() {
                 const el = document.activeElement;
