@@ -457,12 +457,12 @@ export const flockPhysics = {
         }
       }
 
-      if (target instanceof flock.BABYLON.AbstractMesh) {
-        registerMeshAction(target, trigger, async (evt) => {
-          const clickedMesh = evt.meshUnderPointer || evt.source;
-          const meshId = clickedMesh ? clickedMesh.name : target.name;
-          await executeAction(meshId);
-        });
+        if (target instanceof flock.BABYLON.AbstractMesh) {
+          registerMeshAction(target, trigger, async (evt) => {
+            const clickedMesh = evt?.meshUnderPointer || evt?.source;
+            const meshId = clickedMesh ? clickedMesh.name : target.name;
+            await executeAction(meshId);
+          });
 
         if (flock.xrHelper && flock.xrHelper.baseExperience) {
           flock.xrHelper.baseExperience.onStateChangedObservable.add(
