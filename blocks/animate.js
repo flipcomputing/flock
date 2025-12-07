@@ -184,6 +184,21 @@ export function defineAnimateBlocks() {
                                         },
                                         {
                                                 type: "input_value",
+                                                name: "X_OFFSET",
+                                                check: "Number",
+                                        },
+                                        {
+                                                type: "input_value",
+                                                name: "Y_OFFSET",
+                                                check: "Number",
+                                        },
+                                        {
+                                                type: "input_value",
+                                                name: "Z_OFFSET",
+                                                check: "Number",
+                                        },
+                                        {
+                                                type: "input_value",
                                                 name: "DURATION",
                                                 check: "Number",
                                         },

@@ -144,6 +144,8 @@ export default {
       glide_to: "glid %1 till x %2 y %3 z %4 på %5 ms\n%6 återvända? %7 loop? %8 %9",
       glide_to_seconds:
             "glid %1 till x %2 y %3 z %4 på %5 sekunder\n%6 återvända? %7 loop? %8 %9",
+      glide_to_object:
+            "glid %1 till %2 förskjutning x: %3 y: %4 z: %5 på %6 sekunder\n%7 återvända? %8 loop? %9 %10",
       rotate_anim:
             "rotera %1 till x %2 y %3 z %4 på %5 ms\n%6 omvänd? %7 loop? %8  %9",
       rotate_anim_seconds:
@@ -358,6 +360,8 @@ export default {
             "Glid till en angiven position över en viss tid med alternativ för att reversera, loopa och mjuk övergång (easing).",
       glide_to_seconds_tooltip:
             "Glid till en angiven position över en viss tid med alternativ för att reversera, loopa och mjuk övergång (easing).",
+      glide_to_object_tooltip:
+            "Glid till positionen för ett annat objekt med valfria x/y/z‑förskjutningar (standard 0) och alternativ för att reversera, loopa och easing.",
       rotate_anim_tooltip:
             "Rotera ett objekt till angivna vinklar över en viss tid med alternativ för att reversera, loopa och easing.",
       rotate_anim_seconds_tooltip:

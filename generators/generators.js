@@ -240,9 +240,24 @@ export function defineGenerators() {
                         block.getFieldValue("MODEL2"),
                         Blockly.Names.NameType.VARIABLE,
                 );
-                const x = meshMap[meshName2]?.position.x;
-                const y = meshMap[meshName2]?.position.y;
-                const z = meshMap[meshName2]?.position.z;
+                const xOffset =
+                        javascriptGenerator.valueToCode(
+                                block,
+                                "X_OFFSET",
+                                javascriptGenerator.ORDER_ATOMIC,
+                        ) || "0";
+                const yOffset =
+                        javascriptGenerator.valueToCode(
+                                block,
+                                "Y_OFFSET",
+                                javascriptGenerator.ORDER_ATOMIC,
+                        ) || "0";
+                const zOffset =
+                        javascriptGenerator.valueToCode(
+                                block,
+                                "Z_OFFSET",
+                                javascriptGenerator.ORDER_ATOMIC,
+                        ) || "0";
                 const duration = getFieldValue(block, "DURATION", "0");
                 const mode = block.getFieldValue("MODE");
                 const reverse = block.getFieldValue("REVERSE") === "TRUE";
@@ -250,7 +265,7 @@ export function defineGenerators() {
                 const easing = block.getFieldValue("EASING");
                 const asyncWrapper = mode === "AWAIT" ? "await " : "";
 
-                return `${asyncWrapper}glideToObject(${meshName1}, ${meshName2}, { duration: ${duration}, reverse: ${reverse}, loop: ${loop}, easing: "${easing}" });\n`;
+                return `${asyncWrapper}glideToObject(${meshName1}, ${meshName2}, { offsetX: ${xOffset}, offsetY: ${yOffset}, offsetZ: ${zOffset}, duration: ${duration}, reverse: ${reverse}, loop: ${loop}, easing: "${easing}" });\n`;
         };
 
         javascriptGenerator.forBlock["rotate_anim"] = function (block) {

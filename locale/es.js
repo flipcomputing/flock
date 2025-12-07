@@ -140,6 +140,7 @@ export default {
   // Custom block translations - Animate blocks
   glide_to: "deslizar %1 a x %2 y %3 z %4 en %5 ms\n%6 ¿regresar? %7 ¿repetir? %8 %9",
   glide_to_seconds: "deslizar %1 a x %2 y %3 z %4 en %5 segundos \n%6 ¿regresar? %7 ¿repetir? %8 %9",
+  glide_to_object: "deslizar %1 a %2 desplazamiento x: %3 y: %4 z: %5 en %6 segundos \n%7 ¿regresar? %8 ¿repetir? %9 %10",
   rotate_anim: "rotar %1 a x %2 y %3 z %4 en %5 ms\n%6 ¿invertir? %7 ¿repetir? %8 %9",
   rotate_anim_seconds: "rotar %1 a x %2 y %3 z %4 en %5 segundos\n%6 ¿invertir? %7 ¿repetir? %8 %9",
   animate_property: "animar %1 %2 a %3 en %4 ms ¿invertir? %5 ¿repetir? %6 %7",
@@ -328,6 +329,7 @@ export default {
   // Tooltip translations - Animate blocks
   glide_to_tooltip: "Deslízate a una posición especificada durante una duración, con opciones de inversión, bucle y easing.",
   glide_to_seconds_tooltip: "Deslízate a una posición especificada durante una duración, con opciones de inversión, bucle y easing.",
+  glide_to_object_tooltip: "Deslízate a la posición de otra malla con desplazamientos x/y/z opcionales (0 por defecto) y opciones de invertir, bucle y easing.",
   rotate_anim_tooltip: "Rota una malla a ángulos determinados durante una duración, con opciones de inversión, bucle y easing.",
   rotate_anim_seconds_tooltip: "Rota una malla a ángulos determinados durante una duración, con opciones de inversión, bucle y easing.",
   animate_property_tooltip: "Anima una propiedad de material de la malla y sus hijos.",

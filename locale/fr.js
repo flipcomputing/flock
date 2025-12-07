@@ -140,6 +140,7 @@ export default {
                                       // Custom block translations - Animate blocks
                                       glide_to: "glisser %1 vers x %2 y %3 z %4 en %5 ms\n%6 retour? %7 boucle? %8 %9",
                                       glide_to_seconds: "glisser %1 vers x %2 y %3 z %4 en %5 secondes \n%6 retour? %7 boucle? %8 %9",
+                                      glide_to_object: "glisser %1 vers %2 décalage x: %3 y: %4 z: %5 en %6 secondes \n%7 retour? %8 boucle? %9 %10",
                                       rotate_anim: "tourner %1 vers x %2 y %3 z %4 en %5 ms\n%6 inverse? %7 boucle? %8 %9",
                                       rotate_anim_seconds: "tourner %1 vers x %2 y %3 z %4 en %5 secondes\n%6 inverse? %7 boucle? %8 %9",
                                       animate_property: "animer %1 %2 vers %3 en %4 ms inverse? %5 boucle? %6 %7",
@@ -328,6 +329,7 @@ export default {
                                       // Tooltip translations - Animate blocks
                                       glide_to_tooltip: "Glisser vers une position spécifiée sur une durée avec des options pour inverser, boucler et appliquer une accélération.",
                                       glide_to_seconds_tooltip: "Glisser vers une position spécifiée sur une durée avec des options pour inverser, boucler et appliquer une accélération.",
+                                      glide_to_object_tooltip: "Glisser vers la position d’une autre forme avec des décalages x/y/z optionnels (0 par défaut) et des options d’inversion, de boucle et d’accélération.",
                                       rotate_anim_tooltip: "Faire pivoter une forme vers des angles spécifiés sur une durée avec des options pour inverser, boucler et appliquer une accélération.",
                                       rotate_anim_seconds_tooltip: "Faire pivoter une forme vers des angles spécifiés sur une durée avec des options pour inverser, boucler et appliquer une accélération.",
                                       animate_property_tooltip: "Animer une propriété de matériau de la forme et de ses enfants.",

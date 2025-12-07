@@ -144,6 +144,7 @@ export default {
   // Custom block translations - Animate blocks
   glide_to: "%1 gleitet zu x %2 y %3 z %4 in %5 ms\n%6 zurück? %7 Schleife? %8 %9",
   glide_to_seconds: "%1 gleitet zu x %2 y %3 z %4 in %5 Sekunden\n%6 zurück? %7 Schleife? %8 %9",
+  glide_to_object: "%1 gleitet zu %2 Versatz x: %3 y: %4 z: %5 in %6 Sekunden\n%7 zurück? %8 Schleife? %9 %10",
   rotate_anim: "rotiere %1 zu x %2 y %3 z %4 in %5 ms\n%6 rückwärts? %7 Schleife? %8 %9",
   rotate_anim_seconds: "rotiere %1 zu x %2 y %3 z %4 in %5 Sekunden\n%6 rückwärts? %7 Schleife? %8 %9",
   animate_property: "animieren %1 %2 zu %3 in %4 ms rückwärts? %5 Schleife? %6 %7",
@@ -455,6 +456,7 @@ export default {
   // Animate tooltips
   glide_to_tooltip: "Gleite zu einer Position über eine Dauer mit Optionen für Rückwärts, Schleife und Easing.",
   glide_to_seconds_tooltip: "Gleite zu einer Position über Sekunden mit Optionen zum Rückwärtslaufen, Schleifen und Easing.",
+  glide_to_object_tooltip: "Gleite zur Position einer angegebenen Mesh mit optionalen x/y/z-Versätzen (Standard 0) sowie Rückwärts-, Schleifen- und Easing-Optionen.",
   rotate_anim_tooltip: "Rotiert ein Objekt zu angegebenen Winkeln über eine Dauer mit Optionen für Rückwärts, Schleife und Easing.",
   rotate_anim_seconds_tooltip: "Rotiert ein Objekt über Sekunden mit Unterstützung für Rückläufe, Schleifen und Easing.",
   animate_property_tooltip: "Animiert eine Materialeigenschaft des Objekts und seiner Kinder.",

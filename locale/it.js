@@ -149,6 +149,8 @@ export default {
     "scivola %1 a x %2 y %3 z %4 in %5 ms\n%6 ritorna? %7 ripeti? %8 %9",
   glide_to_seconds:
     "scivola %1 a x %2 y %3 z %4 in %5 secondi \n%6 ritorna? %7 ripeti? %8 %9",
+  glide_to_object:
+    "scivola %1 verso %2 offset x: %3 y: %4 z: %5 in %6 secondi \n%7 ritorna? %8 ripeti? %9 %10",
   rotate_anim:
     "ruota %1 a x %2 y %3 z %4 in %5 ms\n%6 inverti? %7 ripeti? %8  %9",
   rotate_anim_seconds:
@@ -366,6 +368,8 @@ export default {
     "Scivola a una posizione in un tempo dato con opzioni di inversione, loop ed easing.",
   glide_to_seconds_tooltip:
     "Scivola a una posizione in un tempo dato con opzioni di inversione, loop ed easing.",
+  glide_to_object_tooltip:
+    "Scivola verso la posizione di un'altra mesh con offset x/y/z opzionali (0 predefinito) e opzioni di inversione, loop ed easing.",
   rotate_anim_tooltip:
     "Ruota una mesh ad angoli specificati in un intervallo, con opzioni di inversione, loop ed easing.",
   rotate_anim_seconds_tooltip:

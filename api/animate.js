@@ -266,7 +266,15 @@ export const flockAnimate = {
   async glideToObject(
     meshName1,
     meshName2,
-    { duration = 1, reverse = false, loop = false, easing = "Linear" } = {},
+    {
+      offsetX = 0,
+      offsetY = 0,
+      offsetZ = 0,
+      duration = 1,
+      reverse = false,
+      loop = false,
+      easing = "Linear",
+    } = {},
   ) {
     return new Promise(async (resolve) => {
       await flock.whenModelReady(meshName1, async function (mesh1) {
@@ -278,9 +286,9 @@ export const flockAnimate = {
               const baseZ = flockAnimate.getMeshPivotPosition(mesh2, "z");
 
               await flockAnimate.glideTo(meshName1, {
-                x: baseX,
-                y: baseY,
-                z: baseZ,
+                x: baseX + offsetX,
+                y: baseY + offsetY,
+                z: baseZ + offsetZ,
                 duration,
                 reverse,
                 loop,

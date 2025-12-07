@@ -140,6 +140,7 @@ export default {
   // Custom block translations - Animate blocks
   glide_to: "przesuń %1 do x: %2, y: %3, z: %4 w czasie %5 ms\n%6 powrót? %7 pętla? %8 %9",
   glide_to_seconds: "przesuń %1 do x: %2, y: %3, z: %4 w czasie %5 sekund\n%6 powrót? %7 pętla? %8 %9",
+  glide_to_object: "przesuń %1 do %2 przesunięcie x: %3, y: %4, z: %5 w czasie %6 sekund\n%7 powrót? %8 pętla? %9 %10",
   rotate_anim: "obróć %1 do x: %2, y: %3, z: %4 w czasie %5 ms\n%6 odwróć? %7 pętla? %8 %9",
   rotate_anim_seconds: "obróć %1 do x: %2, y: %3, z: %4 w czasie %5 sekund\n%6 odwróć? %7 pętla? %8 %9",
   animate_property: "animuj %1: %2 do %3 w czasie %4 ms, odwróć? %5, pętla? %6 %7",
@@ -328,6 +329,7 @@ export default {
   // Tooltip translations - Animate blocks
   glide_to_tooltip: "Przesuń się do zadanej pozycji w określonym czasie z opcjami odwrócenia, pętli i easing.",
   glide_to_seconds_tooltip: "Przesuń się do zadanej pozycji w określonym czasie z opcjami odwrócenia, pętli i easing.",
+  glide_to_object_tooltip: "Przesuń się do pozycji innej siatki z opcjonalnymi przesunięciami x/y/z (domyślnie 0) oraz opcjami odwrócenia, pętli i easing.",
   rotate_anim_tooltip: "Obróć siatkę do zadanych kątów w określonym czasie z opcjami odwrócenia, pętli i easing.",
   rotate_anim_seconds_tooltip: "Obróć siatkę do zadanych kątów w określonym czasie z opcjami odwrócenia, pętli i easing.",
   animate_property_tooltip: "Animuj właściwość materiału siatki i jej dzieci.",
