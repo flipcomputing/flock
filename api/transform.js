@@ -10,7 +10,6 @@ export const flockTransform = {
     y = 0,
     z = 0,
     useY = true,
-    yReference = "BASE",
   } = {}) {
     return new Promise((resolve, reject) => {
       flock.whenModelReady(meshName, (mesh) => {
