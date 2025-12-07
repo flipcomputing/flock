@@ -13,17 +13,29 @@ function getMeshPivotPosition(mesh, axis) {
                 z: "CENTER",
         };
 
-        const bounding = mesh.getBoundingInfo().boundingBox.extendSize;
-        const halfSize = bounding[axis] * mesh.scaling[axis];
+        const bounding = mesh.getBoundingInfo().boundingBox;
         const pivotSetting = pivotSettings[axis];
 
         if (pivotSetting === "CENTER") {
-                return mesh.position[axis];
+                return bounding.centerWorld[axis];
         } else if (pivotSetting === "MIN") {
-                return mesh.position[axis] - halfSize;
+                return bounding.minimumWorld[axis];
         } else if (pivotSetting === "MAX") {
-                return mesh.position[axis] + halfSize;
+                return bounding.maximumWorld[axis];
         }
+}
+
+function getRotatedOffset(mesh, offset) {
+        const offsetVector = new flock.BABYLON.Vector3(
+                offset.offsetX,
+                offset.offsetY,
+                offset.offsetZ,
+        );
+
+        return flock.BABYLON.Vector3.TransformNormal(
+                offsetVector,
+                mesh.getWorldMatrix(),
+        );
 }
 
 // Test suite for glideTo function
@@ -31,6 +43,7 @@ export function runGlideToTests(flock) {
         describe("glideTo function tests @slow", function () {
                 let box1;
                 let box2;
+                let parent;
 
 		// Set up the box before each test
 		beforeEach(async function () {
@@ -51,6 +64,10 @@ export function runGlideToTests(flock) {
                         if (box2) {
                                 flock.dispose(box2);
                                 box2 = undefined;
+                        }
+                        if (parent) {
+                                flock.dispose(parent);
+                                parent = undefined;
                         }
                 });
 
@@ -248,6 +265,80 @@ export function runGlideToTests(flock) {
                         expect(movedMesh.position.x).to.be.closeTo(expectedX, 0.1);
                         expect(movedMesh.position.y).to.be.closeTo(expectedY, 0.1);
                         expect(movedMesh.position.z).to.be.closeTo(expectedZ, 0.1);
+                });
+
+                it("should respect the target's parent rotation for offsets", async function () {
+                        this.timeout(5000);
+
+                        parent = flock.createBox("parent", {
+                                width: 1,
+                                height: 1,
+                                depth: 1,
+                                position: [0, 0, 0],
+                        });
+
+                        box2 = flock.createBox("box2", {
+                                width: 1,
+                                height: 1,
+                                depth: 1,
+                        });
+
+                        await flock.parentChild(parent, box2, 1, 0, 0);
+                        await flock.rotate(parent, { y: 90 });
+
+                        const offsets = { offsetX: 0, offsetY: 0, offsetZ: 1 };
+                        await flock.glideToObject(box1, box2, { ...offsets, duration: 0.2 });
+
+                        const targetMesh = flock.scene.getMeshByName(box2);
+                        const rotatedOffset = getRotatedOffset(targetMesh, offsets);
+
+                        const expectedX = getMeshPivotPosition(targetMesh, "x") + rotatedOffset.x;
+                        const expectedY = getMeshPivotPosition(targetMesh, "y") + rotatedOffset.y;
+                        const expectedZ = getMeshPivotPosition(targetMesh, "z") + rotatedOffset.z;
+
+                        const movedMesh = flock.scene.getMeshByName(box1);
+
+                        expect(movedMesh.position.x).to.be.closeTo(expectedX, 0.1);
+                        expect(movedMesh.position.y).to.be.closeTo(expectedY, 0.1);
+                        expect(movedMesh.position.z).to.be.closeTo(expectedZ, 0.1);
+                });
+
+                it("should keep the same world position when parenting after a glide", async function () {
+                        this.timeout(5000);
+
+                        box2 = flock.createBox("box2", {
+                                width: 1,
+                                height: 1,
+                                depth: 1,
+                        });
+
+                        await flock.rotate(box2, { y: 45 });
+
+                        const offsets = { offsetX: 0, offsetY: 0, offsetZ: 1 };
+                        await flock.glideToObject(box1, box2, { ...offsets, duration: 0.2 });
+
+                        const targetMesh = flock.scene.getMeshByName(box2);
+                        const rotatedOffset = getRotatedOffset(targetMesh, offsets);
+
+                        const expectedX = getMeshPivotPosition(targetMesh, "x") + rotatedOffset.x;
+                        const expectedY = getMeshPivotPosition(targetMesh, "y") + rotatedOffset.y;
+                        const expectedZ = getMeshPivotPosition(targetMesh, "z") + rotatedOffset.z;
+
+                        const movedMesh = flock.scene.getMeshByName(box1);
+
+                        const beforeParentWorld = movedMesh.getAbsolutePosition().clone();
+
+                        await flock.setParent(box2, box1);
+
+                        const afterParentWorld = movedMesh.getAbsolutePosition();
+
+                        expect(beforeParentWorld.x).to.be.closeTo(expectedX, 0.1);
+                        expect(beforeParentWorld.y).to.be.closeTo(expectedY, 0.1);
+                        expect(beforeParentWorld.z).to.be.closeTo(expectedZ, 0.1);
+
+                        expect(afterParentWorld.x).to.be.closeTo(expectedX, 0.1);
+                        expect(afterParentWorld.y).to.be.closeTo(expectedY, 0.1);
+                        expect(afterParentWorld.z).to.be.closeTo(expectedZ, 0.1);
                 });
         });
 }

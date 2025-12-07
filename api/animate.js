@@ -241,7 +241,8 @@ export const flockAnimate = {
       });
     });
   },
-  // Helper: Get the MIN position of a mesh on a given axis, accounting for its pivot
+  // Helper: Get the MIN/MAX/CENTER world position of a mesh on a given axis,
+  // accounting for its pivot and parent transforms
   getMeshPivotPosition(mesh, axis) {
     // Match setPivotPoint defaults: x=CENTER, y=MIN, z=CENTER
     const pivotSettings = (mesh.metadata && mesh.metadata.pivotSettings) || {
@@ -249,17 +250,16 @@ export const flockAnimate = {
       y: "MIN",
       z: "CENTER",
     };
-    const bounding = mesh.getBoundingInfo().boundingBox.extendSize;
-    const halfSize = bounding[axis] * mesh.scaling[axis];
 
+    const boundingBox = mesh.getBoundingInfo().boundingBox;
     const pivotSetting = pivotSettings[axis];
 
     if (pivotSetting === "CENTER") {
-      return mesh.position[axis]; // No adjustment for CENTER
+      return boundingBox.centerWorld[axis];
     } else if (pivotSetting === "MIN") {
-      return mesh.position[axis] - halfSize; 
+      return boundingBox.minimumWorld[axis];
     } else if (pivotSetting === "MAX") {
-      return mesh.position[axis] + halfSize;
+      return boundingBox.maximumWorld[axis];
     }
   },
 
@@ -285,10 +285,35 @@ export const flockAnimate = {
               const baseY = flockAnimate.getMeshPivotPosition(mesh2, "y");
               const baseZ = flockAnimate.getMeshPivotPosition(mesh2, "z");
 
+              const mesh2WorldMatrix = mesh2.getWorldMatrix();
+              const rotatedOffset = flock.BABYLON.Vector3.TransformNormal(
+                new flock.BABYLON.Vector3(offsetX, offsetY, offsetZ),
+                mesh2WorldMatrix,
+              );
+
+              const targetWorldPosition = new flock.BABYLON.Vector3(
+                baseX,
+                baseY,
+                baseZ,
+              ).add(rotatedOffset);
+
+              let targetPosition = targetWorldPosition;
+              if (mesh1.parent) {
+                const parentWorldMatrix = mesh1
+                  .parent
+                  .getWorldMatrix()
+                  .clone()
+                  .invert();
+                targetPosition = flock.BABYLON.Vector3.TransformCoordinates(
+                  targetWorldPosition,
+                  parentWorldMatrix,
+                );
+              }
+
               await flockAnimate.glideTo(meshName1, {
-                x: baseX + offsetX,
-                y: baseY + offsetY,
-                z: baseZ + offsetZ,
+                x: targetPosition.x,
+                y: targetPosition.y,
+                z: targetPosition.z,
                 duration,
                 reverse,
                 loop,
