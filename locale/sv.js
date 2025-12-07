@@ -1030,6 +1030,10 @@ export default {
       max_mesh_limit_reached:
         "⚠️ Gräns nådd: du kan bara ha {max} mesh i din värld.",
       high_memory_usage_warning: "Varning: hög minnesanvändning ({percent}%)",
+      physics_out_of_memory_log:
+        "Havok-fysiken avbröts, troligen på grund av minnesbrist.", // AI-generated; needs validation
+      physics_out_of_memory_banner_ui:
+        "Fysikmotorn fick slut på minne. Försök minska antalet fysikobjekt eller ladda om projektet.", // AI-generated; needs validation
       runtime_error_message: "Fel: {message}",
       xr_mode_message: "XR-läge!",
       fly_camera_instructions:

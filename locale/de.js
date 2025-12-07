@@ -891,6 +891,10 @@ export default {
   max_mesh_limit_reached:
     "⚠️ Limit erreicht: Du kannst nur {max} Meshes in deiner Welt haben.",
   high_memory_usage_warning: "Warnung: Hoher Speicherverbrauch ({percent}%)",
+  physics_out_of_memory_log:
+    "Havok-Physik wurde abgebrochen, wahrscheinlich wegen zu wenig Speicher.", // AI-generated; needs validation
+  physics_out_of_memory_banner_ui:
+    "Der Physik-Engine ging der Speicher aus. Reduziere die Anzahl der Physikobjekte oder lade dein Projekt neu.", // AI-generated; needs validation
   runtime_error_message: "Fehler: {message}",
   xr_mode_message: "XR-Modus!",
   fly_camera_instructions:

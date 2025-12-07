@@ -313,10 +313,7 @@ export const flock = {
                 }
 
                 flock.havokAbortHandled = true;
-                console.error(
-                        "Havok physics aborted, likely due to running out of memory.",
-                        error,
-                );
+                console.error(translate("physics_out_of_memory_log"), error);
 
                 try {
                         if (flock._renderLoop) {
@@ -339,8 +336,7 @@ export const flock = {
 
                 const banner = doc.createElement("div");
                 banner.id = warningId;
-                banner.textContent =
-                        "Physics engine ran out of memory. Try reducing the number of physics objects or reloading your project.";
+                banner.textContent = translate("physics_out_of_memory_banner_ui");
                 banner.style.position = "fixed";
                 banner.style.top = "0";
                 banner.style.left = "0";

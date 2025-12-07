@@ -899,12 +899,16 @@ export default {
                                       failed_to_read_file_alert: "Échec de lecture du fichier.",
 
                                       // UI status messages
-                                      max_mesh_limit_reached:
-                                        "⚠️ Limite atteinte: vous pouvez avoir seulement {max} maillages dans votre monde.",
-                                      high_memory_usage_warning:
-                                        "Avertissement: utilisation mémoire élevée ({percent}%)",
-                                      runtime_error_message: "Erreur: {message}",
-                                      xr_mode_message: "Mode XR !",
+  max_mesh_limit_reached:
+    "⚠️ Limite atteinte: vous pouvez avoir seulement {max} maillages dans votre monde.",
+  high_memory_usage_warning:
+    "Avertissement: utilisation mémoire élevée ({percent}%)",
+  physics_out_of_memory_log:
+    "La physique Havok s'est arrêtée, probablement par manque de mémoire.", // AI-generated; needs validation
+  physics_out_of_memory_banner_ui:
+    "Le moteur physique n'a plus de mémoire. Réduisez le nombre d'objets physiques ou rechargez votre projet.", // AI-generated; needs validation
+  runtime_error_message: "Erreur: {message}",
+  xr_mode_message: "Mode XR !",
                                       fly_camera_instructions:
                                         "ℹ️ Caméra en vol, utilisez les flèches et Page haut/bas",
                                       select_mesh_delete_prompt:
