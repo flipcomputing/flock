@@ -800,7 +800,16 @@ function resolveColorAndMaterialForBlock(block) {
   return { color, materialInfo };
 }
 
+// assumes getXYZFromBlock is imported / available in this module
+
 function handlePrimitiveGeometryChange(mesh, block, changed) {
+  if (!mesh || !block) return;
+
+  const repositionPrimitiveFromBlock = () => {
+    const { x, y, z } = getXYZFromBlock(block);
+    flock.positionAt(mesh.name, { x, y, z, useY: true });
+  };
+
   switch (block.type) {
     case "create_box": {
       if (["WIDTH", "HEIGHT", "DEPTH"].includes(changed)) {
@@ -816,7 +825,9 @@ function handlePrimitiveGeometryChange(mesh, block, changed) {
           .getInput("DEPTH")
           .connection.targetBlock()
           .getFieldValue("NUM");
+
         setAbsoluteSize(mesh, width, height, depth);
+        repositionPrimitiveFromBlock();
       }
       break;
     }
@@ -835,7 +846,9 @@ function handlePrimitiveGeometryChange(mesh, block, changed) {
           .getInput("DIAMETER_Z")
           .connection.targetBlock()
           .getFieldValue("NUM");
+
         setAbsoluteSize(mesh, dx, dy, dz);
+        repositionPrimitiveFromBlock();
       }
       break;
     }
@@ -862,7 +875,13 @@ function handlePrimitiveGeometryChange(mesh, block, changed) {
           .getInput("TESSELLATIONS")
           .connection.targetBlock()
           .getFieldValue("NUM");
+
         updateCylinderGeometry(mesh, dt, db, h, s);
+
+        // only reposition when actual dimensions change, not tessellation
+        if (["HEIGHT", "DIAMETER_TOP", "DIAMETER_BOTTOM"].includes(changed)) {
+          repositionPrimitiveFromBlock();
+        }
       }
       break;
     }
@@ -877,7 +896,9 @@ function handlePrimitiveGeometryChange(mesh, block, changed) {
           .getInput("HEIGHT")
           .connection.targetBlock()
           .getFieldValue("NUM");
+
         setAbsoluteSize(mesh, d, h, d);
+        repositionPrimitiveFromBlock();
       }
       break;
     }
@@ -892,7 +913,9 @@ function handlePrimitiveGeometryChange(mesh, block, changed) {
           .getInput("HEIGHT")
           .connection.targetBlock()
           .getFieldValue("NUM");
+
         setAbsoluteSize(mesh, w, h, 0);
+        repositionPrimitiveFromBlock();
       }
       break;
     }
@@ -945,6 +968,24 @@ function handleLoadBlockChange(mesh, block, changed, changeEvent) {
 
   return false;
 }
+
+// Utility: read X/Y/Z numeric inputs from a Blockly block
+function getXYZFromBlock(block) {
+  if (!block) return { x: null, y: null, z: null };
+
+  const getNum = (inputName) => {
+    const input = block.getInput(inputName);
+    const targetBlock = input?.connection?.targetBlock();
+    return targetBlock?.getFieldValue("NUM");
+  };
+
+  return {
+    x: getNum("X"),
+    y: getNum("Y"),
+    z: getNum("Z"),
+  };
+}
+
 
 export function updateMeshFromBlock(mesh, block, changeEvent) {
   
@@ -1135,12 +1176,6 @@ export function updateMeshFromBlock(mesh, block, changeEvent) {
         ? parent
         : block;
 
-    const getXYZFromBlock = (b) => ({
-      x: b.getInput("X")?.connection?.targetBlock()?.getFieldValue("NUM"),
-      y: b.getInput("Y")?.connection?.targetBlock()?.getFieldValue("NUM"),
-      z: b.getInput("Z")?.connection?.targetBlock()?.getFieldValue("NUM"),
-    });
-
     // --- rotate_to: allow gizmo / non-field events ---
     if (contextBlock.type === "rotate_to") {
       const rotation = getXYZFromBlock(contextBlock);
@@ -1209,7 +1244,6 @@ export function updateMeshFromBlock(mesh, block, changeEvent) {
     if (flock.meshDebug) console.log("Position", position, block.type);
     flock.positionAt(mesh.name, { ...position, useY: true });
   }
-
 
   flock.updatePhysics(mesh);
 
