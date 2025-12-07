@@ -20,138 +20,186 @@ import {
 import { flock } from "../flock.js";
 
 function createSceneColorBlock(config) {
-  return {
-    init: function () {
-      const args0 = [];
+        return {
+                init: function () {
+                        const args0 = [];
 
-      if (config.hasDropdown) {
-        args0.push({
-          type: "field_dropdown",
-          name: "MAP_NAME",
-          options: [[getOption("FLAT"), "NONE"]].concat(mapNames()),
-        });
-      }
+                        if (config.hasDropdown) {
+                                args0.push({
+                                        type: "field_dropdown",
+                                        name: "MAP_NAME",
+                                        options: [
+                                                [getOption("FLAT"), "NONE"],
+                                        ].concat(mapNames()),
+                                });
+                        }
 
-      args0.push({
-        type: "input_value",
-        name: config.inputName || "COLOR",
-        colour: config.inputColor,
-        check: config.check || ["Colour", "Array", "Material"],
-      });
+                        args0.push({
+                                type: "input_value",
+                                name: config.inputName || "COLOR",
+                                colour: config.inputColor,
+                                check: config.check || [
+                                        "Colour",
+                                        "Array",
+                                        "Material",
+                                ],
+                        });
 
-      this.jsonInit({
-        type: config.type,
-        message0: translate(config.type),
-        args0: args0,
-        previousStatement: null,
-        nextStatement: null,
-        inputsInline: true,
-        colour: categoryColours["Scene"],
-        tooltip: getTooltip(config.type),
-      });
+                        this.jsonInit({
+                                type: config.type,
+                                message0: translate(config.type),
+                                args0: args0,
+                                previousStatement: null,
+                                nextStatement: null,
+                                inputsInline: true,
+                                colour: categoryColours["Scene"],
+                                tooltip: getTooltip(config.type),
+                        });
 
-      this.setHelpUrl(getHelpUrlFor(this.type));
-      this.setStyle("scene_blocks");
+                        this.setHelpUrl(getHelpUrlFor(this.type));
+                        this.setStyle("scene_blocks");
 
-      // --- NEW onChange logic modelled on create_map ---
+                        // --- NEW onChange logic modelled on create_map ---
 
-      let debounceTimer = null;
-      const ws = this.workspace;
+                        let debounceTimer = null;
+                        const ws = this.workspace;
 
-      const runtimeReady = () =>
-        typeof window !== "undefined" &&
-        window.flock &&
-        flock.BABYLON &&
-        flock.scene;
+                        const runtimeReady = () =>
+                                typeof window !== "undefined" &&
+                                window.flock &&
+                                flock.BABYLON &&
+                                flock.scene;
 
-      const inSubtree = (rootBlock, id) => {
-        if (!id) return false;
-        const b = ws.getBlockById(id);
-        if (!b) return false;
-        if (b === rootBlock) return true;
-        return rootBlock.getDescendants(false).some((x) => x.id === b.id);
-      };
+                        const inSubtree = (rootBlock, id) => {
+                                if (!id) return false;
+                                const b = ws.getBlockById(id);
+                                if (!b) return false;
+                                if (b === rootBlock) return true;
+                                return rootBlock
+                                        .getDescendants(false)
+                                        .some((x) => x.id === b.id);
+                        };
 
-      const runAfterLayout = (evt) => {
-        // Let Blockly finalise connections first
-        Promise.resolve().then(() => {
-          requestAnimationFrame(() => {
-            if (!runtimeReady()) return;
+                        const runAfterLayout = (evt) => {
+                                // Let Blockly finalise connections first
+                                Promise.resolve().then(() => {
+                                        requestAnimationFrame(() => {
+                                                if (!runtimeReady()) return;
 
-            const colorInputName = config.inputName || "COLOR";
-            const colorBlock = this.getInputTargetBlock(colorInputName);
+                                                const colorInputName =
+                                                        config.inputName ||
+                                                        "COLOR";
+                                                const colorBlock =
+                                                        this.getInputTargetBlock(
+                                                                colorInputName,
+                                                        );
 
-            // (No de-shadowing logic here unless you want colour shadows too)
+                                                // (No de-shadowing logic here unless you want colour shadows too)
 
-            if (config.useMeshLifecycle) {
-              if (typeof handleMeshLifecycleChange === "function") {
-                if (handleMeshLifecycleChange(this, evt)) return;
-              }
-              if (typeof handleFieldOrChildChange === "function") {
-                if (handleFieldOrChildChange(this, evt)) return;
-              }
-            }
+                                                if (config.useMeshLifecycle) {
+                                                        if (
+                                                                typeof handleMeshLifecycleChange ===
+                                                                "function"
+                                                        ) {
+                                                                if (
+                                                                        handleMeshLifecycleChange(
+                                                                                this,
+                                                                                evt,
+                                                                        )
+                                                                )
+                                                                        return;
+                                                        }
+                                                        if (
+                                                                typeof handleFieldOrChildChange ===
+                                                                "function"
+                                                        ) {
+                                                                if (
+                                                                        handleFieldOrChildChange(
+                                                                                this,
+                                                                                evt,
+                                                                        )
+                                                                )
+                                                                        return;
+                                                        }
+                                                }
 
-            if (typeof updateOrCreateMeshFromBlock === "function") {
-              updateOrCreateMeshFromBlock(this, evt);
-            }
-          });
-        });
-      };
+                                                if (
+                                                        typeof updateOrCreateMeshFromBlock ===
+                                                        "function"
+                                                ) {
+                                                        updateOrCreateMeshFromBlock(
+                                                                this,
+                                                                evt,
+                                                        );
+                                                }
+                                        });
+                                });
+                        };
 
-      this.setOnChange((evt) => {
-        const eventTypes = config.listenToMove
-          ? [
-              Blockly.Events.BLOCK_CREATE,
-              Blockly.Events.BLOCK_CHANGE,
-              Blockly.Events.BLOCK_MOVE,
-              Blockly.Events.BLOCK_DELETE,
-              Blockly.Events.UI, // dragStop path
-            ]
-          : [
-              Blockly.Events.BLOCK_CREATE,
-              Blockly.Events.BLOCK_CHANGE,
-              Blockly.Events.BLOCK_DELETE,
-              Blockly.Events.UI,
-            ];
+                        this.setOnChange((evt) => {
+                                const eventTypes = config.listenToMove
+                                        ? [
+                                                  Blockly.Events.BLOCK_CREATE,
+                                                  Blockly.Events.BLOCK_CHANGE,
+                                                  Blockly.Events.BLOCK_MOVE,
+                                                  Blockly.Events.BLOCK_DELETE,
+                                                  Blockly.Events.UI, // dragStop path
+                                          ]
+                                        : [
+                                                  Blockly.Events.BLOCK_CREATE,
+                                                  Blockly.Events.BLOCK_CHANGE,
+                                                  Blockly.Events.BLOCK_DELETE,
+                                                  Blockly.Events.UI,
+                                          ];
 
-        if (!eventTypes.includes(evt.type)) return;
+                                if (!eventTypes.includes(evt.type)) return;
 
-        if (flock.eventDebug && config.debugEvents) {
-          console.log("scene color onchange", {
-            sceneBlockType: this.type,
-            evtType: evt.type,
-            blockId: evt.blockId,
-            element: evt.element,
-          });
-        }
+                                if (flock.eventDebug && config.debugEvents) {
+                                        console.log("scene color onchange", {
+                                                sceneBlockType: this.type,
+                                                evtType: evt.type,
+                                                blockId: evt.blockId,
+                                                element: evt.element,
+                                        });
+                                }
 
-        const colorInputName = config.inputName || "COLOR";
+                                const colorInputName =
+                                        config.inputName || "COLOR";
 
-        const touchesScene = (id) => {
-          if (!id) return false;
-          if (id === this.id) return true; // direct change to this block
+                                const touchesScene = (id) => {
+                                        if (!id) return false;
+                                        if (id === this.id) return true; // direct change to this block
 
-          const colorBlock = this.getInputTargetBlock(colorInputName);
-          if (!colorBlock) return false;
+                                        const colorBlock =
+                                                this.getInputTargetBlock(
+                                                        colorInputName,
+                                                );
+                                        if (!colorBlock) return false;
 
-          return inSubtree(colorBlock, id);
+                                        return inSubtree(colorBlock, id);
+                                };
+
+                                const relevant =
+                                        touchesScene(evt.blockId) ||
+                                        (Array.isArray(evt.ids) &&
+                                                evt.ids.some((id) =>
+                                                        touchesScene(id),
+                                                )) ||
+                                        touchesScene(evt.newParentId) ||
+                                        touchesScene(evt.oldParentId) ||
+                                        (evt.type === Blockly.Events.UI &&
+                                                evt.element === "dragStop");
+
+                                if (!relevant) return;
+
+                                if (debounceTimer) clearTimeout(debounceTimer);
+                                debounceTimer = setTimeout(
+                                        () => runAfterLayout(evt),
+                                        30,
+                                );
+                        });
+                },
         };
-
-        const relevant =
-          touchesScene(evt.blockId) ||
-          (Array.isArray(evt.ids) && evt.ids.some((id) => touchesScene(id))) ||
-          touchesScene(evt.newParentId) ||
-          touchesScene(evt.oldParentId) ||
-          (evt.type === Blockly.Events.UI && evt.element === "dragStop");
-
-        if (!relevant) return;
-
-        if (debounceTimer) clearTimeout(debounceTimer);
-        debounceTimer = setTimeout(() => runAfterLayout(evt), 30);
-      });
-    },
-  };
 }
 
 export function defineSceneBlocks() {
@@ -181,7 +229,9 @@ export function defineSceneBlocks() {
                         args0.push({
                                 type: "field_dropdown",
                                 name: "MAP_NAME",
-                                options: [[getOption("FLAT"), "NONE"]].concat(mapNames()),
+                                options: [[getOption("FLAT"), "NONE"]].concat(
+                                        mapNames(),
+                                ),
                         });
 
                         args0.push({
@@ -259,31 +309,78 @@ export function defineSceneBlocks() {
                                                 // `flock.materialsDebug` / `flock.texturePath` undefined errors.
                                                 if (!runtimeReady()) return;
 
-                                                const mat = this.getInputTargetBlock("MATERIAL");
+                                                const mat =
+                                                        this.getInputTargetBlock(
+                                                                "MATERIAL",
+                                                        );
 
                                                 // De-shadow only when editing inside the material subtree.
-                                                if (mat && mat.isShadow && mat.isShadow()) {
+                                                if (
+                                                        mat &&
+                                                        mat.isShadow &&
+                                                        mat.isShadow()
+                                                ) {
                                                         const touchesMat =
-                                                                inSubtree(mat, evt.blockId) ||
-                                                                inSubtree(mat, evt.newParentId) ||
-                                                                inSubtree(mat, evt.oldParentId);
-                                                        if (touchesMat) mat.setShadow(false);
+                                                                inSubtree(
+                                                                        mat,
+                                                                        evt.blockId,
+                                                                ) ||
+                                                                inSubtree(
+                                                                        mat,
+                                                                        evt.newParentId,
+                                                                ) ||
+                                                                inSubtree(
+                                                                        mat,
+                                                                        evt.oldParentId,
+                                                                );
+                                                        if (touchesMat)
+                                                                mat.setShadow(
+                                                                        false,
+                                                                );
                                                 }
 
                                                 // If MATERIAL cleared entirely, respawn default shadow.
-                                                if (!this.getInputTargetBlock("MATERIAL")) {
+                                                if (
+                                                        !this.getInputTargetBlock(
+                                                                "MATERIAL",
+                                                        )
+                                                ) {
                                                         respawnMaterialShadow();
                                                 }
 
                                                 // Update pipeline (only when runtime is ready)
-                                                if (typeof handleMeshLifecycleChange === "function") {
-                                                        if (handleMeshLifecycleChange(this, evt)) return;
+                                                if (
+                                                        typeof handleMeshLifecycleChange ===
+                                                        "function"
+                                                ) {
+                                                        if (
+                                                                handleMeshLifecycleChange(
+                                                                        this,
+                                                                        evt,
+                                                                )
+                                                        )
+                                                                return;
                                                 }
-                                                if (typeof handleFieldOrChildChange === "function") {
-                                                        if (handleFieldOrChildChange(this, evt)) return;
+                                                if (
+                                                        typeof handleFieldOrChildChange ===
+                                                        "function"
+                                                ) {
+                                                        if (
+                                                                handleFieldOrChildChange(
+                                                                        this,
+                                                                        evt,
+                                                                )
+                                                        )
+                                                                return;
                                                 }
-                                                if (typeof updateOrCreateMeshFromBlock === "function") {
-                                                        updateOrCreateMeshFromBlock(this, evt);
+                                                if (
+                                                        typeof updateOrCreateMeshFromBlock ===
+                                                        "function"
+                                                ) {
+                                                        updateOrCreateMeshFromBlock(
+                                                                this,
+                                                                evt,
+                                                        );
                                                 }
                                         });
                                 });
@@ -304,16 +401,28 @@ export function defineSceneBlocks() {
                                         if (!id) return false;
                                         if (id === this.id) return true;
 
-                                        const matBlock = this.getInputTargetBlock("MATERIAL");
+                                        const matBlock =
+                                                this.getInputTargetBlock(
+                                                        "MATERIAL",
+                                                );
                                         if (!matBlock) return false;
 
                                         return inSubtree(matBlock, id);
                                 };
 
+                                const wasThisBlockDeleted =
+                                        evt.type ===
+                                                Blockly.Events.BLOCK_DELETE &&
+                                        Array.isArray(evt.ids) &&
+                                        evt.ids.includes(this.id);
+
                                 const relevant =
+                                        wasThisBlockDeleted ||
                                         touchesMap(evt.blockId) ||
                                         (Array.isArray(evt.ids) &&
-                                                evt.ids.some((id) => touchesMap(id))) ||
+                                                evt.ids.some((id) =>
+                                                        touchesMap(id),
+                                                )) ||
                                         touchesMap(evt.newParentId) ||
                                         touchesMap(evt.oldParentId) ||
                                         (evt.type === Blockly.Events.UI &&
@@ -321,8 +430,13 @@ export function defineSceneBlocks() {
 
                                 if (!relevant) return;
 
+                                if (!relevant) return;
+
                                 if (debounceTimer) clearTimeout(debounceTimer);
-                                debounceTimer = setTimeout(() => runAfterLayout(evt), 30);
+                                debounceTimer = setTimeout(
+                                        () => runAfterLayout(evt),
+                                        30,
+                                );
                         });
                 },
         };
@@ -400,7 +514,8 @@ export function defineSceneBlocks() {
                 init: function () {
                         const variableNamePrefix = "clone";
                         let nextVariableName =
-                                variableNamePrefix + nextVariableIndexes[variableNamePrefix];
+                                variableNamePrefix +
+                                nextVariableIndexes[variableNamePrefix];
 
                         this.jsonInit({
                                 message0: translate("clone_mesh"),
