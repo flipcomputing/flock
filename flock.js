@@ -2583,6 +2583,11 @@ export const flock = {
         announceMeshReady(meshName, groupName) {
                 //console.log(`[flock] Mesh ready: ${meshName} (group: ${groupName})`);
 
+                const getGroupRoot = (name) =>
+                        name.includes("__")
+                                ? name.split("__")[0]
+                                : name.split("_")[0];
+
                 if (!flock.pendingTriggers.has(groupName)) return;
 
                 //console.log(`[flock] Registering pending triggers for group: '${groupName}'`);
@@ -2593,15 +2598,15 @@ export const flock = {
                         callback,
                         mode,
                         applyToGroup,
-                } of triggers) {
-                        if (applyToGroup) {
-                                // 🔁 Reapply trigger across all matching meshes
-                                const matching = flock.scene.meshes.filter(
-                                        (m) => m.name.startsWith(groupName),
-                                );
-                                for (const m of matching) {
-                                        flock.onTrigger(m.name, {
-                                                trigger,
+                        } of triggers) {
+                                if (applyToGroup) {
+                                        // 🔁 Reapply trigger across all matching meshes
+                                        const matching = flock.scene.meshes.filter(
+                                                (m) => getGroupRoot(m.name) === groupName,
+                                        );
+                                        for (const m of matching) {
+                                                flock.onTrigger(m.name, {
+                                                        trigger,
                                                 callback,
                                                 mode,
                                                 applyToGroup: false, // prevent recursion

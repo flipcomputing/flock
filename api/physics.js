@@ -294,9 +294,10 @@ export const flockPhysics = {
     meshName,
     { trigger, callback, mode = "wait", applyToGroup = false },
   ) {
-    const groupName = meshName.includes("__")
-      ? meshName.split("__")[0]
-      : meshName.split("_")[0];
+    const getGroupRoot = (name) =>
+      name.includes("__") ? name.split("__")[0] : name.split("_")[0];
+
+    const groupName = getGroupRoot(meshName);
 
     // 🛡 Scene not ready yet – queue for later
     if (!flock.scene) {
@@ -317,13 +318,14 @@ export const flockPhysics = {
       let matchingButtons = [];
       if (flock.scene.UITexture) {
         matchingButtons = flock.scene.UITexture._rootContainer._children.filter(
-          (control) => control.name && control.name.startsWith(groupName),
+          (control) =>
+            control.name && getGroupRoot(control.name) === groupName,
         );
       }
 
       // Check for 3D meshes
-      const matching = flock.scene.meshes.filter((m) =>
-        m.name.startsWith(groupName),
+      const matching = flock.scene.meshes.filter(
+        (m) => getGroupRoot(m.name) === groupName,
       );
 
       // Apply to existing GUI buttons
