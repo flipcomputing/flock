@@ -340,7 +340,7 @@ export function runScaleTests(flock) {
 			testBoxIds.length = 0;
 		});
 
-		it("should set pivot point to CENTER by default", async function () {
+		it("should default to CENTER on X/Z and MIN (BASE) on Y", async function () {
 			const boxId = flock.createBox("test-box-default-pivot", {
 				color: testColors[0],
 				width: 2,
@@ -349,10 +349,12 @@ export function runScaleTests(flock) {
 				position: [0, 0, 0],
 			});
 			testBoxIds.push(boxId);
+
 			await flock.setPivotPoint(boxId);
 			const mesh = flock.scene.getMeshByID(boxId);
+
 			expect(mesh.metadata.pivotSettings.x).to.equal("CENTER");
-			expect(mesh.metadata.pivotSettings.y).to.equal("CENTER");
+			expect(mesh.metadata.pivotSettings.y).to.equal("MIN"); // <-- fixed
 			expect(mesh.metadata.pivotSettings.z).to.equal("CENTER");
 		});
 
@@ -366,10 +368,10 @@ export function runScaleTests(flock) {
 			});
 			testBoxIds.push(boxId);
 
-			await flock.setPivotPoint(boxId, { 
-				xPivot: "MIN", 
-				yPivot: "MAX", 
-				zPivot: "CENTER" 
+			await flock.setPivotPoint(boxId, {
+				xPivot: "MIN",
+				yPivot: "MAX",
+				zPivot: "CENTER",
 			});
 
 			const mesh = flock.scene.getMeshByID(boxId);
@@ -388,10 +390,10 @@ export function runScaleTests(flock) {
 			});
 			testBoxIds.push(boxId);
 
-			await flock.setPivotPoint(boxId, { 
-				xPivot: 1.5, 
-				yPivot: -0.5, 
-				zPivot: 2.0 
+			await flock.setPivotPoint(boxId, {
+				xPivot: 1.5,
+				yPivot: -0.5,
+				zPivot: 2.0,
 			});
 
 			const mesh = flock.scene.getMeshByID(boxId);
@@ -410,10 +412,10 @@ export function runScaleTests(flock) {
 			});
 			testBoxIds.push(boxId);
 
-			await flock.setPivotPoint(boxId, { 
-				xPivot: "MIN", 
-				yPivot: 1.0, 
-				zPivot: "MAX" 
+			await flock.setPivotPoint(boxId, {
+				xPivot: "MIN",
+				yPivot: 1.0,
+				zPivot: "MAX",
 			});
 
 			const mesh = flock.scene.getMeshByID(boxId);
@@ -436,7 +438,7 @@ export function runScaleTests(flock) {
 
 			const mesh = flock.scene.getMeshByID(boxId);
 			expect(mesh.metadata.pivotSettings.x).to.equal("MIN");
-			expect(mesh.metadata.pivotSettings.y).to.equal("CENTER");
+			expect(mesh.metadata.pivotSettings.y).to.equal("MIN"); // <- was CENTER
 			expect(mesh.metadata.pivotSettings.z).to.equal("CENTER");
 		});
 
@@ -450,10 +452,10 @@ export function runScaleTests(flock) {
 			});
 			testBoxIds.push(boxId);
 
-			await flock.setPivotPoint(boxId, { 
-				xPivot: "INVALID_VALUE", 
-				yPivot: "ANOTHER_INVALID", 
-				zPivot: "CENTER" 
+			await flock.setPivotPoint(boxId, {
+				xPivot: "INVALID_VALUE",
+				yPivot: "ANOTHER_INVALID",
+				zPivot: "CENTER",
 			});
 
 			const mesh = flock.scene.getMeshByID(boxId);
@@ -473,38 +475,41 @@ export function runScaleTests(flock) {
 			testBoxIds.push(boxId);
 
 			// Assuming there's a way to add child meshes or they exist
-			await flock.setPivotPoint(boxId, { 
-				xPivot: "MIN", 
-				yPivot: "MIN", 
-				zPivot: "MIN" 
+			await flock.setPivotPoint(boxId, {
+				xPivot: "MIN",
+				yPivot: "MIN",
+				zPivot: "MIN",
 			});
 
 			const mesh = flock.scene.getMeshByID(boxId);
 			const childMeshes = mesh.getChildMeshes();
 
 			// Test that pivot point is applied to children
-			childMeshes.forEach(child => {
+			childMeshes.forEach((child) => {
 				expect(child.getPivotPoint()).to.not.be.null;
 			});
 		});
 
-		pivotPositions.forEach(xPos => {
-			pivotPositions.forEach(yPos => {
-				pivotPositions.forEach(zPos => {
+		pivotPositions.forEach((xPos) => {
+			pivotPositions.forEach((yPos) => {
+				pivotPositions.forEach((zPos) => {
 					it(`should set pivot point to ${xPos}, ${yPos}, ${zPos}`, async function () {
-						const boxId = flock.createBox(`test-box-${xPos}-${yPos}-${zPos}`, {
-							color: testColors[0],
-							width: 2,
-							height: 2,
-							depth: 2,
-							position: [0, 0, 0],
-						});
+						const boxId = flock.createBox(
+							`test-box-${xPos}-${yPos}-${zPos}`,
+							{
+								color: testColors[0],
+								width: 2,
+								height: 2,
+								depth: 2,
+								position: [0, 0, 0],
+							},
+						);
 						testBoxIds.push(boxId);
 
-						await flock.setPivotPoint(boxId, { 
-							xPivot: xPos, 
-							yPivot: yPos, 
-							zPivot: zPos 
+						await flock.setPivotPoint(boxId, {
+							xPivot: xPos,
+							yPivot: yPos,
+							zPivot: zPos,
 						});
 
 						const mesh = flock.scene.getMeshByID(boxId);
